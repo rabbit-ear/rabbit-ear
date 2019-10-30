@@ -1,4 +1,4 @@
-import { possibleFoldObject } from "../fold/validate";
+import { possibleFoldObject } from "../FOLD/validate";
 import window from "../environment/window";
 
 const possibleFileName = function (string) {

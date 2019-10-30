@@ -24,7 +24,7 @@ for (var i = 0; i < params.length; i++) {
 	// let vector = re.vector(Math.random(), Math.random());
 	let point = params[i].point;
 	let vector = params[i].vector;
-	let stay = re.vector(Math.random(), Math.random());
+	let stay = RabbitEar.vector(Math.random(), Math.random());
 	valleys.cp.valleyFold(point, vector, 0);//stay);
 	// console.log(point, vector);
 }

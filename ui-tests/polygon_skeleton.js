@@ -1,4 +1,4 @@
-let polySec = RabbitEar.svg.image("canvas-origami-molecule", 500, 500);
+let polySec = RabbitEar.svg("canvas-origami-molecule", 500, 500);
 
 polySec.setup = function() {
 	polySec.STROKE_WIDTH = polySec.w * 0.015;
@@ -126,7 +126,7 @@ polySec.buildMolecule = function(polygon) {
 
 polySec.redraw = function(){
 	polySec.drawLayer.removeChildren();
-	polySec.poly = RabbitEar.ConvexPolygon.convexHull(polySec.touches.map(t => t.position));
+	polySec.poly = RabbitEar.convexPolygon.convexHull(polySec.touches.map(t => t.position));
 
 	let pointsString = polySec.poly.points
 		.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");

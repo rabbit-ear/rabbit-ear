@@ -9,7 +9,7 @@ test("boundaries", () => {
   const lineClip = square.boundaries.clipLine([[0.5, 0.5], [0.1, -0.5]]);
   // [0.6, 0]
   // [0.4, 1]
-  console.log("rayClip", rayClip);
-  console.log("lineClip", lineClip);
+  // console.log("rayClip", rayClip);
+  // console.log("lineClip", lineClip);
   expect(1).toBe(1);
 });

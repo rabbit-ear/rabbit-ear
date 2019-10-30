@@ -1,5 +1,6 @@
 const { RabbitEar } = window;
-const origami = RabbitEar.Origami("origami-cp", { padding: 0.05, diagram: true });
+const patternStyle = `.creasePattern .valley { stroke: black; }`;
+const origami = RabbitEar.Origami("origami-cp", { padding: 0.05, diagram: true, style: patternStyle });
 const folded = RabbitEar.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
 
 folded.fold();
@@ -7,12 +8,12 @@ folded.fold();
 const languages = ["ar", "de", "en", "es", "fr", "hi", "jp", "ko", "ms", "pt", "ru", "tr", "zh"];
 let language = languages.indexOf("en");
 
-origami.markLayer = RabbitEar.draw.svg.group();
+origami.markLayer = RabbitEar.svg.group();
 origami.svg.appendChild(origami.markLayer);
 origami.markLayer.setAttribute("pointer-events", "none");
 // origami.svg.insertBefore(origami.markLayer,
 //   origami.svg.querySelectorAll(".boundaries")[0].nextSibling);
-origami.svg.controls = RabbitEar.draw.svg.controls(origami.svg, 0);
+origami.svg.controls = RabbitEar.svg.controls(origami.svg, 0);
 
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results

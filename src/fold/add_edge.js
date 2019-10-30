@@ -1,6 +1,6 @@
 import math from "../../include/math";
 import { vertices_count } from "./query";
-import { apply_run_diff } from "../frames/run_frame";
+import { apply_run_diff } from "./frames/run_frame";
 
 // used to be called CreaseSegment
 

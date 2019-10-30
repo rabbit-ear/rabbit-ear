@@ -14,7 +14,8 @@
 const origami = RabbitEar.Origami({ padding: 0.05 });
 origami.vertices.visible = true;
 
-fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
+// fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
+fetch("../../files/svg/crane.svg").then(blob => blob.text()).then(svg => origami.load(svg));
 
 origami.svg.onMouseMove = function (event) {
   /** highlight */

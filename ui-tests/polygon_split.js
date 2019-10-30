@@ -1,4 +1,4 @@
-let polySplit = RabbitEar.svg.image("canvas-split-poly", 500, 500);
+let polySplit = RabbitEar.svg("canvas-split-poly", 500, 500);
 
 polySplit.STROKE_WIDTH = polySplit.w * 0.0125;
 polySplit.RADIUS = polySplit.w * 0.025;
@@ -33,7 +33,7 @@ polySplit.rebuildHull = function(){
 		let r = Math.random() * polySplit.h*0.5;
 		return [polySplit.w*0.5 + r*Math.cos(a), polySplit.h*0.5 + r*Math.sin(a)];
 	});
-	polySplit.hull = RabbitEar.ConvexPolygon.convexHull(hullPoints);
+	polySplit.hull = RabbitEar.convexPolygon.convexHull(hullPoints);
 
 	let pointsString = polySplit.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	polySplit.polygon.setAttribute("points", pointsString);

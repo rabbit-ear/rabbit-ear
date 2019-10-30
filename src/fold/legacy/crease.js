@@ -1,5 +1,5 @@
-import math from "../../include/math";
-import split_convex_polygon from "../graph/splitFace";
+import math from "../../../include/math";
+import split_convex_polygon from "../split_face";
 // import * as Makers from "../graph/makers";
 
 export function add_edge_between_points(graph, x0, y0, x1, y1) {

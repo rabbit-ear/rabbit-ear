@@ -1,7 +1,7 @@
 let vecSketchCallback;
 
 let vec;
-vec = RabbitEar.svg.image("canvas-vector", window.innerWidth, window.innerHeight, function(){
+vec = RabbitEar.svg("canvas-vector", window.innerWidth, window.innerHeight, function(){
 	if(vec != null) {
 		vec.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
 		vec.reset();
@@ -28,7 +28,7 @@ vec.reset = function(){
 vec.recalc = function(){
 	let center = [0, 0];
 	let vecpts = vec.touches[0].pos.map((v,i) => v - center[i]);
-	vec.v = re.vector(vecpts);
+	vec.v = RabbitEar.vector(vecpts);
 	vec.normalized = vec.v.normalize().scale(200);
 	vec.cross = vec.v.cross([0,0,1]);
 	vec.dotX = vec.v.dot([1,0,0]);

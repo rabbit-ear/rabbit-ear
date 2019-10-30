@@ -18,7 +18,7 @@ const strip_graft = function(graph, graft_scale) {//func) {
 			// get vector from parent to child
 			let parent_center = faces_centroids[f.parent];
 			let face_center = faces_centroids[f.face];
-			let faces_vec = re.vector(
+			let faces_vec = RabbitEar.vector(
 				face_center[0] - parent_center[0],
 				face_center[1] - parent_center[1]
 			);
@@ -26,7 +26,7 @@ const strip_graft = function(graph, graft_scale) {//func) {
 			// get vector from parent to child, perpendicular to the shared edge
 			let p0 = graph.vertices_coords[f.edge[0]];
 			let p1 = graph.vertices_coords[f.edge[1]];
-			let edgeVec = re.vector(p0[0] - p1[0], p0[1] - p1[1]);
+			let edgeVec = RabbitEar.vector(p0[0] - p1[0], p0[1] - p1[1]);
 			let vec0 = edgeVec.rotateZ90();
 			let vec1 = edgeVec.rotateZ270();
 

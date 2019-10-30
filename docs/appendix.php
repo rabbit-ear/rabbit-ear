@@ -2,6 +2,74 @@
 
 <h1>APPENDIX</h1>
 
+<section id="types">
+	<h3>Contents</h3>
+	<!-- <p>This library contains a growing list of about ten primitives.</p> -->
+	<div class="centered code">
+		<pre class="compact"><code><f>RabbitEar</f>
+┃
+┣━ <v>Vector</v>
+┣━ <v>Matrix</v>
+┣━ <v>Line</v>
+┣━ <v>Ray</v>
+┣━ <v>Edge</v>
+┣━ <v>Junction</v>
+┣━ <v>Sector</v>
+┣━ <v>Rectangle</v>
+┣━ <v>Circle</v>
+┣━ <v>Polygon</v>
+┣━ <v>ConvexPolygon</v>
+┗━ math</code></pre>
+	</div>
+
+	<p>The top level contains math objects. These are intended to be convient to the coder. The core contains a lot of the actual algorithms built for speed, it's not mean to be convient.</p>
+
+	<div class="centered code">
+		<pre class="compact"><code><f>RabbitEar</f>.math
+┃
+┣━ <v>average</v>
+┣━ <v>bisect_lines2</v>
+┣━ <v>bisect_vectors</v>
+┣━ <v>centroid</v>
+┣━ <v>clockwise_angle2</v>
+┣━ <v>convex_hull</v>
+┣━ <v>convex_polygon_is_enclosed</v>
+┣━ <v>convex_polygons_enclose</v>
+┣━ <v>convex_polygons_overlap</v>
+┣━ <v>counter_clockwise_angle2</v>
+┣━ <v>cross</v>
+┣━ <v>degenerate</v>
+┣━ <v>distance</v>
+┣━ <v>dot</v>
+┣━ <v>enclosing_rectangle</v>
+┣━ <v>equivalent</v>
+┣━ <v>interior_angles</v>
+┣━ <v>intersection</v>
+┣━ <v>is_counter_clockwise_between</v>
+┣━ <v>magnitude</v>
+┣━ <v>make_regular_polygon</v>
+┣━ <v>midpoint2</v>
+┣━ <v>nearest_point</v>
+┣━ <v>normalize</v>
+┣━ <v>parallel</v>
+┣━ <v>point_in_poly</v>
+┣━ <v>point_in_convex_poly</v>
+┣━ <v>point_in_convex_poly_exclusive</v>
+┣━ <v>point_on_line</v>
+┣━ <v>point_on_segment</v>
+┣━ <v>segment_segment_overlap</v>
+┣━ <v>signed_area</v>
+┣━ <v>split_convex_polygon</v>
+┣━ <v>split_polygon</v>
+┣━ <v>subsect</v>
+┣━ <v>transpose_matrix4</v>
+┗━ ...</code></pre>
+</div>
+
+
+</section>
+
+
 <h2 id="svg">SVG</h2>
 
 insert cool svg interactive thing

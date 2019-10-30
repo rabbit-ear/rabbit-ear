@@ -1,4 +1,4 @@
-let sketch = RabbitEar.svg.image("sketch");
+let sketch = RabbitEar.svg("sketch");
 
 let points = sketch.makeTouchPoints(10);
 

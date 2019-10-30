@@ -1,6 +1,6 @@
 import math from "../../include/math";
 import split_edge from "./split_edge";
-import { merge_maps } from "../frames/diff";
+import { merge_maps } from "./frames/diff";
 import { edge_assignment_to_foldAngle } from "./keys";
 import remove from "./remove";
 

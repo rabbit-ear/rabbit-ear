@@ -1,6 +1,6 @@
 import drawFOLD from "../../include/fold-draw";
 import ORIPA from "../../include/fold/oripa";
-import SVGtoFOLD from "../../include/tofold/src/index";
+import SVGtoFOLD from "../../include/tofold/src";
 // const SVGtoFOLD = window.tofold || require("tofold");
 
 const from_to = function (data, from, to, ...args) {

@@ -8,6 +8,7 @@ origami.fold();
 
 // const patternStyle = `.boundary{fill:white;}`;
 const patternStyle = `
+.creasePattern .boundary,
 .creasePattern .mountain,
 .creasePattern .valley {
   stroke: white;

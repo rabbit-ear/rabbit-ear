@@ -1,6 +1,6 @@
 let circlePack;
 let cirPPad = 6;
-circlePack = RabbitEar.svg.image("canvas-circle-packing", 500, 500, function(){
+circlePack = RabbitEar.svg("canvas-circle-packing", 500, 500, function(){
 	if (circlePack !== undefined) {
 		circlePack.setViewBox(-cirPPad,-cirPPad,500+2*cirPPad,500+2*cirPPad);
 	}
@@ -25,7 +25,7 @@ r.setAttribute("stroke", "black");
 circlePack.drawLayer = circlePack.group();
 
 circlePack.circles = Array.from(Array(12))
-	.map(_ => re.circle(0, 0, 0));
+	.map(_ => RabbitEar.circle(0, 0, 0));
 circlePack.circles
 	.forEach(c => c.svg = circlePack.circleLayer.circle(0, 0, 0));
 
@@ -87,7 +87,7 @@ circlePack.analyze = function() {
 	circlePack.drawLayer.removeChildren();
 
 
-	circlePack.vectors = Array.from(Array(12)).map(_ => re.vector(0,0));
+	circlePack.vectors = Array.from(Array(12)).map(_ => RabbitEar.vector(0,0));
 	let pos_neg = [0,0];
 	let global_negative = 0;
 	for (let i = 0; i < 12; i++) {

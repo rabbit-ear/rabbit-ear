@@ -1,6 +1,6 @@
 var nearestPointCallback;
 
-let nearestPoint = RabbitEar.svg.image("nearest-point", 600, 300);
+let nearestPoint = RabbitEar.svg("nearest-point", 600, 300);
 
 nearestPoint.setup = function(){
 	nearestPoint.backLayer = RabbitEar.svg.group();
@@ -10,7 +10,7 @@ nearestPoint.setup = function(){
 	nearestPoint.appendChild(nearestPoint.lineLayer);
 	nearestPoint.appendChild(nearestPoint.circleLayer);
 	nearestPoint.edges = Array.from(Array(3)).map(_ =>
-		re.edge(
+		RabbitEar.edge(
 			Math.random()*nearestPoint.w,
 			Math.random()*nearestPoint.h,
 			Math.random()*nearestPoint.w,

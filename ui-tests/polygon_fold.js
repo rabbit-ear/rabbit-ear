@@ -1,4 +1,4 @@
-let polyFold = RabbitEar.svg.image("canvas-fold-poly", 500, 500);
+let polyFold = RabbitEar.svg("canvas-fold-poly", 500, 500);
 
 polyFold.STROKE_WIDTH = polyFold.w * 0.0125;
 polyFold.RADIUS = polyFold.w * 0.025;
@@ -27,7 +27,7 @@ polyFold.reset = function(){
 		let r = Math.random() * polyFold.h*0.5;
 		return [polyFold.w*0.5 + r*Math.cos(a), polyFold.h*0.5 + r*Math.sin(a)];
 	});
-	polyFold.hull = RabbitEar.ConvexPolygon.convexHull(hullPoints);
+	polyFold.hull = RabbitEar.convexPolygon.convexHull(hullPoints);
 }
 
 polyFold.redraw = function(){
@@ -50,7 +50,7 @@ polyFold.redraw = function(){
 			let reflectedPoints = polys[1].points
 				.map(p => matrix.transform(p))
 				.map(p => [p[0], p[1]]);
-			polys[1] = RabbitEar.ConvexPolygon(reflectedPoints);
+			polys[1] = RabbitEar.convexPolygon(reflectedPoints);
 		}
 		polys.forEach((p,i)=> {
 			let poly = RabbitEar.svg.polygon(p.points);

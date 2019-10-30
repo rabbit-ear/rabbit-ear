@@ -12,9 +12,9 @@ origami.preferences.debug = true;
 origami.onMouseDown = function (mouse) {
   const nearest = origami.nearest(mouse);
 
-  let d = re.core.split_edge_run(origami.cp, mouse.x, mouse.y, nearest.edge.index);
+  let d = RabbitEar.core.split_edge_run(origami.cp, mouse.x, mouse.y, nearest.edge.index);
   console.log(JSON.stringify(d));
-  re.core.apply_run(origami.cp, d);
+  RabbitEar.core.apply_run(origami.cp, d);
   // console.log(origami.cp);
   origami.draw();
 };
@@ -67,5 +67,5 @@ const two = {
   }
 };
 
-const three = re.core.merge_run(origami.cp, one, two);
+const three = RabbitEar.core.merge_run(origami.cp, one, two);
 console.log(JSON.stringify(one));

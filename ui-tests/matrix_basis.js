@@ -3,7 +3,7 @@ let basisVec;
 
 let aspect = window.innerHeight / window.innerWidth;
 
-basisVec = RabbitEar.svg.image("canvas-matrix-basis", function (){
+basisVec = RabbitEar.svg("canvas-matrix-basis", function (){
 	if (basisVec != null) {
 		basisVec.setViewBox(-0.5*6, -aspect/2*6, 1*6, aspect*6);
 		basisVec.reset();

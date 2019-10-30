@@ -14,58 +14,27 @@
 
 <h1>ORIGAMI MATH</h1>
 
-<section>
+<!-- <section> -->
 	<div id="canvas-junction-bisect"></div>
-	<p>The mathematics of ancient Greece, linear algebra, and graph theory come together in origami math.</p>
-	<div class="centered code">
-		<pre><code><f>RabbitEar</f>.math</code></pre>
-	</div>
-</section>
-
-<section id="types">
-	<h3>Contents</h3>
-	<!-- <p>This library contains a growing list of about ten primitives.</p> -->
-	<div class="centered code">
-		<pre class="compact"><code><f>RabbitEar</f>
-┃
-┣━ <v>Vector</v>
-┣━ <v>Matrix</v>
-┣━ <v>Line</v>
-┣━ <v>Ray</v>
-┣━ <v>Edge</v>
-┣━ <v>Junction</v>
-┣━ <v>Sector</v>
-┣━ <v>Rectangle</v>
-┣━ <v>Circle</v>
-┣━ <v>Polygon</v>
-┣━ <v>ConvexPolygon</v>
-┗━ math</code></pre>
-	</div>
-</section>
+<!-- </section> -->
 
 <section id="vector">
 <h2>Point / Vector</h2>
-
-	<p>Consider these two ideas:</p>
-	<ul>
-		<li>a point in space, measured as a distance from the origin (0,0)</li>
-		<li>a translation away from another point in space</li>
-	</ul>
-	<p>We call this object a <b>vector</b>.</p>
+	<p>In creative coding, the vector object often doubles as a point object. This implementation contains methods relating to both of those modes.
 
 	<div id="canvas-vector-labels"></div>
 	<div class="centered code">
-		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br><span id="vec-sketch-normal"></span>point.<f>normalize</f>()</code></pre>
+		<pre><code><f>var</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br><span id="vec-sketch-normal"></span>point.<f>normalize</f>()</code></pre>
 	</div>
-	<p>Notice the y axis is positive in the downwards direction. <b>This is not standard in math</b>, it's a computer graphics standard. This library prioritizes data-first. If you want to flip the +Y axis it's easy but it's up to you.</p>
-	<p class="explain">This vector object works in N-dimensions, not limited to 2D.</p>
+	<p>Notice the y axis is positive in the downwards direction. This is a computer graphics standard and is <b>not a standard in math</b>.</p>
+	<p class="explain">This vector object is not limited to 2D, it works for an unlimited number of dimensions.</p>
 	<!-- <h4>Linear Interpolation</h4> -->
 	<div id="canvas-lerp"></div>
 	<div class="centered code">
 		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, <span id="lerp-time-1">t</span>)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, <span id="lerp-time-2">t</span>)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, <span id="lerp-time-3">t</span>)</code></pre>
 	</div>
 
-	<p>This vector object is <b>immutable</b>. Each vector operation returns a <b>new, transformed vector</b>.
+	<p>This vector object is <b>immutable</b>. Each vector operation returns a new, transformed vector.
 	<p>This immutability pattern is generally reflected throughout the entire library.</p>
 
 	<div class="centered code">
@@ -138,7 +107,7 @@
 	<p>Any line type (Line, Ray, Edge) can be turned into a reflection matrix.</p>
 
 	<div class="centered code">
-		<pre><code><f>let</f> matrix <key>=</key> edge.<f>reflection</f>()</code></pre>
+		<pre><code><f>var</f> matrix <key>=</key> edge.<f>reflection</f>()</code></pre>
 	</div>
 
 </section>
@@ -152,7 +121,7 @@
 
 
 	<div class="centered code">
-		<pre><code><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)</code></pre>
+		<pre><code><f>var</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)<br><f>var</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>var</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)</code></pre>
 	</div>
 
 
@@ -185,7 +154,7 @@
 	<div id="nearest-point"></div>
 
 	<div class="centered code">
-		<pre><code><f>let</f> point <key>=</key> edge.<f>nearestPoint</f>(<span id="nearest-point-mouse"></span>)</code></pre>
+		<pre><code><f>var</f> point <key>=</key> edge.<f>nearestPoint</f>(<span id="nearest-point-mouse"></span>)</code></pre>
 	</div>
 
 <h2>Circle</h2>
@@ -205,7 +174,7 @@
 	<p class="quote">The convex hull algorithm performed on a collection of points</p>
 	
 	<div class="centered code">
-		<pre><code><f>let</f> polygon <key>=</key> <f>Polygon</f>(pointA, pointB, ...)</code></pre>
+		<pre><code><f>var</f> polygon <key>=</key> <f>Polygon</f>(pointA, pointB, ...)</code></pre>
 	</div>
 	
 	<h3>Intersections</h3>
@@ -242,7 +211,7 @@
 	<div id="canvas-split-poly"></div>
 
 	<div class="centered code">
-		<pre><code><f>let</f> clipped <key>=</key> polygon.<f>clipEdge</f>( <f>Edge</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
+		<pre><code><f>var</f> clipped <key>=</key> polygon.<f>clipEdge</f>( <f>Edge</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
 	</div>
 
 	<p class="quote">Clipping functions return an edge with a new set of endpoints.</p>
@@ -271,43 +240,29 @@
 
 <h2>APPENDIX</h2>
 
-	<p>This math library is a <a href="https://github.com/robbykraft/Geometry">free and open-source</a> independent module.</p>
-
-<h3>Core</h3>
-	<p>The <b>core</b> is where the computation occurs, everything above is calling methods in here.</p>
-
-	<div class="centered code">
-		<pre class="compact"><code><f>RabbitEar</f>
-┃
-┣━ Circle
-┣━ ConvexPolygon
-┣━ ...
-┗━ <v>math</v></code></pre>
-</section>
-
-	<p class="quote">The core was built for speed; there is no type checking. Things will be more reliable if you avoid this section.</p>
+	<p>This math library is a <a href="https://github.com/robbykraft/Math">free and open-source</a> independent module.</p>
 
 	<div id="canvas-polygon-overlaps"></div>
 
 
-<script type="text/javascript" src="../tests/junction_bisect.js"></script>
-<script type="text/javascript" src="../tests/vector_lerp.js"></script>
-<script type="text/javascript" src="../tests/vector_labels.js"></script>
-<script type="text/javascript" src="../tests/matrix_reflection.js"></script>
-<script type="text/javascript" src="../tests/matrix_basis.js"></script>
-<script type="text/javascript" src="../tests/line_ray_edge_intersection.js"></script>
-<script type="text/javascript" src="../tests/line_bisect.js"></script>
-<script type="text/javascript" src="../tests/line_nearest_point.js"></script>
-<script type="text/javascript" src="../tests/circle_packing.js"></script>
-<script type="text/javascript" src="../tests/polygon_fold.js"></script>
-<script type="text/javascript" src="../tests/polygon_clip_line.js"></script>
-<script type="text/javascript" src="../tests/polygon_clip_edge.js"></script>
-<script type="text/javascript" src="../tests/polygon_split.js"></script>
-<script type="text/javascript" src="../tests/polygon_convex_hull.js"></script>
+<script type="text/javascript" src="../ui-tests/junction_bisect.js"></script>
+<script type="text/javascript" src="../ui-tests/vector_lerp.js"></script>
+<script type="text/javascript" src="../ui-tests/vector_labels.js"></script>
+<script type="text/javascript" src="../ui-tests/matrix_reflection.js"></script>
+<script type="text/javascript" src="../ui-tests/matrix_basis.js"></script>
+<script type="text/javascript" src="../ui-tests/line_ray_edge_intersection.js"></script>
+<script type="text/javascript" src="../ui-tests/line_bisect.js"></script>
+<script type="text/javascript" src="../ui-tests/line_nearest_point.js"></script>
+<script type="text/javascript" src="../ui-tests/circle_packing.js"></script>
+<script type="text/javascript" src="../ui-tests/polygon_fold.js"></script>
+<script type="text/javascript" src="../ui-tests/polygon_clip_line.js"></script>
+<script type="text/javascript" src="../ui-tests/polygon_clip_edge.js"></script>
+<script type="text/javascript" src="../ui-tests/polygon_split.js"></script>
+<script type="text/javascript" src="../ui-tests/polygon_convex_hull.js"></script>
 <!-- <script type="text/javascript" src="../tests/polygon_contains.js"></script> -->
-<script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
-<script type="text/javascript" src="../tests/polygon_skeleton.js"></script>
-<script type="text/javascript" src="../tests/sector_bisect.js"></script>
+<script type="text/javascript" src="../ui-tests/polygon_overlaps.js"></script>
+<script type="text/javascript" src="../ui-tests/polygon_skeleton.js"></script>
+<script type="text/javascript" src="../ui-tests/sector_bisect.js"></script>
 <script type="text/javascript">
 katex.render("\\begin{bmatrix} a & c & tx \\\\ b & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
 katex.render("\\begin{bmatrix} a & c \\\\ b & d \\end{bmatrix}", document.getElementById("matrix-2"));

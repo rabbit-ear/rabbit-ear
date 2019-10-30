@@ -1,128 +1,56 @@
 /* SVG (c) Robby Kraft, MIT License */
-function _typeof(obj) {
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    _typeof = function (obj) {
-      return typeof obj;
-    };
-  } else {
-    _typeof = function (obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
+const isBrowser = typeof window !== "undefined"
+  && typeof window.document !== "undefined";
+const isNode = typeof process !== "undefined"
+  && process.versions != null
+  && process.versions.node != null;
+
+const htmlString = "<!DOCTYPE html><title> </title>";
+const win = (function () {
+  let w = {};
+  if (isNode) {
+    const { DOMParser, XMLSerializer } = require("xmldom");
+    w.DOMParser = DOMParser;
+    w.XMLSerializer = XMLSerializer;
+    w.document = new DOMParser().parseFromString(htmlString, "text/html");
+  } else if (isBrowser) {
+    w = window;
   }
-
-  return _typeof(obj);
-}
-
-function _slicedToArray(arr, i) {
-  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
-}
-
-function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
-}
-
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-    return arr2;
-  }
-}
-
-function _arrayWithHoles(arr) {
-  if (Array.isArray(arr)) return arr;
-}
-
-function _iterableToArray(iter) {
-  if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-}
-
-function _iterableToArrayLimit(arr, i) {
-  var _arr = [];
-  var _n = true;
-  var _d = false;
-  var _e = undefined;
-
-  try {
-    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-      _arr.push(_s.value);
-
-      if (i && _arr.length === i) break;
-    }
-  } catch (err) {
-    _d = true;
-    _e = err;
-  } finally {
-    try {
-      if (!_n && _i["return"] != null) _i["return"]();
-    } finally {
-      if (_d) throw _e;
-    }
-  }
-
-  return _arr;
-}
-
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance");
-}
-
-function _nonIterableRest() {
-  throw new TypeError("Invalid attempt to destructure non-iterable instance");
-}
-
-var isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined";
-var isNode = typeof process !== "undefined" && process.versions != null && process.versions.node != null;
-var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
-
-var htmlString = "<!DOCTYPE html><title>a</title>";
-var win = {};
-
-if (isNode) {
-  var _require = require("xmldom"),
-      DOMParser$1 = _require.DOMParser,
-      XMLSerializer$1 = _require.XMLSerializer;
-
-  win.DOMParser = DOMParser$1;
-  win.XMLSerializer = XMLSerializer$1;
-  win.document = new DOMParser$1().parseFromString(htmlString, "text/html");
-} else if (isBrowser) {
-  win.DOMParser = window.DOMParser;
-  win.XMLSerializer = window.XMLSerializer;
-  win.document = window.document;
-}
+  return w;
+}());
 
 function vkXML (text, step) {
-  var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
-  var len = ar.length;
-  var inComment = false;
-  var deep = 0;
-  var str = "";
-  var space = step != null && typeof step === "string" ? step : "\t";
-  var shift = ["\n"];
-
-  for (var si = 0; si < 100; si += 1) {
+  const ar = text.replace(/>\s{0,}</g, "><")
+    .replace(/</g, "~::~<")
+    .replace(/\s*xmlns\:/g, "~::~xmlns:")
+    .split("~::~");
+  const len = ar.length;
+  let inComment = false;
+  let deep = 0;
+  let str = "";
+  const space = (step != null && typeof step === "string" ? step : "\t");
+  const shift = ["\n"];
+  for (let si = 0; si < 100; si += 1) {
     shift.push(shift[si] + space);
   }
-
-  for (var ix = 0; ix < len; ix += 1) {
+  for (let ix = 0; ix < len; ix += 1) {
     if (ar[ix].search(/<!/) > -1) {
       str += shift[deep] + ar[ix];
       inComment = true;
-
-      if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1 || ar[ix].search(/!DOCTYPE/) > -1) {
+      if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+        || ar[ix].search(/!DOCTYPE/) > -1) {
         inComment = false;
       }
     } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
       str += ar[ix];
       inComment = false;
-    } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix]) && /^<[\w:\-\.\,]+/.exec(ar[ix - 1]) == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
+    } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
+      && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
+      == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
       str += ar[ix];
-
-      if (!inComment) {
-        deep -= 1;
-      }
-    } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1 && ar[ix].search(/\/>/) === -1) {
+      if (!inComment) { deep -= 1; }
+    } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
+      && ar[ix].search(/\/>/) === -1) {
       str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
     } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
       str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
@@ -138,711 +66,211 @@ function vkXML (text, step) {
       str += ar[ix];
     }
   }
-
-  return str[0] === "\n" ? str.slice(1) : str;
+  return (str[0] === "\n") ? str.slice(1) : str;
 }
 
-var removeChildren = function removeChildren(parent) {
-  while (parent.lastChild) {
-    parent.removeChild(parent.lastChild);
-  }
-};
-var getWidth = function getWidth(svg) {
-  var w = parseInt(svg.getAttributeNS(null, "width"), 10);
-  return w != null && !isNaN(w) ? w : svg.getBoundingClientRect().width;
-};
-var getHeight = function getHeight(svg) {
-  var h = parseInt(svg.getAttributeNS(null, "height"), 10);
-  return h != null && !isNaN(h) ? h : svg.getBoundingClientRect().height;
-};
+var NS = "http://www.w3.org/2000/svg";
 
-var getClassList = function getClassList(xmlNode) {
-  var currentClass = xmlNode.getAttribute("class");
-  return currentClass == null ? [] : currentClass.split(" ").filter(function (s) {
-    return s !== "";
-  });
-};
-
-var addClass = function addClass(xmlNode, newClass) {
-  if (xmlNode == null) {
-    return xmlNode;
-  }
-
-  var classes = getClassList(xmlNode).filter(function (c) {
-    return c !== newClass;
-  });
-  classes.push(newClass);
-  xmlNode.setAttributeNS(null, "class", classes.join(" "));
-  return xmlNode;
-};
-var removeClass = function removeClass(xmlNode, removedClass) {
-  if (xmlNode == null) {
-    return xmlNode;
-  }
-
-  var classes = getClassList(xmlNode).filter(function (c) {
-    return c !== removedClass;
-  });
-  xmlNode.setAttributeNS(null, "class", classes.join(" "));
-  return xmlNode;
-};
-var setClass = function setClass(xmlNode, className) {
-  xmlNode.setAttributeNS(null, "class", className);
-  return xmlNode;
-};
-var setID = function setID(xmlNode, idName) {
-  xmlNode.setAttributeNS(null, "id", idName);
-  return xmlNode;
-};
-
-var downloadInBrowser = function downloadInBrowser(filename, contentsAsString) {
-  var blob = new window.Blob([contentsAsString], {
-    type: "text/plain"
-  });
-  var a = document.createElement("a");
+const downloadInBrowser = function (filename, contentsAsString) {
+  const blob = new window.Blob([contentsAsString], { type: "text/plain" });
+  const a = document.createElement("a");
   a.setAttribute("href", window.URL.createObjectURL(blob));
   a.setAttribute("download", filename);
   document.body.appendChild(a);
   a.click();
   a.remove();
 };
-
-var getPageCSS = function getPageCSS() {
-  var css = [];
-
-  for (var s = 0; s < document.styleSheets.length; s += 1) {
-    var sheet = document.styleSheets[s];
-
+const getPageCSS = function () {
+  const css = [];
+  for (let s = 0; s < document.styleSheets.length; s += 1) {
+    const sheet = document.styleSheets[s];
     try {
-      var rules = "cssRules" in sheet ? sheet.cssRules : sheet.rules;
-
-      for (var r = 0; r < rules.length; r += 1) {
-        var rule = rules[r];
-
+      const rules = ("cssRules" in sheet) ? sheet.cssRules : sheet.rules;
+      for (let r = 0; r < rules.length; r += 1) {
+        const rule = rules[r];
         if ("cssText" in rule) {
           css.push(rule.cssText);
         } else {
-          css.push("".concat(rule.selectorText, " {\n").concat(rule.style.cssText, "\n}\n"));
+          css.push(`${rule.selectorText} {\n${rule.style.cssText}\n}\n`);
         }
       }
     } catch (error) {
       console.warn(error);
     }
   }
-
   return css.join("\n");
 };
-var save = function save(svg) {
-  var filename = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "image.svg";
-  var includeDOMCSS = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-
+const save = function (svg, filename = "image.svg", includeDOMCSS = false) {
   if (includeDOMCSS) {
-    var styleContainer = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    const styleContainer = document.createElementNS(NS, "style");
     styleContainer.setAttribute("type", "text/css");
     styleContainer.innerHTML = getPageCSS();
     svg.appendChild(styleContainer);
   }
-
-  var source = new XMLSerializer().serializeToString(svg);
-  var formattedString = vkXML(source);
-
+  const source = (new XMLSerializer()).serializeToString(svg);
+  const formattedString = vkXML(source);
   if (window != null) {
     downloadInBrowser(filename, formattedString);
-  } else {
-    console.warn("save() meant for in-browser use");
   }
+  return formattedString;
 };
-
-var load = function load(input, callback) {
+const load = function (input, callback) {
   if (typeof input === "string" || input instanceof String) {
-    var xml = new DOMParser().parseFromString(input, "text/xml");
-    var parserErrors = xml.getElementsByTagName("parsererror");
-
+    const xml = (new DOMParser()).parseFromString(input, "text/xml");
+    const parserErrors = xml.getElementsByTagName("parsererror");
     if (parserErrors.length === 0) {
-      var parsedSVG = xml.documentElement;
-
+      const parsedSVG = xml.documentElement;
       if (callback != null) {
         callback(parsedSVG);
       }
-
       return parsedSVG;
     }
-
-    fetch(input).then(function (response) {
-      return response.text();
-    }).then(function (str) {
-      return new DOMParser().parseFromString(str, "text/xml");
-    }).then(function (svgData) {
-      var allSVGs = svgData.getElementsByTagName("svg");
-
-      if (allSVGs == null || allSVGs.length === 0) {
-        throw "error, valid XML found, but no SVG element";
-      }
-
-      if (callback != null) {
-        callback(allSVGs[0]);
-      }
-
-      return allSVGs[0];
-    });
+    fetch(input)
+      .then(response => response.text())
+      .then(str => (new DOMParser())
+        .parseFromString(str, "text/xml"))
+      .then((svgData) => {
+        const allSVGs = svgData.getElementsByTagName("svg");
+        if (allSVGs == null || allSVGs.length === 0) {
+          throw new Error("error, valid XML found, but no SVG element");
+        }
+        if (callback != null) {
+          callback(allSVGs[0]);
+        }
+        return allSVGs[0];
+      });
   } else if (input instanceof Document) {
     callback(input);
     return input;
   }
 };
 
-var DOM = /*#__PURE__*/Object.freeze({
-  removeChildren: removeChildren,
-  getWidth: getWidth,
-  getHeight: getHeight,
-  addClass: addClass,
-  removeClass: removeClass,
-  setClass: setClass,
-  setID: setID,
-  getPageCSS: getPageCSS,
+var File = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   save: save,
   load: load
 });
 
-var setViewBox = function setViewBox(svg, x, y, width, height) {
-  var padding = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
-  var scale = 1.0;
-  var d = width / scale - width;
-  var X = x - d - padding;
-  var Y = y - d - padding;
-  var W = width + d * 2 + padding * 2;
-  var H = height + d * 2 + padding * 2;
-  var viewBoxString = [X, Y, W, H].join(" ");
-  svg.setAttributeNS(null, "viewBox", viewBoxString);
-};
-
-var setDefaultViewBox = function setDefaultViewBox(svg) {
-  var size = svg.getBoundingClientRect();
-  var width = size.width === 0 ? 640 : size.width;
-  var height = size.height === 0 ? 480 : size.height;
-  setViewBox(svg, 0, 0, width, height);
-};
-
-var getViewBox = function getViewBox(svg) {
-  var vb = svg.getAttribute("viewBox");
-  return vb == null ? undefined : vb.split(" ").map(function (n) {
-    return parseFloat(n);
+const bindSVGMethodsTo = function (svg, environment) {
+  Object.getOwnPropertyNames(svg)
+    .filter(p => typeof svg[p] === "function")
+    .forEach((name) => { environment[name] = svg[name].bind(svg); });
+  const forbidden = ["svg", "style", "setPoints", "setArc", "setEllipticalArc", "setBezier"];
+  Object.keys(win.SVG)
+    .filter(key => environment[key] === undefined)
+    .filter(key => forbidden.indexOf(key) === -1)
+    .forEach((key) => { environment[key] = win.SVG[key]; });
+  Object.defineProperty(win, "mousePressed", {
+    set: (value) => { svg.mousePressed = value; },
+    get: () => svg.mousePressed
+  });
+  Object.defineProperty(win, "mouseReleased", {
+    set: (value) => { svg.mouseReleased = value; },
+    get: () => svg.mouseReleased
+  });
+  Object.defineProperty(win, "mouseMoved", {
+    set: (value) => { svg.mouseMoved = value; },
+    get: () => svg.mouseMoved
+  });
+  Object.defineProperty(win, "scroll", {
+    set: (value) => { svg.scroll = value; },
+    get: () => svg.scroll
+  });
+  Object.defineProperty(win, "animate", {
+    set: (value) => { svg.animate = value; },
+    get: () => svg.animate
+  });
+  Object.defineProperty(win, "fps", {
+    set: (value) => { svg.fps = value; },
+    get: () => svg.fps
   });
 };
-var scaleViewBox = function scaleViewBox(svg, scale) {
-  var origin_x = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-  var origin_y = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
-
-  if (scale < 1e-8) {
-    scale = 0.01;
+const globalize = function (svg, ...args) {
+  let element = svg;
+  if (element == null) {
+    element = win.SVG(...args);
   }
-
-  var matrix = svg.createSVGMatrix().translate(origin_x, origin_y).scale(1 / scale).translate(-origin_x, -origin_y);
-  var viewBox = getViewBox(svg);
-
-  if (viewBox == null) {
-    setDefaultViewBox(svg);
-  }
-
-  var top_left = svg.createSVGPoint();
-  var bot_right = svg.createSVGPoint();
-
-  var _viewBox = _slicedToArray(viewBox, 2);
-
-  top_left.x = _viewBox[0];
-  top_left.y = _viewBox[1];
-  bot_right.x = viewBox[0] + viewBox[2];
-  bot_right.y = viewBox[1] + viewBox[3];
-  var new_top_left = top_left.matrixTransform(matrix);
-  var new_bot_right = bot_right.matrixTransform(matrix);
-  setViewBox(svg, new_top_left.x, new_top_left.y, new_bot_right.x - new_top_left.x, new_bot_right.y - new_top_left.y);
+  bindSVGMethodsTo(element, win);
+  return element;
 };
-var translateViewBox = function translateViewBox(svg, dx, dy) {
-  var viewBox = getViewBox(svg);
 
-  if (viewBox == null) {
-    setDefaultViewBox(svg);
-  }
-
-  viewBox[0] += dx;
-  viewBox[1] += dy;
-  svg.setAttributeNS(null, "viewBox", viewBox.join(" "));
+const getViewBox = function (svg) {
+  const vb = svg.getAttribute("viewBox");
+  return (vb == null
+    ? undefined
+    : vb.split(" ").map(n => parseFloat(n)));
 };
-var convertToViewBox = function convertToViewBox(svg, x, y) {
-  var pt = svg.createSVGPoint();
+const setViewBox = function (svg, x, y, width, height, padding = 0) {
+  const scale = 1.0;
+  const d = (width / scale) - width;
+  const X = (x - d) - padding;
+  const Y = (y - d) - padding;
+  const W = (width + d * 2) + padding * 2;
+  const H = (height + d * 2) + padding * 2;
+  const viewBoxString = [X, Y, W, H].join(" ");
+  svg.setAttributeNS(null, "viewBox", viewBoxString);
+};
+const setDefaultViewBox = function (svg) {
+  const size = svg.getBoundingClientRect();
+  const width = (size.width === 0 ? 640 : size.width);
+  const height = (size.height === 0 ? 480 : size.height);
+  setViewBox(svg, 0, 0, width, height);
+};
+const convertToViewBox = function (svg, x, y) {
+  const pt = svg.createSVGPoint();
   pt.x = x;
   pt.y = y;
-  var svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
-  var array = [svgPoint.x, svgPoint.y];
+  const svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
+  const array = [svgPoint.x, svgPoint.y];
   array.x = svgPoint.x;
   array.y = svgPoint.y;
   return array;
 };
+const translateViewBox = function (svg, dx, dy) {
+  const viewBox = getViewBox(svg);
+  if (viewBox == null) {
+    setDefaultViewBox(svg);
+  }
+  viewBox[0] += dx;
+  viewBox[1] += dy;
+  svg.setAttributeNS(null, "viewBox", viewBox.join(" "));
+};
+const scaleViewBox = function (svg, scale, origin_x = 0, origin_y = 0) {
+  if (Math.abs(scale) < 1e-8) { scale = 0.01; }
+  const matrix = svg.createSVGMatrix()
+    .translate(origin_x, origin_y)
+    .scale(1 / scale)
+    .translate(-origin_x, -origin_y);
+  const viewBox = getViewBox(svg);
+  if (viewBox == null) {
+    setDefaultViewBox(svg);
+  }
+  const top_left = svg.createSVGPoint();
+  const bot_right = svg.createSVGPoint();
+  [top_left.x, top_left.y] = viewBox;
+  bot_right.x = viewBox[0] + viewBox[2];
+  bot_right.y = viewBox[1] + viewBox[3];
+  const new_top_left = top_left.matrixTransform(matrix);
+  const new_bot_right = bot_right.matrixTransform(matrix);
+  setViewBox(svg,
+    new_top_left.x,
+    new_top_left.y,
+    new_bot_right.x - new_top_left.x,
+    new_bot_right.y - new_top_left.y);
+};
 
 var ViewBox = /*#__PURE__*/Object.freeze({
-  setViewBox: setViewBox,
+  __proto__: null,
   getViewBox: getViewBox,
-  scaleViewBox: scaleViewBox,
+  setViewBox: setViewBox,
+  convertToViewBox: convertToViewBox,
   translateViewBox: translateViewBox,
-  convertToViewBox: convertToViewBox
+  scaleViewBox: scaleViewBox
 });
 
-var attachClassMethods = function attachClassMethods(element) {
-  var el = element;
-
-  el.removeChildren = function () {
-    return removeChildren(element);
-  };
-
-  el.addClass = function () {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    return addClass.apply(DOM, [element].concat(args));
-  };
-
-  el.removeClass = function () {
-    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
-    }
-
-    return removeClass.apply(DOM, [element].concat(args));
-  };
-
-  el.setClass = function () {
-    for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      args[_key3] = arguments[_key3];
-    }
-
-    return setClass.apply(DOM, [element].concat(args));
-  };
-
-  el.setID = function () {
-    for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-      args[_key4] = arguments[_key4];
-    }
-
-    return setID.apply(DOM, [element].concat(args));
-  };
-};
-var attachViewBoxMethods = function attachViewBoxMethods(element) {
-  var el = element;
-  ["setViewBox", "getViewBox", "scaleViewBox", "translateViewBox", "convertToViewBox"].forEach(function (func) {
-    el[func] = function () {
-      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        args[_key5] = arguments[_key5];
-      }
-
-      return ViewBox[func].apply(ViewBox, [el].concat(args));
-    };
-  });
-};
-var attachAppendableMethods = function attachAppendableMethods(element, methods) {
-  var el = element;
-  Object.keys(methods).forEach(function (key) {
-    el[key] = function () {
-      var g = methods[key].apply(methods, arguments);
-      element.appendChild(g);
-      return g;
-    };
-  });
-};
-
-var svgNS = "http://www.w3.org/2000/svg";
-var setPoints = function setPoints(polygon, pointsArray) {
-  if (pointsArray == null || pointsArray.constructor !== Array) {
-    return;
-  }
-
-  var pointsString = pointsArray.map(function (el) {
-    return el.constructor === Array ? el : [el.x, el.y];
-  }).reduce(function (prev, curr) {
-    return "".concat(prev).concat(curr[0], ",").concat(curr[1], " ");
-  }, "");
-  polygon.setAttributeNS(null, "points", pointsString);
-};
-var setArc = function setArc(shape, x, y, radius, startAngle, endAngle) {
-  var includeCenter = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : false;
-  var start = [x + Math.cos(startAngle) * radius, y + Math.sin(startAngle) * radius];
-  var vecStart = [Math.cos(startAngle) * radius, Math.sin(startAngle) * radius];
-  var vecEnd = [Math.cos(endAngle) * radius, Math.sin(endAngle) * radius];
-  var arcVec = [vecEnd[0] - vecStart[0], vecEnd[1] - vecStart[1]];
-  var py = vecStart[0] * vecEnd[1] - vecStart[1] * vecEnd[0];
-  var px = vecStart[0] * vecEnd[0] + vecStart[1] * vecEnd[1];
-  var arcdir = Math.atan2(py, px) > 0 ? 0 : 1;
-  var d = includeCenter ? "M ".concat(x, ",").concat(y, " l ").concat(vecStart[0], ",").concat(vecStart[1], " ") : "M ".concat(start[0], ",").concat(start[1], " ");
-  d += ["a ", radius, radius, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
-
-  if (includeCenter) {
-    d += " Z";
-  }
-
-  shape.setAttributeNS(null, "d", d);
-};
-var line = function line(x1, y1, x2, y2) {
-  var shape = win.document.createElementNS(svgNS, "line");
-
-  if (x1) {
-    shape.setAttributeNS(null, "x1", x1);
-  }
-
-  if (y1) {
-    shape.setAttributeNS(null, "y1", y1);
-  }
-
-  if (x2) {
-    shape.setAttributeNS(null, "x2", x2);
-  }
-
-  if (y2) {
-    shape.setAttributeNS(null, "y2", y2);
-  }
-
-  attachClassMethods(shape);
-  return shape;
-};
-var circle = function circle(x, y, radius) {
-  var shape = win.document.createElementNS(svgNS, "circle");
-
-  if (x) {
-    shape.setAttributeNS(null, "cx", x);
-  }
-
-  if (y) {
-    shape.setAttributeNS(null, "cy", y);
-  }
-
-  if (radius) {
-    shape.setAttributeNS(null, "r", radius);
-  }
-
-  attachClassMethods(shape);
-  return shape;
-};
-var ellipse = function ellipse(x, y, rx, ry) {
-  var shape = win.document.createElementNS(svgNS, "ellipse");
-
-  if (x) {
-    shape.setAttributeNS(null, "cx", x);
-  }
-
-  if (y) {
-    shape.setAttributeNS(null, "cy", y);
-  }
-
-  if (rx) {
-    shape.setAttributeNS(null, "rx", rx);
-  }
-
-  if (ry) {
-    shape.setAttributeNS(null, "ry", ry);
-  }
-
-  attachClassMethods(shape);
-  return shape;
-};
-var rect = function rect(x, y, width, height) {
-  var shape = win.document.createElementNS(svgNS, "rect");
-
-  if (x) {
-    shape.setAttributeNS(null, "x", x);
-  }
-
-  if (y) {
-    shape.setAttributeNS(null, "y", y);
-  }
-
-  if (width) {
-    shape.setAttributeNS(null, "width", width);
-  }
-
-  if (height) {
-    shape.setAttributeNS(null, "height", height);
-  }
-
-  attachClassMethods(shape);
-  return shape;
-};
-var polygon = function polygon(pointsArray) {
-  var shape = win.document.createElementNS(svgNS, "polygon");
-  setPoints(shape, pointsArray);
-  attachClassMethods(shape);
-  return shape;
-};
-var polyline = function polyline(pointsArray) {
-  var shape = win.document.createElementNS(svgNS, "polyline");
-  setPoints(shape, pointsArray);
-  attachClassMethods(shape);
-  return shape;
-};
-var bezier = function bezier(fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
-  var pts = [[fromX, fromY], [c1X, c1Y], [c2X, c2Y], [toX, toY]].map(function (p) {
-    return p.join(",");
-  });
-  var d = "M ".concat(pts[0], " C ").concat(pts[1], " ").concat(pts[2], " ").concat(pts[3]);
-  var shape = win.document.createElementNS(svgNS, "path");
-  shape.setAttributeNS(null, "d", d);
-  attachClassMethods(shape);
-  return shape;
-};
-var text = function text(textString, x, y) {
-  var shape = win.document.createElementNS(svgNS, "text");
-  shape.innerHTML = textString;
-  shape.setAttributeNS(null, "x", x);
-  shape.setAttributeNS(null, "y", y);
-  attachClassMethods(shape);
-  return shape;
-};
-var wedge = function wedge(x, y, radius, angleA, angleB) {
-  var shape = win.document.createElementNS(svgNS, "path");
-  setArc(shape, x, y, radius, angleA, angleB, true);
-  attachClassMethods(shape);
-  return shape;
-};
-var arc = function arc(x, y, radius, angleA, angleB) {
-  var shape = win.document.createElementNS(svgNS, "path");
-  setArc(shape, x, y, radius, angleA, angleB, false);
-  attachClassMethods(shape);
-  return shape;
-};
-
-var regularPolygon = function regularPolygon(cX, cY, radius, sides) {
-  var halfwedge = 2 * Math.PI / sides * 0.5;
-  var r = Math.cos(halfwedge) * radius;
-  var points = Array.from(Array(sides)).map(function (el, i) {
-    var a = -2 * Math.PI * i / sides + halfwedge;
-    var x = cX + r * Math.sin(a);
-    var y = cY + r * Math.cos(a);
-    return [x, y];
-  });
-  return polygon(points);
-};
-
-var svgNS$1 = "http://www.w3.org/2000/svg";
-var straightArrow = function straightArrow(startPoint, endPoint, options) {
-  var p = {
-    color: "#000",
-    strokeWidth: 0.5,
-    strokeStyle: "",
-    fillStyle: "",
-    highlight: undefined,
-    highlightStrokeStyle: "",
-    highlightFillStyle: "",
-    width: 0.5,
-    length: 2,
-    padding: 0.0,
-    start: false,
-    end: true
-  };
-
-  if (_typeof(options) === "object" && options !== null) {
-    Object.assign(p, options);
-  }
-
-  var arrowFill = ["stroke:none", "fill:".concat(p.color), p.fillStyle, "pointer-events:none"].filter(function (a) {
-    return a !== "";
-  }).join(";");
-  var arrowStroke = ["fill:none", "stroke:".concat(p.color), "stroke-width:".concat(p.strokeWidth), p.strokeStyle].filter(function (a) {
-    return a !== "";
-  }).join(";");
-  var thinStroke = Math.floor(p.strokeWidth * 3) / 10;
-  var thinSpace = Math.floor(p.strokeWidth * 6) / 10;
-  var highlightStroke = ["fill:none", "stroke:".concat(p.highlight), "stroke-width:".concat(p.strokeWidth * 0.5), "stroke-dasharray:".concat(thinStroke, " ").concat(thinSpace), "stroke-linecap:round", p.strokeStyle].filter(function (a) {
-    return a !== "";
-  }).join(";");
-  var highlightFill = ["stroke:none", "fill:".concat(p.highlight), p.fillStyle, "pointer-events:none"].filter(function (a) {
-    return a !== "";
-  }).join(";");
-  var start = startPoint;
-  var end = endPoint;
-  var vec = [end[0] - start[0], end[1] - start[1]];
-  var arrowLength = Math.sqrt(vec[0] * vec[0] + vec[1] * vec[1]);
-  var arrowVector = [vec[0] / arrowLength, vec[1] / arrowLength];
-  var arrow90 = [arrowVector[1], -arrowVector[0]];
-  start = [startPoint[0] + arrowVector[0] * (p.start ? 1 : 0) * p.padding, startPoint[1] + arrowVector[1] * (p.start ? 1 : 0) * p.padding];
-  end = [endPoint[0] - arrowVector[0] * (p.end ? 1 : 0) * p.padding, endPoint[1] - arrowVector[1] * (p.end ? 1 : 0) * p.padding];
-  var endHead = [[end[0] + arrow90[0] * p.width, end[1] + arrow90[1] * p.width], [end[0] - arrow90[0] * p.width, end[1] - arrow90[1] * p.width], [end[0] + arrowVector[0] * p.length, end[1] + arrowVector[1] * p.length]];
-  var startHead = [[start[0] - arrow90[0] * p.width, start[1] - arrow90[1] * p.width], [start[0] + arrow90[0] * p.width, start[1] + arrow90[1] * p.width], [start[0] - arrowVector[0] * p.length, start[1] - arrowVector[1] * p.length]];
-  var arrow = win.document.createElementNS(svgNS$1, "g");
-  var l = line(start[0], start[1], end[0], end[1]);
-  l.setAttribute("style", arrowStroke);
-  arrow.appendChild(l);
-
-  if (p.end) {
-    var endArrowPoly = polygon(endHead);
-    endArrowPoly.setAttribute("style", arrowFill);
-    arrow.appendChild(endArrowPoly);
-  }
-
-  if (p.start) {
-    var startArrowPoly = polygon(startHead);
-    startArrowPoly.setAttribute("style", arrowFill);
-    arrow.appendChild(startArrowPoly);
-  }
-
-  if (p.highlight !== undefined) {
-    var hScale = 0.6;
-    var centering = [arrowVector[0] * p.length * 0.09, arrowVector[1] * p.length * 0.09];
-    var endHeadHighlight = [[centering[0] + end[0] + arrow90[0] * (p.width * hScale), centering[1] + end[1] + arrow90[1] * (p.width * hScale)], [centering[0] + end[0] - arrow90[0] * (p.width * hScale), centering[1] + end[1] - arrow90[1] * (p.width * hScale)], [centering[0] + end[0] + arrowVector[0] * (p.length * hScale), centering[1] + end[1] + arrowVector[1] * (p.length * hScale)]];
-    var startHeadHighlight = [[-centering[0] + start[0] - arrow90[0] * (p.width * hScale), -centering[1] + start[1] - arrow90[1] * (p.width * hScale)], [-centering[0] + start[0] + arrow90[0] * (p.width * hScale), -centering[1] + start[1] + arrow90[1] * (p.width * hScale)], [-centering[0] + start[0] - arrowVector[0] * (p.length * hScale), -centering[1] + start[1] - arrowVector[1] * (p.length * hScale)]];
-    var highline = line(start[0], start[1], end[0], end[1]);
-    highline.setAttribute("style", highlightStroke);
-    arrow.appendChild(highline);
-
-    if (p.end) {
-      var endArrowHighlight = polygon(endHeadHighlight);
-      endArrowHighlight.setAttribute("style", highlightFill);
-      arrow.appendChild(endArrowHighlight);
-    }
-
-    if (p.start) {
-      var startArrowHighlight = polygon(startHeadHighlight);
-      startArrowHighlight.setAttribute("style", highlightFill);
-      arrow.appendChild(startArrowHighlight);
-    }
-  }
-
-  return arrow;
-};
-var arcArrow = function arcArrow(start, end, options) {
-  var p = {
-    color: "#000",
-    strokeWidth: 0.5,
-    width: 0.5,
-    length: 2,
-    bend: 0.3,
-    pinch: 0.618,
-    padding: 0.5,
-    side: true,
-    start: false,
-    end: true,
-    strokeStyle: "",
-    fillStyle: ""
-  };
-
-  if (_typeof(options) === "object" && options !== null) {
-    Object.assign(p, options);
-  }
-
-  var arrowFill = ["stroke:none", "fill:".concat(p.color), p.fillStyle].filter(function (a) {
-    return a !== "";
-  }).join(";");
-  var arrowStroke = ["fill:none", "stroke:".concat(p.color), "stroke-width:".concat(p.strokeWidth), p.strokeStyle].filter(function (a) {
-    return a !== "";
-  }).join(";");
-  var startPoint = start;
-  var endPoint = end;
-  var vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
-  var midpoint = [startPoint[0] + vector[0] / 2, startPoint[1] + vector[1] / 2];
-  var len = Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-  var minLength = (p.start ? 1 + p.padding : 0 + p.end ? 1 + p.padding : 0) * p.length * 2.5;
-
-  if (len < minLength) {
-    var minVec = [vector[0] / len * minLength, vector[1] / len * minLength];
-    startPoint = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
-    endPoint = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
-    vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
-  }
-
-  var perpendicular = [vector[1], -vector[0]];
-  var bezPoint = [midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend, midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend];
-  var bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
-  var bezEnd = [bezPoint[0] - endPoint[0], bezPoint[1] - endPoint[1]];
-  var bezStartLen = Math.sqrt(bezStart[0] * bezStart[0] + bezStart[1] * bezStart[1]);
-  var bezEndLen = Math.sqrt(bezEnd[0] * bezEnd[0] + bezEnd[1] * bezEnd[1]);
-  var bezStartNorm = [bezStart[0] / bezStartLen, bezStart[1] / bezStartLen];
-  var bezEndNorm = [bezEnd[0] / bezEndLen, bezEnd[1] / bezEndLen];
-  var startHeadVec = [-bezStartNorm[0], -bezStartNorm[1]];
-  var endHeadVec = [-bezEndNorm[0], -bezEndNorm[1]];
-  var startNormal = [startHeadVec[1], -startHeadVec[0]];
-  var endNormal = [endHeadVec[1], -endHeadVec[0]];
-  var arcStart = [startPoint[0] + bezStartNorm[0] * p.length * ((p.start ? 1 : 0) + p.padding), startPoint[1] + bezStartNorm[1] * p.length * ((p.start ? 1 : 0) + p.padding)];
-  var arcEnd = [endPoint[0] + bezEndNorm[0] * p.length * ((p.end ? 1 : 0) + p.padding), endPoint[1] + bezEndNorm[1] * p.length * ((p.end ? 1 : 0) + p.padding)];
-  vector = [arcEnd[0] - arcStart[0], arcEnd[1] - arcStart[1]];
-  perpendicular = [vector[1], -vector[0]];
-  midpoint = [arcStart[0] + vector[0] / 2, arcStart[1] + vector[1] / 2];
-  bezPoint = [midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend, midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend];
-  var controlStart = [arcStart[0] + (bezPoint[0] - arcStart[0]) * p.pinch, arcStart[1] + (bezPoint[1] - arcStart[1]) * p.pinch];
-  var controlEnd = [arcEnd[0] + (bezPoint[0] - arcEnd[0]) * p.pinch, arcEnd[1] + (bezPoint[1] - arcEnd[1]) * p.pinch];
-  var startHeadPoints = [[arcStart[0] + startNormal[0] * -p.width, arcStart[1] + startNormal[1] * -p.width], [arcStart[0] + startNormal[0] * p.width, arcStart[1] + startNormal[1] * p.width], [arcStart[0] + startHeadVec[0] * p.length, arcStart[1] + startHeadVec[1] * p.length]];
-  var endHeadPoints = [[arcEnd[0] + endNormal[0] * -p.width, arcEnd[1] + endNormal[1] * -p.width], [arcEnd[0] + endNormal[0] * p.width, arcEnd[1] + endNormal[1] * p.width], [arcEnd[0] + endHeadVec[0] * p.length, arcEnd[1] + endHeadVec[1] * p.length]];
-  var arrowGroup = win.document.createElementNS(svgNS$1, "g");
-  var arrowArc = bezier(arcStart[0], arcStart[1], controlStart[0], controlStart[1], controlEnd[0], controlEnd[1], arcEnd[0], arcEnd[1]);
-  arrowArc.setAttribute("style", arrowStroke);
-  arrowGroup.appendChild(arrowArc);
-
-  if (p.start) {
-    var startHead = polygon(startHeadPoints);
-    startHead.setAttribute("style", arrowFill);
-    arrowGroup.appendChild(startHead);
-  }
-
-  if (p.end) {
-    var endHead = polygon(endHeadPoints);
-    endHead.setAttribute("style", arrowFill);
-    arrowGroup.appendChild(endHead);
-  }
-
-  return arrowGroup;
-};
-
-var svgNS$2 = "http://www.w3.org/2000/svg";
-var drawMethods = {
-  line: line,
-  circle: circle,
-  ellipse: ellipse,
-  rect: rect,
-  polygon: polygon,
-  polyline: polyline,
-  bezier: bezier,
-  text: text,
-  wedge: wedge,
-  arc: arc,
-  straightArrow: straightArrow,
-  arcArrow: arcArrow,
-  regularPolygon: regularPolygon
-};
-var setupSVG = function setupSVG(svgImage) {
-  attachClassMethods(svgImage);
-  attachViewBoxMethods(svgImage);
-  attachAppendableMethods(svgImage, drawMethods);
-};
-var svg = function svg() {
-  var svgImage = win.document.createElementNS(svgNS$2, "svg");
-  svgImage.setAttribute("version", "1.1");
-  svgImage.setAttribute("xmlns", svgNS$2);
-  setupSVG(svgImage);
-  return svgImage;
-};
-var group = function group() {
-  var g = win.document.createElementNS(svgNS$2, "g");
-  attachClassMethods(g);
-  attachAppendableMethods(g, drawMethods);
-  return g;
-};
-var style = function style() {
-  var s = win.document.createElementNS(svgNS$2, "style");
-  s.setAttribute("type", "text/css");
-  return s;
-};
-drawMethods.group = group;
-
-var Names = {
-  begin: "onMouseDown",
-  enter: "onMouseEnter",
-  leave: "onMouseLeave",
-  move: "onMouseMove",
-  end: "onMouseUp",
-  scroll: "onScroll"
-};
-
-var Pointer = function Pointer(node) {
-  var _node = node;
-
-  var _pointer = Object.create(null);
-
-  Object.assign(_pointer, {
+const Pointer = function (node) {
+  const pointer = Object.create(null);
+  Object.assign(pointer, {
     isPressed: false,
     position: [0, 0],
     pressed: [0, 0],
@@ -851,680 +279,1698 @@ var Pointer = function Pointer(node) {
     x: 0,
     y: 0
   });
-
-  var getPointer = function getPointer() {
-    var m = _pointer.position.slice();
-
-    Object.keys(_pointer).filter(function (key) {
-      return _typeof(key) === "object";
-    }).forEach(function (key) {
-      return m[key] = _pointer[key].slice();
-    });
-    Object.keys(_pointer).filter(function (key) {
-      return _typeof(key) !== "object";
-    }).forEach(function (key) {
-      return m[key] = _pointer[key];
-    });
+  const copyPointer = function () {
+    const m = pointer.position.slice();
+    Object.keys(pointer)
+      .filter(key => typeof key === "object")
+      .forEach((key) => { m[key] = pointer[key].slice(); });
+    Object.keys(pointer)
+      .filter(key => typeof key !== "object")
+      .forEach((key) => { m[key] = pointer[key]; });
     return Object.freeze(m);
   };
-
-  var setPosition = function setPosition(clientX, clientY) {
-    _pointer.position = convertToViewBox(_node, clientX, clientY);
-    _pointer.x = _pointer.position[0];
-    _pointer.y = _pointer.position[1];
+  const setPosition = function (clientX, clientY) {
+    pointer.position = convertToViewBox(node, clientX, clientY);
+    [pointer.x, pointer.y] = pointer.position;
   };
-
-  var didRelease = function didRelease(clientX, clientY) {
-    _pointer.isPressed = false;
+  const updateDrag = function () {
+    pointer.drag = [
+      pointer.position[0] - pointer.pressed[0],
+      pointer.position[1] - pointer.pressed[1]
+    ];
+    [pointer.drag.x, pointer.drag.y] = pointer.drag;
   };
-
-  var didPress = function didPress(clientX, clientY) {
-    _pointer.isPressed = true;
-    _pointer.pressed = convertToViewBox(_node, clientX, clientY);
+  const thisPointer = {};
+  const move = function (clientX, clientY) {
+    pointer.prev = pointer.position;
     setPosition(clientX, clientY);
-  };
-
-  var didMove = function didMove(clientX, clientY) {
-    _pointer.prev = _pointer.position;
-    setPosition(clientX, clientY);
-
-    if (_pointer.isPressed) {
+    if (pointer.isPressed) {
       updateDrag();
     }
+    return thisPointer;
   };
-
-  var updateDrag = function updateDrag() {
-    _pointer.drag = [_pointer.position[0] - _pointer.pressed[0], _pointer.position[1] - _pointer.pressed[1]];
-    _pointer.drag.x = _pointer.drag[0];
-    _pointer.drag.y = _pointer.drag[1];
+  const down = function (clientX, clientY) {
+    pointer.isPressed = true;
+    pointer.pressed = convertToViewBox(node, clientX, clientY);
+    setPosition(clientX, clientY);
+    return thisPointer;
   };
-
-  var _this = {};
-  Object.defineProperty(_this, "getPointer", {
-    value: getPointer
-  });
-  Object.defineProperty(_this, "didMove", {
-    value: didMove
-  });
-  Object.defineProperty(_this, "didPress", {
-    value: didPress
-  });
-  Object.defineProperty(_this, "didRelease", {
-    value: didRelease
-  });
-  Object.defineProperty(_this, "node", {
-    set: function set(n) {
-      _node = n;
-    }
-  });
-  return _this;
+  const up = function () {
+    pointer.isPressed = false;
+    return thisPointer;
+  };
+  const pressed = function (isPressed) {
+    pointer.isPressed = isPressed;
+    return thisPointer;
+  };
+  Object.defineProperty(thisPointer, "up", { value: up });
+  Object.defineProperty(thisPointer, "pressed", { value: pressed });
+  Object.defineProperty(thisPointer, "move", { value: move });
+  Object.defineProperty(thisPointer, "down", { value: down });
+  Object.defineProperty(thisPointer, "get", { value: copyPointer });
+  return thisPointer;
 };
 
-function Events (node) {
-  var _node;
-
-  var _pointer = Pointer(node);
-
-  var _events = {};
-
-  var fireEvents = function fireEvents(event, events) {
-    if (events == null) {
-      return;
-    }
-
-    if (events.length > 0) {
-      event.preventDefault();
-    }
-
-    var mouse = _pointer.getPointer();
-
-    events.forEach(function (f) {
-      return f(mouse);
-    });
+const Touches = function (node) {
+  const pointer = Pointer(node);
+  const handlers = {
+    mousemove: [],
+    touchmove: [],
+    mousedown: [],
+    touchstart: [],
+    mouseup: [],
+    touchend: [],
+    scroll: []
   };
-
-  var mouseMoveHandler = function mouseMoveHandler(event) {
-    var events = _events[Names.move];
-
-    _pointer.didMove(event.clientX, event.clientY);
-
-    fireEvents(event, events);
+  const clear = () => {
+    Object.keys(handlers)
+      .forEach(key => handlers[key]
+        .forEach(f => node.removeEventListener(key, f)));
+    Object.keys(handlers).forEach((key) => { handlers[key] = []; });
   };
-
-  var mouseDownHandler = function mouseDownHandler(event) {
-    var events = _events[Names.begin];
-
-    _pointer.didPress(event.clientX, event.clientY);
-
-    fireEvents(event, events);
+  const onMouseMove = (handler, event) => {
+    event.preventDefault();
+    const e = pointer
+      .move(event.clientX, event.clientY)
+      .pressed(event.buttons > 0)
+      .get();
+    handler(e);
+    return e;
   };
-
-  var mouseUpHandler = function mouseUpHandler(event) {
-    mouseMoveHandler(event);
-    var events = _events[Names.end];
-
-    _pointer.didRelease(event.clientX, event.clientY);
-
-    fireEvents(event, events);
+  const onTouchMove = (handler, event) => {
+    event.preventDefault();
+    const e = pointer
+      .move(event.touches[0].clientX, event.touches[0].clientY)
+      .pressed(true)
+      .get();
+    handler(e);
+    return e;
   };
-
-  var mouseLeaveHandler = function mouseLeaveHandler(event) {
-    var events = _events[Names.leave];
-
-    _pointer.didMove(event.clientX, event.clientY);
-
-    fireEvents(event, events);
+  const onMouseDown = (handler, event) => {
+    event.preventDefault();
+    const e = pointer
+      .down(event.clientX, event.clientY)
+      .get();
+    handler(e);
+    return e;
   };
-
-  var mouseEnterHandler = function mouseEnterHandler(event) {
-    var events = _events[Names.enter];
-
-    _pointer.didMove(event.clientX, event.clientY);
-
-    fireEvents(event, events);
+  const onTouchStart = (handler, event) => {
+    event.preventDefault();
+    const e = pointer
+      .down(event.touches[0].clientX, event.touches[0].clientY)
+      .get();
+    handler(e);
+    return e;
   };
-
-  var touchStartHandler = function touchStartHandler(event) {
-    var events = _events[Names.begin];
-    var touch = event.touches[0];
-
-    if (touch == null) {
-      return;
-    }
-
-    _pointer.didPress(touch.clientX, touch.clientY);
-
-    fireEvents(event, events);
+  const onEnd = (handler, event) => {
+    event.preventDefault();
+    const e = pointer.pressed(false).get();
+    handler(e);
+    return e;
   };
-
-  var touchEndHandler = function touchEndHandler(event) {
-    var events = _events[Names.end];
-
-    _pointer.didRelease();
-
-    fireEvents(event, events);
-  };
-
-  var touchMoveHandler = function touchMoveHandler(event) {
-    var events = _events[Names.move];
-    var touch = event.touches[0];
-
-    if (touch == null) {
-      return;
-    }
-
-    _pointer.didMove(touch.clientX, touch.clientY);
-
-    fireEvents(event, events);
-  };
-
-  var scrollHandler = function scrollHandler(event) {
-    var events = _events[Names.scroll];
-    var e = {
+  const onScroll = function (handler, event) {
+    const e = {
       deltaX: event.deltaX,
       deltaY: event.deltaY,
-      deltaZ: event.deltaZ
+      deltaZ: event.deltaZ,
     };
-    e.position = convertToViewBox(_node, event.clientX, event.clientY);
-    e.x = e.position[0];
-    e.y = e.position[1];
-
-    if (events == null) {
-      return;
-    }
-
-    if (events.length > 0) {
-      event.preventDefault();
-    }
-
-    events.forEach(function (f) {
-      return f(e);
-    });
+    e.position = convertToViewBox(node, event.clientX, event.clientY);
+    [e.x, e.y] = e.position;
+    event.preventDefault();
+    handler(e);
+    return e;
   };
-
-  var _animate, _intervalID, _animationFrame;
-
-  var updateAnimationHandler = function updateAnimationHandler(handler) {
-    if (_animate != null) {
-      clearInterval(_intervalID);
-    }
-
-    _animate = handler;
-
-    if (_animate != null) {
-      _animationFrame = 0;
-      _intervalID = setInterval(function () {
-        var animObj = {
-          "time": _node.getCurrentTime(),
-          "frame": _animationFrame++
-        };
-
-        _animate(animObj);
-      }, 1000 / 60);
-    }
-  };
-
-  var handlers = {
-    mouseup: mouseUpHandler,
-    mousedown: mouseDownHandler,
-    mousemove: mouseMoveHandler,
-    mouseleave: mouseLeaveHandler,
-    mouseenter: mouseEnterHandler,
-    touchend: touchEndHandler,
-    touchmove: touchMoveHandler,
-    touchstart: touchStartHandler,
-    touchcancel: touchEndHandler,
-    wheel: scrollHandler
-  };
-
-  var addEventListener = function addEventListener(eventName, func) {
-    if (typeof func !== "function") {
-      throw "must supply a function type to addEventListener";
-    }
-
-    if (_events[eventName] === undefined) {
-      _events[eventName] = [];
-    }
-
-    _events[eventName].push(func);
-  };
-
-  var attachHandlers = function attachHandlers(element) {
-    Object.keys(handlers).forEach(function (key) {
-      return element.addEventListener(key, handlers[key], false);
-    });
-    updateAnimationHandler(_animate);
-  };
-
-  var removeHandlers = function removeHandlers(element) {
-    Object.keys(handlers).forEach(function (key) {
-      return element.removeEventListener(key, handlers[key], false);
-    });
-
-    if (_animate != null) {
-      clearInterval(_intervalID);
-    }
-  };
-
-  var setup = function setup(node) {
-    if (_node != null && typeof node.removeEventListener === "function") {
-      removeHandlers(_node);
-    }
-
-    _node = node;
-    _pointer.node = _node;
-    Object.keys(Names).map(function (key) {
-      return Names[key];
-    }).forEach(function (key) {
-      Object.defineProperty(_node, key, {
-        set: function set(handler) {
-          addEventListener(key, handler);
-        }
-      });
-    });
-    Object.defineProperty(_node, "animate", {
-      set: function set(handler) {
-        updateAnimationHandler(handler);
-      }
-    });
-    Object.defineProperty(_node, "mouse", {
-      get: function get() {
-        return _pointer.getPointer();
-      }
-    });
-    Object.defineProperty(_node, "pointer", {
-      get: function get() {
-        return _pointer.getPointer();
-      }
-    });
-
-    if (typeof _node.addEventListener === "function") {
-      attachHandlers(_node);
-    }
-  };
-
-  setup(node);
+  Object.defineProperty(node, "mouse", {
+    get: () => pointer.get(),
+    enumerable: true
+  });
+  Object.defineProperty(node, "mouseMoved", {
+    set: (handler) => {
+      const mouseFunc = event => onMouseMove(handler, event);
+      const touchFunc = event => onTouchMove(handler, event);
+      handlers.mousemove.push(mouseFunc);
+      handlers.touchmove.push(mouseFunc);
+      node.addEventListener("mousemove", mouseFunc);
+      node.addEventListener("touchmove", touchFunc);
+    },
+    enumerable: true
+  });
+  Object.defineProperty(node, "mousePressed", {
+    set: (handler) => {
+      const mouseFunc = event => onMouseDown(handler, event);
+      const touchFunc = event => onTouchStart(handler, event);
+      handlers.mousedown.push(mouseFunc);
+      handlers.touchstart.push(touchFunc);
+      node.addEventListener("mousedown", mouseFunc);
+      node.addEventListener("touchstart", touchFunc);
+    },
+    enumerable: true
+  });
+  Object.defineProperty(node, "mouseReleased", {
+    set: (handler) => {
+      const mouseFunc = event => onEnd(handler, event);
+      const touchFunc = event => onEnd(handler, event);
+      handlers.mouseup.push(mouseFunc);
+      handlers.touchend.push(touchFunc);
+      node.addEventListener("mouseup", mouseFunc);
+      node.addEventListener("touchend", touchFunc);
+    },
+    enumerable: true
+  });
+  Object.defineProperty(node, "scroll", {
+    set: (handler) => {
+      const scrollFunc = event => onScroll(handler, event);
+      handlers.mouseup.push(scrollFunc);
+      node.addEventListener("scroll", scrollFunc);
+    },
+    enumerable: true
+  });
   return {
-    setup: setup,
-    addEventListener: addEventListener,
-    remove: function remove() {
-      removeHandlers(_node);
-    }
+    clear,
+    pointer
   };
-}
-
-var getElement = function getElement() {
-  for (var _len = arguments.length, params = new Array(_len), _key = 0; _key < _len; _key++) {
-    params[_key] = arguments[_key];
-  }
-
-  var element = params.filter(function (arg) {
-    return arg instanceof HTMLElement;
-  }).shift();
-  var idElement = params.filter(function (a) {
-    return typeof a === "string" || a instanceof String;
-  }).map(function (str) {
-    return win.document.getElementById(str);
-  }).shift();
-
-  if (element != null) {
-    return element;
-  }
-
-  return idElement != null ? idElement : win.document.body;
 };
 
-var initSize = function initSize(svgElement, params) {
-  var numbers = params.filter(function (arg) {
-    return !isNaN(arg);
+const DEFAULT_DELAY = 1000 / 60;
+const Animate = function (node) {
+  const timers = [];
+  let frameNumber;
+  let delay = DEFAULT_DELAY;
+  let func;
+  const clear = () => {
+    while (timers.length > 0) {
+      clearInterval(timers.shift());
+    }
+    func = undefined;
+  };
+  const start = () => {
+    if (typeof func !== "function") { return; }
+    timers.push(setInterval(() => {
+      func({
+        time: node.getCurrentTime(),
+        frame: frameNumber += 1
+      });
+    }, delay));
+  };
+  const setLoop = (handler) => {
+    clear();
+    func = handler;
+    if (typeof func === "function") {
+      frameNumber = 0;
+      start();
+    }
+  };
+  const validateMillis = (m) => {
+    const parsed = parseFloat(m);
+    if (!isNaN(parsed) && isFinite(parsed)) {
+      return parsed;
+    }
+    return DEFAULT_DELAY;
+  };
+  const setFPS = (fps) => {
+    clear();
+    delay = validateMillis(1000 / fps);
+    start();
+  };
+  Object.defineProperty(node, "animate", {
+    set: handler => setLoop(handler),
+    enumerable: true
   });
+  Object.defineProperty(node, "clear", {
+    value: () => clear(),
+    enumerable: true,
+  });
+  return {
+    clear,
+    setLoop,
+    setFPS
+  };
+};
 
+const Events = function (node) {
+  const animate = Animate(node);
+  const touches = Touches(node);
+  Object.defineProperty(node, "stopAnimations", {
+    value: animate.clear,
+    enumerated: true
+  });
+  Object.defineProperty(node, "freeze", {
+    value: () => {
+      touches.clear();
+      animate.clear();
+    },
+    enumerated: true
+  });
+  Object.defineProperty(node, "fps", {
+    set: fps => animate.setFPS(fps),
+    enumerated: true
+  });
+};
+
+const controlPoint = function (parent, options = {}) {
+  const position = [0, 0];
+  let selected = false;
+  let svg;
+  const updateSVG = () => {
+    if (svg != null) {
+      if (svg.parentNode == null) { parent.appendChild(svg); }
+      svg.setAttribute("cx", position[0]);
+      svg.setAttribute("cy", position[1]);
+    }
+  };
+  const proxy = new Proxy(position, {
+    set: (target, property, value, receiver) => {
+      target[property] = value;
+      updateSVG();
+      return true;
+    }
+  });
+  const setPosition = function (...args) {
+    if (args.length === 0) { return; }
+    const root = typeof args[0];
+    if (root === "number") {
+      position[0] = args[0];
+      position[1] = args[1];
+      updateSVG();
+    }
+    if (root === "object") {
+      if (typeof args[0][0] === "number") {
+        position[0] = args[0][0];
+        position[1] = args[0][1];
+        updateSVG();
+      } else if (typeof args[0].x === "number") {
+        position[0] = args[0].x;
+        position[1] = args[0].y;
+        updateSVG();
+      }
+    }
+    if (typeof position.delegate === "function") {
+      position.delegate(proxy);
+    }
+  };
+  setPosition(options.position);
+  let updatePosition = input => input;
+  const onMouseMove = function (mouse) {
+    if (selected) {
+      setPosition(updatePosition(mouse));
+    }
+  };
+  const onMouseUp = () => { selected = false; };
+  const distance = mouse => ([0, 1]
+    .map(i => mouse[i] - position[i])
+    .map(e => e ** 2)
+    .reduce((a, b) => a + b, 0));
+  position.delegate = undefined;
+  position.setPosition = setPosition;
+  position.onMouseMove = onMouseMove;
+  position.onMouseUp = onMouseUp;
+  position.distance = distance;
+  Object.defineProperty(position, "svg", {
+    get: () => svg,
+    set: (newSVG) => { svg = newSVG; }
+  });
+  Object.defineProperty(position, "positionDidUpdate", {
+    set: (method) => { updatePosition = method; }
+  });
+  Object.defineProperty(position, "selected", {
+    set: (value) => { selected = value; }
+  });
+  return proxy;
+};
+const controls = function (svg, number, options) {
+  let selected;
+  let delegate;
+  const points = Array.from(Array(number))
+    .map(() => controlPoint(svg, options));
+  points.forEach((pt, i) => {
+    if (typeof options === "object"
+      && typeof options.position === "function") {
+      pt.setPosition(options.position(i));
+    }
+  });
+  const protocol = function (point) {
+    if (typeof delegate === "function") {
+      delegate.call(points, point);
+    }
+  };
+  points.forEach((p) => { p.delegate = protocol; });
+  const mousePressedHandler = function (mouse) {
+    if (!(points.length > 0)) { return; }
+    selected = points
+      .map((p, i) => ({ i, d: p.distance(mouse) }))
+      .sort((a, b) => a.d - b.d)
+      .shift()
+      .i;
+    points[selected].selected = true;
+  };
+  const mouseMovedHandler = function (mouse) {
+    points.forEach(p => p.onMouseMove(mouse));
+  };
+  const mouseReleasedHandler = function () {
+    points.forEach(p => p.onMouseUp());
+    selected = undefined;
+  };
+  svg.mousePressed = mousePressedHandler;
+  svg.mouseMoved = mouseMovedHandler;
+  svg.mouseReleased = mouseReleasedHandler;
+  Object.defineProperty(points, "selectedIndex", { get: () => selected });
+  Object.defineProperty(points, "selected", { get: () => points[selected] });
+  Object.defineProperty(points, "add", {
+    value: (opt) => {
+      points.push(controlPoint(svg, opt));
+    },
+  });
+  points.changed = function (func, runOnceAtStart) {
+    if (typeof func === "function") {
+      delegate = func;
+      if (runOnceAtStart === true) { delegate.call(points); }
+    }
+    return points;
+  };
+  points.position = function (func) {
+    if (typeof func === "function") {
+      points.forEach((p, i) => p.setPosition(func(i)));
+    }
+    return points;
+  };
+  points.svg = function (func) {
+    if (typeof func === "function") {
+      points.forEach((p, i) => { p.svg = func(i); });
+    }
+    return points;
+  };
+  points.parent = function (parent) {
+    if (parent != null && parent.appendChild != null) {
+      points.forEach((p) => { parent.appendChild(p.svg); });
+    }
+    return points;
+  };
+  return points;
+};
+
+const is_iterable = obj => obj != null
+  && typeof obj[Symbol.iterator] === "function";
+const flatten_input = function (...args) {
+  switch (args.length) {
+    case undefined:
+    case 0: return args;
+    case 1: return is_iterable(args[0]) && typeof args[0] !== "string"
+      ? flatten_input(...args[0])
+      : [args[0]];
+    default:
+      return Array.from(args)
+        .map(a => (is_iterable(a)
+          ? [...flatten_input(a)]
+          : a))
+        .reduce((a, b) => a.concat(b), []);
+  }
+};
+const setPoints = function (shape, ...pointsArray) {
+  const flat = flatten_input(...pointsArray);
+  let pointsString = "";
+  if (typeof flat[0] === "number") {
+    pointsString = Array.from(Array(Math.floor(flat.length / 2)))
+      .reduce((a, b, i) => `${a}${flat[i * 2]},${flat[i * 2 + 1]} `, "");
+  }
+  if (typeof flat[0] === "object") {
+    if (typeof flat[0].x === "number") {
+      pointsString = flat.reduce((prev, curr) => `${prev}${curr.x},${curr.y} `, "");
+    }
+    if (typeof flat[0][0] === "number") {
+      pointsString = flat.reduce((prev, curr) => `${prev}${curr[0]},${curr[1]} `, "");
+    }
+  }
+  shape.setAttributeNS(null, "points", pointsString);
+  return shape;
+};
+const setLinePoints = function (shape, ...pointsArray) {
+  const flat = flatten_input(...pointsArray);
+  let points = [];
+  if (typeof flat[0] === "number") {
+    points = flat;
+  }
+  if (typeof flat[0] === "object") {
+    if (typeof flat[0].x === "number") {
+      points = flat.map(p => [p[0], p[1]]).reduce((a, b) => a.concat(b), []);
+    }
+    if (typeof flat[0][0] === "number") {
+      points = flat.reduce((a, b) => a.concat(b), []);
+    }
+  }
+  if (points[0] != null) { shape.setAttributeNS(null, "x1", points[0]); }
+  if (points[1] != null) { shape.setAttributeNS(null, "y1", points[1]); }
+  if (points[2] != null) { shape.setAttributeNS(null, "x2", points[2]); }
+  if (points[3] != null) { shape.setAttributeNS(null, "y2", points[3]); }
+  return shape;
+};
+const setCenter = function (shape, ...args) {
+  const flat = flatten_input(...args);
+  if (typeof flat[0] === "number") {
+    if (flat[0] != null) { shape.setAttributeNS(null, "cx", flat[0]); }
+    if (flat[1] != null) { shape.setAttributeNS(null, "cy", flat[1]); }
+  }
+  if (typeof flat.x === "number") {
+    if (flat.x != null) { shape.setAttributeNS(null, "cx", flat.x); }
+    if (flat.y != null) { shape.setAttributeNS(null, "cy", flat.y); }
+  }
+  return shape;
+};
+const setArc = function (shape, x, y, radius,
+  startAngle, endAngle, includeCenter = false) {
+  if (endAngle == null) { return undefined; }
+  const start = [
+    x + Math.cos(startAngle) * radius,
+    y + Math.sin(startAngle) * radius];
+  const vecStart = [
+    Math.cos(startAngle) * radius,
+    Math.sin(startAngle) * radius];
+  const vecEnd = [
+    Math.cos(endAngle) * radius,
+    Math.sin(endAngle) * radius];
+  const arcVec = [vecEnd[0] - vecStart[0], vecEnd[1] - vecStart[1]];
+  const py = vecStart[0] * vecEnd[1] - vecStart[1] * vecEnd[0];
+  const px = vecStart[0] * vecEnd[0] + vecStart[1] * vecEnd[1];
+  const arcdir = (Math.atan2(py, px) > 0 ? 0 : 1);
+  let d = (includeCenter
+    ? `M ${x},${y} l ${vecStart[0]},${vecStart[1]} `
+    : `M ${start[0]},${start[1]} `);
+  d += ["a ", radius, radius, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
+  if (includeCenter) { d += " Z"; }
+  shape.setAttributeNS(null, "d", d);
+  return shape;
+};
+const setEllipticalArc = function (shape, x, y, rX, rY,
+  startAngle, endAngle, includeCenter = false) {
+  if (endAngle == null) { return undefined; }
+  const start = [
+    x + Math.cos(startAngle) * rX,
+    y + Math.sin(startAngle) * rY];
+  const vecStart = [
+    Math.cos(startAngle) * rX,
+    Math.sin(startAngle) * rY];
+  const vecEnd = [
+    Math.cos(endAngle) * rX,
+    Math.sin(endAngle) * rY];
+  const arcVec = [vecEnd[0] - vecStart[0], vecEnd[1] - vecStart[1]];
+  const py = vecStart[0] * vecEnd[1] - vecStart[1] * vecEnd[0];
+  const px = vecStart[0] * vecEnd[0] + vecStart[1] * vecEnd[1];
+  const arcdir = (Math.atan2(py, px) > 0 ? 0 : 1);
+  let d = (includeCenter
+    ? `M ${x},${y} l ${vecStart[0]},${vecStart[1]} `
+    : `M ${start[0]},${start[1]} `);
+  d += ["a ", rX, rY, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
+  if (includeCenter) { d += " Z"; }
+  shape.setAttributeNS(null, "d", d);
+  return shape;
+};
+const setBezier = function (shape, fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
+  if (toY == null) { return undefined; }
+  const pts = [[fromX, fromY], [c1X, c1Y], [c2X, c2Y], [toX, toY]]
+    .map(p => p.join(","));
+  const d = `M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]}`;
+  shape.setAttributeNS(null, "d", d);
+  return shape;
+};
+const setArrowPoints = function (shape, ...args) {
+  const children = Array.from(shape.childNodes);
+  const path = children.filter(node => node.tagName === "path").shift();
+  const polys = ["svg-arrow-head", "svg-arrow-tail"]
+    .map(c => children.filter(n => n.getAttribute("class") === c).shift());
+  const flat = flatten_input(...args);
+  let endpoints = [];
+  if (typeof flat[0] === "number") {
+    endpoints = flat;
+  }
+  if (typeof flat[0] === "object") {
+    if (typeof flat[0].x === "number") {
+      endpoints = flat.map(p => [p[0], p[1]]).reduce((a, b) => a.concat(b), []);
+    }
+    if (typeof flat[0][0] === "number") {
+      endpoints = flat.reduce((a, b) => a.concat(b), []);
+    }
+  }
+  if (!endpoints.length && shape.endpoints != null) {
+    endpoints = shape.endpoints;
+  }
+  if (!endpoints.length) { return shape; }
+  shape.endpoints = endpoints;
+  const o = shape.options;
+  let tailPt = [endpoints[0], endpoints[1]];
+  let headPt = [endpoints[2], endpoints[3]];
+  let vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
+  let midpoint = [tailPt[0] + vector[0] / 2, tailPt[1] + vector[1] / 2];
+  const len = Math.sqrt((vector[0] ** 2) + (vector[1] ** 2));
+  const minLength = (
+    (o.tail.visible ? (1 + o.tail.padding) * o.tail.height * 2.5 : 0)
+  + (o.head.visible ? (1 + o.head.padding) * o.head.height * 2.5 : 0)
+  );
+  if (len < minLength) {
+    const minVec = len === 0
+      ? [minLength, 0]
+      : [vector[0] / len * minLength, vector[1] / len * minLength];
+    tailPt = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
+    headPt = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
+    vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
+  }
+  let perpendicular = [vector[1], -vector[0]];
+  let bezPoint = [
+    midpoint[0] + perpendicular[0] * o.curve,
+    midpoint[1] + perpendicular[1] * o.curve
+  ];
+  const bezTail = [bezPoint[0] - tailPt[0], bezPoint[1] - tailPt[1]];
+  const bezHead = [bezPoint[0] - headPt[0], bezPoint[1] - headPt[1]];
+  const bezTailLen = Math.sqrt((bezTail[0] ** 2) + (bezTail[1] ** 2));
+  const bezHeadLen = Math.sqrt((bezHead[0] ** 2) + (bezHead[1] ** 2));
+  const bezTailNorm = bezTailLen === 0
+    ? bezTail
+    : [bezTail[0] / bezTailLen, bezTail[1] / bezTailLen];
+  const bezHeadNorm = bezTailLen === 0
+    ? bezHead
+    : [bezHead[0] / bezHeadLen, bezHead[1] / bezHeadLen];
+  const tailVector = [-bezTailNorm[0], -bezTailNorm[1]];
+  const headVector = [-bezHeadNorm[0], -bezHeadNorm[1]];
+  const tailNormal = [tailVector[1], -tailVector[0]];
+  const headNormal = [headVector[1], -headVector[0]];
+  const tailArc = [
+    tailPt[0] + bezTailNorm[0] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding),
+    tailPt[1] + bezTailNorm[1] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding)
+  ];
+  const headArc = [
+    headPt[0] + bezHeadNorm[0] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding),
+    headPt[1] + bezHeadNorm[1] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding)
+  ];
+  vector = [headArc[0] - tailArc[0], headArc[1] - tailArc[1]];
+  perpendicular = [vector[1], -vector[0]];
+  midpoint = [tailArc[0] + vector[0] / 2, tailArc[1] + vector[1] / 2];
+  bezPoint = [
+    midpoint[0] + perpendicular[0] * o.curve,
+    midpoint[1] + perpendicular[1] * o.curve
+  ];
+  const tailControl = [
+    tailArc[0] + (bezPoint[0] - tailArc[0]) * o.pinch,
+    tailArc[1] + (bezPoint[1] - tailArc[1]) * o.pinch
+  ];
+  const headControl = [
+    headArc[0] + (bezPoint[0] - headArc[0]) * o.pinch,
+    headArc[1] + (bezPoint[1] - headArc[1]) * o.pinch
+  ];
+  const tailPolyPts = [
+    [tailArc[0] + tailNormal[0] * -o.tail.width, tailArc[1] + tailNormal[1] * -o.tail.width],
+    [tailArc[0] + tailNormal[0] * o.tail.width, tailArc[1] + tailNormal[1] * o.tail.width],
+    [tailArc[0] + tailVector[0] * o.tail.height, tailArc[1] + tailVector[1] * o.tail.height]
+  ];
+  const headPolyPts = [
+    [headArc[0] + headNormal[0] * -o.head.width, headArc[1] + headNormal[1] * -o.head.width],
+    [headArc[0] + headNormal[0] * o.head.width, headArc[1] + headNormal[1] * o.head.width],
+    [headArc[0] + headVector[0] * o.head.height, headArc[1] + headVector[1] * o.head.height]
+  ];
+  path.setAttribute("d", `M${tailArc[0]},${tailArc[1]}C${tailControl[0]},${tailControl[1]},${headControl[0]},${headControl[1]},${headArc[0]},${headArc[1]}`);
+  if (o.head.visible) {
+    polys[0].removeAttribute("display");
+    setPoints(polys[0], headPolyPts);
+  } else {
+    polys[0].setAttribute("display", "none");
+  }
+  if (o.tail.visible) {
+    polys[1].removeAttribute("display");
+    setPoints(polys[1], tailPolyPts);
+  } else {
+    polys[1].setAttribute("display", "none");
+  }
+  return shape;
+};
+
+var geometryMods = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  setPoints: setPoints,
+  setLinePoints: setLinePoints,
+  setCenter: setCenter,
+  setArc: setArc,
+  setEllipticalArc: setEllipticalArc,
+  setBezier: setBezier,
+  setArrowPoints: setArrowPoints
+});
+
+var attributes = [
+  "accumulate",
+  "additive",
+  "alignment-baseline",
+  "allowReorder",
+  "amplitude",
+  "attributeName",
+  "autoReverse",
+  "azimuth",
+  "BSection",
+  "baseFrequency",
+  "baseline-shift",
+  "baseProfile",
+  "bbox",
+  "begin",
+  "bias",
+  "by",
+  "CSection",
+  "calcMode",
+  "cap-height",
+  "clip",
+  "clip-rule",
+  "color",
+  "color-interpolation",
+  "color-interpolation-filters",
+  "color-profile",
+  "color-rendering",
+  "contentScriptType",
+  "contentStyleType",
+  "cursor",
+  "DSection",
+  "decelerate",
+  "descent",
+  "diffuseConstant",
+  "direction",
+  "display",
+  "divisor",
+  "dominant-baseline",
+  "dur",
+  "ESection",
+  "edgeMode",
+  "elevation",
+  "enable-background",
+  "end",
+  "exponent",
+  "externalResourcesRequired",
+  "FSection",
+  "fill",
+  "fill-opacity",
+  "fill-rule",
+  "filter",
+  "filterRes",
+  "filterUnits",
+  "flood-color",
+  "flood-opacity",
+  "font-family",
+  "font-size",
+  "font-size-adjust",
+  "font-stretch",
+  "font-style",
+  "font-variant",
+  "font-weight",
+  "format",
+  "from",
+  "fr",
+  "fx",
+  "fy",
+  "GSection",
+  "g1",
+  "g2",
+  "glyph-name",
+  "glyph-orientation-horizontal",
+  "glyph-orientation-vertical",
+  "glyphRef",
+  "gradientTransform",
+  "gradientUnits",
+  "HSection",
+  "hanging",
+  "href",
+  "hreflang",
+  "horiz-adv-x",
+  "horiz-origin-x",
+  "ISection",
+  "ideographic",
+  "image-rendering",
+  "in",
+  "in2",
+  "intercept",
+  "KSection",
+  "k",
+  "k1",
+  "k2",
+  "k3",
+  "k4",
+  "kernelMatrix",
+  "kernelUnitLength",
+  "kerning",
+  "keyPoints",
+  "keySplines",
+  "keyTimes",
+  "LSection",
+  "lang",
+  "letter-spacing",
+  "lighting-color",
+  "limitingConeAngle",
+  "local",
+  "MSection",
+  "marker-end",
+  "marker-mid",
+  "marker-start",
+  "markerHeight",
+  "markerUnits",
+  "markerWidth",
+  "mathematical",
+  "max",
+  "media",
+  "method",
+  "min",
+  "mode",
+  "NSection",
+  "name",
+  "numOctaves",
+  "OSection",
+  "offset",
+  "opacity",
+  "operator",
+  "order",
+  "orient",
+  "orientation",
+  "origin",
+  "overflow",
+  "overline-position",
+  "overline-thickness",
+  "PSection",
+  "paint-order",
+  "patternContentUnits",
+  "patternTransform",
+  "patternUnits",
+  "ping",
+  "pointer-events",
+  "pointsAtX",
+  "pointsAtY",
+  "pointsAtZ",
+  "preserveAlpha",
+  "preserveAspectRatio",
+  "primitiveUnits",
+  "RSection",
+  "radius",
+  "referrerPolicy",
+  "refX",
+  "refY",
+  "rel",
+  "rendering-intent",
+  "repeatCount",
+  "repeatDur",
+  "requiredFeatures",
+  "restart",
+  "result",
+  "SSection",
+  "seed",
+  "shape-rendering",
+  "slope",
+  "spacing",
+  "specularConstant",
+  "specularExponent",
+  "speed",
+  "spreadMethod",
+  "startOffset",
+  "stdDeviation",
+  "stemh",
+  "stemv",
+  "stitchTiles",
+  "stop-color",
+  "stop-opacity",
+  "strikethrough-position",
+  "strikethrough-thickness",
+  "string",
+  "stroke",
+  "stroke-dasharray",
+  "stroke-dashoffset",
+  "stroke-linecap",
+  "stroke-linejoin",
+  "stroke-miterlimit",
+  "stroke-opacity",
+  "stroke-width",
+  "surfaceScale",
+  "TSection",
+  "tabindex",
+  "tableValues",
+  "target",
+  "targetX",
+  "targetY",
+  "text-anchor",
+  "text-decoration",
+  "text-rendering",
+  "to",
+  "transform-origin",
+  "type",
+  "USection",
+  "u1",
+  "u2",
+  "underline-position",
+  "underline-thickness",
+  "unicode",
+  "unicode-bidi",
+  "unicode-range",
+  "units-per-em",
+  "VSection",
+  "v-alphabetic",
+  "v-hanging",
+  "v-ideographic",
+  "v-mathematical",
+  "values",
+  "vector-effect",
+  "version",
+  "vert-adv-y",
+  "vert-origin-x",
+  "vert-origin-y",
+  "viewBox",
+  "viewTarget",
+  "visibility",
+  "WSection",
+  "widths",
+  "word-spacing",
+  "writing-mode",
+  "XSection",
+  "x-height",
+  "xChannelSelector",
+  "YSection",
+  "yChannelSelector",
+  "ZSection",
+  "zoomAndPan"
+];
+
+const removeChildren = function (parent) {
+  while (parent.lastChild) {
+    parent.removeChild(parent.lastChild);
+  }
+};
+const appendTo = function (element, parent) {
+  if (parent != null) {
+    element.remove();
+    parent.appendChild(element);
+  }
+  return element;
+};
+const toKebab = string => string
+  .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+  .replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2")
+  .toLowerCase();
+const setAttributes = function (element, attributes) {
+  Object.keys(attributes).forEach((key) => {
+    element.setAttribute(toKebab(key), attributes[key]);
+  });
+  return element;
+};
+const getClassList = function (xmlNode) {
+  const currentClass = xmlNode.getAttribute("class");
+  return (currentClass == null
+    ? []
+    : currentClass.split(" ").filter(s => s !== ""));
+};
+const addClass = function (xmlNode, newClass) {
+  if (xmlNode == null) {
+    return xmlNode;
+  }
+  const classes = getClassList(xmlNode)
+    .filter(c => c !== newClass);
+  classes.push(newClass);
+  xmlNode.setAttributeNS(null, "class", classes.join(" "));
+  return xmlNode;
+};
+const removeClass = function (xmlNode, removedClass) {
+  if (xmlNode == null) {
+    return xmlNode;
+  }
+  const classes = getClassList(xmlNode)
+    .filter(c => c !== removedClass);
+  xmlNode.setAttributeNS(null, "class", classes.join(" "));
+  return xmlNode;
+};
+const setClass = function (xmlNode, className) {
+  xmlNode.setAttributeNS(null, "class", className);
+  return xmlNode;
+};
+const setID = function (xmlNode, idName) {
+  xmlNode.setAttributeNS(null, "id", idName);
+  return xmlNode;
+};
+
+var DOM = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  removeChildren: removeChildren,
+  appendTo: appendTo,
+  setAttributes: setAttributes,
+  addClass: addClass,
+  removeClass: removeClass,
+  setClass: setClass,
+  setID: setID
+});
+
+const setTransform = function (element, transform) {
+  if (typeof transform === "object") {
+    element.setAttribute("transform", transform.join(" "));
+  } else if (typeof transform === "string") {
+    element.setAttribute("transform", transform);
+  }
+};
+const getTransform = function (element) {
+  const trans = element.getAttribute("transform");
+  return (trans == null
+    ? undefined
+    : trans.split(" "));
+};
+const translate = function (element, tx, ty) {
+  const trans = getTransform(element) || [];
+  trans.push(`translate(${tx}, ${ty})`);
+  setTransform(element, trans);
+  return element;
+};
+const rotate = function (element, angle) {
+  const trans = getTransform(element) || [];
+  trans.push(`rotate(${angle})`);
+  setTransform(element, trans);
+  return element;
+};
+const scale = function (element, sx, sy) {
+  const trans = getTransform(element) || [];
+  trans.push(`scale(${sx}, ${sy})`);
+  setTransform(element, trans);
+  return element;
+};
+const clearTransforms = function (element) {
+  element.setAttribute("transform", "");
+  return element;
+};
+
+var Transform = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  translate: translate,
+  rotate: rotate,
+  scale: scale,
+  clearTransforms: clearTransforms
+});
+
+const is_iterable$1 = obj => obj != null
+  && typeof obj[Symbol.iterator] === "function";
+const flatten_input$1 = function (...args) {
+  switch (args.length) {
+    case undefined:
+    case 0: return args;
+    case 1: return is_iterable$1(args[0]) && typeof args[0] !== "string"
+      ? flatten_input$1(...args[0])
+      : [args[0]];
+    default:
+      return Array.from(args)
+        .map(a => (is_iterable$1(a)
+          ? [...flatten_input$1(a)]
+          : a))
+        .reduce((a, b) => a.concat(b), []);
+  }
+};
+const d = function (element) {
+  let attr = element.getAttribute("d");
+  if (attr == null) { attr = ""; }
+  return attr;
+};
+const append = function (element, command, ...args) {
+  const params = flatten_input$1(args).join(",");
+  element.setAttribute("d", `${d(element)}${command}${params}`);
+  return element;
+};
+const command = (element, cmd, ...args) => append(element, cmd, ...args);
+const moveTo = (element, ...args) => append(element, "M", ...args);
+const _moveTo = (element, ...args) => append(element, "m", ...args);
+const lineTo = (element, ...args) => append(element, "L", ...args);
+const _lineTo = (element, ...args) => append(element, "l", ...args);
+const verticalLineTo = (element, y) => append(element, "V", y);
+const _verticalLineTo = (element, y) => append(element, "v", y);
+const horizontalLineTo = (element, x) => append(element, "H", x);
+const _horizontalLineTo = (element, x) => append(element, "h", x);
+const ellipseTo = (element, ...args) => append(element, "A", ...args);
+const _ellipseTo = (element, ...args) => append(element, "a", ...args);
+const curveTo = (element, ...args) => append(element, "C", ...args);
+const _curveTo = (element, ...args) => append(element, "c", ...args);
+const smoothCurveTo = (element, ...args) => append(element, "S", ...args);
+const _smoothCurveTo = (element, ...args) => append(element, "s", ...args);
+const quadCurveTo = (element, ...args) => append(element, "Q", ...args);
+const _quadCurveTo = (element, ...args) => append(element, "q", ...args);
+const smoothQuadCurveTo = (element, ...args) => append(element, "T", ...args);
+const _smoothQuadCurveTo = (element, ...args) => append(element, "t", ...args);
+const close = element => append(element, "Z");
+const clear = (element) => {
+  element.setAttribute("d", "");
+  return element;
+};
+
+var Path = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  command: command,
+  moveTo: moveTo,
+  _moveTo: _moveTo,
+  lineTo: lineTo,
+  _lineTo: _lineTo,
+  verticalLineTo: verticalLineTo,
+  _verticalLineTo: _verticalLineTo,
+  horizontalLineTo: horizontalLineTo,
+  _horizontalLineTo: _horizontalLineTo,
+  ellipseTo: ellipseTo,
+  _ellipseTo: _ellipseTo,
+  curveTo: curveTo,
+  _curveTo: _curveTo,
+  smoothCurveTo: smoothCurveTo,
+  _smoothCurveTo: _smoothCurveTo,
+  quadCurveTo: quadCurveTo,
+  _quadCurveTo: _quadCurveTo,
+  smoothQuadCurveTo: smoothQuadCurveTo,
+  _smoothQuadCurveTo: _smoothQuadCurveTo,
+  close: close,
+  clear: clear
+});
+
+const attachStyleMethods = function (element) {
+  element.appendTo = arg => appendTo(element, arg);
+};
+const attachAppendableMethods = function (element, methods) {
+  Object.keys(methods)
+    .filter(key => element[key] === undefined)
+    .forEach((key) => {
+      element[key] = function (...args) {
+        const g = methods[key](...args);
+        element.appendChild(g);
+        return g;
+      };
+    });
+};
+const attachArrowMethods = function (element) {
+  element.head = (options) => {
+    if (typeof options === "object") {
+      Object.assign(element.options.head, options);
+      if (options.visible === undefined) {
+        element.options.head.visible = true;
+      }
+    } else if (typeof options === "boolean") {
+      element.options.head.visible = options;
+    } else if (options == null) {
+      element.options.head.visible = true;
+    }
+    setArrowPoints(element);
+    return element;
+  };
+  element.tail = (options) => {
+    if (typeof options === "object") {
+      Object.assign(element.options.tail, options);
+      if (options.visible === undefined) {
+        element.options.tail.visible = true;
+      }
+      element.options.tail.visible = true;
+    } else if (typeof options === "boolean") {
+      element.options.tail.visible = options;
+    } else if (options == null) {
+      element.options.tail.visible = true;
+    }
+    setArrowPoints(element);
+    return element;
+  };
+  element.curve = (amount) => {
+    element.options.curve = amount;
+    setArrowPoints(element);
+    return element;
+  };
+  element.pinch = (amount) => {
+    element.options.pinch = amount;
+    setArrowPoints(element);
+    return element;
+  };
+};
+const attachPathMethods = function (element) {
+  Object.keys(Path).forEach((key) => {
+    element[key] = (...args) => Path[key](element, ...args);
+  });
+};
+const attachDOMMethods = function (element) {
+  Object.keys(DOM).filter(key => element[key] === undefined).forEach((key) => {
+    element[key] = (...args) => DOM[key](element, ...args);
+  });
+};
+const attachTransformMethods = function (element) {
+  Object.keys(Transform).forEach((key) => {
+    element[key] = (...args) => Transform[key](element, ...args);
+  });
+};
+const attachViewBoxMethods = function (element) {
+  Object.keys(ViewBox).filter(key => element[key] === undefined).forEach((key) => {
+    element[key] = (...args) => ViewBox[key](element, ...args);
+  });
+};
+const toCamel = s => s
+  .replace(/([-_][a-z])/ig, $1 => $1
+    .toUpperCase()
+    .replace("-", "")
+    .replace("_", ""));
+const attachFunctionalStyleSetters = function (element) {
+  attributes.filter(key => element[toCamel(key)] === undefined)
+    .forEach((key) => {
+      element[toCamel(key)] = (...args) => {
+        element.setAttribute(key, ...args);
+        return element;
+      };
+    });
+};
+const attachClipMaskMakers = function (element, primitives) {
+  if (element.clipPath === undefined) {
+    element.clipPath = (...args) => {
+      const c = primitives.clipPath(...args);
+      element.appendChild(c);
+      return c;
+    };
+  }
+  if (element.mask === undefined) {
+    element.mask = (...args) => {
+      const m = primitives.mask(...args);
+      element.appendChild(m);
+      return m;
+    };
+  }
+};
+const findIdURL = function (arg) {
+  if (arg == null) { return undefined; }
+  if (typeof arg === "string") {
+    return arg.slice(0, 3) === "url"
+      ? arg
+      : `url(#${arg})`;
+  }
+  if (arg.getAttribute != null) {
+    const idString = arg.getAttribute("id");
+    return `url(#${idString})`;
+  }
+  return "url(#)";
+};
+const attachClipMaskAttributes = function (element) {
+  if (element.clipPath === undefined) {
+    element.clipPath = function (parent) {
+      const value = findIdURL(parent);
+      if (value === undefined) { return element; }
+      element.setAttribute("clip-path", value);
+      return element;
+    };
+  }
+  if (element.mask === undefined) {
+    element.mask = function (parent) {
+      const value = findIdURL(parent);
+      if (value === undefined) { return element; }
+      element.setAttribute("mask", value);
+      return element;
+    };
+  }
+};
+
+const preparePrimitive = function (element) {
+  attachFunctionalStyleSetters(element);
+  attachDOMMethods(element);
+  attachTransformMethods(element);
+  attachClipMaskAttributes(element);
+  if (element.tagName === "path") {
+    attachPathMethods(element);
+  }
+};
+const prepareArrow = function (element) {
+  attachFunctionalStyleSetters(element);
+  attachDOMMethods(element);
+  attachTransformMethods(element);
+  attachClipMaskAttributes(element);
+  attachArrowMethods(element);
+};
+const prepareText = function (element) {
+  attachFunctionalStyleSetters(element);
+  attachDOMMethods(element);
+  attachClipMaskAttributes(element);
+};
+const prepareSVG = function (element, primitives) {
+  attachDOMMethods(element);
+  attachTransformMethods(element);
+  attachViewBoxMethods(element);
+  attachFunctionalStyleSetters(element);
+  attachClipMaskMakers(element, primitives);
+  attachAppendableMethods(element, primitives);
+};
+const prepareGroup = function (element, primitives) {
+  attachFunctionalStyleSetters(element);
+  attachDOMMethods(element);
+  attachTransformMethods(element);
+  attachClipMaskAttributes(element);
+  attachAppendableMethods(element, primitives);
+};
+const prepareMaskClipPath = function (element, primitives) {
+  attachFunctionalStyleSetters(element);
+  attachDOMMethods(element);
+  attachTransformMethods(element);
+  attachClipMaskAttributes(element);
+  attachAppendableMethods(element, primitives);
+};
+const prepareStyle = function (element) {
+  attachStyleMethods(element);
+};
+const prepare = function (type, element, primitiveList) {
+  switch (type) {
+    case "svg": prepareSVG(element, primitiveList); break;
+    case "primitive": preparePrimitive(element); break;
+    case "arrow": prepareArrow(element); break;
+    case "defs":
+    case "group": prepareGroup(element, primitiveList); break;
+    case "text": prepareText(element); break;
+    case "clipPath":
+    case "mask": prepareMaskClipPath(element, primitiveList); break;
+    case "style": prepareStyle(element); break;
+    default: console.warn("prepare missing valid type (svg, group.."); break;
+  }
+};
+
+const line = function (...endpoints) {
+  const shape = win.document.createElementNS(NS, "line");
+  setLinePoints(shape, ...endpoints);
+  prepare("primitive", shape);
+  shape.setPoints = (...args) => setLinePoints(shape, ...args);
+  return shape;
+};
+const circle = function (x, y, radius) {
+  const shape = win.document.createElementNS(NS, "circle");
+  setCenter(shape, x, y);
+  if (radius != null) { shape.setAttributeNS(null, "r", radius); }
+  prepare("primitive", shape);
+  shape.setCenter = (...args) => setCenter(shape, ...args);
+  shape.setRadius = (r) => { shape.setAttributeNS(null, "r", r); return shape; };
+  return shape;
+};
+const ellipse = function (x, y, rx, ry) {
+  const shape = win.document.createElementNS(NS, "ellipse");
+  if (x != null) { shape.setAttributeNS(null, "cx", x); }
+  if (y != null) { shape.setAttributeNS(null, "cy", y); }
+  if (rx != null) { shape.setAttributeNS(null, "rx", rx); }
+  if (ry != null) { shape.setAttributeNS(null, "ry", ry); }
+  prepare("primitive", shape);
+  return shape;
+};
+const rect = function (x, y, width, height) {
+  const shape = win.document.createElementNS(NS, "rect");
+  if (x != null) { shape.setAttributeNS(null, "x", x); }
+  if (y != null) { shape.setAttributeNS(null, "y", y); }
+  if (width != null) { shape.setAttributeNS(null, "width", width); }
+  if (height != null) { shape.setAttributeNS(null, "height", height); }
+  prepare("primitive", shape);
+  return shape;
+};
+const polygon = function (...pointsArray) {
+  const shape = win.document.createElementNS(NS, "polygon");
+  setPoints(shape, ...pointsArray);
+  prepare("primitive", shape);
+  shape.setPoints = (...args) => setPoints(shape, ...args);
+  return shape;
+};
+const polyline = function (...pointsArray) {
+  const shape = win.document.createElementNS(NS, "polyline");
+  setPoints(shape, ...pointsArray);
+  prepare("primitive", shape);
+  shape.setPoints = (...args) => setPoints(shape, ...args);
+  return shape;
+};
+const path = function (d) {
+  const shape = win.document.createElementNS(NS, "path");
+  if (d != null) { shape.setAttributeNS(null, "d", d); }
+  prepare("primitive", shape);
+  return shape;
+};
+const bezier = function (fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
+  const shape = win.document.createElementNS(NS, "path");
+  setBezier(shape, fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY);
+  prepare("primitive", shape);
+  shape.setBezier = (...args) => setBezier(shape, ...args);
+  return shape;
+};
+const text = function (textString, x, y) {
+  const shape = win.document.createElementNS(NS, "text");
+  shape.innerHTML = textString;
+  if (x) { shape.setAttributeNS(null, "x", x); }
+  if (y) { shape.setAttributeNS(null, "y", y); }
+  prepare("text", shape);
+  return shape;
+};
+const arc = function (x, y, radius, angleA, angleB) {
+  const shape = win.document.createElementNS(NS, "path");
+  setArc(shape, x, y, radius, angleA, angleB, false);
+  prepare("primitive", shape);
+  shape.setArc = (...args) => setArc(shape, ...args);
+  return shape;
+};
+const wedge = function (x, y, radius, angleA, angleB) {
+  const shape = win.document.createElementNS(NS, "path");
+  setArc(shape, x, y, radius, angleA, angleB, true);
+  prepare("primitive", shape);
+  shape.setArc = (...args) => setArc(shape, ...args);
+  return shape;
+};
+const arcEllipse = function (x, y, rx, ry, angleA, angleB) {
+  const shape = win.document.createElementNS(NS, "path");
+  setEllipticalArc(shape, x, y, rx, ry, angleA, angleB, false);
+  prepare("primitive", shape);
+  shape.setArc = (...args) => setEllipticalArc(shape, ...args);
+  return shape;
+};
+const wedgeEllipse = function (x, y, rx, ry, angleA, angleB) {
+  const shape = win.document.createElementNS(NS, "path");
+  setEllipticalArc(shape, x, y, rx, ry, angleA, angleB, true);
+  prepare("primitive", shape);
+  shape.setArc = (...args) => setEllipticalArc(shape, ...args);
+  return shape;
+};
+const parabola = function (x, y, width, height) {
+  const COUNT = 128;
+  const iter = Array.from(Array(COUNT + 1))
+    .map((_, i) => (i - (COUNT)) / COUNT * 2 + 1);
+  const ptsX = iter.map(i => x + (i + 1) * width * 0.5);
+  const ptsY = iter.map(i => y + (i ** 2) * height);
+  const points = iter.map((_, i) => [ptsX[i], ptsY[i]]);
+  return polyline(points);
+};
+const regularPolygon = function (cX, cY, radius, sides) {
+  const halfwedge = 2 * Math.PI / sides * 0.5;
+  const r = Math.cos(halfwedge) * radius;
+  const points = Array.from(Array(sides)).map((el, i) => {
+    const a = -2 * Math.PI * i / sides + halfwedge;
+    const x = cX + r * Math.sin(a);
+    const y = cY + r * Math.cos(a);
+    return [x, y];
+  });
+  return polygon(points);
+};
+const roundRect = function (x, y, width, height, cornerRadius = 0) {
+  if (cornerRadius > width / 2) { cornerRadius = width / 2; }
+  if (cornerRadius > height / 2) { cornerRadius = height / 2; }
+  const w = width - cornerRadius * 2;
+  const h = height - cornerRadius * 2;
+  const pathString = `M${x + (width - w) / 2} ${y} h${w} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + width} ${y + (height - h) / 2} v${h} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + width - cornerRadius} ${y + height} h${-w} A${cornerRadius} ${cornerRadius} 0 0 1 ${x} ${y + height - cornerRadius} v${-h} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + cornerRadius} ${y} `;
+  return path(pathString);
+};
+const arrow = function (...args) {
+  const shape = win.document.createElementNS(NS, "g");
+  const tailPoly = win.document.createElementNS(NS, "polygon");
+  const headPoly = win.document.createElementNS(NS, "polygon");
+  const arrowPath = win.document.createElementNS(NS, "path");
+  tailPoly.setAttributeNS(null, "class", "svg-arrow-tail");
+  headPoly.setAttributeNS(null, "class", "svg-arrow-head");
+  arrowPath.setAttributeNS(null, "class", "svg-arrow-path");
+  tailPoly.setAttributeNS(null, "style", "stroke: none; pointer-events: none;");
+  headPoly.setAttributeNS(null, "style", "stroke: none; pointer-events: none;");
+  arrowPath.setAttributeNS(null, "style", "fill: none;");
+  shape.appendChild(arrowPath);
+  shape.appendChild(tailPoly);
+  shape.appendChild(headPoly);
+  shape.options = {
+    head: { width: 0.5, height: 2, visible: false, padding: 0.0 },
+    tail: { width: 0.5, height: 2, visible: false, padding: 0.0 },
+    curve: 0.0,
+    pinch: 0.618,
+    endpoints: [],
+  };
+  setArrowPoints(shape, ...args);
+  prepare("arrow", shape);
+  shape.setPoints = (...a) => setArrowPoints(shape, ...a);
+  return shape;
+};
+
+var primitives = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  line: line,
+  circle: circle,
+  ellipse: ellipse,
+  rect: rect,
+  polygon: polygon,
+  polyline: polyline,
+  path: path,
+  bezier: bezier,
+  text: text,
+  arc: arc,
+  wedge: wedge,
+  arcEllipse: arcEllipse,
+  wedgeEllipse: wedgeEllipse,
+  parabola: parabola,
+  regularPolygon: regularPolygon,
+  roundRect: roundRect,
+  arrow: arrow
+});
+
+const constructorsSVG = {};
+const constructorsGroup = {};
+const abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const randomString = function (count = 0) {
+  return Array.from(Array(count))
+    .map(() => Math.floor(Math.random() * abc.length))
+    .map(i => abc[i]).reduce((a, b) => `${a}${b}`, "");
+};
+const generateUUID = function (count = 16, prefix = "") {
+  return prefix + randomString(count);
+};
+const svg = function () {
+  const svgImage = win.document.createElementNS(NS, "svg");
+  svgImage.setAttribute("version", "1.1");
+  svgImage.setAttribute("xmlns", NS);
+  prepare("svg", svgImage, constructorsSVG);
+  return svgImage;
+};
+const group = function () {
+  const g = win.document.createElementNS(NS, "g");
+  prepare("group", g, constructorsGroup);
+  return g;
+};
+const defs = function () {
+  const d = win.document.createElementNS(NS, "defs");
+  prepare("defs", d, constructorsGroup);
+  return d;
+};
+const cdata = function (textContent) {
+  const c = (new win.DOMParser())
+    .parseFromString("<root></root>", "text/xml")
+    .createCDATASection(`${textContent}`);
+  return c;
+};
+const style = function (textContent) {
+  const s = win.document.createElementNS(NS, "style");
+  s.setAttribute("type", "text/css");
+  prepare("style", s);
+  s.setTextContent = (newText) => { s.textContent = ""; s.appendChild(cdata(newText)); };
+  s.appendChild(cdata(textContent));
+  return s;
+};
+const clipPath = function (id = generateUUID(8, "clip-")) {
+  const clip = win.document.createElementNS(NS, "clipPath");
+  clip.setAttribute("id", id);
+  prepare("clipPath", clip, constructorsGroup);
+  return clip;
+};
+const mask = function (id = generateUUID(8, "mask-")) {
+  const msk = win.document.createElementNS(NS, "mask");
+  msk.setAttribute("id", id);
+  prepare("mask", msk, constructorsGroup);
+  return msk;
+};
+const createElement = function (tagName) {
+  return win.document.createElementNS(NS, tagName);
+};
+const setConstructors = function (elements) {
+  Object.keys(elements)
+    .filter(key => key !== "svg")
+    .forEach((key) => { constructorsSVG[key] = elements[key]; });
+  Object.keys(elements)
+    .filter(key => key !== "svg")
+    .filter(key => key !== "defs")
+    .filter(key => key !== "style")
+    .filter(key => key !== "clipPath")
+    .filter(key => key !== "mask")
+    .forEach((key) => { constructorsGroup[key] = elements[key]; });
+};
+
+var root = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  setConstructors: setConstructors,
+  svg: svg,
+  group: group,
+  defs: defs,
+  clipPath: clipPath,
+  mask: mask,
+  style: style,
+  createElement: createElement
+});
+
+const findWindowBooleanParam = function (...params) {
+  const objects = params
+    .filter(arg => typeof arg === "object")
+    .filter(o => typeof o.window === "boolean");
+  return objects.reduce((a, b) => a.window || b.window, false);
+};
+const findElementInParams = function (...params) {
+  const element = params.filter(arg => arg instanceof HTMLElement).shift();
+  const idElement = params
+    .filter(a => typeof a === "string" || a instanceof String)
+    .map(str => win.document.getElementById(str))
+    .shift();
+  if (element != null) { return element; }
+  return (idElement != null
+    ? idElement
+    : win.document.body);
+};
+const initSize = function (svgElement, params) {
+  const numbers = params.filter(arg => !isNaN(arg));
+  const viewBox = svgElement.getAttribute("viewBox");
   if (numbers.length >= 2) {
     svgElement.setAttributeNS(null, "width", numbers[0]);
     svgElement.setAttributeNS(null, "height", numbers[1]);
     setViewBox(svgElement, 0, 0, numbers[0], numbers[1]);
-  } else if (svgElement.getAttribute("viewBox") == null) {
-    var rect = svgElement.getBoundingClientRect();
-    setViewBox(svgElement, 0, 0, rect.width, rect.height);
+  } else if (viewBox == null) {
+    const frame = svgElement.getBoundingClientRect();
+    setViewBox(svgElement, 0, 0, frame.width, frame.height);
+  } else if (viewBox.split(" ").filter(n => n === "0" || n === 0).length === 4) {
+    const frame = svgElement.getBoundingClientRect();
+    setViewBox(svgElement, 0, 0, frame.width, frame.height);
   }
 };
-
-var attachSVGMethods = function attachSVGMethods(element) {
-  Object.defineProperty(element, "w", {
-    get: function get() {
-      return getWidth(element);
-    },
-    set: function set(w) {
-      return element.setAttributeNS(null, "width", w);
+const getWidth = function (element) {
+  const viewBox = getViewBox(element);
+  if (viewBox == null) { return undefined; }
+  return viewBox[2];
+};
+const getHeight = function (element) {
+  const viewBox = getViewBox(element);
+  if (viewBox == null) { return undefined; }
+  return viewBox[3];
+};
+const setWidth = function (element, w) {
+  const viewBox = getViewBox(element);
+  viewBox[2] = w;
+  return setViewBox(element, ...viewBox);
+};
+const setHeight = function (element, h) {
+  const viewBox = getViewBox(element);
+  viewBox[3] = h;
+  return setViewBox(element, ...viewBox);
+};
+const size = function (element, ...args) {
+  if (args.length === 2
+    && typeof args[0] === "number"
+    && typeof args[1] === "number"
+  ) {
+    setViewBox(element, 0, 0, ...args);
+  } else if (args.length === 4
+    && typeof args.map(a => typeof a === "number")
+      .reduce((a, b) => a && b, true)
+  ) {
+    setViewBox(element, ...args);
+  }
+};
+const getFrame = function (element) {
+  let frame = [0, 0, 0, 0];
+  if (element.viewBox != null) {
+    const viewBox = element.viewBox.baseVal;
+    frame = [viewBox.x, viewBox.y, viewBox.width, viewBox.height];
+  } else if (typeof element.getBoundingClientRect === "function") {
+    const rr = element.getBoundingClientRect();
+    frame = [rr.x, rr.y, rr.width, rr.height];
+  }
+  return frame;
+};
+const background = function (element, color, setParent = false) {
+  if (setParent === true) {
+    const parent = element.parentElement;
+    if (parent != null) {
+      parent.setAttribute("style", `background-color: ${color}`);
     }
+  }
+  let backRect = Array.from(element.childNodes)
+    .filter(child => child.getAttribute("class") === "svg-background-rectangle")
+    .shift();
+  if (backRect != null) {
+    backRect.setAttribute("fill", color);
+  } else {
+    backRect = rect(...getFrame(element))
+      .fill(color)
+      .setClass("svg-background-rectangle");
+    element.insertBefore(backRect, element.firstChild);
+  }
+};
+const findStyleSheet = function (element) {
+  const children = Array.from(element.childNodes);
+  const topLevel = children
+    .filter(child => child.getAttribute("tagName") === "style")
+    .shift();
+  if (topLevel) { return topLevel; }
+  const defs = children
+    .filter(child => child.getAttribute("tagName") === "defs")
+    .shift();
+  if (defs == null) { return defs; }
+  const insideDefs = Array.from(defs.childNodes)
+    .filter(child => child.getAttribute("tagName") === "style")
+    .shift();
+  if (insideDefs != null) { return insideDefs; }
+  return undefined;
+};
+const stylesheet = function (element, textContent) {
+  let styleSection = findStyleSheet(element);
+  if (styleSection == null) {
+    styleSection = style(textContent);
+    element.insertBefore(styleSection, element.firstChild);
+  } else {
+    styleSection.setTextContent(textContent);
+  }
+  return styleSection;
+};
+const replaceWithSVG = function (oldSVG, newSVG) {
+  Array.from(oldSVG.attributes)
+    .forEach(attr => oldSVG.removeAttribute(attr.name));
+  removeChildren(oldSVG);
+  Array.from(newSVG.children).forEach((node) => {
+    node.remove();
+    oldSVG.appendChild(node);
   });
-  Object.defineProperty(element, "h", {
-    get: function get() {
-      return getHeight(element);
-    },
-    set: function set(h) {
-      return element.setAttributeNS(null, "height", h);
-    }
-  });
-
-  element.getWidth = function () {
-    return getWidth(element);
-  };
-
-  element.getHeight = function () {
-    return getHeight(element);
-  };
-
-  element.setWidth = function (w) {
-    return element.setAttributeNS(null, "width", w);
-  };
-
-  element.setHeight = function (h) {
-    return element.setAttributeNS(null, "height", h);
-  };
-
-  element.save = function () {
-    var filename = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "image.svg";
+  Array.from(newSVG.attributes)
+    .forEach(attr => oldSVG.setAttribute(attr.name, attr.value));
+};
+const SVG = function (...params) {
+  const element = svg();
+  Events(element);
+  element.controls = (...args) => controls(element, ...args);
+  element.getWidth = () => getWidth(element);
+  element.getHeight = () => getHeight(element);
+  element.setWidth = (...args) => setWidth(element, ...args);
+  element.setHeight = (...args) => setHeight(element, ...args);
+  element.background = (...args) => background(element, ...args);
+  element.size = (...args) => size(element, ...args);
+  element.save = function (filename = "image.svg") {
     return save(element, filename);
   };
-
   element.load = function (data, callback) {
-    load(data, function (newSVG, error) {
-      var parent = element.parentNode;
-
-      if (newSVG != null) {
-        newSVG.events = element.events;
-        setupSVG(newSVG);
-
-        if (newSVG.events == null) {
-          newSVG.events = Events(newSVG);
-        } else {
-          newSVG.events.setup(newSVG);
-        }
-
-        attachSVGMethods(newSVG);
-
-        if (parent != null) {
-          parent.insertBefore(newSVG, element);
-        }
-
-        element.remove();
-        element = newSVG;
-      }
-
-      if (callback != null) {
-        callback(element, error);
-      }
+    load(data, (newSVG, error) => {
+      if (newSVG != null) { replaceWithSVG(element, newSVG); }
+      if (callback != null) { callback(element, error); }
     });
   };
-};
-
-var svgImage = function svgImage() {
-  for (var _len2 = arguments.length, params = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    params[_key2] = arguments[_key2];
-  }
-
-  var image = svg();
-  initSize(image, params);
-  attachSVGMethods(image);
-  image.events = Events(image);
-
-  var setup = function setup() {
-    initSize(image, params);
-    var parent = getElement.apply(void 0, params);
-
-    if (parent != null) {
-      parent.appendChild(image);
+  element.stylesheet = textContent => stylesheet(element, textContent);
+  const initialize = function () {
+    const parent = findElementInParams(...params);
+    if (parent != null) { parent.appendChild(element); }
+    initSize(element, params);
+    if (findWindowBooleanParam(...params)) {
+      globalize(element);
     }
-
-    params.filter(function (arg) {
-      return typeof arg === "function";
-    }).forEach(function (func) {
-      return func();
-    });
+    params.filter(arg => typeof arg === "function")
+      .forEach(func => func());
   };
-
   if (win.document.readyState === "loading") {
-    win.document.addEventListener("DOMContentLoaded", setup);
+    win.document.addEventListener("DOMContentLoaded", initialize);
   } else {
-    setup();
+    initialize();
   }
-
-  return image;
+  return element;
 };
 
-var controlPoint = function controlPoint(parent) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+const constructors = {};
+Object.assign(constructors, root, primitives);
+delete constructors.setConstructors;
+setConstructors(constructors);
+const elements = {};
+Object.keys(primitives).forEach((key) => { elements[key] = primitives[key]; });
+Object.keys(root)
+  .filter(key => key !== "setConstructors")
+  .forEach((key) => { elements[key] = root[key]; });
+delete elements.svg;
 
-  if (options.radius == null) {
-    options.radius = 1;
-  }
+Object.keys(elements).forEach((key) => { SVG[key] = elements[key]; });
+Object.keys(geometryMods).forEach((key) => { SVG[key] = geometryMods[key]; });
+Object.keys(ViewBox).forEach((key) => { SVG[key] = ViewBox[key]; });
+Object.keys(File).forEach((key) => { SVG[key] = File[key]; });
+SVG.NS = NS;
 
-  if (options.fill == null) {
-    options.fill = "#000";
-  }
-
-  if (options.stroke == null) {
-    options.stroke = "none";
-  }
-
-  var c = circle(0, 0, options.radius);
-  c.setAttribute("style", "fill:".concat(options.fill, ";stroke:").concat(options.stroke, ";"));
-  var position = [0, 0];
-  var selected = false;
-
-  if (parent != null) {
-    parent.appendChild(c);
-  }
-
-  var setPosition = function setPosition(x, y) {
-    position[0] = x;
-    position[1] = y;
-    c.setAttribute("cx", x);
-    c.setAttribute("cy", y);
-  };
-
-  if ("position" in options) {
-    var pos = options.position;
-
-    if (pos[0] != null) {
-      setPosition.apply(void 0, _toConsumableArray(pos));
-    } else if (pos.x != null) {
-      setPosition(pos.x, pos.y);
-    }
-  }
-
-  var updatePosition = function updatePosition(input) {
-    return input;
-  };
-
-  var onMouseMove = function onMouseMove(mouse) {
-    if (selected) {
-      var _pos = updatePosition(mouse);
-
-      setPosition(_pos[0], _pos[1]);
-    }
-  };
-
-  var onMouseUp = function onMouseUp() {
-    selected = false;
-  };
-
-  var distance = function distance(mouse) {
-    return Math.sqrt(Math.pow(mouse[0] - position[0], 2) + Math.pow(mouse[1] - position[1], 2));
-  };
-
-  var remove = function remove() {
-    parent.removeChild(c);
-  };
-
-  return {
-    circle: c,
-
-    set position(pos) {
-      if (pos[0] != null) {
-        setPosition(pos[0], pos[1]);
-      } else if (pos.x != null) {
-        setPosition(pos.x, pos.y);
-      }
-    },
-
-    get position() {
-      return [].concat(position);
-    },
-
-    onMouseUp: onMouseUp,
-    onMouseMove: onMouseMove,
-    distance: distance,
-    remove: remove,
-
-    set positionDidUpdate(method) {
-      updatePosition = method;
-    },
-
-    set selected(value) {
-      selected = true;
-    }
-
-  };
-};
-
-var controls = function controls(parent, number, options) {
-  if (options == null) {
-    options = {};
-  }
-
-  if (options.parent == null) {
-    options.parent = parent;
-  }
-
-  if (options.radius == null) {
-    options.radius = 1;
-  }
-
-  if (options.fill == null) {
-    options.fill = "#000000";
-  }
-
-  var points = Array.from(Array(number)).map(function () {
-    return controlPoint(options.parent, options);
-  });
-  var selected;
-
-  var mouseDownHandler = function mouseDownHandler(event) {
-    event.preventDefault();
-    var mouse = convertToViewBox(parent, event.clientX, event.clientY);
-
-    if (!(points.length > 0)) {
-      return;
-    }
-
-    selected = points.map(function (p, i) {
-      return {
-        i: i,
-        d: p.distance(mouse)
-      };
-    }).sort(function (a, b) {
-      return a.d - b.d;
-    }).shift().i;
-    points[selected].selected = true;
-  };
-
-  var mouseMoveHandler = function mouseMoveHandler(event) {
-    event.preventDefault();
-    var mouse = convertToViewBox(parent, event.clientX, event.clientY);
-    points.forEach(function (p) {
-      return p.onMouseMove(mouse);
-    });
-  };
-
-  var mouseUpHandler = function mouseUpHandler(event) {
-    event.preventDefault();
-    points.forEach(function (p) {
-      return p.onMouseUp();
-    });
-    selected = undefined;
-  };
-
-  var touchDownHandler = function touchDownHandler(event) {
-    event.preventDefault();
-    var touch = event.touches[0];
-
-    if (touch == null) {
-      return;
-    }
-
-    var pointer = convertToViewBox(parent, touch.clientX, touch.clientY);
-
-    if (!(points.length > 0)) {
-      return;
-    }
-
-    selected = points.map(function (p, i) {
-      return {
-        i: i,
-        d: p.distance(pointer)
-      };
-    }).sort(function (a, b) {
-      return a.d - b.d;
-    }).shift().i;
-    points[selected].selected = true;
-  };
-
-  var touchMoveHandler = function touchMoveHandler(event) {
-    event.preventDefault();
-    var touch = event.touches[0];
-
-    if (touch == null) {
-      return;
-    }
-
-    var pointer = convertToViewBox(parent, touch.clientX, touch.clientY);
-    points.forEach(function (p) {
-      return p.onMouseMove(pointer);
-    });
-  };
-
-  var touchUpHandler = function touchUpHandler(event) {
-    event.preventDefault();
-    points.forEach(function (p) {
-      return p.onMouseUp();
-    });
-    selected = undefined;
-  };
-
-  parent.addEventListener("touchstart", touchDownHandler, false);
-  parent.addEventListener("touchend", touchUpHandler, false);
-  parent.addEventListener("touchcancel", touchUpHandler, false);
-  parent.addEventListener("touchmove", touchMoveHandler, false);
-  parent.addEventListener("mousedown", mouseDownHandler, false);
-  parent.addEventListener("mouseup", mouseUpHandler, false);
-  parent.addEventListener("mousemove", mouseMoveHandler, false);
-  Object.defineProperty(points, "selectedIndex", {
-    get: function get() {
-      return selected;
-    }
-  });
-  Object.defineProperty(points, "selected", {
-    get: function get() {
-      return points[selected];
-    }
-  });
-  Object.defineProperty(points, "removeAll", {
-    value: function value() {
-      points.forEach(function (tp) {
-        return tp.remove();
-      });
-      points.splice(0, points.length);
-      selected = undefined;
-    }
-  });
-  Object.defineProperty(points, "add", {
-    value: function value(opt) {
-      points.push(controlPoint(parent, opt));
-    }
-  });
-  return points;
-};
-
-export { svg, group, style, line, circle, ellipse, rect, polygon, polyline, bezier, text, wedge, arc, setPoints, setArc, regularPolygon, straightArrow, arcArrow, setViewBox, getViewBox, scaleViewBox, translateViewBox, convertToViewBox, removeChildren, save, load, svgImage as image, controls, controlPoint };
+export default SVG;

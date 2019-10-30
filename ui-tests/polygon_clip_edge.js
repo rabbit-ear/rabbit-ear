@@ -1,6 +1,6 @@
 let clipEdgeCallback = undefined;
 
-let clipEdge = RabbitEar.svg.image("canvas-clip-edge", 500, 500);
+let clipEdge = RabbitEar.svg("canvas-clip-edge", 500, 500);
 
 function equivalent2(a, b, epsilon = 1e-12) {
 	return Math.abs(a[0]-b[0]) < epsilon && Math.abs(a[1]-b[1]) < epsilon;
@@ -42,7 +42,7 @@ clipEdge.rebuildHull = function(){
 		let r = Math.random() * clipEdge.h*0.5;
 		return [clipEdge.w*0.5 + r*Math.cos(a), clipEdge.h*0.5 + r*Math.sin(a)];
 	});
-	clipEdge.hull = RabbitEar.Polygon.convexHull(hullPoints);
+	clipEdge.hull = RabbitEar.polygon.convexHull(hullPoints);
 	let pointsString = clipEdge.hull.points
 		.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	clipEdge.poly.setAttribute("points", pointsString);
@@ -52,7 +52,7 @@ clipEdge.rebuildHull();
 clipEdge.redraw = function(){
 
 	RabbitEar.svg.removeChildren(clipEdge.backLayer);
-	let backLine = re.edge(
+	let backLine = RabbitEar.segment(
 		clipEdge.touches[0].position,
 		clipEdge.touches[1].position
 	);

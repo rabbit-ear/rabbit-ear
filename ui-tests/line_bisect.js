@@ -1,4 +1,4 @@
-let lBis = RabbitEar.svg.image("canvas-line-bisect", 600, 300);
+let lBis = RabbitEar.svg("canvas-line-bisect", 600, 300);
 
 lBis.setup = function() {
 	lBis.colors = ["black", "black"];//["#ecb233", "#e44f2a", "#195783"];
@@ -24,7 +24,7 @@ lBis.setup = function() {
 		l.setAttribute("stroke-linecap", "round");
 	});
 	let p = 1000;
-	lBis.boundary = RabbitEar.Polygon([
+	lBis.boundary = RabbitEar.polygon([
 		[-p, -p], [lBis.w+p, -p], [lBis.w+p, lBis.h+p], [-p, lBis.h+p]
 	]);
 	lBis.arrowLayer = lBis.group();
@@ -46,7 +46,7 @@ lBis.redraw = function() {
 	}));
 	let bisects = RabbitEar.math.bisect_lines2(lineA.point, lineA.vector, lineB.point, lineB.vector);
 
-	let linelines = bisects.map(b => re.line(b[0][0], b[0][1], b[1][0], b[1][1]));
+	let linelines = bisects.map(b => RabbitEar.line(b[0][0], b[0][1], b[1][0], b[1][1]));
 	let bColors = ["#ecb233", "#e44f2a"];
 	let lineSegs = linelines.map((l,i) => ({l:lBis.boundary.clipLine(l), c:bColors[i%2]})).filter(el => el.l !== undefined)
 	lineSegs.map(el => {
@@ -57,7 +57,7 @@ lBis.redraw = function() {
 		return l;
 	})
 
-	let controls = lBis.controls.map(c => re.vector(c.position));
+	let controls = lBis.controls.map(c => RabbitEar.vector(c.position));
 	let sameDir = (lineB.vector.dot(lineA.vector) < 0);
 
 	let options = {
