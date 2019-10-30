@@ -2847,6 +2847,11 @@
     Object.defineProperty(position, "selected", {
       set: (value) => { selected = value; }
     });
+    Object.defineProperty(position, "remove", {
+      value: () => {
+        if (svg != null) { svg.remove(); }
+      }
+    });
     return proxy;
   };
   const controls = function (svg, number, options) {
@@ -2892,6 +2897,11 @@
         points.push(controlPoint(svg, opt));
       },
     });
+    points.removeAll = () => {
+      while (points.length > 0) {
+        points.pop().remove();
+      }
+    };
     points.changed = function (func, runOnceAtStart) {
       if (typeof func === "function") {
         delegate = func;
@@ -12032,12 +12042,14 @@
           }
           const prefs = {
             side,
-            length: vmin * 0.09,
-            width: vmin * 0.035,
             strokeWidth: vmin * 0.02,
           };
           if (preferences.arrowColor) { prefs.color = preferences.arrowColor; }
-          return group.arcArrow(p[0], p[1], prefs);
+          return group.arrow(p[0], p[1], prefs)
+            .curve(0.3)
+            .head({ width: vmin * 0.035, height: vmin * 0.09 })
+            .fill("black")
+            .stroke("black");
         }));
   };
 
@@ -12048,11 +12060,12 @@ line.mountain { stroke: red; }
 line.valley { stroke: blue;
   stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);
 }
-polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
+/* polygon { fill: none; stroke: none; stroke-linejoin: bevel; } */
 .foldedForm polygon { stroke: black; fill: #8881; }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
-.creasePattern polygon { fill: white; stroke: none; }
+.creasePattern .boundaries polygon { fill: white; stroke: none; }
+.creasePattern .faces polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 .foldedForm .boundaries polygon { fill: none; stroke: none; }
 .foldedForm line { stroke: none; }
 `;

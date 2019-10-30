@@ -35,11 +35,12 @@ line.mountain { stroke: red; }
 line.valley { stroke: blue;
   stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);
 }
-polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
+/* polygon { fill: none; stroke: none; stroke-linejoin: bevel; } */
 .foldedForm polygon { stroke: black; fill: #8881; }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
-.creasePattern polygon { fill: white; stroke: none; }
+.creasePattern .boundaries polygon { fill: white; stroke: none; }
+.creasePattern .faces polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 .foldedForm .boundaries polygon { fill: none; stroke: none; }
 .foldedForm line { stroke: none; }
 `;

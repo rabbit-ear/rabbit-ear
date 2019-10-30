@@ -85,13 +85,20 @@ const drawDiagram = function (graph, group, preferences = {}) {
         }
         const prefs = {
           side,
-          length: vmin * 0.09,
-          width: vmin * 0.035,
+          // head: { width: vmin * 0.035, height: vmin * 0.09, visible: true },
+          // length: vmin * 0.09,
+          // width: vmin * 0.035,
+          // fill: "black",
           strokeWidth: vmin * 0.02,
+          // curve: 0.3
         };
         if (preferences.arrowColor) { prefs.color = preferences.arrowColor; }
         // todo, those parameters aren't generalized beyond a unit square
-        return group.arcArrow(p[0], p[1], prefs);
+        return group.arrow(p[0], p[1], prefs)
+          .curve(0.3)
+          .head({ width: vmin * 0.035, height: vmin * 0.09 })
+          .fill("black")
+          .stroke("black");
       }));
 };
 // if ("re:construction" in graph === false) { return; }

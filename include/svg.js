@@ -595,6 +595,11 @@ const controlPoint = function (parent, options = {}) {
   Object.defineProperty(position, "selected", {
     set: (value) => { selected = value; }
   });
+  Object.defineProperty(position, "remove", {
+    value: () => {
+      if (svg != null) { svg.remove(); }
+    }
+  });
   return proxy;
 };
 const controls = function (svg, number, options) {
@@ -640,6 +645,11 @@ const controls = function (svg, number, options) {
       points.push(controlPoint(svg, opt));
     },
   });
+  points.removeAll = () => {
+    while (points.length > 0) {
+      points.pop().remove();
+    }
+  };
   points.changed = function (func, runOnceAtStart) {
     if (typeof func === "function") {
       delegate = func;
