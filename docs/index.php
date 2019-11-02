@@ -1,6 +1,6 @@
 <?php include 'header.php';?>
 
-<p class="explain">Rabbit Ear is gearing up for a version 2 release. Documentation and updates will continue through May and June of 2019</p>
+<p class="explain">Rabbit Ear is gearing up for a version 2 release. Documentation and updates will continue through 2019</p>
 
 <script type="text/javascript" src="include/threejs/three.min.js"></script>
 <script type="text/javascript" src="include/threejs/THREE.MeshLine.js"></script>
@@ -23,13 +23,21 @@
 &lt;/<key>script</key>&gt;
 </code></pre>
 </div>
-
 	<p>This simple app creates the sketch above - a square sheet of paper that you can fold.</p>
+</section>
 
+
+<section id="examples">
+	<h2>Example Apps</h2>
+	<ul>
+		<li><a href="//finder.origami.tools/">Reference Finder</a></li>
+		<li><a href="//svg.rabbitear.org/">SVG code</a></li>
+		<li><a href="https://convert.rabbitear.org/">File Converter</a></li>
+		<li><a href="https://beta.rabbitear.org/diagram/">Fold and Diagram</a></li>
+	</ul>
 </section>
 
 <section id="first-app">
-
 	<h2>Getting Started</h2>
 
 <!-- 	<p>Download Rabbit Ear here.</p>

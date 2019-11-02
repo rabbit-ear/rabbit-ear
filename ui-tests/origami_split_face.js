@@ -12,8 +12,8 @@ origami.preferences.debug = true;
 origami.onMouseDown = function (mouse) {
   const nearest = origami.nearest(mouse);
 
-  let d = re.core.split_edge_run(origami.cp, mouse.x, mouse.y, nearest.edge.index);
-  re.core.apply_run(origami.cp, d);
+  let d = RabbitEar.core.split_edge_run(origami.cp, mouse.x, mouse.y, nearest.edge.index);
+  RabbitEar.core.apply_run(origami.cp, d);
   // console.log(origami.cp);
   origami.draw();
 };

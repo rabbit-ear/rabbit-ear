@@ -1,5 +1,5 @@
 
-let circleLine = RabbitEar.svg.image("canvas-circle-line", 500, 500);
+let circleLine = RabbitEar.svg("canvas-circle-line", 500, 500);
 
 circleLine.setup = function() {
 	circleLine.boundary = [ [0, 0], [500, 0], [500, 500], [0, 500] ];
@@ -8,7 +8,7 @@ circleLine.setup = function() {
 
 	circleLine.topLayer = RabbitEar.svg.group();
 	circleLine.bottomLayer = RabbitEar.svg.group();
-	circleLine.circle = re.circle(250, 250, 150);
+	circleLine.circle = RabbitEar.circle(250, 250, 150);
 	let circleSVG = RabbitEar.svg.circle(250, 250, 150);
 	circleSVG.setAttribute("stroke", "#f1c14f");
 	circleSVG.setAttribute("stroke-width", circleLine.strokeW);

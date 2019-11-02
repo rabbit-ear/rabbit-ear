@@ -1,4 +1,4 @@
-let lre = RabbitEar.svg.image("canvas-line-ray-edge", 600, 300);
+let lre = RabbitEar.svg("canvas-line-ray-edge", 600, 300);
 
 lre.setup = function() {
 	lre.lineLayer = lre.group();
@@ -18,7 +18,7 @@ lre.setup = function() {
 		l.setAttribute("stroke-linecap", "round");
 	});
 	let p = 1000;
-	lre.boundary = RabbitEar.Polygon([
+	lre.boundary = RabbitEar.polygon([
 		[-p, -p], [lre.w+p, -p], [lre.w+p, lre.h+p], [-p, lre.h+p]
 	]);
 }

@@ -1,4 +1,4 @@
-let contains = RabbitEar.svg.image("canvas-polygon-contains", 500, 500);
+let contains = RabbitEar.svg("canvas-polygon-contains", 500, 500);
 
 contains.STROKE_WIDTH = contains.w * 0.01;
 contains.RADIUS = contains.w * 0.02;
@@ -27,7 +27,7 @@ contains.rebuildHull = function(){
 		let a = Math.random()*Math.PI*2;
 		return [contains.w*0.5 + Math.cos(a) * r, contains.h*0.5 + Math.sin(a) * r];
 	});
-	contains.hull = RabbitEar.Polygon.convexHull(dots);
+	contains.hull = RabbitEar.polygon.convexHull(dots);
 	let pointsString = contains.hull.points
 		.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	contains.polygon.setAttribute("points", pointsString);

@@ -1,4 +1,4 @@
-let overlap = RabbitEar.svg.image("canvas-polygon-overlaps", 800, 500);
+let overlap = RabbitEar.svg("canvas-polygon-overlaps", 800, 500);
 overlap.COUNT = 3;
 
 overlap.speeds = Array.from(Array(overlap.COUNT)).map(_ => Math.random() - 0.5)
@@ -13,7 +13,7 @@ overlap.rebuild = function(){
 	]);
 
 	overlap.polys = overlap.centers.map(c => 
-		RabbitEar.ConvexPolygon.regularPolygon( parseInt(Math.random()*2)+4, c[0], c[1], r)
+		RabbitEar.convexPolygon.regularPolygon( parseInt(Math.random()*2)+4, c[0], c[1], r)
 	);
 
 	overlap.removeChildren();

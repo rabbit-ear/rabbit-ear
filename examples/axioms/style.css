@@ -104,14 +104,14 @@ svg {
 svg * {
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
-	stroke: black;
+	/*stroke: black;*/
 }
-
+/*
 polygon {
 	fill: none;
 	stroke: none;
 	stroke-linejoin: bevel;
-}
+}*/
 
 .boundary {
 	fill: linen;

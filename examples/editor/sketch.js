@@ -98,7 +98,7 @@ origami.recalculate = function () {
   let all_points = solutions
     .map(line => edges
       .map(edge => RabbitEar.math.intersection
-        .line_edge_exclusive(line[0], line[1], edge[0], edge[1]))
+        .line_segment_exclusive(line[0], line[1], edge[0], edge[1]))
       .filter(a => a !== undefined))
     .reduce((a, b) => a.concat(b), []);
   // we have to also consider the points that already exist in the graph

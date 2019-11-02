@@ -1,5 +1,5 @@
 let collapse;
-collapse = RabbitEar.svg.image("canvas-kawasaki-collapse", 500, 500, function() {
+collapse = RabbitEar.svg("canvas-kawasaki-collapse", 500, 500, function() {
 	if (collapse != null) {
 		collapse.setup();
 	}
@@ -31,7 +31,7 @@ collapse.setup = function() {
 		largest = interior_angles.slice().sort((a,b) => b-a).shift();
 	} while(largest > Math.PI * 0.9);
 	let rays = vectors.map(v => RabbitEar.Ray(collapse.w/2, collapse.h/2, v[0], v[1]));
-	let boundary = RabbitEar.ConvexPolygon([[0,0], [500,0], [500,500], [0,500]]);
+	let boundary = RabbitEar.convexPolygon([[0,0], [500,0], [500,500], [0,500]]);
 	let ray_edges = rays.map(r => boundary.clipRay(r));
 	let svgLines = ray_edges
 		.map(e => RabbitEar.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]));
@@ -75,7 +75,7 @@ collapse.didTouch = function(point) {
 	if (vector === undefined) { return; }
 
 	let valley_ray = RabbitEar.Ray(collapse.w/2, collapse.h/2, vector[0], vector[1]);
-	let boundary = RabbitEar.ConvexPolygon([[0,0], [500,0], [500,500], [0,500]]);
+	let boundary = RabbitEar.convexPolygon([[0,0], [500,0], [500,500], [0,500]]);
 	let valley_edge = boundary.clipRay(valley_ray);
 	let e = valley_edge;
 	let l = RabbitEar.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]);

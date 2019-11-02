@@ -1,18 +1,18 @@
 // requires perlin.js
 let wobble_intersections_callback = undefined;
 
-const wobble = new re.Origami("canvas-intersection-wobble");
+const wobble = new RabbitEar.Origami("canvas-intersection-wobble");
 // wobble.setBounds(-1, -0.5, 2, 1);
 wobble.edges.visible = false;
 
 wobble.intersections = [];
-wobble.faceLayer = re.svg.group();
-wobble.intersectionLayer = re.svg.group();
+wobble.faceLayer = RabbitEar.svg.group();
+wobble.intersectionLayer = RabbitEar.svg.group();
 
 const numLines = 14;
 
 wobble.reset = function () {
-  wobble.cp = re.CreasePattern.empty();
+  wobble.cp = RabbitEar.CreasePattern.empty();
   wobble.cp.vertices_coords = [];
   wobble.cp.edges_vertices = [];
   wobble.cp.edges_assignment = [];

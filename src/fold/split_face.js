@@ -1,6 +1,6 @@
 import math from "../../include/math";
 import split_edge from "./split_edge";
-import { merge_maps } from "../frames/diff";
+import { merge_maps } from "./diff";
 import { edge_assignment_to_foldAngle } from "./keys";
 import remove from "./remove";
 
@@ -32,7 +32,7 @@ const split_convex_polygon = function (
   const edges_intersections = graph.faces_edges[faceIndex]
     .map(ei => graph.edges_vertices[ei])
     .map(edge => edge.map(e => graph.vertices_coords[e]))
-    .map(edge => math.core.intersection.line_edge_exclusive(
+    .map(edge => math.core.intersection.line_segment_exclusive(
       linePoint, lineVector, edge[0], edge[1]
     ))
     .map((point, i) => ({
@@ -88,6 +88,7 @@ const split_convex_polygon = function (
   }
   // this results in a possible removal of edges. we now have edge_map marking this change
   // example: [0,0,0,-1,-1,-1,-1,-2,-2,-2]
+  // where 2 vertices were removed, each indicates how many indices it shifts
 
   // connect an edge splitting the polygon into two, joining the two vertices
   // 1. rebuild the two faces

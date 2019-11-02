@@ -23,18 +23,18 @@ nav ul {
 	font-size: 1rem;
 }
 h1{
-	padding: 1em 0;
+	margin: 1em 0;
 	text-align: center;
 }
 h2{
-	padding-top: 0.6em;
-	padding-bottom: 6px;
+	margin-top: 0.6em;
+	margin-bottom: 6px;
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 	border-bottom-color: black;
 }
 h3{
-	padding: 1em 0 0 0;
+	margin: 1em 0 0 0;
 	font-weight: 500;
 }
 p, ol, ul {
@@ -221,4 +221,9 @@ div[id^="canvas-"] {
 }
 ::-moz-selection {
 	background: #fffb5f; /* Gecko Browsers */
+}
+
+
+h1 + div[id^="canvas-"] svg {
+	margin-top: -4.8rem;
 }

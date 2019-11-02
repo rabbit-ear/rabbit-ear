@@ -13,7 +13,7 @@ svg {
 	width: 100%;
 	height: 100%;
 }
-
+/*
 svg * {
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
@@ -55,3 +55,4 @@ polygon {
 .foldedForm .creases line {
 	stroke: none;
 }
+*/

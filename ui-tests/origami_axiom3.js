@@ -28,7 +28,7 @@ axiom3.redraw = function() {
 			axiom3.controls[(i*2)].position,
 			axiom3.controls[(i*2)+1].position
 		]).map(p => RabbitEar.Line.fromPoints(p[0], p[1]));
-	let boundary = RabbitEar.ConvexPolygon([[0,0], [1,0], [1,1], [0,1]]);
+	let boundary = RabbitEar.convexPolygon([[0,0], [1,0], [1,1], [0,1]]);
 	let edges = lines.map(l => boundary.clipLine(l));
 	edges.map(e => RabbitEar.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]))
 		.forEach(l => {

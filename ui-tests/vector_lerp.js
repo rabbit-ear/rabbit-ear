@@ -1,6 +1,6 @@
 let lerpsCallback = undefined;
 
-let lerps = RabbitEar.svg.image("canvas-lerp", 500, 500);
+let lerps = RabbitEar.svg("canvas-lerp", 500, 500);
 
 lerps.reset = function(){
 	lerps.curveLayer = lerps.group();
@@ -61,8 +61,8 @@ lerps.onMouseMove = function(mouse){
 
 lerps.animate = function(event){
 	let phase = Math.sin(event.time) * 0.5 + 0.5;
-	let vecs = lerps.controls.map(el => re.vector(el.position))
-	// let vecs = lerps.touches.map(el => re.vector([el.pos[0], el.pos[1]]))
+	let vecs = lerps.controls.map(el => RabbitEar.vector(el.position))
+	// let vecs = lerps.touches.map(el => RabbitEar.vector([el.pos[0], el.pos[1]]))
 	lerps.ctrlLerps = [
 		vecs[0].lerp(vecs[2], phase),
 		vecs[2].lerp(vecs[1], phase)

@@ -1,6 +1,6 @@
 let matrixReflectCallback = undefined;
 
-let reflect = RabbitEar.svg.image("canvas-reflection", 800, 300);
+let reflect = RabbitEar.svg("canvas-reflection", 800, 300);
 
 reflect.reflectLayer = RabbitEar.svg.group();
 reflect.appendChild(reflect.reflectLayer);

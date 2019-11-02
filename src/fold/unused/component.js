@@ -5,7 +5,7 @@
  *
  */
 
-import math from "../../include/math";
+import math from "../../../include/math";
 
 // USE STATIC INITIALIZERS
 

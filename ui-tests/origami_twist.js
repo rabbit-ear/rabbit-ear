@@ -1,4 +1,4 @@
-let twist = RabbitEar.svg.image("canvas-convex-twist", 500, 500);
+let twist = RabbitEar.svg("canvas-convex-twist", 500, 500);
 
 twist.setup = function() {
 
@@ -30,7 +30,7 @@ twist.setup();
 
 twist.rebuildHull = function(){
 	let points = twist.controls.map(t => t.position);
-	twist.poly = RabbitEar.ConvexPolygon.convexHull(points);
+	twist.poly = RabbitEar.convexPolygon.convexHull(points);
 	let pointsString = twist.poly.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	twist.polygon.setAttribute("points", pointsString);
 }
@@ -51,7 +51,7 @@ twist.rebuildCreases = function() {
 
 	let solutions = twist.junctions.map(j => j.kawasaki_solutions());
 
-	let boundary = RabbitEar.ConvexPolygon([[0,0], [500,0], [500,500], [0,500]]);
+	let boundary = RabbitEar.convexPolygon([[0,0], [500,0], [500,500], [0,500]]);
 	twist.bisect_edges = rays_180.map(r => boundary.clipRay(r));
 	let svgLines = twist.bisect_edges
 		.map(e => RabbitEar.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]));

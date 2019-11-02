@@ -1,4 +1,4 @@
-let bisect = RabbitEar.svg.image("canvas-sector-bisect", 500, 500);
+let bisect = RabbitEar.svg("canvas-sector-bisect", 500, 500);
 
 bisect.NUM_WEDGES = 2;
 bisect.STROKE_WIDTH = bisect.h * 0.0125;

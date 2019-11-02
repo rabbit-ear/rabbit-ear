@@ -33,5 +33,3 @@ export const copy_without_marks = function (graph) {
   rebuilt.vertices_faces = make_vertices_faces(rebuilt);
   return rebuilt;
 };
-
-export const silence = 5;

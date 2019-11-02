@@ -1,5 +1,5 @@
 let kawasakiSketch
-kawasakiSketch = RabbitEar.svg.image("canvas-kawasaki", 500, 500, function() {
+kawasakiSketch = RabbitEar.svg("canvas-kawasaki", 500, 500, function() {
 	if (kawasakiSketch != null) {
 		kawasakiSketch.setup();
 	}

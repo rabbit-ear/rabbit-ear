@@ -1,6 +1,6 @@
 			// let r = wedge_space / Math.pow(interior / Math.PI, 0.8);
 
-let lrex = RabbitEar.svg.image("canvas-line-ray-edge-intersection", 600, 300);
+let lrex = RabbitEar.svg("canvas-line-ray-edge-intersection", 600, 300);
 
 lrex.setup = function() {
 	lrex.xingLayer = lrex.group();
@@ -21,7 +21,7 @@ lrex.setup = function() {
 		l.setAttribute("stroke-linecap", "round");
 	});
 	let p = 1000;
-	lrex.boundary = RabbitEar.Polygon([
+	lrex.boundary = RabbitEar.polygon([
 		[-p, -p], [lrex.w+p, -p], [lrex.w+p, lrex.h+p], [-p, lrex.h+p]
 	]);
 }
@@ -32,9 +32,9 @@ lrex.redraw = function(){
 		[lrex.controls[(i*2)+0].position[0], lrex.controls[(i*2)+0].position[1]],
 		[lrex.controls[(i*2)+1].position[0], lrex.controls[(i*2)+1].position[1]]
 	]);
-	let line = RabbitEar.Line.fromPoints(lrex.controls[0].position, lrex.controls[1].position);
-	let ray = RabbitEar.Ray.fromPoints(lrex.controls[2].position, lrex.controls[3].position);
-	let edge = re.edge(lrex.controls[4].position, lrex.controls[5].position);
+	let line = RabbitEar.line.fromPoints(lrex.controls[0].position, lrex.controls[1].position);
+	let ray = RabbitEar.ray.fromPoints(lrex.controls[2].position, lrex.controls[3].position);
+	let edge = RabbitEar.segment(lrex.controls[4].position, lrex.controls[5].position);
 
 	segments[0] = lrex.boundary.clipLine(line);
 	segments[1] = lrex.boundary.clipRay(ray);

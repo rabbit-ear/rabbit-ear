@@ -2,6 +2,8 @@ import {
   make_faces_matrix
 } from "./make";
 
+import FOLDConvert from "../../include/fold/convert";
+
 import {
   // vertices_count,
   // edges_count,
@@ -12,9 +14,17 @@ import {
 
 import remove from "./remove";
 
+// const sort_vertices_vertices = function (fold) {
+//   if (fold.vertices_vertices == null) { return; }
+//   fold.vertices_vertices.forEach((verts, i) => );
+// };
+
 export const clean = function (fold) {
   // const verticesCount = vertices_count(fold);
   // const edgesCount = edges_count(fold);
+  if (fold.vertices_coords != null && fold.vertices_vertices != null) {
+    FOLDConvert.sort_vertices_vertices(fold);
+  }
   const facesCount = faces_count(fold);
   if (facesCount > 0) {
     if (fold["faces_re:matrix"] == null) {

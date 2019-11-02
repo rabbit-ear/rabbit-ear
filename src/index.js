@@ -13,61 +13,62 @@
 import { isBrowser, isWebWorker, isNode } from "./environment/detect";
 
 import math from "../include/math";
-import graph from "./graph/graph";
-// import * as svg from "../include/svg/src/index";
-import * as svg from "../include/svg";
-// import * as noise from "../include/perlin";
+import graph from "./graph";
+import svg from "../include/svg";
+// import noise from "../include/simplex";
 
 // top level methods
-import apply_axiom from "./frames/axiom_frame";
-import * as Axioms from "./origami/axioms";
+import apply_axiom from "./axioms/axiom_frame";
+import * as Axioms from "./axioms";
 
 // to be included in "core"
-import * as frames from "./fold/file_frames";
-import * as object from "./fold/object";
-import * as keys from "./fold/keys";
-import * as validate from "./fold/validate";
+import * as affine from "./FOLD/affine";
+import * as frames from "./FOLD/file_frames";
+import * as object from "./FOLD/object";
+import * as keys from "./FOLD/keys";
+import * as validate from "./FOLD/validate";
 import convert from "./convert/convert";
 
-import * as remove from "./fold/remove";
-import * as make from "./fold/make";
-import * as query from "./fold/query";
-import * as rebuild from "./fold/rebuild";
-import * as marks from "./fold/marks";
+import * as remove from "./FOLD/remove";
+import * as make from "./FOLD/make";
+import * as query from "./FOLD/query";
+import * as rebuild from "./FOLD/rebuild";
+import * as marks from "./FOLD/marks";
 
-import fold from "./origami/fold";
-import * as kawasaki from "./origami/kawasaki";
+import fold from "./fold-through-all";
+import * as kawasaki from "./kawasaki";
 
-import build_diagram_frame from "./frames/diagram_frame";
+import build_diagram_frame from "./diagram/diagram_frame";
 
-import add_edge from "./fold/add_edge";
-import split_edge_run from "./fold/split_edge_run";
-import { merge_run_diffs, apply_run_diff } from "./frames/run_frame";
+import add_edge from "./FOLD/add_edge";
+import split_edge_run from "./FOLD/split_edge_run";
+import { merge_run_diffs, apply_run_diff } from "./fold-through-all/run_frame";
 
 // origami bases
-import empty from "./data/bases/empty.fold";
-import square from "./data/bases/square.fold";
-import book from "./data/bases/book.fold";
-import blintz from "./data/bases/blintz.fold";
-import kite from "./data/bases/kite.fold";
-import fish from "./data/bases/fish.fold";
-import bird from "./data/bases/bird.fold";
-import frog from "./data/bases/frog.fold";
+import empty from "./bases/empty.fold";
+import square from "./bases/square.fold";
+import book from "./bases/book.fold";
+import blintz from "./bases/blintz.fold";
+import kite from "./bases/kite.fold";
+import fish from "./bases/fish.fold";
+import bird from "./bases/bird.fold";
+import frog from "./bases/frog.fold";
 
-import prototype from "./fold/prototype";
+import prototype from "./origami/prototype";
 import Origami from "./origami";
 
-console.log(`RabbitEar v0.2 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
+console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
-const draw = Object.create(null);
-draw.svg = svg;
-draw.gl = {};
+// const draw = Object.create(null);
+// draw.svg = svg;
+// draw.gl = {};
 
 const core = Object.create(null);
 Object.assign(core,
   frames,
   object,
   keys,
+  affine,
   validate,
   remove,
   rebuild,
@@ -135,7 +136,8 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 const rabbitEar = {
   Origami,
   graph,
-  draw,
+  // draw,
+  svg,
   fold,
   convert,
   core,

@@ -1,5 +1,17 @@
 const EPSILON = 1e-6;
 
+const magnitude = function (v) {
+  const sum = v
+    .map(component => component * component)
+    .reduce((prev, curr) => prev + curr, 0);
+  return Math.sqrt(sum);
+};
+
+const normalize = function (v) {
+  const m = magnitude(v);
+  return m === 0 ? v : v.map(c => c / m);
+};
+
 const equivalent = function (a, b, epsilon = EPSILON) {
   for (let i = 0; i < a.length; i += 1) {
     if (Math.abs(a[i] - b[i]) > epsilon) {
@@ -46,6 +58,8 @@ const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = EPSILON
 export default {
   core: {
     EPSILON,
+    magnitude,
+    normalize,
     equivalent,
     point_on_edge_exclusive,
     intersection: {
