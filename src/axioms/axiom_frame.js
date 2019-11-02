@@ -1,4 +1,4 @@
-import { apply_axiom_in_polygon } from "../../axioms/validate";
+import { apply_axiom_in_polygon } from "./validate";
 
 /**
  * @param {number} axiom is the axiom number, 1-7

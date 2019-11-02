@@ -4915,7 +4915,7 @@
     return solution;
   };
 
-  const axiom1 = function (pointA, pointB) {
+  const axiom1$1 = function (pointA, pointB) {
     const p0 = math.core.get_vector(pointA);
     const p1 = math.core.get_vector(pointB);
     const vec = p0.map((_, i) => p1[i] - p0[i]);
@@ -5291,7 +5291,7 @@
   };
   const axiom = function (number, ...args) {
     switch (number) {
-      case 1: return axiom1(...args);
+      case 1: return axiom1$1(...args);
       case 2: return axiom2(...args);
       case 3: return axiom3(...args);
       case 4: return axiom4(...args);
@@ -5304,7 +5304,7 @@
 
   var Axioms = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    axiom1: axiom1,
+    axiom1: axiom1$1,
     axiom2: axiom2,
     axiom3: axiom3,
     axiom4: axiom4,
@@ -5314,102 +5314,6 @@
     axiom6RefFinder: axiom6RefFinder,
     axiom6RefFinderFunc: axiom6RefFinderFunc,
     axiom: axiom
-  });
-
-  const clone = function (o) {
-    let newO;
-    let i;
-    if (typeof o !== "object") {
-      return o;
-    }
-    if (!o) {
-      return o;
-    }
-    if (Object.prototype.toString.apply(o) === "[object Array]") {
-      newO = [];
-      for (i = 0; i < o.length; i += 1) {
-        newO[i] = clone(o[i]);
-      }
-      return newO;
-    }
-    newO = {};
-    for (i in o) {
-      if (o.hasOwnProperty(i)) {
-        newO[i] = clone(o[i]);
-      }
-    }
-    return newO;
-  };
-  const recursive_freeze = function (input) {
-    Object.freeze(input);
-    if (input === undefined) {
-      return input;
-    }
-    Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
-      && (typeof input[prop] === "object" || typeof input[prop] === "function")
-      && !Object.isFrozen(input[prop]))
-      .forEach(prop => recursive_freeze(input[prop]));
-    return input;
-  };
-
-  var object = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    clone: clone,
-    recursive_freeze: recursive_freeze
-  });
-
-  const flatten_frame = function (fold_file, frame_num) {
-    if ("file_frames" in fold_file === false
-      || fold_file.file_frames.length < frame_num) {
-      return fold_file;
-    }
-    const dontCopy = ["frame_parent", "frame_inherit"];
-    const memo = { visited_frames: [] };
-    const recurse = function (recurse_fold, frame, orderArray) {
-      if (memo.visited_frames.indexOf(frame) !== -1) {
-        throw new Error("encountered a cycle in file_frames. can't flatten.");
-      }
-      memo.visited_frames.push(frame);
-      orderArray = [frame].concat(orderArray);
-      if (frame === 0) { return orderArray; }
-      if (recurse_fold.file_frames[frame - 1].frame_inherit
-         && recurse_fold.file_frames[frame - 1].frame_parent != null) {
-        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
-      }
-      return orderArray;
-    };
-    return recurse(fold_file, frame_num, []).map((frame) => {
-      if (frame === 0) {
-        const swap = fold_file.file_frames;
-        fold_file.file_frames = null;
-        const copy = clone(fold_file);
-        fold_file.file_frames = swap;
-        delete copy.file_frames;
-        dontCopy.forEach(key => delete copy[key]);
-        return copy;
-      }
-      const outerCopy = clone(fold_file.file_frames[frame - 1]);
-      dontCopy.forEach(key => delete outerCopy[key]);
-      return outerCopy;
-    }).reduce((prev, curr) => Object.assign(prev, curr), {});
-  };
-  const merge_frame = function (fold_file, frame) {
-    const dontCopy = ["frame_parent", "frame_inherit"];
-    const copy = clone(frame);
-    dontCopy.forEach(key => delete copy[key]);
-    const swap = fold_file.file_frames;
-    fold_file.file_frames = null;
-    const fold = clone(fold_file);
-    fold_file.file_frames = swap;
-    delete fold.file_frames;
-    Object.assign(fold, frame);
-    return fold;
-  };
-
-  var frames = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    flatten_frame: flatten_frame,
-    merge_frame: merge_frame
   });
 
   const keys_types = {
@@ -5572,6 +5476,131 @@
     get_keys_with_ending: get_keys_with_ending,
     transpose_geometry_arrays: transpose_geometry_arrays,
     transpose_geometry_array_at_index: transpose_geometry_array_at_index
+  });
+
+  const apply_matrix_to_fold = function (fold, matrix) {
+    get_keys_with_ending("coords").forEach((key) => {
+      fold[key] = fold[key]
+        .map(v => math.core.multiply_vector2_matrix2(v, matrix));
+    });
+    get_keys_with_ending("matrix").forEach((key) => {
+      fold[key] = fold[key]
+        .map(m => math.core.multiply_matrices2(m, matrix));
+    });
+  };
+  const transform_scale = function (fold, ratio, homothetic_center) {
+    const matrix = math.core.make_matrix2_scale(ratio, homothetic_center);
+    apply_matrix_to_fold(fold, matrix);
+  };
+  const transform_translate = function (fold, dx, dy) {
+    const matrix = math.core.make_matrix2_translation(dx, dy);
+    apply_matrix_to_fold(fold, matrix);
+  };
+  const transform_matrix = function (fold, matrix) {
+    apply_matrix_to_fold(fold, matrix);
+  };
+
+  var affine = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    transform_scale: transform_scale,
+    transform_translate: transform_translate,
+    transform_matrix: transform_matrix
+  });
+
+  const clone = function (o) {
+    let newO;
+    let i;
+    if (typeof o !== "object") {
+      return o;
+    }
+    if (!o) {
+      return o;
+    }
+    if (Object.prototype.toString.apply(o) === "[object Array]") {
+      newO = [];
+      for (i = 0; i < o.length; i += 1) {
+        newO[i] = clone(o[i]);
+      }
+      return newO;
+    }
+    newO = {};
+    for (i in o) {
+      if (o.hasOwnProperty(i)) {
+        newO[i] = clone(o[i]);
+      }
+    }
+    return newO;
+  };
+  const recursive_freeze = function (input) {
+    Object.freeze(input);
+    if (input === undefined) {
+      return input;
+    }
+    Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
+      && (typeof input[prop] === "object" || typeof input[prop] === "function")
+      && !Object.isFrozen(input[prop]))
+      .forEach(prop => recursive_freeze(input[prop]));
+    return input;
+  };
+
+  var object = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    clone: clone,
+    recursive_freeze: recursive_freeze
+  });
+
+  const flatten_frame = function (fold_file, frame_num) {
+    if ("file_frames" in fold_file === false
+      || fold_file.file_frames.length < frame_num) {
+      return fold_file;
+    }
+    const dontCopy = ["frame_parent", "frame_inherit"];
+    const memo = { visited_frames: [] };
+    const recurse = function (recurse_fold, frame, orderArray) {
+      if (memo.visited_frames.indexOf(frame) !== -1) {
+        throw new Error("encountered a cycle in file_frames. can't flatten.");
+      }
+      memo.visited_frames.push(frame);
+      orderArray = [frame].concat(orderArray);
+      if (frame === 0) { return orderArray; }
+      if (recurse_fold.file_frames[frame - 1].frame_inherit
+         && recurse_fold.file_frames[frame - 1].frame_parent != null) {
+        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
+      }
+      return orderArray;
+    };
+    return recurse(fold_file, frame_num, []).map((frame) => {
+      if (frame === 0) {
+        const swap = fold_file.file_frames;
+        fold_file.file_frames = null;
+        const copy = clone(fold_file);
+        fold_file.file_frames = swap;
+        delete copy.file_frames;
+        dontCopy.forEach(key => delete copy[key]);
+        return copy;
+      }
+      const outerCopy = clone(fold_file.file_frames[frame - 1]);
+      dontCopy.forEach(key => delete outerCopy[key]);
+      return outerCopy;
+    }).reduce((prev, curr) => Object.assign(prev, curr), {});
+  };
+  const merge_frame = function (fold_file, frame) {
+    const dontCopy = ["frame_parent", "frame_inherit"];
+    const copy = clone(frame);
+    dontCopy.forEach(key => delete copy[key]);
+    const swap = fold_file.file_frames;
+    fold_file.file_frames = null;
+    const fold = clone(fold_file);
+    fold_file.file_frames = swap;
+    delete fold.file_frames;
+    Object.assign(fold, frame);
+    return fold;
+  };
+
+  var frames = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    flatten_frame: flatten_frame,
+    merge_frame: merge_frame
   });
 
   const possibleFoldObject = function (fold) {
@@ -11651,25 +11680,6 @@
     );
   };
 
-  const axiom1$1 = function (pointA, pointB) {
-    return {
-      axiom: 1,
-      parameters: {
-        points: [pointA, pointB]
-      },
-      solutions: [
-        [[0.5, 0.625], [0.6, -0.8]],
-        [[0.25, 0.25], [0.4, -1.0]],
-        [[0.15, 0.5], [0.2, -0.8]]
-      ]
-    };
-  };
-  const madeBy = function (fold_file) {
-    const made = {};
-    made.axiom1 = axiom1$1;
-    return made;
-  };
-
   const clean = function (fold) {
     if (fold.vertices_coords != null && fold.vertices_vertices != null) {
       convert.sort_vertices_vertices(fold);
@@ -11694,21 +11704,6 @@
     graph.faces_edges = [face.edges];
     graph.faces_vertices = [face.vertices];
     remove_geometry_key_indices$1(graph, "vertices", get_isolated_vertices(graph));
-  };
-
-  const apply_matrix_to_fold = function (fold, matrix) {
-    get_keys_with_ending("coords").forEach((key) => {
-      fold[key] = fold[key]
-        .map(v => math.core.multiply_vector2_matrix2(v, matrix));
-    });
-    get_keys_with_ending("matrix").forEach((key) => {
-      fold[key] = fold[key]
-        .map(m => math.core.multiply_matrices2(m, matrix));
-    });
-  };
-  const scale$1 = function (fold, ratio, homothetic_center) {
-    const matrix = math.core.make_matrix2_scale(ratio, homothetic_center);
-    apply_matrix_to_fold(fold, matrix);
   };
 
   const get_assignment = function (...args) {
@@ -11851,7 +11846,7 @@
       return nears;
     };
     proto.scale = function (...args) {
-      scale$1(this, ...args);
+      transform_scale(this, ...args);
     };
     const didModifyGraph = function () {
       this.didChange.forEach(f => f());
@@ -11862,7 +11857,7 @@
       const assignment = get_assignment(...args) || "F";
       add_edge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
       if (options.rebuild) { rebuild(this); }
-      madeBy().axiom1(s[0], s[1]);
+      axiom1(s[0], s[1]);
       if (options.change) { this.didChange.forEach(f => f()); }
     };
     proto.crease = function (...args) {
@@ -12522,7 +12517,7 @@ line.valley { stroke: blue;
       clean(origami);
       origami.didChange.forEach(f => f());
     };
-    const fold = function (options = {}) {
+    const collapse = function (options = {}) {
       if ("faces_re:matrix" in origami === false) {
         origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
       }
@@ -12532,8 +12527,14 @@ line.valley { stroke: blue;
       setFoldedForm(true);
       return origami;
     };
-    const unfold = function () {
+    const flatten = function () {
       setFoldedForm(false);
+      return origami;
+    };
+    const fold = function (...args) {
+      return origami;
+    };
+    const unfold = function () {
       return origami;
     };
     const get = function (component) {
@@ -12580,9 +12581,11 @@ line.valley { stroke: blue;
     const userDefaults = parseOptions$1(...args);
     Object.keys(userDefaults)
       .forEach((key) => { options[key] = userDefaults[key]; });
+    Object.defineProperty(origami, "load", { value: load });
+    Object.defineProperty(origami, "collapse", { value: collapse });
+    Object.defineProperty(origami, "flatten", { value: flatten });
     Object.defineProperty(origami, "fold", { value: fold });
     Object.defineProperty(origami, "unfold", { value: unfold });
-    Object.defineProperty(origami, "load", { value: load });
     Object.defineProperty(origami, "nearest", { value: nearest });
     Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
     Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
@@ -12631,6 +12634,7 @@ line.valley { stroke: blue;
     frames,
     object,
     keys$1,
+    affine,
     validate$1,
     remove,
     rebuild$1,

@@ -15,12 +15,16 @@ const apply_matrix_to_fold = function (fold, matrix) {
   });
 };
 
-export const scale = function (fold, ratio, homothetic_center) {
+export const transform_scale = function (fold, ratio, homothetic_center) {
   const matrix = math.core.make_matrix2_scale(ratio, homothetic_center);
   apply_matrix_to_fold(fold, matrix);
 };
 
-export const translate = function (fold, dx, dy) {
+export const transform_translate = function (fold, dx, dy) {
   const matrix = math.core.make_matrix2_translation(dx, dy);
+  apply_matrix_to_fold(fold, matrix);
+};
+
+export const transform_matrix = function (fold, matrix) {
   apply_matrix_to_fold(fold, matrix);
 };

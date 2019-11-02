@@ -10,26 +10,33 @@
 // mouse hover over vertices, edges, faces to highlight them
 
 // todo: bring back sectors
+var style = {
+  vertex: "fill:#357;stroke:#357",
+  edge: "stroke:#ec3",
+  face: "fill:#e53"
+};
 
-const origami = RabbitEar.Origami({ padding: 0.05 });
+var origami = RabbitEar.Origami({ padding: 0.05 });
 origami.vertices.visible = true;
 
 // fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
 fetch("../../files/svg/crane.svg").then(blob => blob.text()).then(svg => origami.load(svg));
 
-origami.svg.onMouseMove = function (event) {
+origami.svg.mouseMoved = function (event) {
   /** highlight */
-  origami.vertices.forEach(function (v) { v.svg.style = ""; });
-  origami.edges.forEach(function (e) { e.svg.style = ""; });
-  origami.faces.forEach(function (f) { f.svg.style = ""; });
+  ["vertices", "edges", "faces"].forEach(function (key) {
+    origami[key]
+      .filter(function (v) { return v.svg != null; })
+      .forEach((v) => { v.svg.style = ""; });
+  });
 
   // get all the nearest components to the cursor
-  const nearest = origami.nearest(event);
+  var nearest = origami.nearest(event);
   // console.log(nearest);
 
-  if (nearest.vertex) { nearest.vertex.svg.style = "fill:#357;stroke:#357"; }
-  if (nearest.edge) { nearest.edge.svg.style = "stroke:#ec3"; }
-  if (nearest.face) { nearest.face.svg.style = "fill:#e53"; }
+  Object.keys(nearest)
+    .filter(function (key) { return nearest[key].svg != null; })
+    .forEach(function (key) { nearest[key].svg.style = style[key]; });
   /** highlight end */
 };
 </script>

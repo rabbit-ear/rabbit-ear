@@ -140,7 +140,7 @@ const Origami = function (...args) {
     origami.didChange.forEach(f => f());
   };
 
-  const fold = function (options = {}) {
+  const collapse = function (options = {}) {
     if ("faces_re:matrix" in origami === false) {
       origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
     }
@@ -151,8 +151,17 @@ const Origami = function (...args) {
     return origami;
   };
 
-  const unfold = function () {
+  const flatten = function () {
     setFoldedForm(false);
+    return origami;
+  };
+
+  const fold = function (...args) {
+    return origami;
+  };
+
+  const unfold = function () {
+    // get history
     return origami;
   };
 
@@ -209,9 +218,11 @@ const Origami = function (...args) {
     .forEach((key) => { options[key] = userDefaults[key]; });
 
   // attach methods
+  Object.defineProperty(origami, "load", { value: load });
+  Object.defineProperty(origami, "collapse", { value: collapse });
+  Object.defineProperty(origami, "flatten", { value: flatten });
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
-  Object.defineProperty(origami, "load", { value: load });
 
   // overwriting prototype methods
   Object.defineProperty(origami, "nearest", { value: nearest });

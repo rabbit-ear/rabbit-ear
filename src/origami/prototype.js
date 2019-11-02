@@ -7,7 +7,7 @@ import * as Create from "../FOLD/create";
 import addEdge from "../FOLD/add_edge";
 import split_face from "../FOLD/split_face";
 import fragment from "../FOLD/fragment";
-import madeBy from "../FOLD/frames/madeBy";
+// import madeBy from "../frames/madeBy";
 import {
   transpose_geometry_arrays,
   transpose_geometry_array_at_index,
@@ -28,7 +28,7 @@ import {
   face_containing_point
 } from "../FOLD/query";
 import { clone } from "../FOLD/object";
-import { scale } from "../FOLD/affine";
+import { transform_scale } from "../FOLD/affine";
 import { kawasaki_collapse } from "../kawasaki";
 import { axiom } from "../axioms";
 import { apply_axiom_in_fold } from "../axioms/validate";
@@ -207,7 +207,7 @@ const Prototype = function (proto = {}) {
    * transformations
    */
   proto.scale = function (...args) {
-    scale(this, ...args);
+    transform_scale(this, ...args);
   };
 
   // updates
@@ -244,7 +244,8 @@ const Prototype = function (proto = {}) {
     addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
     if (options.rebuild) { rebuild(this); }
     // make a record documenting how we got here
-    madeBy().axiom1(s[0], s[1]);
+    axiom1(s[0], s[1]);
+    // madeBy().axiom1(s[0], s[1]);
     if (options.change) { this.didChange.forEach(f => f()); }
   };
 

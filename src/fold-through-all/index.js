@@ -30,7 +30,7 @@ import {
 import {
   construction_flip,
   // construction_fold,
-} from "../FOLD/frames/construction_frame";
+} from "./construction_frame";
 
 /**
  * this establishes which side a point (face_center) is from the

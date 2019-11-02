@@ -1,5 +1,5 @@
-import { vertices_count, edges_count, faces_count } from "../query";
-import remove from "../remove";
+import { vertices_count, edges_count, faces_count } from "../FOLD/query";
+import remove from "../FOLD/remove";
 
 // ///////////////////////////////////////
 // new diff sketches

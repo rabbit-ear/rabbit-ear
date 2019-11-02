@@ -92,13 +92,13 @@ origami.drawAxiomHelperLines = function (color) {
   const options = {
     color,
     strokeWidth: 0.01,
-    width: 0.025,
+    width: 0.0125,
     length: 0.06,
     padding: 0.013,
   };
   lines.map(l => [l[0], [l[0][0] + l[1][0], l[0][1] + l[1][1]]])
     .map(pts => origami.markLayer.arrow(pts[0], pts[1], options)
-      .head({ width: 0.025, height: 0.06, padding: 0.013 })
+      .head({ width: 0.0125, height: 0.06, padding: 0.013 })
       .fill(color)
       .stroke(color));
 };
@@ -231,7 +231,7 @@ origami.update = function () {
   folded.fold();
 };
 
-origami.svg.onMouseMove = function () {
+origami.svg.mouseMoved = function () {
   if (!origami.svg.mouse.isPressed) { return; }
   origami.update();
 };

@@ -18,10 +18,11 @@ import svg from "../include/svg";
 // import noise from "../include/simplex";
 
 // top level methods
-import apply_axiom from "./FOLD/frames/axiom_frame";
+import apply_axiom from "./axioms/axiom_frame";
 import * as Axioms from "./axioms";
 
 // to be included in "core"
+import * as affine from "./FOLD/affine";
 import * as frames from "./FOLD/file_frames";
 import * as object from "./FOLD/object";
 import * as keys from "./FOLD/keys";
@@ -37,11 +38,11 @@ import * as marks from "./FOLD/marks";
 import fold from "./fold-through-all";
 import * as kawasaki from "./kawasaki";
 
-import build_diagram_frame from "./FOLD/frames/diagram_frame";
+import build_diagram_frame from "./diagram/diagram_frame";
 
 import add_edge from "./FOLD/add_edge";
 import split_edge_run from "./FOLD/split_edge_run";
-import { merge_run_diffs, apply_run_diff } from "./FOLD/frames/run_frame";
+import { merge_run_diffs, apply_run_diff } from "./fold-through-all/run_frame";
 
 // origami bases
 import empty from "./bases/empty.fold";
@@ -67,6 +68,7 @@ Object.assign(core,
   frames,
   object,
   keys,
+  affine,
   validate,
   remove,
   rebuild,

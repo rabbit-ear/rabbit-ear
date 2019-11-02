@@ -1,82 +1,34 @@
 <!DOCTYPE html>
 <title>Rabbit Ear</title>
 <meta charset="UTF-8">
-
-<style>
-html, body{ height: 100%; }
-body {
-  margin: 0px;
-  background-color: #158;
-  display: grid;
-  grid-template-columns: 50% 50%;
-  align-items: center;
-  justify-content: center;
-}
-@media (orientation: portrait) { body { flex-direction: column; } }
-svg { width: 100%; height: 100%; }
-svg * { stroke-linecap: round; }
-.boundary { fill: linen; }
-.valley { stroke-dasharray: 0.01 0.02; }
-.foldedForm .faces .front { fill: linen; }
-.foldedForm .faces .back { fill: peru; }
-#full-screen-fold {
-  position: absolute;
-  z-index: 4;
-  width: 100vw;
-  height: 100vh;
-  top: 0;
-  left: 0;
-}
-</style>
-
-<div><svg></svg></div>
+<link rel="stylesheet" type="text/css" href="style.css">
 
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
+<script type="text/javascript">
 
-<script>
-const origami = RabbitEar.Origami({ touchFold: true, padding: 0.15, autofit: false });
-const pattern = RabbitEar.Origami({ padding: 0.15 });
-origami.svg.setAttribute("id", "full-screen-fold");
-origami.fold();
-
-origami.svg.onMouseMove = function (mouse) {
-  if (!mouse.isPressed) { return; }
-  pattern.load(origami);
-  pattern.unfold();
+const highlightStyle = {
+  vertex: "fill:#357;stroke:#357",
+  edge: "stroke:#ec3",
+  face: "fill:#e53"
 };
 
-pattern.onMouseDown = function () {
-  pattern.backup = pattern.copy();
-};
-pattern.onMouseMove = function (mouse) {
-  if (mouse.isPressed) {
-    pattern.load(pattern.backup.copy());
-    pattern.crease(mouse.pressed, mouse.drag);
-    origami.load(pattern);
-    origami.fold();
-  }
-};
+// todo: bring back sectors
+const origami = RabbitEar.Origami({ padding: 0.05 });
 
-origami.fitView = function (w, h, pad = 0.15) {
-  const aspect = w / h;
-  const sideAspect = (w / 2) / h;
-  const vb = [];
-  vb[0] = sideAspect < 1 ? 0 : -(sideAspect - 1) / 2;
-  vb[1] = sideAspect < 1 ? -(1 / sideAspect - 1) / 2 : 0;
-  vb[2] = sideAspect < 1 ? 1 * 2 : sideAspect * 2;
-  vb[3] = sideAspect < 1 ? 1 / sideAspect : 1;
-  vb[0] -= pad;
-  vb[1] -= pad;
-  vb[2] += pad * 2 * 2; // due to half screen calc
-  vb[3] += pad * 2;
-  origami.svg.setAttribute("viewBox", vb.join(" "));
-};
+// fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
+fetch("../../files/svg/crane.svg").then(blob => blob.text()).then(svg => origami.load(svg));
 
-window.onresize = function (e) {
-  const container = document.querySelector("#space").getBoundingClientRect();
-  // console.log(container);
-  origami.fitView(e.target.innerWidth, e.target.innerHeight);
-};
+origami.svg.mouseMoved = function (event) {
+  origami.vertices.filter(v => v.svg).forEach((v) => { v.svg.style = ""; });
+  origami.edges.filter(e => e.svg).forEach((e) => { e.svg.style = ""; });
+  origami.faces.filter(f => f.svg).forEach((f) => { f.svg.style = ""; });
 
-origami.fitView(window.innerWidth, window.innerHeight);
+  // get all the nearest components to the cursor
+  const nearest = origami.nearest(event);
+  // console.log(nearest);
+
+  Object.keys(nearest)
+    .filter(key => nearest[key].svg)
+    .forEach((key) => { nearest[key].svg.style = highlightStyle[key]; });
+};
 </script>

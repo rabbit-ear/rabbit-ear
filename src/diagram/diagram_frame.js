@@ -1,7 +1,7 @@
-import math from "../../../include/math";
-import { get_boundary } from "../query";
-import { edges_assignment_names } from "../keys";
-import axiom_instructions_data from "../../instructions/axioms.json";
+import math from "../../include/math";
+import { get_boundary } from "../FOLD/query";
+import { edges_assignment_names } from "../FOLD/keys";
+import axiom_instructions_data from "../text/axioms.json";
 
 // the diagram frame IS little fold files.
 // each arrow has vertices_coords. the arrow path is an edges_vertices: [0, 1]

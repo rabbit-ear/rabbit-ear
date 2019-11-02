@@ -2,7 +2,7 @@ import {
   vertices_count,
   edges_count,
   faces_count,
-} from "../query";
+} from "./query";
 
 
 const diff_template = {
