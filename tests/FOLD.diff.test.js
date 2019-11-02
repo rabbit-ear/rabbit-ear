@@ -1,7 +1,5 @@
 const re = require("rabbit-ear");
 
-test("FOLD affine transform", () => {
-  // re.core.fold.affine.
-
+test("FOLD clean", () => {
   expect(true).toBe(true);
 });
