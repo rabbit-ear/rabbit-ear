@@ -44,8 +44,13 @@ export const make_edges_faces = function ({
     .from(Array(edges_vertices.length))
     .map(() => []);
   // todo: does not arrange counter-clockwise
-  faces_edges.forEach((face, i) => face
-    .forEach(edge => edges_faces[edge].push(i)));
+  faces_edges.forEach((face, f) => {
+    const hash = [];
+    // use an intermediary hash to handle the case where faces visit one
+    // vertex multiple times. otherwise there are redundant indices.
+    face.forEach((edge) => { hash[edge] = f; });
+    hash.forEach((fa, e) => edges_faces[e].push(fa));
+  });
   return edges_faces;
 };
 
@@ -80,8 +85,13 @@ export const make_vertices_faces = function ({
 }) {
   const vertices_faces = Array.from(Array(vertices_coords.length))
     .map(() => []);
-  faces_vertices.forEach((face, i) => face
-    .forEach(vertex => vertices_faces[vertex].push(i)));
+  faces_vertices.forEach((face, f) => {
+    const hash = [];
+    // use an intermediary hash to handle the case where faces visit one
+    // vertex multiple times. otherwise there are redundant indices.
+    face.forEach((vertex) => { hash[vertex] = f; });
+    hash.forEach((fa, v) => vertices_faces[v].push(fa));
+  });
   return vertices_faces;
 };
 

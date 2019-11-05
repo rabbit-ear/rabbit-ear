@@ -23,35 +23,40 @@ import {
   edge_assignment_to_foldAngle
 } from "./keys";
 
-
+/**
+ * This function requires:
+ * - graph must be an object {}
+ * - vertices_coords and edges_vertices be defined.
+ *
+ */
 export const complete = function (graph) {
-  if ("vertices_coords" in graph === false
-    || "edges_vertices" in graph === false) { return; }
-  if ("vertices_vertices" in graph === false) {
+  if (graph.vertices_coords == null
+    || graph.edges_vertices == null) { return; }
+  if (graph.vertices_vertices == null) {
     FOLDConvert.edges_vertices_to_vertices_vertices_sorted(graph);
   }
-  if ("faces_vertices" in graph === false) {
+  if (graph.faces_vertices == null) {
     FOLDConvert.vertices_vertices_to_faces_vertices(graph);
   }
-  if ("faces_edges" in graph === false) {
+  if (graph.faces_edges == null) {
     FOLDConvert.faces_vertices_to_faces_edges(graph);
   }
-  if ("edges_faces" in graph === false) {
+  if (graph.edges_faces == null) {
     graph.edges_faces = make_edges_faces(graph);
   }
-  if ("vertices_faces" in graph === false) {
+  if (graph.vertices_faces == null) {
     graph.vertices_faces = make_vertices_faces(graph);
   }
-  if ("edges_length" in graph === false) {
+  if (graph.edges_length == null) {
     graph.edges_length = make_edges_length(graph);
   }
-  if ("edges_foldAngle" in graph === false
-    && "edges_assignment" in graph === true) {
+  if (graph.edges_foldAngle == null
+    && graph.edges_assignment != null) {
     graph.edges_foldAngle = graph.edges_assignment
       .map(a => edge_assignment_to_foldAngle(a));
   }
-  if ("edges_assignment" in graph === false
-    && "edges_foldAngle" in graph === true) {
+  if (graph.edges_assignment == null
+    && graph.edges_foldAngle != null) {
     graph.edges_assignment = graph.edges_foldAngle.map((a) => {
       if (a === 0) return "F";
       if (a < 0) return "M";
@@ -60,10 +65,10 @@ export const complete = function (graph) {
     });
     // todo, this does not find borders, we need an algorithm to walk around
   }
-  if ("faces_faces" in graph === false) {
+  if (graph.faces_faces == null) {
     graph.faces_faces = make_faces_faces(graph);
   }
-  if ("vertices_edges" in graph === false) {
+  if (graph.vertices_edges == null) {
     graph.vertices_edges = make_vertices_edges(graph);
   }
 };
@@ -98,6 +103,8 @@ export const rebuild = function (graph, epsilon = math.core.EPSILON) {
 
   rebuilt.edges_faces = make_edges_faces(rebuilt);
   rebuilt.vertices_faces = make_vertices_faces(rebuilt);
+
+  rebuilt.edges_length = make_edges_length(rebuilt);
 
   Object.assign(graph, rebuilt);
 
