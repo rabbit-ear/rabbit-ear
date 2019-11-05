@@ -46,4 +46,4 @@ const collinearSquare = {
   faces_edges: [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
 };
 
-let verts = re.core.get_collinear_vertices(collinearSquare);
+const verts = re.core.get_collinear_vertices(collinearSquare);

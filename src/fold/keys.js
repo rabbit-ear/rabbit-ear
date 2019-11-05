@@ -36,12 +36,12 @@ export const keys_types = {
     "edgeOrders",
     "faceOrders"
   ],
-  rabbitEar: [
-    "vertices_re:foldedCoords",
-    "vertices_re:unfoldedCoords",
-    "faces_re:matrix",
-    "faces_re:layer",
-  ]
+  // rabbitEar: [
+  //   "vertices_re:foldedCoords",
+  //   "vertices_re:unfoldedCoords",
+  //   "faces_re:matrix",
+  //   "faces_re:layer",
+  // ]
 };
 
 export const file_classes = [
@@ -76,27 +76,25 @@ export const keys = Object.freeze([]
   .concat(keys_types.file)
   .concat(keys_types.frame)
   .concat(keys_types.graph)
-  .concat(keys_types.orders)
-  .concat(keys_types.rabbitEar));
-
-export const edges_assignment_names = {
-  en: {
-    B: "boundary",
-    b: "boundary",
-    M: "mountain",
-    m: "mountain",
-    V: "valley",
-    v: "valley",
-    F: "mark",
-    f: "mark",
-    U: "unassigned",
-    u: "unassigned"
-  }
-};
+  .concat(keys_types.orders));
+  // .concat(keys_types.rabbitEar));
 
 export const edges_assignment_values = [
   "B", "b", "M", "m", "V", "v", "F", "f", "U", "u"
 ];
+
+export const edges_assignment_names = {
+  B: "boundary",
+  b: "boundary",
+  M: "mountain",
+  m: "mountain",
+  V: "valley",
+  v: "valley",
+  F: "mark",
+  f: "mark",
+  U: "unassigned",
+  u: "unassigned"
+};
 
 const assignment_angles = {
   M: -180,

@@ -9,6 +9,7 @@
 
 import math from "../../include/math";
 import remove from "./remove";
+import { edge_assignment_to_foldAngle } from "./keys";
 
 const equivalent_vertices = function (a, b, epsilon = math.core.EPSILON) {
   for (let i = 0; i < a.length; i += 1) {
@@ -73,7 +74,7 @@ const make_edges_intersections = function ({
   const crossings = Array.from(Array(edge_count - 1)).map(() => []);
   for (let i = 0; i < edges.length - 1; i += 1) {
     for (let j = i + 1; j < edges.length; j += 1) {
-      crossings[i][j] = math.core.intersection.edge_edge_exclusive(
+      crossings[i][j] = math.core.intersection.segment_segment_exclusive(
         edges[i][0], edges[i][1],
         edges[j][0], edges[j][1],
         epsilon
@@ -211,10 +212,12 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
     edges_vertices: edges_vertices_cl
   };
   if ("edges_assignment" in graph === true) {
-    flat.edges_assignment = edge_map_cl.map(i => graph.edges_assignment[i]);
+    flat.edges_assignment = edge_map_cl
+      .map(i => graph.edges_assignment[i] || "U");
   }
   if ("edges_foldAngle" in graph === true) {
-    flat.edges_foldAngle = edge_map_cl.map(i => graph.edges_foldAngle[i]);
+    flat.edges_foldAngle = edge_map_cl
+      .map((i, j) => (graph.edges_foldAngle[i] || edge_assignment_to_foldAngle(flat.edges_assignment[j])));
   }
   const vertices_remove_indices = vertices_remove
     .map((rm, i) => (rm ? i : undefined))

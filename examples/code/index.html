@@ -1,41 +1,15 @@
 <!DOCTYPE html>
-<title>Rabbit Ear</title>
-<meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="button.css">
-<link rel="stylesheet" type="text/css" href="style.css">
-<link href="https://fonts.googleapis.com/css?family=Montserrat:600&display=swap" rel="stylesheet">
-
-<div class="grid">
-	<div id="origami-container"></div>
-	<div id="editor-container">
-		<div id="editor">const creases = [
-  RabbitEar.axiom(1, [0, 0], [1, 1]),
-  RabbitEar.axiom(2, [0, 0], [1.3, 1]),
-  RabbitEar.axiom(3, [0, 0], [1,0], [1, 1.1], [1,0])
-];
-
-creases.forEach((c) => {
-  origami.crease(c.solutions[0]);
-});
-</div>
-	</div>
-	<div id="button-container">
-		<a id="button-crease" class="button gray">crease</a>
-		<a id="button-axiom" class="button gray">axiom</a>
-		<a id="button-fold" class="button yellow">fold</a>
-		<a id="button-save-SVG" class="button red">save SVG</a>
-		<a id="button-save-FOLD" class="button red">save FOLD</a>
-	</div>
-</div>
-<div id="console"></div>
-
-<!-- ace editor -->
-<!-- <script type="text/javascript" src="https://ace.c9.io/build/src/ace.js" charset="utf-8"></script> -->
-<!-- <script type="text/javascript" src="https://ace.c9.io/build/src/keybinding-sublime.js"></script> -->
-<script type="text/javascript" src="../../lib/ace/ace.js" charset="utf-8"></script>
-<script type="text/javascript" src="../../lib/ace/keybinding-sublime.js"></script>
-
-<!-- this project's files -->
-<script type="text/javascript" src="../../rabbit-ear.js"></script>
-<script type="text/javascript" src="ace.rabbit-ear.js"></script>
-<script type="text/javascript" src="sketch.js"></script>
+<head>
+  <title>✨code✨</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="css/app.css">
+  <link rel="stylesheet" type="text/css" href="css/origami.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script type="text/javascript" src="../../rabbit-ear.js"></script>
+  <script type="text/javascript" src="ace/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="js/live-code.js"></script>
+  <script type="text/javascript" src="js/sketch.js"></script>
+</body>

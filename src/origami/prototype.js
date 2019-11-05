@@ -165,8 +165,15 @@ const Prototype = function (proto = {}) {
    */
   proto.clear = function () {
     remove_non_boundary_edges(this);
+    Object.keys(this)
+      .filter(s => s.includes("re:"))
+      .forEach(key => delete this[key]);
+    delete this.vertices_vertices;
+    delete this.vertices_faces;
+    delete this.edges_faces;
     this.didChange.forEach(f => f());
   };
+
   proto.nearestVertex = function (...args) {
     const index = nearest_vertex(this, math.core.get_vector(...args));
     const result = transpose_geometry_array_at_index(this, "vertices", index);

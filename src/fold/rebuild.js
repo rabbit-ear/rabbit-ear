@@ -84,6 +84,10 @@ export const rebuild = function (graph, epsilon = math.core.EPSILON) {
     "faces_vertices", "faces_edges", "faces_faces"].filter(a => a in graph)
     .forEach(key => delete graph[key]);
 
+  Object.keys(graph)
+    .filter(s => s.includes("re:"))
+    .forEach(key => delete graph[key]);
+
   // this needs to chop edges that have line endpoints collear to them
   const rebuilt = fragment(graph, epsilon);
   // remove(rebuilt, "edges", Object.keys(get_duplicate_edges(rebuilt)));

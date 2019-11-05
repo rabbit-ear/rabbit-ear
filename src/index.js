@@ -26,6 +26,7 @@ import * as affine from "./FOLD/affine";
 import * as frames from "./FOLD/file_frames";
 import * as object from "./FOLD/object";
 import * as keys from "./FOLD/keys";
+import fragment from "./FOLD/fragment";
 import * as validate from "./FOLD/validate";
 import convert from "./convert/convert";
 
@@ -54,8 +55,8 @@ import fish from "./bases/fish.fold";
 import bird from "./bases/bird.fold";
 import frog from "./bases/frog.fold";
 
-import prototype from "./origami/prototype";
 import Origami from "./origami";
+import CreasePattern from "./crease-pattern";
 
 console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
@@ -77,14 +78,16 @@ Object.assign(core,
   query,
   kawasaki,
   Axioms);
-
+// these are defaults. they aren't objects like above.
+// they need to be added this way.
 core.build_diagram_frame = build_diagram_frame;
 core.add_edge = add_edge;
 core.split_edge_run = split_edge_run;
 core.apply_run = apply_run_diff;
 core.merge_run = merge_run_diffs;
 core.apply_axiom = apply_axiom;
-core.prototype = prototype;
+core.fragment = fragment;
+// core.prototype = prototype;
 
 // load bases
 const b = {
@@ -134,6 +137,7 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 // };
 
 const rabbitEar = {
+  CreasePattern, // experimental feature
   Origami,
   graph,
   // draw,
