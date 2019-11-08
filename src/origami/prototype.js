@@ -8,6 +8,7 @@ import addEdge from "../FOLD/add_edge";
 import split_face from "../FOLD/split_face";
 import fragment from "../FOLD/fragment";
 // import madeBy from "../frames/madeBy";
+import protoClean from "../FOLD/clean";
 import {
   transpose_geometry_arrays,
   transpose_geometry_array_at_index,
@@ -18,11 +19,10 @@ import {
   complete
 } from "../FOLD/rebuild";
 import {
-  clean as protoClean,
-  remove_non_boundary_edges
-} from "../FOLD/clean";
-import {
   get_boundary,
+  remove_non_boundary_edges
+} from "../FOLD/boundary";
+import {
   nearest_vertex,
   nearest_edge,
   face_containing_point

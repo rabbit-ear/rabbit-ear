@@ -24,7 +24,9 @@ test("origami clear", () => {
     "edges_foldAngle",
     "edges_length",
     "faces_vertices",
-    "faces_edges"
+    "faces_edges",
+    "faces_faces",
+    "vertices_edges"
   ];
 
   const allBoundaryEdgesTest = origami.edges_assignment

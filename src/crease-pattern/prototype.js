@@ -1,7 +1,6 @@
 // MIT open source license, Robby Kraft
 
 import math from "../../include/math";
-
 import addEdge from "../FOLD/add_edge";
 import fragment from "../FOLD/fragment";
 
@@ -14,11 +13,11 @@ import {
   complete
 } from "../FOLD/rebuild";
 import {
-  clean,
-  remove_non_boundary_edges
-} from "../FOLD/clean";
-import {
   get_boundary,
+  remove_non_boundary_edges
+} from "../FOLD/boundary";
+import clean from "../FOLD/clean";
+import {
   nearest_vertex,
   nearest_edge,
   face_containing_point

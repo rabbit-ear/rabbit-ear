@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import { bounding_rect } from "../FOLD/query";
+import { bounding_rect } from "../FOLD/boundary";
 
 const drawLabels = function (graph, group) {
   if ("faces_vertices" in graph === false

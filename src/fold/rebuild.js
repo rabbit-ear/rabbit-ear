@@ -11,7 +11,7 @@ import {
   get_duplicate_edges_old
 } from "./query";
 import fragment from "./fragment";
-import * as Validate from "./validate";
+import Validate from "./validate";
 import {
   make_vertices_edges,
   make_vertices_faces,

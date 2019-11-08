@@ -27,7 +27,9 @@ import * as frames from "./FOLD/file_frames";
 import * as object from "./FOLD/object";
 import * as keys from "./FOLD/keys";
 import fragment from "./FOLD/fragment";
+import clean from "./FOLD/clean";
 import * as validate from "./FOLD/validate";
+import Validate from "./FOLD/validate";
 import convert from "./convert/convert";
 
 import * as remove from "./FOLD/remove";
@@ -58,7 +60,7 @@ import frog from "./bases/frog.fold";
 import Origami from "./origami";
 import CreasePattern from "./crease-pattern";
 
-console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
+// console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
 // const draw = Object.create(null);
 // draw.svg = svg;
@@ -87,6 +89,8 @@ core.apply_run = apply_run_diff;
 core.merge_run = merge_run_diffs;
 core.apply_axiom = apply_axiom;
 core.fragment = fragment;
+core.clean = clean;
+core.validate = Validate;
 // core.prototype = prototype;
 
 // load bases

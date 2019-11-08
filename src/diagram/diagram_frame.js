@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import { get_boundary } from "../FOLD/query";
+import { get_boundary } from "../FOLD/boundary";
 import { edges_assignment_names } from "../FOLD/keys";
 import axiom_instructions_data from "../text/axioms.json";
 

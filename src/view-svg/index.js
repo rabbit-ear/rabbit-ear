@@ -9,7 +9,7 @@
 
 import drawFOLD from "../../include/fold-draw";
 import SVG from "../../include/svg";
-import { bounding_rect } from "../FOLD/query";
+import { bounding_rect } from "../FOLD/boundary";
 import { shadowFilter } from "./filters";
 import {
   drawDiagram,

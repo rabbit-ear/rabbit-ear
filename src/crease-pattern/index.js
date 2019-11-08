@@ -27,13 +27,12 @@ import {
 } from "../environment/detect";
 import {
   possibleFoldObject,
-  validate
 } from "../FOLD/validate";
 import {
   transpose_geometry_arrays,
 } from "../FOLD/keys";
 import { square } from "../FOLD/create";
-import { clean } from "../FOLD/clean";
+import clean from "../FOLD/clean";
 
 
 const DEFAULTS = Object.freeze({
@@ -90,7 +89,7 @@ const Origami = function (...args) {
     args.filter(el => possibleFoldObject(el)).shift() || square()
   );
   // validate and add anything missing.
-  validate(origami);
+  // validate(origami);
   clean(origami);
 
   const get = function (component) {

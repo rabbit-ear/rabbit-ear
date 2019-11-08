@@ -211,11 +211,11 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
     vertices_coords,
     edges_vertices: edges_vertices_cl
   };
-  if ("edges_assignment" in graph === true) {
+  if (graph.edges_assignment != null) {
     flat.edges_assignment = edge_map_cl
       .map(i => graph.edges_assignment[i] || "U");
   }
-  if ("edges_foldAngle" in graph === true) {
+  if (graph.edges_foldAngle != null) {
     flat.edges_foldAngle = edge_map_cl
       .map((i, j) => (graph.edges_foldAngle[i] || edge_assignment_to_foldAngle(flat.edges_assignment[j])));
   }
