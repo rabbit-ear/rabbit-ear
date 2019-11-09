@@ -260,7 +260,6 @@ const Origami = function (...args) {
   };
 
   Object.defineProperty(origami, "clean", { value: () => clean(origami) });
-
   Object.defineProperty(origami, "snapshot", { get: () => exportObject });
   Object.defineProperty(origami, "export", { get: () => exportObject });
   Object.defineProperty(origami, "options", { get: () => options });

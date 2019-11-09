@@ -26,9 +26,10 @@ import * as affine from "./FOLD/affine";
 import * as frames from "./FOLD/file_frames";
 import * as object from "./FOLD/object";
 import * as keys from "./FOLD/keys";
+import * as collinear from "./FOLD/collinear";
+import * as validate from "./FOLD/validate";
 import fragment from "./FOLD/fragment";
 import clean from "./FOLD/clean";
-import * as validate from "./FOLD/validate";
 import Validate from "./FOLD/validate";
 import convert from "./convert/convert";
 
@@ -70,6 +71,7 @@ const core = Object.create(null);
 Object.assign(core,
   frames,
   object,
+  collinear,
   keys,
   affine,
   validate,

@@ -34,6 +34,9 @@ import { axiom } from "../axioms";
 import { apply_axiom_in_fold } from "../axioms/validate";
 import { get_assignment } from "./args";
 
+import * as Collinear from "../FOLD/collinear";
+import Edges from "./edges";
+
 const MARK_DEFAULTS = {
   rebuild: true,
   change: true,
@@ -234,6 +237,19 @@ const Prototype = function (proto = {}) {
   //   apply_axiom_in_fold(solutions, this);
   //   return solutions;
   // };
+
+  proto.segment = function (...args) {
+    // get arguments: two endpoints, optional crease assignment
+    const s = math.core.flatten_input(...args)
+      .filter(n => typeof n === "number");
+    const assignment = get_assignment(...args) || "F";
+    addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
+    rebuild(this);
+    didModifyGraph.call(this);
+    const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
+    return Edges(this, edges);
+  };
+
   /**
    * add a line segment to the graph.
    * if endpoints lie on an existing vertex this will reuse vertices.

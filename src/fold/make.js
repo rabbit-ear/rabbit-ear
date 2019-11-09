@@ -1,5 +1,8 @@
 import math from "../../include/math";
 
+// export const make_vertices_vertices = function (graph) {
+// };
+
 export const make_vertices_edges = function ({ edges_vertices }) {
   const vertices_edges = [];
   edges_vertices.forEach((ev, i) => ev

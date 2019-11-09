@@ -34,15 +34,15 @@ var LiveCode = function LiveCode(container) {
   };
 
   var compileAndRun = function compileAndRun() {
-    // try {
+    try {
       if (typeof app.reset === "function") {
         app.reset();
       }
       eval(app.editor.getValue());
       app.console.innerHTML = "";
-    // } catch (err) {
-    //   app.console.innerHTML = "<p>" + err + "</p>";
-    // }
+    } catch (err) {
+      app.console.innerHTML = "<p>" + err + "</p>";
+    }
     if (typeof app.didUpdate === "function") {
       app.didUpdate();
     }
