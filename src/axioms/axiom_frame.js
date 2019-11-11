@@ -8,7 +8,7 @@ import { apply_axiom_in_polygon } from "./validate";
  *  encoded as [point, vector]
  * @param {number[][][]} solutions is an array of lines in [point, vector] form
  */
-const make_axiom_frame = function (axiom, parameters, solutions) {
+const make_axiom_frame = function (axiom, solutions, parameters) {
   const solution = {
     axiom,
     parameters,

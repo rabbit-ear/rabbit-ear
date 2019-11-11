@@ -267,6 +267,27 @@ const Origami = function (...args) {
   return origami;
 };
 
+
+// Prototype.empty = function () {
+//   return Prototype(Create.empty());
+// };
+
+// Prototype.square = function () {
+//   return Prototype(Create.rectangle(1, 1));
+// };
+
+// Prototype.rectangle = function (width = 1, height = 1) {
+//   return Prototype(Create.rectangle(width, height));
+// };
+
+// Prototype.regularPolygon = function (sides, radius = 1) {
+//   if (sides == null) {
+//     console.warn("regularPolygon requires number of sides parameter");
+//   }
+//   return Prototype(Create.regular_polygon(sides, radius));
+// };
+
+
 const init = function (...args) {
   const origami = Origami(...args);
 

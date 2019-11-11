@@ -1,5 +1,26 @@
 // MIT open source license, Robby Kraft
 
+/**
+*
+*
+*
+*
+*      "fast" init param
+8       divide each function into fast and slow
+
+
+
+
+
+
+
+
+
+
+
+*
+*/
+
 import math from "../../include/math";
 
 import MakeFold from "../fold-through-all";
@@ -91,6 +112,17 @@ const boundary_methods = function (boundaries) {
 };
 
 const Prototype = function (proto = {}) {
+  proto.square = function () {
+    Object.keys(this).forEach(key => delete this[key]);
+    const rect = Create.rectangle(1, 1);
+    Object.keys(rect).forEach((key) => { this[key] = rect[key]; });
+  };
+  proto.regularPolygon = function (sides = 3, radius = 1) {
+    Object.keys(this).forEach(key => delete this[key]);
+    const rect = Create.regular_polygon(sides, radius);
+    Object.keys(rect).forEach((key) => { this[key] = rect[key]; });
+  };
+
   /**
    * export
    */
@@ -267,7 +299,7 @@ const Prototype = function (proto = {}) {
     addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
     if (options.rebuild) { rebuild(this); }
     // make a record documenting how we got here
-    axiom1(s[0], s[1]);
+    // axiom1(s[0], s[1]);
     // madeBy().axiom1(s[0], s[1]);
     if (options.change) { this.didChange.forEach(f => f()); }
   };
@@ -346,25 +378,6 @@ const Prototype = function (proto = {}) {
 
   // return Object.freeze(proto);
   return proto;
-};
-
-Prototype.empty = function () {
-  return Prototype(Create.empty());
-};
-
-Prototype.square = function () {
-  return Prototype(Create.rectangle(1, 1));
-};
-
-Prototype.rectangle = function (width = 1, height = 1) {
-  return Prototype(Create.rectangle(width, height));
-};
-
-Prototype.regularPolygon = function (sides, radius = 1) {
-  if (sides == null) {
-    console.warn("regularPolygon requires number of sides parameter");
-  }
-  return Prototype(Create.regular_polygon(sides, radius));
 };
 
 export default Prototype;

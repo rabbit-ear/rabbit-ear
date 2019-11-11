@@ -5000,7 +5000,7 @@
     return axiom_frame;
   };
 
-  const make_axiom_frame = function (axiom, parameters, solutions) {
+  const make_axiom_frame = function (axiom, solutions, parameters) {
     const solution = {
       axiom,
       parameters,
@@ -5012,29 +5012,74 @@
     return solution;
   };
 
-  const axiom1$1 = function (pointA, pointB) {
-    const p0 = math.core.get_vector(pointA);
-    const p1 = math.core.get_vector(pointB);
-    const vec = p0.map((_, i) => p1[i] - p0[i]);
-    const solution = [p0, vec];
-    return make_axiom_frame(1, { points: [p0, p1] }, [solution]);
+  const Params = function (number, ...args) {
+    switch (number) {
+      case 1:
+      case 2: {
+        const flat = math.core.semi_flatten_input(...args);
+        if (flat.length === 4) {
+          return flat;
+        }
+        if (flat.length === 2) {
+          if (flat[0].length > 1 && flat[1].length > 1) {
+            return [flat[0][0], flat[0][1], flat[1][0], flat[1][1]];
+          }
+        }
+      }
+        break;
+      case 3: {
+        const flat = math.core.semi_flatten_input(...args);
+        if (flat.length === 8) {
+          return flat;
+        }
+        if (flat.length === 4) {
+          if (flat[0].length >= 2 && flat[1].length >= 2 && flat[2].length >= 2 && flat[3].length >= 2) {
+            return [flat[0][0], flat[0][1], flat[1][0], flat[1][1], flat[2][0], flat[2][1], flat[3][0], flat[3][1]];
+          }
+        }
+        if (flat.length === 2) {
+          if (flat[0].length >= 4 && flat[1].length >= 4) {
+            return [flat[0][0], flat[0][1], flat[0][2], flat[0][3], flat[1][0], flat[1][1], flat[1][2], flat[1][3]];
+          }
+          return [...math.core.flatten_input(flat[0]), ...math.core.flatten_input(flat[1])];
+        }
+      }
+        break;
+      case 4: break;
+      case 5: break;
+      case 6: break;
+      case 7: break;
+      default: break;
+    }
+    return args;
   };
-  const axiom2 = function (a, b) {
-    const mid = math.core.midpoint2(a, b);
-    const vec = math.core.normalize(a.map((_, i) => b[i] - a[i]));
+
+  const axiom1 = function (x1, y1, x2, y2) {
+    const point = [x1, y1];
+    const vector = math.core.normalize([x2 - x1, y2 - y1]);
+    const solution = [point, vector];
+    const parameters = { points: [[x1, y1], [x2, y2]] };
+    return make_axiom_frame(1, [solution], parameters);
+  };
+  const axiom2 = function (x1, y1, x2, y2) {
+    const mid = [(x1 + x2) / 2, (y1 + y2) / 2];
+    const vec = math.core.normalize([x2 - x1, y2 - y1]);
     const solution = [mid, [vec[1], -vec[0]]];
-    return make_axiom_frame(2, { points: [a, b] }, [solution]);
+    const parameters = { points: [[x1, y1], [x2, y2]] };
+    return make_axiom_frame(2, [solution], parameters);
   };
-  const axiom3 = function (pointA, vectorA, pointB, vectorB) {
-    const parameters = { lines: [[pointA, vectorA], [pointB, vectorB]] };
-    const solutions = math.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
-    return make_axiom_frame(3, parameters, solutions);
+  const axiom3 = function (pt1x, pt1y, vec1x, vec1y, pt2x, pt2y, vec2x, vec2y) {
+    const parameters = {
+      lines: [[[pt1x, pt1y], [vec1x, vec1y]], [[pt2x, pt2y], [vec2x, vec2y]]]
+    };
+    const solutions = math.core.bisect_lines2([pt1x, pt1y], [vec1x, vec1y], [pt2x, pt2y], [vec2x, vec2y]);
+    return make_axiom_frame(3, solutions, parameters);
   };
   const axiom4 = function (pointA, vectorA, pointB) {
     const norm = math.core.normalize(vectorA);
     const solution = [[...pointB], [norm[1], -norm[0]]];
     const parameters = { points: [pointB], lines: [[pointA, vectorA]] };
-    return make_axiom_frame(4, parameters, [solution]);
+    return make_axiom_frame(4, [solution], parameters);
   };
   const axiom5 = function (pointA, vectorA, pointB, pointC) {
     const pA = math.core.get_vector(pointA);
@@ -5050,7 +5095,7 @@
       return [mid, [-vec[1], vec[0]]];
     });
     const parameters = { points: [pB, pC], lines: [[pA, vA]] };
-    return make_axiom_frame(5, parameters, solutions);
+    return make_axiom_frame(5, solutions, parameters);
   };
   const axiom7 = function (pointA, vectorA, pointB, vectorB, pointC) {
     const pA = math.core.get_vector(pointA);
@@ -5066,7 +5111,7 @@
     const mid = math.core.midpoint2(pC, sect);
     const vec = math.core.normalize(pC.map((_, i) => sect[i] - pC[i]));
     const solution = [mid, [-vec[1], vec[0]]];
-    return make_axiom_frame(7, parameters, [solution]);
+    return make_axiom_frame(7, [solution], parameters);
   };
   const cuberoot = function (x) {
     const y = Math.pow(Math.abs(x), 1 / 3);
@@ -5227,7 +5272,7 @@
       points: [pointC, pointD],
       lines: [[pointA, vecA], [pointB, vecB]]
     };
-    return make_axiom_frame(6, parameters, solutions);
+    return make_axiom_frame(6, solutions, parameters);
   };
   var order, irootMax, q1, q2, S, Sr, Si, U;
   const CubeRoot = function (x) {
@@ -5387,21 +5432,22 @@
     return [creasePoint, creaseVector];
   };
   const axiom = function (number, ...args) {
+    const params = Params(number, ...args);
     switch (number) {
-      case 1: return axiom1$1(...args);
-      case 2: return axiom2(...args);
-      case 3: return axiom3(...args);
-      case 4: return axiom4(...args);
-      case 5: return axiom5(...args);
-      case 6: return axiom6(...args);
-      case 7: return axiom7(...args);
+      case 1: return axiom1(...params);
+      case 2: return axiom2(...params);
+      case 3: return axiom3(...params);
+      case 4: return axiom4(...params);
+      case 5: return axiom5(...params);
+      case 6: return axiom6(...params);
+      case 7: return axiom7(...params);
       default: return undefined;
     }
   };
 
   var Axioms = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    axiom1: axiom1$1,
+    axiom1: axiom1,
     axiom2: axiom2,
     axiom3: axiom3,
     axiom4: axiom4,
@@ -12341,12 +12387,6 @@ line.valley { stroke: blue;
       faces_edges: [[0, 1, 2, 3]],
     };
   };
-  const empty$1 = function () {
-    return Object.assign(
-      Object.create(null),
-      metadata()
-    );
-  };
   const square$1 = function () {
     return Object.assign(
       Object.create(null),
@@ -12474,6 +12514,16 @@ line.valley { stroke: blue;
     return boundaries;
   };
   const Prototype$2 = function (proto = {}) {
+    proto.square = function () {
+      Object.keys(this).forEach(key => delete this[key]);
+      const rect = rectangle(1, 1);
+      Object.keys(rect).forEach((key) => { this[key] = rect[key]; });
+    };
+    proto.regularPolygon = function (sides = 3, radius = 1) {
+      Object.keys(this).forEach(key => delete this[key]);
+      const rect = regular_polygon(sides, radius);
+      Object.keys(rect).forEach((key) => { this[key] = rect[key]; });
+    };
     proto.copy = function () {
       return Object.assign(Object.create(Prototype$2()), clone(this));
     };
@@ -12586,7 +12636,6 @@ line.valley { stroke: blue;
       const assignment = get_assignment(...args) || "F";
       add_edge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
       if (options.rebuild) { rebuild(this); }
-      axiom1(s[0], s[1]);
       if (options.change) { this.didChange.forEach(f => f()); }
     };
     proto.crease = function (...args) {
@@ -12637,21 +12686,6 @@ line.valley { stroke: blue;
     Object.defineProperty(proto, "isFolded", { value: isFolded });
     proto.didChange = [];
     return proto;
-  };
-  Prototype$2.empty = function () {
-    return Prototype$2(empty$1());
-  };
-  Prototype$2.square = function () {
-    return Prototype$2(rectangle(1, 1));
-  };
-  Prototype$2.rectangle = function (width = 1, height = 1) {
-    return Prototype$2(rectangle(width, height));
-  };
-  Prototype$2.regularPolygon = function (sides, radius = 1) {
-    if (sides == null) {
-      console.warn("regularPolygon requires number of sides parameter");
-    }
-    return Prototype$2(regular_polygon(sides, radius));
   };
 
   const DEFAULTS$2 = Object.freeze({
