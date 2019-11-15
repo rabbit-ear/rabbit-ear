@@ -144,7 +144,7 @@ const clean_old = function (fold) {
       fold["faces_re:matrix"] = make_faces_matrix(fold);
     }
 
-    if (fold["faces_re:layer:"] == null) {
+    if (fold["faces_re:layer"] == null) {
       // fold["faces_re:layer"] = []
     }
   }

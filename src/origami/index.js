@@ -35,10 +35,11 @@ import {
 } from "../FOLD/validate";
 import {
   transpose_geometry_arrays,
-  keys as foldKeys
+  keys as foldKeys,
+  future_spec as re
 } from "../FOLD/keys";
 import { square } from "../FOLD/create";
-import clean from "../FOLD/clean";
+// import clean from "../FOLD/clean";
 
 
 const DEFAULTS = Object.freeze({
@@ -96,7 +97,7 @@ const Origami = function (...args) {
   );
   // validate and add anything missing.
   // validate(origami);
-  clean(origami);
+  origami.clean();
   /**
    * setting the "folded state" does two things:
    * - assign the class of this object to be "foldedForm" or "creasePattern"
@@ -134,7 +135,7 @@ const Origami = function (...args) {
     // }
     const fold_file = convert(data).fold(options);
     Object.assign(origami, fold_file);
-    clean(origami);
+    origami.clean();
     // placeholderFoldedForm(_origami);
     origami.didChange.forEach(f => f());
   };
@@ -259,13 +260,34 @@ const Origami = function (...args) {
     return drawFOLD.svg(origami);
   };
 
-  Object.defineProperty(origami, "clean", { value: () => clean(origami) });
+  // Object.defineProperty(origami, "clean", { value: () => clean(origami) });
   Object.defineProperty(origami, "snapshot", { get: () => exportObject });
   Object.defineProperty(origami, "export", { get: () => exportObject });
   Object.defineProperty(origami, "options", { get: () => options });
 
   return origami;
 };
+
+
+// Prototype.empty = function () {
+//   return Prototype(Create.empty());
+// };
+
+// Prototype.square = function () {
+//   return Prototype(Create.rectangle(1, 1));
+// };
+
+// Prototype.rectangle = function (width = 1, height = 1) {
+//   return Prototype(Create.rectangle(width, height));
+// };
+
+// Prototype.regularPolygon = function (sides, radius = 1) {
+//   if (sides == null) {
+//     console.warn("regularPolygon requires number of sides parameter");
+//   }
+//   return Prototype(Create.regular_polygon(sides, radius));
+// };
+
 
 const init = function (...args) {
   const origami = Origami(...args);

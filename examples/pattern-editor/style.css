@@ -1,0 +1,40 @@
+
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	background-color: #158;
+}
+
+.canvas-container {
+	pointer-events: none;
+}
+
+/* more pointer events */
+
+.menubar {
+	height: 60px;
+}
+.canvas {
+	width: 100vw;
+	height: 100vh;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 0;
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+}
+
+[class^=toolbar-], .toolbar-left, .toolbar-right {
+	background-color: white;
+}
+
+svg {
+	width: 100%;
+	height: 100%;
+	max-width: 100vw;
+	max-height: 100vh;
+	cursor: crosshair;
+}

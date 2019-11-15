@@ -1,6 +1,15 @@
 
+export const future_spec = {
+  FACES_MATRIX: "faces_re:matrix",
+  FACES_LAYER: "faces_re:layer",
+  SECTORS_VERTICES: "re:sectors_vertices",
+  SECTORS_EDGES: "re:sectors_edges",
+  SECTORS_ANGLES: "re:sectors_angles",
+  VERTICES_SECTORS_VERTICES: "vertices_re:sectors_vertices",
+};
+
 // keys in the .FOLD version 1.1
-export const keys_types = {
+export const fold_keys = {
   file: [
     "file_spec",
     "file_creator",
@@ -73,11 +82,11 @@ export const frame_attributes = [
 ];
 
 export const keys = Object.freeze([]
-  .concat(keys_types.file)
-  .concat(keys_types.frame)
-  .concat(keys_types.graph)
-  .concat(keys_types.orders));
-  // .concat(keys_types.rabbitEar));
+  .concat(fold_keys.file)
+  .concat(fold_keys.frame)
+  .concat(fold_keys.graph)
+  .concat(fold_keys.orders));
+  // .concat(fold_keys.rabbitEar));
 
 export const edges_assignment_values = [
   "B", "b", "M", "m", "V", "v", "F", "f", "U", "u"

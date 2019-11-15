@@ -27,6 +27,11 @@ import { transform_scale } from "../FOLD/affine";
 import { get_assignment } from "./args";
 
 const Prototype = function (proto = {}) {
+
+  proto.vertices_didChange = function () { };
+  proto.edges_didChange = function () { };
+  proto.faces_didChange = function () { };
+
   /**
    * export
    */
@@ -90,6 +95,10 @@ const Prototype = function (proto = {}) {
   };
 
   proto.nearestVertex = function (...args) {
+
+    // if vertices_voronoi doesn't exist, build it
+    // check the voronoi for this space.
+
     const index = nearest_vertex(this, math.core.get_vector(...args));
     const result = transpose_geometry_array_at_index(this, "vertices", index);
     result.index = index;
@@ -114,6 +123,8 @@ const Prototype = function (proto = {}) {
    * (2D), furthermore, attach view objects (SVG) to the nearest value data.
    */
   proto.nearest = function (...args) {
+    // build
+    // vertices_re:voronoi
     const target = math.core.get_vector(...args);
     const nears = {
       vertex: this.nearestVertex(this, target),

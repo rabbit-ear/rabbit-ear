@@ -172,6 +172,15 @@ export const make_face_walk_tree = function (graph, root_face = 0) {
 
 const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
 
+/**
+ * This traverses an face-adjacency tree (edge-adjacent faces),
+ * and recursively applies the affine transform that represents a fold
+ * across the edge between the faces
+ *
+ * Flat/Mark creases are ignored!
+ * the difference between the matrices of two faces separated by
+ * a mark crease is the identity matrix.
+ */
 export const make_faces_matrix = function (graph, root_face) {
   if (graph.faces_vertices == null || graph.edges_vertices == null) {
     return undefined;
@@ -202,6 +211,10 @@ export const make_faces_matrix = function (graph, root_face) {
   return faces_matrix;
 };
 
+/**
+ * this same as make_faces_matrix, but at each step the
+ * inverse matrix is taken
+ */
 export const make_faces_matrix_inv = function (graph, root_face) {
   const edge_fold = ("edges_assignment" in graph === true)
     ? graph.edges_assignment.map(a => !is_mark(a))
