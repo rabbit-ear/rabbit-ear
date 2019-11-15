@@ -61,6 +61,10 @@ import frog from "./bases/frog.fold";
 import Origami from "./origami";
 import CreasePattern from "./crease-pattern";
 
+// experimental stuff
+import * as delaunay from "./delaunay";
+import { Voronoi, Delaunay } from "../include/delaunay";
+
 // console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
 // const draw = Object.create(null);
@@ -78,6 +82,7 @@ Object.assign(core,
   remove,
   rebuild,
   make,
+  delaunay,
   marks,
   query,
   kawasaki,
@@ -93,6 +98,7 @@ core.apply_axiom = apply_axiom;
 core.fragment = fragment;
 core.clean = clean;
 core.validate = Validate;
+
 // core.prototype = prototype;
 
 // load bases
@@ -146,6 +152,8 @@ const rabbitEar = {
   CreasePattern, // experimental feature
   Origami,
   graph,
+  Voronoi,
+  Delaunay,
   // draw,
   svg,
   fold,

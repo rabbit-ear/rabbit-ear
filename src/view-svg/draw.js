@@ -1,7 +1,20 @@
 import math from "../../include/math";
 import { bounding_rect } from "../FOLD/boundary";
+import { get_delaunay_faces_vertices } from "../delaunay";
 
-const drawLabels = function (graph, group) {
+export const drawDelaunay = function (graph, group) {
+  if ("faces_vertices" in graph === false
+  || "edges_vertices" in graph === false
+  || "vertices_coords" in graph === false) { return; }
+  const triangle_vertices = get_delaunay_faces_vertices(graph);
+  triangle_vertices.forEach((tv) => {
+    const points = tv.map(v => graph.vertices_coords[v]);
+    // group.polygon(points).stroke("black").fill("#0003");
+    group.polygon(points).setAttribute("style", "stroke:black; fill:#0003; stroke-width:0.003");
+  });
+};
+
+export const drawLabels = function (graph, group) {
   if ("faces_vertices" in graph === false
   || "edges_vertices" in graph === false
   || "vertices_coords" in graph === false) { return; }
@@ -32,7 +45,7 @@ const drawLabels = function (graph, group) {
     .forEach(t => t.setAttribute("style", labels_style.faces));
 };
 
-const drawDebug = function (graph, group) {
+export const drawDebug = function (graph, group) {
   const r = bounding_rect(graph);
   const vmin = r[2] > r[3] ? r[3] : r[2];
   const strokeW = vmin * 0.005;
@@ -57,7 +70,7 @@ const drawDebug = function (graph, group) {
     .forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
 };
 
-const drawDiagram = function (graph, group, preferences = {}) {
+export const drawDiagram = function (graph, group, preferences = {}) {
   const r = bounding_rect(graph);
   const vmin = r[2] > r[3] ? r[3] : r[2];
   const diagrams = graph["re:diagrams"];
@@ -104,9 +117,3 @@ const drawDiagram = function (graph, group, preferences = {}) {
 // if ("re:construction" in graph === false) { return; }
 // let construction = graph["re:construction"];
 // let diagram = constructon_to_diagram(construction);
-
-export {
-  drawLabels,
-  drawDebug,
-  drawDiagram
-};
