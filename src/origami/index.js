@@ -1,5 +1,11 @@
 /**
- * origami will be the typical entry-point for most users.
+ * this is a FOLD format that strictly enforces a non-stretching boundary
+ *
+ * useful for modeling origami paper.
+ *
+ */
+
+/**
  * this will work in the browser, or in Node.js.
  * the front end is optional, webGL, svg.
  */
@@ -180,6 +186,16 @@ const Origami = function (...args) {
         el.svg = origami.svg.groups[component].childNodes[i];
       });
     }
+    // todo make this not an exception
+    if (component === "edges") {
+      a.forEach((e) => {
+        e.vector = (() => {
+          const pA = origami.vertices_coords[e.vertices[0]];
+          const pB = origami.vertices_coords[e.vertices[1]];
+          return [pB[0] - pA[0], pB[1] - pA[1]];
+        });
+      });
+    }
     return a;
   };
 
@@ -205,6 +221,14 @@ const Origami = function (...args) {
     if (origami.svg != null) {
       Object.keys(nears).forEach((key) => {
         nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
+      });
+    }
+    // todo make this not an exception
+    if (nears.edge != null) {
+      nears.edge.vector = (() => {
+        const pA = origami.vertices_coords[nears.edge.vertices[0]];
+        const pB = origami.vertices_coords[nears.edge.vertices[1]];
+        return [pB[0] - pA[0], pB[1] - pA[1]];
       });
     }
     return nears;

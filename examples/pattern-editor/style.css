@@ -3,11 +3,43 @@ html, body {
 	width: 100%;
 	height: 100%;
 	margin: 0;
-	background-color: #158;
+	/*background-color: #158;*/
+}
+body {
+  background-image: url(squares.png);
+  /*background-position: 0 0, 12.5px 0, 12.5px -12.5px, 0px 12.5px;*/
+
+}
+
+#app {
+	display: grid;
+	grid-template-columns: min-content auto min-content;
+	grid-template-rows: 38px calc(100vh - 38px);
+}
+
+.opaque-white {
+	background-color: white;
+	padding: 0.5rem;
+}
+
+.ui.menu {
+	grid-column: 1/4;
+	grid-row: 1/2;
 }
 
 .canvas-container {
-	pointer-events: none;
+	grid-column: 2/3;
+	grid-row: 2/3;
+	/*pointer-events: none;*/
+}
+.toolbar-left {
+	grid-column: 1/2;
+	grid-row: 2/3;
+} 
+
+.toolbar-right {
+	grid-column: 3/4;
+	grid-row: 2/3;
 }
 
 /* more pointer events */
@@ -28,7 +60,8 @@ html, body {
 }
 
 [class^=toolbar-], .toolbar-left, .toolbar-right {
-	background-color: white;
+	/*background-color: white;*/
+	padding: 0.5rem;
 }
 
 svg {

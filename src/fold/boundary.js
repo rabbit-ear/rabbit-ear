@@ -25,12 +25,10 @@ export const bounding_rect = function ({ vertices_coords }) {
  * get the boundary face defined in vertices and edges by walking boundary
  * edges, defined by edges_assignment. no planar calculations
  */
-export const get_boundary = function ({
-  edges_vertices, edges_assignment
-}) {
-  const edges_vertices_b = edges_assignment
+export const get_boundary = function (graph) {
+  const edges_vertices_b = graph.edges_assignment
     .map(a => a === "B" || a === "b");
-  const vertices_edges = make_vertices_edges({ edges_vertices });
+  const vertices_edges = make_vertices_edges(graph);
   const edge_walk = [];
   const vertex_walk = [];
   let edgeIndex = -1;
@@ -42,18 +40,18 @@ export const get_boundary = function ({
   }
   edges_vertices_b[edgeIndex] = false;
   edge_walk.push(edgeIndex);
-  vertex_walk.push(edges_vertices[edgeIndex][0]);
-  let nextVertex = edges_vertices[edgeIndex][1];
+  vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
+  let nextVertex = graph.edges_vertices[edgeIndex][1];
   while (vertex_walk[0] !== nextVertex) {
     vertex_walk.push(nextVertex);
     edgeIndex = vertices_edges[nextVertex]
       .filter(v => edges_vertices_b[v])
       .shift();
     if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
-    if (edges_vertices[edgeIndex][0] === nextVertex) {
-      [, nextVertex] = edges_vertices[edgeIndex];
+    if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
+      [, nextVertex] = graph.edges_vertices[edgeIndex];
     } else {
-      [nextVertex] = edges_vertices[edgeIndex];
+      [nextVertex] = graph.edges_vertices[edgeIndex];
     }
     edges_vertices_b[edgeIndex] = false;
     edge_walk.push(edgeIndex);

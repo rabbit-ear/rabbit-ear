@@ -103,7 +103,7 @@ const boundary_methods = function (boundaries) {
     const func = {
       line: math.core.intersection.convex_poly_line,
       ray: math.core.intersection.convex_poly_ray,
-      edge: math.core.intersection.convex_poly_edge
+      edge: math.core.intersection.convex_poly_segment
     };
     return boundaries
       .map(b => b.vertices.map(v => that.vertices_coords[v]))
@@ -112,7 +112,7 @@ const boundary_methods = function (boundaries) {
   };
   boundaries.clipLine = function (...args) { return clip("line", ...args); };
   boundaries.clipRay = function (...args) { return clip("ray", ...args); };
-  boundaries.clipEdge = function (...args) { return clip("edge", ...args); };
+  boundaries.clipSegment = function (...args) { return clip("edge", ...args); };
   return boundaries;
 };
 
@@ -291,9 +291,51 @@ const Prototype = function (proto = {}) {
   // };
 
   proto.segment = function (...args) {
-    // get arguments: two endpoints, optional crease assignment
+    // get segment
     const s = math.core.flatten_input(...args)
       .filter(n => typeof n === "number");
+    // clip in boundary
+    const boundary = getBoundaries.call(this);
+    const c = boundary.clipSegment([s[0], s[1]], [s[2], s[3]]);
+    // get arguments: two endpoints, optional crease assignment
+    const assignment = get_assignment(...args) || "F";
+    addEdge(this, c[0], c[1], c[2], c[3], assignment).apply();
+    rebuild(this);
+    didModifyGraph.call(this);
+    const edges = Collinear.collinear_edges(this, [c[0], c[1]], [c[2] - c[0], c[3] - c[1]]);
+    return Edges(this, edges);
+  };
+
+  proto.line = function (...args) {
+    // get segment
+    const l = math.core.flatten_input(...args)
+      .filter(n => typeof n === "number");
+    // clip in boundary
+    const boundary = getBoundaries.call(this);
+    const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
+    // get arguments: two endpoints, optional crease assignment
+    const assignment = get_assignment(...args) || "F";
+    addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
+    rebuild(this);
+    didModifyGraph.call(this);
+    const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
+    return Edges(this, edges);
+  };
+
+  proto.axiom = function (...args) {
+    RabbitEar.axiom(2, start[0], start[1], end[0], end[1])
+      .solutions
+      .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+    fragment(this);
+    clean();
+
+    // get segment
+    const l = math.core.flatten_input(...args)
+      .filter(n => typeof n === "number");
+    // clip in boundary
+    const boundary = getBoundaries.call(this);
+    const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
+    // get arguments: two endpoints, optional crease assignment
     const assignment = get_assignment(...args) || "F";
     addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
     rebuild(this);

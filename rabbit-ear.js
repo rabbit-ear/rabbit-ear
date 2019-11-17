@@ -4836,12 +4836,10 @@
       ? [0, 0, 0, 0]
       : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
   };
-  const get_boundary = function ({
-    edges_vertices, edges_assignment
-  }) {
-    const edges_vertices_b = edges_assignment
+  const get_boundary = function (graph) {
+    const edges_vertices_b = graph.edges_assignment
       .map(a => a === "B" || a === "b");
-    const vertices_edges = make_vertices_edges({ edges_vertices });
+    const vertices_edges = make_vertices_edges(graph);
     const edge_walk = [];
     const vertex_walk = [];
     let edgeIndex = -1;
@@ -4853,18 +4851,18 @@
     }
     edges_vertices_b[edgeIndex] = false;
     edge_walk.push(edgeIndex);
-    vertex_walk.push(edges_vertices[edgeIndex][0]);
-    let nextVertex = edges_vertices[edgeIndex][1];
+    vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
+    let nextVertex = graph.edges_vertices[edgeIndex][1];
     while (vertex_walk[0] !== nextVertex) {
       vertex_walk.push(nextVertex);
       edgeIndex = vertices_edges[nextVertex]
         .filter(v => edges_vertices_b[v])
         .shift();
       if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
-      if (edges_vertices[edgeIndex][0] === nextVertex) {
-        [, nextVertex] = edges_vertices[edgeIndex];
+      if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
+        [, nextVertex] = graph.edges_vertices[edgeIndex];
       } else {
-        [nextVertex] = edges_vertices[edgeIndex];
+        [nextVertex] = graph.edges_vertices[edgeIndex];
       }
       edges_vertices_b[edgeIndex] = false;
       edge_walk.push(edgeIndex);
@@ -13476,7 +13474,7 @@ line.valley { stroke: blue;
       const func = {
         line: math.core.intersection.convex_poly_line,
         ray: math.core.intersection.convex_poly_ray,
-        edge: math.core.intersection.convex_poly_edge
+        edge: math.core.intersection.convex_poly_segment
       };
       return boundaries
         .map(b => b.vertices.map(v => that.vertices_coords[v]))
@@ -13485,7 +13483,7 @@ line.valley { stroke: blue;
     };
     boundaries.clipLine = function (...args) { return clip("line", ...args); };
     boundaries.clipRay = function (...args) { return clip("ray", ...args); };
-    boundaries.clipEdge = function (...args) { return clip("edge", ...args); };
+    boundaries.clipSegment = function (...args) { return clip("edge", ...args); };
     return boundaries;
   };
   const Prototype$2 = function (proto = {}) {
@@ -13600,6 +13598,37 @@ line.valley { stroke: blue;
     proto.segment = function (...args) {
       const s = math.core.flatten_input(...args)
         .filter(n => typeof n === "number");
+      const boundary = getBoundaries.call(this);
+      const c = boundary.clipSegment([s[0], s[1]], [s[2], s[3]]);
+      const assignment = get_assignment(...args) || "F";
+      add_edge(this, c[0], c[1], c[2], c[3], assignment).apply();
+      rebuild(this);
+      didModifyGraph.call(this);
+      const edges = collinear_edges(this, [c[0], c[1]], [c[2] - c[0], c[3] - c[1]]);
+      return Edges(this, edges);
+    };
+    proto.line = function (...args) {
+      const l = math.core.flatten_input(...args)
+        .filter(n => typeof n === "number");
+      const boundary = getBoundaries.call(this);
+      const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
+      const assignment = get_assignment(...args) || "F";
+      add_edge(this, s[0], s[1], s[2], s[3], assignment).apply();
+      rebuild(this);
+      didModifyGraph.call(this);
+      const edges = collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
+      return Edges(this, edges);
+    };
+    proto.axiom = function (...args) {
+      RabbitEar.axiom(2, start[0], start[1], end[0], end[1])
+        .solutions
+        .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+      fragment(this);
+      clean();
+      const l = math.core.flatten_input(...args)
+        .filter(n => typeof n === "number");
+      const boundary = getBoundaries.call(this);
+      const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
       const assignment = get_assignment(...args) || "F";
       add_edge(this, s[0], s[1], s[2], s[3], assignment).apply();
       rebuild(this);
@@ -13771,6 +13800,15 @@ line.valley { stroke: blue;
           el.svg = origami.svg.groups[component].childNodes[i];
         });
       }
+      if (component === "edges") {
+        a.forEach((e) => {
+          e.vector = (() => {
+            const pA = origami.vertices_coords[e.vertices[0]];
+            const pB = origami.vertices_coords[e.vertices[1]];
+            return [pB[0] - pA[0], pB[1] - pA[1]];
+          });
+        });
+      }
       return a;
     };
     const nearest = function (...args2) {
@@ -13791,6 +13829,13 @@ line.valley { stroke: blue;
       if (origami.svg != null) {
         Object.keys(nears).forEach((key) => {
           nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
+        });
+      }
+      if (nears.edge != null) {
+        nears.edge.vector = (() => {
+          const pA = origami.vertices_coords[nears.edge.vertices[0]];
+          const pB = origami.vertices_coords[nears.edge.vertices[1]];
+          return [pB[0] - pA[0], pB[1] - pA[1]];
         });
       }
       return nears;
