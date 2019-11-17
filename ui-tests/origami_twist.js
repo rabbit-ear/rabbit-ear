@@ -84,7 +84,7 @@ twist.reportErrors = function() {
 	for (let i = 0; i < twist.bisect_edges.length; i++) {
 		for(let j = 0; j < twist.kawasaki_edges.length; j++) {
 			if (i !== j) {
-				let sect = RabbitEar.math.intersection.edge_edge(
+				let sect = RabbitEar.math.intersection.segment_segment(
 					twist.bisect_edges[i][0], twist.bisect_edges[i][1],
 					twist.kawasaki_edges[j][0], twist.kawasaki_edges[j][1]
 				);

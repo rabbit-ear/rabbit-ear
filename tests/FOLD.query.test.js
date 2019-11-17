@@ -1,5 +1,5 @@
-const re = require("rabbit-ear");
+const RabbitEar = require("../rabbit-ear");
 
-test("FOLD clean", () => {
+test("FOLD query", () => {
   expect(true).toBe(true);
 });

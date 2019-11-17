@@ -11,35 +11,37 @@
 
 import math from "../../include/math";
 import make_axiom_frame from "./axiom_frame";
+import Params from "./params";
 
-// works in n-dimensions
-export const axiom1 = function (pointA, pointB) {
-  const p0 = math.core.get_vector(pointA);
-  const p1 = math.core.get_vector(pointB);
-  const vec = p0.map((_, i) => p1[i] - p0[i]);
-  const solution = [p0, vec];
-  return make_axiom_frame(1, { points: [p0, p1] }, [solution]);
+export const axiom1 = function (x1, y1, x2, y2) {
+  const point = [x1, y1];
+  const vector = math.core.normalize([x2 - x1, y2 - y1]);
+  const solution = [point, vector];
+  const parameters = { points: [[x1, y1], [x2, y2]] };
+  return make_axiom_frame(1, [solution], parameters);
 };
-
-// 2-dimension only
-export const axiom2 = function (a, b) {
-  const mid = math.core.midpoint2(a, b);
-  const vec = math.core.normalize(a.map((_, i) => b[i] - a[i]));
+export const axiom2 = function (x1, y1, x2, y2) {
+  const mid = [(x1 + x2) / 2, (y1 + y2) / 2];
+  const vec = math.core.normalize([x2 - x1, y2 - y1]);
   const solution = [mid, [vec[1], -vec[0]]];
+  const parameters = { points: [[x1, y1], [x2, y2]] };
   // changed to match valleyFold. todo establish standard for direction
   // const solution = [mid, [-vec[1], vec[0]]];
-  return make_axiom_frame(2, { points: [a, b] }, [solution]);
+  return make_axiom_frame(2, [solution], parameters);
 };
-export const axiom3 = function (pointA, vectorA, pointB, vectorB) {
-  const parameters = { lines: [[pointA, vectorA], [pointB, vectorB]] };
-  const solutions = math.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
-  return make_axiom_frame(3, parameters, solutions);
+// export const axiom3 = function (pointA, vectorA, pointB, vectorB) {
+export const axiom3 = function (pt1x, pt1y, vec1x, vec1y, pt2x, pt2y, vec2x, vec2y) {
+  const parameters = {
+    lines: [[[pt1x, pt1y], [vec1x, vec1y]], [[pt2x, pt2y], [vec2x, vec2y]]]
+  };
+  const solutions = math.core.bisect_lines2([pt1x, pt1y], [vec1x, vec1y], [pt2x, pt2y], [vec2x, vec2y]);
+  return make_axiom_frame(3, solutions, parameters);
 };
 export const axiom4 = function (pointA, vectorA, pointB) {
   const norm = math.core.normalize(vectorA);
   const solution = [[...pointB], [norm[1], -norm[0]]];
   const parameters = { points: [pointB], lines: [[pointA, vectorA]] };
-  return make_axiom_frame(4, parameters, [solution]);
+  return make_axiom_frame(4, [solution], parameters);
 };
 export const axiom5 = function (pointA, vectorA, pointB, pointC) {
   const pA = math.core.get_vector(pointA);
@@ -57,7 +59,7 @@ export const axiom5 = function (pointA, vectorA, pointB, pointC) {
     return [mid, [-vec[1], vec[0]]];
   });
   const parameters = { points: [pB, pC], lines: [[pA, vA]] };
-  return make_axiom_frame(5, parameters, solutions);
+  return make_axiom_frame(5, solutions, parameters);
 };
 
 /**
@@ -80,7 +82,7 @@ export const axiom7 = function (pointA, vectorA, pointB, vectorB, pointC) {
   const mid = math.core.midpoint2(pC, sect);
   const vec = math.core.normalize(pC.map((_, i) => sect[i] - pC[i]));
   const solution = [mid, [-vec[1], vec[0]]];
-  return make_axiom_frame(7, parameters, [solution]);
+  return make_axiom_frame(7, [solution], parameters);
 };
 
 
@@ -391,7 +393,7 @@ export const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
     points: [pointC, pointD],
     lines: [[pointA, vecA], [pointB, vecB]]
   };
-  return make_axiom_frame(6, parameters, solutions);
+  return make_axiom_frame(6, solutions, parameters);
 };
 
 
@@ -647,17 +649,15 @@ export const axiom6RefFinderFunc = function (
 
 
 export const axiom = function (number, ...args) {
-  // const params = Array(...arguments);
-  // params.shift(); // remove the first parameter, the axiom number
+  const params = Params(number, ...args);
   switch (number) {
-    case 1: return axiom1(...args);
-    case 2: return axiom2(...args);
-    case 3: return axiom3(...args);
-    case 4: return axiom4(...args);
-    case 5: return axiom5(...args);
-    case 6: return axiom6(...args);
-    case 7: return axiom7(...args);
+    case 1: return axiom1(...params);
+    case 2: return axiom2(...params);
+    case 3: return axiom3(...params);
+    case 4: return axiom4(...params);
+    case 5: return axiom5(...params);
+    case 6: return axiom6(...params);
+    case 7: return axiom7(...params);
     default: return undefined;
-    // case 0: return paramTest(...params);
   }
 };

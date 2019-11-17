@@ -1,5 +1,26 @@
 // MIT open source license, Robby Kraft
 
+/**
+*
+*
+*
+*
+*      "fast" init param
+8       divide each function into fast and slow
+
+
+
+
+
+
+
+
+
+
+
+*
+*/
+
 import math from "../../include/math";
 
 import MakeFold from "../fold-through-all";
@@ -8,21 +29,25 @@ import addEdge from "../FOLD/add_edge";
 import split_face from "../FOLD/split_face";
 import fragment from "../FOLD/fragment";
 // import madeBy from "../frames/madeBy";
+import clean from "../FOLD/clean";
 import {
   transpose_geometry_arrays,
   transpose_geometry_array_at_index,
-  keys as foldKeys
+  keys as foldKeys,
+  future_spec as re
 } from "../FOLD/keys";
 import {
   rebuild,
   complete
 } from "../FOLD/rebuild";
 import {
-  clean as protoClean,
-  remove_non_boundary_edges
-} from "../FOLD/clean";
+  make_faces_matrix
+} from "../FOLD/make";
 import {
   get_boundary,
+  remove_non_boundary_edges
+} from "../FOLD/boundary";
+import {
   nearest_vertex,
   nearest_edge,
   face_containing_point
@@ -33,6 +58,10 @@ import { kawasaki_collapse } from "../kawasaki";
 import { axiom } from "../axioms";
 import { apply_axiom_in_fold } from "../axioms/validate";
 import { get_assignment } from "./args";
+import { make_delaunay_vertices } from "../delaunay";
+
+import * as Collinear from "../FOLD/collinear";
+import Edges from "./edges";
 
 const MARK_DEFAULTS = {
   rebuild: true,
@@ -74,7 +103,7 @@ const boundary_methods = function (boundaries) {
     const func = {
       line: math.core.intersection.convex_poly_line,
       ray: math.core.intersection.convex_poly_ray,
-      edge: math.core.intersection.convex_poly_edge
+      edge: math.core.intersection.convex_poly_segment
     };
     return boundaries
       .map(b => b.vertices.map(v => that.vertices_coords[v]))
@@ -83,11 +112,22 @@ const boundary_methods = function (boundaries) {
   };
   boundaries.clipLine = function (...args) { return clip("line", ...args); };
   boundaries.clipRay = function (...args) { return clip("ray", ...args); };
-  boundaries.clipEdge = function (...args) { return clip("edge", ...args); };
+  boundaries.clipSegment = function (...args) { return clip("edge", ...args); };
   return boundaries;
 };
 
 const Prototype = function (proto = {}) {
+  proto.square = function () {
+    Object.keys(this).forEach(key => delete this[key]);
+    const rect = Create.rectangle(1, 1);
+    Object.keys(rect).forEach((key) => { this[key] = rect[key]; });
+  };
+  proto.regularPolygon = function (sides = 3, radius = 1) {
+    Object.keys(this).forEach(key => delete this[key]);
+    const rect = Create.regular_polygon(sides, radius);
+    Object.keys(rect).forEach((key) => { this[key] = rect[key]; });
+  };
+
   /**
    * export
    */
@@ -128,24 +168,35 @@ const Prototype = function (proto = {}) {
   /**
    * modifiers
    */
-  proto.rebuild = function (epsilon = math.core.EPSILON) {
-    rebuild(this, epsilon);
-  };
-  proto.complete = function () {
-    complete(this);
-  };
   proto.fragment = function (epsilon = math.core.EPSILON) {
     fragment(this, epsilon);
   };
-  const clean = function (epsilon = math.core.EPSILON) {
-    const valid = ("vertices_coords" in this && "vertices_vertices" in this
-      && "edges_vertices" in this && "edges_assignment" in this
-      && "faces_vertices" in this && "faces_edges" in this);
-    if (!valid) {
-      console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-      protoClean(this);
+  proto.rebuild = function (epsilon = math.core.EPSILON) {
+    rebuild(this, epsilon);
+  };
+  // proto.complete = function () {
+  //   complete(this);
+  // };
+  proto.clean = function () {
+    const cleaned = clean(this);
+    Object.keys(cleaned).forEach((key) => { this[key] = cleaned[key]; });
+    this["re:delaunay_vertices"] = make_delaunay_vertices(this);
+    this["faces_re:matrix"] = make_faces_matrix(this);
+    if (this[re.FACES_LAYER] != null && this.faces_vertices != null) {
+      if (this[re.FACES_LAYER].length !== this.faces_vertices.length) {
+        delete this[re.FACES_LAYER];
+      }
     }
   };
+  // const clean = function (epsilon = math.core.EPSILON) {
+  //   const valid = ("vertices_coords" in this && "vertices_vertices" in this
+  //     && "edges_vertices" in this && "edges_assignment" in this
+  //     && "faces_vertices" in this && "faces_edges" in this);
+  //   if (!valid) {
+  //     console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
+  //     clean(this);
+  //   }
+  // };
   /**
    * @param {file} is a FOLD object.
    * @param {prevent_clear} if true import will skip clearing
@@ -155,7 +206,8 @@ const Prototype = function (proto = {}) {
       foldKeys.forEach(key => delete this[key]);
     }
     Object.assign(this, clone(file));
-    clean.call(this);
+    this.clean();
+    // clean.call(this);
     // placeholderFoldedForm(_this);
     this.didChange.forEach(f => f());
   };
@@ -165,10 +217,20 @@ const Prototype = function (proto = {}) {
    */
   proto.clear = function () {
     remove_non_boundary_edges(this);
+    Object.keys(this)
+      .filter(s => s.includes("re:"))
+      .forEach(key => delete this[key]);
+    delete this.vertices_vertices;
+    delete this.vertices_faces;
+    delete this.edges_faces;
     this.didChange.forEach(f => f());
   };
+
   proto.nearestVertex = function (...args) {
-    const index = nearest_vertex(this, math.core.get_vector(...args));
+    const point = math.core.get_vector(...args);
+    const index = this["re:delaunay_vertices"] != null
+      ? this["re:delaunay_vertices"].find(point[0], point[1])
+      : nearest_vertex(this, point);
     const result = transpose_geometry_array_at_index(this, "vertices", index);
     result.index = index;
     return result;
@@ -227,6 +289,61 @@ const Prototype = function (proto = {}) {
   //   apply_axiom_in_fold(solutions, this);
   //   return solutions;
   // };
+
+  proto.segment = function (...args) {
+    // get segment
+    const s = math.core.flatten_input(...args)
+      .filter(n => typeof n === "number");
+    // clip in boundary
+    const boundary = getBoundaries.call(this);
+    const c = boundary.clipSegment([s[0], s[1]], [s[2], s[3]]);
+    // get arguments: two endpoints, optional crease assignment
+    const assignment = get_assignment(...args) || "F";
+    addEdge(this, c[0], c[1], c[2], c[3], assignment).apply();
+    rebuild(this);
+    didModifyGraph.call(this);
+    const edges = Collinear.collinear_edges(this, [c[0], c[1]], [c[2] - c[0], c[3] - c[1]]);
+    return Edges(this, edges);
+  };
+
+  proto.line = function (...args) {
+    // get segment
+    const l = math.core.flatten_input(...args)
+      .filter(n => typeof n === "number");
+    // clip in boundary
+    const boundary = getBoundaries.call(this);
+    const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
+    // get arguments: two endpoints, optional crease assignment
+    const assignment = get_assignment(...args) || "F";
+    addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
+    rebuild(this);
+    didModifyGraph.call(this);
+    const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
+    return Edges(this, edges);
+  };
+
+  proto.axiom = function (...args) {
+    RabbitEar.axiom(2, start[0], start[1], end[0], end[1])
+      .solutions
+      .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+    fragment(this);
+    clean();
+
+    // get segment
+    const l = math.core.flatten_input(...args)
+      .filter(n => typeof n === "number");
+    // clip in boundary
+    const boundary = getBoundaries.call(this);
+    const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
+    // get arguments: two endpoints, optional crease assignment
+    const assignment = get_assignment(...args) || "F";
+    addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
+    rebuild(this);
+    didModifyGraph.call(this);
+    const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
+    return Edges(this, edges);
+  };
+
   /**
    * add a line segment to the graph.
    * if endpoints lie on an existing vertex this will reuse vertices.
@@ -244,7 +361,7 @@ const Prototype = function (proto = {}) {
     addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
     if (options.rebuild) { rebuild(this); }
     // make a record documenting how we got here
-    axiom1(s[0], s[1]);
+    // axiom1(s[0], s[1]);
     // madeBy().axiom1(s[0], s[1]);
     if (options.change) { this.didChange.forEach(f => f()); }
   };
@@ -323,25 +440,6 @@ const Prototype = function (proto = {}) {
 
   // return Object.freeze(proto);
   return proto;
-};
-
-Prototype.empty = function () {
-  return Prototype(Create.empty());
-};
-
-Prototype.square = function () {
-  return Prototype(Create.rectangle(1, 1));
-};
-
-Prototype.rectangle = function (width = 1, height = 1) {
-  return Prototype(Create.rectangle(width, height));
-};
-
-Prototype.regularPolygon = function (sides, radius = 1) {
-  if (sides == null) {
-    console.warn("regularPolygon requires number of sides parameter");
-  }
-  return Prototype(Create.regular_polygon(sides, radius));
 };
 
 export default Prototype;

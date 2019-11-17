@@ -1,5 +1,11 @@
 /**
- * origami will be the typical entry-point for most users.
+ * this is a FOLD format that strictly enforces a non-stretching boundary
+ *
+ * useful for modeling origami paper.
+ *
+ */
+
+/**
  * this will work in the browser, or in Node.js.
  * the front end is optional, webGL, svg.
  */
@@ -32,14 +38,14 @@ import {
 } from "../FOLD/make";
 import {
   possibleFoldObject,
-  validate
 } from "../FOLD/validate";
 import {
   transpose_geometry_arrays,
-  keys as foldKeys
+  keys as foldKeys,
+  future_spec as re
 } from "../FOLD/keys";
 import { square } from "../FOLD/create";
-import { clean } from "../FOLD/clean";
+// import clean from "../FOLD/clean";
 
 
 const DEFAULTS = Object.freeze({
@@ -96,8 +102,8 @@ const Origami = function (...args) {
     args.filter(el => possibleFoldObject(el)).shift() || square()
   );
   // validate and add anything missing.
-  validate(origami);
-  clean(origami);
+  // validate(origami);
+  origami.clean();
   /**
    * setting the "folded state" does two things:
    * - assign the class of this object to be "foldedForm" or "creasePattern"
@@ -135,7 +141,7 @@ const Origami = function (...args) {
     // }
     const fold_file = convert(data).fold(options);
     Object.assign(origami, fold_file);
-    clean(origami);
+    origami.clean();
     // placeholderFoldedForm(_origami);
     origami.didChange.forEach(f => f());
   };
@@ -180,6 +186,16 @@ const Origami = function (...args) {
         el.svg = origami.svg.groups[component].childNodes[i];
       });
     }
+    // todo make this not an exception
+    if (component === "edges") {
+      a.forEach((e) => {
+        e.vector = (() => {
+          const pA = origami.vertices_coords[e.vertices[0]];
+          const pB = origami.vertices_coords[e.vertices[1]];
+          return [pB[0] - pA[0], pB[1] - pA[1]];
+        });
+      });
+    }
     return a;
   };
 
@@ -205,6 +221,14 @@ const Origami = function (...args) {
     if (origami.svg != null) {
       Object.keys(nears).forEach((key) => {
         nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
+      });
+    }
+    // todo make this not an exception
+    if (nears.edge != null) {
+      nears.edge.vector = (() => {
+        const pA = origami.vertices_coords[nears.edge.vertices[0]];
+        const pB = origami.vertices_coords[nears.edge.vertices[1]];
+        return [pB[0] - pA[0], pB[1] - pA[1]];
       });
     }
     return nears;
@@ -260,14 +284,34 @@ const Origami = function (...args) {
     return drawFOLD.svg(origami);
   };
 
-  Object.defineProperty(origami, "clean", { value: () => clean(origami) });
-
+  // Object.defineProperty(origami, "clean", { value: () => clean(origami) });
   Object.defineProperty(origami, "snapshot", { get: () => exportObject });
   Object.defineProperty(origami, "export", { get: () => exportObject });
   Object.defineProperty(origami, "options", { get: () => options });
 
   return origami;
 };
+
+
+// Prototype.empty = function () {
+//   return Prototype(Create.empty());
+// };
+
+// Prototype.square = function () {
+//   return Prototype(Create.rectangle(1, 1));
+// };
+
+// Prototype.rectangle = function (width = 1, height = 1) {
+//   return Prototype(Create.rectangle(width, height));
+// };
+
+// Prototype.regularPolygon = function (sides, radius = 1) {
+//   if (sides == null) {
+//     console.warn("regularPolygon requires number of sides parameter");
+//   }
+//   return Prototype(Create.regular_polygon(sides, radius));
+// };
+
 
 const init = function (...args) {
   const origami = Origami(...args);

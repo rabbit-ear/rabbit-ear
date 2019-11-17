@@ -1,5 +1,6 @@
 /** Removes vertices, edges, or faces (or anything really)
- * and updates all relevant array indices
+ * (remove element from middle of array)
+ * and updates all relevant array indices due to shifting
  *
  * @param {fold_file} a FOLD object
  * @param {geometry_key} a string, like "vertices", the prefix of the arrays

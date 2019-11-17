@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>pattern editor</title>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/dropdown.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/button.min.css">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<!-- start of the menu bar -->
+<!-- start of the menu bar -->
+<!-- start of the menu bar -->
+<!-- start of the menu bar -->
+<!-- start of the menu bar -->
+<div id="app">
+
+  <div class="ui menu">
+    <div class="ui dropdown item">
+      <span class="text">File</span>
+      <!-- <i class="dropdown icon"></i> -->
+      <div class="menu">
+        <div class="item">
+          <i class="file outline icon"></i>
+          <span class="text">New</span>
+        </div>
+        <div class="divider"></div>
+        <div class="item">
+          <i class="folder open icon"></i>
+          <span class="text">Open</span>
+        </div>
+        <div class="item">
+          <i class="save icon"></i>
+          <span class="text">Save</span>
+        </div>
+        <div class="item">
+          <i class="dropdown icon"></i>
+          <span class="text">Export</span>
+          <div class="menu">
+            <div class="header">Model</div>
+            <div class="item">FOLD</div>
+            <div class="item">ORIPA</div>
+            <div class="item">OBJ</div>
+            <div class="divider"></div>
+            <div class="header">Images</div>
+            <div class="item">SVG</div>
+            <div class="item">PNG</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="header">Share</div>
+        <div class="item">
+          <i class="linkify icon"></i>
+          <span class="text">Create Link</span>
+        </div>
+      </div>
+    </div>
+    <div class="ui dropdown link item">
+      <span class="text"><i class="sticky note outline icon"></i>Unfolded</span>
+      <i class="dropdown icon"></i>
+      <div class="menu">
+        <div class="item">
+          <i class="paper plane outline icon"></i>
+          <span class="text">Folded</span>
+        </div>
+        <div class="item">
+          <i class="sticky note outline icon"></i>
+          <span class="text">Unfolded</span>
+        </div>
+        <div class="divider"></div>
+        <div class="item">
+          <i class="puzzle piece icon"></i>
+          <span class="text">Tiled</span>
+        </div>
+      </div>
+    </div>
+    <a class="item">
+      View
+    </a>  
+    <div class="right menu">
+      <div class="item">
+        <div class="ui icon input">
+          <input type="text" placeholder="Search...">
+          <i class="search link icon"></i>
+        </div>
+      </div>
+      <a class="ui item">
+        Logout
+      </a>
+    </div>
+  </div>
+
+<!-- menu bar end -->
+<!-- menu bar end -->
+<!-- menu bar end -->
+<!-- menu bar end -->
+<!-- menu bar end -->
+
+
+<!-- start of the tool panels -->
+<!-- start of the tool panels -->
+<!-- start of the tool panels -->
+<!-- start of the tool panels -->
+<!-- start of the tool panels -->
+  <div class="toolbar-left">
+    <div class="ui vertical labeled icon buttons">
+      <button class="ui button active button-tap-mode-segment">
+        <i class="minus icon"></i>
+        segment
+      </button>
+      <button class="ui button button-tap-mode-point-to-point">
+        <i class="bullseye alternate icon"></i>
+        point to point
+      </button>
+      <button class="ui button button-tap-mode-bisect">
+        <i class="asterisk icon"></i>
+        bisect
+      </button>
+      <button class="ui button button-tap-mode-pleat">
+        <i class="align justify icon"></i>
+        pleat
+      </button>
+      <button class="ui button button-tap-mode-pleat">
+        <i class="compress icon"></i>
+        perpendicular to
+      </button>
+      <button class="ui button button-tap-mode-rabbit-ear">
+        <i class="play icon"></i>
+        rabbit ear
+      </button>
+      <button class="ui button button-tap-mode-kawasaki">
+        <i class="hand paper icon"></i>
+        kawasaki
+      </button>
+    </div>
+    <div>&nbsp;</div>
+    <div class="ui vertical labeled icon buttons">
+      <button class="ui button button-tap-mode-remove-crease">
+        <i class="close icon"></i>
+        remove crease
+      </button>
+    </div>
+    <div>&nbsp;</div>
+    <div class="ui vertical labeled icon buttons">
+      <button class="ui button button-tap-mode-mountain-valley">
+        <i class="sync alternate icon"></i>
+        mountain / valley
+      </button>
+      <button class="ui button button-tap-mode-mark">
+        <i class="pencil alternate icon"></i>
+        mark
+      </button>
+      <button class="ui button button-tap-mode-cut">
+        <i class="cut icon"></i>
+        cut line
+      </button>
+    </div>
+    <!-- <div class="ui divider"></div> -->
+    <div class="ui vertical labeled icon buttons">
+<!--       <button class="ui button active button-crease-mode-full">
+        <i class="pencil alternate icon"></i>
+        full page
+      </button>
+      <button class="ui button disabled button-crease-mode-snake">
+        <i class="bullseye alternate icon"></i>
+        snake
+      </button> -->
+    </div>
+  </div>
+<!-- left end -->
+<!-- left end -->
+<!-- left end -->
+<!-- left end -->
+<!-- left end -->
+
+  <div class="canvas-container "></div>
+
+<!-- right -->
+<!-- right -->
+<!-- right -->
+<!-- right -->
+<!-- right -->
+  <div class="toolbar-right">
+    <div class="ui accordion opaque-white">
+      <div class="title"><i class="dropdown icon"></i>info</div>
+      <div class="content">
+        <p class="transition hidden app-info-p">nearest:<br>point<br>edge<br>face<br>sector</p>
+      </div>
+    </div>
+
+    <div class="ui divider"></div>
+
+    <div class="ui vertical labeled icon buttons">
+      <button class="ui button">
+        <i class="crop icon"></i>
+        crop last crease
+      </button>
+    </div>
+
+    <div class="ui divider"></div>
+
+    <div class="ui vertical labeled icon buttons">
+      <button class="ui button">
+        <i class="expand icon"></i>
+        select
+      </button>
+      <button class="ui button">
+        <i class="icon arrows alternate"></i>
+        duplicate
+      </button>
+    </div>
+
+    <div class="ui divider"></div>
+
+    <div class="ui vertical labeled buttons">
+      <button class="ui toggle button active toggle-snap">snapping</button>
+      <button class="ui toggle button toggle-zoom-swipe">zoom off</button>
+    </div>
+
+    <div class="ui divider"></div>
+
+    <div class="ui vertical labeled icon buttons">
+      <button class="ui button">
+        <i class="icon arrows alternate"></i>
+        view
+      </button>
+      <button class="ui button">
+        <i class="code icon"></i>
+        the graph
+      </button>
+      <button class="ui button">
+        <i class="undo icon"></i>
+        history
+      </button>
+      <button class="ui button">
+        <i class="code branch icon"></i>
+        version tree
+      </button>
+    </div>
+
+  </div>
+<!-- right end -->
+<!-- right end -->
+<!-- right end -->
+<!-- right end -->
+<!-- right end -->
+
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/dropdown.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.0/components/state.min.js"></script>
+
+<script type="text/javascript" src="../../rabbit-ear.js"></script>
+
+<script type="text/javascript" src="mouse.js"></script>
+<script type="text/javascript" src="app.js"></script>
+
+</body>
+</html>

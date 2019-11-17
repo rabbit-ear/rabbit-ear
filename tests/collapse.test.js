@@ -5,6 +5,7 @@ test("fold and unfold, valley fold", () => {
   origami.crease([0.5, 0.5], [1, 0.1]);
   origami.collapse();
   origami.flatten();
+  expect(true).toBe(true);
 });
 
 test("fold and unfold base", () => {
@@ -12,4 +13,5 @@ test("fold and unfold base", () => {
   // origami.load();
   origami.collapse();
   origami.flatten();
+  expect(true).toBe(true);
 });
