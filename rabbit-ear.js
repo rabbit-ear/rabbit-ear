@@ -4798,7 +4798,6 @@
         ? str
         : undefined))
       .filter(str => str !== undefined);
-    console.log("suffixKeys", suffixKeys);
     suffixKeys
       .forEach(sKey => graph[sKey]
         .forEach((_, i) => graph[sKey][i]
@@ -7295,6 +7294,25 @@
     collinear_vertices: collinear_vertices,
     collinear_edges: collinear_edges,
     remove_all_collinear_vertices: remove_all_collinear_vertices
+  });
+
+  const find_isolated_vertices = function (graph) {
+    let count = graph.vertices_coords.length;
+    const seen = Array(count).fill(false);
+    graph.edges_vertices.forEach((ev) => {
+      ev.filter(v => !seen[v]).forEach((v) => {
+        seen[v] = true;
+        count -= 1;
+      });
+    });
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+
+  var isolated = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    find_isolated_vertices: find_isolated_vertices
   });
 
   const arrayOfType = function (array, type = "number") {
@@ -10635,7 +10653,6 @@
   };
 
   const from_to = function (data, from, to, ...args) {
-    console.log("From to", ...args);
     switch (from) {
       case "fold":
         switch (to) {
@@ -13591,6 +13608,7 @@ line.valley { stroke: blue;
         const cleaned2 = clean(this);
         Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
       }
+      remove_geometry_key_indices(this, "vertices", find_isolated_vertices(this));
       this["faces_re:matrix"] = make_faces_matrix(this);
       if (this[future_spec.FACES_LAYER] != null && this.faces_vertices != null) {
         if (this[future_spec.FACES_LAYER].length !== this.faces_vertices.length) {
@@ -14185,6 +14203,7 @@ line.valley { stroke: blue;
     frames,
     object,
     collinear,
+    isolated,
     keys$1,
     affine,
     validate,

@@ -60,7 +60,10 @@ import { apply_axiom_in_fold } from "../axioms/validate";
 import { get_assignment } from "./args";
 import { make_delaunay_vertices } from "../delaunay";
 
+import remove from "../FOLD/remove";
+
 import * as Collinear from "../FOLD/collinear";
+import * as Isolated from "../FOLD/isolated";
 import Edges from "./edges";
 
 const MARK_DEFAULTS = {
@@ -185,6 +188,7 @@ const Prototype = function (proto = {}) {
       const cleaned2 = clean(this);
       Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
     }
+    remove(this, "vertices", Isolated.find_isolated_vertices(this));
     // extra
     // this["re:delaunay_vertices"] = make_delaunay_vertices(this);
     this["faces_re:matrix"] = make_faces_matrix(this);

@@ -27,6 +27,7 @@ import * as frames from "./FOLD/file_frames";
 import * as object from "./FOLD/object";
 import * as keys from "./FOLD/keys";
 import * as collinear from "./FOLD/collinear";
+import * as isolated from "./FOLD/isolated";
 import * as validate from "./FOLD/validate";
 import fragment from "./FOLD/fragment";
 import clean from "./FOLD/clean";
@@ -76,6 +77,7 @@ Object.assign(core,
   frames,
   object,
   collinear,
+  isolated,
   keys,
   affine,
   validate,
