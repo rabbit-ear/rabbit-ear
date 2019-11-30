@@ -80,6 +80,7 @@ const remove_geometry_key_indices = function (graph, key, removeIndices) {
     .filter(str => str !== undefined);
   // update every component that points to vertices_coords
   // these arrays do not change their size, only their contents
+  console.log("suffixKeys", suffixKeys);
   suffixKeys
     .forEach(sKey => graph[sKey]
       .forEach((_, i) => graph[sKey][i]

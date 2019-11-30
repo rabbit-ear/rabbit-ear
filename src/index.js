@@ -10,7 +10,7 @@
 █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇
 */
 
-import { isBrowser, isWebWorker, isNode } from "./environment/detect";
+// import { isBrowser, isWebWorker, isNode } from "./environment/detect";
 
 import math from "../include/math";
 import graph from "./graph";
@@ -33,7 +33,7 @@ import clean from "./FOLD/clean";
 import Validate from "./FOLD/validate";
 import convert from "./convert/convert";
 
-import * as remove from "./FOLD/remove";
+import remove from "./FOLD/remove";
 import * as make from "./FOLD/make";
 import * as query from "./FOLD/query";
 import * as rebuild from "./FOLD/rebuild";
@@ -79,7 +79,6 @@ Object.assign(core,
   keys,
   affine,
   validate,
-  remove,
   rebuild,
   make,
   delaunay,
@@ -97,6 +96,7 @@ core.merge_run = merge_run_diffs;
 core.apply_axiom = apply_axiom;
 core.fragment = fragment;
 core.clean = clean;
+core.remove = remove;
 core.validate = Validate;
 
 // core.prototype = prototype;

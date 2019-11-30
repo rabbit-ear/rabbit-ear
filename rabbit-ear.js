@@ -5,12 +5,6 @@
   (global = global || self, global.RabbitEar = factory());
 }(this, function () { 'use strict';
 
-  const isBrowser = typeof window !== "undefined"
-    && typeof window.document !== "undefined";
-  const isNode = typeof process !== "undefined"
-    && process.versions != null
-    && process.versions.node != null;
-
   const magnitude = function (v) {
     const sum = v
       .map(component => component * component)
@@ -2261,20 +2255,20 @@
     return graph;
   };
 
-  const isBrowser$1 = typeof window !== "undefined"
+  const isBrowser = typeof window !== "undefined"
     && typeof window.document !== "undefined";
-  const isNode$1 = typeof process !== "undefined"
+  const isNode = typeof process !== "undefined"
     && process.versions != null
     && process.versions.node != null;
   const htmlString = "<!DOCTYPE html><title> </title>";
   const win = (function () {
     let w = {};
-    if (isNode$1) {
+    if (isNode) {
       const { DOMParser, XMLSerializer } = require("xmldom");
       w.DOMParser = DOMParser;
       w.XMLSerializer = XMLSerializer;
       w.document = new DOMParser().parseFromString(htmlString, "text/html");
-    } else if (isBrowser$1) {
+    } else if (isBrowser) {
       w = window;
     }
     return w;
@@ -4804,6 +4798,7 @@
         ? str
         : undefined))
       .filter(str => str !== undefined);
+    console.log("suffixKeys", suffixKeys);
     suffixKeys
       .forEach(sKey => graph[sKey]
         .forEach((_, i) => graph[sKey][i]
@@ -4814,11 +4809,6 @@
     });
     return index_map;
   };
-
-  var remove = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': remove_geometry_key_indices
-  });
 
   const bounding_rect = function ({ vertices_coords }) {
     if (vertices_coords == null
@@ -7221,6 +7211,23 @@
     return convert.convertFromTo(data, '.fold', toExt);
   };
 
+  const need = function (graph, ...keys) {
+    return keys.map((key) => {
+      switch (key) {
+        case "vertices_coords":
+        case "edges_vertices":
+          return graph[key] != null;
+        case "vertices_vertices":
+          convert.edges_vertices_to_vertices_vertices_sorted(graph);
+          return true;
+        case "vertices_edges":
+          graph.vertices_edges = make_vertices_edges(graph);
+          return true;
+        default: return false;
+      }
+    }).reduce((a, b) => a && b, true);
+  };
+
   const collinear_vertices = function (graph, point, vector) {
     return graph.vertices_coords
       .map(vert => vert.map((n, i) => n - point[i]))
@@ -7238,11 +7245,56 @@
       .map((collinear, i) => (collinear ? i : undefined))
       .filter(a => a !== undefined);
   };
+  const are_vertices_collinear = function (graph, verts) {
+    if (verts.length < 3) { return false; }
+    const coords = verts.map(v => graph.vertices_coords[v]);
+    const dimension = Array.from(Array(coords[0].length));
+    const a = dimension.map((_, i) => coords[1][i] - coords[0][i]);
+    const b = dimension.map((_, i) => coords[2][i] - coords[0][i]);
+    return Math.abs(a[0] * b[1] - a[1] * b[0]) < math.core.EPSILON;
+  };
+  const remove_collinear_vertices = function (graph, collinear) {
+    const new_edges = [];
+    collinear.forEach((co) => {
+      const { vertices, edges } = co;
+      const assignment = co.assignments[0];
+      remove_geometry_key_indices(graph, "edges", edges);
+      new_edges.push({ vertices, assignment });
+    });
+    new_edges.forEach((el) => {
+      const index = graph.edges_vertices.length;
+      graph.edges_vertices[index] = el.vertices;
+      graph.edges_assignment[index] = el.assignment;
+    });
+    remove_geometry_key_indices(graph, "vertices", collinear.map(c => c.vertex));
+  };
+  const remove_all_collinear_vertices = function (graph) {
+    need(graph, "vertices_vertices", "vertices_edges");
+    const pairs_verts = graph.vertices_vertices
+      .map((adj, i) => (adj.length === 2 ? i : undefined))
+      .filter(a => a !== undefined);
+    const collinear_verts = pairs_verts
+      .map(v => [v].concat(graph.vertices_vertices[v]))
+      .map(verts => (are_vertices_collinear(graph, verts)
+        ? ({ vertex: verts[0], vertices: [verts[1], verts[2]], edges: graph.vertices_edges[verts[0]] })
+        : undefined))
+      .filter(a => a !== undefined);
+    collinear_verts.forEach((v) => {
+      v.assignments = v.edges.map(e => graph.edges_assignment[e].toUpperCase());
+    });
+    collinear_verts.forEach((v) => {
+      v.valid = v.assignments.map(a => a === v.assignments[0]).reduce((a, b) => a && b, true);
+    });
+    const toRemove = collinear_verts.filter(v => v.valid);
+    remove_collinear_vertices(graph, toRemove);
+    return toRemove.length > 0;
+  };
 
   var collinear = /*#__PURE__*/Object.freeze({
     __proto__: null,
     collinear_vertices: collinear_vertices,
-    collinear_edges: collinear_edges
+    collinear_edges: collinear_edges,
+    remove_all_collinear_vertices: remove_all_collinear_vertices
   });
 
   const arrayOfType = function (array, type = "number") {
@@ -7702,9 +7754,15 @@
     return graph;
   };
 
+  const isBrowser$1 = typeof window !== "undefined"
+    && typeof window.document !== "undefined";
+  const isNode$1 = typeof process !== "undefined"
+    && process.versions != null
+    && process.versions.node != null;
+
   const htmlString$1 = "<!DOCTYPE html><title> </title>";
-  const win$1 = isNode ? {} : window;
-  if (isNode) {
+  const win$1 = isNode$1 ? {} : window;
+  if (isNode$1) {
     const { DOMParser, XMLSerializer } = require("xmldom");
     win$1.DOMParser = DOMParser;
     win$1.XMLSerializer = XMLSerializer;
@@ -11817,7 +11875,7 @@
 
   var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.7071067811865476, 0.7071067811865476, 0.7071067811865476, 0.7071067811865476],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
 
-  var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [\n\t\t[0,0],\n\t\t[0.414213562373095,0],\n\t\t[1,0],\n\t\t[1,0.585786437626905],\n\t\t[1,1],\n\t\t[0,1]\n\t],\n\t\"vertices_vertices\": [ [1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4] ],\n\t\"vertices_faces\": [ [0], [1,0], [2,1], [3,2], [3], [0,1,2,3] ],\n\t\"edges_vertices\": [\n\t\t[0,1],\n\t\t[1,2],\n\t\t[2,3],\n\t\t[3,4],\n\t\t[4,5],\n\t\t[5,0],\n\t\t[5,1],\n\t\t[3,5],\n\t\t[5,2]\n\t],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [\n\t\t[0,1,5],\n\t\t[1,2,5],\n\t\t[2,3,5],\n\t\t[3,4,5]\n\t],\n\t\"faces_edges\": [\n\t\t[0,6,5],\n\t\t[1,8,6],\n\t\t[2,7,8],\n\t\t[3,4,7]\n\t],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[1,0],\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[0,1],\n\t\t\t[0.414213562373095,0],\n\t\t\t[1,0.585786437626905]\n\t\t],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
+  var kite = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [\n\t\t[0,0],\n\t\t[0.414213562373095,0],\n\t\t[1,0],\n\t\t[1,0.585786437626905],\n\t\t[1,1],\n\t\t[0,1]\n\t],\n\t\"vertices_vertices\": [ [1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4] ],\n\t\"vertices_faces\": [ [0], [1,0], [2,1], [3,2], [3], [0,1,2,3] ],\n\t\"edges_vertices\": [\n\t\t[0,1],\n\t\t[1,2],\n\t\t[2,3],\n\t\t[3,4],\n\t\t[4,5],\n\t\t[5,0],\n\t\t[5,1],\n\t\t[3,5],\n\t\t[5,2]\n\t],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [\n\t\t[0,1,5],\n\t\t[1,2,5],\n\t\t[2,3,5],\n\t\t[3,4,5]\n\t],\n\t\"faces_edges\": [\n\t\t[0,6,5],\n\t\t[1,8,6],\n\t\t[2,7,8],\n\t\t[3,4,7]\n\t],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[1,0],\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[0,1],\n\t\t\t[0.414213562373095,0],\n\t\t\t[1,0.585786437626905]\n\t\t],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
 
   var fish = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"\",\n  \"file_author\": \"\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_title\": \"\",\n  \"frame_classes\": [\"creasePattern\"],\n  \"frame_attributes\": [\"2D\"],\n  \"vertices_coords\": [\n    [0,0],\n    [1,0],\n    [1,1],\n    [0,1],\n    [0.292893218813452,0.292893218813452],\n    [0.707106781186548,0.707106781186548],\n    [0.292893218813452,0],\n    [1,0.707106781186548]\n  ],\n  \"edges_vertices\": [\n  \t[2,3], [3,0], [3,1], [0,4], [1,4], [3,4], [1,5], [2,5], [3,5], [4,6], [0,6], [6,1], [5,7], [1,7], [7,2]\n  ],\n  \"edges_assignment\": [\n  \t\"B\", \"B\", \"F\", \"M\", \"M\", \"M\", \"M\", \"M\", \"M\", \"V\", \"B\", \"B\", \"V\", \"B\", \"B\"\n  ],\n  \"file_frames\": [{\n    \"frame_classes\": [\"foldedForm\"],\n    \"frame_parent\": 0,\n    \"frame_inherit\": true,\n    \"vertices_coords\":[[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n  }],\n  \"vertices_vertices\": [\n    [6,4,3],\n    [7,5,3,4,6],\n    [5,7,3],\n    [0,4,1,5,2],\n    [0,6,1,3],\n    [1,7,2,3],\n    [1,4,0],\n    [1,2,5]\n  ],\n  \"faces_vertices\": [\n    [4,0,6],\n    [3,0,4],\n    [5,1,7],\n    [3,1,5],\n    [4,1,3],\n    [6,1,4],\n    [5,2,3],\n    [7,2,5]\n  ],\n  \"faces_edges\": [\n    [3,10,9],\n    [1,3,5],\n    [6,13,12],\n    [2,6,8],\n    [4,2,5],\n    [11,4,9],\n    [7,0,8],\n    [14,7,12]\n  ],\n  \"edges_faces\": [[6], [1], [3,4], [0,1], [4,5], [1,4], [2,3], [6,7], [3,6], [0,5], [0], [5], [2,7], [2], [7]],\n  \"vertices_faces\": [[0,1], [2,3,4,5], [6,7], [1,3,4,6], [0,1,4,5], [2,3,6,7], [0,5], [2,7]],\n  \"edges_length\": [1, 1, 1.4142135623730951, 0.41421356237309437, 0.7653668647301798, 0.7653668647301798, 0.7653668647301798, 0.41421356237309437, 0.7653668647301798, 0.292893218813452, 0.292893218813452, 0.707106781186548, 0.292893218813452, 0.707106781186548, 0.292893218813452],\n  \"edges_foldAngle\": [0, 0, 0, -180, -180, -180, -180, -180, -180, 180, 0, 0, 180, 0, 0],\n  \"faces_faces\": [\n  \t[1,5], [0,4], [3,7], [2,4,6], [3,1,5], [4,0], [3,7], [6,2]\n  ],\n  \"vertices_edges\": [\n    [1,3,10],\n    [2,4,6,11,13],\n    [0,7,14],\n    [0,1,2,5,8],\n    [3,4,5,9],\n    [6,7,8,12],\n    [9,10,11],\n    [12,13,14]\n  ]\n}\n";
 
@@ -13529,7 +13587,10 @@ line.valley { stroke: blue;
     proto.clean = function () {
       const cleaned = clean(this);
       Object.keys(cleaned).forEach((key) => { this[key] = cleaned[key]; });
-      this["re:delaunay_vertices"] = make_delaunay_vertices(this);
+      if (remove_all_collinear_vertices(this)) {
+        const cleaned2 = clean(this);
+        Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
+      }
       this["faces_re:matrix"] = make_faces_matrix(this);
       if (this[future_spec.FACES_LAYER] != null && this.faces_vertices != null) {
         if (this[future_spec.FACES_LAYER].length !== this.faces_vertices.length) {
@@ -13727,8 +13788,8 @@ line.valley { stroke: blue;
       .filter(a => "view" in a === true)
       .shift();
     if (viewOptions === undefined) {
-      if (isNode) { return undefined; }
-      if (isBrowser) { return "svg"; }
+      if (isNode$1) { return undefined; }
+      if (isBrowser$1) { return "svg"; }
     }
     return interpreter[viewOptions.view];
   };
@@ -14023,8 +14084,8 @@ line.valley { stroke: blue;
       .filter(a => "view" in a === true)
       .shift();
     if (viewOptions === undefined) {
-      if (isNode) { return undefined; }
-      if (isBrowser) { return "svg"; }
+      if (isNode$1) { return undefined; }
+      if (isBrowser$1) { return "svg"; }
     }
     return interpreter$1[viewOptions.view];
   };
@@ -14127,7 +14188,6 @@ line.valley { stroke: blue;
     keys$1,
     affine,
     validate,
-    remove,
     rebuild$1,
     make,
     delaunay,
@@ -14143,6 +14203,7 @@ line.valley { stroke: blue;
   core$1.apply_axiom = make_axiom_frame;
   core$1.fragment = fragment;
   core$1.clean = clean;
+  core$1.remove = remove_geometry_key_indices;
   core$1.validate = Validate;
   const b = {
     empty: JSON.parse(empty),

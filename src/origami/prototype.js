@@ -180,7 +180,13 @@ const Prototype = function (proto = {}) {
   proto.clean = function () {
     const cleaned = clean(this);
     Object.keys(cleaned).forEach((key) => { this[key] = cleaned[key]; });
-    this["re:delaunay_vertices"] = make_delaunay_vertices(this);
+    // all vertices
+    if (Collinear.remove_all_collinear_vertices(this)) {
+      const cleaned2 = clean(this);
+      Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
+    }
+    // extra
+    // this["re:delaunay_vertices"] = make_delaunay_vertices(this);
     this["faces_re:matrix"] = make_faces_matrix(this);
     if (this[re.FACES_LAYER] != null && this.faces_vertices != null) {
       if (this[re.FACES_LAYER].length !== this.faces_vertices.length) {
