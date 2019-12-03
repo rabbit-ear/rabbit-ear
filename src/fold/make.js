@@ -15,7 +15,6 @@ export const make_vertices_edges = function ({ edges_vertices }) {
   return vertices_edges;
 };
 
-
 // todo: make_edges_faces c-clockwise
 export const make_edges_vertices = function ({
   edges_vertices, faces_edges
@@ -33,7 +32,6 @@ export const make_edges_vertices = function ({
   });
   return edges_faces;
 };
-
 
 // faces_faces is a set of faces edge-adjacent to a face. for every face.
 export const make_faces_faces = function ({ faces_vertices }) {

@@ -4,37 +4,204 @@
 <meta charset="UTF-8">
 <link rel="stylesheet" type="text/css" href="style.css">
 <link rel="stylesheet" type="text/css" href="button.css">
-<link href="https://fonts.googleapis.com/css?family=Montserrat:600&display=swap" rel="stylesheet">
+<!-- <link rel="stylesheet" type="text/css" href="css/icon.min.css"> -->
+<!-- <link href="https://fonts.googleapis.com/css?family=Montserrat:600&display=swap" rel="stylesheet"> -->
+<link href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap" rel="stylesheet">
 
-<div class="grid">
-	<div class="panel">
-		<div id="folding"></div>
-			<!-- <a id="" class="button">axiom</a> -->
-		<div style="font-size:50%;">
-			<a id="mode-axiom-1" class="button">1</a>
-			<a id="mode-axiom-2" class="button">2</a>
-			<a id="mode-axiom-3" class="button red">3</a>
-			<a id="mode-axiom-4" class="button">4</a>
-			<a id="mode-axiom-4" class="button">5</a>
-			<a id="mode-axiom-4" class="button">6</a>
-			<a id="mode-axiom-4" class="button">7</a>
-		</div>
-		<h2 style="margin:1rem 0">Draw!</h2>
-		<a id="mode-draw" class="button">draw</a>
-		<a id="mode-flip-crease" class="button">flip crease</a>
-		<a id="mode-remove-crease" class="button">remove</a>
-	</div>
+<div id="app" class="grid">
+  
+  <nav>
+    <ul>
+      <li class="dropdown">File
+        <ul class="dropdown-content">
+          <li class="menu-new">New</li>
+          <li class="menu-open" id="load-file">Open</li>
+          <li class="dropdown">Export
+            <ul class="dropdown-content secondary">
+              <li class="menu-export-fold">.fold</li>
+              <!-- <li class="menu-export-oripa">.oripa</li> -->
+              <!-- <li class="menu-export-obj">.obj</li> -->
+              <li class="menu-export-svg">.svg</li>
+              <li class="menu-export-png">.png</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li class="dropdown">View
+        <ul class="dropdown-content">
+          <li>Crease Pattern</li>
+          <li>Folded</li>
+          <li>Text Editor</li>
+        </ul>
+      </li>
+      <li class="dropdown">Window
+        <ul class="dropdown-content">
+          <li>Side Panels</li>
+          <li>Code Console</li>
+        </ul>
+      </li>
+      <!-- <li><input type="text" placeholder="title"></li> -->
+      <!-- <li><input type="text" placeholder="author"></li> -->
+      <!-- <li><input type="text" placeholder="description"></li> -->
+    </ul>
+  <input type="text" class="input-title" placeholder="title">
+  <input type="text" class="input-author" placeholder="author">
+  <input type="text" class="input-description" placeholder="description">    
+  </nav>
 
-	<div id="origami"></div>
+  <div class="panel toolbar-left">
+    <button class="button button-tap-mode-segment">
+      <i class="icon minus"></i>
+      segment
+    </button>
+    <button class="button button-tap-mode-line">
+      <i class="icon minus"></i>
+      line
+    </button>
+    <button class="button button-tap-mode-point-to-point">
+      <i class="icon bullseye alternate"></i>
+      point to point
+    </button>
+    <button class="button active button-tap-mode-bisect">
+      <i class="icon asterisk"></i>
+      bisect
+    </button>
+    <button class="button button-tap-mode-pleat">
+      <i class="icon align justify"></i>
+      pleat
+    </button>
+    <button class="button button-tap-mode-perpendicular-to">
+      <i class="icon compress"></i>
+      perpendicular to
+    </button>
+    <button class="button button-tap-mode-point-to-line-point">
+      <i class="compress icon"></i>
+      point to line (pt)
+    </button>
+    <!-- point to line through point first asks about the point, then which point to bring to the line, like what happens when you fold it -->
+    <button class="button button-tap-mode-point-to-line-line">
+      <i class="compress icon"></i>
+      point to line (ln)
+    </button>
+    <button class="button button-tap-mode-rabbit-ear">
+      <i class="icon play"></i>
+      universal molecule
+    </button>
+    <button class="button button-tap-mode-kawasaki">
+      <i class="icon hand paper"></i>
+      kawasaki
+    </button>
 
-	<div class="panel">
-		<h2>Crease Pattern</h2>
-		<a id="switch-origami-preferences-debug" class="button">debug</a>
-		<a id="switch-origami-vertices-visible" class="button red">vertices</a>
-		<a id="button-undo" class="button">⟲ undo</a>
-	</div>
+    <div class="divider"></div>
+
+    <button class="button button-tap-mode-remove-crease">
+      <i class="icon close"></i>
+      remove crease
+    </button>
+
+    <button class="button">
+      <i class="crop icon"></i>
+      crop last crease
+    </button>
+
+    <div class="divider"></div>
+
+    <button class="button button-tap-mode-mountain-valley">
+      <i class="icon sync alternate"></i>
+      mountain / valley
+    </button>
+    <button class="button button-tap-mode-mark">
+      <i class="icon pencil alternate"></i>
+      mark
+    </button>
+    <button class="button button-tap-mode-cut">
+      <i class="icon cut"></i>
+      cut line
+    </button>
+
+    <div class="divider"></div>
+
+    <button class="button button-tap-mode-select">
+      <i class="expand icon"></i>
+      select
+    </button>
+    <button class="button">
+      <i class="icon copy"></i>
+      duplicate
+    </button>
+    <button class="toggle button toggle-zoom-swipe">zoom</button>
+
+  </div>
+
+  <div class="center column">
+    <div class="canvas-container"></div>
+    <div class="code-console"></div>
+  </div>
+
+  <div class="panel toolbar-right">
+
+    <button class="button">
+      <i class="dropdown icon"></i>info
+    </button>
+    <div class="content">
+      <p class="app-info-p"></p>
+    </div>
+
+    <button class="button">
+      <i class="dropdown icon"></i>symmetry stack
+    </button>
+    <div class="content">
+      <button class="button">
+        <i class="plus expand"></i>add symmetry
+      </button>
+      <p class="app-info-symmetry"></p>
+    </div>
+
+    <button class="button button-tap-mode-history">
+      <i class="dropdown icon"></i>history
+    </button>
+    <div class="content">
+      <p class="app-info-history"></p>
+    </div>
+
+    <button class="button switch-cp-folded">
+      <i class="dropdown icon"></i>cp ↔︎ folded
+    </button>
+    <div class="content pip-view">
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="toggle button yellow toggle-snap">snap edge</button>
+
+    <div class="divider"></div>
+
+    <button class="button button-tap-mode-view">
+      <i class="icon arrows alternate"></i>
+      view
+    </button>
+    <button class="button button-tap-mode-graph">
+      <i class="cogs icon"></i>
+      data
+    </button>
+    <button class="button button-tap-mode-version">
+      <i class="code branch icon"></i>
+      version tree
+    </button>
+  </div>
 
 </div>
 
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
+
+<script type="text/javascript" src="ace/ace.js" charset="utf-8"></script>
+<script type="text/javascript" src="code-editor.js"></script>
+
+<script type="text/javascript" src="mousePressed.js"></script>
+<script type="text/javascript" src="mouseMoved.js"></script>
+<script type="text/javascript" src="mouseReleased.js"></script>
+
+<script type="text/javascript" src="drag-and-drop.js"></script>
+<script type="text/javascript" src="file-upload-button.js"></script>
+
 <script type="text/javascript" src="sketch.js"></script>

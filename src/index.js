@@ -39,6 +39,7 @@ import * as make from "./FOLD/make";
 import * as query from "./FOLD/query";
 import * as rebuild from "./FOLD/rebuild";
 import * as marks from "./FOLD/marks";
+import * as select from "./FOLD/select";
 
 import fold from "./fold-through-all";
 import * as kawasaki from "./kawasaki";
@@ -85,6 +86,7 @@ Object.assign(core,
   make,
   delaunay,
   marks,
+  select,
   query,
   kawasaki,
   Axioms);

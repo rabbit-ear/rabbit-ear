@@ -10811,6 +10811,24 @@
     copy_without_marks: copy_without_marks
   });
 
+  const select_vertices = function (graph, poly_points) {
+    const polygon = math.convexPolygon(poly_points);
+    const contains = graph.vertices_coords.map(v => polygon.contains(v));
+    return graph.vertices_coords.map((_, i) => i).filter(i => contains[i]);
+  };
+  const select_edges = function (graph, poly_points) {
+    const segments = graph.edges_vertices.map(ev => ev.map(v => graph.vertices_coords[v]));
+    const polygon = math.convexPolygon(poly_points);
+    const overlaps = segments.map(s => polygon.overlaps(s));
+    return segments.map((_, i) => i).filter(i => overlaps[i]);
+  };
+
+  var select = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    select_vertices: select_vertices,
+    select_edges: select_edges
+  });
+
   const new_vertex = function (graph, x, y) {
     if (graph.vertices_coords === undefined) { return undefined; }
     const vertices_count = graph.vertices_coords.length;
@@ -14211,6 +14229,7 @@ line.valley { stroke: blue;
     make,
     delaunay,
     marks,
+    select,
     query$1,
     kawasaki,
     Axioms);
