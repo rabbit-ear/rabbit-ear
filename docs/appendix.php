@@ -211,7 +211,7 @@ stretch
 ┣━ <v>interior_angles2</v>
 ┣━ <v>intersection</v>
 ┣━ <v>magnitude</v>
-┣━ <v>make_matrix2_inverse</v>
+┣━ <v>invert_matrix2</v>
 ┣━ <v>make_matrix2_reflection</v>
 ┣━ <v>make_matrix2_rotation</v>
 ┣━ <v>make_regular_polygon</v>

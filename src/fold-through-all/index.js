@@ -77,14 +77,14 @@ const prepare_to_fold = function (graph, point, vector, face_index) {
   );
   // crease lines are calculated using each face's INVERSE matrix
   graph["faces_re:creases"] = graph["faces_re:matrix"]
-    .map(mat => math.core.make_matrix2_inverse(mat))
-    .map(mat => math.core.multiply_line_matrix2(point, vector, mat));
+    .map(mat => math.core.invert_matrix2(mat))
+    .map(mat => math.core.multiply_matrix2_line2(mat, point, vector));
   graph["faces_re:center"] = Array.from(Array(faceCount))
     .map((_, i) => make_face_center_fast(graph, i));
   graph["faces_re:sidedness"] = Array.from(Array(faceCount))
     .map((_, i) => get_face_sidedness(
-      graph["faces_re:creases"][i][0],
-      graph["faces_re:creases"][i][1],
+      graph["faces_re:creases"][i].origin,
+      graph["faces_re:creases"][i].vector,
       graph["faces_re:center"][i],
       graph["faces_re:coloring"][i]
     ));
@@ -161,8 +161,8 @@ const fold_through = function (
     .map((i) => {
       const diff = split_convex_polygon(
         folded, i,
-        folded["faces_re:creases"][i][0],
-        folded["faces_re:creases"][i][1],
+        folded["faces_re:creases"][i].origin,
+        folded["faces_re:creases"][i].vector,
         folded["faces_re:coloring"][i] ? assignment : opposite_crease
       );
       if (diff == null || diff.faces == null) { return undefined; }
@@ -174,8 +174,8 @@ const fold_through = function (
         .forEach((i) => {
           folded["faces_re:center"][i] = make_face_center_fast(folded, i);
           folded["faces_re:sidedness"][i] = get_face_sidedness(
-            graph["faces_re:creases"][replace.old][0],
-            graph["faces_re:creases"][replace.old][1],
+            graph["faces_re:creases"][replace.old].origin,
+            graph["faces_re:creases"][replace.old].vector,
             folded["faces_re:center"][i],
             graph["faces_re:coloring"][replace.old]
           );
@@ -223,8 +223,8 @@ const fold_through = function (
       : math.core.multiply_matrices2(
         graph["faces_re:matrix"][0],
         math.core.make_matrix2_reflection(
-          graph["faces_re:creases"][0][1],
-          graph["faces_re:creases"][0][0]
+          graph["faces_re:creases"][0].vector,
+          graph["faces_re:creases"][0].origin
         )
       )
     );
@@ -242,20 +242,20 @@ const fold_through = function (
   // - what type of operation occurred: valley / mountain fold, flip over
   // - the edge that draws the fold-line, useful for diagramming
   // - the direction of the fold or flip
-  const crease_0 = math.core.multiply_line_matrix2(
-    graph["faces_re:creases"][0][0],
-    graph["faces_re:creases"][0][1],
-    face_0_preMatrix
+  const crease_0 = math.core.multiply_matrix2_line2(
+    face_0_preMatrix,
+    graph["faces_re:creases"][0].origin,
+    graph["faces_re:creases"][0].vector
   );
   const fold_direction = math.core
-    .normalize([crease_0[1][1], -crease_0[1][0]]);
+    .normalize([crease_0.vector[1], -crease_0.vector[0]]);
   // faces_split contains the edges that clipped each of the original faces
   // gather them all together, and reflect them using the original faces'
   // matrices so the lines lie on top of one another
   // use that to get the longest-spanning edge that clips through all faces
   const split_points = faces_split
     .map((el, i) => (el === undefined ? undefined : el.edge.map(p => math.core
-      .multiply_vector2_matrix2(p, graph["faces_re:matrix"][i]))))
+      .multiply_matrix2_vector2(graph["faces_re:matrix"][i], p))))
     .filter(a => a !== undefined)
     .reduce((a, b) => a.concat(b), []);
 

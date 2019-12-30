@@ -10,7 +10,7 @@
 █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇
 */
 
-import { isBrowser, isWebWorker, isNode } from "./environment/detect";
+// import { isBrowser, isWebWorker, isNode } from "./environment/detect";
 
 import math from "../include/math";
 import graph from "./graph";
@@ -27,17 +27,19 @@ import * as frames from "./FOLD/file_frames";
 import * as object from "./FOLD/object";
 import * as keys from "./FOLD/keys";
 import * as collinear from "./FOLD/collinear";
+import * as isolated from "./FOLD/isolated";
 import * as validate from "./FOLD/validate";
 import fragment from "./FOLD/fragment";
 import clean from "./FOLD/clean";
 import Validate from "./FOLD/validate";
 import convert from "./convert/convert";
 
-import * as remove from "./FOLD/remove";
+import remove from "./FOLD/remove";
 import * as make from "./FOLD/make";
 import * as query from "./FOLD/query";
 import * as rebuild from "./FOLD/rebuild";
 import * as marks from "./FOLD/marks";
+import * as select from "./FOLD/select";
 
 import fold from "./fold-through-all";
 import * as kawasaki from "./kawasaki";
@@ -76,14 +78,15 @@ Object.assign(core,
   frames,
   object,
   collinear,
+  isolated,
   keys,
   affine,
   validate,
-  remove,
   rebuild,
   make,
   delaunay,
   marks,
+  select,
   query,
   kawasaki,
   Axioms);
@@ -97,6 +100,7 @@ core.merge_run = merge_run_diffs;
 core.apply_axiom = apply_axiom;
 core.fragment = fragment;
 core.clean = clean;
+core.remove = remove;
 core.validate = Validate;
 
 // core.prototype = prototype;

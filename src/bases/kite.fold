@@ -1,8 +1,5 @@
 {
 	"file_spec": 1.1,
-	"file_creator": "",
-	"file_author": "",
-	"file_classes": ["singleModel"],
 	"frame_title": "kite base",
 	"frame_classes": ["creasePattern"],
 	"frame_attributes": ["2D"],
@@ -29,7 +26,7 @@
 	],
 	"edges_faces": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],
 	"edges_assignment": ["B", "B", "B", "B", "B", "B", "V", "V", "F"],
-	"edges_foldAngle": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+	"edges_foldAngle": [0, 0, 0, 0, 0, 0, 180, 180, 0],
 	"edges_length": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],
 	"faces_vertices": [
 		[0,1,5],

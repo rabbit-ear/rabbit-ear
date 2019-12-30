@@ -4,7 +4,7 @@ import SVGtoFOLD from "../../include/tofold/src";
 // const SVGtoFOLD = window.tofold || require("tofold");
 
 const from_to = function (data, from, to, ...args) {
-  console.log("From to", ...args);
+  // console.log("From to", ...args);
   // console.log(`converting ${from} to ${to}, with options`, args ? args[0] : null, data);
   switch (from) {
     case "fold":

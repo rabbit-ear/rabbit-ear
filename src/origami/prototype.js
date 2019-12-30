@@ -11,13 +11,6 @@
 
 
 
-
-
-
-
-
-
-
 *
 */
 
@@ -60,7 +53,10 @@ import { apply_axiom_in_fold } from "../axioms/validate";
 import { get_assignment } from "./args";
 import { make_delaunay_vertices } from "../delaunay";
 
+import remove from "../FOLD/remove";
+
 import * as Collinear from "../FOLD/collinear";
+import * as Isolated from "../FOLD/isolated";
 import Edges from "./edges";
 
 const MARK_DEFAULTS = {
@@ -97,7 +93,7 @@ const boundary_methods = function (boundaries) {
       case "edge": p = math.core.get_vector_of_vectors(...args); break;
       default: // ray and line use the same
         l = math.core.get_line(...args);
-        p = [l.point, l.vector];
+        p = [l.origin, l.vector];
         break;
     }
     const func = {
@@ -180,7 +176,14 @@ const Prototype = function (proto = {}) {
   proto.clean = function () {
     const cleaned = clean(this);
     Object.keys(cleaned).forEach((key) => { this[key] = cleaned[key]; });
-    this["re:delaunay_vertices"] = make_delaunay_vertices(this);
+    // all vertices
+    if (Collinear.remove_all_collinear_vertices(this)) {
+      const cleaned2 = clean(this);
+      Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
+    }
+    remove(this, "vertices", Isolated.find_isolated_vertices(this));
+    // extra
+    // this["re:delaunay_vertices"] = make_delaunay_vertices(this);
     this["faces_re:matrix"] = make_faces_matrix(this);
     if (this[re.FACES_LAYER] != null && this.faces_vertices != null) {
       if (this[re.FACES_LAYER].length !== this.faces_vertices.length) {
@@ -372,7 +375,7 @@ const Prototype = function (proto = {}) {
     const line = math.core.get_line(args);
     const assignment = get_assignment(...args) || "V";
     const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
-    if (!math.core.is_vector(line.point) || !math.core.is_vector(line.vector)) {
+    if (!math.core.is_vector(line.origin) || !math.core.is_vector(line.vector)) {
       console.warn("fold was not supplied the correct parameters");
       return;
     }
@@ -381,11 +384,11 @@ const Prototype = function (proto = {}) {
     // let matrix = pattern.cp["faces_re:matrix"] !== null ? pattern.cp["faces_re:matrix"]
 
     // let mat_inv = matrix
-    //  .map(mat => Geom.core.make_matrix2_inverse(mat))
-    //  .map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
+    //  .map(mat => Geom.core.invert_matrix2(mat))
+    //  .map(mat => Geom.core.multiply_matrix2_line2(mat, point, vector));
 
     const folded = MakeFold(this,
-      line.point,
+      line.origin,
       line.vector,
       face_index,
       assignment);
@@ -413,13 +416,13 @@ const Prototype = function (proto = {}) {
     const faces = this.faces_vertices.map(fv => fv.map(v => this.vertices_coords[v]));
     const intersecting = faces
       .map((face, i) => (math.core.intersection
-        .convex_poly_ray_exclusive(face, ray.point, ray.vector) === undefined
+        .convex_poly_ray_exclusive(face, ray.origin, ray.vector) === undefined
         ? undefined : i))
       .filter(a => a !== undefined)
       .sort((a, b) => b - a);
 
     intersecting.forEach(index => split_face(
-      this, index, ray.point, ray.vector, "F"
+      this, index, ray.origin, ray.vector, "F"
     ));
   };
 

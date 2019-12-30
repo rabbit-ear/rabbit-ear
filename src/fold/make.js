@@ -15,7 +15,6 @@ export const make_vertices_edges = function ({ edges_vertices }) {
   return vertices_edges;
 };
 
-
 // todo: make_edges_faces c-clockwise
 export const make_edges_vertices = function ({
   edges_vertices, faces_edges
@@ -33,7 +32,6 @@ export const make_edges_vertices = function ({
   });
   return edges_faces;
 };
-
 
 // faces_faces is a set of faces edge-adjacent to a face. for every face.
 export const make_faces_faces = function ({ faces_vertices }) {
@@ -258,7 +256,7 @@ export const make_vertices_coords_folded = function (graph, face_stationary, fac
     return face_stationary;
   });
   return graph.vertices_coords.map((point, i) => math.core
-    .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+    .multiply_matrix2_vector2(faces_matrix[vertex_in_face[i]], point)
     .map(n => math.core.clean_number(n)));
 };
 

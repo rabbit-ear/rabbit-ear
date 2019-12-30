@@ -10,28 +10,25 @@
 </head>
 <body>
 
-<!-- start of the menu bar -->
-<!-- start of the menu bar -->
-<!-- start of the menu bar -->
-<!-- start of the menu bar -->
-<!-- start of the menu bar -->
 <div id="app">
 
-  <div class="ui menu">
-    <div class="ui dropdown item">
-      <span class="text">File</span>
-      <!-- <i class="dropdown icon"></i> -->
+  <div class="ui top attached menu">
+    <div class="ui dropdown icon item">
+      <div>
+        <i class="file alternate outline icon"></i>
+        File
+      </div>
       <div class="menu">
-        <div class="item">
+        <div class="item menu-new">
           <i class="file outline icon"></i>
           <span class="text">New</span>
         </div>
         <div class="divider"></div>
-        <div class="item">
+        <div class="item menu-open">
           <i class="folder open icon"></i>
-          <span class="text">Open</span>
+          <span class="text" id="load-file">Open</span>
         </div>
-        <div class="item">
+        <div class="item menu-save">
           <i class="save icon"></i>
           <span class="text">Save</span>
         </div>
@@ -40,13 +37,13 @@
           <span class="text">Export</span>
           <div class="menu">
             <div class="header">Model</div>
-            <div class="item">FOLD</div>
-            <div class="item">ORIPA</div>
-            <div class="item">OBJ</div>
+            <div class="item menu-export-fold">FOLD</div>
+            <div class="item menu-export-oripa">ORIPA</div>
+            <div class="item menu-export-obj">OBJ</div>
             <div class="divider"></div>
             <div class="header">Images</div>
-            <div class="item">SVG</div>
-            <div class="item">PNG</div>
+            <div class="item menu-export-svg">SVG</div>
+            <div class="item menu-export-png">PNG</div>
           </div>
         </div>
         <div class="divider"></div>
@@ -78,7 +75,7 @@
     </div>
     <a class="item">
       View
-    </a>  
+    </a>
     <div class="right menu">
       <div class="item">
         <div class="ui icon input">
@@ -92,21 +89,9 @@
     </div>
   </div>
 
-<!-- menu bar end -->
-<!-- menu bar end -->
-<!-- menu bar end -->
-<!-- menu bar end -->
-<!-- menu bar end -->
-
-
-<!-- start of the tool panels -->
-<!-- start of the tool panels -->
-<!-- start of the tool panels -->
-<!-- start of the tool panels -->
-<!-- start of the tool panels -->
   <div class="toolbar-left">
     <div class="ui vertical labeled icon buttons">
-      <button class="ui button active button-tap-mode-segment">
+      <button class="ui button button-tap-mode-segment">
         <i class="minus icon"></i>
         segment
       </button>
@@ -114,7 +99,7 @@
         <i class="bullseye alternate icon"></i>
         point to point
       </button>
-      <button class="ui button button-tap-mode-bisect">
+      <button class="ui button active button-tap-mode-bisect">
         <i class="asterisk icon"></i>
         bisect
       </button>
@@ -122,13 +107,13 @@
         <i class="align justify icon"></i>
         pleat
       </button>
-      <button class="ui button button-tap-mode-pleat">
+      <button class="ui button button-tap-mode-perpendicular-to">
         <i class="compress icon"></i>
         perpendicular to
       </button>
       <button class="ui button button-tap-mode-rabbit-ear">
         <i class="play icon"></i>
-        rabbit ear
+        universal molecule
       </button>
       <button class="ui button button-tap-mode-kawasaki">
         <i class="hand paper icon"></i>
@@ -169,24 +154,26 @@
       </button> -->
     </div>
   </div>
-<!-- left end -->
-<!-- left end -->
-<!-- left end -->
-<!-- left end -->
-<!-- left end -->
 
-  <div class="canvas-container "></div>
 
-<!-- right -->
-<!-- right -->
-<!-- right -->
-<!-- right -->
-<!-- right -->
+  <div class="canvas-container"></div>
+  <div class="code-container">
+    <div class="text-editor-container"></div>
+  </div>
+
+
   <div class="toolbar-right">
     <div class="ui accordion opaque-white">
       <div class="title"><i class="dropdown icon"></i>info</div>
       <div class="content">
-        <p class="transition hidden app-info-p">nearest:<br>point<br>edge<br>face<br>sector</p>
+        <p class="transition hidden app-info-p">nearest:<br>point<br>edge<br>face</p>
+      </div>
+    </div>
+
+    <div class="ui accordion opaque-white">
+      <div class="title"><i class="dropdown icon"></i>symmetry stack</div>
+      <div class="content">
+        <p class=""></p>
       </div>
     </div>
 
@@ -202,12 +189,12 @@
     <div class="ui divider"></div>
 
     <div class="ui vertical labeled icon buttons">
-      <button class="ui button">
+      <button class="ui button button-tap-mode-select">
         <i class="expand icon"></i>
         select
       </button>
       <button class="ui button">
-        <i class="icon arrows alternate"></i>
+        <i class="icon copy"></i>
         duplicate
       </button>
     </div>
@@ -215,37 +202,32 @@
     <div class="ui divider"></div>
 
     <div class="ui vertical labeled buttons">
-      <button class="ui toggle button active toggle-snap">snapping</button>
+      <button class="ui toggle button  yellow toggle-snap">snap edge</button>
       <button class="ui toggle button toggle-zoom-swipe">zoom off</button>
     </div>
 
     <div class="ui divider"></div>
 
     <div class="ui vertical labeled icon buttons">
-      <button class="ui button">
+      <button class="ui button button-tap-mode-view">
         <i class="icon arrows alternate"></i>
         view
       </button>
-      <button class="ui button">
-        <i class="code icon"></i>
-        the graph
+      <button class="ui button button-tap-mode-graph">
+        <i class="cogs icon"></i>
+        data
       </button>
-      <button class="ui button">
-        <i class="undo icon"></i>
+      <button class="ui button button-tap-mode-history">
+        <i class="code icon"></i>
         history
       </button>
-      <button class="ui button">
+      <button class="ui button button-tap-mode-version">
         <i class="code branch icon"></i>
         version tree
       </button>
     </div>
 
   </div>
-<!-- right end -->
-<!-- right end -->
-<!-- right end -->
-<!-- right end -->
-<!-- right end -->
 
 </div>
 
@@ -256,8 +238,15 @@
 
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 
-<script type="text/javascript" src="mouse.js"></script>
+<script type="text/javascript" src="ace/ace.js" charset="utf-8"></script>
+<script type="text/javascript" src="code-editor.js"></script>
+
+<script type="text/javascript" src="mousePressed.js"></script>
+<script type="text/javascript" src="mouseMoved.js"></script>
+<script type="text/javascript" src="mouseReleased.js"></script>
 <script type="text/javascript" src="app.js"></script>
+<script type="text/javascript" src="drag-and-drop.js"></script>
+<script type="text/javascript" src="file-upload-button.js"></script>
 
 </body>
 </html>

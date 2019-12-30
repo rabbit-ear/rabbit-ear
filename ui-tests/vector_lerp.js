@@ -1,90 +1,73 @@
 let lerpsCallback = undefined;
 
-let lerps = RabbitEar.svg("canvas-lerp", 500, 500);
+let lerps;
+lerps = RabbitEar.svg("canvas-lerp", 500, 500, () => {
+  const { RabbitEar } = window;
+  if (lerps == null) { return; }
+  const startAngle = Math.random() * Math.PI * 2;
+  const angles = [startAngle];
+  angles[1] = angles[0] + Math.random() * Math.PI * 0.7 + 1;
+  angles[2] = angles[1] + Math.random() * Math.PI * 0.7 + 1;
+  const radii = [
+    (0.3 + 0.7 * Math.random()) * lerps.getHeight() * 0.5,
+    (0.3 + 0.7 * Math.random()) * lerps.getHeight() * 0.5,
+    (0.3 + 0.7 * Math.random()) * lerps.getHeight() * 0.5
+  ];
 
-lerps.reset = function(){
-	lerps.curveLayer = lerps.group();
+  const bottom = lerps.group()
+    .strokeWidth(7)
+    .strokeLinecap("round");
 
-	let startAngle = Math.random()*Math.PI*2;
-	let angles = [startAngle];
-	angles[1] = angles[0] + Math.random()*Math.PI*0.7 + 1;
-	angles[2] = angles[1] + Math.random()*Math.PI*0.7 + 1;
-	let radii = [
-		(0.3 + 0.7*Math.random()) * lerps.h*0.5,
-		(0.3 + 0.7*Math.random()) * lerps.h*0.5,
-		(0.3 + 0.7*Math.random()) * lerps.h*0.5
-	];
+  const controls = lerps.controls(3)
+    .svg(() => RabbitEar.svg.circle().radius(16).fill("#e53"))
+    .position(i => [
+      lerps.getWidth() / 2 + Math.cos(angles[i]) * radii[i],
+      lerps.getHeight() / 2 + Math.sin(angles[i]) * radii[i]
+    ]);
 
-	lerps.controls = RabbitEar.svg.controls(lerps, 3, {fill: "#e44f2a", radius: 12});
-	lerps.controls.forEach((c,i) => c.position = [
-		lerps.w/2 + Math.cos(angles[i]) * radii[i],
-		lerps.h/2 + Math.sin(angles[i]) * radii[i]
-	]);
+  const top = lerps.group()
+    .strokeWidth(7)
+    .strokeLinecap("round");
 
-	lerps.curve = lerps.curveLayer.bezier(0, 0, 0, 0, 0, 0, 0, 0);
-	lerps.midLine = lerps.curveLayer.line(0, 0, 0, 0);
-	lerps.midPoints = [lerps.circle(0,0,12), lerps.circle(0,0,12)];
-	lerps.lerpDot = lerps.circle(0, 0, 12);
-	lerps.lerpDot.setAttribute("fill", "#ecb233");
-	lerps.midPoints.forEach(p => p.setAttribute("fill", "#195783"));
-	lerps.curve.setAttribute("stroke", "#ecb233");
-	lerps.curve.setAttribute("stroke-width", 5);
-	lerps.curve.setAttribute("fill", "none");
-	lerps.midLine.setAttribute("stroke", "#195783");
-	lerps.midLine.setAttribute("stroke-width", 5);
-	lerps.midLine.setAttribute("stroke-linecap", "round");
-	lerps.midLine.setAttribute("stroke-dasharray", "7 10");
-	lerps.midLine.setAttribute("fill", "none");
-}
+  const grayLine1 = bottom.line().stroke("lightgray").strokeDasharray("7 14");
+  const grayLine2 = bottom.line().stroke("lightgray").strokeDasharray("7 14");
+  const curve = bottom.bezier().stroke("#fb3").fill("none");
+  const midLine = top.line().stroke("#158");//.strokeDasharray("7 14");
+  const midPoints = [
+    lerps.circle().radius(16).fill("#158"),
+    lerps.circle().radius(16).fill("#158")
+  ];
+  const lerpDot = lerps.circle().radius(16).fill("#fb3");
 
-lerps.update = function(){
-	let mid1 = [
-		(lerps.controls[2].position[0]*0.666 + lerps.controls[0].position[0]*0.333),
-		(lerps.controls[2].position[1]*0.666 + lerps.controls[0].position[1]*0.333)
-	];
-	let mid2 = [
-		(lerps.controls[2].position[0]*0.666 + lerps.controls[1].position[0]*0.333),
-		(lerps.controls[2].position[1]*0.666 + lerps.controls[1].position[1]*0.333)
-	];
-	let d = "M " + lerps.controls[0].position[0] + "," + lerps.controls[0].position[1] 
-		+ " C " + mid1[0] + "," + mid1[1] + " " 
-		+ mid2[0] + "," + mid2[1] + " " 
-		+ lerps.controls[1].position[0] + "," + lerps.controls[1].position[1];
-	lerps.curve.setAttribute("d", d);
-}
+  const update = function (points, point) {
+    const mid1 = [
+      (points[2].x * 0.666 + points[0].x * 0.333),
+      (points[2].y * 0.666 + points[0].y * 0.333)
+    ];
+    const mid2 = [
+      (points[2].x * 0.666 + points[1].x * 0.333),
+      (points[2].y * 0.666 + points[1].y * 0.333)
+    ];
+    const d = `M ${points[0].x},${points[0].y} C ${mid1[0]},${mid1[1]} ${mid2[0]},${mid2[1]} ${points[1].x},${points[1].y}`;
+    curve.setAttribute("d", d);
+    grayLine1.setPoints(points[0].x, points[0].y, points[2].x, points[2].y);
+    grayLine2.setPoints(points[2].x, points[2].y, points[1].x, points[1].y);
+  };
 
-lerps.onMouseMove = function(mouse){
-	if (mouse.isPressed) {
-		lerps.update();
-	}
-};
+  lerps.animate = function (event) {
+    const phase = Math.sin(event.time) * 0.5 + 0.5;
+    const vecs = controls.map(el => RabbitEar.vector(el));
+    const ctrl = [
+      vecs[0].lerp(vecs[2], phase),
+      vecs[2].lerp(vecs[1], phase)
+    ];
+    midPoints.forEach((p, i) => p.setCenter(ctrl[i].x, ctrl[i].y));
+    const lerp = ctrl[0].lerp(ctrl[1], phase);
+    lerpDot.setCenter(lerp.x, lerp.y);
+    midLine.setPoints(ctrl[0].x, ctrl[0].y, ctrl[1].x, ctrl[1].y);
+    if (lerpsCallback !== undefined) { lerpsCallback({ t: phase }); }
+  };
 
-lerps.animate = function(event){
-	let phase = Math.sin(event.time) * 0.5 + 0.5;
-	let vecs = lerps.controls.map(el => RabbitEar.vector(el.position))
-	// let vecs = lerps.touches.map(el => RabbitEar.vector([el.pos[0], el.pos[1]]))
-	lerps.ctrlLerps = [
-		vecs[0].lerp(vecs[2], phase),
-		vecs[2].lerp(vecs[1], phase)
-	];
-	lerps.midPoints.forEach((p,i) => {
-		p.setAttribute("cx", lerps.ctrlLerps[i].x);
-		p.setAttribute("cy", lerps.ctrlLerps[i].y);
-	});
+  controls.onChange((a, b) => update(a, b), true);
 
-	let lerp = lerps.ctrlLerps[0].lerp(lerps.ctrlLerps[1], phase);
-	lerps.lerpDot.setAttribute("cx", lerp.x);
-	lerps.lerpDot.setAttribute("cy", lerp.y);
-
-	lerps.midLine.setAttribute("x1", lerps.ctrlLerps[0].x);
-	lerps.midLine.setAttribute("y1", lerps.ctrlLerps[0].y);
-	lerps.midLine.setAttribute("x2", lerps.ctrlLerps[1].x);
-	lerps.midLine.setAttribute("y2", lerps.ctrlLerps[1].y);
-
-	if (lerpsCallback !== undefined) {
-		lerpsCallback({t:phase});
-	}
-}
-
-lerps.reset();
-lerps.update();
+});

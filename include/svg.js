@@ -275,10 +275,14 @@ const Pointer = function (node) {
     position: [0, 0],
     pressed: [0, 0],
     drag: [0, 0],
-    prev: [0, 0],
+    previous: [0, 0],
     x: 0,
     y: 0
   });
+  [pointer.position.x, pointer.position.y] = [0, 0];
+  [pointer.pressed.x, pointer.pressed.y] = [0, 0];
+  [pointer.drag.x, pointer.drag.y] = [0, 0];
+  [pointer.previous.x, pointer.previous.y] = [0, 0];
   const copyPointer = function () {
     const m = pointer.position.slice();
     Object.keys(pointer)
@@ -301,32 +305,29 @@ const Pointer = function (node) {
     [pointer.drag.x, pointer.drag.y] = pointer.drag;
   };
   const thisPointer = {};
-  const move = function (clientX, clientY) {
-    pointer.prev = pointer.position;
+  const move = function (clientX, clientY, isPressed = false) {
+    if (isPressed && !pointer.isPressed) {
+      pointer.pressed = convertToViewBox(node, clientX, clientY);
+    }
+    pointer.isPressed = isPressed;
+    pointer.previous = pointer.position;
     setPosition(clientX, clientY);
     if (pointer.isPressed) {
       updateDrag();
+    } else {
+      pointer.drag = [0, 0];
+      pointer.pressed = [0, 0];
+      [pointer.drag.x, pointer.drag.y] = pointer.drag;
+      [pointer.pressed.x, pointer.pressed.y] = pointer.pressed;
     }
     return thisPointer;
   };
-  const down = function (clientX, clientY) {
-    pointer.isPressed = true;
-    pointer.pressed = convertToViewBox(node, clientX, clientY);
-    setPosition(clientX, clientY);
-    return thisPointer;
-  };
-  const up = function () {
+  const release = function () {
     pointer.isPressed = false;
     return thisPointer;
   };
-  const pressed = function (isPressed) {
-    pointer.isPressed = isPressed;
-    return thisPointer;
-  };
-  Object.defineProperty(thisPointer, "up", { value: up });
-  Object.defineProperty(thisPointer, "pressed", { value: pressed });
+  Object.defineProperty(thisPointer, "release", { value: release });
   Object.defineProperty(thisPointer, "move", { value: move });
-  Object.defineProperty(thisPointer, "down", { value: down });
   Object.defineProperty(thisPointer, "get", { value: copyPointer });
   return thisPointer;
 };
@@ -351,8 +352,7 @@ const Touches = function (node) {
   const onMouseMove = (handler, event) => {
     event.preventDefault();
     const e = pointer
-      .move(event.clientX, event.clientY)
-      .pressed(event.buttons > 0)
+      .move(event.clientX, event.clientY, event.buttons > 0)
       .get();
     handler(e);
     return e;
@@ -360,8 +360,7 @@ const Touches = function (node) {
   const onTouchMove = (handler, event) => {
     event.preventDefault();
     const e = pointer
-      .move(event.touches[0].clientX, event.touches[0].clientY)
-      .pressed(true)
+      .move(event.touches[0].clientX, event.touches[0].clientY, true)
       .get();
     handler(e);
     return e;
@@ -369,7 +368,7 @@ const Touches = function (node) {
   const onMouseDown = (handler, event) => {
     event.preventDefault();
     const e = pointer
-      .down(event.clientX, event.clientY)
+      .move(event.clientX, event.clientY, true)
       .get();
     handler(e);
     return e;
@@ -377,14 +376,14 @@ const Touches = function (node) {
   const onTouchStart = (handler, event) => {
     event.preventDefault();
     const e = pointer
-      .down(event.touches[0].clientX, event.touches[0].clientY)
+      .move(event.touches[0].clientX, event.touches[0].clientY, true)
       .get();
     handler(e);
     return e;
   };
   const onEnd = (handler, event) => {
     event.preventDefault();
-    const e = pointer.pressed(false).get();
+    const e = pointer.release().get();
     handler(e);
     return e;
   };
@@ -565,7 +564,7 @@ const controlPoint = function (parent, options = {}) {
       }
     }
     if (typeof position.delegate === "function") {
-      position.delegate(proxy);
+      position.delegate.apply(position.pointsContainer, [proxy, position.pointsContainer]);
     }
   };
   setPosition(options.position);
@@ -585,6 +584,14 @@ const controlPoint = function (parent, options = {}) {
   position.onMouseMove = onMouseMove;
   position.onMouseUp = onMouseUp;
   position.distance = distance;
+  Object.defineProperty(position, "x", {
+    get: () => position[0],
+    set: (newValue) => { position[0] = newValue; }
+  });
+  Object.defineProperty(position, "y", {
+    get: () => position[1],
+    set: (newValue) => { position[1] = newValue; }
+  });
   Object.defineProperty(position, "svg", {
     get: () => svg,
     set: (newSVG) => { svg = newSVG; }
@@ -615,10 +622,13 @@ const controls = function (svg, number, options) {
   });
   const protocol = function (point) {
     if (typeof delegate === "function") {
-      delegate.call(points, point);
+      delegate.call(points, points, point);
     }
   };
-  points.forEach((p) => { p.delegate = protocol; });
+  points.forEach((p) => {
+    p.delegate = protocol;
+    p.pointsContainer = points;
+  });
   const mousePressedHandler = function (mouse) {
     if (!(points.length > 0)) { return; }
     selected = points
@@ -650,22 +660,22 @@ const controls = function (svg, number, options) {
       points.pop().remove();
     }
   };
-  points.changed = function (func, runOnceAtStart) {
+  points.onChange = function (func, runOnceAtStart) {
     if (typeof func === "function") {
       delegate = func;
-      if (runOnceAtStart === true) { delegate.call(points); }
+      if (runOnceAtStart === true) { func.call(points, points, undefined); }
     }
     return points;
   };
   points.position = function (func) {
     if (typeof func === "function") {
-      points.forEach((p, i) => p.setPosition(func(i)));
+      points.forEach((p, i) => p.setPosition(func.call(points, i)));
     }
     return points;
   };
   points.svg = function (func) {
     if (typeof func === "function") {
-      points.forEach((p, i) => { p.svg = func(i); });
+      points.forEach((p, i) => { p.svg = func.call(points, i); });
     }
     return points;
   };
@@ -925,12 +935,9 @@ var attributes = [
   "accumulate",
   "additive",
   "alignment-baseline",
-  "allowReorder",
   "amplitude",
   "attributeName",
-  "autoReverse",
   "azimuth",
-  "BSection",
   "baseFrequency",
   "baseline-shift",
   "baseProfile",
@@ -1004,20 +1011,15 @@ var attributes = [
   "horiz-adv-x",
   "horiz-origin-x",
   "ISection",
-  "ideographic",
   "image-rendering",
   "in",
   "in2",
   "intercept",
-  "KSection",
-  "k",
   "k1",
   "k2",
   "k3",
   "k4",
   "kernelMatrix",
-  "kernelUnitLength",
-  "kerning",
   "keyPoints",
   "keySplines",
   "keyTimes",
@@ -1044,13 +1046,10 @@ var attributes = [
   "name",
   "numOctaves",
   "OSection",
-  "offset",
   "opacity",
   "operator",
   "order",
   "orient",
-  "orientation",
-  "origin",
   "overflow",
   "overline-position",
   "overline-thickness",
@@ -1059,7 +1058,6 @@ var attributes = [
   "patternContentUnits",
   "patternTransform",
   "patternUnits",
-  "ping",
   "pointer-events",
   "pointsAtX",
   "pointsAtY",
@@ -1069,10 +1067,8 @@ var attributes = [
   "primitiveUnits",
   "RSection",
   "radius",
-  "referrerPolicy",
   "refX",
   "refY",
-  "rel",
   "rendering-intent",
   "repeatCount",
   "repeatDur",
@@ -1082,11 +1078,9 @@ var attributes = [
   "SSection",
   "seed",
   "shape-rendering",
-  "slope",
   "spacing",
   "specularConstant",
   "specularExponent",
-  "speed",
   "spreadMethod",
   "startOffset",
   "stdDeviation",
@@ -1097,7 +1091,6 @@ var attributes = [
   "stop-opacity",
   "strikethrough-position",
   "strikethrough-thickness",
-  "string",
   "stroke",
   "stroke-dasharray",
   "stroke-dashoffset",
@@ -1125,9 +1118,9 @@ var attributes = [
   "underline-position",
   "underline-thickness",
   "unicode",
-  "unicode-bidi",
   "unicode-range",
   "units-per-em",
+  "user-select",
   "VSection",
   "v-alphabetic",
   "v-hanging",
@@ -1139,7 +1132,6 @@ var attributes = [
   "vert-adv-y",
   "vert-origin-x",
   "vert-origin-y",
-  "viewBox",
   "viewTarget",
   "visibility",
   "WSection",
@@ -1147,12 +1139,10 @@ var attributes = [
   "word-spacing",
   "writing-mode",
   "XSection",
-  "x-height",
   "xChannelSelector",
   "YSection",
   "yChannelSelector",
   "ZSection",
-  "zoomAndPan"
 ];
 
 const removeChildren = function (parent) {
@@ -1399,7 +1389,7 @@ const attachArrowMethods = function (element) {
   };
 };
 const attachPathMethods = function (element) {
-  Object.keys(Path).forEach((key) => {
+  Object.keys(Path).filter(key => element[key] === undefined).forEach((key) => {
     element[key] = (...args) => Path[key](element, ...args);
   });
 };
@@ -1409,7 +1399,7 @@ const attachDOMMethods = function (element) {
   });
 };
 const attachTransformMethods = function (element) {
-  Object.keys(Transform).forEach((key) => {
+  Object.keys(Transform).filter(key => element[key] === undefined).forEach((key) => {
     element[key] = (...args) => Transform[key](element, ...args);
   });
 };
@@ -1499,6 +1489,7 @@ const prepareArrow = function (element) {
 const prepareText = function (element) {
   attachFunctionalStyleSetters(element);
   attachDOMMethods(element);
+  attachTransformMethods(element);
   attachClipMaskAttributes(element);
 };
 const prepareSVG = function (element, primitives) {
@@ -1555,6 +1546,7 @@ const circle = function (x, y, radius) {
   prepare("primitive", shape);
   shape.setCenter = (...args) => setCenter(shape, ...args);
   shape.setRadius = (r) => { shape.setAttributeNS(null, "r", r); return shape; };
+  shape.radius = (r) => { shape.setAttributeNS(null, "r", r); return shape; };
   return shape;
 };
 const ellipse = function (x, y, rx, ry) {
@@ -1816,7 +1808,11 @@ const findElementInParams = function (...params) {
 const initSize = function (svgElement, params) {
   const numbers = params.filter(arg => !isNaN(arg));
   const viewBox = svgElement.getAttribute("viewBox");
-  if (numbers.length >= 2) {
+  if (numbers.length >= 4) {
+    svgElement.setAttributeNS(null, "width", numbers[2]);
+    svgElement.setAttributeNS(null, "height", numbers[3]);
+    setViewBox(svgElement, numbers[0], numbers[1], numbers[2], numbers[3]);
+  } else if (numbers.length >= 2) {
     svgElement.setAttributeNS(null, "width", numbers[0]);
     svgElement.setAttributeNS(null, "height", numbers[1]);
     setViewBox(svgElement, 0, 0, numbers[0], numbers[1]);
@@ -1956,7 +1952,7 @@ const SVG = function (...params) {
       globalize(element);
     }
     params.filter(arg => typeof arg === "function")
-      .forEach(func => func());
+      .forEach(func => func.call(element, element));
   };
   if (win.document.readyState === "loading") {
     win.document.addEventListener("DOMContentLoaded", initialize);
