@@ -1,229 +1,170 @@
-html, body{
+/* font */
+body {
 	font-family: 'Lora', serif;
 	font-weight: 400;
-}
-body{
-	margin: 3em 15vw;
 }
 h1, h2, h3, h3, h4, nav {
 	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;
 	font-weight: 300;
 	text-transform: uppercase;
 }
-h1{ font-size: 4.2rem; }
-h2{ font-size: 2.8rem; }
-h3{ font-size: 2.4rem; }
-h4{ font-size: 1.8rem; }
-h5{ font-size: 1.5rem; }
-h6{ font-size: 1.2rem; }
-p, ol, ul {
-	font-size: 1.4rem;
+pre, code {
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 }
-nav ul {
+h3 { font-weight: 500; }
+/* font-size */
+h1 { font-size: 3.4rem; }
+h2 { font-size: 2.4rem; }
+h3 { font-size: 2.0rem; }
+h4 { font-size: 1.6rem; }
+h5 { font-size: 1.333rem; }
+h6 { font-size: 1.0rem; }
+p, ol, ul {
+	font-size: 1.333rem;
+}
+pre, code {
 	font-size: 1rem;
 }
-h1{
-	margin: 1em 0;
-	text-align: center;
+nav, nav ul {
+	font-size: 1rem;
 }
-h2{
-	margin-top: 0.6em;
-	margin-bottom: 6px;
+/* font-style */
+em { font-style: italic; }
+b { font-weight: bold; }
+h1 { text-align: center; }
+h2 {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 	border-bottom-color: black;
 }
-h3{
-	margin: 1em 0 0 0;
-	font-weight: 500;
+h3 { text-align: center; }
+ol {
+	list-style: upper-roman;
+	padding-left: 2rem;
 }
-p, ol, ul {
-	margin: 1em 0;
-	line-height: 1.33em;
-	text-align: justify;
+ul {
+	list-style: square;
+	padding-left: 2rem;
 }
-ul{
-	list-style-type: square;
-	padding-left:1em;
+
+/* hyperlinks */
+a { color: #e53; }
+a:visited { color: #000; }
+a:hover, a:active { color: #ea3; }
+
+/* margins */
+
+body { margin: 0 200px; }
+h1 { margin: 1.5rem 0; }
+h2 { margin: 1.5rem 0 0.5rem 0; }
+h3 { margin: 1rem 0; }
+/* prevent text under the menu */
+nav + * { margin-top: 4rem; }
+p + p,
+p + ol,
+ol + p,
+p + ul,
+ul + p {
+	margin-top: 1rem;
 }
-ol{
-	list-style-type: upper-roman;
-	padding-left:2em;
+svg {
+	width: 100%;
+	height: initial;
+	max-height: 16rem;
 }
-b, strong{ font-weight: bold; }
-/* links */
-a, a:hover, a:visited, a:active{
-	color:#000;
-	text-decoration: underline;
-	font-weight: bold;
+.full svg {
+	width: 100vw;
+	margin-left: -200px;
+	margin-right: -200px;
 }
-a:hover { text-decoration: none; }
+div[id^=canvas-] {
+	margin: 1rem 0;
+}
+.d3-force-graph { text-align: center; }
+.d3-force-graph svg {
+	margin: auto;
+	width: 16rem;
+	max-width: 100%;
+	height: 16rem;
+} 
+.d3-force-graph line,
+.d3-force-graph circle {
+  stroke: #000;
+  fill: #FFF;
+  stroke-width: 4px;
+  cursor: pointer;
+} 
+pre, code {
+	overflow: auto;
+	max-width: calc(100% - 2rem);
+}
 
 .code {
-	margin: 2rem auto;
-	max-width: 600px;
-	width: 450px;
-	min-width: 200px;
-}
-
-pre {
-	border-radius: 0.3em;
+	margin: 1rem auto;
+	width: 550px;
 	padding: 1rem;
 }
 
-svg {
-	max-width: 100%;
-	height: 60vh;
-	display: block;
-	margin: auto;
-}
-div[id^="canvas-"] {
-	margin: 0 -15vw;
-}
-.center {
+.equation {
 	text-align: center;
+	margin: 1rem auto;
 }
-.three {
-	width: 100%;
-	height: 50vh;
-	max-height: 100vw;
-/*	display: block;
-	margin: auto;
-*/
+
+.katex {
+	font-size: 2em !important;
 }
-.quote{
-	text-align: center;
-	font-style: italic;
-	line-height: 1.5em;
+
+.grid-2 {
+	display: grid;
+	grid-template-columns: 50% 50%;
 }
-.explain{
-	margin-top:2em;
-	margin-bottom:2em;
-	padding:1em;
-	background-color: #FFFFAA;
-	box-shadow: 5px 5px 5px #CCC;
-	line-height: 2em;
-}
-.tests{
-	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-	background-color: #FFF;
-	margin:2em 0;
-	padding:1em;
-	border-width: 5px;
-	border-style: dashed;
-	border-color: black;
-	box-shadow: inset 5px 5px 10px #CCC;
-}
-.tests li{
-	padding:.33em 0;
-}
-.diptych {
-	display: flex;
-	flex-direction: row;
-}
-.diptych * {
+
+.grid-2 > * {
 	flex: 1;
 }
 
-.diptych.code {
-	margin-left: 0;
-	margin-right: 0;
-	max-width: unset;
-	width: unset;
-	min-width: unset;
-}
-.diptych.code pre:nth-child(1){
-	margin-right: 1em;
-}
-.diptych.code pre:nth-child(2){
-	margin-left: 1em;
-}
-
-@media not all and (hover) {
+/* medium computers */
+@media (max-width: 1000px) {
 	body{
-		margin: 3rem 6vw;
+		margin: 0 100px;
 	}
-	h1{ font-size: 6.6rem; }
-	h2{ font-size: 5.2rem; }
-	h3{ font-size: 4.6rem; }
-	h4{ font-size: 3.0rem; }
-	h5{ font-size: 2.5rem; }
-	h6{ font-size: 2.0rem; }
-	p, ol, ul { font-size: 2.0rem; }
-	nav ul {
-		font-size: 1.5rem;
+	.full svg {
+		margin: 0 -100px;
 	}
-	pre {
-		font-size: 2.0rem;
-	}
-	h1{
-		padding: 6rem 0 4rem 0;
-	}
-	h2{
-		padding-top: 2rem;
-		padding-bottom: 0.7rem;
-	}
-	h3{
-		padding: 3rem 0 1rem 0;
-	}
-	p, ol, ul {
-		margin: 1rem 0 2rem 0;
-	}
-
-	svg {
-		width: 100%;
-		max-height: 40vh;
-		display: block;
-		margin: auto;
-	}
-	div[id^="canvas-"] {
-		margin: 0 -6vw;
-	}
-
-/*	.diptych {
-		display: block;
-		flex-direction: unset;
-	}
-	.diptych * {
-		flex: unset;
-	}*/
-
-	.diptych svg {
-		width: 30vw;
-		max-height: 40vh;
-		/*display: block;*/
-		/*margin: auto;*/
-	}
-
 	.code {
-		max-width: 95vw;
-		min-width: 50%;
-		width: 85%;
+		width: 450px;
 	}
+}
 
-	.diptych.code {
-		max-width: unset;
-		width: unset;
-		min-width: unset;
-		display: flex;
-		flex-direction: row;
+/* small computers. basically mobile */
+@media (max-width: 700px) {
+	nav, nav ul {
+		/*height: 3rem;*/
+		overflow: hidden;
 	}
-
-	/*div[id^="canvas-"].diptych  {
-		margin: 0 -6vw;
+	/* no longer need to prevent text under the menu */
+	nav + * {
+		/*margin-top: initial;*/
+		margin-top: 2rem;
+	}
+	pre, code {
+		max-width: calc(100% - 2rem);
+	}
+	body{
+		margin: 0 1rem;
+	}
+	.full svg {
+		margin: 0 -1rem;
+	}
+	/*.code {
+		width: calc(100% - 2rem);
 	}*/
-
-
+	.katex {
+		font-size: 1.6rem !important;
+	}
 }
 
-::selection {
-	background: #fffb5f; /* WebKit/Blink Browsers */
-}
-::-moz-selection {
-	background: #fffb5f; /* Gecko Browsers */
-}
-
-
-h1 + div[id^="canvas-"] svg {
-	margin-top: -4.8rem;
+/* phones */
+@media not all and (hover) {
+	/*p, ol, ul, pre, code { font-size: 1.333rem; }*/
 }

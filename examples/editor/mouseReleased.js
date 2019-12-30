@@ -26,7 +26,7 @@ const MouseReleased = function () {
 
     switch (app.tapMode) {
       case "segment":
-        app.cache();
+        app.cache("crease segment\n");
         app.origami.segment(start[0], start[1], end[0], end[1]);
         app.symmetries.forEach((mat) => {
           const pt0 = mat.transform(start);
@@ -36,8 +36,9 @@ const MouseReleased = function () {
         app.origami.fragment();
         app.origami.clean();
         break;
+      case "line": break;
       case "point-to-point":
-        app.cache();
+        app.cache("crease point to point\n");
         RabbitEar.axiom(2, start[0], start[1], end[0], end[1])
           .solutions
           .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
@@ -56,7 +57,7 @@ const MouseReleased = function () {
           const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
           const bVec = [b1[0] - b0[0], b1[1] - b0[1]];
 
-          app.cache();
+          app.cache("crease angle bisector\n");
           RabbitEar.axiom(3, a0[0], a0[1], aVec[0], aVec[1], b0[0], b0[1], bVec[0], bVec[1])
             .solutions
             .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
@@ -86,7 +87,7 @@ const MouseReleased = function () {
         //   .stroke("black")
         //   .strokeWidth(0.01);
 
-        app.cache();
+        app.cache("crease perpendicular through a point\n");
 
         RabbitEar.axiom(4, nearestA, nearEdgeVec, end)
           .solutions
@@ -95,6 +96,8 @@ const MouseReleased = function () {
         app.origami.clean();
       }
         break;
+      case "point-to-line-point": break;
+      case "point-to-line-line": break;
       case "rabbit-ear": break;
       case "kawasaki": break;
       case "mountain-valley": break;
@@ -103,7 +106,7 @@ const MouseReleased = function () {
       case "remove-crease":
         if (app.nearest.edge) {
           if (app.nearest.edge.assignment === "B" || app.nearest.edge.assignment === "b") { break; }
-          app.cache();
+          app.cache("remove crease\n");
           RabbitEar.core.remove(app.origami, "edges", [app.nearest.edge.index]);
           app.origami.clean();
           app.origami.svg.draw();
@@ -122,9 +125,6 @@ const MouseReleased = function () {
       default: console.warn("need to implement " + app.tapMode);
     }
 
-
-    app.folded.load(app.origami);
-    app.folded.collapse();
-
+    app.update();
   };
 };

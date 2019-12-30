@@ -55,6 +55,7 @@
   };
   const midpoint2 = (a, b) => a.map((_, i) => (a[i] + b[i]) / 2);
   var algebra = Object.freeze({
+    __proto__: null,
     magnitude: magnitude,
     normalize: normalize,
     dot: dot,
@@ -66,64 +67,40 @@
     distance: distance,
     midpoint2: midpoint2
   });
-  const multiply_vector2_matrix2 = function (vector, matrix) {
+  const multiply_matrix2_vector2 = function (matrix, vector) {
     return [
-      vector[0] * matrix[0] + vector[1] * matrix[2] + matrix[4],
-      vector[0] * matrix[1] + vector[1] * matrix[3] + matrix[5]
+      matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
+      matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5]
     ];
   };
-  const multiply_line_matrix2 = function (point, vector, matrix) {
-    const new_point = multiply_vector2_matrix2(point, matrix);
-    const vec_point = vector.map((_, i) => vector[i] + point[i]);
-    const new_vector = multiply_vector2_matrix2(vec_point, matrix)
-      .map((vec, i) => vec - new_point[i]);
-    return [new_point, new_vector];
+  const multiply_matrix2_line2 = function (matrix, origin, vector) {
+    return {
+      origin: [
+        matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4],
+        matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5]
+      ],
+      vector: [
+        matrix[0] * vector[0] + matrix[2] * vector[1],
+        matrix[1] * vector[0] + matrix[3] * vector[1]
+      ]
+    };
   };
   const multiply_matrices2 = function (m1, m2) {
-    const a = m1[0] * m2[0] + m1[2] * m2[1];
-    const c = m1[0] * m2[2] + m1[2] * m2[3];
-    const tx = m1[0] * m2[4] + m1[2] * m2[5] + m1[4];
-    const b = m1[1] * m2[0] + m1[3] * m2[1];
-    const d = m1[1] * m2[2] + m1[3] * m2[3];
-    const ty = m1[1] * m2[4] + m1[3] * m2[5] + m1[5];
-    return [a, b, c, d, tx, ty];
+    return [
+      m1[0] * m2[0] + m1[2] * m2[1],
+      m1[1] * m2[0] + m1[3] * m2[1],
+      m1[0] * m2[2] + m1[2] * m2[3],
+      m1[1] * m2[2] + m1[3] * m2[3],
+      m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+      m1[1] * m2[4] + m1[3] * m2[5] + m1[5]
+    ];
   };
-  const make_matrix2_translation = function (x, y) {
-    return [1, 0, 0, 1, x, y];
+  const matrix2_determinant = function (m) {
+    return m[0] * m[3] - m[1] * m[2];
   };
-  const make_matrix2_scale = function (ratio, origin = [0, 0]) {
-    const tx = ratio * -origin[0] + origin[0];
-    const ty = ratio * -origin[1] + origin[1];
-    return [ratio, 0, 0, ratio, tx, ty];
-  };
-  const make_matrix2_rotation = function (angle, origin = [0, 0]) {
-    const a = Math.cos(angle);
-    const b = Math.sin(angle);
-    const c = -b;
-    const d = a;
-    const tx = origin[0];
-    const ty = origin[1];
-    return [a, b, c, d, tx, ty];
-  };
-  const make_matrix2_reflection = function (vector, origin) {
-    const origin_x = origin && origin[0] ? origin[0] : 0;
-    const origin_y = origin && origin[1] ? origin[1] : 0;
-    const angle = Math.atan2(vector[1], vector[0]);
-    const cosAngle = Math.cos(angle);
-    const sinAngle = Math.sin(angle);
-    const cos_Angle = Math.cos(-angle);
-    const sin_Angle = Math.sin(-angle);
-    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-    const tx = origin_x + a * -origin_x + -origin_y * c;
-    const ty = origin_y + b * -origin_x + -origin_y * d;
-    return [a, b, c, d, tx, ty];
-  };
-  const make_matrix2_inverse = function (m) {
-    const det = m[0] * m[3] - m[1] * m[2];
-    if (!det || isNaN(det) || !isFinite(m[4]) || !isFinite(m[5])) {
+  const invert_matrix2 = function (m) {
+    const det = matrix2_determinant(m);
+    if (Math.abs(det) < 1e-6 || isNaN(det) || !isFinite(m[4]) || !isFinite(m[5])) {
       return undefined;
     }
     return [
@@ -135,106 +112,225 @@
       (m[1] * m[4] - m[0] * m[5]) / det
     ];
   };
-  const multiply_vector4_matrix4 = function (v, m) {
-    const result = [];
-    result[0] = m[0] * v[0] + m[1] * v[1] + m[2] * v[2] + m[3] * v[3];
-    result[1] = m[4] * v[0] + m[5] * v[1] + m[6] * v[2] + m[7] * v[3];
-    result[2] = m[8] * v[0] + m[9] * v[1] + m[10] * v[2] + m[11] * v[3];
-    result[3] = m[12] * v[0] + m[13] * v[1] + m[14] * v[2] + m[15] * v[3];
-    return result;
+  const make_matrix2_translate = function (x, y) {
+    return [1, 0, 0, 1, x, y];
   };
-  const make_matrix4_scale = function (ratio, origin = [0, 0, 0]) {
-    const tx = ratio * -origin[0] + origin[0];
-    const ty = ratio * -origin[1] + origin[1];
-    const tz = ratio * -origin[2] + origin[2];
-    return [ratio, 0, 0, 0, 0, ratio, 0, 0, 0, 0, ratio, 0, tx, ty, tz, 1];
+  const make_matrix2_scale = function (ratio, origin = [0, 0]) {
+    return [
+      ratio,
+      0,
+      0,
+      ratio,
+      ratio * -origin[0] + origin[0],
+      ratio * -origin[1] + origin[1]
+    ];
   };
-  const make_matrix4_inverse = function (m) {
-    const inv = [];
-    inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15]
-      + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
-    inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15]
-      - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
-    inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15]
-      + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
-    inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14]
-      - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
-    inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15]
-      - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
-    inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15]
-      + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
-    inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15]
-      - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
-    inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14]
-      + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
-    inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15]
-      + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
-    inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15]
-      - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
-    inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15]
-      + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
-    inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14]
-      - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
-    inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11]
-      - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
-    inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11]
-      + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
-    inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11]
-      - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
-    inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10]
-      + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
-    const det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-    if (det < 1e-6 && det > -1e-6) {
+  const make_matrix2_rotate = function (angle, origin = [0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [
+      cos,
+      sin,
+      -sin,
+      cos,
+      origin[0],
+      origin[1]
+    ];
+  };
+  const make_matrix2_reflection = function (vector, origin = [0, 0]) {
+    const angle = Math.atan2(vector[1], vector[0]);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    const cos_Angle = Math.cos(-angle);
+    const sin_Angle = Math.sin(-angle);
+    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+    const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+    const ty = origin[1] + b * -origin[0] + -origin[1] * d;
+    return [a, b, c, d, tx, ty];
+  };
+  var matrix2_core = Object.freeze({
+    __proto__: null,
+    multiply_matrix2_vector2: multiply_matrix2_vector2,
+    multiply_matrix2_line2: multiply_matrix2_line2,
+    multiply_matrices2: multiply_matrices2,
+    matrix2_determinant: matrix2_determinant,
+    invert_matrix2: invert_matrix2,
+    make_matrix2_translate: make_matrix2_translate,
+    make_matrix2_scale: make_matrix2_scale,
+    make_matrix2_rotate: make_matrix2_rotate,
+    make_matrix2_reflection: make_matrix2_reflection
+  });
+  const multiply_matrix3_vector3 = function (m, vector) {
+    return [
+      m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
+      m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10],
+      m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11]
+    ];
+  };
+  const multiply_matrix3_line3 = function (m, origin, vector) {
+    return {
+      origin: [
+        m[0] * origin[0] + m[3] * origin[1] + m[6] * origin[2] + m[9],
+        m[1] * origin[0] + m[4] * origin[1] + m[7] * origin[2] + m[10],
+        m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11]
+      ],
+      vector: [
+        m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2],
+        m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2],
+        m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2]
+      ]
+    };
+  };
+  const multiply_matrices3 = function (m1, m2) {
+    return [
+      m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
+      m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2],
+      m1[2] * m2[0] + m1[5] * m2[1] + m1[8] * m2[2],
+      m1[0] * m2[3] + m1[3] * m2[4] + m1[6] * m2[5],
+      m1[1] * m2[3] + m1[4] * m2[4] + m1[7] * m2[5],
+      m1[2] * m2[3] + m1[5] * m2[4] + m1[8] * m2[5],
+      m1[0] * m2[6] + m1[3] * m2[7] + m1[6] * m2[8],
+      m1[1] * m2[6] + m1[4] * m2[7] + m1[7] * m2[8],
+      m1[2] * m2[6] + m1[5] * m2[7] + m1[8] * m2[8],
+      m1[0] * m2[9] + m1[3] * m2[10] + m1[6] * m2[11] + m1[9],
+      m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10],
+      m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11]
+    ];
+  };
+  const matrix3_determinant = function (m) {
+    return m[0] * m[4] * m[8]
+      - m[0] * m[7] * m[5]
+      - m[3] * m[1] * m[8]
+      + m[3] * m[7] * m[2]
+      + m[6] * m[1] * m[5]
+      - m[6] * m[4] * m[2];
+  };
+  const invert_matrix3 = function (m) {
+    const det = matrix3_determinant(m);
+    if (Math.abs(det) < 1e-6 || isNaN(det)
+      || !isFinite(m[9]) || !isFinite(m[10]) || !isFinite(m[11])) {
       return undefined;
     }
-    const inverseDeterminant = 1.0 / det;
-    return inv.map(n => n * inverseDeterminant);
+    const inv = [
+      m[4] * m[8] - m[7] * m[5],
+      -m[1] * m[8] + m[7] * m[2],
+      m[1] * m[5] - m[4] * m[2],
+      -m[3] * m[8] + m[6] * m[5],
+      m[0] * m[8] - m[6] * m[2],
+      -m[0] * m[5] + m[3] * m[2],
+      m[3] * m[7] - m[6] * m[4],
+      -m[0] * m[7] + m[6] * m[1],
+      m[0] * m[4] - m[3] * m[1],
+      -m[3] * m[7] * m[11] + m[3] * m[8] * m[10] + m[6] * m[4] * m[11]
+        - m[6] * m[5] * m[10] - m[9] * m[4] * m[8] + m[9] * m[5] * m[7],
+      m[0] * m[7] * m[11] - m[0] * m[8] * m[10] - m[6] * m[1] * m[11]
+        + m[6] * m[2] * m[10] + m[9] * m[1] * m[8] - m[9] * m[2] * m[7],
+      -m[0] * m[4] * m[11] + m[0] * m[5] * m[10] + m[3] * m[1] * m[11]
+        - m[3] * m[2] * m[10] - m[9] * m[1] * m[5] + m[9] * m[2] * m[4]
+    ];
+    const invDet = 1.0 / det;
+    return inv.map(n => n * invDet);
   };
-  const transpose_matrix4 = function (m) {
+  const make_matrix3_translate = function (x = 0, y = 0, z = 0) {
+    return [1, 0, 0, 0, 1, 0, 0, 0, 1, x, y, z];
+  };
+  const make_matrix3_rotateX = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [1, 0, 0, 0, cos, sin, 0, -sin, cos, origin[0] || 0, origin[1] || 0, origin[2] || 0];
+  };
+  const make_matrix3_rotateY = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [cos, 0, -sin, 0, 1, 0, sin, 0, cos, origin[0] || 0, origin[1] || 0, origin[2] || 0];
+  };
+  const make_matrix3_rotateZ = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [cos, sin, 0, -sin, cos, 0, 0, 0, 1, origin[0] || 0, origin[1] || 0, origin[2] || 0];
+  };
+  const make_matrix3_rotate = function (angle, vector = [0, 0, 1], origin = [0, 0, 0]) {
+    const vec = normalize(vector);
+    const pos = Array.from(Array(3)).map((n, i) => origin[i] || 0);
+    const [a, b, c] = vec;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const d = Math.sqrt((vec[1] * vec[1]) + (vec[2] * vec[2]));
+    const b_d = Math.abs(d) < 1e-6 ? 0 : b / d;
+    const c_d = Math.abs(d) < 1e-6 ? 1 : c / d;
+    const t     = [1, 0, 0, 0, 1, 0, 0, 0, 1, pos[0], pos[1], pos[2]];
+    const t_inv = [1, 0, 0, 0, 1, 0, 0, 0, 1, -pos[0], -pos[1], -pos[2]];
+    const rx     = [1, 0, 0, 0, c_d, b_d, 0, -b_d, c_d, 0, 0, 0];
+    const rx_inv = [1, 0, 0, 0, c_d, -b_d, 0, b_d, c_d, 0, 0, 0];
+    const ry     = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
+    const ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
+    const rz     = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
+    return multiply_matrices3(t_inv,
+      multiply_matrices3(rx_inv,
+        multiply_matrices3(ry_inv,
+          multiply_matrices3(rz,
+            multiply_matrices3(ry,
+              multiply_matrices3(rx, t))))));
+  };
+  const make_matrix3_scale = function (scale, origin = [0, 0, 0]) {
     return [
-      m[0], m[4], m[8], m[12],
-      m[1], m[5], m[9], m[13],
-      m[2], m[6], m[10], m[14],
-      m[3], m[7], m[11], m[15]
+      scale,
+      0,
+      0,
+      0,
+      scale,
+      0,
+      0,
+      0,
+      scale,
+      scale * -origin[0] + origin[0],
+      scale * -origin[1] + origin[1],
+      scale * -origin[2] + origin[2]
     ];
   };
-  const multiply_matrices4 = function (a, b) {
-    return [
-      a[0] * b[0] + a[1] * b[4] + a[2] * b[8] + a[3] * b[12],
-      a[0] * b[1] + a[1] * b[5] + a[2] * b[9] + a[3] * b[13],
-      a[0] * b[2] + a[1] * b[6] + a[2] * b[10] + a[3] * b[14],
-      a[0] * b[3] + a[1] * b[7] + a[2] * b[11] + a[3] * b[15],
-      a[4] * b[0] + a[5] * b[4] + a[6] * b[8] + a[7] * b[12],
-      a[4] * b[1] + a[5] * b[5] + a[6] * b[9] + a[7] * b[13],
-      a[4] * b[2] + a[5] * b[6] + a[6] * b[10] + a[7] * b[14],
-      a[4] * b[3] + a[5] * b[7] + a[6] * b[11] + a[7] * b[15],
-      a[8] * b[0] + a[9] * b[4] + a[10] * b[8] + a[11] * b[12],
-      a[8] * b[1] + a[9] * b[5] + a[10] * b[9] + a[11] * b[13],
-      a[8] * b[2] + a[9] * b[6] + a[10] * b[10] + a[11] * b[14],
-      a[8] * b[3] + a[9] * b[7] + a[10] * b[11] + a[11] * b[15],
-      a[12] * b[0] + a[13] * b[4] + a[14] * b[8] + a[15] * b[12],
-      a[12] * b[1] + a[13] * b[5] + a[14] * b[9] + a[15] * b[13],
-      a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14],
-      a[12] * b[3] + a[13] * b[7] + a[14] * b[11] + a[15] * b[15]
-    ];
+  const make_matrix3_reflectionZ = function (vector, origin = [0, 0]) {
+    const angle = Math.atan2(vector[1], vector[0]);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    const cos_Angle = Math.cos(-angle);
+    const sin_Angle = Math.sin(-angle);
+    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+    const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+    const ty = origin[1] + b * -origin[0] + -origin[1] * d;
+    return [a, b, 0, c, d, 0, 0, 0, 0, tx, ty, 0];
   };
-  var matrixCore = Object.freeze({
-    multiply_vector2_matrix2: multiply_vector2_matrix2,
-    multiply_line_matrix2: multiply_line_matrix2,
-    multiply_matrices2: multiply_matrices2,
-    make_matrix2_translation: make_matrix2_translation,
-    make_matrix2_scale: make_matrix2_scale,
-    make_matrix2_rotation: make_matrix2_rotation,
-    make_matrix2_reflection: make_matrix2_reflection,
-    make_matrix2_inverse: make_matrix2_inverse,
-    multiply_vector4_matrix4: multiply_vector4_matrix4,
-    make_matrix4_scale: make_matrix4_scale,
-    make_matrix4_inverse: make_matrix4_inverse,
-    transpose_matrix4: transpose_matrix4,
-    multiply_matrices4: multiply_matrices4
+  var matrix3_core = Object.freeze({
+    __proto__: null,
+    multiply_matrix3_vector3: multiply_matrix3_vector3,
+    multiply_matrix3_line3: multiply_matrix3_line3,
+    multiply_matrices3: multiply_matrices3,
+    matrix3_determinant: matrix3_determinant,
+    invert_matrix3: invert_matrix3,
+    make_matrix3_translate: make_matrix3_translate,
+    make_matrix3_rotateX: make_matrix3_rotateX,
+    make_matrix3_rotateY: make_matrix3_rotateY,
+    make_matrix3_rotateZ: make_matrix3_rotateZ,
+    make_matrix3_rotate: make_matrix3_rotate,
+    make_matrix3_scale: make_matrix3_scale,
+    make_matrix3_reflectionZ: make_matrix3_reflectionZ
   });
+  const countPlaces = function (num) {
+    const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+    if (!m) { return 0; }
+    return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
+  };
   const clean_number = function (num, places = 15) {
-    return parseFloat(num.toFixed(places));
+    const crop = parseFloat(num.toFixed(places));
+    if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
+      return num;
+    }
+    return crop;
   };
   const is_number = (n => n != null && !isNaN(n));
   const is_vector = (a => a != null && a[0] != null && !isNaN(a[0]));
@@ -274,7 +370,7 @@
       .map(el => get_vector(el));
   };
   const identity2 = [1, 0, 0, 1, 0, 0];
-  const identity4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  const identity3 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
   const get_matrix2 = function (...args) {
     const m = get_vector(args);
     if (m === undefined) { return undefined; }
@@ -285,44 +381,47 @@
     }
     return undefined;
   };
-  const get_matrix4 = function (...args) {
+  const get_matrix3 = function (...args) {
     const m = get_vector(args);
     if (m === undefined) { return undefined; }
-    if (m.length === 16) { return m; }
-    if (m.length === 9) {
-      return [
-        m[0], m[1], m[2], 0,
-        m[3], m[4], m[5], 0,
-        m[6], m[7], m[8], 0,
-        0, 0, 0, 1
-      ];
-    }
-    if (m.length === 6) {
-      return [
-        m[0], m[1], 0, 0,
-        m[2], m[3], 0, 0,
-        0, 0, 1, 0,
-        m[4], m[5], 0, 1
-      ];
-    }
-    if (m.length === 4) {
-      return [
+    switch (m.length) {
+      case 4: return [
         m[0], m[1], 0, 0,
         m[2], m[3], 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
       ];
+      case 6: return [
+        m[0], m[1], 0,
+        m[2], m[3], 0,
+        0, 0, 1,
+        m[4], m[5], 0
+      ];
+      case 9: return [
+        m[0], m[1], m[2],
+        m[3], m[4], m[5],
+        m[6], m[7], m[8],
+        0, 0, 0
+      ];
+      case 12: return m;
+      case 16: return [
+        m[0], m[1], m[2],
+        m[4], m[5], m[6],
+        m[8], m[9], m[10],
+        m[12], m[13], m[14]
+      ];
+      default: break;
     }
-    if (m.length > 16) {
+    if (m.length > 12) {
       return [
-        m[0], m[1], m[2], m[3],
-        m[4], m[5], m[6], m[7],
-        m[8], m[9], m[10], m[11],
-        m[12], m[13], m[14], m[15]
+        m[0], m[1], m[2],
+        m[4], m[5], m[6],
+        m[8], m[9], m[10],
+        m[12], m[13], m[14]
       ];
     }
-    if (m.length < 16) {
-      return identity4.map((n, i) => m[i] || n);
+    if (m.length < 12) {
+      return identity3.map((n, i) => m[i] || n);
     }
     return undefined;
   };
@@ -333,10 +432,10 @@
     let params = Array.from(arguments);
     let numbers = params.filter((param) => !isNaN(param));
     let arrays = params.filter((param) => param.constructor === Array);
-    if (params.length === 0) { return { vector: [], point: [] }; }
+    if (params.length === 0) { return { vector: [], origin: [] }; }
     if (!isNaN(params[0]) && numbers.length >= 4) {
       return {
-        point: [params[0], params[1]],
+        origin: [params[0], params[1]],
         vector: [params[2], params[3]]
       };
     }
@@ -346,29 +445,29 @@
       }
       if (arrays.length === 2) {
         return {
-          point: [arrays[0][0], arrays[0][1]],
+          origin: [arrays[0][0], arrays[0][1]],
           vector: [arrays[1][0], arrays[1][1]]
         };
       }
       if (arrays.length === 4) {
         return {
-          point: [arrays[0], arrays[1]],
+          origin: [arrays[0], arrays[1]],
           vector: [arrays[2], arrays[3]]
         };
       }
     }
     if (params[0].constructor === Object) {
-      let vector = [], point = [];
+      let vector = [], origin = [];
       if (params[0].vector != null)         { vector = get_vector(params[0].vector); }
       else if (params[0].direction != null) { vector = get_vector(params[0].direction); }
-      if (params[0].point != null)       { point = get_vector(params[0].point); }
-      else if (params[0].origin != null) { point = get_vector(params[0].origin); }
-      return {point, vector};
+      if (params[0].point != null)       { origin = get_vector(params[0].point); }
+      else if (params[0].origin != null) { origin = get_vector(params[0].origin); }
+      return { origin, vector };
     }
-    return {point: [], vector: []};
+    return { origin: [], vector: [] };
   }
-  function get_ray() {
-    return get_line(...arguments);
+  function get_ray(...args) {
+    return get_line(...args);
   }
   function get_two_vec2(...args) {
     if (args.length === 0) { return undefined; }
@@ -468,6 +567,7 @@
     return false;
   };
   var equal = Object.freeze({
+    __proto__: null,
     EPSILON: EPSILON,
     equivalent_numbers: equivalent_numbers,
     equivalent_vectors: equivalent_vectors,
@@ -580,6 +680,7 @@
     return angle < angleB;
   };
   var query = Object.freeze({
+    __proto__: null,
     overlap_function: overlap_function,
     segment_segment_overlap: segment_segment_overlap,
     degenerate: degenerate,
@@ -634,10 +735,10 @@
   const line_ray = function (linePt, lineVec, rayPt, rayVec, epsilon) {
     return intersection_function(linePt, lineVec, rayPt, rayVec, line_ray_comp, epsilon);
   };
-  const line_segment = function (point, vec, segment0, segment1, epsilon) {
+  const line_segment = function (origin, vec, segment0, segment1, epsilon) {
     const segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
     return intersection_function(
-      point, vec,
+      origin, vec,
       segment0, segmentVec,
       line_segment_comp, epsilon
     );
@@ -669,10 +770,10 @@
       line_ray_comp_exclusive, epsilon
     );
   };
-  const line_segment_exclusive = function (point, vec, segment0, segment1, epsilon) {
+  const line_segment_exclusive = function (origin, vec, segment0, segment1, epsilon) {
     const segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
     return intersection_function(
-      point, vec,
+      origin, vec,
       segment0, segmentVec,
       line_segment_comp_exclusive, epsilon
     );
@@ -848,6 +949,7 @@
     }
   };
   var intersection = Object.freeze({
+    __proto__: null,
     limit_line: limit_line,
     limit_ray: limit_ray,
     limit_segment: limit_segment,
@@ -932,8 +1034,8 @@
     if (Math.abs(denominator) < EPSILON) {
       const solution = [midpoint2(pointA, pointB), [vectorA[0], vectorA[1]]];
       const array = [solution, solution];
-      const dot$$1 = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
-      delete (dot$$1 > 0 ? array[1] : array[0]);
+      const dot = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
+      delete array[(dot > 0 ? 1 : 0)];
       return array;
     }
     const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
@@ -1017,9 +1119,9 @@
   ) {
     const magSquared = (lineVec[0] ** 2) + (lineVec[1] ** 2);
     const vectorToPoint = [0, 1].map((_, i) => point[i] - linePoint[i]);
-    const dot$$1 = [0, 1].map((_, i) => lineVec[i] * vectorToPoint[i])
+    const dot = [0, 1].map((_, i) => lineVec[i] * vectorToPoint[i])
       .reduce((a, b) => a + b, 0);
-    const dist = dot$$1 / magSquared;
+    const dist = dot / magSquared;
     const d = limiterFunc(dist, epsilon);
     return [0, 1].map((_, i) => linePoint[i] + lineVec[i] * d);
   };
@@ -1119,8 +1221,8 @@
       let rightTurn = angles[0];
       angles = angles.filter(el => Math.abs(rightTurn.angle - el.angle) < epsilon)
         .map((el) => {
-          let distance$$1 = Math.sqrt(((hull[h][0] - el.node[0]) ** 2) + ((hull[h][1] - el.node[1]) ** 2));
-          el.distance = distance$$1;
+          let distance = Math.sqrt(((hull[h][0] - el.node[0]) ** 2) + ((hull[h][1] - el.node[1]) ** 2));
+          el.distance = distance;
           return el;
         })
         .sort((a, b) => ((a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0));
@@ -1133,6 +1235,7 @@
     return undefined;
   };
   var geometry = Object.freeze({
+    __proto__: null,
     clockwise_angle2_radians: clockwise_angle2_radians,
     counter_clockwise_angle2_radians: counter_clockwise_angle2_radians,
     clockwise_angle2: clockwise_angle2,
@@ -1188,7 +1291,7 @@
     };
     const transform = function (...args) {
       const m = get_matrix2(args);
-      return Type(multiply_vector2_matrix2(that, m));
+      return Type(multiply_matrix2_vector2(m, that));
     };
     const add = function (...args) {
       const vec = get_vector(args);
@@ -1199,8 +1302,8 @@
       return Type(that.map((v, i) => v - vec[i]));
     };
     const rotateZ = function (angle, origin) {
-      const m = make_matrix2_rotation(angle, origin);
-      return Type(multiply_vector2_matrix2(that, m));
+      const m = make_matrix2_rotate(angle, origin);
+      return Type(multiply_matrix2_vector2(m, that));
     };
     const rotateZ90 = function () {
       return Type(-that[1], that[0]);
@@ -1213,8 +1316,8 @@
     };
     const reflect = function (...args) {
       const ref = get_line(args);
-      const m = make_matrix2_reflection(ref.vector, ref.point);
-      return Type(multiply_vector2_matrix2(that, m));
+      const m = make_matrix2_reflection(ref.vector, ref.origin);
+      return Type(multiply_matrix2_vector2(m, that));
     };
     const lerp = function (vector, pct) {
       const vec = get_vector(vector);
@@ -1283,68 +1386,186 @@
     Object.defineProperty(vector, "z", { get: () => vector[2] });
     return vector;
   };
+  Vector.withAngle = function (angle) {
+    return Vector(Math.cos(angle), Math.sin(angle));
+  };
   const Matrix2 = function (...args) {
     const matrix = [1, 0, 0, 1, 0, 0];
     const argsMatrix = get_matrix2(args);
     if (argsMatrix !== undefined) {
       argsMatrix.forEach((n, i) => { matrix[i] = n; });
     }
-    const inverse = function () {
-      return Matrix2(make_matrix2_inverse(matrix)
+    const multiply = function (...innerArgs) {
+      return Matrix2(multiply_matrices2(matrix, get_matrix2(innerArgs))
         .map(n => clean_number(n, 13)));
     };
-    const multiply = function (...innerArgs) {
-      const m2 = get_matrix2(innerArgs);
-      return Matrix2(multiply_matrices2(matrix, m2)
+    const determinant = function () {
+      return clean_number(matrix2_determinant(matrix));
+    };
+    const inverse = function () {
+      return Matrix2(invert_matrix2(matrix)
+        .map(n => clean_number(n, 13)));
+    };
+    const translate = function (x, y) {
+      const transform = make_matrix2_translate(x, y);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const scale = function (...innerArgs) {
+      const transform = make_matrix2_scale(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotate = function (...innerArgs) {
+      const transform = make_matrix2_rotate(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const reflect = function (...innerArgs) {
+      const transform = make_matrix2_reflection(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
         .map(n => clean_number(n, 13)));
     };
     const transform = function (...innerArgs) {
       const v = get_vector(innerArgs);
-      return Vector(multiply_vector2_matrix2(v, matrix)
+      return Vector(multiply_matrix2_vector2(matrix, v)
         .map(n => clean_number(n, 13)));
     };
-    Object.defineProperty(matrix, "inverse", { value: inverse });
+    const transformVector = function (vector) {
+      return Matrix2(multiply_matrix2_vector2(matrix, vector)
+        .map(n => clean_number(n, 13)));
+    };
+    const transformLine = function (origin, vector) {
+      return Matrix2(multiply_matrix2_line2(matrix, origin, vector)
+        .map(n => clean_number(n, 13)));
+    };
     Object.defineProperty(matrix, "multiply", { value: multiply });
+    Object.defineProperty(matrix, "determinant", { value: determinant });
+    Object.defineProperty(matrix, "inverse", { value: inverse });
+    Object.defineProperty(matrix, "translate", { value: translate });
+    Object.defineProperty(matrix, "scale", { value: scale });
+    Object.defineProperty(matrix, "rotate", { value: rotate });
+    Object.defineProperty(matrix, "reflect", { value: reflect });
     Object.defineProperty(matrix, "transform", { value: transform });
+    Object.defineProperty(matrix, "transformVector", { value: transformVector });
+    Object.defineProperty(matrix, "transformLine", { value: transformLine });
     return Object.freeze(matrix);
   };
   Matrix2.makeIdentity = () => Matrix2(1, 0, 0, 1, 0, 0);
-  Matrix2.makeTranslation = (tx, ty) => Matrix2(1, 0, 0, 1, tx, ty);
-  Matrix2.makeScale = (...args) => Matrix2(...make_matrix2_scale(...args));
-  Matrix2.makeRotation = ((angle, origin) => Matrix2(
-    make_matrix2_rotation(angle, origin).map(n => clean_number(n, 13))
-  ));
-  Matrix2.makeReflection = ((vector, origin) => Matrix2(
+  Matrix2.makeTranslation = (x, y) => Matrix2(
+    make_matrix2_translate(x, y)
+  );
+  Matrix2.makeRotation = (angle_radians, origin) => Matrix2(
+    make_matrix2_rotate(angle_radians, origin).map(n => clean_number(n, 13))
+  );
+  Matrix2.makeScale = (amount, origin) => Matrix2(
+    make_matrix2_scale(amount, origin).map(n => clean_number(n, 13))
+  );
+  Matrix2.makeReflection = (vector, origin) => Matrix2(
     make_matrix2_reflection(vector, origin).map(n => clean_number(n, 13))
-  ));
+  );
   const Matrix = function (...args) {
-    const matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-    const argsMatrix = get_matrix4(args);
+    const matrix = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+    const argsMatrix = get_matrix3(args);
     if (argsMatrix !== undefined) {
       argsMatrix.forEach((n, i) => { matrix[i] = n; });
     }
-    const inverse = function () {
-      return Matrix(make_matrix4_inverse(matrix)
+    const multiply = function (...innerArgs) {
+      return Matrix(multiply_matrices3(matrix, get_matrix3(innerArgs))
         .map(n => clean_number(n, 13)));
     };
-    const multiply = function (...innerArgs) {
-      const m2 = get_matrix4(innerArgs);
-      return Matrix(multiply_matrices4(matrix, m2)
+    const determinant = function () {
+      return clean_number(matrix3_determinant(matrix), 13);
+    };
+    const inverse = function () {
+      return Matrix(invert_matrix3(matrix)
+        .map(n => clean_number(n, 13)));
+    };
+    const translate = function (x, y, z) {
+      const transform = make_matrix3_translate(x, y, z);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotateX = function (angle_radians) {
+      const transform = make_matrix3_rotateX(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotateY = function (angle_radians) {
+      const transform = make_matrix3_rotateY(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotateZ = function (angle_radians) {
+      const transform = make_matrix3_rotateZ(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotate = function (angle_radians, vector, origin) {
+      const transform = make_matrix3_rotate(angle_radians, vector, origin);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const scale = function (amount) {
+      const transform = make_matrix3_scale(amount);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const reflectZ = function (vector, origin) {
+      const transform = make_matrix3_reflectionZ(vector, origin);
+      return Matrix(multiply_matrices3(matrix, transform)
         .map(n => clean_number(n, 13)));
     };
     const transform = function (...innerArgs) {
       const v = get_vector(innerArgs);
-      return Vector(multiply_vector4_matrix4(v, matrix)
+      return Vector(multiply_matrix3_vector3(v, matrix)
         .map(n => clean_number(n, 13)));
     };
-    Object.defineProperty(matrix, "inverse", { value: inverse });
+    const transformVector = function (vector) {
+      return Matrix(multiply_matrix3_vector3(matrix, vector)
+        .map(n => clean_number(n, 13)));
+    };
+    const transformLine = function (origin, vector) {
+      return Matrix(multiply_matrix3_line3(matrix, origin, vector)
+        .map(n => clean_number(n, 13)));
+    };
     Object.defineProperty(matrix, "multiply", { value: multiply });
+    Object.defineProperty(matrix, "determinant", { value: determinant });
+    Object.defineProperty(matrix, "inverse", { value: inverse });
+    Object.defineProperty(matrix, "translate", { value: translate });
+    Object.defineProperty(matrix, "rotateX", { value: rotateX });
+    Object.defineProperty(matrix, "rotateY", { value: rotateY });
+    Object.defineProperty(matrix, "rotateZ", { value: rotateZ });
+    Object.defineProperty(matrix, "rotate", { value: rotate });
+    Object.defineProperty(matrix, "scale", { value: scale });
+    Object.defineProperty(matrix, "reflectZ", { value: reflectZ });
     Object.defineProperty(matrix, "transform", { value: transform });
+    Object.defineProperty(matrix, "transformVector", { value: transformVector });
+    Object.defineProperty(matrix, "transformLine", { value: transformLine });
     return Object.freeze(matrix);
   };
-  Matrix.makeIdentity = () => Matrix(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-  Matrix.makeTranslation = (tx, ty, tz) => Matrix(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, tx, ty, tz, 1);
-  Matrix.makeScale = (...args) => Matrix(...make_matrix4_scale(...args));
+  Matrix.makeIdentity = () => Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0);
+  Matrix.makeTranslation = (x, y, z) => Matrix(
+    make_matrix3_translate(x, y, z)
+  );
+  Matrix.makeRotationX = angle_radians => Matrix(
+    make_matrix3_rotateX(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotationY = angle_radians => Matrix(
+    make_matrix3_rotateY(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotationZ = angle_radians => Matrix(
+    make_matrix3_rotateZ(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotation = (angle_radians, vector, origin) => Matrix(
+    make_matrix3_rotate(angle_radians, vector, origin).map(n => clean_number(n, 13))
+  );
+  Matrix.makeScale = (amount, origin) => Matrix(
+    make_matrix3_scale(amount, origin).map(n => clean_number(n, 13))
+  );
+  Matrix.makeReflectionZ = (vector, origin) => Matrix(
+    make_matrix3_reflectionZ(vector, origin).map(n => clean_number(n, 13))
+  );
   function Prototype (subtype, prototype) {
     const proto = (prototype != null) ? prototype : {};
     const compare_to_line = function (t0, t1, epsilon = EPSILON) {
@@ -1370,33 +1591,46 @@
       return degenerate(this.vector);
     };
     const reflection = function () {
-      return Matrix2.makeReflection(this.vector, this.point);
+      return Matrix2.makeReflection(this.vector, this.origin);
     };
     const nearestPoint = function (...args) {
       const point = get_vector(args);
-      return Vector(nearest_point_on_line(this.point, this.vector, point, this.clip_function));
+      return Vector(nearest_point_on_line(this.origin, this.vector, point, this.clip_function));
     };
     const intersect = function (other) {
-      return intersection_function(this.point, this.vector, other.point,
+      return intersection_function(this.origin, this.vector, other.origin,
         other.vector,
         ((t0, t1, epsilon = EPSILON) => this.compare_function(t0, epsilon)
           && other.compare_function(t1, epsilon)));
     };
     const intersectLine = function (...args) {
       const line = get_line(args);
-      return intersection_function(this.point, this.vector, line.point,
+      return intersection_function(this.origin, this.vector, line.origin,
         line.vector, compare_to_line.bind(this));
     };
     const intersectRay = function (...args) {
       const ray = get_ray(args);
-      return intersection_function(this.point, this.vector, ray.point, ray.vector,
+      return intersection_function(this.origin, this.vector, ray.origin, ray.vector,
         compare_to_ray.bind(this));
     };
-    const intersectEdge = function (...args) {
+    const intersectSegment = function (...args) {
       const edge = get_segment(args);
       const edgeVec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-      return intersection_function(this.point, this.vector, edge[0], edgeVec,
+      return intersection_function(this.origin, this.vector, edge[0], edgeVec,
         compare_to_segment.bind(this));
+    };
+    const bisectLine = function (...args) {
+      const line = get_line(args);
+      return bisect_lines2(this.origin, this.vector, line.origin, line.vector);
+    };
+    const bisectRay = function (...args) {
+      const ray = get_ray(args);
+      return bisect_lines2(this.origin, this.vector, ray.origin, ray.vector);
+    };
+    const bisectSegment = function (...args) {
+      const s = get_segment(args);
+      const vector = [s[1][0] - s[0][0], s[1][1] - s[0][1]];
+      return bisect_lines2(this.origin, this.vector, s[0], vector);
     };
     Object.defineProperty(proto, "isParallel", { value: isParallel });
     Object.defineProperty(proto, "isDegenerate", { value: isDegenerate });
@@ -1405,14 +1639,17 @@
     Object.defineProperty(proto, "intersect", { value: intersect });
     Object.defineProperty(proto, "intersectLine", { value: intersectLine });
     Object.defineProperty(proto, "intersectRay", { value: intersectRay });
-    Object.defineProperty(proto, "intersectEdge", { value: intersectEdge });
+    Object.defineProperty(proto, "intersectSegment", { value: intersectSegment });
+    Object.defineProperty(proto, "bisectLine", { value: bisectLine });
+    Object.defineProperty(proto, "bisectRay", { value: bisectRay });
+    Object.defineProperty(proto, "bisectSegment", { value: bisectSegment });
     return Object.freeze(proto);
   }
   const Line = function (...args) {
-    const { point, vector } = get_line(args);
+    const { origin, vector } = get_line(args);
     const transform = function (...innerArgs) {
       const mat = get_matrix2(innerArgs);
-      const line = multiply_line_matrix2(point, vector, mat);
+      const line = multiply_matrix2_line2(mat, origin, vector);
       return Line(line[0], line[1]);
     };
     const proto = Prototype.bind(this);
@@ -1420,7 +1657,7 @@
     const compare_function = function () { return true; };
     Object.defineProperty(line, "compare_function", { value: compare_function });
     Object.defineProperty(line, "clip_function", { value: limit_line });
-    Object.defineProperty(line, "point", { get: () => Vector(point) });
+    Object.defineProperty(line, "origin", { get: () => Vector(origin) });
     Object.defineProperty(line, "vector", { get: () => Vector(vector) });
     Object.defineProperty(line, "length", { get: () => Infinity });
     Object.defineProperty(line, "transform", { value: transform });
@@ -1429,7 +1666,7 @@
   Line.fromPoints = function (...args) {
     const points = get_two_vec2(args);
     return Line({
-      point: points[0],
+      origin: points[0],
       vector: normalize([
         points[1][0] - points[0][0],
         points[1][1] - points[0][1],
@@ -1443,27 +1680,27 @@
       points[1][1] - points[0][1],
     ]);
     return Line({
-      point: average(points[0], points[1]),
+      origin: average(points[0], points[1]),
       vector: [vec[1], -vec[0]],
     });
   };
   const Ray = function (...args) {
-    const { point, vector } = get_line(args);
+    const { origin, vector } = get_line(args);
     const transform = function (...innerArgs) {
       const mat = get_matrix2(innerArgs);
-      const new_point = multiply_vector2_matrix2(point, mat);
-      const vec_point = vector.map((vec, i) => vec + point[i]);
-      const new_vector = multiply_vector2_matrix2(vec_point, mat)
-        .map((vec, i) => vec - new_point[i]);
-      return Ray(new_point, new_vector);
+      const vec_translated = vector.map((vec, i) => vec + origin[i]);
+      const new_origin = multiply_matrix2_vector2(mat, origin);
+      const new_vector = multiply_matrix2_vector2(mat, vec_translated)
+        .map((vec, i) => vec - new_origin[i]);
+      return Ray(new_origin, new_vector);
     };
     const rotate180 = function () {
-      return Ray(point[0], point[1], -vector[0], -vector[1]);
+      return Ray(origin[0], origin[1], -vector[0], -vector[1]);
     };
     const proto = Prototype.bind(this);
     const ray = Object.create(proto(Ray));
     const compare_function = function (t0, ep) { return t0 >= -ep; };
-    Object.defineProperty(ray, "point", { get: () => Vector(point) });
+    Object.defineProperty(ray, "origin", { get: () => Vector(origin) });
     Object.defineProperty(ray, "vector", { get: () => Vector(vector) });
     Object.defineProperty(ray, "length", { get: () => Infinity });
     Object.defineProperty(ray, "transform", { value: transform });
@@ -1475,7 +1712,7 @@
   Ray.fromPoints = function (...args) {
     const points = get_two_vec2(args);
     return Ray({
-      point: points[0],
+      origin: points[0],
       vector: normalize([
         points[1][0] - points[0][0],
         points[1][1] - points[0][1],
@@ -1485,29 +1722,28 @@
   const Segment = function (...args) {
     const inputs = get_two_vec2(args);
     const proto = Prototype.bind(this);
-    const segment = Object.create(proto(Segment, []));
     const vecPts = (inputs.length > 0 ? inputs.map(p => Vector(p)) : undefined);
     if (vecPts === undefined) { return undefined; }
-    vecPts.forEach((p, i) => { segment[i] = p; });
+    const segment = Object.create(proto(Segment, vecPts));
     const transform = function (...innerArgs) {
       const mat = get_matrix2(innerArgs);
       const transformed_points = segment
-        .map(point => multiply_vector2_matrix2(point, mat));
+        .map(point => multiply_matrix2_vector2(mat, point));
       return Segment(transformed_points);
     };
     const vector = function () {
       return Vector(segment[1][0] - segment[0][0], segment[1][1] - segment[0][1]);
     };
     const midpoint = () => Vector(average(segment[0], segment[1]));
-    const length = function () {
+    const magnitude = function () {
       return Math.sqrt(((segment[1][0] - segment[0][0]) ** 2)
                      + ((segment[1][1] - segment[0][1]) ** 2));
     };
     const compare_function = (t0, ep) => t0 >= -ep && t0 <= 1 + ep;
-    Object.defineProperty(segment, "point", { get: () => segment[0] });
+    Object.defineProperty(segment, "origin", { get: () => segment[0] });
     Object.defineProperty(segment, "vector", { get: () => vector() });
     Object.defineProperty(segment, "midpoint", { value: midpoint });
-    Object.defineProperty(segment, "length", { get: () => length() });
+    Object.defineProperty(segment, "magnitude", { get: () => magnitude() });
     Object.defineProperty(segment, "transform", { value: transform });
     Object.defineProperty(segment, "compare_function", { value: compare_function });
     Object.defineProperty(segment, "clip_function", {
@@ -1526,8 +1762,8 @@
     }
     const intersectionLine = function (...innerArgs) {
       const line = get_line(innerArgs);
-      const p2 = [line.point[0] + line.vector[0], line.point[1] + line.vector[1]];
-      const result = circle_line(origin, radius, line.point, p2);
+      const p2 = [line.origin[0] + line.vector[0], line.origin[1] + line.vector[1]];
+      const result = circle_line(origin, radius, line.origin, p2);
       return (result === undefined ? undefined : result.map(i => Vector(i)));
     };
     const intersectionRay = function (...innerArgs) {
@@ -1556,11 +1792,11 @@
       const interior_angle = counter_clockwise_angle2(vectors[0], vectors[1]);
       const vectors_radians = vectors.map(el => Math.atan2(el[1], el[0]));
       const bisected = vectors_radians[0] + interior_angle * 0.5;
-      return [Math.cos(bisected), Math.sin(bisected)];
+      return Vector(Math.cos(bisected), Math.sin(bisected));
     };
     const subsect_sector = function (divisions) {
       return subsect(divisions, vectors[0], vectors[1])
-        .map(vec => [vec[0], vec[1]]);
+        .map(vec => Vector(vec[0], vec[1]));
     };
     const contains = function (...args) {
       const point = get_vector(args).map((n, i) => n + center[i]);
@@ -1594,12 +1830,14 @@
       return enclosing_rectangle(this.points);
     };
     const sectors = function () {
-      return this.points
-        .map((p, i, a) => [
-          a[(i + a.length - 1) % a.length],
-          a[i],
-          a[(i + 1) % a.length]])
-        .map(points => Sector(points[1], points[2], points[0]));
+      return this.points.map((p, i, arr) => {
+        const prev = (i + arr.length - 1) % arr.length;
+        const next = (i + 1) % arr.length;
+        const center = p;
+        const a = arr[prev].map((n, j) => n - center[j]);
+        const b = arr[next].map((n, j) => n - center[j]);
+        return Sector(b, a, center);
+      });
     };
     const contains = function (...args) {
       return point_in_poly(get_vector(args), this.points);
@@ -1626,23 +1864,23 @@
     };
     const clipLine = function (...args) {
       const line = get_line(args);
-      const e = convex_poly_line(this.points, line.point, line.vector);
+      const e = convex_poly_line(this.points, line.origin, line.vector);
       return e === undefined ? undefined : Segment(e);
     };
     const clipRay = function (...args) {
       const line = get_line(args);
-      const e = convex_poly_ray(this.points, line.point, line.vector);
+      const e = convex_poly_ray(this.points, line.origin, line.vector);
       return e === undefined ? undefined : Segment(e);
     };
     const split = function (...args) {
       const line = get_line(args);
-      return split_polygon(this.points, line.point, line.vector)
+      return split_polygon(this.points, line.origin, line.vector)
         .map(poly => Type(poly));
     };
-    const scale = function (magnitude$$1, center = centroid(this.points)) {
+    const scale = function (magnitude, center = centroid(this.points)) {
       const newPoints = this.points
         .map(p => [0, 1].map((_, i) => p[i] - center[i]))
-        .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude$$1));
+        .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
       return Type(newPoints);
     };
     const rotate = function (angle, centerPoint = centroid(this.points)) {
@@ -1665,7 +1903,7 @@
     const transform = function (...args) {
       const m = get_matrix2(args);
       const newPoints = this.points
-        .map(p => Vector(multiply_vector2_matrix2(p, m)));
+        .map(p => Vector(multiply_matrix2_vector2(m, p)));
       return Type(newPoints);
     };
     Object.defineProperty(proto, "area", { value: area });
@@ -1686,7 +1924,7 @@
       get: function () { return this.sides; },
     });
     Object.defineProperty(proto, "sectors", {
-      get: function () { return sectors(); },
+      get: function () { return sectors.call(this); },
     });
     Object.defineProperty(proto, "signedArea", { value: area });
     return Object.freeze(proto);
@@ -1721,7 +1959,7 @@
     const polygon = Object.create(proto(ConvexPolygon));
     const split = function (...innerArgs) {
       const line = get_line(innerArgs);
-      return split_convex_polygon(points, line.point, line.vector)
+      return split_convex_polygon(points, line.origin, line.vector)
         .map(poly => ConvexPolygon(poly));
     };
     const overlaps = function (...innerArgs) {
@@ -1844,7 +2082,7 @@
     return Junction.fromVectors(vectors);
   };
   const core = Object.create(null);
-  Object.assign(core, algebra, matrixCore, geometry, query, equal);
+  Object.assign(core, algebra, matrix2_core, matrix3_core, geometry, query, equal);
   core.clean_number = clean_number;
   core.is_number = is_number;
   core.is_vector = is_vector;
@@ -2522,10 +2760,14 @@
       position: [0, 0],
       pressed: [0, 0],
       drag: [0, 0],
-      prev: [0, 0],
+      previous: [0, 0],
       x: 0,
       y: 0
     });
+    [pointer.position.x, pointer.position.y] = [0, 0];
+    [pointer.pressed.x, pointer.pressed.y] = [0, 0];
+    [pointer.drag.x, pointer.drag.y] = [0, 0];
+    [pointer.previous.x, pointer.previous.y] = [0, 0];
     const copyPointer = function () {
       const m = pointer.position.slice();
       Object.keys(pointer)
@@ -2548,32 +2790,29 @@
       [pointer.drag.x, pointer.drag.y] = pointer.drag;
     };
     const thisPointer = {};
-    const move = function (clientX, clientY) {
-      pointer.prev = pointer.position;
+    const move = function (clientX, clientY, isPressed = false) {
+      if (isPressed && !pointer.isPressed) {
+        pointer.pressed = convertToViewBox(node, clientX, clientY);
+      }
+      pointer.isPressed = isPressed;
+      pointer.previous = pointer.position;
       setPosition(clientX, clientY);
       if (pointer.isPressed) {
         updateDrag();
+      } else {
+        pointer.drag = [0, 0];
+        pointer.pressed = [0, 0];
+        [pointer.drag.x, pointer.drag.y] = pointer.drag;
+        [pointer.pressed.x, pointer.pressed.y] = pointer.pressed;
       }
       return thisPointer;
     };
-    const down = function (clientX, clientY) {
-      pointer.isPressed = true;
-      pointer.pressed = convertToViewBox(node, clientX, clientY);
-      setPosition(clientX, clientY);
-      return thisPointer;
-    };
-    const up = function () {
+    const release = function () {
       pointer.isPressed = false;
       return thisPointer;
     };
-    const pressed = function (isPressed) {
-      pointer.isPressed = isPressed;
-      return thisPointer;
-    };
-    Object.defineProperty(thisPointer, "up", { value: up });
-    Object.defineProperty(thisPointer, "pressed", { value: pressed });
+    Object.defineProperty(thisPointer, "release", { value: release });
     Object.defineProperty(thisPointer, "move", { value: move });
-    Object.defineProperty(thisPointer, "down", { value: down });
     Object.defineProperty(thisPointer, "get", { value: copyPointer });
     return thisPointer;
   };
@@ -2597,8 +2836,7 @@
     const onMouseMove = (handler, event) => {
       event.preventDefault();
       const e = pointer
-        .move(event.clientX, event.clientY)
-        .pressed(event.buttons > 0)
+        .move(event.clientX, event.clientY, event.buttons > 0)
         .get();
       handler(e);
       return e;
@@ -2606,8 +2844,7 @@
     const onTouchMove = (handler, event) => {
       event.preventDefault();
       const e = pointer
-        .move(event.touches[0].clientX, event.touches[0].clientY)
-        .pressed(true)
+        .move(event.touches[0].clientX, event.touches[0].clientY, true)
         .get();
       handler(e);
       return e;
@@ -2615,7 +2852,7 @@
     const onMouseDown = (handler, event) => {
       event.preventDefault();
       const e = pointer
-        .down(event.clientX, event.clientY)
+        .move(event.clientX, event.clientY, true)
         .get();
       handler(e);
       return e;
@@ -2623,14 +2860,14 @@
     const onTouchStart = (handler, event) => {
       event.preventDefault();
       const e = pointer
-        .down(event.touches[0].clientX, event.touches[0].clientY)
+        .move(event.touches[0].clientX, event.touches[0].clientY, true)
         .get();
       handler(e);
       return e;
     };
     const onEnd = (handler, event) => {
       event.preventDefault();
-      const e = pointer.pressed(false).get();
+      const e = pointer.release().get();
       handler(e);
       return e;
     };
@@ -2808,7 +3045,7 @@
         }
       }
       if (typeof position.delegate === "function") {
-        position.delegate(proxy);
+        position.delegate.apply(position.pointsContainer, [proxy, position.pointsContainer]);
       }
     };
     setPosition(options.position);
@@ -2828,6 +3065,14 @@
     position.onMouseMove = onMouseMove;
     position.onMouseUp = onMouseUp;
     position.distance = distance;
+    Object.defineProperty(position, "x", {
+      get: () => position[0],
+      set: (newValue) => { position[0] = newValue; }
+    });
+    Object.defineProperty(position, "y", {
+      get: () => position[1],
+      set: (newValue) => { position[1] = newValue; }
+    });
     Object.defineProperty(position, "svg", {
       get: () => svg,
       set: (newSVG) => { svg = newSVG; }
@@ -2858,10 +3103,13 @@
     });
     const protocol = function (point) {
       if (typeof delegate === "function") {
-        delegate.call(points, point);
+        delegate.call(points, points, point);
       }
     };
-    points.forEach((p) => { p.delegate = protocol; });
+    points.forEach((p) => {
+      p.delegate = protocol;
+      p.pointsContainer = points;
+    });
     const mousePressedHandler = function (mouse) {
       if (!(points.length > 0)) { return; }
       selected = points
@@ -2893,22 +3141,22 @@
         points.pop().remove();
       }
     };
-    points.changed = function (func, runOnceAtStart) {
+    points.onChange = function (func, runOnceAtStart) {
       if (typeof func === "function") {
         delegate = func;
-        if (runOnceAtStart === true) { delegate.call(points); }
+        if (runOnceAtStart === true) { func.call(points, points, undefined); }
       }
       return points;
     };
     points.position = function (func) {
       if (typeof func === "function") {
-        points.forEach((p, i) => p.setPosition(func(i)));
+        points.forEach((p, i) => p.setPosition(func.call(points, i)));
       }
       return points;
     };
     points.svg = function (func) {
       if (typeof func === "function") {
-        points.forEach((p, i) => { p.svg = func(i); });
+        points.forEach((p, i) => { p.svg = func.call(points, i); });
       }
       return points;
     };
@@ -3165,12 +3413,9 @@
     "accumulate",
     "additive",
     "alignment-baseline",
-    "allowReorder",
     "amplitude",
     "attributeName",
-    "autoReverse",
     "azimuth",
-    "BSection",
     "baseFrequency",
     "baseline-shift",
     "baseProfile",
@@ -3244,20 +3489,15 @@
     "horiz-adv-x",
     "horiz-origin-x",
     "ISection",
-    "ideographic",
     "image-rendering",
     "in",
     "in2",
     "intercept",
-    "KSection",
-    "k",
     "k1",
     "k2",
     "k3",
     "k4",
     "kernelMatrix",
-    "kernelUnitLength",
-    "kerning",
     "keyPoints",
     "keySplines",
     "keyTimes",
@@ -3284,13 +3524,10 @@
     "name",
     "numOctaves",
     "OSection",
-    "offset",
     "opacity",
     "operator",
     "order",
     "orient",
-    "orientation",
-    "origin",
     "overflow",
     "overline-position",
     "overline-thickness",
@@ -3299,7 +3536,6 @@
     "patternContentUnits",
     "patternTransform",
     "patternUnits",
-    "ping",
     "pointer-events",
     "pointsAtX",
     "pointsAtY",
@@ -3309,10 +3545,8 @@
     "primitiveUnits",
     "RSection",
     "radius",
-    "referrerPolicy",
     "refX",
     "refY",
-    "rel",
     "rendering-intent",
     "repeatCount",
     "repeatDur",
@@ -3322,11 +3556,9 @@
     "SSection",
     "seed",
     "shape-rendering",
-    "slope",
     "spacing",
     "specularConstant",
     "specularExponent",
-    "speed",
     "spreadMethod",
     "startOffset",
     "stdDeviation",
@@ -3337,7 +3569,6 @@
     "stop-opacity",
     "strikethrough-position",
     "strikethrough-thickness",
-    "string",
     "stroke",
     "stroke-dasharray",
     "stroke-dashoffset",
@@ -3365,9 +3596,9 @@
     "underline-position",
     "underline-thickness",
     "unicode",
-    "unicode-bidi",
     "unicode-range",
     "units-per-em",
+    "user-select",
     "VSection",
     "v-alphabetic",
     "v-hanging",
@@ -3379,7 +3610,6 @@
     "vert-adv-y",
     "vert-origin-x",
     "vert-origin-y",
-    "viewBox",
     "viewTarget",
     "visibility",
     "WSection",
@@ -3387,12 +3617,10 @@
     "word-spacing",
     "writing-mode",
     "XSection",
-    "x-height",
     "xChannelSelector",
     "YSection",
     "yChannelSelector",
     "ZSection",
-    "zoomAndPan"
   ];
   const removeChildren = function (parent) {
     while (parent.lastChild) {
@@ -3632,7 +3860,7 @@
     };
   };
   const attachPathMethods = function (element) {
-    Object.keys(Path).forEach((key) => {
+    Object.keys(Path).filter(key => element[key] === undefined).forEach((key) => {
       element[key] = (...args) => Path[key](element, ...args);
     });
   };
@@ -3642,7 +3870,7 @@
     });
   };
   const attachTransformMethods = function (element) {
-    Object.keys(Transform).forEach((key) => {
+    Object.keys(Transform).filter(key => element[key] === undefined).forEach((key) => {
       element[key] = (...args) => Transform[key](element, ...args);
     });
   };
@@ -3731,6 +3959,7 @@
   const prepareText = function (element) {
     attachFunctionalStyleSetters(element);
     attachDOMMethods(element);
+    attachTransformMethods(element);
     attachClipMaskAttributes(element);
   };
   const prepareSVG = function (element, primitives) {
@@ -3786,6 +4015,7 @@
     prepare("primitive", shape);
     shape.setCenter = (...args) => setCenter(shape, ...args);
     shape.setRadius = (r) => { shape.setAttributeNS(null, "r", r); return shape; };
+    shape.radius = (r) => { shape.setAttributeNS(null, "r", r); return shape; };
     return shape;
   };
   const ellipse = function (x, y, rx, ry) {
@@ -4043,7 +4273,11 @@
   const initSize = function (svgElement, params) {
     const numbers = params.filter(arg => !isNaN(arg));
     const viewBox = svgElement.getAttribute("viewBox");
-    if (numbers.length >= 2) {
+    if (numbers.length >= 4) {
+      svgElement.setAttributeNS(null, "width", numbers[2]);
+      svgElement.setAttributeNS(null, "height", numbers[3]);
+      setViewBox(svgElement, numbers[0], numbers[1], numbers[2], numbers[3]);
+    } else if (numbers.length >= 2) {
       svgElement.setAttributeNS(null, "width", numbers[0]);
       svgElement.setAttributeNS(null, "height", numbers[1]);
       setViewBox(svgElement, 0, 0, numbers[0], numbers[1]);
@@ -4183,7 +4417,7 @@
         globalize(element);
       }
       params.filter(arg => typeof arg === "function")
-        .forEach(func => func());
+        .forEach(func => func.call(element, element));
     };
     if (win.document.readyState === "loading") {
       win.document.addEventListener("DOMContentLoaded", initialize);
@@ -4396,7 +4630,7 @@
       return face_stationary;
     });
     return graph.vertices_coords.map((point, i) => math.core
-      .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+      .multiply_matrix2_vector2(faces_matrix[vertex_in_face[i]], point)
       .map(n => math.core.clean_number(n)));
   };
   const make_vertices_isBoundary = function (graph) {
@@ -4561,7 +4795,7 @@
     vertices_coords, faces_vertices
   }, point, faces_matrix) {
     const transformed_points = faces_matrix
-      .map(m => math.core.multiply_vector2_matrix2(point, m));
+      .map(m => math.core.multiply_matrix2_vector2(m, point));
     return faces_vertices
       .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
       .filter((f, i) => math.core.intersection
@@ -4914,7 +5148,7 @@
     axiom_frame.test = {};
     axiom_frame.test.points_reflected = axiom_frame.solutions
       .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
-      .map(m => math.core.multiply_vector2_matrix2(params.points[1], m));
+      .map(m => math.core.multiply_matrix2_vector2(m, params.points[1]));
     axiom_frame.valid = math.core.point_in_convex_poly(params.points[0], poly)
       && math.core.point_in_convex_poly(params.points[1], poly);
     axiom_frame.valid_solutions = axiom_frame.test.points_reflected
@@ -4936,7 +5170,7 @@
     axiom_frame.test.points_reflected = axiom_frame.solutions
       .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
       .map(m => params.points
-        .map(p => math.core.multiply_vector2_matrix2(p, m)))
+        .map(p => math.core.multiply_matrix2_vector2(m, p)))
       .reduce((prev, curr) => prev.concat(curr), []);
     axiom_frame.valid = a !== undefined && b !== undefined
       && math.core.point_in_convex_poly(params.points[0], poly)
@@ -4960,7 +5194,7 @@
     const solution = axiom_frame.solutions[0];
     const params = axiom_frame.parameters;
     const m = math.core.make_matrix2_reflection(solution[1], solution[0]);
-    const reflected = math.core.multiply_vector2_matrix2(params.points[0], m);
+    const reflected = math.core.multiply_matrix2_vector2(m, params.points[0]);
     const intersect = math.core.intersection.line_line(
       params.lines[1][0], params.lines[1][1],
       solution[0], solution[1],
@@ -5611,7 +5845,7 @@
   const apply_matrix_to_fold = function (fold, matrix) {
     get_keys_with_ending("coords").forEach((key) => {
       fold[key] = fold[key]
-        .map(v => math.core.multiply_vector2_matrix2(v, matrix));
+        .map(v => math.core.multiply_matrix2_vector2(matrix, v));
     });
     get_keys_with_ending("matrix").forEach((key) => {
       fold[key] = fold[key]
@@ -10374,7 +10608,7 @@
       };
     });
   };
-  var multiply_line_matrix2$1 = function multiply_line_matrix2(line, matrix) {
+  var multiply_line_matrix2 = function multiply_line_matrix2(line, matrix) {
     return [line[0] * matrix[0] + line[1] * matrix[2] + matrix[4], line[0] * matrix[1] + line[1] * matrix[3] + matrix[5], line[2] * matrix[0] + line[3] * matrix[2] + matrix[4], line[2] * matrix[1] + line[3] * matrix[3] + matrix[5]];
   };
   var multiply_matrices2$1 = function multiply_matrices2(m1, m2) {
@@ -10524,7 +10758,7 @@
       return parseable.indexOf(e.tagName) !== -1;
     }).map(function (e) {
       return parsers[e.tagName](e).map(function (unit) {
-        return multiply_line_matrix2$1(unit, e.matrix);
+        return multiply_line_matrix2(unit, e.matrix);
       }).map(function (unit) {
         return [].concat(_toConsumableArray$1(unit), [attribute_list(e)]);
       });
@@ -11152,14 +11386,14 @@
       graph["faces_re:matrix"]
     );
     graph["faces_re:creases"] = graph["faces_re:matrix"]
-      .map(mat => math.core.make_matrix2_inverse(mat))
-      .map(mat => math.core.multiply_line_matrix2(point, vector, mat));
+      .map(mat => math.core.invert_matrix2(mat))
+      .map(mat => math.core.multiply_matrix2_line2(mat, point, vector));
     graph["faces_re:center"] = Array.from(Array(faceCount))
       .map((_, i) => make_face_center_fast(graph, i));
     graph["faces_re:sidedness"] = Array.from(Array(faceCount))
       .map((_, i) => get_face_sidedness(
-        graph["faces_re:creases"][i][0],
-        graph["faces_re:creases"][i][1],
+        graph["faces_re:creases"][i].origin,
+        graph["faces_re:creases"][i].vector,
         graph["faces_re:center"][i],
         graph["faces_re:coloring"][i]
       ));
@@ -11211,8 +11445,8 @@
       .map((i) => {
         const diff = split_convex_polygon$1(
           folded, i,
-          folded["faces_re:creases"][i][0],
-          folded["faces_re:creases"][i][1],
+          folded["faces_re:creases"][i].origin,
+          folded["faces_re:creases"][i].vector,
           folded["faces_re:coloring"][i] ? assignment : opposite_crease
         );
         if (diff == null || diff.faces == null) { return undefined; }
@@ -11222,8 +11456,8 @@
           .forEach((i) => {
             folded["faces_re:center"][i] = make_face_center_fast(folded, i);
             folded["faces_re:sidedness"][i] = get_face_sidedness(
-              graph["faces_re:creases"][replace.old][0],
-              graph["faces_re:creases"][replace.old][1],
+              graph["faces_re:creases"][replace.old].origin,
+              graph["faces_re:creases"][replace.old].vector,
               folded["faces_re:center"][i],
               graph["faces_re:coloring"][replace.old]
             );
@@ -11258,8 +11492,8 @@
         : math.core.multiply_matrices2(
           graph["faces_re:matrix"][0],
           math.core.make_matrix2_reflection(
-            graph["faces_re:creases"][0][1],
-            graph["faces_re:creases"][0][0]
+            graph["faces_re:creases"][0].vector,
+            graph["faces_re:creases"][0].origin
           )
         )
       );
@@ -11269,16 +11503,16 @@
     folded["faces_re:coloring"] = faces_coloring_from_faces_matrix(
       folded_faces_matrix
     );
-    const crease_0 = math.core.multiply_line_matrix2(
-      graph["faces_re:creases"][0][0],
-      graph["faces_re:creases"][0][1],
-      face_0_preMatrix
+    const crease_0 = math.core.multiply_matrix2_line2(
+      face_0_preMatrix,
+      graph["faces_re:creases"][0].origin,
+      graph["faces_re:creases"][0].vector
     );
     const fold_direction = math.core
-      .normalize([crease_0[1][1], -crease_0[1][0]]);
+      .normalize([crease_0.vector[1], -crease_0.vector[0]]);
     const split_points = faces_split
       .map((el, i) => (el === undefined ? undefined : el.edge.map(p => math.core
-        .multiply_vector2_matrix2(p, graph["faces_re:matrix"][i]))))
+        .multiply_matrix2_vector2(graph["faces_re:matrix"][i], p))))
       .filter(a => a !== undefined)
       .reduce((a, b) => a.concat(b), []);
     folded["re:construction"] = (split_points.length === 0
@@ -13561,7 +13795,7 @@ line.valley { stroke: blue;
         case "edge": p = math.core.get_vector_of_vectors(...args); break;
         default:
           l = math.core.get_line(...args);
-          p = [l.point, l.vector];
+          p = [l.origin, l.vector];
           break;
       }
       const func = {
@@ -13746,12 +13980,12 @@ line.valley { stroke: blue;
       const line = math.core.get_line(args);
       const assignment = get_assignment(...args) || "V";
       const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
-      if (!math.core.is_vector(line.point) || !math.core.is_vector(line.vector)) {
+      if (!math.core.is_vector(line.origin) || !math.core.is_vector(line.vector)) {
         console.warn("fold was not supplied the correct parameters");
         return;
       }
       const folded = fold_through(this,
-        line.point,
+        line.origin,
         line.vector,
         face_index,
         assignment);
@@ -13769,12 +14003,12 @@ line.valley { stroke: blue;
       const faces = this.faces_vertices.map(fv => fv.map(v => this.vertices_coords[v]));
       const intersecting = faces
         .map((face, i) => (math.core.intersection
-          .convex_poly_ray_exclusive(face, ray.point, ray.vector) === undefined
+          .convex_poly_ray_exclusive(face, ray.origin, ray.vector) === undefined
           ? undefined : i))
         .filter(a => a !== undefined)
         .sort((a, b) => b - a);
       intersecting.forEach(index => split_convex_polygon$1(
-        this, index, ray.point, ray.vector, "F"
+        this, index, ray.origin, ray.vector, "F"
       ));
     };
     proto.kawasaki = function (...args) {

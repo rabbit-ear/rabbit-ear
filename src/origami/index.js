@@ -171,6 +171,11 @@ const Origami = function (...args) {
     return origami;
   };
 
+  // probably not needed
+  // const calculateAdjacent = function (component, index) {
+  //   return [1, 5, 2];
+  // };
+
   const get = function (component) {
     const a = transpose_geometry_arrays(origami, component);
     const view = origami.svg || origami.gl;
@@ -181,6 +186,9 @@ const Origami = function (...args) {
         origami.didChange.forEach(f => f());
       },
     });
+    // this should be covered in the flat arrays, and automatically migrate over due to transpose_geometry_arrays
+    // a.forEach(el => Object.defineProperty(el, "adjacent"));
+
     if (origami.svg != null) {
       a.forEach((el, i) => {
         el.svg = origami.svg.groups[component].childNodes[i];

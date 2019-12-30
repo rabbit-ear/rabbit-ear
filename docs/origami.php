@@ -1,8 +1,8 @@
 <?php include 'header.php';?>
 
-<h3 style="text-align:center;margin-top:3em;">CHAPTER III.</h3>
+<h3 style="text-align:center;margin-top:3em;">CHAPTER IV.</h3>
 
-<h1>CREASE PATTERNS</h1>
+<h1>ORIGAMI</h1><h1>CREASE PATTERNS</h1>
 
 
 	<div id="canvas-face-dual"></div>

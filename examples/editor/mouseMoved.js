@@ -10,6 +10,8 @@ const MouseMoved = function () {
 
     Array.from(app.origami.svg.groups.edges.childNodes)
       .forEach(edge => removeClass("selected", edge));
+    Array.from(app.origami.svg.groups.faces.childNodes)
+      .forEach(face => removeClass("selected", face));
 
     app.nearest = app.origami.nearest(mouse);
 
@@ -23,19 +25,24 @@ const MouseMoved = function () {
     if (mouse.isPressed) {
       switch (app.tapMode) {
         case "segment":
-          app.tapLayer.line(mouse.pressed[0], mouse.pressed[1], mouse[0], mouse[1])
+          if (app.nearestPressed == null) { break; }
+          // app.tapLayer.line(mouse.pressed[0], mouse.pressed[1], mouse[0], mouse[1])
+          app.tapLayer.line(app.nearestPressed.vertex.coords[0], app.nearestPressed.vertex.coords[1], mouse[0], mouse[1])
             .stroke("black")
             .strokeWidth(0.005);
           break;
         case "point-to-point":
-          app.tapLayer.arrow(mouse.pressed[0], mouse.pressed[1], mouse[0], mouse[1])
+          if (app.nearestPressed == null) { break; }
+          app.tapLayer.arrow(app.nearestPressed.vertex.coords[0], app.nearestPressed.vertex.coords[1], mouse[0], mouse[1])
+          // app.tapLayer.arrow(mouse.pressed[0], mouse.pressed[1], mouse[0], mouse[1])
             .stroke("black")
             .fill("black")
             .head({ width: 0.015, height: 0.05 })
             .curve(0.25)
-            .strokeWidth(0.01);
+            .strokeWidth(0.005);
           break;
         case "bisect": {
+          if (app.nearestPressed == null) { break; }
           const edgeA = app.nearestPressed.edge.index;
           const edgeB = app.nearest.edge.index;
           const g = app.origami;
@@ -66,16 +73,19 @@ const MouseMoved = function () {
             const det = vecIntersec[0] * vecArc[1] - vecIntersec[1] * vecArc[0];
             app.tapLayer.arrow(nearestA[0], nearestA[1], nearestB[0], nearestB[1])
               .stroke("black")
-              .strokeWidth(0.01)
+              .strokeWidth(0.005)
+              .head({ width: 0.01, height: 0.03 })
               .curve(det < 0 ? 0.3 : -0.3);
           } else {
-            app.tapLayer.line(nearestA[0], nearestA[1], nearestB[0], nearestB[1])
+            app.tapLayer.arrow(nearestA[0], nearestA[1], nearestB[0], nearestB[1])
+              .head({ width: 0.01, height: 0.03 })
               .stroke("black")
-              .strokeWidth(0.01);
+              .strokeWidth(0.005);
           }
           // app.tapLayer.line(nearestA[0], nearestA[1], mouse[0], mouse[1]);
         }
           break;
+        case "line": break;
         case "pleat": {
           // const normalized = RabbitEar.math.normalize(mouse.drag);
           const start = RabbitEar.vector(mouse.pressed);
@@ -107,20 +117,41 @@ const MouseMoved = function () {
 
           app.tapLayer.line(nearestA[0], nearestA[1], mouse[0], mouse[1])
             .stroke("black")
-            .strokeWidth(0.01);
+            .strokeWidth(0.005);
         }
           break;
+        case "point-to-line-point": break;
+        case "point-to-line-line": break;
         case "rabbit-ear": break;
         case "kawasaki": break;
         case "mountain-valley": break;
         case "mark": break;
         case "cut": break;
-        case "remove-crease":
-          app.tapLayer.rect(...app.dragRect)
-            .fill("none")
+        case "remove-crease": {
+          // app.tapLayer.rect(...app.dragRect)
+          //   .fill("none")
+          //   .stroke("black")
+          //   .strokeWidth(0.005)
+          //   .strokeDasharray("0.02 0.008");
+          const edgeA = app.nearestPressed.edge.index;
+          const g = app.origami;
+          const a0 = g.vertices_coords[g.edges_vertices[edgeA][0]];
+          const a1 = g.vertices_coords[g.edges_vertices[edgeA][1]];
+          const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
+          const nearestA = RabbitEar.math.nearest_point_on_line(
+            a0,
+            aVec,
+            mouse.pressed,
+            ((x) => { if (x < 0) return 0; if (x > 1) return 1; return x; })
+          );
+          //
+          const nearestEndpoint = app.nearestPressed.edge.index;
+          app.tapLayer.arrow(nearestA[0], nearestA[1], mouse[0], mouse[1])
             .stroke("black")
-            .strokeWidth(0.005)
-            .strokeDasharray("0.02 0.008");
+            .fill("black")
+            .head({ width: 0.01, height: 0.03 })
+            .strokeWidth(0.005);
+        }
           break;
         case "select": break;
         case "view": break;
@@ -137,11 +168,15 @@ const MouseMoved = function () {
     const nEdgeI = app.nearest.edge ? app.nearest.edge.index : "";
     const nFaceI = app.nearest.face ? app.nearest.face.index : "";
     const nSectorI = app.nearest.sector ? app.nearest.sector.index : "";
-    document.querySelectorAll(".app-info-p")[0].innerHTML = "<b>cursor</b><br>x: "+(mouse.x).toFixed(3)+"<br>y: "+(mouse.y).toFixed(3)+"<br><br><b>nearest</b><br>point: " + nVertexI + " / "+numVertices+"<br>edge: " + nEdgeI + " / "+numEdges+"<br>face: " + nFaceI + " / "+numFaces;
+    document.querySelectorAll(".info-cursor-p")[0].innerHTML = "<b>cursor</b><br>x: "+(mouse.x).toFixed(3)+"<br>y: "+(mouse.y).toFixed(3)+"<br><br><b>nearest</b><br>point: " + nVertexI + " / "+numVertices+"<br>edge: " + nEdgeI + " / "+numEdges+"<br>face: " + nFaceI + " / "+numFaces;
 
+    if (app.selected.vertices.length || app.selected.edges.length > 1 || app.selected.faces.length) {
+      document.querySelectorAll(".info-cursor-p")[0].innerHTML += "<br><br><b>selected</b><br>vertices: <b>" + app.selected.vertices.length + "</b> / " + app.origami.vertices_coords.length + "<br>edges: <b>" + app.selected.edges.length + "</b> / " + app.origami.edges_vertices.length + "<br>faces: <b>" + app.selected.faces.length + "</b> / " + app.origami.faces_vertices.length;
+    }
 
     switch (app.tapMode) {
       case "segment":
+      case "line":
       case "point-to-point":
         if (app.nearest.vertex) {
           app.tapLayer.circle(app.nearest.vertex.coords[0], app.nearest.vertex.coords[1], 0.01).fill("#e53");
@@ -150,7 +185,7 @@ const MouseMoved = function () {
       case "rabbit-ear":
       case "kawasaki":
         if (app.nearest.face && app.nearest.face.svg) {
-          app.nearest.face.svg.setAttribute("style", "fill:#ec3;");
+          app.selected.faces = [app.nearest.face.index];
         }
         break;
       case "bisect":
@@ -177,12 +212,14 @@ const MouseMoved = function () {
           }
         }
         break;
+      case "point-to-line-point": break;
+      case "point-to-line-line": break;
       case "remove-crease":
-        app.tapLayer.rect(...app.dragRect)
-          .fill("none")
-          .stroke("black")
-          .strokeWidth(0.005)
-          .strokeDasharray("0.02 0.008");
+        // app.tapLayer.rect(...app.dragRect)
+        //   .fill("none")
+        //   .stroke("black")
+        //   .strokeWidth(0.005)
+        //   .strokeDasharray("0.02 0.008");
         if (app.nearest.edge && app.nearest.edge.svg) {
           // app.nearest.edge.svg.setAttribute("style", "stroke:#ec3;");
           app.selected.edges = [app.nearest.edge.index];
@@ -195,13 +232,16 @@ const MouseMoved = function () {
           .strokeWidth(0.005)
           .strokeDasharray("0.016 0.008");
         if (app.dragRect.length) {
-          app.selected.edges = RabbitEar.core.select_edges(app.origami, [
+          const poly = [
             [app.dragRect[0], app.dragRect[1]],
             [app.dragRect[0] + app.dragRect[2], app.dragRect[1]],
             [app.dragRect[0] + app.dragRect[2], app.dragRect[1] + app.dragRect[3]],
             [app.dragRect[0], app.dragRect[1] + app.dragRect[3]]
-          ]);
+          ];
+          app.selected.edges = RabbitEar.core.select_edges(app.origami, poly);
+          app.selected.vertices = RabbitEar.core.select_vertices(app.origami, poly);
         }
+
         break;
       case "view": break;
       case "graph": break;
@@ -212,6 +252,9 @@ const MouseMoved = function () {
 
     const edgesSVG = Array.from(app.origami.svg.groups.edges.childNodes);
     app.selected.edges.forEach(s => addClass("selected", edgesSVG[s]));
+
+    const facesSVG = Array.from(app.origami.svg.groups.faces.childNodes);
+    app.selected.faces.forEach(s => addClass("selected", facesSVG[s]));
 
     // draw symmetry stuff
     app.symmetries.forEach((mat) => {

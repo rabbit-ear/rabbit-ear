@@ -256,7 +256,7 @@ export const make_vertices_coords_folded = function (graph, face_stationary, fac
     return face_stationary;
   });
   return graph.vertices_coords.map((point, i) => math.core
-    .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+    .multiply_matrix2_vector2(faces_matrix[vertex_in_face[i]], point)
     .map(n => math.core.clean_number(n)));
 };
 

@@ -1,4 +1,4 @@
-var g04 = RabbitEar.Graph();
+var g04 = RabbitEar.graph();
 fillGraph(g04, 7);
 
 var d3Graph04 = graphToD3(g04);

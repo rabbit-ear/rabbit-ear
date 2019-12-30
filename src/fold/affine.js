@@ -5,7 +5,7 @@ const apply_matrix_to_fold = function (fold, matrix) {
   // update all vector types
   get_keys_with_ending("coords").forEach((key) => {
     fold[key] = fold[key]
-      .map(v => math.core.multiply_vector2_matrix2(v, matrix));
+      .map(v => math.core.multiply_matrix2_vector2(matrix, v));
   });
   // update all matrix types
   // todo, are these being multiplied in the right order?

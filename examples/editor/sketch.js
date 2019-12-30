@@ -37,18 +37,28 @@ const download = function (text, filename, mimeType) {
   download64(url, filename);
 };
 
+const toggleElementDisplay = function (el) {
+  const curr = getComputedStyle(el).display || el.style.display;
+  el.style.display = curr === "none" ? "block" : "none";
+};
+
+// .edges { stroke-width: 0.005; }
 const stylesheet = `
 .edges {
-  stroke-width: 0.005
+  stroke-width: 0.003;
 }
 .edges .valley {
-  stroke-dasharray: 0.02 0.01
+  stroke-dasharray: 0.02 0.004;
 }
 .edges .mark {
-  stroke-width: 0.003
+  stroke-width: 0.001;
+  stroke: #444;
 }
 .edges .selected {
   stroke: #ec3;
+}
+.creasePattern .faces polygon.selected {
+  fill: #ec3;
 }
 `;
 
@@ -81,8 +91,12 @@ const App = function (options = {}) {
 
   // app.symmetries.push(RabbitEar.matrix2.makeReflection([1, 1], [0, 0]));
 
-  app.cache = function () {
+  let cacheCount = 0;
+  app.cache = function (historyTextRecord) {
     app.history.push(app.origami.copy());
+    const el = document.querySelectorAll(".info-history-pre")[0];
+    el.innerHTML += ("00" + cacheCount).slice(-3) + " " + historyTextRecord;
+    cacheCount += 1;
   };
 
   app.undo = function () {
@@ -91,19 +105,33 @@ const App = function (options = {}) {
     app.origami.load(lastStep);
   };
 
-  app.tapModes = ["segment", "point-to-point", "bisect", "pleat", "rabbit-ear", "mountain-valley", "mark", "cut", "remove-crease"];
+  app.cutSelected = function () {
+    app.cache("cut selection\n");
+    // app.selected.vertices.forEach(v => {});
+    RabbitEar.core.remove(app.origami, "edges", app.selected.edges);
+    app.origami.clean();
+    app.origami.svg.draw();
+    app.update();
+  };
+
+  // app.tapModes = ["segment", "point-to-point", "bisect", "pleat", "rabbit-ear", "mountain-valley", "mark", "cut", "remove-crease"];
 
   // defaults
   app.options.snap = true;
   app.tapMode = "bisect";
 
+  app.update = function () {
+    app.folded.load(origami);
+    app.folded.collapse();
+  };
+
   app.load = function (blob, filename, fileExtension) {
+    app.cache(`load ${filename}.${fileExtension}`);
     // lastFileLoaded = { blob, filename, fileExtension };
     origami.load(blob);
-    folded.load(origami);
-    folded.collapse();
+    app.update();
 
-    const title = origami.file_title || "";
+    const title = origami.file_title || filename || "";
     const author = origami.file_author || "";
     const description = origami.file_description || "";
 
@@ -111,27 +139,40 @@ const App = function (options = {}) {
     document.querySelectorAll(".input-author")[0].value = author;
     document.querySelectorAll(".input-description")[0].value = description;
 
+    app.dragRect = [];
+    setTapMode(app.tapMode);
     // jsonPanel.load(origami.export.json());
     // filePanel.load(origami, filename, fileExtension);
   };
 
   const filename = function () {
-    const title = origami.file_title || "origami";
-    const author = origami.file_author || "";
+    const title = origami.file_title.replace(/ /g, "-") || "origami";
+    const author = origami.file_author.replace(/ /g, "-") || "";
     // const description = origami.file_description || ""
-    return author === "" ? title : (author + "-" + title);
+    const d = new Date();
+    const datestring = d.getFullYear()
+      + "-" + ("0" + (d.getMonth() + 1)).slice(-2)
+      + "-" + ("0" + d.getDate()).slice(-2)
+      + "-" + ("0" + d.getHours()).slice(-2)
+      + "-" + ("0" + d.getMinutes()).slice(-2)
+      + "-" + ("0" + d.getSeconds()).slice(-2);
+    return author === ""
+      ? `${title}-${datestring}`
+      : `${author}-${title}-${datestring}`;
   };
-
 
   const setTapMode = function (newMode) {
     const oldMode = app.tapMode;
     app.tapMode = newMode;
 
     [".button-tap-mode-segment",
+      ".button-tap-mode-line",
       ".button-tap-mode-point-to-point",
       ".button-tap-mode-bisect",
       ".button-tap-mode-pleat",
       ".button-tap-mode-perpendicular-to",
+      ".button-tap-mode-point-to-line-point",
+      ".button-tap-mode-point-to-line-line",
       ".button-tap-mode-rabbit-ear",
       ".button-tap-mode-kawasaki",
       ".button-tap-mode-remove-crease",
@@ -148,12 +189,9 @@ const App = function (options = {}) {
 
     addClass("active", document.querySelectorAll(`.button-tap-mode-${newMode}`)[0]);
 
-    if (oldMode === "graph" || oldMode === "history" || oldMode === "version") {
-      document.querySelectorAll(".canvas-container")[0].style.display = "block";
-      document.querySelectorAll(".code-container")[0].style.display = "none";
-      document.body.style.backgroundColor = "initial";
-      document.body.style.backgroundImage = "url(squares.png)";
-    }
+    app.selected.vertices = [];
+    app.selected.edges = [];
+    app.selected.faces = [];
 
     switch (app.tapMode) {
       case "view": break;
@@ -184,6 +222,8 @@ const App = function (options = {}) {
 
   document.querySelectorAll(".button-tap-mode-segment")[0]
     .onclick = function () { setTapMode("segment"); };
+  document.querySelectorAll(".button-tap-mode-line")[0]
+    .onclick = function () { setTapMode("line"); };
   document.querySelectorAll(".button-tap-mode-point-to-point")[0]
     .onclick = function () { setTapMode("point-to-point"); };
   document.querySelectorAll(".button-tap-mode-bisect")[0]
@@ -192,6 +232,10 @@ const App = function (options = {}) {
     .onclick = function () { setTapMode("pleat"); };
   document.querySelectorAll(".button-tap-mode-perpendicular-to")[0]
     .onclick = function () { setTapMode("perpendicular-to"); };
+  document.querySelectorAll(".button-tap-mode-point-to-line-point")[0]
+    .onclick = function () { setTapMode("point-to-line-point"); };
+  document.querySelectorAll(".button-tap-mode-point-to-line-line")[0]
+    .onclick = function () { setTapMode("point-to-line-line"); };
   document.querySelectorAll(".button-tap-mode-rabbit-ear")[0]
     .onclick = function () { setTapMode("rabbit-ear"); };
   document.querySelectorAll(".button-tap-mode-kawasaki")[0]
@@ -206,21 +250,24 @@ const App = function (options = {}) {
 
   document.querySelectorAll(".button-tap-mode-remove-crease")[0]
     .onclick = function () { setTapMode("remove-crease"); };
-  document.querySelectorAll(".toggle-snap")[0]
-    .onclick = function () { app.options.snap = !app.options.snap; };
-  document.querySelectorAll(".toggle-zoom-swipe")[0]
-    .onclick = function () { app.options.zoomSwipe = !app.options.zoomSwipe; };
 
   document.querySelectorAll(".button-tap-mode-select")[0]
     .onclick = function () { setTapMode("select"); };
-  document.querySelectorAll(".button-tap-mode-view")[0]
-    .onclick = function () { setTapMode("view"); };
-  document.querySelectorAll(".button-tap-mode-graph")[0]
-    .onclick = function () { setTapMode("graph"); };
-  document.querySelectorAll(".button-tap-mode-history")[0]
-    .onclick = function () { setTapMode("history"); };
-  document.querySelectorAll(".button-tap-mode-version")[0]
-    .onclick = function () { setTapMode("version"); };
+
+  document.querySelectorAll(".toggle-snap")[0]
+    .onclick = function () { app.options.snap = !app.options.snap; };
+  // document.querySelectorAll(".toggle-zoom-swipe")[0]
+  //   .onclick = function () { app.options.zoomSwipe = !app.options.zoomSwipe; };
+
+  document.querySelectorAll(".button-info")[0].onclick = function () {
+    toggleElementDisplay(document.querySelectorAll(".info-cursor")[0]);
+  };
+  document.querySelectorAll(".button-history")[0].onclick = function () {
+    toggleElementDisplay(document.querySelectorAll(".info-history")[0]);
+  };
+  document.querySelectorAll(".button-symmetry")[0].onclick = function () {
+    toggleElementDisplay(document.querySelectorAll(".info-symmetry")[0]);
+  };
 
   document.querySelectorAll(".input-title")[0]
     .oninput = function (e) { origami.file_title = e.srcElement.value; };
@@ -239,17 +286,14 @@ const App = function (options = {}) {
     pipShowingFolded = !pipShowingFolded;
   };
 
-  document.querySelectorAll(".menu-new")[0].onclick = function () { };
-  document.querySelectorAll(".menu-open")[0].onclick = function () {
-
-  };
-  // document.querySelectorAll(".menu-save")[0].onclick = function () { };
+  document.querySelectorAll(".menu-new")[0]
+    .onclick = function () {
+      app.load(RabbitEar.bases.square);
+    };
   document.querySelectorAll(".menu-export-fold")[0].onclick = function () {
     const main = pipShowingFolded ? app.origami : app.folded;
     download(main.export.fold(), filename() + ".fold", "application/json");
   };
-  // document.querySelectorAll(".menu-export-oripa")[0].onclick = function () { };
-  // document.querySelectorAll(".menu-export-obj")[0].onclick = function () { };
   document.querySelectorAll(".menu-export-svg")[0].onclick = function () {
     const main = pipShowingFolded ? app.origami : app.folded;
     main.svg.setAttribute("width", "500px");
@@ -259,8 +303,6 @@ const App = function (options = {}) {
     main.svg.removeAttribute("height");
   };
   document.querySelectorAll(".menu-export-png")[0].onclick = function () {
-    // var svgString = new XMLSerializer().serializeToString(document.querySelector('svg'));
-
     const canvas = document.createElement("canvas");
     canvas.setAttribute("width", "2048");
     canvas.setAttribute("height", "2048");
@@ -279,16 +321,28 @@ const App = function (options = {}) {
     };
     img.src = url;
   };
-
-  // app.dom.darkMode.onclick = function () {
-  //   setDarkMode(!darkMode);
-  //   app.editor.focus();
-  // };
+  // document.querySelectorAll(".menu-export-oripa")[0].onclick = function () { };
+  // document.querySelectorAll(".menu-export-obj")[0].onclick = function () { };
+  // document.querySelectorAll(".menu-open")[0].onclick = function () { };
 
   document.body.onkeydown = function (e) {
+    if (e.keyCode === 8) { // backspace
+      app.cutSelected();
+    }
     if (e.ctrlKey === true && e.key === "z") {
       app.undo();
     }
+    if (e.ctrlKey === true && e.key === "x") {
+      app.cutSelected();
+    }
+    if (e.key === "s") { setTapMode("select"); }
+    if (e.key === "1") { setTapMode("line"); }
+    if (e.key === "2") { setTapMode("point-to-point"); }
+    if (e.key === "3") { setTapMode("bisect"); }
+    if (e.key === "4") { setTapMode("perpendicular-to"); }
+    if (e.key === "5") { setTapMode("point-to-line-point"); }
+    if (e.key === "6") { console.log("axiom 6"); }
+    if (e.key === "7") { setTapMode("point-to-line-line"); }
   };
 
   return app;

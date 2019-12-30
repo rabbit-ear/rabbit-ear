@@ -29,9 +29,8 @@
       </li>
       <li class="dropdown">View
         <ul class="dropdown-content">
-          <li>Crease Pattern</li>
-          <li>Folded</li>
-          <li>Text Editor</li>
+          <li>Desktop</li>
+          <li>Mobile</li>
         </ul>
       </li>
       <li class="dropdown">Window
@@ -94,14 +93,14 @@
 
     <div class="divider"></div>
 
+    <button class="button button-tap-mode-select">
+      <i class="expand icon"></i>
+      select
+    </button>
+
     <button class="button button-tap-mode-remove-crease">
       <i class="icon close"></i>
       remove crease
-    </button>
-
-    <button class="button">
-      <i class="crop icon"></i>
-      crop last crease
     </button>
 
     <div class="divider"></div>
@@ -119,18 +118,6 @@
       cut line
     </button>
 
-    <div class="divider"></div>
-
-    <button class="button button-tap-mode-select">
-      <i class="expand icon"></i>
-      select
-    </button>
-    <button class="button">
-      <i class="icon copy"></i>
-      duplicate
-    </button>
-    <button class="toggle button toggle-zoom-swipe">zoom</button>
-
   </div>
 
   <div class="center column">
@@ -140,32 +127,32 @@
 
   <div class="panel toolbar-right">
 
-    <button class="button">
+    <button class="button button-info">
       <i class="dropdown icon"></i>info
     </button>
-    <div class="content">
-      <p class="app-info-p"></p>
+    <div class="content info-cursor">
+      <p class="info-cursor-p"></p>
     </div>
 
-    <button class="button">
+    <button class="button button-symmetry">
       <i class="dropdown icon"></i>symmetry stack
     </button>
-    <div class="content">
+    <div class="content info-symmetry">
       <button class="button">
-        <i class="plus expand"></i>add symmetry
+        <i class="plus expand"></i>+ add
       </button>
-      <p class="app-info-symmetry"></p>
+      <p class="info-symmetry-p"></p>
     </div>
 
-    <button class="button button-tap-mode-history">
+    <button class="button button-history">
       <i class="dropdown icon"></i>history
     </button>
-    <div class="content">
-      <p class="app-info-history"></p>
+    <div class="content info-history">
+      <pre class="info-history-pre"></pre>
     </div>
 
     <button class="button switch-cp-folded">
-      <i class="dropdown icon"></i>cp ↔︎ folded
+      <i class="dropdown icon"></i>windows (1) (2) (3)
     </button>
     <div class="content pip-view">
     </div>
@@ -174,20 +161,6 @@
 
     <button class="toggle button yellow toggle-snap">snap edge</button>
 
-    <div class="divider"></div>
-
-    <button class="button button-tap-mode-view">
-      <i class="icon arrows alternate"></i>
-      view
-    </button>
-    <button class="button button-tap-mode-graph">
-      <i class="cogs icon"></i>
-      data
-    </button>
-    <button class="button button-tap-mode-version">
-      <i class="code branch icon"></i>
-      version tree
-    </button>
   </div>
 
 </div>

@@ -1,92 +1,68 @@
-let clipLineCallback = undefined;
+var clipLineCallback;
 
-let clipLine = RabbitEar.svg("canvas-clip-line", 500, 500);
+RabbitEar.svg("canvas-clip-line", window.innerWidth, window.innerHeight, (svg) => {
+  const { RabbitEar } = window;
 
-clipLine.setup = function() {
-	clipLine.STROKE_WIDTH = clipLine.w * 0.0125;
-	clipLine.RADIUS = clipLine.w * 0.025;
+  const vmin = svg.getWidth() > svg.getHeight() ? svg.getHeight() : svg.getWidth();
+  const STROKE_WIDTH = vmin * 0.02;
+  const RADIUS = vmin * 0.04;
+  const backLayer = svg.group();
+  const polygon = svg.polygon()
+    .stroke("#fb3")
+    .strokeWidth(STROKE_WIDTH)
+    .fill("white")
+    .strokeLinecap("round");
+  const topLayer = svg.group();
+  // const boundary = [[0, 0], [500, 0], [500, 500], [0, 500]];
+  const boundary = RabbitEar.polygon([
+    [-svg.getWidth(), -svg.getHeight()],
+    [svg.getWidth() * 3, -svg.getHeight()],
+    [svg.getWidth() * 3, svg.getHeight() * 3],
+    [-svg.getWidth(), svg.getHeight() * 3]
+  ]);
 
-	clipLine.backLayer = RabbitEar.svg.group();
-	clipLine.appendChild(clipLine.backLayer);
+  const hullPoints = Array.from(Array(24)).map(() => {
+    const a = Math.random() * Math.PI * 2;
+    const r = Math.random() * svg.getHeight() * 0.5;
+    return [svg.getWidth() * 0.5 + r * Math.cos(a), svg.getHeight() * 0.5 + r * Math.sin(a)];
+  });
+  const hull = RabbitEar.polygon.convexHull(hullPoints);
+  // const pointsString = hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
+  polygon.setPoints(hull.points);
+  // polygon.setAttribute("points", pointsString);
 
-	clipLine.polygon = RabbitEar.svg.polygon();
-	clipLine.polygon.setAttribute("stroke", "#f1c14f");
-	clipLine.polygon.setAttribute("stroke-width", clipLine.STROKE_WIDTH);
-	clipLine.polygon.setAttribute("fill", "white");
-	clipLine.polygon.setAttribute("stroke-linecap", "round");
-	clipLine.appendChild(clipLine.polygon);
+  const redraw = function (points) {
+    const vec = [points[1].x - points[0].x, points[1].y - points[0].y];
+    backLayer.removeChildren();
+    // const backLine = RabbitEar.line(points[1], vec);
+    // const backEdge = RabbitEar.math.intersection
+    //   .convex_poly_line(boundary.points, backLine.origin, backLine.vector);
+    // backLayer.line(backEdge[0][0], backEdge[0][1], backEdge[1][0], backEdge[1][1])
+    //   .stroke("#fb3")
+    //   .fill("#fb3")
+    //   .strokeWidth(STROKE_WIDTH)
+    //   .strokeLinecap("round");
 
-	clipLine.topLayer = RabbitEar.svg.group();
-	clipLine.appendChild(clipLine.topLayer);
+    const edge = hull.clipLine(points[0], vec);
 
-	clipLine.touches = RabbitEar.svg.controls(clipLine, 2, {
-		radius: clipLine.RADIUS*1.5,
-		fill: "#e44f2a"
-	});
-	clipLine.touches.forEach(p =>
-		p.position = [Math.random()*clipLine.w, Math.random()*clipLine.h]
-	);
-	clipLine.touches[0].position = [clipLine.w*0.5, clipLine.h*0.5];
+    topLayer.removeChildren();
+    if (edge != null) {
+      topLayer.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1])
+        .stroke("#fb3")
+        .strokeWidth(STROKE_WIDTH)
+        .strokeLinecap("round")
+        .strokeDasharray(`${STROKE_WIDTH} ${STROKE_WIDTH * 2}`);
+      topLayer.circle(edge[0][0], edge[0][1], RADIUS).fill("#158");
+      topLayer.circle(edge[1][0], edge[1][1], RADIUS).fill("#158");
+    }
+    if (clipLineCallback !== undefined) {
+      clipLineCallback({ edge });
+    }
+  };
 
-	clipLine.boundary = [ [0, 0], [500, 0], [500, 500], [0, 500] ];
-}
-clipLine.setup();
-
-clipLine.rebuildHull = function(){
-	let hullPoints = Array.from(Array(24)).map(_ => {
-		let a = Math.random() * Math.PI*2;
-		let r = Math.random() * clipLine.h*0.5;
-		return [clipLine.w*0.5 + r*Math.cos(a), clipLine.h*0.5 + r*Math.sin(a)];
-	});
-	clipLine.hull = RabbitEar.polygon.convexHull(hullPoints);
-	let pointsString = clipLine.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
-	clipLine.polygon.setAttribute("points", pointsString);
-}
-clipLine.rebuildHull();
-
-clipLine.redraw = function(){
-
-	let vec = [
-		clipLine.touches[1].position[0] - clipLine.touches[0].position[0],
-		clipLine.touches[1].position[1] - clipLine.touches[0].position[1]
-	];
-	RabbitEar.svg.removeChildren(clipLine.backLayer);
-	let backLine = RabbitEar.line(clipLine.touches[1].position, vec);
-	let backEdge = RabbitEar.math.intersection.convex_poly_line(clipLine.boundary, backLine.point, backLine.vector);
-	let backEdgeSVG = RabbitEar.svg.line(backEdge[0][0], backEdge[0][1], backEdge[1][0], backEdge[1][1]);
-	backEdgeSVG.setAttribute("stroke", "#f1c14f");
-	backEdgeSVG.setAttribute("stroke", "#f1c14f");
-	backEdgeSVG.setAttribute("stroke-width", clipLine.STROKE_WIDTH);
-	backEdgeSVG.setAttribute("stroke-linecap", "round");
-	clipLine.backLayer.appendChild(backEdgeSVG);
-
-	let edge = clipLine.hull.clipLine(clipLine.touches[0].position, vec);
-
-	RabbitEar.svg.removeChildren(clipLine.topLayer);
-	if(edge != null){
-		let l = RabbitEar.svg.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1]);
-		l.setAttribute("stroke", "#f1c14f");
-		l.setAttribute("stroke-width", clipLine.STROKE_WIDTH);
-		l.setAttribute("stroke-linecap", "round");
-		l.setAttribute("stroke-dasharray", clipLine.STROKE_WIDTH + " " + clipLine.STROKE_WIDTH*2);
-		clipLine.topLayer.appendChild(l);
-		let endpoints = [
-			RabbitEar.svg.circle(edge[0][0], edge[0][1], clipLine.RADIUS),
-			RabbitEar.svg.circle(edge[1][0], edge[1][1], clipLine.RADIUS)
-		];
-		endpoints.forEach(c => {
-			c.setAttribute("fill", "#224c72");
-			clipLine.topLayer.appendChild(c);
-		})
-	}
-	if (clipLineCallback !== undefined) {
-		clipLineCallback({edge})
-	}
-}
-clipLine.redraw();
-
-clipLine.onMouseMove = function(mouse){
-	if (mouse.isPressed) {
-		clipLine.redraw();
-	}
-};
+  const center = [svg.getWidth() * 0.5, svg.getHeight() * 0.5];
+  svg.touches = svg.controls(2)
+    .svg(() => RabbitEar.svg.circle().radius(RADIUS * 1.5).fill("#e53"))
+    .position(i => (i === 0 ? center : [Math.random() * svg.getWidth(), Math.random() * svg.getHeight()]))
+    .onChange((a, b) => redraw(a, b), true);
+});

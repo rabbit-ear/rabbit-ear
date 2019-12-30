@@ -1,115 +1,55 @@
-let lBis = RabbitEar.svg("canvas-line-bisect", 600, 300);
+RabbitEar.svg("canvas-line-bisect", window.innerWidth, window.innerHeight, (svg) => {
+  const { RabbitEar } = window;
+  const vmin = svg.getWidth() > svg.getHeight() ? svg.getHeight() : svg.getWidth();
+  const strokeWidth = vmin * 0.03;
+  const nudge = svg.getWidth() / 5;
+  svg.strokeWidth(strokeWidth);
 
-lBis.setup = function() {
-	lBis.colors = ["black", "black"];//["#ecb233", "#e44f2a", "#195783"];
-	lBis.lines = [lBis.line(), lBis.line()];
-	lBis.controls = RabbitEar.svg.controls(lBis, 4, {radius:6});
-	let pos = [
-		[lBis.w*0.5 - 50, lBis.h*0.5 - 50],
-		[lBis.w*0.5 + 50, lBis.h*0.5 - 50],
-		[lBis.w*0.5 - 50, lBis.h*0.5 + 50],
-		[lBis.w*0.5 + 50, lBis.h*0.5 + 50],
-	]
-	lBis.controls.forEach((c,i) => c.position = pos[i]);
-	// lBis.controls.forEach((c,i) => c.position = [
-	// 	Math.random()*lBis.w*0.8 + lBis.w*0.1,
-	// 	Math.random()*lBis.h*0.8 + lBis.h*0.1
-	// ]);
-	lBis.controls.forEach((c,i) => 
-		c.circle.setAttribute("fill", "none")//lBis.colors[Math.floor(i/2)%3])
-	);
-	lBis.lines.forEach((l,i) => {
-		l.setAttribute("stroke", lBis.colors[i%3]);
-		l.setAttribute("stroke-width", 7);
-		l.setAttribute("stroke-linecap", "round");
-	});
-	let p = 1000;
-	lBis.boundary = RabbitEar.polygon([
-		[-p, -p], [lBis.w+p, -p], [lBis.w+p, lBis.h+p], [-p, lBis.h+p]
-	]);
-	lBis.arrowLayer = lBis.group();
-	lBis.lineLayer = lBis.group();
-}
+  const colors = ["#fb3", "#e53"];
+  const svgLines = [svg.line().stroke("black"), svg.line().stroke("black")];
+  const arrowLayer = svg.group().strokeWidth(strokeWidth / 2).strokeDasharray(`${strokeWidth} ${strokeWidth / 2}`);
+  const lineLayer = svg.group();
+  const arrowOptions = { width: strokeWidth * 1.5, height: strokeWidth * 4 };
+  // const boundary = RabbitEar.polygon([
+  //   [0, 0],
+  //   [svg.getWidth(), 0],
+  //   [svg.getWidth(), svg.getHeight()],
+  //   [0, svg.getHeight()]
+  // ]);
+  const boundary = RabbitEar.polygon([
+    [-svg.getWidth(), -svg.getHeight()],
+    [svg.getWidth() * 3, -svg.getHeight()],
+    [svg.getWidth() * 3, svg.getHeight() * 3],
+    [-svg.getWidth(), svg.getHeight() * 3]
+  ]);
 
-lBis.redraw = function() {
-	lBis.lineLayer.removeChildren();
-	lBis.arrowLayer.removeChildren();
-	let lineA = RabbitEar.Line.fromPoints(lBis.controls[0].position, lBis.controls[1].position);
-	let lineB = RabbitEar.Line.fromPoints(lBis.controls[2].position, lBis.controls[3].position);
-	let segments = [
-		lBis.boundary.clipLine(lineA),
-		lBis.boundary.clipLine(lineB)
-	];
-	segments.forEach((segment, i) => segment.forEach((p, j) => {
-		lBis.lines[i].setAttribute("x"+(j+1), p[0]);
-		lBis.lines[i].setAttribute("y"+(j+1), p[1]);
-	}));
-	let bisects = RabbitEar.math.bisect_lines2(lineA.point, lineA.vector, lineB.point, lineB.vector);
+  const redraw = function (points) {
+    lineLayer.removeChildren();
+    arrowLayer.removeChildren();
+    const lines = [0, 1]
+      .map(i => RabbitEar.line.fromPoints(points[i * 2], points[i * 2 + 1]));
+    lines.map(l => boundary.clipLine(l))
+      .forEach((s, i) => svgLines[i]
+        .setPoints(s[0][0], s[0][1], s[1][0], s[1][1]));
+    lines[0].bisectLine(lines[1])
+      .map(b => RabbitEar.line(b[0][0], b[0][1], b[1][0], b[1][1]))
+      .map((l, i) => ({ l: boundary.clipLine(l), c: colors[i % 2] }))
+      .filter(el => el.l !== undefined)
+      .map(el => lineLayer
+        .line(el.l[0][0], el.l[0][1], el.l[1][0], el.l[1][1]).stroke(el.c));
 
-	let linelines = bisects.map(b => RabbitEar.line(b[0][0], b[0][1], b[1][0], b[1][1]));
-	let bColors = ["#ecb233", "#e44f2a"];
-	let lineSegs = linelines.map((l,i) => ({l:lBis.boundary.clipLine(l), c:bColors[i%2]})).filter(el => el.l !== undefined)
-	lineSegs.map(el => {
-		let l = lBis.lineLayer.line(el.l[0][0], el.l[0][1], el.l[1][0], el.l[1][1]);
-		l.setAttribute("stroke", el.c);
-		l.setAttribute("stroke-width", 7);
-		l.setAttribute("stroke-linecap", "round");
-		return l;
-	})
+    const arrowStroke = (lines[1].vector.dot(lines[0].vector) < 0) ? "#e53" : "#fb3";
+    arrowLayer.arrow(points[0], points[1]).head(arrowOptions).stroke(arrowStroke);
+    arrowLayer.arrow(points[2], points[3]).head(arrowOptions).stroke(arrowStroke);
+  };
 
-	let controls = lBis.controls.map(c => RabbitEar.vector(c.position));
-	let sameDir = (lineB.vector.dot(lineA.vector) < 0);
-
-	let options = {
-		strokeWidth: 7,
-		length: 30,
-		width: 10,
-		highlight: sameDir ? "#e44f2a" : "#ecb233"
-	};
-
-	let arrows = [
-		RE.svg.straightArrow(controls[0], controls[1], options),
-		RE.svg.straightArrow(controls[2], controls[3], options)
-	];
-	arrows.forEach(a => lBis.arrowLayer.appendChild(a));
-
-}
-
-lBis.onMouseMove = function(mouse){
-	if (mouse.isPressed) {
-		lBis.redraw();
-	}
-};
-
-const drawArrow = function(start, end) {
-	let arrow_head = 18;
-	let arrow = RabbitEar.svg.group();
-	let line = arrow.line(start[0], start[1], end[0], end[1])
-	line.setAttribute("stroke-width", 3);
-	line.setAttribute("stroke-dasharray", "2 4");
-	line.setAttribute("stroke-linecap", "round");
-	let arrowVector = end.subtract(start).normalize();
-	let arrowNormal = arrowVector.rotateZ90();
-	// black triangle
-	let blackSegments = [
-		end.add(arrowNormal.scale(-(arrow_head+13)*0.375)),
-		end.add(arrowNormal.scale((arrow_head+13)*0.375)),
-		end.add(arrowVector.scale((arrow_head+13)))
-	];
-	let blackShift = arrowVector.rotateZ180().scale(3);
-	blackSegments = blackSegments.map(s => s.add(blackShift));
-	let blackPoly = arrow.polygon(blackSegments);
-	blackPoly.setAttribute("stroke", "none");
-	blackPoly.setAttribute("fill", "#000");
-	// light triangle
-	let segments = [
-		end.add(arrowNormal.scale(-arrow_head*0.375)),
-		end.add(arrowNormal.scale(arrow_head*0.375)),
-		end.add(arrowVector.scale(arrow_head))
-	];
-	arrow.polygon(segments).setAttribute("stroke", "none");
-	return arrow;
-}
-
-lBis.setup();
-lBis.redraw();
+  const pos = [
+    [svg.getWidth() * 0.5 - nudge, svg.getHeight() * 1 / 3],
+    [svg.getWidth() * 0.5 + nudge, svg.getHeight() * 1 / 3],
+    [svg.getWidth() * 0.5 - nudge, svg.getHeight() * 2 / 3],
+    [svg.getWidth() * 0.5 + nudge, svg.getHeight() * 2 / 3],
+  ];
+  svg.controls(4)
+    .position(i => pos[i])
+    .onChange((a, b) => redraw(a, b), true);
+});

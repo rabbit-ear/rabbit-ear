@@ -175,7 +175,7 @@ export const folded_faces_containing_point = function ({
   vertices_coords, faces_vertices
 }, point, faces_matrix) {
   const transformed_points = faces_matrix
-    .map(m => math.core.multiply_vector2_matrix2(point, m));
+    .map(m => math.core.multiply_matrix2_vector2(m, point));
   return faces_vertices
     .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
     .filter((f, i) => math.core.intersection

@@ -14,10 +14,13 @@ const MousePressed = function () {
 
     switch (app.tapMode) {
       case "segment": break;
+      case "line": break;
       case "point-to-point": break;
       case "bisect": break;
       case "pleat": break;
       case "perpendicular-to": break;
+      case "point-to-line-point": break;
+      case "point-to-line-line": break;
       case "rabbit-ear": break;
       case "kawasaki": break;
       case "mountain-valley":

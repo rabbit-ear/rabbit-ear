@@ -1,4 +1,4 @@
-code, pre {
+.code {
 	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
 	text-align: left;
@@ -17,14 +17,10 @@ code, pre {
 	-ms-hyphens: none;
 	hyphens: none;
 }
-pre {
+.code {
 	display: block;
 	overflow: auto;
 	background: #272822;
-}
-
-div.code{
-	position: relative;
 }
 
 pre.language {
@@ -43,25 +39,13 @@ pre.language {
 	max-width: initial;
 	width: initial;
 	min-width: initial;
-
 }
 
 pre.compact, pre.compact code {
 	line-height: 1.0;
 }
 
-code a, code a:visited, code a:active, code a:hover{
-	font-weight: normal;
-	text-decoration: none;
-	/*border-bottom-width: 0.5px;*/
-	/*border-style: solid;*/
-	/*border-color: white;*/
-}
-code a:hover{
-	/*border-style: none;*/
-}
 /* the following are short to allow quick typing */
-
 c{ /* comment */
 	color: #708090;
 }
@@ -82,4 +66,17 @@ str { /* string */
 }
 arg{ /* argument */
 	color: #FD9720;
+}
+
+lv{
+	color: #158;
+}
+lf{
+	color: #000;
+}
+larg {
+	color: #e53;
+}
+lc {
+	color: #bbb;
 }
