@@ -39,7 +39,12 @@ export const fold_keys = {
     "edges_foldAngle",
     "edges_length",
     "faces_vertices",
-    "faces_edges"
+    "faces_edges",
+    // as of now, these are not described in the spec, but their
+    // behavior is implied. except faces_faces which is EDGE-ADJACENT
+    "vertices_edges",
+    "edges_edges",
+    "faces_faces"
   ],
   orders: [
     "edgeOrders",

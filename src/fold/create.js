@@ -55,16 +55,16 @@ const square_graph = function () {
   };
 };
 
-export const empty = function () {
+export const empty = function (prototype = null) {
   return Object.assign(
-    Object.create(null),
+    Object.create(prototype),
     metadata()
   );
 };
 
-export const square = function () {
+export const square = function (prototype = null) {
   return Object.assign(
-    Object.create(null),
+    Object.create(prototype),
     metadata(),
     cp_type(),
     square_graph(),

@@ -1,17 +1,18 @@
 function graphToD3(graph) {
-  // this converts a Graph() object with "nodes" [] and "edges" []
+  // this converts a Graph() object with "vertices" [] and "edges" []
   // into the D3 object suitable for the force-directed graph
   var forceGraph = { nodes: [], links: [] };
-
-  for (var i = 0; i < graph.nodes.length; i += 1) {
-    graph.nodes[i].index = i;
+  var verticesLength = 1 + graph.edges_vertices
+    .map(ev => ev[0] > ev[1] ? ev[0] : ev[1])
+    .reduce((a, b) => a > b ? a : b);
+  for (var i = 0; i < verticesLength; i += 1) {
     var nameString = "node" + i;
     forceGraph.nodes.push({ id: nameString });
   }
-  for (var i = 0; i < graph.edges.length; i += 1) {
+  for (var i = 0; i < graph.edges_vertices.length; i += 1) {
     var nameString = "link" + i;
-    var one = graph.edges[i].nodes[0].index;
-    var two = graph.edges[i].nodes[1].index;
+    var one = graph.edges_vertices[i][0];
+    var two = graph.edges_vertices[i][1];
     var node1String = "node" + one;
     var node2String = "node" + two;
     forceGraph["links"].push({ id: nameString, source: node1String, target: node2String });

@@ -43,7 +43,7 @@
 						<a href="svg.php" class="dropbtn">II. SVG</a>
 					</li>
 					<li class="dropdown">
-						<a href="graphs.php" class="dropbtn">III. GRAPHS</a>
+						<a href="graph.php" class="dropbtn">III. GRAPH</a>
 					</li>
 					<li class="dropdown">
 						<a href="#" class="dropbtn" style="cursor:not-allowed; color:#888">IV. ORIGAMI</a>

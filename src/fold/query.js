@@ -1,8 +1,6 @@
 import math from "../../include/math";
 import { make_vertices_edges } from "./make";
 
-
-
 /**
  * provide arrays as arguments, this will filter out anything undefined
  * @returns {number} length of the longest array
@@ -43,7 +41,7 @@ export const faces_count = function ({
 export const implied_vertices_count = function ({
   faces_vertices, edges_vertices
 }) {
-  let max = 0;
+  let max = -1; // will become 0 if nothing is found
   [faces_vertices, edges_vertices]
     .filter(a => a !== undefined)
     .forEach(arr => arr
@@ -51,13 +49,14 @@ export const implied_vertices_count = function ({
         .forEach((e) => {
           if (e > max) { max = e; }
         })));
-  return max;
+  // max is the largest index. array length is +1
+  return max + 1;
 };
 
 export const implied_edges_count = function ({
   faces_edges, vertices_edges, edgeOrders
 }) {
-  let max = 0;
+  let max = -1; // will become 0 if nothing is found
   [faces_edges, vertices_edges]
     .filter(a => a !== undefined)
     .forEach(arr => arr
@@ -71,13 +70,14 @@ export const implied_edges_count = function ({
       if (i !== 2 && e > max) { max = e; }
     }));
   }
-  return max;
+  // max is the largest index. array length is +1
+  return max + 1;
 };
 
 export const implied_faces_count = function ({
   vertices_faces, edges_faces, facesOrders
 }) {
-  let max = 0;
+  let max = -1; // will become 0 if nothing is found
   [vertices_faces, edges_faces]
     .filter(a => a !== undefined)
     .forEach(arr => arr
@@ -91,7 +91,8 @@ export const implied_faces_count = function ({
       if (i !== 2 && f > max) { max = f; }
     }));
   }
-  return max;
+  // max is the largest index. array length is +1
+  return max + 1;
 };
 
 /**

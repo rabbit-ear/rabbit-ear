@@ -1,4 +1,3 @@
-
 /**
  * this clone function is decent, except for:
  * - it doesn't detect recursive cycles

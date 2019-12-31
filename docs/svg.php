@@ -9,6 +9,8 @@
 
 <div id="canvas-svg-parabola"></div>
 
+<pre class="code"><code><f>var</f> svg <key>=</key> <f>RabbitEar</f>.<f>svg</f>()</code></pre>
+
 <p>
   SVGs are natively 2D, vector-based, and great for interoperability with pen plotters and laser cutters.
 </p>
@@ -19,7 +21,7 @@
   SVG viewboxes allow us to zoom and translate the view space. This allows us to continue working in a unit-square-sized space and visualize full-screen, without having to multiply everything by 100.
 </p>
 
-<pre class="code"><code>svg.<f>setAttribute</f>(<str>"viewbox"</str>, <str>"-1 -1 2 2"</str>)</code></pre>
+<pre class="code"><code>svg.<f>setViewBox</f>(<n>-1</n>, <n>-1</n>, <n>2</n>, <n>2</n>)<br><c>// (top left corner) x, y, width, height</code></pre>
 
 <div class="equation" id="math-coordinate-equations"></div>
 
@@ -40,7 +42,7 @@
 </p>
 <pre class="code"><code>svg.<f>setAttribute</f>(<str>"transform"</str>, <str>"matrix(1 0 0 -1 0 0)"</str>);</code></pre>
 
-<h2>Drawing</h2>
+<h2>Introduction</h2>
 
 <div id="canvas-albers"></div>
 
@@ -48,13 +50,13 @@
   `RabbitEar.svg` creates an &lt;svg&gt; element.
 </p>
 
-<pre class="code"><code><f>var</f> svg <key>=</key> <f>RabbitEar</f>.svg()</code></pre>
+<pre class="code"><code><f>var</f> svg <key>=</key> <f>RabbitEar</f>.<f>svg</f>()</code></pre>
 
 <p>
   Drawing a shape is as simple as:
 </p>
 
-<pre class="code"><code><f>var</f> svg <key>=</key> <f>RabbitEar</f>.svg();
+<pre class="code"><code><f>var</f> svg <key>=</key> <f>RabbitEar</f>.<f>svg</f>();
 svg.<f>circle</f>(<n>0</n>, <n>1</n>, <n>2</n>);
 </code></pre>
 
@@ -63,7 +65,7 @@ svg.<f>circle</f>(<n>0</n>, <n>1</n>, <n>2</n>);
   My peferred initialization waits for DOM loading, and wraps code to follow Javascript's function-scope.
 </p>
 
-<pre class="code"><code><f>RabbitEar</f>.svg((<arg>svg</arg>) <f>=&gt;</f> {
+<pre class="code"><code><f>RabbitEar</f>.<f>svg</f>((<arg>svg</arg>) <f>=&gt;</f> {
   svg.<f>circle</f>(<n>0</n>, <n>1</n>, <n>2</n>);
 });</code></pre>
 
@@ -140,9 +142,13 @@ svg.mouseMoved <key>=</key> <f>function</f> (<arg>mouse</arg>) {
   Mice and trackpads allow movement without being pressed. Touchscreens will always be pressed when moved.
 </p>
 
-<h2>Primitives</h2>
+<h2>Drawing</h2>
 
-  <h3>Drawing</h3>
+<h3>Primitives</h3>
+
+<p>
+  These relate to primitives in the SVG specification, anyone familiar with the spec should immediately recognize these.
+</p>
 
   <div class="grid-2">
     <div>
@@ -196,15 +202,6 @@ svg.mouseMoved <key>=</key> <f>function</f> (<arg>mouse</arg>) {
 <hr>
   <div class="grid-2">
     <div>
-      <pre class="code"><code>svg.<f>regularPolygon</f>(<arg>cX</arg>, <arg>cY</arg>, <arg>radius</arg>, <arg>sides</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#PolygonElement">&lt;polygon&gt;</a> element</p>
-      <p class="description">creates regular polygons of n number of sides (3 = eq. triangle), centered at point (cX, cY), with a circumscribed radius.</p>
-    </div>
-    <div id="svg-example-regularPolygon"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
       <pre class="code"><code>svg.<f>polyline</f>(<arg>pointsArray</arg>)</code></pre>
       <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#PolylineElement">&lt;polyline&gt;</a> element</p>
       <p class="description">just like the polygon but the beginning and end aren't connected.</p>
@@ -221,8 +218,17 @@ svg.mouseMoved <key>=</key> <f>function</f> (<arg>mouse</arg>) {
     <div id="svg-example-text"></div>
   </div>
 
-  <h3>Path and Curves</h3>
+<h3>Special Primitives</h3>
 
+  <div class="grid-2">
+    <div>
+      <pre class="code"><code>svg.<f>regularPolygon</f>(<arg>cX</arg>, <arg>cY</arg>, <arg>radius</arg>, <arg>sides</arg>)</code></pre>
+      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#PolygonElement">&lt;polygon&gt;</a> element</p>
+      <p class="description">creates regular polygons of n number of sides (3 = eq. triangle), centered at point (cX, cY), with a circumscribed radius.</p>
+    </div>
+    <div id="svg-example-regularPolygon"></div>
+  </div>
+<hr>
   <div class="grid-2">
     <div>
       <pre class="code"><code>svg.<f>arc</f>(<arg>x</arg>, <arg>y</arg>, <arg>radius</arg>, <arg>angleA</arg>, <arg>angleB</arg>)</code></pre>
@@ -259,7 +265,7 @@ svg.mouseMoved <key>=</key> <f>function</f> (<arg>mouse</arg>) {
     <div id="svg-example-parabola"></div>
   </div>
 
-  <h3>Layering and Clipping</h3>
+<h3>Layering and Clipping</h3>
 
   <div class="grid-2">
     <div>
@@ -313,6 +319,25 @@ svg.mouseMoved <key>=</key> <f>function</f> (<arg>mouse</arg>) {
     </div>
     <div id="svg-example-defs"></div>
   </div>
+
+
+<h2>Special</h2>
+
+<h3>Paths</h3>
+
+<p>
+  The Path object is like a pen tool, each command is a function, stacking one after another.
+</p>
+
+<pre class="code"><code>path().moveTo(50, 50)
+  .lineTo(100, 150)
+  .curveTo(200, 200, 300, 0)</code></pre>
+
+<h3>Arrows</h3>
+
+<p>
+  Arrows are like special lines, with a functional set of modifiers. The <b>head</b> and <b>tail</b> define the options (and existence of) the arrow's pointy bits.
+</p>
 
 <h2>Controls</h2>
 
@@ -611,8 +636,8 @@ RabbitEar.svg(document.querySelector("#svg-example-parabola"), (svg) => {
     .fill("gold");
 });
 RabbitEar.svg(document.querySelector("#svg-example-group"), (svg) => {
-  var g = svg17.group().fill("dodgerblue");
-  svg17.rect(140, 0, 20, 150).fill("white");
+  var g = svg.group().fill("dodgerblue");
+  svg.rect(140, 0, 20, 150).fill("black");
   g.rect(0, 65, 300, 20);
 });
 RabbitEar.svg(document.querySelector("#svg-example-clipPath"), (svg) => {

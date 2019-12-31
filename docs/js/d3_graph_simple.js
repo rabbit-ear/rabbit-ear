@@ -1,31 +1,22 @@
 window.document.addEventListener("DOMContentLoaded", () => {
-  function fillGraph(graph, numNodes) {
-    const numEdges = numNodes * 1.2;
+  function fillGraph(graph, numVertices) {
+    const numEdges = numVertices * 1.2;
     graph.clear();
-    for (let i = 0; i < numNodes; i += 1) graph.newNode();
-    for (let i = 0; i < graph.nodes.length; i += 1) {
-      // inverse relationship to scramble edges# with node#
-      const first = Math.floor(graph.nodes.length - 1 - i);
-      let match;
-      do {
-        match = Math.floor(Math.random() * graph.nodes.length);
-      } while (match === first);
-      graph.newEdge(graph.nodes[first], graph.nodes[match]);
+    graph.edges_vertices = Array.from(Array(numVertices)).map((_, i) => [i,
+      (i + 1 + Math.floor(Math.random() * (numVertices - 1))) % numVertices
+    ]);
+    while (graph.edges_vertices.length < numEdges) {
+      graph.edges_vertices.push([
+        Math.floor(Math.random() * numVertices),
+        Math.floor(Math.random() * numVertices)]);
+      graph.clean();
     }
-    if (numEdges > numNodes) {
-      for (let i = 0; i < numEdges - numNodes; i += 1) {
-        const rand1 = Math.floor(Math.random() * numNodes);
-        const rand2 = Math.floor(Math.random() * numNodes);
-        graph.newEdge(graph.nodes[rand1], graph.nodes[rand2]);
-      }
-    }
-    graph.clean();
   }
 
-  const g0 = RabbitEar.graph();
-  fillGraph(g0, 5);
+  const graph = RabbitEar.graph();
+  fillGraph(graph, 5);
 
-  const d3Graph = graphToD3(g0);
+  const d3Graph = graphToD3(graph);
   const svgCanvas = d3.select("#svgTest00");
   makeForceDirectedGraph(d3Graph, svgCanvas);
 });

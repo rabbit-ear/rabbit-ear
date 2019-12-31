@@ -77,7 +77,7 @@
 	</p>
 	<ol>
 		<li>Split the polygon along the fold line into multiple polygons.</li>
-		<li>Gather all faces from one side of the line and <b>reflect</b> them across the fold line, positioning them in z-space on top.</li>
+		<li>Gather all faces from one side of the line and <b>reflect</b> them across the fold line, flip their color, and layer them on top of the other polygons.</li>
 	</ol>
 
 	<div id="canvas-fold-poly"></div>
@@ -180,13 +180,13 @@
 <h2>Circle</h2>
 
 	<p>
-		A preliminary step in uniaxial-base origami design is circle-packing.
+		In many cases circle math is a throwback to the math of ancient Greece. Circles can intersect lines and find tangent points.
 	</p>
 
 	<div id="canvas-circle-packing"></div>
 
 	<p>
-		In many cases circle math is a retrospective on the math of ancient Greece. Circles can intersect lines and find tangent points.
+		A preliminary step in uniaxial-base origami design is circle-packing.
 	</p>
 
 <h2>Polygon</h2>
@@ -239,7 +239,7 @@
 		<li><b>1</b>: it's possible one point is inside and one outside</li>
 	</ul>
 
-	<pre class="code"><code><f>var</f> clipped <key>=</key> polygon.<f>clipSegment</f>( <f>Edge</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
+	<pre class="code"><code><f>var</f> clipped <key>=</key> poly.<f>clipSegment</f>( <f>segment</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
 	
 	<p class="quote">
 		A non-convex polygon cannot make such guarantees.
