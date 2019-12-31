@@ -2,29 +2,18 @@ var updateNodesAdjacentToEdge; // set these to functions to interact with DOM
 var updateNodesAdjacentToNode;
 
 window.document.addEventListener("DOMContentLoaded", () => {
-  function fillGraph(graph, numNodes) {
-    const numEdges = numNodes * 1.2;
+  function fillGraph(graph, numVertices) {
+    const numEdges = numVertices * 1.2;
     graph.clear();
-    for (let i = 0; i < numNodes; i += 1) {
-      graph.newNode();
+    graph.edges_vertices = Array.from(Array(numVertices)).map((_, i) => [i,
+      (i + 1 + Math.floor(Math.random() * (numVertices - 1))) % numVertices
+    ]);
+    while (graph.edges_vertices.length < numEdges) {
+      graph.edges_vertices.push([
+        Math.floor(Math.random() * numVertices),
+        Math.floor(Math.random() * numVertices)]);
+      graph.clean();
     }
-    for (let i = 0; i < graph.nodes.length; i += 1) {
-      // inverse relationship to scramble edges# with node#
-      const first = Math.floor(graph.nodes.length - 1 - i);
-      let match;
-      do {
-        match = Math.floor(Math.random() * graph.nodes.length);
-      } while (match == first);
-      graph.newEdge(graph.nodes[first], graph.nodes[match]);
-    }
-    if (numEdges > numNodes) {
-      for (let i = 0; i < numEdges - numNodes; i += 1) {
-        const rand1 = Math.floor(Math.random() * numNodes);
-        const rand2 = Math.floor(Math.random() * numNodes);
-        graph.newEdge(graph.nodes[rand1], graph.nodes[rand2]);
-      }
-    }
-    graph.clean();
   }
 
   const g01 = RabbitEar.graph();
@@ -39,11 +28,11 @@ window.document.addEventListener("DOMContentLoaded", () => {
     const highlighted_indices = [];
     if (index != undefined) {
       // let adjacent = g01.getNodesAdjacentToNode(index);
-      const adjacent = g01.nodes[index].adjacent.nodes;
+      const adjacent = g01.vertices[index].vertices;
       for (let i = 0; i < adjacent.length; i += 1) {
-        const nameString = "node" + adjacent[i].index;
+        const nameString = "node" + adjacent[i];
         highlighted_id.push(nameString);
-        highlighted_indices.push("<arg>" + adjacent[i].index + "</arg>");
+        highlighted_indices.push("<arg>" + adjacent[i] + "</arg>");
       }
     }
     updateSelection("node" + index, circles, links, highlighted_id);
@@ -57,11 +46,11 @@ window.document.addEventListener("DOMContentLoaded", () => {
     const highlighted_indices = [];
     if (index != undefined) {
       // let adjacent = g01.getNodesAdjacentToEdge(index);
-      const adjacent = g01.edges[index].adjacent.nodes;
-      for (const i = 0; i < adjacent.length; i += 1) {
-        const nameString = "node" + adjacent[i].index;
+      const adjacent = g01.edges[index].vertices;
+      for (let i = 0; i < adjacent.length; i += 1) {
+        const nameString = "node" + adjacent[i];
         highlighted_id.push(nameString);
-        highlighted_indices.push("<arg>" + adjacent[i].index + "</arg>");
+        highlighted_indices.push("<arg>" + adjacent[i] + "</arg>");
       }
     }
     updateSelection("link" + index, circles, links, highlighted_id);

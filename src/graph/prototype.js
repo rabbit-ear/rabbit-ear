@@ -6,7 +6,6 @@ import {
   fold_keys,
   keys,
 } from "../FOLD/keys";
-import addEdge from "../FOLD/add_edge";
 import fragment from "../FOLD/fragment";
 import clean from "../FOLD/clean";
 import {
@@ -19,10 +18,19 @@ import {
   face_containing_point
 } from "../FOLD/query";
 import { clone } from "../FOLD/object";
-import { transform_scale } from "../FOLD/affine";
-import remove from "../FOLD/remove";
-import * as Collinear from "../FOLD/collinear";
-import * as Isolated from "../FOLD/isolated";
+
+const adjacencyProperty = function (arrays, key, that) {
+  arrays.forEach((el, i) => {
+    Object.defineProperty(el, "adjacent", {
+      get: () => ({
+        vertices: that[`${key}_vertices`] == null ? null : that[`${key}_vertices`][i],
+        edges: that[`${key}_edges`] == null ? null : that[`${key}_edges`][i],
+        faces: that[`${key}_faces`] == null ? null : that[`${key}_faces`][i]
+      })
+    });
+  });
+  return arrays;
+};
 
 const Prototype = function (proto = {}) {
   /**
@@ -36,28 +44,16 @@ const Prototype = function (proto = {}) {
    * getters, setters
    */
   const getVertices = function () {
-    const that = this;
-    const vertices = transpose_geometry_arrays(this, "vertices");
-    vertices.forEach((v, i) => {
-      v.adjacent = {};
-      Object.defineProperty(v.adjacent, "vertices", {
-        get: () => {
-          if (that.vertices_vertices != null && that.vertices_vertices[i] != null) {
-            return that.vertices_vertices[i];
-          }
-          // find adjacent vertex
-          return i;
-        }
-      });
-      Object.defineProperty(v.adjacent, "edges", { get: () => i });
-    });
-    return vertices;
+    return adjacencyProperty(transpose_geometry_arrays(this, "vertices"),
+      "vertices", this);
   };
   const getEdges = function () {
-    return transpose_geometry_arrays(this, "edges");
+    return adjacencyProperty(transpose_geometry_arrays(this, "edges"),
+      "edges", this);
   };
   const getFaces = function () {
-    return transpose_geometry_arrays(this, "faces");
+    return adjacencyProperty(transpose_geometry_arrays(this, "faces"),
+      "faces", this);
   };
   /**
    * modifiers
@@ -72,14 +68,7 @@ const Prototype = function (proto = {}) {
     rebuild(this, epsilon);
   };
   proto.clean = function () {
-    const cleaned = clean(this);
-    Object.keys(cleaned).forEach((key) => { this[key] = cleaned[key]; });
-    // all vertices
-    if (Collinear.remove_all_collinear_vertices(this)) {
-      const cleaned2 = clean(this);
-      Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
-    }
-    remove(this, "vertices", Isolated.find_isolated_vertices(this));
+    clean(this);
   };
   /**
    * @param {object} is a FOLD object.
@@ -141,29 +130,9 @@ const Prototype = function (proto = {}) {
   /**
    * transformations
    */
-  proto.scale = function (...args) {
-    transform_scale(this, ...args);
-  };
-  proto.addVertex = function () {
-
-  };
-  /**
-   * add a line segment to the graph.
-   * if endpoints lie on an existing vertex this will reuse vertices.
-   * this triggers a rebuild on all arrays
-   *
-   * @param {number[]} segment defined by two points [x, y]
-   * @param {string} optional "M" "V" "F" "U" crease assignment. default is "F"
-   */
-  proto.addEdge = function (...args) {
-    // get arguments. 2 endpoints. optional crease assignment
-    const s = math.core.get_vector_of_vectors(...args);
-    const options = get_mark_options(...args);
-    const assignment = get_assignment(...args) || "F";
-    // add segment, rebuild all arrays
-    addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
-    if (options.rebuild) { rebuild(this); }
-  };
+  // proto.scale = function (...args) {
+  //   transform_scale(this, ...args);
+  // };
 
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });
