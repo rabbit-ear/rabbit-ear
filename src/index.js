@@ -13,6 +13,7 @@
 // import { isBrowser, isWebWorker, isNode } from "./environment/detect";
 
 import math from "../include/math";
+import veGraph from "./graph-first";
 import graph from "./graph";
 import svg from "../include/svg";
 // import noise from "../include/simplex";
@@ -155,6 +156,7 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 const rabbitEar = {
   CreasePattern, // experimental feature
   Origami,
+  veGraph,
   graph,
   Voronoi,
   Delaunay,

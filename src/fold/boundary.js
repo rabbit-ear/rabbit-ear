@@ -26,6 +26,7 @@ export const bounding_rect = function ({ vertices_coords }) {
  * edges, defined by edges_assignment. no planar calculations
  */
 export const get_boundary = function (graph) {
+  if (graph.edges_assignment == null) { return { vertices: [], edges: [] }; }
   const edges_vertices_b = graph.edges_assignment
     .map(a => a === "B" || a === "b");
   const vertices_edges = make_vertices_edges(graph);

@@ -5,6 +5,13 @@
 <h1>ORIGAMI</h1><h1>CREASE PATTERNS</h1>
 
 
+<pre class="code"><code><f>var</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>()</code></pre>
+
+<p>
+  This Origami object is a FOLD format graph, modeling a square piece of paper.
+</p>
+
+
 	<div id="canvas-face-dual"></div>
 
 <section id="intro">
