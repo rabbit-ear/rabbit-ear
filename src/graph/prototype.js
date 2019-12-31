@@ -15,7 +15,8 @@ import {
 import {
   nearest_vertex,
   nearest_edge,
-  face_containing_point
+  face_containing_point,
+  implied_vertices_count
 } from "../FOLD/query";
 import { clone } from "../FOLD/object";
 
@@ -44,8 +45,11 @@ const Prototype = function (proto = {}) {
    * getters, setters
    */
   const getVertices = function () {
-    return adjacencyProperty(transpose_geometry_arrays(this, "vertices"),
-      "vertices", this);
+    const transposed = transpose_geometry_arrays(this, "vertices");
+    const vertices = transposed.length !== 0
+      ? transposed
+      : Array.from(Array(implied_vertices_count(this))).map(() => ({}));
+    return adjacencyProperty(vertices, "vertices", this);
   };
   const getEdges = function () {
     return adjacencyProperty(transpose_geometry_arrays(this, "edges"),

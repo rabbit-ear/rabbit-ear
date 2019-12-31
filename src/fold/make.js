@@ -4,6 +4,7 @@ import math from "../../include/math";
 // };
 
 export const make_vertices_edges = function ({ edges_vertices }) {
+  if (!edges_vertices) { return undefined; }
   const vertices_edges = [];
   edges_vertices.forEach((ev, i) => ev
     .forEach((v) => {
@@ -19,6 +20,7 @@ export const make_vertices_edges = function ({ edges_vertices }) {
 export const make_edges_vertices = function ({
   edges_vertices, faces_edges
 }) {
+  if (!edges_vertices || !faces_edges) { return undefined; }
   const edges_faces = Array
     .from(Array(edges_vertices.length))
     .map(() => []);
@@ -35,6 +37,7 @@ export const make_edges_vertices = function ({
 
 // faces_faces is a set of faces edge-adjacent to a face. for every face.
 export const make_faces_faces = function ({ faces_vertices }) {
+  if (!faces_vertices) { return undefined; }
   const nf = faces_vertices.length;
   const faces_faces = Array.from(Array(nf)).map(() => []);
   const edgeMap = {};
@@ -57,10 +60,24 @@ export const make_faces_faces = function ({ faces_vertices }) {
   return faces_faces;
 };
 
+export const make_edges_edges = function ({
+  edges_vertices, vertices_edges
+}) {
+  if (!edges_vertices || !vertices_edges) { return undefined; }
+  return edges_vertices.map((ev, i) => {
+    const vert0 = ev[0];
+    const vert1 = ev[1];
+    const side0 = vertices_edges[vert0].filter(e => e !== i);
+    const side1 = vertices_edges[vert1].filter(e => e !== i);
+    return side0.concat(side1);
+  });
+};
+
 // todo: make_edges_faces c-clockwise
 export const make_edges_faces = function ({
   edges_vertices, faces_edges
 }) {
+  if (!edges_vertices || !faces_edges) { return undefined; }
   const edges_faces = Array
     .from(Array(edges_vertices.length))
     .map(() => []);
@@ -75,9 +92,10 @@ export const make_edges_faces = function ({
   return edges_faces;
 };
 
-export const make_edges_length = function (graph) {
-  return graph.edges_vertices
-    .map(ev => ev.map(v => graph.vertices_coords[v]))
+export const make_edges_length = function ({ vertices_coords, edges_vertices }) {
+  if (!vertices_coords || !edges_vertices) { return undefined; }
+  return edges_vertices
+    .map(ev => ev.map(v => vertices_coords[v]))
     .map(edge => math.core.distance(...edge));
 };
 
@@ -89,6 +107,7 @@ const assignment_angles = {
 };
 
 export const make_edges_foldAngle = function ({ edges_assignment }) {
+  if (!edges_assignment) { return undefined; }
   return edges_assignment.map(a => assignment_angles[a] || 0);
 };
 
@@ -98,6 +117,7 @@ export const make_edges_foldAngle = function ({ edges_assignment }) {
  * the value is the index of the edge.
  */
 export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
+  if (!edges_vertices) { return {}; } // todo, should this return undefined
   const map = {};
   edges_vertices
     .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -111,6 +131,7 @@ export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
 export const make_vertices_faces = function ({
   vertices_coords, faces_vertices
 }) {
+  if (!vertices_coords || !faces_vertices) { return undefined; }
   const vertices_faces = Array.from(Array(vertices_coords.length))
     .map(() => []);
   faces_vertices.forEach((face, f) => {

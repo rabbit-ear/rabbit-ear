@@ -4496,6 +4496,7 @@
   };
 
   const make_vertices_edges = function ({ edges_vertices }) {
+    if (!edges_vertices) { return undefined; }
     const vertices_edges = [];
     edges_vertices.forEach((ev, i) => ev
       .forEach((v) => {
@@ -4509,6 +4510,7 @@
   const make_edges_vertices = function ({
     edges_vertices, faces_edges
   }) {
+    if (!edges_vertices || !faces_edges) { return undefined; }
     const edges_faces = Array
       .from(Array(edges_vertices.length))
       .map(() => []);
@@ -4520,6 +4522,7 @@
     return edges_faces;
   };
   const make_faces_faces = function ({ faces_vertices }) {
+    if (!faces_vertices) { return undefined; }
     const nf = faces_vertices.length;
     const faces_faces = Array.from(Array(nf)).map(() => []);
     const edgeMap = {};
@@ -4541,9 +4544,22 @@
     });
     return faces_faces;
   };
+  const make_edges_edges = function ({
+    edges_vertices, vertices_edges
+  }) {
+    if (!edges_vertices || !vertices_edges) { return undefined; }
+    return edges_vertices.map((ev, i) => {
+      const vert0 = ev[0];
+      const vert1 = ev[1];
+      const side0 = vertices_edges[vert0].filter(e => e !== i);
+      const side1 = vertices_edges[vert1].filter(e => e !== i);
+      return side0.concat(side1);
+    });
+  };
   const make_edges_faces = function ({
     edges_vertices, faces_edges
   }) {
+    if (!edges_vertices || !faces_edges) { return undefined; }
     const edges_faces = Array
       .from(Array(edges_vertices.length))
       .map(() => []);
@@ -4554,9 +4570,10 @@
     });
     return edges_faces;
   };
-  const make_edges_length = function (graph) {
-    return graph.edges_vertices
-      .map(ev => ev.map(v => graph.vertices_coords[v]))
+  const make_edges_length = function ({ vertices_coords, edges_vertices }) {
+    if (!vertices_coords || !edges_vertices) { return undefined; }
+    return edges_vertices
+      .map(ev => ev.map(v => vertices_coords[v]))
       .map(edge => math$1.core.distance(...edge));
   };
   const assignment_angles$1 = {
@@ -4566,9 +4583,11 @@
     v: 180
   };
   const make_edges_foldAngle = function ({ edges_assignment }) {
+    if (!edges_assignment) { return undefined; }
     return edges_assignment.map(a => assignment_angles$1[a] || 0);
   };
   const make_vertex_pair_to_edge_map$1 = function ({ edges_vertices }) {
+    if (!edges_vertices) { return {}; }
     const map = {};
     edges_vertices
       .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -4578,6 +4597,7 @@
   const make_vertices_faces = function ({
     vertices_coords, faces_vertices
   }) {
+    if (!vertices_coords || !faces_vertices) { return undefined; }
     const vertices_faces = Array.from(Array(vertices_coords.length))
       .map(() => []);
     faces_vertices.forEach((face, f) => {
@@ -4705,6 +4725,7 @@
     make_vertices_edges: make_vertices_edges,
     make_edges_vertices: make_edges_vertices,
     make_faces_faces: make_faces_faces,
+    make_edges_edges: make_edges_edges,
     make_edges_faces: make_edges_faces,
     make_edges_length: make_edges_length,
     make_edges_foldAngle: make_edges_foldAngle,
@@ -4742,7 +4763,7 @@
   const implied_vertices_count = function ({
     faces_vertices, edges_vertices
   }) {
-    let max = 0;
+    let max = -1;
     [faces_vertices, edges_vertices]
       .filter(a => a !== undefined)
       .forEach(arr => arr
@@ -4750,12 +4771,12 @@
           .forEach((e) => {
             if (e > max) { max = e; }
           })));
-    return max;
+    return max + 1;
   };
   const implied_edges_count = function ({
     faces_edges, vertices_edges, edgeOrders
   }) {
-    let max = 0;
+    let max = -1;
     [faces_edges, vertices_edges]
       .filter(a => a !== undefined)
       .forEach(arr => arr
@@ -4768,12 +4789,12 @@
         if (i !== 2 && e > max) { max = e; }
       }));
     }
-    return max;
+    return max + 1;
   };
   const implied_faces_count = function ({
     vertices_faces, edges_faces, facesOrders
   }) {
-    let max = 0;
+    let max = -1;
     [vertices_faces, edges_faces]
       .filter(a => a !== undefined)
       .forEach(arr => arr
@@ -4786,7 +4807,7 @@
         if (i !== 2 && f > max) { max = f; }
       }));
     }
-    return max;
+    return max + 1;
   };
   const nearest_vertex = function ({ vertices_coords }, point) {
     if (vertices_coords === undefined
@@ -5293,25 +5314,40 @@
   });
 
   const complete = function (graph) {
-    if (graph.vertices_coords == null
-      || graph.edges_vertices == null) { return; }
     if (graph.vertices_vertices == null) {
-      convert.edges_vertices_to_vertices_vertices_sorted(graph);
+      if (graph.vertices_coords && graph.edges_vertices) {
+        convert.edges_vertices_to_vertices_vertices_sorted(graph);
+      } else if (graph.edges_vertices) {
+        convert.edges_vertices_to_vertices_vertices_unsorted(graph);
+      }
     }
     if (graph.faces_vertices == null) {
-      convert.vertices_vertices_to_faces_vertices(graph);
+      if (graph.vertices_coords && graph.vertices_vertices) {
+        convert.vertices_vertices_to_faces_vertices(graph);
+      }
     }
     if (graph.faces_edges == null) {
-      convert.faces_vertices_to_faces_edges(graph);
+      if (graph.faces_vertices) {
+        convert.faces_vertices_to_faces_edges(graph);
+      }
     }
     if (graph.edges_faces == null) {
-      graph.edges_faces = make_edges_faces(graph);
+      const edges_faces = make_edges_faces(graph);
+      if (edges_faces !== undefined) {
+        graph.edges_faces = edges_faces;
+      }
     }
     if (graph.vertices_faces == null) {
-      graph.vertices_faces = make_vertices_faces(graph);
+      const vertices_faces = make_vertices_faces(graph);
+      if (vertices_faces !== undefined) {
+        graph.vertices_faces = vertices_faces;
+      }
     }
     if (graph.edges_length == null) {
-      graph.edges_length = make_edges_length(graph);
+      const edges_length = make_edges_length(graph);
+      if (edges_length !== undefined) {
+        graph.edges_length = edges_length;
+      }
     }
     if (graph.edges_foldAngle == null
       && graph.edges_assignment != null) {
@@ -5321,17 +5357,29 @@
     if (graph.edges_assignment == null
       && graph.edges_foldAngle != null) {
       graph.edges_assignment = graph.edges_foldAngle.map((a) => {
-        if (a === 0) return "F";
-        if (a < 0) return "M";
-        if (a > 0) return "V";
+        if (a === 0) { return "F"; }
+        if (a < 0) { return "M"; }
+        if (a > 0) { return "V"; }
         return "U";
       });
     }
     if (graph.faces_faces == null) {
-      graph.faces_faces = make_faces_faces(graph);
+      const faces_faces = make_faces_faces(graph);
+      if (faces_faces !== undefined) {
+        graph.faces_faces = faces_faces;
+      }
     }
     if (graph.vertices_edges == null) {
-      graph.vertices_edges = make_vertices_edges(graph);
+      const vertices_edges = make_vertices_edges(graph);
+      if (vertices_edges !== undefined) {
+        graph.vertices_edges = vertices_edges;
+      }
+    }
+    if (graph.edges_edges == null) {
+      const edges_edges = make_edges_edges(graph);
+      if (edges_edges !== undefined) {
+        graph.edges_edges = edges_edges;
+      }
     }
   };
   const rebuild = function (graph, epsilon = math$1.core.EPSILON) {
@@ -5428,8 +5476,11 @@
       return Object.assign(Object.create(Prototype$2()), clone(this));
     };
     const getVertices = function () {
-      return adjacencyProperty(transpose_geometry_arrays(this, "vertices"),
-        "vertices", this);
+      const transposed = transpose_geometry_arrays(this, "vertices");
+      const vertices = transposed.length !== 0
+        ? transposed
+        : Array.from(Array(implied_vertices_count(this))).map(() => ({}));
+      return adjacencyProperty(vertices, "vertices", this);
     };
     const getEdges = function () {
       return adjacencyProperty(transpose_geometry_arrays(this, "edges"),

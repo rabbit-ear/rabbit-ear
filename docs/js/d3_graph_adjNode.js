@@ -14,6 +14,7 @@ window.document.addEventListener("DOMContentLoaded", () => {
         Math.floor(Math.random() * numVertices)]);
       graph.clean();
     }
+    graph.complete();
   }
 
   const g01 = RabbitEar.graph();
