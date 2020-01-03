@@ -24,7 +24,6 @@ const removeDuplicateEdges = function (graph) {
   remove(graph, "edges", duplicates);
 };
 
-
 const clean = function (graph) {
   removeCircularEdges(graph);
   removeDuplicateEdges(graph);
@@ -34,7 +33,6 @@ const clean = function (graph) {
   //   Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
   // }
   // remove(this, "vertices", Isolated.find_isolated_vertices(this));
-  
 };
 
 export default clean;

@@ -162,6 +162,17 @@ pre, code {
 	.katex {
 		font-size: 1.6rem !important;
 	}
+
+	.grid-2 {
+		display: grid;
+		grid-template-columns: 100%;
+		grid-template-rows: 1fr 1fr;
+	}
+
+	.grid-2 > * {
+		flex: 1;
+	}
+
 }
 
 /* phones */

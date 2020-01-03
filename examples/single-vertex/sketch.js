@@ -27,7 +27,7 @@ origami.updateCenter = function (point) {
   // reset back to the 3 crease CP
   origami.load(origami.threeCorners);
   origami.vertices_coords[origami.midVertex] = [point.x, point.y];
-  origami.complete();
+  origami.populate();
 
   const a = { x: 0, y: 0 };
   const b = { x: 1, y: 1 };

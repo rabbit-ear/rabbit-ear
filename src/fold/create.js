@@ -1,7 +1,8 @@
 import math from "../../include/math"; // only to get { clean_number }
-
-const file_spec = 1.1;
-const file_creator = "Rabbit Ear";
+import {
+  file_spec,
+  file_creator
+} from "./keys";
 
 const metadata = function (complete = false) {
   return !complete
