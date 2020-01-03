@@ -678,7 +678,7 @@ RabbitEar.svg(document.querySelector("#svg-example-stylesheet"), (svg) => {
 RabbitEar.svg(document.querySelector("#svg-example-defs"), (svg) => {
 // this example does not visualize anything
   var d = svg.defs();
-  var t = SVG.createElement("title");
+  var t = svg.createElement("title");
   t.innerHTML = "metadata";
   d.appendChild(t);
   d.rect(20, 20, 100, 100);

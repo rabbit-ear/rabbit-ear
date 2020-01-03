@@ -2,19 +2,19 @@
 
 import * as Create from "../FOLD/create";
 import prototype from "./prototype";
-import { keys } from "../FOLD/keys";
+import {
+  file_spec,
+  file_creator
+} from "../FOLD/keys";
 
 const Graph = function (object = {}) {
-  const graph = Object.assign(
+  // should Graph({vertices_coors:[], ...}) deep copy the argument object?
+  return Object.assign(
     Object.create(prototype()),
-    Create.empty()
+    Create.empty(),
+    object,
+    { file_spec, file_creator }
   );
-  Object.keys(object)
-    .filter(key => key !== "file_spec")
-    .filter(key => key !== "file_creator")
-    .filter(key => keys.includes(key))
-    .forEach((key) => { graph[key] = object[key]; });
-  return graph;
 };
 
 export default Graph;

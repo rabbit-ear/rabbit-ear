@@ -1,3 +1,5 @@
+export const file_spec = 1.1;
+export const file_creator = "Rabbit Ear";
 
 export const future_spec = {
   FACES_MATRIX: "faces_re:matrix",

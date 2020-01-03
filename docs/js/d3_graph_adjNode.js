@@ -14,15 +14,8 @@ window.document.addEventListener("DOMContentLoaded", () => {
         Math.floor(Math.random() * numVertices)]);
       graph.clean();
     }
-    graph.complete();
+    graph.populate();
   }
-
-  const g01 = RabbitEar.graph();
-  fillGraph(g01, 7);
-
-  const d3Graph01 = graphToD3(g01);
-  const svgCanvas01 = d3.select("#svgTest01");
-  makeForceDirectedGraph(d3Graph01, svgCanvas01, didTouchNode01, didTouchEdge01);
 
   function didTouchNode01(index, circles, links) {
     const highlighted_id = [];
@@ -81,4 +74,11 @@ window.document.addEventListener("DOMContentLoaded", () => {
     }
     return false;
   }
+
+  const g01 = RabbitEar.graph();
+  fillGraph(g01, 7);
+
+  const d3Graph01 = graphToD3(g01);
+  const svgCanvas01 = d3.select("#svgTest01");
+  makeForceDirectedGraph(d3Graph01, svgCanvas01, didTouchNode01, didTouchEdge01);
 });

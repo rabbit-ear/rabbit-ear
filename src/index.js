@@ -36,9 +36,10 @@ import Validate from "./FOLD/validate";
 import convert from "./convert/convert";
 
 import remove from "./FOLD/remove";
+import rebuild from "./FOLD/rebuild";
+import populate from "./FOLD/populate";
 import * as make from "./FOLD/make";
 import * as query from "./FOLD/query";
-import * as rebuild from "./FOLD/rebuild";
 import * as marks from "./FOLD/marks";
 import * as select from "./FOLD/select";
 
@@ -83,7 +84,6 @@ Object.assign(core,
   keys,
   affine,
   validate,
-  rebuild,
   make,
   delaunay,
   marks,
@@ -102,6 +102,8 @@ core.apply_axiom = apply_axiom;
 core.fragment = fragment;
 core.clean = clean;
 core.remove = remove;
+core.rebuild = rebuild;
+core.populate = populate;
 core.validate = Validate;
 
 // core.prototype = prototype;

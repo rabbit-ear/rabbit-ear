@@ -8,13 +8,12 @@
 *      "fast" init param
 8       divide each function into fast and slow
 
-
-
-
 *
 */
 
 import math from "../../include/math";
+
+import prototype from "../graph/prototype";
 
 import MakeFold from "../fold-through-all";
 import * as Create from "../FOLD/create";
@@ -24,15 +23,12 @@ import fragment from "../FOLD/fragment";
 // import madeBy from "../frames/madeBy";
 import clean from "../FOLD/clean";
 import {
-  transpose_geometry_arrays,
-  transpose_geometry_array_at_index,
+  file_spec,
+  file_creator,
   keys as foldKeys,
   future_spec as re
 } from "../FOLD/keys";
-import {
-  rebuild,
-  complete
-} from "../FOLD/rebuild";
+import rebuild from "../FOLD/rebuild";
 import {
   make_faces_matrix
 } from "../FOLD/make";
@@ -40,18 +36,10 @@ import {
   get_boundary,
   remove_non_boundary_edges
 } from "../FOLD/boundary";
-import {
-  nearest_vertex,
-  nearest_edge,
-  face_containing_point
-} from "../FOLD/query";
 import { clone } from "../FOLD/object";
 import { transform_scale } from "../FOLD/affine";
 import { kawasaki_collapse } from "../kawasaki";
-import { axiom } from "../axioms";
-import { apply_axiom_in_fold } from "../axioms/validate";
 import { get_assignment } from "./args";
-import { make_delaunay_vertices } from "../delaunay";
 
 import remove from "../FOLD/remove";
 
@@ -112,7 +100,14 @@ const boundary_methods = function (boundaries) {
   return boundaries;
 };
 
-const Prototype = function (proto = {}) {
+const Prototype = function (superProto = {}) {
+  const proto = Object.assign(
+    Object.create(prototype()),
+    Create.empty(),
+    superProto,
+    { file_spec, file_creator }
+  );
+
   proto.square = function () {
     Object.keys(this).forEach(key => delete this[key]);
     const rect = Create.rectangle(1, 1);
@@ -124,26 +119,6 @@ const Prototype = function (proto = {}) {
     Object.keys(rect).forEach((key) => { this[key] = rect[key]; });
   };
 
-  /**
-   * export
-   */
-  /** @return {this} a deep copy of this object. */
-  proto.copy = function () {
-    return Object.assign(Object.create(Prototype()), clone(this));
-  };
-  /**
-   * getters, setters
-   */
-  // todo: memo these. they're created each time, even if the CP hasn't changed
-  const getVertices = function () {
-    return transpose_geometry_arrays(this, "vertices");
-  };
-  const getEdges = function () {
-    return transpose_geometry_arrays(this, "edges");
-  };
-  const getFaces = function () {
-    return transpose_geometry_arrays(this, "faces");
-  };
   const getBoundaries = function () {
     // todo: this only works for unfolded flat crease patterns
     // todo: this doesn't get multiple boundaries yet
@@ -161,25 +136,12 @@ const Prototype = function (proto = {}) {
     if (cpIndex !== -1 && foldedIndex !== -1) { return undefined; }
     return (foldedIndex !== -1);
   };
-  /**
-   * modifiers
-   */
-  proto.fragment = function (epsilon = math.core.EPSILON) {
-    fragment(this, epsilon);
-  };
-  proto.rebuild = function (epsilon = math.core.EPSILON) {
-    rebuild(this, epsilon);
-  };
-  // proto.complete = function () {
-  //   complete(this);
-  // };
-  proto.clean = function () {
-    const cleaned = clean(this);
-    Object.keys(cleaned).forEach((key) => { this[key] = cleaned[key]; });
+
+  proto.clean2 = function () {
+    clean(this);
     // all vertices
     if (Collinear.remove_all_collinear_vertices(this)) {
-      const cleaned2 = clean(this);
-      Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
+      clean(this);
     }
     remove(this, "vertices", Isolated.find_isolated_vertices(this));
     // extra
@@ -191,34 +153,26 @@ const Prototype = function (proto = {}) {
       }
     }
   };
-  // const clean = function (epsilon = math.core.EPSILON) {
-  //   const valid = ("vertices_coords" in this && "vertices_vertices" in this
-  //     && "edges_vertices" in this && "edges_assignment" in this
-  //     && "faces_vertices" in this && "faces_edges" in this);
-  //   if (!valid) {
-  //     console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-  //     clean(this);
-  //   }
-  // };
   /**
    * @param {file} is a FOLD object.
    * @param {prevent_clear} if true import will skip clearing
    */
-  proto.load = function (file, prevent_clear) {
-    if (prevent_clear == null || prevent_clear !== true) {
-      foldKeys.forEach(key => delete this[key]);
-    }
-    Object.assign(this, clone(file));
-    this.clean();
-    // clean.call(this);
-    // placeholderFoldedForm(_this);
-    this.didChange.forEach(f => f());
-  };
+  // proto.load = function (file, prevent_clear) {
+  //   if (prevent_clear == null || prevent_clear !== true) {
+  //     foldKeys.forEach(key => delete this[key]);
+  //   }
+  //   Object.assign(this, clone(file));
+  //   this.clean2();
+  //   // clean.call(this);
+  //   // placeholderFoldedForm(_this);
+  //   this.didChange.forEach(f => f());
+  // };
   /**
    * this removes all geometry from the crease pattern and returns it
    * to its original state (and keeps the boundary edges if present)
    */
-  proto.clear = function () {
+  const clear = function () {
+  // proto.clear = function () {
     remove_non_boundary_edges(this);
     Object.keys(this)
       .filter(s => s.includes("re:"))
@@ -229,45 +183,6 @@ const Prototype = function (proto = {}) {
     this.didChange.forEach(f => f());
   };
 
-  proto.nearestVertex = function (...args) {
-    const point = math.core.get_vector(...args);
-    const index = this["re:delaunay_vertices"] != null
-      ? this["re:delaunay_vertices"].find(point[0], point[1])
-      : nearest_vertex(this, point);
-    const result = transpose_geometry_array_at_index(this, "vertices", index);
-    result.index = index;
-    return result;
-  };
-  proto.nearestEdge = function (...args) {
-    const index = nearest_edge(this, math.core.get_vector(...args));
-    const result = transpose_geometry_array_at_index(this, "edges", index);
-    result.index = index;
-    return result;
-  };
-  proto.nearestFace = function (...args) {
-    const index = face_containing_point(this, math.core.get_vector(...args));
-    if (index === undefined) { return undefined; }
-    // todo, if point isn't inside a face, there can still exist a nearest face
-    const result = transpose_geometry_array_at_index(this, "faces", index);
-    result.index = index;
-    return result;
-  };
-  /**
-   * How does this view process a request for nearest components to a target?
-   * (2D), furthermore, attach view objects (SVG) to the nearest value data.
-   */
-  proto.nearest = function (...args) {
-    const target = math.core.get_vector(...args);
-    const nears = {
-      vertex: this.nearestVertex(this, target),
-      edge: this.nearestEdge(this, target),
-      face: this.nearestFace(this, target)
-    };
-    Object.keys(nears)
-      .filter(key => nears[key] == null)
-      .forEach(key => delete nears[key]);
-    return nears;
-  };
   /**
    * transformations
    */
@@ -330,7 +245,7 @@ const Prototype = function (proto = {}) {
       .solutions
       .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
     fragment(this);
-    clean();
+    this.clean2();
 
     // get segment
     const l = math.core.flatten_input(...args)
@@ -433,10 +348,8 @@ const Prototype = function (proto = {}) {
   };
 
   Object.defineProperty(proto, "boundaries", { get: getBoundaries });
-  Object.defineProperty(proto, "vertices", { get: getVertices });
-  Object.defineProperty(proto, "edges", { get: getEdges });
-  Object.defineProperty(proto, "faces", { get: getFaces });
   Object.defineProperty(proto, "isFolded", { value: isFolded });
+  Object.defineProperty(proto, "clear", { value: clear });
 
   // callbacks for when the crease pattern has been altered
   proto.didChange = [];

@@ -8,10 +8,8 @@ import {
   transpose_geometry_arrays,
   transpose_geometry_array_at_index,
 } from "../FOLD/keys";
-import {
-  rebuild,
-  complete
-} from "../FOLD/rebuild";
+import rebuild from "../FOLD/rebuild";
+import populate from "../FOLD/populate";
 import {
   get_boundary,
   remove_non_boundary_edges
@@ -66,8 +64,8 @@ const Prototype = function (proto = {}) {
   proto.rebuild = function (epsilon = math.core.EPSILON) {
     rebuild(this, epsilon);
   };
-  proto.complete = function () {
-    complete(this);
+  proto.populate = function () {
+    populate(this);
   };
   proto.fragment = function (epsilon = math.core.EPSILON) {
     fragment(this, epsilon);

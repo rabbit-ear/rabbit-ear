@@ -169,4 +169,9 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
     simulation.force("link").links(graph.links);
     simulation.alpha(1).restart();
   }
+
+  // on boot
+  if (typeof didTouchNodeCallback === "function") {
+    didTouchNodeCallback(0, circles, lines);
+  }
 }
