@@ -21,7 +21,7 @@ const equivalent = function (a, b, epsilon = EPSILON) {
   return true;
 };
 
-const edge_edge_comp_exclusive = (t0, t1) => t0 > EPSILON && t0 < 1 - EPSILON && t1 > EPSILON
+const segment_segment_comp_exclusive = (t0, t1) => t0 > EPSILON && t0 < 1 - EPSILON && t1 > EPSILON
   && t1 < 1 - EPSILON;
 
 const intersection_function = function (aPt, aVec, bPt, bVec, compFunc, epsilon = EPSILON) {
@@ -39,10 +39,10 @@ const intersection_function = function (aPt, aVec, bPt, bVec, compFunc, epsilon 
   return undefined;
 };
 
-const edge_edge_exclusive = function (a0, a1, b0, b1, epsilon) {
+const segment_segment_exclusive = function (a0, a1, b0, b1, epsilon) {
   const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
   const bVec = [b1[0] - b0[0], b1[1] - b0[1]];
-  return intersection_function(a0, aVec, b0, bVec, edge_edge_comp_exclusive, epsilon);
+  return intersection_function(a0, aVec, b0, bVec, segment_segment_comp_exclusive, epsilon);
 };
 
 const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = EPSILON) {
@@ -63,7 +63,7 @@ export default {
     equivalent,
     point_on_edge_exclusive,
     intersection: {
-      edge_edge_exclusive
+      segment_segment_exclusive
     }
   }
 };

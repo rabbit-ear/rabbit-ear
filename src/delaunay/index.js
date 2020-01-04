@@ -1,4 +1,4 @@
-import { Delaunay, Voronoi } from "../../include/delaunay";
+import { Delaunay, Voronoi } from "../../include/delaunay/index";
 
 export const make_delaunay_vertices = function (graph) {
   if (graph.vertices_coords == null) { return undefined; }

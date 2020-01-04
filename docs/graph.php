@@ -163,7 +163,7 @@
 ┣━ <f>make_faces_matrix_inv</f>(<arg>graph</arg>, <arg>root_face</arg>)
 ┣━ <f>make_vertices_coords_folded</f>(<arg>graph</arg>, <arg>face_stationary</arg>, <arg>faces_matrix</arg>)
 ┗━ <f>make_vertices_isBoundary</f>(<arg>graph</arg>)
-faces_coloring_from_faces_matrix(<arg>faces_matrix</arg>)
+make_faces_coloring_from_faces_matrix(<arg>faces_matrix</arg>)
 </code></pre>
 
 <p>
@@ -275,7 +275,7 @@ edges_assignment: [<str>"B"</str>, <str>"B"</str>, <str>"B"</str>, <str>"B"</str
 </p>
 
 <svg viewBox="-0.1 -0.1 1.2 1.2" stroke-width="0.02" fill="none">
-  <path stroke="#e53" d="M0,0L1,1" />
+  <path stroke="#e53" stroke-dasharray="0.03 0.02" d="M0,0L1,1" />
   <path stroke="black" d="M0,0L1,0L1,1L0,1Z" />
 </svg>
 
@@ -312,57 +312,37 @@ faces_faces: [[<n>1</n>], [<n>0</n>]]
 
 <div id="canvas-intersection-wobble" class="panorama"></div>
 
-<p class="quote">In planar graphs, it's illegal for two edges to cross.</p>
+<p class="quote">
+  In planar graphs, it's illegal for two edges to cross.
+</p>
 
 <h3>Fragment</h3>
 
 <p>
-  Fragment is a global operation that locates all overlapping edges and resolves them by adding a vertex at their intersection, and substituting the edges for new edges that include the new vertex.
+  The fragment method converts a graph into a planar graph.
 </p>
 
-<div id="canvas-fragment"></div>
+<div id="canvas-graph-fragment"></div>
 
 <pre class="code"><code><span id="span-merge-result"></span>graph.<f>fragment</f>()</code></pre>
 
 <p>
-  Fragment chops edges and returns the location of intersections.
+  Fragment locates all overlapping edges and resolves them by adding a vertex at their intersection, and substitutes an overlapped edge with two edges.
 </p>
 
-  <div class="centered">
-    <canvas id="canvas-crane-1" resize></canvas><canvas id="canvas-crane-2" resize></canvas>
-  </div>
+<p class="explain">
+  This method removes all 3D information and triggers a re-build on all other component arrays.
+</p>
+
+<h3>Sectors</h3>
 
 <p>
-  The graph on the right has been <b>fragmented</b>. The longer lines have been split at their crossings.
+  Origami math, especially concerning flat-foldability, focuses a lot of attention to the space around a vertex and the interior angles formed by the edges.
 </p>
 
-<h2><a href="#face">&sect;</a> Face</h2>
-
-<section id="face">
-
-  <div class="centered">
-    <canvas id="canvas-faces-convex" resize></canvas>
-    <canvas id="canvas-faces-non-convex" resize></canvas>
-  </div>
-
-  <div class="centered">
-    <pre><code>cp.<f>flatten</f>()</code></pre>
-  </div>
-  
-  <p class="quote">This flatten operation calculates and stores all the faces.</p>
-
-  <p class="explain">Faces containing leaf edges are currently considered invalid.</p>
-
-</section>
-
-
-<h2><a href="#junction">&sect;</a> Junction &amp; Sector</h2>
-
-<section id="junction">
-
-  <p>Perhaps this is forward looking, but origami crease patterns typically arrange themselves so that many edges are sharing the same node, leaving much to be said about the area around one node. We will call this area a <b>junction</b>.</p>
-
-  <p class="quote"><strong>Junction</strong>: the area including one node, its adjacent edges, and the sectors formed between edges.</p>
+<p>
+  These interior angles are called <b>sectors</b>, and I like to call the collection of sectors around one vertex a <b>junction</b>.
+</p>
 
   <div class="centered">
     <canvas id="canvas-edge-winding" resize></canvas>
@@ -375,8 +355,6 @@ faces_faces: [[<n>1</n>], [<n>0</n>]]
   <p class="quote">All radially-sorted components, like edges around a junction, are sorted counter-clockwise.</p>
 
   <p class="explain">This library is strictly in the cartesian system, however this graphics library uses an inverted Y axis. Counter-clockwise appears clockwise.</p>
-
-<h3 id="sector">Sector</h3>
 
   <div class="centered">
     <canvas id="canvas-nearest-sector" resize></canvas>
@@ -398,17 +376,6 @@ faces_faces: [[<n>1</n>], [<n>0</n>]]
 
   <p class="explain">Remember, all counter-clockwise winding appears clockwise in this inverted Y-axis graphics library.</p>
   
-</section>
-
-
-<section id="graphs">
-  <h2>Crease Patterns</h2>
-  <p>A crease pattern's crease lines are the edges of the graph, vertices as endpoints. When it lies flat like this it's called a <strong>planar graph</strong>. During folding the edges leave the plane and enter 3D.</p>
-  <div class="three-js" id="intersection-wobble"></div>
-  <pre><code><span id="span-intersection-results"></span>origami.<a href=""><f>fold</f></a>();</code></pre>
-  <p class="quote">Even if a model is folded in 3D, it still has a 2D crease pattern.</p>
-
-</section>
 
 <pre class="code"><code>vertices_coords <key>=</key> [<br>  [<n>0.8660254</n>, <n>0.5</n>]<br>]</code></pre>
 
@@ -438,6 +405,9 @@ faces_faces: [[<n>1</n>], [<n>0</n>]]
 <script type="text/javascript" src="js/d3_graph_simple.js"></script>
 <script type="text/javascript" src="js/d3_graph_adjNode.js"></script>
 <script type="text/javascript" src="js/d3_graph_adjEdge.js"></script>
+
+<script type="text/javascript" src="../ui-tests/graph_fragment.js"></script>
+
 <!-- 
 <script type="text/javascript" src="js/d3_graph_removeNode.js"></script>
 <script type="text/javascript" src="js/d3_graph_removeEdge.js"></script>

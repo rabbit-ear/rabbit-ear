@@ -175,7 +175,7 @@
     });
     return faces_faces;
   };
-  var faces_coloring_from_faces_matrix = function faces_coloring_from_faces_matrix(faces_matrix) {
+  var make_faces_coloring_from_faces_matrix = function make_faces_coloring_from_faces_matrix(faces_matrix) {
     return faces_matrix.map(function (m) {
       return m[0] * m[3] - m[1] * m[2];
     }).map(function (c) {
@@ -476,7 +476,7 @@
   var make_faces_sidedness = function make_faces_sidedness(graph) {
     var coloring = graph["faces_re:coloring"];
     if (coloring == null) {
-      coloring = "faces_re:matrix" in graph ? faces_coloring_from_faces_matrix(graph["faces_re:matrix"]) : faces_coloring(graph, 0);
+      coloring = "faces_re:matrix" in graph ? make_faces_coloring_from_faces_matrix(graph["faces_re:matrix"]) : faces_coloring(graph, 0);
     }
     return coloring.map(function (c) {
       return c ? "front" : "back";

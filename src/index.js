@@ -13,14 +13,14 @@
 // import { isBrowser, isWebWorker, isNode } from "./environment/detect";
 
 import math from "../include/math";
-import veGraph from "./graph-first";
-import graph from "./graph";
+// import veGraph from "./graph-first";
+import graph from "./graph/index";
 import svg from "../include/svg";
 // import noise from "../include/simplex";
 
 // top level methods
 import apply_axiom from "./axioms/axiom_frame";
-import * as Axioms from "./axioms";
+import * as Axioms from "./axioms/index";
 
 // to be included in "core"
 import * as affine from "./FOLD/affine";
@@ -43,8 +43,8 @@ import * as query from "./FOLD/query";
 import * as marks from "./FOLD/marks";
 import * as select from "./FOLD/select";
 
-import fold from "./fold-through-all";
-import * as kawasaki from "./kawasaki";
+import fold from "./fold-through-all/index";
+import * as kawasaki from "./kawasaki/index";
 
 import build_diagram_frame from "./diagram/diagram_frame";
 
@@ -62,12 +62,12 @@ import fish from "./bases/fish.fold";
 import bird from "./bases/bird.fold";
 import frog from "./bases/frog.fold";
 
-import Origami from "./origami";
-import CreasePattern from "./crease-pattern";
+import Origami from "./origami/index";
+import CreasePattern from "./crease-pattern/index";
 
 // experimental stuff
-import * as delaunay from "./delaunay";
-import { Voronoi, Delaunay } from "../include/delaunay";
+// import * as delaunay from "./delaunay/index";
+// import { Voronoi, Delaunay } from "../include/delaunay/index";
 
 // console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
@@ -85,7 +85,7 @@ Object.assign(core,
   affine,
   validate,
   make,
-  delaunay,
+  // delaunay,
   marks,
   select,
   query,
@@ -158,10 +158,10 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 const rabbitEar = {
   CreasePattern, // experimental feature
   Origami,
-  veGraph,
+  // veGraph,
   graph,
-  Voronoi,
-  Delaunay,
+  // Voronoi,
+  // Delaunay,
   // draw,
   svg,
   fold,

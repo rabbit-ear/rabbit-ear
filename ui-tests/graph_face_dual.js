@@ -39,7 +39,7 @@ faceDual.init = function() {
 		faceDual.appendChild(line)
 	});
 
-	let faces_coloring = RabbitEar.core.faces_coloring(faceDual.cp, 0);
+	let faces_coloring = RabbitEar.core.make_faces_coloring(faceDual.cp, 0);
 
 	let faces = faceDual.faces;
 	faces_coloring

@@ -15,7 +15,7 @@ import math from "../../include/math";
 
 import prototype from "../graph/prototype";
 
-import MakeFold from "../fold-through-all";
+import MakeFold from "../fold-through-all/index";
 import * as Create from "../FOLD/create";
 import addEdge from "../FOLD/add_edge";
 import split_face from "../FOLD/split_face";
@@ -38,7 +38,7 @@ import {
 } from "../FOLD/boundary";
 import { clone } from "../FOLD/object";
 import { transform_scale } from "../FOLD/affine";
-import { kawasaki_collapse } from "../kawasaki";
+import { kawasaki_collapse } from "../kawasaki/index";
 import { get_assignment } from "./args";
 
 import remove from "../FOLD/remove";
