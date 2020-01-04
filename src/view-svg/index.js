@@ -15,7 +15,7 @@ import {
   drawDiagram,
   drawLabels,
   drawDebug,
-  drawDelaunay
+  // drawDelaunay
 } from "./draw";
 
 // const DEFAULT_STYLE = `
@@ -56,7 +56,7 @@ const DEFAULTS = Object.freeze({
   diagram: false,
   labels: false,
   debug: false,
-  delaunay: false,
+  // delaunay: false,
   // options
   autofit: true,
   padding: 0,
@@ -91,7 +91,7 @@ const View = function (graph, ...args) {
   // the order of this list causes the layer order
   const groups = {};
   // additional diagram layer on top. for folding diagram arrows, etc...
-  ["boundaries", "faces", "edges", "vertices", "diagram", "labels", "delaunay"
+  ["boundaries", "faces", "edges", "vertices", "diagram", "labels"
   ].forEach((key) => {
     groups[key] = svg.group();
     groups[key].setAttribute("class", key);
@@ -102,9 +102,9 @@ const View = function (graph, ...args) {
   // groups.edges.strokeWidth(1);
   // groups.faces.strokeWidth(1);
   // groups.boundaries.strokeWidth(1);
-  groups.delaunay.fill("none");
-  groups.delaunay.strokeWidth(0.1);
-  groups.delaunay.stroke("red");
+  // groups.delaunay.fill("none");
+  // groups.delaunay.strokeWidth(0.1);
+  // groups.delaunay.stroke("red");
   // groups.edges.setAttribute("stroke", "black");
   // groups.faces.setAttribute("stroke", "none");
   // groups.faces.setAttribute("fill", "none");
@@ -153,7 +153,7 @@ const View = function (graph, ...args) {
     if (options.diagram) { drawDiagram(graph, groups.diagram); }
     if (options.labels) { drawLabels(graph, groups.labels); }
     if (options.debug) { drawDebug(graph, groups.labels); }
-    if (options.delaunay) { drawDelaunay(graph, groups.delaunay); }
+    // if (options.delaunay) { drawDelaunay(graph, groups.delaunay); }
     if (options.shadows) {
       Array.from(groups.faces.childNodes)
         .forEach(f => f.setAttribute("filter", "url(#faces_shadow)"));

@@ -1,18 +1,18 @@
 import math from "../../include/math";
 import { bounding_rect } from "../FOLD/boundary";
-import { get_delaunay_faces_vertices } from "../delaunay";
+// import { get_delaunay_faces_vertices } from "../delaunay";
 
-export const drawDelaunay = function (graph, group) {
-  if ("faces_vertices" in graph === false
-  || "edges_vertices" in graph === false
-  || "vertices_coords" in graph === false) { return; }
-  const triangle_vertices = get_delaunay_faces_vertices(graph);
-  triangle_vertices.forEach((tv) => {
-    const points = tv.map(v => graph.vertices_coords[v]);
-    // group.polygon(points).stroke("black").fill("#0003");
-    group.polygon(points).setAttribute("style", "stroke:black; fill:#0003; stroke-width:0.003");
-  });
-};
+// export const drawDelaunay = function (graph, group) {
+//   if ("faces_vertices" in graph === false
+//   || "edges_vertices" in graph === false
+//   || "vertices_coords" in graph === false) { return; }
+//   const triangle_vertices = get_delaunay_faces_vertices(graph);
+//   triangle_vertices.forEach((tv) => {
+//     const points = tv.map(v => graph.vertices_coords[v]);
+//     // group.polygon(points).stroke("black").fill("#0003");
+//     group.polygon(points).setAttribute("style", "stroke:black; fill:#0003; stroke-width:0.003");
+//   });
+// };
 
 export const drawLabels = function (graph, group) {
   if ("faces_vertices" in graph === false

@@ -16,8 +16,8 @@
 import drawFOLD from "../../include/fold-draw";
 import math from "../../include/math";
 
-import svgView from "../view-svg";
-import glView from "../view-webgl";
+import svgView from "../view-svg/index";
+import glView from "../view-webgl/index";
 import touchAndFold from "../view-svg/origami_touch_fold";
 import window from "../environment/window";
 import Prototype from "./prototype";

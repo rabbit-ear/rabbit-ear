@@ -93,7 +93,22 @@ div[id^=canvas-] {
   fill: #FFF;
   stroke-width: 4px;
   cursor: pointer;
-} 
+}
+
+.quote{
+	text-align: center;
+	font-style: italic;
+/*	line-height: 1.5em;*/
+}
+.explain{
+	margin-top:2em;
+	margin-bottom:2em;
+	padding:1em;
+	background-color: #ffa;
+	box-shadow: 5px 5px 5px #CCC;
+	line-height: 2em;
+}
+
 pre, code {
 	overflow: auto;
 	max-width: calc(100% - 2rem);

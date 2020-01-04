@@ -23,7 +23,7 @@ import {
 
 import {
   make_faces_matrix,
-  faces_coloring_from_faces_matrix,
+  make_faces_coloring_from_faces_matrix,
   make_vertices_coords_folded,
 } from "../FOLD/make";
 
@@ -72,7 +72,7 @@ const prepare_to_fold = function (graph, point, vector, face_index) {
   if ("faces_re:matrix" in graph === false) {
     graph["faces_re:matrix"] = make_faces_matrix(graph, face_index);
   }
-  graph["faces_re:coloring"] = faces_coloring_from_faces_matrix(
+  graph["faces_re:coloring"] = make_faces_coloring_from_faces_matrix(
     graph["faces_re:matrix"]
   );
   // crease lines are calculated using each face's INVERSE matrix
@@ -235,7 +235,7 @@ const fold_through = function (
   const folded_faces_matrix = make_faces_matrix(folded, face_0_newIndex)
     .map(m => math.core.multiply_matrices2(face_0_preMatrix, m));
   // faces coloring is useful for determining if a face is flipped or not
-  folded["faces_re:coloring"] = faces_coloring_from_faces_matrix(
+  folded["faces_re:coloring"] = make_faces_coloring_from_faces_matrix(
     folded_faces_matrix
   );
   // "construction" section that includes:

@@ -13,7 +13,7 @@ import {
 } from "../FOLD/query";
 import {
   axiom2
-} from "../axioms";
+} from "../axioms/index";
 import { clone } from "../FOLD/object";
 
 const build_folded_frame = function (graph, face_stationary = 0) {
@@ -69,10 +69,10 @@ const setup = function (origami, svg) {
       // if (was_folded) { origami.unfold(); }
 
       origami.load(cachedGraph);
-      const instruction = axiom2(mouse.pressed[0], mouse.pressed[1], mouse.position[0], mouse.position[1]);
+      const instruction = axiom2(mouse.position[0], mouse.position[1], mouse.pressed[0], mouse.pressed[1]);
       origami.crease(instruction.solutions[0], touchFaceIndex);
 
-      if (was_folded) { origami.fold(); }
+      if (was_folded) { origami.collapse(); }
     }
   };
 };

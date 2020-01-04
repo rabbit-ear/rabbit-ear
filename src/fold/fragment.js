@@ -9,7 +9,10 @@
 
 import math from "../../include/math";
 import remove from "./remove";
-import { edge_assignment_to_foldAngle } from "./keys";
+import {
+  fold_keys,
+  edge_assignment_to_foldAngle
+} from "./keys";
 
 const equivalent_vertices = function (a, b, epsilon = math.core.EPSILON) {
   for (let i = 0; i < a.length; i += 1) {
@@ -223,6 +226,10 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
     .map((rm, i) => (rm ? i : undefined))
     .filter(i => i !== undefined);
   remove(flat, "vertices", vertices_remove_indices);
+
+  // done. we can return a copy of the changes, or modify directly
+  fold_keys.graph.forEach(key => delete graph[key]);
+  Object.keys(flat).forEach((key) => { graph[key] = flat[key]; });
   return flat;
 };
 

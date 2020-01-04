@@ -294,7 +294,7 @@ export const make_vertices_isBoundary = function (graph) {
  * this face coloring skips marks joining the two faces separated by it.
  * it relates directly to if a face is flipped or not (determinant > 0)
  */
-export const faces_coloring_from_faces_matrix = function (faces_matrix) {
+export const make_faces_coloring_from_faces_matrix = function (faces_matrix) {
   return faces_matrix
     .map(m => m[0] * m[3] - m[1] * m[2])
     .map(c => c >= 0);
@@ -303,14 +303,14 @@ export const faces_coloring_from_faces_matrix = function (faces_matrix) {
  * true/false: which face shares color with root face
  * the root face (and any similar-color face) will be marked as true
  */
-// export const faces_coloring = function (graph, root_face = 0) {
-//   const coloring = [];
-//   coloring[root_face] = true;
-//   make_face_walk_tree(graph, root_face)
-//     .forEach((level, i) => level
-//       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
-//   return coloring;
-// };
+export const make_faces_coloring = function (graph, root_face = 0) {
+  const coloring = [];
+  coloring[root_face] = true;
+  make_face_walk_tree(graph, root_face)
+    .forEach((level, i) => level
+      .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
+  return coloring;
+};
 
 // export const make_boundary_vertices = function (graph) {
 //   const edges_vertices_b = graph.edges_vertices

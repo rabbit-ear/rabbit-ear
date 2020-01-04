@@ -22,8 +22,8 @@
 import drawFOLD from "../../include/fold-draw";
 import math from "../../include/math";
 
-import svgView from "../view-svg";
-import glView from "../view-webgl";
+import svgView from "../view-svg/index";
+import glView from "../view-webgl/index";
 import touchAndFold from "../view-svg/origami_touch_fold";
 import convert from "../convert/convert";
 import window from "../environment/window";
@@ -104,6 +104,7 @@ const Origami = function (...args) {
   // validate and add anything missing.
   // validate(origami);
   origami.clean();
+  origami.populate();
   /**
    * setting the "folded state" does two things:
    * - assign the class of this object to be "foldedForm" or "creasePattern"
@@ -141,7 +142,9 @@ const Origami = function (...args) {
     // }
     const fold_file = convert(data).fold(options);
     Object.assign(origami, fold_file);
+    if (origami.edges_vertices == null) { return; }
     origami.clean();
+    origami.populate();
     // placeholderFoldedForm(_origami);
     origami.didChange.forEach(f => f());
   };
