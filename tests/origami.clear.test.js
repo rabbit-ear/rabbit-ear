@@ -26,7 +26,8 @@ test("origami clear", () => {
     "faces_vertices",
     "faces_edges",
     "faces_faces",
-    "vertices_edges"
+    "vertices_edges",
+    "edges_edges"
   ];
 
   const allBoundaryEdgesTest = origami.edges_assignment

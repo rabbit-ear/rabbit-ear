@@ -14,8 +14,10 @@ import {
   edge_assignment_to_foldAngle
 } from "./keys";
 
-const equivalent_vertices = function (a, b, epsilon = math.core.EPSILON) {
-  for (let i = 0; i < a.length; i += 1) {
+// permissively ignores anything above 2D
+const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
+  const max = a.length < 2 ? a.length : 2;
+  for (let i = 0; i < max; i += 1) {
     if (Math.abs(a[i] - b[i]) > epsilon) {
       return false;
     }
@@ -150,7 +152,7 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
     .from(Array(vertices_coords.length)).map(() => []);
   for (let i = 0; i < vertices_coords.length - 1; i += 1) {
     for (let j = i + 1; j < vertices_coords.length; j += 1) {
-      vertices_equivalent[i][j] = equivalent_vertices(
+      vertices_equivalent[i][j] = are_vertices_equivalent(
         vertices_coords[i],
         vertices_coords[j],
         epsilon
