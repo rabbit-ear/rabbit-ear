@@ -11,6 +11,7 @@ import {
 } from "../FOLD/keys";
 import fragment from "../FOLD/fragment";
 import clean from "../FOLD/clean";
+import join from "../FOLD/join";
 import rebuild from "../FOLD/rebuild";
 import populate from "../FOLD/populate";
 import {
@@ -112,6 +113,10 @@ const Prototype = function (proto = {}) {
     }
     // allow load() to overwrite file_spec and file_creator
     Object.assign(this, { file_spec, file_creator }, clone(object));
+  };
+  proto.join = function (object, options = {}) {
+    if (options.append !== true) { }
+    join(this, object);
   };
   /**
    * this clears all components from the graph

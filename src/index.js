@@ -30,6 +30,7 @@ import * as keys from "./FOLD/keys";
 import * as collinear from "./FOLD/collinear";
 import * as isolated from "./FOLD/isolated";
 import * as validate from "./FOLD/validate";
+import * as similar from "./FOLD/similar";
 import fragment from "./FOLD/fragment";
 import clean from "./FOLD/clean";
 import Validate from "./FOLD/validate";
@@ -63,7 +64,6 @@ import bird from "./bases/bird.fold";
 import frog from "./bases/frog.fold";
 
 import Origami from "./origami/index";
-import CreasePattern from "./crease-pattern/index";
 
 // experimental stuff
 // import * as delaunay from "./delaunay/index";
@@ -84,6 +84,7 @@ Object.assign(core,
   keys,
   affine,
   validate,
+  similar,
   make,
   // delaunay,
   marks,
@@ -156,7 +157,6 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 // };
 
 const rabbitEar = {
-  CreasePattern, // experimental feature
   Origami,
   // veGraph,
   graph,
