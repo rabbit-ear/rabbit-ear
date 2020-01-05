@@ -33,6 +33,7 @@ import * as validate from "./FOLD/validate";
 import * as similar from "./FOLD/similar";
 import fragment from "./FOLD/fragment";
 import clean from "./FOLD/clean";
+import join from "./FOLD/join";
 import Validate from "./FOLD/validate";
 import convert from "./convert/convert";
 
@@ -102,6 +103,7 @@ core.merge_run = merge_run_diffs;
 core.apply_axiom = apply_axiom;
 core.fragment = fragment;
 core.clean = clean;
+core.join = join;
 core.remove = remove;
 core.rebuild = rebuild;
 core.populate = populate;

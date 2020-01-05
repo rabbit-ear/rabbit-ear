@@ -37,7 +37,6 @@ import {
   remove_non_boundary_edges
 } from "../FOLD/boundary";
 import { clone } from "../FOLD/object";
-import { transform_scale } from "../FOLD/affine";
 import { kawasaki_collapse } from "../kawasaki/index";
 import { get_assignment } from "./args";
 
@@ -181,13 +180,6 @@ const Prototype = function (superProto = {}) {
     delete this.vertices_faces;
     delete this.edges_faces;
     this.didChange.forEach(f => f());
-  };
-
-  /**
-   * transformations
-   */
-  proto.scale = function (...args) {
-    transform_scale(this, ...args);
   };
 
   // updates

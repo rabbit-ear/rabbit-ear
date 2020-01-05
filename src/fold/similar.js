@@ -13,11 +13,11 @@ const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
   return true;
 };
 
-export const similar_vertices_coords = function (target, source) {
+export const similar_vertices_coords = function (target, source, epsilon) {
   const sourceMap = source.vertices_coords.map(() => undefined);
   for (let i = 0; i < target.vertices_coords.length; i += 1) {
     for (let j = 0; j < source.vertices_coords.length; j += 1) {
-      if (are_vertices_equivalent(target.vertices_coords[i], source.vertices_coords[j])) {
+      if (are_vertices_equivalent(target.vertices_coords[i], source.vertices_coords[j], epsilon)) {
         sourceMap[j] = i;
         // break out of the inner loop
         j = source.vertices_coords.length;

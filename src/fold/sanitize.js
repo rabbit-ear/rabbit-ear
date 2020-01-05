@@ -2,6 +2,7 @@
 // file from an outside source. - this converts everytihng into strict types
 // for example foldAngles can contain nil, we need to define these
 
+// in progress
 const sanitize = function (fold) {
   // vertices_coords
   if (fold.vertices_coords != null) {

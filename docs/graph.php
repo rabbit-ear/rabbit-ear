@@ -334,6 +334,23 @@ faces_faces: [[<n>1</n>], [<n>0</n>]]
   This method removes all 3D information and triggers a re-build on all other component arrays.
 </p>
 
+<h3>Join</h3>
+
+<p>
+  Join two graphs into one.
+</p>
+
+<div id="canvas-graph-join"></div>
+
+<pre class="code"><code><span id="span-merge-result"></span>graph.<f>join</f>(graph2)</code></pre>
+
+<p>
+  This example demonstrates the join method with a very permissive <b>epsilon</b>.
+</p>
+<p>
+  Notice how vertices will snap to other vertices. With a more appropriate epsilon this will still happen but with a more reasonable level of deformation.
+</p>
+
 <h3>Sectors</h3>
 
 <p>
@@ -407,6 +424,7 @@ faces_faces: [[<n>1</n>], [<n>0</n>]]
 <script type="text/javascript" src="js/d3_graph_adjEdge.js"></script>
 
 <script type="text/javascript" src="../ui-tests/graph_fragment.js"></script>
+<script type="text/javascript" src="../ui-tests/graph_join.js"></script>
 
 <!-- 
 <script type="text/javascript" src="js/d3_graph_removeNode.js"></script>

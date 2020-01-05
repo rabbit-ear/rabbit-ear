@@ -14,6 +14,7 @@ import clean from "../FOLD/clean";
 import join from "../FOLD/join";
 import rebuild from "../FOLD/rebuild";
 import populate from "../FOLD/populate";
+import * as Transform from "../FOLD/affine";
 import {
   nearest_vertex,
   nearest_edge,
@@ -114,9 +115,8 @@ const Prototype = function (proto = {}) {
     // allow load() to overwrite file_spec and file_creator
     Object.assign(this, { file_spec, file_creator }, clone(object));
   };
-  proto.join = function (object, options = {}) {
-    if (options.append !== true) { }
-    join(this, object);
+  proto.join = function (object, epsilon) {
+    join(this, object, epsilon);
   };
   /**
    * this clears all components from the graph
@@ -166,9 +166,15 @@ const Prototype = function (proto = {}) {
   /**
    * transformations
    */
-  // proto.scale = function (...args) {
-  //   transform_scale(this, ...args);
+  proto.translate = function (...args) {
+    Transform.transform_translate(this, ...args);
+  };
+  // proto.rotate = function (...args) {
+  //   Transform.transform_rotate(this, ...args);
   // };
+  proto.scale = function (...args) {
+    Transform.transform_scale(this, ...args);
+  };
 
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });

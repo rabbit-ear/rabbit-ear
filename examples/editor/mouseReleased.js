@@ -35,6 +35,7 @@ const MouseReleased = function () {
         });
         app.origami.fragment();
         app.origami.clean();
+        app.origami.populate();
         break;
       case "line": break;
       case "point-to-point":
@@ -44,6 +45,7 @@ const MouseReleased = function () {
           .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
         app.origami.fragment();
         app.origami.clean();
+        app.origami.populate();
         break;
       case "bisect": {
         const edgeA = app.nearestPressed.edge.index;
@@ -63,6 +65,7 @@ const MouseReleased = function () {
             .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
           app.origami.fragment();
           app.origami.clean();
+          app.origami.populate();
         }
       }
         break;
@@ -94,6 +97,7 @@ const MouseReleased = function () {
           .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
         app.origami.fragment();
         app.origami.clean();
+        app.origami.populate();
       }
         break;
       case "point-to-line-point": break;
@@ -109,6 +113,7 @@ const MouseReleased = function () {
           app.cache("remove crease\n");
           RabbitEar.core.remove(app.origami, "edges", [app.nearest.edge.index]);
           app.origami.clean();
+          app.origami.populate();
           app.origami.svg.draw();
         }
         // app.tapLayer.rect(...app.dragRect)
