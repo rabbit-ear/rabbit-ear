@@ -3535,11 +3535,11 @@
     }
     return true;
   };
-  const similar_vertices_coords = function (target, source) {
+  const similar_vertices_coords = function (target, source, epsilon) {
     const sourceMap = source.vertices_coords.map(() => undefined);
     for (let i = 0; i < target.vertices_coords.length; i += 1) {
       for (let j = 0; j < source.vertices_coords.length; j += 1) {
-        if (are_vertices_equivalent$1(target.vertices_coords[i], source.vertices_coords[j])) {
+        if (are_vertices_equivalent$1(target.vertices_coords[i], source.vertices_coords[j], epsilon)) {
           sourceMap[j] = i;
           j = source.vertices_coords.length;
         }
@@ -3552,10 +3552,6 @@
     __proto__: null,
     similar_vertices_coords: similar_vertices_coords
   });
-
-  const join = function (target, source) {
-    const sourceMap = similar_vertices_coords(target, source);
-  };
 
   var geom = {},
     modulo = function(a, b) { return (+a % (b = +b) + b) % b; };
@@ -5287,6 +5283,106 @@
     make_faces_coloring: make_faces_coloring
   });
 
+  const populate = function (graph) {
+    if (typeof graph !== "object") { return; }
+    if (graph.vertices_vertices == null) {
+      if (graph.vertices_coords && graph.edges_vertices) {
+        convert.edges_vertices_to_vertices_vertices_sorted(graph);
+      } else if (graph.edges_vertices) {
+        convert.edges_vertices_to_vertices_vertices_unsorted(graph);
+      }
+    }
+    if (graph.faces_vertices == null) {
+      if (graph.vertices_coords && graph.vertices_vertices) {
+        convert.vertices_vertices_to_faces_vertices(graph);
+      }
+    }
+    if (graph.faces_edges == null) {
+      if (graph.faces_vertices) {
+        convert.faces_vertices_to_faces_edges(graph);
+      }
+    }
+    if (graph.edges_faces == null) {
+      const edges_faces = make_edges_faces(graph);
+      if (edges_faces !== undefined) {
+        graph.edges_faces = edges_faces;
+      }
+    }
+    if (graph.vertices_faces == null) {
+      const vertices_faces = make_vertices_faces(graph);
+      if (vertices_faces !== undefined) {
+        graph.vertices_faces = vertices_faces;
+      }
+    }
+    if (graph.edges_length == null) {
+      const edges_length = make_edges_length(graph);
+      if (edges_length !== undefined) {
+        graph.edges_length = edges_length;
+      }
+    }
+    if (graph.edges_foldAngle == null
+      && graph.edges_assignment != null) {
+      graph.edges_foldAngle = graph.edges_assignment
+        .map(a => edge_assignment_to_foldAngle(a));
+    }
+    if (graph.edges_assignment == null
+      && graph.edges_foldAngle != null) {
+      graph.edges_assignment = graph.edges_foldAngle.map((a) => {
+        if (a === 0) { return "F"; }
+        if (a < 0) { return "M"; }
+        if (a > 0) { return "V"; }
+        return "U";
+      });
+    }
+    if (graph.faces_faces == null) {
+      const faces_faces = make_faces_faces(graph);
+      if (faces_faces !== undefined) {
+        graph.faces_faces = faces_faces;
+      }
+    }
+    if (graph.vertices_edges == null) {
+      const vertices_edges = make_vertices_edges(graph);
+      if (vertices_edges !== undefined) {
+        graph.vertices_edges = vertices_edges;
+      }
+    }
+    if (graph.edges_edges == null) {
+      const edges_edges = make_edges_edges(graph);
+      if (edges_edges !== undefined) {
+        graph.edges_edges = edges_edges;
+      }
+    }
+  };
+
+  const join = function (target, source, epsilon = math.core.EPSILON) {
+    const sourceMap = similar_vertices_coords(target, source, epsilon);
+    const additional_vertices_coords = source.vertices_coords
+      .filter((_, i) => sourceMap[i] === undefined);
+    let new_index = target.vertices_coords.length;
+    for (let i = 0; i < sourceMap.length; i += 1) {
+      if (sourceMap[i] === undefined) {
+        sourceMap[i] = new_index;
+        new_index += 1;
+      }
+    }
+    const additional_edges_vertices = source.edges_vertices
+      .map(ev => ev.map(v => sourceMap[v]));
+    target.vertices_coords = target.vertices_coords.concat(additional_vertices_coords);
+    target.edges_vertices = target.edges_vertices.concat(additional_edges_vertices);
+    delete target.vertices_vertices;
+    delete target.vertices_edges;
+    delete target.vertices_faces;
+    delete target.edges_edges;
+    delete target.edges_faces;
+    delete target.faces_vertices;
+    delete target.faces_edges;
+    delete target.faces_faces;
+    clean(target);
+    fragment(target);
+    populate(target);
+    return target;
+  };
+
   const max_array_length$1 = function (...arrays) {
     return Math.max(...(arrays
       .filter(el => el !== undefined)
@@ -5890,76 +5986,34 @@
     }
   };
 
-  const populate = function (graph) {
-    if (typeof graph !== "object") { return; }
-    if (graph.vertices_vertices == null) {
-      if (graph.vertices_coords && graph.edges_vertices) {
-        convert.edges_vertices_to_vertices_vertices_sorted(graph);
-      } else if (graph.edges_vertices) {
-        convert.edges_vertices_to_vertices_vertices_unsorted(graph);
-      }
-    }
-    if (graph.faces_vertices == null) {
-      if (graph.vertices_coords && graph.vertices_vertices) {
-        convert.vertices_vertices_to_faces_vertices(graph);
-      }
-    }
-    if (graph.faces_edges == null) {
-      if (graph.faces_vertices) {
-        convert.faces_vertices_to_faces_edges(graph);
-      }
-    }
-    if (graph.edges_faces == null) {
-      const edges_faces = make_edges_faces(graph);
-      if (edges_faces !== undefined) {
-        graph.edges_faces = edges_faces;
-      }
-    }
-    if (graph.vertices_faces == null) {
-      const vertices_faces = make_vertices_faces(graph);
-      if (vertices_faces !== undefined) {
-        graph.vertices_faces = vertices_faces;
-      }
-    }
-    if (graph.edges_length == null) {
-      const edges_length = make_edges_length(graph);
-      if (edges_length !== undefined) {
-        graph.edges_length = edges_length;
-      }
-    }
-    if (graph.edges_foldAngle == null
-      && graph.edges_assignment != null) {
-      graph.edges_foldAngle = graph.edges_assignment
-        .map(a => edge_assignment_to_foldAngle(a));
-    }
-    if (graph.edges_assignment == null
-      && graph.edges_foldAngle != null) {
-      graph.edges_assignment = graph.edges_foldAngle.map((a) => {
-        if (a === 0) { return "F"; }
-        if (a < 0) { return "M"; }
-        if (a > 0) { return "V"; }
-        return "U";
-      });
-    }
-    if (graph.faces_faces == null) {
-      const faces_faces = make_faces_faces(graph);
-      if (faces_faces !== undefined) {
-        graph.faces_faces = faces_faces;
-      }
-    }
-    if (graph.vertices_edges == null) {
-      const vertices_edges = make_vertices_edges(graph);
-      if (vertices_edges !== undefined) {
-        graph.vertices_edges = vertices_edges;
-      }
-    }
-    if (graph.edges_edges == null) {
-      const edges_edges = make_edges_edges(graph);
-      if (edges_edges !== undefined) {
-        graph.edges_edges = edges_edges;
-      }
-    }
+  const apply_matrix_to_graph = function (graph, matrix) {
+    get_keys_with_ending(graph, "coords").forEach((key) => {
+      graph[key] = graph[key]
+        .map(v => math.core.multiply_matrix2_vector2(matrix, v));
+    });
+    get_keys_with_ending(graph, "matrix").forEach((key) => {
+      graph[key] = graph[key]
+        .map(m => math.core.multiply_matrices2(m, matrix));
+    });
   };
+  const transform_scale = function (graph, ratio) {
+    const matrix = math.core.make_matrix2_scale(ratio);
+    apply_matrix_to_graph(graph, matrix);
+  };
+  const transform_translate = function (graph, dx, dy) {
+    const matrix = math.core.make_matrix2_translate(dx, dy);
+    apply_matrix_to_graph(graph, matrix);
+  };
+  const transform_matrix = function (graph, matrix) {
+    apply_matrix_to_graph(graph, matrix);
+  };
+
+  var affine = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    transform_scale: transform_scale,
+    transform_translate: transform_translate,
+    transform_matrix: transform_matrix
+  });
 
   const clone = function (o) {
     let newO;
@@ -6069,9 +6123,8 @@
       }
       Object.assign(this, { file_spec, file_creator }, clone(object));
     };
-    proto.join = function (object, options = {}) {
-      if (options.append !== true) ;
-      join(this, object);
+    proto.join = function (object, epsilon) {
+      join(this, object, epsilon);
     };
     proto.clear = function () {
       fold_keys.graph.forEach(key => delete this[key]);
@@ -6108,6 +6161,12 @@
         .filter(key => nears[key] == null)
         .forEach(key => delete nears[key]);
       return nears;
+    };
+    proto.translate = function (...args) {
+      transform_translate(this, ...args);
+    };
+    proto.scale = function (...args) {
+      transform_scale(this, ...args);
     };
     Object.defineProperty(proto, "vertices", { get: getVertices });
     Object.defineProperty(proto, "edges", { get: getEdges });
@@ -8709,35 +8768,6 @@
     axiom6RefFinder: axiom6RefFinder,
     axiom6RefFinderFunc: axiom6RefFinderFunc,
     axiom: axiom
-  });
-
-  const apply_matrix_to_fold = function (fold, matrix) {
-    get_keys_with_ending("coords").forEach((key) => {
-      fold[key] = fold[key]
-        .map(v => math.core.multiply_matrix2_vector2(matrix, v));
-    });
-    get_keys_with_ending("matrix").forEach((key) => {
-      fold[key] = fold[key]
-        .map(m => math.core.multiply_matrices2(m, matrix));
-    });
-  };
-  const transform_scale = function (fold, ratio, homothetic_center) {
-    const matrix = math.core.make_matrix2_scale(ratio, homothetic_center);
-    apply_matrix_to_fold(fold, matrix);
-  };
-  const transform_translate = function (fold, dx, dy) {
-    const matrix = math.core.make_matrix2_translation(dx, dy);
-    apply_matrix_to_fold(fold, matrix);
-  };
-  const transform_matrix = function (fold, matrix) {
-    apply_matrix_to_fold(fold, matrix);
-  };
-
-  var affine = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    transform_scale: transform_scale,
-    transform_translate: transform_translate,
-    transform_matrix: transform_matrix
   });
 
   const flatten_frame = function (fold_file, frame_num) {
@@ -13608,9 +13638,6 @@ line.valley { stroke: blue;
       delete this.edges_faces;
       this.didChange.forEach(f => f());
     };
-    proto.scale = function (...args) {
-      transform_scale(this, ...args);
-    };
     const didModifyGraph = function () {
       this.didChange.forEach(f => f());
     };
@@ -13935,6 +13962,7 @@ line.valley { stroke: blue;
   core$1.apply_axiom = make_axiom_frame;
   core$1.fragment = fragment;
   core$1.clean = clean;
+  core$1.join = join;
   core$1.remove = remove_geometry_key_indices;
   core$1.rebuild = rebuild;
   core$1.populate = populate;
