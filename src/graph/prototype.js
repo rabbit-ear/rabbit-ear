@@ -11,6 +11,7 @@ import {
 } from "../FOLD/keys";
 import fragment from "../FOLD/fragment";
 import clean from "../FOLD/clean";
+import planarClean from "../FOLD/planarClean";
 import join from "../FOLD/join";
 import rebuild from "../FOLD/rebuild";
 import populate from "../FOLD/populate";
@@ -79,11 +80,26 @@ const Prototype = function (proto = {}) {
     return vertices;
   };
   const getEdges = function () {
-    return transpose_geometry_arrays(this, "edges");
+    const edges = transpose_geometry_arrays(this, "edges");
+    // add coords
+    if (this.vertices_coords && this.edges_vertices) {
+      const that = this;
+      edges.forEach((e, i) => {
+        e.coords = that.edges_vertices[i].map(v => that.vertices_coords[v]);
+      });
+    }
+    return edges;
   };
   const getFaces = function () {
     const faces = transpose_geometry_arrays(this, "faces");
     faces.forEach((f, i) => setup_face(f, i, this));
+    // add coords
+    if (this.vertices_coords && this.faces_vertices) {
+      const that = this;
+      faces.forEach((f, i) => {
+        f.coords = that.faces_vertices[i].map(v => that.vertices_coords[v]);
+      });
+    }
     return faces;
   };
   /**
@@ -91,6 +107,9 @@ const Prototype = function (proto = {}) {
    */
   proto.clean = function () {
     clean(this);
+  };
+  proto.planarClean = function () {
+    planarClean(this);
   };
   proto.populate = function () {
     populate(this);
@@ -139,6 +158,10 @@ const Prototype = function (proto = {}) {
     const index = nearest_edge(this, math.core.get_vector(...args));
     const result = transpose_geometry_array_at_index(this, "edges", index);
     setup_edge(result, index, this);
+    // add coords
+    if (this.vertices_coords && this.edges_vertices) {
+      result.coords = this.edges_vertices[index].map(v => this.vertices_coords[v]);
+    }
     result.index = index;
     return result;
   };
@@ -148,6 +171,10 @@ const Prototype = function (proto = {}) {
     // todo, if point isn't inside a face, there can still exist a nearest face
     const result = transpose_geometry_array_at_index(this, "faces", index);
     setup_face(result, index, this);
+    // add coords
+    if (this.vertices_coords && this.faces_vertices) {
+      result.coords = this.faces_vertices[index].map(v => this.vertices_coords[v]);
+    }
     result.index = index;
     return result;
   };

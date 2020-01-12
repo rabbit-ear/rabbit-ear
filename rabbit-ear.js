@@ -3,74 +3,57 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.RabbitEar = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
-  var magnitude = function magnitude(v) {
-    var sum = v.map(function (component) {
-      return component * component;
-    }).reduce(function (prev, curr) {
-      return prev + curr;
-    }, 0);
+  const magnitude = function (v) {
+    const sum = v
+      .map(component => component * component)
+      .reduce((prev, curr) => prev + curr, 0);
     return Math.sqrt(sum);
   };
-  var normalize = function normalize(v) {
-    var m = magnitude(v);
-    return m === 0 ? v : v.map(function (c) {
-      return c / m;
-    });
+  const normalize = function (v) {
+    const m = magnitude(v);
+    return m === 0 ? v : v.map(c => c / m);
   };
-  var dot = function dot(a, b) {
-    return a.map(function (_, i) {
-      return a[i] * b[i];
-    }).reduce(function (prev, curr) {
-      return prev + curr;
-    }, 0);
+  const dot = function (a, b) {
+    return a
+      .map((_, i) => a[i] * b[i])
+      .reduce((prev, curr) => prev + curr, 0);
   };
-  var average = function average() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var dimension = args.length > 0 ? args[0].length : 0;
-    var sum = Array(dimension).fill(0);
-    args.forEach(function (vec) {
-      return sum.forEach(function (_, i) {
-        sum[i] += vec[i] || 0;
-      });
-    });
-    return sum.map(function (n) {
-      return n / args.length;
-    });
+  const average = function (...args) {
+    const dimension = (args.length > 0) ? args[0].length : 0;
+    const sum = Array(dimension).fill(0);
+    args.forEach(vec => sum.forEach((_, i) => { sum[i] += vec[i] || 0; }));
+    return sum.map(n => n / args.length);
   };
-  var cross2 = function cross2(a, b) {
-    return [a[0] * b[1], a[1] * b[0]];
+  const cross2 = (a, b) => [a[0] * b[1], a[1] * b[0]];
+  const cross3 = function (a, b) {
+    return [
+      a[1] * b[2] - a[2] * b[1],
+      a[0] * b[2] - a[2] * b[0],
+      a[0] * b[1] - a[1] * b[0],
+    ];
   };
-  var cross3 = function cross3(a, b) {
-    return [a[1] * b[2] - a[2] * b[1], a[0] * b[2] - a[2] * b[0], a[0] * b[1] - a[1] * b[0]];
+  const distance2 = function (a, b) {
+    const p = a[0] - b[0];
+    const q = a[1] - b[1];
+    return Math.sqrt((p * p) + (q * q));
   };
-  var distance2 = function distance2(a, b) {
-    var p = a[0] - b[0];
-    var q = a[1] - b[1];
-    return Math.sqrt(p * p + q * q);
+  const distance3 = function (a, b) {
+    const c = a[0] - b[0];
+    const d = a[1] - b[1];
+    const e = a[2] - b[2];
+    return Math.sqrt((c * c) + (d * d) + (e * e));
   };
-  var distance3 = function distance3(a, b) {
-    var c = a[0] - b[0];
-    var d = a[1] - b[1];
-    var e = a[2] - b[2];
-    return Math.sqrt(c * c + d * d + e * e);
-  };
-  var distance = function distance(a, b) {
-    var dimension = a.length;
-    var sum = 0;
-    for (var i = 0; i < dimension; i += 1) {
-      sum += Math.pow(a[i] - b[i], 2);
+  const distance = function (a, b) {
+    const dimension = a.length;
+    let sum = 0;
+    for (let i = 0; i < dimension; i += 1) {
+      sum += (a[i] - b[i]) ** 2;
     }
     return Math.sqrt(sum);
   };
-  var midpoint2 = function midpoint2(a, b) {
-    return a.map(function (_, i) {
-      return (a[i] + b[i]) / 2;
-    });
-  };
+  const midpoint2 = (a, b) => a.map((_, i) => (a[i] + b[i]) / 2);
   var algebra = Object.freeze({
     __proto__: null,
     magnitude: magnitude,
@@ -84,54 +67,88 @@
     distance: distance,
     midpoint2: midpoint2
   });
-  var multiply_matrix2_vector2 = function multiply_matrix2_vector2(matrix, vector) {
-    return [matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4], matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5]];
+  const multiply_matrix2_vector2 = function (matrix, vector) {
+    return [
+      matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
+      matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5]
+    ];
   };
-  var multiply_matrix2_line2 = function multiply_matrix2_line2(matrix, origin, vector) {
+  const multiply_matrix2_line2 = function (matrix, origin, vector) {
     return {
-      origin: [matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4], matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5]],
-      vector: [matrix[0] * vector[0] + matrix[2] * vector[1], matrix[1] * vector[0] + matrix[3] * vector[1]]
+      origin: [
+        matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4],
+        matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5]
+      ],
+      vector: [
+        matrix[0] * vector[0] + matrix[2] * vector[1],
+        matrix[1] * vector[0] + matrix[3] * vector[1]
+      ]
     };
   };
-  var multiply_matrices2 = function multiply_matrices2(m1, m2) {
-    return [m1[0] * m2[0] + m1[2] * m2[1], m1[1] * m2[0] + m1[3] * m2[1], m1[0] * m2[2] + m1[2] * m2[3], m1[1] * m2[2] + m1[3] * m2[3], m1[0] * m2[4] + m1[2] * m2[5] + m1[4], m1[1] * m2[4] + m1[3] * m2[5] + m1[5]];
+  const multiply_matrices2 = function (m1, m2) {
+    return [
+      m1[0] * m2[0] + m1[2] * m2[1],
+      m1[1] * m2[0] + m1[3] * m2[1],
+      m1[0] * m2[2] + m1[2] * m2[3],
+      m1[1] * m2[2] + m1[3] * m2[3],
+      m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+      m1[1] * m2[4] + m1[3] * m2[5] + m1[5]
+    ];
   };
-  var matrix2_determinant = function matrix2_determinant(m) {
+  const matrix2_determinant = function (m) {
     return m[0] * m[3] - m[1] * m[2];
   };
-  var invert_matrix2 = function invert_matrix2(m) {
-    var det = matrix2_determinant(m);
+  const invert_matrix2 = function (m) {
+    const det = matrix2_determinant(m);
     if (Math.abs(det) < 1e-6 || isNaN(det) || !isFinite(m[4]) || !isFinite(m[5])) {
       return undefined;
     }
-    return [m[3] / det, -m[1] / det, -m[2] / det, m[0] / det, (m[2] * m[5] - m[3] * m[4]) / det, (m[1] * m[4] - m[0] * m[5]) / det];
+    return [
+      m[3] / det,
+      -m[1] / det,
+      -m[2] / det,
+      m[0] / det,
+      (m[2] * m[5] - m[3] * m[4]) / det,
+      (m[1] * m[4] - m[0] * m[5]) / det
+    ];
   };
-  var make_matrix2_translate = function make_matrix2_translate(x, y) {
+  const make_matrix2_translate = function (x, y) {
     return [1, 0, 0, 1, x, y];
   };
-  var make_matrix2_scale = function make_matrix2_scale(ratio) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0];
-    return [ratio, 0, 0, ratio, ratio * -origin[0] + origin[0], ratio * -origin[1] + origin[1]];
+  const make_matrix2_scale = function (ratio, origin = [0, 0]) {
+    return [
+      ratio,
+      0,
+      0,
+      ratio,
+      ratio * -origin[0] + origin[0],
+      ratio * -origin[1] + origin[1]
+    ];
   };
-  var make_matrix2_rotate = function make_matrix2_rotate(angle) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0];
-    var cos = Math.cos(angle);
-    var sin = Math.sin(angle);
-    return [cos, sin, -sin, cos, origin[0], origin[1]];
+  const make_matrix2_rotate = function (angle, origin = [0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [
+      cos,
+      sin,
+      -sin,
+      cos,
+      origin[0],
+      origin[1]
+    ];
   };
-  var make_matrix2_reflection = function make_matrix2_reflection(vector) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0];
-    var angle = Math.atan2(vector[1], vector[0]);
-    var cosAngle = Math.cos(angle);
-    var sinAngle = Math.sin(angle);
-    var cos_Angle = Math.cos(-angle);
-    var sin_Angle = Math.sin(-angle);
-    var a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-    var b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-    var c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-    var d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-    var tx = origin[0] + a * -origin[0] + -origin[1] * c;
-    var ty = origin[1] + b * -origin[0] + -origin[1] * d;
+  const make_matrix2_reflection = function (vector, origin = [0, 0]) {
+    const angle = Math.atan2(vector[1], vector[0]);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    const cos_Angle = Math.cos(-angle);
+    const sin_Angle = Math.sin(-angle);
+    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+    const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+    const ty = origin[1] + b * -origin[0] + -origin[1] * d;
     return [a, b, c, d, tx, ty];
   };
   var matrix2_core = Object.freeze({
@@ -146,159 +163,146 @@
     make_matrix2_rotate: make_matrix2_rotate,
     make_matrix2_reflection: make_matrix2_reflection
   });
-  function _typeof(obj) {
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-    return _typeof(obj);
-  }
-  function _slicedToArray(arr, i) {
-    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
-  }
-  function _toConsumableArray(arr) {
-    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
-  }
-  function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-      return arr2;
-    }
-  }
-  function _arrayWithHoles(arr) {
-    if (Array.isArray(arr)) return arr;
-  }
-  function _iterableToArray(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-  }
-  function _iterableToArrayLimit(arr, i) {
-    if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) {
-      return;
-    }
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"] != null) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-    return _arr;
-  }
-  function _nonIterableSpread() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
-  }
-  function _nonIterableRest() {
-    throw new TypeError("Invalid attempt to destructure non-iterable instance");
-  }
-  var multiply_matrix3_vector3 = function multiply_matrix3_vector3(m, vector) {
-    return [m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9], m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10], m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11]];
+  const multiply_matrix3_vector3 = function (m, vector) {
+    return [
+      m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
+      m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10],
+      m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11]
+    ];
   };
-  var multiply_matrix3_line3 = function multiply_matrix3_line3(m, origin, vector) {
+  const multiply_matrix3_line3 = function (m, origin, vector) {
     return {
-      origin: [m[0] * origin[0] + m[3] * origin[1] + m[6] * origin[2] + m[9], m[1] * origin[0] + m[4] * origin[1] + m[7] * origin[2] + m[10], m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11]],
-      vector: [m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2], m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2], m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2]]
+      origin: [
+        m[0] * origin[0] + m[3] * origin[1] + m[6] * origin[2] + m[9],
+        m[1] * origin[0] + m[4] * origin[1] + m[7] * origin[2] + m[10],
+        m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11]
+      ],
+      vector: [
+        m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2],
+        m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2],
+        m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2]
+      ]
     };
   };
-  var multiply_matrices3 = function multiply_matrices3(m1, m2) {
-    return [m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2], m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2], m1[2] * m2[0] + m1[5] * m2[1] + m1[8] * m2[2], m1[0] * m2[3] + m1[3] * m2[4] + m1[6] * m2[5], m1[1] * m2[3] + m1[4] * m2[4] + m1[7] * m2[5], m1[2] * m2[3] + m1[5] * m2[4] + m1[8] * m2[5], m1[0] * m2[6] + m1[3] * m2[7] + m1[6] * m2[8], m1[1] * m2[6] + m1[4] * m2[7] + m1[7] * m2[8], m1[2] * m2[6] + m1[5] * m2[7] + m1[8] * m2[8], m1[0] * m2[9] + m1[3] * m2[10] + m1[6] * m2[11] + m1[9], m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10], m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11]];
+  const multiply_matrices3 = function (m1, m2) {
+    return [
+      m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
+      m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2],
+      m1[2] * m2[0] + m1[5] * m2[1] + m1[8] * m2[2],
+      m1[0] * m2[3] + m1[3] * m2[4] + m1[6] * m2[5],
+      m1[1] * m2[3] + m1[4] * m2[4] + m1[7] * m2[5],
+      m1[2] * m2[3] + m1[5] * m2[4] + m1[8] * m2[5],
+      m1[0] * m2[6] + m1[3] * m2[7] + m1[6] * m2[8],
+      m1[1] * m2[6] + m1[4] * m2[7] + m1[7] * m2[8],
+      m1[2] * m2[6] + m1[5] * m2[7] + m1[8] * m2[8],
+      m1[0] * m2[9] + m1[3] * m2[10] + m1[6] * m2[11] + m1[9],
+      m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10],
+      m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11]
+    ];
   };
-  var matrix3_determinant = function matrix3_determinant(m) {
-    return m[0] * m[4] * m[8] - m[0] * m[7] * m[5] - m[3] * m[1] * m[8] + m[3] * m[7] * m[2] + m[6] * m[1] * m[5] - m[6] * m[4] * m[2];
+  const matrix3_determinant = function (m) {
+    return m[0] * m[4] * m[8]
+      - m[0] * m[7] * m[5]
+      - m[3] * m[1] * m[8]
+      + m[3] * m[7] * m[2]
+      + m[6] * m[1] * m[5]
+      - m[6] * m[4] * m[2];
   };
-  var invert_matrix3 = function invert_matrix3(m) {
-    var det = matrix3_determinant(m);
-    if (Math.abs(det) < 1e-6 || isNaN(det) || !isFinite(m[9]) || !isFinite(m[10]) || !isFinite(m[11])) {
+  const invert_matrix3 = function (m) {
+    const det = matrix3_determinant(m);
+    if (Math.abs(det) < 1e-6 || isNaN(det)
+      || !isFinite(m[9]) || !isFinite(m[10]) || !isFinite(m[11])) {
       return undefined;
     }
-    var inv = [m[4] * m[8] - m[7] * m[5], -m[1] * m[8] + m[7] * m[2], m[1] * m[5] - m[4] * m[2], -m[3] * m[8] + m[6] * m[5], m[0] * m[8] - m[6] * m[2], -m[0] * m[5] + m[3] * m[2], m[3] * m[7] - m[6] * m[4], -m[0] * m[7] + m[6] * m[1], m[0] * m[4] - m[3] * m[1], -m[3] * m[7] * m[11] + m[3] * m[8] * m[10] + m[6] * m[4] * m[11] - m[6] * m[5] * m[10] - m[9] * m[4] * m[8] + m[9] * m[5] * m[7], m[0] * m[7] * m[11] - m[0] * m[8] * m[10] - m[6] * m[1] * m[11] + m[6] * m[2] * m[10] + m[9] * m[1] * m[8] - m[9] * m[2] * m[7], -m[0] * m[4] * m[11] + m[0] * m[5] * m[10] + m[3] * m[1] * m[11] - m[3] * m[2] * m[10] - m[9] * m[1] * m[5] + m[9] * m[2] * m[4]];
-    var invDet = 1.0 / det;
-    return inv.map(function (n) {
-      return n * invDet;
-    });
+    const inv = [
+      m[4] * m[8] - m[7] * m[5],
+      -m[1] * m[8] + m[7] * m[2],
+      m[1] * m[5] - m[4] * m[2],
+      -m[3] * m[8] + m[6] * m[5],
+      m[0] * m[8] - m[6] * m[2],
+      -m[0] * m[5] + m[3] * m[2],
+      m[3] * m[7] - m[6] * m[4],
+      -m[0] * m[7] + m[6] * m[1],
+      m[0] * m[4] - m[3] * m[1],
+      -m[3] * m[7] * m[11] + m[3] * m[8] * m[10] + m[6] * m[4] * m[11]
+        - m[6] * m[5] * m[10] - m[9] * m[4] * m[8] + m[9] * m[5] * m[7],
+      m[0] * m[7] * m[11] - m[0] * m[8] * m[10] - m[6] * m[1] * m[11]
+        + m[6] * m[2] * m[10] + m[9] * m[1] * m[8] - m[9] * m[2] * m[7],
+      -m[0] * m[4] * m[11] + m[0] * m[5] * m[10] + m[3] * m[1] * m[11]
+        - m[3] * m[2] * m[10] - m[9] * m[1] * m[5] + m[9] * m[2] * m[4]
+    ];
+    const invDet = 1.0 / det;
+    return inv.map(n => n * invDet);
   };
-  var make_matrix3_translate = function make_matrix3_translate() {
-    var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var z = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+  const make_matrix3_translate = function (x = 0, y = 0, z = 0) {
     return [1, 0, 0, 0, 1, 0, 0, 0, 1, x, y, z];
   };
-  var make_matrix3_rotateX = function make_matrix3_rotateX(angle) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
-    var cos = Math.cos(angle);
-    var sin = Math.sin(angle);
+  const make_matrix3_rotateX = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
     return [1, 0, 0, 0, cos, sin, 0, -sin, cos, origin[0] || 0, origin[1] || 0, origin[2] || 0];
   };
-  var make_matrix3_rotateY = function make_matrix3_rotateY(angle) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
-    var cos = Math.cos(angle);
-    var sin = Math.sin(angle);
+  const make_matrix3_rotateY = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
     return [cos, 0, -sin, 0, 1, 0, sin, 0, cos, origin[0] || 0, origin[1] || 0, origin[2] || 0];
   };
-  var make_matrix3_rotateZ = function make_matrix3_rotateZ(angle) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
-    var cos = Math.cos(angle);
-    var sin = Math.sin(angle);
+  const make_matrix3_rotateZ = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
     return [cos, sin, 0, -sin, cos, 0, 0, 0, 1, origin[0] || 0, origin[1] || 0, origin[2] || 0];
   };
-  var make_matrix3_rotate = function make_matrix3_rotate(angle) {
-    var vector = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 1];
-    var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 0, 0];
-    var vec = normalize(vector);
-    var pos = Array.from(Array(3)).map(function (n, i) {
-      return origin[i] || 0;
-    });
-    var _vec = _slicedToArray(vec, 3),
-        a = _vec[0],
-        b = _vec[1],
-        c = _vec[2];
-    var cos = Math.cos(angle);
-    var sin = Math.sin(angle);
-    var d = Math.sqrt(vec[1] * vec[1] + vec[2] * vec[2]);
-    var b_d = Math.abs(d) < 1e-6 ? 0 : b / d;
-    var c_d = Math.abs(d) < 1e-6 ? 1 : c / d;
-    var t = [1, 0, 0, 0, 1, 0, 0, 0, 1, pos[0], pos[1], pos[2]];
-    var t_inv = [1, 0, 0, 0, 1, 0, 0, 0, 1, -pos[0], -pos[1], -pos[2]];
-    var rx = [1, 0, 0, 0, c_d, b_d, 0, -b_d, c_d, 0, 0, 0];
-    var rx_inv = [1, 0, 0, 0, c_d, -b_d, 0, b_d, c_d, 0, 0, 0];
-    var ry = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
-    var ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
-    var rz = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
-    return multiply_matrices3(t_inv, multiply_matrices3(rx_inv, multiply_matrices3(ry_inv, multiply_matrices3(rz, multiply_matrices3(ry, multiply_matrices3(rx, t))))));
+  const make_matrix3_rotate = function (angle, vector = [0, 0, 1], origin = [0, 0, 0]) {
+    const vec = normalize(vector);
+    const pos = Array.from(Array(3)).map((n, i) => origin[i] || 0);
+    const [a, b, c] = vec;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const d = Math.sqrt((vec[1] * vec[1]) + (vec[2] * vec[2]));
+    const b_d = Math.abs(d) < 1e-6 ? 0 : b / d;
+    const c_d = Math.abs(d) < 1e-6 ? 1 : c / d;
+    const t     = [1, 0, 0, 0, 1, 0, 0, 0, 1, pos[0], pos[1], pos[2]];
+    const t_inv = [1, 0, 0, 0, 1, 0, 0, 0, 1, -pos[0], -pos[1], -pos[2]];
+    const rx     = [1, 0, 0, 0, c_d, b_d, 0, -b_d, c_d, 0, 0, 0];
+    const rx_inv = [1, 0, 0, 0, c_d, -b_d, 0, b_d, c_d, 0, 0, 0];
+    const ry     = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
+    const ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
+    const rz     = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
+    return multiply_matrices3(t_inv,
+      multiply_matrices3(rx_inv,
+        multiply_matrices3(ry_inv,
+          multiply_matrices3(rz,
+            multiply_matrices3(ry,
+              multiply_matrices3(rx, t))))));
   };
-  var make_matrix3_scale = function make_matrix3_scale(scale) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
-    return [scale, 0, 0, 0, scale, 0, 0, 0, scale, scale * -origin[0] + origin[0], scale * -origin[1] + origin[1], scale * -origin[2] + origin[2]];
+  const make_matrix3_scale = function (scale, origin = [0, 0, 0]) {
+    return [
+      scale,
+      0,
+      0,
+      0,
+      scale,
+      0,
+      0,
+      0,
+      scale,
+      scale * -origin[0] + origin[0],
+      scale * -origin[1] + origin[1],
+      scale * -origin[2] + origin[2]
+    ];
   };
-  var make_matrix3_reflectionZ = function make_matrix3_reflectionZ(vector) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0];
-    var angle = Math.atan2(vector[1], vector[0]);
-    var cosAngle = Math.cos(angle);
-    var sinAngle = Math.sin(angle);
-    var cos_Angle = Math.cos(-angle);
-    var sin_Angle = Math.sin(-angle);
-    var a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-    var b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-    var c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-    var d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-    var tx = origin[0] + a * -origin[0] + -origin[1] * c;
-    var ty = origin[1] + b * -origin[0] + -origin[1] * d;
+  const make_matrix3_reflectionZ = function (vector, origin = [0, 0]) {
+    const angle = Math.atan2(vector[1], vector[0]);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    const cos_Angle = Math.cos(-angle);
+    const sin_Angle = Math.sin(-angle);
+    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+    const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+    const ty = origin[1] + b * -origin[0] + -origin[1] * d;
     return [a, b, 0, c, d, 0, 0, 0, 0, tx, ty, 0];
   };
   var matrix3_core = Object.freeze({
@@ -316,167 +320,118 @@
     make_matrix3_scale: make_matrix3_scale,
     make_matrix3_reflectionZ: make_matrix3_reflectionZ
   });
-  var countPlaces = function countPlaces(num) {
-    var m = "".concat(num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-    if (!m) {
-      return 0;
-    }
+  const countPlaces = function (num) {
+    const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+    if (!m) { return 0; }
     return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
   };
-  var clean_number = function clean_number(num) {
-    var places = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 15;
-    var crop = parseFloat(num.toFixed(places));
+  const clean_number = function (num, places = 15) {
+    const crop = parseFloat(num.toFixed(places));
     if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
       return num;
     }
     return crop;
   };
-  var is_number = function is_number(n) {
-    return n != null && !isNaN(n);
-  };
-  var is_vector = function is_vector(a) {
-    return a != null && a[0] != null && !isNaN(a[0]);
-  };
-  var is_iterable = function is_iterable(obj) {
-    return obj != null && typeof obj[Symbol.iterator] === "function";
-  };
-  var flatten_input = function flatten_input() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
+  const is_number = (n => n != null && !isNaN(n));
+  const is_vector = (a => a != null && a[0] != null && !isNaN(a[0]));
+  const is_iterable = obj => obj != null
+    && typeof obj[Symbol.iterator] === "function";
+  const flatten_input = function (...args) {
     switch (args.length) {
       case undefined:
-      case 0:
-        return args;
-      case 1:
-        return is_iterable(args[0]) && typeof args[0] !== "string" ? flatten_input.apply(void 0, _toConsumableArray(args[0])) : [args[0]];
+      case 0: return args;
+      case 1: return is_iterable(args[0]) && typeof args[0] !== "string"
+        ? flatten_input(...args[0])
+        : [args[0]];
       default:
-        return Array.from(args).map(function (a) {
-          return is_iterable(a) ? _toConsumableArray(flatten_input(a)) : a;
-        }).reduce(function (a, b) {
-          return a.concat(b);
-        }, []);
+        return Array.from(args)
+          .map(a => (is_iterable(a)
+            ? [...flatten_input(a)]
+            : a))
+          .reduce((a, b) => a.concat(b), []);
     }
   };
-  var semi_flatten_input = function semi_flatten_input() {
-    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
-    }
-    var list = args;
-    while (list.length === 1 && list[0].length) {
-      var _list = list;
-      var _list2 = _slicedToArray(_list, 1);
-      list = _list2[0];
-    }
+  const semi_flatten_input = function (...args) {
+    let list = args;
+    while (list.length === 1 && list[0].length) { [list] = list; }
     return list;
   };
-  var get_vector = function get_vector() {
-    for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      args[_key3] = arguments[_key3];
-    }
-    var list = flatten_input(args).filter(function (a) {
-      return a !== undefined;
-    });
-    if (list === undefined) {
-      return undefined;
-    }
-    if (list.length === 0) {
-      return undefined;
-    }
+  const get_vector = function (...args) {
+    let list = flatten_input(args).filter(a => a !== undefined);
+    if (list === undefined) { return undefined; }
+    if (list.length === 0) { return undefined; }
     if (!isNaN(list[0].x)) {
-      list = ["x", "y", "z"].map(function (c) {
-        return list[0][c];
-      }).filter(function (a) {
-        return a !== undefined;
-      });
+      list = ["x", "y", "z"].map(c => list[0][c]).filter(a => a !== undefined);
     }
-    return list.filter(function (n) {
-      return typeof n === "number";
-    });
+    return list.filter(n => typeof n === "number");
   };
-  var get_vector_of_vectors = function get_vector_of_vectors() {
-    for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-      args[_key4] = arguments[_key4];
-    }
-    return semi_flatten_input(args).map(function (el) {
-      return get_vector(el);
-    });
+  const get_vector_of_vectors = function (...args) {
+    return semi_flatten_input(args)
+      .map(el => get_vector(el));
   };
-  var identity2 = [1, 0, 0, 1, 0, 0];
-  var identity3 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
-  var get_matrix2 = function get_matrix2() {
-    for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-      args[_key5] = arguments[_key5];
-    }
-    var m = get_vector(args);
-    if (m === undefined) {
-      return undefined;
-    }
-    if (m.length === 6) {
-      return m;
-    }
-    if (m.length > 6) {
-      return [m[0], m[1], m[2], m[3], m[4], m[5]];
-    }
+  const identity2 = [1, 0, 0, 1, 0, 0];
+  const identity3 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+  const get_matrix2 = function (...args) {
+    const m = get_vector(args);
+    if (m === undefined) { return undefined; }
+    if (m.length === 6) { return m; }
+    if (m.length > 6) { return [m[0], m[1], m[2], m[3], m[4], m[5]]; }
     if (m.length < 6) {
-      return identity2.map(function (n, i) {
-        return m[i] || n;
-      });
+      return identity2.map((n, i) => m[i] || n);
     }
     return undefined;
   };
-  var get_matrix3 = function get_matrix3() {
-    for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-      args[_key6] = arguments[_key6];
-    }
-    var m = get_vector(args);
-    if (m === undefined) {
-      return undefined;
-    }
+  const get_matrix3 = function (...args) {
+    const m = get_vector(args);
+    if (m === undefined) { return undefined; }
     switch (m.length) {
-      case 4:
-        return [m[0], m[1], 0, 0, m[2], m[3], 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-      case 6:
-        return [m[0], m[1], 0, m[2], m[3], 0, 0, 0, 1, m[4], m[5], 0];
-      case 9:
-        return [m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], 0, 0, 0];
-      case 12:
-        return m;
-      case 16:
-        return [m[0], m[1], m[2], m[4], m[5], m[6], m[8], m[9], m[10], m[12], m[13], m[14]];
-      default:
-        break;
+      case 4: return [
+        m[0], m[1], 0, 0,
+        m[2], m[3], 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+      ];
+      case 6: return [
+        m[0], m[1], 0,
+        m[2], m[3], 0,
+        0, 0, 1,
+        m[4], m[5], 0
+      ];
+      case 9: return [
+        m[0], m[1], m[2],
+        m[3], m[4], m[5],
+        m[6], m[7], m[8],
+        0, 0, 0
+      ];
+      case 12: return m;
+      case 16: return [
+        m[0], m[1], m[2],
+        m[4], m[5], m[6],
+        m[8], m[9], m[10],
+        m[12], m[13], m[14]
+      ];
     }
     if (m.length > 12) {
-      return [m[0], m[1], m[2], m[4], m[5], m[6], m[8], m[9], m[10], m[12], m[13], m[14]];
+      return [
+        m[0], m[1], m[2],
+        m[4], m[5], m[6],
+        m[8], m[9], m[10],
+        m[12], m[13], m[14]
+      ];
     }
     if (m.length < 12) {
-      return identity3.map(function (n, i) {
-        return m[i] || n;
-      });
+      return identity3.map((n, i) => m[i] || n);
     }
     return undefined;
   };
-  function get_segment() {
-    for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-      args[_key7] = arguments[_key7];
-    }
+  function get_segment(...args) {
     return get_vector_of_vectors(args);
   }
   function get_line() {
-    var params = Array.from(arguments);
-    var numbers = params.filter(function (param) {
-      return !isNaN(param);
-    });
-    var arrays = params.filter(function (param) {
-      return param.constructor === Array;
-    });
-    if (params.length === 0) {
-      return {
-        vector: [],
-        origin: []
-      };
-    }
+    let params = Array.from(arguments);
+    let numbers = params.filter((param) => !isNaN(param));
+    let arrays = params.filter((param) => param.constructor === Array);
+    if (params.length === 0) { return { vector: [], origin: [] }; }
     if (!isNaN(params[0]) && numbers.length >= 4) {
       return {
         origin: [params[0], params[1]],
@@ -485,7 +440,7 @@
     }
     if (arrays.length > 0) {
       if (arrays.length === 1) {
-        return get_line.apply(void 0, _toConsumableArray(arrays[0]));
+        return get_line(...arrays[0]);
       }
       if (arrays.length === 2) {
         return {
@@ -501,52 +456,32 @@
       }
     }
     if (params[0].constructor === Object) {
-      var vector = [],
-          origin = [];
-      if (params[0].vector != null) {
-        vector = get_vector(params[0].vector);
-      } else if (params[0].direction != null) {
-        vector = get_vector(params[0].direction);
-      }
-      if (params[0].point != null) {
-        origin = get_vector(params[0].point);
-      } else if (params[0].origin != null) {
-        origin = get_vector(params[0].origin);
-      }
-      return {
-        origin: origin,
-        vector: vector
-      };
+      let vector = [], origin = [];
+      if (params[0].vector != null)         { vector = get_vector(params[0].vector); }
+      else if (params[0].direction != null) { vector = get_vector(params[0].direction); }
+      if (params[0].point != null)       { origin = get_vector(params[0].point); }
+      else if (params[0].origin != null) { origin = get_vector(params[0].origin); }
+      return { origin, vector };
     }
-    return {
-      origin: [],
-      vector: []
-    };
+    return { origin: [], vector: [] };
   }
-  function get_ray() {
-    return get_line.apply(void 0, arguments);
+  function get_ray(...args) {
+    return get_line(...args);
   }
-  function get_two_vec2() {
-    for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-      args[_key8] = arguments[_key8];
-    }
-    if (args.length === 0) {
-      return undefined;
-    }
+  function get_two_vec2(...args) {
+    if (args.length === 0) { return undefined; }
     if (args.length === 1 && args[0] !== undefined) {
-      return get_two_vec2.apply(void 0, _toConsumableArray(args[0]));
+      return get_two_vec2(...args[0]);
     }
-    var params = Array.from(args);
-    var numbers = params.filter(function (param) {
-      return !isNaN(param);
-    });
-    var arrays = params.filter(function (o) {
-      return _typeof(o) === "object";
-    }).filter(function (param) {
-      return param.constructor === Array;
-    });
+    const params = Array.from(args);
+    const numbers = params.filter(param => !isNaN(param));
+    const arrays = params.filter(o => typeof o === "object")
+      .filter(param => param.constructor === Array);
     if (numbers.length >= 4) {
-      return [[numbers[0], numbers[1]], [numbers[2], numbers[3]]];
+      return [
+        [numbers[0], numbers[1]],
+        [numbers[2], numbers[3]],
+      ];
     }
     if (arrays.length >= 2 && !isNaN(arrays[0][0])) {
       return arrays;
@@ -556,23 +491,16 @@
     }
     return undefined;
   }
-  function get_array_of_vec() {
-    for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
-      args[_key9] = arguments[_key9];
-    }
-    if (args.length === 0) {
-      return undefined;
-    }
+  function get_array_of_vec(...args) {
+    if (args.length === 0) { return undefined; }
     if (args.length === 1 && args[0] !== undefined) {
-      return get_array_of_vec.apply(void 0, _toConsumableArray(args[0]));
+      return get_array_of_vec(...args[0]);
     }
     return Array.from(args);
   }
   function get_array_of_vec2() {
-    var params = Array.from(arguments);
-    var arrays = params.filter(function (param) {
-      return param.constructor === Array;
-    });
+    let params = Array.from(arguments);
+    let arrays = params.filter((param) => param.constructor === Array);
     if (arrays.length >= 2 && !isNaN(arrays[0][0])) {
       return arrays;
     }
@@ -581,90 +509,58 @@
     }
     return params;
   }
-  var EPSILON = 1e-6;
-  var array_similarity_test = function array_similarity_test(list, compFunc) {
-    return Array.from(Array(list.length - 1)).map(function (_, i) {
-      return compFunc(list[0], list[i + 1]);
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true);
+  const EPSILON = 1e-6;
+  const array_similarity_test = function (list, compFunc) {
+    return Array
+      .from(Array(list.length - 1))
+      .map((_, i) => compFunc(list[0], list[i + 1]))
+      .reduce((a, b) => a && b, true);
   };
-  var equivalent_numbers = function equivalent_numbers() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    if (args.length === 0) {
-      return false;
-    }
+  const equivalent_numbers = function (...args) {
+    if (args.length === 0) { return false; }
     if (args.length === 1 && args[0] !== undefined) {
-      return equivalent_numbers.apply(void 0, _toConsumableArray(args[0]));
+      return equivalent_numbers(...args[0]);
     }
-    return array_similarity_test(args, function (a, b) {
-      return Math.abs(a - b) < EPSILON;
-    });
+    return array_similarity_test(args, (a, b) => Math.abs(a - b) < EPSILON);
   };
-  var equivalent_vectors = function equivalent_vectors() {
-    var list = get_vector_of_vectors.apply(void 0, arguments);
-    if (list.length === 0) {
-      return false;
-    }
+  const equivalent_vectors = function (...args) {
+    const list = get_vector_of_vectors(...args);
+    if (list.length === 0) { return false; }
     if (list.length === 1 && list[0] !== undefined) {
-      return equivalent_vectors.apply(void 0, _toConsumableArray(list[0]));
+      return equivalent_vectors(...list[0]);
     }
-    var dimension = list[0].length;
-    var dim_array = Array.from(Array(dimension));
-    return Array.from(Array(list.length - 1)).map(function (element, i) {
-      return dim_array.map(function (_, di) {
-        return Math.abs(list[i][di] - list[i + 1][di]) < EPSILON;
-      }).reduce(function (prev, curr) {
-        return prev && curr;
-      }, true);
-    }).reduce(function (prev, curr) {
-      return prev && curr;
-    }, true) && Array.from(Array(list.length - 1)).map(function (_, i) {
-      return list[0].length === list[i + 1].length;
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true);
+    const dimension = list[0].length;
+    const dim_array = Array.from(Array(dimension));
+    return Array
+      .from(Array(list.length - 1))
+      .map((element, i) => dim_array
+        .map((_, di) => Math.abs(list[i][di] - list[i + 1][di]) < EPSILON)
+        .reduce((prev, curr) => prev && curr, true))
+      .reduce((prev, curr) => prev && curr, true)
+    && Array
+      .from(Array(list.length - 1))
+      .map((_, i) => list[0].length === list[i + 1].length)
+      .reduce((a, b) => a && b, true);
   };
-  var equivalent = function equivalent() {
-    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
-    }
-    var list = semi_flatten_input(args);
-    if (list.length < 1) {
-      return false;
-    }
-    var typeofList = _typeof(list[0]);
-    if (typeofList === "undefined") {
-      return false;
-    }
+  const equivalent = function (...args) {
+    let list = semi_flatten_input(args);
+    if (list.length < 1) { return false; }
+    const typeofList = typeof list[0];
+    if (typeofList === "undefined") { return false; }
     if (list[0].constructor === Array) {
-      list = list.map(function (el) {
-        return semi_flatten_input(el);
-      });
+      list = list.map(el => semi_flatten_input(el));
     }
     switch (typeofList) {
       case "number":
-        return array_similarity_test(list, function (a, b) {
-          return Math.abs(a - b) < EPSILON;
-        });
+        return array_similarity_test(list, (a, b) => Math.abs(a - b) < EPSILON);
       case "boolean":
-        return array_similarity_test(list, function (a, b) {
-          return a === b;
-        });
+        return array_similarity_test(list, (a, b) => a === b);
       case "string":
-        return array_similarity_test(list, function (a, b) {
-          return a === b;
-        });
+        return array_similarity_test(list, (a, b) => a === b);
       case "object":
-        if (list[0].constructor === Array) {
-          return equivalent_vectors.apply(void 0, _toConsumableArray(list));
-        }
+        if (list[0].constructor === Array) { return equivalent_vectors(...list); }
         console.warn("comparing array of objects for equivalency by slow JSON.stringify with no epsilon check");
-        return array_similarity_test(list, function (a, b) {
-          return JSON.stringify(a) === JSON.stringify(b);
-        });
+        return array_similarity_test(list, (a, b) => JSON.stringify(a) === JSON.stringify(b));
       default:
         console.warn("incapable of determining comparison method");
         break;
@@ -678,147 +574,110 @@
     equivalent_vectors: equivalent_vectors,
     equivalent: equivalent
   });
-  var overlap_function = function overlap_function(aPt, aVec, bPt, bVec, compFunc) {
-    var det = function det(a, b) {
-      return a[0] * b[1] - b[0] * a[1];
-    };
-    var denominator0 = det(aVec, bVec);
-    var denominator1 = -denominator0;
-    var numerator0 = det([bPt[0] - aPt[0], bPt[1] - aPt[1]], bVec);
-    var numerator1 = det([aPt[0] - bPt[0], aPt[1] - bPt[1]], aVec);
+  const overlap_function = function (aPt, aVec, bPt, bVec, compFunc) {
+    const det = (a, b) => a[0] * b[1] - b[0] * a[1];
+    const denominator0 = det(aVec, bVec);
+    const denominator1 = -denominator0;
+    const numerator0 = det([bPt[0] - aPt[0], bPt[1] - aPt[1]], bVec);
+    const numerator1 = det([aPt[0] - bPt[0], aPt[1] - bPt[1]], aVec);
     if (Math.abs(denominator0) < EPSILON) {
       return false;
     }
-    var t0 = numerator0 / denominator0;
-    var t1 = numerator1 / denominator1;
+    const t0 = numerator0 / denominator0;
+    const t1 = numerator1 / denominator1;
     return compFunc(t0, t1);
   };
-  var segment_segment_comp = function segment_segment_comp(t0, t1) {
-    return t0 >= -EPSILON && t0 <= 1 + EPSILON && t1 >= -EPSILON && t1 <= 1 + EPSILON;
-  };
-  var segment_segment_overlap = function segment_segment_overlap(a0, a1, b0, b1) {
-    var aVec = [a1[0] - a0[0], a1[1] - a0[1]];
-    var bVec = [b1[0] - b0[0], b1[1] - b0[1]];
+  const segment_segment_comp = (t0, t1) => t0 >= -EPSILON && t0 <= 1 + EPSILON
+    && t1 >= -EPSILON && t1 <= 1 + EPSILON;
+  const segment_segment_overlap = function (a0, a1, b0, b1) {
+    const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
+    const bVec = [b1[0] - b0[0], b1[1] - b0[1]];
     return overlap_function(a0, aVec, b0, bVec, segment_segment_comp);
   };
-  var degenerate = function degenerate(v) {
-    return Math.abs(v.reduce(function (a, b) {
-      return a + b;
-    }, 0)) < EPSILON;
+  const degenerate = function (v) {
+    return Math.abs(v.reduce((a, b) => a + b, 0)) < EPSILON;
   };
-  var parallel = function parallel(a, b) {
+  const parallel = function (a, b) {
     return 1 - Math.abs(dot(normalize(a), normalize(b))) < EPSILON;
   };
-  var point_on_line = function point_on_line(linePoint, lineVector, point) {
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : EPSILON;
-    var pointPoint = [point[0] - linePoint[0], point[1] - linePoint[1]];
-    var cross = pointPoint[0] * lineVector[1] - pointPoint[1] * lineVector[0];
+  const point_on_line = function (linePoint, lineVector, point, epsilon = EPSILON) {
+    const pointPoint = [point[0] - linePoint[0], point[1] - linePoint[1]];
+    const cross = pointPoint[0] * lineVector[1] - pointPoint[1] * lineVector[0];
     return Math.abs(cross) < epsilon;
   };
-  var point_on_segment = function point_on_segment(seg0, seg1, point) {
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : EPSILON;
-    var seg0_1 = [seg0[0] - seg1[0], seg0[1] - seg1[1]];
-    var seg0_p = [seg0[0] - point[0], seg0[1] - point[1]];
-    var seg1_p = [seg1[0] - point[0], seg1[1] - point[1]];
-    var dEdge = Math.sqrt(seg0_1[0] * seg0_1[0] + seg0_1[1] * seg0_1[1]);
-    var dP0 = Math.sqrt(seg0_p[0] * seg0_p[0] + seg0_p[1] * seg0_p[1]);
-    var dP1 = Math.sqrt(seg1_p[0] * seg1_p[0] + seg1_p[1] * seg1_p[1]);
+  const point_on_segment = function (seg0, seg1, point, epsilon = EPSILON) {
+    const seg0_1 = [seg0[0] - seg1[0], seg0[1] - seg1[1]];
+    const seg0_p = [seg0[0] - point[0], seg0[1] - point[1]];
+    const seg1_p = [seg1[0] - point[0], seg1[1] - point[1]];
+    const dEdge = Math.sqrt(seg0_1[0] * seg0_1[0] + seg0_1[1] * seg0_1[1]);
+    const dP0 = Math.sqrt(seg0_p[0] * seg0_p[0] + seg0_p[1] * seg0_p[1]);
+    const dP1 = Math.sqrt(seg1_p[0] * seg1_p[0] + seg1_p[1] * seg1_p[1]);
     return Math.abs(dEdge - dP0 - dP1) < epsilon;
   };
-  var point_in_poly = function point_in_poly(point, poly) {
-    var isInside = false;
-    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      if (poly[i][1] > point[1] != poly[j][1] > point[1] && point[0] < (poly[j][0] - poly[i][0]) * (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0]) {
+  const point_in_poly = function (point, poly) {
+    let isInside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      if ((poly[i][1] > point[1]) != (poly[j][1] > point[1])
+        && point[0] < (poly[j][0] - poly[i][0]) * (point[1] - poly[i][1])
+        / (poly[j][1] - poly[i][1]) + poly[i][0]) {
         isInside = !isInside;
       }
     }
     return isInside;
   };
-  var point_in_convex_poly = function point_in_convex_poly(point, poly) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-    if (poly == null || !(poly.length > 0)) {
-      return false;
-    }
-    return poly.map(function (p, i, arr) {
-      var nextP = arr[(i + 1) % arr.length];
-      var a = [nextP[0] - p[0], nextP[1] - p[1]];
-      var b = [point[0] - p[0], point[1] - p[1]];
+  const point_in_convex_poly = function (point, poly, epsilon = EPSILON) {
+    if (poly == null || !(poly.length > 0)) { return false; }
+    return poly.map((p, i, arr) => {
+      const nextP = arr[(i + 1) % arr.length];
+      const a = [nextP[0] - p[0], nextP[1] - p[1]];
+      const b = [point[0] - p[0], point[1] - p[1]];
       return a[0] * b[1] - a[1] * b[0] > -epsilon;
-    }).map(function (s, i, arr) {
-      return s === arr[0];
-    }).reduce(function (prev, curr) {
-      return prev && curr;
-    }, true);
+    }).map((s, i, arr) => s === arr[0])
+      .reduce((prev, curr) => prev && curr, true);
   };
-  var point_in_convex_poly_exclusive = function point_in_convex_poly_exclusive(point, poly) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-    if (poly == null || !(poly.length > 0)) {
-      return false;
-    }
-    return poly.map(function (p, i, arr) {
-      var nextP = arr[(i + 1) % arr.length];
-      var a = [nextP[0] - p[0], nextP[1] - p[1]];
-      var b = [point[0] - p[0], point[1] - p[1]];
+  const point_in_convex_poly_exclusive = function (point, poly, epsilon = EPSILON) {
+    if (poly == null || !(poly.length > 0)) { return false; }
+    return poly.map((p, i, arr) => {
+      const nextP = arr[(i + 1) % arr.length];
+      const a = [nextP[0] - p[0], nextP[1] - p[1]];
+      const b = [point[0] - p[0], point[1] - p[1]];
       return a[0] * b[1] - a[1] * b[0] > epsilon;
-    }).map(function (s, i, arr) {
-      return s === arr[0];
-    }).reduce(function (prev, curr) {
-      return prev && curr;
-    }, true);
+    }).map((s, i, arr) => s === arr[0])
+      .reduce((prev, curr) => prev && curr, true);
   };
-  var convex_polygons_overlap = function convex_polygons_overlap(ps1, ps2) {
-    var e1 = ps1.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    });
-    var e2 = ps2.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    });
-    for (var i = 0; i < e1.length; i += 1) {
-      for (var j = 0; j < e2.length; j += 1) {
+  const convex_polygons_overlap = function (ps1, ps2) {
+    const e1 = ps1.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+    const e2 = ps2.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+    for (let i = 0; i < e1.length; i += 1) {
+      for (let j = 0; j < e2.length; j += 1) {
         if (segment_segment_overlap(e1[i][0], e1[i][1], e2[j][0], e2[j][1])) {
           return true;
         }
       }
     }
-    if (point_in_poly(ps2[0], ps1)) {
-      return true;
-    }
-    if (point_in_poly(ps1[0], ps2)) {
-      return true;
-    }
+    if (point_in_poly(ps2[0], ps1)) { return true; }
+    if (point_in_poly(ps1[0], ps2)) { return true; }
     return false;
   };
-  var convex_polygon_is_enclosed = function convex_polygon_is_enclosed(inner, outer) {
-    var goesInside = outer.map(function (p) {
-      return point_in_convex_poly(p, inner);
-    }).reduce(function (a, b) {
-      return a || b;
-    }, false);
-    if (goesInside) {
-      return false;
-    }
+  const convex_polygon_is_enclosed = function (inner, outer) {
+    const goesInside = outer
+      .map(p => point_in_convex_poly(p, inner))
+      .reduce((a, b) => a || b, false);
+    if (goesInside) { return false; }
     return undefined;
   };
-  var convex_polygons_enclose = function convex_polygons_enclose(inner, outer) {
-    var outerGoesInside = outer.map(function (p) {
-      return point_in_convex_poly(p, inner);
-    }).reduce(function (a, b) {
-      return a || b;
-    }, false);
-    var innerGoesOutside = inner.map(function (p) {
-      return point_in_convex_poly(p, inner);
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true);
-    return !outerGoesInside && innerGoesOutside;
+  const convex_polygons_enclose = function (inner, outer) {
+    const outerGoesInside = outer
+      .map(p => point_in_convex_poly(p, inner))
+      .reduce((a, b) => a || b, false);
+    const innerGoesOutside = inner
+      .map(p => point_in_convex_poly(p, inner))
+      .reduce((a, b) => a && b, true);
+    return (!outerGoesInside && innerGoesOutside);
   };
-  var is_counter_clockwise_between = function is_counter_clockwise_between(angle, angleA, angleB) {
-    while (angleB < angleA) {
-      angleB += Math.PI * 2;
-    }
-    while (angle < angleA) {
-      angle += Math.PI * 2;
-    }
+  const is_counter_clockwise_between = function (angle, angleA, angleB) {
+    while (angleB < angleA) { angleB += Math.PI * 2; }
+    while (angle < angleA) { angle += Math.PI * 2; }
     return angle < angleB;
   };
   var query = Object.freeze({
@@ -837,172 +696,166 @@
     convex_polygons_enclose: convex_polygons_enclose,
     is_counter_clockwise_between: is_counter_clockwise_between
   });
-  var line_line_comp = function line_line_comp() {
-    return true;
-  };
-  var line_ray_comp = function line_ray_comp(t0, t1) {
-    return t1 >= -EPSILON;
-  };
-  var line_segment_comp = function line_segment_comp(t0, t1) {
-    return t1 >= -EPSILON && t1 <= 1 + EPSILON;
-  };
-  var ray_ray_comp = function ray_ray_comp(t0, t1) {
-    return t0 >= -EPSILON && t1 >= -EPSILON;
-  };
-  var ray_segment_comp = function ray_segment_comp(t0, t1) {
-    return t0 >= -EPSILON && t1 >= -EPSILON && t1 <= 1 + EPSILON;
-  };
-  var segment_segment_comp$1 = function segment_segment_comp(t0, t1) {
-    return t0 >= -EPSILON && t0 <= 1 + EPSILON && t1 >= -EPSILON && t1 <= 1 + EPSILON;
-  };
-  var line_ray_comp_exclusive = function line_ray_comp_exclusive(t0, t1) {
-    return t1 > EPSILON;
-  };
-  var line_segment_comp_exclusive = function line_segment_comp_exclusive(t0, t1) {
-    return t1 > EPSILON && t1 < 1 - EPSILON;
-  };
-  var ray_ray_comp_exclusive = function ray_ray_comp_exclusive(t0, t1) {
-    return t0 > EPSILON && t1 > EPSILON;
-  };
-  var ray_segment_comp_exclusive = function ray_segment_comp_exclusive(t0, t1) {
-    return t0 > EPSILON && t1 > EPSILON && t1 < 1 - EPSILON;
-  };
-  var segment_segment_comp_exclusive = function segment_segment_comp_exclusive(t0, t1) {
-    return t0 > EPSILON && t0 < 1 - EPSILON && t1 > EPSILON && t1 < 1 - EPSILON;
-  };
-  var limit_line = function limit_line(dist) {
+  const line_line_comp = () => true;
+  const line_ray_comp = (t0, t1) => t1 >= -EPSILON;
+  const line_segment_comp = (t0, t1) => t1 >= -EPSILON && t1 <= 1 + EPSILON;
+  const ray_ray_comp = (t0, t1) => t0 >= -EPSILON && t1 >= -EPSILON;
+  const ray_segment_comp = (t0, t1) => t0 >= -EPSILON && t1 >= -EPSILON && t1 <= 1 + EPSILON;
+  const segment_segment_comp$1 = (t0, t1) => t0 >= -EPSILON && t0 <= 1 + EPSILON && t1 >= -EPSILON
+    && t1 <= 1 + EPSILON;
+  const line_ray_comp_exclusive = (t0, t1) => t1 > EPSILON;
+  const line_segment_comp_exclusive = (t0, t1) => t1 > EPSILON && t1 < 1 - EPSILON;
+  const ray_ray_comp_exclusive = (t0, t1) => t0 > EPSILON && t1 > EPSILON;
+  const ray_segment_comp_exclusive = (t0, t1) => t0 > EPSILON && t1 > EPSILON && t1 < 1 - EPSILON;
+  const segment_segment_comp_exclusive = (t0, t1) => t0 > EPSILON && t0 < 1 - EPSILON && t1 > EPSILON
+    && t1 < 1 - EPSILON;
+  const limit_line = dist => dist;
+  const limit_ray = dist => (dist < -EPSILON ? 0 : dist);
+  const limit_segment = (dist) => {
+    if (dist < -EPSILON) { return 0; }
+    if (dist > 1 + EPSILON) { return 1; }
     return dist;
   };
-  var limit_ray = function limit_ray(dist) {
-    return dist < -EPSILON ? 0 : dist;
-  };
-  var limit_segment = function limit_segment(dist) {
-    if (dist < -EPSILON) {
-      return 0;
-    }
-    if (dist > 1 + EPSILON) {
-      return 1;
-    }
-    return dist;
-  };
-  var intersection_function = function intersection_function(aPt, aVec, bPt, bVec, compFunc) {
-    var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
-    function det(a, b) {
-      return a[0] * b[1] - b[0] * a[1];
-    }
-    var denominator0 = det(aVec, bVec);
-    if (Math.abs(denominator0) < epsilon) {
-      return undefined;
-    }
-    var denominator1 = -denominator0;
-    var numerator0 = det([bPt[0] - aPt[0], bPt[1] - aPt[1]], bVec);
-    var numerator1 = det([aPt[0] - bPt[0], aPt[1] - bPt[1]], aVec);
-    var t0 = numerator0 / denominator0;
-    var t1 = numerator1 / denominator1;
+  const intersection_function = function (aPt, aVec, bPt, bVec, compFunc, epsilon = EPSILON) {
+    function det(a, b) { return a[0] * b[1] - b[0] * a[1]; }
+    const denominator0 = det(aVec, bVec);
+    if (Math.abs(denominator0) < epsilon) { return undefined; }
+    const denominator1 = -denominator0;
+    const numerator0 = det([bPt[0] - aPt[0], bPt[1] - aPt[1]], bVec);
+    const numerator1 = det([aPt[0] - bPt[0], aPt[1] - bPt[1]], aVec);
+    const t0 = numerator0 / denominator0;
+    const t1 = numerator1 / denominator1;
     if (compFunc(t0, t1, epsilon)) {
       return [aPt[0] + aVec[0] * t0, aPt[1] + aVec[1] * t0];
     }
     return undefined;
   };
-  var line_line = function line_line(aPt, aVec, bPt, bVec, epsilon) {
+  const line_line = function (aPt, aVec, bPt, bVec, epsilon) {
     return intersection_function(aPt, aVec, bPt, bVec, line_line_comp, epsilon);
   };
-  var line_ray = function line_ray(linePt, lineVec, rayPt, rayVec, epsilon) {
+  const line_ray = function (linePt, lineVec, rayPt, rayVec, epsilon) {
     return intersection_function(linePt, lineVec, rayPt, rayVec, line_ray_comp, epsilon);
   };
-  var line_segment = function line_segment(origin, vec, segment0, segment1, epsilon) {
-    var segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
-    return intersection_function(origin, vec, segment0, segmentVec, line_segment_comp, epsilon);
+  const line_segment = function (origin, vec, segment0, segment1, epsilon) {
+    const segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
+    return intersection_function(
+      origin, vec,
+      segment0, segmentVec,
+      line_segment_comp, epsilon
+    );
   };
-  var ray_ray = function ray_ray(aPt, aVec, bPt, bVec, epsilon) {
+  const ray_ray = function (aPt, aVec, bPt, bVec, epsilon) {
     return intersection_function(aPt, aVec, bPt, bVec, ray_ray_comp, epsilon);
   };
-  var ray_segment = function ray_segment(rayPt, rayVec, segment0, segment1, epsilon) {
-    var segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
-    return intersection_function(rayPt, rayVec, segment0, segmentVec, ray_segment_comp, epsilon);
+  const ray_segment = function (rayPt, rayVec, segment0, segment1, epsilon) {
+    const segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
+    return intersection_function(
+      rayPt, rayVec,
+      segment0, segmentVec,
+      ray_segment_comp, epsilon
+    );
   };
-  var segment_segment = function segment_segment(a0, a1, b0, b1, epsilon) {
-    var aVec = [a1[0] - a0[0], a1[1] - a0[1]];
-    var bVec = [b1[0] - b0[0], b1[1] - b0[1]];
-    return intersection_function(a0, aVec, b0, bVec, segment_segment_comp$1, epsilon);
+  const segment_segment = function (a0, a1, b0, b1, epsilon) {
+    const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
+    const bVec = [b1[0] - b0[0], b1[1] - b0[1]];
+    return intersection_function(
+      a0, aVec,
+      b0, bVec,
+      segment_segment_comp$1, epsilon
+    );
   };
-  var line_ray_exclusive = function line_ray_exclusive(linePt, lineVec, rayPt, rayVec, epsilon) {
-    return intersection_function(linePt, lineVec, rayPt, rayVec, line_ray_comp_exclusive, epsilon);
+  const line_ray_exclusive = function (linePt, lineVec, rayPt, rayVec, epsilon) {
+    return intersection_function(
+      linePt, lineVec,
+      rayPt, rayVec,
+      line_ray_comp_exclusive, epsilon
+    );
   };
-  var line_segment_exclusive = function line_segment_exclusive(origin, vec, segment0, segment1, epsilon) {
-    var segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
-    return intersection_function(origin, vec, segment0, segmentVec, line_segment_comp_exclusive, epsilon);
+  const line_segment_exclusive = function (origin, vec, segment0, segment1, epsilon) {
+    const segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
+    return intersection_function(
+      origin, vec,
+      segment0, segmentVec,
+      line_segment_comp_exclusive, epsilon
+    );
   };
-  var ray_ray_exclusive = function ray_ray_exclusive(aPt, aVec, bPt, bVec, epsilon) {
-    return intersection_function(aPt, aVec, bPt, bVec, ray_ray_comp_exclusive, epsilon);
+  const ray_ray_exclusive = function (aPt, aVec, bPt, bVec, epsilon) {
+    return intersection_function(
+      aPt, aVec, bPt, bVec, ray_ray_comp_exclusive, epsilon
+    );
   };
-  var ray_segment_exclusive = function ray_segment_exclusive(rayPt, rayVec, segment0, segment1, epsilon) {
-    var segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
-    return intersection_function(rayPt, rayVec, segment0, segmentVec, ray_segment_comp_exclusive, epsilon);
+  const ray_segment_exclusive = function (rayPt, rayVec, segment0, segment1, epsilon) {
+    const segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
+    return intersection_function(
+      rayPt, rayVec,
+      segment0, segmentVec,
+      ray_segment_comp_exclusive, epsilon
+    );
   };
-  var segment_segment_exclusive = function segment_segment_exclusive(a0, a1, b0, b1, epsilon) {
-    var aVec = [a1[0] - a0[0], a1[1] - a0[1]];
-    var bVec = [b1[0] - b0[0], b1[1] - b0[1]];
-    return intersection_function(a0, aVec, b0, bVec, segment_segment_comp_exclusive, epsilon);
+  const segment_segment_exclusive = function (a0, a1, b0, b1, epsilon) {
+    const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
+    const bVec = [b1[0] - b0[0], b1[1] - b0[1]];
+    return intersection_function(
+      a0, aVec,
+      b0, bVec,
+      segment_segment_comp_exclusive, epsilon
+    );
   };
-  var circle_line = function circle_line(center, radius, p0, p1) {
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : EPSILON;
-    var x1 = p0[0] - center[0];
-    var y1 = p0[1] - center[1];
-    var x2 = p1[0] - center[0];
-    var y2 = p1[1] - center[1];
-    var dx = x2 - x1;
-    var dy = y2 - y1;
-    var det = x1 * y2 - x2 * y1;
-    var det_sq = det * det;
-    var r_sq = radius * radius;
-    var dr_sq = Math.abs(dx * dx + dy * dy);
-    var delta = r_sq * dr_sq - det_sq;
-    if (delta < -epsilon) {
-      return undefined;
-    }
-    var suffix = Math.sqrt(r_sq * dr_sq - det_sq);
-    function sgn(x) {
-      return x < -epsilon ? -1 : 1;
-    }
-    var solutionA = [center[0] + (det * dy + sgn(dy) * dx * suffix) / dr_sq, center[1] + (-det * dx + Math.abs(dy) * suffix) / dr_sq];
+  const circle_line = function (center, radius, p0, p1, epsilon = EPSILON) {
+    const x1 = p0[0] - center[0];
+    const y1 = p0[1] - center[1];
+    const x2 = p1[0] - center[0];
+    const y2 = p1[1] - center[1];
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const det = x1 * y2 - x2 * y1;
+    const det_sq = det * det;
+    const r_sq = radius * radius;
+    const dr_sq = Math.abs(dx * dx + dy * dy);
+    const delta = r_sq * dr_sq - det_sq;
+    if (delta < -epsilon) { return undefined; }
+    const suffix = Math.sqrt(r_sq * dr_sq - det_sq);
+    function sgn(x) { return (x < -epsilon) ? -1 : 1; }
+    const solutionA = [
+      center[0] + (det * dy + sgn(dy) * dx * suffix) / dr_sq,
+      center[1] + (-det * dx + Math.abs(dy) * suffix) / dr_sq,
+    ];
     if (delta > epsilon) {
-      var solutionB = [center[0] + (det * dy - sgn(dy) * dx * suffix) / dr_sq, center[1] + (-det * dx - Math.abs(dy) * suffix) / dr_sq];
+      const solutionB = [
+        center[0] + (det * dy - sgn(dy) * dx * suffix) / dr_sq,
+        center[1] + (-det * dx - Math.abs(dy) * suffix) / dr_sq,
+      ];
       return [solutionA, solutionB];
     }
     return [solutionA];
   };
-  var circle_ray = function circle_ray(center, radius, p0, p1) {
+  const circle_ray = function (center, radius, p0, p1) {
     throw "circle_ray has not been written yet";
   };
-  var circle_segment = function circle_segment(center, radius, p0, p1) {
-    var r_squared = Math.pow(radius, 2);
-    var x1 = p0[0] - center[0];
-    var y1 = p0[1] - center[1];
-    var x2 = p1[0] - center[0];
-    var y2 = p1[1] - center[1];
-    var dx = x2 - x1;
-    var dy = y2 - y1;
-    var dr_squared = dx * dx + dy * dy;
-    var D = x1 * y2 - x2 * y1;
-    function sgn(x) {
-      if (x < 0) {
-        return -1;
-      }
-      return 1;
-    }
-    var x_1 = (D * dy + sgn(dy) * dx * Math.sqrt(r_squared * dr_squared - D * D)) / dr_squared;
-    var x_2 = (D * dy - sgn(dy) * dx * Math.sqrt(r_squared * dr_squared - D * D)) / dr_squared;
-    var y_1 = (-D * dx + Math.abs(dy) * Math.sqrt(r_squared * dr_squared - D * D)) / dr_squared;
-    var y_2 = (-D * dx - Math.abs(dy) * Math.sqrt(r_squared * dr_squared - D * D)) / dr_squared;
-    var x1_NaN = isNaN(x_1);
-    var x2_NaN = isNaN(x_2);
+  const circle_segment = function (center, radius, p0, p1) {
+    const r_squared = radius ** 2;
+    const x1 = p0[0] - center[0];
+    const y1 = p0[1] - center[1];
+    const x2 = p1[0] - center[0];
+    const y2 = p1[1] - center[1];
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dr_squared = dx * dx + dy * dy;
+    const D = x1 * y2 - x2 * y1;
+    function sgn(x) { if (x < 0) { return -1; } return 1; }
+    const x_1 = (D * dy + sgn(dy) * dx * Math.sqrt(r_squared * dr_squared - D * D)) / (dr_squared);
+    const x_2 = (D * dy - sgn(dy) * dx * Math.sqrt(r_squared * dr_squared - D * D)) / (dr_squared);
+    const y_1 = (-D * dx + Math.abs(dy) * Math.sqrt(r_squared * dr_squared - D * D)) / (dr_squared);
+    const y_2 = (-D * dx - Math.abs(dy) * Math.sqrt(r_squared * dr_squared - D * D)) / (dr_squared);
+    const x1_NaN = isNaN(x_1);
+    const x2_NaN = isNaN(x_2);
     if (!x1_NaN && !x2_NaN) {
-      return [[x_1 + center[0], y_1 + center[1]], [x_2 + center[0], y_2 + center[1]]];
+      return [
+        [x_1 + center[0], y_1 + center[1]],
+        [x_2 + center[0], y_2 + center[1]],
+      ];
     }
-    if (x1_NaN && x2_NaN) {
-      return undefined;
-    }
+    if (x1_NaN && x2_NaN) { return undefined; }
     if (!x1_NaN) {
       return [[x_1 + center[0], y_1 + center[1]]];
     }
@@ -1011,26 +864,20 @@
     }
     return undefined;
   };
-  var quick_equivalent_2 = function quick_equivalent_2(a, b) {
+  const quick_equivalent_2 = function (a, b) {
     return Math.abs(a[0] - b[0]) < EPSILON && Math.abs(a[1] - b[1]) < EPSILON;
   };
-  var convex_poly_line = function convex_poly_line(poly, linePoint, lineVector) {
-    var intersections = poly.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (el) {
-      return line_segment(linePoint, lineVector, el[0], el[1]);
-    }).filter(function (el) {
-      return el != null;
-    });
+  const convex_poly_line = function (poly, linePoint, lineVector) {
+    const intersections = poly
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(el => line_segment(linePoint, lineVector, el[0], el[1]))
+      .filter(el => el != null);
     switch (intersections.length) {
-      case 0:
-        return undefined;
-      case 1:
-        return [intersections[0], intersections[0]];
-      case 2:
-        return intersections;
+      case 0: return undefined;
+      case 1: return [intersections[0], intersections[0]];
+      case 2: return intersections;
       default:
-        for (var i = 1; i < intersections.length; i += 1) {
+        for (let i = 1; i < intersections.length; i += 1) {
           if (!quick_equivalent_2(intersections[0], intersections[i])) {
             return [intersections[0], intersections[i]];
           }
@@ -1038,23 +885,17 @@
         return undefined;
     }
   };
-  var convex_poly_ray = function convex_poly_ray(poly, linePoint, lineVector) {
-    var intersections = poly.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (el) {
-      return ray_segment(linePoint, lineVector, el[0], el[1]);
-    }).filter(function (el) {
-      return el != null;
-    });
+  const convex_poly_ray = function (poly, linePoint, lineVector) {
+    const intersections = poly
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(el => ray_segment(linePoint, lineVector, el[0], el[1]))
+      .filter(el => el != null);
     switch (intersections.length) {
-      case 0:
-        return undefined;
-      case 1:
-        return [linePoint, intersections[0]];
-      case 2:
-        return intersections;
+      case 0: return undefined;
+      case 1: return [linePoint, intersections[0]];
+      case 2: return intersections;
       default:
-        for (var i = 1; i < intersections.length; i += 1) {
+        for (let i = 1; i < intersections.length; i += 1) {
           if (!quick_equivalent_2(intersections[0], intersections[i])) {
             return [intersections[0], intersections[i]];
           }
@@ -1062,52 +903,45 @@
         return undefined;
     }
   };
-  var convex_poly_segment = function convex_poly_segment(poly, segmentA, segmentB) {
-    var intersections = poly.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (el) {
-      return segment_segment_exclusive(segmentA, segmentB, el[0], el[1]);
-    }).filter(function (el) {
-      return el != null;
-    });
-    var aInsideExclusive = point_in_convex_poly_exclusive(segmentA, poly);
-    var bInsideExclusive = point_in_convex_poly_exclusive(segmentB, poly);
-    var aInsideInclusive = point_in_convex_poly(segmentA, poly);
-    var bInsideInclusive = point_in_convex_poly(segmentB, poly);
-    if (intersections.length === 0 && (aInsideExclusive || bInsideExclusive)) {
+  const convex_poly_segment = function (poly, segmentA, segmentB) {
+    const intersections = poly
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(el => segment_segment_exclusive(segmentA, segmentB, el[0], el[1]))
+      .filter(el => el != null);
+    const aInsideExclusive = point_in_convex_poly_exclusive(segmentA, poly);
+    const bInsideExclusive = point_in_convex_poly_exclusive(segmentB, poly);
+    const aInsideInclusive = point_in_convex_poly(segmentA, poly);
+    const bInsideInclusive = point_in_convex_poly(segmentB, poly);
+    if (intersections.length === 0
+      && (aInsideExclusive || bInsideExclusive)) {
       return [segmentA, segmentB];
     }
-    if (intersections.length === 0 && aInsideInclusive && bInsideInclusive) {
+    if (intersections.length === 0
+      && (aInsideInclusive && bInsideInclusive)) {
       return [segmentA, segmentB];
     }
     switch (intersections.length) {
-      case 0:
-        return aInsideExclusive ? [_toConsumableArray(segmentA), _toConsumableArray(segmentB)] : undefined;
-      case 1:
-        return aInsideInclusive ? [_toConsumableArray(segmentA), intersections[0]] : [_toConsumableArray(segmentB), intersections[0]];
-      case 2:
-        return intersections;
-      default:
-        throw new Error("clipping segment in a convex polygon resulting in 3 or more points");
+      case 0: return (aInsideExclusive
+        ? [[...segmentA], [...segmentB]]
+        : undefined);
+      case 1: return (aInsideInclusive
+        ? [[...segmentA], intersections[0]]
+        : [[...segmentB], intersections[0]]);
+      case 2: return intersections;
+      default: throw new Error("clipping segment in a convex polygon resulting in 3 or more points");
     }
   };
-  var convex_poly_ray_exclusive = function convex_poly_ray_exclusive(poly, linePoint, lineVector) {
-    var intersections = poly.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (el) {
-      return ray_segment_exclusive(linePoint, lineVector, el[0], el[1]);
-    }).filter(function (el) {
-      return el != null;
-    });
+  const convex_poly_ray_exclusive = function (poly, linePoint, lineVector) {
+    const intersections = poly
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(el => ray_segment_exclusive(linePoint, lineVector, el[0], el[1]))
+      .filter(el => el != null);
     switch (intersections.length) {
-      case 0:
-        return undefined;
-      case 1:
-        return [linePoint, intersections[0]];
-      case 2:
-        return intersections;
+      case 0: return undefined;
+      case 1: return [linePoint, intersections[0]];
+      case 2: return intersections;
       default:
-        for (var i = 1; i < intersections.length; i += 1) {
+        for (let i = 1; i < intersections.length; i += 1) {
           if (!quick_equivalent_2(intersections[0], intersections[i])) {
             return [intersections[0], intersections[i]];
           }
@@ -1140,182 +974,132 @@
     convex_poly_segment: convex_poly_segment,
     convex_poly_ray_exclusive: convex_poly_ray_exclusive
   });
-  var clockwise_angle2_radians = function clockwise_angle2_radians(a, b) {
-    while (a < 0) {
-      a += Math.PI * 2;
-    }
-    while (b < 0) {
-      b += Math.PI * 2;
-    }
-    var a_b = a - b;
-    return a_b >= 0 ? a_b : Math.PI * 2 - (b - a);
+  const clockwise_angle2_radians = function (a, b) {
+    while (a < 0) { a += Math.PI * 2; }
+    while (b < 0) { b += Math.PI * 2; }
+    const a_b = a - b;
+    return (a_b >= 0)
+      ? a_b
+      : Math.PI * 2 - (b - a);
   };
-  var counter_clockwise_angle2_radians = function counter_clockwise_angle2_radians(a, b) {
-    while (a < 0) {
-      a += Math.PI * 2;
-    }
-    while (b < 0) {
-      b += Math.PI * 2;
-    }
-    var b_a = b - a;
-    return b_a >= 0 ? b_a : Math.PI * 2 - (a - b);
+  const counter_clockwise_angle2_radians = function (a, b) {
+    while (a < 0) { a += Math.PI * 2; }
+    while (b < 0) { b += Math.PI * 2; }
+    const b_a = b - a;
+    return (b_a >= 0)
+      ? b_a
+      : Math.PI * 2 - (a - b);
   };
-  var clockwise_angle2 = function clockwise_angle2(a, b) {
-    var dotProduct = b[0] * a[0] + b[1] * a[1];
-    var determinant = b[0] * a[1] - b[1] * a[0];
-    var angle = Math.atan2(determinant, dotProduct);
-    if (angle < 0) {
-      angle += Math.PI * 2;
-    }
+  const clockwise_angle2 = function (a, b) {
+    const dotProduct = b[0] * a[0] + b[1] * a[1];
+    const determinant = b[0] * a[1] - b[1] * a[0];
+    let angle = Math.atan2(determinant, dotProduct);
+    if (angle < 0) { angle += Math.PI * 2; }
     return angle;
   };
-  var counter_clockwise_angle2 = function counter_clockwise_angle2(a, b) {
-    var dotProduct = a[0] * b[0] + a[1] * b[1];
-    var determinant = a[0] * b[1] - a[1] * b[0];
-    var angle = Math.atan2(determinant, dotProduct);
-    if (angle < 0) {
-      angle += Math.PI * 2;
-    }
+  const counter_clockwise_angle2 = function (a, b) {
+    const dotProduct = a[0] * b[0] + a[1] * b[1];
+    const determinant = a[0] * b[1] - a[1] * b[0];
+    let angle = Math.atan2(determinant, dotProduct);
+    if (angle < 0) { angle += Math.PI * 2; }
     return angle;
   };
-  var counter_clockwise_vector_order = function counter_clockwise_vector_order() {
-    for (var _len = arguments.length, vectors = new Array(_len), _key = 0; _key < _len; _key++) {
-      vectors[_key] = arguments[_key];
-    }
-    var vectors_radians = vectors.map(function (v) {
-      return Math.atan2(v[1], v[0]);
-    });
-    var counter_clockwise = Array.from(Array(vectors_radians.length)).map(function (_, i) {
-      return i;
-    }).sort(function (a, b) {
-      return vectors_radians[a] - vectors_radians[b];
-    });
-    return counter_clockwise.slice(counter_clockwise.indexOf(0), counter_clockwise.length).concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
+  const counter_clockwise_vector_order = function (...vectors) {
+    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+    const counter_clockwise = Array.from(Array(vectors_radians.length))
+      .map((_, i) => i)
+      .sort((a, b) => vectors_radians[a] - vectors_radians[b]);
+    return counter_clockwise
+      .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
+      .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
   };
-  var interior_angles2 = function interior_angles2(a, b) {
-    var interior1 = counter_clockwise_angle2(a, b);
-    var interior2 = Math.PI * 2 - interior1;
+  const interior_angles2 = function (a, b) {
+    const interior1 = counter_clockwise_angle2(a, b);
+    const interior2 = Math.PI * 2 - interior1;
     return [interior1, interior2];
   };
-  var interior_angles = function interior_angles() {
-    for (var _len2 = arguments.length, vectors = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      vectors[_key2] = arguments[_key2];
-    }
-    return vectors.map(function (v, i, ar) {
-      return counter_clockwise_angle2(v, ar[(i + 1) % ar.length]);
-    });
+  const interior_angles = function (...vectors) {
+    return vectors
+      .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
   };
-  var bisect_vectors = function bisect_vectors(a, b) {
-    var aV = normalize(a);
-    var bV = normalize(b);
-    var sum = aV.map(function (_, i) {
-      return aV[i] + bV[i];
-    });
-    var vecA = normalize(sum);
-    var vecB = aV.map(function (_, i) {
-      return -aV[i] + -bV[i];
-    });
+  const bisect_vectors = function (a, b) {
+    const aV = normalize(a);
+    const bV = normalize(b);
+    const sum = aV.map((_, i) => aV[i] + bV[i]);
+    const vecA = normalize(sum);
+    const vecB = aV.map((_, i) => -aV[i] + -bV[i]);
     return [vecA, normalize(vecB)];
   };
-  var bisect_lines2 = function bisect_lines2(pointA, vectorA, pointB, vectorB) {
-    var denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
+  const bisect_lines2 = function (pointA, vectorA, pointB, vectorB) {
+    const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
     if (Math.abs(denominator) < EPSILON) {
-      var solution = [midpoint2(pointA, pointB), [vectorA[0], vectorA[1]]];
-      var array = [solution, solution];
-      var dot = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
-      delete array[dot > 0 ? 1 : 0];
+      const solution = [midpoint2(pointA, pointB), [vectorA[0], vectorA[1]]];
+      const array = [solution, solution];
+      const dot = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
+      delete array[(dot > 0 ? 1 : 0)];
       return array;
     }
-    var numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
-    var t = numerator / denominator;
-    var x = pointA[0] + vectorA[0] * t;
-    var y = pointA[1] + vectorA[1] * t;
-    var bisects = bisect_vectors(vectorA, vectorB);
+    const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
+    const t = numerator / denominator;
+    const x = pointA[0] + vectorA[0] * t;
+    const y = pointA[1] + vectorA[1] * t;
+    const bisects = bisect_vectors(vectorA, vectorB);
     bisects[1] = [bisects[1][1], -bisects[1][0]];
-    return bisects.map(function (el) {
-      return [[x, y], el];
-    });
+    return bisects.map(el => [[x, y], el]);
   };
-  var subsect_radians = function subsect_radians(divisions, angleA, angleB) {
-    var angle = counter_clockwise_angle2(angleA, angleB) / divisions;
-    return Array.from(Array(divisions - 1)).map(function (_, i) {
-      return angleA + angle * i;
-    });
+  const subsect_radians = function (divisions, angleA, angleB) {
+    const angle = counter_clockwise_angle2(angleA, angleB) / divisions;
+    return Array.from(Array(divisions - 1))
+      .map((_, i) => angleA + angle * i);
   };
-  var subsect = function subsect(divisions, vectorA, vectorB) {
-    var angleA = Math.atan2(vectorA[1], vectorA[0]);
-    var angleB = Math.atan2(vectorB[1], vectorB[0]);
-    return subsect_radians(divisions, angleA, angleB).map(function (rad) {
-      return [Math.cos(rad), Math.sin(rad)];
-    });
+  const subsect = function (divisions, vectorA, vectorB) {
+    const angleA = Math.atan2(vectorA[1], vectorA[0]);
+    const angleB = Math.atan2(vectorB[1], vectorB[0]);
+    return subsect_radians(divisions, angleA, angleB)
+      .map(rad => [Math.cos(rad), Math.sin(rad)]);
   };
-  var signed_area = function signed_area(points) {
-    return 0.5 * points.map(function (el, i, arr) {
-      var next = arr[(i + 1) % arr.length];
+  const signed_area = function (points) {
+    return 0.5 * points.map((el, i, arr) => {
+      const next = arr[(i + 1) % arr.length];
       return el[0] * next[1] - next[0] * el[1];
-    }).reduce(function (a, b) {
-      return a + b;
-    }, 0);
+    }).reduce((a, b) => a + b, 0);
   };
-  var centroid = function centroid(points) {
-    var sixthArea = 1 / (6 * signed_area(points));
-    return points.map(function (el, i, arr) {
-      var next = arr[(i + 1) % arr.length];
-      var mag = el[0] * next[1] - next[0] * el[1];
+  const centroid = function (points) {
+    const sixthArea = 1 / (6 * signed_area(points));
+    return points.map((el, i, arr) => {
+      const next = arr[(i + 1) % arr.length];
+      const mag = el[0] * next[1] - next[0] * el[1];
       return [(el[0] + next[0]) * mag, (el[1] + next[1]) * mag];
-    }).reduce(function (a, b) {
-      return [a[0] + b[0], a[1] + b[1]];
-    }, [0, 0]).map(function (c) {
-      return c * sixthArea;
-    });
+    }).reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+      .map(c => c * sixthArea);
   };
-  var enclosing_rectangle = function enclosing_rectangle(points) {
-    var l = points[0].length;
-    var mins = Array.from(Array(l)).map(function () {
-      return Infinity;
-    });
-    var maxs = Array.from(Array(l)).map(function () {
-      return -Infinity;
-    });
-    points.forEach(function (point) {
-      return point.forEach(function (c, i) {
-        if (c < mins[i]) {
-          mins[i] = c;
-        }
-        if (c > maxs[i]) {
-          maxs[i] = c;
-        }
-      });
-    });
-    var lengths = maxs.map(function (max, i) {
-      return max - mins[i];
-    });
+  const enclosing_rectangle = function (points) {
+    const l = points[0].length;
+    const mins = Array.from(Array(l)).map(() => Infinity);
+    const maxs = Array.from(Array(l)).map(() => -Infinity);
+    points.forEach(point => point
+      .forEach((c, i) => {
+        if (c < mins[i]) { mins[i] = c; }
+        if (c > maxs[i]) { maxs[i] = c; }
+      }));
+    const lengths = maxs.map((max, i) => max - mins[i]);
     return [mins, lengths];
   };
-  var make_regular_polygon = function make_regular_polygon(sides) {
-    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var radius = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
-    var halfwedge = 2 * Math.PI / sides * 0.5;
-    var r = radius / Math.cos(halfwedge);
-    return Array.from(Array(Math.floor(sides))).map(function (_, i) {
-      var a = -2 * Math.PI * i / sides + halfwedge;
-      var px = clean_number(x + r * Math.sin(a), 14);
-      var py = clean_number(y + r * Math.cos(a), 14);
+  const make_regular_polygon = function (sides, x = 0, y = 0, radius = 1) {
+    const halfwedge = 2 * Math.PI / sides * 0.5;
+    const r = radius / Math.cos(halfwedge);
+    return Array.from(Array(Math.floor(sides))).map((_, i) => {
+      const a = -2 * Math.PI * i / sides + halfwedge;
+      const px = clean_number(x + r * Math.sin(a), 14);
+      const py = clean_number(y + r * Math.cos(a), 14);
       return [px, py];
     });
   };
-  var smallest_comparison_search = function smallest_comparison_search(obj, array, compare_func) {
-    var objs = array.map(function (o, i) {
-      return {
-        o: o,
-        i: i,
-        d: compare_func(obj, o)
-      };
-    });
-    var index;
-    var smallest_value = Infinity;
-    for (var i = 0; i < objs.length; i += 1) {
+  const smallest_comparison_search = function (obj, array, compare_func) {
+    const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
+    let index;
+    let smallest_value = Infinity;
+    for (let i = 0; i < objs.length; i += 1) {
       if (objs[i].d < smallest_value) {
         index = i;
         smallest_value = objs[i].d;
@@ -1323,171 +1107,131 @@
     }
     return index;
   };
-  var nearest_point2 = function nearest_point2(point, array_of_points) {
-    var index = smallest_comparison_search(point, array_of_points, distance2);
+  const nearest_point2 = function (point, array_of_points) {
+    const index = smallest_comparison_search(point, array_of_points, distance2);
     return index === undefined ? undefined : array_of_points[index];
   };
-  var nearest_point = function nearest_point(point, array_of_points) {
-    var index = smallest_comparison_search(point, array_of_points, distance);
+  const nearest_point = function (point, array_of_points) {
+    const index = smallest_comparison_search(point, array_of_points, distance);
     return index === undefined ? undefined : array_of_points[index];
   };
-  var nearest_point_on_line = function nearest_point_on_line(linePoint, lineVec, point, limiterFunc) {
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : EPSILON;
-    var magSquared = Math.pow(lineVec[0], 2) + Math.pow(lineVec[1], 2);
-    var vectorToPoint = [0, 1].map(function (_, i) {
-      return point[i] - linePoint[i];
-    });
-    var dot = [0, 1].map(function (_, i) {
-      return lineVec[i] * vectorToPoint[i];
-    }).reduce(function (a, b) {
-      return a + b;
-    }, 0);
-    var dist = dot / magSquared;
-    var d = limiterFunc(dist, epsilon);
-    return [0, 1].map(function (_, i) {
-      return linePoint[i] + lineVec[i] * d;
-    });
+  const nearest_point_on_line = function (
+    linePoint, lineVec, point, limiterFunc, epsilon = EPSILON
+  ) {
+    const magSquared = (lineVec[0] ** 2) + (lineVec[1] ** 2);
+    const vectorToPoint = [0, 1].map((_, i) => point[i] - linePoint[i]);
+    const dot = [0, 1].map((_, i) => lineVec[i] * vectorToPoint[i])
+      .reduce((a, b) => a + b, 0);
+    const dist = dot / magSquared;
+    const d = limiterFunc(dist, epsilon);
+    return [0, 1].map((_, i) => linePoint[i] + lineVec[i] * d);
   };
-  var split_polygon = function split_polygon(poly, linePoint, lineVector) {
-    var vertices_intersections = poly.map(function (v, i) {
-      var intersection = point_on_line(linePoint, lineVector, v);
-      return {
-        type: "v",
-        point: intersection ? v : null,
-        at_index: i
-      };
-    }).filter(function (el) {
-      return el.point != null;
-    });
-    var edges_intersections = poly.map(function (v, i, arr) {
-      var intersection = line_segment_exclusive(linePoint, lineVector, v, arr[(i + 1) % arr.length]);
-      return {
-        type: "e",
-        point: intersection,
-        at_index: i
-      };
-    }).filter(function (el) {
-      return el.point != null;
-    });
-    var sorted = vertices_intersections.concat(edges_intersections).sort(function (a, b) {
-      return Math.abs(a.point[0] - b.point[0]) < EPSILON ? a.point[1] - b.point[1] : a.point[0] - b.point[0];
-    });
+  const split_polygon = function (poly, linePoint, lineVector) {
+    const vertices_intersections = poly.map((v, i) => {
+      const intersection = point_on_line(linePoint, lineVector, v);
+      return { type: "v", point: intersection ? v : null, at_index: i };
+    }).filter(el => el.point != null);
+    const edges_intersections = poly.map((v, i, arr) => {
+      const intersection = line_segment_exclusive(
+        linePoint,
+        lineVector,
+        v,
+        arr[(i + 1) % arr.length]
+      );
+      return { type: "e", point: intersection, at_index: i };
+    }).filter(el => el.point != null);
+    const sorted = vertices_intersections
+      .concat(edges_intersections)
+      .sort((a, b) => (Math.abs(a.point[0] - b.point[0]) < EPSILON
+        ? a.point[1] - b.point[1]
+        : a.point[0] - b.point[0]));
     console.log(sorted);
     return poly;
   };
-  var split_convex_polygon = function split_convex_polygon(poly, linePoint, lineVector) {
-    var vertices_intersections = poly.map(function (v, i) {
-      var intersection = point_on_line(linePoint, lineVector, v);
-      return {
-        point: intersection ? v : null,
-        at_index: i
-      };
-    }).filter(function (el) {
-      return el.point != null;
-    });
-    var edges_intersections = poly.map(function (v, i, arr) {
-      var intersection = line_segment_exclusive(linePoint, lineVector, v, arr[(i + 1) % arr.length]);
-      return {
-        point: intersection,
-        at_index: i
-      };
-    }).filter(function (el) {
-      return el.point != null;
-    });
+  const split_convex_polygon = function (poly, linePoint, lineVector) {
+    let vertices_intersections = poly.map((v,i) => {
+      let intersection = point_on_line(linePoint, lineVector, v);
+      return { point: intersection ? v : null, at_index: i };
+    }).filter(el => el.point != null);
+    let edges_intersections = poly.map((v,i,arr) => {
+      let intersection = line_segment_exclusive(linePoint, lineVector, v, arr[(i+1)%arr.length]);
+      return { point: intersection, at_index: i };
+    }).filter(el => el.point != null);
     if (edges_intersections.length == 2) {
-      var sorted_edges = edges_intersections.slice().sort(function (a, b) {
-        return a.at_index - b.at_index;
-      });
-      var face_a = poly.slice(sorted_edges[1].at_index + 1).concat(poly.slice(0, sorted_edges[0].at_index + 1));
+      let sorted_edges = edges_intersections.slice()
+        .sort((a,b) => a.at_index - b.at_index);
+      let face_a = poly
+        .slice(sorted_edges[1].at_index+1)
+        .concat(poly.slice(0, sorted_edges[0].at_index+1));
       face_a.push(sorted_edges[0].point);
       face_a.push(sorted_edges[1].point);
-      var face_b = poly.slice(sorted_edges[0].at_index + 1, sorted_edges[1].at_index + 1);
+      let face_b = poly
+        .slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index+1);
       face_b.push(sorted_edges[1].point);
       face_b.push(sorted_edges[0].point);
       return [face_a, face_b];
     } else if (edges_intersections.length == 1 && vertices_intersections.length == 1) {
       vertices_intersections[0]["type"] = "v";
       edges_intersections[0]["type"] = "e";
-      var sorted_geom = vertices_intersections.concat(edges_intersections).sort(function (a, b) {
-        return a.at_index - b.at_index;
-      });
-      var _face_a = poly.slice(sorted_geom[1].at_index + 1).concat(poly.slice(0, sorted_geom[0].at_index + 1));
-      if (sorted_geom[0].type === "e") {
-        _face_a.push(sorted_geom[0].point);
-      }
-      _face_a.push(sorted_geom[1].point);
-      var _face_b = poly.slice(sorted_geom[0].at_index + 1, sorted_geom[1].at_index + 1);
-      if (sorted_geom[1].type === "e") {
-        _face_b.push(sorted_geom[1].point);
-      }
-      _face_b.push(sorted_geom[0].point);
-      return [_face_a, _face_b];
+      let sorted_geom = vertices_intersections.concat(edges_intersections)
+        .sort((a,b) => a.at_index - b.at_index);
+      let face_a = poly.slice(sorted_geom[1].at_index+1)
+        .concat(poly.slice(0, sorted_geom[0].at_index+1));
+      if (sorted_geom[0].type === "e") { face_a.push(sorted_geom[0].point); }
+      face_a.push(sorted_geom[1].point);
+      let face_b = poly
+        .slice(sorted_geom[0].at_index+1, sorted_geom[1].at_index+1);
+      if (sorted_geom[1].type === "e") { face_b.push(sorted_geom[1].point); }
+      face_b.push(sorted_geom[0].point);
+      return [face_a, face_b];
     } else if (vertices_intersections.length == 2) {
-      var sorted_vertices = vertices_intersections.slice().sort(function (a, b) {
-        return a.at_index - b.at_index;
-      });
-      var _face_a2 = poly.slice(sorted_vertices[1].at_index).concat(poly.slice(0, sorted_vertices[0].at_index + 1));
-      var _face_b2 = poly.slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index + 1);
-      return [_face_a2, _face_b2];
+      let sorted_vertices = vertices_intersections.slice()
+        .sort((a,b) => a.at_index - b.at_index);
+      let face_a = poly
+        .slice(sorted_vertices[1].at_index)
+        .concat(poly.slice(0, sorted_vertices[0].at_index+1));
+      let face_b = poly
+        .slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index+1);
+      return [face_a, face_b];
     }
     return [poly.slice()];
   };
-  var convex_hull = function convex_hull(points) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-    var INFINITE_LOOP = 10000;
-    var sorted = points.slice().sort(function (a, b) {
-      return Math.abs(a[1] - b[1]) < epsilon ? a[0] - b[0] : a[1] - b[1];
-    });
-    var hull = [];
+  const convex_hull = function (points, include_collinear = false, epsilon = EPSILON) {
+    let INFINITE_LOOP = 10000;
+    let sorted = points.slice().sort((a, b) =>
+      (Math.abs(a[1] - b[1]) < epsilon
+        ? a[0] - b[0]
+        : a[1] - b[1]));
+    let hull = [];
     hull.push(sorted[0]);
-    var ang = 0;
-    var infiniteLoop = 0;
-    var _loop = function _loop() {
+    let ang = 0;
+    let infiniteLoop = 0;
+    do {
       infiniteLoop += 1;
-      var h = hull.length - 1;
-      var angles = sorted.filter(function (el) {
-        return !(Math.abs(el[0] - hull[h][0]) < epsilon && Math.abs(el[1] - hull[h][1]) < epsilon);
-      }).map(function (el) {
-        var angle = Math.atan2(hull[h][1] - el[1], hull[h][0] - el[0]);
-        while (angle < ang) {
-          angle += Math.PI * 2;
-        }
-        return {
-          node: el,
-          angle: angle,
-          distance: undefined
-        };
-      }).sort(function (a, b) {
-        return a.angle < b.angle ? -1 : a.angle > b.angle ? 1 : 0;
-      });
-      if (angles.length === 0) {
-        return {
-          v: undefined
-        };
-      }
-      var rightTurn = angles[0];
-      angles = angles.filter(function (el) {
-        return Math.abs(rightTurn.angle - el.angle) < epsilon;
-      }).map(function (el) {
-        var distance = Math.sqrt(Math.pow(hull[h][0] - el.node[0], 2) + Math.pow(hull[h][1] - el.node[1], 2));
-        el.distance = distance;
-        return el;
-      }).sort(function (a, b) {
-        return a.distance < b.distance ? 1 : a.distance > b.distance ? -1 : 0;
-      });
-      if (hull.filter(function (el) {
-        return el === angles[0].node;
-      }).length > 0) {
-        return {
-          v: hull
-        };
+      let h = hull.length - 1;
+      let angles = sorted
+        .filter(el => !(Math.abs(el[0] - hull[h][0]) < epsilon
+          && Math.abs(el[1] - hull[h][1]) < epsilon))
+        .map((el) => {
+          let angle = Math.atan2(hull[h][1] - el[1], hull[h][0] - el[0]);
+          while (angle < ang) { angle += Math.PI * 2; }
+          return { node: el, angle, distance: undefined };
+        })
+        .sort((a, b) => ((a.angle < b.angle) ? -1 : (a.angle > b.angle) ? 1 : 0));
+      if (angles.length === 0) { return undefined; }
+      let rightTurn = angles[0];
+      angles = angles.filter(el => Math.abs(rightTurn.angle - el.angle) < epsilon)
+        .map((el) => {
+          let distance = Math.sqrt(((hull[h][0] - el.node[0]) ** 2) + ((hull[h][1] - el.node[1]) ** 2));
+          el.distance = distance;
+          return el;
+        })
+        .sort((a, b) => ((a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0));
+      if (hull.filter(el => el === angles[0].node).length > 0) {
+        return hull;
       }
       hull.push(angles[0].node);
       ang = Math.atan2(hull[h][1] - angles[0].node[1], hull[h][0] - angles[0].node[0]);
-    };
-    do {
-      var _ret = _loop();
-      if (_typeof(_ret) === "object") return _ret.v;
     } while (infiniteLoop < INFINITE_LOOP);
     return undefined;
   };
@@ -1515,1344 +1259,771 @@
     split_convex_polygon: split_convex_polygon,
     convex_hull: convex_hull
   });
-  var VectorPrototype = function VectorPrototype(subtype) {
-    var proto = [];
-    var Type = subtype;
-    var that;
-    var bind = function bind(theother) {
+  const VectorPrototype = function (subtype) {
+    const proto = [];
+    const Type = subtype;
+    let that;
+    const bind = function (theother) {
       that = theother;
     };
-    var vecNormalize = function vecNormalize() {
+    const vecNormalize = function () {
       return Type(normalize(that));
     };
-    var vecDot = function vecDot() {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      var vec = get_vector(args);
-      return this.length > vec.length ? dot(vec, that) : dot(that, vec);
+    const vecDot = function (...args) {
+      const vec = get_vector(args);
+      return this.length > vec.length
+        ? dot(vec, that)
+        : dot(that, vec);
     };
-    var cross = function cross() {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-      var b = get_vector(args);
-      var a = that.slice();
-      if (a[2] == null) {
-        a[2] = 0;
-      }
-      if (b[2] == null) {
-        b[2] = 0;
-      }
+    const cross = function (...args) {
+      const b = get_vector(args);
+      const a = that.slice();
+      if (a[2] == null) { a[2] = 0; }
+      if (b[2] == null) { b[2] = 0; }
       return Type(cross3(a, b));
     };
-    var distanceTo = function distanceTo() {
-      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        args[_key3] = arguments[_key3];
-      }
-      var vec = get_vector(args);
-      var length = that.length < vec.length ? that.length : vec.length;
-      var sum = Array.from(Array(length)).map(function (_, i) {
-        return Math.pow(that[i] - vec[i], 2);
-      }).reduce(function (prev, curr) {
-        return prev + curr;
-      }, 0);
+    const distanceTo = function (...args) {
+      const vec = get_vector(args);
+      const length = (that.length < vec.length) ? that.length : vec.length;
+      const sum = Array.from(Array(length))
+        .map((_, i) => (that[i] - vec[i]) ** 2)
+        .reduce((prev, curr) => prev + curr, 0);
       return Math.sqrt(sum);
     };
-    var transform = function transform() {
-      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        args[_key4] = arguments[_key4];
-      }
-      var m = get_matrix2(args);
+    const transform = function (...args) {
+      const m = get_matrix2(args);
       return Type(multiply_matrix2_vector2(m, that));
     };
-    var add = function add() {
-      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        args[_key5] = arguments[_key5];
-      }
-      var vec = get_vector(args);
-      return Type(that.map(function (v, i) {
-        return v + vec[i];
-      }));
+    const add = function (...args) {
+      const vec = get_vector(args);
+      return Type(that.map((v, i) => v + vec[i]));
     };
-    var subtract = function subtract() {
-      for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-        args[_key6] = arguments[_key6];
-      }
-      var vec = get_vector(args);
-      return Type(that.map(function (v, i) {
-        return v - vec[i];
-      }));
+    const subtract = function (...args) {
+      const vec = get_vector(args);
+      return Type(that.map((v, i) => v - vec[i]));
     };
-    var rotateZ = function rotateZ(angle, origin) {
-      var m = make_matrix2_rotate(angle, origin);
+    const rotateZ = function (angle, origin) {
+      const m = make_matrix2_rotate(angle, origin);
       return Type(multiply_matrix2_vector2(m, that));
     };
-    var rotateZ90 = function rotateZ90() {
+    const rotateZ90 = function () {
       return Type(-that[1], that[0]);
     };
-    var rotateZ180 = function rotateZ180() {
+    const rotateZ180 = function () {
       return Type(-that[0], -that[1]);
     };
-    var rotateZ270 = function rotateZ270() {
+    const rotateZ270 = function () {
       return Type(that[1], -that[0]);
     };
-    var flip = function flip() {
-      return Type.apply(void 0, _toConsumableArray(that.map(function (n) {
-        return -n;
-      })));
+    const flip = function () {
+      return Type(...that.map(n => -n));
     };
-    var reflect = function reflect() {
-      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-        args[_key7] = arguments[_key7];
-      }
-      var ref = get_line(args);
-      var m = make_matrix2_reflection(ref.vector, ref.origin);
+    const reflect = function (...args) {
+      const ref = get_line(args);
+      const m = make_matrix2_reflection(ref.vector, ref.origin);
       return Type(multiply_matrix2_vector2(m, that));
     };
-    var lerp = function lerp(vector, pct) {
-      var vec = get_vector(vector);
-      var inv = 1.0 - pct;
-      var length = that.length < vec.length ? that.length : vec.length;
-      var components = Array.from(Array(length)).map(function (_, i) {
-        return that[i] * pct + vec[i] * inv;
-      });
+    const lerp = function (vector, pct) {
+      const vec = get_vector(vector);
+      const inv = 1.0 - pct;
+      const length = (that.length < vec.length) ? that.length : vec.length;
+      const components = Array.from(Array(length))
+        .map((_, i) => that[i] * pct + vec[i] * inv);
       return Type(components);
     };
-    var isEquivalent = function isEquivalent() {
-      for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-        args[_key8] = arguments[_key8];
-      }
-      var vec = get_vector(args);
-      var sm = that.length < vec.length ? that : vec;
-      var lg = that.length < vec.length ? vec : that;
+    const isEquivalent = function (...args) {
+      const vec = get_vector(args);
+      const sm = (that.length < vec.length) ? that : vec;
+      const lg = (that.length < vec.length) ? vec : that;
       return equivalent(sm, lg);
     };
-    var isParallel = function isParallel() {
-      for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
-        args[_key9] = arguments[_key9];
-      }
-      var vec = get_vector(args);
-      var sm = that.length < vec.length ? that : vec;
-      var lg = that.length < vec.length ? vec : that;
+    const isParallel = function (...args) {
+      const vec = get_vector(args);
+      const sm = (that.length < vec.length) ? that : vec;
+      const lg = (that.length < vec.length) ? vec : that;
       return parallel(sm, lg);
     };
-    var scale = function scale(mag) {
-      return Type(that.map(function (v) {
-        return v * mag;
-      }));
+    const scale = function (mag) {
+      return Type(that.map(v => v * mag));
     };
-    var midpoint = function midpoint() {
-      for (var _len10 = arguments.length, args = new Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
-        args[_key10] = arguments[_key10];
-      }
-      var vec = get_vector(args);
-      var sm = that.length < vec.length ? that.slice() : vec;
-      var lg = that.length < vec.length ? vec : that.slice();
-      for (var i = sm.length; i < lg.length; i += 1) {
-        sm[i] = 0;
-      }
-      return Type(lg.map(function (_, i) {
-        return (sm[i] + lg[i]) * 0.5;
-      }));
+    const midpoint = function (...args) {
+      const vec = get_vector(args);
+      const sm = (that.length < vec.length) ? that.slice() : vec;
+      const lg = (that.length < vec.length) ? vec : that.slice();
+      for (let i = sm.length; i < lg.length; i += 1) { sm[i] = 0; }
+      return Type(lg.map((_, i) => (sm[i] + lg[i]) * 0.5));
     };
-    var bisect = function bisect() {
-      for (var _len11 = arguments.length, args = new Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
-        args[_key11] = arguments[_key11];
-      }
-      var vec = get_vector(args);
-      return bisect_vectors(that, vec).map(function (b) {
-        return Type(b);
-      });
+    const bisect = function (...args) {
+      const vec = get_vector(args);
+      return bisect_vectors(that, vec).map(b => Type(b));
     };
-    Object.defineProperty(proto, "normalize", {
-      value: vecNormalize
-    });
-    Object.defineProperty(proto, "dot", {
-      value: vecDot
-    });
-    Object.defineProperty(proto, "cross", {
-      value: cross
-    });
-    Object.defineProperty(proto, "distanceTo", {
-      value: distanceTo
-    });
-    Object.defineProperty(proto, "transform", {
-      value: transform
-    });
-    Object.defineProperty(proto, "add", {
-      value: add
-    });
-    Object.defineProperty(proto, "subtract", {
-      value: subtract
-    });
-    Object.defineProperty(proto, "rotateZ", {
-      value: rotateZ
-    });
-    Object.defineProperty(proto, "rotateZ90", {
-      value: rotateZ90
-    });
-    Object.defineProperty(proto, "rotateZ180", {
-      value: rotateZ180
-    });
-    Object.defineProperty(proto, "rotateZ270", {
-      value: rotateZ270
-    });
-    Object.defineProperty(proto, "flip", {
-      value: flip
-    });
-    Object.defineProperty(proto, "reflect", {
-      value: reflect
-    });
-    Object.defineProperty(proto, "lerp", {
-      value: lerp
-    });
-    Object.defineProperty(proto, "isEquivalent", {
-      value: isEquivalent
-    });
-    Object.defineProperty(proto, "isParallel", {
-      value: isParallel
-    });
-    Object.defineProperty(proto, "scale", {
-      value: scale
-    });
-    Object.defineProperty(proto, "midpoint", {
-      value: midpoint
-    });
-    Object.defineProperty(proto, "bisect", {
-      value: bisect
-    });
-    Object.defineProperty(proto, "copy", {
-      value: function value() {
-        return Type.apply(void 0, _toConsumableArray(that));
-      }
-    });
-    Object.defineProperty(proto, "magnitude", {
-      get: function get() {
-        return magnitude(that);
-      }
-    });
-    Object.defineProperty(proto, "bind", {
-      value: bind
-    });
+    Object.defineProperty(proto, "normalize", { value: vecNormalize });
+    Object.defineProperty(proto, "dot", { value: vecDot });
+    Object.defineProperty(proto, "cross", { value: cross });
+    Object.defineProperty(proto, "distanceTo", { value: distanceTo });
+    Object.defineProperty(proto, "transform", { value: transform });
+    Object.defineProperty(proto, "add", { value: add });
+    Object.defineProperty(proto, "subtract", { value: subtract });
+    Object.defineProperty(proto, "rotateZ", { value: rotateZ });
+    Object.defineProperty(proto, "rotateZ90", { value: rotateZ90 });
+    Object.defineProperty(proto, "rotateZ180", { value: rotateZ180 });
+    Object.defineProperty(proto, "rotateZ270", { value: rotateZ270 });
+    Object.defineProperty(proto, "flip", { value: flip });
+    Object.defineProperty(proto, "reflect", { value: reflect });
+    Object.defineProperty(proto, "lerp", { value: lerp });
+    Object.defineProperty(proto, "isEquivalent", { value: isEquivalent });
+    Object.defineProperty(proto, "isParallel", { value: isParallel });
+    Object.defineProperty(proto, "scale", { value: scale });
+    Object.defineProperty(proto, "midpoint", { value: midpoint });
+    Object.defineProperty(proto, "bisect", { value: bisect });
+    Object.defineProperty(proto, "copy", { value: () => Type(...that) });
+    Object.defineProperty(proto, "magnitude", { get: () => magnitude(that) });
+    Object.defineProperty(proto, "bind", { value: bind });
     return proto;
   };
-  var Vector = function Vector() {
-    var proto = VectorPrototype(Vector);
-    var vector = Object.create(proto);
+  const Vector = function (...args) {
+    const proto = VectorPrototype(Vector);
+    const vector = Object.create(proto);
     proto.bind(vector);
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    get_vector(args).forEach(function (v) {
-      return vector.push(v);
-    });
-    Object.defineProperty(vector, "x", {
-      get: function get() {
-        return vector[0];
-      }
-    });
-    Object.defineProperty(vector, "y", {
-      get: function get() {
-        return vector[1];
-      }
-    });
-    Object.defineProperty(vector, "z", {
-      get: function get() {
-        return vector[2];
-      }
-    });
+    get_vector(args).forEach(v => vector.push(v));
+    Object.defineProperty(vector, "x", { get: () => vector[0] });
+    Object.defineProperty(vector, "y", { get: () => vector[1] });
+    Object.defineProperty(vector, "z", { get: () => vector[2] });
     return vector;
   };
   Vector.withAngle = function (angle) {
     return Vector(Math.cos(angle), Math.sin(angle));
   };
-  var Matrix2 = function Matrix2() {
-    var matrix = [1, 0, 0, 1, 0, 0];
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var argsMatrix = get_matrix2(args);
+  const Matrix2 = function (...args) {
+    const matrix = [1, 0, 0, 1, 0, 0];
+    const argsMatrix = get_matrix2(args);
     if (argsMatrix !== undefined) {
-      argsMatrix.forEach(function (n, i) {
-        matrix[i] = n;
-      });
+      argsMatrix.forEach((n, i) => { matrix[i] = n; });
     }
-    var multiply = function multiply() {
-      for (var _len2 = arguments.length, innerArgs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        innerArgs[_key2] = arguments[_key2];
-      }
-      return Matrix2(multiply_matrices2(matrix, get_matrix2(innerArgs)).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const multiply = function (...innerArgs) {
+      return Matrix2(multiply_matrices2(matrix, get_matrix2(innerArgs))
+        .map(n => clean_number(n, 13)));
     };
-    var determinant = function determinant() {
+    const determinant = function () {
       return clean_number(matrix2_determinant(matrix));
     };
-    var inverse = function inverse() {
-      return Matrix2(invert_matrix2(matrix).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const inverse = function () {
+      return Matrix2(invert_matrix2(matrix)
+        .map(n => clean_number(n, 13)));
     };
-    var translate = function translate(x, y) {
-      var transform = make_matrix2_translate(x, y);
-      return Matrix2(multiply_matrices2(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const translate = function (x, y) {
+      const transform = make_matrix2_translate(x, y);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var scale = function scale() {
-      var transform = make_matrix2_scale.apply(void 0, arguments);
-      return Matrix2(multiply_matrices2(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const scale = function (...innerArgs) {
+      const transform = make_matrix2_scale(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var rotate = function rotate() {
-      var transform = make_matrix2_rotate.apply(void 0, arguments);
-      return Matrix2(multiply_matrices2(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const rotate = function (...innerArgs) {
+      const transform = make_matrix2_rotate(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var reflect = function reflect() {
-      var transform = make_matrix2_reflection.apply(void 0, arguments);
-      return Matrix2(multiply_matrices2(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const reflect = function (...innerArgs) {
+      const transform = make_matrix2_reflection(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var transform = function transform() {
-      for (var _len3 = arguments.length, innerArgs = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        innerArgs[_key3] = arguments[_key3];
-      }
-      var v = get_vector(innerArgs);
-      return Vector(multiply_matrix2_vector2(matrix, v).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const transform = function (...innerArgs) {
+      const v = get_vector(innerArgs);
+      return Vector(multiply_matrix2_vector2(matrix, v)
+        .map(n => clean_number(n, 13)));
     };
-    var transformVector = function transformVector(vector) {
-      return Matrix2(multiply_matrix2_vector2(matrix, vector).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const transformVector = function (vector) {
+      return Matrix2(multiply_matrix2_vector2(matrix, vector)
+        .map(n => clean_number(n, 13)));
     };
-    var transformLine = function transformLine(origin, vector) {
-      return Matrix2(multiply_matrix2_line2(matrix, origin, vector).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const transformLine = function (origin, vector) {
+      return Matrix2(multiply_matrix2_line2(matrix, origin, vector)
+        .map(n => clean_number(n, 13)));
     };
-    Object.defineProperty(matrix, "multiply", {
-      value: multiply
-    });
-    Object.defineProperty(matrix, "determinant", {
-      value: determinant
-    });
-    Object.defineProperty(matrix, "inverse", {
-      value: inverse
-    });
-    Object.defineProperty(matrix, "translate", {
-      value: translate
-    });
-    Object.defineProperty(matrix, "scale", {
-      value: scale
-    });
-    Object.defineProperty(matrix, "rotate", {
-      value: rotate
-    });
-    Object.defineProperty(matrix, "reflect", {
-      value: reflect
-    });
-    Object.defineProperty(matrix, "transform", {
-      value: transform
-    });
-    Object.defineProperty(matrix, "transformVector", {
-      value: transformVector
-    });
-    Object.defineProperty(matrix, "transformLine", {
-      value: transformLine
-    });
+    Object.defineProperty(matrix, "multiply", { value: multiply });
+    Object.defineProperty(matrix, "determinant", { value: determinant });
+    Object.defineProperty(matrix, "inverse", { value: inverse });
+    Object.defineProperty(matrix, "translate", { value: translate });
+    Object.defineProperty(matrix, "scale", { value: scale });
+    Object.defineProperty(matrix, "rotate", { value: rotate });
+    Object.defineProperty(matrix, "reflect", { value: reflect });
+    Object.defineProperty(matrix, "transform", { value: transform });
+    Object.defineProperty(matrix, "transformVector", { value: transformVector });
+    Object.defineProperty(matrix, "transformLine", { value: transformLine });
     return Object.freeze(matrix);
   };
-  Matrix2.makeIdentity = function () {
-    return Matrix2(1, 0, 0, 1, 0, 0);
-  };
-  Matrix2.makeTranslation = function (x, y) {
-    return Matrix2(make_matrix2_translate(x, y));
-  };
-  Matrix2.makeRotation = function (angle_radians, origin) {
-    return Matrix2(make_matrix2_rotate(angle_radians, origin).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
-  Matrix2.makeScale = function (amount, origin) {
-    return Matrix2(make_matrix2_scale(amount, origin).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
-  Matrix2.makeReflection = function (vector, origin) {
-    return Matrix2(make_matrix2_reflection(vector, origin).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
-  var Matrix = function Matrix() {
-    var matrix = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
-    for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-      args[_key4] = arguments[_key4];
-    }
-    var argsMatrix = get_matrix3(args);
+  Matrix2.makeIdentity = () => Matrix2(1, 0, 0, 1, 0, 0);
+  Matrix2.makeTranslation = (x, y) => Matrix2(
+    make_matrix2_translate(x, y)
+  );
+  Matrix2.makeRotation = (angle_radians, origin) => Matrix2(
+    make_matrix2_rotate(angle_radians, origin).map(n => clean_number(n, 13))
+  );
+  Matrix2.makeScale = (amount, origin) => Matrix2(
+    make_matrix2_scale(amount, origin).map(n => clean_number(n, 13))
+  );
+  Matrix2.makeReflection = (vector, origin) => Matrix2(
+    make_matrix2_reflection(vector, origin).map(n => clean_number(n, 13))
+  );
+  const Matrix = function (...args) {
+    const matrix = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+    const argsMatrix = get_matrix3(args);
     if (argsMatrix !== undefined) {
-      argsMatrix.forEach(function (n, i) {
-        matrix[i] = n;
-      });
+      argsMatrix.forEach((n, i) => { matrix[i] = n; });
     }
-    var multiply = function multiply() {
-      for (var _len5 = arguments.length, innerArgs = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        innerArgs[_key5] = arguments[_key5];
-      }
-      return Matrix(multiply_matrices3(matrix, get_matrix3(innerArgs)).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const multiply = function (...innerArgs) {
+      return Matrix(multiply_matrices3(matrix, get_matrix3(innerArgs))
+        .map(n => clean_number(n, 13)));
     };
-    var determinant = function determinant() {
+    const determinant = function () {
       return clean_number(matrix3_determinant(matrix), 13);
     };
-    var inverse = function inverse() {
-      return Matrix(invert_matrix3(matrix).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const inverse = function () {
+      return Matrix(invert_matrix3(matrix)
+        .map(n => clean_number(n, 13)));
     };
-    var translate = function translate(x, y, z) {
-      var transform = make_matrix3_translate(x, y, z);
-      return Matrix(multiply_matrices3(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const translate = function (x, y, z) {
+      const transform = make_matrix3_translate(x, y, z);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var rotateX = function rotateX(angle_radians) {
-      var transform = make_matrix3_rotateX(angle_radians);
-      return Matrix(multiply_matrices3(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const rotateX = function (angle_radians) {
+      const transform = make_matrix3_rotateX(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var rotateY = function rotateY(angle_radians) {
-      var transform = make_matrix3_rotateY(angle_radians);
-      return Matrix(multiply_matrices3(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const rotateY = function (angle_radians) {
+      const transform = make_matrix3_rotateY(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var rotateZ = function rotateZ(angle_radians) {
-      var transform = make_matrix3_rotateZ(angle_radians);
-      return Matrix(multiply_matrices3(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const rotateZ = function (angle_radians) {
+      const transform = make_matrix3_rotateZ(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var rotate = function rotate(angle_radians, vector, origin) {
-      var transform = make_matrix3_rotate(angle_radians, vector, origin);
-      return Matrix(multiply_matrices3(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const rotate = function (angle_radians, vector, origin) {
+      const transform = make_matrix3_rotate(angle_radians, vector, origin);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var scale = function scale(amount) {
-      var transform = make_matrix3_scale(amount);
-      return Matrix(multiply_matrices3(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const scale = function (amount) {
+      const transform = make_matrix3_scale(amount);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var reflectZ = function reflectZ(vector, origin) {
-      var transform = make_matrix3_reflectionZ(vector, origin);
-      return Matrix(multiply_matrices3(matrix, transform).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const reflectZ = function (vector, origin) {
+      const transform = make_matrix3_reflectionZ(vector, origin);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
     };
-    var transform = function transform() {
-      for (var _len6 = arguments.length, innerArgs = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-        innerArgs[_key6] = arguments[_key6];
-      }
-      var v = get_vector(innerArgs);
-      return Vector(multiply_matrix3_vector3(v, matrix).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const transform = function (...innerArgs) {
+      const v = get_vector(innerArgs);
+      return Vector(multiply_matrix3_vector3(v, matrix)
+        .map(n => clean_number(n, 13)));
     };
-    var transformVector = function transformVector(vector) {
-      return Matrix(multiply_matrix3_vector3(matrix, vector).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const transformVector = function (vector) {
+      return Matrix(multiply_matrix3_vector3(matrix, vector)
+        .map(n => clean_number(n, 13)));
     };
-    var transformLine = function transformLine(origin, vector) {
-      return Matrix(multiply_matrix3_line3(matrix, origin, vector).map(function (n) {
-        return clean_number(n, 13);
-      }));
+    const transformLine = function (origin, vector) {
+      return Matrix(multiply_matrix3_line3(matrix, origin, vector)
+        .map(n => clean_number(n, 13)));
     };
-    Object.defineProperty(matrix, "multiply", {
-      value: multiply
-    });
-    Object.defineProperty(matrix, "determinant", {
-      value: determinant
-    });
-    Object.defineProperty(matrix, "inverse", {
-      value: inverse
-    });
-    Object.defineProperty(matrix, "translate", {
-      value: translate
-    });
-    Object.defineProperty(matrix, "rotateX", {
-      value: rotateX
-    });
-    Object.defineProperty(matrix, "rotateY", {
-      value: rotateY
-    });
-    Object.defineProperty(matrix, "rotateZ", {
-      value: rotateZ
-    });
-    Object.defineProperty(matrix, "rotate", {
-      value: rotate
-    });
-    Object.defineProperty(matrix, "scale", {
-      value: scale
-    });
-    Object.defineProperty(matrix, "reflectZ", {
-      value: reflectZ
-    });
-    Object.defineProperty(matrix, "transform", {
-      value: transform
-    });
-    Object.defineProperty(matrix, "transformVector", {
-      value: transformVector
-    });
-    Object.defineProperty(matrix, "transformLine", {
-      value: transformLine
-    });
+    Object.defineProperty(matrix, "multiply", { value: multiply });
+    Object.defineProperty(matrix, "determinant", { value: determinant });
+    Object.defineProperty(matrix, "inverse", { value: inverse });
+    Object.defineProperty(matrix, "translate", { value: translate });
+    Object.defineProperty(matrix, "rotateX", { value: rotateX });
+    Object.defineProperty(matrix, "rotateY", { value: rotateY });
+    Object.defineProperty(matrix, "rotateZ", { value: rotateZ });
+    Object.defineProperty(matrix, "rotate", { value: rotate });
+    Object.defineProperty(matrix, "scale", { value: scale });
+    Object.defineProperty(matrix, "reflectZ", { value: reflectZ });
+    Object.defineProperty(matrix, "transform", { value: transform });
+    Object.defineProperty(matrix, "transformVector", { value: transformVector });
+    Object.defineProperty(matrix, "transformLine", { value: transformLine });
     return Object.freeze(matrix);
   };
-  Matrix.makeIdentity = function () {
-    return Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0);
-  };
-  Matrix.makeTranslation = function (x, y, z) {
-    return Matrix(make_matrix3_translate(x, y, z));
-  };
-  Matrix.makeRotationX = function (angle_radians) {
-    return Matrix(make_matrix3_rotateX(angle_radians).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
-  Matrix.makeRotationY = function (angle_radians) {
-    return Matrix(make_matrix3_rotateY(angle_radians).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
-  Matrix.makeRotationZ = function (angle_radians) {
-    return Matrix(make_matrix3_rotateZ(angle_radians).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
-  Matrix.makeRotation = function (angle_radians, vector, origin) {
-    return Matrix(make_matrix3_rotate(angle_radians, vector, origin).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
-  Matrix.makeScale = function (amount, origin) {
-    return Matrix(make_matrix3_scale(amount, origin).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
-  Matrix.makeReflectionZ = function (vector, origin) {
-    return Matrix(make_matrix3_reflectionZ(vector, origin).map(function (n) {
-      return clean_number(n, 13);
-    }));
-  };
+  Matrix.makeIdentity = () => Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0);
+  Matrix.makeTranslation = (x, y, z) => Matrix(
+    make_matrix3_translate(x, y, z)
+  );
+  Matrix.makeRotationX = angle_radians => Matrix(
+    make_matrix3_rotateX(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotationY = angle_radians => Matrix(
+    make_matrix3_rotateY(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotationZ = angle_radians => Matrix(
+    make_matrix3_rotateZ(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotation = (angle_radians, vector, origin) => Matrix(
+    make_matrix3_rotate(angle_radians, vector, origin).map(n => clean_number(n, 13))
+  );
+  Matrix.makeScale = (amount, origin) => Matrix(
+    make_matrix3_scale(amount, origin).map(n => clean_number(n, 13))
+  );
+  Matrix.makeReflectionZ = (vector, origin) => Matrix(
+    make_matrix3_reflectionZ(vector, origin).map(n => clean_number(n, 13))
+  );
   function Prototype (subtype, prototype) {
-    var proto = prototype != null ? prototype : {};
-    var compare_to_line = function compare_to_line(t0, t1) {
-      var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
+    const proto = (prototype != null) ? prototype : {};
+    const compare_to_line = function (t0, t1, epsilon = EPSILON) {
       return this.compare_function(t0, epsilon) && true;
     };
-    var compare_to_ray = function compare_to_ray(t0, t1) {
-      var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
+    const compare_to_ray = function (t0, t1, epsilon = EPSILON) {
       return this.compare_function(t0, epsilon) && t1 >= -epsilon;
     };
-    var compare_to_segment = function compare_to_segment(t0, t1) {
-      var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-      return this.compare_function(t0, epsilon) && t1 >= -epsilon && t1 <= 1 + epsilon;
+    const compare_to_segment = function (t0, t1, epsilon = EPSILON) {
+      return this.compare_function(t0, epsilon)
+        && t1 >= -epsilon && t1 <= 1 + epsilon;
     };
-    var isParallel = function isParallel(line, epsilon) {
+    const isParallel = function (line, epsilon) {
       if (line.vector == null) {
         throw new Error("isParallel() argument is missing a vector");
       }
-      var this_is_smaller = this.vector.length < line.vector.length;
-      var sm = this_is_smaller ? this.vector : line.vector;
-      var lg = this_is_smaller ? line.vector : this.vector;
+      const this_is_smaller = (this.vector.length < line.vector.length);
+      const sm = this_is_smaller ? this.vector : line.vector;
+      const lg = this_is_smaller ? line.vector : this.vector;
       return parallel(sm, lg);
     };
-    var isDegenerate = function isDegenerate() {
+    const isDegenerate = function (epsilon = EPSILON) {
       return degenerate(this.vector);
     };
-    var reflection = function reflection() {
+    const reflection = function () {
       return Matrix2.makeReflection(this.vector, this.origin);
     };
-    var nearestPoint = function nearestPoint() {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      var point = get_vector(args);
+    const nearestPoint = function (...args) {
+      const point = get_vector(args);
       return Vector(nearest_point_on_line(this.origin, this.vector, point, this.clip_function));
     };
-    var intersect = function intersect(other) {
-      var _this = this;
-      return intersection_function(this.origin, this.vector, other.origin, other.vector, function (t0, t1) {
-        var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-        return _this.compare_function(t0, epsilon) && other.compare_function(t1, epsilon);
-      });
+    const intersect = function (other) {
+      return intersection_function(this.origin, this.vector, other.origin,
+        other.vector,
+        ((t0, t1, epsilon = EPSILON) => this.compare_function(t0, epsilon)
+          && other.compare_function(t1, epsilon)));
     };
-    var intersectLine = function intersectLine() {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-      var line = get_line(args);
-      return intersection_function(this.origin, this.vector, line.origin, line.vector, compare_to_line.bind(this));
+    const intersectLine = function (...args) {
+      const line = get_line(args);
+      return intersection_function(this.origin, this.vector, line.origin,
+        line.vector, compare_to_line.bind(this));
     };
-    var intersectRay = function intersectRay() {
-      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        args[_key3] = arguments[_key3];
-      }
-      var ray = get_ray(args);
-      return intersection_function(this.origin, this.vector, ray.origin, ray.vector, compare_to_ray.bind(this));
+    const intersectRay = function (...args) {
+      const ray = get_ray(args);
+      return intersection_function(this.origin, this.vector, ray.origin, ray.vector,
+        compare_to_ray.bind(this));
     };
-    var intersectSegment = function intersectSegment() {
-      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        args[_key4] = arguments[_key4];
-      }
-      var edge = get_segment(args);
-      var edgeVec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-      return intersection_function(this.origin, this.vector, edge[0], edgeVec, compare_to_segment.bind(this));
+    const intersectSegment = function (...args) {
+      const edge = get_segment(args);
+      const edgeVec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
+      return intersection_function(this.origin, this.vector, edge[0], edgeVec,
+        compare_to_segment.bind(this));
     };
-    var bisectLine = function bisectLine() {
-      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        args[_key5] = arguments[_key5];
-      }
-      var line = get_line(args);
+    const bisectLine = function (...args) {
+      const line = get_line(args);
       return bisect_lines2(this.origin, this.vector, line.origin, line.vector);
     };
-    var bisectRay = function bisectRay() {
-      for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-        args[_key6] = arguments[_key6];
-      }
-      var ray = get_ray(args);
+    const bisectRay = function (...args) {
+      const ray = get_ray(args);
       return bisect_lines2(this.origin, this.vector, ray.origin, ray.vector);
     };
-    var bisectSegment = function bisectSegment() {
-      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-        args[_key7] = arguments[_key7];
-      }
-      var s = get_segment(args);
-      var vector = [s[1][0] - s[0][0], s[1][1] - s[0][1]];
+    const bisectSegment = function (...args) {
+      const s = get_segment(args);
+      const vector = [s[1][0] - s[0][0], s[1][1] - s[0][1]];
       return bisect_lines2(this.origin, this.vector, s[0], vector);
     };
-    Object.defineProperty(proto, "isParallel", {
-      value: isParallel
-    });
-    Object.defineProperty(proto, "isDegenerate", {
-      value: isDegenerate
-    });
-    Object.defineProperty(proto, "nearestPoint", {
-      value: nearestPoint
-    });
-    Object.defineProperty(proto, "reflection", {
-      value: reflection
-    });
-    Object.defineProperty(proto, "intersect", {
-      value: intersect
-    });
-    Object.defineProperty(proto, "intersectLine", {
-      value: intersectLine
-    });
-    Object.defineProperty(proto, "intersectRay", {
-      value: intersectRay
-    });
-    Object.defineProperty(proto, "intersectSegment", {
-      value: intersectSegment
-    });
-    Object.defineProperty(proto, "bisectLine", {
-      value: bisectLine
-    });
-    Object.defineProperty(proto, "bisectRay", {
-      value: bisectRay
-    });
-    Object.defineProperty(proto, "bisectSegment", {
-      value: bisectSegment
-    });
+    Object.defineProperty(proto, "isParallel", { value: isParallel });
+    Object.defineProperty(proto, "isDegenerate", { value: isDegenerate });
+    Object.defineProperty(proto, "nearestPoint", { value: nearestPoint });
+    Object.defineProperty(proto, "reflection", { value: reflection });
+    Object.defineProperty(proto, "intersect", { value: intersect });
+    Object.defineProperty(proto, "intersectLine", { value: intersectLine });
+    Object.defineProperty(proto, "intersectRay", { value: intersectRay });
+    Object.defineProperty(proto, "intersectSegment", { value: intersectSegment });
+    Object.defineProperty(proto, "bisectLine", { value: bisectLine });
+    Object.defineProperty(proto, "bisectRay", { value: bisectRay });
+    Object.defineProperty(proto, "bisectSegment", { value: bisectSegment });
     return Object.freeze(proto);
   }
-  var Line = function Line() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var _get_line = get_line(args),
-        origin = _get_line.origin,
-        vector = _get_line.vector;
-    var transform = function transform() {
-      for (var _len2 = arguments.length, innerArgs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        innerArgs[_key2] = arguments[_key2];
-      }
-      var mat = get_matrix2(innerArgs);
-      var line = multiply_matrix2_line2(mat, origin, vector);
+  const Line = function (...args) {
+    const { origin, vector } = get_line(args);
+    const transform = function (...innerArgs) {
+      const mat = get_matrix2(innerArgs);
+      const line = multiply_matrix2_line2(mat, origin, vector);
       return Line(line[0], line[1]);
     };
-    var proto = Prototype.bind(this);
-    var line = Object.create(proto(Line));
-    var compare_function = function compare_function() {
-      return true;
-    };
-    Object.defineProperty(line, "compare_function", {
-      value: compare_function
-    });
-    Object.defineProperty(line, "clip_function", {
-      value: limit_line
-    });
-    Object.defineProperty(line, "origin", {
-      get: function get() {
-        return Vector(origin);
-      }
-    });
-    Object.defineProperty(line, "vector", {
-      get: function get() {
-        return Vector(vector);
-      }
-    });
-    Object.defineProperty(line, "length", {
-      get: function get() {
-        return Infinity;
-      }
-    });
-    Object.defineProperty(line, "transform", {
-      value: transform
-    });
+    const proto = Prototype.bind(this);
+    const line = Object.create(proto(Line));
+    const compare_function = function () { return true; };
+    Object.defineProperty(line, "compare_function", { value: compare_function });
+    Object.defineProperty(line, "clip_function", { value: limit_line });
+    Object.defineProperty(line, "origin", { get: () => Vector(origin) });
+    Object.defineProperty(line, "vector", { get: () => Vector(vector) });
+    Object.defineProperty(line, "length", { get: () => Infinity });
+    Object.defineProperty(line, "transform", { value: transform });
     return line;
   };
-  Line.fromPoints = function () {
-    for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      args[_key3] = arguments[_key3];
-    }
-    var points = get_two_vec2(args);
+  Line.fromPoints = function (...args) {
+    const points = get_two_vec2(args);
     return Line({
       origin: points[0],
-      vector: normalize([points[1][0] - points[0][0], points[1][1] - points[0][1]])
+      vector: normalize([
+        points[1][0] - points[0][0],
+        points[1][1] - points[0][1],
+      ]),
     });
   };
-  Line.perpendicularBisector = function () {
-    for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-      args[_key4] = arguments[_key4];
-    }
-    var points = get_two_vec2(args);
-    var vec = normalize([points[1][0] - points[0][0], points[1][1] - points[0][1]]);
+  Line.perpendicularBisector = function (...args) {
+    const points = get_two_vec2(args);
+    const vec = normalize([
+      points[1][0] - points[0][0],
+      points[1][1] - points[0][1],
+    ]);
     return Line({
       origin: average(points[0], points[1]),
-      vector: [vec[1], -vec[0]]
+      vector: [vec[1], -vec[0]],
     });
   };
-  var Ray = function Ray() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var _get_line = get_line(args),
-        origin = _get_line.origin,
-        vector = _get_line.vector;
-    var transform = function transform() {
-      for (var _len2 = arguments.length, innerArgs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        innerArgs[_key2] = arguments[_key2];
-      }
-      var mat = get_matrix2(innerArgs);
-      var vec_translated = vector.map(function (vec, i) {
-        return vec + origin[i];
-      });
-      var new_origin = multiply_matrix2_vector2(mat, origin);
-      var new_vector = multiply_matrix2_vector2(mat, vec_translated).map(function (vec, i) {
-        return vec - new_origin[i];
-      });
+  const Ray = function (...args) {
+    const { origin, vector } = get_line(args);
+    const transform = function (...innerArgs) {
+      const mat = get_matrix2(innerArgs);
+      const vec_translated = vector.map((vec, i) => vec + origin[i]);
+      const new_origin = multiply_matrix2_vector2(mat, origin);
+      const new_vector = multiply_matrix2_vector2(mat, vec_translated)
+        .map((vec, i) => vec - new_origin[i]);
       return Ray(new_origin, new_vector);
     };
-    var rotate180 = function rotate180() {
+    const rotate180 = function () {
       return Ray(origin[0], origin[1], -vector[0], -vector[1]);
     };
-    var proto = Prototype.bind(this);
-    var ray = Object.create(proto(Ray));
-    var compare_function = function compare_function(t0, ep) {
-      return t0 >= -ep;
-    };
-    Object.defineProperty(ray, "origin", {
-      get: function get() {
-        return Vector(origin);
-      }
-    });
-    Object.defineProperty(ray, "vector", {
-      get: function get() {
-        return Vector(vector);
-      }
-    });
-    Object.defineProperty(ray, "length", {
-      get: function get() {
-        return Infinity;
-      }
-    });
-    Object.defineProperty(ray, "transform", {
-      value: transform
-    });
-    Object.defineProperty(ray, "rotate180", {
-      value: rotate180
-    });
-    Object.defineProperty(ray, "compare_function", {
-      value: compare_function
-    });
-    Object.defineProperty(ray, "clip_function", {
-      value: limit_ray
-    });
+    const proto = Prototype.bind(this);
+    const ray = Object.create(proto(Ray));
+    const compare_function = function (t0, ep) { return t0 >= -ep; };
+    Object.defineProperty(ray, "origin", { get: () => Vector(origin) });
+    Object.defineProperty(ray, "vector", { get: () => Vector(vector) });
+    Object.defineProperty(ray, "length", { get: () => Infinity });
+    Object.defineProperty(ray, "transform", { value: transform });
+    Object.defineProperty(ray, "rotate180", { value: rotate180 });
+    Object.defineProperty(ray, "compare_function", { value: compare_function });
+    Object.defineProperty(ray, "clip_function", { value: limit_ray });
     return ray;
   };
-  Ray.fromPoints = function () {
-    for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      args[_key3] = arguments[_key3];
-    }
-    var points = get_two_vec2(args);
+  Ray.fromPoints = function (...args) {
+    const points = get_two_vec2(args);
     return Ray({
       origin: points[0],
-      vector: normalize([points[1][0] - points[0][0], points[1][1] - points[0][1]])
+      vector: normalize([
+        points[1][0] - points[0][0],
+        points[1][1] - points[0][1],
+      ]),
     });
   };
-  var Segment = function Segment() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var inputs = get_two_vec2(args);
-    var proto = Prototype.bind(this);
-    var vecPts = inputs.length > 0 ? inputs.map(function (p) {
-      return Vector(p);
-    }) : undefined;
-    if (vecPts === undefined) {
-      return undefined;
-    }
-    var segment = Object.create(proto(Segment, vecPts));
-    var transform = function transform() {
-      for (var _len2 = arguments.length, innerArgs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        innerArgs[_key2] = arguments[_key2];
-      }
-      var mat = get_matrix2(innerArgs);
-      var transformed_points = segment.map(function (point) {
-        return multiply_matrix2_vector2(mat, point);
-      });
+  const Segment = function (...args) {
+    const inputs = get_two_vec2(args);
+    const proto = Prototype.bind(this);
+    const vecPts = (inputs.length > 0 ? inputs.map(p => Vector(p)) : undefined);
+    if (vecPts === undefined) { return undefined; }
+    const segment = Object.create(proto(Segment, vecPts));
+    const transform = function (...innerArgs) {
+      const mat = get_matrix2(innerArgs);
+      const transformed_points = segment
+        .map(point => multiply_matrix2_vector2(mat, point));
       return Segment(transformed_points);
     };
-    var scale = function scale(magnitude) {
-      var mid = average(segment[0], segment[1]);
-      var transformed_points = segment.map(function (p) {
-        return p.lerp(mid, magnitude);
-      });
+    const scale = function (magnitude) {
+      const mid = average(segment[0], segment[1]);
+      const transformed_points = segment
+        .map(p => p.lerp(mid, magnitude));
       return Segment(transformed_points);
     };
-    var vector = function vector() {
+    const vector = function () {
       return Vector(segment[1][0] - segment[0][0], segment[1][1] - segment[0][1]);
     };
-    var midpoint = function midpoint() {
-      return Vector(average(segment[0], segment[1]));
+    const midpoint = () => Vector(average(segment[0], segment[1]));
+    const magnitude = function () {
+      return Math.sqrt(((segment[1][0] - segment[0][0]) ** 2)
+                     + ((segment[1][1] - segment[0][1]) ** 2));
     };
-    var magnitude = function magnitude() {
-      return Math.sqrt(Math.pow(segment[1][0] - segment[0][0], 2) + Math.pow(segment[1][1] - segment[0][1], 2));
-    };
-    var compare_function = function compare_function(t0, ep) {
-      return t0 >= -ep && t0 <= 1 + ep;
-    };
-    Object.defineProperty(segment, "origin", {
-      get: function get() {
-        return segment[0];
-      }
-    });
-    Object.defineProperty(segment, "vector", {
-      get: function get() {
-        return vector();
-      }
-    });
-    Object.defineProperty(segment, "midpoint", {
-      value: midpoint
-    });
-    Object.defineProperty(segment, "magnitude", {
-      get: function get() {
-        return magnitude();
-      }
-    });
-    Object.defineProperty(segment, "transform", {
-      value: transform
-    });
-    Object.defineProperty(segment, "scale", {
-      value: scale
-    });
-    Object.defineProperty(segment, "compare_function", {
-      value: compare_function
-    });
+    const compare_function = (t0, ep) => t0 >= -ep && t0 <= 1 + ep;
+    Object.defineProperty(segment, "origin", { get: () => segment[0] });
+    Object.defineProperty(segment, "vector", { get: () => vector() });
+    Object.defineProperty(segment, "midpoint", { value: midpoint });
+    Object.defineProperty(segment, "magnitude", { get: () => magnitude() });
+    Object.defineProperty(segment, "transform", { value: transform });
+    Object.defineProperty(segment, "scale", { value: scale });
+    Object.defineProperty(segment, "compare_function", { value: compare_function });
     Object.defineProperty(segment, "clip_function", {
-      value: limit_segment
+      value: limit_segment,
     });
     return segment;
   };
-  var Circle = function Circle() {
-    var origin;
-    var radius;
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var params = Array.from(args);
-    var numbers = params.filter(function (param) {
-      return !isNaN(param);
-    });
+  const Circle = function (...args) {
+    let origin;
+    let radius;
+    const params = Array.from(args);
+    const numbers = params.filter(param => !isNaN(param));
     if (numbers.length === 3) {
       origin = Vector(numbers[0], numbers[1]);
-      var _numbers = _slicedToArray(numbers, 3);
-      radius = _numbers[2];
+      [, , radius] = numbers;
     }
-    var intersectionLine = function intersectionLine() {
-      for (var _len2 = arguments.length, innerArgs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        innerArgs[_key2] = arguments[_key2];
-      }
-      var line = get_line(innerArgs);
-      var p2 = [line.origin[0] + line.vector[0], line.origin[1] + line.vector[1]];
-      var result = circle_line(origin, radius, line.origin, p2);
-      return result === undefined ? undefined : result.map(function (i) {
-        return Vector(i);
-      });
+    const intersectionLine = function (...innerArgs) {
+      const line = get_line(innerArgs);
+      const p2 = [line.origin[0] + line.vector[0], line.origin[1] + line.vector[1]];
+      const result = circle_line(origin, radius, line.origin, p2);
+      return (result === undefined ? undefined : result.map(i => Vector(i)));
     };
-    var intersectionRay = function intersectionRay() {
-      for (var _len3 = arguments.length, innerArgs = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        innerArgs[_key3] = arguments[_key3];
-      }
-      var ray = get_ray(innerArgs);
-      var result = circle_ray(origin, radius, ray[0], ray[1]);
-      return result === undefined ? undefined : result.map(function (i) {
-        return Vector(i);
-      });
+    const intersectionRay = function (...innerArgs) {
+      const ray = get_ray(innerArgs);
+      const result = circle_ray(origin, radius, ray[0], ray[1]);
+      return (result === undefined ? undefined : result.map(i => Vector(i)));
     };
-    var intersectionSegment = function intersectionSegment() {
-      for (var _len4 = arguments.length, innerArgs = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        innerArgs[_key4] = arguments[_key4];
-      }
-      var segment = get_two_vec2(innerArgs);
-      var result = circle_segment(origin, radius, segment[0], segment[1]);
-      return result === undefined ? undefined : result.map(function (i) {
-        return Vector(i);
-      });
+    const intersectionSegment = function (...innerArgs) {
+      const segment = get_two_vec2(innerArgs);
+      const result = circle_segment(origin, radius, segment[0], segment[1]);
+      return (result === undefined ? undefined : result.map(i => Vector(i)));
     };
     return {
-      intersectionLine: intersectionLine,
-      intersectionRay: intersectionRay,
-      intersectionSegment: intersectionSegment,
-      get origin() {
-        return origin;
-      },
-      get radius() {
-        return radius;
-      },
-      set origin(innerArgs) {
-        origin = Vector(innerArgs);
-      },
-      set radius(newRadius) {
-        radius = newRadius;
-      }
+      intersectionLine,
+      intersectionRay,
+      intersectionSegment,
+      get origin() { return origin; },
+      get radius() { return radius; },
+      set origin(innerArgs) { origin = Vector(innerArgs); },
+      set radius(newRadius) { radius = newRadius; },
     };
   };
-  var Sector = function Sector(vectorA, vectorB) {
-    var center = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 0];
-    var vectors = [get_vector(vectorA), get_vector(vectorB)];
-    var bisect = function bisect() {
-      var interior_angle = counter_clockwise_angle2(vectors[0], vectors[1]);
-      var vectors_radians = vectors.map(function (el) {
-        return Math.atan2(el[1], el[0]);
-      });
-      var bisected = vectors_radians[0] + interior_angle * 0.5;
+  const Sector = function (vectorA, vectorB, center = [0, 0]) {
+    const vectors = [get_vector(vectorA), get_vector(vectorB)];
+    const bisect = function () {
+      const interior_angle = counter_clockwise_angle2(vectors[0], vectors[1]);
+      const vectors_radians = vectors.map(el => Math.atan2(el[1], el[0]));
+      const bisected = vectors_radians[0] + interior_angle * 0.5;
       return Vector(Math.cos(bisected), Math.sin(bisected));
     };
-    var subsect_sector = function subsect_sector(divisions) {
-      return subsect(divisions, vectors[0], vectors[1]).map(function (vec) {
-        return Vector(vec[0], vec[1]);
-      });
+    const subsect_sector = function (divisions) {
+      return subsect(divisions, vectors[0], vectors[1])
+        .map(vec => Vector(vec[0], vec[1]));
     };
-    var contains = function contains() {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      var point = get_vector(args).map(function (n, i) {
-        return n + center[i];
-      });
-      var cross0 = (point[1] - vectors[0][1]) * -vectors[0][0] - (point[0] - vectors[0][0]) * -vectors[0][1];
-      var cross1 = point[1] * vectors[1][0] - point[0] * vectors[1][1];
+    const contains = function (...args) {
+      const point = get_vector(args).map((n, i) => n + center[i]);
+      const cross0 = (point[1] - vectors[0][1]) * -vectors[0][0]
+                   - (point[0] - vectors[0][0]) * -vectors[0][1];
+      const cross1 = point[1] * vectors[1][0] - point[0] * vectors[1][1];
       return cross0 < 0 && cross1 < 0;
     };
     return {
-      contains: contains,
-      bisect: bisect,
+      contains,
+      bisect,
       subsect: subsect_sector,
-      get center() {
-        return center;
-      },
-      get vectors() {
-        return vectors;
-      },
-      get angle() {
-        return counter_clockwise_angle2(vectors[0], vectors[1]);
-      }
+      get center() { return center; },
+      get vectors() { return vectors; },
+      get angle() { return counter_clockwise_angle2(vectors[0], vectors[1]); },
     };
   };
   Sector.fromVectors = function (vectorA, vectorB) {
     return Sector(vectorA, vectorB);
   };
-  Sector.fromPoints = function (pointA, pointB) {
-    var center = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 0];
-    var vectors = [pointA, pointB].map(function (p) {
-      return p.map(function (_, i) {
-        return p[i] - center[i];
-      });
-    });
+  Sector.fromPoints = function (pointA, pointB, center = [0, 0]) {
+    const vectors = [pointA, pointB].map(p => p.map((_, i) => p[i] - center[i]));
     return Sector(vectors[0], vectors[1], center);
   };
   function Prototype$1 (subtype) {
-    var proto = {};
-    var Type = subtype;
-    var area = function area() {
-      return signed_area(this.points);
-    };
-    var midpoint = function midpoint() {
-      return average(this.points);
-    };
-    var enclosingRectangle = function enclosingRectangle() {
+    const proto = {};
+    const Type = subtype;
+    const area = function () { return signed_area(this.points); };
+    const midpoint = function () { return average(this.points); };
+    const enclosingRectangle = function () {
       return enclosing_rectangle(this.points);
     };
-    var sectors = function sectors() {
-      return this.points.map(function (p, i, arr) {
-        var prev = (i + arr.length - 1) % arr.length;
-        var next = (i + 1) % arr.length;
-        var center = p;
-        var a = arr[prev].map(function (n, j) {
-          return n - center[j];
-        });
-        var b = arr[next].map(function (n, j) {
-          return n - center[j];
-        });
+    const sectors = function () {
+      return this.points.map((p, i, arr) => {
+        const prev = (i + arr.length - 1) % arr.length;
+        const next = (i + 1) % arr.length;
+        const center = p;
+        const a = arr[prev].map((n, j) => n - center[j]);
+        const b = arr[next].map((n, j) => n - center[j]);
         return Sector(b, a, center);
       });
     };
-    var contains = function contains() {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
+    const contains = function (...args) {
       return point_in_poly(get_vector(args), this.points);
     };
-    var polyCentroid = function polyCentroid() {
+    const polyCentroid = function () {
       return centroid(this.points);
     };
-    var nearest = function nearest() {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-      var point = get_vector(args);
-      var points = this.sides.map(function (edge) {
-        return edge.nearestPoint(point);
-      });
-      var lowD = Infinity;
-      var lowI;
-      points.map(function (p) {
-        return distance2(point, p);
-      }).forEach(function (d, i) {
-        if (d < lowD) {
-          lowD = d;
-          lowI = i;
-        }
-      });
+    const nearest = function (...args) {
+      const point = get_vector(args);
+      const points = this.sides.map(edge => edge.nearestPoint(point));
+      let lowD = Infinity;
+      let lowI;
+      points.map(p => distance2(point, p))
+        .forEach((d, i) => { if (d < lowD) { lowD = d; lowI = i; } });
       return {
         point: points[lowI],
-        edge: this.sides[lowI]
+        edge: this.sides[lowI],
       };
     };
-    var clipSegment = function clipSegment() {
-      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        args[_key3] = arguments[_key3];
-      }
-      var edge = get_segment(args);
-      var e = convex_poly_segment(this.points, edge[0], edge[1]);
+    const clipSegment = function (...args) {
+      const edge = get_segment(args);
+      const e = convex_poly_segment(this.points, edge[0], edge[1]);
       return e === undefined ? undefined : Segment(e);
     };
-    var clipLine = function clipLine() {
-      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        args[_key4] = arguments[_key4];
-      }
-      var line = get_line(args);
-      var e = convex_poly_line(this.points, line.origin, line.vector);
+    const clipLine = function (...args) {
+      const line = get_line(args);
+      const e = convex_poly_line(this.points, line.origin, line.vector);
       return e === undefined ? undefined : Segment(e);
     };
-    var clipRay = function clipRay() {
-      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        args[_key5] = arguments[_key5];
-      }
-      var line = get_line(args);
-      var e = convex_poly_ray(this.points, line.origin, line.vector);
+    const clipRay = function (...args) {
+      const line = get_line(args);
+      const e = convex_poly_ray(this.points, line.origin, line.vector);
       return e === undefined ? undefined : Segment(e);
     };
-    var split = function split() {
-      for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-        args[_key6] = arguments[_key6];
-      }
-      var line = get_line(args);
-      return split_polygon(this.points, line.origin, line.vector).map(function (poly) {
-        return Type(poly);
-      });
+    const split = function (...args) {
+      const line = get_line(args);
+      return split_polygon(this.points, line.origin, line.vector)
+        .map(poly => Type(poly));
     };
-    var scale = function scale(magnitude) {
-      var center = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : centroid(this.points);
-      var newPoints = this.points.map(function (p) {
-        return [0, 1].map(function (_, i) {
-          return p[i] - center[i];
-        });
-      }).map(function (vec) {
-        return vec.map(function (_, i) {
-          return center[i] + vec[i] * magnitude;
-        });
+    const scale = function (magnitude, center = centroid(this.points)) {
+      const newPoints = this.points
+        .map(p => [0, 1].map((_, i) => p[i] - center[i]))
+        .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
+      return Type(newPoints);
+    };
+    const rotate = function (angle, centerPoint = centroid(this.points)) {
+      const newPoints = this.points.map((p) => {
+        const vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
+        const mag = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+        const a = Math.atan2(vec[1], vec[0]);
+        return [
+          centerPoint[0] + Math.cos(a + angle) * mag,
+          centerPoint[1] + Math.sin(a + angle) * mag,
+        ];
       });
       return Type(newPoints);
     };
-    var rotate = function rotate(angle) {
-      var centerPoint = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : centroid(this.points);
-      var newPoints = this.points.map(function (p) {
-        var vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
-        var mag = Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
-        var a = Math.atan2(vec[1], vec[0]);
-        return [centerPoint[0] + Math.cos(a + angle) * mag, centerPoint[1] + Math.sin(a + angle) * mag];
-      });
+    const translate = function (...args) {
+      const vec = get_vector(args);
+      const newPoints = this.points.map(p => p.map((n, i) => n + vec[i]));
       return Type(newPoints);
     };
-    var translate = function translate() {
-      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-        args[_key7] = arguments[_key7];
-      }
-      var vec = get_vector(args);
-      var newPoints = this.points.map(function (p) {
-        return p.map(function (n, i) {
-          return n + vec[i];
-        });
-      });
+    const transform = function (...args) {
+      const m = get_matrix2(args);
+      const newPoints = this.points
+        .map(p => Vector(multiply_matrix2_vector2(m, p)));
       return Type(newPoints);
     };
-    var transform = function transform() {
-      for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-        args[_key8] = arguments[_key8];
-      }
-      var m = get_matrix2(args);
-      var newPoints = this.points.map(function (p) {
-        return Vector(multiply_matrix2_vector2(m, p));
-      });
-      return Type(newPoints);
-    };
-    Object.defineProperty(proto, "area", {
-      value: area
-    });
-    Object.defineProperty(proto, "centroid", {
-      value: polyCentroid
-    });
-    Object.defineProperty(proto, "midpoint", {
-      value: midpoint
-    });
-    Object.defineProperty(proto, "enclosingRectangle", {
-      value: enclosingRectangle
-    });
-    Object.defineProperty(proto, "contains", {
-      value: contains
-    });
-    Object.defineProperty(proto, "nearest", {
-      value: nearest
-    });
-    Object.defineProperty(proto, "clipSegment", {
-      value: clipSegment
-    });
-    Object.defineProperty(proto, "clipLine", {
-      value: clipLine
-    });
-    Object.defineProperty(proto, "clipRay", {
-      value: clipRay
-    });
-    Object.defineProperty(proto, "split", {
-      value: split
-    });
-    Object.defineProperty(proto, "scale", {
-      value: scale
-    });
-    Object.defineProperty(proto, "rotate", {
-      value: rotate
-    });
-    Object.defineProperty(proto, "translate", {
-      value: translate
-    });
-    Object.defineProperty(proto, "transform", {
-      value: transform
-    });
+    Object.defineProperty(proto, "area", { value: area });
+    Object.defineProperty(proto, "centroid", { value: polyCentroid });
+    Object.defineProperty(proto, "midpoint", { value: midpoint });
+    Object.defineProperty(proto, "enclosingRectangle", { value: enclosingRectangle });
+    Object.defineProperty(proto, "contains", { value: contains });
+    Object.defineProperty(proto, "nearest", { value: nearest });
+    Object.defineProperty(proto, "clipSegment", { value: clipSegment });
+    Object.defineProperty(proto, "clipLine", { value: clipLine });
+    Object.defineProperty(proto, "clipRay", { value: clipRay });
+    Object.defineProperty(proto, "split", { value: split });
+    Object.defineProperty(proto, "scale", { value: scale });
+    Object.defineProperty(proto, "rotate", { value: rotate });
+    Object.defineProperty(proto, "translate", { value: translate });
+    Object.defineProperty(proto, "transform", { value: transform });
     Object.defineProperty(proto, "edges", {
-      get: function get() {
-        return this.sides;
-      }
+      get: function () { return this.sides; },
     });
     Object.defineProperty(proto, "sectors", {
-      get: function get() {
-        return sectors.call(this);
-      }
+      get: function () { return sectors.call(this); },
     });
-    Object.defineProperty(proto, "signedArea", {
-      value: area
-    });
+    Object.defineProperty(proto, "signedArea", { value: area });
     return Object.freeze(proto);
   }
-  var Polygon = function Polygon() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var points = get_vector_of_vectors(args).map(function (p) {
-      return Vector(p);
-    });
-    if (points === undefined) {
-      return undefined;
-    }
-    var sides = points.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (ps) {
-      return Segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]);
-    });
-    var proto = Prototype$1.bind(this);
-    var polygon = Object.create(proto());
-    Object.defineProperty(polygon, "points", {
-      get: function get() {
-        return points;
-      }
-    });
-    Object.defineProperty(polygon, "sides", {
-      get: function get() {
-        return sides;
-      }
-    });
+  const Polygon = function (...args) {
+    const points = get_vector_of_vectors(args).map(p => Vector(p));
+    if (points === undefined) { return undefined; }
+    const sides = points
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(ps => Segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
+    const proto = Prototype$1.bind(this);
+    const polygon = Object.create(proto());
+    Object.defineProperty(polygon, "points", { get: () => points });
+    Object.defineProperty(polygon, "sides", { get: () => sides });
     return polygon;
   };
-  Polygon.regularPolygon = function (sides) {
-    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var radius = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
-    var points = make_regular_polygon(sides, x, y, radius);
+  Polygon.regularPolygon = function (sides, x = 0, y = 0, radius = 1) {
+    const points = make_regular_polygon(sides, x, y, radius);
     return Polygon(points);
   };
-  Polygon.convexHull = function (points) {
-    var includeCollinear = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    var hull = convex_hull(points, includeCollinear);
+  Polygon.convexHull = function (points, includeCollinear = false) {
+    const hull = convex_hull(points, includeCollinear);
     return Polygon(hull);
   };
-  var ConvexPolygon = function ConvexPolygon() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var points = get_array_of_vec(args).map(function (p) {
-      return Vector(p);
-    });
-    if (points === undefined) {
-      return undefined;
-    }
-    var sides = points.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (ps) {
-      return Segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]);
-    });
-    var proto = Prototype$1.bind(this);
-    var polygon = Object.create(proto(ConvexPolygon));
-    var split = function split() {
-      for (var _len2 = arguments.length, innerArgs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        innerArgs[_key2] = arguments[_key2];
-      }
-      var line = get_line(innerArgs);
-      return split_convex_polygon(points, line.origin, line.vector).map(function (poly) {
-        return ConvexPolygon(poly);
-      });
+  const ConvexPolygon = function (...args) {
+    const points = get_array_of_vec(args).map(p => Vector(p));
+    if (points === undefined) { return undefined; }
+    const sides = points
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(ps => Segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
+    const proto = Prototype$1.bind(this);
+    const polygon = Object.create(proto(ConvexPolygon));
+    const split = function (...innerArgs) {
+      const line = get_line(innerArgs);
+      return split_convex_polygon(points, line.origin, line.vector)
+        .map(poly => ConvexPolygon(poly));
     };
-    var overlaps = function overlaps() {
-      for (var _len3 = arguments.length, innerArgs = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        innerArgs[_key3] = arguments[_key3];
-      }
-      var poly2Points = get_array_of_vec(innerArgs);
+    const overlaps = function (...innerArgs) {
+      const poly2Points = get_array_of_vec(innerArgs);
       return convex_polygons_overlap(points, poly2Points);
     };
-    var scale = function scale(magnitude) {
-      var center = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : centroid(polygon.points);
-      var newPoints = polygon.points.map(function (p) {
-        return [0, 1].map(function (_, i) {
-          return p[i] - center[i];
-        });
-      }).map(function (vec) {
-        return vec.map(function (_, i) {
-          return center[i] + vec[i] * magnitude;
-        });
+    const scale = function (magnitude, center = centroid(polygon.points)) {
+      const newPoints = polygon.points
+        .map(p => [0, 1].map((_, i) => p[i] - center[i]))
+        .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
+      return ConvexPolygon(newPoints);
+    };
+    const rotate = function (angle, centerPoint = centroid(polygon.points)) {
+      const newPoints = polygon.points.map((p) => {
+        const vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
+        const mag = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+        const a = Math.atan2(vec[1], vec[0]);
+        return [
+          centerPoint[0] + Math.cos(a + angle) * mag,
+          centerPoint[1] + Math.sin(a + angle) * mag,
+        ];
       });
       return ConvexPolygon(newPoints);
     };
-    var rotate = function rotate(angle) {
-      var centerPoint = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : centroid(polygon.points);
-      var newPoints = polygon.points.map(function (p) {
-        var vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
-        var mag = Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
-        var a = Math.atan2(vec[1], vec[0]);
-        return [centerPoint[0] + Math.cos(a + angle) * mag, centerPoint[1] + Math.sin(a + angle) * mag];
-      });
-      return ConvexPolygon(newPoints);
-    };
-    Object.defineProperty(polygon, "points", {
-      get: function get() {
-        return points;
-      }
-    });
-    Object.defineProperty(polygon, "sides", {
-      get: function get() {
-        return sides;
-      }
-    });
-    Object.defineProperty(polygon, "split", {
-      value: split
-    });
-    Object.defineProperty(polygon, "overlaps", {
-      value: overlaps
-    });
-    Object.defineProperty(polygon, "scale", {
-      value: scale
-    });
-    Object.defineProperty(polygon, "rotate", {
-      value: rotate
-    });
+    Object.defineProperty(polygon, "points", { get: () => points });
+    Object.defineProperty(polygon, "sides", { get: () => sides });
+    Object.defineProperty(polygon, "split", { value: split });
+    Object.defineProperty(polygon, "overlaps", { value: overlaps });
+    Object.defineProperty(polygon, "scale", { value: scale });
+    Object.defineProperty(polygon, "rotate", { value: rotate });
     return polygon;
   };
-  ConvexPolygon.regularPolygon = function (sides) {
-    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var radius = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
-    var points = make_regular_polygon(sides, x, y, radius);
+  ConvexPolygon.regularPolygon = function (sides, x = 0, y = 0, radius = 1) {
+    const points = make_regular_polygon(sides, x, y, radius);
     return ConvexPolygon(points);
   };
-  ConvexPolygon.convexHull = function (points) {
-    var includeCollinear = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    var hull = convex_hull(points, includeCollinear);
+  ConvexPolygon.convexHull = function (points, includeCollinear = false) {
+    const hull = convex_hull(points, includeCollinear);
     return ConvexPolygon(hull);
   };
-  var Rectangle = function Rectangle() {
-    var origin;
-    var width;
-    var height;
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var params = Array.from(args);
-    var numbers = params.filter(function (param) {
-      return !isNaN(param);
-    });
-    var arrays = params.filter(function (param) {
-      return param.constructor === Array;
-    });
+  const Rectangle = function (...args) {
+    let origin;
+    let width;
+    let height;
+    const params = Array.from(args);
+    const numbers = params.filter(param => !isNaN(param));
+    let arrays = params.filter(param => param.constructor === Array);
     if (numbers.length === 4) {
       origin = numbers.slice(0, 2);
-      var _numbers = _slicedToArray(numbers, 4);
-      width = _numbers[2];
-      height = _numbers[3];
+      [, , width, height] = numbers;
     }
-    if (arrays.length === 1) {
-      arrays = arrays[0];
-    }
+    if (arrays.length === 1) { arrays = arrays[0]; }
     if (arrays.length === 2) {
       if (typeof arrays[0][0] === "number") {
         origin = arrays[0].slice();
@@ -2860,106 +2031,69 @@
         height = arrays[1][1];
       }
     }
-    var points = [[origin[0], origin[1]], [origin[0] + width, origin[1]], [origin[0] + width, origin[1] + height], [origin[0], origin[1] + height]];
-    var proto = Prototype$1.bind(this);
-    var rect = Object.create(proto(Rectangle));
-    var scale = function scale(magnitude, center_point) {
-      var center = center_point != null ? center_point : [origin[0] + width, origin[1] + height];
-      var x = origin[0] + (center[0] - origin[0]) * (1 - magnitude);
-      var y = origin[1] + (center[1] - origin[1]) * (1 - magnitude);
+    const points = [
+      [origin[0], origin[1]],
+      [origin[0] + width, origin[1]],
+      [origin[0] + width, origin[1] + height],
+      [origin[0], origin[1] + height],
+    ];
+    const proto = Prototype$1.bind(this);
+    const rect = Object.create(proto(Rectangle));
+    const scale = function (magnitude, center_point) {
+      const center = (center_point != null)
+        ? center_point
+        : [origin[0] + width, origin[1] + height];
+      const x = origin[0] + (center[0] - origin[0]) * (1 - magnitude);
+      const y = origin[1] + (center[1] - origin[1]) * (1 - magnitude);
       return Rectangle(x, y, width * magnitude, height * magnitude);
     };
-    var rotate = function rotate() {
-      var _ConvexPolygon;
-      return (_ConvexPolygon = ConvexPolygon(points)).rotate.apply(_ConvexPolygon, arguments);
+    const rotate = function (...innerArgs) {
+      return ConvexPolygon(points).rotate(...innerArgs);
     };
-    var transform = function transform() {
-      for (var _len2 = arguments.length, innerArgs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        innerArgs[_key2] = arguments[_key2];
-      }
+    const transform = function (...innerArgs) {
       return ConvexPolygon(points).transform(innerArgs);
     };
-    Object.defineProperty(rect, "origin", {
-      get: function get() {
-        return origin;
-      }
-    });
-    Object.defineProperty(rect, "width", {
-      get: function get() {
-        return width;
-      }
-    });
-    Object.defineProperty(rect, "height", {
-      get: function get() {
-        return height;
-      }
-    });
-    Object.defineProperty(rect, "area", {
-      get: function get() {
-        return width * height;
-      }
-    });
-    Object.defineProperty(rect, "scale", {
-      value: scale
-    });
-    Object.defineProperty(rect, "rotate", {
-      value: rotate
-    });
-    Object.defineProperty(rect, "transform", {
-      value: transform
-    });
+    Object.defineProperty(rect, "origin", { get: () => origin });
+    Object.defineProperty(rect, "width", { get: () => width });
+    Object.defineProperty(rect, "height", { get: () => height });
+    Object.defineProperty(rect, "area", { get: () => width * height });
+    Object.defineProperty(rect, "scale", { value: scale });
+    Object.defineProperty(rect, "rotate", { value: rotate });
+    Object.defineProperty(rect, "transform", { value: transform });
     return rect;
   };
-  var Junction = function Junction() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    var vectors = get_vector_of_vectors(args);
+  const Junction = function (...args) {
+    const vectors = get_vector_of_vectors(args);
     if (vectors === undefined) {
       return undefined;
     }
-    var sorted_order = counter_clockwise_vector_order.apply(void 0, _toConsumableArray(vectors));
-    var sectors = function sectors() {
-      return sorted_order.map(function (i) {
-        return vectors[i];
-      }).map(function (v, i, arr) {
-        return [v, arr[(i + 1) % arr.length]];
-      }).map(function (pair) {
-        return Sector.fromVectors(pair[0], pair[1]);
-      });
+    const sorted_order = counter_clockwise_vector_order(...vectors);
+    const sectors = function () {
+      return sorted_order.map(i => vectors[i])
+        .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+        .map(pair => Sector.fromVectors(pair[0], pair[1]));
     };
-    var angles = function angles() {
-      return sorted_order.map(function (i) {
-        return vectors[i];
-      }).map(function (v, i, arr) {
-        return [v, arr[(i + 1) % arr.length]];
-      }).map(function (pair) {
-        return counter_clockwise_angle2(pair[0], pair[1]);
-      });
+    const angles = function () {
+      return sorted_order.map(i => vectors[i])
+        .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+        .map(pair => counter_clockwise_angle2(pair[0], pair[1]));
     };
     return {
-      sectors: sectors,
-      angles: angles,
-      get vectors() {
-        return vectors;
-      },
-      get vectorOrder() {
-        return _toConsumableArray(sorted_order);
-      }
+      sectors,
+      angles,
+      get vectors() { return vectors; },
+      get vectorOrder() { return [...sorted_order]; },
     };
   };
-  Junction.fromVectors = function () {
-    return Junction.apply(void 0, arguments);
+  Junction.fromVectors = function (...vectors) {
+    return Junction(...vectors);
   };
   Junction.fromPoints = function (center, edge_adjacent_points) {
-    var vectors = edge_adjacent_points.map(function (p) {
-      return p.map(function (_, i) {
-        return p[i] - center[i];
-      });
-    });
+    const vectors = edge_adjacent_points
+      .map(p => p.map((_, i) => p[i] - center[i]));
     return Junction.fromVectors(vectors);
   };
-  var core = Object.create(null);
+  const core = Object.create(null);
   Object.assign(core, algebra, matrix2_core, matrix3_core, geometry, query, equal);
   core.clean_number = clean_number;
   core.is_number = is_number;
@@ -2978,7 +2112,7 @@
   core.get_array_of_vec2 = get_array_of_vec2;
   core.intersection = intersection;
   Object.freeze(core);
-  var math = {
+  const math = {
     vector: Vector,
     matrix2: Matrix2,
     matrix: Matrix,
@@ -2991,7 +2125,7 @@
     rectangle: Rectangle,
     junction: Junction,
     sector: Sector,
-    core: core
+    core,
   };
 
   const file_spec = 1.1;
@@ -3523,35 +2657,6 @@
     removeCircularEdges(graph);
     removeDuplicateEdges(graph);
   };
-
-  const are_vertices_equivalent$1 = function (a, b, epsilon = math.core.EPSILON) {
-    if (a.length !== b.length) {
-      return false;
-    }
-    for (let i = 0; i < a.length; i += 1) {
-      if (Math.abs(a[i] - b[i]) > epsilon) {
-        return false;
-      }
-    }
-    return true;
-  };
-  const similar_vertices_coords = function (target, source, epsilon) {
-    const sourceMap = source.vertices_coords.map(() => undefined);
-    for (let i = 0; i < target.vertices_coords.length; i += 1) {
-      for (let j = 0; j < source.vertices_coords.length; j += 1) {
-        if (are_vertices_equivalent$1(target.vertices_coords[i], source.vertices_coords[j], epsilon)) {
-          sourceMap[j] = i;
-          j = source.vertices_coords.length;
-        }
-      }
-    }
-    return sourceMap;
-  };
-
-  var similar = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    similar_vertices_coords: similar_vertices_coords
-  });
 
   var geom = {},
     modulo = function(a, b) { return (+a % (b = +b) + b) % b; };
@@ -5121,7 +4226,7 @@
     if (!edges_assignment) { return undefined; }
     return edges_assignment.map(a => assignment_angles$1[a] || 0);
   };
-  const make_vertex_pair_to_edge_map$1 = function ({ edges_vertices }) {
+  const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
     if (!edges_vertices) { return {}; }
     const map = {};
     edges_vertices
@@ -5143,7 +4248,7 @@
     return vertices_faces;
   };
   const make_face_walk_tree = function (graph, root_face = 0) {
-    const edge_map = make_vertex_pair_to_edge_map$1(graph);
+    const edge_map = make_vertex_pair_to_edge_map(graph);
     const new_faces_faces = make_faces_faces(graph);
     if (new_faces_faces.length <= 0) {
       return [];
@@ -5272,7 +4377,7 @@
     make_edges_faces: make_edges_faces,
     make_edges_length: make_edges_length,
     make_edges_foldAngle: make_edges_foldAngle,
-    make_vertex_pair_to_edge_map: make_vertex_pair_to_edge_map$1,
+    make_vertex_pair_to_edge_map: make_vertex_pair_to_edge_map,
     make_vertices_faces: make_vertices_faces,
     make_face_walk_tree: make_face_walk_tree,
     make_faces_matrix: make_faces_matrix,
@@ -5281,6 +4386,193 @@
     make_vertices_isBoundary: make_vertices_isBoundary,
     make_faces_coloring_from_faces_matrix: make_faces_coloring_from_faces_matrix,
     make_faces_coloring: make_faces_coloring
+  });
+
+  const need = function (graph, ...keys) {
+    return keys.map((key) => {
+      switch (key) {
+        case "vertices_coords":
+        case "edges_vertices":
+          return graph[key] != null;
+        case "vertices_vertices":
+          convert.edges_vertices_to_vertices_vertices_sorted(graph);
+          return true;
+        case "vertices_edges":
+          graph.vertices_edges = make_vertices_edges(graph);
+          return true;
+        default: return false;
+      }
+    }).reduce((a, b) => a && b, true);
+  };
+
+  const collinear_vertices = function (graph, point, vector) {
+    return graph.vertices_coords
+      .map(vert => vert.map((n, i) => n - point[i]))
+      .map(vert => vert[0] * vector[1] - vert[1] * vector[0])
+      .map((det, i) => (Math.abs(det) < math.core.EPSILON ? i : undefined))
+      .filter(a => a !== undefined);
+  };
+  const collinear_edges = function (graph, point, vector) {
+    const hash = {};
+    collinear_vertices(graph, point, vector)
+      .forEach((v) => { hash[v] = true; });
+    convert.edges_vertices_to_vertices_vertices_sorted(graph);
+    return graph.edges_vertices
+      .map(ev => hash[ev[0]] && hash[ev[1]] && graph.vertices_vertices[ev[0]].includes(ev[1]))
+      .map((collinear, i) => (collinear ? i : undefined))
+      .filter(a => a !== undefined);
+  };
+  const are_vertices_collinear = function (graph, verts) {
+    if (verts.length < 3) { return false; }
+    const coords = verts.map(v => graph.vertices_coords[v]);
+    const dimension = Array.from(Array(coords[0].length));
+    const a = dimension.map((_, i) => coords[1][i] - coords[0][i]);
+    const b = dimension.map((_, i) => coords[2][i] - coords[0][i]);
+    return Math.abs(a[0] * b[1] - a[1] * b[0]) < math.core.EPSILON;
+  };
+  const remove_collinear_vertices = function (graph, collinear) {
+    const new_edges = [];
+    collinear.forEach((co) => {
+      const { vertices, edges } = co;
+      const assignment = co.assignments[0];
+      remove_geometry_key_indices(graph, "edges", edges);
+      new_edges.push({ vertices, assignment });
+    });
+    new_edges.forEach((el) => {
+      const index = graph.edges_vertices.length;
+      graph.edges_vertices[index] = el.vertices;
+      graph.edges_assignment[index] = el.assignment;
+    });
+    remove_geometry_key_indices(graph, "vertices", collinear.map(c => c.vertex));
+  };
+  const remove_all_collinear_vertices = function (graph) {
+    need(graph, "vertices_vertices", "vertices_edges");
+    const pairs_verts = graph.vertices_vertices
+      .map((adj, i) => (adj.length === 2 ? i : undefined))
+      .filter(a => a !== undefined);
+    const collinear_verts = pairs_verts
+      .map(v => [v].concat(graph.vertices_vertices[v]))
+      .map(verts => (are_vertices_collinear(graph, verts)
+        ? ({ vertex: verts[0], vertices: [verts[1], verts[2]], edges: graph.vertices_edges[verts[0]] })
+        : undefined))
+      .filter(a => a !== undefined);
+    collinear_verts.forEach((v) => {
+      v.assignments = v.edges.map(e => graph.edges_assignment[e].toUpperCase());
+    });
+    collinear_verts.forEach((v) => {
+      v.valid = v.assignments.map(a => a === v.assignments[0]).reduce((a, b) => a && b, true);
+    });
+    const toRemove = collinear_verts.filter(v => v.valid);
+    remove_collinear_vertices(graph, toRemove);
+    return toRemove.length > 0;
+  };
+
+  var collinear = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    collinear_vertices: collinear_vertices,
+    collinear_edges: collinear_edges,
+    remove_all_collinear_vertices: remove_all_collinear_vertices
+  });
+
+  const find_edge_isolated_vertices = function (graph) {
+    if (graph.vertices_coords == null) { return []; }
+    let count = graph.vertices_coords.length;
+    const seen = Array(count).fill(false);
+    if (graph.edges_vertices) {
+      graph.edges_vertices.forEach((ev) => {
+        ev.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
+    }
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const find_face_isolated_vertices = function (graph) {
+    if (graph.vertices_coords == null) { return []; }
+    let count = graph.vertices_coords.length;
+    const seen = Array(count).fill(false);
+    if (graph.faces_vertices) {
+      graph.faces_vertices.forEach((fv) => {
+        fv.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
+    }
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const find_isolated_vertices = function (graph) {
+    if (graph.vertices_coords == null) { return []; }
+    let count = graph.vertices_coords.length;
+    const seen = Array(count).fill(false);
+    if (graph.edges_vertices) {
+      graph.edges_vertices.forEach((ev) => {
+        ev.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
+    }
+    if (graph.faces_vertices) {
+      graph.faces_vertices.forEach((fv) => {
+        fv.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
+    }
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+
+  var isolated = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    find_edge_isolated_vertices: find_edge_isolated_vertices,
+    find_face_isolated_vertices: find_face_isolated_vertices,
+    find_isolated_vertices: find_isolated_vertices
+  });
+
+  const planarClean = function (graph) {
+    clean(graph);
+    if (remove_all_collinear_vertices(graph)) {
+      clean(graph);
+    }
+    remove_geometry_key_indices(graph, "vertices", find_isolated_vertices(graph));
+  };
+
+  const are_vertices_equivalent$1 = function (a, b, epsilon = math.core.EPSILON) {
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i += 1) {
+      if (Math.abs(a[i] - b[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const similar_vertices_coords = function (target, source, epsilon) {
+    const sourceMap = source.vertices_coords.map(() => undefined);
+    for (let i = 0; i < target.vertices_coords.length; i += 1) {
+      for (let j = 0; j < source.vertices_coords.length; j += 1) {
+        if (are_vertices_equivalent$1(target.vertices_coords[i], source.vertices_coords[j], epsilon)) {
+          sourceMap[j] = i;
+          j = source.vertices_coords.length;
+        }
+      }
+    }
+    return sourceMap;
+  };
+
+  var similar = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    similar_vertices_coords: similar_vertices_coords
   });
 
   const populate = function (graph) {
@@ -6098,15 +5390,31 @@
       return vertices;
     };
     const getEdges = function () {
-      return transpose_geometry_arrays(this, "edges");
+      const edges = transpose_geometry_arrays(this, "edges");
+      if (this.vertices_coords && this.edges_vertices) {
+        const that = this;
+        edges.forEach((e, i) => {
+          e.coords = that.edges_vertices[i].map(v => that.vertices_coords[v]);
+        });
+      }
+      return edges;
     };
     const getFaces = function () {
       const faces = transpose_geometry_arrays(this, "faces");
       faces.forEach((f, i) => setup_face(f, i, this));
+      if (this.vertices_coords && this.faces_vertices) {
+        const that = this;
+        faces.forEach((f, i) => {
+          f.coords = that.faces_vertices[i].map(v => that.vertices_coords[v]);
+        });
+      }
       return faces;
     };
     proto.clean = function () {
       clean(this);
+    };
+    proto.planarClean = function () {
+      planarClean(this);
     };
     proto.populate = function () {
       populate(this);
@@ -6139,6 +5447,9 @@
     proto.nearestEdge = function (...args) {
       const index = nearest_edge(this, math.core.get_vector(...args));
       const result = transpose_geometry_array_at_index(this, "edges", index);
+      if (this.vertices_coords && this.edges_vertices) {
+        result.coords = this.edges_vertices[index].map(v => this.vertices_coords[v]);
+      }
       result.index = index;
       return result;
     };
@@ -6147,6 +5458,9 @@
       if (index === undefined) { return undefined; }
       const result = transpose_geometry_array_at_index(this, "faces", index);
       setup_face(result, index, this);
+      if (this.vertices_coords && this.faces_vertices) {
+        result.coords = this.faces_vertices[index].map(v => this.vertices_coords[v]);
+      }
       result.index = index;
       return result;
     };
@@ -6188,7 +5502,7 @@
   const isNode = typeof process !== "undefined"
     && process.versions != null
     && process.versions.node != null;
-  const htmlString = "<!DOCTYPE html><title> </title>";
+    const htmlString = "<!DOCTYPE html><title> </title>";
   const win = (function () {
     let w = {};
     if (isNode) {
@@ -8356,11 +7670,6 @@
         }
       }
         break;
-      case 4: break;
-      case 5: break;
-      case 6: break;
-      case 7: break;
-      default: break;
     }
     return args;
   };
@@ -8824,111 +8133,6 @@
     merge_frame: merge_frame
   });
 
-  const need = function (graph, ...keys) {
-    return keys.map((key) => {
-      switch (key) {
-        case "vertices_coords":
-        case "edges_vertices":
-          return graph[key] != null;
-        case "vertices_vertices":
-          convert.edges_vertices_to_vertices_vertices_sorted(graph);
-          return true;
-        case "vertices_edges":
-          graph.vertices_edges = make_vertices_edges(graph);
-          return true;
-        default: return false;
-      }
-    }).reduce((a, b) => a && b, true);
-  };
-
-  const collinear_vertices = function (graph, point, vector) {
-    return graph.vertices_coords
-      .map(vert => vert.map((n, i) => n - point[i]))
-      .map(vert => vert[0] * vector[1] - vert[1] * vector[0])
-      .map((det, i) => (Math.abs(det) < math.core.EPSILON ? i : undefined))
-      .filter(a => a !== undefined);
-  };
-  const collinear_edges = function (graph, point, vector) {
-    const hash = {};
-    collinear_vertices(graph, point, vector)
-      .forEach((v) => { hash[v] = true; });
-    convert.edges_vertices_to_vertices_vertices_sorted(graph);
-    return graph.edges_vertices
-      .map(ev => hash[ev[0]] && hash[ev[1]] && graph.vertices_vertices[ev[0]].includes(ev[1]))
-      .map((collinear, i) => (collinear ? i : undefined))
-      .filter(a => a !== undefined);
-  };
-  const are_vertices_collinear = function (graph, verts) {
-    if (verts.length < 3) { return false; }
-    const coords = verts.map(v => graph.vertices_coords[v]);
-    const dimension = Array.from(Array(coords[0].length));
-    const a = dimension.map((_, i) => coords[1][i] - coords[0][i]);
-    const b = dimension.map((_, i) => coords[2][i] - coords[0][i]);
-    return Math.abs(a[0] * b[1] - a[1] * b[0]) < math.core.EPSILON;
-  };
-  const remove_collinear_vertices = function (graph, collinear) {
-    const new_edges = [];
-    collinear.forEach((co) => {
-      const { vertices, edges } = co;
-      const assignment = co.assignments[0];
-      remove_geometry_key_indices(graph, "edges", edges);
-      new_edges.push({ vertices, assignment });
-    });
-    new_edges.forEach((el) => {
-      const index = graph.edges_vertices.length;
-      graph.edges_vertices[index] = el.vertices;
-      graph.edges_assignment[index] = el.assignment;
-    });
-    remove_geometry_key_indices(graph, "vertices", collinear.map(c => c.vertex));
-  };
-  const remove_all_collinear_vertices = function (graph) {
-    need(graph, "vertices_vertices", "vertices_edges");
-    const pairs_verts = graph.vertices_vertices
-      .map((adj, i) => (adj.length === 2 ? i : undefined))
-      .filter(a => a !== undefined);
-    const collinear_verts = pairs_verts
-      .map(v => [v].concat(graph.vertices_vertices[v]))
-      .map(verts => (are_vertices_collinear(graph, verts)
-        ? ({ vertex: verts[0], vertices: [verts[1], verts[2]], edges: graph.vertices_edges[verts[0]] })
-        : undefined))
-      .filter(a => a !== undefined);
-    collinear_verts.forEach((v) => {
-      v.assignments = v.edges.map(e => graph.edges_assignment[e].toUpperCase());
-    });
-    collinear_verts.forEach((v) => {
-      v.valid = v.assignments.map(a => a === v.assignments[0]).reduce((a, b) => a && b, true);
-    });
-    const toRemove = collinear_verts.filter(v => v.valid);
-    remove_collinear_vertices(graph, toRemove);
-    return toRemove.length > 0;
-  };
-
-  var collinear = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    collinear_vertices: collinear_vertices,
-    collinear_edges: collinear_edges,
-    remove_all_collinear_vertices: remove_all_collinear_vertices
-  });
-
-  const find_isolated_vertices = function (graph) {
-    let count = graph.vertices_coords.length;
-    const seen = Array(count).fill(false);
-    graph.edges_vertices.forEach((ev) => {
-      ev.filter(v => !seen[v]).forEach((v) => {
-        seen[v] = true;
-        count -= 1;
-      });
-    });
-    return seen
-      .map((s, i) => (s ? undefined : i))
-      .filter(a => a !== undefined);
-  };
-
-  var isolated = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    find_isolated_vertices: find_isolated_vertices
-  });
-
   const isBrowser$1 = typeof window !== "undefined"
     && typeof window.document !== "undefined";
   const isNode$1 = typeof process !== "undefined"
@@ -9047,165 +8251,206 @@
     return undefined;
   };
 
-  function _typeof$1(obj) {
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof$1 = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof$1 = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
+  const isBrowser$2 = typeof window !== "undefined"
+    && typeof window.document !== "undefined";
+  const isNode$2 = typeof process !== "undefined"
+    && process.versions != null
+    && process.versions.node != null;
+    const htmlString$2 = "<!DOCTYPE html><title> </title>";
+  const win$2 = (function () {
+    let w = {};
+    if (isNode$2) {
+      const { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString$2, "text/html");
+    } else if (isBrowser$2) {
+      w = window;
     }
-    return _typeof$1(obj);
-  }
-  function _slicedToArray$1(arr, i) {
-    return _arrayWithHoles$1(arr) || _iterableToArrayLimit$1(arr, i) || _nonIterableRest$1();
-  }
-  function _toConsumableArray$1(arr) {
-    return _arrayWithoutHoles$1(arr) || _iterableToArray$1(arr) || _nonIterableSpread$1();
-  }
-  function _arrayWithoutHoles$1(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-      return arr2;
-    }
-  }
-  function _arrayWithHoles$1(arr) {
-    if (Array.isArray(arr)) return arr;
-  }
-  function _iterableToArray$1(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-  }
-  function _iterableToArrayLimit$1(arr, i) {
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"] != null) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-    return _arr;
-  }
-  function _nonIterableSpread$1() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
-  }
-  function _nonIterableRest$1() {
-    throw new TypeError("Invalid attempt to destructure non-iterable instance");
-  }
-  var make_vertices_edges$1 = function make_vertices_edges(graph) {
-    var vertices_edges = graph.vertices_coords.map(function () {
+    return w;
+  }());
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg$1 = function () {
+    const svgImage = win$2.document.createElementNS(svgNS, "svg");
+    svgImage.setAttribute("version", "1.1");
+    svgImage.setAttribute("xmlns", svgNS);
+    return svgImage;
+  };
+  const group$1 = function (parent) {
+    const g = win$2.document.createElementNS(svgNS, "g");
+    if (parent) { parent.appendChild(g); }
+    return g;
+  };
+  const defs$1 = function (parent) {
+    const defs = win$2.document.createElementNS(svgNS, "defs");
+    if (parent) { parent.appendChild(defs); }
+    return defs;
+  };
+  const style$1 = function (parent) {
+    const s = win$2.document.createElementNS(svgNS, "style");
+    s.setAttribute("type", "text/css");
+    if (parent) { parent.appendChild(s); }
+    return s;
+  };
+  const setViewBox$1 = function (SVG, x, y, width, height, padding = 0) {
+    const scale = 1.0;
+    const d = (width / scale) - width;
+    const X = (x - d) - padding;
+    const Y = (y - d) - padding;
+    const W = (width + d * 2) + padding * 2;
+    const H = (height + d * 2) + padding * 2;
+    const viewBoxString = [X, Y, W, H].join(" ");
+    SVG.setAttributeNS(null, "viewBox", viewBoxString);
+  };
+  const line$1 = function (x1, y1, x2, y2) {
+    const shape = win$2.document.createElementNS(svgNS, "line");
+    shape.setAttributeNS(null, "x1", x1);
+    shape.setAttributeNS(null, "y1", y1);
+    shape.setAttributeNS(null, "x2", x2);
+    shape.setAttributeNS(null, "y2", y2);
+    return shape;
+  };
+  const circle$1 = function (x, y, radius) {
+    const shape = win$2.document.createElementNS(svgNS, "circle");
+    shape.setAttributeNS(null, "cx", x);
+    shape.setAttributeNS(null, "cy", y);
+    shape.setAttributeNS(null, "r", radius);
+    return shape;
+  };
+  const polygon$1 = function (pointsArray) {
+    const shape = win$2.document.createElementNS(svgNS, "polygon");
+    const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
+    shape.setAttributeNS(null, "points", pointsString);
+    return shape;
+  };
+  const path$1 = function (d) {
+    const p = win$2.document.createElementNS(svgNS, "path");
+    p.setAttributeNS(null, "d", d);
+    return p;
+  };
+  const vertices_circle = function (graph, options) {
+    if ("vertices_coords" in graph === false) {
       return [];
+    }
+    const radius = options && options.radius ? options.radius : 0.01;
+    const svg_vertices = graph.vertices_coords
+      .map(v => circle$1(v[0], v[1], radius));
+    svg_vertices.forEach((c, i) => c.setAttribute("index", i));
+    return svg_vertices;
+  };
+  const edges_assignment_names$1 = {
+    B: "boundary",
+    b: "boundary",
+    M: "mountain",
+    m: "mountain",
+    V: "valley",
+    v: "valley",
+    F: "mark",
+    f: "mark",
+    U: "unassigned",
+    u: "unassigned",
+  };
+  const edges_assignment_to_lowercase = {
+    B: "b",
+    b: "b",
+    M: "m",
+    m: "m",
+    V: "v",
+    v: "v",
+    F: "f",
+    f: "f",
+    U: "u",
+    u: "u",
+  };
+  const edges_coords = function ({ vertices_coords, edges_vertices }) {
+    if (edges_vertices == null || vertices_coords == null) {
+      return [];
+    }
+    return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
+  };
+  const edges_indices_classes = function ({ edges_assignment }) {
+    const assignment_indices = {b:[], m:[], v:[], f:[], u:[]};
+    edges_assignment.map(a => edges_assignment_to_lowercase[a])
+      .forEach((a, i) => assignment_indices[a].push(i));
+    return assignment_indices;
+  };
+  const make_edges_assignment_names = function (graph) {
+    return (graph.edges_vertices == null || graph.edges_assignment == null
+      || graph.edges_vertices.length !== graph.edges_assignment.length
+      ? []
+      : graph.edges_assignment.map(a => edges_assignment_names$1[a]));
+  };
+  const segment_to_path = function (s) {
+    return `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
+  };
+  const edges_path_data = function (graph) {
+    const path_data = edges_coords(graph).map(segment => segment_to_path(segment)).join("");
+    return path_data === "" ? undefined : path_data;
+  };
+  const edges_by_assignment_paths_data = function (graph) {
+    if (graph.edges_vertices == null
+      || graph.vertices_coords == null
+      || graph.edges_assignment == null) {
+      return [];
+    }
+    const segments = edges_coords(graph);
+    const assignment_sorted_edges = edges_indices_classes(graph);
+    const paths = Object.keys(assignment_sorted_edges)
+      .map(assignment => assignment_sorted_edges[assignment].map(i => segments[i]))
+      .map(segments => segments.map(segment => segment_to_path(segment)).join(""));
+    const result = {};
+    Object.keys(assignment_sorted_edges).map((key, i) => {
+      if (paths[i] !== "") {
+        result[key] = paths[i];
+      }
     });
-    graph.edges_vertices.forEach(function (ev, i) {
-      return ev.forEach(function (v) {
-        return vertices_edges[v].push(i);
-      });
+    return result;
+  };
+  const edges_path = function (graph) {
+    if (graph.edges_assignment == null) {
+      const d = edges_path_data(graph);
+      return d === undefined ? [] : [path$1(d)];
+    }
+    const ds = edges_by_assignment_paths_data(graph);
+    return Object.keys(ds).map(assignment => {
+      const p = path$1(ds[assignment]);
+      p.setAttributeNS(null, "class", edges_assignment_names$1[assignment]);
+      return p;
     });
+  };
+  const edges_line = function (graph) {
+    const lines = edges_coords(graph).map(e => line$1(e[0][0], e[0][1], e[1][0], e[1][1]));
+    lines.forEach((l, i) => l.setAttributeNS(null, "index", i));
+    make_edges_assignment_names(graph)
+      .forEach((a, i) => lines[i].setAttributeNS(null, "class", a));
+    return lines;
+  };
+  const make_vertices_edges$1 = function ({ edges_vertices }) {
+    if (!edges_vertices) { return undefined; }
+    const vertices_edges = [];
+    edges_vertices.forEach((ev, i) => ev
+      .forEach((v) => {
+        if (vertices_edges[v] === undefined) {
+          vertices_edges[v] = [];
+        }
+        vertices_edges[v].push(i);
+      }));
     return vertices_edges;
   };
-  var get_boundary$1 = function get_boundary(graph) {
-    var edges_vertices_b = graph.edges_assignment.map(function (a) {
-      return a === "B" || a === "b";
-    });
-    var vertices_edges = make_vertices_edges$1(graph);
-    var edge_walk = [];
-    var vertex_walk = [];
-    var edgeIndex = -1;
-    for (var i = 0; i < edges_vertices_b.length; i += 1) {
-      if (edges_vertices_b[i]) {
-        edgeIndex = i;
-        break;
-      }
-    }
-    if (edgeIndex === -1) {
-      return {
-        vertices: [],
-        edges: []
-      };
-    }
-    edges_vertices_b[edgeIndex] = false;
-    edge_walk.push(edgeIndex);
-    vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
-    var nextVertex = graph.edges_vertices[edgeIndex][1];
-    while (vertex_walk[0] !== nextVertex) {
-      vertex_walk.push(nextVertex);
-      edgeIndex = vertices_edges[nextVertex].filter(function (v) {
-        return edges_vertices_b[v];
-      }).shift();
-      if (edgeIndex === undefined) {
-        return {
-          vertices: [],
-          edges: []
-        };
-      }
-      if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
-        var _graph$edges_vertices = _slicedToArray$1(graph.edges_vertices[edgeIndex], 2);
-        nextVertex = _graph$edges_vertices[1];
-      } else {
-        var _graph$edges_vertices2 = _slicedToArray$1(graph.edges_vertices[edgeIndex], 1);
-        nextVertex = _graph$edges_vertices2[0];
-      }
-      edges_vertices_b[edgeIndex] = false;
-      edge_walk.push(edgeIndex);
-    }
-    return {
-      vertices: vertex_walk,
-      edges: edge_walk
-    };
-  };
-  var bounding_rect$1 = function bounding_rect(graph) {
-    if ("vertices_coords" in graph === false || graph.vertices_coords.length <= 0) {
-      return [0, 0, 0, 0];
-    }
-    var dimension = graph.vertices_coords[0].length;
-    var min = Array(dimension).fill(Infinity);
-    var max = Array(dimension).fill(-Infinity);
-    graph.vertices_coords.forEach(function (v) {
-      return v.forEach(function (n, i) {
-        if (n < min[i]) {
-          min[i] = n;
-        }
-        if (n > max[i]) {
-          max[i] = n;
-        }
-      });
-    });
-    return isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1]) ? [0, 0, 0, 0] : [min[0], min[1], max[0] - min[0], max[1] - min[1]];
-  };
-  var make_faces_faces$1 = function make_faces_faces(graph) {
-    var nf = graph.faces_vertices.length;
-    var faces_faces = Array.from(Array(nf)).map(function () {
-      return [];
-    });
-    var edgeMap = {};
-    graph.faces_vertices.forEach(function (vertices_index, idx1) {
-      if (vertices_index === undefined) {
-        return;
-      }
-      var n = vertices_index.length;
-      vertices_index.forEach(function (v1, i, vs) {
-        var v2 = vs[(i + 1) % n];
-        if (v2 < v1) {
-          var _ref = [v2, v1];
-          v1 = _ref[0];
-          v2 = _ref[1];
-        }
-        var key = "".concat(v1, " ").concat(v2);
+  const make_faces_faces$1 = function ({ faces_vertices }) {
+    if (!faces_vertices) { return undefined; }
+    const nf = faces_vertices.length;
+    const faces_faces = Array.from(Array(nf)).map(() => []);
+    const edgeMap = {};
+    faces_vertices.forEach((vertices_index, idx1) => {
+      if (vertices_index === undefined) { return; }
+      const n = vertices_index.length;
+      vertices_index.forEach((v1, i, vs) => {
+        let v2 = vs[(i + 1) % n];
+        if (v2 < v1) { [v1, v2] = [v2, v1]; }
+        const key = `${v1} ${v2}`;
         if (key in edgeMap) {
-          var idx2 = edgeMap[key];
+          const idx2 = edgeMap[key];
           faces_faces[idx1].push(idx2);
           faces_faces[idx2].push(idx1);
         } else {
@@ -9215,437 +8460,147 @@
     });
     return faces_faces;
   };
-  var make_faces_coloring_from_faces_matrix$1 = function make_faces_coloring_from_faces_matrix(faces_matrix) {
-    return faces_matrix.map(function (m) {
-      return m[0] * m[3] - m[1] * m[2];
-    }).map(function (c) {
-      return c >= 0;
-    });
+  const make_vertex_pair_to_edge_map$1 = function ({ edges_vertices }) {
+    if (!edges_vertices) { return {}; }
+    const map = {};
+    edges_vertices
+      .map(ev => ev.sort((a, b) => a - b).join(" "))
+      .forEach((key, i) => { map[key] = i; });
+    return map;
   };
-  var faces_coloring = function faces_coloring(graph) {
-    var root_face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var coloring = [];
-    coloring[root_face] = true;
-    make_face_walk_tree$1(graph, root_face).forEach(function (level, i) {
-      level.forEach(function (entry) {
-        coloring[entry.face] = i % 2 === 0;
-      });
-    });
-    return coloring;
-  };
-  var make_face_walk_tree$1 = function make_face_walk_tree(graph) {
-    var root_face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var edge_map = make_vertex_pair_to_edge_map(graph);
-    var new_faces_faces = make_faces_faces$1(graph);
+  const make_face_walk_tree$1 = function (graph, root_face = 0) {
+    const edge_map = make_vertex_pair_to_edge_map$1(graph);
+    const new_faces_faces = make_faces_faces$1(graph);
     if (new_faces_faces.length <= 0) {
       return [];
     }
-    var visited = [root_face];
-    var list = [[{
+    let visited = [root_face];
+    const list = [[{
       face: root_face,
       parent: undefined,
       edge: undefined,
-      level: 0
+      level: 0,
     }]];
     do {
-      list[list.length] = list[list.length - 1].map(function (current) {
-        var unique_faces = new_faces_faces[current.face].filter(function (f) {
-          return visited.indexOf(f) === -1;
-        });
+      list[list.length] = list[list.length - 1].map((current) => {
+        const unique_faces = new_faces_faces[current.face]
+          .filter(f => visited.indexOf(f) === -1);
         visited = visited.concat(unique_faces);
-        return unique_faces.map(function (f) {
-          var edge_vertices = graph.faces_vertices[f].filter(function (v) {
-            return graph.faces_vertices[current.face].indexOf(v) !== -1;
-          }).sort(function (a, b) {
-            return a - b;
-          });
-          var edge = edge_map[edge_vertices.join(" ")];
+        return unique_faces.map((f) => {
+          const edge_vertices = graph.faces_vertices[f]
+            .filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
+            .sort((a, b) => a - b);
+          const edge = edge_map[edge_vertices.join(" ")];
           return {
             face: f,
             parent: current.face,
-            edge: edge,
-            edge_vertices: edge_vertices
+            edge,
+            edge_vertices,
           };
         });
-      }).reduce(function (prev, curr) {
-        return prev.concat(curr);
-      }, []);
+      }).reduce((prev, curr) => prev.concat(curr), []);
     } while (list[list.length - 1].length > 0);
-    if (list.length > 0 && list[list.length - 1].length === 0) {
-      list.pop();
-    }
+    if (list.length > 0 && list[list.length - 1].length === 0) { list.pop(); }
     return list;
   };
-  var clone$1 = function clone(o) {
-    var newO;
-    var i;
-    if (_typeof$1(o) !== "object") {
-      return o;
-    }
-    if (!o) {
-      return o;
-    }
-    if (Object.prototype.toString.apply(o) === "[object Array]") {
-      newO = [];
-      for (i = 0; i < o.length; i += 1) {
-        newO[i] = clone(o[i]);
-      }
-      return newO;
-    }
-    newO = {};
-    for (i in o) {
-      if (o.hasOwnProperty(i)) {
-        newO[i] = clone(o[i]);
-      }
-    }
-    return newO;
+  const make_faces_coloring_from_faces_matrix$1 = function (faces_matrix) {
+    return faces_matrix
+      .map(m => m[0] * m[3] - m[1] * m[2])
+      .map(c => c >= 0);
   };
-  var flatten_frame$1 = function flatten_frame(fold_file, frame_num) {
-    if ("file_frames" in fold_file === false || fold_file.file_frames.length < frame_num) {
-      return fold_file;
-    }
-    var dontCopy = ["frame_parent", "frame_inherit"];
-    var memo = {
-      visited_frames: []
-    };
-    var recurse = function recurse(recurse_fold, frame, orderArray) {
-      if (memo.visited_frames.indexOf(frame) !== -1) {
-        throw new Error("encountered a cycle in file_frames. can't flatten.");
-      }
-      memo.visited_frames.push(frame);
-      orderArray = [frame].concat(orderArray);
-      if (frame === 0) {
-        return orderArray;
-      }
-      if (recurse_fold.file_frames[frame - 1].frame_inherit && recurse_fold.file_frames[frame - 1].frame_parent != null) {
-        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
-      }
-      return orderArray;
-    };
-    return recurse(fold_file, frame_num, []).map(function (frame) {
-      if (frame === 0) {
-        var swap = fold_file.file_frames;
-        fold_file.file_frames = null;
-        var copy = clone$1(fold_file);
-        fold_file.file_frames = swap;
-        delete copy.file_frames;
-        dontCopy.forEach(function (key) {
-          return delete copy[key];
-        });
-        return copy;
-      }
-      var outerCopy = clone$1(fold_file.file_frames[frame - 1]);
-      dontCopy.forEach(function (key) {
-        return delete outerCopy[key];
-      });
-      return outerCopy;
-    }).reduce(function (prev, curr) {
-      return Object.assign(prev, curr);
-    }, {});
+  const make_faces_coloring$1 = function (graph, root_face = 0) {
+    const coloring = [];
+    coloring[root_face] = true;
+    make_face_walk_tree$1(graph, root_face)
+      .forEach((level, i) => level
+        .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
+    return coloring;
   };
-  var isBrowser$2 = typeof window !== "undefined" && typeof window.document !== "undefined";
-  var isNode$2 = typeof process !== "undefined" && process.versions != null && process.versions.node != null;
-  var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof$1(self)) === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
-  var htmlString$2 = "<!DOCTYPE html><title>a</title>";
-  var win$2 = !isNode$2 && isBrowser$2 ? window : {};
-  if (isNode$2) {
-    var _require = require("xmldom"),
-        DOMParser$1 = _require.DOMParser,
-        XMLSerializer$1 = _require.XMLSerializer;
-    win$2.DOMParser = DOMParser$1;
-    win$2.XMLSerializer = XMLSerializer$1;
-    win$2.document = new DOMParser$1().parseFromString(htmlString$2, "text/html");
-  }
-  var svgNS = "http://www.w3.org/2000/svg";
-  var svg$1 = function svg() {
-    var svgImage = win$2.document.createElementNS(svgNS, "svg");
-    svgImage.setAttribute("version", "1.1");
-    svgImage.setAttribute("xmlns", svgNS);
-    return svgImage;
+  const faces_sorted_by_layer = function (faces_layer) {
+    return faces_layer.map((layer, i) => ({ layer, i }))
+      .sort((a, b) => a.layer - b.layer)
+      .map(el => el.i);
   };
-  var group$1 = function group() {
-    var g = win$2.document.createElementNS(svgNS, "g");
-    return g;
-  };
-  var style$1 = function style() {
-    var s = win$2.document.createElementNS(svgNS, "style");
-    s.setAttribute("type", "text/css");
-    return s;
-  };
-  var setViewBox$1 = function setViewBox(SVG, x, y, width, height) {
-    var padding = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
-    var scale = 1.0;
-    var d = width / scale - width;
-    var X = x - d - padding;
-    var Y = y - d - padding;
-    var W = width + d * 2 + padding * 2;
-    var H = height + d * 2 + padding * 2;
-    var viewBoxString = [X, Y, W, H].join(" ");
-    SVG.setAttributeNS(null, "viewBox", viewBoxString);
-  };
-  var line$1 = function line(x1, y1, x2, y2) {
-    var shape = win$2.document.createElementNS(svgNS, "line");
-    shape.setAttributeNS(null, "x1", x1);
-    shape.setAttributeNS(null, "y1", y1);
-    shape.setAttributeNS(null, "x2", x2);
-    shape.setAttributeNS(null, "y2", y2);
-    return shape;
-  };
-  var circle$1 = function circle(x, y, radius) {
-    var shape = win$2.document.createElementNS(svgNS, "circle");
-    shape.setAttributeNS(null, "cx", x);
-    shape.setAttributeNS(null, "cy", y);
-    shape.setAttributeNS(null, "r", radius);
-    return shape;
-  };
-  var polygon$1 = function polygon(pointsArray) {
-    var shape = win$2.document.createElementNS(svgNS, "polygon");
-    var pointsString = pointsArray.reduce(function (a, b) {
-      return "".concat(a).concat(b[0], ",").concat(b[1], " ");
-    }, "");
-    shape.setAttributeNS(null, "points", pointsString);
-    return shape;
-  };
-  var bezier$1 = function bezier(fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
-    var pts = [[fromX, fromY], [c1X, c1Y], [c2X, c2Y], [toX, toY]].map(function (p) {
-      return p.join(",");
-    });
-    var d = "M ".concat(pts[0], " C ").concat(pts[1], " ").concat(pts[2], " ").concat(pts[3]);
-    var shape = win$2.document.createElementNS(svgNS, "path");
-    shape.setAttributeNS(null, "d", d);
-    return shape;
-  };
-  var arcArrow = function arcArrow(start, end, options) {
-    var p = {
-      color: "#000",
-      strokeWidth: 0.5,
-      width: 0.5,
-      length: 2,
-      bend: 0.3,
-      pinch: 0.618,
-      padding: 0.5,
-      side: true,
-      start: false,
-      end: true,
-      strokeStyle: "",
-      fillStyle: ""
-    };
-    if (_typeof$1(options) === "object" && options !== null) {
-      Object.assign(p, options);
-    }
-    var arrowFill = ["stroke:none", "fill:".concat(p.color), p.fillStyle].filter(function (a) {
-      return a !== "";
-    }).join(";");
-    var arrowStroke = ["fill:none", "stroke:".concat(p.color), "stroke-width:".concat(p.strokeWidth), p.strokeStyle].filter(function (a) {
-      return a !== "";
-    }).join(";");
-    var startPoint = start;
-    var endPoint = end;
-    var vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
-    var midpoint = [startPoint[0] + vector[0] / 2, startPoint[1] + vector[1] / 2];
-    var len = Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-    var minLength = (p.start ? 1 + p.padding : 0 + p.end ? 1 + p.padding : 0) * p.length * 2.5;
-    if (len < minLength) {
-      var minVec = [vector[0] / len * minLength, vector[1] / len * minLength];
-      startPoint = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
-      endPoint = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
-      vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
-    }
-    var perpendicular = [vector[1], -vector[0]];
-    var bezPoint = [midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend, midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend];
-    var bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
-    var bezEnd = [bezPoint[0] - endPoint[0], bezPoint[1] - endPoint[1]];
-    var bezStartLen = Math.sqrt(bezStart[0] * bezStart[0] + bezStart[1] * bezStart[1]);
-    var bezEndLen = Math.sqrt(bezEnd[0] * bezEnd[0] + bezEnd[1] * bezEnd[1]);
-    var bezStartNorm = [bezStart[0] / bezStartLen, bezStart[1] / bezStartLen];
-    var bezEndNorm = [bezEnd[0] / bezEndLen, bezEnd[1] / bezEndLen];
-    var startHeadVec = [-bezStartNorm[0], -bezStartNorm[1]];
-    var endHeadVec = [-bezEndNorm[0], -bezEndNorm[1]];
-    var startNormal = [startHeadVec[1], -startHeadVec[0]];
-    var endNormal = [endHeadVec[1], -endHeadVec[0]];
-    var arcStart = [startPoint[0] + bezStartNorm[0] * p.length * ((p.start ? 1 : 0) + p.padding), startPoint[1] + bezStartNorm[1] * p.length * ((p.start ? 1 : 0) + p.padding)];
-    var arcEnd = [endPoint[0] + bezEndNorm[0] * p.length * ((p.end ? 1 : 0) + p.padding), endPoint[1] + bezEndNorm[1] * p.length * ((p.end ? 1 : 0) + p.padding)];
-    vector = [arcEnd[0] - arcStart[0], arcEnd[1] - arcStart[1]];
-    perpendicular = [vector[1], -vector[0]];
-    midpoint = [arcStart[0] + vector[0] / 2, arcStart[1] + vector[1] / 2];
-    bezPoint = [midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend, midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend];
-    var controlStart = [arcStart[0] + (bezPoint[0] - arcStart[0]) * p.pinch, arcStart[1] + (bezPoint[1] - arcStart[1]) * p.pinch];
-    var controlEnd = [arcEnd[0] + (bezPoint[0] - arcEnd[0]) * p.pinch, arcEnd[1] + (bezPoint[1] - arcEnd[1]) * p.pinch];
-    var startHeadPoints = [[arcStart[0] + startNormal[0] * -p.width, arcStart[1] + startNormal[1] * -p.width], [arcStart[0] + startNormal[0] * p.width, arcStart[1] + startNormal[1] * p.width], [arcStart[0] + startHeadVec[0] * p.length, arcStart[1] + startHeadVec[1] * p.length]];
-    var endHeadPoints = [[arcEnd[0] + endNormal[0] * -p.width, arcEnd[1] + endNormal[1] * -p.width], [arcEnd[0] + endNormal[0] * p.width, arcEnd[1] + endNormal[1] * p.width], [arcEnd[0] + endHeadVec[0] * p.length, arcEnd[1] + endHeadVec[1] * p.length]];
-    var arrowGroup = win$2.document.createElementNS(svgNS, "g");
-    var arrowArc = bezier$1(arcStart[0], arcStart[1], controlStart[0], controlStart[1], controlEnd[0], controlEnd[1], arcEnd[0], arcEnd[1]);
-    arrowArc.setAttribute("style", arrowStroke);
-    arrowGroup.appendChild(arrowArc);
-    if (p.start) {
-      var startHead = polygon$1(startHeadPoints);
-      startHead.setAttribute("style", arrowFill);
-      arrowGroup.appendChild(startHead);
-    }
-    if (p.end) {
-      var endHead = polygon$1(endHeadPoints);
-      endHead.setAttribute("style", arrowFill);
-      arrowGroup.appendChild(endHead);
-    }
-    return arrowGroup;
-  };
-  var CREASE_NAMES = {
-    B: "boundary",
-    b: "boundary",
-    M: "mountain",
-    m: "mountain",
-    V: "valley",
-    v: "valley",
-    F: "mark",
-    f: "mark",
-    U: "mark",
-    u: "mark"
-  };
-  var faces_sorted_by_layer = function faces_sorted_by_layer(faces_layer) {
-    return faces_layer.map(function (layer, i) {
-      return {
-        layer: layer,
-        i: i
-      };
-    }).sort(function (a, b) {
-      return a.layer - b.layer;
-    }).map(function (el) {
-      return el.i;
-    });
-  };
-  var make_faces_sidedness = function make_faces_sidedness(graph) {
-    var coloring = graph["faces_re:coloring"];
+  const make_faces_sidedness = function (graph) {
+    let coloring = graph["faces_re:coloring"];
     if (coloring == null) {
-      coloring = "faces_re:matrix" in graph ? make_faces_coloring_from_faces_matrix$1(graph["faces_re:matrix"]) : faces_coloring(graph, 0);
+      coloring = ("faces_re:matrix" in graph)
+        ? make_faces_coloring_from_faces_matrix$1(graph["faces_re:matrix"])
+        : make_faces_coloring$1(graph, 0);
     }
-    return coloring.map(function (c) {
-      return c ? "front" : "back";
-    });
+    return coloring.map(c => (c ? "front" : "back"));
   };
-  var finalize_faces = function finalize_faces(graph, svg_faces) {
-    var orderIsCertain = graph["faces_re:layer"] != null && graph["faces_re:layer"].length === graph.faces_vertices.length;
+  const finalize_faces = function (graph, svg_faces) {
+    const orderIsCertain = graph["faces_re:layer"] != null
+      && graph["faces_re:layer"].length === graph.faces_vertices.length;
     if (orderIsCertain) {
-      make_faces_sidedness(graph).forEach(function (side, i) {
-        return svg_faces[i].setAttribute("class", side);
-      });
+      make_faces_sidedness(graph)
+        .forEach((side, i) => svg_faces[i].setAttribute("class", side));
     }
-    return orderIsCertain ? faces_sorted_by_layer(graph["faces_re:layer"]).map(function (i) {
-      return svg_faces[i];
-    }) : svg_faces;
+    return (orderIsCertain
+      ? faces_sorted_by_layer(graph["faces_re:layer"]).map(i => svg_faces[i])
+      : svg_faces);
   };
-  var make_edge_assignment_names = function make_edge_assignment_names(graph) {
-    return graph.edges_vertices == null || graph.edges_assignment == null || graph.edges_vertices.length !== graph.edges_assignment.length ? [] : graph.edges_assignment.map(function (a) {
-      return CREASE_NAMES[a];
-    });
-  };
-  var svgBoundaries = function svgBoundaries(graph) {
-    if ("vertices_coords" in graph === false || "edges_vertices" in graph === false || "edges_assignment" in graph === false) {
+  const faces_vertices_polygon = function (graph) {
+    if ("faces_vertices" in graph === false
+      || "vertices_coords" in graph === false) {
       return [];
     }
-    var boundary = get_boundary$1(graph).vertices.map(function (v) {
-      return graph.vertices_coords[v];
-    });
-    var p = polygon$1(boundary);
-    p.setAttribute("class", "boundary");
-    return [p];
-  };
-  var svgVertices = function svgVertices(graph, options) {
-    if ("vertices_coords" in graph === false) {
-      return [];
-    }
-    var radius = options && options.radius ? options.radius : 0.01;
-    var svg_vertices = graph.vertices_coords.map(function (v) {
-      return circle$1(v[0], v[1], radius);
-    });
-    svg_vertices.forEach(function (c, i) {
-      return c.setAttribute("id", "".concat(i));
-    });
-    return svg_vertices;
-  };
-  var svgEdges = function svgEdges(graph) {
-    if ("edges_vertices" in graph === false || "vertices_coords" in graph === false) {
-      return [];
-    }
-    var svg_edges = graph.edges_vertices.map(function (ev) {
-      return ev.map(function (v) {
-        return graph.vertices_coords[v];
-      });
-    }).map(function (e) {
-      return line$1(e[0][0], e[0][1], e[1][0], e[1][1]);
-    });
-    svg_edges.forEach(function (edge, i) {
-      return edge.setAttribute("id", "".concat(i));
-    });
-    make_edge_assignment_names(graph).forEach(function (a, i) {
-      return svg_edges[i].setAttribute("class", a);
-    });
-    return svg_edges;
-  };
-  var svgFacesVertices = function svgFacesVertices(graph) {
-    if ("faces_vertices" in graph === false || "vertices_coords" in graph === false) {
-      return [];
-    }
-    var svg_faces = graph.faces_vertices.map(function (fv) {
-      return fv.map(function (v) {
-        return graph.vertices_coords[v];
-      });
-    }).map(function (face) {
-      return polygon$1(face);
-    });
-    svg_faces.forEach(function (face, i) {
-      return face.setAttribute("id", "".concat(i));
-    });
+    const svg_faces = graph.faces_vertices
+      .map(fv => fv.map(v => graph.vertices_coords[v]))
+      .map(face => polygon$1(face));
+    svg_faces.forEach((face, i) => face.setAttribute("index", i));
     return finalize_faces(graph, svg_faces);
   };
-  var svgFacesEdges = function svgFacesEdges(graph) {
-    if ("faces_edges" in graph === false || "edges_vertices" in graph === false || "vertices_coords" in graph === false) {
+  const faces_edges_polygon = function (graph) {
+    if ("faces_edges" in graph === false
+      || "edges_vertices" in graph === false
+      || "vertices_coords" in graph === false) {
       return [];
     }
-    var svg_faces = graph.faces_edges.map(function (face_edges) {
-      return face_edges.map(function (edge) {
-        return graph.edges_vertices[edge];
-      }).map(function (vi, i, arr) {
-        var next = arr[(i + 1) % arr.length];
-        return vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1];
-      }).map(function (v) {
-        return graph.vertices_coords[v];
-      });
-    }).map(function (face) {
-      return polygon$1(face);
-    });
-    svg_faces.forEach(function (face, i) {
-      return face.setAttribute("id", "".concat(i));
-    });
+    const svg_faces = graph.faces_edges
+      .map(face_edges => face_edges
+        .map(edge => graph.edges_vertices[edge])
+        .map((vi, i, arr) => {
+          const next = arr[(i + 1) % arr.length];
+          return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
+        }).map(v => graph.vertices_coords[v]))
+      .map(face => polygon$1(face));
+    svg_faces.forEach((face, i) => face.setAttribute("index", i));
     return finalize_faces(graph, svg_faces);
   };
-  var defaultStyle = "svg * {\n  stroke-width: var(--crease-width);\n  stroke-linecap: round;\n  stroke: black;\n}\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern polygon { fill: white; stroke: none; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
   function vkXML$1 (text, step) {
-    var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
-    var len = ar.length;
-    var inComment = false;
-    var deep = 0;
-    var str = "";
-    var space = step != null && typeof step === "string" ? step : "\t";
-    var shift = ["\n"];
-    for (var si = 0; si < 100; si += 1) {
+    const ar = text.replace(/>\s{0,}</g, "><")
+      .replace(/</g, "~::~<")
+      .replace(/\s*xmlns\:/g, "~::~xmlns:")
+      .split("~::~");
+    const len = ar.length;
+    let inComment = false;
+    let deep = 0;
+    let str = "";
+    const space = (step != null && typeof step === "string" ? step : "\t");
+    const shift = ["\n"];
+    for (let si = 0; si < 100; si += 1) {
       shift.push(shift[si] + space);
     }
-    for (var ix = 0; ix < len; ix += 1) {
+    for (let ix = 0; ix < len; ix += 1) {
       if (ar[ix].search(/<!/) > -1) {
         str += shift[deep] + ar[ix];
         inComment = true;
-        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1 || ar[ix].search(/!DOCTYPE/) > -1) {
+        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+          || ar[ix].search(/!DOCTYPE/) > -1) {
           inComment = false;
         }
       } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
         str += ar[ix];
         inComment = false;
-      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix]) && /^<[\w:\-\.\,]+/.exec(ar[ix - 1]) == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
+      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
+        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
+        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
         str += ar[ix];
-        if (!inComment) {
-          deep -= 1;
-        }
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1 && ar[ix].search(/\/>/) === -1) {
+        if (!inComment) { deep -= 1; }
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
+        && ar[ix].search(/\/>/) === -1) {
         str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
       } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
         str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
@@ -9661,247 +8616,372 @@
         str += ar[ix];
       }
     }
-    return str[0] === "\n" ? str.slice(1) : str;
+    return (str[0] === "\n") ? str.slice(1) : str;
   }
-  var document$1 = win$2.document;
-  var svgNS$1 = "http://www.w3.org/2000/svg";
-  var shadowFilter = function shadowFilter() {
-    var id_name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "shadow";
-    var defs = document$1.createElementNS(svgNS$1, "defs");
-    var filter = document$1.createElementNS(svgNS$1, "filter");
+  const bounding_rect$1 = function ({ vertices_coords }) {
+    if (vertices_coords == null
+      || vertices_coords.length <= 0) {
+      return [0, 0, 0, 0];
+    }
+    const dimension = vertices_coords[0].length;
+    const min = Array(dimension).fill(Infinity);
+    const max = Array(dimension).fill(-Infinity);
+    vertices_coords.forEach(v => v.forEach((n, i) => {
+      if (n < min[i]) { min[i] = n; }
+      if (n > max[i]) { max[i] = n; }
+    }));
+    return (isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1])
+      ? [0, 0, 0, 0]
+      : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
+  };
+  const get_boundary$1 = function (graph) {
+    if (graph.edges_assignment == null) { return { vertices: [], edges: [] }; }
+    const edges_vertices_b = graph.edges_assignment
+      .map(a => a === "B" || a === "b");
+    const vertices_edges = make_vertices_edges$1(graph);
+    const edge_walk = [];
+    const vertex_walk = [];
+    let edgeIndex = -1;
+    for (let i = 0; i < edges_vertices_b.length; i += 1) {
+      if (edges_vertices_b[i]) { edgeIndex = i; break; }
+    }
+    if (edgeIndex === -1) {
+      return { vertices: [], edges: [] };
+    }
+    edges_vertices_b[edgeIndex] = false;
+    edge_walk.push(edgeIndex);
+    vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
+    let nextVertex = graph.edges_vertices[edgeIndex][1];
+    while (vertex_walk[0] !== nextVertex) {
+      vertex_walk.push(nextVertex);
+      edgeIndex = vertices_edges[nextVertex]
+        .filter(v => edges_vertices_b[v])
+        .shift();
+      if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
+      if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
+        [, nextVertex] = graph.edges_vertices[edgeIndex];
+      } else {
+        [nextVertex] = graph.edges_vertices[edgeIndex];
+      }
+      edges_vertices_b[edgeIndex] = false;
+      edge_walk.push(edgeIndex);
+    }
+    return {
+      vertices: vertex_walk,
+      edges: edge_walk,
+    };
+  };
+  const clone$1 = function (o) {
+    let newO;
+    let i;
+    if (typeof o !== "object") {
+      return o;
+    }
+    if (!o) {
+      return o;
+    }
+    if (Object.prototype.toString.apply(o) === "[object Array]") {
+      newO = [];
+      for (i = 0; i < o.length; i += 1) {
+        newO[i] = clone$1(o[i]);
+      }
+      return newO;
+    }
+    newO = {};
+    for (i in o) {
+      if (o.hasOwnProperty(i)) {
+        newO[i] = clone$1(o[i]);
+      }
+    }
+    return newO;
+  };
+  const recursive_freeze$1 = function (input) {
+    Object.freeze(input);
+    if (input === undefined) {
+      return input;
+    }
+    Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
+      && (typeof input[prop] === "object" || typeof input[prop] === "function")
+      && !Object.isFrozen(input[prop]))
+      .forEach(prop => recursive_freeze$1(input[prop]));
+    return input;
+  };
+  const flatten_frame$1 = function (fold_file, frame_num) {
+    if ("file_frames" in fold_file === false
+      || fold_file.file_frames.length < frame_num) {
+      return fold_file;
+    }
+    const dontCopy = ["frame_parent", "frame_inherit"];
+    const memo = { visited_frames: [] };
+    const recurse = function (recurse_fold, frame, orderArray) {
+      if (memo.visited_frames.indexOf(frame) !== -1) {
+        throw new Error("encountered a cycle in file_frames. can't flatten.");
+      }
+      memo.visited_frames.push(frame);
+      orderArray = [frame].concat(orderArray);
+      if (frame === 0) { return orderArray; }
+      if (recurse_fold.file_frames[frame - 1].frame_inherit
+         && recurse_fold.file_frames[frame - 1].frame_parent != null) {
+        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
+      }
+      return orderArray;
+    };
+    return recurse(fold_file, frame_num, []).map((frame) => {
+      if (frame === 0) {
+        const swap = fold_file.file_frames;
+        fold_file.file_frames = null;
+        const copy = clone$1(fold_file);
+        fold_file.file_frames = swap;
+        delete copy.file_frames;
+        dontCopy.forEach(key => delete copy[key]);
+        return copy;
+      }
+      const outerCopy = clone$1(fold_file.file_frames[frame - 1]);
+      dontCopy.forEach(key => delete outerCopy[key]);
+      return outerCopy;
+    }).reduce((prev, curr) => Object.assign(prev, curr), {});
+  };
+  const all_classes = function (graph) {
+    const file_classes = (graph.file_classes != null
+      ? graph.file_classes : []).join(" ");
+    const frame_classes = (graph.frame_classes != null
+      ? graph.frame_classes : []).join(" ");
+    return [file_classes, frame_classes]
+      .filter(s => s !== "")
+      .join(" ");
+  };
+  const { document: document$1 } = win$2;
+  const svgNS$1 = "http://www.w3.org/2000/svg";
+  const shadow_defaults = Object.freeze({
+    blur: 0.005,
+    opacity: 0.3,
+    color: "#000",
+  });
+  const shadowFilter = function (options = shadow_defaults) {
+    const id_name = "shadow";
+    if (typeof options !== "object" || options === null) { options = {}; }
+    Object.keys(shadow_defaults)
+      .filter(key => !(key in options))
+      .forEach((key) => { options[key] = shadow_defaults[key]; });
+    const filter = document$1.createElementNS(svgNS$1, "filter");
     filter.setAttribute("width", "200%");
     filter.setAttribute("height", "200%");
     filter.setAttribute("id", id_name);
-    var blur = document$1.createElementNS(svgNS$1, "feGaussianBlur");
+    const blur = document$1.createElementNS(svgNS$1, "feGaussianBlur");
     blur.setAttribute("in", "SourceAlpha");
-    blur.setAttribute("stdDeviation", "0.005");
+    blur.setAttribute("stdDeviation", options.blur);
     blur.setAttribute("result", "blur");
-    var offset = document$1.createElementNS(svgNS$1, "feOffset");
+    const offset = document$1.createElementNS(svgNS$1, "feOffset");
     offset.setAttribute("in", "blur");
     offset.setAttribute("result", "offsetBlur");
-    var flood = document$1.createElementNS(svgNS$1, "feFlood");
-    flood.setAttribute("flood-color", "#000");
-    flood.setAttribute("flood-opacity", "0.3");
+    const flood = document$1.createElementNS(svgNS$1, "feFlood");
+    flood.setAttribute("flood-color", options.color);
+    flood.setAttribute("flood-opacity", options.opacity);
     flood.setAttribute("result", "offsetColor");
-    var composite = document$1.createElementNS(svgNS$1, "feComposite");
+    const composite = document$1.createElementNS(svgNS$1, "feComposite");
     composite.setAttribute("in", "offsetColor");
     composite.setAttribute("in2", "offsetBlur");
     composite.setAttribute("operator", "in");
     composite.setAttribute("result", "offsetBlur");
-    var merge = document$1.createElementNS(svgNS$1, "feMerge");
-    var mergeNode1 = document$1.createElementNS(svgNS$1, "feMergeNode");
-    var mergeNode2 = document$1.createElementNS(svgNS$1, "feMergeNode");
+    const merge = document$1.createElementNS(svgNS$1, "feMerge");
+    const mergeNode1 = document$1.createElementNS(svgNS$1, "feMergeNode");
+    const mergeNode2 = document$1.createElementNS(svgNS$1, "feMergeNode");
     mergeNode2.setAttribute("in", "SourceGraphic");
     merge.appendChild(mergeNode1);
     merge.appendChild(mergeNode2);
-    defs.appendChild(filter);
     filter.appendChild(blur);
     filter.appendChild(offset);
     filter.appendChild(flood);
     filter.appendChild(composite);
     filter.appendChild(merge);
-    return defs;
+    return filter;
   };
-  function renderDiagrams (graph, renderGroup) {
-    if (graph["re:diagrams"] === undefined) {
-      return;
+  const boundaries_polygon = function (graph) {
+    if ("vertices_coords" in graph === false
+      || "edges_vertices" in graph === false
+      || "edges_assignment" in graph === false) {
+      return [];
     }
-    if (graph["re:diagrams"].length === 0) {
-      return;
+    const boundary = get_boundary$1(graph)
+      .vertices
+      .map(v => graph.vertices_coords[v]);
+    if (boundary.length === 0) { return []; }
+    const p = polygon$1(boundary);
+    p.setAttribute("class", "boundary");
+    return [p];
+  };
+  const faces_draw_function = function (graph) {
+    return graph.faces_vertices != null
+      ? faces_vertices_polygon(graph)
+      : faces_edges_polygon(graph);
+  };
+  const component_draw_function = {
+    vertices: vertices_circle,
+    edges: edges_path,
+    faces: faces_draw_function,
+    boundaries: boundaries_polygon,
+  };
+  const makeDefaults = (vmin = 1) => recursive_freeze$1({
+    input: "string",
+    output: "string",
+    padding: null,
+    file_frame: null,
+    stylesheet: null,
+    shadows: null,
+    diagrams: true,
+    boundaries: true,
+    faces: true,
+    edges: true,
+    vertices: false,
+    attributes: {
+      svg: {
+        width: "500px",
+        height: "500px",
+        stroke: "black",
+        fill: "none",
+        "stroke-linejoin": "bevel",
+        "stroke-width": vmin / 100,
+      },
+      faces: {
+        stroke: "none",
+        front: { stroke: "black", fill: "gray" },
+        back: { stroke: "black", fill: "white" },
+      },
+      edges: {
+        boundary: {},
+        mountain: { stroke: "red" },
+        valley: { stroke: "blue" },
+        mark: { stroke: "gray" },
+        unassigned: { stroke: "lightgray" },
+      },
+      vertices: {
+        stroke: "none",
+        fill: "black",
+        r: vmin / 100
+      },
+      boundaries: {},
     }
-    Array.from(graph["re:diagrams"]).forEach(function (instruction) {
-      if ("re:diagram_lines" in instruction === true) {
-        instruction["re:diagram_lines"].forEach(function (crease) {
-          var creaseClass = "re:diagram_line_classes" in crease ? crease["re:diagram_line_classes"].join(" ") : "valley";
-          var pts = crease["re:diagram_line_coords"];
-          if (pts !== undefined) {
-            var l = line$1(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
-            l.setAttribute("class", creaseClass);
-            renderGroup.appendChild(l);
-          }
-        });
+  });
+  const recursiveAssign = function (target, source) {
+    Object.keys(source).forEach((key) => {
+      if (typeof source[key] === "object" && source[key] !== null) {
+        if (!(key in target)) { target[key] = {}; }
+        recursiveAssign(target[key], source[key]);
+      } else if (!(key in target)) {
+        target[key] = source[key];
       }
-      if ("re:diagram_arrows" in instruction === true) {
-        var r = bounding_rect$1(graph);
-        var vmin = r[2] > r[3] ? r[3] : r[2];
-        var prefs = {
-          length: vmin * 0.09,
-          width: vmin * 0.035,
-          strokeWidth: vmin * 0.02
-        };
-        instruction["re:diagram_arrows"].forEach(function (arrowInst) {
-          if (arrowInst["re:diagram_arrow_coords"].length === 2) {
-            var p = arrowInst["re:diagram_arrow_coords"];
-            var side = p[0][0] < p[1][0];
-            if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
-              side = p[0][1] < p[1][1] ? p[0][0] < 0.5 : p[0][0] > 0.5;
-            }
-            if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
-              side = p[0][0] < p[1][0] ? p[0][1] > 0.5 : p[0][1] < 0.5;
-            }
-            prefs.side = side;
-            var arrow = arcArrow(p[0], p[1], prefs);
-            renderGroup.appendChild(arrow);
-          }
-        });
+    });
+  };
+  const fold_to_svg = function (input, options = {}) {
+    const graph = (typeof options.file_frame === "number"
+      ? flatten_frame$1(input, options.file_frame)
+      : input);
+    const bounds = bounding_rect$1(graph);
+    const vmin = Math.min(bounds[2], bounds[3]);
+    recursiveAssign(options, makeDefaults(vmin));
+    const svg$1$1 = svg$1();
+    setViewBox$1(svg$1$1, ...bounds, options.padding);
+    const classValue = all_classes(graph);
+    if (classValue !== "") { svg$1$1.setAttribute("class", classValue); }
+    Object.keys(options.attributes.svg)
+      .forEach(style => svg$1$1.setAttribute(style, options.attributes.svg[style]));
+    const defs$1$1 = (options.stylesheet != null || options.shadows != null
+      ? defs$1(svg$1$1)
+      : undefined);
+    if (options.stylesheet != null) {
+      const style$1$1 = style$1(defs$1$1);
+      const cdata = (new win$2.DOMParser())
+        .parseFromString("<xml></xml>", "application/xml")
+        .createCDATASection(options.stylesheet);
+      style$1$1.appendChild(cdata);
+    }
+    if (options.shadows != null) {
+      const shadowOptions = (typeof options.shadows === "object" && options.shadows !== null
+        ? options.shadows
+        : { blur: vmin / 200 });
+      defs$1$1.appendChild(shadowFilter(shadowOptions));
+    }
+    const groups = { };
+    ["boundaries", "edges", "faces", "vertices"].filter(key => options[key] === true)
+      .forEach((key) => {
+        groups[key] = group$1();
+        groups[key].setAttribute("class", key);
+      });
+    Object.keys(groups)
+      .forEach(key => component_draw_function[key](graph, options)
+        .forEach(a => groups[key].appendChild(a)));
+    Object.keys(groups)
+      .filter(key => groups[key].childNodes.length > 0)
+      .forEach(key => svg$1$1.appendChild(groups[key]));
+    if (groups.edges) {
+      const edgeClasses = ["boundary", "mountain", "valley", "mark", "unassigned"];
+      Object.keys(options.attributes.edges)
+        .filter(key => !edgeClasses.includes(key))
+        .forEach(key => groups.edges.setAttribute(key, options.attributes.edges[key]));
+      Array.from(groups.edges.childNodes)
+        .forEach(child => Object.keys(options.attributes.edges[child.getAttribute("class")] || {})
+          .forEach(key => child.setAttribute(key, options.attributes.edges[child.getAttribute("class")][key])));
+    }
+    if (groups.faces) {
+      const faceClasses = ["front", "back"];
+      Object.keys(options.attributes.faces)
+        .filter(key => !faceClasses.includes(key))
+        .forEach(key => groups.faces.setAttribute(key, options.attributes.faces[key]));
+      Array.from(groups.faces.childNodes)
+        .forEach(child => Object.keys(options.attributes.faces[child.getAttribute("class")] || {})
+          .forEach(key => child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key])));
+      if (options.shadows != null) {
+        Array.from(groups.faces.childNodes).forEach(f => f.setAttribute("filter", "url(#shadow)"));
       }
-    });
-  }
-  var DISPLAY_NAME = {
-    vertices: "vertices",
-    edges: "creases",
-    faces: "faces",
-    boundaries: "boundaries"
-  };
-  var svgFaces = function svgFaces(graph) {
-    if ("faces_vertices" in graph === true) {
-      return svgFacesVertices(graph);
     }
-    if ("faces_edges" in graph === true) {
-      return svgFacesEdges(graph);
+    if (groups.vertices) {
+      Object.keys(options.attributes.vertices)
+        .filter(key => key !== "r")
+        .forEach(key => groups.vertices.setAttribute(key, options.attributes.vertices[key]));
+      Array.from(groups.vertices.childNodes)
+        .forEach(child => child.setAttribute("r", options.attributes.vertices.r));
     }
-    return [];
-  };
-  var components = {
-    vertices: svgVertices,
-    edges: svgEdges,
-    faces: svgFaces,
-    boundaries: svgBoundaries
-  };
-  var all_classes = function all_classes(graph) {
-    var file_classes = (graph.file_classes != null ? graph.file_classes : []).join(" ");
-    var frame_classes = (graph.frame_classes != null ? graph.frame_classes : []).join(" ");
-    return [file_classes, frame_classes].filter(function (s) {
-      return s !== "";
-    }).join(" ");
-  };
-  var clean_number$1 = function clean_number(num) {
-    var places = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 14;
-    return parseFloat(num.toFixed(places));
-  };
-  var fold_to_svg = function fold_to_svg(fold) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var graph = fold;
-    if (graph.vertices_coords != null) {
-      graph.vertices_coordsPreClean = graph.vertices_coords;
-      graph.vertices_coords = JSON.parse(JSON.stringify(graph.vertices_coords)).map(function (v) {
-        return v.map(function (n) {
-          return clean_number$1(n);
-        });
-      });
+    if (groups.boundaries) {
+      Object.keys(options.attributes.boundaries)
+        .forEach(key => groups.boundaries.setAttribute(key, options.attributes.boundaries[key]));
     }
-    var o = {
-      defaults: true,
-      width: "500px",
-      height: "500px",
-      inlineStyle: true,
-      stylesheet: defaultStyle,
-      shadows: false,
-      padding: 0,
-      viewBox: null,
-      diagram: true,
-      boundaries: true,
-      faces: true,
-      edges: true,
-      vertices: false
-    };
-    Object.assign(o, options);
-    if (o.frame != null) {
-      graph = flatten_frame$1(fold, o.frame);
-    }
-    if (o.svg == null) {
-      o.svg = svg$1();
-    }
-    o.svg.setAttribute("class", all_classes(graph));
-    o.svg.setAttribute("width", o.width);
-    o.svg.setAttribute("height", o.height);
-    var styleElement = style$1();
-    o.svg.appendChild(styleElement);
-    var groups = {};
-    ["boundaries", "faces", "edges", "vertices"].filter(function (key) {
-      return o[key];
-    }).forEach(function (key) {
-      groups[key] = group$1();
-      groups[key].setAttribute("class", DISPLAY_NAME[key]);
-      o.svg.appendChild(groups[key]);
-    });
-    Object.keys(groups).forEach(function (key) {
-      return components[key](graph).forEach(function (a) {
-        return groups[key].appendChild(a);
-      });
-    });
-    if ("re:diagrams" in graph && o.diagram) {
-      var instructionLayer = group$1();
-      o.svg.appendChild(instructionLayer);
-      renderDiagrams(graph, instructionLayer);
-    }
-    if (o.shadows) {
-      var shadow_id = "face_shadow";
-      var filter = shadowFilter(shadow_id);
-      o.svg.appendChild(filter);
-      Array.from(groups.faces.childNodes).forEach(function (f) {
-        return f.setAttribute("filter", "url(#".concat(shadow_id, ")"));
-      });
-    }
-    var rect = bounding_rect$1(graph);
-    if (o.viewBox != null) {
-      setViewBox$1.apply(void 0, [o.svg].concat(_toConsumableArray$1(o.viewBox), [o.padding]));
-    } else {
-      setViewBox$1.apply(void 0, [o.svg].concat(_toConsumableArray$1(rect), [o.padding]));
-    }
-    if (graph.vertices_coordsPreClean != null) {
-      graph.vertices_coords = graph.vertices_coordsPreClean;
-      delete graph.vertices_coordsPreClean;
-    }
-    if (o.inlineStyle) {
-      var vmin = rect[2] > rect[3] ? rect[3] : rect[2];
-      var innerStyle = "\nsvg { --crease-width: ".concat(vmin * 0.005, "; }\n").concat(o.stylesheet);
-      var docu = new win$2.DOMParser().parseFromString("<xml></xml>", "application/xml");
-      var cdata = docu.createCDATASection(innerStyle);
-      styleElement.appendChild(cdata);
-    }
-    var stringified = new win$2.XMLSerializer().serializeToString(o.svg);
-    var beautified = vkXML$1(stringified);
+    if (options.output === "svg") { return svg$1$1; }
+    const stringified = (new win$2.XMLSerializer()).serializeToString(svg$1$1);
+    const beautified = vkXML$1(stringified);
     return beautified;
   };
-  var getObject = function getObject(input) {
-    if (_typeof$1(input) === "object" && input !== null) {
+  const getObject = function (input) {
+    if (input == null) {
+      return {};
+    }
+    if (typeof input === "object" && input !== null) {
       return input;
     }
     if (typeof input === "string" || input instanceof String) {
       try {
-        var obj = JSON.parse(input);
+        const obj = JSON.parse(input);
         return obj;
       } catch (error) {
         throw error;
       }
     }
-    throw new Error("couldn't recognize input. looking for string or object");
+    throw new TypeError("required 'String' or 'Object'");
   };
-  var svg$1$1 = function svg(input, options) {
+  const FoldToSvg = function (input, options) {
     try {
-      var fold = getObject(input);
+      const fold = getObject(input);
       return fold_to_svg(fold, options);
     } catch (error) {
       throw error;
     }
   };
-  var webGL = function webGL() {};
-  var drawFOLD = {
-    svg: svg$1$1,
-    webGL: webGL,
-    components: {
-      svg: {
-        boundaries: svgBoundaries,
-        vertices: svgVertices,
-        edges: svgEdges,
-        faces: svgFacesVertices,
-        faces_vertices: svgFacesVertices,
-        faces_edges: svgFacesEdges
-      },
-      webGL: {}
-    }
-  };
+  FoldToSvg.vertices_circle = vertices_circle;
+  FoldToSvg.edges_path_data = edges_path_data;
+  FoldToSvg.edges_by_assignment_paths_data = edges_by_assignment_paths_data;
+  FoldToSvg.edges_path = edges_path;
+  FoldToSvg.edges_line = edges_line;
+  FoldToSvg.faces_vertices_polygon = faces_vertices_polygon;
+  FoldToSvg.faces_edges_polygon = faces_edges_polygon;
 
   let oripa = {};
   oripa.type2fold = {
@@ -10652,37 +9732,78 @@
     return edges;
   };
 
-  function _toConsumableArray$2(arr) {
-    return _arrayWithoutHoles$2(arr) || _iterableToArray$2(arr) || _nonIterableSpread$2();
-  }
-  function _arrayWithoutHoles$2(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-      return arr2;
+  function vkXML$2 (text, step) {
+    const ar = text.replace(/>\s{0,}</g, "><")
+      .replace(/</g, "~::~<")
+      .replace(/\s*xmlns\:/g, "~::~xmlns:")
+      .split("~::~");
+    const len = ar.length;
+    let inComment = false;
+    let deep = 0;
+    let str = "";
+    const space = (step != null && typeof step === "string" ? step : "\t");
+    const shift = ["\n"];
+    for (let si = 0; si < 100; si += 1) {
+      shift.push(shift[si] + space);
     }
+    for (let ix = 0; ix < len; ix += 1) {
+      if (ar[ix].search(/<!/) > -1) {
+        str += shift[deep] + ar[ix];
+        inComment = true;
+        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+          || ar[ix].search(/!DOCTYPE/) > -1) {
+          inComment = false;
+        }
+      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
+        str += ar[ix];
+        inComment = false;
+      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
+        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
+        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
+        str += ar[ix];
+        if (!inComment) { deep -= 1; }
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
+        && ar[ix].search(/\/>/) === -1) {
+        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/\/>/) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\?/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else {
+        str += ar[ix];
+      }
+    }
+    return (str[0] === "\n") ? str.slice(1) : str;
   }
-  function _iterableToArray$2(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-  }
-  function _nonIterableSpread$2() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
-  }
-  var length = {
-    a: 7,
-    c: 6,
-    h: 1,
-    l: 2,
-    m: 2,
-    q: 4,
-    s: 4,
-    t: 2,
-    v: 1,
-    z: 0
-  };
+  const isBrowser$4 = typeof window !== "undefined"
+    && typeof window.document !== "undefined";
+  const isNode$4 = typeof process !== "undefined"
+    && process.versions != null
+    && process.versions.node != null;
+    const htmlString$4 = "<!DOCTYPE html><title> </title>";
+  const win$4 = (function () {
+    let w = {};
+    if (isNode$4) {
+      const { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString$4, "text/html");
+    } else if (isBrowser$4) {
+      w = window;
+    }
+    return w;
+  }());
+  var length = {a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0};
   var segment = /([astvzqmhlc])([^astvzqmhlc]*)/ig;
-  function parse (path) {
+  function parse(path) {
     var data = [];
-    path.replace(segment, function (_, command, args) {
+    path.replace(segment, function(_, command, args){
       var type = command.toLowerCase();
       args = parseValues(args);
       if (type === 'm' && args.length > 2) {
@@ -10708,27 +9829,15 @@
     var numbers = args.match(number);
     return numbers ? numbers.map(Number) : [];
   }
-  function Bezier (ax, ay, bx, by, cx, cy, dx, dy) {
+  function Bezier(ax, ay, bx, by, cx, cy, dx, dy) {
     return new Bezier$1(ax, ay, bx, by, cx, cy, dx, dy);
   }
   function Bezier$1(ax, ay, bx, by, cx, cy, dx, dy) {
-    this.a = {
-      x: ax,
-      y: ay
-    };
-    this.b = {
-      x: bx,
-      y: by
-    };
-    this.c = {
-      x: cx,
-      y: cy
-    };
-    this.d = {
-      x: dx,
-      y: dy
-    };
-    if (dx !== null && dx !== undefined && dy !== null && dy !== undefined) {
+    this.a = {x:ax, y:ay};
+    this.b = {x:bx, y:by};
+    this.c = {x:cx, y:cy};
+    this.d = {x:dx, y:dy};
+    if(dx !== null && dx !== undefined && dy !== null && dy !== undefined){
       this.getArcLength = getCubicArcLength;
       this.getPoint = cubicPoint;
       this.getDerivative = cubicDerivative;
@@ -10741,75 +9850,73 @@
   }
   Bezier$1.prototype = {
     constructor: Bezier$1,
-    init: function init() {
-      this.length = this.getArcLength([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y]);
+    init: function() {
+      this.length = this.getArcLength([this.a.x, this.b.x, this.c.x, this.d.x],
+                                      [this.a.y, this.b.y, this.c.y, this.d.y]);
     },
-    getTotalLength: function getTotalLength() {
+    getTotalLength: function() {
       return this.length;
     },
-    getPointAtLength: function getPointAtLength(length) {
-      var t = t2length(length, this.length, this.getArcLength, [this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y]);
-      return this.getPoint([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y], t);
+    getPointAtLength: function(length) {
+      var t = t2length(length, this.length, this.getArcLength,
+                      [this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y]);
+      return this.getPoint([this.a.x, this.b.x, this.c.x, this.d.x],
+                                      [this.a.y, this.b.y, this.c.y, this.d.y],
+                                    t);
     },
-    getTangentAtLength: function getTangentAtLength(length) {
-      var t = t2length(length, this.length, this.getArcLength, [this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y]);
-      var derivative = this.getDerivative([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y], t);
+    getTangentAtLength: function(length){
+      var t = t2length(length, this.length, this.getArcLength,
+                      [this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y]);
+      var derivative = this.getDerivative([this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y], t);
       var mdl = Math.sqrt(derivative.x * derivative.x + derivative.y * derivative.y);
       var tangent;
-      if (mdl > 0) {
-        tangent = {
-          x: derivative.x / mdl,
-          y: derivative.y / mdl
-        };
+      if (mdl > 0){
+        tangent = {x: derivative.x/mdl, y: derivative.y/mdl};
       } else {
-        tangent = {
-          x: 0,
-          y: 0
-        };
+        tangent = {x: 0, y: 0};
       }
       return tangent;
     },
-    getPropertiesAtLength: function getPropertiesAtLength(length) {
-      var t = t2length(length, this.length, this.getArcLength, [this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y]);
-      var derivative = this.getDerivative([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y], t);
+    getPropertiesAtLength: function(length){
+      var t = t2length(length, this.length, this.getArcLength,
+                      [this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y]);
+      var derivative = this.getDerivative([this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y], t);
       var mdl = Math.sqrt(derivative.x * derivative.x + derivative.y * derivative.y);
       var tangent;
-      if (mdl > 0) {
-        tangent = {
-          x: derivative.x / mdl,
-          y: derivative.y / mdl
-        };
+      if (mdl > 0){
+        tangent = {x: derivative.x/mdl, y: derivative.y/mdl};
       } else {
-        tangent = {
-          x: 0,
-          y: 0
-        };
+        tangent = {x: 0, y: 0};
       }
-      var point = this.getPoint([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y], t);
-      return {
-        x: point.x,
-        y: point.y,
-        tangentX: tangent.x,
-        tangentY: tangent.y
-      };
+      var point = this.getPoint([this.a.x, this.b.x, this.c.x, this.d.x],
+                                      [this.a.y, this.b.y, this.c.y, this.d.y],
+                                    t);
+      return {x: point.x, y: point.y, tangentX: tangent.x, tangentY: tangent.y};
     }
   };
-  function quadraticDerivative(xs, ys, t) {
-    return {
-      x: (1 - t) * 2 * (xs[1] - xs[0]) + t * 2 * (xs[2] - xs[1]),
-      y: (1 - t) * 2 * (ys[1] - ys[0]) + t * 2 * (ys[2] - ys[1])
+  function quadraticDerivative(xs, ys, t){
+    return {x: (1 - t) * 2*(xs[1] - xs[0]) +t * 2*(xs[2] - xs[1]),
+      y: (1 - t) * 2*(ys[1] - ys[0]) +t * 2*(ys[2] - ys[1])
     };
   }
-  function cubicDerivative(xs, ys, t) {
-    var derivative = quadraticPoint([3 * (xs[1] - xs[0]), 3 * (xs[2] - xs[1]), 3 * (xs[3] - xs[2])], [3 * (ys[1] - ys[0]), 3 * (ys[2] - ys[1]), 3 * (ys[3] - ys[2])], t);
+  function cubicDerivative(xs, ys, t){
+    var derivative = quadraticPoint(
+              [3*(xs[1] - xs[0]), 3*(xs[2] - xs[1]), 3*(xs[3] - xs[2])],
+              [3*(ys[1] - ys[0]), 3*(ys[2] - ys[1]), 3*(ys[3] - ys[2])],
+              t);
     return derivative;
   }
-  function t2length(length, total_length, func, xs, ys) {
+  function t2length(length, total_length, func, xs, ys){
     var error = 1;
-    var t = length / total_length;
-    var step = (length - func(xs, ys, t)) / total_length;
+    var t = length/total_length;
+    var step = (length - func(xs, ys, t))/total_length;
     var numIterations = 0;
-    while (error > 0.001) {
+    while (error > 0.001){
       var increasedTLength = func(xs, ys, t + step);
       var decreasedTLength = func(xs, ys, t - step);
       var increasedTError = Math.abs(length - increasedTLength) / total_length;
@@ -10824,53 +9931,104 @@
         step /= 2;
       }
       numIterations++;
-      if (numIterations > 500) {
+      if(numIterations > 500){
         break;
       }
     }
     return t;
   }
-  function quadraticPoint(xs, ys, t) {
+  function quadraticPoint(xs, ys, t){
     var x = (1 - t) * (1 - t) * xs[0] + 2 * (1 - t) * t * xs[1] + t * t * xs[2];
     var y = (1 - t) * (1 - t) * ys[0] + 2 * (1 - t) * t * ys[1] + t * t * ys[2];
-    return {
-      x: x,
-      y: y
-    };
+    return {x: x, y: y};
   }
-  function cubicPoint(xs, ys, t) {
-    var x = (1 - t) * (1 - t) * (1 - t) * xs[0] + 3 * (1 - t) * (1 - t) * t * xs[1] + 3 * (1 - t) * t * t * xs[2] + t * t * t * xs[3];
-    var y = (1 - t) * (1 - t) * (1 - t) * ys[0] + 3 * (1 - t) * (1 - t) * t * ys[1] + 3 * (1 - t) * t * t * ys[2] + t * t * t * ys[3];
-    return {
-      x: x,
-      y: y
-    };
+  function cubicPoint(xs, ys, t){
+    var x = (1 - t) * (1 - t) * (1 - t) * xs[0] + 3 * (1 - t) * (1 - t) * t * xs[1] +
+    3 * (1 - t) * t * t * xs[2] + t * t * t * xs[3];
+    var y = (1 - t) * (1 - t) * (1 - t) * ys[0] + 3 * (1 - t) * (1 - t) * t * ys[1] +
+    3 * (1 - t) * t * t * ys[2] + t * t * t * ys[3];
+    return {x: x, y: y};
   }
   function getQuadraticArcLength(xs, ys, t) {
     if (t === undefined) {
       t = 1;
     }
-    var ax = xs[0] - 2 * xs[1] + xs[2];
-    var ay = ys[0] - 2 * ys[1] + ys[2];
-    var bx = 2 * xs[1] - 2 * xs[0];
-    var by = 2 * ys[1] - 2 * ys[0];
-    var A = 4 * (ax * ax + ay * ay);
-    var B = 4 * (ax * bx + ay * by);
-    var C = bx * bx + by * by;
-    if (A === 0) {
-      return t * Math.sqrt(Math.pow(xs[2] - xs[0], 2) + Math.pow(ys[2] - ys[0], 2));
-    }
-    var b = B / (2 * A);
-    var c = C / A;
-    var u = t + b;
-    var k = c - b * b;
-    var uuk = u * u + k > 0 ? Math.sqrt(u * u + k) : 0;
-    var bbk = b * b + k > 0 ? Math.sqrt(b * b + k) : 0;
-    var term = b + Math.sqrt(b * b + k) !== 0 ? k * Math.log(Math.abs((u + uuk) / (b + bbk))) : 0;
-    return Math.sqrt(A) / 2 * (u * uuk - b * bbk + term);
+     var ax = xs[0] - 2 * xs[1] + xs[2];
+     var ay = ys[0] - 2 * ys[1] + ys[2];
+     var bx = 2 * xs[1] - 2 * xs[0];
+     var by = 2 * ys[1] - 2 * ys[0];
+     var A = 4 * (ax * ax + ay * ay);
+     var B = 4 * (ax * bx + ay * by);
+     var C = bx * bx + by * by;
+     if(A === 0){
+       return t * Math.sqrt(Math.pow(xs[2] - xs[0], 2) + Math.pow(ys[2] - ys[0], 2));
+     }
+     var b = B/(2*A);
+     var c = C/A;
+     var u = t + b;
+     var k = c - b*b;
+     var uuk = (u*u+k)>0?Math.sqrt(u*u+k):0;
+     var bbk = (b*b+k)>0?Math.sqrt(b*b+k):0;
+     var term = ((b+Math.sqrt(b*b+k)))!==0?k*Math.log(Math.abs((u+uuk)/(b+bbk))):0;
+     return (Math.sqrt(A)/2)*(
+       u*uuk-b*bbk+
+       term
+     );
   }
-  var tValues = [[], [], [-0.5773502691896257, 0.5773502691896257], [0, -0.7745966692414834, 0.7745966692414834], [-0.33998104358485626, 0.33998104358485626, -0.8611363115940526, 0.8611363115940526], [0, -0.5384693101056831, 0.5384693101056831, -0.906179845938664, 0.906179845938664], [0.6612093864662645, -0.6612093864662645, -0.2386191860831969, 0.2386191860831969, -0.932469514203152, 0.932469514203152], [0, 0.4058451513773972, -0.4058451513773972, -0.7415311855993945, 0.7415311855993945, -0.9491079123427585, 0.9491079123427585], [-0.1834346424956498, 0.1834346424956498, -0.525532409916329, 0.525532409916329, -0.7966664774136267, 0.7966664774136267, -0.9602898564975363, 0.9602898564975363], [0, -0.8360311073266358, 0.8360311073266358, -0.9681602395076261, 0.9681602395076261, -0.3242534234038089, 0.3242534234038089, -0.6133714327005904, 0.6133714327005904], [-0.14887433898163122, 0.14887433898163122, -0.4333953941292472, 0.4333953941292472, -0.6794095682990244, 0.6794095682990244, -0.8650633666889845, 0.8650633666889845, -0.9739065285171717, 0.9739065285171717], [0, -0.26954315595234496, 0.26954315595234496, -0.5190961292068118, 0.5190961292068118, -0.7301520055740494, 0.7301520055740494, -0.8870625997680953, 0.8870625997680953, -0.978228658146057, 0.978228658146057], [-0.1252334085114689, 0.1252334085114689, -0.3678314989981802, 0.3678314989981802, -0.5873179542866175, 0.5873179542866175, -0.7699026741943047, 0.7699026741943047, -0.9041172563704749, 0.9041172563704749, -0.9815606342467192, 0.9815606342467192], [0, -0.2304583159551348, 0.2304583159551348, -0.44849275103644687, 0.44849275103644687, -0.6423493394403402, 0.6423493394403402, -0.8015780907333099, 0.8015780907333099, -0.9175983992229779, 0.9175983992229779, -0.9841830547185881, 0.9841830547185881], [-0.10805494870734367, 0.10805494870734367, -0.31911236892788974, 0.31911236892788974, -0.5152486363581541, 0.5152486363581541, -0.6872929048116855, 0.6872929048116855, -0.827201315069765, 0.827201315069765, -0.9284348836635735, 0.9284348836635735, -0.9862838086968123, 0.9862838086968123], [0, -0.20119409399743451, 0.20119409399743451, -0.3941513470775634, 0.3941513470775634, -0.5709721726085388, 0.5709721726085388, -0.7244177313601701, 0.7244177313601701, -0.8482065834104272, 0.8482065834104272, -0.937273392400706, 0.937273392400706, -0.9879925180204854, 0.9879925180204854], [-0.09501250983763744, 0.09501250983763744, -0.2816035507792589, 0.2816035507792589, -0.45801677765722737, 0.45801677765722737, -0.6178762444026438, 0.6178762444026438, -0.755404408355003, 0.755404408355003, -0.8656312023878318, 0.8656312023878318, -0.9445750230732326, 0.9445750230732326, -0.9894009349916499, 0.9894009349916499], [0, -0.17848418149584785, 0.17848418149584785, -0.3512317634538763, 0.3512317634538763, -0.5126905370864769, 0.5126905370864769, -0.6576711592166907, 0.6576711592166907, -0.7815140038968014, 0.7815140038968014, -0.8802391537269859, 0.8802391537269859, -0.9506755217687678, 0.9506755217687678, -0.9905754753144174, 0.9905754753144174], [-0.0847750130417353, 0.0847750130417353, -0.2518862256915055, 0.2518862256915055, -0.41175116146284263, 0.41175116146284263, -0.5597708310739475, 0.5597708310739475, -0.6916870430603532, 0.6916870430603532, -0.8037049589725231, 0.8037049589725231, -0.8926024664975557, 0.8926024664975557, -0.9558239495713977, 0.9558239495713977, -0.9915651684209309, 0.9915651684209309], [0, -0.16035864564022537, 0.16035864564022537, -0.31656409996362983, 0.31656409996362983, -0.46457074137596094, 0.46457074137596094, -0.600545304661681, 0.600545304661681, -0.7209661773352294, 0.7209661773352294, -0.8227146565371428, 0.8227146565371428, -0.9031559036148179, 0.9031559036148179, -0.96020815213483, 0.96020815213483, -0.9924068438435844, 0.9924068438435844], [-0.07652652113349734, 0.07652652113349734, -0.22778585114164507, 0.22778585114164507, -0.37370608871541955, 0.37370608871541955, -0.5108670019508271, 0.5108670019508271, -0.636053680726515, 0.636053680726515, -0.7463319064601508, 0.7463319064601508, -0.8391169718222188, 0.8391169718222188, -0.912234428251326, 0.912234428251326, -0.9639719272779138, 0.9639719272779138, -0.9931285991850949, 0.9931285991850949], [0, -0.1455618541608951, 0.1455618541608951, -0.2880213168024011, 0.2880213168024011, -0.4243421202074388, 0.4243421202074388, -0.5516188358872198, 0.5516188358872198, -0.6671388041974123, 0.6671388041974123, -0.7684399634756779, 0.7684399634756779, -0.8533633645833173, 0.8533633645833173, -0.9200993341504008, 0.9200993341504008, -0.9672268385663063, 0.9672268385663063, -0.9937521706203895, 0.9937521706203895], [-0.06973927331972223, 0.06973927331972223, -0.20786042668822127, 0.20786042668822127, -0.34193582089208424, 0.34193582089208424, -0.469355837986757, 0.469355837986757, -0.5876404035069116, 0.5876404035069116, -0.6944872631866827, 0.6944872631866827, -0.7878168059792081, 0.7878168059792081, -0.8658125777203002, 0.8658125777203002, -0.926956772187174, 0.926956772187174, -0.9700604978354287, 0.9700604978354287, -0.9942945854823992, 0.9942945854823992], [0, -0.1332568242984661, 0.1332568242984661, -0.26413568097034495, 0.26413568097034495, -0.3903010380302908, 0.3903010380302908, -0.5095014778460075, 0.5095014778460075, -0.6196098757636461, 0.6196098757636461, -0.7186613631319502, 0.7186613631319502, -0.8048884016188399, 0.8048884016188399, -0.8767523582704416, 0.8767523582704416, -0.9329710868260161, 0.9329710868260161, -0.9725424712181152, 0.9725424712181152, -0.9947693349975522, 0.9947693349975522], [-0.06405689286260563, 0.06405689286260563, -0.1911188674736163, 0.1911188674736163, -0.3150426796961634, 0.3150426796961634, -0.4337935076260451, 0.4337935076260451, -0.5454214713888396, 0.5454214713888396, -0.6480936519369755, 0.6480936519369755, -0.7401241915785544, 0.7401241915785544, -0.820001985973903, 0.820001985973903, -0.8864155270044011, 0.8864155270044011, -0.9382745520027328, 0.9382745520027328, -0.9747285559713095, 0.9747285559713095, -0.9951872199970213, 0.9951872199970213]];
-  var cValues = [[], [], [1, 1], [0.8888888888888888, 0.5555555555555556, 0.5555555555555556], [0.6521451548625461, 0.6521451548625461, 0.34785484513745385, 0.34785484513745385], [0.5688888888888889, 0.47862867049936647, 0.47862867049936647, 0.23692688505618908, 0.23692688505618908], [0.3607615730481386, 0.3607615730481386, 0.46791393457269104, 0.46791393457269104, 0.17132449237917036, 0.17132449237917036], [0.4179591836734694, 0.3818300505051189, 0.3818300505051189, 0.27970539148927664, 0.27970539148927664, 0.1294849661688697, 0.1294849661688697], [0.362683783378362, 0.362683783378362, 0.31370664587788727, 0.31370664587788727, 0.22238103445337448, 0.22238103445337448, 0.10122853629037626, 0.10122853629037626], [0.3302393550012598, 0.1806481606948574, 0.1806481606948574, 0.08127438836157441, 0.08127438836157441, 0.31234707704000286, 0.31234707704000286, 0.26061069640293544, 0.26061069640293544], [0.29552422471475287, 0.29552422471475287, 0.26926671930999635, 0.26926671930999635, 0.21908636251598204, 0.21908636251598204, 0.1494513491505806, 0.1494513491505806, 0.06667134430868814, 0.06667134430868814], [0.2729250867779006, 0.26280454451024665, 0.26280454451024665, 0.23319376459199048, 0.23319376459199048, 0.18629021092773426, 0.18629021092773426, 0.1255803694649046, 0.1255803694649046, 0.05566856711617366, 0.05566856711617366], [0.24914704581340277, 0.24914704581340277, 0.2334925365383548, 0.2334925365383548, 0.20316742672306592, 0.20316742672306592, 0.16007832854334622, 0.16007832854334622, 0.10693932599531843, 0.10693932599531843, 0.04717533638651183, 0.04717533638651183], [0.2325515532308739, 0.22628318026289723, 0.22628318026289723, 0.2078160475368885, 0.2078160475368885, 0.17814598076194574, 0.17814598076194574, 0.13887351021978725, 0.13887351021978725, 0.09212149983772845, 0.09212149983772845, 0.04048400476531588, 0.04048400476531588], [0.2152638534631578, 0.2152638534631578, 0.2051984637212956, 0.2051984637212956, 0.18553839747793782, 0.18553839747793782, 0.15720316715819355, 0.15720316715819355, 0.12151857068790319, 0.12151857068790319, 0.08015808715976021, 0.08015808715976021, 0.03511946033175186, 0.03511946033175186], [0.2025782419255613, 0.19843148532711158, 0.19843148532711158, 0.1861610000155622, 0.1861610000155622, 0.16626920581699392, 0.16626920581699392, 0.13957067792615432, 0.13957067792615432, 0.10715922046717194, 0.10715922046717194, 0.07036604748810812, 0.07036604748810812, 0.03075324199611727, 0.03075324199611727], [0.1894506104550685, 0.1894506104550685, 0.18260341504492358, 0.18260341504492358, 0.16915651939500254, 0.16915651939500254, 0.14959598881657674, 0.14959598881657674, 0.12462897125553388, 0.12462897125553388, 0.09515851168249279, 0.09515851168249279, 0.062253523938647894, 0.062253523938647894, 0.027152459411754096, 0.027152459411754096], [0.17944647035620653, 0.17656270536699264, 0.17656270536699264, 0.16800410215645004, 0.16800410215645004, 0.15404576107681028, 0.15404576107681028, 0.13513636846852548, 0.13513636846852548, 0.11188384719340397, 0.11188384719340397, 0.08503614831717918, 0.08503614831717918, 0.0554595293739872, 0.0554595293739872, 0.02414830286854793, 0.02414830286854793], [0.1691423829631436, 0.1691423829631436, 0.16427648374583273, 0.16427648374583273, 0.15468467512626524, 0.15468467512626524, 0.14064291467065065, 0.14064291467065065, 0.12255520671147846, 0.12255520671147846, 0.10094204410628717, 0.10094204410628717, 0.07642573025488905, 0.07642573025488905, 0.0497145488949698, 0.0497145488949698, 0.02161601352648331, 0.02161601352648331], [0.1610544498487837, 0.15896884339395434, 0.15896884339395434, 0.15276604206585967, 0.15276604206585967, 0.1426067021736066, 0.1426067021736066, 0.12875396253933621, 0.12875396253933621, 0.11156664554733399, 0.11156664554733399, 0.09149002162245, 0.09149002162245, 0.06904454273764123, 0.06904454273764123, 0.0448142267656996, 0.0448142267656996, 0.019461788229726478, 0.019461788229726478], [0.15275338713072584, 0.15275338713072584, 0.14917298647260374, 0.14917298647260374, 0.14209610931838204, 0.14209610931838204, 0.13168863844917664, 0.13168863844917664, 0.11819453196151841, 0.11819453196151841, 0.10193011981724044, 0.10193011981724044, 0.08327674157670475, 0.08327674157670475, 0.06267204833410907, 0.06267204833410907, 0.04060142980038694, 0.04060142980038694, 0.017614007139152118, 0.017614007139152118], [0.14608113364969041, 0.14452440398997005, 0.14452440398997005, 0.13988739479107315, 0.13988739479107315, 0.13226893863333747, 0.13226893863333747, 0.12183141605372853, 0.12183141605372853, 0.10879729916714838, 0.10879729916714838, 0.09344442345603386, 0.09344442345603386, 0.0761001136283793, 0.0761001136283793, 0.057134425426857205, 0.057134425426857205, 0.036953789770852494, 0.036953789770852494, 0.016017228257774335, 0.016017228257774335], [0.13925187285563198, 0.13925187285563198, 0.13654149834601517, 0.13654149834601517, 0.13117350478706238, 0.13117350478706238, 0.12325237681051242, 0.12325237681051242, 0.11293229608053922, 0.11293229608053922, 0.10041414444288096, 0.10041414444288096, 0.08594160621706773, 0.08594160621706773, 0.06979646842452049, 0.06979646842452049, 0.052293335152683286, 0.052293335152683286, 0.03377490158481415, 0.03377490158481415, 0.0146279952982722, 0.0146279952982722], [0.13365457218610619, 0.1324620394046966, 0.1324620394046966, 0.12890572218808216, 0.12890572218808216, 0.12304908430672953, 0.12304908430672953, 0.11499664022241136, 0.11499664022241136, 0.10489209146454141, 0.10489209146454141, 0.09291576606003515, 0.09291576606003515, 0.07928141177671895, 0.07928141177671895, 0.06423242140852585, 0.06423242140852585, 0.04803767173108467, 0.04803767173108467, 0.030988005856979445, 0.030988005856979445, 0.013411859487141771, 0.013411859487141771], [0.12793819534675216, 0.12793819534675216, 0.1258374563468283, 0.1258374563468283, 0.12167047292780339, 0.12167047292780339, 0.1155056680537256, 0.1155056680537256, 0.10744427011596563, 0.10744427011596563, 0.09761865210411388, 0.09761865210411388, 0.08619016153195327, 0.08619016153195327, 0.0733464814110803, 0.0733464814110803, 0.05929858491543678, 0.05929858491543678, 0.04427743881741981, 0.04427743881741981, 0.028531388628933663, 0.028531388628933663, 0.0123412297999872, 0.0123412297999872]];
+  var tValues = [
+    [],
+    [],
+    [-0.5773502691896257,0.5773502691896257],
+    [0,-0.7745966692414834,0.7745966692414834],
+    [-0.33998104358485626,0.33998104358485626,-0.8611363115940526,0.8611363115940526],
+    [0,-0.5384693101056831,0.5384693101056831,-0.906179845938664,0.906179845938664],
+    [0.6612093864662645,-0.6612093864662645,-0.2386191860831969,0.2386191860831969,-0.932469514203152,0.932469514203152],
+    [0,0.4058451513773972,-0.4058451513773972,-0.7415311855993945,0.7415311855993945,-0.9491079123427585,0.9491079123427585],
+    [-0.1834346424956498,0.1834346424956498,-0.525532409916329,0.525532409916329,-0.7966664774136267,0.7966664774136267,-0.9602898564975363,0.9602898564975363],
+    [0,-0.8360311073266358,0.8360311073266358,-0.9681602395076261,0.9681602395076261,-0.3242534234038089,0.3242534234038089,-0.6133714327005904,0.6133714327005904],
+    [-0.14887433898163122,0.14887433898163122,-0.4333953941292472,0.4333953941292472,-0.6794095682990244,0.6794095682990244,-0.8650633666889845,0.8650633666889845,-0.9739065285171717,0.9739065285171717],
+    [0,-0.26954315595234496,0.26954315595234496,-0.5190961292068118,0.5190961292068118,-0.7301520055740494,0.7301520055740494,-0.8870625997680953,0.8870625997680953,-0.978228658146057,0.978228658146057],
+    [-0.1252334085114689,0.1252334085114689,-0.3678314989981802,0.3678314989981802,-0.5873179542866175,0.5873179542866175,-0.7699026741943047,0.7699026741943047,-0.9041172563704749,0.9041172563704749,-0.9815606342467192,0.9815606342467192],
+    [0,-0.2304583159551348,0.2304583159551348,-0.44849275103644687,0.44849275103644687,-0.6423493394403402,0.6423493394403402,-0.8015780907333099,0.8015780907333099,-0.9175983992229779,0.9175983992229779,-0.9841830547185881,0.9841830547185881],
+    [-0.10805494870734367,0.10805494870734367,-0.31911236892788974,0.31911236892788974,-0.5152486363581541,0.5152486363581541,-0.6872929048116855,0.6872929048116855,-0.827201315069765,0.827201315069765,-0.9284348836635735,0.9284348836635735,-0.9862838086968123,0.9862838086968123],
+    [0,-0.20119409399743451,0.20119409399743451,-0.3941513470775634,0.3941513470775634,-0.5709721726085388,0.5709721726085388,-0.7244177313601701,0.7244177313601701,-0.8482065834104272,0.8482065834104272,-0.937273392400706,0.937273392400706,-0.9879925180204854,0.9879925180204854],
+    [-0.09501250983763744,0.09501250983763744,-0.2816035507792589,0.2816035507792589,-0.45801677765722737,0.45801677765722737,-0.6178762444026438,0.6178762444026438,-0.755404408355003,0.755404408355003,-0.8656312023878318,0.8656312023878318,-0.9445750230732326,0.9445750230732326,-0.9894009349916499,0.9894009349916499],
+    [0,-0.17848418149584785,0.17848418149584785,-0.3512317634538763,0.3512317634538763,-0.5126905370864769,0.5126905370864769,-0.6576711592166907,0.6576711592166907,-0.7815140038968014,0.7815140038968014,-0.8802391537269859,0.8802391537269859,-0.9506755217687678,0.9506755217687678,-0.9905754753144174,0.9905754753144174],
+    [-0.0847750130417353,0.0847750130417353,-0.2518862256915055,0.2518862256915055,-0.41175116146284263,0.41175116146284263,-0.5597708310739475,0.5597708310739475,-0.6916870430603532,0.6916870430603532,-0.8037049589725231,0.8037049589725231,-0.8926024664975557,0.8926024664975557,-0.9558239495713977,0.9558239495713977,-0.9915651684209309,0.9915651684209309],
+    [0,-0.16035864564022537,0.16035864564022537,-0.31656409996362983,0.31656409996362983,-0.46457074137596094,0.46457074137596094,-0.600545304661681,0.600545304661681,-0.7209661773352294,0.7209661773352294,-0.8227146565371428,0.8227146565371428,-0.9031559036148179,0.9031559036148179,-0.96020815213483,0.96020815213483,-0.9924068438435844,0.9924068438435844],
+    [-0.07652652113349734,0.07652652113349734,-0.22778585114164507,0.22778585114164507,-0.37370608871541955,0.37370608871541955,-0.5108670019508271,0.5108670019508271,-0.636053680726515,0.636053680726515,-0.7463319064601508,0.7463319064601508,-0.8391169718222188,0.8391169718222188,-0.912234428251326,0.912234428251326,-0.9639719272779138,0.9639719272779138,-0.9931285991850949,0.9931285991850949],
+    [0,-0.1455618541608951,0.1455618541608951,-0.2880213168024011,0.2880213168024011,-0.4243421202074388,0.4243421202074388,-0.5516188358872198,0.5516188358872198,-0.6671388041974123,0.6671388041974123,-0.7684399634756779,0.7684399634756779,-0.8533633645833173,0.8533633645833173,-0.9200993341504008,0.9200993341504008,-0.9672268385663063,0.9672268385663063,-0.9937521706203895,0.9937521706203895],
+    [-0.06973927331972223,0.06973927331972223,-0.20786042668822127,0.20786042668822127,-0.34193582089208424,0.34193582089208424,-0.469355837986757,0.469355837986757,-0.5876404035069116,0.5876404035069116,-0.6944872631866827,0.6944872631866827,-0.7878168059792081,0.7878168059792081,-0.8658125777203002,0.8658125777203002,-0.926956772187174,0.926956772187174,-0.9700604978354287,0.9700604978354287,-0.9942945854823992,0.9942945854823992],
+    [0,-0.1332568242984661,0.1332568242984661,-0.26413568097034495,0.26413568097034495,-0.3903010380302908,0.3903010380302908,-0.5095014778460075,0.5095014778460075,-0.6196098757636461,0.6196098757636461,-0.7186613631319502,0.7186613631319502,-0.8048884016188399,0.8048884016188399,-0.8767523582704416,0.8767523582704416,-0.9329710868260161,0.9329710868260161,-0.9725424712181152,0.9725424712181152,-0.9947693349975522,0.9947693349975522],
+    [-0.06405689286260563,0.06405689286260563,-0.1911188674736163,0.1911188674736163,-0.3150426796961634,0.3150426796961634,-0.4337935076260451,0.4337935076260451,-0.5454214713888396,0.5454214713888396,-0.6480936519369755,0.6480936519369755,-0.7401241915785544,0.7401241915785544,-0.820001985973903,0.820001985973903,-0.8864155270044011,0.8864155270044011,-0.9382745520027328,0.9382745520027328,-0.9747285559713095,0.9747285559713095,-0.9951872199970213,0.9951872199970213]
+  ];
+  var cValues = [
+    [],
+    [],
+    [1,1],
+    [0.8888888888888888,0.5555555555555556,0.5555555555555556],
+    [0.6521451548625461,0.6521451548625461,0.34785484513745385,0.34785484513745385],
+    [0.5688888888888889,0.47862867049936647,0.47862867049936647,0.23692688505618908,0.23692688505618908],
+    [0.3607615730481386,0.3607615730481386,0.46791393457269104,0.46791393457269104,0.17132449237917036,0.17132449237917036],
+    [0.4179591836734694,0.3818300505051189,0.3818300505051189,0.27970539148927664,0.27970539148927664,0.1294849661688697,0.1294849661688697],
+    [0.362683783378362,0.362683783378362,0.31370664587788727,0.31370664587788727,0.22238103445337448,0.22238103445337448,0.10122853629037626,0.10122853629037626],
+    [0.3302393550012598,0.1806481606948574,0.1806481606948574,0.08127438836157441,0.08127438836157441,0.31234707704000286,0.31234707704000286,0.26061069640293544,0.26061069640293544],
+    [0.29552422471475287,0.29552422471475287,0.26926671930999635,0.26926671930999635,0.21908636251598204,0.21908636251598204,0.1494513491505806,0.1494513491505806,0.06667134430868814,0.06667134430868814],
+    [0.2729250867779006,0.26280454451024665,0.26280454451024665,0.23319376459199048,0.23319376459199048,0.18629021092773426,0.18629021092773426,0.1255803694649046,0.1255803694649046,0.05566856711617366,0.05566856711617366],
+    [0.24914704581340277,0.24914704581340277,0.2334925365383548,0.2334925365383548,0.20316742672306592,0.20316742672306592,0.16007832854334622,0.16007832854334622,0.10693932599531843,0.10693932599531843,0.04717533638651183,0.04717533638651183],
+    [0.2325515532308739,0.22628318026289723,0.22628318026289723,0.2078160475368885,0.2078160475368885,0.17814598076194574,0.17814598076194574,0.13887351021978725,0.13887351021978725,0.09212149983772845,0.09212149983772845,0.04048400476531588,0.04048400476531588],
+    [0.2152638534631578,0.2152638534631578,0.2051984637212956,0.2051984637212956,0.18553839747793782,0.18553839747793782,0.15720316715819355,0.15720316715819355,0.12151857068790319,0.12151857068790319,0.08015808715976021,0.08015808715976021,0.03511946033175186,0.03511946033175186],
+    [0.2025782419255613,0.19843148532711158,0.19843148532711158,0.1861610000155622,0.1861610000155622,0.16626920581699392,0.16626920581699392,0.13957067792615432,0.13957067792615432,0.10715922046717194,0.10715922046717194,0.07036604748810812,0.07036604748810812,0.03075324199611727,0.03075324199611727],
+    [0.1894506104550685,0.1894506104550685,0.18260341504492358,0.18260341504492358,0.16915651939500254,0.16915651939500254,0.14959598881657674,0.14959598881657674,0.12462897125553388,0.12462897125553388,0.09515851168249279,0.09515851168249279,0.062253523938647894,0.062253523938647894,0.027152459411754096,0.027152459411754096],
+    [0.17944647035620653,0.17656270536699264,0.17656270536699264,0.16800410215645004,0.16800410215645004,0.15404576107681028,0.15404576107681028,0.13513636846852548,0.13513636846852548,0.11188384719340397,0.11188384719340397,0.08503614831717918,0.08503614831717918,0.0554595293739872,0.0554595293739872,0.02414830286854793,0.02414830286854793],
+    [0.1691423829631436,0.1691423829631436,0.16427648374583273,0.16427648374583273,0.15468467512626524,0.15468467512626524,0.14064291467065065,0.14064291467065065,0.12255520671147846,0.12255520671147846,0.10094204410628717,0.10094204410628717,0.07642573025488905,0.07642573025488905,0.0497145488949698,0.0497145488949698,0.02161601352648331,0.02161601352648331],
+    [0.1610544498487837,0.15896884339395434,0.15896884339395434,0.15276604206585967,0.15276604206585967,0.1426067021736066,0.1426067021736066,0.12875396253933621,0.12875396253933621,0.11156664554733399,0.11156664554733399,0.09149002162245,0.09149002162245,0.06904454273764123,0.06904454273764123,0.0448142267656996,0.0448142267656996,0.019461788229726478,0.019461788229726478],
+    [0.15275338713072584,0.15275338713072584,0.14917298647260374,0.14917298647260374,0.14209610931838204,0.14209610931838204,0.13168863844917664,0.13168863844917664,0.11819453196151841,0.11819453196151841,0.10193011981724044,0.10193011981724044,0.08327674157670475,0.08327674157670475,0.06267204833410907,0.06267204833410907,0.04060142980038694,0.04060142980038694,0.017614007139152118,0.017614007139152118],
+    [0.14608113364969041,0.14452440398997005,0.14452440398997005,0.13988739479107315,0.13988739479107315,0.13226893863333747,0.13226893863333747,0.12183141605372853,0.12183141605372853,0.10879729916714838,0.10879729916714838,0.09344442345603386,0.09344442345603386,0.0761001136283793,0.0761001136283793,0.057134425426857205,0.057134425426857205,0.036953789770852494,0.036953789770852494,0.016017228257774335,0.016017228257774335],
+    [0.13925187285563198,0.13925187285563198,0.13654149834601517,0.13654149834601517,0.13117350478706238,0.13117350478706238,0.12325237681051242,0.12325237681051242,0.11293229608053922,0.11293229608053922,0.10041414444288096,0.10041414444288096,0.08594160621706773,0.08594160621706773,0.06979646842452049,0.06979646842452049,0.052293335152683286,0.052293335152683286,0.03377490158481415,0.03377490158481415,0.0146279952982722,0.0146279952982722],
+    [0.13365457218610619,0.1324620394046966,0.1324620394046966,0.12890572218808216,0.12890572218808216,0.12304908430672953,0.12304908430672953,0.11499664022241136,0.11499664022241136,0.10489209146454141,0.10489209146454141,0.09291576606003515,0.09291576606003515,0.07928141177671895,0.07928141177671895,0.06423242140852585,0.06423242140852585,0.04803767173108467,0.04803767173108467,0.030988005856979445,0.030988005856979445,0.013411859487141771,0.013411859487141771],
+    [0.12793819534675216,0.12793819534675216,0.1258374563468283,0.1258374563468283,0.12167047292780339,0.12167047292780339,0.1155056680537256,0.1155056680537256,0.10744427011596563,0.10744427011596563,0.09761865210411388,0.09761865210411388,0.08619016153195327,0.08619016153195327,0.0733464814110803,0.0733464814110803,0.05929858491543678,0.05929858491543678,0.04427743881741981,0.04427743881741981,0.028531388628933663,0.028531388628933663,0.0123412297999872,0.0123412297999872]
+  ];
   var binomialCoefficients = [[1], [1, 1], [1, 2, 1], [1, 3, 3, 1]];
   function binomials(n, k) {
     return binomialCoefficients[n][k];
@@ -10917,10 +10075,10 @@
     }
     return z * sum;
   }
-  function Arc (x0, y0, rx, ry, xAxisRotate, LargeArcFlag, SweepFlag, x, y) {
-    return new Arc$1(x0, y0, rx, ry, xAxisRotate, LargeArcFlag, SweepFlag, x, y);
+  function Arc(x0, y0, rx,ry, xAxisRotate, LargeArcFlag,SweepFlag, x,y) {
+    return new Arc$1(x0, y0, rx,ry, xAxisRotate, LargeArcFlag,SweepFlag, x,y);
   }
-  function Arc$1(x0, y0, rx, ry, xAxisRotate, LargeArcFlag, SweepFlag, x1, y1) {
+  function Arc$1(x0, y0,rx,ry, xAxisRotate, LargeArcFlag, SweepFlag,x1,y1) {
     this.x0 = x0;
     this.y0 = y0;
     this.rx = rx;
@@ -10930,68 +10088,49 @@
     this.SweepFlag = SweepFlag;
     this.x1 = x1;
     this.y1 = y1;
-    var lengthProperties = approximateArcLengthOfCurve(300, function (t) {
-      return pointOnEllipticalArc({
-        x: x0,
-        y: y0
-      }, rx, ry, xAxisRotate, LargeArcFlag, SweepFlag, {
-        x: x1,
-        y: y1
-      }, t);
+    var lengthProperties = approximateArcLengthOfCurve(300, function(t) {
+      return pointOnEllipticalArc({x: x0, y:y0}, rx, ry, xAxisRotate,
+                                   LargeArcFlag, SweepFlag, {x: x1, y:y1}, t);
     });
     this.length = lengthProperties.arcLength;
   }
   Arc$1.prototype = {
     constructor: Arc$1,
-    init: function init() {},
-    getTotalLength: function getTotalLength() {
+    init: function() {
+    },
+    getTotalLength: function() {
       return this.length;
     },
-    getPointAtLength: function getPointAtLength(fractionLength) {
-      if (fractionLength < 0) {
+    getPointAtLength: function(fractionLength) {
+      if(fractionLength < 0){
         fractionLength = 0;
-      } else if (fractionLength > this.length) {
+      } else if(fractionLength > this.length){
         fractionLength = this.length;
       }
-      var position = pointOnEllipticalArc({
-        x: this.x0,
-        y: this.y0
-      }, this.rx, this.ry, this.xAxisRotate, this.LargeArcFlag, this.SweepFlag, {
-        x: this.x1,
-        y: this.y1
-      }, fractionLength / this.length);
-      return {
-        x: position.x,
-        y: position.y
-      };
+      var position = pointOnEllipticalArc({x: this.x0, y:this.y0},
+        this.rx, this.ry, this.xAxisRotate,
+        this.LargeArcFlag, this.SweepFlag,
+        {x: this.x1, y: this.y1},
+        fractionLength/this.length);
+      return {x: position.x, y: position.y};
     },
-    getTangentAtLength: function getTangentAtLength(fractionLength) {
-      if (fractionLength < 0) {
-        fractionLength = 0;
-      } else if (fractionLength > this.length) {
-        fractionLength = this.length;
-      }
-      var position = pointOnEllipticalArc({
-        x: this.x0,
-        y: this.y0
-      }, this.rx, this.ry, this.xAxisRotate, this.LargeArcFlag, this.SweepFlag, {
-        x: this.x1,
-        y: this.y1
-      }, fractionLength / this.length);
-      return {
-        x: position.x,
-        y: position.y
-      };
+    getTangentAtLength: function(fractionLength) {
+      if(fractionLength < 0){
+          fractionLength = 0;
+          } else if(fractionLength > this.length){
+          fractionLength = this.length;
+          }
+          var position = pointOnEllipticalArc({x: this.x0, y:this.y0},
+            this.rx, this.ry, this.xAxisRotate,
+            this.LargeArcFlag, this.SweepFlag,
+            {x: this.x1, y: this.y1},
+            fractionLength/this.length);
+          return {x: position.x, y: position.y};
     },
-    getPropertiesAtLength: function getPropertiesAtLength(fractionLength) {
+    getPropertiesAtLength: function(fractionLength){
       var tangent = this.getTangentAtLength(fractionLength);
       var point = this.getPointAtLength(fractionLength);
-      return {
-        x: point.x,
-        y: point.y,
-        tangentX: tangent.x,
-        tangentY: tangent.y
-      };
+      return {x: point.x, y: point.y, tangentX: tangent.x, tangentY: tangent.y};
     }
   };
   function pointOnEllipticalArc(p0, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, p1, t) {
@@ -10999,64 +10138,65 @@
     ry = Math.abs(ry);
     xAxisRotation = mod(xAxisRotation, 360);
     var xAxisRotationRadians = toRadians(xAxisRotation);
-    if (p0.x === p1.x && p0.y === p1.y) {
+    if(p0.x === p1.x && p0.y === p1.y) {
       return p0;
     }
-    if (rx === 0 || ry === 0) {
+    if(rx === 0 || ry === 0) {
       return this.pointOnLine(p0, p1, t);
     }
-    var dx = (p0.x - p1.x) / 2;
-    var dy = (p0.y - p1.y) / 2;
+    var dx = (p0.x-p1.x)/2;
+    var dy = (p0.y-p1.y)/2;
     var transformedPoint = {
-      x: Math.cos(xAxisRotationRadians) * dx + Math.sin(xAxisRotationRadians) * dy,
-      y: -Math.sin(xAxisRotationRadians) * dx + Math.cos(xAxisRotationRadians) * dy
+      x: Math.cos(xAxisRotationRadians)*dx + Math.sin(xAxisRotationRadians)*dy,
+      y: -Math.sin(xAxisRotationRadians)*dx + Math.cos(xAxisRotationRadians)*dy
     };
-    var radiiCheck = Math.pow(transformedPoint.x, 2) / Math.pow(rx, 2) + Math.pow(transformedPoint.y, 2) / Math.pow(ry, 2);
-    if (radiiCheck > 1) {
-      rx = Math.sqrt(radiiCheck) * rx;
-      ry = Math.sqrt(radiiCheck) * ry;
+    var radiiCheck = Math.pow(transformedPoint.x, 2)/Math.pow(rx, 2) + Math.pow(transformedPoint.y, 2)/Math.pow(ry, 2);
+    if(radiiCheck > 1) {
+      rx = Math.sqrt(radiiCheck)*rx;
+      ry = Math.sqrt(radiiCheck)*ry;
     }
-    var cSquareNumerator = Math.pow(rx, 2) * Math.pow(ry, 2) - Math.pow(rx, 2) * Math.pow(transformedPoint.y, 2) - Math.pow(ry, 2) * Math.pow(transformedPoint.x, 2);
-    var cSquareRootDenom = Math.pow(rx, 2) * Math.pow(transformedPoint.y, 2) + Math.pow(ry, 2) * Math.pow(transformedPoint.x, 2);
-    var cRadicand = cSquareNumerator / cSquareRootDenom;
+    var cSquareNumerator = Math.pow(rx, 2)*Math.pow(ry, 2) - Math.pow(rx, 2)*Math.pow(transformedPoint.y, 2) - Math.pow(ry, 2)*Math.pow(transformedPoint.x, 2);
+    var cSquareRootDenom = Math.pow(rx, 2)*Math.pow(transformedPoint.y, 2) + Math.pow(ry, 2)*Math.pow(transformedPoint.x, 2);
+    var cRadicand = cSquareNumerator/cSquareRootDenom;
     cRadicand = cRadicand < 0 ? 0 : cRadicand;
     var cCoef = (largeArcFlag !== sweepFlag ? 1 : -1) * Math.sqrt(cRadicand);
     var transformedCenter = {
-      x: cCoef * (rx * transformedPoint.y / ry),
-      y: cCoef * (-(ry * transformedPoint.x) / rx)
+      x: cCoef*((rx*transformedPoint.y)/ry),
+      y: cCoef*(-(ry*transformedPoint.x)/rx)
     };
     var center = {
-      x: Math.cos(xAxisRotationRadians) * transformedCenter.x - Math.sin(xAxisRotationRadians) * transformedCenter.y + (p0.x + p1.x) / 2,
-      y: Math.sin(xAxisRotationRadians) * transformedCenter.x + Math.cos(xAxisRotationRadians) * transformedCenter.y + (p0.y + p1.y) / 2
+      x: Math.cos(xAxisRotationRadians)*transformedCenter.x - Math.sin(xAxisRotationRadians)*transformedCenter.y + ((p0.x+p1.x)/2),
+      y: Math.sin(xAxisRotationRadians)*transformedCenter.x + Math.cos(xAxisRotationRadians)*transformedCenter.y + ((p0.y+p1.y)/2)
     };
     var startVector = {
-      x: (transformedPoint.x - transformedCenter.x) / rx,
-      y: (transformedPoint.y - transformedCenter.y) / ry
+      x: (transformedPoint.x-transformedCenter.x)/rx,
+      y: (transformedPoint.y-transformedCenter.y)/ry
     };
     var startAngle = angleBetween({
       x: 1,
       y: 0
     }, startVector);
     var endVector = {
-      x: (-transformedPoint.x - transformedCenter.x) / rx,
-      y: (-transformedPoint.y - transformedCenter.y) / ry
+      x: (-transformedPoint.x-transformedCenter.x)/rx,
+      y: (-transformedPoint.y-transformedCenter.y)/ry
     };
     var sweepAngle = angleBetween(startVector, endVector);
-    if (!sweepFlag && sweepAngle > 0) {
-      sweepAngle -= 2 * Math.PI;
-    } else if (sweepFlag && sweepAngle < 0) {
-      sweepAngle += 2 * Math.PI;
+    if(!sweepFlag && sweepAngle > 0) {
+      sweepAngle -= 2*Math.PI;
     }
-    sweepAngle %= 2 * Math.PI;
-    var angle = startAngle + sweepAngle * t;
-    var ellipseComponentX = rx * Math.cos(angle);
-    var ellipseComponentY = ry * Math.sin(angle);
+    else if(sweepFlag && sweepAngle < 0) {
+      sweepAngle += 2*Math.PI;
+    }
+    sweepAngle %= 2*Math.PI;
+    var angle = startAngle+(sweepAngle*t);
+    var ellipseComponentX = rx*Math.cos(angle);
+    var ellipseComponentY = ry*Math.sin(angle);
     var point = {
-      x: Math.cos(xAxisRotationRadians) * ellipseComponentX - Math.sin(xAxisRotationRadians) * ellipseComponentY + center.x,
-      y: Math.sin(xAxisRotationRadians) * ellipseComponentX + Math.cos(xAxisRotationRadians) * ellipseComponentY + center.y
+      x: Math.cos(xAxisRotationRadians)*ellipseComponentX - Math.sin(xAxisRotationRadians)*ellipseComponentY + center.x,
+      y: Math.sin(xAxisRotationRadians)*ellipseComponentX + Math.cos(xAxisRotationRadians)*ellipseComponentY + center.y
     };
     point.ellipticalArcStartAngle = startAngle;
-    point.ellipticalArcEndAngle = startAngle + sweepAngle;
+    point.ellipticalArcEndAngle = startAngle+sweepAngle;
     point.ellipticalArcAngle = angle;
     point.ellipticalArcCenter = center;
     point.resultantRx = rx;
@@ -11070,8 +10210,8 @@
     var approximationLines = [];
     var prevPoint = pointOnCurveFunc(0);
     var nextPoint;
-    for (var i = 0; i < resolution; i++) {
-      var t = clamp(i * (1 / resolution), 0, 1);
+    for(var i = 0; i < resolution; i++) {
+      var t = clamp(i*(1/resolution), 0, 1);
       nextPoint = pointOnCurveFunc(t);
       resultantArcLength += distance$1(prevPoint, nextPoint);
       approximationLines.push([prevPoint, nextPoint]);
@@ -11095,157 +10235,150 @@
     };
   }
   function mod(x, m) {
-    return (x % m + m) % m;
+    return (x%m + m)%m;
   }
   function toRadians(angle) {
     return angle * (Math.PI / 180);
   }
   function distance$1(p0, p1) {
-    return Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2));
+    return Math.sqrt(Math.pow(p1.x-p0.x, 2) + Math.pow(p1.y-p0.y, 2));
   }
   function clamp(val, min, max) {
     return Math.min(Math.max(val, min), max);
   }
   function angleBetween(v0, v1) {
-    var p = v0.x * v1.x + v0.y * v1.y;
-    var n = Math.sqrt((Math.pow(v0.x, 2) + Math.pow(v0.y, 2)) * (Math.pow(v1.x, 2) + Math.pow(v1.y, 2)));
-    var sign = v0.x * v1.y - v0.y * v1.x < 0 ? -1 : 1;
-    var angle = sign * Math.acos(p / n);
+    var p = v0.x*v1.x + v0.y*v1.y;
+    var n = Math.sqrt((Math.pow(v0.x, 2)+Math.pow(v0.y, 2)) * (Math.pow(v1.x, 2)+Math.pow(v1.y, 2)));
+    var sign = v0.x*v1.y - v0.y*v1.x < 0 ? -1 : 1;
+    var angle = sign*Math.acos(p/n);
     return angle;
   }
-  function LinearPosition (x0, x1, y0, y1) {
+  function LinearPosition(x0, x1, y0, y1) {
     return new LinearPosition$1(x0, x1, y0, y1);
   }
-  function LinearPosition$1(x0, x1, y0, y1) {
+  function LinearPosition$1(x0, x1, y0, y1){
     this.x0 = x0;
     this.x1 = x1;
     this.y0 = y0;
     this.y1 = y1;
   }
-  LinearPosition$1.prototype.getTotalLength = function () {
-    return Math.sqrt(Math.pow(this.x0 - this.x1, 2) + Math.pow(this.y0 - this.y1, 2));
+  LinearPosition$1.prototype.getTotalLength = function(){
+    return Math.sqrt(Math.pow(this.x0 - this.x1, 2) +
+           Math.pow(this.y0 - this.y1, 2));
   };
-  LinearPosition$1.prototype.getPointAtLength = function (pos) {
-    var fraction = pos / Math.sqrt(Math.pow(this.x0 - this.x1, 2) + Math.pow(this.y0 - this.y1, 2));
-    var newDeltaX = (this.x1 - this.x0) * fraction;
-    var newDeltaY = (this.y1 - this.y0) * fraction;
-    return {
-      x: this.x0 + newDeltaX,
-      y: this.y0 + newDeltaY
-    };
+  LinearPosition$1.prototype.getPointAtLength = function(pos){
+    var fraction = pos/ (Math.sqrt(Math.pow(this.x0 - this.x1, 2) +
+           Math.pow(this.y0 - this.y1, 2)));
+    var newDeltaX = (this.x1 - this.x0)*fraction;
+    var newDeltaY = (this.y1 - this.y0)*fraction;
+    return { x: this.x0 + newDeltaX, y: this.y0 + newDeltaY };
   };
-  LinearPosition$1.prototype.getTangentAtLength = function () {
-    var module = Math.sqrt((this.x1 - this.x0) * (this.x1 - this.x0) + (this.y1 - this.y0) * (this.y1 - this.y0));
-    return {
-      x: (this.x1 - this.x0) / module,
-      y: (this.y1 - this.y0) / module
-    };
+  LinearPosition$1.prototype.getTangentAtLength = function(){
+    var module = Math.sqrt((this.x1 - this.x0) * (this.x1 - this.x0) +
+                (this.y1 - this.y0) * (this.y1 - this.y0));
+    return { x: (this.x1 - this.x0)/module, y: (this.y1 - this.y0)/module };
   };
-  LinearPosition$1.prototype.getPropertiesAtLength = function (pos) {
+  LinearPosition$1.prototype.getPropertiesAtLength = function(pos){
     var point = this.getPointAtLength(pos);
     var tangent = this.getTangentAtLength();
-    return {
-      x: point.x,
-      y: point.y,
-      tangentX: tangent.x,
-      tangentY: tangent.y
-    };
+    return {x: point.x, y: point.y, tangentX: tangent.x, tangentY: tangent.y};
   };
-  function PathProperties (svgString) {
+  function PathProperties(svgString) {
     var length = 0;
     var partial_lengths = [];
     var functions = [];
-    function svgProperties(string) {
-      if (!string) {
-        return null;
-      }
+    function svgProperties(string){
+      if(!string){return null;}
       var parsed = parse(string);
       var cur = [0, 0];
       var prev_point = [0, 0];
       var curve;
       var ringStart;
-      for (var i = 0; i < parsed.length; i++) {
-        if (parsed[i][0] === "M") {
+      for (var i = 0; i < parsed.length; i++){
+        if(parsed[i][0] === "M"){
           cur = [parsed[i][1], parsed[i][2]];
           ringStart = [cur[0], cur[1]];
           functions.push(null);
-        } else if (parsed[i][0] === "m") {
+        } else if(parsed[i][0] === "m"){
           cur = [parsed[i][1] + cur[0], parsed[i][2] + cur[1]];
           ringStart = [cur[0], cur[1]];
           functions.push(null);
-        } else if (parsed[i][0] === "L") {
+        }
+        else if(parsed[i][0] === "L"){
           length = length + Math.sqrt(Math.pow(cur[0] - parsed[i][1], 2) + Math.pow(cur[1] - parsed[i][2], 2));
           functions.push(new LinearPosition(cur[0], parsed[i][1], cur[1], parsed[i][2]));
           cur = [parsed[i][1], parsed[i][2]];
-        } else if (parsed[i][0] === "l") {
+        } else if(parsed[i][0] === "l"){
           length = length + Math.sqrt(Math.pow(parsed[i][1], 2) + Math.pow(parsed[i][2], 2));
           functions.push(new LinearPosition(cur[0], parsed[i][1] + cur[0], cur[1], parsed[i][2] + cur[1]));
           cur = [parsed[i][1] + cur[0], parsed[i][2] + cur[1]];
-        } else if (parsed[i][0] === "H") {
+        } else if(parsed[i][0] === "H"){
           length = length + Math.abs(cur[0] - parsed[i][1]);
           functions.push(new LinearPosition(cur[0], parsed[i][1], cur[1], cur[1]));
           cur[0] = parsed[i][1];
-        } else if (parsed[i][0] === "h") {
+        } else if(parsed[i][0] === "h"){
           length = length + Math.abs(parsed[i][1]);
           functions.push(new LinearPosition(cur[0], cur[0] + parsed[i][1], cur[1], cur[1]));
           cur[0] = parsed[i][1] + cur[0];
-        } else if (parsed[i][0] === "V") {
+        } else if(parsed[i][0] === "V"){
           length = length + Math.abs(cur[1] - parsed[i][1]);
           functions.push(new LinearPosition(cur[0], cur[0], cur[1], parsed[i][1]));
           cur[1] = parsed[i][1];
-        } else if (parsed[i][0] === "v") {
+        } else if(parsed[i][0] === "v"){
           length = length + Math.abs(parsed[i][1]);
           functions.push(new LinearPosition(cur[0], cur[0], cur[1], cur[1] + parsed[i][1]));
           cur[1] = parsed[i][1] + cur[1];
-        } else if (parsed[i][0] === "z" || parsed[i][0] === "Z") {
+        }  else if(parsed[i][0] === "z" || parsed[i][0] === "Z"){
           length = length + Math.sqrt(Math.pow(ringStart[0] - cur[0], 2) + Math.pow(ringStart[1] - cur[1], 2));
           functions.push(new LinearPosition(cur[0], ringStart[0], cur[1], ringStart[1]));
           cur = [ringStart[0], ringStart[1]];
-        } else if (parsed[i][0] === "C") {
-          curve = new Bezier(cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4], parsed[i][5], parsed[i][6]);
+        }
+        else if(parsed[i][0] === "C"){
+          curve = new Bezier(cur[0], cur[1] , parsed[i][1], parsed[i][2] , parsed[i][3], parsed[i][4] , parsed[i][5], parsed[i][6]);
           length = length + curve.getTotalLength();
           cur = [parsed[i][5], parsed[i][6]];
           functions.push(curve);
-        } else if (parsed[i][0] === "c") {
-          curve = new Bezier(cur[0], cur[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2], cur[0] + parsed[i][3], cur[1] + parsed[i][4], cur[0] + parsed[i][5], cur[1] + parsed[i][6]);
-          if (curve.getTotalLength() > 0) {
+        } else if(parsed[i][0] === "c"){
+          curve = new Bezier(cur[0], cur[1] , cur[0] + parsed[i][1], cur[1] + parsed[i][2] , cur[0] + parsed[i][3], cur[1] + parsed[i][4] , cur[0] + parsed[i][5], cur[1] + parsed[i][6]);
+          if(curve.getTotalLength() > 0){
             length = length + curve.getTotalLength();
             functions.push(curve);
             cur = [parsed[i][5] + cur[0], parsed[i][6] + cur[1]];
           } else {
             functions.push(new LinearPosition(cur[0], cur[0], cur[1], cur[1]));
           }
-        } else if (parsed[i][0] === "S") {
-          if (i > 0 && ["C", "c", "S", "s"].indexOf(parsed[i - 1][0]) > -1) {
-            curve = new Bezier(cur[0], cur[1], 2 * cur[0] - parsed[i - 1][parsed[i - 1].length - 4], 2 * cur[1] - parsed[i - 1][parsed[i - 1].length - 3], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4]);
+        } else if(parsed[i][0] === "S"){
+          if(i>0 && ["C","c","S","s"].indexOf(parsed[i-1][0]) > -1){
+            curve = new Bezier(cur[0], cur[1] , 2*cur[0] - parsed[i-1][parsed[i-1].length - 4], 2*cur[1] - parsed[i-1][parsed[i-1].length - 3], parsed[i][1], parsed[i][2] , parsed[i][3], parsed[i][4]);
           } else {
-            curve = new Bezier(cur[0], cur[1], cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4]);
+            curve = new Bezier(cur[0], cur[1] , cur[0], cur[1], parsed[i][1], parsed[i][2] , parsed[i][3], parsed[i][4]);
           }
           length = length + curve.getTotalLength();
           cur = [parsed[i][3], parsed[i][4]];
           functions.push(curve);
-        } else if (parsed[i][0] === "s") {
-          if (i > 0 && ["C", "c", "S", "s"].indexOf(parsed[i - 1][0]) > -1) {
-            curve = new Bezier(cur[0], cur[1], cur[0] + curve.d.x - curve.c.x, cur[1] + curve.d.y - curve.c.y, cur[0] + parsed[i][1], cur[1] + parsed[i][2], cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
+        }  else if(parsed[i][0] === "s"){
+          if(i>0 && ["C","c","S","s"].indexOf(parsed[i-1][0]) > -1){
+            curve = new Bezier(cur[0], cur[1] , cur[0] + curve.d.x - curve.c.x, cur[1] + curve.d.y - curve.c.y, cur[0] + parsed[i][1], cur[1] + parsed[i][2] , cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
           } else {
-            curve = new Bezier(cur[0], cur[1], cur[0], cur[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2], cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
+            curve = new Bezier(cur[0], cur[1] , cur[0], cur[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2] , cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
           }
           length = length + curve.getTotalLength();
           cur = [parsed[i][3] + cur[0], parsed[i][4] + cur[1]];
           functions.push(curve);
-        } else if (parsed[i][0] === "Q") {
-          if (cur[0] == parsed[i][1] && cur[1] == parsed[i][2]) {
+        }
+        else if(parsed[i][0] === "Q"){
+          if(cur[0] == parsed[i][1] && cur[1] == parsed[i][2]){
             curve = new LinearPosition(parsed[i][1], parsed[i][3], parsed[i][2], parsed[i][4]);
           } else {
-            curve = new Bezier(cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4]);
+            curve = new Bezier(cur[0], cur[1] , parsed[i][1], parsed[i][2] , parsed[i][3], parsed[i][4]);
           }
           length = length + curve.getTotalLength();
           functions.push(curve);
           cur = [parsed[i][3], parsed[i][4]];
           prev_point = [parsed[i][1], parsed[i][2]];
-        } else if (parsed[i][0] === "q") {
-          if (!(parsed[i][1] == 0 && parsed[i][2] == 0)) {
-            curve = new Bezier(cur[0], cur[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2], cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
+        }  else if(parsed[i][0] === "q"){
+          if(!(parsed[i][1] == 0 && parsed[i][2] == 0)){
+            curve = new Bezier(cur[0], cur[1] , cur[0] + parsed[i][1], cur[1] + parsed[i][2] , cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
           } else {
             curve = new LinearPosition(cur[0] + parsed[i][1], cur[0] + parsed[i][3], cur[1] + parsed[i][2], cur[1] + parsed[i][4]);
           }
@@ -11253,32 +10386,32 @@
           prev_point = [cur[0] + parsed[i][1], cur[1] + parsed[i][2]];
           cur = [parsed[i][3] + cur[0], parsed[i][4] + cur[1]];
           functions.push(curve);
-        } else if (parsed[i][0] === "T") {
-          if (i > 0 && ["Q", "q", "T", "t"].indexOf(parsed[i - 1][0]) > -1) {
-            curve = new Bezier(cur[0], cur[1], 2 * cur[0] - prev_point[0], 2 * cur[1] - prev_point[1], parsed[i][1], parsed[i][2]);
+        } else if(parsed[i][0] === "T"){
+          if(i>0 && ["Q","q","T","t"].indexOf(parsed[i-1][0]) > -1){
+            curve = new Bezier(cur[0], cur[1] , 2 * cur[0] - prev_point[0] , 2 * cur[1] - prev_point[1] , parsed[i][1], parsed[i][2]);
           } else {
             curve = new LinearPosition(cur[0], parsed[i][1], cur[1], parsed[i][2]);
           }
           functions.push(curve);
           length = length + curve.getTotalLength();
-          prev_point = [2 * cur[0] - prev_point[0], 2 * cur[1] - prev_point[1]];
+          prev_point = [2 * cur[0] - prev_point[0] , 2 * cur[1] - prev_point[1]];
           cur = [parsed[i][1], parsed[i][2]];
-        } else if (parsed[i][0] === "t") {
-          if (i > 0 && ["Q", "q", "T", "t"].indexOf(parsed[i - 1][0]) > -1) {
-            curve = new Bezier(cur[0], cur[1], 2 * cur[0] - prev_point[0], 2 * cur[1] - prev_point[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2]);
+        } else if(parsed[i][0] === "t"){
+          if(i>0 && ["Q","q","T","t"].indexOf(parsed[i-1][0]) > -1){
+            curve = new Bezier(cur[0], cur[1] , 2 * cur[0] - prev_point[0] , 2 * cur[1] - prev_point[1] , cur[0] + parsed[i][1], cur[1] + parsed[i][2]);
           } else {
             curve = new LinearPosition(cur[0], cur[0] + parsed[i][1], cur[1], cur[1] + parsed[i][2]);
           }
           length = length + curve.getTotalLength();
-          prev_point = [2 * cur[0] - prev_point[0], 2 * cur[1] - prev_point[1]];
+          prev_point = [2 * cur[0] - prev_point[0] , 2 * cur[1] - prev_point[1]];
           cur = [parsed[i][1] + cur[0], parsed[i][2] + cur[0]];
           functions.push(curve);
-        } else if (parsed[i][0] === "A") {
+        } else if(parsed[i][0] === "A"){
           curve = new Arc(cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4], parsed[i][5], parsed[i][6], parsed[i][7]);
           length = length + curve.getTotalLength();
           cur = [parsed[i][6], parsed[i][7]];
           functions.push(curve);
-        } else if (parsed[i][0] === "a") {
+        } else if(parsed[i][0] === "a"){
           curve = new Arc(cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4], parsed[i][5], cur[0] + parsed[i][6], cur[1] + parsed[i][7]);
           length = length + curve.getTotalLength();
           cur = [cur[0] + parsed[i][6], cur[1] + parsed[i][7]];
@@ -11288,461 +10421,400 @@
       }
       return svgProperties;
     }
-    svgProperties.getTotalLength = function () {
+   svgProperties.getTotalLength = function(){
       return length;
     };
-    svgProperties.getPointAtLength = function (fractionLength) {
+    svgProperties.getPointAtLength = function(fractionLength){
       var fractionPart = getPartAtLength(fractionLength);
       return functions[fractionPart.i].getPointAtLength(fractionPart.fraction);
     };
-    svgProperties.getTangentAtLength = function (fractionLength) {
+    svgProperties.getTangentAtLength = function(fractionLength){
       var fractionPart = getPartAtLength(fractionLength);
       return functions[fractionPart.i].getTangentAtLength(fractionPart.fraction);
     };
-    svgProperties.getPropertiesAtLength = function (fractionLength) {
+    svgProperties.getPropertiesAtLength = function(fractionLength){
       var fractionPart = getPartAtLength(fractionLength);
       return functions[fractionPart.i].getPropertiesAtLength(fractionPart.fraction);
     };
-    svgProperties.getParts = function () {
+    svgProperties.getParts = function(){
       var parts = [];
-      for (var i = 0; i < functions.length; i++) {
-        if (functions[i] != null) {
+      for(var i = 0; i< functions.length; i++){
+        if(functions[i] != null){
           var properties = {};
           properties['start'] = functions[i].getPointAtLength(0);
-          properties['end'] = functions[i].getPointAtLength(partial_lengths[i] - partial_lengths[i - 1]);
-          properties['length'] = partial_lengths[i] - partial_lengths[i - 1];
-          (function (func) {
-            properties['getPointAtLength'] = function (d) {
-              return func.getPointAtLength(d);
-            };
-            properties['getTangentAtLength'] = function (d) {
-              return func.getTangentAtLength(d);
-            };
-            properties['getPropertiesAtLength'] = function (d) {
-              return func.getPropertiesAtLength(d);
-            };
+          properties['end'] = functions[i].getPointAtLength(partial_lengths[i] - partial_lengths[i-1]);
+          properties['length'] = partial_lengths[i] - partial_lengths[i-1];
+          (function(func){
+            properties['getPointAtLength'] = function(d){return func.getPointAtLength(d);};
+            properties['getTangentAtLength'] = function(d){return func.getTangentAtLength(d);};
+            properties['getPropertiesAtLength'] = function(d){return func.getPropertiesAtLength(d);};
           })(functions[i]);
           parts.push(properties);
         }
       }
       return parts;
     };
-    var getPartAtLength = function getPartAtLength(fractionLength) {
-      if (fractionLength < 0) {
+    var getPartAtLength = function(fractionLength){
+      if(fractionLength < 0){
         fractionLength = 0;
-      } else if (fractionLength > length) {
+      } else if(fractionLength > length){
         fractionLength = length;
       }
       var i = partial_lengths.length - 1;
-      while (partial_lengths[i] >= fractionLength && partial_lengths[i] > 0) {
+      while(partial_lengths[i] >= fractionLength && partial_lengths[i] > 0){
         i--;
       }
       i++;
-      return {
-        fraction: fractionLength - partial_lengths[i - 1],
-        i: i
-      };
+      return {fraction: fractionLength-partial_lengths[i-1], i: i};
     };
     return svgProperties(svgString);
   }
-  var RES_CIRCLE = 64;
-  var RES_PATH = 128;
-  var emptyValue = {
-    value: 0
+  const emptyValue = { value: 0 };
+  const pointStringToArray = function (str) {
+    return str.split(" ")
+      .filter(s => s !== "")
+      .map(p => p.split(",")
+        .map(n => parseFloat(n)));
   };
-  var pointStringToArray = function pointStringToArray(str) {
-    return str.split(" ").filter(function (s) {
-      return s !== "";
-    }).map(function (p) {
-      return p.split(",").map(function (n) {
-        return parseFloat(n);
-      });
-    });
-  };
-  var getAttributes = function getAttributes(element, attributeList) {
-    var indices = attributeList.map(function (attr) {
-      for (var i = 0; i < element.attributes.length; i += 1) {
+  const getAttributes = function (element, attributeList) {
+    const indices = attributeList.map((attr) => {
+      for (let i = 0; i < element.attributes.length; i += 1) {
         if (element.attributes[i].nodeName === attr) {
           return i;
         }
       }
       return undefined;
     });
-    return indices.map(function (i) {
-      return i === undefined ? emptyValue : element.attributes[i];
-    }).map(function (attr) {
-      return attr.value !== undefined ? attr.value : attr.baseVal.value;
-    });
+    return indices
+      .map(i => (i === undefined ? emptyValue : element.attributes[i]))
+      .map(attr => (attr.value !== undefined ? attr.value : attr.baseVal.value));
   };
-  var svg_line_to_segments = function svg_line_to_segments(line) {
+  const svg_line_to_segments = function (line) {
     return [getAttributes(line, ["x1", "y1", "x2", "y2"])];
   };
-  var svg_rect_to_segments = function svg_rect_to_segments(rect) {
-    var attrs = getAttributes(rect, ["x", "y", "width", "height"]);
-    var x = parseFloat(attrs[0]);
-    var y = parseFloat(attrs[1]);
-    var width = parseFloat(attrs[2]);
-    var height = parseFloat(attrs[3]);
-    return [[x, y, x + width, y], [x + width, y, x + width, y + height], [x + width, y + height, x, y + height], [x, y + height, x, y]];
+  const svg_rect_to_segments = function (rect) {
+    const attrs = getAttributes(rect, ["x", "y", "width", "height"]);
+    const x = parseFloat(attrs[0]);
+    const y = parseFloat(attrs[1]);
+    const width = parseFloat(attrs[2]);
+    const height = parseFloat(attrs[3]);
+    return [
+      [x, y, x + width, y],
+      [x + width, y, x + width, y + height],
+      [x + width, y + height, x, y + height],
+      [x, y + height, x, y],
+    ];
   };
-  var svg_circle_to_segments = function svg_circle_to_segments(circle) {
-    var attrs = getAttributes(circle, ["cx", "cy", "r"]);
-    var cx = parseFloat(attrs[0]);
-    var cy = parseFloat(attrs[1]);
-    var r = parseFloat(attrs[2]);
-    return Array.from(Array(RES_CIRCLE)).map(function (_, i) {
-      return [cx + r * Math.cos(i / RES_CIRCLE * Math.PI * 2), cy + r * Math.sin(i / RES_CIRCLE * Math.PI * 2)];
-    }).map(function (_, i, arr) {
-      return [arr[i][0], arr[i][1], arr[(i + 1) % arr.length][0], arr[(i + 1) % arr.length][1]];
-    });
+  const svg_circle_to_segments = function (circle, RESOLUTION = 64) {
+    const attrs = getAttributes(circle, ["cx", "cy", "r"]);
+    const cx = parseFloat(attrs[0]);
+    const cy = parseFloat(attrs[1]);
+    const r = parseFloat(attrs[2]);
+    return Array.from(Array(RESOLUTION))
+      .map((_, i) => [
+        cx + r * Math.cos(i / RESOLUTION * Math.PI * 2),
+        cy + r * Math.sin(i / RESOLUTION * Math.PI * 2),
+      ]).map((_, i, arr) => [
+        arr[i][0],
+        arr[i][1],
+        arr[(i + 1) % arr.length][0],
+        arr[(i + 1) % arr.length][1],
+      ]);
   };
-  var svg_ellipse_to_segments = function svg_ellipse_to_segments(ellipse) {
-    var attrs = getAttributes(ellipse, ["cx", "cy", "rx", "ry"]);
-    var cx = parseFloat(attrs[0]);
-    var cy = parseFloat(attrs[1]);
-    var rx = parseFloat(attrs[2]);
-    var ry = parseFloat(attrs[3]);
-    return Array.from(Array(RES_CIRCLE)).map(function (_, i) {
-      return [cx + rx * Math.cos(i / RES_CIRCLE * Math.PI * 2), cy + ry * Math.sin(i / RES_CIRCLE * Math.PI * 2)];
-    }).map(function (_, i, arr) {
-      return [arr[i][0], arr[i][1], arr[(i + 1) % arr.length][0], arr[(i + 1) % arr.length][1]];
-    });
+  const svg_ellipse_to_segments = function (ellipse, RESOLUTION = 64) {
+    const attrs = getAttributes(ellipse, ["cx", "cy", "rx", "ry"]);
+    const cx = parseFloat(attrs[0]);
+    const cy = parseFloat(attrs[1]);
+    const rx = parseFloat(attrs[2]);
+    const ry = parseFloat(attrs[3]);
+    return Array.from(Array(RESOLUTION))
+      .map((_, i) => [
+        cx + rx * Math.cos(i / RESOLUTION * Math.PI * 2),
+        cy + ry * Math.sin(i / RESOLUTION * Math.PI * 2),
+      ]).map((_, i, arr) => [
+        arr[i][0],
+        arr[i][1],
+        arr[(i + 1) % arr.length][0],
+        arr[(i + 1) % arr.length][1],
+      ]);
   };
-  var svg_polygon_to_segments = function svg_polygon_to_segments(polygon) {
-    var points = "";
-    for (var i = 0; i < polygon.attributes.length; i += 1) {
+  const svg_polygon_to_segments = function (polygon) {
+    let points = "";
+    for (let i = 0; i < polygon.attributes.length; i += 1) {
       if (polygon.attributes[i].nodeName === "points") {
         points = polygon.attributes[i].value;
         break;
       }
     }
-    return pointStringToArray(points).map(function (_, i, a) {
-      return [a[i][0], a[i][1], a[(i + 1) % a.length][0], a[(i + 1) % a.length][1]];
-    });
+    return pointStringToArray(points)
+      .map((_, i, a) => [
+        a[i][0],
+        a[i][1],
+        a[(i + 1) % a.length][0],
+        a[(i + 1) % a.length][1],
+      ]);
   };
-  var svg_polyline_to_segments = function svg_polyline_to_segments(polyline) {
-    var circularPath = svg_polygon_to_segments(polyline);
+  const svg_polyline_to_segments = function (polyline) {
+    const circularPath = svg_polygon_to_segments(polyline);
     circularPath.pop();
     return circularPath;
   };
-  var svg_path_to_segments = function svg_path_to_segments(path) {
-    var d = path.getAttribute("d");
-    var prop = PathProperties(d);
-    var length = prop.getTotalLength();
-    var isClosed = d[d.length - 1] === "Z" || d[d.length - 1] === "z";
-    var segmentLength = isClosed ? length / RES_PATH : length / (RES_PATH - 1);
-    var pathsPoints = Array.from(Array(RES_PATH)).map(function (_, i) {
-      return prop.getPointAtLength(i * segmentLength);
-    }).map(function (p) {
-      return [p.x, p.y];
-    });
-    var segments = pathsPoints.map(function (_, i, a) {
-      return [a[i][0], a[i][1], a[(i + 1) % a.length][0], a[(i + 1) % a.length][1]];
-    });
-    if (!isClosed) {
-      segments.pop();
-    }
+  const svg_path_to_segments = function (path, RESOLUTION = 128) {
+    const d = path.getAttribute("d");
+    const prop = PathProperties(d);
+    const length = prop.getTotalLength();
+    const isClosed = (d[d.length - 1] === "Z" || d[d.length - 1] === "z");
+    const segmentLength = (isClosed
+      ? length / RESOLUTION
+      : length / (RESOLUTION - 1));
+    const pathsPoints = Array.from(Array(RESOLUTION))
+      .map((_, i) => prop.getPointAtLength(i * segmentLength))
+      .map(p => [p.x, p.y]);
+    const segments = pathsPoints.map((_, i, a) => [
+      a[i][0],
+      a[i][1],
+      a[(i + 1) % a.length][0],
+      a[(i + 1) % a.length][1],
+    ]);
+    if (!isClosed) { segments.pop(); }
     return segments;
   };
-  var parsers = {
+  const parsers = {
     line: svg_line_to_segments,
     rect: svg_rect_to_segments,
     circle: svg_circle_to_segments,
     ellipse: svg_ellipse_to_segments,
     polygon: svg_polygon_to_segments,
     polyline: svg_polyline_to_segments,
-    path: svg_path_to_segments
+    path: svg_path_to_segments,
   };
-  function vkXML$2 (text, step) {
-    var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
-    var len = ar.length;
-    var inComment = false;
-    var deep = 0;
-    var str = "";
-    var space = step != null && typeof step === "string" ? step : "\t";
-    var shift = ["\n"];
-    for (var si = 0; si < 100; si += 1) {
-      shift.push(shift[si] + space);
-    }
-    for (var ix = 0; ix < len; ix += 1) {
-      if (ar[ix].search(/<!/) > -1) {
-        str += shift[deep] + ar[ix];
-        inComment = true;
-        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1 || ar[ix].search(/!DOCTYPE/) > -1) {
-          inComment = false;
-        }
-      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
-        str += ar[ix];
-        inComment = false;
-      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix]) && /^<[\w:\-\.\,]+/.exec(ar[ix - 1]) == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
-        str += ar[ix];
-        if (!inComment) {
-          deep -= 1;
-        }
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1 && ar[ix].search(/\/>/) === -1) {
-        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/\/>/) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\?/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else {
-        str += ar[ix];
-      }
-    }
-    return str[0] === "\n" ? str.slice(1) : str;
-  }
-  var isBrowser$4 = function isBrowser() {
-    return typeof window !== "undefined";
-  };
-  var isNode$4 = function isNode() {
-    return typeof window === "undefined" && typeof process !== "undefined";
-  };
-  var htmlString$4 = "<!DOCTYPE html><title> </title>";
-  var win$4 = {};
-  if (isNode$4()) {
-    var _require$1 = require("xmldom"),
-        DOMParser$2 = _require$1.DOMParser,
-        XMLSerializer$2 = _require$1.XMLSerializer;
-    win$4.DOMParser = DOMParser$2;
-    win$4.XMLSerializer = XMLSerializer$2;
-    win$4.document = new DOMParser$2().parseFromString(htmlString$4, "text/html");
-  } else if (isBrowser$4()) {
-    win$4.DOMParser = window.DOMParser;
-    win$4.XMLSerializer = window.XMLSerializer;
-    win$4.document = window.document;
-  }
-  var parseTransform = function parseTransform(transform) {
-    var parsed = transform.match(/(\w+\((\-?\d+\.?\d*e?\-?\d*,?\s*)+\))+/g);
-    var listForm = parsed.map(function (a) {
-      return a.match(/[\w\.\-]+/g);
-    });
-    return listForm.map(function (a) {
-      return {
-        transform: a.shift(),
-        parameters: a.map(function (p) {
-          return parseFloat(p);
-        })
-      };
-    });
-  };
-  var multiply_line_matrix2 = function multiply_line_matrix2(line, matrix) {
-    return [line[0] * matrix[0] + line[1] * matrix[2] + matrix[4], line[0] * matrix[1] + line[1] * matrix[3] + matrix[5], line[2] * matrix[0] + line[3] * matrix[2] + matrix[4], line[2] * matrix[1] + line[3] * matrix[3] + matrix[5]];
-  };
-  var multiply_matrices2$1 = function multiply_matrices2(m1, m2) {
-    return [m1[0] * m2[0] + m1[2] * m2[1], m1[1] * m2[0] + m1[3] * m2[1], m1[0] * m2[2] + m1[2] * m2[3], m1[1] * m2[2] + m1[3] * m2[3], m1[0] * m2[4] + m1[2] * m2[5] + m1[4], m1[1] * m2[4] + m1[3] * m2[5] + m1[5]];
-  };
-  var matrixFormTranslate = function matrixFormTranslate(params) {
-    switch (params.length) {
-      case 1:
-        return [1, 0, 0, 1, params[0], 0];
-      case 2:
-        return [1, 0, 0, 1, params[0], params[1]];
-      default:
-        console.warn("improper translate, ".concat(params));
-    }
-    return undefined;
-  };
-  var matrixFormRotate = function matrixFormRotate(params) {
-    var cos_p = Math.cos(params[0] / 180 * Math.PI);
-    var sin_p = Math.sin(params[0] / 180 * Math.PI);
-    switch (params.length) {
-      case 1:
-        return [cos_p, sin_p, -sin_p, cos_p, 0, 0];
-      case 3:
-        return [cos_p, sin_p, -sin_p, cos_p, -params[1] * cos_p + params[2] * sin_p + params[1], -params[1] * sin_p - params[2] * cos_p + params[2]];
-      default:
-        console.warn("improper rotate, ".concat(params));
-    }
-    return undefined;
-  };
-  var matrixFormScale = function matrixFormScale(params) {
-    switch (params.length) {
-      case 1:
-        return [params[0], 0, 0, params[0], 0, 0];
-      case 2:
-        return [params[0], 0, 0, params[1], 0, 0];
-      default:
-        console.warn("improper scale, ".concat(params));
-    }
-    return undefined;
-  };
-  var matrixFormSkewX = function matrixFormSkewX(params) {
-    return [1, 0, Math.tan(params[0] / 180 * Math.PI), 1, 0, 0];
-  };
-  var matrixFormSkewY = function matrixFormSkewY(params) {
-    return [1, Math.tan(params[0] / 180 * Math.PI), 0, 1, 0, 0];
-  };
-  var matrixForm = function matrixForm(transformType, params) {
-    switch (transformType) {
-      case "translate":
-        return matrixFormTranslate(params);
-      case "rotate":
-        return matrixFormRotate(params);
-      case "scale":
-        return matrixFormScale(params);
-      case "skewX":
-        return matrixFormSkewX(params);
-      case "skewY":
-        return matrixFormSkewY(params);
-      case "matrix":
-        return params;
-      default:
-        console.warn("unknown transform type ".concat(transformType));
-    }
-    return undefined;
-  };
-  var transformIntoMatrix = function transformIntoMatrix(string) {
-    return parseTransform(string).map(function (el) {
-      return matrixForm(el.transform, el.parameters);
-    }).filter(function (a) {
-      return a !== undefined;
-    }).reduce(function (a, b) {
-      return multiply_matrices2$1(a, b);
-    }, [1, 0, 0, 1, 0, 0]);
-  };
-  var getElementsTransform = function getElementsTransform(element) {
-    if (typeof element.getAttribute !== "function") {
-      return [1, 0, 0, 1, 0, 0];
-    }
-    var transformAttr = element.getAttribute("transform");
-    if (transformAttr != null && transformAttr !== "") {
-      return transformIntoMatrix(transformAttr);
-    }
-    return [1, 0, 0, 1, 0, 0];
-  };
-  var apply_nested_transforms = function apply_nested_transforms(element) {
-    var stack = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [1, 0, 0, 1, 0, 0];
-    var local = multiply_matrices2$1(stack, getElementsTransform(element));
-    element.matrix = local;
-    if (element.tagName === "g" || element.tagName === "svg") {
-      if (element.childNodes == null) {
-        return;
-      }
-      Array.from(element.childNodes).forEach(function (child) {
-        return apply_nested_transforms(child, local);
-      });
-    }
-  };
-  var parseable = Object.keys(parsers);
-  var svgNS$2 = "http://www.w3.org/2000/svg";
-  var DEFAULTS = {
-    string: true,
-    svg: false
-  };
-  var svgAttributes = ["version", "xmlns", "contentScriptType", "contentStyleType", "baseProfile", "class", "externalResourcesRequired", "x", "y", "width", "height", "viewBox", "preserveAspectRatio", "zoomAndPan", "style"];
-  var shape_attr = {
+  var attributes$1 = {
     line: ["x1", "y1", "x2", "y2"],
     rect: ["x", "y", "width", "height"],
     circle: ["cx", "cy", "r"],
     ellipse: ["cx", "cy", "rx", "ry"],
     polygon: ["points"],
     polyline: ["points"],
-    path: ["d"]
+    path: ["d"],
   };
-  var stringToDomTree = function stringToDomTree(input) {
-    return typeof input === "string" || input instanceof String ? new win$4.DOMParser().parseFromString(input, "text/xml").documentElement : input;
-  };
-  var flatten_tree = function flatten_tree(element) {
+  const flattenTree = function (element) {
     if (element.tagName === "g" || element.tagName === "svg") {
-      if (element.childNodes == null) {
-        return [];
-      }
-      return Array.from(element.childNodes).map(function (child) {
-        return flatten_tree(child);
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []);
+      if (element.childNodes == null) { return []; }
+      return Array.from(element.childNodes)
+        .map(child => flattenTree(child))
+        .reduce((a, b) => a.concat(b), []);
     }
     return [element];
   };
-  var attribute_list = function attribute_list(element) {
-    return Array.from(element.attributes).filter(function (a) {
-      return shape_attr[element.tagName].indexOf(a.name) === -1;
-    });
+  const multiply_line_matrix2 = function (line, matrix) {
+    return [
+      line[0] * matrix[0] + line[1] * matrix[2] + matrix[4],
+      line[0] * matrix[1] + line[1] * matrix[3] + matrix[5],
+      line[2] * matrix[0] + line[3] * matrix[2] + matrix[4],
+      line[2] * matrix[1] + line[3] * matrix[3] + matrix[5],
+    ];
   };
-  var objectifyAttributeList = function objectifyAttributeList(list) {
-    var obj = {};
-    list.forEach(function (a) {
-      obj[a.nodeName] = a.value;
-    });
+  const multiply_matrices2$1 = function (m1, m2) {
+    return [
+      m1[0] * m2[0] + m1[2] * m2[1],
+      m1[1] * m2[0] + m1[3] * m2[1],
+      m1[0] * m2[2] + m1[2] * m2[3],
+      m1[1] * m2[2] + m1[3] * m2[3],
+      m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+      m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
+    ];
+  };
+  const parseTransform = function (transform) {
+    const parsed = transform.match(/(\w+\((\-?\d+\.?\d*e?\-?\d*,?\s*)+\))+/g);
+    const listForm = parsed.map(a => a.match(/[\w\.\-]+/g));
+    return listForm.map(a => ({
+      transform: a.shift(),
+      parameters: a.map(p => parseFloat(p)),
+    }));
+  };
+  const matrixFormTranslate = function (params) {
+    switch (params.length) {
+      case 1: return [1, 0, 0, 1, params[0], 0];
+      case 2: return [1, 0, 0, 1, params[0], params[1]];
+      default: console.warn(`improper translate, ${params}`);
+    }
+    return undefined;
+  };
+  const matrixFormRotate = function (params) {
+    const cos_p = Math.cos(params[0] / 180 * Math.PI);
+    const sin_p = Math.sin(params[0] / 180 * Math.PI);
+    switch (params.length) {
+      case 1: return [cos_p, sin_p, -sin_p, cos_p, 0, 0];
+      case 3: return [cos_p, sin_p, -sin_p, cos_p,
+        -params[1] * cos_p + params[2] * sin_p + params[1],
+        -params[1] * sin_p - params[2] * cos_p + params[2]];
+      default: console.warn(`improper rotate, ${params}`);
+    }
+    return undefined;
+  };
+  const matrixFormScale = function (params) {
+    switch (params.length) {
+      case 1: return [params[0], 0, 0, params[0], 0, 0];
+      case 2: return [params[0], 0, 0, params[1], 0, 0];
+      default: console.warn(`improper scale, ${params}`);
+    }
+    return undefined;
+  };
+  const matrixFormSkewX = function (params) {
+    return [1, 0, Math.tan(params[0] / 180 * Math.PI), 1, 0, 0];
+  };
+  const matrixFormSkewY = function (params) {
+    return [1, Math.tan(params[0] / 180 * Math.PI), 0, 1, 0, 0];
+  };
+  const matrixForm = function (transformType, params) {
+    switch (transformType) {
+      case "translate": return matrixFormTranslate(params);
+      case "rotate": return matrixFormRotate(params);
+      case "scale": return matrixFormScale(params);
+      case "skewX": return matrixFormSkewX(params);
+      case "skewY": return matrixFormSkewY(params);
+      case "matrix": return params;
+      default: console.warn(`unknown transform type ${transformType}`);
+    }
+    return undefined;
+  };
+  const transformStringToMatrix = function (string) {
+    return parseTransform(string)
+      .map(el => matrixForm(el.transform, el.parameters))
+      .filter(a => a !== undefined)
+      .reduce((a, b) => multiply_matrices2$1(a, b), [1, 0, 0, 1, 0, 0]);
+  };
+  const get_transform_as_matrix = function (element) {
+    if (typeof element.getAttribute !== "function") {
+      return [1, 0, 0, 1, 0, 0];
+    }
+    const transformAttr = element.getAttribute("transform");
+    if (transformAttr != null && transformAttr !== "") {
+      return transformStringToMatrix(transformAttr);
+    }
+    return [1, 0, 0, 1, 0, 0];
+  };
+  const apply_nested_transforms = function (element, stack = [1, 0, 0, 1, 0, 0]) {
+    const local = multiply_matrices2$1(stack, get_transform_as_matrix(element));
+    element.matrix = local;
+    if (element.tagName === "g" || element.tagName === "svg") {
+      if (element.childNodes == null) { return; }
+      Array.from(element.childNodes)
+        .forEach(child => apply_nested_transforms(child, local));
+    }
+  };
+  const parseable = Object.keys(parsers);
+  const attribute_list = function (element) {
+    return Array.from(element.attributes)
+      .filter(a => attributes$1[element.tagName].indexOf(a.name) === -1);
+  };
+  const objectifyAttributeList = function (list) {
+    const obj = {};
+    list.forEach((a) => { obj[a.nodeName] = a.value; });
     return obj;
   };
-  var Segmentize = function Segmentize(input, options) {
-    var inputSVG = stringToDomTree(input);
-    apply_nested_transforms(inputSVG);
-    var elements = flatten_tree(inputSVG);
-    var lineSegments = elements.filter(function (e) {
-      return parseable.indexOf(e.tagName) !== -1;
-    }).map(function (e) {
-      return parsers[e.tagName](e).map(function (unit) {
-        return multiply_line_matrix2(unit, e.matrix);
-      }).map(function (unit) {
-        return [].concat(_toConsumableArray$2(unit), [attribute_list(e)]);
+  const segmentize = function (input, options = {}) {
+    const RESOLUTION = typeof options.resolution === "object"
+      ? options.resolution
+      : {};
+    if (typeof options.resolution === "number") {
+      ["circle", "ellipse", "path"].forEach((k) => {
+        RESOLUTION[k] = options.resolution;
       });
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
-    lineSegments.filter(function (a) {
-      return a[4] !== undefined;
-    }).forEach(function (seg) {
-      var noTransforms = seg[4].filter(function (a) {
-        return a.nodeName !== "transform";
-      });
-      seg[4] = objectifyAttributeList(noTransforms);
-    });
-    var o = Object.assign(Object.assign({}, DEFAULTS), options);
-    if (o.svg) {
-      var newSVG = win$4.document.createElementNS(svgNS$2, "svg");
-      svgAttributes.map(function (a) {
-        return {
-          attribute: a,
-          value: inputSVG.getAttribute(a)
-        };
-      }).filter(function (obj) {
-        return obj.value != null && obj.value !== "";
-      }).forEach(function (obj) {
-        return newSVG.setAttribute(obj.attribute, obj.value);
-      });
-      if (newSVG.getAttribute("xmlns") === null) {
-        newSVG.setAttribute("xmlns", svgNS$2);
-      }
-      var styles = elements.filter(function (e) {
-        return e.tagName === "style" || e.tagName === "defs";
-      });
-      if (styles.length > 0) {
-        styles.map(function (style) {
-          return style.cloneNode(true);
-        }).forEach(function (style) {
-          return newSVG.appendChild(style);
-        });
-      }
-      lineSegments.forEach(function (s) {
-        var line = win$4.document.createElementNS(svgNS$2, "line");
-        line.setAttributeNS(null, "x1", s[0]);
-        line.setAttributeNS(null, "y1", s[1]);
-        line.setAttributeNS(null, "x2", s[2]);
-        line.setAttributeNS(null, "y2", s[3]);
-        if (s[4] != null) {
-          Object.keys(s[4]).forEach(function (key) {
-            return line.setAttribute(key, s[4][key]);
-          });
-        }
-        newSVG.appendChild(line);
-      });
-      if (o.string === false) {
-        return newSVG;
-      }
-      var stringified = new win$4.XMLSerializer().serializeToString(newSVG);
-      var beautified = vkXML$2(stringified);
-      return beautified;
     }
+    apply_nested_transforms(input);
+    const elements = flattenTree(input);
+    const lineSegments = elements
+      .filter(el => parseable.indexOf(el.tagName) !== -1)
+      .map(el => parsers[el.tagName](el, RESOLUTION[el.tagName])
+        .map(unit => multiply_line_matrix2(unit, el.matrix))
+        .map(unit => [...unit, attribute_list(el)]))
+      .reduce((a, b) => a.concat(b), []);
+    lineSegments
+      .filter(a => a[4] !== undefined)
+      .forEach((seg) => {
+        const noTransforms = seg[4].filter(a => a.nodeName !== "transform");
+        seg[4] = objectifyAttributeList(noTransforms);
+      });
     return lineSegments;
+  };
+  var svgNS$2 = "http://www.w3.org/2000/svg";
+  const svgAttributes = [
+    "version",
+    "xmlns",
+    "contentScriptType",
+    "contentStyleType",
+    "baseProfile",
+    "class",
+    "externalResourcesRequired",
+    "x",
+    "y",
+    "width",
+    "height",
+    "viewBox",
+    "preserveAspectRatio",
+    "zoomAndPan",
+    "style",
+  ];
+  const headerTagNames = {
+    "defs": true,
+    "metadata": true,
+    "title": true,
+    "desc": true,
+    "style": true,
+  };
+  const segmentsToSVG = function (lineSegments, inputSVG) {
+    const newSVG = win$4.document.createElementNS(svgNS$2, "svg");
+    if (inputSVG !== undefined) {
+      svgAttributes.map(a => ({ attribute: a, value: inputSVG.getAttribute(a) }))
+        .filter(obj => obj.value != null && obj.value !== "")
+        .forEach(obj => newSVG.setAttribute(obj.attribute, obj.value));
+    }
+    if (newSVG.getAttribute("xmlns") === null) {
+      newSVG.setAttribute("xmlns", svgNS$2);
+    }
+    Array.from(inputSVG.childNodes)
+      .filter(el => headerTagNames[el.tagName])
+      .map(el => el.cloneNode(true))
+      .forEach(el => newSVG.appendChild(el));
+    lineSegments.forEach((s) => {
+      const line = win$4.document.createElementNS(svgNS$2, "line");
+      attributes$1.line.forEach((attr, i) => line.setAttributeNS(null, attr, s[i]));
+      if (s[4] != null) {
+        Object.keys(s[4]).forEach(key => line.setAttribute(key, s[4][key]));
+      }
+      newSVG.appendChild(line);
+    });
+    return newSVG;
+  };
+  const defaults = Object.freeze({
+    input: "string",
+    output: "string",
+    resolution: Object.freeze({
+      circle: 64,
+      ellipse: 64,
+      path: 128
+    })
+  });
+  const xmlStringToDOM = function (input) {
+    return (typeof input === "string" || input instanceof String
+      ? (new win$4.DOMParser()).parseFromString(input, "text/xml").documentElement
+      : input);
+  };
+  const Segmentize = function (input, options = defaults) {
+    const inputSVG = options.input === "svg"
+      ? input
+      : xmlStringToDOM(input);
+    const lineSegments = segmentize(inputSVG, options);
+    if (options.output === "data") {
+      return lineSegments;
+    }
+    const newSVG = segmentsToSVG(lineSegments, inputSVG);
+    if (options.output === "svg") {
+      return newSVG;
+    }
+    const stringified = new win$4.XMLSerializer().serializeToString(newSVG);
+    return vkXML$2(stringified);
   };
 
   const FOLD = { convert };
@@ -11775,7 +10847,7 @@
   const svg_to_fold = function (svg, options) {
     const pre_frag = emptyFOLD();
     const v0 = pre_frag.vertices_coords.length;
-    const segments = Segmentize(svg);
+    const segments = Segmentize(svg, { output: "data" });
     pre_frag.vertices_coords = segments
       .map(s => [[s[0], s[1]], [s[2], s[3]]])
       .reduce((a, b) => a.concat(b), pre_frag.vertices_coords);
@@ -11815,16 +10887,14 @@
         switch (to) {
           case "fold": return data;
           case "oripa": return oripa.fromFold(data);
-          case "svg": return drawFOLD.svg(data);
-          default: break;
+          case "svg": return FoldToSvg(data);
         }
         break;
       case "oripa":
         switch (to) {
           case "fold": return oripa.toFold(data, true);
           case "oripa": return data;
-          case "svg": return drawFOLD.svg(oripa.toFold(data, true));
-          default: break;
+          case "svg": return FoldToSvg(oripa.toFold(data, true));
         }
         break;
       case "svg":
@@ -11832,10 +10902,8 @@
           case "fold": return SVGtoFOLD(data, ...args);
           case "oripa": return oripa.fromFold(SVGtoFOLD(data, ...args));
           case "svg": return data;
-          default: break;
         }
         break;
-      default: break;
     }
     return undefined;
   };
@@ -12998,146 +12066,7 @@
 
   var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  const shadowFilter$1 = function (id_name = "shadow") {
-    const filter = document.createElementNS(SVG_NS, "filter");
-    filter.setAttribute("width", "200%");
-    filter.setAttribute("height", "200%");
-    filter.setAttribute("id", id_name);
-    const blur = document.createElementNS(SVG_NS, "feGaussianBlur");
-    blur.setAttribute("in", "SourceAlpha");
-    blur.setAttribute("stdDeviation", "0.01");
-    blur.setAttribute("result", "blur");
-    const offset = document.createElementNS(SVG_NS, "feOffset");
-    offset.setAttribute("in", "blur");
-    offset.setAttribute("result", "offsetBlur");
-    const flood = document.createElementNS(SVG_NS, "feFlood");
-    flood.setAttribute("flood-color", "#000");
-    flood.setAttribute("flood-opacity", "0.4");
-    flood.setAttribute("result", "offsetColor");
-    const composite = document.createElementNS(SVG_NS, "feComposite");
-    composite.setAttribute("in", "offsetColor");
-    composite.setAttribute("in2", "offsetBlur");
-    composite.setAttribute("operator", "in");
-    composite.setAttribute("result", "offsetBlur");
-    const merge = document.createElementNS(SVG_NS, "feMerge");
-    const mergeNode1 = document.createElementNS(SVG_NS, "feMergeNode");
-    const mergeNode2 = document.createElementNS(SVG_NS, "feMergeNode");
-    mergeNode2.setAttribute("in", "SourceGraphic");
-    merge.appendChild(mergeNode1);
-    merge.appendChild(mergeNode2);
-    filter.appendChild(blur);
-    filter.appendChild(offset);
-    filter.appendChild(flood);
-    filter.appendChild(composite);
-    filter.appendChild(merge);
-    return filter;
-  };
-
-  const drawLabels = function (graph, group) {
-    if ("faces_vertices" in graph === false
-    || "edges_vertices" in graph === false
-    || "vertices_coords" in graph === false) { return; }
-    const r = bounding_rect(graph);
-    const vmin = r[2] > r[3] ? r[3] : r[2];
-    const fSize = vmin * 0.04;
-    const labels_style = {
-      vertices: `fill:#27b;font-family:sans-serif;font-size:${fSize}px;`,
-      edges: `fill:#e53;font-family:sans-serif;font-size:${fSize}px;`,
-      faces: `fill:black;font-family:sans-serif;font-size:${fSize}px;`,
-    };
-    const m = [fSize * 0.33, fSize * 0.4];
-    graph.vertices_coords
-      .map((c, i) => group.text(`${i}`, c[0] - m[0], c[1] + m[1]))
-      .forEach(t => t.setAttribute("style", labels_style.vertices));
-    graph.edges_vertices
-      .map(ev => ev.map(v => graph.vertices_coords[v]))
-      .map(verts => math.core.average(verts))
-      .map((c, i) => group.text(`${i}`, c[0] - m[0], c[1] + m[1]))
-      .forEach(t => t.setAttribute("style", labels_style.edges));
-    graph.faces_vertices
-      .map(fv => fv.map(v => graph.vertices_coords[v]))
-      .map(verts => math.core.average(verts))
-      .map((c, i) => group.text(`${i}`, c[0] - m[0], c[1] + m[1]))
-      .forEach(t => t.setAttribute("style", labels_style.faces));
-  };
-  const drawDebug = function (graph, group) {
-    const r = bounding_rect(graph);
-    const vmin = r[2] > r[3] ? r[3] : r[2];
-    const strokeW = vmin * 0.005;
-    const debug_style = {
-      faces_vertices: `fill:#555;stroke:none;stroke-width:${strokeW};`,
-      faces_edges: `fill:#aaa;stroke:none;stroke-width:${strokeW};`,
-    };
-    graph.faces_vertices
-      .map(fv => fv.map(v => graph.vertices_coords[v]))
-      .map(face => math.convexPolygon(face).scale(0.666).points)
-      .map(points => group.polygon(points))
-      .forEach(poly => poly.setAttribute("style", debug_style.faces_vertices));
-    graph.faces_edges
-      .map(face_edges => face_edges
-        .map(edge => graph.edges_vertices[edge])
-        .map((vi, i, arr) => {
-          const next = arr[(i + 1) % arr.length];
-          return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
-        }).map(v => graph.vertices_coords[v]))
-      .map(face => math.convexPolygon(face).scale(0.333).points)
-      .map(points => group.polygon(points))
-      .forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
-  };
-  const drawDiagram = function (graph, group, preferences = {}) {
-    const r = bounding_rect(graph);
-    const vmin = r[2] > r[3] ? r[3] : r[2];
-    const diagrams = graph["re:diagrams"];
-    if (diagrams == null) { return; }
-    diagrams
-      .map(d => d["re:diagram_arrows"])
-      .filter(a => a != null)
-      .forEach(arrow => arrow
-        .map(a => a["re:diagram_arrow_coords"])
-        .filter(a => a.length > 0)
-        .map((p) => {
-          let side = p[0][0] < p[1][0];
-          if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
-            side = p[0][1] < p[1][1]
-              ? p[0][0] < 0.5
-              : p[0][0] > 0.5;
-          }
-          if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
-            side = p[0][0] < p[1][0]
-              ? p[0][1] > 0.5
-              : p[0][1] < 0.5;
-          }
-          const prefs = {
-            side,
-            strokeWidth: vmin * 0.02,
-          };
-          if (preferences.arrowColor) { prefs.color = preferences.arrowColor; }
-          return group.arrow(p[0], p[1], prefs)
-            .curve(0.3)
-            .head({ width: vmin * 0.035, height: vmin * 0.09 })
-            .fill("black")
-            .stroke("black");
-        }));
-  };
-
-  const DEFAULT_STYLE = `
-line.boundary { stroke: black; }
-line.mark { stroke: lightgray; }
-line.mountain { stroke: red; }
-line.valley { stroke: blue;
-  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);
-}
-/* polygon { fill: none; stroke: none; stroke-linejoin: bevel; } */
-.foldedForm polygon { stroke: black; fill: #8881; }
-.foldedForm polygon.front { fill: white; }
-.foldedForm polygon.back { fill: lightgray; }
-.creasePattern .boundaries polygon { fill: white; stroke: none; }
-.creasePattern .faces polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
-.foldedForm .boundaries polygon { fill: none; stroke: none; }
-.foldedForm line { stroke: none; }
-`;
-  const DEFAULTS$1 = Object.freeze({
+  const DEFAULTS = Object.freeze({
     boundaries: true,
     faces: true,
     edges: true,
@@ -13147,13 +12076,12 @@ line.valley { stroke: blue;
     debug: false,
     autofit: true,
     padding: 0,
-    shadows: false,
     strokeWidth: 0.01,
     style: undefined,
     arrowColor: undefined,
   });
   const parseOptions = function (...args) {
-    const keys = Object.keys(DEFAULTS$1);
+    const keys = Object.keys(DEFAULTS);
     const options = {};
     Array(...args)
       .filter(obj => typeof obj === "object")
@@ -13164,9 +12092,6 @@ line.valley { stroke: blue;
   };
   const View = function (graph, ...args) {
     const svg = SVG(...args);
-    const svgStyle = svg.stylesheet(DEFAULT_STYLE);
-    const defs = svg.defs();
-    defs.appendChild(shadowFilter$1("faces_shadow"));
     const groups = {};
     ["boundaries", "faces", "edges", "vertices", "diagram", "labels"
     ].forEach((key) => {
@@ -13175,7 +12100,7 @@ line.valley { stroke: blue;
       groups[key].pointerEvents("none");
     });
     const options = {};
-    Object.assign(options, DEFAULTS$1);
+    Object.assign(options, DEFAULTS);
     const userDefaults = parseOptions(...args);
     Object.keys(userDefaults).forEach((key) => {
       options[key] = userDefaults[key];
@@ -13186,38 +12111,21 @@ line.valley { stroke: blue;
       SVG.setViewBox(svg, r[0], r[1], r[2], r[3], options.padding * vmin);
     };
     const draw = function () {
-      const file_classes = (graph.file_classes != null
-        ? graph.file_classes : []).join(" ");
-      const frame_classes = graph.frame_classes != null
-        ? graph.frame_classes : [].join(" ");
-      const top_level_classes = [file_classes, frame_classes]
-        .filter(s => s !== "")
-        .join(" ");
-      svg.setAttribute("class", top_level_classes);
-      Object.keys(groups).forEach(key => groups[key].removeChildren());
-      Object.keys(groups)
-        .filter(key => options[key])
-        .filter(key => drawFOLD.components.svg[key] !== undefined)
-        .forEach(key => drawFOLD.components.svg[key](graph)
-          .forEach(o => groups[key].appendChild(o)));
-      if (options.autofit) { fit(); }
-      if (options.diagram) { drawDiagram(graph, groups.diagram); }
-      if (options.labels) { drawLabels(graph, groups.labels); }
-      if (options.debug) { drawDebug(graph, groups.labels); }
-      if (options.shadows) {
-        Array.from(groups.faces.childNodes)
-          .forEach(f => f.setAttribute("filter", "url(#faces_shadow)"));
+      const drawOptions = (graph.frame_classes && graph.frame_classes.includes("foldedForm")
+        ? { output: "svg", edges: false, boundaries: false }
+        : { output: "svg" });
+      console.log(options);
+      if (options.padding) { drawOptions.padding = options.padding; }
+      const newSVG = FoldToSvg(graph, drawOptions);
+      while (svg.lastChild) {
+        svg.removeChild(svg.lastChild);
       }
-      const r = bounding_rect(graph);
-      const vmin = r[2] > r[3] ? r[3] : r[2];
-      const vmax = r[2] > r[3] ? r[2] : r[3];
-      const vavg = (vmin + vmax) / 2;
-      const strokeWidth = vavg * options.strokeWidth;
-      ["boundaries", "faces", "edges"]
-        .forEach(key => groups[key].strokeWidth(strokeWidth));
-      if (options.style) {
-        svgStyle.setTextContent(DEFAULT_STYLE + options.style);
-      }
+      Array.from(newSVG.childNodes).forEach(group => {
+        group.remove();
+        svg.appendChild(group);
+      });
+      Array.from(newSVG.attributes)
+        .forEach(attr => svg.setAttribute(attr.name, attr.value));
     };
     Object.defineProperty(svg, "draw", { value: draw });
     Object.defineProperty(svg, "fit", { value: fit });
@@ -13738,11 +12646,11 @@ line.valley { stroke: blue;
     return proto;
   };
 
-  const DEFAULTS$2 = Object.freeze({
+  const DEFAULTS$1 = Object.freeze({
     touchFold: false,
   });
   const parseOptions$1 = function (...args) {
-    const keys = Object.keys(DEFAULTS$2);
+    const keys = Object.keys(DEFAULTS$1);
     const prefs = {};
     Array(...args)
       .filter(obj => typeof obj === "object")
@@ -13832,32 +12740,6 @@ line.valley { stroke: blue;
     const unfold = function () {
       return origami;
     };
-    const get = function (component) {
-      const a = transpose_geometry_arrays(origami, component);
-      const view = origami.svg || origami.gl;
-      Object.defineProperty(a, "visible", {
-        get: () => view.options[component],
-        set: (v) => {
-          view.options[component] = !!v;
-          origami.didChange.forEach(f => f());
-        },
-      });
-      if (origami.svg != null) {
-        a.forEach((el, i) => {
-          el.svg = origami.svg.groups[component].childNodes[i];
-        });
-      }
-      if (component === "edges") {
-        a.forEach((e) => {
-          e.vector = (() => {
-            const pA = origami.vertices_coords[e.vertices[0]];
-            const pB = origami.vertices_coords[e.vertices[1]];
-            return [pB[0] - pA[0], pB[1] - pA[1]];
-          });
-        });
-      }
-      return a;
-    };
     const nearest = function (...args2) {
       const plural = {
         vertex: "vertices",
@@ -13888,7 +12770,7 @@ line.valley { stroke: blue;
       return nears;
     };
     const options = {};
-    Object.assign(options, DEFAULTS$2);
+    Object.assign(options, DEFAULTS$1);
     const userDefaults = parseOptions$1(...args);
     Object.keys(userDefaults)
       .forEach((key) => { options[key] = userDefaults[key]; });
@@ -13898,17 +12780,11 @@ line.valley { stroke: blue;
     Object.defineProperty(origami, "fold", { value: fold });
     Object.defineProperty(origami, "unfold", { value: unfold });
     Object.defineProperty(origami, "nearest", { value: nearest });
-    Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
-    Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
-    Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
     const exportObject = function () { return JSON.stringify(origami); };
     exportObject.json = function () { return JSON.stringify(origami); };
     exportObject.fold = function () { return JSON.stringify(origami); };
     exportObject.svg = function () {
-      if (origami.svg != null) {
-        return (new win$1.XMLSerializer()).serializeToString(origami.svg);
-      }
-      return drawFOLD.svg(origami);
+      return FoldToSvg(origami);
     };
     Object.defineProperty(origami, "snapshot", { get: () => exportObject });
     Object.defineProperty(origami, "export", { get: () => exportObject });
@@ -13933,7 +12809,6 @@ line.valley { stroke: blue;
         view = View3D(origami, ...args);
         Object.defineProperty(origami, "canvas", { get: () => view });
         break;
-      default: break;
     }
     return origami;
   };
@@ -14004,4 +12879,4 @@ line.valley { stroke: blue;
 
   return rabbitEar;
 
-}));
+})));

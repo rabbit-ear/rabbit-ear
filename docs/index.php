@@ -111,6 +111,51 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 	Read more about the <b>Origami object</b>, .svg to .fold <b>converters</b>, the <b>math and svg libraries</b>, and more in the following sections.
 </p>
 
+<h2>Developers</h2>
+
+<pre class="code"><code><c class="no-select">&gt; </c>npm i rabbit-ear</code></pre>
+
+<p>
+	Rabbit Ear can be installed using node or downloaded separately. The <a href="https://github.com/robbykraft/Origami">source</a> is available.
+</p>
+
+<p>
+	Rabbit Ear is assembled from parts, each available as a separate node package.
+</p>
+
+<!-- <h3>math</h3> -->
+
+<pre class="code"><code><c class="no-select">&gt; </c>npm i rabbit-ear-math</code></pre>
+
+<p>
+	All the geometry/linear algebra methods that power this library. <a href="https://github.com/robbykraft/Math">source</a>
+</p>
+
+<!-- <h3>SVG</h3> -->
+
+<pre class="code"><code><c class="no-select">&gt; </c>npm i rabbit-ear-svg</code></pre>
+
+<p>
+	Create SVG drawings in code. <a href="https://github.com/robbykraft/SVG">source</a>
+</p>
+
+<!-- <h3>svg-to-fold &amp; fold-to-svg</h3> -->
+
+<pre class="code"><code><c class="no-select">&gt; </c>npm i tofold</code></pre>
+
+<p>
+	Conversion between FOLD and SVG is very different depending on which direction you're traveling. SVG to FOLD will assume the SVG is a crease pattern. <a href="https://github.com/robbykraft/svg-to-fold">source</a>, <a href="https://github.com/robbykraft/fold-to-svg">source</a>.
+</p>
+
+<!-- <h3>svg-segmentize</h3> -->
+
+<pre class="code"><code><c class="no-select">&gt; </c>npm i svg-segmentize</code></pre>
+
+<p>
+	Used in svg-to-fold. This converts an SVG image into a copy containing only (straight) line segments. <a href="https://github.com/robbykraft/svg-segmentize">source</a>
+</p>
+
+
 <section id="footer" style="font-size: 80%; margin: 2rem 0">
 	<hr>
 	<p>This project is <a href="http://github.com/robbykraft/Origami/">open source</a>.</p>

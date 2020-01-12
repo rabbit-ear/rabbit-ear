@@ -27,12 +27,6 @@ const removeDuplicateEdges = function (graph) {
 const clean = function (graph) {
   removeCircularEdges(graph);
   removeDuplicateEdges(graph);
-
-  // if (Collinear.remove_all_collinear_vertices(this)) {
-  //   const cleaned2 = clean(this);
-  //   Object.keys(cleaned2).forEach((key) => { this[key] = cleaned2[key]; });
-  // }
-  // remove(this, "vertices", Isolated.find_isolated_vertices(this));
 };
 
 export default clean;

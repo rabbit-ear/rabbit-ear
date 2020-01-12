@@ -114,6 +114,7 @@ export const drawDiagram = function (graph, group, preferences = {}) {
           .stroke("black");
       }));
 };
+
 // if ("re:construction" in graph === false) { return; }
 // let construction = graph["re:construction"];
 // let diagram = constructon_to_diagram(construction);

@@ -5,9 +5,8 @@
 *
 *
 *
-*      "fast" init param
-8       divide each function into fast and slow
-
+* "fast" init param
+*  divide each function into fast and slow
 *
 */
 

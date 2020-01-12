@@ -20,6 +20,8 @@ const graph = {
   vertices_edges: [[1,3],[0,2],null,[0,1],null,[2,3]]
 };
 
+// todo: edge-isolated and face-isolated
+
 test("isolated vertices", () => {
   const isolated = RabbitEar.core.find_isolated_vertices(graph);
   expect(isolated.length).toBe(2);

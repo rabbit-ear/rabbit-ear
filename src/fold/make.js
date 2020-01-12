@@ -117,7 +117,7 @@ export const make_edges_foldAngle = function ({ edges_assignment }) {
  * the value is the index of the edge.
  */
 export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
-  if (!edges_vertices) { return {}; } // todo, should this return undefined
+  if (!edges_vertices) { return {}; } // todo, should this return undefined?
   const map = {};
   edges_vertices
     .map(ev => ev.sort((a, b) => a - b).join(" "))
