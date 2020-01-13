@@ -24,7 +24,8 @@ import {
 } from "../FOLD/query";
 import { clone } from "../FOLD/object";
 
-const vertex_degree = function (v, i, graph) {
+const vertex_degree = function (v, i) {
+  const graph = this;
   Object.defineProperty(v, "degree", {
     get: () => (graph.vertices_vertices && graph.vertices_vertices[i]
       ? graph.vertices_vertices[i].length
@@ -32,7 +33,22 @@ const vertex_degree = function (v, i, graph) {
   });
 };
 
-const face_simple = function (f, i, graph) {
+const edge_coords = function (e, i) {
+  const graph = this;
+  Object.defineProperty(e, "coords", {
+    get: () => {
+      if (!graph.edges_vertices
+        || !graph.edges_vertices[i]
+        || !graph.vertices_coords) {
+        return undefined;
+      }
+      return graph.edges_vertices[i].map(v => graph.vertices_coords[v]);
+    }
+  });
+}
+
+const face_simple = function (f, i) {
+  const graph = this;
   Object.defineProperty(f, "simple", {
     get: () => {
       if (!graph.faces_vertices || !graph.faces_vertices[i]) { return null; }
@@ -48,59 +64,64 @@ const face_simple = function (f, i, graph) {
   });
 };
 
-const setup_vertex = function (v, i, graph) {
-  vertex_degree(v, i, graph);
+const face_coords = function (f, i) {
+  const graph = this;
+  Object.defineProperty(f, "coords", {
+    get: () => {
+      if (!graph.faces_vertices
+        || !graph.faces_vertices[i]
+        || !graph.vertices_coords) {
+        return undefined;
+      }
+      return graph.faces_vertices[i].map(v => graph.vertices_coords[v]);
+    }
+  });
+}
+
+const setup_vertex = function (v, i) {
+  vertex_degree.call(this, v, i);
 };
 
-const setup_edge = function () { // (e, i, graph) {
-
+const setup_edge = function (e, i) {
+  edge_coords.call(this, e, i);
 };
 
-const setup_face = function (f, i, graph) {
-  face_simple(f, i, graph);
+const setup_face = function (f, i) {
+  face_simple.call(this, f, i);
+  face_coords.call(this, f, i);
 };
 
 const Prototype = function (proto = {}) {
   /**
-   * export
+   * @param {object} is a FOLD object.
+   * @param {options}
+   *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
    */
-  /** @return {this} a deep copy of this object. */
-  proto.copy = function () {
-    return Object.assign(Object.create(Prototype()), clone(this));
+  proto.load = function (object, options = {}) {
+    if (options.append !== true) {
+      keys.forEach(key => delete this[key]);
+    }
+    // allow overwriting of file_spec and file_creator if included in import
+    Object.assign(this, { file_spec, file_creator }, clone(object));
   };
   /**
-   * graph components
+   * this performs a planar join, merging the two graphs, fragmenting, cleaning.
    */
-  const getVertices = function () {
-    const transposed = transpose_geometry_arrays(this, "vertices");
-    const vertices = transposed.length !== 0
-      ? transposed
-      : Array.from(Array(implied_vertices_count(this))).map(() => ({}));
-    vertices.forEach((v, i) => setup_vertex(v, i, this));
-    return vertices;
+  proto.join = function (object, epsilon) {
+    join(this, object, epsilon);
   };
-  const getEdges = function () {
-    const edges = transpose_geometry_arrays(this, "edges");
-    // add coords
-    if (this.vertices_coords && this.edges_vertices) {
-      const that = this;
-      edges.forEach((e, i) => {
-        e.coords = that.edges_vertices[i].map(v => that.vertices_coords[v]);
-      });
-    }
-    return edges;
+  /**
+   * this clears all components from the graph, leaving other keys untouched.
+   */
+  proto.clear = function () {
+    fold_keys.graph.forEach(key => delete this[key]);
   };
-  const getFaces = function () {
-    const faces = transpose_geometry_arrays(this, "faces");
-    faces.forEach((f, i) => setup_face(f, i, this));
-    // add coords
-    if (this.vertices_coords && this.faces_vertices) {
-      const that = this;
-      faces.forEach((f, i) => {
-        f.coords = that.faces_vertices[i].map(v => that.vertices_coords[v]);
-      });
-    }
-    return faces;
+  /**
+   * export
+   * @returns {this} a deep copy of this object
+   */
+  proto.copy = function () {
+    return Object.assign(Object.create(Prototype()), clone(this));
   };
   /**
    * modifiers
@@ -121,47 +142,52 @@ const Prototype = function (proto = {}) {
     rebuild(this, epsilon);
   };
   /**
-   * @param {object} is a FOLD object.
-   * @param {options}
-   *  - "append": true
-   *    by default all FOLD spec keys will be cleared. setting this to true
-   *    prevents this clearing
+   * transformations
    */
-  proto.load = function (object, options = {}) {
-    if (options.append !== true) {
-      keys.forEach(key => delete this[key]);
-    }
-    // allow load() to overwrite file_spec and file_creator
-    Object.assign(this, { file_spec, file_creator }, clone(object));
+  proto.translate = function (...args) {
+    Transform.transform_translate(this, ...args);
   };
-  proto.join = function (object, epsilon) {
-    join(this, object, epsilon);
+  // proto.rotate = function (...args) {
+  //   Transform.transform_rotate(this, ...args);
+  // };
+  proto.scale = function (...args) {
+    Transform.transform_scale(this, ...args);
   };
   /**
-   * this clears all components from the graph
+   * graph components
    */
-  proto.clear = function () {
-    fold_keys.graph.forEach(key => delete this[key]);
+  const getVertices = function () {
+    const transposed = transpose_geometry_arrays(this, "vertices");
+    const vertices = transposed.length !== 0
+      ? transposed
+      : Array.from(Array(implied_vertices_count(this))).map(() => ({}));
+    vertices.forEach(setup_vertex.bind(this));
+    return vertices;
+  };
+  const getEdges = function () {
+    const edges = transpose_geometry_arrays(this, "edges");
+    edges.forEach(setup_edge.bind(this));
+    return edges;
+  };
+  const getFaces = function () {
+    const faces = transpose_geometry_arrays(this, "faces");
+    faces.forEach(setup_face.bind(this));
+    return faces;
   };
   /**
-   * How does this view process a request for nearest components to a target?
-   * (2D), furthermore, attach view objects (SVG) to the nearest value data.
+   * graph components based on Euclidean distance
    */
   proto.nearestVertex = function (...args) {
     const index = nearest_vertex(this, math.core.get_vector(...args));
     const result = transpose_geometry_array_at_index(this, "vertices", index);
-    setup_vertex(result, index, this);
+    setup_vertex.call(this, result, index);
     result.index = index;
     return result;
   };
   proto.nearestEdge = function (...args) {
     const index = nearest_edge(this, math.core.get_vector(...args));
     const result = transpose_geometry_array_at_index(this, "edges", index);
-    setup_edge(result, index, this);
-    // add coords
-    if (this.vertices_coords && this.edges_vertices) {
-      result.coords = this.edges_vertices[index].map(v => this.vertices_coords[v]);
-    }
+    setup_edge.call(this, result, index);
     result.index = index;
     return result;
   };
@@ -170,11 +196,7 @@ const Prototype = function (proto = {}) {
     if (index === undefined) { return undefined; }
     // todo, if point isn't inside a face, there can still exist a nearest face
     const result = transpose_geometry_array_at_index(this, "faces", index);
-    setup_face(result, index, this);
-    // add coords
-    if (this.vertices_coords && this.faces_vertices) {
-      result.coords = this.faces_vertices[index].map(v => this.vertices_coords[v]);
-    }
+    setup_face.call(this, result, index);
     result.index = index;
     return result;
   };
@@ -189,18 +211,6 @@ const Prototype = function (proto = {}) {
       .filter(key => nears[key] == null)
       .forEach(key => delete nears[key]);
     return nears;
-  };
-  /**
-   * transformations
-   */
-  proto.translate = function (...args) {
-    Transform.transform_translate(this, ...args);
-  };
-  // proto.rotate = function (...args) {
-  //   Transform.transform_rotate(this, ...args);
-  // };
-  proto.scale = function (...args) {
-    Transform.transform_scale(this, ...args);
   };
 
   Object.defineProperty(proto, "vertices", { get: getVertices });

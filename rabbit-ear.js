@@ -5349,14 +5349,29 @@
     recursive_freeze: recursive_freeze
   });
 
-  const vertex_degree = function (v, i, graph) {
+  const vertex_degree = function (v, i) {
+    const graph = this;
     Object.defineProperty(v, "degree", {
       get: () => (graph.vertices_vertices && graph.vertices_vertices[i]
         ? graph.vertices_vertices[i].length
         : null)
     });
   };
-  const face_simple = function (f, i, graph) {
+  const edge_coords = function (e, i) {
+    const graph = this;
+    Object.defineProperty(e, "coords", {
+      get: () => {
+        if (!graph.edges_vertices
+          || !graph.edges_vertices[i]
+          || !graph.vertices_coords) {
+          return undefined;
+        }
+        return graph.edges_vertices[i].map(v => graph.vertices_coords[v]);
+      }
+    });
+  };
+  const face_simple = function (f, i) {
+    const graph = this;
     Object.defineProperty(f, "simple", {
       get: () => {
         if (!graph.faces_vertices || !graph.faces_vertices[i]) { return null; }
@@ -5371,44 +5386,44 @@
       }
     });
   };
-  const setup_vertex = function (v, i, graph) {
-    vertex_degree(v, i, graph);
+  const face_coords = function (f, i) {
+    const graph = this;
+    Object.defineProperty(f, "coords", {
+      get: () => {
+        if (!graph.faces_vertices
+          || !graph.faces_vertices[i]
+          || !graph.vertices_coords) {
+          return undefined;
+        }
+        return graph.faces_vertices[i].map(v => graph.vertices_coords[v]);
+      }
+    });
   };
-  const setup_face = function (f, i, graph) {
-    face_simple(f, i, graph);
+  const setup_vertex = function (v, i) {
+    vertex_degree.call(this, v, i);
+  };
+  const setup_edge = function (e, i) {
+    edge_coords.call(this, e, i);
+  };
+  const setup_face = function (f, i) {
+    face_simple.call(this, f, i);
+    face_coords.call(this, f, i);
   };
   const Prototype$2 = function (proto = {}) {
+    proto.load = function (object, options = {}) {
+      if (options.append !== true) {
+        keys.forEach(key => delete this[key]);
+      }
+      Object.assign(this, { file_spec, file_creator }, clone(object));
+    };
+    proto.join = function (object, epsilon) {
+      join(this, object, epsilon);
+    };
+    proto.clear = function () {
+      fold_keys.graph.forEach(key => delete this[key]);
+    };
     proto.copy = function () {
       return Object.assign(Object.create(Prototype$2()), clone(this));
-    };
-    const getVertices = function () {
-      const transposed = transpose_geometry_arrays(this, "vertices");
-      const vertices = transposed.length !== 0
-        ? transposed
-        : Array.from(Array(implied_vertices_count(this))).map(() => ({}));
-      vertices.forEach((v, i) => setup_vertex(v, i, this));
-      return vertices;
-    };
-    const getEdges = function () {
-      const edges = transpose_geometry_arrays(this, "edges");
-      if (this.vertices_coords && this.edges_vertices) {
-        const that = this;
-        edges.forEach((e, i) => {
-          e.coords = that.edges_vertices[i].map(v => that.vertices_coords[v]);
-        });
-      }
-      return edges;
-    };
-    const getFaces = function () {
-      const faces = transpose_geometry_arrays(this, "faces");
-      faces.forEach((f, i) => setup_face(f, i, this));
-      if (this.vertices_coords && this.faces_vertices) {
-        const that = this;
-        faces.forEach((f, i) => {
-          f.coords = that.faces_vertices[i].map(v => that.vertices_coords[v]);
-        });
-      }
-      return faces;
     };
     proto.clean = function () {
       clean(this);
@@ -5425,31 +5440,41 @@
     proto.rebuild = function (epsilon = 1e-6) {
       rebuild(this, epsilon);
     };
-    proto.load = function (object, options = {}) {
-      if (options.append !== true) {
-        keys.forEach(key => delete this[key]);
-      }
-      Object.assign(this, { file_spec, file_creator }, clone(object));
+    proto.translate = function (...args) {
+      transform_translate(this, ...args);
     };
-    proto.join = function (object, epsilon) {
-      join(this, object, epsilon);
+    proto.scale = function (...args) {
+      transform_scale(this, ...args);
     };
-    proto.clear = function () {
-      fold_keys.graph.forEach(key => delete this[key]);
+    const getVertices = function () {
+      const transposed = transpose_geometry_arrays(this, "vertices");
+      const vertices = transposed.length !== 0
+        ? transposed
+        : Array.from(Array(implied_vertices_count(this))).map(() => ({}));
+      vertices.forEach(setup_vertex.bind(this));
+      return vertices;
+    };
+    const getEdges = function () {
+      const edges = transpose_geometry_arrays(this, "edges");
+      edges.forEach(setup_edge.bind(this));
+      return edges;
+    };
+    const getFaces = function () {
+      const faces = transpose_geometry_arrays(this, "faces");
+      faces.forEach(setup_face.bind(this));
+      return faces;
     };
     proto.nearestVertex = function (...args) {
       const index = nearest_vertex(this, math.core.get_vector(...args));
       const result = transpose_geometry_array_at_index(this, "vertices", index);
-      setup_vertex(result, index, this);
+      setup_vertex.call(this, result, index);
       result.index = index;
       return result;
     };
     proto.nearestEdge = function (...args) {
       const index = nearest_edge(this, math.core.get_vector(...args));
       const result = transpose_geometry_array_at_index(this, "edges", index);
-      if (this.vertices_coords && this.edges_vertices) {
-        result.coords = this.edges_vertices[index].map(v => this.vertices_coords[v]);
-      }
+      setup_edge.call(this, result, index);
       result.index = index;
       return result;
     };
@@ -5457,10 +5482,7 @@
       const index = face_containing_point(this, math.core.get_vector(...args));
       if (index === undefined) { return undefined; }
       const result = transpose_geometry_array_at_index(this, "faces", index);
-      setup_face(result, index, this);
-      if (this.vertices_coords && this.faces_vertices) {
-        result.coords = this.faces_vertices[index].map(v => this.vertices_coords[v]);
-      }
+      setup_face.call(this, result, index);
       result.index = index;
       return result;
     };
@@ -5475,12 +5497,6 @@
         .filter(key => nears[key] == null)
         .forEach(key => delete nears[key]);
       return nears;
-    };
-    proto.translate = function (...args) {
-      transform_translate(this, ...args);
-    };
-    proto.scale = function (...args) {
-      transform_scale(this, ...args);
     };
     Object.defineProperty(proto, "vertices", { get: getVertices });
     Object.defineProperty(proto, "edges", { get: getEdges });
@@ -12121,7 +12137,7 @@
         svg.removeChild(svg.lastChild);
       }
       Array.from(newSVG.childNodes).forEach(group => {
-        group.remove();
+        newSVG.removeChild(group);
         svg.appendChild(group);
       });
       Array.from(newSVG.attributes)
@@ -12740,35 +12756,6 @@
     const unfold = function () {
       return origami;
     };
-    const nearest = function (...args2) {
-      const plural = {
-        vertex: "vertices",
-        edge: "edges",
-        face: "faces",
-      };
-      const target = math.core.get_vector(...args2);
-      const nears = {
-        vertex: origami.nearestVertex(origami, target),
-        edge: origami.nearestEdge(origami, target),
-        face: origami.nearestFace(origami, target)
-      };
-      Object.keys(nears)
-        .filter(key => nears[key] == null)
-        .forEach(key => delete nears[key]);
-      if (origami.svg != null) {
-        Object.keys(nears).forEach((key) => {
-          nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
-        });
-      }
-      if (nears.edge != null) {
-        nears.edge.vector = (() => {
-          const pA = origami.vertices_coords[nears.edge.vertices[0]];
-          const pB = origami.vertices_coords[nears.edge.vertices[1]];
-          return [pB[0] - pA[0], pB[1] - pA[1]];
-        });
-      }
-      return nears;
-    };
     const options = {};
     Object.assign(options, DEFAULTS$1);
     const userDefaults = parseOptions$1(...args);
@@ -12779,7 +12766,6 @@
     Object.defineProperty(origami, "flatten", { value: flatten });
     Object.defineProperty(origami, "fold", { value: fold });
     Object.defineProperty(origami, "unfold", { value: unfold });
-    Object.defineProperty(origami, "nearest", { value: nearest });
     const exportObject = function () { return JSON.stringify(origami); };
     exportObject.json = function () { return JSON.stringify(origami); };
     exportObject.fold = function () { return JSON.stringify(origami); };

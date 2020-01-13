@@ -60,7 +60,6 @@ export const possible_mark_object = function (o) {
   return false;
 };
 
-
 const get_mark_options = function (...args) {
   const options = args.filter(o => typeof o === "object")
     .filter(o => possible_mark_object(o))

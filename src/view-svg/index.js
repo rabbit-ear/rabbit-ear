@@ -125,7 +125,7 @@ const View = function (graph, ...args) {
     }
     // transfer everything over to our SVG
     Array.from(newSVG.childNodes).forEach(group => {
-      group.remove();
+      newSVG.removeChild(group);
       svg.appendChild(group);
     });
     Array.from(newSVG.attributes)

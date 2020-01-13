@@ -174,77 +174,6 @@ const Origami = function (...args) {
     return origami;
   };
 
-  // probably not needed
-  // const calculateAdjacent = function (component, index) {
-  //   return [1, 5, 2];
-  // };
-
-  // const get = function (component) {
-  //   const a = transpose_geometry_arrays(origami, component);
-  //   const view = origami.svg || origami.gl;
-  //   Object.defineProperty(a, "visible", {
-  //     get: () => view.options[component],
-  //     set: (v) => {
-  //       view.options[component] = !!v;
-  //       origami.didChange.forEach(f => f());
-  //     },
-  //   });
-  //   // this should be covered in the flat arrays, and automatically migrate over due to transpose_geometry_arrays
-  //   // a.forEach(el => Object.defineProperty(el, "adjacent"));
-
-  //   if (origami.svg != null) {
-  //     a.forEach((el, i) => {
-  //       el.svg = origami.svg.groups[component].childNodes[i];
-  //     });
-  //   }
-  //   // todo make this not an exception
-  //   if (component === "edges") {
-  //     a.forEach((e) => {
-  //       e.vector = (() => {
-  //         const pA = origami.vertices_coords[e.vertices[0]];
-  //         const pB = origami.vertices_coords[e.vertices[1]];
-  //         return [pB[0] - pA[0], pB[1] - pA[1]];
-  //       });
-  //     });
-  //   }
-  //   return a;
-  // };
-
-  /**
-   * How does this view process a request for nearest components to a target?
-   * (2D), furthermore, attach view objects (SVG) to the nearest value data.
-   */
-  const nearest = function (...args2) {
-    const plural = {
-      vertex: "vertices",
-      edge: "edges",
-      face: "faces",
-    };
-    const target = math.core.get_vector(...args2);
-    const nears = {
-      vertex: origami.nearestVertex(origami, target),
-      edge: origami.nearestEdge(origami, target),
-      face: origami.nearestFace(origami, target)
-    };
-    Object.keys(nears)
-      .filter(key => nears[key] == null)
-      .forEach(key => delete nears[key]);
-    if (origami.svg != null) {
-      Object.keys(nears).forEach((key) => {
-        nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
-      });
-    }
-    // todo make this not an exception
-    if (nears.edge != null) {
-      nears.edge.vector = (() => {
-        const pA = origami.vertices_coords[nears.edge.vertices[0]];
-        const pB = origami.vertices_coords[nears.edge.vertices[1]];
-        return [pB[0] - pA[0], pB[1] - pA[1]];
-      });
-    }
-    return nears;
-  };
-
   // apply preferences
   const options = {};
   Object.assign(options, DEFAULTS);
@@ -259,11 +188,6 @@ const Origami = function (...args) {
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
 
-  // overwriting prototype methods
-  Object.defineProperty(origami, "nearest", { value: nearest });
-  // Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
-  // Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
-  // Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
   // Object.defineProperty(origami, "export", {
   //   value: (...exportArgs) => {
   //     if (exportArgs.length <= 0) {
@@ -289,9 +213,6 @@ const Origami = function (...args) {
   // this is not ready yet. bug when value is undefined
   // exportObject.fold = function () { return FOLDConvert.toJSON(origami); };
   exportObject.svg = function () {
-    // if (origami.svg != null) {
-    //   return (new window.XMLSerializer()).serializeToString(origami.svg);
-    // }
     return FoldToSvg(origami);
   };
 
