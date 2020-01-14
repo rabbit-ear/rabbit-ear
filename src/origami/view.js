@@ -102,15 +102,15 @@ const SVGView = function (origami, ...args) {
       .forEach(attr => svg.setAttribute(attr.name, attr.value));
   };
 
-  if (origami.options.touchFold === true) {
+  if (options.touchFold === true) {
     touchToFold(origami, origami.svg);
   }
   // view specific initializers
   fit();
   draw();
   origami.didChange.push(draw);
-  Object.defineProperty(origami, "draw", { value: draw });
-  Object.defineProperty(origami, "svg", { get: () => view });
+  Object.defineProperty(origami, "draw", { value: draw });  // todo: do we want this?
+  Object.defineProperty(origami, "svg", { get: () => svg });
 
   const sendCallback = function () {
     args.filter(arg => typeof arg === "function")

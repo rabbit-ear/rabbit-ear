@@ -12087,45 +12087,6 @@
 
   var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
-  const prepareGraph = function (graph) {
-    if ("faces_re:matrix" in graph === false) {
-      graph["faces_re:matrix"] = make_faces_matrix(graph, 0);
-    }
-  };
-  const setup = function (origami, svg) {
-    prepareGraph(origami);
-    let touchFaceIndex = 0;
-    let cachedGraph = clone(origami);
-    let was_folded = ("vertices_re:unfoldedCoords" in origami === true);
-    svg.mousePressed = (mouse) => {
-      was_folded = ("vertices_re:unfoldedCoords" in origami === true);
-      cachedGraph = clone(origami);
-      const param = {
-        faces_vertices: origami.faces_vertices,
-        "faces_re:layer": origami["faces_re:layer"]
-      };
-      param.vertices_coords = was_folded
-        ? (origami["vertices_re:foldedCoords"] || origami.vertices_coords)
-        : (origami["vertices_re:unfoldedCoords"] || origami.vertices_coords);
-      const faces_containing = faces_containing_point(param, mouse);
-      const top_face = topmost_face(param, faces_containing);
-      touchFaceIndex = (top_face == null)
-        ? 0
-        : top_face;
-      if (was_folded) {
-        cachedGraph.vertices_coords = origami["vertices_re:unfoldedCoords"].slice();
-      }
-    };
-    svg.mouseMoved = (mouse) => {
-      if (mouse.isPressed) {
-        origami.load(cachedGraph);
-        const instruction = axiom2(mouse.position[0], mouse.position[1], mouse.pressed[0], mouse.pressed[1]);
-        origami.crease(instruction.solutions[0], touchFaceIndex);
-        if (was_folded) { origami.collapse(); }
-      }
-    };
-  };
-
   const interpreter = {
     gl: "webgl",
     GL: "webgl",
@@ -12184,14 +12145,11 @@
       Array.from(newSVG.attributes)
         .forEach(attr => svg.setAttribute(attr.name, attr.value));
     };
-    if (origami.options.touchFold === true) {
-      setup(origami, origami.svg);
-    }
     fit();
     draw();
     origami.didChange.push(draw);
     Object.defineProperty(origami, "draw", { value: draw });
-    Object.defineProperty(origami, "svg", { get: () => view });
+    Object.defineProperty(origami, "svg", { get: () => svg });
     const sendCallback = function () {
       args.filter(arg => typeof arg === "function")
         .forEach(func => func.call(origami, origami));
@@ -12310,11 +12268,7 @@
       return (foldedIndex !== -1);
     };
     proto.clean2 = function () {
-      clean(this);
-      if (remove_all_collinear_vertices(this)) {
-        clean(this);
-      }
-      remove_geometry_key_indices(this, "vertices", find_isolated_vertices(this));
+      clean(this, {collinear: true, isolated: true});
       this["faces_re:matrix"] = make_faces_matrix(this);
       if (this[future_spec.FACES_LAYER] != null && this.faces_vertices != null) {
         if (this[future_spec.FACES_LAYER].length !== this.faces_vertices.length) {
@@ -12445,33 +12399,46 @@
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
   };
+  const isOrigamiFolded = function(graph) {
+    if (graph == undefined || graph.frame_classes == undefined) { return false; }
+    let frame_classes = graph.frame_classes;
+    if (frame > 0 &&
+       graph.file_frames[frame - 1] != undefined &&
+       graph.file_frames[frame - 1].frame_classes != undefined) {
+      frame_classes = graph.file_frames[frame - 1].frame_classes;
+    }
+    if (frame_classes.includes("foldedForm")) {
+      return true;
+    }
+    if (frame_classes.includes("creasePattern")) {
+      return false;
+    }
+    return false;
+  };
+  const setFoldedForm = function (graph, isFolded) {
+    const wasFolded = isOrigamiFolded(graph);
+    const remove = isFolded ? "creasePattern" : "foldedForm";
+    const add = isFolded ? "foldedForm" : "creasePattern";
+    if (graph.frame_classes == null) { graph.frame_classes = []; }
+    while (graph.frame_classes.indexOf(remove) !== -1) {
+      graph.frame_classes.splice(graph.frame_classes.indexOf(remove), 1);
+    }
+    if (graph.frame_classes.indexOf(add) === -1) {
+      graph.frame_classes.push(add);
+    }
+    const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
+    const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
+    if (to in graph === true) {
+      graph[from] = graph.vertices_coords;
+      graph.vertices_coords = graph[to];
+      delete graph[to];
+    }
+  };
   const Origami = function (...args) {
     const origami = Object.assign(
       Object.create(Prototype$3()),
       args.filter(el => possibleFoldObject(el)).shift() || square()
     );
-    origami.clean();
-    origami.populate();
-    const setFoldedForm = function (isFolded) {
-      const wasFolded = origami.isFolded();
-      const remove = isFolded ? "creasePattern" : "foldedForm";
-      const add = isFolded ? "foldedForm" : "creasePattern";
-      if (origami.frame_classes == null) { origami.frame_classes = []; }
-      while (origami.frame_classes.indexOf(remove) !== -1) {
-        origami.frame_classes.splice(origami.frame_classes.indexOf(remove), 1);
-      }
-      if (origami.frame_classes.indexOf(add) === -1) {
-        origami.frame_classes.push(add);
-      }
-      const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
-      const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
-      if (to in origami === true) {
-        origami[from] = origami.vertices_coords;
-        origami.vertices_coords = origami[to];
-        delete origami[to];
-      }
-      origami.didChange.forEach(f => f());
-    };
     const collapse = function (options = {}) {
       if ("faces_re:matrix" in origami === false) {
         origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
@@ -12479,11 +12446,13 @@
       if ("vertices_re:foldedCoords" in origami === false) {
         origami["vertices_re:foldedCoords"] = make_vertices_coords_folded(origami, null, origami["faces_re:matrix"]);
       }
-      setFoldedForm(true);
+      setFoldedForm(origami, true);
+      origami.didChange.forEach(f => f());
       return origami;
     };
     const flatten = function () {
-      setFoldedForm(false);
+      setFoldedForm(origami, false);
+      origami.didChange.forEach(f => f());
       return origami;
     };
     const fold = function (...args) {
@@ -12501,15 +12470,21 @@
     Object.defineProperty(origami, "flatten", { value: flatten });
     Object.defineProperty(origami, "fold", { value: fold });
     Object.defineProperty(origami, "unfold", { value: unfold });
-    const exportObject = function () { return JSON.stringify(origami); };
-    exportObject.json = function () { return JSON.stringify(origami); };
-    exportObject.fold = function () { return JSON.stringify(origami); };
-    exportObject.svg = function () {
-      return FoldToSvg(origami);
-    };
-    Object.defineProperty(origami, "snapshot", { get: () => exportObject });
-    Object.defineProperty(origami, "export", { get: () => exportObject });
-    Object.defineProperty(origami, "options", { get: () => options });
+    Object.defineProperty(origami, "export", { get: (...args) => {
+      const f = function (...o) {
+        if (o.length === 0) { return JSON.stringify(origami); }
+        switch (o[0]) {
+          case "oripa": return convert$1(origami, "fold").oripa();
+          case "svg": return convert$1(origami, "fold").svg();
+          default: return JSON.stringify(origami);
+        }
+      };
+      f.json = function () { return JSON.stringify(origami); };
+      f.fold = function () { return JSON.stringify(origami); };
+      f.svg = function () { return convert$1(origami, "fold").svg(); };
+      f.oripa = function () { return convert$1(origami, "fold").oripa(); };
+      return f;
+    }});
     View(origami, ...args);
     return origami;
   };
