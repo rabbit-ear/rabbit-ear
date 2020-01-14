@@ -4,7 +4,7 @@ const isBrowser = typeof window !== "undefined"
 const isNode = typeof process !== "undefined"
   && process.versions != null
   && process.versions.node != null;
-  const htmlString = "<!DOCTYPE html><title> </title>";
+const htmlString = "<!DOCTYPE html><title> </title>";
 const win = (function () {
   let w = {};
   if (isNode) {
@@ -117,7 +117,7 @@ const edges_coords = function ({ vertices_coords, edges_vertices }) {
   return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 };
 const edges_indices_classes = function ({ edges_assignment }) {
-  const assignment_indices = {b:[], m:[], v:[], f:[], u:[]};
+  const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
   edges_assignment.map(a => edges_assignment_to_lowercase[a])
     .forEach((a, i) => assignment_indices[a].push(i));
   return assignment_indices;
@@ -588,7 +588,10 @@ const makeDefaults = (vmin = 1) => recursive_freeze({
       stroke: "black",
       fill: "none",
       "stroke-linejoin": "bevel",
-      "stroke-width": vmin / 100,
+      "stroke-width": vmin / 200,
+    },
+    boundaries: {
+      fill: "white",
     },
     faces: {
       stroke: "none",
@@ -599,15 +602,14 @@ const makeDefaults = (vmin = 1) => recursive_freeze({
       boundary: {},
       mountain: { stroke: "red" },
       valley: { stroke: "blue" },
-      mark: { stroke: "gray" },
+      mark: { stroke: "lightgray" },
       unassigned: { stroke: "lightgray" },
     },
     vertices: {
       stroke: "none",
       fill: "black",
-      r: vmin / 100
-    },
-    boundaries: {},
+      r: vmin / 200
+    }
   }
 });
 const recursiveAssign = function (target, source) {
@@ -662,7 +664,7 @@ const fold_to_svg = function (input, options = {}) {
     .filter(key => groups[key].childNodes.length > 0)
     .forEach(key => svg$1.appendChild(groups[key]));
   if (groups.edges) {
-    const edgeClasses = ["boundary", "mountain", "valley", "mark", "unassigned"];
+    const edgeClasses = ["unassigned", "mark", "valley", "mountain", "boundary"];
     Object.keys(options.attributes.edges)
       .filter(key => !edgeClasses.includes(key))
       .forEach(key => groups.edges.setAttribute(key, options.attributes.edges[key]));

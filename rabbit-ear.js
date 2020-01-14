@@ -2632,32 +2632,6 @@
     return flat;
   };
 
-  const removeCircularEdges = function (graph) {
-    const circular = graph.edges_vertices
-      .map((ev, i) => (ev[0] === ev[1] ? i : undefined))
-      .filter(a => a !== undefined);
-    remove_geometry_key_indices(graph, "edges", circular);
-  };
-  const edges_similar = function (graph, e0, e1) {
-    return ((graph.edges_vertices[e0][0] === graph.edges_vertices[e1][0]
-      && graph.edges_vertices[e0][1] === graph.edges_vertices[e1][1])
-      || (graph.edges_vertices[e0][0] === graph.edges_vertices[e1][1]
-      && graph.edges_vertices[e0][1] === graph.edges_vertices[e1][0]));
-  };
-  const removeDuplicateEdges = function (graph) {
-    const duplicates = graph.edges_vertices.map((ev, i) => {
-      for (let j = i + 1; j < graph.edges_vertices - 1 - i; j += 1) {
-        if (edges_similar(graph, i, j)) { return j; }
-      }
-      return undefined;
-    });
-    remove_geometry_key_indices(graph, "edges", duplicates);
-  };
-  const clean = function (graph) {
-    removeCircularEdges(graph);
-    removeDuplicateEdges(graph);
-  };
-
   var geom = {},
     modulo = function(a, b) { return (+a % (b = +b) + b) % b; };
   geom.EPS = 0.000001;
@@ -4538,12 +4512,44 @@
     find_isolated_vertices: find_isolated_vertices
   });
 
-  const planarClean = function (graph) {
-    clean(graph);
-    if (remove_all_collinear_vertices(graph)) {
-      clean(graph);
+  const DEFAULTS = Object.freeze({
+    circular: true,
+    duplicate: true,
+  });
+  const removeCircularEdges = function (graph) {
+    const circular = graph.edges_vertices
+      .map((ev, i) => (ev[0] === ev[1] ? i : undefined))
+      .filter(a => a !== undefined);
+    remove_geometry_key_indices(graph, "edges", circular);
+  };
+  const edges_similar = function (graph, e0, e1) {
+    return ((graph.edges_vertices[e0][0] === graph.edges_vertices[e1][0]
+      && graph.edges_vertices[e0][1] === graph.edges_vertices[e1][1])
+      || (graph.edges_vertices[e0][0] === graph.edges_vertices[e1][1]
+      && graph.edges_vertices[e0][1] === graph.edges_vertices[e1][0]));
+  };
+  const removeDuplicateEdges = function (graph) {
+    const duplicates = graph.edges_vertices.map((ev, i) => {
+      for (let j = i + 1; j < graph.edges_vertices - 1 - i; j += 1) {
+        if (edges_similar(graph, i, j)) { return j; }
+      }
+      return undefined;
+    });
+    remove_geometry_key_indices(graph, "edges", duplicates);
+  };
+  const clean = function (graph, options) {
+    if (typeof options !== "object") { options = {}; }
+    Object.keys(DEFAULTS)
+      .filter(key => !(key in options))
+      .forEach((key) => { options[key] = DEFAULTS[key]; });
+    if (options.circular === true) { removeCircularEdges(graph); }
+    if (options.duplicate === true) { removeDuplicateEdges(graph); }
+    if (options.collinear === true) {
+      remove_all_collinear_vertices(graph);
+      if (options.circular === true) { removeCircularEdges(graph); }
+      if (options.duplicate === true) { removeDuplicateEdges(graph); }
     }
-    remove_geometry_key_indices(graph, "vertices", find_isolated_vertices(graph));
+    if (options.isolated === true) { remove_geometry_key_indices(graph, "vertices", find_isolated_vertices(graph)); }
   };
 
   const are_vertices_equivalent$1 = function (a, b, epsilon = math.core.EPSILON) {
@@ -5427,9 +5433,6 @@
     };
     proto.clean = function () {
       clean(this);
-    };
-    proto.planarClean = function () {
-      planarClean(this);
     };
     proto.populate = function () {
       populate(this);
@@ -8272,7 +8275,7 @@
   const isNode$2 = typeof process !== "undefined"
     && process.versions != null
     && process.versions.node != null;
-    const htmlString$2 = "<!DOCTYPE html><title> </title>";
+  const htmlString$2 = "<!DOCTYPE html><title> </title>";
   const win$2 = (function () {
     let w = {};
     if (isNode$2) {
@@ -8385,7 +8388,7 @@
     return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
   };
   const edges_indices_classes = function ({ edges_assignment }) {
-    const assignment_indices = {b:[], m:[], v:[], f:[], u:[]};
+    const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
     edges_assignment.map(a => edges_assignment_to_lowercase[a])
       .forEach((a, i) => assignment_indices[a].push(i));
     return assignment_indices;
@@ -8856,7 +8859,10 @@
         stroke: "black",
         fill: "none",
         "stroke-linejoin": "bevel",
-        "stroke-width": vmin / 100,
+        "stroke-width": vmin / 200,
+      },
+      boundaries: {
+        fill: "white",
       },
       faces: {
         stroke: "none",
@@ -8867,15 +8873,14 @@
         boundary: {},
         mountain: { stroke: "red" },
         valley: { stroke: "blue" },
-        mark: { stroke: "gray" },
+        mark: { stroke: "lightgray" },
         unassigned: { stroke: "lightgray" },
       },
       vertices: {
         stroke: "none",
         fill: "black",
-        r: vmin / 100
-      },
-      boundaries: {},
+        r: vmin / 200
+      }
     }
   });
   const recursiveAssign = function (target, source) {
@@ -8930,7 +8935,7 @@
       .filter(key => groups[key].childNodes.length > 0)
       .forEach(key => svg$1$1.appendChild(groups[key]));
     if (groups.edges) {
-      const edgeClasses = ["boundary", "mountain", "valley", "mark", "unassigned"];
+      const edgeClasses = ["unassigned", "mark", "valley", "mountain", "boundary"];
       Object.keys(options.attributes.edges)
         .filter(key => !edgeClasses.includes(key))
         .forEach(key => groups.edges.setAttribute(key, options.attributes.edges[key]));
@@ -12082,323 +12087,6 @@
 
   var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
-  const DEFAULTS = Object.freeze({
-    boundaries: true,
-    faces: true,
-    edges: true,
-    vertices: false,
-    diagram: false,
-    labels: false,
-    debug: false,
-    autofit: true,
-    padding: 0,
-    strokeWidth: 0.01,
-    style: undefined,
-    arrowColor: undefined,
-  });
-  const parseOptions = function (...args) {
-    const keys = Object.keys(DEFAULTS);
-    const options = {};
-    Array(...args)
-      .filter(obj => typeof obj === "object")
-      .forEach(obj => Object.keys(obj)
-        .filter(key => keys.includes(key))
-        .forEach((key) => { options[key] = obj[key]; }));
-    return options;
-  };
-  const View = function (graph, ...args) {
-    const svg = SVG(...args);
-    const groups = {};
-    ["boundaries", "faces", "edges", "vertices", "diagram", "labels"
-    ].forEach((key) => {
-      groups[key] = svg.group();
-      groups[key].setAttribute("class", key);
-      groups[key].pointerEvents("none");
-    });
-    const options = {};
-    Object.assign(options, DEFAULTS);
-    const userDefaults = parseOptions(...args);
-    Object.keys(userDefaults).forEach((key) => {
-      options[key] = userDefaults[key];
-    });
-    const fit = function () {
-      const r = bounding_rect(graph);
-      const vmin = r[2] > r[3] ? r[3] : r[2];
-      SVG.setViewBox(svg, r[0], r[1], r[2], r[3], options.padding * vmin);
-    };
-    const draw = function () {
-      const drawOptions = (graph.frame_classes && graph.frame_classes.includes("foldedForm")
-        ? { output: "svg", edges: false, boundaries: false }
-        : { output: "svg" });
-      console.log(options);
-      if (options.padding) { drawOptions.padding = options.padding; }
-      const newSVG = FoldToSvg(graph, drawOptions);
-      while (svg.lastChild) {
-        svg.removeChild(svg.lastChild);
-      }
-      Array.from(newSVG.childNodes).forEach(group => {
-        newSVG.removeChild(group);
-        svg.appendChild(group);
-      });
-      Array.from(newSVG.attributes)
-        .forEach(attr => svg.setAttribute(attr.name, attr.value));
-    };
-    Object.defineProperty(svg, "draw", { value: draw });
-    Object.defineProperty(svg, "fit", { value: fit });
-    Object.defineProperty(svg, "setViewBox", {
-      value: (x, y, w, h, padding) => SVG.setViewBox(svg, x, y, w, h, padding)
-    });
-    Object.defineProperty(svg, "options", { get: () => options });
-    Object.defineProperty(svg, "groups", { get: () => groups });
-    return svg;
-  };
-
-  const unitSquare = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
-  function View3D(...args) {
-    let allMeshes = [];
-    let scene = new THREE.Scene();
-    let _parent;
-    let prop = {
-      cp: undefined,
-      frame: undefined,
-      style: {
-        vertex_radius: 0.01
-      },
-    };
-    prop.cp = args
-      .filter(arg => typeof arg === "object" && arg.vertices_coords != null)
-      .shift();
-    if (prop.cp == null) { prop.cp = CreasePattern(unitSquare); }
-    function bootThreeJS(domParent) {
-      var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
-      var controls = new THREE.OrbitControls(camera, domParent);
-      controls.enableZoom = false;
-      camera.position.set(-0.75, 2, -0.025);
-      controls.target.set(0.0, 0.0, 0.0);
-      controls.addEventListener('change', render);
-      var renderer = new THREE.WebGLRenderer({antialias:true});
-      if (window.devicePixelRatio !== 1) {
-        renderer.setPixelRatio(window.devicePixelRatio);
-      }
-      renderer.setClearColor("#FFFFFF");
-      renderer.setSize(domParent.clientWidth, domParent.clientHeight);
-      domParent.appendChild(renderer.domElement);
-      var directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.2);
-      directionalLight2.position.set(20, 20, -100);
-      scene.add(directionalLight2);
-      var spotLight1 = new THREE.SpotLight(0xffffff, 0.3);
-      spotLight1.position.set(50, -200, 100);
-      scene.add(spotLight1);
-      var spotLight2 = new THREE.SpotLight(0xffffff, 0.3);
-      spotLight2.position.set(100, 50, 200);
-      scene.add(spotLight2);
-      var ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
-      scene.add(ambientLight);
-      var render = function() {
-        requestAnimationFrame(render);
-        renderer.render(scene, camera);
-        controls.update();
-      };
-      render();
-      draw();
-    }
-    const attachToDOM = function() {
-      let functions = args.filter((arg) => typeof arg === "function");
-      let numbers = args.filter((arg) => !isNaN(arg));
-      let element = args.filter((arg) =>
-          arg instanceof HTMLElement)
-        .shift();
-      let idElement = args.filter((a) =>
-          typeof a === "string" || a instanceof String)
-        .map(str => document.getElementById(str))
-        .shift();
-      _parent = (element != null
-        ? element
-        : (idElement != null
-          ? idElement
-          : document.body));
-      bootThreeJS(_parent);
-      if (numbers.length >= 2) ;
-      if (functions.length >= 1) {
-        functions[0]();
-      }
-    };
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', attachToDOM);
-    } else {
-      attachToDOM();
-    }
-    function draw() {
-      var material = new THREE.MeshPhongMaterial({
-        color: 0xffffff,
-        side: THREE.DoubleSide,
-        flatShading:true,
-        shininess:0,
-        specular:0xffffff,
-        reflectivity:0
-      });
-      let graph = prop.frame
-        ? flatten_frame(prop.cp, prop.frame)
-        : prop.cp;
-      let faces = foldFileToThreeJSFaces(graph, material);
-      let lines = foldFileToThreeJSLines(graph);
-      allMeshes.forEach(mesh => scene.remove(mesh));
-      allMeshes = [];
-      allMeshes.push(faces);
-      allMeshes.push(lines);
-      allMeshes.forEach(mesh => scene.add(mesh));
-    }
-    const setCreasePattern = function(cp) {
-      prop.cp = cp;
-      draw();
-      prop.cp.onchange = draw;
-    };
-    return {
-      set cp(c) {
-        setCreasePattern(c);
-        draw();
-      },
-      get cp() {
-        return prop.cp;
-      },
-      draw,
-      get frame() { return prop.frame; },
-      set frame(newValue) {
-        prop.frame = newValue;
-        draw();
-      },
-      get frames() {
-        let frameZero = JSON.parse(JSON.stringify(prop.cp));
-        delete frameZero.file_frames;
-        return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
-      }
-    };
-    function foldFileToThreeJSFaces(foldFile, material) {
-      var geometry = new THREE.BufferGeometry();
-      let vertices = foldFile.vertices_coords
-        .map(v => [v[0], v[1], (v[2] != undefined ? v[2] : 0)])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let normals = foldFile.vertices_coords
-        .map(v => [0,0,1])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let colors = foldFile.vertices_coords
-        .map(v => [1,1,1])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let faces = foldFile.faces_vertices
-        .map(fv => fv.map((v,i,arr) => [arr[0], arr[i+1], arr[i+2]])
-                     .slice(0, fv.length-2))
-        .reduce((prev,curr) => prev.concat(curr), [])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-      geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-      geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      geometry.setIndex(faces);
-      if (material == undefined) { material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
-      return new THREE.Mesh(geometry, material);
-    }
-    function crossVec3(a,b) {
-      return [
-        a[1]*b[2] - a[2]*b[1],
-        a[2]*b[0] - a[0]*b[2],
-        a[0]*b[1] - a[1]*b[0]
-      ];
-    }
-    function magVec3(v) {
-      return Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
-    }
-    function normalizeVec3(v) {
-      let mag = Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
-      return [v[0] / mag, v[1] / mag, v[2] / mag];
-    }
-    function scaleVec3(v, scale) {
-      return [v[0]*scale, v[1]*scale, v[2]*scale];
-    }
-    function cylinderEdgeVertices(edge, radius) {
-      let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
-      let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-      if (mag < 1e-10) { throw "degenerate edge"; }
-      let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
-      let perp = [
-        normalizeVec3(crossVec3(normalized, [1,0,0])),
-        normalizeVec3(crossVec3(normalized, [0,1,0])),
-        normalizeVec3(crossVec3(normalized, [0,0,1]))
-      ].map((v,i) => ({i:i, v:v, mag:magVec3(v)}))
-       .filter(v => v.mag > 1e-10)
-       .map(obj => obj.v)
-       .shift();
-      let rotated = [perp];
-      for(var i = 1; i < 4; i++) {
-        rotated.push(normalizeVec3(crossVec3(rotated[i-1], normalized)));
-      }
-      let dirs = rotated.map(v => scaleVec3(v, radius));
-      return edge
-        .map(v => dirs.map(dir => [v[0]+dir[0], v[1]+dir[1], v[2]+dir[2]]))
-        .reduce((prev,curr) => prev.concat(curr), []);
-    }
-    function foldFileToThreeJSLines(foldFile, scale=0.002) {
-      let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
-      edges.forEach(edge => {
-        if (edge[0][2] == undefined) { edge[0][2] = 0; }
-        if (edge[1][2] == undefined) { edge[1][2] = 0; }
-      });
-      let colorAssignments = {
-        "B": [0.0,0.0,0.0],
-        "M": [0.0,0.0,0.0],
-        "F": [0.0,0.0,0.0],
-        "V": [0.0,0.0,0.0],
-      };
-      let colors = foldFile.edges_assignment.map(e =>
-        [colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
-        colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
-      ).reduce((prev,curr) => prev.concat(curr), [])
-       .reduce((prev,curr) => prev.concat(curr), [])
-       .reduce((prev,curr) => prev.concat(curr), []);
-      let vertices = edges
-        .map(edge => cylinderEdgeVertices(edge, scale))
-        .reduce((prev,curr) => prev.concat(curr), [])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let normals = edges.map(edge => {
-        let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
-        let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-        if (mag < 1e-10) { throw "degenerate edge"; }
-        let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
-        let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
-        return [
-          c0, [-c0[2], c0[1], c0[0]],
-          c1, [-c1[2], c1[1], c1[0]],
-          c0, [-c0[2], c0[1], c0[0]],
-          c1, [-c1[2], c1[1], c1[0]]
-        ]
-      }).reduce((prev,curr) => prev.concat(curr), [])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let faces = edges.map((e,i) => [
-        i*8+0, i*8+4, i*8+1,
-        i*8+1, i*8+4, i*8+5,
-        i*8+1, i*8+5, i*8+2,
-        i*8+2, i*8+5, i*8+6,
-        i*8+2, i*8+6, i*8+3,
-        i*8+3, i*8+6, i*8+7,
-        i*8+3, i*8+7, i*8+0,
-        i*8+0, i*8+7, i*8+4,
-        i*8+0, i*8+1, i*8+3,
-        i*8+1, i*8+2, i*8+3,
-        i*8+5, i*8+4, i*8+7,
-        i*8+7, i*8+6, i*8+5,
-      ]).reduce((prev,curr) => prev.concat(curr), []);
-      var geometry = new THREE.BufferGeometry();
-      geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-      geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-      geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      geometry.setIndex(faces);
-      geometry.computeVertexNormals();
-      var material = new THREE.MeshToonMaterial( {
-          shininess: 0,
-          side: THREE.DoubleSide, vertexColors: THREE.VertexColors
-      } );
-      return new THREE.Mesh(geometry, material);
-    }
-  }
-
   const prepareGraph = function (graph) {
     if ("faces_re:matrix" in graph === false) {
       graph["faces_re:matrix"] = make_faces_matrix(graph, 0);
@@ -12436,6 +12124,88 @@
         if (was_folded) { origami.collapse(); }
       }
     };
+  };
+
+  const interpreter = {
+    gl: "webgl",
+    GL: "webgl",
+    webGL: "webgl",
+    WebGL: "webgl",
+    webgl: "webgl",
+    Webgl: "webgl",
+    svg: "svg",
+    SVG: "svg",
+    "2d": "svg",
+    "2D": "svg",
+    "3d": "webgl",
+    "3D": "webgl",
+  };
+  const parseOptionsForView = function (...args) {
+    const viewOptions = args
+      .filter(a => typeof a === "object")
+      .filter(a => "view" in a === true)
+      .shift();
+    if (viewOptions === undefined) {
+      if (isNode$1) { return undefined; }
+      if (isBrowser$1) { return "svg"; }
+    }
+    return interpreter[viewOptions.view];
+  };
+  const SVGView = function (origami, ...args) {
+    const noCallbackArgs = args.filter(arg => typeof arg !== "function");
+    const svg = SVG(...noCallbackArgs);
+    const layerNames = ["boundaries", "edges", "faces", "vertices"];
+    const fit = function () {
+      const r = bounding_rect(origami);
+      svg.setViewBox(...r);
+    };
+    const draw = function () {
+      const drawOptions = { output: "svg" };
+      const newSVG = FoldToSvg(origami, drawOptions);
+      const newSVGChildren = Array.from(newSVG.childNodes);
+      const newSVGGroups = layerNames
+        .map(string => newSVGChildren
+          .filter(node => string === node.getAttribute("class"))
+          .shift())
+        .filter(node => node !== undefined);
+      const oldSVGChildren = Array.from(svg.childNodes);
+      const oldSVGGroups = layerNames
+        .map(string => oldSVGChildren
+          .filter(node => string === node.getAttribute("class"))
+          .shift())
+        .filter(node => node !== undefined);
+      if (oldSVGGroups.length > 0) {
+        newSVGGroups.forEach(node => svg.insertBefore(node, oldSVGGroups[0]));
+      } else {
+        newSVGGroups.forEach(node => svg.appendChild(node));
+      }
+      oldSVGGroups.forEach(node => parent.removeChild(node));
+      newSVGGroups.forEach(node => node.setAttribute("pointerEvents", "none"));
+      Array.from(newSVG.attributes)
+        .forEach(attr => svg.setAttribute(attr.name, attr.value));
+    };
+    if (origami.options.touchFold === true) {
+      setup(origami, origami.svg);
+    }
+    fit();
+    draw();
+    origami.didChange.push(draw);
+    Object.defineProperty(origami, "draw", { value: draw });
+    Object.defineProperty(origami, "svg", { get: () => view });
+    const sendCallback = function () {
+      args.filter(arg => typeof arg === "function")
+        .forEach(func => func.call(origami, origami));
+    };
+    if (win$1.document.readyState === "loading") {
+      win$1.document.addEventListener("DOMContentLoaded", sendCallback);
+    } else {
+      sendCallback();
+    }
+  };
+  const View = function (origami, ...args) {
+    switch (parseOptionsForView(...args)) {
+      case "svg": SVGView(origami, ...args); break;
+    }
   };
 
   const get_assignment = function (...args) {
@@ -12665,7 +12435,7 @@
   const DEFAULTS$1 = Object.freeze({
     touchFold: false,
   });
-  const parseOptions$1 = function (...args) {
+  const parseOptions = function (...args) {
     const keys = Object.keys(DEFAULTS$1);
     const prefs = {};
     Array(...args)
@@ -12674,31 +12444,6 @@
         .filter(key => keys.includes(key))
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
-  };
-  const interpreter = {
-    gl: "webgl",
-    GL: "webgl",
-    webGL: "webgl",
-    WebGL: "webgl",
-    webgl: "webgl",
-    Webgl: "webgl",
-    svg: "svg",
-    SVG: "svg",
-    "2d": "svg",
-    "2D": "svg",
-    "3d": "webgl",
-    "3D": "webgl",
-  };
-  const parseOptionsForView = function (...args) {
-    const viewOptions = args
-      .filter(a => typeof a === "object")
-      .filter(a => "view" in a === true)
-      .shift();
-    if (viewOptions === undefined) {
-      if (isNode$1) { return undefined; }
-      if (isBrowser$1) { return "svg"; }
-    }
-    return interpreter[viewOptions.view];
   };
   const Origami = function (...args) {
     const origami = Object.assign(
@@ -12727,15 +12472,6 @@
       }
       origami.didChange.forEach(f => f());
     };
-    const load = function (data, options) {
-      keys.forEach(key => delete origami[key]);
-      const fold_file = convert$1(data).fold(options);
-      Object.assign(origami, fold_file);
-      if (origami.edges_vertices == null) { return; }
-      origami.clean();
-      origami.populate();
-      origami.didChange.forEach(f => f());
-    };
     const collapse = function (options = {}) {
       if ("faces_re:matrix" in origami === false) {
         origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
@@ -12758,10 +12494,9 @@
     };
     const options = {};
     Object.assign(options, DEFAULTS$1);
-    const userDefaults = parseOptions$1(...args);
+    const userDefaults = parseOptions(...args);
     Object.keys(userDefaults)
       .forEach((key) => { options[key] = userDefaults[key]; });
-    Object.defineProperty(origami, "load", { value: load });
     Object.defineProperty(origami, "collapse", { value: collapse });
     Object.defineProperty(origami, "flatten", { value: flatten });
     Object.defineProperty(origami, "fold", { value: fold });
@@ -12775,27 +12510,7 @@
     Object.defineProperty(origami, "snapshot", { get: () => exportObject });
     Object.defineProperty(origami, "export", { get: () => exportObject });
     Object.defineProperty(origami, "options", { get: () => options });
-    return origami;
-  };
-  const init = function (...args) {
-    const origami = Origami(...args);
-    let view;
-    switch (parseOptionsForView(...args)) {
-      case "svg":
-        view = View(origami, ...args);
-        origami.didChange.push(view.draw);
-        Object.defineProperty(origami, "svg", { get: () => view });
-        if (origami.options.touchFold === true) {
-          setup(origami, origami.svg);
-        }
-        origami.svg.fit();
-        origami.svg.draw();
-        break;
-      case "webgl":
-        view = View3D(origami, ...args);
-        Object.defineProperty(origami, "canvas", { get: () => view });
-        break;
-    }
+    View(origami, ...args);
     return origami;
   };
 
@@ -12848,7 +12563,7 @@
   Object.defineProperty(bases, "bird", { get: () => core$1.clone(b.bird) });
   Object.defineProperty(bases, "frog", { get: () => core$1.clone(b.frog) });
   const rabbitEar = {
-    Origami: init,
+    Origami,
     graph: Graph,
     svg: SVG,
     fold: fold_through,

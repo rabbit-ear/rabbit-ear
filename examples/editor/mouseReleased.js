@@ -34,7 +34,7 @@ const MouseReleased = function () {
           app.origami.segment(pt0[0], pt0[1], pt1[0], pt1[1]);
         });
         app.origami.fragment();
-        app.origami.planarClean();
+        app.origami.clean({ collinear: true, isolated: true });
         app.origami.populate();
         break;
       case "line": break;
@@ -44,7 +44,7 @@ const MouseReleased = function () {
           .solutions
           .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
         app.origami.fragment();
-        app.origami.planarClean();
+        app.origami.clean({ collinear: true, isolated: true });
         app.origami.populate();
         break;
       case "bisect": {
@@ -64,7 +64,7 @@ const MouseReleased = function () {
             .solutions
             .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
           app.origami.fragment();
-          app.origami.planarClean();
+          app.origami.clean({ collinear: true, isolated: true });
           app.origami.populate();
         }
       }
@@ -96,7 +96,7 @@ const MouseReleased = function () {
           .solutions
           .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
         app.origami.fragment();
-        app.origami.planarClean();
+        app.origami.clean({ collinear: true, isolated: true });
         app.origami.populate();
       }
         break;
@@ -112,7 +112,7 @@ const MouseReleased = function () {
           if (app.nearest.edge.assignment === "B" || app.nearest.edge.assignment === "b") { break; }
           app.cache("remove crease\n");
           RabbitEar.core.remove(app.origami, "edges", [app.nearest.edge.index]);
-          app.origami.planarClean();
+          app.origami.clean({ collinear: true, isolated: true });
           app.origami.populate();
           app.origami.svg.draw();
         }

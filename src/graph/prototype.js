@@ -11,7 +11,6 @@ import {
 } from "../FOLD/keys";
 import fragment from "../FOLD/fragment";
 import clean from "../FOLD/clean";
-import planarClean from "../FOLD/planarClean";
 import join from "../FOLD/join";
 import rebuild from "../FOLD/rebuild";
 import populate from "../FOLD/populate";
@@ -128,9 +127,6 @@ const Prototype = function (proto = {}) {
    */
   proto.clean = function () {
     clean(this);
-  };
-  proto.planarClean = function () {
-    planarClean(this);
   };
   proto.populate = function () {
     populate(this);

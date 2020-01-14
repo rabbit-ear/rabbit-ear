@@ -296,11 +296,7 @@ const App = function (options = {}) {
   };
   document.querySelectorAll(".menu-export-svg")[0].onclick = function () {
     const main = pipShowingFolded ? app.origami : app.folded;
-    main.svg.setAttribute("width", "500px");
-    main.svg.setAttribute("height", "500px");
     download(main.export.svg(), filename() + ".svg", "image/svg+xml");
-    main.svg.removeAttribute("width");
-    main.svg.removeAttribute("height");
   };
   document.querySelectorAll(".menu-export-png")[0].onclick = function () {
     const canvas = document.createElement("canvas");
