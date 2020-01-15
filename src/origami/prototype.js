@@ -141,15 +141,6 @@ const Prototype = function (superProto = {}) {
    * queries
    */
   /**  get the folded state by checking the top level classes */
-  const isFolded = function () {
-    if ("frame_classes" in this === false) { return undefined; }
-    const cpIndex = this.frame_classes.indexOf("creasePattern");
-    const foldedIndex = this.frame_classes.indexOf("foldedForm");
-    if (cpIndex === -1 && foldedIndex === -1) { return undefined; }
-    if (cpIndex !== -1 && foldedIndex !== -1) { return undefined; }
-    return (foldedIndex !== -1);
-  };
-
   proto.clean2 = function () {
     clean(this, {collinear: true, isolated: true});
     // extra
@@ -188,18 +179,7 @@ const Prototype = function (superProto = {}) {
     delete this.vertices_vertices;
     delete this.vertices_faces;
     delete this.edges_faces;
-    this.didChange.forEach(f => f());
-  };
-
-  // updates
-  const didModifyGraph = function () {
-    // remove file_frames which were dependent on this geometry. we can
-    // no longer guarantee they match. alternatively we could mark them invalid
-    // this.file_frames = this.file_frames
-    //  .filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
-
-    // broadcast update to handler if attached
-    this.didChange.forEach(f => f());
+    this.changed.update();
   };
 
   // geometry modifiers, fold operations
@@ -220,7 +200,6 @@ const Prototype = function (superProto = {}) {
     const assignment = get_assignment(...args) || "F";
     addEdge(this, c[0], c[1], c[2], c[3], assignment).apply();
     rebuild(this);
-    didModifyGraph.call(this);
     const edges = Collinear.collinear_edges(this, [c[0], c[1]], [c[2] - c[0], c[3] - c[1]]);
     return Edges(this, edges);
   };
@@ -236,7 +215,6 @@ const Prototype = function (superProto = {}) {
     const assignment = get_assignment(...args) || "F";
     addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
     rebuild(this);
-    didModifyGraph.call(this);
     const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
     return Edges(this, edges);
   };
@@ -258,7 +236,6 @@ const Prototype = function (superProto = {}) {
     const assignment = get_assignment(...args) || "F";
     addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
     rebuild(this);
-    didModifyGraph.call(this);
     const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
     return Edges(this, edges);
   };
@@ -282,7 +259,7 @@ const Prototype = function (superProto = {}) {
     // make a record documenting how we got here
     // axiom1(s[0], s[1]);
     // madeBy().axiom1(s[0], s[1]);
-    if (options.change) { this.didChange.forEach(f => f()); }
+    this.didChange.forEach(f => f());
   };
 
   // fold methods
@@ -320,7 +297,6 @@ const Prototype = function (superProto = {}) {
       //  Diagram.build_diagram_frame(this)
       // ];
     }
-    didModifyGraph.call(this);
     // todo, need to grab the crease somehow
     // const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
     // didModifyGraph();
@@ -344,16 +320,14 @@ const Prototype = function (superProto = {}) {
 
   proto.kawasaki = function (...args) {
     const crease = kawasaki_collapse(this, ...args);
-    didModifyGraph.call(this);
     return crease;
   };
 
   Object.defineProperty(proto, "boundaries", { get: getBoundaries });
-  Object.defineProperty(proto, "isFolded", { value: isFolded });
   Object.defineProperty(proto, "clear", { value: clear });
 
   // callbacks for when the crease pattern has been altered
-  proto.didChange = [];
+  // proto.__did_change.push(draw);
 
   // return Object.freeze(proto);
   return proto;

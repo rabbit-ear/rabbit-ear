@@ -63,26 +63,19 @@ const setFoldedForm = function (graph, isFolded) {
   if (isFolded) {
     // if folded coords do not exist, we need to build them.
     if (!(VERTICES_FOLDED_COORDS in graph)) {
-      // build folded coords
-      if (!(FACES_MATRIX in graph)) {
-        // if faces do not exist, rebuild faces_vertices
-        if (graph.faces_vertices == null) { populate(graph); }
-        // graph[FACES_MATRIX] = make_faces_matrix(graph, options.face);
-        graph[FACES_MATRIX] = make_faces_matrix(graph, 0);
-      }
-      if (!(VERTICES_FOLDED_COORDS in graph)) {
-        graph[VERTICES_FOLDED_COORDS] = make_vertices_coords_folded(graph, null, graph[FACES_MATRIX]);
-      }
+      if (graph.faces_vertices == null) { populate(graph); }
+      graph[FACES_MATRIX] = make_faces_matrix(graph, 0);
+      graph[VERTICES_FOLDED_COORDS] = make_vertices_coords_folded(graph, null, graph[FACES_MATRIX]);
     }
+    graph[VERTICES_UNFOLDED_COORDS] = graph.vertices_coords;
+    graph.vertices_coords = graph[VERTICES_FOLDED_COORDS];
+    delete graph[VERTICES_FOLDED_COORDS];
   } else {
+    if (graph[VERTICES_UNFOLDED_COORDS] == null) { return; }
     // if unfolded coords do not exist, we need to build unfolded coords from a folded state?
-  }
-  const to = isFolded ? VERTICES_FOLDED_COORDS : VERTICES_UNFOLDED_COORDS;
-  const from = isFolded ? VERTICES_UNFOLDED_COORDS : VERTICES_FOLDED_COORDS;
-  if (to in graph === true) {
-    graph[from] = graph.vertices_coords;
-    graph.vertices_coords = graph[to];
-    delete graph[to];
+    graph[VERTICES_FOLDED_COORDS] = graph.vertices_coords;
+    graph.vertices_coords = graph[VERTICES_UNFOLDED_COORDS];
+    delete graph[VERTICES_UNFOLDED_COORDS];
   }
 };
 
@@ -103,16 +96,18 @@ const Origami = function (...args) {
     if (args.length === 0) {
       // collapse on all creases.
       setFoldedForm(origami, true);
-      origami.didChange.forEach(f => f());
+      // origami.didChange.forEach(f => f());
     } else {
       // do some specific fold operation
     }
+    origami.changed.update(origami.fold);
     return origami;
   };
 
   const unfold = function () {
     setFoldedForm(origami, false);
-    origami.didChange.forEach(f => f());
+    // origami.didChange.forEach(f => f());
+    origami.changed.update(origami.unfold);
     return origami;
   };
 
