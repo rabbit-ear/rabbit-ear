@@ -1,5 +1,5 @@
 const { RabbitEar } = window;
-const markSegment = RabbitEar.Origami();
+const markSegment = RabbitEar.origami();
 markSegment.vertices.visible = true;
 
 markSegment.svg.onMouseUp = function (mouse) {

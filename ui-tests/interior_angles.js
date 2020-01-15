@@ -1,4 +1,4 @@
-let interiorAngles = RabbitEar.Origami("interior-angles");
+let interiorAngles = RabbitEar.origami("interior-angles");
 interiorAngles.arcLayer = RabbitEar.svg.group();
 
 interiorAngles.updateAngles = function(){

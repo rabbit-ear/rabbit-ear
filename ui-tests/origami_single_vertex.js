@@ -1,13 +1,13 @@
 let div = document.querySelector("#single-vertex");
 let singleVertex;
-singleVertex = RabbitEar.Origami(div, function(){
+singleVertex = RabbitEar.origami(div, function(){
 	if (singleVertex != null) {
 		singleVertex.boot();
 		singleVertex.updateCenter({x:0.4+Math.random()*0.2, y:0.4+Math.random()*0.2});
 
 	}
 });
-let folded = RabbitEar.Origami(div);
+let folded = RabbitEar.origami(div);
 
 singleVertex.boot = function() {
 	singleVertex.threeCorners = {

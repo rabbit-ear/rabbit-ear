@@ -5,18 +5,19 @@ import {
   isNode,
 } from "./detect";
 
-const htmlString = "<!DOCTYPE html><title>a</title>";
-const win = !isNode && isBrowser ? window : {};
+const htmlString = "<!DOCTYPE html><title> </title>";
 
-if (isNode) {
-  const { DOMParser, XMLSerializer } = require("xmldom");
-  win.DOMParser = DOMParser;
-  win.XMLSerializer = XMLSerializer;
-  win.document = new DOMParser().parseFromString(htmlString, "text/html");
-} else if (isBrowser) {
-  // win.DOMParser = window.DOMParser;
-  // win.XMLSerializer = window.XMLSerializer;
-  // win.document = window.document;
-}
+const win = (function () {
+  let w = {};
+  if (isNode) {
+    const { DOMParser, XMLSerializer } = require("xmldom");
+    w.DOMParser = DOMParser;
+    w.XMLSerializer = XMLSerializer;
+    w.document = new DOMParser().parseFromString(htmlString, "text/html");
+  } else if (isBrowser) {
+    w = window;
+  }
+  return w;
+}());
 
 export default win;

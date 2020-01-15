@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   var app = LiveCode(document.querySelector("#app"));
 
-  var origami = RabbitEar.Origami(document.querySelectorAll(".canvas-container")[0], {
+  var origami = RabbitEar.origami(document.querySelectorAll(".canvas-container")[0], {
     padding: 0.05
   });
 

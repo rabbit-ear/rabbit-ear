@@ -2,7 +2,7 @@
 var wobble_intersections_callback = undefined;
 
 let wobble;
-wobble = RabbitEar.Origami("canvas-intersection-wobble", (wobbleSVG) => {
+wobble = RabbitEar.origami("canvas-intersection-wobble", (wobbleSVG) => {
   // wobble.setBounds(-1, -0.5, 2, 1);
   // wobble.edges.visible = false;
 

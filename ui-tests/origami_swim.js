@@ -1,4 +1,4 @@
-var fishSwim = RabbitEar.Origami("fish-noise");
+var fishSwim = RabbitEar.origami("fish-noise");
 fishSwim.a = 1.0 - Math.sqrt(0.5);
 fishSwim.b = Math.sqrt(0.5);
 

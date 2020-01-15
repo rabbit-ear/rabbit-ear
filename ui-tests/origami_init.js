@@ -1,4 +1,4 @@
-const origami = RabbitEar.Origami("canvas-reflection", 800, 800, (origami) => {
+const origami = RabbitEar.origami("canvas-reflection", 800, 800, (origami) => {
   console.log("inside the sketch", origami);
 
   const line = origami.svg.line(0, 0, 1, 1)

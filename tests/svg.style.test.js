@@ -3,7 +3,7 @@ const RabbitEar = require("../rabbit-ear");
 test("svg style test", () => {
   const customStyle = ".boundary{fill:white;}";
   // test that origami got created with an SVG
-  const origami = RabbitEar.Origami({ view: "svg", autofit: false, stylesheet: customStyle });
+  const origami = RabbitEar.origami({ view: "svg", autofit: false, stylesheet: customStyle });
   const styleNode = Array.from(origami.svg.childNodes)
     .filter(node => node.tagName === "style")
     .shift();

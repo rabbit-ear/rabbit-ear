@@ -6,7 +6,7 @@ const kite = {
   edges_assignment: ["B", "B", "B", "B", "B", "B", "V", "V", "F"],
 };
 
-const origami = RabbitEar.Origami(kite);
+const origami = RabbitEar.origami(kite);
 origami.preferences.debug = true;
 
 origami.onMouseDown = function (mouse) {

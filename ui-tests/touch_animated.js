@@ -1,4 +1,4 @@
-let touchAnimated = RabbitEar.Origami("canvas-touch-animated");
+let touchAnimated = RabbitEar.origami("canvas-touch-animated");
 
 touchAnimated.cp = RabbitEar.CreasePattern(RabbitEar.bases.frog);
 

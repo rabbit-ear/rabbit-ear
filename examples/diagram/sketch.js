@@ -1,5 +1,5 @@
 
-const origami = RabbitEar.Origami("origami", {
+const origami = RabbitEar.origami("origami", {
   touchFold: true,
   padding: 0.1,
   autofit: false
@@ -18,7 +18,7 @@ const patternStyle = `
   stroke: white;
 }`;
 
-const pattern = RabbitEar.Origami("pattern", { padding: 0.1, style: patternStyle });
+const pattern = RabbitEar.origami("pattern", { padding: 0.1, style: patternStyle });
 
 const STARTER = JSON.parse(JSON.stringify(origami));
 

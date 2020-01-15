@@ -1,4 +1,4 @@
-var creaseEdge = RabbitEar.Origami();
+var creaseEdge = RabbitEar.origami();
 
 creaseEdge.redraw = function(){
 	let p = [[Math.random(), Math.random()], [Math.random(), Math.random()]];

@@ -1,11 +1,11 @@
 
-const origami = re.Origami("origami", { padding: 0.1 });
+const origami = RabbitEar.origami("origami", { padding: 0.1 });
 origami.arrowLayer = origami.group();
 origami.vertices.visible = true;
 origami.touchHistory = [];
 origami.mode = "mode-axiom-3";
 
-const folding = re.Origami("folding", { padding: 0.1 });
+const folding = RabbitEar.origami("folding", { padding: 0.1 });
 
 origami.touchGroup = origami.group();
 origami.drawHistory = [];

@@ -1,4 +1,4 @@
-let faceDual = RabbitEar.Origami("canvas-face-dual");
+let faceDual = RabbitEar.origami("canvas-face-dual");
 faceDual.cp = RabbitEar.CreasePattern(RabbitEar.bases.frog);
 faceDual.load("../files/fold/kraft-sea-turtle.fold", function(){
 	faceDual.init();

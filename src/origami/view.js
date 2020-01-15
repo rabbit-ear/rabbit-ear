@@ -96,7 +96,7 @@ const SVGView = function (origami, ...args) {
     } else {
       newSVGGroups.forEach(node => svg.appendChild(node));
     }
-    oldSVGGroups.forEach(node => parent.removeChild(node));
+    oldSVGGroups.forEach(node => svg.removeChild(node));
     newSVGGroups.forEach(node => node.setAttribute("pointerEvents", "none"));
     Array.from(newSVG.attributes)
       .forEach(attr => svg.setAttribute(attr.name, attr.value));

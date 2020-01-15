@@ -1,6 +1,6 @@
 const { RabbitEar } = window;
-const origami = RabbitEar.Origami({ padding: 0.05 });
-const folded = RabbitEar.Origami({ padding: 0.05 });
+const origami = RabbitEar.origami({ padding: 0.05 });
+const folded = RabbitEar.origami({ padding: 0.05 });
 
 origami.boot = function () {
   origami.load({

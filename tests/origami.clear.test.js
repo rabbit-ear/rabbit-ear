@@ -1,7 +1,7 @@
 const RabbitEar = require("../rabbit-ear");
 
 test("origami clear", () => {
-  const origami = RabbitEar.Origami(); // .square();
+  const origami = RabbitEar.origami(); // .square();
 
   // 3 random creases
   Array.from(Array(3)).forEach(() => {

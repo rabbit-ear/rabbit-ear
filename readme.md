@@ -25,13 +25,13 @@ var RabbitEar = require("rabbit-ear")
 if you are in the browser, this gives you an SVG rendering of an origami.
 
 ```javascript
-var origami = RabbitEar.Origami()
+var origami = RabbitEar.origami()
 ```
 
 that creates an origami object (a piece of paper). it is a [FOLD object](https://github.com/edemaine/fold). put creases into it:
 
 ```javascript
-var origami = RabbitEar.Origami()
+var origami = RabbitEar.origami()
 origami.crease([0.5, 0.5], [0.707, 0.707])
 ```
 

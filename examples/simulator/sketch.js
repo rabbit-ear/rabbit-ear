@@ -44,7 +44,7 @@ toolbarRight.appendChild(sliderPercentLabel);
 body.appendChild(toolbar);
 
 // origami code
-const origami2d = RabbitEar.Origami(div2d, {
+const origami2d = RabbitEar.origami(div2d, {
   touchFold: true,
   autofit: false,
   padding: 0.15,

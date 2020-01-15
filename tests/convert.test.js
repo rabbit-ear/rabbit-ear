@@ -11,7 +11,7 @@ jest.setTimeout(60000);
 const outputDir = "./tests/output";
 fs.existsSync(outputDir) || fs.mkdirSync(outputDir);
 
-const foldedFrog = RabbitEar.Origami();
+const foldedFrog = RabbitEar.origami();
 foldedFrog.load(RabbitEar.bases.frog);
 foldedFrog.fold();
 fs.writeFile("./tests/output/folded-frog-base.svg", foldedFrog.export.svg(), (err) => {});

@@ -1,5 +1,5 @@
 const OrigamiAndCode = function (origamiID, codeID, consoleID) {
-  const origami = RabbitEar.Origami(origamiID, { padding: 0.05 });
+  const origami = RabbitEar.origami(origamiID, { padding: 0.05 });
   // origami.vertices.visible = true;
   const consoleDiv = document.querySelector(`#${consoleID}`);
   let editor;
@@ -62,7 +62,7 @@ const OrigamiAndCode = function (origamiID, codeID, consoleID) {
 
 let SLIDER = 0.5;
 const origami = OrigamiAndCode("origami-cp", "editor", "console");
-const folded = RabbitEar.Origami("origami-fold", { padding: 0.05 });
+const folded = RabbitEar.origami("origami-fold", { padding: 0.05 });
 
 document.querySelector("#interp-slider").oninput = function (event) {
   let v = parseFloat((event.target.value / 1000).toFixed(2));

@@ -1,2 +1,2 @@
-let origami = RE.Origami();
+let origami = RabbitEar.origami();
 origami.load("../files/svg/crossing.svg");

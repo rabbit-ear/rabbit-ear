@@ -1,4 +1,4 @@
-let clipping = RabbitEar.Origami("canvas-clipping");
+let clipping = RabbitEar.origami("canvas-clipping");
 let drawGroup = RabbitEar.svg.group();
 clipping.appendChild(drawGroup);
 

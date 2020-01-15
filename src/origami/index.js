@@ -8,10 +8,17 @@ import Prototype from "./prototype";
 import convert from "../convert/convert";
 import { possibleFoldObject } from "../FOLD/validate";
 import { square } from "../FOLD/create";
+import populate from "../FOLD/populate";
 import {
   make_vertices_coords_folded,
   make_faces_matrix
 } from "../FOLD/make";
+
+const FOLDED_FORM = "foldedForm";
+const CREASE_PATTERN = "creasePattern";
+const VERTICES_FOLDED_COORDS = "vertices_re:foldedCoords"
+const VERTICES_UNFOLDED_COORDS = "vertices_re:unfoldedCoords"
+const FACES_MATRIX = "faces_re:matrix";
 
 const DEFAULTS = Object.freeze({
   touchFold: false,
@@ -28,48 +35,50 @@ const parseOptions = function (...args) {
   return prefs;
 };
 
+/**
+ * @returns {boolean} is the graph in a folded form? undefined if there is no indication either way.
+ */
 const isOrigamiFolded = function(graph) {
-  if (graph == undefined || graph.frame_classes == undefined) { return false; }
-  let frame_classes = graph.frame_classes;
-  if (frame > 0 &&
-     graph.file_frames[frame - 1] != undefined &&
-     graph.file_frames[frame - 1].frame_classes != undefined) {
-    frame_classes = graph.file_frames[frame - 1].frame_classes;
-  }
-  // try to discern folded state
-  if (frame_classes.includes("foldedForm")) {
-    return true;
-  }
-  if (frame_classes.includes("creasePattern")) {
-    return false;
-  }
+  if (graph == null || graph.frame_classes == null) { return undefined; }
+  if (graph.frame_classes.includes(FOLDED_FORM)) { return true; }
+  if (graph.frame_classes.includes(CREASE_PATTERN)) { return false; }
   // inconclusive
-  return false;
+  return undefined;
 };
-
-// fold() should fold everything "collapse" if there are no arguments.
-// if there are no mountain valley assignments, it should fold on all marks
-// otherwise it should ignore marks.
 
 /**
  * setting the "folded state" does two things:
- * - assign the class of this object to be "foldedForm" or "creasePattern"
+ * - assign the class of this object to be FOLDED_FORM or CREASE_PATTERN
  * - move (and cache) foldedCoords or unfoldedCoords into vertices_coords
  */
 const setFoldedForm = function (graph, isFolded) {
-  const wasFolded = isOrigamiFolded(graph);
-  const remove = isFolded ? "creasePattern" : "foldedForm";
-  const add = isFolded ? "foldedForm" : "creasePattern";
   if (graph.frame_classes == null) { graph.frame_classes = []; }
-  while (graph.frame_classes.indexOf(remove) !== -1) {
-    graph.frame_classes.splice(graph.frame_classes.indexOf(remove), 1);
-  }
-  if (graph.frame_classes.indexOf(add) === -1) {
-    graph.frame_classes.push(add);
-  }
+  const wasFolded = isOrigamiFolded(graph);
+  if (isFolded === wasFolded) { return; } // graph is already folded / unfolded
+  // update frame_classes
+  graph.frame_classes = graph.frame_classes
+    .filter(c => !([CREASE_PATTERN, FOLDED_FORM].includes(c)))
+    .concat([isFolded ? FOLDED_FORM : CREASE_PATTERN]);
   // move unfolded_coords or folded_coords into the main vertices_coords spot
-  const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
-  const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
+  if (isFolded) {
+    // if folded coords do not exist, we need to build them.
+    if (!(VERTICES_FOLDED_COORDS in graph)) {
+      // build folded coords
+      if (!(FACES_MATRIX in graph)) {
+        // if faces do not exist, rebuild faces_vertices
+        if (graph.faces_vertices == null) { populate(graph); }
+        // graph[FACES_MATRIX] = make_faces_matrix(graph, options.face);
+        graph[FACES_MATRIX] = make_faces_matrix(graph, 0);
+      }
+      if (!(VERTICES_FOLDED_COORDS in graph)) {
+        graph[VERTICES_FOLDED_COORDS] = make_vertices_coords_folded(graph, null, graph[FACES_MATRIX]);
+      }
+    }
+  } else {
+    // if unfolded coords do not exist, we need to build unfolded coords from a folded state?
+  }
+  const to = isFolded ? VERTICES_FOLDED_COORDS : VERTICES_UNFOLDED_COORDS;
+  const from = isFolded ? VERTICES_UNFOLDED_COORDS : VERTICES_FOLDED_COORDS;
   if (to in graph === true) {
     graph[from] = graph.vertices_coords;
     graph.vertices_coords = graph[to];
@@ -86,35 +95,24 @@ const Origami = function (...args) {
     Object.create(Prototype()),
     args.filter(el => possibleFoldObject(el)).shift() || square()
   );
-  // validate and add anything missing.
-  // validate(origami);
-  // origami.clean();
-  // origami.populate();
-
-  const collapse = function (options = {}) {
-    if ("faces_re:matrix" in origami === false) {
-      origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
-    }
-    if ("vertices_re:foldedCoords" in origami === false) {
-      origami["vertices_re:foldedCoords"] = make_vertices_coords_folded(origami, null, origami["faces_re:matrix"]);
-    }
-    setFoldedForm(origami, true);
-    origami.didChange.forEach(f => f());
-    return origami;
-  };
-
-  const flatten = function () {
-    setFoldedForm(origami, false);
-    origami.didChange.forEach(f => f());
-    return origami;
-  };
-
+  /**
+   * fold() with no arguments will perform a global collapse on all creases
+   * and if and only if there are mountain valley assignments, it ignores marks
+   */
   const fold = function (...args) {
+    if (args.length === 0) {
+      // collapse on all creases.
+      setFoldedForm(origami, true);
+      origami.didChange.forEach(f => f());
+    } else {
+      // do some specific fold operation
+    }
     return origami;
   };
 
   const unfold = function () {
-    // get history
+    setFoldedForm(origami, false);
+    origami.didChange.forEach(f => f());
     return origami;
   };
 
@@ -127,8 +125,7 @@ const Origami = function (...args) {
 
   // attach methods
   // Object.defineProperty(origami, "options", { get: () => options });
-  Object.defineProperty(origami, "collapse", { value: collapse });
-  Object.defineProperty(origami, "flatten", { value: flatten });
+  Object.defineProperty(origami, "isFolded", { get: () => isOrigamiFolded(origami) });
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
   Object.defineProperty(origami, "export", { get: (...args) => {

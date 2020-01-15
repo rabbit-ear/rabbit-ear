@@ -1,7 +1,7 @@
 const Game = function() {
 	let _this = {};
 
-	let origami = RabbitEar.Origami({folding:true, padding:0.1, autofit:false});
+	let origami = RabbitEar.origami({folding:true, padding:0.1, autofit:false});
 	origami.drawLayer = origami.group();
 	var ball = Ball();
 

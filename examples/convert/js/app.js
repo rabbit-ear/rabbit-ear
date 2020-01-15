@@ -11,11 +11,11 @@ const App = function () {
   });
   const filePanel = FilePanel(document.querySelectorAll(".app")[0]);
   const jsonPanel = JSONPanel(document.querySelectorAll(".app")[0]);
-  const origami = RabbitEar.Origami(document.querySelectorAll(".grid-cp")[0], {
+  const origami = RabbitEar.origami(document.querySelectorAll(".grid-cp")[0], {
     padding: 0.02,
     style: ".boundary { fill: white; } .foldedForm polygon { fill: rgba(255, 255, 255, 0.1); }"
   });
-  const folded = RabbitEar.Origami(document.querySelectorAll(".grid-folded")[0], {
+  const folded = RabbitEar.origami(document.querySelectorAll(".grid-folded")[0], {
     padding: 0.02,
     style: ".foldedForm polygon { fill: rgba(255, 255, 255, 0.1); }"
   });

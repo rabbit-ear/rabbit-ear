@@ -1,5 +1,5 @@
-let creaseThrough = RabbitEar.Origami("canvas-faces-chop");
-let folded = RabbitEar.Origami("canvas-faces-chop-folded");
+let creaseThrough = RabbitEar.origami("canvas-faces-chop");
+let folded = RabbitEar.origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
 creaseThrough.controls = RabbitEar.svg.controls(creaseThrough, 2, {radius:0.02, fill: "#e44f2a"});

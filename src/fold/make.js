@@ -255,8 +255,9 @@ export const make_faces_matrix_inv = function (graph, root_face) {
   return faces_matrix;
 };
 
+// todo: see if it's possible to code this without requiring faces_vertices
 export const make_vertices_coords_folded = function (graph, face_stationary, faces_matrix) {
-  if (graph.vertices_coords == null) { return undefined; }
+  if (graph.vertices_coords == null || graph.faces_vertices == null) { return undefined; }
   if (face_stationary == null) { face_stationary = 0; }
   if (faces_matrix == null) {
     faces_matrix = make_faces_matrix(graph, face_stationary);

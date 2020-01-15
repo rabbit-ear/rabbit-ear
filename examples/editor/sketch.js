@@ -64,13 +64,13 @@ const stylesheet = `
 
 const App = function (options = {}) {
   const canvas_container = document.querySelectorAll(".canvas-container")[0];
-  const origami = RabbitEar.Origami(canvas_container, {
+  const origami = RabbitEar.origami(canvas_container, {
     style: stylesheet,
     padding: 0.025
   });
 
   const folded_container = document.querySelectorAll(".pip-view")[0];
-  const folded = RabbitEar.Origami(folded_container, {
+  const folded = RabbitEar.origami(folded_container, {
     style: ".foldedForm polygon { fill: #fff4; }"
   });
   folded.svg.setAttribute("style", "margin:auto");

@@ -1,4 +1,4 @@
-let axiom1 = RabbitEar.Origami("canvas-axiom-1");
+let axiom1 = RabbitEar.origami("canvas-axiom-1");
 
 // create 2 UI-control points
 axiom1.touches = [
