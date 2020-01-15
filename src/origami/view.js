@@ -108,7 +108,10 @@ const SVGView = function (origami, ...args) {
   // view specific initializers
   fit();
   draw();
-  origami.didChange.push(draw);
+  origami.changed.handlers.push((caller) => {
+    // console.log("handler: ", typeof caller === "function" ? caller.name : "");
+    draw();
+  });
   Object.defineProperty(origami, "draw", { value: draw });  // todo: do we want this?
   Object.defineProperty(origami, "svg", { get: () => svg });
 

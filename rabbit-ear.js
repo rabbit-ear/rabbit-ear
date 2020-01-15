@@ -6194,7 +6194,9 @@
     };
     fit();
     draw();
-    origami.didChange.push(draw);
+    origami.changed.handlers.push((caller) => {
+      draw();
+    });
     Object.defineProperty(origami, "draw", { value: draw });
     Object.defineProperty(origami, "svg", { get: () => svg });
     const sendCallback = function () {
@@ -8661,6 +8663,15 @@
     transform_matrix: transform_matrix
   });
 
+  const Changed = function () {
+    const changed = {};
+    changed.update = function (...args) {
+      changed.handlers.forEach(f => f(...args));
+    };
+    changed.handlers = [];
+    return Object.freeze(changed);
+  };
+
   const vertex_degree = function (v, i) {
     const graph = this;
     Object.defineProperty(v, "degree", {
@@ -8722,38 +8733,48 @@
     face_coords.call(this, f, i);
   };
   const Prototype$2 = function (proto = {}) {
+    proto.changed = Changed();
     proto.load = function (object, options = {}) {
       if (options.append !== true) {
         keys.forEach(key => delete this[key]);
       }
       Object.assign(this, { file_spec, file_creator }, clone$1(object));
+      this.changed.update(this.load);
     };
     proto.join = function (object, epsilon) {
       join(this, object, epsilon);
+      this.changed.update(this.join);
     };
     proto.clear = function () {
       fold_keys.graph.forEach(key => delete this[key]);
+      this.changed.update(this.clear);
     };
     proto.copy = function () {
       return Object.assign(Object.create(Prototype$2()), clone$1(this));
     };
     proto.clean = function () {
       clean(this);
+      this.changed.update(this.clean);
     };
     proto.populate = function () {
       populate(this);
+      this.changed.update(this.populate);
     };
     proto.fragment = function (epsilon = 1e-6) {
       fragment(this, epsilon);
+      this.changed.update(this.fragment);
     };
     proto.rebuild = function (epsilon = 1e-6) {
       rebuild(this, epsilon);
+      this.changed.update(this.rebuild);
     };
     proto.translate = function (...args) {
       transform_translate(this, ...args);
+      this.changed.update(this.translate);
     };
     proto.scale = function (...args) {
       transform_scale(this, ...args);
+      this.changed.update(this.scale);
     };
     const getVertices = function () {
       const transposed = transpose_geometry_arrays(this, "vertices");
@@ -9824,14 +9845,6 @@
     const getBoundaries = function () {
       return boundary_methods.call(this, [get_boundary$1(this)]);
     };
-    const isFolded = function () {
-      if ("frame_classes" in this === false) { return undefined; }
-      const cpIndex = this.frame_classes.indexOf("creasePattern");
-      const foldedIndex = this.frame_classes.indexOf("foldedForm");
-      if (cpIndex === -1 && foldedIndex === -1) { return undefined; }
-      if (cpIndex !== -1 && foldedIndex !== -1) { return undefined; }
-      return (foldedIndex !== -1);
-    };
     proto.clean2 = function () {
       clean(this, {collinear: true, isolated: true});
       this["faces_re:matrix"] = make_faces_matrix(this);
@@ -9849,10 +9862,7 @@
       delete this.vertices_vertices;
       delete this.vertices_faces;
       delete this.edges_faces;
-      this.didChange.forEach(f => f());
-    };
-    const didModifyGraph = function () {
-      this.didChange.forEach(f => f());
+      this.changed.update();
     };
     proto.segment = function (...args) {
       const s = math.core.flatten_input(...args)
@@ -9862,7 +9872,6 @@
       const assignment = get_assignment(...args) || "F";
       add_edge(this, c[0], c[1], c[2], c[3], assignment).apply();
       rebuild(this);
-      didModifyGraph.call(this);
       const edges = collinear_edges(this, [c[0], c[1]], [c[2] - c[0], c[3] - c[1]]);
       return Edges(this, edges);
     };
@@ -9874,7 +9883,6 @@
       const assignment = get_assignment(...args) || "F";
       add_edge(this, s[0], s[1], s[2], s[3], assignment).apply();
       rebuild(this);
-      didModifyGraph.call(this);
       const edges = collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
       return Edges(this, edges);
     };
@@ -9891,7 +9899,6 @@
       const assignment = get_assignment(...args) || "F";
       add_edge(this, s[0], s[1], s[2], s[3], assignment).apply();
       rebuild(this);
-      didModifyGraph.call(this);
       const edges = collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
       return Edges(this, edges);
     };
@@ -9901,7 +9908,7 @@
       const assignment = get_assignment(...args) || "F";
       add_edge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
       if (options.rebuild) { rebuild(this); }
-      if (options.change) { this.didChange.forEach(f => f()); }
+      this.didChange.forEach(f => f());
     };
     proto.crease = function (...args) {
       const objects = args.filter(p => typeof p === "object");
@@ -9924,7 +9931,6 @@
           this["re:construction"].parameters = objects[0].parameters;
         }
       }
-      didModifyGraph.call(this);
     };
     proto.creaseRay = function (...args) {
       const ray = math.ray(args);
@@ -9941,13 +9947,10 @@
     };
     proto.kawasaki = function (...args) {
       const crease = kawasaki_collapse(this, ...args);
-      didModifyGraph.call(this);
       return crease;
     };
     Object.defineProperty(proto, "boundaries", { get: getBoundaries });
-    Object.defineProperty(proto, "isFolded", { value: isFolded });
     Object.defineProperty(proto, "clear", { value: clear });
-    proto.didChange = [];
     return proto;
   };
 
@@ -12022,7 +12025,7 @@
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
   };
-  const isOrigamiFolded = function(graph) {
+  const isOrigamiFolded = function (graph) {
     if (graph == null || graph.frame_classes == null) { return undefined; }
     if (graph.frame_classes.includes(FOLDED_FORM)) { return true; }
     if (graph.frame_classes.includes(CREASE_PATTERN)) { return false; }
@@ -12037,21 +12040,18 @@
       .concat([isFolded ? FOLDED_FORM : CREASE_PATTERN]);
     if (isFolded) {
       if (!(VERTICES_FOLDED_COORDS in graph)) {
-        if (!(FACES_MATRIX in graph)) {
-          if (graph.faces_vertices == null) { populate(graph); }
-          graph[FACES_MATRIX] = make_faces_matrix(graph, 0);
-        }
-        if (!(VERTICES_FOLDED_COORDS in graph)) {
-          graph[VERTICES_FOLDED_COORDS] = make_vertices_coords_folded(graph, null, graph[FACES_MATRIX]);
-        }
+        if (graph.faces_vertices == null) { populate(graph); }
+        graph[FACES_MATRIX] = make_faces_matrix(graph, 0);
+        graph[VERTICES_FOLDED_COORDS] = make_vertices_coords_folded(graph, null, graph[FACES_MATRIX]);
       }
-    }
-    const to = isFolded ? VERTICES_FOLDED_COORDS : VERTICES_UNFOLDED_COORDS;
-    const from = isFolded ? VERTICES_UNFOLDED_COORDS : VERTICES_FOLDED_COORDS;
-    if (to in graph === true) {
-      graph[from] = graph.vertices_coords;
-      graph.vertices_coords = graph[to];
-      delete graph[to];
+      graph[VERTICES_UNFOLDED_COORDS] = graph.vertices_coords;
+      graph.vertices_coords = graph[VERTICES_FOLDED_COORDS];
+      delete graph[VERTICES_FOLDED_COORDS];
+    } else {
+      if (graph[VERTICES_UNFOLDED_COORDS] == null) { return; }
+      graph[VERTICES_FOLDED_COORDS] = graph.vertices_coords;
+      graph.vertices_coords = graph[VERTICES_UNFOLDED_COORDS];
+      delete graph[VERTICES_UNFOLDED_COORDS];
     }
   };
   const Origami = function (...args) {
@@ -12062,13 +12062,13 @@
     const fold = function (...args) {
       if (args.length === 0) {
         setFoldedForm(origami, true);
-        origami.didChange.forEach(f => f());
       }
+      origami.changed.update(origami.fold);
       return origami;
     };
     const unfold = function () {
       setFoldedForm(origami, false);
-      origami.didChange.forEach(f => f());
+      origami.changed.update(origami.unfold);
       return origami;
     };
     const options = {};

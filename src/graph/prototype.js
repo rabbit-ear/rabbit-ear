@@ -22,6 +22,7 @@ import {
   implied_vertices_count
 } from "../FOLD/query";
 import { clone } from "../FOLD/object";
+import changed from "./changed";
 
 const vertex_degree = function (v, i) {
   const graph = this;
@@ -91,6 +92,7 @@ const setup_face = function (f, i) {
 };
 
 const Prototype = function (proto = {}) {
+  proto.changed = changed();
   /**
    * @param {object} is a FOLD object.
    * @param {options}
@@ -102,18 +104,21 @@ const Prototype = function (proto = {}) {
     }
     // allow overwriting of file_spec and file_creator if included in import
     Object.assign(this, { file_spec, file_creator }, clone(object));
+    this.changed.update(this.load);
   };
   /**
    * this performs a planar join, merging the two graphs, fragmenting, cleaning.
    */
   proto.join = function (object, epsilon) {
     join(this, object, epsilon);
+    this.changed.update(this.join);
   };
   /**
    * this clears all components from the graph, leaving other keys untouched.
    */
   proto.clear = function () {
     fold_keys.graph.forEach(key => delete this[key]);
+    this.changed.update(this.clear);
   };
   /**
    * export
@@ -127,27 +132,33 @@ const Prototype = function (proto = {}) {
    */
   proto.clean = function () {
     clean(this);
+    this.changed.update(this.clean);
   };
   proto.populate = function () {
     populate(this);
+    this.changed.update(this.populate);
   };
   proto.fragment = function (epsilon = 1e-6) {
     fragment(this, epsilon);
+    this.changed.update(this.fragment);
   };
   proto.rebuild = function (epsilon = 1e-6) {
     rebuild(this, epsilon);
+    this.changed.update(this.rebuild);
   };
   /**
    * transformations
    */
   proto.translate = function (...args) {
     Transform.transform_translate(this, ...args);
+    this.changed.update(this.translate);
   };
   // proto.rotate = function (...args) {
   //   Transform.transform_rotate(this, ...args);
   // };
   proto.scale = function (...args) {
     Transform.transform_scale(this, ...args);
+    this.changed.update(this.scale);
   };
   /**
    * graph components
