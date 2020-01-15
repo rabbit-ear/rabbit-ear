@@ -8734,45 +8734,45 @@
   };
   const Prototype$2 = function (proto = {}) {
     proto.changed = Changed();
-    proto.load = function load (object, options = {}) {
+    proto.load = function (object, options = {}) {
       if (options.append !== true) {
         keys.forEach(key => delete this[key]);
       }
       Object.assign(this, { file_spec, file_creator }, clone$1(object));
       this.changed.update(this.load);
     };
-    proto.join = function join (object, epsilon) {
-      join();
+    proto.join = function (object, epsilon) {
+      join(this, object, epsilon);
       this.changed.update(this.join);
     };
-    proto.clear = function clear () {
+    proto.clear = function () {
       fold_keys.graph.forEach(key => delete this[key]);
       this.changed.update(this.clear);
     };
     proto.copy = function () {
       return Object.assign(Object.create(Prototype$2()), clone$1(this));
     };
-    proto.clean = function clean () {
-      clean();
+    proto.clean = function () {
+      clean(this);
       this.changed.update(this.clean);
     };
-    proto.populate = function populate () {
-      populate();
+    proto.populate = function () {
+      populate(this);
       this.changed.update(this.populate);
     };
-    proto.fragment = function fragment (epsilon = 1e-6) {
-      fragment(this);
+    proto.fragment = function (epsilon = 1e-6) {
+      fragment(this, epsilon);
       this.changed.update(this.fragment);
     };
-    proto.rebuild = function rebuild (epsilon = 1e-6) {
-      rebuild(this);
+    proto.rebuild = function (epsilon = 1e-6) {
+      rebuild(this, epsilon);
       this.changed.update(this.rebuild);
     };
-    proto.translate = function translate (...args) {
+    proto.translate = function (...args) {
       transform_translate(this, ...args);
       this.changed.update(this.translate);
     };
-    proto.scale = function scale (...args) {
+    proto.scale = function (...args) {
       transform_scale(this, ...args);
       this.changed.update(this.scale);
     };
@@ -12025,7 +12025,7 @@
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
   };
-  const isOrigamiFolded = function(graph) {
+  const isOrigamiFolded = function (graph) {
     if (graph == null || graph.frame_classes == null) { return undefined; }
     if (graph.frame_classes.includes(FOLDED_FORM)) { return true; }
     if (graph.frame_classes.includes(CREASE_PATTERN)) { return false; }

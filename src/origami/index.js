@@ -38,7 +38,7 @@ const parseOptions = function (...args) {
 /**
  * @returns {boolean} is the graph in a folded form? undefined if there is no indication either way.
  */
-const isOrigamiFolded = function(graph) {
+const isOrigamiFolded = function (graph) {
   if (graph == null || graph.frame_classes == null) { return undefined; }
   if (graph.frame_classes.includes(FOLDED_FORM)) { return true; }
   if (graph.frame_classes.includes(CREASE_PATTERN)) { return false; }

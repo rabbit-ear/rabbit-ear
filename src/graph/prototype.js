@@ -98,7 +98,7 @@ const Prototype = function (proto = {}) {
    * @param {options}
    *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
    */
-  proto.load = function load (object, options = {}) {
+  proto.load = function (object, options = {}) {
     if (options.append !== true) {
       keys.forEach(key => delete this[key]);
     }
@@ -109,14 +109,14 @@ const Prototype = function (proto = {}) {
   /**
    * this performs a planar join, merging the two graphs, fragmenting, cleaning.
    */
-  proto.join = function join (object, epsilon) {
+  proto.join = function (object, epsilon) {
     join(this, object, epsilon);
     this.changed.update(this.join);
   };
   /**
    * this clears all components from the graph, leaving other keys untouched.
    */
-  proto.clear = function clear () {
+  proto.clear = function () {
     fold_keys.graph.forEach(key => delete this[key]);
     this.changed.update(this.clear);
   };
@@ -130,33 +130,33 @@ const Prototype = function (proto = {}) {
   /**
    * modifiers
    */
-  proto.clean = function clean () {
+  proto.clean = function () {
     clean(this);
     this.changed.update(this.clean);
   };
-  proto.populate = function populate () {
+  proto.populate = function () {
     populate(this);
     this.changed.update(this.populate);
   };
-  proto.fragment = function fragment (epsilon = 1e-6) {
+  proto.fragment = function (epsilon = 1e-6) {
     fragment(this, epsilon);
     this.changed.update(this.fragment);
   };
-  proto.rebuild = function rebuild (epsilon = 1e-6) {
+  proto.rebuild = function (epsilon = 1e-6) {
     rebuild(this, epsilon);
     this.changed.update(this.rebuild);
   };
   /**
    * transformations
    */
-  proto.translate = function translate (...args) {
+  proto.translate = function (...args) {
     Transform.transform_translate(this, ...args);
     this.changed.update(this.translate);
   };
-  // proto.rotate = function rotate (...args) {
+  // proto.rotate = function (...args) {
   //   Transform.transform_rotate(this, ...args);
   // };
-  proto.scale = function scale (...args) {
+  proto.scale = function (...args) {
     Transform.transform_scale(this, ...args);
     this.changed.update(this.scale);
   };
