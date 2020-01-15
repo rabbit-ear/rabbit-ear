@@ -99,6 +99,7 @@ const Prototype = function (proto = {}) {
    *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
    */
   proto.load = function (object, options = {}) {
+    if (typeof object !== "object") { return; }
     if (options.append !== true) {
       keys.forEach(key => delete this[key]);
     }
@@ -118,6 +119,7 @@ const Prototype = function (proto = {}) {
    */
   proto.clear = function () {
     fold_keys.graph.forEach(key => delete this[key]);
+    fold_keys.orders.forEach(key => delete this[key]);
     this.changed.update(this.clear);
   };
   /**

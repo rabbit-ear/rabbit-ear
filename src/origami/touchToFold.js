@@ -1,6 +1,5 @@
 /**
  * this gets applied to the parent of the SVG. the Origami() object.
- *
  */
 
 import {
@@ -67,7 +66,6 @@ const setup = function (origami, svg) {
   svg.mouseMoved = (mouse) => {
     if (mouse.isPressed) {
       // if (was_folded) { origami.unfold(); }
-
       origami.load(cachedGraph);
       const instruction = axiom2(mouse.position[0], mouse.position[1], mouse.pressed[0], mouse.pressed[1]);
       origami.crease(instruction.solutions[0], touchFaceIndex);

@@ -1757,6 +1757,8 @@ var root = /*#__PURE__*/Object.freeze({
   style: style,
   createElement: createElement
 });
+const ElementConstructor = (new win.DOMParser())
+  .parseFromString("<div />", "text/xml").documentElement.constructor;
 const findWindowBooleanParam = function (...params) {
   const objects = params
     .filter(arg => typeof arg === "object")
@@ -1764,8 +1766,7 @@ const findWindowBooleanParam = function (...params) {
   return objects.reduce((a, b) => a.window || b.window, false);
 };
 const findElementInParams = function (...params) {
-  const elementConstructor = win.document.createElement("a").constructor;
-  const element = params.filter(arg => arg instanceof elementConstructor).shift();
+  const element = params.filter(arg => arg instanceof ElementConstructor).shift();
   const idElement = params
     .filter(a => typeof a === "string" || a instanceof String)
     .map(str => win.document.getElementById(str))
@@ -1828,15 +1829,15 @@ const size = function (element, ...args) {
   }
 };
 const getFrame = function (element) {
-  let frame = [0, 0, 0, 0];
-  if (element.viewBox != null) {
-    const viewBox = element.viewBox.baseVal;
-    frame = [viewBox.x, viewBox.y, viewBox.width, viewBox.height];
-  } else if (typeof element.getBoundingClientRect === "function") {
-    const rr = element.getBoundingClientRect();
-    frame = [rr.x, rr.y, rr.width, rr.height];
+  const viewBox = getViewBox(element);
+  if (viewBox !== undefined) {
+    return viewBox;
   }
-  return frame;
+  if (typeof element.getBoundingClientRect === "function") {
+    const rr = element.getBoundingClientRect();
+    return [rr.x, rr.y, rr.width, rr.height];
+  }
+  return [0, 0, 0, 0];
 };
 const background = function (element, color, setParent = false) {
   if (setParent === true) {

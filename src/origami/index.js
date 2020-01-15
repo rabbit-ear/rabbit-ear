@@ -4,15 +4,17 @@
  */
 
 import View from "./view";
-import Prototype from "./prototype";
 import convert from "../convert/convert";
 import { possibleFoldObject } from "../FOLD/validate";
-import { square } from "../FOLD/create";
+import * as Create from "../FOLD/create";
 import populate from "../FOLD/populate";
+import { keys, fold_keys, file_spec, file_creator } from "../FOLD/keys";
+import { clone } from "../FOLD/object";
 import {
   make_vertices_coords_folded,
   make_faces_matrix
 } from "../FOLD/make";
+import prototype from "../graph/prototype";
 
 const FOLDED_FORM = "foldedForm";
 const CREASE_PATTERN = "creasePattern";
@@ -85,8 +87,8 @@ const Origami = function (...args) {
    * by default this will load a unit square graph.
    */
   const origami = Object.assign(
-    Object.create(Prototype()),
-    args.filter(el => possibleFoldObject(el)).shift() || square()
+    Object.create(prototype()),
+    args.filter(el => possibleFoldObject(el)).shift() || Create.square()
   );
   /**
    * fold() with no arguments will perform a global collapse on all creases
@@ -110,6 +112,20 @@ const Origami = function (...args) {
     origami.changed.update(origami.unfold);
     return origami;
   };
+  /**
+   * @param {object} can be a FOLD object, SVG, Oripa file, any valid format.
+   * @param {options}
+   *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
+   */
+  const load = function (object, options = {}) {
+    const foldObject = convert(object).fold();
+    if (options.append !== true) {
+      keys.forEach(key => delete origami[key]);
+    }
+    // allow overwriting of file_spec and file_creator if included in import
+    Object.assign(origami, { file_spec, file_creator }, clone(foldObject));
+    origami.changed.update(origami.load);
+  };
 
   // apply preferences
   const options = {};
@@ -120,6 +136,7 @@ const Origami = function (...args) {
 
   // attach methods
   // Object.defineProperty(origami, "options", { get: () => options });
+  Object.defineProperty(origami, "load", { value: load });
   Object.defineProperty(origami, "isFolded", { get: () => isOrigamiFolded(origami) });
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
@@ -144,5 +161,10 @@ const Origami = function (...args) {
 
   return origami;
 };
+
+Origami.empty = () => Origami(Create.empty());
+Origami.square = () => Origami(Create.square());
+Origami.rectangle = (width, height) => Origami(Create.rectangle(width, height));
+Origami.regularPolygon = (sides = 3, radius = 1) => Origami(Create.regular_polygon(sides, radius));
 
 export default Origami;
