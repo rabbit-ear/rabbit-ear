@@ -1,4 +1,13 @@
 import remove from "./remove";
+import { remove_all_collinear_vertices } from "./collinear";
+import { find_isolated_vertices } from "./isolated";
+
+const DEFAULTS = Object.freeze({
+  circular: true,
+  duplicate: true,
+  // collinear: false,
+  // isolated: false
+});
 
 const removeCircularEdges = function (graph) {
   const circular = graph.edges_vertices
@@ -24,9 +33,22 @@ const removeDuplicateEdges = function (graph) {
   remove(graph, "edges", duplicates);
 };
 
-const clean = function (graph) {
-  removeCircularEdges(graph);
-  removeDuplicateEdges(graph);
+const clean = function (graph, options) {
+  // options
+  if (typeof options !== "object") { options = {}; }
+  Object.keys(DEFAULTS)
+    .filter(key => !(key in options))
+    .forEach((key) => { options[key] = DEFAULTS[key]; });
+  // clean
+  if (options.circular === true) { removeCircularEdges(graph); }
+  if (options.duplicate === true) { removeDuplicateEdges(graph); }
+  if (options.collinear === true) {
+    // collinear vertices needs to re-run circular and duplicate edges.
+    remove_all_collinear_vertices(graph);
+    if (options.circular === true) { removeCircularEdges(graph); }
+    if (options.duplicate === true) { removeDuplicateEdges(graph); }    
+  }
+  if (options.isolated === true) { remove(graph, "vertices", find_isolated_vertices(graph)); }
 };
 
 export default clean;

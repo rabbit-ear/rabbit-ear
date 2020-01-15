@@ -1,4 +1,4 @@
-let axiom3 = RabbitEar.Origami("canvas-axiom-3");
+let axiom3 = RabbitEar.origami("canvas-axiom-3");
 
 axiom3.touches = [
 	{pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},

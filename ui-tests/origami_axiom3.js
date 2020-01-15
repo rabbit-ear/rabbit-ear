@@ -1,4 +1,4 @@
-let axiom3 = RabbitEar.Origami("canvas-axiom-3");
+let axiom3 = RabbitEar.origami("canvas-axiom-3");
 
 axiom3.setup = function() {
 	axiom3.lineLayer = RabbitEar.svg.group();

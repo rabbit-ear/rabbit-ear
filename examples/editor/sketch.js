@@ -64,13 +64,13 @@ const stylesheet = `
 
 const App = function (options = {}) {
   const canvas_container = document.querySelectorAll(".canvas-container")[0];
-  const origami = RabbitEar.Origami(canvas_container, {
+  const origami = RabbitEar.origami(canvas_container, {
     style: stylesheet,
     padding: 0.025
   });
 
   const folded_container = document.querySelectorAll(".pip-view")[0];
-  const folded = RabbitEar.Origami(folded_container, {
+  const folded = RabbitEar.origami(folded_container, {
     style: ".foldedForm polygon { fill: #fff4; }"
   });
   folded.svg.setAttribute("style", "margin:auto");
@@ -296,11 +296,7 @@ const App = function (options = {}) {
   };
   document.querySelectorAll(".menu-export-svg")[0].onclick = function () {
     const main = pipShowingFolded ? app.origami : app.folded;
-    main.svg.setAttribute("width", "500px");
-    main.svg.setAttribute("height", "500px");
     download(main.export.svg(), filename() + ".svg", "image/svg+xml");
-    main.svg.removeAttribute("width");
-    main.svg.removeAttribute("height");
   };
   document.querySelectorAll(".menu-export-png")[0].onclick = function () {
     const canvas = document.createElement("canvas");

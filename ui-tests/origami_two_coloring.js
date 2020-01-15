@@ -1,4 +1,4 @@
-let twoColor = RabbitEar.Origami("canvas-face-coloring");
+let twoColor = RabbitEar.origami("canvas-face-coloring");
 twoColor.preferences.folding = false;
 twoColor.cp = RabbitEar.CreasePattern(RabbitEar.bases.frog);
 twoColor.groups.vertex.setAttribute("opacity", 0);

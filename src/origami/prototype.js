@@ -116,6 +116,22 @@ const Prototype = function (superProto = {}) {
     Object.keys(rect).forEach((key) => { this[key] = rect[key]; });
   };
 
+  // Prototype.empty = function () {
+  //   return Prototype(Create.empty());
+  // };
+  // Prototype.square = function () {
+  //   return Prototype(Create.rectangle(1, 1));
+  // };
+  // Prototype.rectangle = function (width = 1, height = 1) {
+  //   return Prototype(Create.rectangle(width, height));
+  // };
+  // Prototype.regularPolygon = function (sides, radius = 1) {
+  //   if (sides == null) {
+  //     console.warn("regularPolygon requires number of sides parameter");
+  //   }
+  //   return Prototype(Create.regular_polygon(sides, radius));
+  // };
+
   const getBoundaries = function () {
     // todo: this only works for unfolded flat crease patterns
     // todo: this doesn't get multiple boundaries yet
@@ -135,12 +151,7 @@ const Prototype = function (superProto = {}) {
   };
 
   proto.clean2 = function () {
-    clean(this);
-    // all vertices
-    if (Collinear.remove_all_collinear_vertices(this)) {
-      clean(this);
-    }
-    remove(this, "vertices", Isolated.find_isolated_vertices(this));
+    clean(this, {collinear: true, isolated: true});
     // extra
     // this["re:delaunay_vertices"] = make_delaunay_vertices(this);
     this["faces_re:matrix"] = make_faces_matrix(this);

@@ -52,6 +52,9 @@
 		"rollup-plugin-node-resolve": "^5.2.0",
 		"rollup-plugin-string": "^3.0.0"
 	},
+	"jest": {
+		"testEnvironment": "node"
+	},
 	"dependencies": {
 		"xmldom": "^0.1.27"
 	}

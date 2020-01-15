@@ -1,5 +1,5 @@
-let valleys = RabbitEar.Origami("canvas-faces-chop");
-let folded = RabbitEar.Origami("canvas-faces-chop-folded");
+let valleys = RabbitEar.origami("canvas-faces-chop");
+let folded = RabbitEar.origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
 valleys.drawLayer = valleys.group();

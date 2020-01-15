@@ -1,5 +1,5 @@
-let chopReflect = RabbitEar.Origami("canvas-faces-chop");
-let folded = RabbitEar.Origami("canvas-faces-chop-folded");
+let chopReflect = RabbitEar.origami("canvas-faces-chop");
+let folded = RabbitEar.origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
 chopReflect.masterCP = RabbitEar.bases.blintzDistorted;

@@ -1,6 +1,6 @@
 
 const TreeMaker = function(div) {
-	let origami = RabbitEar.Origami(div);
+	let origami = RabbitEar.origami(div);
 	let graph = RabbitEar.graph();
 
 	origami.drawLayer = origami.group();

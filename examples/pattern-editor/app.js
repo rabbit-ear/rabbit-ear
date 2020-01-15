@@ -49,7 +49,7 @@ const stylesheet = `
 
 const App = function (options = {}) {
   const canvas_container = document.querySelectorAll(".canvas-container")[0];
-  const origami = RabbitEar.Origami(canvas_container, {
+  const origami = RabbitEar.origami(canvas_container, {
     style: stylesheet,
     padding: 0.1
   });

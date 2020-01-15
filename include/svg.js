@@ -4,7 +4,7 @@ const isBrowser = typeof window !== "undefined"
 const isNode = typeof process !== "undefined"
   && process.versions != null
   && process.versions.node != null;
-  const htmlString = "<!DOCTYPE html><title> </title>";
+const htmlString = "<!DOCTYPE html><title> </title>";
 const win = (function () {
   let w = {};
   if (isNode) {
@@ -68,18 +68,18 @@ function vkXML (text, step) {
 }
 var NS = "http://www.w3.org/2000/svg";
 const downloadInBrowser = function (filename, contentsAsString) {
-  const blob = new window.Blob([contentsAsString], { type: "text/plain" });
-  const a = document.createElement("a");
-  a.setAttribute("href", window.URL.createObjectURL(blob));
+  const blob = new win.Blob([contentsAsString], { type: "text/plain" });
+  const a = win.document.createElement("a");
+  a.setAttribute("href", win.URL.createObjectURL(blob));
   a.setAttribute("download", filename);
-  document.body.appendChild(a);
+  win.document.body.appendChild(a);
   a.click();
-  a.remove();
+  win.document.body.removeChild(a);
 };
 const getPageCSS = function () {
   const css = [];
-  for (let s = 0; s < document.styleSheets.length; s += 1) {
-    const sheet = document.styleSheets[s];
+  for (let s = 0; s < win.document.styleSheets.length; s += 1) {
+    const sheet = win.document.styleSheets[s];
     try {
       const rules = ("cssRules" in sheet) ? sheet.cssRules : sheet.rules;
       for (let r = 0; r < rules.length; r += 1) {
@@ -96,23 +96,39 @@ const getPageCSS = function () {
   }
   return css.join("\n");
 };
-const save = function (svg, filename = "image.svg", includeDOMCSS = false) {
-  if (includeDOMCSS) {
-    const styleContainer = document.createElementNS(NS, "style");
+const SAVE_OPTIONS = () => ({
+  output: "string",
+  windowStyle: false,
+  filename: "image.svg"
+});
+const save = function (svg, options) {
+  if (typeof options === "string" || options instanceof String) {
+    const filename = options;
+    options = SAVE_OPTIONS();
+    options.filename = filename;
+  } else if (typeof options !== "object" || options === null) {
+    options = SAVE_OPTIONS();
+  } else {
+    const newOptions = SAVE_OPTIONS();
+    Object.keys(options).forEach((key) => { newOptions[key] = options[key]; });
+    options = newOptions;
+  }
+  if (options.windowStyle) {
+    const styleContainer = win.document.createElementNS(NS, "style");
     styleContainer.setAttribute("type", "text/css");
     styleContainer.innerHTML = getPageCSS();
     svg.appendChild(styleContainer);
   }
-  const source = (new XMLSerializer()).serializeToString(svg);
+  const source = (new win.XMLSerializer()).serializeToString(svg);
   const formattedString = vkXML(source);
-  if (window != null) {
-    downloadInBrowser(filename, formattedString);
+  if (isBrowser && !isNode) {
+    downloadInBrowser(options.filename, formattedString);
   }
-  return formattedString;
+  return (options.output === "svg" ? svg : formattedString);
 };
 const load = function (input, callback) {
   if (typeof input === "string" || input instanceof String) {
-    const xml = (new DOMParser()).parseFromString(input, "text/xml");
+    const xml = (new win.DOMParser()).parseFromString(input, "text/xml");
     const parserErrors = xml.getElementsByTagName("parsererror");
     if (parserErrors.length === 0) {
       const parsedSVG = xml.documentElement;
@@ -123,7 +139,7 @@ const load = function (input, callback) {
     }
     fetch(input)
       .then(response => response.text())
-      .then(str => (new DOMParser())
+      .then(str => (new win.DOMParser())
         .parseFromString(str, "text/xml"))
       .then((svgData) => {
         const allSVGs = svgData.getElementsByTagName("svg");
@@ -591,7 +607,7 @@ const controlPoint = function (parent, options = {}) {
   });
   Object.defineProperty(position, "remove", {
     value: () => {
-      if (svg != null) { svg.remove(); }
+      if (svg != null) { parent.removeChild(svg); }
     }
   });
   return proxy;
@@ -1135,7 +1151,6 @@ const removeChildren = function (parent) {
 };
 const appendTo = function (element, parent) {
   if (parent != null) {
-    element.remove();
     parent.appendChild(element);
   }
   return element;
@@ -1235,30 +1250,13 @@ var Transform = /*#__PURE__*/Object.freeze({
   scale: scale,
   clearTransforms: clearTransforms
 });
-const is_iterable$1 = obj => obj != null
-  && typeof obj[Symbol.iterator] === "function";
-const flatten_input$1 = function (...args) {
-  switch (args.length) {
-    case undefined:
-    case 0: return args;
-    case 1: return is_iterable$1(args[0]) && typeof args[0] !== "string"
-      ? flatten_input$1(...args[0])
-      : [args[0]];
-    default:
-      return Array.from(args)
-        .map(a => (is_iterable$1(a)
-          ? [...flatten_input$1(a)]
-          : a))
-        .reduce((a, b) => a.concat(b), []);
-  }
-};
 const d = function (element) {
   let attr = element.getAttribute("d");
   if (attr == null) { attr = ""; }
   return attr;
 };
 const append = function (element, command, ...args) {
-  const params = flatten_input$1(args).join(",");
+  const params = flatten_input(args).join(",");
   element.setAttribute("d", `${d(element)}${command}${params}`);
   return element;
 };
@@ -1766,7 +1764,8 @@ const findWindowBooleanParam = function (...params) {
   return objects.reduce((a, b) => a.window || b.window, false);
 };
 const findElementInParams = function (...params) {
-  const element = params.filter(arg => arg instanceof HTMLElement).shift();
+  const elementConstructor = win.document.createElement("a").constructor;
+  const element = params.filter(arg => arg instanceof elementConstructor).shift();
   const idElement = params
     .filter(a => typeof a === "string" || a instanceof String)
     .map(str => win.document.getElementById(str))
@@ -1888,8 +1887,8 @@ const replaceWithSVG = function (oldSVG, newSVG) {
   Array.from(oldSVG.attributes)
     .forEach(attr => oldSVG.removeAttribute(attr.name));
   removeChildren(oldSVG);
-  Array.from(newSVG.children).forEach((node) => {
-    node.remove();
+  Array.from(newSVG.childNodes).forEach((node) => {
+    newSVG.removeChild(node);
     oldSVG.appendChild(node);
   });
   Array.from(newSVG.attributes)
@@ -1905,9 +1904,7 @@ const SVG = function (...params) {
   element.setHeight = (...args) => setHeight(element, ...args);
   element.background = (...args) => background(element, ...args);
   element.size = (...args) => size(element, ...args);
-  element.save = function (filename = "image.svg") {
-    return save(element, filename);
-  };
+  element.save = (options) => save(element, options);
   element.load = function (data, callback) {
     load(data, (newSVG, error) => {
       if (newSVG != null) { replaceWithSVG(element, newSVG); }

@@ -307,15 +307,19 @@
   var isNode = typeof process !== "undefined" && process.versions != null && process.versions.node != null;
   var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
   var htmlString = "<!DOCTYPE html><title>a</title>";
-  var win = !isNode && isBrowser ? window : {};
-  if (isNode) {
-    var _require = require("xmldom"),
-        DOMParser = _require.DOMParser,
-        XMLSerializer = _require.XMLSerializer;
-    win.DOMParser = DOMParser;
-    win.XMLSerializer = XMLSerializer;
-    win.document = new DOMParser().parseFromString(htmlString, "text/html");
-  }
+  var win = (function () {
+    var w = {};
+    if (isNode$1) {
+      var { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString, "text/html");
+    } else if (isBrowser$1) {
+      w = window;
+    }
+    return w;
+  }());
+
   var svgNS = "http://www.w3.org/2000/svg";
   var svg = function svg() {
     var svgImage = win.document.createElementNS(svgNS, "svg");

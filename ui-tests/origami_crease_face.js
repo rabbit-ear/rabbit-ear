@@ -1,4 +1,4 @@
-let facesChop = RabbitEar.Origami("canvas-faces-chop");
+let facesChop = RabbitEar.origami("canvas-faces-chop");
 
 facesChop.cp = RabbitEar.CreasePattern(RabbitEar.bases.blintz);
 

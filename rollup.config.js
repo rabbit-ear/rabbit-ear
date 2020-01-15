@@ -13,7 +13,6 @@ module.exports = [{
     file: "rabbit-ear.js",
     format: "umd",
     banner: `/* Rabbit Ear v${version} (c) Robby Kraft, MIT License */`,
-    // footer: "window.re = RabbitEar;",
   },
   plugins: [
     nodeResolve(),

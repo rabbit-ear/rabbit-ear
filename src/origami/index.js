@@ -1,52 +1,24 @@
 /**
- * this is a FOLD format that strictly enforces a non-stretching boundary
- *
- * useful for modeling origami paper.
- *
+ * Origami - one of the main entry points for this library.
+ * this will create a graph() object (FOLD format) and bind it to a view
  */
 
-/**
- * this will work in the browser, or in Node.js.
- * the front end is optional, webGL, svg.
- */
-
-/**
- * MODIFIES IMPORTED FOLD OBJECTS. (does not modify original)
- *
- * whenever a FOLD object is brought in, or when called by the user,
- * parts are added and made sure exist.
- *
- * this is the difference between using Origami() vs. adding Prototype
- */
-
-import FoldToSvg from "../../include/fold-to-svg";
-import math from "../../include/math";
-
-import svgView from "../view-svg/index";
-import glView from "../view-webgl/index";
-import touchAndFold from "../view-svg/origami_touch_fold";
-import convert from "../convert/convert";
-import window from "../environment/window";
+import View from "./view";
 import Prototype from "./prototype";
-import {
-  isBrowser,
-  isNode
-} from "../environment/detect";
+import convert from "../convert/convert";
+import { possibleFoldObject } from "../FOLD/validate";
+import { square } from "../FOLD/create";
+import populate from "../FOLD/populate";
 import {
   make_vertices_coords_folded,
   make_faces_matrix
 } from "../FOLD/make";
-import {
-  possibleFoldObject,
-} from "../FOLD/validate";
-import {
-  transpose_geometry_arrays,
-  keys as foldKeys,
-  future_spec as re
-} from "../FOLD/keys";
-import { square } from "../FOLD/create";
-// import clean from "../FOLD/clean";
 
+const FOLDED_FORM = "foldedForm";
+const CREASE_PATTERN = "creasePattern";
+const VERTICES_FOLDED_COORDS = "vertices_re:foldedCoords"
+const VERTICES_UNFOLDED_COORDS = "vertices_re:unfoldedCoords"
+const FACES_MATRIX = "faces_re:matrix";
 
 const DEFAULTS = Object.freeze({
   touchFold: false,
@@ -63,33 +35,55 @@ const parseOptions = function (...args) {
   return prefs;
 };
 
-const interpreter = {
-  gl: "webgl",
-  GL: "webgl",
-  webGL: "webgl",
-  WebGL: "webgl",
-  webgl: "webgl",
-  Webgl: "webgl",
-  svg: "svg",
-  SVG: "svg",
-  "2d": "svg",
-  "2D": "svg",
-  "3d": "webgl",
-  "3D": "webgl",
+/**
+ * @returns {boolean} is the graph in a folded form? undefined if there is no indication either way.
+ */
+const isOrigamiFolded = function(graph) {
+  if (graph == null || graph.frame_classes == null) { return undefined; }
+  if (graph.frame_classes.includes(FOLDED_FORM)) { return true; }
+  if (graph.frame_classes.includes(CREASE_PATTERN)) { return false; }
+  // inconclusive
+  return undefined;
 };
 
-const parseOptionsForView = function (...args) {
-  // ignores other objects, only ends up with one.
-  const viewOptions = args
-    .filter(a => typeof a === "object")
-    .filter(a => "view" in a === true)
-    .shift();
-  if (viewOptions === undefined) {
-    // do nothing
-    if (isNode) { return undefined; }
-    if (isBrowser) { return "svg"; }
+/**
+ * setting the "folded state" does two things:
+ * - assign the class of this object to be FOLDED_FORM or CREASE_PATTERN
+ * - move (and cache) foldedCoords or unfoldedCoords into vertices_coords
+ */
+const setFoldedForm = function (graph, isFolded) {
+  if (graph.frame_classes == null) { graph.frame_classes = []; }
+  const wasFolded = isOrigamiFolded(graph);
+  if (isFolded === wasFolded) { return; } // graph is already folded / unfolded
+  // update frame_classes
+  graph.frame_classes = graph.frame_classes
+    .filter(c => !([CREASE_PATTERN, FOLDED_FORM].includes(c)))
+    .concat([isFolded ? FOLDED_FORM : CREASE_PATTERN]);
+  // move unfolded_coords or folded_coords into the main vertices_coords spot
+  if (isFolded) {
+    // if folded coords do not exist, we need to build them.
+    if (!(VERTICES_FOLDED_COORDS in graph)) {
+      // build folded coords
+      if (!(FACES_MATRIX in graph)) {
+        // if faces do not exist, rebuild faces_vertices
+        if (graph.faces_vertices == null) { populate(graph); }
+        // graph[FACES_MATRIX] = make_faces_matrix(graph, options.face);
+        graph[FACES_MATRIX] = make_faces_matrix(graph, 0);
+      }
+      if (!(VERTICES_FOLDED_COORDS in graph)) {
+        graph[VERTICES_FOLDED_COORDS] = make_vertices_coords_folded(graph, null, graph[FACES_MATRIX]);
+      }
+    }
+  } else {
+    // if unfolded coords do not exist, we need to build unfolded coords from a folded state?
   }
-  return interpreter[viewOptions.view];
+  const to = isFolded ? VERTICES_FOLDED_COORDS : VERTICES_UNFOLDED_COORDS;
+  const from = isFolded ? VERTICES_UNFOLDED_COORDS : VERTICES_FOLDED_COORDS;
+  if (to in graph === true) {
+    graph[from] = graph.vertices_coords;
+    graph.vertices_coords = graph[to];
+    delete graph[to];
+  }
 };
 
 const Origami = function (...args) {
@@ -101,76 +95,24 @@ const Origami = function (...args) {
     Object.create(Prototype()),
     args.filter(el => possibleFoldObject(el)).shift() || square()
   );
-  // validate and add anything missing.
-  // validate(origami);
-  origami.clean();
-  origami.populate();
   /**
-   * setting the "folded state" does two things:
-   * - assign the class of this object to be "foldedForm" or "creasePattern"
-   * - move (and cache) foldedCoords or unfoldedCoords into vertices_coords
+   * fold() with no arguments will perform a global collapse on all creases
+   * and if and only if there are mountain valley assignments, it ignores marks
    */
-  const setFoldedForm = function (isFolded) {
-    const wasFolded = origami.isFolded();
-    const remove = isFolded ? "creasePattern" : "foldedForm";
-    const add = isFolded ? "foldedForm" : "creasePattern";
-    if (origami.frame_classes == null) { origami.frame_classes = []; }
-    while (origami.frame_classes.indexOf(remove) !== -1) {
-      origami.frame_classes.splice(origami.frame_classes.indexOf(remove), 1);
-    }
-    if (origami.frame_classes.indexOf(add) === -1) {
-      origami.frame_classes.push(add);
-    }
-    // move unfolded_coords or folded_coords into the main vertices_coords spot
-    const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
-    const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
-    if (to in origami === true) {
-      origami[from] = origami.vertices_coords;
-      origami.vertices_coords = origami[to];
-      delete origami[to];
-    }
-    origami.didChange.forEach(f => f());
-  };
-  /**
-   * @param {file} is a FOLD object.
-   * @param {prevent_clear} if true import will skip clearing
-   */
-  const load = function (data, options) {
-  // const load = function (data, prevent_clear) {
-    // if (prevent_clear == null || prevent_clear !== true) {
-    foldKeys.forEach(key => delete origami[key]);
-    // }
-    const fold_file = convert(data).fold(options);
-    Object.assign(origami, fold_file);
-    if (origami.edges_vertices == null) { return; }
-    origami.clean();
-    origami.populate();
-    // placeholderFoldedForm(_origami);
-    origami.didChange.forEach(f => f());
-  };
-
-  const collapse = function (options = {}) {
-    if ("faces_re:matrix" in origami === false) {
-      origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
-    }
-    if ("vertices_re:foldedCoords" in origami === false) {
-      origami["vertices_re:foldedCoords"] = make_vertices_coords_folded(origami, null, origami["faces_re:matrix"]);
-    }
-    setFoldedForm(true);
-    return origami;
-  };
-
-  const flatten = function () {
-    setFoldedForm(false);
-    return origami;
-  };
-
   const fold = function (...args) {
+    if (args.length === 0) {
+      // collapse on all creases.
+      setFoldedForm(origami, true);
+      origami.didChange.forEach(f => f());
+    } else {
+      // do some specific fold operation
+    }
     return origami;
   };
 
   const unfold = function () {
-    // get history
+    setFoldedForm(origami, false);
+    origami.didChange.forEach(f => f());
     return origami;
   };
 
@@ -182,95 +124,30 @@ const Origami = function (...args) {
     .forEach((key) => { options[key] = userDefaults[key]; });
 
   // attach methods
-  Object.defineProperty(origami, "load", { value: load });
-  Object.defineProperty(origami, "collapse", { value: collapse });
-  Object.defineProperty(origami, "flatten", { value: flatten });
+  // Object.defineProperty(origami, "options", { get: () => options });
+  Object.defineProperty(origami, "isFolded", { get: () => isOrigamiFolded(origami) });
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
-
-  // Object.defineProperty(origami, "export", {
-  //   value: (...exportArgs) => {
-  //     if (exportArgs.length <= 0) {
-  //       return JSON.stringify(origami);
-  //     }
-  //     switch (exportArgs[0]) {
-  //       case "svg":
-  //         // should we prepare the svg for export? set "width", "height"
-  //         if (origami.svg != null) {
-  //           return (new window.XMLSerializer()).serializeToString(origami.svg);
-  //         }
-  //         return FoldToSvg(origami);
-  //       case "fold":
-  //       case "json":
-  //       default: return JSON.stringify(origami);
-  //     }
-  //   }
-  // });
-
-  const exportObject = function () { return JSON.stringify(origami); };
-  exportObject.json = function () { return JSON.stringify(origami); };
-  exportObject.fold = function () { return JSON.stringify(origami); };
-  // this is not ready yet. bug when value is undefined
-  // exportObject.fold = function () { return FOLDConvert.toJSON(origami); };
-  exportObject.svg = function () {
-    return FoldToSvg(origami);
-  };
-
-  // Object.defineProperty(origami, "clean", { value: () => clean(origami) });
-  Object.defineProperty(origami, "snapshot", { get: () => exportObject });
-  Object.defineProperty(origami, "export", { get: () => exportObject });
-  Object.defineProperty(origami, "options", { get: () => options });
-
-  return origami;
-};
-
-
-// Prototype.empty = function () {
-//   return Prototype(Create.empty());
-// };
-
-// Prototype.square = function () {
-//   return Prototype(Create.rectangle(1, 1));
-// };
-
-// Prototype.rectangle = function (width = 1, height = 1) {
-//   return Prototype(Create.rectangle(width, height));
-// };
-
-// Prototype.regularPolygon = function (sides, radius = 1) {
-//   if (sides == null) {
-//     console.warn("regularPolygon requires number of sides parameter");
-//   }
-//   return Prototype(Create.regular_polygon(sides, radius));
-// };
-
-
-const init = function (...args) {
-  const origami = Origami(...args);
-
-  // assign a view, if requested
-  let view;
-  switch (parseOptionsForView(...args)) {
-    case "svg":
-      view = svgView(origami, ...args);
-      origami.didChange.push(view.draw);
-      Object.defineProperty(origami, "svg", { get: () => view });
-      // attach additional methods
-      if (origami.options.touchFold === true) {
-        touchAndFold(origami, origami.svg);
+  Object.defineProperty(origami, "export", { get: (...args) => {
+    const f = function (...o) {
+      if (o.length === 0) { return JSON.stringify(origami); }
+      switch (o[0]) {
+        case "oripa": return convert(origami, "fold").oripa();
+        case "svg": return convert(origami, "fold").svg();
+        default: return JSON.stringify(origami);
       }
-      // view specific initializers
-      origami.svg.fit();
-      origami.svg.draw();
-      break;
-    case "webgl":
-      view = glView(origami, ...args);
-      Object.defineProperty(origami, "canvas", { get: () => view });
-      break;
-    default: break;
-  }
+    };
+    f.json = function () { return JSON.stringify(origami); };
+    f.fold = function () { return JSON.stringify(origami); };
+    f.svg = function () { return convert(origami, "fold").svg(); };
+    f.oripa = function () { return convert(origami, "fold").oripa(); };
+    return f;
+  }});
+
+  // determine if it should have a view
+  View(origami, ...args);
 
   return origami;
 };
 
-export default init;
+export default Origami;

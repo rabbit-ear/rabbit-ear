@@ -1,5 +1,5 @@
-let sketch = RabbitEar.Origami("canvas-faces-chop");
-let folded = RabbitEar.Origami("canvas-faces-chop-folded");
+let sketch = RabbitEar.origami("canvas-faces-chop");
+let folded = RabbitEar.origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
 sketch.drawLayer = sketch.group();

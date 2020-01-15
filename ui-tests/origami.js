@@ -6,5 +6,5 @@ let prefs = {
   padding: 0.033
 };
 
-let sketch = RabbitEar.Origami("canvas", prefs);
+let sketch = RabbitEar.origami("canvas", prefs);
 sketch.cp = RabbitEar.bases.frog;

@@ -72,7 +72,7 @@ const setup = function (origami, svg) {
       const instruction = axiom2(mouse.position[0], mouse.position[1], mouse.pressed[0], mouse.pressed[1]);
       origami.crease(instruction.solutions[0], touchFaceIndex);
 
-      if (was_folded) { origami.collapse(); }
+      if (was_folded) { origami.fold(); }
     }
   };
 };

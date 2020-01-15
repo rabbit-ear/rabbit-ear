@@ -161,7 +161,7 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 	<p>This project is <a href="http://github.com/robbykraft/Origami/">open source</a>.</p>
 
 <script>
-let twoColor = RabbitEar.Origami("canvas-face-coloring", {
+let twoColor = RabbitEar.origami("canvas-face-coloring", {
 	style: ".foldedForm polygon.back { fill: #fb3; }"
 });
 twoColor.load(RabbitEar.bases.frog);
@@ -182,7 +182,7 @@ let sketchW = (window.innerWidth < window.innerHeight)
 let sketchH = (window.innerWidth < window.innerHeight)
 	? window.innerHeight / window.innerWidth
 	: 1;
-origamiFold = RabbitEar.Origami("canvas-origami-fold", {
+origamiFold = RabbitEar.origami("canvas-origami-fold", {
 	touchFold:true,
 	autofit: false,
 	style: ".foldedForm polygon.back { fill: #fb3; }"
@@ -204,7 +204,7 @@ origamiFold = RabbitEar.Origami("canvas-origami-fold", {
 </script>
 
 <script>
-// let view3D = RabbitEar.Origami3D("twist-3d");
+// let view3D = RabbitEar.origami3D("twist-3d");
 // view3D.load("../files/fold/square-twist.fold", function(){
 // 	view3D.frame = 5;
 // });
@@ -218,7 +218,7 @@ origamiFold = RabbitEar.Origami("canvas-origami-fold", {
 <script>
 var craneSVGPath = "../files/svg/crane.svg";
 
-let craneFold = RabbitEar.Origami("div-folded-crane", {
+let craneFold = RabbitEar.origami("div-folded-crane", {
 	style: ".foldedForm polygon.back { fill: #fb3; } .creasePattern polygon { fill: none; }"
 })
 
@@ -258,9 +258,9 @@ function download(url, filename){
 </script>
 
 <script>
-// let sinePleats = RabbitEar.Origami("canvas-sine-pleats");
+// let sinePleats = RabbitEar.origami("canvas-sine-pleats");
 // sinePleats.faces.visible = false;
-// let sinePleatsFolded = RabbitEar.Origami("canvas-sine-pleats");
+// let sinePleatsFolded = RabbitEar.origami("canvas-sine-pleats");
 
 // sinePleats.init = function(t = 0.0) {
 // 	if (t >= 1) { t = 0.99; }

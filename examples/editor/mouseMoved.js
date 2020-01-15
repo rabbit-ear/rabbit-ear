@@ -8,10 +8,10 @@ const MouseMoved = function () {
   app.origami.svg.mouseMoved = function (mouse) {
     app.tapLayer.removeChildren();
 
-    Array.from(app.origami.svg.groups.edges.childNodes)
-      .forEach(edge => removeClass("selected", edge));
-    Array.from(app.origami.svg.groups.faces.childNodes)
-      .forEach(face => removeClass("selected", face));
+    // Array.from(app.origami.svg.groups.edges.childNodes)
+    //   .forEach(edge => removeClass("selected", edge));
+    // Array.from(app.origami.svg.groups.faces.childNodes)
+    //   .forEach(face => removeClass("selected", face));
 
     app.nearest = app.origami.nearest(mouse);
 
@@ -184,8 +184,8 @@ const MouseMoved = function () {
         break;
       case "rabbit-ear":
       case "kawasaki":
-        if (app.nearest.face && app.nearest.face.svg) {
-          app.selected.faces = [app.nearest.face.index];
+        if (app.nearest.face) {
+          app.selected.faces = [app.nearest.face];
         }
         break;
       case "bisect":
@@ -193,21 +193,21 @@ const MouseMoved = function () {
       case "mountain-valley":
       case "mark":
       case "cut":
-        if (app.nearest.edge && app.nearest.edge.svg) {
-          app.selected.edges = [app.nearest.edge.index];
+        if (app.nearest.edge) {
+          app.selected.edges = [app.nearest.edge];
           // app.nearest.edge.svg.setAttribute("style", "stroke:#e53;");
         }
         break;
       case "perpendicular-to":
         if (mouse.isPressed) {
-          if (app.nearest.vertex && app.nearestPressed.edge && app.nearestPressed.edge.svg) {
-            app.selected.edges = [app.nearestPressed.edge.index];
+          if (app.nearest.vertex && app.nearestPressed.edge) {
+            app.selected.edges = [app.nearestPressed.edge];
             // app.nearestPressed.edge.svg.setAttribute("style", "stroke:#ec3;");
           }
           app.tapLayer.circle(app.nearest.vertex.coords[0], app.nearest.vertex.coords[1], 0.01).fill("#e53");
         } else {
-          if (app.nearest.edge && app.nearest.edge.svg) {
-            app.selected.edges = [app.nearest.edge.index];
+          if (app.nearest.edge) {
+            app.selected.edges = [app.nearest.edge];
             // app.nearest.edge.svg.setAttribute("style", "stroke:#ec3;");
           }
         }
@@ -220,9 +220,9 @@ const MouseMoved = function () {
         //   .stroke("black")
         //   .strokeWidth(0.005)
         //   .strokeDasharray("0.02 0.008");
-        if (app.nearest.edge && app.nearest.edge.svg) {
+        if (app.nearest.edge) {
           // app.nearest.edge.svg.setAttribute("style", "stroke:#ec3;");
-          app.selected.edges = [app.nearest.edge.index];
+          app.selected.edges = [app.nearest.edge];
         }
         break;
       case "select":
@@ -238,8 +238,8 @@ const MouseMoved = function () {
             [app.dragRect[0] + app.dragRect[2], app.dragRect[1] + app.dragRect[3]],
             [app.dragRect[0], app.dragRect[1] + app.dragRect[3]]
           ];
-          app.selected.edges = RabbitEar.core.select_edges(app.origami, poly);
-          app.selected.vertices = RabbitEar.core.select_vertices(app.origami, poly);
+          // app.selected.edges = RabbitEar.core.select_edges(app.origami, poly);
+          // app.selected.vertices = RabbitEar.core.select_vertices(app.origami, poly);
         }
 
         break;
@@ -250,11 +250,12 @@ const MouseMoved = function () {
       default: console.warn("need to implement " + app.tapMode);
     }
 
-    const edgesSVG = Array.from(app.origami.svg.groups.edges.childNodes);
-    app.selected.edges.forEach(s => addClass("selected", edgesSVG[s]));
-
-    const facesSVG = Array.from(app.origami.svg.groups.faces.childNodes);
-    app.selected.faces.forEach(s => addClass("selected", facesSVG[s]));
+    app.selected.faces.forEach(face => app.tapLayer.polygon(face.coords).fill("#e53").stroke("none"));
+    app.selected.edges.forEach(edge => app.tapLayer.line(edge.coords).stroke("#fb3"));
+    app.selected.vertices.forEach(vertex => app.tapLayer.circle(vertex.coords).radius(0.01).fill("#e53").stroke("none"));
+    // if (nearest.vertex) {
+    //   app.tapLayer.circle(nearest.vertex.coords).radius(0.02).fill("black").stroke("none");
+    // }
 
     // draw symmetry stuff
     app.symmetries.forEach((mat) => {
