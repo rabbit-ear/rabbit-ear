@@ -3,6 +3,7 @@
  * this will create a graph() object (FOLD format) and bind it to a view
  */
 
+import math from "../../include/math";
 import View from "./view";
 import convert from "../convert/convert";
 import { possibleFoldObject } from "../FOLD/validate";
@@ -15,6 +16,8 @@ import {
   make_faces_matrix
 } from "../FOLD/make";
 import prototype from "../graph/prototype";
+import { get_assignment } from "./args";
+import MakeFold from "../fold-through-all/index";
 
 const FOLDED_FORM = "foldedForm";
 const CREASE_PATTERN = "creasePattern";
@@ -88,22 +91,66 @@ const Origami = function (...args) {
    */
   const origami = Object.assign(
     Object.create(prototype()),
-    args.filter(el => possibleFoldObject(el)).shift() || Create.square()
+    args.filter(a => possibleFoldObject(a) > 0.1)
+      .sort((a, b) => possibleFoldObject(b) - possibleFoldObject(a))
+      .shift() || Create.square()
   );
   /**
    * fold() with no arguments will perform a global collapse on all creases
    * and if and only if there are mountain valley assignments, it ignores marks
    */
+  const crease = function (...args) {
+    const objects = args.filter(p => typeof p === "object");
+    const line = math.core.get_line(args);
+    const assignment = get_assignment(...args) || "V";
+    const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
+    if (!math.core.is_vector(line.origin) || !math.core.is_vector(line.vector)) {
+      console.warn("fold was not supplied the correct parameters");
+      return;
+    }
+    // if folding on a foldedForm do the below
+    // if folding on a creasePattern, add these
+    // let matrix = pattern.cp["faces_re:matrix"] !== null ? pattern.cp["faces_re:matrix"]
+
+    // let mat_inv = matrix
+    //  .map(mat => Geom.core.invert_matrix2(mat))
+    //  .map(mat => Geom.core.multiply_matrix2_line2(mat, point, vector));
+
+    const folded = MakeFold(origami,
+      line.origin,
+      line.vector,
+      face_index,
+      assignment);
+
+    Object.keys(folded).forEach((key) => { origami[key] = folded[key]; });
+
+    // if ("re:construction" in origami === true) {
+    //   if (objects.length > 0 && "axiom" in objects[0] === true) {
+    //     origami["re:construction"].axiom = objects[0].axiom;
+    //     origami["re:construction"].parameters = objects[0].parameters;
+    //   }
+      // origami["re:diagrams"] = [
+      //  Diagram.build_diagram_frame(origami)
+      // ];
+    // }
+    // todo, need to grab the crease somehow
+    // const crease = component.crease(origami, [diff.edges_new[0] - edges_remove_count]);
+    // didModifyGraph();
+    // return crease;
+  };
+
   const fold = function (...args) {
-    if (args.length === 0) {
+    // do some specific fold operation
+    if (args.length > 0) {
+      crease(...args);
+      origami.changed.update(origami.fold);
+      return origami;
+    } else {
       // collapse on all creases.
       setFoldedForm(origami, true);
-      // origami.didChange.forEach(f => f());
-    } else {
-      // do some specific fold operation
+      origami.changed.update(origami.fold);
+      return origami;
     }
-    origami.changed.update(origami.fold);
-    return origami;
   };
 
   const unfold = function () {

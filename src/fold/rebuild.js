@@ -1,4 +1,6 @@
+import math from "../../include/math";
 import populate from "./populate";
+import { fold_keys } from "./keys";
 
 /**
  * re-construct a graph up from the most basic components
@@ -16,7 +18,10 @@ const rebuild = function (graph, epsilon = math.core.EPSILON) {
   Object.keys(graph)
     .filter(s => s.includes("re:"))
     .forEach(key => delete graph[key]);
-
+  // leave only one of these to imply the other. todo: which takes precedence?
+  if (graph.edges_assignment != null && graph.edges_foldAngle != null) {
+    delete graph.edges_foldAngle;
+  }
   // populate new data
   populate(graph);
 };

@@ -30,6 +30,25 @@ import touchToFold from "./touchToFold";
 //   arrowColor: undefined,
 // });
 
+const FoldToSvgOptionKeys = [
+  "input", "output", "padding", "file_frame", "stylesheet", "shadows",
+  "diagrams", "boundaries", "faces", "edges", "vertices", "attributes"
+];
+
+const possibleFoldToSvgOptions = function (input) {
+  if (typeof input !== "object" || input === null) { return 0; }
+  const inputKeys = Object.keys(input);
+  if (inputKeys.length === 0) { return 0; }
+  return inputKeys.map(key => FoldToSvgOptionKeys.includes(key))
+    .reduce((a, b) => a + (b ? 1 : 0), 0) / inputKeys.length;
+};
+
+const parseOptionsForFoldToSvg = function (...args) {
+  return args.filter(a => possibleFoldToSvgOptions(a) > 0.1)
+    .sort((a, b) => possibleFoldToSvgOptions(b) - possibleFoldToSvgOptions(a))
+    .shift();
+};
+
 const interpreter = {
   gl: "webgl",
   GL: "webgl",
@@ -63,7 +82,10 @@ const SVGView = function (origami, ...args) {
   const noCallbackArgs = args.filter(arg => typeof arg !== "function");
   const svg = SVG(...noCallbackArgs);
 
-  const options = {};
+  const argumentOptions = parseOptionsForFoldToSvg(...args);
+  const options = argumentOptions == null
+    ? { output: "svg" }
+    : Object.assign(argumentOptions, { output: "svg" });
   const layerNames = ["boundaries", "edges", "faces", "vertices"];
 
   const fit = function () {
@@ -73,11 +95,13 @@ const SVGView = function (origami, ...args) {
     // SVG.setViewBox(svg, r[0], r[1], r[2], r[3], options.padding * vmin);
   };
 
-  const draw = function () {
-    const drawOptions = { output: "svg" };//(origami.frame_classes && origami.frame_classes.includes("foldedForm")
+  const draw = function (innerArgumentOptions) {
+    const drawOptions = innerArgumentOptions == null
+      ? options
+      : Object.assign(innerArgumentOptions, { output: "svg" });
+    // (origami.frame_classes && origami.frame_classes.includes("foldedForm")
       // ? { output: "svg", edges: false, boundaries: false }
       // : { output: "svg" });
-    if (options.padding) { drawOptions.padding = options.padding; }
     const newSVG = FoldToSvg(origami, drawOptions);
     const newSVGChildren = Array.from(newSVG.childNodes);
     const newSVGGroups = layerNames
@@ -97,14 +121,11 @@ const SVGView = function (origami, ...args) {
       newSVGGroups.forEach(node => svg.appendChild(node));
     }
     oldSVGGroups.forEach(node => svg.removeChild(node));
-    newSVGGroups.forEach(node => node.setAttribute("pointerEvents", "none"));
+    newSVGGroups.forEach(node => node.setAttribute("pointer-events", "none"));
     Array.from(newSVG.attributes)
       .forEach(attr => svg.setAttribute(attr.name, attr.value));
   };
 
-  if (options.touchFold === true) {
-    touchToFold(origami, origami.svg);
-  }
   // view specific initializers
   fit();
   draw();
@@ -114,6 +135,10 @@ const SVGView = function (origami, ...args) {
   });
   Object.defineProperty(origami, "draw", { value: draw });  // todo: do we want this?
   Object.defineProperty(origami, "svg", { get: () => svg });
+
+  if (options.touchFold === true) {
+    touchToFold(origami, origami.svg);
+  }
 
   const sendCallback = function () {
     args.filter(arg => typeof arg === "function")

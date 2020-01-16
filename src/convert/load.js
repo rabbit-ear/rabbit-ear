@@ -78,7 +78,7 @@ const load = function (...args) {
   if (datatype === "string") {
     try {
       const fold = JSON.parse(data);
-      if (possibleFoldObject(fold)) {
+      if (possibleFoldObject(fold) > 0) {
         return { data: fold, type: "fold" };
       }
       // else, we need to do something with this JSON object that got parsed
@@ -105,7 +105,7 @@ const load = function (...args) {
     try {
       const fold = JSON.parse(JSON.stringify(data));
       // silencing this, because it doesn't catch "{}". allowing empty obj.
-      // if (possibleFoldObject(fold)) {
+      // if (possibleFoldObject(fold) > 0) {
       return { data: fold, type: "fold" };
       // }
       // else, we need to do something with this JSON object that got parsed

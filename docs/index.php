@@ -18,7 +18,7 @@
 &lt;<key>title</key>&gt;Rabbit Ear&lt;/<key>title</key>&gt;
 &lt;<key>script</key> <v>src</v>=<str>"rabbit-ear.js"</str>&gt;&lt;/<key>script</key>&gt;
 &lt;<key>script</key>&gt;
-<f>RabbitEar</f>.<f>Origami</f>( {<str>"folding"</str>:<n>true</n>} );
+<f>RabbitEar</f>.<f>origami</f>({ <str>"touchFold"</str>: <n>true</n> });
 &lt;/<key>script</key>&gt;
 </code></pre>
 
@@ -37,12 +37,6 @@
 
 <h2>Getting Started</h2>
 
-<!--  <p>Download Rabbit Ear here.</p>
-
-  <div class="center">
-    <a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.19.zip"><button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.19.zip</button></a>
-  </div>
- -->
 <p>
   Create a new project inside the "sketches" folder by copying and renaming "empty".
 </p>
@@ -61,7 +55,7 @@
   <li><strong>sketch.js</strong> let's take a closer look:</li>
 </ul>
 
-<pre class="code"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
+<pre class="code"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>origami</f>();
 <br><c>// respond to a touch event</c>
 <f>origami</f>.<v>onMouseMove</v> = <f>function</f>(<arg>event</arg>){
 
@@ -76,9 +70,9 @@
 
 <div id="div-folded-crane" class="grid-2"></div>
 
-<pre class="code"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);</code></pre>
+<pre class="code"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);</code></pre>
 
-<pre class="code"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
+<pre class="code"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
 
 <p class="quote">
   In some cases Rabbit Ear is capable of determining layer ordering for a folding. When it is unsure it draws translucent faces.
@@ -94,13 +88,13 @@
 
 <div id="canvas-face-coloring"></div>
 
-<pre class="code"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
+<pre class="code"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>origami</f>();
 origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 <f>RabbitEar</f>.core.make_faces_coloring(origami)
-  .<f>map</f>(<arg>color</arg> <f>=></f> color <key>?</key> <str>"#224c72"</str> <key>:</key> <str>"#f1c14f"</str>)
+  .<f>map</f>(<arg>color</arg> <f>=></f> color <key>?</key> <str>"#158"</str> <key>:</key> <str>"#fb3"</str>)
   .<f>forEach</f>((<arg>color</arg>, <arg>i</arg>) <f>=></f>
-    origami.faces[i].<f>setAttribute</f>(<str>"style"</str>, <str>"fill:"</str> <key>+</key> color)
+    origami.faces[i].<f>setAttribute</f>(<str>"fill"</str>, color)
   );</code></pre>
 
 <p class="quote">
@@ -123,37 +117,31 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
   Rabbit Ear is assembled from parts, each available as a separate node package.
 </p>
 
-<!-- <h3>math</h3> -->
+<p>
+  The math library. <a href="https://github.com/robbykraft/Math">source</a>
+</p>
 
 <pre class="code"><code><c class="no-select">&gt; </c>npm i rabbit-ear-math</code></pre>
 
 <p>
-  All the geometry/linear algebra methods that power this library. <a href="https://github.com/robbykraft/Math">source</a>
+  The SVG library. <a href="https://github.com/robbykraft/SVG">source</a>
 </p>
-
-<!-- <h3>SVG</h3> -->
 
 <pre class="code"><code><c class="no-select">&gt; </c>npm i rabbit-ear-svg</code></pre>
 
 <p>
-  Create SVG drawings in code. <a href="https://github.com/robbykraft/SVG">source</a>
+  Conversion between FOLD and SVG. <a href="https://github.com/robbykraft/svg-to-fold">source</a>, <a href="https://github.com/robbykraft/fold-to-svg">source</a>.
 </p>
 
-<!-- <h3>svg-to-fold &amp; fold-to-svg</h3> -->
+<pre class="code"><code><c class="no-select">&gt; </c>npm i svg-to-fold</code></pre>
 
-<pre class="code"><code><c class="no-select">&gt; </c>npm i tofold</code></pre>
+<pre class="code"><code><c class="no-select">&gt; </c>npm i fold-to-svg</code></pre>
 
 <p>
-  Conversion between FOLD and SVG is very different depending on which direction you're traveling. SVG to FOLD will assume the SVG is a crease pattern. <a href="https://github.com/robbykraft/svg-to-fold">source</a>, <a href="https://github.com/robbykraft/fold-to-svg">source</a>.
+  Segmentize an SVG. <a href="https://github.com/robbykraft/svg-segmentize">source</a>
 </p>
-
-<!-- <h3>svg-segmentize</h3> -->
 
 <pre class="code"><code><c class="no-select">&gt; </c>npm i svg-segmentize</code></pre>
-
-<p>
-  Used in svg-to-fold. This converts an SVG image into a copy containing only (straight) line segments. <a href="https://github.com/robbykraft/svg-segmentize">source</a>
-</p>
 
 
 <section id="footer" style="font-size: 80%; margin: 2rem 0">
@@ -162,14 +150,14 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 <script>
 var twoColor = RabbitEar.origami("canvas-face-coloring", RabbitEar.bases.frog, {
-  edges: false,
-  boundaries: false,
+  // edges: false,
+  // boundaries: false,
 }, function (twoColor) {
   var faces = Array.from(Array.from(twoColor.svg.childNodes)
     .filter(child => child.getAttribute("class") === "faces").shift().childNodes);
   RabbitEar.core.make_faces_coloring(twoColor, 0)
-    .map(function (color) { return color ? "#224c72" : "#ecb233"; })
-    .forEach(function (color, i) { faces[i].setAttribute("style", "fill:"+color); });
+    .map(function (color) { return color ? "#158" : "#fb3"; })
+    .forEach(function (color, i) { faces[i].setAttribute("fill", color); });
 });
 </script>
 
@@ -182,9 +170,16 @@ let sketchH = (window.innerWidth < window.innerHeight)
   ? window.innerHeight / window.innerWidth
   : 1;
 origamiFold = RabbitEar.origami("canvas-origami-fold", {
-  touchFold:true,
+  touchFold: true,
   autofit: false,
-  style: ".foldedForm polygon.back { fill: #fb3; }"
+  padding: 0.02,
+  attributes: {
+    faces: {
+      front: { fill: "#fb3" },
+      back: { fill: "white" }
+    }
+  }
+  // stylesheet: ".foldedForm polygon.back { fill: #fb3; }"
 }, sketchW * window.innerWidth, sketchH * window.innerWidth, function() {
   // did load
   let pad = 0.1;
@@ -195,7 +190,7 @@ origamiFold = RabbitEar.origami("canvas-origami-fold", {
   ];
   let midpoint = points[0].midpoint(points[1]);
   let vector = points[1].subtract(points[0]);
-  origamiFold.crease(midpoint, vector.rotateZ90());
+  origamiFold.fold(midpoint, vector.rotateZ90());
 
   origamiFold.fold();
 });
@@ -221,8 +216,9 @@ fetch("../files/svg/crane.svg")
   .then(function(svgString) {
     var parent = document.querySelector("#div-folded-crane");
     // todo, attributes is not hoooked up
-    RabbitEar.origami(parent, {attributes:{faces:{fill:"white"}}}, function (craneFold) {
+    RabbitEar.origami(parent, {attributes:{faces:{fill:"#0001"}}}, function (craneFold) {
       craneFold.load(svgString, "svg");
+      craneFold.scale(1, -1);
       craneFold.fold();
     });
     RabbitEar.svg(parent, function (svg) {
@@ -233,9 +229,10 @@ fetch("../files/svg/crane.svg")
 </script>
 
 <script type="text/javascript">
-document.getElementById("download-example-button").onclick = function(event){
-  sinePleatsFolded.export("pleats.svg", true);
-}
+// document.getElementById("download-example-button").onclick = function(event){
+//   sinePleatsFolded.export("pleats.svg", true);
+// }
+
 // document.getElementById("download-button").onclick = function(e){
 //  let zip_file_path = "https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip";
 //  download(zip_file_path, "rabbit-ear.zip");

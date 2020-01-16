@@ -169,14 +169,16 @@ Validate.faces_edges = function (graph) {
 
 /**
  * determine if an object is possibly a FOLD format graph.
+ * the certainty is (if it is an object), how many of its keys are
+ * FOLD spec keys, percentage-wise
+ * @returns {number} 0 to 1, 1 being most certain it IS a FOLD format.
  */
-export const possibleFoldObject = function (fold) {
-  if (typeof fold !== "object" || fold === null) { return false; }
-  const argKeys = Object.keys(fold);
-  for (let i = 0; i < argKeys.length; i += 1) {
-    if (keys.includes(argKeys[i])) { return true; }
-  }
-  return false;
+export const possibleFoldObject = function (input) {
+  if (typeof input !== "object" || input === null) { return 0; }
+  const inputKeys = Object.keys(input);
+  if (inputKeys.length === 0) { return 0; }
+  return inputKeys.map(key => keys.includes(key))
+    .reduce((a, b) => a + (b ? 1 : 0), 0) / inputKeys.length;
 };
 
 export default Validate;

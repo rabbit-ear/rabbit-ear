@@ -15,8 +15,9 @@ const apply_matrix_to_graph = function (graph, matrix) {
   });
 };
 
-export const transform_scale = function (graph, ratio) {
-  const matrix = math.core.make_matrix2_scale(ratio);
+export const transform_scale = function (graph, sx, sy) {
+  if (typeof sx === "number" && sy === undefined) { sy = sx; }
+  const matrix = math.core.make_matrix2_scale(sx, sy);
   apply_matrix_to_graph(graph, matrix);
 };
 
