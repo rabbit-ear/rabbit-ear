@@ -1,8 +1,7 @@
-
 /**
- * this clone function is good except for one thing- it doesn't have protection
- * against a self-similar reference cycle, when the object itself
- * is referenced inside the value of a child key.
+ * this clone function is decent, except for:
+ * - it doesn't detect recursive cycles
+ * - weird behavior around Proxys
  */
 export const clone = function (o) {
   // from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5

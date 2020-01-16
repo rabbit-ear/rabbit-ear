@@ -9,9 +9,15 @@
 
 import math from "../../include/math";
 import remove from "./remove";
+import {
+  fold_keys,
+  edge_assignment_to_foldAngle
+} from "./keys";
 
-const equivalent_vertices = function (a, b, epsilon = math.core.EPSILON) {
-  for (let i = 0; i < a.length; i += 1) {
+// permissively ignores anything above 2D
+const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
+  const max = a.length < 2 ? a.length : 2;
+  for (let i = 0; i < max; i += 1) {
     if (Math.abs(a[i] - b[i]) > epsilon) {
       return false;
     }
@@ -73,7 +79,7 @@ const make_edges_intersections = function ({
   const crossings = Array.from(Array(edge_count - 1)).map(() => []);
   for (let i = 0; i < edges.length - 1; i += 1) {
     for (let j = i + 1; j < edges.length; j += 1) {
-      crossings[i][j] = math.core.intersection.edge_edge_exclusive(
+      crossings[i][j] = math.core.intersection.segment_segment_exclusive(
         edges[i][0], edges[i][1],
         edges[j][0], edges[j][1],
         epsilon
@@ -146,7 +152,7 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
     .from(Array(vertices_coords.length)).map(() => []);
   for (let i = 0; i < vertices_coords.length - 1; i += 1) {
     for (let j = i + 1; j < vertices_coords.length; j += 1) {
-      vertices_equivalent[i][j] = equivalent_vertices(
+      vertices_equivalent[i][j] = are_vertices_equivalent(
         vertices_coords[i],
         vertices_coords[j],
         epsilon
@@ -210,16 +216,22 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
     vertices_coords,
     edges_vertices: edges_vertices_cl
   };
-  if ("edges_assignment" in graph === true) {
-    flat.edges_assignment = edge_map_cl.map(i => graph.edges_assignment[i]);
+  if (graph.edges_assignment != null) {
+    flat.edges_assignment = edge_map_cl
+      .map(i => graph.edges_assignment[i] || "U");
   }
-  if ("edges_foldAngle" in graph === true) {
-    flat.edges_foldAngle = edge_map_cl.map(i => graph.edges_foldAngle[i]);
+  if (graph.edges_foldAngle != null) {
+    flat.edges_foldAngle = edge_map_cl
+      .map((i, j) => (graph.edges_foldAngle[i] || edge_assignment_to_foldAngle(flat.edges_assignment[j])));
   }
   const vertices_remove_indices = vertices_remove
     .map((rm, i) => (rm ? i : undefined))
     .filter(i => i !== undefined);
   remove(flat, "vertices", vertices_remove_indices);
+
+  // done. we can return a copy of the changes, or modify directly
+  fold_keys.graph.forEach(key => delete graph[key]);
+  Object.keys(flat).forEach((key) => { graph[key] = flat[key]; });
   return flat;
 };
 

@@ -3,16 +3,13 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.RabbitEar = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   const isBrowser = typeof window !== "undefined"
     && typeof window.document !== "undefined";
   const isNode = typeof process !== "undefined"
     && process.versions != null
     && process.versions.node != null;
-  const isWebWorker = typeof self === "object"
-    && self.constructor
-    && self.constructor.name === "DedicatedWorkerGlobalScope";
 
   const magnitude = function (v) {
     const sum = v
@@ -64,6 +61,7 @@
   };
   const midpoint2 = (a, b) => a.map((_, i) => (a[i] + b[i]) / 2);
   var algebra = Object.freeze({
+    __proto__: null,
     magnitude: magnitude,
     normalize: normalize,
     dot: dot,
@@ -75,64 +73,40 @@
     distance: distance,
     midpoint2: midpoint2
   });
-  const multiply_vector2_matrix2 = function (vector, matrix) {
+  const multiply_matrix2_vector2 = function (matrix, vector) {
     return [
-      vector[0] * matrix[0] + vector[1] * matrix[2] + matrix[4],
-      vector[0] * matrix[1] + vector[1] * matrix[3] + matrix[5]
+      matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
+      matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5]
     ];
   };
-  const multiply_line_matrix2 = function (point, vector, matrix) {
-    const new_point = multiply_vector2_matrix2(point, matrix);
-    const vec_point = vector.map((_, i) => vector[i] + point[i]);
-    const new_vector = multiply_vector2_matrix2(vec_point, matrix)
-      .map((vec, i) => vec - new_point[i]);
-    return [new_point, new_vector];
+  const multiply_matrix2_line2 = function (matrix, origin, vector) {
+    return {
+      origin: [
+        matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4],
+        matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5]
+      ],
+      vector: [
+        matrix[0] * vector[0] + matrix[2] * vector[1],
+        matrix[1] * vector[0] + matrix[3] * vector[1]
+      ]
+    };
   };
   const multiply_matrices2 = function (m1, m2) {
-    const a = m1[0] * m2[0] + m1[2] * m2[1];
-    const c = m1[0] * m2[2] + m1[2] * m2[3];
-    const tx = m1[0] * m2[4] + m1[2] * m2[5] + m1[4];
-    const b = m1[1] * m2[0] + m1[3] * m2[1];
-    const d = m1[1] * m2[2] + m1[3] * m2[3];
-    const ty = m1[1] * m2[4] + m1[3] * m2[5] + m1[5];
-    return [a, b, c, d, tx, ty];
+    return [
+      m1[0] * m2[0] + m1[2] * m2[1],
+      m1[1] * m2[0] + m1[3] * m2[1],
+      m1[0] * m2[2] + m1[2] * m2[3],
+      m1[1] * m2[2] + m1[3] * m2[3],
+      m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+      m1[1] * m2[4] + m1[3] * m2[5] + m1[5]
+    ];
   };
-  const make_matrix2_translation = function (x, y) {
-    return [1, 0, 0, 1, x, y];
+  const matrix2_determinant = function (m) {
+    return m[0] * m[3] - m[1] * m[2];
   };
-  const make_matrix2_scale = function (ratio, origin = [0, 0]) {
-    const tx = ratio * -origin[0] + origin[0];
-    const ty = ratio * -origin[1] + origin[1];
-    return [ratio, 0, 0, ratio, tx, ty];
-  };
-  const make_matrix2_rotation = function (angle, origin = [0, 0]) {
-    const a = Math.cos(angle);
-    const b = Math.sin(angle);
-    const c = -b;
-    const d = a;
-    const tx = origin[0];
-    const ty = origin[1];
-    return [a, b, c, d, tx, ty];
-  };
-  const make_matrix2_reflection = function (vector, origin) {
-    const origin_x = origin && origin[0] ? origin[0] : 0;
-    const origin_y = origin && origin[1] ? origin[1] : 0;
-    const angle = Math.atan2(vector[1], vector[0]);
-    const cosAngle = Math.cos(angle);
-    const sinAngle = Math.sin(angle);
-    const cos_Angle = Math.cos(-angle);
-    const sin_Angle = Math.sin(-angle);
-    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-    const tx = origin_x + a * -origin_x + -origin_y * c;
-    const ty = origin_y + b * -origin_x + -origin_y * d;
-    return [a, b, c, d, tx, ty];
-  };
-  const make_matrix2_inverse = function (m) {
-    const det = m[0] * m[3] - m[1] * m[2];
-    if (!det || isNaN(det) || !isFinite(m[4]) || !isFinite(m[5])) {
+  const invert_matrix2 = function (m) {
+    const det = matrix2_determinant(m);
+    if (Math.abs(det) < 1e-6 || isNaN(det) || !isFinite(m[4]) || !isFinite(m[5])) {
       return undefined;
     }
     return [
@@ -144,106 +118,225 @@
       (m[1] * m[4] - m[0] * m[5]) / det
     ];
   };
-  const multiply_vector4_matrix4 = function (v, m) {
-    const result = [];
-    result[0] = m[0] * v[0] + m[1] * v[1] + m[2] * v[2] + m[3] * v[3];
-    result[1] = m[4] * v[0] + m[5] * v[1] + m[6] * v[2] + m[7] * v[3];
-    result[2] = m[8] * v[0] + m[9] * v[1] + m[10] * v[2] + m[11] * v[3];
-    result[3] = m[12] * v[0] + m[13] * v[1] + m[14] * v[2] + m[15] * v[3];
-    return result;
+  const make_matrix2_translate = function (x, y) {
+    return [1, 0, 0, 1, x, y];
   };
-  const make_matrix4_scale = function (ratio, origin = [0, 0, 0]) {
-    const tx = ratio * -origin[0] + origin[0];
-    const ty = ratio * -origin[1] + origin[1];
-    const tz = ratio * -origin[2] + origin[2];
-    return [ratio, 0, 0, 0, 0, ratio, 0, 0, 0, 0, ratio, 0, tx, ty, tz, 1];
+  const make_matrix2_scale = function (x, y, origin = [0, 0]) {
+    return [
+      x,
+      0,
+      0,
+      y,
+      x * -origin[0] + origin[0],
+      y * -origin[1] + origin[1]
+    ];
   };
-  const make_matrix4_inverse = function (m) {
-    const inv = [];
-    inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15]
-      + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
-    inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15]
-      - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
-    inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15]
-      + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
-    inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14]
-      - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
-    inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15]
-      - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
-    inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15]
-      + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
-    inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15]
-      - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
-    inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14]
-      + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
-    inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15]
-      + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
-    inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15]
-      - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
-    inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15]
-      + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
-    inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14]
-      - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
-    inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11]
-      - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
-    inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11]
-      + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
-    inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11]
-      - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
-    inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10]
-      + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
-    const det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-    if (det < 1e-6 && det > -1e-6) {
+  const make_matrix2_rotate = function (angle, origin = [0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [
+      cos,
+      sin,
+      -sin,
+      cos,
+      origin[0],
+      origin[1]
+    ];
+  };
+  const make_matrix2_reflection = function (vector, origin = [0, 0]) {
+    const angle = Math.atan2(vector[1], vector[0]);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    const cos_Angle = Math.cos(-angle);
+    const sin_Angle = Math.sin(-angle);
+    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+    const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+    const ty = origin[1] + b * -origin[0] + -origin[1] * d;
+    return [a, b, c, d, tx, ty];
+  };
+  var matrix2_core = Object.freeze({
+    __proto__: null,
+    multiply_matrix2_vector2: multiply_matrix2_vector2,
+    multiply_matrix2_line2: multiply_matrix2_line2,
+    multiply_matrices2: multiply_matrices2,
+    matrix2_determinant: matrix2_determinant,
+    invert_matrix2: invert_matrix2,
+    make_matrix2_translate: make_matrix2_translate,
+    make_matrix2_scale: make_matrix2_scale,
+    make_matrix2_rotate: make_matrix2_rotate,
+    make_matrix2_reflection: make_matrix2_reflection
+  });
+  const multiply_matrix3_vector3 = function (m, vector) {
+    return [
+      m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
+      m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10],
+      m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11]
+    ];
+  };
+  const multiply_matrix3_line3 = function (m, origin, vector) {
+    return {
+      origin: [
+        m[0] * origin[0] + m[3] * origin[1] + m[6] * origin[2] + m[9],
+        m[1] * origin[0] + m[4] * origin[1] + m[7] * origin[2] + m[10],
+        m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11]
+      ],
+      vector: [
+        m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2],
+        m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2],
+        m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2]
+      ]
+    };
+  };
+  const multiply_matrices3 = function (m1, m2) {
+    return [
+      m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
+      m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2],
+      m1[2] * m2[0] + m1[5] * m2[1] + m1[8] * m2[2],
+      m1[0] * m2[3] + m1[3] * m2[4] + m1[6] * m2[5],
+      m1[1] * m2[3] + m1[4] * m2[4] + m1[7] * m2[5],
+      m1[2] * m2[3] + m1[5] * m2[4] + m1[8] * m2[5],
+      m1[0] * m2[6] + m1[3] * m2[7] + m1[6] * m2[8],
+      m1[1] * m2[6] + m1[4] * m2[7] + m1[7] * m2[8],
+      m1[2] * m2[6] + m1[5] * m2[7] + m1[8] * m2[8],
+      m1[0] * m2[9] + m1[3] * m2[10] + m1[6] * m2[11] + m1[9],
+      m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10],
+      m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11]
+    ];
+  };
+  const matrix3_determinant = function (m) {
+    return m[0] * m[4] * m[8]
+      - m[0] * m[7] * m[5]
+      - m[3] * m[1] * m[8]
+      + m[3] * m[7] * m[2]
+      + m[6] * m[1] * m[5]
+      - m[6] * m[4] * m[2];
+  };
+  const invert_matrix3 = function (m) {
+    const det = matrix3_determinant(m);
+    if (Math.abs(det) < 1e-6 || isNaN(det)
+      || !isFinite(m[9]) || !isFinite(m[10]) || !isFinite(m[11])) {
       return undefined;
     }
-    const inverseDeterminant = 1.0 / det;
-    return inv.map(n => n * inverseDeterminant);
+    const inv = [
+      m[4] * m[8] - m[7] * m[5],
+      -m[1] * m[8] + m[7] * m[2],
+      m[1] * m[5] - m[4] * m[2],
+      -m[3] * m[8] + m[6] * m[5],
+      m[0] * m[8] - m[6] * m[2],
+      -m[0] * m[5] + m[3] * m[2],
+      m[3] * m[7] - m[6] * m[4],
+      -m[0] * m[7] + m[6] * m[1],
+      m[0] * m[4] - m[3] * m[1],
+      -m[3] * m[7] * m[11] + m[3] * m[8] * m[10] + m[6] * m[4] * m[11]
+        - m[6] * m[5] * m[10] - m[9] * m[4] * m[8] + m[9] * m[5] * m[7],
+      m[0] * m[7] * m[11] - m[0] * m[8] * m[10] - m[6] * m[1] * m[11]
+        + m[6] * m[2] * m[10] + m[9] * m[1] * m[8] - m[9] * m[2] * m[7],
+      -m[0] * m[4] * m[11] + m[0] * m[5] * m[10] + m[3] * m[1] * m[11]
+        - m[3] * m[2] * m[10] - m[9] * m[1] * m[5] + m[9] * m[2] * m[4]
+    ];
+    const invDet = 1.0 / det;
+    return inv.map(n => n * invDet);
   };
-  const transpose_matrix4 = function (m) {
+  const make_matrix3_translate = function (x = 0, y = 0, z = 0) {
+    return [1, 0, 0, 0, 1, 0, 0, 0, 1, x, y, z];
+  };
+  const make_matrix3_rotateX = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [1, 0, 0, 0, cos, sin, 0, -sin, cos, origin[0] || 0, origin[1] || 0, origin[2] || 0];
+  };
+  const make_matrix3_rotateY = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [cos, 0, -sin, 0, 1, 0, sin, 0, cos, origin[0] || 0, origin[1] || 0, origin[2] || 0];
+  };
+  const make_matrix3_rotateZ = function (angle, origin = [0, 0, 0]) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [cos, sin, 0, -sin, cos, 0, 0, 0, 1, origin[0] || 0, origin[1] || 0, origin[2] || 0];
+  };
+  const make_matrix3_rotate = function (angle, vector = [0, 0, 1], origin = [0, 0, 0]) {
+    const vec = normalize(vector);
+    const pos = Array.from(Array(3)).map((n, i) => origin[i] || 0);
+    const [a, b, c] = vec;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const d = Math.sqrt((vec[1] * vec[1]) + (vec[2] * vec[2]));
+    const b_d = Math.abs(d) < 1e-6 ? 0 : b / d;
+    const c_d = Math.abs(d) < 1e-6 ? 1 : c / d;
+    const t     = [1, 0, 0, 0, 1, 0, 0, 0, 1, pos[0], pos[1], pos[2]];
+    const t_inv = [1, 0, 0, 0, 1, 0, 0, 0, 1, -pos[0], -pos[1], -pos[2]];
+    const rx     = [1, 0, 0, 0, c_d, b_d, 0, -b_d, c_d, 0, 0, 0];
+    const rx_inv = [1, 0, 0, 0, c_d, -b_d, 0, b_d, c_d, 0, 0, 0];
+    const ry     = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
+    const ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
+    const rz     = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
+    return multiply_matrices3(t_inv,
+      multiply_matrices3(rx_inv,
+        multiply_matrices3(ry_inv,
+          multiply_matrices3(rz,
+            multiply_matrices3(ry,
+              multiply_matrices3(rx, t))))));
+  };
+  const make_matrix3_scale = function (scale, origin = [0, 0, 0]) {
     return [
-      m[0], m[4], m[8], m[12],
-      m[1], m[5], m[9], m[13],
-      m[2], m[6], m[10], m[14],
-      m[3], m[7], m[11], m[15]
+      scale,
+      0,
+      0,
+      0,
+      scale,
+      0,
+      0,
+      0,
+      scale,
+      scale * -origin[0] + origin[0],
+      scale * -origin[1] + origin[1],
+      scale * -origin[2] + origin[2]
     ];
   };
-  const multiply_matrices4 = function (a, b) {
-    return [
-      a[0] * b[0] + a[1] * b[4] + a[2] * b[8] + a[3] * b[12],
-      a[0] * b[1] + a[1] * b[5] + a[2] * b[9] + a[3] * b[13],
-      a[0] * b[2] + a[1] * b[6] + a[2] * b[10] + a[3] * b[14],
-      a[0] * b[3] + a[1] * b[7] + a[2] * b[11] + a[3] * b[15],
-      a[4] * b[0] + a[5] * b[4] + a[6] * b[8] + a[7] * b[12],
-      a[4] * b[1] + a[5] * b[5] + a[6] * b[9] + a[7] * b[13],
-      a[4] * b[2] + a[5] * b[6] + a[6] * b[10] + a[7] * b[14],
-      a[4] * b[3] + a[5] * b[7] + a[6] * b[11] + a[7] * b[15],
-      a[8] * b[0] + a[9] * b[4] + a[10] * b[8] + a[11] * b[12],
-      a[8] * b[1] + a[9] * b[5] + a[10] * b[9] + a[11] * b[13],
-      a[8] * b[2] + a[9] * b[6] + a[10] * b[10] + a[11] * b[14],
-      a[8] * b[3] + a[9] * b[7] + a[10] * b[11] + a[11] * b[15],
-      a[12] * b[0] + a[13] * b[4] + a[14] * b[8] + a[15] * b[12],
-      a[12] * b[1] + a[13] * b[5] + a[14] * b[9] + a[15] * b[13],
-      a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14],
-      a[12] * b[3] + a[13] * b[7] + a[14] * b[11] + a[15] * b[15]
-    ];
+  const make_matrix3_reflectionZ = function (vector, origin = [0, 0]) {
+    const angle = Math.atan2(vector[1], vector[0]);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    const cos_Angle = Math.cos(-angle);
+    const sin_Angle = Math.sin(-angle);
+    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+    const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+    const ty = origin[1] + b * -origin[0] + -origin[1] * d;
+    return [a, b, 0, c, d, 0, 0, 0, 0, tx, ty, 0];
   };
-  var matrixCore = Object.freeze({
-    multiply_vector2_matrix2: multiply_vector2_matrix2,
-    multiply_line_matrix2: multiply_line_matrix2,
-    multiply_matrices2: multiply_matrices2,
-    make_matrix2_translation: make_matrix2_translation,
-    make_matrix2_scale: make_matrix2_scale,
-    make_matrix2_rotation: make_matrix2_rotation,
-    make_matrix2_reflection: make_matrix2_reflection,
-    make_matrix2_inverse: make_matrix2_inverse,
-    multiply_vector4_matrix4: multiply_vector4_matrix4,
-    make_matrix4_scale: make_matrix4_scale,
-    make_matrix4_inverse: make_matrix4_inverse,
-    transpose_matrix4: transpose_matrix4,
-    multiply_matrices4: multiply_matrices4
+  var matrix3_core = Object.freeze({
+    __proto__: null,
+    multiply_matrix3_vector3: multiply_matrix3_vector3,
+    multiply_matrix3_line3: multiply_matrix3_line3,
+    multiply_matrices3: multiply_matrices3,
+    matrix3_determinant: matrix3_determinant,
+    invert_matrix3: invert_matrix3,
+    make_matrix3_translate: make_matrix3_translate,
+    make_matrix3_rotateX: make_matrix3_rotateX,
+    make_matrix3_rotateY: make_matrix3_rotateY,
+    make_matrix3_rotateZ: make_matrix3_rotateZ,
+    make_matrix3_rotate: make_matrix3_rotate,
+    make_matrix3_scale: make_matrix3_scale,
+    make_matrix3_reflectionZ: make_matrix3_reflectionZ
   });
+  const countPlaces = function (num) {
+    const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+    if (!m) { return 0; }
+    return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
+  };
   const clean_number = function (num, places = 15) {
-    return parseFloat(num.toFixed(places));
+    const crop = parseFloat(num.toFixed(places));
+    if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
+      return num;
+    }
+    return crop;
   };
   const is_number = (n => n != null && !isNaN(n));
   const is_vector = (a => a != null && a[0] != null && !isNaN(a[0]));
@@ -283,7 +376,7 @@
       .map(el => get_vector(el));
   };
   const identity2 = [1, 0, 0, 1, 0, 0];
-  const identity4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  const identity3 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
   const get_matrix2 = function (...args) {
     const m = get_vector(args);
     if (m === undefined) { return undefined; }
@@ -294,44 +387,46 @@
     }
     return undefined;
   };
-  const get_matrix4 = function (...args) {
+  const get_matrix3 = function (...args) {
     const m = get_vector(args);
     if (m === undefined) { return undefined; }
-    if (m.length === 16) { return m; }
-    if (m.length === 9) {
-      return [
-        m[0], m[1], m[2], 0,
-        m[3], m[4], m[5], 0,
-        m[6], m[7], m[8], 0,
-        0, 0, 0, 1
-      ];
-    }
-    if (m.length === 6) {
-      return [
-        m[0], m[1], 0, 0,
-        m[2], m[3], 0, 0,
-        0, 0, 1, 0,
-        m[4], m[5], 0, 1
-      ];
-    }
-    if (m.length === 4) {
-      return [
+    switch (m.length) {
+      case 4: return [
         m[0], m[1], 0, 0,
         m[2], m[3], 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
       ];
-    }
-    if (m.length > 16) {
-      return [
-        m[0], m[1], m[2], m[3],
-        m[4], m[5], m[6], m[7],
-        m[8], m[9], m[10], m[11],
-        m[12], m[13], m[14], m[15]
+      case 6: return [
+        m[0], m[1], 0,
+        m[2], m[3], 0,
+        0, 0, 1,
+        m[4], m[5], 0
+      ];
+      case 9: return [
+        m[0], m[1], m[2],
+        m[3], m[4], m[5],
+        m[6], m[7], m[8],
+        0, 0, 0
+      ];
+      case 12: return m;
+      case 16: return [
+        m[0], m[1], m[2],
+        m[4], m[5], m[6],
+        m[8], m[9], m[10],
+        m[12], m[13], m[14]
       ];
     }
-    if (m.length < 16) {
-      return identity4.map((n, i) => m[i] || n);
+    if (m.length > 12) {
+      return [
+        m[0], m[1], m[2],
+        m[4], m[5], m[6],
+        m[8], m[9], m[10],
+        m[12], m[13], m[14]
+      ];
+    }
+    if (m.length < 12) {
+      return identity3.map((n, i) => m[i] || n);
     }
     return undefined;
   };
@@ -342,10 +437,10 @@
     let params = Array.from(arguments);
     let numbers = params.filter((param) => !isNaN(param));
     let arrays = params.filter((param) => param.constructor === Array);
-    if (params.length === 0) { return { vector: [], point: [] }; }
+    if (params.length === 0) { return { vector: [], origin: [] }; }
     if (!isNaN(params[0]) && numbers.length >= 4) {
       return {
-        point: [params[0], params[1]],
+        origin: [params[0], params[1]],
         vector: [params[2], params[3]]
       };
     }
@@ -355,29 +450,29 @@
       }
       if (arrays.length === 2) {
         return {
-          point: [arrays[0][0], arrays[0][1]],
+          origin: [arrays[0][0], arrays[0][1]],
           vector: [arrays[1][0], arrays[1][1]]
         };
       }
       if (arrays.length === 4) {
         return {
-          point: [arrays[0], arrays[1]],
+          origin: [arrays[0], arrays[1]],
           vector: [arrays[2], arrays[3]]
         };
       }
     }
     if (params[0].constructor === Object) {
-      let vector = [], point = [];
+      let vector = [], origin = [];
       if (params[0].vector != null)         { vector = get_vector(params[0].vector); }
       else if (params[0].direction != null) { vector = get_vector(params[0].direction); }
-      if (params[0].point != null)       { point = get_vector(params[0].point); }
-      else if (params[0].origin != null) { point = get_vector(params[0].origin); }
-      return {point, vector};
+      if (params[0].point != null)       { origin = get_vector(params[0].point); }
+      else if (params[0].origin != null) { origin = get_vector(params[0].origin); }
+      return { origin, vector };
     }
-    return {point: [], vector: []};
+    return { origin: [], vector: [] };
   }
-  function get_ray() {
-    return get_line(...arguments);
+  function get_ray(...args) {
+    return get_line(...args);
   }
   function get_two_vec2(...args) {
     if (args.length === 0) { return undefined; }
@@ -435,7 +530,7 @@
     return array_similarity_test(args, (a, b) => Math.abs(a - b) < EPSILON);
   };
   const equivalent_vectors = function (...args) {
-    const list = get_vector_of_vectors(args);
+    const list = get_vector_of_vectors(...args);
     if (list.length === 0) { return false; }
     if (list.length === 1 && list[0] !== undefined) {
       return equivalent_vectors(...list[0]);
@@ -466,9 +561,11 @@
         return array_similarity_test(list, (a, b) => Math.abs(a - b) < EPSILON);
       case "boolean":
         return array_similarity_test(list, (a, b) => a === b);
+      case "string":
+        return array_similarity_test(list, (a, b) => a === b);
       case "object":
-        if (list[0].constructor === Array) { return equivalent_vectors(list); }
-        console.warn("comparing array of objects for equivalency by slow stringify and no-epsilon");
+        if (list[0].constructor === Array) { return equivalent_vectors(...list); }
+        console.warn("comparing array of objects for equivalency by slow JSON.stringify with no epsilon check");
         return array_similarity_test(list, (a, b) => JSON.stringify(a) === JSON.stringify(b));
       default:
         console.warn("incapable of determining comparison method");
@@ -477,6 +574,7 @@
     return false;
   };
   var equal = Object.freeze({
+    __proto__: null,
     EPSILON: EPSILON,
     equivalent_numbers: equivalent_numbers,
     equivalent_vectors: equivalent_vectors,
@@ -589,6 +687,7 @@
     return angle < angleB;
   };
   var query = Object.freeze({
+    __proto__: null,
     overlap_function: overlap_function,
     segment_segment_overlap: segment_segment_overlap,
     degenerate: degenerate,
@@ -643,10 +742,10 @@
   const line_ray = function (linePt, lineVec, rayPt, rayVec, epsilon) {
     return intersection_function(linePt, lineVec, rayPt, rayVec, line_ray_comp, epsilon);
   };
-  const line_segment = function (point, vec, segment0, segment1, epsilon) {
+  const line_segment = function (origin, vec, segment0, segment1, epsilon) {
     const segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
     return intersection_function(
-      point, vec,
+      origin, vec,
       segment0, segmentVec,
       line_segment_comp, epsilon
     );
@@ -678,10 +777,10 @@
       line_ray_comp_exclusive, epsilon
     );
   };
-  const line_segment_exclusive = function (point, vec, segment0, segment1, epsilon) {
+  const line_segment_exclusive = function (origin, vec, segment0, segment1, epsilon) {
     const segmentVec = [segment1[0] - segment0[0], segment1[1] - segment0[1]];
     return intersection_function(
-      point, vec,
+      origin, vec,
       segment0, segmentVec,
       line_segment_comp_exclusive, epsilon
     );
@@ -857,6 +956,7 @@
     }
   };
   var intersection = Object.freeze({
+    __proto__: null,
     limit_line: limit_line,
     limit_ray: limit_ray,
     limit_segment: limit_segment,
@@ -941,8 +1041,8 @@
     if (Math.abs(denominator) < EPSILON) {
       const solution = [midpoint2(pointA, pointB), [vectorA[0], vectorA[1]]];
       const array = [solution, solution];
-      const dot$$1 = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
-      delete (dot$$1 > 0 ? array[1] : array[0]);
+      const dot = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
+      delete array[(dot > 0 ? 1 : 0)];
       return array;
     }
     const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
@@ -1026,9 +1126,9 @@
   ) {
     const magSquared = (lineVec[0] ** 2) + (lineVec[1] ** 2);
     const vectorToPoint = [0, 1].map((_, i) => point[i] - linePoint[i]);
-    const dot$$1 = [0, 1].map((_, i) => lineVec[i] * vectorToPoint[i])
+    const dot = [0, 1].map((_, i) => lineVec[i] * vectorToPoint[i])
       .reduce((a, b) => a + b, 0);
-    const dist = dot$$1 / magSquared;
+    const dist = dot / magSquared;
     const d = limiterFunc(dist, epsilon);
     return [0, 1].map((_, i) => linePoint[i] + lineVec[i] * d);
   };
@@ -1128,8 +1228,8 @@
       let rightTurn = angles[0];
       angles = angles.filter(el => Math.abs(rightTurn.angle - el.angle) < epsilon)
         .map((el) => {
-          let distance$$1 = Math.sqrt(((hull[h][0] - el.node[0]) ** 2) + ((hull[h][1] - el.node[1]) ** 2));
-          el.distance = distance$$1;
+          let distance = Math.sqrt(((hull[h][0] - el.node[0]) ** 2) + ((hull[h][1] - el.node[1]) ** 2));
+          el.distance = distance;
           return el;
         })
         .sort((a, b) => ((a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0));
@@ -1142,6 +1242,7 @@
     return undefined;
   };
   var geometry = Object.freeze({
+    __proto__: null,
     clockwise_angle2_radians: clockwise_angle2_radians,
     counter_clockwise_angle2_radians: counter_clockwise_angle2_radians,
     clockwise_angle2: clockwise_angle2,
@@ -1197,7 +1298,7 @@
     };
     const transform = function (...args) {
       const m = get_matrix2(args);
-      return Type(multiply_vector2_matrix2(that, m));
+      return Type(multiply_matrix2_vector2(m, that));
     };
     const add = function (...args) {
       const vec = get_vector(args);
@@ -1208,8 +1309,8 @@
       return Type(that.map((v, i) => v - vec[i]));
     };
     const rotateZ = function (angle, origin) {
-      const m = make_matrix2_rotation(angle, origin);
-      return Type(multiply_vector2_matrix2(that, m));
+      const m = make_matrix2_rotate(angle, origin);
+      return Type(multiply_matrix2_vector2(m, that));
     };
     const rotateZ90 = function () {
       return Type(-that[1], that[0]);
@@ -1220,10 +1321,13 @@
     const rotateZ270 = function () {
       return Type(that[1], -that[0]);
     };
+    const flip = function () {
+      return Type(...that.map(n => -n));
+    };
     const reflect = function (...args) {
       const ref = get_line(args);
-      const m = make_matrix2_reflection(ref.vector, ref.point);
-      return Type(multiply_vector2_matrix2(that, m));
+      const m = make_matrix2_reflection(ref.vector, ref.origin);
+      return Type(multiply_matrix2_vector2(m, that));
     };
     const lerp = function (vector, pct) {
       const vec = get_vector(vector);
@@ -1270,6 +1374,7 @@
     Object.defineProperty(proto, "rotateZ90", { value: rotateZ90 });
     Object.defineProperty(proto, "rotateZ180", { value: rotateZ180 });
     Object.defineProperty(proto, "rotateZ270", { value: rotateZ270 });
+    Object.defineProperty(proto, "flip", { value: flip });
     Object.defineProperty(proto, "reflect", { value: reflect });
     Object.defineProperty(proto, "lerp", { value: lerp });
     Object.defineProperty(proto, "isEquivalent", { value: isEquivalent });
@@ -1292,68 +1397,186 @@
     Object.defineProperty(vector, "z", { get: () => vector[2] });
     return vector;
   };
+  Vector.withAngle = function (angle) {
+    return Vector(Math.cos(angle), Math.sin(angle));
+  };
   const Matrix2 = function (...args) {
     const matrix = [1, 0, 0, 1, 0, 0];
     const argsMatrix = get_matrix2(args);
     if (argsMatrix !== undefined) {
       argsMatrix.forEach((n, i) => { matrix[i] = n; });
     }
-    const inverse = function () {
-      return Matrix2(make_matrix2_inverse(matrix)
+    const multiply = function (...innerArgs) {
+      return Matrix2(multiply_matrices2(matrix, get_matrix2(innerArgs))
         .map(n => clean_number(n, 13)));
     };
-    const multiply = function (...innerArgs) {
-      const m2 = get_matrix2(innerArgs);
-      return Matrix2(multiply_matrices2(matrix, m2)
+    const determinant = function () {
+      return clean_number(matrix2_determinant(matrix));
+    };
+    const inverse = function () {
+      return Matrix2(invert_matrix2(matrix)
+        .map(n => clean_number(n, 13)));
+    };
+    const translate = function (x, y) {
+      const transform = make_matrix2_translate(x, y);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const scale = function (...innerArgs) {
+      const transform = make_matrix2_scale(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotate = function (...innerArgs) {
+      const transform = make_matrix2_rotate(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const reflect = function (...innerArgs) {
+      const transform = make_matrix2_reflection(...innerArgs);
+      return Matrix2(multiply_matrices2(matrix, transform)
         .map(n => clean_number(n, 13)));
     };
     const transform = function (...innerArgs) {
       const v = get_vector(innerArgs);
-      return Vector(multiply_vector2_matrix2(v, matrix)
+      return Vector(multiply_matrix2_vector2(matrix, v)
         .map(n => clean_number(n, 13)));
     };
-    Object.defineProperty(matrix, "inverse", { value: inverse });
+    const transformVector = function (vector) {
+      return Matrix2(multiply_matrix2_vector2(matrix, vector)
+        .map(n => clean_number(n, 13)));
+    };
+    const transformLine = function (origin, vector) {
+      return Matrix2(multiply_matrix2_line2(matrix, origin, vector)
+        .map(n => clean_number(n, 13)));
+    };
     Object.defineProperty(matrix, "multiply", { value: multiply });
+    Object.defineProperty(matrix, "determinant", { value: determinant });
+    Object.defineProperty(matrix, "inverse", { value: inverse });
+    Object.defineProperty(matrix, "translate", { value: translate });
+    Object.defineProperty(matrix, "scale", { value: scale });
+    Object.defineProperty(matrix, "rotate", { value: rotate });
+    Object.defineProperty(matrix, "reflect", { value: reflect });
     Object.defineProperty(matrix, "transform", { value: transform });
+    Object.defineProperty(matrix, "transformVector", { value: transformVector });
+    Object.defineProperty(matrix, "transformLine", { value: transformLine });
     return Object.freeze(matrix);
   };
   Matrix2.makeIdentity = () => Matrix2(1, 0, 0, 1, 0, 0);
-  Matrix2.makeTranslation = (tx, ty) => Matrix2(1, 0, 0, 1, tx, ty);
-  Matrix2.makeScale = (...args) => Matrix2(...make_matrix2_scale(...args));
-  Matrix2.makeRotation = ((angle, origin) => Matrix2(
-    make_matrix2_rotation(angle, origin).map(n => clean_number(n, 13))
-  ));
-  Matrix2.makeReflection = ((vector, origin) => Matrix2(
+  Matrix2.makeTranslation = (x, y) => Matrix2(
+    make_matrix2_translate(x, y)
+  );
+  Matrix2.makeRotation = (angle_radians, origin) => Matrix2(
+    make_matrix2_rotate(angle_radians, origin).map(n => clean_number(n, 13))
+  );
+  Matrix2.makeScale = (x, y, origin) => Matrix2(
+    make_matrix2_scale(x, y, origin).map(n => clean_number(n, 13))
+  );
+  Matrix2.makeReflection = (vector, origin) => Matrix2(
     make_matrix2_reflection(vector, origin).map(n => clean_number(n, 13))
-  ));
+  );
   const Matrix = function (...args) {
-    const matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-    const argsMatrix = get_matrix4(args);
+    const matrix = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+    const argsMatrix = get_matrix3(args);
     if (argsMatrix !== undefined) {
       argsMatrix.forEach((n, i) => { matrix[i] = n; });
     }
-    const inverse = function () {
-      return Matrix(make_matrix4_inverse(matrix)
+    const multiply = function (...innerArgs) {
+      return Matrix(multiply_matrices3(matrix, get_matrix3(innerArgs))
         .map(n => clean_number(n, 13)));
     };
-    const multiply = function (...innerArgs) {
-      const m2 = get_matrix4(innerArgs);
-      return Matrix(multiply_matrices4(matrix, m2)
+    const determinant = function () {
+      return clean_number(matrix3_determinant(matrix), 13);
+    };
+    const inverse = function () {
+      return Matrix(invert_matrix3(matrix)
+        .map(n => clean_number(n, 13)));
+    };
+    const translate = function (x, y, z) {
+      const transform = make_matrix3_translate(x, y, z);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotateX = function (angle_radians) {
+      const transform = make_matrix3_rotateX(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotateY = function (angle_radians) {
+      const transform = make_matrix3_rotateY(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotateZ = function (angle_radians) {
+      const transform = make_matrix3_rotateZ(angle_radians);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const rotate = function (angle_radians, vector, origin) {
+      const transform = make_matrix3_rotate(angle_radians, vector, origin);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const scale = function (amount) {
+      const transform = make_matrix3_scale(amount);
+      return Matrix(multiply_matrices3(matrix, transform)
+        .map(n => clean_number(n, 13)));
+    };
+    const reflectZ = function (vector, origin) {
+      const transform = make_matrix3_reflectionZ(vector, origin);
+      return Matrix(multiply_matrices3(matrix, transform)
         .map(n => clean_number(n, 13)));
     };
     const transform = function (...innerArgs) {
       const v = get_vector(innerArgs);
-      return Vector(multiply_vector4_matrix4(v, matrix)
+      return Vector(multiply_matrix3_vector3(v, matrix)
         .map(n => clean_number(n, 13)));
     };
-    Object.defineProperty(matrix, "inverse", { value: inverse });
+    const transformVector = function (vector) {
+      return Matrix(multiply_matrix3_vector3(matrix, vector)
+        .map(n => clean_number(n, 13)));
+    };
+    const transformLine = function (origin, vector) {
+      return Matrix(multiply_matrix3_line3(matrix, origin, vector)
+        .map(n => clean_number(n, 13)));
+    };
     Object.defineProperty(matrix, "multiply", { value: multiply });
+    Object.defineProperty(matrix, "determinant", { value: determinant });
+    Object.defineProperty(matrix, "inverse", { value: inverse });
+    Object.defineProperty(matrix, "translate", { value: translate });
+    Object.defineProperty(matrix, "rotateX", { value: rotateX });
+    Object.defineProperty(matrix, "rotateY", { value: rotateY });
+    Object.defineProperty(matrix, "rotateZ", { value: rotateZ });
+    Object.defineProperty(matrix, "rotate", { value: rotate });
+    Object.defineProperty(matrix, "scale", { value: scale });
+    Object.defineProperty(matrix, "reflectZ", { value: reflectZ });
     Object.defineProperty(matrix, "transform", { value: transform });
+    Object.defineProperty(matrix, "transformVector", { value: transformVector });
+    Object.defineProperty(matrix, "transformLine", { value: transformLine });
     return Object.freeze(matrix);
   };
-  Matrix.makeIdentity = () => Matrix(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-  Matrix.makeTranslation = (tx, ty, tz) => Matrix(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, tx, ty, tz, 1);
-  Matrix.makeScale = (...args) => Matrix(...make_matrix4_scale(...args));
+  Matrix.makeIdentity = () => Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0);
+  Matrix.makeTranslation = (x, y, z) => Matrix(
+    make_matrix3_translate(x, y, z)
+  );
+  Matrix.makeRotationX = angle_radians => Matrix(
+    make_matrix3_rotateX(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotationY = angle_radians => Matrix(
+    make_matrix3_rotateY(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotationZ = angle_radians => Matrix(
+    make_matrix3_rotateZ(angle_radians).map(n => clean_number(n, 13))
+  );
+  Matrix.makeRotation = (angle_radians, vector, origin) => Matrix(
+    make_matrix3_rotate(angle_radians, vector, origin).map(n => clean_number(n, 13))
+  );
+  Matrix.makeScale = (amount, origin) => Matrix(
+    make_matrix3_scale(amount, origin).map(n => clean_number(n, 13))
+  );
+  Matrix.makeReflectionZ = (vector, origin) => Matrix(
+    make_matrix3_reflectionZ(vector, origin).map(n => clean_number(n, 13))
+  );
   function Prototype (subtype, prototype) {
     const proto = (prototype != null) ? prototype : {};
     const compare_to_line = function (t0, t1, epsilon = EPSILON) {
@@ -1379,33 +1602,46 @@
       return degenerate(this.vector);
     };
     const reflection = function () {
-      return Matrix2.makeReflection(this.vector, this.point);
+      return Matrix2.makeReflection(this.vector, this.origin);
     };
     const nearestPoint = function (...args) {
       const point = get_vector(args);
-      return Vector(nearest_point_on_line(this.point, this.vector, point, this.clip_function));
+      return Vector(nearest_point_on_line(this.origin, this.vector, point, this.clip_function));
     };
     const intersect = function (other) {
-      return intersection_function(this.point, this.vector, other.point,
+      return intersection_function(this.origin, this.vector, other.origin,
         other.vector,
         ((t0, t1, epsilon = EPSILON) => this.compare_function(t0, epsilon)
           && other.compare_function(t1, epsilon)));
     };
     const intersectLine = function (...args) {
       const line = get_line(args);
-      return intersection_function(this.point, this.vector, line.point,
+      return intersection_function(this.origin, this.vector, line.origin,
         line.vector, compare_to_line.bind(this));
     };
     const intersectRay = function (...args) {
       const ray = get_ray(args);
-      return intersection_function(this.point, this.vector, ray.point, ray.vector,
+      return intersection_function(this.origin, this.vector, ray.origin, ray.vector,
         compare_to_ray.bind(this));
     };
-    const intersectEdge = function (...args) {
+    const intersectSegment = function (...args) {
       const edge = get_segment(args);
       const edgeVec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-      return intersection_function(this.point, this.vector, edge[0], edgeVec,
+      return intersection_function(this.origin, this.vector, edge[0], edgeVec,
         compare_to_segment.bind(this));
+    };
+    const bisectLine = function (...args) {
+      const line = get_line(args);
+      return bisect_lines2(this.origin, this.vector, line.origin, line.vector);
+    };
+    const bisectRay = function (...args) {
+      const ray = get_ray(args);
+      return bisect_lines2(this.origin, this.vector, ray.origin, ray.vector);
+    };
+    const bisectSegment = function (...args) {
+      const s = get_segment(args);
+      const vector = [s[1][0] - s[0][0], s[1][1] - s[0][1]];
+      return bisect_lines2(this.origin, this.vector, s[0], vector);
     };
     Object.defineProperty(proto, "isParallel", { value: isParallel });
     Object.defineProperty(proto, "isDegenerate", { value: isDegenerate });
@@ -1414,14 +1650,17 @@
     Object.defineProperty(proto, "intersect", { value: intersect });
     Object.defineProperty(proto, "intersectLine", { value: intersectLine });
     Object.defineProperty(proto, "intersectRay", { value: intersectRay });
-    Object.defineProperty(proto, "intersectEdge", { value: intersectEdge });
+    Object.defineProperty(proto, "intersectSegment", { value: intersectSegment });
+    Object.defineProperty(proto, "bisectLine", { value: bisectLine });
+    Object.defineProperty(proto, "bisectRay", { value: bisectRay });
+    Object.defineProperty(proto, "bisectSegment", { value: bisectSegment });
     return Object.freeze(proto);
   }
   const Line = function (...args) {
-    const { point, vector } = get_line(args);
+    const { origin, vector } = get_line(args);
     const transform = function (...innerArgs) {
       const mat = get_matrix2(innerArgs);
-      const line = multiply_line_matrix2(point, vector, mat);
+      const line = multiply_matrix2_line2(mat, origin, vector);
       return Line(line[0], line[1]);
     };
     const proto = Prototype.bind(this);
@@ -1429,7 +1668,7 @@
     const compare_function = function () { return true; };
     Object.defineProperty(line, "compare_function", { value: compare_function });
     Object.defineProperty(line, "clip_function", { value: limit_line });
-    Object.defineProperty(line, "point", { get: () => Vector(point) });
+    Object.defineProperty(line, "origin", { get: () => Vector(origin) });
     Object.defineProperty(line, "vector", { get: () => Vector(vector) });
     Object.defineProperty(line, "length", { get: () => Infinity });
     Object.defineProperty(line, "transform", { value: transform });
@@ -1438,7 +1677,7 @@
   Line.fromPoints = function (...args) {
     const points = get_two_vec2(args);
     return Line({
-      point: points[0],
+      origin: points[0],
       vector: normalize([
         points[1][0] - points[0][0],
         points[1][1] - points[0][1],
@@ -1452,27 +1691,27 @@
       points[1][1] - points[0][1],
     ]);
     return Line({
-      point: average(points[0], points[1]),
+      origin: average(points[0], points[1]),
       vector: [vec[1], -vec[0]],
     });
   };
   const Ray = function (...args) {
-    const { point, vector } = get_line(args);
+    const { origin, vector } = get_line(args);
     const transform = function (...innerArgs) {
       const mat = get_matrix2(innerArgs);
-      const new_point = multiply_vector2_matrix2(point, mat);
-      const vec_point = vector.map((vec, i) => vec + point[i]);
-      const new_vector = multiply_vector2_matrix2(vec_point, mat)
-        .map((vec, i) => vec - new_point[i]);
-      return Ray(new_point, new_vector);
+      const vec_translated = vector.map((vec, i) => vec + origin[i]);
+      const new_origin = multiply_matrix2_vector2(mat, origin);
+      const new_vector = multiply_matrix2_vector2(mat, vec_translated)
+        .map((vec, i) => vec - new_origin[i]);
+      return Ray(new_origin, new_vector);
     };
     const rotate180 = function () {
-      return Ray(point[0], point[1], -vector[0], -vector[1]);
+      return Ray(origin[0], origin[1], -vector[0], -vector[1]);
     };
     const proto = Prototype.bind(this);
     const ray = Object.create(proto(Ray));
     const compare_function = function (t0, ep) { return t0 >= -ep; };
-    Object.defineProperty(ray, "point", { get: () => Vector(point) });
+    Object.defineProperty(ray, "origin", { get: () => Vector(origin) });
     Object.defineProperty(ray, "vector", { get: () => Vector(vector) });
     Object.defineProperty(ray, "length", { get: () => Infinity });
     Object.defineProperty(ray, "transform", { value: transform });
@@ -1484,7 +1723,7 @@
   Ray.fromPoints = function (...args) {
     const points = get_two_vec2(args);
     return Ray({
-      point: points[0],
+      origin: points[0],
       vector: normalize([
         points[1][0] - points[0][0],
         points[1][1] - points[0][1],
@@ -1494,30 +1733,36 @@
   const Segment = function (...args) {
     const inputs = get_two_vec2(args);
     const proto = Prototype.bind(this);
-    const segment = Object.create(proto(Segment, []));
     const vecPts = (inputs.length > 0 ? inputs.map(p => Vector(p)) : undefined);
     if (vecPts === undefined) { return undefined; }
-    vecPts.forEach((p, i) => { segment[i] = p; });
+    const segment = Object.create(proto(Segment, vecPts));
     const transform = function (...innerArgs) {
       const mat = get_matrix2(innerArgs);
       const transformed_points = segment
-        .map(point => multiply_vector2_matrix2(point, mat));
+        .map(point => multiply_matrix2_vector2(mat, point));
+      return Segment(transformed_points);
+    };
+    const scale = function (magnitude) {
+      const mid = average(segment[0], segment[1]);
+      const transformed_points = segment
+        .map(p => p.lerp(mid, magnitude));
       return Segment(transformed_points);
     };
     const vector = function () {
       return Vector(segment[1][0] - segment[0][0], segment[1][1] - segment[0][1]);
     };
     const midpoint = () => Vector(average(segment[0], segment[1]));
-    const length = function () {
+    const magnitude = function () {
       return Math.sqrt(((segment[1][0] - segment[0][0]) ** 2)
                      + ((segment[1][1] - segment[0][1]) ** 2));
     };
     const compare_function = (t0, ep) => t0 >= -ep && t0 <= 1 + ep;
-    Object.defineProperty(segment, "point", { get: () => segment[0] });
+    Object.defineProperty(segment, "origin", { get: () => segment[0] });
     Object.defineProperty(segment, "vector", { get: () => vector() });
     Object.defineProperty(segment, "midpoint", { value: midpoint });
-    Object.defineProperty(segment, "length", { get: () => length() });
+    Object.defineProperty(segment, "magnitude", { get: () => magnitude() });
     Object.defineProperty(segment, "transform", { value: transform });
+    Object.defineProperty(segment, "scale", { value: scale });
     Object.defineProperty(segment, "compare_function", { value: compare_function });
     Object.defineProperty(segment, "clip_function", {
       value: limit_segment,
@@ -1535,8 +1780,8 @@
     }
     const intersectionLine = function (...innerArgs) {
       const line = get_line(innerArgs);
-      const p2 = [line.point[0] + line.vector[0], line.point[1] + line.vector[1]];
-      const result = circle_line(origin, radius, line.point, p2);
+      const p2 = [line.origin[0] + line.vector[0], line.origin[1] + line.vector[1]];
+      const result = circle_line(origin, radius, line.origin, p2);
       return (result === undefined ? undefined : result.map(i => Vector(i)));
     };
     const intersectionRay = function (...innerArgs) {
@@ -1565,11 +1810,11 @@
       const interior_angle = counter_clockwise_angle2(vectors[0], vectors[1]);
       const vectors_radians = vectors.map(el => Math.atan2(el[1], el[0]));
       const bisected = vectors_radians[0] + interior_angle * 0.5;
-      return [Math.cos(bisected), Math.sin(bisected)];
+      return Vector(Math.cos(bisected), Math.sin(bisected));
     };
     const subsect_sector = function (divisions) {
       return subsect(divisions, vectors[0], vectors[1])
-        .map(vec => [vec[0], vec[1]]);
+        .map(vec => Vector(vec[0], vec[1]));
     };
     const contains = function (...args) {
       const point = get_vector(args).map((n, i) => n + center[i]);
@@ -1603,12 +1848,14 @@
       return enclosing_rectangle(this.points);
     };
     const sectors = function () {
-      return this.points
-        .map((p, i, a) => [
-          a[(i + a.length - 1) % a.length],
-          a[i],
-          a[(i + 1) % a.length]])
-        .map(points => Sector(points[1], points[2], points[0]));
+      return this.points.map((p, i, arr) => {
+        const prev = (i + arr.length - 1) % arr.length;
+        const next = (i + 1) % arr.length;
+        const center = p;
+        const a = arr[prev].map((n, j) => n - center[j]);
+        const b = arr[next].map((n, j) => n - center[j]);
+        return Sector(b, a, center);
+      });
     };
     const contains = function (...args) {
       return point_in_poly(get_vector(args), this.points);
@@ -1635,23 +1882,23 @@
     };
     const clipLine = function (...args) {
       const line = get_line(args);
-      const e = convex_poly_line(this.points, line.point, line.vector);
+      const e = convex_poly_line(this.points, line.origin, line.vector);
       return e === undefined ? undefined : Segment(e);
     };
     const clipRay = function (...args) {
       const line = get_line(args);
-      const e = convex_poly_ray(this.points, line.point, line.vector);
+      const e = convex_poly_ray(this.points, line.origin, line.vector);
       return e === undefined ? undefined : Segment(e);
     };
     const split = function (...args) {
       const line = get_line(args);
-      return split_polygon(this.points, line.point, line.vector)
+      return split_polygon(this.points, line.origin, line.vector)
         .map(poly => Type(poly));
     };
-    const scale = function (magnitude$$1, center = centroid(this.points)) {
+    const scale = function (magnitude, center = centroid(this.points)) {
       const newPoints = this.points
         .map(p => [0, 1].map((_, i) => p[i] - center[i]))
-        .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude$$1));
+        .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
       return Type(newPoints);
     };
     const rotate = function (angle, centerPoint = centroid(this.points)) {
@@ -1674,7 +1921,7 @@
     const transform = function (...args) {
       const m = get_matrix2(args);
       const newPoints = this.points
-        .map(p => Vector(multiply_vector2_matrix2(p, m)));
+        .map(p => Vector(multiply_matrix2_vector2(m, p)));
       return Type(newPoints);
     };
     Object.defineProperty(proto, "area", { value: area });
@@ -1695,7 +1942,7 @@
       get: function () { return this.sides; },
     });
     Object.defineProperty(proto, "sectors", {
-      get: function () { return sectors(); },
+      get: function () { return sectors.call(this); },
     });
     Object.defineProperty(proto, "signedArea", { value: area });
     return Object.freeze(proto);
@@ -1730,7 +1977,7 @@
     const polygon = Object.create(proto(ConvexPolygon));
     const split = function (...innerArgs) {
       const line = get_line(innerArgs);
-      return split_convex_polygon(points, line.point, line.vector)
+      return split_convex_polygon(points, line.origin, line.vector)
         .map(poly => ConvexPolygon(poly));
     };
     const overlaps = function (...innerArgs) {
@@ -1853,7 +2100,7 @@
     return Junction.fromVectors(vectors);
   };
   const core = Object.create(null);
-  Object.assign(core, algebra, matrixCore, geometry, query, equal);
+  Object.assign(core, algebra, matrix2_core, matrix3_core, geometry, query, equal);
   core.clean_number = clean_number;
   core.is_number = is_number;
   core.is_vector = is_vector;
@@ -1887,383 +2134,6 @@
     core,
   };
 
-  const CleanPrototype = function () {
-    const proto = Object.create(null);
-    const join = function (report) {
-      if (report == null) { return this; }
-      this.nodes.total += report.nodes.total;
-      this.edges.total += report.edges.total;
-      this.nodes.isolated += report.nodes.isolated;
-      this.edges.duplicate += report.edges.duplicate;
-      this.edges.circular += report.edges.circular;
-      return this;
-    };
-    const isolatedNodes = function (num) {
-      this.nodes.isolated = num;
-      this.nodes.total += num;
-      return this;
-    };
-    const duplicateEdges = function (num) {
-      this.edges.duplicate = num;
-      this.edges.total += num;
-      return this;
-    };
-    const circularEdges = function (num) {
-      this.edges.circular = num;
-      this.edges.total += num;
-      return this;
-    };
-    Object.defineProperty(proto, "join", { value: join });
-    Object.defineProperty(proto, "isolatedNodes", { value: isolatedNodes });
-    Object.defineProperty(proto, "duplicateEdges", { value: duplicateEdges });
-    Object.defineProperty(proto, "circularEdges", { value: circularEdges });
-    return Object.freeze(proto);
-  };
-  const GraphClean = function (numNodes, numEdges) {
-    const clean = Object.create(CleanPrototype());
-    clean.nodes = { total: 0, isolated: 0 };
-    clean.edges = { total: 0, duplicate: 0, circular: 0 };
-    if (numNodes != null) { clean.nodes.total = numNodes; }
-    if (numEdges != null) { clean.edges.total = numEdges; }
-    return clean;
-  };
-
-  const Node = function (graph) {
-    const node = Object.create(null);
-    node.graph = graph;
-    const adjacentEdges = function () {
-      return node.graph.edges
-        .filter(el => el.nodes[0] === node || el.nodes[1] === node);
-    };
-    const adjacentNodes = function () {
-      const checked = [];
-      return adjacentEdges()
-        .filter(el => !el.isCircular)
-        .map(el => (el.nodes[0] === node
-          ? el.nodes[1]
-          : el.nodes[0]))
-        .filter(el => (checked.indexOf(el) >= 0 ? false : checked.push(el)));
-    };
-    const adjacent = function () {
-      const adj = Object.create(null);
-      adj.edges = adjacentEdges();
-      const checked = [];
-      adj.nodes = adj.edges.filter(el => !el.isCircular)
-        .map(el => (el.nodes[0] === node
-          ? el.nodes[1]
-          : el.nodes[0]))
-        .filter(el => (checked.indexOf(el) >= 0
-          ? false
-          : checked.push(el)));
-      return adj;
-    };
-    const isAdjacentToNode = function (n) {
-      return adjacentNodes.filter(el => el === n).length > 0;
-    };
-    const degree = function () {
-      return node.graph.edges
-        .map(el => el.nodes
-          .map(n => (n === node ? 1 : 0))
-          .reduce((a, b) => a + b, 0))
-        .reduce((a, b) => a + b, 0);
-    };
-    Object.defineProperty(node, "adjacent", {
-      get: function () { return adjacent(); }
-    });
-    Object.defineProperty(node, "degree", { get: () => degree() });
-    Object.defineProperty(node, "isAdjacentToNode", { value: isAdjacentToNode });
-    return node;
-  };
-
-  const Edge = function (graph, node1, node2) {
-    const edge = Object.create(null);
-    edge.graph = graph;
-    edge.nodes = [node1, node2];
-    const adjacentEdges = function () {
-      return edge.graph.edges.filter(e => e !== edge
-        && (e.nodes[0] === edge.nodes[0]
-        || e.nodes[0] === edge.nodes[1]
-        || e.nodes[1] === edge.nodes[0]
-        || e.nodes[1] === edge.nodes[1]));
-    };
-    const adjacentNodes = function () { return [...edge.nodes]; };
-    const adjacent = function () {
-      const adj = Object.create(null);
-      adj.nodes = adjacentNodes();
-      adj.edges = adjacentEdges();
-      return adj;
-    };
-    const isAdjacentToEdge = function (e) {
-      return ((edge.nodes[0] === e.nodes[0]) || (edge.nodes[1] === e.nodes[1])
-        || (edge.nodes[0] === e.nodes[1]) || (edge.nodes[1] === e.nodes[0]));
-    };
-    const isSimilarToEdge = function (e) {
-      return ((edge.nodes[0] === e.nodes[0] && edge.nodes[1] === e.nodes[1])
-        || (edge.nodes[0] === e.nodes[1] && edge.nodes[1] === e.nodes[0]));
-    };
-    const otherNode = function (n) {
-      if (edge.nodes[0] === n) { return edge.nodes[1]; }
-      if (edge.nodes[1] === n) { return edge.nodes[0]; }
-      return undefined;
-    };
-    const isCircular = function () {
-      return edge.nodes[0] === edge.nodes[1];
-    };
-    const duplicateEdges = function () {
-      return edge.graph.edges.filter(el => edge.isSimilarToEdge(el));
-    };
-    const commonNodeWithEdge = function (otherEdge) {
-      if (edge === otherEdge) {
-        return undefined;
-      }
-      if (edge.nodes[0] === otherEdge.nodes[0]
-        || edge.nodes[0] === otherEdge.nodes[1]) {
-        return edge.nodes[0];
-      }
-      if (edge.nodes[1] === otherEdge.nodes[0]
-        || edge.nodes[1] === otherEdge.nodes[1]) {
-        return edge.nodes[1];
-      }
-      return undefined;
-    };
-    const uncommonNodeWithEdge = function (otherEdge) {
-      if (edge === otherEdge) { return undefined; }
-      if (edge.nodes[0] === otherEdge.nodes[0]
-        || edge.nodes[0] === otherEdge.nodes[1]) {
-        return edge.nodes[1];
-      }
-      if (edge.nodes[1] === otherEdge.nodes[0]
-        || edge.nodes[1] === otherEdge.nodes[1]) {
-        return edge.nodes[0];
-      }
-      return undefined;
-    };
-    Object.defineProperty(edge, "adjacent", {
-      get: function () { return adjacent(); }
-    });
-    Object.defineProperty(edge, "isAdjacentToEdge", { value: isAdjacentToEdge });
-    Object.defineProperty(edge, "isSimilarToEdge", { value: isSimilarToEdge });
-    Object.defineProperty(edge, "otherNode", { value: otherNode });
-    Object.defineProperty(edge, "isCircular", {
-      get: function () { return isCircular(); }
-    });
-    Object.defineProperty(edge, "duplicateEdges", { value: duplicateEdges });
-    Object.defineProperty(edge, "commonNodeWithEdge", {
-      value: commonNodeWithEdge
-    });
-    Object.defineProperty(edge, "uncommonNodeWithEdge", {
-      value: uncommonNodeWithEdge
-    });
-    return edge;
-  };
-
-  const Graph = function () {
-    const graph = Object.create(null);
-    graph.nodes = [];
-    graph.edges = [];
-    graph.types = {
-      node: Node,
-      edge: Edge
-    };
-    const newNode = function (...args) {
-      const node = graph.types.node(graph);
-      Object.assign(node, ...args);
-      node.graph = graph;
-      graph.nodes.push(node);
-      return node;
-    };
-    const newEdge = function (node1, node2) {
-      const edge = graph.types.edge(graph, node1, node2);
-      edge.graph = graph;
-      graph.edges.push(edge);
-      return edge;
-    };
-    const copyNode = function (node) {
-      return Object.assign(graph.newNode(), node);
-    };
-    const copyEdge = function (edge) {
-      return Object.assign(graph.newEdge(edge.nodes[0], edge.nodes[1]), edge);
-    };
-    const clear = function () {
-      graph.nodes = [];
-      graph.edges = [];
-      return graph;
-    };
-    const removeEdge = function (edge) {
-      const edgesLength = graph.edges.length;
-      graph.edges = graph.edges.filter(el => el !== edge);
-      return GraphClean(undefined, edgesLength - graph.edges.length);
-    };
-    const removeEdgeBetween = function (node1, node2) {
-      const edgesLength = graph.edges.length;
-      graph.edges = graph.edges.filter(el => !((el.nodes[0] === node1
-        && el.nodes[1] === node2) || (el.nodes[0] === node2
-        && el.nodes[1] === node1)));
-      return GraphClean(undefined, edgesLength - graph.edges.length);
-    };
-    const removeNode = function (node) {
-      const nodesLength = graph.nodes.length;
-      const edgesLength = graph.edges.length;
-      graph.nodes = graph.nodes.filter(n => n !== node);
-      graph.edges = graph.edges
-        .filter(e => e.nodes[0] !== node && e.nodes[1] !== node);
-      return GraphClean(
-        nodesLength - graph.nodes.length,
-        edgesLength - graph.edges.length
-      );
-    };
-    const mergeNodes = function (node1, node2) {
-      if (node1 === node2) { return undefined; }
-      graph.edges.forEach((edge) => {
-        if (edge.nodes[0] === node2) { edge.nodes[0] = node1; }
-        if (edge.nodes[1] === node2) { edge.nodes[1] = node1; }
-      });
-      const nodesLength = graph.nodes.length;
-      graph.nodes = graph.nodes.filter(n => n !== node2);
-      return GraphClean(nodesLength - graph.nodes.length).join(clean());
-    };
-    const removeIsolatedNodes = function () {
-      const nodeDegree = Array(graph.nodes.length).fill(false);
-      graph.nodes.forEach((n, i) => { n._memo = i; });
-      graph.edges.forEach((e) => {
-        nodeDegree[e.nodes[0]._memo] = true;
-        nodeDegree[e.nodes[1]._memo] = true;
-      });
-      graph.nodes.forEach(n => delete n._memo);
-      const nodeLength = graph.nodes.length;
-      graph.nodes = graph.nodes.filter((el, i) => nodeDegree[i]);
-      return GraphClean().isolatedNodes(nodeLength - graph.nodes.length);
-    };
-    const removeCircularEdges = function () {
-      const edgesLength = graph.edges.length;
-      graph.edges = graph.edges.filter(el => el.nodes[0] !== el.nodes[1]);
-      return GraphClean().circularEdges(edgesLength - graph.edges.length);
-    };
-    const removeDuplicateEdges = function () {
-      let count = 0;
-      for (let i = 0; i < graph.edges.length - 1; i += 1) {
-        for (let j = graph.edges.length - 1; j > i; j -= 1) {
-          if (graph.edges[i].isSimilarToEdge(graph.edges[j])) {
-            graph.edges.splice(j, 1);
-            count += 1;
-          }
-        }
-      }
-      return GraphClean().duplicateEdges(count);
-    };
-    const clean = function () {
-      return removeDuplicateEdges()
-        .join(removeCircularEdges());
-    };
-    const getEdgeConnectingNodes = function (node1, node2) {
-      const { edges } = graph;
-      for (let i = 0; i < edges.length; i += 1) {
-        if ((edges[i].nodes[0] === node1 && edges[i].nodes[1] === node2)
-          || (edges[i].nodes[0] === node2 && edges[i].nodes[1] === node1)) {
-          return edges[i];
-        }
-      }
-      return undefined;
-    };
-    const getEdgesConnectingNodes = function (node1, node2) {
-      return graph.edges.filter(e => (e.nodes[0] === node1
-        && e.nodes[1] === node2) || (e.nodes[0] === node2
-        && e.nodes[1] === node1));
-    };
-    const copy = function () {
-      graph.nodes.forEach((node, i) => { node._memo = i; });
-      const g = Graph();
-      for (let i = 0; i < graph.nodes.length; i += 1) {
-        const n = g.newNode();
-        Object.assign(n, graph.nodes[i]);
-        n.graph = g;
-      }
-      for (let i = 0; i < graph.edges.length; i += 1) {
-        const indices = graph.edges[i].nodes.map(n => n._memo);
-        const e = g.newEdge(g.nodes[indices[0]], g.nodes[indices[1]]);
-        Object.assign(e, graph.edges[i]);
-        e.graph = g;
-        e.nodes = [g.nodes[indices[0]], g.nodes[indices[1]]];
-      }
-      graph.nodes.forEach(node => delete node._memo);
-      g.nodes.forEach(node => delete node._memo);
-      return g;
-    };
-    const eulerianPaths = function () {
-      const cp = copy();
-      cp.clean();
-      cp.removeIsolatedNodes();
-      cp.nodes.forEach((node, i) => {
-        node._memo = {
-          index: i,
-          adj: node.adjacent.edges.length
-        };
-      });
-      const graphs = [];
-      while (cp.edges.length > 0) {
-        const subGraph = Graph();
-        subGraph.nodes = cp.nodes.map(node => Object
-          .assign(subGraph.types.node(subGraph), node));
-        subGraph.nodes.forEach((n) => { n.graph = subGraph; });
-        let node = cp.nodes.slice().sort((a, b) => b._memo.adj - a._memo.adj)[0];
-        let adj = node.adjacent.edges;
-        while (adj.length > 0) {
-          const smartList = adj
-            .filter(el => el.otherNode(node)._memo.adj % 2 === 0);
-          if (smartList.length === 0) { smartList = adj; }
-          const nextEdge = smartList.sort((a, b) => b.otherNode(node)._memo.adj
-            - a.otherNode(node)._memo.adj)[0];
-          const nextNode = nextEdge.otherNode(node);
-          const makeEdge = Object.assign(subGraph.types
-            .edge(subGraph, undefined, undefined), nextEdge);
-          makeEdge.nodes = [
-            subGraph.nodes[node._memo.index],
-            subGraph.nodes[nextNode._memo.index]
-          ];
-          subGraph.edges.push(makeEdge);
-          node._memo.adj -= 1;
-          nextNode._memo.adj -= 1;
-          cp.edges = cp.edges.filter((el) => el !== nextEdge);
-          node = nextNode;
-          adj = node.adjacent.edges;
-        }
-        subGraph.removeIsolatedNodes();
-        graphs.push(subGraph);
-      }
-      return graphs;
-    };
-    Object.defineProperty(graph, "newNode", { value: newNode });
-    Object.defineProperty(graph, "newEdge", { value: newEdge });
-    Object.defineProperty(graph, "copyNode", { value: copyNode });
-    Object.defineProperty(graph, "copyEdge", { value: copyEdge });
-    Object.defineProperty(graph, "clear", { value: clear });
-    Object.defineProperty(graph, "removeEdge", { value: removeEdge });
-    Object.defineProperty(graph, "removeEdgeBetween", {
-      value: removeEdgeBetween
-    });
-    Object.defineProperty(graph, "removeNode", { value: removeNode });
-    Object.defineProperty(graph, "mergeNodes", { value: mergeNodes });
-    Object.defineProperty(graph, "removeIsolatedNodes", {
-      value: removeIsolatedNodes
-    });
-    Object.defineProperty(graph, "removeCircularEdges", {
-      value: removeCircularEdges
-    });
-    Object.defineProperty(graph, "removeDuplicateEdges", {
-      value: removeDuplicateEdges
-    });
-    Object.defineProperty(graph, "clean", { value: clean });
-    Object.defineProperty(graph, "getEdgeConnectingNodes", {
-      value: getEdgeConnectingNodes
-    });
-    Object.defineProperty(graph, "getEdgesConnectingNodes", {
-      value: getEdgesConnectingNodes
-    });
-    Object.defineProperty(graph, "copy", { value: copy });
-    Object.defineProperty(graph, "eulerianPaths", { value: eulerianPaths });
-    return graph;
-  };
-
   const isBrowser$1 = typeof window !== "undefined"
     && typeof window.document !== "undefined";
   const isNode$1 = typeof process !== "undefined"
@@ -2282,7 +2152,741 @@
     }
     return w;
   }());
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = function () {
+    const svgImage = win.document.createElementNS(svgNS, "svg");
+    svgImage.setAttribute("version", "1.1");
+    svgImage.setAttribute("xmlns", svgNS);
+    return svgImage;
+  };
+  const group = function (parent) {
+    const g = win.document.createElementNS(svgNS, "g");
+    if (parent) { parent.appendChild(g); }
+    return g;
+  };
+  const defs = function (parent) {
+    const defs = win.document.createElementNS(svgNS, "defs");
+    if (parent) { parent.appendChild(defs); }
+    return defs;
+  };
+  const style = function (parent) {
+    const s = win.document.createElementNS(svgNS, "style");
+    s.setAttribute("type", "text/css");
+    if (parent) { parent.appendChild(s); }
+    return s;
+  };
+  const setViewBox = function (SVG, x, y, width, height, padding = 0) {
+    const scale = 1.0;
+    const d = (width / scale) - width;
+    const X = (x - d) - padding;
+    const Y = (y - d) - padding;
+    const W = (width + d * 2) + padding * 2;
+    const H = (height + d * 2) + padding * 2;
+    const viewBoxString = [X, Y, W, H].join(" ");
+    SVG.setAttributeNS(null, "viewBox", viewBoxString);
+  };
+  const line = function (x1, y1, x2, y2) {
+    const shape = win.document.createElementNS(svgNS, "line");
+    shape.setAttributeNS(null, "x1", x1);
+    shape.setAttributeNS(null, "y1", y1);
+    shape.setAttributeNS(null, "x2", x2);
+    shape.setAttributeNS(null, "y2", y2);
+    return shape;
+  };
+  const circle = function (x, y, radius) {
+    const shape = win.document.createElementNS(svgNS, "circle");
+    shape.setAttributeNS(null, "cx", x);
+    shape.setAttributeNS(null, "cy", y);
+    shape.setAttributeNS(null, "r", radius);
+    return shape;
+  };
+  const polygon = function (pointsArray) {
+    const shape = win.document.createElementNS(svgNS, "polygon");
+    const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
+    shape.setAttributeNS(null, "points", pointsString);
+    return shape;
+  };
+  const path = function (d) {
+    const p = win.document.createElementNS(svgNS, "path");
+    p.setAttributeNS(null, "d", d);
+    return p;
+  };
+  const vertices_circle = function (graph, options) {
+    if ("vertices_coords" in graph === false) {
+      return [];
+    }
+    const radius = options && options.radius ? options.radius : 0.01;
+    const svg_vertices = graph.vertices_coords
+      .map(v => circle(v[0], v[1], radius));
+    svg_vertices.forEach((c, i) => c.setAttribute("index", i));
+    return svg_vertices;
+  };
+  const edges_assignment_names = {
+    B: "boundary",
+    b: "boundary",
+    M: "mountain",
+    m: "mountain",
+    V: "valley",
+    v: "valley",
+    F: "mark",
+    f: "mark",
+    U: "unassigned",
+    u: "unassigned",
+  };
+  const edges_assignment_to_lowercase = {
+    B: "b",
+    b: "b",
+    M: "m",
+    m: "m",
+    V: "v",
+    v: "v",
+    F: "f",
+    f: "f",
+    U: "u",
+    u: "u",
+  };
+  const edges_coords = function ({ vertices_coords, edges_vertices }) {
+    if (edges_vertices == null || vertices_coords == null) {
+      return [];
+    }
+    return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
+  };
+  const edges_indices_classes = function ({ edges_assignment }) {
+    const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
+    edges_assignment.map(a => edges_assignment_to_lowercase[a])
+      .forEach((a, i) => assignment_indices[a].push(i));
+    return assignment_indices;
+  };
+  const make_edges_assignment_names = function (graph) {
+    return (graph.edges_vertices == null || graph.edges_assignment == null
+      || graph.edges_vertices.length !== graph.edges_assignment.length
+      ? []
+      : graph.edges_assignment.map(a => edges_assignment_names[a]));
+  };
+  const segment_to_path = function (s) {
+    return `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
+  };
+  const edges_path_data = function (graph) {
+    const path_data = edges_coords(graph).map(segment => segment_to_path(segment)).join("");
+    return path_data === "" ? undefined : path_data;
+  };
+  const edges_by_assignment_paths_data = function (graph) {
+    if (graph.edges_vertices == null
+      || graph.vertices_coords == null
+      || graph.edges_assignment == null) {
+      return [];
+    }
+    const segments = edges_coords(graph);
+    const assignment_sorted_edges = edges_indices_classes(graph);
+    const paths = Object.keys(assignment_sorted_edges)
+      .map(assignment => assignment_sorted_edges[assignment].map(i => segments[i]))
+      .map(segments => segments.map(segment => segment_to_path(segment)).join(""));
+    const result = {};
+    Object.keys(assignment_sorted_edges).map((key, i) => {
+      if (paths[i] !== "") {
+        result[key] = paths[i];
+      }
+    });
+    return result;
+  };
+  const edges_path = function (graph) {
+    if (graph.edges_assignment == null) {
+      const d = edges_path_data(graph);
+      return d === undefined ? [] : [path(d)];
+    }
+    const ds = edges_by_assignment_paths_data(graph);
+    return Object.keys(ds).map(assignment => {
+      const p = path(ds[assignment]);
+      p.setAttributeNS(null, "class", edges_assignment_names[assignment]);
+      return p;
+    });
+  };
+  const edges_line = function (graph) {
+    const lines = edges_coords(graph).map(e => line(e[0][0], e[0][1], e[1][0], e[1][1]));
+    lines.forEach((l, i) => l.setAttributeNS(null, "index", i));
+    make_edges_assignment_names(graph)
+      .forEach((a, i) => lines[i].setAttributeNS(null, "class", a));
+    return lines;
+  };
+  const make_vertices_edges = function ({ edges_vertices }) {
+    if (!edges_vertices) { return undefined; }
+    const vertices_edges = [];
+    edges_vertices.forEach((ev, i) => ev
+      .forEach((v) => {
+        if (vertices_edges[v] === undefined) {
+          vertices_edges[v] = [];
+        }
+        vertices_edges[v].push(i);
+      }));
+    return vertices_edges;
+  };
+  const make_faces_faces = function ({ faces_vertices }) {
+    if (!faces_vertices) { return undefined; }
+    const nf = faces_vertices.length;
+    const faces_faces = Array.from(Array(nf)).map(() => []);
+    const edgeMap = {};
+    faces_vertices.forEach((vertices_index, idx1) => {
+      if (vertices_index === undefined) { return; }
+      const n = vertices_index.length;
+      vertices_index.forEach((v1, i, vs) => {
+        let v2 = vs[(i + 1) % n];
+        if (v2 < v1) { [v1, v2] = [v2, v1]; }
+        const key = `${v1} ${v2}`;
+        if (key in edgeMap) {
+          const idx2 = edgeMap[key];
+          faces_faces[idx1].push(idx2);
+          faces_faces[idx2].push(idx1);
+        } else {
+          edgeMap[key] = idx1;
+        }
+      });
+    });
+    return faces_faces;
+  };
+  const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
+    if (!edges_vertices) { return {}; }
+    const map = {};
+    edges_vertices
+      .map(ev => ev.sort((a, b) => a - b).join(" "))
+      .forEach((key, i) => { map[key] = i; });
+    return map;
+  };
+  const make_face_walk_tree = function (graph, root_face = 0) {
+    const edge_map = make_vertex_pair_to_edge_map(graph);
+    const new_faces_faces = make_faces_faces(graph);
+    if (new_faces_faces.length <= 0) {
+      return [];
+    }
+    let visited = [root_face];
+    const list = [[{
+      face: root_face,
+      parent: undefined,
+      edge: undefined,
+      level: 0,
+    }]];
+    do {
+      list[list.length] = list[list.length - 1].map((current) => {
+        const unique_faces = new_faces_faces[current.face]
+          .filter(f => visited.indexOf(f) === -1);
+        visited = visited.concat(unique_faces);
+        return unique_faces.map((f) => {
+          const edge_vertices = graph.faces_vertices[f]
+            .filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
+            .sort((a, b) => a - b);
+          const edge = edge_map[edge_vertices.join(" ")];
+          return {
+            face: f,
+            parent: current.face,
+            edge,
+            edge_vertices,
+          };
+        });
+      }).reduce((prev, curr) => prev.concat(curr), []);
+    } while (list[list.length - 1].length > 0);
+    if (list.length > 0 && list[list.length - 1].length === 0) { list.pop(); }
+    return list;
+  };
+  const make_faces_coloring_from_faces_matrix = function (faces_matrix) {
+    return faces_matrix
+      .map(m => m[0] * m[3] - m[1] * m[2])
+      .map(c => c >= 0);
+  };
+  const make_faces_coloring = function (graph, root_face = 0) {
+    const coloring = [];
+    coloring[root_face] = true;
+    make_face_walk_tree(graph, root_face)
+      .forEach((level, i) => level
+        .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
+    return coloring;
+  };
+  const faces_sorted_by_layer = function (faces_layer) {
+    return faces_layer.map((layer, i) => ({ layer, i }))
+      .sort((a, b) => a.layer - b.layer)
+      .map(el => el.i);
+  };
+  const make_faces_sidedness = function (graph) {
+    let coloring = graph["faces_re:coloring"];
+    if (coloring == null) {
+      coloring = ("faces_re:matrix" in graph)
+        ? make_faces_coloring_from_faces_matrix(graph["faces_re:matrix"])
+        : make_faces_coloring(graph, 0);
+    }
+    return coloring.map(c => (c ? "front" : "back"));
+  };
+  const finalize_faces = function (graph, svg_faces) {
+    const orderIsCertain = graph["faces_re:layer"] != null
+      && graph["faces_re:layer"].length === graph.faces_vertices.length;
+    if (orderIsCertain) {
+      make_faces_sidedness(graph)
+        .forEach((side, i) => svg_faces[i].setAttribute("class", side));
+    }
+    return (orderIsCertain
+      ? faces_sorted_by_layer(graph["faces_re:layer"]).map(i => svg_faces[i])
+      : svg_faces);
+  };
+  const faces_vertices_polygon = function (graph) {
+    if ("faces_vertices" in graph === false
+      || "vertices_coords" in graph === false) {
+      return [];
+    }
+    const svg_faces = graph.faces_vertices
+      .map(fv => fv.map(v => graph.vertices_coords[v]))
+      .map(face => polygon(face));
+    svg_faces.forEach((face, i) => face.setAttribute("index", i));
+    return finalize_faces(graph, svg_faces);
+  };
+  const faces_edges_polygon = function (graph) {
+    if ("faces_edges" in graph === false
+      || "edges_vertices" in graph === false
+      || "vertices_coords" in graph === false) {
+      return [];
+    }
+    const svg_faces = graph.faces_edges
+      .map(face_edges => face_edges
+        .map(edge => graph.edges_vertices[edge])
+        .map((vi, i, arr) => {
+          const next = arr[(i + 1) % arr.length];
+          return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
+        }).map(v => graph.vertices_coords[v]))
+      .map(face => polygon(face));
+    svg_faces.forEach((face, i) => face.setAttribute("index", i));
+    return finalize_faces(graph, svg_faces);
+  };
   function vkXML (text, step) {
+    const ar = text.replace(/>\s{0,}</g, "><")
+      .replace(/</g, "~::~<")
+      .replace(/\s*xmlns\:/g, "~::~xmlns:")
+      .split("~::~");
+    const len = ar.length;
+    let inComment = false;
+    let deep = 0;
+    let str = "";
+    const space = (step != null && typeof step === "string" ? step : "\t");
+    const shift = ["\n"];
+    for (let si = 0; si < 100; si += 1) {
+      shift.push(shift[si] + space);
+    }
+    for (let ix = 0; ix < len; ix += 1) {
+      if (ar[ix].search(/<!/) > -1) {
+        str += shift[deep] + ar[ix];
+        inComment = true;
+        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+          || ar[ix].search(/!DOCTYPE/) > -1) {
+          inComment = false;
+        }
+      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
+        str += ar[ix];
+        inComment = false;
+      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
+        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
+        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
+        str += ar[ix];
+        if (!inComment) { deep -= 1; }
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
+        && ar[ix].search(/\/>/) === -1) {
+        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/\/>/) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\?/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else {
+        str += ar[ix];
+      }
+    }
+    return (str[0] === "\n") ? str.slice(1) : str;
+  }
+  const bounding_rect = function ({ vertices_coords }) {
+    if (vertices_coords == null
+      || vertices_coords.length <= 0) {
+      return [0, 0, 0, 0];
+    }
+    const dimension = vertices_coords[0].length;
+    const min = Array(dimension).fill(Infinity);
+    const max = Array(dimension).fill(-Infinity);
+    vertices_coords.forEach(v => v.forEach((n, i) => {
+      if (n < min[i]) { min[i] = n; }
+      if (n > max[i]) { max[i] = n; }
+    }));
+    return (isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1])
+      ? [0, 0, 0, 0]
+      : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
+  };
+  const get_boundary = function (graph) {
+    if (graph.edges_assignment == null) { return { vertices: [], edges: [] }; }
+    const edges_vertices_b = graph.edges_assignment
+      .map(a => a === "B" || a === "b");
+    const vertices_edges = make_vertices_edges(graph);
+    const edge_walk = [];
+    const vertex_walk = [];
+    let edgeIndex = -1;
+    for (let i = 0; i < edges_vertices_b.length; i += 1) {
+      if (edges_vertices_b[i]) { edgeIndex = i; break; }
+    }
+    if (edgeIndex === -1) {
+      return { vertices: [], edges: [] };
+    }
+    edges_vertices_b[edgeIndex] = false;
+    edge_walk.push(edgeIndex);
+    vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
+    let nextVertex = graph.edges_vertices[edgeIndex][1];
+    while (vertex_walk[0] !== nextVertex) {
+      vertex_walk.push(nextVertex);
+      edgeIndex = vertices_edges[nextVertex]
+        .filter(v => edges_vertices_b[v])
+        .shift();
+      if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
+      if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
+        [, nextVertex] = graph.edges_vertices[edgeIndex];
+      } else {
+        [nextVertex] = graph.edges_vertices[edgeIndex];
+      }
+      edges_vertices_b[edgeIndex] = false;
+      edge_walk.push(edgeIndex);
+    }
+    return {
+      vertices: vertex_walk,
+      edges: edge_walk,
+    };
+  };
+  const clone = function (o) {
+    let newO;
+    let i;
+    if (typeof o !== "object") {
+      return o;
+    }
+    if (!o) {
+      return o;
+    }
+    if (Object.prototype.toString.apply(o) === "[object Array]") {
+      newO = [];
+      for (i = 0; i < o.length; i += 1) {
+        newO[i] = clone(o[i]);
+      }
+      return newO;
+    }
+    newO = {};
+    for (i in o) {
+      if (o.hasOwnProperty(i)) {
+        newO[i] = clone(o[i]);
+      }
+    }
+    return newO;
+  };
+  const recursive_freeze = function (input) {
+    Object.freeze(input);
+    if (input === undefined) {
+      return input;
+    }
+    Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
+      && (typeof input[prop] === "object" || typeof input[prop] === "function")
+      && !Object.isFrozen(input[prop]))
+      .forEach(prop => recursive_freeze(input[prop]));
+    return input;
+  };
+  const flatten_frame = function (fold_file, frame_num) {
+    if ("file_frames" in fold_file === false
+      || fold_file.file_frames.length < frame_num) {
+      return fold_file;
+    }
+    const dontCopy = ["frame_parent", "frame_inherit"];
+    const memo = { visited_frames: [] };
+    const recurse = function (recurse_fold, frame, orderArray) {
+      if (memo.visited_frames.indexOf(frame) !== -1) {
+        throw new Error("encountered a cycle in file_frames. can't flatten.");
+      }
+      memo.visited_frames.push(frame);
+      orderArray = [frame].concat(orderArray);
+      if (frame === 0) { return orderArray; }
+      if (recurse_fold.file_frames[frame - 1].frame_inherit
+         && recurse_fold.file_frames[frame - 1].frame_parent != null) {
+        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
+      }
+      return orderArray;
+    };
+    return recurse(fold_file, frame_num, []).map((frame) => {
+      if (frame === 0) {
+        const swap = fold_file.file_frames;
+        fold_file.file_frames = null;
+        const copy = clone(fold_file);
+        fold_file.file_frames = swap;
+        delete copy.file_frames;
+        dontCopy.forEach(key => delete copy[key]);
+        return copy;
+      }
+      const outerCopy = clone(fold_file.file_frames[frame - 1]);
+      dontCopy.forEach(key => delete outerCopy[key]);
+      return outerCopy;
+    }).reduce((prev, curr) => Object.assign(prev, curr), {});
+  };
+  const all_classes = function (graph) {
+    const file_classes = (graph.file_classes != null
+      ? graph.file_classes : []).join(" ");
+    const frame_classes = (graph.frame_classes != null
+      ? graph.frame_classes : []).join(" ");
+    return [file_classes, frame_classes]
+      .filter(s => s !== "")
+      .join(" ");
+  };
+  const { document } = win;
+  const svgNS$1 = "http://www.w3.org/2000/svg";
+  const shadow_defaults = Object.freeze({
+    blur: 0.005,
+    opacity: 0.3,
+    color: "#000",
+  });
+  const shadowFilter = function (options = shadow_defaults) {
+    const id_name = "shadow";
+    if (typeof options !== "object" || options === null) { options = {}; }
+    Object.keys(shadow_defaults)
+      .filter(key => !(key in options))
+      .forEach((key) => { options[key] = shadow_defaults[key]; });
+    const filter = document.createElementNS(svgNS$1, "filter");
+    filter.setAttribute("width", "200%");
+    filter.setAttribute("height", "200%");
+    filter.setAttribute("id", id_name);
+    const blur = document.createElementNS(svgNS$1, "feGaussianBlur");
+    blur.setAttribute("in", "SourceAlpha");
+    blur.setAttribute("stdDeviation", options.blur);
+    blur.setAttribute("result", "blur");
+    const offset = document.createElementNS(svgNS$1, "feOffset");
+    offset.setAttribute("in", "blur");
+    offset.setAttribute("result", "offsetBlur");
+    const flood = document.createElementNS(svgNS$1, "feFlood");
+    flood.setAttribute("flood-color", options.color);
+    flood.setAttribute("flood-opacity", options.opacity);
+    flood.setAttribute("result", "offsetColor");
+    const composite = document.createElementNS(svgNS$1, "feComposite");
+    composite.setAttribute("in", "offsetColor");
+    composite.setAttribute("in2", "offsetBlur");
+    composite.setAttribute("operator", "in");
+    composite.setAttribute("result", "offsetBlur");
+    const merge = document.createElementNS(svgNS$1, "feMerge");
+    const mergeNode1 = document.createElementNS(svgNS$1, "feMergeNode");
+    const mergeNode2 = document.createElementNS(svgNS$1, "feMergeNode");
+    mergeNode2.setAttribute("in", "SourceGraphic");
+    merge.appendChild(mergeNode1);
+    merge.appendChild(mergeNode2);
+    filter.appendChild(blur);
+    filter.appendChild(offset);
+    filter.appendChild(flood);
+    filter.appendChild(composite);
+    filter.appendChild(merge);
+    return filter;
+  };
+  const boundaries_polygon = function (graph) {
+    if ("vertices_coords" in graph === false
+      || "edges_vertices" in graph === false
+      || "edges_assignment" in graph === false) {
+      return [];
+    }
+    const boundary = get_boundary(graph)
+      .vertices
+      .map(v => graph.vertices_coords[v]);
+    if (boundary.length === 0) { return []; }
+    const p = polygon(boundary);
+    p.setAttribute("class", "boundary");
+    return [p];
+  };
+  const faces_draw_function = function (graph) {
+    return graph.faces_vertices != null
+      ? faces_vertices_polygon(graph)
+      : faces_edges_polygon(graph);
+  };
+  const component_draw_function = {
+    vertices: vertices_circle,
+    edges: edges_path,
+    faces: faces_draw_function,
+    boundaries: boundaries_polygon,
+  };
+  const makeDefaults = (vmin = 1) => recursive_freeze({
+    input: "string",
+    output: "string",
+    padding: null,
+    file_frame: null,
+    stylesheet: null,
+    shadows: null,
+    diagrams: true,
+    boundaries: true,
+    faces: true,
+    edges: true,
+    vertices: false,
+    attributes: {
+      svg: {
+        width: "500px",
+        height: "500px",
+        stroke: "black",
+        fill: "none",
+        "stroke-linejoin": "bevel",
+        "stroke-width": vmin / 200,
+      },
+      boundaries: {
+        fill: "white",
+      },
+      faces: {
+        stroke: "none",
+        front: { stroke: "black", fill: "gray" },
+        back: { stroke: "black", fill: "white" },
+      },
+      edges: {
+        boundary: {},
+        mountain: { stroke: "red" },
+        valley: { stroke: "blue" },
+        mark: { stroke: "lightgray" },
+        unassigned: { stroke: "lightgray" },
+      },
+      vertices: {
+        stroke: "none",
+        fill: "black",
+        r: vmin / 200
+      }
+    }
+  });
+  const recursiveAssign = function (target, source) {
+    Object.keys(source).forEach((key) => {
+      if (typeof source[key] === "object" && source[key] !== null) {
+        if (!(key in target)) { target[key] = {}; }
+        recursiveAssign(target[key], source[key]);
+      } else if (!(key in target)) {
+        target[key] = source[key];
+      }
+    });
+  };
+  const fold_to_svg = function (input, options = {}) {
+    const graph = (typeof options.file_frame === "number"
+      ? flatten_frame(input, options.file_frame)
+      : input);
+    const bounds = bounding_rect(graph);
+    const vmin = Math.min(bounds[2], bounds[3]);
+    recursiveAssign(options, makeDefaults(vmin));
+    const svg$1 = svg();
+    setViewBox(svg$1, ...bounds, options.padding);
+    const classValue = all_classes(graph);
+    if (classValue !== "") { svg$1.setAttribute("class", classValue); }
+    Object.keys(options.attributes.svg)
+      .forEach(style => svg$1.setAttribute(style, options.attributes.svg[style]));
+    const defs$1 = (options.stylesheet != null || options.shadows != null
+      ? defs(svg$1)
+      : undefined);
+    if (options.stylesheet != null) {
+      const style$1 = style(defs$1);
+      const cdata = (new win.DOMParser())
+        .parseFromString("<xml></xml>", "application/xml")
+        .createCDATASection(options.stylesheet);
+      style$1.appendChild(cdata);
+    }
+    if (options.shadows != null) {
+      const shadowOptions = (typeof options.shadows === "object" && options.shadows !== null
+        ? options.shadows
+        : { blur: vmin / 200 });
+      defs$1.appendChild(shadowFilter(shadowOptions));
+    }
+    const groups = { };
+    ["boundaries", "edges", "faces", "vertices"].filter(key => options[key] === true)
+      .forEach((key) => {
+        groups[key] = group();
+        groups[key].setAttribute("class", key);
+      });
+    Object.keys(groups)
+      .forEach(key => component_draw_function[key](graph, options)
+        .forEach(a => groups[key].appendChild(a)));
+    Object.keys(groups)
+      .filter(key => groups[key].childNodes.length > 0)
+      .forEach(key => svg$1.appendChild(groups[key]));
+    if (groups.edges) {
+      const edgeClasses = ["unassigned", "mark", "valley", "mountain", "boundary"];
+      Object.keys(options.attributes.edges)
+        .filter(key => !edgeClasses.includes(key))
+        .forEach(key => groups.edges.setAttribute(key, options.attributes.edges[key]));
+      Array.from(groups.edges.childNodes)
+        .forEach(child => Object.keys(options.attributes.edges[child.getAttribute("class")] || {})
+          .forEach(key => child.setAttribute(key, options.attributes.edges[child.getAttribute("class")][key])));
+    }
+    if (groups.faces) {
+      const faceClasses = ["front", "back"];
+      Object.keys(options.attributes.faces)
+        .filter(key => !faceClasses.includes(key))
+        .forEach(key => groups.faces.setAttribute(key, options.attributes.faces[key]));
+      Array.from(groups.faces.childNodes)
+        .forEach(child => Object.keys(options.attributes.faces[child.getAttribute("class")] || {})
+          .forEach(key => child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key])));
+      if (options.shadows != null) {
+        Array.from(groups.faces.childNodes).forEach(f => f.setAttribute("filter", "url(#shadow)"));
+      }
+    }
+    if (groups.vertices) {
+      Object.keys(options.attributes.vertices)
+        .filter(key => key !== "r")
+        .forEach(key => groups.vertices.setAttribute(key, options.attributes.vertices[key]));
+      Array.from(groups.vertices.childNodes)
+        .forEach(child => child.setAttribute("r", options.attributes.vertices.r));
+    }
+    if (groups.boundaries) {
+      Object.keys(options.attributes.boundaries)
+        .forEach(key => groups.boundaries.setAttribute(key, options.attributes.boundaries[key]));
+    }
+    if (options.output === "svg") { return svg$1; }
+    const stringified = (new win.XMLSerializer()).serializeToString(svg$1);
+    const beautified = vkXML(stringified);
+    return beautified;
+  };
+  const getObject = function (input) {
+    if (input == null) {
+      return {};
+    }
+    if (typeof input === "object" && input !== null) {
+      return input;
+    }
+    if (typeof input === "string" || input instanceof String) {
+      try {
+        const obj = JSON.parse(input);
+        return obj;
+      } catch (error) {
+        throw error;
+      }
+    }
+    throw new TypeError("required 'String' or 'Object'");
+  };
+  const FoldToSvg = function (input, options) {
+    try {
+      const fold = getObject(input);
+      return fold_to_svg(fold, options);
+    } catch (error) {
+      throw error;
+    }
+  };
+  FoldToSvg.vertices_circle = vertices_circle;
+  FoldToSvg.edges_path_data = edges_path_data;
+  FoldToSvg.edges_by_assignment_paths_data = edges_by_assignment_paths_data;
+  FoldToSvg.edges_path = edges_path;
+  FoldToSvg.edges_line = edges_line;
+  FoldToSvg.faces_vertices_polygon = faces_vertices_polygon;
+  FoldToSvg.faces_edges_polygon = faces_edges_polygon;
+
+  const isBrowser$2 = typeof window !== "undefined"
+    && typeof window.document !== "undefined";
+  const isNode$2 = typeof process !== "undefined"
+    && process.versions != null
+    && process.versions.node != null;
+  const htmlString$1 = "<!DOCTYPE html><title> </title>";
+  const win$1 = (function () {
+    let w = {};
+    if (isNode$2) {
+      const { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString$1, "text/html");
+    } else if (isBrowser$2) {
+      w = window;
+    }
+    return w;
+  }());
+  function vkXML$1 (text, step) {
     const ar = text.replace(/>\s{0,}</g, "><")
       .replace(/</g, "~::~<")
       .replace(/\s*xmlns\:/g, "~::~xmlns:")
@@ -2333,18 +2937,18 @@
   }
   var NS = "http://www.w3.org/2000/svg";
   const downloadInBrowser = function (filename, contentsAsString) {
-    const blob = new window.Blob([contentsAsString], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.setAttribute("href", window.URL.createObjectURL(blob));
+    const blob = new win$1.Blob([contentsAsString], { type: "text/plain" });
+    const a = win$1.document.createElement("a");
+    a.setAttribute("href", win$1.URL.createObjectURL(blob));
     a.setAttribute("download", filename);
-    document.body.appendChild(a);
+    win$1.document.body.appendChild(a);
     a.click();
-    a.remove();
+    win$1.document.body.removeChild(a);
   };
   const getPageCSS = function () {
     const css = [];
-    for (let s = 0; s < document.styleSheets.length; s += 1) {
-      const sheet = document.styleSheets[s];
+    for (let s = 0; s < win$1.document.styleSheets.length; s += 1) {
+      const sheet = win$1.document.styleSheets[s];
       try {
         const rules = ("cssRules" in sheet) ? sheet.cssRules : sheet.rules;
         for (let r = 0; r < rules.length; r += 1) {
@@ -2361,23 +2965,39 @@
     }
     return css.join("\n");
   };
-  const save = function (svg, filename = "image.svg", includeDOMCSS = false) {
-    if (includeDOMCSS) {
-      const styleContainer = document.createElementNS(NS, "style");
+  const SAVE_OPTIONS = () => ({
+    output: "string",
+    windowStyle: false,
+    filename: "image.svg"
+  });
+  const save = function (svg, options) {
+    if (typeof options === "string" || options instanceof String) {
+      const filename = options;
+      options = SAVE_OPTIONS();
+      options.filename = filename;
+    } else if (typeof options !== "object" || options === null) {
+      options = SAVE_OPTIONS();
+    } else {
+      const newOptions = SAVE_OPTIONS();
+      Object.keys(options).forEach((key) => { newOptions[key] = options[key]; });
+      options = newOptions;
+    }
+    if (options.windowStyle) {
+      const styleContainer = win$1.document.createElementNS(NS, "style");
       styleContainer.setAttribute("type", "text/css");
       styleContainer.innerHTML = getPageCSS();
       svg.appendChild(styleContainer);
     }
-    const source = (new XMLSerializer()).serializeToString(svg);
-    const formattedString = vkXML(source);
-    if (window != null) {
-      downloadInBrowser(filename, formattedString);
+    const source = (new win$1.XMLSerializer()).serializeToString(svg);
+    const formattedString = vkXML$1(source);
+    if (isBrowser$2 && !isNode$2) {
+      downloadInBrowser(options.filename, formattedString);
     }
-    return formattedString;
+    return (options.output === "svg" ? svg : formattedString);
   };
   const load = function (input, callback) {
     if (typeof input === "string" || input instanceof String) {
-      const xml = (new DOMParser()).parseFromString(input, "text/xml");
+      const xml = (new win$1.DOMParser()).parseFromString(input, "text/xml");
       const parserErrors = xml.getElementsByTagName("parsererror");
       if (parserErrors.length === 0) {
         const parsedSVG = xml.documentElement;
@@ -2388,7 +3008,7 @@
       }
       fetch(input)
         .then(response => response.text())
-        .then(str => (new DOMParser())
+        .then(str => (new win$1.DOMParser())
           .parseFromString(str, "text/xml"))
         .then((svgData) => {
           const allSVGs = svgData.getElementsByTagName("svg");
@@ -2415,31 +3035,31 @@
       .filter(p => typeof svg[p] === "function")
       .forEach((name) => { environment[name] = svg[name].bind(svg); });
     const forbidden = ["svg", "style", "setPoints", "setArc", "setEllipticalArc", "setBezier"];
-    Object.keys(win.SVG)
+    Object.keys(win$1.SVG)
       .filter(key => environment[key] === undefined)
       .filter(key => forbidden.indexOf(key) === -1)
-      .forEach((key) => { environment[key] = win.SVG[key]; });
-    Object.defineProperty(win, "mousePressed", {
+      .forEach((key) => { environment[key] = win$1.SVG[key]; });
+    Object.defineProperty(win$1, "mousePressed", {
       set: (value) => { svg.mousePressed = value; },
       get: () => svg.mousePressed
     });
-    Object.defineProperty(win, "mouseReleased", {
+    Object.defineProperty(win$1, "mouseReleased", {
       set: (value) => { svg.mouseReleased = value; },
       get: () => svg.mouseReleased
     });
-    Object.defineProperty(win, "mouseMoved", {
+    Object.defineProperty(win$1, "mouseMoved", {
       set: (value) => { svg.mouseMoved = value; },
       get: () => svg.mouseMoved
     });
-    Object.defineProperty(win, "scroll", {
+    Object.defineProperty(win$1, "scroll", {
       set: (value) => { svg.scroll = value; },
       get: () => svg.scroll
     });
-    Object.defineProperty(win, "animate", {
+    Object.defineProperty(win$1, "animate", {
       set: (value) => { svg.animate = value; },
       get: () => svg.animate
     });
-    Object.defineProperty(win, "fps", {
+    Object.defineProperty(win$1, "fps", {
       set: (value) => { svg.fps = value; },
       get: () => svg.fps
     });
@@ -2447,9 +3067,9 @@
   const globalize = function (svg, ...args) {
     let element = svg;
     if (element == null) {
-      element = win.SVG(...args);
+      element = win$1.SVG(...args);
     }
-    bindSVGMethodsTo(element, win);
+    bindSVGMethodsTo(element, win$1);
     return element;
   };
   const getViewBox = function (svg) {
@@ -2458,7 +3078,7 @@
       ? undefined
       : vb.split(" ").map(n => parseFloat(n)));
   };
-  const setViewBox = function (svg, x, y, width, height, padding = 0) {
+  const setViewBox$1 = function (svg, x, y, width, height, padding = 0) {
     const scale = 1.0;
     const d = (width / scale) - width;
     const X = (x - d) - padding;
@@ -2472,7 +3092,7 @@
     const size = svg.getBoundingClientRect();
     const width = (size.width === 0 ? 640 : size.width);
     const height = (size.height === 0 ? 480 : size.height);
-    setViewBox(svg, 0, 0, width, height);
+    setViewBox$1(svg, 0, 0, width, height);
   };
   const convertToViewBox = function (svg, x, y) {
     const pt = svg.createSVGPoint();
@@ -2510,7 +3130,7 @@
     bot_right.y = viewBox[1] + viewBox[3];
     const new_top_left = top_left.matrixTransform(matrix);
     const new_bot_right = bot_right.matrixTransform(matrix);
-    setViewBox(svg,
+    setViewBox$1(svg,
       new_top_left.x,
       new_top_left.y,
       new_bot_right.x - new_top_left.x,
@@ -2519,7 +3139,7 @@
   var ViewBox = Object.freeze({
     __proto__: null,
     getViewBox: getViewBox,
-    setViewBox: setViewBox,
+    setViewBox: setViewBox$1,
     convertToViewBox: convertToViewBox,
     translateViewBox: translateViewBox,
     scaleViewBox: scaleViewBox
@@ -2531,10 +3151,14 @@
       position: [0, 0],
       pressed: [0, 0],
       drag: [0, 0],
-      prev: [0, 0],
+      previous: [0, 0],
       x: 0,
       y: 0
     });
+    [pointer.position.x, pointer.position.y] = [0, 0];
+    [pointer.pressed.x, pointer.pressed.y] = [0, 0];
+    [pointer.drag.x, pointer.drag.y] = [0, 0];
+    [pointer.previous.x, pointer.previous.y] = [0, 0];
     const copyPointer = function () {
       const m = pointer.position.slice();
       Object.keys(pointer)
@@ -2557,32 +3181,29 @@
       [pointer.drag.x, pointer.drag.y] = pointer.drag;
     };
     const thisPointer = {};
-    const move = function (clientX, clientY) {
-      pointer.prev = pointer.position;
+    const move = function (clientX, clientY, isPressed = false) {
+      if (isPressed && !pointer.isPressed) {
+        pointer.pressed = convertToViewBox(node, clientX, clientY);
+      }
+      pointer.isPressed = isPressed;
+      pointer.previous = pointer.position;
       setPosition(clientX, clientY);
       if (pointer.isPressed) {
         updateDrag();
+      } else {
+        pointer.drag = [0, 0];
+        pointer.pressed = [0, 0];
+        [pointer.drag.x, pointer.drag.y] = pointer.drag;
+        [pointer.pressed.x, pointer.pressed.y] = pointer.pressed;
       }
       return thisPointer;
     };
-    const down = function (clientX, clientY) {
-      pointer.isPressed = true;
-      pointer.pressed = convertToViewBox(node, clientX, clientY);
-      setPosition(clientX, clientY);
-      return thisPointer;
-    };
-    const up = function () {
+    const release = function () {
       pointer.isPressed = false;
       return thisPointer;
     };
-    const pressed = function (isPressed) {
-      pointer.isPressed = isPressed;
-      return thisPointer;
-    };
-    Object.defineProperty(thisPointer, "up", { value: up });
-    Object.defineProperty(thisPointer, "pressed", { value: pressed });
+    Object.defineProperty(thisPointer, "release", { value: release });
     Object.defineProperty(thisPointer, "move", { value: move });
-    Object.defineProperty(thisPointer, "down", { value: down });
     Object.defineProperty(thisPointer, "get", { value: copyPointer });
     return thisPointer;
   };
@@ -2606,8 +3227,7 @@
     const onMouseMove = (handler, event) => {
       event.preventDefault();
       const e = pointer
-        .move(event.clientX, event.clientY)
-        .pressed(event.buttons > 0)
+        .move(event.clientX, event.clientY, event.buttons > 0)
         .get();
       handler(e);
       return e;
@@ -2615,8 +3235,7 @@
     const onTouchMove = (handler, event) => {
       event.preventDefault();
       const e = pointer
-        .move(event.touches[0].clientX, event.touches[0].clientY)
-        .pressed(true)
+        .move(event.touches[0].clientX, event.touches[0].clientY, true)
         .get();
       handler(e);
       return e;
@@ -2624,7 +3243,7 @@
     const onMouseDown = (handler, event) => {
       event.preventDefault();
       const e = pointer
-        .down(event.clientX, event.clientY)
+        .move(event.clientX, event.clientY, true)
         .get();
       handler(e);
       return e;
@@ -2632,14 +3251,14 @@
     const onTouchStart = (handler, event) => {
       event.preventDefault();
       const e = pointer
-        .down(event.touches[0].clientX, event.touches[0].clientY)
+        .move(event.touches[0].clientX, event.touches[0].clientY, true)
         .get();
       handler(e);
       return e;
     };
     const onEnd = (handler, event) => {
       event.preventDefault();
-      const e = pointer.pressed(false).get();
+      const e = pointer.release().get();
       handler(e);
       return e;
     };
@@ -2817,7 +3436,7 @@
         }
       }
       if (typeof position.delegate === "function") {
-        position.delegate(proxy);
+        position.delegate.apply(position.pointsContainer, [proxy, position.pointsContainer]);
       }
     };
     setPosition(options.position);
@@ -2837,6 +3456,14 @@
     position.onMouseMove = onMouseMove;
     position.onMouseUp = onMouseUp;
     position.distance = distance;
+    Object.defineProperty(position, "x", {
+      get: () => position[0],
+      set: (newValue) => { position[0] = newValue; }
+    });
+    Object.defineProperty(position, "y", {
+      get: () => position[1],
+      set: (newValue) => { position[1] = newValue; }
+    });
     Object.defineProperty(position, "svg", {
       get: () => svg,
       set: (newSVG) => { svg = newSVG; }
@@ -2849,7 +3476,7 @@
     });
     Object.defineProperty(position, "remove", {
       value: () => {
-        if (svg != null) { svg.remove(); }
+        if (svg != null) { parent.removeChild(svg); }
       }
     });
     return proxy;
@@ -2867,10 +3494,13 @@
     });
     const protocol = function (point) {
       if (typeof delegate === "function") {
-        delegate.call(points, point);
+        delegate.call(points, points, point);
       }
     };
-    points.forEach((p) => { p.delegate = protocol; });
+    points.forEach((p) => {
+      p.delegate = protocol;
+      p.pointsContainer = points;
+    });
     const mousePressedHandler = function (mouse) {
       if (!(points.length > 0)) { return; }
       selected = points
@@ -2902,22 +3532,22 @@
         points.pop().remove();
       }
     };
-    points.changed = function (func, runOnceAtStart) {
+    points.onChange = function (func, runOnceAtStart) {
       if (typeof func === "function") {
         delegate = func;
-        if (runOnceAtStart === true) { delegate.call(points); }
+        if (runOnceAtStart === true) { func.call(points, points, undefined); }
       }
       return points;
     };
     points.position = function (func) {
       if (typeof func === "function") {
-        points.forEach((p, i) => p.setPosition(func(i)));
+        points.forEach((p, i) => p.setPosition(func.call(points, i)));
       }
       return points;
     };
     points.svg = function (func) {
       if (typeof func === "function") {
-        points.forEach((p, i) => { p.svg = func(i); });
+        points.forEach((p, i) => { p.svg = func.call(points, i); });
       }
       return points;
     };
@@ -3174,12 +3804,9 @@
     "accumulate",
     "additive",
     "alignment-baseline",
-    "allowReorder",
     "amplitude",
     "attributeName",
-    "autoReverse",
     "azimuth",
-    "BSection",
     "baseFrequency",
     "baseline-shift",
     "baseProfile",
@@ -3253,20 +3880,15 @@
     "horiz-adv-x",
     "horiz-origin-x",
     "ISection",
-    "ideographic",
     "image-rendering",
     "in",
     "in2",
     "intercept",
-    "KSection",
-    "k",
     "k1",
     "k2",
     "k3",
     "k4",
     "kernelMatrix",
-    "kernelUnitLength",
-    "kerning",
     "keyPoints",
     "keySplines",
     "keyTimes",
@@ -3293,13 +3915,10 @@
     "name",
     "numOctaves",
     "OSection",
-    "offset",
     "opacity",
     "operator",
     "order",
     "orient",
-    "orientation",
-    "origin",
     "overflow",
     "overline-position",
     "overline-thickness",
@@ -3308,7 +3927,6 @@
     "patternContentUnits",
     "patternTransform",
     "patternUnits",
-    "ping",
     "pointer-events",
     "pointsAtX",
     "pointsAtY",
@@ -3318,10 +3936,8 @@
     "primitiveUnits",
     "RSection",
     "radius",
-    "referrerPolicy",
     "refX",
     "refY",
-    "rel",
     "rendering-intent",
     "repeatCount",
     "repeatDur",
@@ -3331,11 +3947,9 @@
     "SSection",
     "seed",
     "shape-rendering",
-    "slope",
     "spacing",
     "specularConstant",
     "specularExponent",
-    "speed",
     "spreadMethod",
     "startOffset",
     "stdDeviation",
@@ -3346,7 +3960,6 @@
     "stop-opacity",
     "strikethrough-position",
     "strikethrough-thickness",
-    "string",
     "stroke",
     "stroke-dasharray",
     "stroke-dashoffset",
@@ -3374,9 +3987,9 @@
     "underline-position",
     "underline-thickness",
     "unicode",
-    "unicode-bidi",
     "unicode-range",
     "units-per-em",
+    "user-select",
     "VSection",
     "v-alphabetic",
     "v-hanging",
@@ -3388,7 +4001,6 @@
     "vert-adv-y",
     "vert-origin-x",
     "vert-origin-y",
-    "viewBox",
     "viewTarget",
     "visibility",
     "WSection",
@@ -3396,12 +4008,10 @@
     "word-spacing",
     "writing-mode",
     "XSection",
-    "x-height",
     "xChannelSelector",
     "YSection",
     "yChannelSelector",
     "ZSection",
-    "zoomAndPan"
   ];
   const removeChildren = function (parent) {
     while (parent.lastChild) {
@@ -3410,7 +4020,6 @@
   };
   const appendTo = function (element, parent) {
     if (parent != null) {
-      element.remove();
       parent.appendChild(element);
     }
     return element;
@@ -3510,30 +4119,13 @@
     scale: scale,
     clearTransforms: clearTransforms
   });
-  const is_iterable$1$1 = obj => obj != null
-    && typeof obj[Symbol.iterator] === "function";
-  const flatten_input$1$1 = function (...args) {
-    switch (args.length) {
-      case undefined:
-      case 0: return args;
-      case 1: return is_iterable$1$1(args[0]) && typeof args[0] !== "string"
-        ? flatten_input$1$1(...args[0])
-        : [args[0]];
-      default:
-        return Array.from(args)
-          .map(a => (is_iterable$1$1(a)
-            ? [...flatten_input$1$1(a)]
-            : a))
-          .reduce((a, b) => a.concat(b), []);
-    }
-  };
   const d = function (element) {
     let attr = element.getAttribute("d");
     if (attr == null) { attr = ""; }
     return attr;
   };
   const append = function (element, command, ...args) {
-    const params = flatten_input$1$1(args).join(",");
+    const params = flatten_input$1(args).join(",");
     element.setAttribute("d", `${d(element)}${command}${params}`);
     return element;
   };
@@ -3641,7 +4233,7 @@
     };
   };
   const attachPathMethods = function (element) {
-    Object.keys(Path).forEach((key) => {
+    Object.keys(Path).filter(key => element[key] === undefined).forEach((key) => {
       element[key] = (...args) => Path[key](element, ...args);
     });
   };
@@ -3651,7 +4243,7 @@
     });
   };
   const attachTransformMethods = function (element) {
-    Object.keys(Transform).forEach((key) => {
+    Object.keys(Transform).filter(key => element[key] === undefined).forEach((key) => {
       element[key] = (...args) => Transform[key](element, ...args);
     });
   };
@@ -3740,6 +4332,7 @@
   const prepareText = function (element) {
     attachFunctionalStyleSetters(element);
     attachDOMMethods(element);
+    attachTransformMethods(element);
     attachClipMaskAttributes(element);
   };
   const prepareSVG = function (element, primitives) {
@@ -3781,24 +4374,25 @@
       default: console.warn("prepare missing valid type (svg, group.."); break;
     }
   };
-  const line = function (...endpoints) {
-    const shape = win.document.createElementNS(NS, "line");
+  const line$1 = function (...endpoints) {
+    const shape = win$1.document.createElementNS(NS, "line");
     setLinePoints(shape, ...endpoints);
     prepare("primitive", shape);
     shape.setPoints = (...args) => setLinePoints(shape, ...args);
     return shape;
   };
-  const circle = function (x, y, radius) {
-    const shape = win.document.createElementNS(NS, "circle");
+  const circle$1 = function (x, y, radius) {
+    const shape = win$1.document.createElementNS(NS, "circle");
     setCenter(shape, x, y);
     if (radius != null) { shape.setAttributeNS(null, "r", radius); }
     prepare("primitive", shape);
     shape.setCenter = (...args) => setCenter(shape, ...args);
     shape.setRadius = (r) => { shape.setAttributeNS(null, "r", r); return shape; };
+    shape.radius = (r) => { shape.setAttributeNS(null, "r", r); return shape; };
     return shape;
   };
   const ellipse = function (x, y, rx, ry) {
-    const shape = win.document.createElementNS(NS, "ellipse");
+    const shape = win$1.document.createElementNS(NS, "ellipse");
     if (x != null) { shape.setAttributeNS(null, "cx", x); }
     if (y != null) { shape.setAttributeNS(null, "cy", y); }
     if (rx != null) { shape.setAttributeNS(null, "rx", rx); }
@@ -3807,7 +4401,7 @@
     return shape;
   };
   const rect = function (x, y, width, height) {
-    const shape = win.document.createElementNS(NS, "rect");
+    const shape = win$1.document.createElementNS(NS, "rect");
     if (x != null) { shape.setAttributeNS(null, "x", x); }
     if (y != null) { shape.setAttributeNS(null, "y", y); }
     if (width != null) { shape.setAttributeNS(null, "width", width); }
@@ -3815,35 +4409,35 @@
     prepare("primitive", shape);
     return shape;
   };
-  const polygon = function (...pointsArray) {
-    const shape = win.document.createElementNS(NS, "polygon");
+  const polygon$1 = function (...pointsArray) {
+    const shape = win$1.document.createElementNS(NS, "polygon");
     setPoints(shape, ...pointsArray);
     prepare("primitive", shape);
     shape.setPoints = (...args) => setPoints(shape, ...args);
     return shape;
   };
   const polyline = function (...pointsArray) {
-    const shape = win.document.createElementNS(NS, "polyline");
+    const shape = win$1.document.createElementNS(NS, "polyline");
     setPoints(shape, ...pointsArray);
     prepare("primitive", shape);
     shape.setPoints = (...args) => setPoints(shape, ...args);
     return shape;
   };
-  const path = function (d) {
-    const shape = win.document.createElementNS(NS, "path");
+  const path$1 = function (d) {
+    const shape = win$1.document.createElementNS(NS, "path");
     if (d != null) { shape.setAttributeNS(null, "d", d); }
     prepare("primitive", shape);
     return shape;
   };
   const bezier = function (fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
-    const shape = win.document.createElementNS(NS, "path");
+    const shape = win$1.document.createElementNS(NS, "path");
     setBezier(shape, fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY);
     prepare("primitive", shape);
     shape.setBezier = (...args) => setBezier(shape, ...args);
     return shape;
   };
   const text = function (textString, x, y) {
-    const shape = win.document.createElementNS(NS, "text");
+    const shape = win$1.document.createElementNS(NS, "text");
     shape.innerHTML = textString;
     if (x) { shape.setAttributeNS(null, "x", x); }
     if (y) { shape.setAttributeNS(null, "y", y); }
@@ -3851,28 +4445,28 @@
     return shape;
   };
   const arc = function (x, y, radius, angleA, angleB) {
-    const shape = win.document.createElementNS(NS, "path");
+    const shape = win$1.document.createElementNS(NS, "path");
     setArc(shape, x, y, radius, angleA, angleB, false);
     prepare("primitive", shape);
     shape.setArc = (...args) => setArc(shape, ...args);
     return shape;
   };
   const wedge = function (x, y, radius, angleA, angleB) {
-    const shape = win.document.createElementNS(NS, "path");
+    const shape = win$1.document.createElementNS(NS, "path");
     setArc(shape, x, y, radius, angleA, angleB, true);
     prepare("primitive", shape);
     shape.setArc = (...args) => setArc(shape, ...args);
     return shape;
   };
   const arcEllipse = function (x, y, rx, ry, angleA, angleB) {
-    const shape = win.document.createElementNS(NS, "path");
+    const shape = win$1.document.createElementNS(NS, "path");
     setEllipticalArc(shape, x, y, rx, ry, angleA, angleB, false);
     prepare("primitive", shape);
     shape.setArc = (...args) => setEllipticalArc(shape, ...args);
     return shape;
   };
   const wedgeEllipse = function (x, y, rx, ry, angleA, angleB) {
-    const shape = win.document.createElementNS(NS, "path");
+    const shape = win$1.document.createElementNS(NS, "path");
     setEllipticalArc(shape, x, y, rx, ry, angleA, angleB, true);
     prepare("primitive", shape);
     shape.setArc = (...args) => setEllipticalArc(shape, ...args);
@@ -3896,7 +4490,7 @@
       const y = cY + r * Math.cos(a);
       return [x, y];
     });
-    return polygon(points);
+    return polygon$1(points);
   };
   const roundRect = function (x, y, width, height, cornerRadius = 0) {
     if (cornerRadius > width / 2) { cornerRadius = width / 2; }
@@ -3904,13 +4498,13 @@
     const w = width - cornerRadius * 2;
     const h = height - cornerRadius * 2;
     const pathString = `M${x + (width - w) / 2} ${y} h${w} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + width} ${y + (height - h) / 2} v${h} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + width - cornerRadius} ${y + height} h${-w} A${cornerRadius} ${cornerRadius} 0 0 1 ${x} ${y + height - cornerRadius} v${-h} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + cornerRadius} ${y} `;
-    return path(pathString);
+    return path$1(pathString);
   };
   const arrow = function (...args) {
-    const shape = win.document.createElementNS(NS, "g");
-    const tailPoly = win.document.createElementNS(NS, "polygon");
-    const headPoly = win.document.createElementNS(NS, "polygon");
-    const arrowPath = win.document.createElementNS(NS, "path");
+    const shape = win$1.document.createElementNS(NS, "g");
+    const tailPoly = win$1.document.createElementNS(NS, "polygon");
+    const headPoly = win$1.document.createElementNS(NS, "polygon");
+    const arrowPath = win$1.document.createElementNS(NS, "path");
     tailPoly.setAttributeNS(null, "class", "svg-arrow-tail");
     headPoly.setAttributeNS(null, "class", "svg-arrow-head");
     arrowPath.setAttributeNS(null, "class", "svg-arrow-path");
@@ -3934,13 +4528,13 @@
   };
   var primitives = Object.freeze({
     __proto__: null,
-    line: line,
-    circle: circle,
+    line: line$1,
+    circle: circle$1,
     ellipse: ellipse,
     rect: rect,
-    polygon: polygon,
+    polygon: polygon$1,
     polyline: polyline,
-    path: path,
+    path: path$1,
     bezier: bezier,
     text: text,
     arc: arc,
@@ -3963,31 +4557,31 @@
   const generateUUID = function (count = 16, prefix = "") {
     return prefix + randomString(count);
   };
-  const svg = function () {
-    const svgImage = win.document.createElementNS(NS, "svg");
+  const svg$1 = function () {
+    const svgImage = win$1.document.createElementNS(NS, "svg");
     svgImage.setAttribute("version", "1.1");
     svgImage.setAttribute("xmlns", NS);
     prepare("svg", svgImage, constructorsSVG);
     return svgImage;
   };
-  const group = function () {
-    const g = win.document.createElementNS(NS, "g");
+  const group$1 = function () {
+    const g = win$1.document.createElementNS(NS, "g");
     prepare("group", g, constructorsGroup);
     return g;
   };
-  const defs = function () {
-    const d = win.document.createElementNS(NS, "defs");
+  const defs$1 = function () {
+    const d = win$1.document.createElementNS(NS, "defs");
     prepare("defs", d, constructorsGroup);
     return d;
   };
   const cdata = function (textContent) {
-    const c = (new win.DOMParser())
+    const c = (new win$1.DOMParser())
       .parseFromString("<root></root>", "text/xml")
       .createCDATASection(`${textContent}`);
     return c;
   };
-  const style = function (textContent) {
-    const s = win.document.createElementNS(NS, "style");
+  const style$1 = function (textContent) {
+    const s = win$1.document.createElementNS(NS, "style");
     s.setAttribute("type", "text/css");
     prepare("style", s);
     s.setTextContent = (newText) => { s.textContent = ""; s.appendChild(cdata(newText)); };
@@ -3995,19 +4589,19 @@
     return s;
   };
   const clipPath = function (id = generateUUID(8, "clip-")) {
-    const clip = win.document.createElementNS(NS, "clipPath");
+    const clip = win$1.document.createElementNS(NS, "clipPath");
     clip.setAttribute("id", id);
     prepare("clipPath", clip, constructorsGroup);
     return clip;
   };
   const mask = function (id = generateUUID(8, "mask-")) {
-    const msk = win.document.createElementNS(NS, "mask");
+    const msk = win$1.document.createElementNS(NS, "mask");
     msk.setAttribute("id", id);
     prepare("mask", msk, constructorsGroup);
     return msk;
   };
   const createElement = function (tagName) {
-    return win.document.createElementNS(NS, tagName);
+    return win$1.document.createElementNS(NS, tagName);
   };
   const setConstructors = function (elements) {
     Object.keys(elements)
@@ -4024,14 +4618,16 @@
   var root = Object.freeze({
     __proto__: null,
     setConstructors: setConstructors,
-    svg: svg,
-    group: group,
-    defs: defs,
+    svg: svg$1,
+    group: group$1,
+    defs: defs$1,
     clipPath: clipPath,
     mask: mask,
-    style: style,
+    style: style$1,
     createElement: createElement
   });
+  const ElementConstructor = (new win$1.DOMParser())
+    .parseFromString("<div />", "text/xml").documentElement.constructor;
   const findWindowBooleanParam = function (...params) {
     const objects = params
       .filter(arg => typeof arg === "object")
@@ -4039,29 +4635,33 @@
     return objects.reduce((a, b) => a.window || b.window, false);
   };
   const findElementInParams = function (...params) {
-    const element = params.filter(arg => arg instanceof HTMLElement).shift();
+    const element = params.filter(arg => arg instanceof ElementConstructor).shift();
     const idElement = params
       .filter(a => typeof a === "string" || a instanceof String)
-      .map(str => win.document.getElementById(str))
+      .map(str => win$1.document.getElementById(str))
       .shift();
     if (element != null) { return element; }
     return (idElement != null
       ? idElement
-      : win.document.body);
+      : win$1.document.body);
   };
   const initSize = function (svgElement, params) {
     const numbers = params.filter(arg => !isNaN(arg));
     const viewBox = svgElement.getAttribute("viewBox");
-    if (numbers.length >= 2) {
+    if (numbers.length >= 4) {
+      svgElement.setAttributeNS(null, "width", numbers[2]);
+      svgElement.setAttributeNS(null, "height", numbers[3]);
+      setViewBox$1(svgElement, numbers[0], numbers[1], numbers[2], numbers[3]);
+    } else if (numbers.length >= 2) {
       svgElement.setAttributeNS(null, "width", numbers[0]);
       svgElement.setAttributeNS(null, "height", numbers[1]);
-      setViewBox(svgElement, 0, 0, numbers[0], numbers[1]);
+      setViewBox$1(svgElement, 0, 0, numbers[0], numbers[1]);
     } else if (viewBox == null) {
       const frame = svgElement.getBoundingClientRect();
-      setViewBox(svgElement, 0, 0, frame.width, frame.height);
+      setViewBox$1(svgElement, 0, 0, frame.width, frame.height);
     } else if (viewBox.split(" ").filter(n => n === "0" || n === 0).length === 4) {
       const frame = svgElement.getBoundingClientRect();
-      setViewBox(svgElement, 0, 0, frame.width, frame.height);
+      setViewBox$1(svgElement, 0, 0, frame.width, frame.height);
     }
   };
   const getWidth = function (element) {
@@ -4077,36 +4677,36 @@
   const setWidth = function (element, w) {
     const viewBox = getViewBox(element);
     viewBox[2] = w;
-    return setViewBox(element, ...viewBox);
+    return setViewBox$1(element, ...viewBox);
   };
   const setHeight = function (element, h) {
     const viewBox = getViewBox(element);
     viewBox[3] = h;
-    return setViewBox(element, ...viewBox);
+    return setViewBox$1(element, ...viewBox);
   };
   const size = function (element, ...args) {
     if (args.length === 2
       && typeof args[0] === "number"
       && typeof args[1] === "number"
     ) {
-      setViewBox(element, 0, 0, ...args);
+      setViewBox$1(element, 0, 0, ...args);
     } else if (args.length === 4
       && typeof args.map(a => typeof a === "number")
         .reduce((a, b) => a && b, true)
     ) {
-      setViewBox(element, ...args);
+      setViewBox$1(element, ...args);
     }
   };
   const getFrame = function (element) {
-    let frame = [0, 0, 0, 0];
-    if (element.viewBox != null) {
-      const viewBox = element.viewBox.baseVal;
-      frame = [viewBox.x, viewBox.y, viewBox.width, viewBox.height];
-    } else if (typeof element.getBoundingClientRect === "function") {
-      const rr = element.getBoundingClientRect();
-      frame = [rr.x, rr.y, rr.width, rr.height];
+    const viewBox = getViewBox(element);
+    if (viewBox !== undefined) {
+      return viewBox;
     }
-    return frame;
+    if (typeof element.getBoundingClientRect === "function") {
+      const rr = element.getBoundingClientRect();
+      return [rr.x, rr.y, rr.width, rr.height];
+    }
+    return [0, 0, 0, 0];
   };
   const background = function (element, color, setParent = false) {
     if (setParent === true) {
@@ -4146,7 +4746,7 @@
   const stylesheet = function (element, textContent) {
     let styleSection = findStyleSheet(element);
     if (styleSection == null) {
-      styleSection = style(textContent);
+      styleSection = style$1(textContent);
       element.insertBefore(styleSection, element.firstChild);
     } else {
       styleSection.setTextContent(textContent);
@@ -4157,15 +4757,15 @@
     Array.from(oldSVG.attributes)
       .forEach(attr => oldSVG.removeAttribute(attr.name));
     removeChildren(oldSVG);
-    Array.from(newSVG.children).forEach((node) => {
-      node.remove();
+    Array.from(newSVG.childNodes).forEach((node) => {
+      newSVG.removeChild(node);
       oldSVG.appendChild(node);
     });
     Array.from(newSVG.attributes)
       .forEach(attr => oldSVG.setAttribute(attr.name, attr.value));
   };
   const SVG = function (...params) {
-    const element = svg();
+    const element = svg$1();
     Events(element);
     element.controls = (...args) => controls(element, ...args);
     element.getWidth = () => getWidth(element);
@@ -4174,9 +4774,7 @@
     element.setHeight = (...args) => setHeight(element, ...args);
     element.background = (...args) => background(element, ...args);
     element.size = (...args) => size(element, ...args);
-    element.save = function (filename = "image.svg") {
-      return save(element, filename);
-    };
+    element.save = (options) => save(element, options);
     element.load = function (data, callback) {
       load(data, (newSVG, error) => {
         if (newSVG != null) { replaceWithSVG(element, newSVG); }
@@ -4192,10 +4790,10 @@
         globalize(element);
       }
       params.filter(arg => typeof arg === "function")
-        .forEach(func => func());
+        .forEach(func => func.call(element, element));
     };
-    if (win.document.readyState === "loading") {
-      win.document.addEventListener("DOMContentLoaded", initialize);
+    if (win$1.document.readyState === "loading") {
+      win$1.document.addEventListener("DOMContentLoaded", initialize);
     } else {
       initialize();
     }
@@ -4217,7 +4815,8 @@
   Object.keys(File).forEach((key) => { SVG[key] = File[key]; });
   SVG.NS = NS;
 
-  const make_vertices_edges = function ({ edges_vertices }) {
+  const make_vertices_edges$1 = function ({ edges_vertices }) {
+    if (!edges_vertices) { return undefined; }
     const vertices_edges = [];
     edges_vertices.forEach((ev, i) => ev
       .forEach((v) => {
@@ -4228,7 +4827,22 @@
       }));
     return vertices_edges;
   };
-  const make_faces_faces = function ({ faces_vertices }) {
+  const make_edges_vertices = function ({
+    edges_vertices, faces_edges
+  }) {
+    if (!edges_vertices || !faces_edges) { return undefined; }
+    const edges_faces = Array
+      .from(Array(edges_vertices.length))
+      .map(() => []);
+    faces_edges.forEach((face, f) => {
+      const hash = [];
+      face.forEach((edge) => { hash[edge] = f; });
+      hash.forEach((fa, e) => edges_faces[e].push(fa));
+    });
+    return edges_faces;
+  };
+  const make_faces_faces$1 = function ({ faces_vertices }) {
+    if (!faces_vertices) { return undefined; }
     const nf = faces_vertices.length;
     const faces_faces = Array.from(Array(nf)).map(() => []);
     const edgeMap = {};
@@ -4250,22 +4864,50 @@
     });
     return faces_faces;
   };
+  const make_edges_edges = function ({
+    edges_vertices, vertices_edges
+  }) {
+    if (!edges_vertices || !vertices_edges) { return undefined; }
+    return edges_vertices.map((ev, i) => {
+      const vert0 = ev[0];
+      const vert1 = ev[1];
+      const side0 = vertices_edges[vert0].filter(e => e !== i);
+      const side1 = vertices_edges[vert1].filter(e => e !== i);
+      return side0.concat(side1);
+    });
+  };
   const make_edges_faces = function ({
     edges_vertices, faces_edges
   }) {
+    if (!edges_vertices || !faces_edges) { return undefined; }
     const edges_faces = Array
       .from(Array(edges_vertices.length))
       .map(() => []);
-    faces_edges.forEach((face, i) => face
-      .forEach(edge => edges_faces[edge].push(i)));
+    faces_edges.forEach((face, f) => {
+      const hash = [];
+      face.forEach((edge) => { hash[edge] = f; });
+      hash.forEach((fa, e) => edges_faces[e].push(fa));
+    });
     return edges_faces;
   };
-  const make_edges_length = function (graph) {
-    return graph.edges_vertices
-      .map(ev => ev.map(v => graph.vertices_coords[v]))
+  const make_edges_length = function ({ vertices_coords, edges_vertices }) {
+    if (!vertices_coords || !edges_vertices) { return undefined; }
+    return edges_vertices
+      .map(ev => ev.map(v => vertices_coords[v]))
       .map(edge => math.core.distance(...edge));
   };
+  const assignment_angles = {
+    M: -180,
+    m: -180,
+    V: 180,
+    v: 180
+  };
+  const make_edges_foldAngle = function ({ edges_assignment }) {
+    if (!edges_assignment) { return undefined; }
+    return edges_assignment.map(a => assignment_angles[a] || 0);
+  };
   const make_vertex_pair_to_edge_map$1 = function ({ edges_vertices }) {
+    if (!edges_vertices) { return {}; }
     const map = {};
     edges_vertices
       .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -4275,15 +4917,19 @@
   const make_vertices_faces = function ({
     vertices_coords, faces_vertices
   }) {
+    if (!vertices_coords || !faces_vertices) { return undefined; }
     const vertices_faces = Array.from(Array(vertices_coords.length))
       .map(() => []);
-    faces_vertices.forEach((face, i) => face
-      .forEach(vertex => vertices_faces[vertex].push(i)));
+    faces_vertices.forEach((face, f) => {
+      const hash = [];
+      face.forEach((vertex) => { hash[vertex] = f; });
+      hash.forEach((fa, v) => vertices_faces[v].push(fa));
+    });
     return vertices_faces;
   };
-  const make_face_walk_tree = function (graph, root_face = 0) {
+  const make_face_walk_tree$1 = function (graph, root_face = 0) {
     const edge_map = make_vertex_pair_to_edge_map$1(graph);
-    const new_faces_faces = make_faces_faces(graph);
+    const new_faces_faces = make_faces_faces$1(graph);
     if (new_faces_faces.length <= 0) {
       return [];
     }
@@ -4326,7 +4972,7 @@
       ? graph.edges_assignment.map(a => !is_mark(a))
       : graph.edges_vertices.map(() => true);
     const faces_matrix = graph.faces_vertices.map(() => [1, 0, 0, 1, 0, 0]);
-    make_face_walk_tree(graph, root_face).forEach((level) => {
+    make_face_walk_tree$1(graph, root_face).forEach((level) => {
       level.filter(entry => entry.parent != null).forEach((entry) => {
         const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
         const vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
@@ -4344,7 +4990,7 @@
       ? graph.edges_assignment.map(a => !is_mark(a))
       : graph.edges_vertices.map(() => true);
     const faces_matrix = graph.faces_vertices.map(() => [1, 0, 0, 1, 0, 0]);
-    make_face_walk_tree(graph, root_face).forEach((level) => {
+    make_face_walk_tree$1(graph, root_face).forEach((level) => {
       level.filter(entry => entry.parent != null).forEach((entry) => {
         const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
         const vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
@@ -4358,7 +5004,7 @@
     return faces_matrix;
   };
   const make_vertices_coords_folded = function (graph, face_stationary, faces_matrix) {
-    if (graph.vertices_coords == null) { return undefined; }
+    if (graph.vertices_coords == null || graph.faces_vertices == null) { return undefined; }
     if (face_stationary == null) { face_stationary = 0; }
     if (faces_matrix == null) {
       faces_matrix = make_faces_matrix(graph, face_stationary);
@@ -4377,37 +5023,49 @@
       return face_stationary;
     });
     return graph.vertices_coords.map((point, i) => math.core
-      .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+      .multiply_matrix2_vector2(faces_matrix[vertex_in_face[i]], point)
       .map(n => math.core.clean_number(n)));
   };
   const make_vertices_isBoundary = function (graph) {
-    const vertices_edges = make_vertices_edges(graph);
+    const vertices_edges = make_vertices_edges$1(graph);
     const edges_isBoundary = graph.edges_assignment
       .map(a => a === "b" || a === "B");
     return vertices_edges
       .map(edges => edges.map(e => edges_isBoundary[e])
         .reduce((a, b) => a || b, false));
   };
-  const faces_coloring_from_faces_matrix = function (faces_matrix) {
+  const make_faces_coloring_from_faces_matrix$1 = function (faces_matrix) {
     return faces_matrix
       .map(m => m[0] * m[3] - m[1] * m[2])
       .map(c => c >= 0);
   };
+  const make_faces_coloring$1 = function (graph, root_face = 0) {
+    const coloring = [];
+    coloring[root_face] = true;
+    make_face_walk_tree$1(graph, root_face)
+      .forEach((level, i) => level
+        .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
+    return coloring;
+  };
 
   var make = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    make_vertices_edges: make_vertices_edges,
-    make_faces_faces: make_faces_faces,
+    make_vertices_edges: make_vertices_edges$1,
+    make_edges_vertices: make_edges_vertices,
+    make_faces_faces: make_faces_faces$1,
+    make_edges_edges: make_edges_edges,
     make_edges_faces: make_edges_faces,
     make_edges_length: make_edges_length,
+    make_edges_foldAngle: make_edges_foldAngle,
     make_vertex_pair_to_edge_map: make_vertex_pair_to_edge_map$1,
     make_vertices_faces: make_vertices_faces,
-    make_face_walk_tree: make_face_walk_tree,
+    make_face_walk_tree: make_face_walk_tree$1,
     make_faces_matrix: make_faces_matrix,
     make_faces_matrix_inv: make_faces_matrix_inv,
     make_vertices_coords_folded: make_vertices_coords_folded,
     make_vertices_isBoundary: make_vertices_isBoundary,
-    faces_coloring_from_faces_matrix: faces_coloring_from_faces_matrix
+    make_faces_coloring_from_faces_matrix: make_faces_coloring_from_faces_matrix$1,
+    make_faces_coloring: make_faces_coloring$1
   });
 
   const max_array_length = function (...arrays) {
@@ -4434,7 +5092,7 @@
   const implied_vertices_count = function ({
     faces_vertices, edges_vertices
   }) {
-    let max = 0;
+    let max = -1;
     [faces_vertices, edges_vertices]
       .filter(a => a !== undefined)
       .forEach(arr => arr
@@ -4442,12 +5100,12 @@
           .forEach((e) => {
             if (e > max) { max = e; }
           })));
-    return max;
+    return max + 1;
   };
   const implied_edges_count = function ({
     faces_edges, vertices_edges, edgeOrders
   }) {
-    let max = 0;
+    let max = -1;
     [faces_edges, vertices_edges]
       .filter(a => a !== undefined)
       .forEach(arr => arr
@@ -4460,12 +5118,12 @@
         if (i !== 2 && e > max) { max = e; }
       }));
     }
-    return max;
+    return max + 1;
   };
   const implied_faces_count = function ({
     vertices_faces, edges_faces, facesOrders
   }) {
-    let max = 0;
+    let max = -1;
     [vertices_faces, edges_faces]
       .filter(a => a !== undefined)
       .forEach(arr => arr
@@ -4478,7 +5136,7 @@
         if (i !== 2 && f > max) { max = f; }
       }));
     }
-    return max;
+    return max + 1;
   };
   const nearest_vertex = function ({ vertices_coords }, point) {
     if (vertices_coords === undefined
@@ -4540,7 +5198,7 @@
     vertices_coords, faces_vertices
   }, point, faces_matrix) {
     const transformed_points = faces_matrix
-      .map(m => math.core.multiply_vector2_matrix2(point, m));
+      .map(m => math.core.multiply_matrix2_vector2(m, point));
     return faces_vertices
       .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
       .filter((f, i) => math.core.intersection
@@ -4573,64 +5231,10 @@
     }
     return undefined;
   };
-  const bounding_rect = function ({ vertices_coords }) {
-    if (vertices_coords == null
-      || vertices_coords.length <= 0) {
-      return [0, 0, 0, 0];
-    }
-    const dimension = vertices_coords[0].length;
-    const min = Array(dimension).fill(Infinity);
-    const max = Array(dimension).fill(-Infinity);
-    vertices_coords.forEach(v => v.forEach((n, i) => {
-      if (n < min[i]) { min[i] = n; }
-      if (n > max[i]) { max[i] = n; }
-    }));
-    return (isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1])
-      ? [0, 0, 0, 0]
-      : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
-  };
-  const get_boundary = function ({
-    edges_vertices, edges_assignment
-  }) {
-    const edges_vertices_b = edges_assignment
-      .map(a => a === "B" || a === "b");
-    const vertices_edges = make_vertices_edges({ edges_vertices });
-    const edge_walk = [];
-    const vertex_walk = [];
-    let edgeIndex = -1;
-    for (let i = 0; i < edges_vertices_b.length; i += 1) {
-      if (edges_vertices_b[i]) { edgeIndex = i; break; }
-    }
-    if (edgeIndex === -1) {
-      return { vertices: [], edges: [] };
-    }
-    edges_vertices_b[edgeIndex] = false;
-    edge_walk.push(edgeIndex);
-    vertex_walk.push(edges_vertices[edgeIndex][0]);
-    let nextVertex = edges_vertices[edgeIndex][1];
-    while (vertex_walk[0] !== nextVertex) {
-      vertex_walk.push(nextVertex);
-      edgeIndex = vertices_edges[nextVertex]
-        .filter(v => edges_vertices_b[v])
-        .shift();
-      if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
-      if (edges_vertices[edgeIndex][0] === nextVertex) {
-        [, nextVertex] = edges_vertices[edgeIndex];
-      } else {
-        [nextVertex] = edges_vertices[edgeIndex];
-      }
-      edges_vertices_b[edgeIndex] = false;
-      edge_walk.push(edgeIndex);
-    }
-    return {
-      vertices: vertex_walk,
-      edges: edge_walk,
-    };
-  };
   const get_collinear_vertices = function ({
     edges_vertices, vertices_coords
   }) {
-    const vertices_edges = make_vertices_edges({ edges_vertices });
+    const vertices_edges = make_vertices_edges$1({ edges_vertices });
     return Array.from(Array(vertices_coords.length))
       .map((_, i) => i)
       .filter(() => vertices_edges.length === 2)
@@ -4779,8 +5383,6 @@
     folded_faces_containing_point: folded_faces_containing_point,
     faces_containing_point: faces_containing_point,
     topmost_face: topmost_face,
-    bounding_rect: bounding_rect,
-    get_boundary: get_boundary,
     get_collinear_vertices: get_collinear_vertices,
     get_isolated_vertices: get_isolated_vertices,
     get_duplicate_vertices: get_duplicate_vertices,
@@ -4788,6 +5390,129 @@
     get_duplicate_edges_old: get_duplicate_edges_old,
     find_collinear_face_edges: find_collinear_face_edges
   });
+
+  const max_array_length$1 = function (...arrays) {
+    return Math.max(...(arrays
+      .filter(el => el !== undefined)
+      .map(el => el.length)));
+  };
+  const vertices_count$1 = function ({
+    vertices_coords, vertices_faces, vertices_vertices
+  }) {
+    return max_array_length$1([], vertices_coords,
+      vertices_faces, vertices_vertices);
+  };
+  const edges_count$1 = function ({
+    edges_vertices, edges_faces
+  }) {
+    return max_array_length$1([], edges_vertices, edges_faces);
+  };
+  const faces_count$1 = function ({
+    faces_vertices, faces_edges
+  }) {
+    return max_array_length$1([], faces_vertices, faces_edges);
+  };
+  const get_geometry_length = {
+    vertices: vertices_count$1,
+    edges: edges_count$1,
+    faces: faces_count$1
+  };
+  const remove_geometry_key_indices = function (graph, key, removeIndices) {
+    const geometry_array_size = get_geometry_length[key](graph);
+    const removes = Array(geometry_array_size).fill(false);
+    removeIndices.forEach((v) => { removes[v] = true; });
+    let s = 0;
+    const index_map = removes.map(remove => (remove ? --s : s));
+    if (removeIndices.length === 0) { return index_map; }
+    const prefix = `${key}_`;
+    const suffix = `_${key}`;
+    const graph_keys = Object.keys(graph);
+    const prefixKeys = graph_keys
+      .map(str => (str.substring(0, prefix.length) === prefix ? str : undefined))
+      .filter(str => str !== undefined);
+    const suffixKeys = graph_keys
+      .map(str => (str.substring(str.length - suffix.length, str.length) === suffix
+        ? str
+        : undefined))
+      .filter(str => str !== undefined);
+    suffixKeys
+      .forEach(sKey => graph[sKey]
+        .forEach((_, i) => graph[sKey][i]
+          .forEach((v, j) => { graph[sKey][i][j] += index_map[v]; })));
+    prefixKeys.forEach((pKey) => {
+      graph[pKey] = graph[pKey]
+        .filter((_, i) => !removes[i]);
+    });
+    return index_map;
+  };
+
+  const bounding_rect$1 = function ({ vertices_coords }) {
+    if (vertices_coords == null
+      || vertices_coords.length <= 0) {
+      return [0, 0, 0, 0];
+    }
+    const dimension = vertices_coords[0].length;
+    const min = Array(dimension).fill(Infinity);
+    const max = Array(dimension).fill(-Infinity);
+    vertices_coords.forEach(v => v.forEach((n, i) => {
+      if (n < min[i]) { min[i] = n; }
+      if (n > max[i]) { max[i] = n; }
+    }));
+    return (isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1])
+      ? [0, 0, 0, 0]
+      : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
+  };
+  const get_boundary$1 = function (graph) {
+    if (graph.edges_assignment == null) { return { vertices: [], edges: [] }; }
+    const edges_vertices_b = graph.edges_assignment
+      .map(a => a === "B" || a === "b");
+    const vertices_edges = make_vertices_edges$1(graph);
+    const edge_walk = [];
+    const vertex_walk = [];
+    let edgeIndex = -1;
+    for (let i = 0; i < edges_vertices_b.length; i += 1) {
+      if (edges_vertices_b[i]) { edgeIndex = i; break; }
+    }
+    if (edgeIndex === -1) {
+      return { vertices: [], edges: [] };
+    }
+    edges_vertices_b[edgeIndex] = false;
+    edge_walk.push(edgeIndex);
+    vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
+    let nextVertex = graph.edges_vertices[edgeIndex][1];
+    while (vertex_walk[0] !== nextVertex) {
+      vertex_walk.push(nextVertex);
+      edgeIndex = vertices_edges[nextVertex]
+        .filter(v => edges_vertices_b[v])
+        .shift();
+      if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
+      if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
+        [, nextVertex] = graph.edges_vertices[edgeIndex];
+      } else {
+        [nextVertex] = graph.edges_vertices[edgeIndex];
+      }
+      edges_vertices_b[edgeIndex] = false;
+      edge_walk.push(edgeIndex);
+    }
+    return {
+      vertices: vertex_walk,
+      edges: edge_walk,
+    };
+  };
+
+  const htmlString$2 = "<!DOCTYPE html><title> </title>";
+  const win$2 = (function () {
+    let w = {};
+    if (isNode) {
+      const { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString$2, "text/html");
+    } else if (isBrowser) {
+      w = window;
+    }
+    return w;
+  }());
 
   const test_axiom1_2 = function (axiom_frame, poly) {
     const { points } = axiom_frame.parameters;
@@ -4830,7 +5555,7 @@
     axiom_frame.test = {};
     axiom_frame.test.points_reflected = axiom_frame.solutions
       .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
-      .map(m => math.core.multiply_vector2_matrix2(params.points[1], m));
+      .map(m => math.core.multiply_matrix2_vector2(m, params.points[1]));
     axiom_frame.valid = math.core.point_in_convex_poly(params.points[0], poly)
       && math.core.point_in_convex_poly(params.points[1], poly);
     axiom_frame.valid_solutions = axiom_frame.test.points_reflected
@@ -4852,7 +5577,7 @@
     axiom_frame.test.points_reflected = axiom_frame.solutions
       .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
       .map(m => params.points
-        .map(p => math.core.multiply_vector2_matrix2(p, m)))
+        .map(p => math.core.multiply_matrix2_vector2(m, p)))
       .reduce((prev, curr) => prev.concat(curr), []);
     axiom_frame.valid = a !== undefined && b !== undefined
       && math.core.point_in_convex_poly(params.points[0], poly)
@@ -4876,7 +5601,7 @@
     const solution = axiom_frame.solutions[0];
     const params = axiom_frame.parameters;
     const m = math.core.make_matrix2_reflection(solution[1], solution[0]);
-    const reflected = math.core.multiply_vector2_matrix2(params.points[0], m);
+    const reflected = math.core.multiply_matrix2_vector2(m, params.points[0]);
     const intersect = math.core.intersection.line_line(
       params.lines[1][0], params.lines[1][1],
       solution[0], solution[1],
@@ -4903,7 +5628,7 @@
     return axiom_frame;
   };
 
-  const make_axiom_frame = function (axiom, parameters, solutions) {
+  const make_axiom_frame = function (axiom, solutions, parameters) {
     const solution = {
       axiom,
       parameters,
@@ -4915,29 +5640,69 @@
     return solution;
   };
 
-  const axiom1$1 = function (pointA, pointB) {
-    const p0 = math.core.get_vector(pointA);
-    const p1 = math.core.get_vector(pointB);
-    const vec = p0.map((_, i) => p1[i] - p0[i]);
-    const solution = [p0, vec];
-    return make_axiom_frame(1, { points: [p0, p1] }, [solution]);
+  const Params = function (number, ...args) {
+    switch (number) {
+      case 1:
+      case 2: {
+        const flat = math.core.semi_flatten_input(...args);
+        if (flat.length === 4) {
+          return flat;
+        }
+        if (flat.length === 2) {
+          if (flat[0].length > 1 && flat[1].length > 1) {
+            return [flat[0][0], flat[0][1], flat[1][0], flat[1][1]];
+          }
+        }
+      }
+        break;
+      case 3: {
+        const flat = math.core.semi_flatten_input(...args);
+        if (flat.length === 8) {
+          return flat;
+        }
+        if (flat.length === 4) {
+          if (flat[0].length >= 2 && flat[1].length >= 2 && flat[2].length >= 2 && flat[3].length >= 2) {
+            return [flat[0][0], flat[0][1], flat[1][0], flat[1][1], flat[2][0], flat[2][1], flat[3][0], flat[3][1]];
+          }
+        }
+        if (flat.length === 2) {
+          if (flat[0].length >= 4 && flat[1].length >= 4) {
+            return [flat[0][0], flat[0][1], flat[0][2], flat[0][3], flat[1][0], flat[1][1], flat[1][2], flat[1][3]];
+          }
+          return [...math.core.flatten_input(flat[0]), ...math.core.flatten_input(flat[1])];
+        }
+      }
+        break;
+    }
+    return args;
   };
-  const axiom2 = function (a, b) {
-    const mid = math.core.midpoint2(a, b);
-    const vec = math.core.normalize(a.map((_, i) => b[i] - a[i]));
+
+  const axiom1 = function (x1, y1, x2, y2) {
+    const point = [x1, y1];
+    const vector = math.core.normalize([x2 - x1, y2 - y1]);
+    const solution = [point, vector];
+    const parameters = { points: [[x1, y1], [x2, y2]] };
+    return make_axiom_frame(1, [solution], parameters);
+  };
+  const axiom2 = function (x1, y1, x2, y2) {
+    const mid = [(x1 + x2) / 2, (y1 + y2) / 2];
+    const vec = math.core.normalize([x2 - x1, y2 - y1]);
     const solution = [mid, [vec[1], -vec[0]]];
-    return make_axiom_frame(2, { points: [a, b] }, [solution]);
+    const parameters = { points: [[x1, y1], [x2, y2]] };
+    return make_axiom_frame(2, [solution], parameters);
   };
-  const axiom3 = function (pointA, vectorA, pointB, vectorB) {
-    const parameters = { lines: [[pointA, vectorA], [pointB, vectorB]] };
-    const solutions = math.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
-    return make_axiom_frame(3, parameters, solutions);
+  const axiom3 = function (pt1x, pt1y, vec1x, vec1y, pt2x, pt2y, vec2x, vec2y) {
+    const parameters = {
+      lines: [[[pt1x, pt1y], [vec1x, vec1y]], [[pt2x, pt2y], [vec2x, vec2y]]]
+    };
+    const solutions = math.core.bisect_lines2([pt1x, pt1y], [vec1x, vec1y], [pt2x, pt2y], [vec2x, vec2y]);
+    return make_axiom_frame(3, solutions, parameters);
   };
   const axiom4 = function (pointA, vectorA, pointB) {
     const norm = math.core.normalize(vectorA);
     const solution = [[...pointB], [norm[1], -norm[0]]];
     const parameters = { points: [pointB], lines: [[pointA, vectorA]] };
-    return make_axiom_frame(4, parameters, [solution]);
+    return make_axiom_frame(4, [solution], parameters);
   };
   const axiom5 = function (pointA, vectorA, pointB, pointC) {
     const pA = math.core.get_vector(pointA);
@@ -4953,7 +5718,7 @@
       return [mid, [-vec[1], vec[0]]];
     });
     const parameters = { points: [pB, pC], lines: [[pA, vA]] };
-    return make_axiom_frame(5, parameters, solutions);
+    return make_axiom_frame(5, solutions, parameters);
   };
   const axiom7 = function (pointA, vectorA, pointB, vectorB, pointC) {
     const pA = math.core.get_vector(pointA);
@@ -4969,7 +5734,7 @@
     const mid = math.core.midpoint2(pC, sect);
     const vec = math.core.normalize(pC.map((_, i) => sect[i] - pC[i]));
     const solution = [mid, [-vec[1], vec[0]]];
-    return make_axiom_frame(7, parameters, [solution]);
+    return make_axiom_frame(7, [solution], parameters);
   };
   const cuberoot = function (x) {
     const y = Math.pow(Math.abs(x), 1 / 3);
@@ -5130,7 +5895,7 @@
       points: [pointC, pointD],
       lines: [[pointA, vecA], [pointB, vecB]]
     };
-    return make_axiom_frame(6, parameters, solutions);
+    return make_axiom_frame(6, solutions, parameters);
   };
   var order, irootMax, q1, q2, S, Sr, Si, U;
   const CubeRoot = function (x) {
@@ -5290,21 +6055,22 @@
     return [creasePoint, creaseVector];
   };
   const axiom = function (number, ...args) {
+    const params = Params(number, ...args);
     switch (number) {
-      case 1: return axiom1$1(...args);
-      case 2: return axiom2(...args);
-      case 3: return axiom3(...args);
-      case 4: return axiom4(...args);
-      case 5: return axiom5(...args);
-      case 6: return axiom6(...args);
-      case 7: return axiom7(...args);
+      case 1: return axiom1(...params);
+      case 2: return axiom2(...params);
+      case 3: return axiom3(...params);
+      case 4: return axiom4(...params);
+      case 5: return axiom5(...params);
+      case 6: return axiom6(...params);
+      case 7: return axiom7(...params);
       default: return undefined;
     }
   };
 
   var Axioms = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    axiom1: axiom1$1,
+    axiom1: axiom1,
     axiom2: axiom2,
     axiom3: axiom3,
     axiom4: axiom4,
@@ -5316,7 +6082,210 @@
     axiom: axiom
   });
 
-  const keys_types = {
+  const clone$1 = function (o) {
+    let newO;
+    let i;
+    if (typeof o !== "object") {
+      return o;
+    }
+    if (!o) {
+      return o;
+    }
+    if (Object.prototype.toString.apply(o) === "[object Array]") {
+      newO = [];
+      for (i = 0; i < o.length; i += 1) {
+        newO[i] = clone$1(o[i]);
+      }
+      return newO;
+    }
+    newO = {};
+    for (i in o) {
+      if (o.hasOwnProperty(i)) {
+        newO[i] = clone$1(o[i]);
+      }
+    }
+    return newO;
+  };
+  const recursive_freeze$1 = function (input) {
+    Object.freeze(input);
+    if (input === undefined) {
+      return input;
+    }
+    Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
+      && (typeof input[prop] === "object" || typeof input[prop] === "function")
+      && !Object.isFrozen(input[prop]))
+      .forEach(prop => recursive_freeze$1(input[prop]));
+    return input;
+  };
+
+  var object = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    clone: clone$1,
+    recursive_freeze: recursive_freeze$1
+  });
+
+  const prepareGraph = function (graph) {
+    if ("faces_re:matrix" in graph === false) {
+      graph["faces_re:matrix"] = make_faces_matrix(graph, 0);
+    }
+  };
+  const setup = function (origami, svg) {
+    prepareGraph(origami);
+    let touchFaceIndex = 0;
+    let cachedGraph = clone$1(origami);
+    let was_folded = origami.isFolded;
+    svg.mousePressed = (mouse) => {
+      was_folded = origami.isFolded;
+      cachedGraph = clone$1(origami);
+      const param = {
+        faces_vertices: origami.faces_vertices,
+        "faces_re:layer": origami["faces_re:layer"]
+      };
+      param.vertices_coords = was_folded
+        ? (origami["vertices_re:foldedCoords"] || origami.vertices_coords)
+        : (origami["vertices_re:unfoldedCoords"] || origami.vertices_coords);
+      const faces_containing = faces_containing_point(param, mouse);
+      const top_face = topmost_face(param, faces_containing);
+      touchFaceIndex = (top_face == null)
+        ? 0
+        : top_face;
+      if (was_folded) {
+        cachedGraph.vertices_coords = origami["vertices_re:unfoldedCoords"].slice();
+      }
+    };
+    svg.mouseMoved = (mouse) => {
+      if (mouse.isPressed) {
+        origami.load(cachedGraph);
+        const instruction = axiom2(mouse.position[0], mouse.position[1], mouse.pressed[0], mouse.pressed[1]);
+        origami.fold(instruction.solutions[0], touchFaceIndex);
+        if (was_folded) {
+          origami["vertices_re:unfoldedCoords"] = origami.vertices_coords;
+          origami.vertices_coords = origami["vertices_re:foldedCoords"];
+          delete origami["vertices_re:foldedCoords"];
+          origami.draw();
+          origami.svg.setViewBox(-0.01, -0.01, 1.02, 1.02);
+        }
+      }
+    };
+  };
+
+  const FoldToSvgOptionKeys = [
+    "input", "output", "padding", "file_frame", "stylesheet", "shadows",
+    "diagrams", "boundaries", "faces", "edges", "vertices", "attributes"
+  ];
+  const possibleFoldToSvgOptions = function (input) {
+    if (typeof input !== "object" || input === null) { return 0; }
+    const inputKeys = Object.keys(input);
+    if (inputKeys.length === 0) { return 0; }
+    return inputKeys.map(key => FoldToSvgOptionKeys.includes(key))
+      .reduce((a, b) => a + (b ? 1 : 0), 0) / inputKeys.length;
+  };
+  const parseOptionsForFoldToSvg = function (...args) {
+    return args.filter(a => possibleFoldToSvgOptions(a) > 0.1)
+      .sort((a, b) => possibleFoldToSvgOptions(b) - possibleFoldToSvgOptions(a))
+      .shift();
+  };
+  const interpreter = {
+    gl: "webgl",
+    GL: "webgl",
+    webGL: "webgl",
+    WebGL: "webgl",
+    webgl: "webgl",
+    Webgl: "webgl",
+    svg: "svg",
+    SVG: "svg",
+    "2d": "svg",
+    "2D": "svg",
+    "3d": "webgl",
+    "3D": "webgl",
+  };
+  const parseOptionsForView = function (...args) {
+    const viewOptions = args
+      .filter(a => typeof a === "object")
+      .filter(a => "view" in a === true)
+      .shift();
+    if (viewOptions === undefined) {
+      if (isNode) { return undefined; }
+      if (isBrowser) { return "svg"; }
+    }
+    return interpreter[viewOptions.view];
+  };
+  const SVGView = function (origami, ...args) {
+    const noCallbackArgs = args.filter(arg => typeof arg !== "function");
+    const svg = SVG(...noCallbackArgs);
+    const argumentOptions = parseOptionsForFoldToSvg(...args);
+    const options = argumentOptions == null
+      ? { output: "svg" }
+      : Object.assign(argumentOptions, { output: "svg" });
+    const layerNames = ["boundaries", "edges", "faces", "vertices"];
+    const fit = function () {
+      const r = bounding_rect$1(origami);
+      svg.setViewBox(...r);
+    };
+    const draw = function (innerArgumentOptions) {
+      const drawOptions = innerArgumentOptions == null
+        ? options
+        : Object.assign(innerArgumentOptions, { output: "svg" });
+      const newSVG = FoldToSvg(origami, drawOptions);
+      const newSVGChildren = Array.from(newSVG.childNodes);
+      const newSVGGroups = layerNames
+        .map(string => newSVGChildren
+          .filter(node => string === node.getAttribute("class"))
+          .shift())
+        .filter(node => node !== undefined);
+      const oldSVGChildren = Array.from(svg.childNodes);
+      const oldSVGGroups = layerNames
+        .map(string => oldSVGChildren
+          .filter(node => string === node.getAttribute("class"))
+          .shift())
+        .filter(node => node !== undefined);
+      if (oldSVGGroups.length > 0) {
+        newSVGGroups.forEach(node => svg.insertBefore(node, oldSVGGroups[0]));
+      } else {
+        newSVGGroups.forEach(node => svg.appendChild(node));
+      }
+      oldSVGGroups.forEach(node => svg.removeChild(node));
+      newSVGGroups.forEach(node => node.setAttribute("pointer-events", "none"));
+      Array.from(newSVG.attributes)
+        .forEach(attr => svg.setAttribute(attr.name, attr.value));
+    };
+    fit();
+    draw();
+    origami.changed.handlers.push((caller) => {
+      draw();
+    });
+    Object.defineProperty(origami, "draw", { value: draw });
+    Object.defineProperty(origami, "svg", { get: () => svg });
+    if (options.touchFold === true) {
+      setup(origami, origami.svg);
+    }
+    const sendCallback = function () {
+      args.filter(arg => typeof arg === "function")
+        .forEach(func => func.call(origami, origami));
+    };
+    if (win$2.document.readyState === "loading") {
+      win$2.document.addEventListener("DOMContentLoaded", sendCallback);
+    } else {
+      sendCallback();
+    }
+  };
+  const View = function (origami, ...args) {
+    switch (parseOptionsForView(...args)) {
+      case "svg": SVGView(origami, ...args); break;
+    }
+  };
+
+  const file_spec = 1.1;
+  const file_creator = "Rabbit Ear";
+  const future_spec = {
+    FACES_MATRIX: "faces_re:matrix",
+    FACES_LAYER: "faces_re:layer",
+    SECTORS_VERTICES: "re:sectors_vertices",
+    SECTORS_EDGES: "re:sectors_edges",
+    SECTORS_ANGLES: "re:sectors_angles",
+    VERTICES_SECTORS_VERTICES: "vertices_re:sectors_vertices",
+  };
+  const fold_keys = {
     file: [
       "file_spec",
       "file_creator",
@@ -5346,18 +6315,15 @@
       "edges_foldAngle",
       "edges_length",
       "faces_vertices",
-      "faces_edges"
+      "faces_edges",
+      "vertices_edges",
+      "edges_edges",
+      "faces_faces"
     ],
     orders: [
       "edgeOrders",
       "faceOrders"
     ],
-    rabbitEar: [
-      "vertices_re:foldedCoords",
-      "vertices_re:unfoldedCoords",
-      "faces_re:matrix",
-      "faces_re:layer",
-    ]
   };
   const file_classes = [
     "singleModel",
@@ -5385,36 +6351,33 @@
     "nonSelfIntersecting"
   ];
   const keys = Object.freeze([]
-    .concat(keys_types.file)
-    .concat(keys_types.frame)
-    .concat(keys_types.graph)
-    .concat(keys_types.orders)
-    .concat(keys_types.rabbitEar));
-  const edges_assignment_names = {
-    en: {
-      B: "boundary",
-      b: "boundary",
-      M: "mountain",
-      m: "mountain",
-      V: "valley",
-      v: "valley",
-      F: "mark",
-      f: "mark",
-      U: "unassigned",
-      u: "unassigned"
-    }
-  };
+    .concat(fold_keys.file)
+    .concat(fold_keys.frame)
+    .concat(fold_keys.graph)
+    .concat(fold_keys.orders));
   const edges_assignment_values = [
     "B", "b", "M", "m", "V", "v", "F", "f", "U", "u"
   ];
-  const assignment_angles = {
+  const edges_assignment_names$1 = {
+    B: "boundary",
+    b: "boundary",
+    M: "mountain",
+    m: "mountain",
+    V: "valley",
+    v: "valley",
+    F: "mark",
+    f: "mark",
+    U: "unassigned",
+    u: "unassigned"
+  };
+  const assignment_angles$1 = {
     M: -180,
     m: -180,
     V: 180,
     v: 180
   };
   const edge_assignment_to_foldAngle = function (assignment) {
-    return assignment_angles[assignment] || 0;
+    return assignment_angles$1[assignment] || 0;
   };
   const get_geometry_keys_with_prefix = function (graph, key) {
     const prefix = `${key}_`;
@@ -5463,13 +6426,16 @@
 
   var keys$1 = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    keys_types: keys_types,
+    file_spec: file_spec,
+    file_creator: file_creator,
+    future_spec: future_spec,
+    fold_keys: fold_keys,
     file_classes: file_classes,
     frame_classes: frame_classes,
     frame_attributes: frame_attributes,
     keys: keys,
-    edges_assignment_names: edges_assignment_names,
     edges_assignment_values: edges_assignment_values,
+    edges_assignment_names: edges_assignment_names$1,
     edge_assignment_to_foldAngle: edge_assignment_to_foldAngle,
     get_geometry_keys_with_prefix: get_geometry_keys_with_prefix,
     get_geometry_keys_with_suffix: get_geometry_keys_with_suffix,
@@ -5478,151 +6444,139 @@
     transpose_geometry_array_at_index: transpose_geometry_array_at_index
   });
 
-  const apply_matrix_to_fold = function (fold, matrix) {
-    get_keys_with_ending("coords").forEach((key) => {
-      fold[key] = fold[key]
-        .map(v => math.core.multiply_vector2_matrix2(v, matrix));
+  const arrayOfType = function (array, type = "number") {
+    let test = true;
+    array.forEach((a) => {
+      if (typeof a !== type) {
+        test = false;
+        return;
+      }
     });
-    get_keys_with_ending("matrix").forEach((key) => {
-      fold[key] = fold[key]
-        .map(m => math.core.multiply_matrices2(m, matrix));
+    return test;
+  };
+  const arrayOfArrayOfType = function (array, type = "number") {
+    let test = true;
+    array.forEach((arr) => {
+      arr.forEach((a) => {
+        if (typeof a !== type) {
+          test = false;
+          return;
+        }
+      });
     });
+    return test;
   };
-  const transform_scale = function (fold, ratio, homothetic_center) {
-    const matrix = math.core.make_matrix2_scale(ratio, homothetic_center);
-    apply_matrix_to_fold(fold, matrix);
+  const arrayOfArrayOfIsNotNaN = function (array) {
+    return array
+      .map(arr => arr
+        .map(n => !isNaN(n))
+        .reduce((a, b) => a && b, true))
+      .reduce((a, b) => a && b, true);
   };
-  const transform_translate = function (fold, dx, dy) {
-    const matrix = math.core.make_matrix2_translation(dx, dy);
-    apply_matrix_to_fold(fold, matrix);
+  const arrayOfArrayCompareFunc = function (array, func) {
+    return array
+      .map(arr => arr
+        .map(n => func(n))
+        .reduce((a, b) => a && b, true))
+      .reduce((a, b) => a && b, true);
   };
-  const transform_matrix = function (fold, matrix) {
-    apply_matrix_to_fold(fold, matrix);
+  const Validate = {};
+  Validate.vertices_coords = function ({ vertices_coords }) {
+    return vertices_coords != null
+      && arrayOfArrayOfType(vertices_coords, "number")
+      && arrayOfArrayOfIsNotNaN(vertices_coords);
   };
-
-  var affine = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    transform_scale: transform_scale,
-    transform_translate: transform_translate,
-    transform_matrix: transform_matrix
-  });
-
-  const clone = function (o) {
-    let newO;
-    let i;
-    if (typeof o !== "object") {
-      return o;
+  Validate.vertices_vertices = function ({ vertices_coords, vertices_vertices, edges_vertices }) {
+    if (vertices_vertices == null) { return false; }
+    const vert_vert_count = vertices_vertices.map(a => a.length).reduce((a, b) => a + b, 0);
+    if (Math.abs(vert_vert_count * 1 - edges_vertices.length * 2) > 1) {
+      console.warn("Validate.vertices_vertices, expected array length deviated by more than 1");
     }
-    if (!o) {
-      return o;
-    }
-    if (Object.prototype.toString.apply(o) === "[object Array]") {
-      newO = [];
-      for (i = 0; i < o.length; i += 1) {
-        newO[i] = clone(o[i]);
-      }
-      return newO;
-    }
-    newO = {};
-    for (i in o) {
-      if (o.hasOwnProperty(i)) {
-        newO[i] = clone(o[i]);
-      }
-    }
-    return newO;
-  };
-  const recursive_freeze = function (input) {
-    Object.freeze(input);
-    if (input === undefined) {
-      return input;
-    }
-    Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
-      && (typeof input[prop] === "object" || typeof input[prop] === "function")
-      && !Object.isFrozen(input[prop]))
-      .forEach(prop => recursive_freeze(input[prop]));
-    return input;
-  };
-
-  var object = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    clone: clone,
-    recursive_freeze: recursive_freeze
-  });
-
-  const flatten_frame = function (fold_file, frame_num) {
-    if ("file_frames" in fold_file === false
-      || fold_file.file_frames.length < frame_num) {
-      return fold_file;
-    }
-    const dontCopy = ["frame_parent", "frame_inherit"];
-    const memo = { visited_frames: [] };
-    const recurse = function (recurse_fold, frame, orderArray) {
-      if (memo.visited_frames.indexOf(frame) !== -1) {
-        throw new Error("encountered a cycle in file_frames. can't flatten.");
-      }
-      memo.visited_frames.push(frame);
-      orderArray = [frame].concat(orderArray);
-      if (frame === 0) { return orderArray; }
-      if (recurse_fold.file_frames[frame - 1].frame_inherit
-         && recurse_fold.file_frames[frame - 1].frame_parent != null) {
-        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
-      }
-      return orderArray;
-    };
-    return recurse(fold_file, frame_num, []).map((frame) => {
-      if (frame === 0) {
-        const swap = fold_file.file_frames;
-        fold_file.file_frames = null;
-        const copy = clone(fold_file);
-        fold_file.file_frames = swap;
-        delete copy.file_frames;
-        dontCopy.forEach(key => delete copy[key]);
-        return copy;
-      }
-      const outerCopy = clone(fold_file.file_frames[frame - 1]);
-      dontCopy.forEach(key => delete outerCopy[key]);
-      return outerCopy;
-    }).reduce((prev, curr) => Object.assign(prev, curr), {});
-  };
-  const merge_frame = function (fold_file, frame) {
-    const dontCopy = ["frame_parent", "frame_inherit"];
-    const copy = clone(frame);
-    dontCopy.forEach(key => delete copy[key]);
-    const swap = fold_file.file_frames;
-    fold_file.file_frames = null;
-    const fold = clone(fold_file);
-    fold_file.file_frames = swap;
-    delete fold.file_frames;
-    Object.assign(fold, frame);
-    return fold;
-  };
-
-  var frames = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    flatten_frame: flatten_frame,
-    merge_frame: merge_frame
-  });
-
-  const possibleFoldObject = function (fold) {
-    if (typeof fold !== "object" || fold === null) { return false; }
-    const argKeys = Object.keys(fold);
-    for (let i = 0; i < argKeys.length; i += 1) {
-      if (keys.includes(argKeys[i])) { return true; }
+    if (vertices_vertices != null) {
+      if (vertices_vertices.length !== vertices_coords.length) { return false; }
+      const vv_edge_test = vertices_vertices
+        .map((vv, i) => vv.map(v2 => [i, v2]))
+        .reduce((a, b) => a.concat(b), []);
+      return vv_edge_test
+        .map(ve => edges_vertices.filter(e => (ve[0] === e[0]
+          && ve[1] === e[1]) || (ve[0] === e[1] && ve[1] === e[0])).length > 0)
+        .map((b, i) => ({ test: b, i }))
+        .filter(el => !el.test)
+        .length === 0;
     }
     return false;
   };
-  const edges_assignment = function (graph) {
-    if ("edges_assignment" in graph === false) {
-      return false;
-    }
-    if (graph.edges_assignment.length !== graph.edges_vertices.length) {
-      return false;
-    }
-    return graph.edges_assignment
-      .filter(v => edges_assignment_values.includes(v))
-      .reduce((a, b) => a && b, true);
+  Validate.vertices_faces = function ({ vertices_faces, faces_vertices }) {
+    return faces_vertices != null
+      && vertices_faces != null
+      && vertices_faces
+        .map((vert, i) => vert
+          .map(vf => ({
+            test: faces_vertices[vf].indexOf(i) !== -1,
+            face: vf,
+            i
+          }))
+          .filter(el => !el.test))
+        .reduce((a, b) => a.concat(b), [])
+        .length === 0;
   };
-  const validate = function (graph) {
+  Validate.edges_vertices = function ({ vertices_coords, edges_vertices }) {
+    if (vertices_coords == null) { return true; }
+    const vert_size = vertices_coords.length;
+    return edges_vertices != null
+      && arrayOfArrayOfType(edges_vertices, "number")
+      && arrayOfArrayOfIsNotNaN(edges_vertices)
+      && arrayOfArrayCompareFunc(edges_vertices, n => n < vert_size);
+  };
+  Validate.edges_faces = function ({ edges_faces, faces_edges }) {
+    return false;
+  };
+  Validate.faces_faces = function (graph) {
+    return false;
+  };
+  Validate.vertices_edges = function (graph) {
+    return false;
+  };
+  Validate.edges_assignment = function ({ edges_vertices, edges_assignment }) {
+    return edges_vertices != null
+      && edges_assignment != null
+      && edges_assignment.length === edges_vertices.length
+      && edges_assignment
+        .filter(v => edges_assignment_values.includes(v))
+        .reduce((a, b) => a && b, true);
+  };
+  Validate.edges_foldAngle = function (graph) {
+    return false;
+  };
+  Validate.edges_length = function (graph) {
+    return false;
+  };
+  Validate.faces_vertices = function ({ vertices_faces, faces_vertices }) {
+    if (vertices_faces != null) {
+      return faces_vertices
+        .map((face, i) => face
+          .map(vf => ({
+            test: vertices_faces[vf].indexOf(i) !== -1,
+            face: vf,
+            i
+          }))
+          .filter(el => !el.test))
+        .reduce((a, b) => a.concat(b), [])
+        .length === 0;
+    }
+    return false;
+  };
+  Validate.faces_edges = function (graph) {
+    return false;
+  };
+  const possibleFoldObject = function (input) {
+    if (typeof input !== "object" || input === null) { return 0; }
+    const inputKeys = Object.keys(input);
+    if (inputKeys.length === 0) { return 0; }
+    return inputKeys.map(key => keys.includes(key))
+      .reduce((a, b) => a + (b ? 1 : 0), 0) / inputKeys.length;
+  };
+  const validate_first = function (graph) {
     const prefix_suffix = {
       vertices: ["coords", "vertices", "faces"],
       edges: ["vertices", "faces", "assignment", "foldAngle", "length"],
@@ -5731,21 +6685,14 @@
     return true;
   };
 
-  var validate$1 = /*#__PURE__*/Object.freeze({
+  var validate = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    arrayOfType: arrayOfType,
+    arrayOfArrayOfType: arrayOfArrayOfType,
     possibleFoldObject: possibleFoldObject,
-    edges_assignment: edges_assignment,
-    validate: validate
+    'default': Validate,
+    validate_first: validate_first
   });
-
-  const htmlString$1 = "<!DOCTYPE html><title> </title>";
-  const win$1 = isNode ? {} : window;
-  if (isNode) {
-    const { DOMParser, XMLSerializer } = require("xmldom");
-    win$1.DOMParser = DOMParser;
-    win$1.XMLSerializer = XMLSerializer;
-    win$1.document = new DOMParser().parseFromString(htmlString$1, "text/html");
-  }
 
   const possibleFileName = function (string) {
     return string.length < 128 && string.indexOf(".") !== -1;
@@ -5800,7 +6747,7 @@
           case "fold": return { data: JSON.parse(data), type: filetype };
           case "svg":
           case "oripa": return {
-            data: (new win$1.DOMParser())
+            data: (new win$2.DOMParser())
               .parseFromString(data, "text/xml").documentElement,
             type: filetype
           };
@@ -5814,11 +6761,11 @@
     if (datatype === "string") {
       try {
         const fold = JSON.parse(data);
-        if (possibleFoldObject(fold)) {
+        if (possibleFoldObject(fold) > 0) {
           return { data: fold, type: "fold" };
         }
       } catch (err) {
-        const xml = (new win$1.DOMParser())
+        const xml = (new win$2.DOMParser())
           .parseFromString(data, "text/xml").documentElement;
         if (xml.getElementsByTagName("parsererror").length > 0) {
           if (possibleFileName(data)) {
@@ -5848,862 +6795,6 @@
       }
     }
     return undefined;
-  };
-
-  function _typeof(obj) {
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-    return _typeof(obj);
-  }
-  function _slicedToArray(arr, i) {
-    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
-  }
-  function _toConsumableArray(arr) {
-    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
-  }
-  function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-      return arr2;
-    }
-  }
-  function _arrayWithHoles(arr) {
-    if (Array.isArray(arr)) return arr;
-  }
-  function _iterableToArray(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-  }
-  function _iterableToArrayLimit(arr, i) {
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"] != null) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-    return _arr;
-  }
-  function _nonIterableSpread() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
-  }
-  function _nonIterableRest() {
-    throw new TypeError("Invalid attempt to destructure non-iterable instance");
-  }
-  var make_vertices_edges$1 = function make_vertices_edges(graph) {
-    var vertices_edges = graph.vertices_coords.map(function () {
-      return [];
-    });
-    graph.edges_vertices.forEach(function (ev, i) {
-      return ev.forEach(function (v) {
-        return vertices_edges[v].push(i);
-      });
-    });
-    return vertices_edges;
-  };
-  var get_boundary$1 = function get_boundary(graph) {
-    var edges_vertices_b = graph.edges_assignment.map(function (a) {
-      return a === "B" || a === "b";
-    });
-    var vertices_edges = make_vertices_edges$1(graph);
-    var edge_walk = [];
-    var vertex_walk = [];
-    var edgeIndex = -1;
-    for (var i = 0; i < edges_vertices_b.length; i += 1) {
-      if (edges_vertices_b[i]) {
-        edgeIndex = i;
-        break;
-      }
-    }
-    if (edgeIndex === -1) {
-      return {
-        vertices: [],
-        edges: []
-      };
-    }
-    edges_vertices_b[edgeIndex] = false;
-    edge_walk.push(edgeIndex);
-    vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
-    var nextVertex = graph.edges_vertices[edgeIndex][1];
-    while (vertex_walk[0] !== nextVertex) {
-      vertex_walk.push(nextVertex);
-      edgeIndex = vertices_edges[nextVertex].filter(function (v) {
-        return edges_vertices_b[v];
-      }).shift();
-      if (edgeIndex === undefined) {
-        return {
-          vertices: [],
-          edges: []
-        };
-      }
-      if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
-        var _graph$edges_vertices = _slicedToArray(graph.edges_vertices[edgeIndex], 2);
-        nextVertex = _graph$edges_vertices[1];
-      } else {
-        var _graph$edges_vertices2 = _slicedToArray(graph.edges_vertices[edgeIndex], 1);
-        nextVertex = _graph$edges_vertices2[0];
-      }
-      edges_vertices_b[edgeIndex] = false;
-      edge_walk.push(edgeIndex);
-    }
-    return {
-      vertices: vertex_walk,
-      edges: edge_walk
-    };
-  };
-  var bounding_rect$1 = function bounding_rect(graph) {
-    if ("vertices_coords" in graph === false || graph.vertices_coords.length <= 0) {
-      return [0, 0, 0, 0];
-    }
-    var dimension = graph.vertices_coords[0].length;
-    var min = Array(dimension).fill(Infinity);
-    var max = Array(dimension).fill(-Infinity);
-    graph.vertices_coords.forEach(function (v) {
-      return v.forEach(function (n, i) {
-        if (n < min[i]) {
-          min[i] = n;
-        }
-        if (n > max[i]) {
-          max[i] = n;
-        }
-      });
-    });
-    return isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1]) ? [0, 0, 0, 0] : [min[0], min[1], max[0] - min[0], max[1] - min[1]];
-  };
-  var make_faces_faces$1 = function make_faces_faces(graph) {
-    var nf = graph.faces_vertices.length;
-    var faces_faces = Array.from(Array(nf)).map(function () {
-      return [];
-    });
-    var edgeMap = {};
-    graph.faces_vertices.forEach(function (vertices_index, idx1) {
-      if (vertices_index === undefined) {
-        return;
-      }
-      var n = vertices_index.length;
-      vertices_index.forEach(function (v1, i, vs) {
-        var v2 = vs[(i + 1) % n];
-        if (v2 < v1) {
-          var _ref = [v2, v1];
-          v1 = _ref[0];
-          v2 = _ref[1];
-        }
-        var key = "".concat(v1, " ").concat(v2);
-        if (key in edgeMap) {
-          var idx2 = edgeMap[key];
-          faces_faces[idx1].push(idx2);
-          faces_faces[idx2].push(idx1);
-        } else {
-          edgeMap[key] = idx1;
-        }
-      });
-    });
-    return faces_faces;
-  };
-  var faces_coloring_from_faces_matrix$1 = function faces_coloring_from_faces_matrix(faces_matrix) {
-    return faces_matrix.map(function (m) {
-      return m[0] * m[3] - m[1] * m[2];
-    }).map(function (c) {
-      return c >= 0;
-    });
-  };
-  var faces_coloring = function faces_coloring(graph) {
-    var root_face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var coloring = [];
-    coloring[root_face] = true;
-    make_face_walk_tree$1(graph, root_face).forEach(function (level, i) {
-      level.forEach(function (entry) {
-        coloring[entry.face] = i % 2 === 0;
-      });
-    });
-    return coloring;
-  };
-  var make_face_walk_tree$1 = function make_face_walk_tree(graph) {
-    var root_face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var edge_map = make_vertex_pair_to_edge_map(graph);
-    var new_faces_faces = make_faces_faces$1(graph);
-    if (new_faces_faces.length <= 0) {
-      return [];
-    }
-    var visited = [root_face];
-    var list = [[{
-      face: root_face,
-      parent: undefined,
-      edge: undefined,
-      level: 0
-    }]];
-    do {
-      list[list.length] = list[list.length - 1].map(function (current) {
-        var unique_faces = new_faces_faces[current.face].filter(function (f) {
-          return visited.indexOf(f) === -1;
-        });
-        visited = visited.concat(unique_faces);
-        return unique_faces.map(function (f) {
-          var edge_vertices = graph.faces_vertices[f].filter(function (v) {
-            return graph.faces_vertices[current.face].indexOf(v) !== -1;
-          }).sort(function (a, b) {
-            return a - b;
-          });
-          var edge = edge_map[edge_vertices.join(" ")];
-          return {
-            face: f,
-            parent: current.face,
-            edge: edge,
-            edge_vertices: edge_vertices
-          };
-        });
-      }).reduce(function (prev, curr) {
-        return prev.concat(curr);
-      }, []);
-    } while (list[list.length - 1].length > 0);
-    if (list.length > 0 && list[list.length - 1].length === 0) {
-      list.pop();
-    }
-    return list;
-  };
-  var clone$1 = function clone(o) {
-    var newO;
-    var i;
-    if (_typeof(o) !== "object") {
-      return o;
-    }
-    if (!o) {
-      return o;
-    }
-    if (Object.prototype.toString.apply(o) === "[object Array]") {
-      newO = [];
-      for (i = 0; i < o.length; i += 1) {
-        newO[i] = clone(o[i]);
-      }
-      return newO;
-    }
-    newO = {};
-    for (i in o) {
-      if (o.hasOwnProperty(i)) {
-        newO[i] = clone(o[i]);
-      }
-    }
-    return newO;
-  };
-  var flatten_frame$1 = function flatten_frame(fold_file, frame_num) {
-    if ("file_frames" in fold_file === false || fold_file.file_frames.length < frame_num) {
-      return fold_file;
-    }
-    var dontCopy = ["frame_parent", "frame_inherit"];
-    var memo = {
-      visited_frames: []
-    };
-    var recurse = function recurse(recurse_fold, frame, orderArray) {
-      if (memo.visited_frames.indexOf(frame) !== -1) {
-        throw new Error("encountered a cycle in file_frames. can't flatten.");
-      }
-      memo.visited_frames.push(frame);
-      orderArray = [frame].concat(orderArray);
-      if (frame === 0) {
-        return orderArray;
-      }
-      if (recurse_fold.file_frames[frame - 1].frame_inherit && recurse_fold.file_frames[frame - 1].frame_parent != null) {
-        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
-      }
-      return orderArray;
-    };
-    return recurse(fold_file, frame_num, []).map(function (frame) {
-      if (frame === 0) {
-        var swap = fold_file.file_frames;
-        fold_file.file_frames = null;
-        var copy = clone$1(fold_file);
-        fold_file.file_frames = swap;
-        delete copy.file_frames;
-        dontCopy.forEach(function (key) {
-          return delete copy[key];
-        });
-        return copy;
-      }
-      var outerCopy = clone$1(fold_file.file_frames[frame - 1]);
-      dontCopy.forEach(function (key) {
-        return delete outerCopy[key];
-      });
-      return outerCopy;
-    }).reduce(function (prev, curr) {
-      return Object.assign(prev, curr);
-    }, {});
-  };
-  var isBrowser$2 = typeof window !== "undefined" && typeof window.document !== "undefined";
-  var isNode$2 = typeof process !== "undefined" && process.versions != null && process.versions.node != null;
-  var isWebWorker$1 = (typeof self === "undefined" ? "undefined" : _typeof(self)) === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
-  var htmlString$2 = "<!DOCTYPE html><title>a</title>";
-  var win$2 = !isNode$2 && isBrowser$2 ? window : {};
-  if (isNode$2) {
-    var _require = require("xmldom"),
-        DOMParser$1 = _require.DOMParser,
-        XMLSerializer$1 = _require.XMLSerializer;
-    win$2.DOMParser = DOMParser$1;
-    win$2.XMLSerializer = XMLSerializer$1;
-    win$2.document = new DOMParser$1().parseFromString(htmlString$2, "text/html");
-  }
-  var svgNS = "http://www.w3.org/2000/svg";
-  var svg$1 = function svg() {
-    var svgImage = win$2.document.createElementNS(svgNS, "svg");
-    svgImage.setAttribute("version", "1.1");
-    svgImage.setAttribute("xmlns", svgNS);
-    return svgImage;
-  };
-  var group$1 = function group() {
-    var g = win$2.document.createElementNS(svgNS, "g");
-    return g;
-  };
-  var style$1 = function style() {
-    var s = win$2.document.createElementNS(svgNS, "style");
-    s.setAttribute("type", "text/css");
-    return s;
-  };
-  var setViewBox$1 = function setViewBox(SVG, x, y, width, height) {
-    var padding = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
-    var scale = 1.0;
-    var d = width / scale - width;
-    var X = x - d - padding;
-    var Y = y - d - padding;
-    var W = width + d * 2 + padding * 2;
-    var H = height + d * 2 + padding * 2;
-    var viewBoxString = [X, Y, W, H].join(" ");
-    SVG.setAttributeNS(null, "viewBox", viewBoxString);
-  };
-  var line$1 = function line(x1, y1, x2, y2) {
-    var shape = win$2.document.createElementNS(svgNS, "line");
-    shape.setAttributeNS(null, "x1", x1);
-    shape.setAttributeNS(null, "y1", y1);
-    shape.setAttributeNS(null, "x2", x2);
-    shape.setAttributeNS(null, "y2", y2);
-    return shape;
-  };
-  var circle$1 = function circle(x, y, radius) {
-    var shape = win$2.document.createElementNS(svgNS, "circle");
-    shape.setAttributeNS(null, "cx", x);
-    shape.setAttributeNS(null, "cy", y);
-    shape.setAttributeNS(null, "r", radius);
-    return shape;
-  };
-  var polygon$1 = function polygon(pointsArray) {
-    var shape = win$2.document.createElementNS(svgNS, "polygon");
-    var pointsString = pointsArray.reduce(function (a, b) {
-      return "".concat(a).concat(b[0], ",").concat(b[1], " ");
-    }, "");
-    shape.setAttributeNS(null, "points", pointsString);
-    return shape;
-  };
-  var bezier$1 = function bezier(fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
-    var pts = [[fromX, fromY], [c1X, c1Y], [c2X, c2Y], [toX, toY]].map(function (p) {
-      return p.join(",");
-    });
-    var d = "M ".concat(pts[0], " C ").concat(pts[1], " ").concat(pts[2], " ").concat(pts[3]);
-    var shape = win$2.document.createElementNS(svgNS, "path");
-    shape.setAttributeNS(null, "d", d);
-    return shape;
-  };
-  var arcArrow = function arcArrow(start, end, options) {
-    var p = {
-      color: "#000",
-      strokeWidth: 0.5,
-      width: 0.5,
-      length: 2,
-      bend: 0.3,
-      pinch: 0.618,
-      padding: 0.5,
-      side: true,
-      start: false,
-      end: true,
-      strokeStyle: "",
-      fillStyle: ""
-    };
-    if (_typeof(options) === "object" && options !== null) {
-      Object.assign(p, options);
-    }
-    var arrowFill = ["stroke:none", "fill:".concat(p.color), p.fillStyle].filter(function (a) {
-      return a !== "";
-    }).join(";");
-    var arrowStroke = ["fill:none", "stroke:".concat(p.color), "stroke-width:".concat(p.strokeWidth), p.strokeStyle].filter(function (a) {
-      return a !== "";
-    }).join(";");
-    var startPoint = start;
-    var endPoint = end;
-    var vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
-    var midpoint = [startPoint[0] + vector[0] / 2, startPoint[1] + vector[1] / 2];
-    var len = Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-    var minLength = (p.start ? 1 + p.padding : 0 + p.end ? 1 + p.padding : 0) * p.length * 2.5;
-    if (len < minLength) {
-      var minVec = [vector[0] / len * minLength, vector[1] / len * minLength];
-      startPoint = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
-      endPoint = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
-      vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
-    }
-    var perpendicular = [vector[1], -vector[0]];
-    var bezPoint = [midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend, midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend];
-    var bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
-    var bezEnd = [bezPoint[0] - endPoint[0], bezPoint[1] - endPoint[1]];
-    var bezStartLen = Math.sqrt(bezStart[0] * bezStart[0] + bezStart[1] * bezStart[1]);
-    var bezEndLen = Math.sqrt(bezEnd[0] * bezEnd[0] + bezEnd[1] * bezEnd[1]);
-    var bezStartNorm = [bezStart[0] / bezStartLen, bezStart[1] / bezStartLen];
-    var bezEndNorm = [bezEnd[0] / bezEndLen, bezEnd[1] / bezEndLen];
-    var startHeadVec = [-bezStartNorm[0], -bezStartNorm[1]];
-    var endHeadVec = [-bezEndNorm[0], -bezEndNorm[1]];
-    var startNormal = [startHeadVec[1], -startHeadVec[0]];
-    var endNormal = [endHeadVec[1], -endHeadVec[0]];
-    var arcStart = [startPoint[0] + bezStartNorm[0] * p.length * ((p.start ? 1 : 0) + p.padding), startPoint[1] + bezStartNorm[1] * p.length * ((p.start ? 1 : 0) + p.padding)];
-    var arcEnd = [endPoint[0] + bezEndNorm[0] * p.length * ((p.end ? 1 : 0) + p.padding), endPoint[1] + bezEndNorm[1] * p.length * ((p.end ? 1 : 0) + p.padding)];
-    vector = [arcEnd[0] - arcStart[0], arcEnd[1] - arcStart[1]];
-    perpendicular = [vector[1], -vector[0]];
-    midpoint = [arcStart[0] + vector[0] / 2, arcStart[1] + vector[1] / 2];
-    bezPoint = [midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend, midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend];
-    var controlStart = [arcStart[0] + (bezPoint[0] - arcStart[0]) * p.pinch, arcStart[1] + (bezPoint[1] - arcStart[1]) * p.pinch];
-    var controlEnd = [arcEnd[0] + (bezPoint[0] - arcEnd[0]) * p.pinch, arcEnd[1] + (bezPoint[1] - arcEnd[1]) * p.pinch];
-    var startHeadPoints = [[arcStart[0] + startNormal[0] * -p.width, arcStart[1] + startNormal[1] * -p.width], [arcStart[0] + startNormal[0] * p.width, arcStart[1] + startNormal[1] * p.width], [arcStart[0] + startHeadVec[0] * p.length, arcStart[1] + startHeadVec[1] * p.length]];
-    var endHeadPoints = [[arcEnd[0] + endNormal[0] * -p.width, arcEnd[1] + endNormal[1] * -p.width], [arcEnd[0] + endNormal[0] * p.width, arcEnd[1] + endNormal[1] * p.width], [arcEnd[0] + endHeadVec[0] * p.length, arcEnd[1] + endHeadVec[1] * p.length]];
-    var arrowGroup = win$2.document.createElementNS(svgNS, "g");
-    var arrowArc = bezier$1(arcStart[0], arcStart[1], controlStart[0], controlStart[1], controlEnd[0], controlEnd[1], arcEnd[0], arcEnd[1]);
-    arrowArc.setAttribute("style", arrowStroke);
-    arrowGroup.appendChild(arrowArc);
-    if (p.start) {
-      var startHead = polygon$1(startHeadPoints);
-      startHead.setAttribute("style", arrowFill);
-      arrowGroup.appendChild(startHead);
-    }
-    if (p.end) {
-      var endHead = polygon$1(endHeadPoints);
-      endHead.setAttribute("style", arrowFill);
-      arrowGroup.appendChild(endHead);
-    }
-    return arrowGroup;
-  };
-  var CREASE_NAMES = {
-    B: "boundary",
-    b: "boundary",
-    M: "mountain",
-    m: "mountain",
-    V: "valley",
-    v: "valley",
-    F: "mark",
-    f: "mark",
-    U: "mark",
-    u: "mark"
-  };
-  var faces_sorted_by_layer = function faces_sorted_by_layer(faces_layer) {
-    return faces_layer.map(function (layer, i) {
-      return {
-        layer: layer,
-        i: i
-      };
-    }).sort(function (a, b) {
-      return a.layer - b.layer;
-    }).map(function (el) {
-      return el.i;
-    });
-  };
-  var make_faces_sidedness = function make_faces_sidedness(graph) {
-    var coloring = graph["faces_re:coloring"];
-    if (coloring == null) {
-      coloring = "faces_re:matrix" in graph ? faces_coloring_from_faces_matrix$1(graph["faces_re:matrix"]) : faces_coloring(graph, 0);
-    }
-    return coloring.map(function (c) {
-      return c ? "front" : "back";
-    });
-  };
-  var finalize_faces = function finalize_faces(graph, svg_faces) {
-    var orderIsCertain = graph["faces_re:layer"] != null && graph["faces_re:layer"].length === graph.faces_vertices.length;
-    if (orderIsCertain) {
-      make_faces_sidedness(graph).forEach(function (side, i) {
-        return svg_faces[i].setAttribute("class", side);
-      });
-    }
-    return orderIsCertain ? faces_sorted_by_layer(graph["faces_re:layer"]).map(function (i) {
-      return svg_faces[i];
-    }) : svg_faces;
-  };
-  var make_edge_assignment_names = function make_edge_assignment_names(graph) {
-    return graph.edges_vertices == null || graph.edges_assignment == null || graph.edges_vertices.length !== graph.edges_assignment.length ? [] : graph.edges_assignment.map(function (a) {
-      return CREASE_NAMES[a];
-    });
-  };
-  var svgBoundaries = function svgBoundaries(graph) {
-    if ("vertices_coords" in graph === false || "edges_vertices" in graph === false || "edges_assignment" in graph === false) {
-      return [];
-    }
-    var boundary = get_boundary$1(graph).vertices.map(function (v) {
-      return graph.vertices_coords[v];
-    });
-    var p = polygon$1(boundary);
-    p.setAttribute("class", "boundary");
-    return [p];
-  };
-  var svgVertices = function svgVertices(graph, options) {
-    if ("vertices_coords" in graph === false) {
-      return [];
-    }
-    var radius = options && options.radius ? options.radius : 0.01;
-    var svg_vertices = graph.vertices_coords.map(function (v) {
-      return circle$1(v[0], v[1], radius);
-    });
-    svg_vertices.forEach(function (c, i) {
-      return c.setAttribute("id", "".concat(i));
-    });
-    return svg_vertices;
-  };
-  var svgEdges = function svgEdges(graph) {
-    if ("edges_vertices" in graph === false || "vertices_coords" in graph === false) {
-      return [];
-    }
-    var svg_edges = graph.edges_vertices.map(function (ev) {
-      return ev.map(function (v) {
-        return graph.vertices_coords[v];
-      });
-    }).map(function (e) {
-      return line$1(e[0][0], e[0][1], e[1][0], e[1][1]);
-    });
-    svg_edges.forEach(function (edge, i) {
-      return edge.setAttribute("id", "".concat(i));
-    });
-    make_edge_assignment_names(graph).forEach(function (a, i) {
-      return svg_edges[i].setAttribute("class", a);
-    });
-    return svg_edges;
-  };
-  var svgFacesVertices = function svgFacesVertices(graph) {
-    if ("faces_vertices" in graph === false || "vertices_coords" in graph === false) {
-      return [];
-    }
-    var svg_faces = graph.faces_vertices.map(function (fv) {
-      return fv.map(function (v) {
-        return graph.vertices_coords[v];
-      });
-    }).map(function (face) {
-      return polygon$1(face);
-    });
-    svg_faces.forEach(function (face, i) {
-      return face.setAttribute("id", "".concat(i));
-    });
-    return finalize_faces(graph, svg_faces);
-  };
-  var svgFacesEdges = function svgFacesEdges(graph) {
-    if ("faces_edges" in graph === false || "edges_vertices" in graph === false || "vertices_coords" in graph === false) {
-      return [];
-    }
-    var svg_faces = graph.faces_edges.map(function (face_edges) {
-      return face_edges.map(function (edge) {
-        return graph.edges_vertices[edge];
-      }).map(function (vi, i, arr) {
-        var next = arr[(i + 1) % arr.length];
-        return vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1];
-      }).map(function (v) {
-        return graph.vertices_coords[v];
-      });
-    }).map(function (face) {
-      return polygon$1(face);
-    });
-    svg_faces.forEach(function (face, i) {
-      return face.setAttribute("id", "".concat(i));
-    });
-    return finalize_faces(graph, svg_faces);
-  };
-  var defaultStyle = "svg * {\n  stroke-width: var(--crease-width);\n  stroke-linecap: round;\n  stroke: black;\n}\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern polygon { fill: white; stroke: none; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
-  function vkXML$1 (text, step) {
-    var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
-    var len = ar.length;
-    var inComment = false;
-    var deep = 0;
-    var str = "";
-    var space = step != null && typeof step === "string" ? step : "\t";
-    var shift = ["\n"];
-    for (var si = 0; si < 100; si += 1) {
-      shift.push(shift[si] + space);
-    }
-    for (var ix = 0; ix < len; ix += 1) {
-      if (ar[ix].search(/<!/) > -1) {
-        str += shift[deep] + ar[ix];
-        inComment = true;
-        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1 || ar[ix].search(/!DOCTYPE/) > -1) {
-          inComment = false;
-        }
-      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
-        str += ar[ix];
-        inComment = false;
-      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix]) && /^<[\w:\-\.\,]+/.exec(ar[ix - 1]) == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
-        str += ar[ix];
-        if (!inComment) {
-          deep -= 1;
-        }
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1 && ar[ix].search(/\/>/) === -1) {
-        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/\/>/) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\?/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else {
-        str += ar[ix];
-      }
-    }
-    return str[0] === "\n" ? str.slice(1) : str;
-  }
-  var document$1 = win$2.document;
-  var svgNS$1 = "http://www.w3.org/2000/svg";
-  var shadowFilter = function shadowFilter() {
-    var id_name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "shadow";
-    var defs = document$1.createElementNS(svgNS$1, "defs");
-    var filter = document$1.createElementNS(svgNS$1, "filter");
-    filter.setAttribute("width", "200%");
-    filter.setAttribute("height", "200%");
-    filter.setAttribute("id", id_name);
-    var blur = document$1.createElementNS(svgNS$1, "feGaussianBlur");
-    blur.setAttribute("in", "SourceAlpha");
-    blur.setAttribute("stdDeviation", "0.005");
-    blur.setAttribute("result", "blur");
-    var offset = document$1.createElementNS(svgNS$1, "feOffset");
-    offset.setAttribute("in", "blur");
-    offset.setAttribute("result", "offsetBlur");
-    var flood = document$1.createElementNS(svgNS$1, "feFlood");
-    flood.setAttribute("flood-color", "#000");
-    flood.setAttribute("flood-opacity", "0.3");
-    flood.setAttribute("result", "offsetColor");
-    var composite = document$1.createElementNS(svgNS$1, "feComposite");
-    composite.setAttribute("in", "offsetColor");
-    composite.setAttribute("in2", "offsetBlur");
-    composite.setAttribute("operator", "in");
-    composite.setAttribute("result", "offsetBlur");
-    var merge = document$1.createElementNS(svgNS$1, "feMerge");
-    var mergeNode1 = document$1.createElementNS(svgNS$1, "feMergeNode");
-    var mergeNode2 = document$1.createElementNS(svgNS$1, "feMergeNode");
-    mergeNode2.setAttribute("in", "SourceGraphic");
-    merge.appendChild(mergeNode1);
-    merge.appendChild(mergeNode2);
-    defs.appendChild(filter);
-    filter.appendChild(blur);
-    filter.appendChild(offset);
-    filter.appendChild(flood);
-    filter.appendChild(composite);
-    filter.appendChild(merge);
-    return defs;
-  };
-  function renderDiagrams (graph, renderGroup) {
-    if (graph["re:diagrams"] === undefined) {
-      return;
-    }
-    if (graph["re:diagrams"].length === 0) {
-      return;
-    }
-    Array.from(graph["re:diagrams"]).forEach(function (instruction) {
-      if ("re:diagram_lines" in instruction === true) {
-        instruction["re:diagram_lines"].forEach(function (crease) {
-          var creaseClass = "re:diagram_line_classes" in crease ? crease["re:diagram_line_classes"].join(" ") : "valley";
-          var pts = crease["re:diagram_line_coords"];
-          if (pts !== undefined) {
-            var l = line$1(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
-            l.setAttribute("class", creaseClass);
-            renderGroup.appendChild(l);
-          }
-        });
-      }
-      if ("re:diagram_arrows" in instruction === true) {
-        var r = bounding_rect$1(graph);
-        var vmin = r[2] > r[3] ? r[3] : r[2];
-        var prefs = {
-          length: vmin * 0.09,
-          width: vmin * 0.035,
-          strokeWidth: vmin * 0.02
-        };
-        instruction["re:diagram_arrows"].forEach(function (arrowInst) {
-          if (arrowInst["re:diagram_arrow_coords"].length === 2) {
-            var p = arrowInst["re:diagram_arrow_coords"];
-            var side = p[0][0] < p[1][0];
-            if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
-              side = p[0][1] < p[1][1] ? p[0][0] < 0.5 : p[0][0] > 0.5;
-            }
-            if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
-              side = p[0][0] < p[1][0] ? p[0][1] > 0.5 : p[0][1] < 0.5;
-            }
-            prefs.side = side;
-            var arrow = arcArrow(p[0], p[1], prefs);
-            renderGroup.appendChild(arrow);
-          }
-        });
-      }
-    });
-  }
-  var DISPLAY_NAME = {
-    vertices: "vertices",
-    edges: "creases",
-    faces: "faces",
-    boundaries: "boundaries"
-  };
-  var svgFaces = function svgFaces(graph) {
-    if ("faces_vertices" in graph === true) {
-      return svgFacesVertices(graph);
-    }
-    if ("faces_edges" in graph === true) {
-      return svgFacesEdges(graph);
-    }
-    return [];
-  };
-  var components = {
-    vertices: svgVertices,
-    edges: svgEdges,
-    faces: svgFaces,
-    boundaries: svgBoundaries
-  };
-  var all_classes = function all_classes(graph) {
-    var file_classes = (graph.file_classes != null ? graph.file_classes : []).join(" ");
-    var frame_classes = (graph.frame_classes != null ? graph.frame_classes : []).join(" ");
-    return [file_classes, frame_classes].filter(function (s) {
-      return s !== "";
-    }).join(" ");
-  };
-  var clean_number$1 = function clean_number(num) {
-    var places = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 14;
-    return parseFloat(num.toFixed(places));
-  };
-  var fold_to_svg = function fold_to_svg(fold) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var graph = fold;
-    if (graph.vertices_coords != null) {
-      graph.vertices_coordsPreClean = graph.vertices_coords;
-      graph.vertices_coords = JSON.parse(JSON.stringify(graph.vertices_coords)).map(function (v) {
-        return v.map(function (n) {
-          return clean_number$1(n);
-        });
-      });
-    }
-    var o = {
-      defaults: true,
-      width: "500px",
-      height: "500px",
-      inlineStyle: true,
-      stylesheet: defaultStyle,
-      shadows: false,
-      padding: 0,
-      viewBox: null,
-      diagram: true,
-      boundaries: true,
-      faces: true,
-      edges: true,
-      vertices: false
-    };
-    Object.assign(o, options);
-    if (o.frame != null) {
-      graph = flatten_frame$1(fold, o.frame);
-    }
-    if (o.svg == null) {
-      o.svg = svg$1();
-    }
-    o.svg.setAttribute("class", all_classes(graph));
-    o.svg.setAttribute("width", o.width);
-    o.svg.setAttribute("height", o.height);
-    var styleElement = style$1();
-    o.svg.appendChild(styleElement);
-    var groups = {};
-    ["boundaries", "faces", "edges", "vertices"].filter(function (key) {
-      return o[key];
-    }).forEach(function (key) {
-      groups[key] = group$1();
-      groups[key].setAttribute("class", DISPLAY_NAME[key]);
-      o.svg.appendChild(groups[key]);
-    });
-    Object.keys(groups).forEach(function (key) {
-      return components[key](graph).forEach(function (a) {
-        return groups[key].appendChild(a);
-      });
-    });
-    if ("re:diagrams" in graph && o.diagram) {
-      var instructionLayer = group$1();
-      o.svg.appendChild(instructionLayer);
-      renderDiagrams(graph, instructionLayer);
-    }
-    if (o.shadows) {
-      var shadow_id = "face_shadow";
-      var filter = shadowFilter(shadow_id);
-      o.svg.appendChild(filter);
-      Array.from(groups.faces.childNodes).forEach(function (f) {
-        return f.setAttribute("filter", "url(#".concat(shadow_id, ")"));
-      });
-    }
-    var rect = bounding_rect$1(graph);
-    if (o.viewBox != null) {
-      setViewBox$1.apply(void 0, [o.svg].concat(_toConsumableArray(o.viewBox), [o.padding]));
-    } else {
-      setViewBox$1.apply(void 0, [o.svg].concat(_toConsumableArray(rect), [o.padding]));
-    }
-    if (graph.vertices_coordsPreClean != null) {
-      graph.vertices_coords = graph.vertices_coordsPreClean;
-      delete graph.vertices_coordsPreClean;
-    }
-    if (o.inlineStyle) {
-      var vmin = rect[2] > rect[3] ? rect[3] : rect[2];
-      var innerStyle = "\nsvg { --crease-width: ".concat(vmin * 0.005, "; }\n").concat(o.stylesheet);
-      var docu = new win$2.DOMParser().parseFromString("<xml></xml>", "application/xml");
-      var cdata = docu.createCDATASection(innerStyle);
-      styleElement.appendChild(cdata);
-    }
-    var stringified = new win$2.XMLSerializer().serializeToString(o.svg);
-    var beautified = vkXML$1(stringified);
-    return beautified;
-  };
-  var getObject = function getObject(input) {
-    if (_typeof(input) === "object" && input !== null) {
-      return input;
-    }
-    if (typeof input === "string" || input instanceof String) {
-      try {
-        var obj = JSON.parse(input);
-        return obj;
-      } catch (error) {
-        throw error;
-      }
-    }
-    throw new Error("couldn't recognize input. looking for string or object");
-  };
-  var svg$1$1 = function svg(input, options) {
-    try {
-      var fold = getObject(input);
-      return fold_to_svg(fold, options);
-    } catch (error) {
-      throw error;
-    }
-  };
-  var webGL = function webGL() {};
-  var drawFOLD = {
-    svg: svg$1$1,
-    webGL: webGL,
-    components: {
-      svg: {
-        boundaries: svgBoundaries,
-        vertices: svgVertices,
-        edges: svgEdges,
-        faces: svgFacesVertices,
-        faces_vertices: svgFacesVertices,
-        faces_edges: svgFacesEdges
-      },
-      webGL: {}
-    }
   };
 
   var geom = {},
@@ -8402,14 +8493,19 @@
     && process.versions != null
     && process.versions.node != null;
 
-  const htmlString$3 = "<!DOCTYPE html><title>a</title>";
-  const win$3 = !isNode$3 && isBrowser$3 ? window : {};
-  if (isNode$3) {
-    const { DOMParser, XMLSerializer } = require("xmldom");
-    win$3.DOMParser = DOMParser;
-    win$3.XMLSerializer = XMLSerializer;
-    win$3.document = new DOMParser().parseFromString(htmlString$3, "text/html");
-  }
+  const htmlString$3 = "<!DOCTYPE html><title> </title>";
+  const win$3 = (function () {
+    let w = {};
+    if (isNode$3) {
+      const { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString$3, "text/html");
+    } else if (isBrowser$3) {
+      w = window;
+    }
+    return w;
+  }());
 
   var css_colors = {
     "black": "#000000",
@@ -8624,7 +8720,7 @@
     }
     return true;
   };
-  const edge_edge_comp_exclusive = (t0, t1) => t0 > EPSILON$1 && t0 < 1 - EPSILON$1 && t1 > EPSILON$1
+  const segment_segment_comp_exclusive$1 = (t0, t1) => t0 > EPSILON$1 && t0 < 1 - EPSILON$1 && t1 > EPSILON$1
     && t1 < 1 - EPSILON$1;
   const intersection_function$1 = function (aPt, aVec, bPt, bVec, compFunc, epsilon = EPSILON$1) {
     function det(a, b) { return a[0] * b[1] - b[0] * a[1]; }
@@ -8640,10 +8736,10 @@
     }
     return undefined;
   };
-  const edge_edge_exclusive = function (a0, a1, b0, b1, epsilon) {
+  const segment_segment_exclusive$1 = function (a0, a1, b0, b1, epsilon) {
     const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
     const bVec = [b1[0] - b0[0], b1[1] - b0[1]];
-    return intersection_function$1(a0, aVec, b0, bVec, edge_edge_comp_exclusive, epsilon);
+    return intersection_function$1(a0, aVec, b0, bVec, segment_segment_comp_exclusive$1, epsilon);
   };
   const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = EPSILON$1) {
     const edge0_1 = [edge0[0] - edge1[0], edge0[1] - edge1[1]];
@@ -8662,39 +8758,39 @@
       equivalent: equivalent$1,
       point_on_edge_exclusive,
       intersection: {
-        edge_edge_exclusive
+        segment_segment_exclusive: segment_segment_exclusive$1
       }
     }
   };
 
-  const max_array_length$1 = function (...arrays) {
+  const max_array_length$2 = function (...arrays) {
     return Math.max(...(arrays
       .filter(el => el !== undefined)
       .map(el => el.length)));
   };
-  const vertices_count$1 = function ({
+  const vertices_count$2 = function ({
     vertices_coords, vertices_faces, vertices_vertices
   }) {
-    return max_array_length$1([], vertices_coords,
+    return max_array_length$2([], vertices_coords,
       vertices_faces, vertices_vertices);
   };
-  const edges_count$1 = function ({
+  const edges_count$2 = function ({
     edges_vertices, edges_faces
   }) {
-    return max_array_length$1([], edges_vertices, edges_faces);
+    return max_array_length$2([], edges_vertices, edges_faces);
   };
-  const faces_count$1 = function ({
+  const faces_count$2 = function ({
     faces_vertices, faces_edges
   }) {
-    return max_array_length$1([], faces_vertices, faces_edges);
+    return max_array_length$2([], faces_vertices, faces_edges);
   };
-  const get_geometry_length = {
-    vertices: vertices_count$1,
-    edges: edges_count$1,
-    faces: faces_count$1
+  const get_geometry_length$1 = {
+    vertices: vertices_count$2,
+    edges: edges_count$2,
+    faces: faces_count$2
   };
-  const remove_geometry_key_indices = function (graph, key, removeIndices) {
-    const geometry_array_size = get_geometry_length[key](graph);
+  const remove_geometry_key_indices$1 = function (graph, key, removeIndices) {
+    const geometry_array_size = get_geometry_length$1[key](graph);
     const removes = Array(geometry_array_size).fill(false);
     removeIndices.forEach((v) => { removes[v] = true; });
     let s = 0;
@@ -8752,7 +8848,7 @@
     const crossings = Array.from(Array(edge_count - 1)).map(() => []);
     for (let i = 0; i < edges.length - 1; i += 1) {
       for (let j = i + 1; j < edges.length; j += 1) {
-        crossings[i][j] = math$1.core.intersection.edge_edge_exclusive(
+        crossings[i][j] = math$1.core.intersection.segment_segment_exclusive(
           edges[i][0], edges[i][1],
           edges[j][0], edges[j][1],
           epsilon
@@ -8870,7 +8966,7 @@
     const vertices_remove_indices = vertices_remove
       .map((rm, i) => (rm ? i : undefined))
       .filter(i => i !== undefined);
-    remove_geometry_key_indices(flat, "vertices", vertices_remove_indices);
+    remove_geometry_key_indices$1(flat, "vertices", vertices_remove_indices);
     return flat;
   };
 
@@ -8932,37 +9028,78 @@
     return edges;
   };
 
-  function _toConsumableArray$1(arr) {
-    return _arrayWithoutHoles$1(arr) || _iterableToArray$1(arr) || _nonIterableSpread$1();
-  }
-  function _arrayWithoutHoles$1(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-      return arr2;
+  function vkXML$2 (text, step) {
+    const ar = text.replace(/>\s{0,}</g, "><")
+      .replace(/</g, "~::~<")
+      .replace(/\s*xmlns\:/g, "~::~xmlns:")
+      .split("~::~");
+    const len = ar.length;
+    let inComment = false;
+    let deep = 0;
+    let str = "";
+    const space = (step != null && typeof step === "string" ? step : "\t");
+    const shift = ["\n"];
+    for (let si = 0; si < 100; si += 1) {
+      shift.push(shift[si] + space);
     }
+    for (let ix = 0; ix < len; ix += 1) {
+      if (ar[ix].search(/<!/) > -1) {
+        str += shift[deep] + ar[ix];
+        inComment = true;
+        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+          || ar[ix].search(/!DOCTYPE/) > -1) {
+          inComment = false;
+        }
+      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
+        str += ar[ix];
+        inComment = false;
+      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
+        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
+        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
+        str += ar[ix];
+        if (!inComment) { deep -= 1; }
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
+        && ar[ix].search(/\/>/) === -1) {
+        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/\/>/) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\?/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else {
+        str += ar[ix];
+      }
+    }
+    return (str[0] === "\n") ? str.slice(1) : str;
   }
-  function _iterableToArray$1(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-  }
-  function _nonIterableSpread$1() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
-  }
-  var length = {
-    a: 7,
-    c: 6,
-    h: 1,
-    l: 2,
-    m: 2,
-    q: 4,
-    s: 4,
-    t: 2,
-    v: 1,
-    z: 0
-  };
+  const isBrowser$4 = typeof window !== "undefined"
+    && typeof window.document !== "undefined";
+  const isNode$4 = typeof process !== "undefined"
+    && process.versions != null
+    && process.versions.node != null;
+    const htmlString$4 = "<!DOCTYPE html><title> </title>";
+  const win$4 = (function () {
+    let w = {};
+    if (isNode$4) {
+      const { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString$4, "text/html");
+    } else if (isBrowser$4) {
+      w = window;
+    }
+    return w;
+  }());
+  var length = {a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0};
   var segment = /([astvzqmhlc])([^astvzqmhlc]*)/ig;
-  function parse (path) {
+  function parse(path) {
     var data = [];
-    path.replace(segment, function (_, command, args) {
+    path.replace(segment, function(_, command, args){
       var type = command.toLowerCase();
       args = parseValues(args);
       if (type === 'm' && args.length > 2) {
@@ -8988,27 +9125,15 @@
     var numbers = args.match(number);
     return numbers ? numbers.map(Number) : [];
   }
-  function Bezier (ax, ay, bx, by, cx, cy, dx, dy) {
+  function Bezier(ax, ay, bx, by, cx, cy, dx, dy) {
     return new Bezier$1(ax, ay, bx, by, cx, cy, dx, dy);
   }
   function Bezier$1(ax, ay, bx, by, cx, cy, dx, dy) {
-    this.a = {
-      x: ax,
-      y: ay
-    };
-    this.b = {
-      x: bx,
-      y: by
-    };
-    this.c = {
-      x: cx,
-      y: cy
-    };
-    this.d = {
-      x: dx,
-      y: dy
-    };
-    if (dx !== null && dx !== undefined && dy !== null && dy !== undefined) {
+    this.a = {x:ax, y:ay};
+    this.b = {x:bx, y:by};
+    this.c = {x:cx, y:cy};
+    this.d = {x:dx, y:dy};
+    if(dx !== null && dx !== undefined && dy !== null && dy !== undefined){
       this.getArcLength = getCubicArcLength;
       this.getPoint = cubicPoint;
       this.getDerivative = cubicDerivative;
@@ -9021,75 +9146,73 @@
   }
   Bezier$1.prototype = {
     constructor: Bezier$1,
-    init: function init() {
-      this.length = this.getArcLength([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y]);
+    init: function() {
+      this.length = this.getArcLength([this.a.x, this.b.x, this.c.x, this.d.x],
+                                      [this.a.y, this.b.y, this.c.y, this.d.y]);
     },
-    getTotalLength: function getTotalLength() {
+    getTotalLength: function() {
       return this.length;
     },
-    getPointAtLength: function getPointAtLength(length) {
-      var t = t2length(length, this.length, this.getArcLength, [this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y]);
-      return this.getPoint([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y], t);
+    getPointAtLength: function(length) {
+      var t = t2length(length, this.length, this.getArcLength,
+                      [this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y]);
+      return this.getPoint([this.a.x, this.b.x, this.c.x, this.d.x],
+                                      [this.a.y, this.b.y, this.c.y, this.d.y],
+                                    t);
     },
-    getTangentAtLength: function getTangentAtLength(length) {
-      var t = t2length(length, this.length, this.getArcLength, [this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y]);
-      var derivative = this.getDerivative([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y], t);
+    getTangentAtLength: function(length){
+      var t = t2length(length, this.length, this.getArcLength,
+                      [this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y]);
+      var derivative = this.getDerivative([this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y], t);
       var mdl = Math.sqrt(derivative.x * derivative.x + derivative.y * derivative.y);
       var tangent;
-      if (mdl > 0) {
-        tangent = {
-          x: derivative.x / mdl,
-          y: derivative.y / mdl
-        };
+      if (mdl > 0){
+        tangent = {x: derivative.x/mdl, y: derivative.y/mdl};
       } else {
-        tangent = {
-          x: 0,
-          y: 0
-        };
+        tangent = {x: 0, y: 0};
       }
       return tangent;
     },
-    getPropertiesAtLength: function getPropertiesAtLength(length) {
-      var t = t2length(length, this.length, this.getArcLength, [this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y]);
-      var derivative = this.getDerivative([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y], t);
+    getPropertiesAtLength: function(length){
+      var t = t2length(length, this.length, this.getArcLength,
+                      [this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y]);
+      var derivative = this.getDerivative([this.a.x, this.b.x, this.c.x, this.d.x],
+                      [this.a.y, this.b.y, this.c.y, this.d.y], t);
       var mdl = Math.sqrt(derivative.x * derivative.x + derivative.y * derivative.y);
       var tangent;
-      if (mdl > 0) {
-        tangent = {
-          x: derivative.x / mdl,
-          y: derivative.y / mdl
-        };
+      if (mdl > 0){
+        tangent = {x: derivative.x/mdl, y: derivative.y/mdl};
       } else {
-        tangent = {
-          x: 0,
-          y: 0
-        };
+        tangent = {x: 0, y: 0};
       }
-      var point = this.getPoint([this.a.x, this.b.x, this.c.x, this.d.x], [this.a.y, this.b.y, this.c.y, this.d.y], t);
-      return {
-        x: point.x,
-        y: point.y,
-        tangentX: tangent.x,
-        tangentY: tangent.y
-      };
+      var point = this.getPoint([this.a.x, this.b.x, this.c.x, this.d.x],
+                                      [this.a.y, this.b.y, this.c.y, this.d.y],
+                                    t);
+      return {x: point.x, y: point.y, tangentX: tangent.x, tangentY: tangent.y};
     }
   };
-  function quadraticDerivative(xs, ys, t) {
-    return {
-      x: (1 - t) * 2 * (xs[1] - xs[0]) + t * 2 * (xs[2] - xs[1]),
-      y: (1 - t) * 2 * (ys[1] - ys[0]) + t * 2 * (ys[2] - ys[1])
+  function quadraticDerivative(xs, ys, t){
+    return {x: (1 - t) * 2*(xs[1] - xs[0]) +t * 2*(xs[2] - xs[1]),
+      y: (1 - t) * 2*(ys[1] - ys[0]) +t * 2*(ys[2] - ys[1])
     };
   }
-  function cubicDerivative(xs, ys, t) {
-    var derivative = quadraticPoint([3 * (xs[1] - xs[0]), 3 * (xs[2] - xs[1]), 3 * (xs[3] - xs[2])], [3 * (ys[1] - ys[0]), 3 * (ys[2] - ys[1]), 3 * (ys[3] - ys[2])], t);
+  function cubicDerivative(xs, ys, t){
+    var derivative = quadraticPoint(
+              [3*(xs[1] - xs[0]), 3*(xs[2] - xs[1]), 3*(xs[3] - xs[2])],
+              [3*(ys[1] - ys[0]), 3*(ys[2] - ys[1]), 3*(ys[3] - ys[2])],
+              t);
     return derivative;
   }
-  function t2length(length, total_length, func, xs, ys) {
+  function t2length(length, total_length, func, xs, ys){
     var error = 1;
-    var t = length / total_length;
-    var step = (length - func(xs, ys, t)) / total_length;
+    var t = length/total_length;
+    var step = (length - func(xs, ys, t))/total_length;
     var numIterations = 0;
-    while (error > 0.001) {
+    while (error > 0.001){
       var increasedTLength = func(xs, ys, t + step);
       var decreasedTLength = func(xs, ys, t - step);
       var increasedTError = Math.abs(length - increasedTLength) / total_length;
@@ -9104,53 +9227,104 @@
         step /= 2;
       }
       numIterations++;
-      if (numIterations > 500) {
+      if(numIterations > 500){
         break;
       }
     }
     return t;
   }
-  function quadraticPoint(xs, ys, t) {
+  function quadraticPoint(xs, ys, t){
     var x = (1 - t) * (1 - t) * xs[0] + 2 * (1 - t) * t * xs[1] + t * t * xs[2];
     var y = (1 - t) * (1 - t) * ys[0] + 2 * (1 - t) * t * ys[1] + t * t * ys[2];
-    return {
-      x: x,
-      y: y
-    };
+    return {x: x, y: y};
   }
-  function cubicPoint(xs, ys, t) {
-    var x = (1 - t) * (1 - t) * (1 - t) * xs[0] + 3 * (1 - t) * (1 - t) * t * xs[1] + 3 * (1 - t) * t * t * xs[2] + t * t * t * xs[3];
-    var y = (1 - t) * (1 - t) * (1 - t) * ys[0] + 3 * (1 - t) * (1 - t) * t * ys[1] + 3 * (1 - t) * t * t * ys[2] + t * t * t * ys[3];
-    return {
-      x: x,
-      y: y
-    };
+  function cubicPoint(xs, ys, t){
+    var x = (1 - t) * (1 - t) * (1 - t) * xs[0] + 3 * (1 - t) * (1 - t) * t * xs[1] +
+    3 * (1 - t) * t * t * xs[2] + t * t * t * xs[3];
+    var y = (1 - t) * (1 - t) * (1 - t) * ys[0] + 3 * (1 - t) * (1 - t) * t * ys[1] +
+    3 * (1 - t) * t * t * ys[2] + t * t * t * ys[3];
+    return {x: x, y: y};
   }
   function getQuadraticArcLength(xs, ys, t) {
     if (t === undefined) {
       t = 1;
     }
-    var ax = xs[0] - 2 * xs[1] + xs[2];
-    var ay = ys[0] - 2 * ys[1] + ys[2];
-    var bx = 2 * xs[1] - 2 * xs[0];
-    var by = 2 * ys[1] - 2 * ys[0];
-    var A = 4 * (ax * ax + ay * ay);
-    var B = 4 * (ax * bx + ay * by);
-    var C = bx * bx + by * by;
-    if (A === 0) {
-      return t * Math.sqrt(Math.pow(xs[2] - xs[0], 2) + Math.pow(ys[2] - ys[0], 2));
-    }
-    var b = B / (2 * A);
-    var c = C / A;
-    var u = t + b;
-    var k = c - b * b;
-    var uuk = u * u + k > 0 ? Math.sqrt(u * u + k) : 0;
-    var bbk = b * b + k > 0 ? Math.sqrt(b * b + k) : 0;
-    var term = b + Math.sqrt(b * b + k) !== 0 ? k * Math.log(Math.abs((u + uuk) / (b + bbk))) : 0;
-    return Math.sqrt(A) / 2 * (u * uuk - b * bbk + term);
+     var ax = xs[0] - 2 * xs[1] + xs[2];
+     var ay = ys[0] - 2 * ys[1] + ys[2];
+     var bx = 2 * xs[1] - 2 * xs[0];
+     var by = 2 * ys[1] - 2 * ys[0];
+     var A = 4 * (ax * ax + ay * ay);
+     var B = 4 * (ax * bx + ay * by);
+     var C = bx * bx + by * by;
+     if(A === 0){
+       return t * Math.sqrt(Math.pow(xs[2] - xs[0], 2) + Math.pow(ys[2] - ys[0], 2));
+     }
+     var b = B/(2*A);
+     var c = C/A;
+     var u = t + b;
+     var k = c - b*b;
+     var uuk = (u*u+k)>0?Math.sqrt(u*u+k):0;
+     var bbk = (b*b+k)>0?Math.sqrt(b*b+k):0;
+     var term = ((b+Math.sqrt(b*b+k)))!==0?k*Math.log(Math.abs((u+uuk)/(b+bbk))):0;
+     return (Math.sqrt(A)/2)*(
+       u*uuk-b*bbk+
+       term
+     );
   }
-  var tValues = [[], [], [-0.5773502691896257, 0.5773502691896257], [0, -0.7745966692414834, 0.7745966692414834], [-0.33998104358485626, 0.33998104358485626, -0.8611363115940526, 0.8611363115940526], [0, -0.5384693101056831, 0.5384693101056831, -0.906179845938664, 0.906179845938664], [0.6612093864662645, -0.6612093864662645, -0.2386191860831969, 0.2386191860831969, -0.932469514203152, 0.932469514203152], [0, 0.4058451513773972, -0.4058451513773972, -0.7415311855993945, 0.7415311855993945, -0.9491079123427585, 0.9491079123427585], [-0.1834346424956498, 0.1834346424956498, -0.525532409916329, 0.525532409916329, -0.7966664774136267, 0.7966664774136267, -0.9602898564975363, 0.9602898564975363], [0, -0.8360311073266358, 0.8360311073266358, -0.9681602395076261, 0.9681602395076261, -0.3242534234038089, 0.3242534234038089, -0.6133714327005904, 0.6133714327005904], [-0.14887433898163122, 0.14887433898163122, -0.4333953941292472, 0.4333953941292472, -0.6794095682990244, 0.6794095682990244, -0.8650633666889845, 0.8650633666889845, -0.9739065285171717, 0.9739065285171717], [0, -0.26954315595234496, 0.26954315595234496, -0.5190961292068118, 0.5190961292068118, -0.7301520055740494, 0.7301520055740494, -0.8870625997680953, 0.8870625997680953, -0.978228658146057, 0.978228658146057], [-0.1252334085114689, 0.1252334085114689, -0.3678314989981802, 0.3678314989981802, -0.5873179542866175, 0.5873179542866175, -0.7699026741943047, 0.7699026741943047, -0.9041172563704749, 0.9041172563704749, -0.9815606342467192, 0.9815606342467192], [0, -0.2304583159551348, 0.2304583159551348, -0.44849275103644687, 0.44849275103644687, -0.6423493394403402, 0.6423493394403402, -0.8015780907333099, 0.8015780907333099, -0.9175983992229779, 0.9175983992229779, -0.9841830547185881, 0.9841830547185881], [-0.10805494870734367, 0.10805494870734367, -0.31911236892788974, 0.31911236892788974, -0.5152486363581541, 0.5152486363581541, -0.6872929048116855, 0.6872929048116855, -0.827201315069765, 0.827201315069765, -0.9284348836635735, 0.9284348836635735, -0.9862838086968123, 0.9862838086968123], [0, -0.20119409399743451, 0.20119409399743451, -0.3941513470775634, 0.3941513470775634, -0.5709721726085388, 0.5709721726085388, -0.7244177313601701, 0.7244177313601701, -0.8482065834104272, 0.8482065834104272, -0.937273392400706, 0.937273392400706, -0.9879925180204854, 0.9879925180204854], [-0.09501250983763744, 0.09501250983763744, -0.2816035507792589, 0.2816035507792589, -0.45801677765722737, 0.45801677765722737, -0.6178762444026438, 0.6178762444026438, -0.755404408355003, 0.755404408355003, -0.8656312023878318, 0.8656312023878318, -0.9445750230732326, 0.9445750230732326, -0.9894009349916499, 0.9894009349916499], [0, -0.17848418149584785, 0.17848418149584785, -0.3512317634538763, 0.3512317634538763, -0.5126905370864769, 0.5126905370864769, -0.6576711592166907, 0.6576711592166907, -0.7815140038968014, 0.7815140038968014, -0.8802391537269859, 0.8802391537269859, -0.9506755217687678, 0.9506755217687678, -0.9905754753144174, 0.9905754753144174], [-0.0847750130417353, 0.0847750130417353, -0.2518862256915055, 0.2518862256915055, -0.41175116146284263, 0.41175116146284263, -0.5597708310739475, 0.5597708310739475, -0.6916870430603532, 0.6916870430603532, -0.8037049589725231, 0.8037049589725231, -0.8926024664975557, 0.8926024664975557, -0.9558239495713977, 0.9558239495713977, -0.9915651684209309, 0.9915651684209309], [0, -0.16035864564022537, 0.16035864564022537, -0.31656409996362983, 0.31656409996362983, -0.46457074137596094, 0.46457074137596094, -0.600545304661681, 0.600545304661681, -0.7209661773352294, 0.7209661773352294, -0.8227146565371428, 0.8227146565371428, -0.9031559036148179, 0.9031559036148179, -0.96020815213483, 0.96020815213483, -0.9924068438435844, 0.9924068438435844], [-0.07652652113349734, 0.07652652113349734, -0.22778585114164507, 0.22778585114164507, -0.37370608871541955, 0.37370608871541955, -0.5108670019508271, 0.5108670019508271, -0.636053680726515, 0.636053680726515, -0.7463319064601508, 0.7463319064601508, -0.8391169718222188, 0.8391169718222188, -0.912234428251326, 0.912234428251326, -0.9639719272779138, 0.9639719272779138, -0.9931285991850949, 0.9931285991850949], [0, -0.1455618541608951, 0.1455618541608951, -0.2880213168024011, 0.2880213168024011, -0.4243421202074388, 0.4243421202074388, -0.5516188358872198, 0.5516188358872198, -0.6671388041974123, 0.6671388041974123, -0.7684399634756779, 0.7684399634756779, -0.8533633645833173, 0.8533633645833173, -0.9200993341504008, 0.9200993341504008, -0.9672268385663063, 0.9672268385663063, -0.9937521706203895, 0.9937521706203895], [-0.06973927331972223, 0.06973927331972223, -0.20786042668822127, 0.20786042668822127, -0.34193582089208424, 0.34193582089208424, -0.469355837986757, 0.469355837986757, -0.5876404035069116, 0.5876404035069116, -0.6944872631866827, 0.6944872631866827, -0.7878168059792081, 0.7878168059792081, -0.8658125777203002, 0.8658125777203002, -0.926956772187174, 0.926956772187174, -0.9700604978354287, 0.9700604978354287, -0.9942945854823992, 0.9942945854823992], [0, -0.1332568242984661, 0.1332568242984661, -0.26413568097034495, 0.26413568097034495, -0.3903010380302908, 0.3903010380302908, -0.5095014778460075, 0.5095014778460075, -0.6196098757636461, 0.6196098757636461, -0.7186613631319502, 0.7186613631319502, -0.8048884016188399, 0.8048884016188399, -0.8767523582704416, 0.8767523582704416, -0.9329710868260161, 0.9329710868260161, -0.9725424712181152, 0.9725424712181152, -0.9947693349975522, 0.9947693349975522], [-0.06405689286260563, 0.06405689286260563, -0.1911188674736163, 0.1911188674736163, -0.3150426796961634, 0.3150426796961634, -0.4337935076260451, 0.4337935076260451, -0.5454214713888396, 0.5454214713888396, -0.6480936519369755, 0.6480936519369755, -0.7401241915785544, 0.7401241915785544, -0.820001985973903, 0.820001985973903, -0.8864155270044011, 0.8864155270044011, -0.9382745520027328, 0.9382745520027328, -0.9747285559713095, 0.9747285559713095, -0.9951872199970213, 0.9951872199970213]];
-  var cValues = [[], [], [1, 1], [0.8888888888888888, 0.5555555555555556, 0.5555555555555556], [0.6521451548625461, 0.6521451548625461, 0.34785484513745385, 0.34785484513745385], [0.5688888888888889, 0.47862867049936647, 0.47862867049936647, 0.23692688505618908, 0.23692688505618908], [0.3607615730481386, 0.3607615730481386, 0.46791393457269104, 0.46791393457269104, 0.17132449237917036, 0.17132449237917036], [0.4179591836734694, 0.3818300505051189, 0.3818300505051189, 0.27970539148927664, 0.27970539148927664, 0.1294849661688697, 0.1294849661688697], [0.362683783378362, 0.362683783378362, 0.31370664587788727, 0.31370664587788727, 0.22238103445337448, 0.22238103445337448, 0.10122853629037626, 0.10122853629037626], [0.3302393550012598, 0.1806481606948574, 0.1806481606948574, 0.08127438836157441, 0.08127438836157441, 0.31234707704000286, 0.31234707704000286, 0.26061069640293544, 0.26061069640293544], [0.29552422471475287, 0.29552422471475287, 0.26926671930999635, 0.26926671930999635, 0.21908636251598204, 0.21908636251598204, 0.1494513491505806, 0.1494513491505806, 0.06667134430868814, 0.06667134430868814], [0.2729250867779006, 0.26280454451024665, 0.26280454451024665, 0.23319376459199048, 0.23319376459199048, 0.18629021092773426, 0.18629021092773426, 0.1255803694649046, 0.1255803694649046, 0.05566856711617366, 0.05566856711617366], [0.24914704581340277, 0.24914704581340277, 0.2334925365383548, 0.2334925365383548, 0.20316742672306592, 0.20316742672306592, 0.16007832854334622, 0.16007832854334622, 0.10693932599531843, 0.10693932599531843, 0.04717533638651183, 0.04717533638651183], [0.2325515532308739, 0.22628318026289723, 0.22628318026289723, 0.2078160475368885, 0.2078160475368885, 0.17814598076194574, 0.17814598076194574, 0.13887351021978725, 0.13887351021978725, 0.09212149983772845, 0.09212149983772845, 0.04048400476531588, 0.04048400476531588], [0.2152638534631578, 0.2152638534631578, 0.2051984637212956, 0.2051984637212956, 0.18553839747793782, 0.18553839747793782, 0.15720316715819355, 0.15720316715819355, 0.12151857068790319, 0.12151857068790319, 0.08015808715976021, 0.08015808715976021, 0.03511946033175186, 0.03511946033175186], [0.2025782419255613, 0.19843148532711158, 0.19843148532711158, 0.1861610000155622, 0.1861610000155622, 0.16626920581699392, 0.16626920581699392, 0.13957067792615432, 0.13957067792615432, 0.10715922046717194, 0.10715922046717194, 0.07036604748810812, 0.07036604748810812, 0.03075324199611727, 0.03075324199611727], [0.1894506104550685, 0.1894506104550685, 0.18260341504492358, 0.18260341504492358, 0.16915651939500254, 0.16915651939500254, 0.14959598881657674, 0.14959598881657674, 0.12462897125553388, 0.12462897125553388, 0.09515851168249279, 0.09515851168249279, 0.062253523938647894, 0.062253523938647894, 0.027152459411754096, 0.027152459411754096], [0.17944647035620653, 0.17656270536699264, 0.17656270536699264, 0.16800410215645004, 0.16800410215645004, 0.15404576107681028, 0.15404576107681028, 0.13513636846852548, 0.13513636846852548, 0.11188384719340397, 0.11188384719340397, 0.08503614831717918, 0.08503614831717918, 0.0554595293739872, 0.0554595293739872, 0.02414830286854793, 0.02414830286854793], [0.1691423829631436, 0.1691423829631436, 0.16427648374583273, 0.16427648374583273, 0.15468467512626524, 0.15468467512626524, 0.14064291467065065, 0.14064291467065065, 0.12255520671147846, 0.12255520671147846, 0.10094204410628717, 0.10094204410628717, 0.07642573025488905, 0.07642573025488905, 0.0497145488949698, 0.0497145488949698, 0.02161601352648331, 0.02161601352648331], [0.1610544498487837, 0.15896884339395434, 0.15896884339395434, 0.15276604206585967, 0.15276604206585967, 0.1426067021736066, 0.1426067021736066, 0.12875396253933621, 0.12875396253933621, 0.11156664554733399, 0.11156664554733399, 0.09149002162245, 0.09149002162245, 0.06904454273764123, 0.06904454273764123, 0.0448142267656996, 0.0448142267656996, 0.019461788229726478, 0.019461788229726478], [0.15275338713072584, 0.15275338713072584, 0.14917298647260374, 0.14917298647260374, 0.14209610931838204, 0.14209610931838204, 0.13168863844917664, 0.13168863844917664, 0.11819453196151841, 0.11819453196151841, 0.10193011981724044, 0.10193011981724044, 0.08327674157670475, 0.08327674157670475, 0.06267204833410907, 0.06267204833410907, 0.04060142980038694, 0.04060142980038694, 0.017614007139152118, 0.017614007139152118], [0.14608113364969041, 0.14452440398997005, 0.14452440398997005, 0.13988739479107315, 0.13988739479107315, 0.13226893863333747, 0.13226893863333747, 0.12183141605372853, 0.12183141605372853, 0.10879729916714838, 0.10879729916714838, 0.09344442345603386, 0.09344442345603386, 0.0761001136283793, 0.0761001136283793, 0.057134425426857205, 0.057134425426857205, 0.036953789770852494, 0.036953789770852494, 0.016017228257774335, 0.016017228257774335], [0.13925187285563198, 0.13925187285563198, 0.13654149834601517, 0.13654149834601517, 0.13117350478706238, 0.13117350478706238, 0.12325237681051242, 0.12325237681051242, 0.11293229608053922, 0.11293229608053922, 0.10041414444288096, 0.10041414444288096, 0.08594160621706773, 0.08594160621706773, 0.06979646842452049, 0.06979646842452049, 0.052293335152683286, 0.052293335152683286, 0.03377490158481415, 0.03377490158481415, 0.0146279952982722, 0.0146279952982722], [0.13365457218610619, 0.1324620394046966, 0.1324620394046966, 0.12890572218808216, 0.12890572218808216, 0.12304908430672953, 0.12304908430672953, 0.11499664022241136, 0.11499664022241136, 0.10489209146454141, 0.10489209146454141, 0.09291576606003515, 0.09291576606003515, 0.07928141177671895, 0.07928141177671895, 0.06423242140852585, 0.06423242140852585, 0.04803767173108467, 0.04803767173108467, 0.030988005856979445, 0.030988005856979445, 0.013411859487141771, 0.013411859487141771], [0.12793819534675216, 0.12793819534675216, 0.1258374563468283, 0.1258374563468283, 0.12167047292780339, 0.12167047292780339, 0.1155056680537256, 0.1155056680537256, 0.10744427011596563, 0.10744427011596563, 0.09761865210411388, 0.09761865210411388, 0.08619016153195327, 0.08619016153195327, 0.0733464814110803, 0.0733464814110803, 0.05929858491543678, 0.05929858491543678, 0.04427743881741981, 0.04427743881741981, 0.028531388628933663, 0.028531388628933663, 0.0123412297999872, 0.0123412297999872]];
+  var tValues = [
+    [],
+    [],
+    [-0.5773502691896257,0.5773502691896257],
+    [0,-0.7745966692414834,0.7745966692414834],
+    [-0.33998104358485626,0.33998104358485626,-0.8611363115940526,0.8611363115940526],
+    [0,-0.5384693101056831,0.5384693101056831,-0.906179845938664,0.906179845938664],
+    [0.6612093864662645,-0.6612093864662645,-0.2386191860831969,0.2386191860831969,-0.932469514203152,0.932469514203152],
+    [0,0.4058451513773972,-0.4058451513773972,-0.7415311855993945,0.7415311855993945,-0.9491079123427585,0.9491079123427585],
+    [-0.1834346424956498,0.1834346424956498,-0.525532409916329,0.525532409916329,-0.7966664774136267,0.7966664774136267,-0.9602898564975363,0.9602898564975363],
+    [0,-0.8360311073266358,0.8360311073266358,-0.9681602395076261,0.9681602395076261,-0.3242534234038089,0.3242534234038089,-0.6133714327005904,0.6133714327005904],
+    [-0.14887433898163122,0.14887433898163122,-0.4333953941292472,0.4333953941292472,-0.6794095682990244,0.6794095682990244,-0.8650633666889845,0.8650633666889845,-0.9739065285171717,0.9739065285171717],
+    [0,-0.26954315595234496,0.26954315595234496,-0.5190961292068118,0.5190961292068118,-0.7301520055740494,0.7301520055740494,-0.8870625997680953,0.8870625997680953,-0.978228658146057,0.978228658146057],
+    [-0.1252334085114689,0.1252334085114689,-0.3678314989981802,0.3678314989981802,-0.5873179542866175,0.5873179542866175,-0.7699026741943047,0.7699026741943047,-0.9041172563704749,0.9041172563704749,-0.9815606342467192,0.9815606342467192],
+    [0,-0.2304583159551348,0.2304583159551348,-0.44849275103644687,0.44849275103644687,-0.6423493394403402,0.6423493394403402,-0.8015780907333099,0.8015780907333099,-0.9175983992229779,0.9175983992229779,-0.9841830547185881,0.9841830547185881],
+    [-0.10805494870734367,0.10805494870734367,-0.31911236892788974,0.31911236892788974,-0.5152486363581541,0.5152486363581541,-0.6872929048116855,0.6872929048116855,-0.827201315069765,0.827201315069765,-0.9284348836635735,0.9284348836635735,-0.9862838086968123,0.9862838086968123],
+    [0,-0.20119409399743451,0.20119409399743451,-0.3941513470775634,0.3941513470775634,-0.5709721726085388,0.5709721726085388,-0.7244177313601701,0.7244177313601701,-0.8482065834104272,0.8482065834104272,-0.937273392400706,0.937273392400706,-0.9879925180204854,0.9879925180204854],
+    [-0.09501250983763744,0.09501250983763744,-0.2816035507792589,0.2816035507792589,-0.45801677765722737,0.45801677765722737,-0.6178762444026438,0.6178762444026438,-0.755404408355003,0.755404408355003,-0.8656312023878318,0.8656312023878318,-0.9445750230732326,0.9445750230732326,-0.9894009349916499,0.9894009349916499],
+    [0,-0.17848418149584785,0.17848418149584785,-0.3512317634538763,0.3512317634538763,-0.5126905370864769,0.5126905370864769,-0.6576711592166907,0.6576711592166907,-0.7815140038968014,0.7815140038968014,-0.8802391537269859,0.8802391537269859,-0.9506755217687678,0.9506755217687678,-0.9905754753144174,0.9905754753144174],
+    [-0.0847750130417353,0.0847750130417353,-0.2518862256915055,0.2518862256915055,-0.41175116146284263,0.41175116146284263,-0.5597708310739475,0.5597708310739475,-0.6916870430603532,0.6916870430603532,-0.8037049589725231,0.8037049589725231,-0.8926024664975557,0.8926024664975557,-0.9558239495713977,0.9558239495713977,-0.9915651684209309,0.9915651684209309],
+    [0,-0.16035864564022537,0.16035864564022537,-0.31656409996362983,0.31656409996362983,-0.46457074137596094,0.46457074137596094,-0.600545304661681,0.600545304661681,-0.7209661773352294,0.7209661773352294,-0.8227146565371428,0.8227146565371428,-0.9031559036148179,0.9031559036148179,-0.96020815213483,0.96020815213483,-0.9924068438435844,0.9924068438435844],
+    [-0.07652652113349734,0.07652652113349734,-0.22778585114164507,0.22778585114164507,-0.37370608871541955,0.37370608871541955,-0.5108670019508271,0.5108670019508271,-0.636053680726515,0.636053680726515,-0.7463319064601508,0.7463319064601508,-0.8391169718222188,0.8391169718222188,-0.912234428251326,0.912234428251326,-0.9639719272779138,0.9639719272779138,-0.9931285991850949,0.9931285991850949],
+    [0,-0.1455618541608951,0.1455618541608951,-0.2880213168024011,0.2880213168024011,-0.4243421202074388,0.4243421202074388,-0.5516188358872198,0.5516188358872198,-0.6671388041974123,0.6671388041974123,-0.7684399634756779,0.7684399634756779,-0.8533633645833173,0.8533633645833173,-0.9200993341504008,0.9200993341504008,-0.9672268385663063,0.9672268385663063,-0.9937521706203895,0.9937521706203895],
+    [-0.06973927331972223,0.06973927331972223,-0.20786042668822127,0.20786042668822127,-0.34193582089208424,0.34193582089208424,-0.469355837986757,0.469355837986757,-0.5876404035069116,0.5876404035069116,-0.6944872631866827,0.6944872631866827,-0.7878168059792081,0.7878168059792081,-0.8658125777203002,0.8658125777203002,-0.926956772187174,0.926956772187174,-0.9700604978354287,0.9700604978354287,-0.9942945854823992,0.9942945854823992],
+    [0,-0.1332568242984661,0.1332568242984661,-0.26413568097034495,0.26413568097034495,-0.3903010380302908,0.3903010380302908,-0.5095014778460075,0.5095014778460075,-0.6196098757636461,0.6196098757636461,-0.7186613631319502,0.7186613631319502,-0.8048884016188399,0.8048884016188399,-0.8767523582704416,0.8767523582704416,-0.9329710868260161,0.9329710868260161,-0.9725424712181152,0.9725424712181152,-0.9947693349975522,0.9947693349975522],
+    [-0.06405689286260563,0.06405689286260563,-0.1911188674736163,0.1911188674736163,-0.3150426796961634,0.3150426796961634,-0.4337935076260451,0.4337935076260451,-0.5454214713888396,0.5454214713888396,-0.6480936519369755,0.6480936519369755,-0.7401241915785544,0.7401241915785544,-0.820001985973903,0.820001985973903,-0.8864155270044011,0.8864155270044011,-0.9382745520027328,0.9382745520027328,-0.9747285559713095,0.9747285559713095,-0.9951872199970213,0.9951872199970213]
+  ];
+  var cValues = [
+    [],
+    [],
+    [1,1],
+    [0.8888888888888888,0.5555555555555556,0.5555555555555556],
+    [0.6521451548625461,0.6521451548625461,0.34785484513745385,0.34785484513745385],
+    [0.5688888888888889,0.47862867049936647,0.47862867049936647,0.23692688505618908,0.23692688505618908],
+    [0.3607615730481386,0.3607615730481386,0.46791393457269104,0.46791393457269104,0.17132449237917036,0.17132449237917036],
+    [0.4179591836734694,0.3818300505051189,0.3818300505051189,0.27970539148927664,0.27970539148927664,0.1294849661688697,0.1294849661688697],
+    [0.362683783378362,0.362683783378362,0.31370664587788727,0.31370664587788727,0.22238103445337448,0.22238103445337448,0.10122853629037626,0.10122853629037626],
+    [0.3302393550012598,0.1806481606948574,0.1806481606948574,0.08127438836157441,0.08127438836157441,0.31234707704000286,0.31234707704000286,0.26061069640293544,0.26061069640293544],
+    [0.29552422471475287,0.29552422471475287,0.26926671930999635,0.26926671930999635,0.21908636251598204,0.21908636251598204,0.1494513491505806,0.1494513491505806,0.06667134430868814,0.06667134430868814],
+    [0.2729250867779006,0.26280454451024665,0.26280454451024665,0.23319376459199048,0.23319376459199048,0.18629021092773426,0.18629021092773426,0.1255803694649046,0.1255803694649046,0.05566856711617366,0.05566856711617366],
+    [0.24914704581340277,0.24914704581340277,0.2334925365383548,0.2334925365383548,0.20316742672306592,0.20316742672306592,0.16007832854334622,0.16007832854334622,0.10693932599531843,0.10693932599531843,0.04717533638651183,0.04717533638651183],
+    [0.2325515532308739,0.22628318026289723,0.22628318026289723,0.2078160475368885,0.2078160475368885,0.17814598076194574,0.17814598076194574,0.13887351021978725,0.13887351021978725,0.09212149983772845,0.09212149983772845,0.04048400476531588,0.04048400476531588],
+    [0.2152638534631578,0.2152638534631578,0.2051984637212956,0.2051984637212956,0.18553839747793782,0.18553839747793782,0.15720316715819355,0.15720316715819355,0.12151857068790319,0.12151857068790319,0.08015808715976021,0.08015808715976021,0.03511946033175186,0.03511946033175186],
+    [0.2025782419255613,0.19843148532711158,0.19843148532711158,0.1861610000155622,0.1861610000155622,0.16626920581699392,0.16626920581699392,0.13957067792615432,0.13957067792615432,0.10715922046717194,0.10715922046717194,0.07036604748810812,0.07036604748810812,0.03075324199611727,0.03075324199611727],
+    [0.1894506104550685,0.1894506104550685,0.18260341504492358,0.18260341504492358,0.16915651939500254,0.16915651939500254,0.14959598881657674,0.14959598881657674,0.12462897125553388,0.12462897125553388,0.09515851168249279,0.09515851168249279,0.062253523938647894,0.062253523938647894,0.027152459411754096,0.027152459411754096],
+    [0.17944647035620653,0.17656270536699264,0.17656270536699264,0.16800410215645004,0.16800410215645004,0.15404576107681028,0.15404576107681028,0.13513636846852548,0.13513636846852548,0.11188384719340397,0.11188384719340397,0.08503614831717918,0.08503614831717918,0.0554595293739872,0.0554595293739872,0.02414830286854793,0.02414830286854793],
+    [0.1691423829631436,0.1691423829631436,0.16427648374583273,0.16427648374583273,0.15468467512626524,0.15468467512626524,0.14064291467065065,0.14064291467065065,0.12255520671147846,0.12255520671147846,0.10094204410628717,0.10094204410628717,0.07642573025488905,0.07642573025488905,0.0497145488949698,0.0497145488949698,0.02161601352648331,0.02161601352648331],
+    [0.1610544498487837,0.15896884339395434,0.15896884339395434,0.15276604206585967,0.15276604206585967,0.1426067021736066,0.1426067021736066,0.12875396253933621,0.12875396253933621,0.11156664554733399,0.11156664554733399,0.09149002162245,0.09149002162245,0.06904454273764123,0.06904454273764123,0.0448142267656996,0.0448142267656996,0.019461788229726478,0.019461788229726478],
+    [0.15275338713072584,0.15275338713072584,0.14917298647260374,0.14917298647260374,0.14209610931838204,0.14209610931838204,0.13168863844917664,0.13168863844917664,0.11819453196151841,0.11819453196151841,0.10193011981724044,0.10193011981724044,0.08327674157670475,0.08327674157670475,0.06267204833410907,0.06267204833410907,0.04060142980038694,0.04060142980038694,0.017614007139152118,0.017614007139152118],
+    [0.14608113364969041,0.14452440398997005,0.14452440398997005,0.13988739479107315,0.13988739479107315,0.13226893863333747,0.13226893863333747,0.12183141605372853,0.12183141605372853,0.10879729916714838,0.10879729916714838,0.09344442345603386,0.09344442345603386,0.0761001136283793,0.0761001136283793,0.057134425426857205,0.057134425426857205,0.036953789770852494,0.036953789770852494,0.016017228257774335,0.016017228257774335],
+    [0.13925187285563198,0.13925187285563198,0.13654149834601517,0.13654149834601517,0.13117350478706238,0.13117350478706238,0.12325237681051242,0.12325237681051242,0.11293229608053922,0.11293229608053922,0.10041414444288096,0.10041414444288096,0.08594160621706773,0.08594160621706773,0.06979646842452049,0.06979646842452049,0.052293335152683286,0.052293335152683286,0.03377490158481415,0.03377490158481415,0.0146279952982722,0.0146279952982722],
+    [0.13365457218610619,0.1324620394046966,0.1324620394046966,0.12890572218808216,0.12890572218808216,0.12304908430672953,0.12304908430672953,0.11499664022241136,0.11499664022241136,0.10489209146454141,0.10489209146454141,0.09291576606003515,0.09291576606003515,0.07928141177671895,0.07928141177671895,0.06423242140852585,0.06423242140852585,0.04803767173108467,0.04803767173108467,0.030988005856979445,0.030988005856979445,0.013411859487141771,0.013411859487141771],
+    [0.12793819534675216,0.12793819534675216,0.1258374563468283,0.1258374563468283,0.12167047292780339,0.12167047292780339,0.1155056680537256,0.1155056680537256,0.10744427011596563,0.10744427011596563,0.09761865210411388,0.09761865210411388,0.08619016153195327,0.08619016153195327,0.0733464814110803,0.0733464814110803,0.05929858491543678,0.05929858491543678,0.04427743881741981,0.04427743881741981,0.028531388628933663,0.028531388628933663,0.0123412297999872,0.0123412297999872]
+  ];
   var binomialCoefficients = [[1], [1, 1], [1, 2, 1], [1, 3, 3, 1]];
   function binomials(n, k) {
     return binomialCoefficients[n][k];
@@ -9197,10 +9371,10 @@
     }
     return z * sum;
   }
-  function Arc (x0, y0, rx, ry, xAxisRotate, LargeArcFlag, SweepFlag, x, y) {
-    return new Arc$1(x0, y0, rx, ry, xAxisRotate, LargeArcFlag, SweepFlag, x, y);
+  function Arc(x0, y0, rx,ry, xAxisRotate, LargeArcFlag,SweepFlag, x,y) {
+    return new Arc$1(x0, y0, rx,ry, xAxisRotate, LargeArcFlag,SweepFlag, x,y);
   }
-  function Arc$1(x0, y0, rx, ry, xAxisRotate, LargeArcFlag, SweepFlag, x1, y1) {
+  function Arc$1(x0, y0,rx,ry, xAxisRotate, LargeArcFlag, SweepFlag,x1,y1) {
     this.x0 = x0;
     this.y0 = y0;
     this.rx = rx;
@@ -9210,68 +9384,49 @@
     this.SweepFlag = SweepFlag;
     this.x1 = x1;
     this.y1 = y1;
-    var lengthProperties = approximateArcLengthOfCurve(300, function (t) {
-      return pointOnEllipticalArc({
-        x: x0,
-        y: y0
-      }, rx, ry, xAxisRotate, LargeArcFlag, SweepFlag, {
-        x: x1,
-        y: y1
-      }, t);
+    var lengthProperties = approximateArcLengthOfCurve(300, function(t) {
+      return pointOnEllipticalArc({x: x0, y:y0}, rx, ry, xAxisRotate,
+                                   LargeArcFlag, SweepFlag, {x: x1, y:y1}, t);
     });
     this.length = lengthProperties.arcLength;
   }
   Arc$1.prototype = {
     constructor: Arc$1,
-    init: function init() {},
-    getTotalLength: function getTotalLength() {
+    init: function() {
+    },
+    getTotalLength: function() {
       return this.length;
     },
-    getPointAtLength: function getPointAtLength(fractionLength) {
-      if (fractionLength < 0) {
+    getPointAtLength: function(fractionLength) {
+      if(fractionLength < 0){
         fractionLength = 0;
-      } else if (fractionLength > this.length) {
+      } else if(fractionLength > this.length){
         fractionLength = this.length;
       }
-      var position = pointOnEllipticalArc({
-        x: this.x0,
-        y: this.y0
-      }, this.rx, this.ry, this.xAxisRotate, this.LargeArcFlag, this.SweepFlag, {
-        x: this.x1,
-        y: this.y1
-      }, fractionLength / this.length);
-      return {
-        x: position.x,
-        y: position.y
-      };
+      var position = pointOnEllipticalArc({x: this.x0, y:this.y0},
+        this.rx, this.ry, this.xAxisRotate,
+        this.LargeArcFlag, this.SweepFlag,
+        {x: this.x1, y: this.y1},
+        fractionLength/this.length);
+      return {x: position.x, y: position.y};
     },
-    getTangentAtLength: function getTangentAtLength(fractionLength) {
-      if (fractionLength < 0) {
-        fractionLength = 0;
-      } else if (fractionLength > this.length) {
-        fractionLength = this.length;
-      }
-      var position = pointOnEllipticalArc({
-        x: this.x0,
-        y: this.y0
-      }, this.rx, this.ry, this.xAxisRotate, this.LargeArcFlag, this.SweepFlag, {
-        x: this.x1,
-        y: this.y1
-      }, fractionLength / this.length);
-      return {
-        x: position.x,
-        y: position.y
-      };
+    getTangentAtLength: function(fractionLength) {
+      if(fractionLength < 0){
+          fractionLength = 0;
+          } else if(fractionLength > this.length){
+          fractionLength = this.length;
+          }
+          var position = pointOnEllipticalArc({x: this.x0, y:this.y0},
+            this.rx, this.ry, this.xAxisRotate,
+            this.LargeArcFlag, this.SweepFlag,
+            {x: this.x1, y: this.y1},
+            fractionLength/this.length);
+          return {x: position.x, y: position.y};
     },
-    getPropertiesAtLength: function getPropertiesAtLength(fractionLength) {
+    getPropertiesAtLength: function(fractionLength){
       var tangent = this.getTangentAtLength(fractionLength);
       var point = this.getPointAtLength(fractionLength);
-      return {
-        x: point.x,
-        y: point.y,
-        tangentX: tangent.x,
-        tangentY: tangent.y
-      };
+      return {x: point.x, y: point.y, tangentX: tangent.x, tangentY: tangent.y};
     }
   };
   function pointOnEllipticalArc(p0, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, p1, t) {
@@ -9279,64 +9434,65 @@
     ry = Math.abs(ry);
     xAxisRotation = mod(xAxisRotation, 360);
     var xAxisRotationRadians = toRadians(xAxisRotation);
-    if (p0.x === p1.x && p0.y === p1.y) {
+    if(p0.x === p1.x && p0.y === p1.y) {
       return p0;
     }
-    if (rx === 0 || ry === 0) {
+    if(rx === 0 || ry === 0) {
       return this.pointOnLine(p0, p1, t);
     }
-    var dx = (p0.x - p1.x) / 2;
-    var dy = (p0.y - p1.y) / 2;
+    var dx = (p0.x-p1.x)/2;
+    var dy = (p0.y-p1.y)/2;
     var transformedPoint = {
-      x: Math.cos(xAxisRotationRadians) * dx + Math.sin(xAxisRotationRadians) * dy,
-      y: -Math.sin(xAxisRotationRadians) * dx + Math.cos(xAxisRotationRadians) * dy
+      x: Math.cos(xAxisRotationRadians)*dx + Math.sin(xAxisRotationRadians)*dy,
+      y: -Math.sin(xAxisRotationRadians)*dx + Math.cos(xAxisRotationRadians)*dy
     };
-    var radiiCheck = Math.pow(transformedPoint.x, 2) / Math.pow(rx, 2) + Math.pow(transformedPoint.y, 2) / Math.pow(ry, 2);
-    if (radiiCheck > 1) {
-      rx = Math.sqrt(radiiCheck) * rx;
-      ry = Math.sqrt(radiiCheck) * ry;
+    var radiiCheck = Math.pow(transformedPoint.x, 2)/Math.pow(rx, 2) + Math.pow(transformedPoint.y, 2)/Math.pow(ry, 2);
+    if(radiiCheck > 1) {
+      rx = Math.sqrt(radiiCheck)*rx;
+      ry = Math.sqrt(radiiCheck)*ry;
     }
-    var cSquareNumerator = Math.pow(rx, 2) * Math.pow(ry, 2) - Math.pow(rx, 2) * Math.pow(transformedPoint.y, 2) - Math.pow(ry, 2) * Math.pow(transformedPoint.x, 2);
-    var cSquareRootDenom = Math.pow(rx, 2) * Math.pow(transformedPoint.y, 2) + Math.pow(ry, 2) * Math.pow(transformedPoint.x, 2);
-    var cRadicand = cSquareNumerator / cSquareRootDenom;
+    var cSquareNumerator = Math.pow(rx, 2)*Math.pow(ry, 2) - Math.pow(rx, 2)*Math.pow(transformedPoint.y, 2) - Math.pow(ry, 2)*Math.pow(transformedPoint.x, 2);
+    var cSquareRootDenom = Math.pow(rx, 2)*Math.pow(transformedPoint.y, 2) + Math.pow(ry, 2)*Math.pow(transformedPoint.x, 2);
+    var cRadicand = cSquareNumerator/cSquareRootDenom;
     cRadicand = cRadicand < 0 ? 0 : cRadicand;
     var cCoef = (largeArcFlag !== sweepFlag ? 1 : -1) * Math.sqrt(cRadicand);
     var transformedCenter = {
-      x: cCoef * (rx * transformedPoint.y / ry),
-      y: cCoef * (-(ry * transformedPoint.x) / rx)
+      x: cCoef*((rx*transformedPoint.y)/ry),
+      y: cCoef*(-(ry*transformedPoint.x)/rx)
     };
     var center = {
-      x: Math.cos(xAxisRotationRadians) * transformedCenter.x - Math.sin(xAxisRotationRadians) * transformedCenter.y + (p0.x + p1.x) / 2,
-      y: Math.sin(xAxisRotationRadians) * transformedCenter.x + Math.cos(xAxisRotationRadians) * transformedCenter.y + (p0.y + p1.y) / 2
+      x: Math.cos(xAxisRotationRadians)*transformedCenter.x - Math.sin(xAxisRotationRadians)*transformedCenter.y + ((p0.x+p1.x)/2),
+      y: Math.sin(xAxisRotationRadians)*transformedCenter.x + Math.cos(xAxisRotationRadians)*transformedCenter.y + ((p0.y+p1.y)/2)
     };
     var startVector = {
-      x: (transformedPoint.x - transformedCenter.x) / rx,
-      y: (transformedPoint.y - transformedCenter.y) / ry
+      x: (transformedPoint.x-transformedCenter.x)/rx,
+      y: (transformedPoint.y-transformedCenter.y)/ry
     };
     var startAngle = angleBetween({
       x: 1,
       y: 0
     }, startVector);
     var endVector = {
-      x: (-transformedPoint.x - transformedCenter.x) / rx,
-      y: (-transformedPoint.y - transformedCenter.y) / ry
+      x: (-transformedPoint.x-transformedCenter.x)/rx,
+      y: (-transformedPoint.y-transformedCenter.y)/ry
     };
     var sweepAngle = angleBetween(startVector, endVector);
-    if (!sweepFlag && sweepAngle > 0) {
-      sweepAngle -= 2 * Math.PI;
-    } else if (sweepFlag && sweepAngle < 0) {
-      sweepAngle += 2 * Math.PI;
+    if(!sweepFlag && sweepAngle > 0) {
+      sweepAngle -= 2*Math.PI;
     }
-    sweepAngle %= 2 * Math.PI;
-    var angle = startAngle + sweepAngle * t;
-    var ellipseComponentX = rx * Math.cos(angle);
-    var ellipseComponentY = ry * Math.sin(angle);
+    else if(sweepFlag && sweepAngle < 0) {
+      sweepAngle += 2*Math.PI;
+    }
+    sweepAngle %= 2*Math.PI;
+    var angle = startAngle+(sweepAngle*t);
+    var ellipseComponentX = rx*Math.cos(angle);
+    var ellipseComponentY = ry*Math.sin(angle);
     var point = {
-      x: Math.cos(xAxisRotationRadians) * ellipseComponentX - Math.sin(xAxisRotationRadians) * ellipseComponentY + center.x,
-      y: Math.sin(xAxisRotationRadians) * ellipseComponentX + Math.cos(xAxisRotationRadians) * ellipseComponentY + center.y
+      x: Math.cos(xAxisRotationRadians)*ellipseComponentX - Math.sin(xAxisRotationRadians)*ellipseComponentY + center.x,
+      y: Math.sin(xAxisRotationRadians)*ellipseComponentX + Math.cos(xAxisRotationRadians)*ellipseComponentY + center.y
     };
     point.ellipticalArcStartAngle = startAngle;
-    point.ellipticalArcEndAngle = startAngle + sweepAngle;
+    point.ellipticalArcEndAngle = startAngle+sweepAngle;
     point.ellipticalArcAngle = angle;
     point.ellipticalArcCenter = center;
     point.resultantRx = rx;
@@ -9350,8 +9506,8 @@
     var approximationLines = [];
     var prevPoint = pointOnCurveFunc(0);
     var nextPoint;
-    for (var i = 0; i < resolution; i++) {
-      var t = clamp(i * (1 / resolution), 0, 1);
+    for(var i = 0; i < resolution; i++) {
+      var t = clamp(i*(1/resolution), 0, 1);
       nextPoint = pointOnCurveFunc(t);
       resultantArcLength += distance$1(prevPoint, nextPoint);
       approximationLines.push([prevPoint, nextPoint]);
@@ -9375,157 +9531,150 @@
     };
   }
   function mod(x, m) {
-    return (x % m + m) % m;
+    return (x%m + m)%m;
   }
   function toRadians(angle) {
     return angle * (Math.PI / 180);
   }
   function distance$1(p0, p1) {
-    return Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2));
+    return Math.sqrt(Math.pow(p1.x-p0.x, 2) + Math.pow(p1.y-p0.y, 2));
   }
   function clamp(val, min, max) {
     return Math.min(Math.max(val, min), max);
   }
   function angleBetween(v0, v1) {
-    var p = v0.x * v1.x + v0.y * v1.y;
-    var n = Math.sqrt((Math.pow(v0.x, 2) + Math.pow(v0.y, 2)) * (Math.pow(v1.x, 2) + Math.pow(v1.y, 2)));
-    var sign = v0.x * v1.y - v0.y * v1.x < 0 ? -1 : 1;
-    var angle = sign * Math.acos(p / n);
+    var p = v0.x*v1.x + v0.y*v1.y;
+    var n = Math.sqrt((Math.pow(v0.x, 2)+Math.pow(v0.y, 2)) * (Math.pow(v1.x, 2)+Math.pow(v1.y, 2)));
+    var sign = v0.x*v1.y - v0.y*v1.x < 0 ? -1 : 1;
+    var angle = sign*Math.acos(p/n);
     return angle;
   }
-  function LinearPosition (x0, x1, y0, y1) {
+  function LinearPosition(x0, x1, y0, y1) {
     return new LinearPosition$1(x0, x1, y0, y1);
   }
-  function LinearPosition$1(x0, x1, y0, y1) {
+  function LinearPosition$1(x0, x1, y0, y1){
     this.x0 = x0;
     this.x1 = x1;
     this.y0 = y0;
     this.y1 = y1;
   }
-  LinearPosition$1.prototype.getTotalLength = function () {
-    return Math.sqrt(Math.pow(this.x0 - this.x1, 2) + Math.pow(this.y0 - this.y1, 2));
+  LinearPosition$1.prototype.getTotalLength = function(){
+    return Math.sqrt(Math.pow(this.x0 - this.x1, 2) +
+           Math.pow(this.y0 - this.y1, 2));
   };
-  LinearPosition$1.prototype.getPointAtLength = function (pos) {
-    var fraction = pos / Math.sqrt(Math.pow(this.x0 - this.x1, 2) + Math.pow(this.y0 - this.y1, 2));
-    var newDeltaX = (this.x1 - this.x0) * fraction;
-    var newDeltaY = (this.y1 - this.y0) * fraction;
-    return {
-      x: this.x0 + newDeltaX,
-      y: this.y0 + newDeltaY
-    };
+  LinearPosition$1.prototype.getPointAtLength = function(pos){
+    var fraction = pos/ (Math.sqrt(Math.pow(this.x0 - this.x1, 2) +
+           Math.pow(this.y0 - this.y1, 2)));
+    var newDeltaX = (this.x1 - this.x0)*fraction;
+    var newDeltaY = (this.y1 - this.y0)*fraction;
+    return { x: this.x0 + newDeltaX, y: this.y0 + newDeltaY };
   };
-  LinearPosition$1.prototype.getTangentAtLength = function () {
-    var module = Math.sqrt((this.x1 - this.x0) * (this.x1 - this.x0) + (this.y1 - this.y0) * (this.y1 - this.y0));
-    return {
-      x: (this.x1 - this.x0) / module,
-      y: (this.y1 - this.y0) / module
-    };
+  LinearPosition$1.prototype.getTangentAtLength = function(){
+    var module = Math.sqrt((this.x1 - this.x0) * (this.x1 - this.x0) +
+                (this.y1 - this.y0) * (this.y1 - this.y0));
+    return { x: (this.x1 - this.x0)/module, y: (this.y1 - this.y0)/module };
   };
-  LinearPosition$1.prototype.getPropertiesAtLength = function (pos) {
+  LinearPosition$1.prototype.getPropertiesAtLength = function(pos){
     var point = this.getPointAtLength(pos);
     var tangent = this.getTangentAtLength();
-    return {
-      x: point.x,
-      y: point.y,
-      tangentX: tangent.x,
-      tangentY: tangent.y
-    };
+    return {x: point.x, y: point.y, tangentX: tangent.x, tangentY: tangent.y};
   };
-  function PathProperties (svgString) {
+  function PathProperties(svgString) {
     var length = 0;
     var partial_lengths = [];
     var functions = [];
-    function svgProperties(string) {
-      if (!string) {
-        return null;
-      }
+    function svgProperties(string){
+      if(!string){return null;}
       var parsed = parse(string);
       var cur = [0, 0];
       var prev_point = [0, 0];
       var curve;
       var ringStart;
-      for (var i = 0; i < parsed.length; i++) {
-        if (parsed[i][0] === "M") {
+      for (var i = 0; i < parsed.length; i++){
+        if(parsed[i][0] === "M"){
           cur = [parsed[i][1], parsed[i][2]];
           ringStart = [cur[0], cur[1]];
           functions.push(null);
-        } else if (parsed[i][0] === "m") {
+        } else if(parsed[i][0] === "m"){
           cur = [parsed[i][1] + cur[0], parsed[i][2] + cur[1]];
           ringStart = [cur[0], cur[1]];
           functions.push(null);
-        } else if (parsed[i][0] === "L") {
+        }
+        else if(parsed[i][0] === "L"){
           length = length + Math.sqrt(Math.pow(cur[0] - parsed[i][1], 2) + Math.pow(cur[1] - parsed[i][2], 2));
           functions.push(new LinearPosition(cur[0], parsed[i][1], cur[1], parsed[i][2]));
           cur = [parsed[i][1], parsed[i][2]];
-        } else if (parsed[i][0] === "l") {
+        } else if(parsed[i][0] === "l"){
           length = length + Math.sqrt(Math.pow(parsed[i][1], 2) + Math.pow(parsed[i][2], 2));
           functions.push(new LinearPosition(cur[0], parsed[i][1] + cur[0], cur[1], parsed[i][2] + cur[1]));
           cur = [parsed[i][1] + cur[0], parsed[i][2] + cur[1]];
-        } else if (parsed[i][0] === "H") {
+        } else if(parsed[i][0] === "H"){
           length = length + Math.abs(cur[0] - parsed[i][1]);
           functions.push(new LinearPosition(cur[0], parsed[i][1], cur[1], cur[1]));
           cur[0] = parsed[i][1];
-        } else if (parsed[i][0] === "h") {
+        } else if(parsed[i][0] === "h"){
           length = length + Math.abs(parsed[i][1]);
           functions.push(new LinearPosition(cur[0], cur[0] + parsed[i][1], cur[1], cur[1]));
           cur[0] = parsed[i][1] + cur[0];
-        } else if (parsed[i][0] === "V") {
+        } else if(parsed[i][0] === "V"){
           length = length + Math.abs(cur[1] - parsed[i][1]);
           functions.push(new LinearPosition(cur[0], cur[0], cur[1], parsed[i][1]));
           cur[1] = parsed[i][1];
-        } else if (parsed[i][0] === "v") {
+        } else if(parsed[i][0] === "v"){
           length = length + Math.abs(parsed[i][1]);
           functions.push(new LinearPosition(cur[0], cur[0], cur[1], cur[1] + parsed[i][1]));
           cur[1] = parsed[i][1] + cur[1];
-        } else if (parsed[i][0] === "z" || parsed[i][0] === "Z") {
+        }  else if(parsed[i][0] === "z" || parsed[i][0] === "Z"){
           length = length + Math.sqrt(Math.pow(ringStart[0] - cur[0], 2) + Math.pow(ringStart[1] - cur[1], 2));
           functions.push(new LinearPosition(cur[0], ringStart[0], cur[1], ringStart[1]));
           cur = [ringStart[0], ringStart[1]];
-        } else if (parsed[i][0] === "C") {
-          curve = new Bezier(cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4], parsed[i][5], parsed[i][6]);
+        }
+        else if(parsed[i][0] === "C"){
+          curve = new Bezier(cur[0], cur[1] , parsed[i][1], parsed[i][2] , parsed[i][3], parsed[i][4] , parsed[i][5], parsed[i][6]);
           length = length + curve.getTotalLength();
           cur = [parsed[i][5], parsed[i][6]];
           functions.push(curve);
-        } else if (parsed[i][0] === "c") {
-          curve = new Bezier(cur[0], cur[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2], cur[0] + parsed[i][3], cur[1] + parsed[i][4], cur[0] + parsed[i][5], cur[1] + parsed[i][6]);
-          if (curve.getTotalLength() > 0) {
+        } else if(parsed[i][0] === "c"){
+          curve = new Bezier(cur[0], cur[1] , cur[0] + parsed[i][1], cur[1] + parsed[i][2] , cur[0] + parsed[i][3], cur[1] + parsed[i][4] , cur[0] + parsed[i][5], cur[1] + parsed[i][6]);
+          if(curve.getTotalLength() > 0){
             length = length + curve.getTotalLength();
             functions.push(curve);
             cur = [parsed[i][5] + cur[0], parsed[i][6] + cur[1]];
           } else {
             functions.push(new LinearPosition(cur[0], cur[0], cur[1], cur[1]));
           }
-        } else if (parsed[i][0] === "S") {
-          if (i > 0 && ["C", "c", "S", "s"].indexOf(parsed[i - 1][0]) > -1) {
-            curve = new Bezier(cur[0], cur[1], 2 * cur[0] - parsed[i - 1][parsed[i - 1].length - 4], 2 * cur[1] - parsed[i - 1][parsed[i - 1].length - 3], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4]);
+        } else if(parsed[i][0] === "S"){
+          if(i>0 && ["C","c","S","s"].indexOf(parsed[i-1][0]) > -1){
+            curve = new Bezier(cur[0], cur[1] , 2*cur[0] - parsed[i-1][parsed[i-1].length - 4], 2*cur[1] - parsed[i-1][parsed[i-1].length - 3], parsed[i][1], parsed[i][2] , parsed[i][3], parsed[i][4]);
           } else {
-            curve = new Bezier(cur[0], cur[1], cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4]);
+            curve = new Bezier(cur[0], cur[1] , cur[0], cur[1], parsed[i][1], parsed[i][2] , parsed[i][3], parsed[i][4]);
           }
           length = length + curve.getTotalLength();
           cur = [parsed[i][3], parsed[i][4]];
           functions.push(curve);
-        } else if (parsed[i][0] === "s") {
-          if (i > 0 && ["C", "c", "S", "s"].indexOf(parsed[i - 1][0]) > -1) {
-            curve = new Bezier(cur[0], cur[1], cur[0] + curve.d.x - curve.c.x, cur[1] + curve.d.y - curve.c.y, cur[0] + parsed[i][1], cur[1] + parsed[i][2], cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
+        }  else if(parsed[i][0] === "s"){
+          if(i>0 && ["C","c","S","s"].indexOf(parsed[i-1][0]) > -1){
+            curve = new Bezier(cur[0], cur[1] , cur[0] + curve.d.x - curve.c.x, cur[1] + curve.d.y - curve.c.y, cur[0] + parsed[i][1], cur[1] + parsed[i][2] , cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
           } else {
-            curve = new Bezier(cur[0], cur[1], cur[0], cur[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2], cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
+            curve = new Bezier(cur[0], cur[1] , cur[0], cur[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2] , cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
           }
           length = length + curve.getTotalLength();
           cur = [parsed[i][3] + cur[0], parsed[i][4] + cur[1]];
           functions.push(curve);
-        } else if (parsed[i][0] === "Q") {
-          if (cur[0] == parsed[i][1] && cur[1] == parsed[i][2]) {
+        }
+        else if(parsed[i][0] === "Q"){
+          if(cur[0] == parsed[i][1] && cur[1] == parsed[i][2]){
             curve = new LinearPosition(parsed[i][1], parsed[i][3], parsed[i][2], parsed[i][4]);
           } else {
-            curve = new Bezier(cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4]);
+            curve = new Bezier(cur[0], cur[1] , parsed[i][1], parsed[i][2] , parsed[i][3], parsed[i][4]);
           }
           length = length + curve.getTotalLength();
           functions.push(curve);
           cur = [parsed[i][3], parsed[i][4]];
           prev_point = [parsed[i][1], parsed[i][2]];
-        } else if (parsed[i][0] === "q") {
-          if (!(parsed[i][1] == 0 && parsed[i][2] == 0)) {
-            curve = new Bezier(cur[0], cur[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2], cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
+        }  else if(parsed[i][0] === "q"){
+          if(!(parsed[i][1] == 0 && parsed[i][2] == 0)){
+            curve = new Bezier(cur[0], cur[1] , cur[0] + parsed[i][1], cur[1] + parsed[i][2] , cur[0] + parsed[i][3], cur[1] + parsed[i][4]);
           } else {
             curve = new LinearPosition(cur[0] + parsed[i][1], cur[0] + parsed[i][3], cur[1] + parsed[i][2], cur[1] + parsed[i][4]);
           }
@@ -9533,32 +9682,32 @@
           prev_point = [cur[0] + parsed[i][1], cur[1] + parsed[i][2]];
           cur = [parsed[i][3] + cur[0], parsed[i][4] + cur[1]];
           functions.push(curve);
-        } else if (parsed[i][0] === "T") {
-          if (i > 0 && ["Q", "q", "T", "t"].indexOf(parsed[i - 1][0]) > -1) {
-            curve = new Bezier(cur[0], cur[1], 2 * cur[0] - prev_point[0], 2 * cur[1] - prev_point[1], parsed[i][1], parsed[i][2]);
+        } else if(parsed[i][0] === "T"){
+          if(i>0 && ["Q","q","T","t"].indexOf(parsed[i-1][0]) > -1){
+            curve = new Bezier(cur[0], cur[1] , 2 * cur[0] - prev_point[0] , 2 * cur[1] - prev_point[1] , parsed[i][1], parsed[i][2]);
           } else {
             curve = new LinearPosition(cur[0], parsed[i][1], cur[1], parsed[i][2]);
           }
           functions.push(curve);
           length = length + curve.getTotalLength();
-          prev_point = [2 * cur[0] - prev_point[0], 2 * cur[1] - prev_point[1]];
+          prev_point = [2 * cur[0] - prev_point[0] , 2 * cur[1] - prev_point[1]];
           cur = [parsed[i][1], parsed[i][2]];
-        } else if (parsed[i][0] === "t") {
-          if (i > 0 && ["Q", "q", "T", "t"].indexOf(parsed[i - 1][0]) > -1) {
-            curve = new Bezier(cur[0], cur[1], 2 * cur[0] - prev_point[0], 2 * cur[1] - prev_point[1], cur[0] + parsed[i][1], cur[1] + parsed[i][2]);
+        } else if(parsed[i][0] === "t"){
+          if(i>0 && ["Q","q","T","t"].indexOf(parsed[i-1][0]) > -1){
+            curve = new Bezier(cur[0], cur[1] , 2 * cur[0] - prev_point[0] , 2 * cur[1] - prev_point[1] , cur[0] + parsed[i][1], cur[1] + parsed[i][2]);
           } else {
             curve = new LinearPosition(cur[0], cur[0] + parsed[i][1], cur[1], cur[1] + parsed[i][2]);
           }
           length = length + curve.getTotalLength();
-          prev_point = [2 * cur[0] - prev_point[0], 2 * cur[1] - prev_point[1]];
+          prev_point = [2 * cur[0] - prev_point[0] , 2 * cur[1] - prev_point[1]];
           cur = [parsed[i][1] + cur[0], parsed[i][2] + cur[0]];
           functions.push(curve);
-        } else if (parsed[i][0] === "A") {
+        } else if(parsed[i][0] === "A"){
           curve = new Arc(cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4], parsed[i][5], parsed[i][6], parsed[i][7]);
           length = length + curve.getTotalLength();
           cur = [parsed[i][6], parsed[i][7]];
           functions.push(curve);
-        } else if (parsed[i][0] === "a") {
+        } else if(parsed[i][0] === "a"){
           curve = new Arc(cur[0], cur[1], parsed[i][1], parsed[i][2], parsed[i][3], parsed[i][4], parsed[i][5], cur[0] + parsed[i][6], cur[1] + parsed[i][7]);
           length = length + curve.getTotalLength();
           cur = [cur[0] + parsed[i][6], cur[1] + parsed[i][7]];
@@ -9568,461 +9717,400 @@
       }
       return svgProperties;
     }
-    svgProperties.getTotalLength = function () {
+   svgProperties.getTotalLength = function(){
       return length;
     };
-    svgProperties.getPointAtLength = function (fractionLength) {
+    svgProperties.getPointAtLength = function(fractionLength){
       var fractionPart = getPartAtLength(fractionLength);
       return functions[fractionPart.i].getPointAtLength(fractionPart.fraction);
     };
-    svgProperties.getTangentAtLength = function (fractionLength) {
+    svgProperties.getTangentAtLength = function(fractionLength){
       var fractionPart = getPartAtLength(fractionLength);
       return functions[fractionPart.i].getTangentAtLength(fractionPart.fraction);
     };
-    svgProperties.getPropertiesAtLength = function (fractionLength) {
+    svgProperties.getPropertiesAtLength = function(fractionLength){
       var fractionPart = getPartAtLength(fractionLength);
       return functions[fractionPart.i].getPropertiesAtLength(fractionPart.fraction);
     };
-    svgProperties.getParts = function () {
+    svgProperties.getParts = function(){
       var parts = [];
-      for (var i = 0; i < functions.length; i++) {
-        if (functions[i] != null) {
+      for(var i = 0; i< functions.length; i++){
+        if(functions[i] != null){
           var properties = {};
           properties['start'] = functions[i].getPointAtLength(0);
-          properties['end'] = functions[i].getPointAtLength(partial_lengths[i] - partial_lengths[i - 1]);
-          properties['length'] = partial_lengths[i] - partial_lengths[i - 1];
-          (function (func) {
-            properties['getPointAtLength'] = function (d) {
-              return func.getPointAtLength(d);
-            };
-            properties['getTangentAtLength'] = function (d) {
-              return func.getTangentAtLength(d);
-            };
-            properties['getPropertiesAtLength'] = function (d) {
-              return func.getPropertiesAtLength(d);
-            };
+          properties['end'] = functions[i].getPointAtLength(partial_lengths[i] - partial_lengths[i-1]);
+          properties['length'] = partial_lengths[i] - partial_lengths[i-1];
+          (function(func){
+            properties['getPointAtLength'] = function(d){return func.getPointAtLength(d);};
+            properties['getTangentAtLength'] = function(d){return func.getTangentAtLength(d);};
+            properties['getPropertiesAtLength'] = function(d){return func.getPropertiesAtLength(d);};
           })(functions[i]);
           parts.push(properties);
         }
       }
       return parts;
     };
-    var getPartAtLength = function getPartAtLength(fractionLength) {
-      if (fractionLength < 0) {
+    var getPartAtLength = function(fractionLength){
+      if(fractionLength < 0){
         fractionLength = 0;
-      } else if (fractionLength > length) {
+      } else if(fractionLength > length){
         fractionLength = length;
       }
       var i = partial_lengths.length - 1;
-      while (partial_lengths[i] >= fractionLength && partial_lengths[i] > 0) {
+      while(partial_lengths[i] >= fractionLength && partial_lengths[i] > 0){
         i--;
       }
       i++;
-      return {
-        fraction: fractionLength - partial_lengths[i - 1],
-        i: i
-      };
+      return {fraction: fractionLength-partial_lengths[i-1], i: i};
     };
     return svgProperties(svgString);
   }
-  var RES_CIRCLE = 64;
-  var RES_PATH = 128;
-  var emptyValue = {
-    value: 0
+  const emptyValue = { value: 0 };
+  const pointStringToArray = function (str) {
+    return str.split(" ")
+      .filter(s => s !== "")
+      .map(p => p.split(",")
+        .map(n => parseFloat(n)));
   };
-  var pointStringToArray = function pointStringToArray(str) {
-    return str.split(" ").filter(function (s) {
-      return s !== "";
-    }).map(function (p) {
-      return p.split(",").map(function (n) {
-        return parseFloat(n);
-      });
-    });
-  };
-  var getAttributes = function getAttributes(element, attributeList) {
-    var indices = attributeList.map(function (attr) {
-      for (var i = 0; i < element.attributes.length; i += 1) {
+  const getAttributes = function (element, attributeList) {
+    const indices = attributeList.map((attr) => {
+      for (let i = 0; i < element.attributes.length; i += 1) {
         if (element.attributes[i].nodeName === attr) {
           return i;
         }
       }
       return undefined;
     });
-    return indices.map(function (i) {
-      return i === undefined ? emptyValue : element.attributes[i];
-    }).map(function (attr) {
-      return attr.value !== undefined ? attr.value : attr.baseVal.value;
-    });
+    return indices
+      .map(i => (i === undefined ? emptyValue : element.attributes[i]))
+      .map(attr => (attr.value !== undefined ? attr.value : attr.baseVal.value));
   };
-  var svg_line_to_segments = function svg_line_to_segments(line) {
+  const svg_line_to_segments = function (line) {
     return [getAttributes(line, ["x1", "y1", "x2", "y2"])];
   };
-  var svg_rect_to_segments = function svg_rect_to_segments(rect) {
-    var attrs = getAttributes(rect, ["x", "y", "width", "height"]);
-    var x = parseFloat(attrs[0]);
-    var y = parseFloat(attrs[1]);
-    var width = parseFloat(attrs[2]);
-    var height = parseFloat(attrs[3]);
-    return [[x, y, x + width, y], [x + width, y, x + width, y + height], [x + width, y + height, x, y + height], [x, y + height, x, y]];
+  const svg_rect_to_segments = function (rect) {
+    const attrs = getAttributes(rect, ["x", "y", "width", "height"]);
+    const x = parseFloat(attrs[0]);
+    const y = parseFloat(attrs[1]);
+    const width = parseFloat(attrs[2]);
+    const height = parseFloat(attrs[3]);
+    return [
+      [x, y, x + width, y],
+      [x + width, y, x + width, y + height],
+      [x + width, y + height, x, y + height],
+      [x, y + height, x, y],
+    ];
   };
-  var svg_circle_to_segments = function svg_circle_to_segments(circle) {
-    var attrs = getAttributes(circle, ["cx", "cy", "r"]);
-    var cx = parseFloat(attrs[0]);
-    var cy = parseFloat(attrs[1]);
-    var r = parseFloat(attrs[2]);
-    return Array.from(Array(RES_CIRCLE)).map(function (_, i) {
-      return [cx + r * Math.cos(i / RES_CIRCLE * Math.PI * 2), cy + r * Math.sin(i / RES_CIRCLE * Math.PI * 2)];
-    }).map(function (_, i, arr) {
-      return [arr[i][0], arr[i][1], arr[(i + 1) % arr.length][0], arr[(i + 1) % arr.length][1]];
-    });
+  const svg_circle_to_segments = function (circle, RESOLUTION = 64) {
+    const attrs = getAttributes(circle, ["cx", "cy", "r"]);
+    const cx = parseFloat(attrs[0]);
+    const cy = parseFloat(attrs[1]);
+    const r = parseFloat(attrs[2]);
+    return Array.from(Array(RESOLUTION))
+      .map((_, i) => [
+        cx + r * Math.cos(i / RESOLUTION * Math.PI * 2),
+        cy + r * Math.sin(i / RESOLUTION * Math.PI * 2),
+      ]).map((_, i, arr) => [
+        arr[i][0],
+        arr[i][1],
+        arr[(i + 1) % arr.length][0],
+        arr[(i + 1) % arr.length][1],
+      ]);
   };
-  var svg_ellipse_to_segments = function svg_ellipse_to_segments(ellipse) {
-    var attrs = getAttributes(ellipse, ["cx", "cy", "rx", "ry"]);
-    var cx = parseFloat(attrs[0]);
-    var cy = parseFloat(attrs[1]);
-    var rx = parseFloat(attrs[2]);
-    var ry = parseFloat(attrs[3]);
-    return Array.from(Array(RES_CIRCLE)).map(function (_, i) {
-      return [cx + rx * Math.cos(i / RES_CIRCLE * Math.PI * 2), cy + ry * Math.sin(i / RES_CIRCLE * Math.PI * 2)];
-    }).map(function (_, i, arr) {
-      return [arr[i][0], arr[i][1], arr[(i + 1) % arr.length][0], arr[(i + 1) % arr.length][1]];
-    });
+  const svg_ellipse_to_segments = function (ellipse, RESOLUTION = 64) {
+    const attrs = getAttributes(ellipse, ["cx", "cy", "rx", "ry"]);
+    const cx = parseFloat(attrs[0]);
+    const cy = parseFloat(attrs[1]);
+    const rx = parseFloat(attrs[2]);
+    const ry = parseFloat(attrs[3]);
+    return Array.from(Array(RESOLUTION))
+      .map((_, i) => [
+        cx + rx * Math.cos(i / RESOLUTION * Math.PI * 2),
+        cy + ry * Math.sin(i / RESOLUTION * Math.PI * 2),
+      ]).map((_, i, arr) => [
+        arr[i][0],
+        arr[i][1],
+        arr[(i + 1) % arr.length][0],
+        arr[(i + 1) % arr.length][1],
+      ]);
   };
-  var svg_polygon_to_segments = function svg_polygon_to_segments(polygon) {
-    var points = "";
-    for (var i = 0; i < polygon.attributes.length; i += 1) {
+  const svg_polygon_to_segments = function (polygon) {
+    let points = "";
+    for (let i = 0; i < polygon.attributes.length; i += 1) {
       if (polygon.attributes[i].nodeName === "points") {
         points = polygon.attributes[i].value;
         break;
       }
     }
-    return pointStringToArray(points).map(function (_, i, a) {
-      return [a[i][0], a[i][1], a[(i + 1) % a.length][0], a[(i + 1) % a.length][1]];
-    });
+    return pointStringToArray(points)
+      .map((_, i, a) => [
+        a[i][0],
+        a[i][1],
+        a[(i + 1) % a.length][0],
+        a[(i + 1) % a.length][1],
+      ]);
   };
-  var svg_polyline_to_segments = function svg_polyline_to_segments(polyline) {
-    var circularPath = svg_polygon_to_segments(polyline);
+  const svg_polyline_to_segments = function (polyline) {
+    const circularPath = svg_polygon_to_segments(polyline);
     circularPath.pop();
     return circularPath;
   };
-  var svg_path_to_segments = function svg_path_to_segments(path) {
-    var d = path.getAttribute("d");
-    var prop = PathProperties(d);
-    var length = prop.getTotalLength();
-    var isClosed = d[d.length - 1] === "Z" || d[d.length - 1] === "z";
-    var segmentLength = isClosed ? length / RES_PATH : length / (RES_PATH - 1);
-    var pathsPoints = Array.from(Array(RES_PATH)).map(function (_, i) {
-      return prop.getPointAtLength(i * segmentLength);
-    }).map(function (p) {
-      return [p.x, p.y];
-    });
-    var segments = pathsPoints.map(function (_, i, a) {
-      return [a[i][0], a[i][1], a[(i + 1) % a.length][0], a[(i + 1) % a.length][1]];
-    });
-    if (!isClosed) {
-      segments.pop();
-    }
+  const svg_path_to_segments = function (path, RESOLUTION = 128) {
+    const d = path.getAttribute("d");
+    const prop = PathProperties(d);
+    const length = prop.getTotalLength();
+    const isClosed = (d[d.length - 1] === "Z" || d[d.length - 1] === "z");
+    const segmentLength = (isClosed
+      ? length / RESOLUTION
+      : length / (RESOLUTION - 1));
+    const pathsPoints = Array.from(Array(RESOLUTION))
+      .map((_, i) => prop.getPointAtLength(i * segmentLength))
+      .map(p => [p.x, p.y]);
+    const segments = pathsPoints.map((_, i, a) => [
+      a[i][0],
+      a[i][1],
+      a[(i + 1) % a.length][0],
+      a[(i + 1) % a.length][1],
+    ]);
+    if (!isClosed) { segments.pop(); }
     return segments;
   };
-  var parsers = {
+  const parsers = {
     line: svg_line_to_segments,
     rect: svg_rect_to_segments,
     circle: svg_circle_to_segments,
     ellipse: svg_ellipse_to_segments,
     polygon: svg_polygon_to_segments,
     polyline: svg_polyline_to_segments,
-    path: svg_path_to_segments
+    path: svg_path_to_segments,
   };
-  function vkXML$2 (text, step) {
-    var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
-    var len = ar.length;
-    var inComment = false;
-    var deep = 0;
-    var str = "";
-    var space = step != null && typeof step === "string" ? step : "\t";
-    var shift = ["\n"];
-    for (var si = 0; si < 100; si += 1) {
-      shift.push(shift[si] + space);
-    }
-    for (var ix = 0; ix < len; ix += 1) {
-      if (ar[ix].search(/<!/) > -1) {
-        str += shift[deep] + ar[ix];
-        inComment = true;
-        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1 || ar[ix].search(/!DOCTYPE/) > -1) {
-          inComment = false;
-        }
-      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
-        str += ar[ix];
-        inComment = false;
-      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix]) && /^<[\w:\-\.\,]+/.exec(ar[ix - 1]) == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
-        str += ar[ix];
-        if (!inComment) {
-          deep -= 1;
-        }
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1 && ar[ix].search(/\/>/) === -1) {
-        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/\/>/) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\?/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else {
-        str += ar[ix];
-      }
-    }
-    return str[0] === "\n" ? str.slice(1) : str;
-  }
-  var isBrowser$4 = function isBrowser() {
-    return typeof window !== "undefined";
-  };
-  var isNode$4 = function isNode() {
-    return typeof window === "undefined" && typeof process !== "undefined";
-  };
-  var htmlString$4 = "<!DOCTYPE html><title> </title>";
-  var win$4 = {};
-  if (isNode$4()) {
-    var _require$1 = require("xmldom"),
-        DOMParser$2 = _require$1.DOMParser,
-        XMLSerializer$2 = _require$1.XMLSerializer;
-    win$4.DOMParser = DOMParser$2;
-    win$4.XMLSerializer = XMLSerializer$2;
-    win$4.document = new DOMParser$2().parseFromString(htmlString$4, "text/html");
-  } else if (isBrowser$4()) {
-    win$4.DOMParser = window.DOMParser;
-    win$4.XMLSerializer = window.XMLSerializer;
-    win$4.document = window.document;
-  }
-  var parseTransform = function parseTransform(transform) {
-    var parsed = transform.match(/(\w+\((\-?\d+\.?\d*e?\-?\d*,?\s*)+\))+/g);
-    var listForm = parsed.map(function (a) {
-      return a.match(/[\w\.\-]+/g);
-    });
-    return listForm.map(function (a) {
-      return {
-        transform: a.shift(),
-        parameters: a.map(function (p) {
-          return parseFloat(p);
-        })
-      };
-    });
-  };
-  var multiply_line_matrix2$1 = function multiply_line_matrix2(line, matrix) {
-    return [line[0] * matrix[0] + line[1] * matrix[2] + matrix[4], line[0] * matrix[1] + line[1] * matrix[3] + matrix[5], line[2] * matrix[0] + line[3] * matrix[2] + matrix[4], line[2] * matrix[1] + line[3] * matrix[3] + matrix[5]];
-  };
-  var multiply_matrices2$1 = function multiply_matrices2(m1, m2) {
-    return [m1[0] * m2[0] + m1[2] * m2[1], m1[1] * m2[0] + m1[3] * m2[1], m1[0] * m2[2] + m1[2] * m2[3], m1[1] * m2[2] + m1[3] * m2[3], m1[0] * m2[4] + m1[2] * m2[5] + m1[4], m1[1] * m2[4] + m1[3] * m2[5] + m1[5]];
-  };
-  var matrixFormTranslate = function matrixFormTranslate(params) {
-    switch (params.length) {
-      case 1:
-        return [1, 0, 0, 1, params[0], 0];
-      case 2:
-        return [1, 0, 0, 1, params[0], params[1]];
-      default:
-        console.warn("improper translate, ".concat(params));
-    }
-    return undefined;
-  };
-  var matrixFormRotate = function matrixFormRotate(params) {
-    var cos_p = Math.cos(params[0] / 180 * Math.PI);
-    var sin_p = Math.sin(params[0] / 180 * Math.PI);
-    switch (params.length) {
-      case 1:
-        return [cos_p, sin_p, -sin_p, cos_p, 0, 0];
-      case 3:
-        return [cos_p, sin_p, -sin_p, cos_p, -params[1] * cos_p + params[2] * sin_p + params[1], -params[1] * sin_p - params[2] * cos_p + params[2]];
-      default:
-        console.warn("improper rotate, ".concat(params));
-    }
-    return undefined;
-  };
-  var matrixFormScale = function matrixFormScale(params) {
-    switch (params.length) {
-      case 1:
-        return [params[0], 0, 0, params[0], 0, 0];
-      case 2:
-        return [params[0], 0, 0, params[1], 0, 0];
-      default:
-        console.warn("improper scale, ".concat(params));
-    }
-    return undefined;
-  };
-  var matrixFormSkewX = function matrixFormSkewX(params) {
-    return [1, 0, Math.tan(params[0] / 180 * Math.PI), 1, 0, 0];
-  };
-  var matrixFormSkewY = function matrixFormSkewY(params) {
-    return [1, Math.tan(params[0] / 180 * Math.PI), 0, 1, 0, 0];
-  };
-  var matrixForm = function matrixForm(transformType, params) {
-    switch (transformType) {
-      case "translate":
-        return matrixFormTranslate(params);
-      case "rotate":
-        return matrixFormRotate(params);
-      case "scale":
-        return matrixFormScale(params);
-      case "skewX":
-        return matrixFormSkewX(params);
-      case "skewY":
-        return matrixFormSkewY(params);
-      case "matrix":
-        return params;
-      default:
-        console.warn("unknown transform type ".concat(transformType));
-    }
-    return undefined;
-  };
-  var transformIntoMatrix = function transformIntoMatrix(string) {
-    return parseTransform(string).map(function (el) {
-      return matrixForm(el.transform, el.parameters);
-    }).filter(function (a) {
-      return a !== undefined;
-    }).reduce(function (a, b) {
-      return multiply_matrices2$1(a, b);
-    }, [1, 0, 0, 1, 0, 0]);
-  };
-  var getElementsTransform = function getElementsTransform(element) {
-    if (typeof element.getAttribute !== "function") {
-      return [1, 0, 0, 1, 0, 0];
-    }
-    var transformAttr = element.getAttribute("transform");
-    if (transformAttr != null && transformAttr !== "") {
-      return transformIntoMatrix(transformAttr);
-    }
-    return [1, 0, 0, 1, 0, 0];
-  };
-  var apply_nested_transforms = function apply_nested_transforms(element) {
-    var stack = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [1, 0, 0, 1, 0, 0];
-    var local = multiply_matrices2$1(stack, getElementsTransform(element));
-    element.matrix = local;
-    if (element.tagName === "g" || element.tagName === "svg") {
-      if (element.childNodes == null) {
-        return;
-      }
-      Array.from(element.childNodes).forEach(function (child) {
-        return apply_nested_transforms(child, local);
-      });
-    }
-  };
-  var parseable = Object.keys(parsers);
-  var svgNS$2 = "http://www.w3.org/2000/svg";
-  var DEFAULTS = {
-    string: true,
-    svg: false
-  };
-  var svgAttributes = ["version", "xmlns", "contentScriptType", "contentStyleType", "baseProfile", "class", "externalResourcesRequired", "x", "y", "width", "height", "viewBox", "preserveAspectRatio", "zoomAndPan", "style"];
-  var shape_attr = {
+  var attributes$1 = {
     line: ["x1", "y1", "x2", "y2"],
     rect: ["x", "y", "width", "height"],
     circle: ["cx", "cy", "r"],
     ellipse: ["cx", "cy", "rx", "ry"],
     polygon: ["points"],
     polyline: ["points"],
-    path: ["d"]
+    path: ["d"],
   };
-  var stringToDomTree = function stringToDomTree(input) {
-    return typeof input === "string" || input instanceof String ? new win$4.DOMParser().parseFromString(input, "text/xml").documentElement : input;
-  };
-  var flatten_tree = function flatten_tree(element) {
+  const flattenTree = function (element) {
     if (element.tagName === "g" || element.tagName === "svg") {
-      if (element.childNodes == null) {
-        return [];
-      }
-      return Array.from(element.childNodes).map(function (child) {
-        return flatten_tree(child);
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []);
+      if (element.childNodes == null) { return []; }
+      return Array.from(element.childNodes)
+        .map(child => flattenTree(child))
+        .reduce((a, b) => a.concat(b), []);
     }
     return [element];
   };
-  var attribute_list = function attribute_list(element) {
-    return Array.from(element.attributes).filter(function (a) {
-      return shape_attr[element.tagName].indexOf(a.name) === -1;
-    });
+  const multiply_line_matrix2 = function (line, matrix) {
+    return [
+      line[0] * matrix[0] + line[1] * matrix[2] + matrix[4],
+      line[0] * matrix[1] + line[1] * matrix[3] + matrix[5],
+      line[2] * matrix[0] + line[3] * matrix[2] + matrix[4],
+      line[2] * matrix[1] + line[3] * matrix[3] + matrix[5],
+    ];
   };
-  var objectifyAttributeList = function objectifyAttributeList(list) {
-    var obj = {};
-    list.forEach(function (a) {
-      obj[a.nodeName] = a.value;
-    });
+  const multiply_matrices2$1 = function (m1, m2) {
+    return [
+      m1[0] * m2[0] + m1[2] * m2[1],
+      m1[1] * m2[0] + m1[3] * m2[1],
+      m1[0] * m2[2] + m1[2] * m2[3],
+      m1[1] * m2[2] + m1[3] * m2[3],
+      m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+      m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
+    ];
+  };
+  const parseTransform = function (transform) {
+    const parsed = transform.match(/(\w+\((\-?\d+\.?\d*e?\-?\d*,?\s*)+\))+/g);
+    const listForm = parsed.map(a => a.match(/[\w\.\-]+/g));
+    return listForm.map(a => ({
+      transform: a.shift(),
+      parameters: a.map(p => parseFloat(p)),
+    }));
+  };
+  const matrixFormTranslate = function (params) {
+    switch (params.length) {
+      case 1: return [1, 0, 0, 1, params[0], 0];
+      case 2: return [1, 0, 0, 1, params[0], params[1]];
+      default: console.warn(`improper translate, ${params}`);
+    }
+    return undefined;
+  };
+  const matrixFormRotate = function (params) {
+    const cos_p = Math.cos(params[0] / 180 * Math.PI);
+    const sin_p = Math.sin(params[0] / 180 * Math.PI);
+    switch (params.length) {
+      case 1: return [cos_p, sin_p, -sin_p, cos_p, 0, 0];
+      case 3: return [cos_p, sin_p, -sin_p, cos_p,
+        -params[1] * cos_p + params[2] * sin_p + params[1],
+        -params[1] * sin_p - params[2] * cos_p + params[2]];
+      default: console.warn(`improper rotate, ${params}`);
+    }
+    return undefined;
+  };
+  const matrixFormScale = function (params) {
+    switch (params.length) {
+      case 1: return [params[0], 0, 0, params[0], 0, 0];
+      case 2: return [params[0], 0, 0, params[1], 0, 0];
+      default: console.warn(`improper scale, ${params}`);
+    }
+    return undefined;
+  };
+  const matrixFormSkewX = function (params) {
+    return [1, 0, Math.tan(params[0] / 180 * Math.PI), 1, 0, 0];
+  };
+  const matrixFormSkewY = function (params) {
+    return [1, Math.tan(params[0] / 180 * Math.PI), 0, 1, 0, 0];
+  };
+  const matrixForm = function (transformType, params) {
+    switch (transformType) {
+      case "translate": return matrixFormTranslate(params);
+      case "rotate": return matrixFormRotate(params);
+      case "scale": return matrixFormScale(params);
+      case "skewX": return matrixFormSkewX(params);
+      case "skewY": return matrixFormSkewY(params);
+      case "matrix": return params;
+      default: console.warn(`unknown transform type ${transformType}`);
+    }
+    return undefined;
+  };
+  const transformStringToMatrix = function (string) {
+    return parseTransform(string)
+      .map(el => matrixForm(el.transform, el.parameters))
+      .filter(a => a !== undefined)
+      .reduce((a, b) => multiply_matrices2$1(a, b), [1, 0, 0, 1, 0, 0]);
+  };
+  const get_transform_as_matrix = function (element) {
+    if (typeof element.getAttribute !== "function") {
+      return [1, 0, 0, 1, 0, 0];
+    }
+    const transformAttr = element.getAttribute("transform");
+    if (transformAttr != null && transformAttr !== "") {
+      return transformStringToMatrix(transformAttr);
+    }
+    return [1, 0, 0, 1, 0, 0];
+  };
+  const apply_nested_transforms = function (element, stack = [1, 0, 0, 1, 0, 0]) {
+    const local = multiply_matrices2$1(stack, get_transform_as_matrix(element));
+    element.matrix = local;
+    if (element.tagName === "g" || element.tagName === "svg") {
+      if (element.childNodes == null) { return; }
+      Array.from(element.childNodes)
+        .forEach(child => apply_nested_transforms(child, local));
+    }
+  };
+  const parseable = Object.keys(parsers);
+  const attribute_list = function (element) {
+    return Array.from(element.attributes)
+      .filter(a => attributes$1[element.tagName].indexOf(a.name) === -1);
+  };
+  const objectifyAttributeList = function (list) {
+    const obj = {};
+    list.forEach((a) => { obj[a.nodeName] = a.value; });
     return obj;
   };
-  var Segmentize = function Segmentize(input, options) {
-    var inputSVG = stringToDomTree(input);
-    apply_nested_transforms(inputSVG);
-    var elements = flatten_tree(inputSVG);
-    var lineSegments = elements.filter(function (e) {
-      return parseable.indexOf(e.tagName) !== -1;
-    }).map(function (e) {
-      return parsers[e.tagName](e).map(function (unit) {
-        return multiply_line_matrix2$1(unit, e.matrix);
-      }).map(function (unit) {
-        return [].concat(_toConsumableArray$1(unit), [attribute_list(e)]);
+  const segmentize = function (input, options = {}) {
+    const RESOLUTION = typeof options.resolution === "object"
+      ? options.resolution
+      : {};
+    if (typeof options.resolution === "number") {
+      ["circle", "ellipse", "path"].forEach((k) => {
+        RESOLUTION[k] = options.resolution;
       });
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
-    lineSegments.filter(function (a) {
-      return a[4] !== undefined;
-    }).forEach(function (seg) {
-      var noTransforms = seg[4].filter(function (a) {
-        return a.nodeName !== "transform";
-      });
-      seg[4] = objectifyAttributeList(noTransforms);
-    });
-    var o = Object.assign(Object.assign({}, DEFAULTS), options);
-    if (o.svg) {
-      var newSVG = win$4.document.createElementNS(svgNS$2, "svg");
-      svgAttributes.map(function (a) {
-        return {
-          attribute: a,
-          value: inputSVG.getAttribute(a)
-        };
-      }).filter(function (obj) {
-        return obj.value != null && obj.value !== "";
-      }).forEach(function (obj) {
-        return newSVG.setAttribute(obj.attribute, obj.value);
-      });
-      if (newSVG.getAttribute("xmlns") === null) {
-        newSVG.setAttribute("xmlns", svgNS$2);
-      }
-      var styles = elements.filter(function (e) {
-        return e.tagName === "style" || e.tagName === "defs";
-      });
-      if (styles.length > 0) {
-        styles.map(function (style) {
-          return style.cloneNode(true);
-        }).forEach(function (style) {
-          return newSVG.appendChild(style);
-        });
-      }
-      lineSegments.forEach(function (s) {
-        var line = win$4.document.createElementNS(svgNS$2, "line");
-        line.setAttributeNS(null, "x1", s[0]);
-        line.setAttributeNS(null, "y1", s[1]);
-        line.setAttributeNS(null, "x2", s[2]);
-        line.setAttributeNS(null, "y2", s[3]);
-        if (s[4] != null) {
-          Object.keys(s[4]).forEach(function (key) {
-            return line.setAttribute(key, s[4][key]);
-          });
-        }
-        newSVG.appendChild(line);
-      });
-      if (o.string === false) {
-        return newSVG;
-      }
-      var stringified = new win$4.XMLSerializer().serializeToString(newSVG);
-      var beautified = vkXML$2(stringified);
-      return beautified;
     }
+    apply_nested_transforms(input);
+    const elements = flattenTree(input);
+    const lineSegments = elements
+      .filter(el => parseable.indexOf(el.tagName) !== -1)
+      .map(el => parsers[el.tagName](el, RESOLUTION[el.tagName])
+        .map(unit => multiply_line_matrix2(unit, el.matrix))
+        .map(unit => [...unit, attribute_list(el)]))
+      .reduce((a, b) => a.concat(b), []);
+    lineSegments
+      .filter(a => a[4] !== undefined)
+      .forEach((seg) => {
+        const noTransforms = seg[4].filter(a => a.nodeName !== "transform");
+        seg[4] = objectifyAttributeList(noTransforms);
+      });
     return lineSegments;
+  };
+  var svgNS$2 = "http://www.w3.org/2000/svg";
+  const svgAttributes = [
+    "version",
+    "xmlns",
+    "contentScriptType",
+    "contentStyleType",
+    "baseProfile",
+    "class",
+    "externalResourcesRequired",
+    "x",
+    "y",
+    "width",
+    "height",
+    "viewBox",
+    "preserveAspectRatio",
+    "zoomAndPan",
+    "style",
+  ];
+  const headerTagNames = {
+    "defs": true,
+    "metadata": true,
+    "title": true,
+    "desc": true,
+    "style": true,
+  };
+  const segmentsToSVG = function (lineSegments, inputSVG) {
+    const newSVG = win$4.document.createElementNS(svgNS$2, "svg");
+    if (inputSVG !== undefined) {
+      svgAttributes.map(a => ({ attribute: a, value: inputSVG.getAttribute(a) }))
+        .filter(obj => obj.value != null && obj.value !== "")
+        .forEach(obj => newSVG.setAttribute(obj.attribute, obj.value));
+    }
+    if (newSVG.getAttribute("xmlns") === null) {
+      newSVG.setAttribute("xmlns", svgNS$2);
+    }
+    Array.from(inputSVG.childNodes)
+      .filter(el => headerTagNames[el.tagName])
+      .map(el => el.cloneNode(true))
+      .forEach(el => newSVG.appendChild(el));
+    lineSegments.forEach((s) => {
+      const line = win$4.document.createElementNS(svgNS$2, "line");
+      attributes$1.line.forEach((attr, i) => line.setAttributeNS(null, attr, s[i]));
+      if (s[4] != null) {
+        Object.keys(s[4]).forEach(key => line.setAttribute(key, s[4][key]));
+      }
+      newSVG.appendChild(line);
+    });
+    return newSVG;
+  };
+  const defaults = Object.freeze({
+    input: "string",
+    output: "string",
+    resolution: Object.freeze({
+      circle: 64,
+      ellipse: 64,
+      path: 128
+    })
+  });
+  const xmlStringToDOM = function (input) {
+    return (typeof input === "string" || input instanceof String
+      ? (new win$4.DOMParser()).parseFromString(input, "text/xml").documentElement
+      : input);
+  };
+  const Segmentize = function (input, options = defaults) {
+    const inputSVG = options.input === "svg"
+      ? input
+      : xmlStringToDOM(input);
+    const lineSegments = segmentize(inputSVG, options);
+    if (options.output === "data") {
+      return lineSegments;
+    }
+    const newSVG = segmentsToSVG(lineSegments, inputSVG);
+    if (options.output === "svg") {
+      return newSVG;
+    }
+    const stringified = new win$4.XMLSerializer().serializeToString(newSVG);
+    return vkXML$2(stringified);
   };
 
   const FOLD = { convert };
@@ -10055,7 +10143,7 @@
   const svg_to_fold = function (svg, options) {
     const pre_frag = emptyFOLD();
     const v0 = pre_frag.vertices_coords.length;
-    const segments = Segmentize(svg);
+    const segments = Segmentize(svg, { output: "data" });
     pre_frag.vertices_coords = segments
       .map(s => [[s[0], s[1]], [s[2], s[3]]])
       .reduce((a, b) => a.concat(b), pre_frag.vertices_coords);
@@ -10090,22 +10178,19 @@
   };
 
   const from_to = function (data, from, to, ...args) {
-    console.log("From to", ...args);
     switch (from) {
       case "fold":
         switch (to) {
           case "fold": return data;
           case "oripa": return oripa.fromFold(data);
-          case "svg": return drawFOLD.svg(data);
-          default: break;
+          case "svg": return FoldToSvg(data);
         }
         break;
       case "oripa":
         switch (to) {
           case "fold": return oripa.toFold(data, true);
           case "oripa": return data;
-          case "svg": return drawFOLD.svg(oripa.toFold(data, true));
-          default: break;
+          case "svg": return FoldToSvg(oripa.toFold(data, true));
         }
         break;
       case "svg":
@@ -10113,10 +10198,8 @@
           case "fold": return SVGtoFOLD(data, ...args);
           case "oripa": return oripa.fromFold(SVGtoFOLD(data, ...args));
           case "svg": return data;
-          default: break;
         }
         break;
-      default: break;
     }
     return undefined;
   };
@@ -10133,7 +10216,6 @@
   };
   const convert$1 = function (...file) {
     const loaded = load$1(...file);
-    console.log("loaded", loaded);
     const c = {};
     ["fold", "svg", "oripa"].forEach(filetype => permute(filetype)
       .forEach(key => Object.defineProperty(c, key, {
@@ -10142,68 +10224,186 @@
     return c;
   };
 
-  const max_array_length$2 = function (...arrays) {
-    return Math.max(...(arrays
-      .filter(el => el !== undefined)
-      .map(el => el.length)));
+  const metadata = function (complete = false) {
+    return !complete
+      ? {
+        file_spec,
+        file_creator
+      }
+      : {
+        file_spec,
+        file_creator,
+        file_author: "",
+        file_title: "",
+        file_description: "",
+        file_classes: [],
+        file_frames: [],
+        frame_description: "",
+        frame_attributes: [],
+        frame_classes: [],
+        frame_unit: "",
+      };
   };
-  const vertices_count$2 = function ({
-    vertices_coords, vertices_faces, vertices_vertices
-  }) {
-    return max_array_length$2([], vertices_coords,
-      vertices_faces, vertices_vertices);
+  const default_re_extensions = function (number_faces = 1) {
+    return {
+      "faces_re:layer": Array.from(Array(number_faces)).map((_, i) => i),
+      "faces_re:matrix": Array.from(Array(number_faces)).map(() => [1, 0, 0, 1, 0, 0])
+    };
   };
-  const edges_count$2 = function ({
-    edges_vertices, edges_faces
-  }) {
-    return max_array_length$2([], edges_vertices, edges_faces);
+  const cp_type = function () {
+    return {
+      file_classes: ["singleModel"],
+      frame_attributes: ["2D"],
+      frame_classes: ["creasePattern"],
+    };
   };
-  const faces_count$2 = function ({
-    faces_vertices, faces_edges
-  }) {
-    return max_array_length$2([], faces_vertices, faces_edges);
+  const square_graph = function () {
+    return {
+      vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+      vertices_vertices: [[1, 3], [2, 0], [3, 1], [0, 2]],
+      vertices_faces: [[0], [0], [0], [0]],
+      edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]],
+      edges_faces: [[0], [0], [0], [0]],
+      edges_assignment: ["B", "B", "B", "B"],
+      edges_foldAngle: [0, 0, 0, 0],
+      edges_length: [1, 1, 1, 1],
+      faces_vertices: [[0, 1, 2, 3]],
+      faces_edges: [[0, 1, 2, 3]],
+    };
   };
-  const get_geometry_length$1 = {
-    vertices: vertices_count$2,
-    edges: edges_count$2,
-    faces: faces_count$2
+  const empty = function (prototype = null) {
+    return Object.assign(
+      Object.create(prototype),
+      metadata()
+    );
   };
-  const remove_geometry_key_indices$1 = function (graph, key, removeIndices) {
-    const geometry_array_size = get_geometry_length$1[key](graph);
-    const removes = Array(geometry_array_size).fill(false);
-    removeIndices.forEach((v) => { removes[v] = true; });
-    let s = 0;
-    const index_map = removes.map(remove => (remove ? --s : s));
-    if (removeIndices.length === 0) { return index_map; }
-    const prefix = `${key}_`;
-    const suffix = `_${key}`;
-    const graph_keys = Object.keys(graph);
-    const prefixKeys = graph_keys
-      .map(str => (str.substring(0, prefix.length) === prefix ? str : undefined))
-      .filter(str => str !== undefined);
-    const suffixKeys = graph_keys
-      .map(str => (str.substring(str.length - suffix.length, str.length) === suffix
-        ? str
-        : undefined))
-      .filter(str => str !== undefined);
-    suffixKeys
-      .forEach(sKey => graph[sKey]
-        .forEach((_, i) => graph[sKey][i]
-          .forEach((v, j) => { graph[sKey][i][j] += index_map[v]; })));
-    prefixKeys.forEach((pKey) => {
-      graph[pKey] = graph[pKey]
-        .filter((_, i) => !removes[i]);
-    });
-    return index_map;
+  const square = function (prototype = null) {
+    return Object.assign(
+      Object.create(prototype),
+      metadata(),
+      cp_type(),
+      square_graph(),
+      default_re_extensions(1)
+    );
+  };
+  const rectangle = function (width = 1, height = 1) {
+    const graph = square_graph();
+    graph.vertices_coords = [[0, 0], [width, 0], [width, height], [0, height]];
+    graph.edges_length = [width, height, width, height];
+    return Object.assign(
+      Object.create(null),
+      metadata(),
+      cp_type(),
+      graph,
+      default_re_extensions(1)
+    );
+  };
+  const regular_polygon = function (sides, radius = 1) {
+    const arr = Array.from(Array(sides));
+    const angle = 2 * Math.PI / sides;
+    const sideLength = math.core.clean_number(Math.sqrt(
+      ((radius - radius * Math.cos(angle)) ** 2)
+      + ((radius * Math.sin(angle)) ** 2),
+    ));
+    const graph = {
+      vertices_coords: arr.map((_, i) => angle * i).map(a => [
+        math.core.clean_number(radius * Math.cos(a)),
+        math.core.clean_number(radius * Math.sin(a)),
+      ]),
+      vertices_vertices: arr
+        .map((_, i) => [(i + 1) % arr.length, (i + arr.length - 1) % arr.length]),
+      vertices_faces: arr.map(() => [0]),
+      edges_vertices: arr.map((_, i) => [i, (i + 1) % arr.length]),
+      edges_faces: arr.map(() => [0]),
+      edges_assignment: arr.map(() => "B"),
+      edges_foldAngle: arr.map(() => 0),
+      edges_length: arr.map(() => sideLength),
+      faces_vertices: [arr.map((_, i) => i)],
+      faces_edges: [arr.map((_, i) => i)],
+    };
+    return Object.assign(
+      Object.create(null),
+      metadata(),
+      cp_type(),
+      graph,
+      default_re_extensions(1)
+    );
   };
 
-  var remove = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': remove_geometry_key_indices$1
-  });
+  const populate = function (graph) {
+    if (typeof graph !== "object") { return; }
+    if (graph.vertices_vertices == null) {
+      if (graph.vertices_coords && graph.edges_vertices) {
+        convert.edges_vertices_to_vertices_vertices_sorted(graph);
+      } else if (graph.edges_vertices) {
+        convert.edges_vertices_to_vertices_vertices_unsorted(graph);
+      }
+    }
+    if (graph.faces_vertices == null) {
+      if (graph.vertices_coords && graph.vertices_vertices) {
+        convert.vertices_vertices_to_faces_vertices(graph);
+      }
+    }
+    if (graph.faces_edges == null) {
+      if (graph.faces_vertices) {
+        convert.faces_vertices_to_faces_edges(graph);
+      }
+    }
+    if (graph.edges_faces == null) {
+      const edges_faces = make_edges_faces(graph);
+      if (edges_faces !== undefined) {
+        graph.edges_faces = edges_faces;
+      }
+    }
+    if (graph.vertices_faces == null) {
+      const vertices_faces = make_vertices_faces(graph);
+      if (vertices_faces !== undefined) {
+        graph.vertices_faces = vertices_faces;
+      }
+    }
+    if (graph.edges_length == null) {
+      const edges_length = make_edges_length(graph);
+      if (edges_length !== undefined) {
+        graph.edges_length = edges_length;
+      }
+    }
+    if (graph.edges_foldAngle == null
+      && graph.edges_assignment != null) {
+      graph.edges_foldAngle = graph.edges_assignment
+        .map(a => edge_assignment_to_foldAngle(a));
+    }
+    if (graph.edges_assignment == null
+      && graph.edges_foldAngle != null) {
+      graph.edges_assignment = graph.edges_foldAngle.map((a) => {
+        if (a === 0) { return "F"; }
+        if (a < 0) { return "M"; }
+        if (a > 0) { return "V"; }
+        return "U";
+      });
+    }
+    if (graph.faces_faces == null) {
+      const faces_faces = make_faces_faces$1(graph);
+      if (faces_faces !== undefined) {
+        graph.faces_faces = faces_faces;
+      }
+    }
+    if (graph.vertices_edges == null) {
+      const vertices_edges = make_vertices_edges$1(graph);
+      if (vertices_edges !== undefined) {
+        graph.vertices_edges = vertices_edges;
+      }
+    }
+    if (graph.edges_edges == null) {
+      const edges_edges = make_edges_edges(graph);
+      if (edges_edges !== undefined) {
+        graph.edges_edges = edges_edges;
+      }
+    }
+  };
 
-  const equivalent_vertices = function (a, b, epsilon = math.core.EPSILON) {
-    for (let i = 0; i < a.length; i += 1) {
+  const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
+    const max = a.length < 2 ? a.length : 2;
+    for (let i = 0; i < max; i += 1) {
       if (Math.abs(a[i] - b[i]) > epsilon) {
         return false;
       }
@@ -10249,7 +10449,7 @@
     const crossings = Array.from(Array(edge_count - 1)).map(() => []);
     for (let i = 0; i < edges.length - 1; i += 1) {
       for (let j = i + 1; j < edges.length; j += 1) {
-        crossings[i][j] = math.core.intersection.edge_edge_exclusive(
+        crossings[i][j] = math.core.intersection.segment_segment_exclusive(
           edges[i][0], edges[i][1],
           edges[j][0], edges[j][1],
           epsilon
@@ -10302,7 +10502,7 @@
       .from(Array(vertices_coords.length)).map(() => []);
     for (let i = 0; i < vertices_coords.length - 1; i += 1) {
       for (let j = i + 1; j < vertices_coords.length; j += 1) {
-        vertices_equivalent[i][j] = equivalent_vertices(
+        vertices_equivalent[i][j] = are_vertices_equivalent(
           vertices_coords[i],
           vertices_coords[j],
           epsilon
@@ -10358,124 +10558,496 @@
       vertices_coords,
       edges_vertices: edges_vertices_cl
     };
-    if ("edges_assignment" in graph === true) {
-      flat.edges_assignment = edge_map_cl.map(i => graph.edges_assignment[i]);
+    if (graph.edges_assignment != null) {
+      flat.edges_assignment = edge_map_cl
+        .map(i => graph.edges_assignment[i] || "U");
     }
-    if ("edges_foldAngle" in graph === true) {
-      flat.edges_foldAngle = edge_map_cl.map(i => graph.edges_foldAngle[i]);
+    if (graph.edges_foldAngle != null) {
+      flat.edges_foldAngle = edge_map_cl
+        .map((i, j) => (graph.edges_foldAngle[i] || edge_assignment_to_foldAngle(flat.edges_assignment[j])));
     }
     const vertices_remove_indices = vertices_remove
       .map((rm, i) => (rm ? i : undefined))
       .filter(i => i !== undefined);
-    remove_geometry_key_indices$1(flat, "vertices", vertices_remove_indices);
+    remove_geometry_key_indices(flat, "vertices", vertices_remove_indices);
+    fold_keys.graph.forEach(key => delete graph[key]);
+    Object.keys(flat).forEach((key) => { graph[key] = flat[key]; });
     return flat;
   };
 
-  const complete = function (graph) {
-    if ("vertices_coords" in graph === false
-      || "edges_vertices" in graph === false) { return; }
-    if ("vertices_vertices" in graph === false) {
-      convert.edges_vertices_to_vertices_vertices_sorted(graph);
-    }
-    if ("faces_vertices" in graph === false) {
-      convert.vertices_vertices_to_faces_vertices(graph);
-    }
-    if ("faces_edges" in graph === false) {
-      convert.faces_vertices_to_faces_edges(graph);
-    }
-    if ("edges_faces" in graph === false) {
-      graph.edges_faces = make_edges_faces(graph);
-    }
-    if ("vertices_faces" in graph === false) {
-      graph.vertices_faces = make_vertices_faces(graph);
-    }
-    if ("edges_length" in graph === false) {
-      graph.edges_length = make_edges_length(graph);
-    }
-    if ("edges_foldAngle" in graph === false
-      && "edges_assignment" in graph === true) {
-      graph.edges_foldAngle = graph.edges_assignment
-        .map(a => edge_assignment_to_foldAngle(a));
-    }
-    if ("edges_assignment" in graph === false
-      && "edges_foldAngle" in graph === true) {
-      graph.edges_assignment = graph.edges_foldAngle.map((a) => {
-        if (a === 0) return "F";
-        if (a < 0) return "M";
-        if (a > 0) return "V";
-        return "U";
+  const need = function (graph, ...keys) {
+    return keys.map((key) => {
+      switch (key) {
+        case "vertices_coords":
+        case "edges_vertices":
+          return graph[key] != null;
+        case "vertices_vertices":
+          convert.edges_vertices_to_vertices_vertices_sorted(graph);
+          return true;
+        case "vertices_edges":
+          graph.vertices_edges = make_vertices_edges$1(graph);
+          return true;
+        default: return false;
+      }
+    }).reduce((a, b) => a && b, true);
+  };
+
+  const collinear_vertices = function (graph, point, vector) {
+    return graph.vertices_coords
+      .map(vert => vert.map((n, i) => n - point[i]))
+      .map(vert => vert[0] * vector[1] - vert[1] * vector[0])
+      .map((det, i) => (Math.abs(det) < math.core.EPSILON ? i : undefined))
+      .filter(a => a !== undefined);
+  };
+  const collinear_edges = function (graph, point, vector) {
+    const hash = {};
+    collinear_vertices(graph, point, vector)
+      .forEach((v) => { hash[v] = true; });
+    convert.edges_vertices_to_vertices_vertices_sorted(graph);
+    return graph.edges_vertices
+      .map(ev => hash[ev[0]] && hash[ev[1]] && graph.vertices_vertices[ev[0]].includes(ev[1]))
+      .map((collinear, i) => (collinear ? i : undefined))
+      .filter(a => a !== undefined);
+  };
+  const are_vertices_collinear = function (graph, verts) {
+    if (verts.length < 3) { return false; }
+    const coords = verts.map(v => graph.vertices_coords[v]);
+    const dimension = Array.from(Array(coords[0].length));
+    const a = dimension.map((_, i) => coords[1][i] - coords[0][i]);
+    const b = dimension.map((_, i) => coords[2][i] - coords[0][i]);
+    return Math.abs(a[0] * b[1] - a[1] * b[0]) < math.core.EPSILON;
+  };
+  const remove_collinear_vertices = function (graph, collinear) {
+    const new_edges = [];
+    collinear.forEach((co) => {
+      const { vertices, edges } = co;
+      const assignment = co.assignments[0];
+      remove_geometry_key_indices(graph, "edges", edges);
+      new_edges.push({ vertices, assignment });
+    });
+    new_edges.forEach((el) => {
+      const index = graph.edges_vertices.length;
+      graph.edges_vertices[index] = el.vertices;
+      graph.edges_assignment[index] = el.assignment;
+    });
+    remove_geometry_key_indices(graph, "vertices", collinear.map(c => c.vertex));
+  };
+  const remove_all_collinear_vertices = function (graph) {
+    need(graph, "vertices_vertices", "vertices_edges");
+    const pairs_verts = graph.vertices_vertices
+      .map((adj, i) => (adj.length === 2 ? i : undefined))
+      .filter(a => a !== undefined);
+    const collinear_verts = pairs_verts
+      .map(v => [v].concat(graph.vertices_vertices[v]))
+      .map(verts => (are_vertices_collinear(graph, verts)
+        ? ({ vertex: verts[0], vertices: [verts[1], verts[2]], edges: graph.vertices_edges[verts[0]] })
+        : undefined))
+      .filter(a => a !== undefined);
+    collinear_verts.forEach((v) => {
+      v.assignments = v.edges.map(e => graph.edges_assignment[e].toUpperCase());
+    });
+    collinear_verts.forEach((v) => {
+      v.valid = v.assignments.map(a => a === v.assignments[0]).reduce((a, b) => a && b, true);
+    });
+    const toRemove = collinear_verts.filter(v => v.valid);
+    remove_collinear_vertices(graph, toRemove);
+    return toRemove.length > 0;
+  };
+
+  var collinear = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    collinear_vertices: collinear_vertices,
+    collinear_edges: collinear_edges,
+    remove_all_collinear_vertices: remove_all_collinear_vertices
+  });
+
+  const find_edge_isolated_vertices = function (graph) {
+    if (graph.vertices_coords == null) { return []; }
+    let count = graph.vertices_coords.length;
+    const seen = Array(count).fill(false);
+    if (graph.edges_vertices) {
+      graph.edges_vertices.forEach((ev) => {
+        ev.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
       });
     }
-    if ("faces_faces" in graph === false) {
-      graph.faces_faces = make_faces_faces(graph);
-    }
-    if ("vertices_edges" in graph === false) {
-      graph.vertices_edges = make_vertices_edges(graph);
-    }
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
   };
-  const rebuild = function (graph, epsilon = math.core.EPSILON) {
-    ["vertices_vertices", "vertices_edges", "vertices_faces",
-      "edges_faces", "edges_edges",
-      "faces_vertices", "faces_edges", "faces_faces"].filter(a => a in graph)
-      .forEach(key => delete graph[key]);
-    const rebuilt = fragment$1(graph, epsilon);
-    remove_geometry_key_indices$1(rebuilt, "edges", get_duplicate_edges_old(rebuilt));
-    convert.edges_vertices_to_vertices_vertices_sorted(rebuilt);
-    convert.vertices_vertices_to_faces_vertices(rebuilt);
-    convert.faces_vertices_to_faces_edges(rebuilt);
-    rebuilt.edges_faces = make_edges_faces(rebuilt);
-    rebuilt.vertices_faces = make_vertices_faces(rebuilt);
-    Object.assign(graph, rebuilt);
-    if (!edges_assignment(graph)) {
-      graph.edges_assignment = Array(graph.edges_vertices.length).fill("F");
+  const find_face_isolated_vertices = function (graph) {
+    if (graph.vertices_coords == null) { return []; }
+    let count = graph.vertices_coords.length;
+    const seen = Array(count).fill(false);
+    if (graph.faces_vertices) {
+      graph.faces_vertices.forEach((fv) => {
+        fv.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
     }
-    if ("file_spec" in graph === false) { graph.file_spec = 1.1; }
-    if ("frame_attributes" in graph === false) {
-      graph.frame_attributes = ["2D"];
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const find_isolated_vertices = function (graph) {
+    if (graph.vertices_coords == null) { return []; }
+    let count = graph.vertices_coords.length;
+    const seen = Array(count).fill(false);
+    if (graph.edges_vertices) {
+      graph.edges_vertices.forEach((ev) => {
+        ev.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
     }
-    if ("frame_classes" in graph === false) {
-      graph.frame_classes = ["creasePattern"];
+    if (graph.faces_vertices) {
+      graph.faces_vertices.forEach((fv) => {
+        fv.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
     }
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
   };
 
-  var rebuild$1 = /*#__PURE__*/Object.freeze({
+  var isolated = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    complete: complete,
-    rebuild: rebuild
+    find_edge_isolated_vertices: find_edge_isolated_vertices,
+    find_face_isolated_vertices: find_face_isolated_vertices,
+    find_isolated_vertices: find_isolated_vertices
   });
 
-  const copy_without_marks = function (graph) {
-    const edges_vertices = graph.edges_vertices
-      .filter((_, i) => graph.edges_assignment[i] !== "F"
-        && graph.edges_assignment[i] !== "f");
-    const edges_assignment = graph.edges_assignment
-      .filter(ea => ea !== "F" && ea !== "f");
-    const copy = clone(graph);
-    Object.keys(copy).filter(key => key.substring(0, 9) === "vertices_")
-      .forEach(key => delete copy[key]);
-    Object.keys(copy).filter(key => key.substring(0, 6) === "edges_")
-      .forEach(key => delete copy[key]);
-    Object.keys(copy).filter(key => key.substring(0, 6) === "faces_")
-      .forEach(key => delete copy[key]);
-    const rebuilt = Object.assign(copy, {
-      vertices_coords: graph.vertices_coords,
-      edges_vertices,
-      edges_assignment
+  const DEFAULTS = Object.freeze({
+    circular: true,
+    duplicate: true,
+  });
+  const removeCircularEdges = function (graph) {
+    const circular = graph.edges_vertices
+      .map((ev, i) => (ev[0] === ev[1] ? i : undefined))
+      .filter(a => a !== undefined);
+    remove_geometry_key_indices(graph, "edges", circular);
+  };
+  const edges_similar = function (graph, e0, e1) {
+    return ((graph.edges_vertices[e0][0] === graph.edges_vertices[e1][0]
+      && graph.edges_vertices[e0][1] === graph.edges_vertices[e1][1])
+      || (graph.edges_vertices[e0][0] === graph.edges_vertices[e1][1]
+      && graph.edges_vertices[e0][1] === graph.edges_vertices[e1][0]));
+  };
+  const removeDuplicateEdges = function (graph) {
+    const duplicates = graph.edges_vertices.map((ev, i) => {
+      for (let j = i + 1; j < graph.edges_vertices - 1 - i; j += 1) {
+        if (edges_similar(graph, i, j)) { return j; }
+      }
+      return undefined;
     });
-    convert.edges_vertices_to_vertices_vertices_sorted(rebuilt);
-    convert.vertices_vertices_to_faces_vertices(rebuilt);
-    convert.faces_vertices_to_faces_edges(rebuilt);
-    rebuilt.edges_faces = make_edges_faces(rebuilt);
-    rebuilt.vertices_faces = make_vertices_faces(rebuilt);
-    return rebuilt;
+    remove_geometry_key_indices(graph, "edges", duplicates);
   };
-  const silence = 5;
+  const clean = function (graph, options) {
+    if (typeof options !== "object") { options = {}; }
+    Object.keys(DEFAULTS)
+      .filter(key => !(key in options))
+      .forEach((key) => { options[key] = DEFAULTS[key]; });
+    if (options.circular === true) { removeCircularEdges(graph); }
+    if (options.duplicate === true) { removeDuplicateEdges(graph); }
+    if (options.collinear === true) {
+      remove_all_collinear_vertices(graph);
+      if (options.circular === true) { removeCircularEdges(graph); }
+      if (options.duplicate === true) { removeDuplicateEdges(graph); }
+    }
+    if (options.isolated === true) { remove_geometry_key_indices(graph, "vertices", find_isolated_vertices(graph)); }
+  };
 
-  var marks = /*#__PURE__*/Object.freeze({
+  const are_vertices_equivalent$1 = function (a, b, epsilon = math.core.EPSILON) {
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i += 1) {
+      if (Math.abs(a[i] - b[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const similar_vertices_coords = function (target, source, epsilon) {
+    const sourceMap = source.vertices_coords.map(() => undefined);
+    for (let i = 0; i < target.vertices_coords.length; i += 1) {
+      for (let j = 0; j < source.vertices_coords.length; j += 1) {
+        if (are_vertices_equivalent$1(target.vertices_coords[i], source.vertices_coords[j], epsilon)) {
+          sourceMap[j] = i;
+          j = source.vertices_coords.length;
+        }
+      }
+    }
+    return sourceMap;
+  };
+
+  var similar = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    copy_without_marks: copy_without_marks,
-    silence: silence
+    similar_vertices_coords: similar_vertices_coords
   });
+
+  const join = function (target, source, epsilon = math.core.EPSILON) {
+    const sourceMap = similar_vertices_coords(target, source, epsilon);
+    const additional_vertices_coords = source.vertices_coords
+      .filter((_, i) => sourceMap[i] === undefined);
+    let new_index = target.vertices_coords.length;
+    for (let i = 0; i < sourceMap.length; i += 1) {
+      if (sourceMap[i] === undefined) {
+        sourceMap[i] = new_index;
+        new_index += 1;
+      }
+    }
+    const additional_edges_vertices = source.edges_vertices
+      .map(ev => ev.map(v => sourceMap[v]));
+    target.vertices_coords = target.vertices_coords.concat(additional_vertices_coords);
+    target.edges_vertices = target.edges_vertices.concat(additional_edges_vertices);
+    delete target.vertices_vertices;
+    delete target.vertices_edges;
+    delete target.vertices_faces;
+    delete target.edges_edges;
+    delete target.edges_faces;
+    delete target.faces_vertices;
+    delete target.faces_edges;
+    delete target.faces_faces;
+    clean(target);
+    fragment$1(target);
+    populate(target);
+    return target;
+  };
+
+  const rebuild = function (graph, epsilon = math.core.EPSILON) {
+    fold_keys.orders.forEach(key => delete graph[key]);
+    fold_keys.graph
+      .filter(key => key !== "vertices_coords")
+      .filter(key => key !== "edges_vertices")
+      .filter(key => key !== "edges_assignment")
+      .filter(key => key !== "edges_foldAngle")
+      .forEach(key => delete graph[key]);
+    Object.keys(graph)
+      .filter(s => s.includes("re:"))
+      .forEach(key => delete graph[key]);
+    if (graph.edges_assignment != null && graph.edges_foldAngle != null) {
+      delete graph.edges_foldAngle;
+    }
+    populate(graph);
+  };
+
+  const apply_matrix_to_graph = function (graph, matrix) {
+    get_keys_with_ending(graph, "coords").forEach((key) => {
+      graph[key] = graph[key]
+        .map(v => math.core.multiply_matrix2_vector2(matrix, v));
+    });
+    get_keys_with_ending(graph, "matrix").forEach((key) => {
+      graph[key] = graph[key]
+        .map(m => math.core.multiply_matrices2(m, matrix));
+    });
+  };
+  const transform_scale = function (graph, sx, sy) {
+    if (typeof sx === "number" && sy === undefined) { sy = sx; }
+    const matrix = math.core.make_matrix2_scale(sx, sy);
+    apply_matrix_to_graph(graph, matrix);
+  };
+  const transform_translate = function (graph, dx, dy) {
+    const matrix = math.core.make_matrix2_translate(dx, dy);
+    apply_matrix_to_graph(graph, matrix);
+  };
+  const transform_matrix = function (graph, matrix) {
+    apply_matrix_to_graph(graph, matrix);
+  };
+
+  var affine = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    transform_scale: transform_scale,
+    transform_translate: transform_translate,
+    transform_matrix: transform_matrix
+  });
+
+  const Changed = function () {
+    const changed = {};
+    changed.update = function (...args) {
+      changed.handlers.forEach(f => f(...args));
+    };
+    changed.handlers = [];
+    return Object.freeze(changed);
+  };
+
+  const vertex_degree = function (v, i) {
+    const graph = this;
+    Object.defineProperty(v, "degree", {
+      get: () => (graph.vertices_vertices && graph.vertices_vertices[i]
+        ? graph.vertices_vertices[i].length
+        : null)
+    });
+  };
+  const edge_coords = function (e, i) {
+    const graph = this;
+    Object.defineProperty(e, "coords", {
+      get: () => {
+        if (!graph.edges_vertices
+          || !graph.edges_vertices[i]
+          || !graph.vertices_coords) {
+          return undefined;
+        }
+        return graph.edges_vertices[i].map(v => graph.vertices_coords[v]);
+      }
+    });
+  };
+  const face_simple = function (f, i) {
+    const graph = this;
+    Object.defineProperty(f, "simple", {
+      get: () => {
+        if (!graph.faces_vertices || !graph.faces_vertices[i]) { return null; }
+        for (let j = 0; j < f.length - 1; j += 1) {
+          for (let k = j + 1; k < f.length; k += 1) {
+            if (graph.faces_vertices[i][j] === graph.faces_vertices[i][k]) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+    });
+  };
+  const face_coords = function (f, i) {
+    const graph = this;
+    Object.defineProperty(f, "coords", {
+      get: () => {
+        if (!graph.faces_vertices
+          || !graph.faces_vertices[i]
+          || !graph.vertices_coords) {
+          return undefined;
+        }
+        return graph.faces_vertices[i].map(v => graph.vertices_coords[v]);
+      }
+    });
+  };
+  const setup_vertex = function (v, i) {
+    vertex_degree.call(this, v, i);
+  };
+  const setup_edge = function (e, i) {
+    edge_coords.call(this, e, i);
+  };
+  const setup_face = function (f, i) {
+    face_simple.call(this, f, i);
+    face_coords.call(this, f, i);
+  };
+  const Prototype$2 = function (proto = {}) {
+    proto.changed = Changed();
+    proto.load = function (object, options = {}) {
+      if (typeof object !== "object") { return; }
+      if (options.append !== true) {
+        keys.forEach(key => delete this[key]);
+      }
+      Object.assign(this, { file_spec, file_creator }, clone$1(object));
+      this.changed.update(this.load);
+    };
+    proto.join = function (object, epsilon) {
+      join(this, object, epsilon);
+      this.changed.update(this.join);
+    };
+    proto.clear = function () {
+      fold_keys.graph.forEach(key => delete this[key]);
+      fold_keys.orders.forEach(key => delete this[key]);
+      this.changed.update(this.clear);
+    };
+    proto.copy = function () {
+      return Object.assign(Object.create(Prototype$2()), clone$1(this));
+    };
+    proto.clean = function () {
+      clean(this);
+      this.changed.update(this.clean);
+    };
+    proto.populate = function () {
+      populate(this);
+      this.changed.update(this.populate);
+    };
+    proto.fragment = function (epsilon = 1e-6) {
+      fragment$1(this, epsilon);
+      this.changed.update(this.fragment);
+    };
+    proto.rebuild = function (epsilon = 1e-6) {
+      rebuild(this, epsilon);
+      this.changed.update(this.rebuild);
+    };
+    proto.translate = function (...args) {
+      transform_translate(this, ...args);
+      this.changed.update(this.translate);
+    };
+    proto.scale = function (...args) {
+      transform_scale(this, ...args);
+      this.changed.update(this.scale);
+    };
+    const getVertices = function () {
+      const transposed = transpose_geometry_arrays(this, "vertices");
+      const vertices = transposed.length !== 0
+        ? transposed
+        : Array.from(Array(implied_vertices_count(this))).map(() => ({}));
+      vertices.forEach(setup_vertex.bind(this));
+      return vertices;
+    };
+    const getEdges = function () {
+      const edges = transpose_geometry_arrays(this, "edges");
+      edges.forEach(setup_edge.bind(this));
+      return edges;
+    };
+    const getFaces = function () {
+      const faces = transpose_geometry_arrays(this, "faces");
+      faces.forEach(setup_face.bind(this));
+      return faces;
+    };
+    proto.nearestVertex = function (...args) {
+      const index = nearest_vertex(this, math.core.get_vector(...args));
+      const result = transpose_geometry_array_at_index(this, "vertices", index);
+      setup_vertex.call(this, result, index);
+      result.index = index;
+      return result;
+    };
+    proto.nearestEdge = function (...args) {
+      const index = nearest_edge(this, math.core.get_vector(...args));
+      const result = transpose_geometry_array_at_index(this, "edges", index);
+      setup_edge.call(this, result, index);
+      result.index = index;
+      return result;
+    };
+    proto.nearestFace = function (...args) {
+      const index = face_containing_point(this, math.core.get_vector(...args));
+      if (index === undefined) { return undefined; }
+      const result = transpose_geometry_array_at_index(this, "faces", index);
+      setup_face.call(this, result, index);
+      result.index = index;
+      return result;
+    };
+    proto.nearest = function (...args) {
+      const target = math.core.get_vector(...args);
+      const nears = {
+        vertex: this.nearestVertex(this, target),
+        edge: this.nearestEdge(this, target),
+        face: this.nearestFace(this, target)
+      };
+      Object.keys(nears)
+        .filter(key => nears[key] == null)
+        .forEach(key => delete nears[key]);
+      return nears;
+    };
+    Object.defineProperty(proto, "vertices", { get: getVertices });
+    Object.defineProperty(proto, "edges", { get: getEdges });
+    Object.defineProperty(proto, "faces", { get: getFaces });
+    return Object.freeze(proto);
+  };
+
+  const get_assignment = function (...args) {
+    return args.filter(a => typeof a === "string")
+      .filter(a => a.length === 1)
+      .shift();
+  };
 
   const new_vertex = function (graph, x, y) {
     if (graph.vertices_coords === undefined) { return undefined; }
@@ -10488,14 +11060,14 @@
     const new_vertex_index = new_vertex(graph, x, y);
     const incident_vertices = graph.edges_vertices[old_edge_index];
     if (graph.vertices_vertices == null) { graph.vertices_vertices = []; }
-    graph.vertices_vertices[new_vertex_index] = clone(incident_vertices);
+    graph.vertices_vertices[new_vertex_index] = clone$1(incident_vertices);
     incident_vertices.forEach((v, i, arr) => {
       const otherV = arr[(i + 1) % arr.length];
       const otherI = graph.vertices_vertices[v].indexOf(otherV);
       graph.vertices_vertices[v][otherI] = new_vertex_index;
     });
     if (graph.edges_faces != null && graph.edges_faces[old_edge_index] != null) {
-      graph.vertices_faces[new_vertex_index] = clone(
+      graph.vertices_faces[new_vertex_index] = clone$1(
         graph.edges_faces[old_edge_index],
       );
     }
@@ -10507,8 +11079,8 @@
     ["edges_faces", "edges_assignment", "edges_foldAngle"]
       .filter(key => graph[key] != null && graph[key][old_edge_index] != null)
       .forEach((key) => {
-        new_edges[0][key] = clone(graph[key][old_edge_index]);
-        new_edges[1][key] = clone(graph[key][old_edge_index]);
+        new_edges[0][key] = clone$1(graph[key][old_edge_index]);
+        new_edges[1][key] = clone$1(graph[key][old_edge_index]);
       });
     new_edges.forEach((el, i) => {
       const verts = el.edges_vertices.map(v => graph.vertices_coords[v]);
@@ -10566,7 +11138,7 @@
       }
       return edges;
     });
-    const edge_map = remove_geometry_key_indices$1(graph, "edges", [old_edge_index]);
+    const edge_map = remove_geometry_key_indices(graph, "edges", [old_edge_index]);
     return {
       vertices: {
         new: [{ index: new_vertex_index }],
@@ -10736,7 +11308,7 @@
           indexOf = ef.indexOf(faceIndex);
         }
       });
-    const faces_map = remove_geometry_key_indices$1(graph, "faces", [faceIndex]);
+    const faces_map = remove_geometry_key_indices(graph, "faces", [faceIndex]);
     return {
       faces: {
         map: faces_map,
@@ -10796,18 +11368,18 @@
     if ("faces_re:matrix" in graph === false) {
       graph["faces_re:matrix"] = make_faces_matrix(graph, face_index);
     }
-    graph["faces_re:coloring"] = faces_coloring_from_faces_matrix(
+    graph["faces_re:coloring"] = make_faces_coloring_from_faces_matrix$1(
       graph["faces_re:matrix"]
     );
     graph["faces_re:creases"] = graph["faces_re:matrix"]
-      .map(mat => math.core.make_matrix2_inverse(mat))
-      .map(mat => math.core.multiply_line_matrix2(point, vector, mat));
+      .map(mat => math.core.invert_matrix2(mat))
+      .map(mat => math.core.multiply_matrix2_line2(mat, point, vector));
     graph["faces_re:center"] = Array.from(Array(faceCount))
       .map((_, i) => make_face_center_fast(graph, i));
     graph["faces_re:sidedness"] = Array.from(Array(faceCount))
       .map((_, i) => get_face_sidedness(
-        graph["faces_re:creases"][i][0],
-        graph["faces_re:creases"][i][1],
+        graph["faces_re:creases"][i].origin,
+        graph["faces_re:creases"][i].vector,
         graph["faces_re:center"][i],
         graph["faces_re:coloring"][i]
       ));
@@ -10852,15 +11424,15 @@
     }
     prepare_extensions(graph);
     prepare_to_fold(graph, point, vector, face_index);
-    const folded = clone(graph);
+    const folded = clone$1(graph);
     const faces_split = Array.from(Array(faces_count(graph)))
       .map((_, i) => i)
       .reverse()
       .map((i) => {
         const diff = split_convex_polygon$1(
           folded, i,
-          folded["faces_re:creases"][i][0],
-          folded["faces_re:creases"][i][1],
+          folded["faces_re:creases"][i].origin,
+          folded["faces_re:creases"][i].vector,
           folded["faces_re:coloring"][i] ? assignment : opposite_crease
         );
         if (diff == null || diff.faces == null) { return undefined; }
@@ -10870,8 +11442,8 @@
           .forEach((i) => {
             folded["faces_re:center"][i] = make_face_center_fast(folded, i);
             folded["faces_re:sidedness"][i] = get_face_sidedness(
-              graph["faces_re:creases"][replace.old][0],
-              graph["faces_re:creases"][replace.old][1],
+              graph["faces_re:creases"][replace.old].origin,
+              graph["faces_re:creases"][replace.old].vector,
               folded["faces_re:center"][i],
               graph["faces_re:coloring"][replace.old]
             );
@@ -10906,27 +11478,27 @@
         : math.core.multiply_matrices2(
           graph["faces_re:matrix"][0],
           math.core.make_matrix2_reflection(
-            graph["faces_re:creases"][0][1],
-            graph["faces_re:creases"][0][0]
+            graph["faces_re:creases"][0].vector,
+            graph["faces_re:creases"][0].origin
           )
         )
       );
     }
     const folded_faces_matrix = make_faces_matrix(folded, face_0_newIndex)
       .map(m => math.core.multiply_matrices2(face_0_preMatrix, m));
-    folded["faces_re:coloring"] = faces_coloring_from_faces_matrix(
+    folded["faces_re:coloring"] = make_faces_coloring_from_faces_matrix$1(
       folded_faces_matrix
     );
-    const crease_0 = math.core.multiply_line_matrix2(
-      graph["faces_re:creases"][0][0],
-      graph["faces_re:creases"][0][1],
-      face_0_preMatrix
+    const crease_0 = math.core.multiply_matrix2_line2(
+      face_0_preMatrix,
+      graph["faces_re:creases"][0].origin,
+      graph["faces_re:creases"][0].vector
     );
     const fold_direction = math.core
-      .normalize([crease_0[1][1], -crease_0[1][0]]);
+      .normalize([crease_0.vector[1], -crease_0.vector[0]]);
     const split_points = faces_split
       .map((el, i) => (el === undefined ? undefined : el.edge.map(p => math.core
-        .multiply_vector2_matrix2(p, graph["faces_re:matrix"][i]))))
+        .multiply_matrix2_vector2(graph["faces_re:matrix"][i], p))))
       .filter(a => a !== undefined)
       .reduce((a, b) => a.concat(b), []);
     folded["re:construction"] = (split_points.length === 0
@@ -10955,6 +11527,244 @@
     delete folded["faces_re:center"];
     return folded;
   };
+
+  const FOLDED_FORM = "foldedForm";
+  const CREASE_PATTERN = "creasePattern";
+  const VERTICES_FOLDED_COORDS = "vertices_re:foldedCoords";
+  const VERTICES_UNFOLDED_COORDS = "vertices_re:unfoldedCoords";
+  const FACES_MATRIX = "faces_re:matrix";
+  const DEFAULTS$1 = Object.freeze({
+    touchFold: false,
+  });
+  const parseOptions = function (...args) {
+    const keys = Object.keys(DEFAULTS$1);
+    const prefs = {};
+    Array(...args)
+      .filter(obj => typeof obj === "object")
+      .forEach(obj => Object.keys(obj)
+        .filter(key => keys.includes(key))
+        .forEach((key) => { prefs[key] = obj[key]; }));
+    return prefs;
+  };
+  const isOrigamiFolded = function (graph) {
+    if (graph == null || graph.frame_classes == null) { return undefined; }
+    if (graph.frame_classes.includes(FOLDED_FORM)) { return true; }
+    if (graph.frame_classes.includes(CREASE_PATTERN)) { return false; }
+    return undefined;
+  };
+  const setFoldedForm = function (graph, isFolded) {
+    if (graph.frame_classes == null) { graph.frame_classes = []; }
+    const wasFolded = isOrigamiFolded(graph);
+    if (isFolded === wasFolded) { return; }
+    graph.frame_classes = graph.frame_classes
+      .filter(c => !([CREASE_PATTERN, FOLDED_FORM].includes(c)))
+      .concat([isFolded ? FOLDED_FORM : CREASE_PATTERN]);
+    if (isFolded) {
+      if (!(VERTICES_FOLDED_COORDS in graph)) {
+        if (graph.faces_vertices == null) { populate(graph); }
+        graph[FACES_MATRIX] = make_faces_matrix(graph, 0);
+        graph[VERTICES_FOLDED_COORDS] = make_vertices_coords_folded(graph, null, graph[FACES_MATRIX]);
+      }
+      graph[VERTICES_UNFOLDED_COORDS] = graph.vertices_coords;
+      graph.vertices_coords = graph[VERTICES_FOLDED_COORDS];
+      delete graph[VERTICES_FOLDED_COORDS];
+    } else {
+      if (graph[VERTICES_UNFOLDED_COORDS] == null) { return; }
+      graph[VERTICES_FOLDED_COORDS] = graph.vertices_coords;
+      graph.vertices_coords = graph[VERTICES_UNFOLDED_COORDS];
+      delete graph[VERTICES_UNFOLDED_COORDS];
+    }
+  };
+  const Origami = function (...args) {
+    const origami = Object.assign(
+      Object.create(Prototype$2()),
+      args.filter(a => possibleFoldObject(a) > 0.1)
+        .sort((a, b) => possibleFoldObject(b) - possibleFoldObject(a))
+        .shift() || square()
+    );
+    const crease = function (...args) {
+      const objects = args.filter(p => typeof p === "object");
+      const line = math.core.get_line(args);
+      const assignment = get_assignment(...args) || "V";
+      const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
+      if (!math.core.is_vector(line.origin) || !math.core.is_vector(line.vector)) {
+        console.warn("fold was not supplied the correct parameters");
+        return;
+      }
+      const folded = fold_through(origami,
+        line.origin,
+        line.vector,
+        face_index,
+        assignment);
+      Object.keys(folded).forEach((key) => { origami[key] = folded[key]; });
+    };
+    const fold = function (...args) {
+      if (args.length > 0) {
+        crease(...args);
+        origami.changed.update(origami.fold);
+        return origami;
+      } else {
+        setFoldedForm(origami, true);
+        origami.changed.update(origami.fold);
+        return origami;
+      }
+    };
+    const unfold = function () {
+      setFoldedForm(origami, false);
+      origami.changed.update(origami.unfold);
+      return origami;
+    };
+    const load = function (object, options = {}) {
+      const foldObject = convert$1(object).fold();
+      if (options.append !== true) {
+        keys.forEach(key => delete origami[key]);
+      }
+      Object.assign(origami, { file_spec, file_creator }, clone$1(foldObject));
+      origami.changed.update(origami.load);
+    };
+    const options = {};
+    Object.assign(options, DEFAULTS$1);
+    const userDefaults = parseOptions(...args);
+    Object.keys(userDefaults)
+      .forEach((key) => { options[key] = userDefaults[key]; });
+    Object.defineProperty(origami, "load", { value: load });
+    Object.defineProperty(origami, "isFolded", { get: () => isOrigamiFolded(origami) });
+    Object.defineProperty(origami, "fold", { value: fold });
+    Object.defineProperty(origami, "unfold", { value: unfold });
+    Object.defineProperty(origami, "export", { get: (...args) => {
+      const f = function (...o) {
+        if (o.length === 0) { return JSON.stringify(origami); }
+        switch (o[0]) {
+          case "oripa": return convert$1(origami, "fold").oripa();
+          case "svg": return convert$1(origami, "fold").svg();
+          default: return JSON.stringify(origami);
+        }
+      };
+      f.json = function () { return JSON.stringify(origami); };
+      f.fold = function () { return JSON.stringify(origami); };
+      f.svg = function () { return convert$1(origami, "fold").svg(); };
+      f.oripa = function () { return convert$1(origami, "fold").oripa(); };
+      return f;
+    }});
+    View(origami, ...args);
+    return origami;
+  };
+  Origami.empty = () => Origami(empty());
+  Origami.square = () => Origami(square());
+  Origami.rectangle = (width, height) => Origami(rectangle(width, height));
+  Origami.regularPolygon = (sides = 3, radius = 1) => Origami(regular_polygon(sides, radius));
+
+  const Graph = function (object = {}) {
+    return Object.assign(
+      Object.create(Prototype$2()),
+      empty(),
+      object,
+      { file_spec, file_creator }
+    );
+  };
+
+  const flatten_frame$1 = function (fold_file, frame_num) {
+    if ("file_frames" in fold_file === false
+      || fold_file.file_frames.length < frame_num) {
+      return fold_file;
+    }
+    const dontCopy = ["frame_parent", "frame_inherit"];
+    const memo = { visited_frames: [] };
+    const recurse = function (recurse_fold, frame, orderArray) {
+      if (memo.visited_frames.indexOf(frame) !== -1) {
+        throw new Error("encountered a cycle in file_frames. can't flatten.");
+      }
+      memo.visited_frames.push(frame);
+      orderArray = [frame].concat(orderArray);
+      if (frame === 0) { return orderArray; }
+      if (recurse_fold.file_frames[frame - 1].frame_inherit
+         && recurse_fold.file_frames[frame - 1].frame_parent != null) {
+        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
+      }
+      return orderArray;
+    };
+    return recurse(fold_file, frame_num, []).map((frame) => {
+      if (frame === 0) {
+        const swap = fold_file.file_frames;
+        fold_file.file_frames = null;
+        const copy = clone$1(fold_file);
+        fold_file.file_frames = swap;
+        delete copy.file_frames;
+        dontCopy.forEach(key => delete copy[key]);
+        return copy;
+      }
+      const outerCopy = clone$1(fold_file.file_frames[frame - 1]);
+      dontCopy.forEach(key => delete outerCopy[key]);
+      return outerCopy;
+    }).reduce((prev, curr) => Object.assign(prev, curr), {});
+  };
+  const merge_frame = function (fold_file, frame) {
+    const dontCopy = ["frame_parent", "frame_inherit"];
+    const copy = clone$1(frame);
+    dontCopy.forEach(key => delete copy[key]);
+    const swap = fold_file.file_frames;
+    fold_file.file_frames = null;
+    const fold = clone$1(fold_file);
+    fold_file.file_frames = swap;
+    delete fold.file_frames;
+    Object.assign(fold, frame);
+    return fold;
+  };
+
+  var frames = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    flatten_frame: flatten_frame$1,
+    merge_frame: merge_frame
+  });
+
+  const copy_without_marks = function (graph) {
+    const edges_vertices = graph.edges_vertices
+      .filter((_, i) => graph.edges_assignment[i] !== "F"
+        && graph.edges_assignment[i] !== "f");
+    const edges_assignment = graph.edges_assignment
+      .filter(ea => ea !== "F" && ea !== "f");
+    const copy = clone$1(graph);
+    Object.keys(copy).filter(key => key.substring(0, 9) === "vertices_")
+      .forEach(key => delete copy[key]);
+    Object.keys(copy).filter(key => key.substring(0, 6) === "edges_")
+      .forEach(key => delete copy[key]);
+    Object.keys(copy).filter(key => key.substring(0, 6) === "faces_")
+      .forEach(key => delete copy[key]);
+    const rebuilt = Object.assign(copy, {
+      vertices_coords: graph.vertices_coords,
+      edges_vertices,
+      edges_assignment
+    });
+    convert.edges_vertices_to_vertices_vertices_sorted(rebuilt);
+    convert.vertices_vertices_to_faces_vertices(rebuilt);
+    convert.faces_vertices_to_faces_edges(rebuilt);
+    rebuilt.edges_faces = make_edges_faces(rebuilt);
+    rebuilt.vertices_faces = make_vertices_faces(rebuilt);
+    return rebuilt;
+  };
+
+  var marks = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    copy_without_marks: copy_without_marks
+  });
+
+  const select_vertices = function (graph, poly_points) {
+    const polygon = math.convexPolygon(poly_points);
+    const contains = graph.vertices_coords.map(v => polygon.contains(v));
+    return graph.vertices_coords.map((_, i) => i).filter(i => contains[i]);
+  };
+  const select_edges = function (graph, poly_points) {
+    const segments = graph.edges_vertices.map(ev => ev.map(v => graph.vertices_coords[v]));
+    const polygon = math.convexPolygon(poly_points);
+    const overlaps = segments.map(s => polygon.overlaps(s));
+    return segments.map((_, i) => i).filter(i => overlaps[i]);
+  };
+
+  var select = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    select_vertices: select_vertices,
+    select_edges: select_edges
+  });
 
   const alternating_sum = function (...numbers) {
     return [0, 1].map(even_odd => numbers
@@ -11106,7 +11916,7 @@
       return get_instructions_for_axiom(axiom);
     }
     if ("assignment" in construction) {
-      return { en: `${edges_assignment_names.en[construction.assignment]} fold` };
+      return { en: `${edges_assignment_names$1[construction.assignment]} fold` };
     }
     return { en: "" };
   };
@@ -11144,7 +11954,7 @@
         crossing = math.core.average(crease_edge[0], crease_edge[1]);
         break;
     }
-    const boundary = get_boundary(graph).vertices
+    const boundary = get_boundary$1(graph).vertices
       .map(v => graph.vertices_coords[v]);
     const perpClipEdge = math.core.intersection.convex_poly_line(
       boundary, crossing, arrow_vector
@@ -11183,7 +11993,7 @@
       case "fold":
         return {
           "re:diagram_lines": [{
-            "re:diagram_line_classes": [edges_assignment_names.en[c.assignment]],
+            "re:diagram_line_classes": [edges_assignment_names$1[c.assignment]],
             "re:diagram_line_coords": c.edge,
           }],
           "re:diagram_arrows": [{
@@ -11218,9 +12028,9 @@
           .forEach((key) => { graph[key][i] = diff.update[i][key]; }));
     }
     if (diff.remove) {
-      if (diff.remove.faces) { remove_geometry_key_indices$1(graph, "faces", diff.remove.faces); }
-      if (diff.remove.edges) { remove_geometry_key_indices$1(graph, "edges", diff.remove.edges); }
-      if (diff.remove.vertices) { remove_geometry_key_indices$1(graph, "vertices", diff.remove.vertices); }
+      if (diff.remove.faces) { remove_geometry_key_indices(graph, "faces", diff.remove.faces); }
+      if (diff.remove.edges) { remove_geometry_key_indices(graph, "edges", diff.remove.edges); }
+      if (diff.remove.vertices) { remove_geometry_key_indices(graph, "vertices", diff.remove.vertices); }
     }
     return diff;
   };
@@ -11333,27 +12143,23 @@
   };
 
   const copy_properties = function (graph, geometry_prefix, index) {
-    const prefix = `${geometry_prefix}_`;
-    const prefixKeys = Object.keys(graph)
-      .map(str => (str.substring(0, prefix.length) === prefix ? str : undefined))
-      .filter(str => str !== undefined);
+    const prefixKeys = get_geometry_keys_with_prefix(graph, geometry_prefix);
     const result = {};
     prefixKeys.forEach((key) => { result[key] = graph[key][index]; });
     return result;
   };
   const add_edge = function (graph, a, b, c, d, assignment = "U") {
     const edge = math.segment(a, b, c, d);
-    let vertices_length = vertices_count(graph);
-    const edges = graph.edges_vertices
-      .map(ev => ev.map(v => graph.vertices_coords[v]));
     const endpoints_vertex_equivalent = [0, 1].map(ei => graph.vertices_coords
       .map(v => Math.sqrt(((edge[ei][0] - v[0]) ** 2)
                         + ((edge[ei][1] - v[1]) ** 2)))
       .map((dist, i) => (dist < math.core.EPSILON ? i : undefined))
       .filter(el => el !== undefined)
       .shift());
+    const edges = graph.edges_vertices
+      .map(ev => ev.map(v => graph.vertices_coords[v]));
     const endpoints_edge_collinear = [0, 1].map(ei => edges
-      .map(e => math.core.point_on_edge(e[0], e[1], edge[ei]))
+      .map(e => math.core.point_on_segment(e[0], e[1], edge[ei]))
       .map((on_edge, i) => (on_edge ? i : undefined))
       .filter(e => e !== undefined)
       .shift());
@@ -11363,43 +12169,41 @@
       return "new";
     });
     const result = {
-      new: { vertices: [], edges: [{ edges_vertices: [] }] },
+      new: {
+        vertices: [],
+        edges: [
+          { edges_vertices: [] }
+        ]
+      },
       remove: { edges: [] }
+    };
+    let vertices_length = vertices_count(graph);
+    const append_vertex = function (i) {
+      result.new.vertices.push({
+        vertices_coords: [edge[i][0], edge[i][1]]
+      });
+      vertices_length += 1;
+      result.new.edges[0].edges_vertices[i] = vertices_length - 1;
     };
     [0, 1].forEach((i) => {
       switch (vertices_origin[i]) {
         case "vertex":
           result.new.edges[0].edges_vertices[i] = endpoints_vertex_equivalent[i];
           break;
-        case "edge":
-          result.new.vertices.push({
-            vertices_coords: [edge[i][0], edge[i][1]]
+        case "edge": {
+          append_vertex(i);
+          const e = copy_properties(graph, "edges", endpoints_edge_collinear[i]);
+          [clone$1(e), clone$1(e)].forEach((o, j) => {
+            o.edges_vertices = [
+              graph.edges_vertices[endpoints_edge_collinear[i]][j],
+              vertices_length - 1
+            ];
+            result.new.edges.push(o);
           });
-          vertices_length += 1;
-          result.new.edges[0].edges_vertices[i] = vertices_length - 1;
-          const dup = copy_properties(graph, "edges", endpoints_edge_collinear[i]);
-          const new_edges_vertices = [{
-            edges_vertices: [
-              graph.edges_vertices[endpoints_edge_collinear[i]][0],
-              vertices_length - 1]
-          }, {
-            edges_vertices: [
-              graph.edges_vertices[endpoints_edge_collinear[i]][1],
-              vertices_length - 1]
-          }];
-          result.new.edges.push(
-            Object.assign(Object.assign({}, dup), new_edges_vertices[0]),
-            Object.assign(Object.assign({}, dup), new_edges_vertices[1])
-          );
           result.remove.edges.push(endpoints_edge_collinear[i]);
+        }
           break;
-        default:
-          result.new.vertices.push({
-            vertices_coords: [edge[i][0], edge[i][1]]
-          });
-          vertices_length += 1;
-          result.new.edges[0].edges_vertices[i] = vertices_length - 1;
-          break;
+        default: append_vertex(i); break;
       }
     });
     result.new.edges
@@ -11556,15 +12360,15 @@
     return result;
   };
 
-  var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
+  var empty$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
 
-  var square = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
+  var square$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
 
   var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
 
-  var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
+  var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.7071067811865476, 0.7071067811865476, 0.7071067811865476, 0.7071067811865476],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
 
-  var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [\n\t\t[0,0],\n\t\t[0.414213562373095,0],\n\t\t[1,0],\n\t\t[1,0.585786437626905],\n\t\t[1,1],\n\t\t[0,1]\n\t],\n\t\"vertices_vertices\": [ [1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4] ],\n\t\"vertices_faces\": [ [0], [1,0], [2,1], [3,2], [3], [0,1,2,3] ],\n\t\"edges_vertices\": [\n\t\t[0,1],\n\t\t[1,2],\n\t\t[2,3],\n\t\t[3,4],\n\t\t[4,5],\n\t\t[5,0],\n\t\t[5,1],\n\t\t[3,5],\n\t\t[5,2]\n\t],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [\n\t\t[0,1,5],\n\t\t[1,2,5],\n\t\t[2,3,5],\n\t\t[3,4,5]\n\t],\n\t\"faces_edges\": [\n\t\t[0,6,5],\n\t\t[1,8,6],\n\t\t[2,7,8],\n\t\t[3,4,7]\n\t],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[1,0],\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[0,1],\n\t\t\t[0.414213562373095,0],\n\t\t\t[1,0.585786437626905]\n\t\t],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
+  var kite = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [\n\t\t[0,0],\n\t\t[0.414213562373095,0],\n\t\t[1,0],\n\t\t[1,0.585786437626905],\n\t\t[1,1],\n\t\t[0,1]\n\t],\n\t\"vertices_vertices\": [ [1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4] ],\n\t\"vertices_faces\": [ [0], [1,0], [2,1], [3,2], [3], [0,1,2,3] ],\n\t\"edges_vertices\": [\n\t\t[0,1],\n\t\t[1,2],\n\t\t[2,3],\n\t\t[3,4],\n\t\t[4,5],\n\t\t[5,0],\n\t\t[5,1],\n\t\t[3,5],\n\t\t[5,2]\n\t],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [\n\t\t[0,1,5],\n\t\t[1,2,5],\n\t\t[2,3,5],\n\t\t[3,4,5]\n\t],\n\t\"faces_edges\": [\n\t\t[0,6,5],\n\t\t[1,8,6],\n\t\t[2,7,8],\n\t\t[3,4,7]\n\t],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[1,0],\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[0,1],\n\t\t\t[0.414213562373095,0],\n\t\t\t[1,0.585786437626905]\n\t\t],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
 
   var fish = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"\",\n  \"file_author\": \"\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_title\": \"\",\n  \"frame_classes\": [\"creasePattern\"],\n  \"frame_attributes\": [\"2D\"],\n  \"vertices_coords\": [\n    [0,0],\n    [1,0],\n    [1,1],\n    [0,1],\n    [0.292893218813452,0.292893218813452],\n    [0.707106781186548,0.707106781186548],\n    [0.292893218813452,0],\n    [1,0.707106781186548]\n  ],\n  \"edges_vertices\": [\n  \t[2,3], [3,0], [3,1], [0,4], [1,4], [3,4], [1,5], [2,5], [3,5], [4,6], [0,6], [6,1], [5,7], [1,7], [7,2]\n  ],\n  \"edges_assignment\": [\n  \t\"B\", \"B\", \"F\", \"M\", \"M\", \"M\", \"M\", \"M\", \"M\", \"V\", \"B\", \"B\", \"V\", \"B\", \"B\"\n  ],\n  \"file_frames\": [{\n    \"frame_classes\": [\"foldedForm\"],\n    \"frame_parent\": 0,\n    \"frame_inherit\": true,\n    \"vertices_coords\":[[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n  }],\n  \"vertices_vertices\": [\n    [6,4,3],\n    [7,5,3,4,6],\n    [5,7,3],\n    [0,4,1,5,2],\n    [0,6,1,3],\n    [1,7,2,3],\n    [1,4,0],\n    [1,2,5]\n  ],\n  \"faces_vertices\": [\n    [4,0,6],\n    [3,0,4],\n    [5,1,7],\n    [3,1,5],\n    [4,1,3],\n    [6,1,4],\n    [5,2,3],\n    [7,2,5]\n  ],\n  \"faces_edges\": [\n    [3,10,9],\n    [1,3,5],\n    [6,13,12],\n    [2,6,8],\n    [4,2,5],\n    [11,4,9],\n    [7,0,8],\n    [14,7,12]\n  ],\n  \"edges_faces\": [[6], [1], [3,4], [0,1], [4,5], [1,4], [2,3], [6,7], [3,6], [0,5], [0], [5], [2,7], [2], [7]],\n  \"vertices_faces\": [[0,1], [2,3,4,5], [6,7], [1,3,4,6], [0,1,4,5], [2,3,6,7], [0,5], [2,7]],\n  \"edges_length\": [1, 1, 1.4142135623730951, 0.41421356237309437, 0.7653668647301798, 0.7653668647301798, 0.7653668647301798, 0.41421356237309437, 0.7653668647301798, 0.292893218813452, 0.292893218813452, 0.707106781186548, 0.292893218813452, 0.707106781186548, 0.292893218813452],\n  \"edges_foldAngle\": [0, 0, 0, -180, -180, -180, -180, -180, -180, 180, 0, 0, 180, 0, 0],\n  \"faces_faces\": [\n  \t[1,5], [0,4], [3,7], [2,4,6], [3,1,5], [4,0], [3,7], [6,2]\n  ],\n  \"vertices_edges\": [\n    [1,3,10],\n    [2,4,6,11,13],\n    [0,7,14],\n    [0,1,2,5,8],\n    [3,4,5,9],\n    [6,7,8,12],\n    [9,10,11],\n    [12,13,14]\n  ]\n}\n";
 
@@ -11572,1074 +12376,19 @@
 
   var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
-  const file_spec = 1.1;
-  const file_creator = "Rabbit Ear";
-  const metadata = function (complete = false) {
-    return !complete
-      ? {
-        file_spec,
-        file_creator
-      }
-      : {
-        file_spec,
-        file_creator,
-        file_author: "",
-        file_title: "",
-        file_description: "",
-        file_classes: [],
-        file_frames: [],
-        frame_description: "",
-        frame_attributes: [],
-        frame_classes: [],
-        frame_unit: "",
-      };
-  };
-  const default_re_extensions = function (number_faces = 1) {
-    return {
-      "faces_re:layer": Array.from(Array(number_faces)).map((_, i) => i),
-      "faces_re:matrix": Array.from(Array(number_faces)).map(() => [1, 0, 0, 1, 0, 0])
-    };
-  };
-  const cp_type = function () {
-    return {
-      file_classes: ["singleModel"],
-      frame_attributes: ["2D"],
-      frame_classes: ["creasePattern"],
-    };
-  };
-  const square_graph = function () {
-    return {
-      vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
-      vertices_vertices: [[1, 3], [2, 0], [3, 1], [0, 2]],
-      vertices_faces: [[0], [0], [0], [0]],
-      edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]],
-      edges_faces: [[0], [0], [0], [0]],
-      edges_assignment: ["B", "B", "B", "B"],
-      edges_foldAngle: [0, 0, 0, 0],
-      edges_length: [1, 1, 1, 1],
-      faces_vertices: [[0, 1, 2, 3]],
-      faces_edges: [[0, 1, 2, 3]],
-    };
-  };
-  const empty$1 = function () {
-    return Object.assign(
-      Object.create(null),
-      metadata()
-    );
-  };
-  const square$1 = function () {
-    return Object.assign(
-      Object.create(null),
-      metadata(),
-      cp_type(),
-      square_graph(),
-      default_re_extensions(1)
-    );
-  };
-  const rectangle = function (width = 1, height = 1) {
-    const graph = square_graph();
-    graph.vertices_coords = [[0, 0], [width, 0], [width, height], [0, height]];
-    graph.edges_length = [width, height, width, height];
-    return Object.assign(
-      Object.create(null),
-      metadata(),
-      cp_type(),
-      graph,
-      default_re_extensions(1)
-    );
-  };
-  const regular_polygon = function (sides, radius = 1) {
-    const arr = Array.from(Array(sides));
-    const angle = 2 * Math.PI / sides;
-    const sideLength = math.core.clean_number(Math.sqrt(
-      ((radius - radius * Math.cos(angle)) ** 2)
-      + ((radius * Math.sin(angle)) ** 2),
-    ));
-    const graph = {
-      vertices_coords: arr.map((_, i) => angle * i).map(a => [
-        math.core.clean_number(radius * Math.cos(a)),
-        math.core.clean_number(radius * Math.sin(a)),
-      ]),
-      vertices_vertices: arr
-        .map((_, i) => [(i + 1) % arr.length, (i + arr.length - 1) % arr.length]),
-      vertices_faces: arr.map(() => [0]),
-      edges_vertices: arr.map((_, i) => [i, (i + 1) % arr.length]),
-      edges_faces: arr.map(() => [0]),
-      edges_assignment: arr.map(() => "B"),
-      edges_foldAngle: arr.map(() => 0),
-      edges_length: arr.map(() => sideLength),
-      faces_vertices: [arr.map((_, i) => i)],
-      faces_edges: [arr.map((_, i) => i)],
-    };
-    return Object.assign(
-      Object.create(null),
-      metadata(),
-      cp_type(),
-      graph,
-      default_re_extensions(1)
-    );
-  };
-
-  const clean = function (fold) {
-    if (fold.vertices_coords != null && fold.vertices_vertices != null) {
-      convert.sort_vertices_vertices(fold);
-    }
-    const facesCount = faces_count(fold);
-    if (facesCount > 0) {
-      if (fold["faces_re:matrix"] == null) {
-        fold["faces_re:matrix"] = make_faces_matrix(fold);
-      } else if (fold["faces_re:matrix"].length !== facesCount) {
-        fold["faces_re:matrix"] = make_faces_matrix(fold);
-      }
-      if (fold["faces_re:layer:"] == null) ;
-    }
-  };
-  const remove_non_boundary_edges = function (graph) {
-    const remove_indices = graph.edges_assignment
-      .map(a => !(a === "b" || a === "B"))
-      .map((a, i) => (a ? i : undefined))
-      .filter(a => a !== undefined);
-    const edge_map = remove_geometry_key_indices$1(graph, "edges", remove_indices);
-    const face = get_boundary(graph);
-    graph.faces_edges = [face.edges];
-    graph.faces_vertices = [face.vertices];
-    remove_geometry_key_indices$1(graph, "vertices", get_isolated_vertices(graph));
-  };
-
-  const get_assignment = function (...args) {
-    return args.filter(a => typeof a === "string")
-      .filter(a => a.length === 1)
-      .shift();
-  };
-
-  const MARK_DEFAULTS = {
-    rebuild: true,
-    change: true,
-  };
-  const possible_mark_object = function (o) {
-    if (typeof o !== "object" || o === null) { return false; }
-    const argKeys = Object.keys(o);
-    const defaultKeys = Object.keys(MARK_DEFAULTS);
-    for (let i = 0; i < argKeys.length; i += 1) {
-      if (defaultKeys.includes(argKeys[i])) { return true; }
-    }
-    return false;
-  };
-  const get_mark_options = function (...args) {
-    const options = args.filter(o => typeof o === "object")
-      .filter(o => possible_mark_object(o))
-      .shift();
-    return options === undefined
-      ? clone(MARK_DEFAULTS)
-      : Object.assign(clone(MARK_DEFAULTS), options);
-  };
-  const boundary_methods = function (boundaries) {
-    const that = this;
-    const clip = function (type, ...args) {
-      let p;
-      let l;
-      switch (type) {
-        case "edge": p = math.core.get_vector_of_vectors(...args); break;
-        default:
-          l = math.core.get_line(...args);
-          p = [l.point, l.vector];
-          break;
-      }
-      const func = {
-        line: math.core.intersection.convex_poly_line,
-        ray: math.core.intersection.convex_poly_ray,
-        edge: math.core.intersection.convex_poly_edge
-      };
-      return boundaries
-        .map(b => b.vertices.map(v => that.vertices_coords[v]))
-        .map(b => func[type](b, ...p))
-        .filter(segment => segment !== undefined);
-    };
-    boundaries.clipLine = function (...args) { return clip("line", ...args); };
-    boundaries.clipRay = function (...args) { return clip("ray", ...args); };
-    boundaries.clipEdge = function (...args) { return clip("edge", ...args); };
-    return boundaries;
-  };
-  const Prototype$2 = function (proto = {}) {
-    proto.copy = function () {
-      return Object.assign(Object.create(Prototype$2()), clone(this));
-    };
-    const getVertices = function () {
-      return transpose_geometry_arrays(this, "vertices");
-    };
-    const getEdges = function () {
-      return transpose_geometry_arrays(this, "edges");
-    };
-    const getFaces = function () {
-      return transpose_geometry_arrays(this, "faces");
-    };
-    const getBoundaries = function () {
-      return boundary_methods.call(this, [get_boundary(this)]);
-    };
-    const isFolded = function () {
-      if ("frame_classes" in this === false) { return undefined; }
-      const cpIndex = this.frame_classes.indexOf("creasePattern");
-      const foldedIndex = this.frame_classes.indexOf("foldedForm");
-      if (cpIndex === -1 && foldedIndex === -1) { return undefined; }
-      if (cpIndex !== -1 && foldedIndex !== -1) { return undefined; }
-      return (foldedIndex !== -1);
-    };
-    proto.rebuild = function (epsilon = math.core.EPSILON) {
-      rebuild(this, epsilon);
-    };
-    proto.complete = function () {
-      complete(this);
-    };
-    proto.fragment = function (epsilon = math.core.EPSILON) {
-      fragment$1(this, epsilon);
-    };
-    const clean$1 = function (epsilon = math.core.EPSILON) {
-      const valid = ("vertices_coords" in this && "vertices_vertices" in this
-        && "edges_vertices" in this && "edges_assignment" in this
-        && "faces_vertices" in this && "faces_edges" in this);
-      if (!valid) {
-        console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-        clean(this);
-      }
-    };
-    proto.load = function (file, prevent_clear) {
-      if (prevent_clear == null || prevent_clear !== true) {
-        keys.forEach(key => delete this[key]);
-      }
-      Object.assign(this, clone(file));
-      clean$1.call(this);
-      this.didChange.forEach(f => f());
-    };
-    proto.clear = function () {
-      remove_non_boundary_edges(this);
-      this.didChange.forEach(f => f());
-    };
-    proto.nearestVertex = function (...args) {
-      const index = nearest_vertex(this, math.core.get_vector(...args));
-      const result = transpose_geometry_array_at_index(this, "vertices", index);
-      result.index = index;
-      return result;
-    };
-    proto.nearestEdge = function (...args) {
-      const index = nearest_edge(this, math.core.get_vector(...args));
-      const result = transpose_geometry_array_at_index(this, "edges", index);
-      result.index = index;
-      return result;
-    };
-    proto.nearestFace = function (...args) {
-      const index = face_containing_point(this, math.core.get_vector(...args));
-      if (index === undefined) { return undefined; }
-      const result = transpose_geometry_array_at_index(this, "faces", index);
-      result.index = index;
-      return result;
-    };
-    proto.nearest = function (...args) {
-      const target = math.core.get_vector(...args);
-      const nears = {
-        vertex: this.nearestVertex(this, target),
-        edge: this.nearestEdge(this, target),
-        face: this.nearestFace(this, target)
-      };
-      Object.keys(nears)
-        .filter(key => nears[key] == null)
-        .forEach(key => delete nears[key]);
-      return nears;
-    };
-    proto.scale = function (...args) {
-      transform_scale(this, ...args);
-    };
-    const didModifyGraph = function () {
-      this.didChange.forEach(f => f());
-    };
-    proto.mark = function (...args) {
-      const s = math.core.get_vector_of_vectors(...args);
-      const options = get_mark_options(...args);
-      const assignment = get_assignment(...args) || "F";
-      add_edge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
-      if (options.rebuild) { rebuild(this); }
-      axiom1(s[0], s[1]);
-      if (options.change) { this.didChange.forEach(f => f()); }
-    };
-    proto.crease = function (...args) {
-      const objects = args.filter(p => typeof p === "object");
-      const line = math.core.get_line(args);
-      const assignment = get_assignment(...args) || "V";
-      const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
-      if (!math.core.is_vector(line.point) || !math.core.is_vector(line.vector)) {
-        console.warn("fold was not supplied the correct parameters");
-        return;
-      }
-      const folded = fold_through(this,
-        line.point,
-        line.vector,
-        face_index,
-        assignment);
-      Object.keys(folded).forEach((key) => { this[key] = folded[key]; });
-      if ("re:construction" in this === true) {
-        if (objects.length > 0 && "axiom" in objects[0] === true) {
-          this["re:construction"].axiom = objects[0].axiom;
-          this["re:construction"].parameters = objects[0].parameters;
-        }
-      }
-      didModifyGraph.call(this);
-    };
-    proto.creaseRay = function (...args) {
-      const ray = math.ray(args);
-      const faces = this.faces_vertices.map(fv => fv.map(v => this.vertices_coords[v]));
-      const intersecting = faces
-        .map((face, i) => (math.core.intersection
-          .convex_poly_ray_exclusive(face, ray.point, ray.vector) === undefined
-          ? undefined : i))
-        .filter(a => a !== undefined)
-        .sort((a, b) => b - a);
-      intersecting.forEach(index => split_convex_polygon$1(
-        this, index, ray.point, ray.vector, "F"
-      ));
-    };
-    proto.kawasaki = function (...args) {
-      const crease = kawasaki_collapse(this, ...args);
-      didModifyGraph.call(this);
-      return crease;
-    };
-    Object.defineProperty(proto, "boundaries", { get: getBoundaries });
-    Object.defineProperty(proto, "vertices", { get: getVertices });
-    Object.defineProperty(proto, "edges", { get: getEdges });
-    Object.defineProperty(proto, "faces", { get: getFaces });
-    Object.defineProperty(proto, "isFolded", { value: isFolded });
-    proto.didChange = [];
-    return proto;
-  };
-  Prototype$2.empty = function () {
-    return Prototype$2(empty$1());
-  };
-  Prototype$2.square = function () {
-    return Prototype$2(rectangle(1, 1));
-  };
-  Prototype$2.rectangle = function (width = 1, height = 1) {
-    return Prototype$2(rectangle(width, height));
-  };
-  Prototype$2.regularPolygon = function (sides, radius = 1) {
-    if (sides == null) {
-      console.warn("regularPolygon requires number of sides parameter");
-    }
-    return Prototype$2(regular_polygon(sides, radius));
-  };
-
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  const shadowFilter$1 = function (id_name = "shadow") {
-    const filter = document.createElementNS(SVG_NS, "filter");
-    filter.setAttribute("width", "200%");
-    filter.setAttribute("height", "200%");
-    filter.setAttribute("id", id_name);
-    const blur = document.createElementNS(SVG_NS, "feGaussianBlur");
-    blur.setAttribute("in", "SourceAlpha");
-    blur.setAttribute("stdDeviation", "0.01");
-    blur.setAttribute("result", "blur");
-    const offset = document.createElementNS(SVG_NS, "feOffset");
-    offset.setAttribute("in", "blur");
-    offset.setAttribute("result", "offsetBlur");
-    const flood = document.createElementNS(SVG_NS, "feFlood");
-    flood.setAttribute("flood-color", "#000");
-    flood.setAttribute("flood-opacity", "0.4");
-    flood.setAttribute("result", "offsetColor");
-    const composite = document.createElementNS(SVG_NS, "feComposite");
-    composite.setAttribute("in", "offsetColor");
-    composite.setAttribute("in2", "offsetBlur");
-    composite.setAttribute("operator", "in");
-    composite.setAttribute("result", "offsetBlur");
-    const merge = document.createElementNS(SVG_NS, "feMerge");
-    const mergeNode1 = document.createElementNS(SVG_NS, "feMergeNode");
-    const mergeNode2 = document.createElementNS(SVG_NS, "feMergeNode");
-    mergeNode2.setAttribute("in", "SourceGraphic");
-    merge.appendChild(mergeNode1);
-    merge.appendChild(mergeNode2);
-    filter.appendChild(blur);
-    filter.appendChild(offset);
-    filter.appendChild(flood);
-    filter.appendChild(composite);
-    filter.appendChild(merge);
-    return filter;
-  };
-
-  const drawLabels = function (graph, group) {
-    if ("faces_vertices" in graph === false
-    || "edges_vertices" in graph === false
-    || "vertices_coords" in graph === false) { return; }
-    const r = bounding_rect(graph);
-    const vmin = r[2] > r[3] ? r[3] : r[2];
-    const fSize = vmin * 0.04;
-    const labels_style = {
-      vertices: `fill:#27b;font-family:sans-serif;font-size:${fSize}px;`,
-      edges: `fill:#e53;font-family:sans-serif;font-size:${fSize}px;`,
-      faces: `fill:black;font-family:sans-serif;font-size:${fSize}px;`,
-    };
-    const m = [fSize * 0.33, fSize * 0.4];
-    graph.vertices_coords
-      .map((c, i) => group.text(`${i}`, c[0] - m[0], c[1] + m[1]))
-      .forEach(t => t.setAttribute("style", labels_style.vertices));
-    graph.edges_vertices
-      .map(ev => ev.map(v => graph.vertices_coords[v]))
-      .map(verts => math.core.average(verts))
-      .map((c, i) => group.text(`${i}`, c[0] - m[0], c[1] + m[1]))
-      .forEach(t => t.setAttribute("style", labels_style.edges));
-    graph.faces_vertices
-      .map(fv => fv.map(v => graph.vertices_coords[v]))
-      .map(verts => math.core.average(verts))
-      .map((c, i) => group.text(`${i}`, c[0] - m[0], c[1] + m[1]))
-      .forEach(t => t.setAttribute("style", labels_style.faces));
-  };
-  const drawDebug = function (graph, group) {
-    const r = bounding_rect(graph);
-    const vmin = r[2] > r[3] ? r[3] : r[2];
-    const strokeW = vmin * 0.005;
-    const debug_style = {
-      faces_vertices: `fill:#555;stroke:none;stroke-width:${strokeW};`,
-      faces_edges: `fill:#aaa;stroke:none;stroke-width:${strokeW};`,
-    };
-    graph.faces_vertices
-      .map(fv => fv.map(v => graph.vertices_coords[v]))
-      .map(face => math.convexPolygon(face).scale(0.666).points)
-      .map(points => group.polygon(points))
-      .forEach(poly => poly.setAttribute("style", debug_style.faces_vertices));
-    graph.faces_edges
-      .map(face_edges => face_edges
-        .map(edge => graph.edges_vertices[edge])
-        .map((vi, i, arr) => {
-          const next = arr[(i + 1) % arr.length];
-          return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
-        }).map(v => graph.vertices_coords[v]))
-      .map(face => math.convexPolygon(face).scale(0.333).points)
-      .map(points => group.polygon(points))
-      .forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
-  };
-  const drawDiagram = function (graph, group, preferences = {}) {
-    const r = bounding_rect(graph);
-    const vmin = r[2] > r[3] ? r[3] : r[2];
-    const diagrams = graph["re:diagrams"];
-    if (diagrams == null) { return; }
-    diagrams
-      .map(d => d["re:diagram_arrows"])
-      .filter(a => a != null)
-      .forEach(arrow => arrow
-        .map(a => a["re:diagram_arrow_coords"])
-        .filter(a => a.length > 0)
-        .map((p) => {
-          let side = p[0][0] < p[1][0];
-          if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
-            side = p[0][1] < p[1][1]
-              ? p[0][0] < 0.5
-              : p[0][0] > 0.5;
-          }
-          if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
-            side = p[0][0] < p[1][0]
-              ? p[0][1] > 0.5
-              : p[0][1] < 0.5;
-          }
-          const prefs = {
-            side,
-            strokeWidth: vmin * 0.02,
-          };
-          if (preferences.arrowColor) { prefs.color = preferences.arrowColor; }
-          return group.arrow(p[0], p[1], prefs)
-            .curve(0.3)
-            .head({ width: vmin * 0.035, height: vmin * 0.09 })
-            .fill("black")
-            .stroke("black");
-        }));
-  };
-
-  const DEFAULT_STYLE = `
-line.boundary { stroke: black; }
-line.mark { stroke: lightgray; }
-line.mountain { stroke: red; }
-line.valley { stroke: blue;
-  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);
-}
-/* polygon { fill: none; stroke: none; stroke-linejoin: bevel; } */
-.foldedForm polygon { stroke: black; fill: #8881; }
-.foldedForm polygon.front { fill: white; }
-.foldedForm polygon.back { fill: lightgray; }
-.creasePattern .boundaries polygon { fill: white; stroke: none; }
-.creasePattern .faces polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
-.foldedForm .boundaries polygon { fill: none; stroke: none; }
-.foldedForm line { stroke: none; }
-`;
-  const DEFAULTS$1 = Object.freeze({
-    boundaries: true,
-    faces: true,
-    edges: true,
-    vertices: false,
-    diagram: false,
-    labels: false,
-    debug: false,
-    autofit: true,
-    padding: 0,
-    shadows: false,
-    strokeWidth: 0.01,
-    style: undefined,
-    arrowColor: undefined,
-  });
-  const parseOptions = function (...args) {
-    const keys = Object.keys(DEFAULTS$1);
-    const options = {};
-    Array(...args)
-      .filter(obj => typeof obj === "object")
-      .forEach(obj => Object.keys(obj)
-        .filter(key => keys.includes(key))
-        .forEach((key) => { options[key] = obj[key]; }));
-    return options;
-  };
-  const View = function (fold_file, ...args) {
-    const graph = fold_file;
-    const svg = SVG(...args);
-    const svgStyle = svg.stylesheet(DEFAULT_STYLE);
-    const defs = svg.defs();
-    defs.appendChild(shadowFilter$1("faces_shadow"));
-    const groups = {};
-    ["boundaries", "faces", "edges", "vertices", "diagram", "labels"
-    ].forEach((key) => {
-      groups[key] = svg.group();
-      groups[key].setAttribute("class", key);
-      groups[key].pointerEvents("none");
-    });
-    groups.edges.strokeWidth(1);
-    groups.faces.strokeWidth(1);
-    groups.boundaries.strokeWidth(1);
-    const options = {};
-    Object.assign(options, DEFAULTS$1);
-    const userDefaults = parseOptions(...args);
-    Object.keys(userDefaults).forEach((key) => {
-      options[key] = userDefaults[key];
-    });
-    const fit = function () {
-      const r = bounding_rect(graph);
-      const vmin = r[2] > r[3] ? r[3] : r[2];
-      SVG.setViewBox(svg, r[0], r[1], r[2], r[3], options.padding * vmin);
-    };
-    const draw = function () {
-      const file_classes = (graph.file_classes != null
-        ? graph.file_classes : []).join(" ");
-      const frame_classes = graph.frame_classes != null
-        ? graph.frame_classes : [].join(" ");
-      const top_level_classes = [file_classes, frame_classes]
-        .filter(s => s !== "")
-        .join(" ");
-      svg.setAttribute("class", top_level_classes);
-      Object.keys(groups).forEach(key => groups[key].removeChildren());
-      Object.keys(groups)
-        .filter(key => options[key])
-        .filter(key => drawFOLD.components.svg[key] !== undefined)
-        .forEach(key => drawFOLD.components.svg[key](graph)
-          .forEach(o => groups[key].appendChild(o)));
-      if (options.autofit) { fit(); }
-      if (options.diagram) { drawDiagram(graph, groups.diagram); }
-      if (options.labels) { drawLabels(graph, groups.labels); }
-      if (options.debug) { drawDebug(graph, groups.labels); }
-      if (options.shadows) {
-        Array.from(groups.faces.childNodes)
-          .forEach(f => f.setAttribute("filter", "url(#faces_shadow)"));
-      }
-      const r = bounding_rect(graph);
-      const vmin = r[2] > r[3] ? r[3] : r[2];
-      const vmax = r[2] > r[3] ? r[2] : r[3];
-      const vavg = (vmin + vmax) / 2;
-      const strokeWidth = vavg * options.strokeWidth;
-      ["boundaries", "faces", "edges"]
-        .forEach(key => groups[key].strokeWidth(strokeWidth));
-      if (options.style) {
-        svgStyle.setTextContent(DEFAULT_STYLE + options.style);
-      }
-    };
-    Object.defineProperty(svg, "draw", { value: draw });
-    Object.defineProperty(svg, "fit", { value: fit });
-    Object.defineProperty(svg, "setViewBox", {
-      value: (x, y, w, h, padding) => SVG.setViewBox(svg, x, y, w, h, padding)
-    });
-    Object.defineProperty(svg, "options", { get: () => options });
-    Object.defineProperty(svg, "groups", { get: () => groups });
-    return svg;
-  };
-
-  const unitSquare = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
-  function View3D(...args) {
-    let allMeshes = [];
-    let scene = new THREE.Scene();
-    let _parent;
-    let prop = {
-      cp: undefined,
-      frame: undefined,
-      style: {
-        vertex_radius: 0.01
-      },
-    };
-    prop.cp = args
-      .filter(arg => typeof arg === "object" && arg.vertices_coords != null)
-      .shift();
-    if (prop.cp == null) { prop.cp = CreasePattern(unitSquare); }
-    function bootThreeJS(domParent) {
-      var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
-      var controls = new THREE.OrbitControls(camera, domParent);
-      controls.enableZoom = false;
-      camera.position.set(-0.75, 2, -0.025);
-      controls.target.set(0.0, 0.0, 0.0);
-      controls.addEventListener('change', render);
-      var renderer = new THREE.WebGLRenderer({antialias:true});
-      if (window.devicePixelRatio !== 1) {
-        renderer.setPixelRatio(window.devicePixelRatio);
-      }
-      renderer.setClearColor("#FFFFFF");
-      renderer.setSize(domParent.clientWidth, domParent.clientHeight);
-      domParent.appendChild(renderer.domElement);
-      var directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.2);
-      directionalLight2.position.set(20, 20, -100);
-      scene.add(directionalLight2);
-      var spotLight1 = new THREE.SpotLight(0xffffff, 0.3);
-      spotLight1.position.set(50, -200, 100);
-      scene.add(spotLight1);
-      var spotLight2 = new THREE.SpotLight(0xffffff, 0.3);
-      spotLight2.position.set(100, 50, 200);
-      scene.add(spotLight2);
-      var ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
-      scene.add(ambientLight);
-      var render = function() {
-        requestAnimationFrame(render);
-        renderer.render(scene, camera);
-        controls.update();
-      };
-      render();
-      draw();
-    }
-    const attachToDOM = function() {
-      let functions = args.filter((arg) => typeof arg === "function");
-      let numbers = args.filter((arg) => !isNaN(arg));
-      let element = args.filter((arg) =>
-          arg instanceof HTMLElement)
-        .shift();
-      let idElement = args.filter((a) =>
-          typeof a === "string" || a instanceof String)
-        .map(str => document.getElementById(str))
-        .shift();
-      _parent = (element != null
-        ? element
-        : (idElement != null
-          ? idElement
-          : document.body));
-      bootThreeJS(_parent);
-      if (numbers.length >= 2) ;
-      if (functions.length >= 1) {
-        functions[0]();
-      }
-    };
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', attachToDOM);
-    } else {
-      attachToDOM();
-    }
-    function draw() {
-      var material = new THREE.MeshPhongMaterial({
-        color: 0xffffff,
-        side: THREE.DoubleSide,
-        flatShading:true,
-        shininess:0,
-        specular:0xffffff,
-        reflectivity:0
-      });
-      let graph = prop.frame
-        ? flatten_frame(prop.cp, prop.frame)
-        : prop.cp;
-      let faces = foldFileToThreeJSFaces(graph, material);
-      let lines = foldFileToThreeJSLines(graph);
-      allMeshes.forEach(mesh => scene.remove(mesh));
-      allMeshes = [];
-      allMeshes.push(faces);
-      allMeshes.push(lines);
-      allMeshes.forEach(mesh => scene.add(mesh));
-    }
-    const setCreasePattern = function(cp) {
-      prop.cp = cp;
-      draw();
-      prop.cp.onchange = draw;
-    };
-    return {
-      set cp(c) {
-        setCreasePattern(c);
-        draw();
-      },
-      get cp() {
-        return prop.cp;
-      },
-      draw,
-      get frame() { return prop.frame; },
-      set frame(newValue) {
-        prop.frame = newValue;
-        draw();
-      },
-      get frames() {
-        let frameZero = JSON.parse(JSON.stringify(prop.cp));
-        delete frameZero.file_frames;
-        return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
-      }
-    };
-    function foldFileToThreeJSFaces(foldFile, material) {
-      var geometry = new THREE.BufferGeometry();
-      let vertices = foldFile.vertices_coords
-        .map(v => [v[0], v[1], (v[2] != undefined ? v[2] : 0)])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let normals = foldFile.vertices_coords
-        .map(v => [0,0,1])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let colors = foldFile.vertices_coords
-        .map(v => [1,1,1])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let faces = foldFile.faces_vertices
-        .map(fv => fv.map((v,i,arr) => [arr[0], arr[i+1], arr[i+2]])
-                     .slice(0, fv.length-2))
-        .reduce((prev,curr) => prev.concat(curr), [])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-      geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-      geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      geometry.setIndex(faces);
-      if (material == undefined) { material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
-      return new THREE.Mesh(geometry, material);
-    }
-    function crossVec3(a,b) {
-      return [
-        a[1]*b[2] - a[2]*b[1],
-        a[2]*b[0] - a[0]*b[2],
-        a[0]*b[1] - a[1]*b[0]
-      ];
-    }
-    function magVec3(v) {
-      return Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
-    }
-    function normalizeVec3(v) {
-      let mag = Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
-      return [v[0] / mag, v[1] / mag, v[2] / mag];
-    }
-    function scaleVec3(v, scale) {
-      return [v[0]*scale, v[1]*scale, v[2]*scale];
-    }
-    function cylinderEdgeVertices(edge, radius) {
-      let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
-      let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-      if (mag < 1e-10) { throw "degenerate edge"; }
-      let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
-      let perp = [
-        normalizeVec3(crossVec3(normalized, [1,0,0])),
-        normalizeVec3(crossVec3(normalized, [0,1,0])),
-        normalizeVec3(crossVec3(normalized, [0,0,1]))
-      ].map((v,i) => ({i:i, v:v, mag:magVec3(v)}))
-       .filter(v => v.mag > 1e-10)
-       .map(obj => obj.v)
-       .shift();
-      let rotated = [perp];
-      for(var i = 1; i < 4; i++) {
-        rotated.push(normalizeVec3(crossVec3(rotated[i-1], normalized)));
-      }
-      let dirs = rotated.map(v => scaleVec3(v, radius));
-      return edge
-        .map(v => dirs.map(dir => [v[0]+dir[0], v[1]+dir[1], v[2]+dir[2]]))
-        .reduce((prev,curr) => prev.concat(curr), []);
-    }
-    function foldFileToThreeJSLines(foldFile, scale=0.002) {
-      let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
-      edges.forEach(edge => {
-        if (edge[0][2] == undefined) { edge[0][2] = 0; }
-        if (edge[1][2] == undefined) { edge[1][2] = 0; }
-      });
-      let colorAssignments = {
-        "B": [0.0,0.0,0.0],
-        "M": [0.0,0.0,0.0],
-        "F": [0.0,0.0,0.0],
-        "V": [0.0,0.0,0.0],
-      };
-      let colors = foldFile.edges_assignment.map(e =>
-        [colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
-        colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
-      ).reduce((prev,curr) => prev.concat(curr), [])
-       .reduce((prev,curr) => prev.concat(curr), [])
-       .reduce((prev,curr) => prev.concat(curr), []);
-      let vertices = edges
-        .map(edge => cylinderEdgeVertices(edge, scale))
-        .reduce((prev,curr) => prev.concat(curr), [])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let normals = edges.map(edge => {
-        let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
-        let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-        if (mag < 1e-10) { throw "degenerate edge"; }
-        let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
-        let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
-        return [
-          c0, [-c0[2], c0[1], c0[0]],
-          c1, [-c1[2], c1[1], c1[0]],
-          c0, [-c0[2], c0[1], c0[0]],
-          c1, [-c1[2], c1[1], c1[0]]
-        ]
-      }).reduce((prev,curr) => prev.concat(curr), [])
-        .reduce((prev,curr) => prev.concat(curr), []);
-      let faces = edges.map((e,i) => [
-        i*8+0, i*8+4, i*8+1,
-        i*8+1, i*8+4, i*8+5,
-        i*8+1, i*8+5, i*8+2,
-        i*8+2, i*8+5, i*8+6,
-        i*8+2, i*8+6, i*8+3,
-        i*8+3, i*8+6, i*8+7,
-        i*8+3, i*8+7, i*8+0,
-        i*8+0, i*8+7, i*8+4,
-        i*8+0, i*8+1, i*8+3,
-        i*8+1, i*8+2, i*8+3,
-        i*8+5, i*8+4, i*8+7,
-        i*8+7, i*8+6, i*8+5,
-      ]).reduce((prev,curr) => prev.concat(curr), []);
-      var geometry = new THREE.BufferGeometry();
-      geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-      geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-      geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      geometry.setIndex(faces);
-      geometry.computeVertexNormals();
-      var material = new THREE.MeshToonMaterial( {
-          shininess: 0,
-          side: THREE.DoubleSide, vertexColors: THREE.VertexColors
-      } );
-      return new THREE.Mesh(geometry, material);
-    }
-  }
-
-  const prepareGraph = function (graph) {
-    if ("faces_re:matrix" in graph === false) {
-      graph["faces_re:matrix"] = make_faces_matrix(graph, 0);
-    }
-  };
-  const setup = function (origami, svg) {
-    prepareGraph(origami);
-    let touchFaceIndex = 0;
-    let cachedGraph = clone(origami);
-    let was_folded = ("vertices_re:unfoldedCoords" in origami === true);
-    svg.mousePressed = (mouse) => {
-      was_folded = ("vertices_re:unfoldedCoords" in origami === true);
-      cachedGraph = clone(origami);
-      const param = {
-        faces_vertices: origami.faces_vertices,
-        "faces_re:layer": origami["faces_re:layer"]
-      };
-      param.vertices_coords = was_folded
-        ? (origami["vertices_re:foldedCoords"] || origami.vertices_coords)
-        : (origami["vertices_re:unfoldedCoords"] || origami.vertices_coords);
-      const faces_containing = faces_containing_point(param, mouse);
-      const top_face = topmost_face(param, faces_containing);
-      touchFaceIndex = (top_face == null)
-        ? 0
-        : top_face;
-      if (was_folded) {
-        cachedGraph.vertices_coords = origami["vertices_re:unfoldedCoords"].slice();
-      }
-    };
-    svg.mouseMoved = (mouse) => {
-      if (mouse.isPressed) {
-        origami.load(cachedGraph);
-        const instruction = axiom2(mouse.pressed, mouse.position);
-        origami.crease(instruction.solutions[0], touchFaceIndex);
-        if (was_folded) { origami.fold(); }
-      }
-    };
-  };
-
-  const DEFAULTS$2 = Object.freeze({
-    touchFold: false,
-  });
-  const parseOptions$1 = function (...args) {
-    const keys = Object.keys(DEFAULTS$2);
-    const prefs = {};
-    Array(...args)
-      .filter(obj => typeof obj === "object")
-      .forEach(obj => Object.keys(obj)
-        .filter(key => keys.includes(key))
-        .forEach((key) => { prefs[key] = obj[key]; }));
-    return prefs;
-  };
-  const interpreter = {
-    gl: "webgl",
-    GL: "webgl",
-    webGL: "webgl",
-    WebGL: "webgl",
-    webgl: "webgl",
-    Webgl: "webgl",
-    svg: "svg",
-    SVG: "svg",
-    "2d": "svg",
-    "2D": "svg",
-    "3d": "webgl",
-    "3D": "webgl",
-  };
-  const parseOptionsForView = function (...args) {
-    const viewOptions = args
-      .filter(a => typeof a === "object")
-      .filter(a => "view" in a === true)
-      .shift();
-    if (viewOptions === undefined) {
-      if (isNode) { return undefined; }
-      if (isBrowser) { return "svg"; }
-    }
-    return interpreter[viewOptions.view];
-  };
-  const Origami = function (...args) {
-    const origami = Object.assign(
-      Object.create(Prototype$2()),
-      args.filter(el => possibleFoldObject(el)).shift() || square$1()
-    );
-    validate(origami);
-    clean(origami);
-    const setFoldedForm = function (isFolded) {
-      const wasFolded = origami.isFolded();
-      const remove = isFolded ? "creasePattern" : "foldedForm";
-      const add = isFolded ? "foldedForm" : "creasePattern";
-      if (origami.frame_classes == null) { origami.frame_classes = []; }
-      while (origami.frame_classes.indexOf(remove) !== -1) {
-        origami.frame_classes.splice(origami.frame_classes.indexOf(remove), 1);
-      }
-      if (origami.frame_classes.indexOf(add) === -1) {
-        origami.frame_classes.push(add);
-      }
-      const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
-      const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
-      if (to in origami === true) {
-        origami[from] = origami.vertices_coords;
-        origami.vertices_coords = origami[to];
-        delete origami[to];
-      }
-      origami.didChange.forEach(f => f());
-    };
-    const load = function (data, options) {
-      keys.forEach(key => delete origami[key]);
-      const fold_file = convert$1(data).fold(options);
-      Object.assign(origami, fold_file);
-      clean(origami);
-      origami.didChange.forEach(f => f());
-    };
-    const collapse = function (options = {}) {
-      if ("faces_re:matrix" in origami === false) {
-        origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
-      }
-      if ("vertices_re:foldedCoords" in origami === false) {
-        origami["vertices_re:foldedCoords"] = make_vertices_coords_folded(origami, null, origami["faces_re:matrix"]);
-      }
-      setFoldedForm(true);
-      return origami;
-    };
-    const flatten = function () {
-      setFoldedForm(false);
-      return origami;
-    };
-    const fold = function (...args) {
-      return origami;
-    };
-    const unfold = function () {
-      return origami;
-    };
-    const get = function (component) {
-      const a = transpose_geometry_arrays(origami, component);
-      const view = origami.svg || origami.gl;
-      Object.defineProperty(a, "visible", {
-        get: () => view.options[component],
-        set: (v) => {
-          view.options[component] = !!v;
-          origami.didChange.forEach(f => f());
-        },
-      });
-      if (origami.svg != null) {
-        a.forEach((el, i) => {
-          el.svg = origami.svg.groups[component].childNodes[i];
-        });
-      }
-      return a;
-    };
-    const nearest = function (...args2) {
-      const plural = {
-        vertex: "vertices",
-        edge: "edges",
-        face: "faces",
-      };
-      const target = math.core.get_vector(...args2);
-      const nears = {
-        vertex: origami.nearestVertex(origami, target),
-        edge: origami.nearestEdge(origami, target),
-        face: origami.nearestFace(origami, target)
-      };
-      Object.keys(nears)
-        .filter(key => nears[key] == null)
-        .forEach(key => delete nears[key]);
-      if (origami.svg != null) {
-        Object.keys(nears).forEach((key) => {
-          nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
-        });
-      }
-      return nears;
-    };
-    const options = {};
-    Object.assign(options, DEFAULTS$2);
-    const userDefaults = parseOptions$1(...args);
-    Object.keys(userDefaults)
-      .forEach((key) => { options[key] = userDefaults[key]; });
-    Object.defineProperty(origami, "load", { value: load });
-    Object.defineProperty(origami, "collapse", { value: collapse });
-    Object.defineProperty(origami, "flatten", { value: flatten });
-    Object.defineProperty(origami, "fold", { value: fold });
-    Object.defineProperty(origami, "unfold", { value: unfold });
-    Object.defineProperty(origami, "nearest", { value: nearest });
-    Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
-    Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
-    Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
-    const exportObject = function () { return JSON.stringify(origami); };
-    exportObject.json = function () { return JSON.stringify(origami); };
-    exportObject.fold = function () { return JSON.stringify(origami); };
-    exportObject.svg = function () {
-      if (origami.svg != null) {
-        return (new win$1.XMLSerializer()).serializeToString(origami.svg);
-      }
-      return drawFOLD.svg(origami);
-    };
-    Object.defineProperty(origami, "clean", { value: () => clean(origami) });
-    Object.defineProperty(origami, "snapshot", { get: () => exportObject });
-    Object.defineProperty(origami, "export", { get: () => exportObject });
-    Object.defineProperty(origami, "options", { get: () => options });
-    return origami;
-  };
-  const init = function (...args) {
-    const origami = Origami(...args);
-    let view;
-    switch (parseOptionsForView(...args)) {
-      case "svg":
-        view = View(origami, ...args);
-        origami.didChange.push(view.draw);
-        Object.defineProperty(origami, "svg", { get: () => view });
-        if (origami.options.touchFold === true) {
-          setup(origami, origami.svg);
-        }
-        origami.svg.fit();
-        origami.svg.draw();
-        break;
-      case "webgl":
-        view = View3D(origami, ...args);
-        Object.defineProperty(origami, "canvas", { get: () => view });
-        break;
-      default: break;
-    }
-    return origami;
-  };
-
-  console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
   const core$1 = Object.create(null);
   Object.assign(core$1,
     frames,
     object,
+    collinear,
+    isolated,
     keys$1,
     affine,
-    validate$1,
-    remove,
-    rebuild$1,
+    validate,
+    similar,
     make,
     marks,
+    select,
     query$1,
     kawasaki,
     Axioms);
@@ -12649,10 +12398,16 @@ line.valley { stroke: blue;
   core$1.apply_run = apply_run_diff;
   core$1.merge_run = merge_run_diffs;
   core$1.apply_axiom = make_axiom_frame;
-  core$1.prototype = Prototype$2;
+  core$1.fragment = fragment$1;
+  core$1.clean = clean;
+  core$1.join = join;
+  core$1.remove = remove_geometry_key_indices;
+  core$1.rebuild = rebuild;
+  core$1.populate = populate;
+  core$1.validate = Validate;
   const b = {
-    empty: JSON.parse(empty),
-    square: JSON.parse(square),
+    empty: JSON.parse(empty$1),
+    square: JSON.parse(square$1),
     book: JSON.parse(book),
     blintz: JSON.parse(blintz),
     kite: JSON.parse(kite),
@@ -12670,7 +12425,7 @@ line.valley { stroke: blue;
   Object.defineProperty(bases, "bird", { get: () => core$1.clone(b.bird) });
   Object.defineProperty(bases, "frog", { get: () => core$1.clone(b.frog) });
   const rabbitEar = {
-    Origami: init,
+    origami: Origami,
     graph: Graph,
     svg: SVG,
     fold: fold_through,
@@ -12687,4 +12442,4 @@ line.valley { stroke: blue;
 
   return rabbitEar;
 
-}));
+})));

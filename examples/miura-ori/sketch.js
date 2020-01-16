@@ -1,6 +1,6 @@
 const OrigamiAndCode = function (origamiID, codeID, consoleID) {
-  const origami = RabbitEar.Origami(origamiID, { padding: 0.05 });
-  origami.vertices.visible = true;
+  const origami = RabbitEar.origami(origamiID, { padding: 0.05 });
+  // origami.vertices.visible = true;
   const consoleDiv = document.querySelector(`#${consoleID}`);
   let editor;
 
@@ -62,7 +62,7 @@ const OrigamiAndCode = function (origamiID, codeID, consoleID) {
 
 let SLIDER = 0.5;
 const origami = OrigamiAndCode("origami-cp", "editor", "console");
-const folded = RabbitEar.Origami("origami-fold", { padding: 0.05 });
+const folded = RabbitEar.origami("origami-fold", { padding: 0.05 });
 
 document.querySelector("#interp-slider").oninput = function (event) {
   let v = parseFloat((event.target.value / 1000).toFixed(2));
@@ -83,7 +83,7 @@ origami.miuraOri = function (points) {
       // crease zig zag rows
       if (i < row.length - 1) {
         const nextHorizPoint = row[(i + 1) % row.length];
-        const clip = boundary.clipEdge(point, nextHorizPoint);
+        const clip = boundary.clipSegment(point, nextHorizPoint);
         if (clip !== undefined) {
           const assignment = j % 2 === 0 ? "V" : "M";
           origami.mark(clip[0], clip[1], assignment, creaseOptions);
@@ -93,7 +93,7 @@ origami.miuraOri = function (points) {
       if (j < points.length - 1) {
         const nextRow = points[(j + 1) % points.length];
         const nextVertPoint = nextRow[i];
-        const clip = boundary.clipEdge(point, nextVertPoint);
+        const clip = boundary.clipSegment(point, nextVertPoint);
         if (clip !== undefined) {
           const assignment = (i + j) % 2 === 0 ? "M" : "V";
           origami.mark(clip[0], clip[1], assignment, creaseOptions);
@@ -106,7 +106,7 @@ origami.miuraOri = function (points) {
   delete origami.edges_length;
   delete origami["faces_re:matrix"];
   delete origami["faces_re:layer"];
-  origami.complete();
+  origami.clean();
 };
 
 origami.reset = function () {
@@ -121,7 +121,7 @@ origami.reset = function () {
   origami.svg.draw();
 
   folded.load(origami.copy());
-  folded.fold();
+  folded.collapse();
 };
 
 origami.reset();

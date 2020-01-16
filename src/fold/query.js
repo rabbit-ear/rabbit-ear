@@ -41,7 +41,7 @@ export const faces_count = function ({
 export const implied_vertices_count = function ({
   faces_vertices, edges_vertices
 }) {
-  let max = 0;
+  let max = -1; // will become 0 if nothing is found
   [faces_vertices, edges_vertices]
     .filter(a => a !== undefined)
     .forEach(arr => arr
@@ -49,13 +49,14 @@ export const implied_vertices_count = function ({
         .forEach((e) => {
           if (e > max) { max = e; }
         })));
-  return max;
+  // max is the largest index. array length is +1
+  return max + 1;
 };
 
 export const implied_edges_count = function ({
   faces_edges, vertices_edges, edgeOrders
 }) {
-  let max = 0;
+  let max = -1; // will become 0 if nothing is found
   [faces_edges, vertices_edges]
     .filter(a => a !== undefined)
     .forEach(arr => arr
@@ -69,13 +70,14 @@ export const implied_edges_count = function ({
       if (i !== 2 && e > max) { max = e; }
     }));
   }
-  return max;
+  // max is the largest index. array length is +1
+  return max + 1;
 };
 
 export const implied_faces_count = function ({
   vertices_faces, edges_faces, facesOrders
 }) {
-  let max = 0;
+  let max = -1; // will become 0 if nothing is found
   [vertices_faces, edges_faces]
     .filter(a => a !== undefined)
     .forEach(arr => arr
@@ -89,7 +91,8 @@ export const implied_faces_count = function ({
       if (i !== 2 && f > max) { max = f; }
     }));
   }
-  return max;
+  // max is the largest index. array length is +1
+  return max + 1;
 };
 
 /**
@@ -173,7 +176,7 @@ export const folded_faces_containing_point = function ({
   vertices_coords, faces_vertices
 }, point, faces_matrix) {
   const transformed_points = faces_matrix
-    .map(m => math.core.multiply_vector2_matrix2(point, m));
+    .map(m => math.core.multiply_matrix2_vector2(m, point));
   return faces_vertices
     .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
     .filter((f, i) => math.core.intersection
@@ -225,66 +228,6 @@ export const topmost_face = function (graph, faces) {
     }
   }
   return undefined;
-};
-
-export const bounding_rect = function ({ vertices_coords }) {
-  if (vertices_coords == null
-    || vertices_coords.length <= 0) {
-    return [0, 0, 0, 0];
-  }
-  const dimension = vertices_coords[0].length;
-  const min = Array(dimension).fill(Infinity);
-  const max = Array(dimension).fill(-Infinity);
-  vertices_coords.forEach(v => v.forEach((n, i) => {
-    if (n < min[i]) { min[i] = n; }
-    if (n > max[i]) { max[i] = n; }
-  }));
-  return (isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1])
-    ? [0, 0, 0, 0]
-    : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
-};
-
-/**
- * get the boundary face defined in vertices and edges by walking boundary
- * edges, defined by edges_assignment. no planar calculations
- */
-export const get_boundary = function ({
-  edges_vertices, edges_assignment
-}) {
-  const edges_vertices_b = edges_assignment
-    .map(a => a === "B" || a === "b");
-  const vertices_edges = make_vertices_edges({ edges_vertices });
-  const edge_walk = [];
-  const vertex_walk = [];
-  let edgeIndex = -1;
-  for (let i = 0; i < edges_vertices_b.length; i += 1) {
-    if (edges_vertices_b[i]) { edgeIndex = i; break; }
-  }
-  if (edgeIndex === -1) {
-    return { vertices: [], edges: [] };
-  }
-  edges_vertices_b[edgeIndex] = false;
-  edge_walk.push(edgeIndex);
-  vertex_walk.push(edges_vertices[edgeIndex][0]);
-  let nextVertex = edges_vertices[edgeIndex][1];
-  while (vertex_walk[0] !== nextVertex) {
-    vertex_walk.push(nextVertex);
-    edgeIndex = vertices_edges[nextVertex]
-      .filter(v => edges_vertices_b[v])
-      .shift();
-    if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
-    if (edges_vertices[edgeIndex][0] === nextVertex) {
-      [, nextVertex] = edges_vertices[edgeIndex];
-    } else {
-      [nextVertex] = edges_vertices[edgeIndex];
-    }
-    edges_vertices_b[edgeIndex] = false;
-    edge_walk.push(edgeIndex);
-  }
-  return {
-    vertices: vertex_walk,
-    edges: edge_walk,
-  };
 };
 
 /**

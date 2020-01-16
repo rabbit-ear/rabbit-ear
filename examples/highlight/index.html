@@ -2,41 +2,62 @@
 
 <title>Rabbit Ear</title>
 <meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+html,body{
+  height: 100%;
+  width: 100%;
+  margin: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+svg {
+  width: 100%;
+  height: 100%;
+}
+</style>
 
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 <script type="text/javascript">
 // example
 // mouse hover over vertices, edges, faces to highlight them
-
 // todo: bring back sectors
-var style = {
-  vertex: "fill:#357;stroke:#357",
-  edge: "stroke:#ec3",
-  face: "fill:#e53"
-};
+const a = 0.207106781187;
+const b = 0.66591068104;
+const c = 0.716772751325;
+const d = 0.576120467489;
+const e = 0.865619448968;
+const f = 0.675576651179;
+const g = 0.476712746783;
+const h = 0.905175938977;
+const i = 0.461939766256;
 
-var origami = RabbitEar.Origami({ padding: 0.05 });
-origami.vertices.visible = true;
+const crane = {vertices_coords:[[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.5,(1-a)],[a,0.5],[0.5,a],[(1-a),0.5],[b,0.5],[c,d],[e,f],[0.5,(1-b)],[(1-d),(1-c)],[(1-f),(1-e)],[0.5,b],[d,c],[f,e],[(1-b),0.5],[(1-c),(1-d)],[(1-e),(1-f)],[0.5,1],[0.5,0],[g,h],[(1-g),(1-h)],[i,0.808658283817],[0.404137552497,0.72996392064],[0.353553390593,0.646446609407],[0.27003607936,0.595862447503],[0.191341716183,(1-i)],[(1-h),(1-g)],[0,0.5],[(1-i),0.191341716183],[0.595862447503,0.27003607936],[0.646446609407,0.353553390593],[0.72996392064,0.404137552497],[0.808658283817,i],[h,g],[1,0.5],[0.373017462227,a],[a,0.373017462227],[0.180807836521,0.436508731113],[0.117316567635,0.410209786448],[0,0.410209786448],[0.436508731113,0.180807836521],[0.410209786448,0.117316567635],[0.410209786448,0],[0.180807836521,1],[0.150809885227,0.970002048705],[0.16704465948,0.930807836521],[0.127850447296,0.914573062268],[0.127850447296,0.872149552704],[0.085426937732,0.872149552704],[0.069192163479,0.83295534052],[0.029997951295,0.849190114773],[0,0.819192163479]],edges_vertices:[[8,11],[9,8],[9,10],[10,11],[10,8],[12,13],[7,12],[12,4],[5,17],[4,15],[15,16],[0,20],[6,18],[18,19],[22,1],[0,14],[21,2],[21,23],[18,4],[22,24],[24,1],[4,9],[16,10],[26,27],[27,28],[28,29],[30,31],[29,6],[28,18],[27,4],[26,15],[25,5],[24,32],[32,33],[33,34],[34,35],[35,36],[36,37],[37,38],[1,38],[8,36],[36,1],[11,37],[37,1],[9,35],[35,1],[7,32],[32,1],[12,33],[33,1],[4,34],[34,1],[13,7],[14,39],[39,13],[19,13],[20,40],[40,19],[6,19],[40,39],[40,41],[41,42],[20,41],[41,6],[30,42],[42,20],[42,43],[0,43],[43,31],[0,46],[46,22],[39,44],[14,44],[44,7],[45,46],[44,45],[14,45],[45,24],[38,2],[23,25],[17,23],[2,17],[2,11],[25,26],[5,15],[16,5],[17,16],[3,47],[47,21],[30,29],[23,48],[49,50],[50,51],[51,52],[52,53],[53,54],[54,55],[31,55],[55,3],[3,54],[54,30],[3,49],[49,25],[3,53],[53,29],[3,52],[52,28],[3,51],[51,27],[3,50],[50,26],[47,48],[48,49],[3,48]],edges_assignment:["M","M","V","M","V","V","M","M","M","M","V","M","M","V","B","M","B","M","M","M","V","M","V","V","V","M","M","M","M","V","M","M","V","M","V","V","M","V","M","B","M","M","V","V","M","M","M","M","M","M","V","M","V","M","M","V","M","M","V","M","V","M","M","M","V","V","V","B","B","B","B","V","M","M","V","M","V","V","B","V","V","M","M","M","M","V","M","B","B","V","V","V","M","M","V","M","V","B","B","V","V","M","M","M","M","M","M","V","M","M","M","V","M","V"]};
+
+var origami = RabbitEar.origami({ padding: 0.05 });
+// origami.vertices.visible = true;
 
 // fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
-fetch("../../files/svg/crane.svg").then(blob => blob.text()).then(svg => origami.load(svg));
+// fetch("../../files/svg/crane.svg").then(blob => blob.text()).then(svg => origami.load(svg));
+// origami.load(crane);
+origami.populate();
+// origami.load(RabbitEar.bases.frog);
+
+var drawLayer = origami.svg.group();
 
 origami.svg.mouseMoved = function (event) {
-  /** highlight */
-  ["vertices", "edges", "faces"].forEach(function (key) {
-    origami[key]
-      .filter(function (v) { return v.svg != null; })
-      .forEach((v) => { v.svg.style = ""; });
-  });
-
+  drawLayer.removeChildren();
   // get all the nearest components to the cursor
   var nearest = origami.nearest(event);
-  // console.log(nearest);
-
-  Object.keys(nearest)
-    .filter(function (key) { return nearest[key].svg != null; })
-    .forEach(function (key) { nearest[key].svg.style = style[key]; });
-  /** highlight end */
+  console.log(nearest);
+  if (nearest.face) {
+    drawLayer.polygon(nearest.face.coords).fill("#e53").stroke("none");
+  }
+  if (nearest.edge) {
+    drawLayer.line(nearest.edge.coords).stroke("#fb3").strokeWidth(0.02).strokeLinecap("square");
+  }
+  if (nearest.vertex) {
+    drawLayer.circle(nearest.vertex.coords).radius(0.03).fill("#fb3").stroke("none");
+  }
 };
 </script>

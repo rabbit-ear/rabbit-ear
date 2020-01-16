@@ -175,7 +175,7 @@
     });
     return faces_faces;
   };
-  var faces_coloring_from_faces_matrix = function faces_coloring_from_faces_matrix(faces_matrix) {
+  var make_faces_coloring_from_faces_matrix = function make_faces_coloring_from_faces_matrix(faces_matrix) {
     return faces_matrix.map(function (m) {
       return m[0] * m[3] - m[1] * m[2];
     }).map(function (c) {
@@ -307,15 +307,19 @@
   var isNode = typeof process !== "undefined" && process.versions != null && process.versions.node != null;
   var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
   var htmlString = "<!DOCTYPE html><title>a</title>";
-  var win = !isNode && isBrowser ? window : {};
-  if (isNode) {
-    var _require = require("xmldom"),
-        DOMParser = _require.DOMParser,
-        XMLSerializer = _require.XMLSerializer;
-    win.DOMParser = DOMParser;
-    win.XMLSerializer = XMLSerializer;
-    win.document = new DOMParser().parseFromString(htmlString, "text/html");
-  }
+  var win = (function () {
+    var w = {};
+    if (isNode$1) {
+      var { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString, "text/html");
+    } else if (isBrowser$1) {
+      w = window;
+    }
+    return w;
+  }());
+
   var svgNS = "http://www.w3.org/2000/svg";
   var svg = function svg() {
     var svgImage = win.document.createElementNS(svgNS, "svg");
@@ -476,7 +480,7 @@
   var make_faces_sidedness = function make_faces_sidedness(graph) {
     var coloring = graph["faces_re:coloring"];
     if (coloring == null) {
-      coloring = "faces_re:matrix" in graph ? faces_coloring_from_faces_matrix(graph["faces_re:matrix"]) : faces_coloring(graph, 0);
+      coloring = "faces_re:matrix" in graph ? make_faces_coloring_from_faces_matrix(graph["faces_re:matrix"]) : faces_coloring(graph, 0);
     }
     return coloring.map(function (c) {
       return c ? "front" : "back";

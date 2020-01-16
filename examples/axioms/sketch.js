@@ -1,7 +1,7 @@
 const { RabbitEar } = window;
 const patternStyle = ".creasePattern .valley { stroke: black; }";
-const origami = RabbitEar.Origami("origami-cp", { padding: 0.05, diagram: true, style: patternStyle });
-const folded = RabbitEar.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
+const origami = RabbitEar.origami("origami-cp", { padding: 0.05, diagram: true, style: patternStyle });
+const folded = RabbitEar.origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
 
 folded.fold();
 

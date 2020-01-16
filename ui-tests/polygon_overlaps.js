@@ -1,69 +1,43 @@
-let overlap = RabbitEar.svg("canvas-polygon-overlaps", 800, 500);
-overlap.COUNT = 3;
+RabbitEar.svg("canvas-polygon-overlaps", 800, 500, (svg) => {
+  const { RabbitEar } = window;
+  svg.strokeWidth(6);
 
-overlap.speeds = Array.from(Array(overlap.COUNT)).map(_ => Math.random() - 0.5)
+  const COUNT = 3;
+  const speeds = Array.from(Array(COUNT)).map(() => Math.random() - 0.5);
+  const r = 120;
+  const centers = Array.from(Array(COUNT)).map((_, i) => [
+    svg.getWidth() / COUNT * 0.5 + i * svg.getWidth() / (COUNT),
+    svg.getHeight() * 0.5
+  ]);
 
-overlap.rebuild = function(){
-	let r = 120;
-	let pad = overlap.w * 0.15;
+  let polys = centers.map(c => RabbitEar.convexPolygon
+    .regularPolygon(Math.floor(Math.random() * 2) + 4, c[0], c[1], r));
+  const polygonFills = polys.map(p => svg.polygon(p.points).stroke("none"));
+  const polygonLines = polys.map(p => svg.polygon(p.points).fill("none"));
 
-	overlap.centers = Array.from(Array(overlap.COUNT)).map((_,i) => [
-		overlap.w/overlap.COUNT*0.5 + i*overlap.w/(overlap.COUNT),
-		overlap.h * 0.5
-	]);
+  const update = function () {
+    const polysOverlap = polys.map(() => false);
+    for (let i = 0; i < polys.length - 1; i += 1) {
+      for (let j = i + 1; j < polys.length; j += 1) {
+        if (polys[i].overlaps(polys[j].points)) {
+          polysOverlap[i] = true;
+          polysOverlap[j] = true;
+        }
+      }
+    }
+    polygonFills.forEach((polygon, i) => {
+      polygon.fill(polysOverlap[i] ? "#fb3" : "white");
+      polygon.setPoints(polys[i].points);
+    });
+    polygonLines.forEach((polygon, i) => {
+      polygon.stroke(polysOverlap[i] ? "#e53" : "#158");
+      polygon.setPoints(polys[i].points);
+    });
+  };
 
-	overlap.polys = overlap.centers.map(c => 
-		RabbitEar.convexPolygon.regularPolygon( parseInt(Math.random()*2)+4, c[0], c[1], r)
-	);
-
-	overlap.removeChildren();
-	overlap.polygonFills = overlap.polys.map((poly, i) => {
-		let polygon = RabbitEar.svg.polygon(poly.points);
-		polygon.setAttribute("stroke", "none");
-		overlap.appendChild(polygon);
-		return polygon;
-	});
-	overlap.polygonLines = overlap.polys.map((poly, i) => {
-		let polygon = RabbitEar.svg.polygon(poly.points);
-		polygon.setAttribute("fill", "none");
-		polygon.setAttribute("stroke-width", 6);
-		overlap.appendChild(polygon);
-		return polygon;
-	});
-}
-overlap.rebuild();
-
-overlap.update = function(){
-
-	let polysOverlap = overlap.polys.map(_ => false);
-	for(var i = 0; i < overlap.polys.length-1; i++){
-		for(var j = i+1; j < overlap.polys.length; j++){
-			if(overlap.polys[i].overlaps(overlap.polys[j])){
-				polysOverlap[i] = true;
-				polysOverlap[j] = true;
-			}
-		}
-	}
-// 195783, ecb233, e44f2a
-	overlap.polygonFills.forEach((polygon, i) => {
-		let color = polysOverlap[i] ? "#ecb233" : "white";
-		polygon.setAttribute("fill", color)
-		RabbitEar.svg.setPoints(polygon, overlap.polys[i].points);
-	})
-
-	overlap.polygonLines.forEach((polygon, i) => {
-		let color = polysOverlap[i] ? "#e44f2a" : "#195783";
-		polygon.setAttribute("stroke", color);
-		RabbitEar.svg.setPoints(polygon, overlap.polys[i].points);
-	});
-}
-overlap.update();
-
-overlap.animate = function(event){
-	overlap.polys = overlap.polys.map((p,i) => {
-		return p.rotate(0.025 * overlap.speeds[i], overlap.centers[i])
-	});
-	// console.log(rotated);
-	overlap.update();
-	// console.log(event.time);
-}
+  svg.animate = function () {
+    polys = polys.map((p, i) => p
+      .rotate(0.025 * speeds[i], centers[i]));
+    update();
+  };
+});

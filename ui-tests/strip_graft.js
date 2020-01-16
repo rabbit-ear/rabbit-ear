@@ -1,13 +1,13 @@
 let starting_face = 0;
 
 const strip_graft = function(graph, graft_scale) {//func) {
-	let face_walk = RE.core.make_face_walk_tree(graph, starting_face);
+	let face_walk = RabbitEar.core.make_face_walk_tree(graph, starting_face);
 
 	let faces = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
-		.map(fv => RE.Polygon(fv));
+		.map(fv => RabbitEar.polygon(fv));
 	let faces_centroids = faces.map(f => f.centroid);
-	let faces_matrix = graph.faces_vertices.map(_ => RE.Matrix2());
+	let faces_matrix = graph.faces_vertices.map(_ => RabbitEar.matrix2());
 
 	let faces_done = graph.faces_vertices.map(_ => false);
 	let graft_edges = [];
@@ -35,7 +35,7 @@ const strip_graft = function(graph, graft_scale) {//func) {
 				: vec1.scale(graft_scale);
 
 			let parent_matrix = faces_matrix[f.parent];
-			let local_matrix = RE.Matrix2.makeTranslation(trans[0], trans[1]);
+			let local_matrix = RabbitEar.matrix2.makeTranslation(trans[0], trans[1]);
 			faces_matrix[f.face] = local_matrix.multiply(parent_matrix);
 		}));
 
@@ -77,18 +77,18 @@ const strip_graft = function(graph, graft_scale) {//func) {
 		});
 }
 
-let origami = RE.Origami({padding:0.5});
+let origami = RabbitEar.origami({padding:0.5});
 origami.drawLayer = origami.group();
 origami.edges.visible = false;
 origami.groups.boundaries.setAttribute("opacity", 0)
 
-origami.cp = RE.bases.frog;
+origami.cp = RabbitEar.bases.frog;
 strip_graft(origami.cp, 0.2);//function(a,b){ return 0.1; });
 
 origami.onMouseMove = function(mouse) {
 	// let face = origami.nearest(mouse.position).faces;
 	// if(face !== undefined && starting_face !== face.index) {
-	// 	origami.cp = RE.bases.frog;
+	// 	origami.cp = RabbitEar.bases.frog;
 	// 	starting_face = face.index;
 	// 	strip_graft(origami.cp, function(a,b){ return 0.1; });
 	// }

@@ -1,6 +1,6 @@
 let div = document.getElementsByClassName('row')[0];
-let origami = RabbitEar.Origami(div, {padding:0.05});
-let folded = RabbitEar.Origami(div, {padding:0.05});
+let origami = RabbitEar.origami(div, {padding:0.05});
+let folded = RabbitEar.origami(div, {padding:0.05});
 
 origami.boot = function() {
   origami.threeCorners = {

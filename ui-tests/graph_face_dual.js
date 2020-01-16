@@ -1,4 +1,4 @@
-let faceDual = RabbitEar.Origami("canvas-face-dual");
+let faceDual = RabbitEar.origami("canvas-face-dual");
 faceDual.cp = RabbitEar.CreasePattern(RabbitEar.bases.frog);
 faceDual.load("../files/fold/kraft-sea-turtle.fold", function(){
 	faceDual.init();
@@ -39,7 +39,7 @@ faceDual.init = function() {
 		faceDual.appendChild(line)
 	});
 
-	let faces_coloring = RabbitEar.core.faces_coloring(faceDual.cp, 0);
+	let faces_coloring = RabbitEar.core.make_faces_coloring(faceDual.cp, 0);
 
 	let faces = faceDual.faces;
 	faces_coloring

@@ -1,17 +1,20 @@
-import drawFOLD from "../../include/fold-draw";
+import FoldToSvg from "../../include/fold-to-svg";
 import ORIPA from "../../include/fold/oripa";
-import SVGtoFOLD from "../../include/tofold/src";
+import SVGtoFOLD from "../../include/tofold/src/index";
 // const SVGtoFOLD = window.tofold || require("tofold");
 
+// this is not ready yet. bug when value is undefined
+// exportObject.fold = function () { return FOLDConvert.toJSON(graph); };
+
 const from_to = function (data, from, to, ...args) {
-  console.log("From to", ...args);
+  // console.log("From to", ...args);
   // console.log(`converting ${from} to ${to}, with options`, args ? args[0] : null, data);
   switch (from) {
     case "fold":
       switch (to) {
         case "fold": return data;
         case "oripa": return ORIPA.fromFold(data);
-        case "svg": return drawFOLD.svg(data);
+        case "svg": return FoldToSvg(data);
         default: break;
       }
       break;
@@ -19,7 +22,7 @@ const from_to = function (data, from, to, ...args) {
       switch (to) {
         case "fold": return ORIPA.toFold(data, true);
         case "oripa": return data;
-        case "svg": return drawFOLD.svg(ORIPA.toFold(data, true));
+        case "svg": return FoldToSvg(ORIPA.toFold(data, true));
         default: break;
       }
       break;

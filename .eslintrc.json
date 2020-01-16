@@ -20,6 +20,7 @@
     "camelcase": ["error", {"allow": [".*"]}],
     "no-param-reassign": 0,
     "no-restricted-globals": 0,
-    "comma-dangle": 0
+    "comma-dangle": 0,
+    "valid-typeof": 0
   }
 }

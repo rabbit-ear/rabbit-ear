@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import { get_boundary } from "../FOLD/query";
+import { get_boundary } from "../FOLD/boundary";
 import { edges_assignment_names } from "../FOLD/keys";
 import axiom_instructions_data from "../text/axioms.json";
 
@@ -40,7 +40,7 @@ const make_instructions = function (construction) {
     return get_instructions_for_axiom(axiom);
   }
   if ("assignment" in construction) {
-    return { en: `${edges_assignment_names.en[construction.assignment]} fold` };
+    return { en: `${edges_assignment_names[construction.assignment]} fold` };
   }
   return { en: "" };
 };
@@ -148,7 +148,7 @@ const build_diagram_frame = function (graph) {
     case "fold":
       return {
         "re:diagram_lines": [{
-          "re:diagram_line_classes": [edges_assignment_names.en[c.assignment]],
+          "re:diagram_line_classes": [edges_assignment_names[c.assignment]],
           "re:diagram_line_coords": c.edge,
         }],
         "re:diagram_arrows": [{

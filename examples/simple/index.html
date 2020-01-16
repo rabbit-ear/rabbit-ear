@@ -13,7 +13,7 @@ const highlightStyle = {
 };
 
 // todo: bring back sectors
-const origami = RabbitEar.Origami({ padding: 0.05 });
+const origami = RabbitEar.origami({ padding: 0.05 });
 
 // fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
 fetch("../../files/svg/crane.svg").then(blob => blob.text()).then(svg => origami.load(svg));

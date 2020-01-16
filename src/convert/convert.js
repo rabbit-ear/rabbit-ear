@@ -17,7 +17,7 @@ const permute = function (string) {
 const convert = function (...file) {
   // loaded is an object {data: "...", type: "svg"}, only supported extensions
   const loaded = load(...file);
-  console.log("loaded", loaded);
+  // console.log("loaded", loaded);
   const c = {};
   ["fold", "svg", "oripa"].forEach(filetype => permute(filetype)
     .forEach(key => Object.defineProperty(c, key, {

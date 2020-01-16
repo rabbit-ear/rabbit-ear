@@ -1,57 +1,39 @@
 var nearestPointCallback;
 
-let nearestPoint = RabbitEar.svg("nearest-point", 600, 300);
+RabbitEar.svg("nearest-point", 600, 300, (svg) => {
+  const { RabbitEar } = window;
 
-nearestPoint.setup = function(){
-	nearestPoint.backLayer = RabbitEar.svg.group();
-	nearestPoint.lineLayer = RabbitEar.svg.group();
-	nearestPoint.circleLayer = RabbitEar.svg.group();
-	nearestPoint.appendChild(nearestPoint.backLayer);
-	nearestPoint.appendChild(nearestPoint.lineLayer);
-	nearestPoint.appendChild(nearestPoint.circleLayer);
-	nearestPoint.edges = Array.from(Array(3)).map(_ =>
-		RabbitEar.edge(
-			Math.random()*nearestPoint.w,
-			Math.random()*nearestPoint.h,
-			Math.random()*nearestPoint.w,
-			Math.random()*nearestPoint.h)
-	);
-	let svgLines = nearestPoint.edges.map(edge =>
-		RabbitEar.svg.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1])
-	);
-	svgLines.forEach(line => line.setAttribute("stroke", "#000"));
-	svgLines.forEach(line => line.setAttribute("stroke-width", 4));
-	svgLines.forEach(line => nearestPoint.lineLayer.appendChild(line));
-}
+  svg.strokeWidth(4);
+  const backLayer = svg.group();
+  const lineLayer = svg.group();
+  const circleLayer = svg.group();
+  const segments = Array.from(Array(3)).map(() => RabbitEar.segment(
+    Math.random() * svg.getWidth(), Math.random() * svg.getHeight(),
+    Math.random() * svg.getWidth(), Math.random() * svg.getHeight()
+  ));
+  segments.map(s => lineLayer.line(s[0][0], s[0][1], s[1][0], s[1][1])
+    .stroke("black"));
 
-nearestPoint.setup();
+  const update = function (point) {
+    circleLayer.removeChildren();
+    backLayer.removeChildren();
+    const points = segments.map(e => e.nearestPoint(point));
+    points.map(p => circleLayer.circle(p.x, p.y, 6)
+      .fill("white")
+      .stroke("black"));
+    points.map(p => backLayer.line(p.x, p.y, point[0], point[1])
+      .stroke("#fb3")
+      .strokeLinecap("round")
+      .strokeDasharray("0.1 8"));
 
-nearestPoint.update = function(point) {
-	RabbitEar.svg.removeChildren(nearestPoint.circleLayer);
-	let points = nearestPoint.edges.map(e => e.nearestPoint(point));
-	let circles = points.map(p => RabbitEar.svg.circle(p.x, p.y, 6));
-	circles.forEach(c => c.setAttribute("fill", "white"));
-	circles.forEach(c => c.setAttribute("stroke", "#000"));
-	circles.forEach(c => c.setAttribute("stroke-width", 4));
-	circles.forEach(c => nearestPoint.circleLayer.appendChild(c));
-	
-	RabbitEar.svg.removeChildren(nearestPoint.backLayer);
-	let connections = points.map(p => RabbitEar.svg.line(p.x, p.y, point[0], point[1]))
-	connections.forEach(l => {
-		l.setAttribute("stroke", "#f1c14f");
-		l.setAttribute("stroke-width", 4);
-		l.setAttribute("stroke-linecap", "round");
-		l.setAttribute("stroke-dasharray", "0.1 8");
-		nearestPoint.backLayer.appendChild(l);
-	});
+    if (nearestPointCallback != null) {
+      nearestPointCallback({ mouse: point });
+    }
+  };
 
-	if (nearestPointCallback != null) {
-		nearestPointCallback({mouse: point});
-	}
-}
+  update([svg.getWidth() / 2, svg.getHeight() / 2]);
 
-nearestPoint.update([nearestPoint.w/2, nearestPoint.h/2]);
-
-nearestPoint.onMouseMove = function(mouse){
-	nearestPoint.update(mouse.position);
-};
+  svg.mouseMoved = function (mouse) {
+    update(mouse.position);
+  };
+});

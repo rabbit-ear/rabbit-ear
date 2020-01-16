@@ -83,11 +83,11 @@ let fold = {
 	"faces_re:sidedness":[false,true,true,false,true,false,false,true,true,false,false,true,false,true,true,false]
 };
 
-let origami = RabbitEar.Origami(fold);
+let origami = RabbitEar.origami(fold);
 origami.frame = 1;
 origami.drawLayer = RabbitEar.svg.group();
 origami.appendChild(origami.drawLayer);
-let cpView = RabbitEar.Origami(fold);
+let cpView = RabbitEar.origami(fold);
 cpView.frame = 0;
 cpView.drawLayer = RabbitEar.svg.group();
 cpView.appendChild(cpView.drawLayer);
@@ -112,7 +112,7 @@ origami.onMouseMove = function(mouse) {
 		faces[top_face].svg.setAttribute("style", "fill: #ecb233");
 		circles[top_face].setAttribute("style", "fill: #e14929");
 		// dot on folded canvas
-		let p = RabbitEar.math.multiply_vector2_matrix2(mouse, fold.file_frames[0]["faces_re:matrix"][top_face]);
+		let p = RabbitEar.math.multiply_matrix2_vector2(fold.file_frames[0]["faces_re:matrix"][top_face], mouse);
 		origami.drawLayer.circle(p[0], p[1], 0.01);
 	}
 }

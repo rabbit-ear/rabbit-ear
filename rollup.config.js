@@ -1,8 +1,8 @@
-// import babel from "rollup-plugin-babel";
-// import minify from "rollup-plugin-babel-minify";
 import nodeResolve from "rollup-plugin-node-resolve";
 import { string } from "rollup-plugin-string";
 import cleanup from "rollup-plugin-cleanup";
+// import babel from "rollup-plugin-babel";
+// import minify from "rollup-plugin-babel-minify";
 
 const version = "0.1.91";
 
@@ -13,7 +13,6 @@ module.exports = [{
     file: "rabbit-ear.js",
     format: "umd",
     banner: `/* Rabbit Ear v${version} (c) Robby Kraft, MIT License */`,
-    // footer: "window.re = RabbitEar;",
   },
   plugins: [
     nodeResolve(),

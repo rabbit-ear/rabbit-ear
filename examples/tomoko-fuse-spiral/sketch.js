@@ -4,8 +4,8 @@ let Spiral = function() {
 
 	let container = document.querySelector("#container");
 
-	let origami = RabbitEar.Origami(container);
-	let folded = RabbitEar.Origami(container);
+	let origami = RabbitEar.origami(container);
+	let folded = RabbitEar.origami(container);
 
 	const pleatPage = function(cp, angle, pleatCount, crease_direction) {
 		let creases = [];

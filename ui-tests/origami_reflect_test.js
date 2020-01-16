@@ -1,5 +1,5 @@
-let sketch = RabbitEar.Origami("canvas-faces-chop");
-let folded = RabbitEar.Origami("canvas-faces-chop-folded");
+let sketch = RabbitEar.origami("canvas-faces-chop");
+let folded = RabbitEar.origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
 sketch.drawLayer = sketch.group();
@@ -68,7 +68,7 @@ sketch.update = function() {
 	let faces_matrix = RabbitEar.core.make_faces_matrix_inv(graph, face_index);
 	let faces_crease_line = faces_matrix.map(m => creaseLine.transform(m));
 	let faces_stay_normal = faces_matrix.map(m => stayNormalVec.transform(m));
-	let faces_coloring = RabbitEar.core.faces_coloring(graph, face_index);
+	let faces_coloring = RabbitEar.core.make_faces_coloring(graph, face_index);
 	// let faces_is_folding = Array.from(Array(faces_count));
 	let original_face_indices = Array.from(Array(faces_count)).map((_,i) => i);
 

@@ -54,7 +54,7 @@ const make_edges_intersections = function ({
   const crossings = Array.from(Array(edge_count - 1)).map(() => []);
   for (let i = 0; i < edges.length - 1; i += 1) {
     for (let j = i + 1; j < edges.length; j += 1) {
-      crossings[i][j] = math.core.intersection.edge_edge_exclusive(
+      crossings[i][j] = math.core.intersection.segment_segment_exclusive(
         edges[i][0], edges[i][1],
         edges[j][0], edges[j][1],
         epsilon

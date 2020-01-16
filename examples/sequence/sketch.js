@@ -6,7 +6,7 @@ for (let i = 0; i < STEPS; i += 1) {
   // grab the crease pattern from the previous step if it exists
   const cp = (prevCP != null)
     ? prevCP.copy()
-    : RabbitEar.Origami({ view: null });
+    : RabbitEar.origami({ view: null });
 
   // generate the geometry for a random crease line
   const origin = [Math.random(), Math.random()];
@@ -26,8 +26,8 @@ for (let i = 0; i < STEPS; i += 1) {
   container.appendChild(row);
 
   // new svgs, fill them with the crease pattern
-  const origami = RabbitEar.Origami(row, cp.copy());
-  const fold = RabbitEar.Origami(row, cp.copy());
+  const origami = RabbitEar.origami(row, cp.copy());
+  const fold = RabbitEar.origami(row, cp.copy());
   fold.fold();
   prevCP = cp;
 }

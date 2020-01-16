@@ -1,6 +1,10 @@
 import math from "../../include/math";
 
+// export const make_vertices_vertices = function (graph) {
+// };
+
 export const make_vertices_edges = function ({ edges_vertices }) {
+  if (!edges_vertices) { return undefined; }
   const vertices_edges = [];
   edges_vertices.forEach((ev, i) => ev
     .forEach((v) => {
@@ -12,8 +16,28 @@ export const make_vertices_edges = function ({ edges_vertices }) {
   return vertices_edges;
 };
 
+// todo: make_edges_faces c-clockwise
+export const make_edges_vertices = function ({
+  edges_vertices, faces_edges
+}) {
+  if (!edges_vertices || !faces_edges) { return undefined; }
+  const edges_faces = Array
+    .from(Array(edges_vertices.length))
+    .map(() => []);
+  // todo: does not arrange counter-clockwise
+  faces_edges.forEach((face, f) => {
+    const hash = [];
+    // use an intermediary hash to handle the case where faces visit one
+    // vertex multiple times. otherwise there are redundant indices.
+    face.forEach((edge) => { hash[edge] = f; });
+    hash.forEach((fa, e) => edges_faces[e].push(fa));
+  });
+  return edges_faces;
+};
+
 // faces_faces is a set of faces edge-adjacent to a face. for every face.
 export const make_faces_faces = function ({ faces_vertices }) {
+  if (!faces_vertices) { return undefined; }
   const nf = faces_vertices.length;
   const faces_faces = Array.from(Array(nf)).map(() => []);
   const edgeMap = {};
@@ -36,28 +60,56 @@ export const make_faces_faces = function ({ faces_vertices }) {
   return faces_faces;
 };
 
+export const make_edges_edges = function ({
+  edges_vertices, vertices_edges
+}) {
+  if (!edges_vertices || !vertices_edges) { return undefined; }
+  return edges_vertices.map((ev, i) => {
+    const vert0 = ev[0];
+    const vert1 = ev[1];
+    const side0 = vertices_edges[vert0].filter(e => e !== i);
+    const side1 = vertices_edges[vert1].filter(e => e !== i);
+    return side0.concat(side1);
+  });
+};
+
 // todo: make_edges_faces c-clockwise
 export const make_edges_faces = function ({
   edges_vertices, faces_edges
 }) {
+  if (!edges_vertices || !faces_edges) { return undefined; }
   const edges_faces = Array
     .from(Array(edges_vertices.length))
     .map(() => []);
   // todo: does not arrange counter-clockwise
-  faces_edges.forEach((face, i) => face
-    .forEach(edge => edges_faces[edge].push(i)));
+  faces_edges.forEach((face, f) => {
+    const hash = [];
+    // use an intermediary hash to handle the case where faces visit one
+    // vertex multiple times. otherwise there are redundant indices.
+    face.forEach((edge) => { hash[edge] = f; });
+    hash.forEach((fa, e) => edges_faces[e].push(fa));
+  });
   return edges_faces;
 };
 
-export const make_edges_length = function (graph) {
-  return graph.edges_vertices
-    .map(ev => ev.map(v => graph.vertices_coords[v]))
+export const make_edges_length = function ({ vertices_coords, edges_vertices }) {
+  if (!vertices_coords || !edges_vertices) { return undefined; }
+  return edges_vertices
+    .map(ev => ev.map(v => vertices_coords[v]))
     .map(edge => math.core.distance(...edge));
 };
 
-// export const make_edges_foldAngle = function (graph) {
-//   return graph.edges_assignment.map(a => edge_assignment_to_foldAngle(a));
-// };
+const assignment_angles = {
+  M: -180,
+  m: -180,
+  V: 180,
+  v: 180
+};
+
+export const make_edges_foldAngle = function ({ edges_assignment }) {
+  if (!edges_assignment) { return undefined; }
+  return edges_assignment.map(a => assignment_angles[a] || 0);
+};
 
 /**
  * for fast backwards lookup, this builds a dictionary with keys as vertices
@@ -65,6 +117,7 @@ export const make_edges_length = function (graph) {
  * the value is the index of the edge.
  */
 export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
+  if (!edges_vertices) { return {}; } // todo, should this return undefined?
   const map = {};
   edges_vertices
     .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -78,10 +131,16 @@ export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
 export const make_vertices_faces = function ({
   vertices_coords, faces_vertices
 }) {
+  if (!vertices_coords || !faces_vertices) { return undefined; }
   const vertices_faces = Array.from(Array(vertices_coords.length))
     .map(() => []);
-  faces_vertices.forEach((face, i) => face
-    .forEach(vertex => vertices_faces[vertex].push(i)));
+  faces_vertices.forEach((face, f) => {
+    const hash = [];
+    // use an intermediary hash to handle the case where faces visit one
+    // vertex multiple times. otherwise there are redundant indices.
+    face.forEach((vertex) => { hash[vertex] = f; });
+    hash.forEach((fa, v) => vertices_faces[v].push(fa));
+  });
   return vertices_faces;
 };
 
@@ -132,6 +191,15 @@ export const make_face_walk_tree = function (graph, root_face = 0) {
 
 const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
 
+/**
+ * This traverses an face-adjacency tree (edge-adjacent faces),
+ * and recursively applies the affine transform that represents a fold
+ * across the edge between the faces
+ *
+ * Flat/Mark creases are ignored!
+ * the difference between the matrices of two faces separated by
+ * a mark crease is the identity matrix.
+ */
 export const make_faces_matrix = function (graph, root_face) {
   if (graph.faces_vertices == null || graph.edges_vertices == null) {
     return undefined;
@@ -162,6 +230,10 @@ export const make_faces_matrix = function (graph, root_face) {
   return faces_matrix;
 };
 
+/**
+ * this same as make_faces_matrix, but at each step the
+ * inverse matrix is taken
+ */
 export const make_faces_matrix_inv = function (graph, root_face) {
   const edge_fold = ("edges_assignment" in graph === true)
     ? graph.edges_assignment.map(a => !is_mark(a))
@@ -183,8 +255,9 @@ export const make_faces_matrix_inv = function (graph, root_face) {
   return faces_matrix;
 };
 
+// todo: see if it's possible to code this without requiring faces_vertices
 export const make_vertices_coords_folded = function (graph, face_stationary, faces_matrix) {
-  if (graph.vertices_coords == null) { return undefined; }
+  if (graph.vertices_coords == null || graph.faces_vertices == null) { return undefined; }
   if (face_stationary == null) { face_stationary = 0; }
   if (faces_matrix == null) {
     faces_matrix = make_faces_matrix(graph, face_stationary);
@@ -205,7 +278,7 @@ export const make_vertices_coords_folded = function (graph, face_stationary, fac
     return face_stationary;
   });
   return graph.vertices_coords.map((point, i) => math.core
-    .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+    .multiply_matrix2_vector2(faces_matrix[vertex_in_face[i]], point)
     .map(n => math.core.clean_number(n)));
 };
 
@@ -222,7 +295,7 @@ export const make_vertices_isBoundary = function (graph) {
  * this face coloring skips marks joining the two faces separated by it.
  * it relates directly to if a face is flipped or not (determinant > 0)
  */
-export const faces_coloring_from_faces_matrix = function (faces_matrix) {
+export const make_faces_coloring_from_faces_matrix = function (faces_matrix) {
   return faces_matrix
     .map(m => m[0] * m[3] - m[1] * m[2])
     .map(c => c >= 0);
@@ -231,14 +304,14 @@ export const faces_coloring_from_faces_matrix = function (faces_matrix) {
  * true/false: which face shares color with root face
  * the root face (and any similar-color face) will be marked as true
  */
-// export const faces_coloring = function (graph, root_face = 0) {
-//   const coloring = [];
-//   coloring[root_face] = true;
-//   make_face_walk_tree(graph, root_face)
-//     .forEach((level, i) => level
-//       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
-//   return coloring;
-// };
+export const make_faces_coloring = function (graph, root_face = 0) {
+  const coloring = [];
+  coloring[root_face] = true;
+  make_face_walk_tree(graph, root_face)
+    .forEach((level, i) => level
+      .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
+  return coloring;
+};
 
 // export const make_boundary_vertices = function (graph) {
 //   const edges_vertices_b = graph.edges_vertices

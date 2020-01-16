@@ -1,7 +1,8 @@
 import math from "../../include/math"; // only to get { clean_number }
-
-const file_spec = 1.1;
-const file_creator = "Rabbit Ear";
+import {
+  file_spec,
+  file_creator
+} from "./keys";
 
 const metadata = function (complete = false) {
   return !complete
@@ -55,16 +56,16 @@ const square_graph = function () {
   };
 };
 
-export const empty = function () {
+export const empty = function (prototype = null) {
   return Object.assign(
-    Object.create(null),
+    Object.create(prototype),
     metadata()
   );
 };
 
-export const square = function () {
+export const square = function (prototype = null) {
   return Object.assign(
-    Object.create(null),
+    Object.create(prototype),
     metadata(),
     cp_type(),
     square_graph(),

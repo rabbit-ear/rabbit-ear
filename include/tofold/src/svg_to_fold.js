@@ -46,7 +46,7 @@ const emptyFOLD = function () {
 const svg_to_fold = function (svg, options) {
   const pre_frag = emptyFOLD();
   const v0 = pre_frag.vertices_coords.length;
-  const segments = Segmentize(svg);
+  const segments = Segmentize(svg, { output: "data" });
 
   pre_frag.vertices_coords = segments
     .map(s => [[s[0], s[1]], [s[2], s[3]]])

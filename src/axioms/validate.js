@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import { get_boundary } from "../FOLD/query";
+import { get_boundary } from "../FOLD/boundary";
 
 // please make sure poly is an array of points
 const test_axiom1_2 = function (axiom_frame, poly) {
@@ -46,7 +46,7 @@ const test_axiom5 = function (axiom_frame, poly) {
   axiom_frame.test = {};
   axiom_frame.test.points_reflected = axiom_frame.solutions
     .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
-    .map(m => math.core.multiply_vector2_matrix2(params.points[1], m));
+    .map(m => math.core.multiply_matrix2_vector2(m, params.points[1]));
   axiom_frame.valid = math.core.point_in_convex_poly(params.points[0], poly)
     && math.core.point_in_convex_poly(params.points[1], poly);
   axiom_frame.valid_solutions = axiom_frame.test.points_reflected
@@ -70,7 +70,7 @@ const test_axiom6 = function (axiom_frame, poly) {
   axiom_frame.test.points_reflected = axiom_frame.solutions
     .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
     .map(m => params.points
-      .map(p => math.core.multiply_vector2_matrix2(p, m)))
+      .map(p => math.core.multiply_matrix2_vector2(m, p)))
     .reduce((prev, curr) => prev.concat(curr), []);
 
   axiom_frame.valid = a !== undefined && b !== undefined
@@ -95,7 +95,7 @@ const test_axiom7 = function (axiom_frame, poly) {
   const solution = axiom_frame.solutions[0];
   const params = axiom_frame.parameters;
   const m = math.core.make_matrix2_reflection(solution[1], solution[0]);
-  const reflected = math.core.multiply_vector2_matrix2(params.points[0], m);
+  const reflected = math.core.multiply_matrix2_vector2(m, params.points[0]);
   const intersect = math.core.intersection.line_line(
     params.lines[1][0], params.lines[1][1],
     solution[0], solution[1],

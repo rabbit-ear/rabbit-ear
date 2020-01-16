@@ -6,15 +6,122 @@
 
 import { keys, edges_assignment_values } from "./keys";
 
-/**
- * determine if an object is possibly a FOLD format graph.
- */
-export const possibleFoldObject = function (fold) {
-  if (typeof fold !== "object" || fold === null) { return false; }
-  const argKeys = Object.keys(fold);
-  for (let i = 0; i < argKeys.length; i += 1) {
-    if (keys.includes(argKeys[i])) { return true; }
+export const arrayOfType = function (array, type = "number") {
+  let test = true;
+  array.forEach((a) => {
+    if (typeof a !== type) {
+      test = false;
+      return; // break from forEach somehow
+    }
+  });
+  return test;
+};
+
+export const arrayOfArrayOfType = function (array, type = "number") {
+  let test = true;
+  array.forEach((arr) => {
+    arr.forEach((a) => {
+      if (typeof a !== type) {
+        test = false;
+        return; // break from forEach somehow
+      }
+    });
+  });
+  return test;
+};
+
+const arrayOfArrayOfIsNotNaN = function (array) {
+  return array
+    .map(arr => arr
+      .map(n => !isNaN(n))
+      .reduce((a, b) => a && b, true))
+    .reduce((a, b) => a && b, true);
+};
+
+const arrayOfArrayCompareFunc = function (array, func) {
+  return array
+    .map(arr => arr
+      .map(n => func(n))
+      .reduce((a, b) => a && b, true))
+    .reduce((a, b) => a && b, true);
+};
+
+const Validate = {};
+
+Validate.vertices_coords = function ({ vertices_coords }) {
+  return vertices_coords != null
+    && arrayOfArrayOfType(vertices_coords, "number")
+    && arrayOfArrayOfIsNotNaN(vertices_coords);
+};
+
+Validate.vertices_vertices = function ({ vertices_coords, vertices_vertices, edges_vertices }) {
+  // vertices_vertices should contain twice the number of edges.
+  if (vertices_vertices == null) { return false; }
+  const vert_vert_count = vertices_vertices.map(a => a.length).reduce((a, b) => a + b, 0);
+  if (Math.abs(vert_vert_count * 1 - edges_vertices.length * 2) > 1) {
+    console.warn("Validate.vertices_vertices, expected array length deviated by more than 1");
   }
+
+  if (vertices_vertices != null) {
+    if (vertices_vertices.length !== vertices_coords.length) { return false; }
+    const vv_edge_test = vertices_vertices
+      .map((vv, i) => vv.map(v2 => [i, v2]))
+      .reduce((a, b) => a.concat(b), []);
+    return vv_edge_test
+      .map(ve => edges_vertices.filter(e => (ve[0] === e[0]
+        && ve[1] === e[1]) || (ve[0] === e[1] && ve[1] === e[0])).length > 0)
+      .map((b, i) => ({ test: b, i }))
+      .filter(el => !el.test)
+      .length === 0;
+  }
+  return false;
+};
+
+Validate.vertices_faces = function ({ vertices_faces, faces_vertices }) {
+  return faces_vertices != null
+    && vertices_faces != null
+    && vertices_faces
+      .map((vert, i) => vert
+        .map(vf => ({
+          test: faces_vertices[vf].indexOf(i) !== -1,
+          face: vf,
+          i
+        }))
+        .filter(el => !el.test))
+      .reduce((a, b) => a.concat(b), [])
+      .length === 0;
+};
+
+Validate.edges_vertices = function ({ vertices_coords, edges_vertices }) {
+  // nothing to compare against, valid
+  if (vertices_coords == null) { return true; }
+  const vert_size = vertices_coords.length;
+  return edges_vertices != null
+    && arrayOfArrayOfType(edges_vertices, "number")
+    && arrayOfArrayOfIsNotNaN(edges_vertices)
+    && arrayOfArrayCompareFunc(edges_vertices, n => n < vert_size);
+};
+
+Validate.edges_faces = function ({ edges_faces, faces_edges }) {
+  return false;
+  // return faces_edges != null
+  //   && edges_faces
+  //     .map((edge, i) => edge
+  //       .map(ef => ({
+  //         test: faces_edges[ef].indexOf(i) !== -1,
+  //         face: ef,
+  //         i
+  //       }))
+  //       .filter(el => !el.test))
+  //     .reduce((a, b) => a.concat(b), [])
+  //     .length === 0;
+};
+
+Validate.faces_faces = function (graph) {
+  return false;
+};
+
+Validate.vertices_edges = function (graph) {
   return false;
 };
 
@@ -23,22 +130,63 @@ export const possibleFoldObject = function (fold) {
  * @returns {boolean} true, if and only if "edges_assignment" is present and
  * its length matches edges_vertices and it contains only valid entries
  */
-export const edges_assignment = function (graph) {
-  if ("edges_assignment" in graph === false) {
-    return false;
-  }
-  if (graph.edges_assignment.length !== graph.edges_vertices.length) {
-    return false;
-  }
-  return graph.edges_assignment
-    .filter(v => edges_assignment_values.includes(v))
-    .reduce((a, b) => a && b, true);
+Validate.edges_assignment = function ({ edges_vertices, edges_assignment }) {
+  return edges_vertices != null
+    && edges_assignment != null
+    && edges_assignment.length === edges_vertices.length
+    && edges_assignment
+      .filter(v => edges_assignment_values.includes(v))
+      .reduce((a, b) => a && b, true);
 };
+
+Validate.edges_foldAngle = function (graph) {
+  return false;
+};
+
+Validate.edges_length = function (graph) {
+  return false;
+};
+
+Validate.faces_vertices = function ({ vertices_faces, faces_vertices }) {
+  if (vertices_faces != null) {
+    return faces_vertices
+      .map((face, i) => face
+        .map(vf => ({
+          test: vertices_faces[vf].indexOf(i) !== -1,
+          face: vf,
+          i
+        }))
+        .filter(el => !el.test))
+      .reduce((a, b) => a.concat(b), [])
+      .length === 0;
+  }
+  return false;
+};
+
+Validate.faces_edges = function (graph) {
+  return false;
+};
+
+/**
+ * determine if an object is possibly a FOLD format graph.
+ * the certainty is (if it is an object), how many of its keys are
+ * FOLD spec keys, percentage-wise
+ * @returns {number} 0 to 1, 1 being most certain it IS a FOLD format.
+ */
+export const possibleFoldObject = function (input) {
+  if (typeof input !== "object" || input === null) { return 0; }
+  const inputKeys = Object.keys(input);
+  if (inputKeys.length === 0) { return 0; }
+  return inputKeys.map(key => keys.includes(key))
+    .reduce((a, b) => a + (b ? 1 : 0), 0) / inputKeys.length;
+};
+
+export default Validate;
 
 /**
  * validate the entire graph, run every validate operation we have
  */
-export const validate = function (graph) {
+export const validate_first = function (graph) {
   const prefix_suffix = {
     vertices: ["coords", "vertices", "faces"],
     edges: ["vertices", "faces", "assignment", "foldAngle", "length"],

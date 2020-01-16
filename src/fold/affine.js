@@ -1,30 +1,31 @@
 import math from "../../include/math";
 import { get_keys_with_ending } from "./keys";
 
-const apply_matrix_to_fold = function (fold, matrix) {
+const apply_matrix_to_graph = function (graph, matrix) {
   // update all vector types
-  get_keys_with_ending("coords").forEach((key) => {
-    fold[key] = fold[key]
-      .map(v => math.core.multiply_vector2_matrix2(v, matrix));
+  get_keys_with_ending(graph, "coords").forEach((key) => {
+    graph[key] = graph[key]
+      .map(v => math.core.multiply_matrix2_vector2(matrix, v));
   });
   // update all matrix types
   // todo, are these being multiplied in the right order?
-  get_keys_with_ending("matrix").forEach((key) => {
-    fold[key] = fold[key]
+  get_keys_with_ending(graph, "matrix").forEach((key) => {
+    graph[key] = graph[key]
       .map(m => math.core.multiply_matrices2(m, matrix));
   });
 };
 
-export const transform_scale = function (fold, ratio, homothetic_center) {
-  const matrix = math.core.make_matrix2_scale(ratio, homothetic_center);
-  apply_matrix_to_fold(fold, matrix);
+export const transform_scale = function (graph, sx, sy) {
+  if (typeof sx === "number" && sy === undefined) { sy = sx; }
+  const matrix = math.core.make_matrix2_scale(sx, sy);
+  apply_matrix_to_graph(graph, matrix);
 };
 
-export const transform_translate = function (fold, dx, dy) {
-  const matrix = math.core.make_matrix2_translation(dx, dy);
-  apply_matrix_to_fold(fold, matrix);
+export const transform_translate = function (graph, dx, dy) {
+  const matrix = math.core.make_matrix2_translate(dx, dy);
+  apply_matrix_to_graph(graph, matrix);
 };
 
-export const transform_matrix = function (fold, matrix) {
-  apply_matrix_to_fold(fold, matrix);
+export const transform_matrix = function (graph, matrix) {
+  apply_matrix_to_graph(graph, matrix);
 };

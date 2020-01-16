@@ -1,6 +1,17 @@
+export const file_spec = 1.1;
+export const file_creator = "Rabbit Ear";
+
+export const future_spec = {
+  FACES_MATRIX: "faces_re:matrix",
+  FACES_LAYER: "faces_re:layer",
+  SECTORS_VERTICES: "re:sectors_vertices",
+  SECTORS_EDGES: "re:sectors_edges",
+  SECTORS_ANGLES: "re:sectors_angles",
+  VERTICES_SECTORS_VERTICES: "vertices_re:sectors_vertices",
+};
 
 // keys in the .FOLD version 1.1
-export const keys_types = {
+export const fold_keys = {
   file: [
     "file_spec",
     "file_creator",
@@ -30,18 +41,23 @@ export const keys_types = {
     "edges_foldAngle",
     "edges_length",
     "faces_vertices",
-    "faces_edges"
+    "faces_edges",
+    // as of now, these are not described in the spec, but their
+    // behavior is implied. except faces_faces which is EDGE-ADJACENT
+    "vertices_edges",
+    "edges_edges",
+    "faces_faces"
   ],
   orders: [
     "edgeOrders",
     "faceOrders"
   ],
-  rabbitEar: [
-    "vertices_re:foldedCoords",
-    "vertices_re:unfoldedCoords",
-    "faces_re:matrix",
-    "faces_re:layer",
-  ]
+  // rabbitEar: [
+  //   "vertices_re:foldedCoords",
+  //   "vertices_re:unfoldedCoords",
+  //   "faces_re:matrix",
+  //   "faces_re:layer",
+  // ]
 };
 
 export const file_classes = [
@@ -73,30 +89,28 @@ export const frame_attributes = [
 ];
 
 export const keys = Object.freeze([]
-  .concat(keys_types.file)
-  .concat(keys_types.frame)
-  .concat(keys_types.graph)
-  .concat(keys_types.orders)
-  .concat(keys_types.rabbitEar));
-
-export const edges_assignment_names = {
-  en: {
-    B: "boundary",
-    b: "boundary",
-    M: "mountain",
-    m: "mountain",
-    V: "valley",
-    v: "valley",
-    F: "mark",
-    f: "mark",
-    U: "unassigned",
-    u: "unassigned"
-  }
-};
+  .concat(fold_keys.file)
+  .concat(fold_keys.frame)
+  .concat(fold_keys.graph)
+  .concat(fold_keys.orders));
+  // .concat(fold_keys.rabbitEar));
 
 export const edges_assignment_values = [
   "B", "b", "M", "m", "V", "v", "F", "f", "U", "u"
 ];
+
+export const edges_assignment_names = {
+  B: "boundary",
+  b: "boundary",
+  M: "mountain",
+  m: "mountain",
+  V: "valley",
+  v: "valley",
+  F: "mark",
+  f: "mark",
+  U: "unassigned",
+  u: "unassigned"
+};
 
 const assignment_angles = {
   M: -180,
