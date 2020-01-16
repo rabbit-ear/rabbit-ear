@@ -21,8 +21,8 @@ import MakeFold from "../fold-through-all/index";
 
 const FOLDED_FORM = "foldedForm";
 const CREASE_PATTERN = "creasePattern";
-const VERTICES_FOLDED_COORDS = "vertices_re:foldedCoords"
-const VERTICES_UNFOLDED_COORDS = "vertices_re:unfoldedCoords"
+const VERTICES_FOLDED_COORDS = "vertices_re:foldedCoords";
+const VERTICES_UNFOLDED_COORDS = "vertices_re:unfoldedCoords";
 const FACES_MATRIX = "faces_re:matrix";
 
 const DEFAULTS = Object.freeze({

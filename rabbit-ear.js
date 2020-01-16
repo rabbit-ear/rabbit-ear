@@ -6133,9 +6133,9 @@
     prepareGraph(origami);
     let touchFaceIndex = 0;
     let cachedGraph = clone$1(origami);
-    let was_folded = ("vertices_re:unfoldedCoords" in origami === true);
+    let was_folded = origami.isFolded;
     svg.mousePressed = (mouse) => {
-      was_folded = ("vertices_re:unfoldedCoords" in origami === true);
+      was_folded = origami.isFolded;
       cachedGraph = clone$1(origami);
       const param = {
         faces_vertices: origami.faces_vertices,
@@ -6157,8 +6157,14 @@
       if (mouse.isPressed) {
         origami.load(cachedGraph);
         const instruction = axiom2(mouse.position[0], mouse.position[1], mouse.pressed[0], mouse.pressed[1]);
-        origami.crease(instruction.solutions[0], touchFaceIndex);
-        if (was_folded) { origami.fold(); }
+        origami.fold(instruction.solutions[0], touchFaceIndex);
+        if (was_folded) {
+          origami["vertices_re:unfoldedCoords"] = origami.vertices_coords;
+          origami.vertices_coords = origami["vertices_re:foldedCoords"];
+          delete origami["vertices_re:foldedCoords"];
+          origami.draw();
+          origami.svg.setViewBox(-0.01, -0.01, 1.02, 1.02);
+        }
       }
     };
   };
@@ -11359,7 +11365,9 @@
   const prepare_to_fold = function (graph, point, vector, face_index) {
     const faceCount = faces_count(graph);
     graph["faces_re:preindex"] = Array.from(Array(faceCount)).map((_, i) => i);
+    if ("faces_re:matrix" in graph === false) {
       graph["faces_re:matrix"] = make_faces_matrix(graph, face_index);
+    }
     graph["faces_re:coloring"] = make_faces_coloring_from_faces_matrix$1(
       graph["faces_re:matrix"]
     );

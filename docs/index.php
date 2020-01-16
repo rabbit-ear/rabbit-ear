@@ -172,7 +172,7 @@ let sketchH = (window.innerWidth < window.innerHeight)
 origamiFold = RabbitEar.origami("canvas-origami-fold", {
   touchFold: true,
   autofit: false,
-  padding: 0.02,
+  padding: 0.01,
   attributes: {
     faces: {
       front: { fill: "#fb3" },

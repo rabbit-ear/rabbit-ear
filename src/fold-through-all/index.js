@@ -71,9 +71,9 @@ const prepare_to_fold = function (graph, point, vector, face_index) {
   //   : make_faces_matrix(graph, face_index);
 
   // todo: we need to make sure matrices match face length
-  // if ("faces_re:matrix" in graph === false) {
+  if ("faces_re:matrix" in graph === false) {
     graph["faces_re:matrix"] = make_faces_matrix(graph, face_index);
-  // }
+  }
   graph["faces_re:coloring"] = make_faces_coloring_from_faces_matrix(
     graph["faces_re:matrix"]
   );
