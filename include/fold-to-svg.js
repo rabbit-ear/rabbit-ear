@@ -76,6 +76,219 @@ const path = function (d) {
   p.setAttributeNS(null, "d", d);
   return p;
 };
+const is_iterable = obj => obj != null
+  && typeof obj[Symbol.iterator] === "function";
+const flatten_input = function (...args) {
+  switch (args.length) {
+    case undefined:
+    case 0: return args;
+    case 1: return is_iterable(args[0]) && typeof args[0] !== "string"
+      ? flatten_input(...args[0])
+      : [args[0]];
+    default:
+      return Array.from(args)
+        .map(a => (is_iterable(a)
+          ? [...flatten_input(a)]
+          : a))
+        .reduce((a, b) => a.concat(b), []);
+  }
+};
+const setPoints = function (shape, ...pointsArray) {
+  const flat = flatten_input(...pointsArray);
+  let pointsString = "";
+  if (typeof flat[0] === "number") {
+    pointsString = Array.from(Array(Math.floor(flat.length / 2)))
+      .reduce((a, b, i) => `${a}${flat[i * 2]},${flat[i * 2 + 1]} `, "");
+  }
+  if (typeof flat[0] === "object") {
+    if (typeof flat[0].x === "number") {
+      pointsString = flat.reduce((prev, curr) => `${prev}${curr.x},${curr.y} `, "");
+    }
+    if (typeof flat[0][0] === "number") {
+      pointsString = flat.reduce((prev, curr) => `${prev}${curr[0]},${curr[1]} `, "");
+    }
+  }
+  shape.setAttributeNS(null, "points", pointsString);
+  return shape;
+};
+const setArrowPoints = function (shape, ...args) {
+  const children = Array.from(shape.childNodes);
+  const path = children.filter(node => node.tagName === "path").shift();
+  const polys = ["svg-arrow-head", "svg-arrow-tail"]
+    .map(c => children.filter(n => n.getAttribute("class") === c).shift());
+  const flat = flatten_input(...args);
+  let endpoints = [];
+  if (typeof flat[0] === "number") {
+    endpoints = flat;
+  }
+  if (typeof flat[0] === "object") {
+    if (typeof flat[0].x === "number") {
+      endpoints = flat.map(p => [p[0], p[1]]).reduce((a, b) => a.concat(b), []);
+    }
+    if (typeof flat[0][0] === "number") {
+      endpoints = flat.reduce((a, b) => a.concat(b), []);
+    }
+  }
+  if (!endpoints.length && shape.endpoints != null) {
+    endpoints = shape.endpoints;
+  }
+  if (!endpoints.length) { return shape; }
+  shape.endpoints = endpoints;
+  const o = shape.options;
+  let tailPt = [endpoints[0], endpoints[1]];
+  let headPt = [endpoints[2], endpoints[3]];
+  let vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
+  let midpoint = [tailPt[0] + vector[0] / 2, tailPt[1] + vector[1] / 2];
+  const len = Math.sqrt((vector[0] ** 2) + (vector[1] ** 2));
+  const minLength = (
+    (o.tail.visible ? (1 + o.tail.padding) * o.tail.height * 2.5 : 0)
+  + (o.head.visible ? (1 + o.head.padding) * o.head.height * 2.5 : 0)
+  );
+  if (len < minLength) {
+    const minVec = len === 0
+      ? [minLength, 0]
+      : [vector[0] / len * minLength, vector[1] / len * minLength];
+    tailPt = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
+    headPt = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
+    vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
+  }
+  let perpendicular = [vector[1], -vector[0]];
+  let bezPoint = [
+    midpoint[0] + perpendicular[0] * o.curve,
+    midpoint[1] + perpendicular[1] * o.curve
+  ];
+  const bezTail = [bezPoint[0] - tailPt[0], bezPoint[1] - tailPt[1]];
+  const bezHead = [bezPoint[0] - headPt[0], bezPoint[1] - headPt[1]];
+  const bezTailLen = Math.sqrt((bezTail[0] ** 2) + (bezTail[1] ** 2));
+  const bezHeadLen = Math.sqrt((bezHead[0] ** 2) + (bezHead[1] ** 2));
+  const bezTailNorm = bezTailLen === 0
+    ? bezTail
+    : [bezTail[0] / bezTailLen, bezTail[1] / bezTailLen];
+  const bezHeadNorm = bezTailLen === 0
+    ? bezHead
+    : [bezHead[0] / bezHeadLen, bezHead[1] / bezHeadLen];
+  const tailVector = [-bezTailNorm[0], -bezTailNorm[1]];
+  const headVector = [-bezHeadNorm[0], -bezHeadNorm[1]];
+  const tailNormal = [tailVector[1], -tailVector[0]];
+  const headNormal = [headVector[1], -headVector[0]];
+  const tailArc = [
+    tailPt[0] + bezTailNorm[0] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding),
+    tailPt[1] + bezTailNorm[1] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding)
+  ];
+  const headArc = [
+    headPt[0] + bezHeadNorm[0] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding),
+    headPt[1] + bezHeadNorm[1] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding)
+  ];
+  vector = [headArc[0] - tailArc[0], headArc[1] - tailArc[1]];
+  perpendicular = [vector[1], -vector[0]];
+  midpoint = [tailArc[0] + vector[0] / 2, tailArc[1] + vector[1] / 2];
+  bezPoint = [
+    midpoint[0] + perpendicular[0] * o.curve,
+    midpoint[1] + perpendicular[1] * o.curve
+  ];
+  const tailControl = [
+    tailArc[0] + (bezPoint[0] - tailArc[0]) * o.pinch,
+    tailArc[1] + (bezPoint[1] - tailArc[1]) * o.pinch
+  ];
+  const headControl = [
+    headArc[0] + (bezPoint[0] - headArc[0]) * o.pinch,
+    headArc[1] + (bezPoint[1] - headArc[1]) * o.pinch
+  ];
+  const tailPolyPts = [
+    [tailArc[0] + tailNormal[0] * -o.tail.width, tailArc[1] + tailNormal[1] * -o.tail.width],
+    [tailArc[0] + tailNormal[0] * o.tail.width, tailArc[1] + tailNormal[1] * o.tail.width],
+    [tailArc[0] + tailVector[0] * o.tail.height, tailArc[1] + tailVector[1] * o.tail.height]
+  ];
+  const headPolyPts = [
+    [headArc[0] + headNormal[0] * -o.head.width, headArc[1] + headNormal[1] * -o.head.width],
+    [headArc[0] + headNormal[0] * o.head.width, headArc[1] + headNormal[1] * o.head.width],
+    [headArc[0] + headVector[0] * o.head.height, headArc[1] + headVector[1] * o.head.height]
+  ];
+  path.setAttribute("d", `M${tailArc[0]},${tailArc[1]}C${tailControl[0]},${tailControl[1]},${headControl[0]},${headControl[1]},${headArc[0]},${headArc[1]}`);
+  if (o.head.visible) {
+    polys[0].removeAttribute("display");
+    setPoints(polys[0], headPolyPts);
+  } else {
+    polys[0].setAttribute("display", "none");
+  }
+  if (o.tail.visible) {
+    polys[1].removeAttribute("display");
+    setPoints(polys[1], tailPolyPts);
+  } else {
+    polys[1].setAttribute("display", "none");
+  }
+  return shape;
+};
+const attachArrowMethods = function (element) {
+  element.head = (options) => {
+    if (typeof options === "object") {
+      Object.assign(element.options.head, options);
+      if (options.visible === undefined) {
+        element.options.head.visible = true;
+      }
+    } else if (typeof options === "boolean") {
+      element.options.head.visible = options;
+    } else if (options == null) {
+      element.options.head.visible = true;
+    }
+    setArrowPoints(element);
+    return element;
+  };
+  element.tail = (options) => {
+    if (typeof options === "object") {
+      Object.assign(element.options.tail, options);
+      if (options.visible === undefined) {
+        element.options.tail.visible = true;
+      }
+      element.options.tail.visible = true;
+    } else if (typeof options === "boolean") {
+      element.options.tail.visible = options;
+    } else if (options == null) {
+      element.options.tail.visible = true;
+    }
+    setArrowPoints(element);
+    return element;
+  };
+  element.curve = (amount) => {
+    element.options.curve = amount;
+    setArrowPoints(element);
+    return element;
+  };
+  element.pinch = (amount) => {
+    element.options.pinch = amount;
+    setArrowPoints(element);
+    return element;
+  };
+};
+const arrow = function (...args) {
+  const shape = win.document.createElementNS(svgNS, "g");
+  const tailPoly = win.document.createElementNS(svgNS, "polygon");
+  const headPoly = win.document.createElementNS(svgNS, "polygon");
+  const arrowPath = win.document.createElementNS(svgNS, "path");
+  tailPoly.setAttributeNS(null, "class", "svg-arrow-tail");
+  headPoly.setAttributeNS(null, "class", "svg-arrow-head");
+  arrowPath.setAttributeNS(null, "class", "svg-arrow-path");
+  tailPoly.setAttributeNS(null, "style", "stroke: none;");
+  headPoly.setAttributeNS(null, "style", "stroke: none;");
+  arrowPath.setAttributeNS(null, "style", "fill: none;");
+  shape.appendChild(arrowPath);
+  shape.appendChild(tailPoly);
+  shape.appendChild(headPoly);
+  shape.options = {
+    head: { width: 0.5, height: 2, visible: false, padding: 0.0 },
+    tail: { width: 0.5, height: 2, visible: false, padding: 0.0 },
+    curve: 0.0,
+    pinch: 0.618,
+    endpoints: [],
+  };
+  setArrowPoints(shape, ...args);
+  attachArrowMethods(shape);
+  shape.stroke = (...a) => { shape.setAttributeNS(null, "stroke", ...a); return shape; };
+  shape.fill = (...a) => { shape.setAttributeNS(null, "fill", ...a); return shape; };
+  shape.strokeWidth = (...a) => { shape.setAttributeNS(null, "stroke-width", ...a); return shape; };
+  shape.setPoints = (...a) => setArrowPoints(shape, ...a);
+  return shape;
+};
 const vertices_circle = function (graph, options) {
   if ("vertices_coords" in graph === false) {
     return [];
@@ -279,9 +492,12 @@ const make_faces_sidedness = function (graph) {
   return coloring.map(c => (c ? "front" : "back"));
 };
 const finalize_faces = function (graph, svg_faces) {
+  const isFoldedForm = typeof graph.frame_classes === "object"
+    && graph.frame_classes !== null
+    && !(graph.frame_classes.includes("creasePattern"));
   const orderIsCertain = graph["faces_re:layer"] != null
     && graph["faces_re:layer"].length === graph.faces_vertices.length;
-  if (orderIsCertain) {
+  if (orderIsCertain && isFoldedForm) {
     make_faces_sidedness(graph)
       .forEach((side, i) => svg_faces[i].setAttribute("class", side));
   }
@@ -558,6 +774,55 @@ const boundaries_polygon = function (graph) {
   p.setAttribute("class", "boundary");
   return [p];
 };
+const DIAGRAMS = "re:diagrams";
+const DIAGRAM_LINES = "re:diagram_lines";
+const DIAGRAM_LINE_CLASSES = "re:diagram_line_classes";
+const DIAGRAM_LINE_COORDS = "re:diagram_line_coords";
+const DIAGRAM_ARROWS = "re:diagram_arrows";
+const DIAGRAM_ARROW_COORDS = "re:diagram_arrow_coords";
+function renderDiagrams (graph, options) {
+  if (graph[DIAGRAMS] === undefined) { return; }
+  if (graph[DIAGRAMS].length === 0) { return; }
+  const diagrams = [];
+  Array.from(graph[DIAGRAMS]).forEach((instruction) => {
+    if (DIAGRAM_LINES in instruction === true) {
+      instruction[DIAGRAM_LINES].forEach((crease) => {
+        const creaseClass = (DIAGRAM_LINE_CLASSES in crease)
+          ? crease[DIAGRAM_LINE_CLASSES].join(" ")
+          : "valley";
+        const pts = crease[DIAGRAM_LINE_COORDS];
+        if (pts !== undefined) {
+          const l = line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
+          l.setAttribute("class", creaseClass);
+          diagrams.push(l);
+        }
+      });
+    }
+    if (DIAGRAM_ARROWS in instruction === true) {
+      const r = bounding_rect(graph);
+      const vmin = r[2] > r[3] ? r[3] : r[2];
+      instruction[DIAGRAM_ARROWS].forEach((arrowInst) => {
+        if (arrowInst[DIAGRAM_ARROW_COORDS].length === 2) {
+          const p = arrowInst[DIAGRAM_ARROW_COORDS];
+          let side = p[0][0] < p[1][0];
+          if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
+            side = p[0][1] < p[1][1] ? p[0][0] < 0.5 : p[0][0] > 0.5;
+          }
+          if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
+            side = p[0][0] < p[1][0] ? p[0][1] > 0.5 : p[0][1] < 0.5;
+          }
+          diagrams.push(arrow(p[0], p[1])
+            .stroke("black")
+            .fill("black")
+            .strokeWidth(vmin * 0.02)
+            .head({ width: vmin * 0.035, height: vmin * 0.09 })
+            .curve(side ? 0.3 : -0.3));
+        }
+      });
+    }
+  });
+  return diagrams;
+}
 const faces_draw_function = function (graph) {
   return graph.faces_vertices != null
     ? faces_vertices_polygon(graph)
@@ -568,6 +833,7 @@ const component_draw_function = {
   edges: edges_path,
   faces: faces_draw_function,
   boundaries: boundaries_polygon,
+  diagrams: renderDiagrams,
 };
 const makeDefaults = (vmin = 1) => recursive_freeze({
   input: "string",
@@ -640,9 +906,11 @@ const fold_to_svg = function (input, options = {}) {
     : undefined);
   if (options.stylesheet != null) {
     const style$1 = style(defs$1);
+    const strokeVar = options.attributes.svg["stroke-width"]
+      ? options.attributes.svg["stroke-width"] : vmin / 200;
     const cdata = (new win.DOMParser())
       .parseFromString("<xml></xml>", "application/xml")
-      .createCDATASection(options.stylesheet);
+      .createCDATASection(`\n* { --stroke-width: ${strokeVar}; }\n${options.stylesheet}`);
     style$1.appendChild(cdata);
   }
   if (options.shadows != null) {
@@ -651,13 +919,15 @@ const fold_to_svg = function (input, options = {}) {
       : { blur: vmin / 200 });
     defs$1.appendChild(shadowFilter(shadowOptions));
   }
+  options.diagrams = !!(options.diagrams && (graph["re:diagrams"] != null));
   const groups = { };
-  ["boundaries", "edges", "faces", "vertices"].filter(key => options[key] === true)
+  ["boundaries", "edges", "faces", "vertices", "diagrams"].filter(key => options[key] === true)
     .forEach((key) => {
       groups[key] = group();
       groups[key].setAttribute("class", key);
     });
   Object.keys(groups)
+    .filter(key => component_draw_function[key] !== undefined)
     .forEach(key => component_draw_function[key](graph, options)
       .forEach(a => groups[key].appendChild(a)));
   Object.keys(groups)

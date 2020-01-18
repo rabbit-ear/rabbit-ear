@@ -11,6 +11,7 @@ import * as Create from "../FOLD/create";
 import populate from "../FOLD/populate";
 import { keys, fold_keys, file_spec, file_creator } from "../FOLD/keys";
 import { clone } from "../FOLD/object";
+import { get_boundary } from "../FOLD/boundary";
 import {
   make_vertices_coords_folded,
   make_faces_matrix
@@ -84,6 +85,55 @@ const setFoldedForm = function (graph, isFolded) {
   }
 };
 
+const boundary_clips = function (b, i) {
+  const graph = this;
+  Object.defineProperty(b, "clipLine", {
+    value: (...args) => math.core.intersection.convex_poly_line(
+      b.vertices.map(v => graph.vertices_coords[v]),
+      math.core.get_line(...args).origin,
+      math.core.get_line(...args).vector)});
+  Object.defineProperty(b, "clipRay", {
+    value: (...args) => math.core.intersection.convex_poly_ray(
+      b.vertices.map(v => graph.vertices_coords[v]),
+      math.core.get_line(...args).origin,
+      math.core.get_line(...args).vector)});
+  Object.defineProperty(b, "clipSegment", {
+    value: (...args) => math.core.intersection.convex_poly_segment(
+      b.vertices.map(v => graph.vertices_coords[v]),
+      ...math.core.get_vector_of_vectors(...args))});
+};
+
+const boundary_coords = function (b, i) {
+  const graph = this;
+  Object.defineProperty(b, "coords", {
+    get: () => {
+      if (!b.vertices || !graph.vertices_coords) { return undefined; }
+      return b.vertices.map(v => graph.vertices_coords[v]);
+    }
+  });
+};
+
+const setup_boundary = function (b, i) {
+  boundary_coords.call(this, b, i);
+  boundary_clips.call(this, b, i);
+};
+
+const export_object = function (graph) {
+  const exportObject = function (...args) {
+    if (args.length === 0) { return JSON.stringify(graph); }
+    switch (args[0]) {
+      case "oripa": return convert(graph, "fold").oripa();
+      case "svg": return convert(graph, "fold").svg();
+      default: return JSON.stringify(graph);
+    }
+  };
+  exportObject.json = function () { return JSON.stringify(graph); };
+  exportObject.fold = function () { return JSON.stringify(graph); };
+  exportObject.svg = function () { return convert(graph, "fold").svg(); };
+  exportObject.oripa = function () { return convert(graph, "fold").oripa(); };
+  return exportObject;
+};
+
 const Origami = function (...args) {
   /**
    * create the object. process initialization arguments
@@ -91,7 +141,7 @@ const Origami = function (...args) {
    */
   const origami = Object.assign(
     Object.create(prototype()),
-    args.filter(a => possibleFoldObject(a) > 0.1)
+    args.filter(a => possibleFoldObject(a) > 0)
       .sort((a, b) => possibleFoldObject(b) - possibleFoldObject(a))
       .shift() || Create.square()
   );
@@ -174,6 +224,13 @@ const Origami = function (...args) {
     origami.changed.update(origami.load);
   };
 
+  const getBoundaries = function () {
+    // todo: make this work for multiple boundaries;
+    const boundaries = [get_boundary(origami)];
+    boundaries.forEach(setup_boundary.bind(origami));
+    return boundaries;
+  };
+
   // apply preferences
   const options = {};
   Object.assign(options, DEFAULTS);
@@ -183,25 +240,12 @@ const Origami = function (...args) {
 
   // attach methods
   // Object.defineProperty(origami, "options", { get: () => options });
+  Object.defineProperty(origami, "boundaries", { get: getBoundaries });
   Object.defineProperty(origami, "load", { value: load });
   Object.defineProperty(origami, "isFolded", { get: () => isOrigamiFolded(origami) });
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
-  Object.defineProperty(origami, "export", { get: (...args) => {
-    const f = function (...o) {
-      if (o.length === 0) { return JSON.stringify(origami); }
-      switch (o[0]) {
-        case "oripa": return convert(origami, "fold").oripa();
-        case "svg": return convert(origami, "fold").svg();
-        default: return JSON.stringify(origami);
-      }
-    };
-    f.json = function () { return JSON.stringify(origami); };
-    f.fold = function () { return JSON.stringify(origami); };
-    f.svg = function () { return convert(origami, "fold").svg(); };
-    f.oripa = function () { return convert(origami, "fold").oripa(); };
-    return f;
-  }});
+  Object.defineProperty(origami, "export", { get: () => export_object(origami) });
 
   // determine if it should have a view
   View(origami, ...args);

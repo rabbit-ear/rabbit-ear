@@ -127,6 +127,13 @@ const two_furthest_points = function (points) {
   return t_to_b > l_to_r ? [bottom, top] : [left, right];
 };
 
+const opposite_assignment = { "M":"V", "m":"V", "V":"M", "v":"M" };
+
+// if it's a mark, this will be too.
+const opposingCrease = function (assignment) {
+  return opposite_assignment[assignment] || assignment;
+};
+
 const fold_through = function (
   graph,
   point,
@@ -134,12 +141,7 @@ const fold_through = function (
   face_index,
   assignment = "V"
 ) {
-  let opposite_crease = assignment; // if it's a mark, this will be too.
-  if (assignment === "M" || assignment === "m") {
-    opposite_crease = "V";
-  } else if (assignment === "V" || assignment === "v") {
-    opposite_crease = "M";
-  }
+  const opposite_crease = opposingCrease(assignment); 
   if (face_index == null) {
     // an unset face will be the face under the point. or if none, index 0
     const containing_point = face_containing_point(graph, point);
@@ -288,7 +290,8 @@ const fold_through = function (
     folded_faces_matrix
   );
 
-  folded["faces_re:matrix"] = folded_faces_matrix.map(m => m.map(n => math.core.clean_number(n, 14)));
+  folded["faces_re:matrix"] = folded_faces_matrix;
+  // folded["faces_re:matrix"] = folded_faces_matrix.map(m => m.map(n => math.core.clean_number(n, 14)));
 
   // delete graph["faces_re:to_move"];
   // delete folded["faces_re:to_move"];

@@ -2026,13 +2026,13 @@
     const numbers = params.filter(param => !isNaN(param));
     let arrays = params.filter(param => param.constructor === Array);
     if (numbers.length === 4) {
-      origin = numbers.slice(0, 2);
+      origin = Vector(numbers.slice(0, 2));
       [, , width, height] = numbers;
     }
     if (arrays.length === 1) { arrays = arrays[0]; }
     if (arrays.length === 2) {
       if (typeof arrays[0][0] === "number") {
-        origin = arrays[0].slice();
+        origin = Vector(arrays[0].slice());
         width = arrays[1][0];
         height = arrays[1][1];
       }
@@ -2210,6 +2210,219 @@
     const p = win.document.createElementNS(svgNS, "path");
     p.setAttributeNS(null, "d", d);
     return p;
+  };
+  const is_iterable$1 = obj => obj != null
+    && typeof obj[Symbol.iterator] === "function";
+  const flatten_input$1 = function (...args) {
+    switch (args.length) {
+      case undefined:
+      case 0: return args;
+      case 1: return is_iterable$1(args[0]) && typeof args[0] !== "string"
+        ? flatten_input$1(...args[0])
+        : [args[0]];
+      default:
+        return Array.from(args)
+          .map(a => (is_iterable$1(a)
+            ? [...flatten_input$1(a)]
+            : a))
+          .reduce((a, b) => a.concat(b), []);
+    }
+  };
+  const setPoints = function (shape, ...pointsArray) {
+    const flat = flatten_input$1(...pointsArray);
+    let pointsString = "";
+    if (typeof flat[0] === "number") {
+      pointsString = Array.from(Array(Math.floor(flat.length / 2)))
+        .reduce((a, b, i) => `${a}${flat[i * 2]},${flat[i * 2 + 1]} `, "");
+    }
+    if (typeof flat[0] === "object") {
+      if (typeof flat[0].x === "number") {
+        pointsString = flat.reduce((prev, curr) => `${prev}${curr.x},${curr.y} `, "");
+      }
+      if (typeof flat[0][0] === "number") {
+        pointsString = flat.reduce((prev, curr) => `${prev}${curr[0]},${curr[1]} `, "");
+      }
+    }
+    shape.setAttributeNS(null, "points", pointsString);
+    return shape;
+  };
+  const setArrowPoints = function (shape, ...args) {
+    const children = Array.from(shape.childNodes);
+    const path = children.filter(node => node.tagName === "path").shift();
+    const polys = ["svg-arrow-head", "svg-arrow-tail"]
+      .map(c => children.filter(n => n.getAttribute("class") === c).shift());
+    const flat = flatten_input$1(...args);
+    let endpoints = [];
+    if (typeof flat[0] === "number") {
+      endpoints = flat;
+    }
+    if (typeof flat[0] === "object") {
+      if (typeof flat[0].x === "number") {
+        endpoints = flat.map(p => [p[0], p[1]]).reduce((a, b) => a.concat(b), []);
+      }
+      if (typeof flat[0][0] === "number") {
+        endpoints = flat.reduce((a, b) => a.concat(b), []);
+      }
+    }
+    if (!endpoints.length && shape.endpoints != null) {
+      endpoints = shape.endpoints;
+    }
+    if (!endpoints.length) { return shape; }
+    shape.endpoints = endpoints;
+    const o = shape.options;
+    let tailPt = [endpoints[0], endpoints[1]];
+    let headPt = [endpoints[2], endpoints[3]];
+    let vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
+    let midpoint = [tailPt[0] + vector[0] / 2, tailPt[1] + vector[1] / 2];
+    const len = Math.sqrt((vector[0] ** 2) + (vector[1] ** 2));
+    const minLength = (
+      (o.tail.visible ? (1 + o.tail.padding) * o.tail.height * 2.5 : 0)
+    + (o.head.visible ? (1 + o.head.padding) * o.head.height * 2.5 : 0)
+    );
+    if (len < minLength) {
+      const minVec = len === 0
+        ? [minLength, 0]
+        : [vector[0] / len * minLength, vector[1] / len * minLength];
+      tailPt = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
+      headPt = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
+      vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
+    }
+    let perpendicular = [vector[1], -vector[0]];
+    let bezPoint = [
+      midpoint[0] + perpendicular[0] * o.curve,
+      midpoint[1] + perpendicular[1] * o.curve
+    ];
+    const bezTail = [bezPoint[0] - tailPt[0], bezPoint[1] - tailPt[1]];
+    const bezHead = [bezPoint[0] - headPt[0], bezPoint[1] - headPt[1]];
+    const bezTailLen = Math.sqrt((bezTail[0] ** 2) + (bezTail[1] ** 2));
+    const bezHeadLen = Math.sqrt((bezHead[0] ** 2) + (bezHead[1] ** 2));
+    const bezTailNorm = bezTailLen === 0
+      ? bezTail
+      : [bezTail[0] / bezTailLen, bezTail[1] / bezTailLen];
+    const bezHeadNorm = bezTailLen === 0
+      ? bezHead
+      : [bezHead[0] / bezHeadLen, bezHead[1] / bezHeadLen];
+    const tailVector = [-bezTailNorm[0], -bezTailNorm[1]];
+    const headVector = [-bezHeadNorm[0], -bezHeadNorm[1]];
+    const tailNormal = [tailVector[1], -tailVector[0]];
+    const headNormal = [headVector[1], -headVector[0]];
+    const tailArc = [
+      tailPt[0] + bezTailNorm[0] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding),
+      tailPt[1] + bezTailNorm[1] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding)
+    ];
+    const headArc = [
+      headPt[0] + bezHeadNorm[0] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding),
+      headPt[1] + bezHeadNorm[1] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding)
+    ];
+    vector = [headArc[0] - tailArc[0], headArc[1] - tailArc[1]];
+    perpendicular = [vector[1], -vector[0]];
+    midpoint = [tailArc[0] + vector[0] / 2, tailArc[1] + vector[1] / 2];
+    bezPoint = [
+      midpoint[0] + perpendicular[0] * o.curve,
+      midpoint[1] + perpendicular[1] * o.curve
+    ];
+    const tailControl = [
+      tailArc[0] + (bezPoint[0] - tailArc[0]) * o.pinch,
+      tailArc[1] + (bezPoint[1] - tailArc[1]) * o.pinch
+    ];
+    const headControl = [
+      headArc[0] + (bezPoint[0] - headArc[0]) * o.pinch,
+      headArc[1] + (bezPoint[1] - headArc[1]) * o.pinch
+    ];
+    const tailPolyPts = [
+      [tailArc[0] + tailNormal[0] * -o.tail.width, tailArc[1] + tailNormal[1] * -o.tail.width],
+      [tailArc[0] + tailNormal[0] * o.tail.width, tailArc[1] + tailNormal[1] * o.tail.width],
+      [tailArc[0] + tailVector[0] * o.tail.height, tailArc[1] + tailVector[1] * o.tail.height]
+    ];
+    const headPolyPts = [
+      [headArc[0] + headNormal[0] * -o.head.width, headArc[1] + headNormal[1] * -o.head.width],
+      [headArc[0] + headNormal[0] * o.head.width, headArc[1] + headNormal[1] * o.head.width],
+      [headArc[0] + headVector[0] * o.head.height, headArc[1] + headVector[1] * o.head.height]
+    ];
+    path.setAttribute("d", `M${tailArc[0]},${tailArc[1]}C${tailControl[0]},${tailControl[1]},${headControl[0]},${headControl[1]},${headArc[0]},${headArc[1]}`);
+    if (o.head.visible) {
+      polys[0].removeAttribute("display");
+      setPoints(polys[0], headPolyPts);
+    } else {
+      polys[0].setAttribute("display", "none");
+    }
+    if (o.tail.visible) {
+      polys[1].removeAttribute("display");
+      setPoints(polys[1], tailPolyPts);
+    } else {
+      polys[1].setAttribute("display", "none");
+    }
+    return shape;
+  };
+  const attachArrowMethods = function (element) {
+    element.head = (options) => {
+      if (typeof options === "object") {
+        Object.assign(element.options.head, options);
+        if (options.visible === undefined) {
+          element.options.head.visible = true;
+        }
+      } else if (typeof options === "boolean") {
+        element.options.head.visible = options;
+      } else if (options == null) {
+        element.options.head.visible = true;
+      }
+      setArrowPoints(element);
+      return element;
+    };
+    element.tail = (options) => {
+      if (typeof options === "object") {
+        Object.assign(element.options.tail, options);
+        if (options.visible === undefined) {
+          element.options.tail.visible = true;
+        }
+        element.options.tail.visible = true;
+      } else if (typeof options === "boolean") {
+        element.options.tail.visible = options;
+      } else if (options == null) {
+        element.options.tail.visible = true;
+      }
+      setArrowPoints(element);
+      return element;
+    };
+    element.curve = (amount) => {
+      element.options.curve = amount;
+      setArrowPoints(element);
+      return element;
+    };
+    element.pinch = (amount) => {
+      element.options.pinch = amount;
+      setArrowPoints(element);
+      return element;
+    };
+  };
+  const arrow = function (...args) {
+    const shape = win.document.createElementNS(svgNS, "g");
+    const tailPoly = win.document.createElementNS(svgNS, "polygon");
+    const headPoly = win.document.createElementNS(svgNS, "polygon");
+    const arrowPath = win.document.createElementNS(svgNS, "path");
+    tailPoly.setAttributeNS(null, "class", "svg-arrow-tail");
+    headPoly.setAttributeNS(null, "class", "svg-arrow-head");
+    arrowPath.setAttributeNS(null, "class", "svg-arrow-path");
+    tailPoly.setAttributeNS(null, "style", "stroke: none;");
+    headPoly.setAttributeNS(null, "style", "stroke: none;");
+    arrowPath.setAttributeNS(null, "style", "fill: none;");
+    shape.appendChild(arrowPath);
+    shape.appendChild(tailPoly);
+    shape.appendChild(headPoly);
+    shape.options = {
+      head: { width: 0.5, height: 2, visible: false, padding: 0.0 },
+      tail: { width: 0.5, height: 2, visible: false, padding: 0.0 },
+      curve: 0.0,
+      pinch: 0.618,
+      endpoints: [],
+    };
+    setArrowPoints(shape, ...args);
+    attachArrowMethods(shape);
+    shape.stroke = (...a) => { shape.setAttributeNS(null, "stroke", ...a); return shape; };
+    shape.fill = (...a) => { shape.setAttributeNS(null, "fill", ...a); return shape; };
+    shape.strokeWidth = (...a) => { shape.setAttributeNS(null, "stroke-width", ...a); return shape; };
+    shape.setPoints = (...a) => setArrowPoints(shape, ...a);
+    return shape;
   };
   const vertices_circle = function (graph, options) {
     if ("vertices_coords" in graph === false) {
@@ -2414,9 +2627,12 @@
     return coloring.map(c => (c ? "front" : "back"));
   };
   const finalize_faces = function (graph, svg_faces) {
+    const isFoldedForm = typeof graph.frame_classes === "object"
+      && graph.frame_classes !== null
+      && !(graph.frame_classes.includes("creasePattern"));
     const orderIsCertain = graph["faces_re:layer"] != null
       && graph["faces_re:layer"].length === graph.faces_vertices.length;
-    if (orderIsCertain) {
+    if (orderIsCertain && isFoldedForm) {
       make_faces_sidedness(graph)
         .forEach((side, i) => svg_faces[i].setAttribute("class", side));
     }
@@ -2693,6 +2909,55 @@
     p.setAttribute("class", "boundary");
     return [p];
   };
+  const DIAGRAMS = "re:diagrams";
+  const DIAGRAM_LINES = "re:diagram_lines";
+  const DIAGRAM_LINE_CLASSES = "re:diagram_line_classes";
+  const DIAGRAM_LINE_COORDS = "re:diagram_line_coords";
+  const DIAGRAM_ARROWS = "re:diagram_arrows";
+  const DIAGRAM_ARROW_COORDS = "re:diagram_arrow_coords";
+  function renderDiagrams (graph, options) {
+    if (graph[DIAGRAMS] === undefined) { return; }
+    if (graph[DIAGRAMS].length === 0) { return; }
+    const diagrams = [];
+    Array.from(graph[DIAGRAMS]).forEach((instruction) => {
+      if (DIAGRAM_LINES in instruction === true) {
+        instruction[DIAGRAM_LINES].forEach((crease) => {
+          const creaseClass = (DIAGRAM_LINE_CLASSES in crease)
+            ? crease[DIAGRAM_LINE_CLASSES].join(" ")
+            : "valley";
+          const pts = crease[DIAGRAM_LINE_COORDS];
+          if (pts !== undefined) {
+            const l = line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
+            l.setAttribute("class", creaseClass);
+            diagrams.push(l);
+          }
+        });
+      }
+      if (DIAGRAM_ARROWS in instruction === true) {
+        const r = bounding_rect(graph);
+        const vmin = r[2] > r[3] ? r[3] : r[2];
+        instruction[DIAGRAM_ARROWS].forEach((arrowInst) => {
+          if (arrowInst[DIAGRAM_ARROW_COORDS].length === 2) {
+            const p = arrowInst[DIAGRAM_ARROW_COORDS];
+            let side = p[0][0] < p[1][0];
+            if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
+              side = p[0][1] < p[1][1] ? p[0][0] < 0.5 : p[0][0] > 0.5;
+            }
+            if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
+              side = p[0][0] < p[1][0] ? p[0][1] > 0.5 : p[0][1] < 0.5;
+            }
+            diagrams.push(arrow(p[0], p[1])
+              .stroke("black")
+              .fill("black")
+              .strokeWidth(vmin * 0.02)
+              .head({ width: vmin * 0.035, height: vmin * 0.09 })
+              .curve(side ? 0.3 : -0.3));
+          }
+        });
+      }
+    });
+    return diagrams;
+  }
   const faces_draw_function = function (graph) {
     return graph.faces_vertices != null
       ? faces_vertices_polygon(graph)
@@ -2703,6 +2968,7 @@
     edges: edges_path,
     faces: faces_draw_function,
     boundaries: boundaries_polygon,
+    diagrams: renderDiagrams,
   };
   const makeDefaults = (vmin = 1) => recursive_freeze({
     input: "string",
@@ -2775,9 +3041,11 @@
       : undefined);
     if (options.stylesheet != null) {
       const style$1 = style(defs$1);
+      const strokeVar = options.attributes.svg["stroke-width"]
+        ? options.attributes.svg["stroke-width"] : vmin / 200;
       const cdata = (new win.DOMParser())
         .parseFromString("<xml></xml>", "application/xml")
-        .createCDATASection(options.stylesheet);
+        .createCDATASection(`\n* { --stroke-width: ${strokeVar}; }\n${options.stylesheet}`);
       style$1.appendChild(cdata);
     }
     if (options.shadows != null) {
@@ -2786,13 +3054,15 @@
         : { blur: vmin / 200 });
       defs$1.appendChild(shadowFilter(shadowOptions));
     }
+    options.diagrams = !!(options.diagrams && (graph["re:diagrams"] != null));
     const groups = { };
-    ["boundaries", "edges", "faces", "vertices"].filter(key => options[key] === true)
+    ["boundaries", "edges", "faces", "vertices", "diagrams"].filter(key => options[key] === true)
       .forEach((key) => {
         groups[key] = group();
         groups[key].setAttribute("class", key);
       });
     Object.keys(groups)
+      .filter(key => component_draw_function[key] !== undefined)
       .forEach(key => component_draw_function[key](graph, options)
         .forEach(a => groups[key].appendChild(a)));
     Object.keys(groups)
@@ -3559,25 +3829,25 @@
     };
     return points;
   };
-  const is_iterable$1 = obj => obj != null
+  const is_iterable$2 = obj => obj != null
     && typeof obj[Symbol.iterator] === "function";
-  const flatten_input$1 = function (...args) {
+  const flatten_input$2 = function (...args) {
     switch (args.length) {
       case undefined:
       case 0: return args;
-      case 1: return is_iterable$1(args[0]) && typeof args[0] !== "string"
-        ? flatten_input$1(...args[0])
+      case 1: return is_iterable$2(args[0]) && typeof args[0] !== "string"
+        ? flatten_input$2(...args[0])
         : [args[0]];
       default:
         return Array.from(args)
-          .map(a => (is_iterable$1(a)
-            ? [...flatten_input$1(a)]
+          .map(a => (is_iterable$2(a)
+            ? [...flatten_input$2(a)]
             : a))
           .reduce((a, b) => a.concat(b), []);
     }
   };
-  const setPoints = function (shape, ...pointsArray) {
-    const flat = flatten_input$1(...pointsArray);
+  const setPoints$1 = function (shape, ...pointsArray) {
+    const flat = flatten_input$2(...pointsArray);
     let pointsString = "";
     if (typeof flat[0] === "number") {
       pointsString = Array.from(Array(Math.floor(flat.length / 2)))
@@ -3595,7 +3865,7 @@
     return shape;
   };
   const setLinePoints = function (shape, ...pointsArray) {
-    const flat = flatten_input$1(...pointsArray);
+    const flat = flatten_input$2(...pointsArray);
     let points = [];
     if (typeof flat[0] === "number") {
       points = flat;
@@ -3615,7 +3885,7 @@
     return shape;
   };
   const setCenter = function (shape, ...args) {
-    const flat = flatten_input$1(...args);
+    const flat = flatten_input$2(...args);
     if (typeof flat[0] === "number") {
       if (flat[0] != null) { shape.setAttributeNS(null, "cx", flat[0]); }
       if (flat[1] != null) { shape.setAttributeNS(null, "cy", flat[1]); }
@@ -3682,12 +3952,12 @@
     shape.setAttributeNS(null, "d", d);
     return shape;
   };
-  const setArrowPoints = function (shape, ...args) {
+  const setArrowPoints$1 = function (shape, ...args) {
     const children = Array.from(shape.childNodes);
     const path = children.filter(node => node.tagName === "path").shift();
     const polys = ["svg-arrow-head", "svg-arrow-tail"]
       .map(c => children.filter(n => n.getAttribute("class") === c).shift());
-    const flat = flatten_input$1(...args);
+    const flat = flatten_input$2(...args);
     let endpoints = [];
     if (typeof flat[0] === "number") {
       endpoints = flat;
@@ -3778,13 +4048,13 @@
     path.setAttribute("d", `M${tailArc[0]},${tailArc[1]}C${tailControl[0]},${tailControl[1]},${headControl[0]},${headControl[1]},${headArc[0]},${headArc[1]}`);
     if (o.head.visible) {
       polys[0].removeAttribute("display");
-      setPoints(polys[0], headPolyPts);
+      setPoints$1(polys[0], headPolyPts);
     } else {
       polys[0].setAttribute("display", "none");
     }
     if (o.tail.visible) {
       polys[1].removeAttribute("display");
-      setPoints(polys[1], tailPolyPts);
+      setPoints$1(polys[1], tailPolyPts);
     } else {
       polys[1].setAttribute("display", "none");
     }
@@ -3792,13 +4062,13 @@
   };
   var geometryMods = Object.freeze({
     __proto__: null,
-    setPoints: setPoints,
+    setPoints: setPoints$1,
     setLinePoints: setLinePoints,
     setCenter: setCenter,
     setArc: setArc,
     setEllipticalArc: setEllipticalArc,
     setBezier: setBezier,
-    setArrowPoints: setArrowPoints
+    setArrowPoints: setArrowPoints$1
   });
   var attributes = [
     "accumulate",
@@ -4125,7 +4395,7 @@
     return attr;
   };
   const append = function (element, command, ...args) {
-    const params = flatten_input$1(args).join(",");
+    const params = flatten_input$2(args).join(",");
     element.setAttribute("d", `${d(element)}${command}${params}`);
     return element;
   };
@@ -4191,7 +4461,7 @@
         };
       });
   };
-  const attachArrowMethods = function (element) {
+  const attachArrowMethods$1 = function (element) {
     element.head = (options) => {
       if (typeof options === "object") {
         Object.assign(element.options.head, options);
@@ -4203,7 +4473,7 @@
       } else if (options == null) {
         element.options.head.visible = true;
       }
-      setArrowPoints(element);
+      setArrowPoints$1(element);
       return element;
     };
     element.tail = (options) => {
@@ -4218,17 +4488,17 @@
       } else if (options == null) {
         element.options.tail.visible = true;
       }
-      setArrowPoints(element);
+      setArrowPoints$1(element);
       return element;
     };
     element.curve = (amount) => {
       element.options.curve = amount;
-      setArrowPoints(element);
+      setArrowPoints$1(element);
       return element;
     };
     element.pinch = (amount) => {
       element.options.pinch = amount;
-      setArrowPoints(element);
+      setArrowPoints$1(element);
       return element;
     };
   };
@@ -4327,7 +4597,7 @@
     attachDOMMethods(element);
     attachTransformMethods(element);
     attachClipMaskAttributes(element);
-    attachArrowMethods(element);
+    attachArrowMethods$1(element);
   };
   const prepareText = function (element) {
     attachFunctionalStyleSetters(element);
@@ -4411,16 +4681,16 @@
   };
   const polygon$1 = function (...pointsArray) {
     const shape = win$1.document.createElementNS(NS, "polygon");
-    setPoints(shape, ...pointsArray);
+    setPoints$1(shape, ...pointsArray);
     prepare("primitive", shape);
-    shape.setPoints = (...args) => setPoints(shape, ...args);
+    shape.setPoints = (...args) => setPoints$1(shape, ...args);
     return shape;
   };
   const polyline = function (...pointsArray) {
     const shape = win$1.document.createElementNS(NS, "polyline");
-    setPoints(shape, ...pointsArray);
+    setPoints$1(shape, ...pointsArray);
     prepare("primitive", shape);
-    shape.setPoints = (...args) => setPoints(shape, ...args);
+    shape.setPoints = (...args) => setPoints$1(shape, ...args);
     return shape;
   };
   const path$1 = function (d) {
@@ -4500,7 +4770,7 @@
     const pathString = `M${x + (width - w) / 2} ${y} h${w} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + width} ${y + (height - h) / 2} v${h} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + width - cornerRadius} ${y + height} h${-w} A${cornerRadius} ${cornerRadius} 0 0 1 ${x} ${y + height - cornerRadius} v${-h} A${cornerRadius} ${cornerRadius} 0 0 1 ${x + cornerRadius} ${y} `;
     return path$1(pathString);
   };
-  const arrow = function (...args) {
+  const arrow$1 = function (...args) {
     const shape = win$1.document.createElementNS(NS, "g");
     const tailPoly = win$1.document.createElementNS(NS, "polygon");
     const headPoly = win$1.document.createElementNS(NS, "polygon");
@@ -4521,9 +4791,9 @@
       pinch: 0.618,
       endpoints: [],
     };
-    setArrowPoints(shape, ...args);
+    setArrowPoints$1(shape, ...args);
     prepare("arrow", shape);
-    shape.setPoints = (...a) => setArrowPoints(shape, ...a);
+    shape.setPoints = (...a) => setArrowPoints$1(shape, ...a);
     return shape;
   };
   var primitives = Object.freeze({
@@ -4544,7 +4814,7 @@
     parabola: parabola,
     regularPolygon: regularPolygon,
     roundRect: roundRect,
-    arrow: arrow
+    arrow: arrow$1
   });
   const constructorsSVG = {};
   const constructorsGroup = {};
@@ -11003,6 +11273,9 @@
       faces.forEach(setup_face.bind(this));
       return faces;
     };
+    const getBounds = function () {
+      return math.rectangle(...bounding_rect$1(this));
+    };
     proto.nearestVertex = function (...args) {
       const index = nearest_vertex(this, math.core.get_vector(...args));
       const result = transpose_geometry_array_at_index(this, "vertices", index);
@@ -11040,6 +11313,7 @@
     Object.defineProperty(proto, "vertices", { get: getVertices });
     Object.defineProperty(proto, "edges", { get: getEdges });
     Object.defineProperty(proto, "faces", { get: getFaces });
+    Object.defineProperty(proto, "bounds", { get: getBounds });
     return Object.freeze(proto);
   };
 
@@ -11405,6 +11679,10 @@
     const l_to_r = Math.abs(right[0] - left[0]);
     return t_to_b > l_to_r ? [bottom, top] : [left, right];
   };
+  const opposite_assignment = { "M":"V", "m":"V", "V":"M", "v":"M" };
+  const opposingCrease = function (assignment) {
+    return opposite_assignment[assignment] || assignment;
+  };
   const fold_through = function (
     graph,
     point,
@@ -11412,12 +11690,7 @@
     face_index,
     assignment = "V"
   ) {
-    let opposite_crease = assignment;
-    if (assignment === "M" || assignment === "m") {
-      opposite_crease = "V";
-    } else if (assignment === "V" || assignment === "v") {
-      opposite_crease = "M";
-    }
+    const opposite_crease = opposingCrease(assignment);
     if (face_index == null) {
       const containing_point = face_containing_point(graph, point);
       face_index = (containing_point === undefined) ? 0 : containing_point;
@@ -11514,7 +11787,7 @@
       face_0_newIndex,
       folded_faces_matrix
     );
-    folded["faces_re:matrix"] = folded_faces_matrix.map(m => m.map(n => math.core.clean_number(n, 14)));
+    folded["faces_re:matrix"] = folded_faces_matrix;
     delete graph["faces_re:creases"];
     delete folded["faces_re:creases"];
     delete graph["faces_re:sidedness"];
@@ -11575,10 +11848,55 @@
       delete graph[VERTICES_UNFOLDED_COORDS];
     }
   };
+  const boundary_clips = function (b, i) {
+    const graph = this;
+    Object.defineProperty(b, "clipLine", {
+      value: (...args) => math.core.intersection.convex_poly_line(
+        b.vertices.map(v => graph.vertices_coords[v]),
+        math.core.get_line(...args).origin,
+        math.core.get_line(...args).vector)});
+    Object.defineProperty(b, "clipRay", {
+      value: (...args) => math.core.intersection.convex_poly_ray(
+        b.vertices.map(v => graph.vertices_coords[v]),
+        math.core.get_line(...args).origin,
+        math.core.get_line(...args).vector)});
+    Object.defineProperty(b, "clipSegment", {
+      value: (...args) => math.core.intersection.convex_poly_segment(
+        b.vertices.map(v => graph.vertices_coords[v]),
+        ...math.core.get_vector_of_vectors(...args))});
+  };
+  const boundary_coords = function (b, i) {
+    const graph = this;
+    Object.defineProperty(b, "coords", {
+      get: () => {
+        if (!b.vertices || !graph.vertices_coords) { return undefined; }
+        return b.vertices.map(v => graph.vertices_coords[v]);
+      }
+    });
+  };
+  const setup_boundary = function (b, i) {
+    boundary_coords.call(this, b, i);
+    boundary_clips.call(this, b, i);
+  };
+  const export_object = function (graph) {
+    const exportObject = function (...args) {
+      if (args.length === 0) { return JSON.stringify(graph); }
+      switch (args[0]) {
+        case "oripa": return convert$1(graph, "fold").oripa();
+        case "svg": return convert$1(graph, "fold").svg();
+        default: return JSON.stringify(graph);
+      }
+    };
+    exportObject.json = function () { return JSON.stringify(graph); };
+    exportObject.fold = function () { return JSON.stringify(graph); };
+    exportObject.svg = function () { return convert$1(graph, "fold").svg(); };
+    exportObject.oripa = function () { return convert$1(graph, "fold").oripa(); };
+    return exportObject;
+  };
   const Origami = function (...args) {
     const origami = Object.assign(
       Object.create(Prototype$2()),
-      args.filter(a => possibleFoldObject(a) > 0.1)
+      args.filter(a => possibleFoldObject(a) > 0)
         .sort((a, b) => possibleFoldObject(b) - possibleFoldObject(a))
         .shift() || square()
     );
@@ -11622,30 +11940,22 @@
       Object.assign(origami, { file_spec, file_creator }, clone$1(foldObject));
       origami.changed.update(origami.load);
     };
+    const getBoundaries = function () {
+      const boundaries = [get_boundary$1(origami)];
+      boundaries.forEach(setup_boundary.bind(origami));
+      return boundaries;
+    };
     const options = {};
     Object.assign(options, DEFAULTS$1);
     const userDefaults = parseOptions(...args);
     Object.keys(userDefaults)
       .forEach((key) => { options[key] = userDefaults[key]; });
+    Object.defineProperty(origami, "boundaries", { get: getBoundaries });
     Object.defineProperty(origami, "load", { value: load });
     Object.defineProperty(origami, "isFolded", { get: () => isOrigamiFolded(origami) });
     Object.defineProperty(origami, "fold", { value: fold });
     Object.defineProperty(origami, "unfold", { value: unfold });
-    Object.defineProperty(origami, "export", { get: (...args) => {
-      const f = function (...o) {
-        if (o.length === 0) { return JSON.stringify(origami); }
-        switch (o[0]) {
-          case "oripa": return convert$1(origami, "fold").oripa();
-          case "svg": return convert$1(origami, "fold").svg();
-          default: return JSON.stringify(origami);
-        }
-      };
-      f.json = function () { return JSON.stringify(origami); };
-      f.fold = function () { return JSON.stringify(origami); };
-      f.svg = function () { return convert$1(origami, "fold").svg(); };
-      f.oripa = function () { return convert$1(origami, "fold").oripa(); };
-      return f;
-    }});
+    Object.defineProperty(origami, "export", { get: () => export_object(origami) });
     View(origami, ...args);
     return origami;
   };
@@ -12360,21 +12670,21 @@
     return result;
   };
 
-  var empty$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
+  var empty$1 = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"\",\n  \"file_author\": \"\",\n  \"file_title\": \"\",\n  \"file_description\": \"\",\n  \"file_classes\": [],\n  \"file_frames\": [],\n\n  \"frame_author\": \"\",\n  \"frame_title\": \"\",\n  \"frame_description\": \"\",\n  \"frame_attributes\": [],\n  \"frame_classes\": [],\n  \"frame_unit\": \"\",\n\n  \"vertices_coords\": [],\n  \"vertices_vertices\": [],\n  \"vertices_faces\": [],\n\n  \"edges_vertices\": [],\n  \"edges_faces\": [],\n  \"edges_assignment\": [],\n  \"edges_foldAngle\": [],\n  \"edges_length\": [],\n\n  \"faces_vertices\": [],\n  \"faces_edges\": [],\n\n  \"edgeOrders\": [],\n  \"faceOrders\": []\n}\n";
 
-  var square$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
+  var square$1 = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"Rabbit Ear\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_attributes\": [\"2D\"],\n  \"frame_classes\": [\"creasePattern\"],\n  \"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n  \"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n  \"vertices_faces\": [[0], [0], [0], [0]],\n  \"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n  \"edges_faces\": [[0], [0], [0], [0]],\n  \"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n  \"edges_foldAngle\": [0, 0, 0, 0],\n  \"edges_length\": [1, 1, 1, 1],\n  \"faces_vertices\": [[0,1,2,3]],\n  \"faces_edges\": [[0,1,2,3]]\n}";
 
-  var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
+  var book = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"Rabbit Ear\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_attributes\": [\"2D\"],\n  \"frame_classes\": [\"creasePattern\"],\n  \"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n  \"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n  \"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n  \"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n  \"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n  \"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n  \"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n  \"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n  \"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n  \"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
 
-  var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.7071067811865476, 0.7071067811865476, 0.7071067811865476, 0.7071067811865476],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
+  var blintz = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"Rabbit Ear\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_attributes\": [\"2D\"],\n  \"frame_classes\": [\"creasePattern\"],\n  \"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n  \"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n  \"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n  \"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n  \"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n  \"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n  \"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n  \"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.7071067811865476, 0.7071067811865476, 0.7071067811865476, 0.7071067811865476],\n  \"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n  \"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n  \"file_frames\": [{\n    \"frame_classes\": [\"foldedForm\"],\n    \"frame_parent\": 0,\n    \"frame_inherit\": true,\n    \"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n    \"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n    \"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n  }]\n}";
 
-  var kite = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [\n\t\t[0,0],\n\t\t[0.414213562373095,0],\n\t\t[1,0],\n\t\t[1,0.585786437626905],\n\t\t[1,1],\n\t\t[0,1]\n\t],\n\t\"vertices_vertices\": [ [1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4] ],\n\t\"vertices_faces\": [ [0], [1,0], [2,1], [3,2], [3], [0,1,2,3] ],\n\t\"edges_vertices\": [\n\t\t[0,1],\n\t\t[1,2],\n\t\t[2,3],\n\t\t[3,4],\n\t\t[4,5],\n\t\t[5,0],\n\t\t[5,1],\n\t\t[3,5],\n\t\t[5,2]\n\t],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [\n\t\t[0,1,5],\n\t\t[1,2,5],\n\t\t[2,3,5],\n\t\t[3,4,5]\n\t],\n\t\"faces_edges\": [\n\t\t[0,6,5],\n\t\t[1,8,6],\n\t\t[2,7,8],\n\t\t[3,4,7]\n\t],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[1,0],\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[0,1],\n\t\t\t[0.414213562373095,0],\n\t\t\t[1,0.585786437626905]\n\t\t],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
+  var kite = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"Rabbit Ear\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_attributes\": [\"2D\"],\n  \"frame_classes\": [\"creasePattern\"],\n  \"vertices_coords\": [\n    [0,0],\n    [0.414213562373095,0],\n    [1,0],\n    [1,0.585786437626905],\n    [1,1],\n    [0,1]\n  ],\n  \"vertices_vertices\": [ [1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4] ],\n  \"vertices_faces\": [ [0], [1,0], [2,1], [3,2], [3], [0,1,2,3] ],\n  \"edges_vertices\": [\n    [0,1],\n    [1,2],\n    [2,3],\n    [3,4],\n    [4,5],\n    [5,0],\n    [5,1],\n    [3,5],\n    [5,2]\n  ],\n  \"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n  \"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n  \"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n  \"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n  \"faces_vertices\": [\n    [0,1,5],\n    [1,2,5],\n    [2,3,5],\n    [3,4,5]\n  ],\n  \"faces_edges\": [\n    [0,6,5],\n    [1,8,6],\n    [2,7,8],\n    [3,4,7]\n  ],\n  \"file_frames\": [{\n    \"frame_classes\": [\"foldedForm\"],\n    \"frame_parent\": 0,\n    \"frame_inherit\": true,\n    \"vertices_coords\": [\n      [0.707106781186548,0.292893218813452],\n      [1,0],\n      [0.707106781186548,0.292893218813452],\n      [0,1],\n      [0.414213562373095,0],\n      [1,0.585786437626905]\n    ],\n    \"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n    \"faceOrders\": [[0,1,1], [3,2,1]]\n  }]\n}";
 
-  var fish = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"\",\n  \"file_author\": \"\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_title\": \"\",\n  \"frame_classes\": [\"creasePattern\"],\n  \"frame_attributes\": [\"2D\"],\n  \"vertices_coords\": [\n    [0,0],\n    [1,0],\n    [1,1],\n    [0,1],\n    [0.292893218813452,0.292893218813452],\n    [0.707106781186548,0.707106781186548],\n    [0.292893218813452,0],\n    [1,0.707106781186548]\n  ],\n  \"edges_vertices\": [\n  \t[2,3], [3,0], [3,1], [0,4], [1,4], [3,4], [1,5], [2,5], [3,5], [4,6], [0,6], [6,1], [5,7], [1,7], [7,2]\n  ],\n  \"edges_assignment\": [\n  \t\"B\", \"B\", \"F\", \"M\", \"M\", \"M\", \"M\", \"M\", \"M\", \"V\", \"B\", \"B\", \"V\", \"B\", \"B\"\n  ],\n  \"file_frames\": [{\n    \"frame_classes\": [\"foldedForm\"],\n    \"frame_parent\": 0,\n    \"frame_inherit\": true,\n    \"vertices_coords\":[[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n  }],\n  \"vertices_vertices\": [\n    [6,4,3],\n    [7,5,3,4,6],\n    [5,7,3],\n    [0,4,1,5,2],\n    [0,6,1,3],\n    [1,7,2,3],\n    [1,4,0],\n    [1,2,5]\n  ],\n  \"faces_vertices\": [\n    [4,0,6],\n    [3,0,4],\n    [5,1,7],\n    [3,1,5],\n    [4,1,3],\n    [6,1,4],\n    [5,2,3],\n    [7,2,5]\n  ],\n  \"faces_edges\": [\n    [3,10,9],\n    [1,3,5],\n    [6,13,12],\n    [2,6,8],\n    [4,2,5],\n    [11,4,9],\n    [7,0,8],\n    [14,7,12]\n  ],\n  \"edges_faces\": [[6], [1], [3,4], [0,1], [4,5], [1,4], [2,3], [6,7], [3,6], [0,5], [0], [5], [2,7], [2], [7]],\n  \"vertices_faces\": [[0,1], [2,3,4,5], [6,7], [1,3,4,6], [0,1,4,5], [2,3,6,7], [0,5], [2,7]],\n  \"edges_length\": [1, 1, 1.4142135623730951, 0.41421356237309437, 0.7653668647301798, 0.7653668647301798, 0.7653668647301798, 0.41421356237309437, 0.7653668647301798, 0.292893218813452, 0.292893218813452, 0.707106781186548, 0.292893218813452, 0.707106781186548, 0.292893218813452],\n  \"edges_foldAngle\": [0, 0, 0, -180, -180, -180, -180, -180, -180, 180, 0, 0, 180, 0, 0],\n  \"faces_faces\": [\n  \t[1,5], [0,4], [3,7], [2,4,6], [3,1,5], [4,0], [3,7], [6,2]\n  ],\n  \"vertices_edges\": [\n    [1,3,10],\n    [2,4,6,11,13],\n    [0,7,14],\n    [0,1,2,5,8],\n    [3,4,5,9],\n    [6,7,8,12],\n    [9,10,11],\n    [12,13,14]\n  ]\n}\n";
+  var fish = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"Rabbit Ear\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_attributes\": [\"2D\"],\n  \"frame_classes\": [\"creasePattern\"],\n  \"vertices_coords\": [\n    [0,0],\n    [1,0],\n    [1,1],\n    [0,1],\n    [0.292893218813452,0.292893218813452],\n    [0.707106781186548,0.707106781186548],\n    [0.292893218813452,0],\n    [1,0.707106781186548]\n  ],\n  \"edges_vertices\": [\n  \t[2,3], [3,0], [3,1], [0,4], [1,4], [3,4], [1,5], [2,5], [3,5], [4,6], [0,6], [6,1], [5,7], [1,7], [7,2]\n  ],\n  \"edges_assignment\": [\n  \t\"B\", \"B\", \"F\", \"M\", \"M\", \"M\", \"M\", \"M\", \"M\", \"V\", \"B\", \"B\", \"V\", \"B\", \"B\"\n  ],\n  \"file_frames\": [{\n    \"frame_classes\": [\"foldedForm\"],\n    \"frame_parent\": 0,\n    \"frame_inherit\": true,\n    \"vertices_coords\":[[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n  }],\n  \"vertices_vertices\": [\n    [6,4,3],\n    [7,5,3,4,6],\n    [5,7,3],\n    [0,4,1,5,2],\n    [0,6,1,3],\n    [1,7,2,3],\n    [1,4,0],\n    [1,2,5]\n  ],\n  \"faces_vertices\": [\n    [4,0,6],\n    [3,0,4],\n    [5,1,7],\n    [3,1,5],\n    [4,1,3],\n    [6,1,4],\n    [5,2,3],\n    [7,2,5]\n  ],\n  \"faces_edges\": [\n    [3,10,9],\n    [1,3,5],\n    [6,13,12],\n    [2,6,8],\n    [4,2,5],\n    [11,4,9],\n    [7,0,8],\n    [14,7,12]\n  ],\n  \"edges_faces\": [[6], [1], [3,4], [0,1], [4,5], [1,4], [2,3], [6,7], [3,6], [0,5], [0], [5], [2,7], [2], [7]],\n  \"vertices_faces\": [[0,1], [2,3,4,5], [6,7], [1,3,4,6], [0,1,4,5], [2,3,6,7], [0,5], [2,7]],\n  \"edges_length\": [1, 1, 1.4142135623730951, 0.41421356237309437, 0.7653668647301798, 0.7653668647301798, 0.7653668647301798, 0.41421356237309437, 0.7653668647301798, 0.292893218813452, 0.292893218813452, 0.707106781186548, 0.292893218813452, 0.707106781186548, 0.292893218813452],\n  \"edges_foldAngle\": [0, 0, 0, -180, -180, -180, -180, -180, -180, 180, 0, 0, 180, 0, 0],\n  \"faces_faces\": [\n  \t[1,5], [0,4], [3,7], [2,4,6], [3,1,5], [4,0], [3,7], [6,2]\n  ],\n  \"vertices_edges\": [\n    [1,3,10],\n    [2,4,6,11,13],\n    [0,7,14],\n    [0,1,2,5,8],\n    [3,4,5,9],\n    [6,7,8,12],\n    [9,10,11],\n    [12,13,14]\n  ]\n}\n";
 
-  var bird = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781186548,0.5],[0.5,0.207106781186548],[0.792893218813452,0.5],[0.5,0.792893218813452],[0.353553390593274,0.646446609406726],[0.646446609406726,0.646446609406726],[0.646446609406726,0.353553390593274],[0.353553390593274,0.353553390593274],[0,0.5],[0.5,0],[1,0.5],[0.5,1]],\n\t\"edges_vertices\": [[3,5],[5,9],[3,9],[3,13],[5,13],[0,5],[0,13],[0,12],[5,12],[4,5],[4,12],[4,9],[0,6],[6,12],[0,14],[6,14],[1,6],[1,14],[1,11],[6,11],[4,6],[4,11],[1,7],[7,11],[1,15],[7,15],[2,7],[2,15],[2,10],[7,10],[4,7],[4,10],[2,8],[8,10],[2,16],[8,16],[3,8],[3,16],[8,9],[4,8]],\n\t\"edges_faces\": [[0,1],[0,5],[21,0],[1],[2,1],[2,3],[2],[3,6],[4,3],[4,5],[11,4],[5,22],[6,7],[6,11],[7],[8,7],[8,9],[8],[9,12],[10,9],[10,11],[17,10],[12,13],[12,17],[13],[14,13],[14,15],[14],[15,18],[16,15],[16,17],[23,16],[18,19],[18,23],[19],[20,19],[20,21],[20],[22,21],[22,23]],\n\t\"edges_assignment\": [\"M\",\"F\",\"V\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"V\",\"F\",\"M\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"M\"],\n\t\"faces_vertices\": [[3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,4,6],[5,7,8],[9,8,10],[9,11,1],[12,13,7],[12,14,15],[16,15,17],[16,18,19],[20,19,21],[20,10,13],[22,23,18],[22,24,25],[26,25,27],[26,28,29],[30,29,31],[30,21,23],[32,33,28],[32,34,35],[36,35,37],[36,2,38],[39,38,11],[39,31,33]]\n}";
+  var bird = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"Rabbit Ear\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_attributes\": [\"2D\"],\n  \"frame_classes\": [\"creasePattern\"],\n  \"vertices_coords\": [\n    [0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781186548,0.5],[0.5,0.207106781186548],[0.792893218813452,0.5],[0.5,0.792893218813452],[0.353553390593274,0.646446609406726],[0.646446609406726,0.646446609406726],[0.646446609406726,0.353553390593274],[0.353553390593274,0.353553390593274],[0,0.5],[0.5,0],[1,0.5],[0.5,1]\n  ],\n  \"edges_vertices\": [\n    [3,5],[5,9],[3,9],[3,13],[5,13],[0,5],[0,13],[0,12],[5,12],[4,5],[4,12],[4,9],[0,6],[6,12],[0,14],[6,14],[1,6],[1,14],[1,11],[6,11],[4,6],[4,11],[1,7],[7,11],[1,15],[7,15],[2,7],[2,15],[2,10],[7,10],[4,7],[4,10],[2,8],[8,10],[2,16],[8,16],[3,8],[3,16],[8,9],[4,8]\n  ],\n  \"edges_faces\": [\n    [0,1],[0,5],[21,0],[1],[2,1],[2,3],[2],[3,6],[4,3],[4,5],[11,4],[5,22],[6,7],[6,11],[7],[8,7],[8,9],[8],[9,12],[10,9],[10,11],[17,10],[12,13],[12,17],[13],[14,13],[14,15],[14],[15,18],[16,15],[16,17],[23,16],[18,19],[18,23],[19],[20,19],[20,21],[20],[22,21],[22,23]\n  ],\n  \"edges_assignment\": [\n    \"M\",\"F\",\"V\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"V\",\"F\",\"M\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"M\"\n  ],\n  \"faces_vertices\": [\n    [3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]\n  ],\n  \"faces_edges\": [\n    [0,1,2],[0,3,4],[5,4,6],[5,7,8],[9,8,10],[9,11,1],[12,13,7],[12,14,15],[16,15,17],[16,18,19],[20,19,21],[20,10,13],[22,23,18],[22,24,25],[26,25,27],[26,28,29],[30,29,31],[30,21,23],[32,33,28],[32,34,35],[36,35,37],[36,2,38],[39,38,11],[39,31,33]\n  ],\n  \"vertices_vertices\": [\n    [14,6,12,5,13],[15,7,11,6,14],[8,10,7,15,16],[13,5,9,8,16],[12,6,11,7,10,8,9,5],[0,12,4,9,3,13],[0,14,1,11,4,12],[11,1,15,2,10,4],[9,4,10,2,16,3],[5,4,8,3],[4,7,2,8],[6,1,7,4],[0,6,4,5],[0,5,3],[1,6,0],[1,2,7],[8,2,3]\n  ],\n  \"vertices_faces\": [\n    [2,3,6,7],[8,9,12,13],[14,15,18,19],[0,1,20,21],[4,5,10,11,16,17,22,23],[0,1,2,3,4,5],[6,7,8,9,10,11],[12,13,14,15,16,17],[18,19,20,21,22,23],[0,5,21,22],[15,16,18,23],[9,10,12,17],[3,4,6,11],[1,2],[7,8],[13,14],[19,20]\n  ],\n  \"edges_length\": [\n    0.5411961001461971,0.20710678118654724,0.5,0.5,0.207106781186548,0.5411961001461971,0.5,0.5,0.2071067811865472,0.292893218813452,0.20710678118654718,0.2071067811865472,0.5411961001461971,0.2071067811865472,0.5,0.207106781186548,0.5411961001461971,0.5,0.5,0.20710678118654724,0.292893218813452,0.2071067811865472,0.5411961001461971,0.20710678118654713,0.5,0.20710678118654802,0.5411961001461971,0.5,0.5,0.20710678118654718,0.292893218813452,0.20710678118654727,0.5411961001461971,0.20710678118654718,0.5,0.20710678118654802,0.5411961001461971,0.5,0.20710678118654713,0.292893218813452\n  ],\n  \"edges_foldAngle\": [\n    -180,0,180,0,180,-180,0,0,0,-180,0,180,-180,0,0,180,-180,0,180,0,-180,180,-180,0,0,180,-180,0,0,0,-180,0,-180,0,0,180,-180,0,0,-180\n  ],\n  \"faces_faces\": [\n    [1,5,21],[0,2],[1,3],[2,4,6],[3,5,11],[4,0,22],[3,7,11],[6,8],[7,9],[8,10,12],[9,11,17],[10,4,6],[9,13,17],[12,14],[13,15],[14,16,18],[15,17,23],[16,10,12],[15,19,23],[18,20],[19,21],[20,0,22],[21,5,23],[22,16,18]\n  ],\n  \"vertices_edges\": [\n    [5,6,7,12,14],[16,17,18,22,24],[26,27,28,32,34],[0,2,3,36,37],[9,10,11,20,21,30,31,39],[0,1,4,5,8,9],[12,13,15,16,19,20],[22,23,25,26,29,30],[32,33,35,36,38,39],[1,2,11,38],[28,29,31,33],[18,19,21,23],[7,8,10,13],[3,4,6],[14,15,17],[24,25,27],[34,35,37]\n  ],\n  \"edges_edges\": [\n    [2,3,36,37,1,4,5,8,9],[0,4,5,8,9,2,11,38],[0,3,36,37,1,11,38],[0,2,36,37,4,6],[0,1,5,8,9,3,6],[6,7,12,14,0,1,4,8,9],[5,7,12,14,3,4],[5,6,12,14,8,10,13],[0,1,4,5,9,7,10,13],[10,11,20,21,30,31,39,0,1,4,5,8],[9,11,20,21,30,31,39,7,8,13],[9,10,20,21,30,31,39,1,2,38],[5,6,7,14,13,15,16,19,20],[12,15,16,19,20,7,8,10],[5,6,7,12,15,17],[12,13,16,19,20,14,17],[17,18,22,24,12,13,15,19,20],[16,18,22,24,14,15],[16,17,22,24,19,21,23],[12,13,15,16,20,18,21,23],[9,10,11,21,30,31,39,12,13,15,16,19],[9,10,11,20,30,31,39,18,19,23],[16,17,18,24,23,25,26,29,30],[22,25,26,29,30,18,19,21],[16,17,18,22,25,27],[22,23,26,29,30,24,27],[27,28,32,34,22,23,25,29,30],[26,28,32,34,24,25],[26,27,32,34,29,31,33],[22,23,25,26,30,28,31,33],[9,10,11,20,21,31,39,22,23,25,26,29],[9,10,11,20,21,30,39,28,29,33],[26,27,28,34,33,35,36,38,39],[32,35,36,38,39,28,29,31],[26,27,28,32,35,37],[32,33,36,38,39,34,37],[0,2,3,37,32,33,35,38,39],[0,2,3,36,34,35],[32,33,35,36,39,1,2,11],[9,10,11,20,21,30,31,32,33,35,36,38]\n  ]\n}";
 
-  var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
+  var frog = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"Rabbit Ear\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_attributes\": [\"2D\"],\n  \"frame_classes\": [\"creasePattern\"],\n  \"vertices_coords\": [\n    [0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]\n  ],\n  \"edges_vertices\": [\n    [0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]\n  ],\n  \"edges_faces\": [\n    [0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]\n  ],\n  \"edges_assignment\": [\n    \"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"\n  ],\n  \"faces_vertices\": [\n    [0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]\n  ],\n  \"faces_edges\": [\n    [0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]\n  ],\n  \"vertices_vertices\": [\n    [19,10,4,9,17],[21,12,4,11,20],[14,4,13,22,23],[18,16,4,15,24],[9,0,10,6,11,1,12,7,13,2,14,8,15,3,16,5],[17,9,4,16,18],[20,11,4,10,19],[12,21,22,13,4],[15,4,14,23,24],[0,4,5,17],[0,19,6,4],[6,20,1,4],[1,21,7,4],[4,7,22,2],[4,2,23,8],[4,8,24,3],[5,4,3,18],[0,9,5],[5,16,3],[6,10,0],[1,11,6],[1,7,12],[7,2,13],[14,2,8],[15,8,3]\n  ],\n  \"vertices_faces\": [\n    [0,1,16,18],[6,7,20,22],[2,3,24,26],[4,5,28,30],[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],[8,9,17,31],[10,11,19,21],[12,13,23,25],[14,15,27,29],[0,8,16,17],[1,11,18,19],[7,10,20,21],[6,13,22,23],[3,12,24,25],[2,15,26,27],[4,14,28,29],[5,9,30,31],[16,17],[30,31],[18,19],[20,21],[22,23],[24,25],[26,27],[28,29]\n  ],\n  \"edges_length\": [\n    0.7071067811865476,0.3826834323650899,0.3826834323650899,0.3826834323650899,0.3826834323650899,0.7071067811865476,0.3826834323650899,0.3826834323650899,0.3826834323650899,0.3826834323650899,0.7071067811865476,0.38268343236508984,0.38268343236508995,0.38268343236508984,0.38268343236508995,0.7071067811865476,0.38268343236508995,0.38268343236508984,0.38268343236508995,0.38268343236508984,0.5,0.20710678118654718,0.2071067811865472,0.5,0.2071067811865472,0.20710678118654718,0.5,0.20710678118654727,0.2071067811865472,0.5,0.2071067811865472,0.20710678118654727,0.146446609406726,0.353553390593274,0.146446609406726,0.353553390593274,0.146446609406726,0.146446609406726,0.146446609406726,0.35355339059327395,0.14644660940672605,0.353553390593274,0.14644660940672605,0.146446609406726,0.14644660940672605,0.35355339059327395,0.14644660940672605,0.35355339059327395,0.14644660940672605,0.14644660940672605,0.14644660940672605,0.353553390593274,0.146446609406726,0.35355339059327395,0.146446609406726,0.14644660940672605\n  ],\n  \"edges_foldAngle\": [\n    0,-180,-180,-180,-180,0,-180,-180,-180,-180,180,-180,-180,-180,-180,180,-180,-180,-180,-180,180,-180,-180,180,-180,-180,180,-180,-180,180,-180,-180,180,0,0,0,180,0,180,0,0,0,180,0,180,0,0,0,180,0,180,0,0,0,180,0\n  ],\n  \"faces_faces\": [\n    [1,8,16],[0,11,18],[3,15,26],[2,12,24],[5,14,28],[4,9,30],[7,13,22],[6,10,20],[0,9,17],[8,5,31],[7,11,21],[10,1,19],[3,13,25],[12,6,23],[4,15,29],[14,2,27],[0,17],[8,16],[1,19],[11,18],[7,21],[10,20],[6,23],[13,22],[3,25],[12,24],[2,27],[15,26],[4,29],[14,28],[5,31],[9,30]\n  ],\n  \"vertices_edges\": [\n    [0,2,3,33,35],[15,16,19,39,41],[5,6,9,45,47],[10,12,13,51,53],[0,1,4,5,7,8,10,11,14,15,17,18,20,23,26,29],[20,21,22,34,55],[23,24,25,37,40],[26,27,28,43,46],[29,30,31,49,52],[1,2,21,32],[3,4,25,36],[18,19,24,38],[16,17,28,42],[8,9,27,44],[6,7,31,48],[11,12,30,50],[13,14,22,54],[32,33,34],[53,54,55],[35,36,37],[38,39,40],[41,42,43],[44,45,46],[47,48,49],[50,51,52]\n  ],\n  \"edges_edges\": [\n    [2,3,33,35,1,4,5,7,8,10,11,14,15,17,18,20,23,26,29],[0,4,5,7,8,10,11,14,15,17,18,20,23,26,29,2,21,32],[0,3,33,35,1,21,32],[0,2,33,35,4,25,36],[0,1,5,7,8,10,11,14,15,17,18,20,23,26,29,3,25,36],[6,9,45,47,0,1,4,7,8,10,11,14,15,17,18,20,23,26,29],[5,9,45,47,7,31,48],[0,1,4,5,8,10,11,14,15,17,18,20,23,26,29,6,31,48],[0,1,4,5,7,10,11,14,15,17,18,20,23,26,29,9,27,44],[5,6,45,47,8,27,44],[12,13,51,53,0,1,4,5,7,8,11,14,15,17,18,20,23,26,29],[0,1,4,5,7,8,10,14,15,17,18,20,23,26,29,12,30,50],[10,13,51,53,11,30,50],[10,12,51,53,14,22,54],[0,1,4,5,7,8,10,11,15,17,18,20,23,26,29,13,22,54],[16,19,39,41,0,1,4,5,7,8,10,11,14,17,18,20,23,26,29],[15,19,39,41,17,28,42],[0,1,4,5,7,8,10,11,14,15,18,20,23,26,29,16,28,42],[0,1,4,5,7,8,10,11,14,15,17,20,23,26,29,19,24,38],[15,16,39,41,18,24,38],[0,1,4,5,7,8,10,11,14,15,17,18,23,26,29,21,22,34,55],[20,22,34,55,1,2,32],[20,21,34,55,13,14,54],[0,1,4,5,7,8,10,11,14,15,17,18,20,26,29,24,25,37,40],[23,25,37,40,18,19,38],[23,24,37,40,3,4,36],[0,1,4,5,7,8,10,11,14,15,17,18,20,23,29,27,28,43,46],[26,28,43,46,8,9,44],[26,27,43,46,16,17,42],[0,1,4,5,7,8,10,11,14,15,17,18,20,23,26,30,31,49,52],[29,31,49,52,11,12,50],[29,30,49,52,6,7,48],[1,2,21,33,34],[0,2,3,35,32,34],[20,21,22,55,32,33],[0,2,3,33,36,37],[3,4,25,35,37],[23,24,25,40,35,36],[18,19,24,39,40],[15,16,19,41,38,40],[23,24,25,37,38,39],[15,16,19,39,42,43],[16,17,28,41,43],[26,27,28,46,41,42],[8,9,27,45,46],[5,6,9,47,44,46],[26,27,28,43,44,45],[5,6,9,45,48,49],[6,7,31,47,49],[29,30,31,52,47,48],[11,12,30,51,52],[10,12,13,53,50,52],[29,30,31,49,50,51],[10,12,13,51,54,55],[13,14,22,53,55],[20,21,22,34,53,54]\n  ]\n}";
 
   const core$1 = Object.create(null);
   Object.assign(core$1,
