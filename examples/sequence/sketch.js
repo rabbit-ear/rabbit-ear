@@ -7,11 +7,17 @@ var style = {
   edges: {
     "stroke-linecap": "round",
     mountain: { stroke: "black" },
-    valley: { stroke: "black", "stroke-dasharray": "0.01" },
+    valley: {
+      stroke: "black", 
+      // "stroke-dasharray": "0.01"
+    },
   },
   faces: {
     front: { fill: "white" },
     back: { fill: "#fb3" }
+  },
+  diagrams: {
+    lines: { valley: { stroke: "black"}}
   }
 };
 

@@ -779,6 +779,7 @@ const DIAGRAM_LINES = "re:diagram_lines";
 const DIAGRAM_LINE_CLASSES = "re:diagram_line_classes";
 const DIAGRAM_LINE_COORDS = "re:diagram_line_coords";
 const DIAGRAM_ARROWS = "re:diagram_arrows";
+const DIAGRAM_ARROW_CLASSES = "re:diagram_arrow_classes";
 const DIAGRAM_ARROW_COORDS = "re:diagram_arrow_coords";
 function renderDiagrams (graph, options) {
   if (graph[DIAGRAMS] === undefined) { return; }
@@ -787,13 +788,13 @@ function renderDiagrams (graph, options) {
   Array.from(graph[DIAGRAMS]).forEach((instruction) => {
     if (DIAGRAM_LINES in instruction === true) {
       instruction[DIAGRAM_LINES].forEach((crease) => {
-        const creaseClass = (DIAGRAM_LINE_CLASSES in crease)
+        const creaseClasses = (DIAGRAM_LINE_CLASSES in crease)
           ? crease[DIAGRAM_LINE_CLASSES].join(" ")
           : "valley";
         const pts = crease[DIAGRAM_LINE_COORDS];
         if (pts !== undefined) {
           const l = line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
-          l.setAttribute("class", creaseClass);
+          l.setAttribute("class", creaseClasses);
           diagrams.push(l);
         }
       });
@@ -801,9 +802,9 @@ function renderDiagrams (graph, options) {
     if (DIAGRAM_ARROWS in instruction === true) {
       const r = bounding_rect(graph);
       const vmin = r[2] > r[3] ? r[3] : r[2];
-      instruction[DIAGRAM_ARROWS].forEach((arrowInst) => {
-        if (arrowInst[DIAGRAM_ARROW_COORDS].length === 2) {
-          const p = arrowInst[DIAGRAM_ARROW_COORDS];
+      instruction[DIAGRAM_ARROWS].forEach((arrowObject) => {
+        if (arrowObject[DIAGRAM_ARROW_COORDS].length === 2) {
+          const p = arrowObject[DIAGRAM_ARROW_COORDS];
           let side = p[0][0] < p[1][0];
           if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
             side = p[0][1] < p[1][1] ? p[0][0] < 0.5 : p[0][0] > 0.5;
@@ -811,12 +812,17 @@ function renderDiagrams (graph, options) {
           if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
             side = p[0][0] < p[1][0] ? p[0][1] > 0.5 : p[0][1] < 0.5;
           }
-          diagrams.push(arrow(p[0], p[1])
+          const a = arrow(p[0], p[1])
             .stroke("black")
             .fill("black")
             .strokeWidth(vmin * 0.02)
             .head({ width: vmin * 0.035, height: vmin * 0.09 })
-            .curve(side ? 0.3 : -0.3));
+            .curve(side ? 0.3 : -0.3);
+          const arrowClasses = (DIAGRAM_ARROW_CLASSES in arrowObject)
+            ? ["arrow"].concat(arrowObject[DIAGRAM_ARROW_CLASSES]).join(" ")
+            : "arrow";
+          a.setAttribute("class", arrowClasses);
+          diagrams.push(a);
         }
       });
     }
@@ -875,6 +881,23 @@ const makeDefaults = (vmin = 1) => recursive_freeze({
       stroke: "none",
       fill: "black",
       r: vmin / 200
+    },
+    diagrams: {
+      lines: {
+        valley: {
+          stroke: "blue",
+          "stroke-width": vmin / 100,
+          "stroke-dasharray": `${vmin / 50} ${vmin / 100}`
+        },
+        mountain: {
+          stroke: "red",
+          "stroke-width": vmin / 100,
+          "stroke-dasharray": `${vmin / 50} ${vmin / 100}`
+        }
+      },
+      arrows: {
+        valley: { stroke: "black", fill: "black" }
+      }
     }
   }
 });
@@ -883,7 +906,7 @@ const recursiveAssign = function (target, source) {
     if (typeof source[key] === "object" && source[key] !== null) {
       if (!(key in target)) { target[key] = {}; }
       recursiveAssign(target[key], source[key]);
-    } else if (!(key in target)) {
+    } else if (typeof target === "object" && !(key in target)) {
       target[key] = source[key];
     }
   });
@@ -964,6 +987,20 @@ const fold_to_svg = function (input, options = {}) {
   if (groups.boundaries) {
     Object.keys(options.attributes.boundaries)
       .forEach(key => groups.boundaries.setAttribute(key, options.attributes.boundaries[key]));
+  }
+  if (groups.diagrams) {
+    Object.keys(options.attributes.diagrams.lines).forEach(key =>
+      Array.from(groups.diagrams.childNodes)
+        .filter(el => el.tagName === "line")
+        .filter(el => el.getAttribute("class").includes(key))
+        .forEach(child => Object.keys(options.attributes.diagrams.lines[key])
+          .forEach(attr => child.setAttribute(attr, options.attributes.diagrams.lines[key][attr]))));
+    Object.keys(options.attributes.diagrams.arrows).forEach(key =>
+      Array.from(groups.diagrams.childNodes)
+        .filter(el => el.getAttribute("class").includes("arrow"))
+        .filter(el => el.getAttribute("class").includes(key))
+        .forEach(child => Object.keys(options.attributes.diagrams.arrows[key])
+          .forEach(attr => child.setAttribute(attr, options.attributes.diagrams.arrows[key][attr]))));
   }
   if (options.output === "svg") { return svg$1; }
   const stringified = (new win.XMLSerializer()).serializeToString(svg$1);

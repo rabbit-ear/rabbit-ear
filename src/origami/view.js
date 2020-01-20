@@ -8,28 +8,6 @@ import {
 import window from "../environment/window";
 import touchToFold from "./touchToFold";
 
-// const DEFAULTS = Object.freeze({
-//   // are layers visible
-//   // if a group is invisible the system will skip drawing and save time
-//   boundaries: true,
-//   faces: true,
-//   edges: true,
-//   vertices: false,
-//   diagram: false,
-//   labels: false,
-//   debug: false,
-//   // delaunay: false,
-//   // options
-//   autofit: true,
-//   padding: 0,
-//   // shadows: false,
-//   // style
-//   strokeWidth: 0.01, // as a percent of the page.
-//   // added recently
-//   style: undefined,
-//   arrowColor: undefined,
-// });
-
 const FoldToSvgOptionKeys = [
   "input", "output", "padding", "file_frame", "stylesheet", "shadows",
   "diagrams", "boundaries", "faces", "edges", "vertices", "attributes"
@@ -86,7 +64,7 @@ const SVGView = function (origami, ...args) {
   const options = argumentOptions == null
     ? { output: "svg" }
     : Object.assign(argumentOptions, { output: "svg" });
-  const layerNames = ["boundaries", "edges", "faces", "vertices"];
+  const layerNames = ["boundaries", "edges", "faces", "vertices", "diagrams"];
 
   const fit = function () {
     const r = bounding_rect(origami);
@@ -129,10 +107,7 @@ const SVGView = function (origami, ...args) {
   // view specific initializers
   fit();
   draw();
-  origami.changed.handlers.push((caller) => {
-    // console.log("handler: ", typeof caller === "function" ? caller.name : "");
-    draw();
-  });
+  origami.changed.handlers.push(caller => draw());
   Object.defineProperty(origami, "draw", { value: draw });  // todo: do we want this?
   Object.defineProperty(origami, "svg", { get: () => svg });
 
@@ -156,10 +131,7 @@ const SVGView = function (origami, ...args) {
 const View = function (origami, ...args) {
   switch (parseOptionsForView(...args)) {
     case "svg": SVGView(origami, ...args); break;
-    case "webgl":
-      // view = glView(origami, ...args);
-      // Object.defineProperty(origami, "canvas", { get: () => view });
-    break;
+    // case "webgl": GLView(origami, ...args); break;
   }
 
 };

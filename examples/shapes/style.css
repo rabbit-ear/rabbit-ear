@@ -1,0 +1,22 @@
+html, body {
+	width: 100%;
+	height: 100%;
+}
+body {
+	margin: 0;
+	display: grid;
+	grid-template-rows: 50% 50%;
+	grid-template-columns: 1fr 1fr 1fr;
+	background-color: #158;
+}
+svg {
+	width: 100%;
+	height: 100%;
+}
+
+@media not all and (hover), (max-aspect-ratio: 1/1) {
+	body {
+		grid-template-rows: 1fr 1fr 1fr;
+		grid-template-columns: 1fr 1fr;
+	}
+}

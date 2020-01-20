@@ -1,0 +1,55 @@
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+svg {
+	width: 100%;
+	height: 100%;
+}
+
+svg * {
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke: black;
+}
+
+polygon {
+	fill: none;
+	stroke: none;
+	stroke-linejoin: bevel;
+}
+
+.boundary {
+	fill: linen;
+}
+
+.valley{
+	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
+}
+.mark {
+	stroke-width: calc( var(--crease-width) * 0.25);
+}
+
+.foldedForm .faces polygon {
+	fill: rgba(220, 10, 100, 0.2);
+	stroke: rgba(0, 0, 0, 0.2);
+}
+
+.foldedForm .faces .front {
+	fill: linen;
+	stroke: black;
+}
+
+.foldedForm .faces .back {
+	fill: peru;
+	stroke: black;
+}
+
+.foldedForm .creases line {
+	stroke: none;
+}

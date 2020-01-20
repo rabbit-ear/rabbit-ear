@@ -19,6 +19,7 @@ import {
 import prototype from "../graph/prototype";
 import { get_assignment } from "./args";
 import MakeFold from "../fold-through-all/index";
+import build_diagram_frame from "../diagram/diagram_frame";
 
 const FOLDED_FORM = "foldedForm";
 const CREASE_PATTERN = "creasePattern";
@@ -174,15 +175,15 @@ const Origami = function (...args) {
 
     Object.keys(folded).forEach((key) => { origami[key] = folded[key]; });
 
-    // if ("re:construction" in origami === true) {
-    //   if (objects.length > 0 && "axiom" in objects[0] === true) {
-    //     origami["re:construction"].axiom = objects[0].axiom;
-    //     origami["re:construction"].parameters = objects[0].parameters;
-    //   }
-      // origami["re:diagrams"] = [
-      //  Diagram.build_diagram_frame(origami)
-      // ];
-    // }
+    if ("re:construction" in origami === true) {
+      if (objects.length > 0 && "axiom" in objects[0] === true) {
+        origami["re:construction"].axiom = objects[0].axiom;
+        origami["re:construction"].parameters = objects[0].parameters;
+      }
+      origami["re:diagrams"] = [
+       build_diagram_frame(origami)
+      ];
+    }
     // todo, need to grab the crease somehow
     // const crease = component.crease(origami, [diff.edges_new[0] - edges_remove_count]);
     // didModifyGraph();
@@ -253,9 +254,9 @@ const Origami = function (...args) {
   return origami;
 };
 
-Origami.empty = () => Origami(Create.empty());
-Origami.square = () => Origami(Create.square());
-Origami.rectangle = (width, height) => Origami(Create.rectangle(width, height));
-Origami.regularPolygon = (sides = 3, radius = 1) => Origami(Create.regular_polygon(sides, radius));
+Origami.empty = (...args) => Origami(Create.empty(), ...args);
+Origami.square = (...args) => Origami(Create.square(), ...args);
+Origami.rectangle = (width, height, ...args) => Origami(Create.rectangle(width, height), ...args);
+Origami.regularPolygon = (sides = 3, radius = 1, ...args) => Origami(Create.regular_polygon(sides, radius), ...args);
 
 export default Origami;
