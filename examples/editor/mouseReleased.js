@@ -42,7 +42,7 @@ const MouseReleased = function () {
         app.cache("crease point to point\n");
         RabbitEar.axiom(2, start[0], start[1], end[0], end[1])
           .solutions
-          .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+          .forEach(s => app.origami.fold(s[0][0], s[0][1], s[1][0], s[1][1]));
         app.origami.fragment();
         app.origami.clean({ collinear: true, isolated: true });
         app.origami.populate();
@@ -62,7 +62,7 @@ const MouseReleased = function () {
           app.cache("crease angle bisector\n");
           RabbitEar.axiom(3, a0[0], a0[1], aVec[0], aVec[1], b0[0], b0[1], bVec[0], bVec[1])
             .solutions
-            .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+            .forEach(s => app.origami.fold(s[0][0], s[0][1], s[1][0], s[1][1]));
           app.origami.fragment();
           app.origami.clean({ collinear: true, isolated: true });
           app.origami.populate();
@@ -94,7 +94,7 @@ const MouseReleased = function () {
 
         RabbitEar.axiom(4, nearestA, nearEdgeVec, end)
           .solutions
-          .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+          .forEach(s => app.origami.fold(s[0][0], s[0][1], s[1][0], s[1][1]));
         app.origami.fragment();
         app.origami.clean({ collinear: true, isolated: true });
         app.origami.populate();
@@ -114,7 +114,7 @@ const MouseReleased = function () {
           RabbitEar.core.remove(app.origami, "edges", [app.nearest.edge.index]);
           app.origami.clean({ collinear: true, isolated: true });
           app.origami.populate();
-          app.origami.svg.draw();
+          app.origami.draw();
         }
         // app.tapLayer.rect(...app.dragRect)
         //   .fill("none")

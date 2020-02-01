@@ -1,8 +1,15 @@
-:root{ --crease-width: 0.01; }
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
 
-svg{
-	width:40vmax;
-	height:40vmax;
+svg {
+	width: 100%;
+	height: 100%;
 }
 
 svg * {
@@ -18,8 +25,7 @@ polygon {
 }
 
 .boundary {
-	fill: none;
-	stroke: none;
+	fill: linen;
 }
 
 .valley{
@@ -29,23 +35,21 @@ polygon {
 	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
-.creasePattern .boundary {
-	stroke: black;
+.foldedForm .faces polygon {
+	fill: rgba(220, 10, 100, 0.2);
+	stroke: rgba(0, 0, 0, 0.2);
+}
+
+.foldedForm .faces .front {
 	fill: linen;
-}
-
-.foldedForm #faces polygon {
 	stroke: black;
 }
 
-.foldedForm #faces .front {
+.foldedForm .faces .back {
 	fill: peru;
+	stroke: black;
 }
 
-.foldedForm #faces .back {
-	fill: linen;
-}
-
-.foldedForm #creases line {
+.foldedForm .creases line {
 	stroke: none;
 }

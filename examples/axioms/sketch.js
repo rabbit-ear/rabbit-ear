@@ -1,7 +1,10 @@
 const { RabbitEar } = window;
-const patternStyle = ".creasePattern .valley { stroke: black; }";
-const origami = RabbitEar.origami("origami-cp", { padding: 0.05, diagram: true, style: patternStyle });
-const folded = RabbitEar.origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
+const origami = RabbitEar.origami("origami-cp", {
+  padding: 0.05, diagram: true, attributes: { edges: { valley: { stroke: "black"}, mountain: { stroke: "black"}}}
+});
+const folded = RabbitEar.origami("origami-fold", {
+  padding: 0.05
+}); // ,shadows:true});
 
 folded.fold();
 
@@ -18,7 +21,8 @@ origami.subSelect = 0; // some axioms have 2 or 3 results
 origami.polygonBoundary = RabbitEar.polygon(origami.boundaries[0].vertices
   .map(v => origami.vertices_coords[v]));
 
-// a lookup for expected parameters in axiom() func. is param a point or line?
+// a lookup for expected parameters in axiom() function.
+// is the input parameter a line (or point, if false)?
 origami.paramIsLine = [null,
   [false, false],
   [false, false],
@@ -178,14 +182,17 @@ origami.update = function () {
   }
 
   origami.drawAxiomHelperLines(axiomFrame.valid ? "#eb3" : "#d42");
-  origami.options.arrowColor = axiomFrame.valid ? "black" : "#d42";
+  // todo diagram style
+  // origami.options.arrowColor = axiomFrame.valid ? "black" : "#d42";
+
   if (axiomFrame.valid === false) {
     origami.cannotFold();
   } // else { }
 
-  origami.options.styleSheet = (axiomFrame.valid
-    ? undefined
-    : `.valley { stroke: ${"#d42"}; }`);
+  // todo diagram style
+  // origami.options.styleSheet = (axiomFrame.valid
+  //   ? undefined
+  //   : `.valley { stroke: ${"#d42"}; }`);
 
   // helper indicators for passing / failing a test
   if (axiomFrame.test !== undefined) {
@@ -215,9 +222,9 @@ origami.update = function () {
     axiomFrame.solutions
       .filter((s, i) => i !== origami.subSelect
         && axiomFrame.valid_solutions[i] != null)
-      .map(m => origami.crease(m[0], m[1], "F"));
+      .map(m => origami.fold(m[0], m[1], "F"));
 
-    origami.crease(axiomFrame.solutions[origami.subSelect]);
+    origami.fold(axiomFrame.solutions[origami.subSelect]);
     origami.controls = controls;
     Object.assign(origami["re:construction"], axiomFrame);
     const diagram = RabbitEar.core.build_diagram_frame(origami);
@@ -226,7 +233,7 @@ origami.update = function () {
     document.querySelector("#instructions-p").innerHTML = instruction;
   }
 
-  origami.svg.draw();
+  origami.draw();
   folded.load(origami.copy());
   folded.fold();
 };

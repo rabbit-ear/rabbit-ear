@@ -43,6 +43,7 @@ const clean = function (graph, options) {
   if (options.circular === true) { removeCircularEdges(graph); }
   if (options.duplicate === true) { removeDuplicateEdges(graph); }
   if (options.collinear === true) {
+    console.log("collinear is true");
     // collinear vertices needs to re-run circular and duplicate edges.
     remove_all_collinear_vertices(graph);
     if (options.circular === true) { removeCircularEdges(graph); }

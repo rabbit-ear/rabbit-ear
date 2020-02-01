@@ -7,7 +7,6 @@ import MakeFold from "../fold-through-all/index";
 import addEdge from "../FOLD/add_edge";
 import split_face from "../FOLD/split_face";
 import rebuild from "../FOLD/rebuild";
-import { get_boundary } from "../FOLD/boundary";
 import { clone } from "../FOLD/object";
 import { kawasaki_collapse } from "../kawasaki/index";
 import { get_assignment } from "./args";
@@ -39,42 +38,6 @@ const get_mark_options = function (...args) {
     : Object.assign(clone(MARK_DEFAULTS), options);
 };
 
-const boundary_methods = function (boundaries) {
-  const that = this;
-  const clip = function (type, ...args) {
-    let p;
-    let l;
-    switch (type) {
-      case "edge": p = math.core.get_vector_of_vectors(...args); break;
-      default: // ray and line use the same
-        l = math.core.get_line(...args);
-        p = [l.origin, l.vector];
-        break;
-    }
-    const func = {
-      line: math.core.intersection.convex_poly_line,
-      ray: math.core.intersection.convex_poly_ray,
-      edge: math.core.intersection.convex_poly_segment
-    };
-    return boundaries
-      .map(b => b.vertices.map(v => that.vertices_coords[v]))
-      .map(b => func[type](b, ...p))
-      .filter(segment => segment !== undefined);
-  };
-  boundaries.clipLine = function (...args) { return clip("line", ...args); };
-  boundaries.clipRay = function (...args) { return clip("ray", ...args); };
-  boundaries.clipSegment = function (...args) { return clip("edge", ...args); };
-  return boundaries;
-};
-
-
-
-
-const getBoundaries = function () {
-  // todo: this only works for unfolded flat crease patterns
-  // todo: this doesn't get multiple boundaries yet
-  return boundary_methods.call(this, [get_boundary(this)]);
-};
 
 
 proto.segment = function (...args) {
@@ -209,6 +172,3 @@ proto.kawasaki = function (...args) {
   const crease = kawasaki_collapse(this, ...args);
   return crease;
 };
-
-Object.defineProperty(proto, "boundaries", { get: getBoundaries });
-

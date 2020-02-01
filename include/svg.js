@@ -4,6 +4,7 @@ const isBrowser = typeof window !== "undefined"
 const isNode = typeof process !== "undefined"
   && process.versions != null
   && process.versions.node != null;
+
 const htmlString = "<!DOCTYPE html><title> </title>";
 const win = (function () {
   let w = {};
@@ -17,6 +18,7 @@ const win = (function () {
   }
   return w;
 }());
+
 function vkXML (text, step) {
   const ar = text.replace(/>\s{0,}</g, "><")
     .replace(/</g, "~::~<")
@@ -66,7 +68,9 @@ function vkXML (text, step) {
   }
   return (str[0] === "\n") ? str.slice(1) : str;
 }
+
 var NS = "http://www.w3.org/2000/svg";
+
 const downloadInBrowser = function (filename, contentsAsString) {
   const blob = new win.Blob([contentsAsString], { type: "text/plain" });
   const a = win.document.createElement("a");
@@ -156,11 +160,13 @@ const load = function (input, callback) {
     return input;
   }
 };
+
 var File = /*#__PURE__*/Object.freeze({
   __proto__: null,
   save: save,
   load: load
 });
+
 const bindSVGMethodsTo = function (svg, environment) {
   Object.getOwnPropertyNames(svg)
     .filter(p => typeof svg[p] === "function")
@@ -203,6 +209,7 @@ const globalize = function (svg, ...args) {
   bindSVGMethodsTo(element, win);
   return element;
 };
+
 const getViewBox = function (svg) {
   const vb = svg.getAttribute("viewBox");
   return (vb == null
@@ -267,6 +274,7 @@ const scaleViewBox = function (svg, scale, origin_x = 0, origin_y = 0) {
     new_bot_right.x - new_top_left.x,
     new_bot_right.y - new_top_left.y);
 };
+
 var ViewBox = /*#__PURE__*/Object.freeze({
   __proto__: null,
   getViewBox: getViewBox,
@@ -275,6 +283,7 @@ var ViewBox = /*#__PURE__*/Object.freeze({
   translateViewBox: translateViewBox,
   scaleViewBox: scaleViewBox
 });
+
 const Pointer = function (node) {
   const pointer = Object.create(null);
   Object.assign(pointer, {
@@ -338,6 +347,7 @@ const Pointer = function (node) {
   Object.defineProperty(thisPointer, "get", { value: copyPointer });
   return thisPointer;
 };
+
 const Touches = function (node) {
   const pointer = Pointer(node);
   const handlers = {
@@ -347,7 +357,10 @@ const Touches = function (node) {
     touchstart: [],
     mouseup: [],
     touchend: [],
-    scroll: []
+    scroll: [],
+    mouseleave: [],
+    mouseover: [],
+    touchcancel: []
   };
   const clear = () => {
     Object.keys(handlers)
@@ -455,6 +468,7 @@ const Touches = function (node) {
     pointer
   };
 };
+
 const DEFAULT_DELAY = 1000 / 60;
 const Animate = function (node) {
   const timers = [];
@@ -510,6 +524,7 @@ const Animate = function (node) {
     setFPS
   };
 };
+
 const Events = function (node) {
   const animate = Animate(node);
   const touches = Touches(node);
@@ -529,6 +544,7 @@ const Events = function (node) {
     enumerated: true
   });
 };
+
 const controlPoint = function (parent, options = {}) {
   const position = [0, 0];
   let selected = false;
@@ -690,6 +706,7 @@ const controls = function (svg, number, options) {
   };
   return points;
 };
+
 const is_iterable = obj => obj != null
   && typeof obj[Symbol.iterator] === "function";
 const flatten_input = function (...args) {
@@ -707,6 +724,7 @@ const flatten_input = function (...args) {
         .reduce((a, b) => a.concat(b), []);
   }
 };
+
 const setPoints = function (shape, ...pointsArray) {
   const flat = flatten_input(...pointsArray);
   let pointsString = "";
@@ -921,6 +939,7 @@ const setArrowPoints = function (shape, ...args) {
   }
   return shape;
 };
+
 var geometryMods = /*#__PURE__*/Object.freeze({
   __proto__: null,
   setPoints: setPoints,
@@ -931,6 +950,7 @@ var geometryMods = /*#__PURE__*/Object.freeze({
   setBezier: setBezier,
   setArrowPoints: setArrowPoints
 });
+
 var attributes = [
   "accumulate",
   "additive",
@@ -1144,6 +1164,7 @@ var attributes = [
   "yChannelSelector",
   "ZSection",
 ];
+
 const removeChildren = function (parent) {
   while (parent.lastChild) {
     parent.removeChild(parent.lastChild);
@@ -1198,6 +1219,7 @@ const setID = function (xmlNode, idName) {
   xmlNode.setAttributeNS(null, "id", idName);
   return xmlNode;
 };
+
 var DOM = /*#__PURE__*/Object.freeze({
   __proto__: null,
   removeChildren: removeChildren,
@@ -1208,6 +1230,7 @@ var DOM = /*#__PURE__*/Object.freeze({
   setClass: setClass,
   setID: setID
 });
+
 const setTransform = function (element, transform) {
   if (typeof transform === "object") {
     element.setAttribute("transform", transform.join(" "));
@@ -1243,6 +1266,7 @@ const clearTransforms = function (element) {
   element.setAttribute("transform", "");
   return element;
 };
+
 var Transform = /*#__PURE__*/Object.freeze({
   __proto__: null,
   translate: translate,
@@ -1250,6 +1274,7 @@ var Transform = /*#__PURE__*/Object.freeze({
   scale: scale,
   clearTransforms: clearTransforms
 });
+
 const d = function (element) {
   let attr = element.getAttribute("d");
   if (attr == null) { attr = ""; }
@@ -1284,6 +1309,7 @@ const clear = (element) => {
   element.setAttribute("d", "");
   return element;
 };
+
 var Path = /*#__PURE__*/Object.freeze({
   __proto__: null,
   command: command,
@@ -1308,6 +1334,7 @@ var Path = /*#__PURE__*/Object.freeze({
   close: close,
   clear: clear
 });
+
 const attachStyleMethods = function (element) {
   element.appendTo = arg => appendTo(element, arg);
 };
@@ -1444,6 +1471,7 @@ const attachClipMaskAttributes = function (element) {
     };
   }
 };
+
 const preparePrimitive = function (element) {
   attachFunctionalStyleSetters(element);
   attachDOMMethods(element);
@@ -1505,6 +1533,7 @@ const prepare = function (type, element, primitiveList) {
     default: console.warn("prepare missing valid type (svg, group.."); break;
   }
 };
+
 const line = function (...endpoints) {
   const shape = win.document.createElementNS(NS, "line");
   setLinePoints(shape, ...endpoints);
@@ -1657,6 +1686,7 @@ const arrow = function (...args) {
   shape.setPoints = (...a) => setArrowPoints(shape, ...a);
   return shape;
 };
+
 var primitives = /*#__PURE__*/Object.freeze({
   __proto__: null,
   line: line,
@@ -1677,6 +1707,7 @@ var primitives = /*#__PURE__*/Object.freeze({
   roundRect: roundRect,
   arrow: arrow
 });
+
 const constructorsSVG = {};
 const constructorsGroup = {};
 const abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -1746,6 +1777,7 @@ const setConstructors = function (elements) {
     .filter(key => key !== "mask")
     .forEach((key) => { constructorsGroup[key] = elements[key]; });
 };
+
 var root = /*#__PURE__*/Object.freeze({
   __proto__: null,
   setConstructors: setConstructors,
@@ -1757,6 +1789,7 @@ var root = /*#__PURE__*/Object.freeze({
   style: style,
   createElement: createElement
 });
+
 const ElementConstructor = (new win.DOMParser())
   .parseFromString("<div />", "text/xml").documentElement.constructor;
 const findWindowBooleanParam = function (...params) {
@@ -1930,6 +1963,7 @@ const SVG = function (...params) {
   }
   return element;
 };
+
 const constructors = {};
 Object.assign(constructors, root, primitives);
 delete constructors.setConstructors;
@@ -1940,9 +1974,11 @@ Object.keys(root)
   .filter(key => key !== "setConstructors")
   .forEach((key) => { elements[key] = root[key]; });
 delete elements.svg;
+
 Object.keys(elements).forEach((key) => { SVG[key] = elements[key]; });
 Object.keys(geometryMods).forEach((key) => { SVG[key] = geometryMods[key]; });
 Object.keys(ViewBox).forEach((key) => { SVG[key] = ViewBox[key]; });
 Object.keys(File).forEach((key) => { SVG[key] = File[key]; });
 SVG.NS = NS;
+
 export default SVG;

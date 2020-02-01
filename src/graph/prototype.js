@@ -14,6 +14,7 @@ import clean from "../FOLD/clean";
 import join from "../FOLD/join";
 import rebuild from "../FOLD/rebuild";
 import populate from "../FOLD/populate";
+import { bounding_rect } from "../FOLD/boundary";
 import * as Transform from "../FOLD/affine";
 import {
   nearest_vertex,
@@ -132,8 +133,8 @@ const Prototype = function (proto = {}) {
   /**
    * modifiers
    */
-  proto.clean = function () {
-    clean(this);
+  proto.clean = function (options) {
+    clean(this, options);
     this.changed.update(this.clean);
   };
   proto.populate = function () {
@@ -183,6 +184,9 @@ const Prototype = function (proto = {}) {
     faces.forEach(setup_face.bind(this));
     return faces;
   };
+  const getBounds = function () {
+    return math.rectangle(...bounding_rect(this));
+  }
   /**
    * graph components based on Euclidean distance
    */
@@ -225,6 +229,7 @@ const Prototype = function (proto = {}) {
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });
   Object.defineProperty(proto, "faces", { get: getFaces });
+  Object.defineProperty(proto, "bounds", { get: getBounds });
   return Object.freeze(proto);
 };
 

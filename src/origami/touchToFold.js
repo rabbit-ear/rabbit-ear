@@ -36,8 +36,12 @@ const setup = function (origami, svg) {
   let touchFaceIndex = 0; // which faces the user touched, to begin folding
   let cachedGraph = clone(origami);
   let was_folded = origami.isFolded;
-  // svg.events.addEventListener("onMouseDown", (mouse) => {
+  let viewBox = svg.getViewBox();
+
+  svg.mouseReleased = mouse => undefined;
+
   svg.mousePressed = (mouse) => {
+    viewBox = svg.getViewBox();
     was_folded = origami.isFolded;
     cachedGraph = clone(origami);
     const param = {
@@ -75,10 +79,10 @@ const setup = function (origami, svg) {
         origami["vertices_re:unfoldedCoords"] = origami.vertices_coords;
         origami.vertices_coords = origami["vertices_re:foldedCoords"];
         delete origami["vertices_re:foldedCoords"];
-        // fold() sould trigger redraw
+        // fold() should trigger redraw
         origami.draw();
         // no-resizing
-        origami.svg.setViewBox(-0.01, -0.01, 1.02, 1.02);
+        svg.setViewBox(...viewBox);
       }
     }
   };

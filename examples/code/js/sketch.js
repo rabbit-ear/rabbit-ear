@@ -1,17 +1,23 @@
 document.addEventListener("DOMContentLoaded", function () {
   var app = LiveCode(document.querySelector("#app"));
 
-  var origami = RabbitEar.origami(document.querySelectorAll(".canvas-container")[0], {
+  var origami = RabbitEar.origami(app.dom.canvas, {
     padding: 0.05
   });
 
   app.didPause = function (paused) { };
   app.didUpdate = function () { };
   app.reset = function () {
-    origami.clear();
+    origami.load(RabbitEar.bases.square);
   };
 
   var pts = [];
+
+  origami.svg.mouseMoved = function (mouse) {
+    var nearest = origami.nearest(mouse);
+    console.log(nearest);
+
+  };
 
   origami.svg.mousePressed = function (mouse) {
     pts.push(mouse);

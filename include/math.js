@@ -48,7 +48,6 @@ const distance = function (a, b) {
   return Math.sqrt(sum);
 };
 const midpoint2 = (a, b) => a.map((_, i) => (a[i] + b[i]) / 2);
-
 var algebra = /*#__PURE__*/Object.freeze({
   __proto__: null,
   magnitude: magnitude,
@@ -62,7 +61,6 @@ var algebra = /*#__PURE__*/Object.freeze({
   distance: distance,
   midpoint2: midpoint2
 });
-
 const multiply_matrix2_vector2 = function (matrix, vector) {
   return [
     matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
@@ -147,7 +145,6 @@ const make_matrix2_reflection = function (vector, origin = [0, 0]) {
   const ty = origin[1] + b * -origin[0] + -origin[1] * d;
   return [a, b, c, d, tx, ty];
 };
-
 var matrix2_core = /*#__PURE__*/Object.freeze({
   __proto__: null,
   multiply_matrix2_vector2: multiply_matrix2_vector2,
@@ -160,7 +157,6 @@ var matrix2_core = /*#__PURE__*/Object.freeze({
   make_matrix2_rotate: make_matrix2_rotate,
   make_matrix2_reflection: make_matrix2_reflection
 });
-
 const multiply_matrix3_vector3 = function (m, vector) {
   return [
     m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
@@ -303,7 +299,6 @@ const make_matrix3_reflectionZ = function (vector, origin = [0, 0]) {
   const ty = origin[1] + b * -origin[0] + -origin[1] * d;
   return [a, b, 0, c, d, 0, 0, 0, 0, tx, ty, 0];
 };
-
 var matrix3_core = /*#__PURE__*/Object.freeze({
   __proto__: null,
   multiply_matrix3_vector3: multiply_matrix3_vector3,
@@ -319,7 +314,6 @@ var matrix3_core = /*#__PURE__*/Object.freeze({
   make_matrix3_scale: make_matrix3_scale,
   make_matrix3_reflectionZ: make_matrix3_reflectionZ
 });
-
 const countPlaces = function (num) {
   const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
   if (!m) { return 0; }
@@ -509,7 +503,6 @@ function get_array_of_vec2() {
   }
   return params;
 }
-
 const EPSILON = 1e-6;
 const array_similarity_test = function (list, compFunc) {
   return Array
@@ -568,7 +561,6 @@ const equivalent = function (...args) {
   }
   return false;
 };
-
 var equal = /*#__PURE__*/Object.freeze({
   __proto__: null,
   EPSILON: EPSILON,
@@ -576,7 +568,6 @@ var equal = /*#__PURE__*/Object.freeze({
   equivalent_vectors: equivalent_vectors,
   equivalent: equivalent
 });
-
 const overlap_function = function (aPt, aVec, bPt, bVec, compFunc) {
   const det = (a, b) => a[0] * b[1] - b[0] * a[1];
   const denominator0 = det(aVec, bVec);
@@ -683,7 +674,6 @@ const is_counter_clockwise_between = function (angle, angleA, angleB) {
   while (angle < angleA) { angle += Math.PI * 2; }
   return angle < angleB;
 };
-
 var query = /*#__PURE__*/Object.freeze({
   __proto__: null,
   overlap_function: overlap_function,
@@ -700,7 +690,6 @@ var query = /*#__PURE__*/Object.freeze({
   convex_polygons_enclose: convex_polygons_enclose,
   is_counter_clockwise_between: is_counter_clockwise_between
 });
-
 const line_line_comp = () => true;
 const line_ray_comp = (t0, t1) => t1 >= -EPSILON;
 const line_segment_comp = (t0, t1) => t1 >= -EPSILON && t1 <= 1 + EPSILON;
@@ -954,7 +943,6 @@ const convex_poly_ray_exclusive = function (poly, linePoint, lineVector) {
       return undefined;
   }
 };
-
 var intersection = /*#__PURE__*/Object.freeze({
   __proto__: null,
   limit_line: limit_line,
@@ -980,7 +968,6 @@ var intersection = /*#__PURE__*/Object.freeze({
   convex_poly_segment: convex_poly_segment,
   convex_poly_ray_exclusive: convex_poly_ray_exclusive
 });
-
 const clockwise_angle2_radians = function (a, b) {
   while (a < 0) { a += Math.PI * 2; }
   while (b < 0) { b += Math.PI * 2; }
@@ -1242,7 +1229,6 @@ const convex_hull = function (points, include_collinear = false, epsilon = EPSIL
   } while (infiniteLoop < INFINITE_LOOP);
   return undefined;
 };
-
 var geometry = /*#__PURE__*/Object.freeze({
   __proto__: null,
   clockwise_angle2_radians: clockwise_angle2_radians,
@@ -1267,7 +1253,6 @@ var geometry = /*#__PURE__*/Object.freeze({
   split_convex_polygon: split_convex_polygon,
   convex_hull: convex_hull
 });
-
 const VectorPrototype = function (subtype) {
   const proto = [];
   const Type = subtype;
@@ -1390,7 +1375,6 @@ const VectorPrototype = function (subtype) {
   Object.defineProperty(proto, "bind", { value: bind });
   return proto;
 };
-
 const Vector = function (...args) {
   const proto = VectorPrototype(Vector);
   const vector = Object.create(proto);
@@ -1404,7 +1388,6 @@ const Vector = function (...args) {
 Vector.withAngle = function (angle) {
   return Vector(Math.cos(angle), Math.sin(angle));
 };
-
 const Matrix2 = function (...args) {
   const matrix = [1, 0, 0, 1, 0, 0];
   const argsMatrix = get_matrix2(args);
@@ -1582,7 +1565,6 @@ Matrix.makeScale = (amount, origin) => Matrix(
 Matrix.makeReflectionZ = (vector, origin) => Matrix(
   make_matrix3_reflectionZ(vector, origin).map(n => clean_number(n, 13))
 );
-
 function Prototype (subtype, prototype) {
   const proto = (prototype != null) ? prototype : {};
   const compare_to_line = function (t0, t1, epsilon = EPSILON) {
@@ -1662,7 +1644,6 @@ function Prototype (subtype, prototype) {
   Object.defineProperty(proto, "bisectSegment", { value: bisectSegment });
   return Object.freeze(proto);
 }
-
 const Line = function (...args) {
   const { origin, vector } = get_line(args);
   const transform = function (...innerArgs) {
@@ -1702,7 +1683,6 @@ Line.perpendicularBisector = function (...args) {
     vector: [vec[1], -vec[0]],
   });
 };
-
 const Ray = function (...args) {
   const { origin, vector } = get_line(args);
   const transform = function (...innerArgs) {
@@ -1738,7 +1718,6 @@ Ray.fromPoints = function (...args) {
     ]),
   });
 };
-
 const Segment = function (...args) {
   const inputs = get_two_vec2(args);
   const proto = Prototype.bind(this);
@@ -1778,7 +1757,6 @@ const Segment = function (...args) {
   });
   return segment;
 };
-
 const Circle = function (...args) {
   let origin;
   let radius;
@@ -1814,7 +1792,6 @@ const Circle = function (...args) {
     set radius(newRadius) { radius = newRadius; },
   };
 };
-
 const Sector = function (vectorA, vectorB, center = [0, 0]) {
   const vectors = [get_vector(vectorA), get_vector(vectorB)];
   const bisect = function () {
@@ -1850,7 +1827,6 @@ Sector.fromPoints = function (pointA, pointB, center = [0, 0]) {
   const vectors = [pointA, pointB].map(p => p.map((_, i) => p[i] - center[i]));
   return Sector(vectors[0], vectors[1], center);
 };
-
 function Prototype$1 (subtype) {
   const proto = {};
   const Type = subtype;
@@ -1959,7 +1935,6 @@ function Prototype$1 (subtype) {
   Object.defineProperty(proto, "signedArea", { value: area });
   return Object.freeze(proto);
 }
-
 const Polygon = function (...args) {
   const points = get_vector_of_vectors(args).map(p => Vector(p));
   if (points === undefined) { return undefined; }
@@ -1980,7 +1955,6 @@ Polygon.convexHull = function (points, includeCollinear = false) {
   const hull = convex_hull(points, includeCollinear);
   return Polygon(hull);
 };
-
 const ConvexPolygon = function (...args) {
   const points = get_array_of_vec(args).map(p => Vector(p));
   if (points === undefined) { return undefined; }
@@ -2032,7 +2006,6 @@ ConvexPolygon.convexHull = function (points, includeCollinear = false) {
   const hull = convex_hull(points, includeCollinear);
   return ConvexPolygon(hull);
 };
-
 const Rectangle = function (...args) {
   let origin;
   let width;
@@ -2041,13 +2014,13 @@ const Rectangle = function (...args) {
   const numbers = params.filter(param => !isNaN(param));
   let arrays = params.filter(param => param.constructor === Array);
   if (numbers.length === 4) {
-    origin = numbers.slice(0, 2);
+    origin = Vector(numbers.slice(0, 2));
     [, , width, height] = numbers;
   }
   if (arrays.length === 1) { arrays = arrays[0]; }
   if (arrays.length === 2) {
     if (typeof arrays[0][0] === "number") {
-      origin = arrays[0].slice();
+      origin = Vector(arrays[0].slice());
       width = arrays[1][0];
       height = arrays[1][1];
     }
@@ -2083,7 +2056,6 @@ const Rectangle = function (...args) {
   Object.defineProperty(rect, "transform", { value: transform });
   return rect;
 };
-
 const Junction = function (...args) {
   const vectors = get_vector_of_vectors(args);
   if (vectors === undefined) {
@@ -2115,7 +2087,6 @@ Junction.fromPoints = function (center, edge_adjacent_points) {
     .map(p => p.map((_, i) => p[i] - center[i]));
   return Junction.fromVectors(vectors);
 };
-
 const core = Object.create(null);
 Object.assign(core, algebra, matrix2_core, matrix3_core, geometry, query, equal);
 core.clean_number = clean_number;
@@ -2150,5 +2121,4 @@ const math = {
   sector: Sector,
   core,
 };
-
 export default math;

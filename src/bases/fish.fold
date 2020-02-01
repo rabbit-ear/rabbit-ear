@@ -1,11 +1,9 @@
 {
   "file_spec": 1.1,
-  "file_creator": "",
-  "file_author": "",
+  "file_creator": "Rabbit Ear",
   "file_classes": ["singleModel"],
-  "frame_title": "",
-  "frame_classes": ["creasePattern"],
   "frame_attributes": ["2D"],
+  "frame_classes": ["creasePattern"],
   "vertices_coords": [
     [0,0],
     [1,0],

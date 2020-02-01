@@ -3,6 +3,7 @@ var LiveCode = function LiveCode(container) {
   var app = {};
   var isPaused = false;
   var darkMode = true;
+  var zoom = false;
 
   if (document.readyState === "loading") {
     console.warn("LiveCode(): please initialize using DOMContentLoaded");
@@ -14,22 +15,29 @@ var LiveCode = function LiveCode(container) {
     var consoleContainer = document.createElement("div");
     var playPauseButton = document.createElement("div");
     var darkModeButton = document.createElement("div");
-    codeContainer.setAttribute("class", "code-container");
-    canvasContainer.setAttribute("class", "canvas-container");
-    consoleContainer.setAttribute("class", "console");
+    var fontSizeButton = document.createElement("div");
+    codeContainer.setAttribute("class", "code-editor");
+    canvasContainer.setAttribute("class", "code-canvas");
+    consoleContainer.setAttribute("class", "code-console");
     playPauseButton.setAttribute("class", "play-pause-button play");
     darkModeButton.setAttribute("class", "dark-mode-button");
+    fontSizeButton.setAttribute("class", "font-size-button");
+    playPauseButton.setAttribute("title", "Auto-compile");
+    darkModeButton.setAttribute("title", "Dark mode");
+    fontSizeButton.setAttribute("title", "Large / small text");
     appContainer.appendChild(codeContainer);
     appContainer.appendChild(canvasContainer);
     appContainer.appendChild(consoleContainer);
     appContainer.appendChild(playPauseButton);
     appContainer.appendChild(darkModeButton);
+    appContainer.appendChild(fontSizeButton);
     return {
       code: codeContainer,
       canvas: canvasContainer,
       console: consoleContainer,
       playPause: playPauseButton,
-      darkMode: darkModeButton
+      darkMode: darkModeButton,
+      fontSize: fontSizeButton
     };
   };
 
@@ -39,9 +47,9 @@ var LiveCode = function LiveCode(container) {
         app.reset();
       }
       eval(app.editor.getValue());
-      app.console.innerHTML = "";
+      app.dom.console.innerHTML = "";
     } catch (err) {
-      app.console.innerHTML = "<p>" + err + "</p>";
+      app.dom.console.innerHTML = "<p>" + err + "</p>";
     }
     if (typeof app.didUpdate === "function") {
       app.didUpdate();
@@ -106,12 +114,11 @@ var LiveCode = function LiveCode(container) {
     }
     isPaused = value;
     if (!isPaused) { compileAndRun(); }
-    else { app.console.innerHTML = ""; }
+    else { app.dom.console.innerHTML = ""; }
     // update icon
-    appDOM.playPause.setAttribute("class", isPaused
+    app.dom.playPause.setAttribute("class", isPaused
       ? "play-pause-button pause"
-      : "play-pause-button play"
-    );
+      : "play-pause-button play");
     if (typeof app.didPause === "function") {
       app.didPause(isPaused);
     }
@@ -135,28 +142,39 @@ var LiveCode = function LiveCode(container) {
 
   var setDarkMode = function setDarkMode(value) {
     darkMode = value;
-    app.editor.setTheme(darkMode ? "ace/theme/monokai" : "ace/theme/chrome");
+    app.editor.setTheme(darkMode ? "ace/theme/monokai" : "ace/theme/xcode");
   };
 
   // init app
-  var appDOM = initDOM(container);
+  app.dom = initDOM(container);
 
   try {
-    app.editor = ace.edit(appDOM.code);
+    app.editor = ace.edit(app.dom.code);
   } catch (err) {
     throw new Error("Bad internet connection, cannot load Ace editor");
   }
 
-  app.console = appDOM.console;
-  app.code = app.editor.container;
   app.editor.setTheme("ace/theme/monokai");
   app.editor.setKeyboardHandler("ace/keyboard/sublime");
   app.editor.session.setMode("ace/mode/javascript");
   app.editor.session.on("change", editorDidUpdate);
+  app.editor.session.setTabSize(2);
+  app.editor.setOptions({ fontSize: "9pt" });
   app.editor.focus();
-  
-  appDOM.playPause.onclick = function () { setPaused(!isPaused); };
-  appDOM.darkMode.onclick = function () { setDarkMode(!darkMode); };
+
+  app.dom.playPause.onclick = function () {
+    setPaused(!isPaused);
+    app.editor.focus();
+  };
+  app.dom.darkMode.onclick = function () {
+    setDarkMode(!darkMode);
+    app.editor.focus();
+  };
+  app.dom.fontSize.onclick = function () {
+    zoom = !zoom;
+    app.editor.setOptions({ fontSize: (zoom ? "20pt" : "9pt") });
+    app.editor.focus();
+  };
 
   Object.defineProperty(app, "clear", { value: clear });
   Object.defineProperty(app, "injectCode", { value: injectCode });

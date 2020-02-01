@@ -39,7 +39,7 @@ var origami = RabbitEar.origami({ padding: 0.05 });
 
 // fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
 // fetch("../../files/svg/crane.svg").then(blob => blob.text()).then(svg => origami.load(svg));
-// origami.load(crane);
+origami.load(crane);
 origami.populate();
 // origami.load(RabbitEar.bases.frog);
 
@@ -49,15 +49,15 @@ origami.svg.mouseMoved = function (event) {
   drawLayer.removeChildren();
   // get all the nearest components to the cursor
   var nearest = origami.nearest(event);
-  console.log(nearest);
+  // console.log(nearest);
   if (nearest.face) {
-    drawLayer.polygon(nearest.face.coords).fill("#e53").stroke("none");
+    drawLayer.polygon(nearest.face.coords).fill("#f00").stroke("none");
   }
   if (nearest.edge) {
-    drawLayer.line(nearest.edge.coords).stroke("#fb3").strokeWidth(0.02).strokeLinecap("square");
+    drawLayer.line(nearest.edge.coords).stroke("#fb3").strokeWidth(0.01).strokeLinecap("square");
   }
   if (nearest.vertex) {
-    drawLayer.circle(nearest.vertex.coords).radius(0.03).fill("#fb3").stroke("none");
+    drawLayer.circle(nearest.vertex.coords).radius(0.02).fill("#fb3").stroke("none");
   }
 };
 </script>
