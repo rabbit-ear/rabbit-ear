@@ -121,8 +121,10 @@ const App = function (options = {}) {
   app.tapMode = "bisect";
 
   app.update = function () {
+    // todo, make load() trigger an unfold
+    app.folded.unfold();
     app.folded.load(origami);
-    app.folded.collapse();
+    app.folded.fold();
   };
 
   app.load = function (blob, filename, fileExtension) {

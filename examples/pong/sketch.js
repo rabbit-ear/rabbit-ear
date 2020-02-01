@@ -15,13 +15,19 @@ function Ball() {
   return _this;
 }
 
-const origami = RabbitEar.origami({ touchFold: true, padding: 0.1, autofit: false });
+const origami = RabbitEar.origami({ edges: false, touchFold: true, padding: 0.1, autofit: false,
+  attributes: {
+    faces: {
+      front: { stroke: "none", fill: "none" },
+      back: { stroke: "none", fill: "none" },
+    }
+  }
+});
 origami.fold();
 origami.drawLayer = origami.svg.group();
 const ball = Ball();
 
-origami.ballCircle = RabbitEar.draw.svg.circle(0, 0, 0.02);
-origami.drawLayer.appendChild(origami.ballCircle);
+origami.ballCircle = origami.drawLayer.circle(0, 0, 0.02);
 
 origami.svg.animate = function (event) {
   const boundPts = origami.boundaries[0].vertices.map(v => origami.vertices_coords[v]);

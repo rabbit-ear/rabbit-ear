@@ -146,7 +146,8 @@ export const make_vertices_nudge = function (graph) {
  *
  *
  */
-export const kawasaki_solutions_radians = function (...vectors_radians) {
+// export const kawasaki_solutions_radians = function (...vectors_radians) {
+export const kawasaki_solutions_radians = function (vectors_radians) {
   return vectors_radians
     .map((v, i, ar) => math.core.counter_clockwise_angle2_radians(
       v, ar[(i + 1) % ar.length]

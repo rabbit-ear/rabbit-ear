@@ -38,6 +38,8 @@ const setup = function (origami, svg) {
   let was_folded = origami.isFolded;
   let viewBox = svg.getViewBox();
 
+  svg.mouseReleased = mouse => undefined;
+
   svg.mousePressed = (mouse) => {
     viewBox = svg.getViewBox();
     was_folded = origami.isFolded;
