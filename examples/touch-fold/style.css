@@ -1,0 +1,21 @@
+html, body{
+	height: 100%;
+	width: 100%;
+}
+body {
+	margin: 0px;
+	background-color: #158;
+	display: grid;
+	grid-template-columns: 50% 50%;
+	grid-template-rows: 1fr;
+}
+svg {
+	width: 100%;
+	height: 100%;
+}
+@media (orientation: portrait) {
+	body {
+	grid-template-columns: 1fr;
+	grid-template-rows: 50% 50%;
+	}
+}

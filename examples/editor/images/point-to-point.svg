@@ -1,0 +1,23 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="300" height="150" class="svg-code" transform="" viewBox="0 0 20 20">
+	<defs>
+		<code>
+			<![CDATA[
+size(20, 20);
+
+circle(4, 16, 2);
+circle(16, 4, 2);
+
+line(3, 3, 17, 17)
+  .stroke("white")
+  .fill("white")
+  .strokeDasharray("2 1")
+  .strokeDashoffset(0.1)
+  .strokeWidth(2);
+
+]]>
+		</code>
+	</defs>
+	<circle cx="5" cy="15" r="1.5" fill="white"/>
+	<circle cx="15" cy="5" r="1.5" fill="white"/>
+	<line x1="3" y1="3" x2="17" y2="17" stroke="white" fill="white" stroke-dasharray="2 1" stroke-dashoffset="0.1" stroke-width="2"/>
+</svg>

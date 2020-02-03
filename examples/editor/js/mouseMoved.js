@@ -1,6 +1,5 @@
 const MouseMoved = function () {
-  const { app } = window;
-  const { RabbitEar } = window;
+  const { app, RabbitEar } = window;
 
   if (app.tapLayer == null) { app.tapLayer = app.origami.svg.group(); }
   if (app.dragRect == null) { app.dragRect = []; }
@@ -73,6 +72,7 @@ const MouseMoved = function () {
             const det = vecIntersec[0] * vecArc[1] - vecIntersec[1] * vecArc[0];
             app.tapLayer.arrow(nearestA[0], nearestA[1], nearestB[0], nearestB[1])
               .stroke("black")
+              .fill("black")
               .strokeWidth(0.005)
               .head({ width: 0.01, height: 0.03 })
               .curve(det < 0 ? 0.3 : -0.3);
@@ -80,12 +80,31 @@ const MouseMoved = function () {
             app.tapLayer.arrow(nearestA[0], nearestA[1], nearestB[0], nearestB[1])
               .head({ width: 0.01, height: 0.03 })
               .stroke("black")
+              .fill("black")
               .strokeWidth(0.005);
           }
           // app.tapLayer.line(nearestA[0], nearestA[1], mouse[0], mouse[1]);
         }
           break;
-        case "line": break;
+        case "ray":
+          if (app.nearestPressed == null) { break; }
+          // app.tapLayer.line(mouse.pressed[0], mouse.pressed[1], mouse[0], mouse[1])
+          app.tapLayer.arrow(app.nearestPressed.vertex.coords[0], app.nearestPressed.vertex.coords[1], mouse[0], mouse[1])
+            .stroke("black")
+            .fill("black")
+            .strokeWidth(0.005)
+            .head({ width: 0.01, height: 0.03 });
+          break;
+        case "line": {
+          if (app.nearestPressed == null) { break; }
+          app.tapLayer.arrow(app.nearestPressed.vertex.coords[0], app.nearestPressed.vertex.coords[1], mouse[0], mouse[1])
+            .stroke("black")
+            .fill("black")
+            .strokeWidth(0.005)
+            .head({ width: 0.01, height: 0.03 })
+            .tail({ width: 0.01, height: 0.03 });
+        }
+          break;
         case "pleat": {
           // const normalized = RabbitEar.math.normalize(mouse.drag);
           const start = RabbitEar.vector(mouse.pressed);
@@ -175,8 +194,9 @@ const MouseMoved = function () {
     }
 
     switch (app.tapMode) {
-      case "segment":
       case "line":
+      case "ray":
+      case "segment":
       case "point-to-point":
         if (app.nearest.vertex) {
           app.tapLayer.circle(app.nearest.vertex.coords[0], app.nearest.vertex.coords[1], 0.01).fill("#e53");

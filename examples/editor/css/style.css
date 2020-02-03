@@ -13,8 +13,8 @@ button {
 body {
   margin: 0;
   color: white;
-  background-image: url(squares.png);
-  /*background-position: 0 0, 12.5px 0, 12.5px -12.5px, 0px 12.5px;*/
+  background-image: url(../images/squares.png);
+  box-sizing: border-box;
 }
 
 h1, h2, h3, h4, h5, h6, ul, li, p {
@@ -34,10 +34,10 @@ nav,
 nav ul,
 nav li { font-size: 1rem; }
 
-.grid {
+.page-grid {
   height: 100%;
   display: grid;
-  grid-template-columns: 150px auto 150px;
+  grid-template-columns: calc((2.5rem * 2) + 3px) auto 10rem;
   grid-template-rows: 40px calc(100% - 40px);
 }
 
@@ -95,12 +95,26 @@ input[type=text]:focus {
   width: 180px;
 }
 
-.panel {
+.panel.column {
   display: flex;
   flex-direction: column;
   background-color: #158;
-  padding: 1px;
   overflow: scroll;
+}
+
+.panel.grid {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-template-rows: repeat(20, calc(2.5rem + 1px));
+  grid-gap: 1px;
+  padding: 1px;
+  /*grid-column-gap: 2px;*/
+  /*grid-row-gap: 2px;*/
+  background-color: #158;
+  overflow: scroll;
+}
+.panel.grid .button {
+  /*margin: 2px;*/
 }
 
 .panel p {
@@ -177,4 +191,36 @@ pre {
 
 .dropdown-content > *:hover {
   background-color: #ec3;
+}
+
+i.icon{
+  display: inline-block;
+  background-size: 2.5rem 2.5rem;
+  /*opacity: 1;*/
+  margin: 0;
+  padding: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+i.icon.line { background-image: url(../images/line.svg); }
+i.icon.ray { background-image: url(../images/ray.svg); }
+i.icon.segment { background-image: url(../images/segment.svg); }
+i.icon.point-to-point { background-image: url(../images/point-to-point.svg); }
+i.icon.bisect { background-image: url(../images/bisect.svg); }
+i.icon.pleat { background-image: url(../images/pleat.svg); }
+i.icon.perpendicular-to { background-image: url(../images/perpendicular-to.svg); }
+i.icon.point-to-line-point { background-image: url(../images/point-to-line-point.svg); }
+i.icon.point-to-line-line { background-image: url(../images/point-to-line-line.svg); }
+i.icon.straight-skeleton { background-image: url(../images/straight-skeleton.svg); }
+i.icon.kawasaki { background-image: url(../images/kawasaki.svg); }
+i.icon.select { background-image: url(../images/select.svg); }
+i.icon.remove { background-image: url(../images/remove.svg); }
+i.icon.mountain-valley { background-image: url(../images/mountain-valley.svg); }
+i.icon.mark { background-image: url(../images/mark.svg); }
+i.icon.loading {
+  height:1em;
+  line-height:1;
+  -webkit-animation:icon-loading 2s linear infinite;
+  animation:icon-loading 2s linear infinite
 }

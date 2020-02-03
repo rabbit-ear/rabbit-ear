@@ -1,6 +1,5 @@
 const MouseReleased = function () {
-  const { app } = window;
-  const { RabbitEar } = window;
+  const { app, RabbitEar } = window;
 
   if (app.tapLayer == null) { app.tapLayer = app.origami.svg.group(); }
   if (app.dragRect == null) { app.dragRect = []; }
@@ -13,6 +12,7 @@ const MouseReleased = function () {
     // clip mouse if necessary
     let start = mouse.pressed;
     let end = mouse;
+    let drag = mouse.drag;
     if (app.options.snap) {
       const startNearest = app.origami.nearest(start);
       const endNearest = app.origami.nearest(end);
@@ -22,30 +22,38 @@ const MouseReleased = function () {
       if (endNearest.vertex) {
         end = app.origami.vertices_coords[endNearest.vertex.index];
       }
+      drag = [end[0] - start[0], end[1] - start[1]];
     }
 
     switch (app.tapMode) {
+      // case "segment":
+      //   app.cache("crease segment\n");
+      //   app.origami.segment(start, end);
+      //   app.symmetries.forEach((mat) => {
+      //     const pt0 = mat.transform(start);
+      //     const pt1 = mat.transform(end);
+      //     app.origami.segment(pt0[0], pt0[1], pt1[0], pt1[1]);
+      //   });
+      case "line":
+        app.cache("crease line\n");
+        app.origami.line(start, drag);
+        break;
+      case "ray":
+        app.cache("crease ray\n");
+        app.origami.ray(start, drag);
+        break;
       case "segment":
         app.cache("crease segment\n");
-        app.origami.segment(start[0], start[1], end[0], end[1]);
-        app.symmetries.forEach((mat) => {
-          const pt0 = mat.transform(start);
-          const pt1 = mat.transform(end);
-          app.origami.segment(pt0[0], pt0[1], pt1[0], pt1[1]);
-        });
-        app.origami.fragment();
-        app.origami.clean({ collinear: true, isolated: true });
-        app.origami.populate();
+        app.origami.segment(start, end);
         break;
-      case "line": break;
       case "point-to-point":
         app.cache("crease point to point\n");
         RabbitEar.axiom(2, start[0], start[1], end[0], end[1])
           .solutions
-          .forEach(s => app.origami.fold(s[0][0], s[0][1], s[1][0], s[1][1]));
-        app.origami.fragment();
-        app.origami.clean({ collinear: true, isolated: true });
-        app.origami.populate();
+          .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+        // app.origami.fragment();
+        // app.origami.clean({ collinear: true, isolated: true });
+        // app.origami.populate();
         break;
       case "bisect": {
         const edgeA = app.nearestPressed.edge.index;
@@ -62,10 +70,10 @@ const MouseReleased = function () {
           app.cache("crease angle bisector\n");
           RabbitEar.axiom(3, a0[0], a0[1], aVec[0], aVec[1], b0[0], b0[1], bVec[0], bVec[1])
             .solutions
-            .forEach(s => app.origami.fold(s[0][0], s[0][1], s[1][0], s[1][1]));
-          app.origami.fragment();
-          app.origami.clean({ collinear: true, isolated: true });
-          app.origami.populate();
+            .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+          // app.origami.fragment();
+          // app.origami.clean({ collinear: true, isolated: true });
+          // app.origami.populate();
         }
       }
         break;
@@ -85,19 +93,16 @@ const MouseReleased = function () {
           mouse,
           (x => x)
         );
-
         // app.tapLayer.line(nearestA[0], nearestA[1], mouse[0], mouse[1])
         //   .stroke("black")
         //   .strokeWidth(0.01);
-
         app.cache("crease perpendicular through a point\n");
-
         RabbitEar.axiom(4, nearestA, nearEdgeVec, end)
           .solutions
-          .forEach(s => app.origami.fold(s[0][0], s[0][1], s[1][0], s[1][1]));
-        app.origami.fragment();
-        app.origami.clean({ collinear: true, isolated: true });
-        app.origami.populate();
+          .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+        // app.origami.fragment();
+        // app.origami.clean({ collinear: true, isolated: true });
+        // app.origami.populate();
       }
         break;
       case "point-to-line-point": break;
@@ -111,10 +116,13 @@ const MouseReleased = function () {
         if (app.nearest.edge) {
           if (app.nearest.edge.assignment === "B" || app.nearest.edge.assignment === "b") { break; }
           app.cache("remove crease\n");
+          // planarMinify(app.origami);
+          app.origami.changed.pause = true;
           RabbitEar.core.remove(app.origami, "edges", [app.nearest.edge.index]);
           app.origami.clean({ collinear: true, isolated: true });
+          app.origami.fragment();
           app.origami.populate();
-          app.origami.draw();
+          app.origami.changed.pause = false;
         }
         // app.tapLayer.rect(...app.dragRect)
         //   .fill("none")

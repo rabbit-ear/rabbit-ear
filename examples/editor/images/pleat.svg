@@ -1,0 +1,27 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="300" height="150" class="svg-code" transform="" viewBox="0 0 20 20">
+	<defs>
+		<code>
+			<![CDATA[
+size(20, 20);
+var x = 2;
+var y = 18;
+var p = 4;
+polyline(
+  x, y,
+  x, y-p,
+  x+p, y-p,
+  x+p, y-p*2,
+  x+p*2, y-p*2,
+  x+p*2, y-p*3,
+  x+p*3, y-p*3,
+  x+p*3, y-p*4,
+  x+p*4, y-p*4).fill("none")
+  .stroke("white")
+  .strokeWidth(2.25)
+  .strokeLinecap("square");
+
+]]>
+		</code>
+	</defs>
+	<polyline points="2,18 2,14 6,14 6,10 10,10 10,6 14,6 14,2 18,2 " fill="none" stroke="white" stroke-width="2.25" stroke-linecap="square"/>
+</svg>

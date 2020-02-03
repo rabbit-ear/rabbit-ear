@@ -1,0 +1,21 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="300" height="150" class="svg-code" transform="" viewBox="0 0 20 20">
+	<defs>
+		<code>
+			<![CDATA[
+size(20, 20);
+arrow(2, 18, 18, 2)
+  .stroke("white")
+  .fill("white")
+  .head({width: 3, height: 6.5})
+  .strokeDasharray("2 1")
+  .strokeWidth(2);
+
+]]>
+		</code>
+	</defs>
+	<g stroke="white" fill="white" stroke-dasharray="2 1" stroke-width="2">
+		<path class="svg-arrow-path" style="fill: none;" d="M2,18C5.52377602998682,14.476223970013182,9.880029892300621,10.119970107699379,13.403805922287441,6.596194077712559"/>
+		<polygon class="svg-arrow-tail" style="stroke: none; pointer-events: none;" display="none"/>
+		<polygon class="svg-arrow-head" style="stroke: none; pointer-events: none;" points="15.525126265847083,8.7175144212722 11.2824855787278,4.474873734152917 18,2 "/>
+	</g>
+</svg>

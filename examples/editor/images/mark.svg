@@ -1,0 +1,23 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="300" height="150" class="svg-code" transform="" viewBox="0 0 20 20">
+	<defs>
+		<code>
+			<![CDATA[
+size(20, 20);
+
+arrow(10, 3, 10, 13)
+  .stroke("white")
+  .fill("white")
+  .strokeWidth(2)
+  .head({width: 3, height: 5})
+  
+polygon(2, 18, 10, 15.5, 18, 18).fill("white")
+]]>
+		</code>
+	</defs>
+	<g stroke="white" fill="white" stroke-width="2">
+		<path class="svg-arrow-path" style="fill: none;" d="M10,1.75C10,4.0675,10,6.9325,10,9.25"/>
+		<polygon class="svg-arrow-tail" style="stroke: none; pointer-events: none;" display="none"/>
+		<polygon class="svg-arrow-head" style="stroke: none; pointer-events: none;" points="7,9.25 13,9.25 10,14.25 "/>
+	</g>
+	<polygon points="2,18 10,15.5 18,18 " fill="white"/>
+</svg>

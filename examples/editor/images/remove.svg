@@ -1,0 +1,15 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="300" height="150" class="svg-code" transform="" viewBox="0 0 20 20">
+	<defs>
+		<code>
+			<![CDATA[
+size(20, 20);
+
+line(3, 3, 17, 17).strokeWidth(3).stroke("white");
+line(3, 17, 17, 3).strokeWidth(3).stroke("white");
+
+]]>
+		</code>
+	</defs>
+	<line x1="3" y1="3" x2="17" y2="17" stroke-width="3" stroke="white"/>
+	<line x1="3" y1="17" x2="17" y2="3" stroke-width="3" stroke="white"/>
+</svg>
