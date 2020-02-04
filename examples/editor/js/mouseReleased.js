@@ -24,6 +24,17 @@ const MouseReleased = function () {
       }
       drag = [end[0] - start[0], end[1] - start[1]];
     }
+    if (app.shift) {
+      let vecRadians = Math.atan2(mouse.drag[1], mouse.drag[0]);
+      while (vecRadians < 0) { vecRadians += Math.PI*2; }
+      const angles = Array.from(Array(17)).map((_, i) => i * Math.PI / 8);
+      const vec22_5_radians = angles
+        .map((a, i) => ({i:i, d:Math.abs(vecRadians - a)}))
+        .sort((a, b) => a.d - b.d)
+        .map(el => angles[el.i])
+        .shift();
+      drag = [Math.cos(vec22_5_radians), Math.sin(vec22_5_radians)];
+    }
 
     switch (app.tapMode) {
       // case "segment":

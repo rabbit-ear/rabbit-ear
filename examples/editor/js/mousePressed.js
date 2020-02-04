@@ -28,6 +28,7 @@ const MousePressed = function () {
             case "V":
             case "v":
               app.origami.edges_assignment[app.nearest.edge.index] = "M";
+              app.origami.edges_foldAngle[app.nearest.edge.index] = -180;
               break;
             case "M":
             case "m":
@@ -35,6 +36,7 @@ const MousePressed = function () {
             case "f":
             default:
               app.origami.edges_assignment[app.nearest.edge.index] = "V";
+              app.origami.edges_foldAngle[app.nearest.edge.index] = 180;
               break;
           }
           app.origami.draw();
@@ -47,6 +49,7 @@ const MousePressed = function () {
             case "b": break;
             default:
               app.origami.edges_assignment[app.nearest.edge.index] = "F";
+              app.origami.edges_foldAngle[app.nearest.edge.index] = 0;
               break;
           }
           app.origami.draw();

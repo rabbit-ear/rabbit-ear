@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<title>Rabbit Ear</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background-color: #158;
+}
+svg {
+  width: 100%;
+  height: 100%;
+  margin: auto;
+}
+</style>
+
+<script type="text/javascript" src="../../rabbit-ear.js"></script>
+<script>
+const origami = RabbitEar.origami({
+  edges: false,
+  touchFold: true,
+  padding: 0.1,
+  autofit: false,
+  attributes: {
+  	boundaries: { stroke: "white", fill: "none", "stroke-width": 0.0075 },
+    faces: {
+      front: { stroke: "none", fill: "none" },
+      back: { stroke: "none", fill: "none" },
+    }
+  }
+});
+
+origami.fold();
+
+</script>

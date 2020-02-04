@@ -71,13 +71,13 @@ const App = function (options = {}) {
       boundaries: { fill: "#fffbf8" },
       edges: {
         mountain: { stroke: "#e53" },
-        valley: { stroke: "#158" },
+        valley: { stroke: "#27b" },
         mark: { stroke: "lightgray" }
       },
     }
   });
 
-  const folded_container = document.querySelectorAll(".pip-view")[0];
+  const folded_container = document.querySelectorAll(".pip-folded-view")[0];
   const folded = RabbitEar.origami(folded_container, {
     boundaries: false,
     attributes: {
@@ -93,6 +93,14 @@ const App = function (options = {}) {
   folded.svg.setAttribute("style", "margin:auto");
   let pipShowingFolded = true;
 
+  var origamiSimulator = OrigamiSimulator({
+    backgroundColor: "158",
+    color1: "e53",
+    parent: document.querySelectorAll(".pip-simulator-view")[0]
+  });
+  origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
+  window.origamiSimulator = origamiSimulator;
+
   const app = {};
 
   app.options = options;
@@ -105,6 +113,7 @@ const App = function (options = {}) {
     edges: [],
     faces: []
   };
+  app.shift = false;
 
   // app.symmetries.push(RabbitEar.matrix2.makeReflection([1, 1], [0, 0]));
 
@@ -142,6 +151,7 @@ const App = function (options = {}) {
     // app.folded.unfold();
     app.folded.load(origami);
     app.folded.fold();
+    origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
   };
 
   app.load = function (blob, filename, fileExtension) {
@@ -331,6 +341,10 @@ const App = function (options = {}) {
   // document.querySelectorAll(".menu-export-obj")[0].onclick = function () { };
   // document.querySelectorAll(".menu-open")[0].onclick = function () { };
 
+  document.querySelectorAll(".simulator-slider")[0].oninput = function (e) {
+    origamiSimulator.foldPercent = parseInt(e.target.value, 10) / 100.0;
+  };
+
   document.body.onkeydown = function (e) {
     if (e.keyCode === 8) { // backspace
       app.cutSelected();
@@ -341,6 +355,9 @@ const App = function (options = {}) {
     if (e.ctrlKey === true && e.key === "x") {
       app.cutSelected();
     }
+    if (e.key === "Shift") {
+      app.shift = true;
+    }
     if (e.key === "s") { setTapMode("select"); }
     if (e.key === "1") { setTapMode("line"); }
     if (e.key === "2") { setTapMode("point-to-point"); }
@@ -349,6 +366,12 @@ const App = function (options = {}) {
     if (e.key === "5") { setTapMode("point-to-line-point"); }
     if (e.key === "6") { console.log("axiom 6"); }
     if (e.key === "7") { setTapMode("point-to-line-line"); }
+  };
+  document.body.onkeyup = function (e) {
+    console.log(e);
+    if (e.key === "Shift") {
+      app.shift = false;
+    }
   };
 
   return app;

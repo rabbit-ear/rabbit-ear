@@ -21,6 +21,18 @@ const MouseMoved = function () {
       app.dragRect[3] = Math.max(mouse.pressed[1], mouse[1]) - app.dragRect[1];
     }
 
+    let vecRadians = Math.atan2(mouse.drag[1], mouse.drag[0]);
+    while (vecRadians < 0) { vecRadians += Math.PI*2; }
+    // console.log("vec radians", vecRadians);
+    // double up on 0 and 2pi
+    const angles = Array.from(Array(17)).map((_, i) => i * Math.PI / 8);
+    const vec22_5_radians = angles
+      .map((a, i) => ({i:i, d:Math.abs(vecRadians - a)}))
+      .sort((a, b) => a.d - b.d)
+      .map(el => angles[el.i])
+      .shift();
+    const vec22_5 = [Math.cos(vec22_5_radians), Math.sin(vec22_5_radians)];
+
     if (mouse.isPressed) {
       switch (app.tapMode) {
         case "segment":
@@ -88,8 +100,17 @@ const MouseMoved = function () {
           break;
         case "ray":
           if (app.nearestPressed == null) { break; }
+          const params = app.shift
+            ? [app.nearestPressed.vertex.coords[0],
+               app.nearestPressed.vertex.coords[1],
+               app.nearestPressed.vertex.coords[0] + 0.2 * vec22_5[0],
+               app.nearestPressed.vertex.coords[1] + 0.2 * vec22_5[1]]
+            : [app.nearestPressed.vertex.coords[0],
+               app.nearestPressed.vertex.coords[1],
+               mouse[0],
+               mouse[1]];
           // app.tapLayer.line(mouse.pressed[0], mouse.pressed[1], mouse[0], mouse[1])
-          app.tapLayer.arrow(app.nearestPressed.vertex.coords[0], app.nearestPressed.vertex.coords[1], mouse[0], mouse[1])
+          app.tapLayer.arrow(...params)
             .stroke("black")
             .fill("black")
             .strokeWidth(0.005)
@@ -97,7 +118,16 @@ const MouseMoved = function () {
           break;
         case "line": {
           if (app.nearestPressed == null) { break; }
-          app.tapLayer.arrow(app.nearestPressed.vertex.coords[0], app.nearestPressed.vertex.coords[1], mouse[0], mouse[1])
+          const params = app.shift
+            ? [app.nearestPressed.vertex.coords[0],
+               app.nearestPressed.vertex.coords[1],
+               app.nearestPressed.vertex.coords[0] + 0.2 * vec22_5[0],
+               app.nearestPressed.vertex.coords[1] + 0.2 * vec22_5[1]]
+            : [app.nearestPressed.vertex.coords[0],
+               app.nearestPressed.vertex.coords[1],
+               mouse[0],
+               mouse[1]];
+          app.tapLayer.arrow(...params)
             .stroke("black")
             .fill("black")
             .strokeWidth(0.005)
