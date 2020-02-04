@@ -4,28 +4,23 @@
  */
 
 import math from "../../include/math";
-import View from "./view";
 import convert from "../convert/convert";
 import { possibleFoldObject } from "../FOLD/validate";
 import * as Create from "../FOLD/create";
-import populate from "../FOLD/populate";
 import { keys, fold_keys, file_spec, file_creator } from "../FOLD/keys";
 import { clone } from "../FOLD/object";
 import { get_boundary } from "../FOLD/boundary";
-import {
-  make_vertices_coords_folded,
-  make_faces_matrix
-} from "../FOLD/make";
 import prototype from "../graph/prototype";
-import { get_assignment } from "./args";
 import MakeFold from "../fold-through-all/index";
 import build_diagram_frame from "../diagram/diagram_frame";
+import addEdge from "../FOLD/add_edge";
+import isFoldedState from "../FOLD/folded";
 
-const FOLDED_FORM = "foldedForm";
-const CREASE_PATTERN = "creasePattern";
-const VERTICES_FOLDED_COORDS = "vertices_re:foldedCoords";
-const VERTICES_UNFOLDED_COORDS = "vertices_re:unfoldedCoords";
-const FACES_MATRIX = "faces_re:matrix";
+import View from "./view";
+import { get_assignment } from "./args";
+import getBoundaries from "./boundaries";
+import * as CreasePattern from "./creasePattern";
+import setFoldedForm from "./fold";
 
 const DEFAULTS = Object.freeze({
   touchFold: false,
@@ -40,83 +35,6 @@ const parseOptions = function (...args) {
       .filter(key => keys.includes(key))
       .forEach((key) => { prefs[key] = obj[key]; }));
   return prefs;
-};
-
-/**
- * @returns {boolean} is the graph in a folded form? undefined if there is no indication either way.
- */
-const isOrigamiFolded = function (graph) {
-  if (graph == null || graph.frame_classes == null) { return undefined; }
-  if (graph.frame_classes.includes(FOLDED_FORM)) { return true; }
-  if (graph.frame_classes.includes(CREASE_PATTERN)) { return false; }
-  // inconclusive
-  return undefined;
-};
-
-/**
- * setting the "folded state" does two things:
- * - assign the class of this object to be FOLDED_FORM or CREASE_PATTERN
- * - move (and cache) foldedCoords or unfoldedCoords into vertices_coords
- */
-const setFoldedForm = function (graph, isFolded) {
-  if (graph.frame_classes == null) { graph.frame_classes = []; }
-  const wasFolded = isOrigamiFolded(graph);
-  if (isFolded === wasFolded) { return; } // graph is already folded / unfolded
-  // update frame_classes
-  graph.frame_classes = graph.frame_classes
-    .filter(c => !([CREASE_PATTERN, FOLDED_FORM].includes(c)))
-    .concat([isFolded ? FOLDED_FORM : CREASE_PATTERN]);
-  // move unfolded_coords or folded_coords into the main vertices_coords spot
-  if (isFolded) {
-    // if folded coords do not exist, we need to build them.
-    if (!(VERTICES_FOLDED_COORDS in graph)) {
-      if (graph.faces_vertices == null) { populate(graph); }
-      graph[FACES_MATRIX] = make_faces_matrix(graph, 0);
-      graph[VERTICES_FOLDED_COORDS] = make_vertices_coords_folded(graph, null, graph[FACES_MATRIX]);
-    }
-    graph[VERTICES_UNFOLDED_COORDS] = graph.vertices_coords;
-    graph.vertices_coords = graph[VERTICES_FOLDED_COORDS];
-    delete graph[VERTICES_FOLDED_COORDS];
-  } else {
-    if (graph[VERTICES_UNFOLDED_COORDS] == null) { return; }
-    // if unfolded coords do not exist, we need to build unfolded coords from a folded state?
-    graph[VERTICES_FOLDED_COORDS] = graph.vertices_coords;
-    graph.vertices_coords = graph[VERTICES_UNFOLDED_COORDS];
-    delete graph[VERTICES_UNFOLDED_COORDS];
-  }
-};
-
-const boundary_clips = function (b, i) {
-  const graph = this;
-  Object.defineProperty(b, "clipLine", {
-    value: (...args) => math.core.intersection.convex_poly_line(
-      b.vertices.map(v => graph.vertices_coords[v]),
-      math.core.get_line(...args).origin,
-      math.core.get_line(...args).vector)});
-  Object.defineProperty(b, "clipRay", {
-    value: (...args) => math.core.intersection.convex_poly_ray(
-      b.vertices.map(v => graph.vertices_coords[v]),
-      math.core.get_line(...args).origin,
-      math.core.get_line(...args).vector)});
-  Object.defineProperty(b, "clipSegment", {
-    value: (...args) => math.core.intersection.convex_poly_segment(
-      b.vertices.map(v => graph.vertices_coords[v]),
-      ...math.core.get_vector_of_vectors(...args))});
-};
-
-const boundary_coords = function (b, i) {
-  const graph = this;
-  Object.defineProperty(b, "coords", {
-    get: () => {
-      if (!b.vertices || !graph.vertices_coords) { return undefined; }
-      return b.vertices.map(v => graph.vertices_coords[v]);
-    }
-  });
-};
-
-const setup_boundary = function (b, i) {
-  boundary_coords.call(this, b, i);
-  boundary_clips.call(this, b, i);
 };
 
 const export_object = function (graph) {
@@ -147,14 +65,28 @@ const Origami = function (...args) {
       .shift() || Create.square()
   );
   /**
+   * @param {object} can be a FOLD object, SVG, Oripa file, any valid format.
+   * @param {options}
+   *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
+   */
+  const load = function (object, options = {}) {
+    const foldObject = convert(object).fold();
+    if (options.append !== true) {
+      keys.forEach(key => delete origami[key]);
+    }
+    // allow overwriting of file_spec and file_creator if included in import
+    Object.assign(origami, { file_spec, file_creator }, clone(foldObject));
+    origami.changed.update(origami.load);
+  };
+  /**
    * fold() with no arguments will perform a global collapse on all creases
    * and if and only if there are mountain valley assignments, it ignores marks
    */
-  const crease = function (...args) {
-    const objects = args.filter(p => typeof p === "object");
-    const line = math.core.get_line(args);
-    const assignment = get_assignment(...args) || "V";
-    const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
+  const crease = function (...methodArgs) {
+    const objects = methodArgs.filter(p => typeof p === "object");
+    const line = math.core.get_line(methodArgs);
+    const assignment = get_assignment(...methodArgs) || "V";
+    const face_index = methodArgs.filter(a => a !== null && !isNaN(a)).shift();
     if (!math.core.is_vector(line.origin) || !math.core.is_vector(line.vector)) {
       console.warn("fold was not supplied the correct parameters");
       return;
@@ -190,10 +122,26 @@ const Origami = function (...args) {
     // return crease;
   };
 
-  const fold = function (...args) {
+  const line = function (...methodArgs) {
+    if (CreasePattern.line.call(origami, ...methodArgs)) {
+      origami.changed.update(line);
+    }
+  }
+  const ray = function (...methodArgs) {
+    if (CreasePattern.ray.call(origami, ...methodArgs)) {
+      origami.changed.update(ray);
+    }
+  }
+  const segment = function (...methodArgs) {
+    if (CreasePattern.segment.call(origami, ...methodArgs)) {
+      origami.changed.update(segment);
+    }
+  }
+
+  const fold = function (...methodArgs) {
     // do some specific fold operation
-    if (args.length > 0) {
-      crease(...args);
+    if (methodArgs.length > 0) {
+      crease(...methodArgs);
       origami.changed.update(origami.fold);
       return origami;
     } else {
@@ -210,27 +158,6 @@ const Origami = function (...args) {
     origami.changed.update(origami.unfold);
     return origami;
   };
-  /**
-   * @param {object} can be a FOLD object, SVG, Oripa file, any valid format.
-   * @param {options}
-   *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
-   */
-  const load = function (object, options = {}) {
-    const foldObject = convert(object).fold();
-    if (options.append !== true) {
-      keys.forEach(key => delete origami[key]);
-    }
-    // allow overwriting of file_spec and file_creator if included in import
-    Object.assign(origami, { file_spec, file_creator }, clone(foldObject));
-    origami.changed.update(origami.load);
-  };
-
-  const getBoundaries = function () {
-    // todo: make this work for multiple boundaries;
-    const boundaries = [get_boundary(origami)];
-    boundaries.forEach(setup_boundary.bind(origami));
-    return boundaries;
-  };
 
   // apply preferences
   const options = {};
@@ -241,12 +168,17 @@ const Origami = function (...args) {
 
   // attach methods
   // Object.defineProperty(origami, "options", { get: () => options });
-  Object.defineProperty(origami, "boundaries", { get: getBoundaries });
+  Object.defineProperty(origami, "boundaries", {
+    get: () => getBoundaries.call(origami) });
   Object.defineProperty(origami, "load", { value: load });
-  Object.defineProperty(origami, "isFolded", { get: () => isOrigamiFolded(origami) });
+  Object.defineProperty(origami, "isFolded", { get: () => isFoldedState(origami) });
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
   Object.defineProperty(origami, "export", { get: () => export_object(origami) });
+  // crease pattern methods
+  Object.defineProperty(origami, "line", { value: line });
+  Object.defineProperty(origami, "ray", { value: ray });
+  Object.defineProperty(origami, "segment", { value: segment });
 
   // determine if it should have a view
   View(origami, ...args);

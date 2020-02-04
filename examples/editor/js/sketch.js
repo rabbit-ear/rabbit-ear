@@ -4,6 +4,7 @@ const getClassList = function (xmlNode) {
     ? []
     : currentClass.split(" ").filter(s => s !== ""));
 };
+
 const addClass = function (newClass, xmlNode) {
   if (xmlNode == null) {
     return xmlNode;
@@ -14,6 +15,7 @@ const addClass = function (newClass, xmlNode) {
   xmlNode.setAttributeNS(null, "class", classes.join(" "));
   return xmlNode;
 };
+
 const removeClass = function (removedClass, xmlNode) {
   if (xmlNode == null) {
     return xmlNode;
@@ -42,39 +44,62 @@ const toggleElementDisplay = function (el) {
   el.style.display = curr === "none" ? "block" : "none";
 };
 
-// .edges { stroke-width: 0.005; }
-const stylesheet = `
-.edges {
-  stroke-width: 0.003;
-}
-.edges .valley {
-  stroke-dasharray: 0.02 0.004;
-}
-.edges .mark {
-  stroke-width: 0.001;
-  stroke: #444;
-}
-.edges .selected {
-  stroke: #ec3;
-}
-.creasePattern .faces polygon.selected {
-  fill: #ec3;
-}
-`;
+const planarMinify = function (graph) {
+  const keep = ["vertices_coords", "edges_vertices", "edges_foldAngle", "edges_assignment"];
+  RabbitEar.core.fold_keys.graph.filter(key => !keep.includes(key))
+    .forEach(key => delete graph[key]);
+};
+
+const removeAllMarks = function (graph) {
+  const markIndices = graph.edges_assignment
+    .map((a, i) => a === "f" || a === "F" ? i : undefined)
+    .filter(a => a !== undefined);
+  graph.changed.pause = true;
+  RabbitEar.core.remove(graph, "edges", markIndices);
+  planarMinify(graph);
+  graph.fragment();
+  graph.populate();
+  // graph.clean({collinear: true});
+  graph.changed.pause = false;
+};
 
 const App = function (options = {}) {
   const canvas_container = document.querySelectorAll(".canvas-container")[0];
   const origami = RabbitEar.origami(canvas_container, {
-    style: stylesheet,
-    padding: 0.025
+    padding: 0.025,
+    attributes: {
+      boundaries: { fill: "#fffbf8" },
+      edges: {
+        mountain: { stroke: "#e53" },
+        valley: { stroke: "#27b" },
+        mark: { stroke: "lightgray" }
+      },
+    }
   });
 
-  const folded_container = document.querySelectorAll(".pip-view")[0];
+  const folded_container = document.querySelectorAll(".pip-folded-view")[0];
   const folded = RabbitEar.origami(folded_container, {
-    style: ".foldedForm polygon { fill: #fff4; }"
+    boundaries: false,
+    attributes: {
+      faces: { fill: "#fff2" },
+      edges: {
+        mountain: { stroke: "#fff"},
+        valley: { stroke: "#fff" },
+        mark: { stroke: "#fff4" },
+        boundary: { stroke: "#fff" },
+      }
+    }
   });
   folded.svg.setAttribute("style", "margin:auto");
   let pipShowingFolded = true;
+
+  var origamiSimulator = OrigamiSimulator({
+    backgroundColor: "158",
+    color1: "e53",
+    parent: document.querySelectorAll(".pip-simulator-view")[0]
+  });
+  origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
+  window.origamiSimulator = origamiSimulator;
 
   const app = {};
 
@@ -88,6 +113,7 @@ const App = function (options = {}) {
     edges: [],
     faces: []
   };
+  app.shift = false;
 
   // app.symmetries.push(RabbitEar.matrix2.makeReflection([1, 1], [0, 0]));
 
@@ -121,8 +147,11 @@ const App = function (options = {}) {
   app.tapMode = "bisect";
 
   app.update = function () {
+    // todo, make load() trigger an unfold
+    // app.folded.unfold();
     app.folded.load(origami);
-    app.folded.collapse();
+    app.folded.fold();
+    origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
   };
 
   app.load = function (blob, filename, fileExtension) {
@@ -146,8 +175,12 @@ const App = function (options = {}) {
   };
 
   const filename = function () {
-    const title = origami.file_title.replace(/ /g, "-") || "origami";
-    const author = origami.file_author.replace(/ /g, "-") || "";
+    const title = origami.file_title != null
+      ? origami.file_title.replace(/ /g, "-")
+      : "origami";
+    const author = origami.file_author != null
+      ? origami.file_author.replace(/ /g, "-")
+      : "";
     // const description = origami.file_description || ""
     const d = new Date();
     const datestring = d.getFullYear()
@@ -165,7 +198,9 @@ const App = function (options = {}) {
     const oldMode = app.tapMode;
     app.tapMode = newMode;
 
-    [".button-tap-mode-segment",
+    [".button-tap-mode-line",
+      ".button-tap-mode-ray",
+      ".button-tap-mode-segment",
       ".button-tap-mode-line",
       ".button-tap-mode-point-to-point",
       ".button-tap-mode-bisect",
@@ -178,7 +213,6 @@ const App = function (options = {}) {
       ".button-tap-mode-remove-crease",
       ".button-tap-mode-mountain-valley",
       ".button-tap-mode-mark",
-      ".button-tap-mode-cut",
       ".button-tap-mode-select",
       ".button-tap-mode-view",
       ".button-tap-mode-graph",
@@ -220,42 +254,28 @@ const App = function (options = {}) {
     }
   };
 
-  document.querySelectorAll(".button-tap-mode-segment")[0]
-    .onclick = function () { setTapMode("segment"); };
-  document.querySelectorAll(".button-tap-mode-line")[0]
-    .onclick = function () { setTapMode("line"); };
-  document.querySelectorAll(".button-tap-mode-point-to-point")[0]
-    .onclick = function () { setTapMode("point-to-point"); };
-  document.querySelectorAll(".button-tap-mode-bisect")[0]
-    .onclick = function () { setTapMode("bisect"); };
-  document.querySelectorAll(".button-tap-mode-pleat")[0]
-    .onclick = function () { setTapMode("pleat"); };
-  document.querySelectorAll(".button-tap-mode-perpendicular-to")[0]
-    .onclick = function () { setTapMode("perpendicular-to"); };
-  document.querySelectorAll(".button-tap-mode-point-to-line-point")[0]
-    .onclick = function () { setTapMode("point-to-line-point"); };
-  document.querySelectorAll(".button-tap-mode-point-to-line-line")[0]
-    .onclick = function () { setTapMode("point-to-line-line"); };
-  document.querySelectorAll(".button-tap-mode-rabbit-ear")[0]
-    .onclick = function () { setTapMode("rabbit-ear"); };
-  document.querySelectorAll(".button-tap-mode-kawasaki")[0]
-    .onclick = function () { setTapMode("kawasaki"); };
+  ["line",
+    "ray",
+    "segment",
+    "line",
+    "point-to-point",
+    "bisect",
+    "pleat",
+    "perpendicular-to",
+    // "point-to-line-point",
+    // "point-to-line-line",
+    // "rabbit-ear",
+    // "kawasaki",
+    "remove-crease",
+    "mountain-valley",
+    "mark",
+    "select"].forEach(str => {
+    document.querySelectorAll(".button-tap-mode-" + str)[0]
+      .onclick = function () { setTapMode(str); };
+  });
 
-  document.querySelectorAll(".button-tap-mode-mountain-valley")[0]
-    .onclick = function () { setTapMode("mountain-valley"); };
-  document.querySelectorAll(".button-tap-mode-mark")[0]
-    .onclick = function () { setTapMode("mark"); };
-  document.querySelectorAll(".button-tap-mode-cut")[0]
-    .onclick = function () { setTapMode("cut"); };
-
-  document.querySelectorAll(".button-tap-mode-remove-crease")[0]
-    .onclick = function () { setTapMode("remove-crease"); };
-
-  document.querySelectorAll(".button-tap-mode-select")[0]
-    .onclick = function () { setTapMode("select"); };
-
-  document.querySelectorAll(".toggle-snap")[0]
-    .onclick = function () { app.options.snap = !app.options.snap; };
+  // document.querySelectorAll(".toggle-snap")[0]
+    // .onclick = function () { app.options.snap = !app.options.snap; };
   // document.querySelectorAll(".toggle-zoom-swipe")[0]
   //   .onclick = function () { app.options.zoomSwipe = !app.options.zoomSwipe; };
 
@@ -265,9 +285,9 @@ const App = function (options = {}) {
   document.querySelectorAll(".button-history")[0].onclick = function () {
     toggleElementDisplay(document.querySelectorAll(".info-history")[0]);
   };
-  document.querySelectorAll(".button-symmetry")[0].onclick = function () {
-    toggleElementDisplay(document.querySelectorAll(".info-symmetry")[0]);
-  };
+  // document.querySelectorAll(".button-symmetry")[0].onclick = function () {
+    // toggleElementDisplay(document.querySelectorAll(".info-symmetry")[0]);
+  // };
 
   document.querySelectorAll(".input-title")[0]
     .oninput = function (e) { origami.file_title = e.srcElement.value; };
@@ -276,15 +296,15 @@ const App = function (options = {}) {
   document.querySelectorAll(".input-description")[0]
     .oninput = function (e) { origami.file_description = e.srcElement.value; };
 
-  document.querySelectorAll(".switch-cp-folded")[0].onclick = function () {
-    const origamiParent = origami.svg.parentNode;
-    const foldedParent = folded.svg.parentNode;
-    origami.svg.remove();
-    folded.svg.remove();
-    origamiParent.appendChild(folded.svg);
-    foldedParent.appendChild(origami.svg);
-    pipShowingFolded = !pipShowingFolded;
-  };
+  // document.querySelectorAll(".switch-cp-folded")[0].onclick = function () {
+  //   const origamiParent = origami.svg.parentNode;
+  //   const foldedParent = folded.svg.parentNode;
+  //   origami.svg.remove();
+  //   folded.svg.remove();
+  //   origamiParent.appendChild(folded.svg);
+  //   foldedParent.appendChild(origami.svg);
+  //   pipShowingFolded = !pipShowingFolded;
+  // };
 
   document.querySelectorAll(".menu-new")[0]
     .onclick = function () {
@@ -321,6 +341,10 @@ const App = function (options = {}) {
   // document.querySelectorAll(".menu-export-obj")[0].onclick = function () { };
   // document.querySelectorAll(".menu-open")[0].onclick = function () { };
 
+  document.querySelectorAll(".simulator-slider")[0].oninput = function (e) {
+    origamiSimulator.foldPercent = parseInt(e.target.value, 10) / 100.0;
+  };
+
   document.body.onkeydown = function (e) {
     if (e.keyCode === 8) { // backspace
       app.cutSelected();
@@ -331,6 +355,9 @@ const App = function (options = {}) {
     if (e.ctrlKey === true && e.key === "x") {
       app.cutSelected();
     }
+    if (e.key === "Shift") {
+      app.shift = true;
+    }
     if (e.key === "s") { setTapMode("select"); }
     if (e.key === "1") { setTapMode("line"); }
     if (e.key === "2") { setTapMode("point-to-point"); }
@@ -339,6 +366,12 @@ const App = function (options = {}) {
     if (e.key === "5") { setTapMode("point-to-line-point"); }
     if (e.key === "6") { console.log("axiom 6"); }
     if (e.key === "7") { setTapMode("point-to-line-line"); }
+  };
+  document.body.onkeyup = function (e) {
+    console.log(e);
+    if (e.key === "Shift") {
+      app.shift = false;
+    }
   };
 
   return app;

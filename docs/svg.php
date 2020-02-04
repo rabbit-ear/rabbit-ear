@@ -17,7 +17,7 @@
 
 <h3>Viewbox</h3>
 
-<p class="explain">
+<p>
   SVG viewboxes allow us to zoom and translate the view space. This allows us to continue working in a unit-square-sized space and visualize full-screen, without having to multiply everything by 100.
 </p>
 
@@ -29,16 +29,16 @@
 
 <pre class="code"><code>svg.mouseMoved <key>=</key> <f>function</f> (<arg>mouse</arg>) { }<br> ↳ <span id="span-svg-math-coordinate">{ <str>x</str>: ,<str>y</str>: }</span></code></pre>
 
-<h3>Y-Axis</h3>
-
 <p class="explain">
   Because of the computer standard, the SVG y-axis increases downwards.
 </p>
 
+<h3>Y-Axis</h3>
+
 <div class="full" id="canvas-svg-math-inverted"></div>
 
 <p>
-  It's very easy to invert the y-axis, but we leave that up to you.
+  It's very easy to invert the y-axis, but that decision is up to you.
 </p>
 <pre class="code"><code>svg.<f>setAttribute</f>(<str>"transform"</str>, <str>"matrix(1 0 0 -1 0 0)"</str>);</code></pre>
 
@@ -47,7 +47,7 @@
 <div id="canvas-albers"></div>
 
 <p>
-  `RabbitEar.svg` creates an &lt;svg&gt; element.
+  This command creates an SVG element; and if run on a browser will automatically append the SVG to the document.
 </p>
 
 <pre class="code"><code><f>var</f> svg <key>=</key> <f>RabbitEar</f>.<f>svg</f>()</code></pre>
@@ -62,7 +62,7 @@ svg.<f>circle</f>(<n>0</n>, <n>1</n>, <n>2</n>);
 
 
 <p>
-  My peferred initialization waits for DOM loading, and wraps code to follow Javascript's function-scope.
+  My peferred initialization waits for DOM loading, and wraps code following Javascript's function-scoping.
 </p>
 
 <pre class="code"><code><f>RabbitEar</f>.<f>svg</f>((<arg>svg</arg>) <f>=&gt;</f> {
@@ -70,7 +70,7 @@ svg.<f>circle</f>(<n>0</n>, <n>1</n>, <n>2</n>);
 });</code></pre>
 
 <p>
-  If you supply a function as a parameter, it will be called after the page loads using DOMContentLoaded.
+  This optional function parameter will be called after the page has finished loading.
 </p>
 
 

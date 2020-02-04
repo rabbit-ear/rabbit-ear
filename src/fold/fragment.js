@@ -126,16 +126,27 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
     .map((a, i) => a.concat(edges_collinearVertices[i]));
   new_edges_vertices.forEach((e, i) => e
     .sort(edges_alignment[i] ? horizSort : vertSort));
-  let new_edges = new_edges_vertices
+  // there are duplicate vertices.
+  // since vertices are sorted we can remove duplicates by checking the array neighbor
+  const new_edges_vertices_cleaned = new_edges_vertices
+    .map(ev => ev
+      .filter((e, i, arr) => !are_vertices_equivalent(e, arr[(i + 1) % arr.length])))
+    .filter(edge => edge.length);
+
+  let new_edges = new_edges_vertices_cleaned
     // .map((e, i) => [edges[i][0], ...e, edges[i][1]])
     .map(ev => Array.from(Array(ev.length - 1))
       .map((_, i) => [ev[i], ev[(i + 1)]]));
   // remove degenerate edges
+  const TEST_A = new_edges.length;
   new_edges = new_edges
     .map(edgeGroup => edgeGroup
       .filter(e => false === e
         .map((_, i) => Math.abs(e[0][i] - e[1][i]) < epsilon)
         .reduce((a, b) => a && b, true)));
+  const TEST_B = new_edges.length;
+  // if this message never shows up, we can probably remove the reconstruction above
+  if (TEST_A !== TEST_B) { console.log("fragment() remove degenerate edges is needed!"); }
   // let edge_map = new_edges.map(edge => edge.map(_ => counter++));
   const edge_map = new_edges
     .map((edge, i) => edge.map(() => i))
@@ -231,8 +242,9 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
 
   // done. we can return a copy of the changes, or modify directly
   fold_keys.graph.forEach(key => delete graph[key]);
-  Object.keys(flat).forEach((key) => { graph[key] = flat[key]; });
-  return flat;
+  Object.assign(graph, flat);
+  // Object.keys(flat).forEach((key) => { graph[key] = flat[key]; });
+  // return flat;
 };
 
 export default fragment;

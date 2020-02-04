@@ -73,6 +73,15 @@ const SVGView = function (origami, ...args) {
     // SVG.setViewBox(svg, r[0], r[1], r[2], r[3], options.padding * vmin);
   };
 
+  const getComponent = function (component) {
+    const group = Array.from(svg.childNodes)
+      .filter(node => component === node.getAttribute("class"))
+      .shift();
+    return group === undefined
+      ? []
+      : Array.from(group.childNodes);
+  };
+
   const draw = function (innerArgumentOptions) {
     const drawOptions = innerArgumentOptions == null
       ? options
@@ -110,6 +119,10 @@ const SVGView = function (origami, ...args) {
   origami.changed.handlers.push(caller => draw());
   Object.defineProperty(origami, "draw", { value: draw });  // todo: do we want this?
   Object.defineProperty(origami, "svg", { get: () => svg });
+  Object.defineProperty(svg, "vertices", { get: () => getComponent("vertices") });
+  Object.defineProperty(svg, "edges", { get: () => getComponent("edges") });
+  Object.defineProperty(svg, "faces", { get: () => getComponent("faces") });
+  Object.defineProperty(svg, "boundaries", { get: () => getComponent("boundaries") });
 
   if (options.touchFold === true) {
     touchToFold(origami, origami.svg);

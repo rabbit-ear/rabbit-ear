@@ -133,8 +133,8 @@ const Prototype = function (proto = {}) {
   /**
    * modifiers
    */
-  proto.clean = function () {
-    clean(this);
+  proto.clean = function (options) {
+    clean(this, options);
     this.changed.update(this.clean);
   };
   proto.populate = function () {

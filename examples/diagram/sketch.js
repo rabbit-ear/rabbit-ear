@@ -2,7 +2,19 @@
 const origami = RabbitEar.origami("origami", {
   touchFold: true,
   padding: 0.1,
-  autofit: false
+  autofit: false,
+  attributes: {
+    faces: {
+      front: {
+        fill: "linen",
+        stroke: "black",
+      },
+      back: {
+        fill: "peru",
+        stroke: "black",
+      }
+    }
+  }
 });
 origami.fold();
 
@@ -18,7 +30,26 @@ const patternStyle = `
   stroke: white;
 }`;
 
-const pattern = RabbitEar.origami("pattern", { padding: 0.1, style: patternStyle });
+const pattern = RabbitEar.origami("pattern", {
+  padding: 0.1,
+  attributes: {
+    boundaries: {
+      stroke: "white",
+      fill: "none"
+    },
+    faces: {
+      fill: "none"
+    },
+    edges: {
+      valley: {
+        "stroke-dasharray": "0.01",
+        stroke: "white"
+      },
+      mountain: { stroke: "white" },
+      stroke: "white"
+    }
+  }});
+pattern.svg.setAttribute("stroke", "white");
 
 const STARTER = JSON.parse(JSON.stringify(origami));
 
@@ -75,7 +106,7 @@ const fadeInCreasePattern = function () {
       clearInterval(intervalId);
       intervalId = undefined;
     }
-    div.style.opacity = opacity;
+    // div.style.opacity = opacity;
     const div2 = document.querySelector("#save-button");
     div2.style.opacity = opacity;
   }, 16);
@@ -83,7 +114,7 @@ const fadeInCreasePattern = function () {
   origami.alreadyFaded = true;
 };
 
-origami.svg.onMouseMove = function (mouse) {
+origami.svg.mouseMoved = function (mouse) {
   if (mouse.isPressed) {
     fadeInCreasePattern();
     pattern.load(JSON.parse(JSON.stringify(origami)));
@@ -101,7 +132,7 @@ origami.reset = function () {
   pattern.load(JSON.parse(JSON.stringify(STARTER)));
   pattern.unfold();
   steps = [JSON.parse(JSON.stringify(STARTER))];
-  document.querySelector("#pattern").style.opacity = 0;
+  // document.querySelector("#pattern").style.opacity = 0;
   document.querySelector("#save-button").style.opacity = 0;
   origami.fitViewInRect(
     document.querySelectorAll(".placeholder")[0].getBoundingClientRect(),
@@ -114,7 +145,7 @@ origami.fitViewInRect(
   window.innerWidth, window.innerHeight
 );
 
-origami.svg.onMouseUp = function () {
+origami.svg.mouseReleased = function () {
   // steps.push(JSON.parse(JSON.stringify(origami.cp)));
   steps.push(JSON.parse(origami.export.fold()));
 };
