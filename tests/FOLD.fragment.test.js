@@ -6,14 +6,14 @@ test("fragment, one edges crossing boundary", () => {
   graph.edges_vertices.push([4, 5]);
   graph.edges_assignment.push("V");
 
-  const f = RabbitEar.core.fragment(graph);
+  RabbitEar.core.fragment(graph);
 
-  expect(f.vertices_coords.length).toBe(8);
-  expect(f.edges_vertices.length).toBe(9);
-  expect(f.edges_assignment.filter(a => a === "B" || a === "b").length).toBe(6);
-  expect(f.edges_assignment.filter(a => a === "V" || a === "v").length).toBe(3);
-  expect(f.edges_foldAngle.filter(a => a === 0).length).toBe(6);
-  expect(f.edges_foldAngle.filter(a => a === 180).length).toBe(3);
+  expect(graph.vertices_coords.length).toBe(8);
+  expect(graph.edges_vertices.length).toBe(9);
+  expect(graph.edges_assignment.filter(a => a === "B" || a === "b").length).toBe(6);
+  expect(graph.edges_assignment.filter(a => a === "V" || a === "v").length).toBe(3);
+  expect(graph.edges_foldAngle.filter(a => a === 0).length).toBe(6);
+  expect(graph.edges_foldAngle.filter(a => a === 180).length).toBe(3);
 });
 
 test("fragment, two crossing edges", () => {
@@ -25,14 +25,14 @@ test("fragment, two crossing edges", () => {
   graph.edges_assignment.push("V");
   graph.edges_assignment.push("M");
 
-  const f = RabbitEar.core.fragment(graph);
+  RabbitEar.core.fragment(graph);
 
-  expect(f.vertices_coords.length).toBe(13);
-  expect(f.edges_vertices.length).toBe(16);
-  expect(f.edges_assignment.filter(a => a === "B" || a === "b").length).toBe(8);
-  expect(f.edges_assignment.filter(a => a === "V" || a === "v").length).toBe(4);
-  expect(f.edges_assignment.filter(a => a === "M" || a === "m").length).toBe(4);
-  expect(f.edges_foldAngle.filter(a => a === 0).length).toBe(8);
-  expect(f.edges_foldAngle.filter(a => a === 180).length).toBe(4);
-  expect(f.edges_foldAngle.filter(a => a === -180).length).toBe(4);
+  expect(graph.vertices_coords.length).toBe(13);
+  expect(graph.edges_vertices.length).toBe(16);
+  expect(graph.edges_assignment.filter(a => a === "B" || a === "b").length).toBe(8);
+  expect(graph.edges_assignment.filter(a => a === "V" || a === "v").length).toBe(4);
+  expect(graph.edges_assignment.filter(a => a === "M" || a === "m").length).toBe(4);
+  expect(graph.edges_foldAngle.filter(a => a === 0).length).toBe(8);
+  expect(graph.edges_foldAngle.filter(a => a === 180).length).toBe(4);
+  expect(graph.edges_foldAngle.filter(a => a === -180).length).toBe(4);
 });
