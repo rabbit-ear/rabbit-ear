@@ -84,7 +84,7 @@ nav > ul > li:hover {
 .panel.grid {
   display: grid;
   grid-template-columns: 50% 50%;
-  grid-template-rows: repeat(2, calc(2.5rem + 1px)) 2px repeat(2, calc(2.5rem + 1px)) 2px calc(2.5rem + 1px) 2px calc(2.5rem + 1px) ;
+  grid-template-rows: calc(2.5rem + 1px) 2px repeat(2, calc(2.5rem + 1px)) 2px repeat(2, calc(2.5rem + 1px)) 2px calc(2.5rem + 1px) ;
   grid-gap: 1px;
   padding: 1px;
   /*grid-column-gap: 2px;*/

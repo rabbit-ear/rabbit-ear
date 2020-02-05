@@ -1,9 +1,40 @@
 const fs = require("fs");
 const RabbitEar = require("../rabbit-ear");
+const outputDir = "./tests/output";
+fs.existsSync(outputDir) || fs.mkdirSync(outputDir);
 
 test("convert - async file write bypass", () => {
   expect(true).toBe(true);
 });
+
+test("export origami to png", (done) => {
+  let origami = RabbitEar.origami();
+  origami.load(RabbitEar.bases.frog);
+  origami.export.png().then(png => {
+    fs.writeFile(`${outputDir}/frog-base.png`, png, () => {
+      done();
+    });
+  });
+});
+
+test("export origami to svg", (done) => {
+  let origami = RabbitEar.origami();
+  origami.load(RabbitEar.bases.frog);
+  const svg = origami.export.svg();
+  fs.writeFile(`${outputDir}/frog-base.svg`, svg, () => {
+    done();
+  });
+});
+
+test("export origami to oripa", (done) => {
+  let origami = RabbitEar.origami();
+  origami.load(RabbitEar.bases.frog);
+  const oripa = origami.export.oripa();
+  fs.writeFile(`${outputDir}/frog-base.oripa`, oripa, () => {
+    done();
+  });
+});
+
 
 /*
 jest.setTimeout(60000);
