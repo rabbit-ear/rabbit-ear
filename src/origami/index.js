@@ -21,6 +21,7 @@ import { get_assignment } from "./args";
 import getBoundaries from "./boundaries";
 import * as CreasePattern from "./creasePattern";
 import setFoldedForm from "./fold";
+import export_object from "./export";
 
 const DEFAULTS = Object.freeze({
   touchFold: false,
@@ -35,22 +36,6 @@ const parseOptions = function (...args) {
       .filter(key => keys.includes(key))
       .forEach((key) => { prefs[key] = obj[key]; }));
   return prefs;
-};
-
-const export_object = function (graph) {
-  const exportObject = function (...args) {
-    if (args.length === 0) { return JSON.stringify(graph); }
-    switch (args[0]) {
-      case "oripa": return convert(graph, "fold").oripa();
-      case "svg": return convert(graph, "fold").svg();
-      default: return JSON.stringify(graph);
-    }
-  };
-  exportObject.json = function () { return JSON.stringify(graph); };
-  exportObject.fold = function () { return JSON.stringify(graph); };
-  exportObject.svg = function () { return convert(graph, "fold").svg(); };
-  exportObject.oripa = function () { return convert(graph, "fold").oripa(); };
-  return exportObject;
 };
 
 const Origami = function (...args) {

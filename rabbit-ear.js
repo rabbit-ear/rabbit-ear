@@ -7101,14 +7101,14 @@
         switch (to) {
           case "fold": return data;
           case "oripa": return oripa.fromFold(data);
-          case "svg": return FoldToSvg(data);
+          case "svg": return FoldToSvg(data, ...args);
         }
         break;
       case "oripa":
         switch (to) {
           case "fold": return oripa.toFold(data, true);
           case "oripa": return data;
-          case "svg": return FoldToSvg(oripa.toFold(data, true));
+          case "svg": return FoldToSvg(oripa.toFold(data, true), ...args);
         }
         break;
       case "svg":
@@ -12318,6 +12318,76 @@
     }
   };
 
+  const svg_to_png = function (svgElement, callback, options) {
+    if (isNode) { return; }
+    const canvas = win.document.createElement("canvas");
+    canvas.setAttribute("width", "2048");
+    canvas.setAttribute("height", "2048");
+    const ctx = canvas.getContext("2d");
+    const DOMURL = (win.URL || win.webkitURL);
+    svgElement.setAttribute("width", "2048");
+    svgElement.setAttribute("height", "2048");
+    const svgString = (new win.XMLSerializer()).serializeToString(svgElement);
+    const svg = new win.Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const img = new win.Image();
+    const url = DOMURL.createObjectURL(svg);
+    img.onload = function () {
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob(blob => {
+        if (typeof callback === "function") { callback(blob); }
+        DOMURL.revokeObjectURL(url);
+      }, "image/png");
+    };
+    img.src = url;
+  };
+  const export_object = function (graph) {
+    const exportObject = function (...args) {
+      if (args.length === 0) { return JSON.stringify(graph); }
+      switch (args[0]) {
+        case "oripa": return convert$1(graph, "fold").oripa();
+        case "svg": return convert$1(graph, "fold").svg();
+        case "png": return (function () {
+          let callback = undefined;
+          const promise = { then: function (async) {
+            if (isNode) {
+              async("png rendering requires running in the browser. unsupported in node js");
+            }
+            callback = async;
+          }};
+          svg_to_png(convert$1(graph, "fold").svg({output: "svg"}), function (png) {
+            if (png === undefined) { return; }
+            promise.data = png;
+            if (typeof callback === "function") { callback(png); }
+          });
+          return promise;
+        }());
+        default: return JSON.stringify(graph);
+      }
+    };
+    exportObject.json = function () { return JSON.stringify(graph); };
+    exportObject.fold = function () { return JSON.stringify(graph); };
+    exportObject.svg = function () { return convert$1(graph, "fold").svg(); };
+    exportObject.oripa = function () { return convert$1(graph, "fold").oripa(); };
+    exportObject.png = function (...args) {
+      return (function() {
+          let callback = undefined;
+          const promise = { then: function (async) {
+            if (isNode) {
+              async("png rendering requires running in the browser. unsupported in node js");
+            }
+            callback = async;
+          }};
+          svg_to_png(convert$1(graph, "fold").svg({output: "svg"}), function (png) {
+            if (png === undefined) { return; }
+            promise.data = png;
+            if (typeof callback === "function") { callback(png); }
+          });
+          return promise;
+        }());
+    };
+    return exportObject;
+  };
+
   const DEFAULTS$1 = Object.freeze({
     touchFold: false,
   });
@@ -12330,21 +12400,6 @@
         .filter(key => keys.includes(key))
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
-  };
-  const export_object = function (graph) {
-    const exportObject = function (...args) {
-      if (args.length === 0) { return JSON.stringify(graph); }
-      switch (args[0]) {
-        case "oripa": return convert$1(graph, "fold").oripa();
-        case "svg": return convert$1(graph, "fold").svg();
-        default: return JSON.stringify(graph);
-      }
-    };
-    exportObject.json = function () { return JSON.stringify(graph); };
-    exportObject.fold = function () { return JSON.stringify(graph); };
-    exportObject.svg = function () { return convert$1(graph, "fold").svg(); };
-    exportObject.oripa = function () { return convert$1(graph, "fold").oripa(); };
-    return exportObject;
   };
   const Origami = function (...args) {
     const origami = Object.assign(

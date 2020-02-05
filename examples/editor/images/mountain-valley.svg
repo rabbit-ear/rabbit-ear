@@ -4,8 +4,11 @@
 			<![CDATA[
 size(20, 20);
 
-polygon(2, 2, 12, 2, 7, 11).fill("white");
-polygon(18, 18, 8, 18, 13, 9).fill("white");
+polygon(2, 2, 10, 2, 6, 9).fill("white");
+polygon(5, 2, 11, 2, 8, 7).fill("white");
+
+polygon(18, 18, 10, 18, 14, 11).fill("white");
+polygon(15, 18, 9, 18, 12, 13).fill("white");
 
 arrow(14,4, 17,11)
   .stroke("white")
@@ -21,12 +24,13 @@ arrow(6,16, 3,9)
   .curve(0.2)
   .head({width: 2, height: 4});
 
-
 ]]>
 		</code>
 	</defs>
-	<polygon points="2,2 12,2 7,11 " fill="white"/>
-	<polygon points="18,18 8,18 13,9 " fill="white"/>
+	<polygon points="2,2 10,2 6,9 " fill="white"/>
+	<polygon points="5,2 11,2 8,7 " fill="white"/>
+	<polygon points="18,18 10,18 14,11 " fill="white"/>
+	<polygon points="15,18 9,18 12,13 " fill="white"/>
 	<g stroke="white" fill="white" stroke-width="1.5">
 		<path class="svg-arrow-path" style="fill: none;" d="M13.530403507104161,2.9042748499097106C15.359287007888163,4.033971165456456,16.82680151598979,6.017559468822856,17.372064523077004,8.096914387518089"/>
 		<polygon class="svg-arrow-tail" style="stroke: none; pointer-events: none;" display="none"/>

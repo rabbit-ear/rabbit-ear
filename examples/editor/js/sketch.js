@@ -99,6 +99,7 @@ const App = function (options = {}) {
     parent: document.querySelectorAll(".pip-simulator-view")[0]
   });
   origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
+  origamiSimulator.simulationRunning = false
   window.origamiSimulator = origamiSimulator;
 
   const app = {};
@@ -319,23 +320,9 @@ const App = function (options = {}) {
     download(main.export.svg(), filename() + ".svg", "image/svg+xml");
   };
   document.querySelectorAll(".menu-export-png")[0].onclick = function () {
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute("width", "2048");
-    canvas.setAttribute("height", "2048");
-    const ctx = canvas.getContext("2d");
-    const DOMURL = (window.URL || window.webkitURL);
     const main = pipShowingFolded ? app.origami : app.folded;
-    const svgString = new XMLSerializer().serializeToString(main.svg);
-    const svg = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-    const img = new Image();
-    const url = DOMURL.createObjectURL(svg);
-    img.onload = function () {
-      ctx.drawImage(img, 0, 0);
-      const png = canvas.toDataURL("image/png");
-      download64(png, filename() + ".png");
-      DOMURL.revokeObjectURL(png);
-    };
-    img.src = url;
+    const png = main.export.png()
+      // .then(result => download(result, filename() + ".png", "image/png"));
   };
   // document.querySelectorAll(".menu-export-oripa")[0].onclick = function () { };
   // document.querySelectorAll(".menu-export-obj")[0].onclick = function () { };
