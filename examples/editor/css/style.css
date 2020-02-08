@@ -64,14 +64,20 @@ nav > ul > li:hover {
 .page-grid {
   height: 100%;
   display: grid;
-  grid-template-columns: calc((2.5rem * 2) + 3px) auto 13rem;
+  grid-template-columns: calc((2.5rem * 2) + 3px) auto 16rem;
   grid-template-rows: 40px calc(100% - 40px);
 }
 
 .center.column {
-  display: grid;
+/*  display: grid;
   grid-template-columns: 100%;
-  grid-template-rows: 85% 15%;
+  grid-template-rows: 85% 15%;*/
+}
+.canvas-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .panel.column {
@@ -106,6 +112,20 @@ nav > ul > li:hover {
   background-color: #ec3;
 }
 
+.button img {
+  width: 2rem;
+  height: 2rem;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.row>* {
+  margin: 0 0.25rem;
+}
+
 input[type=text] {
   width: 50px;
   margin: 0 0.25rem;
@@ -135,11 +155,13 @@ pre {
 }
 
 .pip-simulator-view {
-  width: 13rem;
-  height: 13rem;
+  width: 16rem;
+  height: 16rem;
 }
-.simulator-slider {
-  margin: 1rem 0.25rem 0 0.25rem;
+
+#simulation-play-pause {
+  border-radius: 0.2rem;
+  background-color: #4a2;
 }
 
 input[type=range].simulator-slider {

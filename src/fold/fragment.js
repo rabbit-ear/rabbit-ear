@@ -214,8 +214,17 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
             : edges_map[j];
         }
       }));
-  // interesting exception: if ANY edge from a set of duplicates is assignment
-  // BOUNDARY it takes precedent. force the remaining one to be boundary.
+  // if ANY edge from a set of duplicates is assignment BOUNDARY it takes precedent.
+  // force the remaining one to be boundary.
+  // todo: this fix is currently modifying the input graph.
+  // make it leave the input graph untouched.
+  edges_map.forEach((e, i) => {
+    if (e !== undefined) {
+      if (["B", "b"].includes(graph.edges_assignment[i])) {
+        graph.edges_assignment[e] = "B";
+      }
+    }
+  })
   const edges_dont_remove = edges_map.map(m => m === undefined);
   edges_map.forEach((map, i) => {
     if (map === undefined) { edges_map[i] = i; }

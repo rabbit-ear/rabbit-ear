@@ -88,7 +88,9 @@ const MouseReleased = function () {
         }
       }
         break;
-      case "pleat": break;
+      case "pleat":
+
+        break;
       case "perpendicular-to": {
         const nearEdge = app.nearestPressed.edge.index;
         const g = app.origami;

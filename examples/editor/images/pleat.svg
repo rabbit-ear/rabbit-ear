@@ -17,11 +17,11 @@ polyline(
   x+p*3, y-p*4,
   x+p*4, y-p*4).fill("none")
   .stroke("white")
-  .strokeWidth(2.25)
+  .strokeWidth(1.5)
   .strokeLinecap("square");
 
 ]]>
 		</code>
 	</defs>
-	<polyline points="2,18 2,14 6,14 6,10 10,10 10,6 14,6 14,2 18,2 " fill="none" stroke="white" stroke-width="2.25" stroke-linecap="square"/>
+	<polyline points="2,18 2,14 6,14 6,10 10,10 10,6 14,6 14,2 18,2 " fill="none" stroke="white" stroke-width="1.5" stroke-linecap="square"/>
 </svg>

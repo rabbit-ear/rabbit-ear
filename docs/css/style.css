@@ -145,6 +145,26 @@ pre, code {
 	user-select: none; /* Standard */
 }
 
+
+/* large computers */
+@media (min-width: 1600px) {
+	body{
+		margin: 0 400px;
+	}
+	.full svg {
+		margin: 0 -400px;
+	}
+}
+/* large computers */
+@media (min-width: 2000px) {
+	body{
+		margin: 0 600px;
+	}
+	.full svg {
+		margin: 0 -600px;
+	}
+}
+
 /* medium computers */
 @media (max-width: 1000px) {
 	body{
