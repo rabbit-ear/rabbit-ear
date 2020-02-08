@@ -12270,6 +12270,7 @@
     const assignment = get_assignment$1(...args) || "F";
     const poly = get_boundary$1(this).vertices.map(v => this.vertices_coords[v]);
     const c = clipFunc(poly, l);
+    if (c === undefined) { return false; }
     this.vertices_coords.push(c[0], c[1]);
     this.edges_vertices.push([this.vertices_coords.length - 2, this.vertices_coords.length - 1]);
     this.edges_assignment.push(assignment);

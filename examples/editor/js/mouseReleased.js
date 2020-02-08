@@ -88,8 +88,33 @@ const MouseReleased = function () {
         }
       }
         break;
-      case "pleat":
+      case "pleat": {
+        const PLEAT_COUNT = 8;
+        const edgeA = app.nearestPressed.edge.index;
+        const edgeB = app.nearest.edge.index;
+        if (edgeA !== edgeB) {
+          const g = app.origami;
+          const a0 = g.vertices_coords[g.edges_vertices[edgeA][0]];
+          const a1 = g.vertices_coords[g.edges_vertices[edgeA][1]];
+          const b0 = g.vertices_coords[g.edges_vertices[edgeB][0]];
+          const b1 = g.vertices_coords[g.edges_vertices[edgeB][1]];
+          const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
+          const bVec = [b1[0] - b0[0], b1[1] - b0[1]];
+          const intersection = RabbitEar.math.intersection.line_line(a0, aVec, b0, bVec);
+          if (intersection === undefined) {
+            // parallel
+            const nearestB = RabbitEar.math.nearest_point_on_line(b0, bVec, a0, (a => a));
+            const perp = [nearestB[0] - a0[0], nearestB[1] - a0[1]];
+            app.cache("pleat\n");
+            const lines = Array.from(Array(PLEAT_COUNT - 1))
+              .map((_,i) => (i+1)/PLEAT_COUNT)
+              .map(s => [[a0[0] + s * perp[0], a0[1] + s * perp[1]], aVec])
+            lines.forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+          } else {
 
+          }
+        }
+      }
         break;
       case "perpendicular-to": {
         const nearEdge = app.nearestPressed.edge.index;

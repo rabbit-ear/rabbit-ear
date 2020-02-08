@@ -108,7 +108,7 @@ const App = function (options = {}) {
     parent: document.querySelectorAll(".pip-simulator-view")[0]
   });
   origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
-  // origamiSimulator.simulationRunning = false;
+  origamiSimulator.simulationRunning = false;
   window.origamiSimulator = origamiSimulator;
 
   const app = {};
