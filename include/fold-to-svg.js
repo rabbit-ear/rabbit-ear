@@ -812,11 +812,17 @@ function renderDiagrams (graph, options) {
           if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
             side = p[0][0] < p[1][0] ? p[0][1] > 0.5 : p[0][1] < 0.5;
           }
+          const arrowPadding = (typeof options === "object"
+            && typeof options.attributes === "object"
+            && typeof options.attributes.diagrams === "object"
+            && typeof options.attributes.diagrams.arrows === "object"
+            && typeof options.attributes.diagrams.arrows.padding === "number")
+            ? options.attributes.diagrams.arrows.padding : 0;
           const a = arrow(p[0], p[1])
             .stroke("black")
             .fill("black")
             .strokeWidth(vmin * 0.02)
-            .head({ width: vmin * 0.035, height: vmin * 0.09 })
+            .head({ width: vmin * 0.035, height: vmin * 0.09, padding: arrowPadding })
             .curve(side ? 0.3 : -0.3);
           const arrowClasses = (DIAGRAM_ARROW_CLASSES in arrowObject)
             ? ["arrow"].concat(arrowObject[DIAGRAM_ARROW_CLASSES]).join(" ")

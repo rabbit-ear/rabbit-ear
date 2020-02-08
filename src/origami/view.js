@@ -86,10 +86,11 @@ const SVGView = function (origami, ...args) {
     const drawOptions = innerArgumentOptions == null
       ? options
       : Object.assign(innerArgumentOptions, { output: "svg" });
+
     // (origami.frame_classes && origami.frame_classes.includes("foldedForm")
       // ? { output: "svg", edges: false, boundaries: false }
       // : { output: "svg" });
-    const newSVG = FoldToSvg(origami, drawOptions);
+    const newSVG = FoldToSvg(origami, JSON.parse(JSON.stringify(drawOptions)));
     const newSVGChildren = Array.from(newSVG.childNodes);
     const newSVGGroups = layerNames
       .map(string => newSVGChildren

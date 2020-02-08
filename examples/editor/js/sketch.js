@@ -108,13 +108,12 @@ const App = function (options = {}) {
     parent: document.querySelectorAll(".pip-simulator-view")[0]
   });
   origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
-  origamiSimulator.simulationRunning = false;
-  window.origamiSimulator = origamiSimulator;
 
   const app = {};
 
   app.options = options;
   app.origami = origami;
+  app.origamiSimulator = origamiSimulator;
   app.folded = folded;
   app.history = [];
   app.symmetries = [];
@@ -142,12 +141,12 @@ const App = function (options = {}) {
   };
 
   app.cutSelected = function () {
-    app.cache("cut selection\n");
-    // app.selected.vertices.forEach(v => {});
-    RabbitEar.core.remove(app.origami, "edges", app.selected.edges);
-    app.origami.clean();
-    app.origami.svg.draw();
-    app.update();
+    // app.cache("cut selection\n");
+    // // app.selected.vertices.forEach(v => {});
+    // RabbitEar.core.remove(app.origami, "edges", app.selected.edges);
+    // app.origami.clean();
+    // app.origami.svg.draw();
+    // app.update();
   };
 
   // defaults
