@@ -54,6 +54,7 @@ const addLineType = function (getFunc, clipFunc, ...args) {
   // clip in boundary
   const poly = get_boundary(this).vertices.map(v => this.vertices_coords[v]);
   const c = clipFunc(poly, l);
+  if (c === undefined) { return false; }
   // addEdge(this, c[0], c[1], c[2], c[3], assignment).apply();
   this.vertices_coords.push(c[0], c[1]);
   this.edges_vertices.push([this.vertices_coords.length - 2, this.vertices_coords.length - 1]);

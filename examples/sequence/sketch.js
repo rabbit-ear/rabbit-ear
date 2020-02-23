@@ -9,7 +9,7 @@ var style = {
     mountain: { stroke: "black" },
     valley: {
       stroke: "black", 
-      // "stroke-dasharray": "0.01"
+      "stroke-dasharray": "0.01"
     },
   },
   faces: {
@@ -48,6 +48,6 @@ for (var i = 0; i < STEPS; i += 1) {
 
   // new svgs, fill them with the crease pattern
   RabbitEar.origami(row, origami.copy(), { attributes: style });
-  var folded = RabbitEar.origami(row, origami.copy(), { attributes: style });
+  var folded = RabbitEar.origami(row, origami.copy(), { diagrams: true, attributes: style });
   folded.fold();
 }

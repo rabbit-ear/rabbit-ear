@@ -217,11 +217,11 @@ const MouseMoved = function () {
     const nEdgeI = app.nearest.edge ? app.nearest.edge.index : "";
     const nFaceI = app.nearest.face ? app.nearest.face.index : "";
     const nSectorI = app.nearest.sector ? app.nearest.sector.index : "";
-    document.querySelectorAll(".info-cursor-p")[0].innerHTML = "<b>cursor</b><br>x: "+(mouse.x).toFixed(3)+"<br>y: "+(mouse.y).toFixed(3)+"<br><br><b>nearest</b><br>point: " + nVertexI + " / "+numVertices+"<br>edge: " + nEdgeI + " / "+numEdges+"<br>face: " + nFaceI + " / "+numFaces;
+    // document.querySelectorAll(".info-cursor-p")[0].innerHTML = "<b>cursor</b><br>x: "+(mouse.x).toFixed(3)+"<br>y: "+(mouse.y).toFixed(3)+"<br><br><b>nearest</b><br>point: " + nVertexI + " / "+numVertices+"<br>edge: " + nEdgeI + " / "+numEdges+"<br>face: " + nFaceI + " / "+numFaces;
 
-    if (app.selected.vertices.length || app.selected.edges.length > 1 || app.selected.faces.length) {
-      document.querySelectorAll(".info-cursor-p")[0].innerHTML += "<br><br><b>selected</b><br>vertices: <b>" + app.selected.vertices.length + "</b> / " + app.origami.vertices_coords.length + "<br>edges: <b>" + app.selected.edges.length + "</b> / " + app.origami.edges_vertices.length + "<br>faces: <b>" + app.selected.faces.length + "</b> / " + app.origami.faces_vertices.length;
-    }
+    // if (app.selected.vertices.length || app.selected.edges.length > 1 || app.selected.faces.length) {
+      // document.querySelectorAll(".info-cursor-p")[0].innerHTML += "<br><br><b>selected</b><br>vertices: <b>" + app.selected.vertices.length + "</b> / " + app.origami.vertices_coords.length + "<br>edges: <b>" + app.selected.edges.length + "</b> / " + app.origami.edges_vertices.length + "<br>faces: <b>" + app.selected.faces.length + "</b> / " + app.origami.faces_vertices.length;
+    // }
 
     switch (app.tapMode) {
       case "line":

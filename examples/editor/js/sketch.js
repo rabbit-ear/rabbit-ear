@@ -64,6 +64,14 @@ const removeAllMarks = function (graph) {
 };
 
 const App = function (options = {}) {
+  // the first one will be the default selection
+  const TAP_MODES = ["bisect", "line", "ray", "segment", "point-to-point", "pleat",
+    "perpendicular-to", "remove-crease", "mountain-valley", "mark", "select"];
+  // "point-to-line-point",
+  // "point-to-line-line",
+  // "rabbit-ear",
+  // "kawasaki",
+
   const canvas_container = document.querySelectorAll(".canvas-container")[0];
   const origami = RabbitEar.origami(canvas_container, {
     padding: 0.025,
@@ -79,6 +87,7 @@ const App = function (options = {}) {
 
   const folded_container = document.querySelectorAll(".pip-folded-view")[0];
   const folded = RabbitEar.origami(folded_container, {
+    padding: 0.04,
     boundaries: false,
     attributes: {
       faces: { fill: "#fff2" },
@@ -99,13 +108,12 @@ const App = function (options = {}) {
     parent: document.querySelectorAll(".pip-simulator-view")[0]
   });
   origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
-  origamiSimulator.simulationRunning = false
-  window.origamiSimulator = origamiSimulator;
 
   const app = {};
 
   app.options = options;
   app.origami = origami;
+  app.origamiSimulator = origamiSimulator;
   app.folded = folded;
   app.history = [];
   app.symmetries = [];
@@ -121,8 +129,8 @@ const App = function (options = {}) {
   let cacheCount = 0;
   app.cache = function (historyTextRecord) {
     app.history.push(app.origami.copy());
-    const el = document.querySelectorAll(".info-history-pre")[0];
-    el.innerHTML += ("00" + cacheCount).slice(-3) + " " + historyTextRecord;
+    // const el = document.querySelectorAll(".info-history-pre")[0];
+    // el.innerHTML += ("00" + cacheCount).slice(-3) + " " + historyTextRecord;
     cacheCount += 1;
   };
 
@@ -133,19 +141,17 @@ const App = function (options = {}) {
   };
 
   app.cutSelected = function () {
-    app.cache("cut selection\n");
-    // app.selected.vertices.forEach(v => {});
-    RabbitEar.core.remove(app.origami, "edges", app.selected.edges);
-    app.origami.clean();
-    app.origami.svg.draw();
-    app.update();
+    // app.cache("cut selection\n");
+    // // app.selected.vertices.forEach(v => {});
+    // RabbitEar.core.remove(app.origami, "edges", app.selected.edges);
+    // app.origami.clean();
+    // app.origami.svg.draw();
+    // app.update();
   };
-
-  // app.tapModes = ["segment", "point-to-point", "bisect", "pleat", "rabbit-ear", "mountain-valley", "mark", "cut", "remove-crease"];
 
   // defaults
   app.options.snap = true;
-  app.tapMode = "bisect";
+  app.tapMode = TAP_MODES[0]; // bisect
 
   app.update = function () {
     // todo, make load() trigger an unfold
@@ -199,27 +205,8 @@ const App = function (options = {}) {
     const oldMode = app.tapMode;
     app.tapMode = newMode;
 
-    [".button-tap-mode-line",
-      ".button-tap-mode-ray",
-      ".button-tap-mode-segment",
-      ".button-tap-mode-line",
-      ".button-tap-mode-point-to-point",
-      ".button-tap-mode-bisect",
-      ".button-tap-mode-pleat",
-      ".button-tap-mode-perpendicular-to",
-      ".button-tap-mode-point-to-line-point",
-      ".button-tap-mode-point-to-line-line",
-      ".button-tap-mode-rabbit-ear",
-      ".button-tap-mode-kawasaki",
-      ".button-tap-mode-remove-crease",
-      ".button-tap-mode-mountain-valley",
-      ".button-tap-mode-mark",
-      ".button-tap-mode-select",
-      ".button-tap-mode-view",
-      ".button-tap-mode-graph",
-      ".button-tap-mode-history",
-      ".button-tap-mode-version"
-    ].map(a => document.querySelectorAll(a)[0])
+    TAP_MODES.map(s => ".button-tap-mode-" + s)
+      .map(a => document.querySelectorAll(a)[0])
       .forEach(a => removeClass("active", a));
 
     addClass("active", document.querySelectorAll(`.button-tap-mode-${newMode}`)[0]);
@@ -255,22 +242,7 @@ const App = function (options = {}) {
     }
   };
 
-  ["line",
-    "ray",
-    "segment",
-    "line",
-    "point-to-point",
-    "bisect",
-    "pleat",
-    "perpendicular-to",
-    // "point-to-line-point",
-    // "point-to-line-line",
-    // "rabbit-ear",
-    // "kawasaki",
-    "remove-crease",
-    "mountain-valley",
-    "mark",
-    "select"].forEach(str => {
+  TAP_MODES.forEach(str => {
     document.querySelectorAll(".button-tap-mode-" + str)[0]
       .onclick = function () { setTapMode(str); };
   });
@@ -280,12 +252,12 @@ const App = function (options = {}) {
   // document.querySelectorAll(".toggle-zoom-swipe")[0]
   //   .onclick = function () { app.options.zoomSwipe = !app.options.zoomSwipe; };
 
-  document.querySelectorAll(".button-info")[0].onclick = function () {
-    toggleElementDisplay(document.querySelectorAll(".info-cursor")[0]);
-  };
-  document.querySelectorAll(".button-history")[0].onclick = function () {
-    toggleElementDisplay(document.querySelectorAll(".info-history")[0]);
-  };
+  // document.querySelectorAll(".button-info")[0].onclick = function () {
+  //   toggleElementDisplay(document.querySelectorAll(".info-cursor")[0]);
+  // };
+  // document.querySelectorAll(".button-history")[0].onclick = function () {
+  //   toggleElementDisplay(document.querySelectorAll(".info-history")[0]);
+  // };
   // document.querySelectorAll(".button-symmetry")[0].onclick = function () {
     // toggleElementDisplay(document.querySelectorAll(".info-symmetry")[0]);
   // };
@@ -321,12 +293,26 @@ const App = function (options = {}) {
   };
   document.querySelectorAll(".menu-export-png")[0].onclick = function () {
     const main = pipShowingFolded ? app.origami : app.folded;
-    const png = main.export.png()
-      // .then(result => download(result, filename() + ".png", "image/png"));
+    main.export.png()
+      .then(result => download(result, filename() + ".png", "image/png"));
   };
   // document.querySelectorAll(".menu-export-oripa")[0].onclick = function () { };
   // document.querySelectorAll(".menu-export-obj")[0].onclick = function () { };
   // document.querySelectorAll(".menu-open")[0].onclick = function () { };
+
+  const playPauseSimulator = document.querySelector("#simulation-play-pause");
+  playPauseSimulator.onclick = function (e) {
+    origamiSimulator.simulationRunning = !origamiSimulator.simulationRunning;
+    if (origamiSimulator.simulationRunning) {
+      // playPauseSimulator.childNodes[0].src = "images/pause.svg";
+      playPauseSimulator.style.backgroundColor = "#4a2"
+      // playPauseSimulator.style.opacity = 1.0;
+    } else {
+      // playPauseSimulator.childNodes[0].src = "images/play.svg";
+      playPauseSimulator.style.backgroundColor = "#37a"
+      // playPauseSimulator.style.opacity = 0.5;
+    }
+  };
 
   document.querySelectorAll(".simulator-slider")[0].oninput = function (e) {
     origamiSimulator.foldPercent = parseInt(e.target.value, 10) / 100.0;
@@ -355,7 +341,6 @@ const App = function (options = {}) {
     if (e.key === "7") { setTapMode("point-to-line-line"); }
   };
   document.body.onkeyup = function (e) {
-    console.log(e);
     if (e.key === "Shift") {
       app.shift = false;
     }
@@ -369,15 +354,14 @@ window.onload = function () {
   MousePressed();
   MouseMoved();
   MouseReleased();
-  window.app.repl = CodeEditor(document.querySelectorAll(".code-console")[0]);
-  window.app.repl.didPressReturn = function () {
-    const code = window.app.repl.code;
-    console.log(code);
-    window.app.repl.clear();
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
-    // const func = new Function(code);
-    // func(2, 6);
-  };
+  // window.app.repl = CodeEditor(document.querySelectorAll(".code-console")[0]);
+  // window.app.repl.didPressReturn = function () {
+  //   const code = window.app.repl.code;
+  //   window.app.repl.clear();
+  //   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
+  //   // const func = new Function(code);
+  //   // func(2, 6);
+  // };
 };
 
 function fileDidLoad(blob, mimeType, filename, fileExtension) {

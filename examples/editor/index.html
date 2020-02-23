@@ -27,21 +27,18 @@
           </li>
         </ul>
       </li>
-      <li class="dropdown">View
+      <!-- <li class="dropdown">View
         <ul class="dropdown-content">
           <li>Desktop</li>
           <li>Mobile</li>
         </ul>
-      </li>
-      <li class="dropdown">Window
+      </li> -->
+      <!-- <li class="dropdown">Window
         <ul class="dropdown-content">
           <li>Side Panels</li>
           <li>Code Console</li>
         </ul>
-      </li>
-      <!-- <li><input type="text" placeholder="title"></li> -->
-      <!-- <li><input type="text" placeholder="author"></li> -->
-      <!-- <li><input type="text" placeholder="description"></li> -->
+      </li> -->
     </ul>
   <input type="text" class="input-title" placeholder="title">
   <input type="text" class="input-author" placeholder="author">
@@ -49,7 +46,6 @@
   </nav>
 
   <div class="panel grid toolbar-left">
-
     <div class="button button-tap-mode-select"><i class="icon select"></i></div>
     <div class="button button-tap-mode-remove-crease"><i class="icon remove"></i></div>
 
@@ -87,22 +83,20 @@
 
     <div class="button button-tap-mode-mountain-valley"><i class="icon mountain-valley"></i></div>
     <div class="button button-tap-mode-mark"><i class="icon mark"></i></div>
-
   </div>
 
   <div class="center column">
     <div class="canvas-container"></div>
-    <div class="code-console"></div>
+    <!-- <div class="code-console"></div> -->
   </div>
 
   <div class="panel column toolbar-right">
-
-    <button class="button button-info">
+<!--     <button class="button button-info">
       <i class="dropdown icon"></i>info
     </button>
     <div class="content info-cursor">
       <p class="info-cursor-p"></p>
-    </div>
+    </div> -->
 
     <!-- <button class="button button-symmetry">
       <i class="dropdown icon"></i>symmetry stack
@@ -114,12 +108,12 @@
       <p class="info-symmetry-p"></p>
     </div> -->
 
-    <button class="button button-history">
+   <!--  <button class="button button-history">
       <i class="dropdown icon"></i>history
     </button>
     <div class="content info-history">
       <pre class="info-history-pre"></pre>
-    </div>
+    </div> -->
 
     <!-- <button class="button switch-cp-folded">
       <i class="dropdown icon"></i>windows (1) (2) (3)
@@ -127,17 +121,17 @@
     <div class="content pip-folded-view"></div>
 
     <div class="content pip-simulator-view"></div>
-    <input class="simulator-slider" type="range" min="0" max="100" value="0" />
+    <div class="row">
+      <div class="button" id="simulation-play-pause"><img src="images/play.svg"></div>
+      <input class="simulator-slider" type="range" min="0" max="100" value="60" />
+    </div>
     <!-- <div class="divider"></div> -->
     <!-- <button class="toggle button yellow toggle-snap">snap edge</button> -->
   </div>
-
 </div>
-
 
 <!-- dependencies required before including origami-simulator.js -->
 <script src="../lib/js/three.min.js"></script>
-<!-- <script src="https://threejs.org/examples/js/controls/TrackballControls.js"></script> -->
 <script src="../lib/js/trackballcontrols.js"></script>
 <script src="../lib/js/fold.js"></script>
 <script src="../lib/js/earcut.min.js"></script>
@@ -145,12 +139,10 @@
 <!-- end, origami simulator dependencies -->
 <script type="text/javascript" src="../lib/origami-simulator.js"></script>
 
-
-
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 
-<script type="text/javascript" src="ace/ace.js" charset="utf-8"></script>
-<script type="text/javascript" src="js/code-editor.js"></script>
+<!-- <script type="text/javascript" src="ace/ace.js" charset="utf-8"></script> -->
+<!-- <script type="text/javascript" src="js/code-editor.js"></script> -->
 
 <script type="text/javascript" src="js/mousePressed.js"></script>
 <script type="text/javascript" src="js/mouseMoved.js"></script>

@@ -23,6 +23,8 @@ import * as CreasePattern from "./creasePattern";
 import setFoldedForm from "./fold";
 import export_object from "./export";
 
+const extensions = ["faces_re:matrix", "faces_re:layer"];
+
 const DEFAULTS = Object.freeze({
   touchFold: false,
 });
@@ -58,6 +60,7 @@ const Origami = function (...args) {
     const foldObject = convert(object).fold();
     if (options.append !== true) {
       keys.forEach(key => delete origami[key]);
+      extensions.forEach(key => delete origami[key]);
     }
     // allow overwriting of file_spec and file_creator if included in import
     Object.assign(origami, { file_spec, file_creator }, clone(foldObject));
@@ -164,6 +167,10 @@ const Origami = function (...args) {
   Object.defineProperty(origami, "line", { value: line });
   Object.defineProperty(origami, "ray", { value: ray });
   Object.defineProperty(origami, "segment", { value: segment });
+
+  ///
+  //  didDraw = function () {};  // callback after draw happened. lets you update your draw stuff.
+  //
 
   // determine if it should have a view
   View(origami, ...args);
