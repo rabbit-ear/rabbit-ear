@@ -10,7 +10,7 @@ import touchToFold from "./touchToFold";
 
 const FoldToSvgOptionKeys = [
   "input", "output", "padding", "file_frame", "stylesheet", "shadows",
-  "diagrams", "boundaries", "faces", "edges", "vertices", "attributes"
+  "boundaries", "faces", "edges", "vertices", "attributes"
 ];
 
 const possibleFoldToSvgOptions = function (input) {
@@ -64,7 +64,7 @@ const SVGView = function (origami, ...args) {
   const options = argumentOptions == null
     ? { output: "svg" }
     : Object.assign(argumentOptions, { output: "svg" });
-  const layerNames = ["boundaries", "edges", "faces", "vertices", "diagrams"];
+  const layerNames = ["boundaries", "edges", "faces", "vertices"];
 
   const fit = function () {
     const r = bounding_rect(origami);
