@@ -1675,8 +1675,8 @@ const Line = function (...args) {
   const compare_function = function () { return true; };
   Object.defineProperty(line, "compare_function", { value: compare_function });
   Object.defineProperty(line, "clip_function", { value: limit_line });
-  Object.defineProperty(line, "origin", { get: () => Vector(origin) });
-  Object.defineProperty(line, "vector", { get: () => Vector(vector) });
+  line.origin = Vector(origin);
+  line.vector = Vector(vector);
   Object.defineProperty(line, "length", { get: () => Infinity });
   Object.defineProperty(line, "transform", { value: transform });
   return line;
@@ -2074,6 +2074,7 @@ const Rectangle = function (...args) {
   const transform = function (...innerArgs) {
     return ConvexPolygon(points).transform(innerArgs);
   };
+  Object.defineProperty(rect, "points", { get: () => points });
   Object.defineProperty(rect, "origin", { get: () => origin });
   Object.defineProperty(rect, "width", { get: () => width });
   Object.defineProperty(rect, "height", { get: () => height });

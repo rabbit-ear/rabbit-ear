@@ -1,22 +1,26 @@
 import math from "../../include/math";
 import { get_boundary } from "../FOLD/boundary";
 
+/**
+ * todo: this needs to be setup to handle non-convex polygons
+ * for now we're going to wrap this result in an array
+ */
 const boundary_clips = function (b, i) {
   const graph = this;
   Object.defineProperty(b, "clipLine", {
-    value: (...args) => math.core.intersection.convex_poly_line(
-      b.vertices.map(v => graph.vertices_coords[v]),
-      math.core.get_line(...args).origin,
-      math.core.get_line(...args).vector)});
+    value: (...args) => [math.core.intersection.convex_poly_line(
+          b.vertices.map(v => graph.vertices_coords[v]),
+          math.core.get_line(...args).origin,
+          math.core.get_line(...args).vector)]});
   Object.defineProperty(b, "clipRay", {
-    value: (...args) => math.core.intersection.convex_poly_ray(
-      b.vertices.map(v => graph.vertices_coords[v]),
-      math.core.get_line(...args).origin,
-      math.core.get_line(...args).vector)});
+    value: (...args) => [math.core.intersection.convex_poly_ray(
+          b.vertices.map(v => graph.vertices_coords[v]),
+          math.core.get_line(...args).origin,
+          math.core.get_line(...args).vector)]});
   Object.defineProperty(b, "clipSegment", {
-    value: (...args) => math.core.intersection.convex_poly_segment(
-      b.vertices.map(v => graph.vertices_coords[v]),
-      ...math.core.get_vector_of_vectors(...args))});
+    value: (...args) => [math.core.intersection.convex_poly_segment(
+          b.vertices.map(v => graph.vertices_coords[v]),
+          ...math.core.get_vector_of_vectors(...args))]});
 };
 
 const boundary_coords = function (b, i) {

@@ -46,7 +46,7 @@
 						<a href="graph.php" class="dropbtn">III. GRAPH</a>
 					</li>
 					<li class="dropdown">
-						<a href="#" class="dropbtn" style="cursor:not-allowed; color:#888">IV. ORIGAMI</a>
+						<a href="origami.php" class="dropbtn">IV. ORIGAMI</a>
 					</li>
 		<!-- 			<li class="dropdown">
 						<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">IV. RABBIT EAR</a>
