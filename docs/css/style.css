@@ -138,6 +138,18 @@ pre, code {
 	flex: 1;
 }
 
+.toolbar {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	margin: 1rem 0;
+}
+.button {
+	margin: 0.2rem;
+	font-size: 1.333rem;
+}
 .no-select {
 	-webkit-user-select: none; /* Safari */        
 	-moz-user-select: none; /* Firefox */

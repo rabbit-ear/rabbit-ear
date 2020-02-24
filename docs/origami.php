@@ -1,16 +1,35 @@
 <?php include 'header.php';?>
 
-<h3 style="text-align:center;margin-top:3em;">CHAPTER IV.</h3>
+<h3>CHAPTER IV.</h3>
 
-<h1>ORIGAMI</h1><h1>CREASE PATTERNS</h1>
+<h1>ORIGAMI</h1>
 
+<pre class="code"><code><f>var</f> origami <key>=</key> <f>RabbitEar</f>.<f>origami</f>()</code></pre>
 
-<pre class="code"><code><f>var</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>()</code></pre>
+<h2>Axioms</h2>
 
 <p>
-  This Origami object is a FOLD format graph, modeling a square piece of paper.
+	Every precise origami fold is one of seven geometric constructions.
 </p>
 
+<div class="toolbar">
+	<a class="button nopress">Axiom</button>
+	<a class="button" id="button-axiom-1">1</a>
+	<a class="button red" id="button-axiom-2">2</a>
+	<a class="button" id="button-axiom-3">3</a>
+	<a class="button" id="button-axiom-4">4</a>
+	<a class="button" id="button-axiom-5">5</a>
+	<a class="button" id="button-axiom-6">6</a>
+	<a class="button" id="button-axiom-7">7</a>
+</div>
+
+<p class="quote" id="axiom-description"></p>
+
+<div id="canvas-axioms-graph" class="full"></div>
+
+<pre class="code"><code><f>RabbitEar</f>.<f>axiom</f>(<span id="span-axioms-info"></span>)</code></pre>
+
+<div id="canvas-axioms" class="grid-2"></div>
 
 	<div id="canvas-face-dual"></div>
 
@@ -81,68 +100,10 @@
 
 	<div id="canvas-convex-twist"></div>
 
-
-<h2>Axioms</h2>
-
-RE.axiom(1,[0.2,0.333],[1,1])
-
-RE.axiom(1,{x:0.2, y:0.333},{x:1,y:1})
-
-<section id="axioms">
-
-<h3>Axiom 1</h3>
-	<p class="explain">Given two points, we can fold a line connecting them</p>
-	<div id="canvas-axiom-1"></div>
-	<div class="centered">
-		<pre><code>cp.<f>creaseConnectingPoints</f>(point1, point2)</code></pre>
-	</div>
-
-<h3>Axiom 2</h3>
-	<p class="explain">Given two points, we can fold point 1 onto point 2</p>
-	<div id="canvas-axiom-2"></div>
-	<div class="centered">
-		<pre><code>cp.<f>creasePointToPoint</f>(point1, point2)</code></pre>
-	</div>
-
-<h3>Axiom 3</h3>
-	<p class="explain">Given two lines, we can fold line 1 onto line 2</p>
-	<div id="canvas-axiom-3"></div>
-	<div class="centered">
-		<pre><code>cp.<f>creaseEdgeToEdge</f>(edge1, edge2)</code></pre>
-	</div>
-
-<h3>Axiom 4</h3>
-	<p class="explain">Given a point and a line, we can make a fold perpendicular to the line passing through the point</p>
-	<div id="canvas-axiom-4"></div>
-	<div class="centered">
-		<pre><code>cp.<f>creasePerpendicularThroughPoint</f>(edge, point)</code></pre>
-	</div>
-
-<h3>Axiom 5</h3>
-	<p class="explain">Given two points and a line, we can make a fold that places the first point on to the line and passes through the second point</p>
-	<div id="canvas-axiom-5"></div>
-	<div class="centered">
-		<pre><code>cp.<f>creasePointToLine</f>(point1, point2, edge)</code></pre>
-	</div>
-
-<h3>Axiom 6</h3>
-	<p class="explain">Given two points and two lines we can make a fold that places the first point onto the first line and the second point onto the second line</p>
-	<div class="centered"><p style="padding-top:6em;padding-bottom:6em;">oof. this one is hard</p></div>
-	<div id="canvas-axiom-6"></div>
-	<div class="centered">
-		<pre><code>cp.<f>creaseConnectingPoints</f>(point1, point2)</code></pre>
-	</div>
-
-<h3>Axiom 7</h3>
-	<p class="explain">Given a point and two lines we can make a fold perpendicular to the second line that places the point onto the first line</p>
-	<div id="canvas-axiom-7"></div>
-	<div class="centered">
-		<pre><code>cp.<f>creasePerpendicularPointOntoLine</f>(point, edge1, edge2)</code></pre>
-	</div>
-
 </section>
 
-<script type="text/javascript" src="../tests/origami_single_vertex.js"></script>
+<script type="text/javascript" src="../ui-tests/origami_axioms_graph.js"></script>
+<!-- <script type="text/javascript" src="../tests/origami_single_vertex.js"></script>
 <script type="text/javascript" src="../tests/origami_kawasaki.js"></script>
 <script type="text/javascript" src="../tests/origami_kawasaki_collapse.js"></script>
 <script type="text/javascript" src="../tests/origami_molecule.js"></script>
@@ -153,5 +114,25 @@ RE.axiom(1,{x:0.2, y:0.333},{x:1,y:1})
 <script type="text/javascript" src="../tests/origami_axiom1.js"></script>
 <script type="text/javascript" src="../tests/origami_axiom2.js"></script>
 <script type="text/javascript" src="../tests/origami_axiom3.js"></script>
+ -->
 
+<script>
+axiomSketchCallback = function (event) {
+	var numPoints = event.parameters.points != null ? event.parameters.points.length : 0;
+	var numLines = event.parameters.lines != null ? event.parameters.lines.length : 0;
+	var points = numPoints === 0 ? "" : "[" + event.parameters.points.map(p => {
+		return "[<n>" + p[0].toFixed(2) + "</n>, <n>" + p[1].toFixed(2) + "</n>]";
+	}).join(", ") + "]";
+	var lines = numLines === 0 ? "" : "[" + event.parameters.lines.map(l => {
+		return "{<br>    origin: [<n>" + l.origin[0].toFixed(2) + "</n>, <n>" + l.origin[1].toFixed(2) + "</n>],<br>    vector: [<n>" + l.vector[0].toFixed(2) + "</n>, <n>" + l.vector[1].toFixed(2) + "</n>]<br>  }";
+	}).join(", ") + "]";
+	var strings = [
+		(numPoints ? "<br>  points: " + points : undefined),
+		(numLines ? "<br>  lines: " + lines : undefined)
+	].filter(function(a){return a !== undefined;});
+	var objectString = "{" + strings.join(", ") + "<br>}"
+	document.querySelector("#span-axioms-info").innerHTML = "<n>"+event.axiom+"</n>, " + objectString;
+	document.querySelector("#axiom-description").innerHTML = RabbitEar.text.axioms.en[event.axiom];
+}
+</script>
 <?php include 'footer.php';?>
