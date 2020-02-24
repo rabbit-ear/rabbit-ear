@@ -138,11 +138,43 @@ pre, code {
 	flex: 1;
 }
 
+.toolbar {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	margin: 1rem 0;
+}
+.button {
+	margin: 0.2rem;
+	font-size: 1.333rem;
+}
 .no-select {
 	-webkit-user-select: none; /* Safari */        
 	-moz-user-select: none; /* Firefox */
 	-ms-user-select: none; /* IE10+/Edge */
 	user-select: none; /* Standard */
+}
+
+
+/* large computers */
+@media (min-width: 1600px) {
+	body{
+		margin: 0 400px;
+	}
+	.full svg {
+		margin: 0 -400px;
+	}
+}
+/* large computers */
+@media (min-width: 2000px) {
+	body{
+		margin: 0 600px;
+	}
+	.full svg {
+		margin: 0 -600px;
+	}
 }
 
 /* medium computers */

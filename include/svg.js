@@ -623,7 +623,7 @@ const controlPoint = function (parent, options = {}) {
   });
   Object.defineProperty(position, "remove", {
     value: () => {
-      if (svg != null) { parent.removeChild(svg); }
+      if (svg != null) { svg.parentNode.removeChild(svg); }
     }
   });
   return proxy;

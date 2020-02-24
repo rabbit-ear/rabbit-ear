@@ -1,0 +1,16 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="300" height="150" class="svg-code" transform="" viewBox="-4 -4 28 28">
+	<defs>
+		<code>
+			<![CDATA[
+size(20, 20);
+var x = 2.6;
+var b = -1.5;
+polygon(x+2, 2, x+2, 16, x+7+b, 13,
+  x+10+b,19, x+12+b,18, x+9+b,12,
+  x+12, 12).fill("white");
+
+]]>
+		</code>
+	</defs>
+	<polygon points="4.6,2 4.6,16 8.1,13 11.1,19 13.1,18 10.1,12 14.6,12 " fill="white"/>
+</svg>

@@ -58,6 +58,8 @@ import fish from "./bases/fish.fold";
 import bird from "./bases/bird.fold";
 import frog from "./bases/frog.fold";
 
+import text_axioms from "./text/axioms.json";
+
 // console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
 const core = Object.create(null);
@@ -123,6 +125,7 @@ const rabbitEar = {
   convert,
   core,
   bases,
+  text: {axioms: JSON.parse(text_axioms)},
   math: math.core,
   axiom: Axioms.axiom,
   equivalent: math.core.equivalent

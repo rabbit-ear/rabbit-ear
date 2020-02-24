@@ -45,8 +45,8 @@ test("fragment and rebuild, two crossing edges", () => {
   graph.edges_assignment.push("V");
   graph.edges_assignment.push("M");
 
-  const fragmented = RabbitEar.core.fragment(graph);
-  RabbitEar.core.rebuild(fragmented);
+  RabbitEar.core.fragment(graph);
+  RabbitEar.core.rebuild(graph);
 
   // console.log("rebuilt 2", fragmented);
 

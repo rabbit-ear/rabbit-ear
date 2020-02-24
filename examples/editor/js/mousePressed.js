@@ -1,6 +1,5 @@
 const MousePressed = function () {
-  const { app } = window;
-  const { RabbitEar } = window;
+  const { app, RabbitEar } = window;
 
   if (app.tapLayer == null) { app.tapLayer = app.origami.svg.group(); }
   if (app.dragRect == null) { app.dragRect = []; }
@@ -9,12 +8,10 @@ const MousePressed = function () {
     app.nearest = app.origami.nearest(mouse);
     app.nearestPressed = app.nearest;
 
-    // Array.from(app.origami.svg.groups.edges.childNodes).forEach(edge => edge.removeAttribute("style"));
-    // Array.from(app.origami.svg.groups.faces.childNodes).forEach(face => face.removeAttribute("style"));
-
     switch (app.tapMode) {
-      case "segment": break;
       case "line": break;
+      case "ray": break;
+      case "segment": break;
       case "point-to-point": break;
       case "bisect": break;
       case "pleat": break;
@@ -31,6 +28,7 @@ const MousePressed = function () {
             case "V":
             case "v":
               app.origami.edges_assignment[app.nearest.edge.index] = "M";
+              app.origami.edges_foldAngle[app.nearest.edge.index] = -180;
               break;
             case "M":
             case "m":
@@ -38,9 +36,10 @@ const MousePressed = function () {
             case "f":
             default:
               app.origami.edges_assignment[app.nearest.edge.index] = "V";
+              app.origami.edges_foldAngle[app.nearest.edge.index] = 180;
               break;
           }
-          app.origami.svg.draw();
+          app.origami.draw();
         }
         break;
       case "mark":
@@ -50,9 +49,10 @@ const MousePressed = function () {
             case "b": break;
             default:
               app.origami.edges_assignment[app.nearest.edge.index] = "F";
+              app.origami.edges_foldAngle[app.nearest.edge.index] = 0;
               break;
           }
-          app.origami.svg.draw();
+          app.origami.draw();
         }
         break;
       case "cut": break;
@@ -68,7 +68,5 @@ const MousePressed = function () {
       case "version": break;
       default: console.warn("need to implement " + app.tapMode);
     }
-
-    // app.selected.edges.forEach(s => app.origami.edges[s].svg.setAttribute("style", "stroke:#ec3;"));
   };
 };

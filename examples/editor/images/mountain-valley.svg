@@ -1,0 +1,44 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="300" height="150" class="svg-code" transform="" viewBox="0 0 20 20">
+	<defs>
+		<code>
+			<![CDATA[
+size(20, 20);
+
+polygon(3, 2, 11, 2, 7, 9).fill("white");
+polygon(6, 2, 12, 2, 9, 7).fill("white");
+
+polygon(17, 18, 9, 18, 13, 11).fill("white");
+polygon(14, 18, 8, 18, 11, 13).fill("white");
+
+arrow(14,4, 17,11)
+  .stroke("white")
+  .fill("white")
+  .curve(0.2)
+  .strokeWidth(1.5)
+  .head({width: 2, height: 4});
+
+arrow(6,16, 3,9)
+  .stroke("white")
+  .fill("white")
+  .strokeWidth(1.5)
+  .curve(0.2)
+  .head({width: 2, height: 4});
+
+]]>
+		</code>
+	</defs>
+	<polygon points="3,2 11,2 7,9 " fill="white"/>
+	<polygon points="6,2 12,2 9,7 " fill="white"/>
+	<polygon points="17,18 9,18 13,11 " fill="white"/>
+	<polygon points="14,18 8,18 11,13 " fill="white"/>
+	<g stroke="white" fill="white" stroke-width="1.5">
+		<path class="svg-arrow-path" style="fill: none;" d="M13.530403507104161,2.9042748499097106C15.359287007888163,4.033971165456456,16.82680151598979,6.017559468822856,17.372064523077004,8.096914387518089"/>
+		<polygon class="svg-arrow-tail" style="stroke: none; pointer-events: none;" display="none"/>
+		<polygon class="svg-arrow-head" style="stroke: none; pointer-events: none;" points="15.372659141790905,8.145680372427506 19.371469904363103,8.048148402608671 17.46959649289584,12.095725150090288 "/>
+	</g>
+	<g stroke="white" fill="white" stroke-width="1.5">
+		<path class="svg-arrow-path" style="fill: none;" d="M6.469596492895838,17.09572515009029C4.640712992111835,15.966028834543543,3.173198484010209,13.982440531177142,2.627935476922996,11.90308561248191"/>
+		<polygon class="svg-arrow-tail" style="stroke: none; pointer-events: none;" display="none"/>
+		<polygon class="svg-arrow-head" style="stroke: none; pointer-events: none;" points="4.627340858209096,11.854319627572492 0.6285300956368962,11.951851597391327 2.530403507104162,7.90427484990971 "/>
+	</g>
+</svg>

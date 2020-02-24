@@ -14,7 +14,7 @@ const from_to = function (data, from, to, ...args) {
       switch (to) {
         case "fold": return data;
         case "oripa": return ORIPA.fromFold(data);
-        case "svg": return FoldToSvg(data);
+        case "svg": return FoldToSvg(data, ...args);
         default: break;
       }
       break;
@@ -22,7 +22,7 @@ const from_to = function (data, from, to, ...args) {
       switch (to) {
         case "fold": return ORIPA.toFold(data, true);
         case "oripa": return data;
-        case "svg": return FoldToSvg(ORIPA.toFold(data, true));
+        case "svg": return FoldToSvg(ORIPA.toFold(data, true), ...args);
         default: break;
       }
       break;
