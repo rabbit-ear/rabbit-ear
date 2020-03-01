@@ -33,6 +33,9 @@
 
 	<div id="canvas-face-dual"></div>
 
+
+<div id="compass-straightedge"></div>
+
 <section id="intro">
 
 <h2>Flat-foldability</h2>
@@ -103,6 +106,7 @@
 </section>
 
 <script type="text/javascript" src="../ui-tests/origami_axioms_graph.js"></script>
+<script type="text/javascript" src="../ui-tests/compass_straightedge.js"></script>
 <!-- <script type="text/javascript" src="../tests/origami_single_vertex.js"></script>
 <script type="text/javascript" src="../tests/origami_kawasaki.js"></script>
 <script type="text/javascript" src="../tests/origami_kawasaki_collapse.js"></script>

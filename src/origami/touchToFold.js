@@ -71,7 +71,7 @@ const setup = function (origami, svg) {
     if (mouse.isPressed) {
       // if (was_folded) { origami.unfold(); }
       origami.load(cachedGraph);
-      const instruction = axiom2(mouse.position[0], mouse.position[1], mouse.pressed[0], mouse.pressed[1]);
+      const instruction = axiom2([mouse.position[0], mouse.position[1]], [mouse.pressed[0], mouse.pressed[1]]);
       origami.fold(instruction.solutions[0], touchFaceIndex);
       if (was_folded) {
         // todo, replace this all with the built-in methods

@@ -1,37 +1,25 @@
 <!DOCTYPE html>
+<title>Rabbit Ear, origami axioms</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=0.86, maximum-scale=3.0, minimum-scale=0.86">
+<link rel="stylesheet" type="text/css" href="button.css">
+<link rel="stylesheet" type="text/css" href="style.css">
 
-<title>Rabbit Ear</title>
-<meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css?family=Montserrat:600&display=swap" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="button.css?1">
-<link rel="stylesheet" type="text/css" href="style.css?1">
-
-<div class="grid">
-	<div id="origami-cp"></div>
-	<div id="origami-fold"></div>
-	<div id="instructions">
-		<a class="button small" id="language-back">← de</a>
-		<p id="instructions-p"></p>
-		<a class="button small" id="language-next">es →</a>
+<body>
+	<div class="language fade"><p>English</p></div>
+	<div class="canvas"></div>
+	<div class="description"></div>
+	<div class="toolbar">
+		<a class="button nopress" id="button-title">Axiom</button>
+		<a class="button" id="button-axiom-1">1</a>
+		<a class="button red" id="button-axiom-2">2</a>
+		<a class="button" id="button-axiom-3">3</a>
+		<a class="button" id="button-axiom-4">4</a>
+		<a class="button" id="button-axiom-5">5</a>
+		<a class="button" id="button-axiom-6">6</a>
+		<a class="button" id="button-axiom-7">7</a>
 	</div>
-	<div id="toolbar">
-		<div>
-			<a class="button nolink">Axiom</button>
-			<a class="button" id="btn-axiom-1">1</a>
-			<a class="button" id="btn-axiom-2">2</a>
-			<a class="button" id="btn-axiom-3">3</a>
-			<a class="button" id="btn-axiom-4">4</a>
-			<a class="button" id="btn-axiom-5">5</a>
-			<a class="button" id="btn-axiom-6">6</a>
-			<a class="button" id="btn-axiom-7">7</a>
-		</div>
-		<div>
-			<a href="#" class="button" id="btn-option-0">A</a>
-			<a href="#" class="button" id="btn-option-1">B</a>
-			<a href="#" class="button" id="btn-option-2">C</a>
-		</div>
-	</div>
-</div>
+</body>
 
-<script type="text/javascript" src="../../rabbit-ear.js?1"></script>
-<script type="text/javascript" src="sketch.js?1"></script>
+<script type="text/javascript" src="../../rabbit-ear.js"></script>
+<script type="text/javascript" src="sketch.js"></script>

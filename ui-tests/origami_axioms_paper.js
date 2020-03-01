@@ -45,13 +45,13 @@ const drawParams = function (params) {
       .filter(s => s != null)
       .forEach(s => drawLayer.line(s[0][0], s[0][1], s[1][0], s[1][1])
         .strokeWidth(0.01)
-        .stroke("#fb4")));
+        .stroke("#fb3")));
 };
 
 const rebuild = function () {
   controls.removeAll();
   controls = origami.svg.controls(axiomControlCount[axiom])
-    .svg(() => controlLayer.circle().radius(0.02).fill("#fb4").stroke("none"))
+    .svg(() => controlLayer.circle().radius(0.02).fill("#fb3").stroke("none"))
     .position(() => [Math.random(), Math.random()])
     .onChange((points) => {
       const params = toAxiomParams(points);

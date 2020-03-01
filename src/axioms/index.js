@@ -82,7 +82,7 @@ export const axiom7 = function (pointA, vectorA, pointB, vectorB, pointC) {
     points: [math.vector(pointC)],
     lines: [math.line(pointA, vectorA), math.line(pointB, vectorB)]
   };
-  const sect = math.core.intersection.line_line(pointA, vectorA, pointC, vectorB);
+  const sect = math.core.intersection.line_line(pointB, vectorB, pointC, vectorA);
   if (sect === undefined) {
     return make_axiom_frame(7, parameters, []);
   }
@@ -385,14 +385,14 @@ export const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
         var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
 
         // solutions.push(this.axiom1(new M.XY(0, hF), new M.XY(1, mF + hF)));
-        solutions.push([[0, hF], [1, mF]]);
+        solutions.push(math.line([0, hF], [1, mF]));
       }
       else {
         //G(y) = k
         var kG = (u2 + p2)/2;
 
         // solutions.push(this.axiom1(new M.XY(kG, 0), new M.XY(kG, 1)));
-        solutions.push([[kG, 0], [0, 1]]);
+        solutions.push(math.line([kG, 0], [0, 1]));
       }
     }
   }

@@ -1,10 +1,6 @@
 .button {
-	font-size: 150%;
-	margin: 0.2rem;
-	padding: 1.5rem 1rem;
-	border: 1px solid transparent;
+	padding: 0.5rem 1.0rem;
 	border-radius: 0.2rem;
-	line-height: 0;
 	display: inline-block;
 	color: white;
 	text-align: center;
@@ -61,10 +57,10 @@ a.button { text-decoration: none; }
 	pointer-events: none;
 	opacity: 0.5;
 }
-.button.nolink {
+.button.nopress {
 	pointer-events: none;
 }
-.button.nolink:hover {
+.button.nopress:hover {
 	background-color: initial;
 	border-color: initial;
 }

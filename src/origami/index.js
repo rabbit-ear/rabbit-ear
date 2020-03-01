@@ -93,7 +93,9 @@ const Origami = function (...args) {
       face_index,
       assignment);
 
-    Object.keys(folded).forEach((key) => { origami[key] = folded[key]; });
+    Object.keys(folded)
+      .filter(key => typeof origami[key] !== "function")
+      .forEach((key) => { origami[key] = folded[key]; });
 
     if ("re:construction" in origami === true) {
       if (objects.length > 0 && "axiom" in objects[0] === true) {

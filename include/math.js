@@ -1782,11 +1782,14 @@ const Segment = function (...args) {
 const Circle = function (...args) {
   let origin;
   let radius;
-  const params = Array.from(args);
-  const numbers = params.filter(param => !isNaN(param));
+  const numbers = args.filter(param => !isNaN(param));
+  const vectors = get_two_vec2(args);
   if (numbers.length === 3) {
     origin = Vector(numbers[0], numbers[1]);
     [, , radius] = numbers;
+  } else if (vectors.length === 2) {
+    radius = distance2(...vectors);
+    origin = Vector(...vectors[0]);
   }
   const intersectionLine = function (...innerArgs) {
     const line = get_line(innerArgs);
@@ -1809,6 +1812,8 @@ const Circle = function (...args) {
     intersectionRay,
     intersectionSegment,
     get origin() { return origin; },
+    get x() { return origin[0]; },
+    get y() { return origin[1]; },
     get radius() { return radius; },
     set origin(innerArgs) { origin = Vector(innerArgs); },
     set radius(newRadius) { radius = newRadius; },

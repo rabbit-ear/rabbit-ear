@@ -12,7 +12,7 @@ RabbitEar.svg(document.querySelector("#canvas-axioms-graph"), -VecTw / 2, -VecTh
   // const bounds = RabbitEar.rectangle(-VecTw / 2, -VecTh / 2, VecTw, VecTh);
   const bounds = RabbitEar.rectangle(-50, -50, 100, 100);
   console.log(bounds);
-  const colors = ["#158", "#e53", "#fb4"];
+  const colors = ["#158", "#e53", "#fb3"];
 
   const gridLayer = svg.group()
     .fill("lightgray")
@@ -60,13 +60,13 @@ RabbitEar.svg(document.querySelector("#canvas-axioms-graph"), -VecTw / 2, -VecTh
       .filter(s => s != null)
       .forEach(s => drawLayer.line(s[0][0], s[0][1], s[1][0], s[1][1])
         .strokeWidth(strokeWidth)
-        .stroke("#fb4"));
+        .stroke("#fb3"));
   };
 
   const rebuild = function () {
     controls.removeAll();
     controls = svg.controls(axiomControlCount[axiom])
-      .svg(() => controlLayer.circle().radius(strokeWidth*2).fill("#fb4").stroke("none"))
+      .svg(() => controlLayer.circle().radius(strokeWidth*2).fill("#fb3").stroke("none"))
       .position(() => [Math.random(), Math.random()])
       .onChange((points) => {
         const params = toAxiomParams(points);
