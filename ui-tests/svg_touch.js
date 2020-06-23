@@ -4,13 +4,13 @@ var windowAspect = window.innerWidth / window.innerHeight;
 var VecTw = window.innerWidth > window.innerHeight ? windowAspect * 2.8 : 2.0;
 var VecTh = window.innerWidth > window.innerHeight ? 2.8 : 2.0 / (windowAspect);
 
-RabbitEar.svg("canvas-svg-touch", -VecTw / 2, -VecTh / 2, VecTw, VecTh, (svg) => {
+RabbitEar.svg(document.querySelector("#canvas-svg-touch"), -VecTw / 2, -VecTh / 2, VecTw, VecTh, (svg) => {
   const { RabbitEar } = window;
 
   const strokeWidth = 0.04;
   const GRIDS = 8;
 
-  const gridLayer = svg.group()
+  const gridLayer = svg.g()
     .fill("lightgray")
     .stroke("lightgray")
     .strokeLinecap("round")
@@ -26,7 +26,7 @@ RabbitEar.svg("canvas-svg-touch", -VecTw / 2, -VecTh / 2, VecTw, VecTh, (svg) =>
 
   const points = [];
 
-  const drawLayer = svg.group();
+  const drawLayer = svg.g();
 
   const p = svg.polyline()
     .fill("none")

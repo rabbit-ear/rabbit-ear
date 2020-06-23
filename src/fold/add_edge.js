@@ -32,7 +32,14 @@ const copy_properties = function (graph, geometry_prefix, index) {
  * - graph.vertices_coords is an array
  * - graph.edges_vertices is an array
  */
-const add_edge = function (graph, a, b, c, d, assignment = "U") {
+
+const add_edge_options = () => ({
+  edges_assignment: "U",
+  edges_foldAngle: 0,
+});
+
+// when you supply options, include both assignment and foldAngle
+const add_edge = function (graph, a, b, c, d, options = add_edge_options()) {
   const edge = math.segment(a, b, c, d);
 
   // find a matching (epsilon) pre-existing vertex, if it exists.
@@ -111,11 +118,15 @@ const add_edge = function (graph, a, b, c, d, assignment = "U") {
     }
   });
   // set all new edges to unassigned
+  const option_keys = Object.keys(options);
   result.new.edges
-    .filter(e => e.edges_assignment === undefined)
-    .forEach((e) => { e.edges_assignment = assignment; });
-  result.apply = () => apply_run_diff(graph, result);
-  return result;
+    .forEach(e => option_keys
+      .filter(key => e[key] === undefined)
+      .forEach((key) => { e[key] = options[key]; }));
+
+  return apply_run_diff(graph, result);
+  // result.apply = () => apply_run_diff(graph, result);
+  // return result;
 };
 
 export default add_edge;

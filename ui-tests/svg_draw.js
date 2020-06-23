@@ -1,4 +1,4 @@
-RabbitEar.svg("canvas-svg-draw", (svg) => {
+RabbitEar.svg(document.querySelector("#canvas-svg-draw"), (svg) => {
   svg.size(100, 100);
   svg.background("#fed", true);
 

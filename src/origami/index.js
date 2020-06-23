@@ -46,7 +46,7 @@ const Origami = function (...args) {
    * by default this will load a unit square graph.
    */
   const origami = Object.assign(
-    Object.create(prototype()),
+    Object.create(prototype),
     args.filter(a => possibleFoldObject(a) > 0)
       .sort((a, b) => possibleFoldObject(b) - possibleFoldObject(a))
       .shift() || Create.square()

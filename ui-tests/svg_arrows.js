@@ -1,4 +1,4 @@
-RabbitEar.svg("canvas-svg-arrows", (svg) => {
+RabbitEar.svg(document.querySelector("#canvas-svg-arrows"), (svg) => {
   svg.size(100, 100);
 
   var arrowBlue = svg.arrow()

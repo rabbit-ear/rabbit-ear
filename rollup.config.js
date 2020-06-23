@@ -9,7 +9,7 @@ const version = "0.1.91";
 module.exports = [{
   input: "src/index.js",
   output: {
-    name: "RabbitEar",
+    name: "ear",
     file: "rabbit-ear.js",
     format: "umd",
     banner: `/* Rabbit Ear v${version} (c) Robby Kraft, MIT License */`,
@@ -23,16 +23,16 @@ module.exports = [{
     string({
       include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
     }),
-    babel({
-      babelrc: false,
-      presets: [["@babel/env", { modules: false }]],
-    }),
+    // babel({
+    //   babelrc: false,
+    //   presets: [["@babel/env", { modules: false }]],
+    // }),
   ],
 // },
 // {
 //   input: "src/index.js",
 //   output: {
-//     name: "RabbitEar",
+//     name: "ear",
 //     file: "rabbit-ear.min.js",
 //     format: "umd",
 //     banner: `/* Rabbit Ear v${version} (c) Robby Kraft, MIT License */`,

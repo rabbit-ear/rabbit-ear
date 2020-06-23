@@ -1,7 +1,10 @@
 // boundary detection, removal, cleanup
 
 import { get_isolated_vertices } from "./query";
-import { make_vertices_edges } from "./make";
+import {
+  make_vertices_edges,
+  make_vertex_pair_to_edge_map,
+} from "./make";
 import remove from "./remove";
 
 export const bounding_rect = function ({ vertices_coords }) {
@@ -78,4 +81,82 @@ export const remove_non_boundary_edges = function (graph) {
   graph.faces_edges = [face.edges];
   graph.faces_vertices = [face.vertices];
   remove(graph, "vertices", get_isolated_vertices(graph));
+};
+
+/**
+ * get the 2D boundary face defined in vertices and edges by walking boundary
+ * edges (in 2D!), with no regard to assignment. this will discover a boundary
+ * when before there was none.
+ *
+ * you need to have already called populate().
+ */
+export const make_boundary = function (graph) {
+  const edge_map = make_vertex_pair_to_edge_map(graph);
+  const edge_walk = [];
+  const vertex_walk = [];
+  const walk = {
+    vertices: vertex_walk,
+    edges: edge_walk,
+  };
+
+  let largestX = -Infinity;
+  let first_vertex_i = -1;
+  graph.vertices_coords.forEach((v, i) => {
+    if (v[0] > largestX) {
+      largestX = v[0];
+      first_vertex_i = i;
+    }
+  });
+
+  if (first_vertex_i === -1) { return walk; }
+  vertex_walk.push(first_vertex_i);
+  const first_vc = graph.vertices_coords[first_vertex_i];
+  const first_neighbors = graph.vertices_vertices[first_vertex_i];
+  // sort adjacent vertices by next most clockwise vertex;
+  const counter_clock_first_i = first_neighbors
+    .map(i => graph.vertices_coords[i])
+    .map(vc => [vc[0] - first_vc[0], vc[1] - first_vc[1]])
+    .map(vec => Math.atan2(vec[1], vec[0]))
+    .map(angle => (angle < 0 ? angle + Math.PI * 2 : angle))
+    .map((a, i) => ({ a, i }))
+    .sort((a, b) => a.a - b.a)
+    .shift()
+    .i;
+  const second_vertex_i = first_neighbors[counter_clock_first_i];
+  // find this edge that connects these 2 vertices
+  const first_edge_lookup = first_vertex_i < second_vertex_i
+    ? `${first_vertex_i} ${second_vertex_i}`
+    : `${second_vertex_i} ${first_vertex_i}`;
+  const first_edge = edge_map[first_edge_lookup];
+  // vertex_walk.push(second_vertex_i);
+  edge_walk.push(first_edge);
+
+  // now we begin the loop
+
+  // walking the graph, we look at 3 vertices at a time. in sequence:
+  // prev_vertex, this_vertex, next_vertex
+  let prev_vertex_i = first_vertex_i;
+  let this_vertex_i = second_vertex_i;
+  let protection = 0;
+  while (protection < 10000) {
+    const next_neighbors = graph.vertices_vertices[this_vertex_i];
+    const from_neighbor_i = next_neighbors.indexOf(prev_vertex_i);
+    const next_neighbor_i = (from_neighbor_i + 1) % next_neighbors.length;
+    const next_vertex_i = next_neighbors[next_neighbor_i];
+    const next_edge_lookup = this_vertex_i < next_vertex_i
+      ? `${this_vertex_i} ${next_vertex_i}`
+      : `${next_vertex_i} ${this_vertex_i}`;
+    const next_edge_i = edge_map[next_edge_lookup];
+    // exit loop condition
+    if (next_edge_i === edge_walk[0]) {
+      return walk;
+    }
+    vertex_walk.push(this_vertex_i);
+    edge_walk.push(next_edge_i);
+    prev_vertex_i = this_vertex_i;
+    this_vertex_i = next_vertex_i;
+    protection += 1;
+  }
+  console.warn("calculate boundary potentially entered infinite loop");
+  return walk;
 };

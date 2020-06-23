@@ -70,14 +70,20 @@ export const apply_run_diff = function (graph, diff) {
     Object.keys(diff.new)
       .forEach(type => diff.new[type]
         .forEach((newElem, i) => Object.keys(newElem)
-          .forEach((key) => { graph[key][lengths[type] + i] = newElem[key]; })));
+          .forEach((key) => {
+            if (graph[key] === undefined) { graph[key] = []; }
+            graph[key][lengths[type] + i] = newElem[key];
+          })));
   }
   // object keys to get the array indices.
   // example: overwrite faces_vertices, index 4, with new array [1,5,7,4]
   if (diff.update) {
     Object.keys(diff.update)
       .forEach(i => Object.keys(diff.update[i])
-        .forEach((key) => { graph[key][i] = diff.update[i][key]; }));
+        .forEach((key) => {
+          if (graph[key] === undefined) { graph[key] = []; }
+          graph[key][i] = diff.update[i][key];
+        }));
   }
   // these should be done in a particular order... is that right?
   if (diff.remove) {

@@ -14,30 +14,35 @@ var LiveCode = function LiveCode(container) {
     var canvasContainer = document.createElement("div");
     var consoleContainer = document.createElement("div");
     var playPauseButton = document.createElement("div");
-    var darkModeButton = document.createElement("div");
-    var fontSizeButton = document.createElement("div");
+    // var darkModeButton = document.createElement("div");
+    // var fontSizeButton = document.createElement("div");
+    var downloadButton = document.createElement("div");
     codeContainer.setAttribute("class", "code-editor");
     canvasContainer.setAttribute("class", "code-canvas");
     consoleContainer.setAttribute("class", "code-console");
     playPauseButton.setAttribute("class", "play-pause-button play");
-    darkModeButton.setAttribute("class", "dark-mode-button");
-    fontSizeButton.setAttribute("class", "font-size-button");
+    // darkModeButton.setAttribute("class", "dark-mode-button");
+    // fontSizeButton.setAttribute("class", "font-size-button");
+    downloadButton.setAttribute("class", "download-button");
     playPauseButton.setAttribute("title", "Auto-compile");
-    darkModeButton.setAttribute("title", "Dark mode");
-    fontSizeButton.setAttribute("title", "Large / small text");
+    // darkModeButton.setAttribute("title", "Dark mode");
+    // fontSizeButton.setAttribute("title", "Large / small text");
+    downloadButton.setAttribute("title", "Download");
     appContainer.appendChild(codeContainer);
     appContainer.appendChild(canvasContainer);
     appContainer.appendChild(consoleContainer);
     appContainer.appendChild(playPauseButton);
-    appContainer.appendChild(darkModeButton);
-    appContainer.appendChild(fontSizeButton);
+    // appContainer.appendChild(darkModeButton);
+    // appContainer.appendChild(fontSizeButton);
+    appContainer.appendChild(downloadButton);
     return {
       code: codeContainer,
       canvas: canvasContainer,
       console: consoleContainer,
       playPause: playPauseButton,
-      darkMode: darkModeButton,
-      fontSize: fontSizeButton
+      // darkMode: darkModeButton,
+      download: downloadButton,
+      // fontSize: fontSizeButton
     };
   };
 
@@ -159,22 +164,22 @@ var LiveCode = function LiveCode(container) {
   app.editor.session.setMode("ace/mode/javascript");
   app.editor.session.on("change", editorDidUpdate);
   app.editor.session.setTabSize(2);
-  app.editor.setOptions({ fontSize: "9pt" });
+  app.editor.setOptions({ fontSize: "11pt" });
   app.editor.focus();
 
   app.dom.playPause.onclick = function () {
     setPaused(!isPaused);
     app.editor.focus();
   };
-  app.dom.darkMode.onclick = function () {
-    setDarkMode(!darkMode);
-    app.editor.focus();
-  };
-  app.dom.fontSize.onclick = function () {
-    zoom = !zoom;
-    app.editor.setOptions({ fontSize: (zoom ? "20pt" : "9pt") });
-    app.editor.focus();
-  };
+  // app.dom.darkMode.onclick = function () {
+  //   setDarkMode(!darkMode);
+  //   app.editor.focus();
+  // };
+  // app.dom.fontSize.onclick = function () {
+  //   zoom = !zoom;
+  //   app.editor.setOptions({ fontSize: (zoom ? "20pt" : "9pt") });
+  //   app.editor.focus();
+  // };
 
   Object.defineProperty(app, "clear", { value: clear });
   Object.defineProperty(app, "injectCode", { value: injectCode });

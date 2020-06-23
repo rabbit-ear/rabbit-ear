@@ -1,4 +1,6 @@
 <?php include 'header.php';?>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.7/ace.js"></script>
+<script type="text/javascript" src="js/svg.ace.js"></script>
 <script type="text/javascript" src="js/toolkit.js"></script>
 <script type="text/javascript" src="include/katex/katex.min.js"></script>
 <link rel="stylesheet" href="include/katex/katex.min.css">
@@ -146,179 +148,69 @@ svg.mouseMoved <key>=</key> <f>function</f> (<arg>mouse</arg>) {
 
 <h3>Primitives</h3>
 
-<p>
-  These relate to primitives in the SVG specification, anyone familiar with the spec should immediately recognize these.
-</p>
+  <pre class="title"><code>SVG()</code></pre>
+  <div class="sketch-1"></div>
 
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>line</f>(<arg>x1</arg>, <arg>y1</arg>, <arg>x2</arg>, <arg>y2</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#LineElement">&lt;line&gt;</a> element</p>
-    </div>
-    <div id="svg-example-line"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>circle</f>(<arg>x</arg>, <arg>y</arg>, <arg>radius</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#CircleElement">&lt;circle&gt;</a> element</p>
-      <p class="description">the x, y is the circle's center.</p>
-    </div>
-    <div id="svg-example-circle"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>ellipse</f>(<arg>x</arg>, <arg>y</arg>, <arg>rx</arg>, <arg>ry</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#EllipseElement">&lt;ellipse&gt;</a> element</p>
-      <p class="description">an ellipse has 2 radii, along the X and Y axes.</p>
-    </div>
-    <div id="svg-example-ellipse"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>rect</f>(<arg>x</arg>, <arg>y</arg>, <arg>width</arg>, <arg>height</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#RectElement">&lt;rect&gt;</a> element</p>
-      <p class="description">the x, y is top left corner.</p>
-    </div>
-    <div id="svg-example-rect"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>polygon</f>(<arg>pointsArray</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#PolygonElement">&lt;polygon&gt;</a> element</p>
-      <p class="description">A polygon is a closed shape defined by a series of points.</p>
-      <p class="description">Accepts points as arrays or {x:, y:} objects.</p>
-      <ul class="description">
-        <li><pre>[[0.5, 1.0], [3.5, 2.5]]</pre></li>
-        <li><pre>{x:0.5, y:1.0}, {x:3.5, y:2.5}</pre></li>
-        <li><pre>0.5, 1.0, 3.5, 2.5, 10, 10</pre></li>
-      </ul>
-    </div>
-    <div id="svg-example-polygon"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>polyline</f>(<arg>pointsArray</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#PolylineElement">&lt;polyline&gt;</a> element</p>
-      <p class="description">just like the polygon but the beginning and end aren't connected.</p>
-    </div>
-    <div id="svg-example-polyline"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>text</f>(<arg>textString</arg>, <arg>x</arg>, <arg>y</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/text.html#TextElement">&lt;text&gt;</a> element</p>
-      <p class="description">the x and y describe the location of the left most point along the baseline. the text sits above the point in the y direction. if defined at (0,0) the text will sit above the top of the frame.</p>
-    </div>
-    <div id="svg-example-text"></div>
-  </div>
+  <pre class="title"><code>line(<arg>x1</arg>, <arg>y1</arg>, <arg>x2</arg>, <arg>y2</arg>)</code></pre>
+  <div class="sketch-2"></div>
 
-<h3>Special Primitives</h3>
+  <pre class="title"><code>circle(<arg>x</arg>, <arg>y</arg>, <arg>radius</arg>)</code></pre>
+  <div class="sketch-3"></div>
 
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>regularPolygon</f>(<arg>cX</arg>, <arg>cY</arg>, <arg>radius</arg>, <arg>sides</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#PolygonElement">&lt;polygon&gt;</a> element</p>
-      <p class="description">creates regular polygons of n number of sides (3 = eq. triangle), centered at point (cX, cY), with a circumscribed radius.</p>
-    </div>
-    <div id="svg-example-regularPolygon"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>arc</f>(<arg>x</arg>, <arg>y</arg>, <arg>radius</arg>, <arg>angleA</arg>, <arg>angleB</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/paths.html#PathElement">&lt;path&gt;</a> element</p>
-      <p class="description">an arc is the curve along the boundary of a circle.</p>
-    </div>
-    <div id="svg-example-arc"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>wedge</f>(<arg>x</arg>, <arg>y</arg>, <arg>radius</arg>, <arg>angleA</arg>, <arg>angleB</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/paths.html#PathElement">&lt;path&gt;</a> element</p>
-      <p class="description">a wedge is a filled arc, like a slice of a pie that includes the center of the circle.</p>
-    </div>
-    <div id="svg-example-wedge"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>bezier</f>(<arg>fromX</arg>, <arg>fromY</arg>, <arg>c1X</arg>, <arg>c1Y</arg>, <arg>c2X</arg>, <arg>c2Y</arg>, <arg>toX</arg>, <arg>toY</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/paths.html#PathElement">&lt;path&gt;</a> element</p>
-      <p class="description">a bezier curve is defined between two points (fromX, fromY) and (toX, toY) with two control points (c1X, c1Y) and (c2X, c2Y). The arguments are arranged in order of appearance when tracing the line from start to finish.</p>
-    </div>
-    <div id="svg-example-bezier"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code>svg.<f>parabola</f>(<arg>x</arg>, <arg>y</arg>, <arg>width</arg>, <arg>height</arg>)</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/shapes.html#PolylineElement">&lt;polyline&gt;</a> element</p>
-      <p class="description">This creates a polyline approximation of the curve y=x², centered on the y-axis. The parameters define the rectangle that encloses the curve.</p>
-    </div>
-    <div id="svg-example-parabola"></div>
-  </div>
+  <pre class="title"><code>ellipse(<arg>x</arg>, <arg>y</arg>, <arg>rx</arg>, <arg>ry</arg>)</code></pre>
+  <div class="sketch-4"></div>
 
-<h3>Layering and Clipping</h3>
+  <pre class="title"><code>rect(<arg>x</arg>, <arg>y</arg>, <arg>width</arg>, <arg>height</arg>)</code></pre>
+  <div class="sketch-5"></div>
 
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code><f>group</f>()</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/struct.html#Groups">&lt;group&gt;</a> element</p>
-      <p class="description">like a layer in Photoshop, a group is a container. it's useful for z-ordering. it doesn't show up visually, but if you style it, the style will apply to all its children.</p>
-    </div>
-    <div id="svg-example-group"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code><f>clipPath</f>()</code></pre>
-      <p class="returns">&gt; creates one <a href="https://drafts.fxtf.org/css-masking-1/#ClipPathElement">&lt;clip-path&gt;</a> element</p>
-      <p class="description">A clip path sits in the header, like style. Append closed-geometry elements to it and they will become a clipping mask. Clip another element by styling its clip-path attribute:</p>
-      <ul class="description"><li><code><f>const</f> clip <key>=</key> <f>clipPath</f>();<br>shape.<f>clipPath</f>(clip);</code></li></ul>
-      <p class="description">which will automatically perform a call like this, matching the url id name parameter.</p>
-      <ul class="description"><li><code>shape.<f>setAttribute</f>(<str>"clip-path"</str>, <str>"url(#id_name)"</str>);</code></li></ul>
-    </div>
-    <div id="svg-example-clipPath"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code><f>mask</f>()</code></pre>
-      <p class="returns">&gt; creates one <a href="https://drafts.fxtf.org/css-masking-1/#MaskElement">&lt;mask&gt;</a> element</p>
-      <p class="description">A mask is similar to a clip path but instead of a path, a mask is a black and white image. Fill the mask layer with black and white shapes (or gray for transparency). Clip another element by setting its mask attribute:</p>
-      <ul class="description"><li><code><f>const</f> m <key>=</key> <f>mask</f>();<br>shape.<f>mask</f>(m);</code></li></ul>
-      <p class="description">which will automatically perform a call like this, matching the url id name parameter.</p>
-      <ul class="description"><li><code>shape.<f>setAttribute</f>(<str>"mask"</str>, <str>"url(#id_name)"</str>);</code></li></ul>
-    </div>
-    <div id="svg-example-mask"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code><f>stylesheet</f>()</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/styling.html#StyleElement">&lt;style&gt;</a> element</p>
-      <p class="description">A style section contain CSS text (on property .innerHTML). CSS is helpful for selecting multiple objects and styling them with one definition.</p>
-      <p class="description">This is not advised. Even if a stylesheet is inside one SVG, it applies to all SVGs on the same HTML page.</p>
-      <p class="description">But be careful! Style sections affect the global space. Multiple SVG images on the same HTML document all inherit each other's style sections.</p>
-    </div>
-    <div id="svg-example-stylesheet"></div>
-  </div>
-<hr>
-  <div class="grid-2">
-    <div>
-      <pre class="code"><code><f>defs</f>()</code></pre>
-      <p class="returns">&gt; creates one <a href="https://www.w3.org/TR/SVG/struct.html#DefsElement">&lt;defs&gt;</a> element</p>
-      <p class="description">It's typical that everything mentioned in this section is a child in the defs() element: style, clip paths, and masks (though, it appears to not be required). Any drawing primitives appended to the defs <b>will not be drawn</b>.</p>
-    </div>
-    <div id="svg-example-defs"></div>
-  </div>
+  <pre class="title"><code>polygon(<arg>pointsArray</arg>)</code></pre>
+  <div class="sketch-6"></div>
+
+  <pre class="title"><code>polyline(<arg>pointsArray</arg>)</code></pre>
+  <div class="sketch-7"></div>
+
+  <pre class="title"><code>path()</code></pre>
+  <div class="sketch-8"></div>
+
+  <pre class="title"><code>text(<arg>textString</arg>, <arg>x</arg>, <arg>y</arg>)</code></pre>
+  <div class="sketch-9"></div>
+
+<h3>Layers and Masks</h3>
+
+  <pre class="title"><code>g()</code></pre>
+  <div class="sketch-10"></div>
+
+  <pre class="title"><code>clipPath()</code></pre>
+  <div class="sketch-11"></div>
+  
+  <pre class="title"><code>mask()</code></pre>
+  <div class="sketch-12"></div>
+
+<h3>Outside the Specification</h3>
+
+  <pre class="title"><code>regularPolygon(<arg>cX</arg>, <arg>cY</arg>, <arg>radius</arg>, <arg>sides</arg>)</code></pre>
+  <div class="sketch-13"></div>
+
+  <pre class="title"><code>parabola(<arg>x</arg>, <arg>y</arg>, <arg>width</arg>, <arg>height</arg>)</code></pre>
+  <div class="sketch-14"></div>
+
+  <pre class="title"><code>curve(<arg>x1</arg>, <arg>y1</arg>, <arg>x2</arg>, <arg>y2</arg>, <arg>bend</arg>)</code></pre>
+  <div class="sketch-15"></div>
+
+  <pre class="title"><code>arc(<arg>x</arg>, <arg>y</arg>, <arg>radius</arg>, <arg>angleA</arg>, <arg>angleB</arg>)</code></pre>
+  <div class="sketch-16"></div>
+
+  <pre class="title"><code>wedge(<arg>x</arg>, <arg>y</arg>, <arg>radius</arg>, <arg>angleA</arg>, <arg>angleB</arg>)</code></pre>
+  <div class="sketch-17"></div>
+
+<h3>Events</h3>
+
+  <pre class="title"><code>onMove, onPress, onRelease</code></pre>
+  <div class="sketch-18"></div>
+
+  <pre class="title"><code>animate</code></pre>
+  <div class="sketch-19"></div>
+
 
 
 <h2>Special</h2>
@@ -565,124 +457,67 @@ svgTouchCallback = function (e) {
 </script>
 
 <script>
-RabbitEar.svg(document.querySelector("#svg-example-line"), (svg) => {
-  svg.line(20, 20, 280, 130)
-    .stroke("black");
-  svg.line(20, 130, 280, 20)
-    .stroke("sienna")
-    .strokeWidth(7)
-    .strokeDasharray("7 5");
-});
-RabbitEar.svg(document.querySelector("#svg-example-circle"), (svg) => {
-  svg.circle(150, 75, 50)
-    .fill("peru");
-});
-RabbitEar.svg(document.querySelector("#svg-example-ellipse"), (svg) => {
-  svg.ellipse(150, 75, 100, 50)
-    .fill("chocolate");
-});
-RabbitEar.svg(document.querySelector("#svg-example-rect"), (svg) => {
-  svg.rect(100, 50, 100, 50)
-    .fill("steelblue");
-});
-RabbitEar.svg(document.querySelector("#svg-example-polygon"), (svg) => {
-  svg.polygon(10, 10, 150, 50, 80, 90)
-    .fill("thistle");
-  var points = [
-    [240,20],
-    [250,120],
-    [150,20],
-    [170,100]];
-  svg.polygon(points)
-    .fill("sienna");
-});
-RabbitEar.svg(document.querySelector("#svg-example-regularPolygon"), (svg) => {
-  svg.regularPolygon(100, 75, 65, 5)
-    .fill("forestgreen");
-  svg.regularPolygon(200, 75, 40, 7)
-    .fill("black");
-});
-RabbitEar.svg(document.querySelector("#svg-example-polyline"), (svg) => {
-  svg.polyline(40, 40, 100, 140, 150, 30, 250, 140)
-    .stroke("tomato")
-    .strokeWidth(10);
-});
-RabbitEar.svg(document.querySelector("#svg-example-text"), (svg) => {
-  svg.text("abc あいう 🥰🤩🥳", 20, 75)
-    .fill("black")
-    .fontSize("30px");
-});
-RabbitEar.svg(document.querySelector("#svg-example-arc"), (svg) => {
-  svg.arc(150, 75, 65, Math.PI/2, Math.PI*7/4)
-    .fill("darkolivegreen")
-    .stroke("yellowgreen")
-    .strokeWidth(10);
-});
-RabbitEar.svg(document.querySelector("#svg-example-wedge"), (svg) => {
-  svg.wedge(150, 75, 65, Math.PI/2, Math.PI*7/4)
-    .fill("darkolivegreen")
-    .stroke("yellowgreen")
-    .strokeWidth(10);
-});
-RabbitEar.svg(document.querySelector("#svg-example-bezier"), (svg) => {
-  svg.bezier(40, 40, 100, 140, 150, 30, 250, 140)
-    .stroke("tomato")
-    .strokeWidth(10);
-});
-RabbitEar.svg(document.querySelector("#svg-example-parabola"), (svg) => {
-  svg.parabola(50, 20, 130, 130)
-    .fill("crimson");
-  svg.parabola(200, 120, 40, -80)
-    .fill("gold");
-});
-RabbitEar.svg(document.querySelector("#svg-example-group"), (svg) => {
-  var g = svg.group().fill("dodgerblue");
-  svg.rect(140, 0, 20, 150).fill("black");
-  g.rect(0, 65, 300, 20);
-});
-RabbitEar.svg(document.querySelector("#svg-example-clipPath"), (svg) => {
-  var clip = svg.clipPath();
-  clip.text("clipping", 0, 95)
-    .fontSize("80px");
-  svg.line(0, 75, 300, 75)
-    .stroke("orchid")
-    .strokeWidth(20)
-    .clipPath(clip);
-  svg.line(0, 30, 300, 120)
-    .stroke("forestgreen")
-    .strokeWidth(20)
-    .clipPath(clip);
-});
-RabbitEar.svg(document.querySelector("#svg-example-mask"), (svg) => {
-  svg.line(0, 70, 300, 70).strokeWidth(20).stroke("lightgray");
-  var m = svg.mask();
-  m.text("MASK", 20, 95)
-    .fill("white")
-    .fontWeight(900)
-    .fontSize("80px");
-  m.text("MASK", 25, 97)
-    .fill("black")
-    .fontWeight(900)
-    .fontSize("80px");
-  svg.rect(0, 0, 300, 150)
-    .strokeWidth(20)
-    .fill("orchid")
-    .mask(m);
-});
-RabbitEar.svg(document.querySelector("#svg-example-stylesheet"), (svg) => {
-  svg.setClass("styled");
-  var css = ".styled rect { fill: crimson }";
-  var s = svg.stylesheet(css);
-  svg.rect(100, 25, 100, 100);
-});
-RabbitEar.svg(document.querySelector("#svg-example-defs"), (svg) => {
-// this example does not visualize anything
-  var d = svg.defs();
-  var t = svg.createElement("title");
-  t.innerHTML = "metadata";
-  d.appendChild(t);
-  d.rect(20, 20, 100, 100);
-});
-</script>
+var examples = [
+  "window.svg1 = SVG(document.querySelector('#svg-parent'));\n\nsvg1.size(-2, -1, 4, 2);\nsvg1.background('black');\n\nsvg1.circle(0, 0, 1).fill('white');",
+  "svg2.line(20, 20, 280, 130)\n  .stroke('black');\n\nsvg2.line([20, 130], [280, 20])\n  .stroke('#000')\n  .strokeWidth(12)\n  .strokeDasharray('16 4 36');",
+  "svg3.circle(150, 75, 75)",
+  "for (var i = 0; i < 100; i += 10) {\n  svg4.ellipse(150, 75, 100-i, 75)\n    .fill('#000' + i/10);\n}",
+  "svg5.rect(25, 25, 250, 100);",
+  "svg6.polygon(10, 10, 300, 50, 180, 150)\n  .fill('black');\n\nvar points = [\n  [200,20],\n  [200,120],\n  [100,20],\n  [100,100]];\n\nsvg6.polygon(points)\n  .fill('crimson');\n",
+  "svg7.polyline(0, 10, 280, 0, 260, 140, 10, 150)\n\nvar p = svg7.polyline()\n  .stroke('crimson')\n  .fill('none')\n  .strokeWidth(10);\n\nfor (var x = 0; x < 300; x += 20) {\n  p.addPoint(x, Math.random() * 150);\n}",
+  "svg8.path()\n  .stroke('crimson')\n  .strokeWidth(10)\n  .fill('none')\n  .Move(250, 100)\n  .Line(60, 10)\n  .curve(-20, 100, 300, 0, 200, 100)\n  .ellipse(50, 50, 0, 0, 1, -80, -80);",
+  "svg9.text('abc あいう 🥰🤩🥳', 0, 100)\n  .fill('gold')\n  .fontSize('34px');",
+  "var layer = svg10.g().fill('crimson');\n\nsvg10.rect(130, 0, 40, 150).fill('black');\n\nlayer.rect(0, 55, 300, 40);",
+  "var clip = svg11.clipPath();\nclip.text('clipping', 0, 95)\n  .fontSize('80px');\n\nsvg11.line(0, 75, 300, 75)\n  .stroke('black')\n  .strokeWidth(20)\n  .clipPath(clip);\n\nsvg11.line(0, 30, 300, 120)\n  .stroke('crimson')\n  .strokeWidth(20)\n  .clipPath(clip);",
+  "svg12.rect(0,90, 300, 30).fill('crimson');\nsvg12.fontWeight(900)\n  .fontSize('100px');\n\nvar m = svg12.mask();\nm.text('MASK', 0, 100).fill('white');\nm.text('MASK', 5, 102).fill('black');\nsvg12.rect(0, 0, 300, 150)\n  .fill('black')\n  .mask(m);",
+  "svg13.strokeWidth(10)\n  .stroke('black')\n  .fill('crimson');\n\nsvg13.regularPolygon(150, 75, 72, 10);\nsvg13.regularPolygon(150, 75, 48, 5);",
+  "svg14.parabola(0, 150, 300, -150)\n  .fill('crimson');",
+  "for (var i = 0; i < 1.25; i += 0.1) {\n  svg15.curve(0, 150, 300, 150, i)\n    .stroke('crimson')\n    .fill('none');\n}",
+  "svg16.arc(150, 75, 65, Math.PI/2, Math.PI*7/4)\n  .fill('crimson')\n  .stroke('black')\n  .strokeWidth(10);",
+  "svg17.wedge(150, 75, 65, Math.PI/2, Math.PI*7/4)\n  .fill('crimson')\n  .stroke('black')\n  .strokeWidth(10);",
+  "svg18.onMove = function (mouse) {\n  svg18.circle(mouse.x, mouse.y, 10)\n    .fill('#0001');\n};",
+  "var c = svg19.circle(150, 75, 25);\n\nsvg19.play = function (e) {\n  c.setCenter(Math.sin(e.time) * 100 + 150, 75);\n};\n",
+];
 
+
+document.addEventListener("DOMContentLoaded", function () {
+  examples.forEach(function(code, i) {
+    var app = LiveCode(document.querySelectorAll(".sketch-" + (i+1))[0]);
+
+    app.editor.renderer.setShowGutter(false);
+
+    var svg;
+
+    if (i+1 === 1) {
+      app.dom.canvas.setAttribute("id", "svg-parent");
+    } else {
+      svg = window["svg" + (i+1)] = RabbitEar.svg(app.dom.canvas, 300, 150);
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    }
+    app.injectCode(code);
+
+    app.didPause = function (paused) { };
+    app.didUpdate = function () { };
+    app.didBeginUpdate = function () {
+      if (i+1 === 1) {
+        if (window.svg1) {
+          window.svg1.remove();
+        }
+        svg = null;
+      }
+      if (svg == null) { return };
+
+      var keepThese = ["version", "xmlns", "class", "width", "height"];
+      while (svg.lastChild) { svg.removeChild(svg.lastChild); }
+      Array.from(svg.attributes)
+        .filter(function (a) { return keepThese.indexOf(a.nodeName) === -1; })
+        .forEach(function(attr) { svg.removeAttribute(attr.nodeName); });
+      svg.off();
+      svg.stop();
+      svg.size(0, 0, 300, 150);
+    };
+  });
+});
+
+</script>
 <?php include "footer.php";?>

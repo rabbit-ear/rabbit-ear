@@ -11,15 +11,20 @@
 */
 
 import { isBrowser, isWebWorker, isNode } from "./environment/detect";
+import window from "./environment/window"; // get rid when name is resolved
 
 // top level
+import root from "./root";
 import origami from "./origami/index";
 import math from "../include/math";
 import graph from "./graph/index";
-import svg from "../include/svg";
+import cp from "./cp/index";
 import fold from "./fold-through-all/index";
 import convert from "./convert/convert";
 import * as Axioms from "./axioms/index";
+
+import use from "./use";
+// import origamiProto from "./origami/prototype";
 
 // to be included in the core
 import apply_axiom from "./axioms/axiom_frame";
@@ -30,11 +35,13 @@ import * as keys from "./FOLD/keys";
 import * as collinear from "./FOLD/collinear";
 import * as isolated from "./FOLD/isolated";
 import * as validate from "./FOLD/validate";
+import * as boundary from "./FOLD/boundary";
 import * as similar from "./FOLD/similar";
 import fragment from "./FOLD/fragment";
 import clean from "./FOLD/clean";
 import join from "./FOLD/join";
 import validateDefault from "./FOLD/validate";
+import remove_duplicate_vertices from "./FOLD/duplicate_vertices";
 import remove from "./FOLD/remove";
 import rebuild from "./FOLD/rebuild";
 import populate from "./FOLD/populate";
@@ -71,6 +78,7 @@ Object.assign(core,
   keys,
   affine,
   validate,
+  boundary,
   similar,
   make,
   marks,
@@ -94,6 +102,7 @@ core.remove = remove;
 core.rebuild = rebuild;
 core.populate = populate;
 core.validate = validateDefault;
+core.remove_duplicate_vertices = remove_duplicate_vertices;
 
 // load bases
 const b = {
@@ -117,22 +126,31 @@ Object.defineProperty(bases, "fish", { get: () => core.clone(b.fish) });
 Object.defineProperty(bases, "bird", { get: () => core.clone(b.bird) });
 Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 
-const rabbitEar = {
+const rabbitEar = Object.assign(root, {
   origami,
   graph,
-  svg,
+  cp,
   fold,
   convert,
   core,
   bases,
-  text: {axioms: JSON.parse(text_axioms)},
+  text: { axioms: JSON.parse(text_axioms) },
   math: math.core,
   axiom: Axioms.axiom,
-  equivalent: math.core.equivalent
-};
+  // equivalent: math.core.equivalent
+});
+
+// Object.keys(math)
+//   .filter(key => key !== "core")
+//   .forEach((key) => { console.log(math[key].name); });
 
 Object.keys(math)
   .filter(key => key !== "core")
   .forEach((key) => { rabbitEar[key] = math[key]; });
+
+rabbitEar.use = use.bind(rabbitEar);
+
+// todo, resolve this name thing eventually
+window.RabbitEar = rabbitEar;
 
 export default rabbitEar;

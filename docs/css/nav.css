@@ -9,7 +9,7 @@ nav ul {
 	left: 0;
 	width: 100%;
 	overflow: visible;
-	z-index: 2;
+	z-index: 5;
 }
 
 nav li {

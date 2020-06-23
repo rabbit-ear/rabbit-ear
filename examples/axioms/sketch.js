@@ -2,7 +2,15 @@ const origami = RabbitEar.origami(document.querySelectorAll(".canvas")[0], {
   diagrams: true,
   padding: 0.1,
   attributes: {
-    edges: { valley: { stroke: "#158", "stroke-dasharray": "0.02 0.01" } }
+    edges: { 
+      "stroke-width": 0.01,
+      valley: {
+        stroke: "#158",
+        "stroke-width": 0.015,
+        "stroke-dasharray": "0.02 0.03",
+        "stroke-linecap": "round"
+      }
+    }
   }
 });
 
@@ -10,7 +18,10 @@ const folded = RabbitEar.origami(document.querySelectorAll(".canvas")[0], {
   padding: 0.1,
   autofit: false,
   attributes: {
-    faces: { front: { fill: "white" }, back: { fill: "#fb4" } }
+    faces: {
+      "stroke-width": 0.01,
+      front: { fill: "white" }, back: { fill: "#fb4" }
+    }
   }
 });
 
@@ -70,8 +81,9 @@ const controlsOnChange = function (points) {
     solutions.forEach(line => origami.boundaries[0].clipLine(line)
       .filter(s => s != null)
       .forEach(s => drawLayer.line(s[0][0], s[0][1], s[1][0], s[1][1])
-        .strokeWidth(0.005)
-        .stroke("#ddd")));
+        .strokeWidth(0.01)
+        .stroke("#000")
+        .opacity(0.1)));
     folded.load(origami);
     folded.fold();
   }

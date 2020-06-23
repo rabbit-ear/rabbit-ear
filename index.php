@@ -2,7 +2,7 @@
 <html>
 <head>
 <script>
-window.location.href = "rabbitear-site/";
+window.location.href = "/rabbitear-site/";
 </script>
 </head>
 

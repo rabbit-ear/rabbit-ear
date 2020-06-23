@@ -10,7 +10,7 @@ import {
 const Graph = function (object = {}) {
   // should Graph({vertices_coors:[], ...}) deep copy the argument object?
   return Object.assign(
-    Object.create(prototype()),
+    Object.create(prototype),
     Create.empty(),
     object,
     { file_spec, file_creator }

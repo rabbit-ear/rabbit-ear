@@ -1,4 +1,4 @@
-RabbitEar.svg("canvas-svg-mask", (svg) => {
+RabbitEar.svg(document.querySelector("#canvas-svg-mask"), (svg) => {
   svg.size(1, 1);
   svg.background("#edb", true);
 

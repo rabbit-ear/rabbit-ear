@@ -1,7 +1,7 @@
-RabbitEar.svg("canvas-svg-controls", (svg) => {
+RabbitEar.svg(document.querySelector("#canvas-svg-controls"), (svg) => {
   svg.size(800, 800);
 
-  var back = svg.group();
+  var back = svg.g();
   var l1 = svg.line().stroke("black");
   var l2 = svg.line().stroke("black");
   var curve = svg.path();
@@ -13,6 +13,6 @@ RabbitEar.svg("canvas-svg-controls", (svg) => {
     .onChange(function () {
       l1.setPoints(this[0], this[1]);
       l2.setPoints(this[3], this[2]);
-      curve.clear().moveTo(this[0]).curveTo(this[1], this[2], this[3]);
+      curve.clear().Move(this[0]).Curve(this[1], this[2], this[3]);
     }, true);
 });

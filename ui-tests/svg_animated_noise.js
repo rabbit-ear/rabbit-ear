@@ -1,11 +1,11 @@
-RabbitEar.svg("canvas-animated-noise", (svg) => {
+RabbitEar.svg(document.querySelector("#canvas-animated-noise"), (svg) => {
   // const { randomInt, noise } = window.RabbitEar;
 
   svg.size(-1, -1, 2, 2);
   // svg.background("black");
 
-  var lines = svg.group().strokeWidth(0.01);
-  var dots = svg.group().fill("#ec3");
+  var lines = svg.g().strokeWidth(0.01);
+  var dots = svg.g().fill("#ec3");
   var i = [0, 1];
   var stroke = "#158";
 

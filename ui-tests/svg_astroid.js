@@ -1,4 +1,4 @@
-RabbitEar.svg("canvas-svg-astroid", (svg) => {
+RabbitEar.svg(document.querySelector("#canvas-svg-astroid"), (svg) => {
   svg.size(512, 512);
   svg.stroke("black");
 

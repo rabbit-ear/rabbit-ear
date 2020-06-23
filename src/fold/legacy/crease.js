@@ -11,7 +11,7 @@ export function add_edge_between_points(graph, x0, y0, x1, y1) {
       // for both of the new points, iterate over every vertex,
       // return an index if it matches a new point, undefined if not
       .map(v => Math.sqrt(((ep[0] - v[0]) ** 2) + ((ep[1] - v[1]) ** 2)))
-      .map((d, i) => (d < math.EPSILON ? i : undefined))
+      .map((d, i) => (d < math.core.EPSILON ? i : undefined))
       .filter(el => el !== undefined)
       .shift())
     .map((v, i) => {

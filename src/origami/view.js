@@ -1,5 +1,5 @@
+import root from "../root"; // for SVG
 import FoldToSvg from "../../include/fold-to-svg";
-import SVG from "../../include/svg";
 import { bounding_rect } from "../FOLD/boundary";
 import {
   isBrowser,
@@ -7,6 +7,7 @@ import {
 } from "../environment/detect";
 import window from "../environment/window";
 import touchToFold from "./touchToFold";
+// import SVG from "../../include/svg";
 
 const FoldToSvgOptionKeys = [
   "input", "output", "padding", "file_frame", "stylesheet", "shadows",
@@ -58,7 +59,7 @@ const parseOptionsForView = function (...args) {
 
 const SVGView = function (origami, ...args) {
   const noCallbackArgs = args.filter(arg => typeof arg !== "function");
-  const svg = SVG(...noCallbackArgs);
+  const svg = root.svg(...noCallbackArgs);
 
   const argumentOptions = parseOptionsForFoldToSvg(...args);
   const options = argumentOptions == null
@@ -118,7 +119,7 @@ const SVGView = function (origami, ...args) {
   fit();
   draw();
   origami.changed.handlers.push(caller => draw());
-  Object.defineProperty(origami, "draw", { value: draw });  // todo: do we want this?
+  Object.defineProperty(origami, "draw", { value: draw }); // todo: do we want this?
   Object.defineProperty(origami, "svg", { get: () => svg });
   Object.defineProperty(svg, "vertices", { get: () => getComponent("vertices") });
   Object.defineProperty(svg, "edges", { get: () => getComponent("edges") });
@@ -146,8 +147,8 @@ const View = function (origami, ...args) {
   switch (parseOptionsForView(...args)) {
     case "svg": SVGView(origami, ...args); break;
     // case "webgl": GLView(origami, ...args); break;
+    default: break;
   }
-
 };
 
 export default View;

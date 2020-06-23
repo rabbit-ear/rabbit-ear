@@ -1,7 +1,7 @@
 const MousePressed = function () {
   const { app, RabbitEar } = window;
 
-  if (app.tapLayer == null) { app.tapLayer = app.origami.svg.group(); }
+  if (app.tapLayer == null) { app.tapLayer = app.origami.svg.g(); }
   if (app.dragRect == null) { app.dragRect = []; }
 
   app.origami.svg.mousePressed = function (mouse) {

@@ -156,6 +156,40 @@ pre, code {
 	-ms-user-select: none; /* IE10+/Edge */
 	user-select: none; /* Standard */
 }
+div[class^="sketch"] {
+  /*height: 100%;*/
+  height: 12rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  /*background-color: #272822;*/
+}
+div.section div[class^="sketch"] {
+  margin-left: 0rem;
+}
+
+.code-editor {
+  flex: 1;
+  height: 100%;
+  /*min-height: 150px;*/
+  border: 0.5rem solid #272822;
+}
+.code-canvas {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /*min-height: 150px;*/
+}
+.code-canvas svg {
+  height: 100%;
+  margin: auto;
+}
 
 
 /* large computers */

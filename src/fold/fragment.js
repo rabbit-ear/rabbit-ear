@@ -76,16 +76,33 @@ const make_edges_intersections = function ({
   // because the lower triangle is duplicate info, we only store one half
   //
   // if two edges end at the same endpoint this DOES NOT consider them touching
+
   const crossings = Array.from(Array(edge_count - 1)).map(() => []);
+  // todo this could already be cached on the object. like segment()
+  const edgeObjects = edges.map(e => ({
+    origin: e[0],
+    vector: [e[1][0] - e[0][0], e[1][1] - e[0][1]]
+  }));
+  const intersectFunc = math.intersect.lines.exclude_s_s;
   for (let i = 0; i < edges.length - 1; i += 1) {
     for (let j = i + 1; j < edges.length; j += 1) {
-      crossings[i][j] = math.core.intersection.segment_segment_exclusive(
-        edges[i][0], edges[i][1],
-        edges[j][0], edges[j][1],
-        epsilon
-      );
+      crossings[i][j] = math.intersect.lines
+        .intersect(edgeObjects[i], edgeObjects[j], intersectFunc);
+      // crossings[i][j] = math.intersect.lines.intersect(
+      //   { origin: edges[i][0], vector: edges[i][1] },
+      //   { origin: edges[j][0], vector: edges[j][1] },
+      //   math.intersect.lines.exclude_s_s
+      // );
+      // crossings[i][j] = math.core.intersection.segment_segment_exclusive(
+      //   edges[i][0], edges[i][1],
+      //   edges[j][0], edges[j][1],
+      //   epsilon
+      // );
     }
   }
+
+  // math.core.intersect.lines.intersect(edges[i], edges[j], math.core.intersect.lines.exclude_s_s);
+
   // build a list for each edge containing the intersection points
   // 0 [ [0.25, 0.125] ]
   // 1 [ [0.25, 0.125], [0.99, 0.88] ]
@@ -224,7 +241,7 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
         graph.edges_assignment[e] = "B";
       }
     }
-  })
+  });
   const edges_dont_remove = edges_map.map(m => m === undefined);
   edges_map.forEach((map, i) => {
     if (map === undefined) { edges_map[i] = i; }
@@ -241,8 +258,9 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
       .map(i => graph.edges_assignment[i] || "U");
   }
   if (graph.edges_foldAngle != null) {
-    flat.edges_foldAngle = edge_map_cl
-      .map((i, j) => (graph.edges_foldAngle[i] || edge_assignment_to_foldAngle(flat.edges_assignment[j])));
+    flat.edges_foldAngle = edge_map_cl.map((i, j) => (
+      graph.edges_foldAngle[i]
+      || edge_assignment_to_foldAngle(flat.edges_assignment[j])));
   }
   const vertices_remove_indices = vertices_remove
     .map((rm, i) => (rm ? i : undefined))
@@ -252,6 +270,13 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
   // done. we can return a copy of the changes, or modify directly
   fold_keys.graph.forEach(key => delete graph[key]);
   Object.assign(graph, flat);
+  delete graph.faces_vertices;
+  delete graph.faces_edges;
+  delete graph.faces_faces;
+  delete graph.edges_faces;
+  delete graph.edges_length;
+  delete graph.vertices_faces;
+  delete graph.vertices_edges;
   // Object.keys(flat).forEach((key) => { graph[key] = flat[key]; });
   // return flat;
 };

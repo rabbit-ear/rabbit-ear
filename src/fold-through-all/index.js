@@ -141,7 +141,7 @@ const fold_through = function (
   face_index,
   assignment = "V"
 ) {
-  const opposite_crease = opposingCrease(assignment); 
+  const opposite_crease = opposingCrease(assignment);
   if (face_index == null) {
     // an unset face will be the face under the point. or if none, index 0
     const containing_point = face_containing_point(graph, point);

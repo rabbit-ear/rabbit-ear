@@ -40,55 +40,55 @@ const get_mark_options = function (...args) {
 
 
 
-proto.segment = function (...args) {
-  // get segment
-  const s = math.core.flatten_input(...args)
-    .filter(n => typeof n === "number");
-  // clip in boundary
-  const boundary = getBoundaries.call(this);
-  const c = boundary.clipSegment([s[0], s[1]], [s[2], s[3]]);
-  // get arguments: two endpoints, optional crease assignment
-  const assignment = get_assignment(...args) || "F";
-  addEdge(this, c[0], c[1], c[2], c[3], assignment).apply();
-  rebuild(this);
-  const edges = Collinear.collinear_edges(this, [c[0], c[1]], [c[2] - c[0], c[3] - c[1]]);
-  return Edges(this, edges);
-};
+// proto.segment = function (...args) {
+//   // get segment
+//   const s = math.core.flatten_input(...args)
+//     .filter(n => typeof n === "number");
+//   // clip in boundary
+//   const boundary = getBoundaries.call(this);
+//   const c = boundary.clipSegment([s[0], s[1]], [s[2], s[3]]);
+//   // get arguments: two endpoints, optional crease assignment
+//   const assignment = get_assignment(...args) || "F";
+//   addEdge(this, c[0], c[1], c[2], c[3], assignment);
+//   rebuild(this);
+//   const edges = Collinear.collinear_edges(this, [c[0], c[1]], [c[2] - c[0], c[3] - c[1]]);
+//   return Edges(this, edges);
+// };
 
-proto.line = function (...args) {
-  // get segment
-  const l = math.core.flatten_input(...args)
-    .filter(n => typeof n === "number");
-  // clip in boundary
-  const boundary = getBoundaries.call(this);
-  const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
-  // get arguments: two endpoints, optional crease assignment
-  const assignment = get_assignment(...args) || "F";
-  addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
-  rebuild(this);
-  const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
-  return Edges(this, edges);
-};
+// proto.line = function (...args) {
+//   // get segment
+//   const l = math.core.flatten_input(...args)
+//     .filter(n => typeof n === "number");
+//   // clip in boundary
+//   const boundary = getBoundaries.call(this);
+//   const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
+//   // get arguments: two endpoints, optional crease assignment
+//   const assignment = get_assignment(...args) || "F";
+//   addEdge(this, s[0], s[1], s[2], s[3], assignment);
+//   rebuild(this);
+//   const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
+//   return Edges(this, edges);
+// };
 
-proto.axiom = function (...args) {
-  RabbitEar.axiom(2, start[0], start[1], end[0], end[1])
-    .solutions
-    .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
-  // fragment(this);
+// proto.axiom = function (...args) {
+//   RabbitEar.axiom(2, start[0], start[1], end[0], end[1])
+//     .solutions
+//     .forEach(s => app.origami.line(s[0][0], s[0][1], s[1][0], s[1][1]));
+//   // fragment(this);
 
-  // get segment
-  const l = math.core.flatten_input(...args)
-    .filter(n => typeof n === "number");
-  // clip in boundary
-  const boundary = getBoundaries.call(this);
-  const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
-  // get arguments: two endpoints, optional crease assignment
-  const assignment = get_assignment(...args) || "F";
-  addEdge(this, s[0], s[1], s[2], s[3], assignment).apply();
-  rebuild(this);
-  const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
-  return Edges(this, edges);
-};
+//   // get segment
+//   const l = math.core.flatten_input(...args)
+//     .filter(n => typeof n === "number");
+//   // clip in boundary
+//   const boundary = getBoundaries.call(this);
+//   const s = boundary.clipLine([l[0], l[1]], [l[2], l[3]]);
+//   // get arguments: two endpoints, optional crease assignment
+//   const assignment = get_assignment(...args) || "F";
+//   addEdge(this, s[0], s[1], s[2], s[3], assignment);
+//   rebuild(this);
+//   const edges = Collinear.collinear_edges(this, [s[0], s[1]], [s[2] - s[0], s[3] - s[1]]);
+//   return Edges(this, edges);
+// };
 
 /**
  * add a line segment to the graph.
@@ -98,19 +98,19 @@ proto.axiom = function (...args) {
  * @param {number[]} segment defined by two points [x, y]
  * @param {string} optional "M" "V" "F" "U" crease assignment. default is "F"
  */
-proto.mark = function (...args) {
-  // get arguments. 2 endpoints. optional crease assignment
-  const s = math.core.get_vector_of_vectors(...args);
-  const options = get_mark_options(...args);
-  const assignment = get_assignment(...args) || "F";
-  // add segment, rebuild all arrays
-  addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
-  if (options.rebuild) { rebuild(this); }
-  // make a record documenting how we got here
-  // axiom1(s[0], s[1]);
-  // madeBy().axiom1(s[0], s[1]);
-  this.didChange.forEach(f => f());
-};
+// proto.mark = function (...args) {
+//   // get arguments. 2 endpoints. optional crease assignment
+//   const s = math.core.get_vector_of_vectors(...args);
+//   const options = get_mark_options(...args);
+//   const assignment = get_assignment(...args) || "F";
+//   // add segment, rebuild all arrays
+//   addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment);
+//   if (options.rebuild) { rebuild(this); }
+//   // make a record documenting how we got here
+//   // axiom1(s[0], s[1]);
+//   // madeBy().axiom1(s[0], s[1]);
+//   this.didChange.forEach(f => f());
+// };
 
 // fold methods
 proto.crease = function (...args) { // point, vector, face_index) {
@@ -153,22 +153,22 @@ proto.crease = function (...args) { // point, vector, face_index) {
   // return crease;
 };
 
-proto.creaseRay = function (...args) {
-  const ray = math.ray(args);
-  const faces = this.faces_vertices.map(fv => fv.map(v => this.vertices_coords[v]));
-  const intersecting = faces
-    .map((face, i) => (math.core.intersection
-      .convex_poly_ray_exclusive(face, ray.origin, ray.vector) === undefined
-      ? undefined : i))
-    .filter(a => a !== undefined)
-    .sort((a, b) => b - a);
+// proto.creaseRay = function (...args) {
+//   const ray = math.ray(args);
+//   const faces = this.faces_vertices.map(fv => fv.map(v => this.vertices_coords[v]));
+//   const intersecting = faces
+//     .map((face, i) => (math.core.intersection
+//       .convex_poly_ray_exclusive(face, ray.origin, ray.vector) === undefined
+//       ? undefined : i))
+//     .filter(a => a !== undefined)
+//     .sort((a, b) => b - a);
 
-  intersecting.forEach(index => split_face(
-    this, index, ray.origin, ray.vector, "F"
-  ));
-};
+//   intersecting.forEach(index => split_face(
+//     this, index, ray.origin, ray.vector, "F"
+//   ));
+// };
 
-proto.kawasaki = function (...args) {
-  const crease = kawasaki_collapse(this, ...args);
-  return crease;
-};
+// proto.kawasaki = function (...args) {
+//   const crease = kawasaki_collapse(this, ...args);
+//   return crease;
+// };
