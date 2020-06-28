@@ -59,13 +59,15 @@ Object.defineProperty(CPProto, "isClean", {
     }
     const obj = math[fName](...arguments);
     if (!obj) { return; }
-    const s = obj.segments();
-    s.forEach(seg => this.mountain(
+    const seg = (fName === "line" || fName === "ray")
+      ? boundaryClip(seg)
+      : seg;
+    this.mountain(
       seg[0][0],
       seg[0][1],
       seg[1][0],
       seg[1][1]
-    ));
+    );
   };
 });
 

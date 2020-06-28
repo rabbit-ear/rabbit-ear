@@ -14,7 +14,10 @@ import clean from "../FOLD/clean";
 import join from "../FOLD/join";
 import rebuild from "../FOLD/rebuild";
 import populate from "../FOLD/populate";
-import { bounding_rect } from "../FOLD/boundary";
+import {
+  bounding_rect,
+  get_boundary,
+} from "../FOLD/boundary";
 import * as Transform from "../FOLD/affine";
 import {
   nearest_vertex,
@@ -184,6 +187,12 @@ const getFaces = function () {
   faces.forEach(setup_face.bind(this));
   return faces;
 };
+const getBoundary = function () {
+  return math.polygon(
+    get_boundary(this).vertices
+      .map(i => this.vertices_coords[i])
+  );
+};
 const getBounds = function () {
   return math.rect(...bounding_rect(this));
 };
@@ -229,6 +238,7 @@ GraphProto.nearest = function (...args) {
 Object.defineProperty(GraphProto, "vertices", { get: getVertices });
 Object.defineProperty(GraphProto, "edges", { get: getEdges });
 Object.defineProperty(GraphProto, "faces", { get: getFaces });
+Object.defineProperty(GraphProto, "boundary", { get: getBoundary });
 Object.defineProperty(GraphProto, "bounds", { get: getBounds });
 
 // Object.freeze(GraphProto);
