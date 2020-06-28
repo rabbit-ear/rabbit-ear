@@ -73,6 +73,7 @@ export const apply_run_diff = function (graph, diff) {
           .forEach((key) => {
             if (graph[key] === undefined) { graph[key] = []; }
             graph[key][lengths[type] + i] = newElem[key];
+            diff.new[type][i].index = lengths[type] + i;
           })));
   }
   // object keys to get the array indices.

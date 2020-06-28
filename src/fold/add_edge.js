@@ -1,7 +1,7 @@
 import math from "../../include/math";
 import { vertices_count } from "./query";
 import { apply_run_diff } from "../fold-through-all/run_frame";
-import { get_geometry_keys_with_prefix } from "./keys";
+import { get_graph_keys_with_prefix } from "./keys";
 import { clone } from "./object";
 
 /**
@@ -16,7 +16,7 @@ import { clone } from "./object";
  * but only at spot "index".
  */
 const copy_properties = function (graph, geometry_prefix, index) {
-  const prefixKeys = get_geometry_keys_with_prefix(graph, geometry_prefix);
+  const prefixKeys = get_graph_keys_with_prefix(graph, geometry_prefix);
   const result = {};
   prefixKeys.forEach((key) => { result[key] = graph[key][index]; });
   return result;

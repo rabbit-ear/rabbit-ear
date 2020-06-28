@@ -2,8 +2,8 @@
 
 import math from "../../include/math";
 import {
-  transpose_geometry_arrays,
-  transpose_geometry_array_at_index,
+  transpose_graph_arrays,
+  transpose_graph_array_at_index,
   fold_keys,
   keys,
   file_spec,
@@ -167,7 +167,7 @@ GraphProto.scale = function (...args) {
  * graph components
  */
 const getVertices = function () {
-  const transposed = transpose_geometry_arrays(this, "vertices");
+  const transposed = transpose_graph_arrays(this, "vertices");
   const vertices = transposed.length !== 0
     ? transposed
     : Array.from(Array(implied_vertices_count(this))).map(() => ({}));
@@ -175,31 +175,31 @@ const getVertices = function () {
   return vertices;
 };
 const getEdges = function () {
-  const edges = transpose_geometry_arrays(this, "edges");
+  const edges = transpose_graph_arrays(this, "edges");
   edges.forEach(setup_edge.bind(this));
   return edges;
 };
 const getFaces = function () {
-  const faces = transpose_geometry_arrays(this, "faces");
+  const faces = transpose_graph_arrays(this, "faces");
   faces.forEach(setup_face.bind(this));
   return faces;
 };
 const getBounds = function () {
-  return math.rectangle(...bounding_rect(this));
+  return math.rect(...bounding_rect(this));
 };
 /**
  * graph components based on Euclidean distance
  */
 GraphProto.nearestVertex = function (...args) {
   const index = nearest_vertex(this, math.core.get_vector(...args));
-  const result = transpose_geometry_array_at_index(this, "vertices", index);
+  const result = transpose_graph_array_at_index(this, "vertices", index);
   setup_vertex.call(this, result, index);
   result.index = index;
   return result;
 };
 GraphProto.nearestEdge = function (...args) {
   const index = nearest_edge(this, math.core.get_vector(...args));
-  const result = transpose_geometry_array_at_index(this, "edges", index);
+  const result = transpose_graph_array_at_index(this, "edges", index);
   setup_edge.call(this, result, index);
   result.index = index;
   return result;
@@ -208,7 +208,7 @@ GraphProto.nearestFace = function (...args) {
   const index = face_containing_point(this, math.core.get_vector(...args));
   if (index === undefined) { return undefined; }
   // todo, if point isn't inside a face, there can still exist a nearest face
-  const result = transpose_geometry_array_at_index(this, "faces", index);
+  const result = transpose_graph_array_at_index(this, "faces", index);
   setup_face.call(this, result, index);
   result.index = index;
   return result;

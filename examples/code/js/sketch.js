@@ -1,9 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   var app = LiveCode(document.querySelector("#app"));
 
-  var cp = RabbitEar.cp(app.dom.canvas, {
-    padding: 0.05
-  });
+  var cp = RabbitEar.cp();
   let svg;
 
   app.didPause = function (paused) { };
@@ -14,7 +12,13 @@ document.addEventListener("DOMContentLoaded", function () {
     if (typeof cp.svg === "function") {
       svg = cp.svg({
         padding: 0.05,
-        output: "svg"
+        output: "svg",
+        attributes: {
+          edges: {
+            mountain: { stroke: "#158" },
+            valley: { stroke: "#e53" }
+          }
+        }
       });
       app.dom.canvas.appendChild(svg);
     }
@@ -36,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   app.dom.download.onclick = function () {
     if (!cp.isClean) {
-      cp.fragment(0.1);
+      cp.fragment();
       cp.populate();
     }
 

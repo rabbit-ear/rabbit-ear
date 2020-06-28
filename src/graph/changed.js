@@ -14,7 +14,7 @@ const Changed = function () {
         changed.update();
       }
     }
-  })
+  });
   return Object.freeze(changed);
 };
 

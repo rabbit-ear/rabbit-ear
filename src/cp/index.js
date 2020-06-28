@@ -1,29 +1,33 @@
 // MIT open source license, Robby Kraft
 
 import * as Create from "../FOLD/create";
-import prototype from "./prototype";
 import {
   file_spec,
   file_creator
 } from "../FOLD/keys";
+import prototype from "./prototype";
+import Static from "./Static";
+import { possibleFoldObject } from "../FOLD/validate";
 
-const CP = function (object = {}) {
+const CP = function () {
+  const imported = !!(possibleFoldObject(arguments[0]))
+    ? arguments[0]
+    : {};
   // should CP({vertices_coords:[], ...}) deep copy the argument object?
   const cp = Object.assign(
     Object.create(prototype),
     Create.empty(),
-    object,
+    imported,
     { file_spec, file_creator }
   );
+  // apply static methods.
+  // todo. can this be pre-built? pre-attached?
+  // how much time does this attach operation take?
+  // static(cp);
 
-  let isClean = true;
-
-  Object.defineProperty(cp, "isClean", {
-    get: () => isClean,
-    set: (c) => { isClean = c; },
-    enumerable: false
-  });
   return cp;
 };
+
+Static(CP);
 
 export default CP;

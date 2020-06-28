@@ -33,7 +33,7 @@ test("prefix key search test", () => {
     "vertices_vertices_vertices",
     "vertices_vertices_vertices_coords"
   ];
-  const calculated = re.core.get_geometry_keys_with_prefix(graph, "vertices");
+  const calculated = re.core.get_graph_keys_with_prefix(graph, "vertices");
 
   expect(expected).toEqual(
     expect.arrayContaining(calculated)
@@ -66,7 +66,7 @@ test("suffix key search test", () => {
     "_vertices_vertices",
   ];
 
-  const calculated = re.core.get_geometry_keys_with_suffix(graph, "vertices");
+  const calculated = re.core.get_graph_keys_with_suffix(graph, "vertices");
 
   expect(expected).toEqual(
     expect.arrayContaining(calculated)
@@ -118,7 +118,7 @@ test("prefix key with extensions search test", () => {
     "vertices_vertices_vertices_re:coords"
   ];
 
-  const calculated = re.core.get_geometry_keys_with_prefix(graph, "vertices");
+  const calculated = re.core.get_graph_keys_with_prefix(graph, "vertices");
 
   expect(expected).toEqual(
     expect.arrayContaining(calculated)
@@ -145,7 +145,7 @@ test("transpose geometry arrays", () => {
     faces_vertices: [[1, 4, 5, 0], [4, 1, 2, 3]],
     faces_edges: [[6, 4, 5, 0], [6, 1, 2, 3]]
   };
-  const transposedVertices = re.core.transpose_geometry_arrays(graph, "vertices");
+  const transposedVertices = re.core.transpose_graph_arrays(graph, "vertices");
 
   const expectedVertex1 = {
     coords: [0.5, 0],
