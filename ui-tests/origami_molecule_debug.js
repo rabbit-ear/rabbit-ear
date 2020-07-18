@@ -9,7 +9,7 @@ RabbitEar.svg("canvas-origami-molecule", 500, 500, (polySec) => {
     .fill("none")
     .strokeLinecap("round");
 
-  const drawLayer = polySec.group();
+  const drawLayer = polySec.g();
   const stepColors = ["#666", "#999", "#ccc", "#eee", "#fff"];
   let recursionSteps = 0;
 

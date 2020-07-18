@@ -3,8 +3,8 @@ RabbitEar.svg("canvas-fold-poly", 500, 500, (svg) => {
   const STROKE_WIDTH = svg.getWidth() * 0.0125;
   const RADIUS = svg.getWidth() * 0.025;
 
-  const paperLayer = svg.group().pointerEvents("none");
-  const topLayer = svg.group();
+  const paperLayer = svg.g().pointerEvents("none");
+  const topLayer = svg.g();
 
   // build paper
   const hullPoints = Array.from(Array(24)).map(() => {

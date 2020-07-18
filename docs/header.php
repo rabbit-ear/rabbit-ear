@@ -6,18 +6,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script type="text/javascript" src="../rabbit-ear.js?version=0.2"></script>
+<!-- <script type="text/javascript" src="https://robbykraft.github.io/SVG/svg.js"></script>
+<script type="text/javascript" src="https://robbykraft.github.io/fold-to-svg/fold-to-svg.min.js"></script>
+ -->
+
+<script type="text/javascript" src="../../SVG/svg.js"></script>
+<script type="text/javascript" src="../../fold-to-svg/fold-to-svg.min.js"></script>
+
+<script>
+ear.use(SVG);
+ear.use(FoldToSvg);
+</script>
 
 <!-- <script type="text/javascript" src="lib/katex/katex.min.js"></script> -->
 <!-- <link rel="stylesheet" href="lib/katex/katex.min.css"> -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700">
 <!-- <link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css" /> -->
-<link rel="stylesheet" href="/docs/css/reset.css" />
-<link rel="stylesheet" href="/docs/css/style.css?version=0.3" />
-<link rel="stylesheet" href="/docs/css/code.css?version=0.3" />
-<link rel="stylesheet" href="/docs/css/nav.css?version=0.3" />
-<link rel="stylesheet" href="/docs/css/input-range.css" />
-<link rel="stylesheet" href="/docs/css/button.css" />
+<link rel="stylesheet" href="./css/reset.css" />
+<link rel="stylesheet" href="./css/style.css?version=0.3" />
+<link rel="stylesheet" href="./css/code.css?version=0.3" />
+<link rel="stylesheet" href="./css/nav.css?version=0.3" />
+<link rel="stylesheet" href="./css/input-range.css" />
+<link rel="stylesheet" href="./css/button.css" />
 <!-- <link rel="stylesheet" href="/docs/css/svg.css?version=0.3" /> -->
 </head>
 <body>
@@ -40,19 +51,23 @@
 						</div> -->
 					</li>
 					<li class="dropdown">
-						<a href="svg.php" class="dropbtn">II. SVG</a>
+						<a href="origami.php" class="dropbtn">II. ORIGAMI</a>
 					</li>
 					<li class="dropdown">
-						<a href="graph.php" class="dropbtn">III. GRAPH</a>
+						<a href="graph.php" class="dropbtn">III. GRAPHS</a>
 					</li>
 					<li class="dropdown">
-						<a href="origami.php" class="dropbtn">IV. ORIGAMI</a>
+						<a href="cp.php" class="dropbtn">IV. CREASE PATTERN</a>
 					</li>
 		<!-- 			<li class="dropdown">
 						<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">IV. RABBIT EAR</a>
 					</li> -->
 					<li class="dropdown">
-						<a href="appendix.php" class="dropbtn">APPENDIX</a>
+						<a href="svg.php" class="dropbtn">APPENDIX: SVG</a>
+					</li>
+
+					<li class="dropdown">
+						<a href="appendix.php" class="dropbtn">APPENDIX: REFERENCE</a>
 					</li>
 				</ul>
 			</div>

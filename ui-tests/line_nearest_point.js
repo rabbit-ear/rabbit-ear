@@ -4,9 +4,9 @@ RabbitEar.svg("nearest-point", 600, 300, (svg) => {
   const { RabbitEar } = window;
 
   svg.strokeWidth(4);
-  const backLayer = svg.group();
-  const lineLayer = svg.group();
-  const circleLayer = svg.group();
+  const backLayer = svg.g();
+  const lineLayer = svg.g();
+  const circleLayer = svg.g();
   const segments = Array.from(Array(3)).map(() => RabbitEar.segment(
     Math.random() * svg.getWidth(), Math.random() * svg.getHeight(),
     Math.random() * svg.getWidth(), Math.random() * svg.getHeight()

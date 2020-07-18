@@ -7,8 +7,8 @@ RabbitEar.svg("canvas-line-bisect", window.innerWidth, window.innerHeight, (svg)
 
   const colors = ["#fb3", "#e53"];
   const svgLines = [svg.line().stroke("black"), svg.line().stroke("black")];
-  const arrowLayer = svg.group().strokeWidth(strokeWidth / 2).strokeDasharray(`${strokeWidth} ${strokeWidth / 2}`);
-  const lineLayer = svg.group();
+  const arrowLayer = svg.g().strokeWidth(strokeWidth / 2).strokeDasharray(`${strokeWidth} ${strokeWidth / 2}`);
+  const lineLayer = svg.g();
   const arrowOptions = { width: strokeWidth * 1.5, height: strokeWidth * 4 };
   // const boundary = RabbitEar.polygon([
   //   [0, 0],

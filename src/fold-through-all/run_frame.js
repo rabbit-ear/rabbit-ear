@@ -1,5 +1,5 @@
-import { vertices_count, edges_count, faces_count } from "../FOLD/query";
-import remove from "../FOLD/remove";
+import { vertices_count, edges_count, faces_count } from "../core/query";
+import remove from "../core/remove";
 
 // ///////////////////////////////////////
 // new diff sketches
@@ -58,7 +58,8 @@ const rough_draft_1 = {
   faces: { new: [], update: [], remove: [] }
 };
 
-
+// each of the { new } entries come with an index
+// which will change during this function, if { remove } entries exist
 export const apply_run_diff = function (graph, diff) {
   const lengths = {
     vertices: vertices_count(graph),
@@ -88,9 +89,24 @@ export const apply_run_diff = function (graph, diff) {
   }
   // these should be done in a particular order... is that right?
   if (diff.remove) {
-    if (diff.remove.faces) { remove(graph, "faces", diff.remove.faces); }
-    if (diff.remove.edges) { remove(graph, "edges", diff.remove.edges); }
-    if (diff.remove.vertices) { remove(graph, "vertices", diff.remove.vertices); }
+    if (diff.remove.faces) {
+      const map = remove(graph, "faces", diff.remove.faces);
+      diff.new.faces.forEach((face, i) => {
+        diff.new.faces[i].index += map[face.index];
+      });
+    }
+    if (diff.remove.edges) {
+      const map = remove(graph, "edges", diff.remove.edges);
+      diff.new.edges.forEach((edge, i) => {
+        diff.new.edges[i].index += map[edge.index];
+      });
+    }
+    if (diff.remove.vertices) {
+      const map = remove(graph, "vertices", diff.remove.vertices);
+      diff.new.vertices.forEach((vertex, i) => {
+        diff.new.vertices[i].index += map[vertex.index];
+      });
+    }
   }
   return diff;
 };

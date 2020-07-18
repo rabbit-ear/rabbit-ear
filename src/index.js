@@ -28,31 +28,31 @@ import use from "./use";
 
 // to be included in the core
 import apply_axiom from "./axioms/axiom_frame";
-import * as affine from "./FOLD/affine";
-import * as frames from "./FOLD/file_frames";
-import * as object from "./FOLD/object";
-import * as keys from "./FOLD/keys";
-import * as collinear from "./FOLD/collinear";
-import * as isolated from "./FOLD/isolated";
-import * as validate from "./FOLD/validate";
-import * as boundary from "./FOLD/boundary";
-import * as similar from "./FOLD/similar";
-import fragment from "./FOLD/fragment";
-import clean from "./FOLD/clean";
-import join from "./FOLD/join";
-import validateDefault from "./FOLD/validate";
-import remove_duplicate_vertices from "./FOLD/duplicate_vertices";
-import remove from "./FOLD/remove";
-import rebuild from "./FOLD/rebuild";
-import populate from "./FOLD/populate";
-import * as make from "./FOLD/make";
-import * as query from "./FOLD/query";
-import * as marks from "./FOLD/marks";
-import * as select from "./FOLD/select";
+import * as affine from "./core/affine";
+import * as frames from "./core/file_frames";
+import * as object from "./core/object";
+import * as keys from "./core/keys";
+import * as collinear from "./core/collinear";
+import * as isolated from "./core/isolated";
+import * as validate from "./core/validate";
+import * as boundary from "./core/boundary";
+import * as similar from "./core/similar";
+import fragment from "./core/fragment";
+import clean from "./core/clean";
+import join from "./core/join";
+import remove from "./core/remove";
+import rebuild from "./core/rebuild";
+import add_edge from "./core/add_edge";
+import populate from "./core/populate";
+import * as make from "./core/make";
+import * as query from "./core/query";
+import * as marks from "./core/marks";
+import * as select from "./core/select";
 import * as kawasaki from "./kawasaki/index";
+import split_edge_run from "./core/split_edge_run";
+import validateDefault from "./core/validate";
 import build_diagram_frame from "./diagram/diagram_frame";
-import add_edge from "./FOLD/add_edge";
-import split_edge_run from "./FOLD/split_edge_run";
+import remove_duplicate_vertices from "./core/duplicate_vertices";
 import { merge_run_diffs, apply_run_diff } from "./fold-through-all/run_frame";
 
 // origami bases
@@ -146,7 +146,10 @@ const rabbitEar = Object.assign(root, {
 
 Object.keys(math)
   .filter(key => key !== "core")
+  .filter(key => key !== "__prototypes__")
   .forEach((key) => { rabbitEar[key] = math[key]; });
+
+rabbitEar.math.__prototypes__ = math.__prototypes__;
 
 rabbitEar.use = use.bind(rabbitEar);
 

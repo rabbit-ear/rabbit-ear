@@ -6,13 +6,13 @@ RabbitEar.svg("canvas-clip-line", window.innerWidth, window.innerHeight, (svg) =
   const vmin = svg.getWidth() > svg.getHeight() ? svg.getHeight() : svg.getWidth();
   const STROKE_WIDTH = vmin * 0.02;
   const RADIUS = vmin * 0.04;
-  const backLayer = svg.group();
+  const backLayer = svg.g();
   const polygon = svg.polygon()
     .stroke("#fb3")
     .strokeWidth(STROKE_WIDTH)
     .fill("white")
     .strokeLinecap("round");
-  const topLayer = svg.group();
+  const topLayer = svg.g();
   // const boundary = [[0, 0], [500, 0], [500, 500], [0, 500]];
   const boundary = RabbitEar.polygon([
     [-svg.getWidth(), -svg.getHeight()],

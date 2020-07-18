@@ -5,16 +5,26 @@
 <script type="text/javascript" src="include/katex/katex.min.js"></script>
 <link rel="stylesheet" href="include/katex/katex.min.css">
 
-<h3>CHAPTER II.</h3>
-
-<h1>SVG</h1>
+<h3 class="chapter">&nbsp;</h3>
+<h1 class="chapter">SVG</h1>
 
 <div id="canvas-svg-parabola"></div>
 
-<pre class="code"><code><f>var</f> svg <key>=</key> <f>RabbitEar</f>.<f>svg</f>()</code></pre>
+<pre class="code"><code><f>var</f> svg <key>=</key> <f>ear</f>.<f>svg</f>()</code></pre>
 
 <p>
   SVGs are natively 2D, vector-based, and great for interoperability with pen plotters and laser cutters.
+</p>
+
+<p>
+  Rabbit Ear comes with a pretty robust Javascript SVG library. It's a separate module, you have to include it.
+</p>
+
+<pre class="code"><code><c>// somewhere at the top of your project</c><br><f>ear</f>.<f>use</f>(SVG)</code></pre>
+<pre class="code"><code><f>ear</f>.<f>use</f>(FoldToSvg)</code></pre>
+
+<p>
+  You'll probably want to include FoldToSvg as well. This allows you to export all your origami objects to SVGs by simply calling .svg()
 </p>
 
 <h3>Viewbox</h3>
@@ -458,18 +468,18 @@ svgTouchCallback = function (e) {
 
 <script>
 var examples = [
-  "window.svg1 = SVG(document.querySelector('#svg-parent'));\n\nsvg1.size(-2, -1, 4, 2);\nsvg1.background('black');\n\nsvg1.circle(0, 0, 1).fill('white');",
+  "window.svg1 = SVG(document.querySelector('#svg-parent'));\n\nsvg1.size(-2, -1, 4, 2);\nsvg1.background('black');\n\nsvg1.circle(1).fill('white');",
   "svg2.line(20, 20, 280, 130)\n  .stroke('black');\n\nsvg2.line([20, 130], [280, 20])\n  .stroke('#000')\n  .strokeWidth(12)\n  .strokeDasharray('16 4 36');",
-  "svg3.circle(150, 75, 75)",
-  "for (var i = 0; i < 100; i += 10) {\n  svg4.ellipse(150, 75, 100-i, 75)\n    .fill('#000' + i/10);\n}",
-  "svg5.rect(25, 25, 250, 100);",
+  "svg3.circle(75, 150, 75)",
+  "for (var i = 0; i < 100; i += 10) {\n  svg4.ellipse(100-i, 75, 150, 75)\n    .fill('#000' + i/10);\n}",
+  "svg5.rect(250, 100, 25, 25);",
   "svg6.polygon(10, 10, 300, 50, 180, 150)\n  .fill('black');\n\nvar points = [\n  [200,20],\n  [200,120],\n  [100,20],\n  [100,100]];\n\nsvg6.polygon(points)\n  .fill('crimson');\n",
   "svg7.polyline(0, 10, 280, 0, 260, 140, 10, 150)\n\nvar p = svg7.polyline()\n  .stroke('crimson')\n  .fill('none')\n  .strokeWidth(10);\n\nfor (var x = 0; x < 300; x += 20) {\n  p.addPoint(x, Math.random() * 150);\n}",
   "svg8.path()\n  .stroke('crimson')\n  .strokeWidth(10)\n  .fill('none')\n  .Move(250, 100)\n  .Line(60, 10)\n  .curve(-20, 100, 300, 0, 200, 100)\n  .ellipse(50, 50, 0, 0, 1, -80, -80);",
   "svg9.text('abc あいう 🥰🤩🥳', 0, 100)\n  .fill('gold')\n  .fontSize('34px');",
   "var layer = svg10.g().fill('crimson');\n\nsvg10.rect(130, 0, 40, 150).fill('black');\n\nlayer.rect(0, 55, 300, 40);",
   "var clip = svg11.clipPath();\nclip.text('clipping', 0, 95)\n  .fontSize('80px');\n\nsvg11.line(0, 75, 300, 75)\n  .stroke('black')\n  .strokeWidth(20)\n  .clipPath(clip);\n\nsvg11.line(0, 30, 300, 120)\n  .stroke('crimson')\n  .strokeWidth(20)\n  .clipPath(clip);",
-  "svg12.rect(0,90, 300, 30).fill('crimson');\nsvg12.fontWeight(900)\n  .fontSize('100px');\n\nvar m = svg12.mask();\nm.text('MASK', 0, 100).fill('white');\nm.text('MASK', 5, 102).fill('black');\nsvg12.rect(0, 0, 300, 150)\n  .fill('black')\n  .mask(m);",
+  "svg12.rect(300, 30, 0, 90).fill('crimson');\nsvg12.fontWeight(900)\n  .fontSize('100px');\n\nvar m = svg12.mask();\nm.text('MASK', 0, 100).fill('white');\nm.text('MASK', 5, 102).fill('black');\nsvg12.rect(300, 150, 0, 0)\n  .fill('black')\n  .mask(m);",
   "svg13.strokeWidth(10)\n  .stroke('black')\n  .fill('crimson');\n\nsvg13.regularPolygon(150, 75, 72, 10);\nsvg13.regularPolygon(150, 75, 48, 5);",
   "svg14.parabola(0, 150, 300, -150)\n  .fill('crimson');",
   "for (var i = 0; i < 1.25; i += 0.1) {\n  svg15.curve(0, 150, 300, 150, i)\n    .stroke('crimson')\n    .fill('none');\n}",

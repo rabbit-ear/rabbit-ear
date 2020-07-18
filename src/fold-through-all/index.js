@@ -12,20 +12,20 @@
 // for now, this uses "faces_re:layer", todo: use faceOrders
 
 import math from "../../include/math";
-import split_convex_polygon from "../FOLD/split_face";
+import split_convex_polygon from "../core/split_face";
 import { foldLayers } from "./faces_layer";
-import { clone } from "../FOLD/object";
+import { clone } from "../core/object";
 
 import {
   faces_count,
   face_containing_point,
-} from "../FOLD/query";
+} from "../core/query";
 
 import {
   make_faces_matrix,
   make_faces_coloring_from_faces_matrix,
   make_vertices_coords_folded,
-} from "../FOLD/make";
+} from "../core/make";
 
 import {
   construction_flip,

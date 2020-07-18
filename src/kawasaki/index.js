@@ -1,6 +1,6 @@
 import math from "../../include/math";
-import split_convex_polygon from "../FOLD/split_face";
-import { make_vertices_isBoundary } from "../FOLD/make";
+import split_convex_polygon from "../core/split_face";
+import { make_vertices_isBoundary } from "../core/make";
 
 /**
  * two varieties: vectors, radians, with a very important difference!:

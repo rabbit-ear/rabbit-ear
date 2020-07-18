@@ -1,10 +1,10 @@
-import { FOLDED_FORM, CREASE_PATTERN } from "../FOLD/keys";
-import isFoldedState from "../FOLD/folded";
-import populate from "../FOLD/populate";
+import { FOLDED_FORM, CREASE_PATTERN } from "../core/keys";
+import isFoldedState from "../core/folded";
+import populate from "../core/populate";
 import {
   make_vertices_coords_folded,
   make_faces_matrix
-} from "../FOLD/make";
+} from "../core/make";
 
 const VERTICES_FOLDED_COORDS = "vertices_re:foldedCoords";
 const VERTICES_UNFOLDED_COORDS = "vertices_re:unfoldedCoords";

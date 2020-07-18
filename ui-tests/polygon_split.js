@@ -1,8 +1,8 @@
 RabbitEar.svg("canvas-split-poly", 500, 500, (polySplit) => {
   const STROKE_WIDTH = polySplit.getWidth() * 0.0125;
   const RADIUS = polySplit.getWidth() * 0.025;
-  const lineLayer = polySplit.group().pointerEvents("none");
-  const topLayer = polySplit.group().pointerEvents("none");
+  const lineLayer = polySplit.g().pointerEvents("none");
+  const topLayer = polySplit.g().pointerEvents("none");
 
   const polygon = topLayer.polygon();
   polygon.setAttribute("stroke", "black");

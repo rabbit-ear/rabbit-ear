@@ -1,5 +1,5 @@
 let instruct = RabbitEar.origami("canvas-instruction", {padding:0.01});
-instruct.instructionLayer = instruct.group();
+instruct.instructionLayer = instruct.g();
 instruct.load("../files/fold/instruction.fold", function() {
 	instruct.renderInstructions(instruct.instructionLayer);
 });

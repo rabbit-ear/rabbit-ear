@@ -5,7 +5,7 @@ folded.isFolded = true;
 chopReflect.masterCP = RabbitEar.bases.blintzDistorted;
 chopReflect.cp = RabbitEar.CreasePattern(chopReflect.masterCP);
 
-let drawLayer = RabbitEar.svg.group();
+let drawLayer = RabbitEar.svg.g();
 chopReflect.appendChild(drawLayer)
 let dot = RabbitEar.svg.circle(0, 0, 0.02);
 let dotVec = RabbitEar.svg.circle(0, 0, 0.02);

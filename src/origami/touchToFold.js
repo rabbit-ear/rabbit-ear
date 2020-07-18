@@ -5,15 +5,15 @@
 import {
   make_faces_matrix,
   make_vertices_coords_folded,
-} from "../FOLD/make";
+} from "../core/make";
 import {
   faces_containing_point,
   topmost_face,
-} from "../FOLD/query";
+} from "../core/query";
 import {
   axiom2
 } from "../axioms/index";
-import { clone } from "../FOLD/object";
+import { clone } from "../core/object";
 
 const build_folded_frame = function (graph, face_stationary = 0) {
   const faces_matrix = make_faces_matrix(graph, face_stationary);

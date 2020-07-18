@@ -5,15 +5,15 @@ import {
   isNode,
 } from "./detect";
 
-const htmlString = "<!DOCTYPE html><title> </title>";
+// const htmlString = "<!DOCTYPE html><title> </title>";
 
 const win = (function () {
   let w = {};
   if (isNode) {
-    const { DOMParser, XMLSerializer } = require("xmldom");
-    w.DOMParser = DOMParser;
-    w.XMLSerializer = XMLSerializer;
-    w.document = new DOMParser().parseFromString(htmlString, "text/html");
+    // const { DOMParser, XMLSerializer } = require("xmldom");
+    // w.DOMParser = DOMParser;
+    // w.XMLSerializer = XMLSerializer;
+    // w.document = new DOMParser().parseFromString(htmlString, "text/html");
   } else if (isBrowser) {
     w = window;
   }

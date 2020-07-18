@@ -39,9 +39,9 @@ kawasakiSketch.setup = function() {
 
 	kawasakiSketch.removeChildren();
 
-	kawasakiSketch.drawLayer = RabbitEar.svg.group();
-	kawasakiSketch.sectorLayer = RabbitEar.svg.group();
-	kawasakiSketch.touchLayer = RabbitEar.svg.group();
+	kawasakiSketch.drawLayer = RabbitEar.svg.g();
+	kawasakiSketch.sectorLayer = RabbitEar.svg.g();
+	kawasakiSketch.touchLayer = RabbitEar.svg.g();
 	kawasakiSketch.appendChild(kawasakiSketch.sectorLayer);
 	kawasakiSketch.appendChild(kawasakiSketch.drawLayer);
 	kawasakiSketch.appendChild(kawasakiSketch.touchLayer);

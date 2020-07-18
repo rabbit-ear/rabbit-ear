@@ -8,24 +8,24 @@ import {
   keys,
   file_spec,
   file_creator
-} from "../FOLD/keys";
-import fragment from "../FOLD/fragment";
-import clean from "../FOLD/clean";
-import join from "../FOLD/join";
-import rebuild from "../FOLD/rebuild";
-import populate from "../FOLD/populate";
+} from "../core/keys";
+import fragment from "../core/fragment";
+import clean from "../core/clean";
+import join from "../core/join";
+import rebuild from "../core/rebuild";
+import populate from "../core/populate";
 import {
   bounding_rect,
   get_boundary,
-} from "../FOLD/boundary";
-import * as Transform from "../FOLD/affine";
+} from "../core/boundary";
+import * as Transform from "../core/affine";
 import {
   nearest_vertex,
   nearest_edge,
   face_containing_point,
   implied_vertices_count
-} from "../FOLD/query";
-import { clone } from "../FOLD/object";
+} from "../core/query";
+import { clone } from "../core/object";
 import changed from "./changed";
 
 const vertex_degree = function (v, i) {
@@ -178,7 +178,9 @@ const getVertices = function () {
   return vertices;
 };
 const getEdges = function () {
-  const edges = transpose_graph_arrays(this, "edges");
+  // left off here
+  const edgesT = transpose_graph_arrays(this, "edges");
+  const edges = edgesT.map(e => math.segment(e));
   edges.forEach(setup_edge.bind(this));
   return edges;
 };
@@ -189,8 +191,7 @@ const getFaces = function () {
 };
 const getBoundary = function () {
   return math.polygon(
-    get_boundary(this).vertices
-      .map(i => this.vertices_coords[i])
+    get_boundary(this).vertices.map(i => this.vertices_coords[i])
   );
 };
 const getBounds = function () {

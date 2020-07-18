@@ -4,14 +4,14 @@ import math from "../../include/math";
 import prototype from "../graph/prototype";
 
 import MakeFold from "../fold-through-all/index";
-import addEdge from "../FOLD/add_edge";
-import split_face from "../FOLD/split_face";
-import rebuild from "../FOLD/rebuild";
-import { clone } from "../FOLD/object";
+import addEdge from "../core/add_edge";
+import split_face from "../core/split_face";
+import rebuild from "../core/rebuild";
+import { clone } from "../core/object";
 import { kawasaki_collapse } from "../kawasaki/index";
 import { get_assignment } from "./args";
 
-import * as Collinear from "../FOLD/collinear";
+import * as Collinear from "../core/collinear";
 import Edges from "./edges";
 
 const MARK_DEFAULTS = {

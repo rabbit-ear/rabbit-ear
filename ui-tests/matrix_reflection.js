@@ -1,7 +1,7 @@
 var matrixReflectCallback;
 
 RabbitEar.svg("canvas-reflection", 800, 300, (svg) => {
-  const reflLayer = svg.group();
+  const reflLayer = svg.g();
 
   const line = svg.line()
     .stroke("#e53")

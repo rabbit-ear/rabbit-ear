@@ -9,9 +9,9 @@ collapse.setup = function() {
 	if (collapse.didInitialize) { return; }
 	collapse.STROKE_WIDTH = collapse.w * 0.01;
 	collapse.removeChildren();
-	collapse.mountainLayer = RabbitEar.svg.group();
+	collapse.mountainLayer = RabbitEar.svg.g();
 	collapse.appendChild(collapse.mountainLayer);
-	collapse.valleyLayer = RabbitEar.svg.group();
+	collapse.valleyLayer = RabbitEar.svg.g();
 	collapse.appendChild(collapse.valleyLayer);
 
 	let r = RabbitEar.svg.rect(0, 0, 500, 500);

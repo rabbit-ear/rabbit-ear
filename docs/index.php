@@ -1,12 +1,11 @@
 <?php include 'header.php';?>
 
-<p class="explain">Rabbit Ear is gearing up for a version 1 release. check back in early 2020.</p>
-
 <script type="text/javascript" src="include/threejs/three.min.js"></script>
 <script type="text/javascript" src="include/threejs/THREE.MeshLine.js"></script>
 <script type="text/javascript" src="include/threejs/THREE.OrbitControls.js"></script>
 
-<h1>Origami</h1>
+<h3 class="chapter">&nbsp;</h3>
+<h1 class="chapter">Origami</h1>
 
 <div id="canvas-origami-fold"></div>
 
@@ -18,7 +17,7 @@
 &lt;<key>title</key>&gt;Rabbit Ear&lt;/<key>title</key>&gt;
 &lt;<key>script</key> <v>src</v>=<str>"rabbit-ear.js"</str>&gt;&lt;/<key>script</key>&gt;
 &lt;<key>script</key>&gt;
-<f>RabbitEar</f>.<f>origami</f>({ <str>"touchFold"</str>: <n>true</n> });
+<f>ear</f>.<f>origami</f>({ <str>"touchFold"</str>: <n>true</n> });
 &lt;/<key>script</key>&gt;
 </code></pre>
 
@@ -32,10 +31,10 @@
 
 <div id="div-origami-with-cp" class="grid-2"></div>
 
-<pre class="code"><code><f>var</f> origami <key>=</key> <f>RabbitEar</f>.<f>origami</f>({ <str>"touchFold"</str>: <n>true</n> });</code></pre>
+<pre class="code"><code><f>var</f> origami <key>=</key> <f>ear</f>.<f>origami</f>({ <str>"touchFold"</str>: <n>true</n> });</code></pre>
 
 <p class="quote">
-  The origami object <b>is</b> the crease pattern. Read more in <a href="graph.php">Chapter III. Graph</a>.
+  The origami object <b>is</b> the crease pattern. Learn more in <a href="graph.php">Chapters II. and IV.</a>.
 </p>
 
 <p>
@@ -44,7 +43,7 @@
 
 <div id="div-folded-crane" class="grid-2"></div>
 
-<pre class="code"><code><f>var</f> origami <key>=</key> <f>RabbitEar</f>.<f>origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
+<pre class="code"><code><f>var</f> origami <key>=</key> <f>ear</f>.<f>origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
 
 <p class="quote">
   Determining layer order can be difficult sometimes. When Rabbit Ear is unsure it draws translucent faces.
@@ -56,12 +55,12 @@
 
 <div id="canvas-face-coloring"></div>
 
-<pre class="code"><code><f>RabbitEar</f>.core.make_faces_coloring(origami)
+<pre class="code"><code><f>ear</f>.core.make_faces_coloring(origami)
   .<f>map</f>(<arg>color</arg> <f>=></f> color <key>?</key> <str>"#158"</str> <key>:</key> <str>"#fb3"</str>)
   .<f>forEach</f>((<arg>c</arg>, <arg>i</arg>) <f>=></f> origami.faces[i].<f>fill</f>(c));</code></pre>
 
 <p class="quote">
-  Read more about drawing, coloring, and touch-interaction in <a href="svg.php">Chapter II. SVG</a>.
+  Read more about drawing, coloring, and touch-interaction in the <a href="svg.php">SVG Appendix</a>.
 </p>
 
 <h2>Example Apps</h2>

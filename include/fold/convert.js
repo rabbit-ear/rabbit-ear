@@ -1,3 +1,5 @@
+// change in line 60 - robby
+// allow arrays like vertices_coords to have more keys than 0,1,2,3...
 
 /* FOLD FORMAT MANIPULATORS */
 var convert = {},
@@ -57,7 +59,8 @@ convert.sort_vertices_vertices = function(fold) {
     convert.edges_vertices_to_vertices_vertices(fold);
   }
   ref2 = fold.vertices_vertices;
-  for (v in ref2) {
+  // for (v in ref2) {
+  for (v = 0; v < ref2.length; v += 1) {
     neighbors = ref2[v];
     geom.sortByAngle(neighbors, v, function(x) {
       return fold.vertices_coords[x];

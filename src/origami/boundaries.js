@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import { get_boundary } from "../FOLD/boundary";
+import { get_boundary } from "../core/boundary";
 
 /**
  * todo: this needs to be setup to handle non-convex polygons

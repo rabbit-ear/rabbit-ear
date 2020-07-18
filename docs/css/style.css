@@ -21,6 +21,7 @@ h5 { font-size: 1.333rem; }
 h6 { font-size: 1.0rem; }
 p, ol, ul {
 	font-size: 1.333rem;
+    line-height: 1.2;
 }
 pre, code {
 	font-size: 1rem;
@@ -56,8 +57,8 @@ a:hover, a:active { color: #ea3; }
 
 body { margin: 0 200px; }
 h1 { margin: 1.5rem 0; }
-h2 { margin: 1.5rem 0 0.5rem 0; }
-h3 { margin: 1rem 0; }
+h2 { margin: 2rem 0 1rem 0; }
+h3 { margin: 4rem 0 4rem 0; }
 /* prevent text under the menu */
 nav + * { margin-top: 4rem; }
 p + p,
@@ -109,20 +110,36 @@ div[id^=canvas-] {
 	line-height: 2em;
 }
 
+h1.chapter {
+	margin: 1rem 0 3rem 0;
+}
+h3.chapter {
+	margin: 6rem 0 1rem 0;
+}
+
 pre, code {
 	overflow: auto;
 	max-width: calc(100% - 2rem);
 }
 
 .code {
-	margin: 1rem auto;
+	margin: 2rem auto;
 	width: 550px;
 	padding: 1rem;
 }
 
+p.quote + .code {
+	margin: 1rem auto 2rem auto;
+}
+
+
+.code + .code {
+	margin-top: -1.5rem;
+}
+
 .equation {
 	text-align: center;
-	margin: 1rem auto;
+	margin: 2rem auto;
 }
 
 .katex {
@@ -190,7 +207,29 @@ div.section div[class^="sketch"] {
   height: 100%;
   margin: auto;
 }
-
+.tests{
+	margin-top:2em;
+	margin-bottom:2em;
+	padding:1.333em;
+	border: black 5px dashed;
+	/*background-color: #FFF;*/
+	box-shadow: inset 5px 5px 10px #CCC;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+}
+.tests li,
+.tests p,
+.tests ul,
+.tests ol {
+	font-size: 1.0rem;
+}
+.tests p+p { margin-top: 0; }
+.tests li{
+	/*padding-top:.33em;*/
+	/*padding-bottom:.33em;*/
+}
+.tests a:hover{
+	/*text-decoration: underline;*/
+}
 
 /* large computers */
 @media (min-width: 1600px) {

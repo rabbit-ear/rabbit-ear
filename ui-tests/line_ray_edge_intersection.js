@@ -9,7 +9,7 @@ RabbitEar.svg("canvas-line-ray-edge-intersection", window.innerWidth, window.inn
   const colors = ["#ecb233", "#195783", "#e44f2a"];
 
   svg.strokeWidth(strokeWidth).strokeLinecap("round");
-  const xingLayer = svg.group();
+  const xingLayer = svg.g();
   const lines = [0, 1, 2].map(i => svg.line().stroke(colors[i % 3]));
   const boundary = RabbitEar.polygon([
     [-svg.getWidth(), -svg.getHeight()],

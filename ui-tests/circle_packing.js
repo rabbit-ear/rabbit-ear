@@ -9,12 +9,12 @@ RabbitEar.svg("canvas-circle-packing", -cirPPad, -cirPPad, 500 + 2 * cirPPad, 50
   const clipRect = RabbitEar.svg.rect(0, 0, 500, 500);
   clipPath.appendChild(clipRect);
 
-  const circleLayer = circlePack.group();
+  const circleLayer = circlePack.g();
   circlePack.rect(0, 0, 500, 500)
     .fill("none")
     .strokeWidth(6)
     .stroke("black");
-  const drawLayer = circlePack.group();
+  const drawLayer = circlePack.g();
   const circles = Array.from(Array(12)).map(() => RabbitEar.circle(0, 0, 0));
   circles.forEach((c) => { c.svg = circleLayer.circle(0, 0, 0); });
 

@@ -14,7 +14,7 @@ lerps = RabbitEar.svg("canvas-lerp", 500, 500, () => {
     (0.3 + 0.7 * Math.random()) * lerps.getHeight() * 0.5
   ];
 
-  const bottom = lerps.group()
+  const bottom = lerps.g()
     .strokeWidth(7)
     .strokeLinecap("round");
 
@@ -25,7 +25,7 @@ lerps = RabbitEar.svg("canvas-lerp", 500, 500, () => {
       lerps.getHeight() / 2 + Math.sin(angles[i]) * radii[i]
     ]);
 
-  const top = lerps.group()
+  const top = lerps.g()
     .strokeWidth(7)
     .strokeLinecap("round");
 

@@ -1,5 +1,5 @@
 let interiorAngles = RabbitEar.origami("interior-angles");
-interiorAngles.arcLayer = RabbitEar.svg.group();
+interiorAngles.arcLayer = RabbitEar.svg.g();
 
 interiorAngles.updateAngles = function(){
 	interiorAngles.arcLayer.removeChildren();

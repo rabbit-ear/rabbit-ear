@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import { bounding_rect } from "../FOLD/boundary";
+import { bounding_rect } from "../core/boundary";
 // import { get_delaunay_faces_vertices } from "../delaunay";
 
 // export const drawDelaunay = function (graph, group) {

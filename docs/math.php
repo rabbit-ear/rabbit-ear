@@ -2,17 +2,14 @@
 <script type="text/javascript" src="include/katex/katex.min.js"></script>
 <link rel="stylesheet" href="include/katex/katex.min.css">
 
-<h3>CHAPTER I.</h3>
-
-<h1>ORIGAMI MATH</h1>
+<h3 class="chapter">CHAPTER I.</h3>
+<h1 class="chapter">MATH</h1>
 
 <div id="canvas-junction-bisect"></div>
 
-<p>When origami is digitized, we encode it in Euclidean space.</p>
+<p>Mathematically speaking, origami is a 2D sheet of material bent and folded in 3D.</p>
 
-<p>Folded origami requires 3D space, but idealized crease patterns are typically in 2D and benefit from the wealth and (sometimes) simplicity of 2D geometry algorithms.</p>
-
-<p>This means our math library needs to excell in linear algebra and 3D and especially 2D geometry.</p>
+<p>Our math library will need to excel at 2D/3D geometry, linear algebra, and intersection of lines and polygons.</p>
 
 <h2 id="vector">Vector / Point</h2>
 	<p>This fundamental linear algebra type works in any dimension.</p>
@@ -20,15 +17,11 @@
 	<div class="full" id="canvas-vector-labels"></div>
 	<pre class="code"><code><f>var</f> point <key>=</key> <f>vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>()<br> ↳ <span id="vec-sketch-normal"></span></code></pre>
 
-	<!-- <h4>Linear Interpolation</h4> -->
-	<div id="canvas-lerp"></div>
 	<pre class="code"><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, <span id="lerp-time-1">t</span>)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, <span id="lerp-time-2">t</span>)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, <span id="lerp-time-3">t</span>)</code></pre>
 
-	<p>
+	<p class="explain">
 		This vector object is <b>immutable</b>. Each vector operation returns a new, transformed vector.
-	</p>
-
-	<p>
+		<br>
 		This immutability pattern is generally reflected throughout the entire library.
 	</p>
 
@@ -177,6 +170,30 @@
 
 	<pre class="code"><code>line.<f>nearestPoint</f>(pointB)</code></pre>
  -->
+
+<h1>Shapes</h1>
+
+<p>
+	All shapes follow this format:
+</p>
+<p>
+	function-name (...dimensions, ...position (translation))
+</p>
+
+<p>
+A ray, for example 
+</p>
+
+<code>
+	rect([size], [position])
+	ray([direction], [origin])
+</code>
+
+<code>
+	rect([width, height], [x, y])
+	ray(vector(x, y), [x, y])
+</code>
+
 <h2>Circle</h2>
 
 	<p>

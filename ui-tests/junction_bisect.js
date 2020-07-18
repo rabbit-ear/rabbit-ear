@@ -1,8 +1,8 @@
 RabbitEar.svg("canvas-junction-bisect", -250, -250, 500, 500, (svg) => {
   const { RabbitEar } = window;
 
-  const drawLayer = svg.group().pointerEvents("none");
-  const touchLayer = svg.group().pointerEvents("none");
+  const drawLayer = svg.g().pointerEvents("none");
+  const touchLayer = svg.g().pointerEvents("none");
 
   const vmin = (svg.getWidth() > svg.getHeight()
     ? svg.getHeight()

@@ -2,7 +2,7 @@ let facesChop = RabbitEar.origami("canvas-faces-chop");
 
 facesChop.cp = RabbitEar.CreasePattern(RabbitEar.bases.blintz);
 
-let drawLayer = RabbitEar.svg.group();
+let drawLayer = RabbitEar.svg.g();
 facesChop.appendChild(drawLayer)
 let dot = RabbitEar.svg.circle(0, 0, 0.015);
 let dotVec = RabbitEar.svg.circle(0, 0, 0.015);

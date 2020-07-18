@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import { get_boundary } from "../FOLD/boundary";
+import { get_boundary } from "../core/boundary";
 
 // please make sure poly is an array of points
 const test_axiom1_2 = function (axiom_frame, poly) {

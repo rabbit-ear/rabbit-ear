@@ -7,7 +7,7 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import { flatten_frame } from "../FOLD/file_frames";
+import { flatten_frame } from "../core/file_frames";
 // import load_file from "../../convert/load_async";
 
 // import { unitSquare } from "./OrigamiBases"

@@ -3,27 +3,21 @@
 <script type="text/javascript" src="include/d3.min.js"></script>
 <script type="text/javascript" src="js/cp.d3js.js"></script>
 
-<h3>CHAPTER III.</h3>
-
-<h1>GRAPHS</h1>
+<h3 class="chapter">CHAPTER III.</h3>
+<h1 class="chapter">GRAPHS</h1>
 
 <div class="d3-force-graph">
   <svg id="svgTest00"></svg>
 </div>
 
 <p class="quote">
-  A <b>graph</b> is a collection of <b>vertices</b> and <b>edges</b>
+  A <b>graph</b> is a collection of <b>vertices</b>, <b>edges</b>, and sometimes <b>faces</b>.
 </p>
 
-<pre class="language">.js</pre>
 <pre class="code"><code><f>var</f> graph <key>=</key> <f>RabbitEar</f>.<f>graph</f>()</code></pre>
 
 <p>
   Graphs don't need to exist in 2D space (or any space), they are an abstract map showing connections between vertices.
-</p>
-
-<p>
-  One effect of organizing things this way is to calculate adjacency.
 </p>
 
 <h3>Adjacency</h3>
@@ -49,43 +43,48 @@
   </div>
 </div>
 
+<p class="quote">
+  Edge-adjacencies can be used to calculate faces.
+</p>
+
 <h3>Components</h3>
 
 <pre class="code"><code>graph.<v>vertices</v><br>graph.<v>edges</v><br>graph.<v>faces</v></code></pre>
 
 <p>
-  Our graph keeps track of all of its components by index references.
+  If you wanted to connect two vertices in this list:
 </p>
 
-<p>
-  An edge is represented by two integers: the index of each vertex in their vertices array.
-</p>
+<pre class="code"><code><arg>[1.0, 0.0]</arg>,<br>[0.0, 0.0],<br><arg>[0.0, 1.0]</arg>,<br>[0.5, 0.5],<br>[0.3, 0.5], <key>...</key></code></pre>
 
 <p>
+  You can simply store their locations in the array (starting with 0):
+</p>
+
+<pre class="code"><code>[<n>0</n>, <n>2</n>]</code></pre>
+
+<p class="explain">
   This means that the vertices (and edges and faces) cannot move around in their array. If so, all of these index references in all the arrays needs to be carefully updated.
 </p>
-
-<pre class="code"><code>edges <key>=</key> [
-  [<n>4</n>, <n>7</n>],
-  ...
-]</code></pre>
-
-<p>
-  We can count on every edge only containing two integers. Faces however can be made of any number of vertices, greater than or equal to three.
-</p>
-
-<pre class="code"><code>faces <key>=</key> [<br>  [<n>4</n>, <n>0</n>, <n>1</n>, <n>7</n>, <n>5</n>],<br>  ...<br>]</code></pre>
   
+<section id="tests">
+  <div class="tests">
+    <p><b>ear.core.remove(<arg>graph</arg>, <arg>key</arg>, <arg>removeIndices</arg>)</b></p>
+    <p><c>graph is a FOLD object</c>
+    <p><c>key is a string, like "edges"</c>
+    <p><c>removeIndices is an array of integers. Example: [0, 2, 14] will remove edges #0, 2, 14 in the array.</c>
+  </div>
+  
+</section>
+
 <h2>FOLD Format</h2>
 
-<p>
-  This library subscribes to the <b>FOLD file format</b>, which is a set of naming standards around this type of graph structure.
-</p>
+<p>We can digitize an origami as a <a href="https://en.wikipedia.org/wiki/Polygon_mesh">3D mesh</a>, this library uses the FOLD format which was invented in 2016 specifically for origami storage.</p>
 
 <pre class="code compact"><code><f>FOLD graph</f>
 ┃
 ┃ <c>// vertices</c>
-┣━ vertices_coords <c> // points, not indices</c>
+┣━ vertices_coords
 ┣━ <v>vertices_vertices</v>
 ┣━ <v>vertices_faces</v>
 ┃
@@ -99,7 +98,7 @@
 </code></pre>
 
 <p>
-  <b>vertices_coords</b> is the only graph array that doesn't contain index references to an array. Each of its elements is a coordinate in Euclidean space.
+  Arrays contain index references, except <b>vertices_coords</b>, each of its elements is a coordinate in 3D space.
 </p>
 
 <h2>Core Methods</h2>

@@ -18,8 +18,8 @@ const folded = RabbitEar.origami(document.querySelector("#canvas-axioms"), {
 let axiom = 2;
 let controls = origami.svg.controls(0);
 
-const controlLayer = origami.svg.group().setClass("controls");
-const drawLayer = origami.svg.group().setClass("controls");
+const controlLayer = origami.svg.g().setClass("controls");
+const drawLayer = origami.svg.g().setClass("controls");
 const axiomControlCount = [null, 2, 2, 4, 3, 4, 6, 5];
 const axiomPointCount = [null, 2, 2, 0, 1, 2, 2, 1];
 const axiomLineCount = [null, 0, 0, 2, 1, 1, 2, 2];

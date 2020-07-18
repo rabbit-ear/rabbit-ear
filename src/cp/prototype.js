@@ -2,72 +2,131 @@
 
 import math from "../../include/math";
 import prototype from "../graph/prototype";
-import { make_boundary } from "../FOLD/boundary";
-import add_edge from "../FOLD/add_edge";
+import { make_boundary } from "../core/boundary";
+import add_edge from "../core/add_edge";
 import {
   get_graph_keys_with_prefix,
   transpose_graph_array_at_index
-} from "../FOLD/keys";
-import crop from "../FOLD/crop";
+} from "../core/keys";
+import crop from "../core/crop";
 
-const makeExistArray = (obj, key) => {
+const defaultSegment = {
+  edges_assignment: "F",
+  edges_foldAngle: 0
+};
+
+const makeSureKeyArray = (obj, key) => {
   if (obj[key] === undefined) { obj[key] = []; }
 };
+const makeSureKeysArray = (obj, keys) => keys
+  .forEach(key => makeSureKeyArray(obj, key));
 
-const makeCrease = (graph, a, b, c, d, options) => {
-  ["vertices_coords",
-    "edges_vertices",
-    "edges_assignment"].forEach(key => makeExistArray(graph, key));
-  // if (args.length === 4 && typeof args[0] === "number") {
-  const p = math.core.get_vector_of_vectors([a, b], [c, d]);
-  if (p.length === 2) {
-    graph.isClean = false;
-    return add_edge(graph, p[0][0], p[0][1], p[1][0], p[1][1], options);
-  }
-  return undefined;
+const NewSegmentsProto = {};
+NewSegmentsProto.prototype = Array.prototype;
+NewSegmentsProto.prototype.constructor = NewSegmentsProto;
+const eachAssign = (arr, assignment, foldAngle) => arr
+  .forEach((c) => {
+    c.assignment = assignment;
+    c.foldAngle = foldAngle;
+  });
+NewSegmentsProto.prototype.mountain = function (degrees = -180) {
+  eachAssign(this, "M", degrees > 0 ? -degrees : degrees);
+  return this;
+};
+NewSegmentsProto.prototype.valley = function (degrees = 180) {
+  eachAssign(this, "V", degrees);
+  return this;
+};
+NewSegmentsProto.prototype.mark = function () {
+  eachAssign(this, "F", 0);
+  return this;
+};
+NewSegmentsProto.prototype.cut = function () {
+  eachAssign(this, "B", 0);
+  return this;
+};
+NewSegmentsProto.prototype.boundary = function () {
+  eachAssign(this, "B", 0);
+  return this;
 };
 
-const CPProto = Object.create(prototype);
+const creaseSegment = function (graph, segment, options) {
+  graph.isClean = false;
+  makeSureKeysArray(graph, ["vertices_coords", "edges_vertices", "edges_assignment"]);
+  const addEdgeResult = add_edge(graph,
+    segment[0][0], segment[0][1], segment[1][0], segment[1][1],
+    options);
+  const newEdge = addEdgeResult.new.edges[0];
+  const res = transpose_graph_array_at_index(graph, "edges", newEdge.index);
+  return new Proxy(res, {
+    set: (target, property, value) => {
+      target[property] = value;
+      const key = `edges_${property}`;
+      makeSureKeyArray(graph, key);
+      graph[key][newEdge.index] = value;
+      return true;
+    }
+  });
+};
+
+const creaseSegments = (graph, segments, options) => {
+  const creases = Object.create(NewSegmentsProto.prototype);
+  creases.length = segments.length;
+  segments.forEach((s, i) => {
+    creases[i] = creaseSegment(graph, s, options);
+  });
+  return creases;
+};
 
 let isClean = true;
+let clipping = false;
+let arcSegments = 32;
+
+const CPProto = Object.create(prototype);
 
 Object.defineProperty(CPProto, "isClean", {
   get: () => isClean,
   set: (c) => { isClean = c; },
   enumerable: false
 });
+Object.defineProperty(CPProto, "clipping", {
+  get: () => clipping,
+  set: (c) => { clipping = c; },
+  enumerable: false
+});
+Object.defineProperty(CPProto, "arcSegments", {
+  get: () => arcSegments,
+  set: (c) => { arcSegments = c; },
+  enumerable: false
+});
 
 ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
   CPProto[fName] = function () {
-    const obj = math[fName](...arguments);
-    if (!obj) { return; }
-    const s = obj.segments();
-    s.forEach(seg => this.mountain(
-      seg[0][0],
-      seg[0][1],
-      seg[1][0],
-      seg[1][1]
-    ));
+    const primitive = math[fName](...arguments);
+    if (!primitive) { return creaseSegments(this, [], defaultSegment); }
+    let s = primitive.segments(this.arcSegments);
+    if (this.clipping) {
+      console.log("before clip #", s.length);
+      s = s.map(seg => this.boundary.clipSegment(seg))
+        .filter(a => a !== undefined);
+      console.log("after clip #", s.length);
+    }
+    return creaseSegments(this, s, defaultSegment);
   };
 });
 
+const boundaryClip = (cp, fName, primitive) => (fName === "line"
+  ? cp.boundary.clipLine(primitive)
+  : cp.boundary.clipRay(primitive));
+
 ["line", "ray", "segment"].forEach((fName) => {
   CPProto[fName] = function () {
-    if (!this.clip && (fName === "line" || fName === "ray")) {
-      console.warn("line and ray are infinite and require a boundary to clip.");
-      return;
-    }
-    const obj = math[fName](...arguments);
-    if (!obj) { return; }
+    const primitive = math[fName](...arguments);
+    if (!primitive) { return creaseSegments(this, [], defaultSegment); }
     const seg = (fName === "line" || fName === "ray")
-      ? boundaryClip(seg)
-      : seg;
-    this.mountain(
-      seg[0][0],
-      seg[0][1],
-      seg[1][0],
-      seg[1][1]
-    );
+      ? boundaryClip(this, fName, primitive)
+      : primitive;
+    return creaseSegments(this, [seg], defaultSegment);
   };
 });
 
@@ -86,64 +145,20 @@ CPProto.clean = function (epsilon = math.core.EPSILON) {
   this.isClean = true;
 };
 
-CPProto.mountain = function (a, b, c, d) {
-  const crease = makeCrease(this, a, b, c, d, {
-    edges_assignment: "M",
-    edges_foldAngle: -180
-  });
-  const that = this;
-  return crease.new.edges.map((e) => {
-    const res = transpose_graph_array_at_index(this, "edges", e.index);
-    return new Proxy(res, {
-      set: function set(target, property, value, receiver) {
-        target[property] = value;
-        that[`edges_${property}`][e.index] = value;
-        return true;
-      }
-    });
-  }).shift();
-  // console.log(info);
-  // return info;
-  // this.changed.update(this.clear);
-};
-
-CPProto.valley = function (a, b, c, d) {
-  const crease = makeCrease(this, a, b, c, d, {
-    edges_assignment: "V",
-    edges_foldAngle: 180
-  });
-  const that = this;
-  return crease.new.edges.map((e) => {
-    const res = transpose_graph_array_at_index(this, "edges", e.index);
-    return new Proxy(res, {
-      set: function set(target, property, value, receiver) {
-        target[property] = value;
-        that[`edges_${property}`][e.index] = value;
-        return true;
-      }
-    });
-  }).shift();
-  // this.changed.update(this.clear);
-};
-
-CPProto.mark = function (a, b, c, d) {
-  return makeCrease(this, a, b, c, d, { edges_assignment: "F", edges_foldAngle: 0 });
-  // this.changed.update(this.clear);
-};
+// CPProto.mountain = function (shape) {
+//   const crease = addEdge(this, shape);
+//   {
+//     edges_assignment: "M",
+//     edges_foldAngle: -180
+//   }
+//   // this.changed.update(this.clear);
+// };
 
 CPProto.crop = function (polygon) {
   crop(this, polygon);
   this.isClean = false;
   this.clean();
 };
-// GraphProto.nearestVertex = function (...args) {
-//   const index = nearest_vertex(this, math.core.get_vector(...args));
-//   const result = transpose_graph_array_at_index(this, "vertices", index);
-//   setup_vertex.call(this, result, index);
-//   result.index = index;
-//   return result;
-// };
-
 
 /**
  * export
@@ -152,8 +167,6 @@ CPProto.crop = function (polygon) {
 // CPProto.copy = function () {
 //   return Object.assign(Object.create(Prototype()), clone(this));
 // };
-
-// Object.defineProperty(CPProto, "bounds", { get: getBounds });
 
 // export default Object.freeze(CPProto);
 export default CPProto;

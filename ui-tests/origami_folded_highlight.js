@@ -85,11 +85,11 @@ let fold = {
 
 let origami = RabbitEar.origami(fold);
 origami.frame = 1;
-origami.drawLayer = RabbitEar.svg.group();
+origami.drawLayer = RabbitEar.svg.g();
 origami.appendChild(origami.drawLayer);
 let cpView = RabbitEar.origami(fold);
 cpView.frame = 0;
-cpView.drawLayer = RabbitEar.svg.group();
+cpView.drawLayer = RabbitEar.svg.g();
 cpView.appendChild(cpView.drawLayer);
 
 origami.onMouseMove = function(mouse) {

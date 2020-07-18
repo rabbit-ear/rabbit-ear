@@ -1,4 +1,4 @@
-import FoldToSvg from "../../include/fold-to-svg";
+// import FoldToSvg from "../../include/fold-to-svg";
 import ORIPA from "../../include/fold/oripa";
 import SVGtoFOLD from "../../include/tofold/src/index";
 // const SVGtoFOLD = window.tofold || require("tofold");

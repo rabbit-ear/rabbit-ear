@@ -48,10 +48,15 @@ const make_edges_collinearVertices = function ({
     .filter(v => point_on_edge_exclusive(v, e[0], e[1], epsilon)));
 };
 
-const make_edges_alignment = function ({ vertices_coords, edges_vertices }) {
+/**
+ * is an edge more vertical than it is horizontal.
+ * @return {array} of boolean. edge is true/false, more vertical/horizontal
+ */
+const make_edges_verticalness = function ({ vertices_coords, edges_vertices }) {
   const edges = edges_vertices
     .map(ev => ev.map(v => vertices_coords[v]));
-  const edges_vector = edges.map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+  const edges_vector = edges
+    .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
   const edges_magnitude = edges_vector
     .map(e => Math.sqrt(e[0] * e[0] + e[1] * e[1]));
   const edges_normalized = edges_vector
@@ -59,55 +64,46 @@ const make_edges_alignment = function ({ vertices_coords, edges_vertices }) {
   return edges_normalized.map(e => Math.abs(e[0]) > 0.707);
 };
 
+/**
+ *
+ * @returns a list for each edge containing the intersection points
+ * 0 [ [0.25, 0.125] ]
+ * 1 [ [0.25, 0.125], [0.99, 0.88] ]  // will become 3 segments
+ * 2 [ ]  // will be unchanged.
+ * 3 [ [0.99, 0.88] ]  // will become 2 segments
+ *
+ * if two edges end at the same endpoint this DOES NOT consider them touching
+ *
+ * careful with the pairs in separate locations - these are shallow pointers
+
+ */
 const make_edges_intersections = function ({
   vertices_coords, edges_vertices
 }, epsilon = math.core.EPSILON) {
   const edge_count = edges_vertices.length;
   const edges = edges_vertices
     .map(ev => ev.map(v => vertices_coords[v]));
-  // build an NxN matrix of edge crossings
-  //     0  1  2  3
-  // 0 [  , x,  ,  ]
-  // 1 [ x,  ,  , x]
-  // 2 [  ,  ,  ,  ]
-  // 3 [  , x,  ,  ]
-  //
-  // this example has crossings between 0 and 1, and 1 and 3.
-  // because the lower triangle is duplicate info, we only store one half
-  //
-  // if two edges end at the same endpoint this DOES NOT consider them touching
-
-  const crossings = Array.from(Array(edge_count - 1)).map(() => []);
   // todo this could already be cached on the object. like segment()
   const edgeObjects = edges.map(e => ({
     origin: e[0],
     vector: [e[1][0] - e[0][0], e[1][1] - e[0][1]]
   }));
+  // "crossings" is an NxN matrix of edge crossings
+  //     0  1  2  3
+  // 0 [  , x,  ,  ]
+  // 1 [ x,  ,  , x]
+  // 2 [  ,  ,  ,  ]
+  // 3 [  , x,  ,  ]
+  // showing crossings between 0 and 1, and 1 and 3.
+  // because the lower triangle is duplicate info, only store one half
+  const crossings = Array.from(Array(edge_count - 1)).map(() => []);
   const intersectFunc = math.intersect.lines.exclude_s_s;
   for (let i = 0; i < edges.length - 1; i += 1) {
     for (let j = i + 1; j < edges.length; j += 1) {
       crossings[i][j] = math.intersect.lines
-        .intersect(edgeObjects[i], edgeObjects[j], intersectFunc);
-      // crossings[i][j] = math.intersect.lines.intersect(
-      //   { origin: edges[i][0], vector: edges[i][1] },
-      //   { origin: edges[j][0], vector: edges[j][1] },
-      //   math.intersect.lines.exclude_s_s
-      // );
-      // crossings[i][j] = math.core.intersection.segment_segment_exclusive(
-      //   edges[i][0], edges[i][1],
-      //   edges[j][0], edges[j][1],
-      //   epsilon
-      // );
+        .intersect(edgeObjects[i], edgeObjects[j], intersectFunc, epsilon);
     }
   }
-
-  // math.core.intersect.lines.intersect(edges[i], edges[j], math.core.intersect.lines.exclude_s_s);
-
-  // build a list for each edge containing the intersection points
-  // 0 [ [0.25, 0.125] ]
-  // 1 [ [0.25, 0.125], [0.99, 0.88] ]
-  // 2 [ ]
-  // 3 [ [0.99, 0.88] ]
   const edges_intersections = Array.from(Array(edge_count)).map(() => []);
   for (let i = 0; i < edges.length - 1; i += 1) {
     for (let j = i + 1; j < edges.length; j += 1) {
@@ -117,7 +113,6 @@ const make_edges_intersections = function ({
       }
     }
   }
-  // careful with the pairs in separate locations - these are shallow pointers
   return edges_intersections;
 };
 
@@ -128,7 +123,7 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
   // when we rebuild an edge we need the intersection points sorted so we can
   // walk down it and rebuild one by one. should the walk proceed
   // horizontally or vertically?
-  const edges_alignment = make_edges_alignment(graph);
+  const edges_alignment = make_edges_verticalness(graph);
   const edges = graph.edges_vertices
     .map(ev => ev.map(v => graph.vertices_coords[v]));
   edges.forEach((e, i) => e.sort(edges_alignment[i] ? horizSort : vertSort));
@@ -173,6 +168,7 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
     .map(edge => edge.reduce((a, b) => a.concat(b), []))
     .reduce((a, b) => a.concat(b), []);
   let counter = 0;
+  // x++ stores the value before incrementing. first item is 0.
   const edges_vertices = new_edges
     .map(edge => edge.map(() => [counter++, counter++]))
     .reduce((a, b) => a.concat(b), []);
@@ -235,13 +231,18 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
   // force the remaining one to be boundary.
   // todo: this fix is currently modifying the input graph.
   // make it leave the input graph untouched.
-  edges_map.forEach((e, i) => {
-    if (e !== undefined) {
-      if (["B", "b"].includes(graph.edges_assignment[i])) {
-        graph.edges_assignment[e] = "B";
+
+  // TODO ERROR HERE, edges_assignment not defined
+  console.log("edges_map", edges_map);
+  if (graph.edges_assignment) {
+    edges_map.forEach((e, i) => {
+      if (e !== undefined) {
+        if (["B", "b"].includes(graph.edges_assignment[i])) {
+          graph.edges_assignment[e] = "B";
+        }
       }
-    }
-  });
+    });
+  }
   const edges_dont_remove = edges_map.map(m => m === undefined);
   edges_map.forEach((map, i) => {
     if (map === undefined) { edges_map[i] = i; }

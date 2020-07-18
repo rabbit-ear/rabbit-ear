@@ -1268,6 +1268,11 @@ const intersect_line_seg = (origin, vector, pt0, pt1) => {
   const b = { origin: pt0, vector: [[pt1[0] - pt0[0]], [pt1[1] - pt0[1]]] };
   return intersect(a, b, comp_l_s);
 };
+const intersect_seg_seg_exclude = (a0, a1, b0, b1) => {
+  const a = { origin: a0, vector: [[a1[0] - a0[0]], [a1[1] - a0[1]]] };
+  const b = { origin: b0, vector: [[b1[0] - b0[0]], [b1[1] - b0[1]]] };
+  return intersect(a, b, exclude_s_s);
+};
 const quick_equivalent_2 = function (a, b) {
   return Math.abs(a[0] - b[0]) < EPSILON && Math.abs(a[1] - b[1]) < EPSILON;
 };
@@ -1310,15 +1315,15 @@ const convex_poly_ray = function (poly, lineVector, linePoint) {
       return undefined;
   }
 };
-const convex_poly_segment = function (poly, segmentA, segmentB) {
+const convex_poly_segment = function (poly, segmentA, segmentB, epsilon = EPSILON) {
   const intersections = poly
     .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-    .map(el => segment_segment_exclusive(segmentA, segmentB, el[0], el[1]))
+    .map(el => intersect_seg_seg_exclude(segmentA, segmentB, el[0], el[1]))
     .filter(el => el != null);
-  const aInsideExclusive = point_in_convex_poly_exclusive(segmentA, poly);
-  const bInsideExclusive = point_in_convex_poly_exclusive(segmentB, poly);
-  const aInsideInclusive = point_in_convex_poly(segmentA, poly);
-  const bInsideInclusive = point_in_convex_poly(segmentB, poly);
+  const aInsideExclusive = point_in_convex_poly_exclusive(segmentA, poly, epsilon);
+  const bInsideExclusive = point_in_convex_poly_exclusive(segmentB, poly, epsilon);
+  const aInsideInclusive = point_in_convex_poly(segmentA, poly, epsilon);
+  const bInsideInclusive = point_in_convex_poly(segmentB, poly, epsilon);
   if (intersections.length === 0
     && (aInsideExclusive || bInsideExclusive)) {
     return [segmentA, segmentB];
@@ -1792,7 +1797,7 @@ var Ellipse = {
       intersect: function (object) {
         return intersect$1(this, object);
       },
-      path: function (arcStart = 0, deltaArc = Math.PI * 2) {
+      svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
         const info = pathInfo(this.origin[0], this.origin[1], this.rx, this.ry, this.spin, arcStart, deltaArc);
         const arc1 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x2, info.y2);
         const arc2 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x3, info.y3);
@@ -1912,7 +1917,7 @@ const methods = {
     const e = convex_poly_ray(this.points, line.vector, line.origin);
     return e === undefined ? undefined : Constructors.segment(e);
   },
-  path: function () {
+  svgPath: function () {
     const pre = Array(this.points.length).fill("L");
     pre[0] = "M";
     return `${this.points.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}z`;
@@ -1967,11 +1972,9 @@ var Polygon = {
   polygon: {
     P: PolygonProto.prototype,
     A: function () {
-      this.points = semi_flatten_arrays(arguments)
-        .map(v => Constructors.vector(v));
+      this.points = semi_flatten_arrays(arguments);
       this.sides = this.points
-        .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-        .map(ps => Constructors.segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
+        .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
     },
     G: {
       isConvex: function () {
@@ -2000,82 +2003,73 @@ var Polygon = {
   }
 };
 
+const assign = (thisMat, mat) => {
+  for (let i = 0; i < 12; i += 1) {
+    thisMat[i] = mat[i];
+  }
+  return thisMat;
+};
 var Matrix = {
   matrix: {
     P: Array.prototype,
     A: function () {
-      get_matrix_3x4(arguments).forEach(m => this.push(m));
+      [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].forEach(m => this.push(m));
     },
     G: {
     },
     M: {
+      copy: function () { return Constructors.matrix(...Array.from(this)); },
+      set: function () {
+        return assign(this, get_matrix_3x4(arguments));
+      },
       isIdentity: function () { return is_identity3x4(this); },
-      multiply: function () {
-        return Constructors.matrix(
-          multiply_matrices3(this, get_matrix_3x4(arguments))
-            .map(n => clean_number(n, 13))
-        );
+      multiply: function (mat) {
+        return assign(this, multiply_matrices3(this, mat));
       },
       determinant: function () {
-        return clean_number(determinant3(this), 13);
+        return determinant3(this);
       },
       inverse: function () {
-        return Constructors.matrix(invert_matrix3(this)
-          .map(n => clean_number(n, 13)));
+        return assign(this, invert_matrix3(this));
       },
       translate: function (x, y, z) {
-        return Constructors.matrix(
-          multiply_matrices3(this, make_matrix3_translate(x, y, z))
-            .map(n => clean_number(n, 13))
-        );
+        return assign(this,
+          multiply_matrices3(this, make_matrix3_translate(x, y, z)));
       },
       rotateX: function (radians) {
-        return Constructors.matrix(
-          multiply_matrices3(this, make_matrix3_rotateX(radians))
-            .map(n => clean_number(n, 13))
-        );
+        return assign(this,
+          multiply_matrices3(this, make_matrix3_rotateX(radians)));
       },
       rotateY: function (radians) {
-        return Constructors.matrix(
-          multiply_matrices3(this, make_matrix3_rotateY(radians))
-            .map(n => clean_number(n, 13))
-        );
+        return assign(this,
+          multiply_matrices3(this, make_matrix3_rotateY(radians)));
       },
       rotateZ: function (radians) {
-        return Constructors.matrix(
-          multiply_matrices3(this, make_matrix3_rotateZ(radians))
-            .map(n => clean_number(n, 13))
-        );
+        return assign(this,
+          multiply_matrices3(this, make_matrix3_rotateZ(radians)));
       },
       rotate: function (radians, vector, origin) {
         const transform = make_matrix3_rotate(radians, vector, origin);
-        return Constructors.matrix(multiply_matrices3(this, transform)
-          .map(n => clean_number(n, 13)));
+        return assign(this, multiply_matrices3(this, transform));
       },
       scale: function (amount) {
-        return Constructors.matrix(
-          multiply_matrices3(this, make_matrix3_scale(amount))
-            .map(n => clean_number(n, 13))
-        );
+        return assign(this,
+          multiply_matrices3(this, make_matrix3_scale(amount)));
       },
       reflectZ: function (vector, origin) {
         const transform = make_matrix3_reflectionZ(vector, origin);
-        return Constructors.matrix(multiply_matrices3(this, transform)
-          .map(n => clean_number(n, 13)));
+        return assign(this, multiply_matrices3(this, transform));
       },
       transform: function (...innerArgs) {
         return Constructors.vector(
           multiply_matrix3_vector3(get_vector(innerArgs), this)
-            .map(n => clean_number(n, 13))
         );
       },
       transformVector: function (vector) {
-        return Constructors.matrix(multiply_matrix3_vector3(this, vector)
-          .map(n => clean_number(n, 13)));
+        return Constructors.vector(multiply_matrix3_vector3(this, vector));
       },
       transformLine: function (origin, vector) {
-        return Constructors.matrix(multiply_matrix3_line3(this, origin, vector)
-          .map(n => clean_number(n, 13)));
+        return Constructors.line(multiply_matrix3_line3(this, origin, vector));
       },
     },
     S: {
@@ -2131,7 +2125,7 @@ const Definitions = Object.assign({},
 const create = function (primitiveName, args) {
   const a = Object.create(Definitions[primitiveName].proto);
   Definitions[primitiveName].A.apply(a, args);
-  return Object.freeze(a);
+  return a;
 };
 const vector = function () { return create("vector", arguments); };
 const circle = function () { return create("circle", arguments); };
@@ -2176,8 +2170,11 @@ Object.keys(Definitions).forEach(primitiveName => {
       value: Definitions[primitiveName].S[key]
         .bind(Constructors[primitiveName].prototype),
     }));
-  Object.freeze(Proto.prototype);
   Definitions[primitiveName].proto = Proto.prototype;
+});
+Constructors.__prototypes__ = {};
+Object.keys(Definitions).forEach(primitiveName => {
+  Constructors.__prototypes__[primitiveName] = Definitions[primitiveName].proto;
 });
 
 const math = Constructors;

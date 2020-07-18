@@ -9,8 +9,8 @@ vec = RabbitEar.svg("canvas-vector", window.innerWidth, window.innerHeight, func
 	}
 });
 
-vec.drawLayer = vec.group();
-vec.dotLayer = vec.group();
+vec.drawLayer = vec.g();
+vec.dotLayer = vec.g();
 
 vec.reset = function(){
 	vec.dotLayer.removeChildren();

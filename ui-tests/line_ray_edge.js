@@ -1,7 +1,7 @@
 let lre = RabbitEar.svg("canvas-line-ray-edge", 600, 300);
 
 lre.setup = function() {
-	lre.lineLayer = lre.group();
+	lre.lineLayer = lre.g();
 	lre.colors = ["#ecb233", "#195783", "#e44f2a"]
 	lre.lines = [lre.line(), lre.line(), lre.line()];
 	lre.controls = RabbitEar.svg.controls(lre, 6, {radius:8});

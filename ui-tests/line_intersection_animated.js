@@ -8,8 +8,8 @@ wobble = RabbitEar.origami("canvas-intersection-wobble", (wobbleSVG) => {
 
   wobble.intersections = [];
 
-  wobble.faceLayer = wobble.svg.group();
-  wobble.intersectionLayer = wobble.svg.group();
+  wobble.faceLayer = wobble.svg.g();
+  wobble.intersectionLayer = wobble.svg.g();
 
   const numLines = 14;
 

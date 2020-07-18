@@ -6,7 +6,7 @@ RabbitEar.svg("canvas-origami-molecule", 500, 500, (polySec) => {
     .strokeWidth(STROKE_WIDTH)
     .fill("none")
     .strokeLinecap("round");
-  const drawLayer = polySec.group();
+  const drawLayer = polySec.g();
 
   polySec.recurseMolecule = function(rays, polygon, sides, isEdgeRay) {
     let count = rays.length;

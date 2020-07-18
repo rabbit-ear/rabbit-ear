@@ -21,11 +21,11 @@ RabbitEar.svg("canvas-vector-labels", -VecTw / 2, -VecTh / 2, VecTw, VecTh, (svg
   const dashArray = `${strokeWidth} ${strokeWidth * 2}`;
   const dotArray = `${strokeWidth / 100} ${strokeWidth * 2}`;
 
-  const gridLayer = svg.group()
+  const gridLayer = svg.g()
     .pointerEvents("none")
     .stroke("#eee")
     .strokeWidth(strokeWidth);
-  const drawLayer = svg.group()
+  const drawLayer = svg.g()
     .pointerEvents("none")
     .strokeWidth(strokeWidth)
     .strokeLinecap("round")
@@ -35,7 +35,7 @@ RabbitEar.svg("canvas-vector-labels", -VecTw / 2, -VecTh / 2, VecTw, VecTh, (svg
     .fontSize("0.28px")
     .textAnchor("middle")
     .userSelect("none");
-  const dotLayer = svg.group()
+  const dotLayer = svg.g()
     .pointerEvents("none");
 
   for (let i = -8; i <= 8; i += 1) {

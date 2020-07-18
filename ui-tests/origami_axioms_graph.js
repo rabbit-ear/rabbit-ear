@@ -9,22 +9,22 @@ RabbitEar.svg(document.querySelector("#canvas-axioms-graph"), -VecTw / 2, -VecTh
 
   const strokeWidth = 0.04;
   const GRIDS = 8;
-  // const bounds = RabbitEar.rectangle(-VecTw / 2, -VecTh / 2, VecTw, VecTh);
-  const bounds = RabbitEar.rectangle(-50, -50, 100, 100);
+  // const bounds = RabbitEar.rect(-VecTw / 2, -VecTh / 2, VecTw, VecTh);
+  const bounds = RabbitEar.rect(-50, -50, 100, 100);
   console.log(bounds);
   const colors = ["#158", "#e53", "#fb3"];
 
-  const gridLayer = svg.group()
+  const gridLayer = svg.g()
     .fill("lightgray")
     .stroke("lightgray")
     .strokeLinecap("round")
     .strokeWidth(strokeWidth);
 
   let controls = svg.controls(0);
-  const drawLayer = svg.group().setClass("controls")
+  const drawLayer = svg.g().setClass("controls")
     .fill("none")
     .strokeWidth(strokeWidth);
-  const controlLayer = svg.group().setClass("controls");
+  const controlLayer = svg.g().setClass("controls");
 
   // grid lines
   for (let i = -GRIDS; i <= GRIDS; i += 1) {

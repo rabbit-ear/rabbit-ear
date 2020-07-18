@@ -3,7 +3,7 @@ let vecDotCallback;
 RabbitEar.svg("canvas-vector-dot", -window.innerWidth / 2, -Math.min(window.innerWidth, window.innerHeight) / 2, window.innerWidth, Math.min(window.innerWidth, window.innerHeight), (svg) => {
   const { RabbitEar } = window;
   const strokeW = 10;
-  const layer = svg.group().strokeWidth(strokeW);
+  const layer = svg.g().strokeWidth(strokeW);
 
   const didMove = function (points) {
     layer.removeChildren();

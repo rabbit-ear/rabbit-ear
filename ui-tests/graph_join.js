@@ -1,8 +1,8 @@
 RabbitEar.svg("canvas-graph-join", (svg) => {
   const { RabbitEar } = window;
 
-  const drawLayer = svg.group();
-  const topLayer = svg.group();
+  const drawLayer = svg.g();
+  const topLayer = svg.g();
 
   const graph1 = RabbitEar.graph(RabbitEar.bases.kite);
   const graph2 = RabbitEar.graph(RabbitEar.bases.fish);

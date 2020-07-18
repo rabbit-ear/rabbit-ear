@@ -1,6 +1,6 @@
 import root from "../root"; // for SVG
-import FoldToSvg from "../../include/fold-to-svg";
-import { bounding_rect } from "../FOLD/boundary";
+// import FoldToSvg from "../../include/fold-to-svg";
+import { bounding_rect } from "../core/boundary";
 import {
   isBrowser,
   isNode

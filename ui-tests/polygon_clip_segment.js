@@ -12,7 +12,7 @@ RabbitEar.svg("canvas-clip-segment", 500, 500, (svg) => {
     .stroke("#fb3")
     .strokeWidth(STROKE_WIDTH)
     .strokeLinecap("round");
-  const topLayer = svg.group();
+  const topLayer = svg.g();
   // const boundary = [ [0, 0], [500, 0], [500, 500], [0, 500] ];
   const boundary = RabbitEar.polygon([
     [-svg.getWidth(), -svg.getHeight()],

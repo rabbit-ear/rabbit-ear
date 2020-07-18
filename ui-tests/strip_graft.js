@@ -78,7 +78,7 @@ const strip_graft = function(graph, graft_scale) {//func) {
 }
 
 let origami = RabbitEar.origami({padding:0.5});
-origami.drawLayer = origami.group();
+origami.drawLayer = origami.g();
 origami.edges.visible = false;
 origami.groups.boundaries.setAttribute("opacity", 0)
 

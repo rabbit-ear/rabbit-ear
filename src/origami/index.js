@@ -5,16 +5,16 @@
 
 import math from "../../include/math";
 import convert from "../convert/convert";
-import { possibleFoldObject } from "../FOLD/validate";
-import * as Create from "../FOLD/create";
-import { keys, fold_keys, file_spec, file_creator } from "../FOLD/keys";
-import { clone } from "../FOLD/object";
-import { get_boundary } from "../FOLD/boundary";
+import { possibleFoldObject } from "../core/validate";
+import * as Create from "../core/create";
+import { keys, fold_keys, file_spec, file_creator } from "../core/keys";
+import { clone } from "../core/object";
+import { get_boundary } from "../core/boundary";
 import prototype from "../graph/prototype";
 import MakeFold from "../fold-through-all/index";
 import build_diagram_frame from "../diagram/diagram_frame";
-import addEdge from "../FOLD/add_edge";
-import isFoldedState from "../FOLD/folded";
+import addEdge from "../core/add_edge";
+import isFoldedState from "../core/folded";
 
 import View from "./view";
 import { get_assignment } from "./args";

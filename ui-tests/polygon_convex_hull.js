@@ -4,7 +4,7 @@ RabbitEar.svg("canvas-convex-hull", 500, 500, (svg) => {
   const STROKE_WIDTH = svg.getWidth() * 0.02;
   const RADIUS = svg.getWidth() * 0.04;
   svg.strokeWidth(STROKE_WIDTH);
-  const drawLayer = svg.group();
+  const drawLayer = svg.g();
   const polygon = svg.polygon()
     .fill("none")
     .stroke("#fb3")

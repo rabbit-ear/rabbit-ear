@@ -1,14 +1,14 @@
-RabbitEar.svg("canvas-graph-fragment", (svg) => {
-  const { RabbitEar } = window;
+ear.svg(document.getElementById("canvas-graph-fragment"), (svg) => {
+  const { ear } = window;
 
-  const drawLayer = svg.group();
-  const topLayer = svg.group();
+  const drawLayer = svg.g();
+  const topLayer = svg.g();
   const numVertices = 10;
   const numEdges = numVertices * 1.2;
   let controls;
 
   svg.size(1, 1);
-  const graph = RabbitEar.graph();
+  const graph = ear.graph();
 
   graph.edges_vertices = Array.from(Array(numVertices)).map((_, i) => [i,
     (i + 1 + Math.floor(Math.random() * (numVertices - 1))) % numVertices
@@ -34,13 +34,13 @@ RabbitEar.svg("canvas-graph-fragment", (svg) => {
     // draw
     graph.faces_vertices
       .map(fv => fv.map(v => graph.vertices_coords[v]))
-      .map(pts => RabbitEar.convexPolygon(pts))
+      .map(pts => ear.polygon(pts))
       .map(poly => poly.scale(0.5))
       .map(poly => drawLayer.polygon(poly.points).fill("#fb3"));
     graph.edges_vertices.map(ev => ev.map(v => graph.vertices_coords[v]))
-      // .map(e => RabbitEar.segment(e).scale(0.8))
+      // .map(e => ear.segment(e).scale(0.8))
       .map((e) => {
-        const seg = RabbitEar.segment(e);
+        const seg = ear.segment(e);
         const vec0 = seg.vector.normalize().scale(0.03);
         const vec1 = seg.vector.flip().normalize().scale(0.03);
         return [
@@ -52,7 +52,7 @@ RabbitEar.svg("canvas-graph-fragment", (svg) => {
       .map(e => drawLayer.line(e[0][0], e[0][1], e[1][0], e[1][1])
         .stroke("black")
         .strokeWidth(0.005));
-    graph.vertices_coords.map(v => drawLayer.circle(v[0], v[1], 0.01).fill("#fb3"));
+    graph.vertices_coords.map(v => drawLayer.circle(0.01).center(v).fill("#fb3"));
   };
 
   controls = svg.controls(numVertices)

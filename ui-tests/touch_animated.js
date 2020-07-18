@@ -2,7 +2,7 @@ let touchAnimated = RabbitEar.origami("canvas-touch-animated");
 
 touchAnimated.cp = RabbitEar.CreasePattern(RabbitEar.bases.frog);
 
-let drawLayer = RabbitEar.svg.group();
+let drawLayer = RabbitEar.svg.g();
 touchAnimated.svg.appendChild(drawLayer)
 let dot = RabbitEar.svg.circle(0, 0, 0.01);
 dot.setAttribute("fill", "#e44f2a");

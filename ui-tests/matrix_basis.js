@@ -17,12 +17,12 @@ RabbitEar.svg("canvas-matrix-basis", -VecTw / 2, -VecTh / 2, VecTw, VecTh, (basi
   const dotArray = "0.001 0.1425";
   const GRIDS = 8;
 
-  const gridLayer = basisVec.group()
+  const gridLayer = basisVec.g()
     .fill("lightgray")
     .stroke("lightgray")
     .strokeLinecap("round")
     .strokeWidth(strokeWidth);
-  const drawLayer = basisVec.group();
+  const drawLayer = basisVec.g();
 
   // grid lines
   for (let i = -GRIDS; i <= GRIDS; i += 1) {

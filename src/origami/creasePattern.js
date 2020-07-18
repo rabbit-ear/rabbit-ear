@@ -1,7 +1,7 @@
 import math from "../../include/math";
-import { get_boundary } from "../FOLD/boundary";
-import fragment from "../FOLD/fragment";
-import populate from "../FOLD/populate";
+import { get_boundary } from "../core/boundary";
+import fragment from "../core/fragment";
+import populate from "../core/populate";
 
 const FACES_MATRIX = "faces_re:matrix";
 const FACES_LAYER = "faces_re:layer";

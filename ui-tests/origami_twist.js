@@ -12,8 +12,8 @@ twist.setup = function() {
 	twist.polygon.setAttribute("stroke-linecap", "round");
 	twist.appendChild(twist.polygon);
 
-	twist.creaseLayer = RabbitEar.svg.group();
-	twist.errorLayer = RabbitEar.svg.group();
+	twist.creaseLayer = RabbitEar.svg.g();
+	twist.errorLayer = RabbitEar.svg.g();
 	twist.appendChild(twist.creaseLayer);
 	twist.appendChild(twist.errorLayer);
 

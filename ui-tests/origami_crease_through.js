@@ -2,7 +2,7 @@ let valleys = RabbitEar.origami("canvas-faces-chop");
 let folded = RabbitEar.origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
-valleys.drawLayer = valleys.group();
+valleys.drawLayer = valleys.g();
 
 // let cpts = [[0.8, 0.18], [0.2, 0.2]]
 let cpts = [[0.3, 0.2], [0.3, 0.3]]

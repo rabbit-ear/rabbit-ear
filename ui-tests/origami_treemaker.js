@@ -3,7 +3,7 @@ const TreeMaker = function(div) {
 	let origami = RabbitEar.origami(div);
 	let graph = RabbitEar.graph();
 
-	origami.drawLayer = origami.group();
+	origami.drawLayer = origami.g();
 	let newestNode = graph.newNode({position: [0.5, 0.5], radius: 0.1});
 	let selectedNode = undefined;
 

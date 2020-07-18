@@ -144,7 +144,7 @@ export const nearest_edge = function ({
   };
   const nearest_points = edges_vertices
     .map(e => e.map(ev => vertices_coords[ev]))
-    .map(e => [e[0], [e[1][0] - e[0][0], e[1][1] - e[0][1]]])
+    .map(e => [[e[1][0] - e[0][0], e[1][1] - e[0][1]], e[0]])
     .map(line => math.core.nearest_point_on_line(line[0], line[1], point, edge_limit))
     .map((p, i) => ({ p, i, d: math.core.distance2(point, p) }));
   let shortest_index;

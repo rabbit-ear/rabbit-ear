@@ -11,15 +11,9 @@
     && process.versions != null
     && process.versions.node != null;
 
-  const htmlString = "<!DOCTYPE html><title> </title>";
   const win = (function () {
     let w = {};
-    if (isNode) {
-      const { DOMParser, XMLSerializer } = require("xmldom");
-      w.DOMParser = DOMParser;
-      w.XMLSerializer = XMLSerializer;
-      w.document = new DOMParser().parseFromString(htmlString, "text/html");
-    } else if (isBrowser) {
+    if (isNode) ; else if (isBrowser) {
       w = window;
     }
     return w;
@@ -1269,6 +1263,11 @@
     const b = { origin: pt0, vector: [[pt1[0] - pt0[0]], [pt1[1] - pt0[1]]] };
     return intersect(a, b, comp_l_s);
   };
+  const intersect_seg_seg_exclude = (a0, a1, b0, b1) => {
+    const a = { origin: a0, vector: [[a1[0] - a0[0]], [a1[1] - a0[1]]] };
+    const b = { origin: b0, vector: [[b1[0] - b0[0]], [b1[1] - b0[1]]] };
+    return intersect(a, b, exclude_s_s);
+  };
   const quick_equivalent_2 = function (a, b) {
     return Math.abs(a[0] - b[0]) < EPSILON && Math.abs(a[1] - b[1]) < EPSILON;
   };
@@ -1311,15 +1310,15 @@
         return undefined;
     }
   };
-  const convex_poly_segment = function (poly, segmentA, segmentB) {
+  const convex_poly_segment = function (poly, segmentA, segmentB, epsilon = EPSILON) {
     const intersections = poly
       .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-      .map(el => segment_segment_exclusive(segmentA, segmentB, el[0], el[1]))
+      .map(el => intersect_seg_seg_exclude(segmentA, segmentB, el[0], el[1]))
       .filter(el => el != null);
-    const aInsideExclusive = point_in_convex_poly_exclusive(segmentA, poly);
-    const bInsideExclusive = point_in_convex_poly_exclusive(segmentB, poly);
-    const aInsideInclusive = point_in_convex_poly(segmentA, poly);
-    const bInsideInclusive = point_in_convex_poly(segmentB, poly);
+    const aInsideExclusive = point_in_convex_poly_exclusive(segmentA, poly, epsilon);
+    const bInsideExclusive = point_in_convex_poly_exclusive(segmentB, poly, epsilon);
+    const aInsideInclusive = point_in_convex_poly(segmentA, poly, epsilon);
+    const bInsideInclusive = point_in_convex_poly(segmentB, poly, epsilon);
     if (intersections.length === 0
       && (aInsideExclusive || bInsideExclusive)) {
       return [segmentA, segmentB];
@@ -1774,7 +1773,7 @@
         intersect: function (object) {
           return intersect$1(this, object);
         },
-        path: function (arcStart = 0, deltaArc = Math.PI * 2) {
+        svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
           const info = pathInfo(this.origin[0], this.origin[1], this.rx, this.ry, this.spin, arcStart, deltaArc);
           const arc1 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x2, info.y2);
           const arc2 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x3, info.y3);
@@ -1893,7 +1892,7 @@
       const e = convex_poly_ray(this.points, line.vector, line.origin);
       return e === undefined ? undefined : Constructors.segment(e);
     },
-    path: function () {
+    svgPath: function () {
       const pre = Array(this.points.length).fill("L");
       pre[0] = "M";
       return `${this.points.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}z`;
@@ -1946,11 +1945,9 @@
     polygon: {
       P: PolygonProto.prototype,
       A: function () {
-        this.points = semi_flatten_arrays(arguments)
-          .map(v => Constructors.vector(v));
+        this.points = semi_flatten_arrays(arguments);
         this.sides = this.points
-          .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-          .map(ps => Constructors.segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
+          .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
       },
       G: {
         isConvex: function () {
@@ -1978,82 +1975,73 @@
       }
     }
   };
+  const assign = (thisMat, mat) => {
+    for (let i = 0; i < 12; i += 1) {
+      thisMat[i] = mat[i];
+    }
+    return thisMat;
+  };
   var Matrix = {
     matrix: {
       P: Array.prototype,
       A: function () {
-        get_matrix_3x4(arguments).forEach(m => this.push(m));
+        [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].forEach(m => this.push(m));
       },
       G: {
       },
       M: {
+        copy: function () { return Constructors.matrix(...Array.from(this)); },
+        set: function () {
+          return assign(this, get_matrix_3x4(arguments));
+        },
         isIdentity: function () { return is_identity3x4(this); },
-        multiply: function () {
-          return Constructors.matrix(
-            multiply_matrices3(this, get_matrix_3x4(arguments))
-              .map(n => clean_number(n, 13))
-          );
+        multiply: function (mat) {
+          return assign(this, multiply_matrices3(this, mat));
         },
         determinant: function () {
-          return clean_number(determinant3(this), 13);
+          return determinant3(this);
         },
         inverse: function () {
-          return Constructors.matrix(invert_matrix3(this)
-            .map(n => clean_number(n, 13)));
+          return assign(this, invert_matrix3(this));
         },
         translate: function (x, y, z) {
-          return Constructors.matrix(
-            multiply_matrices3(this, make_matrix3_translate(x, y, z))
-              .map(n => clean_number(n, 13))
-          );
+          return assign(this,
+            multiply_matrices3(this, make_matrix3_translate(x, y, z)));
         },
         rotateX: function (radians) {
-          return Constructors.matrix(
-            multiply_matrices3(this, make_matrix3_rotateX(radians))
-              .map(n => clean_number(n, 13))
-          );
+          return assign(this,
+            multiply_matrices3(this, make_matrix3_rotateX(radians)));
         },
         rotateY: function (radians) {
-          return Constructors.matrix(
-            multiply_matrices3(this, make_matrix3_rotateY(radians))
-              .map(n => clean_number(n, 13))
-          );
+          return assign(this,
+            multiply_matrices3(this, make_matrix3_rotateY(radians)));
         },
         rotateZ: function (radians) {
-          return Constructors.matrix(
-            multiply_matrices3(this, make_matrix3_rotateZ(radians))
-              .map(n => clean_number(n, 13))
-          );
+          return assign(this,
+            multiply_matrices3(this, make_matrix3_rotateZ(radians)));
         },
         rotate: function (radians, vector, origin) {
           const transform = make_matrix3_rotate(radians, vector, origin);
-          return Constructors.matrix(multiply_matrices3(this, transform)
-            .map(n => clean_number(n, 13)));
+          return assign(this, multiply_matrices3(this, transform));
         },
         scale: function (amount) {
-          return Constructors.matrix(
-            multiply_matrices3(this, make_matrix3_scale(amount))
-              .map(n => clean_number(n, 13))
-          );
+          return assign(this,
+            multiply_matrices3(this, make_matrix3_scale(amount)));
         },
         reflectZ: function (vector, origin) {
           const transform = make_matrix3_reflectionZ(vector, origin);
-          return Constructors.matrix(multiply_matrices3(this, transform)
-            .map(n => clean_number(n, 13)));
+          return assign(this, multiply_matrices3(this, transform));
         },
         transform: function (...innerArgs) {
           return Constructors.vector(
             multiply_matrix3_vector3(get_vector(innerArgs), this)
-              .map(n => clean_number(n, 13))
           );
         },
         transformVector: function (vector) {
-          return Constructors.matrix(multiply_matrix3_vector3(this, vector)
-            .map(n => clean_number(n, 13)));
+          return Constructors.vector(multiply_matrix3_vector3(this, vector));
         },
         transformLine: function (origin, vector) {
-          return Constructors.matrix(multiply_matrix3_line3(this, origin, vector)
-            .map(n => clean_number(n, 13)));
+          return Constructors.line(multiply_matrix3_line3(this, origin, vector));
         },
       },
       S: {
@@ -2107,7 +2095,7 @@
   const create = function (primitiveName, args) {
     const a = Object.create(Definitions[primitiveName].proto);
     Definitions[primitiveName].A.apply(a, args);
-    return Object.freeze(a);
+    return a;
   };
   const vector = function () { return create("vector", arguments); };
   const circle = function () { return create("circle", arguments); };
@@ -2152,8 +2140,11 @@
         value: Definitions[primitiveName].S[key]
           .bind(Constructors[primitiveName].prototype),
       }));
-    Object.freeze(Proto.prototype);
     Definitions[primitiveName].proto = Proto.prototype;
+  });
+  Constructors.__prototypes__ = {};
+  Object.keys(Definitions).forEach(primitiveName => {
+    Constructors.__prototypes__[primitiveName] = Definitions[primitiveName].proto;
   });
   const math = Constructors;
   math.core = Object.assign({},
@@ -2430,10 +2421,11 @@
     return edges.map(e => vertices_coords
       .filter(v => point_on_edge_exclusive(v, e[0], e[1], epsilon)));
   };
-  const make_edges_alignment = function ({ vertices_coords, edges_vertices }) {
+  const make_edges_verticalness = function ({ vertices_coords, edges_vertices }) {
     const edges = edges_vertices
       .map(ev => ev.map(v => vertices_coords[v]));
-    const edges_vector = edges.map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+    const edges_vector = edges
+      .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
     const edges_magnitude = edges_vector
       .map(e => Math.sqrt(e[0] * e[0] + e[1] * e[1]));
     const edges_normalized = edges_vector
@@ -2446,16 +2438,16 @@
     const edge_count = edges_vertices.length;
     const edges = edges_vertices
       .map(ev => ev.map(v => vertices_coords[v]));
-    const crossings = Array.from(Array(edge_count - 1)).map(() => []);
     const edgeObjects = edges.map(e => ({
       origin: e[0],
       vector: [e[1][0] - e[0][0], e[1][1] - e[0][1]]
     }));
+    const crossings = Array.from(Array(edge_count - 1)).map(() => []);
     const intersectFunc = math.intersect.lines.exclude_s_s;
     for (let i = 0; i < edges.length - 1; i += 1) {
       for (let j = i + 1; j < edges.length; j += 1) {
         crossings[i][j] = math.intersect.lines
-          .intersect(edgeObjects[i], edgeObjects[j], intersectFunc);
+          .intersect(edgeObjects[i], edgeObjects[j], intersectFunc, epsilon);
       }
     }
     const edges_intersections = Array.from(Array(edge_count)).map(() => []);
@@ -2472,7 +2464,7 @@
   const fragment = function (graph, epsilon = math.core.EPSILON) {
     const horizSort = function (a, b) { return a[0] - b[0]; };
     const vertSort = function (a, b) { return a[1] - b[1]; };
-    const edges_alignment = make_edges_alignment(graph);
+    const edges_alignment = make_edges_verticalness(graph);
     const edges = graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]));
     edges.forEach((e, i) => e.sort(edges_alignment[i] ? horizSort : vertSort));
@@ -2557,13 +2549,16 @@
               : edges_map[j];
           }
         }));
-    edges_map.forEach((e, i) => {
-      if (e !== undefined) {
-        if (["B", "b"].includes(graph.edges_assignment[i])) {
-          graph.edges_assignment[e] = "B";
+    console.log("edges_map", edges_map);
+    if (graph.edges_assignment) {
+      edges_map.forEach((e, i) => {
+        if (e !== undefined) {
+          if (["B", "b"].includes(graph.edges_assignment[i])) {
+            graph.edges_assignment[e] = "B";
+          }
         }
-      }
-    });
+      });
+    }
     const edges_dont_remove = edges_map.map(m => m === undefined);
     edges_map.forEach((map, i) => {
       if (map === undefined) { edges_map[i] = i; }
@@ -3757,7 +3752,7 @@
       convert.edges_vertices_to_vertices_vertices(fold);
     }
     ref2 = fold.vertices_vertices;
-    for (v in ref2) {
+    for (v = 0; v < ref2.length; v += 1) {
       neighbors = ref2[v];
       geom.sortByAngle(neighbors, v, function(x) {
         return fold.vertices_coords[x];
@@ -4766,7 +4761,7 @@
     };
     const nearest_points = edges_vertices
       .map(e => e.map(ev => vertices_coords[ev]))
-      .map(e => [e[0], [e[1][0] - e[0][0], e[1][1] - e[0][1]]])
+      .map(e => [[e[1][0] - e[0][0], e[1][1] - e[0][1]], e[0]])
       .map(line => math.core.nearest_point_on_line(line[0], line[1], point, edge_limit))
       .map((p, i) => ({ p, i, d: math.core.distance2(point, p) }));
     let shortest_index;
@@ -5328,7 +5323,8 @@
     return vertices;
   };
   const getEdges = function () {
-    const edges = transpose_graph_arrays(this, "edges");
+    const edgesT = transpose_graph_arrays(this, "edges");
+    const edges = edgesT.map(e => math.segment(e));
     edges.forEach(setup_edge.bind(this));
     return edges;
   };
@@ -5336,6 +5332,11 @@
     const faces = transpose_graph_arrays(this, "faces");
     faces.forEach(setup_face.bind(this));
     return faces;
+  };
+  const getBoundary = function () {
+    return math.polygon(
+      get_boundary(this).vertices.map(i => this.vertices_coords[i])
+    );
   };
   const getBounds = function () {
     return math.rect(...bounding_rect(this));
@@ -5377,6 +5378,7 @@
   Object.defineProperty(GraphProto, "vertices", { get: getVertices });
   Object.defineProperty(GraphProto, "edges", { get: getEdges });
   Object.defineProperty(GraphProto, "faces", { get: getFaces });
+  Object.defineProperty(GraphProto, "boundary", { get: getBoundary });
   Object.defineProperty(GraphProto, "bounds", { get: getBounds });
 
   const apply_run_diff = function (graph, diff) {
@@ -5404,9 +5406,24 @@
           }));
     }
     if (diff.remove) {
-      if (diff.remove.faces) { remove_geometry_key_indices(graph, "faces", diff.remove.faces); }
-      if (diff.remove.edges) { remove_geometry_key_indices(graph, "edges", diff.remove.edges); }
-      if (diff.remove.vertices) { remove_geometry_key_indices(graph, "vertices", diff.remove.vertices); }
+      if (diff.remove.faces) {
+        const map = remove_geometry_key_indices(graph, "faces", diff.remove.faces);
+        diff.new.faces.forEach((face, i) => {
+          diff.new.faces[i].index += map[face.index];
+        });
+      }
+      if (diff.remove.edges) {
+        const map = remove_geometry_key_indices(graph, "edges", diff.remove.edges);
+        diff.new.edges.forEach((edge, i) => {
+          diff.new.edges[i].index += map[edge.index];
+        });
+      }
+      if (diff.remove.vertices) {
+        const map = remove_geometry_key_indices(graph, "vertices", diff.remove.vertices);
+        diff.new.vertices.forEach((vertex, i) => {
+          diff.new.vertices[i].index += map[vertex.index];
+        });
+      }
     }
     return diff;
   };
@@ -5530,7 +5547,8 @@
   });
   const add_edge = function (graph, a, b, c, d, options = add_edge_options()) {
     const edge = math.segment(a, b, c, d);
-    const endpoints_vertex_equivalent = [0, 1].map(ei => graph.vertices_coords
+    const endpoints_vertex_equivalent = [0, 1].map(ei => graph
+      .vertices_coords
       .map(v => Math.sqrt(((edge[ei][0] - v[0]) ** 2)
                         + ((edge[ei][1] - v[1]) ** 2)))
       .map((dist, i) => (dist < math.core.EPSILON ? i : undefined))
@@ -5610,55 +5628,113 @@
     remove_geometry_key_indices(graph, "edges", remove_edges);
   };
 
-  const makeExistArray = (obj, key) => {
+  const defaultSegment = {
+    edges_assignment: "F",
+    edges_foldAngle: 0
+  };
+  const makeSureKeyArray = (obj, key) => {
     if (obj[key] === undefined) { obj[key] = []; }
   };
-  const makeCrease = (graph, a, b, c, d, options) => {
-    ["vertices_coords",
-      "edges_vertices",
-      "edges_assignment"].forEach(key => makeExistArray(graph, key));
-    const p = math.core.get_vector_of_vectors([a, b], [c, d]);
-    if (p.length === 2) {
-      graph.isClean = false;
-      return add_edge(graph, p[0][0], p[0][1], p[1][0], p[1][1], options);
-    }
-    return undefined;
+  const makeSureKeysArray = (obj, keys) => keys
+    .forEach(key => makeSureKeyArray(obj, key));
+  const NewSegmentsProto = {};
+  NewSegmentsProto.prototype = Array.prototype;
+  NewSegmentsProto.prototype.constructor = NewSegmentsProto;
+  const eachAssign = (arr, assignment, foldAngle) => arr
+    .forEach((c) => {
+      c.assignment = assignment;
+      c.foldAngle = foldAngle;
+    });
+  NewSegmentsProto.prototype.mountain = function (degrees = -180) {
+    eachAssign(this, "M", degrees > 0 ? -degrees : degrees);
+    return this;
   };
-  const CPProto = Object.create(GraphProto);
+  NewSegmentsProto.prototype.valley = function (degrees = 180) {
+    eachAssign(this, "V", degrees);
+    return this;
+  };
+  NewSegmentsProto.prototype.mark = function () {
+    eachAssign(this, "F", 0);
+    return this;
+  };
+  NewSegmentsProto.prototype.cut = function () {
+    eachAssign(this, "B", 0);
+    return this;
+  };
+  NewSegmentsProto.prototype.boundary = function () {
+    eachAssign(this, "B", 0);
+    return this;
+  };
+  const creaseSegment = function (graph, segment, options) {
+    graph.isClean = false;
+    makeSureKeysArray(graph, ["vertices_coords", "edges_vertices", "edges_assignment"]);
+    const addEdgeResult = add_edge(graph,
+      segment[0][0], segment[0][1], segment[1][0], segment[1][1],
+      options);
+    const newEdge = addEdgeResult.new.edges[0];
+    const res = transpose_graph_array_at_index(graph, "edges", newEdge.index);
+    return new Proxy(res, {
+      set: (target, property, value) => {
+        target[property] = value;
+        const key = `edges_${property}`;
+        makeSureKeyArray(graph, key);
+        graph[key][newEdge.index] = value;
+        return true;
+      }
+    });
+  };
+  const creaseSegments = (graph, segments, options) => {
+    const creases = Object.create(NewSegmentsProto.prototype);
+    creases.length = segments.length;
+    segments.forEach((s, i) => {
+      creases[i] = creaseSegment(graph, s, options);
+    });
+    return creases;
+  };
   let isClean = true;
+  let clipping = false;
+  let arcSegments = 32;
+  const CPProto = Object.create(GraphProto);
   Object.defineProperty(CPProto, "isClean", {
     get: () => isClean,
     set: (c) => { isClean = c; },
     enumerable: false
   });
+  Object.defineProperty(CPProto, "clipping", {
+    get: () => clipping,
+    set: (c) => { clipping = c; },
+    enumerable: false
+  });
+  Object.defineProperty(CPProto, "arcSegments", {
+    get: () => arcSegments,
+    set: (c) => { arcSegments = c; },
+    enumerable: false
+  });
   ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
     CPProto[fName] = function () {
-      const obj = math[fName](...arguments);
-      if (!obj) { return; }
-      const s = obj.segments();
-      s.forEach(seg => this.mountain(
-        seg[0][0],
-        seg[0][1],
-        seg[1][0],
-        seg[1][1]
-      ));
+      const primitive = math[fName](...arguments);
+      if (!primitive) { return creaseSegments(this, [], defaultSegment); }
+      let s = primitive.segments(this.arcSegments);
+      if (this.clipping) {
+        console.log("before clip #", s.length);
+        s = s.map(seg => this.boundary.clipSegment(seg))
+          .filter(a => a !== undefined);
+        console.log("after clip #", s.length);
+      }
+      return creaseSegments(this, s, defaultSegment);
     };
   });
+  const boundaryClip = (cp, fName, primitive) => (fName === "line"
+    ? cp.boundary.clipLine(primitive)
+    : cp.boundary.clipRay(primitive));
   ["line", "ray", "segment"].forEach((fName) => {
     CPProto[fName] = function () {
-      if (!this.clip && (fName === "line" || fName === "ray")) {
-        console.warn("line and ray are infinite and require a boundary to clip.");
-        return;
-      }
-      const obj = math[fName](...arguments);
-      if (!obj) { return; }
-      const s = obj.segments();
-      s.forEach(seg => this.mountain(
-        seg[0][0],
-        seg[0][1],
-        seg[1][0],
-        seg[1][1]
-      ));
+      const primitive = math[fName](...arguments);
+      if (!primitive) { return creaseSegments(this, [], defaultSegment); }
+      const seg = (fName === "line" || fName === "ray")
+        ? boundaryClip(this, fName, primitive)
+        : primitive;
+      return creaseSegments(this, [seg], defaultSegment);
     };
   });
   CPProto.makeBoundary = function () {
@@ -5673,43 +5749,6 @@
     this.fragment(epsilon);
     this.populate();
     this.isClean = true;
-  };
-  CPProto.mountain = function (a, b, c, d) {
-    const crease = makeCrease(this, a, b, c, d, {
-      edges_assignment: "M",
-      edges_foldAngle: -180
-    });
-    const that = this;
-    return crease.new.edges.map((e) => {
-      const res = transpose_graph_array_at_index(this, "edges", e.index);
-      return new Proxy(res, {
-        set: function set(target, property, value, receiver) {
-          target[property] = value;
-          that[`edges_${property}`][e.index] = value;
-          return true;
-        }
-      });
-    }).shift();
-  };
-  CPProto.valley = function (a, b, c, d) {
-    const crease = makeCrease(this, a, b, c, d, {
-      edges_assignment: "V",
-      edges_foldAngle: 180
-    });
-    const that = this;
-    return crease.new.edges.map((e) => {
-      const res = transpose_graph_array_at_index(this, "edges", e.index);
-      return new Proxy(res, {
-        set: function set(target, property, value, receiver) {
-          target[property] = value;
-          that[`edges_${property}`][e.index] = value;
-          return true;
-        }
-      });
-    }).shift();
-  };
-  CPProto.mark = function (a, b, c, d) {
-    return makeCrease(this, a, b, c, d, { edges_assignment: "F", edges_foldAngle: 0 });
   };
   CPProto.crop = function (polygon) {
     crop(this, polygon);
@@ -6079,794 +6118,6 @@
     return undefined;
   };
 
-  const coords = "coords";
-  const vertices = "vertices";
-  const edges = "edges";
-  const faces = "faces";
-  const boundaries = "boundaries";
-  const frame = "frame";
-  const file = "file";
-  const vertices_coords = `${vertices}_${coords}`;
-  const edges_vertices = `${edges}_${vertices}`;
-  const faces_vertices = `${faces}_${vertices}`;
-  const faces_edges = `${faces}_${edges}`;
-  const edges_assignment = `${edges}_assignment`;
-  const faces_re_coloring = `${faces}_re:coloring`;
-  const faces_re_matrix = `${faces}_re:matrix`;
-  const faces_re_layer = `${faces}_re:layer`;
-  const frame_parent = `${frame}_parent`;
-  const frame_inherit = `${frame}_inherit`;
-  const frame_classes$1 = `${frame}_classes`;
-  const file_frames = `${file}_frames`;
-  const file_classes$1 = `${file}_classes`;
-  const boundary$1 = "boundary";
-  const mountain = "mountain";
-  const valley = "valley";
-  const mark = "mark";
-  const unassigned = "unassigned";
-  const creasePattern = "creasePattern";
-  const front = "front";
-  const back = "back";
-  const _class = "class";
-  const index = "index";
-  const object$1 = "object";
-  const string = "string";
-  const _function = "function";
-  const _undefined = "undefined";
-  const black = "black";
-  const white = "white";
-  const lightgray = "lightgray";
-  const stroke_width = "stroke-width";
-  const createElementNS = "createElementNS";
-  const setAttributeNS = "setAttributeNS";
-  const appendChild = "appendChild";
-  const isBrowser$1 = typeof window !== _undefined
-    && typeof window.document !== _undefined;
-  const isNode$1 = typeof process !== _undefined
-    && process.versions != null
-    && process.versions.node != null;
-  const htmlString$1 = "<!DOCTYPE html><title>.</title>";
-  const win$1 = (function () {
-    let w = {};
-    if (isNode$1) {
-      const { DOMParser, XMLSerializer } = require("xmldom");
-      w.DOMParser = DOMParser;
-      w.XMLSerializer = XMLSerializer;
-      w.document = new DOMParser().parseFromString(htmlString$1, "text/html");
-    } else if (isBrowser$1) {
-      w = window;
-    }
-    return w;
-  }());
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = function () {
-    const svgImage = win$1.document[createElementNS](svgNS, "svg");
-    svgImage.setAttribute("version", "1.1");
-    svgImage.setAttribute("xmlns", svgNS);
-    return svgImage;
-  };
-  const group = function (parent) {
-    const g = win$1.document[createElementNS](svgNS, "g");
-    if (parent) { parent[appendChild](g); }
-    return g;
-  };
-  const defs = function (parent) {
-    const defs = win$1.document[createElementNS](svgNS, "defs");
-    if (parent) { parent[appendChild](defs); }
-    return defs;
-  };
-  const style = function (parent) {
-    const s = win$1.document[createElementNS](svgNS, "style");
-    s[setAttributeNS](null, "type", "text/css");
-    if (parent) { parent[appendChild](s); }
-    return s;
-  };
-  const setViewBox = function (svg, x, y, width, height, padding = 0) {
-    const scale = 1.0;
-    const d = (width / scale) - width;
-    const X = (x - d) - padding;
-    const Y = (y - d) - padding;
-    const W = (width + d * 2) + padding * 2;
-    const H = (height + d * 2) + padding * 2;
-    const viewBoxString = [X, Y, W, H].join(" ");
-    svg[setAttributeNS](null, "viewBox", viewBoxString);
-  };
-  const line$1 = function (x1, y1, x2, y2) {
-    const shape = win$1.document[createElementNS](svgNS, "line");
-    shape[setAttributeNS](null, "x1", x1);
-    shape[setAttributeNS](null, "y1", y1);
-    shape[setAttributeNS](null, "x2", x2);
-    shape[setAttributeNS](null, "y2", y2);
-    return shape;
-  };
-  const circle$1 = function (x, y, radius) {
-    const shape = win$1.document[createElementNS](svgNS, "circle");
-    shape[setAttributeNS](null, "cx", x);
-    shape[setAttributeNS](null, "cy", y);
-    shape[setAttributeNS](null, "r", radius);
-    return shape;
-  };
-  const polygon$1 = function (pointsArray) {
-    const shape = win$1.document[createElementNS](svgNS, "polygon");
-    const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
-    shape[setAttributeNS](null, "points", pointsString);
-    return shape;
-  };
-  const path = function (d) {
-    const p = win$1.document[createElementNS](svgNS, "path");
-    p[setAttributeNS](null, "d", d);
-    return p;
-  };
-  const vertices_circle = function (graph, options) {
-    if (vertices_coords in graph === false) {
-      return [];
-    }
-    const radius = options && options.radius ? options.radius : 0.01;
-    const svg_vertices = graph[vertices_coords]
-      .map(v => circle$1(v[0], v[1], radius));
-    svg_vertices.forEach((c, i) => c[setAttributeNS](null, index, i));
-    return svg_vertices;
-  };
-  const edges_assignment_names$1 = {
-    B: boundary$1,
-    b: boundary$1,
-    M: mountain,
-    m: mountain,
-    V: valley,
-    v: valley,
-    F: mark,
-    f: mark,
-    U: unassigned,
-    u: unassigned
-  };
-  const edges_assignment_to_lowercase = {
-    B: "b",
-    b: "b",
-    M: "m",
-    m: "m",
-    V: "v",
-    v: "v",
-    F: "f",
-    f: "f",
-    U: "u",
-    u: "u",
-  };
-  const edges_coords = function ({ vertices_coords, edges_vertices }) {
-    if (edges_vertices == null || vertices_coords == null) {
-      return [];
-    }
-    return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
-  };
-  const edges_indices_classes = function (graph) {
-    const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
-    graph[edges_assignment].map(a => edges_assignment_to_lowercase[a])
-      .forEach((a, i) => assignment_indices[a].push(i));
-    return assignment_indices;
-  };
-  const make_edges_assignment_names = function (graph) {
-    return (graph[edges_vertices] == null || graph[edges_assignment] == null
-      || graph[edges_vertices].length !== graph[edges_assignment].length
-      ? []
-      : graph[edges_assignment].map(a => edges_assignment_names$1[a]));
-  };
-  const segment_to_path = function (s) {
-    return `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
-  };
-  const edges_path_data = function (graph) {
-    const path_data = edges_coords(graph).map(segment => segment_to_path(segment)).join("");
-    return path_data === "" ? undefined : path_data;
-  };
-  const edges_by_assignment_paths_data = function (graph) {
-    if (graph[edges_vertices] == null
-      || graph[vertices_coords] == null
-      || graph[edges_assignment] == null) {
-      return [];
-    }
-    const segments = edges_coords(graph);
-    const assignment_sorted_edges = edges_indices_classes(graph);
-    const paths = Object.keys(assignment_sorted_edges)
-      .map(assignment => assignment_sorted_edges[assignment].map(i => segments[i]))
-      .map(segments => segments.map(segment => segment_to_path(segment)).join(""));
-    const result = {};
-    Object.keys(assignment_sorted_edges).map((key, i) => {
-      if (paths[i] !== "") {
-        result[key] = paths[i];
-      }
-    });
-    return result;
-  };
-  const edges_path = function (graph) {
-    if (graph[edges_assignment] == null) {
-      const d = edges_path_data(graph);
-      return d === undefined ? [] : [path(d)];
-    }
-    const ds = edges_by_assignment_paths_data(graph);
-    return Object.keys(ds).map(assignment => {
-      const p = path(ds[assignment]);
-      p[setAttributeNS](null, _class, edges_assignment_names$1[assignment]);
-      return p;
-    });
-  };
-  const edges_line = function (graph) {
-    const lines = edges_coords(graph).map(e => line$1(e[0][0], e[0][1], e[1][0], e[1][1]));
-    lines.forEach((l, i) => l[setAttributeNS](null, index, i));
-    make_edges_assignment_names(graph)
-      .forEach((a, i) => lines[i][setAttributeNS](null, _class, a));
-    return lines;
-  };
-  const make_vertices_edges$1 = function ({ edges_vertices }) {
-    if (!edges_vertices) { return undefined; }
-    const vertices_edges = [];
-    edges_vertices.forEach((ev, i) => ev
-      .forEach((v) => {
-        if (vertices_edges[v] === undefined) {
-          vertices_edges[v] = [];
-        }
-        vertices_edges[v].push(i);
-      }));
-    return vertices_edges;
-  };
-  const make_faces_faces$1 = function ({ faces_vertices }) {
-    if (!faces_vertices) { return undefined; }
-    const nf = faces_vertices.length;
-    const faces_faces = Array.from(Array(nf)).map(() => []);
-    const edgeMap = {};
-    faces_vertices.forEach((vertices_index, idx1) => {
-      if (vertices_index === undefined) { return; }
-      const n = vertices_index.length;
-      vertices_index.forEach((v1, i, vs) => {
-        let v2 = vs[(i + 1) % n];
-        if (v2 < v1) { [v1, v2] = [v2, v1]; }
-        const key = `${v1} ${v2}`;
-        if (key in edgeMap) {
-          const idx2 = edgeMap[key];
-          faces_faces[idx1].push(idx2);
-          faces_faces[idx2].push(idx1);
-        } else {
-          edgeMap[key] = idx1;
-        }
-      });
-    });
-    return faces_faces;
-  };
-  const make_vertex_pair_to_edge_map$1 = function ({ edges_vertices }) {
-    if (!edges_vertices) { return {}; }
-    const map = {};
-    edges_vertices
-      .map(ev => ev.sort((a, b) => a - b).join(" "))
-      .forEach((key, i) => { map[key] = i; });
-    return map;
-  };
-  const make_face_walk_tree$1 = function (graph, root_face = 0) {
-    const edge_map = make_vertex_pair_to_edge_map$1(graph);
-    const new_faces_faces = make_faces_faces$1(graph);
-    if (new_faces_faces.length <= 0) {
-      return [];
-    }
-    let visited = [root_face];
-    const list = [[{
-      face: root_face,
-      parent: undefined,
-      edge: undefined,
-      level: 0,
-    }]];
-    do {
-      list[list.length] = list[list.length - 1].map((current) => {
-        const unique_faces = new_faces_faces[current.face]
-          .filter(f => visited.indexOf(f) === -1);
-        visited = visited.concat(unique_faces);
-        return unique_faces.map((f) => {
-          const edge_vertices = graph.faces_vertices[f]
-            .filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
-            .sort((a, b) => a - b);
-          const edge = edge_map[edge_vertices.join(" ")];
-          return {
-            face: f,
-            parent: current.face,
-            edge,
-            edge_vertices,
-          };
-        });
-      }).reduce((prev, curr) => prev.concat(curr), []);
-    } while (list[list.length - 1].length > 0);
-    if (list.length > 0 && list[list.length - 1].length === 0) { list.pop(); }
-    return list;
-  };
-  const make_faces_coloring_from_faces_matrix$1 = function (faces_matrix) {
-    return faces_matrix
-      .map(m => m[0] * m[3] - m[1] * m[2])
-      .map(c => c >= 0);
-  };
-  const make_faces_coloring$1 = function (graph, root_face = 0) {
-    const coloring = [];
-    coloring[root_face] = true;
-    make_face_walk_tree$1(graph, root_face)
-      .forEach((level, i) => level
-        .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
-    return coloring;
-  };
-  const faces_sorted_by_layer = function (faces_layer) {
-    return faces_layer.map((layer, i) => ({ layer, i }))
-      .sort((a, b) => a.layer - b.layer)
-      .map(el => el.i);
-  };
-  const make_faces_sidedness = function (graph) {
-    let coloring = graph[faces_re_coloring];
-    if (coloring == null) {
-      coloring = (faces_re_matrix in graph)
-        ? make_faces_coloring_from_faces_matrix$1(graph[faces_re_matrix])
-        : make_faces_coloring$1(graph, 0);
-    }
-    return coloring.map(c => (c ? front : back));
-  };
-  const finalize_faces = function (graph, svg_faces) {
-    const isFoldedForm = typeof graph.frame_classes === object$1
-      && graph.frame_classes !== null
-      && !(graph.frame_classes.includes(creasePattern));
-    const orderIsCertain = graph[faces_re_layer] != null
-      && graph[faces_re_layer].length === graph[faces_vertices].length;
-    if (orderIsCertain && isFoldedForm) {
-      make_faces_sidedness(graph)
-        .forEach((side, i) => svg_faces[i][setAttributeNS](null, _class, side));
-    }
-    return (orderIsCertain
-      ? faces_sorted_by_layer(graph[faces_re_layer]).map(i => svg_faces[i])
-      : svg_faces);
-  };
-  const faces_vertices_polygon = function (graph) {
-    if (faces_vertices in graph === false
-      || vertices_coords in graph === false) {
-      return [];
-    }
-    const svg_faces = graph[faces_vertices]
-      .map(fv => fv.map(v => graph[vertices_coords][v]))
-      .map(face => polygon$1(face));
-    svg_faces.forEach((face, i) => face[setAttributeNS](null, index, i));
-    return finalize_faces(graph, svg_faces);
-  };
-  const faces_edges_polygon = function (graph) {
-    if (faces_edges in graph === false
-      || edges_vertices in graph === false
-      || vertices_coords in graph === false) {
-      return [];
-    }
-    const svg_faces = graph[faces_edges]
-      .map(face_edges => face_edges
-        .map(edge => graph[edges_vertices][edge])
-        .map((vi, i, arr) => {
-          const next = arr[(i + 1) % arr.length];
-          return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
-        }).map(v => graph[vertices_coords][v]))
-      .map(face => polygon$1(face));
-    svg_faces.forEach((face, i) => face[setAttributeNS](null, index, i));
-    return finalize_faces(graph, svg_faces);
-  };
-  function vkXML (text, step) {
-    const ar = text.replace(/>\s{0,}</g, "><")
-      .replace(/</g, "~::~<")
-      .replace(/\s*xmlns\:/g, "~::~xmlns:")
-      .split("~::~");
-    const len = ar.length;
-    let inComment = false;
-    let deep = 0;
-    let str = "";
-    const space = (step != null && typeof step === "string" ? step : "\t");
-    const shift = ["\n"];
-    for (let si = 0; si < 100; si += 1) {
-      shift.push(shift[si] + space);
-    }
-    for (let ix = 0; ix < len; ix += 1) {
-      if (ar[ix].search(/<!/) > -1) {
-        str += shift[deep] + ar[ix];
-        inComment = true;
-        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
-          || ar[ix].search(/!DOCTYPE/) > -1) {
-          inComment = false;
-        }
-      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
-        str += ar[ix];
-        inComment = false;
-      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
-        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
-        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
-        str += ar[ix];
-        if (!inComment) { deep -= 1; }
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
-        && ar[ix].search(/\/>/) === -1) {
-        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/\/>/) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\?/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else {
-        str += ar[ix];
-      }
-    }
-    return (str[0] === "\n") ? str.slice(1) : str;
-  }
-  const bounding_rect$1 = function (graph) {
-    if (graph[vertices_coords] == null
-      || graph[vertices_coords].length <= 0) {
-      return [0, 0, 0, 0];
-    }
-    const dimension = graph[vertices_coords][0].length;
-    const min = Array(dimension).fill(Infinity);
-    const max = Array(dimension).fill(-Infinity);
-    graph[vertices_coords].forEach(v => v.forEach((n, i) => {
-      if (n < min[i]) { min[i] = n; }
-      if (n > max[i]) { max[i] = n; }
-    }));
-    return (isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1])
-      ? [0, 0, 0, 0]
-      : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
-  };
-  const get_boundary$1 = function (graph) {
-    if (graph[edges_assignment] == null) { return { vertices: [], edges: [] }; }
-    const edges_vertices_b = graph[edges_assignment]
-      .map(a => a === "B" || a === "b");
-    const vertices_edges = make_vertices_edges$1(graph);
-    const edge_walk = [];
-    const vertex_walk = [];
-    let edgeIndex = -1;
-    for (let i = 0; i < edges_vertices_b.length; i += 1) {
-      if (edges_vertices_b[i]) { edgeIndex = i; break; }
-    }
-    if (edgeIndex === -1) {
-      return { vertices: [], edges: [] };
-    }
-    edges_vertices_b[edgeIndex] = false;
-    edge_walk.push(edgeIndex);
-    vertex_walk.push(graph[edges_vertices][edgeIndex][0]);
-    let nextVertex = graph[edges_vertices][edgeIndex][1];
-    while (vertex_walk[0] !== nextVertex) {
-      vertex_walk.push(nextVertex);
-      edgeIndex = vertices_edges[nextVertex]
-        .filter(v => edges_vertices_b[v])
-        .shift();
-      if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
-      if (graph[edges_vertices][edgeIndex][0] === nextVertex) {
-        [, nextVertex] = graph[edges_vertices][edgeIndex];
-      } else {
-        [nextVertex] = graph[edges_vertices][edgeIndex];
-      }
-      edges_vertices_b[edgeIndex] = false;
-      edge_walk.push(edgeIndex);
-    }
-    return {
-      vertices: vertex_walk,
-      edges: edge_walk,
-    };
-  };
-  const clone$1 = function (o) {
-    let newO;
-    let i;
-    if (typeof o !== object$1) {
-      return o;
-    }
-    if (!o) {
-      return o;
-    }
-    if (Object.prototype.toString.apply(o) === "[object Array]") {
-      newO = [];
-      for (i = 0; i < o.length; i += 1) {
-        newO[i] = clone$1(o[i]);
-      }
-      return newO;
-    }
-    newO = {};
-    for (i in o) {
-      if (o.hasOwnProperty(i)) {
-        newO[i] = clone$1(o[i]);
-      }
-    }
-    return newO;
-  };
-  const recursive_freeze$1 = function (input) {
-    Object.freeze(input);
-    if (input === undefined) {
-      return input;
-    }
-    Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
-      && (typeof input[prop] === object$1 || typeof input[prop] === _function)
-      && !Object.isFrozen(input[prop]))
-      .forEach(prop => recursive_freeze$1(input[prop]));
-    return input;
-  };
-  const flatten_frame = function (fold_file, frame_num) {
-    if (file_frames in fold_file === false
-      || fold_file[file_frames].length < frame_num) {
-      return fold_file;
-    }
-    const dontCopy = [frame_parent, frame_inherit];
-    const memo = { visited_frames: [] };
-    const recurse = function (recurse_fold, frame, orderArray) {
-      if (memo.visited_frames.indexOf(frame) !== -1) {
-        throw new Error("flatten error:cycle");
-      }
-      memo.visited_frames.push(frame);
-      orderArray = [frame].concat(orderArray);
-      if (frame === 0) { return orderArray; }
-      if (recurse_fold[file_frames][frame - 1].frame_inherit
-         && recurse_fold[file_frames][frame - 1].frame_parent != null) {
-        return recurse(recurse_fold, recurse_fold[file_frames][frame - 1].frame_parent, orderArray);
-      }
-      return orderArray;
-    };
-    return recurse(fold_file, frame_num, []).map((frame) => {
-      if (frame === 0) {
-        const swap = fold_file[file_frames];
-        fold_file[file_frames] = null;
-        const copy = clone$1(fold_file);
-        fold_file[file_frames] = swap;
-        delete copy[file_frames];
-        dontCopy.forEach(key => delete copy[key]);
-        return copy;
-      }
-      const outerCopy = clone$1(fold_file[file_frames][frame - 1]);
-      dontCopy.forEach(key => delete outerCopy[key]);
-      return outerCopy;
-    }).reduce((prev, curr) => Object.assign(prev, curr), {});
-  };
-  const all_classes = function (graph) {
-    const file_classes$1$1 = (graph[file_classes$1] != null
-      ? graph[file_classes$1] : []).join(" ");
-    const frame_classes$1$1 = (graph[frame_classes$1] != null
-      ? graph[frame_classes$1] : []).join(" ");
-    return [file_classes$1$1, frame_classes$1$1]
-      .filter(s => s !== "")
-      .join(" ");
-  };
-  const { document } = win$1;
-  const shadow_defaults = Object.freeze({
-    blur: 0.005,
-    opacity: 0.3,
-    color: black,
-  });
-  const result = "result";
-  const _in = "in";
-  const blur = "blur";
-  const offsetColor = "offsetColor";
-  const offsetBlur = "offsetBlur";
-  const feMergeNode = "feMergeNode";
-  const two_hundred = "200%";
-  const shadowFilter = function (options = shadow_defaults) {
-    const id_name = "shadow";
-    if (typeof options !== object$1 || options === null) { options = {}; }
-    Object.keys(shadow_defaults)
-      .filter(key => !(key in options))
-      .forEach((key) => { options[key] = shadow_defaults[key]; });
-    const filter = document[createElementNS](svgNS, "filter");
-    filter[setAttributeNS](null, "width", two_hundred);
-    filter[setAttributeNS](null, "height", two_hundred);
-    filter[setAttributeNS](null, "id", id_name);
-    const gaussian = document[createElementNS](svgNS, "feGaussianBlur");
-    gaussian[setAttributeNS](null, _in, "SourceAlpha");
-    gaussian[setAttributeNS](null, "stdDeviation", options.blur);
-    gaussian[setAttributeNS](null, result, blur);
-    const offset = document[createElementNS](svgNS, "feOffset");
-    offset[setAttributeNS](null, _in, blur);
-    offset[setAttributeNS](null, result, offsetBlur);
-    const flood = document[createElementNS](svgNS, "feFlood");
-    flood[setAttributeNS](null, "flood-color", options.color);
-    flood[setAttributeNS](null, "flood-opacity", options.opacity);
-    flood[setAttributeNS](null, result, offsetColor);
-    const composite = document[createElementNS](svgNS, "feComposite");
-    composite[setAttributeNS](null, _in, offsetColor);
-    composite[setAttributeNS](null, "in2", offsetBlur);
-    composite[setAttributeNS](null, "operator", _in);
-    composite[setAttributeNS](null, result, offsetBlur);
-    const merge = document[createElementNS](svgNS, "feMerge");
-    const mergeNode1 = document[createElementNS](svgNS, feMergeNode);
-    const mergeNode2 = document[createElementNS](svgNS, feMergeNode);
-    mergeNode2[setAttributeNS](null, _in, "SourceGraphic");
-    merge[appendChild](mergeNode1);
-    merge[appendChild](mergeNode2);
-    filter[appendChild](gaussian);
-    filter[appendChild](offset);
-    filter[appendChild](flood);
-    filter[appendChild](composite);
-    filter[appendChild](merge);
-    return filter;
-  };
-  const none = "none";
-  const five_hundred_px = "500px";
-  var Options = (vmin = 1) => recursive_freeze$1({
-    input: string,
-    output: string,
-    padding: null,
-    file_frame: null,
-    stylesheet: null,
-    shadows: null,
-    boundaries: true,
-    faces: true,
-    edges: true,
-    vertices: false,
-    attributes: {
-      svg: {
-        width: five_hundred_px,
-        height: five_hundred_px,
-        stroke: black,
-        fill: none,
-        "stroke-linejoin": "bevel",
-        "stroke-width": vmin / 200,
-      },
-      boundaries: {
-        fill: white,
-      },
-      faces: {
-        stroke: none,
-        front: { stroke: black, fill: lightgray },
-        back: { stroke: black, fill: white },
-      },
-      edges: {
-        boundary: {},
-        mountain: { stroke: "red" },
-        valley: { stroke: "blue" },
-        mark: { stroke: lightgray },
-        unassigned: { stroke: lightgray },
-      },
-      vertices: {
-        stroke: none,
-        fill: black,
-        r: vmin / 200
-      }
-    }
-  });
-  const recursive_fill = function (target, source) {
-    Object.keys(source).forEach((key) => {
-      if (typeof source[key] === object$1 && source[key] !== null) {
-        if (!(key in target)) { target[key] = {}; }
-        recursive_fill(target[key], source[key]);
-      } else if (typeof target === object$1 && !(key in target)) {
-        target[key] = source[key];
-      }
-    });
-  };
-  const boundaries_polygon = function (graph) {
-    if (vertices_coords in graph === false
-      || edges_vertices in graph === false
-      || edges_assignment in graph === false) {
-      return [];
-    }
-    const boundary$1$1 = get_boundary$1(graph)
-      .vertices
-      .map(v => graph[vertices_coords][v]);
-    if (boundary$1$1.length === 0) { return []; }
-    const p = polygon$1(boundary$1$1);
-    p[setAttributeNS](null, _class, boundary$1);
-    return [p];
-  };
-  const faces_draw_function = function (graph) {
-    return graph[faces_vertices] != null
-      ? faces_vertices_polygon(graph)
-      : faces_edges_polygon(graph);
-  };
-  const component_draw_function = {
-    vertices: vertices_circle,
-    edges: edges_path,
-    faces: faces_draw_function,
-    boundaries: boundaries_polygon
-  };
-  const fold_to_svg = function (input, options = {}) {
-    const graph = (typeof options.file_frame === "number"
-      ? flatten_frame(input, options.file_frame)
-      : input);
-    const bounds = bounding_rect$1(graph);
-    const vmin = Math.min(bounds[2], bounds[3]);
-    recursive_fill(options, Options(vmin));
-    const svg$1 = svg();
-    setViewBox(svg$1, ...bounds, options.padding);
-    const classValue = all_classes(graph);
-    if (classValue !== "") { svg$1[setAttributeNS](null, _class, classValue); }
-    Object.keys(options.attributes.svg)
-      .forEach(style => svg$1[setAttributeNS](null, style, options.attributes.svg[style]));
-    const defs$1 = (options.stylesheet != null || options.shadows != null
-      ? defs(svg$1)
-      : undefined);
-    if (options.stylesheet != null) {
-      const style$1 = style(defs$1);
-      const strokeVar = options.attributes.svg[stroke_width]
-        ? options.attributes.svg[stroke_width] : vmin / 200;
-      const cdata = (new win$1.DOMParser())
-        .parseFromString("<xml></xml>", "application/xml")
-        .createCDATASection(`\n* { --${stroke_width}: ${strokeVar}; }\n${options.stylesheet}`);
-      style$1[appendChild](cdata);
-    }
-    if (options.shadows != null) {
-      const shadowOptions = (typeof options.shadows === object$1 && options.shadows !== null
-        ? options.shadows
-        : { blur: vmin / 200 });
-      defs$1[appendChild](shadowFilter(shadowOptions));
-    }
-    const groups = { };
-    [boundaries, edges, faces, vertices].filter(key => options[key] === true)
-      .forEach((key) => {
-        groups[key] = group();
-        groups[key][setAttributeNS](null, _class, key);
-      });
-    Object.keys(groups)
-      .filter(key => component_draw_function[key] !== undefined)
-      .forEach(key => component_draw_function[key](graph, options)
-        .forEach(a => groups[key][appendChild](a)));
-    Object.keys(groups)
-      .filter(key => groups[key].childNodes.length > 0)
-      .forEach(key => svg$1[appendChild](groups[key]));
-    if (groups.edges) {
-      const edgeClasses = [unassigned, mark, valley, mountain, boundary$1];
-      Object.keys(options.attributes.edges)
-        .filter(key => !edgeClasses.includes(key))
-        .forEach(key => groups.edges[setAttributeNS](null, key, options.attributes.edges[key]));
-      Array.from(groups.edges.childNodes)
-        .forEach(child => Object.keys(options.attributes.edges[child.getAttribute(_class)] || {})
-          .forEach(key => child[setAttributeNS](null, key, options.attributes.edges[child.getAttribute(_class)][key])));
-    }
-    if (groups.faces) {
-      const faceClasses = [front, back];
-      Object.keys(options.attributes.faces)
-        .filter(key => !faceClasses.includes(key))
-        .forEach(key => groups.faces[setAttributeNS](null, key, options.attributes.faces[key]));
-      Array.from(groups.faces.childNodes)
-        .forEach(child => Object.keys(options.attributes.faces[child.getAttribute(_class)] || {})
-          .forEach(key => child[setAttributeNS](null, key, options.attributes.faces[child.getAttribute(_class)][key])));
-      if (options.shadows != null) {
-        Array.from(groups.faces.childNodes).forEach(f => f[setAttributeNS](null, "filter", "url(#shadow)"));
-      }
-    }
-    if (groups.vertices) {
-      Object.keys(options.attributes.vertices)
-        .filter(key => key !== "r")
-        .forEach(key => groups.vertices[setAttributeNS](null, key, options.attributes.vertices[key]));
-      Array.from(groups.vertices.childNodes)
-        .forEach(child => child[setAttributeNS](null, "r", options.attributes.vertices.r));
-    }
-    if (groups.boundaries) {
-      Object.keys(options.attributes.boundaries)
-        .forEach(key => groups.boundaries[setAttributeNS](null, key, options.attributes.boundaries[key]));
-    }
-    if (options.output === "svg") { return svg$1; }
-    const stringified = (new win$1.XMLSerializer()).serializeToString(svg$1);
-    const beautified = vkXML(stringified);
-    return beautified;
-  };
-  const getObject = function (input) {
-    if (input == null) {
-      return {};
-    }
-    if (typeof input === object$1 && input !== null) {
-      return input;
-    }
-    if (typeof input === string || input instanceof String) {
-      try {
-        const obj = JSON.parse(input);
-        return obj;
-      } catch (error) {
-        throw error;
-      }
-    }
-    throw new TypeError(`input requires ${string} or ${object$1}`);
-  };
-  const FoldToSvg = function (input, options) {
-    try {
-      const fold = getObject(input);
-      return fold_to_svg(fold, options);
-    } catch (error) {
-      throw error;
-    }
-  };
-  FoldToSvg.vertices_circle = vertices_circle;
-  FoldToSvg.edges_path_data = edges_path_data;
-  FoldToSvg.edges_by_assignment_paths_data = edges_by_assignment_paths_data;
-  FoldToSvg.edges_path = edges_path;
-  FoldToSvg.edges_line = edges_line;
-  FoldToSvg.faces_vertices_polygon = faces_vertices_polygon;
-  FoldToSvg.faces_edges_polygon = faces_edges_polygon;
-
   let oripa = {};
   oripa.type2fold = {
     0: 'F',
@@ -7080,21 +6331,21 @@
     return s;
   };
 
-  const isBrowser$2 = typeof window !== "undefined"
+  const isBrowser$1 = typeof window !== "undefined"
     && typeof window.document !== "undefined";
-  const isNode$2 = typeof process !== "undefined"
+  const isNode$1 = typeof process !== "undefined"
     && process.versions != null
     && process.versions.node != null;
 
-  const htmlString$2 = "<!DOCTYPE html><title> </title>";
-  const win$2 = (function () {
+  const htmlString = "<!DOCTYPE html><title> </title>";
+  const win$1 = (function () {
     let w = {};
-    if (isNode$2) {
+    if (isNode$1) {
       const { DOMParser, XMLSerializer } = require("xmldom");
       w.DOMParser = DOMParser;
       w.XMLSerializer = XMLSerializer;
-      w.document = new DOMParser().parseFromString(htmlString$2, "text/html");
-    } else if (isBrowser$2) {
+      w.document = new DOMParser().parseFromString(htmlString, "text/html");
+    } else if (isBrowser$1) {
       w = window;
     }
     return w;
@@ -7329,7 +6580,7 @@
     }
     return undefined;
   };
-  const segment_segment_exclusive$1 = function (a0, a1, b0, b1, epsilon) {
+  const segment_segment_exclusive = function (a0, a1, b0, b1, epsilon) {
     const aVec = [a1[0] - a0[0], a1[1] - a0[1]];
     const bVec = [b1[0] - b0[0], b1[1] - b0[1]];
     return intersection_function(a0, aVec, b0, bVec, segment_segment_comp_exclusive, epsilon);
@@ -7351,7 +6602,7 @@
       equivalent: equivalent$1,
       point_on_edge_exclusive: point_on_edge_exclusive$1,
       intersection: {
-        segment_segment_exclusive: segment_segment_exclusive$1
+        segment_segment_exclusive
       }
     }
   };
@@ -7422,7 +6673,7 @@
     return edges.map(e => vertices_coords
       .filter(v => math$1.core.point_on_edge_exclusive(v, e[0], e[1], epsilon)));
   };
-  const make_edges_alignment$1 = function ({ vertices_coords, edges_vertices }) {
+  const make_edges_alignment = function ({ vertices_coords, edges_vertices }) {
     const edges = edges_vertices
       .map(ev => ev.map(v => vertices_coords[v]));
     const edges_vector = edges.map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
@@ -7462,7 +6713,7 @@
   const fragment$1 = function (graph, epsilon = math$1.core.EPSILON) {
     const horizSort = function (a, b) { return a[0] - b[0]; };
     const vertSort = function (a, b) { return a[1] - b[1]; };
-    const edges_alignment = make_edges_alignment$1(graph);
+    const edges_alignment = make_edges_alignment(graph);
     const edges = graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]));
     edges.forEach((e, i) => e.sort(edges_alignment[i] ? horizSort : vertSort));
@@ -7563,7 +6814,7 @@
     return flat;
   };
 
-  const make_vertex_pair_to_edge_map$2 = function ({ edges_vertices }) {
+  const make_vertex_pair_to_edge_map$1 = function ({ edges_vertices }) {
     const map = {};
     edges_vertices
       .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -7612,7 +6863,7 @@
       }
     }
     const vertices = boundary_vertex_walk(graph, startIndex, adjacent[neighbor_index]);
-    const edgeMap = make_vertex_pair_to_edge_map$2(graph);
+    const edgeMap = make_vertex_pair_to_edge_map$1(graph);
     const vertices_pairs = vertices
       .map((_, i, arr) => [arr[i], arr[(i + 1) % arr.length]]
         .sort((a, b) => a - b)
@@ -7621,7 +6872,7 @@
     return edges;
   };
 
-  function vkXML$1 (text, step) {
+  function vkXML (text, step) {
     const ar = text.replace(/>\s{0,}</g, "><")
       .replace(/</g, "~::~<")
       .replace(/\s*xmlns\:/g, "~::~xmlns:")
@@ -7670,20 +6921,20 @@
     }
     return (str[0] === "\n") ? str.slice(1) : str;
   }
-  const isBrowser$3 = typeof window !== "undefined"
+  const isBrowser$2 = typeof window !== "undefined"
     && typeof window.document !== "undefined";
-  const isNode$3 = typeof process !== "undefined"
+  const isNode$2 = typeof process !== "undefined"
     && process.versions != null
     && process.versions.node != null;
-    const htmlString$3 = "<!DOCTYPE html><title> </title>";
-  const win$3 = (function () {
+    const htmlString$1 = "<!DOCTYPE html><title> </title>";
+  const win$2 = (function () {
     let w = {};
-    if (isNode$3) {
+    if (isNode$2) {
       const { DOMParser, XMLSerializer } = require("xmldom");
       w.DOMParser = DOMParser;
       w.XMLSerializer = XMLSerializer;
-      w.document = new DOMParser().parseFromString(htmlString$3, "text/html");
-    } else if (isBrowser$3) {
+      w.document = new DOMParser().parseFromString(htmlString$1, "text/html");
+    } else if (isBrowser$2) {
       w = window;
     }
     return w;
@@ -8627,7 +7878,7 @@
       });
     return lineSegments;
   };
-  var svgNS$1 = "http://www.w3.org/2000/svg";
+  var svgNS = "http://www.w3.org/2000/svg";
   const svgAttributes = [
     "version",
     "xmlns",
@@ -8653,21 +7904,21 @@
     "style": true,
   };
   const segmentsToSVG = function (lineSegments, inputSVG) {
-    const newSVG = win$3.document.createElementNS(svgNS$1, "svg");
+    const newSVG = win$2.document.createElementNS(svgNS, "svg");
     if (inputSVG !== undefined) {
       svgAttributes.map(a => ({ attribute: a, value: inputSVG.getAttribute(a) }))
         .filter(obj => obj.value != null && obj.value !== "")
         .forEach(obj => newSVG.setAttribute(obj.attribute, obj.value));
     }
     if (newSVG.getAttribute("xmlns") === null) {
-      newSVG.setAttribute("xmlns", svgNS$1);
+      newSVG.setAttribute("xmlns", svgNS);
     }
     Array.from(inputSVG.childNodes)
       .filter(el => headerTagNames[el.tagName])
       .map(el => el.cloneNode(true))
       .forEach(el => newSVG.appendChild(el));
     lineSegments.forEach((s) => {
-      const line = win$3.document.createElementNS(svgNS$1, "line");
+      const line = win$2.document.createElementNS(svgNS, "line");
       attributes.line.forEach((attr, i) => line.setAttributeNS(null, attr, s[i]));
       if (s[4] != null) {
         Object.keys(s[4]).forEach(key => line.setAttribute(key, s[4][key]));
@@ -8687,7 +7938,7 @@
   });
   const xmlStringToDOM = function (input) {
     return (typeof input === "string" || input instanceof String
-      ? (new win$3.DOMParser()).parseFromString(input, "text/xml").documentElement
+      ? (new win$2.DOMParser()).parseFromString(input, "text/xml").documentElement
       : input);
   };
   const Segmentize = function (input, options = defaults) {
@@ -8702,8 +7953,8 @@
     if (options.output === "svg") {
       return newSVG;
     }
-    const stringified = new win$3.XMLSerializer().serializeToString(newSVG);
-    return vkXML$1(stringified);
+    const stringified = new win$2.XMLSerializer().serializeToString(newSVG);
+    return vkXML(stringified);
   };
 
   const FOLD = { convert };
@@ -8759,7 +8010,7 @@
 
   const SVGtoFOLD = function (input, options = {}) {
     if (typeof input === "string") {
-      const svg = (new win$2.DOMParser())
+      const svg = (new win$1.DOMParser())
         .parseFromString(input, "text/xml").documentElement;
       return svg_to_fold(svg, options);
     }
@@ -9447,12 +8698,12 @@
     switch (axiom) {
       case 4:
         crossing = math.core.nearest_point_on_line(
-          crease_edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
+          crease_vector, crease_edge[0], axiom_frame.parameters.lines[0][0], (a => a)
         );
         break;
       case 7:
         crossing = math.core.nearest_point_on_line(
-          crease_edge[0], crease_vector, axiom_frame.parameters.points[0], (a => a)
+          crease_vector, crease_edge[0], axiom_frame.parameters.points[0], (a => a)
         );
         break;
       default:
@@ -10392,7 +9643,7 @@
       (poly, r) => math.core.intersection.convex_poly_ray(poly, r.origin, r.vector),
       ...args);
   };
-  const line$2 = function (...args) {
+  const line$1 = function (...args) {
     return addLineType.call(this,
       math.core.get_line,
       (poly, l) => math.core.intersection.convex_poly_line(poly, l.origin, l.vector),
@@ -10554,7 +9805,7 @@
       }
     };
     const line = function (...methodArgs) {
-      if (line$2.call(origami, ...methodArgs)) {
+      if (line$1.call(origami, ...methodArgs)) {
         origami.changed.update(line);
       }
     };
@@ -10649,7 +9900,7 @@
     };
   };
 
-  const CP = function () {
+  const CP = function (options = {}) {
     const imported = !!(possibleFoldObject(arguments[0]))
       ? arguments[0]
       : {};
@@ -10659,6 +9910,9 @@
       imported,
       { file_spec, file_creator }
     );
+    Object.entries(options).forEach(([key, value]) => {
+      cp[key] = value;
+    });
     return cp;
   };
   Static$1(CP);
@@ -10672,7 +9926,7 @@
     library.append(this);
   };
 
-  const flatten_frame$1 = function (fold_file, frame_num) {
+  const flatten_frame = function (fold_file, frame_num) {
     if ("file_frames" in fold_file === false
       || fold_file.file_frames.length < frame_num) {
       return fold_file;
@@ -10722,47 +9976,9 @@
 
   var frames = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    flatten_frame: flatten_frame$1,
+    flatten_frame: flatten_frame,
     merge_frame: merge_frame
   });
-
-  const are_vertices_equivalent$2 = function (a, b, epsilon = math.core.EPSILON) {
-    const max = a.length < 2 ? a.length : 2;
-    for (let i = 0; i < max; i += 1) {
-      if (Math.abs(a[i] - b[i]) > epsilon) {
-        return false;
-      }
-    }
-    return true;
-  };
-  const remove_duplicate_vertices = (g, epsilon = math.core.EPSILON) => {
-    const vertices_equivalent = Array
-      .from(Array(g.vertices_coords.length)).map(() => []);
-    for (let i = 0; i < g.vertices_coords.length - 1; i += 1) {
-      for (let j = i + 1; j < g.vertices_coords.length; j += 1) {
-        vertices_equivalent[i][j] = are_vertices_equivalent$2(
-          g.vertices_coords[i],
-          g.vertices_coords[j],
-          epsilon
-        );
-      }
-    }
-    const vertices_map = g.vertices_coords.map(() => undefined);
-    vertices_equivalent
-      .forEach((row, i) => row
-        .forEach((eq, j) => {
-          if (eq) {
-            vertices_map[j] = vertices_map[i] === undefined
-              ? i
-              : vertices_map[i];
-          }
-        }));
-    vertices_map.forEach((map, i) => {
-      if (map === undefined) { vertices_map[i] = i; }
-    });
-    console.log("vertices_equivalent", vertices_equivalent);
-    console.log("vertices_map", vertices_map);
-  };
 
   const copy_without_marks = function (graph) {
     const edges_vertices = graph.edges_vertices
@@ -11090,6 +10306,44 @@
     return result;
   };
 
+  const are_vertices_equivalent$2 = function (a, b, epsilon = math.core.EPSILON) {
+    const max = a.length < 2 ? a.length : 2;
+    for (let i = 0; i < max; i += 1) {
+      if (Math.abs(a[i] - b[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const remove_duplicate_vertices = (g, epsilon = math.core.EPSILON) => {
+    const vertices_equivalent = Array
+      .from(Array(g.vertices_coords.length)).map(() => []);
+    for (let i = 0; i < g.vertices_coords.length - 1; i += 1) {
+      for (let j = i + 1; j < g.vertices_coords.length; j += 1) {
+        vertices_equivalent[i][j] = are_vertices_equivalent$2(
+          g.vertices_coords[i],
+          g.vertices_coords[j],
+          epsilon
+        );
+      }
+    }
+    const vertices_map = g.vertices_coords.map(() => undefined);
+    vertices_equivalent
+      .forEach((row, i) => row
+        .forEach((eq, j) => {
+          if (eq) {
+            vertices_map[j] = vertices_map[i] === undefined
+              ? i
+              : vertices_map[i];
+          }
+        }));
+    vertices_map.forEach((map, i) => {
+      if (map === undefined) { vertices_map[i] = i; }
+    });
+    console.log("vertices_equivalent", vertices_equivalent);
+    console.log("vertices_map", vertices_map);
+  };
+
   var empty$1 = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"\",\n  \"file_author\": \"\",\n  \"file_title\": \"\",\n  \"file_description\": \"\",\n  \"file_classes\": [],\n  \"file_frames\": [],\n\n  \"frame_author\": \"\",\n  \"frame_title\": \"\",\n  \"frame_description\": \"\",\n  \"frame_attributes\": [],\n  \"frame_classes\": [],\n  \"frame_unit\": \"\",\n\n  \"vertices_coords\": [],\n  \"vertices_vertices\": [],\n  \"vertices_faces\": [],\n\n  \"edges_vertices\": [],\n  \"edges_faces\": [],\n  \"edges_assignment\": [],\n  \"edges_foldAngle\": [],\n  \"edges_length\": [],\n\n  \"faces_vertices\": [],\n  \"faces_edges\": [],\n\n  \"edgeOrders\": [],\n  \"faceOrders\": []\n}\n";
 
   var square$1 = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"Rabbit Ear\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_attributes\": [\"2D\"],\n  \"frame_classes\": [\"creasePattern\"],\n  \"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n  \"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n  \"vertices_faces\": [[0], [0], [0], [0]],\n  \"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n  \"edges_faces\": [[0], [0], [0], [0]],\n  \"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n  \"edges_foldAngle\": [0, 0, 0, 0],\n  \"edges_length\": [1, 1, 1, 1],\n  \"faces_vertices\": [[0,1,2,3]],\n  \"faces_edges\": [[0,1,2,3]]\n}";
@@ -11170,7 +10424,9 @@
   });
   Object.keys(math)
     .filter(key => key !== "core")
+    .filter(key => key !== "__prototypes__")
     .forEach((key) => { rabbitEar[key] = math[key]; });
+  rabbitEar.math.__prototypes__ = math.__prototypes__;
   rabbitEar.use = use.bind(rabbitEar);
   win.RabbitEar = rabbitEar;
 

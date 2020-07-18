@@ -1,3 +1,6 @@
+ear.use(FoldToSvg);
+ear.use(SVG);
+
 const getClassList = function (xmlNode) {
   const currentClass = xmlNode.getAttribute("class");
   return (currentClass == null
@@ -52,7 +55,7 @@ const planarMinify = function (graph) {
 
 const removeAllMarks = function (graph) {
   const markIndices = graph.edges_assignment
-    .map((a, i) => a === "f" || a === "F" ? i : undefined)
+    .map((a, i) => (a === "f" || a === "F" ? i : undefined))
     .filter(a => a !== undefined);
   graph.changed.pause = true;
   RabbitEar.core.remove(graph, "edges", markIndices);
@@ -61,6 +64,18 @@ const removeAllMarks = function (graph) {
   graph.populate();
   // graph.clean({collinear: true});
   graph.changed.pause = false;
+};
+
+const svgOptions = {
+  padding: 0.025,
+  attributes: {
+    boundaries: { fill: "#fffbf8" },
+    edges: {
+      mountain: { stroke: "#e53" },
+      valley: { stroke: "#27b" },
+      mark: { stroke: "lightgray" }
+    },
+  }
 };
 
 const App = function (options = {}) {
@@ -73,33 +88,34 @@ const App = function (options = {}) {
   // "kawasaki",
 
   const canvas_container = document.querySelectorAll(".canvas-container")[0];
-  const origami = RabbitEar.origami(canvas_container, {
-    padding: 0.025,
-    attributes: {
-      boundaries: { fill: "#fffbf8" },
-      edges: {
-        mountain: { stroke: "#e53" },
-        valley: { stroke: "#27b" },
-        mark: { stroke: "lightgray" }
-      },
-    }
-  });
+  // const origami = RabbitEar.origami(canvas_container, {
+  //   padding: 0.025,
+  //   attributes: {
+  //     boundaries: { fill: "#fffbf8" },
+  //     edges: {
+  //       mountain: { stroke: "#e53" },
+  //       valley: { stroke: "#27b" },
+  //       mark: { stroke: "lightgray" }
+  //     },
+  //   }
+  // });
+  const cp = ear.cp.square();
 
   const folded_container = document.querySelectorAll(".pip-folded-view")[0];
-  const folded = RabbitEar.origami(folded_container, {
-    padding: 0.04,
-    boundaries: false,
-    attributes: {
-      faces: { fill: "#fff2" },
-      edges: {
-        mountain: { stroke: "#fff"},
-        valley: { stroke: "#fff" },
-        mark: { stroke: "#fff4" },
-        boundary: { stroke: "#fff" },
-      }
-    }
-  });
-  folded.svg.setAttribute("style", "margin:auto");
+  // const folded = RabbitEar.origami(folded_container, {
+  //   padding: 0.04,
+  //   boundaries: false,
+  //   attributes: {
+  //     faces: { fill: "#fff2" },
+  //     edges: {
+  //       mountain: { stroke: "#fff"},
+  //       valley: { stroke: "#fff" },
+  //       mark: { stroke: "#fff4" },
+  //       boundary: { stroke: "#fff" },
+  //     }
+  //   }
+  // });
+  // folded.svg.setAttribute("style", "margin:auto");
   let pipShowingFolded = true;
 
   var origamiSimulator = OrigamiSimulator({
@@ -107,14 +123,16 @@ const App = function (options = {}) {
     color1: "e53",
     parent: document.querySelectorAll(".pip-simulator-view")[0]
   });
-  origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
+  // origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
 
   const app = {};
 
   app.options = options;
-  app.origami = origami;
+  app.cp = cp;
+  app.svg = SVG(canvas_container);
+  // app.origami = origami;
   app.origamiSimulator = origamiSimulator;
-  app.folded = folded;
+  // app.folded = folded;
   app.history = [];
   app.symmetries = [];
   app.selected = {
@@ -128,7 +146,7 @@ const App = function (options = {}) {
 
   let cacheCount = 0;
   app.cache = function (historyTextRecord) {
-    app.history.push(app.origami.copy());
+    // app.history.push(app.origami.copy());
     // const el = document.querySelectorAll(".info-history-pre")[0];
     // el.innerHTML += ("00" + cacheCount).slice(-3) + " " + historyTextRecord;
     cacheCount += 1;
@@ -137,7 +155,7 @@ const App = function (options = {}) {
   app.undo = function () {
     const lastStep = app.history.pop();
     if (lastStep === undefined) { return; }
-    app.origami.load(lastStep);
+    // app.origami.load(lastStep);
   };
 
   app.cutSelected = function () {
@@ -155,25 +173,34 @@ const App = function (options = {}) {
 
   app.update = function () {
     // todo, make load() trigger an unfold
-    // app.folded.unfold();
-    app.folded.load(origami);
-    app.folded.fold();
-    origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
+    // app.folded.load(origami);
+    // app.folded.fold();
+    // origamiSimulator.pattern.setFoldData(JSON.parse(origami.export()));
+    canvas_container.removeChild(app.svg);
+    app.svg = app.cp.svg({ output: "svg" });
+    canvas_container.appendChild(app.svg);
+    // app.svg.removeChildren();
+    // const newSVG = app.cp.svg({ output: "svg" });
+    // while (newSVG.firstChild) {
+    //   const child = newSVG.firstChild;
+    //   newSVG.removeChild(child);
+    //   app.svg.appendChild(child);
+    // }
   };
 
   app.load = function (blob, filename, fileExtension) {
     app.cache(`load ${filename}.${fileExtension}`);
     // lastFileLoaded = { blob, filename, fileExtension };
-    origami.load(blob);
+    // origami.load(blob);
     app.update();
 
-    const title = origami.file_title || filename || "";
-    const author = origami.file_author || "";
-    const description = origami.file_description || "";
+    // const title = origami.file_title || filename || "";
+    // const author = origami.file_author || "";
+    // const description = origami.file_description || "";
 
-    document.querySelectorAll(".input-title")[0].value = title;
-    document.querySelectorAll(".input-author")[0].value = author;
-    document.querySelectorAll(".input-description")[0].value = description;
+    // document.querySelectorAll(".input-title")[0].value = title;
+    // document.querySelectorAll(".input-author")[0].value = author;
+    // document.querySelectorAll(".input-description")[0].value = description;
 
     app.dragRect = [];
     setTapMode(app.tapMode);
@@ -182,23 +209,24 @@ const App = function (options = {}) {
   };
 
   const filename = function () {
-    const title = origami.file_title != null
-      ? origami.file_title.replace(/ /g, "-")
-      : "origami";
-    const author = origami.file_author != null
-      ? origami.file_author.replace(/ /g, "-")
-      : "";
-    // const description = origami.file_description || ""
-    const d = new Date();
-    const datestring = d.getFullYear()
-      + "-" + ("0" + (d.getMonth() + 1)).slice(-2)
-      + "-" + ("0" + d.getDate()).slice(-2)
-      + "-" + ("0" + d.getHours()).slice(-2)
-      + "-" + ("0" + d.getMinutes()).slice(-2)
-      + "-" + ("0" + d.getSeconds()).slice(-2);
-    return author === ""
-      ? `${title}-${datestring}`
-      : `${author}-${title}-${datestring}`;
+    return "";
+    // const title = origami.file_title != null
+    //   ? origami.file_title.replace(/ /g, "-")
+    //   : "origami";
+    // const author = origami.file_author != null
+    //   ? origami.file_author.replace(/ /g, "-")
+    //   : "";
+    // // const description = origami.file_description || ""
+    // const d = new Date();
+    // const datestring = d.getFullYear()
+    //   + "-" + ("0" + (d.getMonth() + 1)).slice(-2)
+    //   + "-" + ("0" + d.getDate()).slice(-2)
+    //   + "-" + ("0" + d.getHours()).slice(-2)
+    //   + "-" + ("0" + d.getMinutes()).slice(-2)
+    //   + "-" + ("0" + d.getSeconds()).slice(-2);
+    // return author === ""
+    //   ? `${title}-${datestring}`
+    //   : `${author}-${title}-${datestring}`;
   };
 
   const setTapMode = function (newMode) {
@@ -220,9 +248,9 @@ const App = function (options = {}) {
       case "graph": {
         document.querySelectorAll(".canvas-container")[0].style.display = "none";
         document.querySelectorAll(".code-container")[0].style.display = "block";
-        const json = JSON.stringify(JSON.parse(app.origami.export.fold()), null, 2);
-        app.editor.clear();
-        app.editor.injectCode(json);
+        // const json = JSON.stringify(JSON.parse(app.origami.export.fold()), null, 2);
+        // app.editor.clear();
+        // app.editor.injectCode(json);
         document.body.style.backgroundColor = "#272822";
         document.body.style.backgroundImage = "initial";
       }
@@ -230,9 +258,9 @@ const App = function (options = {}) {
       case "history": {
         document.querySelectorAll(".canvas-container")[0].style.display = "none";
         document.querySelectorAll(".code-container")[0].style.display = "block";
-        const json = JSON.stringify(JSON.parse(app.origami.export.fold()), null, 2);
-        app.editor.clear();
-        app.editor.injectCode(json);
+        // const json = JSON.stringify(JSON.parse(app.origami.export.fold()), null, 2);
+        // app.editor.clear();
+        // app.editor.injectCode(json);
         // document.body.style.backgroundColor = "#272822";
         // document.body.style.backgroundImage = "initial";
       }
@@ -262,39 +290,29 @@ const App = function (options = {}) {
     // toggleElementDisplay(document.querySelectorAll(".info-symmetry")[0]);
   // };
 
-  document.querySelectorAll(".input-title")[0]
-    .oninput = function (e) { origami.file_title = e.srcElement.value; };
-  document.querySelectorAll(".input-author")[0]
-    .oninput = function (e) { origami.file_author = e.srcElement.value; };
-  document.querySelectorAll(".input-description")[0]
-    .oninput = function (e) { origami.file_description = e.srcElement.value; };
-
-  // document.querySelectorAll(".switch-cp-folded")[0].onclick = function () {
-  //   const origamiParent = origami.svg.parentNode;
-  //   const foldedParent = folded.svg.parentNode;
-  //   origami.svg.remove();
-  //   folded.svg.remove();
-  //   origamiParent.appendChild(folded.svg);
-  //   foldedParent.appendChild(origami.svg);
-  //   pipShowingFolded = !pipShowingFolded;
-  // };
+  // document.querySelectorAll(".input-title")[0]
+  //   .oninput = function (e) { origami.file_title = e.srcElement.value; };
+  // document.querySelectorAll(".input-author")[0]
+  //   .oninput = function (e) { origami.file_author = e.srcElement.value; };
+  // document.querySelectorAll(".input-description")[0]
+  //   .oninput = function (e) { origami.file_description = e.srcElement.value; };
 
   document.querySelectorAll(".menu-new")[0]
     .onclick = function () {
       app.load(RabbitEar.bases.square);
     };
   document.querySelectorAll(".menu-export-fold")[0].onclick = function () {
-    const main = pipShowingFolded ? app.origami : app.folded;
-    download(main.export.fold(), filename() + ".fold", "application/json");
+    // const main = pipShowingFolded ? app.origami : app.folded;
+    // download(app.origami.export.fold(), filename() + ".fold", "application/json");
   };
   document.querySelectorAll(".menu-export-svg")[0].onclick = function () {
-    const main = pipShowingFolded ? app.origami : app.folded;
-    download(main.export.svg(), filename() + ".svg", "image/svg+xml");
+    // const main = pipShowingFolded ? app.origami : app.folded;
+    // download(app.origami.export.svg(), filename() + ".svg", "image/svg+xml");
   };
   document.querySelectorAll(".menu-export-png")[0].onclick = function () {
-    const main = pipShowingFolded ? app.origami : app.folded;
-    main.export.png()
-      .then(result => download(result, filename() + ".png", "image/png"));
+    // const main = pipShowingFolded ? app.origami : app.folded;
+    // app.origami.export.png()
+    //   .then(result => download(result, filename() + ".png", "image/png"));
   };
   // document.querySelectorAll(".menu-export-oripa")[0].onclick = function () { };
   // document.querySelectorAll(".menu-export-obj")[0].onclick = function () { };
@@ -305,11 +323,11 @@ const App = function (options = {}) {
     origamiSimulator.simulationRunning = !origamiSimulator.simulationRunning;
     if (origamiSimulator.simulationRunning) {
       // playPauseSimulator.childNodes[0].src = "images/pause.svg";
-      playPauseSimulator.style.backgroundColor = "#4a2"
+      playPauseSimulator.style.backgroundColor = "#4a2";
       // playPauseSimulator.style.opacity = 1.0;
     } else {
       // playPauseSimulator.childNodes[0].src = "images/play.svg";
-      playPauseSimulator.style.backgroundColor = "#37a"
+      playPauseSimulator.style.backgroundColor = "#37a";
       // playPauseSimulator.style.opacity = 0.5;
     }
   };
@@ -351,9 +369,11 @@ const App = function (options = {}) {
 
 window.onload = function () {
   window.app = App();
-  MousePressed();
-  MouseMoved();
-  MouseReleased();
+
+  // MousePressed();
+  // MouseMoved();
+  // MouseReleased();
+
   // window.app.repl = CodeEditor(document.querySelectorAll(".code-console")[0]);
   // window.app.repl.didPressReturn = function () {
   //   const code = window.app.repl.code;

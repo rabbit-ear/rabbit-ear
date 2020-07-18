@@ -1,6 +1,6 @@
 import math from "../../include/math";
-import { get_boundary } from "../FOLD/boundary";
-import { edges_assignment_names } from "../FOLD/keys";
+import { get_boundary } from "../core/boundary";
+import { edges_assignment_names } from "../core/keys";
 import axiom_instructions_data from "../text/axioms.json";
 
 // the diagram frame IS little fold files.
@@ -91,12 +91,12 @@ const make_arrow_coords = function (construction, graph) {
     //   break;
     case 4:
       crossing = math.core.nearest_point_on_line(
-        crease_edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
+        crease_vector, crease_edge[0], axiom_frame.parameters.lines[0][0], (a => a)
       );
       break;
     case 7:
       crossing = math.core.nearest_point_on_line(
-        crease_edge[0], crease_vector, axiom_frame.parameters.points[0], (a => a)
+        crease_vector, crease_edge[0], axiom_frame.parameters.points[0], (a => a)
       );
       break;
     default:

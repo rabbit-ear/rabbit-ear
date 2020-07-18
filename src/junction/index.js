@@ -5,13 +5,13 @@
 // import {
 //   counter_clockwise_angle2,
 //   counter_clockwise_vector_order
-// } from "../core/geometry";
+// } from "../math/geometry";
 
 // import {
 //   alternating_sum,
 //   kawasaki_sector_score,
 //   kawasaki_solutions_radians
-// } from "../core/origami";
+// } from "../math/origami";
 
 // /**
 //  * use static initializers! at bottom of page

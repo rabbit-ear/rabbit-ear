@@ -2,7 +2,7 @@ let sketch = RabbitEar.origami("canvas-faces-chop");
 let folded = RabbitEar.origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
-sketch.drawLayer = sketch.group();
+sketch.drawLayer = sketch.g();
 
 sketch.controls = RabbitEar.svg.controls(sketch, 2, {radius:0.02, fill: "#e44f2a"});
 sketch.controls.forEach(c => c.position = [Math.random(), Math.random()]);
@@ -27,7 +27,7 @@ sketch.cp = RabbitEar.CreasePattern(sketch.masterCP);
 
 sketch.drawArrow = function(start, end) {
 	let ARROW_HEAD = 0.0333;
-	let arrow = RabbitEar.svg.group();
+	let arrow = RabbitEar.svg.g();
 	let line = arrow.line(start[0], start[1], end[0], end[1])
 	line.setAttribute("stroke-width", 0.0075);
 	line.setAttribute("stroke-dasharray", "0.0075 0.015");

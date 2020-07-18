@@ -1,5 +1,5 @@
 let arrowSketch = RE.svg.image("canvas-arrows", 1, 1, {padding:0.1});
-arrowSketch.drawLayer = arrowSketch.group();
+arrowSketch.drawLayer = arrowSketch.g();
 
 arrowSketch.controls = RE.svg.controls(arrowSketch, 0);
 Array.from(Array(2))
@@ -81,7 +81,7 @@ arrowSketch.arcArrow = function(startPoint, endPoint, options) {
 	];
 
 	// draw
-	let arrowGroup = RE.svg.group();
+	let arrowGroup = RE.svg.g();
 	let arrowArc = RE.svg.bezier(
 		arcStart[0], arcStart[1], controlStart[0], controlStart[1],
 		controlEnd[0], controlEnd[1], arcEnd[0], arcEnd[1]

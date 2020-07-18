@@ -38,12 +38,27 @@ const add_edge_options = () => ({
   edges_foldAngle: 0,
 });
 
+/**
+ * add_edge will return a { remove, update, new } diff
+ *   adding an edge will sometimes create 2-4 new edges
+ *   in the case the edge endpoint was edge-collinear
+ * when this happens, the new edge will always be index [0]
+ *   under the { new } key of the diff
+ */
+
+
+ /// todo, paramters like: (graph, {options})
+ // where options contains keys {
+  // segment:
+  // or other ways of constructing. like between vertex indices
+
 // when you supply options, include both assignment and foldAngle
 const add_edge = function (graph, a, b, c, d, options = add_edge_options()) {
   const edge = math.segment(a, b, c, d);
 
   // find a matching (epsilon) pre-existing vertex, if it exists.
-  const endpoints_vertex_equivalent = [0, 1].map(ei => graph.vertices_coords
+  const endpoints_vertex_equivalent = [0, 1].map(ei => graph
+    .vertices_coords
     .map(v => Math.sqrt(((edge[ei][0] - v[0]) ** 2)
                       + ((edge[ei][1] - v[1]) ** 2)))
     .map((dist, i) => (dist < math.core.EPSILON ? i : undefined))
@@ -69,6 +84,7 @@ const add_edge = function (graph, a, b, c, d, options = add_edge_options()) {
     if (endpoints_edge_collinear[i] !== undefined) { return "edge"; }
     return "new";
   });
+
 
   // possible number of new vertices can be 0, 1, 2
   // possible number of new edges can be 1, 2, 3, 4, 5

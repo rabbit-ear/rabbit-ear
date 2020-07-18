@@ -8,7 +8,7 @@ contains.polygon.setAttribute("fill", "#ecb233");
 contains.polygon.setAttribute("stroke", "none");
 contains.appendChild(contains.polygon);
 
-contains.dotLayer = RabbitEar.svg.group();
+contains.dotLayer = RabbitEar.svg.g();
 contains.appendChild(contains.dotLayer);
 
 contains.touches = Array.from(Array(6)).map(_ => ({

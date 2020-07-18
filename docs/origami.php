@@ -1,8 +1,7 @@
 <?php include 'header.php';?>
 
-<h3>CHAPTER IV.</h3>
-
-<h1>ORIGAMI</h1>
+<h3 class="chapter">CHAPTER II.</h3>
+<h1 class="chapter">ORIGAMI</h1>
 
 <pre class="code"><code><f>var</f> origami <key>=</key> <f>RabbitEar</f>.<f>origami</f>()</code></pre>
 

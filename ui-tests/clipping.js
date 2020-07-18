@@ -1,5 +1,5 @@
 let clipping = RabbitEar.origami("canvas-clipping");
-let drawGroup = RabbitEar.svg.group();
+let drawGroup = RabbitEar.svg.g();
 clipping.appendChild(drawGroup);
 
 clipping.points = [[Math.random(),Math.random()], [Math.random(),Math.random()]];
