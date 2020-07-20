@@ -7,12 +7,36 @@
  * - edges_vertices, edges_assignment, edges_foldAngle
  */
 
-import math from "../../include/math";
-import remove from "./remove";
+/**
+ * Fragment operates on edges and vertices.
+ *
+ * This will ensure a graph is planar by splitting overlapping edges
+ * at their intersections, increasing the number of edges and vertices.
+ *
+ * This function requires an epsilon (1e-6), for example a busy
+ * edge crossing should be able to resolve to one point
+ *
+ * 1. merge vertices that are within the epsilon.
+ *
+ * 2. gather all intersections, for every line.
+ *    for example, the first line in the list gets compared to other lines
+ *    resulting in a list of intersection points,
+ *
+ * 3. replace the edge with a new, rebuilt, sequence of edges, with
+ *    new vertices.
+ *
+ *
+ *
+ */
+
+import math from "../../../include/math";
+import remove from "../remove";
 import {
   fold_keys,
   edge_assignment_to_foldAngle
-} from "./keys";
+} from "../keys";
+import removeDuplicateVertices from "../duplicate_vertices";
+import make_edges_intersections from "./edges_intersections";
 
 // permissively ignores anything above 2D
 const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
@@ -65,59 +89,21 @@ const make_edges_verticalness = function ({ vertices_coords, edges_vertices }) {
 };
 
 /**
- *
- * @returns a list for each edge containing the intersection points
- * 0 [ [0.25, 0.125] ]
- * 1 [ [0.25, 0.125], [0.99, 0.88] ]  // will become 3 segments
- * 2 [ ]  // will be unchanged.
- * 3 [ [0.99, 0.88] ]  // will become 2 segments
- *
- * if two edges end at the same endpoint this DOES NOT consider them touching
- *
- * careful with the pairs in separate locations - these are shallow pointers
-
+ * the trivial case is sorting points horizontally (along the vector [1,0])
+ * this generalizes this. sort an array of points along any direction.
  */
-const make_edges_intersections = function ({
-  vertices_coords, edges_vertices
-}, epsilon = math.core.EPSILON) {
-  const edge_count = edges_vertices.length;
-  const edges = edges_vertices
-    .map(ev => ev.map(v => vertices_coords[v]));
-  // todo this could already be cached on the object. like segment()
-  const edgeObjects = edges.map(e => ({
-    origin: e[0],
-    vector: [e[1][0] - e[0][0], e[1][1] - e[0][1]]
-  }));
-  // "crossings" is an NxN matrix of edge crossings
-  //     0  1  2  3
-  // 0 [  , x,  ,  ]
-  // 1 [ x,  ,  , x]
-  // 2 [  ,  ,  ,  ]
-  // 3 [  , x,  ,  ]
-  // showing crossings between 0 and 1, and 1 and 3.
-  // because the lower triangle is duplicate info, only store one half
-  const crossings = Array.from(Array(edge_count - 1)).map(() => []);
-  const intersectFunc = math.intersect.lines.exclude_s_s;
-  for (let i = 0; i < edges.length - 1; i += 1) {
-    for (let j = i + 1; j < edges.length; j += 1) {
-      crossings[i][j] = math.intersect.lines
-        .intersect(edgeObjects[i], edgeObjects[j], intersectFunc, epsilon);
-    }
-  }
-  const edges_intersections = Array.from(Array(edge_count)).map(() => []);
-  for (let i = 0; i < edges.length - 1; i += 1) {
-    for (let j = i + 1; j < edges.length; j += 1) {
-      if (crossings[i][j] != null) {
-        edges_intersections[i].push(crossings[i][j]);
-        edges_intersections[j].push(crossings[i][j]);
-      }
-    }
-  }
-  return edges_intersections;
-};
-
+const sortPointsAlongVector = (points, vector) => points
+  .map((p, i) => ({
+    p,
+    i,
+    d: p[0] * vector[0] + p[1] * vector[1]
+  }))
+  .sort((a, b) => a.d - b.d)
+  .map(a => a.p);
 
 const fragment = function (graph, epsilon = math.core.EPSILON) {
+  removeDuplicateVertices(graph, epsilon);
+
   const horizSort = function (a, b) { return a[0] - b[0]; };
   const vertSort = function (a, b) { return a[1] - b[1]; };
   // when we rebuild an edge we need the intersection points sorted so we can
@@ -233,7 +219,6 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
   // make it leave the input graph untouched.
 
   // TODO ERROR HERE, edges_assignment not defined
-  console.log("edges_map", edges_map);
   if (graph.edges_assignment) {
     edges_map.forEach((e, i) => {
       if (e !== undefined) {

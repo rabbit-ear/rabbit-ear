@@ -2393,6 +2393,85 @@
   };
 
   const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
+    const degree = a.length;
+    for (let i = 0; i < degree; i += 1) {
+      if (Math.abs(a[i] - b[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const remove_duplicate_vertices = (g, epsilon = math.core.EPSILON) => {
+    const vertices_equivalent = Array
+      .from(Array(g.vertices_coords.length)).map(() => []);
+    for (let i = 0; i < g.vertices_coords.length - 1; i += 1) {
+      for (let j = i + 1; j < g.vertices_coords.length; j += 1) {
+        vertices_equivalent[i][j] = are_vertices_equivalent(
+          g.vertices_coords[i],
+          g.vertices_coords[j],
+          epsilon
+        );
+      }
+    }
+    const vertices_map = g.vertices_coords.map(() => undefined);
+    for (let i = 0; i < g.vertices_coords.length - 1; i += 1) {
+      for (let j = i + 1; j < g.vertices_coords.length; j += 1) {
+        if (vertices_equivalent[i][j]) {
+          vertices_map[j] = vertices_map[i] === undefined
+            ? i
+            : vertices_map[i];
+        }
+      }
+    }
+    const vertices_remove = vertices_map
+      .map((m, i) => (m !== undefined ? i : undefined))
+      .filter(a => a !== undefined);
+    vertices_map.forEach((map, i) => {
+      if (map === undefined) { vertices_map[i] = i; }
+    });
+    const keys = get_graph_keys_with_suffix(g, "vertices");
+    for (let key = 0; key < keys.length; key += 1) {
+      const arr_vertices = g[keys[key]];
+      for (let i = 0; i < arr_vertices.length; i += 1) {
+        for (let j = 0; j < arr_vertices[i].length; j += 1) {
+          arr_vertices[i][j] = vertices_map[arr_vertices[i][j]];
+        }
+      }
+    }
+    remove_geometry_key_indices(g, "vertices", vertices_remove);
+  };
+
+  const make_edges_intersections = function ({
+    vertices_coords, edges_vertices
+  }, epsilon = math.core.EPSILON) {
+    const edge_count = edges_vertices.length;
+    const edges = edges_vertices
+      .map(ev => ev.map(v => vertices_coords[v]));
+    const edgeObjects = edges.map(e => ({
+      origin: e[0],
+      vector: [e[1][0] - e[0][0], e[1][1] - e[0][1]]
+    }));
+    const crossings = Array.from(Array(edge_count - 1)).map(() => []);
+    const intersectFunc = math.intersect.lines.exclude_s_s;
+    for (let i = 0; i < edges.length - 1; i += 1) {
+      for (let j = i + 1; j < edges.length; j += 1) {
+        crossings[i][j] = math.intersect.lines
+          .intersect(edgeObjects[i], edgeObjects[j], intersectFunc, epsilon);
+      }
+    }
+    const edges_intersections = Array.from(Array(edge_count)).map(() => []);
+    for (let i = 0; i < edges.length - 1; i += 1) {
+      for (let j = i + 1; j < edges.length; j += 1) {
+        if (crossings[i][j] != null) {
+          edges_intersections[i].push(crossings[i][j]);
+          edges_intersections[j].push(crossings[i][j]);
+        }
+      }
+    }
+    return edges_intersections;
+  };
+
+  const are_vertices_equivalent$1 = function (a, b, epsilon = math.core.EPSILON) {
     const max = a.length < 2 ? a.length : 2;
     for (let i = 0; i < max; i += 1) {
       if (Math.abs(a[i] - b[i]) > epsilon) {
@@ -2432,36 +2511,8 @@
       .map((e, i) => [e[0] / edges_magnitude[i], e[1] / edges_magnitude[i]]);
     return edges_normalized.map(e => Math.abs(e[0]) > 0.707);
   };
-  const make_edges_intersections = function ({
-    vertices_coords, edges_vertices
-  }, epsilon = math.core.EPSILON) {
-    const edge_count = edges_vertices.length;
-    const edges = edges_vertices
-      .map(ev => ev.map(v => vertices_coords[v]));
-    const edgeObjects = edges.map(e => ({
-      origin: e[0],
-      vector: [e[1][0] - e[0][0], e[1][1] - e[0][1]]
-    }));
-    const crossings = Array.from(Array(edge_count - 1)).map(() => []);
-    const intersectFunc = math.intersect.lines.exclude_s_s;
-    for (let i = 0; i < edges.length - 1; i += 1) {
-      for (let j = i + 1; j < edges.length; j += 1) {
-        crossings[i][j] = math.intersect.lines
-          .intersect(edgeObjects[i], edgeObjects[j], intersectFunc, epsilon);
-      }
-    }
-    const edges_intersections = Array.from(Array(edge_count)).map(() => []);
-    for (let i = 0; i < edges.length - 1; i += 1) {
-      for (let j = i + 1; j < edges.length; j += 1) {
-        if (crossings[i][j] != null) {
-          edges_intersections[i].push(crossings[i][j]);
-          edges_intersections[j].push(crossings[i][j]);
-        }
-      }
-    }
-    return edges_intersections;
-  };
   const fragment = function (graph, epsilon = math.core.EPSILON) {
+    remove_duplicate_vertices(graph, epsilon);
     const horizSort = function (a, b) { return a[0] - b[0]; };
     const vertSort = function (a, b) { return a[1] - b[1]; };
     const edges_alignment = make_edges_verticalness(graph);
@@ -2476,7 +2527,7 @@
       .sort(edges_alignment[i] ? horizSort : vertSort));
     const new_edges_vertices_cleaned = new_edges_vertices
       .map(ev => ev
-        .filter((e, i, arr) => !are_vertices_equivalent(e, arr[(i + 1) % arr.length])))
+        .filter((e, i, arr) => !are_vertices_equivalent$1(e, arr[(i + 1) % arr.length])))
       .filter(edge => edge.length);
     let new_edges = new_edges_vertices_cleaned
       .map(ev => Array.from(Array(ev.length - 1))
@@ -2503,7 +2554,7 @@
       .from(Array(vertices_coords.length)).map(() => []);
     for (let i = 0; i < vertices_coords.length - 1; i += 1) {
       for (let j = i + 1; j < vertices_coords.length; j += 1) {
-        vertices_equivalent[i][j] = are_vertices_equivalent(
+        vertices_equivalent[i][j] = are_vertices_equivalent$1(
           vertices_coords[i],
           vertices_coords[j],
           epsilon
@@ -2549,7 +2600,6 @@
               : edges_map[j];
           }
         }));
-    console.log("edges_map", edges_map);
     if (graph.edges_assignment) {
       edges_map.forEach((e, i) => {
         if (e !== undefined) {
@@ -4515,7 +4565,7 @@
     }
   };
 
-  const are_vertices_equivalent$1 = function (a, b, epsilon = math.core.EPSILON) {
+  const are_vertices_equivalent$2 = function (a, b, epsilon = math.core.EPSILON) {
     if (a.length !== b.length) {
       return false;
     }
@@ -4530,7 +4580,7 @@
     const sourceMap = source.vertices_coords.map(() => undefined);
     for (let i = 0; i < target.vertices_coords.length; i += 1) {
       for (let j = 0; j < source.vertices_coords.length; j += 1) {
-        if (are_vertices_equivalent$1(target.vertices_coords[i], source.vertices_coords[j], epsilon)) {
+        if (are_vertices_equivalent$2(target.vertices_coords[i], source.vertices_coords[j], epsilon)) {
           sourceMap[j] = i;
           j = source.vertices_coords.length;
         }
@@ -10304,44 +10354,6 @@
       });
     }
     return result;
-  };
-
-  const are_vertices_equivalent$2 = function (a, b, epsilon = math.core.EPSILON) {
-    const max = a.length < 2 ? a.length : 2;
-    for (let i = 0; i < max; i += 1) {
-      if (Math.abs(a[i] - b[i]) > epsilon) {
-        return false;
-      }
-    }
-    return true;
-  };
-  const remove_duplicate_vertices = (g, epsilon = math.core.EPSILON) => {
-    const vertices_equivalent = Array
-      .from(Array(g.vertices_coords.length)).map(() => []);
-    for (let i = 0; i < g.vertices_coords.length - 1; i += 1) {
-      for (let j = i + 1; j < g.vertices_coords.length; j += 1) {
-        vertices_equivalent[i][j] = are_vertices_equivalent$2(
-          g.vertices_coords[i],
-          g.vertices_coords[j],
-          epsilon
-        );
-      }
-    }
-    const vertices_map = g.vertices_coords.map(() => undefined);
-    vertices_equivalent
-      .forEach((row, i) => row
-        .forEach((eq, j) => {
-          if (eq) {
-            vertices_map[j] = vertices_map[i] === undefined
-              ? i
-              : vertices_map[i];
-          }
-        }));
-    vertices_map.forEach((map, i) => {
-      if (map === undefined) { vertices_map[i] = i; }
-    });
-    console.log("vertices_equivalent", vertices_equivalent);
-    console.log("vertices_map", vertices_map);
   };
 
   var empty$1 = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"\",\n  \"file_author\": \"\",\n  \"file_title\": \"\",\n  \"file_description\": \"\",\n  \"file_classes\": [],\n  \"file_frames\": [],\n\n  \"frame_author\": \"\",\n  \"frame_title\": \"\",\n  \"frame_description\": \"\",\n  \"frame_attributes\": [],\n  \"frame_classes\": [],\n  \"frame_unit\": \"\",\n\n  \"vertices_coords\": [],\n  \"vertices_vertices\": [],\n  \"vertices_faces\": [],\n\n  \"edges_vertices\": [],\n  \"edges_faces\": [],\n  \"edges_assignment\": [],\n  \"edges_foldAngle\": [],\n  \"edges_length\": [],\n\n  \"faces_vertices\": [],\n  \"faces_edges\": [],\n\n  \"edgeOrders\": [],\n  \"faceOrders\": []\n}\n";
