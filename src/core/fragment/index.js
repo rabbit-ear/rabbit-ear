@@ -1,17 +1,10 @@
 /**
- * fragment splits overlapping edges at their intersections
- * and joins new edges at a new shared vertex.
+ * Fragment converts a graph into a planar graph. it flattens all the
+ * coordinates onto the 2D plane.
  *
- * this destroys and rebuilds all face data, leaving only:
- * - vertices_coords
- * - edges_vertices, edges_assignment, edges_foldAngle
- */
-
-/**
- * Fragment operates on edges and vertices.
- *
- * This will ensure a graph is planar by splitting overlapping edges
- * at their intersections, increasing the number of edges and vertices.
+ * it modifies edges and vertices. splitting overlapping edges
+ * at their intersections, merging vertices that lie too near to one another.
+ * # of edges may increase. # of vertices may decrease. (is that for sure?)
  *
  * This function requires an epsilon (1e-6), for example a busy
  * edge crossing should be able to resolve to one point
@@ -24,238 +17,46 @@
  *
  * 3. replace the edge with a new, rebuilt, sequence of edges, with
  *    new vertices.
- *
- *
- *
  */
 
 import math from "../../../include/math";
-import remove from "../remove";
-import {
-  fold_keys,
-  edge_assignment_to_foldAngle
-} from "../keys";
+import { get_graph_keys_with_prefix } from "../keys";
 import removeDuplicateVertices from "../duplicate_vertices";
 import make_edges_intersections from "./edges_intersections";
-
-// permissively ignores anything above 2D
-const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
-  const max = a.length < 2 ? a.length : 2;
-  for (let i = 0; i < max; i += 1) {
-    if (Math.abs(a[i] - b[i]) > epsilon) {
-      return false;
-    }
-  }
-  return true;
-};
-
-const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = math.core.EPSILON) {
-  const edge0_1 = [edge0[0] - edge1[0], edge0[1] - edge1[1]];
-  const edge0_p = [edge0[0] - point[0], edge0[1] - point[1]];
-  const edge1_p = [edge1[0] - point[0], edge1[1] - point[1]];
-  const dEdge = Math.sqrt(edge0_1[0] * edge0_1[0] + edge0_1[1] * edge0_1[1]);
-  const dP0 = Math.sqrt(edge0_p[0] * edge0_p[0] + edge0_p[1] * edge0_p[1]);
-  const dP1 = Math.sqrt(edge1_p[0] * edge1_p[0] + edge1_p[1] * edge1_p[1]);
-  return Math.abs(dEdge - dP0 - dP1) < epsilon;
-};
-
-const edges_vertices_equivalent = function (a, b) {
-  return (a[0] === b[0] && a[1] === b[1]) || (a[0] === b[1] && a[1] === b[0]);
-};
-
-const make_edges_collinearVertices = function ({
-  vertices_coords, edges_vertices
-}, epsilon = math.core.EPSILON) {
-  const edges = edges_vertices
-    .map(ev => ev.map(v => vertices_coords[v]));
-  return edges.map(e => vertices_coords
-    .filter(v => point_on_edge_exclusive(v, e[0], e[1], epsilon)));
-};
-
-/**
- * is an edge more vertical than it is horizontal.
- * @return {array} of boolean. edge is true/false, more vertical/horizontal
- */
-const make_edges_verticalness = function ({ vertices_coords, edges_vertices }) {
-  const edges = edges_vertices
-    .map(ev => ev.map(v => vertices_coords[v]));
-  const edges_vector = edges
-    .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
-  const edges_magnitude = edges_vector
-    .map(e => Math.sqrt(e[0] * e[0] + e[1] * e[1]));
-  const edges_normalized = edges_vector
-    .map((e, i) => [e[0] / edges_magnitude[i], e[1] / edges_magnitude[i]]);
-  return edges_normalized.map(e => Math.abs(e[0]) > 0.707);
-};
+import make_edges_collinearVertices from "./edges_collinear";
 
 /**
  * the trivial case is sorting points horizontally (along the vector [1,0])
  * this generalizes this. sort an array of points along any direction.
  */
-const sortPointsAlongVector = (points, vector) => points
-  .map((p, i) => ({
-    p,
+const sortVertexIndicesAlongVector = (graph, indices, vector) => indices
+  .map(i => ({
     i,
-    d: p[0] * vector[0] + p[1] * vector[1]
+    d: graph.vertices_coords[i][0] * vector[0] + graph.vertices_coords[i][1] * vector[1]
   }))
   .sort((a, b) => a.d - b.d)
-  .map(a => a.p);
+  .map(a => a.i);
 
-const fragment = function (graph, epsilon = math.core.EPSILON) {
-  removeDuplicateVertices(graph, epsilon);
-
-  const horizSort = function (a, b) { return a[0] - b[0]; };
-  const vertSort = function (a, b) { return a[1] - b[1]; };
-  // when we rebuild an edge we need the intersection points sorted so we can
-  // walk down it and rebuild one by one. should the walk proceed
-  // horizontally or vertically?
-  const edges_alignment = make_edges_verticalness(graph);
-  const edges = graph.edges_vertices
-    .map(ev => ev.map(v => graph.vertices_coords[v]));
-  edges.forEach((e, i) => e.sort(edges_alignment[i] ? horizSort : vertSort));
-  // for each edge, get all the intersection points
-  const edges_intersections = make_edges_intersections(graph, epsilon);
-  // this does 2 very important things
-  // 1) gather all the intersection points (that don't count as crossings)
-  //    where an edge ends somewhere along the middle of this edge.
-  // 2) get the edges endpoints. needed for when we re-build the edge.
-  const edges_collinearVertices = make_edges_collinearVertices(graph, epsilon);
-  const new_edges_vertices = edges_intersections
-    .map((a, i) => a.concat(edges_collinearVertices[i]));
-  new_edges_vertices.forEach((e, i) => e
-    .sort(edges_alignment[i] ? horizSort : vertSort));
-  // there are duplicate vertices.
-  // since vertices are sorted we can remove duplicates by checking the array neighbor
-  const new_edges_vertices_cleaned = new_edges_vertices
-    .map(ev => ev
-      .filter((e, i, arr) => !are_vertices_equivalent(e, arr[(i + 1) % arr.length])))
-    .filter(edge => edge.length);
-
-  let new_edges = new_edges_vertices_cleaned
-    // .map((e, i) => [edges[i][0], ...e, edges[i][1]])
-    .map(ev => Array.from(Array(ev.length - 1))
-      .map((_, i) => [ev[i], ev[(i + 1)]]));
-  // remove degenerate edges
-  const TEST_A = new_edges.length;
-  new_edges = new_edges
-    .map(edgeGroup => edgeGroup
-      .filter(e => false === e
-        .map((_, i) => Math.abs(e[0][i] - e[1][i]) < epsilon)
-        .reduce((a, b) => a && b, true)));
-  const TEST_B = new_edges.length;
-  // if this message never shows up, we can probably remove the reconstruction above
-  if (TEST_A !== TEST_B) { console.log("fragment() remove degenerate edges is needed!"); }
-  // let edge_map = new_edges.map(edge => edge.map(_ => counter++));
-  const edge_map = new_edges
-    .map((edge, i) => edge.map(() => i))
-    .reduce((a, b) => a.concat(b), []);
-  // remove duplicate vertices
-  const vertices_coords = new_edges
-    .map(edge => edge.reduce((a, b) => a.concat(b), []))
-    .reduce((a, b) => a.concat(b), []);
-  let counter = 0;
-  // x++ stores the value before incrementing. first item is 0.
-  const edges_vertices = new_edges
-    .map(edge => edge.map(() => [counter++, counter++]))
-    .reduce((a, b) => a.concat(b), []);
-  const vertices_equivalent = Array
-    .from(Array(vertices_coords.length)).map(() => []);
-  for (let i = 0; i < vertices_coords.length - 1; i += 1) {
-    for (let j = i + 1; j < vertices_coords.length; j += 1) {
-      vertices_equivalent[i][j] = are_vertices_equivalent(
-        vertices_coords[i],
-        vertices_coords[j],
-        epsilon
-      );
+const getUniqueVerticesIndicesFromEdges = (graph, edges_indices) => {
+  const nonunique = edges_indices
+    .map(e => graph.edges_vertices[e])
+    .reduce((a, b) => a.concat(b), [])
+    .sort((a, b) => a - b);
+  const uniqueVertices = nonunique.length ? [nonunique[0]] : [];
+  for (let i = 1; i < nonunique.length; i += 1) {
+    if (nonunique[i] !== nonunique[i - 1]) {
+      uniqueVertices.push(nonunique[i]);
     }
   }
-  const vertices_map = vertices_coords.map(() => undefined);
-  vertices_equivalent
-    .forEach((row, i) => row
-      .forEach((eq, j) => {
-        if (eq) {
-          vertices_map[j] = vertices_map[i] === undefined
-            ? i
-            : vertices_map[i];
-        }
-      }));
-  const vertices_remove = vertices_map.map(m => m !== undefined);
-  vertices_map.forEach((map, i) => {
-    if (map === undefined) { vertices_map[i] = i; }
-  });
-  edges_vertices
-    .forEach((edge, i) => edge
-      .forEach((v, j) => {
-        edges_vertices[i][j] = vertices_map[v];
-      }));
-  // remove duplicate edges
-  const edges_equivalent = Array
-    .from(Array(edges_vertices.length)).map(() => []);
-  for (let i = 0; i < edges_vertices.length - 1; i += 1) {
-    for (let j = i + 1; j < edges_vertices.length; j += 1) {
-      edges_equivalent[i][j] = edges_vertices_equivalent(
-        edges_vertices[i],
-        edges_vertices[j]
-      );
-    }
-  }
-  const edges_map = edges_vertices.map(() => undefined);
-  edges_equivalent
-    .forEach((row, i) => row
-      .forEach((eq, j) => {
-        if (eq) {
-          // edges_map[j] = edges_map[i] === undefined
-          //   ? i
-          //   : edges_map[i];
-          // save the last ones in the array, not the first
-          edges_map[i] = edges_map[j] === undefined
-            ? j
-            : edges_map[j];
-        }
-      }));
-  // if ANY edge from a set of duplicates is assignment BOUNDARY it takes precedent.
-  // force the remaining one to be boundary.
-  // todo: this fix is currently modifying the input graph.
-  // make it leave the input graph untouched.
+  return uniqueVertices;
+};
 
-  // TODO ERROR HERE, edges_assignment not defined
-  if (graph.edges_assignment) {
-    edges_map.forEach((e, i) => {
-      if (e !== undefined) {
-        if (["B", "b"].includes(graph.edges_assignment[i])) {
-          graph.edges_assignment[e] = "B";
-        }
-      }
-    });
-  }
-  const edges_dont_remove = edges_map.map(m => m === undefined);
-  edges_map.forEach((map, i) => {
-    if (map === undefined) { edges_map[i] = i; }
-  });
-  const edges_vertices_cl = edges_vertices.filter((_, i) => edges_dont_remove[i]);
-  const edge_map_cl = edge_map.filter((_, i) => edges_dont_remove[i]);
-
-  const flat = {
-    vertices_coords,
-    edges_vertices: edges_vertices_cl
-  };
-  if (graph.edges_assignment != null) {
-    flat.edges_assignment = edge_map_cl
-      .map(i => graph.edges_assignment[i] || "U");
-  }
-  if (graph.edges_foldAngle != null) {
-    flat.edges_foldAngle = edge_map_cl.map((i, j) => (
-      graph.edges_foldAngle[i]
-      || edge_assignment_to_foldAngle(flat.edges_assignment[j])));
-  }
-  const vertices_remove_indices = vertices_remove
-    .map((rm, i) => (rm ? i : undefined))
-    .filter(i => i !== undefined);
-  remove(flat, "vertices", vertices_remove_indices);
-
-  // done. we can return a copy of the changes, or modify directly
-  fold_keys.graph.forEach(key => delete graph[key]);
-  Object.assign(graph, flat);
+/**
+ * new fragment function will operate on a subset of the graph.
+ * specify the new edges, this will compute a Euclidean intersection
+ * against all the other graph edges to limit the edges and vertices.
+ */
+const fragment = function (graph, unset_edges_indices, epsilon = math.core.EPSILON) {
   delete graph.faces_vertices;
   delete graph.faces_edges;
   delete graph.faces_faces;
@@ -263,8 +64,136 @@ const fragment = function (graph, epsilon = math.core.EPSILON) {
   delete graph.edges_length;
   delete graph.vertices_faces;
   delete graph.vertices_edges;
-  // Object.keys(flat).forEach((key) => { graph[key] = flat[key]; });
-  // return flat;
+  // this is required for both new and old vertices.
+  // new edges may have been added whose endpoints match another existing
+  // vertex. additionally, if the graph is already planar but the epsilon
+  // has increased this time around, we need to merge vertices before
+  // anything else.
+  removeDuplicateVertices(graph, epsilon);
+  // at this point, the length of the vertex array may have changed.
+  // however, the length of the edges array will be the same.
+  // though the contents of edges_vertices might have changed due to
+  // vertices being merged.
+  if (unset_edges_indices == null) {
+    unset_edges_indices = graph.edges_vertices.map((_, i) => i);
+  }
+  // these new edges contain vertices which could be sitting collinear
+  // along an existing edge
+  const unset_vertices_indices = getUniqueVerticesIndicesFromEdges(
+    graph, unset_edges_indices
+  );
+  const edges_coords = graph.edges_vertices
+    .map(ev => ev.map(v => graph.vertices_coords[v]));
+  // when we rebuild an edge we need the intersection points sorted
+  // so we can walk down it and rebuild one by one. sort along vector
+  const edges_vector = edges_coords
+    .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+  const edges_origin = edges_coords
+    .map(e => e[0]);
+
+  // for each edge, get all the intersection points
+  // this array will match edges_, each an array containing intersection
+  // points (an [x,y] array), with an important detail, because each edge
+  // intersects with another edge, this [x,y] point is a shallow pointer
+  // to the same one in the other edge's intersection array.
+  const edges_intersections = make_edges_intersections(edges_vector, edges_origin, epsilon);
+
+  // check the new edges' vertices against every edge, in case
+  // one of the endpoints lies along an edge.
+  const edges_collinearVertices = make_edges_collinearVertices(
+    graph, edges_coords, unset_vertices_indices, epsilon
+  );
+
+  // remember, edges_intersections contains intersections [x,y] points
+  // each one appears twice (both edges that intersect) and is the same
+  // object, shallow pointer.
+  //
+  // iterate over this list and move each vertex into new_vertices_coords.
+  // in their place put the index of this new vertex in the new array.
+  // when we get to the second appearance of the same point, it will have
+  // been replaced with the index, so we can skip it. (check length of
+  // item, 2=point, 1=index)
+  const new_vertices_coords = [];
+  // add new vertices (intersection points) to the graph
+  edges_intersections.forEach(edge => edge
+    .forEach((intersect) => {
+      if (intersect.length === 2) {
+        const newIndex = graph.vertices_coords.length + new_vertices_coords.length;
+        new_vertices_coords.push([...intersect]);
+        intersect.splice(0, intersect.length);
+        intersect.push(newIndex);
+      }
+    }));
+
+  // remove holes from edges_intersections
+  const edges_new_intersection_vertex_indices = edges_intersections
+    .map(arr => arr
+      .filter(() => true)
+      .reduce((c, d) => c.concat(d), []));
+
+  // modify graph
+  // add new intersection points to the vertices_coords array
+  new_vertices_coords.forEach(coords => graph.vertices_coords.push(coords));
+
+  // 2 things
+  // for every edge, join together collinear + new intersection points
+  // then, sort the new points along the edge_vector direction
+  const sorted_added_edges_vertices = edges_new_intersection_vertex_indices
+    .map((a, i) => a.concat(edges_collinearVertices[i]))
+    .map((verts, i) => sortVertexIndicesAlongVector(graph, verts, edges_vector[i]));
+
+  // edges_with_added_vertices is an expanded form of
+  // sorted_added_edges_vertices, but with the original endpoints added
+  // along either side. each edge will look something like
+  // [2, 53, 59, 41, 3] where [2, 3] was the original edge.
+  const edges_with_added_vertices = [];
+  sorted_added_edges_vertices.forEach((new_verts, i) => {
+    if (new_verts.length) {
+      edges_with_added_vertices[i] = [graph.edges_vertices[i][0]]
+        .concat(new_verts)
+        .concat([graph.edges_vertices[i][1]]);
+    }
+  });
+
+  // new edges_vertices are currently in this form: [2, 53, 59, 41, 3]
+  // leave in place the first pair ([2, 53]), and for every additional
+  // pair create a new entry for the edge in new_edges_vertices
+  const new_edges_vertices = [];
+  const new_edges_prev_index = [];
+  edges_with_added_vertices.forEach((verts, i) => {
+    for (let j = 2; j < verts.length; j += 1) {
+      new_edges_vertices.push([verts[j - 1], verts[j]]);
+      new_edges_prev_index.push(i);
+    }
+    verts.splice(2, verts.length - 2);
+  });
+  // at this point, new edge definitions are spread across in 2 places.
+  // (1) edges_with_added_vertices, the first portion of the new edge
+  // (2) new_edges_vertices, all the additional parts of each new edge
+
+  // update (1) the first portion of the new edges
+  edges_with_added_vertices.forEach((ev, i) => {
+    graph.edges_vertices[i] = ev;
+  });
+
+  // before we add new edges, bring along any other definitions from the
+  // other flat arrays, like edges_foldAngle, edges_assignment.
+  // these get copied (shallow copy) to the new index.
+  // todo this might become a problem with objects, not strings or numbers.
+  const edges_keys = get_graph_keys_with_prefix(graph, "edges")
+    .filter(a => a !== "edges_vertices");
+  // update (2) the new edges from new_edges_vertices, along with their
+  // additional edges_ keys
+  const edges_length = graph.edges_vertices.length;
+  new_edges_vertices.forEach((ev, i) => {
+    const newI = i + edges_length;
+    const refI = new_edges_prev_index[i];
+    graph.edges_vertices[newI] = ev;
+    // todo, this is a shallow copy if the element is an array.
+    edges_keys.forEach((key) => { graph[key][newI] = graph[key][refI]; });
+  });
+
+  removeDuplicateVertices(graph, epsilon);
 };
 
 export default fragment;

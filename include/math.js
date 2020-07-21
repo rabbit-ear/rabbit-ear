@@ -725,25 +725,26 @@ const exclude_r_r = (t0, t1) => t0 > EPSILON && t1 > EPSILON;
 const exclude_r_s = (t0, t1) => t0 > EPSILON && t1 > EPSILON && t1 < 1 - EPSILON;
 const exclude_s_s = (t0, t1) => t0 > EPSILON && t0 < 1 - EPSILON && t1 > EPSILON
   && t1 < 1 - EPSILON;
-const intersect = (a, b, compFunc, epsilon = EPSILON) => {
-  const denominator0 = cross2(a.vector, b.vector);
+const intersect_2D = (aVector, aOrigin, bVector, bOrigin, compFunc, epsilon = EPSILON) => {
+  const denominator0 = cross2(aVector, bVector);
   if (Math.abs(denominator0) < epsilon) { return undefined; }
   const denominator1 = -denominator0;
-  const numerator0 = cross2([
-    b.origin[0] - a.origin[0],
-    b.origin[1] - a.origin[1]],
-  b.vector);
-  const numerator1 = cross2([
-    a.origin[0] - b.origin[0],
-    a.origin[1] - b.origin[1]],
-  a.vector);
+  const aOriX = aOrigin[0];
+  const aOriY = aOrigin[1];
+  const bOriX = bOrigin[0];
+  const bOriY = bOrigin[1];
+  const numerator0 = cross2([bOriX - aOriX, bOriY - aOriY], bVector);
+  const numerator1 = cross2([aOriX - bOriX, aOriY - bOriY], aVector);
   const t0 = numerator0 / denominator0;
   const t1 = numerator1 / denominator1;
   if (compFunc(t0, t1, epsilon)) {
-    return [a.origin[0] + a.vector[0] * t0, a.origin[1] + a.vector[1] * t0];
+    return [aOriX + aVector[0] * t0, aOriY + aVector[1] * t0];
   }
   return undefined;
 };
+const intersect = (a, b, compFunc, epsilon = EPSILON) => intersect_2D(
+  a.vector, a.origin, b.vector, b.origin, compFunc, epsilon
+);
 
 var IntersectionLines = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -758,6 +759,7 @@ var IntersectionLines = /*#__PURE__*/Object.freeze({
   exclude_r_r: exclude_r_r,
   exclude_r_s: exclude_r_s,
   exclude_s_s: exclude_s_s,
+  intersect_2D: intersect_2D,
   intersect: intersect
 });
 
@@ -1640,7 +1642,7 @@ var Segment = {
       midpoint: function () {
         return Constructors.vector(average(this.points[0], this.points[1]));
       },
-      path: function () {
+      svgPath: function () {
         const pointStrings = this.points.map(p => `${p[0]} ${p[1]}`);
         return ["M", "L"].map((cmd, i) => `${cmd}${pointStrings[i]}`)
           .join("");
@@ -1720,7 +1722,7 @@ const CircleMethods = {
   intersect: function (object) {
     return intersect$1(this, object);
   },
-  path: function (arcStart = 0, deltaArc = Math.PI * 2) {
+  svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
     const info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
     const arc1 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x2, info.y2);
     const arc2 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x3, info.y3);
@@ -1987,7 +1989,7 @@ var Polygon = {
     M: {
       segments: function () {
         return this.sides;
-      }
+      },
     },
     S: {
       fromPoints: function () {

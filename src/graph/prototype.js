@@ -144,8 +144,12 @@ GraphProto.populate = function () {
   populate(this);
   this.changed.update(this.populate);
 };
-GraphProto.fragment = function (epsilon = math.core.EPSILON) {
-  fragment(this, epsilon);
+// GraphProto.fragment = function (epsilon = math.core.EPSILON) {
+//   fragment(this, epsilon);
+//   this.changed.update(this.fragment);
+// };
+GraphProto.fragment = function (edges, epsilon = math.core.EPSILON) {
+  fragment(this, edges, epsilon);
   this.changed.update(this.fragment);
 };
 GraphProto.rebuild = function (epsilon = math.core.EPSILON) {
