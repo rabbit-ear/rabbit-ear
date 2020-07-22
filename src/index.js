@@ -52,7 +52,7 @@ import * as kawasaki from "./kawasaki/index";
 import split_edge_run from "./core/split_edge_run";
 import validateDefault from "./core/validate";
 import build_diagram_frame from "./diagram/diagram_frame";
-import remove_duplicate_vertices from "./core/duplicate_vertices";
+import merge_duplicate_vertices from "./core/duplicateVertices";
 import { merge_run_diffs, apply_run_diff } from "./fold-through-all/run_frame";
 
 // origami bases
@@ -102,7 +102,7 @@ core.remove = remove;
 core.rebuild = rebuild;
 core.populate = populate;
 core.validate = validateDefault;
-core.remove_duplicate_vertices = remove_duplicate_vertices;
+core.merge_duplicate_vertices = merge_duplicate_vertices;
 
 // load bases
 const b = {

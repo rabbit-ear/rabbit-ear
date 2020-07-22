@@ -21,9 +21,10 @@
 
 import math from "../../../include/math";
 import { get_graph_keys_with_prefix } from "../keys";
-import removeDuplicateVertices from "../duplicate_vertices";
+// import removeDuplicateVertices from "../duplicate_vertices";
 import make_edges_intersections from "./edges_intersections";
 import make_edges_collinearVertices from "./edges_collinear";
+import mergeDuplicateVertices from "../duplicateVertices";
 
 /**
  * the trivial case is sorting points horizontally (along the vector [1,0])
@@ -57,6 +58,7 @@ const getUniqueVerticesIndicesFromEdges = (graph, edges_indices) => {
  * against all the other graph edges to limit the edges and vertices.
  */
 const fragment = function (graph, unset_edges_indices, epsilon = math.core.EPSILON) {
+
   delete graph.faces_vertices;
   delete graph.faces_edges;
   delete graph.faces_faces;
@@ -69,7 +71,7 @@ const fragment = function (graph, unset_edges_indices, epsilon = math.core.EPSIL
   // vertex. additionally, if the graph is already planar but the epsilon
   // has increased this time around, we need to merge vertices before
   // anything else.
-  removeDuplicateVertices(graph, epsilon);
+  mergeDuplicateVertices(graph, epsilon);
   // at this point, the length of the vertex array may have changed.
   // however, the length of the edges array will be the same.
   // though the contents of edges_vertices might have changed due to
@@ -192,8 +194,7 @@ const fragment = function (graph, unset_edges_indices, epsilon = math.core.EPSIL
     // todo, this is a shallow copy if the element is an array.
     edges_keys.forEach((key) => { graph[key][newI] = graph[key][refI]; });
   });
-
-  removeDuplicateVertices(graph, epsilon);
+  mergeDuplicateVertices(graph, epsilon);
 };
 
 export default fragment;

@@ -2339,6 +2339,223 @@
     transpose_graph_array_at_index: transpose_graph_array_at_index
   });
 
+  const make_edges_intersections = function (
+    edges_vector, edges_origin, epsilon = math.core.EPSILON
+  ) {
+    const indices = edges_vector.map((_, i) => i).filter(a => a !== null);
+    const intersectFunc = math.intersect.lines.exclude_s_s;
+    const edges_intersections = edges_vector.map(() => []);
+    for (let ii = 0; ii < indices.length - 1; ii += 1) {
+      for (let jj = ii + 1; jj < indices.length; jj += 1) {
+        const i = indices[ii];
+        const j = indices[jj];
+        const crossing = math.intersect.lines.intersect_2D(
+          edges_vector[i],
+          edges_origin[i],
+          edges_vector[j],
+          edges_origin[j],
+          intersectFunc,
+          epsilon
+        );
+        if (crossing !== undefined) {
+          edges_intersections[i][j] = crossing;
+          edges_intersections[j][i] = crossing;
+        }
+      }
+    }
+    return edges_intersections;
+  };
+
+  const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = math.core.EPSILON) {
+    const edge0_1 = [edge0[0] - edge1[0], edge0[1] - edge1[1]];
+    const edge0_p = [edge0[0] - point[0], edge0[1] - point[1]];
+    const edge1_p = [edge1[0] - point[0], edge1[1] - point[1]];
+    const dEdge = Math.sqrt(edge0_1[0] * edge0_1[0] + edge0_1[1] * edge0_1[1]);
+    const dP0 = Math.sqrt(edge0_p[0] * edge0_p[0] + edge0_p[1] * edge0_p[1]);
+    const dP1 = Math.sqrt(edge1_p[0] * edge1_p[0] + edge1_p[1] * edge1_p[1]);
+    return Math.abs(dEdge - dP0 - dP1) < epsilon * 2;
+  };
+  const make_edges_collinearVertices = function (
+    graph,
+    edges_coords,
+    potential_collinear_vertices_indices,
+    epsilon = math.core.EPSILON
+  ) {
+    const collinear_vertices = edges_coords
+      .map(e => potential_collinear_vertices_indices
+        .filter(vi => point_on_edge_exclusive(
+          graph.vertices_coords[vi], e[0], e[1], epsilon
+        )));
+    return collinear_vertices
+      .map((cv, i) => cv
+        .filter(vi => graph.edges_vertices[i].indexOf(vi) === -1));
+  };
+
+  const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
+    const degree = a.length;
+    for (let i = 0; i < degree; i += 1) {
+      if (Math.abs(a[i] - b[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const dbscan = (graph, epsilon = math.core.EPSILON) => {
+    const equivalent = graph.vertices_coords.map(() => []);
+    for (let i = 0; i < graph.vertices_coords.length - 1; i += 1) {
+      for (let j = i + 1; j < graph.vertices_coords.length; j += 1) {
+        equivalent[i][j] = are_vertices_equivalent(
+          graph.vertices_coords[i],
+          graph.vertices_coords[j],
+          epsilon
+        );
+      }
+    }
+    const clusters = [];
+    const visited = Array(graph.vertices_coords.length).fill(false);
+    let visitedCount = 0;
+    const squashed = equivalent
+      .map(equiv => equiv
+        .map((el, j) => (el ? j : undefined))
+        .filter(a => a !== undefined));
+    const recurse = (cluster_index, i) => {
+      if (visited[i] || visitedCount === graph.vertices_coords.length) { return; }
+      visited[i] = true;
+      visitedCount += 1;
+      if (!clusters[cluster_index]) { clusters[cluster_index] = []; }
+      clusters[cluster_index].push(i);
+      while (squashed[i].length > 0) {
+        recurse(cluster_index, squashed[i][0]);
+        squashed[i].splice(0, 1);
+      }
+    };
+    for (let i = 0; i < graph.vertices_coords.length; i += 1) {
+      recurse(i, i);
+      if (visitedCount === graph.vertices_coords.length) { break; }
+    }
+    return clusters.filter(a => a.length);
+  };
+
+  const merge_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
+    const clusters = dbscan(graph, epsilon);
+    const map = [];
+    for (let i = 0; i < clusters.length; i += 1) {
+      for (let j = 0; j < clusters[i].length; j += 1) {
+        map[clusters[i][j]] = i;
+      }
+    }
+    const new_vertices_coords = clusters
+      .map(arr => arr.map(i => graph.vertices_coords[i]))
+      .map(arr => math.core.average(...arr));
+    graph.vertices_coords = new_vertices_coords;
+    get_graph_keys_with_suffix(graph, "vertices").forEach((key) => {
+      const arr_vertices = graph[key];
+      for (let i = 0; i < arr_vertices.length; i += 1) {
+        for (let j = 0; j < arr_vertices[i].length; j += 1) {
+          arr_vertices[i][j] = map[arr_vertices[i][j]];
+        }
+      }
+    });
+    get_graph_keys_with_prefix(graph, "vertices")
+      .filter(a => a !== "vertices_coords")
+      .forEach(key => delete graph[key]);
+  };
+
+  const sortVertexIndicesAlongVector = (graph, indices, vector) => indices
+    .map(i => ({
+      i,
+      d: graph.vertices_coords[i][0] * vector[0] + graph.vertices_coords[i][1] * vector[1]
+    }))
+    .sort((a, b) => a.d - b.d)
+    .map(a => a.i);
+  const getUniqueVerticesIndicesFromEdges = (graph, edges_indices) => {
+    const nonunique = edges_indices
+      .map(e => graph.edges_vertices[e])
+      .reduce((a, b) => a.concat(b), [])
+      .sort((a, b) => a - b);
+    const uniqueVertices = nonunique.length ? [nonunique[0]] : [];
+    for (let i = 1; i < nonunique.length; i += 1) {
+      if (nonunique[i] !== nonunique[i - 1]) {
+        uniqueVertices.push(nonunique[i]);
+      }
+    }
+    return uniqueVertices;
+  };
+  const fragment = function (graph, unset_edges_indices, epsilon = math.core.EPSILON) {
+    delete graph.faces_vertices;
+    delete graph.faces_edges;
+    delete graph.faces_faces;
+    delete graph.edges_faces;
+    delete graph.edges_length;
+    delete graph.vertices_faces;
+    delete graph.vertices_edges;
+    merge_duplicate_vertices(graph, epsilon);
+    if (unset_edges_indices == null) {
+      unset_edges_indices = graph.edges_vertices.map((_, i) => i);
+    }
+    const unset_vertices_indices = getUniqueVerticesIndicesFromEdges(
+      graph, unset_edges_indices
+    );
+    const edges_coords = graph.edges_vertices
+      .map(ev => ev.map(v => graph.vertices_coords[v]));
+    const edges_vector = edges_coords
+      .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+    const edges_origin = edges_coords
+      .map(e => e[0]);
+    const edges_intersections = make_edges_intersections(edges_vector, edges_origin, epsilon);
+    const edges_collinearVertices = make_edges_collinearVertices(
+      graph, edges_coords, unset_vertices_indices, epsilon
+    );
+    const new_vertices_coords = [];
+    edges_intersections.forEach(edge => edge
+      .forEach((intersect) => {
+        if (intersect.length === 2) {
+          const newIndex = graph.vertices_coords.length + new_vertices_coords.length;
+          new_vertices_coords.push([...intersect]);
+          intersect.splice(0, intersect.length);
+          intersect.push(newIndex);
+        }
+      }));
+    const edges_new_intersection_vertex_indices = edges_intersections
+      .map(arr => arr
+        .filter(() => true)
+        .reduce((c, d) => c.concat(d), []));
+    new_vertices_coords.forEach(coords => graph.vertices_coords.push(coords));
+    const sorted_added_edges_vertices = edges_new_intersection_vertex_indices
+      .map((a, i) => a.concat(edges_collinearVertices[i]))
+      .map((verts, i) => sortVertexIndicesAlongVector(graph, verts, edges_vector[i]));
+    const edges_with_added_vertices = [];
+    sorted_added_edges_vertices.forEach((new_verts, i) => {
+      if (new_verts.length) {
+        edges_with_added_vertices[i] = [graph.edges_vertices[i][0]]
+          .concat(new_verts)
+          .concat([graph.edges_vertices[i][1]]);
+      }
+    });
+    const new_edges_vertices = [];
+    const new_edges_prev_index = [];
+    edges_with_added_vertices.forEach((verts, i) => {
+      for (let j = 2; j < verts.length; j += 1) {
+        new_edges_vertices.push([verts[j - 1], verts[j]]);
+        new_edges_prev_index.push(i);
+      }
+      verts.splice(2, verts.length - 2);
+    });
+    edges_with_added_vertices.forEach((ev, i) => {
+      graph.edges_vertices[i] = ev;
+    });
+    const edges_keys = get_graph_keys_with_prefix(graph, "edges")
+      .filter(a => a !== "edges_vertices");
+    const edges_length = graph.edges_vertices.length;
+    new_edges_vertices.forEach((ev, i) => {
+      const newI = i + edges_length;
+      const refI = new_edges_prev_index[i];
+      graph.edges_vertices[newI] = ev;
+      edges_keys.forEach((key) => { graph[key][newI] = graph[key][refI]; });
+    });
+    merge_duplicate_vertices(graph, epsilon);
+  };
+
   const max_array_length = function (...arrays) {
     return Math.max(...(arrays
       .filter(el => el !== undefined)
@@ -2392,200 +2609,6 @@
         .filter((_, i) => !removes[i]);
     });
     return index_map;
-  };
-
-  const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
-    const degree = a.length;
-    for (let i = 0; i < degree; i += 1) {
-      if (Math.abs(a[i] - b[i]) > epsilon) {
-        return false;
-      }
-    }
-    return true;
-  };
-  const remove_duplicate_vertices = (g, epsilon = math.core.EPSILON) => {
-    const vertices_equivalent = Array
-      .from(Array(g.vertices_coords.length)).map(() => []);
-    for (let i = 0; i < g.vertices_coords.length - 1; i += 1) {
-      for (let j = i + 1; j < g.vertices_coords.length; j += 1) {
-        vertices_equivalent[i][j] = are_vertices_equivalent(
-          g.vertices_coords[i],
-          g.vertices_coords[j],
-          epsilon
-        );
-      }
-    }
-    const vertices_map = g.vertices_coords.map(() => undefined);
-    for (let i = 0; i < g.vertices_coords.length - 1; i += 1) {
-      for (let j = i + 1; j < g.vertices_coords.length; j += 1) {
-        if (vertices_equivalent[i][j]) {
-          vertices_map[j] = vertices_map[i] === undefined
-            ? i
-            : vertices_map[i];
-        }
-      }
-    }
-    const vertices_remove = vertices_map
-      .map((m, i) => (m !== undefined ? i : undefined))
-      .filter(a => a !== undefined);
-    vertices_map.forEach((map, i) => {
-      if (map === undefined) { vertices_map[i] = i; }
-    });
-    const keys = get_graph_keys_with_suffix(g, "vertices");
-    for (let key = 0; key < keys.length; key += 1) {
-      const arr_vertices = g[keys[key]];
-      for (let i = 0; i < arr_vertices.length; i += 1) {
-        for (let j = 0; j < arr_vertices[i].length; j += 1) {
-          arr_vertices[i][j] = vertices_map[arr_vertices[i][j]];
-        }
-      }
-    }
-    remove_geometry_key_indices(g, "vertices", vertices_remove);
-  };
-
-  const make_edges_intersections = function (
-    edges_vector, edges_origin, epsilon = math.core.EPSILON
-  ) {
-    const indices = edges_vector.map((_, i) => i).filter(a => a !== null);
-    const intersectFunc = math.intersect.lines.exclude_s_s;
-    const edges_intersections = edges_vector.map(() => []);
-    for (let ii = 0; ii < indices.length - 1; ii += 1) {
-      for (let jj = ii + 1; jj < indices.length; jj += 1) {
-        const i = indices[ii];
-        const j = indices[jj];
-        const crossing = math.intersect.lines.intersect_2D(
-          edges_vector[i],
-          edges_origin[i],
-          edges_vector[j],
-          edges_origin[j],
-          intersectFunc,
-          epsilon
-        );
-        if (crossing !== undefined) {
-          edges_intersections[i][j] = crossing;
-          edges_intersections[j][i] = crossing;
-        }
-      }
-    }
-    return edges_intersections;
-  };
-
-  const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = math.core.EPSILON) {
-    const edge0_1 = [edge0[0] - edge1[0], edge0[1] - edge1[1]];
-    const edge0_p = [edge0[0] - point[0], edge0[1] - point[1]];
-    const edge1_p = [edge1[0] - point[0], edge1[1] - point[1]];
-    const dEdge = Math.sqrt(edge0_1[0] * edge0_1[0] + edge0_1[1] * edge0_1[1]);
-    const dP0 = Math.sqrt(edge0_p[0] * edge0_p[0] + edge0_p[1] * edge0_p[1]);
-    const dP1 = Math.sqrt(edge1_p[0] * edge1_p[0] + edge1_p[1] * edge1_p[1]);
-    return Math.abs(dEdge - dP0 - dP1) < epsilon * 2;
-  };
-  const make_edges_collinearVertices = function (
-    graph,
-    edges_coords,
-    potential_collinear_vertices_indices,
-    epsilon = math.core.EPSILON
-  ) {
-    const collinear_vertices = edges_coords
-      .map(e => potential_collinear_vertices_indices
-        .filter(vi => point_on_edge_exclusive(
-          graph.vertices_coords[vi], e[0], e[1], epsilon
-        )));
-    return collinear_vertices
-      .map((cv, i) => cv
-        .filter(vi => graph.edges_vertices[i].indexOf(vi) === -1));
-  };
-
-  const sortVertexIndicesAlongVector = (graph, indices, vector) => indices
-    .map(i => ({
-      i,
-      d: graph.vertices_coords[i][0] * vector[0] + graph.vertices_coords[i][1] * vector[1]
-    }))
-    .sort((a, b) => a.d - b.d)
-    .map(a => a.i);
-  const getUniqueVerticesIndicesFromEdges = (graph, edges_indices) => {
-    const nonunique = edges_indices
-      .map(e => graph.edges_vertices[e])
-      .reduce((a, b) => a.concat(b), [])
-      .sort((a, b) => a - b);
-    const uniqueVertices = nonunique.length ? [nonunique[0]] : [];
-    for (let i = 1; i < nonunique.length; i += 1) {
-      if (nonunique[i] !== nonunique[i - 1]) {
-        uniqueVertices.push(nonunique[i]);
-      }
-    }
-    return uniqueVertices;
-  };
-  const fragment = function (graph, unset_edges_indices, epsilon = math.core.EPSILON) {
-    remove_duplicate_vertices(graph, epsilon);
-    if (unset_edges_indices == null) {
-      unset_edges_indices = graph.edges_vertices.map((_, i) => i);
-    }
-    const unset_vertices_indices = getUniqueVerticesIndicesFromEdges(
-      graph, unset_edges_indices
-    );
-    const edges_coords = graph.edges_vertices
-      .map(ev => ev.map(v => graph.vertices_coords[v]));
-    const edges_vector = edges_coords
-      .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
-    const edges_origin = edges_coords
-      .map(e => e[0]);
-    const edges_intersections = make_edges_intersections(edges_vector, edges_origin, epsilon);
-    const edges_collinearVertices = make_edges_collinearVertices(
-      graph, edges_coords, unset_vertices_indices, epsilon
-    );
-    const new_vertices_coords = [];
-    edges_intersections.forEach(edge => edge
-      .forEach((intersect) => {
-        if (intersect.length === 2) {
-          const newIndex = graph.vertices_coords.length + new_vertices_coords.length;
-          new_vertices_coords.push([...intersect]);
-          intersect.splice(0, intersect.length);
-          intersect.push(newIndex);
-        }
-      }));
-    const edges_new_intersection_vertex_indices = edges_intersections
-      .map(arr => arr
-        .filter(() => true)
-        .reduce((c, d) => c.concat(d), []));
-    new_vertices_coords.forEach(coords => graph.vertices_coords.push(coords));
-    const sorted_added_edges_vertices = edges_new_intersection_vertex_indices
-      .map((a, i) => a.concat(edges_collinearVertices[i]))
-      .map((verts, i) => sortVertexIndicesAlongVector(graph, verts, edges_vector[i]));
-    const edges_with_added_vertices = [];
-    sorted_added_edges_vertices.forEach((new_verts, i) => {
-      if (new_verts.length) {
-        edges_with_added_vertices[i] = [graph.edges_vertices[i][0]].concat(new_verts).concat([graph.edges_vertices[i][1]]);
-      }
-    });
-    const new_edges_vertices = [];
-    const new_edges_prev_index = [];
-    edges_with_added_vertices.forEach((verts, i) => {
-      for (let j = 2; j < verts.length; j += 1) {
-        new_edges_vertices.push([verts[j - 1], verts[j]]);
-        new_edges_prev_index.push(i);
-      }
-      verts.splice(2, verts.length - 2);
-    });
-    const edges_keys = get_graph_keys_with_prefix(graph, "edges")
-      .filter(a => a !== "edges_vertices");
-    edges_with_added_vertices.forEach((ev, i) => {
-      graph.edges_vertices[i] = ev;
-    });
-    const edges_length = graph.edges_vertices.length;
-    new_edges_vertices.forEach((ev, i) => {
-      const newI = i + edges_length;
-      const refI = new_edges_prev_index[i];
-      graph.edges_vertices[newI] = ev;
-      edges_keys.forEach((key) => { graph[key][newI] = graph[key][refI]; });
-    });
-    delete graph.faces_vertices;
-    delete graph.faces_edges;
-    delete graph.faces_faces;
-    delete graph.edges_faces;
-    delete graph.edges_length;
-    delete graph.vertices_faces;
-    delete graph.vertices_edges;
-    remove_duplicate_vertices(graph, epsilon);
   };
 
   var geom = {},
@@ -10347,7 +10370,7 @@
   core.rebuild = rebuild;
   core.populate = populate;
   core.validate = Validate;
-  core.remove_duplicate_vertices = remove_duplicate_vertices;
+  core.merge_duplicate_vertices = merge_duplicate_vertices;
   const b = {
     empty: JSON.parse(empty$1),
     square: JSON.parse(square$1),

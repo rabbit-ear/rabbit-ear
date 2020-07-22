@@ -1,6 +1,6 @@
-import math from "../../include/math";
-import { get_graph_keys_with_suffix } from "./keys";
-import remove from "./remove";
+import math from "../../../include/math";
+import { get_graph_keys_with_suffix } from "../keys";
+import remove from "../remove";
 
 // permissively ignores anything above 2D
 const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
