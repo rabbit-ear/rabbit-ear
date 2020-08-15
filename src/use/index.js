@@ -1,4 +1,4 @@
-// this method allows ou to attach an outside library to this one
+// this method allows you to attach an outside library to this one
 
 const use = function (library) {
   if (typeof library !== "function"

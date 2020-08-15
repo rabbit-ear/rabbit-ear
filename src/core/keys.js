@@ -213,7 +213,7 @@ export const transpose_graph_array_at_index = function (
   index
 ) {
   const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
-  if (matching_keys.length === 0) { return []; }
+  if (matching_keys.length === 0) { return undefined; }
   const geometry = {};
   matching_keys
     .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))

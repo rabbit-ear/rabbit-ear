@@ -1,0 +1,86 @@
+const ear = require("../../rabbit-ear");
+
+test("smart detection", () => {
+  expect(ear.typeof({ x: 1, y: 2 })).toBe("vector");
+});
+
+test("primitives Typeof", () => {
+  const vector = ear.vector();
+  const matrix = ear.matrix();
+  const line = ear.line();
+  const ray = ear.ray();
+  const segment = ear.segment();
+  const circle = ear.circle();
+  const rect = ear.rect();
+  const ellipse = ear.ellipse();
+
+  expect(ear.typeof(vector)).toBe("vector");
+  expect(ear.typeof(matrix)).toBe("matrix");
+  expect(ear.typeof(line)).toBe("line");
+  expect(ear.typeof(ray)).toBe("ray");
+  expect(ear.typeof(segment)).toBe("segment");
+  expect(ear.typeof(circle)).toBe("circle");
+  expect(ear.typeof(rect)).toBe("rect");
+  expect(ear.typeof(ellipse)).toBe("ellipse");
+});
+
+test("primitives instanceof", () => {
+  const vector = ear.vector();
+  const matrix = ear.matrix();
+  const line = ear.line();
+  const ray = ear.ray();
+  const segment = ear.segment();
+  const circle = ear.circle();
+  const rect = ear.rect();
+  const ellipse = ear.ellipse();
+
+  expect(vector instanceof ear.vector).toBe(true);
+  expect(matrix instanceof ear.matrix).toBe(true);
+  expect(line instanceof ear.line).toBe(true);
+  expect(ray instanceof ear.ray).toBe(true);
+  expect(segment instanceof ear.segment).toBe(true);
+  expect(circle instanceof ear.circle).toBe(true);
+  expect(rect instanceof ear.rect).toBe(true);
+  expect(ellipse instanceof ear.ellipse).toBe(true);
+});
+
+test("primitives constructor", () => {
+  const vector = ear.vector();
+  const matrix = ear.matrix();
+  const line = ear.line();
+  const ray = ear.ray();
+  const segment = ear.segment();
+  const circle = ear.circle();
+  const rect = ear.rect();
+  const ellipse = ear.ellipse();
+
+  expect(vector.constructor === ear.vector).toBe(true);
+  expect(matrix.constructor === ear.matrix).toBe(true);
+  expect(line.constructor === ear.line).toBe(true);
+  expect(ray.constructor === ear.ray).toBe(true);
+  expect(segment.constructor === ear.segment).toBe(true);
+  expect(circle.constructor === ear.circle).toBe(true);
+  expect(rect.constructor === ear.rect).toBe(true);
+  expect(ellipse.constructor === ear.ellipse).toBe(true);
+});
+
+test("type guessing", () => {
+  const vector1 = { x: 1, y: 2, z: 3};
+  const vector2 = [1, 2, 3];
+  const line = { vector: [1, 1], origin: [0.5, 0.5]};
+  const segment = [[1,2], [4,5]];
+  const circle = {radius: 1};
+  const rect = { width: 2, height: 1 };
+
+  expect(ear.typeof(vector1)).toBe("vector");
+  expect(ear.typeof(vector2)).toBe("vector");
+  expect(ear.typeof(line)).toBe("line");
+  expect(ear.typeof(segment)).toBe("segment");
+  expect(ear.typeof(circle)).toBe("circle");
+  expect(ear.typeof(rect)).toBe("rect");
+  expect(ear.typeof({})).toBe(undefined);
+  expect(ear.typeof(4)).toBe(undefined);
+  expect(ear.typeof(true)).toBe(undefined);
+  expect(ear.typeof("s")).toBe(undefined);
+});
+

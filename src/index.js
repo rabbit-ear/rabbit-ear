@@ -18,18 +18,24 @@ import use from "./use";
 // import graph from "./graph";
 // import cp from "./cp";
 
+import * as keys from "./core/keys";
+
+const core = Object.assign(Object.create(null),
+  keys,
+);
+
 const Ear = Object.assign(root, {
   // origami,
   // graph,
   // cp,
   math: math.core,
+  core,
 });
+Ear.use = use.bind(Ear);
 
 Object.keys(math)
   .filter(key => key !== "core")
   .forEach((key) => { Ear[key] = math[key]; });
-
-Ear.use = use.bind(Ear);
 
 // const operating_systems = [
 //   isBrowser ? "browser" : "",
