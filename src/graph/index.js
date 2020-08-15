@@ -17,4 +17,7 @@ const Graph = function (object = {}) {
   );
 };
 
+Graph.prototype = prototype;
+Graph.prototype.constructor = Graph;
+
 export default Graph;

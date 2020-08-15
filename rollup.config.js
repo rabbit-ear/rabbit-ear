@@ -1,8 +1,8 @@
-import resolve from "@rollup/plugin-node-resolve";
-import { string } from "rollup-plugin-string";
-import cleanup from "rollup-plugin-cleanup";
-import babel from "rollup-plugin-babel";
-import minify from "rollup-plugin-babel-minify";
+import babel from "@rollup/plugin-babel";
+// import { terser } from "rollup-plugin-terser";
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+// import { string } from "rollup-plugin-string";
+// import cleanup from "rollup-plugin-cleanup";
 
 const version = "0.1.91";
 
@@ -15,17 +15,17 @@ module.exports = [{
     banner: `/* Rabbit Ear v${version} (c) Robby Kraft, MIT License */`,
   },
   plugins: [
-    resolve(),
-    cleanup({
-      comments: "none",
-      maxEmptyLines: 0,
-    }),
-    string({
-      include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
-    }),
+    nodeResolve(),
     // babel({
-    //   babelrc: false,
-    //   presets: [["@babel/env", { modules: false }]],
+    //   babelHelpers: "bundled",
+    //   presets: ["@babel/preset-env"]
+    // }),
+    // cleanup({
+    //   comments: "none",
+    //   maxEmptyLines: 0,
+    // }),
+    // string({
+    //   include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
     // }),
   ],
 // },
@@ -52,5 +52,4 @@ module.exports = [{
 //       include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
 //     }),
 //   ]
-}
-];
+}];

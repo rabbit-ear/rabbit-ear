@@ -96,13 +96,15 @@ const setup_face = function (f, i) {
 };
 
 const GraphProto = {};
-GraphProto.changed = changed();
+GraphProto.prototype = Object.create(Object.prototype);
+GraphProto.prototype.changed = changed();
+
 /**
  * @param {object} is a FOLD object.
  * @param {options}
  *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
  */
-GraphProto.load = function (object, options = {}) {
+GraphProto.prototype.load = function (object, options = {}) {
   if (typeof object !== "object") { return; }
   if (options.append !== true) {
     keys.forEach(key => delete this[key]);
@@ -114,14 +116,14 @@ GraphProto.load = function (object, options = {}) {
 /**
  * this performs a planar join, merging the two graphs, fragmenting, cleaning.
  */
-GraphProto.join = function (object, epsilon) {
+GraphProto.prototype.join = function (object, epsilon) {
   join(this, object, epsilon);
   this.changed.update(this.join);
 };
 /**
  * this clears all components from the graph, leaving other keys untouched.
  */
-GraphProto.clear = function () {
+GraphProto.prototype.clear = function () {
   fold_keys.graph.forEach(key => delete this[key]);
   fold_keys.orders.forEach(key => delete this[key]);
   this.changed.update(this.clear);
@@ -130,17 +132,17 @@ GraphProto.clear = function () {
  * export
  * @returns {this} a deep copy of this object
  */
-GraphProto.copy = function () {
+GraphProto.prototype.copy = function () {
   return Object.assign(Object.create(GraphProto), clone(this));
 };
 /**
  * modifiers
  */
-GraphProto.clean = function (options) {
+GraphProto.prototype.clean = function (options) {
   clean(this, options);
   this.changed.update(this.clean);
 };
-GraphProto.populate = function () {
+GraphProto.prototype.populate = function () {
   populate(this);
   this.changed.update(this.populate);
 };
@@ -148,25 +150,25 @@ GraphProto.populate = function () {
 //   fragment(this, epsilon);
 //   this.changed.update(this.fragment);
 // };
-GraphProto.fragment = function (edges, epsilon = math.core.EPSILON) {
-  fragment(this, edges, epsilon);
+GraphProto.prototype.fragment = function () {
+  fragment(this, ...arguments);
   this.changed.update(this.fragment);
 };
-GraphProto.rebuild = function (epsilon = math.core.EPSILON) {
+GraphProto.prototype.rebuild = function (epsilon = math.core.EPSILON) {
   rebuild(this, epsilon);
   this.changed.update(this.rebuild);
 };
 /**
  * transformations
  */
-GraphProto.translate = function (...args) {
+GraphProto.prototype.translate = function (...args) {
   Transform.transform_translate(this, ...args);
   this.changed.update(this.translate);
 };
-// GraphProto.rotate = function (...args) {
+// GraphProto.prototype.rotate = function (...args) {
 //   Transform.transform_rotate(this, ...args);
 // };
-GraphProto.scale = function (...args) {
+GraphProto.prototype.scale = function (...args) {
   Transform.transform_scale(this, ...args);
   this.changed.update(this.scale);
 };
@@ -204,21 +206,21 @@ const getBounds = function () {
 /**
  * graph components based on Euclidean distance
  */
-GraphProto.nearestVertex = function (...args) {
+GraphProto.prototype.nearestVertex = function (...args) {
   const index = nearest_vertex(this, math.core.get_vector(...args));
   const result = transpose_graph_array_at_index(this, "vertices", index);
   setup_vertex.call(this, result, index);
   result.index = index;
   return result;
 };
-GraphProto.nearestEdge = function (...args) {
+GraphProto.prototype.nearestEdge = function (...args) {
   const index = nearest_edge(this, math.core.get_vector(...args));
   const result = transpose_graph_array_at_index(this, "edges", index);
   setup_edge.call(this, result, index);
   result.index = index;
   return result;
 };
-GraphProto.nearestFace = function (...args) {
+GraphProto.prototype.nearestFace = function (...args) {
   const index = face_containing_point(this, math.core.get_vector(...args));
   if (index === undefined) { return undefined; }
   // todo, if point isn't inside a face, there can still exist a nearest face
@@ -227,7 +229,7 @@ GraphProto.nearestFace = function (...args) {
   result.index = index;
   return result;
 };
-GraphProto.nearest = function (...args) {
+GraphProto.prototype.nearest = function (...args) {
   const target = math.core.get_vector(...args);
   const nears = {
     vertex: this.nearestVertex(this, target),
@@ -240,12 +242,12 @@ GraphProto.nearest = function (...args) {
   return nears;
 };
 
-Object.defineProperty(GraphProto, "vertices", { get: getVertices });
-Object.defineProperty(GraphProto, "edges", { get: getEdges });
-Object.defineProperty(GraphProto, "faces", { get: getFaces });
-Object.defineProperty(GraphProto, "boundary", { get: getBoundary });
-Object.defineProperty(GraphProto, "bounds", { get: getBounds });
+Object.defineProperty(GraphProto.prototype, "vertices", { get: getVertices });
+Object.defineProperty(GraphProto.prototype, "edges", { get: getEdges });
+Object.defineProperty(GraphProto.prototype, "faces", { get: getFaces });
+Object.defineProperty(GraphProto.prototype, "boundary", { get: getBoundary });
+Object.defineProperty(GraphProto.prototype, "bounds", { get: getBounds });
 
-// Object.freeze(GraphProto);
+// Object.freeze(GraphProto.prototype);
 
-export default GraphProto;
+export default GraphProto.prototype;

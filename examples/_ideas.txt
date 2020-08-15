@@ -1,1 +1,0 @@
-a wandering point in 3D space, moving through a semi-3d folded origami, highlighting nearest vertices/edges/faces in 3d space

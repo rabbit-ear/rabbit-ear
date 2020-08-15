@@ -1,15 +1,15 @@
 import math from "../../include/math";
-import { get_keys_with_ending } from "./keys";
+import { filter_keys_with_suffix } from "./keys";
 
 const apply_matrix_to_graph = function (graph, matrix) {
   // update all vector types
-  get_keys_with_ending(graph, "coords").forEach((key) => {
+  filter_keys_with_suffix(graph, "coords").forEach((key) => {
     graph[key] = graph[key]
       .map(v => math.core.multiply_matrix2_vector2(matrix, v));
   });
   // update all matrix types
   // todo, are these being multiplied in the right order?
-  get_keys_with_ending(graph, "matrix").forEach((key) => {
+  filter_keys_with_suffix(graph, "matrix").forEach((key) => {
     graph[key] = graph[key]
       .map(m => math.core.multiply_matrices2(m, matrix));
   });
