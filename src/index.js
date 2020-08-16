@@ -11,7 +11,7 @@
 */
 
 import { isBrowser, isWebWorker, isNode } from "./environment/detect";
-import math from "../include/math";
+import math from "./math";
 import root from "./root";
 import use from "./use";
 // import origami from "./origami";

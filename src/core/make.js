@@ -1,4 +1,4 @@
-import math from "../../include/math";
+import math from "../math";
 
 // export const make_vertices_vertices = function (graph) {
 // };

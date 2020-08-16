@@ -1,6 +1,9 @@
-// MIT open source license, Robby Kraft
-
-import math from "../../include/math";
+/**
+ * Graph - a flat-array, index-based graph with faces, edges, and vertices
+ * with ability to operate in Euclidean space given vertex coordinates.
+ * The naming scheme for keys follows the FOLD format.
+ */
+import math from "../math";
 import {
   transpose_graph_arrays,
   transpose_graph_array_at_index,
@@ -9,9 +12,7 @@ import {
   file_spec,
   file_creator
 } from "../core/keys";
-import fragment from "../core/fragment";
 import clean from "../core/clean";
-import join from "../core/join";
 import rebuild from "../core/rebuild";
 import populate from "../core/populate";
 import {
@@ -114,13 +115,6 @@ GraphProto.prototype.load = function (object, options = {}) {
   this.changed.update(this.load);
 };
 /**
- * this performs a planar join, merging the two graphs, fragmenting, cleaning.
- */
-GraphProto.prototype.join = function (object, epsilon) {
-  join(this, object, epsilon);
-  this.changed.update(this.join);
-};
-/**
  * this clears all components from the graph, leaving other keys untouched.
  */
 GraphProto.prototype.clear = function () {
@@ -145,14 +139,6 @@ GraphProto.prototype.clean = function (options) {
 GraphProto.prototype.populate = function () {
   populate(this);
   this.changed.update(this.populate);
-};
-// GraphProto.fragment = function (epsilon = math.core.EPSILON) {
-//   fragment(this, epsilon);
-//   this.changed.update(this.fragment);
-// };
-GraphProto.prototype.fragment = function () {
-  fragment(this, ...arguments);
-  this.changed.update(this.fragment);
 };
 GraphProto.prototype.rebuild = function (epsilon = math.core.EPSILON) {
   rebuild(this, epsilon);

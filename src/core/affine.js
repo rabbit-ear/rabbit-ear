@@ -1,8 +1,8 @@
-import math from "../../include/math";
+import math from "../math";
 import { filter_keys_with_suffix } from "./keys";
 
 const apply_matrix_to_graph = function (graph, matrix) {
-  // update all vector types
+  // apply to anything with a coordinate value
   filter_keys_with_suffix(graph, "coords").forEach((key) => {
     graph[key] = graph[key]
       .map(v => math.core.multiply_matrix2_vector2(matrix, v));

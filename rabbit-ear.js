@@ -9,7 +9,6 @@
     && process.versions != null
     && process.versions.node != null;
 
-  /* Math (c) Robby Kraft, MIT License */
   const resize = (d, v) => (v.length === d
     ? v
     : Array(d).fill(0).map((z, i) => (v[i] ? v[i] : z)));
@@ -62,8 +61,7 @@
           : a)).reduce((a, b) => a.concat(b), []);
     }
   };
-
-  var resizers = /*#__PURE__*/Object.freeze({
+  var resizers = Object.freeze({
     __proto__: null,
     resize: resize,
     resize_up: resize_up,
@@ -72,7 +70,6 @@
     semi_flatten_arrays: semi_flatten_arrays,
     flatten_arrays: flatten_arrays
   });
-
   const EPSILON = 1e-6;
   const fEqual = (a, b) => a === b;
   const fEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
@@ -116,8 +113,7 @@
       default: return undefined;
     }
   };
-
-  var equal = /*#__PURE__*/Object.freeze({
+  var equal = Object.freeze({
     __proto__: null,
     EPSILON: EPSILON,
     equivalent_arrays_of_numbers: equivalent_arrays_of_numbers,
@@ -125,7 +121,6 @@
     equivalent_vectors: equivalent_vectors,
     equivalent: equivalent
   });
-
   const fn_square = n => n * n;
   const fn_add = (a, b) => a + b;
   const magnitude = v => Math.sqrt(v
@@ -183,8 +178,7 @@
     .abs(v.reduce((a, b) => a + b, 0)) < EPSILON;
   const parallel = (a, b) => 1 - Math
     .abs(dot(normalize(a), normalize(b))) < EPSILON;
-
-  var algebra = /*#__PURE__*/Object.freeze({
+  var algebra = Object.freeze({
     __proto__: null,
     magnitude: magnitude,
     mag_squared: mag_squared,
@@ -207,9 +201,7 @@
     degenerate: degenerate,
     parallel: parallel
   });
-
   var Constructors = Object.create(null);
-
   const identity2x2 = [1, 0, 0, 1];
   const identity2x3 = identity2x2.concat(0, 0);
   const multiply_matrix2_vector2 = (matrix, vector) => [
@@ -284,8 +276,7 @@
     const ty = origin[1] + b * -origin[0] + -origin[1] * d;
     return [a, b, c, d, tx, ty];
   };
-
-  var matrix2 = /*#__PURE__*/Object.freeze({
+  var matrix2 = Object.freeze({
     __proto__: null,
     identity2x2: identity2x2,
     identity2x3: identity2x3,
@@ -299,7 +290,6 @@
     make_matrix2_rotate: make_matrix2_rotate,
     make_matrix2_reflection: make_matrix2_reflection
   });
-
   const identity3x3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
   const identity3x4 = identity3x3.concat(0, 0, 0);
   const is_identity3x4 = m => identity3x4
@@ -435,8 +425,7 @@
     const ty = origin[1] + b * -origin[0] + -origin[1] * d;
     return [a, b, 0, c, d, 0, 0, 0, 0, tx, ty, 0];
   };
-
-  var matrix3 = /*#__PURE__*/Object.freeze({
+  var matrix3 = Object.freeze({
     __proto__: null,
     identity3x3: identity3x3,
     identity3x4: identity3x4,
@@ -454,7 +443,6 @@
     make_matrix3_scale: make_matrix3_scale,
     make_matrix3_reflectionZ: make_matrix3_reflectionZ
   });
-
   const vector_origin_form = (vector, origin) => ({
     vector: vector || [],
     origin: origin || []
@@ -546,8 +534,7 @@
       return identity2x3.map((n, i) => m[i] || n);
     }
   };
-
-  var getters = /*#__PURE__*/Object.freeze({
+  var getters = Object.freeze({
     __proto__: null,
     get_vector: get_vector,
     get_vector_of_vectors: get_vector_of_vectors,
@@ -558,7 +545,6 @@
     get_matrix_3x4: get_matrix_3x4,
     get_matrix2: get_matrix2
   });
-
   const include_l = () => true;
   const include_r = (t, e=EPSILON) => t > -e;
   const include_s = (t, e=EPSILON) => t > -e && t < 1 + e;
@@ -595,8 +581,7 @@
     }
     return undefined;
   };
-
-  var intersect_lines$1 = /*#__PURE__*/Object.freeze({
+  var intersect_lines$1 = Object.freeze({
     __proto__: null,
     include_l: include_l,
     include_r: include_r,
@@ -617,7 +602,6 @@
     exclude_s_s: exclude_s_s,
     intersect_lines: intersect_lines
   });
-
   const collinear = (point, vector, origin, compFunc, epsilon = EPSILON) => {
     const p2p = subtract(point, origin);
     const lineMagSq = mag_squared(vector);
@@ -636,8 +620,7 @@
   const point_on_ray_exclusive = (point, vector, origin, epsilon = EPSILON) => collinear(point, vector, origin, exclude_r, epsilon);
   const point_on_segment_inclusive = (point, pt0, pt1, epsilon = EPSILON) => collinear(point, subtract(pt1, pt0), pt0, include_s, epsilon);
   const point_on_segment_exclusive = (point, pt0, pt1, epsilon = EPSILON) => collinear(point, subtract(pt1, pt0), pt0, exclude_s, epsilon);
-
-  var overlap_point = /*#__PURE__*/Object.freeze({
+  var overlap_point = Object.freeze({
     __proto__: null,
     collinear: collinear,
     point_on_line: point_on_line,
@@ -646,7 +629,6 @@
     point_on_segment_inclusive: point_on_segment_inclusive,
     point_on_segment_exclusive: point_on_segment_exclusive
   });
-
   const R2D = 180 / Math.PI;
   const D2R = Math.PI / 180;
   const TWO_PI = Math.PI * 2;
@@ -889,8 +871,7 @@
       ang = Math.atan2(hull[h][1] - angles[0].node[1], hull[h][0] - angles[0].node[0]);
     } while (infiniteLoop < INFINITE_LOOP);
   };
-
-  var geometry = /*#__PURE__*/Object.freeze({
+  var geometry = Object.freeze({
     __proto__: null,
     R2D: R2D,
     D2R: D2R,
@@ -915,7 +896,6 @@
     split_convex_polygon: split_convex_polygon,
     convex_hull: convex_hull
   });
-
   const smallest_comparison_search = (obj, array, compare_func) => {
     const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
     let index;
@@ -963,8 +943,7 @@
     origin, scale(normalize(subtract(point, origin)), radius)
   );
   const nearest_point_on_ellipse = () => false;
-
-  var nearest = /*#__PURE__*/Object.freeze({
+  var nearest = Object.freeze({
     __proto__: null,
     nearest_point2: nearest_point2,
     nearest_point: nearest_point,
@@ -974,7 +953,6 @@
     nearest_point_on_circle: nearest_point_on_circle,
     nearest_point_on_ellipse: nearest_point_on_ellipse
   });
-
   const overlap_lines = (aVec, aPt, bVec, bPt, compA, compB, epsilon = EPSILON) => {
     const denominator0 = cross2(aVec, bVec);
     const denominator1 = -denominator0;
@@ -1011,8 +989,7 @@
     overlap_lines(aV, aP, subtract(b1, b0), b0, exclude_r, exclude_s, ep);
   const overlap_segment_segment_exclusive = (a0, a1, b0, b1, ep = EPSILON) =>
     overlap_lines(subtract(a1, a0), a0, subtract(b1, b0), b0, exclude_s, exclude_s, ep);
-
-  var overlap_lines$1 = /*#__PURE__*/Object.freeze({
+  var overlap_lines$1 = Object.freeze({
     __proto__: null,
     overlap_lines: overlap_lines,
     overlap_line_line_inclusive: overlap_line_line_inclusive,
@@ -1028,7 +1005,6 @@
     overlap_ray_segment_exclusive: overlap_ray_segment_exclusive,
     overlap_segment_segment_exclusive: overlap_segment_segment_exclusive
   });
-
   const point_in_convex_poly_inclusive = (point, poly, epsilon = EPSILON) => poly
     .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
     .map(s => cross2(subtract(s[1], s[0]), subtract(point, s[0])) > -epsilon)
@@ -1086,8 +1062,7 @@
       .reduce((a, b) => a && b, true);
     return (!outerGoesInside && innerGoesOutside);
   };
-
-  var overlap_polygon = /*#__PURE__*/Object.freeze({
+  var overlap_polygon = Object.freeze({
     __proto__: null,
     point_in_convex_poly_inclusive: point_in_convex_poly_inclusive,
     point_in_convex_poly_exclusive: point_in_convex_poly_exclusive,
@@ -1096,13 +1071,11 @@
     overlap_convex_polygons_exclusive: overlap_convex_polygons_exclusive,
     enclose_convex_polygons_inclusive: enclose_convex_polygons_inclusive
   });
-
   const overlap = Object.assign(Object.create(null),
     overlap_lines$1,
     overlap_point,
     overlap_polygon,
   );
-
   const type_of = function (obj) {
     switch (obj.constructor.name) {
       case "vector":
@@ -1124,7 +1097,6 @@
     }
     return undefined;
   };
-
   const acossafe = function (x) {
     if (x >= 1.0) return 0;
     if (x <= -1.0) return Math.PI;
@@ -1199,15 +1171,13 @@
     segment_func,
     epsilon
   );
-
-  var intersect_circle = /*#__PURE__*/Object.freeze({
+  var intersect_circle = Object.freeze({
     __proto__: null,
     circle_circle: circle_circle,
     circle_line: circle_line,
     circle_ray: circle_ray,
     circle_segment: circle_segment
   });
-
   const intersect_line_seg = (vector, origin, pt0, pt1) => intersect_lines(
     vector, origin,
     subtract(pt1, pt0), pt0,
@@ -1263,8 +1233,7 @@
     convex_poly_line_intersect(intersect_seg_seg_include, poly, pt0, pt1);
   const convex_poly_segment_exclusive = (poly, pt0, pt1, ep = EPSILON) =>
     convex_poly_line_intersect(intersect_seg_seg_exclude, poly, pt0, pt1);
-
-  var intersect_polygon = /*#__PURE__*/Object.freeze({
+  var intersect_polygon = Object.freeze({
     __proto__: null,
     convex_poly_line: convex_poly_line,
     convex_poly_ray_inclusive: convex_poly_ray_inclusive,
@@ -1272,7 +1241,6 @@
     convex_poly_segment_inclusive: convex_poly_segment_inclusive$1,
     convex_poly_segment_exclusive: convex_poly_segment_exclusive
   });
-
   const line = (a, b, compFunc, epsilon) => intersect_lines(
     a.vector, a.origin, b.vector, b.origin, compFunc, epsilon
   );
@@ -1329,17 +1297,14 @@
     const bT = type_of(b);
     return intersect_func[aT][bT](...arguments);
   };
-
   const VectorArgs = function () {
     get_vector(arguments).forEach(n => this.push(n));
   };
-
   const VectorGetters = {
     x: function () { return this[0]; },
     y: function () { return this[1]; },
     z: function () { return this[2]; },
   };
-
   const table = {
     preserve: {
       magnitude: function () { return magnitude(this); },
@@ -1407,7 +1372,6 @@
       return Constructors.vector(...table.vector[key].apply(this, arguments));
     };
   });
-
   const VectorStatic = {
     fromAngle: function (angle) {
       return Constructors.vector(Math.cos(angle), Math.sin(angle));
@@ -1416,7 +1380,6 @@
       return Constructors.vector.fromAngle(angle * D2R);
     },
   };
-
   var Vector = {
     vector: {
       P: Array.prototype,
@@ -1426,7 +1389,6 @@
       S: VectorStatic,
     }
   };
-
   const LineProto = {};
   LineProto.prototype = Object.create(Object.prototype);
   LineProto.prototype.constructor = LineProto;
@@ -1469,7 +1431,6 @@
         .reduce((a, b) => Math.max(a, b), 0);
     }
   });
-
   var Static = {
     fromPoints: function () {
       const points = get_vector_of_vectors(arguments);
@@ -1486,7 +1447,6 @@
       });
     },
   };
-
   var Line = {
     line: {
       P: LineProto.prototype,
@@ -1509,7 +1469,6 @@
       S: Static
     }
   };
-
   var Ray = {
     ray: {
       P: LineProto.prototype,
@@ -1534,7 +1493,6 @@
       S: Static
     }
   };
-
   var Segment = {
     segment: {
       P: LineProto.prototype,
@@ -1579,7 +1537,6 @@
       }
     }
   };
-
   const CircleArgs = function () {
     const vectors = get_vector_of_vectors(arguments);
     const numbers = resize(3, flatten_arrays(arguments));
@@ -1594,12 +1551,10 @@
       this.origin = Constructors.vector(numbers[1], numbers[2]);
     }
   };
-
   const CircleGetters = {
     x: function () { return this.origin[0]; },
     y: function () { return this.origin[1]; },
   };
-
   const pointOnEllipse = function (cx, cy, rx, ry, zRotation, arcAngle) {
     const cos_rotate = Math.cos(zRotation);
     const sin_rotate = Math.sin(zRotation);
@@ -1637,7 +1592,6 @@
   const cln = n => clean_number(n, 4);
   const ellipticalArcTo = (rx, ry, phi_degrees, fa, fs, endX, endY) =>
     `A${cln(rx)} ${cln(ry)} ${cln(phi_degrees)} ${cln(fa)} ${cln(fs)} ${cln(endX)} ${cln(endY)}`;
-
   const CircleMethods = {
     nearestPoint: function () {
       return Constructors.vector(nearest_point_on_circle(
@@ -1674,7 +1628,6 @@
       });
     }
   };
-
   const CircleStatic = {
     fromPoints: function () {
       return this.constructor(...arguments);
@@ -1684,11 +1637,9 @@
       return this.constructor(result.radius, ...result.origin);
     }
   };
-
   var Circle = {
     circle: { A: CircleArgs, G: CircleGetters, M: CircleMethods, S: CircleStatic }
   };
-
   const getFoci = function (center, rx, ry, spin) {
     const order = rx > ry;
     const lsq = order ? (rx ** 2) - (ry ** 2) : (ry ** 2) - (rx ** 2);
@@ -1746,7 +1697,6 @@
       }
     }
   };
-
   const methods = {
     area: function () {
       return signed_area(this);
@@ -1833,7 +1783,6 @@
   Object.keys(methods).forEach((key) => {
     PolygonProto.prototype[key] = methods[key];
   });
-
   const rectToPoints = r => [
     [r.x, r.y],
     [r.x + r.width, r.y],
@@ -1871,7 +1820,6 @@
       }
     }
   };
-
   var Polygon = {
     polygon: {
       P: PolygonProto.prototype,
@@ -1910,7 +1858,6 @@
       }
     }
   };
-
   const assign = (thisMat, mat) => {
     for (let i = 0; i < 12; i += 1) {
       thisMat[i] = mat[i];
@@ -1985,7 +1932,6 @@
       }
     }
   };
-
   const Definitions = Object.assign({},
     Vector,
     Line,
@@ -2045,7 +1991,6 @@
       }));
     Definitions[primitiveName].proto = Proto.prototype;
   });
-
   const math = Constructors;
   math.core = Object.assign(Object.create(null),
     algebra,
@@ -2066,8 +2011,6 @@
 
   var root = Object.create(null);
 
-  // this method allows you to attach an outside library to this one
-
   const use = function (library) {
     if (typeof library !== "function"
       || library === null
@@ -2077,25 +2020,8 @@
     library.append(this);
   };
 
-  /**
-   * this contains two types of methods.
-   * 1. methods that are mostly references, including lists of keys
-   *    that match the FOLD 1.1 specification (anytime FOLD is updated
-   *    we need to update here too.)
-   * 2. methods that operate on a FOLD object, searching and gathering
-   *    and re-arranging keys or values based on key queries.
-   */
-
-  /**
-   * top-level keys and values that are intended to be inside EVERY
-   * fold object that this library touches.
-   */
   const file_spec = 1.1;
   const file_creator = "Rabbit Ear";
-  /**
-   * top-level keys from the FOLD specification, sorted into categories
-   * generally by their usage.
-   */
   const fold_keys = {
     file: [
       "file_spec",
@@ -2113,8 +2039,8 @@
       "frame_attributes",
       "frame_classes",
       "frame_unit",
-      "frame_parent", // inside file_frames only
-      "frame_inherit", // inside file_frames only
+      "frame_parent",
+      "frame_inherit",
     ],
     graph: [
       "vertices_coords",
@@ -2127,9 +2053,6 @@
       "edges_length",
       "faces_vertices",
       "faces_edges",
-      // as of now, these are not described in the spec, but their
-      // behavior can be absolutely inferred,
-      // except faces_faces which we are using as EDGE-ADJACENT FACES
       "vertices_edges",
       "edges_edges",
       "faces_faces"
@@ -2139,18 +2062,11 @@
       "faceOrders"
     ],
   };
-  /**
-   * top-level keys from the FOLD specification without sorting by
-   * category; simply arranged as strings in an array.
-   */
   const keys = Object.freeze([]
     .concat(fold_keys.file)
     .concat(fold_keys.frame)
     .concat(fold_keys.graph)
     .concat(fold_keys.orders));
-  /**
-   * keys from outside the official FOLD specification.
-   */
   const ear_spec = {
     FACES_MATRIX: "faces_ear:matrix",
     FACES_LAYER: "faces_ear:layer",
@@ -2159,10 +2075,6 @@
     SECTORS_ANGLES: "ear:sectors_angles",
     VERTICES_SECTORS_VERTICES: "vertices_ear:sectors_vertices",
   };
-  /**
-   * lists of official values that are intended to be under these keys,
-   * the keys match the variable name of the array.
-   */
   const file_classes = [
     "singleModel",
     "multiModel",
@@ -2215,60 +2127,24 @@
     U: 0,
     u: 0
   };
-  /**
-   * key values used so many times in this library, for minification
-   * it's helpful to reference a variable instead of a string literal.
-   */
   const FOLDED_FORM = "foldedForm";
   const CREASE_PATTERN = "creasePattern";
-
   const edge_assignment_to_foldAngle = assignment =>
     assignment_angles[assignment] || 0;
-  /**
-   * @param {object} any object
-   * @param {string} a suffix to match against the keys
-   * @returns {string[]} array of keys that end with the string param
-   */
   const filter_keys_with_suffix = (graph, suffix) => Object
     .keys(graph)
     .map(s => (s.substring(s.length - suffix.length, s.length) === suffix
       ? s : undefined))
     .filter(str => str !== undefined);
-  /**
-   * @param {object} any object
-   * @param {string} a prefix to match against the keys
-   * @returns {string[]} array of keys that start with the string param
-   */
   const filter_keys_with_prefix = (graph, prefix) => Object
     .keys(graph)
     .map(str => (str.substring(0, prefix.length) === prefix
       ? str : undefined))
     .filter(str => str !== undefined);
-  /**
-   * return a list of keys from a FOLD object that match a provided
-   * string such that the key STARTS WITH this string followed by a _.
-   *
-   * for example: "vertices" will return:
-   * vertices_coords, vertices_faces,
-   * but not edges_vertices, or verticesCoords (must end with _)
-   */
   const get_graph_keys_with_prefix = (graph, key) =>
     filter_keys_with_prefix(graph, `${key}_`);
-  /**
-   * return a list of keys from a FOLD object that match a provided
-   * string such that the key ENDS WITH this string, preceded by _.
-   *
-   * for example: "vertices" will return:
-   * edges_vertices, faces_vertices,
-   * but not vertices_coords, or edgesvertices (must prefix with _)
-   */
   const get_graph_keys_with_suffix = (graph, key) =>
     filter_keys_with_suffix(graph, `_${key}`);
-
-  /**
-   * this takes in a geometry_key (vectors, edges, faces), and flattens
-   * across all related arrays, creating 1 array of objects with the keys
-   */
   const transpose_graph_arrays = (graph, geometry_key) => {
     const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
     if (matching_keys.length === 0) { return []; }
@@ -2281,11 +2157,6 @@
         .forEach((o, i) => { geometry[i][key.short] = graph[key.long][i]; }));
     return geometry;
   };
-
-  /**
-   * this takes in a geometry_key (vectors, edges, faces), and flattens
-   * across all related arrays, creating 1 array of objects with the keys
-   */
   const transpose_graph_array_at_index = function (
     graph,
     geometry_key,
@@ -2323,31 +2194,14 @@
     transpose_graph_array_at_index: transpose_graph_array_at_index
   });
 
-  /*
-  ▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁
-                      _     _     _ _
-                     | |   | |   (_) |
-            _ __ __ _| |__ | |__  _| |_    ___  __ _ _ __
-           | '__/ _` | '_ \| '_ \| | __|  / _ \/ _` | '__|
-           | | | (_| | |_) | |_) | | |_  |  __/ (_| | |
-           |_|  \__,_|_.__/|_.__/|_|\__|  \___|\__,_|_|
-
-  █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇█
-  */
-
   const core = Object.assign(Object.create(null),
     keys$1,
   );
-
   const Ear = Object.assign(root, {
-    // origami,
-    // graph,
-    // cp,
     math: math.core,
     core,
   });
   Ear.use = use.bind(Ear);
-
   Object.keys(math)
     .filter(key => key !== "core")
     .forEach((key) => { Ear[key] = math[key]; });

@@ -1,8 +1,8 @@
-import babel from "@rollup/plugin-babel";
+// import babel from "@rollup/plugin-babel";
 // import { terser } from "rollup-plugin-terser";
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 // import { string } from "rollup-plugin-string";
-// import cleanup from "rollup-plugin-cleanup";
+import cleanup from "rollup-plugin-cleanup";
 
 const version = "0.1.91";
 
@@ -16,17 +16,15 @@ module.exports = [{
   },
   plugins: [
     nodeResolve(),
+    // string({
+    //   include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
+    // }),
     // babel({
     //   babelHelpers: "bundled",
     //   presets: ["@babel/preset-env"]
     // }),
-    // cleanup({
-    //   comments: "none",
-    //   maxEmptyLines: 0,
-    // }),
-    // string({
-    //   include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
-    // }),
+    // terser(),
+    cleanup(),
   ],
 // },
 // {
