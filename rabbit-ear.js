@@ -375,7 +375,7 @@
   const make_matrix3_rotateY = (angle, origin = [0, 0, 0]) => single_axis_rotate(angle, origin, 0, 2, false);
   const make_matrix3_rotateZ = (angle, origin = [0, 0, 0]) => single_axis_rotate(angle, origin, 0, 1, true);
   const make_matrix3_rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
-    const vec = normalize(vector);
+    const vec = resize(3, normalize(vector));
     const pos = [0, 1, 2].map(i => origin[i] || 0);
     const [a, b, c] = vec;
     const cos = Math.cos(angle);
@@ -390,12 +390,12 @@
     const ry     = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
     const ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
     const rz     = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
-    return multiply_matrices3(t_inv,
-      multiply_matrices3(rx_inv,
-        multiply_matrices3(ry_inv,
+    return multiply_matrices3(t,
+      multiply_matrices3(rx,
+        multiply_matrices3(ry,
           multiply_matrices3(rz,
-            multiply_matrices3(ry,
-              multiply_matrices3(rx, t))))));
+            multiply_matrices3(ry_inv,
+              multiply_matrices3(rx_inv, t_inv))))));
   };
   const make_matrix3_scale = (scale, origin = [0, 0, 0]) => [
     scale,
@@ -411,7 +411,7 @@
     scale * -origin[1] + origin[1],
     scale * -origin[2] + origin[2]
   ];
-  const make_matrix3_reflectionZ = (vector, origin = [0, 0]) => {
+  const make_matrix3_reflectZ = (vector, origin = [0, 0]) => {
     const angle = Math.atan2(vector[1], vector[0]);
     const cosAngle = Math.cos(angle);
     const sinAngle = Math.sin(angle);
@@ -441,7 +441,7 @@
     make_matrix3_rotateZ: make_matrix3_rotateZ,
     make_matrix3_rotate: make_matrix3_rotate,
     make_matrix3_scale: make_matrix3_scale,
-    make_matrix3_reflectionZ: make_matrix3_reflectionZ
+    make_matrix3_reflectZ: make_matrix3_reflectZ
   });
   const vector_origin_form = (vector, origin) => ({
     vector: vector || [],
@@ -1912,7 +1912,7 @@
             multiply_matrices3(this, make_matrix3_scale(amount)));
         },
         reflectZ: function (vector, origin) {
-          const transform = make_matrix3_reflectionZ(vector, origin);
+          const transform = make_matrix3_reflectZ(vector, origin);
           return assign(this, multiply_matrices3(this, transform));
         },
         transform: function (...innerArgs) {
@@ -2370,16 +2370,12 @@
   };
   const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
   const make_faces_matrix = function (graph, root_face) {
-    const faces_vertices_coords = graph.faces_vertices
-      .map(fv => fv.map(v => graph.vertices_coords[v]));
-    const faces_centroid = faces_vertices_coords
-      .map(face_vertices => math.core.centroid(face_vertices));
-    const faces_matrix = graph.faces_vertices.map(() => [1,0,0,0,1,0,0,0,1,0,0,0]);
+    const faces_matrix = graph.faces_vertices.map(() => math.core.identity3x4);
     make_face_walk_tree(graph, root_face).forEach((level) => {
       level.filter(entry => entry.parent != null).forEach((entry) => {
         const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
         const edge_foldAngle = graph.edges_foldAngle[entry.edge] / 180 * Math.PI;
-        const axis_vector = math.core.resize(3, math.core.normalize(math.core.subtract(verts[1], verts[0])));
+        const axis_vector = math.core.resize(3, math.core.subtract(verts[1], verts[0]));
         const axis_origin = math.core.resize(3, verts[0]);
         const local = math.core.make_matrix3_rotate(
           edge_foldAngle, axis_vector, axis_origin,

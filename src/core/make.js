@@ -240,31 +240,12 @@ const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
 export const make_faces_matrix = function (graph, root_face) {
   // todo: make sure the graph contains necessary data:
   // vertices_coords, edges_foldAngle, edges_vertices, faces_vertices
-  const faces_vertices_coords = graph.faces_vertices
-    .map(fv => fv.map(v => graph.vertices_coords[v]));
-  const faces_centroid = faces_vertices_coords
-    .map(face_vertices => math.core.centroid(face_vertices));
-  const faces_matrix = graph.faces_vertices.map(() => [1,0,0,0,1,0,0,0,1,0,0,0]);
+  const faces_matrix = graph.faces_vertices.map(() => math.core.identity3x4);
   make_face_walk_tree(graph, root_face).forEach((level) => {
     level.filter(entry => entry.parent != null).forEach((entry) => {
-      // const face_vector = math.core.resize(3, math.core.subtract(
-      //   faces_centroid[entry.face],
-      //   faces_centroid[entry.parent],
-      // ));
       const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
-      // const edgeVecA = math.core.resize(3, math.core.subtract(verts[1], verts[0]));
-      // const edgeVecB = math.core.resize(3, math.core.subtract(verts[0], verts[1]));
-      // const vecTo0 = math.core.subtract(verts[0], faces_centroid[entry.parent]);
-      // const vecTo1 = math.core.subtract(verts[1], faces_centroid[entry.parent]);
-      // console.log("crosses", math.core.cross2(face_vector, vecTo0), math.core.cross2(face_vector, vecTo1));
-      // const goodVec = math.core.cross2(face_vector, vecTo0) > 0
-      //   ? edgeVecA
-      //   : edgeVecB;
-      // const goodOrigin = math.core.cross2(face_vector, vecTo0) > 0
-      //   ? verts[0]
-      //   : verts[1];
       const edge_foldAngle = graph.edges_foldAngle[entry.edge] / 180 * Math.PI;
-      const axis_vector = math.core.resize(3, math.core.normalize(math.core.subtract(verts[1], verts[0])));
+      const axis_vector = math.core.resize(3, math.core.subtract(verts[1], verts[0]));
       const axis_origin = math.core.resize(3, verts[0]);
       // const local = math.core.make_matrix2_reflect(vec, verts[0]);
       const local = math.core.make_matrix3_rotate(
