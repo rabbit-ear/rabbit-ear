@@ -144,11 +144,42 @@ export const make_vertices_faces = function ({
   return vertices_faces;
 };
 
+
+// const faces_common_vertices = (graph, face0, face1) => graph
+//   .faces_vertices[face0]
+//   .filter(v => graph.faces_vertices[face1].indexOf(v) !== -1)
+
+/**
+ * get a pair of common vertices between faces.
+ * but, maintain the order, according to face 1
+ */
+const faces_common_vertices = (face_a_vertices, face_b_vertices) => {
+  const map = {};
+  face_b_vertices.forEach((v) => { map[v] = true; });
+  const match = face_a_vertices.map((v, i) => map[v]);
+  if (match[0] && match[match.length-1]) {
+    let start = match.length - 1;
+    let end = 0;
+    for (; start > 0; start -= 1) { if (!match[start]) { break; } }
+    for (; end < match.length - 1; end += 1) { if (!match[end]) { break; } }
+    // we have a situation where the vertices in common wrap around to index 0.
+    // weird that every single vertex is in common, but avoid crashing anyway.
+    if (start < end) { return face_a_vertices; }
+    return face_a_vertices.slice(start + 1, face_a_vertices.length)
+      .concat(face_a_vertices.slice(0, end));
+  }
+  return face_a_vertices.filter((_, i) => match[i]);
+};
+// test: faces_common_vertices([1,5,6,9,13], [16,9,6,4,2])
+// should be [6, 9]
+
 // root_face will become the root node
 export const make_face_walk_tree = function (graph, root_face = 0) {
   const edge_map = make_vertex_pair_to_edge_map(graph);
   // console.log("edge_map", edge_map)
-  const new_faces_faces = make_faces_faces(graph);
+  const new_faces_faces = graph.faces_faces
+    ? graph.faces_faces
+    : make_faces_faces(graph);
   if (new_faces_faces.length <= 0) {
     return [];
   }
@@ -157,7 +188,7 @@ export const make_face_walk_tree = function (graph, root_face = 0) {
     face: root_face,
     parent: undefined,
     edge: undefined,
-    level: 0,
+    // level: 0,
   }]];
   // let current_level = 0;
   do {
@@ -167,10 +198,16 @@ export const make_face_walk_tree = function (graph, root_face = 0) {
         .filter(f => visited.indexOf(f) === -1);
       visited = visited.concat(unique_faces);
       return unique_faces.map((f) => {
-        const edge_vertices = graph.faces_vertices[f]
-          .filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
-          .sort((a, b) => a - b);
-        const edge = edge_map[edge_vertices.join(" ")];
+        const edge_vertices = faces_common_vertices(
+          graph.faces_vertices[current.face],
+          graph.faces_vertices[f]
+        );
+        // we cannot depend on faces being convex and only sharing 2 vertices in common. if there are more than 2 edges, let's hope they are collinear. either way, grab the first 2 vertices if there are more.
+        const edge_key = edge_vertices
+          .slice(0, 2)
+          .sort((a, b) => a - b)
+          .join(" ");
+        const edge = edge_map[edge_key];
         return {
           face: f,
           parent: current.face,
@@ -201,6 +238,47 @@ const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
  * a mark crease is the identity matrix.
  */
 export const make_faces_matrix = function (graph, root_face) {
+  // todo: make sure the graph contains necessary data:
+  // vertices_coords, edges_foldAngle, edges_vertices, faces_vertices
+  const faces_vertices_coords = graph.faces_vertices
+    .map(fv => fv.map(v => graph.vertices_coords[v]));
+  const faces_centroid = faces_vertices_coords
+    .map(face_vertices => math.core.centroid(face_vertices));
+  const faces_matrix = graph.faces_vertices.map(() => [1,0,0,0,1,0,0,0,1,0,0,0]);
+  make_face_walk_tree(graph, root_face).forEach((level) => {
+    level.filter(entry => entry.parent != null).forEach((entry) => {
+      // const face_vector = math.core.resize(3, math.core.subtract(
+      //   faces_centroid[entry.face],
+      //   faces_centroid[entry.parent],
+      // ));
+      const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
+      // const edgeVecA = math.core.resize(3, math.core.subtract(verts[1], verts[0]));
+      // const edgeVecB = math.core.resize(3, math.core.subtract(verts[0], verts[1]));
+      // const vecTo0 = math.core.subtract(verts[0], faces_centroid[entry.parent]);
+      // const vecTo1 = math.core.subtract(verts[1], faces_centroid[entry.parent]);
+      // console.log("crosses", math.core.cross2(face_vector, vecTo0), math.core.cross2(face_vector, vecTo1));
+      // const goodVec = math.core.cross2(face_vector, vecTo0) > 0
+      //   ? edgeVecA
+      //   : edgeVecB;
+      // const goodOrigin = math.core.cross2(face_vector, vecTo0) > 0
+      //   ? verts[0]
+      //   : verts[1];
+      const edge_foldAngle = graph.edges_foldAngle[entry.edge] / 180 * Math.PI;
+      const axis_vector = math.core.resize(3, math.core.normalize(math.core.subtract(verts[1], verts[0])));
+      const axis_origin = math.core.resize(3, verts[0]);
+      // const local = math.core.make_matrix2_reflect(vec, verts[0]);
+      const local = math.core.make_matrix3_rotate(
+        edge_foldAngle, axis_vector, axis_origin,
+      );
+      faces_matrix[entry.face] = math.core
+        .multiply_matrices3(faces_matrix[entry.parent], local);
+    });
+  });
+  return faces_matrix;
+};
+
+
+export const make_faces_matrix_2D = function (graph, root_face) {
   if (graph.faces_vertices == null || graph.edges_vertices == null) {
     return undefined;
   }
@@ -219,9 +297,9 @@ export const make_faces_matrix = function (graph, root_face) {
     level.filter(entry => entry.parent != null).forEach((entry) => {
       const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
       const vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
-      // const local = math.core.make_matrix2_reflection(vec, verts[0]);
+      // const local = math.core.make_matrix2_reflect(vec, verts[0]);
       const local = edge_fold[entry.edge]
-        ? math.core.make_matrix2_reflection(vec, verts[0])
+        ? math.core.make_matrix2_reflect(vec, verts[0])
         : [1, 0, 0, 1, 0, 0];
       faces_matrix[entry.face] = math.core
         .multiply_matrices2(faces_matrix[entry.parent], local);
@@ -244,9 +322,9 @@ export const make_faces_matrix_inv = function (graph, root_face) {
     level.filter(entry => entry.parent != null).forEach((entry) => {
       const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
       const vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
-      // const local = math.core.make_matrix2_reflection(vec, verts[0]);
+      // const local = math.core.make_matrix2_reflect(vec, verts[0]);
       const local = edge_fold[entry.edge]
-        ? math.core.make_matrix2_reflection(vec, verts[0])
+        ? math.core.make_matrix2_reflect(vec, verts[0])
         : [1, 0, 0, 1, 0, 0];
       faces_matrix[entry.face] = math.core
         .multiply_matrices2(local, faces_matrix[entry.parent]);

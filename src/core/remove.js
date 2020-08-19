@@ -15,6 +15,8 @@ import Count from "./count";
  * @param {object} a FOLD object
  * @param {string} like "vertices", the prefix of the arrays
  * @param {number[]} an array of vertex indices, like [1,9,25]
+ * @returns {number[]} an array resembling something like [0,0,-1,-1,-1,-2,-2,-2]
+ *   indicating the relative shift of the position of each index in the array.
  * @example remove(foldObject, "vertices", [2,6,11,15]);
  */
 const remove_geometry_indices = function (graph, key, removeIndices) {

@@ -4,7 +4,7 @@
  * This will fail in the case of abstract graphs, for example where no vertices
  * are defined in any vertex_ array but only exist as mentions in faces_vertices.
  * In that case, use the implied count method.
- * (todo: where is this? reference it)
+ * (todo: where is the implied count method?)
  *
  * @returns {number} number of geometry elements
  */

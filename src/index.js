@@ -19,9 +19,11 @@ import use from "./use";
 // import cp from "./cp";
 
 import * as keys from "./core/keys";
+import * as make from "./core/make";
 
 const core = Object.assign(Object.create(null),
   keys,
+  make
 );
 
 const Ear = Object.assign(root, {
