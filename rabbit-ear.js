@@ -2317,7 +2317,7 @@
     face_b_vertices.forEach((v) => { hash[v] = true; });
     const match = face_a_vertices.map((v, i) => ({i, m: hash[v]}));
     let no = match.length - 1;
-    while (no >= 0 && match[no].m === true) { no -= 1; }
+    while (no > -1 && match[no].m === true) { no -= 1; }
     if (no === -1) { return face_a_vertices; }
     return match.slice(no + 1, match.length)
       .concat(match.slice(0, no))
