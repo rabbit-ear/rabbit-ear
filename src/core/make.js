@@ -150,28 +150,48 @@ export const make_vertices_faces = function ({
 //   .filter(v => graph.faces_vertices[face1].indexOf(v) !== -1)
 
 /**
- * get a pair of common vertices between faces.
- * but, maintain the order, according to face 1
+ * @param {number[]}, list of vertex indices. one entry from faces_vertices
+ * @param {number[]}, list of vertex indices. one entry from faces_vertices
+ * @returns {number[]}, indices of vertices that are shared between faces
+ *  and keep the vertices in the same order as the winding order of face a.
  */
 const faces_common_vertices = (face_a_vertices, face_b_vertices) => {
-  const map = {};
-  face_b_vertices.forEach((v) => { map[v] = true; });
-  const match = face_a_vertices.map((v, i) => map[v]);
-  if (match[0] && match[match.length-1]) {
-    let start = match.length - 1;
-    let end = 0;
-    for (; start > 0; start -= 1) { if (!match[start]) { break; } }
-    for (; end < match.length - 1; end += 1) { if (!match[end]) { break; } }
-    // we have a situation where the vertices in common wrap around to index 0.
-    // weird that every single vertex is in common, but avoid crashing anyway.
-    if (start < end) { return face_a_vertices; }
-    return face_a_vertices.slice(start + 1, face_a_vertices.length)
-      .concat(face_a_vertices.slice(0, end));
-  }
-  return face_a_vertices.filter((_, i) => match[i]);
+  // build a quick lookup table: T/F is a vertex in face B
+  const hash = {};
+  face_b_vertices.forEach((v) => { hash[v] = true; });
+  // make a copy of face A containing T/F, if the vertex is shared in face B
+  const match = face_a_vertices.map((v, i) => ({i, m: hash[v]}));
+  // filter and keep only the shared vertices.
+  // before we filter the array we just need to cover the special case that
+  // the shared edge starts near the end of the array and wraps around
+  let no = match.length - 1;
+  while (no > -1 && match[no].m === true) { no -= 1; }
+  if (no === -1) { return face_a_vertices; } // all face A vertices are in B
+  // "no" is the index of a not-shared vertex. split the array here,
+  // move the end to the front, filter out the non-shared vertices.
+  return match.slice(no + 1, match.length)
+    .concat(match.slice(0, no))
+    .filter(el => el.m)
+    .map(el => face_a_vertices[el.i]);
 };
+// test: faces_common_vertices([1,2,4,5,7,9,11,15,18], [19,15,14,12,9,7,3,1]);
+// result: [1, 7, 9, 15]
+// test: faces_common_vertices([1,2,4,5,7,9,11,15,18], [18,15,14,12,9,7,3,1]);
+// result: [15, 18, 1, 7, 9]
+// test: faces_common_vertices([0,1,2,4,5,7,9,11,15,18], [18,15,14,12,9,7,3]);
+// result: [15, 18, 7, 9]
 // test: faces_common_vertices([1,5,6,9,13], [16,9,6,4,2])
-// should be [6, 9]
+// result: [6, 9]
+// test: faces_common_vertices([3, 5, 7, 9], [9, 7, 5, 3]);
+// result: [3, 5, 7, 9]
+// test: faces_common_vertices([3, 5, 7, 9], [9, 7, 5, 3, 2]);
+// result: [3, 5, 7, 9]
+// test: faces_common_vertices([3, 5, 7, 9], [11, 9, 7, 5, 3]);
+// result: [3, 5, 7, 9]
+// test: faces_common_vertices([3, 5, 7, 9, 11], [9, 7, 5, 3]);
+// result: [3, 5, 7, 9]
+// test: faces_common_vertices([2, 3, 5, 7, 9], [9, 7, 5, 3]);
+// result: [3, 5, 7, 9]
 
 // root_face will become the root node
 export const make_face_walk_tree = function (graph, root_face = 0) {
@@ -244,15 +264,13 @@ export const make_faces_matrix = function (graph, root_face) {
   make_face_walk_tree(graph, root_face).forEach((level) => {
     level.filter(entry => entry.parent != null).forEach((entry) => {
       const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
-      const edge_foldAngle = graph.edges_foldAngle[entry.edge] / 180 * Math.PI;
-      const axis_vector = math.core.resize(3, math.core.subtract(verts[1], verts[0]));
-      const axis_origin = math.core.resize(3, verts[0]);
-      // const local = math.core.make_matrix2_reflect(vec, verts[0]);
-      const local = math.core.make_matrix3_rotate(
-        edge_foldAngle, axis_vector, axis_origin,
+      const local_matrix = math.core.make_matrix3_rotate(
+        graph.edges_foldAngle[entry.edge] / 180 * Math.PI, // rotation angle
+        math.core.subtract(verts[1], verts[0]), // line-vector
+        verts[0], // line-origin
       );
       faces_matrix[entry.face] = math.core
-        .multiply_matrices3(faces_matrix[entry.parent], local);
+        .multiply_matrices3(faces_matrix[entry.parent], local_matrix);
     });
   });
   return faces_matrix;
@@ -293,7 +311,7 @@ export const make_faces_matrix_2D = function (graph, root_face) {
  * this same as make_faces_matrix, but at each step the
  * inverse matrix is taken
  */
-export const make_faces_matrix_inv = function (graph, root_face) {
+export const make_faces_matrix_2d_inv = function (graph, root_face) {
   const edge_fold = ("edges_assignment" in graph === true)
     ? graph.edges_assignment.map(a => !is_mark(a))
     : graph.edges_vertices.map(() => true);

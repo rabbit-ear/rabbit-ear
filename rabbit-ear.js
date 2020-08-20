@@ -383,19 +383,19 @@
     const d = Math.sqrt((vec[1] * vec[1]) + (vec[2] * vec[2]));
     const b_d = Math.abs(d) < 1e-6 ? 0 : b / d;
     const c_d = Math.abs(d) < 1e-6 ? 1 : c / d;
-    const t     = identity3x3.concat(pos[0], pos[1], pos[2]);
-    const t_inv = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
+    const t     = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
+    const t_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
     const rx     = [1, 0, 0, 0, c_d, b_d, 0, -b_d, c_d, 0, 0, 0];
     const rx_inv = [1, 0, 0, 0, c_d, -b_d, 0, b_d, c_d, 0, 0, 0];
     const ry     = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
     const ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
     const rz     = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
-    return multiply_matrices3(t,
-      multiply_matrices3(rx,
-        multiply_matrices3(ry,
+    return multiply_matrices3(t_inv,
+      multiply_matrices3(rx_inv,
+        multiply_matrices3(ry_inv,
           multiply_matrices3(rz,
-            multiply_matrices3(ry_inv,
-              multiply_matrices3(rx_inv, t_inv))))));
+            multiply_matrices3(ry,
+              multiply_matrices3(rx, t))))));
   };
   const make_matrix3_scale = (scale, origin = [0, 0, 0]) => [
     scale,
@@ -2313,19 +2313,16 @@
     return vertices_faces;
   };
   const faces_common_vertices = (face_a_vertices, face_b_vertices) => {
-    const map = {};
-    face_b_vertices.forEach((v) => { map[v] = true; });
-    const match = face_a_vertices.map((v, i) => map[v]);
-    if (match[0] && match[match.length-1]) {
-      let start = match.length - 1;
-      let end = 0;
-      for (; start > 0; start -= 1) { if (!match[start]) { break; } }
-      for (; end < match.length - 1; end += 1) { if (!match[end]) { break; } }
-      if (start < end) { return face_a_vertices; }
-      return face_a_vertices.slice(start + 1, face_a_vertices.length)
-        .concat(face_a_vertices.slice(0, end));
-    }
-    return face_a_vertices.filter((_, i) => match[i]);
+    const hash = {};
+    face_b_vertices.forEach((v) => { hash[v] = true; });
+    const match = face_a_vertices.map((v, i) => ({i, m: hash[v]}));
+    let no = match.length - 1;
+    while (no >= 0 && match[no].m === true) { no -= 1; }
+    if (no === -1) { return face_a_vertices; }
+    return match.slice(no + 1, match.length)
+      .concat(match.slice(0, no))
+      .filter(el => el.m)
+      .map(el => face_a_vertices[el.i]);
   };
   const make_face_walk_tree = function (graph, root_face = 0) {
     const edge_map = make_vertex_pair_to_edge_map(graph);
@@ -2374,14 +2371,13 @@
     make_face_walk_tree(graph, root_face).forEach((level) => {
       level.filter(entry => entry.parent != null).forEach((entry) => {
         const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
-        const edge_foldAngle = graph.edges_foldAngle[entry.edge] / 180 * Math.PI;
-        const axis_vector = math.core.resize(3, math.core.subtract(verts[1], verts[0]));
-        const axis_origin = math.core.resize(3, verts[0]);
-        const local = math.core.make_matrix3_rotate(
-          edge_foldAngle, axis_vector, axis_origin,
+        const local_matrix = math.core.make_matrix3_rotate(
+          graph.edges_foldAngle[entry.edge] / 180 * Math.PI,
+          math.core.subtract(verts[1], verts[0]),
+          verts[0],
         );
         faces_matrix[entry.face] = math.core
-          .multiply_matrices3(faces_matrix[entry.parent], local);
+          .multiply_matrices3(faces_matrix[entry.parent], local_matrix);
       });
     });
     return faces_matrix;
@@ -2408,7 +2404,7 @@
     });
     return faces_matrix;
   };
-  const make_faces_matrix_inv = function (graph, root_face) {
+  const make_faces_matrix_2d_inv = function (graph, root_face) {
     const edge_fold = ("edges_assignment" in graph === true)
       ? graph.edges_assignment.map(a => !is_mark(a))
       : graph.edges_vertices.map(() => true);
@@ -2485,7 +2481,7 @@
     make_face_walk_tree: make_face_walk_tree,
     make_faces_matrix: make_faces_matrix,
     make_faces_matrix_2D: make_faces_matrix_2D,
-    make_faces_matrix_inv: make_faces_matrix_inv,
+    make_faces_matrix_2d_inv: make_faces_matrix_2d_inv,
     make_vertices_coords_folded: make_vertices_coords_folded,
     make_vertices_isBoundary: make_vertices_isBoundary,
     make_faces_coloring_from_faces_matrix: make_faces_coloring_from_faces_matrix,

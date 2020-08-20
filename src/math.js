@@ -382,19 +382,19 @@ const make_matrix3_rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
   const d = Math.sqrt((vec[1] * vec[1]) + (vec[2] * vec[2]));
   const b_d = Math.abs(d) < 1e-6 ? 0 : b / d;
   const c_d = Math.abs(d) < 1e-6 ? 1 : c / d;
-  const t     = identity3x3.concat(pos[0], pos[1], pos[2]);
-  const t_inv = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
+  const t     = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
+  const t_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
   const rx     = [1, 0, 0, 0, c_d, b_d, 0, -b_d, c_d, 0, 0, 0];
   const rx_inv = [1, 0, 0, 0, c_d, -b_d, 0, b_d, c_d, 0, 0, 0];
   const ry     = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
   const ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
   const rz     = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
-  return multiply_matrices3(t,
-    multiply_matrices3(rx,
-      multiply_matrices3(ry,
+  return multiply_matrices3(t_inv,
+    multiply_matrices3(rx_inv,
+      multiply_matrices3(ry_inv,
         multiply_matrices3(rz,
-          multiply_matrices3(ry_inv,
-            multiply_matrices3(rx_inv, t_inv))))));
+          multiply_matrices3(ry,
+            multiply_matrices3(rx, t))))));
 };
 const make_matrix3_scale = (scale, origin = [0, 0, 0]) => [
   scale,
