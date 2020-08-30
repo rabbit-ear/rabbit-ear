@@ -3,10 +3,10 @@
 const use = function (library) {
   if (typeof library !== "function"
     || library === null
-    || typeof library.append !== "function") {
+    || typeof library.attach !== "function") {
     return;
   }
-  library.append(this);
+  library.attach(this);
 };
 
 export default use;

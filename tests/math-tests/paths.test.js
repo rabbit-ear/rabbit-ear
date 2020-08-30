@@ -15,7 +15,7 @@ test("ray", () => {
 });
 
 test("rect", () => {
-  expect(ear.rect(1, 2).svgPath()).toBe("M0 0L1 0L1 2L0 2z");
+  expect(ear.rect(1, 2).svgPath()).toBe("M0 0h1v2h-1Z");
 });
 
 test("circle", () => {

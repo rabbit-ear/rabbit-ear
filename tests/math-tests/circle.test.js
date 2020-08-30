@@ -4,14 +4,39 @@ const testEqual = function (...args) {
   expect(ear.math.equivalent(...args)).toBe(true);
 };
 
+test("arguments", () => {
+  expect(ear.circle(1, [4,5]).radius).toBe(1);
+  expect(ear.circle(1, [4,5]).origin.x).toBe(4);
+  expect(ear.circle(1, [4,5]).origin.y).toBe(5);
+  expect(ear.circle([4,5], 1).radius).toBe(1);
+  expect(ear.circle([4,5], 1).origin.x).toBe(4);
+  expect(ear.circle([4,5], 1).origin.y).toBe(5);
+  expect(ear.circle(1, 2).radius).toBe(2);
+  expect(ear.circle(1, 2).origin.x).toBe(1);
+  expect(ear.circle(1, 2, 3).radius).toBe(3);
+  expect(ear.circle(1, 2, 3).origin.x).toBe(1);
+  expect(ear.circle(1, 2, 3).origin.y).toBe(2);
+  expect(ear.circle(1, 2, 3, 4).radius).toBe(4);
+  expect(ear.circle(1, 2, 3, 4).origin.x).toBe(1);
+  expect(ear.circle(1, 2, 3, 4).origin.y).toBe(2);
+  expect(ear.circle(1, 2, 3, 4).origin.z).toBe(3);
+  expect(ear.circle([1,2], [3,4]).radius).toBe(ear.math.distance2([1,2], [3,4]));
+  expect(ear.circle([1,2], [3,4]).origin.x).toBe(1);
+  expect(ear.circle([1,2], [3,4]).origin.y).toBe(2);
+  // expect(ear.circle([1,2], [3,4], [5,6]) circumcenter between 3 points
+  // expect(ear.circle([1,2], [3,4], [5,6]) circumcenter between 3 points
+})
+
 test("x, y", () => {
   const result = ear.circle(1, [2,3]);
   expect(result.x).toBe(2);
   expect(result.y).toBe(3);
+  expect(result.z).toBe(undefined);
 
   const result1 = ear.circle(1);
   expect(result1.x).toBe(0);
   expect(result1.y).toBe(0);
+  expect(result1.z).toBe(0);
 });
 
 test("circle nearest point", () => {
@@ -56,8 +81,8 @@ test("segments", () => {
 test("circle fromPoints", () => {
   const result1 = ear.circle.fromPoints([1,2], [0,3], [-1,2]);
   expect(result1.radius).toBeCloseTo(1);
-  expect(result1.origin.x).toBeCloseTo(2);
-  expect(result1.origin.y).toBeCloseTo(0);
+  expect(result1.origin.x).toBeCloseTo(0);
+  expect(result1.origin.y).toBeCloseTo(2);
 
   const result2 = ear.circle.fromPoints([1,2], [0,3]);
   expect(result2.radius).toBeCloseTo(Math.sqrt(2));
@@ -72,8 +97,6 @@ test("circle fromThreePoints", () => {
 });
 
 test("intersect lines", () => {
-  testEqual(5, ear.circle(5, 1, 2).radius);
-  testEqual([1, 2], ear.circle(5, 1, 2).origin);
   const clipLine = ear.circle(1).intersect(ear.line([0, 1], [0.5, 0]));
   const shouldBeLine = [[0.5, -Math.sqrt(3) / 2], [0.5, Math.sqrt(3) / 2]];
   testEqual(clipLine[0], shouldBeLine[0]);

@@ -162,7 +162,7 @@ test("matrix 3 core", () => {
     ear.math.invert_matrix3([0, 1, -3, -3, -4, 4, -2, -2, 1, 0, 0, 0]));
   testEqual([0.2, -0.2, 0.2, 0.2, 0.3, -0.3, 0, 1, 0, 0, 0, 0],
     ear.math.invert_matrix3([3, 2, 0, 0, 0, 1, 2, -2, 1, 0, 0, 0]));
-  const mat_3d_ref = ear.math.make_matrix3_reflectionZ([1, -2], [12, 13]);
+  const mat_3d_ref = ear.math.make_matrix3_reflectZ([1, -2], [12, 13]);
   testEqual(ear.math.make_matrix2_reflect([1, -2], [12, 13]),
     [mat_3d_ref[0], mat_3d_ref[1], mat_3d_ref[3], mat_3d_ref[4], mat_3d_ref[9], mat_3d_ref[10]]);
 

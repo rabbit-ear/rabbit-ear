@@ -69,6 +69,8 @@ const array_similarity_test = (list, compFunc) => Array
   .from(Array(list.length - 1))
   .map((_, i) => compFunc(list[0], list[i + 1]))
   .reduce((a, b) => a && b, true);
+const equivalent_vec2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
+  && Math.abs(a[1] - b[1]) < EPSILON;
 const equivalent_arrays_of_numbers = function () {
 };
 const equivalent_numbers = function () {
@@ -109,6 +111,7 @@ const equivalent = function () {
 var equal = /*#__PURE__*/Object.freeze({
   __proto__: null,
   EPSILON: EPSILON,
+  equivalent_vec2: equivalent_vec2,
   equivalent_arrays_of_numbers: equivalent_arrays_of_numbers,
   equivalent_numbers: equivalent_numbers,
   equivalent_vectors: equivalent_vectors,
@@ -491,8 +494,8 @@ const get_line = function () {
     ? vector_origin_form(get_vector(args))
     : vector_origin_form(...args.map(a => get_vector(a)));
 };
-const rect_form = (width = 0, height = 0, x = 0, y = 0) => ({
-  width, height, x, y
+const rect_form = (x = 0, y = 0, width = 0, height = 0) => ({
+  x, y, width, height
 });
 const get_rect = function () {
   if (arguments[0] instanceof Constructors.rect) { return arguments[0]; }
@@ -501,11 +504,15 @@ const get_rect = function () {
     && typeof list[0] === "object"
     && list[0] !== null
     && !isNaN(list[0].width)) {
-    return rect_form(...["width", "height", "x", "y"]
+    return rect_form(...["x", "y", "width", "height"]
       .map(c => list[0][c])
       .filter(a => a !== undefined));
   }
-  return rect_form(...list.filter(n => typeof n === "number"));
+  const numbers = list.filter(n => typeof n === "number");
+  const rect_params = numbers.length < 4
+    ? [, , ...numbers]
+    : numbers;
+  return rect_form(...rect_params);
 };
 const maps_3x4 = [
   [0, 1, 3, 4, 9, 10],
@@ -776,7 +783,7 @@ const enclosing_rectangle = (points) => {
       if (c > maxs[i]) { maxs[i] = c; }
     }));
   const lengths = maxs.map((max, i) => max - mins[i]);
-  return rect_form(...lengths, ...mins);
+  return rect_form(...mins, ...lengths);
 };
 const make_regular_polygon = (sides, radius = 1, x = 0, y = 0) => {
   const halfwedge = TWO_PI / sides / 2;
@@ -964,6 +971,111 @@ var nearest = /*#__PURE__*/Object.freeze({
   nearest_point_on_ellipse: nearest_point_on_ellipse
 });
 
+const type_of = function (obj) {
+  switch (obj.constructor.name) {
+    case "vector":
+    case "matrix":
+    case "segment":
+    case "ray":
+    case "line":
+    case "circle":
+    case "ellipse":
+    case "rect":
+    case "polygon": return obj.constructor.name;
+  }
+  if (typeof obj === "object") {
+    if (obj.radius != null) { return "circle"; }
+    if (obj.width != null) { return "rect"; }
+    if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
+    if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
+    if (obj.vector != null && obj.origin != null) { return "line"; }
+  }
+  return undefined;
+};
+
+const acossafe = function (x) {
+  if (x >= 1.0) return 0;
+  if (x <= -1.0) return Math.PI;
+  return Math.acos(x);
+};
+const rotatePoint = function (fp, pt, a) {
+  const x = pt[0] - fp[0];
+  const y = pt[1] - fp[1];
+  const xRot = x * Math.cos(a) + y * Math.sin(a);
+  const yRot = y * Math.cos(a) - x * Math.sin(a);
+  return [fp[0] + xRot, fp[1] + yRot];
+};
+const circle_circle = function (c1, c2, epsilon = EPSILON) {
+  const r = (c1.radius < c2.radius) ? c1.radius : c2.radius;
+  const R = (c1.radius < c2.radius) ? c2.radius : c1.radius;
+  const smCenter = (c1.radius < c2.radius) ? c1.origin : c2.origin;
+  const bgCenter = (c1.radius < c2.radius) ? c2.origin : c1.origin;
+  const vec = [smCenter[0] - bgCenter[0], smCenter[1] - bgCenter[1]];
+  const d = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+  if (d < epsilon) { return undefined; }
+  const point = vec.map((v, i) => v / d * R + bgCenter[i]);
+  if (Math.abs((R + r) - d) < epsilon
+    || Math.abs(R - (r + d)) < epsilon) { return [point]; }
+  if ((d + r) < R || (R + r < d)) { return undefined; }
+  const angle = acossafe((r * r - d * d - R * R) / (-2.0 * d * R));
+  const pt1 = rotatePoint(bgCenter, point, +angle);
+  const pt2 = rotatePoint(bgCenter, point, -angle);
+  return [pt1, pt2];
+};
+const circle_line_func = function (circleRadius, circleOrigin, vector, origin, func, epsilon = EPSILON) {
+  const magSq = vector[0] ** 2 + vector[1] ** 2;
+  const mag = Math.sqrt(magSq);
+  const norm = mag === 0 ? vector : vector.map(c => c / mag);
+  const rot90 = [-norm[1], norm[0]];
+  const bvec = [origin[0] - circleOrigin[0], origin[1] - circleOrigin[1]];
+  const det = bvec[0] * norm[1] - norm[0] * bvec[1];
+  if (Math.abs(det) > circleRadius + epsilon) { return undefined; }
+  const side = Math.sqrt((circleRadius ** 2) - (det ** 2));
+  const f = (s, i) => circleOrigin[i] - rot90[i] * det + norm[i] * s;
+  const results = Math.abs(circleRadius - Math.abs(det)) < epsilon
+    ? [side].map((s) => [s, s].map(f))
+    : [-side, side].map((s) => [s, s].map(f));
+  const ts = results.map(res => res.map((n, i) => n - origin[i]))
+    .map(v => v[0] * vector[0] + vector[1] * v[1])
+    .map(d => d / magSq);
+  return results.filter((_, i) => func(ts[i], epsilon));
+};
+const line_func = () => true;
+const ray_func = (n, epsilon) => n > -epsilon;
+const segment_func = (n, epsilon) => n > -epsilon && n < 1 + epsilon;
+const circle_line = (circle, line, epsilon = EPSILON) => circle_line_func(
+  circle.radius,
+  circle.origin,
+  line.vector,
+  line.origin,
+  line_func,
+  epsilon
+);
+const circle_ray = (circle, ray, epsilon = EPSILON) => circle_line_func(
+  circle.radius,
+  circle.origin,
+  ray.vector,
+  ray.origin,
+  ray_func,
+  epsilon
+);
+const circle_segment = (circle, segment, epsilon = EPSILON) => circle_line_func(
+  circle.radius,
+  circle.origin,
+  segment.vector,
+  segment.origin,
+  segment_func,
+  epsilon
+);
+
+var intersect_circle = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  circle_circle: circle_circle,
+  circle_line: circle_line,
+  circle_ray: circle_ray,
+  circle_segment: circle_segment
+});
+
 const overlap_lines = (aVec, aPt, bVec, bPt, compA, compB, epsilon = EPSILON) => {
   const denominator0 = cross2(aVec, bVec);
   const denominator1 = -denominator0;
@@ -1086,117 +1198,8 @@ var overlap_polygon = /*#__PURE__*/Object.freeze({
   enclose_convex_polygons_inclusive: enclose_convex_polygons_inclusive
 });
 
-const overlap = Object.assign(Object.create(null),
-  overlap_lines$1,
-  overlap_point,
-  overlap_polygon,
-);
-
-const type_of = function (obj) {
-  switch (obj.constructor.name) {
-    case "vector":
-    case "matrix":
-    case "segment":
-    case "ray":
-    case "line":
-    case "circle":
-    case "ellipse":
-    case "rect":
-    case "polygon": return obj.constructor.name;
-  }
-  if (typeof obj === "object") {
-    if (obj.radius != null) { return "circle"; }
-    if (obj.width != null) { return "rect"; }
-    if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
-    if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
-    if (obj.vector != null && obj.origin != null) { return "line"; }
-  }
-  return undefined;
-};
-
-const acossafe = function (x) {
-  if (x >= 1.0) return 0;
-  if (x <= -1.0) return Math.PI;
-  return Math.acos(x);
-};
-const rotatePoint = function (fp, pt, a) {
-  const x = pt[0] - fp[0];
-  const y = pt[1] - fp[1];
-  const xRot = x * Math.cos(a) + y * Math.sin(a);
-  const yRot = y * Math.cos(a) - x * Math.sin(a);
-  return [fp[0] + xRot, fp[1] + yRot];
-};
-const circle_circle = function (c1, c2, epsilon = EPSILON) {
-  const r = (c1.radius < c2.radius) ? c1.radius : c2.radius;
-  const R = (c1.radius < c2.radius) ? c2.radius : c1.radius;
-  const smCenter = (c1.radius < c2.radius) ? c1.origin : c2.origin;
-  const bgCenter = (c1.radius < c2.radius) ? c2.origin : c1.origin;
-  const vec = [smCenter[0] - bgCenter[0], smCenter[1] - bgCenter[1]];
-  const d = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
-  if (d < epsilon) { return undefined; }
-  const point = vec.map((v, i) => v / d * R + bgCenter[i]);
-  if (Math.abs((R + r) - d) < epsilon
-    || Math.abs(R - (r + d)) < epsilon) { return [point]; }
-  if ((d + r) < R || (R + r < d)) { return undefined; }
-  const angle = acossafe((r * r - d * d - R * R) / (-2.0 * d * R));
-  const pt1 = rotatePoint(bgCenter, point, +angle);
-  const pt2 = rotatePoint(bgCenter, point, -angle);
-  return [pt1, pt2];
-};
-const circle_line_func = function (circleRadius, circleOrigin, vector, origin, func, epsilon = EPSILON) {
-  const magSq = vector[0] ** 2 + vector[1] ** 2;
-  const mag = Math.sqrt(magSq);
-  const norm = mag === 0 ? vector : vector.map(c => c / mag);
-  const rot90 = [-norm[1], norm[0]];
-  const bvec = [origin[0] - circleOrigin[0], origin[1] - circleOrigin[1]];
-  const det = bvec[0] * norm[1] - norm[0] * bvec[1];
-  if (Math.abs(det) > circleRadius + epsilon) { return undefined; }
-  const side = Math.sqrt((circleRadius ** 2) - (det ** 2));
-  const f = (s, i) => circleOrigin[i] - rot90[i] * det + norm[i] * s;
-  const results = Math.abs(circleRadius - Math.abs(det)) < epsilon
-    ? [side].map((s) => [s, s].map(f))
-    : [-side, side].map((s) => [s, s].map(f));
-  const ts = results.map(res => res.map((n, i) => n - origin[i]))
-    .map(v => v[0] * vector[0] + vector[1] * v[1])
-    .map(d => d / magSq);
-  return results.filter((_, i) => func(ts[i], epsilon));
-};
-const line_func = () => true;
-const ray_func = (n, epsilon) => n > -epsilon;
-const segment_func = (n, epsilon) => n > -epsilon && n < 1 + epsilon;
-const circle_line = (circle, line, epsilon = EPSILON) => circle_line_func(
-  circle.radius,
-  circle.origin,
-  line.vector,
-  line.origin,
-  line_func,
-  epsilon
-);
-const circle_ray = (circle, ray, epsilon = EPSILON) => circle_line_func(
-  circle.radius,
-  circle.origin,
-  ray.vector,
-  ray.origin,
-  ray_func,
-  epsilon
-);
-const circle_segment = (circle, segment, epsilon = EPSILON) => circle_line_func(
-  circle.radius,
-  circle.origin,
-  segment.vector,
-  segment.origin,
-  segment_func,
-  epsilon
-);
-
-var intersect_circle = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  circle_circle: circle_circle,
-  circle_line: circle_line,
-  circle_ray: circle_ray,
-  circle_segment: circle_segment
-});
-
+const quick_equivalent_2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
+  && Math.abs(a[1] - b[1]) < EPSILON;
 const intersect_line_seg = (vector, origin, pt0, pt1) => intersect_lines(
   vector, origin,
   subtract(pt1, pt0), pt0,
@@ -1222,9 +1225,7 @@ const intersect_seg_seg_exclude = (a0, a1, b0, b1) => intersect_lines(
   subtract(b1, b0), b0,
   exclude_s_s
 );
-const quick_equivalent_2 = function (a, b) {
-  return Math.abs(a[0] - b[0]) < EPSILON && Math.abs(a[1] - b[1]) < EPSILON;
-};
+
 const convex_poly_line_intersect = (intersect_func, poly, line1, line2) => {
   const intersections = poly
     .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
@@ -1318,6 +1319,89 @@ const intersect = function (a, b) {
   const bT = type_of(b);
   return intersect_func[aT][bT](...arguments);
 };
+
+const overlap = Object.assign(Object.create(null),
+  overlap_lines$1,
+  overlap_point,
+  overlap_polygon,
+);
+
+const clip_intersections = (intersect_func, poly, line1, line2) => poly
+  .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+  .map(el => intersect_func(line1, line2, el[0], el[1]))
+  .filter(el => el != null);
+const get_unique_pair = (intersections) => {
+  for (let i = 1; i < intersections.length; i += 1) {
+    if (!quick_equivalent_2(intersections[0], intersections[i])) {
+      return [intersections[0], intersections[i]];
+    }
+  }
+};
+const finish_line = (intersections) => {
+  switch (intersections.length) {
+    case 0:
+    case 1: return undefined;
+    default:
+      return get_unique_pair(intersections);
+  }
+};
+const finish_ray = (intersections, origin) => {
+  if (intersections.length === 0) { return undefined; }
+  return get_unique_pair(intersections) || [origin, intersections[0]];
+};
+const finish_segment = (intersections, poly, seg0, seg1, epsilon = EPSILON) => {
+  const aInsideExclusive = point_in_convex_poly_exclusive(seg0, poly, epsilon);
+  const bInsideExclusive = point_in_convex_poly_exclusive(seg1, poly, epsilon);
+  const aInsideInclusive = point_in_convex_poly_inclusive(seg0, poly, epsilon);
+  const bInsideInclusive = point_in_convex_poly_inclusive(seg1, poly, epsilon);
+  if (intersections.length === 0
+    && (aInsideExclusive || bInsideExclusive)) {
+    return [seg0, seg1];
+  }
+  if (intersections.length === 0
+    && (aInsideInclusive && bInsideInclusive)) {
+    return [seg0, seg1];
+  }
+  switch (intersections.length) {
+    case 0: return (aInsideExclusive
+      ? [[...seg0], [...seg1]]
+      : undefined);
+    case 1: return (aInsideInclusive
+      ? [[...seg0], intersections[0]]
+      : [[...seg1], intersections[0]]);
+    case 2: return intersections;
+    default: throw new Error("clipping segment in a convex polygon resulting in 3 or more points");
+  }
+};
+const clip_line_in_convex_poly = (poly, vector, origin) => {
+  const p = clip_intersections(intersect_line_seg, poly, vector, origin);
+  return finish_line(p);
+};
+const clip_ray_in_convex_poly_exclusive = (poly, vector, origin) => {
+  const p = clip_intersections(intersect_ray_seg_exclude, poly, vector, origin);
+  return finish_ray(p, origin);
+};
+const clip_ray_in_convex_poly_inclusive = (poly, vector, origin) => {
+  const p = clip_intersections(intersect_ray_seg_include, poly, vector, origin);
+  return finish_ray(p, origin);
+};
+const clip_segment_in_convex_poly_exclusive = (poly, seg0, seg1) => {
+  const p = clip_intersections(intersect_seg_seg_exclude, poly, seg0, seg1);
+  return finish_segment(p, poly, seg0, seg1);
+};
+const clip_segment_in_convex_poly_inclusive = (poly, seg0, seg1) => {
+  const p = clip_intersections(intersect_seg_seg_include, poly, seg0, seg1);
+  return finish_segment(p, poly, seg0, seg1);
+};
+
+var clip_polygon = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  clip_line_in_convex_poly: clip_line_in_convex_poly,
+  clip_ray_in_convex_poly_exclusive: clip_ray_in_convex_poly_exclusive,
+  clip_ray_in_convex_poly_inclusive: clip_ray_in_convex_poly_inclusive,
+  clip_segment_in_convex_poly_exclusive: clip_segment_in_convex_poly_exclusive,
+  clip_segment_in_convex_poly_inclusive: clip_segment_in_convex_poly_inclusive
+});
 
 const VectorArgs = function () {
   get_vector(arguments).forEach(n => this.push(n));
@@ -1571,22 +1655,41 @@ var Segment = {
 
 const CircleArgs = function () {
   const vectors = get_vector_of_vectors(arguments);
-  const numbers = resize(3, flatten_arrays(arguments));
-  if (vectors.length === 2) {
-    this.radius = vectors[0].length === 1
-      ? vectors[0][0] : distance2(...vectors);
-    this.origin = vectors[0].length === 1
-      ? Constructors.vector(...vectors[1])
-      : Constructors.vector(...vectors[0]);
-  } else {
-    this.radius = numbers[0];
-    this.origin = Constructors.vector(numbers[1], numbers[2]);
+  const numbers = flatten_arrays(arguments).filter(a => typeof a === "number");
+  if (arguments.length === 2) {
+    if (vectors[1].length === 1) {
+      this.radius = vectors[1][0];
+      this.origin = Constructors.vector(...vectors[0]);
+    } else if (vectors[0].length === 1) {
+      this.radius = vectors[0][0];
+      this.origin = Constructors.vector(...vectors[1]);
+    } else if (vectors[0].length > 1 && vectors[1].length > 1) {
+      this.radius = distance2(...vectors);
+      this.origin = Constructors.vector(...vectors[0]);
+    }
+  }
+  else {
+    switch (numbers.length) {
+      case 0:
+        this.radius = 1;
+        this.origin = Constructors.vector(0, 0, 0);
+        break;
+      case 1:
+        this.radius = numbers[0];
+        this.origin = Constructors.vector(0, 0, 0);
+        break;
+      default:
+        this.radius = numbers.pop();
+        this.origin = Constructors.vector(...numbers);
+        break;
+    }
   }
 };
 
 const CircleGetters = {
   x: function () { return this.origin[0]; },
   y: function () { return this.origin[1]; },
+  z: function () { return this.origin[2]; },
 };
 
 const pointOnEllipse = function (cx, cy, rx, ry, zRotation, arcAngle) {
@@ -1666,11 +1769,15 @@ const CircleMethods = {
 
 const CircleStatic = {
   fromPoints: function () {
+    if (arguments.length === 3) {
+      const result = circumcircle(...arguments);
+      return this.constructor(result.radius, result.origin);
+    }
     return this.constructor(...arguments);
   },
   fromThreePoints: function () {
     const result = circumcircle(...arguments);
-    return this.constructor(result.radius, ...result.origin);
+    return this.constructor(result.radius, result.origin);
   }
 };
 
@@ -1736,6 +1843,15 @@ var Ellipse = {
   }
 };
 
+const makeClip = (e) => {
+  if (e === undefined) { return undefined; }
+  switch (e.length) {
+    case undefined: break;
+    case 1: return Constructors.vector(e);
+    case 2: return Constructors.segment(e);
+    default: return e;
+  }
+};
 const methods = {
   area: function () {
     return signed_area(this);
@@ -1804,8 +1920,23 @@ const methods = {
     return convex_poly_ray_exclusive(this, line.vector, line.origin);
   },
   intersectSegment: function () {
-    const edge = get_segment(...arguments);
-    return convex_poly_segment_exclusive(this, edge[0], edge[1]);
+    const seg = get_segment(...arguments);
+    return convex_poly_segment_exclusive(this, seg[0], seg[1]);
+  },
+  clipLine: function () {
+    const line = get_line(...arguments);
+    const clip = clip_line_in_convex_poly(this, line.vector, line.origin);
+    return makeClip(clip);
+  },
+  clipRay: function () {
+    const ray = get_line(...arguments);
+    const clip = clip_ray_in_convex_poly_exclusive(this, ray.vector, ray.origin);
+    return makeClip(clip);
+  },
+  clipSegment: function () {
+    const seg = get_segment(...arguments);
+    const clip = clip_segment_in_convex_poly_exclusive(this, seg[0], seg[1]);
+    return makeClip(clip);
   },
   svgPath: function () {
     const pre = Array(this.length).fill("L");
@@ -1852,6 +1983,9 @@ var Rect = {
     M: {
       area: function () { return this.width * this.height; },
       segments: function () { return rectToSides(this); },
+      svgPath: function () {
+        return `M${this.origin.join(" ")}h${this.width}v${this.height}h${-this.width}Z`;
+      },
     },
     S: {
       fromPoints: function () {
@@ -2049,6 +2183,7 @@ math.core = Object.assign(Object.create(null),
   intersect_circle,
   intersect_lines$1,
   intersect_polygon,
+  clip_polygon,
 );
 math.typeof = type_of;
 math.intersect = intersect;

@@ -8,7 +8,7 @@ test("intersections", () => {
   const segment = ear.segment([-2, 0.5], [2, 0.5]);
 
   const polygon2 = ear.polygon([0, -1.15], [1, 0.577], [-1, 0.577]);
-  const circle2 = ear.circle(1, 0.5, 0);
+  const circle2 = ear.circle(1, [0.5, 0]);
   const line2 = ear.line([-1, 2], [0.5, 0]);
   const ray2 = ear.ray([1, 2], [-0.5, 0]);
   const segment2 = ear.segment([0.5, -2], [0.5, 2]);

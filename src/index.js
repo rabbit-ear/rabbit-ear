@@ -21,9 +21,13 @@ import use from "./use";
 import * as keys from "./core/keys";
 import * as make from "./core/make";
 
-const core = Object.assign(Object.create(null),
+import get_duplicate_edges from "./core/edges_duplicate";
+
+const core = Object.assign(Object.create(null), {
+  get_duplicate_edges,
+},
   keys,
-  make
+  make,
 );
 
 const Ear = Object.assign(root, {
