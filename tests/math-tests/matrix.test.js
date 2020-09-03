@@ -1,6 +1,5 @@
 const ear = require("../../rabbit-ear");
 
-
 test("copy", () => {
   const matrix = ear.matrix(1,2,3,4,5,6,7,8,9);
   const result = matrix.copy();
@@ -61,6 +60,12 @@ test("rotate", () => {
 });
 test("scale", () => {
   expect(ear.matrix().scale(0.5)[0]).toBe(0.5);
+});
+test("combine operations", () => {
+  const ident = ear.matrix();
+  const result = ident.rotateX(Math.PI / 2).translate(40, 20, 10);
+  [1, 0, 0, 0, 0, 1, 0, -1, 0, 40, -10, 20]
+    .forEach((n, i) => expect(n).toBeCloseTo(result[i]));
 });
 test("reflectZ", () => {
   const m = ear.matrix().reflectZ([1, 1, 1], [0, 0, 0]);
@@ -125,6 +130,10 @@ test("matrix core invert", () => {
 test("matrix 3, init with parameters", () => {
   const result1 = ear.matrix(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0);
   testEqual(result1, [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]);
+  const result2 = ear.matrix(1,2,3,4,5,6,7,8,9,10,11,12);
+  testEqual(result2, [1,2,3,4,5,6,7,8,9,10,11,12]);
+  const result3 = ear.matrix(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+  testEqual(result3, [1,2,3,5,6,7,9,10,11,13,14,15]);
 });
 
 // todo: test matrix3 methods (invert) with the translation component to make sure it carries over
@@ -144,12 +153,20 @@ test("matrix 3 core, transforms", () => {
   testEqual(ear.math.make_matrix3_rotateZ(Math.PI / 6),
     ear.math.make_matrix3_rotate(Math.PI / 6, [0, 0, 1]));
   // source wikipedia https://en.wikipedia.org/wiki/Rotation_matrix#Examples
-  testEqual([
+  const exampleMat = [
     0.35612209405955486, -0.8018106071106572, 0.47987165414043453,
     0.47987165414043464, 0.5975763087872217, 0.6423595182829954,
     -0.8018106071106572, 0.0015183876574496047, 0.5975763087872216,
     0, 0, 0
-  ], ear.math.make_matrix3_rotate(-74 / 180 * Math.PI, [-1 / 3, 2 / 3, 2 / 3]));
+  ];
+  testEqual(
+    exampleMat,
+    ear.math.make_matrix3_rotate(-74 / 180 * Math.PI, [-1 / 3, 2 / 3, 2 / 3])
+  );
+  testEqual(
+    exampleMat,
+    ear.math.make_matrix3_rotate(-74 / 180 * Math.PI, [-0.5, 1, 1])
+  );
 
   testEqual([1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 0, 0],
     ear.math.make_matrix3_rotate(Math.PI / 6, [1, 0, 0]));
@@ -165,19 +182,15 @@ test("matrix 3 core", () => {
   const mat_3d_ref = ear.math.make_matrix3_reflectZ([1, -2], [12, 13]);
   testEqual(ear.math.make_matrix2_reflect([1, -2], [12, 13]),
     [mat_3d_ref[0], mat_3d_ref[1], mat_3d_ref[3], mat_3d_ref[4], mat_3d_ref[9], mat_3d_ref[10]]);
-
   // source wolfram alpha
   testEqual([-682, 3737, -5545, 2154, -549, -1951, 953, -3256, 4401, 0, 0, 0],
     ear.math.multiply_matrices3([5, -52, 85, 15, -9, -2, 32, 2, -50, 0, 0, 0],
       [-77, 25, -21, 3, 53, 42, 63, 2, 19, 0, 0, 0]));
 });
 
-
-
-// test("matrices", () => {
-//   const ident = ear.matrix();
-//   testEqual(ident.rotateX(Math.PI / 2).translate(40, 20, 10),
-//     [1, 0, 0, 0, 0, 1, 0, -1, 0, 40, -10, 20]);
+// matrix 2 has been depricated as a top-level object
+//
+// test("matrix 2", () => {
 //   // top level types
 //   testEqual([1, 2, 3, 4, 5, 6], ear.matrix2(1, 2, 3, 4, 5, 6));
 //   testEqual([1, 0, 0, 1, 6, 7], ear.matrix2.makeTranslation(6, 7));

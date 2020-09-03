@@ -1,9 +1,13 @@
 const ear = require("../../rabbit-ear");
 
 test("x, y", () => {
-  const ellipse = ear.ellipse(2, 1, 5, 6);
-  expect(ellipse.x).toBe(5);
-  expect(ellipse.y).toBe(6);
+  const ellipse0 = ear.ellipse(2, 1);
+  expect(ellipse0.x).toBe(0);
+  expect(ellipse0.y).toBe(0);
+  // expect(ellipse0.z).toBe(0);
+  const ellipse1 = ear.ellipse(2, 1, 5, 6);
+  expect(ellipse1.x).toBe(5);
+  expect(ellipse1.y).toBe(6);
   const ellipse2 = ear.ellipse(2, 1, [5, 6], 9);
   expect(ellipse2.x).toBe(5);
   expect(ellipse2.y).toBe(6);

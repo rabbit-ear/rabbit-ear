@@ -42,12 +42,6 @@ test("intersections", () => {
   ].forEach(intersect => expect(intersect).not.toBe(undefined));
 });
 
-
-
-// test("core polygon intersection circle", () => {
-//   convex_poly_circle(poly, center, radius)  
-// })
-
 test("core polygon intersection lines", () => {
   const poly = [[0,0], [1,0], [0.5, 0.866]];
   const vector = [1, 1];
@@ -66,7 +60,6 @@ test("core polygon intersection lines", () => {
   expect(ear.math.convex_poly_segment_exclusive(poly, segmentA, segmentB).length)
     .toBe(1);
 });
-
 
 test("core polygon intersection lines, collinear to edge", () => {
   const poly = [[0,0], [1,0], [0.5, 0.866]];
@@ -87,7 +80,6 @@ test("core polygon intersection lines, collinear to edge", () => {
     .toBe(undefined);
 });
 
-
 test("core polygon intersection lines, collinear to vertex", () => {
   const poly = [[0,0], [1,0], [0.5, 0.866]];
   const vector = [1, 0];
@@ -107,7 +99,6 @@ test("core polygon intersection lines, collinear to vertex", () => {
     .toBe(undefined);
 });
 
-
 test("core polygon intersection lines, no intersections", () => {
   const poly = [[0,0], [1,0], [0.5, 0.866]];
   const vector = [1, 0];
@@ -125,4 +116,111 @@ test("core polygon intersection lines, no intersections", () => {
     .toBe(undefined);
   expect(ear.math.convex_poly_segment_exclusive(poly, segmentA, segmentB))
     .toBe(undefined);
+});
+
+// test("core polygon intersection circle", () => {
+//   convex_poly_circle(poly, center, radius)  
+// });
+
+test("collinear line intersections", () => {
+  const intersect = ear.math.intersect_lines;
+  [
+    // INCLUDE horizontal
+    intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.include_l_l),
+    intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.include_l_l),
+    intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.include_l_l),
+    // INCLUDE vertical
+    intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.include_l_l),
+    intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.include_l_l),
+    intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.include_l_l),
+    // INCLUDE diagonal
+    intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.include_l_l),
+    intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.include_l_l),
+    intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.include_l_l),
+    // EXCLUDE horizontal
+    intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.exclude_l_l),
+    intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.exclude_l_l),
+    intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.exclude_l_l),
+    // EXCLUDE vertical
+    intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.exclude_l_l),
+    intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.exclude_l_l),
+    intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.exclude_l_l),
+    // EXCLUDE diagonal
+    intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.exclude_l_l),
+    intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.exclude_l_l),
+    intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.exclude_l_l),
+  ].forEach(res => expect(res).toBe(undefined));
+});
+
+test("collinear ray intersections", () => {
+  const intersect = ear.math.intersect_lines;
+  [
+    // INCLUDE horizontal
+    intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.include_r_r),
+    intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.include_r_r),
+    intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.include_r_r),
+    // INCLUDE vertical
+    intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.include_r_r),
+    intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.include_r_r),
+    intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.include_r_r),
+    // INCLUDE diagonal
+    intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.include_r_r),
+    intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.include_r_r),
+    intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.include_r_r),
+    // EXCLUDE horizontal
+    intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.exclude_r_r),
+    intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.exclude_r_r),
+    intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.exclude_r_r),
+    // EXCLUDE vertical
+    intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.exclude_r_r),
+    intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.exclude_r_r),
+    intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.exclude_r_r),
+    // EXCLUDE diagonal
+    intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.exclude_r_r),
+    intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.exclude_r_r),
+    intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.exclude_r_r),
+  ].forEach(res => expect(res).toBe(undefined));
+});
+
+test("collinear segment intersections", () => {
+  const intersect = ear.math.intersect_lines;
+  [
+    // INCLUDE horizontal
+    intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.include_s_s),
+    intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.include_s_s),
+    intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.include_s_s),
+    // INCLUDE vertical
+    intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.include_s_s),
+    intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.include_s_s),
+    intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.include_s_s),
+    // INCLUDE diagonal
+    intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.include_s_s),
+    intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.include_s_s),
+    intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.include_s_s),
+    // EXCLUDE horizontal
+    intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.exclude_s_s),
+    intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.exclude_s_s),
+    intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.exclude_s_s),
+    // EXCLUDE vertical
+    intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.exclude_s_s),
+    intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.exclude_s_s),
+    intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.exclude_s_s),
+    // EXCLUDE diagonal
+    intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.exclude_s_s),
+    intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.exclude_s_s),
+    intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.exclude_s_s),
+  ].forEach(res => expect(res).toBe(undefined));
+});
+
+test("collinear segment intersections, types not core", () => {
+  [ // horizontal
+    ear.segment([0, 2], [2, 2]).intersect(ear.segment([-1, 2], [10, 2])),
+    ear.segment([0, 2], [2, 2]).intersect(ear.segment([10, 2], [-1, 2])),
+    // vertical
+    ear.segment([2, 0], [2, 2]).intersect(ear.segment([2, -1], [2, 10])),
+    ear.segment([2, 0], [2, 2]).intersect(ear.segment([2, 10], [2, -1])),
+    // diagonal
+    ear.segment([0, 0], [2, 2]).intersect(ear.segment([-1, -1], [5, 5])),
+    ear.segment([0, 0], [2, 2]).intersect(ear.segment([5, 5], [-1, -1])),
+  ].forEach(res => expect(res).toBe(undefined));
 });

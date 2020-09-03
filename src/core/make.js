@@ -3,9 +3,17 @@ import math from "../math";
 // export const make_vertices_vertices = function (graph) {
 // };
 
-export const make_vertices_edges = function ({ edges_vertices }) {
-  if (!edges_vertices) { return undefined; }
+/**
+ * @param {object} FOLD object, with entry "edges_vertices"
+ * @returns {number[][]} array of array of numbers. each index is a vertex with
+ *   the content an array of numbers, edge indices this vertex is adjacent.
+ */
+export const make_vertices_edges = ({ edges_vertices }) => {
+  // if (!edges_vertices) { return undefined; }
   const vertices_edges = [];
+  // iterate over edges_vertices and swap the index for each of the contents
+  // each edge (index 0: [3, 4]) will be converted into (index 3: [0], index 4: [0])
+  // repeat. append to each array.
   edges_vertices.forEach((ev, i) => ev
     .forEach((v) => {
       if (vertices_edges[v] === undefined) {
@@ -15,11 +23,53 @@ export const make_vertices_edges = function ({ edges_vertices }) {
     }));
   return vertices_edges;
 };
+/**
+ * build vertices_faces from faces_vertices
+ */
+export const make_vertices_faces = ({ vertices_coords, faces_vertices }) => {
+  // if (!vertices_coords || !faces_vertices) { return undefined; }
+  const vertices_faces = vertices_coords.map(() => []);
+  // iterate over every face, then iterate over each of the face's vertices
+  faces_vertices.forEach((face, f) => {
+    // because faces can visit the same vertex multiple times,
+    // this hash will relate one vertex to one face.
+    // otherwise we get a vertex with multiple occurences of a face's index.
+    const hash = [];
+    face.forEach((vertex) => { hash[vertex] = f; });
+    hash.forEach((fa, v) => vertices_faces[v].push(fa));
+  });
+  return vertices_faces;
+};
+/**
+ * for fast backwards lookup, this builds a dictionary with keys as vertices
+ * that compose an edge "6 11" always sorted smallest to largest, with a space.
+ * the value is the index of the edge.
+ */
+export const make_vertex_pair_to_edge_map = ({ edges_vertices }) => {
+  if (!edges_vertices) { return {}; } // todo, should this return undefined?
+  const map = {};
+  edges_vertices
+    .map(ev => ev.sort((a, b) => a - b).join(" "))
+    .forEach((key, i) => { map[key] = i; });
+  return map;
+};
+/**
+ * @param {object} FOLD object, with entries "edges_vertices", "vertices_edges".
+ * @returns {number[][]} each entry relates to an edge, each array contains indices
+ *   of other edges that are vertex-adjacent.
+ * @description edges_edges are vertex-adjacent edges. make sure to call
+ *   make_vertices_edges before calling this.
+ */
+export const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
+  edges_vertices.map((verts, i) => {
+    const side0 = vertices_edges[verts[0]].filter(e => e !== i);
+    const side1 = vertices_edges[verts[1]].filter(e => e !== i);
+    return side0.concat(side1);
+  });
+  // if (!edges_vertices || !vertices_edges) { return undefined; }
 
 // todo: make_edges_faces c-clockwise
-export const make_edges_vertices = function ({
-  edges_vertices, faces_edges
-}) {
+export const make_edges_faces = ({ edges_vertices, faces_edges }) => {
   if (!edges_vertices || !faces_edges) { return undefined; }
   const edges_faces = Array
     .from(Array(edges_vertices.length))
@@ -35,14 +85,35 @@ export const make_edges_vertices = function ({
   return edges_faces;
 };
 
-// faces_faces is a set of faces edge-adjacent to a face. for every face.
-export const make_faces_faces = function ({ faces_vertices }) {
-  if (!faces_vertices) { return undefined; }
-  const nf = faces_vertices.length;
-  const faces_faces = Array.from(Array(nf)).map(() => []);
+const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
+
+export const make_edges_foldAngle = ({ edges_assignment }) => edges_assignment
+  .map(a => assignment_angles[a] || 0);
+//  if (!edges_assignment) { return undefined; }
+
+/**
+ * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
+ * @returns {number[]} the Euclidean distance between each edge's vertices.
+ */
+export const make_edges_length = ({ vertices_coords, edges_vertices }) =>
+  edges_vertices
+    .map(ev => ev.map(v => vertices_coords[v]))
+    .map(edge => math.core.distance(...edge));
+  // if (!vertices_coords || !edges_vertices) { return undefined; }
+/**
+ * @param {object} FOLD object, with entry "faces_vertices"
+ * @returns {number[][]} each index relates to a face, each entry is an array
+ *   of numbers, each number is an index of an edge-adjacent face to this face.
+ * @description faces_faces is a list of edge-adjacent face indices for each face.
+ */
+export const make_faces_faces = ({ faces_vertices }) => {
+  // if (!faces_vertices) { return undefined; }
+  const faces_faces = faces_vertices.map(() => []);
+  // create a map where each key is a string of the vertices of an edge,
+  // like "3 4"
+  // and each value is an array of faces adjacent to this edge. 
   const edgeMap = {};
   faces_vertices.forEach((vertices_index, idx1) => {
-    if (vertices_index === undefined) { return; } // todo: necessary?
     const n = vertices_index.length;
     vertices_index.forEach((v1, i, vs) => {
       let v2 = vs[(i + 1) % n];
@@ -59,91 +130,6 @@ export const make_faces_faces = function ({ faces_vertices }) {
   });
   return faces_faces;
 };
-
-export const make_edges_edges = function ({
-  edges_vertices, vertices_edges
-}) {
-  if (!edges_vertices || !vertices_edges) { return undefined; }
-  return edges_vertices.map((ev, i) => {
-    const vert0 = ev[0];
-    const vert1 = ev[1];
-    const side0 = vertices_edges[vert0].filter(e => e !== i);
-    const side1 = vertices_edges[vert1].filter(e => e !== i);
-    return side0.concat(side1);
-  });
-};
-
-// todo: make_edges_faces c-clockwise
-export const make_edges_faces = function ({
-  edges_vertices, faces_edges
-}) {
-  if (!edges_vertices || !faces_edges) { return undefined; }
-  const edges_faces = Array
-    .from(Array(edges_vertices.length))
-    .map(() => []);
-  // todo: does not arrange counter-clockwise
-  faces_edges.forEach((face, f) => {
-    const hash = [];
-    // use an intermediary hash to handle the case where faces visit one
-    // vertex multiple times. otherwise there are redundant indices.
-    face.forEach((edge) => { hash[edge] = f; });
-    hash.forEach((fa, e) => edges_faces[e].push(fa));
-  });
-  return edges_faces;
-};
-
-export const make_edges_length = function ({ vertices_coords, edges_vertices }) {
-  if (!vertices_coords || !edges_vertices) { return undefined; }
-  return edges_vertices
-    .map(ev => ev.map(v => vertices_coords[v]))
-    .map(edge => math.core.distance(...edge));
-};
-
-const assignment_angles = {
-  M: -180,
-  m: -180,
-  V: 180,
-  v: 180
-};
-
-export const make_edges_foldAngle = function ({ edges_assignment }) {
-  if (!edges_assignment) { return undefined; }
-  return edges_assignment.map(a => assignment_angles[a] || 0);
-};
-
-/**
- * for fast backwards lookup, this builds a dictionary with keys as vertices
- * that compose an edge "6 11" always sorted smallest to largest, with a space.
- * the value is the index of the edge.
- */
-export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
-  if (!edges_vertices) { return {}; } // todo, should this return undefined?
-  const map = {};
-  edges_vertices
-    .map(ev => ev.sort((a, b) => a - b).join(" "))
-    .forEach((key, i) => { map[key] = i; });
-  return map;
-};
-
-/**
- * build vertices_faces from faces_vertices
- */
-export const make_vertices_faces = function ({
-  vertices_coords, faces_vertices
-}) {
-  if (!vertices_coords || !faces_vertices) { return undefined; }
-  const vertices_faces = Array.from(Array(vertices_coords.length))
-    .map(() => []);
-  faces_vertices.forEach((face, f) => {
-    const hash = [];
-    // use an intermediary hash to handle the case where faces visit one
-    // vertex multiple times. otherwise there are redundant indices.
-    face.forEach((vertex) => { hash[vertex] = f; });
-    hash.forEach((fa, v) => vertices_faces[v].push(fa));
-  });
-  return vertices_faces;
-};
-
 
 // const faces_common_vertices = (graph, face0, face1) => graph
 //   .faces_vertices[face0]

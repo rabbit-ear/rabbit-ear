@@ -27,3 +27,8 @@ test("ellipse", () => {
   expect(ear.ellipse(1, 2).svgPath(-Math.PI).slice(0,4)).toBe("M-1 ");
   expect(ear.ellipse(1, 2).svgPath(-Math.PI*2)).toBe("M1 0A1 2 0 0 1 -1 0A1 2 0 0 1 1 0");
 });
+
+test("polygon", () => {
+  expect(ear.polygon([1, 0], [0, 1], [-1, 0], [0, -1]).svgPath())
+    .toBe("M1 0L0 1L-1 0L0 -1z");
+});
