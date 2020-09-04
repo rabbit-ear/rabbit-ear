@@ -1,4 +1,5 @@
 import math from "../math";
+import implied from "./count_implied";
 
 // export const make_vertices_vertices = function (graph) {
 // };
@@ -26,14 +27,18 @@ export const make_vertices_edges = ({ edges_vertices }) => {
 /**
  * build vertices_faces from faces_vertices
  */
-export const make_vertices_faces = ({ vertices_coords, faces_vertices }) => {
-  // if (!vertices_coords || !faces_vertices) { return undefined; }
-  const vertices_faces = vertices_coords.map(() => []);
+export const make_vertices_faces = ({ faces_vertices }) => {
+  // if (!faces_vertices) { return undefined; }
+  // instead of initializing the array ahead of time (we would need to know
+  // the length of something like vertices_coords)
+  const vertices_faces = Array
+    .from(Array(implied.vertices({ faces_vertices })))
+    .map(() => []);
   // iterate over every face, then iterate over each of the face's vertices
   faces_vertices.forEach((face, f) => {
-    // because faces can visit the same vertex multiple times,
-    // this hash will relate one vertex to one face.
-    // otherwise we get a vertex with multiple occurences of a face's index.
+    // in the case that one face visits the same vertex multiple times,
+    // this hash acts as an intermediary, basically functioning like a set,
+    // and only allow one occurence of each vertex index.
     const hash = [];
     face.forEach((vertex) => { hash[vertex] = f; });
     hash.forEach((fa, v) => vertices_faces[v].push(fa));
@@ -46,7 +51,7 @@ export const make_vertices_faces = ({ vertices_coords, faces_vertices }) => {
  * the value is the index of the edge.
  */
 export const make_vertex_pair_to_edge_map = ({ edges_vertices }) => {
-  if (!edges_vertices) { return {}; } // todo, should this return undefined?
+  // if (!edges_vertices) { return {}; } // todo, should this return undefined?
   const map = {};
   edges_vertices
     .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -131,7 +136,7 @@ export const make_faces_faces = ({ faces_vertices }) => {
   return faces_faces;
 };
 
-// const faces_common_vertices = (graph, face0, face1) => graph
+// const face_face_shared_vertices = (graph, face0, face1) => graph
 //   .faces_vertices[face0]
 //   .filter(v => graph.faces_vertices[face1].indexOf(v) !== -1)
 
@@ -141,7 +146,7 @@ export const make_faces_faces = ({ faces_vertices }) => {
  * @returns {number[]}, indices of vertices that are shared between faces
  *  and keep the vertices in the same order as the winding order of face a.
  */
-const faces_common_vertices = (face_a_vertices, face_b_vertices) => {
+export const face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
   // build a quick lookup table: T/F is a vertex in face B
   const hash = {};
   face_b_vertices.forEach((v) => { hash[v] = true; });
@@ -160,24 +165,6 @@ const faces_common_vertices = (face_a_vertices, face_b_vertices) => {
     .filter(el => el.m)
     .map(el => face_a_vertices[el.i]);
 };
-// test: faces_common_vertices([1,2,4,5,7,9,11,15,18], [19,15,14,12,9,7,3,1]);
-// result: [1, 7, 9, 15]
-// test: faces_common_vertices([1,2,4,5,7,9,11,15,18], [18,15,14,12,9,7,3,1]);
-// result: [15, 18, 1, 7, 9]
-// test: faces_common_vertices([0,1,2,4,5,7,9,11,15,18], [18,15,14,12,9,7,3]);
-// result: [15, 18, 7, 9]
-// test: faces_common_vertices([1,5,6,9,13], [16,9,6,4,2])
-// result: [6, 9]
-// test: faces_common_vertices([3, 5, 7, 9], [9, 7, 5, 3]);
-// result: [3, 5, 7, 9]
-// test: faces_common_vertices([3, 5, 7, 9], [9, 7, 5, 3, 2]);
-// result: [3, 5, 7, 9]
-// test: faces_common_vertices([3, 5, 7, 9], [11, 9, 7, 5, 3]);
-// result: [3, 5, 7, 9]
-// test: faces_common_vertices([3, 5, 7, 9, 11], [9, 7, 5, 3]);
-// result: [3, 5, 7, 9]
-// test: faces_common_vertices([2, 3, 5, 7, 9], [9, 7, 5, 3]);
-// result: [3, 5, 7, 9]
 
 // root_face will become the root node
 export const make_face_walk_tree = function (graph, root_face = 0) {
@@ -204,7 +191,7 @@ export const make_face_walk_tree = function (graph, root_face = 0) {
         .filter(f => visited.indexOf(f) === -1);
       visited = visited.concat(unique_faces);
       return unique_faces.map((f) => {
-        const edge_vertices = faces_common_vertices(
+        const edge_vertices = face_face_shared_vertices(
           graph.faces_vertices[current.face],
           graph.faces_vertices[f]
         );

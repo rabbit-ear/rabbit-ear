@@ -153,8 +153,7 @@ export const edge_assignment_to_foldAngle = assignment =>
  * @param {string} a suffix to match against the keys
  * @returns {string[]} array of keys that end with the string param
  */
-export const filter_keys_with_suffix = (graph, suffix) => Object
-  .keys(graph)
+export const filter_keys_with_suffix = (graph, suffix) => Object.keys(graph)
   .map(s => (s.substring(s.length - suffix.length, s.length) === suffix
     ? s : undefined))
   .filter(str => str !== undefined);

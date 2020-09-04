@@ -2271,8 +2271,7 @@
   const FACES = "faces";
   const edge_assignment_to_foldAngle = assignment =>
     assignment_angles[assignment] || 0;
-  const filter_keys_with_suffix = (graph, suffix) => Object
-    .keys(graph)
+  const filter_keys_with_suffix = (graph, suffix) => Object.keys(graph)
     .map(s => (s.substring(s.length - suffix.length, s.length) === suffix
       ? s : undefined))
     .filter(str => str !== undefined);
@@ -2337,6 +2336,50 @@
     transpose_graph_array_at_index: transpose_graph_array_at_index
   });
 
+  const max_num_in_array_in_arrays = (arrays) => {
+    let max = -1;
+    arrays
+      .filter(a => a !== undefined)
+      .forEach(arr => arr
+        .forEach(el => el
+          .forEach((e) => {
+            if (e > max) { max = e; }
+          })));
+    return max;
+  };
+  const implied_vertices_count = graph => max_num_in_array_in_arrays(
+    get_graph_keys_with_suffix(graph, "vertices").map(str => graph[str])
+  ) + 1;
+  const implied_edges_count = (graph) => {
+    let max = max_num_in_array_in_arrays(
+      get_graph_keys_with_suffix(graph, "edges").map(str => graph[str])
+    );
+    if (graph.edgeOrders !== undefined) {
+      graph.edgeOrders.forEach(eo => {
+        if (eo[0] > max) { max = eo[0]; }
+        if (eo[1] > max) { max = eo[1]; }
+      });
+    }
+    return max + 1;
+  };
+  const implied_faces_count = (graph) => {
+    let max = max_num_in_array_in_arrays(
+      get_graph_keys_with_suffix(graph, "faces").map(str => graph[str])
+    );
+    if (graph.faceOrders !== undefined) {
+      graph.faceOrders.forEach(fo => {
+        if (fo[0] > max) { max = fo[0]; }
+        if (fo[1] > max) { max = fo[1]; }
+      });
+    }
+    return max + 1;
+  };
+  var implied = {
+    vertices: implied_vertices_count,
+    edges: implied_edges_count,
+    faces: implied_faces_count,
+  };
+
   const make_vertices_edges = ({ edges_vertices }) => {
     const vertices_edges = [];
     edges_vertices.forEach((ev, i) => ev
@@ -2348,8 +2391,10 @@
       }));
     return vertices_edges;
   };
-  const make_vertices_faces = ({ vertices_coords, faces_vertices }) => {
-    const vertices_faces = vertices_coords.map(() => []);
+  const make_vertices_faces = ({ faces_vertices }) => {
+    const vertices_faces = Array
+      .from(Array(implied.vertices({ faces_vertices })))
+      .map(() => []);
     faces_vertices.forEach((face, f) => {
       const hash = [];
       face.forEach((vertex) => { hash[vertex] = f; });
@@ -2358,7 +2403,6 @@
     return vertices_faces;
   };
   const make_vertex_pair_to_edge_map = ({ edges_vertices }) => {
-    if (!edges_vertices) { return {}; }
     const map = {};
     edges_vertices
       .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -2410,7 +2454,7 @@
     });
     return faces_faces;
   };
-  const faces_common_vertices = (face_a_vertices, face_b_vertices) => {
+  const face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
     const hash = {};
     face_b_vertices.forEach((v) => { hash[v] = true; });
     const match = face_a_vertices.map((v, i) => ({i, m: hash[v]}));
@@ -2442,7 +2486,7 @@
           .filter(f => visited.indexOf(f) === -1);
         visited = visited.concat(unique_faces);
         return unique_faces.map((f) => {
-          const edge_vertices = faces_common_vertices(
+          const edge_vertices = face_face_shared_vertices(
             graph.faces_vertices[current.face],
             graph.faces_vertices[f]
           );
@@ -2575,6 +2619,7 @@
     make_edges_foldAngle: make_edges_foldAngle,
     make_edges_length: make_edges_length,
     make_faces_faces: make_faces_faces,
+    face_face_shared_vertices: face_face_shared_vertices,
     make_face_walk_tree: make_face_walk_tree,
     make_faces_matrix: make_faces_matrix,
     make_faces_matrix_2D: make_faces_matrix_2D,
@@ -2584,6 +2629,18 @@
     make_faces_coloring_from_faces_matrix: make_faces_coloring_from_faces_matrix,
     make_faces_coloring: make_faces_coloring
   });
+
+  const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
+    .filter(el => el !== undefined)
+    .map(el => el.length)));
+  var count = {
+    vertices: ({ vertices_coords, vertices_faces, vertices_vertices }) =>
+      max_arrays_length(vertices_coords, vertices_faces, vertices_vertices),
+    edges: ({ edges_vertices, edges_edges, edges_faces }) =>
+      max_arrays_length(edges_vertices, edges_edges, edges_faces),
+    faces: ({ faces_vertices, faces_edges, faces_faces }) =>
+      max_arrays_length(faces_vertices, faces_edges, faces_faces),
+  };
 
   const get_duplicate_edges = (graph) => {
     if (!graph.edges_vertices) { return []; }
@@ -2603,6 +2660,8 @@
   };
 
   const core = Object.assign(Object.create(null), {
+    count,
+    implied,
     get_duplicate_edges,
   },
     keys$1,

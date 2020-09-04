@@ -20,10 +20,13 @@ import use from "./use";
 
 import * as keys from "./core/keys";
 import * as make from "./core/make";
-
+import count from "./core/count";
+import implied from "./core/count_implied";
 import get_duplicate_edges from "./core/edges_duplicate";
 
 const core = Object.assign(Object.create(null), {
+  count,
+  implied,
   get_duplicate_edges,
 },
   keys,
