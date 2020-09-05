@@ -1,8 +1,44 @@
+/**
+ * all of the graph methods follow the same format.
+ * they take one argument: the FOLD graph. the graph remains unmodified.
+ * the method returns one array, the graph data.
+ * typically, the user will re-assign this array to be a value of the graph.
+ *
+ * var graph = {...};
+ * graph.faces_faces = make_faces_faces(graph);
+ */
 import math from "../math";
 import implied from "./count_implied";
 
-// export const make_vertices_vertices = function (graph) {
-// };
+export const make_vertices_vertices = ({ vertices_coords, edges_vertices, vertices_edges }) => {
+  // if vertices_edges exists on the graph, use it. otherwise build it
+  // const vertices_edges = graph.vertices_edges
+  //   ? graph.vertices_edges
+  //   : make_vertices_edges(graph);
+  if (!vertices_edges) {
+    vertices_edges = make_vertices_edges({ edges_vertices });
+  }
+  // use collinear edges to find collinear vertices
+  const collinear_vertices = vertices_edges
+    .map((edges, v) => edges
+      .map(edge => edges_vertices[edge]
+        .filter(i => i !== v))
+      .reduce((a, b) => a.concat(b), []));
+  // would be done, but vertices_vertices needs to be sorted counter-clockwise
+  const vertices_vertices_angles = collinear_vertices
+    .map((verts, i) => verts.map(v => vertices_coords[v])
+      .map(v => math.core.subtract(v, vertices_coords[i]))
+      .map(vec => Math.atan2(vec[1], vec[0]))
+      // optional line, this makes the cycle loop start/end along the +X axis
+      .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2));
+  const indexSorts = vertices_vertices_angles
+    .map(angles => angles
+      .map((a, i) => ({a, i}))
+      .sort((a, b) => a.a - b.a)
+      .map(el => el.i));
+  return indexSorts.map((indices, i) => indices
+    .map(index => collinear_vertices[i][index]));
+};
 
 /**
  * @param {object} FOLD object, with entry "edges_vertices"
@@ -74,16 +110,19 @@ export const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
   // if (!edges_vertices || !vertices_edges) { return undefined; }
 
 // todo: make_edges_faces c-clockwise
-export const make_edges_faces = ({ edges_vertices, faces_edges }) => {
-  if (!edges_vertices || !faces_edges) { return undefined; }
+export const make_edges_faces = ({ faces_edges }) => {
+  // if (!edges_vertices || !faces_edges) { return undefined; }
+  // instead of initializing the array ahead of time (we would need to know
+  // the length of something like edges_vertices)
   const edges_faces = Array
-    .from(Array(edges_vertices.length))
+    .from(Array(implied.edges({ faces_edges })))
     .map(() => []);
   // todo: does not arrange counter-clockwise
   faces_edges.forEach((face, f) => {
     const hash = [];
-    // use an intermediary hash to handle the case where faces visit one
-    // vertex multiple times. otherwise there are redundant indices.
+    // in the case that one face visits the same edge multiple times,
+    // this hash acts as an intermediary, basically functioning like a set,
+    // and only allow one occurence of each edge index.
     face.forEach((edge) => { hash[edge] = f; });
     hash.forEach((fa, e) => edges_faces[e].push(fa));
   });
@@ -94,7 +133,13 @@ const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
 
 export const make_edges_foldAngle = ({ edges_assignment }) => edges_assignment
   .map(a => assignment_angles[a] || 0);
-//  if (!edges_assignment) { return undefined; }
+
+export const make_edges_assignment = ({ edges_foldAngle }) => edges_foldAngle
+  .map(a => {
+    // todo, consider finding the boundary
+    if (a === 0) { return "F"; }
+    return a < 0 ? "M" : "V";
+  });
 
 /**
  * @param {object} FOLD object, with "vertices_coords", "edges_vertices"

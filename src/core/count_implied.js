@@ -14,7 +14,6 @@ import { get_graph_keys_with_suffix } from "./keys";
  * useful for abstract graphs where "vertices" aren't defined but still exist
  * @returns {number} number of geometry elements
  */
-
 const max_num_in_array_in_arrays = (arrays) => {
   let max = -1; // will become 0 if nothing is found
   arrays
@@ -27,43 +26,28 @@ const max_num_in_array_in_arrays = (arrays) => {
   return max;
 };
 
-// max is the largest index. array length is +1
-const implied_vertices_count = graph => max_num_in_array_in_arrays(
-  get_graph_keys_with_suffix(graph, "vertices").map(str => graph[str])
+const max_num_in_orders = (array) => {
+  let max = -1; // will become 0 if nothing is found
+  array.forEach(el => {
+    // exception. index 2 is orientation, not index. check only 0, 1
+    if (el[0] > max) { max = el[0]; }
+    if (el[1] > max) { max = el[1]; }
+  });
+  return max;
+}
+
+const implied_count = (graph, key, ordersKey) => Math.max(
+  // return the maximum value between (1/2):
+  // 1. a found geometry in another geometry's array ("vertex" in "faces_vertices")
+  max_num_in_array_in_arrays(
+    get_graph_keys_with_suffix(graph, key).map(str => graph[str])
+  ),
+  // 2. a found geometry in a faceOrders or edgeOrders type of array (special case)
+  graph[ordersKey] ? max_num_in_orders(graph[ordersKey]) : -1,
 ) + 1;
 
-const implied_edges_count = (graph) => {
-  // not yet +1
-  let max = max_num_in_array_in_arrays(
-    get_graph_keys_with_suffix(graph, "edges").map(str => graph[str])
-  );
-  if (graph.edgeOrders !== undefined) {
-    graph.edgeOrders.forEach(eo => {
-      // exception. index 2 is orientation, not index
-      if (eo[0] > max) { max = eo[0]; }
-      if (eo[1] > max) { max = eo[1]; }
-    });
-  }
-  return max + 1;
-};
-
-const implied_faces_count = (graph) => {
-  // not yet +1
-  let max = max_num_in_array_in_arrays(
-    get_graph_keys_with_suffix(graph, "faces").map(str => graph[str])
-  );
-  if (graph.faceOrders !== undefined) {
-    graph.faceOrders.forEach(fo => {
-      // exception. index 2 is orientation, not index
-      if (fo[0] > max) { max = fo[0]; }
-      if (fo[1] > max) { max = fo[1]; }
-    });
-  }
-  return max + 1;
-};
-
 export default {
-  vertices: implied_vertices_count,
-  edges: implied_edges_count,
-  faces: implied_faces_count,
+  vertices: graph => implied_count(graph, "vertices"),
+  edges: graph => implied_count(graph, "edges", "edgeOrders"),
+  faces: graph => implied_count(graph, "faces", "faceOrders"),
 };

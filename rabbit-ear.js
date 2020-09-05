@@ -2151,10 +2151,10 @@
   const use = function (library) {
     if (typeof library !== "function"
       || library === null
-      || typeof library.attach !== "function") {
+      || typeof library.linker !== "function") {
       return;
     }
-    library.attach(this);
+    library.linker(this);
   };
 
   const file_spec = 1.1;
@@ -2347,39 +2347,48 @@
           })));
     return max;
   };
-  const implied_vertices_count = graph => max_num_in_array_in_arrays(
-    get_graph_keys_with_suffix(graph, "vertices").map(str => graph[str])
+  const max_num_in_orders = (array) => {
+    let max = -1;
+    array.forEach(el => {
+      if (el[0] > max) { max = el[0]; }
+      if (el[1] > max) { max = el[1]; }
+    });
+    return max;
+  };
+  const implied_count = (graph, key, ordersKey) => Math.max(
+    max_num_in_array_in_arrays(
+      get_graph_keys_with_suffix(graph, key).map(str => graph[str])
+    ),
+    graph[ordersKey] ? max_num_in_orders(graph[ordersKey]) : -1,
   ) + 1;
-  const implied_edges_count = (graph) => {
-    let max = max_num_in_array_in_arrays(
-      get_graph_keys_with_suffix(graph, "edges").map(str => graph[str])
-    );
-    if (graph.edgeOrders !== undefined) {
-      graph.edgeOrders.forEach(eo => {
-        if (eo[0] > max) { max = eo[0]; }
-        if (eo[1] > max) { max = eo[1]; }
-      });
-    }
-    return max + 1;
-  };
-  const implied_faces_count = (graph) => {
-    let max = max_num_in_array_in_arrays(
-      get_graph_keys_with_suffix(graph, "faces").map(str => graph[str])
-    );
-    if (graph.faceOrders !== undefined) {
-      graph.faceOrders.forEach(fo => {
-        if (fo[0] > max) { max = fo[0]; }
-        if (fo[1] > max) { max = fo[1]; }
-      });
-    }
-    return max + 1;
-  };
   var implied = {
-    vertices: implied_vertices_count,
-    edges: implied_edges_count,
-    faces: implied_faces_count,
+    vertices: graph => implied_count(graph, "vertices"),
+    edges: graph => implied_count(graph, "edges", "edgeOrders"),
+    faces: graph => implied_count(graph, "faces", "faceOrders"),
   };
 
+  const make_vertices_vertices = ({ vertices_coords, edges_vertices, vertices_edges }) => {
+    if (!vertices_edges) {
+      vertices_edges = make_vertices_edges({ edges_vertices });
+    }
+    const collinear_vertices = vertices_edges
+      .map((edges, v) => edges
+        .map(edge => edges_vertices[edge]
+          .filter(i => i !== v))
+        .reduce((a, b) => a.concat(b), []));
+    const vertices_vertices_angles = collinear_vertices
+      .map((verts, i) => verts.map(v => vertices_coords[v])
+        .map(v => math.core.subtract(v, vertices_coords[i]))
+        .map(vec => Math.atan2(vec[1], vec[0]))
+        .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2));
+    const indexSorts = vertices_vertices_angles
+      .map(angles => angles
+        .map((a, i) => ({a, i}))
+        .sort((a, b) => a.a - b.a)
+        .map(el => el.i));
+    return indexSorts.map((indices, i) => indices
+      .map(index => collinear_vertices[i][index]));
+  };
   const make_vertices_edges = ({ edges_vertices }) => {
     const vertices_edges = [];
     edges_vertices.forEach((ev, i) => ev
@@ -2415,10 +2424,9 @@
       const side1 = vertices_edges[verts[1]].filter(e => e !== i);
       return side0.concat(side1);
     });
-  const make_edges_faces = ({ edges_vertices, faces_edges }) => {
-    if (!edges_vertices || !faces_edges) { return undefined; }
+  const make_edges_faces = ({ faces_edges }) => {
     const edges_faces = Array
-      .from(Array(edges_vertices.length))
+      .from(Array(implied.edges({ faces_edges })))
       .map(() => []);
     faces_edges.forEach((face, f) => {
       const hash = [];
@@ -2430,6 +2438,11 @@
   const assignment_angles$1 = { M: -180, m: -180, V: 180, v: 180 };
   const make_edges_foldAngle = ({ edges_assignment }) => edges_assignment
     .map(a => assignment_angles$1[a] || 0);
+  const make_edges_assignment = ({ edges_foldAngle }) => edges_foldAngle
+    .map(a => {
+      if (a === 0) { return "F"; }
+      return a < 0 ? "M" : "V";
+    });
   const make_edges_length = ({ vertices_coords, edges_vertices }) =>
     edges_vertices
       .map(ev => ev.map(v => vertices_coords[v]))
@@ -2611,12 +2624,14 @@
 
   var make = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    make_vertices_vertices: make_vertices_vertices,
     make_vertices_edges: make_vertices_edges,
     make_vertices_faces: make_vertices_faces,
     make_vertex_pair_to_edge_map: make_vertex_pair_to_edge_map,
     make_edges_edges: make_edges_edges,
     make_edges_faces: make_edges_faces,
     make_edges_foldAngle: make_edges_foldAngle,
+    make_edges_assignment: make_edges_assignment,
     make_edges_length: make_edges_length,
     make_faces_faces: make_faces_faces,
     face_face_shared_vertices: face_face_shared_vertices,
