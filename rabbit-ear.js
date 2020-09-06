@@ -2376,18 +2376,17 @@
         .map(edge => edges_vertices[edge]
           .filter(i => i !== v))
         .reduce((a, b) => a.concat(b), []));
-    const vertices_vertices_angles = collinear_vertices
+    return collinear_vertices
       .map((verts, i) => verts.map(v => vertices_coords[v])
         .map(v => math.core.subtract(v, vertices_coords[i]))
         .map(vec => Math.atan2(vec[1], vec[0]))
-        .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2));
-    const indexSorts = vertices_vertices_angles
+        .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2))
       .map(angles => angles
         .map((a, i) => ({a, i}))
         .sort((a, b) => a.a - b.a)
-        .map(el => el.i));
-    return indexSorts.map((indices, i) => indices
-      .map(index => collinear_vertices[i][index]));
+        .map(el => el.i))
+      .map((indices, i) => indices
+        .map(index => collinear_vertices[i][index]));
   };
   const make_vertices_edges = ({ edges_vertices }) => {
     const vertices_edges = [];
@@ -2470,64 +2469,66 @@
   const face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
     const hash = {};
     face_b_vertices.forEach((v) => { hash[v] = true; });
-    const match = face_a_vertices.map((v, i) => ({i, m: hash[v]}));
-    let no = match.length - 1;
-    while (no > -1 && match[no].m === true) { no -= 1; }
-    if (no === -1) { return face_a_vertices; }
-    return match.slice(no + 1, match.length)
-      .concat(match.slice(0, no))
-      .filter(el => el.m)
-      .map(el => face_a_vertices[el.i]);
-  };
-  const make_face_walk_tree = function (graph, root_face = 0) {
-    const edge_map = make_vertex_pair_to_edge_map(graph);
-    const new_faces_faces = graph.faces_faces
-      ? graph.faces_faces
-      : make_faces_faces(graph);
-    if (new_faces_faces.length <= 0) {
-      return [];
+    const match = face_a_vertices.map(v => hash[v] ? true : false);
+    const shared_vertices = [];
+    const notShared = match.indexOf(false);
+    for (let i = notShared + 1; i < match.length; i += 1) {
+      if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
     }
-    let visited = [root_face];
-    const list = [[{
-      face: root_face,
-      parent: undefined,
-      edge: undefined,
-    }]];
-    do {
-      list[list.length] = list[list.length - 1].map((current) => {
-        const unique_faces = new_faces_faces[current.face]
-          .filter(f => visited.indexOf(f) === -1);
-        visited = visited.concat(unique_faces);
-        return unique_faces.map((f) => {
-          const edge_vertices = face_face_shared_vertices(
-            graph.faces_vertices[current.face],
-            graph.faces_vertices[f]
-          );
-          const edge_key = edge_vertices
-            .slice(0, 2)
-            .sort((a, b) => a - b)
-            .join(" ");
-          const edge = edge_map[edge_key];
-          return {
-            face: f,
-            parent: current.face,
-            edge,
-            edge_vertices,
-          };
-        });
-      }).reduce((prev, curr) => prev.concat(curr), []);
-    } while (list[list.length - 1].length > 0);
-    if (list.length > 0 && list[list.length - 1].length === 0) { list.pop(); }
-    return list;
+    for (let i = 0; i < notShared; i += 1) {
+      if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
+    }
+    return shared_vertices;
   };
-  const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
-  const make_faces_matrix = function (graph, root_face) {
+  const make_face_walk_tree = ({ edges_vertices, faces_vertices, faces_faces }, root_face = 0) => {
+    if (!faces_faces) {
+      faces_faces = make_faces_faces({ faces_vertices });
+    }
+    if (faces_faces.length === 0) { return []; }
+    const tree = [[{ face: root_face }]];
+    const edge_map = edges_vertices
+      ? make_vertex_pair_to_edge_map({ edges_vertices })
+      : {};
+    const visited_faces = {};
+    visited_faces[root_face] = true;
+    do {
+      const next_level_with_duplicates = tree[tree.length - 1]
+        .map(current => faces_faces[current.face]
+          .map(face => ({ face, parent: current.face })))
+        .reduce((a, b) => a.concat(b), []);
+      const dup_indices = {};
+      next_level_with_duplicates.forEach((el, i) => {
+        if (visited_faces[el.face]) { dup_indices[i] = true; }
+        visited_faces[el.face] = true;
+      });
+      const next_level = next_level_with_duplicates
+        .filter((_, i) => !dup_indices[i]);
+      next_level
+        .map(el => face_face_shared_vertices(
+          faces_vertices[el.face],
+          faces_vertices[el.parent]
+        )).forEach((ev, i) => {
+          next_level[i].edge_vertices = ev;
+        });
+      next_level
+        .map(el => el.edge_vertices)
+        .map(ev => ev.slice(0, 2).sort((a, b) => a - b).join(" "))
+        .map(key => edge_map[key])
+        .forEach((edge, i) => { next_level[i].edge = edge; });
+      tree[tree.length] = next_level;
+    } while (tree[tree.length - 1].length > 0);
+    if (tree.length > 0 && tree[tree.length - 1].length === 0) {
+      tree.pop();
+    }
+    return tree;
+  };
+  const make_faces_matrix = function (graph, root_face = 0) {
     const faces_matrix = graph.faces_vertices.map(() => math.core.identity3x4);
     make_face_walk_tree(graph, root_face).forEach((level) => {
       level.filter(entry => entry.parent != null).forEach((entry) => {
         const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
         const local_matrix = math.core.make_matrix3_rotate(
-          graph.edges_foldAngle[entry.edge] / 180 * Math.PI,
+          graph.edges_foldAngle[entry.edge] * Math.PI / 180,
           math.core.subtract(verts[1], verts[0]),
           verts[0],
         );
@@ -2537,6 +2538,7 @@
     });
     return faces_matrix;
   };
+  const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
   const make_faces_matrix_2D = function (graph, root_face) {
     if (graph.faces_vertices == null || graph.edges_vertices == null) {
       return undefined;

@@ -25,19 +25,18 @@ export const make_vertices_vertices = ({ vertices_coords, edges_vertices, vertic
         .filter(i => i !== v))
       .reduce((a, b) => a.concat(b), []));
   // would be done, but vertices_vertices needs to be sorted counter-clockwise
-  const vertices_vertices_angles = collinear_vertices
+  return collinear_vertices
     .map((verts, i) => verts.map(v => vertices_coords[v])
       .map(v => math.core.subtract(v, vertices_coords[i]))
       .map(vec => Math.atan2(vec[1], vec[0]))
       // optional line, this makes the cycle loop start/end along the +X axis
-      .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2));
-  const indexSorts = vertices_vertices_angles
+      .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2))
     .map(angles => angles
       .map((a, i) => ({a, i}))
       .sort((a, b) => a.a - b.a)
-      .map(el => el.i));
-  return indexSorts.map((indices, i) => indices
-    .map(index => collinear_vertices[i][index]));
+      .map(el => el.i))
+    .map((indices, i) => indices
+      .map(index => collinear_vertices[i][index]));
 };
 
 /**
@@ -87,7 +86,6 @@ export const make_vertices_faces = ({ faces_vertices }) => {
  * the value is the index of the edge.
  */
 export const make_vertex_pair_to_edge_map = ({ edges_vertices }) => {
-  // if (!edges_vertices) { return {}; } // todo, should this return undefined?
   const map = {};
   edges_vertices
     .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -196,75 +194,80 @@ export const face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
   const hash = {};
   face_b_vertices.forEach((v) => { hash[v] = true; });
   // make a copy of face A containing T/F, if the vertex is shared in face B
-  const match = face_a_vertices.map((v, i) => ({i, m: hash[v]}));
+  const match = face_a_vertices.map(v => hash[v] ? true : false);
   // filter and keep only the shared vertices.
+  const shared_vertices = [];
+  const notShared = match.indexOf(false); // -1 if no match, code below still works
   // before we filter the array we just need to cover the special case that
   // the shared edge starts near the end of the array and wraps around
-  let no = match.length - 1;
-  while (no > -1 && match[no].m === true) { no -= 1; }
-  if (no === -1) { return face_a_vertices; } // all face A vertices are in B
-  // "no" is the index of a not-shared vertex. split the array here,
-  // move the end to the front, filter out the non-shared vertices.
-  return match.slice(no + 1, match.length)
-    .concat(match.slice(0, no))
-    .filter(el => el.m)
-    .map(el => face_a_vertices[el.i]);
+  for (let i = notShared + 1; i < match.length; i += 1) {
+    if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
+  }
+  for (let i = 0; i < notShared; i += 1) {
+    if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
+  }
+  return shared_vertices;
 };
 
+// each element will have
+// except for the first level. the root level has no reference to the
+// parent face, or the edge or edge_vertices shared between them
 // root_face will become the root node
-export const make_face_walk_tree = function (graph, root_face = 0) {
-  const edge_map = make_vertex_pair_to_edge_map(graph);
-  // console.log("edge_map", edge_map)
-  const new_faces_faces = graph.faces_faces
-    ? graph.faces_faces
-    : make_faces_faces(graph);
-  if (new_faces_faces.length <= 0) {
-    return [];
+export const make_face_walk_tree = ({ edges_vertices, faces_vertices, faces_faces }, root_face = 0) => {
+  if (!faces_faces) {
+    faces_faces = make_faces_faces({ faces_vertices });
   }
-  let visited = [root_face];
-  const list = [[{
-    face: root_face,
-    parent: undefined,
-    edge: undefined,
-    // level: 0,
-  }]];
-  // let current_level = 0;
+  if (faces_faces.length === 0) { return []; }
+  const tree = [[{ face: root_face }]];
+  const edge_map = edges_vertices
+    ? make_vertex_pair_to_edge_map({ edges_vertices })
+    : {};
+  const visited_faces = {};
+  visited_faces[root_face] = true;
   do {
-    // current_level += 1;
-    list[list.length] = list[list.length - 1].map((current) => {
-      const unique_faces = new_faces_faces[current.face]
-        .filter(f => visited.indexOf(f) === -1);
-      visited = visited.concat(unique_faces);
-      return unique_faces.map((f) => {
-        const edge_vertices = face_face_shared_vertices(
-          graph.faces_vertices[current.face],
-          graph.faces_vertices[f]
-        );
-        // we cannot depend on faces being convex and only sharing 2 vertices in common. if there are more than 2 edges, let's hope they are collinear. either way, grab the first 2 vertices if there are more.
-        const edge_key = edge_vertices
-          .slice(0, 2)
-          .sort((a, b) => a - b)
-          .join(" ");
-        const edge = edge_map[edge_key];
-        return {
-          face: f,
-          parent: current.face,
-          // level: current_level,
-          edge,
-          edge_vertices,
-        };
+    // iterate the previous level's faces and gather their adjacent faces
+    const next_level_with_duplicates = tree[tree.length - 1]
+      .map(current => faces_faces[current.face]
+        .map(face => ({ face, parent: current.face })))
+      .reduce((a, b) => a.concat(b), []);
+    // at this point its likely many faces are duplicated either because:
+    // 1. they were already visited in previous levels
+    // 2. the same face was adjacent to a few different faces from this step
+    const dup_indices = {};
+    next_level_with_duplicates.forEach((el, i) => {
+      if (visited_faces[el.face]) { dup_indices[i] = true; }
+      visited_faces[el.face] = true;
+    });
+    // unqiue set of next level faces
+    const next_level = next_level_with_duplicates
+      .filter((_, i) => !dup_indices[i]);
+    // set next_level's edge_vertices
+    next_level
+      .map(el => face_face_shared_vertices(
+        faces_vertices[el.face],
+        faces_vertices[el.parent]
+      )).forEach((ev, i) => {
+        next_level[i].edge_vertices = ev;
       });
-    }).reduce((prev, curr) => prev.concat(curr), []);
-  } while (list[list.length - 1].length > 0);
-  if (list.length > 0 && list[list.length - 1].length === 0) { list.pop(); }
-  return list;
+    // we cannot depend on faces being convex and only sharing 2 vertices in common. if there are more than 2 edges, let's hope they are collinear. either way, grab the first 2 vertices if there are more.
+    // set next_level's edge
+    next_level
+      .map(el => el.edge_vertices)
+      .map(ev => ev.slice(0, 2).sort((a, b) => a - b).join(" "))
+      .map(key => edge_map[key])
+      .forEach((edge, i) => { next_level[i].edge = edge; })
+    // append this next_level to the master tree
+    tree[tree.length] = next_level;
+  } while (tree[tree.length - 1].length > 0);
+  if (tree.length > 0 && tree[tree.length - 1].length === 0) {
+    tree.pop();
+  }
+  return tree;
 };
 
 // /////////////////////////////////////////////
 // MATRICES
 // /////////////////////////////////////////////
-
-const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
 
 /**
  * This traverses an face-adjacency tree (edge-adjacent faces),
@@ -275,7 +278,8 @@ const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
  * the difference between the matrices of two faces separated by
  * a mark crease is the identity matrix.
  */
-export const make_faces_matrix = function (graph, root_face) {
+// { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
+export const make_faces_matrix = function (graph, root_face = 0) {
   // todo: make sure the graph contains necessary data:
   // vertices_coords, edges_foldAngle, edges_vertices, faces_vertices
   const faces_matrix = graph.faces_vertices.map(() => math.core.identity3x4);
@@ -283,7 +287,7 @@ export const make_faces_matrix = function (graph, root_face) {
     level.filter(entry => entry.parent != null).forEach((entry) => {
       const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
       const local_matrix = math.core.make_matrix3_rotate(
-        graph.edges_foldAngle[entry.edge] / 180 * Math.PI, // rotation angle
+        graph.edges_foldAngle[entry.edge] * Math.PI / 180, // rotation angle
         math.core.subtract(verts[1], verts[0]), // line-vector
         verts[0], // line-origin
       );
@@ -294,6 +298,7 @@ export const make_faces_matrix = function (graph, root_face) {
   return faces_matrix;
 };
 
+const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
 
 export const make_faces_matrix_2D = function (graph, root_face) {
   if (graph.faces_vertices == null || graph.edges_vertices == null) {
