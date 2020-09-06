@@ -5,17 +5,17 @@ const fs = require("fs");
 // [
 //   [ { face: 0 } ],
 //   [
-//     { face: 1, parent: 0, edge_vertices: [Array], edge: 0 },
-//     { face: 2, parent: 0, edge_vertices: [Array], edge: 4 },
-//     { face: 5, parent: 0, edge_vertices: [Array], edge: 3 }
+//     { face: 1, parent: 0, edge_vertices: [Array] },
+//     { face: 2, parent: 0, edge_vertices: [Array] },
+//     { face: 5, parent: 0, edge_vertices: [Array] }
 //   ],
 //   [
-//     { face: 3, parent: 1, edge_vertices: [Array], edge: 40 },
-//     { face: 38, parent: 1, edge_vertices: [Array], edge: 37 },
-//     { face: 39, parent: 1, edge_vertices: [Array], edge: 42 },
-//     { face: 4, parent: 2, edge_vertices: [Array], edge: 2 },
-//     { face: 11, parent: 5, edge_vertices: [Array], edge: 86 },
-//     { face: 20, parent: 5, edge_vertices: [Array], edge: 81 }
+//     { face: 3, parent: 1, edge_vertices: [Array] },
+//     { face: 38, parent: 1, edge_vertices: [Array] },
+//     { face: 39, parent: 1, edge_vertices: [Array] },
+//     { face: 4, parent: 2, edge_vertices: [Array] },
+//     { face: 11, parent: 5, edge_vertices: [Array] },
+//     { face: 20, parent: 5, edge_vertices: [Array] }
 //   ],
 //   ...
 // ]
@@ -40,15 +40,12 @@ test("face walk tree, crane", () => {
 
   // test that every face and edge was only ever visited once
   const uniqueFace = {};
-  const uniqueEdge = {};
   uniqueFace[startingFace] = true;
   tree.slice(1).forEach(level =>
     level.forEach(el => {
       expect(uniqueFace[el.parent]).toBe(true);
       expect(uniqueFace[el.face]).toBe(undefined);
-      expect(uniqueEdge[el.edge]).toBe(undefined);
       uniqueFace[el.face] = true;
-      uniqueEdge[el.edge] = true;
     }));
 
   // try to check edges vertices data
@@ -91,7 +88,6 @@ test("face walk tree, no edges_vertices", () => {
   expect(result[1].length).toBe(1);
   expect(result[1][0].face).toBe(1);
   expect(result[1][0].parent).toBe(0);
-  expect(result[1][0].edge).toBe(undefined);
   // this edge order: [3, 1] needs to match order of these indices in
   // the second face. 3, then 1.
   expect(result[1][0].edge_vertices[0]).toBe(3);
@@ -107,7 +103,6 @@ test("face walk tree, empty edges_vertices. same as test above", () => {
   expect(result[1].length).toBe(1);
   expect(result[1][0].face).toBe(1);
   expect(result[1][0].parent).toBe(0);
-  expect(result[1][0].edge).toBe(undefined);
   // this edge order: [3, 1] needs to match order of these indices in
   // the second face. 3, then 1.
   expect(result[1][0].edge_vertices[0]).toBe(3);
@@ -123,7 +118,6 @@ test("face walk tree, empty edges_vertices. same as test above", () => {
   expect(result[1].length).toBe(1);
   expect(result[1][0].face).toBe(1);
   expect(result[1][0].parent).toBe(0);
-  expect(result[1][0].edge).toBe(undefined);
   // this edge order: [3, 1] needs to match order of these indices in
   // the second face. 3, then 1.
   expect(result[1][0].edge_vertices[0]).toBe(3);
@@ -136,17 +130,20 @@ test("face walk tree, finding an edge match. bad edge formations", () => {
     edges_vertices: [[1, 3]],
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });
-  expect(result0[1][0].edge).toBe(0);
+  expect(result0[1][0].edge_vertices[0]).toBe(3);
+  expect(result0[1][0].edge_vertices[1]).toBe(1);
 
   // bad edge formation
   const result1 = ear.core.make_face_walk_tree({
     edges_vertices: [[3, 1, 0]],
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });
-  expect(result1[1][0].edge).toBe(undefined);
+  expect(result1[1][0].edge_vertices[0]).toBe(3);
+  expect(result1[1][0].edge_vertices[1]).toBe(1);
   const result2 = ear.core.make_face_walk_tree({
     edges_vertices: [[3, 0, 1]],
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });
-  expect(result2[1][0].edge).toBe(undefined);
+  expect(result2[1][0].edge_vertices[0]).toBe(3);
+  expect(result2[1][0].edge_vertices[1]).toBe(1);
 });
