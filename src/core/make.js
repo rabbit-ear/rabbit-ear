@@ -10,7 +10,124 @@
 import math from "../math";
 import implied from "./count_implied";
 
-export const make_vertices_vertices = ({ vertices_coords, edges_vertices, vertices_edges }) => {
+const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, v0, v1, found_edges) => {
+  // each time we visit an edge (vertex pair as string, "4 9") add it here.
+  // this gives us a quick lookup to see if we've visited this edge before.
+  const this_found_edges = {};
+  // return the face: { vertices, edges, angles }
+  const face = { vertices: [v0], edges: [], angles: [] };
+  // walking the graph, we look at 3 vertices at a time. in sequence:
+  // prev_vertex, this_vertex, next_vertex
+  let prev_vertex = v0;
+  let this_vertex = v1;
+  while (true) {
+    // even though vertices_vertices are sorted counter-clockwise,
+    // to make a counter-clockwise wound face, when we visit a vertex's
+    // vertices_vertices array we have to select the [n-1] vertex, not [n+1],
+    // it's a little counter-intuitive.
+    const v_v = vertices_vertices[this_vertex];
+    const from_neighbor_i = v_v.indexOf(prev_vertex);
+    const next_neighbor_i = (from_neighbor_i + v_v.length - 1) % v_v.length;
+    const next_vertex = v_v[next_neighbor_i];
+    const next_edge_vertices = `${this_vertex} ${next_vertex}`;
+    // check if this edge was already walked 2 ways:
+    // 1. if we visited this edge while making this face, we are done.
+    if (this_found_edges[next_edge_vertices]) {
+      Object.assign(found_edges, this_found_edges);
+      face.vertices.pop();
+      return face;
+    }
+    this_found_edges[next_edge_vertices] = true;
+    // 2. if we visited this edge (with vertices in the same sequence),
+    // because of the counterclockwise winding, we are looking at a face
+    // that has already been built.
+    if (found_edges[next_edge_vertices]) {
+      return undefined;
+    }
+    face.vertices.push(this_vertex);
+    face.edges.push(next_edge_vertices);
+    face.angles.push(vertices_sectors[this_vertex][next_neighbor_i]);
+    prev_vertex = this_vertex;
+    this_vertex = next_vertex;
+  }
+};
+
+// without sector detection, this could be simplified so much that it only uses vertices_vertices.
+export const make_faces_vertices = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
+  if (!vertices_vertices) {
+    vertices_vertices = make_vertices_vertices({ vertices_coords, edges_vertices, vertices_edges });
+  }
+  if (!vertices_sectors) {
+    vertices_sectors = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector });
+  }
+  const graph = { vertices_vertices, vertices_sectors };
+  const edge_map = {};
+  return vertices_vertices
+    .map((adj_verts, v) => adj_verts
+      .map(adj_vert => counter_clockwise_walk(graph, v, adj_vert, edge_map))
+      .filter(a => a !== undefined))
+    .reduce((a, b) => a.concat(b), [])
+    .filter(face => face.angles
+      // 180 - sector angle = the turn angle.
+      // counter clockwise turns are +, clockwise will be -
+      // this gets rid of the one face that cycles backwards around
+      // the entire piece that encloses Infinity
+      .map(a => Math.PI - a)
+      .reduce((a,b) => a + b, 0) > 0)
+    .map(face => face.vertices);
+};
+
+export const make_edges_vertices = ({ faces_vertices }) => {
+
+};
+
+/**
+ * for every edge, this creates a vector from vertex 0 to vertex 1
+ *
+ */
+export const make_edges_vector = ({ vertices_coords, edges_vertices }) =>
+  edges_vertices
+    .map(ev => ev.map(v => vertices_coords[v]))
+    .map(verts => math.core.subtract(verts[1], verts[0]));
+
+// this can be written without edges_vertices
+export const make_vertices_vertices_vector = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) => {
+  if (!edges_vector) {
+    edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+  }
+  const edge_map = make_vertex_pair_to_edge_map_directional({ edges_vertices });
+  return vertices_vertices
+    .map((_, a) => vertices_vertices[a]
+      .map((b) => {
+        const edge_a = edge_map[`${a} ${b}`];
+        const edge_b = edge_map[`${b} ${a}`];
+        if (edge_a !== undefined) { return edges_vector[edge_a]; }
+        if (edge_b !== undefined) { return math.core.flip(edges_vector[edge_b]); }
+      }));
+};
+
+export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
+  make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+    .map(vectors => math.core.interior_angles(...vectors));
+
+/**
+ * discover adjacent vertices by way of their edge relationships.
+ *
+ * required FOLD arrays:
+ * - vertices_coords
+ * - edges_vertices
+ *
+ * helpful FOLD arrays:
+ * - vertices_edges
+ *
+ * editor note: i almost rewrote this by caching edges_vector, making it
+ * resemble the make_faces_vertices but the elegance of this simpler solution
+ * feels like it outweighed the added complexity. it's worth revisiting tho.
+ *
+ * note: it is possible to rewrite this method to use faces_vertices to
+ * discover adjacent vertices, currently this is 
+ */
+export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
   // if vertices_edges exists on the graph, use it. otherwise build it
   // const vertices_edges = graph.vertices_edges
   //   ? graph.vertices_edges
@@ -18,14 +135,18 @@ export const make_vertices_vertices = ({ vertices_coords, edges_vertices, vertic
   if (!vertices_edges) {
     vertices_edges = make_vertices_edges({ edges_vertices });
   }
-  // use collinear edges to find collinear vertices
-  const collinear_vertices = vertices_edges
+  // use adjacent edges to find adjacent vertices
+  const adjacent_vertices = vertices_edges
     .map((edges, v) => edges
+      // the adjacent edge's edges_vertices also contains this vertex,
+      // filter it out and we're left with the adjacent vertices
       .map(edge => edges_vertices[edge]
         .filter(i => i !== v))
       .reduce((a, b) => a.concat(b), []));
   // would be done, but vertices_vertices needs to be sorted counter-clockwise
-  return collinear_vertices
+  // todo: atan2 calls can be cut in half if we store the vertices in
+  // backwards order in an object, the value being the flipped vector.
+  return adjacent_vertices
     .map((verts, i) => verts.map(v => vertices_coords[v])
       .map(v => math.core.subtract(v, vertices_coords[i]))
       .map(vec => Math.atan2(vec[1], vec[0]))
@@ -36,7 +157,7 @@ export const make_vertices_vertices = ({ vertices_coords, edges_vertices, vertic
       .sort((a, b) => a.a - b.a)
       .map(el => el.i))
     .map((indices, i) => indices
-      .map(index => collinear_vertices[i][index]));
+      .map(index => adjacent_vertices[i][index]));
 };
 
 /**
@@ -81,6 +202,10 @@ export const make_vertices_faces = ({ faces_vertices }) => {
   return vertices_faces;
 };
 /**
+ * now this doesn't worry about sorting, it has both a-b and b-a combinations
+ */
+/**
+ * old desecription:
  * for fast backwards lookup, this builds a dictionary with keys as vertices
  * that compose an edge "6 11" always sorted smallest to largest, with a space.
  * the value is the index of the edge.
@@ -88,7 +213,18 @@ export const make_vertices_faces = ({ faces_vertices }) => {
 export const make_vertex_pair_to_edge_map = ({ edges_vertices }) => {
   const map = {};
   edges_vertices
-    .map(ev => ev.sort((a, b) => a - b).join(" "))
+    .map(ev => ev.join(" "))
+    .forEach((key, i) => { map[key] = i; });
+  edges_vertices
+    .map(ev => `${ev[1]} ${ev[0]}`)
+    .forEach((key, i) => { map[key] = i; });
+  return map;
+};
+
+export const make_vertex_pair_to_edge_map_directional = ({ edges_vertices }) => {
+  const map = {};
+  edges_vertices
+    .map(ev => ev.join(" "))
     .forEach((key, i) => { map[key] = i; });
   return map;
 };
@@ -275,7 +411,8 @@ export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldA
     .forEach(level => level
       .forEach((entry) => {
         const verts = entry.edge_vertices.map(v => vertices_coords[v]);
-        const edgeKey = entry.edge_vertices.sort((a, b) => a - b).join(" ");
+//        const edgeKey = entry.edge_vertices.sort((a, b) => a - b).join(" ");
+        const edgeKey = entry.edge_vertices.join(" ");
         const edge = edge_map[edgeKey];
         const local_matrix = math.core.make_matrix3_rotate(
           edges_foldAngle[edge] * Math.PI / 180, // rotation angle

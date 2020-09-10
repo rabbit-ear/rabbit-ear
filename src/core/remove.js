@@ -1,4 +1,8 @@
 import Count from "./count";
+import {
+  get_graph_keys_with_suffix,
+  get_graph_keys_with_prefix
+} from "./keys";
 /**
  * Removes vertices, edges, or faces (or anything really)
  * remove elements from inside arrays, shift up remaining components,
