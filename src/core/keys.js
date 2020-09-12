@@ -188,6 +188,40 @@ export const get_graph_keys_with_prefix = (graph, key) =>
 export const get_graph_keys_with_suffix = (graph, key) =>
   filter_keys_with_suffix(graph, `_${key}`);
 
+// /**
+//  * this takes in a geometry_key (vectors, edges, faces), and flattens
+//  * across all related arrays, creating 1 array of objects with the keys
+//  */
+// export const transpose_graph_arrays = (graph, geometry_key) => {
+//   const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+//   if (matching_keys.length === 0) { return []; }
+//   const len = Math.max(...matching_keys.map(arr => graph[arr].length));
+//   const geometry = Array.from(Array(len))
+//     .map(() => ({}));
+//   matching_keys
+//     .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
+//     .forEach(key => geometry
+//       .forEach((o, i) => { geometry[i][key.short] = graph[key.long][i]; }));
+//   return geometry;
+// };
+
+// /**
+//  * this takes in a geometry_key (vectors, edges, faces), and flattens
+//  * across all related arrays, creating 1 array of objects with the keys
+//  */
+// export const transpose_graph_array_at_index = function (
+//   graph,
+//   geometry_key,
+//   index
+// ) {
+//   const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+//   if (matching_keys.length === 0) { return undefined; }
+//   const geometry = {};
+//   matching_keys
+//     .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
+//     .forEach((key) => { geometry[key.short] = graph[key.long][index]; });
+//   return geometry;
+// };
 /**
  * this takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating 1 array of objects with the keys
@@ -199,9 +233,8 @@ export const transpose_graph_arrays = (graph, geometry_key) => {
   const geometry = Array.from(Array(len))
     .map(() => ({}));
   matching_keys
-    .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
     .forEach(key => geometry
-      .forEach((o, i) => { geometry[i][key.short] = graph[key.long][i]; }));
+      .forEach((o, i) => { geometry[i][key] = graph[key][i]; }));
   return geometry;
 };
 
@@ -217,8 +250,11 @@ export const transpose_graph_array_at_index = function (
   const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
   if (matching_keys.length === 0) { return undefined; }
   const geometry = {};
-  matching_keys
-    .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
-    .forEach((key) => { geometry[key.short] = graph[key.long][index]; });
+  matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
   return geometry;
+};
+
+export const fold_object_certainty = (object) => {
+  if (typeof object !== "object" || object === null) { return 0; }
+  return keys.filter(key => object[key]).length;
 };

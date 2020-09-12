@@ -79,6 +79,8 @@ export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_
 
 /**
  * build vertices_faces from faces_vertices
+ *
+ * this does not arrange faces in counter-clockwise order, as the spec suggests
  */
 export const make_vertices_faces = ({ faces_vertices }) => {
   // if (!faces_vertices) { return undefined; }
@@ -99,13 +101,12 @@ export const make_vertices_faces = ({ faces_vertices }) => {
   return vertices_faces;
 };
 /**
- * now this doesn't worry about sorting, it has both a-b and b-a combinations
- */
-/**
- * old desecription:
- * for fast backwards lookup, this builds a dictionary with keys as vertices
- * that compose an edge "6 11" always sorted smallest to largest, with a space.
- * the value is the index of the edge.
+ * *not a geometry array*
+ *
+ * for fast backwards lookup of a edge by its vertices. this dictionary:
+ * keys are each edge's vertices as a string separated by a space: "9 3"
+ * value is the index of the edge.
+ * example: "9 3" and "3 9" are both entries with a value of the edge's index.
  */
 export const make_vertices_to_edge_bidirectional = ({ edges_vertices }) => {
   const map = {};
@@ -117,7 +118,11 @@ export const make_vertices_to_edge_bidirectional = ({ edges_vertices }) => {
     .forEach((key, i) => { map[key] = i; });
   return map;
 };
-
+/**
+ * same as above. but this method doesn't duplicate "9 3" and "3 9" it
+ * only represents the edge in the direction it's stored. this is useful
+ * for example for looking up the edge's vector, which is direction specific.
+ */
 export const make_vertices_to_edge = ({ edges_vertices }) => {
   const map = {};
   edges_vertices
@@ -126,8 +131,7 @@ export const make_vertices_to_edge = ({ edges_vertices }) => {
   return map;
 };
 
-
-// this can be written without edges_vertices
+// this can someday be rewritten without edges_vertices
 export const make_vertices_vertices_vector = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) => {
   if (!edges_vector) {
     edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
@@ -143,6 +147,12 @@ export const make_vertices_vertices_vector = ({ vertices_coords, vertices_vertic
       }));
 };
 
+/**
+ * between counter-clockwise adjacent edges around a vertex, there lies
+ * sectors, the interior angle space between edges.
+ * this builds a list of sector angles in radians, index matched
+ * to vertices_vertices.
+ */
 export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
   make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
     .map(vectors => math.core.interior_angles(...vectors));
@@ -151,9 +161,7 @@ export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edge
  *  edges
  */
 
-export const make_edges_vertices = ({ faces_vertices }) => {
-
-};
+// export const make_edges_vertices = ({ faces_vertices }) => { };
 
 /**
  * @param {object} FOLD object, with entries "edges_vertices", "vertices_edges".

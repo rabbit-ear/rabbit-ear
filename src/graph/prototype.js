@@ -12,22 +12,22 @@ import {
   file_spec,
   file_creator
 } from "../core/keys";
-import clean from "../core/clean";
-import rebuild from "../core/rebuild";
+// import clean from "../core/clean";
+// import rebuild from "../core/rebuild";
 import populate from "../core/populate";
-import {
-  bounding_rect,
-  get_boundary,
-} from "../core/boundary";
-import * as Transform from "../core/affine";
-import {
-  nearest_vertex,
-  nearest_edge,
-  face_containing_point,
-  implied_vertices_count
-} from "../core/query";
-import { clone } from "../core/object";
-import changed from "./changed";
+// import {
+//   bounding_rect,
+//   get_boundary,
+// } from "../core/boundary";
+// import * as Transform from "../core/affine";
+// import {
+//   nearest_vertex,
+//   nearest_edge,
+//   face_containing_point,
+//   implied_vertices_count
+// } from "../core/query";
+// import { clone } from "../core/object";
+// import changed from "./changed";
 
 const vertex_degree = function (v, i) {
   const graph = this;
@@ -98,7 +98,7 @@ const setup_face = function (f, i) {
 
 const GraphProto = {};
 GraphProto.prototype = Object.create(Object.prototype);
-GraphProto.prototype.changed = changed();
+// GraphProto.prototype.changed = changed();
 
 /**
  * @param {object} is a FOLD object.
@@ -112,7 +112,7 @@ GraphProto.prototype.load = function (object, options = {}) {
   }
   // allow overwriting of file_spec and file_creator if included in import
   Object.assign(this, { file_spec, file_creator }, clone(object));
-  this.changed.update(this.load);
+  // this.changed.update(this.load);
 };
 /**
  * this clears all components from the graph, leaving other keys untouched.
@@ -120,7 +120,7 @@ GraphProto.prototype.load = function (object, options = {}) {
 GraphProto.prototype.clear = function () {
   fold_keys.graph.forEach(key => delete this[key]);
   fold_keys.orders.forEach(key => delete this[key]);
-  this.changed.update(this.clear);
+  // this.changed.update(this.clear);
 };
 /**
  * export
@@ -134,30 +134,30 @@ GraphProto.prototype.copy = function () {
  */
 GraphProto.prototype.clean = function (options) {
   clean(this, options);
-  this.changed.update(this.clean);
+  // this.changed.update(this.clean);
 };
 GraphProto.prototype.populate = function () {
   populate(this);
-  this.changed.update(this.populate);
+  // this.changed.update(this.populate);
 };
 GraphProto.prototype.rebuild = function (epsilon = math.core.EPSILON) {
   rebuild(this, epsilon);
-  this.changed.update(this.rebuild);
+  // this.changed.update(this.rebuild);
 };
 /**
  * transformations
  */
-GraphProto.prototype.translate = function (...args) {
-  Transform.transform_translate(this, ...args);
-  this.changed.update(this.translate);
-};
-// GraphProto.prototype.rotate = function (...args) {
-//   Transform.transform_rotate(this, ...args);
+// GraphProto.prototype.translate = function (...args) {
+//   Transform.transform_translate(this, ...args);
+//   // this.changed.update(this.translate);
 // };
-GraphProto.prototype.scale = function (...args) {
-  Transform.transform_scale(this, ...args);
-  this.changed.update(this.scale);
-};
+// // GraphProto.prototype.rotate = function (...args) {
+// //   Transform.transform_rotate(this, ...args);
+// // };
+// GraphProto.prototype.scale = function (...args) {
+//   Transform.transform_scale(this, ...args);
+//   // this.changed.update(this.scale);
+// };
 /**
  * graph components
  */
@@ -181,14 +181,14 @@ const getFaces = function () {
   faces.forEach(setup_face.bind(this));
   return faces;
 };
-const getBoundary = function () {
-  return math.polygon(
-    get_boundary(this).vertices.map(i => this.vertices_coords[i])
-  );
-};
-const getBounds = function () {
-  return math.rect(...bounding_rect(this));
-};
+// const getBoundary = function () {
+//   return math.polygon(
+//     get_boundary(this).vertices.map(i => this.vertices_coords[i])
+//   );
+// };
+// const getBounds = function () {
+//   return math.rect(...bounding_rect(this));
+// };
 /**
  * graph components based on Euclidean distance
  */
@@ -231,8 +231,8 @@ GraphProto.prototype.nearest = function (...args) {
 Object.defineProperty(GraphProto.prototype, "vertices", { get: getVertices });
 Object.defineProperty(GraphProto.prototype, "edges", { get: getEdges });
 Object.defineProperty(GraphProto.prototype, "faces", { get: getFaces });
-Object.defineProperty(GraphProto.prototype, "boundary", { get: getBoundary });
-Object.defineProperty(GraphProto.prototype, "bounds", { get: getBounds });
+// Object.defineProperty(GraphProto.prototype, "boundary", { get: getBoundary });
+// Object.defineProperty(GraphProto.prototype, "bounds", { get: getBounds });
 
 // Object.freeze(GraphProto.prototype);
 
