@@ -1024,7 +1024,7 @@ const circle_circle = function (c1, c2, epsilon = EPSILON) {
   const pt2 = rotatePoint(bgCenter, point, -angle);
   return [pt1, pt2];
 };
-const circle_line_func = function (circleRadius, circleOrigin, vector, origin, func, epsilon = EPSILON) {
+const intersect_circle_line = function (circleRadius, circleOrigin, vector, origin, func, epsilon = EPSILON) {
   const magSq = vector[0] ** 2 + vector[1] ** 2;
   const mag = Math.sqrt(magSq);
   const norm = mag === 0 ? vector : vector.map(c => c / mag);
@@ -1045,7 +1045,7 @@ const circle_line_func = function (circleRadius, circleOrigin, vector, origin, f
 const line_func = () => true;
 const ray_func = (n, epsilon) => n > -epsilon;
 const segment_func = (n, epsilon) => n > -epsilon && n < 1 + epsilon;
-const circle_line = (circle, line, epsilon = EPSILON) => circle_line_func(
+const circle_line = (circle, line, epsilon = EPSILON) => intersect_circle_line(
   circle.radius,
   circle.origin,
   line.vector,
@@ -1053,7 +1053,7 @@ const circle_line = (circle, line, epsilon = EPSILON) => circle_line_func(
   line_func,
   epsilon
 );
-const circle_ray = (circle, ray, epsilon = EPSILON) => circle_line_func(
+const circle_ray = (circle, ray, epsilon = EPSILON) => intersect_circle_line(
   circle.radius,
   circle.origin,
   ray.vector,
@@ -1061,7 +1061,7 @@ const circle_ray = (circle, ray, epsilon = EPSILON) => circle_line_func(
   ray_func,
   epsilon
 );
-const circle_segment = (circle, segment, epsilon = EPSILON) => circle_line_func(
+const circle_segment = (circle, segment, epsilon = EPSILON) => intersect_circle_line(
   circle.radius,
   circle.origin,
   segment.vector,
@@ -1073,6 +1073,7 @@ const circle_segment = (circle, segment, epsilon = EPSILON) => circle_line_func(
 var intersect_circle = /*#__PURE__*/Object.freeze({
   __proto__: null,
   circle_circle: circle_circle,
+  intersect_circle_line: intersect_circle_line,
   circle_line: circle_line,
   circle_ray: circle_ray,
   circle_segment: circle_segment

@@ -17,6 +17,7 @@ import use from "./use";
 // import origami from "./origami";
 import graph from "./graph";
 // import cp from "./cp";
+import axiom from "./core/axioms";
 
 import * as keys from "./core/keys";
 import * as make from "./core/make";
@@ -38,6 +39,7 @@ const core = Object.assign(Object.create(null), {
 );
 
 const Ear = Object.assign(root, {
+  axiom,
   // origami,
   graph,
   // cp,

@@ -1012,7 +1012,7 @@
     const pt2 = rotatePoint(bgCenter, point, -angle);
     return [pt1, pt2];
   };
-  const circle_line_func = function (circleRadius, circleOrigin, vector, origin, func, epsilon = EPSILON) {
+  const intersect_circle_line = function (circleRadius, circleOrigin, vector, origin, func, epsilon = EPSILON) {
     const magSq = vector[0] ** 2 + vector[1] ** 2;
     const mag = Math.sqrt(magSq);
     const norm = mag === 0 ? vector : vector.map(c => c / mag);
@@ -1033,7 +1033,7 @@
   const line_func = () => true;
   const ray_func = (n, epsilon) => n > -epsilon;
   const segment_func = (n, epsilon) => n > -epsilon && n < 1 + epsilon;
-  const circle_line = (circle, line, epsilon = EPSILON) => circle_line_func(
+  const circle_line = (circle, line, epsilon = EPSILON) => intersect_circle_line(
     circle.radius,
     circle.origin,
     line.vector,
@@ -1041,7 +1041,7 @@
     line_func,
     epsilon
   );
-  const circle_ray = (circle, ray, epsilon = EPSILON) => circle_line_func(
+  const circle_ray = (circle, ray, epsilon = EPSILON) => intersect_circle_line(
     circle.radius,
     circle.origin,
     ray.vector,
@@ -1049,7 +1049,7 @@
     ray_func,
     epsilon
   );
-  const circle_segment = (circle, segment, epsilon = EPSILON) => circle_line_func(
+  const circle_segment = (circle, segment, epsilon = EPSILON) => intersect_circle_line(
     circle.radius,
     circle.origin,
     segment.vector,
@@ -1060,6 +1060,7 @@
   var intersect_circle = Object.freeze({
     __proto__: null,
     circle_circle: circle_circle,
+    intersect_circle_line: intersect_circle_line,
     circle_line: circle_line,
     circle_ray: circle_ray,
     circle_segment: circle_segment
@@ -3098,6 +3099,205 @@
   Graph.prototype = prototype;
   Graph.prototype.constructor = Graph;
 
+  const axiom1 = (pointA, pointB) => math.line(
+    math.core.normalize(math.core.subtract(...math.core.resize_up(pointB, pointA))),
+    pointA
+  );
+  const axiom2 = (pointA, pointB) => math.line(
+    math.core.normalize(math.core.rotate270(math.core.subtract(...math.core.resize_up(pointB, pointA)))),
+    math.core.midpoint(pointA, pointB)
+  );
+  const axiom3 = (vectorA, pointA, vectorB, pointB) => math.core
+    .bisect_lines2(vectorA, pointA, vectorB, pointB)
+    .map(l => math.line(l.vector, l.origin));
+  const axiom4 = (vectorA, pointA, pointB) => math.line(
+    math.core.rotate270(math.core.normalize(vectorA)),
+    pointB
+  );
+  const axiom5 = (vectorA, pointA, pointB, pointC) => (math.core
+    .intersect_circle_line(
+      math.core.distance(pointB, pointC),
+      pointB,
+      vectorA,
+      pointA,
+      () => true
+    ) || []).map(sect => math.line(
+      math.core.normalize(math.core.rotate270(math.core.subtract(...math.core.resize_up(sect, pointC)))),
+      math.core.midpoint(pointC, sect)
+    ));
+  const axiom7 = (vectorA, pointA, vectorB, pointB, pointC) => {
+    const intersect = math.core.intersect_lines(vectorB, pointB, vectorA, pointC);
+    return intersect === undefined
+      ? undefined
+      : math.line(
+          math.core.normalize(math.core.rotate270(math.core.subtract(...math.core.resize_up(intersect, pointC)))),
+          math.core.midpoint2(pointC, intersect)
+      );
+  };
+  const cuberoot = function (x) {
+    const y = Math.pow(Math.abs(x), 1 / 3);
+    return x < 0 ? -y : y;
+  };
+  const solveCubic = function (a, b, c, d) {
+    if (Math.abs(a) < 1e-8) {
+      a = b; b = c; c = d;
+      if (Math.abs(a) < 1e-8) {
+        a = b; b = c;
+        if (Math.abs(a) < 1e-8) {
+          return [];
+        }
+        return [-b / a];
+      }
+      const D = b * b - 4 * a * c;
+      if (Math.abs(D) < 1e-8) {
+        return [-b / (2 * a)];
+      }
+      if (D > 0) {
+        return [(-b + Math.sqrt(D)) / (2 * a), (-b - Math.sqrt(D)) / (2 * a)];
+      }
+      return [];
+    }
+    const p = (3 * a * c - b * b) / (3 * a * a);
+    const q = (2 * b * b * b - 9 * a * b * c + 27 * a * a * d) / (27 * a * a * a);
+    let roots;
+    if (Math.abs(p) < 1e-8) {
+      roots = [cuberoot(-q)];
+    } else if (Math.abs(q) < 1e-8) {
+      roots = [0].concat(p < 0 ? [Math.sqrt(-p), -Math.sqrt(-p)] : []);
+    } else {
+      const D = q * q / 4 + p * p * p / 27;
+      if (Math.abs(D) < 1e-8) {
+        roots = [-1.5 * q / p, 3 * q / p];
+      } else if (D > 0) {
+        const u = cuberoot(-q / 2 - Math.sqrt(D));
+        roots = [u - p / (3 * u)];
+      } else {
+        const u = 2 * Math.sqrt(-p / 3);
+        const t = Math.acos(3 * q / p / u) / 3;
+        const k = 2 * Math.PI / 3;
+        roots = [u * Math.cos(t), u * Math.cos(t - k), u * Math.cos(t - 2 * k)];
+      }
+    }
+    for (let i = 0; i < roots.length; i += 1) {
+      roots[i] -= b / (3 * a);
+    }
+    return roots;
+  };
+  const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
+    var p1 = pointC[0];
+    var q1 = pointC[1];
+    if (Math.abs(vecA[0]) > math.core.EPSILON) {
+      var m1 = vecA[1] / vecA[0];
+      var h1 = pointA[1] - m1 * pointA[0];
+    }
+    else {
+      var k1 = pointA[0];
+    }
+    var p2 = pointD[0];
+    var q2 = pointD[1];
+    if (Math.abs(vecB[0]) > math.core.EPSILON) {
+      var m2 = vecB[1] / vecB[0];
+      var h2 = pointB[1] - m2 * pointB[0];
+    }
+    else {
+      var k2 = pointB[0];
+    }
+    if (m1 !== undefined && m2 !== undefined) {
+      var a1 = m1*m1 + 1;
+      var b1 = 2*m1*h1;
+      var c1 = h1*h1 - p1*p1 - q1*q1;
+      var a2 = m2*m2 + 1;
+      var b2 = 2*m2*h2;
+      var c2 =  h2*h2 - p2*p2 - q2*q2;
+      var a0 = m2*p1 + (h1 - q1);
+      var b0 = p1*(h2 - q2) - p2*(h1 - q1);
+      var c0 = m2 - m1;
+      var d0 = m1*p2 + (h2 - q2);
+      var z = m1*p1 + (h1 - q1);
+    }
+    else if (m1 === undefined && m2 === undefined) {
+      a1 = 1;
+      b1 = 0;
+      c1 = k1*k1 - p1*p1 - q1*q1;
+      a2 = 1;
+      b2 = 0;
+      c2 = k2*k2 - p2*p2 - q2*q2;
+      a0 = k1 - p1;
+      b0 = q1*(k2 - p2) - q2*(k1 - p1);
+      c0 = 0;
+      d0 = k2 - p2;
+      z = a0;
+    }
+    else {
+      if (m1 === undefined) {
+        var p3 = p1;
+        p1 = p2;
+        p2 = p3;
+        var q3 = q1;
+        q1 = q2;
+        q2 = q3;
+        m1 = m2;
+        m2 = undefined;
+        h1 = h2;
+        h2 = undefined;
+        k2 = k1;
+        k1 = undefined;
+      }
+      a1 = m1*m1 + 1;
+      b1 = 2*m1*h1;
+      c1 = h1*h1 - p1*p1 - q1*q1;
+      a2 = 1;
+      b2 = 0;
+      c2 = k2*k2 - p2*p2 - q2*q2;
+      a0 = p1;
+      b0 = (h1 - q1)*(k2 - p2) - p1*q2;
+      c0 = 1;
+      d0 = -m1*(k2 - p2) - q2;
+      z = m1*p1 + (h1 - q1);
+    }
+    var a3 = a1*a0*a0 + b1*a0*c0 + c1*c0*c0;
+    var b3 = 2*a1*a0*b0 + b1*(a0*d0 + b0*c0) + 2*c1*c0*d0;
+    var c3 = a1*b0*b0 + b1*b0*d0 + c1*d0*d0;
+    var a4 = a2*c0*z;
+    var b4 = (a2*d0 + b2*c0) * z - a3;
+    var c4 = (b2*d0 + c2*c0) * z - b3;
+    var d4 =  c2*d0*z - c3;
+    var roots = solveCubic(a4,b4,c4,d4);
+    var solutions = [];
+    if (roots != undefined && roots.length > 0) {
+      for (var i = 0; i < roots.length; ++i) {
+        if (m1 !== undefined && m2 !== undefined) {
+          var u2 = roots[i];
+          var v2 = m2*u2 + h2;
+        }
+        else if (m1 === undefined && m2 === undefined) {
+          v2 = roots[i];
+          u2 = k2;
+        }
+        else {
+          v2 = roots[i];
+          u2 = k2;
+        }
+        if (v2 != q2) {
+          var mF = -1*(u2 - p2)/(v2 - q2);
+          var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
+          solutions.push(math.line([0, hF], [1, mF]));
+        }
+        else {
+          var kG = (u2 + p2)/2;
+          solutions.push(math.line([kG, 0], [0, 1]));
+        }
+      }
+    }
+    const parameters = {
+      points: [math.vector(pointC), math.vector(pointD)],
+      lines: [math.line(pointA, vecA), math.line(pointB, vecB)]
+    };
+    return make_axiom_frame(6, solutions, parameters);
+  };
+  const axiom = [null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7];
+  delete axiom[0];
+
   const core = Object.assign(Object.create(null), {
     count,
     implied,
@@ -3109,6 +3309,7 @@
     make,
   );
   const Ear = Object.assign(root, {
+    axiom,
     graph: Graph,
     math: math.core,
     core,
