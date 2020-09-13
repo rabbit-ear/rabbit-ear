@@ -59,8 +59,8 @@ test("transpose_graph_arrays", () => {
   const crane = JSON.parse(craneString);
   const result = ear.core.transpose_graph_arrays(crane, "edges");
   expect(result.length).toBe(crane.edges_vertices.length);
-  expect(result[0].vertices.length).toBe(2);
-  expect(result[0].assignment.length).toBe(1); // string, "M" or "V" or something
+  expect(result[0].edges_vertices.length).toBe(2);
+  expect(result[0].edges_assignment.length).toBe(1); // string, "M" or "V" or something
   // no key
   expect(ear.core.transpose_graph_arrays(crane, "nokey").length)
     .toBe(0);
@@ -70,8 +70,8 @@ test("transpose_graph_array_at_index", () => {
   const craneString = fs.readFileSync("./tests/files/crane.fold", "utf-8");
   const crane = JSON.parse(craneString);
   const result = ear.core.transpose_graph_array_at_index(crane, "edges", 10);
-  expect(result.vertices.length).toBe(2);
-  expect(result.assignment.length).toBe(1); // string, "M" or "V" or something
+  expect(result.edges_vertices.length).toBe(2);
+  expect(result.edges_assignment.length).toBe(1); // string, "M" or "V" or something
   // no key
   expect(ear.core.transpose_graph_array_at_index(crane, "nokey", 0))
     .toBe(undefined);

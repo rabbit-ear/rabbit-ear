@@ -1,5 +1,3 @@
-const Diff = {};
-
 import count from "./count";
 import remove from "../core/remove";
 
@@ -24,6 +22,7 @@ import remove from "../core/remove";
 //     map: [0, 0]
 //   }
 // };
+/*
 
 // everything in "new" and "remove" are 0-indexed array. excempt is "update"
 const final_draft = {
@@ -60,6 +59,10 @@ const rough_draft_1 = {
   faces: { new: [], update: [], remove: [] }
 };
 
+*/
+
+const Diff = {};
+
 // each of the { new } entries come with an index
 // which will change during this function, if { remove } entries exist
 Diff.apply = (graph, diff) => {
@@ -91,28 +94,17 @@ Diff.apply = (graph, diff) => {
   }
   // these should be done in a particular order... is that right?
   if (diff.remove) {
-    if (diff.remove.faces) {
-      const map = remove(graph, "faces", diff.remove.faces);
-      diff.new.faces.forEach((face, i) => {
-        diff.new.faces[i].index += map[face.index];
+    ["faces", "edges", "vertices"]
+      .filter(key => diff.remove[key])
+      .forEach((key) => {
+        const map = remove(graph, key, diff.remove[key]);
+        diff.new[key].forEach((el, i) => {
+          diff.new[key][i].index += map[el.index];
+        });
       });
-    }
-    if (diff.remove.edges) {
-      const map = remove(graph, "edges", diff.remove.edges);
-      diff.new.edges.forEach((edge, i) => {
-        diff.new.edges[i].index += map[edge.index];
-      });
-    }
-    if (diff.remove.vertices) {
-      const map = remove(graph, "vertices", diff.remove.vertices);
-      diff.new.vertices.forEach((vertex, i) => {
-        diff.new.vertices[i].index += map[vertex.index];
-      });
-    }
   }
   return diff;
 };
-
 
 /**
  * NEVERMIND - this DOES modify target. Object.assign
@@ -242,33 +234,33 @@ Diff.merge = (graph, target, source) => {
 
 export default Diff;
 
-const apply_run_diff_draft_1 = function (graph, diff) {
-  const vertices_length = graph.vertices_coords.length;
-  const edges_length = graph.edges_vertices.length;
-  const faces_length = graph.faces_vertices.length;
+// const apply_run_diff_draft_1 = function (graph, diff) {
+//   const vertices_length = graph.vertices_coords.length;
+//   const edges_length = graph.edges_vertices.length;
+//   const faces_length = graph.faces_vertices.length;
 
-  diff.vertices.new
-    .forEach((vert, i) => Object.keys(vert, i)
-      .forEach((key) => { graph[key][vertices_length + i] = vert[key]; }));
-  diff.edges.new
-    .forEach((edge, i) => Object.keys(edge, i)
-      .forEach((key) => { graph[key][edges_length + i] = edge[key]; }));
-  diff.faces.new
-    .forEach((face, i) => Object.keys(face, i)
-      .forEach((key) => { graph[key][faces_length + i] = face[key]; }));
-  // object keys to get the array indices.
-  // example: overwrite faces_vertices, index 4, with new array [1,5,7,4]
-  Object.keys(diff.vertices.update)
-    .forEach(i => Object.keys(diff.vertices.update[i])
-      .forEach((key) => { graph[key][i] = diff.vertices.update[i][key]; }));
-  Object.keys(diff.edges.update)
-    .forEach(i => Object.keys(diff.edges.update[i])
-      .forEach((key) => { graph[key][i] = diff.edges.update[i][key]; }));
-  Object.keys(diff.faces.update)
-    .forEach(i => Object.keys(diff.faces.update[i])
-      .forEach((key) => { graph[key][i] = diff.faces.update[i][key]; }));
+//   diff.vertices.new
+//     .forEach((vert, i) => Object.keys(vert, i)
+//       .forEach((key) => { graph[key][vertices_length + i] = vert[key]; }));
+//   diff.edges.new
+//     .forEach((edge, i) => Object.keys(edge, i)
+//       .forEach((key) => { graph[key][edges_length + i] = edge[key]; }));
+//   diff.faces.new
+//     .forEach((face, i) => Object.keys(face, i)
+//       .forEach((key) => { graph[key][faces_length + i] = face[key]; }));
+//   // object keys to get the array indices.
+//   // example: overwrite faces_vertices, index 4, with new array [1,5,7,4]
+//   Object.keys(diff.vertices.update)
+//     .forEach(i => Object.keys(diff.vertices.update[i])
+//       .forEach((key) => { graph[key][i] = diff.vertices.update[i][key]; }));
+//   Object.keys(diff.edges.update)
+//     .forEach(i => Object.keys(diff.edges.update[i])
+//       .forEach((key) => { graph[key][i] = diff.edges.update[i][key]; }));
+//   Object.keys(diff.faces.update)
+//     .forEach(i => Object.keys(diff.faces.update[i])
+//       .forEach((key) => { graph[key][i] = diff.faces.update[i][key]; }));
 
-  remove(graph, "faces", diff.faces.remove);
-  remove(graph, "edges", diff.edges.remove);
-  remove(graph, "vertices", diff.vertices.remove);
-};
+//   remove(graph, "faces", diff.faces.remove);
+//   remove(graph, "edges", diff.edges.remove);
+//   remove(graph, "vertices", diff.vertices.remove);
+// };

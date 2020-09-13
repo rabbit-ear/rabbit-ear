@@ -4,7 +4,7 @@ const equalTest = (a, b) => expect(JSON.stringify(a))
   .toBe(JSON.stringify(b));
 
 test("prototype member variables accessing 'this'", () => {
-  expect(ear.polygon.regularPolygon(4).edges.length).toBe(4);
+  expect(ear.polygon.regularPolygon(4).sides.length).toBe(4);
   expect(ear.polygon.regularPolygon(4).area()).toBeCloseTo(1);
 });
 
@@ -17,7 +17,6 @@ test(".segments", () => {
   const segments = polygon.segments();
   expect(segments.length).toBe(4);
   expect(polygon.sides[0]).toBe(polygon.segments()[0]);
-  expect(polygon.sides[0]).toBe(polygon.edges[0]);
 });
 
 test("polygon", () => {

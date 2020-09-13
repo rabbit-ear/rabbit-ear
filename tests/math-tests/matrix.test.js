@@ -99,8 +99,8 @@ test("transformLine", () => {
 //   console.log(ear.matrix().scale(0.5).transformLine(vector));
 // });
 
-const testEqual = function (...args) {
-  expect(ear.math.equivalent(...args)).toBe(true);
+const testEqualVectors = function (...args) {
+  expect(ear.math.equivalent_vectors(...args)).toBe(true);
 };
 
 const sqrt05 = Math.sqrt(0.5);
@@ -129,11 +129,11 @@ test("matrix core invert", () => {
 
 test("matrix 3, init with parameters", () => {
   const result1 = ear.matrix(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0);
-  testEqual(result1, [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]);
+  testEqualVectors(result1, [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]);
   const result2 = ear.matrix(1,2,3,4,5,6,7,8,9,10,11,12);
-  testEqual(result2, [1,2,3,4,5,6,7,8,9,10,11,12]);
+  testEqualVectors(result2, [1,2,3,4,5,6,7,8,9,10,11,12]);
   const result3 = ear.matrix(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
-  testEqual(result3, [1,2,3,5,6,7,9,10,11,13,14,15]);
+  testEqualVectors(result3, [1,2,3,5,6,7,9,10,11,13,14,15]);
 });
 
 // todo: test matrix3 methods (invert) with the translation component to make sure it carries over
@@ -141,16 +141,16 @@ test("matrix 3 core, transforms", () => {
   const result1 = ear.math.make_matrix3_translate();
   [1,0,0,0,1,0,0,0,1,0,0,0].forEach((n, i) => expect(n).toBe(result1[i]));
   // rotate 360 degrees about an arbitrary axis and origin
-  testEqual([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+  testEqualVectors([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
     ear.math.make_matrix3_rotate(Math.PI * 2,
       [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5],
       [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5]));
 
-  testEqual(ear.math.make_matrix3_rotateX(Math.PI / 6),
+  testEqualVectors(ear.math.make_matrix3_rotateX(Math.PI / 6),
     ear.math.make_matrix3_rotate(Math.PI / 6, [1, 0, 0]));
-  testEqual(ear.math.make_matrix3_rotateY(Math.PI / 6),
+  testEqualVectors(ear.math.make_matrix3_rotateY(Math.PI / 6),
     ear.math.make_matrix3_rotate(Math.PI / 6, [0, 1, 0]));
-  testEqual(ear.math.make_matrix3_rotateZ(Math.PI / 6),
+  testEqualVectors(ear.math.make_matrix3_rotateZ(Math.PI / 6),
     ear.math.make_matrix3_rotate(Math.PI / 6, [0, 0, 1]));
   // source wikipedia https://en.wikipedia.org/wiki/Rotation_matrix#Examples
   const exampleMat = [
@@ -159,31 +159,31 @@ test("matrix 3 core, transforms", () => {
     -0.8018106071106572, 0.0015183876574496047, 0.5975763087872216,
     0, 0, 0
   ];
-  testEqual(
+  testEqualVectors(
     exampleMat,
     ear.math.make_matrix3_rotate(-74 / 180 * Math.PI, [-1 / 3, 2 / 3, 2 / 3])
   );
-  testEqual(
+  testEqualVectors(
     exampleMat,
     ear.math.make_matrix3_rotate(-74 / 180 * Math.PI, [-0.5, 1, 1])
   );
 
-  testEqual([1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 0, 0],
+  testEqualVectors([1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 0, 0],
     ear.math.make_matrix3_rotate(Math.PI / 6, [1, 0, 0]));
 });
 
 test("matrix 3 core", () => {
-  testEqual(12, ear.math.determinant3([1, 2, 3, 2, 4, 8, 7, 8, 9]));
-  testEqual(10, ear.math.determinant3([3, 2, 0, 0, 0, 1, 2, -2, 1, 0, 0, 0]));
-  testEqual([4, 5, -8, -5, -6, 9, -2, -2, 3, 0, 0, 0],
+  expect(ear.math.determinant3([1, 2, 3, 2, 4, 8, 7, 8, 9])).toBe(12);
+  expect(ear.math.determinant3([3, 2, 0, 0, 0, 1, 2, -2, 1, 0, 0, 0])).toBe(10);
+  testEqualVectors([4, 5, -8, -5, -6, 9, -2, -2, 3, 0, 0, 0],
     ear.math.invert_matrix3([0, 1, -3, -3, -4, 4, -2, -2, 1, 0, 0, 0]));
-  testEqual([0.2, -0.2, 0.2, 0.2, 0.3, -0.3, 0, 1, 0, 0, 0, 0],
+  testEqualVectors([0.2, -0.2, 0.2, 0.2, 0.3, -0.3, 0, 1, 0, 0, 0, 0],
     ear.math.invert_matrix3([3, 2, 0, 0, 0, 1, 2, -2, 1, 0, 0, 0]));
   const mat_3d_ref = ear.math.make_matrix3_reflectZ([1, -2], [12, 13]);
-  testEqual(ear.math.make_matrix2_reflect([1, -2], [12, 13]),
+  testEqualVectors(ear.math.make_matrix2_reflect([1, -2], [12, 13]),
     [mat_3d_ref[0], mat_3d_ref[1], mat_3d_ref[3], mat_3d_ref[4], mat_3d_ref[9], mat_3d_ref[10]]);
   // source wolfram alpha
-  testEqual([-682, 3737, -5545, 2154, -549, -1951, 953, -3256, 4401, 0, 0, 0],
+  testEqualVectors([-682, 3737, -5545, 2154, -549, -1951, 953, -3256, 4401, 0, 0, 0],
     ear.math.multiply_matrices3([5, -52, 85, 15, -9, -2, 32, 2, -50, 0, 0, 0],
       [-77, 25, -21, 3, 53, 42, 63, 2, 19, 0, 0, 0]));
 });
@@ -192,26 +192,26 @@ test("matrix 3 core", () => {
 //
 // test("matrix 2", () => {
 //   // top level types
-//   testEqual([1, 2, 3, 4, 5, 6], ear.matrix2(1, 2, 3, 4, 5, 6));
-//   testEqual([1, 0, 0, 1, 6, 7], ear.matrix2.makeTranslation(6, 7));
-//   testEqual([3, 0, 0, 3, -2, 0], ear.matrix2.makeScale(3, 3, [1, 0]));
-//   testEqual([0, 1, 1, -0, -8, 8], ear.matrix2.makeReflection([1, 1], [-5, 3]));
-//   testEqual(
+//   testEqualVectors([1, 2, 3, 4, 5, 6], ear.matrix2(1, 2, 3, 4, 5, 6));
+//   testEqualVectors([1, 0, 0, 1, 6, 7], ear.matrix2.makeTranslation(6, 7));
+//   testEqualVectors([3, 0, 0, 3, -2, 0], ear.matrix2.makeScale(3, 3, [1, 0]));
+//   testEqualVectors([0, 1, 1, -0, -8, 8], ear.matrix2.makeReflection([1, 1], [-5, 3]));
+//   testEqualVectors(
 //     [sqrt05, sqrt05, -sqrt05, sqrt05, 1, 1],
 //     ear.matrix2.makeRotation(Math.PI / 4, [1, 1])
 //   );
-//   testEqual(
+//   testEqualVectors(
 //     [sqrt05, -sqrt05, sqrt05, sqrt05, -sqrt05, sqrt05],
 //     ear.matrix2(sqrt05, sqrt05, -sqrt05, sqrt05, 1, 0).inverse()
 //   );
-//   testEqual(
+//   testEqualVectors(
 //     [Math.sqrt(4.5), sqrt05, -sqrt05, Math.sqrt(4.5), Math.sqrt(4.5), sqrt05],
 //     ear.matrix2(sqrt05, -sqrt05, sqrt05, sqrt05, 0, 0)
 //       .multiply(ear.matrix2(1, 2, -2, 1, 1, 2))
 //   );
-//   testEqual([0, 3], ear.matrix2(2, 1, -1, 2, -1, 0).transform(1, 1));
-//   testEqual([-2, 3], ear.matrix2.makeScale(3, 3, [1, 0]).transform([0, 1]));
-//   testEqual([-1, 2], ear.matrix2.makeScale(3, 3, [0.5, 0.5]).transform([0, 1]));
-//   testEqual([1, 1], ear.matrix2.makeScale(0.5, 0.5, [1, 1]).transform([1, 1]));
-//   testEqual([0.75, 0.75], ear.matrix2.makeScale(0.5, 0.5, [0.5, 0.5]).transform([1, 1]));
+//   testEqualVectors([0, 3], ear.matrix2(2, 1, -1, 2, -1, 0).transform(1, 1));
+//   testEqualVectors([-2, 3], ear.matrix2.makeScale(3, 3, [1, 0]).transform([0, 1]));
+//   testEqualVectors([-1, 2], ear.matrix2.makeScale(3, 3, [0.5, 0.5]).transform([0, 1]));
+//   testEqualVectors([1, 1], ear.matrix2.makeScale(0.5, 0.5, [1, 1]).transform([1, 1]));
+//   testEqualVectors([0.75, 0.75], ear.matrix2.makeScale(0.5, 0.5, [0.5, 0.5]).transform([1, 1]));
 // });

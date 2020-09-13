@@ -36,11 +36,6 @@ import { clone } from "./javascript";
  * - graph.edges_vertices is an array
  */
 
-const add_edge_options = () => ({
-  edges_assignment: "U",
-  edges_foldAngle: 0,
-});
-
 /**
  * add_edge will return a { remove, update, new } diff
  *   adding an edge will sometimes create 2-4 new edges
@@ -49,15 +44,19 @@ const add_edge_options = () => ({
  *   under the { new } key of the diff
  */
 
+// todo, paramters like: (graph, {options})
+// where options contains keys {
+//   segment:
+// or other ways of constructing. like between vertex indices
 
- /// todo, paramters like: (graph, {options})
- // where options contains keys {
-  // segment:
-  // or other ways of constructing. like between vertex indices
+const default_edge_options = Object.freeze({
+  edges_assignment: "U",
+  edges_foldAngle: 0,
+});
 
 // when you supply options, include both assignment and foldAngle
 // edge is an array of arrays. [ [x1, y1], [x2, y2] ]. can include z components
-const add_edge = function (graph, edge, options = add_edge_options()) {
+const add_edge = function (graph, edge, options = default_edge_options) {
   // const edge = math.segment(a, b, c, d);
 
   // compare these two new vertices against every existing vertex,

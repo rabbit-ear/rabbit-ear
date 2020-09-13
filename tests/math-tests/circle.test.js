@@ -1,9 +1,5 @@
 const ear = require("../../rabbit-ear");
 
-const testEqual = function (...args) {
-  expect(ear.math.equivalent(...args)).toBe(true);
-};
-
 test("arguments", () => {
   expect(ear.circle(1, [4,5]).radius).toBe(1);
   expect(ear.circle(1, [4,5]).origin.x).toBe(4);
@@ -99,8 +95,8 @@ test("circle fromThreePoints", () => {
 test("intersect lines", () => {
   const clipLine = ear.circle(1).intersect(ear.line([0, 1], [0.5, 0]));
   const shouldBeLine = [[0.5, -Math.sqrt(3) / 2], [0.5, Math.sqrt(3) / 2]];
-  testEqual(clipLine[0], shouldBeLine[0]);
-  testEqual(clipLine[1], shouldBeLine[1]);
+  expect(ear.math.equivalent_vectors(clipLine[0], shouldBeLine[0])).toBe(true);
+  expect(ear.math.equivalent_vectors(clipLine[1], shouldBeLine[1])).toBe(true);
   // no intersect
   expect(ear.circle(1, [2,2]).intersect(ear.line([0,1], [10,0]))).toBe(undefined);
   // tangent
@@ -110,11 +106,11 @@ test("intersect lines", () => {
 
   const shouldBeRay = [Math.sqrt(2) / 2, Math.sqrt(2) / 2];
   const clipRay = ear.circle(1).intersect(ear.ray(0.1, 0.1));
-  testEqual(shouldBeRay, clipRay[0]);
+  expect(ear.math.equivalent_vectors(shouldBeRay, clipRay[0])).toBe(true);
 
   const shouldBeSeg = [Math.sqrt(2) / 2, Math.sqrt(2) / 2];
   const clipSeg = ear.circle(1).intersect(ear.segment(0, 0, 10, 10));
-  testEqual(shouldBeSeg, clipSeg[0]);
+  expect(ear.math.equivalent_vectors(shouldBeSeg, clipSeg[0])).toBe(true);
 });
 
 test("circle circle intersect", () => {

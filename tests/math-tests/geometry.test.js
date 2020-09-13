@@ -1,24 +1,24 @@
 const ear = require("../../rabbit-ear");
 
-const testEqual = function (...args) {
-  expect(ear.math.equivalent(...args)).toBe(true);
+const testEqualVectors = function (...args) {
+  expect(ear.math.equivalent_vectors(...args)).toBe(true);
 };
 
 test("nearest point", () => {
-  testEqual([5, 5], ear.math.nearest_point2([10, 0],
+  testEqualVectors([5, 5], ear.math.nearest_point2([10, 0],
     [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [8, 8], [9, 9]]));
-  testEqual([6, 6, 0], ear.math.nearest_point([10, 0, 0],
+  testEqualVectors([6, 6, 0], ear.math.nearest_point([10, 0, 0],
     [[0, 0, 0], [1, 1, 0], [2, 2, 0], [3, 3, 0], [4, 4, 1],
       [5, 5, 10], [6, 6, 0], [7, 7, 0], [8, 8, 0], [9, 9, 0]]));
 });
 
 test("interior angles", () => {
-  testEqual(
+  testEqualVectors(
     [Math.PI / 2, Math.PI / 2, Math.PI / 2, Math.PI / 2],
     [[1, 0], [0, 1], [-1, 0], [0, -1]].map((v, i, ar) => ear.math
       .counter_clockwise_angle2(v, ar[(i + 1) % ar.length]))
   );
-  testEqual(
+  testEqualVectors(
     [Math.PI / 2, Math.PI / 2, Math.PI / 2, Math.PI / 2],
     [[1, 1], [-1, 1], [-1, -1], [1, -1]].map((v, i, ar) => ear.math
       .counter_clockwise_angle2(v, ar[(i + 1) % ar.length]))
@@ -26,11 +26,11 @@ test("interior angles", () => {
 });
 
 test("counter-clockwise vector sorting", () => {
-  testEqual(
+  testEqualVectors(
     [0, 1, 2, 3],
     ear.math.counter_clockwise_vector_order([1, 1], [-1, 1], [-1, -1], [1, -1])
   );
-  testEqual(
+  testEqualVectors(
     [0, 3, 2, 1],
     ear.math.counter_clockwise_vector_order([1, -1], [-1, -1], [-1, 1], [1, 1])
   );

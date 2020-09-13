@@ -146,6 +146,12 @@ export const VERTICES = "vertices";
 export const EDGES = "edges";
 export const FACES = "faces";
 
+export const singularize = {
+  vertices: "vertex",
+  edges: "edge",
+  faces: "face",
+};
+
 export const edge_assignment_to_foldAngle = assignment =>
   assignment_angles[assignment] || 0;
 /**
