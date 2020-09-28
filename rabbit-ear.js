@@ -178,7 +178,7 @@
   const rotate90 = v => [-v[1], v[0]];
   const rotate270 = v => [v[1], -v[0]];
   const degenerate = (v) => Math
-    .abs(v.reduce((a, b) => a + b, 0)) < EPSILON;
+    .abs(v.reduce(fn_add, 0)) < EPSILON;
   const parallel = (a, b) => 1 - Math
     .abs(dot(normalize(a), normalize(b))) < EPSILON;
   var algebra = Object.freeze({
@@ -681,6 +681,14 @@
     if (angle < 0) { angle += TWO_PI; }
     return angle;
   };
+  const clockwise_bisect2 = (a, b) => {
+    const radians = Math.atan2(a[1], a[0]) - clockwise_angle2(a, b) / 2;
+    return [Math.cos(radians), Math.sin(radians)];
+  };
+  const counter_clockwise_bisect2 = (a, b) => {
+    const radians = Math.atan2(a[1], a[0]) - counter_clockwise_angle2(a, b) / 2;
+    return [Math.cos(radians), Math.sin(radians)];
+  };
   const counter_clockwise_vector_order = (...vectors) => {
     const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
     const counter_clockwise = Array.from(Array(vectors_radians.length))
@@ -890,6 +898,8 @@
     counter_clockwise_angle2_radians: counter_clockwise_angle2_radians,
     clockwise_angle2: clockwise_angle2,
     counter_clockwise_angle2: counter_clockwise_angle2,
+    clockwise_bisect2: clockwise_bisect2,
+    counter_clockwise_bisect2: counter_clockwise_bisect2,
     counter_clockwise_vector_order: counter_clockwise_vector_order,
     interior_angles: interior_angles,
     bisect_vectors: bisect_vectors,
@@ -1185,84 +1195,125 @@
   });
   const quick_equivalent_2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
     && Math.abs(a[1] - b[1]) < EPSILON;
-  const intersect_line_seg = (vector, origin, pt0, pt1) => intersect_lines(
+  const intersect_line_seg_include = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
     vector, origin,
     subtract(pt1, pt0), pt0,
-    include_l_s
+    include_l_s,
+    ep
   );
-  const intersect_ray_seg_include = (vector, origin, pt0, pt1) => intersect_lines(
+  const intersect_line_seg_exclude = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
     vector, origin,
     subtract(pt1, pt0), pt0,
-    include_r_s
+    exclude_l_s,
+    ep
   );
-  const intersect_ray_seg_exclude = (vector, origin, pt0, pt1) => intersect_lines(
+  const intersect_ray_seg_include = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
     vector, origin,
     subtract(pt1, pt0), pt0,
-    exclude_r_s
+    include_r_s,
+    ep
   );
-  const intersect_seg_seg_include = (a0, a1, b0, b1) => intersect_lines(
+  const intersect_ray_seg_exclude = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
+    vector, origin,
+    subtract(pt1, pt0), pt0,
+    exclude_r_s,
+    ep
+  );
+  const intersect_seg_seg_include = (a0, a1, b0, b1, ep = EPSILON) => intersect_lines(
     subtract(a1, a0), a0,
     subtract(b1, b0), b0,
-    include_s_s
+    include_s_s,
+    ep
   );
-  const intersect_seg_seg_exclude = (a0, a1, b0, b1) => intersect_lines(
+  const intersect_seg_seg_exclude = (a0, a1, b0, b1, ep = EPSILON) => intersect_lines(
     subtract(a1, a0), a0,
     subtract(b1, b0), b0,
-    exclude_s_s
+    exclude_s_s,
+    ep
   );
-  const convex_poly_line_intersect = (intersect_func, poly, line1, line2) => {
+  const get_unique_pair = (intersections) => {
+    for (let i = 1; i < intersections.length; i += 1) {
+      if (!quick_equivalent_2(intersections[0], intersections[i])) {
+        return [intersections[0], intersections[i]];
+      }
+    }
+  };
+  const convex_poly_line_intersect = (intersect_func, poly, line1, line2, ep = EPSILON) => {
     const intersections = poly
       .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-      .map(el => intersect_func(line1, line2, el[0], el[1]))
+      .map(el => intersect_func(line1, line2, el[0], el[1], ep))
       .filter(el => el != null);
     switch (intersections.length) {
       case 0: return undefined;
       case 1: return [intersections];
       default:
-        for (let i = 1; i < intersections.length; i += 1) {
-          if (!quick_equivalent_2(intersections[0], intersections[i])) {
-            return [intersections[0], intersections[i]];
-          }
-        }
-        return [intersections[0]];
+        return get_unique_pair(intersections) || [intersections[0]];
     }
   };
-  const convex_poly_line = (poly, vec, org, ep = EPSILON) =>
-    convex_poly_line_intersect(intersect_line_seg, poly, vec, org);
+  const poly_include_exclude_func = (intersect_func, poly, line1, line2, epsilon) => {
+    const sects = convex_poly_line_intersect(intersect_func, poly, line1, line2, epsilon);
+    let altFunc;
+    switch (intersect_func) {
+      case intersect_line_seg_exclude: altFunc = intersect_line_seg_include; break;
+      case intersect_ray_seg_exclude: altFunc = intersect_ray_seg_include; break;
+      case intersect_seg_seg_exclude: altFunc = intersect_seg_seg_include; break;
+      case intersect_line_seg_include:
+      case intersect_ray_seg_include:
+      case intersect_seg_seg_include:
+      default: return sects;
+    }
+    const includes = convex_poly_line_intersect(altFunc, poly, line1, line2, epsilon);
+    if (includes === undefined) { return undefined; }
+    const uniqueIncludes = get_unique_pair(includes);
+    if (uniqueIncludes === undefined) {
+      switch (intersect_func) {
+        case intersect_line_seg_exclude: return undefined;
+        case intersect_ray_seg_exclude:
+          return point_in_convex_poly_exclusive(line2, poly, epsilon)
+            ? includes
+            : undefined;
+        case intersect_seg_seg_exclude:
+          return point_in_convex_poly_exclusive(line1, poly, epsilon) || point_in_convex_poly_exclusive(line2, poly, epsilon)
+            ? includes
+            : undefined;
+      }
+    }
+    return point_in_convex_poly_exclusive(midpoint(...uniqueIncludes), poly, epsilon)
+      ? uniqueIncludes
+      : sects;
+  };
+  const convex_poly_line_inclusive = (poly, vec, org, ep = EPSILON) =>
+    poly_include_exclude_func(intersect_line_seg_include, poly, vec, org, ep);
+  const convex_poly_line_exclusive = (poly, vec, org, ep = EPSILON) =>
+    poly_include_exclude_func(intersect_line_seg_exclude, poly, vec, org, ep);
   const convex_poly_ray_inclusive = (poly, vec, org, ep = EPSILON) =>
-    convex_poly_line_intersect(intersect_ray_seg_include, poly, vec, org);
+    poly_include_exclude_func(intersect_ray_seg_include, poly, vec, org, ep);
   const convex_poly_ray_exclusive = (poly, vec, org, ep = EPSILON) =>
-    convex_poly_line_intersect(intersect_ray_seg_exclude, poly, vec, org);
-  const convex_poly_segment_inclusive$1 = (poly, pt0, pt1, ep = EPSILON) =>
-    convex_poly_line_intersect(intersect_seg_seg_include, poly, pt0, pt1);
+    poly_include_exclude_func(intersect_ray_seg_exclude, poly, vec, org, ep);
+  const convex_poly_segment_inclusive = (poly, pt0, pt1, ep = EPSILON) =>
+    poly_include_exclude_func(intersect_seg_seg_include, poly, pt0, pt1, ep);
   const convex_poly_segment_exclusive = (poly, pt0, pt1, ep = EPSILON) =>
-    convex_poly_line_intersect(intersect_seg_seg_exclude, poly, pt0, pt1);
+    poly_include_exclude_func(intersect_seg_seg_exclude, poly, pt0, pt1, ep);
   var intersect_polygon = Object.freeze({
     __proto__: null,
-    convex_poly_line: convex_poly_line,
+    convex_poly_line_inclusive: convex_poly_line_inclusive,
+    convex_poly_line_exclusive: convex_poly_line_exclusive,
     convex_poly_ray_inclusive: convex_poly_ray_inclusive,
     convex_poly_ray_exclusive: convex_poly_ray_exclusive,
-    convex_poly_segment_inclusive: convex_poly_segment_inclusive$1,
+    convex_poly_segment_inclusive: convex_poly_segment_inclusive,
     convex_poly_segment_exclusive: convex_poly_segment_exclusive
   });
-  const line = (a, b, compFunc, epsilon) => intersect_lines(
+  const convexPolyLine = (a, b) => convex_poly_line_exclusive(a, b.vector, b.origin);
+  const convexPolyRay = (a, b) => convex_poly_ray_exclusive(a, b.vector, b.origin);
+  const convexPolySegment = (a, b) => convex_poly_segment_exclusive(a, b[0], b[1]);
+  const lineFunc = (a, b, compFunc, epsilon) => intersect_lines(
     a.vector, a.origin, b.vector, b.origin, compFunc, epsilon
   );
-  const convexPolyLine = (a, b) => convex_poly_line(
-    a.constructor === Array ? a : a.points, b.vector, b.origin);
-  const convexPolyRay = (a, b, fn) => fn(
-    a.constructor === Array ? a : a.points, b.vector, b.origin);
-  const convexPolySegment = (a, b, fn) => fn(
-    a.constructor === Array ? a : a.points, b[0], b[1]);
   const intersect_func = {
     polygon: {
       line: convexPolyLine,
-      ray: (a, b, c) => convexPolyRay(a, b, c === false
-        ? convex_poly_ray_inclusive
-        : convex_poly_ray_exclusive),
-      segment: (a, b, c) => convexPolySegment(a, b, c === false
-        ? convex_poly_segment_inclusive
-        : convex_poly_segment_exclusive),
+      ray: convexPolyRay,
+      segment: convexPolySegment,
     },
     circle: {
       circle: circle_circle,
@@ -1273,27 +1324,23 @@
     line: {
       polygon: (a, b) => convexPolyLine(b, a),
       circle: (a, b) => circle_line(b, a),
-      line: (a, b) => line(a, b, include_l_l),
-      ray: (a, b, c) => line(a, b, c === false ? exclude_l_r : include_l_r),
-      segment: (a, b, c) => line(a, b, c === false ? exclude_l_s : include_l_s),
+      line: (a, b) => lineFunc(a, b, include_l_l),
+      ray: (a, b, c) => lineFunc(a, b, c === false ? exclude_l_r : include_l_r),
+      segment: (a, b, c) => lineFunc(a, b, c === false ? exclude_l_s : include_l_s),
     },
     ray: {
-      polygon: (a, b, c) => convexPolyRay(b, a, c === false
-        ? convex_poly_ray_inclusive
-        : convex_poly_ray_exclusive),
+      polygon: (a, b, c) => convexPolyRay(b, a),
       circle: (a, b) => circle_ray(b, a),
-      line: (a, b, c) => line(b, a, c === false ? exclude_l_r : include_l_r),
-      ray: (a, b, c) => line(a, b, c === false ? exclude_r_r : include_r_r),
-      segment: (a, b, c) => line(a, b, c === false ? exclude_r_s : include_r_s),
+      line: (a, b, c) => lineFunc(b, a, c === false ? exclude_l_r : include_l_r),
+      ray: (a, b, c) => lineFunc(a, b, c === false ? exclude_r_r : include_r_r),
+      segment: (a, b, c) => lineFunc(a, b, c === false ? exclude_r_s : include_r_s),
     },
     segment: {
-      polygon: (a, b, c) => convexPolySegment(b, a, c === false
-        ? convex_poly_segment_inclusive
-        : convex_poly_segment_exclusive),
+      polygon: (a, b, c) => convexPolySegment(b, a),
       circle: (a, b) => circle_segment(b, a),
-      line: (a, b, c) => line(b, a, c === false ? exclude_l_s : include_l_s),
-      ray: (a, b, c) => line(b, a, c === false ? exclude_r_s : include_r_s),
-      segment: (a, b, c) => line(a, b, c === false ? exclude_s_s : include_s_s),
+      line: (a, b, c) => lineFunc(b, a, c === false ? exclude_l_s : include_l_s),
+      ray: (a, b, c) => lineFunc(b, a, c === false ? exclude_r_s : include_r_s),
+      segment: (a, b, c) => lineFunc(a, b, c === false ? exclude_s_s : include_s_s),
     },
   };
   const intersect = function (a, b) {
@@ -1306,11 +1353,11 @@
     overlap_point,
     overlap_polygon,
   );
-  const clip_intersections = (intersect_func, poly, line1, line2) => poly
+  const clip_intersections = (intersect_func, poly, line1, line2, epsilon = EPSILON) => poly
     .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-    .map(el => intersect_func(line1, line2, el[0], el[1]))
-    .filter(el => el != null);
-  const get_unique_pair = (intersections) => {
+    .map(el => intersect_func(line1, line2, el[0], el[1], epsilon))
+    .filter(el => el !== undefined);
+  const get_unique_pair$1 = (intersections) => {
     for (let i = 1; i < intersections.length; i += 1) {
       if (!quick_equivalent_2(intersections[0], intersections[i])) {
         return [intersections[0], intersections[i]];
@@ -1322,13 +1369,13 @@
       case 0:
       case 1: return undefined;
       default:
-        return get_unique_pair(intersections);
+        return get_unique_pair$1(intersections);
     }
   };
   const finish_ray = (intersections, poly, origin) => {
     if (intersections.length === 0) { return undefined; }
     const origin_inside = point_in_convex_poly_inclusive(origin, poly);
-    return get_unique_pair(intersections) || [origin, intersections[0]];
+    return get_unique_pair$1(intersections) || [origin, intersections[0]];
   };
   const finish_segment = (intersections, poly, seg0, seg1, epsilon = EPSILON) => {
     const seg = [seg0, seg1];
@@ -1347,7 +1394,7 @@
         if (exclusive_in[1]) { return [[...seg1], intersections[0]]; }
         return undefined;
       default: {
-        const unique = get_unique_pair(intersections);
+        const unique = get_unique_pair$1(intersections);
         if (unique !== undefined) { return unique; }
         return (inclusive_in[0]
           ? [[...seg0], intersections[0]]
@@ -1355,20 +1402,41 @@
       }
     }
   };
-  const clip_line_in_convex_poly = (poly, vector, origin, epsilon = EPSILON) => {
-    const p = clip_intersections(intersect_line_seg, poly, vector, origin);
+  const clip_line_in_convex_poly_inclusive = (poly, vector, origin, epsilon = EPSILON) => {
+    const p = clip_intersections(intersect_line_seg_include, poly, vector, origin, epsilon);
     return finish_line(p);
   };
-  const clip_ray_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSILON) => {
-    const func = point_in_convex_poly_exclusive(origin, poly, epsilon)
-      ? intersect_ray_seg_include
-      : intersect_ray_seg_exclude;
-    const p = clip_intersections(func, poly, vector, origin);
-    return finish_ray(p, poly, origin);
+  const clip_line_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSILON) => {
+    const pEx = clip_intersections(intersect_line_seg_exclude, poly, vector, origin, epsilon);
+    const pIn = clip_intersections(intersect_line_seg_include, poly, vector, origin, epsilon);
+    if (pIn === undefined) { return undefined; }
+    const uniqueIn = get_unique_pair$1(pIn);
+    if (uniqueIn === undefined) { return undefined; }
+    return point_in_convex_poly_exclusive(midpoint(...uniqueIn), poly, epsilon)
+      ? uniqueIn
+      : undefined;
   };
   const clip_ray_in_convex_poly_inclusive = (poly, vector, origin, epsilon = EPSILON) => {
-    const p = clip_intersections(intersect_ray_seg_include, poly, vector, origin);
+    const p = clip_intersections(intersect_ray_seg_include, poly, vector, origin, epsilon);
     return finish_ray(p, poly, origin);
+  };
+  const clip_ray_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSILON) => {
+    const pEx = clip_intersections(intersect_ray_seg_exclude, poly, vector, origin, epsilon);
+    const pIn = clip_intersections(intersect_ray_seg_include, poly, vector, origin, epsilon);
+    if (pIn === undefined) { return undefined; }
+    const uniqueIn = get_unique_pair$1(pIn);
+    if (uniqueIn === undefined) {
+      return point_in_convex_poly_exclusive(origin, poly, epsilon)
+        ? [origin, pIn[0]]
+        : undefined;
+    }
+    return point_in_convex_poly_exclusive(midpoint(...uniqueIn), poly, epsilon)
+      ? uniqueIn
+      : undefined;
+  };
+  const clip_segment_in_convex_poly_inclusive = (poly, seg0, seg1, epsilon = EPSILON) => {
+    const p = clip_intersections(intersect_seg_seg_include, poly, seg0, seg1, epsilon);
+    return finish_segment(p, poly, seg0, seg1);
   };
   const clip_segment_in_convex_poly_exclusive = (poly, seg0, seg1, epsilon = EPSILON) => {
     const func = point_in_convex_poly_inclusive(seg0, poly, epsilon)
@@ -1378,17 +1446,14 @@
     const p = clip_intersections(func, poly, seg0, seg1);
     return finish_segment(p, poly, seg0, seg1);
   };
-  const clip_segment_in_convex_poly_inclusive = (poly, seg0, seg1, epsilon = EPSILON) => {
-    const p = clip_intersections(intersect_seg_seg_include, poly, seg0, seg1);
-    return finish_segment(p, poly, seg0, seg1);
-  };
   var clip_polygon = Object.freeze({
     __proto__: null,
-    clip_line_in_convex_poly: clip_line_in_convex_poly,
-    clip_ray_in_convex_poly_exclusive: clip_ray_in_convex_poly_exclusive,
+    clip_line_in_convex_poly_inclusive: clip_line_in_convex_poly_inclusive,
+    clip_line_in_convex_poly_exclusive: clip_line_in_convex_poly_exclusive,
     clip_ray_in_convex_poly_inclusive: clip_ray_in_convex_poly_inclusive,
-    clip_segment_in_convex_poly_exclusive: clip_segment_in_convex_poly_exclusive,
-    clip_segment_in_convex_poly_inclusive: clip_segment_in_convex_poly_inclusive
+    clip_ray_in_convex_poly_exclusive: clip_ray_in_convex_poly_exclusive,
+    clip_segment_in_convex_poly_inclusive: clip_segment_in_convex_poly_inclusive,
+    clip_segment_in_convex_poly_exclusive: clip_segment_in_convex_poly_exclusive
   });
   const VectorArgs = function () {
     get_vector(arguments).forEach(n => this.push(n));
@@ -1877,7 +1942,7 @@
     },
     intersectLine: function () {
       const line = get_line(...arguments);
-      return convex_poly_line(this, line.vector, line.origin);
+      return convex_poly_line_exclusive(this, line.vector, line.origin);
     },
     intersectRay: function () {
       const line = get_line(...arguments);
@@ -1889,7 +1954,7 @@
     },
     clipLine: function () {
       const line = get_line(...arguments);
-      const clip = clip_line_in_convex_poly(this, line.vector, line.origin);
+      const clip = clip_line_in_convex_poly_exclusive(this, line.vector, line.origin);
       return makeClip(clip);
     },
     clipRay: function () {
@@ -2087,7 +2152,7 @@
   const ellipse = function () { return create("ellipse", arguments); };
   const rect = function () { return create("rect", arguments); };
   const polygon = function () { return create("polygon", arguments); };
-  const line$1 = function () { return create("line", arguments); };
+  const line = function () { return create("line", arguments); };
   const ray = function () { return create("ray", arguments); };
   const segment = function () { return create("segment", arguments); };
   const matrix = function () { return create("matrix", arguments); };
@@ -2097,7 +2162,7 @@
     ellipse,
     rect,
     polygon,
-    line: line$1,
+    line,
     ray,
     segment,
     matrix,
@@ -2140,6 +2205,14 @@
     intersect_lines$1,
     intersect_polygon,
     clip_polygon,
+    {
+      intersect_line_seg_include,
+      intersect_line_seg_exclude,
+      intersect_ray_seg_include,
+      intersect_ray_seg_exclude,
+      intersect_seg_seg_include,
+      intersect_seg_seg_exclude,
+    },
   );
   math.typeof = type_of;
   math.intersect = intersect;
@@ -2336,6 +2409,7 @@
   const VERTICES = "vertices";
   const EDGES = "edges";
   const FACES = "faces";
+  const VERTICES_COORDS = "vertices_coords";
   const singularize = {
     vertices: "vertex",
     edges: "edge",
@@ -2400,6 +2474,7 @@
     VERTICES: VERTICES,
     EDGES: EDGES,
     FACES: FACES,
+    VERTICES_COORDS: VERTICES_COORDS,
     singularize: singularize,
     edge_assignment_to_foldAngle: edge_assignment_to_foldAngle,
     filter_keys_with_suffix: filter_keys_with_suffix,
@@ -2655,6 +2730,19 @@
   const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
     make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
       .map(vectors => math.core.interior_angles(...vectors));
+  const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
+    if (!faces_matrix) {
+      faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
+    }
+    if (!vertices_faces) {
+      vertices_faces = make_vertices_faces({ faces_vertices });
+    }
+    return vertices_coords
+      .map((coords, i) => math.core.multiply_matrix3_vector3(
+        faces_matrix[vertices_faces[i][0]],
+        math.core.resize(3, coords),
+      ));
+  };
   const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
     edges_vertices.map((verts, i) => {
       const side0 = vertices_edges[verts[0]].filter(e => e !== i);
@@ -2686,6 +2774,60 @@
       .map(verts => math.core.subtract(verts[1], verts[0]));
   const make_edges_length = ({ vertices_coords, edges_vertices }) => make_edges_vector({ vertices_coords, edges_vertices })
       .map(vec => math.core.magnitude(vec));
+  const make_edges_edges_intersections = function (
+    { vertices_coords, edges_vertices, edges_vector, edges_origin },
+    epsilon = math.core.EPSILON
+  ) {
+    if (!edges_vector) {
+      edges_vector = edges_vertices
+        .map(ev => ev.map(v => vertices_coords[v]))
+        .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+    }
+    if (!edges_origin) {
+      edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
+    }
+    const indices = edges_vector.map((_, i) => i).filter(a => a !== null);
+    const edges_intersections = edges_vector.map(() => []);
+    for (let ii = 0; ii < indices.length - 1; ii += 1) {
+      for (let jj = ii + 1; jj < indices.length; jj += 1) {
+        const i = indices[ii];
+        const j = indices[jj];
+        const crossing = math.core.intersect_lines(
+          edges_vector[i],
+          edges_origin[i],
+          edges_vector[j],
+          edges_origin[j],
+          math.core.exclude_s_s,
+          epsilon
+        );
+        if (crossing !== undefined) {
+          edges_intersections[i][j] = crossing;
+          edges_intersections[j][i] = crossing;
+        }
+      }
+    }
+    return edges_intersections;
+  };
+  const make_edges_collinear_vertices = function (
+    { vertices_coords, edges_vertices, edges_coords },
+    subset_of_vertices_indices,
+    epsilon = math.core.EPSILON
+  ) {
+    if (!edges_coords) {
+      edges_coords = edges_vertices
+      .map(ev => ev.map(v => vertices_coords[v]));
+    }
+    if (!subset_of_vertices_indices) {
+      subset_of_vertices_indices = vertices_coords.map((_, i) => i);
+    }
+    return edges_coords
+      .map(e => subset_of_vertices_indices
+        .filter(vi => math.core.point_on_segment_exclusive(
+          vertices_coords[vi], e[0], e[1], epsilon
+        )))
+      .map((cv, i) => cv
+        .filter(vi => edges_vertices[i].indexOf(vi) === -1));
+  };
   const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
     if (!vertices_vertices) {
       vertices_vertices = make_vertices_vertices({ vertices_coords, edges_vertices, vertices_edges });
@@ -2724,7 +2866,7 @@
     });
     return faces_faces;
   };
-  const face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
+  const get_face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
     const hash = {};
     face_b_vertices.forEach((v) => { hash[v] = true; });
     const match = face_a_vertices.map(v => hash[v] ? true : false);
@@ -2759,7 +2901,7 @@
       const next_level = next_level_with_duplicates
         .filter((_, i) => !dup_indices[i]);
       next_level
-        .map(el => face_face_shared_vertices(
+        .map(el => get_face_face_shared_vertices(
           faces_vertices[el.face],
           faces_vertices[el.parent]
         )).forEach((ev, i) => {
@@ -2795,19 +2937,6 @@
         }));
     return faces_matrix;
   };
-  const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
-    if (!faces_matrix) {
-      faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
-    }
-    if (!vertices_faces) {
-      vertices_faces = make_vertices_faces({ faces_vertices });
-    }
-    return vertices_coords
-      .map((coords, i) => math.core.multiply_matrix3_vector3(
-        faces_matrix[vertices_faces[i][0]],
-        math.core.resize(3, coords),
-      ));
-  };
   const make_faces_coloring_from_matrix = ({ faces_matrix }) => faces_matrix
     .map(m => m[0] * m[4] - m[1] * m[3])
     .map(c => c >= 0);
@@ -2829,20 +2958,22 @@
     make_vertices_to_edge: make_vertices_to_edge,
     make_vertices_vertices_vector: make_vertices_vertices_vector,
     make_vertices_sectors: make_vertices_sectors,
+    make_vertices_coords_folded: make_vertices_coords_folded,
     make_edges_edges: make_edges_edges,
     make_edges_faces: make_edges_faces,
     make_edges_foldAngle: make_edges_foldAngle,
     make_edges_assignment: make_edges_assignment,
     make_edges_vector: make_edges_vector,
     make_edges_length: make_edges_length,
+    make_edges_edges_intersections: make_edges_edges_intersections,
+    make_edges_collinear_vertices: make_edges_collinear_vertices,
     make_planar_faces: make_planar_faces,
     make_faces_vertices: make_faces_vertices,
     make_faces_edges: make_faces_edges,
     make_faces_faces: make_faces_faces,
-    face_face_shared_vertices: face_face_shared_vertices,
+    get_face_face_shared_vertices: get_face_face_shared_vertices,
     make_face_walk_tree: make_face_walk_tree,
     make_faces_matrix: make_faces_matrix,
-    make_vertices_coords_folded: make_vertices_coords_folded,
     make_faces_coloring_from_matrix: make_faces_coloring_from_matrix,
     make_faces_coloring: make_faces_coloring
   });
@@ -3087,17 +3218,344 @@
       return transform[key](this, ...arguments);
     };
   });
-  var prototype = GraphProto.prototype;
+  var GraphProto$1 = GraphProto.prototype;
 
   const Graph = function () {
+    return Object.assign(
+      Object.create(GraphProto$1),
+      ...Array.from(arguments).filter(a => fold_object_certainty(a)),
+      { file_spec, file_creator }
+    );
+  };
+  Graph.prototype = GraphProto$1;
+  Graph.prototype.constructor = Graph;
+
+  const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
+    const degree = a.length;
+    for (let i = 0; i < degree; i += 1) {
+      if (Math.abs(a[i] - b[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const clusters_vertices = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+    const equivalent_matrix = vertices_coords.map(() => []);
+    for (let i = 0; i < vertices_coords.length - 1; i += 1) {
+      for (let j = i + 1; j < vertices_coords.length; j += 1) {
+        equivalent_matrix[i][j] = are_vertices_equivalent(
+          vertices_coords[i],
+          vertices_coords[j],
+          epsilon
+        );
+      }
+    }
+    const vertices_equivalent = equivalent_matrix
+      .map(equiv => equiv
+        .map((el, j) => (el ? j : undefined))
+        .filter(a => a !== undefined));
+    const clusters = [];
+    const visited = Array(vertices_coords.length).fill(false);
+    let visitedCount = 0;
+    const recurse = (cluster_index, i) => {
+      if (visited[i] || visitedCount === vertices_coords.length) { return; }
+      visited[i] = true;
+      visitedCount += 1;
+      if (!clusters[cluster_index]) { clusters[cluster_index] = []; }
+      clusters[cluster_index].push(i);
+      while (vertices_equivalent[i].length > 0) {
+        recurse(cluster_index, vertices_equivalent[i][0]);
+        vertices_equivalent[i].splice(0, 1);
+      }
+    };
+    for (let i = 0; i < vertices_coords.length; i += 1) {
+      recurse(i, i);
+      if (visitedCount === vertices_coords.length) { break; }
+    }
+    return clusters.filter(a => a.length);
+  };
+
+  const merge_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
+    const clusters = clusters_vertices(graph, epsilon);
+    const map = [];
+    for (let i = 0; i < clusters.length; i += 1) {
+      for (let j = 0; j < clusters[i].length; j += 1) {
+        map[clusters[i][j]] = i;
+      }
+    }
+    const new_vertices_coords = clusters
+      .map(arr => arr.map(i => graph.vertices_coords[i]))
+      .map(arr => math.core.average(...arr));
+    graph.vertices_coords = new_vertices_coords;
+    get_graph_keys_with_suffix(graph, VERTICES).forEach((key) => {
+      const arr_vertices = graph[key];
+      for (let i = 0; i < arr_vertices.length; i += 1) {
+        for (let j = 0; j < arr_vertices[i].length; j += 1) {
+          arr_vertices[i][j] = map[arr_vertices[i][j]];
+        }
+      }
+    });
+    get_graph_keys_with_prefix(graph, VERTICES)
+      .filter(a => a !== VERTICES_COORDS)
+      .forEach(key => delete graph[key]);
+  };
+
+  const sortVertexIndicesAlongVector = (graph, indices, vector) => indices
+    .map(i => ({
+      i,
+      d: graph.vertices_coords[i][0] * vector[0] + graph.vertices_coords[i][1] * vector[1]
+    }))
+    .sort((a, b) => a.d - b.d)
+    .map(a => a.i);
+  const getUniqueVerticesIndicesFromEdges = ({ edges_vertices }, edges_indices) => {
+    const nonunique = edges_indices
+      .map(e => edges_vertices[e])
+      .reduce((a, b) => a.concat(b), [])
+      .sort((a, b) => a - b);
+    const uniqueVertices = nonunique.length ? [nonunique[0]] : [];
+    for (let i = 1; i < nonunique.length; i += 1) {
+      if (nonunique[i] !== nonunique[i - 1]) {
+        uniqueVertices.push(nonunique[i]);
+      }
+    }
+    return uniqueVertices;
+  };
+  const fragment = function (
+    graph,
+    epsilon = math.core.EPSILON,
+    unset_edges_indices = undefined,
+  ) {
+    delete graph.faces_vertices;
+    delete graph.faces_edges;
+    delete graph.faces_faces;
+    delete graph.edges_edges;
+    delete graph.edges_faces;
+    delete graph.edges_length;
+    delete graph.vertices_faces;
+    delete graph.vertices_edges;
+    merge_duplicate_vertices(graph, epsilon);
+    if (unset_edges_indices === undefined) {
+      unset_edges_indices = graph.edges_vertices.map((_, i) => i);
+    }
+    const unset_vertices_indices = getUniqueVerticesIndicesFromEdges(
+      graph, unset_edges_indices
+    );
+    const edges_coords = graph.edges_vertices
+      .map(ev => ev.map(v => graph.vertices_coords[v]));
+    const edges_vector = edges_coords
+      .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+    const edges_origin = edges_coords
+      .map(e => e[0]);
+    const edges_intersections = make_edges_edges_intersections({ edges_vector, edges_origin }, 1e-6);
+    const edges_collinear_vertices = make_edges_collinear_vertices({
+      vertices_coords: graph.vertices_coords,
+      edges_vertices: graph.edges_vertices,
+      edges_coords
+    }, unset_vertices_indices, epsilon);
+    const new_vertices_coords = [];
+    edges_intersections.forEach(edge => edge
+      .forEach((intersect) => {
+        if (intersect.length === 2) {
+          const newIndex = graph.vertices_coords.length + new_vertices_coords.length;
+          new_vertices_coords.push([...intersect]);
+          intersect.splice(0, intersect.length);
+          intersect.push(newIndex);
+        }
+      }));
+    const edges_new_intersection_vertex_indices = edges_intersections
+      .map(arr => arr
+        .filter(() => true)
+        .reduce((c, d) => c.concat(d), []));
+    new_vertices_coords.forEach(coords => graph.vertices_coords.push(coords));
+    const sorted_added_edges_vertices = edges_new_intersection_vertex_indices
+      .map((a, i) => a.concat(edges_collinear_vertices[i]))
+      .map((verts, i) => sortVertexIndicesAlongVector(graph, verts, edges_vector[i]));
+    const edges_with_added_vertices = [];
+    sorted_added_edges_vertices.forEach((new_verts, i) => {
+      if (new_verts.length) {
+        edges_with_added_vertices[i] = [graph.edges_vertices[i][0]]
+          .concat(new_verts)
+          .concat([graph.edges_vertices[i][1]]);
+      }
+    });
+    const new_edges_vertices = [];
+    const new_edges_prev_index = [];
+    edges_with_added_vertices.forEach((verts, i) => {
+      for (let j = 2; j < verts.length; j += 1) {
+        new_edges_vertices.push([verts[j - 1], verts[j]]);
+        new_edges_prev_index.push(i);
+      }
+      verts.splice(2, verts.length - 2);
+    });
+    edges_with_added_vertices.forEach((ev, i) => {
+      graph.edges_vertices[i] = ev;
+    });
+    const edges_keys = get_graph_keys_with_prefix(graph, "edges")
+      .filter(a => a !== "edges_vertices");
+    const edges_length = graph.edges_vertices.length;
+    new_edges_vertices.forEach((ev, i) => {
+      const newI = i + edges_length;
+      const refI = new_edges_prev_index[i];
+      graph.edges_vertices[newI] = ev;
+      edges_keys.forEach((key) => { graph[key][newI] = graph[key][refI]; });
+    });
+    merge_duplicate_vertices(graph, epsilon);
+  };
+
+  const PlanarGraphProto = {};
+  PlanarGraphProto.prototype = Object.create(GraphProto$1);
+  const arcResolution = 32;
+  PlanarGraphProto.prototype.fragment = function () {
+    fragment(this, ...arguments);
+  };
+  PlanarGraphProto.prototype.addSegment = function () {
+    const segment = math.core.get_segment(arguments);
+    const vertices_coords = segment;
+    if (!this.vertices_coords) { this.vertices_coords = []; }
+    if (!this.edges_vertices) { this.edges_vertices = []; }
+    const len = this.vertices_coords.length;
+    const edge_vertices = [len, len + 1];
+    this.vertices_coords.push(...vertices_coords);
+    this.edges_vertices.push(edge_vertices);
+    this.fragment();
+  };
+  PlanarGraphProto.prototype.addSegments = function () {
+    const segments = math.core.semi_flatten_arrays(arguments)
+      .map(el => math.core.get_segment(el));
+    console.log("segs", segments);
+    const vertices_coords = segments.reduce((a, b) => a.concat(b), []);
+    if (!this.vertices_coords) { this.vertices_coords = []; }
+    if (!this.edges_vertices) { this.edges_vertices = []; }
+    const len = this.vertices_coords.length;
+    const edges_vertices = Array.from(Array(segments.length))
+      .map((_, i) => [len + i * 2, len + i * 2 + 1]);
+    this.vertices_coords.push(...vertices_coords);
+    this.edges_vertices.push(...edges_vertices);
+    this.fragment();
+  };
+  ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
+    PlanarGraphProto.prototype[fName] = function () {
+      const primitive = math[fName](...arguments);
+      if (!primitive) { return; }
+      this.addSegments(primitive.segments(arcResolution));
+    };
+  });
+  var prototype = PlanarGraphProto.prototype;
+
+  const PlanarGraph = function () {
     return Object.assign(
       Object.create(prototype),
       ...Array.from(arguments).filter(a => fold_object_certainty(a)),
       { file_spec, file_creator }
     );
   };
-  Graph.prototype = prototype;
-  Graph.prototype.constructor = Graph;
+  PlanarGraph.prototype = prototype;
+  PlanarGraph.prototype.constructor = PlanarGraph;
+
+  const CreasePatternProto = {};
+  CreasePatternProto.prototype = Object.create(GraphProto$1);
+  const arcResolution$1 = 32;
+  CreasePatternProto.prototype.fragment = function () {
+    fragment(this, ...arguments);
+  };
+  CreasePatternProto.prototype.addSegment = function () {
+    const segment = math.core.get_segment(arguments);
+    const vertices_coords = segment;
+    if (!this.vertices_coords) { this.vertices_coords = []; }
+    if (!this.edges_vertices) { this.edges_vertices = []; }
+    const len = this.vertices_coords.length;
+    const edge_vertices = [len, len + 1];
+    this.vertices_coords.push(...vertices_coords);
+    this.edges_vertices.push(edge_vertices);
+    this.fragment(math.core.EPSILON, [this.edges_vertices.length - 1]);
+  };
+  CreasePatternProto.prototype.addSegments = function () {
+    const segments = math.core.semi_flatten_arrays(arguments)
+      .map(el => math.core.get_segment(el));
+    const vertices_coords = segments.reduce((a, b) => a.concat(b), []);
+    if (!this.vertices_coords) { this.vertices_coords = []; }
+    if (!this.edges_vertices) { this.edges_vertices = []; }
+    const len = this.vertices_coords.length;
+    const edges_vertices = Array.from(Array(segments.length))
+      .map((_, i) => [len + i * 2, len + i * 2 + 1]);
+    const new_edges_indices = Array.from(Array(segments.length))
+      .map((_, i) => this.edges_vertices.length + i);
+    this.vertices_coords.push(...vertices_coords);
+    this.edges_vertices.push(...edges_vertices);
+    this.fragment(math.core.EPSILON, new_edges_indices);
+  };
+  const check_boundary = (graph) => {
+    if (!graph.boundaries_edges || !graph.boundaries_vertices) {
+      const boundary = get_boundary(graph);
+      if (!graph.boundaries_vertices) {
+        graph.boundaries_vertices = [boundary.vertices];
+      }
+      if (!graph.boundaries_edges) {
+        graph.boundaries_edges = [boundary.edges];
+      }
+    }
+  };
+  ["segment", "ray", "line"].forEach((fName) => {
+    CreasePatternProto.prototype[fName] = function () {
+      console.log("method", fName);
+      check_boundary(this);
+      const primitive = math[fName](...arguments);
+      const poly = this.boundaries_vertices[0].map(v => this.vertices_coords[v]);
+      const clip = math.core[`clip_${fName}_in_convex_poly_exclusive`](poly, primitive.vector, primitive.origin);
+      console.log("clip", clip);
+    };
+  });
+  ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
+    CreasePatternProto.prototype[fName] = function () {
+      const primitive = math[fName](...arguments);
+      if (!primitive) { return; }
+      this.addSegments(primitive.segments(arcResolution$1));
+    };
+  });
+  var prototype$1 = CreasePatternProto.prototype;
+
+  const regularPolygon = (n) => {
+    const r = 0.5 / Math.sin(Math.PI / n);
+    return Array.from(Array(n))
+      .map((_, i) => (i / n) * (2 * Math.PI))
+      .map(a => [r * Math.cos(a), r * Math.sin(a)]);
+  };
+  const finishBoundary = (cp) => {
+    cp.clean();
+    if (!cp.edges_assignment) { cp.edges_assignment = []; }
+    if (!cp.edges_foldAngle) { cp.edges_foldAngle = []; }
+    cp.edges_assignment = cp.edges_vertices.map(() => "B");
+    cp.edges_foldAngle = cp.edges_vertices.map(() => 0);
+    return cp;
+  };
+  const Static$1 = (func) => {
+    const set = [
+      null, null, null, "triangle", null, "pentagon", "hexagon", "heptagon", "octogon", "nonagon", "decagon", null, "dodecagon"
+    ];
+    set.forEach((key, i) => {
+      func[key] = function () {
+        const cp = func(...arguments);
+        cp.polygon(regularPolygon(i));
+        return finishBoundary(cp);
+      };
+    });
+    func.square = function () {
+      const cp = func(...arguments);
+      cp.rect(1, 1);
+      return finishBoundary(cp);
+    };
+  };
+
+  const CreasePattern = function () {
+    return Object.assign(
+      Object.create(prototype$1),
+      ...Array.from(arguments).filter(a => fold_object_certainty(a)),
+      { file_spec, file_creator }
+    );
+  };
+  Static$1(CreasePattern);
+  CreasePattern.prototype = prototype$1;
+  CreasePattern.prototype.constructor = CreasePattern;
 
   const axiom1 = (pointA, pointB) => math.line(
     math.core.normalize(math.core.subtract(...math.core.resize_up(pointB, pointA))),
@@ -3298,19 +3756,40 @@
   const axiom = [null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7];
   delete axiom[0];
 
+  const clip_line_in_boundary = ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices }, lineVector, linePoint) => {
+    if (!boundaries_vertices) {
+      boundaries_vertices = get_boundary({
+        vertices_edges, edges_vertices, edges_assignment
+      }).vertices;
+    }
+    const polygon = math.polygon(boundaries_vertices.map(v => vertices_coords[v]));
+    return polygon.clipLine(math.line(lineVector, linePoint));
+  };
+
+  var clip = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    clip_line_in_boundary: clip_line_in_boundary
+  });
+
   const core = Object.assign(Object.create(null), {
     count,
     implied,
     remove: remove_geometry_indices,
     populate,
     get_duplicate_edges,
+    clusters_vertices,
+    merge_duplicate_vertices,
+    fragment,
   },
     keys$1,
     make,
+    clip,
   );
   const Ear = Object.assign(root, {
     axiom,
     graph: Graph,
+    planarGraph: PlanarGraph,
+    cp: CreasePattern,
     math: math.core,
     core,
   });

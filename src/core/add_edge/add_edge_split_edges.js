@@ -56,7 +56,7 @@ const default_edge_options = Object.freeze({
 
 // when you supply options, include both assignment and foldAngle
 // edge is an array of arrays. [ [x1, y1], [x2, y2] ]. can include z components
-const add_edge = function (graph, edge, options = default_edge_options) {
+const add_edge_split_edges = function (graph, edge, options = default_edge_options) {
   // const edge = math.segment(a, b, c, d);
 
   // compare these two new vertices against every existing vertex,
@@ -155,4 +155,4 @@ const add_edge = function (graph, edge, options = default_edge_options) {
   // return result;
 };
 
-export default add_edge;
+export default add_edge_split_edges;

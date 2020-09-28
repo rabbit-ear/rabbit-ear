@@ -16,16 +16,22 @@ import root from "./root";
 import use from "./use";
 // import origami from "./origami";
 import graph from "./graph";
-// import cp from "./cp";
+import planarGraph from "./planar_graph";
+import cp from "./cp";
 import axiom from "./core/axioms";
 
+// core methods, these need to be added individually
 import * as keys from "./core/keys";
 import * as make from "./core/make";
+import * as clip from "./core/clip";
 import count from "./core/count";
 import implied from "./core/count_implied";
 import remove from "./core/remove";
 import populate from "./core/populate";
 import get_duplicate_edges from "./core/edges_duplicate";
+import clusters_vertices from "./core/vertices_duplicate/clusters_vertices";
+import merge_duplicate_vertices from "./core/vertices_duplicate/merge";
+import fragment from "./core/fragment";
 
 const core = Object.assign(Object.create(null), {
   count,
@@ -33,16 +39,21 @@ const core = Object.assign(Object.create(null), {
   remove,
   populate,
   get_duplicate_edges,
+  clusters_vertices,
+  merge_duplicate_vertices,
+  fragment,
 },
   keys,
   make,
+  clip,
 );
 
 const Ear = Object.assign(root, {
   axiom,
   // origami,
   graph,
-  // cp,
+  planarGraph,
+  cp,
   math: math.core,
   core,
 });

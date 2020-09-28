@@ -1,5 +1,11 @@
 // boundary detection, removal, cleanup
 
+
+// consider new components:
+// boundaries_vertices: [ [3, 5, 7, 2, 4, 8] ]
+// support for multiple boundaries. and other keys: boundaries_edges, boundaries_....
+
+
 // import { get_isolated_vertices } from "./query";
 import {
   make_vertices_edges,

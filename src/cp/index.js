@@ -1,13 +1,14 @@
 // import * as Create from "../core/create";
 import prototype from "./prototype";
+import Static from "./Static";
 import {
   file_spec,
   file_creator,
   fold_object_certainty,
 } from "../core/keys";
 
-const Graph = function () {
-  // should Graph({vertices_coors:[], ...}) deep copy the argument object?
+const CreasePattern = function () {
+  // should CreasePattern({vertices_coords:[], ...}) deep copy the argument object?
   return Object.assign(
     Object.create(prototype),
     ...Array.from(arguments).filter(a => fold_object_certainty(a)),
@@ -15,7 +16,9 @@ const Graph = function () {
   );
 };
 
-Graph.prototype = prototype;
-Graph.prototype.constructor = Graph;
+Static(CreasePattern);
 
-export default Graph;
+CreasePattern.prototype = prototype;
+CreasePattern.prototype.constructor = CreasePattern;
+
+export default CreasePattern;

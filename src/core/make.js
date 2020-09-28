@@ -1,3 +1,7 @@
+import math from "../math";
+import implied from "./count_implied";
+import { planar_vertex_walk } from "./walk";
+
 /**
  * all of the graph methods follow the same format.
  * they take one argument: the FOLD graph. the graph remains unmodified.
@@ -7,9 +11,13 @@
  * var graph = {...};
  * graph.faces_faces = make_faces_faces(graph);
  */
-import math from "../math";
-import implied from "./count_implied";
-import { planar_vertex_walk } from "./walk";
+
+
+/**
+ *
+ *    VERTICES
+ *
+ */
 
 /**
  * @param {object} FOLD object, with entry "edges_vertices"
@@ -157,8 +165,71 @@ export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edge
   make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
     .map(vectors => math.core.interior_angles(...vectors));
 
+export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
+  if (!faces_matrix) {
+    faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
+  }
+  if (!vertices_faces) {
+    vertices_faces = make_vertices_faces({ faces_vertices });
+  }
+  return vertices_coords
+    .map((coords, i) => math.core.multiply_matrix3_vector3(
+      faces_matrix[vertices_faces[i][0]],
+      math.core.resize(3, coords),
+    ));
+};
+
+// export const make_vertices_isBoundary = ({ edges_vertices, vertices_edges, edges_assignment }) => {
+//   if (!vertices_edges) {
+//     vertices_edges = make_vertices_edges({ edges_vertices });
+//   }
+//   const edges_isBoundary = edges_assignment
+//     .map(a => a === "b" || a === "B");
+//   return vertices_edges
+//     .map(edges => edges
+//       .map(edge => edges_isBoundary[edge])
+//       .reduce((a, b) => a || b, false));
+// };
+
+// export const make_boundary_vertices = function (graph) {
+//   const edges_vertices_b = graph.edges_vertices
+//     .filter((ev, i) => graph.edges_assignment[i] === "B"
+//       || graph.edges_assignment[i] === "b")
+//     .map(arr => arr.slice());
+//   if (edges_vertices_b.length === 0) { return []; }
+//   // the index of keys[i] is an edge_vertex from edges_vertices_b
+//   //  the [] value is the indices in edges_vertices_b this i appears
+//   const keys = Array.from(Array(graph.vertices_coords.length)).map(() => []);
+//   edges_vertices_b.forEach((ev, i) => ev.forEach(e => keys[e].push(i)));
+//   let edgeIndex = 0;
+//   const startVertex = edges_vertices_b[edgeIndex].shift();
+//   let nextVertex = edges_vertices_b[edgeIndex].shift();
+//   const vertices = [startVertex];
+//   while (vertices[0] !== nextVertex) {
+//     vertices.push(nextVertex);
+//     const whichEdges = keys[nextVertex];
+//     const thisKeyIndex = keys[nextVertex].indexOf(edgeIndex);
+//     if (thisKeyIndex === -1) { return undefined; }
+//     keys[nextVertex].splice(thisKeyIndex, 1);
+//     const nextEdgeAndIndex = keys[nextVertex]
+//       .map((el, i) => ({ key: el, i }))
+//       .filter(el => el.key !== edgeIndex)
+//       .shift();
+//     if (nextEdgeAndIndex == null) { return undefined; }
+//     keys[nextVertex].splice(nextEdgeAndIndex.i, 1);
+//     edgeIndex = nextEdgeAndIndex.key;
+//     const lastEdgeIndex = edges_vertices_b[edgeIndex].indexOf(nextVertex);
+//     if (lastEdgeIndex === -1) { return undefined; }
+//     edges_vertices_b[edgeIndex].splice(lastEdgeIndex, 1);
+//     nextVertex = edges_vertices_b[edgeIndex].shift();
+//   }
+//   return vertices;
+// };
+
 /**
- *  edges
+ *
+ *    EDGES
+ *
  */
 
 // export const make_edges_vertices = ({ faces_vertices }) => { };
@@ -225,7 +296,122 @@ export const make_edges_length = ({ vertices_coords, edges_vertices }) => make_e
     .map(vec => math.core.magnitude(vec));
 
 /**
- *  faces
+ * this method compares every edge against every edge (n^2) to see if the
+ * segments exclusively intersect each other (touching endpoints doesn't count)
+ *
+ * @returns a list for each edge containing the intersection points
+ * 0 [ [0.25, 0.125] ]
+ * 1 [ [0.25, 0.125], [0.99, 0.88] ]  // will become 3 segments
+ * 2 [ ]  // will be unchanged.
+ * 3 [ [0.99, 0.88] ]  // will become 2 segments
+ *
+ * if two edges end at the same endpoint this DOES NOT consider them touching
+ *
+ * VERY IMPORTANT DETAIL, because each intersection (xy point object) is placed in
+ * two locations in the array, under both edges, it doesn't copy the object
+ * as Javascript objects are stored by reference. this may or may not work to your
+ * benefit. one advantage is that all intersections can easily be visited only once.
+ * you can modify the object and mark a point as done.
+ */
+// if you provide edges_vector, edges_origin you don't need the other graph params.
+export const make_edges_edges_intersections = function (
+  { vertices_coords, edges_vertices, edges_vector, edges_origin },
+  epsilon = math.core.EPSILON
+) {
+  if (!edges_vector) {
+    edges_vector = edges_vertices
+      .map(ev => ev.map(v => vertices_coords[v]))
+      .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+  }
+  if (!edges_origin) {
+    edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
+  }
+  // this method builds an NxN matrix of comparisons, where each
+  // intersection gets stored in 2 places, under both edges.
+  // this intersection data is the SAME OBJECT. Javascript objects
+  // are stored by reference. this is by design, and is used to the
+  // larger algorithm's advantage.
+  //
+  //     0  1  2  3
+  // 0 [  , x,  ,  ]
+  // 1 [ x,  ,  , x]
+  // 2 [  ,  ,  ,  ]
+  // 3 [  , x,  ,  ]
+  //
+  // showing crossings between 0 and 1, and 1 and 3.
+  // because the lower triangle is duplicate info, only store one half
+
+  // allow for javascript arrays with holes
+  // [{vec}, empty, {vec}, {vec}, empty, {vec}]
+  const indices = edges_vector.map((_, i) => i).filter(a => a !== null);
+  const edges_intersections = edges_vector.map(() => []);
+
+  for (let ii = 0; ii < indices.length - 1; ii += 1) {
+    for (let jj = ii + 1; jj < indices.length; jj += 1) {
+      const i = indices[ii];
+      const j = indices[jj];
+      const crossing = math.core.intersect_lines(
+        edges_vector[i],
+        edges_origin[i],
+        edges_vector[j],
+        edges_origin[j],
+        math.core.exclude_s_s,
+        epsilon
+      );
+      if (crossing !== undefined) {
+        edges_intersections[i][j] = crossing;
+        edges_intersections[j][i] = crossing;
+      }
+    }
+  }
+  return edges_intersections;
+};
+/**
+ * edges_collinear_vertices is a list of lists where for every edge there is a
+ * list filled with vertices that lies collinear to the edge, where
+ * collinearity only counts if the vertex lies between the edge's endpoints,
+ * excluding the endpoints themselves.
+ * 
+ * this is useful when an edge and its two vertices are added to a planar graph
+ *
+ * this method will inspect the new edge(s) endpoints for the specific
+ * case that they lie collinear along an existing edge.
+ * (we need to compare the new vertices against every edge)
+ *
+ * the intended result is the other edge should be split into two.
+ *
+ * this method will simply return an Array() size matched to the edges_
+ * arrays, with mostly empty contents, but in the case of a collinear
+ * vertex, this index in the array will contain that vertex's index.
+ */
+export const make_edges_collinear_vertices = function (
+  { vertices_coords, edges_vertices, edges_coords },
+  subset_of_vertices_indices,
+  epsilon = math.core.EPSILON
+) {
+  if (!edges_coords) {
+    edges_coords = edges_vertices
+    .map(ev => ev.map(v => vertices_coords[v]));
+  }
+  if (!subset_of_vertices_indices) {
+    subset_of_vertices_indices = vertices_coords.map((_, i) => i);
+  }
+  return edges_coords
+    .map(e => subset_of_vertices_indices
+      .filter(vi => math.core.point_on_segment_exclusive(
+        vertices_coords[vi], e[0], e[1], epsilon
+      )))
+  // as of now, an edge can contain its own vertices as collinear.
+  // need to remove these.
+  // todo: is there a better way? when we build the array originally?
+    .map((cv, i) => cv
+      .filter(vi => edges_vertices[i].indexOf(vi) === -1));
+};
+
+/**
+ *
+ *    FACES
+ *
  */
 
 export const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
@@ -287,7 +473,7 @@ export const make_faces_faces = ({ faces_vertices }) => {
   return faces_faces;
 };
 
-// const face_face_shared_vertices = (graph, face0, face1) => graph
+// const get_face_face_shared_vertices = (graph, face0, face1) => graph
 //   .faces_vertices[face0]
 //   .filter(v => graph.faces_vertices[face1].indexOf(v) !== -1)
 
@@ -297,7 +483,7 @@ export const make_faces_faces = ({ faces_vertices }) => {
  * @returns {number[]}, indices of vertices that are shared between faces
  *  and keep the vertices in the same order as the winding order of face a.
  */
-export const face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
+export const get_face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
   // build a quick lookup table: T/F is a vertex in face B
   const hash = {};
   face_b_vertices.forEach((v) => { hash[v] = true; });
@@ -348,7 +534,7 @@ export const make_face_walk_tree = ({ faces_vertices, faces_faces }, root_face =
     // set next_level's edge_vertices
     // we cannot depend on faces being convex and only sharing 2 vertices in common. if there are more than 2 edges, let's hope they are collinear. either way, grab the first 2 vertices if there are more.
     next_level
-      .map(el => face_face_shared_vertices(
+      .map(el => get_face_face_shared_vertices(
         faces_vertices[el.face],
         faces_vertices[el.parent]
       )).forEach((ev, i) => {
@@ -399,20 +585,6 @@ export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldA
   return faces_matrix;
 };
 
-export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
-  if (!faces_matrix) {
-    faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
-  }
-  if (!vertices_faces) {
-    vertices_faces = make_vertices_faces({ faces_vertices });
-  }
-  return vertices_coords
-    .map((coords, i) => math.core.multiply_matrix3_vector3(
-      faces_matrix[vertices_faces[i][0]],
-      math.core.resize(3, coords),
-    ));
-};
-
 /**
  * this face coloring skips marks joining the two faces separated by it.
  * it relates directly to if a face is flipped or not (determinant > 0)
@@ -436,50 +608,3 @@ export const make_faces_coloring = function ({ faces_vertices, faces_faces }, ro
       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
   return coloring;
 };
-
-// export const make_vertices_isBoundary = ({ edges_vertices, vertices_edges, edges_assignment }) => {
-//   if (!vertices_edges) {
-//     vertices_edges = make_vertices_edges({ edges_vertices });
-//   }
-//   const edges_isBoundary = edges_assignment
-//     .map(a => a === "b" || a === "B");
-//   return vertices_edges
-//     .map(edges => edges
-//       .map(edge => edges_isBoundary[edge])
-//       .reduce((a, b) => a || b, false));
-// };
-
-// export const make_boundary_vertices = function (graph) {
-//   const edges_vertices_b = graph.edges_vertices
-//     .filter((ev, i) => graph.edges_assignment[i] === "B"
-//       || graph.edges_assignment[i] === "b")
-//     .map(arr => arr.slice());
-//   if (edges_vertices_b.length === 0) { return []; }
-//   // the index of keys[i] is an edge_vertex from edges_vertices_b
-//   //  the [] value is the indices in edges_vertices_b this i appears
-//   const keys = Array.from(Array(graph.vertices_coords.length)).map(() => []);
-//   edges_vertices_b.forEach((ev, i) => ev.forEach(e => keys[e].push(i)));
-//   let edgeIndex = 0;
-//   const startVertex = edges_vertices_b[edgeIndex].shift();
-//   let nextVertex = edges_vertices_b[edgeIndex].shift();
-//   const vertices = [startVertex];
-//   while (vertices[0] !== nextVertex) {
-//     vertices.push(nextVertex);
-//     const whichEdges = keys[nextVertex];
-//     const thisKeyIndex = keys[nextVertex].indexOf(edgeIndex);
-//     if (thisKeyIndex === -1) { return undefined; }
-//     keys[nextVertex].splice(thisKeyIndex, 1);
-//     const nextEdgeAndIndex = keys[nextVertex]
-//       .map((el, i) => ({ key: el, i }))
-//       .filter(el => el.key !== edgeIndex)
-//       .shift();
-//     if (nextEdgeAndIndex == null) { return undefined; }
-//     keys[nextVertex].splice(nextEdgeAndIndex.i, 1);
-//     edgeIndex = nextEdgeAndIndex.key;
-//     const lastEdgeIndex = edges_vertices_b[edgeIndex].indexOf(nextVertex);
-//     if (lastEdgeIndex === -1) { return undefined; }
-//     edges_vertices_b[edgeIndex].splice(lastEdgeIndex, 1);
-//     nextVertex = edges_vertices_b[edgeIndex].shift();
-//   }
-//   return vertices;
-// };
