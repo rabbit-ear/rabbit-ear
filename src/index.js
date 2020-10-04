@@ -33,6 +33,11 @@ import clusters_vertices from "./core/vertices_duplicate/clusters_vertices";
 import merge_duplicate_vertices from "./core/vertices_duplicate/merge";
 import fragment from "./core/fragment";
 
+import add_vertices from "./core/add_vertices/add_vertices";
+import add_vertices_unique from "./core/add_vertices/add_vertices_unique";
+import add_vertices_unique_split_edges from "./core/add_vertices/add_vertices_unique_split_edges";
+import add_edges from "./core/add_edges/add_edges";
+
 const core = Object.assign(Object.create(null), {
   count,
   implied,
@@ -42,6 +47,10 @@ const core = Object.assign(Object.create(null), {
   clusters_vertices,
   merge_duplicate_vertices,
   fragment,
+  add_vertices,
+  add_vertices_unique,
+  add_vertices_unique_split_edges,
+  add_edges,
 },
   keys,
   make,

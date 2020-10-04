@@ -3458,17 +3458,6 @@
   CreasePatternProto.prototype.fragment = function () {
     fragment(this, ...arguments);
   };
-  CreasePatternProto.prototype.addSegment = function () {
-    const segment = math.core.get_segment(arguments);
-    const vertices_coords = segment;
-    if (!this.vertices_coords) { this.vertices_coords = []; }
-    if (!this.edges_vertices) { this.edges_vertices = []; }
-    const len = this.vertices_coords.length;
-    const edge_vertices = [len, len + 1];
-    this.vertices_coords.push(...vertices_coords);
-    this.edges_vertices.push(edge_vertices);
-    this.fragment(math.core.EPSILON, [this.edges_vertices.length - 1]);
-  };
   CreasePatternProto.prototype.addSegments = function () {
     const segments = math.core.semi_flatten_arrays(arguments)
       .map(el => math.core.get_segment(el));
@@ -3497,12 +3486,12 @@
   };
   ["segment", "ray", "line"].forEach((fName) => {
     CreasePatternProto.prototype[fName] = function () {
-      console.log("method", fName);
       check_boundary(this);
       const primitive = math[fName](...arguments);
+      if (!primitive) { return; }
       const poly = this.boundaries_vertices[0].map(v => this.vertices_coords[v]);
       const clip = math.core[`clip_${fName}_in_convex_poly_exclusive`](poly, primitive.vector, primitive.origin);
-      console.log("clip", clip);
+      this.addSegment(clip);
     };
   });
   ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
@@ -3771,6 +3760,208 @@
     clip_line_in_boundary: clip_line_in_boundary
   });
 
+  const add_vertices = (graph, { vertices_coords }) => {
+    if (!graph.vertices_coords) { graph.vertices_coords = []; }
+    const original_length = graph.vertices_coords.length;
+    graph.vertices_coords.push(...vertices_coords);
+    return vertices_coords.map((_, i) => original_length + i);
+  };
+
+  const add_vertices_unique = (graph, { vertices_coords }) => {
+    if (!graph.vertices_coords) { graph.vertices_coords = []; }
+    const endpoints_vertex_equivalent = vertices_coords
+      .map(vertex => graph.vertices_coords
+        .map(v => math.core.distance(v, vertex) < math.core.EPSILON)
+        .map((on_vertex, i) => on_vertex ? i : undefined)
+        .filter(a => a !== undefined)
+        .shift());
+    let index = graph.vertices_coords.length;
+    const unique_vertices = vertices_coords
+      .filter((vert, i) => endpoints_vertex_equivalent[i] === undefined);
+    graph.vertices_coords.push(...unique_vertices);
+    return endpoints_vertex_equivalent
+      .map(el => el === undefined ? index++ : el);
+  };
+
+  const Diff = {};
+  Diff.apply = (graph, diff) => {
+    const lengths = {};
+    Object.keys(count).forEach((key) => {
+      lengths[key] = count[key](graph);
+    });
+    if (diff.new) {
+      Object.keys(diff.new)
+        .forEach(type => diff.new[type]
+          .forEach((newElem, i) => Object.keys(newElem)
+            .forEach((key) => {
+              if (graph[key] === undefined) { graph[key] = []; }
+              graph[key][lengths[type] + i] = newElem[key];
+              diff.new[type][i].index = lengths[type] + i;
+            })));
+    }
+    if (diff.update) {
+      Object.keys(diff.update)
+        .forEach(i => Object.keys(diff.update[i])
+          .forEach((key) => {
+            if (graph[key] === undefined) { graph[key] = []; }
+            graph[key][i] = diff.update[i][key];
+          }));
+    }
+    if (diff.remove) {
+      ["faces", "edges", "vertices"]
+        .filter(key => diff.remove[key])
+        .forEach((key) => {
+          const map = remove_geometry_indices(graph, key, diff.remove[key]);
+          diff.new[key].forEach((el, i) => {
+            diff.new[key][i].index += map[el.index];
+          });
+        });
+    }
+    return diff;
+  };
+  Diff.merge = (graph, target, source) => {
+    const vertices_length = vertices_count(graph);
+    const edges_length = edges_count(graph);
+    const faces_length = faces_count(graph);
+    let target_new_vertices_length = 0;
+    let target_new_edges_length = 0;
+    let target_new_faces_length = 0;
+    if (target.new !== undefined) {
+      if (target.new.vertices !== undefined) {
+        target_new_vertices_length = target.new.vertices.length;
+      }
+      if (target.new.edges !== undefined) {
+        target_new_edges_length = target.new.edges.length;
+      }
+      if (target.new.faces !== undefined) {
+        target_new_faces_length = target.new.faces.length;
+      }
+    }
+    const augment_map = {
+      vertices: {
+        length: vertices_length,
+        change: target_new_vertices_length
+      },
+      edges: {
+        length: edges_length,
+        change: target_new_edges_length
+      },
+      faces: {
+        length: faces_length,
+        change: target_new_faces_length
+      },
+    };
+    let all_source = [];
+    if (source.new !== undefined) {
+      Object.keys(source.new).forEach((category) => {
+        source.new[category].forEach((newEl, i) => {
+          ["vertices", "edges", "faces"].forEach((key) => {
+            const suffix = `_${key}`;
+            const suffixKeys = Object.keys(newEl)
+              .map(str => (str.substring(str.length - suffix.length, str.length) === suffix
+                ? str
+                : undefined))
+              .filter(str => str !== undefined);
+            suffixKeys.forEach((suffixKey) => {
+              source.new[category][i][suffixKey].forEach((n, j) => {
+                if (source.new[category][i][suffixKey][j] >= augment_map[category].length) {
+                  source.new[category][i][suffixKey][j] += augment_map[category].change;
+                }
+              });
+            });
+          });
+        });
+        all_source = all_source.concat(source.new.vertices);
+      });
+    }
+    const merge = {};
+    if (target.new !== undefined) { merge.new = target.new; }
+    if (target.update !== undefined) { merge.update = target.update; }
+    if (target.remove !== undefined) { merge.remove = target.remove; }
+    if (source.new !== undefined) {
+      if (source.new.vertices !== undefined) {
+        if (merge.new.vertices === undefined) { merge.new.vertices = []; }
+        merge.new.vertices = merge.new.vertices.concat(source.new.vertices);
+      }
+      if (source.new.edges !== undefined) {
+        if (merge.new.edges === undefined) { merge.new.edges = []; }
+        merge.new.edges = merge.new.edges.concat(source.new.edges);
+      }
+      if (source.new.faces !== undefined) {
+        if (merge.new.faces === undefined) { merge.new.faces = []; }
+        merge.new.faces = merge.new.faces.concat(source.new.faces);
+      }
+    }
+    if (source.update !== undefined) {
+      Object.keys(source.update).forEach((i) => {
+        if (merge.update[i] == null) {
+          merge.update[i] = source.update[i];
+        }
+        else {
+          const keys1 = Object.keys(merge.update[i]);
+          const keys2 = Object.keys(source.update[i]);
+          const overlap = keys1.filter(key1key => keys2.includes(key1key));
+          if (overlap.length > 0) {
+            const str = overlap.join(", ");
+            console.warn(`cannot merge. two diffs contain overlap at ${str}`);
+            return;
+          }
+          Object.assign(merge.update[i], source.update[i]);
+        }
+      });
+    }
+    if (source.remove !== undefined) {
+      if (source.remove.vertices !== undefined) {
+        if (merge.remove.vertices === undefined) { merge.remove.vertices = []; }
+        merge.remove.vertices = merge.remove.vertices.concat(source.remove.vertices);
+      }
+      if (source.remove.edges !== undefined) {
+        if (merge.remove.edges === undefined) { merge.remove.edges = []; }
+        merge.remove.edges = merge.remove.edges.concat(source.remove.edges);
+      }
+      if (source.remove.faces !== undefined) {
+        if (merge.remove.faces === undefined) { merge.remove.faces = []; }
+        merge.remove.faces = merge.remove.faces.concat(source.remove.faces);
+      }
+    }
+    Object.assign(target, source);
+  };
+
+  const add_vertices_unique_split_edges = (graph, { vertices_coords }) => {
+    const new_indices = add_vertices_unique(graph, { vertices_coords });
+    const edges = graph.edges_vertices
+      .map(ev => ev.map(v => graph.vertices_coords[v]));
+    const vertices_edge_collinear = vertices_coords
+      .map(v => edges
+        .map(edge => math.core.point_on_segment_exclusive(v, edge[0], edge[1]))
+        .map((on_edge, i) => (on_edge ? i : undefined))
+        .filter(a => a !== undefined)
+        .shift());
+    const remove_indices = vertices_edge_collinear
+      .filter(vert_edge => vert_edge !== undefined);
+    const new_edges = vertices_edge_collinear
+      .map((e, i) => ({ e, i }))
+      .filter(el => el.e !== undefined)
+      .map(el => {
+        const edge = transpose_graph_array_at_index(graph, "edges", el.e);
+        return [edge, clone(edge)]
+          .map((obj, i) => Object.assign(obj, {
+            edges_vertices: [ graph.edges_vertices[el.e][i], new_indices[el.i] ]
+          }));
+      })
+      .reduce((a,b) => a.concat(b), []);
+    Diff.apply(graph, { new: { edges: new_edges }});
+    remove_geometry_indices(graph, "edges", remove_indices);
+    return new_indices;
+  };
+
+  const add_edges = function (destination, source) {
+    if (!destination.edges_vertices) { destination.edges_vertices = []; }
+    const original_length = destination.edges_vertices.length;
+    destination.edges_vertices.push(...source.edges_vertices);
+    return source.edges_vertices.map((_, i) => original_length + i);
+  };
+
   const core = Object.assign(Object.create(null), {
     count,
     implied,
@@ -3780,6 +3971,10 @@
     clusters_vertices,
     merge_duplicate_vertices,
     fragment,
+    add_vertices,
+    add_vertices_unique,
+    add_vertices_unique_split_edges,
+    add_edges,
   },
     keys$1,
     make,
