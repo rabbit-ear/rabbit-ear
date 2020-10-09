@@ -24,14 +24,20 @@ const Static = (func) => {
   set.forEach((key, i) => {
     func[key] = function () {
       const cp = func(...arguments);
-      cp.polygon(regularPolygon(i));
+      cp.vertices_coords = regularPolygon(i);
+      cp.edges_vertices = Array.from(Array(cp.vertices_coords.length))
+        .map((_, i) => [i, (i + 1) % cp.vertices_coords.length]);
+      // cp.polygon(regularPolygon(i));
       return finishBoundary(cp);
     };
   });
   // this square is unique, it's a unit square, between x and y, 0 and 1.
   func.square = function () {
     const cp = func(...arguments);
-    cp.rect(1, 1);
+    // cp.rect(1, 1);
+    cp.vertices_coords = [[0, 0], [1, 0], [1, 1], [0, 1]];
+    cp.edges_vertices = Array.from(Array(cp.vertices_coords.length))
+      .map((_, i) => [i, (i + 1) % cp.vertices_coords.length]);
     return finishBoundary(cp);
   };
 };

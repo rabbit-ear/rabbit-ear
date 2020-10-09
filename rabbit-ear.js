@@ -126,6 +126,7 @@
   });
   const fn_square = n => n * n;
   const fn_add = (a, b) => a + b;
+  const fn_not_undefined = a => a !== undefined;
   const magnitude = v => Math.sqrt(v
     .map(fn_square)
     .reduce(fn_add, 0));
@@ -459,7 +460,7 @@
       && !isNaN(list[0].x)) {
       list = ["x", "y", "z"]
         .map(c => list[0][c])
-        .filter(a => a !== undefined);
+        .filter(fn_not_undefined);
     }
     return list.filter(n => typeof n === "number");
   };
@@ -505,7 +506,7 @@
       && !isNaN(list[0].width)) {
       return rect_form(...["x", "y", "width", "height"]
         .map(c => list[0][c])
-        .filter(a => a !== undefined));
+        .filter(fn_not_undefined));
     }
     const numbers = list.filter(n => typeof n === "number");
     const rect_params = numbers.length < 4
@@ -589,7 +590,7 @@
     }
     return undefined;
   };
-  var intersect_lines$1 = Object.freeze({
+  var intersect_line_types = Object.freeze({
     __proto__: null,
     include_l: include_l,
     include_r: include_r,
@@ -686,7 +687,7 @@
     return [Math.cos(radians), Math.sin(radians)];
   };
   const counter_clockwise_bisect2 = (a, b) => {
-    const radians = Math.atan2(a[1], a[0]) - counter_clockwise_angle2(a, b) / 2;
+    const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
     return [Math.cos(radians), Math.sin(radians)];
   };
   const counter_clockwise_vector_order = (...vectors) => {
@@ -767,7 +768,7 @@
     .map((el, i, arr) => {
       const next = arr[(i + 1) % arr.length];
       return el[0] * next[1] - next[0] * el[1];
-    }).reduce((a, b) => a + b, 0);
+    }).reduce(fn_add, 0);
   const centroid = (points) => {
     const sixthArea = 1 / (6 * signed_area(points));
     return points.map((el, i, arr) => {
@@ -1353,10 +1354,20 @@
     overlap_point,
     overlap_polygon,
   );
+  const collinear_check = (poly, vector, origin) => {
+    const polyvecs = poly
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(seg => subtract(...seg));
+    return polyvecs
+      .map((vec, i) => parallel(vec, vector) ? i : undefined)
+      .filter(fn_not_undefined)
+      .map(i => point_on_line(origin, polyvecs[i], poly[i]))
+      .reduce((a, b) => a || b, false);
+  };
   const clip_intersections = (intersect_func, poly, line1, line2, epsilon = EPSILON) => poly
     .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
     .map(el => intersect_func(line1, line2, el[0], el[1], epsilon))
-    .filter(el => el !== undefined);
+    .filter(fn_not_undefined);
   const get_unique_pair$1 = (intersections) => {
     for (let i = 1; i < intersections.length; i += 1) {
       if (!quick_equivalent_2(intersections[0], intersections[i])) {
@@ -1364,47 +1375,14 @@
       }
     }
   };
-  const finish_line = (intersections) => {
+  const clip_line_in_convex_poly_inclusive = (poly, vector, origin, epsilon = EPSILON) => {
+    const intersections = clip_intersections(intersect_line_seg_include, poly, vector, origin, epsilon);
     switch (intersections.length) {
       case 0:
       case 1: return undefined;
       default:
         return get_unique_pair$1(intersections);
     }
-  };
-  const finish_ray = (intersections, poly, origin) => {
-    if (intersections.length === 0) { return undefined; }
-    const origin_inside = point_in_convex_poly_inclusive(origin, poly);
-    return get_unique_pair$1(intersections) || [origin, intersections[0]];
-  };
-  const finish_segment = (intersections, poly, seg0, seg1, epsilon = EPSILON) => {
-    const seg = [seg0, seg1];
-    const exclusive_in = seg
-      .map(s => point_in_convex_poly_exclusive(s, poly, epsilon));
-    const inclusive_in = seg
-      .map(s => point_in_convex_poly_inclusive(s, poly, epsilon));
-    switch (intersections.length) {
-      case 0: {
-        if (exclusive_in[0] || exclusive_in[1]) { return [[...seg0], [...seg1]]; }
-        if (inclusive_in[0] && inclusive_in[1]) { return [[...seg0], [...seg1]]; }
-        return undefined;
-      }
-      case 1:
-        if (exclusive_in[0]) { return [[...seg0], intersections[0]]; }
-        if (exclusive_in[1]) { return [[...seg1], intersections[0]]; }
-        return undefined;
-      default: {
-        const unique = get_unique_pair$1(intersections);
-        if (unique !== undefined) { return unique; }
-        return (inclusive_in[0]
-          ? [[...seg0], intersections[0]]
-          : [[...seg1], intersections[0]]);
-      }
-    }
-  };
-  const clip_line_in_convex_poly_inclusive = (poly, vector, origin, epsilon = EPSILON) => {
-    const p = clip_intersections(intersect_line_seg_include, poly, vector, origin, epsilon);
-    return finish_line(p);
   };
   const clip_line_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSILON) => {
     const pEx = clip_intersections(intersect_line_seg_exclude, poly, vector, origin, epsilon);
@@ -1417,8 +1395,10 @@
       : undefined;
   };
   const clip_ray_in_convex_poly_inclusive = (poly, vector, origin, epsilon = EPSILON) => {
-    const p = clip_intersections(intersect_ray_seg_include, poly, vector, origin, epsilon);
-    return finish_ray(p, poly, origin);
+    const intersections = clip_intersections(intersect_ray_seg_include, poly, vector, origin, epsilon);
+    if (intersections.length === 0) { return undefined; }
+    const origin_inside = point_in_convex_poly_inclusive(origin, poly);
+    return get_unique_pair$1(intersections) || [origin, intersections[0]];
   };
   const clip_ray_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSILON) => {
     const pEx = clip_intersections(intersect_ray_seg_exclude, poly, vector, origin, epsilon);
@@ -1434,17 +1414,38 @@
       ? uniqueIn
       : undefined;
   };
+  const clip_segment_func = (poly, seg0, seg1, epsilon = EPSILON) => {
+    const seg = [seg0, seg1];
+    const inclusive_inside = seg
+      .map(s => point_in_convex_poly_inclusive(s, poly, epsilon));
+    if (inclusive_inside[0] === true && inclusive_inside[1] === true) {
+      return [[...seg0], [...seg1]];
+    }
+    const clip_inclusive = clip_intersections(intersect_seg_seg_include, poly, seg0, seg1, epsilon);
+    const clip_inclusive_unique = get_unique_pair$1(clip_inclusive);
+    if (clip_inclusive_unique) {
+      return clip_inclusive_unique;
+    }
+    if (clip_inclusive.length > 0) {
+      const exclusive_inside = seg
+        .map(s => point_in_convex_poly_exclusive(s, poly, epsilon));
+      if (exclusive_inside[0] === true) {
+        return [[...seg0], clip_inclusive[0]];
+      }
+      if (exclusive_inside[1] === true) {
+        return [[...seg1], clip_inclusive[0]];
+      }
+    }
+  };
   const clip_segment_in_convex_poly_inclusive = (poly, seg0, seg1, epsilon = EPSILON) => {
-    const p = clip_intersections(intersect_seg_seg_include, poly, seg0, seg1, epsilon);
-    return finish_segment(p, poly, seg0, seg1);
+    return clip_segment_func(poly, seg0, seg1, epsilon);
   };
   const clip_segment_in_convex_poly_exclusive = (poly, seg0, seg1, epsilon = EPSILON) => {
-    const func = point_in_convex_poly_inclusive(seg0, poly, epsilon)
-      || point_in_convex_poly_inclusive(seg1, poly, epsilon)
-      ? intersect_seg_seg_include
-      : intersect_seg_seg_exclude;
-    const p = clip_intersections(func, poly, seg0, seg1);
-    return finish_segment(p, poly, seg0, seg1);
+    const segVec = subtract(seg1, seg0);
+    if (collinear_check(poly, segVec, seg0)) {
+      return undefined;
+    }
+    return clip_segment_func(poly, seg0, seg1, epsilon);
   };
   var clip_polygon = Object.freeze({
     __proto__: null,
@@ -2202,7 +2203,7 @@
     getters,
     resizers,
     intersect_circle,
-    intersect_lines$1,
+    intersect_line_types,
     intersect_polygon,
     clip_polygon,
     {
@@ -3452,53 +3453,83 @@
   PlanarGraph.prototype = prototype;
   PlanarGraph.prototype.constructor = PlanarGraph;
 
+  const add_vertices = (graph, { vertices_coords }) => {
+    if (!graph.vertices_coords) { graph.vertices_coords = []; }
+    const original_length = graph.vertices_coords.length;
+    graph.vertices_coords.push(...vertices_coords);
+    return vertices_coords.map((_, i) => original_length + i);
+  };
+
+  const add_edges = function (destination, source) {
+    if (!destination.edges_vertices) { destination.edges_vertices = []; }
+    const original_length = destination.edges_vertices.length;
+    destination.edges_vertices.push(...source.edges_vertices);
+    return source.edges_vertices.map((_, i) => original_length + i);
+  };
+
   const CreasePatternProto = {};
   CreasePatternProto.prototype = Object.create(GraphProto$1);
-  const arcResolution$1 = 32;
+  const arcResolution$1 = 96;
   CreasePatternProto.prototype.fragment = function () {
     fragment(this, ...arguments);
   };
-  CreasePatternProto.prototype.addSegments = function () {
-    const segments = math.core.semi_flatten_arrays(arguments)
-      .map(el => math.core.get_segment(el));
-    const vertices_coords = segments.reduce((a, b) => a.concat(b), []);
-    if (!this.vertices_coords) { this.vertices_coords = []; }
-    if (!this.edges_vertices) { this.edges_vertices = []; }
-    const len = this.vertices_coords.length;
-    const edges_vertices = Array.from(Array(segments.length))
-      .map((_, i) => [len + i * 2, len + i * 2 + 1]);
-    const new_edges_indices = Array.from(Array(segments.length))
-      .map((_, i) => this.edges_vertices.length + i);
-    this.vertices_coords.push(...vertices_coords);
-    this.edges_vertices.push(...edges_vertices);
-    this.fragment(math.core.EPSILON, new_edges_indices);
+  const add_segments = function () {
+    const vertices_coords = Array.from(...arguments)
+      .reduce((a, b) => a.concat(b), []);
+    const new_vertices = add_vertices(this, { vertices_coords });
+    const edges_vertices = Array.from(Array(new_vertices.length/2))
+      .map((_, i) => [ new_vertices[i * 2], new_vertices[i * 2 + 1] ]);
+    const new_edges = add_edges(this, { edges_vertices });
+    finish_new_edges(this, new_edges);
+    fragment(this, math.core.EPSILON, new_edges);
   };
-  const check_boundary = (graph) => {
-    if (!graph.boundaries_edges || !graph.boundaries_vertices) {
-      const boundary = get_boundary(graph);
-      if (!graph.boundaries_vertices) {
-        graph.boundaries_vertices = [boundary.vertices];
-      }
-      if (!graph.boundaries_edges) {
-        graph.boundaries_edges = [boundary.edges];
-      }
+  const make_boundary = (graph) => {
+    const boundary = get_boundary(graph);
+    graph.boundaries_vertices = [boundary.vertices];
+    graph.boundaries_edges = [boundary.edges];
+  };
+  const remove_boundary = (graph) => {
+    delete graph.boundaries_vertices;
+    delete graph.boundaries_edges;
+  };
+  const finish_new_edges = (graph, new_edges) => {
+    if (graph.edges_assignment) {
+      new_edges.forEach(i => { graph.edges_assignment[i] = "U"; });
+    }
+    if (graph.edges_foldAngle) {
+      new_edges.forEach(i => { graph.edges_foldAngle[i] = 0; });
     }
   };
+  const clip_segments_in_poly = (poly, segments) => segments
+    .map(seg => math.core.clip_segment_in_convex_poly_exclusive(poly, ...seg))
+    .filter(a => a !== undefined);
   ["segment", "ray", "line"].forEach((fName) => {
     CreasePatternProto.prototype[fName] = function () {
-      check_boundary(this);
-      const primitive = math[fName](...arguments);
+      make_boundary(this);
+      const primitive = arguments[0] instanceof math[fName]
+        ? arguments[0]
+        : math[fName](...arguments);
       if (!primitive) { return; }
       const poly = this.boundaries_vertices[0].map(v => this.vertices_coords[v]);
-      const clip = math.core[`clip_${fName}_in_convex_poly_exclusive`](poly, primitive.vector, primitive.origin);
-      this.addSegment(clip);
+      const params = fName === "segment"
+        ? primitive.points
+        : [primitive.vector, primitive.origin];
+      const clip = math.core[`clip_${fName}_in_convex_poly_exclusive`](poly, ...params);
+      add_segments.call(this, [ clip ]);
+      remove_boundary(this);
     };
   });
   ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
     CreasePatternProto.prototype[fName] = function () {
-      const primitive = math[fName](...arguments);
+      make_boundary(this);
+      const primitive = arguments[0] instanceof math[fName]
+        ? arguments[0]
+        : math[fName](...arguments);
       if (!primitive) { return; }
-      this.addSegments(primitive.segments(arcResolution$1));
+      const poly = this.boundaries_vertices[0].map(v => this.vertices_coords[v]);
+      const segments = clip_segments_in_poly(poly, primitive.segments(arcResolution$1));
+      add_segments.call(this, segments);
+      remove_boundary(this);
     };
   });
   var prototype$1 = CreasePatternProto.prototype;
@@ -3524,13 +3555,17 @@
     set.forEach((key, i) => {
       func[key] = function () {
         const cp = func(...arguments);
-        cp.polygon(regularPolygon(i));
+        cp.vertices_coords = regularPolygon(i);
+        cp.edges_vertices = Array.from(Array(cp.vertices_coords.length))
+          .map((_, i) => [i, (i + 1) % cp.vertices_coords.length]);
         return finishBoundary(cp);
       };
     });
     func.square = function () {
       const cp = func(...arguments);
-      cp.rect(1, 1);
+      cp.vertices_coords = [[0, 0], [1, 0], [1, 1], [0, 1]];
+      cp.edges_vertices = Array.from(Array(cp.vertices_coords.length))
+        .map((_, i) => [i, (i + 1) % cp.vertices_coords.length]);
       return finishBoundary(cp);
     };
   };
@@ -3760,13 +3795,6 @@
     clip_line_in_boundary: clip_line_in_boundary
   });
 
-  const add_vertices = (graph, { vertices_coords }) => {
-    if (!graph.vertices_coords) { graph.vertices_coords = []; }
-    const original_length = graph.vertices_coords.length;
-    graph.vertices_coords.push(...vertices_coords);
-    return vertices_coords.map((_, i) => original_length + i);
-  };
-
   const add_vertices_unique = (graph, { vertices_coords }) => {
     if (!graph.vertices_coords) { graph.vertices_coords = []; }
     const endpoints_vertex_equivalent = vertices_coords
@@ -3953,13 +3981,6 @@
     Diff.apply(graph, { new: { edges: new_edges }});
     remove_geometry_indices(graph, "edges", remove_indices);
     return new_indices;
-  };
-
-  const add_edges = function (destination, source) {
-    if (!destination.edges_vertices) { destination.edges_vertices = []; }
-    const original_length = destination.edges_vertices.length;
-    destination.edges_vertices.push(...source.edges_vertices);
-    return source.edges_vertices.map((_, i) => original_length + i);
   };
 
   const core = Object.assign(Object.create(null), {

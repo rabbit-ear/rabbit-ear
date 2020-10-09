@@ -7,12 +7,14 @@ import math from "../math";
 import GraphProto from "../graph/prototype";
 import fragment from "../core/fragment";
 import { get_boundary } from "../core/boundary";
+import add_vertices from "../core/add_vertices/add_vertices";
+import add_edges from "../core/add_edges/add_edges";
 // import join from "../core/join";
 
 const CreasePatternProto = {};
 CreasePatternProto.prototype = Object.create(GraphProto);
 
-const arcResolution = 32;
+const arcResolution = 96;
 
 /**
  * methods that follow the form: func(graph, ...args)
@@ -45,33 +47,33 @@ CreasePatternProto.prototype.fragment = function () {
   // this.changed.update(this.fragment);
 };
 
-const add_segment = function () {
-  const segment = math.core.get_segment(arguments);
-  const vertices_coords = segment;
-  if (!this.vertices_coords) { this.vertices_coords = []; }
-  if (!this.edges_vertices) { this.edges_vertices = []; }
-  const len = this.vertices_coords.length;
-  const edge_vertices = [len, len + 1];
-  this.vertices_coords.push(...vertices_coords);
-  this.edges_vertices.push(edge_vertices);
-  this.fragment(math.core.EPSILON, [this.edges_vertices.length - 1]);
-};
-
-CreasePatternProto.prototype.addSegments = function () {
-  const segments = math.core.semi_flatten_arrays(arguments)
-    .map(el => math.core.get_segment(el));
-  // console.log("segs", segments);
-  const vertices_coords = segments.reduce((a, b) => a.concat(b), []);
-  if (!this.vertices_coords) { this.vertices_coords = []; }
-  if (!this.edges_vertices) { this.edges_vertices = []; }
-  const len = this.vertices_coords.length;
-  const edges_vertices = Array.from(Array(segments.length))
-    .map((_, i) => [len + i * 2, len + i * 2 + 1]);
-  const new_edges_indices = Array.from(Array(segments.length))
-    .map((_, i) => this.edges_vertices.length + i);
-  this.vertices_coords.push(...vertices_coords);
-  this.edges_vertices.push(...edges_vertices);
-  this.fragment(math.core.EPSILON, new_edges_indices);
+/**
+ * @usage bind graph to this
+ * @param {number[][]} endpoint coords in this form: [ [x,y(,z)], [x,y(,z)] ]
+ * @returns undefined
+ */
+// const add_segment = function () {
+//   const vertices_coords = Array.from(...arguments)
+//   const new_vertices = add_vertices(this, { vertices_coords });
+//   const new_edges = add_edges(this, { edges_vertices: [ new_vertices ] });
+//   finish_new_edges(this, new_edges);
+//   fragment(this, math.core.EPSILON, new_edges);
+// };
+/**
+ * @usage bind graph to this
+ * @param {number[][]} segments with endpoint coords in this form:
+ *   [ [ [x,y], [x,y] ], [ [x,y], [x,y] ], ]
+ * @returns undefined
+ */
+const add_segments = function () {
+  const vertices_coords = Array.from(...arguments)
+    .reduce((a, b) => a.concat(b), []);
+  const new_vertices = add_vertices(this, { vertices_coords });
+  const edges_vertices = Array.from(Array(new_vertices.length/2))
+    .map((_, i) => [ new_vertices[i * 2], new_vertices[i * 2 + 1] ]);
+  const new_edges = add_edges(this, { edges_vertices });
+  finish_new_edges(this, new_edges);
+  fragment(this, math.core.EPSILON, new_edges);
 };
 
 // todo. this should become make boundaries, plural.
@@ -87,22 +89,58 @@ const check_boundary = (graph) => {
   }
 };
 
+// todo. this should become make boundaries, plural.
+const make_boundary = (graph) => {
+  const boundary = get_boundary(graph);
+  graph.boundaries_vertices = [boundary.vertices];
+  graph.boundaries_edges = [boundary.edges];
+};
+const remove_boundary = (graph) => {
+  delete graph.boundaries_vertices;
+  delete graph.boundaries_edges;
+};
+
+const finish_new_edges = (graph, new_edges) => {
+  if (graph.edges_assignment) {
+    new_edges.forEach(i => { graph.edges_assignment[i] = "U"; });
+  }
+  if (graph.edges_foldAngle) {
+    new_edges.forEach(i => { graph.edges_foldAngle[i] = 0; });
+  }
+};
+
+const clip_segments_in_poly = (poly, segments) => segments
+  .map(seg => math.core.clip_segment_in_convex_poly_exclusive(poly, ...seg))
+  .filter(a => a !== undefined);
+
 ["segment", "ray", "line"].forEach((fName) => {
   CreasePatternProto.prototype[fName] = function () {
-    check_boundary(this);
-    const primitive = math[fName](...arguments);
+    make_boundary(this);
+    const primitive = arguments[0] instanceof math[fName]
+      ? arguments[0]
+      : math[fName](...arguments);
     if (!primitive) { return; }
     const poly = this.boundaries_vertices[0].map(v => this.vertices_coords[v]);
-    const clip = math.core[`clip_${fName}_in_convex_poly_exclusive`](poly, primitive.vector, primitive.origin);
-    this.addSegment(clip);
+    const params = fName === "segment"
+      ? primitive.points
+      : [primitive.vector, primitive.origin];
+    const clip = math.core[`clip_${fName}_in_convex_poly_exclusive`](poly, ...params);
+    add_segments.call(this, [ clip ]);
+    remove_boundary(this);
   };
 });
 
 ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
   CreasePatternProto.prototype[fName] = function () {
-    const primitive = math[fName](...arguments);
+    make_boundary(this);
+    const primitive = arguments[0] instanceof math[fName]
+      ? arguments[0]
+      : math[fName](...arguments);
     if (!primitive) { return; }
-    this.addSegments(primitive.segments(arcResolution));
+    const poly = this.boundaries_vertices[0].map(v => this.vertices_coords[v]);
+    const segments = clip_segments_in_poly(poly, primitive.segments(arcResolution));
+    add_segments.call(this, segments);
+    remove_boundary(this);
   };
 });
 

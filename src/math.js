@@ -120,6 +120,8 @@ var equal = /*#__PURE__*/Object.freeze({
 
 const fn_square = n => n * n;
 const fn_add = (a, b) => a + b;
+const fn_not_undefined = a => a !== undefined;
+
 const magnitude = v => Math.sqrt(v
   .map(fn_square)
   .reduce(fn_add, 0));
@@ -460,7 +462,7 @@ const get_vector = function () {
     && !isNaN(list[0].x)) {
     list = ["x", "y", "z"]
       .map(c => list[0][c])
-      .filter(a => a !== undefined);
+      .filter(fn_not_undefined);
   }
   return list.filter(n => typeof n === "number");
 };
@@ -506,7 +508,7 @@ const get_rect = function () {
     && !isNaN(list[0].width)) {
     return rect_form(...["x", "y", "width", "height"]
       .map(c => list[0][c])
-      .filter(a => a !== undefined));
+      .filter(fn_not_undefined));
   }
   const numbers = list.filter(n => typeof n === "number");
   const rect_params = numbers.length < 4
@@ -593,7 +595,7 @@ const intersect_lines = (aVector, aOrigin, bVector, bOrigin, compFunc, epsilon =
   return undefined;
 };
 
-var intersect_lines$1 = /*#__PURE__*/Object.freeze({
+var intersect_line_types = /*#__PURE__*/Object.freeze({
   __proto__: null,
   include_l: include_l,
   include_r: include_r,
@@ -693,7 +695,7 @@ const clockwise_bisect2 = (a, b) => {
   return [Math.cos(radians), Math.sin(radians)];
 };
 const counter_clockwise_bisect2 = (a, b) => {
-  const radians = Math.atan2(a[1], a[0]) - counter_clockwise_angle2(a, b) / 2;
+  const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
   return [Math.cos(radians), Math.sin(radians)];
 };
 const counter_clockwise_vector_order = (...vectors) => {
@@ -774,7 +776,7 @@ const signed_area = points => 0.5 * points
   .map((el, i, arr) => {
     const next = arr[(i + 1) % arr.length];
     return el[0] * next[1] - next[0] * el[1];
-  }).reduce((a, b) => a + b, 0);
+  }).reduce(fn_add, 0);
 const centroid = (points) => {
   const sixthArea = 1 / (6 * signed_area(points));
   return points.map((el, i, arr) => {
@@ -1376,10 +1378,20 @@ const overlap = Object.assign(Object.create(null),
   overlap_polygon,
 );
 
+const collinear_check = (poly, vector, origin) => {
+  const polyvecs = poly
+    .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+    .map(seg => subtract(...seg));
+  return polyvecs
+    .map((vec, i) => parallel(vec, vector) ? i : undefined)
+    .filter(fn_not_undefined)
+    .map(i => point_on_line(origin, polyvecs[i], poly[i]))
+    .reduce((a, b) => a || b, false);
+};
 const clip_intersections = (intersect_func, poly, line1, line2, epsilon = EPSILON) => poly
   .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
   .map(el => intersect_func(line1, line2, el[0], el[1], epsilon))
-  .filter(el => el !== undefined);
+  .filter(fn_not_undefined);
 const get_unique_pair$1 = (intersections) => {
   for (let i = 1; i < intersections.length; i += 1) {
     if (!quick_equivalent_2(intersections[0], intersections[i])) {
@@ -1387,47 +1399,14 @@ const get_unique_pair$1 = (intersections) => {
     }
   }
 };
-const finish_line = (intersections) => {
+const clip_line_in_convex_poly_inclusive = (poly, vector, origin, epsilon = EPSILON) => {
+  const intersections = clip_intersections(intersect_line_seg_include, poly, vector, origin, epsilon);
   switch (intersections.length) {
     case 0:
     case 1: return undefined;
     default:
       return get_unique_pair$1(intersections);
   }
-};
-const finish_ray = (intersections, poly, origin) => {
-  if (intersections.length === 0) { return undefined; }
-  const origin_inside = point_in_convex_poly_inclusive(origin, poly);
-  return get_unique_pair$1(intersections) || [origin, intersections[0]];
-};
-const finish_segment = (intersections, poly, seg0, seg1, epsilon = EPSILON) => {
-  const seg = [seg0, seg1];
-  const exclusive_in = seg
-    .map(s => point_in_convex_poly_exclusive(s, poly, epsilon));
-  const inclusive_in = seg
-    .map(s => point_in_convex_poly_inclusive(s, poly, epsilon));
-  switch (intersections.length) {
-    case 0: {
-      if (exclusive_in[0] || exclusive_in[1]) { return [[...seg0], [...seg1]]; }
-      if (inclusive_in[0] && inclusive_in[1]) { return [[...seg0], [...seg1]]; }
-      return undefined;
-    }
-    case 1:
-      if (exclusive_in[0]) { return [[...seg0], intersections[0]]; }
-      if (exclusive_in[1]) { return [[...seg1], intersections[0]]; }
-      return undefined;
-    default: {
-      const unique = get_unique_pair$1(intersections);
-      if (unique !== undefined) { return unique; }
-      return (inclusive_in[0]
-        ? [[...seg0], intersections[0]]
-        : [[...seg1], intersections[0]]);
-    }
-  }
-};
-const clip_line_in_convex_poly_inclusive = (poly, vector, origin, epsilon = EPSILON) => {
-  const p = clip_intersections(intersect_line_seg_include, poly, vector, origin, epsilon);
-  return finish_line(p);
 };
 const clip_line_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSILON) => {
   const pEx = clip_intersections(intersect_line_seg_exclude, poly, vector, origin, epsilon);
@@ -1440,8 +1419,10 @@ const clip_line_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSI
     : undefined;
 };
 const clip_ray_in_convex_poly_inclusive = (poly, vector, origin, epsilon = EPSILON) => {
-  const p = clip_intersections(intersect_ray_seg_include, poly, vector, origin, epsilon);
-  return finish_ray(p, poly, origin);
+  const intersections = clip_intersections(intersect_ray_seg_include, poly, vector, origin, epsilon);
+  if (intersections.length === 0) { return undefined; }
+  const origin_inside = point_in_convex_poly_inclusive(origin, poly);
+  return get_unique_pair$1(intersections) || [origin, intersections[0]];
 };
 const clip_ray_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSILON) => {
   const pEx = clip_intersections(intersect_ray_seg_exclude, poly, vector, origin, epsilon);
@@ -1457,17 +1438,38 @@ const clip_ray_in_convex_poly_exclusive = (poly, vector, origin, epsilon = EPSIL
     ? uniqueIn
     : undefined;
 };
+const clip_segment_func = (poly, seg0, seg1, epsilon = EPSILON) => {
+  const seg = [seg0, seg1];
+  const inclusive_inside = seg
+    .map(s => point_in_convex_poly_inclusive(s, poly, epsilon));
+  if (inclusive_inside[0] === true && inclusive_inside[1] === true) {
+    return [[...seg0], [...seg1]];
+  }
+  const clip_inclusive = clip_intersections(intersect_seg_seg_include, poly, seg0, seg1, epsilon);
+  const clip_inclusive_unique = get_unique_pair$1(clip_inclusive);
+  if (clip_inclusive_unique) {
+    return clip_inclusive_unique;
+  }
+  if (clip_inclusive.length > 0) {
+    const exclusive_inside = seg
+      .map(s => point_in_convex_poly_exclusive(s, poly, epsilon));
+    if (exclusive_inside[0] === true) {
+      return [[...seg0], clip_inclusive[0]];
+    }
+    if (exclusive_inside[1] === true) {
+      return [[...seg1], clip_inclusive[0]];
+    }
+  }
+};
 const clip_segment_in_convex_poly_inclusive = (poly, seg0, seg1, epsilon = EPSILON) => {
-  const p = clip_intersections(intersect_seg_seg_include, poly, seg0, seg1, epsilon);
-  return finish_segment(p, poly, seg0, seg1);
+  return clip_segment_func(poly, seg0, seg1, epsilon);
 };
 const clip_segment_in_convex_poly_exclusive = (poly, seg0, seg1, epsilon = EPSILON) => {
-  const func = point_in_convex_poly_inclusive(seg0, poly, epsilon)
-    || point_in_convex_poly_inclusive(seg1, poly, epsilon)
-    ? intersect_seg_seg_include
-    : intersect_seg_seg_exclude;
-  const p = clip_intersections(func, poly, seg0, seg1);
-  return finish_segment(p, poly, seg0, seg1);
+  const segVec = subtract(seg1, seg0);
+  if (collinear_check(poly, segVec, seg0)) {
+    return undefined;
+  }
+  return clip_segment_func(poly, seg0, seg1, epsilon);
 };
 
 var clip_polygon = /*#__PURE__*/Object.freeze({
@@ -2249,7 +2251,7 @@ math.core = Object.assign(Object.create(null),
   getters,
   resizers,
   intersect_circle,
-  intersect_lines$1,
+  intersect_line_types,
   intersect_polygon,
   clip_polygon,
   {
