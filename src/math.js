@@ -1366,9 +1366,17 @@ const intersect_func = {
     segment: (a, b, c) => lineFunc(a, b, c === false ? exclude_s_s : include_s_s),
   },
 };
+const intersect_types = {
+  polygon: "polygon",
+  rect: "polygon",
+  circle: "circle",
+  line: "line",
+  ray: "ray",
+  segment: "segment",
+};
 const intersect = function (a, b) {
-  const aT = type_of(a);
-  const bT = type_of(b);
+  const aT = intersect_types[type_of(a)];
+  const bT = intersect_types[type_of(b)];
   return intersect_func[aT][bT](...arguments);
 };
 
@@ -2052,6 +2060,10 @@ var Rect = {
     G: {
       x: function () { return this.origin[0]; },
       y: function () { return this.origin[1]; },
+      center: function () { return Constructors.vector(
+        this.origin[0] + this.width / 2,
+        this.origin[1] + this.height / 2,
+      ); },
     },
     M: {
       area: function () { return this.width * this.height; },
@@ -2163,11 +2175,13 @@ var Matrix = {
       },
       transform: function (...innerArgs) {
         return Constructors.vector(
-          multiply_matrix3_vector3(get_vector(innerArgs), this)
+          multiply_matrix3_vector3(this, resize(3, get_vector(innerArgs)))
         );
       },
       transformVector: function (vector) {
-        return Constructors.vector(multiply_matrix3_vector3(this, vector));
+        return Constructors.vector(
+          multiply_matrix3_vector3(this, resize(3, get_vector(vector)))
+        );
       },
       transformLine: function (...innerArgs) {
         const l = get_line(innerArgs);

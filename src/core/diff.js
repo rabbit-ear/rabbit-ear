@@ -63,6 +63,22 @@ const rough_draft_1 = {
 
 const Diff = {};
 
+Diff.merge_maps = (a, b) => {
+  // "a" came first
+  let aRemoves = [];
+  for (let i = 1; i < a.length; i++) {
+    if (a[i] !== a[i-1]) { aRemoves.push(i); }
+  }
+  let bRemoves = [];
+  for (let i = 1; i < b.length; i++) {
+    if (b[i] !== b[i-1]) { bRemoves.push(i); }
+  }
+  let bCopy = b.slice();
+  aRemoves.forEach(i => bCopy.splice(i, 0, (i === 0) ? 0 : bCopy[i-1] ));
+
+  return a.map((v,i) => v + bCopy[i]);
+};
+
 // each of the { new } entries come with an index
 // which will change during this function, if { remove } entries exist
 Diff.apply = (graph, diff) => {
