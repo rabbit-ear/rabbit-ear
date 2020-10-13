@@ -4,10 +4,65 @@ import Diff from "./diff";
 import { edge_assignment_to_foldAngle } from "./keys";
 import remove from "./remove";
 
-/**
- * @returns {}, description of changes. empty object if no intersection.
- *
- */
+const intersect_face_with_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, origin) => {
+  // give us back the indices in the faces_vertices[face] array
+  const face_vertices_indices = faces_vertices[face]
+    .map(v => vertices_coords[v])
+    .map(coord => math.core.point_on_line(coord, vector, origin))
+    .map((collinear, i) => collinear ? i : undefined)
+    .filter(i => i !== undefined);
+  // convert to a better return object
+  const vertices = face_vertices_indices.map(face_vertex_index => ({
+    vertex: faces_vertices[face][face_vertex_index],
+    face_vertex_index,
+  }));
+  // if we have 2 unique intersection points we are done
+  if (vertices.length >= 2) {
+    // if vertices are neighbors
+    // because convex polygon, if collinear along an edge we can exclude it.
+    const non_loop_distance = face_vertices_indices[1] - face_vertices_indices[0];
+    // include the case where vertices are neighbors across the end of the array
+    const index_distance = non_loop_distance < 0
+      ? non_loop_distance + faces_vertices[face].length
+      : non_loop_distance;
+    if (index_distance === 1) { return undefined; }
+    return { vertices };
+  }
+  //
+  const edges = faces_edges[face]
+    .map(edge => edges_vertices[edge]
+      .map(v => vertices_coords[v]))
+    .map(edge_coords => math.core.intersect_line_seg_exclude(
+      vector, origin, ...edge_coords
+    )).map((coords, face_edge_index) => ({
+      coords,
+      face_edge_index,
+      edge: faces_edges[face][face_edge_index],
+    }))
+    .filter(el => el.coords !== undefined);
+  // in the case of one vertex and one edge return them both
+  if (vertices.length > 0 && edges.length > 0) {
+    return { vertices, edges };
+  }
+  // two edges only
+  if (edges.length > 1) {
+    return { edges };
+  }
+  // no intersection or invalid case like outside collinear along one vertex only.
+  return undefined;
+};
+
+
+const split_convex_face = (graph, face, vector, origin) => {
+  // survey face for any intersections which cross directly over a vertex
+  const intersect = intersect_face_with_line(graph, face, vector, origin);
+  if (intersect === undefined) { return undefined; }
+
+  return intersect;
+};
+
+export default split_convex_face;
+
 const split_convex_polygon = function (
   graph,
   faceIndex,
@@ -15,33 +70,6 @@ const split_convex_polygon = function (
   linePoint,
   crease_assignment = "F"
 ) {
-  // survey face for any intersections which cross directly over a vertex
-  const vertices_intersections = graph.faces_vertices[faceIndex]
-    .map(fv => graph.vertices_coords[fv])
-    .map(v => (math.core.point_on_line(linePoint, lineVector, v)
-      ? v
-      : undefined))
-    .map((point, i) => ({
-      point,
-      i_face: i,
-      i_vertices: graph.faces_vertices[faceIndex][i]
-    }))
-    .filter(el => el.point !== undefined);
-
-  // gather all edges of this face which cross the line
-  const edges_intersections = graph.faces_edges[faceIndex]
-    .map(ei => graph.edges_vertices[ei])
-    .map(edge => edge.map(e => graph.vertices_coords[e]))
-    .map(edge => math.core.intersect_line_seg_exclude(
-      linePoint, lineVector, edge[0], edge[1]
-    ))
-    .map((point, i) => ({
-      point,
-      i_face: i,
-      i_edges: graph.faces_edges[faceIndex][i]
-    }))
-    .filter(el => el.point !== undefined);
-
   // the only cases we care about are
   // - 2 edge intersections
   // - 2 vertices intersections
@@ -52,6 +80,7 @@ const split_convex_polygon = function (
   let edge_map = Array(graph.edges_vertices.length).fill(0);
   if (edges_intersections.length === 2) {
     new_v_indices = edges_intersections.map((el, i, arr) => {
+      console.log("splitting edge", graph, el.i_edges, el.point);
       const diff = split_edge(graph, el.point, el.i_edges);
       arr.slice(i + 1)
         .filter(ell => diff.edges.map[ell.i_edges] != null)
@@ -63,7 +92,8 @@ const split_convex_polygon = function (
           && vertices_intersections.length === 1) {
     const a = vertices_intersections.map(el => el.i_vertices);
     const b = edges_intersections.map((el, i, arr) => {
-      const diff = split_edge(graph, el.point, el.i_edges);
+      console.log("splitting edge", graph, el.point, el.i_edges);
+      const diff = split_edge(graph, el.i_edges, el.point);
       arr.slice(i + 1)
         .filter(ell => diff.edges.map[ell.i_edges] != null)
         .forEach((ell) => { ell.i_edges += diff.edges.map[ell.i_edges]; });
@@ -159,10 +189,12 @@ const split_convex_polygon = function (
       if (v_f_map[v] == null) { v_f_map[v] = []; }
       v_f_map[v].push(el.i);
     }));
+  console.log("just built v_f_map", v_f_map);
   graph.vertices_faces
     .forEach((vf, i) => {
       let indexOf = vf.indexOf(faceIndex);
       while (indexOf !== -1) {
+        console.log("accessing", i);
         graph.vertices_faces[i].splice(indexOf, 1, ...(v_f_map[i]));
         indexOf = vf.indexOf(faceIndex);
       }
@@ -204,4 +236,4 @@ const split_convex_polygon = function (
   };
 };
 
-export default split_convex_polygon;
+// export default split_convex_polygon;

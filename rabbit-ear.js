@@ -4125,158 +4125,47 @@
     };
   };
 
-  const split_convex_polygon$1 = function (
-    graph,
-    faceIndex,
-    lineVector,
-    linePoint,
-    crease_assignment = "F"
-  ) {
-    const vertices_intersections = graph.faces_vertices[faceIndex]
-      .map(fv => graph.vertices_coords[fv])
-      .map(v => (math.core.point_on_line(linePoint, lineVector, v)
-        ? v
-        : undefined))
-      .map((point, i) => ({
-        point,
-        i_face: i,
-        i_vertices: graph.faces_vertices[faceIndex][i]
-      }))
-      .filter(el => el.point !== undefined);
-    const edges_intersections = graph.faces_edges[faceIndex]
-      .map(ei => graph.edges_vertices[ei])
-      .map(edge => edge.map(e => graph.vertices_coords[e]))
-      .map(edge => math.core.intersect_line_seg_exclude(
-        linePoint, lineVector, edge[0], edge[1]
-      ))
-      .map((point, i) => ({
-        point,
-        i_face: i,
-        i_edges: graph.faces_edges[faceIndex][i]
-      }))
-      .filter(el => el.point !== undefined);
-    let new_v_indices = [];
-    let edge_map = Array(graph.edges_vertices.length).fill(0);
-    if (edges_intersections.length === 2) {
-      new_v_indices = edges_intersections.map((el, i, arr) => {
-        const diff = add_vertex_on_edge_and_rebuild(graph, el.point, el.i_edges);
-        arr.slice(i + 1)
-          .filter(ell => diff.edges.map[ell.i_edges] != null)
-          .forEach((ell) => { ell.i_edges += diff.edges.map[ell.i_edges]; });
-        edge_map = Diff.merge_maps(edge_map, diff.edges.map);
-        return diff.vertices.new[0].index;
-      });
-    } else if (edges_intersections.length === 1
-            && vertices_intersections.length === 1) {
-      const a = vertices_intersections.map(el => el.i_vertices);
-      const b = edges_intersections.map((el, i, arr) => {
-        const diff = add_vertex_on_edge_and_rebuild(graph, el.point, el.i_edges);
-        arr.slice(i + 1)
-          .filter(ell => diff.edges.map[ell.i_edges] != null)
-          .forEach((ell) => { ell.i_edges += diff.edges.map[ell.i_edges]; });
-        edge_map = diff.edges.map;
-        return diff.vertices.new[0].index;
-      });
-      new_v_indices = a.concat(b);
-    } else if (vertices_intersections.length === 2) {
-      new_v_indices = vertices_intersections.map(el => el.i_vertices);
-      const face_v = graph.faces_vertices[faceIndex];
-      const v_i = vertices_intersections;
-      const match_a = face_v[(v_i[0].i_face + 1) % face_v.length] === v_i[1].i_vertices;
-      const match_b = face_v[(v_i[1].i_face + 1) % face_v.length] === v_i[0].i_vertices;
-      if (match_a || match_b) { return {}; }
-    } else {
-      return {};
+  const intersect_face_with_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, origin) => {
+    const face_vertices_indices = faces_vertices[face]
+      .map(v => vertices_coords[v])
+      .map(coord => math.core.point_on_line(coord, vector, origin))
+      .map((collinear, i) => collinear ? i : undefined)
+      .filter(i => i !== undefined);
+    const vertices = face_vertices_indices.map(face_vertex_index => ({
+      vertex: faces_vertices[face][face_vertex_index],
+      face_vertex_index,
+    }));
+    if (vertices.length >= 2) {
+      const non_loop_distance = face_vertices_indices[1] - face_vertices_indices[0];
+      const index_distance = non_loop_distance < 0
+        ? non_loop_distance + faces_vertices[face].length
+        : non_loop_distance;
+      if (index_distance === 1) { return undefined; }
+      return { vertices };
     }
-    const new_face_v_indices = new_v_indices
-      .map(el => graph.faces_vertices[faceIndex].indexOf(el))
-      .sort((a, b) => a - b);
-    const new_faces = [{}, {}];
-    new_faces[0].vertices = graph.faces_vertices[faceIndex]
-      .slice(new_face_v_indices[1])
-      .concat(graph.faces_vertices[faceIndex].slice(0, new_face_v_indices[0] + 1));
-    new_faces[1].vertices = graph.faces_vertices[faceIndex]
-      .slice(new_face_v_indices[0], new_face_v_indices[1] + 1);
-    new_faces[0].edges = graph.faces_edges[faceIndex]
-      .slice(new_face_v_indices[1])
-      .concat(graph.faces_edges[faceIndex].slice(0, new_face_v_indices[0]))
-      .concat([graph.edges_vertices.length]);
-    new_faces[1].edges = graph.faces_edges[faceIndex]
-      .slice(new_face_v_indices[0], new_face_v_indices[1])
-      .concat([graph.edges_vertices.length]);
-    new_faces[0].index = graph.faces_vertices.length;
-    new_faces[1].index = graph.faces_vertices.length + 1;
-    const new_edges = [{
-      index: graph.edges_vertices.length,
-      vertices: [...new_v_indices],
-      assignment: crease_assignment,
-      foldAngle: edge_assignment_to_foldAngle(crease_assignment),
-      length: math.core.distance2(
-        ...(new_v_indices.map(v => graph.vertices_coords[v]))
-      ),
-      faces: [graph.faces_vertices.length, graph.faces_vertices.length + 1]
-    }];
-    const edges_count = graph.edges_vertices.length;
-    const faces_count = graph.faces_vertices.length;
-    new_faces.forEach((face, i) => Object.keys(face)
-      .filter(suffix => suffix !== "index")
-      .forEach((suffix) => { graph[`faces_${suffix}`][faces_count + i] = face[suffix]; }));
-    new_edges.forEach((edge, i) => Object.keys(edge)
-      .filter(suffix => suffix !== "index")
-      .filter(suffix => graph[`edges_${suffix}`] !== undefined)
-      .forEach((suffix) => { graph[`edges_${suffix}`][edges_count + i] = edge[suffix]; }));
-    new_edges.forEach((edge) => {
-      const a = edge.vertices[0];
-      const b = edge.vertices[1];
-      graph.vertices_vertices[a].push(b);
-      graph.vertices_vertices[b].push(a);
-    });
-    const v_f_map = {};
-    graph.faces_vertices
-      .map((face, i) => ({ face, i }))
-      .filter(el => el.i === faces_count || el.i === faces_count + 1)
-      .forEach(el => el.face.forEach((v) => {
-        if (v_f_map[v] == null) { v_f_map[v] = []; }
-        v_f_map[v].push(el.i);
-      }));
-    graph.vertices_faces
-      .forEach((vf, i) => {
-        let indexOf = vf.indexOf(faceIndex);
-        while (indexOf !== -1) {
-          graph.vertices_faces[i].splice(indexOf, 1, ...(v_f_map[i]));
-          indexOf = vf.indexOf(faceIndex);
-        }
-      });
-    const e_f_map = {};
-    graph.faces_edges
-      .map((face, i) => ({ face, i }))
-      .filter(el => el.i === faces_count || el.i === faces_count + 1)
-      .forEach(el => el.face.forEach((e) => {
-        if (e_f_map[e] == null) { e_f_map[e] = []; }
-        e_f_map[e].push(el.i);
-      }));
-    graph.edges_faces
-      .forEach((ef, i) => {
-        let indexOf = ef.indexOf(faceIndex);
-        while (indexOf !== -1) {
-          graph.edges_faces[i].splice(indexOf, 1, ...(e_f_map[i]));
-          indexOf = ef.indexOf(faceIndex);
-        }
-      });
-    const faces_map = remove_geometry_indices(graph, "faces", [faceIndex]);
-    return {
-      faces: {
-        map: faces_map,
-        replace: [{
-          old: faceIndex,
-          new: new_faces
-        }]
-      },
-      edges: {
-        new: new_edges,
-        map: edge_map
-      }
-    };
+    const edges = faces_edges[face]
+      .map(edge => edges_vertices[edge]
+        .map(v => vertices_coords[v]))
+      .map(edge_coords => math.core.intersect_line_seg_exclude(
+        vector, origin, ...edge_coords
+      )).map((coords, face_edge_index) => ({
+        coords,
+        face_edge_index,
+        edge: faces_edges[face][face_edge_index],
+      }))
+      .filter(el => el.coords !== undefined);
+    if (vertices.length > 0 && edges.length > 0) {
+      return { vertices, edges };
+    }
+    if (edges.length > 1) {
+      return { edges };
+    }
+    return undefined;
+  };
+  const split_convex_face = (graph, face, vector, origin) => {
+    const intersect = intersect_face_with_line(graph, face, vector, origin);
+    if (intersect === undefined) { return undefined; }
+    return intersect;
   };
 
   const foldLayers = function (faces_layer, faces_folding) {
@@ -4383,7 +4272,7 @@
       .map((_, i) => i)
       .reverse()
       .map((i) => {
-        const diff = split_convex_polygon$1(
+        const diff = split_convex_face(
           folded, i,
           folded["faces_re:creases"][i].origin,
           folded["faces_re:creases"][i].vector,
@@ -4494,7 +4383,7 @@
     add_vertices_unique_split_edges,
     add_vertex_on_edge_and_rebuild,
     add_edges,
-    split_face: split_convex_polygon$1,
+    split_face: split_convex_face,
     fold_through,
   },
     keys$1,
