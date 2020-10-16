@@ -1,6 +1,7 @@
 import math from "../math";
 import implied from "./count_implied";
 import { planar_vertex_walk } from "./walk";
+import { sort_vertices_counter_clockwise } from "./sort";
 
 /**
  * all of the graph methods follow the same format.
@@ -61,28 +62,14 @@ export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_
     vertices_edges = make_vertices_edges({ edges_vertices });
   }
   // use adjacent edges to find adjacent vertices
-  const adjacent_vertices = vertices_edges
+  return vertices_edges
     .map((edges, v) => edges
       // the adjacent edge's edges_vertices also contains this vertex,
       // filter it out and we're left with the adjacent vertices
       .map(edge => edges_vertices[edge]
         .filter(i => i !== v))
-      .reduce((a, b) => a.concat(b), []));
-  // would be done, but vertices_vertices needs to be sorted counter-clockwise
-  // todo: atan2 calls can be cut in half if we store the vertices in
-  // backwards order in an object, the value being the flipped vector.
-  return adjacent_vertices
-    .map((verts, i) => verts.map(v => vertices_coords[v])
-      .map(v => math.core.subtract(v, vertices_coords[i]))
-      .map(vec => Math.atan2(vec[1], vec[0]))
-      // optional line, this makes the cycle loop start/end along the +X axis
-      .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2))
-    .map(angles => angles
-      .map((a, i) => ({a, i}))
-      .sort((a, b) => a.a - b.a)
-      .map(el => el.i))
-    .map((indices, i) => indices
-      .map(index => adjacent_vertices[i][index]));
+      .reduce((a, b) => a.concat(b), []))
+    .map((verts, i) => sort_vertices_counter_clockwise({ vertices_coords }, verts, i));
 };
 
 /**

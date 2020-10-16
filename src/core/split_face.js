@@ -5,13 +5,13 @@ import { edge_assignment_to_foldAngle } from "./keys";
 import remove from "./remove";
 import { make_vertices_to_edge_bidirectional } from "./make";
 import { intersect_face_with_line } from "./intersect";
+import { sort_vertices_counter_clockwise } from "./sort";
 
-const update_vertices_vertices = ({ vertices_vertices, edges_vertices }, edge) => {
-  const a = edges_vertices[edge][0];
-  const b = edges_vertices[edge][1];
-  // todo: BIG TODO this does not preserve winding direction
-  vertices_vertices[a].push(b);
-  vertices_vertices[b].push(a);
+const update_vertices_vertices = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
+  const v0 = edges_vertices[edge][0];
+  const v1 = edges_vertices[edge][1];
+  vertices_vertices[v0] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v0].concat(v1), v0);
+  vertices_vertices[v1] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v1].concat(v0), v1);
 };
 
 /**
@@ -36,11 +36,44 @@ const make_edge = ({ vertices_coords }, vertices, faces) => {
   };
 };
 
+/**
+ * @param {any[]}
+ * @param {number[]} two numbers, indices that divide the array into 2. 
+ */
+const split_array_into_two = (array, indices) => [
+  array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+  array.slice(indices[0], indices[1] + 1)
+];
+
+/**
+ * this must be done AFTER edges_vertices has been updated with the new edge.
+ *
+ * @param {object} FOLD graph
+ * @param {number} the face that will be replaced by these 2 new
+ * @param {number[]} vertices (in the face) that split the face into 2 sides
+ */
+const make_faces = ({ edges_vertices, faces_vertices }, face, vertices) => {
+  // table to build faces_edges
+  const vertices_to_edge = make_vertices_to_edge_bidirectional({ edges_vertices });
+  // inside our face's faces_vertices, get index location of our new vertices
+  // this helps us build both faces_vertices and faces_edges arrays
+  // update: now only to build faces_vertices. edges comes from a lookup table
+  const indices = vertices
+    .map(el => faces_vertices[face].indexOf(el))
+    .sort((a, b) => a - b);
+  return split_array_into_two(faces_vertices[face], indices)
+    .map(face_vertices => ({
+      faces_vertices: face_vertices,
+      faces_edges: face_vertices
+        .map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
+        .map(key => vertices_to_edge[key])
+    }));
+};
+
 const split_convex_face = (graph, face, vector, origin) => {
   // survey face for any intersections which cross directly over a vertex
   const intersect = intersect_face_with_line(graph, face, vector, origin);
   if (intersect === undefined) { return undefined; }
-
   // vertices, from "intersect", at the moment only contains pre-existing
   // vertices that were intersected (line directly crossed a vertex)
   // but will soon be appended to contain exactly 2 vertices,
@@ -55,61 +88,32 @@ const split_convex_face = (graph, face, vector, origin) => {
     // todo, apply directly to edge_change, get rid of "edge_change = "
     edge_change = Diff.merge_maps(edge_change, result.edges.map);
     return result.vertices.new[0];
-  }))
-
+  }));
   // construct data for our new edge (vertices, faces, assignent, foldAngle, length)
   const edge = graph.edges_vertices.length;
   const faces = [0, 1].map(i => graph.faces_vertices.length + i);
-
   const new_edge = make_edge(graph, vertices, faces);
   // ignoring any keys that aren't a part of our graph, add the new edge
   Object.keys(new_edge)
     .filter(key => graph[key] !== undefined)
     .forEach((key) => { graph[key][edge] = new_edge[key]; });
-
   // update data that has been changed by edges
-  update_vertices_vertices(graph, edge);
   // todo: anything else we need to update?
-
-  // inside our face's faces_vertices, get index location of our new vertices
-  // this helps us build both faces_vertices and faces_edges arrays
-  // update: now only to build faces_vertices. edges comes from a lookup table
-  const new_face_v_indices = vertices
-    .map(el => graph.faces_vertices[face].indexOf(el))
-    .sort((a, b) => a - b);
-  // table to build faces_edges
-  const vertices_to_edge = make_vertices_to_edge_bidirectional(graph);
-
+  update_vertices_vertices(graph, edge);
   // construct data for our new geometry: 2 faces (faces_vertices, faces_edges)
-  const new_faces = [{}, {}];
-  new_faces[0].index = graph.faces_vertices.length;
-  new_faces[1].index = graph.faces_vertices.length + 1;
-  new_faces[0].vertices = graph.faces_vertices[face]
-    .slice(new_face_v_indices[1])
-    .concat(graph.faces_vertices[face].slice(0, new_face_v_indices[0] + 1));
-  new_faces[1].vertices = graph.faces_vertices[face]
-    .slice(new_face_v_indices[0], new_face_v_indices[1] + 1);
-  new_faces[0].edges = new_faces[0].vertices
-    .map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
-    .map(key => vertices_to_edge[key]);
-  new_faces[1].edges = new_faces[1].vertices
-    .map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
-    .map(key => vertices_to_edge[key]);
-
-  const faces_count = graph.faces_vertices.length;
-  new_faces.forEach((face, i) => Object.keys(face)
-    .filter(suffix => suffix !== "index")
-    .forEach((suffix) => { graph[`faces_${suffix}`][faces_count + i] = face[suffix]; }));
-
+  const new_faces = make_faces(graph, face, vertices);
+  new_faces.forEach((new_face, i) => Object.keys(new_face)
+    .filter(key => graph[key] !== undefined)
+    .forEach((key) => { graph[key][faces[i]] = new_face[key]; }));
   // rebuild edges_faces, vertices_faces
   // search inside vertices_faces for an occurence of the removed face,
   // determine which of our two new faces needs to be put in its place
   // by checking faces_vertices, by way of this map we build below:
   const v_f_map = {};
   graph.faces_vertices
-    .map((face, i) => ({ face, i }))
-    .filter(el => el.i === faces_count || el.i === faces_count + 1)
-    .forEach(el => el.face.forEach((v) => {
+    .map((f, i) => ({ f, i }))
+    .filter(el => el.i === faces[0] || el.i === faces[1])
+    .forEach(el => el.f.forEach((v) => {
       if (v_f_map[v] == null) { v_f_map[v] = []; }
       v_f_map[v].push(el.i);
     }));
@@ -125,9 +129,9 @@ const split_convex_face = (graph, face, vector, origin) => {
   // the same as above, but making a map of faces_edges to rebuild edges_faces
   const e_f_map = {};
   graph.faces_edges
-    .map((face, i) => ({ face, i }))
-    .filter(el => el.i === faces_count || el.i === faces_count + 1)
-    .forEach(el => el.face.forEach((e) => {
+    .map((f, i) => ({ f, i }))
+    .filter(el => el.i === faces[0] || el.i === faces[1])
+    .forEach(el => el.f.forEach((e) => {
       if (e_f_map[e] == null) { e_f_map[e] = []; }
       e_f_map[e].push(el.i);
     }));
@@ -149,11 +153,11 @@ const split_convex_face = (graph, face, vector, origin) => {
       map: faces_map,
       replace: [{
         old: face,
-        new: new_faces
+        new: faces
       }]
     },
     edges: {
-      new: [new_edge],
+      new: [edge],
       map: edge_change
     }
   };

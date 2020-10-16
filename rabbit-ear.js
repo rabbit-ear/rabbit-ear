@@ -2672,6 +2672,16 @@
       .reduce((a, b) => a.concat(b), [])
   };
 
+  const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) => vertices
+    .map(v => vertices_coords[v])
+    .map(coord => math.core.subtract(coord, vertices_coords[vertex]))
+    .map(vec => Math.atan2(vec[1], vec[0]))
+    .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2)
+    .map((a, i) => ({a, i}))
+    .sort((a, b) => a.a - b.a)
+    .map(el => el.i)
+    .map(i => vertices[i]);
+
   const make_vertices_edges = ({ edges_vertices }) => {
     const vertices_edges = [];
     edges_vertices.forEach((ev, i) => ev
@@ -2687,22 +2697,12 @@
     if (!vertices_edges) {
       vertices_edges = make_vertices_edges({ edges_vertices });
     }
-    const adjacent_vertices = vertices_edges
+    return vertices_edges
       .map((edges, v) => edges
         .map(edge => edges_vertices[edge]
           .filter(i => i !== v))
-        .reduce((a, b) => a.concat(b), []));
-    return adjacent_vertices
-      .map((verts, i) => verts.map(v => vertices_coords[v])
-        .map(v => math.core.subtract(v, vertices_coords[i]))
-        .map(vec => Math.atan2(vec[1], vec[0]))
-        .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2))
-      .map(angles => angles
-        .map((a, i) => ({a, i}))
-        .sort((a, b) => a.a - b.a)
-        .map(el => el.i))
-      .map((indices, i) => indices
-        .map(index => adjacent_vertices[i][index]));
+        .reduce((a, b) => a.concat(b), []))
+      .map((verts, i) => sort_vertices_counter_clockwise({ vertices_coords }, verts, i));
   };
   const make_vertices_faces = ({ faces_vertices }) => {
     const vertices_faces = Array
@@ -4212,11 +4212,11 @@
     return undefined;
   };
 
-  const update_vertices_vertices$1 = ({ vertices_vertices, edges_vertices }, edge) => {
-    const a = edges_vertices[edge][0];
-    const b = edges_vertices[edge][1];
-    vertices_vertices[a].push(b);
-    vertices_vertices[b].push(a);
+  const update_vertices_vertices$1 = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
+    const v0 = edges_vertices[edge][0];
+    const v1 = edges_vertices[edge][1];
+    vertices_vertices[v0] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v0].concat(v1), v0);
+    vertices_vertices[v1] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v1].concat(v0), v1);
   };
   const make_edge = ({ vertices_coords }, vertices, faces) => {
     const new_edge_coords = vertices
@@ -4230,6 +4230,23 @@
       edges_vector: math.core.subtract(...new_edge_coords),
       edges_faces: [...faces],
     };
+  };
+  const split_array_into_two = (array, indices) => [
+    array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+    array.slice(indices[0], indices[1] + 1)
+  ];
+  const make_faces = ({ edges_vertices, faces_vertices }, face, vertices) => {
+    const vertices_to_edge = make_vertices_to_edge_bidirectional({ edges_vertices });
+    const indices = vertices
+      .map(el => faces_vertices[face].indexOf(el))
+      .sort((a, b) => a - b);
+    return split_array_into_two(faces_vertices[face], indices)
+      .map(face_vertices => ({
+        faces_vertices: face_vertices,
+        faces_edges: face_vertices
+          .map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
+          .map(key => vertices_to_edge[key])
+      }));
   };
   const split_convex_face = (graph, face, vector, origin) => {
     const intersect = intersect_face_with_line(graph, face, vector, origin);
@@ -4249,33 +4266,15 @@
       .filter(key => graph[key] !== undefined)
       .forEach((key) => { graph[key][edge] = new_edge[key]; });
     update_vertices_vertices$1(graph, edge);
-    const new_face_v_indices = vertices
-      .map(el => graph.faces_vertices[face].indexOf(el))
-      .sort((a, b) => a - b);
-    const vertices_to_edge = make_vertices_to_edge_bidirectional(graph);
-    const new_faces = [{}, {}];
-    new_faces[0].index = graph.faces_vertices.length;
-    new_faces[1].index = graph.faces_vertices.length + 1;
-    new_faces[0].vertices = graph.faces_vertices[face]
-      .slice(new_face_v_indices[1])
-      .concat(graph.faces_vertices[face].slice(0, new_face_v_indices[0] + 1));
-    new_faces[1].vertices = graph.faces_vertices[face]
-      .slice(new_face_v_indices[0], new_face_v_indices[1] + 1);
-    new_faces[0].edges = new_faces[0].vertices
-      .map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
-      .map(key => vertices_to_edge[key]);
-    new_faces[1].edges = new_faces[1].vertices
-      .map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
-      .map(key => vertices_to_edge[key]);
-    const faces_count = graph.faces_vertices.length;
-    new_faces.forEach((face, i) => Object.keys(face)
-      .filter(suffix => suffix !== "index")
-      .forEach((suffix) => { graph[`faces_${suffix}`][faces_count + i] = face[suffix]; }));
+    const new_faces = make_faces(graph, face, vertices);
+    new_faces.forEach((new_face, i) => Object.keys(new_face)
+      .filter(key => graph[key] !== undefined)
+      .forEach((key) => { graph[key][faces[i]] = new_face[key]; }));
     const v_f_map = {};
     graph.faces_vertices
-      .map((face, i) => ({ face, i }))
-      .filter(el => el.i === faces_count || el.i === faces_count + 1)
-      .forEach(el => el.face.forEach((v) => {
+      .map((f, i) => ({ f, i }))
+      .filter(el => el.i === faces[0] || el.i === faces[1])
+      .forEach(el => el.f.forEach((v) => {
         if (v_f_map[v] == null) { v_f_map[v] = []; }
         v_f_map[v].push(el.i);
       }));
@@ -4289,9 +4288,9 @@
       });
     const e_f_map = {};
     graph.faces_edges
-      .map((face, i) => ({ face, i }))
-      .filter(el => el.i === faces_count || el.i === faces_count + 1)
-      .forEach(el => el.face.forEach((e) => {
+      .map((f, i) => ({ f, i }))
+      .filter(el => el.i === faces[0] || el.i === faces[1])
+      .forEach(el => el.f.forEach((e) => {
         if (e_f_map[e] == null) { e_f_map[e] = []; }
         e_f_map[e].push(el.i);
       }));
@@ -4309,11 +4308,11 @@
         map: faces_map,
         replace: [{
           old: face,
-          new: new_faces
+          new: faces
         }]
       },
       edges: {
-        new: [new_edge],
+        new: [edge],
         map: edge_change
       }
     };

@@ -26,7 +26,6 @@ const splitGraph = (graph, face, origin) => {
   const line = ear.line([Math.cos(angle), Math.sin(angle)], [origin.x, origin.y]);
   // console.log(line.vector, line.origin)
   const result = ear.core.split_face(graph, face, line.vector, line.origin);
-  // console.log("result", result);
   svg.removeChildren();
   svg.load(graph.svg());
 };
@@ -37,13 +36,13 @@ svg.onPress = (event) => {
   splitGraph(origami, nearest.face.index, event);
 };
 
-svg.play = (event) => {
-  angle += 0.05;
-  const nearest = origami.nearest([mouseX, mouseY]);
-  if (!nearest.face || nearest.face.index === undefined) { return; }
-  const graph = ear.graph( JSON.parse(JSON.stringify(origami)) );
-  splitGraph(graph, nearest.face.index, { x:mouseX, y:mouseY });
-}
+// svg.play = (event) => {
+//   angle += 0.05;
+//   const nearest = origami.nearest([mouseX, mouseY]);
+//   if (!nearest.face || nearest.face.index === undefined) { return; }
+//   const graph = ear.graph( JSON.parse(JSON.stringify(origami)) );
+//   splitGraph(graph, nearest.face.index, { x:mouseX, y:mouseY });
+// };
 
 svg.onMove = (event) => {
   mouseX = event.x;
