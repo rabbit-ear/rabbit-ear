@@ -18,6 +18,8 @@ window.origami = origami;
 origami.populate();
 svg.load(origami.svg());
 
+let mouseX, mouseY;
+
 let angle = 0;
 
 const splitGraph = (graph, face, origin) => {
@@ -35,10 +37,15 @@ svg.onPress = (event) => {
   splitGraph(origami, nearest.face.index, event);
 };
 
-// svg.onMove = (event) => {
-//   angle += 0.05;
-//   const nearest = origami.nearest(event);
-//   if (!nearest.face || nearest.face.index === undefined) { return; }
-//   const graph = ear.graph( JSON.parse(JSON.stringify(origami)) );
-//   splitGraph(graph, nearest.face.index, event);
-// };
+svg.play = (event) => {
+  angle += 0.05;
+  const nearest = origami.nearest([mouseX, mouseY]);
+  if (!nearest.face || nearest.face.index === undefined) { return; }
+  const graph = ear.graph( JSON.parse(JSON.stringify(origami)) );
+  splitGraph(graph, nearest.face.index, { x:mouseX, y:mouseY });
+}
+
+svg.onMove = (event) => {
+  mouseX = event.x;
+  mouseY = event.y;
+};

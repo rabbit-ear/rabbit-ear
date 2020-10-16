@@ -4,55 +4,36 @@ import Diff from "./diff";
 import { edge_assignment_to_foldAngle } from "./keys";
 import remove from "./remove";
 import { make_vertices_to_edge_bidirectional } from "./make";
+import { intersect_face_with_line } from "./intersect";
 
-const intersect_face_with_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, origin) => {
-  // give us back the indices in the faces_vertices[face] array
-  const face_vertices_indices = faces_vertices[face]
+const update_vertices_vertices = ({ vertices_vertices, edges_vertices }, edge) => {
+  const a = edges_vertices[edge][0];
+  const b = edges_vertices[edge][1];
+  // todo: BIG TODO this does not preserve winding direction
+  vertices_vertices[a].push(b);
+  vertices_vertices[b].push(a);
+};
+
+/**
+ * the graph is not modified
+ * @param {object} FOLD graph
+ * @param {number[]} two incident vertices that make up this edge
+ * @param {number[]} two edge-adjacent faces to this new edge
+ */
+const make_edge = ({ vertices_coords }, vertices, faces) => {
+  // coords reversed for "vector", so index [0] comes last in subtract
+  const new_edge_coords = vertices
     .map(v => vertices_coords[v])
-    .map(coord => math.core.point_on_line(coord, vector, origin))
-    .map((collinear, i) => collinear ? i : undefined)
-    .filter(i => i !== undefined)
-    .slice(0, 2); // if more than 2, make it 2. (straight edge in convex poly) (if less, untouched)
-  // convert to a better return object
-  const vertices = face_vertices_indices.map(face_vertex_index => ({
-    vertex: faces_vertices[face][face_vertex_index],
-    face_vertex_index,
-  }));
-  
-  // if we have 2 unique intersection points we are done
-  if (vertices.length > 1) {
-    // if vertices are neighbors
-    // because convex polygon, if collinear along an edge we can exclude it.
-    const non_loop_distance = face_vertices_indices[1] - face_vertices_indices[0];
-    // include the case where vertices are neighbors across the end of the array
-    const index_distance = non_loop_distance < 0
-      ? non_loop_distance + faces_vertices[face].length
-      : non_loop_distance;
-    if (index_distance === 1) { return undefined; }
-    return { vertices, edges: [] };
-  }
-  const edges = faces_edges[face]
-    .map(edge => edges_vertices[edge]
-      .map(v => vertices_coords[v]))
-    .map(edge_coords => math.core.intersect_line_seg_exclude(
-      vector, origin, ...edge_coords
-    )).map((coords, face_edge_index) => ({
-      coords,
-      face_edge_index,
-      edge: faces_edges[face][face_edge_index],
-    }))
-    .filter(el => el.coords !== undefined)
-    .slice(0, 2); // make 2 if more than 2.
-  // in the case of one vertex and one edge return them both
-  if (vertices.length > 0 && edges.length > 0) {
-    return { vertices, edges };
-  }
-  // two edges only
-  if (edges.length > 1) {
-    return { vertices: [], edges };
-  }
-  // no intersection or invalid case like outside collinear along one vertex only.
-  return undefined;
+    .reverse();
+  return {
+    edges_vertices: [...vertices],
+    edges_foldAngle: 0,
+    edges_assignment: "U",
+    edges_length: math.core.distance2(...new_edge_coords),
+    edges_vector: math.core.subtract(...new_edge_coords),
+    // todo, unclear if these are ordered with respect to the vertices
+    edges_faces: [...faces],
+  };
 };
 
 const split_convex_face = (graph, face, vector, origin) => {
@@ -60,79 +41,43 @@ const split_convex_face = (graph, face, vector, origin) => {
   const intersect = intersect_face_with_line(graph, face, vector, origin);
   if (intersect === undefined) { return undefined; }
 
+  // vertices, from "intersect", at the moment only contains pre-existing
+  // vertices that were intersected (line directly crossed a vertex)
+  // but will soon be appended to contain exactly 2 vertices,
+  // by adding any new vertices made by edge intersections
   const vertices = intersect.vertices.map(el => el.vertex);
+  // begin modifying the graphy by splitting edges at any intersections,
+  // this will change edges' indices. edge_change keeps track of this.
   let edge_change = Array(graph.edges_vertices.length).fill(0);
-  for (let e = 0; e < intersect.edges.length; e += 1) {
-    const edge = intersect.edges[e].edge + edge_change[intersect.edges[e].edge]
-    const res = split_edge(graph, intersect.edges[e].coords, edge);
-    vertices.push(...res.vertices.new);
+  vertices.push(...intersect.edges.map((el, i, arr) => {
+    el.edge += edge_change[el.edge];
+    const result = split_edge(graph, el.coords, el.edge);
     // todo, apply directly to edge_change, get rid of "edge_change = "
-    edge_change = Diff.merge_maps(edge_change, res.edges.map);
-  }
+    edge_change = Diff.merge_maps(edge_change, result.edges.map);
+    return result.vertices.new[0];
+  }))
 
   // construct data for our new edge (vertices, faces, assignent, foldAngle, length)
-  const new_edge_coords = vertices.map(v => graph.vertices_coords[v])
-  const new_edges = [{
-    index: graph.edges_vertices.length,
-    vertices: [...vertices],
-    assignment: "U",
-    foldAngle: 0,
-    length: math.core.distance2(...new_edge_coords),
-    vector: math.core.subtract(new_edge_coords[1], new_edge_coords[0]),
-    // assignment: crease_assignment,
-    // foldAngle: edge_assignment_to_foldAngle(crease_assignment),
-    // todo, unclear if these are ordered with respect to the vertices
-    faces: [graph.faces_vertices.length, graph.faces_vertices.length + 1]
-  }];
+  const edge = graph.edges_vertices.length;
+  const faces = [0, 1].map(i => graph.faces_vertices.length + i);
 
-  // // construct data for our new geometry: 2 faces (faces_vertices, faces_edges)
-  // const new_faces = [{}, {}];
-  // new_faces[0].vertices = graph.faces_vertices[face]
-  //   .slice(new_face_v_indices[1])
-  //   .concat(graph.faces_vertices[face].slice(0, new_face_v_indices[0] + 1));
-  // new_faces[1].vertices = graph.faces_vertices[face]
-  //   .slice(new_face_v_indices[0], new_face_v_indices[1] + 1);
-  // new_faces[0].edges = graph.faces_edges[face]
-  //   .slice(new_face_v_indices[1])
-  //   .concat(graph.faces_edges[face].slice(0, new_face_v_indices[0]))
-  //   .concat([graph.edges_vertices.length]);
-  // new_faces[1].edges = graph.faces_edges[face]
-  //   .slice(new_face_v_indices[0], new_face_v_indices[1])
-  //   .concat([graph.edges_vertices.length]);
-  // new_faces[0].index = graph.faces_vertices.length;
-  // new_faces[1].index = graph.faces_vertices.length + 1;
+  const new_edge = make_edge(graph, vertices, faces);
+  // ignoring any keys that aren't a part of our graph, add the new edge
+  Object.keys(new_edge)
+    .filter(key => graph[key] !== undefined)
+    .forEach((key) => { graph[key][edge] = new_edge[key]; });
 
-  // vertices = intersect.edges.map((el, i, arr) => {
-  //   console.log("splitting edge", graph, el.i_edges, el.point);
-  //   const diff = split_edge(graph, el.point, el.i_edges);
-  //   arr.slice(i + 1)
-  //     .filter(ell => diff.edges.map[ell.i_edges] != null)
-  //     .forEach((ell) => { ell.i_edges += diff.edges.map[ell.i_edges]; });
-  // edge_change = Diff.merge_maps(edge_change, diff.edges.map);
-  // return diff.vertices.new[0].index;
-
-
-  // add 1 new edge and 2 new faces to our graph
-  const edges_count = graph.edges_vertices.length;
-  new_edges.forEach((edge, i) => Object.keys(edge)
-    .filter(suffix => suffix !== "index")
-    .filter(suffix => graph[`edges_${suffix}`] !== undefined)
-    .forEach((suffix) => { graph[`edges_${suffix}`][edges_count + i] = edge[suffix]; }));
   // update data that has been changed by edges
-  new_edges.forEach((edge) => {
-    const a = edge.vertices[0];
-    const b = edge.vertices[1];
-    // todo, it appears these are going in counter-clockwise order, but i don't know why
-    graph.vertices_vertices[a].push(b);
-    graph.vertices_vertices[b].push(a);
-  });
+  update_vertices_vertices(graph, edge);
+  // todo: anything else we need to update?
 
   // inside our face's faces_vertices, get index location of our new vertices
   // this helps us build both faces_vertices and faces_edges arrays
+  // update: now only to build faces_vertices. edges comes from a lookup table
   const new_face_v_indices = vertices
     .map(el => graph.faces_vertices[face].indexOf(el))
     .sort((a, b) => a - b);
-
+  // table to build faces_edges
   const vertices_to_edge = make_vertices_to_edge_bidirectional(graph);
 
   // construct data for our new geometry: 2 faces (faces_vertices, faces_edges)
@@ -208,7 +153,7 @@ const split_convex_face = (graph, face, vector, origin) => {
       }]
     },
     edges: {
-      new: new_edges,
+      new: [new_edge],
       map: edge_change
     }
   };
