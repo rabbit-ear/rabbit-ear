@@ -28,60 +28,109 @@ const update_vertices_vertices = ({ vertices_vertices }, vertex, incident_vertic
   });
 };
 
-// because Javascript, this is a pointer and modifies the master graph
-const update_faces_vertices = ({ faces_vertices }, faces, new_vertex) => faces
-  .map(i => faces_vertices[i])
-  .forEach(face => face
-    .map((fv, i, arr) => {
-      const nextI = (i + 1) % arr.length;
-      return (fv === incident_vertices[0]
-              && arr[nextI] === incident_vertices[1])
-              || (fv === incident_vertices[1]
-              && arr[nextI] === incident_vertices[0])
-        ? nextI : undefined;
-    }).filter(el => el !== undefined)
-    .sort((a, b) => b - a)
-    .forEach(i => face.splice(i, 0, new_vertex)));
-
-const update_faces_edges = ({ faces_edges }, faces, new_vertex) => faces
-  .map(i => graph.faces_edges[i])
-  .forEach((face) => {
-    // there should be 2 faces in this array, incident to the removed edge
-    // find the location of the removed edge in this face
-    const edgeIndex = face.indexOf(old_edge);
-    // the previous and next edge in this face, counter-clockwise
-    const prevEdge = face[(edgeIndex + face.length - 1) % face.length];
-    const nextEdge = face[(edgeIndex + 1) % face.length];
-    const vertices = [
-      [prevEdge, old_edge],
-      [old_edge, nextEdge],
-    ].map((pairs) => {
-      const verts = pairs.map(e => graph.edges_vertices[e]);
-      return verts[0][0] === verts[1][0] || verts[0][0] === verts[1][1]
-        ? verts[0][0] : verts[0][1];
-    }).reduce((a, b) => a.concat(b), []);
-    const edges = [
-      [vertices[0], new_vertex],
-      [new_vertex, vertices[1]],
-    ].map((verts) => {
-      const in0 = verts.map(v => graph.edges_vertices[new_edges[0]].indexOf(v) !== -1)
-        .reduce((a, b) => a && b, true);
-      const in1 = verts.map(v => graph.edges_vertices[new_edges[1]].indexOf(v) !== -1)
-        .reduce((a, b) => a && b, true);
-      if (in0) { return new_edges[0]; }
-      if (in1) { return new_edges[1]; }
-      throw new Error("something wrong with input graph's faces_edges construction");
-    });
-    if (edgeIndex === face.length - 1) {
-      // replacing the edge at the end of the array, we have to be careful
-      // to put the first at the end, the second at the beginning
-      face.splice(edgeIndex, 1, edges[0]);
-      face.unshift(edges[1]);
-    } else {
-      face.splice(edgeIndex, 1, ...edges);
+const update_vertices_faces = ({ vertices_faces, edges_faces }, vertex, incident_vertices, edge) => {
+  if (edges_faces !== undefined && edges_faces[edge] !== undefined) {
+    vertices_faces[vertex] = [...edges_faces[edge]];
+  }
+  else if (vertices_faces !== undefined) {
+    const vtx = incident_vertices;
+    const unique = [];
+    for (let i = 0; i < vertices_faces[vtx[0]].length; i += 1) {
+      for (let j = 0; j < vertices_faces[vtx[1]].length; j += 1) {
+        if (vertices_faces[vtx[0]][i] === vertices_faces[vtx[1]][j]) {
+          unique.push(vertices_faces[vtx[0]][i]);
+        }
+      }
     }
-    return edges;
-  });  
+    vertices_faces[vertex] = unique;
+    // const pair = incident_vertices.map(v => vertices_faces[v]);
+    // pair.map(vertex_faces => vertex_faces.map(face => ))
+  }
+};
+
+const find_edge_adjacent_faces =  ({edges_faces, faces_edges, faces_vertices}, edge) => {
+  if (edges_faces && edges_faces[edge]) {
+    return edges_faces[edge];
+  }
+  if (faces_edges) {
+    let faces = [];
+    for (let i = 0; i < faces_edges.length; i += 1) {
+      for (let e = 0; e < faces_edges[i].length; e += 1) {
+        if (faces_edges[i][e] === edge) { faces.push(i); }
+      }
+    }
+    return faces;
+  }
+  if (faces_vertices) {
+    // let faces = [];
+    // for (let i = 0; i < faces_vertices.length; i += 1) {
+    //   for (let v = 0; v < faces_vertices[i].length; v += 1) {
+    //   }
+    // }
+  }
+};
+
+// because Javascript, this is a pointer and modifies the master graph
+const update_faces_vertices = ({ faces_vertices }, faces, new_vertex, incident_vertices) => {
+  // exit if we don't even have faces_vertices
+  if (!faces_vertices) { return; }
+  faces
+    .map(i => faces_vertices[i])
+      .forEach(face => face
+        .map((fv, i, arr) => {
+          const nextI = (i + 1) % arr.length;
+          return (fv === incident_vertices[0]
+                  && arr[nextI] === incident_vertices[1])
+                  || (fv === incident_vertices[1]
+                  && arr[nextI] === incident_vertices[0])
+            ? nextI : undefined;
+        }).filter(el => el !== undefined)
+        .sort((a, b) => b - a)
+        .forEach(i => face.splice(i, 0, new_vertex)));
+};
+
+const update_faces_edges = ({ edges_vertices, faces_edges }, faces, new_vertex, new_edges, old_edge) => {
+  if (!faces_edges) { return; }
+  faces
+    .map(i => faces_edges[i])
+    .forEach((face) => {
+      // there should be 2 faces in this array, incident to the removed edge
+      // find the location of the removed edge in this face
+      const edgeIndex = face.indexOf(old_edge);
+      // the previous and next edge in this face, counter-clockwise
+      const prevEdge = face[(edgeIndex + face.length - 1) % face.length];
+      const nextEdge = face[(edgeIndex + 1) % face.length];
+      const vertices = [
+        [prevEdge, old_edge],
+        [old_edge, nextEdge],
+      ].map((pairs) => {
+        const verts = pairs.map(e => edges_vertices[e]);
+        return verts[0][0] === verts[1][0] || verts[0][0] === verts[1][1]
+          ? verts[0][0] : verts[0][1];
+      }).reduce((a, b) => a.concat(b), []);
+      const edges = [
+        [vertices[0], new_vertex],
+        [new_vertex, vertices[1]],
+      ].map((verts) => {
+        const in0 = verts.map(v => edges_vertices[new_edges[0]].indexOf(v) !== -1)
+          .reduce((a, b) => a && b, true);
+        const in1 = verts.map(v => edges_vertices[new_edges[1]].indexOf(v) !== -1)
+          .reduce((a, b) => a && b, true);
+        if (in0) { return new_edges[0]; }
+        if (in1) { return new_edges[1]; }
+        throw new Error("something wrong with input graph's faces_edges construction");
+      });
+      if (edgeIndex === face.length - 1) {
+        // replacing the edge at the end of the array, we have to be careful
+        // to put the first at the end, the second at the beginning
+        face.splice(edgeIndex, 1, edges[0]);
+        face.unshift(edges[1]);
+      } else {
+        face.splice(edgeIndex, 1, ...edges);
+      }
+      return edges;
+    });  
+};
 
 /**
  * this does not modify the graph. it builds 2 objects with keys
@@ -105,17 +154,37 @@ const split_edge_into_two = (graph, edge_index, new_vertex) => {
     if (graph.edges_faces && graph.edges_faces[edge_index] !== undefined) {
       edge.edges_faces = [...graph.edges_faces[edge_index]];
     }
-    // todo: this does not rebuild edges_edges
+    if (graph.edges_vector) {
+      const verts = edge.edges_vertices.map(v => graph.vertices_coords[v]);
+      edge.edges_vector = math.core.subtract(verts[1], verts[0]);
+    }
     if (graph.edges_length) {
       const verts = edge.edges_vertices.map(v => graph.vertices_coords[v]);
       edge.edges_length = math.core.distance2(...verts)
     }
+    // todo: this does not rebuild edges_edges
   });
   return new_edges;
 };
+
+const update_vertices_edges = (graph, vertices, edges, new_vertex, old_edge) => {
+  if (graph.vertices_edges) {
+    graph.vertices_edges[new_vertex] = [...edges];
+    vertices
+      .map(v => graph.vertices_edges[v].indexOf(old_edge))
+      .forEach((index, i) => {
+        graph.vertices_edges[vertices[i]][index] = edges[i];
+      });
+  }
+}
 /**
- * appends a vertex along an edge. causing a rebuild on all arrays
- * including edges and faces.
+ * appends a vertex along an edge. causing a rebuild on arrays:
+ * - vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
+ * - edges_vertices, edges_faces, edges_assignment,
+ * - edges_foldAngle, edges_vector
+ * - faces_vertices, faces_edges,
+ * and doesn't need to update:
+ * - faces_faces
  * requires edges_vertices to be defined
  */
 // const add_vertex_on_edge_and_rebuild = function (graph, x, y, old_edge) {
@@ -125,34 +194,34 @@ const add_vertex_on_edge_and_rebuild = function (graph, coords, old_edge) {
   const new_vertex = add_vertices(graph, { vertices_coords: [coords] })
     .shift();
   const incident_vertices = graph.edges_vertices[old_edge];
-  // vertices_vertices
-  if (graph.vertices_vertices !== undefined) {
-    update_vertices_vertices(graph, new_vertex, incident_vertices);
-  }
-  // vertices_faces
-  if (graph.edges_faces !== undefined && graph.edges_faces[old_edge] !== undefined) {
-    graph.vertices_faces[new_vertex] = [...graph.edges_faces[old_edge]];
-  }
-  // new edges
+  // new edges indices
   const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
   // create 2 new edges, add them to the graph
   split_edge_into_two(graph, old_edge, new_vertex)
     .forEach((edge, i) => Object.keys(edge)
       .forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
-  // todo: copy over edgeOrders. don't need to do this with faceOrders
-  // faces_vertices
-  if (graph.edges_faces && graph.edges_faces[old_edge] && graph.faces_vertices) {
-    update_faces_vertices(graph, graph.edges_faces[old_edge], new_vertex);
+  // vertices_vertices
+  if (graph.vertices_vertices !== undefined) {
+    update_vertices_vertices(graph, new_vertex, incident_vertices);
   }
-  // faces_edges
-  if (graph.edges_faces && graph.edges_faces[old_edge] && graph.faces_edges) {
-    update_faces_edges(graph, graph.edges_faces[old_edge], new_vertex);
+  // vertices_edges
+  update_vertices_edges(graph, incident_vertices, new_edges, new_vertex, old_edge)
+  // vertices_faces
+  update_vertices_faces(graph, new_vertex, incident_vertices, old_edge);
+  // todo: copy over edgeOrders. don't need to do this with faceOrders
+  // faces
+  const incident_faces = find_edge_adjacent_faces(graph, old_edge);
+  if (incident_faces) {
+  // faces_vertices
+    update_faces_vertices(graph, incident_faces, new_vertex, incident_vertices);
+    // faces_edges
+    update_faces_edges(graph, incident_faces, new_vertex, new_edges, old_edge);
   }
   // remove old data
-  const edge_map = remove(graph, EDGES, [old_edge]);
+  const edge_map = remove(graph, EDGES, [ old_edge ]);
   return {
     vertices: {
-      new: [{ index: new_vertex }],
+      new: [ new_vertex ],
     },
     edges: {
       map: edge_map,

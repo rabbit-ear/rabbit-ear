@@ -63,6 +63,7 @@ const populate = (graph) => {
   graph.faces_edges = faces.map(face => face.edges);
   graph.faces_angles = faces.map(face => face.angles);
   graph.vertices_faces = make_vertices_faces(graph);
+  graph.edges_faces = make_edges_faces(graph);
   graph.faces_faces = make_faces_faces(graph);
   graph.faces_matrix = make_faces_matrix(graph);
   return graph;

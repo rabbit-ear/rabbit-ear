@@ -5,8 +5,16 @@ const kite = {
   ],
   edges_assignment: ["B", "B", "B", "B", "B", "B", "V", "V", "F"],
 };
+// const kite = {
+//   vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+//   edges_vertices: [
+//     [0, 1], [1, 2], [2, 3], [3, 0]
+//   ],
+//   edges_assignment: ["B", "B", "B", "B"],
+// };
 
-let origami = ear.graph(kite);
+const origami = ear.graph(kite);
+window.origami = origami;
 origami.populate();
 svg.load(origami.svg());
 
@@ -14,9 +22,9 @@ let angle = 0;
 
 const splitGraph = (graph, face, origin) => {
   const line = ear.line([Math.cos(angle), Math.sin(angle)], [origin.x, origin.y]);
-  console.log(line.vector, line.origin)
+  // console.log(line.vector, line.origin)
   const result = ear.core.split_face(graph, face, line.vector, line.origin);
-  console.log("result", result);
+  // console.log("result", result);
   svg.removeChildren();
   svg.load(graph.svg());
 };
