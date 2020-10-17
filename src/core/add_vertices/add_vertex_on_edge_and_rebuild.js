@@ -1,7 +1,7 @@
 import math from "../../math";
 import remove from "../remove";
 import { clone } from "../javascript";
-import { find_edge_adjacent_faces } from "../find";
+import { find_adjacent_faces_to_edge } from "../find";
 import add_vertices from "./add_vertices";
 import {
   EDGES,
@@ -175,7 +175,7 @@ const add_vertex_on_edge_and_rebuild = function (graph, coords, old_edge) {
   // update graph components
   update_vertices_vertices(graph, new_vertex, incident_vertices);
   update_vertices_edges(graph, incident_vertices, old_edge, new_vertex, new_edges);
-  const incident_faces = find_edge_adjacent_faces(graph, old_edge, incident_vertices);
+  const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
   if (incident_faces) {
     update_vertices_faces(graph, new_vertex, incident_vertices);
     update_faces_vertices(graph, incident_faces, new_vertex, incident_vertices);

@@ -1,17 +1,17 @@
-const kite = {
-  vertices_coords: [[0, 0], [0.4142, 0], [1, 0], [1, 0.5857], [1, 1], [0, 1]],
-  edges_vertices: [
-    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [5, 1], [3, 5], [5, 2]
-  ],
-  edges_assignment: ["B", "B", "B", "B", "B", "B", "V", "V", "F"],
-};
 // const kite = {
-//   vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+//   vertices_coords: [[0, 0], [0.4142, 0], [1, 0], [1, 0.5857], [1, 1], [0, 1]],
 //   edges_vertices: [
-//     [0, 1], [1, 2], [2, 3], [3, 0]
+//     [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [5, 1], [3, 5], [5, 2]
 //   ],
-//   edges_assignment: ["B", "B", "B", "B"],
+//   edges_assignment: ["B", "B", "B", "B", "B", "B", "V", "V", "F"],
 // };
+const kite = {
+  vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+  edges_vertices: [
+    [0, 1], [1, 2], [2, 3], [3, 0]
+  ],
+  edges_assignment: ["B", "B", "B", "B"],
+};
 
 const origami = ear.graph(kite);
 window.origami = origami;

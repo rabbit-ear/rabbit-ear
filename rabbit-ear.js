@@ -4015,10 +4015,11 @@
     return new_indices;
   };
 
-  const find_edge_adjacent_faces = ({ vertices_faces, edges_faces, faces_edges, faces_vertices }, edge, vertices) => {
+  const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
     if (edges_faces && edges_faces[edge]) {
       return edges_faces[edge];
     }
+    const vertices = edges_vertices[edge];
     if (vertices_faces !== undefined) {
       const faces = [];
       for (let i = 0; i < vertices_faces[vertices[0]].length; i += 1) {
@@ -4038,6 +4039,11 @@
         }
       }
       return faces;
+    }
+  };
+  const find_adjacent_faces_to_face = ({ vertices_faces, edges_faces, faces_edges, faces_vertices, faces_faces }, face) => {
+    if (faces_faces && faces_faces[face]) {
+      return faces_faces[face];
     }
   };
 
@@ -4151,7 +4157,7 @@
         .forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
     update_vertices_vertices(graph, new_vertex, incident_vertices);
     update_vertices_edges(graph, incident_vertices, old_edge, new_vertex, new_edges);
-    const incident_faces = find_edge_adjacent_faces(graph, old_edge, incident_vertices);
+    const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
     if (incident_faces) {
       update_vertices_faces(graph, new_vertex, incident_vertices);
       update_faces_vertices(graph, incident_faces, new_vertex, incident_vertices);
@@ -4231,16 +4237,18 @@
       edges_faces: [...faces],
     };
   };
-  const split_array_into_two = (array, indices) => [
-    array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
-    array.slice(indices[0], indices[1] + 1)
-  ];
+  const split_circular_array = (array, indices) => {
+    indices.sort((a, b) => a - b);
+    return [
+      array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+      array.slice(indices[0], indices[1] + 1)
+    ];
+  };
   const make_faces = ({ edges_vertices, faces_vertices }, face, vertices) => {
     const vertices_to_edge = make_vertices_to_edge_bidirectional({ edges_vertices });
     const indices = vertices
-      .map(el => faces_vertices[face].indexOf(el))
-      .sort((a, b) => a - b);
-    return split_array_into_two(faces_vertices[face], indices)
+      .map(el => faces_vertices[face].indexOf(el));
+    return split_circular_array(faces_vertices[face], indices)
       .map(face_vertices => ({
         faces_vertices: face_vertices,
         faces_edges: face_vertices
@@ -4270,39 +4278,20 @@
     new_faces.forEach((new_face, i) => Object.keys(new_face)
       .filter(key => graph[key] !== undefined)
       .forEach((key) => { graph[key][faces[i]] = new_face[key]; }));
-    const v_f_map = {};
-    graph.faces_vertices
-      .map((f, i) => ({ f, i }))
-      .filter(el => el.i === faces[0] || el.i === faces[1])
-      .forEach(el => el.f.forEach((v) => {
-        if (v_f_map[v] == null) { v_f_map[v] = []; }
-        v_f_map[v].push(el.i);
-      }));
-    graph.vertices_faces
-      .forEach((vf, i) => {
-        let indexOf = vf.indexOf(face);
-        while (indexOf !== -1) {
-          graph.vertices_faces[i].splice(indexOf, 1, ...(v_f_map[i]));
-          indexOf = vf.indexOf(face);
-        }
-      });
-    const e_f_map = {};
-    graph.faces_edges
-      .map((f, i) => ({ f, i }))
-      .filter(el => el.i === faces[0] || el.i === faces[1])
-      .forEach(el => el.f.forEach((e) => {
-        if (e_f_map[e] == null) { e_f_map[e] = []; }
-        e_f_map[e].push(el.i);
-      }));
-    graph.edges_faces
-      .forEach((ef, i) => {
-        let indexOf = ef.indexOf(face);
-        while (indexOf !== -1) {
-          graph.edges_faces[i].splice(indexOf, 1, ...(e_f_map[i]));
-          indexOf = ef.indexOf(face);
-        }
-      });
+    const incident_faces = find_adjacent_faces_to_face(graph, face)
+      .concat(faces);
+    const incident_face_graph = {
+      faces_vertices: [],
+      faces_edges: [],
+    };
+    incident_faces.forEach(i => {
+      incident_face_graph.faces_vertices[i] = graph.faces_vertices[i];
+      incident_face_graph.faces_edges[i] = graph.faces_edges[i];
+    });
     const faces_map = remove_geometry_indices(graph, "faces", [face]);
+    graph.vertices_faces = make_vertices_faces(graph);
+    graph.edges_faces = make_edges_faces(graph);
+    graph.faces_faces = make_faces_faces(graph);
     return {
       faces: {
         map: faces_map,
