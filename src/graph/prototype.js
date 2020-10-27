@@ -142,7 +142,7 @@ GraphProto.prototype.nearest = function () {
 /**
  * transformations
  */
-["translate", "scale", "matrix"].forEach(key => {
+["translate", "scale", "rotateZ", "matrix"].forEach(key => {
   GraphProto.prototype[key] = function () {
     return transform[key](this, ...arguments);
     // this.changed.update(this.translate);

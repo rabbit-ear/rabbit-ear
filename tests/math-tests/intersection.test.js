@@ -49,7 +49,7 @@ test("core polygon intersection lines", () => {
   const segmentA = [...point];
   const segmentB = [point[0] + 4, point[1] + 4];
 
-  expect(ear.math.convex_poly_line(poly, vector, point).length)
+  expect(ear.math.convex_poly_line_exclusive(poly, vector, point).length)
     .toBe(2);
   expect(ear.math.convex_poly_ray_inclusive(poly, vector, point).length)
     .toBe(1);
@@ -68,8 +68,10 @@ test("core polygon intersection lines, collinear to edge", () => {
   const segmentA = [0, 0];
   const segmentB = [1, 0];
 
-  expect(ear.math.convex_poly_line(poly, vector, point).length)
+  expect(ear.math.convex_poly_line_inclusive(poly, vector, point).length)
     .toBe(2);
+  expect(ear.math.convex_poly_line_exclusive(poly, vector, point))
+    .toBe(undefined);
   expect(ear.math.convex_poly_ray_inclusive(poly, vector, point).length)
     .toBe(2);
   expect(ear.math.convex_poly_ray_exclusive(poly, vector, point))
@@ -87,8 +89,10 @@ test("core polygon intersection lines, collinear to vertex", () => {
   const segmentA = [0, 0.866];
   const segmentB = [1, 0.866];
 
-  expect(ear.math.convex_poly_line(poly, vector, point).length)
+  expect(ear.math.convex_poly_line_inclusive(poly, vector, point).length)
     .toBe(1);
+  expect(ear.math.convex_poly_line_exclusive(poly, vector, point))
+    .toBe(undefined);
   expect(ear.math.convex_poly_ray_inclusive(poly, vector, point).length)
     .toBe(1);
   expect(ear.math.convex_poly_ray_exclusive(poly, vector, point))
@@ -99,6 +103,27 @@ test("core polygon intersection lines, collinear to vertex", () => {
     .toBe(undefined);
 });
 
+test("core polygon intersection lines, collinear to polygon vertices", () => {
+  const lineSeg = ear.polygon.regularPolygon(4).intersectLine(ear.line([1, 0]));
+  expect(Math.abs(lineSeg[0][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(lineSeg[0][1]).toBeCloseTo(0);
+  expect(Math.abs(lineSeg[1][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(lineSeg[1][1]).toBeCloseTo(0);
+
+  const raySeg1 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0]));
+  expect(raySeg1.length).toBe(1);
+  expect(Math.abs(raySeg1[0][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(raySeg1[0][1]).toBeCloseTo(0);
+  const raySeg2 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0], [-10, 0]));
+  expect(raySeg2.length).toBe(2);
+  expect(Math.abs(raySeg2[0][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(raySeg2[0][1]).toBeCloseTo(0);
+  expect(Math.abs(raySeg2[1][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(raySeg2[1][1]).toBeCloseTo(0);
+  const raySeg3 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0], [10, 0]));
+  expect(raySeg3).toBe(undefined);
+});
+
 test("core polygon intersection lines, no intersections", () => {
   const poly = [[0,0], [1,0], [0.5, 0.866]];
   const vector = [1, 0];
@@ -106,7 +131,7 @@ test("core polygon intersection lines, no intersections", () => {
   const segmentA = [0, 10];
   const segmentB = [1, 10];
 
-  expect(ear.math.convex_poly_line(poly, vector, point))
+  expect(ear.math.convex_poly_line_exclusive(poly, vector, point))
     .toBe(undefined);
   expect(ear.math.convex_poly_ray_inclusive(poly, vector, point))
     .toBe(undefined);

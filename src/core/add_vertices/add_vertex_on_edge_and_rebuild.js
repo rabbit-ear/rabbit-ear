@@ -164,36 +164,34 @@ const split_edge_into_two = (graph, edge_index, new_vertex) => {
 const add_vertex_on_edge_and_rebuild = function (graph, coords, old_edge) {
   if (graph.edges_vertices.length < old_edge) { return undefined; }
   // only add 1 vertex. shift the index out of the array
-  const new_vertex = add_vertices(graph, { vertices_coords: [coords] })
+  const vertex = add_vertices(graph, { vertices_coords: [coords] })
     .shift();
   const incident_vertices = graph.edges_vertices[old_edge];
   const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
   // create 2 new edges, add them to the graph
-  split_edge_into_two(graph, old_edge, new_vertex)
+  split_edge_into_two(graph, old_edge, vertex)
     .forEach((edge, i) => Object.keys(edge)
       .forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
   // update graph components
-  update_vertices_vertices(graph, new_vertex, incident_vertices);
-  update_vertices_edges(graph, incident_vertices, old_edge, new_vertex, new_edges);
+  update_vertices_vertices(graph, vertex, incident_vertices);
+  update_vertices_edges(graph, incident_vertices, old_edge, vertex, new_edges);
   const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
   if (incident_faces) {
-    update_vertices_faces(graph, new_vertex, incident_vertices);
-    update_faces_vertices(graph, incident_faces, new_vertex, incident_vertices);
-    update_faces_edges(graph, incident_faces, new_vertex, new_edges, old_edge);
+    update_vertices_faces(graph, vertex, incident_vertices);
+    update_faces_vertices(graph, incident_faces, vertex, incident_vertices);
+    update_faces_edges(graph, incident_faces, vertex, new_edges, old_edge);
   }
   // todo: copy over edgeOrders. don't need to do this with faceOrders
   // remove old data
   const edge_map = remove(graph, EDGES, [ old_edge ]);
   return {
-    vertices: {
-      new: [ new_vertex ],
-    },
+    vertex,
     edges: {
       map: edge_map,
-      replace: [{
+      replace: {
         old: old_edge,
         new: new_edges,
-      }],
+      },
     },
   };
 };

@@ -19,22 +19,12 @@ test(".segments", () => {
   expect(polygon.sides[0]).toBe(polygon.segments()[0]);
 });
 
-test("polygon", () => {
-  // equalTest(
-  //   ear.polygon.regularPolygon(4).clipLine(ear.line(0.5, 0.5, 6, -11)),
-  //   ear.convexPolygon.regularPolygon(4).clipLine(ear.line(0.5, 0.5, 6, -11))
-  // );
-  const segment = ear.polygon.regularPolygon(4).intersectLine(ear.line(1, 0));
-  expect(Math.abs(segment[0][0])).toBeCloseTo(Math.sqrt(2)/2);
-  expect(segment[0][1]).toBeCloseTo(0);
-  expect(Math.abs(segment[1][0])).toBeCloseTo(Math.sqrt(2)/2);
-  expect(segment[1][1]).toBeCloseTo(0);
-
-  // equalTest(true, ear.convexPolygon([1, 0], [0, 1.87], [-1, 0]).sides);
-  // equalTest(true, ear.convexPolygon([1, 0], [0, 1.87], [-1, 0]).split);
-  // equalTest(true, ear.convexPolygon([1, 0], [0, 1.87], [-1, 0]).overlaps);
-  // equalTest(true, ear.convexPolygon([1, 0], [0, 1.87], [-1, 0]).scale);
-  // equalTest(true, ear.convexPolygon([1, 0], [0, 1.87], [-1, 0]).rotate);
+test("intersect", () => {
+  const segment = ear.polygon.regularPolygon(4).intersectLine(ear.line([1, 1]));
+  expect(Math.abs(segment[0][0])).toBeCloseTo(Math.sqrt(2)/4);
+  expect(Math.abs(segment[0][1])).toBeCloseTo(Math.sqrt(2)/4);
+  expect(Math.abs(segment[1][0])).toBeCloseTo(Math.sqrt(2)/4);
+  expect(Math.abs(segment[1][1])).toBeCloseTo(Math.sqrt(2)/4);
 });
 
 

@@ -493,7 +493,7 @@ export const get_face_face_shared_vertices = (face_a_vertices, face_b_vertices) 
 // except for the first level. the root level has no reference to the
 // parent face, or the edge_vertices shared between them
 // root_face will become the root node
-export const make_face_walk_tree = ({ faces_vertices, faces_faces }, root_face = 0) => {
+export const make_face_spanning_tree = ({ faces_vertices, faces_faces }, root_face = 0) => {
   if (!faces_faces) {
     faces_faces = make_faces_faces({ faces_vertices });
   }
@@ -551,7 +551,7 @@ export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldA
   }
   const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
   const faces_matrix = faces_vertices.map(() => math.core.identity3x4);
-  make_face_walk_tree({ faces_vertices, faces_faces }, root_face)
+  make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
     .slice(1) // remove the first level, it has no parent face
     .forEach(level => level
       .forEach((entry) => {
@@ -572,6 +572,10 @@ export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldA
   return faces_matrix;
 };
 
+export const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertices
+  .map(fv => fv.map(v => vertices_coords[v]))
+  .map(coords => math.core.centroid(coords));
+
 /**
  * this face coloring skips marks joining the two faces separated by it.
  * it relates directly to if a face is flipped or not (determinant > 0)
@@ -590,7 +594,7 @@ export const make_faces_coloring_from_matrix = ({ faces_matrix }) => faces_matri
 export const make_faces_coloring = function ({ faces_vertices, faces_faces }, root_face = 0) {
   const coloring = [];
   coloring[root_face] = true;
-  make_face_walk_tree({ faces_vertices, faces_faces }, root_face)
+  make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
     .forEach((level, i) => level
       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
   return coloring;

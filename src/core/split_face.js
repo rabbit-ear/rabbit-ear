@@ -90,17 +90,33 @@ const split_convex_face = (graph, face, vector, origin) => {
   const vertices = intersect.vertices.map(el => el.vertex);
   // begin modifying the graphy by splitting edges at any intersections,
   // this will change edges' indices. edge_change keeps track of this.
+  // let edge_change = Array(graph.edges_vertices.length).fill(0);
+  // vertices.push(...intersect.edges.map((el, i, arr) => {
+  //   el.edge += edge_change[el.edge];
+  //   const result = split_edge(graph, el.coords, el.edge);
+  //   // todo, apply directly to edge_change, get rid of "edge_change = "
+  //   edge_change = Diff.merge_maps(edge_change, result.edges.map);
+  //   return result.vertex;
+  // }));
   let edge_change = Array(graph.edges_vertices.length).fill(0);
-  vertices.push(...intersect.edges.map((el, i, arr) => {
+  const results = [];
+  intersect.edges.map((el, i, arr) => {
     el.edge += edge_change[el.edge];
     const result = split_edge(graph, el.coords, el.edge);
-    // todo, apply directly to edge_change, get rid of "edge_change = "
+    result.edges.replace.old -= edge_change[result.edges.replace.old];
+    [0, 1].forEach(i => {
+      result.edges.replace.new[i] += result.edges.map[result.edges.replace.new[i]];
+    });
+    results.forEach(prev => [0, 1].forEach((_, i) => {
+      prev.edges.replace.new[i] += result.edges.map[result.edges.replace.new[i]];
+    }));
     edge_change = Diff.merge_maps(edge_change, result.edges.map);
-    return result.vertices.new[0];
-  }));
+    results.push(result);
+  });
+  vertices.push(...results.map(result => result.vertex));
   // the indices of our new components
   const edge = graph.edges_vertices.length;
-  const faces = [0, 1].map(i => graph.faces_vertices.length + i);
+  const faces = [0, 1].map(i => graph.faces_vertices.length + i - 1);
   // construct data for our new edge (vertices, faces, assignent, foldAngle...)
   const new_edge = make_edge(graph, vertices, faces);
   // ignoring any keys that aren't a part of our graph, add the new edge
@@ -112,12 +128,13 @@ const split_convex_face = (graph, face, vector, origin) => {
   update_vertices_vertices(graph, edge);
   // construct data for our new geometry: 2 faces (faces_vertices, faces_edges)
   const new_faces = make_faces(graph, face, vertices);
+  // remove our face before we add any new faces to the graph so that the
+  // face map reflects the state of the graph before faces were added
+  const faces_map = remove(graph, "faces", [face]);
   // ignoring any keys that aren't a part of our graph, add the new faces
   new_faces.forEach((new_face, i) => Object.keys(new_face)
     .filter(key => graph[key] !== undefined)
     .forEach((key) => { graph[key][faces[i]] = new_face[key]; }));
-
-  const faces_map = remove(graph, "faces", [face]);
 
   graph.vertices_faces = make_vertices_faces(graph);
   graph.edges_faces = make_edges_faces(graph);
@@ -221,16 +238,20 @@ const split_convex_face = (graph, face, vector, origin) => {
 
   // return a diff of the geometry
   return {
+    vertices,
     faces: {
       map: faces_map,
       replace: [{
         old: face,
-        new: faces
+        new: faces,
       }]
     },
     edges: {
       new: [edge],
-      map: edge_change
+      map: edge_change,
+      replace: results
+        .map(res => res.edges.replace)
+        .reduce((a, b) => a.concat(b), []),
     }
   };
 };

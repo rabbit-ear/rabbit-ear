@@ -1,18 +1,78 @@
 const ear = require("../../rabbit-ear");
 
+test("collinear core, line", () => {
+  const rect = ear.rect(1, 1);
+  const lineHoriz1 = [[1, 0], [0.5, 0]];
+  const lineHoriz2 = [[1, 0], [0.5, 1]];
+  const lineVert1 = [[0, 1], [0, 0.5]];
+  const lineVert2 = [[0, 1], [1, 0.5]];
+  const result1 = ear.math.clip_line_in_convex_poly_inclusive(rect, ...lineHoriz1);
+  const result2 = ear.math.clip_line_in_convex_poly_inclusive(rect, ...lineHoriz2);
+  const result3 = ear.math.clip_line_in_convex_poly_inclusive(rect, ...lineVert1);
+  const result4 = ear.math.clip_line_in_convex_poly_inclusive(rect, ...lineVert2);
+  const result5 = ear.math.clip_line_in_convex_poly_exclusive(rect, ...lineHoriz1);
+  const result6 = ear.math.clip_line_in_convex_poly_exclusive(rect, ...lineHoriz2);
+  const result7 = ear.math.clip_line_in_convex_poly_exclusive(rect, ...lineVert1);
+  const result8 = ear.math.clip_line_in_convex_poly_exclusive(rect, ...lineVert2);
+});
+test("collinear core, ray", () => {
+  const rect = ear.rect(1, 1);
+  const rayHoriz1 = [[1, 0], [0.5, 0]];
+  const rayHoriz2 = [[1, 0], [0.5, 1]];
+  const rayVert1 = [[0, 1], [0, 0.5]];
+  const rayVert2 = [[0, 1], [1, 0.5]];
+  const result1 = ear.math.clip_ray_in_convex_poly_inclusive(rect, ...rayHoriz1);
+  const result2 = ear.math.clip_ray_in_convex_poly_inclusive(rect, ...rayHoriz2);
+  const result3 = ear.math.clip_ray_in_convex_poly_inclusive(rect, ...rayVert1);
+  const result4 = ear.math.clip_ray_in_convex_poly_inclusive(rect, ...rayVert2);
+  const result5 = ear.math.clip_ray_in_convex_poly_exclusive(rect, ...rayHoriz1);
+  const result6 = ear.math.clip_ray_in_convex_poly_exclusive(rect, ...rayHoriz2);
+  const result7 = ear.math.clip_ray_in_convex_poly_exclusive(rect, ...rayVert1);
+  const result8 = ear.math.clip_ray_in_convex_poly_exclusive(rect, ...rayVert2);
+});
+test("collinear core, segment", () => {
+  const rect = ear.rect(1, 1);
+  const segHoriz1 = [[1, 0], [0.5, 0]];
+  const segHoriz2 = [[1, 0], [0.5, 1]];
+  const segVert1 = [[0, 1], [0, 0.5]];
+  const segVert2 = [[0, 1], [1, 0.5]];
+  const result1 = ear.math.clip_segment_in_convex_poly_exclusive(rect, ...segHoriz1);
+  const result2 = ear.math.clip_segment_in_convex_poly_exclusive(rect, ...segHoriz2);
+  const result3 = ear.math.clip_segment_in_convex_poly_exclusive(rect, ...segVert1);
+  const result4 = ear.math.clip_segment_in_convex_poly_exclusive(rect, ...segVert2);
+});
+
+
 test("math types, clip line in rect", () => {
   const rect = ear.rect(-1, -1, 2, 2);
-  const result1 = rect.clipLine(ear.line(1, 1));
+  expect(rect.clipLine(ear.line(1, 1))).not.toBe(undefined);
+  expect(rect.clipLine(ear.line([1, 0], [0, 1]))).toBe(undefined);
+  expect(rect.clipLine(ear.line(1, -1))).not.toBe(undefined);
+
+  // same as above, but inclusive test.
+  const result1 = ear.math.clip_line_in_convex_poly_inclusive(
+    rect,
+    ear.line(1, 1).vector,
+    ear.line(1, 1).origin,
+  );
   expect(result1[0][0]).toBe(-1);
   expect(result1[0][1]).toBe(-1);
   expect(result1[1][0]).toBe(1);
   expect(result1[1][1]).toBe(1);
-  const result2 = rect.clipLine(ear.line([1, 0], [0, 1]));
+  const result2 = ear.math.clip_line_in_convex_poly_inclusive(
+    rect,
+    ear.line([1, 0], [0, 1]).vector,
+    ear.line([1, 0], [0, 1]).origin,
+  );
   expect(result2[0][0]).toBe(1);
   expect(result2[0][1]).toBe(1);
   expect(result2[1][0]).toBe(-1);
   expect(result2[1][1]).toBe(1);
-  const result3 = rect.clipLine(ear.line(1, -1));
+  const result3 = ear.math.clip_line_in_convex_poly_inclusive(
+    rect,
+    ear.line(1, -1).vector,
+    ear.line(1, -1).origin,
+  );
   expect(result3[0][0]).toBe(1);
   expect(result3[0][1]).toBe(-1);
   expect(result3[1][0]).toBe(-1);
@@ -36,7 +96,7 @@ test("math types, clip ray in rect", () => {
   expect(result3[1][1]).toBe(-1);
 });
 
-test("math types, clip segment in segment", () => {
+test("math types, clip segment in rect", () => {
   const rect = ear.rect(-1, -1, 2, 2);
   const result1 = rect.clipSegment(ear.segment([0, 0], [1, 1]));
   expect(result1[0][0]).toBe(0);
@@ -65,7 +125,7 @@ test("core clip", () => {
   const poly = [...ear.rect(-1, -1, 2, 2)];
   const vector = [1, 1];
   const origin = [0, 0];
-  [ ear.math.clip_line_in_convex_poly(poly, vector, origin),
+  [ ear.math.clip_line_in_convex_poly_inclusive(poly, vector, origin),
     ear.math.clip_ray_in_convex_poly_exclusive(poly, vector, origin),
     ear.math.clip_ray_in_convex_poly_inclusive(poly, vector, origin),
     ear.math.clip_segment_in_convex_poly_exclusive(poly, vector, origin),
@@ -79,7 +139,7 @@ test("core no clip", () => {
   const origin = [10, 0];
   const seg0 = [10, 0];
   const seg1 = [0, 10];
-  [ ear.math.clip_line_in_convex_poly(poly, vector, origin),
+  [ ear.math.clip_line_in_convex_poly_inclusive(poly, vector, origin),
     ear.math.clip_ray_in_convex_poly_exclusive(poly, vector, origin),
     ear.math.clip_ray_in_convex_poly_inclusive(poly, vector, origin),
     ear.math.clip_segment_in_convex_poly_exclusive(poly, seg0, seg1),
@@ -110,8 +170,8 @@ test("core clip segments exclusive", () => {
   // inside and collinear
   const seg4 = [[-1, 0], [1, 0]];
   const result4 = ear.math.clip_segment_in_convex_poly_exclusive(poly, ...seg4);
-  expect(ear.math.equivalent(seg4[1], result4[0])).toBe(true);
-  expect(ear.math.equivalent(seg4[0], result4[1])).toBe(true);
+  expect(ear.math.equivalent(seg4[0], result4[0])).toBe(true);
+  expect(ear.math.equivalent(seg4[1], result4[1])).toBe(true);
 });
 
 test("core clip segments inclusive", () => {
@@ -137,6 +197,6 @@ test("core clip segments inclusive", () => {
   // inside and collinear
   const seg4 = [[-1, 0], [1, 0]];
   const result4 = ear.math.clip_segment_in_convex_poly_inclusive(poly, ...seg4);
-  expect(ear.math.equivalent(seg4[1], result4[0])).toBe(true);
-  expect(ear.math.equivalent(seg4[0], result4[1])).toBe(true);
+  expect(ear.math.equivalent(seg4[0], result4[0])).toBe(true);
+  expect(ear.math.equivalent(seg4[1], result4[1])).toBe(true);
 });

@@ -19,6 +19,7 @@ import graph from "./graph";
 import planarGraph from "./planar_graph";
 import cp from "./cp";
 import axiom from "./core/axioms";
+import transform from "./core/affine";
 
 // core methods, these need to be added individually
 import * as keys from "./core/keys";
@@ -57,6 +58,7 @@ const core = Object.assign(Object.create(null), {
   add_edges,
   split_face,
   fold_through,
+  transform,
 },
   keys,
   make,
