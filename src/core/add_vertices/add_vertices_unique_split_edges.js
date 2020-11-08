@@ -1,5 +1,5 @@
 import math from "../../math";
-import add_vertices_unique from "./add_vertices_unique";
+import add_vertices from "./add_vertices";
 import diff from "../diff";
 import { transpose_graph_array_at_index } from "../keys";
 import { clone } from "../javascript";
@@ -10,7 +10,7 @@ import remove from "../remove";
  * @returns {array} index of vertex in new vertices_coords array. matches array size of source vertices.
  */
 const add_vertices_unique_split_edges = (graph, { vertices_coords }) => {
-  const new_indices = add_vertices_unique(graph, { vertices_coords });
+  const new_indices = add_vertices(graph, { vertices_coords });
   // determine if any vertex lies collinear along an edge
   // if so, we must split existing edge at the vertex point
   const edges = graph.edges_vertices

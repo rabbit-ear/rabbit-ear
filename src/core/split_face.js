@@ -1,5 +1,5 @@
 import math from "../math";
-import split_edge from "./add_vertices/add_vertex_on_edge_and_rebuild";
+import add_vertex_on_edge from "./add_vertices/add_vertex_on_edge";
 import Diff from "./diff";
 import { edge_assignment_to_foldAngle } from "./keys";
 import remove from "./remove";
@@ -93,7 +93,7 @@ const split_convex_face = (graph, face, vector, origin) => {
   // let edge_change = Array(graph.edges_vertices.length).fill(0);
   // vertices.push(...intersect.edges.map((el, i, arr) => {
   //   el.edge += edge_change[el.edge];
-  //   const result = split_edge(graph, el.coords, el.edge);
+  //   const result = add_vertex_on_edge(graph, el.coords, el.edge);
   //   // todo, apply directly to edge_change, get rid of "edge_change = "
   //   edge_change = Diff.merge_maps(edge_change, result.edges.map);
   //   return result.vertex;
@@ -102,7 +102,7 @@ const split_convex_face = (graph, face, vector, origin) => {
   const results = [];
   intersect.edges.map((el, i, arr) => {
     el.edge += edge_change[el.edge];
-    const result = split_edge(graph, el.coords, el.edge);
+    const result = add_vertex_on_edge(graph, el.coords, el.edge);
     result.edges.replace.old -= edge_change[result.edges.replace.old];
     [0, 1].forEach(i => {
       result.edges.replace.new[i] += result.edges.map[result.edges.replace.new[i]];
@@ -276,7 +276,7 @@ export default split_convex_face;
 //   if (edges_intersections.length === 2) {
 //     new_v_indices = edges_intersections.map((el, i, arr) => {
 //       console.log("splitting edge", graph, el.i_edges, el.point);
-//       const diff = split_edge(graph, el.point, el.i_edges);
+//       const diff = add_vertex_on_edge(graph, el.point, el.i_edges);
 //       arr.slice(i + 1)
 //         .filter(ell => diff.edges.map[ell.i_edges] != null)
 //         .forEach((ell) => { ell.i_edges += diff.edges.map[ell.i_edges]; });
@@ -288,7 +288,7 @@ export default split_convex_face;
 //     const a = vertices_intersections.map(el => el.i_vertices);
 //     const b = edges_intersections.map((el, i, arr) => {
 //       console.log("splitting edge", graph, el.point, el.i_edges);
-//       const diff = split_edge(graph, el.i_edges, el.point);
+//       const diff = add_vertex_on_edge(graph, el.i_edges, el.point);
 //       arr.slice(i + 1)
 //         .filter(ell => diff.edges.map[ell.i_edges] != null)
 //         .forEach((ell) => { ell.i_edges += diff.edges.map[ell.i_edges]; });

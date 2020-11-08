@@ -202,6 +202,12 @@ var algebra = /*#__PURE__*/Object.freeze({
   parallel: parallel
 });
 
+const ray_limiter = dist => (dist < -EPSILON ? 0 : dist);
+const segment_limiter = (dist) => {
+  if (dist < -EPSILON) { return 0; }
+  if (dist > 1 + EPSILON) { return 1; }
+  return dist;
+};
 const smallest_comparison_search = (obj, array, compare_func) => {
   const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
   let index;
@@ -222,19 +228,15 @@ const nearest_point = (point, array_of_points) => {
   const index = smallest_comparison_search(point, array_of_points, distance);
   return index === undefined ? undefined : array_of_points[index];
 };
-const nearest_point_on_line = (lineVec, linePoint, point, limiterFunc, epsilon = EPSILON) => {
-  const magSquared = (lineVec[0] ** 2) + (lineVec[1] ** 2);
-  const vectorToPoint = [0, 1].map((_, i) => point[i] - linePoint[i]);
-  const dot = [0, 1].map((_, i) => lineVec[i] * vectorToPoint[i])
-    .reduce((a, b) => a + b, 0);
-  const dist = dot / magSquared;
+const nearest_point_on_line = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
+  origin = resize(vector.length, origin);
+  point = resize(vector.length, point);
+  const magSquared = mag_squared(vector);
+  const vectorToPoint = subtract(point, origin);
+  const dotProd = dot(vector, vectorToPoint);
+  const dist = dotProd / magSquared;
   const d = limiterFunc(dist, epsilon);
-  return [0, 1].map((_, i) => linePoint[i] + lineVec[i] * d);
-};
-const segment_limiter = (dist) => {
-  if (dist < -EPSILON) { return 0; }
-  if (dist > 1 + EPSILON) { return 1; }
-  return dist;
+  return add(origin, scale(vector, d))
 };
 const nearest_point_on_polygon = (polygon, point) => {
   const v = polygon
@@ -252,10 +254,12 @@ const nearest_point_on_ellipse = () => false;
 
 var nearest = /*#__PURE__*/Object.freeze({
   __proto__: null,
+  ray_limiter: ray_limiter,
+  segment_limiter: segment_limiter,
+  smallest_comparison_search: smallest_comparison_search,
   nearest_point2: nearest_point2,
   nearest_point: nearest_point,
   nearest_point_on_line: nearest_point_on_line,
-  segment_limiter: segment_limiter,
   nearest_point_on_polygon: nearest_point_on_polygon,
   nearest_point_on_circle: nearest_point_on_circle,
   nearest_point_on_ellipse: nearest_point_on_ellipse
@@ -933,7 +937,8 @@ const recurseSkeleton = (points, lines, bisectors) => {
       arr[(i + 1) % arr.length].origin,
       exclude_r,
       exclude_r));
-  const projections = lines.map((line, i) => nearest_point_on_line(line.vector, line.origin, intersects[i], a => a));
+  const projections = lines.map((line, i) => nearest_point_on_line(
+    line.vector, line.origin, intersects[i], a => a));
   if (points.length === 3) {
     return points.map(p => ({ type:"skeleton", points: [p, intersects[0]] }))
       .concat([{ type:"kawasaki", points: [projections[0], intersects[0]] }]);
@@ -1781,7 +1786,7 @@ var Ray = {
       rotate180: function () {
         return Constructors.ray(flip(this.vector), this.origin);
       },
-      clip_function: dist => (dist < -EPSILON ? 0 : dist),
+      clip_function: ray_limiter,
       svgPath: function (length = 10000) {
         const end = this.vector.scale(length);
         return `M${this.origin[0]} ${this.origin[1]}l${end[0]} ${end[1]}`;

@@ -1,13 +1,9 @@
-import {
-  transpose_graph_arrays,
-} from "../keys";
+// import {
+//   transpose_graph_arrays,
+// } from "../keys";
 /**
  * this modifies vertices_coords, edges_vertices, with no regard to
  * the other arrays - re-build all other edges_, faces_, vertices_
- *
- * this is counting on you to have already verified:
- * - graph.vertices_coords is an array
- * - graph.edges_vertices is an array
  */
 
 /**

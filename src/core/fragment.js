@@ -31,13 +31,16 @@ import mergeDuplicateVertices from "./vertices_duplicate/merge";
  * the trivial case is sorting points horizontally (along the vector [1,0])
  * this generalizes this. sort an array of points along any direction.
  */
-const sortVertexIndicesAlongVector = (graph, indices, vector) => indices
+const sortVertexIndicesAlongVector = (graph, indices, vector) => {
+  return indices
   .map(i => ({
     i,
-    d: graph.vertices_coords[i][0] * vector[0] + graph.vertices_coords[i][1] * vector[1]
+    d: math.core.dot(graph.vertices_coords[i], vector[0])
+    // d: graph.vertices_coords[i][0] * vector[0] + graph.vertices_coords[i][1] * vector[1]
   }))
   .sort((a, b) => a.d - b.d)
   .map(a => a.i);
+};
 
 const getUniqueVerticesIndicesFromEdges = ({ edges_vertices }, edges_indices) => {
   const nonunique = edges_indices
@@ -76,6 +79,8 @@ const fragment = function (
   // vertex. additionally, if the graph is already planar but the epsilon
   // has increased this time around, we need to merge vertices before
   // anything else.
+  // flatten vertices against the X-Y plane
+  graph.vertices_coords.forEach(vert => { vert.splice(2); });
   mergeDuplicateVertices(graph, epsilon);
   // at this point, the length of the vertex array may have changed.
   // however, the length of the edges array will be the same.

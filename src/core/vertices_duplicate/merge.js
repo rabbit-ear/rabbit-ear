@@ -7,6 +7,8 @@ import {
 } from "../keys";
 import clusters_vertices from "./clusters_vertices";
 
+const map_to_change_map = indices => indices.map((n, i) => n - i);
+
 const merge_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
   const clusters = clusters_vertices(graph, epsilon);
   // map points each vertex to a cluster.
@@ -41,6 +43,19 @@ const merge_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
   get_graph_keys_with_prefix(graph, VERTICES)
     .filter(a => a !== VERTICES_COORDS)
     .forEach(key => delete graph[key]);
+
+  const remove_indices = clusters
+    .map(cluster => cluster.length > 1 ? cluster.slice(1, cluster.length) : undefined)
+    .filter(a => a !== undefined)
+    .reduce((a, b) => a.concat(b), []);
+
+  return {
+    vertices: {
+      remove: remove_indices,
+      map,
+      change: map_to_change_map(map),
+    }
+  };
 };
 
 export default merge_duplicate_vertices;

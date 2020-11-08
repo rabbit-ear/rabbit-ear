@@ -62,14 +62,17 @@ export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_
     vertices_edges = make_vertices_edges({ edges_vertices });
   }
   // use adjacent edges to find adjacent vertices
-  return vertices_edges
+  const vertices_vertices = vertices_edges
     .map((edges, v) => edges
       // the adjacent edge's edges_vertices also contains this vertex,
       // filter it out and we're left with the adjacent vertices
       .map(edge => edges_vertices[edge]
         .filter(i => i !== v))
-      .reduce((a, b) => a.concat(b), []))
-    .map((verts, i) => sort_vertices_counter_clockwise({ vertices_coords }, verts, i));
+      .reduce((a, b) => a.concat(b), []));
+  return vertices_coords === undefined
+    ? vertices_vertices
+    : vertices_vertices
+      .map((verts, i) => sort_vertices_counter_clockwise({ vertices_coords }, verts, i));
 };
 
 /**
@@ -159,11 +162,13 @@ export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, e
   if (!vertices_faces) {
     vertices_faces = make_vertices_faces({ faces_vertices });
   }
+  // assign one matrix to every vertex from faces, identity matrix if none exist
+  const vertices_matrix = vertices_faces
+    .map(faces => faces[0])  // get the first in the list, it doesn't matter
+    .map(face => face === undefined ? math.core.identity3x4 : faces_matrix[face]);
   return vertices_coords
-    .map((coords, i) => math.core.multiply_matrix3_vector3(
-      faces_matrix[vertices_faces[i][0]],
-      math.core.resize(3, coords),
-    ));
+    .map(coord => ear.math.resize(3, coord))
+    .map((coord, i) => math.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
 };
 
 // export const make_vertices_isBoundary = ({ edges_vertices, vertices_edges, edges_assignment }) => {
@@ -308,7 +313,8 @@ export const make_edges_edges_intersections = function (
   if (!edges_vector) {
     edges_vector = edges_vertices
       .map(ev => ev.map(v => vertices_coords[v]))
-      .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+      .map(e => math.core.subtract(e[1], e[0]));
+      // .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
   }
   if (!edges_origin) {
     edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
@@ -342,7 +348,8 @@ export const make_edges_edges_intersections = function (
         edges_origin[i],
         edges_vector[j],
         edges_origin[j],
-        math.core.exclude_s_s,
+        math.core.exclude_s,
+        math.core.exclude_s,
         epsilon
       );
       if (crossing !== undefined) {
@@ -547,7 +554,12 @@ export const make_face_spanning_tree = ({ faces_vertices, faces_faces }, root_fa
 // { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
 export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
   if (!edges_foldAngle) {
-    edges_foldAngle = make_edges_foldAngle({ edges_assignment });
+    if (edges_assignment) {
+      edges_foldAngle = make_edges_foldAngle({ edges_assignment });
+    } else {
+      // if no edges_foldAngle data exists, everyone gets identity matrix
+      edges_foldAngle = Array(edges_vertices.length).fill(0);
+    }
   }
   const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
   const faces_matrix = faces_vertices.map(() => math.core.identity3x4);

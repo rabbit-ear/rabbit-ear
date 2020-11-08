@@ -48,7 +48,7 @@ const get_face_sidedness = (vector, origin, face_center, face_color) => {
  * and again it's not precise, only use this for sided-ness calculation
  */
 const make_face_center_fast = (graph, face_index) => {
-  console.log("make_face_center_fast", graph.faces_vertices.length, face_index);
+  // console.log("make_face_center_fast", graph.faces_vertices.length, face_index);
   if (!graph.faces_vertices[face_index]) { return [0, 0]; }
   return graph
   .faces_vertices[face_index]
@@ -197,7 +197,8 @@ const fold_through = function (
       // console.log("diff", diff);
       diff.faces.replace.forEach(replace => replace.new
         // .map(el => el.index)
-        .map(index => index + diff.faces.map[index])
+        // seems like i don't need this anymore, split_face already does this
+        // .map(index => index + diff.faces.map[index])
         // new indices post-face removal
         .forEach((i) => {
           folded.faces_center[i] = make_face_center_fast(folded, i);
@@ -219,6 +220,10 @@ const fold_through = function (
       };
     })
     .reverse(); // reverse a reverse. back to ordering 0,1,2,3,4...
+
+
+  // console.log(folded);
+  // return graph;
 
   // get new face layer ordering
   folded["faces_re:layer"] = foldLayers(

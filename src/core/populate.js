@@ -48,24 +48,35 @@ import {
 
 const populate = (graph) => {
   if (typeof graph !== "object") { return; }
+  if (!graph.edges_vertices) { return; }
   graph.vertices_edges = make_vertices_edges(graph);
   // graph.edges_edges = make_edges_edges(graph);
   graph.vertices_vertices = make_vertices_vertices(graph);
-  graph.edges_vector = make_edges_vector(graph);
-  graph.vertices_sectors = make_vertices_sectors(graph);
+  if (graph.vertices_coords) {
+    graph.edges_vector = make_edges_vector(graph);
+    graph.vertices_sectors = make_vertices_sectors(graph);
+  }
   if (graph.edges_foldAngle) {
     graph.edges_assignment = make_edges_assignment(graph);
   } else if (graph.edges_assignment) {
     graph.edges_foldAngle = make_edges_foldAngle(graph);
   }
-  const faces = make_planar_faces(graph);
-  graph.faces_vertices = faces.map(face => face.vertices);
-  graph.faces_edges = faces.map(face => face.edges);
-  graph.faces_angles = faces.map(face => face.angles);
+  if (graph.vertices_coords) {
+    const faces = make_planar_faces(graph);
+    graph.faces_vertices = faces.map(face => face.vertices);
+    graph.faces_edges = faces.map(face => face.edges);
+    graph.faces_angles = faces.map(face => face.angles);
+  } else {
+    // todo we need a way of making faces that doesn't imply planar.
+    graph.faces_vertices = [];
+    graph.faces_edges = [];
+  }
   graph.vertices_faces = make_vertices_faces(graph);
   graph.edges_faces = make_edges_faces(graph);
   graph.faces_faces = make_faces_faces(graph);
-  graph.faces_matrix = make_faces_matrix(graph);
+  if (graph.vertices_coords) {
+    graph.faces_matrix = make_faces_matrix(graph);
+  }
   return graph;
 }
 

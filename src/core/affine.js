@@ -14,27 +14,28 @@ const apply_matrix_to_graph = function (graph, matrix) {
     graph[key] = graph[key]
       .map(m => math.core.multiply_matrices3(m, matrix));
   });
+  return graph;
 };
 
 const transform_scale = (graph, scale, ...args) => {
   const vector = math.core.get_vector(...args);
   const vector3 = math.core.resize(3, vector);
   const matrix = math.core.make_matrix3_scale(scale, ...vector3);
-  apply_matrix_to_graph(graph, matrix);
+  return apply_matrix_to_graph(graph, matrix);
 };
 
 const transform_translate = (graph, ...args) => {
   const vector = math.core.get_vector(...args);
   const vector3 = math.core.resize(3, vector);
   const matrix = math.core.make_matrix3_translate(...vector3);
-  apply_matrix_to_graph(graph, matrix);
+  return apply_matrix_to_graph(graph, matrix);
 };
 
 const transform_rotateZ = (graph, angle, ...args) => {
   const vector = math.core.get_vector(...args);
   const vector3 = math.core.resize(3, vector);
   const matrix = math.core.make_matrix3_rotateZ(angle, ...vector3);
-  apply_matrix_to_graph(graph, matrix);
+  return apply_matrix_to_graph(graph, matrix);
 };
 // make_matrix3_rotate
 // make_matrix3_rotateX
@@ -42,7 +43,7 @@ const transform_rotateZ = (graph, angle, ...args) => {
 // make_matrix3_reflectZ
 
 const transform_matrix = (graph, matrix) => {
-  apply_matrix_to_graph(graph, matrix);
+  return apply_matrix_to_graph(graph, matrix);
 };
 
 export default {

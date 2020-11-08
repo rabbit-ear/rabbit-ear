@@ -15,9 +15,9 @@ import math from "./math";
 import root from "./root";
 import use from "./use";
 // import origami from "./origami";
-import graph from "./graph";
+import graphObject from "./graph";
 import planarGraph from "./planar_graph";
-import cp from "./cp";
+// import cp from "./cp";
 import axiom from "./core/axioms";
 import transform from "./core/affine";
 
@@ -25,54 +25,69 @@ import transform from "./core/affine";
 import * as keys from "./core/keys";
 import * as make from "./core/make";
 import * as clip from "./core/clip";
+import * as boundary from "./core/boundary";
+import * as nearest from "./core/nearest";
 import count from "./core/count";
 import implied from "./core/count_implied";
 import remove from "./core/remove";
 import populate from "./core/populate";
+import subgraph from "./core/subgraph";
+import explode_faces from "./core/explode_faces";
 import get_duplicate_edges from "./core/edges_duplicate";
 import clusters_vertices from "./core/vertices_duplicate/clusters_vertices";
 import merge_duplicate_vertices from "./core/vertices_duplicate/merge";
+import * as isolated_vertices from "./core/vertices_isolated";
 import fragment from "./core/fragment";
+import clean from "./core/clean";
+import create from "./core/create";
 
 import add_vertices from "./core/add_vertices/add_vertices";
-import add_vertices_unique from "./core/add_vertices/add_vertices_unique";
 import add_vertices_unique_split_edges from "./core/add_vertices/add_vertices_unique_split_edges";
-import add_vertex_on_edge_and_rebuild from "./core/add_vertices/add_vertex_on_edge_and_rebuild";
+import add_vertex_on_edge from "./core/add_vertices/add_vertex_on_edge";
 import add_edges from "./core/add_edges/add_edges";
 import split_face from "./core/split_face";
 import fold_through from "./core/fold_through";
 
-const core = Object.assign(Object.create(null), {
+const graph = Object.assign(Object.create(null), {
   count,
   implied,
   remove,
   populate,
+  subgraph,
+  explode_faces,
   get_duplicate_edges,
   clusters_vertices,
   merge_duplicate_vertices,
   fragment,
   add_vertices,
-  add_vertices_unique,
+  add_vertices,
   add_vertices_unique_split_edges,
-  add_vertex_on_edge_and_rebuild,
+  add_vertex_on_edge,
   add_edges,
   split_face,
   fold_through,
-  transform,
+  clean,
+  // clear,
 },
   keys,
   make,
   clip,
+  boundary,
+  transform,
+  nearest,
+  isolated_vertices,
 );
 
 const Ear = Object.assign(root, {
   axiom,
   // origami,
-  graph,
+  // graph,
+  graphObject,
   planarGraph,
-  cp,
+  // cp,
+  cp: create,
   math: math.core,
-  core,
+  graph,
 });
 Ear.use = use.bind(Ear);
 
