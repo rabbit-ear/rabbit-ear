@@ -3097,7 +3097,7 @@
           const edge = edge_map[edgeKey];
           const local_matrix = math.core.make_matrix3_rotate(
             edges_foldAngle[edge] * Math.PI / 180,
-            math.core.subtract(verts[1], verts[0]),
+            math.core.subtract(...math.core.resize_up(verts[1], verts[0])),
             verts[0],
           );
           faces_matrix[entry.face] = math.core
@@ -4493,6 +4493,14 @@
     const l_to_r = Math.abs(right[0] - left[0]);
     return t_to_b > l_to_r ? [bottom, top] : [left, right];
   };
+  const toFoldAngle = {
+    M: -180,
+    m: -180,
+    V: 180,
+    v: 180,
+  };
+  const opposite_assignment = { "M":"V", "m":"V", "V":"M", "v":"M" };
+  const opposingCrease = assign => opposite_assignment[assign] || assign;
   const fold_through = function (
     graph,
     vector,
@@ -4500,6 +4508,7 @@
     face_index,
     assignment = "V"
   ) {
+    const opposite_crease = opposingCrease(assignment);
     if (face_index == null) {
       const containing_point = face_containing_point(graph, point);
       face_index = (containing_point === undefined) ? 0 : containing_point;
@@ -4512,12 +4521,22 @@
       .map((_, i) => i)
       .reverse()
       .map((i) => {
+        const face_color = folded.faces_coloring[i];
         const diff = split_convex_face(
           folded, i,
           folded["faces_re:creases"][i].vector,
           folded["faces_re:creases"][i].origin,
         );
         if (diff === undefined) { return undefined; }
+        if (diff.edges.new && diff.edges.new.length) {
+          const new_edge = diff.edges.new[0];
+          folded.edges_assignment[new_edge] = face_color
+            ? assignment
+            : opposite_crease;
+          folded.edges_foldAngle[new_edge] = face_color
+            ? toFoldAngle[assignment] || 0
+            : toFoldAngle[opposite_crease] || 0;
+        }
         diff.faces.replace.forEach(replace => replace.new
           .forEach((i) => {
             folded.faces_center[i] = make_face_center_fast(folded, i);

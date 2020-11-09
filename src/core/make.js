@@ -573,7 +573,7 @@ export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldA
         const edge = edge_map[edgeKey];
         const local_matrix = math.core.make_matrix3_rotate(
           edges_foldAngle[edge] * Math.PI / 180, // rotation angle
-          math.core.subtract(verts[1], verts[0]), // line-vector
+          math.core.subtract(...math.core.resize_up(verts[1], verts[0])), // line-vector
           verts[0], // line-origin
         );
         faces_matrix[entry.face] = math.core

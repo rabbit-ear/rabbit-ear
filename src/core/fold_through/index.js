@@ -146,6 +146,13 @@ const two_furthest_points = function (points) {
   return t_to_b > l_to_r ? [bottom, top] : [left, right];
 };
 
+const toFoldAngle = {
+  M: -180,
+  m: -180,
+  V: 180,
+  v: 180,
+};
+
 const opposite_assignment = { "M":"V", "m":"V", "V":"M", "v":"M" };
 
 // if it's a mark, this will be too.
@@ -185,6 +192,10 @@ const fold_through = function (
     .map((_, i) => i)
     .reverse()
     .map((i) => {
+      // todo, moved this up here as a quick fix. the graph is probably being modified
+      // differently from before. are other properties needing similar treatment?
+      // faces_center?
+      const face_color = folded.faces_coloring[i];
       const diff = split_convex_polygon(
         folded, i,
         folded["faces_re:creases"][i].vector,
@@ -193,6 +204,15 @@ const fold_through = function (
       if (diff === undefined) { return undefined; }
       // todo: assign the new edge this assignment
       // folded.faces_coloring[i] ? assignment : opposite_crease
+      if (diff.edges.new && diff.edges.new.length) {
+        const new_edge = diff.edges.new[0];
+        folded.edges_assignment[new_edge] = face_color
+          ? assignment
+          : opposite_crease;
+        folded.edges_foldAngle[new_edge] = face_color
+          ? toFoldAngle[assignment] || 0
+          : toFoldAngle[opposite_crease] || 0;
+      }
 
       // console.log("diff", diff);
       diff.faces.replace.forEach(replace => replace.new
