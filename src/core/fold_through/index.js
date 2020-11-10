@@ -201,6 +201,7 @@ const fold_through = function (
         folded["faces_re:creases"][i].vector,
         folded["faces_re:creases"][i].origin,
       );
+      console.log("diff", diff);
       if (diff === undefined) { return undefined; }
       // todo: assign the new edge this assignment
       // folded.faces_coloring[i] ? assignment : opposite_crease

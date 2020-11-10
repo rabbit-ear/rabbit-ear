@@ -20,6 +20,12 @@ polygon_names.forEach((name, i) => {
     edges_vertices: arr.map((_, i) => [i, (i + 1) % arr.length]),
     edges_assignment: arr.map(() => "B"),
   });
-})
+});
+
+Create.kite = () => populate({
+  vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
+  edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
+  edges_assignment: ["B","B","B","B","B","B","V","V","F"],
+});
 
 export default Create;

@@ -3922,6 +3922,11 @@
       edges_assignment: arr.map(() => "B"),
     });
   });
+  Create.kite = () => populate({
+    vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
+    edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
+    edges_assignment: ["B","B","B","B","B","B","V","V","F"],
+  });
 
   const add_vertices = (graph, { vertices_coords }, epsilon = math.core.EPSILON) => {
     if (!graph.vertices_coords) { graph.vertices_coords = []; }
@@ -4249,11 +4254,14 @@
     });
     return new_edges;
   };
-  const add_vertex_on_edge = function (graph, coords, old_edge) {
+  const split_edge = function (graph, old_edge, coords) {
     if (graph.edges_vertices.length < old_edge) { return undefined; }
+    const incident_vertices = graph.edges_vertices[old_edge];
+    if (!coords) {
+      coords = math.core.midpoint(...incident_vertices);
+    }
     const vertex = add_vertices(graph, { vertices_coords: [coords] })
       .shift();
-    const incident_vertices = graph.edges_vertices[old_edge];
     const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
     split_edge_into_two(graph, old_edge, vertex)
       .forEach((edge, i) => Object.keys(edge)
@@ -4372,7 +4380,7 @@
     const results = [];
     intersect.edges.map((el, i, arr) => {
       el.edge += edge_change[el.edge];
-      const result = add_vertex_on_edge(graph, el.coords, el.edge);
+      const result = split_edge(graph, el.edge, el.coords);
       result.edges.replace.old -= edge_change[result.edges.replace.old];
       [0, 1].forEach(i => {
         result.edges.replace.new[i] += result.edges.map[result.edges.replace.new[i]];
@@ -4527,6 +4535,7 @@
           folded["faces_re:creases"][i].vector,
           folded["faces_re:creases"][i].origin,
         );
+        console.log("diff", diff);
         if (diff === undefined) { return undefined; }
         if (diff.edges.new && diff.edges.new.length) {
           const new_edge = diff.edges.new[0];
@@ -4639,7 +4648,7 @@
     add_vertices,
     add_vertices,
     add_vertices_unique_split_edges,
-    add_vertex_on_edge,
+    split_edge,
     add_edges,
     split_face: split_convex_face,
     fold_through,

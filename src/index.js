@@ -43,7 +43,7 @@ import create from "./core/create";
 
 import add_vertices from "./core/add_vertices/add_vertices";
 import add_vertices_unique_split_edges from "./core/add_vertices/add_vertices_unique_split_edges";
-import add_vertex_on_edge from "./core/add_vertices/add_vertex_on_edge";
+import split_edge from "./core/add_vertices/split_edge";
 import add_edges from "./core/add_edges/add_edges";
 import split_face from "./core/split_face";
 import fold_through from "./core/fold_through";
@@ -62,7 +62,7 @@ const graph = Object.assign(Object.create(null), {
   add_vertices,
   add_vertices,
   add_vertices_unique_split_edges,
-  add_vertex_on_edge,
+  split_edge,
   add_edges,
   split_face,
   fold_through,
