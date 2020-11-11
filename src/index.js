@@ -41,11 +41,9 @@ import fragment from "./core/fragment";
 import clean from "./core/clean";
 import create from "./core/create";
 
-import add_vertices from "./core/add_vertices/add_vertices";
-import add_vertices_unique_split_edges from "./core/add_vertices/add_vertices_unique_split_edges";
-import split_edge from "./core/add_vertices/split_edge";
-import add_edges from "./core/add_edges/add_edges";
-import split_face from "./core/split_face";
+import add_vertices from "./core/add/add_vertices";
+import split_edge from "./core/add/split_edge";
+import split_face from "./core/add/split_face";
 import fold_through from "./core/fold_through";
 
 const graph = Object.assign(Object.create(null), {
@@ -60,10 +58,7 @@ const graph = Object.assign(Object.create(null), {
   merge_duplicate_vertices,
   fragment,
   add_vertices,
-  add_vertices,
-  add_vertices_unique_split_edges,
   split_edge,
-  add_edges,
   split_face,
   fold_through,
   clean,

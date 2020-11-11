@@ -41,6 +41,7 @@ export const intersect_face_with_line = ({ vertices_coords, edges_vertices, face
     }))
     .filter(el => el.coords !== undefined)
     .slice(0, 2); // make 2 if more than 2.
+
   // in the case of one vertex and one edge return them both
   if (vertices.length > 0 && edges.length > 0) {
     return { vertices, edges };

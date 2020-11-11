@@ -3941,7 +3941,7 @@
 
   const add_vertices = (graph, { vertices_coords }, epsilon = math.core.EPSILON) => {
     if (!graph.vertices_coords) { graph.vertices_coords = []; }
-    const endpoints_vertex_equivalent = vertices_coords
+    const vertices_equivalent_vertices = vertices_coords
       .map(vertex => graph.vertices_coords
         .map(v => math.core.distance(v, vertex) < epsilon)
         .map((on_vertex, i) => on_vertex ? i : undefined)
@@ -3949,215 +3949,10 @@
         .shift());
     let index = graph.vertices_coords.length;
     const unique_vertices = vertices_coords
-      .filter((vert, i) => endpoints_vertex_equivalent[i] === undefined);
+      .filter((vert, i) => vertices_equivalent_vertices[i] === undefined);
     graph.vertices_coords.push(...unique_vertices);
-    return endpoints_vertex_equivalent
+    return vertices_equivalent_vertices
       .map(el => el === undefined ? index++ : el);
-  };
-
-  const Diff = {};
-  Diff.merge_maps = (...maps) => {
-    if (maps.length === 0) { return; }
-    let solution = Array.from(Array(maps[0].length)).map((_, i) => i);
-    maps.forEach(map => {
-      let bi = 0;
-      solution.forEach((n, i) => {
-        solution[i] = (n === null || n === undefined) ? null : map[bi];
-        bi += (n === null || n === undefined) ? 0 : 1;
-      });
-    });
-    return solution;
-  };
-  const not_empty = el => (el !== null && el !== undefined);
-  Diff.merge_back_maps = (...maps) => {
-    if (maps.length === 0) { return; }
-    let solution = Array.from(Array(maps[0].length)).map((_, i) => i);
-    maps.forEach(map => {
-      solution = solution.filter((n, i) => not_empty(map[i]));
-    });
-    return solution;
-  };
-  Diff.merge_change_maps = (a, b) => {
-    let aRemoves = [];
-    for (let i = 1; i < a.length; i++) {
-      if (a[i] !== a[i-1]) { aRemoves.push(i); }
-    }
-    for (let i = 1; i < b.length; i++) {
-      if (b[i] !== b[i-1]) ;
-    }
-    let bCopy = b.slice();
-    aRemoves.forEach(i => bCopy.splice(i, 0, (i === 0) ? 0 : bCopy[i-1] ));
-    return a.map((v,i) => v + bCopy[i]);
-  };
-  Diff.apply = (graph, diff) => {
-    const lengths = {};
-    Object.keys(count).forEach((key) => {
-      lengths[key] = count[key](graph);
-    });
-    if (diff.new) {
-      Object.keys(diff.new)
-        .forEach(type => diff.new[type]
-          .forEach((newElem, i) => Object.keys(newElem)
-            .forEach((key) => {
-              if (graph[key] === undefined) { graph[key] = []; }
-              graph[key][lengths[type] + i] = newElem[key];
-              diff.new[type][i].index = lengths[type] + i;
-            })));
-    }
-    if (diff.update) {
-      Object.keys(diff.update)
-        .forEach(i => Object.keys(diff.update[i])
-          .forEach((key) => {
-            if (graph[key] === undefined) { graph[key] = []; }
-            graph[key][i] = diff.update[i][key];
-          }));
-    }
-    if (diff.remove) {
-      ["faces", "edges", "vertices"]
-        .filter(key => diff.remove[key])
-        .forEach((key) => {
-          const map = remove_geometry_indices(graph, key, diff.remove[key]);
-          diff.new[key].forEach((el, i) => {
-            diff.new[key][i].index += map[el.index];
-          });
-        });
-    }
-    return diff;
-  };
-  Diff.merge = (graph, target, source) => {
-    const vertices_length = vertices_count(graph);
-    const edges_length = edges_count(graph);
-    const faces_length = faces_count(graph);
-    let target_new_vertices_length = 0;
-    let target_new_edges_length = 0;
-    let target_new_faces_length = 0;
-    if (target.new !== undefined) {
-      if (target.new.vertices !== undefined) {
-        target_new_vertices_length = target.new.vertices.length;
-      }
-      if (target.new.edges !== undefined) {
-        target_new_edges_length = target.new.edges.length;
-      }
-      if (target.new.faces !== undefined) {
-        target_new_faces_length = target.new.faces.length;
-      }
-    }
-    const augment_map = {
-      vertices: {
-        length: vertices_length,
-        change: target_new_vertices_length
-      },
-      edges: {
-        length: edges_length,
-        change: target_new_edges_length
-      },
-      faces: {
-        length: faces_length,
-        change: target_new_faces_length
-      },
-    };
-    let all_source = [];
-    if (source.new !== undefined) {
-      Object.keys(source.new).forEach((category) => {
-        source.new[category].forEach((newEl, i) => {
-          ["vertices", "edges", "faces"].forEach((key) => {
-            const suffix = `_${key}`;
-            const suffixKeys = Object.keys(newEl)
-              .map(str => (str.substring(str.length - suffix.length, str.length) === suffix
-                ? str
-                : undefined))
-              .filter(str => str !== undefined);
-            suffixKeys.forEach((suffixKey) => {
-              source.new[category][i][suffixKey].forEach((n, j) => {
-                if (source.new[category][i][suffixKey][j] >= augment_map[category].length) {
-                  source.new[category][i][suffixKey][j] += augment_map[category].change;
-                }
-              });
-            });
-          });
-        });
-        all_source = all_source.concat(source.new.vertices);
-      });
-    }
-    const merge = {};
-    if (target.new !== undefined) { merge.new = target.new; }
-    if (target.update !== undefined) { merge.update = target.update; }
-    if (target.remove !== undefined) { merge.remove = target.remove; }
-    if (source.new !== undefined) {
-      if (source.new.vertices !== undefined) {
-        if (merge.new.vertices === undefined) { merge.new.vertices = []; }
-        merge.new.vertices = merge.new.vertices.concat(source.new.vertices);
-      }
-      if (source.new.edges !== undefined) {
-        if (merge.new.edges === undefined) { merge.new.edges = []; }
-        merge.new.edges = merge.new.edges.concat(source.new.edges);
-      }
-      if (source.new.faces !== undefined) {
-        if (merge.new.faces === undefined) { merge.new.faces = []; }
-        merge.new.faces = merge.new.faces.concat(source.new.faces);
-      }
-    }
-    if (source.update !== undefined) {
-      Object.keys(source.update).forEach((i) => {
-        if (merge.update[i] == null) {
-          merge.update[i] = source.update[i];
-        }
-        else {
-          const keys1 = Object.keys(merge.update[i]);
-          const keys2 = Object.keys(source.update[i]);
-          const overlap = keys1.filter(key1key => keys2.includes(key1key));
-          if (overlap.length > 0) {
-            const str = overlap.join(", ");
-            console.warn(`cannot merge. two diffs contain overlap at ${str}`);
-            return;
-          }
-          Object.assign(merge.update[i], source.update[i]);
-        }
-      });
-    }
-    if (source.remove !== undefined) {
-      if (source.remove.vertices !== undefined) {
-        if (merge.remove.vertices === undefined) { merge.remove.vertices = []; }
-        merge.remove.vertices = merge.remove.vertices.concat(source.remove.vertices);
-      }
-      if (source.remove.edges !== undefined) {
-        if (merge.remove.edges === undefined) { merge.remove.edges = []; }
-        merge.remove.edges = merge.remove.edges.concat(source.remove.edges);
-      }
-      if (source.remove.faces !== undefined) {
-        if (merge.remove.faces === undefined) { merge.remove.faces = []; }
-        merge.remove.faces = merge.remove.faces.concat(source.remove.faces);
-      }
-    }
-    Object.assign(target, source);
-  };
-
-  const add_vertices_unique_split_edges = (graph, { vertices_coords }) => {
-    const new_indices = add_vertices(graph, { vertices_coords });
-    const edges = graph.edges_vertices
-      .map(ev => ev.map(v => graph.vertices_coords[v]));
-    const vertices_edge_collinear = vertices_coords
-      .map(v => edges
-        .map(edge => math.core.point_on_segment_exclusive(v, edge[0], edge[1]))
-        .map((on_edge, i) => (on_edge ? i : undefined))
-        .filter(a => a !== undefined)
-        .shift());
-    const remove_indices = vertices_edge_collinear
-      .filter(vert_edge => vert_edge !== undefined);
-    const new_edges = vertices_edge_collinear
-      .map((e, i) => ({ e, i }))
-      .filter(el => el.e !== undefined)
-      .map(el => {
-        const edge = transpose_graph_array_at_index(graph, "edges", el.e);
-        return [edge, clone(edge)]
-          .map((obj, i) => Object.assign(obj, {
-            edges_vertices: [ graph.edges_vertices[el.e][i], new_indices[el.i] ]
-          }));
-      })
-      .reduce((a,b) => a.concat(b), []);
-    Diff.apply(graph, { new: { edges: new_edges }});
-    remove_geometry_indices(graph, "edges", remove_indices);
-    return new_indices;
   };
 
   const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
@@ -4319,11 +4114,17 @@
     };
   };
 
-  const add_edges = function (destination, source) {
-    if (!destination.edges_vertices) { destination.edges_vertices = []; }
-    const original_length = destination.edges_vertices.length;
-    destination.edges_vertices.push(...source.edges_vertices);
-    return source.edges_vertices.map((_, i) => original_length + i);
+  const merge_maps = (...maps) => {
+    if (maps.length === 0) { return; }
+    const solution = Array.from(Array(maps[0].length)).map((_, i) => i);
+    maps.forEach(map => {
+      let bi = 0;
+      solution.forEach((n, i) => {
+        solution[i] = (n === null || n === undefined) ? null : map[bi];
+        bi += (n === null || n === undefined) ? 0 : 1;
+      });
+    });
+    return solution;
   };
 
   const intersect_face_with_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, origin) => {
@@ -4408,22 +4209,20 @@
     const intersect = intersect_face_with_line(graph, face, vector, origin);
     if (intersect === undefined) { return undefined; }
     const vertices = intersect.vertices.map(el => el.vertex);
-    const results = [];
-    let edge_map = Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
+    const changes = [];
     intersect.edges.map((el, i, arr) => {
+      const edge_map = changes.length
+        ? merge_maps(...changes.map(r => r.edges.map))
+        : Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
       el.edge = edge_map[el.edge];
       const result = split_edge(graph, el.edge, el.coords);
+      changes.push(result);
       result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
-      [0, 1].forEach(i => {
-        result.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
-      });
-      results.forEach(prev => [0, 1].forEach((_, i) => {
+      changes.forEach(prev => [0, 1].forEach((_, i) => {
         prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
       }));
-      results.push(result);
-      edge_map = Diff.merge_maps(...results.map(res => res.edges.map));
     });
-    vertices.push(...results.map(result => result.vertex));
+    vertices.push(...changes.map(result => result.vertex));
     const edge = graph.edges_vertices.length;
     const faces = [0, 1].map(i => graph.faces_vertices.length + i - 1);
     const new_edge = make_edge(graph, vertices, faces);
@@ -4450,8 +4249,8 @@
       },
       edges: {
         new: [edge],
-        map: edge_map,
-        replace: results
+        map: merge_maps(...changes.map(res => res.edges.map)),
+        replace: changes
           .map(res => res.edges.replace)
           .reduce((a, b) => a.concat(b), []),
       }
@@ -4557,6 +4356,7 @@
     point = math.core.resize(3, point);
     prepare_graph_crease(graph, vector, point, face_index);
     const folded = clone(graph);
+    folded.vertices_coords.forEach(coord => coord.splice(2));
     const faces_split = Array.from(Array(count.faces(graph)))
       .map((_, i) => i)
       .reverse()
@@ -4567,7 +4367,6 @@
           folded["faces_re:creases"][i].vector,
           folded["faces_re:creases"][i].origin,
         );
-        console.log("diff", diff);
         if (diff === undefined) { return undefined; }
         if (diff.edges.new && diff.edges.new.length) {
           const new_edge = diff.edges.new[0];
@@ -4678,10 +4477,7 @@
     merge_duplicate_vertices,
     fragment,
     add_vertices,
-    add_vertices,
-    add_vertices_unique_split_edges,
     split_edge,
-    add_edges,
     split_face: split_convex_face,
     fold_through,
     clean,

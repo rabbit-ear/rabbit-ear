@@ -12,7 +12,7 @@
 // for now, this uses "faces_re:layer", todo: use faceOrders
 
 import math from "../../math";
-import split_convex_polygon from "../split_face";
+import split_convex_polygon from "../add/split_face";
 import { foldLayers } from "./faces_layer";
 import { clone } from "../javascript";
 import Count from "../count";
@@ -183,6 +183,11 @@ const fold_through = function (
 
   const folded = clone(graph);
 
+  folded.vertices_coords.forEach(coord => coord.splice(2));
+
+  // console.log('graph["faces_re:creases"]', graph["faces_re:creases"]);
+  // console.log("graph.faces_matrix", graph.faces_matrix);
+
   // one by one, pair up each face with each (reflected) crease line,
   // if they intersect, chop the face into 2,
   // becoming an array of {} or undefined, whether the face was split or not
@@ -201,7 +206,7 @@ const fold_through = function (
         folded["faces_re:creases"][i].vector,
         folded["faces_re:creases"][i].origin,
       );
-      console.log("diff", diff);
+      // console.log("split convex polygon diff", diff);
       if (diff === undefined) { return undefined; }
       // todo: assign the new edge this assignment
       // folded.faces_coloring[i] ? assignment : opposite_crease

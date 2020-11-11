@@ -1,0 +1,21 @@
+{
+	"file_spec": 1.1,
+	"file_creator": "Rabbit Ear",
+	"vertices_coords": [
+		[0, 0],
+		[1, 1],
+		[0, 1],
+		[1, 1]
+	],
+	"edges_vertices": [
+		[2, 3],
+		[0, 3],
+		[1, 3]
+	],
+	"edges_assignment": [
+		"V",
+		"M",
+		"M"
+	],
+	"re:code": "{\n  // modules\n  RabbitEar.use(window.FoldToSvg);\n  RabbitEar.use(window.SVG);\n}\n\n// cp.load(RabbitEar.bases.square);\ncp.mountain(0,0,1,1);\ncp.valley(0,1,1,1);\nlet v = ear.vector(0.5,0.5,1,1);\n\nconsole.log(cp)"
+}

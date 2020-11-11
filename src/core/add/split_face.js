@@ -1,17 +1,17 @@
-import math from "../math";
-import split_edge from "./add_vertices/split_edge";
-import Diff from "./diff";
-import { edge_assignment_to_foldAngle } from "./keys";
-import remove from "./remove";
+import math from "../../math";
+import split_edge from "./split_edge";
+import { merge_maps, reverse_maps } from "../maps";
+import { edge_assignment_to_foldAngle } from "../keys";
+import remove from "../remove";
 import {
   make_vertices_to_edge_bidirectional,
   make_vertices_faces,
   make_edges_faces,
   make_faces_faces,
-} from "./make";
-import { intersect_face_with_line } from "./intersect";
-import { sort_vertices_counter_clockwise } from "./sort";
-import { find_adjacent_faces_to_face } from "./find";
+} from "../make";
+import { intersect_face_with_line } from "../intersect";
+import { sort_vertices_counter_clockwise } from "../sort";
+import { find_adjacent_faces_to_face } from "../find";
 
 const update_vertices_vertices = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
   const v0 = edges_vertices[edge][0];
@@ -98,50 +98,30 @@ const split_convex_face = (graph, face, vector, origin) => {
   //   edge_change = Diff.merge_change_maps(edge_change, result.edges.map);
   //   return result.vertex;
   // }));
-  // let edge_change = Array(graph.edges_vertices.length).fill(0);
 
-  // // GOOD, with back maps
-  // const results = [];
-  // let edge_map = Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
-  // intersect.edges.map((el, i, arr) => {
-  //   el.edge = edge_map.indexOf(el.edge);
-  //   const result = split_edge(graph, el.edge, el.coords);
-  //   result.edges.replace.old = edge_map[result.edges.replace.old];
-  //   [0, 1].forEach(i => {
-  //     result.edges.replace.new[i] = result.edges.map.indexOf(result.edges.replace.new[i]);
-  //   });
-  //   results.forEach(prev => [0, 1].forEach((_, i) => {
-  //     prev.edges.replace.new[i] = result.edges.map.indexOf(result.edges.replace.new[i]);
-  //   }));
-  //   results.push(result);
-  //   edge_map = Diff.merge_maps(...results.map(res => res.edges.map));
-  // });
+  // const intersectClone = JSON.parse(JSON.stringify(intersect));
 
-  const results = [];
-  let edge_map = Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
-  // console.log("graph", graph);
+  const changes = [];
   intersect.edges.map((el, i, arr) => {
-    // el.edge += edge_map[el.edge];
-    // const edge_map = results.length
-    //   ? Diff.merge_maps(...results.map(res => res.edges.map))
-    //   : Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
-    // console.log("edge_map", edge_map);
-    // console.log("el.edge", el.edge, edge_map[el.edge]);
+    const edge_map = changes.length
+      ? merge_maps(...changes.map(r => r.edges.map))
+      : Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
+    // update the edge's index if this is the second loop and the index changed.
     el.edge = edge_map[el.edge];
+    // split the edge (modifying the graph), and store the changes so that during
+    // the next loop the second edge to split will be updated to the new index
     const result = split_edge(graph, el.edge, el.coords);
-    // console.log("result", JSON.parse(JSON.stringify(result)));
+    // store changes to the graph for future iterations
+    changes.push(result);
+    // update the other details of the changes
+    // "old" is the index before the operation. update it to relate to the current graph
     result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
-    [0, 1].forEach(i => {
-      result.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
-    });
-    results.forEach(prev => [0, 1].forEach((_, i) => {
+    // these update normally
+    changes.forEach(prev => [0, 1].forEach((_, i) => {
       prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
     }));
-    // edge_map = Diff.merge_maps(edge_map, result.edges.map);
-    results.push(result);
-    edge_map = Diff.merge_maps(...results.map(res => res.edges.map));
   });
-  vertices.push(...results.map(result => result.vertex));
+  vertices.push(...changes.map(result => result.vertex));
   // the indices of our new components
   const edge = graph.edges_vertices.length;
   const faces = [0, 1].map(i => graph.faces_vertices.length + i - 1);
@@ -264,6 +244,27 @@ const split_convex_face = (graph, face, vector, origin) => {
   //   });
 
 
+
+  // const graphClone = JSON.parse(JSON.stringify(graph));
+
+  // const changesClone = [];
+  // intersectClone.edges.map((el, i, arr) => {
+  //   const edge_map = changesClone.length
+  //     ? merge_maps(...changesClone.map(r => r.edges.map))
+  //     : Array.from(Array(graphClone.edges_vertices.length)).map((_, i) => i);
+  //   el.edge = edge_map[el.edge];
+  //   const result = split_edge(graphClone, el.edge, el.coords);
+  //   changesClone.push(result);
+  // });
+
+  // results.forEach(result => {
+  //   result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
+  //   // 
+  //   changesClone.forEach(prev => [0, 1].forEach((_, i) => {
+  //     prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
+  //   }));
+  // });
+
   // return a diff of the geometry
   return {
     vertices,
@@ -276,9 +277,9 @@ const split_convex_face = (graph, face, vector, origin) => {
     },
     edges: {
       new: [edge],
-      // map: Diff.merge_maps(...results.map(res => res.edges.map)),
-      map: edge_map,
-      replace: results
+      map: merge_maps(...changes.map(res => res.edges.map)),
+      // map: edge_map,
+      replace: changes
         .map(res => res.edges.replace)
         .reduce((a, b) => a.concat(b), []),
     }
