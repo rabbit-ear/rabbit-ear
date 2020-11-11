@@ -95,23 +95,51 @@ const split_convex_face = (graph, face, vector, origin) => {
   //   el.edge += edge_change[el.edge];
   //   const result = split_edge(graph, el.edge, el.coords);
   //   // todo, apply directly to edge_change, get rid of "edge_change = "
-  //   edge_change = Diff.merge_maps(edge_change, result.edges.map);
+  //   edge_change = Diff.merge_change_maps(edge_change, result.edges.map);
   //   return result.vertex;
   // }));
-  let edge_change = Array(graph.edges_vertices.length).fill(0);
+  // let edge_change = Array(graph.edges_vertices.length).fill(0);
+
+  // // GOOD, with back maps
+  // const results = [];
+  // let edge_map = Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
+  // intersect.edges.map((el, i, arr) => {
+  //   el.edge = edge_map.indexOf(el.edge);
+  //   const result = split_edge(graph, el.edge, el.coords);
+  //   result.edges.replace.old = edge_map[result.edges.replace.old];
+  //   [0, 1].forEach(i => {
+  //     result.edges.replace.new[i] = result.edges.map.indexOf(result.edges.replace.new[i]);
+  //   });
+  //   results.forEach(prev => [0, 1].forEach((_, i) => {
+  //     prev.edges.replace.new[i] = result.edges.map.indexOf(result.edges.replace.new[i]);
+  //   }));
+  //   results.push(result);
+  //   edge_map = Diff.merge_maps(...results.map(res => res.edges.map));
+  // });
+
   const results = [];
+  let edge_map = Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
+  // console.log("graph", graph);
   intersect.edges.map((el, i, arr) => {
-    el.edge += edge_change[el.edge];
+    // el.edge += edge_map[el.edge];
+    // const edge_map = results.length
+    //   ? Diff.merge_maps(...results.map(res => res.edges.map))
+    //   : Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
+    // console.log("edge_map", edge_map);
+    // console.log("el.edge", el.edge, edge_map[el.edge]);
+    el.edge = edge_map[el.edge];
     const result = split_edge(graph, el.edge, el.coords);
-    result.edges.replace.old -= edge_change[result.edges.replace.old];
+    // console.log("result", JSON.parse(JSON.stringify(result)));
+    result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
     [0, 1].forEach(i => {
-      result.edges.replace.new[i] += result.edges.map[result.edges.replace.new[i]];
+      result.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
     });
     results.forEach(prev => [0, 1].forEach((_, i) => {
-      prev.edges.replace.new[i] += result.edges.map[result.edges.replace.new[i]];
+      prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
     }));
-    edge_change = Diff.merge_maps(edge_change, result.edges.map);
+    // edge_map = Diff.merge_maps(edge_map, result.edges.map);
     results.push(result);
+    edge_map = Diff.merge_maps(...results.map(res => res.edges.map));
   });
   vertices.push(...results.map(result => result.vertex));
   // the indices of our new components
@@ -248,7 +276,8 @@ const split_convex_face = (graph, face, vector, origin) => {
     },
     edges: {
       new: [edge],
-      map: edge_change,
+      // map: Diff.merge_maps(...results.map(res => res.edges.map)),
+      map: edge_map,
       replace: results
         .map(res => res.edges.replace)
         .reduce((a, b) => a.concat(b), []),
@@ -280,7 +309,7 @@ export default split_convex_face;
 //       arr.slice(i + 1)
 //         .filter(ell => diff.edges.map[ell.i_edges] != null)
 //         .forEach((ell) => { ell.i_edges += diff.edges.map[ell.i_edges]; });
-//       edge_map = Diff.merge_maps(edge_map, diff.edges.map);
+//       edge_map = Diff.merge_change_maps(edge_map, diff.edges.map);
 //       return diff.vertices.new[0].index;
 //     });
 //   } else if (edges_intersections.length === 1

@@ -2618,21 +2618,32 @@
       max_arrays_length(faces_vertices, faces_edges, faces_faces),
   };
 
-  const remove_geometry_indices = function (graph, key, removeIndices) {
+  const unique_sorted_integers = (array) => {
+    const keys = {};
+    array.forEach((int) => { keys[int] = true; });
+    return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
+  };
+  const remove_geometry_indices = (graph, key, removeIndices) => {
     const geometry_array_size = count[key](graph);
-    const removes = Array(geometry_array_size).fill(false);
-    removeIndices.forEach((v) => { removes[v] = true; });
-    let s = 0;
-    const index_map = removes.map(remove => (remove ? --s : s));
-    if (removeIndices.length === 0) { return index_map; }
+    const removes = unique_sorted_integers(removeIndices);
+    const index_map = [];
+    let i, j, walk;
+    for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
+      while (i === removes[walk]) {
+        i += 1;
+        walk += 1;
+      }
+      index_map[i] = j;
+    }
     get_graph_keys_with_suffix(graph, key)
       .forEach(sKey => graph[sKey]
         .forEach((_, i) => graph[sKey][i]
-          .forEach((v, j) => { graph[sKey][i][j] += index_map[v]; })));
-    get_graph_keys_with_prefix(graph, key).forEach((pKey) => {
-      graph[pKey] = graph[pKey]
-        .filter((_, i) => !removes[i]);
-    });
+          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+    removes.reverse();
+    get_graph_keys_with_prefix(graph, key)
+      .forEach((prefix_key) => removes
+        .forEach(index => graph[prefix_key]
+          .splice(index, 1)));
     return index_map;
   };
 
@@ -3945,7 +3956,28 @@
   };
 
   const Diff = {};
-  Diff.merge_maps = (a, b) => {
+  Diff.merge_maps = (...maps) => {
+    if (maps.length === 0) { return; }
+    let solution = Array.from(Array(maps[0].length)).map((_, i) => i);
+    maps.forEach(map => {
+      let bi = 0;
+      solution.forEach((n, i) => {
+        solution[i] = (n === null || n === undefined) ? null : map[bi];
+        bi += (n === null || n === undefined) ? 0 : 1;
+      });
+    });
+    return solution;
+  };
+  const not_empty = el => (el !== null && el !== undefined);
+  Diff.merge_back_maps = (...maps) => {
+    if (maps.length === 0) { return; }
+    let solution = Array.from(Array(maps[0].length)).map((_, i) => i);
+    maps.forEach(map => {
+      solution = solution.filter((n, i) => not_empty(map[i]));
+    });
+    return solution;
+  };
+  Diff.merge_change_maps = (a, b) => {
     let aRemoves = [];
     for (let i = 1; i < a.length; i++) {
       if (a[i] !== a[i-1]) { aRemoves.push(i); }
@@ -4376,20 +4408,20 @@
     const intersect = intersect_face_with_line(graph, face, vector, origin);
     if (intersect === undefined) { return undefined; }
     const vertices = intersect.vertices.map(el => el.vertex);
-    let edge_change = Array(graph.edges_vertices.length).fill(0);
     const results = [];
+    let edge_map = Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
     intersect.edges.map((el, i, arr) => {
-      el.edge += edge_change[el.edge];
+      el.edge = edge_map[el.edge];
       const result = split_edge(graph, el.edge, el.coords);
-      result.edges.replace.old -= edge_change[result.edges.replace.old];
+      result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
       [0, 1].forEach(i => {
-        result.edges.replace.new[i] += result.edges.map[result.edges.replace.new[i]];
+        result.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
       });
       results.forEach(prev => [0, 1].forEach((_, i) => {
-        prev.edges.replace.new[i] += result.edges.map[result.edges.replace.new[i]];
+        prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
       }));
-      edge_change = Diff.merge_maps(edge_change, result.edges.map);
       results.push(result);
+      edge_map = Diff.merge_maps(...results.map(res => res.edges.map));
     });
     vertices.push(...results.map(result => result.vertex));
     const edge = graph.edges_vertices.length;
@@ -4418,7 +4450,7 @@
       },
       edges: {
         new: [edge],
-        map: edge_change,
+        map: edge_map,
         replace: results
           .map(res => res.edges.replace)
           .reduce((a, b) => a.concat(b), []),

@@ -63,7 +63,49 @@ const rough_draft_1 = {
 
 const Diff = {};
 
-Diff.merge_maps = (a, b) => {
+// [0, 1, 2, 3, 4, 5, 6], [0, null, 1, 2, 3, 4, null]
+
+// [0, 1, 2, null, 3, 4, null, null, 5, 6];
+// [0, null, 1, 2, 3, 4, null];
+// result: [0, 2, 4, 5, 8];
+
+// [0, 1, 2, null, 3, 4, null, null, 5, 6];
+// [0, null, 1, 2, 3, 4, null];
+
+Diff.merge_maps = (...maps) => {
+  if (maps.length === 0) { return; }
+  let solution = Array.from(Array(maps[0].length)).map((_, i) => i);
+
+  maps.forEach(map => {
+    let bi = 0;
+    solution.forEach((n, i) => {
+      solution[i] = (n === null || n === undefined) ? null : map[bi];
+      bi += (n === null || n === undefined) ? 0 : 1;
+    });
+    // solution = solution.filter((n, i) => not_empty(map[i]));
+  });
+  return solution;
+};
+
+///
+// [0, _, 1, _, 2, 3, _, _, 4, _];
+
+
+const not_empty = el => (el !== null && el !== undefined);
+/**
+ * param maps in increasing chronological order. the newest (shortest) at the end.
+ * 
+ */
+Diff.merge_back_maps = (...maps) => {
+  if (maps.length === 0) { return; }
+  let solution = Array.from(Array(maps[0].length)).map((_, i) => i);
+  maps.forEach(map => {
+    solution = solution.filter((n, i) => not_empty(map[i]));
+  });
+  return solution;
+};
+
+Diff.merge_change_maps = (a, b) => {
   // "a" came first
   let aRemoves = [];
   for (let i = 1; i < a.length; i++) {
