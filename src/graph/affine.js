@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import { filter_keys_with_suffix } from "./keys";
+import { filter_keys_with_suffix } from "./fold_spec";
 
 const apply_matrix_to_graph = function (graph, matrix) {
   // apply to anything with a coordinate value

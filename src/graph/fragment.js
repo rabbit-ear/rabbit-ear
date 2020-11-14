@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import { get_graph_keys_with_prefix } from "./keys";
+import { get_graph_keys_with_prefix } from "./fold_spec";
 import {
   make_edges_edges_intersections,
   make_edges_collinear_vertices,

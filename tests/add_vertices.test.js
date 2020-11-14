@@ -10,7 +10,7 @@ test("add vertices simple", () => {
     faces_edges: [[0, 4, 3], [1, 4, 2]],
   };
 
-  ear.graph.add_vertices(graph, { vertices_coords: [[0.33, 0.33], [0.5, 0.5]] });
+  ear.graph.add_vertices(graph, [[0.33, 0.33], [0.5, 0.5]]);
 
   expect(graph.vertices_coords[4][0]).toBe(0.33);
   expect(graph.vertices_coords[5][0]).toBe(0.5);
@@ -25,7 +25,7 @@ test("add vertices simple", () => {
 //   const graph = {
 //     vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
 //   };
-//   ear.graph.add_vertices(graph, { vertices_coords: [[0.33, 0.33], [1, 1]] });
+//   ear.graph.add_vertices(graph, [[0.33, 0.33], [1, 1]]);
 
 //   expect(graph.vertices_coords[4][0]).toBe(0.33);
 //   expect(graph.vertices_coords[4][1]).toBe(0.33);
@@ -41,14 +41,14 @@ test("add vertices no vertices_coords", () => {
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
     faces_edges: [[0, 4, 3], [1, 4, 2]],
   };
-  ear.graph.add_vertices(graph, { vertices_coords: [[0.33, 0.33], [0.5, 0.5]] });
+  ear.graph.add_vertices(graph, [[0.33, 0.33], [0.5, 0.5]]);
   expect(graph.vertices_coords[0][0]).toBe(0.33);
   expect(graph.vertices_coords[1][0]).toBe(0.5);
 });
 
 test("add vertices no graph", () => {
   const graph = {};
-  ear.graph.add_vertices(graph, { vertices_coords: [[0.33, 0.33], [0.5, 0.5]] });
+  ear.graph.add_vertices(graph, [[0.33, 0.33], [0.5, 0.5]]);
   expect(graph.vertices_coords[0][0]).toBe(0.33);
   expect(graph.vertices_coords[1][0]).toBe(0.5);
 });
@@ -57,9 +57,7 @@ test("add vertices duplicate", () => {
   const graph = {
     vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
   };
-  const result = ear.graph.add_vertices(graph, {
-    vertices_coords: [[0.5, 0.5], [1, 1]]
-  });
+  const result = ear.graph.add_vertices(graph, [[0.5, 0.5], [1, 1]]);
   expect(result[0]).toBe(4);
   expect(result[1]).toBe(2);
 });
@@ -74,6 +72,6 @@ test("add vertices unique", () => {
     faces_edges: [[0, 4, 3], [1, 4, 2]],
   };
 
-  ear.graph.add_vertices(graph, { vertices_coords: [[0.33, 0.33], [0.5, 0.5]] });
+  ear.graph.add_vertices(graph, [[0.33, 0.33], [0.5, 0.5]]);
 
 });

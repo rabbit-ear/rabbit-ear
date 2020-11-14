@@ -4,14 +4,16 @@
 import math from "../math";
 import setup from "./prototype_components";
 import {
-  transpose_graph_arrays,
-  transpose_graph_array_at_index,
   fold_keys,
   keys,
   singularize,
   file_spec,
   file_creator,
-} from "./keys";
+} from "./fold_keys";
+import {
+  transpose_graph_arrays,
+  transpose_graph_array_at_index,
+} from "./fold_spec";
 import clean from "./clean";
 // import rebuild from "./rebuild";
 import populate from "./populate";
@@ -25,7 +27,7 @@ import {
   nearest_edge,
   face_containing_point,
 } from "./nearest";
-import { clone } from "./javascript";
+import clone from "./clone";
 // import changed from "./changed";
 /**
  * Graph - a flat-array, index-based graph with faces, edges, and vertices

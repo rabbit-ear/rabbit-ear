@@ -3,7 +3,7 @@
  */
 import math from "../../math";
 import remove from "../remove";
-import { clone } from "../javascript";
+import clone from "../clone";
 import { find_adjacent_faces_to_edge } from "../find";
 import add_vertices from "./add_vertices";
 import {
@@ -11,7 +11,7 @@ import {
   EDGES_ASSIGNMENT,
   EDGES_FOLDANGLE,
   EDGES_FACES,
-} from "../keys";
+} from "../fold_keys";
 
 /**
  * this will add a single vertex to a
@@ -172,7 +172,7 @@ const split_edge = function (graph, old_edge, coords) {
     coords = math.core.midpoint(...incident_vertices);
   }
   // only add 1 vertex. shift the index out of the array
-  const vertex = add_vertices(graph, { vertices_coords: [coords] })
+  const vertex = add_vertices(graph, [coords])
     .shift();
   const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
   // create 2 new edges, add them to the graph

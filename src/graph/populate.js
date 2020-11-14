@@ -18,7 +18,7 @@ import {
 } from "./make";
 import {
   edge_assignment_to_foldAngle
-} from "./keys";
+} from "./fold_spec";
 
 /**
  * this function attempts to rebuild useful geometries in your graph.

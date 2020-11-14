@@ -7,19 +7,19 @@ test("empty", () => expect(true).toBe(true));
 
 //   ear.graph.add_edges(graph, {
 //     edges_vertices: [
-//       ear.graph.add_vertices(graph, { vertices_coords: [[0, 0], [1, 1]] })
+//       ear.graph.add_vertices(graph, [[0, 0], [1, 1]])
 //     ]
 //   });
 
 //   ear.graph.add_edges(graph, {
 //     edges_vertices: [
-//       ear.graph.add_vertices(graph, { vertices_coords: [[2, 2], [3, 3]] })
+//       ear.graph.add_vertices(graph, [[2, 2], [3, 3]])
 //     ]
 //   });
 
 //   ear.graph.add_edges(graph, {
 //     edges_vertices: [
-//       ear.graph.add_vertices(graph, { vertices_coords: [[1, 1], [2, 2]] })
+//       ear.graph.add_vertices(graph, [[1, 1], [2, 2]])
 //     ]
 //   });
 

@@ -2384,7 +2384,7 @@
       "faceOrders"
     ],
   };
-  const keys$1 = Object.freeze([]
+  const keys = Object.freeze([]
     .concat(fold_keys.file)
     .concat(fold_keys.frame)
     .concat(fold_keys.graph)
@@ -2399,6 +2399,21 @@
     edges: "edge",
     faces: "face",
   };
+
+  const edges_assignment_degrees = {
+    M: -180,
+    m: -180,
+    V: 180,
+    v: 180,
+    B: 0,
+    b: 0,
+    F: 0,
+    f: 0,
+    U: 0,
+    u: 0
+  };
+  const edge_assignment_to_foldAngle = assignment =>
+    edges_assignment_degrees[assignment] || 0;
   const filter_keys_with_suffix = (graph, suffix) => Object.keys(graph)
     .map(s => (s.substring(s.length - suffix.length, s.length) === suffix
       ? s : undefined))
@@ -2434,6 +2449,22 @@
     matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
     return geometry;
   };
+  const fold_object_certainty = (object) => {
+    if (typeof object !== "object" || object === null) { return 0; }
+    return keys.filter(key => object[key]).length;
+  };
+
+  var fold_object = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    edge_assignment_to_foldAngle: edge_assignment_to_foldAngle,
+    filter_keys_with_suffix: filter_keys_with_suffix,
+    filter_keys_with_prefix: filter_keys_with_prefix,
+    get_graph_keys_with_prefix: get_graph_keys_with_prefix,
+    get_graph_keys_with_suffix: get_graph_keys_with_suffix,
+    transpose_graph_arrays: transpose_graph_arrays,
+    transpose_graph_array_at_index: transpose_graph_array_at_index,
+    fold_object_certainty: fold_object_certainty
+  });
 
   const apply_matrix_to_graph = function (graph, matrix) {
     filter_keys_with_suffix(graph, "coords").forEach((key) => {
@@ -2926,6 +2957,21 @@
     get_boundary: get_boundary
   });
 
+  const clip_line_in_boundary = ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices }, vector, origin) => {
+    if (!boundaries_vertices) {
+      boundaries_vertices = get_boundary({
+        vertices_edges, edges_vertices, edges_assignment
+      }).vertices;
+    }
+    const poly = boundaries_vertices.map(v => vertices_coords[v]);
+    return math.core.clip_line_in_convex_poly_exclusive(poly, vector, origin);
+  };
+
+  var clip = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    clip_line_in_boundary: clip_line_in_boundary
+  });
+
   const nearest_vertex = ({ vertices_coords }, point) => {
     if (!vertices_coords) { return undefined; }
     const p = math.core.resize(vertices_coords[0].length, point);
@@ -3382,8 +3428,9 @@
     edges_assignment: ["B","B","B","B","B","B","V","V","F"],
   });
 
-  const add_vertices = (graph, { vertices_coords }, epsilon = math.core.EPSILON) => {
+  const add_vertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
     if (!graph.vertices_coords) { graph.vertices_coords = []; }
+    if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
     const vertices_equivalent_vertices = vertices_coords
       .map(vertex => graph.vertices_coords
         .map(v => math.core.distance(v, vertex) < epsilon)
@@ -3555,7 +3602,7 @@
     if (!coords) {
       coords = math.core.midpoint(...incident_vertices);
     }
-    const vertex = add_vertices(graph, { vertices_coords: [coords] })
+    const vertex = add_vertices(graph, [coords])
       .shift();
     const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
     split_edge_into_two(graph, old_edge, vertex)
@@ -4024,7 +4071,7 @@
   GraphProto.prototype.load = function (object, options = {}) {
     if (typeof object !== "object") { return; }
     if (options.append !== true) {
-      keys$1.forEach(key => delete this[key]);
+      keys.forEach(key => delete this[key]);
     }
     Object.assign(this, { file_spec, file_creator }, clone(object));
   };
@@ -4083,8 +4130,8 @@
   const Graph = function () {
     return Object.assign(
       Object.create(prototype),
-      ...Array.from(arguments).filter(a => keys.fold_object_certainty(a)),
-      { file_spec: keys.file_spec, file_creator: keys.file_creator }
+      ...Array.from(arguments).filter(a => fold_object_certainty(a)),
+      { file_spec, file_creator }
     );
   };
   Graph.prototype = prototype;
@@ -4103,13 +4150,17 @@
     populate,
     subgraph,
     explode_faces,
+    get_duplicate_edges,
+    clusters_vertices,
   },
     make,
     Create,
+    clip,
     transform,
     boundary,
     nearest$1,
     isolated_vertices,
+    fold_object,
   );
 
   const axiom1 = (pointA, pointB) => math.line(

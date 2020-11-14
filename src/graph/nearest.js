@@ -35,7 +35,10 @@ export const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
       math.core.segment_limiter));
   return math.core.smallest_comparison_search(point, nearest_points, math.core.distance);
 };
-
+/**
+ * from a planar perspective, ignoring z components
+ *
+ */
 export const face_containing_point = ({ vertices_coords, faces_vertices }, point) => {
   if (!vertices_coords || !faces_vertices) { return undefined; }
   const face = faces_vertices

@@ -2,9 +2,11 @@ import math from "../../math";
 import {
   VERTICES,
   VERTICES_COORDS,
+} from "../fold_keys";
+import {
   get_graph_keys_with_suffix,
   get_graph_keys_with_prefix,
-} from "../keys";
+} from "../fold_spec";
 import clusters_vertices from "./clusters_vertices";
 
 const map_to_change_map = indices => indices.map((n, i) => n - i);

@@ -4,7 +4,7 @@
 import math from "../../math";
 import split_edge from "./split_edge";
 import { merge_maps, reverse_maps } from "../maps";
-import { edge_assignment_to_foldAngle } from "../keys";
+import { edge_assignment_to_foldAngle } from "../fold_spec";
 import remove from "../remove";
 import {
   make_vertices_to_edge_bidirectional,

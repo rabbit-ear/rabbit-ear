@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { get_graph_keys_with_prefix } from "./keys";
+import { get_graph_keys_with_prefix } from "./fold_spec";
 /*
  * Get the number of vertices, edges, or faces in the graph.
  *

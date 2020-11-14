@@ -7,8 +7,11 @@ import math from "../../math";
  * @param {object} source FOLD graph, vertices from here will be added to the other graph
  * @returns {array} index of vertex in new vertices_coords array. matches array size of source vertices.
  */
-const add_vertices = (graph, { vertices_coords }, epsilon = math.core.EPSILON) => {
+const add_vertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
   if (!graph.vertices_coords) { graph.vertices_coords = []; }
+  // the user messed up the input and only provided one vertex
+  // it's easy to fix for them
+  if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
   // make an array that matches the new vertices_coords where each entry is either
   // - undefined, if the vertex is unique
   // - number, index of duplicate vertex in source graph, if duplicate exists

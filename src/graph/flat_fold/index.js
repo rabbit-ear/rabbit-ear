@@ -4,7 +4,7 @@
 import math from "../../math";
 import split_convex_polygon from "../add/split_face";
 import { foldLayers } from "./faces_layer";
-import { clone } from "../javascript";
+import clone from "../clone";
 import Count from "../count";
 import { face_containing_point } from "../nearest";
 

@@ -7,9 +7,10 @@ import Static from "./Static";
 import {
   file_spec,
   file_creator,
+} from "../graph/fold_keys";
+import {
   fold_object_certainty,
-} from "../core/keys";
-
+} from "../graph/fold_spec"
 const CreasePattern = function () {
   // should CreasePattern({vertices_coords:[], ...}) deep copy the argument object?
   return Object.assign(

@@ -6,6 +6,7 @@ import * as make from "./make";
 import * as clip from "./clip";
 import * as boundary from "./boundary";
 import * as nearest from "./nearest";
+import * as fold_object from "./fold_spec";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
@@ -27,13 +28,14 @@ import flat_fold from "./flat_fold";
 // for this function and prototype
 // import * as Create from "../core/create";
 import prototype from "./prototype";
+import { file_spec, file_creator } from "./fold_keys";
 
 const Graph = function () {
   // should Graph({vertices_coors:[], ...}) deep copy the argument object?
   return Object.assign(
     Object.create(prototype),
-    ...Array.from(arguments).filter(a => keys.fold_object_certainty(a)),
-    { file_spec: keys.file_spec, file_creator: keys.file_creator }
+    ...Array.from(arguments).filter(a => fold_object.fold_object_certainty(a)),
+    { file_spec, file_creator }
   );
 };
 
@@ -56,16 +58,17 @@ Object.assign(Graph, {
   populate,
   subgraph,
   explode_faces,
-  // get_duplicate_edges,
-  // clusters_vertices,
+  get_duplicate_edges,
+  clusters_vertices,
 },
   make,
   create,
-  // clip, // this is not actually used yet!
+  clip, // this is not actually used yet!
   transform,
   boundary,
   nearest,
   isolated_vertices,
+  fold_object,
 );
 
 export default Graph;

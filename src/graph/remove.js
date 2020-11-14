@@ -6,7 +6,7 @@ import { unique_sorted_integers } from "./arrays";
 import {
   get_graph_keys_with_suffix,
   get_graph_keys_with_prefix
-} from "./keys";
+} from "./fold_spec";
 /**
  * Removes vertices, edges, or faces (or anything really)
  * remove elements from inside arrays, shift up remaining components,
@@ -57,30 +57,5 @@ const remove_geometry_indices = (graph, key, removeIndices) => {
         .splice(index, 1)));
   return index_map;
 };
-
-// const remove_geometry_indices = function (graph, key, removeIndices) {
-//   const geometry_array_size = count[key](graph);
-//   const removes = Array(geometry_array_size).fill(false);
-//   removeIndices.forEach((v) => { removes[v] = true; });
-//   let s = 0;
-//   // index_map length is the original length of the geometry (vertices_faces)
-//   const index_map = removes.map(remove => (remove ? --s : s));
-//   const map_map = Array.from(Array(geometry_array_size)).map((_, i) => i + index_map[i]);
-//   removeIndices.forEach(i => map_map[i] = undefined);
-//   if (removeIndices.length === 0) { return index_map; }
-//   // update every component that points to vertices_coords
-//   // these arrays do not change their size, only their contents
-//   get_graph_keys_with_suffix(graph, key)
-//     .forEach(sKey => graph[sKey]
-//       .forEach((_, i) => graph[sKey][i]
-//         .forEach((v, j) => { graph[sKey][i][j] += index_map[v]; })));
-//   // update every array with a 1:1 relationship to vertices_ arrays
-//   // these arrays do change their size, their contents are untouched
-//   get_graph_keys_with_prefix(graph, key).forEach((pKey) => {
-//     graph[pKey] = graph[pKey]
-//       .filter((_, i) => !removes[i]);
-//   });
-//   return index_map;
-// };
 
 export default remove_geometry_indices;

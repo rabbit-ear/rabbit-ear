@@ -6,7 +6,7 @@ import remove from "./remove";
 import { get_isolated_vertices } from "./vertices_isolated";
 import get_circular_edges from "./edges_circular";
 import get_duplicate_edges from "./edges_duplicate";
-import { VERTICES, EDGES } from "./keys";
+import { VERTICES, EDGES } from "./fold_keys";
 
 // options = {
 //   circular: true,
