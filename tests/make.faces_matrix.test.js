@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 test("faces matrix, diagonal fold", () => {
-  const result = ear.core.make_faces_matrix({
+  const result = ear.graph.make_faces_matrix({
     vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
     edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [1, 3]],
     edges_foldAngle: [0, 0, 0, 0, 90],
@@ -13,7 +13,7 @@ test("faces matrix, diagonal fold", () => {
 });
 
 test("faces matrix, book fold", () => {
-  const result = ear.core.make_faces_matrix({
+  const result = ear.graph.make_faces_matrix({
     vertices_coords: [[0, 0], [0.5, 0], [1, 0], [1, 1], [0.5, 1], [0, 1]],
     edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [1, 4]],
     edges_foldAngle: [0, 0, 0, 0, 0, 0, 180],
@@ -24,7 +24,7 @@ test("faces matrix, book fold", () => {
 });
 
 test("faces matrix, book fold, rectangle", () => {
-  const result = ear.core.make_faces_matrix({
+  const result = ear.graph.make_faces_matrix({
     vertices_coords: [[0, 0], [1, 0], [2, 0], [2, 1], [1, 1], [0, 1]],
     edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [1, 4]],
     edges_foldAngle: [0, 0, 0, 0, 0, 0, 180],
@@ -35,7 +35,7 @@ test("faces matrix, book fold, rectangle", () => {
 });
 
 test("faces matrix, assignment, no foldAngle", () => {
-  const result = ear.core.make_faces_matrix({
+  const result = ear.graph.make_faces_matrix({
     vertices_coords: [[0, 0], [0.5, 0], [1, 0], [1, 1], [0.5, 1], [0, 1]],
     edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [1, 4]],
     edges_assignment: ["B", "B", "B", "B", "B", "B", "V"],

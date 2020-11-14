@@ -1,9 +1,12 @@
-// get DOMParser and XMLSerializer from the browser or from Node
-
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import {
   isBrowser,
   isNode,
 } from "./detect";
+
+// get DOMParser and XMLSerializer from the browser or from Node
 
 // const htmlString = "<!DOCTYPE html><title> </title>";
 

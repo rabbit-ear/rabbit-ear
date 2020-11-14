@@ -25,7 +25,7 @@ test("face walk tree, crane", () => {
   const crane = JSON.parse(craneJSON);
 
   const startingFace = 0;
-  const tree = ear.core.make_face_spanning_tree(crane, startingFace);
+  const tree = ear.graph.make_face_spanning_tree(crane, startingFace);
 
   expect(tree[0].length).toBe(1);
   expect(tree[1].length).toBe(3);
@@ -56,7 +56,7 @@ test("face walk tree, crane", () => {
 
 test("face walk tree, no param", (done) => {
   try {
-    ear.core.make_face_spanning_tree();
+    ear.graph.make_face_spanning_tree();
   } catch (error) {
     expect(error).not.toBe(undefined);
     done();
@@ -65,7 +65,7 @@ test("face walk tree, no param", (done) => {
 
 test("face walk tree, empty graph", (done) => {
   try {
-    ear.core.make_face_spanning_tree({});
+    ear.graph.make_face_spanning_tree({});
   } catch (error) {
     expect(error).not.toBe(undefined);
     done();
@@ -73,7 +73,7 @@ test("face walk tree, empty graph", (done) => {
 });
 
 test("face walk tree, empty graph", () => {
-  const result = ear.core.make_face_spanning_tree({
+  const result = ear.graph.make_face_spanning_tree({
     edges_vertices: [],
     faces_vertices: [],
   });
@@ -81,7 +81,7 @@ test("face walk tree, empty graph", () => {
 });
 
 test("face walk tree, no edges_vertices", () => {
-  const result = ear.core.make_face_spanning_tree({
+  const result = ear.graph.make_face_spanning_tree({
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });
   expect(result.length).toBe(2);
@@ -95,7 +95,7 @@ test("face walk tree, no edges_vertices", () => {
 });
 
 test("face walk tree, empty edges_vertices. same as test above", () => {
-  const result = ear.core.make_face_spanning_tree({
+  const result = ear.graph.make_face_spanning_tree({
     edges_vertices: [],
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });
@@ -110,7 +110,7 @@ test("face walk tree, empty edges_vertices. same as test above", () => {
 });
 
 test("face walk tree, empty edges_vertices. same as test above", () => {
-  const result = ear.core.make_face_spanning_tree({
+  const result = ear.graph.make_face_spanning_tree({
     edges_vertices: [],
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });
@@ -126,7 +126,7 @@ test("face walk tree, empty edges_vertices. same as test above", () => {
 
 test("face walk tree, finding an edge match. bad edge formations", () => {
   // good edge
-  const result0 = ear.core.make_face_spanning_tree({
+  const result0 = ear.graph.make_face_spanning_tree({
     edges_vertices: [[1, 3]],
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });
@@ -134,13 +134,13 @@ test("face walk tree, finding an edge match. bad edge formations", () => {
   expect(result0[1][0].edge_vertices[1]).toBe(1);
 
   // bad edge formation
-  const result1 = ear.core.make_face_spanning_tree({
+  const result1 = ear.graph.make_face_spanning_tree({
     edges_vertices: [[3, 1, 0]],
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });
   expect(result1[1][0].edge_vertices[0]).toBe(3);
   expect(result1[1][0].edge_vertices[1]).toBe(1);
-  const result2 = ear.core.make_face_spanning_tree({
+  const result2 = ear.graph.make_face_spanning_tree({
     edges_vertices: [[3, 0, 1]],
     faces_vertices: [[0, 1, 3], [2, 3, 1]],
   });

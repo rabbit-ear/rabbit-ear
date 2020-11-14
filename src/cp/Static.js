@@ -1,4 +1,6 @@
-
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 // a = 2r tan(π/n);
 const regularPolygon = (n) => {
   const r = 0.5 / Math.sin(Math.PI / n);

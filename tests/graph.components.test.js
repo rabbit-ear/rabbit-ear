@@ -31,7 +31,7 @@ test("components with isolated vertex", () => {
   expect(graph.vertices[3].degree).toBe(null);
 
   expect(graph.edges.length).toBe(2);
-  expect(graph.edges[0].assignment).toBe("F");
+  expect(graph.edges[0].assignment).toBe("U");
   expect(graph.edges[1].coords[1][0]).toBe(2);
   expect(graph.edges[1].coords[1][1]).toBe(0);
   expect(graph.edges[0].foldAngle).toBe(0);

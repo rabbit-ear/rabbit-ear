@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 // import * as Create from "../core/create";
 import prototype from "./prototype";
 import Static from "./Static";

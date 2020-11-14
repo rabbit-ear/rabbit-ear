@@ -1,5 +1,5 @@
 const ear = require("../rabbit-ear.js");
-const svg = require("./svg.js");
+const svg = require("../../SVG/svg.js");
 
 test("use", () => {
   ear.use(svg);

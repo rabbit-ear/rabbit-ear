@@ -11,7 +11,7 @@ const fourPanel = {
 };
 
 test("folded vertices_coords", () => {
-  const result = ear.core.make_vertices_coords_folded(fourPanel);
+  const result = ear.graph.make_vertices_coords_folded(fourPanel);
   [ [0, 0, 0],
     [1, 0, 0],
     [1, 0, 1],
@@ -26,7 +26,7 @@ test("folded vertices_coords", () => {
 });
 
 test("folded vertices_coords. starting face 1", () => {
-  const result = ear.core.make_vertices_coords_folded(fourPanel, 1);
+  const result = ear.graph.make_vertices_coords_folded(fourPanel, 1);
   [
     [1, 0, 1],
     [1, 0, 0],
@@ -42,7 +42,7 @@ test("folded vertices_coords. starting face 1", () => {
 });
 
 test("folded vertices_coords. starting face 3", () => {
-  const result = ear.core.make_vertices_coords_folded(fourPanel, 3);
+  const result = ear.graph.make_vertices_coords_folded(fourPanel, 3);
   [
     [4, 0, 0],
     [4, 0, 1],

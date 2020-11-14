@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 test("vertices vertices", () => {
-  const result = ear.core.make_vertices_vertices({
+  const result = ear.graph.make_vertices_vertices({
     vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
     edges_vertices: [[0,1], [1,2], [2,3], [3,0], [0,2]],
   });
@@ -12,7 +12,7 @@ test("vertices vertices", () => {
 });
 
 test("vertices vertices, circle, starting at +X", () => {
-  const result = ear.core.make_vertices_vertices({
+  const result = ear.graph.make_vertices_vertices({
     vertices_coords: Array.from(Array(12))
       .map((_, i) => i/12)
       .map(t => [
@@ -26,7 +26,7 @@ test("vertices vertices, circle, starting at +X", () => {
 });
 
 test("vertices vertices, circle, starting at -X", () => {
-  const result = ear.core.make_vertices_vertices({
+  const result = ear.graph.make_vertices_vertices({
     vertices_coords: Array.from(Array(12))
       .map((_, i) => i/12)
       .map(t => [

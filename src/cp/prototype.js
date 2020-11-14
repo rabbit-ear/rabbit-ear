@@ -1,4 +1,7 @@
 /**
+ * Rabbit Ear (c) Robby Kraft
+ */
+/**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.
  * The naming scheme for keys follows the FOLD format.

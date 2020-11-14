@@ -1,4 +1,6 @@
-
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 const isBrowser = typeof window !== "undefined"
   && typeof window.document !== "undefined";
 

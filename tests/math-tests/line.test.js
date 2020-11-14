@@ -29,7 +29,7 @@ test("isDegenerate", () => {
   expect(l.isDegenerate()).toBe(true);
 });
 test("reflection", () => {
-  const result = ear.line([0,1],[2,3]).reflection();
+  const result = ear.line([0,1],[2,3]).reflectionMatrix();
   expect(result[0]).toBeCloseTo(-1);
   expect(result[1]).toBeCloseTo(0);
   expect(result[2]).toBeCloseTo(0);

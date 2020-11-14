@@ -119,7 +119,7 @@ var equal = /*#__PURE__*/Object.freeze({
 });
 
 const fn_square = n => n * n;
-const fn_add = (a, b) => a + b;
+const fn_add = (a, b) => a + (b || 0);
 const fn_not_undefined = a => a !== undefined;
 
 const magnitude = v => Math.sqrt(v
@@ -133,10 +133,10 @@ const normalize = (v) => {
   return m === 0 ? v : v.map(c => c / m);
 };
 const scale = (v, s) => v.map(n => n * s);
-const add = (v, u) => v.map((n, i) => n + u[i]);
-const subtract = (v, u) => v.map((n, i) => n - u[i]);
+const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
+const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
 const dot = (v, u) => v
-  .map((_, i) => v[i] * u[i])
+  .map((_, i) => v[i] * (u[i] || 1))
   .reduce(fn_add, 0);
 const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
 const average = function () {
@@ -148,7 +148,7 @@ const average = function () {
 };
 const lerp = (v, u, t) => {
   const inv = 1.0 - t;
-  return v.map((n, i) => n * inv + u[i] * t);
+  return v.map((n, i) => n * inv + (u[i] || 0) * t);
 };
 const cross2 = (a, b) => a[0] * b[1] - a[1] * b[0];
 const cross3 = (a, b) => [

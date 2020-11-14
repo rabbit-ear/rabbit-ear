@@ -1,10 +1,8 @@
 /**
- * Graph - a flat-array, index-based graph with faces, edges, and vertices
- * with ability for vertices to exist in Euclidean space.
- * The naming scheme for keys follows the FOLD format.
+ * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import setup from "./component_setup";
+import setup from "./prototype_components";
 import {
   transpose_graph_arrays,
   transpose_graph_array_at_index,
@@ -13,39 +11,49 @@ import {
   singularize,
   file_spec,
   file_creator,
-} from "../core/keys";
-import clean from "../core/clean";
-// import rebuild from "../core/rebuild";
-import populate from "../core/populate";
+} from "./keys";
+import clean from "./clean";
+// import rebuild from "./rebuild";
+import populate from "./populate";
 import {
 //   bounding_rect,
   get_boundary,
-} from "../core/boundary";
-import transform from "../core/affine";
+} from "./boundary";
+import transform from "./affine";
 import {
   nearest_vertex,
   nearest_edge,
   face_containing_point,
-} from "../core/nearest";
-import { clone } from "../core/javascript";
+} from "./nearest";
+import { clone } from "./javascript";
 // import changed from "./changed";
+/**
+ * Graph - a flat-array, index-based graph with faces, edges, and vertices
+ * with ability for vertices to exist in Euclidean space.
+ * The naming scheme for keys follows the FOLD format.
+ */
 
 const GraphProto = {};
 GraphProto.prototype = Object.create(Object.prototype);
-// GraphProto.prototype.changed = changed();
-
 /**
  * methods that follow the form: func(graph, ...args)
  */
-const methods = {
+const graphMethods = {
   clean,
   populate,
   // rebuild
 };
-Object.keys(methods).forEach(key => {
+Object.keys(graphMethods).forEach(key => {
   GraphProto.prototype[key] = function () {
-    methods[key](this, ...arguments);
-    // this.changed.update(this.clean);
+    graphMethods[key](this, ...arguments);
+  }
+});
+/**
+ * transformations
+ */
+Object.keys(transform).forEach(key => {
+  GraphProto.prototype[key] = function () {
+    return transform[key](this, ...arguments);
   }
 });
 /**
@@ -67,7 +75,6 @@ GraphProto.prototype.load = function (object, options = {}) {
   }
   // allow overwriting of file_spec and file_creator if included in import
   Object.assign(this, { file_spec, file_creator }, clone(object));
-  // this.changed.update(this.load);
 };
 /**
  * this clears all components from the graph, leaving other keys untouched.
@@ -77,7 +84,6 @@ GraphProto.prototype.clear = function () {
   fold_keys.orders.forEach(key => delete this[key]);
   // avoiding all "file_" keys, but file_frames will contain geometry
   delete this.file_frames;
-  // this.changed.update(this.clear);
 };
 /**
  * graph components
@@ -139,14 +145,5 @@ GraphProto.prototype.nearest = function () {
     }));
   return nears;
 };
-/**
- * transformations
- */
-["translate", "scale", "rotateZ", "matrix"].forEach(key => {
-  GraphProto.prototype[key] = function () {
-    return transform[key](this, ...arguments);
-    // this.changed.update(this.translate);
-  }
-});
 
 export default GraphProto.prototype;
