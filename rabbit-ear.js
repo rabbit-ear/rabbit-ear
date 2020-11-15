@@ -2456,6 +2456,7 @@
 
   var fold_object = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    edges_assignment_degrees: edges_assignment_degrees,
     edge_assignment_to_foldAngle: edge_assignment_to_foldAngle,
     filter_keys_with_suffix: filter_keys_with_suffix,
     filter_keys_with_prefix: filter_keys_with_prefix,
@@ -3807,17 +3808,21 @@
   const make_face_center_fast = (graph, face_index) => {
     if (!graph.faces_vertices[face_index]) { return [0, 0]; }
     return graph
-    .faces_vertices[face_index]
-    .map(v => graph.vertices_coords[v])
-    .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
-    .map(el => el / graph.faces_vertices[face_index].length);
+      .faces_vertices[face_index]
+      .map(v => graph.vertices_coords[v])
+      .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+      .map(el => el / graph.faces_vertices[face_index].length);
   };
   const prepare_graph_crease = (graph, vector, point, face_index) => {
     const faceCount = count.faces(graph);
     const faceCountArray = Array.from(Array(faceCount));
-    graph["faces_re:layer"] = Array(faceCount).fill(0);
+    if (!graph["faces_re:layer"]) {
+      graph["faces_re:layer"] = Array(faceCount).fill(0);
+    }
     graph["faces_re:preindex"] = faceCountArray.map((_, i) => i);
-    graph.faces_matrix = make_faces_matrix(graph, face_index);
+    if (!graph.faces_matrix) {
+      graph.faces_matrix = make_faces_matrix(graph, face_index);
+    }
     graph.faces_coloring = make_faces_coloring_from_matrix(graph);
     graph["faces_re:creases"] = graph.faces_matrix
       .map(mat => math.core.invert_matrix3(mat))
@@ -3847,15 +3852,9 @@
     const l_to_r = Math.abs(right[0] - left[0]);
     return t_to_b > l_to_r ? [bottom, top] : [left, right];
   };
-  const toFoldAngle = {
-    M: -180,
-    m: -180,
-    V: 180,
-    v: 180,
-  };
   const opposite_assignment = { "M":"V", "m":"V", "V":"M", "v":"M" };
   const opposingCrease = assign => opposite_assignment[assign] || assign;
-  const fold_through = function (
+  const flat_fold = function (
     graph,
     vector,
     point,
@@ -3889,8 +3888,8 @@
             ? assignment
             : opposite_crease;
           folded.edges_foldAngle[new_edge] = face_color
-            ? toFoldAngle[assignment] || 0
-            : toFoldAngle[opposite_crease] || 0;
+            ? edges_assignment_degrees[assignment] || 0
+            : edges_assignment_degrees[opposite_crease] || 0;
         }
         diff.faces.replace.forEach(replace => replace.new
           .forEach((i) => {
@@ -4140,7 +4139,7 @@
     add_vertices,
     split_edge,
     split_face: split_convex_face,
-    flat_fold: fold_through,
+    flat_fold,
     fragment,
     clean,
     merge_duplicate_vertices,

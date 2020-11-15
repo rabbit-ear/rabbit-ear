@@ -13,7 +13,7 @@ import { keys } from "./fold_keys";
 //   u: "unassigned"
 // };
 
-const edges_assignment_degrees = {
+export const edges_assignment_degrees = {
   M: -180,
   m: -180,
   V: 180,

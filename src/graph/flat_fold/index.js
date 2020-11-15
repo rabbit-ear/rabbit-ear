@@ -7,7 +7,7 @@ import { foldLayers } from "./faces_layer";
 import clone from "../clone";
 import Count from "../count";
 import { face_containing_point } from "../nearest";
-
+import { edges_assignment_degrees } from "../fold_spec";
 import {
   make_faces_matrix,
   make_faces_center,
@@ -20,18 +20,13 @@ import {
   // construction_fold,
 } from "./construction_frame";
 /**
- * FOLD THROUGH ALL LAYERS
- * the basic valley / mountain fold operation
- *
- * provide a FOLD object with unfolded vertices_coords. a creasePattern state.
+ * FLAT FOLD THROUGH ALL LAYERS
  *
  * this returns a copy of the graph with new crease lines.
  * does not modify input graph's geometry, but does append "re:" data
  * any additional non-standard-FOLD data will be copied over as well.
  */
-
 // for now, this uses "faces_re:layer", todo: use faceOrders
-
 /**
  * this establishes which side a point (face_center) is from the
  * crease line (point, vector). because this uses a +/- determinant
@@ -43,7 +38,6 @@ const get_face_sidedness = (vector, origin, face_center, face_color) => {
   const det = vector[0] * vec2[1] - vector[1] * vec2[0];
   return face_color ? det > 0 : det < 0;
 };
-
 /**
  * for quickly determining which side of a crease a face lies
  * this uses point average, not centroid, faces must be convex
@@ -53,50 +47,22 @@ const make_face_center_fast = (graph, face_index) => {
   // console.log("make_face_center_fast", graph.faces_vertices.length, face_index);
   if (!graph.faces_vertices[face_index]) { return [0, 0]; }
   return graph
-  .faces_vertices[face_index]
-  .map(v => graph.vertices_coords[v])
-  .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
-  .map(el => el / graph.faces_vertices[face_index].length);
+    .faces_vertices[face_index]
+    .map(v => graph.vertices_coords[v])
+    .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+    .map(el => el / graph.faces_vertices[face_index].length);
 };
-// const prepare_graph_crease = function (graph, vector, point, face_index) {
-//   const faceCount = Count.faces(graph);
-//   graph["faces_re:preindex"] = Array.from(Array(faceCount)).map((_, i) => i);
-//   // graph["faces_re:coloring"] = faces_coloring(graph, face_index);
-//   // do we need to rebuild faces matrices? can we grab it from the frame?
-//   // const frame0ContainsMatrices = (graph.file_frames != null
-//   //   && graph.file_frames.length > 0
-//   //   && graph.file_frames[0].faces_matrix != null
-//   //   && graph.file_frames[0].faces_matrix.length === faceCount);
-//   // graph.faces_matrix = frame0ContainsMatrices
-//   //   ? clone(graph.file_frames[0].faces_matrix)
-//   //   : make_faces_matrix(graph, face_index);
-
-//   // todo: we need to make sure matrices match face length
-//   if ("faces_re:matrix" in graph === false) {
-//     graph.faces_matrix = make_faces_matrix(graph, face_index);
-//   }
-//   graph["faces_re:coloring"] = make_faces_coloring_from_matrix(graph);
-//   // crease lines are calculated using each face's INVERSE matrix
-//   graph["faces_re:creases"] = graph.faces_matrix
-//     .map(mat => math.core.invert_matrix3(mat))
-//     .map(mat => math.core.multiply_matrix3_line3(mat, vector, point));
-//   graph["faces_re:center"] = Array.from(Array(faceCount))
-//     .map((_, i) => make_face_center_fast(graph, i));
-//   graph["faces_re:sidedness"] = Array.from(Array(faceCount))
-//     .map((_, i) => get_face_sidedness(
-//       graph["faces_re:creases"][i].vector,
-//       graph["faces_re:creases"][i].origin,
-//       graph["faces_re:center"][i],
-//       graph["faces_re:coloring"][i]
-//     ));
-// };
 
 const prepare_graph_crease = (graph, vector, point, face_index) => {
   const faceCount = Count.faces(graph);
   const faceCountArray = Array.from(Array(faceCount));
-  graph["faces_re:layer"] = Array(faceCount).fill(0);
+  if (!graph["faces_re:layer"]) {
+    graph["faces_re:layer"] = Array(faceCount).fill(0);
+  }
   graph["faces_re:preindex"] = faceCountArray.map((_, i) => i);
-  graph.faces_matrix = make_faces_matrix(graph, face_index);
+  if (!graph.faces_matrix) {
+    graph.faces_matrix = make_faces_matrix(graph, face_index);
+  }
   graph.faces_coloring = make_faces_coloring_from_matrix(graph);
   // crease lines are calculated using each face's INVERSE matrix
   graph["faces_re:creases"] = graph.faces_matrix
@@ -112,21 +78,6 @@ const prepare_graph_crease = (graph, vector, point, face_index) => {
       graph.faces_coloring[i]
     ));
 };
-
-// const prepare_extensions = function (graph) {
-//   const facesCount = Count.faces(graph);
-//   if (graph["faces_re:layer"] == null) {
-//     // valid solution only when there is 1 face
-//     graph["faces_re:layer"] = Array(facesCount).fill(0);
-//   }
-//   // if (graph["face_re:stationary"] == null) {
-//   //  graph["face_re:stationary"] = 0;
-//   // }
-//   // if (graph["faces_re:to_move"] == null) {
-//   //   graph["faces_re:to_move"] = Array(facesCount).fill(false);
-//   // }
-// };
-
 /**
  * quick bounding box approach to find the two furthest points in a collection
  *
@@ -148,19 +99,12 @@ const two_furthest_points = function (points) {
   return t_to_b > l_to_r ? [bottom, top] : [left, right];
 };
 
-const toFoldAngle = {
-  M: -180,
-  m: -180,
-  V: 180,
-  v: 180,
-};
-
 const opposite_assignment = { "M":"V", "m":"V", "V":"M", "v":"M" };
 
 // if it's a mark, this will be too.
 const opposingCrease = assign => opposite_assignment[assign] || assign;
 
-const fold_through = function (
+const flat_fold = function (
   graph,
   vector,
   point,
@@ -218,8 +162,8 @@ const fold_through = function (
           ? assignment
           : opposite_crease;
         folded.edges_foldAngle[new_edge] = face_color
-          ? toFoldAngle[assignment] || 0
-          : toFoldAngle[opposite_crease] || 0;
+          ? edges_assignment_degrees[assignment] || 0
+          : edges_assignment_degrees[opposite_crease] || 0;
       }
 
       // console.log("diff", diff);
@@ -372,4 +316,4 @@ const fold_through = function (
   return folded;
 };
 
-export default fold_through;
+export default flat_fold;
