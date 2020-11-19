@@ -11,6 +11,7 @@ import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
 import populate from "./populate";
+import assign from "./assign";
 import subgraph from "./subgraph";
 import explode_faces from "./explode_faces";
 import get_duplicate_edges from "./edges_duplicate";
@@ -21,6 +22,7 @@ import fragment from "./fragment";
 import clean from "./clean";
 import create from "./create";
 import add_vertices from "./add/add_vertices";
+import add_vertices_split_edges from "./add/add_vertices_split_edges"; // planar graphs
 import split_edge from "./add/split_edge";
 import split_face from "./add/split_face";
 import flat_fold from "./flat_fold";
@@ -44,7 +46,9 @@ Graph.prototype.constructor = Graph;
 
 Object.assign(Graph, {
   // modifiers
+  assign,
   add_vertices,
+  add_vertices_split_edges,
   split_edge,
   split_face,
   flat_fold,

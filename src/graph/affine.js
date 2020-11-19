@@ -45,13 +45,9 @@ const transform_rotateZ = (graph, angle, ...args) => {
 // make_matrix3_rotateY
 // make_matrix3_reflectZ
 
-const transform_matrix = (graph, matrix) => {
-  return apply_matrix_to_graph(graph, matrix);
-};
-
 export default {
   scale: transform_scale,
   translate: transform_translate,
   rotateZ: transform_rotateZ,
-  matrix: transform_matrix,
+  transform: apply_matrix_to_graph,
 };

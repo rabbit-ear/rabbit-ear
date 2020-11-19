@@ -182,6 +182,10 @@
     .abs(v.reduce(fn_add, 0)) < epsilon;
   const parallel = (a, b, epsilon = EPSILON) => 1 - Math
     .abs(dot(normalize(a), normalize(b))) < epsilon;
+  const alternating_sum = (numbers) => [0, 1]
+    .map(even_odd => numbers
+      .filter((_, i) => i % 2 === even_odd)
+      .reduce(fn_add, 0));
   var algebra = Object.freeze({
     __proto__: null,
     magnitude: magnitude,
@@ -203,7 +207,8 @@
     rotate90: rotate90,
     rotate270: rotate270,
     degenerate: degenerate,
-    parallel: parallel
+    parallel: parallel,
+    alternating_sum: alternating_sum
   });
   const ray_limiter = dist => (dist < -EPSILON ? 0 : dist);
   const segment_limiter = (dist) => {
@@ -512,7 +517,7 @@
     vector: vector || [],
     origin: origin || []
   });
-  const get_vector = function () {
+  const get_vector$1 = function () {
     if (arguments[0] instanceof Constructors.vector) { return arguments[0]; }
     let list = flatten_arrays(arguments);
     if (list.length > 0
@@ -527,7 +532,7 @@
   };
   const get_vector_of_vectors = function () {
     return semi_flatten_arrays(arguments)
-      .map(el => get_vector(el));
+      .map(el => get_vector$1(el));
   };
   const get_segment = function () {
     if (arguments[0] instanceof Constructors.segment) {
@@ -552,8 +557,8 @@
       return vector_origin_form(args[0].vector || [], args[0].origin || []);
     }
     return typeof args[0] === "number"
-      ? vector_origin_form(get_vector(args))
-      : vector_origin_form(...args.map(a => get_vector(a)));
+      ? vector_origin_form(get_vector$1(args))
+      : vector_origin_form(...args.map(a => get_vector$1(a)));
   };
   const rect_form = (x = 0, y = 0, width = 0, height = 0) => ({
     x, y, width, height
@@ -596,7 +601,7 @@
     return matrix;
   };
   const get_matrix2 = function () {
-    const m = get_vector(arguments);
+    const m = get_vector$1(arguments);
     if (m.length === 6) { return m; }
     if (m.length > 6) { return [m[0], m[1], m[2], m[3], m[4], m[5]]; }
     if (m.length < 6) {
@@ -605,7 +610,7 @@
   };
   var getters = Object.freeze({
     __proto__: null,
-    get_vector: get_vector,
+    get_vector: get_vector$1,
     get_vector_of_vectors: get_vector_of_vectors,
     get_segment: get_segment,
     get_line: get_line,
@@ -718,15 +723,16 @@
     const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
     return [Math.cos(radians), Math.sin(radians)];
   };
-  const counter_clockwise_vector_order = (...vectors) => {
-    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
-    const counter_clockwise = Array.from(Array(vectors_radians.length))
+  const counter_clockwise_radians_order = (...radians) => {
+    const counter_clockwise = Array.from(Array(radians.length))
       .map((_, i) => i)
-      .sort((a, b) => vectors_radians[a] - vectors_radians[b]);
+      .sort((a, b) => radians[a] - radians[b]);
     return counter_clockwise
       .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
       .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
   };
+  const counter_clockwise_vector_order = (...vectors) =>
+    counter_clockwise_radians_order(...vectors.map(v => Math.atan2(v[1], v[0])));
   const interior_angles = (...vecs) => vecs
     .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
   const bisect_vectors = (a, b) => {
@@ -982,6 +988,7 @@
     counter_clockwise_angle2: counter_clockwise_angle2,
     clockwise_bisect2: clockwise_bisect2,
     counter_clockwise_bisect2: counter_clockwise_bisect2,
+    counter_clockwise_radians_order: counter_clockwise_radians_order,
     counter_clockwise_vector_order: counter_clockwise_vector_order,
     interior_angles: interior_angles,
     bisect_vectors: bisect_vectors,
@@ -997,6 +1004,33 @@
     split_convex_polygon: split_convex_polygon,
     convex_hull: convex_hull,
     straight_skeleton: straight_skeleton
+  });
+  const kawasaki_sector_score = (angles) => alternating_sum(angles)
+    .map(a => (a < 0 ? a + Math.PI * 2 : a))
+    .map(s => Math.PI - s);
+  const kawasaki_solutions_radians = (radians) => radians
+    .map((v, i, arr) => counter_clockwise_angle_radians(
+      v, arr[(i + 1) % arr.length]
+    ))
+    .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+    .map(opposite_sectors => kawasaki_sector_score(opposite_sectors))
+    .map((kawasakis, i) => radians[i] + kawasakis[0])
+    .map((angle, i) => (is_counter_clockwise_between(angle,
+      radians[i], radians[(i + 1) % radians.length])
+      ? angle
+      : undefined));
+  const kawasaki_solutions = (vectors) => {
+    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+    return kawasaki_solutions_radians(vectors_radians)
+      .map(a => (a === undefined
+        ? undefined
+        : [Math.cos(a), Math.sin(a)]));
+  };
+  var origami = Object.freeze({
+    __proto__: null,
+    kawasaki_sector_score: kawasaki_sector_score,
+    kawasaki_solutions_radians: kawasaki_solutions_radians,
+    kawasaki_solutions: kawasaki_solutions
   });
   const type_of = function (obj) {
     switch (obj.constructor.name) {
@@ -1566,7 +1600,7 @@
     clip_segment_in_convex_poly_exclusive: clip_segment_in_convex_poly_exclusive
   });
   const VectorArgs = function () {
-    get_vector(arguments).forEach(n => this.push(n));
+    get_vector$1(arguments).forEach(n => this.push(n));
   };
   const VectorGetters = {
     x: function () { return this[0]; },
@@ -1577,16 +1611,16 @@
     preserve: {
       magnitude: function () { return magnitude(this); },
       isEquivalent: function () {
-        return equivalent_vectors(this, get_vector(arguments));
+        return equivalent_vectors(this, get_vector$1(arguments));
       },
       isParallel: function () {
-        return parallel(...resize_up(this, get_vector(arguments)));
+        return parallel(...resize_up(this, get_vector$1(arguments)));
       },
       dot: function () {
-        return dot(...resize_up(this, get_vector(arguments)));
+        return dot(...resize_up(this, get_vector$1(arguments)));
       },
       distanceTo: function () {
-        return distance(...resize_up(this, get_vector(arguments)));
+        return distance(...resize_up(this, get_vector$1(arguments)));
       },
     },
     vector: {
@@ -1599,7 +1633,7 @@
       cross: function () {
         return cross3(
           resize(3, this),
-          resize(3, get_vector(arguments))
+          resize(3, get_vector$1(arguments))
         );
       },
       transform: function () {
@@ -1609,10 +1643,10 @@
         );
       },
       add: function () {
-        return add(this, resize(this.length, get_vector(arguments)));
+        return add(this, resize(this.length, get_vector$1(arguments)));
       },
       subtract: function () {
-        return subtract(this, resize(this.length, get_vector(arguments)));
+        return subtract(this, resize(this.length, get_vector$1(arguments)));
       },
       rotateZ: function (angle, origin) {
         return multiply_matrix3_vector3(
@@ -1621,13 +1655,13 @@
         );
       },
       lerp: function (vector, pct) {
-        return lerp(this, resize(this.length, get_vector(vector)), pct);
+        return lerp(this, resize(this.length, get_vector$1(vector)), pct);
       },
       midpoint: function () {
-        return midpoint(...resize_up(this, get_vector(arguments)));
+        return midpoint(...resize_up(this, get_vector$1(arguments)));
       },
       bisect: function () {
-        return bisect_vectors(this, get_vector(arguments));
+        return counter_clockwise_bisect2(this, get_vector$1(arguments));
       },
     }
   };
@@ -1671,7 +1705,7 @@
     return Constructors.matrix(make_matrix3_reflectZ(this.vector, this.origin));
   };
   LineProto.prototype.nearestPoint = function () {
-    const point = get_vector(arguments);
+    const point = get_vector$1(arguments);
     return Constructors.vector(
       nearest_point_on_line(this.vector, this.origin, point, this.clip_function)
     );
@@ -1749,8 +1783,14 @@
         length: () => Infinity,
       },
       M: {
-        rotate180: function () {
+        flip: function () {
           return Constructors.ray(flip(this.vector), this.origin);
+        },
+        scale: function (scale) {
+          return Constructors.ray(this.vector.scale(scale), this.origin);
+        },
+        normalize: function () {
+          return Constructors.ray(this.vector.normalize(), this.origin);
         },
         clip_function: ray_limiter,
         svgPath: function (length = 10000) {
@@ -1884,7 +1924,7 @@
       return Constructors.vector(nearest_point_on_circle(
         this.radius,
         this.origin,
-        get_vector(arguments)
+        get_vector$1(arguments)
       ));
     },
     intersect: function (object) {
@@ -2002,7 +2042,7 @@
       return Constructors.rect(enclosing_rectangle(this));
     },
     contains: function () {
-      return point_in_poly(get_vector(arguments), this);
+      return point_in_poly(get_vector$1(arguments), this);
     },
     scale: function (magnitude, center = centroid(this)) {
       const newPoints = this
@@ -2023,7 +2063,7 @@
       return Constructors.polygon(newPoints);
     },
     translate: function () {
-      const vec = get_vector(...arguments);
+      const vec = get_vector$1(...arguments);
       const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
       return this.constructor.fromPoints(newPoints);
     },
@@ -2034,7 +2074,7 @@
       return Constructors.polygon(newPoints);
     },
     nearest: function () {
-      const point = get_vector(...arguments);
+      const point = get_vector$1(...arguments);
       const result = nearest_point_on_polygon(this, point);
       return result === undefined
         ? undefined
@@ -2230,12 +2270,12 @@
         },
         transform: function (...innerArgs) {
           return Constructors.vector(
-            multiply_matrix3_vector3(this, resize(3, get_vector(innerArgs)))
+            multiply_matrix3_vector3(this, resize(3, get_vector$1(innerArgs)))
           );
         },
         transformVector: function (vector) {
           return Constructors.vector(
-            multiply_matrix3_vector3(this, resize(3, get_vector(vector)))
+            multiply_matrix3_vector3(this, resize(3, get_vector$1(vector)))
           );
         },
         transformLine: function (...innerArgs) {
@@ -2244,6 +2284,47 @@
         },
       },
       S: {
+      }
+    }
+  };
+  const invert_order_array = (arr) => {
+    const new_arr = [];
+    arr.forEach((n, i) => new_arr[n] = i);
+    return new_arr;
+  };
+  var Junction = {
+    junction: {
+      A: function () {
+        const vectors = get_vector_of_vectors(arguments);
+        const radians = vectors.map(v => Math.atan2(v[1], v[0]));
+        const order = counter_clockwise_radians_order(...radians);
+        this.vectors = order.map(i => vectors[i]);
+        this.radians = order.map(i => radians[i]);
+        this.order = invert_order_array(order);
+      },
+      G: {
+        sectors: function () {
+          return this.radians
+            .map((n, i, arr) => [n, arr[(i + 1) % arr.length]])
+            .map(pair => counter_clockwise_angle_radians(pair[0], pair[1]));
+        },
+      },
+      M: {
+        alternatingAngleSum: function () {
+          return alternating_sum(this.sectors);
+        },
+      },
+      S: {
+        fromVectors: function () {
+          return this.constructor(arguments);
+        },
+        fromPoints: function (center, edge_adjacent_points) {
+          return this.constructor(edge_adjacent_points.map(p => subtract(p, center)));
+        },
+        fromRadians: function () {
+          const radians = get_vector(arguments);
+          return this.constructor(radians.map(r => [Math.cos(r), Math.sin(r)]));
+        },
       }
     }
   };
@@ -2257,6 +2338,7 @@
     Rect,
     Polygon,
     Matrix,
+    Junction,
   );
   const create = function (primitiveName, args) {
     const a = Object.create(Definitions[primitiveName].proto);
@@ -2272,6 +2354,7 @@
   const ray = function () { return create("ray", arguments); };
   const segment = function () { return create("segment", arguments); };
   const matrix = function () { return create("matrix", arguments); };
+  const junction = function () { return create("junction", arguments); };
   Object.assign(Constructors, {
     vector,
     circle,
@@ -2282,6 +2365,7 @@
     ray,
     segment,
     matrix,
+    junction,
   });
   Object.keys(Definitions).forEach(primitiveName => {
     const Proto = {};
@@ -2317,6 +2401,7 @@
     overlap,
     getters,
     resizers,
+    origami,
     intersect_circle,
     intersect_line_types,
     intersect_polygon,
@@ -2497,14 +2582,11 @@
     const matrix = math.core.make_matrix3_rotateZ(angle, ...vector3);
     return apply_matrix_to_graph(graph, matrix);
   };
-  const transform_matrix = (graph, matrix) => {
-    return apply_matrix_to_graph(graph, matrix);
-  };
   var transform = {
     scale: transform_scale,
     translate: transform_translate,
     rotateZ: transform_rotateZ,
-    matrix: transform_matrix,
+    transform: apply_matrix_to_graph,
   };
 
   const max_num_in_array_in_arrays = (arrays) => {
@@ -2952,10 +3034,73 @@
       edges: edge_walk,
     };
   };
+  const find_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
+    if (!vertices_vertices) {
+      vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });
+    }
+    const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+    const edge_walk = [];
+    const vertex_walk = [];
+    const walk = {
+      vertices: vertex_walk,
+      edges: edge_walk,
+    };
+    let largestX = -Infinity;
+    let first_vertex_i = -1;
+    vertices_coords.forEach((v, i) => {
+      if (v[0] > largestX) {
+        largestX = v[0];
+        first_vertex_i = i;
+      }
+    });
+    if (first_vertex_i === -1) { return walk; }
+    vertex_walk.push(first_vertex_i);
+    const first_vc = vertices_coords[first_vertex_i];
+    const first_neighbors = vertices_vertices[first_vertex_i];
+    const counter_clock_first_i = first_neighbors
+      .map(i => vertices_coords[i])
+      .map(vc => [vc[0] - first_vc[0], vc[1] - first_vc[1]])
+      .map(vec => Math.atan2(vec[1], vec[0]))
+      .map(angle => (angle < 0 ? angle + Math.PI * 2 : angle))
+      .map((a, i) => ({ a, i }))
+      .sort((a, b) => a.a - b.a)
+      .shift()
+      .i;
+    const second_vertex_i = first_neighbors[counter_clock_first_i];
+    const first_edge_lookup = first_vertex_i < second_vertex_i
+      ? `${first_vertex_i} ${second_vertex_i}`
+      : `${second_vertex_i} ${first_vertex_i}`;
+    const first_edge = edge_map[first_edge_lookup];
+    edge_walk.push(first_edge);
+    let prev_vertex_i = first_vertex_i;
+    let this_vertex_i = second_vertex_i;
+    let protection = 0;
+    while (protection < 10000) {
+      const next_neighbors = vertices_vertices[this_vertex_i];
+      const from_neighbor_i = next_neighbors.indexOf(prev_vertex_i);
+      const next_neighbor_i = (from_neighbor_i + 1) % next_neighbors.length;
+      const next_vertex_i = next_neighbors[next_neighbor_i];
+      const next_edge_lookup = this_vertex_i < next_vertex_i
+        ? `${this_vertex_i} ${next_vertex_i}`
+        : `${next_vertex_i} ${this_vertex_i}`;
+      const next_edge_i = edge_map[next_edge_lookup];
+      if (next_edge_i === edge_walk[0]) {
+        return walk;
+      }
+      vertex_walk.push(this_vertex_i);
+      edge_walk.push(next_edge_i);
+      prev_vertex_i = this_vertex_i;
+      this_vertex_i = next_vertex_i;
+      protection += 1;
+    }
+    console.warn("calculate boundary potentially entered infinite loop");
+    return walk;
+  };
 
   var boundary = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    get_boundary: get_boundary
+    get_boundary: get_boundary,
+    find_planar_boundary: find_planar_boundary
   });
 
   const clip_line_in_boundary = ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices }, vector, origin) => {
@@ -3086,6 +3231,95 @@
       graph.faces_matrix = make_faces_matrix(graph);
     }
     return graph;
+  };
+
+  const add_vertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
+    if (!graph.vertices_coords) { graph.vertices_coords = []; }
+    if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
+    const vertices_equivalent_vertices = vertices_coords
+      .map(vertex => graph.vertices_coords
+        .map(v => math.core.distance(v, vertex) < epsilon)
+        .map((on_vertex, i) => on_vertex ? i : undefined)
+        .filter(a => a !== undefined)
+        .shift());
+    let index = graph.vertices_coords.length;
+    const unique_vertices = vertices_coords
+      .filter((vert, i) => vertices_equivalent_vertices[i] === undefined);
+    graph.vertices_coords.push(...unique_vertices);
+    return vertices_equivalent_vertices
+      .map(el => el === undefined ? index++ : el);
+  };
+
+  const vef = ["vertices", "edges", "faces"];
+  const make_vertices_map_and_consider_duplicates = (target, source, epsilon = math.core.EPSILON) => {
+    let index = target.vertices_coords.length;
+    return source.vertices_coords
+      .map(vertex => target.vertices_coords
+        .map(v => math.core.distance(v, vertex) < epsilon)
+        .map((on_vertex, i) => on_vertex ? i : undefined)
+        .filter(a => a !== undefined)
+        .shift())
+      .map(el => el === undefined ? index++ : el);
+  };
+  const get_edges_duplicate_from_source_in_target = (target, source) => {
+    const source_duplicates = {};
+    const target_map = {};
+    for (let i = 0; i < target.edges_vertices.length; i += 1) {
+      target_map[`${target.edges_vertices[i][0]} ${target.edges_vertices[i][1]}`] = i;
+      target_map[`${target.edges_vertices[i][1]} ${target.edges_vertices[i][0]}`] = i;
+    }
+    for (let i = 0; i < source.edges_vertices.length; i += 1) {
+      const index = target_map[`${source.edges_vertices[i][0]} ${source.edges_vertices[i][1]}`];
+      if (index !== undefined) {
+        source_duplicates[i] = index;
+      }
+    }
+    return source_duplicates;
+  };
+  const assign$1 = (target, source, epsilon = math.core.EPSILON) => {
+    const prefixes = {};
+    const suffixes = {};
+    const counts = {};
+    const maps = {};
+    vef.forEach(key => {
+      counts[key] = count[key](source);
+      prefixes[key] = get_graph_keys_with_prefix(source, key);
+      suffixes[key] = get_graph_keys_with_suffix(source, key);
+    });
+    vef.forEach(geom => prefixes[geom].filter(key => !target[key]).forEach(key => {
+      target[key] = [];
+    }));
+    maps.vertices = make_vertices_map_and_consider_duplicates(target, source, epsilon);
+    suffixes.vertices.forEach(key => {
+      source[key].forEach((el, i) => el.forEach((vert, j) => {
+        source[key][i][j] = maps.vertices[vert];
+      }));
+    });
+    const target_edges_count = count.edges(target);
+    maps.edges = Array.from(Array(counts.edges)).map((_, i) => target_edges_count + i);
+    const edge_dups = get_edges_duplicate_from_source_in_target(target, source);
+    Object.keys(edge_dups).forEach(i => { maps.edges[i] = edge_dups[i]; });
+    suffixes.edges.forEach((key) => {
+      source[key].forEach((el, i) => el.forEach((edge, j) => {
+        source[key][i][j] = maps.edges[edge];
+      }));
+    });
+    const target_faces_count = count.faces(target);
+    maps.faces = Array.from(Array(counts.faces)).map((_, i) => target_faces_count + i);
+    suffixes.faces.forEach((key) => {
+      source[key].forEach((el, i) => el.forEach((face, j) => {
+        source[key][i][j] = maps.faces[face];
+      }));
+    });
+    vef.forEach((geom) => {
+      prefixes[geom].forEach((key) => {
+        source[key].forEach((el, i) => {
+          const new_index = maps[geom][i];
+          target[key][new_index] = el;
+        });
+      });
+    });
+    return target;
   };
 
   const subgraph = (graph, components) => {
@@ -3429,23 +3663,6 @@
     edges_assignment: ["B","B","B","B","B","B","V","V","F"],
   });
 
-  const add_vertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
-    if (!graph.vertices_coords) { graph.vertices_coords = []; }
-    if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
-    const vertices_equivalent_vertices = vertices_coords
-      .map(vertex => graph.vertices_coords
-        .map(v => math.core.distance(v, vertex) < epsilon)
-        .map((on_vertex, i) => on_vertex ? i : undefined)
-        .filter(a => a !== undefined)
-        .shift());
-    let index = graph.vertices_coords.length;
-    const unique_vertices = vertices_coords
-      .filter((vert, i) => vertices_equivalent_vertices[i] === undefined);
-    graph.vertices_coords.push(...unique_vertices);
-    return vertices_equivalent_vertices
-      .map(el => el === undefined ? index++ : el);
-  };
-
   const clone = function (o) {
     let newO;
     let i;
@@ -3469,6 +3686,41 @@
       }
     }
     return newO;
+  };
+
+  const add_vertices_split_edges = (graph, vertices_coords) => {
+    const new_indices = add_vertices(graph, vertices_coords);
+    const edges = graph.edges_vertices
+      .map(ev => ev.map(v => graph.vertices_coords[v]));
+    const vertices_edge_collinear = vertices_coords
+      .map(v => edges
+        .map(edge => math.core.point_on_segment_exclusive(v, edge[0], edge[1]))
+        .map((on_edge, i) => (on_edge ? i : undefined))
+        .filter(a => a !== undefined)
+        .shift());
+    const remove_indices = vertices_edge_collinear
+      .filter(vert_edge => vert_edge !== undefined);
+    const new_edges = vertices_edge_collinear
+      .map((e, i) => ({ e, i }))
+      .filter(el => el.e !== undefined)
+      .map(el => {
+        const edge = transpose_graph_array_at_index(graph, "edges", el.e);
+        return [edge, clone(edge)]
+          .map((obj, i) => Object.assign(obj, {
+            edges_vertices: [ graph.edges_vertices[el.e][i], new_indices[el.i] ]
+          }));
+      })
+      .reduce((a,b) => a.concat(b), []);
+    const edges_length = count.edges(graph);
+    const diff = { new: { edges: [] } };
+    new_edges.forEach((new_edge, i) => Object.keys(new_edge)
+      .forEach((key) => {
+        if (graph[key] === undefined) { graph[key] = []; }
+        graph[key][edges_length + i] = new_edge[key];
+        diff.new.edges[i] = edges_length + i;
+      }));
+    remove_geometry_indices(graph, "edges", remove_indices);
+    return new_indices;
   };
 
   const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
@@ -4136,7 +4388,9 @@
   Graph.prototype = prototype;
   Graph.prototype.constructor = Graph;
   Object.assign(Graph, {
+    assign: assign$1,
     add_vertices,
+    add_vertices_split_edges,
     split_edge,
     split_face: split_convex_face,
     flat_fold,
@@ -4161,6 +4415,15 @@
     isolated_vertices,
     fold_object,
   );
+
+  var axioms = "{\n  \"ar\": [null,\n    \"اصنع خطاً يمر بنقطتين\",\n    \"اصنع خطاً عن طريق طي نقطة واحدة إلى أخرى\",\n    \"اصنع خطاً عن طريق طي خط واحد على آخر\",\n    \"اصنع خطاً يمر عبر نقطة واحدة ويجعل خطاً واحداً فوق نفسه\",\n    \"اصنع خطاً يمر بالنقطة الأولى ويجعل النقطة الثانية على الخط\",\n    \"اصنع خطاً يجلب النقطة الأولى إلى الخط الأول والنقطة الثانية إلى الخط الثاني\",\n    \"اصنع خطاً يجلب نقطة إلى خط ويجعل خط ثاني فوق نفسه\"\n  ],\n  \"de\": [null,\n    \"Falte eine Linie durch zwei Punkte\",\n    \"Falte zwei Punkte aufeinander\",\n    \"Falte zwei Linien aufeinander\",\n    \"Falte eine Linie auf sich selbst, falte dabei durch einen Punkt\",\n    \"Falte einen Punkt auf eine Linie, falte dabei durch einen anderen Punkt\",\n    \"Falte einen Punkt auf eine Linie und einen weiteren Punkt auf eine weitere Linie\",\n    \"Falte einen Punkt auf eine Linie und eine weitere Linie in sich selbst zusammen\"\n  ],\n  \"en\": [null,\n    \"fold a line through two points\",\n    \"fold two points together\",\n    \"fold two lines together\",\n    \"fold a line on top of itself, creasing through a point\",\n    \"fold a point to a line, creasing through another point\",\n    \"fold a point to a line and another point to another line\",\n    \"fold a point to a line and another line onto itself\"\n  ],\n  \"es\": [null,\n    \"dobla una línea entre dos puntos\",\n    \"dobla dos puntos juntos\",\n    \"dobla y une dos líneas\",\n    \"dobla una línea sobre sí misma, doblándola hacia un punto\",\n    \"dobla un punto hasta una línea, doblándola a través de otro punto\",\n    \"dobla un punto hacia una línea y otro punto hacia otra línea\",\n    \"dobla un punto hacia una línea y otra línea sobre sí misma\"\n  ],\n  \"fr\":[null,\n    \"créez un pli passant par deux points\",\n    \"pliez pour superposer deux points\",\n    \"pliez pour superposer deux lignes\",\n    \"rabattez une ligne sur elle-même à l'aide d'un pli qui passe par un point\",\n    \"rabattez un point sur une ligne à l'aide d'un pli qui passe par un autre point\",\n    \"rabattez un point sur une ligne et un autre point sur une autre ligne\",\n    \"rabattez un point sur une ligne et une autre ligne sur elle-même\"\n  ],\n  \"hi\": [null,\n    \"एक क्रीज़ बनाएँ जो दो स्थानों से गुजरता है\",\n    \"एक स्थान को दूसरे स्थान पर मोड़कर एक क्रीज़ बनाएँ\",\n    \"एक रेखा पर दूसरी रेखा को मोड़कर क्रीज़ बनाएँ\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान से गुजरता है और एक रेखा को स्वयं के ऊपर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान से गुजरता है और दूसरे स्थान को रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान को पहली रेखा पर और दूसरे स्थान को दूसरी रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान को एक रेखा पर ले आता है और दूसरी रेखा को स्वयं के ऊपर ले आता है\"\n  ],\n  \"jp\": [null,\n    \"2点に沿って折り目を付けます\",\n    \"2点を合わせて折ります\",\n    \"2つの線を合わせて折ります\",\n    \"点を通過させ、既にある線に沿って折ります\",\n    \"点を線沿いに合わせ別の点を通過させ折ります\",\n    \"線に向かって点を折り、同時にもう一方の線に向かってもう一方の点を折ります\",\n    \"線に向かって点を折り、同時に別の線をその上に折ります\"\n  ],\n  \"ko\": [null,\n    \"두 점을 통과하는 선으로 접으세요\",\n    \"두 점을 함께 접으세요\",\n    \"두 선을 함께 접으세요\",\n    \"그 위에 선을 접으면서 점을 통과하게 접으세요\",\n    \"점을 선으로 접으면서, 다른 점을 지나게 접으세요\",\n    \"점을 선으로 접고 다른 점을 다른 선으로 접으세요\",\n    \"점을 선으로 접고 다른 선을 그 위에 접으세요\"\n  ],\n  \"ms\": [null,\n    \"lipat garisan melalui dua titik\",\n    \"lipat dua titik bersama\",\n    \"lipat dua garisan bersama\",\n    \"lipat satu garisan di atasnya sendiri, melipat melalui satu titik\",\n    \"lipat satu titik ke garisan, melipat melalui titik lain\",\n    \"lipat satu titik ke garisan dan satu lagi titik ke garisan lain\",\n    \"lipat satu titik ke garisan dan satu lagi garisan di atasnya sendiri\"\n  ],\n  \"pt\": [null,\n    \"dobre uma linha entre dois pontos\",\n    \"dobre os dois pontos para uni-los\",\n    \"dobre as duas linhas para uni-las\",\n    \"dobre uma linha sobre si mesma, criando uma dobra ao longo de um ponto\",\n    \"dobre um ponto até uma linha, criando uma dobra ao longo de outro ponto\",\n    \"dobre um ponto até uma linha e outro ponto até outra linha\",\n    \"dobre um ponto até uma linha e outra linha sobre si mesma\"\n  ],\n  \"ru\": [null,\n    \"сложите линию через две точки\",\n    \"сложите две точки вместе\",\n    \"сложите две линии вместе\",\n    \"сверните линию сверху себя, сгибая через точку\",\n    \"сложите точку в линию, сгибая через другую точку\",\n    \"сложите точку в линию и другую точку в другую линию\",\n    \"сложите точку в линию и другую линию на себя\"\n  ],\n  \"tr\": [null,\n    \"iki noktadan geçen bir çizgi boyunca katla\",\n    \"iki noktayı birbirine katla\",\n    \"iki çizgiyi birbirine katla\",\n    \"bir noktadan kıvırarak kendi üzerindeki bir çizgi boyunca katla\",\n    \"başka bir noktadan kıvırarak bir noktayı bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir noktayı başka bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir çizgiyi kendi üzerine katla\"\n  ],\n  \"vi\": [null,\n    \"tạo một nếp gấp đi qua hai điểm\",\n    \"tạo nếp gấp bằng cách gấp một điểm này sang điểm khác\",\n    \"tạo nếp gấp bằng cách gấp một đường lên một đường khác\",\n    \"tạo một nếp gấp đi qua một điểm và đưa một đường lên trên chính nó\",\n    \"tạo một nếp gấp đi qua điểm đầu tiên và đưa điểm thứ hai lên đường thẳng\",\n    \"tạo một nếp gấp mang điểm đầu tiên đến đường đầu tiên và điểm thứ hai cho đường thứ hai\",\n    \"tạo một nếp gấp mang lại một điểm cho một đường và đưa một đường thứ hai lên trên chính nó\"\n  ],\n  \"zh\": [null,\n    \"通過兩點折一條線\",\n    \"將兩點折疊起來\",\n    \"將兩條線折疊在一起\",\n    \"通過一個點折疊一條線在自身上面\",\n    \"將一個點，通過另一個點折疊成一條線，\",\n    \"將一個點折疊為一條線，再將另一個點折疊到另一條線\",\n    \"將一個點折疊成一條線，另一條線折疊到它自身上\"\n  ]\n}\n";
+
+  var folds = "{\n\t\"es\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"\",\n\t\t\t\"noun\": \"doblez\"\n\t\t},\n\t\t\"valley\": \"doblez de valle\",\n\t\t\"mountain\": \"doblez de montaña\",\n\t\t\"inside\": \"\",\n\t\t\"outside\": \"\",\n\t\t\"open\": \"\",\n\t\t\"closed\": \"\",\n\t\t\"rabbit\": \"\",\n\t\t\"rabbit2\": \"\",\n\t\t\"petal\": \"\",\n\t\t\"squash\": \"\",\n\t\t\"flip\": \"dale la vuelta a tu papel\"\n\t},\n\t\"en\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"fold\",\n\t\t\t\"noun\": \"crease\"\n\t\t},\n\t\t\"valley\": \"valley fold\",\n\t\t\"mountain\": \"mountain fold\",\n\t\t\"inside\": \"inside reverse fold\",\n\t\t\"outside\": \"outside reverse fold\",\n\t\t\"open\": \"open sink\",\n\t\t\"closed\": \"closed sink\",\n\t\t\"rabbit\": \"rabbit ear fold\",\n\t\t\"rabbit2\": \"double rabbit ear fold\",\n\t\t\"petal\": \"petal fold\",\n\t\t\"squash\": \"squash fold\",\n\t\t\"flip\": \"flip over\"\n\t},\n\t\"zh\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"\",\n\t\t\t\"noun\": \"\"\n\t\t},\n\t\t\"valley\": \"谷摺\",\n\t\t\"mountain\": \"山摺\",\n\t\t\"inside\": \"內中割摺\",\n\t\t\"outside\": \"外中割摺\",\n\t\t\"open\": \"開放式沉壓摺\",\n\t\t\"closed\": \"封閉式沉壓摺\",\n\t\t\"rabbit\": \"兔耳摺\",\n\t\t\"rabbit2\": \"雙兔耳摺\",\n\t\t\"petal\": \"花瓣摺\",\n\t\t\"blintz\": \"坐墊基\",\n\t\t\"squash\": \"壓摺\",\n\t\t\"flip\": \"\"\n\t}\n}";
+
+  var text = {
+    axioms: JSON.parse(axioms),
+    folds: JSON.parse(folds),
+  };
 
   const axiom1 = (pointA, pointB) => math.line(
     math.core.normalize(math.core.subtract(...math.core.resize_up(pointB, pointA))),
@@ -4358,13 +4621,35 @@
     };
     return make_axiom_frame(6, solutions, parameters);
   };
-  const axiom = [null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7];
-  delete axiom[0];
+  const axioms$1 = [null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7];
+  delete axioms$1[0];
+
+  const sort_axiom_params = function (number, points, lines) {
+    switch (number) {
+      case 1:
+      case 2: return points;
+      case 3: return [lines[0].vector, lines[0].origin, lines[1].vector, lines[1].origin];
+      case 4: return [lines[0].origin, lines[0].vector, points[0]];
+      case 5: return [lines[0].origin, lines[0].vector, points[0], points[1]];
+      case 6: return [lines[0].origin, lines[0].vector, lines[1].origin, lines[1].vector, points[0], points[1]];
+      case 7: return [lines[0].origin, lines[0].vector, lines[1].origin, lines[1].vector, points[0]];
+    }
+    return [];
+  };
+  const axiom = (number, params) => axioms$1[number](
+    ...sort_axiom_params(
+      number,
+      params.points.map(p => math.core.get_vector(p)),
+      params.lines.map(l => math.core.get_line(l))));
+  Object.keys(axioms$1).forEach(key => {
+    axiom[key] = axioms$1[key];
+  });
 
   const Ear = Object.assign(root, {
     math: math.core,
     graph: Graph,
     axiom,
+    text,
   });
   Object.defineProperty(Ear, "use", {
     enumerable: false,

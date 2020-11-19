@@ -9,9 +9,8 @@ import graph from "./graph";
 // import origami from "./origami";
 // import planarGraph from "./planar_graph";
 // import cp from "./cp";
-
-// todo: rename and move
-import axiom from "./math/axioms";
+import text from "./text";
+import axiom from "./axioms";
 /*
 ▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁
                     _     _     _ _
@@ -28,6 +27,7 @@ const Ear = Object.assign(root, {
   math: math.core,
   graph,
   axiom,
+  text,
   // planarGraph,
   // cp,
   // origami,
