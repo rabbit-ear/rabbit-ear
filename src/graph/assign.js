@@ -95,7 +95,7 @@ const assign = (target, source, epsilon = math.core.EPSILON) => {
       });
     });
   });
-  return target;
+  return maps;
 };
 
 export default assign;
