@@ -52,9 +52,9 @@ export const fold_keys = {
     "edges_length",
     "faces_vertices",
     "faces_edges",
-    // as of now, these are not described in the spec, but their
-    // behavior can be absolutely inferred,
-    // except faces_faces which we are using as EDGE-ADJACENT FACES
+    // as of now, these are not described in the spec, but their behavior
+    // can be inferred, except faces_faces which could be edge-adjacent or
+    // face-adjacent. this library uses as EDGE-ADJACENT by the way.
     "vertices_edges",
     "edges_edges",
     "faces_faces"
