@@ -150,7 +150,9 @@ export const make_vertices_vertices_vector = ({ vertices_coords, vertices_vertic
  */
 export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
   make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
-    .map(vectors => math.core.interior_angles(...vectors));
+    .map(vectors => vectors.length === 1 // leaf node
+      ? [math.core.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
+      : math.core.interior_angles(...vectors));
 
 export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
   if (!faces_matrix) {
@@ -415,7 +417,7 @@ export const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices
   // additionally,
   // 180 - sector angle = the turn angle.
   // counter clockwise turns are +, clockwise will be -
-  // this removes one face that outlines the piece and extends to Infinity
+  // this removes the one face that outlines the piece with opposite winding enclosing Infinity
   return planar_vertex_walk({ vertices_vertices, vertices_sectors })
     .map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }))
     .filter(face => face.angles

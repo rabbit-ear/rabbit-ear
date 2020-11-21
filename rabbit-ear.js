@@ -2655,6 +2655,11 @@
       .reduce((a, b) => a.concat(b), [])
   };
 
+  var walk = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    planar_vertex_walk: planar_vertex_walk
+  });
+
   const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) => vertices
     .map(v => vertices_coords[v])
     .map(coord => math.core.subtract(coord, vertices_coords[vertex]))
@@ -2734,7 +2739,9 @@
   };
   const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
     make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
-      .map(vectors => math.core.interior_angles(...vectors));
+      .map(vectors => vectors.length === 1
+        ? [math.core.TWO_PI]
+        : math.core.interior_angles(...vectors));
   const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
     if (!faces_matrix) {
       faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
@@ -3537,21 +3544,6 @@
     }
     return edges_intersections;
   };
-  const make_edges_collinear_vertices$1 = function (
-    { vertices_coords, edges_vertices, edges_coords },
-    epsilon = math.core.EPSILON
-  ) {
-    if (!edges_coords) {
-      edges_coords = edges_vertices
-        .map(ev => ev.map(v => vertices_coords[v]));
-    }
-    const vc_indices = vertices_coords.map((_, i) => i);
-    return edges_coords
-      .map(e => vc_indices
-        .filter(i => math.core.point_on_segment_exclusive(
-          vertices_coords[i], e[0], e[1], epsilon
-        )));
-  };
   const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
     const edges_coords = graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]));
@@ -3563,16 +3555,10 @@
       edges_vector,
       edges_origin
     }, 1e-6);
-    const edges_collinear_vertices = make_edges_collinear_vertices$1({
-      vertices_coords: graph.vertices_coords,
-      edges_vertices: graph.edges_vertices,
-      edges_coords
-    }, epsilon);
-    const sects = edges_intersections
+    if (edges_intersections
       .reduce((a, b) => a.concat(b), [])
-      .filter(a => a !== undefined);
-    if (sects.length === 0) {
-      return undefined;
+      .filter(a => a !== undefined).length === 0) {
+      return;
     }
     edges_intersections
       .forEach(edge => edge
@@ -3616,6 +3602,7 @@
   const fragment = (graph, epsilon = math.core.EPSILON) => {
     graph.vertices_coords = graph.vertices_coords
       .map(coord => coord.slice(0, 2));
+    delete graph.vertices_vertices;
     delete graph.vertices_edges;
     delete graph.vertices_faces;
     delete graph.edges_edges;
@@ -3628,6 +3615,7 @@
       const res = fragment_graph(graph, epsilon);
       if (res === undefined) { break; }
       merge_duplicate_vertices(graph, epsilon / 2);
+      remove_geometry_indices(graph, "edges", get_duplicate_edges(graph));
     }
   };
 
@@ -4426,6 +4414,7 @@
     clip,
     transform,
     boundary,
+    walk,
     nearest$1,
     isolated_vertices,
     fold_object,

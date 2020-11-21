@@ -4,6 +4,8 @@
 import math from "../math";
 import { get_graph_keys_with_prefix } from "./fold_spec";
 import merge_vertices from "./vertices_duplicate/merge";
+import get_duplicate_edges from "./edges_duplicate";
+import remove from "./remove";
 /**
  * Fragment converts a graph into a planar graph. it flattens all the
  * coordinates onto the 2D plane.
@@ -159,6 +161,8 @@ const make_edges_collinear_vertices = function (
 };
 
 const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
+  // console.log("fragment", graph.edges_vertices.length);
+  // console.time("fragment");
   const edges_coords = graph.edges_vertices
     .map(ev => ev.map(v => graph.vertices_coords[v]));
   // when we rebuild an edge we need the intersection points sorted
@@ -180,11 +184,11 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 
   // check the new edges' vertices against every edge, in case
   // one of the endpoints lies along an edge.
-  const edges_collinear_vertices = make_edges_collinear_vertices({
-    vertices_coords: graph.vertices_coords,
-    edges_vertices: graph.edges_vertices,
-    edges_coords
-  }, epsilon);
+  // const edges_collinear_vertices = make_edges_collinear_vertices({
+  //   vertices_coords: graph.vertices_coords,
+  //   edges_vertices: graph.edges_vertices,
+  //   edges_coords
+  // }, epsilon);
 
   // remember, edges_intersections contains intersections [x,y] points
   // each one appears twice (both edges that intersect) and is the same
@@ -195,12 +199,11 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   // when we get to the second appearance of the same point, it will have
   // been replaced with the index, so we can skip it. (check length of
   // item, 2=point, 1=index)
-  const sects = edges_intersections
+  if (edges_intersections
     .reduce((a, b) => a.concat(b), [])
-    .filter(a => a !== undefined);
-
-  if (sects.length === 0) {
-    return undefined;
+    .filter(a => a !== undefined).length === 0) {
+    // console.timeEnd("fragment");
+    return;
   }
 
   // add new vertices (intersection points) to the graph
@@ -251,6 +254,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   if (graph.edges_foldAngle) {
     graph.edges_foldAngle = edge_map.map(i => graph.edges_foldAngle[i] || 0);
   }
+  // console.timeEnd("fragment");
   return graph;
 };
 
@@ -260,6 +264,7 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
   graph.vertices_coords = graph.vertices_coords
     .map(coord => coord.slice(0, 2));
   // const edges_vertices = graph.edges_vertices.map(ev => ev.slice());
+  delete graph.vertices_vertices;
   delete graph.vertices_edges;
   delete graph.vertices_faces;
   delete graph.edges_edges;
@@ -279,6 +284,7 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
     const res = fragment_graph(graph, epsilon);
     if (res === undefined) { break; }
     merge_vertices(graph, epsilon / 2);
+    remove(graph, "edges", get_duplicate_edges(graph));
   }
 
   // Object.keys(graph).forEach(key => delete graph[key]);

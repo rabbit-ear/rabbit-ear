@@ -5,6 +5,7 @@ import transform from "./affine";
 import * as make from "./make";
 import * as clip from "./clip";
 import * as boundary from "./boundary";
+import * as walk from "./walk";
 import * as nearest from "./nearest";
 import * as fold_object from "./fold_spec";
 import count from "./count";
@@ -70,6 +71,7 @@ Object.assign(Graph, {
   clip, // this is not actually used yet!
   transform,
   boundary,
+  walk,
   nearest,
   isolated_vertices,
   fold_object,
