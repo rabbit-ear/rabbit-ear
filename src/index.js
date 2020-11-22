@@ -9,8 +9,12 @@ import graph from "./graph";
 // import origami from "./origami";
 // import planarGraph from "./planar_graph";
 // import cp from "./cp";
-import text from "./text";
+
+// top level things
 import axiom from "./axioms";
+import text from "./text";
+// math things
+import single_vertex from "./single_vertex";
 /*
 ▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁
                     _     _     _ _
@@ -24,7 +28,7 @@ import axiom from "./axioms";
 */
 
 const Ear = Object.assign(root, {
-  math: math.core,
+  math: Object.assign(math.core, single_vertex),
   graph,
   axiom,
   text,

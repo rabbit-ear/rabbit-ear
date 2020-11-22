@@ -1017,35 +1017,6 @@ var geometry = /*#__PURE__*/Object.freeze({
   straight_skeleton: straight_skeleton
 });
 
-const kawasaki_sector_score = (angles) => alternating_sum(angles)
-  .map(a => (a < 0 ? a + Math.PI * 2 : a))
-  .map(s => Math.PI - s);
-const kawasaki_solutions_radians = (radians) => radians
-  .map((v, i, arr) => counter_clockwise_angle_radians(
-    v, arr[(i + 1) % arr.length]
-  ))
-  .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
-  .map(opposite_sectors => kawasaki_sector_score(opposite_sectors))
-  .map((kawasakis, i) => radians[i] + kawasakis[0])
-  .map((angle, i) => (is_counter_clockwise_between(angle,
-    radians[i], radians[(i + 1) % radians.length])
-    ? angle
-    : undefined));
-const kawasaki_solutions = (vectors) => {
-  const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
-  return kawasaki_solutions_radians(vectors_radians)
-    .map(a => (a === undefined
-      ? undefined
-      : [Math.cos(a), Math.sin(a)]));
-};
-
-var origami = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  kawasaki_sector_score: kawasaki_sector_score,
-  kawasaki_solutions_radians: kawasaki_solutions_radians,
-  kawasaki_solutions: kawasaki_solutions
-});
-
 const type_of = function (obj) {
   switch (obj.constructor.name) {
     case "vector":
@@ -2452,7 +2423,6 @@ math.core = Object.assign(Object.create(null),
   overlap,
   getters,
   resizers,
-  origami,
   intersect_circle,
   intersect_line_types,
   intersect_polygon,

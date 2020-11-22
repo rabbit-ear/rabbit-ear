@@ -6,6 +6,8 @@ import { get_graph_keys_with_prefix } from "./fold_spec";
 import merge_vertices from "./vertices_duplicate/merge";
 import get_duplicate_edges from "./edges_duplicate";
 import remove from "./remove";
+import { make_edges_span } from "./make";
+
 /**
  * Fragment converts a graph into a planar graph. it flattens all the
  * coordinates onto the 2D plane.
@@ -104,8 +106,11 @@ const make_edges_edges_intersections = function (
   // [{vec}, empty, {vec}, {vec}, empty, {vec}]
   const edges_intersections = edges_vector.map(() => []);
 
+  const span = make_edges_span({ vertices_coords, edges_vertices }, epsilon);
+
   for (let i = 0; i < edges_vector.length - 1; i += 1) {
     for (let j = i + 1; j < edges_vector.length; j += 1) {
+      if (span[i][j] !== true) { continue; }
       edges_intersections[i][j] = math.core.intersect_lines(
         edges_vector[i],
         edges_origin[i],
@@ -161,8 +166,6 @@ const make_edges_collinear_vertices = function (
 };
 
 const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
-  // console.log("fragment", graph.edges_vertices.length);
-  // console.time("fragment");
   const edges_coords = graph.edges_vertices
     .map(ev => ev.map(v => graph.vertices_coords[v]));
   // when we rebuild an edge we need the intersection points sorted
@@ -178,17 +181,19 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   // intersects with another edge, this [x,y] point is a shallow pointer
   // to the same one in the other edge's intersection array.
   const edges_intersections = make_edges_edges_intersections({
+    vertices_coords: graph.vertices_coords,
+    edges_vertices: graph.edges_vertices,
     edges_vector,
     edges_origin
   }, 1e-6);
 
   // check the new edges' vertices against every edge, in case
   // one of the endpoints lies along an edge.
-  // const edges_collinear_vertices = make_edges_collinear_vertices({
-  //   vertices_coords: graph.vertices_coords,
-  //   edges_vertices: graph.edges_vertices,
-  //   edges_coords
-  // }, epsilon);
+  const edges_collinear_vertices = make_edges_collinear_vertices({
+    vertices_coords: graph.vertices_coords,
+    edges_vertices: graph.edges_vertices,
+    edges_coords
+  }, epsilon);
 
   // remember, edges_intersections contains intersections [x,y] points
   // each one appears twice (both edges that intersect) and is the same
@@ -202,7 +207,6 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   if (edges_intersections
     .reduce((a, b) => a.concat(b), [])
     .filter(a => a !== undefined).length === 0) {
-    // console.timeEnd("fragment");
     return;
   }
 
@@ -230,8 +234,8 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
     .map(arr => arr.filter(a => a !== undefined));
 
   graph.edges_vertices.forEach((verts, i) => verts
-    // .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
-    .push(...edges_intersections_flat[i]));
+    .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
+    // .push(...edges_intersections_flat[i]));
 
   graph.edges_vertices.forEach((edge, i) => {
     graph.edges_vertices[i] = sortVertexIndicesAlongVector({ vertices_coords: graph.vertices_coords }, edge, edges_vector[i]);
@@ -254,7 +258,6 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   if (graph.edges_foldAngle) {
     graph.edges_foldAngle = edge_map.map(i => graph.edges_foldAngle[i] || 0);
   }
-  // console.timeEnd("fragment");
   return graph;
 };
 
@@ -279,8 +282,7 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
   //   edges_vertices,
   // };
 
-  var i = 0
-  for (; i < 100; i++) {
+  for (var i = 0; i < 100; i++) {
     const res = fragment_graph(graph, epsilon);
     if (res === undefined) { break; }
     merge_vertices(graph, epsilon / 2);

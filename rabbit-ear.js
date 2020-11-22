@@ -1005,33 +1005,6 @@
     convex_hull: convex_hull,
     straight_skeleton: straight_skeleton
   });
-  const kawasaki_sector_score = (angles) => alternating_sum(angles)
-    .map(a => (a < 0 ? a + Math.PI * 2 : a))
-    .map(s => Math.PI - s);
-  const kawasaki_solutions_radians = (radians) => radians
-    .map((v, i, arr) => counter_clockwise_angle_radians(
-      v, arr[(i + 1) % arr.length]
-    ))
-    .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
-    .map(opposite_sectors => kawasaki_sector_score(opposite_sectors))
-    .map((kawasakis, i) => radians[i] + kawasakis[0])
-    .map((angle, i) => (is_counter_clockwise_between(angle,
-      radians[i], radians[(i + 1) % radians.length])
-      ? angle
-      : undefined));
-  const kawasaki_solutions = (vectors) => {
-    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
-    return kawasaki_solutions_radians(vectors_radians)
-      .map(a => (a === undefined
-        ? undefined
-        : [Math.cos(a), Math.sin(a)]));
-  };
-  var origami = Object.freeze({
-    __proto__: null,
-    kawasaki_sector_score: kawasaki_sector_score,
-    kawasaki_solutions_radians: kawasaki_solutions_radians,
-    kawasaki_solutions: kawasaki_solutions
-  });
   const type_of = function (obj) {
     switch (obj.constructor.name) {
       case "vector":
@@ -2401,7 +2374,6 @@
     overlap,
     getters,
     resizers,
-    origami,
     intersect_circle,
     intersect_line_types,
     intersect_polygon,
@@ -2787,6 +2759,37 @@
       .map(verts => math.core.subtract(verts[1], verts[0]));
   const make_edges_length = ({ vertices_coords, edges_vertices }) => make_edges_vector({ vertices_coords, edges_vertices })
       .map(vec => math.core.magnitude(vec));
+  const make_edges_x_min_max = ({ vertices_coords, edges_vertices }) => edges_vertices
+    .map(ev => {
+      const a = vertices_coords[ev[0]][0];
+      const b = vertices_coords[ev[1]][0];
+      return a < b ? [a, b] : [b, a];
+    });
+  const make_edges_y_min_max = ({ vertices_coords, edges_vertices }) => edges_vertices
+    .map(ev => {
+      const a = vertices_coords[ev[0]][1];
+      const b = vertices_coords[ev[1]][1];
+      return a < b ? [a, b] : [b, a];
+    });
+  const make_edges_span = ({ vertices_coords, edges_vertices }, epsilon = math.core.EPSILON) => {
+    const ep = [-epsilon, +epsilon];
+    const min_max_x = make_edges_x_min_max({ vertices_coords, edges_vertices })
+      .map(pair => [pair[0] + ep[0], pair[1] + ep[1]]);
+    const min_max_y = make_edges_y_min_max({ vertices_coords, edges_vertices })
+      .map(pair => [pair[0] + ep[0], pair[1] + ep[1]]);
+    const span_overlaps = edges_vertices.map(() => []);
+    for (let i = 0; i < edges_vertices.length - 1; i += 1) {
+      for (let j = i + 1; j < edges_vertices.length; j += 1) {
+        const overlaps = !(min_max_x[i][1] < min_max_x[j][0]
+          || min_max_x[j][1] < min_max_x[i][0])
+        && !(min_max_y[i][1] < min_max_y[j][0]
+          || min_max_y[j][1] < min_max_y[i][0]);
+        span_overlaps[i][j] = overlaps;
+        span_overlaps[j][i] = overlaps;
+      }
+    }
+    return span_overlaps;
+  };
   const make_edges_edges_intersections = function (
     { vertices_coords, edges_vertices, edges_vector, edges_origin },
     epsilon = math.core.EPSILON
@@ -2801,8 +2804,10 @@
     }
     const indices = edges_vector.map((_, i) => i).filter(a => a !== null);
     const edges_intersections = edges_vector.map(() => []);
+    const span = make_edges_span({ vertices_coords, edges_vertices }, epsilon);
     for (let ii = 0; ii < indices.length - 1; ii += 1) {
       for (let jj = ii + 1; jj < indices.length; jj += 1) {
+        if (span[ii][jj] !== true) { continue; }
         const i = indices[ii];
         const j = indices[jj];
         const crossing = math.core.intersect_lines(
@@ -2986,6 +2991,7 @@
     make_edges_assignment: make_edges_assignment,
     make_edges_vector: make_edges_vector,
     make_edges_length: make_edges_length,
+    make_edges_span: make_edges_span,
     make_edges_edges_intersections: make_edges_edges_intersections,
     make_edges_collinear_vertices: make_edges_collinear_vertices,
     make_planar_faces: make_planar_faces,
@@ -3528,8 +3534,10 @@
       edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
     }
     const edges_intersections = edges_vector.map(() => []);
+    const span = make_edges_span({ vertices_coords, edges_vertices }, epsilon);
     for (let i = 0; i < edges_vector.length - 1; i += 1) {
       for (let j = i + 1; j < edges_vector.length; j += 1) {
+        if (span[i][j] !== true) { continue; }
         edges_intersections[i][j] = math.core.intersect_lines(
           edges_vector[i],
           edges_origin[i],
@@ -3544,6 +3552,21 @@
     }
     return edges_intersections;
   };
+  const make_edges_collinear_vertices$1 = function (
+    { vertices_coords, edges_vertices, edges_coords },
+    epsilon = math.core.EPSILON
+  ) {
+    if (!edges_coords) {
+      edges_coords = edges_vertices
+        .map(ev => ev.map(v => vertices_coords[v]));
+    }
+    const vc_indices = vertices_coords.map((_, i) => i);
+    return edges_coords
+      .map(e => vc_indices
+        .filter(i => math.core.point_on_segment_exclusive(
+          vertices_coords[i], e[0], e[1], epsilon
+        )));
+  };
   const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
     const edges_coords = graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]));
@@ -3552,9 +3575,16 @@
     const edges_origin = edges_coords
       .map(e => e[0]);
     const edges_intersections = make_edges_edges_intersections$1({
+      vertices_coords: graph.vertices_coords,
+      edges_vertices: graph.edges_vertices,
       edges_vector,
       edges_origin
     }, 1e-6);
+    const edges_collinear_vertices = make_edges_collinear_vertices$1({
+      vertices_coords: graph.vertices_coords,
+      edges_vertices: graph.edges_vertices,
+      edges_coords
+    }, epsilon);
     if (edges_intersections
       .reduce((a, b) => a.concat(b), [])
       .filter(a => a !== undefined).length === 0) {
@@ -3580,7 +3610,7 @@
     const edges_intersections_flat = edges_intersections
       .map(arr => arr.filter(a => a !== undefined));
     graph.edges_vertices.forEach((verts, i) => verts
-      .push(...edges_intersections_flat[i]));
+      .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
     graph.edges_vertices.forEach((edge, i) => {
       graph.edges_vertices[i] = sortVertexIndicesAlongVector({ vertices_coords: graph.vertices_coords }, edge, edges_vector[i]);
     });
@@ -4420,15 +4450,6 @@
     fold_object,
   );
 
-  var axioms = "{\n  \"ar\": [null,\n    \"اصنع خطاً يمر بنقطتين\",\n    \"اصنع خطاً عن طريق طي نقطة واحدة إلى أخرى\",\n    \"اصنع خطاً عن طريق طي خط واحد على آخر\",\n    \"اصنع خطاً يمر عبر نقطة واحدة ويجعل خطاً واحداً فوق نفسه\",\n    \"اصنع خطاً يمر بالنقطة الأولى ويجعل النقطة الثانية على الخط\",\n    \"اصنع خطاً يجلب النقطة الأولى إلى الخط الأول والنقطة الثانية إلى الخط الثاني\",\n    \"اصنع خطاً يجلب نقطة إلى خط ويجعل خط ثاني فوق نفسه\"\n  ],\n  \"de\": [null,\n    \"Falte eine Linie durch zwei Punkte\",\n    \"Falte zwei Punkte aufeinander\",\n    \"Falte zwei Linien aufeinander\",\n    \"Falte eine Linie auf sich selbst, falte dabei durch einen Punkt\",\n    \"Falte einen Punkt auf eine Linie, falte dabei durch einen anderen Punkt\",\n    \"Falte einen Punkt auf eine Linie und einen weiteren Punkt auf eine weitere Linie\",\n    \"Falte einen Punkt auf eine Linie und eine weitere Linie in sich selbst zusammen\"\n  ],\n  \"en\": [null,\n    \"fold a line through two points\",\n    \"fold two points together\",\n    \"fold two lines together\",\n    \"fold a line on top of itself, creasing through a point\",\n    \"fold a point to a line, creasing through another point\",\n    \"fold a point to a line and another point to another line\",\n    \"fold a point to a line and another line onto itself\"\n  ],\n  \"es\": [null,\n    \"dobla una línea entre dos puntos\",\n    \"dobla dos puntos juntos\",\n    \"dobla y une dos líneas\",\n    \"dobla una línea sobre sí misma, doblándola hacia un punto\",\n    \"dobla un punto hasta una línea, doblándola a través de otro punto\",\n    \"dobla un punto hacia una línea y otro punto hacia otra línea\",\n    \"dobla un punto hacia una línea y otra línea sobre sí misma\"\n  ],\n  \"fr\":[null,\n    \"créez un pli passant par deux points\",\n    \"pliez pour superposer deux points\",\n    \"pliez pour superposer deux lignes\",\n    \"rabattez une ligne sur elle-même à l'aide d'un pli qui passe par un point\",\n    \"rabattez un point sur une ligne à l'aide d'un pli qui passe par un autre point\",\n    \"rabattez un point sur une ligne et un autre point sur une autre ligne\",\n    \"rabattez un point sur une ligne et une autre ligne sur elle-même\"\n  ],\n  \"hi\": [null,\n    \"एक क्रीज़ बनाएँ जो दो स्थानों से गुजरता है\",\n    \"एक स्थान को दूसरे स्थान पर मोड़कर एक क्रीज़ बनाएँ\",\n    \"एक रेखा पर दूसरी रेखा को मोड़कर क्रीज़ बनाएँ\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान से गुजरता है और एक रेखा को स्वयं के ऊपर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान से गुजरता है और दूसरे स्थान को रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान को पहली रेखा पर और दूसरे स्थान को दूसरी रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान को एक रेखा पर ले आता है और दूसरी रेखा को स्वयं के ऊपर ले आता है\"\n  ],\n  \"jp\": [null,\n    \"2点に沿って折り目を付けます\",\n    \"2点を合わせて折ります\",\n    \"2つの線を合わせて折ります\",\n    \"点を通過させ、既にある線に沿って折ります\",\n    \"点を線沿いに合わせ別の点を通過させ折ります\",\n    \"線に向かって点を折り、同時にもう一方の線に向かってもう一方の点を折ります\",\n    \"線に向かって点を折り、同時に別の線をその上に折ります\"\n  ],\n  \"ko\": [null,\n    \"두 점을 통과하는 선으로 접으세요\",\n    \"두 점을 함께 접으세요\",\n    \"두 선을 함께 접으세요\",\n    \"그 위에 선을 접으면서 점을 통과하게 접으세요\",\n    \"점을 선으로 접으면서, 다른 점을 지나게 접으세요\",\n    \"점을 선으로 접고 다른 점을 다른 선으로 접으세요\",\n    \"점을 선으로 접고 다른 선을 그 위에 접으세요\"\n  ],\n  \"ms\": [null,\n    \"lipat garisan melalui dua titik\",\n    \"lipat dua titik bersama\",\n    \"lipat dua garisan bersama\",\n    \"lipat satu garisan di atasnya sendiri, melipat melalui satu titik\",\n    \"lipat satu titik ke garisan, melipat melalui titik lain\",\n    \"lipat satu titik ke garisan dan satu lagi titik ke garisan lain\",\n    \"lipat satu titik ke garisan dan satu lagi garisan di atasnya sendiri\"\n  ],\n  \"pt\": [null,\n    \"dobre uma linha entre dois pontos\",\n    \"dobre os dois pontos para uni-los\",\n    \"dobre as duas linhas para uni-las\",\n    \"dobre uma linha sobre si mesma, criando uma dobra ao longo de um ponto\",\n    \"dobre um ponto até uma linha, criando uma dobra ao longo de outro ponto\",\n    \"dobre um ponto até uma linha e outro ponto até outra linha\",\n    \"dobre um ponto até uma linha e outra linha sobre si mesma\"\n  ],\n  \"ru\": [null,\n    \"сложите линию через две точки\",\n    \"сложите две точки вместе\",\n    \"сложите две линии вместе\",\n    \"сверните линию сверху себя, сгибая через точку\",\n    \"сложите точку в линию, сгибая через другую точку\",\n    \"сложите точку в линию и другую точку в другую линию\",\n    \"сложите точку в линию и другую линию на себя\"\n  ],\n  \"tr\": [null,\n    \"iki noktadan geçen bir çizgi boyunca katla\",\n    \"iki noktayı birbirine katla\",\n    \"iki çizgiyi birbirine katla\",\n    \"bir noktadan kıvırarak kendi üzerindeki bir çizgi boyunca katla\",\n    \"başka bir noktadan kıvırarak bir noktayı bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir noktayı başka bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir çizgiyi kendi üzerine katla\"\n  ],\n  \"vi\": [null,\n    \"tạo một nếp gấp đi qua hai điểm\",\n    \"tạo nếp gấp bằng cách gấp một điểm này sang điểm khác\",\n    \"tạo nếp gấp bằng cách gấp một đường lên một đường khác\",\n    \"tạo một nếp gấp đi qua một điểm và đưa một đường lên trên chính nó\",\n    \"tạo một nếp gấp đi qua điểm đầu tiên và đưa điểm thứ hai lên đường thẳng\",\n    \"tạo một nếp gấp mang điểm đầu tiên đến đường đầu tiên và điểm thứ hai cho đường thứ hai\",\n    \"tạo một nếp gấp mang lại một điểm cho một đường và đưa một đường thứ hai lên trên chính nó\"\n  ],\n  \"zh\": [null,\n    \"通過兩點折一條線\",\n    \"將兩點折疊起來\",\n    \"將兩條線折疊在一起\",\n    \"通過一個點折疊一條線在自身上面\",\n    \"將一個點，通過另一個點折疊成一條線，\",\n    \"將一個點折疊為一條線，再將另一個點折疊到另一條線\",\n    \"將一個點折疊成一條線，另一條線折疊到它自身上\"\n  ]\n}\n";
-
-  var folds = "{\n\t\"es\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"\",\n\t\t\t\"noun\": \"doblez\"\n\t\t},\n\t\t\"valley\": \"doblez de valle\",\n\t\t\"mountain\": \"doblez de montaña\",\n\t\t\"inside\": \"\",\n\t\t\"outside\": \"\",\n\t\t\"open\": \"\",\n\t\t\"closed\": \"\",\n\t\t\"rabbit\": \"\",\n\t\t\"rabbit2\": \"\",\n\t\t\"petal\": \"\",\n\t\t\"squash\": \"\",\n\t\t\"flip\": \"dale la vuelta a tu papel\"\n\t},\n\t\"en\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"fold\",\n\t\t\t\"noun\": \"crease\"\n\t\t},\n\t\t\"valley\": \"valley fold\",\n\t\t\"mountain\": \"mountain fold\",\n\t\t\"inside\": \"inside reverse fold\",\n\t\t\"outside\": \"outside reverse fold\",\n\t\t\"open\": \"open sink\",\n\t\t\"closed\": \"closed sink\",\n\t\t\"rabbit\": \"rabbit ear fold\",\n\t\t\"rabbit2\": \"double rabbit ear fold\",\n\t\t\"petal\": \"petal fold\",\n\t\t\"squash\": \"squash fold\",\n\t\t\"flip\": \"flip over\"\n\t},\n\t\"zh\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"\",\n\t\t\t\"noun\": \"\"\n\t\t},\n\t\t\"valley\": \"谷摺\",\n\t\t\"mountain\": \"山摺\",\n\t\t\"inside\": \"內中割摺\",\n\t\t\"outside\": \"外中割摺\",\n\t\t\"open\": \"開放式沉壓摺\",\n\t\t\"closed\": \"封閉式沉壓摺\",\n\t\t\"rabbit\": \"兔耳摺\",\n\t\t\"rabbit2\": \"雙兔耳摺\",\n\t\t\"petal\": \"花瓣摺\",\n\t\t\"blintz\": \"坐墊基\",\n\t\t\"squash\": \"壓摺\",\n\t\t\"flip\": \"\"\n\t}\n}";
-
-  var text = {
-    axioms: JSON.parse(axioms),
-    folds: JSON.parse(folds),
-  };
-
   const axiom1 = (pointA, pointB) => math.line(
     math.core.normalize(math.core.subtract(...math.core.resize_up(pointB, pointA))),
     pointA
@@ -4625,8 +4646,8 @@
     };
     return make_axiom_frame(6, solutions, parameters);
   };
-  const axioms$1 = [null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7];
-  delete axioms$1[0];
+  const axioms = [null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7];
+  delete axioms[0];
 
   const sort_axiom_params = function (number, points, lines) {
     switch (number) {
@@ -4640,17 +4661,58 @@
     }
     return [];
   };
-  const axiom = (number, params) => axioms$1[number](
+  const axiom = (number, params) => axioms[number](
     ...sort_axiom_params(
       number,
       params.points.map(p => math.core.get_vector(p)),
       params.lines.map(l => math.core.get_line(l))));
-  Object.keys(axioms$1).forEach(key => {
-    axiom[key] = axioms$1[key];
+  Object.keys(axioms).forEach(key => {
+    axiom[key] = axioms[key];
   });
 
+  var axioms$1 = "{\n  \"ar\": [null,\n    \"اصنع خطاً يمر بنقطتين\",\n    \"اصنع خطاً عن طريق طي نقطة واحدة إلى أخرى\",\n    \"اصنع خطاً عن طريق طي خط واحد على آخر\",\n    \"اصنع خطاً يمر عبر نقطة واحدة ويجعل خطاً واحداً فوق نفسه\",\n    \"اصنع خطاً يمر بالنقطة الأولى ويجعل النقطة الثانية على الخط\",\n    \"اصنع خطاً يجلب النقطة الأولى إلى الخط الأول والنقطة الثانية إلى الخط الثاني\",\n    \"اصنع خطاً يجلب نقطة إلى خط ويجعل خط ثاني فوق نفسه\"\n  ],\n  \"de\": [null,\n    \"Falte eine Linie durch zwei Punkte\",\n    \"Falte zwei Punkte aufeinander\",\n    \"Falte zwei Linien aufeinander\",\n    \"Falte eine Linie auf sich selbst, falte dabei durch einen Punkt\",\n    \"Falte einen Punkt auf eine Linie, falte dabei durch einen anderen Punkt\",\n    \"Falte einen Punkt auf eine Linie und einen weiteren Punkt auf eine weitere Linie\",\n    \"Falte einen Punkt auf eine Linie und eine weitere Linie in sich selbst zusammen\"\n  ],\n  \"en\": [null,\n    \"fold a line through two points\",\n    \"fold two points together\",\n    \"fold two lines together\",\n    \"fold a line on top of itself, creasing through a point\",\n    \"fold a point to a line, creasing through another point\",\n    \"fold a point to a line and another point to another line\",\n    \"fold a point to a line and another line onto itself\"\n  ],\n  \"es\": [null,\n    \"dobla una línea entre dos puntos\",\n    \"dobla dos puntos juntos\",\n    \"dobla y une dos líneas\",\n    \"dobla una línea sobre sí misma, doblándola hacia un punto\",\n    \"dobla un punto hasta una línea, doblándola a través de otro punto\",\n    \"dobla un punto hacia una línea y otro punto hacia otra línea\",\n    \"dobla un punto hacia una línea y otra línea sobre sí misma\"\n  ],\n  \"fr\":[null,\n    \"créez un pli passant par deux points\",\n    \"pliez pour superposer deux points\",\n    \"pliez pour superposer deux lignes\",\n    \"rabattez une ligne sur elle-même à l'aide d'un pli qui passe par un point\",\n    \"rabattez un point sur une ligne à l'aide d'un pli qui passe par un autre point\",\n    \"rabattez un point sur une ligne et un autre point sur une autre ligne\",\n    \"rabattez un point sur une ligne et une autre ligne sur elle-même\"\n  ],\n  \"hi\": [null,\n    \"एक क्रीज़ बनाएँ जो दो स्थानों से गुजरता है\",\n    \"एक स्थान को दूसरे स्थान पर मोड़कर एक क्रीज़ बनाएँ\",\n    \"एक रेखा पर दूसरी रेखा को मोड़कर क्रीज़ बनाएँ\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान से गुजरता है और एक रेखा को स्वयं के ऊपर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान से गुजरता है और दूसरे स्थान को रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान को पहली रेखा पर और दूसरे स्थान को दूसरी रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान को एक रेखा पर ले आता है और दूसरी रेखा को स्वयं के ऊपर ले आता है\"\n  ],\n  \"jp\": [null,\n    \"2点に沿って折り目を付けます\",\n    \"2点を合わせて折ります\",\n    \"2つの線を合わせて折ります\",\n    \"点を通過させ、既にある線に沿って折ります\",\n    \"点を線沿いに合わせ別の点を通過させ折ります\",\n    \"線に向かって点を折り、同時にもう一方の線に向かってもう一方の点を折ります\",\n    \"線に向かって点を折り、同時に別の線をその上に折ります\"\n  ],\n  \"ko\": [null,\n    \"두 점을 통과하는 선으로 접으세요\",\n    \"두 점을 함께 접으세요\",\n    \"두 선을 함께 접으세요\",\n    \"그 위에 선을 접으면서 점을 통과하게 접으세요\",\n    \"점을 선으로 접으면서, 다른 점을 지나게 접으세요\",\n    \"점을 선으로 접고 다른 점을 다른 선으로 접으세요\",\n    \"점을 선으로 접고 다른 선을 그 위에 접으세요\"\n  ],\n  \"ms\": [null,\n    \"lipat garisan melalui dua titik\",\n    \"lipat dua titik bersama\",\n    \"lipat dua garisan bersama\",\n    \"lipat satu garisan di atasnya sendiri, melipat melalui satu titik\",\n    \"lipat satu titik ke garisan, melipat melalui titik lain\",\n    \"lipat satu titik ke garisan dan satu lagi titik ke garisan lain\",\n    \"lipat satu titik ke garisan dan satu lagi garisan di atasnya sendiri\"\n  ],\n  \"pt\": [null,\n    \"dobre uma linha entre dois pontos\",\n    \"dobre os dois pontos para uni-los\",\n    \"dobre as duas linhas para uni-las\",\n    \"dobre uma linha sobre si mesma, criando uma dobra ao longo de um ponto\",\n    \"dobre um ponto até uma linha, criando uma dobra ao longo de outro ponto\",\n    \"dobre um ponto até uma linha e outro ponto até outra linha\",\n    \"dobre um ponto até uma linha e outra linha sobre si mesma\"\n  ],\n  \"ru\": [null,\n    \"сложите линию через две точки\",\n    \"сложите две точки вместе\",\n    \"сложите две линии вместе\",\n    \"сверните линию сверху себя, сгибая через точку\",\n    \"сложите точку в линию, сгибая через другую точку\",\n    \"сложите точку в линию и другую точку в другую линию\",\n    \"сложите точку в линию и другую линию на себя\"\n  ],\n  \"tr\": [null,\n    \"iki noktadan geçen bir çizgi boyunca katla\",\n    \"iki noktayı birbirine katla\",\n    \"iki çizgiyi birbirine katla\",\n    \"bir noktadan kıvırarak kendi üzerindeki bir çizgi boyunca katla\",\n    \"başka bir noktadan kıvırarak bir noktayı bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir noktayı başka bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir çizgiyi kendi üzerine katla\"\n  ],\n  \"vi\": [null,\n    \"tạo một nếp gấp đi qua hai điểm\",\n    \"tạo nếp gấp bằng cách gấp một điểm này sang điểm khác\",\n    \"tạo nếp gấp bằng cách gấp một đường lên một đường khác\",\n    \"tạo một nếp gấp đi qua một điểm và đưa một đường lên trên chính nó\",\n    \"tạo một nếp gấp đi qua điểm đầu tiên và đưa điểm thứ hai lên đường thẳng\",\n    \"tạo một nếp gấp mang điểm đầu tiên đến đường đầu tiên và điểm thứ hai cho đường thứ hai\",\n    \"tạo một nếp gấp mang lại một điểm cho một đường và đưa một đường thứ hai lên trên chính nó\"\n  ],\n  \"zh\": [null,\n    \"通過兩點折一條線\",\n    \"將兩點折疊起來\",\n    \"將兩條線折疊在一起\",\n    \"通過一個點折疊一條線在自身上面\",\n    \"將一個點，通過另一個點折疊成一條線，\",\n    \"將一個點折疊為一條線，再將另一個點折疊到另一條線\",\n    \"將一個點折疊成一條線，另一條線折疊到它自身上\"\n  ]\n}\n";
+
+  var folds = "{\n\t\"es\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"\",\n\t\t\t\"noun\": \"doblez\"\n\t\t},\n\t\t\"valley\": \"doblez de valle\",\n\t\t\"mountain\": \"doblez de montaña\",\n\t\t\"inside\": \"\",\n\t\t\"outside\": \"\",\n\t\t\"open\": \"\",\n\t\t\"closed\": \"\",\n\t\t\"rabbit\": \"\",\n\t\t\"rabbit2\": \"\",\n\t\t\"petal\": \"\",\n\t\t\"squash\": \"\",\n\t\t\"flip\": \"dale la vuelta a tu papel\"\n\t},\n\t\"en\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"fold\",\n\t\t\t\"noun\": \"crease\"\n\t\t},\n\t\t\"valley\": \"valley fold\",\n\t\t\"mountain\": \"mountain fold\",\n\t\t\"inside\": \"inside reverse fold\",\n\t\t\"outside\": \"outside reverse fold\",\n\t\t\"open\": \"open sink\",\n\t\t\"closed\": \"closed sink\",\n\t\t\"rabbit\": \"rabbit ear fold\",\n\t\t\"rabbit2\": \"double rabbit ear fold\",\n\t\t\"petal\": \"petal fold\",\n\t\t\"squash\": \"squash fold\",\n\t\t\"flip\": \"flip over\"\n\t},\n\t\"zh\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"\",\n\t\t\t\"noun\": \"\"\n\t\t},\n\t\t\"valley\": \"谷摺\",\n\t\t\"mountain\": \"山摺\",\n\t\t\"inside\": \"內中割摺\",\n\t\t\"outside\": \"外中割摺\",\n\t\t\"open\": \"開放式沉壓摺\",\n\t\t\"closed\": \"封閉式沉壓摺\",\n\t\t\"rabbit\": \"兔耳摺\",\n\t\t\"rabbit2\": \"雙兔耳摺\",\n\t\t\"petal\": \"花瓣摺\",\n\t\t\"blintz\": \"坐墊基\",\n\t\t\"squash\": \"壓摺\",\n\t\t\"flip\": \"\"\n\t}\n}";
+
+  var text = {
+    axioms: JSON.parse(axioms$1),
+    folds: JSON.parse(folds),
+  };
+
+  const kawasaki_sector_score = (angles) => math.core.alternating_sum(angles)
+    .map(a => (a < 0 ? a + Math.PI * 2 : a))
+    .map(s => Math.PI - s);
+  const kawasaki_solutions_radians = (radians) => radians
+    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+    .map(pair => math.core.counter_clockwise_angle_radians(...pair))
+    .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+    .map(opposite_sectors => kawasaki_sector_score(opposite_sectors))
+    .map((kawasakis, i) => radians[i] + kawasakis[0])
+    .map((angle, i) => (math.core.is_counter_clockwise_between(angle,
+      radians[i], radians[(i + 1) % radians.length])
+      ? angle
+      : undefined));
+  const kawasaki_solutions = (vectors) => {
+    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+    return kawasaki_solutions_radians(vectors_radians)
+      .map(a => (a === undefined
+        ? undefined
+        : [Math.cos(a), Math.sin(a)]));
+  };
+
+  var kawasaki = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    kawasaki_sector_score: kawasaki_sector_score,
+    kawasaki_solutions_radians: kawasaki_solutions_radians,
+    kawasaki_solutions: kawasaki_solutions
+  });
+
+  var single_vertex = Object.assign({},
+    kawasaki
+  );
+
   const Ear = Object.assign(root, {
-    math: math.core,
+    math: Object.assign(math.core, single_vertex),
     graph: Graph,
     axiom,
     text,

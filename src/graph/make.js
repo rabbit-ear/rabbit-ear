@@ -283,6 +283,44 @@ export const make_edges_vector = ({ vertices_coords, edges_vertices }) =>
 export const make_edges_length = ({ vertices_coords, edges_vertices }) => make_edges_vector({ vertices_coords, edges_vertices })
     .map(vec => math.core.magnitude(vec));
 
+const make_edges_x_min_max = ({ vertices_coords, edges_vertices }) => edges_vertices
+  .map(ev => {
+    const a = vertices_coords[ev[0]][0];
+    const b = vertices_coords[ev[1]][0];
+    return a < b ? [a, b] : [b, a];
+  });
+const make_edges_y_min_max = ({ vertices_coords, edges_vertices }) => edges_vertices
+  .map(ev => {
+    const a = vertices_coords[ev[0]][1];
+    const b = vertices_coords[ev[1]][1];
+    return a < b ? [a, b] : [b, a];
+  });
+/**
+ * part of a line-sweep algorithm for segment-segment intersection
+ * this answers if it's possible that lines *might* overlap. 
+ */
+export const make_edges_span = ({ vertices_coords, edges_vertices }, epsilon = math.core.EPSILON) => {
+  const ep = [-epsilon, +epsilon];
+  const min_max_x = make_edges_x_min_max({ vertices_coords, edges_vertices }, epsilon)
+    .map(pair => [pair[0] + ep[0], pair[1] + ep[1]]);
+  const min_max_y = make_edges_y_min_max({ vertices_coords, edges_vertices }, epsilon)
+    .map(pair => [pair[0] + ep[0], pair[1] + ep[1]]);
+  const span_overlaps = edges_vertices.map(() => []);
+  // span_overlaps will be false if no overlap possible, true if overlap is possible.
+  for (let i = 0; i < edges_vertices.length - 1; i += 1) {
+    for (let j = i + 1; j < edges_vertices.length; j += 1) {
+      // is iMax less than jMin or jMax less than iMin
+      const overlaps = !(min_max_x[i][1] < min_max_x[j][0]
+        || min_max_x[j][1] < min_max_x[i][0])
+      && !(min_max_y[i][1] < min_max_y[j][0]
+        || min_max_y[j][1] < min_max_y[i][0]);
+      span_overlaps[i][j] = overlaps;
+      span_overlaps[j][i] = overlaps;
+    }
+  }
+  return span_overlaps;
+};
+
 /**
  * this method compares every edge against every edge (n^2) to see if the
  * segments exclusively intersect each other (touching endpoints doesn't count)
@@ -334,9 +372,11 @@ export const make_edges_edges_intersections = function (
   // [{vec}, empty, {vec}, {vec}, empty, {vec}]
   const indices = edges_vector.map((_, i) => i).filter(a => a !== null);
   const edges_intersections = edges_vector.map(() => []);
+  const span = make_edges_span({ vertices_coords, edges_vertices }, epsilon);
 
   for (let ii = 0; ii < indices.length - 1; ii += 1) {
     for (let jj = ii + 1; jj < indices.length; jj += 1) {
+      if (span[ii][jj] !== true) { continue; }
       const i = indices[ii];
       const j = indices[jj];
       const crossing = math.core.intersect_lines(
