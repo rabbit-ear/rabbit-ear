@@ -157,12 +157,12 @@ const make_edges_collinear_vertices = function (
     .map(e => vc_indices
       .filter(i => math.core.point_on_segment_exclusive(
         vertices_coords[i], e[0], e[1], epsilon
-      )));
+      )))
   // as of now, an edge can contain its own vertices as collinear.
   // need to remove these.
   // todo: is there a better way? when we build the array originally?
-    // .map((cv, i) => cv
-    //   .filter(vi => edges_vertices[i].indexOf(vi) === -1));
+    .map((cv, i) => cv
+      .filter(vi => edges_vertices[i].indexOf(vi) === -1));
 };
 
 const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
