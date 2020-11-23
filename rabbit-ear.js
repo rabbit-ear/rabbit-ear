@@ -141,7 +141,7 @@
   const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
   const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
   const dot = (v, u) => v
-    .map((_, i) => v[i] * (u[i] || 1))
+    .map((_, i) => v[i] * u[i])
     .reduce(fn_add, 0);
   const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
   const average = function () {
@@ -2632,15 +2632,27 @@
     planar_vertex_walk: planar_vertex_walk
   });
 
-  const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) => vertices
-    .map(v => vertices_coords[v])
-    .map(coord => math.core.subtract(coord, vertices_coords[vertex]))
-    .map(vec => Math.atan2(vec[1], vec[0]))
-    .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2)
-    .map((a, i) => ({a, i}))
-    .sort((a, b) => a.a - b.a)
-    .map(el => el.i)
-    .map(i => vertices[i]);
+  const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) =>
+    vertices
+      .map(v => vertices_coords[v])
+      .map(coord => math.core.subtract(coord, vertices_coords[vertex]))
+      .map(vec => Math.atan2(vec[1], vec[0]))
+      .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2)
+      .map((a, i) => ({a, i}))
+      .sort((a, b) => a.a - b.a)
+      .map(el => el.i)
+      .map(i => vertices[i]);
+  const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
+    vertices
+      .map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
+      .sort((a, b) => a.d - b.d)
+      .map(a => a.i);
+
+  var sort = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    sort_vertices_counter_clockwise: sort_vertices_counter_clockwise,
+    sort_vertices_along_vector: sort_vertices_along_vector
+  });
 
   const make_vertices_edges = ({ edges_vertices }) => {
     const vertices_edges = [];
@@ -2759,58 +2771,41 @@
       .map(verts => math.core.subtract(verts[1], verts[0]));
   const make_edges_length = ({ vertices_coords, edges_vertices }) => make_edges_vector({ vertices_coords, edges_vertices })
       .map(vec => math.core.magnitude(vec));
-  const make_edges_x_min_max = ({ vertices_coords, edges_vertices }) => edges_vertices
-    .map(ev => {
-      const a = vertices_coords[ev[0]][0];
-      const b = vertices_coords[ev[1]][0];
-      return a < b ? [a, b] : [b, a];
-    });
-  const make_edges_y_min_max = ({ vertices_coords, edges_vertices }) => edges_vertices
-    .map(ev => {
-      const a = vertices_coords[ev[0]][1];
-      const b = vertices_coords[ev[1]][1];
-      return a < b ? [a, b] : [b, a];
-    });
+  const make_edges_coords_min_max = ({ vertices_coords, edges_vertices }) =>
+    edges_vertices
+      .map(ev => ev.map(v => vertices_coords[v]))
+      .map(c => [0, 1]
+        .map(i => c[0][i] < c[1][i] ? [c[0][i], c[1][i]] : [c[1][i], c[0][i]]));
   const make_edges_span = ({ vertices_coords, edges_vertices }, epsilon = math.core.EPSILON) => {
-    const ep = [-epsilon, +epsilon];
-    const min_max_x = make_edges_x_min_max({ vertices_coords, edges_vertices })
-      .map(pair => [pair[0] + ep[0], pair[1] + ep[1]]);
-    const min_max_y = make_edges_y_min_max({ vertices_coords, edges_vertices })
-      .map(pair => [pair[0] + ep[0], pair[1] + ep[1]]);
+    const min_max = make_edges_coords_min_max({ vertices_coords, edges_vertices });
     const span_overlaps = edges_vertices.map(() => []);
     for (let i = 0; i < edges_vertices.length - 1; i += 1) {
       for (let j = i + 1; j < edges_vertices.length; j += 1) {
-        const overlaps = !(min_max_x[i][1] < min_max_x[j][0]
-          || min_max_x[j][1] < min_max_x[i][0])
-        && !(min_max_y[i][1] < min_max_y[j][0]
-          || min_max_y[j][1] < min_max_y[i][0]);
+        const overlaps = !(min_max[i][0][1] < min_max[j][0][0]
+          || min_max[j][0][1] < min_max[i][0][0])
+        && !(min_max[i][1][1] < min_max[j][1][0]
+          || min_max[j][1][1] < min_max[i][1][0]);
         span_overlaps[i][j] = overlaps;
         span_overlaps[j][i] = overlaps;
       }
     }
     return span_overlaps;
   };
-  const make_edges_edges_intersections = function (
-    { vertices_coords, edges_vertices, edges_vector, edges_origin },
-    epsilon = math.core.EPSILON
-  ) {
+  const make_edges_edges_intersections = function ({
+    vertices_coords, edges_vertices, edges_vector, edges_origin
+  }, epsilon = math.core.EPSILON) {
     if (!edges_vector) {
-      edges_vector = edges_vertices
-        .map(ev => ev.map(v => vertices_coords[v]))
-        .map(e => math.core.subtract(e[1], e[0]));
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
     if (!edges_origin) {
       edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
     }
-    const indices = edges_vector.map((_, i) => i).filter(a => a !== null);
     const edges_intersections = edges_vector.map(() => []);
     const span = make_edges_span({ vertices_coords, edges_vertices }, epsilon);
-    for (let ii = 0; ii < indices.length - 1; ii += 1) {
-      for (let jj = ii + 1; jj < indices.length; jj += 1) {
-        if (span[ii][jj] !== true) { continue; }
-        const i = indices[ii];
-        const j = indices[jj];
-        const crossing = math.core.intersect_lines(
+    for (let i = 0; i < edges_vector.length - 1; i += 1) {
+      for (let j = i + 1; j < edges_vector.length; j += 1) {
+        if (span[i][j] !== true) { continue; }
+        edges_intersections[i][j] = math.core.intersect_lines(
           edges_vector[i],
           edges_origin[i],
           edges_vector[j],
@@ -2819,28 +2814,22 @@
           math.core.exclude_s,
           epsilon
         );
-        if (crossing !== undefined) {
-          edges_intersections[i][j] = crossing;
-          edges_intersections[j][i] = crossing;
-        }
+        edges_intersections[j][i] = edges_intersections[i][j];
       }
     }
     return edges_intersections;
   };
   const make_edges_collinear_vertices = function (
     { vertices_coords, edges_vertices, edges_coords },
-    subset_of_vertices_indices,
     epsilon = math.core.EPSILON
   ) {
     if (!edges_coords) {
       edges_coords = edges_vertices
-      .map(ev => ev.map(v => vertices_coords[v]));
+        .map(ev => ev.map(v => vertices_coords[v]));
     }
-    if (!subset_of_vertices_indices) {
-      subset_of_vertices_indices = vertices_coords.map((_, i) => i);
-    }
+    const vc_indices = vertices_coords.map((_, i) => i);
     return edges_coords
-      .map(e => subset_of_vertices_indices
+      .map(e => vc_indices
         .filter(vi => math.core.point_on_segment_exclusive(
           vertices_coords[vi], e[0], e[1], epsilon
         )))
@@ -3514,59 +3503,6 @@
     get_isolated_vertices: get_isolated_vertices
   });
 
-  const sortVertexIndicesAlongVector = ({ vertices_coords }, indices, vector) => indices
-    .map(i => ({
-      i,
-      d: math.core.dot(vertices_coords[i], vector[0])
-    }))
-    .sort((a, b) => a.d - b.d)
-    .map(a => a.i);
-  const make_edges_edges_intersections$1 = function (
-    { vertices_coords, edges_vertices, edges_vector, edges_origin },
-    epsilon = math.core.EPSILON
-  ) {
-    if (!edges_vector) {
-      edges_vector = edges_vertices
-        .map(ev => ev.map(v => vertices_coords[v]))
-        .map(e => math.core.subtract(e[1], e[0]));
-    }
-    if (!edges_origin) {
-      edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
-    }
-    const edges_intersections = edges_vector.map(() => []);
-    const span = make_edges_span({ vertices_coords, edges_vertices }, epsilon);
-    for (let i = 0; i < edges_vector.length - 1; i += 1) {
-      for (let j = i + 1; j < edges_vector.length; j += 1) {
-        if (span[i][j] !== true) { continue; }
-        edges_intersections[i][j] = math.core.intersect_lines(
-          edges_vector[i],
-          edges_origin[i],
-          edges_vector[j],
-          edges_origin[j],
-          math.core.exclude_s,
-          math.core.exclude_s,
-          epsilon
-        );
-        edges_intersections[j][i] = edges_intersections[i][j];
-      }
-    }
-    return edges_intersections;
-  };
-  const make_edges_collinear_vertices$1 = function (
-    { vertices_coords, edges_vertices, edges_coords },
-    epsilon = math.core.EPSILON
-  ) {
-    if (!edges_coords) {
-      edges_coords = edges_vertices
-        .map(ev => ev.map(v => vertices_coords[v]));
-    }
-    const vc_indices = vertices_coords.map((_, i) => i);
-    return edges_coords
-      .map(e => vc_indices
-        .filter(i => math.core.point_on_segment_exclusive(
-          vertices_coords[i], e[0], e[1], epsilon
-        )));
-  };
   const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
     const edges_coords = graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]));
@@ -3574,20 +3510,16 @@
       .map(e => math.core.subtract(e[1], e[0]));
     const edges_origin = edges_coords
       .map(e => e[0]);
-    const edges_intersections = make_edges_edges_intersections$1({
+    const edges_intersections = make_edges_edges_intersections({
       vertices_coords: graph.vertices_coords,
       edges_vertices: graph.edges_vertices,
       edges_vector,
       edges_origin
     }, 1e-6);
-    const edges_collinear_vertices = make_edges_collinear_vertices$1({
-      vertices_coords: graph.vertices_coords,
-      edges_vertices: graph.edges_vertices,
-      edges_coords
-    }, epsilon);
     if (edges_intersections
       .reduce((a, b) => a.concat(b), [])
-      .filter(a => a !== undefined).length === 0) {
+      .filter(a => a !== undefined).length === 0
+    ) {
       return;
     }
     edges_intersections
@@ -3610,9 +3542,9 @@
     const edges_intersections_flat = edges_intersections
       .map(arr => arr.filter(a => a !== undefined));
     graph.edges_vertices.forEach((verts, i) => verts
-      .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
+      .push(...edges_intersections_flat[i]));
     graph.edges_vertices.forEach((edge, i) => {
-      graph.edges_vertices[i] = sortVertexIndicesAlongVector({ vertices_coords: graph.vertices_coords }, edge, edges_vector[i]);
+      graph.edges_vertices[i] = sort_vertices_along_vector({ vertices_coords: graph.vertices_coords }, edge, edges_vector[i]);
     });
     const edge_map = graph.edges_vertices
       .map((edge, i) => Array(edge.length - 1).fill(i))
@@ -3630,8 +3562,7 @@
     return graph;
   };
   const fragment = (graph, epsilon = math.core.EPSILON) => {
-    graph.vertices_coords = graph.vertices_coords
-      .map(coord => coord.slice(0, 2));
+    graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
     delete graph.vertices_vertices;
     delete graph.vertices_edges;
     delete graph.vertices_faces;
@@ -3640,8 +3571,7 @@
     delete graph.faces_vertices;
     delete graph.faces_edges;
     delete graph.faces_faces;
-    var i = 0;
-    for (; i < 100; i++) {
+    for (var i = 0; i < 20; i++) {
       const res = fragment_graph(graph, epsilon);
       if (res === undefined) { break; }
       merge_duplicate_vertices(graph, epsilon / 2);
@@ -4448,6 +4378,7 @@
     nearest$1,
     isolated_vertices,
     fold_object,
+    sort,
   );
 
   const axiom1 = (pointA, pointB) => math.line(
@@ -4707,8 +4638,33 @@
     kawasaki_solutions: kawasaki_solutions
   });
 
+  const maekawa_check = ({ vertices_edges, edges_vertices, edges_assignment }, vertex) => {
+    if (!vertices_edges) {
+      vertices_edges = make_vertices_edges({ edges_vertices });
+    }
+    const edges = vertices_edges[vertex];
+  };
+
+  var maekawa = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    maekawa_check: maekawa_check
+  });
+
+  const flat_check_sectors = (sectors, assignments) => {
+  };
+  const flat_check_vectors = (vectors, assignments) => {
+  };
+
+  var flat = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    flat_check_sectors: flat_check_sectors,
+    flat_check_vectors: flat_check_vectors
+  });
+
   var single_vertex = Object.assign({},
-    kawasaki
+    kawasaki,
+    maekawa,
+    flat,
   );
 
   const Ear = Object.assign(root, {

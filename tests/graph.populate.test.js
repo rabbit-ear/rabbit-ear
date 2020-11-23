@@ -18,11 +18,11 @@ test("populate with isolated vertex", () => {
   expect(graph.edges_assignment.length).toBe(2);
   expect(graph.edges_foldAngle.length).toBe(2);
 
-  expect(graph.faces_vertices.length).toBe(1);
-  expect(graph.faces_edges.length).toBe(1);
-  expect(graph.faces_faces.length).toBe(1);
-  expect(graph.faces_angles.length).toBe(1);
-  expect(graph.faces_matrix.length).toBe(1);
+  expect(graph.faces_vertices.length).toBe(0);
+  expect(graph.faces_edges.length).toBe(0);
+  expect(graph.faces_faces.length).toBe(0);
+  expect(graph.faces_angles.length).toBe(0);
+  expect(graph.faces_matrix.length).toBe(0);
 });
 
 test("populate with assignment and fold angle", () => {

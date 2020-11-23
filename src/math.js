@@ -136,7 +136,7 @@ const scale = (v, s) => v.map(n => n * s);
 const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
 const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
 const dot = (v, u) => v
-  .map((_, i) => v[i] * (u[i] || 1))
+  .map((_, i) => v[i] * u[i])
   .reduce(fn_add, 0);
 const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
 const average = function () {

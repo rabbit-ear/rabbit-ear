@@ -8,6 +8,7 @@ import * as boundary from "./boundary";
 import * as walk from "./walk";
 import * as nearest from "./nearest";
 import * as fold_object from "./fold_spec";
+import * as sort from "./sort";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
@@ -75,6 +76,7 @@ Object.assign(Graph, {
   nearest,
   isolated_vertices,
   fold_object,
+  sort,
 );
 
 export default Graph;

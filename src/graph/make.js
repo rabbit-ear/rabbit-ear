@@ -6,13 +6,13 @@ import implied from "./count_implied";
 import { planar_vertex_walk } from "./walk";
 import { sort_vertices_counter_clockwise } from "./sort";
 /**
- * all of the graph methods follow the same format.
- * they take one argument: the FOLD graph. the graph remains unmodified.
- * the method returns one array, the graph data.
- * typically, the user will re-assign this array to be a value of the graph.
+ * all of the graph methods follow a similar format.
+ * the first argument is a FOLD graph. and the graph remains unmodified.
+ * the method returns the data array.
  *
- * var graph = {...};
- * graph.faces_faces = make_faces_faces(graph);
+ * if you want to modify the input graph, assign the property after making it
+ *  var graph = {...};
+ *  graph.faces_faces = make_faces_faces(graph);
  */
 /**
  *
@@ -25,7 +25,6 @@ import { sort_vertices_counter_clockwise } from "./sort";
  *   the content an array of numbers, edge indices this vertex is adjacent.
  */
 export const make_vertices_edges = ({ edges_vertices }) => {
-  // if (!edges_vertices) { return undefined; }
   const vertices_edges = [];
   // iterate over edges_vertices and swap the index for each of the contents
   // each edge (index 0: [3, 4]) will be converted into (index 3: [0], index 4: [0])
@@ -79,7 +78,6 @@ export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_
  * this does not arrange faces in counter-clockwise order, as the spec suggests
  */
 export const make_vertices_faces = ({ faces_vertices }) => {
-  // if (!faces_vertices) { return undefined; }
   // instead of initializing the array ahead of time (we would need to know
   // the length of something like vertices_coords)
   const vertices_faces = Array
@@ -169,52 +167,6 @@ export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, e
     .map(coord => math.core.resize(3, coord))
     .map((coord, i) => math.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
 };
-// export const make_vertices_isBoundary = ({ edges_vertices, vertices_edges, edges_assignment }) => {
-//   if (!vertices_edges) {
-//     vertices_edges = make_vertices_edges({ edges_vertices });
-//   }
-//   const edges_isBoundary = edges_assignment
-//     .map(a => a === "b" || a === "B");
-//   return vertices_edges
-//     .map(edges => edges
-//       .map(edge => edges_isBoundary[edge])
-//       .reduce((a, b) => a || b, false));
-// };
-
-// export const make_boundary_vertices = function (graph) {
-//   const edges_vertices_b = graph.edges_vertices
-//     .filter((ev, i) => graph.edges_assignment[i] === "B"
-//       || graph.edges_assignment[i] === "b")
-//     .map(arr => arr.slice());
-//   if (edges_vertices_b.length === 0) { return []; }
-//   // the index of keys[i] is an edge_vertex from edges_vertices_b
-//   //  the [] value is the indices in edges_vertices_b this i appears
-//   const keys = Array.from(Array(graph.vertices_coords.length)).map(() => []);
-//   edges_vertices_b.forEach((ev, i) => ev.forEach(e => keys[e].push(i)));
-//   let edgeIndex = 0;
-//   const startVertex = edges_vertices_b[edgeIndex].shift();
-//   let nextVertex = edges_vertices_b[edgeIndex].shift();
-//   const vertices = [startVertex];
-//   while (vertices[0] !== nextVertex) {
-//     vertices.push(nextVertex);
-//     const whichEdges = keys[nextVertex];
-//     const thisKeyIndex = keys[nextVertex].indexOf(edgeIndex);
-//     if (thisKeyIndex === -1) { return undefined; }
-//     keys[nextVertex].splice(thisKeyIndex, 1);
-//     const nextEdgeAndIndex = keys[nextVertex]
-//       .map((el, i) => ({ key: el, i }))
-//       .filter(el => el.key !== edgeIndex)
-//       .shift();
-//     if (nextEdgeAndIndex == null) { return undefined; }
-//     keys[nextVertex].splice(nextEdgeAndIndex.i, 1);
-//     edgeIndex = nextEdgeAndIndex.key;
-//     const lastEdgeIndex = edges_vertices_b[edgeIndex].indexOf(nextVertex);
-//     if (lastEdgeIndex === -1) { return undefined; }
-//     edges_vertices_b[edgeIndex].splice(lastEdgeIndex, 1);
-//     nextVertex = edges_vertices_b[edgeIndex].shift();
-//   }
-//   return vertices;
-// };
 /**
  *
  *    EDGES
@@ -239,7 +191,6 @@ export const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
 
 // todo: make_edges_faces c-clockwise
 export const make_edges_faces = ({ faces_edges }) => {
-  // if (!edges_vertices || !faces_edges) { return undefined; }
   // instead of initializing the array ahead of time (we would need to know
   // the length of something like edges_vertices)
   const edges_faces = Array
@@ -282,104 +233,71 @@ export const make_edges_vector = ({ vertices_coords, edges_vertices }) =>
  */
 export const make_edges_length = ({ vertices_coords, edges_vertices }) => make_edges_vector({ vertices_coords, edges_vertices })
     .map(vec => math.core.magnitude(vec));
-
-const make_edges_x_min_max = ({ vertices_coords, edges_vertices }) => edges_vertices
-  .map(ev => {
-    const a = vertices_coords[ev[0]][0];
-    const b = vertices_coords[ev[1]][0];
-    return a < b ? [a, b] : [b, a];
-  });
-const make_edges_y_min_max = ({ vertices_coords, edges_vertices }) => edges_vertices
-  .map(ev => {
-    const a = vertices_coords[ev[0]][1];
-    const b = vertices_coords[ev[1]][1];
-    return a < b ? [a, b] : [b, a];
-  });
+/**
+ * edges become [[minX, minY], [maxX, maxY]], or x,y,z or however many n-dimensions
+ */
+const make_edges_coords_min_max = ({ vertices_coords, edges_vertices }) =>
+  edges_vertices
+    .map(ev => ev.map(v => vertices_coords[v]))
+    .map(c => [0, 1]
+      .map(i => c[0][i] < c[1][i] ? [c[0][i], c[1][i]] : [c[1][i], c[0][i]]));
 /**
  * part of a line-sweep algorithm for segment-segment intersection
  * this answers if it's possible that lines *might* overlap. 
  */
 export const make_edges_span = ({ vertices_coords, edges_vertices }, epsilon = math.core.EPSILON) => {
   const ep = [-epsilon, +epsilon];
-  const min_max_x = make_edges_x_min_max({ vertices_coords, edges_vertices }, epsilon)
-    .map(pair => [pair[0] + ep[0], pair[1] + ep[1]]);
-  const min_max_y = make_edges_y_min_max({ vertices_coords, edges_vertices }, epsilon)
-    .map(pair => [pair[0] + ep[0], pair[1] + ep[1]]);
+  const min_max = make_edges_coords_min_max({ vertices_coords, edges_vertices }, epsilon);
   const span_overlaps = edges_vertices.map(() => []);
   // span_overlaps will be false if no overlap possible, true if overlap is possible.
   for (let i = 0; i < edges_vertices.length - 1; i += 1) {
     for (let j = i + 1; j < edges_vertices.length; j += 1) {
       // is iMax less than jMin or jMax less than iMin
-      const overlaps = !(min_max_x[i][1] < min_max_x[j][0]
-        || min_max_x[j][1] < min_max_x[i][0])
-      && !(min_max_y[i][1] < min_max_y[j][0]
-        || min_max_y[j][1] < min_max_y[i][0]);
+      const overlaps = !(min_max[i][0][1] < min_max[j][0][0]
+        || min_max[j][0][1] < min_max[i][0][0])
+      && !(min_max[i][1][1] < min_max[j][1][0]
+        || min_max[j][1][1] < min_max[i][1][0]);
       span_overlaps[i][j] = overlaps;
       span_overlaps[j][i] = overlaps;
     }
   }
   return span_overlaps;
 };
-
 /**
  * this method compares every edge against every edge (n^2) to see if the
  * segments exclusively intersect each other (touching endpoints doesn't count)
  *
- * @returns a list for each edge containing the intersection points
- * 0 [ [0.25, 0.125] ]
- * 1 [ [0.25, 0.125], [0.99, 0.88] ]  // will become 3 segments
- * 2 [ ]  // will be unchanged.
- * 3 [ [0.99, 0.88] ]  // will become 2 segments
+ * @param {object} FOLD graph. only requires { edges_vector, edges_origin }
+ * if they don't exist this will build them from { vertices_coords, edges_vertices }
  *
- * if two edges end at the same endpoint this DOES NOT consider them touching
+ * @param {number} (optional) epsilon
  *
- * VERY IMPORTANT DETAIL, because each intersection (xy point object) is placed in
- * two locations in the array, under both edges, it doesn't copy the object
- * as Javascript objects are stored by reference. this may or may not work to your
- * benefit. one advantage is that all intersections can easily be visited only once.
- * you can modify the object and mark a point as done.
+ * @returns {number[][][]} NxN matrix comparing indices, undefined in the case of
+ * no intersection, a point object in array form if yes, and this array is stored
+ * in 2 PLACES! both [i][j] and [j][i], however it is stored by reference,
+ * it is the same js object.
+ *
+ *     0  1  2  3
+ * 0 [  , x,  ,  ]
+ * 1 [ x,  ,  , x]
+ * 2 [  ,  ,  ,  ]
+ * 3 [  , x,  ,  ]
  */
-// if you provide edges_vector, edges_origin you don't need the other graph params.
-export const make_edges_edges_intersections = function (
-  { vertices_coords, edges_vertices, edges_vector, edges_origin },
-  epsilon = math.core.EPSILON
-) {
+export const make_edges_edges_intersections = function ({
+  vertices_coords, edges_vertices, edges_vector, edges_origin
+}, epsilon = math.core.EPSILON) {
   if (!edges_vector) {
-    edges_vector = edges_vertices
-      .map(ev => ev.map(v => vertices_coords[v]))
-      .map(e => math.core.subtract(e[1], e[0]));
-      // .map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+    edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
   }
   if (!edges_origin) {
     edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
   }
-  // this method builds an NxN matrix of comparisons, where each
-  // intersection gets stored in 2 places, under both edges.
-  // this intersection data is the SAME OBJECT. Javascript objects
-  // are stored by reference. this is by design, and is used to the
-  // larger algorithm's advantage.
-  //
-  //     0  1  2  3
-  // 0 [  , x,  ,  ]
-  // 1 [ x,  ,  , x]
-  // 2 [  ,  ,  ,  ]
-  // 3 [  , x,  ,  ]
-  //
-  // showing crossings between 0 and 1, and 1 and 3.
-  // because the lower triangle is duplicate info, only store one half
-
-  // allow for javascript arrays with holes
-  // [{vec}, empty, {vec}, {vec}, empty, {vec}]
-  const indices = edges_vector.map((_, i) => i).filter(a => a !== null);
   const edges_intersections = edges_vector.map(() => []);
   const span = make_edges_span({ vertices_coords, edges_vertices }, epsilon);
-
-  for (let ii = 0; ii < indices.length - 1; ii += 1) {
-    for (let jj = ii + 1; jj < indices.length; jj += 1) {
-      if (span[ii][jj] !== true) { continue; }
-      const i = indices[ii];
-      const j = indices[jj];
-      const crossing = math.core.intersect_lines(
+  for (let i = 0; i < edges_vector.length - 1; i += 1) {
+    for (let j = i + 1; j < edges_vector.length; j += 1) {
+      if (span[i][j] !== true) { continue; }
+      edges_intersections[i][j] = math.core.intersect_lines(
         edges_vector[i],
         edges_origin[i],
         edges_vector[j],
@@ -388,10 +306,7 @@ export const make_edges_edges_intersections = function (
         math.core.exclude_s,
         epsilon
       );
-      if (crossing !== undefined) {
-        edges_intersections[i][j] = crossing;
-        edges_intersections[j][i] = crossing;
-      }
+      edges_intersections[j][i] = edges_intersections[i][j];
     }
   }
   return edges_intersections;
@@ -414,20 +329,20 @@ export const make_edges_edges_intersections = function (
  * arrays, with mostly empty contents, but in the case of a collinear
  * vertex, this index in the array will contain that vertex's index.
  */
+ // todo, this can be HEAVILY improved.
+ // at least do a bounding box around every edge, test a point is inside before
+ // running the point_on_segment function
 export const make_edges_collinear_vertices = function (
   { vertices_coords, edges_vertices, edges_coords },
-  subset_of_vertices_indices,
   epsilon = math.core.EPSILON
 ) {
   if (!edges_coords) {
     edges_coords = edges_vertices
-    .map(ev => ev.map(v => vertices_coords[v]));
+      .map(ev => ev.map(v => vertices_coords[v]));
   }
-  if (!subset_of_vertices_indices) {
-    subset_of_vertices_indices = vertices_coords.map((_, i) => i);
-  }
+  const vc_indices = vertices_coords.map((_, i) => i);
   return edges_coords
-    .map(e => subset_of_vertices_indices
+    .map(e => vc_indices
       .filter(vi => math.core.point_on_segment_exclusive(
         vertices_coords[vi], e[0], e[1], epsilon
       )))
@@ -437,13 +352,11 @@ export const make_edges_collinear_vertices = function (
     .map((cv, i) => cv
       .filter(vi => edges_vertices[i].indexOf(vi) === -1));
 };
-
 /**
  *
  *    FACES
  *
  */
-
 export const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
   if (!vertices_vertices) {
     vertices_vertices = make_vertices_vertices({ vertices_coords, edges_vertices, vertices_edges });

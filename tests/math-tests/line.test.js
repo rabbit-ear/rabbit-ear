@@ -115,8 +115,8 @@ test("ray", () => {
   expect(result.vector.x).toBe(1);
   expect(result.vector.y).toBe(2);
 });
-test("rotate180", () => {
-  const result = ear.ray([1,2], [3,3]).rotate180();
+test("flip", () => {
+  const result = ear.ray([1,2], [3,3]).flip();
   expect(result.origin.x).toBe(3);
   expect(result.origin.y).toBe(3);
   expect(result.vector.x).toBe(-1);
