@@ -947,7 +947,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
     line.vector, line.origin, intersects[i], a => a));
   if (points.length === 3) {
     return points.map(p => ({ type:"skeleton", points: [p, intersects[0]] }))
-      .concat([{ type:"kawasaki", points: [projections[0], intersects[0]] }]);
+      .concat([{ type:"perpendicular", points: [projections[0], intersects[0]] }]);
   }
   const projectionLengths = intersects
     .map((intersect, i) => distance(intersect, projections[i]));
@@ -958,7 +958,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
   const solutions = [
     { type:"skeleton", points: [points[shortest], intersects[shortest]] },
     { type:"skeleton", points: [points[(shortest + 1) % points.length], intersects[shortest]] },
-    { type:"kawasaki", points: [projections[shortest], intersects[shortest]] }
+    { type:"perpendicular", points: [projections[shortest], intersects[shortest]] }
   ];
   const newVector = clockwise_bisect2(
     flip(lines[(shortest + lines.length - 1) % lines.length].vector),
