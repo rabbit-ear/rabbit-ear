@@ -521,7 +521,7 @@ const vector_origin_form = (vector, origin) => ({
   vector: vector || [],
   origin: origin || []
 });
-const get_vector$1 = function () {
+const get_vector = function () {
   if (arguments[0] instanceof Constructors.vector) { return arguments[0]; }
   let list = flatten_arrays(arguments);
   if (list.length > 0
@@ -536,7 +536,7 @@ const get_vector$1 = function () {
 };
 const get_vector_of_vectors = function () {
   return semi_flatten_arrays(arguments)
-    .map(el => get_vector$1(el));
+    .map(el => get_vector(el));
 };
 const get_segment = function () {
   if (arguments[0] instanceof Constructors.segment) {
@@ -561,8 +561,8 @@ const get_line = function () {
     return vector_origin_form(args[0].vector || [], args[0].origin || []);
   }
   return typeof args[0] === "number"
-    ? vector_origin_form(get_vector$1(args))
-    : vector_origin_form(...args.map(a => get_vector$1(a)));
+    ? vector_origin_form(get_vector(args))
+    : vector_origin_form(...args.map(a => get_vector(a)));
 };
 const rect_form = (x = 0, y = 0, width = 0, height = 0) => ({
   x, y, width, height
@@ -605,7 +605,7 @@ const get_matrix_3x4 = function () {
   return matrix;
 };
 const get_matrix2 = function () {
-  const m = get_vector$1(arguments);
+  const m = get_vector(arguments);
   if (m.length === 6) { return m; }
   if (m.length > 6) { return [m[0], m[1], m[2], m[3], m[4], m[5]]; }
   if (m.length < 6) {
@@ -615,7 +615,7 @@ const get_matrix2 = function () {
 
 var getters = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  get_vector: get_vector$1,
+  get_vector: get_vector,
   get_vector_of_vectors: get_vector_of_vectors,
   get_segment: get_segment,
   get_line: get_line,
@@ -1599,7 +1599,7 @@ var clip_polygon = /*#__PURE__*/Object.freeze({
 });
 
 const VectorArgs = function () {
-  get_vector$1(arguments).forEach(n => this.push(n));
+  get_vector(arguments).forEach(n => this.push(n));
 };
 
 const VectorGetters = {
@@ -1612,16 +1612,16 @@ const table = {
   preserve: {
     magnitude: function () { return magnitude(this); },
     isEquivalent: function () {
-      return equivalent_vectors(this, get_vector$1(arguments));
+      return equivalent_vectors(this, get_vector(arguments));
     },
     isParallel: function () {
-      return parallel(...resize_up(this, get_vector$1(arguments)));
+      return parallel(...resize_up(this, get_vector(arguments)));
     },
     dot: function () {
-      return dot(...resize_up(this, get_vector$1(arguments)));
+      return dot(...resize_up(this, get_vector(arguments)));
     },
     distanceTo: function () {
-      return distance(...resize_up(this, get_vector$1(arguments)));
+      return distance(...resize_up(this, get_vector(arguments)));
     },
   },
   vector: {
@@ -1634,7 +1634,7 @@ const table = {
     cross: function () {
       return cross3(
         resize(3, this),
-        resize(3, get_vector$1(arguments))
+        resize(3, get_vector(arguments))
       );
     },
     transform: function () {
@@ -1644,10 +1644,10 @@ const table = {
       );
     },
     add: function () {
-      return add(this, resize(this.length, get_vector$1(arguments)));
+      return add(this, resize(this.length, get_vector(arguments)));
     },
     subtract: function () {
-      return subtract(this, resize(this.length, get_vector$1(arguments)));
+      return subtract(this, resize(this.length, get_vector(arguments)));
     },
     rotateZ: function (angle, origin) {
       return multiply_matrix3_vector3(
@@ -1656,13 +1656,13 @@ const table = {
       );
     },
     lerp: function (vector, pct) {
-      return lerp(this, resize(this.length, get_vector$1(vector)), pct);
+      return lerp(this, resize(this.length, get_vector(vector)), pct);
     },
     midpoint: function () {
-      return midpoint(...resize_up(this, get_vector$1(arguments)));
+      return midpoint(...resize_up(this, get_vector(arguments)));
     },
     bisect: function () {
-      return counter_clockwise_bisect2(this, get_vector$1(arguments));
+      return counter_clockwise_bisect2(this, get_vector(arguments));
     },
   }
 };
@@ -1709,7 +1709,7 @@ LineProto.prototype.reflectionMatrix = function () {
   return Constructors.matrix(make_matrix3_reflectZ(this.vector, this.origin));
 };
 LineProto.prototype.nearestPoint = function () {
-  const point = get_vector$1(arguments);
+  const point = get_vector(arguments);
   return Constructors.vector(
     nearest_point_on_line(this.vector, this.origin, point, this.clip_function)
   );
@@ -1936,7 +1936,7 @@ const CircleMethods = {
     return Constructors.vector(nearest_point_on_circle(
       this.radius,
       this.origin,
-      get_vector$1(arguments)
+      get_vector(arguments)
     ));
   },
   intersect: function (object) {
@@ -2058,7 +2058,7 @@ const methods = {
     return Constructors.rect(enclosing_rectangle(this));
   },
   contains: function () {
-    return point_in_poly(get_vector$1(arguments), this);
+    return point_in_poly(get_vector(arguments), this);
   },
   scale: function (magnitude, center = centroid(this)) {
     const newPoints = this
@@ -2079,7 +2079,7 @@ const methods = {
     return Constructors.polygon(newPoints);
   },
   translate: function () {
-    const vec = get_vector$1(...arguments);
+    const vec = get_vector(...arguments);
     const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
     return this.constructor.fromPoints(newPoints);
   },
@@ -2090,7 +2090,7 @@ const methods = {
     return Constructors.polygon(newPoints);
   },
   nearest: function () {
-    const point = get_vector$1(...arguments);
+    const point = get_vector(...arguments);
     const result = nearest_point_on_polygon(this, point);
     return result === undefined
       ? undefined
@@ -2289,12 +2289,12 @@ var Matrix = {
       },
       transform: function (...innerArgs) {
         return Constructors.vector(
-          multiply_matrix3_vector3(this, resize(3, get_vector$1(innerArgs)))
+          multiply_matrix3_vector3(this, resize(3, get_vector(innerArgs)))
         );
       },
       transformVector: function (vector) {
         return Constructors.vector(
-          multiply_matrix3_vector3(this, resize(3, get_vector$1(vector)))
+          multiply_matrix3_vector3(this, resize(3, get_vector(vector)))
         );
       },
       transformLine: function (...innerArgs) {

@@ -517,7 +517,7 @@
     vector: vector || [],
     origin: origin || []
   });
-  const get_vector$1 = function () {
+  const get_vector = function () {
     if (arguments[0] instanceof Constructors.vector) { return arguments[0]; }
     let list = flatten_arrays(arguments);
     if (list.length > 0
@@ -532,7 +532,7 @@
   };
   const get_vector_of_vectors = function () {
     return semi_flatten_arrays(arguments)
-      .map(el => get_vector$1(el));
+      .map(el => get_vector(el));
   };
   const get_segment = function () {
     if (arguments[0] instanceof Constructors.segment) {
@@ -557,8 +557,8 @@
       return vector_origin_form(args[0].vector || [], args[0].origin || []);
     }
     return typeof args[0] === "number"
-      ? vector_origin_form(get_vector$1(args))
-      : vector_origin_form(...args.map(a => get_vector$1(a)));
+      ? vector_origin_form(get_vector(args))
+      : vector_origin_form(...args.map(a => get_vector(a)));
   };
   const rect_form = (x = 0, y = 0, width = 0, height = 0) => ({
     x, y, width, height
@@ -601,7 +601,7 @@
     return matrix;
   };
   const get_matrix2 = function () {
-    const m = get_vector$1(arguments);
+    const m = get_vector(arguments);
     if (m.length === 6) { return m; }
     if (m.length > 6) { return [m[0], m[1], m[2], m[3], m[4], m[5]]; }
     if (m.length < 6) {
@@ -610,7 +610,7 @@
   };
   var getters = Object.freeze({
     __proto__: null,
-    get_vector: get_vector$1,
+    get_vector: get_vector,
     get_vector_of_vectors: get_vector_of_vectors,
     get_segment: get_segment,
     get_line: get_line,
@@ -1573,7 +1573,7 @@
     clip_segment_in_convex_poly_exclusive: clip_segment_in_convex_poly_exclusive
   });
   const VectorArgs = function () {
-    get_vector$1(arguments).forEach(n => this.push(n));
+    get_vector(arguments).forEach(n => this.push(n));
   };
   const VectorGetters = {
     x: function () { return this[0]; },
@@ -1584,16 +1584,16 @@
     preserve: {
       magnitude: function () { return magnitude(this); },
       isEquivalent: function () {
-        return equivalent_vectors(this, get_vector$1(arguments));
+        return equivalent_vectors(this, get_vector(arguments));
       },
       isParallel: function () {
-        return parallel(...resize_up(this, get_vector$1(arguments)));
+        return parallel(...resize_up(this, get_vector(arguments)));
       },
       dot: function () {
-        return dot(...resize_up(this, get_vector$1(arguments)));
+        return dot(...resize_up(this, get_vector(arguments)));
       },
       distanceTo: function () {
-        return distance(...resize_up(this, get_vector$1(arguments)));
+        return distance(...resize_up(this, get_vector(arguments)));
       },
     },
     vector: {
@@ -1606,7 +1606,7 @@
       cross: function () {
         return cross3(
           resize(3, this),
-          resize(3, get_vector$1(arguments))
+          resize(3, get_vector(arguments))
         );
       },
       transform: function () {
@@ -1616,10 +1616,10 @@
         );
       },
       add: function () {
-        return add(this, resize(this.length, get_vector$1(arguments)));
+        return add(this, resize(this.length, get_vector(arguments)));
       },
       subtract: function () {
-        return subtract(this, resize(this.length, get_vector$1(arguments)));
+        return subtract(this, resize(this.length, get_vector(arguments)));
       },
       rotateZ: function (angle, origin) {
         return multiply_matrix3_vector3(
@@ -1628,13 +1628,13 @@
         );
       },
       lerp: function (vector, pct) {
-        return lerp(this, resize(this.length, get_vector$1(vector)), pct);
+        return lerp(this, resize(this.length, get_vector(vector)), pct);
       },
       midpoint: function () {
-        return midpoint(...resize_up(this, get_vector$1(arguments)));
+        return midpoint(...resize_up(this, get_vector(arguments)));
       },
       bisect: function () {
-        return counter_clockwise_bisect2(this, get_vector$1(arguments));
+        return counter_clockwise_bisect2(this, get_vector(arguments));
       },
     }
   };
@@ -1678,7 +1678,7 @@
     return Constructors.matrix(make_matrix3_reflectZ(this.vector, this.origin));
   };
   LineProto.prototype.nearestPoint = function () {
-    const point = get_vector$1(arguments);
+    const point = get_vector(arguments);
     return Constructors.vector(
       nearest_point_on_line(this.vector, this.origin, point, this.clip_function)
     );
@@ -1897,7 +1897,7 @@
       return Constructors.vector(nearest_point_on_circle(
         this.radius,
         this.origin,
-        get_vector$1(arguments)
+        get_vector(arguments)
       ));
     },
     intersect: function (object) {
@@ -2015,7 +2015,7 @@
       return Constructors.rect(enclosing_rectangle(this));
     },
     contains: function () {
-      return point_in_poly(get_vector$1(arguments), this);
+      return point_in_poly(get_vector(arguments), this);
     },
     scale: function (magnitude, center = centroid(this)) {
       const newPoints = this
@@ -2036,7 +2036,7 @@
       return Constructors.polygon(newPoints);
     },
     translate: function () {
-      const vec = get_vector$1(...arguments);
+      const vec = get_vector(...arguments);
       const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
       return this.constructor.fromPoints(newPoints);
     },
@@ -2047,7 +2047,7 @@
       return Constructors.polygon(newPoints);
     },
     nearest: function () {
-      const point = get_vector$1(...arguments);
+      const point = get_vector(...arguments);
       const result = nearest_point_on_polygon(this, point);
       return result === undefined
         ? undefined
@@ -2243,12 +2243,12 @@
         },
         transform: function (...innerArgs) {
           return Constructors.vector(
-            multiply_matrix3_vector3(this, resize(3, get_vector$1(innerArgs)))
+            multiply_matrix3_vector3(this, resize(3, get_vector(innerArgs)))
           );
         },
         transformVector: function (vector) {
           return Constructors.vector(
-            multiply_matrix3_vector3(this, resize(3, get_vector$1(vector)))
+            multiply_matrix3_vector3(this, resize(3, get_vector(vector)))
           );
         },
         transformLine: function (...innerArgs) {
@@ -4661,28 +4661,36 @@
     flat_check_vectors: flat_check_vectors
   });
 
+  const fn_and = (a, b) => a && b;
+
   const up_down_map = { V: 1, v: 1, M: -1, m: -1 };
-  const upOrDown = (ass, i) => i % 2 === 0 ? up_down_map[ass] : -up_down_map[ass];
+  const upOrDown = (mv, i) => i % 2 === 0 ? up_down_map[mv] : -up_down_map[mv];
   const between = (arr, i, j) => (i < j) ? arr.slice(i + 1, j) : arr.slice(j + 1, i);
-  const get_sectors_layer = (sectors, assignments) => {
+  const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) => {
     let pointer = 0;
     const fold_location = sectors
       .map((sec, i) => i % 2 === 0 ? sec : -sec)
       .map(move => pointer += move);
     const sector_mins = fold_location
-      .map((sec, i, arr) => i % 2 === 0 ? arr[(i + arr.length - 1) % arr.length] : sec);
+      .map((sec, i, arr) => i % 2 === 0 ? arr[(i + arr.length - 1) % arr.length] : sec)
+      .map(n => n + epsilon);
     const sector_maxs = fold_location
-      .map((sec, i, arr) => i % 2 === 0 ? sec : arr[(i + arr.length - 1) % arr.length]);
+      .map((sec, i, arr) => i % 2 === 0 ? sec : arr[(i + arr.length - 1) % arr.length])
+      .map(n => n - epsilon);
     const test = (layering) => {
-      const index_index = [];
-      layering.forEach((layer, i) => { index_index[layer] = i; });
-      for (let i = 0; i < layering.length - 1; i += 1) {
-        const j = i + 1;
-        const res = between(layering, index_index[i], index_index[j])
-          .map(index => fold_location[i] <= sector_mins[index]
-            || fold_location[i] >= sector_maxs[index])
-          .reduce((a, b) => a && b, true);
-        if (!res) { return false; }
+      const index_of_index = [];
+      layering.forEach((layer, i) => { index_of_index[layer] = i; });
+      const max = layering.length + (layering.length === sectors.length ? 0 : -1);
+      for (let i = 0; i < max; i += 1) {
+        const j = (i + 1) % layering.length;
+        const layers_between = between(layering, index_of_index[i], index_of_index[j]);
+        const all_below_min = layers_between
+          .map(index => fold_location[i] < sector_mins[index])
+          .reduce(fn_and, true);
+        const all_above_max = layers_between
+          .map(index => fold_location[i] > sector_maxs[index])
+          .reduce(fn_and, true);
+        if (!all_below_min && !all_above_max) { return false; }
       }
       return true;
     };
