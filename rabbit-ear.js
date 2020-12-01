@@ -3443,29 +3443,19 @@
     const len = graph.edges_vertices.length;
     if (!graph.edges_assignment) { graph.edges_assignment = []; }
     if (!graph.edges_foldAngle) { graph.edges_foldAngle = []; }
-    if (graph.edges_assignment.length === len && graph.edges_foldAngle.length !== len) {
-      for (let i = graph.edges_foldAngle.length; i < len; i += 1) {
+    if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
+      for (let i = graph.edges_foldAngle.length; i < graph.edges_assignment.length; i += 1) {
         graph.edges_foldAngle[i] = assignment_to_angle(graph.edges_assignment[i]);
       }
-      return;
     }
-    if (graph.edges_foldAngle.length === len && graph.edges_assignment.length !== len) {
-      for (let i = graph.edges_assignment.length; i < len; i += 1) {
+    if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
+      for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
         graph.edges_assignment[i] = angle_to_assignment(graph.edges_foldAngle[i]);
       }
-      return;
     }
-    if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
-      for (let i = graph.edges_assignment.length; i < len; i += 1) {
-        graph.edges_assignment[i] = "U";
-      }
-      graph.edges_foldAngle = make_edges_foldAngle(graph);
-    }
-    else if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
-      for (let i = graph.edges_foldAngle.length; i < len; i += 1) {
-        graph.edges_foldAngle[i] = 0;
-      }
-      graph.edges_assignment = make_edges_assignment(graph);
+    for (let i = graph.edges_assignment.length; i < len; i += 1) {
+      graph.edges_assignment[i] = "U";
+      graph.edges_foldAngle[i] = 0;
     }
   };
   const populate = (graph) => {
@@ -4531,6 +4521,54 @@
     return recurse();
   };
 
+  const get_unassigneds = (edges_assignment) => edges_assignment
+    .map((_, i) => i)
+    .filter(i => edges_assignment[i] === "U" || edges_assignment[i] === "u");
+  const all_possible_assignments = (assignments) => {
+    const unassigneds = get_unassigneds(assignments);
+    const permuts = Array.from(Array(2 ** unassigneds.length))
+      .map((_, i) => i.toString(2))
+      .map(l => Array(unassigneds.length - l.length + 1).join("0") + l)
+      .map(str => Array.from(str).map(l => l === "0" ? "V" : "M"));
+    const all = permuts.map(perm => {
+      const array = assignments.slice();
+      unassigneds.forEach((index, i) => { array[index] = perm[i]; });
+      return array;
+    });
+    const count_m = all.map(a => a.filter(l => l === "M" || l === "m").length);
+    const count_v = all.map(a => a.filter(l => l === "V" || l === "v").length);
+    return all.filter((_, i) => Math.abs(count_m[i] - count_v[i]) === 2);
+  };
+  const assignment_solver = (sectors, assignments) => {
+    const possibilities = all_possible_assignments(assignments);
+    const layers = possibilities.map(assigns => get_sectors_layer(sectors, assigns));
+    return possibilities
+      .map((_, i) => i)
+      .filter(i => layers[i].length > 0)
+      .map(i => ({
+        assignment: possibilities[i],
+        layer: layers[i],
+      }));
+  };
+
+  const prepare_clip_func_params = (object, type) => {
+    switch (type) {
+      case "line":
+      case "ray": return [object.vector, object.origin];
+      case "segment": return [object[0], object[1]];
+      default: return [];
+    }
+  };
+  const clip_line = (graph, line) => {
+    const type = math.typeof(line);
+    const func = math.core[`clip_${type}_in_convex_poly_exclusive`];
+    if (func) {
+      const boundaries_vertices = get_boundary(graph).vertices;
+      const polygon = boundaries_vertices.map(v => graph.vertices_coords[v]);
+      return func(polygon, ...prepare_clip_func_params(line, type));
+    }
+  };
+
   const vertex_degree = function (v, i) {
     const graph = this;
     Object.defineProperty(v, "degree", {
@@ -4707,6 +4745,8 @@
     get_duplicate_edges,
     clusters_vertices,
     layer_solver: get_sectors_layer,
+    assignment_solver,
+    clip_line,
   },
     make,
     Create,

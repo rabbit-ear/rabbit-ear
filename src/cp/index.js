@@ -11,6 +11,7 @@ import {
 import {
   fold_object_certainty,
 } from "../graph/fold_spec"
+
 const CreasePattern = function () {
   // should CreasePattern({vertices_coords:[], ...}) deep copy the argument object?
   return Object.assign(

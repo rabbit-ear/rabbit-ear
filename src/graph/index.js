@@ -29,7 +29,10 @@ import add_edges from "./add/add_edges";
 import split_edge from "./add/split_edge";
 import split_face from "./add/split_face";
 import flat_fold from "./flat_fold";
-import layer_solver from "./single_vertex/layer-solver"
+import layer_solver from "./single_vertex/layer_solver"
+import assignment_solver from "./single_vertex/assignment_solver"
+// boundary
+import clip_line from "./boundary/clip_line";
 
 // for this function and prototype
 // import * as Create from "../core/create";
@@ -71,6 +74,8 @@ Object.assign(Graph, {
   clusters_vertices,
   //
   layer_solver,
+  assignment_solver,
+  clip_line,
 },
   make,
   create,

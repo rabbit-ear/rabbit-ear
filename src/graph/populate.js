@@ -27,36 +27,27 @@ const angle_to_assignment = (a) => {
   return a < 0 ? "M" : "V";
 };
 
+// try best not to lose information
 const set_edges_angles = (graph) => {
   const len = graph.edges_vertices.length;
   // we know that edges_vertices exists
   if (!graph.edges_assignment) { graph.edges_assignment = []; }
   if (!graph.edges_foldAngle) { graph.edges_foldAngle = []; }
-  // if edges_assignment length matches edges_vertices, trust it 
-  if (graph.edges_assignment.length === len && graph.edges_foldAngle.length !== len) {
-    for (let i = graph.edges_foldAngle.length; i < len; i += 1) {
+  // complete the shorter array to match the longer one
+  if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
+    for (let i = graph.edges_foldAngle.length; i < graph.edges_assignment.length; i += 1) {
       graph.edges_foldAngle[i] = assignment_to_angle(graph.edges_assignment[i]);
     }
-    return;
   }
-  if (graph.edges_foldAngle.length === len && graph.edges_assignment.length !== len) {
-    for (let i = graph.edges_assignment.length; i < len; i += 1) {
+  if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
+    for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
       graph.edges_assignment[i] = angle_to_assignment(graph.edges_foldAngle[i]);
     }
-    return;
   }
-  //
-  if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
-    for (let i = graph.edges_assignment.length; i < len; i += 1) {
-      graph.edges_assignment[i] = "U";
-    }
-    graph.edges_foldAngle = make_edges_foldAngle(graph);
-  }
-  else if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
-    for (let i = graph.edges_foldAngle.length; i < len; i += 1) {
-      graph.edges_foldAngle[i] = 0;
-    }
-    graph.edges_assignment = make_edges_assignment(graph);
+  // two arrays should be at the same length now. even if they are not complete
+  for (let i = graph.edges_assignment.length; i < len; i += 1) {
+    graph.edges_assignment[i] = "U";
+    graph.edges_foldAngle[i] = 0;
   }
 };
 /**
