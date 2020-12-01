@@ -9,6 +9,27 @@
     && process.versions != null
     && process.versions.node != null;
 
+  const type_of = function (obj) {
+    switch (obj.constructor.name) {
+      case "vector":
+      case "matrix":
+      case "segment":
+      case "ray":
+      case "line":
+      case "circle":
+      case "ellipse":
+      case "rect":
+      case "polygon": return obj.constructor.name;
+    }
+    if (typeof obj === "object") {
+      if (obj.radius != null) { return "circle"; }
+      if (obj.width != null) { return "rect"; }
+      if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
+      if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
+      if (obj.vector != null && obj.origin != null) { return "line"; }
+    }
+    return undefined;
+  };
   const resize = (d, v) => (v.length === d
     ? v
     : Array(d).fill(0).map((z, i) => (v[i] ? v[i] : z)));
@@ -69,207 +90,6 @@
     clean_number: clean_number,
     semi_flatten_arrays: semi_flatten_arrays,
     flatten_arrays: flatten_arrays
-  });
-  const EPSILON = 1e-6;
-  const fEqual = (a, b) => a === b;
-  const fEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
-  const array_similarity_test = (list, compFunc) => Array
-    .from(Array(list.length - 1))
-    .map((_, i) => compFunc(list[0], list[i + 1]))
-    .reduce((a, b) => a && b, true);
-  const equivalent_vec2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
-    && Math.abs(a[1] - b[1]) < EPSILON;
-  const equivalent_arrays_of_numbers = function () {
-  };
-  const equivalent_numbers = function () {
-    if (arguments.length === 0) { return false; }
-    if (arguments.length === 1 && arguments[0] !== undefined) {
-      return equivalent_numbers(...arguments[0]);
-    }
-    return array_similarity_test(arguments, fEpsilonEqual);
-  };
-  const equivalent_vectors = function () {
-    const args = Array.from(arguments);
-    const length = args.map(a => a.length).reduce((a, b) => a > b ? a : b);
-    const vecs = args.map(a => resize(length, a));
-    return Array.from(Array(arguments.length - 1))
-      .map((_, i) => vecs[0]
-        .map((_, n) => Math.abs(vecs[0][n] - vecs[i + 1][n]) < EPSILON)
-        .reduce((u, v) => u && v, true))
-      .reduce((u, v) => u && v, true);
-  };
-  const equivalent = function () {
-    const list = semi_flatten_arrays(...arguments);
-    if (list.length < 1) { return false; }
-    const typeofList = typeof list[0];
-    if (typeofList === "undefined") { return false; }
-    switch (typeofList) {
-      case "number":
-        return array_similarity_test(list, fEpsilonEqual);
-      case "boolean":
-      case "string":
-        return array_similarity_test(list, fEqual);
-      case "object":
-        if (list[0].constructor === Array) { return equivalent_vectors(...list); }
-        return array_similarity_test(list, (a, b) => JSON.stringify(a) === JSON.stringify(b));
-      default: return undefined;
-    }
-  };
-  var equal = Object.freeze({
-    __proto__: null,
-    EPSILON: EPSILON,
-    equivalent_vec2: equivalent_vec2,
-    equivalent_arrays_of_numbers: equivalent_arrays_of_numbers,
-    equivalent_numbers: equivalent_numbers,
-    equivalent_vectors: equivalent_vectors,
-    equivalent: equivalent
-  });
-  const fn_square = n => n * n;
-  const fn_add = (a, b) => a + (b || 0);
-  const fn_not_undefined = a => a !== undefined;
-  const magnitude = v => Math.sqrt(v
-    .map(fn_square)
-    .reduce(fn_add, 0));
-  const mag_squared = v => v
-    .map(fn_square)
-    .reduce(fn_add, 0);
-  const normalize = (v) => {
-    const m = magnitude(v);
-    return m === 0 ? v : v.map(c => c / m);
-  };
-  const scale = (v, s) => v.map(n => n * s);
-  const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
-  const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
-  const dot = (v, u) => v
-    .map((_, i) => v[i] * u[i])
-    .reduce(fn_add, 0);
-  const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
-  const average = function () {
-    if (arguments.length === 0) { return []; }
-    const dimension = (arguments[0].length > 0) ? arguments[0].length : 0;
-    const sum = Array(dimension).fill(0);
-    Array.from(arguments).forEach(vec => sum.forEach((_, i) => { sum[i] += vec[i] || 0; }));
-    return sum.map(n => n / arguments.length);
-  };
-  const lerp = (v, u, t) => {
-    const inv = 1.0 - t;
-    return v.map((n, i) => n * inv + (u[i] || 0) * t);
-  };
-  const cross2 = (a, b) => a[0] * b[1] - a[1] * b[0];
-  const cross3 = (a, b) => [
-    a[1] * b[2] - a[2] * b[1],
-    a[0] * b[2] - a[2] * b[0],
-    a[0] * b[1] - a[1] * b[0],
-  ];
-  const distance2 = (a, b) => {
-    const p = a[0] - b[0];
-    const q = a[1] - b[1];
-    return Math.sqrt((p * p) + (q * q));
-  };
-  const distance3 = (a, b) => {
-    const c = a[0] - b[0];
-    const d = a[1] - b[1];
-    const e = a[2] - b[2];
-    return Math.sqrt((c * c) + (d * d) + (e * e));
-  };
-  const distance = (a, b) => Math.sqrt(a
-    .map((_, i) => (a[i] - b[i]) ** 2)
-    .reduce((u, v) => u + v, 0));
-  const flip = v => v.map(n => -n);
-  const rotate90 = v => [-v[1], v[0]];
-  const rotate270 = v => [v[1], -v[0]];
-  const degenerate = (v, epsilon = EPSILON) => Math
-    .abs(v.reduce(fn_add, 0)) < epsilon;
-  const parallel = (a, b, epsilon = EPSILON) => 1 - Math
-    .abs(dot(normalize(a), normalize(b))) < epsilon;
-  const alternating_sum = (numbers) => [0, 1]
-    .map(even_odd => numbers
-      .filter((_, i) => i % 2 === even_odd)
-      .reduce(fn_add, 0));
-  var algebra = Object.freeze({
-    __proto__: null,
-    magnitude: magnitude,
-    mag_squared: mag_squared,
-    normalize: normalize,
-    scale: scale,
-    add: add,
-    subtract: subtract,
-    dot: dot,
-    midpoint: midpoint,
-    average: average,
-    lerp: lerp,
-    cross2: cross2,
-    cross3: cross3,
-    distance2: distance2,
-    distance3: distance3,
-    distance: distance,
-    flip: flip,
-    rotate90: rotate90,
-    rotate270: rotate270,
-    degenerate: degenerate,
-    parallel: parallel,
-    alternating_sum: alternating_sum
-  });
-  const ray_limiter = dist => (dist < -EPSILON ? 0 : dist);
-  const segment_limiter = (dist) => {
-    if (dist < -EPSILON) { return 0; }
-    if (dist > 1 + EPSILON) { return 1; }
-    return dist;
-  };
-  const smallest_comparison_search = (obj, array, compare_func) => {
-    const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
-    let index;
-    let smallest_value = Infinity;
-    for (let i = 0; i < objs.length; i += 1) {
-      if (objs[i].d < smallest_value) {
-        index = i;
-        smallest_value = objs[i].d;
-      }
-    }
-    return index;
-  };
-  const nearest_point2 = (point, array_of_points) => {
-    const index = smallest_comparison_search(point, array_of_points, distance2);
-    return index === undefined ? undefined : array_of_points[index];
-  };
-  const nearest_point = (point, array_of_points) => {
-    const index = smallest_comparison_search(point, array_of_points, distance);
-    return index === undefined ? undefined : array_of_points[index];
-  };
-  const nearest_point_on_line = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
-    origin = resize(vector.length, origin);
-    point = resize(vector.length, point);
-    const magSquared = mag_squared(vector);
-    const vectorToPoint = subtract(point, origin);
-    const dotProd = dot(vector, vectorToPoint);
-    const dist = dotProd / magSquared;
-    const d = limiterFunc(dist, epsilon);
-    return add(origin, scale(vector, d))
-  };
-  const nearest_point_on_polygon = (polygon, point) => {
-    const v = polygon
-      .map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
-    return polygon
-      .map((p, i) => nearest_point_on_line(v[i], p, point, segment_limiter))
-      .map((p, i) => ({ point: p, i, distance: distance(p, point) }))
-      .sort((a, b) => a.distance - b.distance)
-      .shift();
-  };
-  const nearest_point_on_circle = (radius, origin, point) => add(
-    origin, scale(normalize(subtract(point, origin)), radius)
-  );
-  const nearest_point_on_ellipse = () => false;
-  var nearest = Object.freeze({
-    __proto__: null,
-    ray_limiter: ray_limiter,
-    segment_limiter: segment_limiter,
-    smallest_comparison_search: smallest_comparison_search,
-    nearest_point2: nearest_point2,
-    nearest_point: nearest_point,
-    nearest_point_on_line: nearest_point_on_line,
-    nearest_point_on_polygon: nearest_point_on_polygon,
-    nearest_point_on_circle: nearest_point_on_circle,
-    nearest_point_on_ellipse: nearest_point_on_ellipse
   });
   var Constructors = Object.create(null);
   const identity2x2 = [1, 0, 0, 1];
@@ -359,6 +179,108 @@
     make_matrix2_scale: make_matrix2_scale,
     make_matrix2_rotate: make_matrix2_rotate,
     make_matrix2_reflect: make_matrix2_reflect
+  });
+  const R2D = 180 / Math.PI;
+  const D2R = Math.PI / 180;
+  const TWO_PI = Math.PI * 2;
+  const EPSILON = 1e-6;
+  var constants = Object.freeze({
+    __proto__: null,
+    R2D: R2D,
+    D2R: D2R,
+    TWO_PI: TWO_PI,
+    EPSILON: EPSILON
+  });
+  const fn_square = n => n * n;
+  const fn_add = (a, b) => a + (b || 0);
+  const fn_not_undefined = a => a !== undefined;
+  const magnitude = v => Math.sqrt(v
+    .map(fn_square)
+    .reduce(fn_add, 0));
+  const mag_squared = v => v
+    .map(fn_square)
+    .reduce(fn_add, 0);
+  const normalize = (v) => {
+    const m = magnitude(v);
+    return m === 0 ? v : v.map(c => c / m);
+  };
+  const scale = (v, s) => v.map(n => n * s);
+  const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
+  const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
+  const dot = (v, u) => v
+    .map((_, i) => v[i] * u[i])
+    .reduce(fn_add, 0);
+  const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
+  const average = function () {
+    if (arguments.length === 0) { return []; }
+    const dimension = (arguments[0].length > 0) ? arguments[0].length : 0;
+    const sum = Array(dimension).fill(0);
+    Array.from(arguments).forEach(vec => sum.forEach((_, i) => { sum[i] += vec[i] || 0; }));
+    return sum.map(n => n / arguments.length);
+  };
+  const lerp = (v, u, t) => {
+    const inv = 1.0 - t;
+    return v.map((n, i) => n * inv + (u[i] || 0) * t);
+  };
+  const cross2 = (a, b) => a[0] * b[1] - a[1] * b[0];
+  const cross3 = (a, b) => [
+    a[1] * b[2] - a[2] * b[1],
+    a[0] * b[2] - a[2] * b[0],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+  const distance2 = (a, b) => {
+    const p = a[0] - b[0];
+    const q = a[1] - b[1];
+    return Math.sqrt((p * p) + (q * q));
+  };
+  const distance3 = (a, b) => {
+    const c = a[0] - b[0];
+    const d = a[1] - b[1];
+    const e = a[2] - b[2];
+    return Math.sqrt((c * c) + (d * d) + (e * e));
+  };
+  const distance = (a, b) => Math.sqrt(a
+    .map((_, i) => (a[i] - b[i]) ** 2)
+    .reduce((u, v) => u + v, 0));
+  const flip = v => v.map(n => -n);
+  const rotate90 = v => [-v[1], v[0]];
+  const rotate270 = v => [v[1], -v[0]];
+  const degenerate = (v, epsilon = EPSILON) => Math
+    .abs(v.reduce(fn_add, 0)) < epsilon;
+  const parallel = (a, b, epsilon = EPSILON) => 1 - Math
+    .abs(dot(normalize(a), normalize(b))) < epsilon;
+  const alternating_sum = (numbers) => [0, 1]
+    .map(even_odd => numbers
+      .filter((_, i) => i % 2 === even_odd)
+      .reduce(fn_add, 0));
+  const alternating_deviation = (sectors) => {
+    const halfsum = sectors.reduce(fn_add, 0) / 2;
+    return alternating_sum(sectors).map(s => s - halfsum);
+  };
+  var algebra = Object.freeze({
+    __proto__: null,
+    magnitude: magnitude,
+    mag_squared: mag_squared,
+    normalize: normalize,
+    scale: scale,
+    add: add,
+    subtract: subtract,
+    dot: dot,
+    midpoint: midpoint,
+    average: average,
+    lerp: lerp,
+    cross2: cross2,
+    cross3: cross3,
+    distance2: distance2,
+    distance3: distance3,
+    distance: distance,
+    flip: flip,
+    rotate90: rotate90,
+    rotate270: rotate270,
+    degenerate: degenerate,
+    parallel: parallel,
+    alternating_sum: alternating_sum,
+    alternating_deviation: alternating_deviation
   });
   const identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
   const identity3x4 = Object.freeze(identity3x3.concat(0, 0, 0));
@@ -619,6 +541,119 @@
     get_matrix_3x4: get_matrix_3x4,
     get_matrix2: get_matrix2
   });
+  const fEqual = (a, b) => a === b;
+  const fEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
+  const array_similarity_test = (list, compFunc) => Array
+    .from(Array(list.length - 1))
+    .map((_, i) => compFunc(list[0], list[i + 1]))
+    .reduce((a, b) => a && b, true);
+  const equivalent_vec2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
+    && Math.abs(a[1] - b[1]) < EPSILON;
+  const equivalent_arrays_of_numbers = function () {
+  };
+  const equivalent_numbers = function () {
+    if (arguments.length === 0) { return false; }
+    if (arguments.length === 1 && arguments[0] !== undefined) {
+      return equivalent_numbers(...arguments[0]);
+    }
+    return array_similarity_test(arguments, fEpsilonEqual);
+  };
+  const equivalent_vectors = function () {
+    const args = Array.from(arguments);
+    const length = args.map(a => a.length).reduce((a, b) => a > b ? a : b);
+    const vecs = args.map(a => resize(length, a));
+    return Array.from(Array(arguments.length - 1))
+      .map((_, i) => vecs[0]
+        .map((_, n) => Math.abs(vecs[0][n] - vecs[i + 1][n]) < EPSILON)
+        .reduce((u, v) => u && v, true))
+      .reduce((u, v) => u && v, true);
+  };
+  const equivalent = function () {
+    const list = semi_flatten_arrays(...arguments);
+    if (list.length < 1) { return false; }
+    const typeofList = typeof list[0];
+    if (typeofList === "undefined") { return false; }
+    switch (typeofList) {
+      case "number":
+        return array_similarity_test(list, fEpsilonEqual);
+      case "boolean":
+      case "string":
+        return array_similarity_test(list, fEqual);
+      case "object":
+        if (list[0].constructor === Array) { return equivalent_vectors(...list); }
+        return array_similarity_test(list, (a, b) => JSON.stringify(a) === JSON.stringify(b));
+      default: return undefined;
+    }
+  };
+  var equal = Object.freeze({
+    __proto__: null,
+    equivalent_vec2: equivalent_vec2,
+    equivalent_arrays_of_numbers: equivalent_arrays_of_numbers,
+    equivalent_numbers: equivalent_numbers,
+    equivalent_vectors: equivalent_vectors,
+    equivalent: equivalent
+  });
+  const ray_limiter = dist => (dist < -EPSILON ? 0 : dist);
+  const segment_limiter = (dist) => {
+    if (dist < -EPSILON) { return 0; }
+    if (dist > 1 + EPSILON) { return 1; }
+    return dist;
+  };
+  const smallest_comparison_search = (obj, array, compare_func) => {
+    const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
+    let index;
+    let smallest_value = Infinity;
+    for (let i = 0; i < objs.length; i += 1) {
+      if (objs[i].d < smallest_value) {
+        index = i;
+        smallest_value = objs[i].d;
+      }
+    }
+    return index;
+  };
+  const nearest_point2 = (point, array_of_points) => {
+    const index = smallest_comparison_search(point, array_of_points, distance2);
+    return index === undefined ? undefined : array_of_points[index];
+  };
+  const nearest_point = (point, array_of_points) => {
+    const index = smallest_comparison_search(point, array_of_points, distance);
+    return index === undefined ? undefined : array_of_points[index];
+  };
+  const nearest_point_on_line = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
+    origin = resize(vector.length, origin);
+    point = resize(vector.length, point);
+    const magSquared = mag_squared(vector);
+    const vectorToPoint = subtract(point, origin);
+    const dotProd = dot(vector, vectorToPoint);
+    const dist = dotProd / magSquared;
+    const d = limiterFunc(dist, epsilon);
+    return add(origin, scale(vector, d))
+  };
+  const nearest_point_on_polygon = (polygon, point) => {
+    const v = polygon
+      .map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
+    return polygon
+      .map((p, i) => nearest_point_on_line(v[i], p, point, segment_limiter))
+      .map((p, i) => ({ point: p, i, distance: distance(p, point) }))
+      .sort((a, b) => a.distance - b.distance)
+      .shift();
+  };
+  const nearest_point_on_circle = (radius, origin, point) => add(
+    origin, scale(normalize(subtract(point, origin)), radius)
+  );
+  const nearest_point_on_ellipse = () => false;
+  var nearest = Object.freeze({
+    __proto__: null,
+    ray_limiter: ray_limiter,
+    segment_limiter: segment_limiter,
+    smallest_comparison_search: smallest_comparison_search,
+    nearest_point2: nearest_point2,
+    nearest_point: nearest_point,
+    nearest_point_on_line: nearest_point_on_line,
+    nearest_point_on_polygon: nearest_point_on_polygon,
+    nearest_point_on_circle: nearest_point_on_circle,
+    nearest_point_on_ellipse: nearest_point_on_ellipse
+  });
   const include_l = () => true;
   const include_r = (t, e=EPSILON) => t > -e;
   const include_s = (t, e=EPSILON) => t > -e && t < 1 + e;
@@ -672,106 +707,6 @@
     point_on_segment_inclusive: point_on_segment_inclusive,
     point_on_segment_exclusive: point_on_segment_exclusive
   });
-  const R2D = 180 / Math.PI;
-  const D2R = Math.PI / 180;
-  const TWO_PI = Math.PI * 2;
-  const is_counter_clockwise_between = (angle, angleA, angleB) => {
-    while (angleB < angleA) { angleB += TWO_PI; }
-    while (angle > angleA) { angle -= TWO_PI; }
-    while (angle < angleA) { angle += TWO_PI; }
-    return angle < angleB;
-  };
-  const clockwise_angle_radians = (a, b) => {
-    while (a < 0) { a += TWO_PI; }
-    while (b < 0) { b += TWO_PI; }
-    while (a > TWO_PI) { a -= TWO_PI; }
-    while (b > TWO_PI) { b -= TWO_PI; }
-    const a_b = a - b;
-    return (a_b >= 0)
-      ? a_b
-      : TWO_PI - (b - a);
-  };
-  const counter_clockwise_angle_radians = (a, b) => {
-    while (a < 0) { a += TWO_PI; }
-    while (b < 0) { b += TWO_PI; }
-    while (a > TWO_PI) { a -= TWO_PI; }
-    while (b > TWO_PI) { b -= TWO_PI; }
-    const b_a = b - a;
-    return (b_a >= 0)
-      ? b_a
-      : TWO_PI - (a - b);
-  };
-  const clockwise_angle2 = (a, b) => {
-    const dotProduct = b[0] * a[0] + b[1] * a[1];
-    const determinant = b[0] * a[1] - b[1] * a[0];
-    let angle = Math.atan2(determinant, dotProduct);
-    if (angle < 0) { angle += TWO_PI; }
-    return angle;
-  };
-  const counter_clockwise_angle2 = (a, b) => {
-    const dotProduct = a[0] * b[0] + a[1] * b[1];
-    const determinant = a[0] * b[1] - a[1] * b[0];
-    let angle = Math.atan2(determinant, dotProduct);
-    if (angle < 0) { angle += TWO_PI; }
-    return angle;
-  };
-  const clockwise_bisect2 = (a, b) => {
-    const radians = Math.atan2(a[1], a[0]) - clockwise_angle2(a, b) / 2;
-    return [Math.cos(radians), Math.sin(radians)];
-  };
-  const counter_clockwise_bisect2 = (a, b) => {
-    const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
-    return [Math.cos(radians), Math.sin(radians)];
-  };
-  const counter_clockwise_radians_order = (...radians) => {
-    const counter_clockwise = Array.from(Array(radians.length))
-      .map((_, i) => i)
-      .sort((a, b) => radians[a] - radians[b]);
-    return counter_clockwise
-      .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
-      .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
-  };
-  const counter_clockwise_vector_order = (...vectors) =>
-    counter_clockwise_radians_order(...vectors.map(v => Math.atan2(v[1], v[0])));
-  const interior_angles = (...vecs) => vecs
-    .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
-  const bisect_vectors = (a, b) => {
-    const aV = normalize(a);
-    const bV = normalize(b);
-    return dot(aV, bV) < (-1 + EPSILON)
-      ? [-aV[1], aV[0]]
-      : normalize(add(aV, bV));
-  };
-  const bisect_lines2 = (vectorA, pointA, vectorB, pointB) => {
-    const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
-    if (Math.abs(denominator) < EPSILON) {
-      const solution = [[vectorA[0], vectorA[1]], midpoint(pointA, pointB)];
-      const array = [solution, solution];
-      const dt = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
-      delete array[(dt > 0 ? 1 : 0)];
-      return array;
-    }
-    const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
-    const t = numerator / denominator;
-    const origin = [
-      pointA[0] + vectorA[0] * t,
-      pointA[1] + vectorA[1] * t,
-    ];
-    const bisects = [bisect_vectors(vectorA, vectorB)];
-    bisects[1] = rotate90(bisects[0]);
-    return bisects.map(vector => ({ vector, origin }));
-  };
-  const subsect_radians = (divisions, angleA, angleB) => {
-    const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
-    return Array.from(Array(divisions - 1))
-      .map((_, i) => angleA + angle * i);
-  };
-  const subsect = (divisions, vectorA, vectorB) => {
-    const angleA = Math.atan2(vectorA[1], vectorA[0]);
-    const angleB = Math.atan2(vectorB[1], vectorB[0]);
-    return subsect_radians(divisions, angleA, angleB)
-      .map(rad => [Math.cos(rad), Math.sin(rad)]);
-  };
   const circumcircle = function (a, b, c) {
     const A = b[0] - a[0];
     const B = b[1] - a[1];
@@ -978,23 +913,6 @@
   };
   var geometry = Object.freeze({
     __proto__: null,
-    R2D: R2D,
-    D2R: D2R,
-    TWO_PI: TWO_PI,
-    is_counter_clockwise_between: is_counter_clockwise_between,
-    clockwise_angle_radians: clockwise_angle_radians,
-    counter_clockwise_angle_radians: counter_clockwise_angle_radians,
-    clockwise_angle2: clockwise_angle2,
-    counter_clockwise_angle2: counter_clockwise_angle2,
-    clockwise_bisect2: clockwise_bisect2,
-    counter_clockwise_bisect2: counter_clockwise_bisect2,
-    counter_clockwise_radians_order: counter_clockwise_radians_order,
-    counter_clockwise_vector_order: counter_clockwise_vector_order,
-    interior_angles: interior_angles,
-    bisect_vectors: bisect_vectors,
-    bisect_lines2: bisect_lines2,
-    subsect_radians: subsect_radians,
-    subsect: subsect,
     circumcircle: circumcircle,
     signed_area: signed_area,
     centroid: centroid,
@@ -1005,27 +923,139 @@
     convex_hull: convex_hull,
     straight_skeleton: straight_skeleton
   });
-  const type_of = function (obj) {
-    switch (obj.constructor.name) {
-      case "vector":
-      case "matrix":
-      case "segment":
-      case "ray":
-      case "line":
-      case "circle":
-      case "ellipse":
-      case "rect":
-      case "polygon": return obj.constructor.name;
-    }
-    if (typeof obj === "object") {
-      if (obj.radius != null) { return "circle"; }
-      if (obj.width != null) { return "rect"; }
-      if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
-      if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
-      if (obj.vector != null && obj.origin != null) { return "line"; }
-    }
-    return undefined;
+  const is_counter_clockwise_between = (angle, angleA, angleB) => {
+    while (angleB < angleA) { angleB += TWO_PI; }
+    while (angle > angleA) { angle -= TWO_PI; }
+    while (angle < angleA) { angle += TWO_PI; }
+    return angle < angleB;
   };
+  const clockwise_angle_radians = (a, b) => {
+    while (a < 0) { a += TWO_PI; }
+    while (b < 0) { b += TWO_PI; }
+    while (a > TWO_PI) { a -= TWO_PI; }
+    while (b > TWO_PI) { b -= TWO_PI; }
+    const a_b = a - b;
+    return (a_b >= 0)
+      ? a_b
+      : TWO_PI - (b - a);
+  };
+  const counter_clockwise_angle_radians = (a, b) => {
+    while (a < 0) { a += TWO_PI; }
+    while (b < 0) { b += TWO_PI; }
+    while (a > TWO_PI) { a -= TWO_PI; }
+    while (b > TWO_PI) { b -= TWO_PI; }
+    const b_a = b - a;
+    return (b_a >= 0)
+      ? b_a
+      : TWO_PI - (a - b);
+  };
+  const clockwise_angle2 = (a, b) => {
+    const dotProduct = b[0] * a[0] + b[1] * a[1];
+    const determinant = b[0] * a[1] - b[1] * a[0];
+    let angle = Math.atan2(determinant, dotProduct);
+    if (angle < 0) { angle += TWO_PI; }
+    return angle;
+  };
+  const counter_clockwise_angle2 = (a, b) => {
+    const dotProduct = a[0] * b[0] + a[1] * b[1];
+    const determinant = a[0] * b[1] - a[1] * b[0];
+    let angle = Math.atan2(determinant, dotProduct);
+    if (angle < 0) { angle += TWO_PI; }
+    return angle;
+  };
+  const clockwise_bisect2$1 = (a, b) => {
+    const radians = Math.atan2(a[1], a[0]) - clockwise_angle2(a, b) / 2;
+    return [Math.cos(radians), Math.sin(radians)];
+  };
+  const counter_clockwise_bisect2 = (a, b) => {
+    const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
+    return [Math.cos(radians), Math.sin(radians)];
+  };
+  const counter_clockwise_radians_order = (...radians) => {
+    const counter_clockwise = radians
+      .map((_, i) => i)
+      .sort((a, b) => radians[a] - radians[b]);
+    return counter_clockwise
+      .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
+      .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
+  };
+  const counter_clockwise_vector_order = (...vectors) =>
+    counter_clockwise_radians_order(...vectors.map(v => Math.atan2(v[1], v[0])));
+  const interior_angles = (...vecs) => vecs
+    .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
+  const kawasaki_solutions_radians = (radians) => radians
+    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+    .map(pair => counter_clockwise_angle_radians(...pair))
+    .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+    .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
+    .map((kawasakis, i) => radians[i] + kawasakis[0])
+    .map((angle, i) => (is_counter_clockwise_between(angle,
+      radians[i], radians[(i + 1) % radians.length])
+      ? angle
+      : undefined));
+  const kawasaki_solutions = (vectors) => {
+    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+    return kawasaki_solutions_radians(vectors_radians)
+      .map(a => (a === undefined
+        ? undefined
+        : [Math.cos(a), Math.sin(a)]));
+  };
+  const bisect_vectors = (a, b) => {
+    const aV = normalize(a);
+    const bV = normalize(b);
+    return dot(aV, bV) < (-1 + EPSILON)
+      ? [-aV[1], aV[0]]
+      : normalize(add(aV, bV));
+  };
+  const bisect_lines2 = (vectorA, pointA, vectorB, pointB) => {
+    const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
+    if (Math.abs(denominator) < EPSILON) {
+      const solution = [[vectorA[0], vectorA[1]], midpoint(pointA, pointB)];
+      const array = [solution, solution];
+      const dt = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
+      delete array[(dt > 0 ? 1 : 0)];
+      return array;
+    }
+    const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
+    const t = numerator / denominator;
+    const origin = [
+      pointA[0] + vectorA[0] * t,
+      pointA[1] + vectorA[1] * t,
+    ];
+    const bisects = [bisect_vectors(vectorA, vectorB)];
+    bisects[1] = rotate90(bisects[0]);
+    return bisects.map(vector => ({ vector, origin }));
+  };
+  const subsect_radians = (divisions, angleA, angleB) => {
+    const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
+    return Array.from(Array(divisions - 1))
+      .map((_, i) => angleA + angle * i);
+  };
+  const subsect = (divisions, vectorA, vectorB) => {
+    const angleA = Math.atan2(vectorA[1], vectorA[0]);
+    const angleB = Math.atan2(vectorB[1], vectorB[0]);
+    return subsect_radians(divisions, angleA, angleB)
+      .map(rad => [Math.cos(rad), Math.sin(rad)]);
+  };
+  var radial = Object.freeze({
+    __proto__: null,
+    is_counter_clockwise_between: is_counter_clockwise_between,
+    clockwise_angle_radians: clockwise_angle_radians,
+    counter_clockwise_angle_radians: counter_clockwise_angle_radians,
+    clockwise_angle2: clockwise_angle2,
+    counter_clockwise_angle2: counter_clockwise_angle2,
+    clockwise_bisect2: clockwise_bisect2$1,
+    counter_clockwise_bisect2: counter_clockwise_bisect2,
+    counter_clockwise_radians_order: counter_clockwise_radians_order,
+    counter_clockwise_vector_order: counter_clockwise_vector_order,
+    interior_angles: interior_angles,
+    kawasaki_solutions_radians: kawasaki_solutions_radians,
+    kawasaki_solutions: kawasaki_solutions,
+    bisect_vectors: bisect_vectors,
+    bisect_lines2: bisect_lines2,
+    subsect_radians: subsect_radians,
+    subsect: subsect
+  });
   const acossafe = function (x) {
     if (x >= 1.0) return 0;
     if (x <= -1.0) return Math.PI;
@@ -1107,6 +1137,207 @@
     circle_line: circle_line,
     circle_ray: circle_ray,
     circle_segment: circle_segment
+  });
+  const cuberoot = function (x) {
+    const y = Math.pow(Math.abs(x), 1 / 3);
+    return x < 0 ? -y : y;
+  };
+  const solveCubic = function (a, b, c, d) {
+    if (Math.abs(a) < EPSILON) {
+      a = b; b = c; c = d;
+      if (Math.abs(a) < EPSILON) {
+        a = b; b = c;
+        if (Math.abs(a) < EPSILON) {
+          return [];
+        }
+        return [-b / a];
+      }
+      const D = b * b - 4 * a * c;
+      if (Math.abs(D) < EPSILON) {
+        return [-b / (2 * a)];
+      }
+      if (D > 0) {
+        return [(-b + Math.sqrt(D)) / (2 * a), (-b - Math.sqrt(D)) / (2 * a)];
+      }
+      return [];
+    }
+    const p = (3 * a * c - b * b) / (3 * a * a);
+    const q = (2 * b * b * b - 9 * a * b * c + 27 * a * a * d) / (27 * a * a * a);
+    let roots;
+    if (Math.abs(p) < EPSILON) {
+      roots = [cuberoot(-q)];
+    } else if (Math.abs(q) < EPSILON) {
+      roots = [0].concat(p < 0 ? [Math.sqrt(-p), -Math.sqrt(-p)] : []);
+    } else {
+      const D = q * q / 4 + p * p * p / 27;
+      if (Math.abs(D) < EPSILON) {
+        roots = [-1.5 * q / p, 3 * q / p];
+      } else if (D > 0) {
+        const u = cuberoot(-q / 2 - Math.sqrt(D));
+        roots = [u - p / (3 * u)];
+      } else {
+        const u = 2 * Math.sqrt(-p / 3);
+        const t = Math.acos(3 * q / p / u) / 3;
+        const k = 2 * Math.PI / 3;
+        roots = [u * Math.cos(t), u * Math.cos(t - k), u * Math.cos(t - 2 * k)];
+      }
+    }
+    for (let i = 0; i < roots.length; i += 1) {
+      roots[i] -= b / (3 * a);
+    }
+    return roots;
+  };
+  const axiom1 = (pointA, pointB) => Constructors.line(
+    normalize(subtract(...resize_up(pointB, pointA))),
+    pointA
+  );
+  const axiom2 = (pointA, pointB) => Constructors.line(
+    normalize(rotate270(subtract(...resize_up(pointB, pointA)))),
+    midpoint(pointA, pointB)
+  );
+  const axiom3 = (vectorA, pointA, vectorB, pointB) => bisect_lines2(
+      vectorA, pointA, vectorB, pointB
+    ).map(l => Constructors.line(l.vector, l.origin));
+  const axiom4 = (vectorA, pointA, pointB) => Constructors.line(
+    rotate270(normalize(vectorA)),
+    pointB
+  );
+  const axiom5 = (vectorA, pointA, pointB, pointC) => (intersect_circle_line(
+      distance(pointB, pointC),
+      pointB,
+      vectorA,
+      pointA,
+      () => true
+    ) || []).map(sect => Constructors.line(
+      normalize(rotate270(subtract(...resize_up(sect, pointC)))),
+      midpoint(pointC, sect)
+    ));
+  const axiom7 = (vectorA, pointA, vectorB, pointB, pointC) => {
+    const intersect = intersect_lines(vectorB, pointB, vectorA, pointC, include_l, include_l);
+    return intersect === undefined
+      ? undefined
+      : Constructors.line(
+          normalize(rotate270(subtract(...resize_up(intersect, pointC)))),
+          midpoint(pointC, intersect)
+      );
+  };
+  const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
+    var p1 = pointC[0];
+    var q1 = pointC[1];
+    if (Math.abs(vecA[0]) > EPSILON) {
+      var m1 = vecA[1] / vecA[0];
+      var h1 = pointA[1] - m1 * pointA[0];
+    }
+    else {
+      var k1 = pointA[0];
+    }
+    var p2 = pointD[0];
+    var q2 = pointD[1];
+    if (Math.abs(vecB[0]) > EPSILON) {
+      var m2 = vecB[1] / vecB[0];
+      var h2 = pointB[1] - m2 * pointB[0];
+    }
+    else {
+      var k2 = pointB[0];
+    }
+    if (m1 !== undefined && m2 !== undefined) {
+      var a1 = m1*m1 + 1;
+      var b1 = 2*m1*h1;
+      var c1 = h1*h1 - p1*p1 - q1*q1;
+      var a2 = m2*m2 + 1;
+      var b2 = 2*m2*h2;
+      var c2 =  h2*h2 - p2*p2 - q2*q2;
+      var a0 = m2*p1 + (h1 - q1);
+      var b0 = p1*(h2 - q2) - p2*(h1 - q1);
+      var c0 = m2 - m1;
+      var d0 = m1*p2 + (h2 - q2);
+      var z = m1*p1 + (h1 - q1);
+    }
+    else if (m1 === undefined && m2 === undefined) {
+      a1 = 1;
+      b1 = 0;
+      c1 = k1*k1 - p1*p1 - q1*q1;
+      a2 = 1;
+      b2 = 0;
+      c2 = k2*k2 - p2*p2 - q2*q2;
+      a0 = k1 - p1;
+      b0 = q1*(k2 - p2) - q2*(k1 - p1);
+      c0 = 0;
+      d0 = k2 - p2;
+      z = a0;
+    }
+    else {
+      if (m1 === undefined) {
+        var p3 = p1;
+        p1 = p2;
+        p2 = p3;
+        var q3 = q1;
+        q1 = q2;
+        q2 = q3;
+        m1 = m2;
+        m2 = undefined;
+        h1 = h2;
+        h2 = undefined;
+        k2 = k1;
+        k1 = undefined;
+      }
+      a1 = m1*m1 + 1;
+      b1 = 2*m1*h1;
+      c1 = h1*h1 - p1*p1 - q1*q1;
+      a2 = 1;
+      b2 = 0;
+      c2 = k2*k2 - p2*p2 - q2*q2;
+      a0 = p1;
+      b0 = (h1 - q1)*(k2 - p2) - p1*q2;
+      c0 = 1;
+      d0 = -m1*(k2 - p2) - q2;
+      z = m1*p1 + (h1 - q1);
+    }
+    var a3 = a1*a0*a0 + b1*a0*c0 + c1*c0*c0;
+    var b3 = 2*a1*a0*b0 + b1*(a0*d0 + b0*c0) + 2*c1*c0*d0;
+    var c3 = a1*b0*b0 + b1*b0*d0 + c1*d0*d0;
+    var a4 = a2*c0*z;
+    var b4 = (a2*d0 + b2*c0) * z - a3;
+    var c4 = (b2*d0 + c2*c0) * z - b3;
+    var d4 =  c2*d0*z - c3;
+    var roots = solveCubic(a4,b4,c4,d4);
+    var solutions = [];
+    if (roots != undefined && roots.length > 0) {
+      for (var i = 0; i < roots.length; ++i) {
+        if (m1 !== undefined && m2 !== undefined) {
+          var u2 = roots[i];
+          var v2 = m2*u2 + h2;
+        }
+        else if (m1 === undefined && m2 === undefined) {
+          v2 = roots[i];
+          u2 = k2;
+        }
+        else {
+          v2 = roots[i];
+          u2 = k2;
+        }
+        if (v2 != q2) {
+          var mF = -1*(u2 - p2)/(v2 - q2);
+          var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
+          solutions.push(Constructors.line.fromPoints([0, hF], [1, mF]));
+        }
+        else {
+          var kG = (u2 + p2)/2;
+          solutions.push(Constructors.line.fromPoints([kG, 0], [0, 1]));
+        }
+      }
+    }
+    return solutions;
+  };
+  var axioms = Object.freeze({
+    __proto__: null,
+    axiom1: axiom1,
+    axiom2: axiom2,
+    axiom3: axiom3,
+    axiom4: axiom4,
+    axiom5: axiom5,
+    axiom7: axiom7,
+    axiom6: axiom6
   });
   const overlap_lines = (aVector, aOrigin, bVector, bOrigin, compA, compB, epsilon = EPSILON) => {
     const denominator0 = cross2(aVector, bVector);
@@ -2365,12 +2596,15 @@
   });
   const math = Constructors;
   math.core = Object.assign(Object.create(null),
+    constants,
     algebra,
     equal,
     geometry,
+    radial,
     matrix2,
     matrix3,
     nearest,
+    axioms,
     overlap,
     getters,
     resizers,
@@ -3199,6 +3433,41 @@
     return index_map;
   };
 
+  const assignment_angles$1 = { M: -180, m: -180, V: 180, v: 180 };
+  const assignment_to_angle = (a) => assignment_angles$1[a] || 0;
+  const angle_to_assignment = (a) => {
+    if (a === 0) { return "F"; }
+    return a < 0 ? "M" : "V";
+  };
+  const set_edges_angles = (graph) => {
+    const len = graph.edges_vertices.length;
+    if (!graph.edges_assignment) { graph.edges_assignment = []; }
+    if (!graph.edges_foldAngle) { graph.edges_foldAngle = []; }
+    if (graph.edges_assignment.length === len && graph.edges_foldAngle.length !== len) {
+      for (let i = graph.edges_foldAngle.length; i < len; i += 1) {
+        graph.edges_foldAngle[i] = assignment_to_angle(graph.edges_assignment[i]);
+      }
+      return;
+    }
+    if (graph.edges_foldAngle.length === len && graph.edges_assignment.length !== len) {
+      for (let i = graph.edges_assignment.length; i < len; i += 1) {
+        graph.edges_assignment[i] = angle_to_assignment(graph.edges_foldAngle[i]);
+      }
+      return;
+    }
+    if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
+      for (let i = graph.edges_assignment.length; i < len; i += 1) {
+        graph.edges_assignment[i] = "U";
+      }
+      graph.edges_foldAngle = make_edges_foldAngle(graph);
+    }
+    else if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
+      for (let i = graph.edges_foldAngle.length; i < len; i += 1) {
+        graph.edges_foldAngle[i] = 0;
+      }
+      graph.edges_assignment = make_edges_assignment(graph);
+    }
+  };
   const populate = (graph) => {
     if (typeof graph !== "object") { return; }
     if (!graph.edges_vertices) { return; }
@@ -3208,15 +3477,7 @@
       graph.edges_vector = make_edges_vector(graph);
       graph.vertices_sectors = make_vertices_sectors(graph);
     }
-    if (!graph.edges_foldAngle && !graph.edges_assignment && graph.edges_vertices) {
-      graph.edges_assignment = graph.edges_vertices.map(() => "U");
-    }
-    if (graph.edges_foldAngle && !graph.edges_assignment) {
-      graph.edges_assignment = make_edges_assignment(graph);
-    }
-    if (graph.edges_assignment && !graph.edges_foldAngle) {
-      graph.edges_foldAngle = make_edges_foldAngle(graph);
-    }
+    set_edges_angles(graph);
     if (graph.vertices_coords) {
       const faces = make_planar_faces(graph);
       graph.faces_vertices = faces.map(face => face.vertices);
@@ -3684,6 +3945,17 @@
       }));
     remove_geometry_indices(graph, "edges", remove_indices);
     return new_indices;
+  };
+
+  const add_edges = (graph, edges_vertices) => {
+    if (!graph.edges_vertices) {
+      graph.edges_vertices = [];
+    }
+    if (typeof edges_vertices[0] === "number") { edges_vertices = [edges_vertices]; }
+    const indices = edges_vertices.map((_, i) => graph.edges_vertices.length + i);
+    graph.edges_vertices.push(...edges_vertices);
+    const remove_map = remove_geometry_indices(graph, "edges", get_duplicate_edges(graph));
+    return indices.map(i => remove_map[i]);
   };
 
   const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
@@ -4194,6 +4466,71 @@
     return folded;
   };
 
+  const fn_and = (a, b) => a && b;
+
+  const invert_array = (a) => {
+    const b = [];
+    a.forEach((x, i) => { b[x] = i; });
+    return b;
+  };
+  const up_down_map = { V: 1, v: 1, M: -1, m: -1 };
+  const upOrDown = (mv, i) => i % 2 === 0 ? up_down_map[mv] : -up_down_map[mv];
+  const between = (arr, i, j) => (i < j) ? arr.slice(i + 1, j) : arr.slice(j + 1, i);
+  const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) => {
+    let pointer = 0;
+    const fold_location = sectors
+      .map((sec, i) => i % 2 === 0 ? sec : -sec)
+      .map(move => pointer += move);
+    const sector_mins = fold_location
+      .map((sec, i, arr) => i % 2 === 0 ? arr[(i + arr.length - 1) % arr.length] : sec)
+      .map(n => n + epsilon);
+    const sector_maxs = fold_location
+      .map((sec, i, arr) => i % 2 === 0 ? sec : arr[(i + arr.length - 1) % arr.length])
+      .map(n => n - epsilon);
+    const test = (layering) => {
+      const index_of_index = [];
+      layering.forEach((layer, i) => { index_of_index[layer] = i; });
+      const max = layering.length + (layering.length === sectors.length ? 0 : -1);
+      for (let i = 0; i < max; i += 1) {
+        const j = (i + 1) % layering.length;
+        const layers_between = between(layering, index_of_index[i], index_of_index[j]);
+        const all_below_min = layers_between
+          .map(index => fold_location[i] < sector_mins[index])
+          .reduce(fn_and, true);
+        const all_above_max = layers_between
+          .map(index => fold_location[i] > sector_maxs[index])
+          .reduce(fn_and, true);
+        if (!all_below_min && !all_above_max) { return false; }
+      }
+      return true;
+    };
+    const final_test = (stack) => {
+      const inverted_stack = invert_array(stack);
+      const res = inverted_stack[0] > inverted_stack[inverted_stack.length - 1]
+        ? assignments[0] === "M"
+        : assignments[0] === "V";
+      return res;
+    };
+    const recurse = (stack = [], iter = 0, currentLayer = 0) => {
+      stack = stack.slice(0, currentLayer).concat(
+        [iter],
+        stack.slice(currentLayer, stack.length));
+      if (!test(stack)) { return []; }
+      if (iter >= sectors.length - 1) {
+        return final_test(stack) ? [stack] : [];
+      }
+      const next_dir = upOrDown(assignments[(iter + 1) % sectors.length], iter);
+      const spliceIndices = next_dir === 1
+        ? Array.from(Array(stack.length - currentLayer)).map((_, i) => currentLayer + i + 1)
+        : Array.from(Array(currentLayer + 1)).map((_, i) => i);
+      return spliceIndices
+        .map(i => recurse(stack, iter + 1, i))
+        .reduce((a, b) => a.concat(b), [])
+        .map(invert_array);
+    };
+    return recurse();
+  };
+
   const vertex_degree = function (v, i) {
     const graph = this;
     Object.defineProperty(v, "degree", {
@@ -4354,6 +4691,7 @@
     assign: assign$1,
     add_vertices,
     add_vertices_split_edges,
+    add_edges,
     split_edge,
     split_face: split_convex_face,
     flat_fold,
@@ -4368,6 +4706,7 @@
     explode_faces,
     get_duplicate_edges,
     clusters_vertices,
+    layer_solver: get_sectors_layer,
   },
     make,
     Create,
@@ -4381,205 +4720,16 @@
     sort,
   );
 
-  const axiom1 = (pointA, pointB) => math.line(
-    math.core.normalize(math.core.subtract(...math.core.resize_up(pointB, pointA))),
-    pointA
-  );
-  const axiom2 = (pointA, pointB) => math.line(
-    math.core.normalize(math.core.rotate270(math.core.subtract(...math.core.resize_up(pointB, pointA)))),
-    math.core.midpoint(pointA, pointB)
-  );
-  const axiom3 = (vectorA, pointA, vectorB, pointB) => math.core
-    .bisect_lines2(vectorA, pointA, vectorB, pointB)
-    .map(l => math.line(l.vector, l.origin));
-  const axiom4 = (vectorA, pointA, pointB) => math.line(
-    math.core.rotate270(math.core.normalize(vectorA)),
-    pointB
-  );
-  const axiom5 = (vectorA, pointA, pointB, pointC) => (math.core
-    .intersect_circle_line(
-      math.core.distance(pointB, pointC),
-      pointB,
-      vectorA,
-      pointA,
-      () => true
-    ) || []).map(sect => math.line(
-      math.core.normalize(math.core.rotate270(math.core.subtract(...math.core.resize_up(sect, pointC)))),
-      math.core.midpoint(pointC, sect)
-    ));
-  const axiom7 = (vectorA, pointA, vectorB, pointB, pointC) => {
-    const intersect = math.core.intersect_lines(vectorB, pointB, vectorA, pointC);
-    return intersect === undefined
-      ? undefined
-      : math.line(
-          math.core.normalize(math.core.rotate270(math.core.subtract(...math.core.resize_up(intersect, pointC)))),
-          math.core.midpoint2(pointC, intersect)
-      );
-  };
-  const cuberoot = function (x) {
-    const y = Math.pow(Math.abs(x), 1 / 3);
-    return x < 0 ? -y : y;
-  };
-  const solveCubic = function (a, b, c, d) {
-    if (Math.abs(a) < 1e-8) {
-      a = b; b = c; c = d;
-      if (Math.abs(a) < 1e-8) {
-        a = b; b = c;
-        if (Math.abs(a) < 1e-8) {
-          return [];
-        }
-        return [-b / a];
-      }
-      const D = b * b - 4 * a * c;
-      if (Math.abs(D) < 1e-8) {
-        return [-b / (2 * a)];
-      }
-      if (D > 0) {
-        return [(-b + Math.sqrt(D)) / (2 * a), (-b - Math.sqrt(D)) / (2 * a)];
-      }
-      return [];
-    }
-    const p = (3 * a * c - b * b) / (3 * a * a);
-    const q = (2 * b * b * b - 9 * a * b * c + 27 * a * a * d) / (27 * a * a * a);
-    let roots;
-    if (Math.abs(p) < 1e-8) {
-      roots = [cuberoot(-q)];
-    } else if (Math.abs(q) < 1e-8) {
-      roots = [0].concat(p < 0 ? [Math.sqrt(-p), -Math.sqrt(-p)] : []);
-    } else {
-      const D = q * q / 4 + p * p * p / 27;
-      if (Math.abs(D) < 1e-8) {
-        roots = [-1.5 * q / p, 3 * q / p];
-      } else if (D > 0) {
-        const u = cuberoot(-q / 2 - Math.sqrt(D));
-        roots = [u - p / (3 * u)];
-      } else {
-        const u = 2 * Math.sqrt(-p / 3);
-        const t = Math.acos(3 * q / p / u) / 3;
-        const k = 2 * Math.PI / 3;
-        roots = [u * Math.cos(t), u * Math.cos(t - k), u * Math.cos(t - 2 * k)];
-      }
-    }
-    for (let i = 0; i < roots.length; i += 1) {
-      roots[i] -= b / (3 * a);
-    }
-    return roots;
-  };
-  const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
-    var p1 = pointC[0];
-    var q1 = pointC[1];
-    if (Math.abs(vecA[0]) > math.core.EPSILON) {
-      var m1 = vecA[1] / vecA[0];
-      var h1 = pointA[1] - m1 * pointA[0];
-    }
-    else {
-      var k1 = pointA[0];
-    }
-    var p2 = pointD[0];
-    var q2 = pointD[1];
-    if (Math.abs(vecB[0]) > math.core.EPSILON) {
-      var m2 = vecB[1] / vecB[0];
-      var h2 = pointB[1] - m2 * pointB[0];
-    }
-    else {
-      var k2 = pointB[0];
-    }
-    if (m1 !== undefined && m2 !== undefined) {
-      var a1 = m1*m1 + 1;
-      var b1 = 2*m1*h1;
-      var c1 = h1*h1 - p1*p1 - q1*q1;
-      var a2 = m2*m2 + 1;
-      var b2 = 2*m2*h2;
-      var c2 =  h2*h2 - p2*p2 - q2*q2;
-      var a0 = m2*p1 + (h1 - q1);
-      var b0 = p1*(h2 - q2) - p2*(h1 - q1);
-      var c0 = m2 - m1;
-      var d0 = m1*p2 + (h2 - q2);
-      var z = m1*p1 + (h1 - q1);
-    }
-    else if (m1 === undefined && m2 === undefined) {
-      a1 = 1;
-      b1 = 0;
-      c1 = k1*k1 - p1*p1 - q1*q1;
-      a2 = 1;
-      b2 = 0;
-      c2 = k2*k2 - p2*p2 - q2*q2;
-      a0 = k1 - p1;
-      b0 = q1*(k2 - p2) - q2*(k1 - p1);
-      c0 = 0;
-      d0 = k2 - p2;
-      z = a0;
-    }
-    else {
-      if (m1 === undefined) {
-        var p3 = p1;
-        p1 = p2;
-        p2 = p3;
-        var q3 = q1;
-        q1 = q2;
-        q2 = q3;
-        m1 = m2;
-        m2 = undefined;
-        h1 = h2;
-        h2 = undefined;
-        k2 = k1;
-        k1 = undefined;
-      }
-      a1 = m1*m1 + 1;
-      b1 = 2*m1*h1;
-      c1 = h1*h1 - p1*p1 - q1*q1;
-      a2 = 1;
-      b2 = 0;
-      c2 = k2*k2 - p2*p2 - q2*q2;
-      a0 = p1;
-      b0 = (h1 - q1)*(k2 - p2) - p1*q2;
-      c0 = 1;
-      d0 = -m1*(k2 - p2) - q2;
-      z = m1*p1 + (h1 - q1);
-    }
-    var a3 = a1*a0*a0 + b1*a0*c0 + c1*c0*c0;
-    var b3 = 2*a1*a0*b0 + b1*(a0*d0 + b0*c0) + 2*c1*c0*d0;
-    var c3 = a1*b0*b0 + b1*b0*d0 + c1*d0*d0;
-    var a4 = a2*c0*z;
-    var b4 = (a2*d0 + b2*c0) * z - a3;
-    var c4 = (b2*d0 + c2*c0) * z - b3;
-    var d4 =  c2*d0*z - c3;
-    var roots = solveCubic(a4,b4,c4,d4);
-    var solutions = [];
-    if (roots != undefined && roots.length > 0) {
-      for (var i = 0; i < roots.length; ++i) {
-        if (m1 !== undefined && m2 !== undefined) {
-          var u2 = roots[i];
-          var v2 = m2*u2 + h2;
-        }
-        else if (m1 === undefined && m2 === undefined) {
-          v2 = roots[i];
-          u2 = k2;
-        }
-        else {
-          v2 = roots[i];
-          u2 = k2;
-        }
-        if (v2 != q2) {
-          var mF = -1*(u2 - p2)/(v2 - q2);
-          var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
-          solutions.push(math.line([0, hF], [1, mF]));
-        }
-        else {
-          var kG = (u2 + p2)/2;
-          solutions.push(math.line([kG, 0], [0, 1]));
-        }
-      }
-    }
-    const parameters = {
-      points: [math.vector(pointC), math.vector(pointD)],
-      lines: [math.line(pointA, vecA), math.line(pointB, vecB)]
-    };
-    return make_axiom_frame(6, solutions, parameters);
-  };
-  const axioms = [null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7];
-  delete axioms[0];
-
+  const axioms$1 = [null,
+    math.core.axiom1,
+    math.core.axiom2,
+    math.core.axiom3,
+    math.core.axiom4,
+    math.core.axiom5,
+    math.core.axiom6,
+    math.core.axiom7
+  ];
+  delete axioms$1[0];
   const sort_axiom_params = function (number, points, lines) {
     switch (number) {
       case 1:
@@ -4592,135 +4742,26 @@
     }
     return [];
   };
-  const axiom = (number, params) => axioms[number](
+  const axiom = (number, params) => axioms$1[number](
     ...sort_axiom_params(
       number,
       params.points.map(p => math.core.get_vector(p)),
       params.lines.map(l => math.core.get_line(l))));
-  Object.keys(axioms).forEach(key => {
-    axiom[key] = axioms[key];
+  Object.keys(axioms$1).forEach(key => {
+    axiom[key] = axioms$1[key];
   });
 
-  var axioms$1 = "{\n  \"ar\": [null,\n    \"اصنع خطاً يمر بنقطتين\",\n    \"اصنع خطاً عن طريق طي نقطة واحدة إلى أخرى\",\n    \"اصنع خطاً عن طريق طي خط واحد على آخر\",\n    \"اصنع خطاً يمر عبر نقطة واحدة ويجعل خطاً واحداً فوق نفسه\",\n    \"اصنع خطاً يمر بالنقطة الأولى ويجعل النقطة الثانية على الخط\",\n    \"اصنع خطاً يجلب النقطة الأولى إلى الخط الأول والنقطة الثانية إلى الخط الثاني\",\n    \"اصنع خطاً يجلب نقطة إلى خط ويجعل خط ثاني فوق نفسه\"\n  ],\n  \"de\": [null,\n    \"Falte eine Linie durch zwei Punkte\",\n    \"Falte zwei Punkte aufeinander\",\n    \"Falte zwei Linien aufeinander\",\n    \"Falte eine Linie auf sich selbst, falte dabei durch einen Punkt\",\n    \"Falte einen Punkt auf eine Linie, falte dabei durch einen anderen Punkt\",\n    \"Falte einen Punkt auf eine Linie und einen weiteren Punkt auf eine weitere Linie\",\n    \"Falte einen Punkt auf eine Linie und eine weitere Linie in sich selbst zusammen\"\n  ],\n  \"en\": [null,\n    \"fold a line through two points\",\n    \"fold two points together\",\n    \"fold two lines together\",\n    \"fold a line on top of itself, creasing through a point\",\n    \"fold a point to a line, creasing through another point\",\n    \"fold a point to a line and another point to another line\",\n    \"fold a point to a line and another line onto itself\"\n  ],\n  \"es\": [null,\n    \"dobla una línea entre dos puntos\",\n    \"dobla dos puntos juntos\",\n    \"dobla y une dos líneas\",\n    \"dobla una línea sobre sí misma, doblándola hacia un punto\",\n    \"dobla un punto hasta una línea, doblándola a través de otro punto\",\n    \"dobla un punto hacia una línea y otro punto hacia otra línea\",\n    \"dobla un punto hacia una línea y otra línea sobre sí misma\"\n  ],\n  \"fr\":[null,\n    \"créez un pli passant par deux points\",\n    \"pliez pour superposer deux points\",\n    \"pliez pour superposer deux lignes\",\n    \"rabattez une ligne sur elle-même à l'aide d'un pli qui passe par un point\",\n    \"rabattez un point sur une ligne à l'aide d'un pli qui passe par un autre point\",\n    \"rabattez un point sur une ligne et un autre point sur une autre ligne\",\n    \"rabattez un point sur une ligne et une autre ligne sur elle-même\"\n  ],\n  \"hi\": [null,\n    \"एक क्रीज़ बनाएँ जो दो स्थानों से गुजरता है\",\n    \"एक स्थान को दूसरे स्थान पर मोड़कर एक क्रीज़ बनाएँ\",\n    \"एक रेखा पर दूसरी रेखा को मोड़कर क्रीज़ बनाएँ\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान से गुजरता है और एक रेखा को स्वयं के ऊपर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान से गुजरता है और दूसरे स्थान को रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान को पहली रेखा पर और दूसरे स्थान को दूसरी रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान को एक रेखा पर ले आता है और दूसरी रेखा को स्वयं के ऊपर ले आता है\"\n  ],\n  \"jp\": [null,\n    \"2点に沿って折り目を付けます\",\n    \"2点を合わせて折ります\",\n    \"2つの線を合わせて折ります\",\n    \"点を通過させ、既にある線に沿って折ります\",\n    \"点を線沿いに合わせ別の点を通過させ折ります\",\n    \"線に向かって点を折り、同時にもう一方の線に向かってもう一方の点を折ります\",\n    \"線に向かって点を折り、同時に別の線をその上に折ります\"\n  ],\n  \"ko\": [null,\n    \"두 점을 통과하는 선으로 접으세요\",\n    \"두 점을 함께 접으세요\",\n    \"두 선을 함께 접으세요\",\n    \"그 위에 선을 접으면서 점을 통과하게 접으세요\",\n    \"점을 선으로 접으면서, 다른 점을 지나게 접으세요\",\n    \"점을 선으로 접고 다른 점을 다른 선으로 접으세요\",\n    \"점을 선으로 접고 다른 선을 그 위에 접으세요\"\n  ],\n  \"ms\": [null,\n    \"lipat garisan melalui dua titik\",\n    \"lipat dua titik bersama\",\n    \"lipat dua garisan bersama\",\n    \"lipat satu garisan di atasnya sendiri, melipat melalui satu titik\",\n    \"lipat satu titik ke garisan, melipat melalui titik lain\",\n    \"lipat satu titik ke garisan dan satu lagi titik ke garisan lain\",\n    \"lipat satu titik ke garisan dan satu lagi garisan di atasnya sendiri\"\n  ],\n  \"pt\": [null,\n    \"dobre uma linha entre dois pontos\",\n    \"dobre os dois pontos para uni-los\",\n    \"dobre as duas linhas para uni-las\",\n    \"dobre uma linha sobre si mesma, criando uma dobra ao longo de um ponto\",\n    \"dobre um ponto até uma linha, criando uma dobra ao longo de outro ponto\",\n    \"dobre um ponto até uma linha e outro ponto até outra linha\",\n    \"dobre um ponto até uma linha e outra linha sobre si mesma\"\n  ],\n  \"ru\": [null,\n    \"сложите линию через две точки\",\n    \"сложите две точки вместе\",\n    \"сложите две линии вместе\",\n    \"сверните линию сверху себя, сгибая через точку\",\n    \"сложите точку в линию, сгибая через другую точку\",\n    \"сложите точку в линию и другую точку в другую линию\",\n    \"сложите точку в линию и другую линию на себя\"\n  ],\n  \"tr\": [null,\n    \"iki noktadan geçen bir çizgi boyunca katla\",\n    \"iki noktayı birbirine katla\",\n    \"iki çizgiyi birbirine katla\",\n    \"bir noktadan kıvırarak kendi üzerindeki bir çizgi boyunca katla\",\n    \"başka bir noktadan kıvırarak bir noktayı bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir noktayı başka bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir çizgiyi kendi üzerine katla\"\n  ],\n  \"vi\": [null,\n    \"tạo một nếp gấp đi qua hai điểm\",\n    \"tạo nếp gấp bằng cách gấp một điểm này sang điểm khác\",\n    \"tạo nếp gấp bằng cách gấp một đường lên một đường khác\",\n    \"tạo một nếp gấp đi qua một điểm và đưa một đường lên trên chính nó\",\n    \"tạo một nếp gấp đi qua điểm đầu tiên và đưa điểm thứ hai lên đường thẳng\",\n    \"tạo một nếp gấp mang điểm đầu tiên đến đường đầu tiên và điểm thứ hai cho đường thứ hai\",\n    \"tạo một nếp gấp mang lại một điểm cho một đường và đưa một đường thứ hai lên trên chính nó\"\n  ],\n  \"zh\": [null,\n    \"通過兩點折一條線\",\n    \"將兩點折疊起來\",\n    \"將兩條線折疊在一起\",\n    \"通過一個點折疊一條線在自身上面\",\n    \"將一個點，通過另一個點折疊成一條線，\",\n    \"將一個點折疊為一條線，再將另一個點折疊到另一條線\",\n    \"將一個點折疊成一條線，另一條線折疊到它自身上\"\n  ]\n}\n";
+  var axioms$2 = "{\n  \"ar\": [null,\n    \"اصنع خطاً يمر بنقطتين\",\n    \"اصنع خطاً عن طريق طي نقطة واحدة إلى أخرى\",\n    \"اصنع خطاً عن طريق طي خط واحد على آخر\",\n    \"اصنع خطاً يمر عبر نقطة واحدة ويجعل خطاً واحداً فوق نفسه\",\n    \"اصنع خطاً يمر بالنقطة الأولى ويجعل النقطة الثانية على الخط\",\n    \"اصنع خطاً يجلب النقطة الأولى إلى الخط الأول والنقطة الثانية إلى الخط الثاني\",\n    \"اصنع خطاً يجلب نقطة إلى خط ويجعل خط ثاني فوق نفسه\"\n  ],\n  \"de\": [null,\n    \"Falte eine Linie durch zwei Punkte\",\n    \"Falte zwei Punkte aufeinander\",\n    \"Falte zwei Linien aufeinander\",\n    \"Falte eine Linie auf sich selbst, falte dabei durch einen Punkt\",\n    \"Falte einen Punkt auf eine Linie, falte dabei durch einen anderen Punkt\",\n    \"Falte einen Punkt auf eine Linie und einen weiteren Punkt auf eine weitere Linie\",\n    \"Falte einen Punkt auf eine Linie und eine weitere Linie in sich selbst zusammen\"\n  ],\n  \"en\": [null,\n    \"fold a line through two points\",\n    \"fold two points together\",\n    \"fold two lines together\",\n    \"fold a line on top of itself, creasing through a point\",\n    \"fold a point to a line, creasing through another point\",\n    \"fold a point to a line and another point to another line\",\n    \"fold a point to a line and another line onto itself\"\n  ],\n  \"es\": [null,\n    \"dobla una línea entre dos puntos\",\n    \"dobla dos puntos juntos\",\n    \"dobla y une dos líneas\",\n    \"dobla una línea sobre sí misma, doblándola hacia un punto\",\n    \"dobla un punto hasta una línea, doblándola a través de otro punto\",\n    \"dobla un punto hacia una línea y otro punto hacia otra línea\",\n    \"dobla un punto hacia una línea y otra línea sobre sí misma\"\n  ],\n  \"fr\":[null,\n    \"créez un pli passant par deux points\",\n    \"pliez pour superposer deux points\",\n    \"pliez pour superposer deux lignes\",\n    \"rabattez une ligne sur elle-même à l'aide d'un pli qui passe par un point\",\n    \"rabattez un point sur une ligne à l'aide d'un pli qui passe par un autre point\",\n    \"rabattez un point sur une ligne et un autre point sur une autre ligne\",\n    \"rabattez un point sur une ligne et une autre ligne sur elle-même\"\n  ],\n  \"hi\": [null,\n    \"एक क्रीज़ बनाएँ जो दो स्थानों से गुजरता है\",\n    \"एक स्थान को दूसरे स्थान पर मोड़कर एक क्रीज़ बनाएँ\",\n    \"एक रेखा पर दूसरी रेखा को मोड़कर क्रीज़ बनाएँ\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान से गुजरता है और एक रेखा को स्वयं के ऊपर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान से गुजरता है और दूसरे स्थान को रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान को पहली रेखा पर और दूसरे स्थान को दूसरी रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान को एक रेखा पर ले आता है और दूसरी रेखा को स्वयं के ऊपर ले आता है\"\n  ],\n  \"jp\": [null,\n    \"2点に沿って折り目を付けます\",\n    \"2点を合わせて折ります\",\n    \"2つの線を合わせて折ります\",\n    \"点を通過させ、既にある線に沿って折ります\",\n    \"点を線沿いに合わせ別の点を通過させ折ります\",\n    \"線に向かって点を折り、同時にもう一方の線に向かってもう一方の点を折ります\",\n    \"線に向かって点を折り、同時に別の線をその上に折ります\"\n  ],\n  \"ko\": [null,\n    \"두 점을 통과하는 선으로 접으세요\",\n    \"두 점을 함께 접으세요\",\n    \"두 선을 함께 접으세요\",\n    \"그 위에 선을 접으면서 점을 통과하게 접으세요\",\n    \"점을 선으로 접으면서, 다른 점을 지나게 접으세요\",\n    \"점을 선으로 접고 다른 점을 다른 선으로 접으세요\",\n    \"점을 선으로 접고 다른 선을 그 위에 접으세요\"\n  ],\n  \"ms\": [null,\n    \"lipat garisan melalui dua titik\",\n    \"lipat dua titik bersama\",\n    \"lipat dua garisan bersama\",\n    \"lipat satu garisan di atasnya sendiri, melipat melalui satu titik\",\n    \"lipat satu titik ke garisan, melipat melalui titik lain\",\n    \"lipat satu titik ke garisan dan satu lagi titik ke garisan lain\",\n    \"lipat satu titik ke garisan dan satu lagi garisan di atasnya sendiri\"\n  ],\n  \"pt\": [null,\n    \"dobre uma linha entre dois pontos\",\n    \"dobre os dois pontos para uni-los\",\n    \"dobre as duas linhas para uni-las\",\n    \"dobre uma linha sobre si mesma, criando uma dobra ao longo de um ponto\",\n    \"dobre um ponto até uma linha, criando uma dobra ao longo de outro ponto\",\n    \"dobre um ponto até uma linha e outro ponto até outra linha\",\n    \"dobre um ponto até uma linha e outra linha sobre si mesma\"\n  ],\n  \"ru\": [null,\n    \"сложите линию через две точки\",\n    \"сложите две точки вместе\",\n    \"сложите две линии вместе\",\n    \"сверните линию сверху себя, сгибая через точку\",\n    \"сложите точку в линию, сгибая через другую точку\",\n    \"сложите точку в линию и другую точку в другую линию\",\n    \"сложите точку в линию и другую линию на себя\"\n  ],\n  \"tr\": [null,\n    \"iki noktadan geçen bir çizgi boyunca katla\",\n    \"iki noktayı birbirine katla\",\n    \"iki çizgiyi birbirine katla\",\n    \"bir noktadan kıvırarak kendi üzerindeki bir çizgi boyunca katla\",\n    \"başka bir noktadan kıvırarak bir noktayı bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir noktayı başka bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir çizgiyi kendi üzerine katla\"\n  ],\n  \"vi\": [null,\n    \"tạo một nếp gấp đi qua hai điểm\",\n    \"tạo nếp gấp bằng cách gấp một điểm này sang điểm khác\",\n    \"tạo nếp gấp bằng cách gấp một đường lên một đường khác\",\n    \"tạo một nếp gấp đi qua một điểm và đưa một đường lên trên chính nó\",\n    \"tạo một nếp gấp đi qua điểm đầu tiên và đưa điểm thứ hai lên đường thẳng\",\n    \"tạo một nếp gấp mang điểm đầu tiên đến đường đầu tiên và điểm thứ hai cho đường thứ hai\",\n    \"tạo một nếp gấp mang lại một điểm cho một đường và đưa một đường thứ hai lên trên chính nó\"\n  ],\n  \"zh\": [null,\n    \"通過兩點折一條線\",\n    \"將兩點折疊起來\",\n    \"將兩條線折疊在一起\",\n    \"通過一個點折疊一條線在自身上面\",\n    \"將一個點，通過另一個點折疊成一條線，\",\n    \"將一個點折疊為一條線，再將另一個點折疊到另一條線\",\n    \"將一個點折疊成一條線，另一條線折疊到它自身上\"\n  ]\n}\n";
 
   var folds = "{\n\t\"es\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"\",\n\t\t\t\"noun\": \"doblez\"\n\t\t},\n\t\t\"valley\": \"doblez de valle\",\n\t\t\"mountain\": \"doblez de montaña\",\n\t\t\"inside\": \"\",\n\t\t\"outside\": \"\",\n\t\t\"open\": \"\",\n\t\t\"closed\": \"\",\n\t\t\"rabbit\": \"\",\n\t\t\"rabbit2\": \"\",\n\t\t\"petal\": \"\",\n\t\t\"squash\": \"\",\n\t\t\"flip\": \"dale la vuelta a tu papel\"\n\t},\n\t\"en\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"fold\",\n\t\t\t\"noun\": \"crease\"\n\t\t},\n\t\t\"valley\": \"valley fold\",\n\t\t\"mountain\": \"mountain fold\",\n\t\t\"inside\": \"inside reverse fold\",\n\t\t\"outside\": \"outside reverse fold\",\n\t\t\"open\": \"open sink\",\n\t\t\"closed\": \"closed sink\",\n\t\t\"rabbit\": \"rabbit ear fold\",\n\t\t\"rabbit2\": \"double rabbit ear fold\",\n\t\t\"petal\": \"petal fold\",\n\t\t\"squash\": \"squash fold\",\n\t\t\"flip\": \"flip over\"\n\t},\n\t\"zh\": {\n\t\t\"fold\": {\n\t\t\t\"verb\": \"\",\n\t\t\t\"noun\": \"\"\n\t\t},\n\t\t\"valley\": \"谷摺\",\n\t\t\"mountain\": \"山摺\",\n\t\t\"inside\": \"內中割摺\",\n\t\t\"outside\": \"外中割摺\",\n\t\t\"open\": \"開放式沉壓摺\",\n\t\t\"closed\": \"封閉式沉壓摺\",\n\t\t\"rabbit\": \"兔耳摺\",\n\t\t\"rabbit2\": \"雙兔耳摺\",\n\t\t\"petal\": \"花瓣摺\",\n\t\t\"blintz\": \"坐墊基\",\n\t\t\"squash\": \"壓摺\",\n\t\t\"flip\": \"\"\n\t}\n}";
 
   var text = {
-    axioms: JSON.parse(axioms$1),
+    axioms: JSON.parse(axioms$2),
     folds: JSON.parse(folds),
   };
 
-  const kawasaki_sector_score = (angles) => math.core.alternating_sum(angles)
-    .map(a => (a < 0 ? a + Math.PI * 2 : a))
-    .map(s => Math.PI - s);
-  const kawasaki_solutions_radians = (radians) => radians
-    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-    .map(pair => math.core.counter_clockwise_angle_radians(...pair))
-    .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
-    .map(opposite_sectors => kawasaki_sector_score(opposite_sectors))
-    .map((kawasakis, i) => radians[i] + kawasakis[0])
-    .map((angle, i) => (math.core.is_counter_clockwise_between(angle,
-      radians[i], radians[(i + 1) % radians.length])
-      ? angle
-      : undefined));
-  const kawasaki_solutions = (vectors) => {
-    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
-    return kawasaki_solutions_radians(vectors_radians)
-      .map(a => (a === undefined
-        ? undefined
-        : [Math.cos(a), Math.sin(a)]));
-  };
-
-  var kawasaki = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    kawasaki_sector_score: kawasaki_sector_score,
-    kawasaki_solutions_radians: kawasaki_solutions_radians,
-    kawasaki_solutions: kawasaki_solutions
-  });
-
-  const maekawa_check = ({ vertices_edges, edges_vertices, edges_assignment }, vertex) => {
-    if (!vertices_edges) {
-      vertices_edges = make_vertices_edges({ edges_vertices });
-    }
-    const edges = vertices_edges[vertex];
-  };
-
-  var maekawa = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    maekawa_check: maekawa_check
-  });
-
-  const flat_check_sectors = (sectors, assignments) => {
-  };
-  const flat_check_vectors = (vectors, assignments) => {
-  };
-
-  var flat = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    flat_check_sectors: flat_check_sectors,
-    flat_check_vectors: flat_check_vectors
-  });
-
-  const fn_and = (a, b) => a && b;
-
-  const up_down_map = { V: 1, v: 1, M: -1, m: -1 };
-  const upOrDown = (mv, i) => i % 2 === 0 ? up_down_map[mv] : -up_down_map[mv];
-  const between = (arr, i, j) => (i < j) ? arr.slice(i + 1, j) : arr.slice(j + 1, i);
-  const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) => {
-    let pointer = 0;
-    const fold_location = sectors
-      .map((sec, i) => i % 2 === 0 ? sec : -sec)
-      .map(move => pointer += move);
-    const sector_mins = fold_location
-      .map((sec, i, arr) => i % 2 === 0 ? arr[(i + arr.length - 1) % arr.length] : sec)
-      .map(n => n + epsilon);
-    const sector_maxs = fold_location
-      .map((sec, i, arr) => i % 2 === 0 ? sec : arr[(i + arr.length - 1) % arr.length])
-      .map(n => n - epsilon);
-    const test = (layering) => {
-      const index_of_index = [];
-      layering.forEach((layer, i) => { index_of_index[layer] = i; });
-      const max = layering.length + (layering.length === sectors.length ? 0 : -1);
-      for (let i = 0; i < max; i += 1) {
-        const j = (i + 1) % layering.length;
-        const layers_between = between(layering, index_of_index[i], index_of_index[j]);
-        const all_below_min = layers_between
-          .map(index => fold_location[i] < sector_mins[index])
-          .reduce(fn_and, true);
-        const all_above_max = layers_between
-          .map(index => fold_location[i] > sector_maxs[index])
-          .reduce(fn_and, true);
-        if (!all_below_min && !all_above_max) { return false; }
-      }
-      return true;
-    };
-    const recurse = (stack = [], iter = 0, currentLayer = 0) => {
-      stack = stack.slice(0, currentLayer).concat(
-        [iter],
-        stack.slice(currentLayer, stack.length));
-      if (!test(stack)) { return []; }
-      if (iter >= sectors.length - 1) { return [stack]; }
-      const next_dir = upOrDown(assignments[(iter + 1) % sectors.length], iter);
-      const spliceIndices = next_dir === 1
-        ? Array.from(Array(stack.length - currentLayer)).map((_, i) => currentLayer + i + 1)
-        : Array.from(Array(currentLayer + 1)).map((_, i) => i);
-      return spliceIndices
-        .map(i => recurse(stack, iter + 1, i))
-        .reduce((a, b) => a.concat(b), []);
-    };
-    return recurse();
-  };
-
-  var single_vertex = Object.assign({
-    get_sectors_layer,
-  },
-    kawasaki,
-    maekawa,
-    flat,
-  );
-
   const Ear = Object.assign(root, {
-    math: Object.assign(math.core, single_vertex),
+    math: math.core,
     graph: Graph,
     axiom,
     text,

@@ -1,8 +1,20 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import axioms from "./axioms";
 import math from "../math";
+
+const axioms = [null,
+  math.core.axiom1,
+  math.core.axiom2,
+  math.core.axiom3,
+  math.core.axiom4,
+  math.core.axiom5,
+  math.core.axiom6,
+  math.core.axiom7
+];
+
+delete axioms[0];
+
 /**
  * this converts a user input object { points: ___, lines: ___ }
  * into the propert arrangement of input parameters for the axiom methods

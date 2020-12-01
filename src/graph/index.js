@@ -25,9 +25,11 @@ import clean from "./clean";
 import create from "./create";
 import add_vertices from "./add/add_vertices";
 import add_vertices_split_edges from "./add/add_vertices_split_edges"; // planar graphs
+import add_edges from "./add/add_edges";
 import split_edge from "./add/split_edge";
 import split_face from "./add/split_face";
 import flat_fold from "./flat_fold";
+import layer_solver from "./single_vertex/layer-solver"
 
 // for this function and prototype
 // import * as Create from "../core/create";
@@ -51,6 +53,7 @@ Object.assign(Graph, {
   assign,
   add_vertices,
   add_vertices_split_edges,
+  add_edges,
   split_edge,
   split_face,
   flat_fold,
@@ -66,6 +69,8 @@ Object.assign(Graph, {
   explode_faces,
   get_duplicate_edges,
   clusters_vertices,
+  //
+  layer_solver,
 },
   make,
   create,

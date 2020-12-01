@@ -5,5 +5,4 @@ export const maekawa_check = ({ vertices_edges, edges_vertices, edges_assignment
     vertices_edges = make_vertices_edges({ edges_vertices });
   }
   const edges = vertices_edges[vertex];
-  
 };

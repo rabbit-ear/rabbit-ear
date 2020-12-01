@@ -20,6 +20,45 @@ import {
   edge_assignment_to_foldAngle
 } from "./fold_spec";
 
+const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
+const assignment_to_angle = (a) => assignment_angles[a] || 0;
+const angle_to_assignment = (a) => {
+  if (a === 0) { return "F"; }
+  return a < 0 ? "M" : "V";
+};
+
+const set_edges_angles = (graph) => {
+  const len = graph.edges_vertices.length;
+  // we know that edges_vertices exists
+  if (!graph.edges_assignment) { graph.edges_assignment = []; }
+  if (!graph.edges_foldAngle) { graph.edges_foldAngle = []; }
+  // if edges_assignment length matches edges_vertices, trust it 
+  if (graph.edges_assignment.length === len && graph.edges_foldAngle.length !== len) {
+    for (let i = graph.edges_foldAngle.length; i < len; i += 1) {
+      graph.edges_foldAngle[i] = assignment_to_angle(graph.edges_assignment[i]);
+    }
+    return;
+  }
+  if (graph.edges_foldAngle.length === len && graph.edges_assignment.length !== len) {
+    for (let i = graph.edges_assignment.length; i < len; i += 1) {
+      graph.edges_assignment[i] = angle_to_assignment(graph.edges_foldAngle[i]);
+    }
+    return;
+  }
+  //
+  if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
+    for (let i = graph.edges_assignment.length; i < len; i += 1) {
+      graph.edges_assignment[i] = "U";
+    }
+    graph.edges_foldAngle = make_edges_foldAngle(graph);
+  }
+  else if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
+    for (let i = graph.edges_foldAngle.length; i < len; i += 1) {
+      graph.edges_foldAngle[i] = 0;
+    }
+    graph.edges_assignment = make_edges_assignment(graph);
+  }
+};
 /**
  * this function attempts to rebuild useful geometries in your graph.
  * right now let's say it's important to have:
@@ -35,19 +74,6 @@ import {
  * if you do have edges_assignment instead of edges_foldAngle the origami
  * will be limited to flat-foldable.
  */
-
- /**
- * old description:
- * populate() will assess each graph component that is missing and
- * attempt to create as many as possible.
- *
- * this WILL NOT rewrite components, if a key exists, it will leave it alone
- *
- * example: to make populate() rebuild faces_vertices, run ahead of time:
- *  - delete graph.faces_vertices
- * so that the query evalutes to == null (undefined)
- */
-
 const populate = (graph) => {
   if (typeof graph !== "object") { return; }
   if (!graph.edges_vertices) { return; }
@@ -59,15 +85,7 @@ const populate = (graph) => {
     graph.vertices_sectors = make_vertices_sectors(graph);
   }
   // some combination of edges_foldAngle and edges_assignment
-  if (!graph.edges_foldAngle && !graph.edges_assignment && graph.edges_vertices) {
-    graph.edges_assignment = graph.edges_vertices.map(() => "U");
-  }
-  if (graph.edges_foldAngle && !graph.edges_assignment) {
-    graph.edges_assignment = make_edges_assignment(graph);
-  }
-  if (graph.edges_assignment && !graph.edges_foldAngle) {
-    graph.edges_foldAngle = make_edges_foldAngle(graph);
-  }
+  set_edges_angles(graph);
   if (graph.vertices_coords) {
     const faces = make_planar_faces(graph);
     graph.faces_vertices = faces.map(face => face.vertices);
@@ -86,6 +104,18 @@ const populate = (graph) => {
   }
   return graph;
 }
+
+ /**
+ * old description:
+ * populate() will assess each graph component that is missing and
+ * attempt to create as many as possible.
+ *
+ * this WILL NOT rewrite components, if a key exists, it will leave it alone
+ *
+ * example: to make populate() rebuild faces_vertices, run ahead of time:
+ *  - delete graph.faces_vertices
+ * so that the query evalutes to == null (undefined)
+ */
 
 // const populate = function (graph) {
 //   if (typeof graph !== "object") { return; }

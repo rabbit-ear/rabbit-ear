@@ -1,4 +1,26 @@
 /* Math (c) Robby Kraft, MIT License */
+const type_of = function (obj) {
+  switch (obj.constructor.name) {
+    case "vector":
+    case "matrix":
+    case "segment":
+    case "ray":
+    case "line":
+    case "circle":
+    case "ellipse":
+    case "rect":
+    case "polygon": return obj.constructor.name;
+  }
+  if (typeof obj === "object") {
+    if (obj.radius != null) { return "circle"; }
+    if (obj.width != null) { return "rect"; }
+    if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
+    if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
+    if (obj.vector != null && obj.origin != null) { return "line"; }
+  }
+  return undefined;
+};
+
 const resize = (d, v) => (v.length === d
   ? v
   : Array(d).fill(0).map((z, i) => (v[i] ? v[i] : z)));
@@ -60,214 +82,6 @@ var resizers = /*#__PURE__*/Object.freeze({
   clean_number: clean_number,
   semi_flatten_arrays: semi_flatten_arrays,
   flatten_arrays: flatten_arrays
-});
-
-const EPSILON = 1e-6;
-const fEqual = (a, b) => a === b;
-const fEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
-const array_similarity_test = (list, compFunc) => Array
-  .from(Array(list.length - 1))
-  .map((_, i) => compFunc(list[0], list[i + 1]))
-  .reduce((a, b) => a && b, true);
-const equivalent_vec2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
-  && Math.abs(a[1] - b[1]) < EPSILON;
-const equivalent_arrays_of_numbers = function () {
-};
-const equivalent_numbers = function () {
-  if (arguments.length === 0) { return false; }
-  if (arguments.length === 1 && arguments[0] !== undefined) {
-    return equivalent_numbers(...arguments[0]);
-  }
-  return array_similarity_test(arguments, fEpsilonEqual);
-};
-const equivalent_vectors = function () {
-  const args = Array.from(arguments);
-  const length = args.map(a => a.length).reduce((a, b) => a > b ? a : b);
-  const vecs = args.map(a => resize(length, a));
-  return Array.from(Array(arguments.length - 1))
-    .map((_, i) => vecs[0]
-      .map((_, n) => Math.abs(vecs[0][n] - vecs[i + 1][n]) < EPSILON)
-      .reduce((u, v) => u && v, true))
-    .reduce((u, v) => u && v, true);
-};
-const equivalent = function () {
-  const list = semi_flatten_arrays(...arguments);
-  if (list.length < 1) { return false; }
-  const typeofList = typeof list[0];
-  if (typeofList === "undefined") { return false; }
-  switch (typeofList) {
-    case "number":
-      return array_similarity_test(list, fEpsilonEqual);
-    case "boolean":
-    case "string":
-      return array_similarity_test(list, fEqual);
-    case "object":
-      if (list[0].constructor === Array) { return equivalent_vectors(...list); }
-      return array_similarity_test(list, (a, b) => JSON.stringify(a) === JSON.stringify(b));
-    default: return undefined;
-  }
-};
-
-var equal = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  EPSILON: EPSILON,
-  equivalent_vec2: equivalent_vec2,
-  equivalent_arrays_of_numbers: equivalent_arrays_of_numbers,
-  equivalent_numbers: equivalent_numbers,
-  equivalent_vectors: equivalent_vectors,
-  equivalent: equivalent
-});
-
-const fn_square = n => n * n;
-const fn_add = (a, b) => a + (b || 0);
-const fn_not_undefined = a => a !== undefined;
-
-const magnitude = v => Math.sqrt(v
-  .map(fn_square)
-  .reduce(fn_add, 0));
-const mag_squared = v => v
-  .map(fn_square)
-  .reduce(fn_add, 0);
-const normalize = (v) => {
-  const m = magnitude(v);
-  return m === 0 ? v : v.map(c => c / m);
-};
-const scale = (v, s) => v.map(n => n * s);
-const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
-const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
-const dot = (v, u) => v
-  .map((_, i) => v[i] * u[i])
-  .reduce(fn_add, 0);
-const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
-const average = function () {
-  if (arguments.length === 0) { return []; }
-  const dimension = (arguments[0].length > 0) ? arguments[0].length : 0;
-  const sum = Array(dimension).fill(0);
-  Array.from(arguments).forEach(vec => sum.forEach((_, i) => { sum[i] += vec[i] || 0; }));
-  return sum.map(n => n / arguments.length);
-};
-const lerp = (v, u, t) => {
-  const inv = 1.0 - t;
-  return v.map((n, i) => n * inv + (u[i] || 0) * t);
-};
-const cross2 = (a, b) => a[0] * b[1] - a[1] * b[0];
-const cross3 = (a, b) => [
-  a[1] * b[2] - a[2] * b[1],
-  a[0] * b[2] - a[2] * b[0],
-  a[0] * b[1] - a[1] * b[0],
-];
-const distance2 = (a, b) => {
-  const p = a[0] - b[0];
-  const q = a[1] - b[1];
-  return Math.sqrt((p * p) + (q * q));
-};
-const distance3 = (a, b) => {
-  const c = a[0] - b[0];
-  const d = a[1] - b[1];
-  const e = a[2] - b[2];
-  return Math.sqrt((c * c) + (d * d) + (e * e));
-};
-const distance = (a, b) => Math.sqrt(a
-  .map((_, i) => (a[i] - b[i]) ** 2)
-  .reduce((u, v) => u + v, 0));
-const flip = v => v.map(n => -n);
-const rotate90 = v => [-v[1], v[0]];
-const rotate270 = v => [v[1], -v[0]];
-const degenerate = (v, epsilon = EPSILON) => Math
-  .abs(v.reduce(fn_add, 0)) < epsilon;
-const parallel = (a, b, epsilon = EPSILON) => 1 - Math
-  .abs(dot(normalize(a), normalize(b))) < epsilon;
-const alternating_sum = (numbers) => [0, 1]
-  .map(even_odd => numbers
-    .filter((_, i) => i % 2 === even_odd)
-    .reduce(fn_add, 0));
-
-var algebra = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  magnitude: magnitude,
-  mag_squared: mag_squared,
-  normalize: normalize,
-  scale: scale,
-  add: add,
-  subtract: subtract,
-  dot: dot,
-  midpoint: midpoint,
-  average: average,
-  lerp: lerp,
-  cross2: cross2,
-  cross3: cross3,
-  distance2: distance2,
-  distance3: distance3,
-  distance: distance,
-  flip: flip,
-  rotate90: rotate90,
-  rotate270: rotate270,
-  degenerate: degenerate,
-  parallel: parallel,
-  alternating_sum: alternating_sum
-});
-
-const ray_limiter = dist => (dist < -EPSILON ? 0 : dist);
-const segment_limiter = (dist) => {
-  if (dist < -EPSILON) { return 0; }
-  if (dist > 1 + EPSILON) { return 1; }
-  return dist;
-};
-const smallest_comparison_search = (obj, array, compare_func) => {
-  const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
-  let index;
-  let smallest_value = Infinity;
-  for (let i = 0; i < objs.length; i += 1) {
-    if (objs[i].d < smallest_value) {
-      index = i;
-      smallest_value = objs[i].d;
-    }
-  }
-  return index;
-};
-const nearest_point2 = (point, array_of_points) => {
-  const index = smallest_comparison_search(point, array_of_points, distance2);
-  return index === undefined ? undefined : array_of_points[index];
-};
-const nearest_point = (point, array_of_points) => {
-  const index = smallest_comparison_search(point, array_of_points, distance);
-  return index === undefined ? undefined : array_of_points[index];
-};
-const nearest_point_on_line = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
-  origin = resize(vector.length, origin);
-  point = resize(vector.length, point);
-  const magSquared = mag_squared(vector);
-  const vectorToPoint = subtract(point, origin);
-  const dotProd = dot(vector, vectorToPoint);
-  const dist = dotProd / magSquared;
-  const d = limiterFunc(dist, epsilon);
-  return add(origin, scale(vector, d))
-};
-const nearest_point_on_polygon = (polygon, point) => {
-  const v = polygon
-    .map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
-  return polygon
-    .map((p, i) => nearest_point_on_line(v[i], p, point, segment_limiter))
-    .map((p, i) => ({ point: p, i, distance: distance(p, point) }))
-    .sort((a, b) => a.distance - b.distance)
-    .shift();
-};
-const nearest_point_on_circle = (radius, origin, point) => add(
-  origin, scale(normalize(subtract(point, origin)), radius)
-);
-const nearest_point_on_ellipse = () => false;
-
-var nearest = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  ray_limiter: ray_limiter,
-  segment_limiter: segment_limiter,
-  smallest_comparison_search: smallest_comparison_search,
-  nearest_point2: nearest_point2,
-  nearest_point: nearest_point,
-  nearest_point_on_line: nearest_point_on_line,
-  nearest_point_on_polygon: nearest_point_on_polygon,
-  nearest_point_on_circle: nearest_point_on_circle,
-  nearest_point_on_ellipse: nearest_point_on_ellipse
 });
 
 var Constructors = Object.create(null);
@@ -360,6 +174,113 @@ var matrix2 = /*#__PURE__*/Object.freeze({
   make_matrix2_scale: make_matrix2_scale,
   make_matrix2_rotate: make_matrix2_rotate,
   make_matrix2_reflect: make_matrix2_reflect
+});
+
+const R2D = 180 / Math.PI;
+const D2R = Math.PI / 180;
+const TWO_PI = Math.PI * 2;
+const EPSILON = 1e-6;
+
+var constants = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  R2D: R2D,
+  D2R: D2R,
+  TWO_PI: TWO_PI,
+  EPSILON: EPSILON
+});
+
+const fn_square = n => n * n;
+const fn_add = (a, b) => a + (b || 0);
+const fn_not_undefined = a => a !== undefined;
+
+const magnitude = v => Math.sqrt(v
+  .map(fn_square)
+  .reduce(fn_add, 0));
+const mag_squared = v => v
+  .map(fn_square)
+  .reduce(fn_add, 0);
+const normalize = (v) => {
+  const m = magnitude(v);
+  return m === 0 ? v : v.map(c => c / m);
+};
+const scale = (v, s) => v.map(n => n * s);
+const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
+const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
+const dot = (v, u) => v
+  .map((_, i) => v[i] * u[i])
+  .reduce(fn_add, 0);
+const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
+const average = function () {
+  if (arguments.length === 0) { return []; }
+  const dimension = (arguments[0].length > 0) ? arguments[0].length : 0;
+  const sum = Array(dimension).fill(0);
+  Array.from(arguments).forEach(vec => sum.forEach((_, i) => { sum[i] += vec[i] || 0; }));
+  return sum.map(n => n / arguments.length);
+};
+const lerp = (v, u, t) => {
+  const inv = 1.0 - t;
+  return v.map((n, i) => n * inv + (u[i] || 0) * t);
+};
+const cross2 = (a, b) => a[0] * b[1] - a[1] * b[0];
+const cross3 = (a, b) => [
+  a[1] * b[2] - a[2] * b[1],
+  a[0] * b[2] - a[2] * b[0],
+  a[0] * b[1] - a[1] * b[0],
+];
+const distance2 = (a, b) => {
+  const p = a[0] - b[0];
+  const q = a[1] - b[1];
+  return Math.sqrt((p * p) + (q * q));
+};
+const distance3 = (a, b) => {
+  const c = a[0] - b[0];
+  const d = a[1] - b[1];
+  const e = a[2] - b[2];
+  return Math.sqrt((c * c) + (d * d) + (e * e));
+};
+const distance = (a, b) => Math.sqrt(a
+  .map((_, i) => (a[i] - b[i]) ** 2)
+  .reduce((u, v) => u + v, 0));
+const flip = v => v.map(n => -n);
+const rotate90 = v => [-v[1], v[0]];
+const rotate270 = v => [v[1], -v[0]];
+const degenerate = (v, epsilon = EPSILON) => Math
+  .abs(v.reduce(fn_add, 0)) < epsilon;
+const parallel = (a, b, epsilon = EPSILON) => 1 - Math
+  .abs(dot(normalize(a), normalize(b))) < epsilon;
+const alternating_sum = (numbers) => [0, 1]
+  .map(even_odd => numbers
+    .filter((_, i) => i % 2 === even_odd)
+    .reduce(fn_add, 0));
+const alternating_deviation = (sectors) => {
+  const halfsum = sectors.reduce(fn_add, 0) / 2;
+  return alternating_sum(sectors).map(s => s - halfsum);
+};
+
+var algebra = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  magnitude: magnitude,
+  mag_squared: mag_squared,
+  normalize: normalize,
+  scale: scale,
+  add: add,
+  subtract: subtract,
+  dot: dot,
+  midpoint: midpoint,
+  average: average,
+  lerp: lerp,
+  cross2: cross2,
+  cross3: cross3,
+  distance2: distance2,
+  distance3: distance3,
+  distance: distance,
+  flip: flip,
+  rotate90: rotate90,
+  rotate270: rotate270,
+  degenerate: degenerate,
+  parallel: parallel,
+  alternating_sum: alternating_sum,
+  alternating_deviation: alternating_deviation
 });
 
 const identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
@@ -625,6 +546,123 @@ var getters = /*#__PURE__*/Object.freeze({
   get_matrix2: get_matrix2
 });
 
+const fEqual = (a, b) => a === b;
+const fEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
+const array_similarity_test = (list, compFunc) => Array
+  .from(Array(list.length - 1))
+  .map((_, i) => compFunc(list[0], list[i + 1]))
+  .reduce((a, b) => a && b, true);
+const equivalent_vec2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
+  && Math.abs(a[1] - b[1]) < EPSILON;
+const equivalent_arrays_of_numbers = function () {
+};
+const equivalent_numbers = function () {
+  if (arguments.length === 0) { return false; }
+  if (arguments.length === 1 && arguments[0] !== undefined) {
+    return equivalent_numbers(...arguments[0]);
+  }
+  return array_similarity_test(arguments, fEpsilonEqual);
+};
+const equivalent_vectors = function () {
+  const args = Array.from(arguments);
+  const length = args.map(a => a.length).reduce((a, b) => a > b ? a : b);
+  const vecs = args.map(a => resize(length, a));
+  return Array.from(Array(arguments.length - 1))
+    .map((_, i) => vecs[0]
+      .map((_, n) => Math.abs(vecs[0][n] - vecs[i + 1][n]) < EPSILON)
+      .reduce((u, v) => u && v, true))
+    .reduce((u, v) => u && v, true);
+};
+const equivalent = function () {
+  const list = semi_flatten_arrays(...arguments);
+  if (list.length < 1) { return false; }
+  const typeofList = typeof list[0];
+  if (typeofList === "undefined") { return false; }
+  switch (typeofList) {
+    case "number":
+      return array_similarity_test(list, fEpsilonEqual);
+    case "boolean":
+    case "string":
+      return array_similarity_test(list, fEqual);
+    case "object":
+      if (list[0].constructor === Array) { return equivalent_vectors(...list); }
+      return array_similarity_test(list, (a, b) => JSON.stringify(a) === JSON.stringify(b));
+    default: return undefined;
+  }
+};
+
+var equal = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  equivalent_vec2: equivalent_vec2,
+  equivalent_arrays_of_numbers: equivalent_arrays_of_numbers,
+  equivalent_numbers: equivalent_numbers,
+  equivalent_vectors: equivalent_vectors,
+  equivalent: equivalent
+});
+
+const ray_limiter = dist => (dist < -EPSILON ? 0 : dist);
+const segment_limiter = (dist) => {
+  if (dist < -EPSILON) { return 0; }
+  if (dist > 1 + EPSILON) { return 1; }
+  return dist;
+};
+const smallest_comparison_search = (obj, array, compare_func) => {
+  const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
+  let index;
+  let smallest_value = Infinity;
+  for (let i = 0; i < objs.length; i += 1) {
+    if (objs[i].d < smallest_value) {
+      index = i;
+      smallest_value = objs[i].d;
+    }
+  }
+  return index;
+};
+const nearest_point2 = (point, array_of_points) => {
+  const index = smallest_comparison_search(point, array_of_points, distance2);
+  return index === undefined ? undefined : array_of_points[index];
+};
+const nearest_point = (point, array_of_points) => {
+  const index = smallest_comparison_search(point, array_of_points, distance);
+  return index === undefined ? undefined : array_of_points[index];
+};
+const nearest_point_on_line = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
+  origin = resize(vector.length, origin);
+  point = resize(vector.length, point);
+  const magSquared = mag_squared(vector);
+  const vectorToPoint = subtract(point, origin);
+  const dotProd = dot(vector, vectorToPoint);
+  const dist = dotProd / magSquared;
+  const d = limiterFunc(dist, epsilon);
+  return add(origin, scale(vector, d))
+};
+const nearest_point_on_polygon = (polygon, point) => {
+  const v = polygon
+    .map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
+  return polygon
+    .map((p, i) => nearest_point_on_line(v[i], p, point, segment_limiter))
+    .map((p, i) => ({ point: p, i, distance: distance(p, point) }))
+    .sort((a, b) => a.distance - b.distance)
+    .shift();
+};
+const nearest_point_on_circle = (radius, origin, point) => add(
+  origin, scale(normalize(subtract(point, origin)), radius)
+);
+const nearest_point_on_ellipse = () => false;
+
+var nearest = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  ray_limiter: ray_limiter,
+  segment_limiter: segment_limiter,
+  smallest_comparison_search: smallest_comparison_search,
+  nearest_point2: nearest_point2,
+  nearest_point: nearest_point,
+  nearest_point_on_line: nearest_point_on_line,
+  nearest_point_on_polygon: nearest_point_on_polygon,
+  nearest_point_on_circle: nearest_point_on_circle,
+  nearest_point_on_ellipse: nearest_point_on_ellipse
+});
+
 const include_l = () => true;
 const include_r = (t, e=EPSILON) => t > -e;
 const include_s = (t, e=EPSILON) => t > -e && t < 1 + e;
@@ -682,106 +720,6 @@ var overlap_point = /*#__PURE__*/Object.freeze({
   point_on_segment_exclusive: point_on_segment_exclusive
 });
 
-const R2D = 180 / Math.PI;
-const D2R = Math.PI / 180;
-const TWO_PI = Math.PI * 2;
-const is_counter_clockwise_between = (angle, angleA, angleB) => {
-  while (angleB < angleA) { angleB += TWO_PI; }
-  while (angle > angleA) { angle -= TWO_PI; }
-  while (angle < angleA) { angle += TWO_PI; }
-  return angle < angleB;
-};
-const clockwise_angle_radians = (a, b) => {
-  while (a < 0) { a += TWO_PI; }
-  while (b < 0) { b += TWO_PI; }
-  while (a > TWO_PI) { a -= TWO_PI; }
-  while (b > TWO_PI) { b -= TWO_PI; }
-  const a_b = a - b;
-  return (a_b >= 0)
-    ? a_b
-    : TWO_PI - (b - a);
-};
-const counter_clockwise_angle_radians = (a, b) => {
-  while (a < 0) { a += TWO_PI; }
-  while (b < 0) { b += TWO_PI; }
-  while (a > TWO_PI) { a -= TWO_PI; }
-  while (b > TWO_PI) { b -= TWO_PI; }
-  const b_a = b - a;
-  return (b_a >= 0)
-    ? b_a
-    : TWO_PI - (a - b);
-};
-const clockwise_angle2 = (a, b) => {
-  const dotProduct = b[0] * a[0] + b[1] * a[1];
-  const determinant = b[0] * a[1] - b[1] * a[0];
-  let angle = Math.atan2(determinant, dotProduct);
-  if (angle < 0) { angle += TWO_PI; }
-  return angle;
-};
-const counter_clockwise_angle2 = (a, b) => {
-  const dotProduct = a[0] * b[0] + a[1] * b[1];
-  const determinant = a[0] * b[1] - a[1] * b[0];
-  let angle = Math.atan2(determinant, dotProduct);
-  if (angle < 0) { angle += TWO_PI; }
-  return angle;
-};
-const clockwise_bisect2 = (a, b) => {
-  const radians = Math.atan2(a[1], a[0]) - clockwise_angle2(a, b) / 2;
-  return [Math.cos(radians), Math.sin(radians)];
-};
-const counter_clockwise_bisect2 = (a, b) => {
-  const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
-  return [Math.cos(radians), Math.sin(radians)];
-};
-const counter_clockwise_radians_order = (...radians) => {
-  const counter_clockwise = Array.from(Array(radians.length))
-    .map((_, i) => i)
-    .sort((a, b) => radians[a] - radians[b]);
-  return counter_clockwise
-    .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
-    .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
-};
-const counter_clockwise_vector_order = (...vectors) =>
-  counter_clockwise_radians_order(...vectors.map(v => Math.atan2(v[1], v[0])));
-const interior_angles = (...vecs) => vecs
-  .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
-const bisect_vectors = (a, b) => {
-  const aV = normalize(a);
-  const bV = normalize(b);
-  return dot(aV, bV) < (-1 + EPSILON)
-    ? [-aV[1], aV[0]]
-    : normalize(add(aV, bV));
-};
-const bisect_lines2 = (vectorA, pointA, vectorB, pointB) => {
-  const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
-  if (Math.abs(denominator) < EPSILON) {
-    const solution = [[vectorA[0], vectorA[1]], midpoint(pointA, pointB)];
-    const array = [solution, solution];
-    const dt = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
-    delete array[(dt > 0 ? 1 : 0)];
-    return array;
-  }
-  const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
-  const t = numerator / denominator;
-  const origin = [
-    pointA[0] + vectorA[0] * t,
-    pointA[1] + vectorA[1] * t,
-  ];
-  const bisects = [bisect_vectors(vectorA, vectorB)];
-  bisects[1] = rotate90(bisects[0]);
-  return bisects.map(vector => ({ vector, origin }));
-};
-const subsect_radians = (divisions, angleA, angleB) => {
-  const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
-  return Array.from(Array(divisions - 1))
-    .map((_, i) => angleA + angle * i);
-};
-const subsect = (divisions, vectorA, vectorB) => {
-  const angleA = Math.atan2(vectorA[1], vectorA[0]);
-  const angleB = Math.atan2(vectorB[1], vectorB[0]);
-  return subsect_radians(divisions, angleA, angleB)
-    .map(rad => [Math.cos(rad), Math.sin(rad)]);
-};
 const circumcircle = function (a, b, c) {
   const A = b[0] - a[0];
   const B = b[1] - a[1];
@@ -989,23 +927,6 @@ const straight_skeleton = (points) => {
 
 var geometry = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  R2D: R2D,
-  D2R: D2R,
-  TWO_PI: TWO_PI,
-  is_counter_clockwise_between: is_counter_clockwise_between,
-  clockwise_angle_radians: clockwise_angle_radians,
-  counter_clockwise_angle_radians: counter_clockwise_angle_radians,
-  clockwise_angle2: clockwise_angle2,
-  counter_clockwise_angle2: counter_clockwise_angle2,
-  clockwise_bisect2: clockwise_bisect2,
-  counter_clockwise_bisect2: counter_clockwise_bisect2,
-  counter_clockwise_radians_order: counter_clockwise_radians_order,
-  counter_clockwise_vector_order: counter_clockwise_vector_order,
-  interior_angles: interior_angles,
-  bisect_vectors: bisect_vectors,
-  bisect_lines2: bisect_lines2,
-  subsect_radians: subsect_radians,
-  subsect: subsect,
   circumcircle: circumcircle,
   signed_area: signed_area,
   centroid: centroid,
@@ -1017,27 +938,140 @@ var geometry = /*#__PURE__*/Object.freeze({
   straight_skeleton: straight_skeleton
 });
 
-const type_of = function (obj) {
-  switch (obj.constructor.name) {
-    case "vector":
-    case "matrix":
-    case "segment":
-    case "ray":
-    case "line":
-    case "circle":
-    case "ellipse":
-    case "rect":
-    case "polygon": return obj.constructor.name;
-  }
-  if (typeof obj === "object") {
-    if (obj.radius != null) { return "circle"; }
-    if (obj.width != null) { return "rect"; }
-    if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
-    if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
-    if (obj.vector != null && obj.origin != null) { return "line"; }
-  }
-  return undefined;
+const is_counter_clockwise_between = (angle, angleA, angleB) => {
+  while (angleB < angleA) { angleB += TWO_PI; }
+  while (angle > angleA) { angle -= TWO_PI; }
+  while (angle < angleA) { angle += TWO_PI; }
+  return angle < angleB;
 };
+const clockwise_angle_radians = (a, b) => {
+  while (a < 0) { a += TWO_PI; }
+  while (b < 0) { b += TWO_PI; }
+  while (a > TWO_PI) { a -= TWO_PI; }
+  while (b > TWO_PI) { b -= TWO_PI; }
+  const a_b = a - b;
+  return (a_b >= 0)
+    ? a_b
+    : TWO_PI - (b - a);
+};
+const counter_clockwise_angle_radians = (a, b) => {
+  while (a < 0) { a += TWO_PI; }
+  while (b < 0) { b += TWO_PI; }
+  while (a > TWO_PI) { a -= TWO_PI; }
+  while (b > TWO_PI) { b -= TWO_PI; }
+  const b_a = b - a;
+  return (b_a >= 0)
+    ? b_a
+    : TWO_PI - (a - b);
+};
+const clockwise_angle2 = (a, b) => {
+  const dotProduct = b[0] * a[0] + b[1] * a[1];
+  const determinant = b[0] * a[1] - b[1] * a[0];
+  let angle = Math.atan2(determinant, dotProduct);
+  if (angle < 0) { angle += TWO_PI; }
+  return angle;
+};
+const counter_clockwise_angle2 = (a, b) => {
+  const dotProduct = a[0] * b[0] + a[1] * b[1];
+  const determinant = a[0] * b[1] - a[1] * b[0];
+  let angle = Math.atan2(determinant, dotProduct);
+  if (angle < 0) { angle += TWO_PI; }
+  return angle;
+};
+const clockwise_bisect2$1 = (a, b) => {
+  const radians = Math.atan2(a[1], a[0]) - clockwise_angle2(a, b) / 2;
+  return [Math.cos(radians), Math.sin(radians)];
+};
+const counter_clockwise_bisect2 = (a, b) => {
+  const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
+  return [Math.cos(radians), Math.sin(radians)];
+};
+const counter_clockwise_radians_order = (...radians) => {
+  const counter_clockwise = radians
+    .map((_, i) => i)
+    .sort((a, b) => radians[a] - radians[b]);
+  return counter_clockwise
+    .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
+    .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
+};
+const counter_clockwise_vector_order = (...vectors) =>
+  counter_clockwise_radians_order(...vectors.map(v => Math.atan2(v[1], v[0])));
+const interior_angles = (...vecs) => vecs
+  .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
+const kawasaki_solutions_radians = (radians) => radians
+  .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+  .map(pair => counter_clockwise_angle_radians(...pair))
+  .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+  .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
+  .map((kawasakis, i) => radians[i] + kawasakis[0])
+  .map((angle, i) => (is_counter_clockwise_between(angle,
+    radians[i], radians[(i + 1) % radians.length])
+    ? angle
+    : undefined));
+const kawasaki_solutions = (vectors) => {
+  const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+  return kawasaki_solutions_radians(vectors_radians)
+    .map(a => (a === undefined
+      ? undefined
+      : [Math.cos(a), Math.sin(a)]));
+};
+const bisect_vectors = (a, b) => {
+  const aV = normalize(a);
+  const bV = normalize(b);
+  return dot(aV, bV) < (-1 + EPSILON)
+    ? [-aV[1], aV[0]]
+    : normalize(add(aV, bV));
+};
+const bisect_lines2 = (vectorA, pointA, vectorB, pointB) => {
+  const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
+  if (Math.abs(denominator) < EPSILON) {
+    const solution = [[vectorA[0], vectorA[1]], midpoint(pointA, pointB)];
+    const array = [solution, solution];
+    const dt = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
+    delete array[(dt > 0 ? 1 : 0)];
+    return array;
+  }
+  const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
+  const t = numerator / denominator;
+  const origin = [
+    pointA[0] + vectorA[0] * t,
+    pointA[1] + vectorA[1] * t,
+  ];
+  const bisects = [bisect_vectors(vectorA, vectorB)];
+  bisects[1] = rotate90(bisects[0]);
+  return bisects.map(vector => ({ vector, origin }));
+};
+const subsect_radians = (divisions, angleA, angleB) => {
+  const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
+  return Array.from(Array(divisions - 1))
+    .map((_, i) => angleA + angle * i);
+};
+const subsect = (divisions, vectorA, vectorB) => {
+  const angleA = Math.atan2(vectorA[1], vectorA[0]);
+  const angleB = Math.atan2(vectorB[1], vectorB[0]);
+  return subsect_radians(divisions, angleA, angleB)
+    .map(rad => [Math.cos(rad), Math.sin(rad)]);
+};
+
+var radial = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  is_counter_clockwise_between: is_counter_clockwise_between,
+  clockwise_angle_radians: clockwise_angle_radians,
+  counter_clockwise_angle_radians: counter_clockwise_angle_radians,
+  clockwise_angle2: clockwise_angle2,
+  counter_clockwise_angle2: counter_clockwise_angle2,
+  clockwise_bisect2: clockwise_bisect2$1,
+  counter_clockwise_bisect2: counter_clockwise_bisect2,
+  counter_clockwise_radians_order: counter_clockwise_radians_order,
+  counter_clockwise_vector_order: counter_clockwise_vector_order,
+  interior_angles: interior_angles,
+  kawasaki_solutions_radians: kawasaki_solutions_radians,
+  kawasaki_solutions: kawasaki_solutions,
+  bisect_vectors: bisect_vectors,
+  bisect_lines2: bisect_lines2,
+  subsect_radians: subsect_radians,
+  subsect: subsect
+});
 
 const acossafe = function (x) {
   if (x >= 1.0) return 0;
@@ -1121,6 +1155,210 @@ var intersect_circle = /*#__PURE__*/Object.freeze({
   circle_line: circle_line,
   circle_ray: circle_ray,
   circle_segment: circle_segment
+});
+
+const cuberoot = function (x) {
+  const y = Math.pow(Math.abs(x), 1 / 3);
+  return x < 0 ? -y : y;
+};
+const solveCubic = function (a, b, c, d) {
+  if (Math.abs(a) < EPSILON) {
+    a = b; b = c; c = d;
+    if (Math.abs(a) < EPSILON) {
+      a = b; b = c;
+      if (Math.abs(a) < EPSILON) {
+        return [];
+      }
+      return [-b / a];
+    }
+    const D = b * b - 4 * a * c;
+    if (Math.abs(D) < EPSILON) {
+      return [-b / (2 * a)];
+    }
+    if (D > 0) {
+      return [(-b + Math.sqrt(D)) / (2 * a), (-b - Math.sqrt(D)) / (2 * a)];
+    }
+    return [];
+  }
+  const p = (3 * a * c - b * b) / (3 * a * a);
+  const q = (2 * b * b * b - 9 * a * b * c + 27 * a * a * d) / (27 * a * a * a);
+  let roots;
+  if (Math.abs(p) < EPSILON) {
+    roots = [cuberoot(-q)];
+  } else if (Math.abs(q) < EPSILON) {
+    roots = [0].concat(p < 0 ? [Math.sqrt(-p), -Math.sqrt(-p)] : []);
+  } else {
+    const D = q * q / 4 + p * p * p / 27;
+    if (Math.abs(D) < EPSILON) {
+      roots = [-1.5 * q / p, 3 * q / p];
+    } else if (D > 0) {
+      const u = cuberoot(-q / 2 - Math.sqrt(D));
+      roots = [u - p / (3 * u)];
+    } else {
+      const u = 2 * Math.sqrt(-p / 3);
+      const t = Math.acos(3 * q / p / u) / 3;
+      const k = 2 * Math.PI / 3;
+      roots = [u * Math.cos(t), u * Math.cos(t - k), u * Math.cos(t - 2 * k)];
+    }
+  }
+  for (let i = 0; i < roots.length; i += 1) {
+    roots[i] -= b / (3 * a);
+  }
+  return roots;
+};
+
+const axiom1 = (pointA, pointB) => Constructors.line(
+  normalize(subtract(...resize_up(pointB, pointA))),
+  pointA
+);
+const axiom2 = (pointA, pointB) => Constructors.line(
+  normalize(rotate270(subtract(...resize_up(pointB, pointA)))),
+  midpoint(pointA, pointB)
+);
+const axiom3 = (vectorA, pointA, vectorB, pointB) => bisect_lines2(
+    vectorA, pointA, vectorB, pointB
+  ).map(l => Constructors.line(l.vector, l.origin));
+const axiom4 = (vectorA, pointA, pointB) => Constructors.line(
+  rotate270(normalize(vectorA)),
+  pointB
+);
+const axiom5 = (vectorA, pointA, pointB, pointC) => (intersect_circle_line(
+    distance(pointB, pointC),
+    pointB,
+    vectorA,
+    pointA,
+    () => true
+  ) || []).map(sect => Constructors.line(
+    normalize(rotate270(subtract(...resize_up(sect, pointC)))),
+    midpoint(pointC, sect)
+  ));
+const axiom7 = (vectorA, pointA, vectorB, pointB, pointC) => {
+  const intersect = intersect_lines(vectorB, pointB, vectorA, pointC, include_l, include_l);
+  return intersect === undefined
+    ? undefined
+    : Constructors.line(
+        normalize(rotate270(subtract(...resize_up(intersect, pointC)))),
+        midpoint(pointC, intersect)
+    );
+};
+const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
+  var p1 = pointC[0];
+  var q1 = pointC[1];
+  if (Math.abs(vecA[0]) > EPSILON) {
+    var m1 = vecA[1] / vecA[0];
+    var h1 = pointA[1] - m1 * pointA[0];
+  }
+  else {
+    var k1 = pointA[0];
+  }
+  var p2 = pointD[0];
+  var q2 = pointD[1];
+  if (Math.abs(vecB[0]) > EPSILON) {
+    var m2 = vecB[1] / vecB[0];
+    var h2 = pointB[1] - m2 * pointB[0];
+  }
+  else {
+    var k2 = pointB[0];
+  }
+  if (m1 !== undefined && m2 !== undefined) {
+    var a1 = m1*m1 + 1;
+    var b1 = 2*m1*h1;
+    var c1 = h1*h1 - p1*p1 - q1*q1;
+    var a2 = m2*m2 + 1;
+    var b2 = 2*m2*h2;
+    var c2 =  h2*h2 - p2*p2 - q2*q2;
+    var a0 = m2*p1 + (h1 - q1);
+    var b0 = p1*(h2 - q2) - p2*(h1 - q1);
+    var c0 = m2 - m1;
+    var d0 = m1*p2 + (h2 - q2);
+    var z = m1*p1 + (h1 - q1);
+  }
+  else if (m1 === undefined && m2 === undefined) {
+    a1 = 1;
+    b1 = 0;
+    c1 = k1*k1 - p1*p1 - q1*q1;
+    a2 = 1;
+    b2 = 0;
+    c2 = k2*k2 - p2*p2 - q2*q2;
+    a0 = k1 - p1;
+    b0 = q1*(k2 - p2) - q2*(k1 - p1);
+    c0 = 0;
+    d0 = k2 - p2;
+    z = a0;
+  }
+  else {
+    if (m1 === undefined) {
+      var p3 = p1;
+      p1 = p2;
+      p2 = p3;
+      var q3 = q1;
+      q1 = q2;
+      q2 = q3;
+      m1 = m2;
+      m2 = undefined;
+      h1 = h2;
+      h2 = undefined;
+      k2 = k1;
+      k1 = undefined;
+    }
+    a1 = m1*m1 + 1;
+    b1 = 2*m1*h1;
+    c1 = h1*h1 - p1*p1 - q1*q1;
+    a2 = 1;
+    b2 = 0;
+    c2 = k2*k2 - p2*p2 - q2*q2;
+    a0 = p1;
+    b0 = (h1 - q1)*(k2 - p2) - p1*q2;
+    c0 = 1;
+    d0 = -m1*(k2 - p2) - q2;
+    z = m1*p1 + (h1 - q1);
+  }
+  var a3 = a1*a0*a0 + b1*a0*c0 + c1*c0*c0;
+  var b3 = 2*a1*a0*b0 + b1*(a0*d0 + b0*c0) + 2*c1*c0*d0;
+  var c3 = a1*b0*b0 + b1*b0*d0 + c1*d0*d0;
+  var a4 = a2*c0*z;
+  var b4 = (a2*d0 + b2*c0) * z - a3;
+  var c4 = (b2*d0 + c2*c0) * z - b3;
+  var d4 =  c2*d0*z - c3;
+  var roots = solveCubic(a4,b4,c4,d4);
+  var solutions = [];
+  if (roots != undefined && roots.length > 0) {
+    for (var i = 0; i < roots.length; ++i) {
+      if (m1 !== undefined && m2 !== undefined) {
+        var u2 = roots[i];
+        var v2 = m2*u2 + h2;
+      }
+      else if (m1 === undefined && m2 === undefined) {
+        v2 = roots[i];
+        u2 = k2;
+      }
+      else {
+        v2 = roots[i];
+        u2 = k2;
+      }
+      if (v2 != q2) {
+        var mF = -1*(u2 - p2)/(v2 - q2);
+        var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
+        solutions.push(Constructors.line.fromPoints([0, hF], [1, mF]));
+      }
+      else {
+        var kG = (u2 + p2)/2;
+        solutions.push(Constructors.line.fromPoints([kG, 0], [0, 1]));
+      }
+    }
+  }
+  return solutions;
+};
+
+var axioms = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  axiom1: axiom1,
+  axiom2: axiom2,
+  axiom3: axiom3,
+  axiom4: axiom4,
+  axiom5: axiom5,
+  axiom7: axiom7,
+  axiom6: axiom6
 });
 
 const overlap_lines = (aVector, aOrigin, bVector, bOrigin, compA, compB, epsilon = EPSILON) => {
@@ -2414,12 +2652,15 @@ Object.keys(Definitions).forEach(primitiveName => {
 
 const math = Constructors;
 math.core = Object.assign(Object.create(null),
+  constants,
   algebra,
   equal,
   geometry,
+  radial,
   matrix2,
   matrix3,
   nearest,
+  axioms,
   overlap,
   getters,
   resizers,

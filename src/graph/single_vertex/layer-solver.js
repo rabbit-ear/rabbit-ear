@@ -1,5 +1,13 @@
-import math from "../math";
-import { fn_and } from "../arguments/functions";
+import math from "../../math";
+import { fn_and } from "../../arguments/functions";
+
+// todo: make this work with lowercase "m" "v" too
+
+const invert_array = (a) => {
+  const b = [];
+  a.forEach((x, i) => { b[x] = i; });
+  return b;
+};
 
 const up_down_map = { V: 1, v: 1, M: -1, m: -1 };
 /**
@@ -19,6 +27,10 @@ const between = (arr, i, j) => (i < j) ? arr.slice(i + 1, j) : arr.slice(j + 1, 
  * @param {string[]} array of "M","V" (or "m","v"), assignment of fold between sectors
  * @returns {number[][]} array of solutions where each solution is an array of numbers
  *  where each index is the sector, and each value is the order in the layer stack.
+ *  order numbers could be anything that increments, but we choose whole numbers
+ *  starting with 0. which is the same as how indices work. so it may be confusing.
+ *  if you flip them around, think [0.2, 0.1, 0.3] would still work, indices point to
+ *  sector indices, and the values are the stacking order
  */
 const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) => {
   let pointer = 0;
@@ -57,11 +69,28 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
       if (!all_below_min && !all_above_max) { return false; }
       // if (!all_beyond_min_max[0] && !all_beyond_min_max[1]) { return false; }
     }
+    // last test: test the first assignment[0]. make sure the final crease turns
+    // the correct direction to connect back to the beginning.
     return true;
+  };
+
+  // remember stack is not layer_order. it's 
+  const final_test = (stack) => {
+    // last test: test the first assignment[0]. make sure the final crease turns
+    // the correct direction to connect back to the beginning.
+    const inverted_stack = invert_array(stack);
+    // console.log("first", inverted_stack[0], "and last sector's layer", inverted_stack[inverted_stack.length - 1]);
+    const res = inverted_stack[0] > inverted_stack[inverted_stack.length - 1]
+      ? assignments[0] === "M"
+      : assignments[0] === "V"
+    // console.log("res", res)
+    return res;
   };
 
   // sectors and assignments are fenceposted.
   // sectors[i] is bounded by assignment[i] assignment[i + 1]
+  // stack is INVERTED form of what we're making. stack is an array where each
+  // VALUE is the sector. the index from 0 upwards represents the z-layer.
   const recurse = (stack = [], iter = 0, currentLayer = 0) => {
     stack = stack.slice(0, currentLayer).concat(
       [iter],
@@ -69,7 +98,10 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
     // check for a violation
     if (!test(stack)) { return []; }
     // return if done
-    if (iter >= sectors.length - 1) { return [stack]; }
+    if (iter >= sectors.length - 1) {
+      return final_test(stack) ? [stack] : [];
+    }
+    // continue
     const next_dir = upOrDown(assignments[(iter + 1) % sectors.length], iter);
     const spliceIndices = next_dir === 1
       ? Array.from(Array(stack.length - currentLayer)).map((_, i) => currentLayer + i + 1)
@@ -77,7 +109,8 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
     // if done
     return spliceIndices
       .map(i => recurse(stack, iter + 1, i))
-      .reduce((a, b) => a.concat(b), []);
+      .reduce((a, b) => a.concat(b), [])
+      .map(invert_array);
   };
 
   return recurse();

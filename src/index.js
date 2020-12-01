@@ -13,8 +13,6 @@ import graph from "./graph";
 // top level things
 import axiom from "./axioms";
 import text from "./text";
-// math things
-import single_vertex from "./single_vertex";
 /*
 ▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁
                     _     _     _ _
@@ -28,7 +26,7 @@ import single_vertex from "./single_vertex";
 */
 
 const Ear = Object.assign(root, {
-  math: Object.assign(math.core, single_vertex),
+  math: math.core,
   graph,
   axiom,
   text,
