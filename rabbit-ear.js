@@ -2899,6 +2899,12 @@
       }));
     return vertices_edges;
   };
+  const make_vertices_edges_sorted = ({ edges_vertices, vertices_vertices }) => {
+    const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+    return vertices_vertices
+      .map((verts, i) => verts
+        .map(v => edge_map[`${i} ${v}`]))
+  };
   const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
     if (!vertices_edges) {
       vertices_edges = make_vertices_edges({ edges_vertices });
@@ -3201,6 +3207,7 @@
   var make = /*#__PURE__*/Object.freeze({
     __proto__: null,
     make_vertices_edges: make_vertices_edges,
+    make_vertices_edges_sorted: make_vertices_edges_sorted,
     make_vertices_vertices: make_vertices_vertices,
     make_vertices_faces: make_vertices_faces,
     make_vertices_to_edge_bidirectional: make_vertices_to_edge_bidirectional,
@@ -3463,6 +3470,7 @@
     if (!graph.edges_vertices) { return; }
     graph.vertices_edges = make_vertices_edges(graph);
     graph.vertices_vertices = make_vertices_vertices(graph);
+    graph.vertices_edges = make_vertices_edges_sorted(graph);
     if (graph.vertices_coords) {
       graph.edges_vector = make_edges_vector(graph);
       graph.vertices_sectors = make_vertices_sectors(graph);
@@ -3767,7 +3775,16 @@
       edges_vector,
       edges_origin
     }, 1e-6);
+    const edges_collinear_vertices = make_edges_collinear_vertices({
+      vertices_coords: graph.vertices_coords,
+      edges_vertices: graph.edges_vertices,
+      edges_coords
+    }, epsilon);
     if (edges_intersections
+      .reduce((a, b) => a.concat(b), [])
+      .filter(a => a !== undefined).length === 0
+      &&
+      edges_collinear_vertices
       .reduce((a, b) => a.concat(b), [])
       .filter(a => a !== undefined).length === 0
     ) {
@@ -3793,7 +3810,7 @@
     const edges_intersections_flat = edges_intersections
       .map(arr => arr.filter(a => a !== undefined));
     graph.edges_vertices.forEach((verts, i) => verts
-      .push(...edges_intersections_flat[i]));
+      .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
     graph.edges_vertices.forEach((edge, i) => {
       graph.edges_vertices[i] = sort_vertices_along_vector({ vertices_coords: graph.vertices_coords }, edge, edges_vector[i]);
     });

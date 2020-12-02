@@ -4,6 +4,7 @@
 import {
   make_vertices_vertices,
   make_vertices_edges,
+  make_vertices_edges_sorted, // todo resolve this duplicate work
   make_vertices_faces,
   make_vertices_sectors,
   make_edges_edges,
@@ -71,6 +72,7 @@ const populate = (graph) => {
   graph.vertices_edges = make_vertices_edges(graph);
   // graph.edges_edges = make_edges_edges(graph);
   graph.vertices_vertices = make_vertices_vertices(graph);
+  graph.vertices_edges = make_vertices_edges_sorted(graph); // duplicating work here
   if (graph.vertices_coords) {
     graph.edges_vector = make_edges_vector(graph);
     graph.vertices_sectors = make_vertices_sectors(graph);

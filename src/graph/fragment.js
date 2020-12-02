@@ -7,7 +7,7 @@ import get_duplicate_edges from "./edges_duplicate";
 import remove from "./remove";
 import {
   make_edges_edges_intersections,
-  // make_edges_collinear_vertices,
+  make_edges_collinear_vertices,
 } from "./make";
 import { sort_vertices_along_vector } from "./sort";
 
@@ -55,11 +55,11 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 
   // check the new edges' vertices against every edge, in case
   // one of the endpoints lies along an edge.
-  // const edges_collinear_vertices = make_edges_collinear_vertices({
-  //   vertices_coords: graph.vertices_coords,
-  //   edges_vertices: graph.edges_vertices,
-  //   edges_coords
-  // }, epsilon);
+  const edges_collinear_vertices = make_edges_collinear_vertices({
+    vertices_coords: graph.vertices_coords,
+    edges_vertices: graph.edges_vertices,
+    edges_coords
+  }, epsilon);
 
   // remember, edges_intersections contains intersections [x,y] points
   // each one appears twice (both edges that intersect) and is the same
@@ -73,10 +73,10 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   if (edges_intersections
     .reduce((a, b) => a.concat(b), [])
     .filter(a => a !== undefined).length === 0
-    // &&
-    // edges_collinear_vertices
-    // .reduce((a, b) => a.concat(b), [])
-    // .filter(a => a !== undefined).length === 0
+    &&
+    edges_collinear_vertices
+    .reduce((a, b) => a.concat(b), [])
+    .filter(a => a !== undefined).length === 0
   ) {
     return;
   }
@@ -105,8 +105,8 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
     .map(arr => arr.filter(a => a !== undefined));
 
   graph.edges_vertices.forEach((verts, i) => verts
-    // .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
-    .push(...edges_intersections_flat[i]));
+    .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
+    // .push(...edges_intersections_flat[i]));
 
   graph.edges_vertices.forEach((edge, i) => {
     graph.edges_vertices[i] = sort_vertices_along_vector({ vertices_coords: graph.vertices_coords }, edge, edges_vector[i]);

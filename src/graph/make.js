@@ -39,6 +39,19 @@ export const make_vertices_edges = ({ edges_vertices }) => {
   return vertices_edges;
 };
 /**
+ * @param {object} FOLD object, with entry "edges_vertices"
+ * @returns {number[][]} array of array of numbers. each index is a vertex with
+ *   the content an array of numbers, edge indices this vertex is adjacent.
+ *
+ * this one corresponds to vertices_vertices!
+ */
+export const make_vertices_edges_sorted = ({ edges_vertices, vertices_vertices }) => {
+  const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+  return vertices_vertices
+    .map((verts, i) => verts
+      .map(v => edge_map[`${i} ${v}`]))
+};
+/**
  * discover adjacent vertices by way of their edge relationships.
  *
  * required FOLD arrays:
