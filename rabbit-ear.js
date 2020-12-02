@@ -2930,6 +2930,16 @@
     });
     return vertices_faces;
   };
+  const make_vertices_faces_sorted = ({ vertices_vertices, faces_vertices }) => {
+    const face_map = make_vertices_to_face({ faces_vertices });
+    return vertices_vertices
+      .map((verts, v) => verts
+        .map((vert, i, arr) => [arr[(i + 1) % arr.length], v, vert]
+          .join(" ")))
+      .map(keys => keys
+        .map(key => face_map[key])
+        .filter(a => a !== undefined));
+  };
   const make_vertices_to_edge_bidirectional = ({ edges_vertices }) => {
     const map = {};
     edges_vertices
@@ -2945,6 +2955,17 @@
     edges_vertices
       .map(ev => ev.join(" "))
       .forEach((key, i) => { map[key] = i; });
+    return map;
+  };
+  const make_vertices_to_face = ({ faces_vertices }) => {
+    const map = {};
+    faces_vertices
+      .forEach((face, f) => face
+        .map((_, i) => [0, 1, 2]
+          .map(j => (i + j) % face.length)
+          .map(i => face[i])
+          .join(" "))
+        .forEach(key => { map[key] = f; }));
     return map;
   };
   const make_vertices_vertices_vector = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) => {
@@ -3210,8 +3231,10 @@
     make_vertices_edges_sorted: make_vertices_edges_sorted,
     make_vertices_vertices: make_vertices_vertices,
     make_vertices_faces: make_vertices_faces,
+    make_vertices_faces_sorted: make_vertices_faces_sorted,
     make_vertices_to_edge_bidirectional: make_vertices_to_edge_bidirectional,
     make_vertices_to_edge: make_vertices_to_edge,
+    make_vertices_to_face: make_vertices_to_face,
     make_vertices_vertices_vector: make_vertices_vertices_vector,
     make_vertices_sectors: make_vertices_sectors,
     make_vertices_coords_folded: make_vertices_coords_folded,
@@ -3485,7 +3508,9 @@
       graph.faces_vertices = [];
       graph.faces_edges = [];
     }
-    graph.vertices_faces = make_vertices_faces(graph);
+    graph.vertices_faces = graph.vertices_vertices
+      ? make_vertices_faces_sorted(graph)
+      : make_vertices_faces(graph);
     graph.edges_faces = make_edges_faces(graph);
     graph.faces_faces = make_faces_faces(graph);
     if (graph.vertices_coords) {

@@ -86,9 +86,8 @@ export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_
       .map((verts, i) => sort_vertices_counter_clockwise({ vertices_coords }, verts, i));
 };
 /**
- * build vertices_faces from faces_vertices
- *
- * this does not arrange faces in counter-clockwise order, as the spec suggests
+ * this DOES NOT arrange faces in counter-clockwise order, as the spec suggests
+ * use make_vertices_faces_sorted for that, which requires vertices_vertices.
  */
 export const make_vertices_faces = ({ faces_vertices }) => {
   // instead of initializing the array ahead of time (we would need to know
@@ -106,6 +105,22 @@ export const make_vertices_faces = ({ faces_vertices }) => {
     hash.forEach((fa, v) => vertices_faces[v].push(fa));
   });
   return vertices_faces;
+};
+/**
+ * this does arrange faces in counter-clockwise order, as the spec suggests
+ */
+export const make_vertices_faces_sorted = ({ vertices_vertices, faces_vertices }) => {
+  const face_map = make_vertices_to_face({ faces_vertices });
+  return vertices_vertices
+    .map((verts, v) => verts
+      .map((vert, i, arr) => [arr[(i + 1) % arr.length], v, vert]
+        .join(" ")))
+    .map(keys => keys
+      .map(key => face_map[key])
+      .filter(a => a !== undefined)); // okay this was unexpected.
+  // the filter at the end is required for the boundary vertices, because there
+  // is no face (usually) that winds backwards around the piece and encloses
+  // infinity. however, this disconnects the index match with vertices_vertices.
 };
 /**
  * *not a geometry array*
@@ -135,6 +150,17 @@ export const make_vertices_to_edge = ({ edges_vertices }) => {
   edges_vertices
     .map(ev => ev.join(" "))
     .forEach((key, i) => { map[key] = i; });
+  return map;
+};
+export const make_vertices_to_face = ({ faces_vertices }) => {
+  const map = {};
+  faces_vertices
+    .forEach((face, f) => face
+      .map((_, i) => [0, 1, 2]
+        .map(j => (i + j) % face.length)
+        .map(i => face[i])
+        .join(" "))
+      .forEach(key => { map[key] = f; }));
   return map;
 };
 
