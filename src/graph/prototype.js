@@ -14,7 +14,7 @@ import {
   transpose_graph_arrays,
   transpose_graph_array_at_index,
 } from "./fold_spec";
-import clean from "./clean";
+import clean from "./clean/clean";
 // import rebuild from "./rebuild";
 import populate from "./populate";
 import {

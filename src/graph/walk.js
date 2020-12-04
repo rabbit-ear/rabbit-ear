@@ -1,7 +1,16 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges) => {
+
+/**
+ * @description
+ * @param {object} FOLD graph
+ * @param {number} starting vertex
+ * @param {number} second vertex, this sets the direction of the walk
+ * @param {object} to prevent walking down duplicate paths, or finding duplicate
+ * faces, this dictionary will store and check against vertex pairs "i j".
+ */
+const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
   // each time we visit an edge (vertex pair as string, "4 9") add it here.
   // this gives us a quick lookup to see if we've visited this edge before.
   const this_walked_edges = {};

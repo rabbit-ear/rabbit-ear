@@ -46,7 +46,7 @@ test("populate with assignment and fold angle", () => {
   expect(graph2.edges_assignment.length).toBe(6);
   expect(graph2.edges_assignment[0]).toBe("M");
   expect(graph2.edges_assignment[1]).toBe("V");
-  expect(graph2.edges_assignment[5]).toBe("F");
+  expect(graph2.edges_assignment[5]).toBe("U");
 });
 
 test("component edges with no vertex data", () => {

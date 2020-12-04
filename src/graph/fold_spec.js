@@ -1,18 +1,5 @@
 import { keys } from "./fold_keys";
 
-// export const edges_assignment_names = {
-//   M: "mountain",
-//   m: "mountain",
-//   V: "valley",
-//   v: "valley",
-//   B: "boundary",
-//   b: "boundary",
-//   F: "mark",
-//   f: "mark",
-//   U: "unassigned",
-//   u: "unassigned"
-// };
-
 export const edges_assignment_degrees = {
   M: -180,
   m: -180,
@@ -25,15 +12,43 @@ export const edges_assignment_degrees = {
   U: 0,
   u: 0
 };
-
+// export const edges_assignment_names = {
+//   M: "mountain",
+//   m: "mountain",
+//   V: "valley",
+//   v: "valley",
+//   B: "boundary",
+//   b: "boundary",
+//   F: "mark",
+//   f: "mark",
+//   U: "unassigned",
+//   u: "unassigned"
+// };
+/**
+ * @param {string} one edge assignment letter, any case: M V B F U
+ * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
+ */
 export const edge_assignment_to_foldAngle = assignment =>
   edges_assignment_degrees[assignment] || 0;
+/**
+ * @param {number} fold angle in degrees.
+ * @returns {string} one edge assignment letter: M V or U, no boundary detection.
+ *
+ * todo: what should be the behavior for 0, undefined, null?
+ */
+export const edge_foldAngle_to_assignment = (a) => {
+  if (a > 0) { return "V"; }
+  if (a < 0) { return "M"; }
+  // if (a === 0) { return "F"; }
+  return "U";
+};
 /**
  * @param {object} any object
  * @param {string} a suffix to match against the keys
  * @returns {string[]} array of keys that end with the string param
  */
-export const filter_keys_with_suffix = (graph, suffix) => Object.keys(graph)
+export const filter_keys_with_suffix = (graph, suffix) => Object
+  .keys(graph)
   .map(s => (s.substring(s.length - suffix.length, s.length) === suffix
     ? s : undefined))
   .filter(str => str !== undefined);

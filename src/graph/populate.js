@@ -19,15 +19,10 @@ import {
   make_planar_faces,
 } from "./make";
 import {
-  edge_assignment_to_foldAngle
+  edge_assignment_to_foldAngle,
+  edge_foldAngle_to_assignment,
 } from "./fold_spec";
 
-const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
-const assignment_to_angle = (a) => assignment_angles[a] || 0;
-const angle_to_assignment = (a) => {
-  if (a === 0) { return "F"; }
-  return a < 0 ? "M" : "V";
-};
 
 // try best not to lose information
 const set_edges_angles = (graph) => {
@@ -38,12 +33,12 @@ const set_edges_angles = (graph) => {
   // complete the shorter array to match the longer one
   if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
     for (let i = graph.edges_foldAngle.length; i < graph.edges_assignment.length; i += 1) {
-      graph.edges_foldAngle[i] = assignment_to_angle(graph.edges_assignment[i]);
+      graph.edges_foldAngle[i] = edge_assignment_to_foldAngle(graph.edges_assignment[i]);
     }
   }
   if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
     for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
-      graph.edges_assignment[i] = angle_to_assignment(graph.edges_foldAngle[i]);
+      graph.edges_assignment[i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[i]);
     }
   }
   // two arrays should be at the same length now. even if they are not complete

@@ -2,13 +2,12 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import merge_vertices from "./vertices_duplicate/merge";
-import get_duplicate_edges from "./edges_duplicate";
-import remove from "./remove";
 import {
-  make_edges_edges_intersections,
-  make_edges_collinear_vertices,
-} from "./make";
+  remove_duplicate_vertices,
+  remove_duplicate_edges,
+} from "./clean/index";
+import { make_edges_collinear_vertices } from "./make";
+import { make_edges_edges_intersections } from "./intersect_edges";
 import { sort_vertices_along_vector } from "./sort";
 
 /**
@@ -148,8 +147,8 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
   for (var i = 0; i < 20; i++) {
     const res = fragment_graph(graph, epsilon);
     if (res === undefined) { break; }
-    merge_vertices(graph, epsilon / 2);
-    remove(graph, "edges", get_duplicate_edges(graph));
+    remove_duplicate_vertices(graph, epsilon / 2);
+    remove_duplicate_edges(graph);
   }
   // Object.keys(graph).forEach(key => delete graph[key]);
   // Object.assign(graph, new_graph);

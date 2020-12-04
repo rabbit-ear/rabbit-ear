@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../../math";
 /**
  * density-based spatial clustering of applications with noise (DBSCAN)
@@ -26,7 +29,7 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
   // clusters is an array of arrays of numbers
   // each entry in clusters is an array of vertex indices
 
-const clusters_vertices = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+const get_duplicate_vertices = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
   // equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices
   // only top triangle is used
   //             j  j  j
@@ -81,4 +84,4 @@ const clusters_vertices = ({ vertices_coords }, epsilon = math.core.EPSILON) => 
   return clusters.filter(a => a.length);
 };
 
-export default clusters_vertices;
+export default get_duplicate_vertices;

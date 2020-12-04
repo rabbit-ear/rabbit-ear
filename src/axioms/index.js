@@ -21,12 +21,19 @@ delete axioms[0];
  */
 const sort_axiom_params = function (number, points, lines) {
   switch (number) {
+    case "1":
+    case "2":
     case 1:
     case 2: return points;
+    case "3":
     case 3: return [lines[0].vector, lines[0].origin, lines[1].vector, lines[1].origin];
+    case "4":
     case 4: return [lines[0].origin, lines[0].vector, points[0]];
+    case "5":
     case 5: return [lines[0].origin, lines[0].vector, points[0], points[1]];
+    case "6":
     case 6: return [lines[0].origin, lines[0].vector, lines[1].origin, lines[1].vector, points[0], points[1]];
+    case "7":
     case 7: return [lines[0].origin, lines[0].vector, lines[1].origin, lines[1].vector, points[0]];
     default: break;
   }

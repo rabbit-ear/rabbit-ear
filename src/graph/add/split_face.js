@@ -12,7 +12,7 @@ import {
   make_edges_faces,
   make_faces_faces,
 } from "../make";
-import { intersect_face_with_line } from "../intersect";
+import { intersect_face_with_line } from "../intersect_faces";
 import { sort_vertices_counter_clockwise } from "../sort";
 import { find_adjacent_faces_to_face } from "../find";
 

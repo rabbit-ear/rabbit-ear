@@ -19,8 +19,8 @@ export const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, v
     .map(el => el.i)
     .map(i => vertices[i]);
 /**
- * the trivial case is sorting points horizontally (along the vector [1,0])
- * this generalizes this. sort an array of points along any direction.
+ * sort an array of points along any direction. simple example: if you provide [1,0]
+ * it sorts points according to their X value. this works for any vector.
  */
 export const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
   vertices

@@ -23,6 +23,8 @@ const all_possible_assignments = (assignments) => {
 };
 
 const assignment_solver = (sectors, assignments) => {
+
+  // consider doing a sectors test too...
   const possibilities = all_possible_assignments(assignments);
   const layers = possibilities.map(assigns => layerSolver(sectors, assigns));
   return possibilities

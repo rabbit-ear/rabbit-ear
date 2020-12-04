@@ -1,8 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import edges_duplicate from "../edges_duplicate";
-import remove from "../remove";
+import { remove_duplicate_edges } from "../clean/index";
 // this method is meant to add edges between EXISTING vertices.
 // this should split and rebuild faces.
 
@@ -20,8 +19,8 @@ const add_edges = (graph, edges_vertices) => {
   if (typeof edges_vertices[0] === "number") { edges_vertices = [edges_vertices]; }
   const indices = edges_vertices.map((_, i) => graph.edges_vertices.length + i);
   graph.edges_vertices.push(...edges_vertices);
-  const remove_map = remove(graph, "edges", edges_duplicate(graph));
-  return indices.map(i => remove_map[i]);
+  const index_map = remove_duplicate_edges(graph).map;
+  return indices.map(i => index_map[i]);
 };
 
 export default add_edges;

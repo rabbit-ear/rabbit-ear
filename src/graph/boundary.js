@@ -64,7 +64,7 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
  * call the method populate() to fill the necessary arrays.
  */
 // vertices_edges is only needed in case vertices_vertices needs to be build
-export const find_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
+export const get_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
   if (!vertices_vertices) {
     vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });    
   }

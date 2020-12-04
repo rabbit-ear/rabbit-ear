@@ -19,9 +19,9 @@ test("duplicate edges", () => {
     ]
   };
   const result = ear.graph.get_duplicate_edges(graph);
-  expect(result[0]).toBe(4);
-  expect(result[1]).toBe(7);
-  expect(result[2]).toBe(12);
+  expect(result[4]).toBe(3);
+  expect(result[7]).toBe(5);
+  expect(result[12]).toBe(8);
 });
 
 test("invalid edges", () => {
@@ -43,8 +43,9 @@ test("invalid edges", () => {
     ]
   };
   const result2 = ear.graph.get_duplicate_edges(graph2);
-  expect(result2.length).toBe(1);
-  expect(result2[0]).toBe(2);
+  expect(result2[0]).toBe(undefined);
+  expect(result2[1]).toBe(undefined);
+  expect(result2[2]).toBe(0);
 });
 
 test("duplicate edges, invalid input 1", (done) => {

@@ -12,14 +12,12 @@
  */
 
 /**
- * top-level keys and values that are intended to be inside EVERY
- * fold object that this library touches.
+ * top-level keys and values to be included in exported FOLD objects
  */
 export const file_spec = 1.1;
 export const file_creator = "Rabbit Ear";
 /**
- * top-level keys from the FOLD specification, sorted into categories
- * generally by their usage.
+ * top-level keys from the FOLD specification, sorted into usage categories.
  */
 export const fold_keys = {
   file: [
@@ -54,7 +52,7 @@ export const fold_keys = {
     "faces_edges",
     // as of now, these are not described in the spec, but their behavior
     // can be inferred, except faces_faces which could be edge-adjacent or
-    // face-adjacent. this library uses as EDGE-ADJACENT by the way.
+    // face-adjacent. this library uses as EDGE-ADJACENT.
     "vertices_edges",
     "edges_edges",
     "faces_faces"
@@ -65,8 +63,8 @@ export const fold_keys = {
   ],
 };
 /**
- * top-level keys from the FOLD specification without sorting by
- * category; simply arranged as strings in an array.
+ * top-level keys from the FOLD specification without sorting by category;
+ * simply arranged as strings in an array.
  */
 export const keys = Object.freeze([]
   .concat(fold_keys.file)

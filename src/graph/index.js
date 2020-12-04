@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import transform from "./affine";
 import * as make from "./make";
 import * as clip from "./clip";
 import * as boundary from "./boundary";
@@ -14,24 +13,30 @@ import implied from "./count_implied";
 import remove from "./remove";
 import populate from "./populate";
 import assign from "./assign";
+import transform from "./affine";
 import subgraph from "./subgraph";
 import explode_faces from "./explode_faces";
-import get_duplicate_edges from "./edges_duplicate";
-import clusters_vertices from "./vertices_duplicate/clusters_vertices";
-import merge_duplicate_vertices from "./vertices_duplicate/merge";
-import * as isolated_vertices from "./vertices_isolated";
 import fragment from "./fragment";
-import clean from "./clean";
 import create from "./create";
+// add things
 import add_vertices from "./add/add_vertices";
 import add_vertices_split_edges from "./add/add_vertices_split_edges"; // planar graphs
 import add_edges from "./add/add_edges";
 import split_edge from "./add/split_edge";
 import split_face from "./add/split_face";
 import flat_fold from "./flat_fold";
+// clean things
+import * as remove_methods from "./clean/index"
+import clean from "./clean/clean";
+import get_circular_edges from "./clean/edges_circular";
+import get_duplicate_edges from "./clean/edges_duplicate";
+import get_duplicate_vertices from "./clean/vertices_duplicate";
+import * as vertices_isolated from "./clean/vertices_isolated";
+import * as vertices_collinear from "./clean/vertices_collinear";
+// solvers
 import layer_solver from "./single_vertex/layer_solver"
 import assignment_solver from "./single_vertex/assignment_solver"
-// boundary
+// intersections
 import clip_line from "./boundary/clip_line";
 
 // for this function and prototype
@@ -54,27 +59,30 @@ Graph.prototype.constructor = Graph;
 Object.assign(Graph, {
   // modifiers
   assign,
+  // add things
   add_vertices,
   add_vertices_split_edges,
   add_edges,
   split_edge,
   split_face,
   flat_fold,
-  fragment,
+  // clean things
   clean,
-  merge_duplicate_vertices,
+  get_circular_edges,
+  get_duplicate_edges,
+  get_duplicate_vertices,
   //
   count,
   implied,
+  fragment,
   remove,
   populate,
   subgraph,
   explode_faces,
-  get_duplicate_edges,
-  clusters_vertices,
-  //
+  // solvers
   layer_solver,
   assignment_solver,
+  // intersection
   clip_line,
 },
   make,
@@ -84,9 +92,12 @@ Object.assign(Graph, {
   boundary,
   walk,
   nearest,
-  isolated_vertices,
   fold_object,
   sort,
+  // clean things
+  remove_methods,
+  vertices_isolated,
+  vertices_collinear,
 );
 
 export default Graph;
