@@ -3,36 +3,7 @@
  */
 import math from "../math";
 import { make_edges_vector } from "./make";
-/**
- * edges become [[minX, minY], [maxX, maxY]], or x,y,z or however many n-dimensions
- */
-const make_edges_coords_min_max = ({ vertices_coords, edges_vertices }) =>
-  edges_vertices
-    .map(ev => ev.map(v => vertices_coords[v]))
-    .map(c => [0, 1]
-      .map(i => c[0][i] < c[1][i] ? [c[0][i], c[1][i]] : [c[1][i], c[0][i]]));
-/**
- * part of a line-sweep algorithm for segment-segment intersection
- * this answers if it's possible that lines *might* overlap. 
- */
-export const make_edges_span = ({ vertices_coords, edges_vertices }, epsilon = math.core.EPSILON) => {
-  const ep = [-epsilon, +epsilon];
-  const min_max = make_edges_coords_min_max({ vertices_coords, edges_vertices }, epsilon);
-  const span_overlaps = edges_vertices.map(() => []);
-  // span_overlaps will be false if no overlap possible, true if overlap is possible.
-  for (let i = 0; i < edges_vertices.length - 1; i += 1) {
-    for (let j = i + 1; j < edges_vertices.length; j += 1) {
-      // is iMax less than jMin or jMax less than iMin
-      const overlaps = !(min_max[i][0][1] < min_max[j][0][0]
-        || min_max[j][0][1] < min_max[i][0][0])
-      && !(min_max[i][1][1] < min_max[j][1][0]
-        || min_max[j][1][1] < min_max[i][1][0]);
-      span_overlaps[i][j] = overlaps;
-      span_overlaps[j][i] = overlaps;
-    }
-  }
-  return span_overlaps;
-};
+import { get_edges_edges_span } from "./span";
 /**
  * this method compares every edge against every edge (n^2) to see if the
  * segments exclusively intersect each other (touching endpoints doesn't count)
@@ -63,7 +34,7 @@ export const make_edges_edges_intersections = function ({
     edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
   }
   const edges_intersections = edges_vector.map(() => []);
-  const span = make_edges_span({ vertices_coords, edges_vertices }, epsilon);
+  const span = get_edges_edges_span({ vertices_coords, edges_vertices }, epsilon);
   for (let i = 0; i < edges_vector.length - 1; i += 1) {
     for (let j = i + 1; j < edges_vector.length; j += 1) {
       if (span[i][j] !== true) { continue; }

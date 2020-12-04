@@ -36,9 +36,13 @@ export const remove_duplicate_edges = (graph) => {
   };
 };
 
+// this is inside of fragment() right now.
+// export const remove_collinear_vertices = (graph, epsilon = math.core.EPSILON) => {
+// };
+
 // const map_to_change_map = indices => indices.map((n, i) => n - i);
 /**
- * @description this has the potential to create circular edges
+ * @description this has the potential to create circular and duplicate edges
  *
  */
 export const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {

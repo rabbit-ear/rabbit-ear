@@ -8,6 +8,7 @@ import * as walk from "./walk";
 import * as nearest from "./nearest";
 import * as fold_object from "./fold_spec";
 import * as sort from "./sort";
+import * as span from "./span";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
@@ -31,8 +32,8 @@ import clean from "./clean/clean";
 import get_circular_edges from "./clean/edges_circular";
 import get_duplicate_edges from "./clean/edges_duplicate";
 import get_duplicate_vertices from "./clean/vertices_duplicate";
+import get_collinear_vertices from "./clean/vertices_collinear";
 import * as vertices_isolated from "./clean/vertices_isolated";
-import * as vertices_collinear from "./clean/vertices_collinear";
 // solvers
 import layer_solver from "./single_vertex/layer_solver"
 import assignment_solver from "./single_vertex/assignment_solver"
@@ -71,6 +72,7 @@ Object.assign(Graph, {
   get_circular_edges,
   get_duplicate_edges,
   get_duplicate_vertices,
+  get_collinear_vertices,
   //
   count,
   implied,
@@ -94,10 +96,10 @@ Object.assign(Graph, {
   nearest,
   fold_object,
   sort,
+  span,
   // clean things
   remove_methods,
   vertices_isolated,
-  vertices_collinear,
 );
 
 export default Graph;

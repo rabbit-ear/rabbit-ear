@@ -272,48 +272,44 @@ export const make_edges_vector = ({ vertices_coords, edges_vertices }) =>
  */
 export const make_edges_length = ({ vertices_coords, edges_vertices }) => make_edges_vector({ vertices_coords, edges_vertices })
     .map(vec => math.core.magnitude(vec));
-
 /**
- * edges_collinear_vertices is a list of lists where for every edge there is a
- * list filled with vertices that lies collinear to the edge, where
- * collinearity only counts if the vertex lies between the edge's endpoints,
- * excluding the endpoints themselves.
- * 
- * this is useful when an edge and its two vertices are added to a planar graph
+ * @description for each axis get the min and max coordinate value for each edge.
+ * for fast line-sweep algorithms.
  *
- * this method will inspect the new edge(s) endpoints for the specific
- * case that they lie collinear along an existing edge.
- * (we need to compare the new vertices against every edge)
- *
- * the intended result is the other edge should be split into two.
- *
- * this method will simply return an Array() size matched to the edges_
- * arrays, with mostly empty contents, but in the case of a collinear
- * vertex, this index in the array will contain that vertex's index.
+ * @returns {number[][][]} an array matching length of edges, where each edge
+ * is [[minX, minY], [maxX, maxY]], or x,y,z or however many n-dimensions
+ * actually, right now this looks like it's hard coded to 2D
  */
- // todo, this can be HEAVILY improved.
- // at least do a bounding box around every edge, test a point is inside before
- // running the point_on_segment function
-export const make_edges_collinear_vertices = function (
-  { vertices_coords, edges_vertices, edges_coords },
-  epsilon = math.core.EPSILON
-) {
+export const make_edges_coords_min_max = ({ vertices_coords, edges_vertices, edges_coords }) => {
   if (!edges_coords) {
-    edges_coords = edges_vertices
-      .map(ev => ev.map(v => vertices_coords[v]));
+    edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
   }
-  const vc_indices = vertices_coords.map((_, i) => i);
-  return edges_coords
-    .map(e => vc_indices
-      .filter(vi => math.core.point_on_segment_exclusive(
-        vertices_coords[vi], e[0], e[1], epsilon
-      )))
-  // as of now, an edge can contain its own vertices as collinear.
-  // need to remove these.
-  // todo: is there a better way? when we build the array originally?
-    .map((cv, i) => cv
-      .filter(vi => edges_vertices[i].indexOf(vi) === -1));
+  return edges_coords.map(coords => {
+    // how many dimensions is each coordinate? ask the first one, coords[0].length
+    const mins = coords[0].map(() => Infinity);
+    const maxs = coords[0].map(() => -Infinity);
+    coords.forEach(coord => coord.forEach((n, i) => {
+      if (n < mins[i]) { mins[i] = n; }
+      if (n > maxs[i]) { maxs[i] = n; }
+    }));
+    return [mins, maxs];
+  });
 };
+export const make_edges_coords_min_max_exclusive = (graph, epsilon = math.core.EPSILON) => {
+  const ep = [+epsilon, -epsilon];
+  return make_edges_coords_min_max(graph)
+    .map(min_max => min_max
+      .map((vec, i) => vec
+        .map(n => n + ep[i])));
+};
+export const make_edges_coords_min_max_inclusive = (graph, epsilon = math.core.EPSILON) => {
+  const ep = [-epsilon, +epsilon];
+  return make_edges_coords_min_max(graph)
+    .map(min_max => min_max
+      .map((vec, i) => vec
+        .map(n => n + ep[i])));
+};
+
 /**
  *
  *    FACES

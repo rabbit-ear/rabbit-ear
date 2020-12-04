@@ -5,8 +5,9 @@ import math from "../math";
 import {
   remove_duplicate_vertices,
   remove_duplicate_edges,
+  remove_circular_edges,
 } from "./clean/index";
-import { make_edges_collinear_vertices } from "./make";
+import get_collinear_vertices from "./clean/vertices_collinear";
 import { make_edges_edges_intersections } from "./intersect_edges";
 import { sort_vertices_along_vector } from "./sort";
 
@@ -54,7 +55,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 
   // check the new edges' vertices against every edge, in case
   // one of the endpoints lies along an edge.
-  const edges_collinear_vertices = make_edges_collinear_vertices({
+  const edges_collinear_vertices = get_collinear_vertices({
     vertices_coords: graph.vertices_coords,
     edges_vertices: graph.edges_vertices,
     edges_coords
@@ -145,10 +146,11 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
   delete graph.faces_faces;
 
   for (var i = 0; i < 20; i++) {
-    const res = fragment_graph(graph, epsilon);
-    if (res === undefined) { break; }
     remove_duplicate_vertices(graph, epsilon / 2);
     remove_duplicate_edges(graph);
+    remove_circular_edges(graph);
+    const res = fragment_graph(graph, epsilon);
+    if (res === undefined) { break; }
   }
   // Object.keys(graph).forEach(key => delete graph[key]);
   // Object.assign(graph, new_graph);
