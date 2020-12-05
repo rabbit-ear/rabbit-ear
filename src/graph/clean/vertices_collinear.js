@@ -19,10 +19,7 @@ import { get_edges_vertices_span } from "../span";
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
  */
-const get_collinear_vertices = function (
-  { vertices_coords, edges_vertices, edges_coords },
-  epsilon = math.core.EPSILON
-) {
+const get_collinear_vertices = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
   if (!edges_coords) {
     edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
   }
@@ -46,24 +43,3 @@ const get_collinear_vertices = function (
 };
 
 export default get_collinear_vertices;
-
-
-
-// // backup
-// const get_collinear_vertices = ({ vertices_coords, edges_vertices, edges_coords }) => {
-//   if (!edges_coords) {
-//     edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
-//   }
-//   const vc_indices = vertices_coords.map((_, i) => i);
-//   return edges_coords
-//     .map(e => vc_indices
-//       .filter(vi => math.core.point_on_segment_exclusive(
-//         vertices_coords[vi], e[0], e[1], epsilon
-//       )))
-//   // as of now, an edge can contain its own vertices as collinear.
-//   // need to remove these.
-//   // todo: is there a better way? when we build the array originally?
-//     .map((cv, i) => cv
-//       .filter(vi => edges_vertices[i].indexOf(vi) === -1));
-
-// };

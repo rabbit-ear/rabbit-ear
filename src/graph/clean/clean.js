@@ -16,6 +16,7 @@ import {
 // };
 
 const clean = function (graph, options = {}) {
+  // okay, bring back duplicate vertices only if we can prevent deletion of vertices_vertices, vertices_edges
   // remove_duplicate_vertices(graph);
   remove_circular_edges(graph);
   remove_duplicate_edges(graph);
@@ -28,7 +29,10 @@ const clean = function (graph, options = {}) {
   //     remove_duplicate_edges(graph);
   //   }
   // }
-  if (options.isolated) { remove_isolated_vertices(graph); }
+  // if (options.isolated) {
+    remove_isolated_vertices(graph);
+  // }
+  return graph;
 };
 
 export default clean;

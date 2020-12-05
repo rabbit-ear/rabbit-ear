@@ -5,11 +5,16 @@ import { isBrowser, isWebWorker, isNode } from "./environment/detect";
 import math from "./math";
 import root from "./root";
 import use from "./use";
-import graph from "./graph";
-// import origami from "./origami";
-// import planarGraph from "./planar_graph";
-// import cp from "./cp";
-
+import graph_methods from "./graph";
+// build objects
+import Constructors from "./constructors";
+// prototypes
+import GraphProto from "./prototypes/graph";
+import PlanarGraphProto from "./prototypes/planar_graph";
+import CreasePatternProto from "./prototypes/crease_pattern";
+// import OrigamiProto from "./prototypes/origami";
+import { file_spec, file_creator } from "./graph/fold_keys";
+import { fold_object_certainty } from "./graph/fold_spec";
 // top level things
 import axiom from "./axioms";
 import text from "./text";
@@ -25,14 +30,32 @@ import text from "./text";
 █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇█
 */
 
-const Ear = Object.assign(root, {
+const ConstructorPrototypes = {
+  graph: GraphProto,
+  planargraph: PlanarGraphProto,
+  origami: GraphProto,
+  cp: CreasePatternProto,
+}
+
+Object.keys(ConstructorPrototypes).forEach(name => {
+  Constructors[name] = function () {
+    // should Graph({vertices_coors:[], ...}) deep copy the argument object?
+    return Object.assign(
+      Object.create(ConstructorPrototypes[name]),
+      ...Array.from(arguments).filter(a => fold_object_certainty(a)),
+      { file_spec, file_creator }
+    );
+  };
+  Constructors[name].prototype = ConstructorPrototypes[name];
+  Constructors[name].prototype.constructor = Constructors[name];
+});
+
+Object.assign(Constructors.graph, graph_methods);
+
+const Ear = Object.assign(root, Constructors, {
   math: math.core,
-  graph,
   axiom,
   text,
-  // planarGraph,
-  // cp,
-  // origami,
 });
 
 Object.defineProperty(Ear, "use", {

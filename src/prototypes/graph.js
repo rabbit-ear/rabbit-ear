@@ -2,60 +2,62 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import setup from "./prototype_components";
+import setup from "./components";
 import {
   fold_keys,
   keys,
   singularize,
   file_spec,
   file_creator,
-} from "./fold_keys";
+} from "../graph/fold_keys";
 import {
   transpose_graph_arrays,
   transpose_graph_array_at_index,
-} from "./fold_spec";
-import clean from "./clean/clean";
-// import rebuild from "./rebuild";
-import populate from "./populate";
+} from "../graph/fold_spec";
+import clean from "../graph/clean/clean";
+import populate from "../graph/populate";
+import fragment from "../graph/fragment";
+import assign from "../graph/assign";
+import subgraph from "../graph/subgraph";
 import {
 //   bounding_rect,
   get_boundary,
-} from "./boundary";
-import transform from "./affine";
+} from "../graph/boundary";
+import transform from "../graph/affine";
+import {
+  make_vertices_vertices_vector,
+} from "../graph/make";
 import {
   nearest_vertex,
   nearest_edge,
   face_containing_point,
-} from "./nearest";
-import clone from "./clone";
+} from "../graph/nearest";
+import clone from "../graph/clone";
 // import changed from "./changed";
 /**
  * Graph - a flat-array, index-based graph with faces, edges, and vertices
  * with ability for vertices to exist in Euclidean space.
  * The naming scheme for keys follows the FOLD format.
  */
-
 const GraphProto = {};
 GraphProto.prototype = Object.create(Object.prototype);
 /**
- * methods that follow the form: func(graph, ...args)
+ * methods where "graph" is the first parameter, followed by ...arguments
+ * func(graph, ...args)
  */
-const graphMethods = {
+const graphMethods = Object.assign({
   clean,
   populate,
-  // rebuild
-};
+  fragment,
+  subgraph,
+  assign,
+},
+  transform,
+);
+
 Object.keys(graphMethods).forEach(key => {
   GraphProto.prototype[key] = function () {
-    graphMethods[key](this, ...arguments);
-  }
-});
-/**
- * transformations
- */
-Object.keys(transform).forEach(key => {
-  GraphProto.prototype[key] = function () {
-    return transform[key](this, ...arguments);
+    return graphMethods[key](this, ...arguments);
   }
 });
 /**
@@ -111,6 +113,14 @@ const getComponent = function (key) {
     get: function () { return getComponent.call(this, key); }
   }));
 
+// get junctions
+Object.defineProperty(GraphProto.prototype, "junctions", {
+  get: function () {
+    return make_vertices_vertices_vector(this)
+      .map(vectors => math.junction(...vectors));
+  }
+});
+// todo: get boundaries, plural
 // get boundary. only if the edges_assignment
 Object.defineProperty(GraphProto.prototype, "boundary", {
   get: function () {

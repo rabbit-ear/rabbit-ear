@@ -1,55 +1,20 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+import math from "../math";
+import GraphProto from "./graph";
+import { get_boundary } from "../graph/boundary";
+import add_vertices from "../graph/add/add_vertices";
+import add_edges from "../graph/add/add_edges";
 /**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.
  * The naming scheme for keys follows the FOLD format.
  */
-import math from "../math";
-import GraphProto from "../graph/prototype";
-import fragment from "../core/fragment";
-import { get_boundary } from "../core/boundary";
-import add_vertices from "../core/add_vertices/add_vertices";
-import add_edges from "../core/add_edges/add_edges";
-// import join from "../core/join";
-
 const CreasePatternProto = {};
 CreasePatternProto.prototype = Object.create(GraphProto);
 
 const arcResolution = 96;
-
-/**
- * methods that follow the form: func(graph, ...args)
- */
-// const methods = {
-//   clean,
-//   populate,
-//   // rebuild
-// };
-// Object.keys(methods).forEach(key => {
-//   CreasePatternProto.prototype[key] = function () {
-//     methods[key](this, ...arguments);
-//     // this.changed.update(this.clean);
-//   }
-// });
-
-/**
- * this performs a planar join, merging the two graphs, fragmenting, cleaning.
- */
-// CreasePatternProto.prototype.join = function (object, epsilon) {
-//   join(this, object, epsilon);
-//   // this.changed.update(this.join);
-// };
-// CreasePatternProto.fragment = function (epsilon = math.core.EPSILON) {
-//   fragment(this, epsilon);
-//   this.changed.update(this.fragment);
-// };
-CreasePatternProto.prototype.fragment = function () {
-  fragment(this, ...arguments);
-  // this.changed.update(this.fragment);
-};
-
 /**
  * @usage bind graph to this
  * @param {number[][]} endpoint coords in this form: [ [x,y(,z)], [x,y(,z)] ]

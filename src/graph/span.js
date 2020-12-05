@@ -2,26 +2,19 @@ import { make_edges_coords_min_max_inclusive } from "./make";
 /**
  * contains methods for fast-approximating if geometry overlaps.
  * for example testing if edge's rectangular bounding boxes overlap.
+ *
+ * @returns {number[][]} array matching edges_ length where each value is
+ * an array matching vertices_ length, containing true/false, answering
+ * the question "does this vertex sit inside the edge's bounding rectangle?"
  */
-export const get_edges_vertices_span = function ({ vertices_coords, edges_vertices, edges_coords },
-  epsilon = math.core.EPSILON
-) {
-  // todo, include edges_coords
-  // if (!edges_coords) {
-  //   edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
-  // }
-  const edges_min_max = make_edges_coords_min_max_inclusive({ vertices_coords, edges_vertices })
-  const edges_span_vertices = edges_min_max.map(() => []);
-  edges_min_max.forEach((min_max, e) => vertices_coords.forEach((vert, v) => {
-    edges_span_vertices[e][v] = (
-      vert[0] > min_max[0][0] - epsilon &&
-      vert[1] > min_max[0][1] - epsilon &&
-      vert[0] < min_max[1][0] + epsilon &&
-      vert[1] < min_max[1][1] + epsilon
-    );
-  }));
-  return edges_span_vertices;
-};
+export const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
+  make_edges_coords_min_max_inclusive(graph)
+    .map((min_max, e) => graph.vertices_coords
+      .map((vert, v) => (
+        vert[0] > min_max[0][0] - epsilon &&
+        vert[1] > min_max[0][1] - epsilon &&
+        vert[0] < min_max[1][0] + epsilon &&
+        vert[1] < min_max[1][1] + epsilon)));
 /**
  * part of an algorithm for segment-segment intersection
  * this answers if it's possible that lines *might* overlap
@@ -36,8 +29,8 @@ export const get_edges_vertices_span = function ({ vertices_coords, edges_vertic
  * 2 [  ,  , t,  ]
  * 3 [  ,  ,  , t]
  */
-export const get_edges_edges_span = ({ vertices_coords, edges_vertices }, epsilon = math.core.EPSILON) => {
-  const min_max = make_edges_coords_min_max_inclusive({ vertices_coords, edges_vertices }, epsilon);
+export const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+  const min_max = make_edges_coords_min_max_inclusive({ vertices_coords, edges_vertices, edges_coords }, epsilon);
   const span_overlaps = edges_vertices.map(() => []);
   // span_overlaps will be false if no overlap possible, true if overlap is possible.
   for (let e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {

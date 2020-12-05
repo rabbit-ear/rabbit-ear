@@ -20,7 +20,7 @@ import get_duplicate_vertices from "./vertices_duplicate";
 // these are simple, removed component have no relationship to persisting components
 // if components are removed, these return arrays with holes
 export const remove_circular_edges = g => remove(g, EDGES, get_circular_edges(g));
-export const remove_isolated_vertices = g => remove(graph, VERTICES, get_isolated_vertices(g));
+export const remove_isolated_vertices = g => remove(g, VERTICES, get_isolated_vertices(g));
 
 // every index is related to a component that persists in the graph.
 // if components are removed, these return arrays WITHOUT holes.
@@ -37,6 +37,7 @@ export const remove_duplicate_edges = (graph) => {
 };
 
 // this is inside of fragment() right now.
+// tbd if this is needed as a stand alone
 // export const remove_collinear_vertices = (graph, epsilon = math.core.EPSILON) => {
 // };
 

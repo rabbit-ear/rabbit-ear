@@ -21,7 +21,7 @@ import fragment from "./fragment";
 import create from "./create";
 // add things
 import add_vertices from "./add/add_vertices";
-import add_vertices_split_edges from "./add/add_vertices_split_edges"; // planar graphs
+import add_vertices_split_edges from "./add/add_vertices_split_edges";
 import add_edges from "./add/add_edges";
 import split_edge from "./add/split_edge";
 import split_face from "./add/split_face";
@@ -42,22 +42,26 @@ import clip_line from "./boundary/clip_line";
 
 // for this function and prototype
 // import * as Create from "../core/create";
-import prototype from "./prototype";
-import { file_spec, file_creator } from "./fold_keys";
+// import prototype from "./prototype";
+// import { file_spec, file_creator } from "./fold_keys";
+// prevent circular dependencies
+// import Constructors from "../constructors";
 
-const Graph = function () {
-  // should Graph({vertices_coors:[], ...}) deep copy the argument object?
-  return Object.assign(
-    Object.create(prototype),
-    ...Array.from(arguments).filter(a => fold_object.fold_object_certainty(a)),
-    { file_spec, file_creator }
-  );
-};
+// const Graph = function () {
+//   // should Graph({vertices_coors:[], ...}) deep copy the argument object?
+//   return Object.assign(
+//     Object.create(prototype),
+//     ...Array.from(arguments).filter(a => fold_object.fold_object_certainty(a)),
+//     { file_spec, file_creator }
+//   );
+// };
+// Constructors.graph = Graph;
 
-Graph.prototype = prototype;
-Graph.prototype.constructor = Graph;
+// Graph.prototype = prototype;
+// Graph.prototype.constructor = Graph;
 
-Object.assign(Graph, {
+// Object.assign(Graph, {
+export default Object.assign(Object.create(null), {
   // modifiers
   assign,
   // add things
@@ -102,4 +106,4 @@ Object.assign(Graph, {
   vertices_isolated,
 );
 
-export default Graph;
+// export default Graph;

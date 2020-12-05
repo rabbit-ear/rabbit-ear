@@ -24,7 +24,7 @@ import { get_edges_edges_span } from "./span";
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
  */
-export const make_edges_edges_intersections = function ({
+export const get_edges_edges_intersections = function ({
   vertices_coords, edges_vertices, edges_vector, edges_origin
 }, epsilon = math.core.EPSILON) {
   if (!edges_vector) {
