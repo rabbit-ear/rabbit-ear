@@ -150,12 +150,15 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
     .filter(key => !(fragment_keep_keys.includes(key)))
     .forEach(key => delete graph[key]);
 
-  for (var i = 0; i < 20; i++) {
+  var i;
+  for (i = 0; i < 20; i++) {
     remove_duplicate_vertices(graph, epsilon / 2);
     remove_duplicate_edges(graph);
     remove_circular_edges(graph);
     const res = fragment_graph(graph, epsilon);
     if (res === undefined) { break; }
+  }
+  if (i === 20) {
     console.warn("debug warning. fragment reached max iterations");
   }
   // Object.keys(graph).forEach(key => delete graph[key]);

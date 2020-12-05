@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import { keys } from "./fold_keys";
 
 export const edges_assignment_degrees = {

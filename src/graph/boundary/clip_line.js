@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../../math";
 import { get_boundary } from "../boundary";
 

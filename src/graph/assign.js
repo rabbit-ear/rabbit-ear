@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../math";
 import count from "./count";
 import add_vertices from "./add/add_vertices";

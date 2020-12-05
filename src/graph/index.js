@@ -40,27 +40,6 @@ import assignment_solver from "./single_vertex/assignment_solver"
 // intersections
 import clip_line from "./boundary/clip_line";
 
-// for this function and prototype
-// import * as Create from "../core/create";
-// import prototype from "./prototype";
-// import { file_spec, file_creator } from "./fold_keys";
-// prevent circular dependencies
-// import Constructors from "../constructors";
-
-// const Graph = function () {
-//   // should Graph({vertices_coors:[], ...}) deep copy the argument object?
-//   return Object.assign(
-//     Object.create(prototype),
-//     ...Array.from(arguments).filter(a => fold_object.fold_object_certainty(a)),
-//     { file_spec, file_creator }
-//   );
-// };
-// Constructors.graph = Graph;
-
-// Graph.prototype = prototype;
-// Graph.prototype.constructor = Graph;
-
-// Object.assign(Graph, {
 export default Object.assign(Object.create(null), {
   // modifiers
   assign,

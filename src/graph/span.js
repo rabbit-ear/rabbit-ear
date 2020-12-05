@@ -1,3 +1,7 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
+import math from "../math";
 import { make_edges_coords_min_max_inclusive } from "./make";
 /**
  * contains methods for fast-approximating if geometry overlaps.
@@ -22,7 +26,7 @@ export const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
  *
  * @returns NxN 2d array filled with true/false answering "do edges overlap
  * in their rectangular bounding boxes?" 
- * The main diagonal contains true. both triangles of the matrix are filled.
+ * both triangles of the matrix are filled with t/f. The main diagonal contains true.
  *     0  1  2  3
  * 0 [ t,  ,  ,  ]
  * 1 [  , t,  ,  ]

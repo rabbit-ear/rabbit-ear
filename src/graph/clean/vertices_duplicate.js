@@ -6,9 +6,9 @@ import math from "../../math";
  * density-based spatial clustering of applications with noise (DBSCAN)
  * cluster vertices near each other with an epsilon
  */
-
-// todo, generalize to n-dimensions
-// permissively ignores anything above 2D
+/**
+ * because epsilons are usually very tiny, this uses a square bounding box
+ */
 const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
   const degree = a.length;
   for (let i = 0; i < degree; i += 1) {
@@ -23,12 +23,9 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
  * an array of vertex indices.
  * if there are no duplicates, it returns [ [0], [1], [2], [3], [4], ... ]
  * if there are it looks like: [ [0, 2], [1], [3], [4, 5]]
- *
- *
  */
-  // clusters is an array of arrays of numbers
-  // each entry in clusters is an array of vertex indices
-
+// clusters is an array of arrays of numbers
+// each entry in clusters is an array of vertex indices
 const get_duplicate_vertices = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
   // equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices
   // only top triangle is used

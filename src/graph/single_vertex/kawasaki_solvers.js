@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../../include/math";
 import split_convex_polygon from "../core/split_face";
 import { make_vertices_edges } from "../core/make";

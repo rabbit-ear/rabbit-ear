@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 export const flat_check_sectors = (sectors, assignments) => {
   
 };

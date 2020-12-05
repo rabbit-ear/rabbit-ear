@@ -19,8 +19,38 @@ import get_duplicate_vertices from "./vertices_duplicate";
 
 // these are simple, removed component have no relationship to persisting components
 // if components are removed, these return arrays with holes
-export const remove_circular_edges = g => remove(g, EDGES, get_circular_edges(g));
-export const remove_isolated_vertices = g => remove(g, VERTICES, get_isolated_vertices(g));
+export const remove_isolated_vertices = graph => {
+  const remove_indices = get_isolated_vertices(graph);
+  return {
+    map: remove(graph, VERTICES, remove_indices),
+    remove: remove_indices,
+  };
+};
+
+export const remove_circular_edges = graph => {
+  const remove_indices = get_circular_edges(graph);
+  if (remove_indices.length) {
+    // remove every instance of a circular edge in every _edge array.
+    // assumption is we can simply remove them because a face that includes
+    // a circular edge is still the same face when you just remove the edge
+    const quick_lookup = {};
+    remove_indices.forEach(n => { quick_lookup[n] = true; });
+    get_graph_keys_with_suffix(graph, EDGES)
+      .forEach(sKey => graph[sKey] // faces_edges or vertices_edges...
+        .forEach((elem, i) => { // faces_edges[0] or faces_edges[1]...
+          // reverse iterate through array, remove elements with splice
+          for (let j = elem.length - 1; j >= 0; j -= 1) {
+            if (quick_lookup[elem[j]] === true) {
+              graph[sKey][i].splice(j, 1);
+            }
+          }
+        }));
+  }
+  return {
+    map: remove(graph, EDGES, remove_indices),
+    remove: remove_indices,
+  };
+};
 
 // every index is related to a component that persists in the graph.
 // if components are removed, these return arrays WITHOUT holes.
@@ -76,10 +106,8 @@ export const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) =>
     .filter(a => a !== undefined)
     .reduce((a, b) => a.concat(b), []);
   return {
-    vertices: {
-      remove: remove_indices,
-      map,
-      // change: map_to_change_map(map),
-    }
+    map,
+    remove: remove_indices,
+    // change: map_to_change_map(map),
   };
 };

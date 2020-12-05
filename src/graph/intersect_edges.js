@@ -24,6 +24,9 @@ import { get_edges_edges_span } from "./span";
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
  */
+
+
+// todo, 
 export const get_edges_edges_intersections = function ({
   vertices_coords, edges_vertices, edges_vector, edges_origin
 }, epsilon = math.core.EPSILON) {
@@ -37,7 +40,12 @@ export const get_edges_edges_intersections = function ({
   const span = get_edges_edges_span({ vertices_coords, edges_vertices }, epsilon);
   for (let i = 0; i < edges_vector.length - 1; i += 1) {
     for (let j = i + 1; j < edges_vector.length; j += 1) {
-      if (span[i][j] !== true) { continue; }
+      if (span[i][j] !== true) {
+        // this setter is unnecessary but otherwise the result is filled with
+        // both undefined and holes. this makes it consistent
+        edges_intersections[i][j] = undefined;
+        continue;
+      }
       edges_intersections[i][j] = math.core.intersect_lines(
         edges_vector[i],
         edges_origin[i],

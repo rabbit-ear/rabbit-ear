@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import { make_vertices_edges } from "../graph/make";
 
 export const maekawa_check = ({ vertices_edges, edges_vertices, edges_assignment }, vertex) => {

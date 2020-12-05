@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import layerSolver from "./layer_solver";
 
 const get_unassigneds = (edges_assignment) => edges_assignment
