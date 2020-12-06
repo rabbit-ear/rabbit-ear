@@ -485,6 +485,7 @@ const get_line = function () {
     ? vector_origin_form(get_vector(args))
     : vector_origin_form(...args.map(a => get_vector(a)));
 };
+const get_ray = get_line;
 const rect_form = (x = 0, y = 0, width = 0, height = 0) => ({
   x, y, width, height
 });
@@ -540,6 +541,7 @@ var getters = /*#__PURE__*/Object.freeze({
   get_vector_of_vectors: get_vector_of_vectors,
   get_segment: get_segment,
   get_line: get_line,
+  get_ray: get_ray,
   rect_form: rect_form,
   get_rect: get_rect,
   get_matrix_3x4: get_matrix_3x4,

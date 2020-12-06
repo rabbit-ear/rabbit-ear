@@ -482,6 +482,7 @@
       ? vector_origin_form(get_vector(args))
       : vector_origin_form(...args.map(a => get_vector(a)));
   };
+  const get_ray = get_line;
   const rect_form = (x = 0, y = 0, width = 0, height = 0) => ({
     x, y, width, height
   });
@@ -536,6 +537,7 @@
     get_vector_of_vectors: get_vector_of_vectors,
     get_segment: get_segment,
     get_line: get_line,
+    get_ray: get_ray,
     rect_form: rect_form,
     get_rect: get_rect,
     get_matrix_3x4: get_matrix_3x4,
@@ -2554,7 +2556,7 @@
   const ellipse = function () { return create("ellipse", arguments); };
   const rect = function () { return create("rect", arguments); };
   const polygon = function () { return create("polygon", arguments); };
-  const line = function () { return create("line", arguments); };
+  const line$1 = function () { return create("line", arguments); };
   const ray = function () { return create("ray", arguments); };
   const segment = function () { return create("segment", arguments); };
   const matrix = function () { return create("matrix", arguments); };
@@ -2565,7 +2567,7 @@
     ellipse,
     rect,
     polygon,
-    line,
+    line: line$1,
     ray,
     segment,
     matrix,
@@ -3303,19 +3305,33 @@
     get_planar_boundary: get_planar_boundary
   });
 
-  const clip_line_in_boundary = ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices }, vector, origin) => {
-    if (!boundaries_vertices) {
-      boundaries_vertices = get_boundary({
-        vertices_edges, edges_vertices, edges_assignment
-      }).vertices;
+  const prepare_clip_func_params = (object, type) => {
+    switch (type) {
+      case "line":
+      case "ray": return [object.vector, object.origin];
+      case "segment": return [object[0], object[1]];
+      default: return [];
     }
-    const poly = boundaries_vertices.map(v => vertices_coords[v]);
-    return math.core.clip_line_in_convex_poly_exclusive(poly, vector, origin);
+  };
+  const clip_line = function (
+    {vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices},
+    line) {
+    const type = math.typeof(line);
+    const func = math.core[`clip_${type}_in_convex_poly_exclusive`];
+    if (func) {
+      if (!boundaries_vertices) {
+        boundaries_vertices = get_boundary({
+          vertices_edges, edges_vertices, edges_assignment
+        }).vertices;
+      }
+      const polygon = boundaries_vertices.map(v => vertices_coords[v]);
+      return func(polygon, ...prepare_clip_func_params(line, type));
+    }
   };
 
   var clip = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    clip_line_in_boundary: clip_line_in_boundary
+    clip_line: clip_line
   });
 
   const nearest_vertex = ({ vertices_coords }, point) => {
@@ -3942,7 +3958,7 @@
     "edges_assignment",
     "edges_foldAngle",
   ];
-  const fragment$1 = (graph, epsilon = math.core.EPSILON) => {
+  const fragment = (graph, epsilon = math.core.EPSILON) => {
     graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
     [VERTICES, EDGES, FACES]
       .map(key => get_graph_keys_with_prefix(graph, key))
@@ -3962,29 +3978,6 @@
     }
     return graph;
   };
-
-  var Constructors$1 = Object.create(null);
-
-  const make_polygon_vertices = i => (i === 4
-    ? [[0, 0], [1, 0], [1, 1], [0, 1]]
-    : math.core.make_regular_polygon(i, 0.5 / Math.sin(Math.PI / i)));
-  const Create = {};
-  const polygon_names = [ null, null, null, "triangle", "square", "pentagon", "hexagon", "heptagon", "octogon", "nonagon", "decagon", "hendecagon", "dodecagon"];
-  [0, 1, 2].forEach(i => { delete polygon_names[i]; });
-  const create_init = graph => Constructors$1.graph(populate(graph));
-  polygon_names.forEach((name, i) => {
-    const arr = Array.from(Array(i));
-    Create[name] = () => create_init({
-      vertices_coords: make_polygon_vertices(i),
-      edges_vertices: arr.map((_, i) => [i, (i + 1) % arr.length]),
-      edges_assignment: arr.map(() => "B"),
-    });
-  });
-  Create.kite = () => create_init({
-    vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
-    edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
-    edges_assignment: ["B","B","B","B","B","B","V","V","F"],
-  });
 
   const clone = function (o) {
     let newO;
@@ -4669,24 +4662,6 @@
       }));
   };
 
-  const prepare_clip_func_params = (object, type) => {
-    switch (type) {
-      case "line":
-      case "ray": return [object.vector, object.origin];
-      case "segment": return [object[0], object[1]];
-      default: return [];
-    }
-  };
-  const clip_line = (graph, line) => {
-    const type = math.typeof(line);
-    const func = math.core[`clip_${type}_in_convex_poly_exclusive`];
-    if (func) {
-      const boundaries_vertices = get_boundary(graph).vertices;
-      const polygon = boundaries_vertices.map(v => graph.vertices_coords[v]);
-      return func(polygon, ...prepare_clip_func_params(line, type));
-    }
-  };
-
   var graph_methods = Object.assign(Object.create(null), {
     assign: assign$1,
     add_vertices,
@@ -4702,17 +4677,15 @@
     get_collinear_vertices,
     count,
     implied: implied_count,
-    fragment: fragment$1,
+    fragment,
     remove: remove_geometry_indices,
     populate,
     subgraph,
     explode_faces,
     layer_solver: get_sectors_layer,
     assignment_solver,
-    clip_line,
   },
     make,
-    Create,
     clip,
     transform,
     boundary,
@@ -4724,6 +4697,8 @@
     remove_methods,
     vertices_isolated,
   );
+
+  var Constructors$1 = Object.create(null);
 
   const vertex_degree = function (v, i) {
     const graph = this;
@@ -4799,7 +4774,7 @@
   const graphMethods = Object.assign({
     clean,
     populate,
-    fragment: fragment$1,
+    fragment,
     subgraph,
     assign: assign$1,
   },
@@ -4880,104 +4855,91 @@
 
   const PlanarGraphProto = {};
   PlanarGraphProto.prototype = Object.create(GraphProto$1);
-  const arcResolution = 32;
-  PlanarGraphProto.prototype.addSegment = function () {
-    const segment = math.core.get_segment(arguments);
-    const vertices_coords = segment;
-    if (!this.vertices_coords) { this.vertices_coords = []; }
-    if (!this.edges_vertices) { this.edges_vertices = []; }
-    const len = this.vertices_coords.length;
-    const edge_vertices = [len, len + 1];
-    this.vertices_coords.push(...vertices_coords);
-    this.edges_vertices.push(edge_vertices);
-    this.fragment();
-  };
-  PlanarGraphProto.prototype.addSegments = function () {
-    const segments = math.core.semi_flatten_arrays(arguments)
-      .map(el => math.core.get_segment(el));
-    console.log("segs", segments);
-    const vertices_coords = segments.reduce((a, b) => a.concat(b), []);
-    if (!this.vertices_coords) { this.vertices_coords = []; }
-    if (!this.edges_vertices) { this.edges_vertices = []; }
-    const len = this.vertices_coords.length;
-    const edges_vertices = Array.from(Array(segments.length))
-      .map((_, i) => [len + i * 2, len + i * 2 + 1]);
-    this.vertices_coords.push(...vertices_coords);
-    this.edges_vertices.push(...edges_vertices);
-    this.fragment();
-  };
+  const arcResolution = 96;
+  ["line", "ray", "segment"].forEach(type => {
+    PlanarGraphProto.prototype[type] = function () {
+      const primitive = math[type](...arguments);
+      if (!primitive) { return; }
+      const segment = clip_line(this, line);
+      if (!segment) { return; }
+      const vertices = add_vertices(this, segment);
+      const edges = add_edges(this, vertices);
+      fragment(this);
+      populate(this);
+    };
+  });
   ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
     PlanarGraphProto.prototype[fName] = function () {
       const primitive = math[fName](...arguments);
       if (!primitive) { return; }
-      this.addSegments(primitive.segments(arcResolution));
+      const segments = primitive.segments(arcResolution)
+        .map(segment => math.segment(segment))
+        .map(segment => clip_line(this, segment))
+        .filter(a => a !== undefined);
+      if (!segments) { return; }
+      segments.forEach(segment => {
+        const vertices = add_vertices(this, segment);
+        const edges = add_edges(this, vertices);
+      });
+      fragment(this);
+      populate(this);
     };
   });
-  var PlanarGraphProto$1 = PlanarGraphProto.prototype;
 
   const CreasePatternProto = {};
   CreasePatternProto.prototype = Object.create(GraphProto$1);
   const arcResolution$1 = 96;
-  const add_segments = function () {
-    const vertices_coords = Array.from(...arguments)
-      .reduce((a, b) => a.concat(b), []);
-    const new_vertices = add_vertices(this, vertices_coords);
-    const edges_vertices = Array.from(Array(new_vertices.length/2))
-      .map((_, i) => [ new_vertices[i * 2], new_vertices[i * 2 + 1] ]);
-    const new_edges = add_edges(this, { edges_vertices });
-    finish_new_edges(this, new_edges);
-    fragment(this, math.core.EPSILON, new_edges);
-  };
-  const make_boundary = (graph) => {
-    const boundary = get_boundary(graph);
-    graph.boundaries_vertices = [boundary.vertices];
-    graph.boundaries_edges = [boundary.edges];
-  };
-  const remove_boundary = (graph) => {
-    delete graph.boundaries_vertices;
-    delete graph.boundaries_edges;
-  };
-  const finish_new_edges = (graph, new_edges) => {
-    if (graph.edges_assignment) {
-      new_edges.forEach(i => { graph.edges_assignment[i] = "U"; });
-    }
-    if (graph.edges_foldAngle) {
-      new_edges.forEach(i => { graph.edges_foldAngle[i] = 0; });
-    }
-  };
-  const clip_segments_in_poly = (poly, segments) => segments
-    .map(seg => math.core.clip_segment_in_convex_poly_exclusive(poly, ...seg))
-    .filter(a => a !== undefined);
-  ["segment", "ray", "line"].forEach((fName) => {
-    CreasePatternProto.prototype[fName] = function () {
-      make_boundary(this);
-      const primitive = arguments[0] instanceof math[fName]
-        ? arguments[0]
-        : math[fName](...arguments);
+  ["line", "ray", "segment"].forEach(type => {
+    CreasePatternProto.prototype[type] = function () {
+      const primitive = math[type](...arguments);
       if (!primitive) { return; }
-      const poly = this.boundaries_vertices[0].map(v => this.vertices_coords[v]);
-      const params = fName === "segment"
-        ? primitive.points
-        : [primitive.vector, primitive.origin];
-      const clip = math.core[`clip_${fName}_in_convex_poly_exclusive`](poly, ...params);
-      add_segments.call(this, [ clip ]);
-      remove_boundary(this);
+      const segment = clip_line(this, line);
+      if (!segment) { return; }
+      const vertices = add_vertices(this, segment);
+      const edges = add_edges(this, vertices);
+      fragment(this);
+      populate(this);
     };
   });
   ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
     CreasePatternProto.prototype[fName] = function () {
-      make_boundary(this);
-      const primitive = arguments[0] instanceof math[fName]
-        ? arguments[0]
-        : math[fName](...arguments);
+      const primitive = math[fName](...arguments);
       if (!primitive) { return; }
-      const poly = this.boundaries_vertices[0].map(v => this.vertices_coords[v]);
-      const segments = clip_segments_in_poly(poly, primitive.segments(arcResolution$1));
-      add_segments.call(this, segments);
-      remove_boundary(this);
+      const segments = primitive.segments(arcResolution$1)
+        .map(segment => math.segment(segment))
+        .map(segment => clip_line(this, segment))
+        .filter(a => a !== undefined);
+      if (!segments) { return; }
+      segments.forEach(segment => {
+        const vertices = add_vertices(this, segment);
+        const edges = add_edges(this, vertices);
+      });
+      fragment(this);
+      populate(this);
     };
   });
   var CreasePatternProto$1 = CreasePatternProto.prototype;
+
+  const make_polygon_vertices = i => (i === 4
+    ? [[0, 0], [1, 0], [1, 1], [0, 1]]
+    : math.core.make_regular_polygon(i, 0.5 / Math.sin(Math.PI / i)));
+  const Create = {};
+  const polygon_names = [ null, null, null, "triangle", "square", "pentagon", "hexagon", "heptagon", "octogon", "nonagon", "decagon", "hendecagon", "dodecagon"];
+  [0, 1, 2].forEach(i => { delete polygon_names[i]; });
+  const create_init = graph => populate(graph);
+  polygon_names.forEach((name, i) => {
+    const arr = Array.from(Array(i));
+    Create[name] = () => create_init({
+      vertices_coords: make_polygon_vertices(i),
+      edges_vertices: arr.map((_, i) => [i, (i + 1) % arr.length]),
+      edges_assignment: arr.map(() => "B"),
+    });
+  });
+  Create.kite = () => create_init({
+    vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
+    edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
+    edges_assignment: ["B","B","B","B","B","B","V","V","F"],
+  });
 
   const axioms$1 = [null,
     math.core.axiom1,
@@ -5028,8 +4990,6 @@
 
   const ConstructorPrototypes = {
     graph: GraphProto$1,
-    planargraph: PlanarGraphProto$1,
-    origami: GraphProto$1,
     cp: CreasePatternProto$1,
   };
   Object.keys(ConstructorPrototypes).forEach(name => {
@@ -5042,6 +5002,11 @@
     };
     Constructors$1[name].prototype = ConstructorPrototypes[name];
     Constructors$1[name].prototype.constructor = Constructors$1[name];
+    Object.keys(Create).forEach(funcName => {
+      Constructors$1[name][funcName] = function () {
+        return Constructors$1[name](Create[funcName](...arguments));
+      };
+    });
   });
   Object.assign(Constructors$1.graph, graph_methods);
   const Ear = Object.assign(root, Constructors$1, {

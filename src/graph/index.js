@@ -18,7 +18,7 @@ import transform from "./affine";
 import subgraph from "./subgraph";
 import explode_faces from "./explode_faces";
 import fragment from "./fragment";
-import create from "./create";
+// import create from "./create";
 // add things
 import add_vertices from "./add/add_vertices";
 import add_vertices_split_edges from "./add/add_vertices_split_edges";
@@ -37,8 +37,6 @@ import * as vertices_isolated from "./clean/vertices_isolated";
 // solvers
 import layer_solver from "./single_vertex/layer_solver"
 import assignment_solver from "./single_vertex/assignment_solver"
-// intersections
-import clip_line from "./boundary/clip_line";
 
 export default Object.assign(Object.create(null), {
   // modifiers
@@ -68,10 +66,9 @@ export default Object.assign(Object.create(null), {
   layer_solver,
   assignment_solver,
   // intersection
-  clip_line,
 },
   make,
-  create,
+  // create,
   clip, // this is not actually used yet!
   transform,
   boundary,

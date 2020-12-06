@@ -16,7 +16,8 @@ const polygon_names = [ null, null, null, "triangle", "square", "pentagon", "hex
 
 [0, 1, 2].forEach(i => { delete polygon_names[i]; });
 
-const create_init = graph => Constructors.graph(populate(graph));
+// const create_init = graph => Constructors.graph(populate(graph));
+const create_init = graph => populate(graph);
 
 // these are all polygons centered at the origin with side-lengths 1.
 polygon_names.forEach((name, i) => {

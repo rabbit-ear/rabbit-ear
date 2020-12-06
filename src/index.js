@@ -15,6 +15,8 @@ import CreasePatternProto from "./prototypes/crease_pattern";
 // import OrigamiProto from "./prototypes/origami";
 import { file_spec, file_creator } from "./graph/fold_keys";
 import { fold_object_certainty } from "./graph/fold_spec";
+// static constructors for prototypes
+import create from "./graph/create";
 // top level things
 import axiom from "./axioms";
 import text from "./text";
@@ -32,8 +34,8 @@ import text from "./text";
 
 const ConstructorPrototypes = {
   graph: GraphProto,
-  planargraph: PlanarGraphProto,
-  origami: GraphProto,
+  // planargraph: PlanarGraphProto,
+  // origami: GraphProto,
   cp: CreasePatternProto,
 }
 
@@ -48,6 +50,12 @@ Object.keys(ConstructorPrototypes).forEach(name => {
   };
   Constructors[name].prototype = ConstructorPrototypes[name];
   Constructors[name].prototype.constructor = Constructors[name];
+  // wrap static constructors with "this" initializer
+  Object.keys(create).forEach(funcName => {
+    Constructors[name][funcName] = function () {
+      return Constructors[name](create[funcName](...arguments));
+    };
+  });
 });
 
 Object.assign(Constructors.graph, graph_methods);
