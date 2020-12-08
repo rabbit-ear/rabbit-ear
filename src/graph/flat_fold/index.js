@@ -3,7 +3,7 @@
  */
 import math from "../../math";
 import split_convex_polygon from "../add/split_face";
-import { foldLayers } from "./faces_layer";
+import { fold_faces_layer } from "./faces_layer";
 import clone from "../clone";
 import Count from "../count";
 import { face_containing_point } from "../nearest";
@@ -14,11 +14,6 @@ import {
   make_faces_coloring_from_matrix,
   make_vertices_coords_folded,
 } from "../make";
-
-import {
-  construction_flip,
-  // construction_fold,
-} from "./construction_frame";
 /**
  * FLAT FOLD THROUGH ALL LAYERS
  *
@@ -198,7 +193,7 @@ const flat_fold = function (
   // return graph;
 
   // get new face layer ordering
-  folded["faces_re:layer"] = foldLayers(
+  folded["faces_re:layer"] = fold_faces_layer(
     folded["faces_re:layer"],
     folded["faces_re:sidedness"]
   );
@@ -267,13 +262,16 @@ const flat_fold = function (
     .reduce((a, b) => a.concat(b), []);
 
   folded["re:construction"] = (split_points.length === 0
-    ? construction_flip(fold_direction)
+    ? {
+        type: "flip",
+        direction: fold_direction
+      }
     : {
-      type: "fold",
-      assignment,
-      direction: fold_direction,
-      edge: two_furthest_points(split_points)
-    });
+        type: "fold",
+        assignment,
+        direction: fold_direction,
+        edge: two_furthest_points(split_points)
+      });
 
   // const folded_frame = {
   //   vertices_coords: make_vertices_coords_folded(

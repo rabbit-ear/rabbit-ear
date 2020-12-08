@@ -4,26 +4,25 @@
 
 /**
 construction frame is what you pass into a fold or crease operation.
-
 origami.cp.fold( {construction_frame} );
-
 this makes it consistent when describing WHAT it is you're doing.
-
 */
-export const line_construction = function (point, vector) {
-  return {
-    line: [point, vector]
-  };
-};
+export const line_construction = (point, vector) => ({
+  line: [point, vector]
+});
 
-export const line_segment_construction = function (point, vector) {
-  return {
-    edge: [
-      point,
-      point.map((p, i) => point[i] + vector[i])
-    ]
-  };
-};
+export const line_segment_construction = (point, vector) => ({
+  edge: [
+    point,
+    point.map((p, i) => point[i] + vector[i])
+  ]});
+
+export const construction_flip = direction_vector => ({
+  type: "flip",
+  direction: direction_vector
+});
+
+export const fold_operation = (isValley, ) => { };
 
 /**
  * "re:construction".type examples: "flip", "fold", "squash", "sink", "pleat"...
@@ -53,24 +52,12 @@ export const line_segment_construction = function (point, vector) {
  * }
  */
 
-export const construction_flip = function (direction_vector) {
-  return {
-    type: "flip",
-    direction: direction_vector
-  };
-};
-
 // export const construction_fold = function (assignment, direction_vector, ) {
 //   return {
 //     type: "fold",
 //     parameters: parameters
 //   };
 // };
-
-
-export const fold_operation = function (isValley, ) {
-
-};
 
 /**
  *  generate a graph["re:construction"] section

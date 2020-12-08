@@ -2706,6 +2706,18 @@
     U: 0,
     u: 0
   };
+  const edges_assignment_names = {
+    M: "mountain",
+    m: "mountain",
+    V: "valley",
+    v: "valley",
+    B: "boundary",
+    b: "boundary",
+    F: "mark",
+    f: "mark",
+    U: "unassigned",
+    u: "unassigned"
+  };
   const edge_assignment_to_foldAngle = assignment =>
     edges_assignment_degrees[assignment] || 0;
   const edge_foldAngle_to_assignment = (a) => {
@@ -2757,6 +2769,7 @@
   var fold_object = /*#__PURE__*/Object.freeze({
     __proto__: null,
     edges_assignment_degrees: edges_assignment_degrees,
+    edges_assignment_names: edges_assignment_names,
     edge_assignment_to_foldAngle: edge_assignment_to_foldAngle,
     edge_foldAngle_to_assignment: edge_foldAngle_to_assignment,
     filter_keys_with_suffix: filter_keys_with_suffix,
@@ -4352,31 +4365,18 @@
     };
   };
 
-  const foldLayers = function (faces_layer, faces_folding) {
-    const folding_i = faces_layer
-      .map((el, i) => (faces_folding[i] ? i : undefined))
-      .filter(a => a !== undefined);
-    const not_folding_i = faces_layer
-      .map((el, i) => (!faces_folding[i] ? i : undefined))
-      .filter(a => a !== undefined);
-    const sorted_folding_i = folding_i.slice()
-      .sort((a, b) => faces_layer[a] - faces_layer[b]);
-    const sorted_not_folding_i = not_folding_i.slice()
-      .sort((a, b) => faces_layer[a] - faces_layer[b]);
+  const fold_faces_layer = (faces_layer, faces_folding) => {
     const new_faces_layer = [];
-    sorted_not_folding_i.forEach((layer, i) => { new_faces_layer[layer] = i; });
-    const topLayer = sorted_not_folding_i.length;
-    sorted_folding_i.reverse().forEach((layer, i) => {
-      new_faces_layer[layer] = topLayer + i;
-    });
+    const arr = faces_layer.map((_, i) => i);
+    const folding = arr.filter(i => faces_folding[i]);
+    const not_folding = arr.filter(i => !faces_folding[i]);
+    not_folding
+      .sort((a, b) => faces_layer[a] - faces_layer[b])
+      .forEach((face, i) => { new_faces_layer[face] = i; });
+    folding
+      .sort((a, b) => faces_layer[b] - faces_layer[a])
+      .forEach((face, i) => { new_faces_layer[face] = not_folding.length + i; });
     return new_faces_layer;
-  };
-
-  const construction_flip = function (direction_vector) {
-    return {
-      type: "flip",
-      direction: direction_vector
-    };
   };
 
   const get_face_sidedness = (vector, origin, face_center, face_color) => {
@@ -4490,7 +4490,7 @@
         };
       })
       .reverse();
-    folded["faces_re:layer"] = foldLayers(
+    folded["faces_re:layer"] = fold_faces_layer(
       folded["faces_re:layer"],
       folded["faces_re:sidedness"]
     );
@@ -4533,13 +4533,16 @@
       .filter(a => a !== undefined)
       .reduce((a, b) => a.concat(b), []);
     folded["re:construction"] = (split_points.length === 0
-      ? construction_flip(fold_direction)
+      ? {
+          type: "flip",
+          direction: fold_direction
+        }
       : {
-        type: "fold",
-        assignment,
-        direction: fold_direction,
-        edge: two_furthest_points(split_points)
-      });
+          type: "fold",
+          assignment,
+          direction: fold_direction,
+          edge: two_furthest_points(split_points)
+        });
     folded.faces_matrix = folded_faces_matrix;
     folded["vertices_re:foldedCoords"] = make_vertices_coords_folded(
       folded,

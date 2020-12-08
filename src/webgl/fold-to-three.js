@@ -6,7 +6,7 @@ const { THREE } = window;
 // if three doesn't exist, throw an error
 
 // const make_faces_geometry = (graph, material) => {
-const make_faces_geometry = (graph) => {
+export const make_faces_geometry = (graph) => {
   const geometry = new THREE.BufferGeometry();
   const vertices = graph.vertices_coords
     .map(v => [v[0], v[1], v[2] || 0])
@@ -29,8 +29,6 @@ const make_faces_geometry = (graph) => {
   geometry.setIndex(faces);
   return geometry;
 };
-  // if (material == undefined) { material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
-  // return new THREE.Mesh(geometry, material);
 
 const make_edge_cylinder = (edge_coords, edge_vector, radius) => {
   if (math.core.magSq(edge_vector) < math.core.EPSILON) { throw "degenerate edge"; }
@@ -45,14 +43,13 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius) => {
   for (let i = 1; i < 4; i += 1) {
     rotated.push(ear.math.normalize(math.core.cross3(rotated[i-1], normalized)));
   }
-  const dirs = rotated
-    .map(v => ear.math.scale(v, radius));
+  const dirs = rotated.map(v => ear.math.scale(v, radius));
   return edge
     .map(v => dirs.map(dir => math.core.add(v, dir)))
     .reduce(fn_cat, []);
-}
+};
 
-const make_edges_geometry = function ({
+export const make_edges_geometry = function ({
   vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
 }, scale=0.002) {
   if (!edges_coords) {
@@ -129,10 +126,3 @@ const make_edges_geometry = function ({
   geometry.computeVertexNormals();
   return geometry;
 };
-
-//   var material = new THREE.MeshToonMaterial( {
-//       shininess: 0,
-//       side: THREE.DoubleSide, vertexColors: THREE.VertexColors
-//   } );
-//   return new THREE.Mesh(geometry, material);
-// }

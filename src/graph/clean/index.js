@@ -66,8 +66,7 @@ export const remove_duplicate_edges = (graph) => {
   };
 };
 
-// this is inside of fragment() right now.
-// tbd if this is needed as a stand alone
+// todo
 // export const remove_collinear_vertices = (graph, epsilon = math.core.EPSILON) => {
 // };
 

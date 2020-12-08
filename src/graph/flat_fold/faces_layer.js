@@ -1,55 +1,33 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-
 /**
- * Each of these should return an array of Edges
- *
- * Each of the axioms create full-page crease lines
- *  ending at the boundary; in non-convex paper, this
- *  could result in multiple edges
- */
-
-// "re:boundaries_vertices" = [[5,3,9,7,6,8,1,2]];
-// "faces_re:matrix" = [[1,0,0,1,0,0]];
-
-/**
- * this builds a new faces_layer array. it first separates the folding
- * faces from the non-folding, using faces_folding, an array of [t,f].
+ * @description this builds a new faces_layer array. it first separates the
+ * folding faces from the non-folding using faces_folding, an array of [t,f].
  * it flips the folding faces over, appends them to the non-folding ordering,
  * and (re-indexes/normalizes) all the z-index values to be the minimum
  * whole number set starting with 0.
+ *
+ * @param {number[]} each index is a face, each value is the z-layer order.
+ * @param {boolean[]} each index is a face, T/F will the face be folded over?
+ * @returns {number[]} each index is a face, each value is the z-layer order.
  */
-export const foldLayers = function (faces_layer, faces_folding) {
-  const folding_i = faces_layer
-    .map((el, i) => (faces_folding[i] ? i : undefined))
-    .filter(a => a !== undefined);
-  const not_folding_i = faces_layer
-    .map((el, i) => (!faces_folding[i] ? i : undefined))
-    .filter(a => a !== undefined);
-  const sorted_folding_i = folding_i.slice()
-    .sort((a, b) => faces_layer[a] - faces_layer[b]);
-  const sorted_not_folding_i = not_folding_i.slice()
-    .sort((a, b) => faces_layer[a] - faces_layer[b]);
+export const fold_faces_layer = (faces_layer, faces_folding) => {
   const new_faces_layer = [];
-  sorted_not_folding_i.forEach((layer, i) => { new_faces_layer[layer] = i; });
-  const topLayer = sorted_not_folding_i.length;
-  sorted_folding_i.reverse().forEach((layer, i) => {
-    new_faces_layer[layer] = topLayer + i;
-  });
+  // filter face indices into two arrays, those folding and not folding
+  const arr = faces_layer.map((_, i) => i);
+  const folding = arr.filter(i => faces_folding[i]);
+  const not_folding = arr.filter(i => !faces_folding[i]);
+  // sort all the non-folding indices by their current layer, bottom to top,
+  // give each face index a new layering index.
+  // compress whatever current layer numbers down into [0...n]
+  not_folding
+    .sort((a, b) => faces_layer[a] - faces_layer[b])
+    .forEach((face, i) => { new_faces_layer[face] = i; })
+  // sort the folding faces in reverse order (flip them), compress their
+  // layers down into [0...n] and and set each face to this layer index
+  folding
+    .sort((a, b) => faces_layer[b] - faces_layer[a]) // reverse order here
+    .forEach((face, i) => { new_faces_layer[face] = not_folding.length + i; });
   return new_faces_layer;
 };
-
-
-// let sector_angles = function(graph, vertex) {
-//  let adjacent = origami.cp.vertices_vertices[vertex];
-//  let vectors = adjacent.map(v => [
-//    origami.cp.vertices_coords[v][0] - origami.cp.vertices_coords[vertex][0],
-//    origami.cp.vertices_coords[v][1] - origami.cp.vertices_coords[vertex][1]
-//  ]);
-//  let vectors_as_angles = vectors.map(v => Math.atan2(v[1], v[0]));
-//  return vectors.map((v,i,arr) => {
-//    let nextV = arr[(i+1)%arr.length];
-//    return math.core.counter_clockwise_angle2(v, nextV);
-//  });
-// }
