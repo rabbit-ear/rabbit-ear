@@ -15,18 +15,18 @@ export const edges_assignment_degrees = {
   U: 0,
   u: 0
 };
-// export const edges_assignment_names = {
-//   M: "mountain",
-//   m: "mountain",
-//   V: "valley",
-//   v: "valley",
-//   B: "boundary",
-//   b: "boundary",
-//   F: "mark",
-//   f: "mark",
-//   U: "unassigned",
-//   u: "unassigned"
-// };
+export const edges_assignment_names = {
+  M: "mountain",
+  m: "mountain",
+  V: "valley",
+  v: "valley",
+  B: "boundary",
+  b: "boundary",
+  F: "mark",
+  f: "mark",
+  U: "unassigned",
+  u: "unassigned"
+};
 /**
  * @param {string} one edge assignment letter, any case: M V B F U
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.

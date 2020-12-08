@@ -22,7 +22,7 @@ const arcResolution = 96;
   CreasePatternProto.prototype[type] = function () {
     const primitive = math[type](...arguments);
     if (!primitive) { return; }
-    const segment = clip_line(this, line);
+    const segment = clip_line(this, primitive);
     if (!segment) { return; }
     const vertices = add_vertices(this, segment);
     const edges = add_edges(this, vertices);

@@ -4893,7 +4893,7 @@
     CreasePatternProto.prototype[type] = function () {
       const primitive = math[type](...arguments);
       if (!primitive) { return; }
-      const segment = clip_line(this, line);
+      const segment = clip_line(this, primitive);
       if (!segment) { return; }
       const vertices = add_vertices(this, segment);
       const edges = add_edges(this, vertices);
@@ -4996,7 +4996,9 @@
     Constructors$1[name] = function () {
       return Object.assign(
         Object.create(ConstructorPrototypes[name]),
-        ...Array.from(arguments).filter(a => fold_object_certainty(a)),
+        ...Array.from(arguments)
+          .filter(a => fold_object_certainty(a))
+          .map(obj => JSON.parse(JSON.stringify(obj))),
         { file_spec, file_creator }
       );
     };

@@ -41,10 +41,11 @@ const ConstructorPrototypes = {
 
 Object.keys(ConstructorPrototypes).forEach(name => {
   Constructors[name] = function () {
-    // should Graph({vertices_coors:[], ...}) deep copy the argument object?
     return Object.assign(
       Object.create(ConstructorPrototypes[name]),
-      ...Array.from(arguments).filter(a => fold_object_certainty(a)),
+      ...Array.from(arguments)
+        .filter(a => fold_object_certainty(a))
+        .map(obj => JSON.parse(JSON.stringify(obj))), // deep copy input graph
       { file_spec, file_creator }
     );
   };
