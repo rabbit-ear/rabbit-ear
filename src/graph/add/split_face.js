@@ -113,16 +113,20 @@ const split_convex_face = (graph, face, vector, origin) => {
     el.edge = edge_map[el.edge];
     // split the edge (modifying the graph), and store the changes so that during
     // the next loop the second edge to split will be updated to the new index
-    const result = split_edge(graph, el.edge, el.coords);
-    // store changes to the graph for future iterations
-    changes.push(result);
+		const result = split_edge(graph, el.edge, el.coords);
+    // these update normally
+		if (i === 1) {
+		  console.log("second round", changes[0], result.edges.map);
+		}
+    changes.forEach(prev => [0, 1].forEach((_, i) => {
+			prev.edges.replace.new[i] = result.edges.map[prev.edges.replace.new[i]];
+		//  prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
+    }));
     // update the other details of the changes
     // "old" is the index before the operation. update it to relate to the current graph
-    result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
-    // these update normally
-    changes.forEach(prev => [0, 1].forEach((_, i) => {
-      prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
-    }));
+		result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
+    // store changes to the graph for future iterations
+    changes.push(result);
   });
   vertices.push(...changes.map(result => result.vertex));
   // the indices of our new components

@@ -68,6 +68,11 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
     edges_vertices: graph.edges_vertices,
     edges_coords
   }, epsilon);
+  // exit early
+  if (edges_intersections.reduce(fn_cat, []).filter(fn_def).length === 0 &&
+  edges_collinear_vertices.reduce(fn_cat, []).filter(fn_def).length === 0) {
+    return;
+  }
   // remember, edges_intersections contains intersections [x,y] points
   // each one appears twice (both edges that intersect) and is the same
   // object, shallow pointer.
@@ -77,11 +82,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   // when we get to the second appearance of the same point, it will have
   // been replaced with the index, so we can skip it. (check length of
   // item, 2=point, 1=index)
-  if (edges_intersections.reduce(fn_cat, []).filter(fn_def).length === 0 &&
-  edges_collinear_vertices.reduce(fn_cat, []).filter(fn_def).length === 0) {
-    return;
-  }
-
+  const counts = { vertices: graph.vertices_coords.length };
   // add new vertices (intersection points) to the graph
   edges_intersections
     .forEach(edge => edge
@@ -104,14 +105,18 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 
   const edges_intersections_flat = edges_intersections
     .map(arr => arr.filter(fn_def));
-
+  // add lists of vertices into each element in edges_vertices
+  // edges verts now contains an illegal arrangement of more than 2 verts
+  // to be resolved below
   graph.edges_vertices.forEach((verts, i) => verts
     .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
     // .push(...edges_intersections_flat[i]));
 
   graph.edges_vertices.forEach((edge, i) => {
-    graph.edges_vertices[i] = sort_vertices_along_vector({ vertices_coords: graph.vertices_coords }, edge, edges_vector[i]);
-  })
+    graph.edges_vertices[i] = sort_vertices_along_vector({
+      vertices_coords: graph.vertices_coords
+    }, edge, edges_vector[i]);
+  });
 
   // edge_map is length edges_vertices in the new, fragmented graph.
   // the value at each index is the edge that this edge was formed from.
@@ -130,7 +135,16 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   if (graph.edges_foldAngle) {
     graph.edges_foldAngle = edge_map.map(i => graph.edges_foldAngle[i] || 0);
   }
-  return graph;
+  return {
+    vertices: {
+      new: Array.from(Array(graph.vertices_coords.length - counts.vertices))
+        .map((_, i) => counts.vertices + i),
+    },
+    edges: {
+      backmap: edge_map
+    }
+  };
+  // return graph;
 };
 
 const fragment_keep_keys = [

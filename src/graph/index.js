@@ -9,6 +9,7 @@ import * as nearest from "./nearest";
 import * as fold_object from "./fold_spec";
 import * as sort from "./sort";
 import * as span from "./span";
+import * as maps from "./maps";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
@@ -25,7 +26,7 @@ import add_vertices_split_edges from "./add/add_vertices_split_edges";
 import add_edges from "./add/add_edges";
 import split_edge from "./add/split_edge";
 import split_face from "./add/split_face";
-import flat_fold from "./flat_fold";
+import flat_fold from "./flat_fold/index";
 // clean things
 import * as remove_methods from "./clean/index"
 import clean from "./clean/clean";
@@ -77,6 +78,7 @@ export default Object.assign(Object.create(null), {
   fold_object,
   sort,
   span,
+  maps,
   // clean things
   remove_methods,
   vertices_isolated,

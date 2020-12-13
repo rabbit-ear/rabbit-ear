@@ -12,8 +12,8 @@
 import { isBrowser, isWebWorker, isNode } from "./environment/detect";
 import math from "./math";
 import root from "./root";
-import use from "./use";
-import graph_methods from "./graph";
+import use from "./use/index";
+import graph_methods from "./graph/index";
 // build objects
 import Constructors from "./constructors";
 // prototypes
@@ -26,8 +26,8 @@ import { fold_object_certainty } from "./graph/fold_spec";
 // static constructors for prototypes
 import create from "./graph/create";
 // top level things
-import axiom from "./axioms";
-import text from "./text";
+import axiom from "./axioms/index";
+import text from "./text/index";
 
 const ConstructorPrototypes = {
   graph: GraphProto,

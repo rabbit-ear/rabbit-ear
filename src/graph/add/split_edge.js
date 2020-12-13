@@ -190,8 +190,17 @@ const split_edge = function (graph, old_edge, coords) {
   }
   // todo: copy over edgeOrders. don't need to do this with faceOrders
   // remove old data
+	// todo: make the map include the new data
+	// shift the map over to the new format
   const edge_map = remove(graph, EDGES, [ old_edge ]);
-  return {
+	// we had to run "remove" with the new edges added. to return the change info,
+	// we need to adjust the map to exclude these edges.
+	// we can count on new_edges being sorted
+	// new_edges.reverse().forEach(i => edge_map.splice(i, 1));
+  // new_edges.forEach((_, i) => { new_edges[i] = new_edges[i] - 1; });
+  new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
+	edge_map.splice(-2);
+	return {
     vertex,
     edges: {
       map: edge_map,
@@ -199,6 +208,12 @@ const split_edge = function (graph, old_edge, coords) {
         old: old_edge,
         new: new_edges,
       },
+			remove: {
+				map: edge_map,
+			},
+			add: {
+        map: new_edges,
+			},
     },
   };
 };
