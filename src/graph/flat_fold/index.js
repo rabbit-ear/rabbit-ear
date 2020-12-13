@@ -117,22 +117,13 @@ const flat_fold = function (
   vector = math.core.resize(3, vector);
   point = math.core.resize(3, point);
 
-  // prepare_extensions(graph);
   prepare_graph_crease(graph, vector, point, face_index);
-
-  // console.log("done preparing", JSON.parse(JSON.stringify(graph)));
-
   const folded = clone(graph);
-
   folded.vertices_coords.forEach(coord => coord.splice(2));
-
-  // console.log('graph["faces_re:creases"]', graph["faces_re:creases"]);
-  // console.log("graph.faces_matrix", graph.faces_matrix);
-
   // one by one, pair up each face with each (reflected) crease line,
   // if they intersect, chop the face into 2,
   // becoming an array of {} or undefined, whether the face was split or not
-  // because split_convex_polygon() calls Graph.remove_faces() we need to
+  // because split_convex_polygon() calls remove() on faces we need to
   // iterate through the faces in reverse order.
   const faces_split = Array.from(Array(Count.faces(graph)))
     .map((_, i) => i)
@@ -142,62 +133,44 @@ const flat_fold = function (
       // differently from before. are other properties needing similar treatment?
       // faces_center?
       const face_color = folded.faces_coloring[i];
-      const diff = split_convex_polygon(
-        folded, i,
+      const change = split_convex_polygon(
+        folded,
+				i,
         folded["faces_re:creases"][i].vector,
         folded["faces_re:creases"][i].origin,
       );
-      // console.log("split convex polygon diff", diff);
-      if (diff === undefined) { return undefined; }
+      // console.log("split convex polygon change", change);
+      if (change === undefined) { return undefined; }
       // todo: assign the new edge this assignment
       // folded.faces_coloring[i] ? assignment : opposite_crease
-      if (diff.edges.new && diff.edges.new.length) {
-        const new_edge = diff.edges.new[0];
-        folded.edges_assignment[new_edge] = face_color
-          ? assignment
-          : opposite_crease;
-        folded.edges_foldAngle[new_edge] = face_color
-          ? edges_assignment_degrees[assignment] || 0
-          : edges_assignment_degrees[opposite_crease] || 0;
-      }
-
-      // console.log("diff", diff);
-      diff.faces.replace.forEach(replace => replace.new
-        // .map(el => el.index)
-        // seems like i don't need this anymore, split_face already does this
-        // .map(index => index + diff.faces.map[index])
-        // new indices post-face removal
-        .forEach((i) => {
-          folded.faces_center[i] = make_face_center_fast(folded, i);
-          folded["faces_re:sidedness"][i] = get_face_sidedness(
-            graph["faces_re:creases"][replace.old].vector,
-            graph["faces_re:creases"][replace.old].origin,
-            folded.faces_center[i],
-            graph.faces_coloring[replace.old]
-          );
-          folded["faces_re:layer"][i] = graph["faces_re:layer"][replace.old];
-          folded["faces_re:preindex"][i] =
-            graph["faces_re:preindex"][replace.old];
-        }));
-      return {
-        index: i,
-        // length: diff.edges.new[0].length,
-        edge: folded.edges_vertices[diff.edges.new[0]]
-          .map(v => folded.vertices_coords[v])
-      };
+      folded.edges_assignment[change.edges.new] = face_color
+        ? assignment
+        : opposite_crease;
+      folded.edges_foldAngle[change.edges.new] = face_color
+        ? edges_assignment_degrees[assignment] || 0
+        : edges_assignment_degrees[opposite_crease] || 0;
+			// these are the two faces that replaced the removed face after the split
+			const new_faces = change.faces.map[change.faces.remove];
+			new_faces.forEach((f) => {
+				folded.faces_center[f] = make_face_center_fast(folded, f);
+				folded["faces_re:sidedness"][f] = get_face_sidedness(
+				  graph["faces_re:creases"][change.faces.remove].vector,
+					graph["faces_re:creases"][change.faces.remove].origin,
+					folded.faces_center[f],
+					graph.faces_coloring[change.faces.remove]
+				);
+				folded["faces_re:layer"][f] = graph["faces_re:layer"][change.faces.remove];
+				folded["faces_re:preindex"][f] = graph["faces_re:preindex"][change.faces.remove];
+			});
+			return change;
     })
-    .reverse(); // reverse a reverse. back to ordering 0,1,2,3,4...
-
-
-  // console.log(folded);
-  // return graph;
+    .reverse(); // reverse a reverse
 
   // get new face layer ordering
   folded["faces_re:layer"] = fold_faces_layer(
     folded["faces_re:layer"],
     folded["faces_re:sidedness"]
   );
-
   // build new face matrices for the folded state. use face 0 as reference
   // we need its original matrix, and if face 0 was split we need to know
   // which of its two new faces doesn't move as the new faces matrix
@@ -256,8 +229,13 @@ const flat_fold = function (
   // matrices so the lines lie on top of one another
   // use that to get the longest-spanning edge that clips through all faces
   const split_points = faces_split
-    .map((el, i) => (el === undefined ? undefined : el.edge.map(p => math.core
-      .multiply_matrix3_vector3(graph.faces_matrix[i], p))))
+    .map((change, i) => (change === undefined
+		  ? undefined
+			: folded.edges_vertices[change.edges.new]
+				.map(v => folded.vertices_coords[v])
+				.map(p => math.core.multiply_matrix3_vector3(graph.faces_matrix[i], p))))
+			//: edge.map(p => math.core
+      //.multiply_matrix3_vector3(graph.faces_matrix[i], p))))
     .filter(a => a !== undefined)
     .reduce((a, b) => a.concat(b), []);
 

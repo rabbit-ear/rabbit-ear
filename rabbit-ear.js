@@ -3417,18 +3417,6 @@
     get_edges_edges_span: get_edges_edges_span
   });
 
-  const merge_maps = (...maps) => {
-    if (maps.length === 0) { return; }
-    const solution = Array.from(Array(maps[0].length)).map((_, i) => i);
-    maps.forEach(map => {
-      let bi = 0;
-      solution.forEach((n, i) => {
-        solution[i] = (n === null || n === undefined) ? null : map[bi];
-        bi += (n === null || n === undefined) ? 0 : 1;
-      });
-    });
-    return solution;
-  };
   const merge_simple_nextmaps = (...maps) => {
     if (maps.length === 0) { return; }
   	const solution = maps[0].map((_, i) => i);
@@ -3466,24 +3454,21 @@
   	});
   	return solution;
   };
-  const not_empty = el => (el !== null && el !== undefined);
-  const reverse_maps = (...maps) => {
-    if (maps.length === 0) { return; }
-    let solution = Array.from(Array(maps[0].length)).map((_, i) => i);
-    maps.forEach(map => {
-      solution = solution.filter((n, i) => not_empty(map[i]));
-    });
-    return solution;
+  const invert_map = (map) => {
+  	const b = [];
+  	map.forEach((n, i) => {
+  		if (typeof n === "number") { b[n] = i; }
+  	});
+  	return b;
   };
 
   var maps = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    merge_maps: merge_maps,
     merge_simple_nextmaps: merge_simple_nextmaps,
     merge_nextmaps: merge_nextmaps,
     merge_simple_backmaps: merge_simple_backmaps,
     merge_backmaps: merge_backmaps,
-    reverse_maps: reverse_maps
+    invert_map: invert_map
   });
 
   const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
@@ -3502,18 +3487,24 @@
     array.forEach((int) => { keys[int] = true; });
     return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
   };
+  const invert_array = (a) => {
+  	const b = [];
+  	a.forEach((n, i) => { b[n] = i; });
+  	return b;
+  };
 
   const remove_geometry_indices = (graph, key, removeIndices) => {
-    const geometry_array_size = count[key](graph);
+    const geometry_array_size = count(graph, key);
     const removes = unique_sorted_integers(removeIndices);
     const index_map = [];
     let i, j, walk;
     for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
       while (i === removes[walk]) {
+  			index_map[i] = undefined;
         i += 1;
         walk += 1;
       }
-      index_map[i] = j;
+      if (i < geometry_array_size) { index_map[i] = j; }
     }
     get_graph_keys_with_suffix(graph, key)
       .forEach(sKey => graph[sKey]
@@ -4275,9 +4266,13 @@
     if (!coords) {
       coords = math.core.midpoint(...incident_vertices);
     }
-    const vertex = add_vertices(graph, [coords])
-      .shift();
-    const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
+    const similar = incident_vertices.map(v => graph.vertices_coords[v])
+  	  .map(vert => math.core.distance(vert, coords) < math.core.EPSILON);
+  	if (similar[0]) { return { vertex: incident_vertices[0], edges: {} }; }
+  	if (similar[1]) { return { vertex: incident_vertices[1], edges: {} }; }
+  	const vertex = graph.vertices_coords.length;
+  	graph.vertices_coords[vertex] = coords;
+  	const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
     split_edge_into_two(graph, old_edge, vertex)
       .forEach((edge, i) => Object.keys(edge)
         .forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
@@ -4292,20 +4287,12 @@
     const edge_map = remove_geometry_indices(graph, EDGES, [ old_edge ]);
     new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
   	edge_map.splice(-2);
+  	edge_map[old_edge] = new_edges;
   	return {
       vertex,
       edges: {
         map: edge_map,
-        replace: {
-          old: old_edge,
-          new: new_edges,
-        },
-  			remove: {
-  				map: edge_map,
-  			},
-  			add: {
-          map: new_edges,
-  			},
+        remove: old_edge,
       },
     };
   };
@@ -4394,19 +4381,8 @@
     const vertices = intersect.vertices.map(el => el.vertex);
     const changes = [];
     intersect.edges.map((el, i, arr) => {
-      const edge_map = changes.length
-        ? merge_maps(...changes.map(r => r.edges.map))
-        : Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
-      el.edge = edge_map[el.edge];
-  		const result = split_edge(graph, el.edge, el.coords);
-  		if (i === 1) {
-  		  console.log("second round", changes[0], result.edges.map);
-  		}
-      changes.forEach(prev => [0, 1].forEach((_, i) => {
-  			prev.edges.replace.new[i] = result.edges.map[prev.edges.replace.new[i]];
-      }));
-  		result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
-      changes.push(result);
+  		el.edge = changes.length ? changes[0].edges.map[el.edge] : el.edge;
+  		changes.push(split_edge(graph, el.edge, el.coords));
     });
     vertices.push(...changes.map(result => result.vertex));
     const edge = graph.edges_vertices.length;
@@ -4417,28 +4393,28 @@
       .forEach((key) => { graph[key][edge] = new_edge[key]; });
     update_vertices_vertices$1(graph, edge);
     const new_faces = make_faces(graph, face, vertices);
-    const faces_map = remove_geometry_indices(graph, "faces", [face]);
+  	const faces_map = remove_geometry_indices(graph, "faces", [face]);
     new_faces.forEach((new_face, i) => Object.keys(new_face)
       .filter(key => graph[key] !== undefined)
       .forEach((key) => { graph[key][faces[i]] = new_face[key]; }));
     graph.vertices_faces = make_vertices_faces(graph);
     graph.edges_faces = make_edges_faces(graph);
     graph.faces_faces = make_faces_faces(graph);
+  	if (changes.length === 2) {
+  	  const inverse_map = invert_array(changes[0].edges.map);
+  		changes[1].edges.remove = inverse_map[changes[1].edges.remove];
+  	}
+  	faces_map[face] = faces;
     return {
       vertices,
       faces: {
         map: faces_map,
-        replace: [{
-          old: face,
-          new: faces,
-        }]
+        remove: face,
       },
       edges: {
-        new: [edge],
-        map: merge_maps(...changes.map(res => res.edges.map)),
-        replace: changes
-          .map(res => res.edges.replace)
-          .reduce((a, b) => a.concat(b), []),
+        map: merge_nextmaps(...changes.map(res => res.edges.map)),
+        new: edge,
+  			remove: changes.map(el => el.edges.remove),
       }
     };
   };
@@ -4533,39 +4509,32 @@
       .reverse()
       .map((i) => {
         const face_color = folded.faces_coloring[i];
-        const diff = split_convex_face(
-          folded, i,
+        const change = split_convex_face(
+          folded,
+  				i,
           folded["faces_re:creases"][i].vector,
           folded["faces_re:creases"][i].origin,
         );
-        if (diff === undefined) { return undefined; }
-        if (diff.edges.new && diff.edges.new.length) {
-          const new_edge = diff.edges.new[0];
-          folded.edges_assignment[new_edge] = face_color
-            ? assignment
-            : opposite_crease;
-          folded.edges_foldAngle[new_edge] = face_color
-            ? edges_assignment_degrees[assignment] || 0
-            : edges_assignment_degrees[opposite_crease] || 0;
-        }
-        diff.faces.replace.forEach(replace => replace.new
-          .forEach((i) => {
-            folded.faces_center[i] = make_face_center_fast(folded, i);
-            folded["faces_re:sidedness"][i] = get_face_sidedness(
-              graph["faces_re:creases"][replace.old].vector,
-              graph["faces_re:creases"][replace.old].origin,
-              folded.faces_center[i],
-              graph.faces_coloring[replace.old]
-            );
-            folded["faces_re:layer"][i] = graph["faces_re:layer"][replace.old];
-            folded["faces_re:preindex"][i] =
-              graph["faces_re:preindex"][replace.old];
-          }));
-        return {
-          index: i,
-          edge: folded.edges_vertices[diff.edges.new[0]]
-            .map(v => folded.vertices_coords[v])
-        };
+        if (change === undefined) { return undefined; }
+        folded.edges_assignment[change.edges.new] = face_color
+          ? assignment
+          : opposite_crease;
+        folded.edges_foldAngle[change.edges.new] = face_color
+          ? edges_assignment_degrees[assignment] || 0
+          : edges_assignment_degrees[opposite_crease] || 0;
+  			const new_faces = change.faces.map[change.faces.remove];
+  			new_faces.forEach((f) => {
+  				folded.faces_center[f] = make_face_center_fast(folded, f);
+  				folded["faces_re:sidedness"][f] = get_face_sidedness(
+  				  graph["faces_re:creases"][change.faces.remove].vector,
+  					graph["faces_re:creases"][change.faces.remove].origin,
+  					folded.faces_center[f],
+  					graph.faces_coloring[change.faces.remove]
+  				);
+  				folded["faces_re:layer"][f] = graph["faces_re:layer"][change.faces.remove];
+  				folded["faces_re:preindex"][f] = graph["faces_re:preindex"][change.faces.remove];
+  			});
+  			return change;
       })
       .reverse();
     folded["faces_re:layer"] = fold_faces_layer(
@@ -4606,8 +4575,11 @@
     );
     const fold_direction = math.core.normalize(math.core.rotate270(crease_0.vector));
     const split_points = faces_split
-      .map((el, i) => (el === undefined ? undefined : el.edge.map(p => math.core
-        .multiply_matrix3_vector3(graph.faces_matrix[i], p))))
+      .map((change, i) => (change === undefined
+  		  ? undefined
+  			: folded.edges_vertices[change.edges.new]
+  				.map(v => folded.vertices_coords[v])
+  				.map(p => math.core.multiply_matrix3_vector3(graph.faces_matrix[i], p))))
       .filter(a => a !== undefined)
       .reduce((a, b) => a.concat(b), []);
     folded["re:construction"] = (split_points.length === 0
@@ -4650,7 +4622,7 @@
     return graph;
   };
 
-  const invert_array = (a) => {
+  const invert_array$1 = (a) => {
     const b = [];
     a.forEach((x, i) => { b[x] = i; });
     return b;
@@ -4687,7 +4659,7 @@
       return true;
     };
     const final_test = (stack) => {
-      const inverted_stack = invert_array(stack);
+      const inverted_stack = invert_array$1(stack);
       const res = inverted_stack[0] > inverted_stack[inverted_stack.length - 1]
         ? assignments[0] === "M"
         : assignments[0] === "V";
@@ -4708,7 +4680,7 @@
       return spliceIndices
         .map(i => recurse(stack, iter + 1, i))
         .reduce((a, b) => a.concat(b), [])
-        .map(invert_array);
+        .map(invert_array$1);
     };
     return recurse();
   };

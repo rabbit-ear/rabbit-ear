@@ -166,15 +166,27 @@ const split_edge_into_two = (graph, edge_index, new_vertex) => {
 // const split_edge = function (graph, x, y, old_edge) {
 // const split_edge = function (graph, coords, old_edge) {
 const split_edge = function (graph, old_edge, coords) {
+	// old_edge is not a valid index
   if (graph.edges_vertices.length < old_edge) { return undefined; }
   const incident_vertices = graph.edges_vertices[old_edge];
   if (!coords) {
     coords = math.core.midpoint(...incident_vertices);
   }
-  // only add 1 vertex. shift the index out of the array
-  const vertex = add_vertices(graph, [coords])
-    .shift();
-  const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
+	// only add 1 vertex. shift the index out of the array
+ 	// const vertex = add_vertices(graph, [coords]).shift();
+  // we don't want to use "add_vertices" because we don't want to check against
+	// every point, potentially merging an entirely different part of the graph
+	// because if we did we would be rebuilding all these faces and incident
+	// vertices incorrectly.
+  // only test similarity to the incident vertices, if similar return early
+  const similar = incident_vertices.map(v => graph.vertices_coords[v])
+	  .map(vert => math.core.distance(vert, coords) < math.core.EPSILON);
+	if (similar[0]) { return { vertex: incident_vertices[0], edges: {} }; }
+	if (similar[1]) { return { vertex: incident_vertices[1], edges: {} }; }
+	const vertex = graph.vertices_coords.length;
+	graph.vertices_coords[vertex] = coords;
+	// indices of new edges
+	const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
   // create 2 new edges, add them to the graph
   split_edge_into_two(graph, old_edge, vertex)
     .forEach((edge, i) => Object.keys(edge)
@@ -193,27 +205,18 @@ const split_edge = function (graph, old_edge, coords) {
 	// todo: make the map include the new data
 	// shift the map over to the new format
   const edge_map = remove(graph, EDGES, [ old_edge ]);
-	// we had to run "remove" with the new edges added. to return the change info,
+  // we had to run "remove" with the new edges added. to return the change info,
 	// we need to adjust the map to exclude these edges.
 	// we can count on new_edges being sorted
-	// new_edges.reverse().forEach(i => edge_map.splice(i, 1));
-  // new_edges.forEach((_, i) => { new_edges[i] = new_edges[i] - 1; });
   new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
 	edge_map.splice(-2);
+	edge_map[old_edge] = new_edges;
 	return {
     vertex,
     edges: {
       map: edge_map,
-      replace: {
-        old: old_edge,
-        new: new_edges,
-      },
-			remove: {
-				map: edge_map,
-			},
-			add: {
-        map: new_edges,
-			},
+      // new: new_edges,
+      remove: old_edge,
     },
   };
 };

@@ -31,18 +31,19 @@ import {
 // given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 // map becomes (_=undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6];
 const remove_geometry_indices = (graph, key, removeIndices) => {
-  const geometry_array_size = count[key](graph);
+  const geometry_array_size = count(graph, key);
   const removes = unique_sorted_integers(removeIndices);
   const index_map = [];
   let i, j, walk;
   for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
     while (i === removes[walk]) {
+			index_map[i] = undefined; // this prevents arrays with holes
       i += 1;
       walk += 1;
     }
-    index_map[i] = j;
+    if (i < geometry_array_size) { index_map[i] = j; }
   }
-  // update every component that points to vertices_coords
+	// update every component that points to vertices_coords
   // these arrays do not change their size, only their contents
   get_graph_keys_with_suffix(graph, key)
     .forEach(sKey => graph[sKey]

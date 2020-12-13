@@ -12,3 +12,15 @@ test("remove graph", () => {
   const res = ear.graph.remove(graph, "vertices", [2, 3]);
   [ 0, 1, undefined, undefined, 2, 3, 4 ].forEach((el, i) => expect(el).toBe(res[i]));
 });
+
+test("few params", () => {
+	const res1 = ear.graph.remove({ abc_def: [[1,2,3]]}, "abc", [0]);
+	expect(res1.length).toBe(1);
+	expect(res1[0]).toBe(undefined);
+
+	const res2 = ear.graph.remove({ abc_def: [[1,2,3], [4,5,6]]}, "abc", [0]);
+	expect(res2.length).toBe(2);
+	expect(res2[0]).toBe(undefined);
+	expect(res2[1]).toBe(0);
+});
+

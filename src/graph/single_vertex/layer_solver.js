@@ -6,6 +6,7 @@ import { fn_and } from "../../arguments/functions";
 
 // todo: make this work with lowercase "m" "v" too
 
+// this is duplicated in src/graph/arrays
 const invert_array = (a) => {
   const b = [];
   a.forEach((x, i) => { b[x] = i; });

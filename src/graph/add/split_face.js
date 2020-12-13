@@ -3,7 +3,7 @@
  */
 import math from "../../math";
 import split_edge from "./split_edge";
-import { merge_maps, reverse_maps } from "../maps";
+import { merge_nextmaps, merge_simple_nextmaps } from "../maps";
 import { edge_assignment_to_foldAngle } from "../fold_spec";
 import remove from "../remove";
 import {
@@ -15,6 +15,7 @@ import {
 import { intersect_face_with_line } from "../intersect_faces";
 import { sort_vertices_counter_clockwise } from "../sort";
 import { find_adjacent_faces_to_face } from "../find";
+import { invert_array } from "../arrays";
 
 const update_vertices_vertices = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
   const v0 = edges_vertices[edge][0];
@@ -91,42 +92,17 @@ const split_convex_face = (graph, face, vector, origin) => {
   // but will soon be appended to contain exactly 2 vertices,
   // by adding any new vertices made by edge intersections
   const vertices = intersect.vertices.map(el => el.vertex);
-  // begin modifying the graphy by splitting edges at any intersections,
-  // this will change edges' indices. edge_change keeps track of this.
-  // let edge_change = Array(graph.edges_vertices.length).fill(0);
-  // vertices.push(...intersect.edges.map((el, i, arr) => {
-  //   el.edge += edge_change[el.edge];
-  //   const result = split_edge(graph, el.edge, el.coords);
-  //   // todo, apply directly to edge_change, get rid of "edge_change = "
-  //   edge_change = Diff.merge_change_maps(edge_change, result.edges.map);
-  //   return result.vertex;
-  // }));
-
-  // const intersectClone = JSON.parse(JSON.stringify(intersect));
-
+	// the 2 edges to split were calculated before any changes were made
+	// to the graph. if this is the second round, the index of the second
+	// edge may have shifted due to the modification done by the first split.
+	// this will update the edge to its new index, or make no change accordingly
   const changes = [];
   intersect.edges.map((el, i, arr) => {
-    const edge_map = changes.length
-      ? merge_maps(...changes.map(r => r.edges.map))
-      : Array.from(Array(graph.edges_vertices.length)).map((_, i) => i);
-    // update the edge's index if this is the second loop and the index changed.
-    el.edge = edge_map[el.edge];
+		// append [0] if not a simple map
+		el.edge = changes.length ? changes[0].edges.map[el.edge] : el.edge;
     // split the edge (modifying the graph), and store the changes so that during
     // the next loop the second edge to split will be updated to the new index
-		const result = split_edge(graph, el.edge, el.coords);
-    // these update normally
-		if (i === 1) {
-		  console.log("second round", changes[0], result.edges.map);
-		}
-    changes.forEach(prev => [0, 1].forEach((_, i) => {
-			prev.edges.replace.new[i] = result.edges.map[prev.edges.replace.new[i]];
-		//  prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
-    }));
-    // update the other details of the changes
-    // "old" is the index before the operation. update it to relate to the current graph
-		result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
-    // store changes to the graph for future iterations
-    changes.push(result);
+		changes.push(split_edge(graph, el.edge, el.coords));
   });
   vertices.push(...changes.map(result => result.vertex));
   // the indices of our new components
@@ -145,7 +121,9 @@ const split_convex_face = (graph, face, vector, origin) => {
   const new_faces = make_faces(graph, face, vertices);
   // remove our face before we add any new faces to the graph so that the
   // face map reflects the state of the graph before faces were added
-  const faces_map = remove(graph, "faces", [face]);
+  // console.log("before", face, JSON.parse(JSON.stringify(graph)));
+	const faces_map = remove(graph, "faces", [face]);
+	// console.log("after", JSON.parse(JSON.stringify(faces_map)));
   // ignoring any keys that aren't a part of our graph, add the new faces
   new_faces.forEach((new_face, i) => Object.keys(new_face)
     .filter(key => graph[key] !== undefined)
@@ -257,38 +235,32 @@ const split_convex_face = (graph, face, vector, origin) => {
   // const changesClone = [];
   // intersectClone.edges.map((el, i, arr) => {
   //   const edge_map = changesClone.length
-  //     ? merge_maps(...changesClone.map(r => r.edges.map))
+  //     ? merge_simple_nextmaps(...changesClone.map(r => r.edges.map))
   //     : Array.from(Array(graphClone.edges_vertices.length)).map((_, i) => i);
   //   el.edge = edge_map[el.edge];
   //   const result = split_edge(graphClone, el.edge, el.coords);
   //   changesClone.push(result);
   // });
 
-  // results.forEach(result => {
-  //   result.edges.replace.old = edge_map.indexOf(result.edges.replace.old);
-  //   // 
-  //   changesClone.forEach(prev => [0, 1].forEach((_, i) => {
-  //     prev.edges.replace.new[i] = result.edges.map[result.edges.replace.new[i]];
-  //   }));
-  // });
-
-  // return a diff of the geometry
+	// if two edges were split, the second one contains a "remove" key that was
+	// based on the mid-operation graph, update this value to match the graph
+	// before any changes occurred.
+	if (changes.length === 2) {
+	  const inverse_map = invert_array(changes[0].edges.map);
+		changes[1].edges.remove = inverse_map[changes[1].edges.remove];
+	}
+	faces_map[face] = faces;
   return {
     vertices,
     faces: {
       map: faces_map,
-      replace: [{
-        old: face,
-        new: faces,
-      }]
+      // new: faces,
+      remove: face,
     },
     edges: {
-      new: [edge],
-      map: merge_maps(...changes.map(res => res.edges.map)),
-      // map: edge_map,
-      replace: changes
-        .map(res => res.edges.replace)
-        .reduce((a, b) => a.concat(b), []),
+      map: merge_nextmaps(...changes.map(res => res.edges.map)),
+      new: edge,
+			remove: changes.map(el => el.edges.remove),
     }
   };
 };

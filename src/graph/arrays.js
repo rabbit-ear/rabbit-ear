@@ -6,3 +6,18 @@ export const unique_sorted_integers = (array) => {
   array.forEach((int) => { keys[int] = true; });
   return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
 };
+
+export const invert_array = (a) => {
+	const b = [];
+	a.forEach((n, i) => { b[n] = i; });
+	return b;
+};
+
+//export const invert_array = (a) => {
+//  const b = [];
+//  a.forEach((x, i) => {
+//		if (typeof x === "number") { b[x] = i; }
+//	});
+//  return b;
+//};
+
