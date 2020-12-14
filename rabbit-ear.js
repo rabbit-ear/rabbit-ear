@@ -5,6 +5,8 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.ear = factory());
 }(this, (function () { 'use strict';
 
+  const isBrowser = typeof window !== "undefined"
+    && typeof window.document !== "undefined";
   const isNode = typeof process !== "undefined"
     && process.versions != null
     && process.versions.node != null;
@@ -3455,11 +3457,18 @@
   	return solution;
   };
   const invert_map = (map) => {
-  	const b = [];
+  	const inv = [];
   	map.forEach((n, i) => {
-  		if (typeof n === "number") { b[n] = i; }
+  		if (n == null) { return; }
+  		if (typeof n === "number") { inv[n] = i; }
+      if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }
   	});
-  	return b;
+  	return inv;
+  };
+  const invert_simple_map = (map) => {
+  	const inv = [];
+  	map.forEach((n, i) => { inv[n] = i; });
+  	return inv;
   };
 
   var maps = /*#__PURE__*/Object.freeze({
@@ -3468,7 +3477,8 @@
     merge_nextmaps: merge_nextmaps,
     merge_simple_backmaps: merge_simple_backmaps,
     merge_backmaps: merge_backmaps,
-    invert_map: invert_map
+    invert_map: invert_map,
+    invert_simple_map: invert_simple_map
   });
 
   const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
@@ -5253,6 +5263,134 @@
     folds,
   };
 
+  const htmlString = "<!DOCTYPE html><title>.</title>";
+  const win = (function () {
+    let w = {};
+    if (isNode) {
+      const { DOMParser, XMLSerializer } = require("xmldom");
+      w.DOMParser = DOMParser;
+      w.XMLSerializer = XMLSerializer;
+      w.document = new DOMParser().parseFromString(htmlString, "text/html");
+    } else if (isBrowser) {
+      w = window;
+    }
+    return w;
+  }());
+
+  const make_faces_geometry = (graph) => {
+  	const { THREE } = win;
+    const vertices = graph.vertices_coords
+      .map(v => [v[0], v[1], v[2] || 0])
+      .reduce(fn_cat, []);
+    const normals = graph.vertices_coords
+      .map(v => [0, 0, 1])
+      .reduce(fn_cat, []);
+    const colors = graph.vertices_coords
+      .map(v => [1, 1, 1])
+      .reduce(fn_cat, []);
+    const faces = graph.faces_vertices
+      .map(fv => fv
+        .map((v, i, arr) => [arr[0], arr[i+1], arr[i+2]])
+        .slice(0, fv.length - 2))
+      .reduce(fn_cat, [])
+      .reduce(fn_cat, []);
+    const geometry = new THREE.BufferGeometry();
+    geometry.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.addAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.addAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setIndex(faces);
+    return geometry;
+  };
+  const make_edge_cylinder = (edge_coords, edge_vector, radius) => {
+    if (math.core.mag_squared(edge_vector) < math.core.EPSILON) { throw "degenerate edge"; }
+    const normalized = ear.math.normalize(edge_vector);
+    const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
+      .map(vec => ear.math.normalize(math.core.cross3(normalized, vec)))
+      .map((v,i) => ({ i, v, mag: math.core.magnitude(v) }))
+      .filter(el => el.mag > math.core.EPSILON)
+      .map(obj => obj.v)
+      .shift();
+    const rotated = [perp];
+    for (let i = 1; i < 4; i += 1) {
+      rotated.push(ear.math.normalize(math.core.cross3(rotated[i-1], normalized)));
+    }
+    const dirs = rotated.map(v => ear.math.scale(v, radius));
+    return edge_coords
+      .map(v => dirs.map(dir => math.core.add(v, dir)))
+      .reduce(fn_cat, []);
+  };
+  const make_edges_geometry = function ({
+    vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
+  }, scale=0.002) {
+  	const { THREE } = win;
+    if (!edges_coords) {
+      edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
+    }
+    if (!edges_vector) {
+      edges_vector = edges_coords.map(edge => math.core.subtract(edge[1], edge[0]));
+    }
+    edges_coords = edges_coords
+      .map(edge => edge
+        .map(coord => math.core.resize(3, coord)));
+    const colorAssignments = {
+      "B": [0.0,0.0,0.0],
+      "M": [0.0,0.0,0.0],
+      "F": [0.0,0.0,0.0],
+      "V": [0.0,0.0,0.0],
+    };
+    const colors = edges_assignment.map(e =>
+      [colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+      colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
+    ).reduce(fn_cat, [])
+     .reduce(fn_cat, [])
+     .reduce(fn_cat, []);
+    const vertices = edges_coords
+      .map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale))
+      .reduce(fn_cat, [])
+      .reduce(fn_cat, []);
+  	const normals = edges_vector.map(vector => {
+      if (math.core.mag_squared(vector) < math.core.EPSILON) { throw "degenerate edge"; }
+      let normalized = math.core.normalize(vector);
+      const scaled = math.core.scale(normalized, scale);
+      const c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,-1])), scale);
+      const c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,1])), scale);
+      return [
+        c0, [-c0[2], c0[1], c0[0]],
+        c1, [-c1[2], c1[1], c1[0]],
+        c0, [-c0[2], c0[1], c0[0]],
+        c1, [-c1[2], c1[1], c1[0]]
+      ]
+    }).reduce(fn_cat, [])
+      .reduce(fn_cat, []);
+    let faces = edges_coords.map((e,i) => [
+      i*8+0, i*8+4, i*8+1,
+      i*8+1, i*8+4, i*8+5,
+      i*8+1, i*8+5, i*8+2,
+      i*8+2, i*8+5, i*8+6,
+      i*8+2, i*8+6, i*8+3,
+      i*8+3, i*8+6, i*8+7,
+      i*8+3, i*8+7, i*8+0,
+      i*8+0, i*8+7, i*8+4,
+      i*8+0, i*8+1, i*8+3,
+      i*8+1, i*8+2, i*8+3,
+      i*8+5, i*8+4, i*8+7,
+      i*8+7, i*8+6, i*8+5,
+    ]).reduce(fn_cat, []);
+    const geometry = new THREE.BufferGeometry();
+    geometry.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.addAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.addAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setIndex(faces);
+    geometry.computeVertexNormals();
+    return geometry;
+  };
+
+  var foldToThree = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    make_faces_geometry: make_faces_geometry,
+    make_edges_geometry: make_edges_geometry
+  });
+
   const ConstructorPrototypes = {
     graph: GraphProto$1,
     cp: CreasePatternProto$1,
@@ -5280,6 +5418,7 @@
     math: math.core,
     axiom,
     text,
+  	webgl: foldToThree,
   });
   Object.defineProperty(Ear, "use", {
     enumerable: false,

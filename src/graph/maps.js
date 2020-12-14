@@ -1,19 +1,6 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-//export const merge_maps = (...maps) => {
-//  if (maps.length === 0) { return; }
-//  const solution = Array.from(Array(maps[0].length)).map((_, i) => i);
-//  maps.forEach(map => {
-//    let bi = 0;
-//    solution.forEach((n, i) => {
-//      solution[i] = (n === null || n === undefined) ? null : map[bi];
-//      bi += (n === null || n === undefined) ? 0 : 1;
-//    });
-//  });
-//  return solution;
-//};
-
 export const merge_simple_nextmaps = (...maps) => {
   if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => i);
@@ -56,25 +43,18 @@ export const merge_backmaps = (...maps) => {
 };
 
 export const invert_map = (map) => {
-	const b = [];
+	const inv = [];
 	map.forEach((n, i) => {
-		if (typeof n === "number") { b[n] = i; }
+		if (n == null) { return; }
+		if (typeof n === "number") { inv[n] = i; }
+    if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }	
 	});
-	return b;
+	return inv;
 };
 
-//const not_empty = el => (el !== null && el !== undefined);
-///**
-// * param maps in increasing chronological order. the newest (shortest) at the end.
-// * 
-// */
-//export const reverse_maps = (...maps) => {
-//  if (maps.length === 0) { return; }
-//  let solution = Array.from(Array(maps[0].length)).map((_, i) => i);
-//  maps.forEach(map => {
-//    solution = solution.filter((n, i) => not_empty(map[i]));
-//  });
-//  return solution;
-//};
-
+export const invert_simple_map = (map) => {
+	const inv = [];
+	map.forEach((n, i) => { inv[n] = i; });
+	return inv;
+};
 

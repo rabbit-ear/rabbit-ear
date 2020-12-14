@@ -28,6 +28,8 @@ import create from "./graph/create";
 // top level things
 import axiom from "./axioms/index";
 import text from "./text/index";
+// webgl
+import * as foldToThree from "./webgl/fold-to-three";
 
 const ConstructorPrototypes = {
   graph: GraphProto,
@@ -62,6 +64,7 @@ const Ear = Object.assign(root, Constructors, {
   math: math.core,
   axiom,
   text,
+	webgl: foldToThree,
 });
 
 Object.defineProperty(Ear, "use", {
