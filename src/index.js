@@ -14,6 +14,7 @@ import math from "./math";
 import root from "./root";
 import use from "./use/index";
 import graph_methods from "./graph/index";
+import diagram from "./diagrams/index";
 // build objects
 import Constructors from "./constructors";
 // prototypes
@@ -63,6 +64,7 @@ Object.assign(Constructors.graph, graph_methods);
 const Ear = Object.assign(root, Constructors, {
   math: math.core,
   axiom,
+	diagram,
   text,
 	webgl: foldToThree,
 });

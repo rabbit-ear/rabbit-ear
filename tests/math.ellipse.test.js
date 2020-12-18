@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 test("x, y", () => {
   const ellipse0 = ear.ellipse(2, 1);

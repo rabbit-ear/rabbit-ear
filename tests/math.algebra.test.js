@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 const testEqual = function (...args) {
   expect(ear.math.equivalent(...args)).toBe(true);
@@ -7,6 +7,13 @@ const testEqual = function (...args) {
 /**
  * algebra core
  */
+test("dot", () => {
+  expect(ear.math.dot([3, 1000], [1, 0])).toBe(3);
+  expect(ear.math.dot([3, 1000], [1, 0])).toBe(3);
+  expect(ear.math.dot([1, 1000], [400])).toBe(400);
+  expect(ear.math.dot([1, 1000], [])).toBe(0);
+});
+
 test("average function", () => {
   // improper use
   expect(ear.math.average().length).toBe(0);
@@ -26,4 +33,16 @@ test("distance3", () => {
   const r2 = ear.math.distance3([1,2,3], [4,5]);
   expect(r1).toBeCloseTo(5.196152422706632);
   expect(isNaN(r2)).toBe(true);
+});
+
+test("alternating sum", () => {
+  const r1 = ear.math.alternating_sum([1,2,3,4,5,6]);
+  expect(r1[0]).toBe(9);
+  expect(r1[1]).toBe(12);
+  const r2 = ear.math.alternating_sum([1, undefined, 3, 4, 5, 6]);
+  expect(r2[0]).toBe(9);
+  expect(r2[1]).toBe(10);
+  const r3 = ear.math.alternating_sum([]);
+  expect(r3[0]).toBe(0);
+  expect(r3[1]).toBe(0);
 });

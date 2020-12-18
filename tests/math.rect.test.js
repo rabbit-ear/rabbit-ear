@@ -1,14 +1,11 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
-test("rect", () => {
-  expect(true).toBe(true);
+// static
+test("static fromPoints", () => {
+	const r = ear.rect.fromPoints([1,1], [3,2]);
+	expect(r.width).toBe(2);
+	expect(r.height).toBe(1);
 });
-
-// // static
-// test("fromPoints", () => {
-//   const r = ear.rect(1, 2, 3, 4);
-//   r.fromPoints();
-// });
 
 // native
 test("area", () => {
@@ -27,12 +24,11 @@ test("segments", () => {
   expect(seg.length).toBe(4);
 });
 
-// test("midpoint", () => {
-//   const r = ear.rect(2, 3, 4, 5);
-//   const mid = r.midpoint();
-//   expect(mid.x).toBe(4 + 2 / 2);
-//   expect(mid.y).toBe(5 + 3 / 2);
-// });
+test("center", () => {
+	const r = ear.rect(2, 3, 4, 5);
+	expect(r.center.x).toBe(2 + 4 / 2);
+	expect(r.center.y).toBe(3 + 5 / 2);
+});
 
 test("centroid", () => {
   const r = ear.rect(1, 2, 3, 4);
@@ -54,6 +50,11 @@ test("contains", () => {
   const r = ear.rect(1, 2, 3, 4);
   expect(r.contains(0, 0)).toBe(false);
   expect(r.contains(1.5, 3)).toBe(true);
+});
+
+test("svg", () => {
+	const r = ear.rect(1,2,3,4);
+	expect(r.svgPath()).toBe("M1 2h3v4h-3Z");
 });
 
 // test("rotate", () => {

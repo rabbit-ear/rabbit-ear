@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 /**
  * queries
@@ -48,11 +48,12 @@ test("equivalent numbers", () => {
   expect(ear.math.equivalent_numbers([1, 1, 1, 1, 1, 1], [1, 2])).toBe(false);
 });
 
-test("is_counter_clockwise_between", () => {
-  expect(ear.math.is_counter_clockwise_between(0.5, 0, 1)).toBe(true);
-  expect(ear.math.is_counter_clockwise_between(0.5, 1, 0)).toBe(false);
-  expect(ear.math.is_counter_clockwise_between(11, 10, 12)).toBe(true);
-  expect(ear.math.is_counter_clockwise_between(11, 12, 10)).toBe(false);
-  expect(ear.math.is_counter_clockwise_between(Math.PI*2*4 + Math.PI/2, 0, Math.PI)).toBe(true);
-  expect(ear.math.is_counter_clockwise_between(Math.PI*2*4 + Math.PI/2, Math.PI, 0)).toBe(false);
+test("equivalent vectors", () => {
+	const smEp = ear.math.EPSILON / 10; // smaller than epsilon
+	const bgEp = ear.math.EPSILON * 10; // larger than epsilon
+	expect(ear.math.equivalent_vectors([1, 2, 3], [1, 2, 3])).toBe(true);
+	expect(ear.math.equivalent_vectors([1, 2 + smEp], [1, 2 - smEp])).toBe(true);
+	expect(ear.math.equivalent_vectors([1, 2 + bgEp], [1, 2 - bgEp])).toBe(false);
 });
+
+

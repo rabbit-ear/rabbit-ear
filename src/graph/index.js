@@ -38,6 +38,7 @@ import * as vertices_isolated from "./clean/vertices_isolated";
 // solvers
 import layer_solver from "./single_vertex/layer_solver"
 import assignment_solver from "./single_vertex/assignment_solver"
+import single_vertex_fold_angles from "./single_vertex/fold3d";
 
 export default Object.assign(Object.create(null), {
   // modifiers
@@ -66,6 +67,7 @@ export default Object.assign(Object.create(null), {
   // solvers
   layer_solver,
   assignment_solver,
+	single_vertex_fold_angles,
   // intersection
 },
   make,

@@ -1,17 +1,25 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
-/**
- * test equal runs the equivalent() function which incorporates an epsilon
- * such that the test "1e-8 is equivalent to 0" will come back true
- */
 const equalTest = (a, b) => expect(JSON.stringify(a))
   .toBe(JSON.stringify(b));
-
 
 test("resize", () => {
   const a = [1, 2, 3];
   const _a = ear.math.resize(5, a);
   equalTest(_a, [1, 2, 3, 0, 0]);
+});
+
+test("resize empty", () => {
+	const res = ear.math.resize(3, []);
+	expect(ear.math.equivalent_vectors([0, 0, 0], res)).toBe(true);
+});
+
+test("resize undefined", () => {
+	try {
+		ear.math.resize(3);
+	} catch(err) {
+		expect(err).not.toBe(undefined);
+	}
 });
 
 test("resize_up", () => {

@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 test("arguments", () => {
   expect(ear.vector(1,2,3)[2]).toBe(3);

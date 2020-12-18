@@ -9,7 +9,8 @@ const type_of = function (obj) {
     case "circle":
     case "ellipse":
     case "rect":
-    case "polygon": return obj.constructor.name;
+    case "polygon":
+		case "junction": return obj.constructor.name;
   }
   if (typeof obj === "object") {
     if (obj.radius != null) { return "circle"; }
@@ -722,6 +723,299 @@ var overlap_point = /*#__PURE__*/Object.freeze({
   point_on_segment_exclusive: point_on_segment_exclusive
 });
 
+const overlap_lines = (aVector, aOrigin, bVector, bOrigin, compA, compB, epsilon = EPSILON) => {
+  const denominator0 = cross2(aVector, bVector);
+  const denominator1 = -denominator0;
+  if (Math.abs(denominator0) < epsilon) {
+    return collinear(bOrigin, aVector, aOrigin, compA, epsilon)
+     || collinear(bOrigin, flip(aVector), add(aOrigin, aVector), compA, epsilon)
+     || collinear(aOrigin, bVector, bOrigin, compB, epsilon)
+     || collinear(aOrigin, flip(bVector), add(bOrigin, bVector), compB, epsilon);
+  }
+  const numerator0 = cross2(subtract(bOrigin, aOrigin), bVector);
+  const numerator1 = cross2(subtract(aOrigin, bOrigin), aVector);
+  const t0 = numerator0 / denominator0;
+  const t1 = numerator1 / denominator1;
+  return compA(t0, epsilon / magnitude(aVector))
+    && compB(t1, epsilon / magnitude(bVector));
+};
+const overlap_line_line_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
+  overlap_lines(aV, aP, bV, bP, include_l, include_l, ep);
+const overlap_line_ray_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
+  overlap_lines(aV, aP, bV, bP, include_l, include_r, ep);
+const overlap_line_segment_inclusive = (aV, aP, b0, b1, ep = EPSILON) =>
+  overlap_lines(aV, aP, subtract(b1, b0), b0, include_l, include_s, ep);
+const overlap_ray_ray_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
+  overlap_lines(aV, aP, bV, bP, include_r, include_r, ep);
+const overlap_ray_segment_inclusive = (aV, aP, b0, b1, ep = EPSILON) =>
+  overlap_lines(aV, aP, subtract(b1, b0), b0, include_r, include_s, ep);
+const overlap_segment_segment_inclusive = (a0, a1, b0, b1, ep = EPSILON) =>
+  overlap_lines(subtract(a1, a0), a0, subtract(b1, b0), b0, include_s, include_s, ep);
+const overlap_line_line_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
+  overlap_lines(aV, aP, bV, bP, exclude_l, exclude_l, ep);
+const overlap_line_ray_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
+  overlap_lines(aV, aP, bV, bP, exclude_l, exclude_r, ep);
+const overlap_line_segment_exclusive = (aV, aP, b0, b1, ep = EPSILON) =>
+  overlap_lines(aV, aP, subtract(b1, b0), b0, exclude_l, exclude_s, ep);
+const overlap_ray_ray_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
+  overlap_lines(aV, aP, bV, bP, exclude_r, exclude_r, ep);
+const overlap_ray_segment_exclusive = (aV, aP, b0, b1, ep = EPSILON) =>
+  overlap_lines(aV, aP, subtract(b1, b0), b0, exclude_r, exclude_s, ep);
+const overlap_segment_segment_exclusive = (a0, a1, b0, b1, ep = EPSILON) =>
+  overlap_lines(subtract(a1, a0), a0, subtract(b1, b0), b0, exclude_s, exclude_s, ep);
+
+var overlap_lines$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  overlap_lines: overlap_lines,
+  overlap_line_line_inclusive: overlap_line_line_inclusive,
+  overlap_line_ray_inclusive: overlap_line_ray_inclusive,
+  overlap_line_segment_inclusive: overlap_line_segment_inclusive,
+  overlap_ray_ray_inclusive: overlap_ray_ray_inclusive,
+  overlap_ray_segment_inclusive: overlap_ray_segment_inclusive,
+  overlap_segment_segment_inclusive: overlap_segment_segment_inclusive,
+  overlap_line_line_exclusive: overlap_line_line_exclusive,
+  overlap_line_ray_exclusive: overlap_line_ray_exclusive,
+  overlap_line_segment_exclusive: overlap_line_segment_exclusive,
+  overlap_ray_ray_exclusive: overlap_ray_ray_exclusive,
+  overlap_ray_segment_exclusive: overlap_ray_segment_exclusive,
+  overlap_segment_segment_exclusive: overlap_segment_segment_exclusive
+});
+
+const point_in_convex_poly_inclusive = (point, poly, epsilon = EPSILON) => poly
+  .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+  .map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])) > -epsilon)
+  .map((s, _, arr) => s === arr[0])
+  .reduce((prev, curr) => prev && curr, true);
+const point_in_convex_poly_exclusive = (point, poly, epsilon = EPSILON) => poly
+  .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+  .map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])) > epsilon)
+  .map((s, _, arr) => s === arr[0])
+  .reduce((prev, curr) => prev && curr, true);
+const point_in_poly = (point, poly) => {
+  let isInside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    if ((poly[i][1] > point[1]) != (poly[j][1] > point[1])
+      && point[0] < (poly[j][0] - poly[i][0])
+      * (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1])
+      + poly[i][0]) {
+      isInside = !isInside;
+    }
+  }
+  return isInside;
+};
+const overlap_convex_polygons = (poly1, poly2, seg_seg, pt_in_poly) => {
+  const e1 = poly1.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+  const e2 = poly2.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+  for (let i = 0; i < e1.length; i += 1) {
+    for (let j = 0; j < e2.length; j += 1) {
+      if (seg_seg(e1[i][0], e1[i][1], e2[j][0], e2[j][1])) {
+        return true;
+      }
+    }
+  }
+  if (pt_in_poly(poly2[0], poly1)) { return true; }
+  if (pt_in_poly(poly1[0], poly2)) { return true; }
+  return false;
+};
+const overlap_convex_polygons_inclusive = (poly1, poly2) => overlap_convex_polygons(
+  poly1,
+  poly2,
+  overlap_segment_segment_inclusive,
+  point_in_convex_poly_inclusive
+);
+const overlap_convex_polygons_exclusive = (poly1, poly2) => overlap_convex_polygons(
+  poly1,
+  poly2,
+  overlap_segment_segment_exclusive,
+  point_in_convex_poly_exclusive
+);
+const enclose_convex_polygons_inclusive = (outer, inner) => {
+  const outerGoesInside = outer
+    .map(p => point_in_convex_poly_inclusive(p, inner))
+    .reduce((a, b) => a || b, false);
+  const innerGoesOutside = inner
+    .map(p => point_in_convex_poly_inclusive(p, inner))
+    .reduce((a, b) => a && b, true);
+  return (!outerGoesInside && innerGoesOutside);
+};
+
+var overlap_polygon = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  point_in_convex_poly_inclusive: point_in_convex_poly_inclusive,
+  point_in_convex_poly_exclusive: point_in_convex_poly_exclusive,
+  point_in_poly: point_in_poly,
+  overlap_convex_polygons_inclusive: overlap_convex_polygons_inclusive,
+  overlap_convex_polygons_exclusive: overlap_convex_polygons_exclusive,
+  enclose_convex_polygons_inclusive: enclose_convex_polygons_inclusive
+});
+
+const quick_equivalent_2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
+  && Math.abs(a[1] - b[1]) < EPSILON;
+const intersect_line_seg_include = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
+  vector, origin,
+  subtract(pt1, pt0), pt0,
+  include_l,
+  include_s,
+  ep
+);
+const intersect_line_seg_exclude = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
+  vector, origin,
+  subtract(pt1, pt0), pt0,
+  exclude_l,
+  exclude_s,
+  ep
+);
+const intersect_ray_seg_include = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
+  vector, origin,
+  subtract(pt1, pt0), pt0,
+  include_r,
+  include_s,
+  ep
+);
+const intersect_ray_seg_exclude = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
+  vector, origin,
+  subtract(pt1, pt0), pt0,
+  exclude_r,
+  exclude_s,
+  ep
+);
+const intersect_seg_seg_include = (a0, a1, b0, b1, ep = EPSILON) => intersect_lines(
+  subtract(a1, a0), a0,
+  subtract(b1, b0), b0,
+  include_s,
+  include_s,
+  ep
+);
+const intersect_seg_seg_exclude = (a0, a1, b0, b1, ep = EPSILON) => intersect_lines(
+  subtract(a1, a0), a0,
+  subtract(b1, b0), b0,
+  exclude_s,
+  exclude_s,
+  ep
+);
+
+const is_counter_clockwise_between = (angle, angleA, angleB) => {
+  while (angleB < angleA) { angleB += TWO_PI; }
+  while (angle > angleA) { angle -= TWO_PI; }
+  while (angle < angleA) { angle += TWO_PI; }
+  return angle < angleB;
+};
+const clockwise_angle_radians = (a, b) => {
+  while (a < 0) { a += TWO_PI; }
+  while (b < 0) { b += TWO_PI; }
+  while (a > TWO_PI) { a -= TWO_PI; }
+  while (b > TWO_PI) { b -= TWO_PI; }
+  const a_b = a - b;
+  return (a_b >= 0)
+    ? a_b
+    : TWO_PI - (b - a);
+};
+const counter_clockwise_angle_radians = (a, b) => {
+  while (a < 0) { a += TWO_PI; }
+  while (b < 0) { b += TWO_PI; }
+  while (a > TWO_PI) { a -= TWO_PI; }
+  while (b > TWO_PI) { b -= TWO_PI; }
+  const b_a = b - a;
+  return (b_a >= 0)
+    ? b_a
+    : TWO_PI - (a - b);
+};
+const clockwise_angle2 = (a, b) => {
+  const dotProduct = b[0] * a[0] + b[1] * a[1];
+  const determinant = b[0] * a[1] - b[1] * a[0];
+  let angle = Math.atan2(determinant, dotProduct);
+  if (angle < 0) { angle += TWO_PI; }
+  return angle;
+};
+const counter_clockwise_angle2 = (a, b) => {
+  const dotProduct = a[0] * b[0] + a[1] * b[1];
+  const determinant = a[0] * b[1] - a[1] * b[0];
+  let angle = Math.atan2(determinant, dotProduct);
+  if (angle < 0) { angle += TWO_PI; }
+  return angle;
+};
+const clockwise_bisect2 = (a, b) => {
+  const radians = Math.atan2(a[1], a[0]) - clockwise_angle2(a, b) / 2;
+  return [Math.cos(radians), Math.sin(radians)];
+};
+const counter_clockwise_bisect2 = (a, b) => {
+  const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
+  return [Math.cos(radians), Math.sin(radians)];
+};
+const counter_clockwise_radians_order = (...radians) => {
+  const counter_clockwise = radians
+    .map((_, i) => i)
+    .sort((a, b) => radians[a] - radians[b]);
+  return counter_clockwise
+    .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
+    .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
+};
+const counter_clockwise_vector_order = (...vectors) =>
+  counter_clockwise_radians_order(...vectors.map(v => Math.atan2(v[1], v[0])));
+const interior_angles = (...vecs) => vecs
+  .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
+const kawasaki_solutions_radians = (radians) => radians
+  .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+  .map(pair => counter_clockwise_angle_radians(...pair))
+  .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+  .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
+  .map((kawasakis, i) => radians[i] + kawasakis[0])
+  .map((angle, i) => (is_counter_clockwise_between(angle,
+    radians[i], radians[(i + 1) % radians.length])
+    ? angle
+    : undefined));
+const kawasaki_solutions = (vectors) => {
+  const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+  return kawasaki_solutions_radians(vectors_radians)
+    .map(a => (a === undefined
+      ? undefined
+      : [Math.cos(a), Math.sin(a)]));
+};
+const bisect_vectors = (a, b) => {
+  const aV = normalize(a);
+  const bV = normalize(b);
+  return dot(aV, bV) < (-1 + EPSILON)
+    ? [-aV[1], aV[0]]
+    : normalize(add(aV, bV));
+};
+const bisect_lines2 = (vectorA, pointA, vectorB, pointB) => {
+  const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
+  if (Math.abs(denominator) < EPSILON) {
+    const solution = [[vectorA[0], vectorA[1]], midpoint(pointA, pointB)];
+    const array = [solution, solution];
+    const dt = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
+    delete array[(dt > 0 ? 1 : 0)];
+    return array;
+  }
+  const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
+  const t = numerator / denominator;
+  const origin = [
+    pointA[0] + vectorA[0] * t,
+    pointA[1] + vectorA[1] * t,
+  ];
+  const bisects = [bisect_vectors(vectorA, vectorB)];
+  bisects[1] = rotate90(bisects[0]);
+  return bisects.map(vector => ({ vector, origin }));
+};
+
+var radial = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  is_counter_clockwise_between: is_counter_clockwise_between,
+  clockwise_angle_radians: clockwise_angle_radians,
+  counter_clockwise_angle_radians: counter_clockwise_angle_radians,
+  clockwise_angle2: clockwise_angle2,
+  counter_clockwise_angle2: counter_clockwise_angle2,
+  clockwise_bisect2: clockwise_bisect2,
+  counter_clockwise_bisect2: counter_clockwise_bisect2,
+  counter_clockwise_radians_order: counter_clockwise_radians_order,
+  counter_clockwise_vector_order: counter_clockwise_vector_order,
+  interior_angles: interior_angles,
+  kawasaki_solutions_radians: kawasaki_solutions_radians,
+  kawasaki_solutions: kawasaki_solutions,
+  bisect_vectors: bisect_vectors,
+  bisect_lines2: bisect_lines2
+});
+
 const circumcircle = function (a, b, c) {
   const A = b[0] - a[0];
   const B = b[1] - a[1];
@@ -773,19 +1067,27 @@ const enclosing_rectangle = (points) => {
   const lengths = maxs.map((max, i) => max - mins[i]);
   return rect_form(...mins, ...lengths);
 };
-const make_regular_polygon = (sides, radius = 1, x = 0, y = 0) => {
-  const halfwedge = TWO_PI / sides / 2;
-  const r = radius / 2 / Math.cos(halfwedge);
-  return Array.from(Array(Math.floor(sides)))
-    .map((_, i) => TWO_PI * (i / sides))
-    .map(a => [x + r * Math.cos(a), y + r * Math.sin(a)])
-    .map(p => p.map(n => clean_number(n, 14)));
+const angle_array = count => Array
+	.from(Array(Math.floor(count)))
+	.map((_, i) => TWO_PI * (i / count));
+const angles_to_vecs = (angles, radius) => angles
+	.map(a => [radius * Math.cos(a), radius * Math.sin(a)])
+	.map(pt => pt.map(n => clean_number(n, 14)));
+const make_regular_polygon = (sides = 3, radius = 1) =>
+	angles_to_vecs(angle_array(sides), radius);
+const make_regular_polygon_side_aligned = (sides = 3, radius = 1) => {
+	const halfwedge = Math.PI / sides;
+	const angles = angle_array(sides).map(a => a + halfwedge);
+	return angles_to_vecs(angles, radius);
 };
-const line_segment_exclusive = function (lineVector, linePoint, segmentA, segmentB) {
-  const pt = segmentA;
-  const vec = [segmentB[0] - segmentA[0], segmentB[1] - segmentA[1]];
-  return intersect_lines(lineVector, linePoint, vec, pt, exclude_l, exclude_s);
-};
+const make_regular_polygon_inradius = (sides = 3, radius = 1) =>
+	make_regular_polygon(sides, radius / Math.cos(Math.PI / sides));
+const make_regular_polygon_inradius_side_aligned = (sides = 3, radius = 1) =>
+	make_regular_polygon_side_aligned(sides, radius / Math.cos(Math.PI / sides));
+const make_regular_polygon_side_length = (sides = 3, length = 1) =>
+	make_regular_polygon(sides, (length / 2) / Math.sin(Math.PI / sides));
+const make_regular_polygon_side_length_side_aligned = (sides = 3, length = 1) =>
+	make_regular_polygon_side_aligned(sides, (length / 2) / Math.sin(Math.PI / sides));
 const split_polygon = () => console.warn("split polygon not done");
 const split_convex_polygon = (poly, lineVector, linePoint) => {
   let vertices_intersections = poly.map((v, i) => {
@@ -793,7 +1095,7 @@ const split_convex_polygon = (poly, lineVector, linePoint) => {
     return { point: intersection ? v : null, at_index: i };
   }).filter(el => el.point != null);
   let edges_intersections = poly.map((v, i, arr) => {
-    let intersection = line_segment_exclusive(lineVector, linePoint, v, arr[(i + 1) % arr.length]);
+    let intersection = intersect_line_seg_exclude(lineVector, linePoint, v, arr[(i + 1) % arr.length]);
     return { point: intersection, at_index: i };
   }).filter(el => el.point != null);
   if (edges_intersections.length == 2) {
@@ -934,145 +1236,15 @@ var geometry = /*#__PURE__*/Object.freeze({
   centroid: centroid,
   enclosing_rectangle: enclosing_rectangle,
   make_regular_polygon: make_regular_polygon,
+  make_regular_polygon_side_aligned: make_regular_polygon_side_aligned,
+  make_regular_polygon_inradius: make_regular_polygon_inradius,
+  make_regular_polygon_inradius_side_aligned: make_regular_polygon_inradius_side_aligned,
+  make_regular_polygon_side_length: make_regular_polygon_side_length,
+  make_regular_polygon_side_length_side_aligned: make_regular_polygon_side_length_side_aligned,
   split_polygon: split_polygon,
   split_convex_polygon: split_convex_polygon,
   convex_hull: convex_hull,
   straight_skeleton: straight_skeleton
-});
-
-const is_counter_clockwise_between = (angle, angleA, angleB) => {
-  while (angleB < angleA) { angleB += TWO_PI; }
-  while (angle > angleA) { angle -= TWO_PI; }
-  while (angle < angleA) { angle += TWO_PI; }
-  return angle < angleB;
-};
-const clockwise_angle_radians = (a, b) => {
-  while (a < 0) { a += TWO_PI; }
-  while (b < 0) { b += TWO_PI; }
-  while (a > TWO_PI) { a -= TWO_PI; }
-  while (b > TWO_PI) { b -= TWO_PI; }
-  const a_b = a - b;
-  return (a_b >= 0)
-    ? a_b
-    : TWO_PI - (b - a);
-};
-const counter_clockwise_angle_radians = (a, b) => {
-  while (a < 0) { a += TWO_PI; }
-  while (b < 0) { b += TWO_PI; }
-  while (a > TWO_PI) { a -= TWO_PI; }
-  while (b > TWO_PI) { b -= TWO_PI; }
-  const b_a = b - a;
-  return (b_a >= 0)
-    ? b_a
-    : TWO_PI - (a - b);
-};
-const clockwise_angle2 = (a, b) => {
-  const dotProduct = b[0] * a[0] + b[1] * a[1];
-  const determinant = b[0] * a[1] - b[1] * a[0];
-  let angle = Math.atan2(determinant, dotProduct);
-  if (angle < 0) { angle += TWO_PI; }
-  return angle;
-};
-const counter_clockwise_angle2 = (a, b) => {
-  const dotProduct = a[0] * b[0] + a[1] * b[1];
-  const determinant = a[0] * b[1] - a[1] * b[0];
-  let angle = Math.atan2(determinant, dotProduct);
-  if (angle < 0) { angle += TWO_PI; }
-  return angle;
-};
-const clockwise_bisect2$1 = (a, b) => {
-  const radians = Math.atan2(a[1], a[0]) - clockwise_angle2(a, b) / 2;
-  return [Math.cos(radians), Math.sin(radians)];
-};
-const counter_clockwise_bisect2 = (a, b) => {
-  const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
-  return [Math.cos(radians), Math.sin(radians)];
-};
-const counter_clockwise_radians_order = (...radians) => {
-  const counter_clockwise = radians
-    .map((_, i) => i)
-    .sort((a, b) => radians[a] - radians[b]);
-  return counter_clockwise
-    .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
-    .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
-};
-const counter_clockwise_vector_order = (...vectors) =>
-  counter_clockwise_radians_order(...vectors.map(v => Math.atan2(v[1], v[0])));
-const interior_angles = (...vecs) => vecs
-  .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
-const kawasaki_solutions_radians = (radians) => radians
-  .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-  .map(pair => counter_clockwise_angle_radians(...pair))
-  .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
-  .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
-  .map((kawasakis, i) => radians[i] + kawasakis[0])
-  .map((angle, i) => (is_counter_clockwise_between(angle,
-    radians[i], radians[(i + 1) % radians.length])
-    ? angle
-    : undefined));
-const kawasaki_solutions = (vectors) => {
-  const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
-  return kawasaki_solutions_radians(vectors_radians)
-    .map(a => (a === undefined
-      ? undefined
-      : [Math.cos(a), Math.sin(a)]));
-};
-const bisect_vectors = (a, b) => {
-  const aV = normalize(a);
-  const bV = normalize(b);
-  return dot(aV, bV) < (-1 + EPSILON)
-    ? [-aV[1], aV[0]]
-    : normalize(add(aV, bV));
-};
-const bisect_lines2 = (vectorA, pointA, vectorB, pointB) => {
-  const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
-  if (Math.abs(denominator) < EPSILON) {
-    const solution = [[vectorA[0], vectorA[1]], midpoint(pointA, pointB)];
-    const array = [solution, solution];
-    const dt = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
-    delete array[(dt > 0 ? 1 : 0)];
-    return array;
-  }
-  const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
-  const t = numerator / denominator;
-  const origin = [
-    pointA[0] + vectorA[0] * t,
-    pointA[1] + vectorA[1] * t,
-  ];
-  const bisects = [bisect_vectors(vectorA, vectorB)];
-  bisects[1] = rotate90(bisects[0]);
-  return bisects.map(vector => ({ vector, origin }));
-};
-const subsect_radians = (divisions, angleA, angleB) => {
-  const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
-  return Array.from(Array(divisions - 1))
-    .map((_, i) => angleA + angle * i);
-};
-const subsect = (divisions, vectorA, vectorB) => {
-  const angleA = Math.atan2(vectorA[1], vectorA[0]);
-  const angleB = Math.atan2(vectorB[1], vectorB[0]);
-  return subsect_radians(divisions, angleA, angleB)
-    .map(rad => [Math.cos(rad), Math.sin(rad)]);
-};
-
-var radial = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  is_counter_clockwise_between: is_counter_clockwise_between,
-  clockwise_angle_radians: clockwise_angle_radians,
-  counter_clockwise_angle_radians: counter_clockwise_angle_radians,
-  clockwise_angle2: clockwise_angle2,
-  counter_clockwise_angle2: counter_clockwise_angle2,
-  clockwise_bisect2: clockwise_bisect2$1,
-  counter_clockwise_bisect2: counter_clockwise_bisect2,
-  counter_clockwise_radians_order: counter_clockwise_radians_order,
-  counter_clockwise_vector_order: counter_clockwise_vector_order,
-  interior_angles: interior_angles,
-  kawasaki_solutions_radians: kawasaki_solutions_radians,
-  kawasaki_solutions: kawasaki_solutions,
-  bisect_vectors: bisect_vectors,
-  bisect_lines2: bisect_lines2,
-  subsect_radians: subsect_radians,
-  subsect: subsect
 });
 
 const acossafe = function (x) {
@@ -1217,25 +1389,24 @@ const axiom2 = (pointA, pointB) => Constructors.line(
   normalize(rotate270(subtract(...resize_up(pointB, pointA)))),
   midpoint(pointA, pointB)
 );
-const axiom3 = (vectorA, pointA, vectorB, pointB) => bisect_lines2(
-    vectorA, pointA, vectorB, pointB
-  ).map(l => Constructors.line(l.vector, l.origin));
-const axiom4 = (vectorA, pointA, pointB) => Constructors.line(
-  rotate270(normalize(vectorA)),
-  pointB
+const axiom3 = (vectorA, originA, vectorB, originB) => bisect_lines2(
+    vectorA, originA, vectorB, originB).map(Constructors.line);
+const axiom4 = (vector, point) => Constructors.line(
+  rotate270(normalize(vector)),
+  point
 );
-const axiom5 = (vectorA, pointA, pointB, pointC) => (intersect_circle_line(
-    distance(pointB, pointC),
-    pointB,
-    vectorA,
+const axiom5 = (vectorA, originA, pointA, pointB) => (intersect_circle_line(
+    distance(pointA, pointB),
     pointA,
+    vectorA,
+    originA,
     () => true
   ) || []).map(sect => Constructors.line(
-    normalize(rotate270(subtract(...resize_up(sect, pointC)))),
-    midpoint(pointC, sect)
+    normalize(rotate270(subtract(...resize_up(sect, pointB)))),
+    midpoint(pointB, sect)
   ));
-const axiom7 = (vectorA, pointA, vectorB, pointB, pointC) => {
-  const intersect = intersect_lines(vectorB, pointB, vectorA, pointC, include_l, include_l);
+const axiom7 = (vectorA, originA, vectorB, pointC) => {
+  const intersect = intersect_lines(vectorA, originA, vectorB, pointC, include_l, include_l);
   return intersect === undefined
     ? undefined
     : Constructors.line(
@@ -1243,7 +1414,7 @@ const axiom7 = (vectorA, pointA, vectorB, pointB, pointC) => {
         midpoint(pointC, intersect)
     );
 };
-const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
+const axiom6 = function (vecA, pointA, vecB, pointB, pointC, pointD) {
   var p1 = pointC[0];
   var q1 = pointC[1];
   if (Math.abs(vecA[0]) > EPSILON) {
@@ -1362,223 +1533,6 @@ var axioms = /*#__PURE__*/Object.freeze({
   axiom7: axiom7,
   axiom6: axiom6
 });
-
-const overlap_lines = (aVector, aOrigin, bVector, bOrigin, compA, compB, epsilon = EPSILON) => {
-  const denominator0 = cross2(aVector, bVector);
-  const denominator1 = -denominator0;
-  if (Math.abs(denominator0) < epsilon) {
-    return collinear(bOrigin, aVector, aOrigin, compA, epsilon)
-     || collinear(bOrigin, flip(aVector), add(aOrigin, aVector), compA, epsilon)
-     || collinear(aOrigin, bVector, bOrigin, compB, epsilon)
-     || collinear(aOrigin, flip(bVector), add(bOrigin, bVector), compB, epsilon);
-  }
-  const numerator0 = cross2(subtract(bOrigin, aOrigin), bVector);
-  const numerator1 = cross2(subtract(aOrigin, bOrigin), aVector);
-  const t0 = numerator0 / denominator0;
-  const t1 = numerator1 / denominator1;
-  return compA(t0, epsilon / magnitude(aVector))
-    && compB(t1, epsilon / magnitude(bVector));
-};
-const overlap_line_line_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  overlap_lines(aV, aP, bV, bP, include_l, include_l, ep);
-const overlap_line_ray_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  overlap_lines(aV, aP, bV, bP, include_l, include_r, ep);
-const overlap_line_segment_inclusive = (aV, aP, b0, b1, ep = EPSILON) =>
-  overlap_lines(aV, aP, subtract(b1, b0), b0, include_l, include_s, ep);
-const overlap_ray_ray_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  overlap_lines(aV, aP, bV, bP, include_r, include_r, ep);
-const overlap_ray_segment_inclusive = (aV, aP, b0, b1, ep = EPSILON) =>
-  overlap_lines(aV, aP, subtract(b1, b0), b0, include_r, include_s, ep);
-const overlap_segment_segment_inclusive = (a0, a1, b0, b1, ep = EPSILON) =>
-  overlap_lines(subtract(a1, a0), a0, subtract(b1, b0), b0, include_s, include_s, ep);
-const overlap_line_line_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  overlap_lines(aV, aP, bV, bP, exclude_l, exclude_l, ep);
-const overlap_line_ray_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  overlap_lines(aV, aP, bV, bP, exclude_l, exclude_r, ep);
-const overlap_line_segment_exclusive = (aV, aP, b0, b1, ep = EPSILON) =>
-  overlap_lines(aV, aP, subtract(b1, b0), b0, exclude_l, exclude_s, ep);
-const overlap_ray_ray_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  overlap_lines(aV, aP, bV, bP, exclude_r, exclude_r, ep);
-const overlap_ray_segment_exclusive = (aV, aP, b0, b1, ep = EPSILON) =>
-  overlap_lines(aV, aP, subtract(b1, b0), b0, exclude_r, exclude_s, ep);
-const overlap_segment_segment_exclusive = (a0, a1, b0, b1, ep = EPSILON) =>
-  overlap_lines(subtract(a1, a0), a0, subtract(b1, b0), b0, exclude_s, exclude_s, ep);
-const collinear_lines = (aVec, aPt, bVec, bPt, compA, compB, epsilon = EPSILON) => {
-  const aPt2 = add(aPt, aVec);
-  const bPt2 = add(bPt, bVec);
-  return parallel(aVec, bVec, epsilon) && (
-    collinear(bPt, aVec, aPt, compA, epsilon)
-    || collinear(bPt2, aVec, aPt, compA, epsilon)
-    || collinear(aPt, bVec, bPt, compB, epsilon)
-    || collinear(aPt2, bVec, bPt, compB, epsilon));
-};
-const collinear_line_line_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  collinear_lines(aV, aP, bV, bP, include_l, include_l, ep);
-const collinear_line_ray_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  collinear_lines(aV, aP, bV, bP, include_l, include_r, ep);
-const collinear_line_segment_inclusive = (aV, aP, b0, b1, ep = EPSILON) =>
-  collinear_lines(aV, aP, subtract(b1, b0), b0, include_l, include_s, ep);
-const collinear_ray_ray_inclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  collinear_lines(aV, aP, bV, bP, include_r, include_r, ep);
-const collinear_ray_segment_inclusive = (aV, aP, b0, b1, ep = EPSILON) =>
-  collinear_lines(aV, aP, subtract(b1, b0), b0, include_r, include_s, ep);
-const collinear_segment_segment_inclusive = (a0, a1, b0, b1, ep = EPSILON) =>
-  collinear_lines(subtract(a1, a0), a0, subtract(b1, b0), b0, include_s, include_s, ep);
-const collinear_line_line_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  collinear_lines(aV, aP, bV, bP, exclude_l, exclude_l, ep);
-const collinear_line_ray_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  collinear_lines(aV, aP, bV, bP, exclude_l, exclude_r, ep);
-const collinear_line_segment_exclusive = (aV, aP, b0, b1, ep = EPSILON) =>
-  collinear_lines(aV, aP, subtract(b1, b0), b0, exclude_l, exclude_s, ep);
-const collinear_ray_ray_exclusive = (aV, aP, bV, bP, ep = EPSILON) =>
-  collinear_lines(aV, aP, bV, bP, exclude_r, exclude_r, ep);
-const collinear_ray_segment_exclusive = (aV, aP, b0, b1, ep = EPSILON) =>
-  collinear_lines(aV, aP, subtract(b1, b0), b0, exclude_r, exclude_s, ep);
-const collinear_segment_segment_exclusive = (a0, a1, b0, b1, ep = EPSILON) =>
-  collinear_lines(subtract(a1, a0), a0, subtract(b1, b0), b0, exclude_s, exclude_s, ep);
-
-var overlap_lines$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  overlap_lines: overlap_lines,
-  overlap_line_line_inclusive: overlap_line_line_inclusive,
-  overlap_line_ray_inclusive: overlap_line_ray_inclusive,
-  overlap_line_segment_inclusive: overlap_line_segment_inclusive,
-  overlap_ray_ray_inclusive: overlap_ray_ray_inclusive,
-  overlap_ray_segment_inclusive: overlap_ray_segment_inclusive,
-  overlap_segment_segment_inclusive: overlap_segment_segment_inclusive,
-  overlap_line_line_exclusive: overlap_line_line_exclusive,
-  overlap_line_ray_exclusive: overlap_line_ray_exclusive,
-  overlap_line_segment_exclusive: overlap_line_segment_exclusive,
-  overlap_ray_ray_exclusive: overlap_ray_ray_exclusive,
-  overlap_ray_segment_exclusive: overlap_ray_segment_exclusive,
-  overlap_segment_segment_exclusive: overlap_segment_segment_exclusive,
-  collinear_lines: collinear_lines,
-  collinear_line_line_inclusive: collinear_line_line_inclusive,
-  collinear_line_ray_inclusive: collinear_line_ray_inclusive,
-  collinear_line_segment_inclusive: collinear_line_segment_inclusive,
-  collinear_ray_ray_inclusive: collinear_ray_ray_inclusive,
-  collinear_ray_segment_inclusive: collinear_ray_segment_inclusive,
-  collinear_segment_segment_inclusive: collinear_segment_segment_inclusive,
-  collinear_line_line_exclusive: collinear_line_line_exclusive,
-  collinear_line_ray_exclusive: collinear_line_ray_exclusive,
-  collinear_line_segment_exclusive: collinear_line_segment_exclusive,
-  collinear_ray_ray_exclusive: collinear_ray_ray_exclusive,
-  collinear_ray_segment_exclusive: collinear_ray_segment_exclusive,
-  collinear_segment_segment_exclusive: collinear_segment_segment_exclusive
-});
-
-const point_in_convex_poly_inclusive = (point, poly, epsilon = EPSILON) => poly
-  .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-  .map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])) > -epsilon)
-  .map((s, _, arr) => s === arr[0])
-  .reduce((prev, curr) => prev && curr, true);
-const point_in_convex_poly_exclusive = (point, poly, epsilon = EPSILON) => poly
-  .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-  .map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])) > epsilon)
-  .map((s, _, arr) => s === arr[0])
-  .reduce((prev, curr) => prev && curr, true);
-const point_in_poly = (point, poly) => {
-  let isInside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    if ((poly[i][1] > point[1]) != (poly[j][1] > point[1])
-      && point[0] < (poly[j][0] - poly[i][0])
-      * (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1])
-      + poly[i][0]) {
-      isInside = !isInside;
-    }
-  }
-  return isInside;
-};
-const overlap_convex_polygons = (poly1, poly2, seg_seg, pt_in_poly) => {
-  const e1 = poly1.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
-  const e2 = poly2.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
-  for (let i = 0; i < e1.length; i += 1) {
-    for (let j = 0; j < e2.length; j += 1) {
-      if (seg_seg(e1[i][0], e1[i][1], e2[j][0], e2[j][1])) {
-        return true;
-      }
-    }
-  }
-  if (pt_in_poly(poly2[0], poly1)) { return true; }
-  if (pt_in_poly(poly1[0], poly2)) { return true; }
-  return false;
-};
-const overlap_convex_polygons_inclusive = (poly1, poly2) => overlap_convex_polygons(
-  poly1,
-  poly2,
-  overlap_segment_segment_inclusive,
-  point_in_convex_poly_inclusive
-);
-const overlap_convex_polygons_exclusive = (poly1, poly2) => overlap_convex_polygons(
-  poly1,
-  poly2,
-  overlap_segment_segment_exclusive,
-  point_in_convex_poly_exclusive
-);
-const enclose_convex_polygons_inclusive = (outer, inner) => {
-  const outerGoesInside = outer
-    .map(p => point_in_convex_poly_inclusive(p, inner))
-    .reduce((a, b) => a || b, false);
-  const innerGoesOutside = inner
-    .map(p => point_in_convex_poly_inclusive(p, inner))
-    .reduce((a, b) => a && b, true);
-  return (!outerGoesInside && innerGoesOutside);
-};
-
-var overlap_polygon = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  point_in_convex_poly_inclusive: point_in_convex_poly_inclusive,
-  point_in_convex_poly_exclusive: point_in_convex_poly_exclusive,
-  point_in_poly: point_in_poly,
-  overlap_convex_polygons_inclusive: overlap_convex_polygons_inclusive,
-  overlap_convex_polygons_exclusive: overlap_convex_polygons_exclusive,
-  enclose_convex_polygons_inclusive: enclose_convex_polygons_inclusive
-});
-
-const quick_equivalent_2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
-  && Math.abs(a[1] - b[1]) < EPSILON;
-const intersect_line_seg_include = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
-  vector, origin,
-  subtract(pt1, pt0), pt0,
-  include_l,
-  include_s,
-  ep
-);
-const intersect_line_seg_exclude = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
-  vector, origin,
-  subtract(pt1, pt0), pt0,
-  exclude_l,
-  exclude_s,
-  ep
-);
-const intersect_ray_seg_include = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
-  vector, origin,
-  subtract(pt1, pt0), pt0,
-  include_r,
-  include_s,
-  ep
-);
-const intersect_ray_seg_exclude = (vector, origin, pt0, pt1, ep = EPSILON) => intersect_lines(
-  vector, origin,
-  subtract(pt1, pt0), pt0,
-  exclude_r,
-  exclude_s,
-  ep
-);
-const intersect_seg_seg_include = (a0, a1, b0, b1, ep = EPSILON) => intersect_lines(
-  subtract(a1, a0), a0,
-  subtract(b1, b0), b0,
-  include_s,
-  include_s,
-  ep
-);
-const intersect_seg_seg_exclude = (a0, a1, b0, b1, ep = EPSILON) => intersect_lines(
-  subtract(a1, a0), a0,
-  subtract(b1, b0), b0,
-  exclude_s,
-  exclude_s,
-  ep
-);
 
 const get_unique_pair = (intersections) => {
   for (let i = 1; i < intersections.length; i += 1) {
@@ -2460,11 +2414,11 @@ var Polygon = {
       fromPoints: function () {
         return this.constructor(...arguments);
       },
-      regularPolygon: function (sides, radius = 1, x = 0, y = 0) {
-        return this.constructor(make_regular_polygon(sides, radius, x, y));
+      regularPolygon: function () {
+        return this.constructor(make_regular_polygon(...arguments));
       },
-      convexHull: function (points, includeCollinear = false) {
-        return this.constructor(convex_hull(points, includeCollinear));
+      convexHull: function () {
+        return this.constructor(convex_hull(...arguments));
       },
     }
   }
@@ -2555,7 +2509,8 @@ const invert_order_array = (arr) => {
 var Junction = {
   junction: {
     A: function () {
-      const vectors = get_vector_of_vectors(arguments);
+      const vectors = get_vector_of_vectors(arguments)
+				.map(v => Constructors.vector(v));
       const radians = vectors.map(v => Math.atan2(v[1], v[0]));
       const order = counter_clockwise_radians_order(...radians);
       this.vectors = order.map(i => vectors[i]);
@@ -2575,12 +2530,6 @@ var Junction = {
       },
     },
     S: {
-      fromVectors: function () {
-        return this.constructor(arguments);
-      },
-      fromPoints: function (center, edge_adjacent_points) {
-        return this.constructor(edge_adjacent_points.map(p => subtract(p, center)));
-      },
       fromRadians: function () {
         const radians = get_vector(arguments);
         return this.constructor(radians.map(r => [Math.cos(r), Math.sin(r)]));

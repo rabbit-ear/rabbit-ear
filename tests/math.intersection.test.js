@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 test("intersections", () => {
   const polygon = ear.polygon([0, 1.15], [-1, -0.577], [1, -0.577]);
@@ -105,20 +105,20 @@ test("core polygon intersection lines, collinear to vertex", () => {
 
 test("core polygon intersection lines, collinear to polygon vertices", () => {
   const lineSeg = ear.polygon.regularPolygon(4).intersectLine(ear.line([1, 0]));
-  expect(Math.abs(lineSeg[0][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(Math.abs(lineSeg[0][0])).toBeCloseTo(1);
   expect(lineSeg[0][1]).toBeCloseTo(0);
-  expect(Math.abs(lineSeg[1][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(Math.abs(lineSeg[1][0])).toBeCloseTo(1);
   expect(lineSeg[1][1]).toBeCloseTo(0);
 
   const raySeg1 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0]));
   expect(raySeg1.length).toBe(1);
-  expect(Math.abs(raySeg1[0][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(Math.abs(raySeg1[0][0])).toBeCloseTo(1);
   expect(raySeg1[0][1]).toBeCloseTo(0);
   const raySeg2 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0], [-10, 0]));
   expect(raySeg2.length).toBe(2);
-  expect(Math.abs(raySeg2[0][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(Math.abs(raySeg2[0][0])).toBeCloseTo(1);
   expect(raySeg2[0][1]).toBeCloseTo(0);
-  expect(Math.abs(raySeg2[1][0])).toBeCloseTo(Math.sqrt(2)/2);
+  expect(Math.abs(raySeg2[1][0])).toBeCloseTo(1);
   expect(raySeg2[1][1]).toBeCloseTo(0);
   const raySeg3 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0], [10, 0]));
   expect(raySeg3).toBe(undefined);

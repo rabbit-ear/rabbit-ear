@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 const equalTest = (a, b) => expect(JSON.stringify(a))
   .toBe(JSON.stringify(b));

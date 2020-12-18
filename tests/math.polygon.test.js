@@ -1,11 +1,11 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 const equalTest = (a, b) => expect(JSON.stringify(a))
   .toBe(JSON.stringify(b));
 
 test("prototype member variables accessing 'this'", () => {
   expect(ear.polygon.regularPolygon(4).sides.length).toBe(4);
-  expect(ear.polygon.regularPolygon(4).area()).toBeCloseTo(1);
+  expect(ear.polygon.regularPolygon(4).area()).toBeCloseTo(2);
 });
 
 test("isConvex", () => {
@@ -21,10 +21,10 @@ test(".segments", () => {
 
 test("intersect", () => {
   const segment = ear.polygon.regularPolygon(4).intersectLine(ear.line([1, 1]));
-  expect(Math.abs(segment[0][0])).toBeCloseTo(Math.sqrt(2)/4);
-  expect(Math.abs(segment[0][1])).toBeCloseTo(Math.sqrt(2)/4);
-  expect(Math.abs(segment[1][0])).toBeCloseTo(Math.sqrt(2)/4);
-  expect(Math.abs(segment[1][1])).toBeCloseTo(Math.sqrt(2)/4);
+  expect(Math.abs(segment[0][0])).toBe(0.5);
+  expect(Math.abs(segment[0][1])).toBe(0.5);
+  expect(Math.abs(segment[1][0])).toBe(0.5);
+  expect(Math.abs(segment[1][1])).toBe(0.5);
 });
 
 

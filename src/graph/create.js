@@ -29,6 +29,12 @@ polygon_names.forEach((name, i) => {
   });
 });
 
+Create.circle = () => create_init({
+	vertices_coords: math.core.make_regular_polygon(360, 1),
+	edges_vertices: Array.from(Array(360)).map((_, i, arr) => [i, (i + 1) % arr.length]),
+	edges_assignment: Array.from(Array(360)).map(() => "B"),
+});
+
 Create.kite = () => create_init({
   vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
   edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],

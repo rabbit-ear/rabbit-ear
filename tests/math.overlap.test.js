@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 test("point on line", () => {
   expect(ear.math.point_on_line([2, 2], [5, 5], [0, 0])).toBe(true);

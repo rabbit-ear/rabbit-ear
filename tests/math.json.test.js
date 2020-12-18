@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 test("vector", () => {
   const v = JSON.stringify(ear.vector(1, 2, 3));

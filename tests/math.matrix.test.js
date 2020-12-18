@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 test("copy", () => {
   const matrix = ear.matrix(1,2,3,4,5,6,7,8,9);

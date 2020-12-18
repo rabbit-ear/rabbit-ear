@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 test("arguments", () => {
   expect(ear.circle(1, [4,5]).radius).toBe(1);

@@ -1,4 +1,4 @@
-const ear = require("../../rabbit-ear");
+const ear = require("../rabbit-ear");
 
 test("segment", () => {
   expect(ear.segment(1, 2, 3, 4).svgPath()).toBe("M1 2L3 4");
