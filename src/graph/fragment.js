@@ -22,6 +22,11 @@ import {
 import get_collinear_vertices from "./clean/vertices_collinear";
 import { get_edges_edges_intersections } from "./intersect_edges";
 import { sort_vertices_along_vector } from "./sort";
+import {
+	merge_nextmaps,
+	merge_backmaps,
+	invert_map,
+} from "./maps";
 
 /**
  * Fragment converts a graph into a planar graph. it flattens all the
@@ -165,20 +170,35 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
     .forEach(key => delete graph[key]);
 
   var i;
-  for (i = 0; i < 20; i++) {
-    remove_duplicate_vertices(graph, epsilon / 2);
-    remove_duplicate_edges(graph);
-    remove_circular_edges(graph);
-    const res = fragment_graph(graph, epsilon);
-    if (res === undefined) { break; }
-  }
-  if (i === 20) {
+  let change;
+	for (i = 0; i < 20; i++) {
+  	const resVert = remove_duplicate_vertices(graph, epsilon / 2);
+  	const resEdgeDup = remove_duplicate_edges(graph);
+  	const resEdgeCirc = remove_circular_edges(graph);
+  	const resFrag = fragment_graph(graph, epsilon);
+  	if (resFrag === undefined) { 
+			change = (change === undefined
+				? merge_nextmaps(resEdgeDup.map, resEdgeCirc.map)
+				: merge_nextmaps(change, resEdgeDup.map, resEdgeCirc.map));
+			break;
+		}
+  	const invert_frag = invert_map(resFrag.edges.backmap);
+  	const edgemap = merge_nextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
+  	// console.log("dup v", resVert, "dup e", resEdgeDup, "circ e", resEdgeCirc, "frag", resFrag);
+		// console.log("invert", invert_frag);
+  	// console.log("edgemap", edgemap);
+		change = (change === undefined
+			? edgemap
+			: merge_nextmaps(change, edgemap));
+	}
+
+	if (i === 20) {
     console.warn("debug warning. fragment reached max iterations");
   }
   // Object.keys(graph).forEach(key => delete graph[key]);
   // Object.assign(graph, new_graph);
   // return edge_map;
-  return graph;
+  return change;
 };
 
 export default fragment;

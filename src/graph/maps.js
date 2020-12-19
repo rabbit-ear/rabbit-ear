@@ -46,7 +46,16 @@ export const invert_map = (map) => {
 	const inv = [];
 	map.forEach((n, i) => {
 		if (n == null) { return; }
-		if (typeof n === "number") { inv[n] = i; }
+		if (typeof n === "number") { 
+			// before we set the inverted map [i] spot, check if something is already there
+			if (inv[n] !== undefined) {
+				// if that thing is a number, turn it into an array
+				if (typeof inv[n] === "number") { inv[n] = [inv[n], i]; }
+				// already an array, add to it
+				else { inv[n].push(i); }
+			}
+			else { inv[n] = i; }
+		}
     if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }	
 	});
 	return inv;

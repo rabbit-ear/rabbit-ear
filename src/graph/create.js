@@ -29,10 +29,10 @@ polygon_names.forEach((name, i) => {
   });
 });
 
-Create.circle = () => create_init({
-	vertices_coords: math.core.make_regular_polygon(360, 1),
-	edges_vertices: Array.from(Array(360)).map((_, i, arr) => [i, (i + 1) % arr.length]),
-	edges_assignment: Array.from(Array(360)).map(() => "B"),
+Create.circle = (edge_count = 90) => create_init({
+	vertices_coords: math.core.make_regular_polygon(edge_count, 1),
+	edges_vertices: Array.from(Array(edge_count)).map((_, i, arr) => [i, (i + 1) % arr.length]),
+	edges_assignment: Array.from(Array(edge_count)).map(() => "B"),
 });
 
 Create.kite = () => create_init({

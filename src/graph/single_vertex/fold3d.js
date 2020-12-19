@@ -28,6 +28,9 @@ const single_vertex_fold_angles = (sectors, assignments, t = 0) => {
 	const res = Math.cos(Math.PI - pbc) - ((Math.sin(Math.PI - pbc) ** 2) * Math.sin(a) * Math.sin(b))/(1 - cosE);
 
 	const pab = -Math.acos(res) + Math.PI;
+	return odd % 2 === 0
+		? [pab, pbc, pab, pbc].map((n, i) => odd === i ? -n : n)
+		: [pbc, pab, pbc, pab].map((n, i) => odd === i ? -n : n);
 };
 
 export default single_vertex_fold_angles;

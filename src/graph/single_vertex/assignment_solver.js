@@ -26,7 +26,9 @@ const all_possible_assignments = (assignments) => {
 };
 
 const assignment_solver = (sectors, assignments) => {
-
+	if (assignments == null) {
+		assignments = sectors.map(() => "U");
+	}
   // consider doing a sectors test too...
   const possibilities = all_possible_assignments(assignments);
   const layers = possibilities.map(assigns => layerSolver(sectors, assigns));

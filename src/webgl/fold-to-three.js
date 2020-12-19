@@ -23,35 +23,42 @@ export const make_faces_geometry = (graph) => {
     .reduce(fn_cat, [])
     .reduce(fn_cat, []);
   const geometry = new THREE.BufferGeometry();
-  geometry.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-  geometry.addAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-  geometry.addAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
   geometry.setIndex(faces);
   return geometry;
 };
 
-const make_edge_cylinder = (edge_coords, edge_vector, radius) => {
+const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
   if (math.core.mag_squared(edge_vector) < math.core.EPSILON) { throw "degenerate edge"; }
-  const normalized = ear.math.normalize(edge_vector);
+  const normalized = math.core.normalize(edge_vector);
   const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
-    .map(vec => ear.math.normalize(math.core.cross3(normalized, vec)))
-    .map((v,i) => ({ i, v, mag: math.core.magnitude(v) }))
-    .filter(el => el.mag > math.core.EPSILON)
-    .map(obj => obj.v)
-    .shift()
-  const rotated = [perp];
-  for (let i = 1; i < 4; i += 1) {
-    rotated.push(ear.math.normalize(math.core.cross3(rotated[i-1], normalized)));
-  }
-  const dirs = rotated.map(v => ear.math.scale(v, radius));
-  return edge_coords
+    .map(vec => math.core.cross3(vec, normalized))
+		.sort((a, b) => math.core.magnitude(b) - math.core.magnitude(a))
+		.shift();
+  const rotated = [ math.core.normalize(perp) ];
+	// const mat = math.core.make_matrix3_rotate(Math.PI/9, normalized);
+  // for (let i = 1; i < 4; i += 1) {
+	// 	rotated.push(math.core.multiply_matrix3_vector3(mat, rotated[i - 1]));
+  // }
+	for (let i = 1; i < 4; i += 1) {
+		rotated.push(math.core.cross3(rotated[i - 1], normalized));
+	}
+  const dirs = rotated.map(v => math.core.scale(v, radius));
+	const nudge = [-end_pad, end_pad].map(n => math.core.scale(normalized, n));
+	const coords = end_pad === 0
+		? edge_coords
+		: edge_coords.map((coord, i) => math.core.add(coord, nudge[i]));
+	//console.log(dirs);
+  return coords
     .map(v => dirs.map(dir => math.core.add(v, dir)))
     .reduce(fn_cat, []);
 };
 
 export const make_edges_geometry = function ({
   vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
-}, scale=0.002) {
+}, scale=0.002, end_pad = 0) {
 	const { THREE } = window;
   if (!edges_coords) {
     edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
@@ -63,6 +70,8 @@ export const make_edges_geometry = function ({
   edges_coords = edges_coords
     .map(edge => edge
       .map(coord => math.core.resize(3, coord)));
+	edges_vector = edges_vector
+		.map(vec => math.core.resize(3, vec));
   const colorAssignments = {
     "B": [0.0,0.0,0.0],
  // "M": [0.9,0.31,0.16],
@@ -79,7 +88,7 @@ export const make_edges_geometry = function ({
    .reduce(fn_cat, []);
 
   const vertices = edges_coords
-    .map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale))
+    .map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale, end_pad))
     .reduce(fn_cat, [])
     .reduce(fn_cat, []);
 
@@ -120,9 +129,9 @@ export const make_edges_geometry = function ({
   ]).reduce(fn_cat, []);
 
   const geometry = new THREE.BufferGeometry();
-  geometry.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-  geometry.addAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-  geometry.addAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
   geometry.setIndex(faces);
   geometry.computeVertexNormals();
   return geometry;

@@ -228,7 +228,7 @@
   const cross2 = (a, b) => a[0] * b[1] - a[1] * b[0];
   const cross3 = (a, b) => [
     a[1] * b[2] - a[2] * b[1],
-    a[0] * b[2] - a[2] * b[0],
+    a[2] * b[0] - a[0] * b[2],
     a[0] * b[1] - a[1] * b[0],
   ];
   const distance2 = (a, b) => {
@@ -3409,7 +3409,13 @@
   	const inv = [];
   	map.forEach((n, i) => {
   		if (n == null) { return; }
-  		if (typeof n === "number") { inv[n] = i; }
+  		if (typeof n === "number") {
+  			if (inv[n] !== undefined) {
+  				if (typeof inv[n] === "number") { inv[n] = [inv[n], i]; }
+  				else { inv[n].push(i); }
+  			}
+  			else { inv[n] = i; }
+  		}
       if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }
   	});
   	return inv;
@@ -4009,17 +4015,28 @@
       .filter(key => !(fragment_keep_keys.includes(key)))
       .forEach(key => delete graph[key]);
     var i;
-    for (i = 0; i < 20; i++) {
-      remove_duplicate_vertices(graph, epsilon / 2);
-      remove_duplicate_edges(graph);
-      remove_circular_edges(graph);
-      const res = fragment_graph(graph, epsilon);
-      if (res === undefined) { break; }
-    }
-    if (i === 20) {
+    let change;
+  	for (i = 0; i < 20; i++) {
+    	const resVert = remove_duplicate_vertices(graph, epsilon / 2);
+    	const resEdgeDup = remove_duplicate_edges(graph);
+    	const resEdgeCirc = remove_circular_edges(graph);
+    	const resFrag = fragment_graph(graph, epsilon);
+    	if (resFrag === undefined) {
+  			change = (change === undefined
+  				? merge_nextmaps(resEdgeDup.map, resEdgeCirc.map)
+  				: merge_nextmaps(change, resEdgeDup.map, resEdgeCirc.map));
+  			break;
+  		}
+    	const invert_frag = invert_map(resFrag.edges.backmap);
+    	const edgemap = merge_nextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
+  		change = (change === undefined
+  			? edgemap
+  			: merge_nextmaps(change, edgemap));
+  	}
+  	if (i === 20) {
       console.warn("debug warning. fragment reached max iterations");
     }
-    return graph;
+    return change;
   };
 
   const clone = function (o) {
@@ -4663,6 +4680,9 @@
     return all.filter((_, i) => Math.abs(count_m[i] - count_v[i]) === 2);
   };
   const assignment_solver = (sectors, assignments) => {
+  	if (assignments == null) {
+  		assignments = sectors.map(() => "U");
+  	}
     const possibilities = all_possible_assignments(assignments);
     const layers = possibilities.map(assigns => get_sectors_layer(sectors, assigns));
     return possibilities
@@ -4691,6 +4711,13 @@
   	if (odd === undefined) { return; }
   	const a = sectors[(odd + 1) % sectors.length];
   	const b = sectors[(odd + 2) % sectors.length];
+  	const pbc = Math.PI * t;
+  	const cosE = -Math.cos(a)*Math.cos(b) + Math.sin(a)*Math.sin(b)*Math.cos(Math.PI - pbc);
+  	const res = Math.cos(Math.PI - pbc) - ((Math.sin(Math.PI - pbc) ** 2) * Math.sin(a) * Math.sin(b))/(1 - cosE);
+  	const pab = -Math.acos(res) + Math.PI;
+  	return odd % 2 === 0
+  		? [pab, pbc, pab, pbc].map((n, i) => odd === i ? -n : n)
+  		: [pbc, pab, pbc, pab].map((n, i) => odd === i ? -n : n);
   };
 
   var graph_methods = Object.assign(Object.create(null), {
@@ -4995,10 +5022,10 @@
       edges_assignment: arr.map(() => "B"),
     });
   });
-  Create.circle = () => create_init({
-  	vertices_coords: math.core.make_regular_polygon(360, 1),
-  	edges_vertices: Array.from(Array(360)).map((_, i, arr) => [i, (i + 1) % arr.length]),
-  	edges_assignment: Array.from(Array(360)).map(() => "B"),
+  Create.circle = (edge_count = 90) => create_init({
+  	vertices_coords: math.core.make_regular_polygon(edge_count, 1),
+  	edges_vertices: Array.from(Array(edge_count)).map((_, i, arr) => [i, (i + 1) % arr.length]),
+  	edges_assignment: Array.from(Array(edge_count)).map(() => "B"),
   });
   Create.kite = () => create_init({
     vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
@@ -5296,33 +5323,35 @@
       .reduce(fn_cat, [])
       .reduce(fn_cat, []);
     const geometry = new THREE.BufferGeometry();
-    geometry.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.addAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-    geometry.addAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     geometry.setIndex(faces);
     return geometry;
   };
-  const make_edge_cylinder = (edge_coords, edge_vector, radius) => {
+  const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
     if (math.core.mag_squared(edge_vector) < math.core.EPSILON) { throw "degenerate edge"; }
-    const normalized = ear.math.normalize(edge_vector);
+    const normalized = math.core.normalize(edge_vector);
     const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
-      .map(vec => ear.math.normalize(math.core.cross3(normalized, vec)))
-      .map((v,i) => ({ i, v, mag: math.core.magnitude(v) }))
-      .filter(el => el.mag > math.core.EPSILON)
-      .map(obj => obj.v)
-      .shift();
-    const rotated = [perp];
-    for (let i = 1; i < 4; i += 1) {
-      rotated.push(ear.math.normalize(math.core.cross3(rotated[i-1], normalized)));
-    }
-    const dirs = rotated.map(v => ear.math.scale(v, radius));
-    return edge_coords
+      .map(vec => math.core.cross3(vec, normalized))
+  		.sort((a, b) => math.core.magnitude(b) - math.core.magnitude(a))
+  		.shift();
+    const rotated = [ math.core.normalize(perp) ];
+  	for (let i = 1; i < 4; i += 1) {
+  		rotated.push(math.core.cross3(rotated[i - 1], normalized));
+  	}
+    const dirs = rotated.map(v => math.core.scale(v, radius));
+  	const nudge = [-end_pad, end_pad].map(n => math.core.scale(normalized, n));
+  	const coords = end_pad === 0
+  		? edge_coords
+  		: edge_coords.map((coord, i) => math.core.add(coord, nudge[i]));
+    return coords
       .map(v => dirs.map(dir => math.core.add(v, dir)))
       .reduce(fn_cat, []);
   };
   const make_edges_geometry = function ({
     vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
-  }, scale=0.002) {
+  }, scale=0.002, end_pad = 0) {
   	const { THREE } = win;
     if (!edges_coords) {
       edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
@@ -5333,6 +5362,8 @@
     edges_coords = edges_coords
       .map(edge => edge
         .map(coord => math.core.resize(3, coord)));
+  	edges_vector = edges_vector
+  		.map(vec => math.core.resize(3, vec));
     const colorAssignments = {
       "B": [0.0,0.0,0.0],
       "M": [0.0,0.0,0.0],
@@ -5346,7 +5377,7 @@
      .reduce(fn_cat, [])
      .reduce(fn_cat, []);
     const vertices = edges_coords
-      .map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale))
+      .map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale, end_pad))
       .reduce(fn_cat, [])
       .reduce(fn_cat, []);
   	const normals = edges_vector.map(vector => {
@@ -5378,9 +5409,9 @@
       i*8+7, i*8+6, i*8+5,
     ]).reduce(fn_cat, []);
     const geometry = new THREE.BufferGeometry();
-    geometry.addAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.addAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-    geometry.addAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     geometry.setIndex(faces);
     geometry.computeVertexNormals();
     return geometry;
