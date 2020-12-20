@@ -56,10 +56,9 @@ export const remove_circular_edges = graph => {
 // if components are removed, these return arrays WITHOUT holes.
 export const remove_duplicate_edges = (graph) => {
   const duplicates = get_duplicate_edges(graph);
-  const map = graph.edges_vertices.map((_, i) => i);
-  duplicates.forEach((v, i) => { map[v] = i; });
   const remove_indices = Object.keys(duplicates);
-  remove(graph, EDGES, remove_indices);
+  const map = remove(graph, EDGES, remove_indices);
+  duplicates.forEach((v, i) => { map[i] = v; });
   return {
     map,
     remove: remove_indices,

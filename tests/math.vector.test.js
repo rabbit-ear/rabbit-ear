@@ -91,7 +91,7 @@ test("cross", () => {
   // [0, 0, 0.8]
   expect(0.8 - w.cross(2,4)[2]).toBeLessThan(1e-6); 
   expect(w.cross(2,-4,5)[0]).toBe(4);
-  expect(w.cross(2,-4,5)[1]).toBe(3);
+  expect(w.cross(2,-4,5)[1]).toBe(-3);
   expect(w.cross(2,-4,5)[2]).toBe(-4);
   expect(w.cross(2,-4)[2]).toBe(-4);
 });

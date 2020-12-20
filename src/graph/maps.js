@@ -13,7 +13,11 @@ export const merge_nextmaps = (...maps) => {
 	const solution = maps[0].map((_, i) => [i]);
 	maps.forEach(map => {
 		solution.forEach((s, i) => s.forEach((indx,j) => { solution[i][j] = map[indx]; }));
-		solution.forEach((arr, i) => { solution[i] = arr.reduce((a,b) => a.concat(b), []); });
+		solution.forEach((arr, i) => {
+			solution[i] = arr
+				.reduce((a,b) => a.concat(b), [])
+				.filter(a => a !== undefined);
+		});
 	});
 	return solution;
 };

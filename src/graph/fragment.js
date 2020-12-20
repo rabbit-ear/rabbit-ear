@@ -23,6 +23,7 @@ import get_collinear_vertices from "./clean/vertices_collinear";
 import { get_edges_edges_intersections } from "./intersect_edges";
 import { sort_vertices_along_vector } from "./sort";
 import {
+	merge_simple_nextmaps,
 	merge_nextmaps,
 	merge_backmaps,
 	invert_map,
@@ -172,19 +173,28 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
   var i;
   let change;
 	for (i = 0; i < 20; i++) {
+		// console.log("---------------- start round", graph)
   	const resVert = remove_duplicate_vertices(graph, epsilon / 2);
   	const resEdgeDup = remove_duplicate_edges(graph);
   	const resEdgeCirc = remove_circular_edges(graph);
   	const resFrag = fragment_graph(graph, epsilon);
+  	// console.log("dup v", resVert);
+  	// console.log("dup e", resEdgeDup);
+  	// console.log("circ e", resEdgeCirc);
+  	// console.log("frag", resFrag);
   	if (resFrag === undefined) { 
+			// console.log("merge dup and circ 1", merge_nextmaps(resEdgeDup.map, resEdgeCirc.map));
+			// console.log("merge dup and circ 1b", merge_simple_nextmaps(resEdgeDup.map, resEdgeCirc.map));
+			// console.log("merge dup and circ 2", merge_nextmaps(change, resEdgeDup.map, resEdgeCirc.map));
+			// console.log("merge dup and circ 2b", merge_nextmaps(change, merge_simple_nextmaps(resEdgeDup.map, resEdgeCirc.map)));
 			change = (change === undefined
 				? merge_nextmaps(resEdgeDup.map, resEdgeCirc.map)
 				: merge_nextmaps(change, resEdgeDup.map, resEdgeCirc.map));
+			// console.log("exiting early", change);
 			break;
 		}
   	const invert_frag = invert_map(resFrag.edges.backmap);
   	const edgemap = merge_nextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
-  	// console.log("dup v", resVert, "dup e", resEdgeDup, "circ e", resEdgeCirc, "frag", resFrag);
 		// console.log("invert", invert_frag);
   	// console.log("edgemap", edgemap);
 		change = (change === undefined

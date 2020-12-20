@@ -3379,7 +3379,11 @@
   	const solution = maps[0].map((_, i) => [i]);
   	maps.forEach(map => {
   		solution.forEach((s, i) => s.forEach((indx,j) => { solution[i][j] = map[indx]; }));
-  		solution.forEach((arr, i) => { solution[i] = arr.reduce((a,b) => a.concat(b), []); });
+  		solution.forEach((arr, i) => {
+  			solution[i] = arr
+  				.reduce((a,b) => a.concat(b), [])
+  				.filter(a => a !== undefined);
+  		});
   	});
   	return solution;
   };
@@ -3837,10 +3841,9 @@
   };
   const remove_duplicate_edges = (graph) => {
     const duplicates = get_duplicate_edges(graph);
-    const map = graph.edges_vertices.map((_, i) => i);
-    duplicates.forEach((v, i) => { map[v] = i; });
     const remove_indices = Object.keys(duplicates);
-    remove_geometry_indices(graph, EDGES, remove_indices);
+    const map = remove_geometry_indices(graph, EDGES, remove_indices);
+    duplicates.forEach((v, i) => { map[i] = v; });
     return {
       map,
       remove: remove_indices,
