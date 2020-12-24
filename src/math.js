@@ -557,8 +557,6 @@ const array_similarity_test = (list, compFunc) => Array
   .reduce((a, b) => a && b, true);
 const equivalent_vec2 = (a, b) => Math.abs(a[0] - b[0]) < EPSILON
   && Math.abs(a[1] - b[1]) < EPSILON;
-const equivalent_arrays_of_numbers = function () {
-};
 const equivalent_numbers = function () {
   if (arguments.length === 0) { return false; }
   if (arguments.length === 1 && arguments[0] !== undefined) {
@@ -597,7 +595,6 @@ const equivalent = function () {
 var equal = /*#__PURE__*/Object.freeze({
   __proto__: null,
   equivalent_vec2: equivalent_vec2,
-  equivalent_arrays_of_numbers: equivalent_arrays_of_numbers,
   equivalent_numbers: equivalent_numbers,
   equivalent_vectors: equivalent_vectors,
   equivalent: equivalent

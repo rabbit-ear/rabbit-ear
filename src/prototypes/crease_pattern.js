@@ -26,8 +26,9 @@ const arcResolution = 96;
     if (!segment) { return; }
     const vertices = add_vertices(this, segment);
     const edges = add_edges(this, vertices);
-    fragment(this);
+    const map = fragment(this).edges.map;
     populate(this);
+		return edges.map(e => map[e]);
   };
 });
 
@@ -40,12 +41,16 @@ const arcResolution = 96;
       .map(segment => clip_line(this, segment))
       .filter(a => a !== undefined);
     if (!segments) { return; }
+		const vertices = [];
+		const edges = [];
     segments.forEach(segment => {
-      const vertices = add_vertices(this, segment);
-      const edges = add_edges(this, vertices);
+      const verts = add_vertices(this, segment);
+      vertices.push(...verts);
+      edges.push(...add_edges(this, verts));
     });
-    fragment(this);
+    const map = fragment(this).edges.map;
     populate(this);
+		return edges.map(e => map[e]);
   };
 });
 

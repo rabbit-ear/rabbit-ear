@@ -14,6 +14,35 @@ test("dot", () => {
   expect(ear.math.dot([1, 1000], [])).toBe(0);
 });
 
+test("magnitude", () => {
+	expect(ear.math.magnitude([0, 0, 0, 0, 0, 1])).toBe(1);
+	expect(ear.math.magnitude([1, 1])).toBeCloseTo(Math.sqrt(2));
+	expect(ear.math.magnitude([0, 0, 0, 0, 0, 0])).toBe(0);
+	expect(ear.math.magnitude([])).toBe(0);
+});
+
+test("mag sq", () => {
+	expect(ear.math.mag_squared([1, 1, 1, 1])).toBe(4);
+	expect(ear.math.mag_squared([])).toBe(0);
+	expect(ear.math.mag_squared([1, -2, 3]))
+		.toBe((1 ** 2) + (2 ** 2) + (3 ** 2));
+	expect(ear.math.mag_squared([-100])).toBe(100 * 100);
+});
+
+test("normalize", () => {
+	expect(ear.math.normalize([]).length).toBe(0);
+	expect(ear.math.normalize([1, 1])[0]).toBeCloseTo(Math.sqrt(2) / 2);
+	expect(ear.math.normalize([1, 1])[1]).toBeCloseTo(Math.sqrt(2) / 2);
+	expect(ear.math.normalize([1, -1, 1])[0]).toBeCloseTo(Math.sqrt(3) / 3);
+});
+
+test("scale", () => {
+	expect(ear.math.scale([]).length).toBe(0);
+	expect(ear.math.scale([1])[0]).toBe(NaN);
+	expect(ear.math.scale([1], 2)[0]).toBe(2);
+	expect(ear.math.scale([1], -2)[0]).toBe(-2);
+});
+
 test("average function", () => {
   // improper use
   expect(ear.math.average().length).toBe(0);

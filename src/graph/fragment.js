@@ -170,44 +170,38 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
     .filter(key => !(fragment_keep_keys.includes(key)))
     .forEach(key => delete graph[key]);
 
-  var i;
-  let change;
+  const change = {
+		vertices: {},
+		edges: {},
+	};
+	let i;
 	for (i = 0; i < 20; i++) {
-		// console.log("---------------- start round", graph)
   	const resVert = remove_duplicate_vertices(graph, epsilon / 2);
   	const resEdgeDup = remove_duplicate_edges(graph);
   	const resEdgeCirc = remove_circular_edges(graph);
   	const resFrag = fragment_graph(graph, epsilon);
-  	// console.log("dup v", resVert);
-  	// console.log("dup e", resEdgeDup);
-  	// console.log("circ e", resEdgeCirc);
-  	// console.log("frag", resFrag);
   	if (resFrag === undefined) { 
-			// console.log("merge dup and circ 1", merge_nextmaps(resEdgeDup.map, resEdgeCirc.map));
-			// console.log("merge dup and circ 1b", merge_simple_nextmaps(resEdgeDup.map, resEdgeCirc.map));
-			// console.log("merge dup and circ 2", merge_nextmaps(change, resEdgeDup.map, resEdgeCirc.map));
-			// console.log("merge dup and circ 2b", merge_nextmaps(change, merge_simple_nextmaps(resEdgeDup.map, resEdgeCirc.map)));
-			change = (change === undefined
+			change.vertices.map = (change.vertices.map === undefined
+				? resVert.map
+				: merge_nextmaps(change.vertices.map, resVert.map));
+			change.edges.map = (change.edges.map === undefined
 				? merge_nextmaps(resEdgeDup.map, resEdgeCirc.map)
-				: merge_nextmaps(change, resEdgeDup.map, resEdgeCirc.map));
-			// console.log("exiting early", change);
+				: merge_nextmaps(change.edges.map, resEdgeDup.map, resEdgeCirc.map));
 			break;
 		}
   	const invert_frag = invert_map(resFrag.edges.backmap);
   	const edgemap = merge_nextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
-		// console.log("invert", invert_frag);
-  	// console.log("edgemap", edgemap);
-		change = (change === undefined
+		change.vertices.map = (change.vertices.map === undefined
+			? resVert.map
+			: merge_nextmaps(change.vertices.map, resVert.map));
+		change.edges.map = (change.edges.map === undefined
 			? edgemap
-			: merge_nextmaps(change, edgemap));
+			: merge_nextmaps(change.edges.map, edgemap));
 	}
 
 	if (i === 20) {
     console.warn("debug warning. fragment reached max iterations");
   }
-  // Object.keys(graph).forEach(key => delete graph[key]);
-  // Object.assign(graph, new_graph);
-  // return edge_map;
   return change;
 };
 

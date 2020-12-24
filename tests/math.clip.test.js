@@ -42,6 +42,25 @@ test("collinear core, segment", () => {
   const result4 = ear.math.clip_segment_in_convex_poly_exclusive(rect, ...segVert2);
 });
 
+test("collinear core, segment, spanning multiple points", () => {
+	const poly = [[0, 0], [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [0, 5]];
+	const seg = [[5, -1], [5, 6]];
+	const res = ear.math.clip_segment_in_convex_poly_inclusive(poly, ...seg);
+	expect(res[0][0]).toBe(5);
+	expect(res[0][1]).toBe(0);
+	expect(res[1][0]).toBe(5);
+	expect(res[1][1]).toBe(5);
+});
+
+test("collinear core, segment, spanning multiple points, inside", () => {
+	const poly = [[0, 0], [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [0, 5]];
+	const seg = [[5, 0.5], [5, 4.5]];
+	const res = ear.math.clip_segment_in_convex_poly_inclusive(poly, ...seg);
+	expect(res[0][0]).toBe(5);
+	expect(res[0][1]).toBe(0.5);
+	expect(res[1][0]).toBe(5);
+	expect(res[1][1]).toBe(4.5);
+});
 
 test("math types, clip line in rect", () => {
   const rect = ear.rect(-1, -1, 2, 2);

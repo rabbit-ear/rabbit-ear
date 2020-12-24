@@ -191,8 +191,8 @@ export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edge
       ? [math.core.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
       : math.core.interior_angles(...vectors));
 
-export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
-  if (!faces_matrix) {
+export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
+  if (!faces_matrix || root_face !== undefined) {
     faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
   }
   if (!vertices_faces) {

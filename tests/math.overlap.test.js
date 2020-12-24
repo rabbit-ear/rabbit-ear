@@ -203,6 +203,16 @@ test("overlap lines", () => {
   expect(ear.math.overlap_segment_segment_exclusive(a0, a1, b0, b1)).toBe(false);
 });
 
+test("convex polygons overlap with point inside each other", () => {
+	const poly1 = [[0, 0], [1, 0], [1, 1], [0, 1]];
+	const polyA = [[0.5, 0.5], [10, 10], [10, 0]];
+	const polyB = [[-10, -10], [10, -10], [10, 10], [-10, 10]];
+	expect(ear.math.overlap_convex_polygons_inclusive(poly1, polyA)).toBe(true);
+	expect(ear.math.overlap_convex_polygons_inclusive(poly1, polyB)).toBe(true);
+	expect(ear.math.overlap_convex_polygons_inclusive(polyA, poly1)).toBe(true);
+	expect(ear.math.overlap_convex_polygons_inclusive(polyB, poly1)).toBe(true);
+});
+
 test("convex polygons overlap", () => {
   const poly1 = [[1,0], [0,1], [-1,0]];  // top
   const poly2 = [[0,1], [-1,0], [0,-1]]; // left
