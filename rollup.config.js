@@ -1,5 +1,7 @@
+import babel from "@rollup/plugin-babel";
 import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup"
+import { terser } from "rollup-plugin-terser";
 
 const version = "0.1.91";
 
@@ -14,6 +16,12 @@ module.exports = [{
   },
   plugins: [
     json(),
-    cleanup()
+    babel({
+      babelHelpers: "bundled",
+      presets: ["@babel/preset-env"]
+    }),
+    cleanup(),
+    terser(),
   ]
 }];
+

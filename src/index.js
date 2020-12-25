@@ -32,12 +32,16 @@ import text from "./text/index";
 // webgl
 import * as foldToThree from "./webgl/fold-to-three";
 
+// extensions
+import SVG from "./extensions/svg";
+import FoldToSvg from "./extensions/fold-to-svg";
+
 const ConstructorPrototypes = {
   graph: GraphProto,
   // planargraph: PlanarGraphProto,
   // origami: GraphProto,
   cp: CreasePatternProto,
-}
+};
 
 Object.keys(ConstructorPrototypes).forEach(name => {
   Constructors[name] = function () {
@@ -84,5 +88,11 @@ Object.keys(math)
 //   isNode ? "node" : "",
 // ].filter(a => a !== "").join(" ");
 // console.log(`RabbitEar v0.1.91 [${operating_systems}]`);
+
+// extensions
+SVG.use(FoldToSvg);
+FoldToSvg.use(SVG);
+Ear.use(SVG);
+Ear.use(FoldToSvg);
 
 export default Ear;
