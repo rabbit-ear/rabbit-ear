@@ -21,7 +21,7 @@ module.exports = [{
       presets: ["@babel/preset-env"]
     }),
     cleanup(),
-    terser(),
+    // terser(),
   ]
 }];
 
