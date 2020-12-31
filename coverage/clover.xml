@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1609440565662" clover="3.2.0">
+  <project timestamp="1609440565662" name="All files">
+    <metrics statements="1" coveredstatements="1" conditionals="2356" coveredconditionals="1160" methods="1694" coveredmethods="987" elements="4051" coveredelements="2148" complexity="0" loc="1" ncloc="1" packages="1" files="1" classes="1"/>
+    <file name="rabbit-ear.js" path="/workspace/Origami/rabbit-ear.js">
+      <metrics statements="1" coveredstatements="1" conditionals="2356" coveredconditionals="1160" methods="1694" coveredmethods="987"/>
+      <line num="2" count="26373" type="cond" truecount="1160" falsecount="1196"/>
+    </file>
+  </project>
+</coverage>
