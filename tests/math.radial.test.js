@@ -132,30 +132,30 @@ test("counter-clockwise bisect", () => {
   expect(ear.math.counter_clockwise_bisect2([1,0], [1,0])[1]).toBeCloseTo(0);
 });
 
-test("bisect_vectors", () => {
-  expect(ear.math.bisect_vectors([1,0], [0,1])[0])
+test("counter_clockwise_bisect2", () => {
+  expect(ear.math.counter_clockwise_bisect2([1,0], [0,1])[0])
     .toBeCloseTo(Math.sqrt(2)/2);
-  expect(ear.math.bisect_vectors([1,0], [0,1])[1])
+  expect(ear.math.counter_clockwise_bisect2([1,0], [0,1])[1])
     .toBeCloseTo(Math.sqrt(2)/2);
-  expect(ear.math.bisect_vectors([0,1], [-1,0])[0])
+  expect(ear.math.counter_clockwise_bisect2([0,1], [-1,0])[0])
     .toBeCloseTo(-Math.sqrt(2)/2);
-  expect(ear.math.bisect_vectors([0,1], [-1,0])[1])
+  expect(ear.math.counter_clockwise_bisect2([0,1], [-1,0])[1])
     .toBeCloseTo(Math.sqrt(2)/2);
   // flipped vectors
-  expect(ear.math.bisect_vectors([1,0], [-1,0])[0]).toBeCloseTo(0);
-  expect(ear.math.bisect_vectors([1,0], [-1,0])[1]).toBeCloseTo(1);
+  expect(ear.math.counter_clockwise_bisect2([1,0], [-1,0])[0]).toBeCloseTo(0);
+  expect(ear.math.counter_clockwise_bisect2([1,0], [-1,0])[1]).toBeCloseTo(1);
 });
 
 test("bisect_lines2", () => {
   expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[1])
     .toBe(undefined);
-  expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[0][0][0])
+  expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[0].vector[0])
     .toBeCloseTo(0);
-  expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[0][0][1])
+  expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[0].vector[1])
     .toBeCloseTo(1);
-  expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[0][1][0])
+  expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[0].origin[0])
     .toBeCloseTo(0.5);
-  expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[0][1][1])
+  expect(ear.math.bisect_lines2([0,1], [0,0], [0,1], [1,0])[0].origin[1])
     .toBeCloseTo(0);
   
   expect(ear.math.bisect_lines2([0,1], [0,0], [1,1], [1,0])[0].vector[0])

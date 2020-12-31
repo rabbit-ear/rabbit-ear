@@ -3,7 +3,7 @@ import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup"
 import { terser } from "rollup-plugin-terser";
 
-const version = "0.1.91";
+const version = "alpha 2 2020-12-30";
 
 module.exports = [{
   input: "src/index.js",
@@ -11,8 +11,7 @@ module.exports = [{
     name: "ear",
     file: "rabbit-ear.js",
     format: "umd",
-    // format: "es",
-    banner: `/* Rabbit Ear v${version} (c) Robby Kraft, MIT License */`,
+    banner: `/* Rabbit Ear ${version} (c) Robby Kraft, MIT License */`,
   },
   plugins: [
     json(),
@@ -21,7 +20,12 @@ module.exports = [{
       presets: ["@babel/preset-env"]
     }),
     cleanup(),
-    // terser(),
+    terser({
+			keep_fnames: true,
+			format: {
+				comments: "all",
+			},
+		}),
   ]
 }];
 

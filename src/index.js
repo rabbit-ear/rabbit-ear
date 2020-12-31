@@ -19,9 +19,9 @@ import diagram from "./diagrams/index";
 import Constructors from "./constructors";
 // prototypes
 import GraphProto from "./prototypes/graph";
-import PlanarGraphProto from "./prototypes/planar_graph";
+// import PlanarGraphProto from "./prototypes/planar_graph";
 import CreasePatternProto from "./prototypes/crease_pattern";
-// import OrigamiProto from "./prototypes/origami";
+import OrigamiProto from "./prototypes/origami";
 import { file_spec, file_creator } from "./graph/fold_keys";
 import { fold_object_certainty } from "./graph/fold_spec";
 // static constructors for prototypes
@@ -38,19 +38,26 @@ import FoldToSvg from "./extensions/fold-to-svg";
 
 const ConstructorPrototypes = {
   graph: GraphProto,
-  // planargraph: PlanarGraphProto,
-  // origami: GraphProto,
   cp: CreasePatternProto,
+  origami: OrigamiProto,
+};
+
+const default_graph = {
+	graph: {},
+	cp: create.square(),
+	origami: create.square(),
 };
 
 Object.keys(ConstructorPrototypes).forEach(name => {
   Constructors[name] = function () {
+		const argFolds = Array.from(arguments)
+      .filter(a => fold_object_certainty(a))
+      .map(obj => JSON.parse(JSON.stringify(obj))); // deep copy input graph
     return Object.assign(
-      Object.create(ConstructorPrototypes[name]),
-      ...Array.from(arguments)
-        .filter(a => fold_object_certainty(a))
-        .map(obj => JSON.parse(JSON.stringify(obj))), // deep copy input graph
-      { file_spec, file_creator }
+			Object.create(ConstructorPrototypes[name]),
+			(argFolds.length ? {} : default_graph[name]),
+      ...argFolds,
+			{ file_spec, file_creator }
     );
   };
   Constructors[name].prototype = ConstructorPrototypes[name];
@@ -76,7 +83,7 @@ const Ear = Object.assign(root, Constructors, {
 Object.defineProperty(Ear, "use", {
   enumerable: false,
   value: use.bind(Ear),
-})
+});
 
 Object.keys(math)
   .filter(key => key !== "core")
@@ -91,6 +98,7 @@ Object.keys(math)
 
 // extensions
 SVG.use(FoldToSvg);
+SVG.use(Ear);
 FoldToSvg.use(SVG);
 Ear.use(SVG);
 Ear.use(FoldToSvg);

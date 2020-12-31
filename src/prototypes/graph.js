@@ -41,6 +41,7 @@ import clone from "../graph/clone";
  */
 const GraphProto = {};
 GraphProto.prototype = Object.create(Object.prototype);
+GraphProto.prototype.constructor = GraphProto;
 /**
  * methods where "graph" is the first parameter, followed by ...arguments
  * func(graph, ...args)
@@ -65,7 +66,7 @@ Object.keys(graphMethods).forEach(key => {
  * @returns {this} a deep copy of this object
  */
 GraphProto.prototype.copy = function () {
-  return Object.assign(Object.create(GraphProto), clone(this));
+  return Object.assign(Object.create(GraphProto.prototype), clone(this));
 };
 /**
  * @param {object} is a FOLD object.

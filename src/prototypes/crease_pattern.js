@@ -8,6 +8,7 @@ import add_vertices from "../graph/add/add_vertices";
 import add_edges from "../graph/add/add_edges";
 import fragment from "../graph/fragment";
 import populate from "../graph/populate";
+import clone from "../graph/clone";
 /**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.
@@ -15,8 +16,19 @@ import populate from "../graph/populate";
  */
 const CreasePatternProto = {};
 CreasePatternProto.prototype = Object.create(GraphProto);
-
+CreasePatternProto.prototype.constructor = CreasePatternProto;
+/**
+ * how many segments will curves be converted into.
+ * todo: user should be able to change this
+ */
 const arcResolution = 96;
+/**
+ * export
+ * @returns {this} a deep copy of this object
+ */
+CreasePatternProto.prototype.copy = function () {
+  return Object.assign(Object.create(CreasePatternProto.prototype), clone(this));
+};
 
 ["line", "ray", "segment"].forEach(type => {
   CreasePatternProto.prototype[type] = function () {

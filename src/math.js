@@ -25,7 +25,7 @@ const type_of = function (obj) {
 const resize = (d, v) => (v.length === d
   ? v
   : Array(d).fill(0).map((z, i) => (v[i] ? v[i] : z)));
-const resize_up = (a, b) => {
+const resize_up$1 = (a, b) => {
   const size = a.length > b.length ? a.length : b.length;
   return [a, b].map(v => resize(size, v));
 };
@@ -78,7 +78,7 @@ const flatten_arrays = function () {
 var resizers = /*#__PURE__*/Object.freeze({
   __proto__: null,
   resize: resize,
-  resize_up: resize_up,
+  resize_up: resize_up$1,
   resize_down: resize_down,
   clean_number: clean_number,
   semi_flatten_arrays: semi_flatten_arrays,
@@ -205,7 +205,7 @@ const normalize = (v) => {
   return m === 0 ? v : v.map(c => c / m);
 };
 const scale = (v, s) => v.map(n => n * s);
-const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
+const add$1 = (v, u) => v.map((n, i) => n + (u[i] || 0));
 const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
 const dot = (v, u) => v
   .map((_, i) => v[i] * u[i])
@@ -264,7 +264,7 @@ var algebra = /*#__PURE__*/Object.freeze({
   mag_squared: mag_squared,
   normalize: normalize,
   scale: scale,
-  add: add,
+  add: add$1,
   subtract: subtract,
   dot: dot,
   midpoint: midpoint,
@@ -443,7 +443,7 @@ const vector_origin_form = (vector, origin) => ({
   vector: vector || [],
   origin: origin || []
 });
-const get_vector = function () {
+const get_vector$1 = function () {
   if (arguments[0] instanceof Constructors.vector) { return arguments[0]; }
   let list = flatten_arrays(arguments);
   if (list.length > 0
@@ -458,7 +458,7 @@ const get_vector = function () {
 };
 const get_vector_of_vectors = function () {
   return semi_flatten_arrays(arguments)
-    .map(el => get_vector(el));
+    .map(el => get_vector$1(el));
 };
 const get_segment = function () {
   if (arguments[0] instanceof Constructors.segment) {
@@ -483,8 +483,8 @@ const get_line = function () {
     return vector_origin_form(args[0].vector || [], args[0].origin || []);
   }
   return typeof args[0] === "number"
-    ? vector_origin_form(get_vector(args))
-    : vector_origin_form(...args.map(a => get_vector(a)));
+    ? vector_origin_form(get_vector$1(args))
+    : vector_origin_form(...args.map(a => get_vector$1(a)));
 };
 const get_ray = get_line;
 const get_rect_params = (x = 0, y = 0, width = 0, height = 0) => ({
@@ -530,7 +530,7 @@ const get_matrix_3x4 = function () {
 
 var getters = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  get_vector: get_vector,
+  get_vector: get_vector$1,
   get_vector_of_vectors: get_vector_of_vectors,
   get_segment: get_segment,
   get_line: get_line,
@@ -625,7 +625,7 @@ const nearest_point_on_line = (vector, origin, point, limiterFunc, epsilon = EPS
   const dotProd = dot(vector, vectorToPoint);
   const dist = dotProd / magSquared;
   const d = limiterFunc(dist, epsilon);
-  return add(origin, scale(vector, d))
+  return add$1(origin, scale(vector, d))
 };
 const nearest_point_on_polygon = (polygon, point) => {
   const v = polygon
@@ -636,7 +636,7 @@ const nearest_point_on_polygon = (polygon, point) => {
     .sort((a, b) => a.distance - b.distance)
     .shift();
 };
-const nearest_point_on_circle = (radius, origin, point) => add(
+const nearest_point_on_circle = (radius, origin, point) => add$1(
   origin, scale(normalize(subtract(point, origin)), radius)
 );
 const nearest_point_on_ellipse = () => false;
@@ -672,7 +672,7 @@ const intersect_lines = (aVector, aOrigin, bVector, bOrigin, compA, compB, epsil
   const t1 = numerator1 / denominator1;
   if (compA(t0, epsilon / magnitude(aVector))
     && compB(t1, epsilon / magnitude(bVector))) {
-    return add(aOrigin, scale(aVector, t0));
+    return add$1(aOrigin, scale(aVector, t0));
   }
   return undefined;
 };
@@ -718,9 +718,9 @@ const overlap_lines = (aVector, aOrigin, bVector, bOrigin, compA, compB, epsilon
   const denominator1 = -denominator0;
   if (Math.abs(denominator0) < epsilon) {
     return collinear(bOrigin, aVector, aOrigin, compA, epsilon)
-     || collinear(bOrigin, flip(aVector), add(aOrigin, aVector), compA, epsilon)
+     || collinear(bOrigin, flip(aVector), add$1(aOrigin, aVector), compA, epsilon)
      || collinear(aOrigin, bVector, bOrigin, compB, epsilon)
-     || collinear(aOrigin, flip(bVector), add(bOrigin, bVector), compB, epsilon);
+     || collinear(aOrigin, flip(bVector), add$1(bOrigin, bVector), compB, epsilon);
   }
   const numerator0 = cross2(subtract(bOrigin, aOrigin), bVector);
   const numerator1 = cross2(subtract(aOrigin, bOrigin), aVector);
@@ -1367,17 +1367,17 @@ const solveCubic = function (a, b, c, d) {
 };
 
 const axiom1 = (pointA, pointB) => Constructors.line(
-  normalize(subtract(...resize_up(pointB, pointA))),
+  normalize(subtract(...resize_up$1(pointB, pointA))),
   pointA
 );
 const axiom2 = (pointA, pointB) => Constructors.line(
-  normalize(rotate270(subtract(...resize_up(pointB, pointA)))),
+  normalize(rotate90(subtract(...resize_up$1(pointB, pointA)))),
   midpoint(pointA, pointB)
 );
 const axiom3 = (vectorA, originA, vectorB, originB) => bisect_lines2(
     vectorA, originA, vectorB, originB).map(Constructors.line);
 const axiom4 = (vector, point) => Constructors.line(
-  rotate270(normalize(vector)),
+  rotate90(normalize(vector)),
   point
 );
 const axiom5 = (vectorA, originA, pointA, pointB) => (intersect_circle_line(
@@ -1387,7 +1387,7 @@ const axiom5 = (vectorA, originA, pointA, pointB) => (intersect_circle_line(
     originA,
     () => true
   ) || []).map(sect => Constructors.line(
-    normalize(rotate270(subtract(...resize_up(sect, pointB)))),
+    normalize(rotate90(subtract(...resize_up$1(sect, pointB)))),
     midpoint(pointB, sect)
   ));
 const axiom7 = (vectorA, originA, vectorB, pointC) => {
@@ -1395,7 +1395,7 @@ const axiom7 = (vectorA, originA, vectorB, pointC) => {
   return intersect === undefined
     ? undefined
     : Constructors.line(
-        normalize(rotate270(subtract(...resize_up(intersect, pointC)))),
+        normalize(rotate90(subtract(...resize_up$1(intersect, pointC)))),
         midpoint(pointC, intersect)
     );
 };
@@ -1778,7 +1778,7 @@ var clip_polygon = /*#__PURE__*/Object.freeze({
 });
 
 const VectorArgs = function () {
-  get_vector(arguments).forEach(n => this.push(n));
+  get_vector$1(arguments).forEach(n => this.push(n));
 };
 
 const VectorGetters = {
@@ -1791,16 +1791,16 @@ const table = {
   preserve: {
     magnitude: function () { return magnitude(this); },
     isEquivalent: function () {
-      return equivalent_vectors(this, get_vector(arguments));
+      return equivalent_vectors(this, get_vector$1(arguments));
     },
     isParallel: function () {
-      return parallel(...resize_up(this, get_vector(arguments)));
+      return parallel(...resize_up$1(this, get_vector$1(arguments)));
     },
     dot: function () {
-      return dot(...resize_up(this, get_vector(arguments)));
+      return dot(...resize_up$1(this, get_vector$1(arguments)));
     },
     distanceTo: function () {
-      return distance(...resize_up(this, get_vector(arguments)));
+      return distance(...resize_up$1(this, get_vector$1(arguments)));
     },
   },
   vector: {
@@ -1813,7 +1813,7 @@ const table = {
     cross: function () {
       return cross3(
         resize(3, this),
-        resize(3, get_vector(arguments))
+        resize(3, get_vector$1(arguments))
       );
     },
     transform: function () {
@@ -1823,10 +1823,10 @@ const table = {
       );
     },
     add: function () {
-      return add(this, resize(this.length, get_vector(arguments)));
+      return add$1(this, resize(this.length, get_vector$1(arguments)));
     },
     subtract: function () {
-      return subtract(this, resize(this.length, get_vector(arguments)));
+      return subtract(this, resize(this.length, get_vector$1(arguments)));
     },
     rotateZ: function (angle, origin) {
       return multiply_matrix3_vector3(
@@ -1835,13 +1835,13 @@ const table = {
       );
     },
     lerp: function (vector, pct) {
-      return lerp(this, resize(this.length, get_vector(vector)), pct);
+      return lerp(this, resize(this.length, get_vector$1(vector)), pct);
     },
     midpoint: function () {
-      return midpoint(...resize_up(this, get_vector(arguments)));
+      return midpoint(...resize_up$1(this, get_vector$1(arguments)));
     },
     bisect: function () {
-      return counter_clockwise_bisect2(this, get_vector(arguments));
+      return counter_clockwise_bisect2(this, get_vector$1(arguments));
     },
   }
 };
@@ -1878,7 +1878,7 @@ const LineProto = {};
 LineProto.prototype = Object.create(Object.prototype);
 LineProto.prototype.constructor = LineProto;
 LineProto.prototype.isParallel = function () {
-  const arr = resize_up(this.vector, get_line(...arguments).vector);
+  const arr = resize_up$1(this.vector, get_line(...arguments).vector);
   return parallel(...arr);
 };
 LineProto.prototype.isDegenerate = function (epsilon = EPSILON) {
@@ -1888,7 +1888,7 @@ LineProto.prototype.reflectionMatrix = function () {
   return Constructors.matrix(make_matrix3_reflectZ(this.vector, this.origin));
 };
 LineProto.prototype.nearestPoint = function () {
-  const point = get_vector(arguments);
+  const point = get_vector$1(arguments);
   return Constructors.vector(
     nearest_point_on_line(this.vector, this.origin, point, this.clip_function)
   );
@@ -1901,6 +1901,10 @@ LineProto.prototype.transform = function () {
     resize(3, this.origin)
   );
   return this.constructor(resize(dim, r.vector), resize(dim, r.origin));
+};
+LineProto.prototype.translate = function() {
+	const origin = add$1(...resize_up$1(this.origin, get_vector$1(arguments)));
+	return this.constructor(this.vector, origin);
 };
 LineProto.prototype.intersect = function (other) {
   return intersect(this, other);
@@ -1925,6 +1929,13 @@ var Static = {
       origin: points[0],
     });
   },
+	fromAngle: function() {
+		const angle = arguments[0] || 0;
+		return this.constructor({
+			vector: [Math.cos(angle), Math.sin(angle)],
+			origin: [0, 0],
+		});
+	},
   perpendicularBisector: function () {
     const points = get_vector_of_vectors(arguments);
     return this.constructor({
@@ -2016,6 +2027,12 @@ var Segment = {
           .map(point => resize(dim, point));
         return Constructors.segment(transformed_points);
       },
+			translate: function() {
+				const translate = get_vector(arguments);
+				const transformed_points = this.points
+					.map(point => add(...resize_up(point, translate)));
+        return Constructors.segment(transformed_points);
+			},
       midpoint: function () {
         return Constructors.vector(average(this.points[0], this.points[1]));
       },
@@ -2115,7 +2132,7 @@ const CircleMethods = {
     return Constructors.vector(nearest_point_on_circle(
       this.radius,
       this.origin,
-      get_vector(arguments)
+      get_vector$1(arguments)
     ));
   },
   intersect: function (object) {
@@ -2237,7 +2254,7 @@ const methods = {
     return Constructors.rect(enclosing_rectangle(this));
   },
   contains: function () {
-    return point_in_poly(get_vector(arguments), this);
+    return point_in_poly(get_vector$1(arguments), this);
   },
   scale: function (magnitude, center = centroid(this)) {
     const newPoints = this
@@ -2258,7 +2275,7 @@ const methods = {
     return Constructors.polygon(newPoints);
   },
   translate: function () {
-    const vec = get_vector(...arguments);
+    const vec = get_vector$1(...arguments);
     const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
     return this.constructor.fromPoints(newPoints);
   },
@@ -2269,7 +2286,7 @@ const methods = {
     return Constructors.polygon(newPoints);
   },
   nearest: function () {
-    const point = get_vector(...arguments);
+    const point = get_vector$1(...arguments);
     const result = nearest_point_on_polygon(this, point);
     return result === undefined
       ? undefined
@@ -2394,6 +2411,9 @@ var Polygon = {
       segments: function () {
         return this.sides;
       },
+			straightSkeleton: function () {
+				return straight_skeleton(this);
+			},
     },
     S: {
       fromPoints: function () {
@@ -2468,12 +2488,12 @@ var Matrix = {
       },
       transform: function (...innerArgs) {
         return Constructors.vector(
-          multiply_matrix3_vector3(this, resize(3, get_vector(innerArgs)))
+          multiply_matrix3_vector3(this, resize(3, get_vector$1(innerArgs)))
         );
       },
       transformVector: function (vector) {
         return Constructors.vector(
-          multiply_matrix3_vector3(this, resize(3, get_vector(vector)))
+          multiply_matrix3_vector3(this, resize(3, get_vector$1(vector)))
         );
       },
       transformLine: function (...innerArgs) {
@@ -2516,7 +2536,7 @@ var Junction = {
     },
     S: {
       fromRadians: function () {
-        const radians = get_vector(arguments);
+        const radians = get_vector$1(arguments);
         return this.constructor(radians.map(r => [Math.cos(r), Math.sin(r)]));
       },
     }

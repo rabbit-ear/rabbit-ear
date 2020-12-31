@@ -18,7 +18,7 @@ test("get with real types", () => {
   expect(ear.math.get_line(line).vector[1]).toBe(2);
   expect(ear.math.get_rect(rect).height).toBe(4);
   expect(ear.math.get_matrix_3x4(matrix)[4]).toBe(4);
-  expect(ear.math.get_matrix2(matrix)[1]).toBe(2);
+//  expect(ear.math.get_matrix2(matrix)[1]).toBe(2);
 });
 
 test("get_vector", () => {
@@ -110,24 +110,24 @@ test("get_segment", () => {
   equalTest([[1, 2], [3, 4]], ear.math.get_segment([[1, 2], [3, 4]]));
 });
 
-test("get_matrix2", () => {
-  equalTest(
-    [1, 2, 3, 4, 5, 6],
-    ear.math.get_matrix2([[[1, 2, 3, 4, 5, 6]]])
-  );
-  equalTest(
-    [1, 2, 3, 4, 0, 0],
-    ear.math.get_matrix2([[1, 2, 3, 4]])
-  );
-  equalTest(
-    [1, 2, 3, 1, 0, 0],
-    ear.math.get_matrix2(1, 2, 3)
-  );
-  equalTest(
-    [1, 2, 3, 1, 0, 0],
-    ear.math.get_matrix2(1, 2, 3, 1)
-  );
-});
+// test("get_matrix2", () => {
+//   equalTest(
+//     [1, 2, 3, 4, 5, 6],
+//     ear.math.get_matrix2([[[1, 2, 3, 4, 5, 6]]])
+//   );
+//   equalTest(
+//     [1, 2, 3, 4, 0, 0],
+//     ear.math.get_matrix2([[1, 2, 3, 4]])
+//   );
+//   equalTest(
+//     [1, 2, 3, 1, 0, 0],
+//     ear.math.get_matrix2(1, 2, 3)
+//   );
+//   equalTest(
+//     [1, 2, 3, 1, 0, 0],
+//     ear.math.get_matrix2(1, 2, 3, 1)
+//   );
+// });
 
 test("get_matrix_3x4", () => {
   equalTest(
