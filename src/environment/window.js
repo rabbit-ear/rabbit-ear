@@ -1,11 +1,13 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 // get DOMParser and XMLSerializer from the browser or from Node
-
 import {
   isBrowser,
   isNode,
 } from "./detect";
 
-const htmlString = "<!DOCTYPE html><title> </title>";
+const htmlString = "<!DOCTYPE html><title>.</title>";
 
 const win = (function () {
   let w = {};

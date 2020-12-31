@@ -2,83 +2,131 @@
 
 [![Build Status](https://travis-ci.org/robbykraft/Origami.svg?branch=master)](https://travis-ci.org/robbykraft/Origami)
 
-This is a Javascript library for designing origami.
+This is a Javascript library for modeling origami. Check out the [documentation](https://rabbitear.org/docs/).
 
-> Check out the [documentation](https://rabbitear.org/docs/) it's filled with interactive examples.
+# usage
 
-# Usage
-
-Include `rabbit-ear.js`
+The compiled library is one file and works in the browser or Node.
 
 ```html
-<script src="rabbit-ear.js"></script>
+https://robbykraft.github.io/Origami/rabbit-ear.js
 ```
 
-node.js
+```
+npm install rabbit-ear
+```
+
+# developers
+
+an overview of the contents of the source folder
+
+```
+src/
+  math.js
+  diagrams/
+  extensions/
+  graph/
+  prototypes/
+  text/
+  use/
+  webgl/
+```
+
+### math.js
+
+This is the math library, bundled as an es6 module. Direct all comments to the [Math repository](https://github.com/robbykraft/Math).
+
+### diagrams/
+
+Contains methods like fitting arrows and rendering diagrams. It makes use of the SVG library when it's included. I imagine this folder growing a lot in the future.
+
+### extensions/
+
+parts of the Rabbit Ear library that are included in the build but hosted in other repos. read more in **building and linking** below.
+
+### graph/
+
+Most of the important code this repo has to offer is in the `graph/` folder; it's all code that manipulates FOLD graph, which is the mesh data format, so it contains a lot of graph theory. some highlights include:
+
+- `add/` methods that add actual geometry like vertices and edges, splitting faces...
+- `clean/` files that remove geometry, generally bad geometry like duplicate edges
+- `single_vertex/` flat-foldability and layer solvers, Kawasaki, Maekawa's theorem...
+- `make.js` create graph components like faces_edges, vertices_vertices...
+- `fragment.js` convert to a planar graph, flatten into the XY plane, chop edges
+- `remove.js` remove indices from arrays and correct references
+
+### prototypes/
+
+These are the graph, crease pattern, and origami objects accessible from the top-level. They serve as object-oriented class style interface to the methods of the library.
+
+### text/
+
+Multilingual text that describe folds, instructions, parts of the paper. This is used when constructing diagrams.
+
+### use/
+
+this is the interface for **extensions**, read more in the section below.
+
+### webgl/
+
+A baby folder. Conversion of the FOLD format into WebGL mesh format, and help with rendering. Right now the code depends on three.js. A lot of room for growth.
+
+> The structure of the src/ folder isn't completely settled. Things that are not math related or FOLD format related tend to get their own folder.
+
+> If you console.log rabbit ear, notice that the top level contains keys that match *some* of the subdirectories of `src/`, this is not a strict rule, but seems to be a pattern we are following.
+
+# building and linking
+
+This repo is the main entrypoint for building the Rabbit Ear library. The library is split across multiple repos:
+
+- [Origami](https://github.com/robbykraft/Origami) (this repo)
+- [Math](https://github.com/robbykraft/Math) **required by this repo** and is included in the build
+- [SVG](https://github.com/robbykraft/SVG) included in build
+- [fold-to-svg](https://github.com/robbykraft/fold-to-svg) included in build
+- [svg-to-fold](https://github.com/robbykraft/svg-to-fold) as of right now, this is not included
+- [examples](https://github.com/robbykraft/Examples) the example sketches found in the docs
+- [docs](https://github.com/robbykraft/Docs) the docs at [http://rabbitear.org/docs](http://rabbitear.org/docs)
+
+The only repo *absolutely necessary* is the math library. It is compiled as an ES6 module and placed in `src/`. It's like submodules, but easier. This way, if you clone just this one repo you can build and run all the tests just fine.
+
+```
+src/
+  math.js
+```
+
+If you want the ✨full experience ✨, create a folder called `RabbitEar/ `and clone these repositories into it.
+
+### extensions
+
+The following repos are included in the final build file but they're not dependencies to any source code in this repo; they are like extensions. This library **could totally be built and distributed without them**.
+
+- [a svg library](http://github.com/robbykraft/SVG) create SVGs, easy styling and event handling
+- [fold-to-svg](http://github.com/robbykraft/fold-to-svg), convert FOLD graphs to SVGs
+
+These extensions incorporate themselves within the larger library at runtime using the `use` method. This is a pattern that will allow extension development and contribution by the community.
 
 ```javascript
-var RabbitEar = require("rabbit-ear")
+ear.use(SVG)
 ```
 
-# API
+> These extensions also happen to be fully independent packages on their own, [rabbit-ear-svg](https://www.npmjs.com/package/rabbit-ear-svg) and [fold-to-svg](https://www.npmjs.com/package/fold-to-svg) on npm.
 
-if you are in the browser, this gives you an SVG rendering of an origami.
+This pattern of community extensions was inspired by openFrameworks and their system of ofxAddons. Pull requests to this repo are still encouraged, if code is less necessary to the general user, community extensions is the way to go.
 
-```javascript
-var origami = RabbitEar.origami()
+# build
+
+clone this repo and run npm install
+
+````shell
+npm install
+````
+
+ npm will install [rollup](https://rollupjs.org/), the tool used to compile the source. navigate to the project directory and run this command to generate the file `rabbit-ear.js`
+
+```shell
+rollup -c
 ```
 
-that creates an origami object (a piece of paper). it is a [FOLD object](https://github.com/edemaine/fold). put creases into it:
-
-```javascript
-var origami = RabbitEar.origami()
-origami.crease([0.5, 0.5], [0.707, 0.707])
-```
-
-fold and unfold to look at the crease pattern:
-
-```javascript
-origami.fold()
-origami.unfold()
-```
-
-many of the objects at the top level are math primitives:
-
-```javascript
-RabbitEar.graph
-RabbitEar.vector
-RabbitEar.matrix
-RabbitEar.line
-RabbitEar.ray
-RabbitEar.segment
-RabbitEar.circle
-RabbitEar.polygon
-RabbitEar.convexPolygon
-```
-
-all of the internal methods are made available. the origami related methods are in core:
-
-```javascript
-RabbitEar.core
-RabbitEar.math
-```
-
-There are methods for folding a sheet of paper, checking local flat-foldability, Kawasaki-Justin's theorem, Maekawa's theorem, etc...
-
-this library supports .fold, .oripa, and .svg files. easily convert between them
-
-```javascript
-origami.export.svg()
-origami.export.oripa()
-// load file
-var loaded_image = ...;
-RabbitEar.convert(loaded_image).fold()
-```
-
-# Developers
-
-compile the source using [rollup](https://rollupjs.org/). In terminal type: `rollup -c`
-
-# License
+# license
 
 MIT open source software license
