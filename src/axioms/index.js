@@ -3,23 +3,11 @@
  */
 import math from "../math";
 
-const axioms = [null,
-  math.core.axiom1,
-  math.core.axiom2,
-  math.core.axiom3,
-  math.core.axiom4,
-  math.core.axiom5,
-  math.core.axiom6,
-  math.core.axiom7
-];
-
-delete axioms[0];
-
 /**
  * this converts a user input object { points: ___, lines: ___ }
  * into the propert arrangement of input parameters for the axiom methods
  */
-const sort_axiom_params = function (number, points, lines) {
+const list_function_params = function (number, points, lines) {
   switch (number) {
     case "1":
     case "2":
@@ -40,14 +28,20 @@ const sort_axiom_params = function (number, points, lines) {
   return [];
 };
 
-const axiom = (number, params) => axioms[number](
-  ...sort_axiom_params(
-    number,
-    params.points.map(p => math.core.get_vector(p)),
-    params.lines.map(l => math.core.get_line(l))));
+const axiom = (number, params = {}) => {
+	const points = params.points
+		? params.points.map(p => math.core.get_vector(p))
+		: undefined;
+	const lines = params.lines	
+    ? params.lines.map(l => math.core.get_line(l))
+		: undefined;
+	return math.core[`axiom${number}`](...list_function_params(number, points, lines));
+};
 
-Object.keys(axioms).forEach(key => {
-  axiom[key] = axioms[key];
-})
+const axioms = [null, 1, 2, 3, 4, 5, 6, 7];
+delete axioms[0];
+Object.keys(axioms).forEach(number => {
+  axiom[number] = (...args) => axiom(number, ...args);
+});
 
 export default axiom;

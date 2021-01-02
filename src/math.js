@@ -1881,6 +1881,11 @@ LineProto.prototype.isParallel = function () {
   const arr = resize_up$1(this.vector, get_line(...arguments).vector);
   return parallel(...arr);
 };
+LineProto.prototype.isCollinear = function () {
+  const line = get_line(arguments);
+  return point_on_line(line.origin, this.vector, this.origin)
+    && parallel(...resize_up$1(this.vector, line.vector));
+};
 LineProto.prototype.isDegenerate = function (epsilon = EPSILON) {
   return degenerate(this.vector, epsilon);
 };
@@ -2329,6 +2334,14 @@ const methods = {
     const clip = clip_segment_in_convex_poly_exclusive(this, seg[0], seg[1]);
     return makeClip(clip);
   },
+	clip: function (param) {
+		switch (type_of(param)) {
+			case "segment": return this.clipSegment(param);
+			case "ray": return this.clipRay(param);
+			case "line": return this.clipLine(param);
+			default: return;
+		}
+	},
   svgPath: function () {
     const pre = Array(this.length).fill("L");
     pre[0] = "M";
