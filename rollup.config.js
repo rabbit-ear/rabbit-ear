@@ -3,7 +3,7 @@ import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup"
 import { terser } from "rollup-plugin-terser";
 
-const version = "alpha 2 2020-12-30";
+const version = "alpha 3 2021-01-03";
 
 module.exports = [{
   input: "src/index.js",

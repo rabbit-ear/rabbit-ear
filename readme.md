@@ -34,7 +34,7 @@ src/
 
 ### math.js
 
-This is the math library, bundled as an es6 module. Direct all comments to the [Math repository](https://github.com/robbykraft/Math).
+This is the math library, bundled as an es6 module. Direct all conversation to the [Math repository](https://github.com/robbykraft/Math).
 
 ### diagrams/
 
@@ -83,15 +83,14 @@ This repo is the main entrypoint for building the Rabbit Ear library. The librar
 - [Math](https://github.com/robbykraft/Math) **required by this repo** and is included in the build
 - [SVG](https://github.com/robbykraft/SVG) included in build
 - [fold-to-svg](https://github.com/robbykraft/fold-to-svg) included in build
-- [svg-to-fold](https://github.com/robbykraft/svg-to-fold) as of right now, this is not included
+- [svg-to-fold](https://github.com/robbykraft/svg-to-fold) right now **not** included
 - [examples](https://github.com/robbykraft/Examples) the example sketches found in the docs
 - [docs](https://github.com/robbykraft/Docs) the docs at [http://rabbitear.org/docs](http://rabbitear.org/docs)
 
 The only repo *absolutely necessary* is the math library. It is compiled as an ES6 module and placed in `src/`. It's like submodules, but easier. This way, if you clone just this one repo you can build and run all the tests just fine.
 
 ```
-src/
-  math.js
+npm test
 ```
 
 If you want the ✨full experience ✨, create a folder called `RabbitEar/ `and clone these repositories into it.

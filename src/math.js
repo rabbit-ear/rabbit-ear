@@ -507,6 +507,32 @@ const get_rect = function () {
     : numbers;
   return get_rect_params(...rect_params);
 };
+const get_circle_params = (radius = 1, ...args) => ({
+	radius,
+	origin: [...args],
+});
+const get_circle = function () {
+	if (arguments[0] instanceof Constructors.circle) { return arguments[0]; }
+  const vectors = get_vector_of_vectors(arguments);
+  const numbers = flatten_arrays(arguments).filter(a => typeof a === "number");
+  if (arguments.length === 2) {
+    if (vectors[1].length === 1) {
+			return get_circle_params(vectors[1][0], ...vectors[0]);
+    } else if (vectors[0].length === 1) {
+			return get_circle_params(vectors[0][0], ...vectors[1]);
+    } else if (vectors[0].length > 1 && vectors[1].length > 1) {
+			return get_circle_params(distance2(...vectors), ...vectors[0]);
+    }
+  }
+  else {
+    switch (numbers.length) {
+      case 0: return get_circle_params(1, 0, 0, 0);
+      case 1: return get_circle_params(numbers[0], 0, 0, 0);
+      default: return get_circle_params(numbers.pop(), ...numbers);
+    }
+  }
+	return get_circle_params(1, 0, 0, 0);
+};
 const maps_3x4 = [
   [0, 1, 3, 4, 9, 10],
   [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
@@ -537,6 +563,7 @@ var getters = /*#__PURE__*/Object.freeze({
   get_ray: get_ray,
   get_rect_params: get_rect_params,
   get_rect: get_rect,
+  get_circle: get_circle,
   get_matrix_3x4: get_matrix_3x4
 });
 
@@ -1375,7 +1402,7 @@ const axiom2 = (pointA, pointB) => Constructors.line(
   midpoint(pointA, pointB)
 );
 const axiom3 = (vectorA, originA, vectorB, originB) => bisect_lines2(
-    vectorA, originA, vectorB, originB).map(Constructors.line);
+	vectorA, originA, vectorB, originB).map(Constructors.line);
 const axiom4 = (vector, point) => Constructors.line(
   rotate90(normalize(vector)),
   point
@@ -2056,36 +2083,9 @@ var Segment = {
 };
 
 const CircleArgs = function () {
-  const vectors = get_vector_of_vectors(arguments);
-  const numbers = flatten_arrays(arguments).filter(a => typeof a === "number");
-  if (arguments.length === 2) {
-    if (vectors[1].length === 1) {
-      this.radius = vectors[1][0];
-      this.origin = Constructors.vector(...vectors[0]);
-    } else if (vectors[0].length === 1) {
-      this.radius = vectors[0][0];
-      this.origin = Constructors.vector(...vectors[1]);
-    } else if (vectors[0].length > 1 && vectors[1].length > 1) {
-      this.radius = distance2(...vectors);
-      this.origin = Constructors.vector(...vectors[0]);
-    }
-  }
-  else {
-    switch (numbers.length) {
-      case 0:
-        this.radius = 1;
-        this.origin = Constructors.vector(0, 0, 0);
-        break;
-      case 1:
-        this.radius = numbers[0];
-        this.origin = Constructors.vector(0, 0, 0);
-        break;
-      default:
-        this.radius = numbers.pop();
-        this.origin = Constructors.vector(...numbers);
-        break;
-    }
-  }
+	const circle = get_circle(...arguments);
+	this.radius = circle.radius;
+	this.origin = Constructors.vector(...circle.origin);
 };
 
 const CircleGetters = {

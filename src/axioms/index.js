@@ -28,6 +28,19 @@ const list_function_params = function (number, points, lines) {
   return [];
 };
 
+const arrayify = (number, result) => {
+  switch (number) {
+    case "1": case 1:
+    case "2": case 2:
+    case "4": case 4:
+    case "7": case 7: return [result];
+    case "3": case 3:
+    case "5": case 5:
+    case "6": case 6: return result;
+    default: break;
+  }
+};
+
 const axiom = (number, params = {}) => {
 	const points = params.points
 		? params.points.map(p => math.core.get_vector(p))
@@ -35,13 +48,16 @@ const axiom = (number, params = {}) => {
 	const lines = params.lines	
     ? params.lines.map(l => math.core.get_line(l))
 		: undefined;
-	return math.core[`axiom${number}`](...list_function_params(number, points, lines));
+	const result = math.core[`axiom${number}`](...list_function_params(number, points, lines));
+	return arrayify(number, result);
 };
 
 const axioms = [null, 1, 2, 3, 4, 5, 6, 7];
 delete axioms[0];
+
 Object.keys(axioms).forEach(number => {
   axiom[number] = (...args) => axiom(number, ...args);
 });
 
 export default axiom;
+

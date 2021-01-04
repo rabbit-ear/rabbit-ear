@@ -6,16 +6,8 @@ const line_line_for_arrows = (a, b) => math.core.intersect_lines(
 );
 
 const reflect_point = (foldLine, point) => {
-  const intersect = math.core.intersect_lines(
-		foldLine.vector,
-		foldLine.origin,
-		math.core.rotate270(foldLine.vector),
-		point,
-		math.core.include_l,
-		math.core.include_l
-	);
-  const vec = math.core.subtract(intersect, point);
-  return math.core.add(intersect, vec);
+	const matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
+  return math.core.multiply_matrix2_vector2(matrix, point);
 };
 
 const boundary_for_arrows = ({ vertices_coords }) => math.core
@@ -101,11 +93,12 @@ const between_2_intersecting_segments = (params, intersect, foldLine, boundary) 
 	];
 };
 
-const axiom_1_arrows = (params, graph) => [
-	widest_perp(graph, axiom(1, params))
-];
+const axiom_1_arrows = (params, graph) => axiom(1, params)
+	.map(foldLine => [widest_perp(graph, foldLine)]);
 
-const axiom_2_arrows = params => [math.segment(params.points)];
+const axiom_2_arrows = params => [
+	[math.segment(params.points)]
+];
 
 const axiom_3_arrows = (params, graph) => {
 	const boundary = boundary_for_arrows(graph);
@@ -121,12 +114,12 @@ const axiom_3_arrows = (params, graph) => {
 			));
 };
 
-const axiom_4_arrows = (params, graph) => {
-	const foldLine = axiom(4, params);
-	return [
-		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[0]))
-	];
-};
+const axiom_4_arrows = (params, graph) => axiom(4, params)
+	.map(foldLine => [widest_perp(
+		graph,
+		foldLine,
+		line_line_for_arrows(foldLine, params.lines[0])
+	)]);
 
 const axiom_5_arrows = (params) => axiom(5, params)
 	.map(foldLine => [math.segment(
@@ -138,13 +131,11 @@ const axiom_6_arrows = (params) => axiom(6, params)
 	.map(foldLine => params.points
 		.map(pt => math.segment(pt, reflect_point(foldLine, pt))));
 
-const axiom_7_arrows = (params, graph) => {
-	const foldLine = axiom(7, params);
-	return [
+const axiom_7_arrows = (params, graph) => axiom(7, params)
+	.map(foldLine => [
 		math.segment(params.points[0], reflect_point(foldLine, params.points[0])),
 		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1]))
-	];
-};
+	]);
 
 const arrow_functions = [null,
 	axiom_1_arrows,

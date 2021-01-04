@@ -32,6 +32,9 @@ import text from "./text/index";
 // webgl
 import * as foldToThree from "./webgl/fold-to-three";
 
+// not sure where it goes yet
+import test_axiom from "./axioms/test_axiom";
+
 // extensions
 import SVG from "./extensions/svg";
 import FoldToSvg from "./extensions/fold-to-svg";
@@ -43,9 +46,9 @@ const ConstructorPrototypes = {
 };
 
 const default_graph = {
-	graph: {},
-	cp: create.square(),
-	origami: create.square(),
+	graph: () => ({}),
+	cp: create.square,
+	origami: create.square,
 };
 
 Object.keys(ConstructorPrototypes).forEach(name => {
@@ -55,7 +58,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
       .map(obj => JSON.parse(JSON.stringify(obj))); // deep copy input graph
     return Object.assign(
 			Object.create(ConstructorPrototypes[name]),
-			(argFolds.length ? {} : default_graph[name]),
+			(argFolds.length ? {} : default_graph[name]()),
       ...argFolds,
 			{ file_spec, file_creator }
     );
@@ -71,6 +74,9 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 });
 
 Object.assign(Constructors.graph, graph_methods);
+
+// not sure where it goes yet
+axiom.test = test_axiom;
 
 const Ear = Object.assign(root, Constructors, {
   math: math.core,
