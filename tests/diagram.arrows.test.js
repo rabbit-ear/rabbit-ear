@@ -7,9 +7,9 @@ test("make arrow coords", () => {
 });
 
 test("axiom 1 arrow coords", () => {
-	ear.diagram.axiom_arrows[1](
+	// ear.diagram.axiom_arrows[1](
+	ear.diagram.axiom_arrows(1,
 		{points: [[0, 0], [1, 1]]},
-		{vector:[1,1], origin:[0.5, 0.5]},
 		{vertices_coords: [[0,0], [0,1], [1,0], [1,1]]}
 	);
 });

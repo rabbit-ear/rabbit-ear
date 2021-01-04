@@ -30,6 +30,31 @@ CreasePatternProto.prototype.copy = function () {
   return Object.assign(Object.create(CreasePatternProto.prototype), clone(this));
 };
 
+const edges_array = function (array) {
+	array.mountain = (degrees = -180) => {
+		array.forEach(i => {
+			this.edges_assignment[i] = "M";
+			this.edges_foldAngle[i] = degrees;
+		});
+		return array;
+	};
+	array.valley = (degrees = 180) => {
+		array.forEach(i => {
+			this.edges_assignment[i] = "V";
+			this.edges_foldAngle[i] = degrees;
+		});
+		return array;
+	};
+	array.flat = () => {
+		array.forEach(i => {
+			this.edges_assignment[i] = "F";
+			this.edges_foldAngle[i] = 0;
+		});
+		return array;
+	};
+	return array;
+};
+
 ["line", "ray", "segment"].forEach(type => {
   CreasePatternProto.prototype[type] = function () {
     const primitive = math[type](...arguments);
@@ -40,7 +65,8 @@ CreasePatternProto.prototype.copy = function () {
     const edges = add_edges(this, vertices);
     const map = fragment(this).edges.map;
     populate(this);
-		return edges.map(e => map[e]);
+		return edges_array.call(this, edges.map(e => map[e])
+			.reduce((a, b) => a.concat(b), []));
   };
 });
 
@@ -62,8 +88,10 @@ CreasePatternProto.prototype.copy = function () {
     });
     const map = fragment(this).edges.map;
     populate(this);
-		return edges.map(e => map[e]);
+		return edges_array.call(this, edges.map(e => map[e])
+			.reduce((a, b) => a.concat(b), []));
   };
 });
 
 export default CreasePatternProto.prototype;
+
