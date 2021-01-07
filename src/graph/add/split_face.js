@@ -3,7 +3,11 @@
  */
 import math from "../../math";
 import split_edge from "./split_edge";
-import { merge_nextmaps, merge_simple_nextmaps } from "../maps";
+import {
+	merge_nextmaps,
+	merge_simple_nextmaps,
+	invert_simple_map,
+} from "../maps";
 import { edge_assignment_to_foldAngle } from "../fold_spec";
 import remove from "../remove";
 import {
@@ -15,7 +19,6 @@ import {
 import { intersect_face_with_line } from "../intersect_faces";
 import { sort_vertices_counter_clockwise } from "../sort";
 import { find_adjacent_faces_to_face } from "../find";
-import { invert_array } from "../arrays";
 
 const update_vertices_vertices = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
   const v0 = edges_vertices[edge][0];
@@ -246,7 +249,7 @@ const split_convex_face = (graph, face, vector, origin) => {
 	// based on the mid-operation graph, update this value to match the graph
 	// before any changes occurred.
 	if (changes.length === 2) {
-	  const inverse_map = invert_array(changes[0].edges.map);
+	  const inverse_map = invert_simple_map(changes[0].edges.map);
 		changes[1].edges.remove = inverse_map[changes[1].edges.remove];
 	}
 	faces_map[face] = faces;

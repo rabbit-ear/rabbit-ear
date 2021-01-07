@@ -15,6 +15,7 @@ import root from "./root";
 import use from "./use/index";
 import graph_methods from "./graph/index";
 import diagram from "./diagrams/index";
+import single from "./single_vertex/index";
 // build objects
 import Constructors from "./constructors";
 // prototypes
@@ -82,6 +83,7 @@ const Ear = Object.assign(root, Constructors, {
   math: math.core,
   axiom,
 	diagram,
+	single,
   text,
 	webgl: foldToThree,
 });

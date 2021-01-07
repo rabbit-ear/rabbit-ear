@@ -7,11 +7,12 @@ export const unique_sorted_integers = (array) => {
   return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
 };
 
-export const invert_array = (a) => {
-	const b = [];
-	a.forEach((n, i) => { b[n] = i; });
-	return b;
-};
+// this is now "invert_simple_map" in maps.js
+// export const invert_array = (a) => {
+// 	const b = [];
+// 	a.forEach((n, i) => { b[n] = i; });
+// 	return b;
+// };
 
 //export const invert_array = (a) => {
 //  const b = [];
