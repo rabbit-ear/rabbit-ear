@@ -63,7 +63,7 @@ test("distance3", () => {
   expect(r1).toBeCloseTo(5.196152422706632);
   expect(isNaN(r2)).toBe(true);
 });
-
+/*
 test("alternating sum", () => {
   const r1 = ear.math.alternating_sum([1,2,3,4,5,6]);
   expect(r1[0]).toBe(9);
@@ -75,3 +75,5 @@ test("alternating sum", () => {
   expect(r3[0]).toBe(0);
   expect(r3[1]).toBe(0);
 });
+*/
+

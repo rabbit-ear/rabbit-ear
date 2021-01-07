@@ -193,6 +193,8 @@ var constants = /*#__PURE__*/Object.freeze({
 const fn_square = n => n * n;
 const fn_add = (a, b) => a + (b || 0);
 const fn_not_undefined = a => a !== undefined;
+const fn_vec2_angle = v => Math.atan2(v[1], v[0]);
+const fn_to_vec2 = a => [Math.cos(a), Math.sin(a)];
 
 const magnitude = v => Math.sqrt(v
   .map(fn_square)
@@ -249,14 +251,6 @@ const degenerate = (v, epsilon = EPSILON) => Math
   .abs(v.reduce(fn_add, 0)) < epsilon;
 const parallel = (a, b, epsilon = EPSILON) => 1 - Math
   .abs(dot(normalize(a), normalize(b))) < epsilon;
-const alternating_sum = (numbers) => [0, 1]
-  .map(even_odd => numbers
-    .filter((_, i) => i % 2 === even_odd)
-    .reduce(fn_add, 0));
-const alternating_deviation = (sectors) => {
-  const halfsum = sectors.reduce(fn_add, 0) / 2;
-  return alternating_sum(sectors).map(s => s - halfsum);
-};
 
 var algebra = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -279,9 +273,7 @@ var algebra = /*#__PURE__*/Object.freeze({
   rotate90: rotate90,
   rotate270: rotate270,
   degenerate: degenerate,
-  parallel: parallel,
-  alternating_sum: alternating_sum,
-  alternating_deviation: alternating_deviation
+  parallel: parallel
 });
 
 const identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
@@ -953,14 +945,12 @@ const counter_clockwise_angle2 = (a, b) => {
   if (angle < 0) { angle += TWO_PI; }
   return angle;
 };
-const clockwise_bisect2 = (a, b) => {
-  const radians = Math.atan2(a[1], a[0]) - clockwise_angle2(a, b) / 2;
-  return [Math.cos(radians), Math.sin(radians)];
-};
-const counter_clockwise_bisect2 = (a, b) => {
-  const radians = Math.atan2(a[1], a[0]) + counter_clockwise_angle2(a, b) / 2;
-  return [Math.cos(radians), Math.sin(radians)];
-};
+const clockwise_bisect2 = (a, b) => fn_to_vec2(
+	fn_vec2_angle(a) - clockwise_angle2(a, b) / 2
+);
+const counter_clockwise_bisect2 = (a, b) => fn_to_vec2(
+  fn_vec2_angle(a) + counter_clockwise_angle2(a, b) / 2
+);
 const bisect_lines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => {
   const determinant = cross2(vectorA, vectorB);
   const dotProd = dot(vectorA, vectorB);
@@ -981,7 +971,8 @@ const bisect_lines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) =>
   if (isParallel) { delete solution[(dotProd > -epsilon ? 1 : 0)]; }
   return solution;
 };
-const counter_clockwise_radians_order = (...radians) => {
+const counter_clockwise_order_radians = function () {
+	const radians = flatten_arrays(arguments);
   const counter_clockwise = radians
     .map((_, i) => i)
     .sort((a, b) => radians[a] - radians[b]);
@@ -989,26 +980,33 @@ const counter_clockwise_radians_order = (...radians) => {
     .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
     .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
 };
-const counter_clockwise_vector_order = (...vectors) =>
-  counter_clockwise_radians_order(...vectors.map(v => Math.atan2(v[1], v[0])));
-const interior_angles = (...vecs) => vecs
-  .map((v, i, ar) => counter_clockwise_angle2(v, ar[(i + 1) % ar.length]));
-const kawasaki_solutions_radians = (radians) => radians
-  .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-  .map(pair => counter_clockwise_angle_radians(...pair))
-  .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
-  .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
-  .map((kawasakis, i) => radians[i] + kawasakis[0])
-  .map((angle, i) => (is_counter_clockwise_between(angle,
-    radians[i], radians[(i + 1) % radians.length])
-    ? angle
-    : undefined));
-const kawasaki_solutions = (vectors) => {
-  const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
-  return kawasaki_solutions_radians(vectors_radians)
-    .map(a => (a === undefined
-      ? undefined
-      : [Math.cos(a), Math.sin(a)]));
+const counter_clockwise_order2 = function () {
+  return counter_clockwise_order_radians(
+		get_vector_of_vectors(arguments).map(fn_vec2_angle)
+	);
+};
+const counter_clockwise_sectors_radians = function () {
+	const radians = flatten_arrays(arguments);
+	const ordered = counter_clockwise_order_radians(radians)
+		.map(i => radians[i]);
+	return ordered.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
+		.map(pair => counter_clockwise_angle_radians(pair[0], pair[1]));
+};
+const counter_clockwise_sectors2 = function () {
+	return counter_clockwise_sectors_radians(
+		get_vector_of_vectors(arguments).map(fn_vec2_angle)
+	);
+};
+const counter_clockwise_subsect_radians = (divisions, angleA, angleB) => {
+  const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
+  return Array.from(Array(divisions - 1))
+    .map((_, i) => angleA + angle * (i + 1));
+};
+const counter_clockwise_subsect2 = (divisions, vectorA, vectorB) => {
+  const angleA = Math.atan2(vectorA[1], vectorA[0]);
+  const angleB = Math.atan2(vectorB[1], vectorB[0]);
+  return counter_clockwise_subsect_radians(divisions, angleA, angleB)
+		.map(fn_to_vec2);
 };
 
 var radial = /*#__PURE__*/Object.freeze({
@@ -1021,11 +1019,12 @@ var radial = /*#__PURE__*/Object.freeze({
   clockwise_bisect2: clockwise_bisect2,
   counter_clockwise_bisect2: counter_clockwise_bisect2,
   bisect_lines2: bisect_lines2,
-  counter_clockwise_radians_order: counter_clockwise_radians_order,
-  counter_clockwise_vector_order: counter_clockwise_vector_order,
-  interior_angles: interior_angles,
-  kawasaki_solutions_radians: kawasaki_solutions_radians,
-  kawasaki_solutions: kawasaki_solutions
+  counter_clockwise_order_radians: counter_clockwise_order_radians,
+  counter_clockwise_order2: counter_clockwise_order2,
+  counter_clockwise_sectors_radians: counter_clockwise_sectors_radians,
+  counter_clockwise_sectors2: counter_clockwise_sectors2,
+  counter_clockwise_subsect_radians: counter_clockwise_subsect_radians,
+  counter_clockwise_subsect2: counter_clockwise_subsect2
 });
 
 const circumcircle = function (a, b, c) {
@@ -1077,7 +1076,7 @@ const enclosing_rectangle = (points) => {
       if (c > maxs[i]) { maxs[i] = c; }
     }));
   const lengths = maxs.map((max, i) => max - mins[i]);
-  return get_rect_params(...mins, ...lengths);
+  return get_rect_params(mins[0], mins[1], lengths[0], lengths[1]);
 };
 const angle_array = count => Array
 	.from(Array(Math.floor(count)))
@@ -2519,43 +2518,6 @@ var Matrix = {
   }
 };
 
-const invert_order_array = (arr) => {
-  const new_arr = [];
-  arr.forEach((n, i) => new_arr[n] = i);
-  return new_arr;
-};
-var Junction = {
-  junction: {
-    A: function () {
-      const vectors = get_vector_of_vectors(arguments)
-				.map(v => Constructors.vector(v));
-      const radians = vectors.map(v => Math.atan2(v[1], v[0]));
-      const order = counter_clockwise_radians_order(...radians);
-      this.vectors = order.map(i => vectors[i]);
-      this.radians = order.map(i => radians[i]);
-      this.order = invert_order_array(order);
-    },
-    G: {
-      sectors: function () {
-        return this.radians
-          .map((n, i, arr) => [n, arr[(i + 1) % arr.length]])
-          .map(pair => counter_clockwise_angle_radians(pair[0], pair[1]));
-      },
-    },
-    M: {
-      alternatingAngleSum: function () {
-        return alternating_sum(this.sectors);
-      },
-    },
-    S: {
-      fromRadians: function () {
-        const radians = get_vector$1(arguments);
-        return this.constructor(radians.map(r => [Math.cos(r), Math.sin(r)]));
-      },
-    }
-  }
-};
-
 const Definitions = Object.assign({},
   Vector,
   Line,
@@ -2566,7 +2528,6 @@ const Definitions = Object.assign({},
   Rect,
   Polygon,
   Matrix,
-  Junction,
 );
 const create = function (primitiveName, args) {
   const a = Object.create(Definitions[primitiveName].proto);

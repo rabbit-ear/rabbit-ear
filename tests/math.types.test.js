@@ -13,7 +13,7 @@ test("primitives Typeof", () => {
   const circle = ear.circle();
   const rect = ear.rect();
   const ellipse = ear.ellipse();
-	const junction = ear.junction();
+	// const junction = ear.junction();
 
   expect(ear.typeof(vector)).toBe("vector");
   expect(ear.typeof(matrix)).toBe("matrix");
@@ -23,7 +23,7 @@ test("primitives Typeof", () => {
   expect(ear.typeof(circle)).toBe("circle");
   expect(ear.typeof(rect)).toBe("rect");
   expect(ear.typeof(ellipse)).toBe("ellipse");
-	expect(ear.typeof(junction)).toBe("junction");
+	// expect(ear.typeof(junction)).toBe("junction");
 });
 
 test("primitives instanceof", () => {
@@ -35,7 +35,7 @@ test("primitives instanceof", () => {
   const circle = ear.circle();
   const rect = ear.rect();
   const ellipse = ear.ellipse();
-	const junction = ear.junction();
+	// const junction = ear.junction();
 
   expect(vector instanceof ear.vector).toBe(true);
   expect(matrix instanceof ear.matrix).toBe(true);
@@ -45,7 +45,7 @@ test("primitives instanceof", () => {
   expect(circle instanceof ear.circle).toBe(true);
   expect(rect instanceof ear.rect).toBe(true);
   expect(ellipse instanceof ear.ellipse).toBe(true);
-	expect(junction instanceof ear.junction).toBe(true);
+	// expect(junction instanceof ear.junction).toBe(true);
 });
 
 test("primitives constructor", () => {
@@ -57,7 +57,7 @@ test("primitives constructor", () => {
   const circle = ear.circle();
   const rect = ear.rect();
   const ellipse = ear.ellipse();
-	const junction = ear.junction();
+	// const junction = ear.junction();
 
   expect(vector.constructor === ear.vector).toBe(true);
   expect(matrix.constructor === ear.matrix).toBe(true);
@@ -67,7 +67,7 @@ test("primitives constructor", () => {
   expect(circle.constructor === ear.circle).toBe(true);
   expect(rect.constructor === ear.rect).toBe(true);
   expect(ellipse.constructor === ear.ellipse).toBe(true);
-	expect(junction.constructor === ear.junction).toBe(true);
+	// expect(junction.constructor === ear.junction).toBe(true);
 });
 
 test("type guessing", () => {

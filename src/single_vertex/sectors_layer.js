@@ -1,24 +1,17 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import math from "../../math";
-import { fn_and } from "../../arguments/functions";
+import math from "../math";
+import { fn_and } from "../arguments/functions";
+import { invert_simple_map } from "../graph/maps";
 
 // todo: make this work with lowercase "m" "v" too
-
-// this is duplicated in src/graph/arrays
-const invert_array = (a) => {
-  const b = [];
-  a.forEach((x, i) => { b[x] = i; });
-  return b;
-};
-
-const up_down_map = { V: 1, v: 1, M: -1, m: -1 };
 /**
  * valley fold sets the paper above the previous sector, but a valley fold
  * AFTER a valley fold moves the paper below. up or down is based on i % 2 
  * @returns {number} unit directionality. +1 for up, -1 down
  */
+const up_down_map = { V: 1, v: 1, M: -1, m: -1 };
 const upOrDown = (mv, i) => i % 2 === 0 ? up_down_map[mv] : -up_down_map[mv];
 /**
  * @returns {any[]} given two indices return the contents of the array between them
@@ -82,7 +75,7 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
   const final_test = (stack) => {
     // last test: test the first assignment[0]. make sure the final crease turns
     // the correct direction to connect back to the beginning.
-    const inverted_stack = invert_array(stack);
+    const inverted_stack = invert_simple_map(stack);
     // console.log("first", inverted_stack[0], "and last sector's layer", inverted_stack[inverted_stack.length - 1]);
     const res = inverted_stack[0] > inverted_stack[inverted_stack.length - 1]
       ? assignments[0] === "M"
@@ -114,10 +107,11 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
     return spliceIndices
       .map(i => recurse(stack, iter + 1, i))
       .reduce((a, b) => a.concat(b), [])
-      .map(invert_array);
+      .map(invert_simple_map);
   };
 
   return recurse();
 };
 
 export default get_sectors_layer;
+
