@@ -3,7 +3,7 @@ import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup"
 import { terser } from "rollup-plugin-terser";
 
-const version = "alpha 4 2021-01-06";
+const version = "alpha 5 2021-01-07";
 
 module.exports = [{
   input: "src/index.js",
@@ -21,11 +21,11 @@ module.exports = [{
     }),
     cleanup(),
     terser({
-			keep_fnames: true,
-			format: {
-				comments: "all",
-			},
-		}),
+      keep_fnames: true,
+      format: {
+        comments: "all",
+      },
+    }),
   ]
 }];
 
