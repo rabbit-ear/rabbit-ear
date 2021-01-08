@@ -18,6 +18,33 @@ npm install rabbit-ear
 
 # developers
 
+clone this repo and `cd` into the directory.
+
+```shell
+git clone https://github.com/robbykraft/Origami.git
+cd Origami/
+```
+
+install npm. (if you don't already have it install [NodeJS](https://nodejs.org/))
+
+````shell
+npm install
+````
+
+ npm will install [rollup](https://rollupjs.org/), the compilation tool that creates `rabbit-ear.js`. compile by typing
+
+```shell
+rollup -c
+```
+
+run the tests to ensure everything worked.
+
+```shell
+npm test
+```
+
+# src/
+
 an overview of the contents of the source folder
 
 ```
@@ -27,6 +54,7 @@ src/
   extensions/
   graph/
   prototypes/
+  single_vertex/
   text/
   use/
   webgl/
@@ -50,7 +78,6 @@ Most of the important code this repo has to offer is in the `graph/` folder; it'
 
 - `add/` methods that add actual geometry like vertices and edges, splitting faces...
 - `clean/` files that remove geometry, generally bad geometry like duplicate edges
-- `single_vertex/` flat-foldability and layer solvers, Kawasaki, Maekawa's theorem...
 - `make.js` create graph components like faces_edges, vertices_vertices...
 - `fragment.js` convert to a planar graph, flatten into the XY plane, chop edges
 - `remove.js` remove indices from arrays and correct references
@@ -58,6 +85,10 @@ Most of the important code this repo has to offer is in the `graph/` folder; it'
 ### prototypes/
 
 These are the graph, crease pattern, and origami objects accessible from the top-level. They serve as object-oriented class style interface to the methods of the library.
+
+### single_vertex/
+
+Everything single-vertex, Kawasaki and Maekawa's theorem, sectors, folding simulation and intersection test, and layer order solver.
 
 ### text/
 
@@ -75,7 +106,7 @@ A baby folder. Conversion of the FOLD format into WebGL mesh format, and help wi
 
 > If you console.log rabbit ear, notice that the top level contains keys that match *some* of the subdirectories of `src/`, this is not a strict rule, but seems to be a pattern we are following.
 
-# building and linking
+# library repos
 
 This repo is the main entrypoint for building the Rabbit Ear library. The library is split across multiple repos:
 
@@ -111,20 +142,6 @@ ear.use(SVG)
 > These extensions also happen to be fully independent packages on their own, [rabbit-ear-svg](https://www.npmjs.com/package/rabbit-ear-svg) and [fold-to-svg](https://www.npmjs.com/package/fold-to-svg) on npm.
 
 This pattern of community extensions was inspired by openFrameworks and their system of ofxAddons. Pull requests to this repo are still encouraged, if code is less necessary to the general user, community extensions is the way to go.
-
-# build
-
-clone this repo and run npm install
-
-````shell
-npm install
-````
-
- npm will install [rollup](https://rollupjs.org/), the tool used to compile the source. navigate to the project directory and run this command to generate the file `rabbit-ear.js`
-
-```shell
-rollup -c
-```
 
 # license
 
