@@ -1,6 +1,6 @@
 import math from "../math";
 import window from "../environment/window"
-import { fn_cat } from "../arguments/functions";
+import { fn_cat } from "../symbols/functions";
 
 // if three doesn't exist, throw an error
 
@@ -31,7 +31,9 @@ export const make_faces_geometry = (graph) => {
 };
 
 const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
-  if (math.core.mag_squared(edge_vector) < math.core.EPSILON) { throw "degenerate edge"; }
+  if (math.core.mag_squared(edge_vector) < math.core.EPSILON) {
+		return [];
+	}
   const normalized = math.core.normalize(edge_vector);
   const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
     .map(vec => math.core.cross3(vec, normalized))

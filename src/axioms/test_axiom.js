@@ -19,8 +19,29 @@ const test_axiom1_2 = (params, poly) => [params.points
 	.map(p => math.core.point_in_convex_poly_inclusive(p, poly))
 	.reduce((a, b) => a && b, true)];
 
-// todo
-const test_axiom3 = (params, poly) => [true, true];
+const test_axiom3 = (params, poly) => {
+	// if line parameters lie outside polygon, no solution possible
+	const segments = params.lines.map(line => math.core
+		.clip_line_in_convex_poly_inclusive(poly, line.vector, line.origin));
+	if (segments[0] === undefined || segments[1] === undefined) {
+		return [false, false];
+	}
+	// reflect one of the lines and check if there is any overlap between the two
+	const results = math.core.axiom3(
+		params.lines[0].vector, params.lines[0].origin,
+		params.lines[1].vector, params.lines[1].origin);
+	const seg0Reflect = results
+		.map((foldLine, i) => foldLine === undefined ? undefined : [
+			reflect_point(foldLine, segments[0][0]),
+			reflect_point(foldLine, segments[0][1])
+		]);
+	return seg0Reflect.map(seg => seg === undefined ? undefined : (
+		math.core.point_on_segment_inclusive(seg[0], segments[1][0], segments[1][1]) ||
+		math.core.point_on_segment_inclusive(seg[1], segments[1][0], segments[1][1]) ||
+		math.core.point_on_segment_inclusive(segments[1][0], seg[0], seg[1]) ||
+		math.core.point_on_segment_inclusive(segments[1][1], seg[0], seg[1])
+	));
+};
 
 const test_axiom4 = (params, poly) => {
 	const intersect = math.core.intersect_lines(
@@ -48,43 +69,23 @@ const test_axiom5 = (params, poly) => {
 	return testReflections.map(ref => ref && testParamPoints);
 };
 
-// todo
 const test_axiom6 = function (params, poly) {
-	return [true, true, true];
-
-  const Xing = math.core.intersection;
-  const solutions_inside = axiom_frame.solutions.map(s => Xing.convex_poly_line(poly, s[0], s[1])).filter(a => a !== undefined);
-
-  if (solutions_inside.length === 0) {
-    axiom_frame.valid = false;
-    axiom_frame.valid_solutions = [false, false, false];
-    return;
-  }
-  const { lines } = axiom_frame.parameters;
-  const a = Xing.convex_poly_line(poly, lines[0][0], lines[0][1]);
-  const b = Xing.convex_poly_line(poly, lines[1][0], lines[1][1]);
-
-  // const params = axiom_frame.parameters;
-  axiom_frame.test = {};
-  axiom_frame.test.points_reflected = axiom_frame.solutions
-    .map(s => math.core.make_matrix2_reflect(s[1], s[0]))
-    .map(m => params.points
-      .map(p => math.core.multiply_matrix2_vector2(m, p)))
-    .reduce((prev, curr) => prev.concat(curr), []);
-
-  axiom_frame.valid = a !== undefined && b !== undefined
-    && math.core.point_in_convex_poly(params.points[0], poly)
-    && math.core.point_in_convex_poly(params.points[1], poly);
-  axiom_frame.valid_solutions = axiom_frame.solutions
-    .map((solution, i) => [
-      axiom_frame.test.points_reflected[(i * 2)],
-      axiom_frame.test.points_reflected[(i * 2) + 1]
-    ])
-    .map(p => math.core.point_in_convex_poly(p[0], poly)
-      && math.core.point_in_convex_poly(p[1], poly));
-  while (axiom_frame.valid_solutions.length < 3) {
-    axiom_frame.valid_solutions.push(false);
-  }
+	const results = math.core.axiom6(
+		params.lines[0].vector, params.lines[0].origin,
+		params.lines[1].vector, params.lines[1].origin,
+		params.points[0], params.points[1]);
+	if (results.length === 0) { return []; }
+	const testParamPoints = params.points
+		.map(point => math.core.point_in_convex_poly_inclusive(point, poly))
+		.reduce((a, b) => a && b, true);
+	if (!testParamPoints) { return results.map(() => false); }
+	const testReflect0 = results
+		.map(foldLine => reflect_point(foldLine, params.points[0]))
+		.map(point => math.core.point_in_convex_poly_inclusive(point, poly));
+	const testReflect1 = results
+		.map(foldLine => reflect_point(foldLine, params.points[1]))
+		.map(point => math.core.point_in_convex_poly_inclusive(point, poly));
+	return results.map((_, i) => testReflect0[i] && testReflect1[i]);
 };
 
 const test_axiom7 = (params, poly) => {

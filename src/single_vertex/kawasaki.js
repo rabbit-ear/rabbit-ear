@@ -1,5 +1,5 @@
 import math from "../math";
-import { fn_add } from "../arguments/functions";
+import { fn_add } from "../symbols/functions";
 /**
  * @description given a list of numbers this method will sort them by
  *  even and odd indices and sum the two categories, returning two sums.

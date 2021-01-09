@@ -1342,56 +1342,6 @@ var intersect_circle = /*#__PURE__*/Object.freeze({
   circle_segment: circle_segment
 });
 
-const cuberoot = function (x) {
-  const y = Math.pow(Math.abs(x), 1 / 3);
-  return x < 0 ? -y : y;
-};
-const solveCubic = function (a, b, c, d) {
-  if (Math.abs(a) < EPSILON) {
-    a = b; b = c; c = d;
-    if (Math.abs(a) < EPSILON) {
-      a = b; b = c;
-      if (Math.abs(a) < EPSILON) {
-        return [];
-      }
-      return [-b / a];
-    }
-    const D = b * b - 4 * a * c;
-    if (Math.abs(D) < EPSILON) {
-      return [-b / (2 * a)];
-    }
-    if (D > 0) {
-      return [(-b + Math.sqrt(D)) / (2 * a), (-b - Math.sqrt(D)) / (2 * a)];
-    }
-    return [];
-  }
-  const p = (3 * a * c - b * b) / (3 * a * a);
-  const q = (2 * b * b * b - 9 * a * b * c + 27 * a * a * d) / (27 * a * a * a);
-  let roots;
-  if (Math.abs(p) < EPSILON) {
-    roots = [cuberoot(-q)];
-  } else if (Math.abs(q) < EPSILON) {
-    roots = [0].concat(p < 0 ? [Math.sqrt(-p), -Math.sqrt(-p)] : []);
-  } else {
-    const D = q * q / 4 + p * p * p / 27;
-    if (Math.abs(D) < EPSILON) {
-      roots = [-1.5 * q / p, 3 * q / p];
-    } else if (D > 0) {
-      const u = cuberoot(-q / 2 - Math.sqrt(D));
-      roots = [u - p / (3 * u)];
-    } else {
-      const u = 2 * Math.sqrt(-p / 3);
-      const t = Math.acos(3 * q / p / u) / 3;
-      const k = 2 * Math.PI / 3;
-      roots = [u * Math.cos(t), u * Math.cos(t - k), u * Math.cos(t - 2 * k)];
-    }
-  }
-  for (let i = 0; i < roots.length; i += 1) {
-    roots[i] -= b / (3 * a);
-  }
-  return roots;
-};
-
 const axiom1 = (pointA, pointB) => Constructors.line(
   normalize(subtract(...resize_up$1(pointB, pointA))),
   pointA
@@ -1416,6 +1366,116 @@ const axiom5 = (vectorA, originA, pointA, pointB) => (intersect_circle_line(
     normalize(rotate90(subtract(...resize_up$1(sect, pointB)))),
     midpoint(pointB, sect)
   ));
+const line_to_ud = (vector, origin) => {
+	const mag = Math.sqrt((vector[0] ** 2) + (vector[1] ** 2));
+	const u = [-vector[1], vector[0]];
+	const d = (origin[0] * u[0] + origin[1] * u[1]) / mag;
+	return d < 0
+		? { u: [-u[0] / mag, -u[1] / mag], d: -d }
+		: { u: [u[0] / mag, u[1] / mag], d };
+};
+const ud_to_line = ({ u, d }) => ({
+	vector: [u[1], -u[0]],
+	origin: [d * u[0], d * u[1]],
+});
+const cubrt = n => n < 0
+	? -Math.pow(-n, 1/3)
+	: Math.pow(n, 1/3);
+const axiom6 = (vectorA, originA, vectorB, originB, pointA, pointB) => {
+	const lineA = line_to_ud(vectorA, originA);
+	const lineB = line_to_ud(vectorB, originB);
+	if (Math.abs(1 - (dot(lineA.u, pointA) / lineA.d)) < 0.02) { return []; }
+	const lineAVec = [-lineA.u[1], lineA.u[0]];
+	const vec1 = [
+		pointA[0] + lineA.d * lineA.u[0] - 2 * pointB[0],
+		pointA[1] + lineA.d * lineA.u[1] - 2 * pointB[1],
+	];
+	const vec2 = [
+		lineA.d * lineA.u[0] - pointA[0],
+		lineA.d * lineA.u[1] - pointA[1],
+	];
+	const c1 = dot(pointB, lineB.u) - lineB.d;
+	const c2 = 2 * dot(vec2, lineAVec);
+	const c3 = dot(vec2, vec2);
+	const c4 = dot(add$1(vec1, vec2), lineAVec);
+	const c5 = dot(vec1, vec2);
+	const c6 = dot(lineAVec, lineB.u);
+	const c7 = dot(vec2, lineB.u);
+	const a = c6;
+	const b = c1 + c4 * c6 + c7;
+	const c = c1 * c2 + c5 * c6 + c4 * c7;
+	const d = c1 * c3 + c5 * c7;
+	const make_point = root => [
+		lineA.d * lineA.u[0] + root * lineAVec[0],
+		lineA.d * lineA.u[1] + root * lineAVec[1],
+	];
+	let polynomial_degree = 0;
+	if (Math.abs(c) > EPSILON) { polynomial_degree = 1; }
+	if (Math.abs(b) > EPSILON) { polynomial_degree = 2; }
+	if (Math.abs(a) > EPSILON) { polynomial_degree = 3; }
+	const solutions = [];
+	switch (polynomial_degree) {
+		case 1:
+		solutions.push(make_point(-d / c)); break;
+		case 2: {
+			const discriminant = (c ** 2) - (4 * b * d);
+			if (discriminant < -EPSILON) {
+				break; }
+			const q1 = -c / (2 * b);
+			if (discriminant < EPSILON) {
+				solutions.push(make_point(q1));
+				break;
+			}
+			const q2 = Math.sqrt(discriminant) / (2 * b);
+			solutions.push(
+				make_point(q1 + q2),
+				make_point(q1 - q2),
+			);
+			break;
+		}
+		case 3: {
+			const a2 = b / a;
+			const a1 = c / a;
+			const a0 = d / a;
+			const Q = (3 * a1 - (a2 ** 2)) / 9;
+			const R = (9 * a2 * a1 - 27 * a0 - 2 * (a2 ** 3)) / 54;
+			const D = (Q ** 3) + (R ** 2);
+			const U = -a2 / 3;
+			if (D > 0) {
+				const sqrtD = Math.sqrt(D);
+				const S = cubrt(R + sqrtD);
+				const T = cubrt(R - sqrtD);
+				solutions.push(make_point(U + S + T));
+				break;
+			}
+			if (Math.abs(D) < EPSILON) {
+				const S = Math.pow(R, 1/3);
+				if (isNaN(S)) { break; }
+				solutions.push(
+					make_point(U + 2 * S),
+					make_point(U - S),
+				);
+				break;
+			}
+			const sqrtD = Math.sqrt(-D);
+			const phi = Math.atan2(sqrtD, R) / 3;
+			const rS = Math.pow((R ** 2) - D, 1/6);
+			const Sr = rS * Math.cos(phi);
+			const Si = rS * Math.sin(phi);
+			solutions.push(
+				make_point(U + 2 * Sr),
+				make_point(U - Sr - Math.sqrt(3) * Si),
+				make_point(U - Sr + Math.sqrt(3) * Si),
+			);
+			break;
+		}
+	}
+	return solutions
+		.map(p => normalize(subtract(p, pointA)))
+		.map((u, i) => ({ u, d: dot(u, midpoint(solutions[i], pointA)) }))
+		.map(ud_to_line)
+		.map(Constructors.line);
+};
 const axiom7 = (vectorA, originA, vectorB, pointC) => {
   const intersect = intersect_lines(vectorA, originA, vectorB, pointC, include_l, include_l);
   return intersect === undefined
@@ -1425,114 +1485,6 @@ const axiom7 = (vectorA, originA, vectorB, pointC) => {
         midpoint(pointC, intersect)
     );
 };
-const axiom6 = function (vecA, pointA, vecB, pointB, pointC, pointD) {
-  var p1 = pointC[0];
-  var q1 = pointC[1];
-  if (Math.abs(vecA[0]) > EPSILON) {
-    var m1 = vecA[1] / vecA[0];
-    var h1 = pointA[1] - m1 * pointA[0];
-  }
-  else {
-    var k1 = pointA[0];
-  }
-  var p2 = pointD[0];
-  var q2 = pointD[1];
-  if (Math.abs(vecB[0]) > EPSILON) {
-    var m2 = vecB[1] / vecB[0];
-    var h2 = pointB[1] - m2 * pointB[0];
-  }
-  else {
-    var k2 = pointB[0];
-  }
-  if (m1 !== undefined && m2 !== undefined) {
-    var a1 = m1*m1 + 1;
-    var b1 = 2*m1*h1;
-    var c1 = h1*h1 - p1*p1 - q1*q1;
-    var a2 = m2*m2 + 1;
-    var b2 = 2*m2*h2;
-    var c2 =  h2*h2 - p2*p2 - q2*q2;
-    var a0 = m2*p1 + (h1 - q1);
-    var b0 = p1*(h2 - q2) - p2*(h1 - q1);
-    var c0 = m2 - m1;
-    var d0 = m1*p2 + (h2 - q2);
-    var z = m1*p1 + (h1 - q1);
-  }
-  else if (m1 === undefined && m2 === undefined) {
-    a1 = 1;
-    b1 = 0;
-    c1 = k1*k1 - p1*p1 - q1*q1;
-    a2 = 1;
-    b2 = 0;
-    c2 = k2*k2 - p2*p2 - q2*q2;
-    a0 = k1 - p1;
-    b0 = q1*(k2 - p2) - q2*(k1 - p1);
-    c0 = 0;
-    d0 = k2 - p2;
-    z = a0;
-  }
-  else {
-    if (m1 === undefined) {
-      var p3 = p1;
-      p1 = p2;
-      p2 = p3;
-      var q3 = q1;
-      q1 = q2;
-      q2 = q3;
-      m1 = m2;
-      m2 = undefined;
-      h1 = h2;
-      h2 = undefined;
-      k2 = k1;
-      k1 = undefined;
-    }
-    a1 = m1*m1 + 1;
-    b1 = 2*m1*h1;
-    c1 = h1*h1 - p1*p1 - q1*q1;
-    a2 = 1;
-    b2 = 0;
-    c2 = k2*k2 - p2*p2 - q2*q2;
-    a0 = p1;
-    b0 = (h1 - q1)*(k2 - p2) - p1*q2;
-    c0 = 1;
-    d0 = -m1*(k2 - p2) - q2;
-    z = m1*p1 + (h1 - q1);
-  }
-  var a3 = a1*a0*a0 + b1*a0*c0 + c1*c0*c0;
-  var b3 = 2*a1*a0*b0 + b1*(a0*d0 + b0*c0) + 2*c1*c0*d0;
-  var c3 = a1*b0*b0 + b1*b0*d0 + c1*d0*d0;
-  var a4 = a2*c0*z;
-  var b4 = (a2*d0 + b2*c0) * z - a3;
-  var c4 = (b2*d0 + c2*c0) * z - b3;
-  var d4 =  c2*d0*z - c3;
-  var roots = solveCubic(a4,b4,c4,d4);
-  var solutions = [];
-  if (roots != undefined && roots.length > 0) {
-    for (var i = 0; i < roots.length; ++i) {
-      if (m1 !== undefined && m2 !== undefined) {
-        var u2 = roots[i];
-        var v2 = m2*u2 + h2;
-      }
-      else if (m1 === undefined && m2 === undefined) {
-        v2 = roots[i];
-        u2 = k2;
-      }
-      else {
-        v2 = roots[i];
-        u2 = k2;
-      }
-      if (v2 != q2) {
-        var mF = -1*(u2 - p2)/(v2 - q2);
-        var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
-        solutions.push(Constructors.line.fromPoints([0, hF], [1, mF]));
-      }
-      else {
-        var kG = (u2 + p2)/2;
-        solutions.push(Constructors.line.fromPoints([kG, 0], [0, 1]));
-      }
-    }
-  }
-  return solutions;
-};
 
 var axioms = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -1541,8 +1493,8 @@ var axioms = /*#__PURE__*/Object.freeze({
   axiom3: axiom3,
   axiom4: axiom4,
   axiom5: axiom5,
-  axiom7: axiom7,
-  axiom6: axiom6
+  axiom6: axiom6,
+  axiom7: axiom7
 });
 
 const get_unique_pair = (intersections) => {

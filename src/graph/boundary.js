@@ -51,7 +51,23 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
     edges: edge_walk,
   };
 };
-
+/**
+ * @param {object} FOLD graph
+ * @returns {number[]} indices of vertices that lie along the boundary
+ */
+// export const get_boundary_vertices_unsorted = ({
+// 	edges_vertices, vertices_edges, edges_assignment
+// }) => {
+//   if (!vertices_edges) {
+//     vertices_edges = make_vertices_edges({ edges_vertices });
+//   }
+//   const edges_isBoundary = edges_assignment
+//     .map(a => a === "b" || a === "B");
+//   return vertices_edges
+//     .map(edges => edges
+//       .map(edge => edges_isBoundary[edge])
+//       .reduce((a, b) => a || b, false));
+// };
 /**
  * get the 2D boundary face defined in vertices and edges by walking boundary
  * edges (in 2D!), with no regard to assignment. this will discover a boundary

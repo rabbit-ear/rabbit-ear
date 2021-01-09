@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import { fn_and } from "../arguments/functions";
+import { fn_and } from "../symbols/functions";
 import { invert_simple_map } from "../graph/maps";
 
 // todo: make this work with lowercase "m" "v" too

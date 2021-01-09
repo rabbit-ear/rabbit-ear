@@ -39,3 +39,13 @@ test("clip line, edge collinear", () => {
   expect(ear.graph.clip_line(graph, ear.line([0, -1], [0, 0]))).toBe(undefined);
   expect(ear.graph.clip_line(graph, ear.line([1, 0], [0, 0]))).toBe(undefined);
 });
+
+test("clip ray", () => {
+	const square = ear.graph.square();
+	const seg = ear.graph.clip_line(square, ear.ray([0.1, -0.5], [0.5, 0.5]));
+	expect(seg[0][0]).toBe(0.5);
+	expect(seg[0][1]).toBe(0.5);
+	expect(seg[1][0]).toBe(0.6);
+	expect(seg[1][1]).toBe(0);
+});
+
