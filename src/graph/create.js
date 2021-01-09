@@ -29,6 +29,12 @@ polygon_names.forEach((name, i) => {
   });
 });
 
+Create.rectangle = (width = 1, height = 1) => create_init({
+	vertices_coords: [[0, 0], [0, width], [width, height], [0, height]],
+	edges_vertices: Array.from(Array(4)).map((_, i, arr) => [i, (i + 1) % arr.length]),
+	edges_assignment: Array.from(Array(4)).map(() => "B"),
+});
+
 Create.circle = (edge_count = 90) => create_init({
 	vertices_coords: math.core.make_regular_polygon(edge_count, 1),
 	edges_vertices: Array.from(Array(edge_count)).map((_, i, arr) => [i, (i + 1) % arr.length]),

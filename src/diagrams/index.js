@@ -1,8 +1,9 @@
-import * as arrows from "./arrows";
+// import * as arrows from "./arrows";
 import axiom_arrows from "./axiom_arrows";
 
 export default Object.assign(Object.create(null),
-	arrows, {
+	// arrows, {
+	{
 	axiom_arrows
 });
 

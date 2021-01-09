@@ -43,3 +43,4 @@ const get_collinear_vertices = ({ vertices_coords, edges_vertices, edges_coords 
 };
 
 export default get_collinear_vertices;
+

@@ -2,10 +2,10 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
+import { fn_cat } from "../symbols/functions";
 import GraphProto from "./graph";
 import { clip_line } from "../graph/clip";
 import add_vertices from "../graph/add/add_vertices";
-import { fn_cat } from "../arguments/functions";
 import {
   VERTICES,
   EDGES,

@@ -5,13 +5,15 @@ import math from "../math";
 import {
   fn_cat,
   fn_def,
-} from "../arguments/functions";
+} from "../symbols/functions";
 import {
   VERTICES,
   EDGES,
   FACES,
 } from "./fold_keys";
 import {
+	edge_assignment_to_foldAngle,
+	edge_foldAngle_to_assignment,
   get_graph_keys_with_prefix,
 } from "./fold_spec";
 import {
@@ -135,11 +137,23 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
       .map((_, i, arr) => [edge[i], edge[i + 1]]))
     .reduce(fn_cat, []);
   // copy over edge metadata if it exists
+	// make foldAngles and assignments match if foldAngle is longer
+	if (graph.edges_assignment && graph.edges_foldAngle
+		&& graph.edges_foldAngle.length > graph.edges_assignment.length) {
+		for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
+			graph.edges_assignment[i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[i]);
+		}
+	}
+	// copy over assignments and fold angle and base fold angle off assigments if it's shorter
   if (graph.edges_assignment) {
     graph.edges_assignment = edge_map.map(i => graph.edges_assignment[i] || "U");
   }
   if (graph.edges_foldAngle) {
-    graph.edges_foldAngle = edge_map.map(i => graph.edges_foldAngle[i] || 0);
+    graph.edges_foldAngle = edge_map
+			.map(i => graph.edges_foldAngle[i])
+			.map((a, i) => a === undefined
+				? edge_assignment_to_foldAngle(graph.edges_assignment[i])
+				: a);
   }
   return {
     vertices: {
