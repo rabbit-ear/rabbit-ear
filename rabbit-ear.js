@@ -3373,6 +3373,16 @@
     invert_simple_map: invert_simple_map
   });
 
+  const is_folded_form = (graph) => {
+  	return (graph.frame_classes && graph.frame_classes.includes("foldedForm"))
+  	 	|| (graph.file_classes && graph.file_classes.includes("foldedForm"));
+  };
+
+  var query = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    is_folded_form: is_folded_form
+  });
+
   const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
     .filter(el => el !== undefined)
     .map(el => el.length)));
@@ -4558,12 +4568,10 @@
   const valley = "valley";
   const mark = "mark";
   const unassigned = "unassigned";
-  const creasePattern = "creasePattern";
   const front = "front";
   const back = "back";
   const _class = "class";
   const index = "index";
-  const object = "object";
   const setAttributeNS = "setAttributeNS";
   const appendChild = "appendChild";
   const vertices_coords = "vertices_coords";
@@ -6258,24 +6266,28 @@
   }, Case, classMethods, dom, math$1, methods$3, viewBox$1);
 
   const Libraries = { SVG };
-  const vertices_circle = (graph, options) => {
+  const vertices_circle = ({ vertices_coords }, attributes = {}) => {
   	const g = Libraries.SVG.g();
-    if (vertices_coords in graph === false) {
-      return g;
-    }
-    const svg_vertices = graph[vertices_coords]
+  	if (!vertices_coords) { return g; }
+    const svg_vertices = vertices_coords
       .map(v => Libraries.SVG.circle(v[0], v[1], 0.01))
   		.forEach(v => g[appendChild](v));
   	g[setAttributeNS](null, "fill", "none");
+  	Object.keys(attributes)
+  		.forEach(attr => g[setAttributeNS](null, attr, attributes[attr]));
     return g;
   };
 
   const Libraries$1 = { SVG };
-  const default_color = {
-  	m: "red",
-  	v: "blue",
-  	f: "lightgray",
-  	b: "black",
+  const GROUP_FOLDED = {};
+  const GROUP_FLAT = {
+  	stroke: "black",
+  };
+  const STYLE_FOLDED = {};
+  const STYLE_FLAT = {
+  	m: { stroke: "red" },
+  	v: { stroke: "blue" },
+  	f: { stroke: "lightgray" },
   };
   const edges_assignment_names$1 = {
     B: boundary$1,
@@ -6301,62 +6313,81 @@
     U: "u",
     u: "u",
   };
-  const edges_coords = function (graph) {
-    if (graph[edges_vertices] == null || graph[vertices_coords] == null) {
-      return [];
-    }
-    return graph[edges_vertices].map(ev => ev.map(v => graph[vertices_coords][v]));
-  };
-  const edges_indices_classes = function (graph) {
+  const edges_assignment_indices = (graph) => {
     const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
-    graph[edges_assignment].map(a => edges_assignment_to_lowercase[a])
-      .forEach((a, i) => assignment_indices[a].push(i));
+    const lowercase_assignment = graph[edges_assignment]
+  		.map(a => edges_assignment_to_lowercase[a]);
+    graph[edges_vertices]
+  		.map((_, i) => lowercase_assignment[i] || "u")
+  		.forEach((a, i) => assignment_indices[a].push(i));
     return assignment_indices;
   };
-  const segment_to_path = function (s) {
-    return `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
+  const edges_coords = ({ vertices_coords, edges_vertices }) => {
+  	if (!vertices_coords || !edges_vertices) { return []; }
+  	return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
   };
-  const edges_by_assignment_paths_data = function (graph) {
-    if (graph[edges_vertices] == null
-      || graph[vertices_coords] == null
-      || graph[edges_assignment] == null) {
-      return [];
-    }
-    const segments = edges_coords(graph);
-    const assignment_sorted_edges = edges_indices_classes(graph);
-    const paths = Object.keys(assignment_sorted_edges)
-      .map(assignment => assignment_sorted_edges[assignment].map(i => segments[i]))
-      .map(segments => segments.map(segment => segment_to_path(segment)).join(""));
-    const result = {};
-    Object.keys(assignment_sorted_edges).map((key, i) => {
-      if (paths[i] !== "") {
-        result[key] = paths[i];
-      }
-    });
-    return result;
-  };
-  const edges_group = (graph) => {
-  	const data = edges_by_assignment_paths_data(graph);
-  	const paths = Object.keys(data).map(key => {
-  		const path = Libraries$1.SVG.path(data[key]);
-  		path[setAttributeNS](null, _class, edges_assignment_names$1[key]);
-  		if (default_color[key]) {
-  			path[setAttributeNS](null, "stroke", default_color[key]);
-  		}
-  		return path;
-  	});
-  	const group = Libraries$1.SVG.g();
-  	paths.forEach(path => group[appendChild](path));
-  	Object.keys(data).forEach((key, i) => {
-  		Object.defineProperty(group, edges_assignment_names$1[key], {
-  			get: () => paths[i],
+  const segment_to_path = s => `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
+  const edges_path_data = (graph) => edges_coords(graph)
+  	.map(segment => segment_to_path(segment)).join("");
+  const edges_path_data_assign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
+  	if (!vertices_coords || !edges_vertices) { return {}; }
+  	if (!edges_assignment) {
+  		return ({ u: edges_path_data({ vertices_coords, edges_vertices }) });
+  	}
+    const data = edges_assignment_indices({ vertices_coords, edges_vertices, edges_assignment });
+  	Object.keys(data).forEach(key => {
+  		data[key] = edges_path_data({
+  			vertices_coords,
+  			edges_vertices: data[key].map(i => edges_vertices[i]),
   		});
   	});
-  	group[setAttributeNS](null, "stroke", "black");
+  	Object.keys(data).forEach(key => {
+  		if (data[key] === "") { delete data[key]; }
+  	});
+    return data;
+  };
+  const edges_paths_assign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
+  	const data = edges_path_data_assign({ vertices_coords, edges_vertices, edges_assignment });
+    Object.keys(data).forEach(assignment => {
+      const path = Libraries$1.SVG.path(data[assignment]);
+      path[setAttributeNS](null, _class, edges_assignment_names$1[assignment]);
+      data[assignment] = path;
+    });
+  	return data;
+  };
+  const apply_style = (el, attributes = {}) => Object.keys(attributes)
+  	.forEach(key => el[setAttributeNS](null, key, attributes[key]));
+  const edges_paths = (graph, attributes = {}) => {
+  	const isFolded = is_folded_form(graph);
+  	const paths = edges_paths_assign(graph);
+  	const group = Libraries$1.SVG.g();
+  	Object.keys(paths).forEach(key => {
+  		paths[key][setAttributeNS](null, _class, edges_assignment_names$1[key]);
+  		apply_style(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
+  		apply_style(paths[key], attributes[key]);
+  		apply_style(paths[key], attributes[edges_assignment_names$1[key]]);
+  		group[appendChild](paths[key]);
+  		Object.defineProperty(group, edges_assignment_names$1[key], { get: () => paths[key] });
+  	});
+  	apply_style(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+  	apply_style(group, attributes.stroke ? { stroke: attributes.stroke } : {});
   	return group;
   };
 
   const Libraries$2 = { SVG };
+  const FACE_STYLE_FOLDED = {
+  	back: { fill: "white" },
+  	front: { fill: "#ddd" }
+  };
+  const FACE_STYLE_FLAT = {
+  };
+  const GROUP_STYLE_FOLDED = {
+  	stroke: "black",
+  	"stroke-linejoin": "bevel"
+  };
+  const GROUP_STYLE_FLAT = {
+  	fill: "none"
+  };
   const get_faces_winding = (graph) => graph
     .faces_vertices
     .map(fv => fv.map(v => graph.vertices_coords[v])
@@ -6370,43 +6401,46 @@
       .sort((a, b) => a.layer - b.layer)
       .map(el => el.i);
   };
-  const finalize_faces = function (graph, svg_faces, group) {
-    const isFoldedForm = typeof graph.frame_classes === object
-      && graph.frame_classes !== null
-      && !(graph.frame_classes.includes(creasePattern));
+  const apply_style$1 = (el, attributes = {}) => Object.keys(attributes)
+  	.forEach(key => el[setAttributeNS](null, key, attributes[key]));
+  const finalize_faces = (graph, svg_faces, group, attributes) => {
+  	const isFolded = is_folded_form(graph);
     const orderIsCertain = graph[faces_re_layer] != null
       && graph[faces_re_layer].length === graph[faces_vertices].length;
-    const classNames = [ [front], [back] ]
-  		.map(arr => arr.join(" "));
+    const classNames = [ [front], [back] ];
     const faceDir = get_faces_winding(graph).map(c => c < 0);
     faceDir.map(w => (w ? classNames[0] : classNames[1]))
-      .forEach((className, i) => svg_faces[i][setAttributeNS](null, _class, className));
+      .forEach((className, i) => {
+  			svg_faces[i][setAttributeNS](null, _class, className);
+  			apply_style$1(svg_faces[i], isFolded
+  				? FACE_STYLE_FOLDED[className]
+  				: FACE_STYLE_FLAT[className]);
+  			apply_style$1(svg_faces[i], attributes[className]);
+  		});
+    const facesInOrder = (orderIsCertain
+      ? faces_sorted_by_layer(graph[faces_re_layer]).map(i => svg_faces[i])
+      : svg_faces);
+  	facesInOrder.forEach(face => group[appendChild](face));
   	Object.defineProperty(group, "front", {
   		get: () => svg_faces.filter((_, i) => faceDir[i]),
   	});
   	Object.defineProperty(group, "back", {
   		get: () => svg_faces.filter((_, i) => !faceDir[i]),
   	});
-    const facesInOrder = (orderIsCertain
-      ? faces_sorted_by_layer(graph[faces_re_layer]).map(i => svg_faces[i])
-      : svg_faces);
-  	facesInOrder.forEach(face => group[appendChild](face));
+  	apply_style$1(group, isFolded ? GROUP_STYLE_FOLDED : GROUP_STYLE_FLAT);
   	return group;
   };
-  const faces_vertices_polygon = function (graph) {
+  const faces_vertices_polygon = (graph, attributes = {}) => {
   	const g = Libraries$2.SVG.g();
-    if (faces_vertices in graph === false
-      || vertices_coords in graph === false) {
-      return g;
-    }
-    const svg_faces = graph[faces_vertices]
-      .map(fv => fv.map(v => [0, 1].map(i => graph[vertices_coords][v][i])))
+  	if (!graph.vertices_coords || !graph.faces_vertices) { return g; }
+    const svg_faces = graph.faces_vertices
+      .map(fv => fv.map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
       .map(face => Libraries$2.SVG.polygon(face));
     svg_faces.forEach((face, i) => face[setAttributeNS](null, index, i));
   	g[setAttributeNS](null, "fill", "white");
-    return finalize_faces(graph, svg_faces, g);
+    return finalize_faces(graph, svg_faces, g, attributes);
   };
-  const faces_edges_polygon = function (graph) {
+  const faces_edges_polygon = function (graph, attributes = {}) {
   	const g = Libraries$2.SVG.g();
     if (faces_edges in graph === false
       || edges_vertices in graph === false
@@ -6423,24 +6457,30 @@
       .map(face => Libraries$2.SVG.polygon(face));
     svg_faces.forEach((face, i) => face[setAttributeNS](null, index, i));
   	g[setAttributeNS](null, "fill", "white");
-    return finalize_faces(graph, svg_faces, g);
+    return finalize_faces(graph, svg_faces, g, attributes);
   };
 
   const Libraries$3 = { SVG };
+  const FOLDED = {
+  	fill: "none",
+  };
+  const FLAT = {
+  	stroke: "black",
+  	fill: "white",
+  };
+  const apply_style$2 = (el, attributes = {}) => Object.keys(attributes)
+  	.forEach(key => el[setAttributeNS](null, key, attributes[key]));
   const boundaries_polygon = (graph, attributes = {}) => {
   	const g = Libraries$3.SVG.g();
-    if (vertices_coords in graph === false
-      || edges_vertices in graph === false
-      || edges_assignment in graph === false) {
-      return g;
-    }
+  	if (!graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) { return g; }
     const boundary = get_boundary(graph)
-      .vertices
-      .map(v => [0, 1].map(i => graph[vertices_coords][v][i]));
+  		.vertices
+      .map(v => [0, 1].map(i => graph.vertices_coords[v][i]));
     if (boundary.length === 0) { return g; }
-    const p = Libraries$3.SVG.polygon(boundary);
-    p[setAttributeNS](null, _class, boundary$1);
-  	g[appendChild](p);
+    const poly = Libraries$3.SVG.polygon(boundary);
+    poly[setAttributeNS](null, _class, boundary$1);
+  	g[appendChild](poly);
+  	apply_style$2(g, is_folded_form(graph) ? FOLDED : FLAT);
   	Object.keys(attributes)
   		.forEach(attr => g[setAttributeNS](null, attr, attributes[attr]));
     return g;
@@ -6451,45 +6491,17 @@
   	(graph[frame_classes] ? graph[frame_classes] : []),
   ].reduce((a, b) => a.concat(b));
 
-  const recursive_assign = (target, source) => {
-    Object.keys(source).forEach((key) => {
-      if (typeof source[key] === object && source[key] !== null) {
-        if (!(key in target)) { target[key] = {}; }
-        recursive_assign(target[key], source[key]);
-      } else if (typeof target === object && !(key in target)) {
-        target[key] = source[key];
-      }
-    });
-    return target;
-  };
-
   const Libraries$4 = { SVG };
-  const OPTIONS = {
-  	vertices: {
-  	},
-  	edges: {
-  	},
-  	faces: {
-  		fill: "none",
-  		stroke: "black",
-  	},
-  	boundaries: {
-  		fill: "none",
-  		stroke: "black",
-  	},
-  };
-  const faces_draw_function = (graph, o) => (graph[faces_vertices] != null
-    ? faces_vertices_polygon(graph)
-    : faces_edges_polygon(graph));
+  const faces_draw_function = (graph, options) => (graph[faces_vertices] != null
+    ? faces_vertices_polygon(graph, options)
+    : faces_edges_polygon(graph, options));
   const draw_func = {
     vertices: vertices_circle,
-    edges: edges_group,
+    edges: edges_paths,
     faces: faces_draw_function,
     boundaries: boundaries_polygon
   };
-  const draw_groups = (graph, _options = {}) => {
-  	const options = recursive_assign(JSON.parse(JSON.stringify(OPTIONS)), _options);
-  	options.parent = _options.parent;
+  const draw_groups = (graph, options = {}) => {
   	const parent = options.parent
   		? options.parent
   		: Libraries$4.SVG.g();
@@ -6497,8 +6509,8 @@
     parent[setAttributeNS](null, _class, classValue);
     [boundaries, faces, edges, vertices]
     	.map(key => {
-  			const theseOptions = options[key] || {};
-    	  const group = draw_func[key](graph, theseOptions);
+  			const attributes = options[key] || {};
+    	  const group = draw_func[key](graph, attributes);
     	  group[setAttributeNS](null, _class, key);
   			Object.defineProperty(parent, key, { get: () => group });
     	  return group;
@@ -6508,8 +6520,8 @@
   	return parent;
   };
   [boundaries, faces, edges, vertices].forEach(key => {
-  	draw_groups[key] = (graph) => {
-  		const group = draw_func[key](graph);
+  	draw_groups[key] = function () {
+  		const group = draw_func[key](...arguments);
   		group[setAttributeNS](null, _class, key);
   		return group;
   	};
@@ -6547,6 +6559,7 @@
   	sort,
   	span,
   	maps,
+  	query,
   	remove_methods,
   	vertices_isolated,
   );
@@ -7148,7 +7161,7 @@
   	const vertices_coords = make_vertices_coords_folded(this);
   	return Object.assign(
   		Object.create(OrigamiProto.prototype),
-  		Object.assign(clone(this), { vertices_coords }));
+  		Object.assign(clone(this), { vertices_coords }, { frame_classes: ["foldedForm"] }));
   };
   var OrigamiProto$1 = OrigamiProto.prototype;
 

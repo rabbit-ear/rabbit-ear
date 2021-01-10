@@ -10,6 +10,7 @@ import * as fold_object from "./fold_spec";
 import * as sort from "./sort";
 import * as span from "./span";
 import * as maps from "./maps";
+import * as query from "./query";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
@@ -76,6 +77,7 @@ export default Object.assign(Object.create(null), {
 	sort,
 	span,
 	maps,
+	query,
 	// clean things
 	remove_methods,
 	vertices_isolated,

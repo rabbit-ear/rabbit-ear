@@ -3,7 +3,7 @@
  */
 import * as K from "./keys";
 import { vertices_circle } from "./render/vertices";
-import { edges_group } from "./render/edges";
+import { edges_paths } from "./render/edges";
 import {
 	faces_vertices_polygon,
 	faces_edges_polygon,
@@ -15,38 +15,21 @@ import recursive_assign from "./assign";
 import SVG from "../extensions/svg";
 const Libraries = { SVG };
 
-const OPTIONS = {
-	vertices: {
-	},
-	edges: {
-	},
-	faces: {
-		fill: "none",
-		stroke: "black",
-	},
-	boundaries: {
-		fill: "none",
-		stroke: "black",
-	},
-};
-
 // preference for using faces_vertices over faces_edges, it runs faster
-const faces_draw_function = (graph, o) => (graph[K.faces_vertices] != null
-  ? faces_vertices_polygon(graph, o)
-  : faces_edges_polygon(graph, o));
+const faces_draw_function = (graph, options) => (graph[K.faces_vertices] != null
+  ? faces_vertices_polygon(graph, options)
+  : faces_edges_polygon(graph, options));
 
 const draw_func = {
   vertices: vertices_circle,
-  edges: edges_group,
+  edges: edges_paths,
   faces: faces_draw_function,
   boundaries: boundaries_polygon
 };
 
 // draw geometry into groups
 // append geometry to SVG, if geometry exists (if group has more than 0 children)
-const draw_groups = (graph, _options = {}) => {
-	const options = recursive_assign(JSON.parse(JSON.stringify(OPTIONS)), _options);
-	options.parent = _options.parent;
+const draw_groups = (graph, options = {}) => {
 	const parent = options.parent
 		? options.parent
 		: Libraries.SVG.g();
@@ -57,8 +40,8 @@ const draw_groups = (graph, _options = {}) => {
   [K.boundaries, K.faces, K.edges, K.vertices]
   	.map(key => {
 			// vertices is the only one that uses "options"
-			const theseOptions = options[key] || {};
-  	  const group = draw_func[key](graph, theseOptions)
+			const attributes = options[key] || {};
+  	  const group = draw_func[key](graph, attributes)
   	  group[K.setAttributeNS](null, K._class, key);
 			Object.defineProperty(parent, key, { get: () => group }); 
   	  return group;
@@ -68,9 +51,10 @@ const draw_groups = (graph, _options = {}) => {
 	return parent;
 };
 
+// static style draw methods for individual components
 [K.boundaries, K.faces, K.edges, K.vertices].forEach(key => {
-	draw_groups[key] = (graph) => {
-		const group = draw_func[key](graph);
+	draw_groups[key] = function () {
+		const group = draw_func[key](...arguments);
 		group[K.setAttributeNS](null, K._class, key);
 		return group;
 	};
