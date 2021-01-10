@@ -33,6 +33,8 @@ import {
   face_containing_point,
 } from "../graph/nearest";
 import clone from "../graph/clone";
+import svg from "../svg/draw";
+
 // import changed from "./changed";
 /**
  * Graph - a flat-array, index-based graph with faces, edges, and vertices
@@ -52,6 +54,7 @@ const graphMethods = Object.assign({
   fragment,
   subgraph,
   assign,
+	svg,
 },
   transform,
 );
@@ -160,3 +163,4 @@ GraphProto.prototype.nearest = function () {
 };
 
 export default GraphProto.prototype;
+

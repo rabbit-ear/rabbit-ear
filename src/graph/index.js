@@ -10,6 +10,7 @@ import * as fold_object from "./fold_spec";
 import * as sort from "./sort";
 import * as span from "./span";
 import * as maps from "./maps";
+import * as query from "./query";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
@@ -35,6 +36,8 @@ import get_duplicate_edges from "./clean/edges_duplicate";
 import get_duplicate_vertices from "./clean/vertices_duplicate";
 import get_collinear_vertices from "./clean/vertices_collinear";
 import * as vertices_isolated from "./clean/vertices_isolated";
+// draw to svg
+import svg from "../svg/draw";
 
 export default Object.assign(Object.create(null), {
 	// modifiers
@@ -61,6 +64,7 @@ export default Object.assign(Object.create(null), {
 	subgraph,
 	explode_faces,
 	// intersection
+	svg,
 },
 	make,
 	// create,
@@ -73,6 +77,7 @@ export default Object.assign(Object.create(null), {
 	sort,
 	span,
 	maps,
+	query,
 	// clean things
 	remove_methods,
 	vertices_isolated,

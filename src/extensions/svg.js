@@ -333,7 +333,6 @@ const nodesAndChildren = Object.create(null);
 Object.keys(folders).forEach((key) => {
   nodesAndChildren[key] = folders[key].reduce((a, b) => a.concat(b), []);
 });
-var children = Object.freeze(nodesAndChildren);
 
 var Case = {
   toCamel: s => s
@@ -1629,8 +1628,8 @@ const constructor = (nodeName, ...args) => {
         return Nodes[nodeName].methods[methodName].call(bound, element, ...arguments);
       }
     }));
-  if (children[nodeName]) {
-    children[nodeName].forEach((childNode) => {
+  if (nodesAndChildren[nodeName]) {
+    nodesAndChildren[nodeName].forEach((childNode) => {
       Object.defineProperty(element, childNode, {
         value: function () {
           const childElement = constructor(childNode, ...arguments);
@@ -1650,8 +1649,8 @@ Object.keys(NodeNames).forEach(key => NodeNames[key]
     elements[nodeName] = (...args) => constructor(nodeName, ...args);
   }));
 
-const Linker = function (ear) {
-  const svg = this;
+const link_rabbitear = (svg, ear) => {
+  ear.svg = svg;
   const keys = [
     "segment",
     "circle",
@@ -1659,12 +1658,28 @@ const Linker = function (ear) {
     "rect",
     "polygon",
   ];
-  keys
-    .filter(key => ear[key] && ear[key].prototype)
+  keys.filter(key => ear[key] && ear[key].prototype)
     .forEach((key) => {
       ear[key].prototype.svg = function () { return svg.path(this.svgPath()); };
     });
-  ear.svg = svg;
+	Nodes.graph = {
+  	nodeName: "g",
+  	init: function (element, graph, options = {}) {
+			ear.graph.svg(graph, { ...options, parent: element });
+			return element;
+		},
+  	args: () => [],
+  	methods: Nodes.g.methods,
+  	attributes: Nodes.g.attributes,
+	};
+	nodesAndChildren.graph = [...nodesAndChildren.g];
+	nodesAndChildren.svg.push("graph");
+	nodesAndChildren.g.push("graph");
+};
+const Linker = function (lib) {
+	if (lib.graph && lib.origami) {
+		link_rabbitear(this, lib);
+	}
 };
 
 const bindRabbitEar = (_this, library) => {
@@ -1723,7 +1738,7 @@ SVG.core = Object.assign(Object.create(null), {
   coordinates,
   flatten: flatten_arrays,
   attributes,
-  children,
+  children: nodesAndChildren,
   cdata,
   detect,
 }, Case, classMethods, dom, math, methods$3, viewBox$1);

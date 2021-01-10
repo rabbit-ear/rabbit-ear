@@ -47,7 +47,7 @@ OrigamiProto.prototype.folded = function () {
 	const vertices_coords = make_vertices_coords_folded(this);
 	return Object.assign(
 		Object.create(OrigamiProto.prototype),
-		Object.assign(clone(this), { vertices_coords }));
+		Object.assign(clone(this), { vertices_coords }, { frame_classes: ["foldedForm"] }));
 };
 
 export default OrigamiProto.prototype;
