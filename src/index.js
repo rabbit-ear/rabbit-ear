@@ -38,7 +38,7 @@ import test_axiom from "./axioms/test_axiom";
 
 // extensions
 import SVG from "./extensions/svg";
-import FoldToSvg from "./extensions/fold-to-svg";
+// import FoldToSvg from "./extensions/fold-to-svg";
 
 const ConstructorPrototypes = {
   graph: GraphProto,
@@ -105,10 +105,10 @@ Object.keys(math)
 // console.log(`RabbitEar v0.1.91 [${operating_systems}]`);
 
 // extensions
-SVG.use(FoldToSvg);
+// SVG.use(FoldToSvg);
+// FoldToSvg.use(SVG);
 SVG.use(Ear);
-FoldToSvg.use(SVG);
 Ear.use(SVG);
-Ear.use(FoldToSvg);
+// Ear.use(FoldToSvg);
 
 export default Ear;

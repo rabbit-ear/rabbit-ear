@@ -15,17 +15,17 @@ module.exports = [{
   },
   plugins: [
     json(),
-    babel({
-      babelHelpers: "bundled",
-      presets: ["@babel/preset-env"]
-    }),
+    // babel({
+    //   babelHelpers: "bundled",
+    //   presets: ["@babel/preset-env"]
+    // }),
     cleanup(),
-    terser({
-      keep_fnames: true,
-      format: {
-        comments: "all",
-      },
-    }),
+    // terser({
+    //   keep_fnames: true,
+    //   format: {
+    //     comments: "all",
+    //   },
+    // }),
   ]
 }];
 

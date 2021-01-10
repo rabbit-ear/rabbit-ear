@@ -35,6 +35,8 @@ import get_duplicate_edges from "./clean/edges_duplicate";
 import get_duplicate_vertices from "./clean/vertices_duplicate";
 import get_collinear_vertices from "./clean/vertices_collinear";
 import * as vertices_isolated from "./clean/vertices_isolated";
+// draw to svg
+import svg from "../svg/draw";
 
 export default Object.assign(Object.create(null), {
 	// modifiers
@@ -61,6 +63,7 @@ export default Object.assign(Object.create(null), {
 	subgraph,
 	explode_faces,
 	// intersection
+	svg,
 },
 	make,
 	// create,
