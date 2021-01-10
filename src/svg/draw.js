@@ -10,7 +10,6 @@ import {
 } from "./render/faces";
 import { boundaries_polygon } from "./render/boundaries";
 import graph_classes from "./classes";
-import recursive_assign from "./assign";
 
 import SVG from "../extensions/svg";
 const Libraries = { SVG };
