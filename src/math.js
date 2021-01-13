@@ -1186,7 +1186,7 @@ const convex_hull = (points, include_collinear = false, epsilon = EPSILON) => {
     ang = Math.atan2(hull[h][1] - angles[0].node[1], hull[h][0] - angles[0].node[0]);
   } while (infiniteLoop < INFINITE_LOOP);
 };
-const recurseSkeleton = (points, lines, bisectors) => {
+const recurse_skeleton = (points, lines, bisectors) => {
   const intersects = points
     .map((origin, i) => ({ vector: bisectors[i], origin }))
     .map((ray, i, arr) => intersect_lines(
@@ -1209,8 +1209,10 @@ const recurseSkeleton = (points, lines, bisectors) => {
     if (len < projectionLengths[shortest]) { shortest = i; }
   });
   const solutions = [
-    { type:"skeleton", points: [points[shortest], intersects[shortest]] },
-    { type:"skeleton", points: [points[(shortest + 1) % points.length], intersects[shortest]] },
+    { type:"skeleton",
+      points: [points[shortest], intersects[shortest]] },
+    { type:"skeleton",
+      points: [points[(shortest + 1) % points.length], intersects[shortest]] },
     { type:"perpendicular", points: [projections[shortest], intersects[shortest]] }
   ];
   const newVector = clockwise_bisect2(
@@ -1226,7 +1228,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
     bisectors.splice(0, 1);
     lines.push(lines.shift());
   }
-  return solutions.concat(recurseSkeleton(points, lines, bisectors));
+  return solutions.concat(recurse_skeleton(points, lines, bisectors));
 };
 const straight_skeleton = (points) => {
   const lines = points
@@ -1237,7 +1239,7 @@ const straight_skeleton = (points) => {
       .map(i => ar[i]))
     .map(p => [subtract(p[0], p[1]), subtract(p[2], p[1])])
     .map(v => clockwise_bisect2(...v));
-  return recurseSkeleton(points, lines, bisectors);
+  return recurse_skeleton(points, lines, bisectors);
 };
 
 var geometry = /*#__PURE__*/Object.freeze({

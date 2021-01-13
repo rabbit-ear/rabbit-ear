@@ -17,3 +17,12 @@ export {
   isNode,
   isWebWorker
 };
+
+// // for debugging, uncomment to log system on boot
+// const operating_systems = [
+//   isBrowser ? "browser" : "",
+//   isWebWorker ? "web-worker" : "",
+//   isNode ? "node" : "",
+// ].filter(a => a !== "").join(" ");
+// console.log(`RabbitEar [${operating_systems}]`);
+

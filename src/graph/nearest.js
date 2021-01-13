@@ -49,3 +49,4 @@ export const face_containing_point = ({ vertices_coords, faces_vertices }, point
 };
 
 export const nearest_face = face_containing_point;
+

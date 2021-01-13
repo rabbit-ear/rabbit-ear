@@ -3,7 +3,6 @@
  */
 import math from "../math";
 import populate from "./populate";
-import Constructors from "../constructors";
 
 // this square is unique, it's a unit square, between x and y, 0 and 1.
 const make_polygon_vertices = i => (i === 4
@@ -16,7 +15,6 @@ const polygon_names = [ null, null, null, "triangle", "square", "pentagon", "hex
 
 [0, 1, 2].forEach(i => { delete polygon_names[i]; });
 
-// const create_init = graph => Constructors.graph(populate(graph));
 const create_init = graph => populate(graph);
 
 // these are all polygons centered at the origin with side-lengths 1.

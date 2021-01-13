@@ -132,3 +132,4 @@ export const fold_object_certainty = (object) => {
   if (typeof object !== "object" || object === null) { return 0; }
   return keys.filter(key => object[key]).length;
 };
+
