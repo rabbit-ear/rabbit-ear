@@ -48,8 +48,8 @@ test("enclosingRectangle", () => {
 
 test("contains", () => {
   const r = ear.rect(1, 2, 3, 4);
-  expect(r.contains(0, 0)).toBe(false);
-  expect(r.contains(1.5, 3)).toBe(true);
+  expect(r.overlap(ear.vector(0, 0))).toBe(false);
+  expect(r.overlap(ear.vector(1.5, 3))).toBe(true);
 });
 
 test("svg", () => {

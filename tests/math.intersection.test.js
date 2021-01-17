@@ -42,6 +42,20 @@ test("intersections", () => {
   ].forEach(intersect => expect(intersect).not.toBe(undefined));
 });
 
+const convex_poly_line_inclusive = (poly, vec, org, ep) =>
+  ear.math.intersect_convex_polygon_line(poly, vec, org, ear.math.include_s, ear.math.include_l, ep);
+const convex_poly_ray_inclusive = (poly, vec, org, ep) =>
+  ear.math.intersect_convex_polygon_line(poly, vec, org, ear.math.include_s, ear.math.include_r, ep);
+const convex_poly_segment_inclusive = (poly, pt0, pt1, ep) =>
+  ear.math.intersect_convex_polygon_line(poly, ear.math.subtract(pt1, pt0), pt0, ear.math.include_s, ear.math.include_s, ep);
+
+const convex_poly_line_exclusive = (poly, vec, org, ep) =>
+  ear.math.intersect_convex_polygon_line(poly, vec, org, ear.math.exclude_s, ear.math.exclude_l, ep);
+const convex_poly_ray_exclusive = (poly, vec, org, ep) =>
+  ear.math.intersect_convex_polygon_line(poly, vec, org, ear.math.exclude_s, ear.math.exclude_r, ep);
+const convex_poly_segment_exclusive = (poly, pt0, pt1, ep) =>
+  ear.math.intersect_convex_polygon_line(poly, ear.math.subtract(pt1, pt0), pt0, ear.math.exclude_s, ear.math.exclude_s, ep);
+
 test("core polygon intersection lines", () => {
   const poly = [[0,0], [1,0], [0.5, 0.866]];
   const vector = [1, 1];
@@ -49,15 +63,15 @@ test("core polygon intersection lines", () => {
   const segmentA = [...point];
   const segmentB = [point[0] + 4, point[1] + 4];
 
-  expect(ear.math.convex_poly_line_exclusive(poly, vector, point).length)
+  expect(convex_poly_line_exclusive(poly, vector, point).length)
     .toBe(2);
-  expect(ear.math.convex_poly_ray_inclusive(poly, vector, point).length)
+  expect(convex_poly_ray_inclusive(poly, vector, point).length)
     .toBe(1);
-  expect(ear.math.convex_poly_ray_exclusive(poly, vector, point).length)
+  expect(convex_poly_ray_exclusive(poly, vector, point).length)
     .toBe(1);
-  expect(ear.math.convex_poly_segment_inclusive(poly, segmentA, segmentB).length)
+  expect(convex_poly_segment_inclusive(poly, segmentA, segmentB).length)
     .toBe(1);
-  expect(ear.math.convex_poly_segment_exclusive(poly, segmentA, segmentB).length)
+  expect(convex_poly_segment_exclusive(poly, segmentA, segmentB).length)
     .toBe(1);
 });
 
@@ -68,17 +82,17 @@ test("core polygon intersection lines, collinear to edge", () => {
   const segmentA = [0, 0];
   const segmentB = [1, 0];
 
-  expect(ear.math.convex_poly_line_inclusive(poly, vector, point).length)
+  expect(convex_poly_line_inclusive(poly, vector, point).length)
     .toBe(2);
-  expect(ear.math.convex_poly_line_exclusive(poly, vector, point))
+  expect(convex_poly_line_exclusive(poly, vector, point))
     .toBe(undefined);
-  expect(ear.math.convex_poly_ray_inclusive(poly, vector, point).length)
+  expect(convex_poly_ray_inclusive(poly, vector, point).length)
     .toBe(2);
-  expect(ear.math.convex_poly_ray_exclusive(poly, vector, point))
+  expect(convex_poly_ray_exclusive(poly, vector, point))
     .toBe(undefined);
-  expect(ear.math.convex_poly_segment_inclusive(poly, segmentA, segmentB).length)
+  expect(convex_poly_segment_inclusive(poly, segmentA, segmentB).length)
     .toBe(2);
-  expect(ear.math.convex_poly_segment_exclusive(poly, segmentA, segmentB))
+  expect(convex_poly_segment_exclusive(poly, segmentA, segmentB))
     .toBe(undefined);
 });
 
@@ -89,38 +103,38 @@ test("core polygon intersection lines, collinear to vertex", () => {
   const segmentA = [0, 0.866];
   const segmentB = [1, 0.866];
 
-  expect(ear.math.convex_poly_line_inclusive(poly, vector, point).length)
+  expect(convex_poly_line_inclusive(poly, vector, point).length)
     .toBe(1);
-  expect(ear.math.convex_poly_line_exclusive(poly, vector, point))
+  expect(convex_poly_line_exclusive(poly, vector, point))
     .toBe(undefined);
-  expect(ear.math.convex_poly_ray_inclusive(poly, vector, point).length)
+  expect(convex_poly_ray_inclusive(poly, vector, point).length)
     .toBe(1);
-  expect(ear.math.convex_poly_ray_exclusive(poly, vector, point))
+  expect(convex_poly_ray_exclusive(poly, vector, point))
     .toBe(undefined);
-  expect(ear.math.convex_poly_segment_inclusive(poly, segmentA, segmentB).length)
+  expect(convex_poly_segment_inclusive(poly, segmentA, segmentB).length)
     .toBe(1);
-  expect(ear.math.convex_poly_segment_exclusive(poly, segmentA, segmentB))
+  expect(convex_poly_segment_exclusive(poly, segmentA, segmentB))
     .toBe(undefined);
 });
 
 test("core polygon intersection lines, collinear to polygon vertices", () => {
-  const lineSeg = ear.polygon.regularPolygon(4).intersectLine(ear.line([1, 0]));
+  const lineSeg = ear.polygon.regularPolygon(4).intersect(ear.line([1, 0]));
   expect(Math.abs(lineSeg[0][0])).toBeCloseTo(1);
   expect(lineSeg[0][1]).toBeCloseTo(0);
   expect(Math.abs(lineSeg[1][0])).toBeCloseTo(1);
   expect(lineSeg[1][1]).toBeCloseTo(0);
 
-  const raySeg1 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0]));
+  const raySeg1 = ear.polygon.regularPolygon(4).intersect(ear.ray([1, 0]));
   expect(raySeg1.length).toBe(1);
   expect(Math.abs(raySeg1[0][0])).toBeCloseTo(1);
   expect(raySeg1[0][1]).toBeCloseTo(0);
-  const raySeg2 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0], [-10, 0]));
+  const raySeg2 = ear.polygon.regularPolygon(4).intersect(ear.ray([1, 0], [-10, 0]));
   expect(raySeg2.length).toBe(2);
   expect(Math.abs(raySeg2[0][0])).toBeCloseTo(1);
   expect(raySeg2[0][1]).toBeCloseTo(0);
   expect(Math.abs(raySeg2[1][0])).toBeCloseTo(1);
   expect(raySeg2[1][1]).toBeCloseTo(0);
-  const raySeg3 = ear.polygon.regularPolygon(4).intersectRay(ear.ray([1, 0], [10, 0]));
+  const raySeg3 = ear.polygon.regularPolygon(4).intersect(ear.ray([1, 0], [10, 0]));
   expect(raySeg3).toBe(undefined);
 });
 
@@ -131,15 +145,15 @@ test("core polygon intersection lines, no intersections", () => {
   const segmentA = [0, 10];
   const segmentB = [1, 10];
 
-  expect(ear.math.convex_poly_line_exclusive(poly, vector, point))
+  expect(convex_poly_line_exclusive(poly, vector, point))
     .toBe(undefined);
-  expect(ear.math.convex_poly_ray_inclusive(poly, vector, point))
+  expect(convex_poly_ray_inclusive(poly, vector, point))
     .toBe(undefined);
-  expect(ear.math.convex_poly_ray_exclusive(poly, vector, point))
+  expect(convex_poly_ray_exclusive(poly, vector, point))
     .toBe(undefined);
-  expect(ear.math.convex_poly_segment_inclusive(poly, segmentA, segmentB))
+  expect(convex_poly_segment_inclusive(poly, segmentA, segmentB))
     .toBe(undefined);
-  expect(ear.math.convex_poly_segment_exclusive(poly, segmentA, segmentB))
+  expect(convex_poly_segment_exclusive(poly, segmentA, segmentB))
     .toBe(undefined);
 });
 
@@ -148,7 +162,7 @@ test("core polygon intersection lines, no intersections", () => {
 // });
 
 test("collinear line intersections", () => {
-  const intersect = ear.math.intersect_lines;
+  const intersect = ear.math.intersect_line_line;
   [
     // INCLUDE horizontal
     intersect([1, 0], [2, 2], [1, 0], [-1, 2],
@@ -196,7 +210,7 @@ test("collinear line intersections", () => {
 });
 
 test("collinear ray intersections", () => {
-  const intersect = ear.math.intersect_lines;
+  const intersect = ear.math.intersect_line_line;
   [
     // INCLUDE horizontal
     intersect([1, 0], [2, 2], [1, 0], [-1, 2],
@@ -244,7 +258,7 @@ test("collinear ray intersections", () => {
 });
 
 test("collinear segment intersections", () => {
-  const intersect = ear.math.intersect_lines;
+  const intersect = ear.math.intersect_line_line;
   [
     // INCLUDE horizontal
     intersect([1, 0], [2, 2], [1, 0], [-1, 2],

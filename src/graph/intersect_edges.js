@@ -24,9 +24,6 @@ import { get_edges_edges_span } from "./span";
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
  */
-
-
-// todo, 
 export const get_edges_edges_intersections = function ({
   vertices_coords, edges_vertices, edges_vector, edges_origin
 }, epsilon = math.core.EPSILON) {
@@ -46,7 +43,7 @@ export const get_edges_edges_intersections = function ({
         edges_intersections[i][j] = undefined;
         continue;
       }
-      edges_intersections[i][j] = math.core.intersect_lines(
+      edges_intersections[i][j] = math.core.intersect_line_line(
         edges_vector[i],
         edges_origin[i],
         edges_vector[j],
@@ -60,3 +57,4 @@ export const get_edges_edges_intersections = function ({
   }
   return edges_intersections;
 };
+

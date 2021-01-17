@@ -4,13 +4,12 @@
 import math from "../math";
 /**
  * CONVEX face only.
- *
  */
 export const intersect_face_with_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, origin) => {
   // give us back the indices in the faces_vertices[face] array
   const face_vertices_indices = faces_vertices[face]
     .map(v => vertices_coords[v])
-    .map(coord => math.core.point_on_line(coord, vector, origin))
+    .map(coord => math.core.overlap_line_point(vector, origin, coord))
     .map((collinear, i) => collinear ? i : undefined)
     .filter(i => i !== undefined)
     .slice(0, 2); // if more than 2, make it 2. (straight edge in convex poly) (if less, untouched)
@@ -35,8 +34,9 @@ export const intersect_face_with_line = ({ vertices_coords, edges_vertices, face
   const edges = faces_edges[face]
     .map(edge => edges_vertices[edge]
       .map(v => vertices_coords[v]))
-    .map(edge_coords => math.core.intersect_line_seg_exclude(
-      vector, origin, ...edge_coords
+    .map(seg => [math.core.subtract(seg[1], seg[0]), seg[0]])
+    .map(vec_origin => math.core.intersect_line_line(
+      vector, origin, ...vec_origin, math.core.include_l, math.core.exclude_s
     )).map((coords, face_edge_index) => ({
       coords,
       face_edge_index,
