@@ -3,7 +3,7 @@ import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup"
 import { terser } from "rollup-plugin-terser";
 
-const version = "0.9.11 alpha 2021-01-xx";
+const version = "0.9.11 alpha 2021-01-17";
 
 module.exports = [{
   input: "src/index.js",
@@ -15,17 +15,17 @@ module.exports = [{
   },
   plugins: [
     json(),
-    // babel({
-    //   babelHelpers: "bundled",
-    //   presets: ["@babel/preset-env"]
-    // }),
+    babel({
+      babelHelpers: "bundled",
+      presets: ["@babel/preset-env"]
+    }),
     cleanup(),
-    // terser({
-    //   keep_fnames: true,
-    //   format: {
-    //     comments: "all",
-    //   },
-    // }),
+    terser({
+      keep_fnames: true,
+      format: {
+        comments: "all",
+      },
+    }),
   ]
 }];
 

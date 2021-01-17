@@ -1,7 +1,7 @@
 import math from "../math";
 import axiom from "../axioms/index";
 
-const line_line_for_arrows = (a, b) => math.core.intersect_lines(
+const line_line_for_arrows = (a, b) => math.core.intersect_line_line(
 	a.vector, a.origin, b.vector, b.origin, math.core.include_l, math.core.include_l
 );
 
@@ -70,7 +70,7 @@ const between_2_intersecting_segments = (params, intersect, foldLine, boundary) 
     math.core.cross2(ray.vector, foldLine.vector) < 0
   ).shift();
   const rayEndpoints = [a1, a2, b1, b2].map(ray => math.core
-		.convex_poly_ray_exclusive(boundary, ray.vector, ray.origin)
+		.intersect_convex_polygon_line(boundary, ray.vector, ray.origin, math.core.exclude_s, math.core.exclude_r)
 		.shift()
 		.shift());
   const rayLengths = rayEndpoints
@@ -104,8 +104,10 @@ const axiom_3_arrows = (params, graph) => {
 	const boundary = boundary_for_arrows(graph);
 	const segs = params.lines.map(l => math.core
 		.clip_line_in_convex_poly_exclusive(boundary, l.vector, l.origin));
-  const intersect = math.core.intersect_seg_seg_exclude(
-		segs[0][0], segs[0][1], segs[1][0], segs[1][1]);
+  const segVecs = segs.map(seg => math.core.subtract(seg[1], seg[0]));
+  const intersect = math.core.intersect_line_line(
+		segVecs[0], segs[0][0], segVecs[1], segs[1][0],
+    math.core.exclude_s, math.core.exclude_s);
   return !intersect
 		? [between_2_segments(params, segs, axiom(3, params)
 			.filter(a => a !== undefined).shift())]

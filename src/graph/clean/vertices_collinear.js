@@ -31,8 +31,12 @@ const get_collinear_vertices = ({ vertices_coords, edges_vertices, edges_coords 
   for (let e = 0; e < edges_coords.length; e += 1) {
     for (let v = 0; v < vertices_coords.length; v += 1) {
       if (!edges_span_vertices[e][v]) { continue; }
-      edges_span_vertices[e][v] = math.core.point_on_segment_exclusive(
-        vertices_coords[v], edges_coords[e][0], edges_coords[e][1], epsilon
+      edges_span_vertices[e][v] = math.core.overlap_line_point(
+        math.core.subtract(edges_coords[e][1], edges_coords[e][0]),
+        edges_coords[e][0],
+        vertices_coords[v],
+        math.core.exclude_s,
+        epsilon
       );
     }
   }

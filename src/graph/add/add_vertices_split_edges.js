@@ -21,7 +21,11 @@ const add_vertices_split_edges = (graph, vertices_coords) => {
 
   const vertices_edge_collinear = vertices_coords
     .map(v => edges
-      .map(edge => math.core.point_on_segment_exclusive(v, edge[0], edge[1]))
+      .map(edge => math.core.overlap_line_point(
+        math.core.subtract(edge[1], edge[0]),
+        edge[0],
+        v,
+        math.core.exclude_s))
       .map((on_edge, i) => (on_edge ? i : undefined))
       .filter(a => a !== undefined)
       .shift());

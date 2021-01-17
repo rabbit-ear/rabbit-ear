@@ -43,7 +43,7 @@ export const face_containing_point = ({ vertices_coords, faces_vertices }, point
   if (!vertices_coords || !faces_vertices) { return undefined; }
   const face = faces_vertices
     .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-    .filter(f => math.core.point_in_poly(point, f.face))
+    .filter(f => math.core.overlap_convex_polygon_point(f.face, point))
     .shift();
   return (face === undefined ? undefined : face.i);
 };

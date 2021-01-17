@@ -116,5 +116,5 @@ test("nearest", () => {
     edges_foldAngle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 90, 90, 90],
     edges_assignment: ["B", "B", "B", "B", "B", "B", "B", "B", "B", "B", "V", "V", "V", "V"]
   });
-  expect(graph.nearest(2.6, 0.6).vertex.index).toBe(6);
+  expect(graph.nearest(2.6, 0.6).vertex).toBe(6);
 })
