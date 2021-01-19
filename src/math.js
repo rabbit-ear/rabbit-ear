@@ -10,7 +10,7 @@ const type_of = function (obj) {
     case "ellipse":
     case "rect":
     case "polygon":
-		case "junction": return obj.constructor.name;
+    case "junction": return obj.constructor.name;
   }
   if (typeof obj === "object") {
     if (obj.radius != null) { return "circle"; }
@@ -1902,13 +1902,13 @@ var Static = {
       origin: points[0],
     });
   },
-	fromAngle: function() {
-		const angle = arguments[0] || 0;
-		return this.constructor({
-			vector: [Math.cos(angle), Math.sin(angle)],
-			origin: [0, 0],
-		});
-	},
+  fromAngle: function() {
+    const angle = arguments[0] || 0;
+    return this.constructor({
+      vector: [Math.cos(angle), Math.sin(angle)],
+      origin: [0, 0],
+    });
+  },
   perpendicularBisector: function () {
     const points = get_vector_of_vectors(arguments);
     return this.constructor({
@@ -2033,9 +2033,9 @@ var Segment = {
 };
 
 const CircleArgs = function () {
-	const circle = get_circle(...arguments);
-	this.radius = circle.radius;
-	this.origin = Constructors.vector(...circle.origin);
+  const circle = get_circle(...arguments);
+  this.radius = circle.radius;
+  this.origin = Constructors.vector(...circle.origin);
 };
 
 const CircleGetters = {
@@ -2365,9 +2365,9 @@ var Polygon = {
       segments: function () {
         return this.sides;
       },
-			straightSkeleton: function () {
-				return straight_skeleton(this);
-			},
+      straightSkeleton: function () {
+        return straight_skeleton(this);
+      },
     },
     S: {
       fromPoints: function () {
