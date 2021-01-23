@@ -7,13 +7,6 @@ const testEqual = function (...args) {
 /**
  * algebra core
  */
-test("dot", () => {
-  expect(ear.math.dot([3, 1000], [1, 0])).toBe(3);
-  expect(ear.math.dot([3, 1000], [1, 0])).toBe(3);
-  expect(ear.math.dot([1, 1000], [400])).toBe(400);
-  expect(ear.math.dot([1, 1000], [])).toBe(0);
-});
-
 test("magnitude", () => {
 	expect(ear.math.magnitude([0, 0, 0, 0, 0, 1])).toBe(1);
 	expect(ear.math.magnitude([1, 1])).toBeCloseTo(Math.sqrt(2));
@@ -43,6 +36,38 @@ test("scale", () => {
 	expect(ear.math.scale([1], -2)[0]).toBe(-2);
 });
 
+test("add", () => {
+  expect(ear.math.add([1], [1,2,3]).length).toBe(1);
+  expect(ear.math.add([1], [1,2,3])[0]).toBe(2);
+  expect(ear.math.add([1,2,3], [1,2])[0]).toBe(2);
+  expect(ear.math.add([1,2,3], [1,2])[1]).toBe(4);
+  expect(ear.math.add([1,2,3], [1,2])[2]).toBe(3);
+  expect(ear.math.add([1,2,3], [])[0]).toBe(1);
+});
+
+test("subtract", () => {
+  expect(ear.math.subtract([1], [2,3,4]).length).toBe(1);
+  expect(ear.math.subtract([1], [2,3,4])[0]).toBe(-1);
+  expect(ear.math.subtract([1,2,3], [1,2])[0]).toBe(0);
+  expect(ear.math.subtract([1,2,3], [1,2])[1]).toBe(0);
+  expect(ear.math.subtract([1,2,3], [1,2])[2]).toBe(3);
+  expect(ear.math.subtract([1,2,3], [])[0]).toBe(1);
+});
+
+test("dot", () => {
+  expect(ear.math.dot([3, 1000], [1, 0])).toBe(3);
+  expect(ear.math.dot([3, 1000], [1, 0])).toBe(3);
+  expect(ear.math.dot([1, 1000], [400])).toBe(400);
+  expect(ear.math.dot([1, 1000], [])).toBe(0);
+});
+
+test("midpoint", () => {
+  expect(ear.math.midpoint([1,2], [5,6,7]).length).toBe(2);
+  expect(ear.math.midpoint([1,2], [5,6,7])[0]).toBe(3);
+  expect(ear.math.midpoint([1,2], [5,6,7])[1]).toBe(4);
+  expect(ear.math.midpoint([], [5,6,7]).length).toBe(0);
+});
+
 test("average function", () => {
   // improper use
   expect(ear.math.average().length).toBe(0);
@@ -57,12 +82,62 @@ test("average function", () => {
     ear.math.average([1, 2, 3], [4, 5, 6], [7, 8, 9]));
 });
 
+test("lerp", () => {
+  expect(ear.math.lerp([0,1], [2,0], 0)[0]).toBe(0);
+  expect(ear.math.lerp([0,1], [2,0], 0)[1]).toBe(1);
+  expect(ear.math.lerp([0,1], [2,0], 1)[0]).toBe(2);
+  expect(ear.math.lerp([0,1], [2,0], 1)[1]).toBe(0);
+  expect(ear.math.lerp([0,1], [2,0], 0.5)[0]).toBe(1);
+  expect(ear.math.lerp([0,1], [2,0], 0.5)[1]).toBe(0.5);
+});
+
+test("cross2", () => {
+  expect(ear.math.cross2([1, 0], [-4, 3])).toBe(3);
+  expect(ear.math.cross2([2, -1], [1, 3])).toBe(7);
+});
+
+test("cross3", () => {
+  expect(ear.math.cross3([-3,0,-2], [5,-1,2])[0]).toBe(-2);
+  expect(ear.math.cross3([-3,0,-2], [5,-1,2])[1]).toBe(-4);
+  expect(ear.math.cross3([-3,0,-2], [5,-1,2])[2]).toBe(3);
+  expect(isNaN(ear.math.cross3([-3,0], [5,-1,2])[0])).toBe(true);
+  expect(isNaN(ear.math.cross3([-3,0], [5,-1,2])[1])).toBe(true);
+  expect(isNaN(ear.math.cross3([-3,0], [5,-1,2])[2])).toBe(false);
+});
+
 test("distance3", () => {
   const r1 = ear.math.distance3([1,2,3], [4,5,6]);
   const r2 = ear.math.distance3([1,2,3], [4,5]);
   expect(r1).toBeCloseTo(5.196152422706632);
   expect(isNaN(r2)).toBe(true);
 });
+
+test("rotate90, rotate270", () => {
+  expect(ear.math.rotate90([-3, 2])[0]).toBe(-2);
+  expect(ear.math.rotate90([-3, 2])[1]).toBe(-3);
+  expect(ear.math.rotate270([-3, 2])[0]).toBe(2);
+  expect(ear.math.rotate270([-3, 2])[1]).toBe(3);
+});
+
+test("flip", () => {
+  expect(ear.math.flip([-2, -1])[0]).toBe(2);
+  expect(ear.math.flip([-2, -1])[1]).toBe(1);
+});
+
+test("degenerate", () => {
+  expect(ear.math.degenerate([1], 1)).toBe(false);
+  expect(ear.math.degenerate([1], 1 + ear.math.EPSILON)).toBe(true);
+  expect(ear.math.degenerate([1, 1], 2)).toBe(false);
+  expect(ear.math.degenerate([1, 1], 2 + ear.math.EPSILON)).toBe(true);
+});
+
+test("parallel", () => {
+  expect(ear.math.parallel([1, 0], [0, 1])).toBe(false);
+  expect(ear.math.parallel([1, 0], [-1, 0])).toBe(true);
+  expect(ear.math.parallel([1, 0], [1, 0.0014142])).toBe(true);
+  expect(ear.math.parallel([1, 0], [1, 0.0014143])).toBe(false);
+});
+
 /*
 test("alternating sum", () => {
   const r1 = ear.math.alternating_sum([1,2,3,4,5,6]);

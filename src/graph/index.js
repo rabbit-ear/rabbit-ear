@@ -2,7 +2,6 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import * as make from "./make";
-import * as clip from "./clip";
 import * as boundary from "./boundary";
 import * as walk from "./walk";
 import * as nearest from "./nearest";
@@ -19,6 +18,7 @@ import assign from "./assign";
 import transform from "./affine";
 import subgraph from "./subgraph";
 import explode_faces from "./explode_faces";
+import clip from "./clip";
 import fragment from "./fragment";
 // import create from "./create";
 // add things
@@ -63,12 +63,12 @@ export default Object.assign(Object.create(null), {
 	populate,
 	subgraph,
 	explode_faces,
+	clip,
 	// intersection
 	svg,
 },
 	make,
 	// create,
-	clip, // this is not actually used yet!
 	transform,
 	boundary,
 	walk,

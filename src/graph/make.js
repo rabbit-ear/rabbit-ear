@@ -258,19 +258,23 @@ export const make_edges_assignment = ({ edges_foldAngle }) => edges_foldAngle
     if (a === 0) { return "F"; }
     return a < 0 ? "M" : "V";
   });
+
+export const make_edges_coords = ({ vertices_coords, edges_vertices }) =>
+  edges_vertices
+    .map(ev => ev.map(v => vertices_coords[v]));
 /**
  * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
  * @returns {number[]} a vector beginning at vertex 0, ending at vertex 1
  */
 export const make_edges_vector = ({ vertices_coords, edges_vertices }) =>
-  edges_vertices
-    .map(ev => ev.map(v => vertices_coords[v]))
+  make_edges_coords({ vertices_coords, edges_vertices })
     .map(verts => math.core.subtract(verts[1], verts[0]));
 /**
  * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
  * @returns {number[]} the Euclidean distance between each edge's vertices.
  */
-export const make_edges_length = ({ vertices_coords, edges_vertices }) => make_edges_vector({ vertices_coords, edges_vertices })
+export const make_edges_length = ({ vertices_coords, edges_vertices }) =>
+  make_edges_vector({ vertices_coords, edges_vertices })
     .map(vec => math.core.magnitude(vec));
 /**
  * @description for each axis get the min and max coordinate value for each edge.
@@ -282,7 +286,7 @@ export const make_edges_length = ({ vertices_coords, edges_vertices }) => make_e
  */
 export const make_edges_coords_min_max = ({ vertices_coords, edges_vertices, edges_coords }) => {
   if (!edges_coords) {
-    edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
+    edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
   }
   return edges_coords.map(coords => {
     // how many dimensions is each coordinate? ask the first one, coords[0].length
