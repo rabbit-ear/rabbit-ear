@@ -103,7 +103,7 @@ const update_faces_edges = ({ edges_vertices, faces_edges }, faces, new_vertex, 
           .reduce((a, b) => a && b, true);
         if (in0) { return new_edges[0]; }
         if (in1) { return new_edges[1]; }
-        throw new Error("something wrong with input graph's faces_edges construction");
+        throw new Error("split_edge() bad faces_edges");
       });
       if (edgeIndex === face.length - 1) {
         // replacing the edge at the end of the array, we have to be careful
@@ -222,3 +222,4 @@ const split_edge = function (graph, old_edge, coords) {
 };
 
 export default split_edge;
+

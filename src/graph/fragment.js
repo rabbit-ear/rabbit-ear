@@ -220,3 +220,4 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 };
 
 export default fragment;
+

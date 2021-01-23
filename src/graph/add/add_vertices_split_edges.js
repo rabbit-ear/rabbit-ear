@@ -4,6 +4,7 @@
 import math from "../../math";
 import count from "../count";
 import add_vertices from "./add_vertices";
+import { make_edges_coords } from "../make";
 import { transpose_graph_array_at_index } from "../fold_spec";
 import clone from "../clone";
 import remove from "../remove";
@@ -16,11 +17,9 @@ const add_vertices_split_edges = (graph, vertices_coords) => {
   const new_indices = add_vertices(graph, vertices_coords);
   // determine if any vertex lies collinear along an edge
   // if so, we must split existing edge at the vertex point
-  const edges = graph.edges_vertices
-    .map(ev => ev.map(v => graph.vertices_coords[v]));
-
+  const edges_coords = make_edges_coords(graph);
   const vertices_edge_collinear = vertices_coords
-    .map(v => edges
+    .map(v => edges_coords
       .map(edge => math.core.overlap_line_point(
         math.core.subtract(edge[1], edge[0]),
         edge[0],
@@ -63,3 +62,4 @@ const add_vertices_split_edges = (graph, vertices_coords) => {
 };
 
 export default add_vertices_split_edges;
+

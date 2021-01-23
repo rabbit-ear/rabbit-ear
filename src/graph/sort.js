@@ -27,3 +27,4 @@ export const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector
     .map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
     .sort((a, b) => a.d - b.d)
     .map(a => a.i);
+

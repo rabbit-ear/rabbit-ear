@@ -3,7 +3,7 @@
  */
 import math from "../math";
 import GraphProto from "./graph";
-import { clip_line } from "../graph/clip";
+import clip from "../graph/clip";
 import add_vertices from "../graph/add/add_vertices";
 import add_edges from "../graph/add/add_edges";
 import fragment from "../graph/fragment";
@@ -67,7 +67,7 @@ const edges_array = function (array) {
   CreasePattern.prototype[type] = function () {
     const primitive = math[type](...arguments);
     if (!primitive) { return; }
-    const segment = clip_line(this, primitive);
+    const segment = clip(this, primitive);
     if (!segment) { return; }
     const vertices = add_vertices(this, segment);
     const edges = add_edges(this, vertices);
@@ -84,7 +84,7 @@ const edges_array = function (array) {
     if (!primitive) { return; }
     const segments = primitive.segments(arcResolution)
       .map(segment => math.segment(segment))
-      .map(segment => clip_line(this, segment))
+      .map(segment => clip(this, segment))
       .filter(a => a !== undefined);
     if (!segments) { return; }
     const vertices = [];

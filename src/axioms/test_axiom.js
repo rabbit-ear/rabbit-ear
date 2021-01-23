@@ -22,7 +22,11 @@ const test_axiom1_2 = (params, poly) => [params.points
 const test_axiom3 = (params, poly) => {
 	// if line parameters lie outside polygon, no solution possible
 	const segments = params.lines.map(line => math.core
-		.clip_line_in_convex_poly_inclusive(poly, line.vector, line.origin));
+		.clip_line_in_convex_polygon(poly,
+      line.vector,
+      line.origin,
+      math.core.include,
+      math.core.include_l));
 	if (segments[0] === undefined || segments[1] === undefined) {
 		return [false, false];
 	}
@@ -37,7 +41,7 @@ const test_axiom3 = (params, poly) => {
         poly,
         line.vector,
         line.origin,
-        ear.math.exclude_s,
+        ear.math.include_s,
         ear.math.exclude_l));
   const results_inside = [0, 1].map((i) => results_clip[i] !== undefined);
 	const seg0Reflect = results

@@ -16,13 +16,20 @@ const boundary_for_arrows = ({ vertices_coords }) => math.core
 const widest_perp = (graph, foldLine, point) => {
 	const boundary = boundary_for_arrows(graph);
 	if (point === undefined) {
-		const foldSegment = math.core
-			.clip_line_in_convex_poly_exclusive(boundary, foldLine.vector, foldLine.origin);
+		const foldSegment = math.core.clip_line_in_convex_polygon(boundary,
+      foldLine.vector,
+      foldLine.origin,
+      math.core.exclude,
+      math.core.include_l);
 		point = math.core.midpoint(...foldSegment);
 	}
   const perpVector = math.core.rotate270(foldLine.vector);
 	const smallest = math.core
-		.clip_line_in_convex_poly_exclusive(boundary, perpVector, point)
+		.clip_line_in_convex_polygon(boundary,
+      perpVector,
+      point,
+      math.core.exclude,
+      math.core.include_l)
   	.map(pt => math.core.distance(point, pt))
     .sort((a, b) => a - b)
     .shift();
@@ -103,7 +110,11 @@ const axiom_2_arrows = params => [
 const axiom_3_arrows = (params, graph) => {
 	const boundary = boundary_for_arrows(graph);
 	const segs = params.lines.map(l => math.core
-		.clip_line_in_convex_poly_exclusive(boundary, l.vector, l.origin));
+		.clip_line_in_convex_polygon(boundary,
+      l.vector,
+      l.origin,
+      math.core.exclude,
+      math.core.include_l));
   const segVecs = segs.map(seg => math.core.subtract(seg[1], seg[0]));
   const intersect = math.core.intersect_line_line(
 		segVecs[0], segs[0][0], segVecs[1], segs[1][0],

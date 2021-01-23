@@ -94,15 +94,16 @@ test("perpendicularBisector", () => {
   expect(result.vector.x).toBe(-2);
   expect(result.vector.y).toBe(2);
 });
-test("length infinity", () => {
-  expect(ear.line().length).toBe(Infinity);
-  expect(ear.line([1,2],[3,4]).length).toBe(Infinity);
-  expect(ear.line.fromPoints([1,2],[3,4]).length).toBe(Infinity);
+// this is no longer a property
+// test("length infinity", () => {
+//   expect(ear.line().length).toBe(Infinity);
+//   expect(ear.line([1,2],[3,4]).length).toBe(Infinity);
+//   expect(ear.line.fromPoints([1,2],[3,4]).length).toBe(Infinity);
 
-  expect(ear.ray().length).toBe(Infinity);
-  expect(ear.ray([1,2],[3,4]).length).toBe(Infinity);
-  expect(ear.ray.fromPoints([1,2],[3,4]).length).toBe(Infinity);
-});
+//   expect(ear.ray().length).toBe(Infinity);
+//   expect(ear.ray([1,2],[3,4]).length).toBe(Infinity);
+//   expect(ear.ray.fromPoints([1,2],[3,4]).length).toBe(Infinity);
+// });
 // // ray
 // test("transform", () => {
 //   const r = ear.ray(0,1,2,3);
@@ -160,7 +161,10 @@ test("[0], [1]", () => {
 });
 test("length", () => {
   const result = ear.segment([1,2], [3,4]);
-  expect(result.length).toBeCloseTo(Math.sqrt(2) * 2);
+  // the Array.prototype length property
+  expect(result.length).toBe(2);
+  // geometric length
+  expect(result.magnitude).toBeCloseTo(Math.sqrt(2) * 2);
 });
 test("transform", () => {
   const result1 = ear.segment([1,2], [3,4]).transform(ear.matrix().scale(0.5));

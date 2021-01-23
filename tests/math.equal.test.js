@@ -64,5 +64,8 @@ test("equivalent_vector2", () => {
 	expect(ear.math.equivalent_vector2([1, 2], [1, 2.0000000001])).toBe(true);
 	expect(ear.math.equivalent_vector2([1, 2, 3, 4], [1, 2])).toBe(true);
 	expect(ear.math.equivalent_vector2([], [])).toBe(false);
+  expect(ear.math.equivalent_vector2([1.000000001, -1], [1, -1])).toBe(true);
+  expect(ear.math.equivalent_vector2([1.000000001, 0], [1])).toBe(false);
+  expect(ear.math.equivalent_vector2([1.000000001, 0], [1, 0])).toBe(true);
 });
 

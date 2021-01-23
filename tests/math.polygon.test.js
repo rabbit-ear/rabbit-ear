@@ -31,6 +31,15 @@ test("convex Hull", () => {
   const result = ear.polygon.convexHull([[1,0], [0.5,0], [0,1], [0,-1]]);
   expect(result.points.length).toBe(3);
 });
+test("skeleton", () => {
+  const hull = ear.polygon.convexHull(Array.from(Array(10))
+    .map(() => [Math.random(), Math.random()]));
+  const skeleton = hull.straightSkeleton();
+  const skeletons = skeleton.filter(el => el.type === "skeleton");
+  const perpendiculars = skeleton.filter(el => el.type === "perpendicular");
+  expect(skeletons.length).toBe((hull.length - 3) * 2 + 3);
+  expect(perpendiculars.length).toBe(hull.length - 2);
+});
 // test("midpoint", () => {
 //   const result = ear.polygon([-0.5,-0.5], [0.5,-0.5], [0.5, 0.5], [-0.5, 0.5]).midpoint();
 //   expect(result[0]).toBeCloseTo(0);
@@ -52,7 +61,7 @@ test("contains", () => {
   expect(ear.polygon([[1,0], [0,1], [-1,0], [0,-1]]).overlap(ear.vector(0.49, 0.49)))
     .toBe(true);
   expect(ear.polygon([[1,0], [0,1], [-1,0], [0,-1]]).overlap(ear.vector(0.5, 0.5)))
-    .toBe(false);
+    .toBe(true);
   expect(ear.polygon([[1,0], [0,1], [-1,0], [0,-1]]).overlap(ear.vector(0.51, 0.51)))
     .toBe(false);
 });
