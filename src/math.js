@@ -1610,21 +1610,28 @@ const line_line_parameter = (
   return undefined;
 };
 const line_point_from_parameter = (vector, origin, t) => add(origin, scale(vector, t));
-const get_intersect_parameters = (poly, vector, origin, poly_line_func, epsilon) => {
-  const numbers = poly
-    .map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p])
-    .map(side => line_line_parameter(
-      vector, origin,
-      side[0], side[1],
-      poly_line_func,
-      epsilon))
-    .filter(fn_not_undefined)
-    .sort((a, b) => a - b);
-  if (numbers.length < 2) { return undefined; }
-  const ends = [numbers[0], numbers[numbers.length - 1]];
-  return (ends[1] - ends[0]) > epsilon * magnitude(vector)
-    ? ends
-    : undefined;
+const get_intersect_parameters = (poly, vector, origin, poly_line_func, epsilon) => poly
+  .map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p])
+  .map(side => line_line_parameter(
+    vector, origin,
+    side[0], side[1],
+    poly_line_func,
+    epsilon))
+  .filter(fn_not_undefined)
+  .sort((a, b) => a - b);
+const get_min_max = (numbers, func, scaled_epsilon) => {
+  let a = 0;
+  let b = numbers.length - 1;
+  while (a < b) {
+    if (func(numbers[a+1] - numbers[a], scaled_epsilon)) { break; }
+    a++;
+  }
+  while (b > a) {
+    if (func(numbers[b] - numbers[b-1], scaled_epsilon)) { break; }
+    b--;
+  }
+  if (a >= b) { return undefined; }
+  return [numbers[a], numbers[b]];
 };
 const clip_line_in_convex_polygon = (
   poly,
@@ -1634,10 +1641,15 @@ const clip_line_in_convex_polygon = (
   fn_line = include_l$1,
   epsilon = EPSILON
 ) => {
-  const ends = get_intersect_parameters(poly, vector, origin, include_s, epsilon);
+  const numbers = get_intersect_parameters(poly, vector, origin, include_s, epsilon);
+  if (numbers.length < 2) { return undefined; }
+  const scaled_epsilon = (epsilon * 2) / magnitude(vector);
+  const ends = get_min_max(numbers, fn_poly, scaled_epsilon);
   if (ends === undefined) { return undefined; }
   const ends_clip = ends.map((t, i) => fn_line(t) ? t : (t < 0.5 ? 0 : 1));
-  if (Math.abs(ends_clip[0] - ends_clip[1]) < epsilon) { return undefined; }
+  if (Math.abs(ends_clip[0] - ends_clip[1]) < (epsilon * 2) / magnitude(vector)) {
+    return undefined;
+  }
   const mid = line_point_from_parameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
   return overlap_convex_polygon_point(poly, mid, fn_poly, epsilon)
     ? ends_clip.map(t => line_point_from_parameter(vector, origin, t))

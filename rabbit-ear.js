@@ -1575,21 +1575,28 @@
     return undefined;
   };
   const line_point_from_parameter = (vector, origin, t) => add(origin, scale(vector, t));
-  const get_intersect_parameters = (poly, vector, origin, poly_line_func, epsilon) => {
-    const numbers = poly
-      .map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p])
-      .map(side => line_line_parameter(
-        vector, origin,
-        side[0], side[1],
-        poly_line_func,
-        epsilon))
-      .filter(fn_not_undefined)
-      .sort((a, b) => a - b);
-    if (numbers.length < 2) { return undefined; }
-    const ends = [numbers[0], numbers[numbers.length - 1]];
-    return (ends[1] - ends[0]) > epsilon * magnitude(vector)
-      ? ends
-      : undefined;
+  const get_intersect_parameters = (poly, vector, origin, poly_line_func, epsilon) => poly
+    .map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p])
+    .map(side => line_line_parameter(
+      vector, origin,
+      side[0], side[1],
+      poly_line_func,
+      epsilon))
+    .filter(fn_not_undefined)
+    .sort((a, b) => a - b);
+  const get_min_max = (numbers, func, scaled_epsilon) => {
+    let a = 0;
+    let b = numbers.length - 1;
+    while (a < b) {
+      if (func(numbers[a+1] - numbers[a], scaled_epsilon)) { break; }
+      a++;
+    }
+    while (b > a) {
+      if (func(numbers[b] - numbers[b-1], scaled_epsilon)) { break; }
+      b--;
+    }
+    if (a >= b) { return undefined; }
+    return [numbers[a], numbers[b]];
   };
   const clip_line_in_convex_polygon = (
     poly,
@@ -1599,10 +1606,15 @@
     fn_line = include_l$1,
     epsilon = EPSILON
   ) => {
-    const ends = get_intersect_parameters(poly, vector, origin, include_s, epsilon);
+    const numbers = get_intersect_parameters(poly, vector, origin, include_s, epsilon);
+    if (numbers.length < 2) { return undefined; }
+    const scaled_epsilon = (epsilon * 2) / magnitude(vector);
+    const ends = get_min_max(numbers, fn_poly, scaled_epsilon);
     if (ends === undefined) { return undefined; }
     const ends_clip = ends.map((t, i) => fn_line(t) ? t : (t < 0.5 ? 0 : 1));
-    if (Math.abs(ends_clip[0] - ends_clip[1]) < epsilon) { return undefined; }
+    if (Math.abs(ends_clip[0] - ends_clip[1]) < (epsilon * 2) / magnitude(vector)) {
+      return undefined;
+    }
     const mid = line_point_from_parameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
     return overlap_convex_polygon_point(poly, mid, fn_poly, epsilon)
       ? ends_clip.map(t => line_point_from_parameter(vector, origin, t))
@@ -7123,26 +7135,27 @@
   Object.assign(Constructors$1.graph, graph_methods);
 
   const reflect_point$1 = (foldLine, point) => {
-  	const matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
+    const matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
     return math.core.multiply_matrix2_vector2(matrix, point);
   };
   const test_axiom1_2 = (params, poly) => [params.points
-  	.map(p => math.core.overlap_convex_polygon_point(poly, p, ear.math.include))
-  	.reduce((a, b) => a && b, true)];
+    .map(p => math.core.overlap_convex_polygon_point(poly, p, ear.math.include))
+    .reduce((a, b) => a && b, true)];
   const test_axiom3 = (params, poly) => {
-  	const segments = params.lines.map(line => math.core
-  		.clip_line_in_convex_polygon(poly,
+    const segments = params.lines.map(line => math.core
+      .clip_line_in_convex_polygon(poly,
         line.vector,
         line.origin,
         math.core.include,
         math.core.include_l));
-  	if (segments[0] === undefined || segments[1] === undefined) {
-  		return [false, false];
-  	}
-  	const results = math.core.axiom3(
-  		params.lines[0].vector, params.lines[0].origin,
-  		params.lines[1].vector, params.lines[1].origin);
-    const results_clip = results.map(line => line === undefined ? undefined : math.core
+    if (segments[0] === undefined || segments[1] === undefined) {
+      return [false, false];
+    }
+    const results = math.core.axiom3(
+      params.lines[0].vector, params.lines[0].origin,
+      params.lines[1].vector, params.lines[1].origin);
+    const results_clip = results
+      .map(line => line === undefined ? undefined : math.core
         .intersect_convex_polygon_line(
           poly,
           line.vector,
@@ -7150,81 +7163,86 @@
           ear.math.include_s,
           ear.math.exclude_l));
     const results_inside = [0, 1].map((i) => results_clip[i] !== undefined);
-  	const seg0Reflect = results
-  		.map((foldLine, i) => foldLine === undefined ? undefined : [
-  			reflect_point$1(foldLine, segments[0][0]),
-  			reflect_point$1(foldLine, segments[0][1])
-  		]);
+    const seg0Reflect = results
+      .map((foldLine, i) => foldLine === undefined ? undefined : [
+        reflect_point$1(foldLine, segments[0][0]),
+        reflect_point$1(foldLine, segments[0][1])
+      ]);
     const reflectMatch = seg0Reflect
       .map((seg, i) => seg === undefined ? false : (
-  		  math.core.overlap_line_point(math.core.subtract(segments[1][1], segments[1][0]),
-          segments[1][0], seg[0]) ||
-  		  math.core.overlap_line_point(math.core.subtract(segments[1][1], segments[1][0]),
-          segments[1][0], seg[1]) ||
-  		  math.core.overlap_line_point(math.core.subtract(seg[1], seg[0]), seg[0],
-          segments[1][0]) ||
-  		  math.core.overlap_line_point(math.core.subtract(seg[1], seg[0]), seg[0],
-          segments[1][1])
-  	  ));
+        math.core.overlap_line_point(math.core
+          .subtract(segments[1][1], segments[1][0]),
+          segments[1][0], seg[0], math.core.include_s) ||
+        math.core.overlap_line_point(math.core
+          .subtract(segments[1][1], segments[1][0]),
+          segments[1][0], seg[1], math.core.include_s) ||
+        math.core.overlap_line_point(math.core
+          .subtract(seg[1], seg[0]), seg[0],
+          segments[1][0], math.core.include_s) ||
+        math.core.overlap_line_point(math.core
+          .subtract(seg[1], seg[0]), seg[0],
+          segments[1][1], math.core.include_s)
+      ));
     return [0, 1].map(i => reflectMatch[i] === true && results_inside[i] === true);
   };
   const test_axiom4 = (params, poly) => {
-  	const intersect = math.core.intersect_line_line(
-  		params.lines[0].vector, params.lines[0].origin,
-  		math.core.rotate90(params.lines[0].vector), params.points[0],
-  		math.core.include_l, math.core.include_l);
-  	return [
-  		[params.points[0], intersect]
-  			.map(p => math.core.overlap_convex_polygon_point(poly, p, math.core.include))
-  			.reduce((a, b) => a && b, true)
-  	];
+    const intersect = math.core.intersect_line_line(
+      params.lines[0].vector, params.lines[0].origin,
+      math.core.rotate90(params.lines[0].vector), params.points[0],
+      math.core.include_l, math.core.include_l);
+    return [
+      [params.points[0], intersect]
+        .filter(a => a !== undefined)
+        .map(p => math.core.overlap_convex_polygon_point(poly, p, math.core.include))
+        .reduce((a, b) => a && b, true)
+    ];
   };
   const test_axiom5 = (params, poly) => {
-  	const result = math.core.axiom5(
-  		params.lines[0].vector, params.lines[0].origin,
-  		params.points[0], params.points[1]);
-  	if (result.length === 0) { return []; }
-  	const testParamPoints = params.points
-  		.map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include))
-  		.reduce((a, b) => a && b, true);
-  	const testReflections = result
-  		.map(foldLine => reflect_point$1(foldLine, params.points[1]))
-  		.map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
-  	return testReflections.map(ref => ref && testParamPoints);
+    const result = math.core.axiom5(
+      params.lines[0].vector, params.lines[0].origin,
+      params.points[0], params.points[1]);
+    if (result.length === 0) { return []; }
+    const testParamPoints = params.points
+      .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include))
+      .reduce((a, b) => a && b, true);
+    const testReflections = result
+      .map(foldLine => reflect_point$1(foldLine, params.points[1]))
+      .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
+    return testReflections.map(ref => ref && testParamPoints);
   };
   const test_axiom6 = function (params, poly) {
-  	const results = math.core.axiom6(
-  		params.lines[0].vector, params.lines[0].origin,
-  		params.lines[1].vector, params.lines[1].origin,
-  		params.points[0], params.points[1]);
-  	if (results.length === 0) { return []; }
-  	const testParamPoints = params.points
-  		.map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include))
-  		.reduce((a, b) => a && b, true);
-  	if (!testParamPoints) { return results.map(() => false); }
-  	const testReflect0 = results
-  		.map(foldLine => reflect_point$1(foldLine, params.points[0]))
-  		.map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
-  	const testReflect1 = results
-  		.map(foldLine => reflect_point$1(foldLine, params.points[1]))
-  		.map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
-  	return results.map((_, i) => testReflect0[i] && testReflect1[i]);
+    const results = math.core.axiom6(
+      params.lines[0].vector, params.lines[0].origin,
+      params.lines[1].vector, params.lines[1].origin,
+      params.points[0], params.points[1]);
+    if (results.length === 0) { return []; }
+    const testParamPoints = params.points
+      .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include))
+      .reduce((a, b) => a && b, true);
+    if (!testParamPoints) { return results.map(() => false); }
+    const testReflect0 = results
+      .map(foldLine => reflect_point$1(foldLine, params.points[0]))
+      .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
+    const testReflect1 = results
+      .map(foldLine => reflect_point$1(foldLine, params.points[1]))
+      .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
+    return results.map((_, i) => testReflect0[i] && testReflect1[i]);
   };
   const test_axiom7 = (params, poly) => {
-  	const paramPointTest = math.core
-  		.overlap_convex_polygon_point(poly, params.points[0], math.core.include);
-  	const foldLine = math.core.axiom7(
-  		params.lines[0].vector, params.lines[0].origin,
-  		params.lines[1].vector, params.points[0]);
+    const paramPointTest = math.core
+      .overlap_convex_polygon_point(poly, params.points[0], math.core.include);
+    const foldLine = math.core.axiom7(
+      params.lines[0].vector, params.lines[0].origin,
+      params.lines[1].vector, params.points[0]);
     if (foldLine === undefined) { return [false]; }
-  	const reflected = reflect_point$1(foldLine, params.points[0]);
-  	const reflectTest = math.core.overlap_convex_polygon_point(poly, reflected, math.core.include);
-  	const paramLineTest = (math.core.intersect_convex_polygon_line(poly,
-  		params.lines[1].vector,
-  		params.lines[1].origin,
+    const reflected = reflect_point$1(foldLine, params.points[0]);
+    const reflectTest = math.core.overlap_convex_polygon_point(poly, reflected, math.core.include);
+    const paramLineTest = (math.core.intersect_convex_polygon_line(poly,
+      params.lines[1].vector,
+      params.lines[1].origin,
       math.core.include_s,
       math.core.include_l) !== undefined);
-  	return [paramPointTest && reflectTest && paramLineTest];
+    return [paramPointTest && reflectTest && paramLineTest];
   };
   const test_axiom_funcs = [null,
     test_axiom1_2,
@@ -7237,13 +7255,13 @@
   ];
   delete test_axiom_funcs[0];
   const test_axiom = (number, params, obj) => {
-  	const boundary = (typeof obj === "object" && obj.vertices_coords)
-  		? get_boundary(obj).vertices.map(v => obj.vertices_coords[v])
-  		: obj;
-  	return test_axiom_funcs[number](params, boundary);
+    const boundary = (typeof obj === "object" && obj.vertices_coords)
+      ? get_boundary(obj).vertices.map(v => obj.vertices_coords[v])
+      : obj;
+    return test_axiom_funcs[number](params, boundary);
   };
   Object.keys(test_axiom_funcs).forEach(number => {
-  	test_axiom[number] = (...args) => test_axiom(number, ...args);
+    test_axiom[number] = (...args) => test_axiom(number, ...args);
   });
 
   var ar = [
