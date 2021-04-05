@@ -522,3 +522,4 @@ export const make_faces_coloring = function ({ faces_vertices, faces_faces }, ro
       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
   return coloring;
 };
+

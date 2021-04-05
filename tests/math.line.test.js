@@ -19,6 +19,14 @@ test("arguments", () => {
   expect(l3.origin[2]).toBe(0);
 });
 
+test("u d form", () => {
+  const l1 = ear.line.fromUD(1, 0, 3);
+  expect(l1.vector.x).toBeCloseTo(0);
+  expect(l1.vector.y).toBeCloseTo(-1);
+  expect(l1.origin.x).toBeCloseTo(3);
+  expect(l1.origin.y).toBeCloseTo(0);
+});
+
 // from the prototype
 test("isParallel", () => {
   const l = ear.line([0,1],[2,3]);
