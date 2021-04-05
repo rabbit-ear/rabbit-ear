@@ -18,15 +18,11 @@ import single from "./single_vertex/index";
 import Constructors from "./origami/index";
 // top level things
 import axiom from "./axioms/index";
-import test_axiom from "./axioms/test_axiom";
 import text from "./text/index";
 // webgl
 import * as foldToThree from "./webgl/fold-to-three";
 // extensions
 import SVG from "./extensions/svg";
-
-// probably move this to axioms/index
-axiom.test = test_axiom;
 
 const Ear = Object.assign(root, Constructors, {
 	math: math.core,

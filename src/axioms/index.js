@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
+import test_axiom from "./test_axiom";
 
 /**
  * this converts a user input object { points: ___, lines: ___ }
@@ -47,6 +48,9 @@ delete axioms[0];
 Object.keys(axioms).forEach(number => {
   axiom[number] = (...args) => axiom(number, ...args);
 });
+
+// probably move this to axioms/index
+axiom.test = test_axiom;
 
 export default axiom;
 
