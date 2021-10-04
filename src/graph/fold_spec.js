@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { keys } from "./fold_keys";
+import { keys, non_spec_keys } from "./fold_keys";
 
 export const edges_assignment_degrees = {
   M: -180,
@@ -128,8 +128,8 @@ export const transpose_graph_array_at_index = function (
   return geometry;
 };
 
-export const fold_object_certainty = (object) => {
-  if (typeof object !== "object" || object === null) { return 0; }
-  return keys.filter(key => object[key]).length;
-};
-
+export const fold_object_certainty = (object = {}) => (
+  Object.keys(object).length === 0
+    ? 0
+    : [].concat(keys, non_spec_keys)
+      .filter(key => object[key]).length / Object.keys(object).length);

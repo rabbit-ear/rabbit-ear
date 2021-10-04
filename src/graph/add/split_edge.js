@@ -12,9 +12,11 @@ import {
   EDGES_FOLDANGLE,
   EDGES_FACES,
 } from "../fold_keys";
-
 /**
- * this will add a single vertex to a
+ * @description an edge was just split into two by the addition of a vertex.
+ * update new vertex's vertices_vertices, as well as the split edge's
+ * endpoint's vertices_vertices to include the new vertex in place of the
+ * old endpoints, preserving all other vertices_vertices of the endpoints.
  * @param {object} FOLD object
  * @param {number} index of new vertex
  * @param {number[]} vertices that make up the split edge. new vertex lies between.
@@ -32,7 +34,17 @@ const update_vertices_vertices = ({ vertices_vertices }, vertex, incident_vertic
     vertices_vertices[v][otherI] = vertex;
   });
 };
-
+/**
+ * @description an edge was just split into two by the addition of a vertex.
+ * update vertices_edges for the new vertex, as well as the split edge's
+ * endpoint's vertices_edges to include the two new edges in place of the
+ * old one while preserving all other vertices_vertices in each endpoint.
+ * @param {object} FOLD object
+ * @param {number[]} vertices the old edge's two vertices, must be aligned with "new_edges"
+ * @param {number} old_edge the index of the old edge
+ * @param {number} new_vertex the index of the new vertex splitting the edge
+ * @param {number[]} new_edges the two new edges, must be aligned with "vertices"
+ */
 const update_vertices_edges = ({ vertices_edges }, vertices, old_edge, new_vertex, new_edges) => {
   if (!vertices_edges) { return; }
   // update 1 vertex, our new vertex
@@ -45,10 +57,12 @@ const update_vertices_edges = ({ vertices_edges }, vertices, old_edge, new_verte
       vertices_edges[vertices[i]][index] = new_edges[i];
     });
 };
-
 /**
- * update one entry in vertices_faces: two faces for our new vertex
- * either using edges_faces (fastest), or vertices_faces
+ * @description a new vertex was added between two faces, update the
+ * vertices_faces with the already-known faces indices.
+ * @param {object} FOLD object
+ * @param {number} the new vertex
+ * @param {number[]} array of 0, 1, or 2 incident faces.
  */
 const update_vertices_faces = ({ vertices_faces }, vertex, faces) => {
   if (!vertices_faces) { return; }
@@ -196,7 +210,9 @@ const split_edge = function (graph, old_edge, coords) {
   update_vertices_edges(graph, incident_vertices, old_edge, vertex, new_edges);
   const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
   if (incident_faces) {
-    update_vertices_faces(graph, vertex, incident_vertices);
+    // wow, just found a bug. todo: needs testing
+    // update_vertices_faces(graph, vertex, incident_vertices);
+    update_vertices_faces(graph, vertex, incident_faces);
     update_faces_vertices(graph, incident_faces, vertex, incident_vertices);
     update_faces_edges(graph, incident_faces, vertex, new_edges, old_edge);
   }

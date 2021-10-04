@@ -27,10 +27,10 @@ const isWebWorker = typeof self === Keys.object
   && self.constructor.name === "DedicatedWorkerGlobalScope";
 
 var detect = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  isBrowser: isBrowser,
-  isNode: isNode,
-  isWebWorker: isWebWorker
+	__proto__: null,
+	isBrowser: isBrowser,
+	isNode: isNode,
+	isWebWorker: isWebWorker
 });
 
 const htmlString = "<!DOCTYPE html><title>.</title>";
@@ -228,6 +228,20 @@ var RoundRect = {
   }
 };
 
+var Case = {
+  toCamel: s => s
+    .replace(/([-_][a-z])/ig, $1 => $1
+    .toUpperCase()
+    .replace("-", "")
+    .replace("_", "")),
+   toKebab: s => s
+     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+     .replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2")
+     .toLowerCase(),
+  capitalized: s => s
+    .charAt(0).toUpperCase() + s.slice(1)
+};
+
 const is_iterable = (obj) => {
   return obj != null && typeof obj[Symbol.iterator] === Keys.function;
 };
@@ -258,40 +272,228 @@ var coordinates = (...args) => {
     );
 };
 
-const add = (a, b) => [a[0] + b[0], a[1] + b[1]];
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
-const scale = (a, s) => [a[0] * s, a[1] * s];
-const curveArguments = function (...args) {
-  const params = coordinates(...flatten_arrays(...args));
-  const endpoints = params.slice(0, 4);
-  if (!endpoints.length) { return [""]; }
-  const o_curve = params[4] || 0;
-  const o_pinch = params[5] || 0.5;
-  const tailPt = [endpoints[0], endpoints[1]];
-  const headPt = [endpoints[2], endpoints[3]];
-  const vector = sub(headPt, tailPt);
-  const midpoint = add(tailPt, scale(vector, 0.5));
-  const perpendicular = [vector[1], -vector[0]];
-  const bezPoint = add(midpoint, scale(perpendicular, o_curve));
-  const tailControl = add(tailPt, scale(sub(bezPoint, tailPt), o_pinch));
-  const headControl = add(headPt, scale(sub(bezPoint, headPt), o_pinch));
-  return [`M${tailPt[0]},${tailPt[1]}C${tailControl[0]},${tailControl[1]} ${headControl[0]},${headControl[1]} ${headPt[0]},${headPt[1]}`];
+const magnitudeSq2 = (a) => (a[0] ** 2) + (a[1] ** 2);
+const magnitude2 = (a) => Math.sqrt(magnitudeSq2(a));
+const distanceSq2 = (a, b) => magnitudeSq2(sub2(a, b));
+const distance2 = (a, b) => Math.sqrt(distanceSq2(a, b));
+const add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
+const sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const scale2 = (a, s) => [a[0] * s, a[1] * s];
+
+var math = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	magnitudeSq2: magnitudeSq2,
+	magnitude2: magnitude2,
+	distanceSq2: distanceSq2,
+	distance2: distance2,
+	add2: add2,
+	sub2: sub2,
+	scale2: scale2
+});
+
+const ends = ["tail", "head"];
+const stringifyPoint = p => p.join(",");
+const pointsToPath = (points) => "M" + points.map(pt => pt.join(",")).join("L") + "Z";
+const makeArrowPaths = function (options) {
+  let pts = [[0,1], [2,3]].map(pt => pt.map(i => options.endpoints[i] || 0));
+  let vector = sub2(pts[1], pts[0]);
+  let midpoint = add2(pts[0], scale2(vector, 0.5));
+  const len = magnitude2(vector);
+  const minLength = ends
+    .map(s => (options[s].visible
+      ? (1 + options[s].padding) * options[s].height * 2.5
+      : 0))
+    .reduce((a, b) => a + b, 0);
+  if (len < minLength) {
+    const minVec = len === 0 ? [minLength, 0] : scale2(vector, minLength / len);
+    pts = [sub2, add2].map(f => f(midpoint, scale2(minVec, 0.5)));
+    vector = sub2(pts[1], pts[0]);
+  }
+  let perpendicular = [vector[1], -vector[0]];
+  let bezPoint = add2(midpoint, scale2(perpendicular, options.bend));
+  const bezs = pts.map(pt => sub2(bezPoint, pt));
+  const bezsLen = bezs.map(v => magnitude2(v));
+  const bezsNorm = bezs.map((bez, i) => bezsLen[i] === 0
+    ? bez
+    : scale2(bez, 1 / bezsLen[i]));
+  const vectors = bezsNorm.map(norm => scale2(norm, -1));
+  const normals = vectors.map(vec => [vec[1], -vec[0]]);
+  const scales = ends
+    .map(s => options[s].height * ((options[s].visible ? 1 : 0) + options[s].padding));
+  const arcs = pts.map((pt, i) => add2(pt, scale2(bezsNorm[i], scales[i])));
+  vector = sub2(arcs[1], arcs[0]);
+  perpendicular = [vector[1], -vector[0]];
+  midpoint = add2(arcs[0], scale2(vector, 0.5));
+  bezPoint = add2(midpoint, scale2(perpendicular, options.bend));
+  const controls = arcs
+    .map((arc, i) => add2(arc, scale2(sub2(bezPoint, arc), options.pinch)));
+  const polyPoints = ends.map((s, i) => [
+    add2(arcs[i], scale2(vectors[i], options[s].height)),
+    add2(arcs[i], scale2(normals[i], options[s].width / 2)),
+    add2(arcs[i], scale2(normals[i], -options[s].width / 2)),
+  ]);
+  return {
+    line: `M${stringifyPoint(arcs[0])}C${stringifyPoint(controls[0])},${stringifyPoint(controls[1])},${stringifyPoint(arcs[1])}`,
+    tail: pointsToPath(polyPoints[0]),
+    head: pointsToPath(polyPoints[1]),
+  };
 };
 
-const getEndpoints = (element) => {
-  const d = element.getAttribute("d");
-  if (d == null || d === "") { return []; }
-  return [
-    d.slice(d.indexOf("M")+1, d.indexOf("C")).split(","),
-    d.split(" ").pop().split(",")
-  ].map(p => p.map(n => parseFloat(n)));
+const setArrowheadOptions = (element, options, which) => {
+  if (typeof options === Keys.boolean) {
+    element.options[which].visible = options;
+  } else if (typeof options === Keys.object) {
+    Object.assign(element.options[which], options);
+    if (options.visible == null) {
+      element.options[which].visible = true;
+    }
+  } else if (options == null) {
+    element.options[which].visible = true;
+  }
 };
-const bend = (element, amount) => {
-  element.setAttribute("d", curveArguments(...getEndpoints(element), amount));
+const setArrowStyle = (element, options = {}, which) => {
+  const path = element.getElementsByClassName(`arrow-${which}`)[0];
+  Object.keys(options)
+    .map(key => ({ key, fn: path[Case.toCamel(key)] }))
+    .filter(el => typeof el.fn === "function")
+    .forEach(el => el.fn(options[el.key]));
+};
+const redraw = (element) => {
+  const paths = makeArrowPaths(element.options);
+  Object.keys(paths)
+    .map(path => ({
+      path,
+      element: element.getElementsByClassName(`arrow-${path}`)[0]
+    }))
+    .filter(el => el.element)
+    .map(el => { el.element.setAttribute("d", paths[el.path]); return el; })
+    .filter(el => element.options[el.path])
+    .forEach(el => el.element.setAttribute(
+      "visibility",
+      element.options[el.path].visible
+        ? "visible"
+        : "hidden"));
   return element;
 };
-var methods = {
-  bend
+const setPoints$3 = (element, ...args) => {
+  element.options.endpoints = coordinates(...flatten_arrays(...args)).slice(0, 4);
+  return redraw(element);
+};
+const bend$1 = (element, amount) => {
+  element.options.bend = amount;
+  return redraw(element);
+};
+const pinch$1 = (element, amount) => {
+  element.options.pinch = amount;
+  return redraw(element);
+};
+const head = (element, options) => {
+  setArrowheadOptions(element, options, "head");
+  setArrowStyle(element, options, "head");
+  return redraw(element);
+};
+const tail = (element, options) => {
+  setArrowheadOptions(element, options, "tail");
+  setArrowStyle(element, options, "tail");
+  return redraw(element);
+};
+const getLine = element => element.getElementsByClassName("arrow-line")[0];
+var methods$5 = {
+  setPoints: setPoints$3,
+  bend: bend$1,
+  pinch: pinch$1,
+  head,
+  tail,
+  getLine,
+};
+
+const endOptions = () => ({
+  visible: false,
+  width: 8,
+  height: 10,
+  padding: 0.0,
+});
+const init = function (element, ...args) {
+  element.setAttribute("class", "arrow");
+  const paths = ["line", "tail", "head"]
+    .map(key => SVG.path().setClass(`arrow-${key}`).appendTo(element));
+  paths[0].setAttribute("style", "fill:none;");
+  element.options = {
+    head: endOptions(),
+    tail: endOptions(),
+    bend: 0.0,
+    pinch: 0.618,
+    endpoints: [],
+  };
+  methods$5.setPoints(element, ...args);
+  return element;
+};
+
+var Arrow = {
+  arrow: {
+    nodeName: "g",
+    attributes: [],
+    args: () => [],
+    methods: methods$5,
+    init,
+  }
+};
+
+const makeCurvePath = (endpoints = [], bend = 0, pinch = 0.5) => {
+  const tailPt = [endpoints[0] || 0, endpoints[1] || 0];
+  const headPt = [endpoints[2] || 0, endpoints[3] || 0];
+  const vector = sub2(headPt, tailPt);
+  const midpoint = add2(tailPt, scale2(vector, 0.5));
+  const perpendicular = [vector[1], -vector[0]];
+  const bezPoint = add2(midpoint, scale2(perpendicular, bend));
+  const tailControl = add2(tailPt, scale2(sub2(bezPoint, tailPt), pinch));
+  const headControl = add2(headPt, scale2(sub2(bezPoint, headPt), pinch));
+  return `M${tailPt[0]},${tailPt[1]}C${tailControl[0]},${tailControl[1]} ${headControl[0]},${headControl[1]} ${headPt[0]},${headPt[1]}`;
+};
+
+const curveArguments = (...args) => [
+  makeCurvePath(coordinates(...flatten_arrays(...args)))
+];
+
+const getNumbersFromPathCommand = str => str
+  .slice(1)
+  .split(/[, ]+/)
+  .map(s => parseFloat(s));
+const getCurveTos = d => d
+  .match(/[Cc][(0-9), .-]+/)
+  .map(curve => getNumbersFromPathCommand(curve));
+const getMoveTos = d => d
+  .match(/[Mm][(0-9), .-]+/)
+  .map(curve => getNumbersFromPathCommand(curve));
+const getCurveEndpoints = (d) => {
+  const move = getMoveTos(d).shift();
+  const curve = getCurveTos(d).shift();
+  const start = move
+    ? [move[move.length-2], move[move.length-1]]
+    : [0, 0];
+  const end = curve
+    ? [curve[curve.length-2], curve[curve.length-1]]
+    : [0, 0];
+  return [...start, ...end];
+};
+
+const setPoints$2 = (element, ...args) => {
+  const coords = coordinates(...flatten_arrays(...args)).slice(0, 4);
+  element.setAttribute("d", makeCurvePath(coords, element._bend, element._pinch));
+  return element;
+};
+const bend = (element, amount) => {
+  element._bend = amount;
+  return setPoints$2(element, ...getCurveEndpoints(element.getAttribute("d")));
+};
+const pinch = (element, amount) => {
+  element._pinch = amount;
+  return setPoints$2(element, ...getCurveEndpoints(element.getAttribute("d")));
+};
+var methods$4 = {
+  setPoints: setPoints$2,
+  bend,
+  pinch,
 };
 
 var Curve = {
@@ -299,7 +501,7 @@ var Curve = {
     nodeName: "path",
     attributes: ["d"],
     args: curveArguments,
-    methods: methods
+    methods: methods$4
   }
 };
 
@@ -310,6 +512,7 @@ Object.assign(nodes,
   Parabola,
   RegularPolygon,
   RoundRect,
+  Arrow,
   Curve
 );
 
@@ -334,20 +537,6 @@ Object.keys(folders).forEach((key) => {
   nodesAndChildren[key] = folders[key].reduce((a, b) => a.concat(b), []);
 });
 
-var Case = {
-  toCamel: s => s
-    .replace(/([-_][a-z])/ig, $1 => $1
-    .toUpperCase()
-    .replace("-", "")
-    .replace("_", "")),
-   toKebab: s => s
-     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-     .replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2")
-     .toLowerCase(),
-  capitalized: s => s
-    .charAt(0).toUpperCase() + s.slice(1)
-};
-
 const viewBoxValue = function (x, y, width, height, padding = 0) {
   const scale = 1.0;
   const d = (width / scale) - width;
@@ -357,7 +546,7 @@ const viewBoxValue = function (x, y, width, height, padding = 0) {
   const H = (height + d * 2) + padding * 2;
   return [X, Y, W, H].join(" ");
 };
-function viewBox () {
+function viewBox$1 () {
   const numbers = coordinates(...flatten_arrays(arguments));
   if (numbers.length === 2) { numbers.unshift(0, 0); }
   return numbers.length === 4 ? viewBoxValue(...numbers) : undefined;
@@ -572,11 +761,11 @@ const save = function (svg, options) {
 };
 
 const setViewBox = (element, ...args) => {
-  const viewBox$1 = args.length === 1 && typeof args[0] === "string"
+  const viewBox = args.length === 1 && typeof args[0] === "string"
     ? args[0]
-    : viewBox(...args);
-  if (viewBox$1) {
-    element.setAttribute(Keys.viewBox, viewBox$1);
+    : viewBox$1(...args);
+  if (viewBox) {
+    element.setAttribute(Keys.viewBox, viewBox);
   }
   return element;
 };
@@ -594,11 +783,11 @@ const convertToViewBox = function (svg, x, y) {
   return [svgPoint.x, svgPoint.y];
 };
 
-var viewBox$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  setViewBox: setViewBox,
-  getViewBox: getViewBox,
-  convertToViewBox: convertToViewBox
+var viewBox = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	setViewBox: setViewBox,
+	getViewBox: getViewBox,
+	convertToViewBox: convertToViewBox
 });
 
 const loadSVG = (target, data) => {
@@ -655,7 +844,7 @@ const stylesheet = function (element, textContent) {
   styleSection.appendChild(cdata(textContent));
   return styleSection;
 };
-var methods$1 = {
+var methods$3 = {
   clear: clearSVG,
   size: setViewBox,
   setViewBox,
@@ -805,15 +994,6 @@ const Animation = function (element) {
   Object.defineProperty(element, "stop", { value: removeHandlers, enumerable: true });
 };
 
-const distanceSq2 = (a, b) => ((a[0] - b[0]) ** 2) + ((a[1] - b[1]) ** 2);
-const distance2 = (a, b) => Math.sqrt(distanceSq2(a, b));
-
-var math = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  distanceSq2: distanceSq2,
-  distance2: distance2
-});
-
 const removeFromParent = svg => (svg && svg.parentNode
   ? svg.parentNode.removeChild(svg)
   : undefined);
@@ -953,8 +1133,8 @@ const ElementConstructor = (new win.DOMParser())
   .parseFromString("<div />", "text/xml").documentElement.constructor;
 var svg = {
   svg: {
-    args: (...args) => [viewBox(coordinates(...args))].filter(a => a != null),
-    methods: methods$1,
+    args: (...args) => [viewBox$1(coordinates(...args))].filter(a => a != null),
+    methods: methods$3,
     init: (element, ...args) => {
       args.filter(a => typeof a === Keys.string)
         .forEach(string => loadSVG(element, string));
@@ -1102,14 +1282,14 @@ var ellipse = {
   }
 };
 
-const Args = (a, b, c, d) => coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
-const setPoints = (element, a, b, c, d) => { Args(a, b, c, d)
+const Args$1 = (a, b, c, d) => coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
+const setPoints$1 = (element, a, b, c, d) => { Args$1(a, b, c, d)
   .forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
 var line = {
   line: {
-    args: Args,
+    args: Args$1,
     methods: {
-      setPoints,
+      setPoints: setPoints$1,
     }
   }
 };
@@ -1287,7 +1467,7 @@ const polyString = function () {
     .join(" ");
 };
 const stringifyArgs = (...args) => [polyString(...coordinates(...flatten_arrays(...args)))];
-const setPoints$1 = (element, ...args) => {
+const setPoints = (element, ...args) => {
   element.setAttribute("points", stringifyArgs(...args)[0]);
   return element;
 };
@@ -1297,23 +1477,23 @@ const addPoint = (element, ...args) => {
     .join(" "));
   return element;
 };
-const Args$1 = function (...args) {
+const Args = function (...args) {
   return args.length === 1 && typeof args[0] === Keys.string
     ? [args[0]]
     : stringifyArgs(...args);
 };
 var polys = {
   polyline: {
-    args: Args$1,
+    args: Args,
     methods: {
-      setPoints: setPoints$1,
+      setPoints,
       addPoint
     }
   },
   polygon: {
-    args: Args$1,
+    args: Args,
     methods: {
-      setPoints: setPoints$1,
+      setPoints,
       addPoint
     }
   }
@@ -1516,11 +1696,11 @@ const getAttr = (element) => {
   const t = element.getAttribute(Keys.transform);
   return (t == null || t === "") ? undefined : t;
 };
-const methods$3 = {
+const methods$1 = {
   clearTransform: (el) => { el.removeAttribute(Keys.transform); return el; }
 };
 ["translate", "rotate", "scale", "matrix"].forEach(key => {
-  methods$3[key] = (element, ...args) => element.setAttribute(
+  methods$1[key] = (element, ...args) => element.setAttribute(
     Keys.transform,
     [getAttr(element), `${key}(${args.join(" ")})`]
       .filter(a => a !== undefined)
@@ -1540,7 +1720,7 @@ const findIdURL = function (arg) {
   }
   return "";
 };
-const methods$4 = {};
+const methods = {};
 ["clip-path",
   "mask",
   "symbol",
@@ -1548,7 +1728,7 @@ const methods$4 = {};
   "marker-mid",
   "marker-start",
 ].forEach(attr => {
-  methods$4[Case.toCamel(attr)] = (element, parent) => element.setAttribute(attr, findIdURL(parent));
+  methods[Case.toCamel(attr)] = (element, parent) => element.setAttribute(attr, findIdURL(parent));
 });
 
 const Nodes = {};
@@ -1586,8 +1766,8 @@ const assign = (groups, Methods) => {
 };
 assign(flatten_arrays(NodeNames.t, NodeNames.v, NodeNames.g, NodeNames.s, NodeNames.p, NodeNames.i, NodeNames.h, NodeNames.d), classMethods);
 assign(flatten_arrays(NodeNames.t, NodeNames.v, NodeNames.g, NodeNames.s, NodeNames.p, NodeNames.i, NodeNames.h, NodeNames.d), dom);
-assign(flatten_arrays(NodeNames.v, NodeNames.g, NodeNames.s), methods$3);
-assign(flatten_arrays(NodeNames.t, NodeNames.v, NodeNames.g), methods$4);
+assign(flatten_arrays(NodeNames.v, NodeNames.g, NodeNames.s), methods$1);
+assign(flatten_arrays(NodeNames.t, NodeNames.v, NodeNames.g), methods);
 
 const RequiredAttrMap = {
   svg: {
@@ -1719,7 +1899,7 @@ const initialize = function (svg, ...args) {
   args.filter(arg => typeof arg === Keys.function)
     .forEach(func => func.call(svg, svg));
 };
-const SVG = function () {
+function SVG () {
   const svg = constructor(Keys.svg, ...arguments);
   if (win.document.readyState === "loading") {
     win.document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
@@ -1727,7 +1907,7 @@ const SVG = function () {
     initialize(svg, ...arguments);
   }
   return svg;
-};
+}
 Object.assign(SVG, elements);
 SVG.NS = NS;
 SVG.linker = Linker.bind(SVG);
@@ -1741,6 +1921,6 @@ SVG.core = Object.assign(Object.create(null), {
   children: nodesAndChildren,
   cdata,
   detect,
-}, Case, classMethods, dom, math, methods$3, viewBox$1);
+}, Case, classMethods, dom, math, methods$1, viewBox);
 
-export default SVG;
+export { SVG as default };

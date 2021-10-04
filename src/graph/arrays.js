@@ -1,6 +1,13 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+/**
+ * @description given a list of integers (can contain duplicates),
+ * this will return a sorted list of unique integers (set).
+ * in the case of duplicates, the input and return arrays will differ in length
+ * @param {number[]} array of integers
+ * @returns {number[]} set of sorted, unique integers
+ */
 export const unique_sorted_integers = (array) => {
   const keys = {};
   array.forEach((int) => { keys[int] = true; });

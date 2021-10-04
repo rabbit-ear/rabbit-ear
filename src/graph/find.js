@@ -2,10 +2,11 @@
  * Rabbit Ear (c) Robby Kraft
  */
 /**
- * given an edge, uncover the adjacent faces
+ * @description given an edge, uncover the adjacent faces
  * @param {object} FOLD graph
  * @param {number} index of the edge in the graph
- * @param {number[]} indices of the two vertices making up the edge
+ * {number[]} indices of the two vertices making up the edge
+ * @returns {number[]} array of 0, 1, or 2 numbers, the edge's adjacent faces
  */
 export const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
   if (edges_faces && edges_faces[edge]) {
@@ -36,6 +37,7 @@ export const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, ed
     return faces;
   }
   if (faces_vertices) {
+    console.warn("todo: find_adjacent_faces_to_edge");
     // let faces = [];
     // for (let i = 0; i < faces_vertices.length; i += 1) {
     //   for (let v = 0; v < faces_vertices[i].length; v += 1) {
@@ -45,8 +47,8 @@ export const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, ed
 };
 
 export const find_adjacent_faces_to_face = ({ vertices_faces, edges_faces, faces_edges, faces_vertices, faces_faces }, face) => {
-
   if (faces_faces && faces_faces[face]) {
     return faces_faces[face];
   }
+  console.warn("todo: find_adjacent_faces_to_face");
 };

@@ -11,9 +11,7 @@ import { remove_duplicate_edges } from "../clean/index";
 
 
 const add_edges = (graph, edges_vertices) => {
-  if (!graph.edges_vertices) {
-    graph.edges_vertices = [];
-  }
+  if (!graph.edges_vertices) { graph.edges_vertices = []; }
   // the user messed up the input and only provided one edge
   // it's easy to fix for them
   if (typeof edges_vertices[0] === "number") { edges_vertices = [edges_vertices]; }

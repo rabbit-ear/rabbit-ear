@@ -3,31 +3,16 @@
  */
 import math from "../math";
 import test_axiom from "./test_axiom";
-
 /**
- * this converts a user input object { points: ___, lines: ___ }
- * into the propert arrangement of input parameters for the axiom methods
+ * this method reformats all axiom results so that
+ * the lines are included inside an Array.
  */
-const axiom_param_map = [null,
-  a => a,
-  a => a,
-  (_, l) => [l[0].vector, l[0].origin, l[1].vector, l[1].origin],
-  (p, l) => [l[0].vector, p[0]],
-  (p, l) => [l[0].vector, l[0].origin, p[0], p[1]],
-  (p, l) => [l[0].vector, l[0].origin, l[1].vector, l[1].origin, p[0], p[1]],
-  (p, l) => [l[0].vector, l[0].origin, l[1].vector, p[0]],
-];
-
-const axiom_paramify = (number, points, lines) => axiom_param_map[number]
-  ? axiom_param_map[number](points, lines)
-  : [];
-
 const axiom_arrayify = (number, result) => {
   switch (number) {
     case "1": case 1:
     case "2": case 2:
     case "4": case 4:
-    case "7": case 7: return [result];
+    case "7": case 7: return [result].filter(a => a !== undefined);
     case "3": case 3:
     case "5": case 5:
     case "6": case 6: return result;
@@ -35,11 +20,19 @@ const axiom_arrayify = (number, result) => {
   }
 };
 
-const axiom = (number, params = {}) => {
-  const points = (params.points || []).map(p => math.core.get_vector(p))
-  const lines = (params.lines || []).map(l => math.core.get_line(l))
-  const result = math.core[`axiom${number}`](...axiom_paramify(number, points, lines));
-  return axiom_arrayify(number, result);
+// todo: implement boundary in here
+const axiom = (number, params = {}, boundary) => {
+  const points = (params.points || []).map(p => math.core.get_vector(p));
+  const lines = (params.lines || []).map(l => math.core.get_line(l));
+  const lines_ud = (params.lines || [])
+    .map(l => l.u !== undefined && l.d !== undefined ? l : undefined)
+    .filter(a => a !== undefined);
+  const ud = lines_ud.length >= lines.length;
+  const result = ud
+    ? math.core[`axiom${number}ud`](...lines_ud, ...points)
+    : math.core[`axiom${number}`](...lines, ...points);
+  return axiom_arrayify(number, result)
+    .map(l => ud ? math.line.ud(l) : math.line(l));
 };
 
 const axioms = [null, 1, 2, 3, 4, 5, 6, 7];
@@ -53,4 +46,3 @@ Object.keys(axioms).forEach(number => {
 axiom.test = test_axiom;
 
 export default axiom;
-

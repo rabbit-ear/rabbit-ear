@@ -2,12 +2,16 @@
  * Rabbit Ear (c) Robby Kraft
  */
 /**
+ * @description deep copy an object, like JSON.parse(JSON.stringify())
+ *
  * this clone function is decent, except for:
- * - it doesn't detect recursive cycles
- * - weird behavior around Proxys
+ *  - it doesn't detect recursive cycles
+ *  - weird behavior around Proxys
+ * @author https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
+ * @param {object} o
+ * @returns {object} a deep copy of the input
  */
 const clone = function (o) {
-  // from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
   let newO;
   let i;
   if (typeof o !== "object") {

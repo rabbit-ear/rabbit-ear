@@ -71,6 +71,14 @@ export const keys = Object.freeze([]
   .concat(fold_keys.frame)
   .concat(fold_keys.graph)
   .concat(fold_keys.orders));
+// used by this library, created by populate(), but not official
+export const non_spec_keys = Object.freeze([
+  "edges_vector",
+  "vertices_sectors",
+  "faces_angles",
+  "faces_matrix"
+]);
+
 /**
  * keys from outside the official FOLD specification.
  */

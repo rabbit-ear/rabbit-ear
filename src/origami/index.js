@@ -39,6 +39,33 @@ Object.keys(ConstructorPrototypes).forEach(name => {
       { file_spec, file_creator }
     );
   };
+  // tried to improve it. broke it.
+  // Constructors[name] = function () {
+  //   const certain = Array.from(arguments)
+  //     .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
+  //     .sort((a, b) => a.certainty - b.certainty);
+  //   const fold = certain.length && certain[0].certainty > 0.1
+  //     ? JSON.parse(JSON.stringify(certain.shift().arg))
+  //     : default_graph[name]();
+  //   console.log("FOLD", fold);
+  //   // const otherArguments = certain
+  //   //   .map(el => el.arg);
+  //   // const argFold = Array.from(arguments)
+  //   //   .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
+  //   //   .sort((a, b) => a.certainty - b.certainty)
+  //   //   .shift();
+  //   // const start = argFold
+  //   //   ? clone(argFold)
+  //   //   : default_graph[name]()
+  //   //   .map(obj => JSON.parse(JSON.stringify(obj)));
+  //   return Object.assign(
+  //     Object.create(ConstructorPrototypes[name]),
+  //     // (argFolds.length ? {} : default_graph[name]()),
+  //     fold,
+  //     // ...otherArguments,
+  //     { file_spec, file_creator }
+  //   );
+  // };
   Constructors[name].prototype = ConstructorPrototypes[name];
   Constructors[name].prototype.constructor = Constructors[name];
   // wrap static constructors with "this" initializer

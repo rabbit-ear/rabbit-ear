@@ -13,9 +13,8 @@ const clip = function (
       vertices_edges, edges_vertices, edges_assignment
     }).vertices;
   }
-  const polygon = math.polygon(boundaries_vertices.map(v => vertices_coords[v]));
-  return polygon.clip(line);
+  return math.polygon(boundaries_vertices.map(v => vertices_coords[v]))
+    .clip(line);
 };
 
 export default clip;
-
