@@ -27,7 +27,10 @@ test("axiom 2", () => {
 });
 
 test("axiom 3", () => {
-  const res = ear.math.axiom3([0, 1], [0.5, 0.5], [1, 0], [0, 0.5]);
+  const res = ear.math.axiom3(
+		{ vector: [0, 1], origin: [0.5, 0.5] },
+		{ vector: [1, 0], origin: [0, 0.5] }
+  );
   const expected = [
     { origin: [0.5, 0.5], vector: [Math.SQRT1_2, Math.SQRT1_2] },
     { origin: [0.5, 0.5], vector: [Math.SQRT1_2, -Math.SQRT1_2] },
@@ -39,33 +42,35 @@ test("axiom 3", () => {
 });
 
 test("axiom 4", () => {
-	const vecA = [1, 1];
+	const line = { vector: [1, 1] }; // no origin needed for axiom 4
 	const pointB = [3, 1];
-	const res = ear.math.axiom4(vecA, pointB);
-	expect(res.vector.x).toBeCloseTo(-Math.SQRT1_2);
-	expect(res.vector.y).toBeCloseTo(Math.SQRT1_2);
-	expect(res.origin.x).toBe(3);
-	expect(res.origin.y).toBe(1);
+	const res = ear.math.axiom4(line, pointB);
+	expect(res.vector[0]).toBeCloseTo(-Math.SQRT1_2);
+	expect(res.vector[1]).toBeCloseTo(Math.SQRT1_2);
+	expect(res.origin[0]).toBe(3);
+	expect(res.origin[1]).toBe(1);
 });
 
 test("axiom 7", () => {
-	const res = ear.math.axiom7([1, 1], [-1, 0], [1, -1], [1, 0]);
-	expect(res.vector.x).toBeCloseTo(-Math.SQRT1_2);
-	expect(res.vector.y).toBeCloseTo(-Math.SQRT1_2);
-	expect(res.origin.x).toBe(0.5);
-	expect(res.origin.y).toBe(0.5);
+	const line1 = { vector: [1, 1], origin: [-1, 0] };
+	const line2 = { vector: [1, -1] }; // no origin needed
+	const res = ear.math.axiom7(line1, line2, [1, 0]);
+	expect(res.vector[0]).toBeCloseTo(-Math.SQRT1_2);
+	expect(res.vector[1]).toBeCloseTo(-Math.SQRT1_2);
+	expect(res.origin[0]).toBe(0.5);
+	expect(res.origin[1]).toBe(0.5);
 });
 
 test("axiom 5", () => {
-	const res = ear.math.axiom5([0, 1], [0.5, 0.5], [0, 0], [1, 0]);
-	expect(res[0].vector.x).toBeCloseTo(Math.sqrt(3)/2);
-	expect(res[0].vector.y).toBeCloseTo(-0.5);
-	expect(res[1].vector.x).toBeCloseTo(-Math.sqrt(3)/2);
-	expect(res[1].vector.y).toBeCloseTo(-0.5);
-	expect(res[0].origin.x).toBeCloseTo(0.75);
-	expect(res[0].origin.y).toBeCloseTo(-0.4330127);
-	expect(res[1].origin.x).toBeCloseTo(0.75);
-	expect(res[1].origin.y).toBeCloseTo(0.4330127);
+	const res = ear.math.axiom5({vector:[0, 1], origin:[0.5, 0.5]}, [0, 0], [1, 0]);
+	expect(res[0].vector[0]).toBeCloseTo(Math.sqrt(3)/2);
+	expect(res[0].vector[1]).toBeCloseTo(-0.5);
+	expect(res[1].vector[0]).toBeCloseTo(-Math.sqrt(3)/2);
+	expect(res[1].vector[1]).toBeCloseTo(-0.5);
+	expect(res[0].origin[0]).toBeCloseTo(0.75);
+	expect(res[0].origin[1]).toBeCloseTo(-0.4330127);
+	expect(res[1].origin[0]).toBeCloseTo(0.75);
+	expect(res[1].origin[1]).toBeCloseTo(0.4330127);
 });
 
 test("axiom 6 rewrite", () => {
@@ -84,7 +89,11 @@ test("axiom 6 rewrite", () => {
 });
 
 test("axiom 6 with no params", () => {
-	const res = ear.math.axiom6([], [], [], [], [], []);
+	try {
+		ear.math.axiom6({ vector: [], origin: [] }, { vector: [], origin: [] }, [], []);
+	} catch(err) {
+		expect(err).not.toBe(undefined);
+	}
 });
 
 test("axiom 6 with 3 results", () => {
@@ -94,7 +103,10 @@ test("axiom 6 with 3 results", () => {
 	const originB = [0, 1];
 	const pointA = [0.75, 0];
 	const pointB = [0, 0.75];
-	const res = ear.math.axiom6(vectorA, originA, vectorB, originB, pointA, pointB);
+	const res = ear.math.axiom6(
+		{ vector: vectorA, origin: originA },
+		{ vector: vectorB, origin: originB },
+		pointA, pointB);
 
 	const lines = [{
 		origin: [0.14644660940672627, 0.8535533905932738],
@@ -124,7 +136,10 @@ test("axiom 6 with 2 results", () => {
 	const originB = [0.00, 0.00];
   const pointA = [0.90, 0.10];
   const pointB = [0.10, 0.90];
-  const res = ear.math.axiom6(vectorA, originA, vectorB, originB, pointA, pointB);
+	const res = ear.math.axiom6(
+		{ vector: vectorA, origin: originA },
+		{ vector: vectorB, origin: originB },
+		pointA, pointB);
 	const lines = [{
 		origin: [-0.0625, 0.0846405430584631],
 		vector: [0.8044504602885519, 0.5940197445721286],

@@ -47,6 +47,7 @@ export const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, ed
 };
 
 export const find_adjacent_faces_to_face = ({ vertices_faces, edges_faces, faces_edges, faces_vertices, faces_faces }, face) => {
+  console.log("INSIDE", faces_faces, faces_faces[face]);
   if (faces_faces && faces_faces[face]) {
     return faces_faces[face];
   }

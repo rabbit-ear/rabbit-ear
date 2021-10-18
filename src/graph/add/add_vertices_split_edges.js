@@ -1,6 +1,15 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+
+/**
+ * 
+ * 
+ * this method hasn't really been incorporated into the library and might
+ * not be proving its usefulness. a candidate for being removed
+ * 
+ * 
+ */
 import math from "../../math";
 import count from "../count";
 import add_vertices from "./add_vertices";
@@ -9,6 +18,8 @@ import { transpose_graph_array_at_index } from "../fold_spec";
 import clone from "../clone";
 import remove from "../remove";
 /**
+ * todo: update the return object to include more information
+ * 
  * @param {object} destination FOLD graph, new vertices will be added to this graph
  * @param {object} source FOLD graph, vertices from here will be added to the other graph
  * @returns {array} index of vertex in new vertices_coords array. matches array size of source vertices.
@@ -62,4 +73,3 @@ const add_vertices_split_edges = (graph, vertices_coords) => {
 };
 
 export default add_vertices_split_edges;
-

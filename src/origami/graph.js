@@ -40,8 +40,8 @@ import {
 import clone from "../graph/clone";
 import svg from "../svg/draw";
 import add_vertices from "../graph/add/add_vertices";
-import split_edge from "../graph/add/split_edge";
-import split_face from "../graph/add/split_face";
+import split_edge from "../graph/split_edge/index";
+import split_face from "../graph/split_face/index";
 
 // import changed from "./changed";
 /**

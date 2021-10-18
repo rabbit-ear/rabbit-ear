@@ -4,8 +4,8 @@
 import math from "../../math";
 /**
  * @description add vertices to a graph by adding their vertices_coords only. This
- * will also compare the new vertices to every vertex, only adding non-duplicate
- * vertices, determined by an epsilon.
+ * will also compare against every existing vertex, only adding non-duplicate
+ * vertices, as determined by an epsilon.
  * @param {object} FOLD graph, will be modified
  * @param {number[][]} vertices_coords, vertices to be added to the graph
  * @param {number} optional epsilon to compare if vertices are the same

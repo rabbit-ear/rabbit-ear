@@ -4,6 +4,28 @@ test("smart detection", () => {
   expect(ear.typeof({ x: 1, y: 2 })).toBe("vector");
 });
 
+test("primitive constructor function names", () => {
+  const vector = ear.vector();
+  const matrix = ear.matrix();
+  const segment = ear.segment();
+  const ray = ear.ray();
+  const line = ear.line();
+  const circle = ear.circle();
+  const ellipse = ear.ellipse();
+  const rect = ear.rect();
+  const polygon = ear.polygon();
+
+  expect(vector.constructor.name).toBe("vector");
+  expect(matrix.constructor.name).toBe("matrix");
+  expect(segment.constructor.name).toBe("segment");
+  expect(ray.constructor.name).toBe("ray");
+  expect(line.constructor.name).toBe("line");
+  expect(circle.constructor.name).toBe("circle");
+  expect(ellipse.constructor.name).toBe("ellipse");
+  expect(rect.constructor.name).toBe("rect");
+  expect(polygon.constructor.name).toBe("polygon");
+});
+
 test("primitives Typeof", () => {
   const vector = ear.vector();
   const matrix = ear.matrix();

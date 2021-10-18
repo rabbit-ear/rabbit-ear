@@ -5,19 +5,15 @@ import math from "../../math";
 import remove from "../remove";
 import clone from "../clone";
 import { find_adjacent_faces_to_edge } from "../find";
-import add_vertices from "./add_vertices";
-import {
-  EDGES,
-  EDGES_ASSIGNMENT,
-  EDGES_FOLDANGLE,
-  EDGES_FACES,
-} from "../fold_keys";
+import add_vertices from "../add/add_vertices";
+import { EDGES } from "../fold_keys";
+import split_edge_into_two from "./split_edge_into_two";
 /**
  * @description an edge was just split into two by the addition of a vertex.
  * update new vertex's vertices_vertices, as well as the split edge's
  * endpoint's vertices_vertices to include the new vertex in place of the
  * old endpoints, preserving all other vertices_vertices of the endpoints.
- * @param {object} FOLD object
+ * @param {object} FOLD object, modified in place
  * @param {number} index of new vertex
  * @param {number[]} vertices that make up the split edge. new vertex lies between.
  */
@@ -39,7 +35,7 @@ const update_vertices_vertices = ({ vertices_vertices }, vertex, incident_vertic
  * update vertices_edges for the new vertex, as well as the split edge's
  * endpoint's vertices_edges to include the two new edges in place of the
  * old one while preserving all other vertices_vertices in each endpoint.
- * @param {object} FOLD object
+ * @param {object} FOLD object, modified in place
  * @param {number[]} vertices the old edge's two vertices, must be aligned with "new_edges"
  * @param {number} old_edge the index of the old edge
  * @param {number} new_vertex the index of the new vertex splitting the edge
@@ -60,7 +56,7 @@ const update_vertices_edges = ({ vertices_edges }, vertices, old_edge, new_verte
 /**
  * @description a new vertex was added between two faces, update the
  * vertices_faces with the already-known faces indices.
- * @param {object} FOLD object
+ * @param {object} FOLD object, modified in place
  * @param {number} the new vertex
  * @param {number[]} array of 0, 1, or 2 incident faces.
  */
@@ -68,8 +64,14 @@ const update_vertices_faces = ({ vertices_faces }, vertex, faces) => {
   if (!vertices_faces) { return; }
   vertices_faces[vertex] = [...faces];
 };
-
-// because Javascript, this is a pointer and modifies the master graph
+/**
+ * @description a new vertex was added, splitting an edge. rebuild the
+ * two incident faces by replacing the old edge with new one.
+ * @param {object} FOLD object, modified in place
+ * @param {number[]} indices of two faces to be rebuilt
+ * @param {number} new vertex index
+ * @param {number[]} the two vertices of the old edge
+ */
 const update_faces_vertices = ({ faces_vertices }, faces, new_vertex, incident_vertices) => {
   // exit if we don't even have faces_vertices
   if (!faces_vertices) { return; }
@@ -87,7 +89,15 @@ const update_faces_vertices = ({ faces_vertices }, faces, new_vertex, incident_v
         .sort((a, b) => b - a)
         .forEach(i => face.splice(i, 0, new_vertex)));
 };
-
+/**
+ * @description a new vertex was added, splitting an edge. rebuild the
+ * two incident faces by replacing the old edge with new one.
+ * @param {object} FOLD object, modified in place
+ * @param {number[]} indices of two faces to be rebuilt
+ * @param {number} new vertex index
+ * @param {number[]} indices of the two new edges
+ * @param {number} old edge index
+ */
 const update_faces_edges = ({ edges_vertices, faces_edges }, faces, new_vertex, new_edges, old_edge) => {
   if (!faces_edges) { return; }
   faces
@@ -130,58 +140,25 @@ const update_faces_edges = ({ edges_vertices, faces_edges }, faces, new_vertex, 
       return edges;
     });  
 };
-
 /**
- * this does not modify the graph. it builds 2 objects with keys
- * { edges_vertices, edges_assignment, edges_foldAngle, edges_faces, edges_length }
- * @param {object} FOLD object
- * @param {number} the index of the edge that will be split by the new vertex
- * @param {number} the index of the new vertex
- * @returns {object[]} array of two edge objects, containing edge data as FOLD keys
- */
-const split_edge_into_two = (graph, edge_index, new_vertex) => {
-  const edge_vertices = graph.edges_vertices[edge_index];
-  const new_edges = [
-    { edges_vertices: [edge_vertices[0], new_vertex] },
-    { edges_vertices: [new_vertex, edge_vertices[1]] },
-  ];
-  // copy over relevant data if it exists
-  new_edges.forEach((edge, i) => {
-    [EDGES_ASSIGNMENT, EDGES_FOLDANGLE]
-      .filter(key => graph[key] !== undefined && graph[key][edge_index] !== undefined)
-      .forEach(key => edge[key] = graph[key][edge_index]);
-    if (graph.edges_faces && graph.edges_faces[edge_index] !== undefined) {
-      edge.edges_faces = [...graph.edges_faces[edge_index]];
-    }
-    if (graph.edges_vector) {
-      const verts = edge.edges_vertices.map(v => graph.vertices_coords[v]);
-      edge.edges_vector = math.core.subtract(verts[1], verts[0]);
-    }
-    if (graph.edges_length) {
-      const verts = edge.edges_vertices.map(v => graph.vertices_coords[v]);
-      edge.edges_length = math.core.distance2(...verts)
-    }
-    // todo: this does not rebuild edges_edges
-    // not sure if there is a way to do this.
-  });
-  return new_edges;
-};
-
-/**
- * appends a vertex along an edge. causing a rebuild on arrays:
+ * @description split an edge with a new vertex, replacing the old
+ * edge with two new edges sharing the common vertex. rebuilding:
  * - vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
  * - edges_vertices, edges_faces, edges_assignment,
  * - edges_foldAngle, edges_vector
  * - faces_vertices, faces_edges,
- * and doesn't need to update:
+ * without rebuilding:
  * - faces_faces
- * requires edges_vertices to be defined
+ * @usage requires edges_vertices to be defined
+ * @param {object} FOLD object, modified in place
+ * @param {number} index of old edge to be split
+ * @param {number[]} coordinates of the new vertex to be added. optional.
+ * if omitted, a vertex will be generated at the edge's midpoint.
+ * @returns {object} a summary of the changes to the graph
  */
-// const split_edge = function (graph, x, y, old_edge) {
-// const split_edge = function (graph, coords, old_edge) {
-const split_edge = function (graph, old_edge, coords) {
+const split_edge = (graph, old_edge, coords) => {
 	// old_edge is not a valid index
-  if (graph.edges_vertices.length < old_edge) { return undefined; }
+  if (graph.edges_vertices.length < old_edge) { return {}; }
   const incident_vertices = graph.edges_vertices[old_edge];
   if (!coords) {
     coords = math.core.midpoint(...incident_vertices);
@@ -211,6 +188,8 @@ const split_edge = function (graph, old_edge, coords) {
   const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
   if (incident_faces) {
     // wow, just found a bug. todo: needs testing
+    // was calling this method with vertices instead of faces.
+    // check split_face, commented code might be working now.
     // update_vertices_faces(graph, vertex, incident_vertices);
     update_vertices_faces(graph, vertex, incident_faces);
     update_faces_vertices(graph, incident_faces, vertex, incident_vertices);
@@ -238,4 +217,3 @@ const split_edge = function (graph, old_edge, coords) {
 };
 
 export default split_edge;
-

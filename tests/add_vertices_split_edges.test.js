@@ -1,6 +1,7 @@
-const ear = require("../rabbit-ear");
-
 test("empty", () => expect(true).toBe(true));
+
+/*
+const ear = require("../rabbit-ear");
 
 test("add_vertices_split_edges", () => {
   const graph = {
@@ -44,15 +45,4 @@ test("add_vertices_split_edges", () => {
   expect(result).toEqual(expect.arrayContaining([2, 1, 3]));
 });
 
-// test("add_vertices_split_edges", () => {
-//   const graph = {
-//     vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
-//     edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [1, 3]],
-//     edges_foldAngle: [0, 0, 0, 0, 90],
-//     edges_assignment: ["B", "B", "B", "B", "V"],
-//     faces_vertices: [[0, 1, 3], [2, 3, 1]],
-//     faces_edges: [[0, 4, 3], [1, 4, 2]],
-//   };
-//   ear.graph.add_vertices_split_edges(graph, );
-// });
-
+*/

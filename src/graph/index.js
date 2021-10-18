@@ -23,10 +23,10 @@ import fragment from "./fragment";
 // import create from "./create";
 // add things
 import add_vertices from "./add/add_vertices";
-import add_vertices_split_edges from "./add/add_vertices_split_edges";
+// import add_vertices_split_edges from "./add/add_vertices_split_edges";
 import add_edges from "./add/add_edges";
-import split_edge from "./add/split_edge";
-import split_face from "./add/split_face";
+import split_edge from "./split_edge/index";
+import split_face from "./split_face/index";
 import flat_fold from "./flat_fold/index";
 // clean things
 import * as remove_methods from "./clean/index"
@@ -36,6 +36,8 @@ import get_duplicate_edges from "./clean/edges_duplicate";
 import get_duplicate_vertices from "./clean/vertices_duplicate";
 import get_collinear_vertices from "./clean/vertices_collinear";
 import * as vertices_isolated from "./clean/vertices_isolated";
+// various
+import { intersect_convex_face_line } from "./intersect_faces";
 // draw to svg
 import svg from "../svg/draw";
 
@@ -44,7 +46,7 @@ export default Object.assign(Object.create(null), {
 	assign,
 	// add things
 	add_vertices,
-	add_vertices_split_edges,
+	// add_vertices_split_edges,
 	add_edges,
 	split_edge,
 	split_face,
@@ -66,6 +68,8 @@ export default Object.assign(Object.create(null), {
 	clip,
 	// intersection
 	svg,
+	// various
+	intersect_convex_face_line,
 },
 	make,
 	// create,

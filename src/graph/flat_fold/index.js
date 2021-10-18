@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../../math";
-import split_convex_polygon from "../add/split_face";
+import split_convex_polygon from "../split_face/index";
 import { fold_faces_layer } from "./faces_layer";
 import clone from "../clone";
 import Count from "../count";
@@ -151,6 +151,7 @@ const flat_fold = function (
         : edges_assignment_degrees[opposite_crease] || 0;
 			// these are the two faces that replaced the removed face after the split
 			const new_faces = change.faces.map[change.faces.remove];
+      // console.log("Flat fold did change " + i, change);
 			new_faces.forEach((f) => {
 				folded.faces_center[f] = make_face_center_fast(folded, f);
 				folded["faces_re:sidedness"][f] = get_face_sidedness(

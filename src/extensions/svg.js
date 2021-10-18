@@ -1,4 +1,11 @@
 /* SVG (c) Robby Kraft, MIT License */
+const SVG_Constructor = {
+	init: () => {},
+};
+function SVG () {
+	return SVG_Constructor.init(...arguments);
+}
+
 const keys = [
   "number",
   "object",
@@ -1131,7 +1138,7 @@ const applyControlsToSVG = (svg) => {
 
 const ElementConstructor = (new win.DOMParser())
   .parseFromString("<div />", "text/xml").documentElement.constructor;
-var svg = {
+var svgDef = {
   svg: {
     args: (...args) => [viewBox$1(coordinates(...args))].filter(a => a != null),
     methods: methods$3,
@@ -1158,7 +1165,7 @@ const loadGroup = (group, ...sources) => {
     .forEach(element => group.appendChild(element));
   return group;
 };
-var g = {
+var gDef = {
   g: {
     init: loadGroup,
     methods: {
@@ -1228,7 +1235,7 @@ const setOrigin = (el, a, b) => {
   return el;
 };
 const fromPoints = (a, b, c, d) => [a, b, distance2([a, b], [c, d])];
-var circle = {
+var circleDef = {
   circle: {
     args: (a, b, c, d) => {
       const coords = coordinates(...flatten_arrays(a, b, c, d));
@@ -1260,7 +1267,7 @@ const setCenter = (el, a, b) => {
     .forEach((value, i) => el.setAttribute(attributes.ellipse[i], value));
   return el;
 };
-var ellipse = {
+var ellipseDef = {
   ellipse: {
     args: (a, b, c, d) => {
       const coords = coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
@@ -1285,7 +1292,7 @@ var ellipse = {
 const Args$1 = (a, b, c, d) => coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
 const setPoints$1 = (element, a, b, c, d) => { Args$1(a, b, c, d)
   .forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
-var line = {
+var lineDef = {
   line: {
     args: Args$1,
     methods: {
@@ -1363,7 +1370,7 @@ const methods$2 = {
 Object.keys(pathCommands).forEach((key) => {
   methods$2[pathCommands[key]] = (el, ...args) => appendPathCommand(el, key, ...args);
 });
-var path = {
+var pathDef = {
   path: {
     methods: methods$2
   }
@@ -1389,7 +1396,7 @@ const fixNegatives = function (arr) {
   });
   return arr;
 };
-var rect = {
+var rectDef = {
   rect: {
     args: (a, b, c, d) => {
       const coords = coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
@@ -1409,7 +1416,7 @@ var rect = {
   }
 };
 
-var style = {
+var styleDef = {
   style: {
     init: (el, text) => {
         el.textContent = "";
@@ -1425,7 +1432,7 @@ var style = {
   }
 };
 
-var text = {
+var textDef = {
   text: {
     args: (a, b, c) => coordinates(...flatten_arrays(a, b, c)).slice(0, 2),
     init: (element, a, b, c, d) => {
@@ -1482,7 +1489,7 @@ const Args = function (...args) {
     ? [args[0]]
     : stringifyArgs(...args);
 };
-var polys = {
+var polyDefs = {
   polyline: {
     args: Args,
     methods: {
@@ -1500,17 +1507,17 @@ var polys = {
 };
 
 var Spec = Object.assign({},
-  svg,
-  g,
-  circle,
-  ellipse,
-  line,
-  path,
-  rect,
-  style,
-  text,
+  svgDef,
+  gDef,
+  circleDef,
+  ellipseDef,
+  lineDef,
+  pathDef,
+  rectDef,
+  styleDef,
+  textDef,
   maskTypes,
-  polys,
+  polyDefs,
 );
 
 var ManyElements = {
@@ -1899,7 +1906,7 @@ const initialize = function (svg, ...args) {
   args.filter(arg => typeof arg === Keys.function)
     .forEach(func => func.call(svg, svg));
 };
-function SVG () {
+SVG_Constructor.init = function () {
   const svg = constructor(Keys.svg, ...arguments);
   if (win.document.readyState === "loading") {
     win.document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
@@ -1907,7 +1914,7 @@ function SVG () {
     initialize(svg, ...arguments);
   }
   return svg;
-}
+};
 Object.assign(SVG, elements);
 SVG.NS = NS;
 SVG.linker = Linker.bind(SVG);
