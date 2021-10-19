@@ -4,8 +4,10 @@ import {
   EDGES_FOLDANGLE,
 } from "../fold_keys";
 /**
- * this does not modify the graph. it builds 2 objects with keys
- * { edges_vertices, edges_assignment, edges_foldAngle, edges_faces, edges_length }
+ * @description this does not modify the graph. it builds 2 objects with:
+ * { edges_vertices, edges_assignment, edges_foldAngle }
+ * including external to the spec: { edges_length, edges_vector }
+ * this does not rebuild edges_edges.
  * @param {object} FOLD object, modified in place
  * @param {number} the index of the edge that will be split by the new vertex
  * @param {number} the index of the new vertex
@@ -17,25 +19,26 @@ const split_edge_into_two = (graph, edge_index, new_vertex) => {
     { edges_vertices: [edge_vertices[0], new_vertex] },
     { edges_vertices: [new_vertex, edge_vertices[1]] },
   ];
-  // copy over relevant data if it exists
-  new_edges.forEach((edge, i) => {
-    [EDGES_ASSIGNMENT, EDGES_FOLDANGLE]
-      .filter(key => graph[key] !== undefined && graph[key][edge_index] !== undefined)
-      .forEach(key => edge[key] = graph[key][edge_index]);
-    if (graph.edges_faces && graph.edges_faces[edge_index] !== undefined) {
-      edge.edges_faces = [...graph.edges_faces[edge_index]];
-    }
+  new_edges.forEach((edge, i) => [EDGES_ASSIGNMENT, EDGES_FOLDANGLE]
+    .filter(key => graph[key] && graph[key][edge_index] !== undefined)
+    .forEach(key => { edge[key] = graph[key][edge_index]; }));
+  // these are outside the spec values that are easy enough to calculate.
+  // only update them if they exist!
+  if (graph.vertices_coords && (graph.edges_length || graph.edges_vector)) {
+    const coords = new_edges
+      .map(edge => edge.edges_vertices
+        .map(v => graph.vertices_coords[v]));
     if (graph.edges_vector) {
-      const verts = edge.edges_vertices.map(v => graph.vertices_coords[v]);
-      edge.edges_vector = math.core.subtract(verts[1], verts[0]);
+      new_edges.forEach((edge, i) => {
+        edge.edges_vector = math.core.subtract(coords[i][1], coords[i][0]);
+      });
     }
     if (graph.edges_length) {
-      const verts = edge.edges_vertices.map(v => graph.vertices_coords[v]);
-      edge.edges_length = math.core.distance2(...verts)
+      new_edges.forEach((edge, i) => {
+        edge.edges_length = math.core.distance2(...coords[i]);
+      });
     }
-    // todo: this does not rebuild edges_edges
-    // not sure if there is a way to do this.
-  });
+  }
   return new_edges;
 };
 

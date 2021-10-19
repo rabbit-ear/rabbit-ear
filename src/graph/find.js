@@ -9,6 +9,7 @@
  * @returns {number[]} array of 0, 1, or 2 numbers, the edge's adjacent faces
  */
 export const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
+  // easiest case, if edges_faces already exists.
   if (edges_faces && edges_faces[edge]) {
     return edges_faces[edge];
   }
@@ -47,7 +48,6 @@ export const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, ed
 };
 
 export const find_adjacent_faces_to_face = ({ vertices_faces, edges_faces, faces_edges, faces_vertices, faces_faces }, face) => {
-  console.log("INSIDE", faces_faces, faces_faces[face]);
   if (faces_faces && faces_faces[face]) {
     return faces_faces[face];
   }

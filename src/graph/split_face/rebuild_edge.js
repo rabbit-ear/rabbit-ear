@@ -22,8 +22,6 @@ const make_edge = ({ vertices_coords }, vertices, face) => {
     edges_assignment: "U",
     edges_length: math.core.distance2(...new_edge_coords),
     edges_vector: math.core.subtract(...new_edge_coords),
-    // todo, unclear if these are ordered with respect to the vertices
-    // edges_faces: [...faces],
     edges_faces: [face, face],
   };
 };
