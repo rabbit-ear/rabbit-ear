@@ -15,7 +15,7 @@ const FACE_STYLE_FOLDED = {
 const FACE_STYLE_FLAT = {
 	// back: { fill: "white", stroke: "none" },
 	// front: { fill: "#ddd", stroke: "none" }
-}
+};
 const GROUP_STYLE_FOLDED = {
 	stroke: "black",
 	"stroke-linejoin": "bevel"
@@ -77,7 +77,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 
 export const faces_vertices_polygon = (graph, attributes = {}) => {
 	const g = Libraries.SVG.g();
-	if (!graph.vertices_coords || !graph.faces_vertices) { return g; }
+	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
   const svg_faces = graph.faces_vertices
     .map(fv => fv.map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
     .map(face => Libraries.SVG.polygon(face));
@@ -88,7 +88,8 @@ export const faces_vertices_polygon = (graph, attributes = {}) => {
 
 export const faces_edges_polygon = function (graph, attributes = {}) {
 	const g = Libraries.SVG.g();
-  if (K.faces_edges in graph === false
+  if (!graph
+    || K.faces_edges in graph === false
     || K.edges_vertices in graph === false
     || K.vertices_coords in graph === false) {
     return g;
@@ -106,4 +107,3 @@ export const faces_edges_polygon = function (graph, attributes = {}) {
 	g[K.setAttributeNS](null, "fill", "white");
   return finalize_faces(graph, svg_faces, g, attributes);
 };
-

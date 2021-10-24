@@ -117,9 +117,10 @@ const apply_style = (el, attributes = {}) => Object.keys(attributes)
  * if no edges_assignment exists, there will be an array of 1 path.
  */
 export const edges_paths = (graph, attributes = {}) => {
+  const group = Libraries.SVG.g();
+  if (!graph) { return group; }
 	const isFolded = is_folded_form(graph);
 	const paths = edges_paths_assign(graph);
-	const group = Libraries.SVG.g();
 	Object.keys(paths).forEach(key => {
 		paths[key][K.setAttributeNS](null, K._class, edges_assignment_names[key]);
 		apply_style(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);

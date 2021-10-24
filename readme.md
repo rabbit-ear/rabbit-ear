@@ -60,6 +60,16 @@ src/
   webgl/
 ```
 
+### graph/
+
+Most of the important code this repo has to offer is in the `graph/` folder; it's all code that manipulates FOLD graph, which is the mesh data format, so it contains a lot of graph theory. some highlights include:
+
+- `add/` methods that add actual geometry like vertices and edges, splitting faces...
+- `clean/` files that remove geometry, generally bad geometry like duplicate edges
+- `make.js` create graph components like faces_edges, vertices_vertices...
+- `fragment.js` convert to a planar graph, flatten into the XY plane, chop edges
+- `remove.js` remove indices from arrays and correct references
+
 ### math.js
 
 This is the math library, bundled as an es6 module. Direct all conversation to the [Math repository](https://github.com/robbykraft/Math).
@@ -72,19 +82,9 @@ Contains methods like fitting arrows and rendering diagrams. It makes use of the
 
 parts of the Rabbit Ear library that are included in the build but hosted in other repos. read more in **building and linking** below.
 
-### graph/
+### classes/
 
-Most of the important code this repo has to offer is in the `graph/` folder; it's all code that manipulates FOLD graph, which is the mesh data format, so it contains a lot of graph theory. some highlights include:
-
-- `add/` methods that add actual geometry like vertices and edges, splitting faces...
-- `clean/` files that remove geometry, generally bad geometry like duplicate edges
-- `make.js` create graph components like faces_edges, vertices_vertices...
-- `fragment.js` convert to a planar graph, flatten into the XY plane, chop edges
-- `remove.js` remove indices from arrays and correct references
-
-### prototypes/
-
-These are the graph, crease pattern, and origami objects accessible from the top-level. They serve as object-oriented class style interface to the methods of the library.
+For those who prefer an object-oriented style of interfacing with the library, here are the graph, crease pattern, and origami class definitions. The objects themselves are FOLD objects, bound to prototypes which tie in a lot, though not all, functionality from the rest of the library as member functions.
 
 ### single_vertex/
 

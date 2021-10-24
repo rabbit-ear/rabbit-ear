@@ -15,7 +15,7 @@ import use from "./use/index";
 import diagram from "./diagrams/index";
 import vertex from "./single_vertex/index";
 // prototypes
-import Constructors from "./origami/index";
+import Constructors from "./classes/index";
 // top level things
 import axiom from "./axioms/index";
 import text from "./text/index";

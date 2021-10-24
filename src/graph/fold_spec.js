@@ -2,7 +2,14 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import { keys, non_spec_keys } from "./fold_keys";
-
+/**
+ * this contains two types of methods.
+ * 1. methods that are mostly references, including lists of keys
+ *    that match the FOLD 1.1 specification (anytime FOLD is updated
+ *    we need to update here too.)
+ * 2. methods that operate on a FOLD object, searching and gathering
+ *    and re-arranging keys or values based on key queries.
+ */
 export const edges_assignment_degrees = {
   M: -180,
   m: -180,

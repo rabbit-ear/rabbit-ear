@@ -9,4 +9,3 @@ const graph_classes = graph => [
 ].reduce((a, b) => a.concat(b));
 
 export default graph_classes;
-

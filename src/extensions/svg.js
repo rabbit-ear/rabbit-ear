@@ -1817,13 +1817,19 @@ const constructor = (nodeName, ...args) => {
     }));
   if (nodesAndChildren[nodeName]) {
     nodesAndChildren[nodeName].forEach((childNode) => {
-      Object.defineProperty(element, childNode, {
-        value: function () {
-          const childElement = constructor(childNode, ...arguments);
-          element.appendChild(childElement);
-          return childElement;
-        }
-      });
+      const value = function () {
+        const childElement = constructor(childNode, ...arguments);
+        element.appendChild(childElement);
+        return childElement;
+      };
+      if (Nodes[childNode].static) {
+        Object.keys(Nodes[childNode].static).forEach(key => {
+          value[key] = function () {
+            return Nodes[childNode].static[key](element, ...arguments);
+          };
+        });
+      }
+      Object.defineProperty(element, childNode, { value });
     });
   }
   return element;
@@ -1836,8 +1842,7 @@ Object.keys(NodeNames).forEach(key => NodeNames[key]
     elements[nodeName] = (...args) => constructor(nodeName, ...args);
   }));
 
-const link_rabbitear = (svg, ear) => {
-  ear.svg = svg;
+const link_rabbitear_math = (svg, ear) => {
   const keys = [
     "segment",
     "circle",
@@ -1849,23 +1854,39 @@ const link_rabbitear = (svg, ear) => {
     .forEach((key) => {
       ear[key].prototype.svg = function () { return svg.path(this.svgPath()); };
     });
-	Nodes.graph = {
-  	nodeName: "g",
-  	init: function (element, graph, options = {}) {
-			ear.graph.svg(graph, { ...options, parent: element });
-			return element;
-		},
-  	args: () => [],
-  	methods: Nodes.g.methods,
-  	attributes: Nodes.g.attributes,
-	};
-	nodesAndChildren.graph = [...nodesAndChildren.g];
-	nodesAndChildren.svg.push("graph");
-	nodesAndChildren.g.push("graph");
+};
+const link_rabbitear_graph = (svg, ear) => {
+  const NODE_NAME = "origami";
+  Nodes[NODE_NAME] = {
+    nodeName: "svg",
+    init: function (element, ...args) {
+      return ear.graph.svg.drawInto(element, ...args);
+    },
+    args: () => [],
+    methods: Nodes.svg.methods,
+    attributes: Nodes.svg.attributes,
+    static: {},
+  };
+  Object.keys(ear.graph.svg).forEach(key => {
+    Nodes[NODE_NAME].static[key] = (element, ...args) => {
+      const child = ear.graph.svg[key](...args);
+      element.appendChild(child);
+      return child;
+    };
+  });
+  nodesAndChildren[NODE_NAME] = [...nodesAndChildren.svg];
+  nodesAndChildren.svg.push(NODE_NAME);
+  nodesAndChildren.g.push(NODE_NAME);
+  svg[NODE_NAME] = (...args) => constructor(NODE_NAME, ...args);
+  Object.keys(ear.graph.svg).forEach(key => {
+    svg[NODE_NAME][key] = ear.graph.svg[key];
+  });
 };
 const Linker = function (lib) {
 	if (lib.graph && lib.origami) {
-		link_rabbitear(this, lib);
+    lib.svg = this;
+    link_rabbitear_math(this, lib);
+    link_rabbitear_graph(this, lib);
 	}
 };
 
@@ -1915,10 +1936,10 @@ SVG_Constructor.init = function () {
   }
   return svg;
 };
-Object.assign(SVG, elements);
 SVG.NS = NS;
 SVG.linker = Linker.bind(SVG);
 SVG.use = use.bind(SVG);
+Object.assign(SVG, elements);
 SVG.core = Object.assign(Object.create(null), {
   load: Load,
   save,

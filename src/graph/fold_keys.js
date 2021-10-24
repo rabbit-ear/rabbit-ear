@@ -3,14 +3,64 @@
  */
 
 /**
- * this contains two types of methods.
- * 1. methods that are mostly references, including lists of keys
- *    that match the FOLD 1.1 specification (anytime FOLD is updated
- *    we need to update here too.)
- * 2. methods that operate on a FOLD object, searching and gathering
- *    and re-arranging keys or values based on key queries.
+ * key values used so many times in this library, for minification
+ * it's helpful to reference a variable instead of a string literal.
  */
+export const VERTICES = "vertices";
+export const VERTICES_COORDS = "vertices_coords";
+export const EDGES = "edges";
+export const EDGES_ASSIGNMENT = "edges_assignment";
+export const EDGES_FOLDANGLE = "edges_foldAngle";
+export const EDGES_FACES = "edges_faces";
+export const FACES = "faces";
+export const FOLDED_FORM = "foldedForm";
+export const CREASE_PATTERN = "creasePattern";
 
+// export const coords = "coords";
+// export const vertices = "vertices";
+// export const edges = "edges";
+// export const faces = "faces";
+// export const boundaries = "boundaries";
+// export const frame = "frame";
+// export const file = "file";
+// export const boundary = "boundary";
+// export const mountain = "mountain";
+// export const valley = "valley";
+// export const mark = "mark";
+// export const unassigned = "unassigned";
+// export const creasePattern = "creasePattern";
+// export const front = "front";
+// export const back = "back";
+// export const svg = "svg";
+// export const _class = "class";
+// export const index = "index";
+// export const object = "object";
+// export const string = "string";
+// export const number = "number";
+// export const _function = "function";
+// export const _undefined = "undefined";
+// export const black = "black";
+// export const white = "white";
+// export const lightgray = "lightgray";
+// export const stroke_width = "stroke-width";
+// export const createElementNS = "createElementNS";
+// export const setAttributeNS = "setAttributeNS";
+// export const appendChild = "appendChild";
+// export const vertices_coords = "vertices_coords";
+// export const vertices_edges = "vertices_edges";
+// export const edges_vertices = "edges_vertices";
+// export const faces_vertices = "faces_vertices";
+// export const faces_edges = "faces_edges";
+// export const edges_assignment = "edges_assignment";
+// export const faces_re_coloring = "faces_re:coloring";
+// export const faces_re_matrix = "faces_re:matrix";
+// export const faces_re_layer = "faces_re:layer";
+// export const frame_parent = "frame_parent";
+// export const frame_inherit = "frame_inherit";
+// export const frame_classes = "frame_classes";
+// export const file_frames = "file_frames";
+// export const file_classes = "file_classes";
+// export const foldedForm = "foldedForm";
 /**
  * top-level keys and values to be included in exported FOLD objects
  */
@@ -122,21 +172,6 @@ export const frame_attributes = [
 export const edges_assignment_values = [
   "M", "m", "V", "v", "B", "b", "F", "f", "U", "u"
 ];
-
-/**
- * key values used so many times in this library, for minification
- * it's helpful to reference a variable instead of a string literal.
- */
-export const FOLDED_FORM = "foldedForm";
-export const CREASE_PATTERN = "creasePattern";
-export const VERTICES = "vertices";
-export const EDGES = "edges";
-export const FACES = "faces";
-export const VERTICES_COORDS = "vertices_coords";
-export const EDGES_ASSIGNMENT = "edges_assignment";
-export const EDGES_FOLDANGLE = "edges_foldAngle";
-export const EDGES_FACES = "edges_faces";
-
 export const singularize = {
   vertices: "vertex",
   edges: "edge",

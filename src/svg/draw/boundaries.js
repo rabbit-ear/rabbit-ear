@@ -23,7 +23,7 @@ const apply_style = (el, attributes = {}) => Object.keys(attributes)
 // todo this needs to be able to handle multiple boundaries
 export const boundaries_polygon = (graph, attributes = {}) => {
 	const g = Libraries.SVG.g();
-	if (!graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) { return g; }
+	if (!graph || !graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) { return g; }
   const boundary = get_boundary(graph)
 		.vertices
     .map(v => [0, 1].map(i => graph.vertices_coords[v][i]));
@@ -38,4 +38,3 @@ export const boundaries_polygon = (graph, attributes = {}) => {
 		.forEach(attr => g[K.setAttributeNS](null, attr, attributes[attr]));
   return g;
 };
-

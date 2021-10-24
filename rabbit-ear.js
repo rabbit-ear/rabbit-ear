@@ -2425,8 +2425,8 @@
       }));
     Definitions[primitiveName].proto = Proto.prototype;
   });
-  const math$1 = Constructors$1;
-  math$1.core = Object.assign(Object.create(null),
+  const math$2 = Constructors$1;
+  math$2.core = Object.assign(Object.create(null),
     constants,
     resizers,
     getters,
@@ -2454,9 +2454,9 @@
       clip_line_in_convex_polygon,
     }
   );
-  math$1.typeof = type_of;
-  math$1.intersect = intersect;
-  math$1.overlap = overlap;
+  math$2.typeof = type_of;
+  math$2.intersect = intersect;
+  math$2.overlap = overlap;
 
   var root = Object.create(null);
 
@@ -2467,6 +2467,12 @@
     library.linker(this);
   };
 
+  const VERTICES = "vertices";
+  const VERTICES_COORDS = "vertices_coords";
+  const EDGES = "edges";
+  const EDGES_ASSIGNMENT = "edges_assignment";
+  const EDGES_FOLDANGLE = "edges_foldAngle";
+  const FACES = "faces";
   const file_spec = 1.1;
   const file_creator = "Rabbit Ear";
   const fold_keys = {
@@ -2520,12 +2526,6 @@
     "faces_angles",
     "faces_matrix"
   ]);
-  const VERTICES = "vertices";
-  const EDGES = "edges";
-  const FACES = "faces";
-  const VERTICES_COORDS = "vertices_coords";
-  const EDGES_ASSIGNMENT = "edges_assignment";
-  const EDGES_FOLDANGLE = "edges_foldAngle";
   const singularize = {
     vertices: "vertex",
     edges: "edge",
@@ -2700,16 +2700,16 @@
   const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) =>
     vertices
       .map(v => vertices_coords[v])
-      .map(coord => math$1.core.subtract(coord, vertices_coords[vertex]))
+      .map(coord => math$2.core.subtract(coord, vertices_coords[vertex]))
       .map(vec => Math.atan2(vec[1], vec[0]))
-      .map(angle => angle > -math$1.core.EPSILON ? angle : angle + Math.PI * 2)
+      .map(angle => angle > -math$2.core.EPSILON ? angle : angle + Math.PI * 2)
       .map((a, i) => ({a, i}))
       .sort((a, b) => a.a - b.a)
       .map(el => el.i)
       .map(i => vertices[i]);
   const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
     vertices
-      .map(i => ({ i, d: math$1.core.dot(vertices_coords[i], vector) }))
+      .map(i => ({ i, d: math$2.core.dot(vertices_coords[i], vector) }))
       .sort((a, b) => a.d - b.d)
       .map(a => a.i);
 
@@ -2810,15 +2810,15 @@
           const edge_a = edge_map[`${a} ${b}`];
           const edge_b = edge_map[`${b} ${a}`];
           if (edge_a !== undefined) { return edges_vector[edge_a]; }
-          if (edge_b !== undefined) { return math$1.core.flip(edges_vector[edge_b]); }
+          if (edge_b !== undefined) { return math$2.core.flip(edges_vector[edge_b]); }
         }));
   };
   const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
     make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
       .map(vectors => vectors.length === 1
-        ? [math$1.core.TWO_PI]
-        : math$1.core.counter_clockwise_sectors2(vectors));
-  const make_vertices_coords_folded$1 = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
+        ? [math$2.core.TWO_PI]
+        : math$2.core.counter_clockwise_sectors2(vectors));
+  const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
     if (!faces_matrix || root_face !== undefined) {
       faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
     }
@@ -2827,10 +2827,10 @@
     }
     const vertices_matrix = vertices_faces
       .map(faces => faces[0])
-      .map(face => face === undefined ? math$1.core.identity3x4 : faces_matrix[face]);
+      .map(face => face === undefined ? math$2.core.identity3x4 : faces_matrix[face]);
     return vertices_coords
-      .map(coord => math$1.core.resize(3, coord))
-      .map((coord, i) => math$1.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
+      .map(coord => math$2.core.resize(3, coord))
+      .map((coord, i) => math$2.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
   };
   const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
     edges_vertices.map((verts, i) => {
@@ -2862,10 +2862,10 @@
       .map(ev => ev.map(v => vertices_coords[v]));
   const make_edges_vector = ({ vertices_coords, edges_vertices }) =>
     make_edges_coords({ vertices_coords, edges_vertices })
-      .map(verts => math$1.core.subtract(verts[1], verts[0]));
+      .map(verts => math$2.core.subtract(verts[1], verts[0]));
   const make_edges_length = ({ vertices_coords, edges_vertices }) =>
     make_edges_vector({ vertices_coords, edges_vertices })
-      .map(vec => math$1.core.magnitude(vec));
+      .map(vec => math$2.core.magnitude(vec));
   const make_edges_coords_min_max = ({ vertices_coords, edges_vertices, edges_coords }) => {
     if (!edges_coords) {
       edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
@@ -2880,14 +2880,14 @@
       return [mins, maxs];
     });
   };
-  const make_edges_coords_min_max_exclusive = (graph, epsilon = math$1.core.EPSILON) => {
+  const make_edges_coords_min_max_exclusive = (graph, epsilon = math$2.core.EPSILON) => {
     const ep = [+epsilon, -epsilon];
     return make_edges_coords_min_max(graph)
       .map(min_max => min_max
         .map((vec, i) => vec
           .map(n => n + ep[i])));
   };
-  const make_edges_coords_min_max_inclusive = (graph, epsilon = math$1.core.EPSILON) => {
+  const make_edges_coords_min_max_inclusive = (graph, epsilon = math$2.core.EPSILON) => {
     const ep = [-epsilon, +epsilon];
     return make_edges_coords_min_max(graph)
       .map(min_max => min_max
@@ -2989,7 +2989,7 @@
       }
     }
     const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
-    const faces_matrix = faces_vertices.map(() => math$1.core.identity3x4);
+    const faces_matrix = faces_vertices.map(() => math$2.core.identity3x4);
     make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
       .slice(1)
       .forEach(level => level
@@ -2997,19 +2997,19 @@
           const verts = entry.edge_vertices.map(v => vertices_coords[v]);
           const edgeKey = entry.edge_vertices.join(" ");
           const edge = edge_map[edgeKey];
-          const local_matrix = math$1.core.make_matrix3_rotate(
+          const local_matrix = math$2.core.make_matrix3_rotate(
             edges_foldAngle[edge] * Math.PI / 180,
-            math$1.core.subtract(...math$1.core.resize_up(verts[1], verts[0])),
+            math$2.core.subtract(...math$2.core.resize_up(verts[1], verts[0])),
             verts[0],
           );
-          faces_matrix[entry.face] = math$1.core
+          faces_matrix[entry.face] = math$2.core
             .multiply_matrices3(faces_matrix[entry.parent], local_matrix);
         }));
     return faces_matrix;
   };
   const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertices
     .map(fv => fv.map(v => vertices_coords[v]))
-    .map(coords => math$1.core.centroid(coords));
+    .map(coords => math$2.core.centroid(coords));
   const make_faces_coloring_from_matrix = ({ faces_matrix }) => faces_matrix
     .map(m => m[0] * m[4] - m[1] * m[3])
     .map(c => c >= 0);
@@ -3034,7 +3034,7 @@
     make_vertices_to_face: make_vertices_to_face,
     make_vertices_vertices_vector: make_vertices_vertices_vector,
     make_vertices_sectors: make_vertices_sectors,
-    make_vertices_coords_folded: make_vertices_coords_folded$1,
+    make_vertices_coords_folded: make_vertices_coords_folded,
     make_edges_edges: make_edges_edges,
     make_edges_faces: make_edges_faces,
     make_edges_foldAngle: make_edges_foldAngle,
@@ -3165,27 +3165,27 @@
   });
 
   const reflect_point$1 = (foldLine, point) => {
-    const matrix = math$1.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
-    return math$1.core.multiply_matrix2_vector2(matrix, point);
+    const matrix = math$2.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
+    return math$2.core.multiply_matrix2_vector2(matrix, point);
   };
   const test_axiom1_2 = (params, poly) => [params.points
-    .map(p => math$1.core.overlap_convex_polygon_point(poly, p, ear.math.include))
+    .map(p => math$2.core.overlap_convex_polygon_point(poly, p, ear.math.include))
     .reduce((a, b) => a && b, true)];
   const test_axiom3 = (params, poly) => {
-    const segments = params.lines.map(line => math$1.core
+    const segments = params.lines.map(line => math$2.core
       .clip_line_in_convex_polygon(poly,
         line.vector,
         line.origin,
-        math$1.core.include,
-        math$1.core.include_l));
+        math$2.core.include,
+        math$2.core.include_l));
     if (segments[0] === undefined || segments[1] === undefined) {
       return [false, false];
     }
-    const results = math$1.core.axiom3(
+    const results = math$2.core.axiom3(
       params.lines[0].vector, params.lines[0].origin,
       params.lines[1].vector, params.lines[1].origin);
     const results_clip = results
-      .map(line => line === undefined ? undefined : math$1.core
+      .map(line => line === undefined ? undefined : math$2.core
         .intersect_convex_polygon_line(
           poly,
           line.vector,
@@ -3200,78 +3200,78 @@
       ]);
     const reflectMatch = seg0Reflect
       .map((seg, i) => seg === undefined ? false : (
-        math$1.core.overlap_line_point(math$1.core
+        math$2.core.overlap_line_point(math$2.core
           .subtract(segments[1][1], segments[1][0]),
-          segments[1][0], seg[0], math$1.core.include_s) ||
-        math$1.core.overlap_line_point(math$1.core
+          segments[1][0], seg[0], math$2.core.include_s) ||
+        math$2.core.overlap_line_point(math$2.core
           .subtract(segments[1][1], segments[1][0]),
-          segments[1][0], seg[1], math$1.core.include_s) ||
-        math$1.core.overlap_line_point(math$1.core
+          segments[1][0], seg[1], math$2.core.include_s) ||
+        math$2.core.overlap_line_point(math$2.core
           .subtract(seg[1], seg[0]), seg[0],
-          segments[1][0], math$1.core.include_s) ||
-        math$1.core.overlap_line_point(math$1.core
+          segments[1][0], math$2.core.include_s) ||
+        math$2.core.overlap_line_point(math$2.core
           .subtract(seg[1], seg[0]), seg[0],
-          segments[1][1], math$1.core.include_s)
+          segments[1][1], math$2.core.include_s)
       ));
     return [0, 1].map(i => reflectMatch[i] === true && results_inside[i] === true);
   };
   const test_axiom4 = (params, poly) => {
-    const intersect = math$1.core.intersect_line_line(
+    const intersect = math$2.core.intersect_line_line(
       params.lines[0].vector, params.lines[0].origin,
-      math$1.core.rotate90(params.lines[0].vector), params.points[0],
-      math$1.core.include_l, math$1.core.include_l);
+      math$2.core.rotate90(params.lines[0].vector), params.points[0],
+      math$2.core.include_l, math$2.core.include_l);
     return [
       [params.points[0], intersect]
         .filter(a => a !== undefined)
-        .map(p => math$1.core.overlap_convex_polygon_point(poly, p, math$1.core.include))
+        .map(p => math$2.core.overlap_convex_polygon_point(poly, p, math$2.core.include))
         .reduce((a, b) => a && b, true)
     ];
   };
   const test_axiom5 = (params, poly) => {
-    const result = math$1.core.axiom5(
+    const result = math$2.core.axiom5(
       params.lines[0].vector, params.lines[0].origin,
       params.points[0], params.points[1]);
     if (result.length === 0) { return []; }
     const testParamPoints = params.points
-      .map(point => math$1.core.overlap_convex_polygon_point(poly, point, math$1.core.include))
+      .map(point => math$2.core.overlap_convex_polygon_point(poly, point, math$2.core.include))
       .reduce((a, b) => a && b, true);
     const testReflections = result
       .map(foldLine => reflect_point$1(foldLine, params.points[1]))
-      .map(point => math$1.core.overlap_convex_polygon_point(poly, point, math$1.core.include));
+      .map(point => math$2.core.overlap_convex_polygon_point(poly, point, math$2.core.include));
     return testReflections.map(ref => ref && testParamPoints);
   };
   const test_axiom6 = function (params, poly) {
-    const results = math$1.core.axiom6(
+    const results = math$2.core.axiom6(
       params.lines[0].vector, params.lines[0].origin,
       params.lines[1].vector, params.lines[1].origin,
       params.points[0], params.points[1]);
     if (results.length === 0) { return []; }
     const testParamPoints = params.points
-      .map(point => math$1.core.overlap_convex_polygon_point(poly, point, math$1.core.include))
+      .map(point => math$2.core.overlap_convex_polygon_point(poly, point, math$2.core.include))
       .reduce((a, b) => a && b, true);
     if (!testParamPoints) { return results.map(() => false); }
     const testReflect0 = results
       .map(foldLine => reflect_point$1(foldLine, params.points[0]))
-      .map(point => math$1.core.overlap_convex_polygon_point(poly, point, math$1.core.include));
+      .map(point => math$2.core.overlap_convex_polygon_point(poly, point, math$2.core.include));
     const testReflect1 = results
       .map(foldLine => reflect_point$1(foldLine, params.points[1]))
-      .map(point => math$1.core.overlap_convex_polygon_point(poly, point, math$1.core.include));
+      .map(point => math$2.core.overlap_convex_polygon_point(poly, point, math$2.core.include));
     return results.map((_, i) => testReflect0[i] && testReflect1[i]);
   };
   const test_axiom7 = (params, poly) => {
-    const paramPointTest = math$1.core
-      .overlap_convex_polygon_point(poly, params.points[0], math$1.core.include);
-    const foldLine = math$1.core.axiom7(
+    const paramPointTest = math$2.core
+      .overlap_convex_polygon_point(poly, params.points[0], math$2.core.include);
+    const foldLine = math$2.core.axiom7(
       params.lines[0].vector, params.lines[0].origin,
       params.lines[1].vector, params.points[0]);
     if (foldLine === undefined) { return [false]; }
     const reflected = reflect_point$1(foldLine, params.points[0]);
-    const reflectTest = math$1.core.overlap_convex_polygon_point(poly, reflected, math$1.core.include);
-    const paramLineTest = (math$1.core.intersect_convex_polygon_line(poly,
+    const reflectTest = math$2.core.overlap_convex_polygon_point(poly, reflected, math$2.core.include);
+    const paramLineTest = (math$2.core.intersect_convex_polygon_line(poly,
       params.lines[1].vector,
       params.lines[1].origin,
-      math$1.core.include_s,
-      math$1.core.include_l) !== undefined);
+      math$2.core.include_s,
+      math$2.core.include_l) !== undefined);
     return [paramPointTest && reflectTest && paramLineTest];
   };
   const test_axiom_funcs = [null,
@@ -3306,17 +3306,17 @@
     }
   };
   const axiom = (number, params = {}, boundary) => {
-    const points = (params.points || []).map(p => math$1.core.get_vector(p));
-    const lines = (params.lines || []).map(l => math$1.core.get_line(l));
+    const points = (params.points || []).map(p => math$2.core.get_vector(p));
+    const lines = (params.lines || []).map(l => math$2.core.get_line(l));
     const lines_ud = (params.lines || [])
       .map(l => l.u !== undefined && l.d !== undefined ? l : undefined)
       .filter(a => a !== undefined);
     const ud = lines_ud.length >= lines.length;
     const result = ud
-      ? math$1.core[`axiom${number}ud`](...lines_ud, ...points)
-      : math$1.core[`axiom${number}`](...lines, ...points);
+      ? math$2.core[`axiom${number}ud`](...lines_ud, ...points)
+      : math$2.core[`axiom${number}`](...lines, ...points);
     return axiom_arrayify(number, result)
-      .map(l => ud ? math$1.line.ud(l) : math$1.line(l));
+      .map(l => ud ? math$2.line.ud(l) : math$2.line(l));
   };
   const axioms$1 = [null, 1, 2, 3, 4, 5, 6, 7];
   delete axioms$1[0];
@@ -3325,111 +3325,111 @@
   });
   axiom.test = test_axiom;
 
-  const line_line_for_arrows = (a, b) => math$1.core.intersect_line_line(
-  	a.vector, a.origin, b.vector, b.origin, math$1.core.include_l, math$1.core.include_l
+  const line_line_for_arrows = (a, b) => math$2.core.intersect_line_line(
+  	a.vector, a.origin, b.vector, b.origin, math$2.core.include_l, math$2.core.include_l
   );
   const reflect_point = (foldLine, point) => {
-  	const matrix = math$1.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
-    return math$1.core.multiply_matrix2_vector2(matrix, point);
+  	const matrix = math$2.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
+    return math$2.core.multiply_matrix2_vector2(matrix, point);
   };
-  const boundary_for_arrows = ({ vertices_coords }) => math$1.core
+  const boundary_for_arrows = ({ vertices_coords }) => math$2.core
   	.convex_hull(vertices_coords);
   const widest_perp = (graph, foldLine, point) => {
   	const boundary = boundary_for_arrows(graph);
   	if (point === undefined) {
-  		const foldSegment = math$1.core.clip_line_in_convex_polygon(boundary,
+  		const foldSegment = math$2.core.clip_line_in_convex_polygon(boundary,
         foldLine.vector,
         foldLine.origin,
-        math$1.core.exclude,
-        math$1.core.include_l);
-  		point = math$1.core.midpoint(...foldSegment);
+        math$2.core.exclude,
+        math$2.core.include_l);
+  		point = math$2.core.midpoint(...foldSegment);
   	}
-    const perpVector = math$1.core.rotate270(foldLine.vector);
-  	const smallest = math$1.core
+    const perpVector = math$2.core.rotate270(foldLine.vector);
+  	const smallest = math$2.core
   		.clip_line_in_convex_polygon(boundary,
         perpVector,
         point,
-        math$1.core.exclude,
-        math$1.core.include_l)
-    	.map(pt => math$1.core.distance(point, pt))
+        math$2.core.exclude,
+        math$2.core.include_l)
+    	.map(pt => math$2.core.distance(point, pt))
       .sort((a, b) => a - b)
       .shift();
-  	const scaled = math$1.core.scale(math$1.core.normalize(perpVector), smallest);
-  	return math$1.segment(
-  		math$1.core.add(point, math$1.core.flip(scaled)),
-  		math$1.core.add(point, scaled)
+  	const scaled = math$2.core.scale(math$2.core.normalize(perpVector), smallest);
+  	return math$2.segment(
+  		math$2.core.add(point, math$2.core.flip(scaled)),
+  		math$2.core.add(point, scaled)
   	);
   };
   const between_2_segments = (params, segments, foldLine) => {
   	const midpoints = segments
-  		.map(seg => math$1.core.midpoint(seg[0], seg[1]));
-  	const midpointLine = math$1.line.fromPoints(...midpoints);
-  	const origin = math$1.intersect(foldLine, midpointLine);
-  	const perpLine = math$1.line(foldLine.vector.rotate90(), origin);
-  	return math$1.segment(params.lines.map(line => math$1.intersect(line, perpLine)));
+  		.map(seg => math$2.core.midpoint(seg[0], seg[1]));
+  	const midpointLine = math$2.line.fromPoints(...midpoints);
+  	const origin = math$2.intersect(foldLine, midpointLine);
+  	const perpLine = math$2.line(foldLine.vector.rotate90(), origin);
+  	return math$2.segment(params.lines.map(line => math$2.intersect(line, perpLine)));
   };
   const between_2_intersecting_segments = (params, intersect, foldLine, boundary) => {
     const paramVectors = params.lines.map(l => l.vector);
-    const flippedVectors = paramVectors.map(math$1.core.flip);
+    const flippedVectors = paramVectors.map(math$2.core.flip);
     const paramRays = paramVectors
       .concat(flippedVectors)
-      .map(vec => math$1.ray(vec, intersect));
+      .map(vec => math$2.ray(vec, intersect));
     const a1 = paramRays.filter(ray =>
-      math$1.core.dot(ray.vector, foldLine.vector) > 0 &&
-      math$1.core.cross2(ray.vector, foldLine.vector) > 0
+      math$2.core.dot(ray.vector, foldLine.vector) > 0 &&
+      math$2.core.cross2(ray.vector, foldLine.vector) > 0
     ).shift();
     const a2 = paramRays.filter(ray =>
-      math$1.core.dot(ray.vector, foldLine.vector) > 0 &&
-      math$1.core.cross2(ray.vector, foldLine.vector) < 0
+      math$2.core.dot(ray.vector, foldLine.vector) > 0 &&
+      math$2.core.cross2(ray.vector, foldLine.vector) < 0
     ).shift();
     const b1 = paramRays.filter(ray =>
-      math$1.core.dot(ray.vector, foldLine.vector) < 0 &&
-      math$1.core.cross2(ray.vector, foldLine.vector) > 0
+      math$2.core.dot(ray.vector, foldLine.vector) < 0 &&
+      math$2.core.cross2(ray.vector, foldLine.vector) > 0
     ).shift();
     const b2 = paramRays.filter(ray =>
-      math$1.core.dot(ray.vector, foldLine.vector) < 0 &&
-      math$1.core.cross2(ray.vector, foldLine.vector) < 0
+      math$2.core.dot(ray.vector, foldLine.vector) < 0 &&
+      math$2.core.cross2(ray.vector, foldLine.vector) < 0
     ).shift();
-    const rayEndpoints = [a1, a2, b1, b2].map(ray => math$1.core
-  		.intersect_convex_polygon_line(boundary, ray.vector, ray.origin, math$1.core.exclude_s, math$1.core.exclude_r)
+    const rayEndpoints = [a1, a2, b1, b2].map(ray => math$2.core
+  		.intersect_convex_polygon_line(boundary, ray.vector, ray.origin, math$2.core.exclude_s, math$2.core.exclude_r)
   		.shift()
   		.shift());
     const rayLengths = rayEndpoints
-      .map(pt => math$1.core.distance(pt, intersect));
+      .map(pt => math$2.core.distance(pt, intersect));
   	const arrowStart = (rayLengths[0] < rayLengths[1]
   		? rayEndpoints[0]
   		: rayEndpoints[1]);
   	const arrowEnd = (rayLengths[0] < rayLengths[1]
-  		? math$1.core.add(a2.origin, a2.vector.normalize().scale(rayLengths[0]))
-  		: math$1.core.add(a1.origin, a1.vector.normalize().scale(rayLengths[1])));
+  		? math$2.core.add(a2.origin, a2.vector.normalize().scale(rayLengths[0]))
+  		: math$2.core.add(a1.origin, a1.vector.normalize().scale(rayLengths[1])));
   	const arrowStart2 = (rayLengths[2] < rayLengths[3]
   		? rayEndpoints[2]
   		: rayEndpoints[3]);
   	const arrowEnd2 = (rayLengths[2] < rayLengths[3]
-  		? math$1.core.add(b2.origin, b2.vector.normalize().scale(rayLengths[2]))
-  		: math$1.core.add(b1.origin, b1.vector.normalize().scale(rayLengths[3])));
+  		? math$2.core.add(b2.origin, b2.vector.normalize().scale(rayLengths[2]))
+  		: math$2.core.add(b1.origin, b1.vector.normalize().scale(rayLengths[3])));
   	return [
-  		math$1.segment(arrowStart, arrowEnd),
-  		math$1.segment(arrowStart2, arrowEnd2)
+  		math$2.segment(arrowStart, arrowEnd),
+  		math$2.segment(arrowStart2, arrowEnd2)
   	];
   };
   const axiom_1_arrows = (params, graph) => axiom(1, params)
   	.map(foldLine => [widest_perp(graph, foldLine)]);
   const axiom_2_arrows = params => [
-  	[math$1.segment(params.points)]
+  	[math$2.segment(params.points)]
   ];
   const axiom_3_arrows = (params, graph) => {
   	const boundary = boundary_for_arrows(graph);
-  	const segs = params.lines.map(l => math$1.core
+  	const segs = params.lines.map(l => math$2.core
   		.clip_line_in_convex_polygon(boundary,
         l.vector,
         l.origin,
-        math$1.core.exclude,
-        math$1.core.include_l));
-    const segVecs = segs.map(seg => math$1.core.subtract(seg[1], seg[0]));
-    const intersect = math$1.core.intersect_line_line(
+        math$2.core.exclude,
+        math$2.core.include_l));
+    const segVecs = segs.map(seg => math$2.core.subtract(seg[1], seg[0]));
+    const intersect = math$2.core.intersect_line_line(
   		segVecs[0], segs[0][0], segVecs[1], segs[1][0],
-      math$1.core.exclude_s, math$1.core.exclude_s);
+      math$2.core.exclude_s, math$2.core.exclude_s);
     return !intersect
   		? [between_2_segments(params, segs, axiom(3, params)
   			.filter(a => a !== undefined).shift())]
@@ -3444,16 +3444,16 @@
   		line_line_for_arrows(foldLine, params.lines[0])
   	)]);
   const axiom_5_arrows = (params) => axiom(5, params)
-  	.map(foldLine => [math$1.segment(
+  	.map(foldLine => [math$2.segment(
   		params.points[1],
   		reflect_point(foldLine, params.points[1])
   	)]);
   const axiom_6_arrows = (params) => axiom(6, params)
   	.map(foldLine => params.points
-  		.map(pt => math$1.segment(pt, reflect_point(foldLine, pt))));
+  		.map(pt => math$2.segment(pt, reflect_point(foldLine, pt))));
   const axiom_7_arrows = (params, graph) => axiom(7, params)
   	.map(foldLine => [
-  		math$1.segment(params.points[0], reflect_point(foldLine, params.points[0])),
+  		math$2.segment(params.points[0], reflect_point(foldLine, params.points[0])),
   		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1]))
   	]);
   const arrow_functions = [null,
@@ -3468,10 +3468,10 @@
   delete arrow_functions[0];
   const axiom_arrows = (number, params = {}, ...args) => {
   	const points = params.points
-  		? params.points.map(p => math$1.core.get_vector(p))
+  		? params.points.map(p => math$2.core.get_vector(p))
   		: undefined;
   	const lines = params.lines
-      ? params.lines.map(l => math$1.core.get_line(l))
+      ? params.lines.map(l => math$2.core.get_line(l))
   		: undefined;
   	return arrow_functions[number]({ points, lines }, ...args);
   };
@@ -3583,7 +3583,7 @@
   const up_down_map = { V: 1, v: 1, M: -1, m: -1 };
   const upOrDown = (mv, i) => i % 2 === 0 ? up_down_map[mv] : -up_down_map[mv];
   const between = (arr, i, j) => (i < j) ? arr.slice(i + 1, j) : arr.slice(j + 1, i);
-  const get_sectors_layer = (sectors, assignments, epsilon = math$1.core.EPSILON) => {
+  const get_sectors_layer = (sectors, assignments, epsilon = math$2.core.EPSILON) => {
     let pointer = 0;
     const fold_location = sectors
       .map((sec, i) => i % 2 === 0 ? sec : -sec)
@@ -3689,11 +3689,11 @@
   };
   const kawasaki_solutions_radians = (radians) => radians
     .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-    .map(pair => math$1.core.counter_clockwise_angle_radians(...pair))
+    .map(pair => math$2.core.counter_clockwise_angle_radians(...pair))
     .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
     .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
     .map((kawasakis, i) => radians[i] + kawasakis[0])
-    .map((angle, i) => (math$1.core.is_counter_clockwise_between(angle,
+    .map((angle, i) => (math$2.core.is_counter_clockwise_between(angle,
       radians[i], radians[(i + 1) % radians.length])
       ? angle
       : undefined));
@@ -3924,7 +3924,7 @@
     return duplicates;
   };
 
-  const are_vertices_equivalent = (a, b, epsilon = math$1.core.EPSILON) => {
+  const are_vertices_equivalent = (a, b, epsilon = math$2.core.EPSILON) => {
     const degree = a.length;
     for (let i = 0; i < degree; i += 1) {
       if (Math.abs(a[i] - b[i]) > epsilon) {
@@ -3933,7 +3933,7 @@
     }
     return true;
   };
-  const get_duplicate_vertices = ({ vertices_coords }, epsilon = math$1.core.EPSILON) => {
+  const get_duplicate_vertices = ({ vertices_coords }, epsilon = math$2.core.EPSILON) => {
     const equivalent_matrix = vertices_coords.map(() => []);
     for (let i = 0; i < vertices_coords.length - 1; i += 1) {
       for (let j = i + 1; j < vertices_coords.length; j += 1) {
@@ -4006,13 +4006,13 @@
       remove: remove_indices,
     };
   };
-  const remove_duplicate_vertices = (graph, epsilon = math$1.core.EPSILON) => {
+  const remove_duplicate_vertices = (graph, epsilon = math$2.core.EPSILON) => {
     const clusters = get_duplicate_vertices(graph, epsilon);
     const map = [];
     clusters.forEach((verts, i) => verts.forEach(v => { map[v] = i; }));
     graph.vertices_coords = clusters
       .map(arr => arr.map(i => graph.vertices_coords[i]))
-      .map(arr => math$1.core.average(...arr));
+      .map(arr => math$2.core.average(...arr));
     get_graph_keys_with_suffix(graph, VERTICES)
       .forEach(sKey => graph[sKey]
         .forEach((_, i) => graph[sKey][i]
@@ -4099,7 +4099,7 @@
     return graph;
   };
 
-  const get_edges_vertices_span = (graph, epsilon = math$1.core.EPSILON) =>
+  const get_edges_vertices_span = (graph, epsilon = math$2.core.EPSILON) =>
     make_edges_coords_min_max_inclusive(graph)
       .map((min_max, e) => graph.vertices_coords
         .map((vert, v) => (
@@ -4107,7 +4107,7 @@
           vert[1] > min_max[0][1] - epsilon &&
           vert[0] < min_max[1][0] + epsilon &&
           vert[1] < min_max[1][1] + epsilon)));
-  const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math$1.core.EPSILON) => {
+  const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math$2.core.EPSILON) => {
     const min_max = make_edges_coords_min_max_inclusive({ vertices_coords, edges_vertices, edges_coords }, epsilon);
     const span_overlaps = edges_vertices.map(() => []);
     for (let e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {
@@ -4131,7 +4131,7 @@
     get_edges_edges_span: get_edges_edges_span
   });
 
-  const get_collinear_vertices = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math$1.core.EPSILON) => {
+  const get_collinear_vertices = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math$2.core.EPSILON) => {
     if (!edges_coords) {
       edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
     }
@@ -4141,11 +4141,11 @@
     for (let e = 0; e < edges_coords.length; e += 1) {
       for (let v = 0; v < vertices_coords.length; v += 1) {
         if (!edges_span_vertices[e][v]) { continue; }
-        edges_span_vertices[e][v] = math$1.core.overlap_line_point(
-          math$1.core.subtract(edges_coords[e][1], edges_coords[e][0]),
+        edges_span_vertices[e][v] = math$2.core.overlap_line_point(
+          math$2.core.subtract(edges_coords[e][1], edges_coords[e][0]),
           edges_coords[e][0],
           vertices_coords[v],
-          math$1.core.exclude_s,
+          math$2.core.exclude_s,
           epsilon
         );
       }
@@ -4158,7 +4158,7 @@
 
   const get_edges_edges_intersections = function ({
     vertices_coords, edges_vertices, edges_vector, edges_origin
-  }, epsilon = math$1.core.EPSILON) {
+  }, epsilon = math$2.core.EPSILON) {
     if (!edges_vector) {
       edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
@@ -4173,13 +4173,13 @@
           edges_intersections[i][j] = undefined;
           continue;
         }
-        edges_intersections[i][j] = math$1.core.intersect_line_line(
+        edges_intersections[i][j] = math$2.core.intersect_line_line(
           edges_vector[i],
           edges_origin[i],
           edges_vector[j],
           edges_origin[j],
-          math$1.core.exclude_s,
-          math$1.core.exclude_s,
+          math$2.core.exclude_s,
+          math$2.core.exclude_s,
           epsilon
         );
         edges_intersections[j][i] = edges_intersections[i][j];
@@ -4188,10 +4188,10 @@
     return edges_intersections;
   };
 
-  const fragment_graph = (graph, epsilon = math$1.core.EPSILON) => {
+  const fragment_graph = (graph, epsilon = math$2.core.EPSILON) => {
     const edges_coords = graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]));
-    const edges_vector = edges_coords.map(e => math$1.core.subtract(e[1], e[0]));
+    const edges_vector = edges_coords.map(e => math$2.core.subtract(e[1], e[0]));
     const edges_origin = edges_coords.map(e => e[0]);
     const edges_intersections = get_edges_edges_intersections({
       vertices_coords: graph.vertices_coords,
@@ -4274,7 +4274,7 @@
     "edges_assignment",
     "edges_foldAngle",
   ];
-  const fragment = (graph, epsilon = math$1.core.EPSILON) => {
+  const fragment = (graph, epsilon = math$2.core.EPSILON) => {
     graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
     [VERTICES, EDGES, FACES]
       .map(key => get_graph_keys_with_prefix(graph, key))
@@ -4315,12 +4315,12 @@
     return change;
   };
 
-  const add_vertices = (graph, vertices_coords, epsilon = math$1.core.EPSILON) => {
+  const add_vertices = (graph, vertices_coords, epsilon = math$2.core.EPSILON) => {
     if (!graph.vertices_coords) { graph.vertices_coords = []; }
     if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
     const vertices_equivalent_vertices = vertices_coords
       .map(vertex => graph.vertices_coords
-        .map(v => math$1.core.distance(v, vertex) < epsilon)
+        .map(v => math$2.core.distance(v, vertex) < epsilon)
         .map((on_vertex, i) => on_vertex ? i : undefined)
         .filter(a => a !== undefined)
         .shift());
@@ -4333,11 +4333,11 @@
   };
 
   const vef = ["vertices", "edges", "faces"];
-  const make_vertices_map_and_consider_duplicates = (target, source, epsilon = math$1.core.EPSILON) => {
+  const make_vertices_map_and_consider_duplicates = (target, source, epsilon = math$2.core.EPSILON) => {
     let index = target.vertices_coords.length;
     return source.vertices_coords
       .map(vertex => target.vertices_coords
-        .map(v => math$1.core.distance(v, vertex) < epsilon)
+        .map(v => math$2.core.distance(v, vertex) < epsilon)
         .map((on_vertex, i) => on_vertex ? i : undefined)
         .filter(a => a !== undefined)
         .shift())
@@ -4363,7 +4363,7 @@
       .forEach(key => source[key]
         .forEach((arr, i) => arr
           .forEach((el, j) => { source[key][i][j] = maps[geom][el]; }))));
-  const assign$1 = (target, source, epsilon = math$1.core.EPSILON) => {
+  const assign$1 = (target, source, epsilon = math$2.core.EPSILON) => {
     const prefixes = {};
     const suffixes = {};
     const maps = {};
@@ -4410,31 +4410,31 @@
   const apply_matrix_to_graph = function (graph, matrix) {
     filter_keys_with_suffix(graph, "coords").forEach((key) => {
       graph[key] = graph[key]
-        .map(v => math$1.core.resize(3, v))
-        .map(v => math$1.core.multiply_matrix3_vector3(matrix, v));
+        .map(v => math$2.core.resize(3, v))
+        .map(v => math$2.core.multiply_matrix3_vector3(matrix, v));
     });
     filter_keys_with_suffix(graph, "matrix").forEach((key) => {
       graph[key] = graph[key]
-        .map(m => math$1.core.multiply_matrices3(m, matrix));
+        .map(m => math$2.core.multiply_matrices3(m, matrix));
     });
     return graph;
   };
   const transform_scale = (graph, scale, ...args) => {
-    const vector = math$1.core.get_vector(...args);
-    const vector3 = math$1.core.resize(3, vector);
-    const matrix = math$1.core.make_matrix3_scale(scale, vector3);
+    const vector = math$2.core.get_vector(...args);
+    const vector3 = math$2.core.resize(3, vector);
+    const matrix = math$2.core.make_matrix3_scale(scale, vector3);
     return apply_matrix_to_graph(graph, matrix);
   };
   const transform_translate = (graph, ...args) => {
-    const vector = math$1.core.get_vector(...args);
-    const vector3 = math$1.core.resize(3, vector);
-    const matrix = math$1.core.make_matrix3_translate(...vector3);
+    const vector = math$2.core.get_vector(...args);
+    const vector3 = math$2.core.resize(3, vector);
+    const matrix = math$2.core.make_matrix3_translate(...vector3);
     return apply_matrix_to_graph(graph, matrix);
   };
   const transform_rotateZ = (graph, angle, ...args) => {
-    const vector = math$1.core.get_vector(...args);
-    const vector3 = math$1.core.resize(3, vector);
-    const matrix = math$1.core.make_matrix3_rotateZ(angle, ...vector3);
+    const vector = math$2.core.get_vector(...args);
+    const vector3 = math$2.core.resize(3, vector);
+    const matrix = math$2.core.make_matrix3_rotateZ(angle, ...vector3);
     return apply_matrix_to_graph(graph, matrix);
   };
   var transform = {
@@ -4459,9 +4459,9 @@
 
   const nearest_vertex = ({ vertices_coords }, point) => {
     if (!vertices_coords) { return undefined; }
-    const p = math$1.core.resize(vertices_coords[0].length, point);
+    const p = math$2.core.resize(vertices_coords[0].length, point);
     const nearest = vertices_coords
-      .map((v, i) => ({ d: math$1.core.distance(p, v), i }))
+      .map((v, i) => ({ d: math$2.core.distance(p, v), i }))
       .sort((a, b) => a.d - b.d)
       .shift();
     return nearest ? nearest.i : undefined;
@@ -4470,18 +4470,18 @@
     if (!vertices_coords || !edges_vertices) { return undefined; }
     const nearest_points = edges_vertices
       .map(e => e.map(ev => vertices_coords[ev]))
-      .map(e => math$1.core.nearest_point_on_line(
-        math$1.core.subtract(e[1], e[0]),
+      .map(e => math$2.core.nearest_point_on_line(
+        math$2.core.subtract(e[1], e[0]),
         e[0],
         point,
-        math$1.core.segment_limiter));
-    return math$1.core.smallest_comparison_search(point, nearest_points, math$1.core.distance);
+        math$2.core.segment_limiter));
+    return math$2.core.smallest_comparison_search(point, nearest_points, math$2.core.distance);
   };
   const face_containing_point = ({ vertices_coords, faces_vertices }, point) => {
     if (!vertices_coords || !faces_vertices) { return undefined; }
     const face = faces_vertices
       .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-      .filter(f => math$1.core.overlap_convex_polygon_point(f.face, point))
+      .filter(f => math$2.core.overlap_convex_polygon_point(f.face, point))
       .shift();
     return (face === undefined ? undefined : face.i);
   };
@@ -4533,6 +4533,7 @@
   const back = "back";
   const _class = "class";
   const index = "index";
+  const stroke_width = "stroke-width";
   const setAttributeNS = "setAttributeNS";
   const appendChild = "appendChild";
   const vertices_coords = "vertices_coords";
@@ -4812,7 +4813,7 @@
   const add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
   const sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
   const scale2 = (a, s) => [a[0] * s, a[1] * s];
-  var math = Object.freeze({
+  var math$1 = Object.freeze({
   	__proto__: null,
   	magnitudeSq2: magnitudeSq2,
   	magnitude2: magnitude2,
@@ -6297,13 +6298,19 @@
       }));
     if (nodesAndChildren[nodeName]) {
       nodesAndChildren[nodeName].forEach((childNode) => {
-        Object.defineProperty(element, childNode, {
-          value: function () {
-            const childElement = constructor(childNode, ...arguments);
-            element.appendChild(childElement);
-            return childElement;
-          }
-        });
+        const value = function () {
+          const childElement = constructor(childNode, ...arguments);
+          element.appendChild(childElement);
+          return childElement;
+        };
+        if (Nodes[childNode].static) {
+          Object.keys(Nodes[childNode].static).forEach(key => {
+            value[key] = function () {
+              return Nodes[childNode].static[key](element, ...arguments);
+            };
+          });
+        }
+        Object.defineProperty(element, childNode, { value });
       });
     }
     return element;
@@ -6314,8 +6321,7 @@
     .forEach((nodeName) => {
       elements[nodeName] = (...args) => constructor(nodeName, ...args);
     }));
-  const link_rabbitear = (svg, ear) => {
-    ear.svg = svg;
+  const link_rabbitear_math = (svg, ear) => {
     const keys = [
       "segment",
       "circle",
@@ -6327,23 +6333,39 @@
       .forEach((key) => {
         ear[key].prototype.svg = function () { return svg.path(this.svgPath()); };
       });
-  	Nodes.graph = {
-    	nodeName: "g",
-    	init: function (element, graph, options = {}) {
-  			ear.graph.svg(graph, { ...options, parent: element });
-  			return element;
-  		},
-    	args: () => [],
-    	methods: Nodes.g.methods,
-    	attributes: Nodes.g.attributes,
-  	};
-  	nodesAndChildren.graph = [...nodesAndChildren.g];
-  	nodesAndChildren.svg.push("graph");
-  	nodesAndChildren.g.push("graph");
+  };
+  const link_rabbitear_graph = (svg, ear) => {
+    const NODE_NAME = "origami";
+    Nodes[NODE_NAME] = {
+      nodeName: "svg",
+      init: function (element, ...args) {
+        return ear.graph.svg.drawInto(element, ...args);
+      },
+      args: () => [],
+      methods: Nodes.svg.methods,
+      attributes: Nodes.svg.attributes,
+      static: {},
+    };
+    Object.keys(ear.graph.svg).forEach(key => {
+      Nodes[NODE_NAME].static[key] = (element, ...args) => {
+        const child = ear.graph.svg[key](...args);
+        element.appendChild(child);
+        return child;
+      };
+    });
+    nodesAndChildren[NODE_NAME] = [...nodesAndChildren.svg];
+    nodesAndChildren.svg.push(NODE_NAME);
+    nodesAndChildren.g.push(NODE_NAME);
+    svg[NODE_NAME] = (...args) => constructor(NODE_NAME, ...args);
+    Object.keys(ear.graph.svg).forEach(key => {
+      svg[NODE_NAME][key] = ear.graph.svg[key];
+    });
   };
   const Linker = function (lib) {
   	if (lib.graph && lib.origami) {
-  		link_rabbitear(this, lib);
+      lib.svg = this;
+      link_rabbitear_math(this, lib);
+      link_rabbitear_graph(this, lib);
   	}
   };
   const bindRabbitEar = (_this, library) => {
@@ -6391,10 +6413,10 @@
     }
     return svg;
   };
-  Object.assign(SVG, elements);
   SVG.NS = NS;
   SVG.linker = Linker.bind(SVG);
   SVG.use = use.bind(SVG);
+  Object.assign(SVG, elements);
   SVG.core = Object.assign(Object.create(null), {
     load: Load,
     save,
@@ -6404,13 +6426,13 @@
     children: nodesAndChildren,
     cdata,
     detect,
-  }, Case, classMethods, dom, math, methods$1, viewBox);
+  }, Case, classMethods, dom, math$1, methods$1, viewBox);
 
   const Libraries$4 = { SVG };
-  const vertices_circle = ({ vertices_coords }, attributes = {}) => {
+  const vertices_circle = (graph, attributes = {}) => {
   	const g = Libraries$4.SVG.g();
-  	if (!vertices_coords) { return g; }
-    vertices_coords
+  	if (!graph || !graph.vertices_coords) { return g; }
+    graph.vertices_coords
       .map(v => Libraries$4.SVG.circle(v[0], v[1], 0.01))
   		.forEach(v => g[appendChild](v));
   	g[setAttributeNS](null, "fill", "none");
@@ -6509,9 +6531,10 @@
   const apply_style$2 = (el, attributes = {}) => Object.keys(attributes)
   	.forEach(key => el[setAttributeNS](null, key, attributes[key]));
   const edges_paths = (graph, attributes = {}) => {
+    const group = Libraries$3.SVG.g();
+    if (!graph) { return group; }
   	const isFolded = is_folded_form(graph);
   	const paths = edges_paths_assign(graph);
-  	const group = Libraries$3.SVG.g();
   	Object.keys(paths).forEach(key => {
   		paths[key][setAttributeNS](null, _class, edges_assignment_names[key]);
   		apply_style$2(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
@@ -6543,9 +6566,9 @@
     .faces_vertices
     .map(fv => fv.map(v => graph.vertices_coords[v])
       .map((c, i, arr) => [c, arr[(i + 1) % arr.length], arr[(i + 2) % arr.length]])
-      .map(tri => math$1.core.cross2(
-        math$1.core.subtract(tri[1], tri[0]),
-        math$1.core.subtract(tri[2], tri[1]),
+      .map(tri => math$2.core.cross2(
+        math$2.core.subtract(tri[1], tri[0]),
+        math$2.core.subtract(tri[2], tri[1]),
       )).reduce((a, b) => a + b, 0));
   const faces_sorted_by_layer = function (faces_layer) {
     return faces_layer.map((layer, i) => ({ layer, i }))
@@ -6583,7 +6606,7 @@
   };
   const faces_vertices_polygon = (graph, attributes = {}) => {
   	const g = Libraries$2.SVG.g();
-  	if (!graph.vertices_coords || !graph.faces_vertices) { return g; }
+  	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
     const svg_faces = graph.faces_vertices
       .map(fv => fv.map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
       .map(face => Libraries$2.SVG.polygon(face));
@@ -6593,7 +6616,8 @@
   };
   const faces_edges_polygon = function (graph, attributes = {}) {
   	const g = Libraries$2.SVG.g();
-    if (faces_edges in graph === false
+    if (!graph
+      || faces_edges in graph === false
       || edges_vertices in graph === false
       || vertices_coords in graph === false) {
       return g;
@@ -6623,7 +6647,7 @@
   	.forEach(key => el[setAttributeNS](null, key, attributes[key]));
   const boundaries_polygon = (graph, attributes = {}) => {
   	const g = Libraries$1.SVG.g();
-  	if (!graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) { return g; }
+  	if (!graph || !graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) { return g; }
     const boundary$1 = get_boundary(graph)
   		.vertices
       .map(v => [0, 1].map(i => graph.vertices_coords[v][i]));
@@ -6637,46 +6661,93 @@
     return g;
   };
 
+  const faces_draw_function = (graph, options) => (
+    graph != null && graph[faces_vertices] != null
+      ? faces_vertices_polygon(graph, options)
+      : faces_edges_polygon(graph, options));
+  const svg_draw_func = {
+    vertices: vertices_circle,
+    edges: edges_paths,
+    faces: faces_draw_function,
+    boundaries: boundaries_polygon
+  };
+  const draw_group = (key, ...args) => {
+    const group = svg_draw_func[key](...args);
+    group[setAttributeNS](null, _class, key);
+    return group;
+  };
+  const DrawGroups = (graph, options = {}) => [
+    boundaries,
+    faces,
+    edges,
+    vertices].map(key => draw_group(key, graph, options[key]));
+  [boundaries,
+    faces,
+    edges,
+    vertices,
+  ].forEach(key => {
+    DrawGroups[key] = function (graph, options = {}) {
+      return draw_group(key, graph, options[key]);
+    };
+  });
+
   const graph_classes = graph => [
   	(graph[file_classes] ? graph[file_classes] : []),
   	(graph[frame_classes] ? graph[frame_classes] : []),
   ].reduce((a, b) => a.concat(b));
 
   const Libraries = { SVG };
-  const faces_draw_function = (graph, options) => (graph[faces_vertices] != null
-    ? faces_vertices_polygon(graph, options)
-    : faces_edges_polygon(graph, options));
-  const draw_func = {
-    vertices: vertices_circle,
-    edges: edges_paths,
-    faces: faces_draw_function,
-    boundaries: boundaries_polygon
+  const bounding_rect = function ({ vertices_coords }) {
+    if (vertices_coords == null || vertices_coords.length <= 0) {
+      return undefined;
+    }
+    const min = Array(2).fill(Infinity);
+    const max = Array(2).fill(-Infinity);
+    vertices_coords.forEach(v => {
+      if (v[0] < min[0]) { min[0] = v[0]; }
+      if (v[0] > max[0]) { max[0] = v[0]; }
+      if (v[1] < min[1]) { min[1] = v[1]; }
+      if (v[1] > max[1]) { max[1] = v[1]; }
+    });
+    const invalid = isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1]);
+    return (invalid
+      ? undefined
+      : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
   };
-  const draw_groups = (graph, options = {}) => {
-  	const parent = options.parent
-  		? options.parent
-  		: Libraries.SVG.g();
-    const classValue = ["graph"].concat(graph_classes(graph)).join(" ");
-    parent[setAttributeNS](null, _class, classValue);
-    [boundaries, faces, edges, vertices]
-    	.map(key => {
-  			const attributes = options[key] || {};
-    	  const group = draw_func[key](graph, attributes);
-    	  group[setAttributeNS](null, _class, key);
-  			Object.defineProperty(parent, key, { get: () => group });
-    	  return group;
-    	})
-    	.filter(group => group.childNodes.length > 0)
-  		.forEach(group => parent[appendChild](group));
-  	return parent;
+  const make_svg_attributes = (graph, options, setViewBox = true) => {
+    const attributes = {
+      overflow: "visible",
+    };
+    if (!graph) { return attributes; }
+    const viewBox = bounding_rect(graph);
+    if (viewBox && setViewBox) {
+      attributes.viewBox = viewBox.join(" ");
+      const vmin = Math.min(viewBox[2], viewBox[3]);
+      attributes[stroke_width] = vmin / 100;
+      attributes.width = viewBox[2];
+      attributes.height = viewBox[3];
+    }
+    attributes[_class] = ["origami"].concat(graph_classes(graph)).join(" ");
+    return attributes;
   };
-  [boundaries, faces, edges, vertices].forEach(key => {
-  	draw_groups[key] = function () {
-  		const group = draw_func[key](...arguments);
-  		group[setAttributeNS](null, _class, key);
-  		return group;
-  	};
-  });
+  const drawInto = (element, graph, ...args) => {
+    const options = args.filter(el => typeof el === "object").shift() || {};
+    const setViewBox = args.filter(el => typeof el === "boolean").shift();
+    const attrs = make_svg_attributes(graph, options, setViewBox);
+    Object.keys(attrs)
+      .forEach(attr => element[setAttributeNS](null, attr, attrs[attr]));
+    const groups = DrawGroups(graph, options);
+    groups.filter(group => group.childNodes.length > 0)
+      .forEach(group => element[appendChild](group));
+    Object.keys(DrawGroups).forEach((key, i) =>
+      Object.defineProperty(element, key, { get: () => groups[i] }));
+    return element;
+  };
+  const FOLDtoSVG = (graph, options, setViewBox) => (
+    drawInto(Libraries.SVG(), graph, options, setViewBox)
+  );
+  Object.keys(DrawGroups).forEach(key => { FOLDtoSVG[key] = DrawGroups[key]; });
+  FOLDtoSVG.drawInto = drawInto;
 
   const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
     if (edges_faces && edges_faces[edge]) {
@@ -6723,12 +6794,12 @@
           .map(v => graph.vertices_coords[v]));
       if (graph.edges_vector) {
         new_edges.forEach((edge, i) => {
-          edge.edges_vector = math$1.core.subtract(coords[i][1], coords[i][0]);
+          edge.edges_vector = math$2.core.subtract(coords[i][1], coords[i][0]);
         });
       }
       if (graph.edges_length) {
         new_edges.forEach((edge, i) => {
-          edge.edges_length = math$1.core.distance2(...coords[i]);
+          edge.edges_length = math$2.core.distance2(...coords[i]);
         });
       }
     }
@@ -6815,15 +6886,15 @@
       });
   };
 
-  const split_edge = (graph, old_edge, coords, epsilon = math$1.core.EPSILON) => {
+  const split_edge = (graph, old_edge, coords, epsilon = math$2.core.EPSILON) => {
     if (graph.edges_vertices.length < old_edge) { return {}; }
     const incident_vertices = graph.edges_vertices[old_edge];
     if (!coords) {
-      coords = math$1.core.midpoint(...incident_vertices);
+      coords = math$2.core.midpoint(...incident_vertices);
     }
     const similar = incident_vertices
       .map(v => graph.vertices_coords[v])
-  	  .map(vert => math$1.core.distance(vert, coords) < epsilon);
+  	  .map(vert => math$2.core.distance(vert, coords) < epsilon);
   	if (similar[0]) { return { vertex: incident_vertices[0], edges: {} }; }
   	if (similar[1]) { return { vertex: incident_vertices[1], edges: {} }; }
   	const vertex = graph.vertices_coords.length;
@@ -6863,8 +6934,8 @@
       edges_vertices: [...vertices],
       edges_foldAngle: 0,
       edges_assignment: "U",
-      edges_length: math$1.core.distance2(...new_edge_coords),
-      edges_vector: math$1.core.subtract(...new_edge_coords),
+      edges_length: math$2.core.distance2(...new_edge_coords),
+      edges_vector: math$2.core.subtract(...new_edge_coords),
       edges_faces: [face, face],
     };
   };
@@ -7010,10 +7081,10 @@
     });
   };
 
-  const intersect_convex_face_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math$1.core.EPSILON) => {
+  const intersect_convex_face_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math$2.core.EPSILON) => {
     const face_vertices_indices = faces_vertices[face]
       .map(v => vertices_coords[v])
-      .map(coord => math$1.core.overlap_line_point(vector, point, coord, () => true, epsilon))
+      .map(coord => math$2.core.overlap_line_point(vector, point, coord, () => true, epsilon))
       .map((overlap, i) => overlap ? i : undefined)
       .filter(i => i !== undefined);
     const vertices = face_vertices_indices.map(i => faces_vertices[face][i]);
@@ -7026,13 +7097,13 @@
     const edges = faces_edges[face]
       .map(edge => edges_vertices[edge]
         .map(v => vertices_coords[v]))
-      .map(seg => math$1.core.intersect_line_line(
+      .map(seg => math$2.core.intersect_line_line(
         vector,
         point,
-        math$1.core.subtract(seg[1], seg[0]),
+        math$2.core.subtract(seg[1], seg[0]),
         seg[0],
-        math$1.core.include_l,
-        math$1.core.exclude_s,
+        math$2.core.include_l,
+        math$2.core.exclude_s,
         epsilon
       )).map((coords, face_edge_index) => ({
         coords,
@@ -7079,7 +7150,7 @@
     fragment,
     subgraph,
     assign: assign$1,
-    svg: draw_groups,
+    svg: FOLDtoSVG,
   },
     transform,
   );
@@ -7100,7 +7171,7 @@
     };
   });
   Graph.prototype.splitFace = function (face, ...args) {
-    const line = math$1.core.get_line(...args);
+    const line = math$2.core.get_line(...args);
     return split_convex_face(this, face, line.vector, line.origin);
   };
   Graph.prototype.copy = function () {
@@ -7119,7 +7190,7 @@
     delete this.file_frames;
   };
   Graph.prototype.folded = function () {
-    const vertices_coords = make_vertices_coords_folded$1(this, ...arguments);
+    const vertices_coords = make_vertices_coords_folded(this, ...arguments);
     return Object.assign(
       Object.create(Graph.prototype),
       Object.assign(clone(this), { vertices_coords }, { frame_classes: ["foldedForm"] }));
@@ -7143,7 +7214,7 @@
   Object.defineProperty(Graph.prototype, "boundary", {
     get: function () {
       const boundary = get_boundary(this);
-      const poly = math$1.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
+      const poly = math$2.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
       Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
       return Object.assign(poly, boundary);
     }
@@ -7154,7 +7225,7 @@
     faces: face_containing_point,
   };
   Graph.prototype.nearest = function () {
-    const point = math$1.core.get_vector(arguments);
+    const point = math$2.core.get_vector(arguments);
     const nears = Object.create(null);
     const cache = {};
     ["vertices", "edges", "faces"].forEach(key => {
@@ -7182,7 +7253,7 @@
         vertices_edges, edges_vertices, edges_assignment
       }).vertices;
     }
-    return math$1.polygon(boundaries_vertices.map(v => vertices_coords[v]))
+    return math$2.polygon(boundaries_vertices.map(v => vertices_coords[v]))
       .clip(line);
   };
 
@@ -7234,7 +7305,7 @@
   };
   ["line", "ray", "segment"].forEach(type => {
     CreasePattern.prototype[type] = function () {
-      const primitive = math$1[type](...arguments);
+      const primitive = math$2[type](...arguments);
       if (!primitive) { return; }
       const segment = clip(this, primitive);
       if (!segment) { return; }
@@ -7248,10 +7319,10 @@
   });
   ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
     CreasePattern.prototype[fName] = function () {
-      const primitive = math$1[fName](...arguments);
+      const primitive = math$2[fName](...arguments);
       if (!primitive) { return; }
       const segments = primitive.segments(arcResolution)
-        .map(segment => math$1.segment(segment))
+        .map(segment => math$2.segment(segment))
         .map(segment => clip(this, segment))
         .filter(a => a !== undefined);
       if (!segments) { return; }
@@ -7309,8 +7380,8 @@
     }
     graph.faces_coloring = make_faces_coloring_from_matrix(graph);
     graph["faces_re:creases"] = graph.faces_matrix
-      .map(mat => math$1.core.invert_matrix3(mat))
-      .map(mat => math$1.core.multiply_matrix3_line3(mat, vector, point));
+      .map(mat => math$2.core.invert_matrix3(mat))
+      .map(mat => math$2.core.multiply_matrix3_line3(mat, vector, point));
     graph.faces_center = faceCountArray
       .map((_, i) => make_face_center_fast(graph, i));
     graph["faces_re:sidedness"] = faceCountArray
@@ -7350,8 +7421,8 @@
       const containing_point = face_containing_point(graph, point);
       face_index = (containing_point === undefined) ? 0 : containing_point;
     }
-    vector = math$1.core.resize(3, vector);
-    point = math$1.core.resize(3, point);
+    vector = math$2.core.resize(3, vector);
+    point = math$2.core.resize(3, point);
     prepare_graph_crease(graph, vector, point, face_index);
     const folded = clone(graph);
     folded.vertices_coords.forEach(coord => coord.splice(2));
@@ -7405,9 +7476,9 @@
       face_0_preMatrix = (faces_split[0] === undefined
         && !graph["faces_re:sidedness"][0]
         ? graph.faces_matrix[0]
-        : math$1.core.multiply_matrices3(
+        : math$2.core.multiply_matrices3(
           graph.faces_matrix[0],
-          math$1.core.make_matrix3_reflectZ(
+          math$2.core.make_matrix3_reflectZ(
             graph["faces_re:creases"][0].vector,
             graph["faces_re:creases"][0].origin
           )
@@ -7415,22 +7486,22 @@
       );
     }
     const folded_faces_matrix = make_faces_matrix(folded, face_0_newIndex)
-      .map(m => math$1.core.multiply_matrices3(face_0_preMatrix, m));
+      .map(m => math$2.core.multiply_matrices3(face_0_preMatrix, m));
     folded.faces_coloring = make_faces_coloring_from_matrix(
       { faces_matrix: folded_faces_matrix }
     );
-    const crease_0 = math$1.core.multiply_matrix3_line3(
+    const crease_0 = math$2.core.multiply_matrix3_line3(
       face_0_preMatrix,
       graph["faces_re:creases"][0].vector,
       graph["faces_re:creases"][0].origin,
     );
-    const fold_direction = math$1.core.normalize(math$1.core.rotate270(crease_0.vector));
+    const fold_direction = math$2.core.normalize(math$2.core.rotate270(crease_0.vector));
     const split_points = faces_split
       .map((change, i) => (change === undefined
   		  ? undefined
   			: folded.edges_vertices[change.edges.new]
   				.map(v => folded.vertices_coords[v])
-  				.map(p => math$1.core.multiply_matrix3_vector3(graph.faces_matrix[i], p))))
+  				.map(p => math$2.core.multiply_matrix3_vector3(graph.faces_matrix[i], p))))
       .filter(a => a !== undefined)
       .reduce((a, b) => a.concat(b), []);
     folded["re:construction"] = (split_points.length === 0
@@ -7445,7 +7516,7 @@
           edge: two_furthest_points(split_points)
         });
     folded.faces_matrix = folded_faces_matrix;
-    folded["vertices_re:foldedCoords"] = make_vertices_coords_folded$1(
+    folded["vertices_re:foldedCoords"] = make_vertices_coords_folded(
       folded,
       face_0_newIndex);
     folded.faces_matrix = folded_faces_matrix;
@@ -7466,7 +7537,7 @@
   Origami.prototype = Object.create(GraphProto);
   Origami.prototype.constructor = Origami;
   Origami.prototype.flatFold = function () {
-    const line = math$1.core.get_line(arguments);
+    const line = math$2.core.get_line(arguments);
     const graph = flat_fold(this, line.vector, line.origin);
     [VERTICES, EDGES, FACES]
       .map(key => get_graph_keys_with_prefix(this, key))
@@ -7479,12 +7550,64 @@
     return Object.assign(Object.create(Origami.prototype), clone(this));
   };
   Origami.prototype.folded = function () {
-    const vertices_coords = make_vertices_coords_folded$1(this, ...arguments);
+    const vertices_coords = make_vertices_coords_folded(this, ...arguments);
     return Object.assign(
       Object.create(Origami.prototype),
       Object.assign(clone(this), { vertices_coords }, { frame_classes: ["foldedForm"] }));
   };
   var OrigamiProto = Origami.prototype;
+
+  const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.core.EPSILON) => {
+  	if (!edges_vector) {
+  		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+  	}
+  	if (!vertices_edges) {
+  		vertices_edges = make_vertices_edges({ edges_vertices });
+  	}
+  	const two_adjacencies_vertices = vertices_edges
+  		.map((ve, i) => ve.length === 2 ? i : undefined)
+  		.filter(a => a !== undefined);
+  	const adjacencies_are_parallel = two_adjacencies_vertices
+  		.map(vertex => vertices_edges[vertex])
+  		.map(edges => edges.map(edge => edges_vector[edge]))
+  		.map(vecs => math.core.parallel(...vecs));
+  	const vertices_remove = two_adjacencies_vertices
+  		.filter((vertex, i) => adjacencies_are_parallel[i]);
+  	const joinable_edges = vertices_remove
+  		.map(v => vertices_edges[v])
+  		.map(edges => edges[0] < edges[1] ? edges : [edges[1], edges[0]]);
+  	const edges_to_join = {};
+  	for (let i = 0; i < joinable_edges.length; i++) {
+  		if (edges_to_join[joinable_edges[i][1]] === undefined) {
+  			edges_to_join[joinable_edges[i][1]] = true;
+  		} else {
+  			console.log("WARNING. cannot safely remove edges. some overlaps");
+  		}
+  	}
+  	const edges_keep = joinable_edges.map(edges => edges[0]);
+  	const edges_remove = joinable_edges.map(edges => edges[1]);
+  	const edges_remove_other_vertex = edges_remove
+  		.map(edge => edges_vertices[edge])
+  		.map((vertices, i) => {
+  			if (vertices[0] === vertices_remove[i]) { return vertices[1]; }
+  			else if (vertices[1] === vertices_remove[i]) { return vertices[0]; }
+  			else { console.log("WARNING, removed edge cannot find vertex"); return undefined; }
+  		});
+  	edges_keep
+  		.forEach((edge, i) => {
+  			if (edges_vertices[edge][0] === vertices_remove[i]) {
+  				edges_vertices[edge][0] = edges_remove_other_vertex[i];
+  			} else if (edges_vertices[edge][1] === vertices_remove[i]) {
+  				edges_vertices[edge][1] = edges_remove_other_vertex[i];
+  			} else {
+  				console.log("WARNING, joining edges cannot find vertex");
+  			}
+  		});
+  	return {
+  		vertices: vertices_remove,
+  		edges: edges_remove
+  	};
+  };
 
   var graph_methods = Object.assign(Object.create(null), {
   	assign: assign$1,
@@ -7506,8 +7629,9 @@
   	subgraph,
   	explode_faces,
   	clip,
-  	svg: draw_groups,
+  	svg: FOLDtoSVG,
   	intersect_convex_face_line,
+  	join_collinear_edges,
   },
   	make,
   	transform,
@@ -7551,7 +7675,7 @@
     .filter(a => a !== undefined)
     .forEach(i => delete polygon_names[i]);
   polygon_names.forEach((name, i) => {
-    Create[name] = () => make_closed_polygon(math$1.core
+    Create[name] = () => make_closed_polygon(math$2.core
       .make_regular_polygon_side_length(i));
   });
   Create.square = () =>
@@ -7559,7 +7683,7 @@
   Create.rectangle = (width = 1, height = 1) =>
     make_closed_polygon(make_rect_vertices_coords(width, height));
   Create.circle = (sides = 90) =>
-    make_closed_polygon(math$1.core.make_regular_polygon(sides));
+    make_closed_polygon(math$2.core.make_regular_polygon(sides));
   Create.kite = () => populate({
     vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
     edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
@@ -7864,25 +7988,25 @@
     return geometry;
   };
   const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
-    if (math$1.core.mag_squared(edge_vector) < math$1.core.EPSILON) {
+    if (math$2.core.mag_squared(edge_vector) < math$2.core.EPSILON) {
   		return [];
   	}
-    const normalized = math$1.core.normalize(edge_vector);
+    const normalized = math$2.core.normalize(edge_vector);
     const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
-      .map(vec => math$1.core.cross3(vec, normalized))
-  		.sort((a, b) => math$1.core.magnitude(b) - math$1.core.magnitude(a))
+      .map(vec => math$2.core.cross3(vec, normalized))
+  		.sort((a, b) => math$2.core.magnitude(b) - math$2.core.magnitude(a))
   		.shift();
-    const rotated = [ math$1.core.normalize(perp) ];
+    const rotated = [ math$2.core.normalize(perp) ];
   	for (let i = 1; i < 4; i += 1) {
-  		rotated.push(math$1.core.cross3(rotated[i - 1], normalized));
+  		rotated.push(math$2.core.cross3(rotated[i - 1], normalized));
   	}
-    const dirs = rotated.map(v => math$1.core.scale(v, radius));
-  	const nudge = [-end_pad, end_pad].map(n => math$1.core.scale(normalized, n));
+    const dirs = rotated.map(v => math$2.core.scale(v, radius));
+  	const nudge = [-end_pad, end_pad].map(n => math$2.core.scale(normalized, n));
   	const coords = end_pad === 0
   		? edge_coords
-  		: edge_coords.map((coord, i) => math$1.core.add(coord, nudge[i]));
+  		: edge_coords.map((coord, i) => math$2.core.add(coord, nudge[i]));
     return coords
-      .map(v => dirs.map(dir => math$1.core.add(v, dir)))
+      .map(v => dirs.map(dir => math$2.core.add(v, dir)))
       .reduce(fn_cat, []);
   };
   const make_edges_geometry = function ({
@@ -7893,13 +8017,13 @@
       edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
     }
     if (!edges_vector) {
-      edges_vector = edges_coords.map(edge => math$1.core.subtract(edge[1], edge[0]));
+      edges_vector = edges_coords.map(edge => math$2.core.subtract(edge[1], edge[0]));
     }
     edges_coords = edges_coords
       .map(edge => edge
-        .map(coord => math$1.core.resize(3, coord)));
+        .map(coord => math$2.core.resize(3, coord)));
   	edges_vector = edges_vector
-  		.map(vec => math$1.core.resize(3, vec));
+  		.map(vec => math$2.core.resize(3, vec));
     const colorAssignments = {
       "B": [0.0,0.0,0.0],
       "M": [0.0,0.0,0.0],
@@ -7917,11 +8041,11 @@
       .reduce(fn_cat, [])
       .reduce(fn_cat, []);
   	const normals = edges_vector.map(vector => {
-      if (math$1.core.mag_squared(vector) < math$1.core.EPSILON) { throw "degenerate edge"; }
-      let normalized = math$1.core.normalize(vector);
-      math$1.core.scale(normalized, scale);
-      const c0 = math$1.core.scale(math$1.core.normalize(math$1.core.cross3(vector, [0,0,-1])), scale);
-      const c1 = math$1.core.scale(math$1.core.normalize(math$1.core.cross3(vector, [0,0,1])), scale);
+      if (math$2.core.mag_squared(vector) < math$2.core.EPSILON) { throw "degenerate edge"; }
+      let normalized = math$2.core.normalize(vector);
+      math$2.core.scale(normalized, scale);
+      const c0 = math$2.core.scale(math$2.core.normalize(math$2.core.cross3(vector, [0,0,-1])), scale);
+      const c1 = math$2.core.scale(math$2.core.normalize(math$2.core.cross3(vector, [0,0,1])), scale);
       return [
         c0, [-c0[2], c0[1], c0[0]],
         c1, [-c1[2], c1[1], c1[0]],
@@ -7960,7 +8084,7 @@
   });
 
   const ear$1 = Object.assign(root, Constructors, {
-  	math: math$1.core,
+  	math: math$2.core,
   	axiom,
   	diagram,
   	vertex,
@@ -7971,9 +8095,9 @@
   	enumerable: false,
   	value: use$1.bind(ear$1),
   });
-  Object.keys(math$1)
+  Object.keys(math$2)
   	.filter(key => key !== "core")
-  	.forEach((key) => { ear$1[key] = math$1[key]; });
+  	.forEach((key) => { ear$1[key] = math$2[key]; });
   SVG.use(ear$1);
   ear$1.use(SVG);
 
