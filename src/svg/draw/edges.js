@@ -1,16 +1,20 @@
 /**
- * fold to svg (c) Robby Kraft
+ * Rabbit Ear (c) Robby Kraft
  */
-import * as K from "../keys";
+import * as S from "../../symbols/strings";
 import { is_folded_form } from "../../graph/query";
-import SVG from "../../extensions/svg";
-const Libraries = { SVG };
+import {
+	edges_assignment_to_lowercase,
+	edges_assignment_names,
+} from "../../fold/spec";
+// get the SVG library from its binding to the root of the library
+import root from "../../root";
 
 const GROUP_FOLDED = {};
 
 const GROUP_FLAT = {
 	stroke: "black",
-}
+};
 
 const STYLE_FOLDED = {};
 
@@ -18,33 +22,6 @@ const STYLE_FLAT = {
 	m: { stroke: "red" },
 	v: { stroke: "blue" },
 	f: { stroke: "lightgray" },
-};
-
-const edges_assignment_names = {
-  B: K.boundary,
-  b: K.boundary,
-  M: K.mountain,
-  m: K.mountain,
-  V: K.valley,
-  v: K.valley,
-  F: K.mark,
-  f: K.mark,
-  U: K.unassigned,
-  u: K.unassigned
-};
-
-// todo: test- is this much faster than running .toLower() on every string?
-const edges_assignment_to_lowercase = {
-  B: "b",
-  b: "b",
-  M: "m",
-  m: "m",
-  V: "v",
-  v: "v",
-  F: "f",
-  f: "f",
-  U: "u",
-  u: "u",
 };
 
 /**
@@ -55,9 +32,9 @@ const edges_assignment_to_lowercase = {
  */
 const edges_assignment_indices = (graph) => {
   const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
-  const lowercase_assignment = graph[K.edges_assignment]
+  const lowercase_assignment = graph[S.edges_assignment]
 		.map(a => edges_assignment_to_lowercase[a]);
-  graph[K.edges_vertices]
+  graph[S.edges_vertices]
 		.map((_, i) => lowercase_assignment[i] || "u")
 		.forEach((a, i) => assignment_indices[a].push(i));
   return assignment_indices;
@@ -101,15 +78,15 @@ const edges_path_data_assign = ({ vertices_coords, edges_vertices, edges_assignm
 const edges_paths_assign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
 	const data = edges_path_data_assign({ vertices_coords, edges_vertices, edges_assignment });
   Object.keys(data).forEach(assignment => {
-    const path = Libraries.SVG.path(data[assignment]);
-    path[K.setAttributeNS](null, K._class, edges_assignment_names[assignment]);
+    const path = root.svg.path(data[assignment]);
+    path.setAttributeNS(null, S._class, edges_assignment_names[assignment]);
     data[assignment] = path;
   });
 	return data;
 };
 
 const apply_style = (el, attributes = {}) => Object.keys(attributes)
-	.forEach(key => el[K.setAttributeNS](null, key, attributes[key]));
+	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 /**
  * @returns an array of SVG Path elements.
@@ -117,16 +94,16 @@ const apply_style = (el, attributes = {}) => Object.keys(attributes)
  * if no edges_assignment exists, there will be an array of 1 path.
  */
 export const edges_paths = (graph, attributes = {}) => {
-  const group = Libraries.SVG.g();
+  const group = root.svg.g();
   if (!graph) { return group; }
 	const isFolded = is_folded_form(graph);
 	const paths = edges_paths_assign(graph);
 	Object.keys(paths).forEach(key => {
-		paths[key][K.setAttributeNS](null, K._class, edges_assignment_names[key]);
+		paths[key].setAttributeNS(null, S._class, edges_assignment_names[key]);
 		apply_style(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
 		apply_style(paths[key], attributes[key]);
 		apply_style(paths[key], attributes[edges_assignment_names[key]]);
-		group[K.appendChild](paths[key]);
+		group.appendChild(paths[key]);
 		Object.defineProperty(group, edges_assignment_names[key], { get: () => paths[key] });
 	});
 	apply_style(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);

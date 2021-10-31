@@ -4,12 +4,13 @@
 import math from "../math";
 import count from "./count";
 import add_vertices from "./add/add_vertices";
+import * as S from "../symbols/strings";
 import {
   get_graph_keys_with_prefix,
   get_graph_keys_with_suffix,
-} from "./fold_spec";
+} from "../fold/spec";
 
-const vef = ["vertices", "edges", "faces"];
+const vef = [S.vertices, S.edges, S.faces];
 
 const make_vertices_map_and_consider_duplicates = (target, source, epsilon = math.core.EPSILON) => {
   let index = target.vertices_coords.length;
@@ -69,7 +70,7 @@ const assign = (target, source, epsilon = math.core.EPSILON) => {
   // vertex map
   maps.vertices = make_vertices_map_and_consider_duplicates(target, source, epsilon);
   // correct indices in all vertex suffixes, like "faces_vertices", "edges_vertices"
-  update_suffixes(source, suffixes, ["vertices"], maps);
+  update_suffixes(source, suffixes, [S.vertices], maps);
   // edge map
   const target_edges_count = count.edges(target);
   maps.edges = Array.from(Array(count.edges(source)))
@@ -82,7 +83,7 @@ const assign = (target, source, epsilon = math.core.EPSILON) => {
     .map((_, i) => target_faces_count + i);
   // todo find duplicate faces, correct map
   // correct indices in all edges and faces suffixes
-  update_suffixes(source, suffixes, ["edges", "faces"], maps);
+  update_suffixes(source, suffixes, [S.edges, S.faces], maps);
   // copy all geometry arrays from source to target
   vef.forEach(geom => prefixes[geom].forEach(key => source[key].forEach((el, i) => {
     const new_index = maps[geom][i];

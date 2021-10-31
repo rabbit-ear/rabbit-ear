@@ -21,7 +21,7 @@ import {
 import {
   edge_assignment_to_foldAngle,
   edge_foldAngle_to_assignment,
-} from "./fold_spec";
+} from "../fold/spec";
 
 
 // try best not to lose information

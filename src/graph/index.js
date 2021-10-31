@@ -5,7 +5,7 @@ import * as make from "./make";
 import * as boundary from "./boundary";
 import * as walk from "./walk";
 import * as nearest from "./nearest";
-import * as fold_object from "./fold_spec";
+import * as fold_object from "../fold/spec";
 import * as sort from "./sort";
 import * as span from "./span";
 import * as maps from "./maps";

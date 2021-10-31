@@ -2,15 +2,11 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../../math";
-import {
-  VERTICES,
-  VERTICES_COORDS,
-  EDGES
-} from "../fold_keys";
+import * as S from "../../symbols/strings";
 import {
   get_graph_keys_with_suffix,
   get_graph_keys_with_prefix,
-} from "../fold_spec";
+} from "../../fold/spec";
 import remove from "../remove";
 import { get_isolated_vertices } from "./vertices_isolated";
 import get_circular_edges from "./edges_circular";
@@ -22,7 +18,7 @@ import get_duplicate_vertices from "./vertices_duplicate";
 export const remove_isolated_vertices = graph => {
   const remove_indices = get_isolated_vertices(graph);
   return {
-    map: remove(graph, VERTICES, remove_indices),
+    map: remove(graph, S.vertices, remove_indices),
     remove: remove_indices,
   };
 };
@@ -35,7 +31,7 @@ export const remove_circular_edges = graph => {
     // a circular edge is still the same face when you just remove the edge
     const quick_lookup = {};
     remove_indices.forEach(n => { quick_lookup[n] = true; });
-    get_graph_keys_with_suffix(graph, EDGES)
+    get_graph_keys_with_suffix(graph, S.edges)
       .forEach(sKey => graph[sKey] // faces_edges or vertices_edges...
         .forEach((elem, i) => { // faces_edges[0] or faces_edges[1]...
           // reverse iterate through array, remove elements with splice
@@ -47,7 +43,7 @@ export const remove_circular_edges = graph => {
         }));
   }
   return {
-    map: remove(graph, EDGES, remove_indices),
+    map: remove(graph, S.edges, remove_indices),
     remove: remove_indices,
   };
 };
@@ -57,7 +53,7 @@ export const remove_circular_edges = graph => {
 export const remove_duplicate_edges = (graph) => {
   const duplicates = get_duplicate_edges(graph);
   const remove_indices = Object.keys(duplicates);
-  const map = remove(graph, EDGES, remove_indices);
+  const map = remove(graph, S.edges, remove_indices);
   duplicates.forEach((v, i) => { map[i] = v; });
   return {
     map,
@@ -86,7 +82,7 @@ export const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) =>
     .map(arr => math.core.average(...arr));
   // update all "..._vertices" arrays with each vertex's new index.
   // TODO: this was copied from remove.js
-  get_graph_keys_with_suffix(graph, VERTICES)
+  get_graph_keys_with_suffix(graph, S.vertices)
     .forEach(sKey => graph[sKey]
       .forEach((_, i) => graph[sKey][i]
         .forEach((v, j) => { graph[sKey][i][j] = map[v]; })));
@@ -94,8 +90,8 @@ export const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) =>
   // cannot carry them over, for example vertices_vertices are intended
   // to be sorted clockwise. it's possible to write this out one day
   // for all the special cases, but for now playing it safe.
-  get_graph_keys_with_prefix(graph, VERTICES)
-    .filter(a => a !== VERTICES_COORDS)
+  get_graph_keys_with_prefix(graph, S.vertices)
+    .filter(a => a !== S.vertices_coords)
     .forEach(key => delete graph[key]);
   // for a shared vertex: [3, 7, 9] we say 7 and 9 are removed.
   // the map reflects this change too, where indices 7 and 9 contain "3"

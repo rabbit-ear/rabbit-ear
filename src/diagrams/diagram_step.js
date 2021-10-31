@@ -1,4 +1,4 @@
-import { edges_assignment_names } from "../graph/fold_spec";
+import { edges_assignment_names } from "../fold/spec";
 import axiom_instructions_data from "../text/axioms.json";
 
 // the diagram frame IS little fold files.

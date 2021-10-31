@@ -13,7 +13,7 @@ import {
 } from "./update";
 import { intersect_convex_face_line } from "../intersect_faces";
 import remove from "../remove";
-import { FACES } from "../fold_keys";
+import * as S from "../../symbols/strings";
 /**
  * @description divide a CONVEX face into two polygons with a straight line cut.
  * if the line ends exactly along existing vertices, they will be
@@ -47,7 +47,7 @@ const split_convex_face = (graph, face, vector, point, epsilon) => {
   update_edges_faces(graph, face, result.edges.new, faces);
   update_faces_faces(graph, face, faces);
   // remove old data
-  const faces_map = remove(graph, FACES, [face]);
+  const faces_map = remove(graph, S.faces, [face]);
   // the graph is now complete, however our return object needs updating.
   // shift our new face indices since these relate to the graph before remove().
   faces.forEach((_, i) => { faces[i] = faces_map[faces[i]]; });

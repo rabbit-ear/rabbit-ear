@@ -1,8 +1,5 @@
 import math from "../../math";
-import {
-  EDGES_ASSIGNMENT,
-  EDGES_FOLDANGLE,
-} from "../fold_keys";
+import * as S from "../../symbols/strings";
 /**
  * @description this does not modify the graph. it builds 2 objects with:
  * { edges_vertices, edges_assignment, edges_foldAngle }
@@ -19,7 +16,7 @@ const split_edge_into_two = (graph, edge_index, new_vertex) => {
     { edges_vertices: [edge_vertices[0], new_vertex] },
     { edges_vertices: [new_vertex, edge_vertices[1]] },
   ];
-  new_edges.forEach((edge, i) => [EDGES_ASSIGNMENT, EDGES_FOLDANGLE]
+  new_edges.forEach((edge, i) => [S.edges_assignment, S.edges_foldAngle]
     .filter(key => graph[key] && graph[key][edge_index] !== undefined)
     .forEach(key => { edge[key] = graph[key][edge_index]; }));
   // these are outside the spec values that are easy enough to calculate.

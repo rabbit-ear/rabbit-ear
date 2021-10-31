@@ -2,47 +2,70 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import test_axiom from "./test_axiom";
+import validate_axiom from "./validate";
+import * as AxiomsVO from "./axioms";
+import * as AxiomsUD from "./axioms_ud";
 /**
- * this method reformats all axiom results so that
- * the lines are included inside an Array.
+ * @description the core axiom methods return arrays for *some* of
+ * the axioms.
+ * @param {number} the axiom number
+ * @returns {boolean} true false, does the core method return an array?
  */
-const axiom_arrayify = (number, result) => {
+const axiom_returns_array = (number) => {
   switch (number) {
-    case "1": case 1:
-    case "2": case 2:
-    case "4": case 4:
-    case "7": case 7: return [result].filter(a => a !== undefined);
-    case "3": case 3:
-    case "5": case 5:
-    case "6": case 6: return result;
-    default: break;
+    case 3: case "3":
+    case 5: case "5":
+    case 6: case "6": return true;
+    default: return false;
   }
 };
 
-// todo: implement boundary in here
-const axiom = (number, params = {}, boundary) => {
-  const points = (params.points || []).map(p => math.core.get_vector(p));
-  const lines = (params.lines || []).map(l => math.core.get_line(l));
-  const lines_ud = (params.lines || [])
+const check_params = (params) => ({
+  points: (params.points || []).map(p => math.core.get_vector(p)),
+  lines: (params.lines || []).map(l => math.core.get_line(l)),
+  lines_ud: (params.lines || [])
     .map(l => l.u !== undefined && l.d !== undefined ? l : undefined)
-    .filter(a => a !== undefined);
-  const ud = lines_ud.length >= lines.length;
-  const result = ud
-    ? math.core[`axiom${number}ud`](...lines_ud, ...points)
-    : math.core[`axiom${number}`](...lines, ...points);
-  return axiom_arrayify(number, result)
-    .map(l => ud ? math.line.ud(l) : math.line(l));
+    .filter(a => a !== undefined)
+});
+/**
+ * @description compute the axiom given a set of parameters, and depending
+ * on the parameters, use the axioms-u-d methods which parameterize lines
+ * in u-d form, otherwise use the methods on vector-origin lines.
+ * @param {number} the axiom number 1-7
+ * @param {object} axiom parameters
+ * @returns {line[]} array of lines
+ */
+const axiom_boundaryless = (number, params) => {
+  const useUD = params.lines_ud.length === params.lines.length;
+  const result = useUD
+    ? AxiomsUD[`axiom${number}ud`](...params.lines_ud, ...params.points)
+    : AxiomsVO[`axiom${number}`](...params.lines, ...params.points);
+  return axiom_returns_array(number) ? result : [result]
+    .filter(a => a !== undefined)
+    .map(l => useUD ? math.line.ud(l) : math.line(l));
 };
 
-const axioms = [null, 1, 2, 3, 4, 5, 6, 7];
-delete axioms[0];
+const filter_with_boundary = (number, params, solutions, boundary) => {
+  if (boundary == null) { return; }
+  validate_axiom(number, params, boundary)
+    .forEach((valid, i) => { if (valid) { delete valid_solutions[i]; } });
+};
 
-Object.keys(axioms).forEach(number => {
+const axiom = (number, params = {}, boundary) => {
+  const parameters = check_params(params);
+  const solutions = axiom_boundaryless(number, parameters);
+  filter_with_boundary(number, parameters, solutions, boundary);
+  return solutions;
+};
+
+Object.keys(AxiomsVO).forEach(key => { axiom[key] = AxiomsVO[key]; });
+Object.keys(AxiomsUD).forEach(key => { axiom[key] = AxiomsUD[key]; });
+
+[1, 2, 3, 4, 5, 6, 7].forEach(number => {
   axiom[number] = (...args) => axiom(number, ...args);
 });
 
 // probably move this to axioms/index
-axiom.test = test_axiom;
+axiom.validate = validate_axiom;
 
 export default axiom;

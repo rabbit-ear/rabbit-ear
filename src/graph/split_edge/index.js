@@ -4,7 +4,7 @@
 import math from "../../math";
 import remove from "../remove";
 import { find_adjacent_faces_to_edge } from "../find";
-import { EDGES } from "../fold_keys";
+import * as S from "../../symbols/strings";
 import split_edge_into_two from "./split_edge_into_two";
 import {
   update_vertices_vertices,
@@ -72,7 +72,7 @@ const split_edge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
   // and we don't need to bother with faces_faces and faceOrders.
   // todo: edgeOrders. the only spec key remaining.
   // remove old data
-  const edge_map = remove(graph, EDGES, [ old_edge ]);
+  const edge_map = remove(graph, S.edges, [ old_edge ]);
 	// shift our new edge indices since these relate to the graph before remove().
   new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
   // we had to run "remove" with the new edges added. to return the change info,

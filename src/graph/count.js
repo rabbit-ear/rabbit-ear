@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { get_graph_keys_with_prefix } from "./fold_spec";
+import { get_graph_keys_with_prefix } from "../fold/spec";
 /**
  * @param {any[]} arrays any number of arrays
  * @returns {number} the length of the longest array

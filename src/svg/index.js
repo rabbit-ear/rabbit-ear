@@ -1,11 +1,11 @@
 /**
- * fold to svg (c) Robby Kraft
+ * Rabbit Ear (c) Robby Kraft
  */
-import * as K from "./keys";
+import * as S from "../symbols/strings";
 import DrawGroups from "./draw/index";
-import graph_classes from "./classes";
-import SVG from "../extensions/svg";
-const Libraries = { SVG };
+import fold_classes from "./classes";
+// get the SVG library from its binding to the root of the library
+import root from "../root";
 /**
  * @description get a bounding box from a FOLD graph by inspecting its vertices.
  * @param {object} FOLD object with vertices_coords
@@ -55,12 +55,12 @@ const make_svg_attributes = (graph, options, setViewBox = true) => {
   if (viewBox && setViewBox) {
     attributes.viewBox = viewBox.join(" ");
     const vmin = Math.min(viewBox[2], viewBox[3]);
-    attributes[K.stroke_width] = vmin / 100;
+    attributes[S.stroke_width] = vmin / 100;
     attributes.width = viewBox[2];
     attributes.height = viewBox[3];
   }
   // add top level classes, "graph" and anything from the FOLD like "foldedForm"
-  attributes[K._class] = ["origami"].concat(graph_classes(graph)).join(" ");
+  attributes[S._class] = ["origami"].concat(fold_classes(graph)).join(" ");
   return attributes;
 };
 /**
@@ -76,10 +76,10 @@ const drawInto = (element, graph, ...args) => {
   const setViewBox = args.filter(el => typeof el === "boolean").shift();
   const attrs = make_svg_attributes(graph, options, setViewBox);
   Object.keys(attrs)
-    .forEach(attr => element[K.setAttributeNS](null, attr, attrs[attr]));
+    .forEach(attr => element.setAttributeNS(null, attr, attrs[attr]));
   const groups = DrawGroups(graph, options);
   groups.filter(group => group.childNodes.length > 0)
-    .forEach(group => element[K.appendChild](group));
+    .forEach(group => element.appendChild(group));
   Object.keys(DrawGroups).forEach((key, i) =>
     Object.defineProperty(element, key, { get: () => groups[i] }));
   return element;
@@ -92,7 +92,7 @@ const drawInto = (element, graph, ...args) => {
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
  */
 const FOLDtoSVG = (graph, options, setViewBox) => (
-  drawInto(Libraries.SVG(), graph, options, setViewBox)
+  drawInto(root.svg(), graph, options, setViewBox)
 );
 /**
  * @description adding static-like methods to the main function, four for

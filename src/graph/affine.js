@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import { filter_keys_with_suffix } from "./fold_spec";
+import { filter_keys_with_suffix } from "../fold/spec";
 /**
  * @description apply an affine transform to a graph; this includes
  * modifying the position of any key ending with "_coords" and multiplying

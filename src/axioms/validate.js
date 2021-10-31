@@ -1,5 +1,10 @@
 import math from "../math";
-import axiom from "./index";
+import {
+  axiom3,
+  axiom5,
+  axiom6,
+  axiom7,
+} from "./axioms";
 import { get_boundary } from "../graph/boundary";
 
 const reflect_point = (foldLine, point) => {
@@ -15,13 +20,18 @@ const reflect_point = (foldLine, point) => {
  * @returns {boolean[]} array of true/false, array indices match the return
  *  values from the axioms method.
  */
-const test_axiom1_2 = (params, poly) => [params.points
-  .map(p => math.core.overlap_convex_polygon_point(poly, p, ear.math.include))
+
+/**
+ * @description axiom 1 and 2, check input points, if they are both
+ * inside the boundary polygon, the solution is valid.
+ */
+const validate_axiom1_2 = (params, boundary) => [params.points
+  .map(p => math.core.overlap_convex_polygon_point(boundary, p, ear.math.include))
   .reduce((a, b) => a && b, true)];
 
-const test_axiom3 = (params, poly) => {
+const validate_axiom3 = (params, boundary) => {
   const segments = params.lines.map(line => math.core
-    .clip_line_in_convex_polygon(poly,
+    .clip_line_in_convex_polygon(boundary,
       line.vector,
       line.origin,
       math.core.include,
@@ -30,7 +40,7 @@ const test_axiom3 = (params, poly) => {
   if (segments[0] === undefined || segments[1] === undefined) {
     return [false, false];
   }
-  const results = math.core.axiom3(
+  const results = axiom3(
     params.lines[0].vector, params.lines[0].origin,
     params.lines[1].vector, params.lines[1].origin);
   // test A:
@@ -39,7 +49,7 @@ const test_axiom3 = (params, poly) => {
   const results_clip = results
     .map(line => line === undefined ? undefined : math.core
       .intersect_convex_polygon_line(
-        poly,
+        boundary,
         line.vector,
         line.origin,
         ear.math.include_s,
@@ -73,7 +83,7 @@ const test_axiom3 = (params, poly) => {
   return [0, 1].map(i => reflectMatch[i] === true && results_inside[i] === true);
 };
 
-const test_axiom4 = (params, poly) => {
+const validate_axiom4 = (params, boundary) => {
   const intersect = math.core.intersect_line_line(
     params.lines[0].vector, params.lines[0].origin,
     math.core.rotate90(params.lines[0].vector), params.points[0],
@@ -81,57 +91,57 @@ const test_axiom4 = (params, poly) => {
   return [
     [params.points[0], intersect]
       .filter(a => a !== undefined)
-      .map(p => math.core.overlap_convex_polygon_point(poly, p, math.core.include))
+      .map(p => math.core.overlap_convex_polygon_point(boundary, p, math.core.include))
       .reduce((a, b) => a && b, true)
   ];
 };
 
-const test_axiom5 = (params, poly) => {
-  const result = math.core.axiom5(
+const validate_axiom5 = (params, boundary) => {
+  const result = axiom5(
     params.lines[0].vector, params.lines[0].origin,
     params.points[0], params.points[1]);
   if (result.length === 0) { return []; }
   const testParamPoints = params.points
-    .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include))
+    .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include))
     .reduce((a, b) => a && b, true);
   const testReflections = result
     .map(foldLine => reflect_point(foldLine, params.points[1]))
-    .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
+    .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
   return testReflections.map(ref => ref && testParamPoints);
 };
 
-const test_axiom6 = function (params, poly) {
-  const results = math.core.axiom6(
+const validate_axiom6 = function (params, boundary) {
+  const results = axiom6(
     params.lines[0].vector, params.lines[0].origin,
     params.lines[1].vector, params.lines[1].origin,
     params.points[0], params.points[1]);
   if (results.length === 0) { return []; }
   const testParamPoints = params.points
-    .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include))
+    .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include))
     .reduce((a, b) => a && b, true);
   if (!testParamPoints) { return results.map(() => false); }
   const testReflect0 = results
     .map(foldLine => reflect_point(foldLine, params.points[0]))
-    .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
+    .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
   const testReflect1 = results
     .map(foldLine => reflect_point(foldLine, params.points[1]))
-    .map(point => math.core.overlap_convex_polygon_point(poly, point, math.core.include));
+    .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
   return results.map((_, i) => testReflect0[i] && testReflect1[i]);
 };
 
-const test_axiom7 = (params, poly) => {
+const validate_axiom7 = (params, boundary) => {
   // check if the point parameter is inside the polygon
   const paramPointTest = math.core
-    .overlap_convex_polygon_point(poly, params.points[0], math.core.include);
+    .overlap_convex_polygon_point(boundary, params.points[0], math.core.include);
   // check if the reflected point on the fold line is inside the polygon
-  const foldLine = math.core.axiom7(
+  const foldLine = axiom7(
     params.lines[0].vector, params.lines[0].origin,
     params.lines[1].vector, params.points[0]);
   if (foldLine === undefined) { return [false]; }
   const reflected = reflect_point(foldLine, params.points[0]);
-  const reflectTest = math.core.overlap_convex_polygon_point(poly, reflected, math.core.include);
+  const reflectTest = math.core.overlap_convex_polygon_point(boundary, reflected, math.core.include);
   // check if the line to fold onto itself is somewhere inside the polygon
-  const paramLineTest = (math.core.intersect_convex_polygon_line(poly,
+  const paramLineTest = (math.core.intersect_convex_polygon_line(boundary,
     params.lines[1].vector,
     params.lines[1].origin,
     math.core.include_s,
@@ -139,28 +149,27 @@ const test_axiom7 = (params, poly) => {
   return [paramPointTest && reflectTest && paramLineTest];
 };
 
-const test_axiom_funcs = [null,
-  test_axiom1_2,
-  test_axiom1_2,
-  test_axiom3,
-  test_axiom4,
-  test_axiom5,
-  test_axiom6,
-  test_axiom7,
+const validate_axiom_funcs = [null,
+  validate_axiom1_2,
+  validate_axiom1_2,
+  validate_axiom3,
+  validate_axiom4,
+  validate_axiom5,
+  validate_axiom6,
+  validate_axiom7,
 ];
-delete test_axiom_funcs[0];
+delete validate_axiom_funcs[0];
 
 // todo: get boundary needs support for multiple boundaries
-const test_axiom = (number, params, obj) => {
+const validate_axiom = (number, params, obj) => {
   const boundary = (typeof obj === "object" && obj.vertices_coords)
     ? get_boundary(obj).vertices.map(v => obj.vertices_coords[v])
     : obj;
-  return test_axiom_funcs[number](params, boundary);
+  return validate_axiom_funcs[number](params, boundary);
 };
 
-Object.keys(test_axiom_funcs).forEach(number => {
-  test_axiom[number] = (...args) => test_axiom(number, ...args);
+Object.keys(validate_axiom_funcs).forEach(number => {
+  validate_axiom[number] = (...args) => validate_axiom(number, ...args);
 });
 
-export default test_axiom;
-
+export default validate_axiom;

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { get_graph_keys_with_suffix } from "./fold_spec";
+import { get_graph_keys_with_suffix } from "../fold/spec";
 /**
  * @description Search inside arrays inside arrays and return
  * the largest number.

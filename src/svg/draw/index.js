@@ -1,7 +1,7 @@
 /**
- * fold to svg (c) Robby Kraft
+ * Rabbit Ear (c) Robby Kraft
  */
-import * as K from "../keys";
+import * as S from "../../symbols/strings";
 import { vertices_circle } from "./vertices";
 import { edges_paths } from "./edges";
 import {
@@ -12,7 +12,7 @@ import { boundaries_polygon } from "./boundaries";
 
 // preference for using faces_vertices over faces_edges, it runs faster
 const faces_draw_function = (graph, options) => (
-  graph != null && graph[K.faces_vertices] != null
+  graph != null && graph[S.faces_vertices] != null
     ? faces_vertices_polygon(graph, options)
     : faces_edges_polygon(graph, options));
 
@@ -26,7 +26,7 @@ const svg_draw_func = {
 const draw_group = (key, ...args) => {
   // vertices is the only one that uses "options"
   const group = svg_draw_func[key](...args);
-  group[K.setAttributeNS](null, K._class, key);
+  group.setAttributeNS(null, S._class, key);
   return group;
 };
 /**
@@ -37,16 +37,16 @@ const draw_group = (key, ...args) => {
  *  edges, vertices, each of the graph components drawn into an SVG group.
  */
 const DrawGroups = (graph, options = {}) => [
-  K.boundaries,
-  K.faces,
-  K.edges,
-  K.vertices].map(key => draw_group(key, graph, options[key]));
+  S.boundaries,
+  S.faces,
+  S.edges,
+  S.vertices].map(key => draw_group(key, graph, options[key]));
 
 // static style draw methods for individual components
-[K.boundaries,
-  K.faces,
-  K.edges,
-  K.vertices,
+[S.boundaries,
+  S.faces,
+  S.edges,
+  S.vertices,
 ].forEach(key => {
   DrawGroups[key] = function (graph, options = {}) {
     return draw_group(key, graph, options[key]);

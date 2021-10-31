@@ -51,6 +51,7 @@
 	},
 	"jest": {
 		"testEnvironment": "node",
-		"collectCoverage": true
+		"collectCoverage": true,
+		"testMatch": [ "**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(test).[jt]s?(x)" ]
 	}
 }

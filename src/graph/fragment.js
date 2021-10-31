@@ -6,16 +6,12 @@ import {
   fn_cat,
   fn_def,
 } from "../symbols/functions";
-import {
-  VERTICES,
-  EDGES,
-  FACES,
-} from "./fold_keys";
+import * as S from "../symbols/strings";
 import {
 	edge_assignment_to_foldAngle,
 	edge_foldAngle_to_assignment,
   get_graph_keys_with_prefix,
-} from "./fold_spec";
+} from "../fold/spec";
 import {
   remove_duplicate_vertices,
   remove_duplicate_edges,
@@ -178,7 +174,7 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
   // project all vertices onto the XY plane
   graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 
-  [VERTICES, EDGES, FACES]
+  [S.vertices, S.edges, S.faces]
     .map(key => get_graph_keys_with_prefix(graph, key))
     .reduce(fn_cat, [])
     .filter(key => !(fragment_keep_keys.includes(key)))

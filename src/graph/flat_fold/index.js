@@ -7,7 +7,7 @@ import { fold_faces_layer } from "./faces_layer";
 import clone from "../clone";
 import Count from "../count";
 import { face_containing_point } from "../nearest";
-import { edges_assignment_degrees } from "../fold_spec";
+import { edges_assignment_degrees } from "../../fold/spec";
 import {
   make_faces_matrix,
   make_faces_center,

@@ -1,7 +1,11 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { keys, non_spec_keys } from "./fold_keys";
+import {
+  keys,
+  non_spec_keys,
+  edges_assignment_values,
+} from "./keys";
 /**
  * this contains two types of methods.
  * 1. methods that are mostly references, including lists of keys
@@ -10,6 +14,37 @@ import { keys, non_spec_keys } from "./fold_keys";
  * 2. methods that operate on a FOLD object, searching and gathering
  *    and re-arranging keys or values based on key queries.
  */
+/**
+ * English conversion from the plural form of words to the singular
+ */
+export const singularize = {
+  vertices: "vertex",
+  edges: "edge",
+  faces: "face",
+};
+/**
+ * English word for what each edge assignment stands for.
+ * both upper and lowercase letter keys reference the word.
+ */
+export const edges_assignment_names = {
+  b: "boundary",
+  m: "mountain",
+  v: "valley",
+  f: "mark",
+  u: "unassigned"
+};
+edges_assignment_values.forEach(key => {
+  edges_assignment_names[key.toUpperCase()] = edges_assignment_names[key];
+});
+/**
+ * @description convert upper or lowercase edge assignments to lowercase.
+ * because edge assignments can be lower or uppercase, this object
+ * contains both cases as keys, where the values are only lowercase
+ */
+export const edges_assignment_to_lowercase = {};
+edges_assignment_values.forEach(key => {
+  edges_assignment_to_lowercase[key] = key.toLowerCase();
+});
 export const edges_assignment_degrees = {
   M: -180,
   m: -180,
@@ -21,18 +56,6 @@ export const edges_assignment_degrees = {
   f: 0,
   U: 0,
   u: 0
-};
-export const edges_assignment_names = {
-  M: "mountain",
-  m: "mountain",
-  V: "valley",
-  v: "valley",
-  B: "boundary",
-  b: "boundary",
-  F: "mark",
-  f: "mark",
-  U: "unassigned",
-  u: "unassigned"
 };
 /**
  * @param {string} one edge assignment letter, any case: M V B F U
