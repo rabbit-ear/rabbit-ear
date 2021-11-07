@@ -89,7 +89,7 @@ export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_
  * this DOES NOT arrange faces in counter-clockwise order, as the spec suggests
  * use make_vertices_faces_sorted for that, which requires vertices_vertices.
  */
-export const make_vertices_faces = ({ faces_vertices }) => {
+export const make_vertices_faces_simple = ({ faces_vertices }) => {
   // instead of initializing the array ahead of time (we would need to know
   // the length of something like vertices_coords)
   const vertices_faces = Array
@@ -109,19 +109,23 @@ export const make_vertices_faces = ({ faces_vertices }) => {
 /**
  * this does arrange faces in counter-clockwise order, as the spec suggests
  */
-export const make_vertices_faces_sorted = ({ vertices_vertices, faces_vertices }) => {
+export const make_vertices_faces = ({ vertices_vertices, faces_vertices }) => {
+  if (!vertices_vertices) {
+    return make_vertices_faces_simple({ faces_vertices });
+  }
   const face_map = make_vertices_to_face({ faces_vertices });
   return vertices_vertices
     .map((verts, v) => verts
       .map((vert, i, arr) => [arr[(i + 1) % arr.length], v, vert]
         .join(" ")))
     .map(keys => keys
-      .map(key => face_map[key])
-      .filter(a => a !== undefined)); // okay this was unexpected.
-  // the filter at the end is required for the boundary vertices, because there
-  // is no face (usually) that winds backwards around the piece and encloses
-  // infinity. however, this disconnects the index match with vertices_vertices.
+      .map(key => face_map[key]));
+    // .filter(a => a !== undefined) // removed. read below.
 };
+// the old version of this method contained a filter to remove "undefined".
+// because in the case of a boundary vertex of a closed polygon shape, there
+// is no face that winds backwards around the piece and encloses infinity.
+// unfortunately, this disconnects the index match with vertices_vertices.
 /**
  * *not a geometry array*
  *
@@ -200,8 +204,12 @@ export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, e
   }
   // assign one matrix to every vertex from faces, identity matrix if none exist
   const vertices_matrix = vertices_faces
-    .map(faces => faces[0])  // get the first in the list, it doesn't matter
-    .map(face => face === undefined ? math.core.identity3x4 : faces_matrix[face]);
+    .map(faces => faces
+      .filter(a => a !== undefined)
+      .shift()) // get any face from the list
+    .map(face => face === undefined
+      ? math.core.identity3x4
+      : faces_matrix[face]);
   return vertices_coords
     .map(coord => math.core.resize(3, coord))
     .map((coord, i) => math.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
@@ -229,18 +237,29 @@ export const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
   // if (!edges_vertices || !vertices_edges) { return undefined; }
 
 // todo: make_edges_faces c-clockwise
-export const make_edges_faces = ({ faces_edges }) => {
-  // instead of initializing the array ahead of time (we would need to know
-  // the length of something like edges_vertices)
-  const edges_faces = Array
-    .from(Array(implied.edges({ faces_edges })))
-    .map(() => []);
-  // todo: does not arrange counter-clockwise
+// export const make_edges_faces = ({ faces_edges }) => {
+//   // instead of initializing the array ahead of time (we would need to know
+//   // the length of something like edges_vertices)
+//   const edges_faces = Array
+//     .from(Array(implied.edges({ faces_edges })))
+//     .map(() => []);
+//   // todo: does not arrange counter-clockwise
+//   faces_edges.forEach((face, f) => {
+//     const hash = [];
+//     // in the case that one face visits the same edge multiple times,
+//     // this hash acts as a set allowing one occurence of each edge index.
+//     face.forEach((edge) => { hash[edge] = f; });
+//     hash.forEach((fa, e) => edges_faces[e].push(fa));
+//   });
+//   return edges_faces;
+// };
+
+export const make_edges_faces = ({ edges_vertices, faces_edges }) => {
+  const edges_faces = edges_vertices.map(ev => []);
   faces_edges.forEach((face, f) => {
     const hash = [];
     // in the case that one face visits the same edge multiple times,
-    // this hash acts as an intermediary, basically functioning like a set,
-    // and only allow one occurence of each edge index.
+    // this hash acts as a set allowing one occurence of each edge index.
     face.forEach((edge) => { hash[edge] = f; });
     hash.forEach((fa, e) => edges_faces[e].push(fa));
   });

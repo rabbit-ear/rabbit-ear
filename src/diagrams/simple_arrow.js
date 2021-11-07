@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../math";
 
 const boundary_for_arrows = ({ vertices_coords }) => math.core

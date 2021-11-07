@@ -6,7 +6,6 @@ import {
   make_vertices_edges,
   make_vertices_edges_sorted, // todo resolve this duplicate work
   make_vertices_faces,
-  make_vertices_faces_sorted,
   make_vertices_sectors,
   make_edges_edges,
   make_edges_faces,
@@ -23,6 +22,9 @@ import {
   edge_foldAngle_to_assignment,
 } from "../fold/spec";
 
+//
+// big todo: populate assumes the graph is planar and rebuilds planar faces
+//
 
 // try best not to lose information
 const set_edges_angles = (graph) => {
@@ -79,15 +81,15 @@ const populate = (graph) => {
     const faces = make_planar_faces(graph);
     graph.faces_vertices = faces.map(face => face.vertices);
     graph.faces_edges = faces.map(face => face.edges);
-    graph.faces_angles = faces.map(face => face.angles);
+    graph.faces_sectors = faces.map(face => face.angles);
   } else {
     // todo we need a way of making faces that doesn't imply planar.
     graph.faces_vertices = [];
     graph.faces_edges = [];
   }
-  graph.vertices_faces = graph.vertices_vertices
-    ? make_vertices_faces_sorted(graph)
-    : make_vertices_faces(graph);
+  // depending on the presence of vertices_vertices, this will
+  // run the simple algorithm (no radial sorting) or the proper one.
+  graph.vertices_faces = make_vertices_faces(graph);
   graph.edges_faces = make_edges_faces(graph);
   graph.faces_faces = make_faces_faces(graph);
   if (graph.vertices_coords) {
@@ -96,7 +98,7 @@ const populate = (graph) => {
   return graph;
 }
 
- /**
+/**
  * old description:
  * populate() will assess each graph component that is missing and
  * attempt to create as many as possible.

@@ -9,11 +9,11 @@ import root from "../../root";
 
 const FOLDED = {
 	// stroke: "none",
-	fill: "none",
+	fill: S._none,
 };
 const FLAT = {
-	stroke: "black",
-	fill: "white",
+	stroke: S._black,
+	fill: S._white,
 };
 
 const apply_style = (el, attributes = {}) => Object.keys(attributes)
@@ -29,7 +29,7 @@ export const boundaries_polygon = (graph, attributes = {}) => {
   if (boundary.length === 0) { return g; }
 	// create polygon, append to group
   const poly = root.svg.polygon(boundary);
-  poly.setAttributeNS(null, S._class, S.boundary);
+  poly.setAttributeNS(null, S._class, S._boundary);
 	g.appendChild(poly);
 	// style attributes on group container
 	apply_style(g, is_folded_form(graph) ? FOLDED : FLAT);

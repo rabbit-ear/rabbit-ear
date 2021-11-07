@@ -164,17 +164,17 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 };
 
 const fragment_keep_keys = [
-  "vertices_coords",
-  "edges_vertices",
-  "edges_assignment",
-  "edges_foldAngle",
+  S._vertices_coords,
+  S._edges_vertices,
+  S._edges_assignment,
+  S._edges_foldAngle,
 ];
 
 const fragment = (graph, epsilon = math.core.EPSILON) => {
   // project all vertices onto the XY plane
   graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 
-  [S.vertices, S.edges, S.faces]
+  [S._vertices, S._edges, S._faces]
     .map(key => get_graph_keys_with_prefix(graph, key))
     .reduce(fn_cat, [])
     .filter(key => !(fragment_keep_keys.includes(key)))

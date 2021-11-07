@@ -1,6 +1,8 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+import * as S from "../symbols/strings";
+
 export const merge_simple_nextmaps = (...maps) => {
   if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => i);
@@ -38,7 +40,7 @@ export const merge_backmaps = (...maps) => {
   maps.forEach((map, i) => {
 		let next = [];
 	  map.forEach((el, j) => {
-      if (typeof el === "number") { next[j] = solution[el]; }
+      if (typeof el === S._number) { next[j] = solution[el]; }
 			else { next[j] = el.map(n => solution[n]).reduce((a,b) => a.concat(b), []); }
 		});
 		solution = next;
@@ -50,11 +52,11 @@ export const invert_map = (map) => {
 	const inv = [];
 	map.forEach((n, i) => {
 		if (n == null) { return; }
-		if (typeof n === "number") { 
+		if (typeof n === S._number) { 
 			// before we set the inverted map [i] spot, check if something is already there
 			if (inv[n] !== undefined) {
 				// if that thing is a number, turn it into an array
-				if (typeof inv[n] === "number") { inv[n] = [inv[n], i]; }
+				if (typeof inv[n] === S._number) { inv[n] = [inv[n], i]; }
 				// already an array, add to it
 				else { inv[n].push(i); }
 			}

@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+import * as S from "../symbols/strings";
 import window from "../environment/window";
 /**
  * @description this is a stand-alone replacement for the SVG library

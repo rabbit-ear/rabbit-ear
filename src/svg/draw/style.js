@@ -9,8 +9,8 @@ import * as S from "../../symbols/strings";
 
 const component_classes = {
   vertices: [],
-  edges: [S.unassigned, S.mark, S.valley, S.mountain, S.boundary],
-  faces: [S.front, S.back, S.foldedForm],
+  edges: [S._unassigned, S._mark, S._valley, S._mountain, S._boundary],
+  faces: [S._front, S._back, S._foldedForm],
   boundaries: [],
 };
 

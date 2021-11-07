@@ -29,7 +29,7 @@ const between = (arr, i, j) => (i < j) ? arr.slice(i + 1, j) : arr.slice(j + 1, 
  *  if you flip them around, think [0.2, 0.1, 0.3] would still work, indices point to
  *  sector indices, and the values are the stacking order
  */
-const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) => {
+const make_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) => {
   let pointer = 0;
   // globally, the location that each fold takes place along the +X
   const fold_location = sectors
@@ -37,10 +37,14 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
     .map(move => pointer += move);
   // with epsilon for added permissive (folds can lie exactly on top of one another)
   const sector_mins = fold_location
-    .map((sec, i, arr) => i % 2 === 0 ? arr[(i + arr.length - 1) % arr.length] : sec)
+    .map((sec, i, arr) => (i % 2 === 0
+      ? arr[(i + arr.length - 1) % arr.length]
+      : sec))
     .map(n => n + epsilon);
   const sector_maxs = fold_location
-    .map((sec, i, arr) => i % 2 === 0 ? sec : arr[(i + arr.length - 1) % arr.length])
+    .map((sec, i, arr) => (i % 2 === 0
+      ? sec
+      : arr[(i + arr.length - 1) % arr.length]))
     .map(n => n - epsilon);
 
   const test = (layering) => {
@@ -62,7 +66,7 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
       const all_above_max = layers_between
         .map(index => fold_location[i] > sector_maxs[index])
         .reduce(fn_and, true);
-      // console.log("test ", i, layering, "between", index_of_index[i], index_of_index[j], "layers_between", layers_between, all_below_min, all_above_max);
+      // console.log("test", i, layering, "between", index_of_index[i], index_of_index[j], "layers_between", layers_between, all_below_min, all_above_max);
       if (!all_below_min && !all_above_max) { return false; }
       // if (!all_beyond_min_max[0] && !all_beyond_min_max[1]) { return false; }
     }
@@ -71,16 +75,22 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
     return true;
   };
 
+  // todo: unsure how to treat a boundary vertex. we are giving a
+  // sorting order to the outer boundary face
+  const format_boundary = (stack) => {
+    // console.log("boundary vertex", stack);
+    return [stack];
+  };
+
   // remember stack is not layer_order. it's 
   const final_test = (stack) => {
     // last test: test the first assignment[0]. make sure the final crease turns
     // the correct direction to connect back to the beginning.
     const inverted_stack = invert_simple_map(stack);
     // console.log("first", inverted_stack[0], "and last sector's layer", inverted_stack[inverted_stack.length - 1]);
-    const res = inverted_stack[0] > inverted_stack[inverted_stack.length - 1]
+    const res = (inverted_stack[0] > inverted_stack[inverted_stack.length - 1]
       ? assignments[0] === "M"
-      : assignments[0] === "V"
-    // console.log("res", res)
+      : assignments[0] === "V");
     return res;
   };
 
@@ -96,13 +106,19 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
     if (!test(stack)) { return []; }
     // return if done
     if (iter >= sectors.length - 1) {
+      // if the vertex is a boundary vertex it automatically passes this test
+      if (assignments.includes("B") || assignments.includes("b")) {
+        return format_boundary(stack);
+      }
       return final_test(stack) ? [stack] : [];
     }
     // continue
     const next_dir = upOrDown(assignments[(iter + 1) % sectors.length], iter);
     const spliceIndices = next_dir === 1
-      ? Array.from(Array(stack.length - currentLayer)).map((_, i) => currentLayer + i + 1)
-      : Array.from(Array(currentLayer + 1)).map((_, i) => i);
+      ? Array.from(Array(stack.length - currentLayer))
+        .map((_, i) => currentLayer + i + 1)
+      : Array.from(Array(currentLayer + 1))
+        .map((_, i) => i);
     // if done
     return spliceIndices
       .map(i => recurse(stack, iter + 1, i))
@@ -113,5 +129,5 @@ const get_sectors_layer = (sectors, assignments, epsilon = math.core.EPSILON) =>
   return recurse();
 };
 
-export default get_sectors_layer;
+export default make_sectors_layer;
 

@@ -13,7 +13,7 @@ import root from "../../root";
 const GROUP_FOLDED = {};
 
 const GROUP_FLAT = {
-	stroke: "black",
+	stroke: S._black,
 };
 
 const STYLE_FOLDED = {};
@@ -32,9 +32,9 @@ const STYLE_FLAT = {
  */
 const edges_assignment_indices = (graph) => {
   const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
-  const lowercase_assignment = graph[S.edges_assignment]
+  const lowercase_assignment = graph[S._edges_assignment]
 		.map(a => edges_assignment_to_lowercase[a]);
-  graph[S.edges_vertices]
+  graph[S._edges_vertices]
 		.map((_, i) => lowercase_assignment[i] || "u")
 		.forEach((a, i) => assignment_indices[a].push(i));
   return assignment_indices;

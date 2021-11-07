@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../math";
 import { fn_add } from "../symbols/functions";
 /**
@@ -55,4 +58,3 @@ export const kawasaki_solutions = (vectors) => {
       ? undefined
       : [Math.cos(a), Math.sin(a)]));
 };
-

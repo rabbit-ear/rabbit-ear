@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import split_edge from "../split_edge/index";
 import {
   merge_nextmaps,

@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import { edges_assignment_names } from "../fold/spec";
 import axiom_instructions_data from "../text/axioms.json";
 

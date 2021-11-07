@@ -22,7 +22,7 @@ Origami.prototype.constructor = Origami;
 Origami.prototype.flatFold = function () {
   const line = math.core.get_line(arguments);
   const graph = flat_fold(this, line.vector, line.origin);
-  [S.vertices, S.edges, S.faces]
+  [S._vertices, S._edges, S._faces]
     .map(key => get_graph_keys_with_prefix(this, key))
     .reduce(fn_cat, [])
     .forEach(key => delete this[key]);
@@ -38,7 +38,7 @@ Origami.prototype.folded = function () {
   const vertices_coords = make_vertices_coords_folded(this, ...arguments);
   return Object.assign(
     Object.create(Origami.prototype),
-    Object.assign(clone(this), { vertices_coords }, { frame_classes: ["foldedForm"] }));
+    Object.assign(clone(this), { vertices_coords }, { frame_classes: [S._foldedForm] }));
 };
 
 export default Origami.prototype;

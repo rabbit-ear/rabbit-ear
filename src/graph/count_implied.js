@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+import * as S from "../symbols/strings";
 import { get_graph_keys_with_suffix } from "../fold/spec";
 /**
  * @description Search inside arrays inside arrays and return
@@ -58,8 +59,8 @@ const implied_count = (graph, key) => Math.max(
 ) + 1;
 
 // standard graph components names
-implied_count.vertices = graph => implied_count(graph, "vertices");
-implied_count.edges = graph => implied_count(graph, "edges");
-implied_count.faces = graph => implied_count(graph, "faces");
+implied_count.vertices = graph => implied_count(graph, S._vertices);
+implied_count.edges = graph => implied_count(graph, S._edges);
+implied_count.faces = graph => implied_count(graph, S._faces);
 
 export default implied_count;

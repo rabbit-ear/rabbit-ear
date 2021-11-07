@@ -12,7 +12,7 @@ import { boundaries_polygon } from "./boundaries";
 
 // preference for using faces_vertices over faces_edges, it runs faster
 const faces_draw_function = (graph, options) => (
-  graph != null && graph[S.faces_vertices] != null
+  graph != null && graph[S._faces_vertices] != null
     ? faces_vertices_polygon(graph, options)
     : faces_edges_polygon(graph, options));
 
@@ -37,16 +37,16 @@ const draw_group = (key, ...args) => {
  *  edges, vertices, each of the graph components drawn into an SVG group.
  */
 const DrawGroups = (graph, options = {}) => [
-  S.boundaries,
-  S.faces,
-  S.edges,
-  S.vertices].map(key => draw_group(key, graph, options[key]));
+  S._boundaries,
+  S._faces,
+  S._edges,
+  S._vertices].map(key => draw_group(key, graph, options[key]));
 
 // static style draw methods for individual components
-[S.boundaries,
-  S.faces,
-  S.edges,
-  S.vertices,
+[S._boundaries,
+  S._faces,
+  S._edges,
+  S._vertices,
 ].forEach(key => {
   DrawGroups[key] = function (graph, options = {}) {
     return draw_group(key, graph, options[key]);

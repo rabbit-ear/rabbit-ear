@@ -22,6 +22,9 @@ export const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, ed
     for (let i = 0; i < vertices_faces[vertices[0]].length; i += 1) {
       for (let j = 0; j < vertices_faces[vertices[1]].length; j += 1) {
         if (vertices_faces[vertices[0]][i] === vertices_faces[vertices[1]][j]) {
+          // todo: now allowing undefined to be in vertices_faces,
+          // but, do we want to exclude them from the result?
+          if (vertices_faces[vertices[0]][i] === undefined) { continue; }
           faces.push(vertices_faces[vertices[0]][i]);
         }
       }

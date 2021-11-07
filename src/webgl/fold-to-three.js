@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../math";
 import window from "../environment/window"
 import { fn_cat } from "../symbols/functions";

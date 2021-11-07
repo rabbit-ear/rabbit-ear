@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import { sort_vertices_counter_clockwise } from "../sort";
 import {
   make_vertices_edges_sorted,

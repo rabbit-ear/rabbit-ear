@@ -3,6 +3,7 @@
  */
 import math from "../math";
 import setup from "./components";
+import * as S from "../symbols/strings";
 import {
   fold_keys,
   keys,
@@ -38,7 +39,6 @@ import {
   face_containing_point,
 } from "../graph/nearest";
 import clone from "../graph/clone";
-import svg from "../svg/index";
 import add_vertices from "../graph/add/add_vertices";
 import split_edge from "../graph/split_edge/index";
 import split_face from "../graph/split_face/index";
@@ -63,7 +63,6 @@ const graphMethods = Object.assign({
   fragment,
   subgraph,
   assign,
-  svg,
 },
   transform,
 );
@@ -99,8 +98,6 @@ Graph.prototype.splitFace = function (face, ...args) {
   const line = math.core.get_line(...args);
   return split_face(this, face, line.vector, line.origin);
 };
-
-
 /**
  * export
  * @returns {this} a deep copy of this object
@@ -114,7 +111,7 @@ Graph.prototype.copy = function () {
  *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
  */
 Graph.prototype.load = function (object, options = {}) {
-  if (typeof object !== "object") { return; }
+  if (typeof object !== S._object) { return; }
   if (options.append !== true) {
     keys.forEach(key => delete this[key]);
   }
@@ -134,7 +131,7 @@ Graph.prototype.folded = function () {
   const vertices_coords = make_vertices_coords_folded(this, ...arguments);
   return Object.assign(
     Object.create(Graph.prototype),
-    Object.assign(clone(this), { vertices_coords }, { frame_classes: ["foldedForm"] }));
+    Object.assign(clone(this), { vertices_coords }, { frame_classes: [S._foldedForm] }));
 };
 
 ;
@@ -157,14 +154,14 @@ const getComponent = function (key) {
     .map(setup[key].bind(this));
 };
 
-["vertices", "edges", "faces"]
+[S._vertices, S._edges, S._faces]
   .forEach(key => Object.defineProperty(Graph.prototype, key, {
     get: function () { return getComponent.call(this, key); }
   }));
  
 // todo: get boundaries, plural
 // get boundary. only if the edges_assignment
-Object.defineProperty(Graph.prototype, "boundary", {
+Object.defineProperty(Graph.prototype, S._boundary, {
   get: function () {
     const boundary = get_boundary(this);
     const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
@@ -204,7 +201,7 @@ Graph.prototype.nearest = function () {
   const point = math.core.get_vector(arguments);
   const nears = Object.create(null);
   const cache = {};
-  ["vertices", "edges", "faces"].forEach(key => {
+  [S._vertices, S._edges, S._faces].forEach(key => {
     Object.defineProperty(nears, singularize[key], {
       get: () => {
         if (cache[key] !== undefined) { return cache[key]; }

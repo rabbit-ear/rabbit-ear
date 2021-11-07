@@ -12,7 +12,7 @@ export const vertices_circle = (graph, attributes = {}) => {
     .map(v => root.svg.circle(v[0], v[1], 0.01)) // radius overwritten in "style"
 		.forEach(v => g.appendChild(v));
 	// default style
-	g.setAttributeNS(null, "fill", "none");
+	g.setAttributeNS(null, "fill", S._none);
 	// style attributes on group container
 	Object.keys(attributes)
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));

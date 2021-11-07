@@ -1,4 +1,7 @@
 /**
+ * Rabbit Ear (c) Robby Kraft
+ */
+/**
  * @description an edge was just split into two by the addition of a vertex.
  * update new vertex's vertices_vertices, as well as the split edge's
  * endpoint's vertices_vertices to include the new vertex in place of the

@@ -47,7 +47,7 @@ const split_convex_face = (graph, face, vector, point, epsilon) => {
   update_edges_faces(graph, face, result.edges.new, faces);
   update_faces_faces(graph, face, faces);
   // remove old data
-  const faces_map = remove(graph, S.faces, [face]);
+  const faces_map = remove(graph, S._faces, [face]);
   // the graph is now complete, however our return object needs updating.
   // shift our new face indices since these relate to the graph before remove().
   faces.forEach((_, i) => { faces[i] = faces_map[faces[i]]; });

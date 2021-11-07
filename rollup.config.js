@@ -1,7 +1,7 @@
-import babel from "@rollup/plugin-babel";
+// import babel from "@rollup/plugin-babel";
 import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup"
-import { terser } from "rollup-plugin-terser";
+// import { terser } from "rollup-plugin-terser";
 
 const version = "0.9.12 alpha 2021-01-xx";
 const input = "src/index.js";
@@ -18,17 +18,17 @@ module.exports = [{
   },
   plugins: [
     json(),
-    babel({
-      babelHelpers: "bundled",
-      presets: ["@babel/preset-env"]
-    }),
+    // babel({
+    //   babelHelpers: "bundled",
+    //   presets: ["@babel/preset-env"]
+    // }),
     cleanup(),
-    terser({
-      keep_fnames: true,
-      format: {
-        comments: "all",
-      },
-    }),
+    // terser({
+    //   keep_fnames: true,
+    //   format: {
+    //     comments: "all",
+    //   },
+    // }),
   ]
 // }, {
 //   input,

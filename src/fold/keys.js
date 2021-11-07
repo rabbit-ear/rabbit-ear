@@ -69,7 +69,7 @@ export const keys = Object.freeze([]
 export const non_spec_keys = Object.freeze([
   "edges_vector",
   "vertices_sectors",
-  "faces_angles",
+  "faces_sectors",
   "faces_matrix"
 ]);
 // "faces_ear:matrix",

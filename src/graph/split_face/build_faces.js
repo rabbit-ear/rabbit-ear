@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import { make_vertices_to_edge_bidirectional } from "../make";
 import { split_circular_array } from "../arrays";
 /**

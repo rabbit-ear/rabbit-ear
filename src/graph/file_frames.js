@@ -8,7 +8,7 @@ export const flatten_frame = (graph, frame_num = 1) => {
   if (!graph.file_frames || graph.file_frames.length < frame_num) {
     return graph;
   }
-  const dontCopy = [S.frame_parent, S.frame_inherit];
+  const dontCopy = [S._frame_parent, S._frame_inherit];
   const memo = { visited_frames: [] };
 
   const recurse = (recurse_graph, frame, orderArray) => {
@@ -45,7 +45,7 @@ export const flatten_frame = (graph, frame_num = 1) => {
 };
 
 export const merge_frame = function (graph, frame) {
-  const dontCopy = [S.frame_parent, S.frame_inherit];
+  const dontCopy = [S._frame_parent, S._frame_inherit];
   const copy = clone(frame);
   dontCopy.forEach(key => delete copy[key]);
   // don't deep copy file_frames. stash. bring them back.

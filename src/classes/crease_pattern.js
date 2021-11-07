@@ -9,10 +9,7 @@ import add_edges from "../graph/add/add_edges";
 import fragment from "../graph/fragment";
 import populate from "../graph/populate";
 import clone from "../graph/clone";
-import {
-  make_vertices_coords_folded,
-} from "../graph/make";
-
+import { make_vertices_coords_folded } from "../graph/make";
 /**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.
@@ -105,4 +102,3 @@ const edges_array = function (array) {
 });
 
 export default CreasePattern.prototype;
-

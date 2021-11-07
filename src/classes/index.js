@@ -82,4 +82,3 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 Object.assign(Constructors.graph, graph_methods);
 
 export default Constructors;
-

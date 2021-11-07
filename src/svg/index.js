@@ -4,6 +4,7 @@
 import * as S from "../symbols/strings";
 import DrawGroups from "./draw/index";
 import fold_classes from "./classes";
+import linker from "./linker";
 // get the SVG library from its binding to the root of the library
 import root from "../root";
 /**
@@ -54,8 +55,8 @@ const make_svg_attributes = (graph, options, setViewBox = true) => {
   const viewBox = bounding_rect(graph);
   if (viewBox && setViewBox) {
     attributes.viewBox = viewBox.join(" ");
-    const vmin = Math.min(viewBox[2], viewBox[3]);
-    attributes[S.stroke_width] = vmin / 100;
+    const vmax = Math.max(viewBox[2], viewBox[3]);
+    attributes[S._stroke_width] = vmax / 100;
     attributes.width = viewBox[2];
     attributes.height = viewBox[3];
   }
@@ -63,6 +64,12 @@ const make_svg_attributes = (graph, options, setViewBox = true) => {
   attributes[S._class] = ["origami"].concat(fold_classes(graph)).join(" ");
   return attributes;
 };
+/**
+ * set the attribute "r" (radius) on all child elements in this group
+ */
+const setR = (group, radius) => group
+  .childNodes
+  .forEach(circle => circle.setAttributeNS(null, "r", radius));
 /**
  * @description renders a FOLD object into an SVG, ensuring visibility by
  *  setting the viewBox and the stroke-width attributes on the SVG.
@@ -72,14 +79,18 @@ const make_svg_attributes = (graph, options, setViewBox = true) => {
  * @returns {SVGElement} the same SVG parameter object.
  */
 const drawInto = (element, graph, ...args) => {
-  const options = args.filter(el => typeof el === "object").shift() || {};
-  const setViewBox = args.filter(el => typeof el === "boolean").shift();
+  const options = args.filter(el => typeof el === S._object).shift() || {};
+  const setViewBox = args.filter(el => typeof el === S._boolean).shift();
   const attrs = make_svg_attributes(graph, options, setViewBox);
   Object.keys(attrs)
     .forEach(attr => element.setAttributeNS(null, attr, attrs[attr]));
   const groups = DrawGroups(graph, options);
   groups.filter(group => group.childNodes.length > 0)
     .forEach(group => element.appendChild(group));
+  // give vertices special treatment. set their radius a factor of stroke-width
+  // DrawGroups() is hard-coded to return 4 elements, the last is vertices
+  if (attrs[S._stroke_width]) { setR(groups[3], attrs[S._stroke_width] * 2); }
+  // set custom getters on the <svg> element to grab the component groups
   Object.keys(DrawGroups).forEach((key, i) =>
     Object.defineProperty(element, key, { get: () => groups[i] }));
   return element;
@@ -87,8 +98,10 @@ const drawInto = (element, graph, ...args) => {
 /**
  * @description renders a FOLD object as an SVG, ensuring visibility by
  *  setting the viewBox and the stroke-width attributes on the SVG.
+ *  The drawInto() method will accept options/setViewBox in any order.
  * @param {object} graph FOLD object
  * @param {object} options (optional)
+ * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
  */
 const FOLDtoSVG = (graph, options, setViewBox) => (
@@ -98,7 +111,15 @@ const FOLDtoSVG = (graph, options, setViewBox) => (
  * @description adding static-like methods to the main function, four for
  *  drawing the individual elements, and one drawInto for pre-initialized svgs.
  */
-Object.keys(DrawGroups).forEach(key => { FOLDtoSVG[key] = DrawGroups[key]; });
+Object.keys(DrawGroups).forEach(key => {
+  FOLDtoSVG[key] = DrawGroups[key];
+});
 FOLDtoSVG.drawInto = drawInto;
+
+// .use() to link library to Rabbit Ear, and optionally build without this.
+Object.defineProperty(FOLDtoSVG, "linker", {
+  enumerable: false,
+  value: linker.bind(FOLDtoSVG),
+});
 
 export default FOLDtoSVG;

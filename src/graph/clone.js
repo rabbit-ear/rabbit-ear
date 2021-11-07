@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+import * as S from "../symbols/strings";
 /**
  * @description deep copy an object, like JSON.parse(JSON.stringify())
  *
@@ -14,7 +15,7 @@
 const clone = function (o) {
   let newO;
   let i;
-  if (typeof o !== "object") {
+  if (typeof o !== S._object) {
     return o;
   }
   if (!o) {

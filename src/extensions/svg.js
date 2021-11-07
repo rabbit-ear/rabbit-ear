@@ -9,30 +9,30 @@ function SVG () {
 const _class = "class";
 const _function = "function";
 const _undefined = "undefined";
-const boolean = "boolean";
-const number = "number";
-const string = "string";
-const object = "object";
-const svg = "svg";
-const path = "path";
-const id = "id";
-const style = "style";
-const viewBox$2 = "viewBox";
-const transform = "transform";
-const points = "points";
-const stroke = "stroke";
-const fill = "fill";
-const none = "none";
-const arrow = "arrow";
-const head$1 = "head";
-const tail$1 = "tail";
+const _boolean = "boolean";
+const _number = "number";
+const _string = "string";
+const _object = "object";
+const _svg = "svg";
+const _path = "path";
+const _id = "id";
+const _style = "style";
+const _viewBox = "viewBox";
+const _transform = "transform";
+const _points = "points";
+const _stroke = "stroke";
+const _fill = "fill";
+const _none = "none";
+const _arrow = "arrow";
+const _head = "head";
+const _tail = "tail";
 
 const isBrowser = typeof window !== _undefined
   && typeof window.document !== _undefined;
 const isNode = typeof process !== _undefined
   && process.versions != null
   && process.versions.node != null;
-const isWebWorker = typeof self === object
+const isWebWorker = typeof self === _object
   && self.constructor
   && self.constructor.name === "DedicatedWorkerGlobalScope";
 
@@ -44,17 +44,17 @@ var detect = /*#__PURE__*/Object.freeze({
 });
 
 const htmlString = "<!DOCTYPE html><title>.</title>";
-const win = (function () {
-  let w = {};
+const Window = (function () {
+  let win = {};
   if (isNode) {
-    const { DOMParser, XMLSerializer } = require("xmldom");
-    w.DOMParser = DOMParser;
-    w.XMLSerializer = XMLSerializer;
-    w.document = new DOMParser().parseFromString(htmlString, "text/html");
+    const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
+    win.DOMParser = DOMParser;
+    win.XMLSerializer = XMLSerializer;
+    win.document = new DOMParser().parseFromString(htmlString, "text/html");
   } else if (isBrowser) {
-    w = window;
+    win = window;
   }
-  return w;
+  return win;
 }());
 
 var NS = "http://www.w3.org/2000/svg";
@@ -160,7 +160,7 @@ const arcPath = (x, y, radius, startAngle, endAngle, includeCenter = false) => {
 const arcArguments = (a, b, c, d, e) => [arcPath(a, b, c, d, e, false)];
 var Arc = {
   arc: {
-    nodeName: path,
+    nodeName: _path,
     attributes: ["d"],
     args: arcArguments,
     methods: {
@@ -172,7 +172,7 @@ var Arc = {
 const wedgeArguments = (a, b, c, d, e) => [arcPath(a, b, c, d, e, true)];
 var Wedge = {
   wedge: {
-    nodeName: path,
+    nodeName: _path,
     args: wedgeArguments,
     attributes: ["d"],
     methods: {
@@ -196,7 +196,7 @@ const parabolaPathString = (a, b, c, d) => [
 var Parabola = {
   parabola: {
     nodeName: "polyline",
-    attributes: [points],
+    attributes: [_points],
     args: parabolaPathString
   }
 };
@@ -216,7 +216,7 @@ const polygonPathString = (sides, cX = 0, cY = 0, radius = 1) => [
 var RegularPolygon = {
   regularPolygon: {
     nodeName: "polygon",
-    attributes: [points],
+    attributes: [_points],
     args: polygonPathString
   }
 };
@@ -232,7 +232,7 @@ const roundRectArguments = (x, y, width, height, cornerRadius = 0) => {
 
 var RoundRect = {
   roundRect: {
-    nodeName: path,
+    nodeName: _path,
     attributes: ["d"],
     args: roundRectArguments
   }
@@ -259,7 +259,7 @@ const flatten_arrays = function () {
   switch (arguments.length) {
     case undefined:
     case 0: return Array.from(arguments);
-    case 1: return is_iterable(arguments[0]) && typeof arguments[0] !== string
+    case 1: return is_iterable(arguments[0]) && typeof arguments[0] !== _string
       ? flatten_arrays(...arguments[0])
       : [arguments[0]];
     default:
@@ -270,12 +270,12 @@ const flatten_arrays = function () {
 };
 
 var coordinates = (...args) => {
-  return args.filter(a => typeof a === number)
+  return args.filter(a => typeof a === _number)
     .concat(
-      args.filter(a => typeof a === object && a !== null)
+      args.filter(a => typeof a === _object && a !== null)
         .map((el) => {
-          if (typeof el.x === number) { return [el.x, el.y]; }
-          if (typeof el[0] === number) { return [el[0], el[1]]; }
+          if (typeof el.x === _number) { return [el.x, el.y]; }
+          if (typeof el[0] === _number) { return [el[0], el[1]]; }
           return undefined;
         }).filter(a => a !== undefined)
         .reduce((a, b) => a.concat(b), [])
@@ -301,7 +301,7 @@ var algebra = /*#__PURE__*/Object.freeze({
   scale2: scale2
 });
 
-const ends = [tail$1, head$1];
+const ends = [_tail, _head];
 const stringifyPoint = p => p.join(",");
 const pointsToPath = (points) => "M" + points.map(pt => pt.join(",")).join("L") + "Z";
 const makeArrowPaths = function (options) {
@@ -354,9 +354,9 @@ const makeArrowPaths = function (options) {
 };
 
 const setArrowheadOptions = (element, options, which) => {
-  if (typeof options === boolean) {
+  if (typeof options === _boolean) {
     element.options[which].visible = options;
-  } else if (typeof options === object) {
+  } else if (typeof options === _object) {
     Object.assign(element.options[which], options);
     if (options.visible == null) {
       element.options[which].visible = true;
@@ -366,7 +366,7 @@ const setArrowheadOptions = (element, options, which) => {
   }
 };
 const setArrowStyle = (element, options = {}, which) => {
-  const path = element.getElementsByClassName(`${arrow}-${which}`)[0];
+  const path = element.getElementsByClassName(`${_arrow}-${which}`)[0];
   Object.keys(options)
     .map(key => ({ key, fn: path[Case.toCamel(key)] }))
     .filter(el => typeof el.fn === _function)
@@ -377,7 +377,7 @@ const redraw = (element) => {
   Object.keys(paths)
     .map(path => ({
       path,
-      element: element.getElementsByClassName(`${arrow}-${path}`)[0]
+      element: element.getElementsByClassName(`${_arrow}-${path}`)[0]
     }))
     .filter(el => el.element)
     .map(el => { el.element.setAttribute("d", paths[el.path]); return el; })
@@ -406,18 +406,18 @@ const padding = (element, amount) => {
   return redraw(element);
 };
 const head = (element, options) => {
-  setArrowheadOptions(element, options, head$1);
-  setArrowStyle(element, options, head$1);
+  setArrowheadOptions(element, options, _head);
+  setArrowStyle(element, options, _head);
   return redraw(element);
 };
 const tail = (element, options) => {
-  setArrowheadOptions(element, options, tail$1);
-  setArrowStyle(element, options, tail$1);
+  setArrowheadOptions(element, options, _tail);
+  setArrowStyle(element, options, _tail);
   return redraw(element);
 };
-const getLine = element => element.getElementsByClassName(`${arrow}-line`)[0];
-const getHead = element => element.getElementsByClassName(`${arrow}-${head$1}`)[0];
-const getTail = element => element.getElementsByClassName(`${arrow}-${tail$1}`)[0];
+const getLine = element => element.getElementsByClassName(`${_arrow}-line`)[0];
+const getHead = element => element.getElementsByClassName(`${_arrow}-${_head}`)[0];
+const getTail = element => element.getElementsByClassName(`${_arrow}-${_tail}`)[0];
 var methods$5 = {
   setPoints: setPoints$3,
   points: setPoints$3,
@@ -449,7 +449,7 @@ const makeArrowOptions = () => ({
 const arrowKeys = Object.keys(makeArrowOptions());
 const matchingOptions = (...args) => {
   for (let a = 0; a < args.length; a++) {
-    if (typeof args[a] !== object) { continue; }
+    if (typeof args[a] !== _object) { continue; }
     const keys = Object.keys(args[a]);
     for (let i = 0; i < keys.length; i++) {
       if (arrowKeys.includes(keys[i])) {
@@ -459,12 +459,12 @@ const matchingOptions = (...args) => {
   }
 };
 const init = function (element, ...args) {
-  element.setAttribute(_class, arrow);
-  const paths = ["line", tail$1, head$1]
-    .map(key => SVG.path().setClass(`${arrow}-${key}`).appendTo(element));
-  paths[0].setAttribute(style, "fill:none;");
-  paths[1].setAttribute(stroke, none);
-  paths[2].setAttribute(stroke, none);
+  element.setAttribute(_class, _arrow);
+  const paths = ["line", _tail, _head]
+    .map(key => SVG.path().setClass(`${_arrow}-${key}`).appendTo(element));
+  paths[0].setAttribute(_style, "fill:none;");
+  paths[1].setAttribute(_stroke, _none);
+  paths[2].setAttribute(_stroke, _none);
   element.options = makeArrowOptions();
   methods$5.setPoints(element, ...args);
   const options = matchingOptions(...args);
@@ -545,7 +545,7 @@ var methods$4 = {
 
 var Curve = {
   curve: {
-    nodeName: path,
+    nodeName: _path,
     attributes: ["d"],
     args: curveArguments,
     methods: methods$4
@@ -599,7 +599,7 @@ function viewBox$1 () {
   return numbers.length === 4 ? viewBoxValue(...numbers) : undefined;
 }
 
-const cdata = (textContent) => (new win.DOMParser())
+const cdata = (textContent) => (new Window.DOMParser())
   .parseFromString("<root></root>", "text/xml")
   .createCDATASection(`${textContent}`);
 
@@ -655,7 +655,7 @@ const filterWhitespaceNodes = (node) => {
   }
   return node;
 };
-const parse = string => (new win.DOMParser())
+const parse = string => (new Window.DOMParser())
   .parseFromString(string, "text/xml");
 const checkParseError = xml => {
   const parserErrors = xml.getElementsByTagName("parsererror");
@@ -666,25 +666,25 @@ const checkParseError = xml => {
 };
 const async = function (input) {
   return new Promise((resolve, reject) => {
-    if (typeof input === string || input instanceof String) {
+    if (typeof input === _string || input instanceof String) {
       fetch(input)
         .then(response => response.text())
         .then(str => checkParseError(parse(str)))
-        .then(xml => xml.nodeName === svg
+        .then(xml => xml.nodeName === _svg
           ? xml
-          : xml.getElementsByTagName(svg)[0])
+          : xml.getElementsByTagName(_svg)[0])
         .then(svg => (svg == null
             ? reject("valid XML found, but no SVG element")
             : resolve(svg)))
         .catch(err => reject(err));
     }
-    else if (input instanceof win.Document) {
+    else if (input instanceof Window.Document) {
       return asyncDone(input);
     }
   });
 };
 const sync = function (input) {
-  if (typeof input === string || input instanceof String) {
+  if (typeof input === _string || input instanceof String) {
     try {
       return checkParseError(parse(input));
     } catch (error) {
@@ -695,12 +695,12 @@ const sync = function (input) {
     return input;
   }
 };
-const isFilename = input => typeof input === string
+const isFilename = input => typeof input === _string
   && /^[\w,\s-]+\.[A-Za-z]{3}$/.test(input)
   && input.length < 10000;
 const Load = input => (isFilename(input)
   && isBrowser
-  && typeof win.fetch === _function
+  && typeof Window.fetch === _function
   ? async(input)
   : sync(input));
 
@@ -756,15 +756,15 @@ function vkXML (text, step) {
 
 const SAVE_OPTIONS = () => ({
   download: false,
-  output: string,
+  output: _string,
   windowStyle: false,
   filename: "image.svg"
 });
 const getWindowStylesheets = function () {
   const css = [];
-  if (win.document.styleSheets) {
-    for (let s = 0; s < win.document.styleSheets.length; s += 1) {
-      const sheet = win.document.styleSheets[s];
+  if (Window.document.styleSheets) {
+    for (let s = 0; s < Window.document.styleSheets.length; s += 1) {
+      const sheet = Window.document.styleSheets[s];
       try {
         const rules = ("cssRules" in sheet) ? sheet.cssRules : sheet.rules;
         for (let r = 0; r < rules.length; r += 1) {
@@ -783,41 +783,41 @@ const getWindowStylesheets = function () {
   return css.join("\n");
 };
 const downloadInBrowser = function (filename, contentsAsString) {
-  const blob = new win.Blob([contentsAsString], { type: "text/plain" });
-  const a = win.document.createElement("a");
-  a.setAttribute("href", win.URL.createObjectURL(blob));
+  const blob = new Window.Blob([contentsAsString], { type: "text/plain" });
+  const a = Window.document.createElement("a");
+  a.setAttribute("href", Window.URL.createObjectURL(blob));
   a.setAttribute("download", filename);
-  win.document.body.appendChild(a);
+  Window.document.body.appendChild(a);
   a.click();
-  win.document.body.removeChild(a);
+  Window.document.body.removeChild(a);
 };
-const save = function (svg$1, options) {
+const save = function (svg, options) {
   options = Object.assign(SAVE_OPTIONS(), options);
   if (options.windowStyle) {
-    const styleContainer = win.document.createElementNS(NS, style);
+    const styleContainer = Window.document.createElementNS(NS, _style);
     styleContainer.setAttribute("type", "text/css");
     styleContainer.innerHTML = getWindowStylesheets();
-    svg$1.appendChild(styleContainer);
+    svg.appendChild(styleContainer);
   }
-  const source = (new win.XMLSerializer()).serializeToString(svg$1);
+  const source = (new Window.XMLSerializer()).serializeToString(svg);
   const formattedString = vkXML(source);
   if (options.download && isBrowser && !isNode) {
     downloadInBrowser(options.filename, formattedString);
   }
-  return (options.output === svg ? svg$1 : formattedString);
+  return (options.output === _svg ? svg : formattedString);
 };
 
 const setViewBox = (element, ...args) => {
-  const viewBox = args.length === 1 && typeof args[0] === string
+  const viewBox = args.length === 1 && typeof args[0] === _string
     ? args[0]
     : viewBox$1(...args);
   if (viewBox) {
-    element.setAttribute(viewBox$2, viewBox);
+    element.setAttribute(_viewBox, viewBox);
   }
   return element;
 };
 const getViewBox = function (element) {
-  const vb = element.getAttribute(viewBox$2);
+  const vb = element.getAttribute(_viewBox);
   return (vb == null
     ? undefined
     : vb.split(" ").map(n => parseFloat(n)));
@@ -871,20 +871,20 @@ const background = function (element, color) {
   if (backRect == null) {
     backRect = this.Constructor("rect", ...getFrame(element));
     backRect.setAttribute(_class, bgClass);
-    backRect.setAttribute(stroke, none);
+    backRect.setAttribute(_stroke, _none);
 		element.insertBefore(backRect, element.firstChild);
   }
-  backRect.setAttribute(fill, color);
+  backRect.setAttribute(_fill, color);
   return element;
 };
 const findStyleSheet = function (element) {
-  const styles = element.getElementsByTagName(style);
+  const styles = element.getElementsByTagName(_style);
   return styles.length === 0 ? undefined : styles[0];
 };
 const stylesheet = function (element, textContent) {
   let styleSection = findStyleSheet(element);
   if (styleSection == null) {
-    styleSection = this.Constructor(style);
+    styleSection = this.Constructor(_style);
     element.insertBefore(styleSection, element.firstChild);
   }
   styleSection.textContent = "";
@@ -1006,8 +1006,8 @@ const Animation = function (element) {
   let frame = 0;
   let requestId;
   const removeHandlers = () => {
-    if (win.cancelAnimationFrame) {
-      win.cancelAnimationFrame(requestId);
+    if (Window.cancelAnimationFrame) {
+      Window.cancelAnimationFrame(requestId);
     }
     Object.keys(handlers)
       .forEach(uuid => delete handlers[uuid]);
@@ -1028,12 +1028,12 @@ const Animation = function (element) {
         handler({ time: progress, frame });
         frame += 1;
         if (handlers[uuid]) {
-          requestId = win.requestAnimationFrame(handlers[uuid]);
+          requestId = Window.requestAnimationFrame(handlers[uuid]);
         }
       };
       handlers[uuid] = handlerFunc;
-      if (win.requestAnimationFrame) {
-        requestId = win.requestAnimationFrame(handlers[uuid]);
+      if (Window.requestAnimationFrame) {
+        requestId = Window.requestAnimationFrame(handlers[uuid]);
       }
     },
     enumerable: true
@@ -1089,7 +1089,7 @@ const controlPoint = function (parent, options = {}) {
     get: () => position[i],
     set: (v) => { position[i] = v; }
   }));
-  [svg, "updatePosition", "selected"].forEach(key => Object
+  [_svg, "updatePosition", "selected"].forEach(key => Object
     .defineProperty(position, key, {
       get: () => cp[key],
       set: (v) => { cp[key] = v; }
@@ -1176,14 +1176,14 @@ const applyControlsToSVG = (svg) => {
   svg.controls = (...args) => controls.call(svg, svg, ...args);
 };
 
-const ElementConstructor = (new win.DOMParser())
+const ElementConstructor = (new Window.DOMParser())
   .parseFromString("<div />", "text/xml").documentElement.constructor;
 var svgDef = {
   svg: {
     args: (...args) => [viewBox$1(coordinates(...args))].filter(a => a != null),
     methods: methods$3,
     init: (element, ...args) => {
-      args.filter(a => typeof a === string)
+      args.filter(a => typeof a === _string)
         .forEach(string => loadSVG(element, string));
       args.filter(a => a != null)
         .filter(arg => arg instanceof ElementConstructor)
@@ -1199,9 +1199,9 @@ var svgDef = {
 const loadGroup = (group, ...sources) => {
   const elements = sources.map(source => sync(source))
     .filter(a => a !== undefined);
-  elements.filter(element => element.tagName === svg)
+  elements.filter(element => element.tagName === _svg)
     .forEach(element => moveChildren(group, element));
-  elements.filter(element => element.tagName !== svg)
+  elements.filter(element => element.tagName !== _svg)
     .forEach(element => group.appendChild(element));
   return group;
 };
@@ -1215,23 +1215,23 @@ var gDef = {
 };
 
 var attributes = Object.assign(Object.create(null), {
-  svg: [viewBox$2],
+  svg: [_viewBox],
   line: ["x1", "y1", "x2", "y2"],
   rect: ["x", "y", "width", "height"],
   circle: ["cx", "cy", "r"],
   ellipse: ["cx", "cy", "rx", "ry"],
-  polygon: [points],
-  polyline: [points],
+  polygon: [_points],
+  polyline: [_points],
   path: ["d"],
   text: ["x", "y"],
-  mask: [id],
-  symbol: [id],
+  mask: [_id],
+  symbol: [_id],
   clipPath: [
-    id,
+    _id,
     "clip-rule",
   ],
   marker: [
-    id,
+    _id,
     "markerHeight",
     "markerUnits",
     "markerWidth",
@@ -1476,9 +1476,9 @@ var textDef = {
   text: {
     args: (a, b, c) => coordinates(...flatten_arrays(a, b, c)).slice(0, 2),
     init: (element, a, b, c, d) => {
-      const text = [a,b,c,d].filter(a => typeof a === string).shift();
+      const text = [a,b,c,d].filter(a => typeof a === _string).shift();
       if (text) {
-        element.appendChild(win.document.createTextNode(text));
+        element.appendChild(Window.document.createTextNode(text));
       }
     }
   }
@@ -1486,7 +1486,7 @@ var textDef = {
 
 const makeIDString = function () {
   return Array.from(arguments)
-    .filter(a => typeof a === string || a instanceof String)
+    .filter(a => typeof a === _string || a instanceof String)
     .shift() || UUID();
 };
 const args = (...args) => [makeIDString(...args)];
@@ -1504,7 +1504,7 @@ var maskTypes = {
 };
 
 const getPoints = (el) => {
-  const attr = el.getAttribute(points);
+  const attr = el.getAttribute(_points);
   return (attr == null) ? "" : attr;
 };
 const polyString = function () {
@@ -1515,17 +1515,17 @@ const polyString = function () {
 };
 const stringifyArgs = (...args) => [polyString(...coordinates(...flatten_arrays(...args)))];
 const setPoints = (element, ...args) => {
-  element.setAttribute(points, stringifyArgs(...args)[0]);
+  element.setAttribute(_points, stringifyArgs(...args)[0]);
   return element;
 };
 const addPoint = (element, ...args) => {
-  element.setAttribute(points, [getPoints(element), stringifyArgs(...args)[0]]
+  element.setAttribute(_points, [getPoints(element), stringifyArgs(...args)[0]]
     .filter(a => a !== "")
     .join(" "));
   return element;
 };
 const Args = function (...args) {
-  return args.length === 1 && typeof args[0] === string
+  return args.length === 1 && typeof args[0] === _string
     ? [args[0]]
     : stringifyArgs(...args);
 };
@@ -1703,7 +1703,7 @@ Object.values(NodeNames)
   .reduce((a,b) => a.concat(b), [])
   .filter(nodeName => attributes[nodeName] === undefined)
   .forEach(nodeName => { attributes[nodeName] = []; });
-[ [[svg, "defs", "g"].concat(NodeNames.v, NodeNames.t), ManyElements.presentation],
+[ [[_svg, "defs", "g"].concat(NodeNames.v, NodeNames.t), ManyElements.presentation],
   [["filter"], ManyElements.effects],
   [NodeNames.cT.concat("text"), ManyElements.text],
   [NodeNames.cF, ManyElements.effects],
@@ -1735,20 +1735,20 @@ var classMethods = {
     element.setAttributeNS(null, _class, className);
   },
   setId: (element, idName) => {
-    element.setAttributeNS(null, id, idName);
+    element.setAttributeNS(null, _id, idName);
   }
 };
 
 const getAttr = (element) => {
-  const t = element.getAttribute(transform);
+  const t = element.getAttribute(_transform);
   return (t == null || t === "") ? undefined : t;
 };
 const methods$1 = {
-  clearTransform: (el) => { el.removeAttribute(transform); return el; }
+  clearTransform: (el) => { el.removeAttribute(_transform); return el; }
 };
 ["translate", "rotate", "scale", "matrix"].forEach(key => {
   methods$1[key] = (element, ...args) => element.setAttribute(
-    transform,
+    _transform,
     [getAttr(element), `${key}(${args.join(" ")})`]
       .filter(a => a !== undefined)
       .join(" "));
@@ -1756,13 +1756,13 @@ const methods$1 = {
 
 const findIdURL = function (arg) {
   if (arg == null) { return ""; }
-  if (typeof arg === string) {
+  if (typeof arg === _string) {
     return arg.slice(0, 3) === "url"
       ? arg
       : `url(#${arg})`;
   }
   if (arg.getAttribute != null) {
-    const idString = arg.getAttribute(id);
+    const idString = arg.getAttribute(_id);
     return `url(#${idString})`;
   }
   return "";
@@ -1833,7 +1833,7 @@ const RequiredAttributes = (element, nodeName) => {
 };
 const bound = {};
 const constructor = (nodeName, ...args) => {
-  const element = win.document.createElementNS(NS, Nodes[nodeName].nodeName);
+  const element = Window.document.createElementNS(NS, Nodes[nodeName].nodeName);
   RequiredAttributes(element, nodeName);
   Nodes[nodeName].init(element, ...args);
   Nodes[nodeName].args(...args).forEach((v, i) => {
@@ -1883,17 +1883,16 @@ Object.keys(NodeNames).forEach(key => NodeNames[key]
   }));
 
 const link_rabbitear_math = (svg, ear) => {
-  const keys = [
-    "segment",
+  [ "segment",
     "circle",
     "ellipse",
     "rect",
     "polygon",
-  ];
-  keys.filter(key => ear[key] && ear[key].prototype)
+  ].filter(key => ear[key] && ear[key].prototype)
     .forEach((key) => {
       ear[key].prototype.svg = function () { return svg.path(this.svgPath()); };
     });
+  libraries.math.vector = ear.vector;
 };
 const link_rabbitear_graph = (svg, ear) => {
   const NODE_NAME = "origami";
@@ -1930,55 +1929,21 @@ const Linker = function (lib) {
 	}
 };
 
-const bindRabbitEar = (_this, library) => {
-	libraries.math.vector = library.vector;
-};
-const possibleFoldObject = (object$1) => {
-  if (typeof object$1 !== object) { return false; }
-  const foldKeys = ["vertices_coords", "edges_vertices", "faces_vertices", "faces_edges"];
-  return Object.keys(object$1)
-    .map(key => foldKeys.includes(key))
-    .reduce((a, b) => a || b, false);
-};
-const getFoldObject = (array) => array
-  .filter(a => possibleFoldObject(a))
-  .shift();
-const bindFoldToSvg = (_this, library) => {
-  const oldInit = Nodes.svg.init;
-  Nodes.svg.init = function (element, ...args) {
-    const fold_object = getFoldObject(args);
-    if (fold_object) {
-      const options = library.options(...args);
-      library.render_into_svg(element, fold_object, options);
-    }
-    return oldInit(element, ...args);
-  };
-};
-const use = function (library) {
-	if (library.origami) {
-		bindRabbitEar(this, library);
-	}
-	if (library.render_into_svg) {
-		bindFoldToSvg(this, library);
-	}
-};
-
 const initialize = function (svg, ...args) {
   args.filter(arg => typeof arg === _function)
     .forEach(func => func.call(svg, svg));
 };
 SVG_Constructor.init = function () {
-  const svg$1 = constructor(svg, ...arguments);
-  if (win.document.readyState === "loading") {
-    win.document.addEventListener("DOMContentLoaded", () => initialize(svg$1, ...arguments));
+  const svg = constructor(_svg, ...arguments);
+  if (Window.document.readyState === "loading") {
+    Window.document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
   } else {
-    initialize(svg$1, ...arguments);
+    initialize(svg, ...arguments);
   }
-  return svg$1;
+  return svg;
 };
 SVG.NS = NS;
 SVG.linker = Linker.bind(SVG);
-SVG.use = use.bind(SVG);
 Object.assign(SVG, elements);
 SVG.core = Object.assign(Object.create(null), {
   load: Load,

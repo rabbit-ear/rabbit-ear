@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 // import { clone } from "./";
+import * as S from "../symbols/strings";
 import remove from "./remove";
 import count from "./count";
 import { unique_sorted_integers } from "./arrays";
@@ -12,7 +13,7 @@ import { unique_sorted_integers } from "./arrays";
 const subgraph = (graph, components) => {
   const remove_indices = {};
   const sorted_components = {};
-  ["faces", "edges", "vertices"].forEach(key => {
+  [S._faces, S._edges, S._vertices].forEach(key => {
     remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
     sorted_components[key] = unique_sorted_integers(components[key] || []).reverse();
   });

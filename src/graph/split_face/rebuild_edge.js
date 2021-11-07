@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../../math";
 /**
  * @description given two vertices and incident faces, create all new

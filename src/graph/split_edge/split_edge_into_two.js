@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../../math";
 import * as S from "../../symbols/strings";
 /**
@@ -16,7 +19,7 @@ const split_edge_into_two = (graph, edge_index, new_vertex) => {
     { edges_vertices: [edge_vertices[0], new_vertex] },
     { edges_vertices: [new_vertex, edge_vertices[1]] },
   ];
-  new_edges.forEach((edge, i) => [S.edges_assignment, S.edges_foldAngle]
+  new_edges.forEach((edge, i) => [S._edges_assignment, S._edges_foldAngle]
     .filter(key => graph[key] && graph[key][edge_index] !== undefined)
     .forEach(key => { edge[key] = graph[key][edge_index]; }));
   // these are outside the spec values that are easy enough to calculate.
