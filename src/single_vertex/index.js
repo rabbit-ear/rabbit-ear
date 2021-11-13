@@ -1,22 +1,27 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-// import math from "../math";
 // single vertex
 import maekawa_assignments from "./maekawa_assignments"
 // import sectors_layer from "./sectors_layer";
-import faces_layer from "./faces_layer/index";
-import sectors_layer from "./sectors_layer/index";
-import layer_solver from "./layer_solver"
+import vertex_faces_layer from "./vertex_faces_layer";
+import vertices_faces_layer from "./vertices_faces_layer";
+// todo: bring this back, mark it different than just layer_solver
+// since it solves the crease assignments, too.
+// import faces_layer_solver from "./faces_layer_solver"
 import fold_angles4 from "./fold_angles4";
 import * as kawasaki from "./kawasaki";
-import * as fold_assignments from "./sectors_layer/fold_assignments";
+import layer_solver from "./layer_solver/index";
+import self_intersect from "./layer_solver/self_intersect";
+import * as fold_assignments from "./layer_solver/fold_assignments";
 
 export default Object.assign(Object.create(null), {
 	maekawa_assignments,
-	faces_layer,
-	sectors_layer,
+	vertex_faces_layer,
+	vertices_faces_layer,
 	layer_solver,
+	// faces_layer_solver,
+	self_intersect,
 	fold_angles4,
 },
 	kawasaki,

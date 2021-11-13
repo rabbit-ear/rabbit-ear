@@ -72,4 +72,3 @@ export const invert_simple_map = (map) => {
 	map.forEach((n, i) => { inv[n] = i; });
 	return inv;
 };
-

@@ -38,7 +38,7 @@ export const circular_array_valid_ranges = (array) => {
   // if the array contains no undefineds, return the default state.
   const not_undefineds = array.map(el => el !== undefined);
   if (not_undefineds.reduce((a, b) => a && b, true)) {
-    return [[0, array.length]];
+    return [[0, array.length - 1]];
   }
   // mark the location of the first-in-a-list of valid entries.
   const first_not_undefined = not_undefineds
