@@ -3,7 +3,6 @@
  */
 /**
  * faces and assignments are fencepost aligned. assignments precedes faces.
- *
  *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
  * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
  */

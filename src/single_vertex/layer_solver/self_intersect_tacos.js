@@ -40,7 +40,6 @@ const common_fold_location = (folded_faces, is_circular, epsilon) => {
   });
   return locations;
 };
-
 // tacos and tortillas are built from the folded_faces, so they contain
 // all faces. however, generate_taco_stack only uses faces contained in
 // layers_face, so, its possible we build a layer stack that doesn't
@@ -132,4 +131,3 @@ const self_intersect_tacos = (folded_faces, layers_face, is_circular = true, eps
 };
 
 export default self_intersect_tacos;
-

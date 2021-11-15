@@ -10,6 +10,7 @@ import * as sort from "./sort";
 import * as span from "./span";
 import * as maps from "./maps";
 import * as query from "./query";
+import * as arrays from "./arrays";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
@@ -39,6 +40,8 @@ import * as vertices_isolated from "./clean/vertices_isolated";
 // various
 import { intersect_convex_face_line } from "./intersect_faces";
 import { join_collinear_edges } from "./join_edges";
+import make_vertex_faces_layer from "./vertex_faces_layer";
+import make_vertices_faces_layer from "./vertices_faces_layer";
 
 export default Object.assign(Object.create(null), {
 	// modifiers
@@ -68,6 +71,8 @@ export default Object.assign(Object.create(null), {
 	// various
 	intersect_convex_face_line,
 	join_collinear_edges,
+	make_vertex_faces_layer,
+	make_vertices_faces_layer,
 },
 	make,
 	// create,
@@ -80,6 +85,7 @@ export default Object.assign(Object.create(null), {
 	span,
 	maps,
 	query,
+	arrays,
 	// clean things
 	remove_methods,
 	vertices_isolated,

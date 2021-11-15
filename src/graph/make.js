@@ -237,24 +237,27 @@ export const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
   // if (!edges_vertices || !vertices_edges) { return undefined; }
 
 // todo: make_edges_faces c-clockwise
-// export const make_edges_faces = ({ faces_edges }) => {
-//   // instead of initializing the array ahead of time (we would need to know
-//   // the length of something like edges_vertices)
-//   const edges_faces = Array
-//     .from(Array(implied.edges({ faces_edges })))
-//     .map(() => []);
-//   // todo: does not arrange counter-clockwise
-//   faces_edges.forEach((face, f) => {
-//     const hash = [];
-//     // in the case that one face visits the same edge multiple times,
-//     // this hash acts as a set allowing one occurence of each edge index.
-//     face.forEach((edge) => { hash[edge] = f; });
-//     hash.forEach((fa, e) => edges_faces[e].push(fa));
-//   });
-//   return edges_faces;
-// };
+export const make_edges_faces_simple = ({ faces_edges }) => {
+  // instead of initializing the array ahead of time (we would need to know
+  // the length of something like edges_vertices)
+  const edges_faces = Array
+    .from(Array(implied.edges({ faces_edges })))
+    .map(() => []);
+  // todo: does not arrange counter-clockwise
+  faces_edges.forEach((face, f) => {
+    const hash = [];
+    // in the case that one face visits the same edge multiple times,
+    // this hash acts as a set allowing one occurence of each edge index.
+    face.forEach((edge) => { hash[edge] = f; });
+    hash.forEach((fa, e) => edges_faces[e].push(fa));
+  });
+  return edges_faces;
+};
 
 export const make_edges_faces = ({ edges_vertices, faces_edges }) => {
+  if (!edges_vertices) {
+    return make_edges_faces_simple({ faces_edges });
+  }
   const edges_faces = edges_vertices.map(ev => []);
   faces_edges.forEach((face, f) => {
     const hash = [];

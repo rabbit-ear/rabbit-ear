@@ -27,6 +27,23 @@ export const split_circular_array = (array, indices) => {
   ];
 };
 /**
+ * @description this will iterate over the array of arrays and returning
+ * the first array in the list with the longest length.
+ * @param {any[][]} this is an array of arrays.
+ * @return {any[]} one of the arrays from the set
+ */
+export const get_longest_array = (arrays) => {
+  if (arrays.length === 1) { return arrays[0]; }
+  const lengths = arrays.map(arr => arr.length);
+  let max = 0;
+  for (let i = 0; i < arrays.length; i++) {
+    if (lengths[i] > lengths[max]) {
+      max = i;
+    }
+  }
+  return arrays[max];
+};
+/**
  * @description given an array containing undefineds, gather all contiguous
  * series of valid entries, and return the list of their indices in the form
  * of [start_index, final_index].

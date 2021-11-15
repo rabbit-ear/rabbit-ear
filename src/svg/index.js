@@ -67,9 +67,11 @@ const make_svg_attributes = (graph, options, setViewBox = true) => {
 /**
  * set the attribute "r" (radius) on all child elements in this group
  */
-const setR = (group, radius) => group
-  .childNodes
-  .forEach(circle => circle.setAttributeNS(null, "r", radius));
+const setR = (group, radius) => {
+  for (let i = 0; i < group.childNodes.length; i++) {
+    group.childNodes[i].setAttributeNS(null, "r", radius);
+  }
+};
 /**
  * @description renders a FOLD object into an SVG, ensuring visibility by
  *  setting the viewBox and the stroke-width attributes on the SVG.

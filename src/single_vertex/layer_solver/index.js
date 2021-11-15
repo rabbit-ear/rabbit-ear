@@ -12,7 +12,6 @@ import { circular_array_valid_ranges } from "../../graph/arrays";
 import clone from "../../graph/clone";
 /**
  * faces and assignments are fencepost aligned. assignments precedes faces.
- *
  *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
  * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
  */
@@ -21,13 +20,14 @@ const is_boundary = { "B": true, "b": true };
  * @description given an ordered set of faces and crease assignments
  * between the faces, this recursive algorithm finds every combination
  * of layer orderings that work without causing any self-intersections.
+ * "faces" could be 1D lines, the term could be switched out here.
  * @param {number[]} ordered lengths, the length of paper between folds
  * @param {string[]} array of "M","V", assignment of fold between faces
  * @returns {number[][]} array of arrays. each inner array is a solution.
  * each solution is an ordering of faces_order, where each index is a
  * face and each value is the layer the face occupies.
  */
-const faces_layer_solver = (faces, assignments, epsilon = math.core.EPSILON) => {
+const layer_solver = (faces, assignments, epsilon = math.core.EPSILON) => {
   const faces_folded = fold_faces_with_assignments(faces, assignments);
   const faces_updown = assignments_to_faces_vertical(assignments);
   // todo: we only really need to check index [0] and [length-1]
@@ -128,4 +128,4 @@ const faces_layer_solver = (faces, assignments, epsilon = math.core.EPSILON) => 
   return recurse().map(invert_map);
 };
 
-export default faces_layer_solver;
+export default layer_solver;
