@@ -245,7 +245,7 @@
   const mag_squared = v => v
     .map(fn_square)
     .reduce(fn_add$1, 0);
-  const normalize = (v) => {
+  const normalize$1 = (v) => {
     const m = magnitude(v);
     return m === 0 ? v : v.map(c => c / m);
   };
@@ -304,7 +304,7 @@
     .map(n => Math.abs(n))
     .reduce(fn_add$1, 0) < epsilon;
   const parallel = (v, u, epsilon = EPSILON) => 1 - Math
-    .abs(dot(normalize(v), normalize(u))) < epsilon;
+    .abs(dot(normalize$1(v), normalize$1(u))) < epsilon;
   const parallel2 = (v, u, epsilon = EPSILON) => Math
     .abs(cross2(v, u)) < epsilon;
   var algebra$1 = Object.freeze({
@@ -312,7 +312,7 @@
     magnitude: magnitude,
     magnitude2: magnitude2$1,
     mag_squared: mag_squared,
-    normalize: normalize,
+    normalize: normalize$1,
     normalize2: normalize2,
     scale: scale,
     scale2: scale2$1,
@@ -424,7 +424,7 @@
   const make_matrix3_rotateZ = (angle, origin = [0, 0, 0]) => single_axis_rotate(angle, origin, 0, 1, true);
   const make_matrix3_rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
     const pos = [0, 1, 2].map(i => origin[i] || 0);
-    const [x, y, z] = resize(3, normalize(vector));
+    const [x, y, z] = resize(3, normalize$1(vector));
     const c = Math.cos(angle);
     const s = Math.sin(angle);
     const t = 1 - c;
@@ -704,7 +704,7 @@
       .shift();
   };
   const nearest_point_on_circle = (radius, origin, point) => add(
-    origin, scale(normalize(subtract(point, origin)), radius)
+    origin, scale(normalize$1(subtract(point, origin)), radius)
   );
   const nearest_point_on_ellipse = () => false;
   var nearest$1 = Object.freeze({
@@ -774,7 +774,7 @@
       : rotate270(bisects[0]);
     const numerator = (originB[0] - originA[0]) * vectorB[1] - vectorB[0] * (originB[1] - originA[1]);
     const t = numerator / determinant;
-    const normalized = [vectorA, vectorB].map(vec => normalize(vec));
+    const normalized = [vectorA, vectorB].map(vec => normalize$1(vec));
     const isParallel = Math.abs(cross2(...normalized)) < epsilon;
     const origin = isParallel
       ? midpoint(originA, originB)
@@ -853,7 +853,7 @@
     bFunction = include_l,
     epsilon = EPSILON
   ) => {
-    const det_norm = cross2(normalize(aVector), normalize(bVector));
+    const det_norm = cross2(normalize$1(aVector), normalize$1(bVector));
     if (Math.abs(det_norm) < epsilon) { return undefined; }
     const determinant0 = cross2(aVector, bVector);
     const determinant1 = -determinant0;
@@ -1173,7 +1173,7 @@
   };
   const overlap_convex_polygon_point = (poly, point, func = exclude, epsilon = EPSILON) => poly
     .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-    .map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])))
+    .map(s => cross2(normalize$1(subtract(s[1], s[0])), subtract(point, s[0])))
     .map(side => func(side, epsilon))
     .map((s, _, arr) => s === arr[0])
     .reduce((prev, curr) => prev && curr, true);
@@ -1436,7 +1436,7 @@
     poly_line_func = include_s,
     epsilon = EPSILON
   ) => {
-    const det_norm = cross2(normalize(line_vector), normalize(poly_vector));
+    const det_norm = cross2(normalize$1(line_vector), normalize$1(poly_vector));
     if (Math.abs(det_norm) < epsilon) { return undefined; }
     const determinant0 = cross2(line_vector, poly_vector);
     const determinant1 = -determinant0;
@@ -1527,7 +1527,7 @@
     },
     vector: {
       copy: function () { return [...this]; },
-      normalize: function () { return normalize(this); },
+      normalize: function () { return normalize$1(this); },
       scale: function () { return scale(this, arguments[0]); },
       flip: function () { return flip(this); },
       rotate90: function () { return rotate90(this); },
@@ -5072,17 +5072,130 @@
     if (!graph.vertices_sectors) {
       graph.vertices_sectors = make_vertices_sectors(graph);
     }
-    const faces_coloring = make_faces_coloring(graph, start_face);
+    const faces_coloring = make_faces_coloring(graph, start_face).map(c => !c);
+    const flip_all = faces_coloring[start_face];
     const vertices_faces_layer = graph.vertices_sectors
       .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
-    const flip_all = faces_coloring[start_face];
-    const faces_flip = vertices_faces_layer
+    console.log("vertices_faces_layer", JSON.parse(JSON.stringify(vertices_faces_layer)));
+    console.log("vertices_faces_layer solution star faces", JSON.parse(JSON.stringify(vertices_faces_layer
+      .map(solution => solution.face))));
+    const vertices_solutions_flip = vertices_faces_layer
       .map(solution => faces_coloring[solution.face])
-      .map(flip_this_face => flip_this_face ^ flip_all);
+      .map(solution_flipped => solution_flipped ^ flip_all);
     return vertices_faces_layer
-      .map((solutions, i) => faces_flip
+      .map((solutions, i) => vertices_solutions_flip[i]
         ? flip_solutions(solutions)
-        : solution);
+        : solutions);
+  };
+
+  const make_triangle_pairs = (array) => {
+    const pairs = Array((array.length * (array.length - 1)) / 2);
+    let index = 0;
+    for (let i = 0; i < array.length - 1; i++) {
+      for (let j = i + 1; j < array.length; j++, index++) {
+        pairs[index] = [array[i], array[j]];
+      }
+    }
+    return pairs;
+  };
+  const normalize = number => {
+    if (number === 0) { return 0; }
+    if (number < 0) { return -1; }
+    return 1;
+  };
+  const add_to_matrix = (matrix, i, j, relationship) => {
+    matrix[i][j] = relationship;
+    matrix[j][i] = relationship === 0 ? 0 : -relationship;
+  };
+  const extract_common_rules = (solutions) => {
+    const one_way_relationships = solutions
+      .map(solution => make_triangle_pairs(Object.keys(solution)))
+      .map((pairs, i) => pairs
+        .map(pair => pair.concat(
+          normalize(solutions[i][pair[0]] - solutions[i][pair[1]])
+        )))
+      .reduce((a, b) => a.concat(b), []);
+    const inverted_relationships = one_way_relationships
+      .map(rule => [rule[1], rule[0], rule[2] === 0 ? 0 : -rule[2]]);
+    const relationships = one_way_relationships
+      .concat(inverted_relationships);
+    const rules = {};
+    for (let r = 0; r < relationships.length; r++) {
+      const rule = relationships[r];
+      const key = `${rule[0]} ${rule[1]}`;
+      if (rules[key] === false) { continue; }
+      if (rules[key] === undefined) {
+        rules[key] = rule[2];
+        continue;
+      }
+      if (rules[key] !== rule[2]) {
+        rules[key] = false;
+        rules[`${rule[1]} ${rule[0]}`] = false;
+      }
+    }
+    return [1, -1]
+      .map(direction => Object.keys(rules)
+        .filter(rule => rules[rule] === direction)
+        .map(rule => rule.split(" ").concat(direction)))
+      .reduce((a, b) => a.concat(b), []);
+  };
+  const walk_a_unidirectional_path = (matrix, from, to, direction, visited = {}) => {
+    const visited_key = `${from} ${to}`;
+    if (visited[visited_key]) { return; }
+    visited[visited_key] = true;
+    add_to_matrix(matrix, from, to, direction);
+    matrix[to]
+      .map((dir, index) => dir === direction ? index : undefined)
+      .filter(a => a !== undefined)
+      .map(index => walk_a_unidirectional_path(matrix, from, index, direction, visited));
+  };
+  const make_faces_layer = (graph, face = 0, epsilon = math.core.EPSILON) => {
+    const vertices_faces_layer = make_vertices_faces_layer(graph, face, epsilon);
+    const single_solutions = vertices_faces_layer
+      .filter(solutions => solutions.length === 1)
+      .map(solutions => solutions[0]);
+    const certain_rules = single_solutions
+      .map(solution => make_triangle_pairs(Object.keys(solution)))
+      .map((pairs, i) => pairs
+        .map(pair => pair.concat(
+          normalize(single_solutions[i][pair[0]] - single_solutions[i][pair[1]])
+        )))
+      .reduce((a, b) => a.concat(b), []);
+    const multiple_common_rules = vertices_faces_layer
+      .filter(solutions => solutions.length > 1)
+      .map(solutions => extract_common_rules(solutions));
+    const matrix = Array
+      .from(Array(graph.faces_vertices.length))
+      .map(() => Array.from(Array(graph.faces_vertices.length)));
+    certain_rules.forEach(rule => add_to_matrix(matrix, ...rule));
+    multiple_common_rules.forEach(rules => rules
+      .forEach(rule => { matrix[rule[0]][rule[1]] = rule[2]; }));
+    const visited = {};
+    matrix.forEach((_, from) => [-1, 1]
+      .forEach(direction => matrix[from]
+        .map((dir, i) => dir === direction ? i : undefined)
+        .filter(a => a !== undefined)
+        .forEach(to => walk_a_unidirectional_path(matrix, from, to, direction, visited))));
+    const rows_sum = matrix.map(row => row
+      .map(n => n === undefined ? 0 : n)
+      .reduce((a, b) => a + b, 0));
+    const initial_face_order = Array
+      .from(Array(matrix.length))
+      .map((_, i) => i)
+      .sort((a, b) => rows_sum[a] - rows_sum[b]);
+    const inverse = ear.graph.invert_map(initial_face_order);
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = 0; j < matrix[i].length; j++) {
+        if (i === j) { continue; }
+        const rule = matrix[i][j];
+        if (rule === undefined) { continue; }
+        const face_direction = normalize(inverse[i] - inverse[j]);
+        if (rule !== face_direction) {
+          console.log("found a violation", i, j, "should be", matrix[i][j], "but is", face_direction);
+        }
+      }
+    }
+    return ear.graph.invert_map(initial_face_order);
   };
 
   var graph_methods = Object.assign(Object.create(null), {
@@ -5109,6 +5222,7 @@
   	join_collinear_edges,
   	make_vertex_faces_layer,
   	make_vertices_faces_layer,
+  	make_faces_layer,
   },
   	make,
   	transform,

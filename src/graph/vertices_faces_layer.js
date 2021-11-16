@@ -32,57 +32,42 @@ const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
   if (!graph.vertices_sectors) {
     graph.vertices_sectors = make_vertices_sectors(graph);
   }
-  const faces_coloring = make_faces_coloring(graph, start_face);
+  // root face, and all faces with the same color, will be false
+  const faces_coloring = make_faces_coloring(graph, start_face).map(c => !c);
+  // if the initial face is flipped in the 
+  const flip_all = faces_coloring[start_face];
+  // the faces_layer solutions for every vertex and its adjacent faces
   const vertices_faces_layer = graph.vertices_sectors
     .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
-  const flip_all = faces_coloring[start_face];
-  const faces_flip = vertices_faces_layer
+
+  console.log("vertices_faces_layer", JSON.parse(JSON.stringify(vertices_faces_layer)));
+  console.log("vertices_faces_layer solution star faces", JSON.parse(JSON.stringify(vertices_faces_layer
+    .map(solution => solution.face))));
+  // is each face flipped or not? (should the result be flipped too.)
+  // each solution was built from a starting face (solution.face),
+  // if this face is flipped in the coloring, flip the solution too.
+  // however, we also have to take into consideration the start_face,
+  // if this face is flipped the entire solution set needs to flip again.
+  // XOR with (start_face) and each face's (solution.face):
+  // 0 0 : 0 (no flip)
+  // 1 0 : 1 (flipped)
+  // 0 1 : 1 (flipped)
+  // 1 1 : 0 (no flip, because, 2 flips = no flips)
+  const vertices_solutions_flip = vertices_faces_layer
     .map(solution => faces_coloring[solution.face])
-    .map(flip_this_face => flip_this_face ^ flip_all);
-  // console.log("faces_flip", faces_flip);
+    .map(solution_flipped => solution_flipped ^ flip_all);
+
+  // console.log("flip all", flip_all);
+  // console.log("specific solution, start face", vertices_faces_layer
+  //   .map(solution => solution.face));
+  // console.log("specific solution, flip", vertices_faces_layer
+  //   .map(solution => faces_coloring[solution.face]));
+  // console.log("vertices_solutions_flip", vertices_solutions_flip);
+
   return vertices_faces_layer
-    .map((solutions, i) => faces_flip
+    .map((solutions, i) => vertices_solutions_flip[i]
       ? flip_solutions(solutions)
-      : solution);
+      : solutions);
 };
 
 export default make_vertices_faces_layer;
-
-// const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
-//   if (!graph.vertices_sectors) {
-//     graph.vertices_sectors = make_vertices_sectors(graph);
-//   }
-//   // the recursion algorithm will use these as the boundaries.
-//   // folded_sectors is the array with holes,
-//   // sectors is the array which will always be referenced to get the length
-//   const sectors = graph.vertices_sectors
-//     .map((vertices, v) => vertices
-//       .map((sectors, i) => graph.vertices_faces[v][i] === undefined
-//         ? undefined
-//         : sectors));
-//   const assignments = graph.vertices_edges
-//     .map(edges => edges
-//       .map(edge => graph.edges_assignment[edge]));
-//   const vertices_sector_layers = sectors
-//     .map((sec, v) => layer_solver(sec, assignments[v], epsilon));
-//   const stationary_faces = vertices_sector_layers
-//     .map((solutions, v) => graph.vertices_faces[v][solutions.face]);
-//   // console.log("stationary_faces", stationary_faces);
-
-//   // const faces_coloring = make_faces_coloring_from_matrix(graph);
-//   const faces_coloring = make_faces_coloring(graph, start_face);
-//   // console.log("faces_coloring", faces_coloring);
-
-//   return vertices_sector_layers
-//     .map((layers, v) => layers
-//       .map(invert_simple_map)
-//       .map(list => list.map(f => graph.vertices_faces[v][f]))
-//       // .map(list => {
-//       //   console.log("should we flip?", faces_coloring[stationary_faces[v]]);
-//       //   return faces_coloring[stationary_faces[v]] ? list : list.reverse()
-//       // })
-//       .map(list => faces_coloring[stationary_faces[v]] ? list : list.reverse())
-//       .map(invert_simple_map))
-// };
-
-// export default make_vertices_faces_layer;

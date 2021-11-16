@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import layer_solver from "../single_vertex/layer_solver/index";
-import { make_faces_coloring, make_vertices_sectors } from "./make";
+// import { make_vertices_sectors } from "./make";
 import { invert_map } from "./maps";
 import {
   get_longest_array,

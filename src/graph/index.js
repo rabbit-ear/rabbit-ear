@@ -42,6 +42,7 @@ import { intersect_convex_face_line } from "./intersect_faces";
 import { join_collinear_edges } from "./join_edges";
 import make_vertex_faces_layer from "./vertex_faces_layer";
 import make_vertices_faces_layer from "./vertices_faces_layer";
+import make_faces_layer from "./make_faces_layer";
 
 export default Object.assign(Object.create(null), {
 	// modifiers
@@ -73,6 +74,7 @@ export default Object.assign(Object.create(null), {
 	join_collinear_edges,
 	make_vertex_faces_layer,
 	make_vertices_faces_layer,
+	make_faces_layer,
 },
 	make,
 	// create,
