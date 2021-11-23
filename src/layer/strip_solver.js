@@ -1,15 +1,15 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import math from "../../math";
-import self_intersect from "./self_intersect";
+import math from "../math";
+import self_intersect from "./validate/self_intersect";
 import {
   fold_faces_with_assignments,
   assignments_to_faces_vertical,
 } from "./fold_assignments";
-import { invert_map } from "../../graph/maps";
-import { circular_array_valid_ranges } from "../../graph/arrays";
-import clone from "../../graph/clone";
+import { invert_map } from "../graph/maps";
+import { circular_array_valid_ranges } from "../graph/arrays";
+import clone from "../graph/clone";
 /**
  * faces and assignments are fencepost aligned. assignments precedes faces.
  *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
@@ -21,14 +21,14 @@ const is_boundary = { "B": true, "b": true };
  * between the faces, this recursive algorithm finds every combination
  * of layer orderings that work without causing any self-intersections.
  * "faces" could be 1D lines, the term could be switched out here.
- * @param {number[]} ordered lengths, the length of paper between folds
+ * @param {number[]} ordered scalars, the length of paper between folds
  * @param {string[]} array of "M","V", assignment of fold between faces
  * @returns {number[][]} array of arrays. each inner array is a solution.
  * each solution is an ordering of faces_order, where each index is a
  * face and each value is the layer the face occupies.
  */
-const layer_solver = (faces, assignments, epsilon = math.core.EPSILON) => {
-  const faces_folded = fold_faces_with_assignments(faces, assignments);
+const strip_layer_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+  const faces_folded = fold_faces_with_assignments(ordered_scalars, assignments);
   const faces_updown = assignments_to_faces_vertical(assignments);
   // todo: we only really need to check index [0] and [length-1]
   const is_circular = assignments
@@ -67,7 +67,7 @@ const layer_solver = (faces, assignments, epsilon = math.core.EPSILON) => {
       return [];
     }
     // Exit case: exit once we traverse through all faces.
-    if (face >= faces.length - 1) {
+    if (face >= ordered_scalars.length - 1) {
       // if a boundary vertex is present, we don't need to verify the ends meet
       if (is_circular) {
         // next_dir is now indicating the direction from the final face to the
@@ -128,4 +128,4 @@ const layer_solver = (faces, assignments, epsilon = math.core.EPSILON) => {
   return recurse().map(invert_map);
 };
 
-export default layer_solver;
+export default strip_layer_solver;

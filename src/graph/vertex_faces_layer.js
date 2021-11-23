@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import layer_solver from "../single_vertex/layer_solver/index";
+import strip_solver from "../layer/strip_solver";
 // import { make_vertices_sectors } from "./make";
 import { invert_map } from "./maps";
 import {
@@ -30,8 +30,7 @@ const make_vertex_faces_layer = ({
   const assignments = indices
     .map(i => vertices_edges[vertex][i])
     .map(edge => edges_assignment[edge]);
-  const sectors_layer = ear.vertex
-    .layer_solver(sectors, assignments, epsilon);
+  const sectors_layer = strip_solver(sectors, assignments, epsilon);
   // sectors_layer gives us solutions relating the sectors to indices 0...n
   // relate these to the original faces, in 2 steps:
   // 1. map back to vertices_faces, due to valid_array (avoiding undefineds)

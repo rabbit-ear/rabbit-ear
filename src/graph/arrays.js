@@ -44,6 +44,22 @@ export const get_longest_array = (arrays) => {
   return arrays[max];
 };
 /**
+ * @description convert a list of items {any} into a list of pairs
+ * where each item is uniqely matched with another item (non-ordered)
+ * the length is a triangle number, ie: 6 + 5 + 4 + 3 + 2 + 1
+ * (length * (length-1)) / 2
+ */
+export const make_triangle_pairs = (array) => {
+  const pairs = Array((array.length * (array.length - 1)) / 2);
+  let index = 0;
+  for (let i = 0; i < array.length - 1; i++) {
+    for (let j = i + 1; j < array.length; j++, index++) {
+      pairs[index] = [array[i], array[j]];
+    }
+  }
+  return pairs;
+};
+/**
  * @description given an array containing undefineds, gather all contiguous
  * series of valid entries, and return the list of their indices in the form
  * of [start_index, final_index].

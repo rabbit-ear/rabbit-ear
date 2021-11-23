@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import layer_solver from "./layer_solver/index";
-import maekawa_assignments from "./maekawa_assignments";
+import strip_solver from "./strip_solver";
+import maekawa_assignments from "../single_vertex/maekawa_assignments";
 /**
  * faces and assignments are fencepost aligned. assignments precedes faces.
  *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
@@ -15,7 +15,7 @@ const layer_assignment_solver = (faces, assignments, epsilon) => {
 	// enumerate all possible assignments by replacing "U" with both "M" and "V"
 	const all_assignments = maekawa_assignments(assignments);
 	const layers = all_assignments
-		.map(assigns => layer_solver(faces, assigns, epsilon));
+		.map(assigns => strip_solver(faces, assigns, epsilon));
 	return all_assignments
 		.map((_, i) => i)
 		.filter(i => layers[i].length > 0)

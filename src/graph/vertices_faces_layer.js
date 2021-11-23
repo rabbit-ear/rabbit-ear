@@ -40,9 +40,10 @@ const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
   const vertices_faces_layer = graph.vertices_sectors
     .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
 
-  console.log("vertices_faces_layer", JSON.parse(JSON.stringify(vertices_faces_layer)));
-  console.log("vertices_faces_layer solution star faces", JSON.parse(JSON.stringify(vertices_faces_layer
-    .map(solution => solution.face))));
+  // console.log("vertices_faces_layer", JSON.parse(JSON.stringify(vertices_faces_layer)));
+  // console.log("vertices_faces_layer solution star faces", JSON.parse(JSON.stringify(vertices_faces_layer
+  //   .map(solution => solution.face))));
+
   // is each face flipped or not? (should the result be flipped too.)
   // each solution was built from a starting face (solution.face),
   // if this face is flipped in the coloring, flip the solution too.

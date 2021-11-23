@@ -16,10 +16,12 @@ import Constructors from "./classes/index";
 // top level things
 import math from "./math";
 import diagram from "./diagrams/index";
+import layer from "./layer/index";
 import vertex from "./single_vertex/index";
 import axiom from "./axioms/index";
 import text from "./text/index";
 import use from "./use/index";
+
 /**
  * extensions
  * all extensions are optional, the library does not depend on them.
@@ -39,6 +41,7 @@ const ear = Object.assign(root, Constructors, {
 	math: math.core,
 	axiom,
 	diagram,
+  layer,
 	vertex,
 	text,
 	webgl,
