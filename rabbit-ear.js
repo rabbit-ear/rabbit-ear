@@ -5103,30 +5103,30 @@
 
   const get_common_rules = (faces_layers) => {
     const orders = faces_layers
-    	.map(faces_layer_to_flat_orders)
+      .map(faces_layer_to_flat_orders)
       .reduce(fn_cat, []);
     const both_way_orders = orders
-    	.concat(orders.map(rule => [rule[1], rule[0], -rule[2]]));
-    const rules = {};
+      .concat(orders.map(rule => [rule[1], rule[0], -rule[2]]));
+    const rules = [];
     for (let r = 0; r < both_way_orders.length; r++) {
       const rule = both_way_orders[r];
-      const key = `${rule[0]} ${rule[1]}`;
-      if (rules[key] === false) { continue; }
-      if (rules[key] === undefined) {
-        rules[key] = rule[2];
+      if (!rules[rule[0]]) { rules[rule[0]] = []; }
+      if (rules[rule[0]][rule[1]] === false) { continue; }
+      if (rules[rule[0]][rule[1]] === undefined) {
+        rules[rule[0]][rule[1]] = rule[2];
         continue;
       }
-      if (rules[key] !== rule[2]) {
-        rules[key] = false;
-        rules[`${rule[1]} ${rule[0]}`] = false;
+      if (rules[rule[0]][rule[1]] !== rule[2]) {
+        rules[rule[0]][rule[1]] = false;
+        if (!rules[rule[1]]) { rules[rule[1]] = []; }
+        rules[rule[1]][rule[0]] = false;
       }
     }
-    const rule_keys = Object.keys(rules);
-    return [1, 0, -1]
-      .map(direction => rule_keys
-        .filter(rule => rules[rule] === direction)
-        .map(rule => rule.split(" ").concat(direction)))
-      .reduce(fn_cat, []);
+    return rules
+      .map((row, i) => row
+        .map((direction, j) => ([i, j, direction])))
+      .reduce((a, b) => a.concat(b), [])
+      .filter(el => el[2] !== false);
   };
 
   const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
@@ -5397,9 +5397,32 @@
     return layers_face;
   };
 
+  const get_face_symmetry_side = (graph, symmetry_line) => {
+    return make_faces_center(graph)
+      .map(center => math.core.subtract(center, symmetry_line.origin))
+      .map(center => math.core.cross2(center, symmetry_line.vector))
+      .map(side => side < 0 ? 1 : -1);
+  };
+  const flat_layer_order_symmetry_line = (graph, matrix, symmetry_line, face = 0) => {
+    const faces_side = get_face_symmetry_side(graph, symmetry_line);
+    for (let i = 0; i < faces_side.length; i++) {
+      for (let j = 0; j < faces_side.length; j++) {
+        if (i === j) { continue; }
+        if (faces_side[i] !== faces_side[j]) {
+          matrix[i][j] = faces_side[i];
+          matrix[j][i] = faces_side[j];
+        }
+      }
+    }
+  };
+
   const make_faces_layer = (graph, face = 0, epsilon = math.core.EPSILON) => {
     const matrix = make_layer_matrix(graph, face, epsilon);
     const groups_edges = make_folded_groups_edges(graph, epsilon);
+    flat_layer_order_symmetry_line(graph, matrix, {
+      origin: [0,1],
+      vector: [Math.SQRT1_2, -Math.SQRT1_2],
+    });
     for (let i = 0; i < groups_edges.length; i++) {
       const rules = similar_edges_layers_permutations(graph, groups_edges[i], matrix)
         .map(invert_map);

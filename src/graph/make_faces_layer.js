@@ -43,11 +43,11 @@ const make_faces_layer = (graph, face = 0, epsilon = math.core.EPSILON) => {
   const matrix = make_layer_matrix(graph, face, epsilon);
   const groups_edges = make_folded_groups_edges(graph, epsilon);
 
-  // // experimental section:
-  // flat_layer_order_symmetry_line(graph, matrix, {
-  //   origin: [0,1],
-  //   vector: [Math.SQRT1_2, -Math.SQRT1_2],
-  // });
+  // experimental section:
+  flat_layer_order_symmetry_line(graph, matrix, {
+    origin: [0,1],
+    vector: [Math.SQRT1_2, -Math.SQRT1_2],
+  });
 
   // const permutations = groups_edges
   //   .map(edges => fold_edge_solver(graph, edges, matrix));
