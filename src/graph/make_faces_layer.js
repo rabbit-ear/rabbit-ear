@@ -2,9 +2,9 @@ import math from "../math";
 import { invert_map } from "./maps";
 import make_layer_matrix from "../layer/make_layer_matrix";
 import make_folded_groups_edges from "./make_folded_groups_edges";
-import get_common_rules from "../layer/get_common_rules";
+import get_common_orders from "../layer/get_common_orders";
 import fold_edge_solver from "../layer/fold_edge_solver";
-import make_layers_face from "../layer/layers_face";
+import make_layers_face from "../layer/make_layers_face";
 import make_layers_face_solver from "../layer/layers_face_solver";
 import flat_layer_order_symmetry_line from "../layer/flat_layer_symmetry_line";
 
@@ -44,29 +44,22 @@ const make_faces_layer = (graph, face = 0, epsilon = math.core.EPSILON) => {
   const groups_edges = make_folded_groups_edges(graph, epsilon);
 
   // experimental section:
-  flat_layer_order_symmetry_line(graph, matrix, {
-    origin: [0,1],
-    vector: [Math.SQRT1_2, -Math.SQRT1_2],
-  });
+  // flat_layer_order_symmetry_line(graph, matrix, {
+  //   origin: [0,1],
+  //   vector: [Math.SQRT1_2, -Math.SQRT1_2],
+  // });
 
-  // const permutations = groups_edges
-  //   .map(edges => fold_edge_solver(graph, edges, matrix));
-  // console.log("perms", permutations);
-
-  // console.log("before", matrix_count(matrix));
   for (let i = 0; i < groups_edges.length; i++) {
-    // console.log("solved edge group", i);
-    const rules = fold_edge_solver(graph, groups_edges[i], matrix)
+    const relationships = fold_edge_solver(graph, groups_edges[i], matrix)
       .map(invert_map);
-    get_common_rules(rules).forEach(rule => {
+    get_common_orders(relationships).forEach(rule => {
       matrix[rule[0]][rule[1]] = rule[2];
     });
   }
-  // console.log("after", matrix_count(matrix));
   // at this point, our matrix is complete, get a layer order
   // single solution
   const layers_face = make_layers_face(matrix);
-  // // multiple solutions
+  // multiple solutions
   // const solutions = make_layers_face_solver(matrix, initial_face_order);
   const faces_layer = invert_map(layers_face);
   faces_layer.matrix = matrix;

@@ -3,27 +3,12 @@ import {
   fn_add
 } from "../symbols/functions";
 import { invert_map } from "../graph/maps";
+import get_layer_violations from "./get_layer_violations";
 
-const get_violations = (faces_layer, matrix) => {
-  const violations = [];
-  for (let i = 0; i < matrix.length - 1; i++) {
-    for (let j = i + 1; j < matrix[i].length; j++) {
-      if (i === j) { continue; }
-      const rule = matrix[i][j];
-      if (rule === undefined) { continue; }
-      const face_direction = Math.sign(faces_layer[i] - faces_layer[j]);
-      if (rule !== face_direction) {
-        violations.push([i, j, matrix[i][j]]);
-      }
-    }
-  }
-  return violations
-};
-
-const correct_violations = (layers_face, matrix) => {
+const fix_layer_violations = (layers_face, matrix) => {
   const faces_layer = invert_map(layers_face);
   const faces_adjust = faces_layer.map(() => []);
-  const violations = get_violations(faces_layer, matrix);
+  const violations = get_layer_violations(matrix, faces_layer);
   violations.forEach(el => {
     const distance = (faces_layer[el[1]] - faces_layer[el[0]]);
     faces_adjust[el[0]].push(distance);
@@ -47,6 +32,7 @@ const correct_violations = (layers_face, matrix) => {
  */
 const make_layers_face = (matrix) => {
   // only consider faces which are contained inside the matrix
+  // this allows for Javascript arrays with holes.
   const faces_knowns = matrix.map(row => row.filter(fn_def));
   const face_count = faces_knowns.length;
   const rows_sum = faces_knowns.map(row => row.reduce(fn_add, 0));
@@ -67,9 +53,8 @@ const make_layers_face = (matrix) => {
   let counter = 0;
   let violation_count = 0; // when this is zero, loop will end
   do {
-    violation_count = correct_violations(layers_face, matrix);
+    violation_count = fix_layer_violations(layers_face, matrix);
     counter++;
-    // console.log(counter, "layer shift, # violations", violation_count);
   } while (violation_count !== 0 && counter < matrix.length)
   return layers_face;
 };
@@ -77,9 +62,9 @@ const make_layers_face = (matrix) => {
 export default make_layers_face;
 
 
-// const correct_violations_first = (layers_face, matrix) => {
+// const fix_layer_violations_first = (layers_face, matrix) => {
 //   const faces_layer = invert_map(layers_face);
-//   const violations = get_violations(faces_layer, matrix);
+//   const violations = get_layer_violations(matrix, faces_layer);
 
 //   const swap_layers = (layer1, layer2) => {
 //     const face1 = layers_face[layer1];

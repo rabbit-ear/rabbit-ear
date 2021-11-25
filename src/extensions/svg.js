@@ -255,18 +255,22 @@ var Case = {
 const is_iterable = (obj) => {
   return obj != null && typeof obj[Symbol.iterator] === _function;
 };
-const flatten_arrays = function () {
+const semi_flatten_arrays = function () {
   switch (arguments.length) {
     case undefined:
     case 0: return Array.from(arguments);
     case 1: return is_iterable(arguments[0]) && typeof arguments[0] !== _string
-      ? flatten_arrays(...arguments[0])
+      ? semi_flatten_arrays(...arguments[0])
       : [arguments[0]];
     default:
       return Array.from(arguments).map(a => (is_iterable(a)
-        ? [...flatten_arrays(a)]
-        : a)).reduce((a, b) => a.concat(b), []);
+        ? [...semi_flatten_arrays(a)]
+        : a));
   }
+};
+
+const flatten_arrays = function () {
+  return semi_flatten_arrays(arguments).reduce((a, b) => a.concat(b), []);
 };
 
 var coordinates = (...args) => {
@@ -1329,8 +1333,8 @@ var ellipseDef = {
   }
 };
 
-const Args$1 = (a, b, c, d) => coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
-const setPoints$1 = (element, a, b, c, d) => { Args$1(a, b, c, d)
+const Args$1 = (...args) => coordinates(...semi_flatten_arrays(...args)).slice(0, 4);
+const setPoints$1 = (element, ...args) => { Args$1(...args)
   .forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
 var lineDef = {
   line: {
@@ -1513,7 +1517,9 @@ const polyString = function () {
     .map((_, i) => `${arguments[i * 2 + 0]},${arguments[i * 2 + 1]}`)
     .join(" ");
 };
-const stringifyArgs = (...args) => [polyString(...coordinates(...flatten_arrays(...args)))];
+const stringifyArgs = (...args) => [
+  polyString(...coordinates(...semi_flatten_arrays(...args)))
+];
 const setPoints = (element, ...args) => {
   element.setAttribute(_points, stringifyArgs(...args)[0]);
   return element;

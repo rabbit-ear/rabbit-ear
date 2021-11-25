@@ -1,6 +1,6 @@
 import make_vertices_faces_layer from "../graph/vertices_faces_layer";
 import faces_layer_to_flat_orders from "./faces_layer_to_flat_orders";
-import get_common_rules from "./get_common_rules";
+import get_common_orders from "./get_common_orders";
 import walk_pleat_path from "./walk_pleat_path";
 /**
  * @description perform a layer solver on all vertices indipendently,
@@ -18,24 +18,20 @@ const make_layer_matrix = (graph, face, epsilon) => {
     .filter(solutions => solutions.length === 1)
     .map(solutions => solutions[0])
     .map(faces_layer_to_flat_orders)
-    .reduce((a, b) => a.concat(b), []);
   // complex cases have more than one solution, but among all their solutions,
   // there are consistent rules that are true among all solutions. find those.
-  const multiple_common_rules = vertices_faces_layer
+  const multiple_common_orders = vertices_faces_layer
     .filter(solutions => solutions.length > 1)
-    .map(get_common_rules);
-  // this matrix will hold all relationship between faces.
+    .map(get_common_orders);
+  // combine rules into one set of sets
+  const orders = fixed_orders.concat(multiple_common_orders);
   // todo: using faces_vertices to get face count?
   const matrix = Array
     .from(Array(graph.faces_vertices.length))
     .map(() => Array(graph.faces_vertices.length));
   // add rules to matrix
-  fixed_orders.forEach(rule => {
-    matrix[rule[0]][rule[1]] = rule[2];
-    matrix[rule[1]][rule[0]] = -rule[2];
-  });
-  multiple_common_rules.forEach(rules => rules.forEach(rule => {
-    matrix[rule[0]][rule[1]] = rule[2];
+  orders.forEach(group => group.forEach(order => {
+    matrix[order[0]][order[1]] = order[2];
   }));
   // at this point, all single-vertex local layer ordering have been
   // individually added to the relationship matrix. 
@@ -53,9 +49,6 @@ const make_layer_matrix = (graph, face, epsilon) => {
       .map((dir, i) => dir === direction ? i : undefined)
       .filter(a => a !== undefined)
       .forEach(to => walk_pleat_path(matrix, from, to, direction, visited))));
-  // console.log("vertices_faces_layer", vertices_faces_layer);
-  // console.log("fixed_orders", fixed_orders);
-  // console.log("multiple_common_rules", multiple_common_rules);
   return matrix;
 };
 

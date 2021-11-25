@@ -54,16 +54,16 @@
   };
   const is_iterable$1 = obj => obj != null
     && typeof obj[Symbol.iterator] === "function";
-  const semi_flatten_arrays = function () {
+  const semi_flatten_arrays$1 = function () {
     switch (arguments.length) {
       case undefined:
       case 0: return Array.from(arguments);
       case 1: return is_iterable$1(arguments[0]) && typeof arguments[0] !== "string"
-        ? semi_flatten_arrays(...arguments[0])
+        ? semi_flatten_arrays$1(...arguments[0])
         : [arguments[0]];
       default:
         return Array.from(arguments).map(a => (is_iterable$1(a)
-          ? [...semi_flatten_arrays(a)]
+          ? [...semi_flatten_arrays$1(a)]
           : a));
     }
   };
@@ -86,7 +86,7 @@
     resize_up: resize_up,
     resize_down: resize_down,
     clean_number: clean_number,
-    semi_flatten_arrays: semi_flatten_arrays,
+    semi_flatten_arrays: semi_flatten_arrays$1,
     flatten_arrays: flatten_arrays$1
   });
   const EPSILON = 1e-6;
@@ -500,14 +500,14 @@
     return list.filter(n => typeof n === "number");
   };
   const get_vector_of_vectors = function () {
-    return semi_flatten_arrays(arguments)
+    return semi_flatten_arrays$1(arguments)
       .map(el => get_vector(el));
   };
   const get_segment = function () {
     if (arguments[0] instanceof Constructors$1.segment) {
       return arguments[0];
     }
-    const args = semi_flatten_arrays(arguments);
+    const args = semi_flatten_arrays$1(arguments);
     if (args.length === 4) {
       return [
         [args[0], args[1]],
@@ -517,7 +517,7 @@
     return args.map(el => get_vector(el));
   };
   const get_line = function () {
-    const args = semi_flatten_arrays(arguments);
+    const args = semi_flatten_arrays$1(arguments);
     if (args.length === 0) { return vector_origin_form([], []); }
     if (args[0] instanceof Constructors$1.line
       || args[0] instanceof Constructors$1.ray
@@ -633,7 +633,7 @@
       .reduce(fn_and$1, true);
   };
   const equivalent = function () {
-    const list = semi_flatten_arrays(...arguments);
+    const list = semi_flatten_arrays$1(...arguments);
     if (list.length < 1) { return false; }
     const typeofList = typeof list[0];
     if (typeofList === "undefined") { return false; }
@@ -2077,7 +2077,7 @@
     polygon: {
       P: Array.prototype,
       A: function () {
-        this.push(...semi_flatten_arrays(arguments));
+        this.push(...semi_flatten_arrays$1(arguments));
         this.sides = this
           .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
         this.vectors = this.sides.map(side => subtract(side[1], side[0]));
@@ -3868,6 +3868,649 @@
     transform: apply_matrix_to_graph,
   };
 
+  const between = (arr, i, j) => (i < j)
+    ? arr.slice(i + 1, j)
+    : arr.slice(j + 1, i);
+  const self_intersect_faces = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+    const faces_layer = invert_map(layers_face);
+    const fold_location = folded_faces
+      .map(ends => ends ? ends[1] : undefined);
+    const faces_mins = folded_faces
+      .map(ends => ends ? Math.min(...ends) : undefined)
+      .map(n => n + epsilon);
+    const faces_maxs = folded_faces
+      .map(ends => ends ? Math.max(...ends) : undefined)
+      .map(n => n - epsilon);
+    const faces_array_circular = is_circular
+      && faces_layer.length === folded_faces.length;
+    const max = faces_layer.length + (faces_array_circular ? 0 : -1);
+    for (let i = 0; i < max; i += 1) {
+      const j = (i + 1) % faces_layer.length;
+      if (faces_layer[i] === faces_layer[j]) { continue; }
+      const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
+        .reduce((a, b) => a.concat(b), []);
+      const all_below_min = layers_between
+        .map(index => fold_location[i] < faces_mins[index])
+        .reduce(fn_and, true);
+      const all_above_max = layers_between
+        .map(index => fold_location[i] > faces_maxs[index])
+        .reduce(fn_and, true);
+      if (!all_below_min && !all_above_max) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const common_fold_location = (folded_faces, is_circular, epsilon) => {
+    const faces_center = folded_faces
+      .map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
+    const locations = [];
+    folded_faces.forEach((ends, i) => {
+      if (!ends) { return; }
+      if (!is_circular && i === folded_faces.length - 1) { return; }
+      const fold_end = ends[1];
+      const min = fold_end - (epsilon * 2);
+      const max = fold_end + (epsilon * 2);
+      const faces = [i, (i+1) % folded_faces.length];
+      const sides = faces
+        .map(f => faces_center[f])
+        .map(center => center > fold_end);
+      const left_taco = !sides[0] && !sides[1];
+      const right_taco = sides[0] && sides[1];
+      const tortilla = sides[0] !== sides[1];
+      const match = locations
+        .filter(el => el.min < fold_end && el.max > fold_end)
+        .shift();
+      const entry = { faces, left_taco, right_taco, tortilla };
+      if (match) {
+        match.pairs.push(entry);
+      } else {
+        locations.push({ min, max, pairs: [entry] });
+      }
+    });
+    return locations;
+  };
+  const generate_taco_stack = (layers_face, tacos) => {
+    const stack = [];
+    const taco_faces = JSON.parse(JSON.stringify(tacos.map(el => el.faces)));
+    for (let layer = 0; layer < layers_face.length; layer++) {
+      for (let pair = 0; pair < taco_faces.length; pair++) {
+        const indexOf = taco_faces[pair].indexOf(layers_face[layer]);
+        if (indexOf === -1) { continue; }
+        stack.push(pair);
+        taco_faces[pair].splice(indexOf, 1);
+      }
+    }
+    const pair_count = {};
+    stack.forEach(n => {
+      if (pair_count[n] === undefined) { pair_count[n] = 0; }
+      pair_count[n]++;
+    });
+    return stack.filter(n => pair_count[n] > 1);
+  };
+  const validate_taco_stack$1 = (stack) => {
+    const pairs = {};
+    let count = 0;
+    for (let i = 0; i < stack.length; i++) {
+      if (pairs[stack[i]] === undefined) {
+        count++;
+        pairs[stack[i]] = count;
+      }
+      else if (pairs[stack[i]] !== undefined) {
+        if (pairs[stack[i]] !== count) {
+          return true;
+        }
+        count--;
+        pairs[stack[i]] = undefined;
+      }
+    }
+    return false;
+  };
+  const self_intersect_tacos = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+    const common_locations = common_fold_location(folded_faces, is_circular, epsilon);
+    for (let l = 0; l < common_locations.length; l++) {
+      const location = common_locations[l];
+      const left_tacos = location.pairs.filter(el => el.left_taco);
+      const right_tacos = location.pairs.filter(el => el.right_taco);
+      location.pairs.filter(el => el.tortilla);
+      if (left_tacos.length > 1) {
+        const stack = generate_taco_stack(layers_face, left_tacos);
+        if (validate_taco_stack$1(stack)) {
+          return true;
+        }
+      }
+      if (right_tacos.length > 1) {
+        const stack = generate_taco_stack(layers_face, right_tacos);
+        if (validate_taco_stack$1(stack)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const self_intersect = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+    if (self_intersect_faces(folded_faces, layers_face, is_circular, epsilon)) {
+      return true;
+    }
+    if (self_intersect_tacos(folded_faces, layers_face, is_circular, epsilon)) {
+      return true;
+    }
+    return false;
+  };
+
+  const change_map = { V: true, v: true, M: true, m: true };
+  const assignments_to_faces_flip = (assignments) => {
+    let counter = 0;
+    const shifted_assignments = assignments.slice(1);
+    return [false].concat(shifted_assignments
+      .map(a => change_map[a] ? ++counter : counter)
+      .map(count => count % 2 === 1));
+  };
+  const up_down = { V: 1, v: 1, M: -1, m: -1 };
+  const upOrDown = (mv, i) => i % 2 === 0
+    ?  (up_down[mv] || 0)
+    : -(up_down[mv] || 0);
+  const assignments_to_faces_vertical = (assignments) => {
+    let iterator = 0;
+    return assignments
+      .slice(1)
+      .concat([assignments[0]])
+      .map(a => {
+        const updown = upOrDown(a, iterator);
+        iterator += up_down[a] === undefined ? 0 : 1;
+        return updown;
+      });
+  };
+  const fold_faces_with_assignments = (faces, assignments) => {
+    const faces_end = assignments_to_faces_flip(assignments)
+      .map((flip, i) => faces[i] * (flip ? -1 : 1));
+    const cumulative = faces.map(() => undefined);
+    cumulative[0] = [0, faces_end[0]];
+    for (let i = 1; i < faces.length; i++) {
+      if (assignments[i] === "B" || assignments[i] === "b") { break; }
+      const prev = (i - 1 + faces.length) % faces.length;
+      const prev_end = cumulative[prev][1];
+      cumulative[i] = [prev_end, prev_end + faces_end[i]];
+    }
+    return cumulative;
+  };
+
+  var fold_assignments = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    assignments_to_faces_flip: assignments_to_faces_flip,
+    assignments_to_faces_vertical: assignments_to_faces_vertical,
+    fold_faces_with_assignments: fold_faces_with_assignments
+  });
+
+  const clone = function (o) {
+    let newO;
+    let i;
+    if (typeof o !== _object$1) {
+      return o;
+    }
+    if (!o) {
+      return o;
+    }
+    if (Object.prototype.toString.apply(o) === "[object Array]") {
+      newO = [];
+      for (i = 0; i < o.length; i += 1) {
+        newO[i] = clone(o[i]);
+      }
+      return newO;
+    }
+    newO = {};
+    for (i in o) {
+      if (o.hasOwnProperty(i)) {
+        newO[i] = clone(o[i]);
+      }
+    }
+    return newO;
+  };
+
+  const is_boundary = { "B": true, "b": true };
+  const strip_layer_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+    const faces_folded = fold_faces_with_assignments(ordered_scalars, assignments);
+    const faces_updown = assignments_to_faces_vertical(assignments);
+    const is_circular = assignments
+      .map(a => !(is_boundary[a]))
+      .reduce((a, b) => a && b, true);
+    if (is_circular) {
+      const start = faces_folded[0][0];
+      const end = faces_folded[faces_folded.length - 1][1];
+      if (Math.abs(start - end) > epsilon) {
+        return [];
+      }
+    }  const recurse = (layers_faces = [0], face = 0, layer = 0) => {
+      const next_face = face + 1;
+      const next_dir = faces_updown[face];
+      if (self_intersect(faces_folded, layers_faces, is_circular, epsilon)) {
+        return [];
+      }
+      if (face >= ordered_scalars.length - 1) {
+        if (is_circular) {
+          const faces_layer = invert_map(layers_faces);
+          const first_face_layer = faces_layer[0];
+          const last_face_layer = faces_layer[face];
+          if (next_dir > 0 && last_face_layer > first_face_layer) {
+            return [];
+          }
+          if (next_dir < 0 && last_face_layer < first_face_layer) {
+            return [];
+          }
+        }
+        return [layers_faces];
+      }
+      if (next_dir === 0) {
+        layers_faces[layer] = [next_face].concat(layers_faces[layer]);
+        return recurse(layers_faces, next_face, layer);
+      }
+      const splice_layers = next_dir === 1
+        ? Array.from(Array(layers_faces.length - layer))
+          .map((_, i) => layer + i + 1)
+        : Array.from(Array(layer + 1))
+          .map((_, i) => i);
+      const next_layers_faces = splice_layers.map(i => clone(layers_faces));
+      next_layers_faces
+        .forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
+      return next_layers_faces
+        .map((layers, i) => recurse(layers, next_face, splice_layers[i]))
+        .reduce((a, b) => a.concat(b), []);
+    };
+    return recurse().map(invert_map);
+  };
+
+  const make_vertex_faces_layer = ({
+    vertices_faces, vertices_sectors, vertices_edges, edges_assignment
+  }, vertex, epsilon) => {
+    const faces = vertices_faces[vertex];
+    const range = get_longest_array(circular_array_valid_ranges(faces));
+    if (range === undefined) { return; }
+    while (range[1] < range[0]) { range[1] += faces.length; }
+    const indices = Array
+      .from(Array(range[1] - range[0] + 1))
+      .map((_, i) => (range[0] + i) % faces.length);
+    const sectors = indices
+      .map(i => vertices_sectors[vertex][i]);
+    const assignments = indices
+      .map(i => vertices_edges[vertex][i])
+      .map(edge => edges_assignment[edge]);
+    const sectors_layer = strip_layer_solver(sectors, assignments, epsilon);
+    const faces_layer = sectors_layer
+      .map(invert_map)
+      .map(arr => arr
+        .map(face => typeof face !== "object"
+          ? faces[indices[face]]
+          : face.map(f => faces[indices[f]])))
+      .map(invert_map);
+    faces_layer.face = faces[indices[0]];
+    return faces_layer;
+  };
+
+  const flip_solutions = solutions => {
+    const face = solutions.face;
+    const flipped = solutions
+      .map(invert_map)
+      .map(list => list.reverse())
+      .map(invert_map);
+    flipped.face = face;
+    return flipped;
+  };
+  const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
+    if (!graph.vertices_sectors) {
+      graph.vertices_sectors = make_vertices_sectors(graph);
+    }
+    const faces_coloring = make_faces_coloring(graph, start_face).map(c => !c);
+    const flip_all = faces_coloring[start_face];
+    const vertices_faces_layer = graph.vertices_sectors
+      .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
+    const vertices_solutions_flip = vertices_faces_layer
+      .map(solution => faces_coloring[solution.face])
+      .map(solution_flipped => solution_flipped ^ flip_all);
+    return vertices_faces_layer
+      .map((solutions, i) => vertices_solutions_flip[i]
+        ? flip_solutions(solutions)
+        : solutions);
+  };
+
+  const faces_layer_to_flat_orders = faces_layer => faces_layer
+    .map((_, i) => faces_layer
+      .map((_, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
+    .reduce((a, b) => a.concat(b), [])
+    .filter(el => el[0] !== el[1]);
+
+  const get_common_orders = (faces_layers) => {
+    const orders = faces_layers
+      .map(faces_layer_to_flat_orders)
+      .reduce(fn_cat, []);
+    const rules = [];
+    for (let r = 0; r < orders.length; r++) {
+      const rule = orders[r];
+      if (!rules[rule[0]]) { rules[rule[0]] = []; }
+      if (!rules[rule[1]]) { rules[rule[1]] = []; }
+      if (rules[rule[0]][rule[1]] === false) { continue; }
+      if (rules[rule[0]][rule[1]] === undefined) {
+        rules[rule[0]][rule[1]] = rule[2];
+        rules[rule[1]][rule[0]] = -rule[2];
+        continue;
+      }
+      if (rules[rule[0]][rule[1]] !== rule[2]) {
+        rules[rule[0]][rule[1]] = false;
+        rules[rule[1]][rule[0]] = false;
+      }
+    }
+    return rules
+      .map((row, i) => row
+        .map((direction, j) => ([i, j, direction])))
+      .reduce((a, b) => a.concat(b), [])
+      .filter(el => el[2] !== false);
+  };
+
+  const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
+    const visited_key = `${from} ${to}`;
+    if (visited[visited_key]) { return; }
+    visited[visited_key] = true;
+    matrix[from][to] = direction;
+    matrix[to][from] = -direction;
+    matrix[to]
+      .map((dir, index) => dir === direction ? index : undefined)
+      .filter(a => a !== undefined)
+      .map(index => walk_pleat_path(matrix, from, index, direction, visited));
+  };
+
+  const make_layer_matrix = (graph, face, epsilon) => {
+    const vertices_faces_layer = make_vertices_faces_layer(graph, face, epsilon);
+    const fixed_orders = vertices_faces_layer
+      .filter(solutions => solutions.length === 1)
+      .map(solutions => solutions[0])
+      .map(faces_layer_to_flat_orders);
+    const multiple_common_orders = vertices_faces_layer
+      .filter(solutions => solutions.length > 1)
+      .map(get_common_orders);
+    const orders = fixed_orders.concat(multiple_common_orders);
+    const matrix = Array
+      .from(Array(graph.faces_vertices.length))
+      .map(() => Array(graph.faces_vertices.length));
+    orders.forEach(group => group.forEach(order => {
+      matrix[order[0]][order[1]] = order[2];
+    }));
+    const visited = {};
+    matrix.forEach((_, from) => [-1, 0, 1]
+      .forEach(direction => matrix[from]
+        .map((dir, i) => dir === direction ? i : undefined)
+        .filter(a => a !== undefined)
+        .forEach(to => walk_pleat_path(matrix, from, to, direction, visited))));
+    return matrix;
+  };
+
+  const overlapping_folded_edges = (graph, epsilon) => {
+    const vertices_coords = make_vertices_coords_folded(graph);
+    const vectors = make_edges_vector({
+      vertices_coords,
+      edges_vertices: graph.edges_vertices
+    });
+    const origins = graph.edges_vertices.map(verts => vertices_coords[verts[0]]);
+    const matrix = Array
+      .from(Array(graph.edges_vertices.length))
+      .map(() => []);
+    for (let i = 0; i < matrix.length - 1; i++) {
+    	for (let j = i + 1; j < matrix.length; j++) {
+    		let overlapping = math.core.parallel(vectors[i], vectors[j], epsilon);
+    		if (overlapping) {
+    			overlapping &= math.core.overlap_line_line(
+  	        vectors[i], origins[i],
+  	        vectors[j], origins[j],
+  	        math.core.include_s, math.core.include_s,
+  	        epsilon);
+    		}
+    		matrix[i][j] = overlapping;
+    		matrix[j][i] = overlapping;
+    	}
+    }
+    return matrix
+      .map(rows => rows
+        .map((res, i) => res ? i : undefined)
+        .filter(a => a !== undefined));
+  };
+  const make_groups_from_matrix = (matrix) => {
+    const groups = [];
+    const recurse = (index, current_group) => {
+      if (groups[index] !== undefined) { return 0; }
+      groups[index] = current_group;
+      matrix[index].forEach(i => recurse(i, current_group));
+      return 1;
+    };
+    for (let row = 0, group = 0; row < matrix.length; row++) {
+      group += recurse(row, group);
+    }
+    return groups;
+  };
+  const make_folded_groups_edges = (graph, epsilon = math.core.EPSILON) => {
+    const overlapping_edges = overlapping_folded_edges(graph, epsilon);
+    const edges_group = make_groups_from_matrix(overlapping_edges);
+    return invert_map(edges_group)
+      .filter(el => typeof el === "object")
+      .map(edges => edges
+        .filter(edge => graph.edges_faces[edge].length === 2))
+      .filter(edges => edges.length > 1);
+  };
+
+  const get_splice_indices = (layers_face_relative) => {
+    const highest_positive = layers_face_relative
+      .map((v, i) => v === 1 ? i : undefined)
+      .filter(a => a !== undefined)
+      .pop();
+    const lowest_negative = layers_face_relative
+      .map((v, i) => v === -1 ? i : undefined)
+      .filter(a => a !== undefined)
+      .shift();
+    const bottom_index = highest_positive === undefined
+      ? -1
+      : highest_positive;
+    const top_index = lowest_negative === undefined
+      ? layers_face_relative.length
+      : lowest_negative;
+    if (highest_positive > lowest_negative) { return []; }
+    const valid_length = top_index - bottom_index;
+    return Array
+      .from(Array(valid_length))
+      .map((_, i) => i + bottom_index + 1);
+  };
+
+  const validate_taco_stack = (stack) => {
+    const pairs = {};
+    let count = 0;
+    for (let i = 0; i < stack.length; i++) {
+      if (pairs[stack[i]] === undefined) {
+        count++;
+        pairs[stack[i]] = count;
+      }
+      else if (pairs[stack[i]] !== undefined) {
+        if (pairs[stack[i]] !== count) {
+          return false;
+        }
+        count--;
+        pairs[stack[i]] = undefined;
+      }
+    }
+    return true;
+  };
+  const remove_single_instances = (stack) => {
+    const count = {};
+    stack.forEach(n => {
+      if (count[n] === undefined) { count[n] = 0; }
+      count[n]++;
+    });
+    return stack.filter(n => count[n] > 1);
+  };
+  const similar_edges_layers_permutations = (graph, edges, matrix) => {
+    const folded_vertices_coords = make_vertices_coords_folded(graph, 0);
+    const folded_faces_center = make_faces_center({
+      vertices_coords: folded_vertices_coords,
+      faces_vertices: graph.faces_vertices,
+    });
+    const folded_edge_vertices = graph.edges_vertices[edges[0]]
+      .map(vertex => folded_vertices_coords[vertex]);
+    const folded_edge_origin = folded_edge_vertices[0];
+    const folded_edge_vector = math.core
+      .subtract(folded_edge_vertices[1], folded_edge_vertices[0]);
+    const folded_edges_faces_pair_side = edges
+      .map(edge => graph.edges_faces[edge])
+      .map(pair => pair
+        .map(face => math.core
+          .subtract(folded_faces_center[face], folded_edge_origin))
+        .map(point => math.core.cross2(point, folded_edge_vector))
+        .map(side => side < 0 ? 1 : -1));
+    const faces_pair = invert_map(edges
+      .map(edge => graph.edges_faces[edge]));
+    const edges_objects = edges
+      .map((edge, e) => {
+        const sides = folded_edges_faces_pair_side[e];
+        const taco = sides[0] === sides[1];
+        return {
+          edge,
+          pair: e,
+          faces: graph.edges_faces[edge],
+          left_taco: taco && sides[0] > 0,
+          right_taco: taco && sides[0] <= 0,
+          tortilla: !taco,
+        };
+      });
+    const all_faces = edges
+      .map(edge => graph.edges_faces[edge])
+      .reduce((a, b) => a.concat(b), []);
+    const left_tacos = edges_objects.filter(el => el.left_taco);
+    const right_tacos = edges_objects.filter(el => el.right_taco);
+    edges_objects.filter(el => el.tortillas);
+    const faces_left_taco = invert_map(left_tacos
+        .map(el => el.faces)
+        .reduce((a, b) => a.concat(b), []))
+      .map(val => true);
+    const faces_right_taco = invert_map(right_tacos
+        .map(el => el.faces)
+        .reduce((a, b) => a.concat(b), []))
+      .map(val => true);
+    const validate_layers = (layers_face) => {
+      const layers_right_tacos = layers_face
+        .filter(face => faces_right_taco[face]);
+      const layers_left_tacos = layers_face
+        .filter(face => faces_left_taco[face]);
+      layers_face.map(face => faces_pair[face]);
+      const right_taco_faces_pair = layers_right_tacos.map(face => faces_pair[face]);
+      const left_taco_faces_pair = layers_left_tacos.map(face => faces_pair[face]);
+      return validate_taco_stack(remove_single_instances(right_taco_faces_pair))
+        && validate_taco_stack(remove_single_instances(left_taco_faces_pair));
+    };
+    const recurse = (faces, matrix, layers_face = [], count = 0) => {
+      const next_face = faces[0];
+      if (next_face === undefined) { return [layers_face]; }
+      const layers_face_relative = layers_face
+        .map(face => matrix[next_face][face]);
+      const splice_indices = get_splice_indices(layers_face_relative);
+      const layer_permutations = splice_indices.map(() => layers_face.slice());
+      layer_permutations.forEach((layers, i) => layers
+        .splice(splice_indices[i], 0, next_face));
+      return layer_permutations
+        .filter(layers => validate_layers(layers))
+        .map(layers => recurse(faces.slice(1), matrix, layers, count + 1))
+        .reduce((a, b) => a.concat(b), []);
+    };
+    return recurse(all_faces, matrix);
+  };
+
+  const get_layer_violations = (matrix, faces_layer) => {
+    const violations = [];
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix[i].length; j++) {
+        if (i === j) { continue; }
+        const rule = matrix[i][j];
+        if (rule === undefined) { continue; }
+        const face_direction = Math.sign(faces_layer[i] - faces_layer[j]);
+        if (rule !== face_direction) {
+          violations.push([i, j, matrix[i][j]]);
+        }
+      }
+    }
+    return violations
+  };
+
+  const fix_layer_violations = (layers_face, matrix) => {
+    const faces_layer = invert_map(layers_face);
+    const faces_adjust = faces_layer.map(() => []);
+    const violations = get_layer_violations(matrix, faces_layer);
+    violations.forEach(el => {
+      const distance = (faces_layer[el[1]] - faces_layer[el[0]]);
+      faces_adjust[el[0]].push(distance);
+      faces_adjust[el[1]].push(-distance);
+    });
+    const layer_change = faces_adjust.map(arr => arr.length === 0
+      ? 0
+      : parseInt(arr.reduce((a, b) => a + b, 0) / arr.length));
+    const new_faces_layer = faces_layer
+      .map((layer, i) => layer + layer_change[i]);
+    const new_layers_face = new_faces_layer
+      .map((layer, face) => ({ layer, face }))
+      .sort((a, b) => a.layer - b.layer)
+      .map(el => el.face);
+    new_layers_face.forEach((_, i) => layers_face[i] = new_layers_face[i]);
+    return violations.length;
+  };
+  const make_layers_face = (matrix) => {
+    const faces_knowns = matrix.map(row => row.filter(fn_def));
+    faces_knowns.length;
+    const rows_sum = faces_knowns.map(row => row.reduce(fn_add, 0));
+    const layers_face = Object.keys(matrix)
+      .sort((a, b) => rows_sum[a] - rows_sum[b])
+      .map(n => parseInt(n));
+    let counter = 0;
+    let violation_count = 0;
+    do {
+      violation_count = fix_layer_violations(layers_face, matrix);
+      counter++;
+    } while (violation_count !== 0 && counter < matrix.length)
+    return layers_face;
+  };
+
+  const shrink_collection = (indices) => {
+    while (indices.length > 2) {
+      const i = Math.random() * indices.length;
+      indices.splice(i, 1);
+    }
+    return indices;
+  };
+  const matrix_to_layers_permutations = (matrix, faces, layers_face = []) => {
+    if (!faces) { faces = Object.keys(matrix); }
+    const next_face = faces[0];
+    if (next_face === undefined) { return [layers_face]; }
+    const layers_face_relative = layers_face
+      .map(face => matrix[next_face][face]);
+    const splice_indices = get_splice_indices(layers_face_relative);
+    const splice_indices_sm = shrink_collection(splice_indices);
+    const layer_permutations = splice_indices_sm.map(() => layers_face.slice());
+    layer_permutations.forEach((layers, i) => layers
+      .splice(splice_indices_sm[i], 0, next_face));
+    return layer_permutations
+      .map(layers => matrix_to_layers_permutations(matrix, faces.slice(1), layers))
+      .reduce((a, b) => a.concat(b), []);
+  };
+
+  const make_faces_layer = (graph, face = 0, epsilon = math.core.EPSILON) => {
+    const matrix = make_layer_matrix(graph, face, epsilon);
+    const groups_edges = make_folded_groups_edges(graph, epsilon);
+    for (let i = 0; i < groups_edges.length; i++) {
+      const relationships = similar_edges_layers_permutations(graph, groups_edges[i], matrix)
+        .map(invert_map);
+      get_common_orders(relationships).forEach(rule => {
+        matrix[rule[0]][rule[1]] = rule[2];
+      });
+    }
+    const layers_face = make_layers_face(matrix);
+    const faces_layer = invert_map(layers_face);
+    faces_layer.matrix = matrix;
+    return faces_layer;
+  };
+
   const explode_faces = (graph) => {
     const vertices_coords = graph.faces_vertices
       .map(face => face.map(v => graph.vertices_coords[v]))
@@ -3918,31 +4561,6 @@
     face_containing_point: face_containing_point,
     nearest_face: nearest_face
   });
-
-  const clone = function (o) {
-    let newO;
-    let i;
-    if (typeof o !== _object$1) {
-      return o;
-    }
-    if (!o) {
-      return o;
-    }
-    if (Object.prototype.toString.apply(o) === "[object Array]") {
-      newO = [];
-      for (i = 0; i < o.length; i += 1) {
-        newO[i] = clone(o[i]);
-      }
-      return newO;
-    }
-    newO = {};
-    for (i in o) {
-      if (o.hasOwnProperty(i)) {
-        newO[i] = clone(o[i]);
-      }
-    }
-    return newO;
-  };
 
   const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
     if (edges_faces && edges_faces[edge]) {
@@ -4370,7 +4988,7 @@
     return split_convex_face(this, face, line.vector, line.origin);
   };
   Graph.prototype.copy = function () {
-    return Object.assign(Object.create(Graph.prototype), clone(this));
+    return Object.assign(Object.create(this.__proto__), clone(this));
   };
   Graph.prototype.load = function (object, options = {}) {
     if (typeof object !== _object$1) { return; }
@@ -4387,8 +5005,11 @@
   Graph.prototype.folded = function () {
     const vertices_coords = make_vertices_coords_folded(this, ...arguments);
     return Object.assign(
-      Object.create(Graph.prototype),
-      Object.assign(clone(this), { vertices_coords }, { frame_classes: [_foldedForm] }));
+      Object.create(this.__proto__),
+      Object.assign(clone(this), {
+        vertices_coords,
+        frame_classes: [_foldedForm]
+      }));
   };
   const shortenKeys = function (el, i, arr) {
     const object = Object.create(null);
@@ -4465,15 +5086,6 @@
   CreasePattern.prototype = Object.create(GraphProto);
   CreasePattern.prototype.constructor = CreasePattern;
   const arcResolution = 96;
-  CreasePattern.prototype.copy = function () {
-    return Object.assign(Object.create(CreasePattern.prototype), clone(this));
-  };
-  CreasePattern.prototype.folded = function () {
-    const vertices_coords = make_vertices_coords_folded(this, ...arguments);
-    return Object.assign(
-      Object.create(GraphProto),
-      Object.assign(clone(this), { vertices_coords }, { frame_classes: ["foldedForm"] }));
-  };
   const edges_array = function (array) {
     array.mountain = (degrees = -180) => {
       array.forEach(i => {
@@ -4741,15 +5353,6 @@
     Object.assign(this, graph);
     return this;
   };
-  Origami.prototype.copy = function () {
-    return Object.assign(Object.create(Origami.prototype), clone(this));
-  };
-  Origami.prototype.folded = function () {
-    const vertices_coords = make_vertices_coords_folded(this, ...arguments);
-    return Object.assign(
-      Object.create(Origami.prototype),
-      Object.assign(clone(this), { vertices_coords }, { frame_classes: [_foldedForm] }));
-  };
   var OrigamiProto = Origami.prototype;
 
   const is_folded_form = (graph) => {
@@ -4812,628 +5415,6 @@
   		vertices: vertices_remove,
   		edges: edges_remove
   	};
-  };
-
-  const between = (arr, i, j) => (i < j)
-    ? arr.slice(i + 1, j)
-    : arr.slice(j + 1, i);
-  const self_intersect_faces = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
-    const faces_layer = invert_map(layers_face);
-    const fold_location = folded_faces
-      .map(ends => ends ? ends[1] : undefined);
-    const faces_mins = folded_faces
-      .map(ends => ends ? Math.min(...ends) : undefined)
-      .map(n => n + epsilon);
-    const faces_maxs = folded_faces
-      .map(ends => ends ? Math.max(...ends) : undefined)
-      .map(n => n - epsilon);
-    const faces_array_circular = is_circular
-      && faces_layer.length === folded_faces.length;
-    const max = faces_layer.length + (faces_array_circular ? 0 : -1);
-    for (let i = 0; i < max; i += 1) {
-      const j = (i + 1) % faces_layer.length;
-      if (faces_layer[i] === faces_layer[j]) { continue; }
-      const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
-        .reduce((a, b) => a.concat(b), []);
-      const all_below_min = layers_between
-        .map(index => fold_location[i] < faces_mins[index])
-        .reduce(fn_and, true);
-      const all_above_max = layers_between
-        .map(index => fold_location[i] > faces_maxs[index])
-        .reduce(fn_and, true);
-      if (!all_below_min && !all_above_max) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  const common_fold_location = (folded_faces, is_circular, epsilon) => {
-    const faces_center = folded_faces
-      .map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
-    const locations = [];
-    folded_faces.forEach((ends, i) => {
-      if (!ends) { return; }
-      if (!is_circular && i === folded_faces.length - 1) { return; }
-      const fold_end = ends[1];
-      const min = fold_end - (epsilon * 2);
-      const max = fold_end + (epsilon * 2);
-      const faces = [i, (i+1) % folded_faces.length];
-      const sides = faces
-        .map(f => faces_center[f])
-        .map(center => center > fold_end);
-      const left_taco = !sides[0] && !sides[1];
-      const right_taco = sides[0] && sides[1];
-      const tortilla = sides[0] !== sides[1];
-      const match = locations
-        .filter(el => el.min < fold_end && el.max > fold_end)
-        .shift();
-      const entry = { faces, left_taco, right_taco, tortilla };
-      if (match) {
-        match.pairs.push(entry);
-      } else {
-        locations.push({ min, max, pairs: [entry] });
-      }
-    });
-    return locations;
-  };
-  const generate_taco_stack = (layers_face, tacos) => {
-    const stack = [];
-    const taco_faces = JSON.parse(JSON.stringify(tacos.map(el => el.faces)));
-    for (let layer = 0; layer < layers_face.length; layer++) {
-      for (let pair = 0; pair < taco_faces.length; pair++) {
-        const indexOf = taco_faces[pair].indexOf(layers_face[layer]);
-        if (indexOf === -1) { continue; }
-        stack.push(pair);
-        taco_faces[pair].splice(indexOf, 1);
-      }
-    }
-    const pair_count = {};
-    stack.forEach(n => {
-      if (pair_count[n] === undefined) { pair_count[n] = 0; }
-      pair_count[n]++;
-    });
-    return stack.filter(n => pair_count[n] > 1);
-  };
-  const validate_taco_stack$1 = (stack) => {
-    const pairs = {};
-    let count = 0;
-    for (let i = 0; i < stack.length; i++) {
-      if (pairs[stack[i]] === undefined) {
-        count++;
-        pairs[stack[i]] = count;
-      }
-      else if (pairs[stack[i]] !== undefined) {
-        if (pairs[stack[i]] !== count) {
-          return true;
-        }
-        count--;
-        pairs[stack[i]] = undefined;
-      }
-    }
-    return false;
-  };
-  const self_intersect_tacos = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
-    const common_locations = common_fold_location(folded_faces, is_circular, epsilon);
-    for (let l = 0; l < common_locations.length; l++) {
-      const location = common_locations[l];
-      const left_tacos = location.pairs.filter(el => el.left_taco);
-      const right_tacos = location.pairs.filter(el => el.right_taco);
-      location.pairs.filter(el => el.tortilla);
-      if (left_tacos.length > 1) {
-        const stack = generate_taco_stack(layers_face, left_tacos);
-        if (validate_taco_stack$1(stack)) {
-          return true;
-        }
-      }
-      if (right_tacos.length > 1) {
-        const stack = generate_taco_stack(layers_face, right_tacos);
-        if (validate_taco_stack$1(stack)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  const self_intersect = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
-    if (self_intersect_faces(folded_faces, layers_face, is_circular, epsilon)) {
-      return true;
-    }
-    if (self_intersect_tacos(folded_faces, layers_face, is_circular, epsilon)) {
-      return true;
-    }
-    return false;
-  };
-
-  const change_map = { V: true, v: true, M: true, m: true };
-  const assignments_to_faces_flip = (assignments) => {
-    let counter = 0;
-    const shifted_assignments = assignments.slice(1);
-    return [false].concat(shifted_assignments
-      .map(a => change_map[a] ? ++counter : counter)
-      .map(count => count % 2 === 1));
-  };
-  const up_down = { V: 1, v: 1, M: -1, m: -1 };
-  const upOrDown = (mv, i) => i % 2 === 0
-    ?  (up_down[mv] || 0)
-    : -(up_down[mv] || 0);
-  const assignments_to_faces_vertical = (assignments) => {
-    let iterator = 0;
-    return assignments
-      .slice(1)
-      .concat([assignments[0]])
-      .map(a => {
-        const updown = upOrDown(a, iterator);
-        iterator += up_down[a] === undefined ? 0 : 1;
-        return updown;
-      });
-  };
-  const fold_faces_with_assignments = (faces, assignments) => {
-    const faces_end = assignments_to_faces_flip(assignments)
-      .map((flip, i) => faces[i] * (flip ? -1 : 1));
-    const cumulative = faces.map(() => undefined);
-    cumulative[0] = [0, faces_end[0]];
-    for (let i = 1; i < faces.length; i++) {
-      if (assignments[i] === "B" || assignments[i] === "b") { break; }
-      const prev = (i - 1 + faces.length) % faces.length;
-      const prev_end = cumulative[prev][1];
-      cumulative[i] = [prev_end, prev_end + faces_end[i]];
-    }
-    return cumulative;
-  };
-
-  var fold_assignments = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    assignments_to_faces_flip: assignments_to_faces_flip,
-    assignments_to_faces_vertical: assignments_to_faces_vertical,
-    fold_faces_with_assignments: fold_faces_with_assignments
-  });
-
-  const is_boundary = { "B": true, "b": true };
-  const strip_layer_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
-    const faces_folded = fold_faces_with_assignments(ordered_scalars, assignments);
-    const faces_updown = assignments_to_faces_vertical(assignments);
-    const is_circular = assignments
-      .map(a => !(is_boundary[a]))
-      .reduce((a, b) => a && b, true);
-    if (is_circular) {
-      const start = faces_folded[0][0];
-      const end = faces_folded[faces_folded.length - 1][1];
-      if (Math.abs(start - end) > epsilon) {
-        return [];
-      }
-    }  const recurse = (layers_faces = [0], face = 0, layer = 0) => {
-      const next_face = face + 1;
-      const next_dir = faces_updown[face];
-      if (self_intersect(faces_folded, layers_faces, is_circular, epsilon)) {
-        return [];
-      }
-      if (face >= ordered_scalars.length - 1) {
-        if (is_circular) {
-          const faces_layer = invert_map(layers_faces);
-          const first_face_layer = faces_layer[0];
-          const last_face_layer = faces_layer[face];
-          if (next_dir > 0 && last_face_layer > first_face_layer) {
-            return [];
-          }
-          if (next_dir < 0 && last_face_layer < first_face_layer) {
-            return [];
-          }
-        }
-        return [layers_faces];
-      }
-      if (next_dir === 0) {
-        layers_faces[layer] = [next_face].concat(layers_faces[layer]);
-        return recurse(layers_faces, next_face, layer);
-      }
-      const splice_layers = next_dir === 1
-        ? Array.from(Array(layers_faces.length - layer))
-          .map((_, i) => layer + i + 1)
-        : Array.from(Array(layer + 1))
-          .map((_, i) => i);
-      const next_layers_faces = splice_layers.map(i => clone(layers_faces));
-      next_layers_faces
-        .forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
-      return next_layers_faces
-        .map((layers, i) => recurse(layers, next_face, splice_layers[i]))
-        .reduce((a, b) => a.concat(b), []);
-    };
-    return recurse().map(invert_map);
-  };
-
-  const make_vertex_faces_layer = ({
-    vertices_faces, vertices_sectors, vertices_edges, edges_assignment
-  }, vertex, epsilon) => {
-    const faces = vertices_faces[vertex];
-    const range = get_longest_array(circular_array_valid_ranges(faces));
-    if (range === undefined) { return; }
-    while (range[1] < range[0]) { range[1] += faces.length; }
-    const indices = Array
-      .from(Array(range[1] - range[0] + 1))
-      .map((_, i) => (range[0] + i) % faces.length);
-    const sectors = indices
-      .map(i => vertices_sectors[vertex][i]);
-    const assignments = indices
-      .map(i => vertices_edges[vertex][i])
-      .map(edge => edges_assignment[edge]);
-    const sectors_layer = strip_layer_solver(sectors, assignments, epsilon);
-    const faces_layer = sectors_layer
-      .map(invert_map)
-      .map(arr => arr
-        .map(face => typeof face !== "object"
-          ? faces[indices[face]]
-          : face.map(f => faces[indices[f]])))
-      .map(invert_map);
-    faces_layer.face = faces[indices[0]];
-    return faces_layer;
-  };
-
-  const flip_solutions = solutions => {
-    const face = solutions.face;
-    const flipped = solutions
-      .map(invert_map)
-      .map(list => list.reverse())
-      .map(invert_map);
-    flipped.face = face;
-    return flipped;
-  };
-  const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
-    if (!graph.vertices_sectors) {
-      graph.vertices_sectors = make_vertices_sectors(graph);
-    }
-    const faces_coloring = make_faces_coloring(graph, start_face).map(c => !c);
-    const flip_all = faces_coloring[start_face];
-    const vertices_faces_layer = graph.vertices_sectors
-      .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
-    const vertices_solutions_flip = vertices_faces_layer
-      .map(solution => faces_coloring[solution.face])
-      .map(solution_flipped => solution_flipped ^ flip_all);
-    return vertices_faces_layer
-      .map((solutions, i) => vertices_solutions_flip[i]
-        ? flip_solutions(solutions)
-        : solutions);
-  };
-
-  const faces_layer_to_flat_orders = faces_layer =>
-    make_triangle_pairs(Object.keys(faces_layer))
-      .map(pair => pair.concat(
-        Math.sign(faces_layer[pair[0]] - faces_layer[pair[1]])
-      ));
-
-  const get_common_rules = (faces_layers) => {
-    const orders = faces_layers
-      .map(faces_layer_to_flat_orders)
-      .reduce(fn_cat, []);
-    const both_way_orders = orders
-      .concat(orders.map(rule => [rule[1], rule[0], -rule[2]]));
-    const rules = [];
-    for (let r = 0; r < both_way_orders.length; r++) {
-      const rule = both_way_orders[r];
-      if (!rules[rule[0]]) { rules[rule[0]] = []; }
-      if (rules[rule[0]][rule[1]] === false) { continue; }
-      if (rules[rule[0]][rule[1]] === undefined) {
-        rules[rule[0]][rule[1]] = rule[2];
-        continue;
-      }
-      if (rules[rule[0]][rule[1]] !== rule[2]) {
-        rules[rule[0]][rule[1]] = false;
-        if (!rules[rule[1]]) { rules[rule[1]] = []; }
-        rules[rule[1]][rule[0]] = false;
-      }
-    }
-    return rules
-      .map((row, i) => row
-        .map((direction, j) => ([i, j, direction])))
-      .reduce((a, b) => a.concat(b), [])
-      .filter(el => el[2] !== false);
-  };
-
-  const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
-    const visited_key = `${from} ${to}`;
-    if (visited[visited_key]) { return; }
-    visited[visited_key] = true;
-    matrix[from][to] = direction;
-    matrix[to][from] = -direction;
-    matrix[to]
-      .map((dir, index) => dir === direction ? index : undefined)
-      .filter(a => a !== undefined)
-      .map(index => walk_pleat_path(matrix, from, index, direction, visited));
-  };
-
-  const make_layer_matrix = (graph, face, epsilon) => {
-    const vertices_faces_layer = make_vertices_faces_layer(graph, face, epsilon);
-    const fixed_orders = vertices_faces_layer
-      .filter(solutions => solutions.length === 1)
-      .map(solutions => solutions[0])
-      .map(faces_layer_to_flat_orders)
-      .reduce((a, b) => a.concat(b), []);
-    const multiple_common_rules = vertices_faces_layer
-      .filter(solutions => solutions.length > 1)
-      .map(get_common_rules);
-    const matrix = Array
-      .from(Array(graph.faces_vertices.length))
-      .map(() => Array(graph.faces_vertices.length));
-    fixed_orders.forEach(rule => {
-      matrix[rule[0]][rule[1]] = rule[2];
-      matrix[rule[1]][rule[0]] = -rule[2];
-    });
-    multiple_common_rules.forEach(rules => rules.forEach(rule => {
-      matrix[rule[0]][rule[1]] = rule[2];
-    }));
-    const visited = {};
-    matrix.forEach((_, from) => [-1, 0, 1]
-      .forEach(direction => matrix[from]
-        .map((dir, i) => dir === direction ? i : undefined)
-        .filter(a => a !== undefined)
-        .forEach(to => walk_pleat_path(matrix, from, to, direction, visited))));
-    return matrix;
-  };
-
-  const overlapping_folded_edges = (graph, epsilon) => {
-    const vertices_coords = make_vertices_coords_folded(graph);
-    const vectors = make_edges_vector({
-      vertices_coords,
-      edges_vertices: graph.edges_vertices
-    });
-    const origins = graph.edges_vertices.map(verts => vertices_coords[verts[0]]);
-    const matrix = Array
-      .from(Array(graph.edges_vertices.length))
-      .map(() => []);
-    for (let i = 0; i < matrix.length - 1; i++) {
-    	for (let j = i + 1; j < matrix.length; j++) {
-    		let overlapping = math.core.parallel(vectors[i], vectors[j], epsilon);
-    		if (overlapping) {
-    			overlapping &= math.core.overlap_line_line(
-  	        vectors[i], origins[i],
-  	        vectors[j], origins[j],
-  	        math.core.include_s, math.core.include_s,
-  	        epsilon);
-    		}
-    		matrix[i][j] = overlapping;
-    		matrix[j][i] = overlapping;
-    	}
-    }
-    return matrix
-      .map(rows => rows
-        .map((res, i) => res ? i : undefined)
-        .filter(a => a !== undefined));
-  };
-  const make_groups_from_matrix = (matrix) => {
-    const groups = [];
-    const recurse = (index, current_group) => {
-      if (groups[index] !== undefined) { return 0; }
-      groups[index] = current_group;
-      matrix[index].forEach(i => recurse(i, current_group));
-      return 1;
-    };
-    for (let row = 0, group = 0; row < matrix.length; row++) {
-      group += recurse(row, group);
-    }
-    return groups;
-  };
-  const make_folded_groups_edges = (graph, epsilon = math.core.EPSILON) => {
-    const overlapping_edges = overlapping_folded_edges(graph, epsilon);
-    const edges_group = make_groups_from_matrix(overlapping_edges);
-    return invert_map(edges_group)
-      .filter(el => typeof el === "object")
-      .map(edges => edges
-        .filter(edge => graph.edges_faces[edge].length === 2))
-      .filter(edges => edges.length > 1);
-  };
-
-  const get_splice_indices = (layers_face_relative) => {
-    const highest_positive = layers_face_relative
-      .map((v, i) => v === 1 ? i : undefined)
-      .filter(a => a !== undefined)
-      .pop();
-    const lowest_negative = layers_face_relative
-      .map((v, i) => v === -1 ? i : undefined)
-      .filter(a => a !== undefined)
-      .shift();
-    const bottom_index = highest_positive === undefined
-      ? -1
-      : highest_positive;
-    const top_index = lowest_negative === undefined
-      ? layers_face_relative.length
-      : lowest_negative;
-    if (highest_positive > lowest_negative) { return []; }
-    const valid_length = top_index - bottom_index;
-    return Array
-      .from(Array(valid_length))
-      .map((_, i) => i + bottom_index + 1);
-  };
-
-  const validate_taco_stack = (stack) => {
-    const pairs = {};
-    let count = 0;
-    for (let i = 0; i < stack.length; i++) {
-      if (pairs[stack[i]] === undefined) {
-        count++;
-        pairs[stack[i]] = count;
-      }
-      else if (pairs[stack[i]] !== undefined) {
-        if (pairs[stack[i]] !== count) {
-          return false;
-        }
-        count--;
-        pairs[stack[i]] = undefined;
-      }
-    }
-    return true;
-  };
-  const remove_single_instances = (stack) => {
-    const count = {};
-    stack.forEach(n => {
-      if (count[n] === undefined) { count[n] = 0; }
-      count[n]++;
-    });
-    return stack.filter(n => count[n] > 1);
-  };
-  const similar_edges_layers_permutations = (graph, edges, matrix) => {
-    const folded_vertices_coords = make_vertices_coords_folded(graph, 0);
-    const folded_faces_center = make_faces_center({
-      vertices_coords: folded_vertices_coords,
-      faces_vertices: graph.faces_vertices,
-    });
-    const folded_edge_vertices = graph.edges_vertices[edges[0]]
-      .map(vertex => folded_vertices_coords[vertex]);
-    const folded_edge_origin = folded_edge_vertices[0];
-    const folded_edge_vector = math.core
-      .subtract(folded_edge_vertices[1], folded_edge_vertices[0]);
-    const folded_edges_faces_pair_side = edges
-      .map(edge => graph.edges_faces[edge])
-      .map(pair => pair
-        .map(face => math.core
-          .subtract(folded_faces_center[face], folded_edge_origin))
-        .map(point => math.core.cross2(point, folded_edge_vector))
-        .map(side => side < 0 ? 1 : -1));
-    const faces_pair = invert_map(edges
-      .map(edge => graph.edges_faces[edge]));
-    const edges_objects = edges
-      .map((edge, e) => {
-        const sides = folded_edges_faces_pair_side[e];
-        const taco = sides[0] === sides[1];
-        return {
-          edge,
-          pair: e,
-          faces: graph.edges_faces[edge],
-          left_taco: taco && sides[0] > 0,
-          right_taco: taco && sides[0] <= 0,
-          tortilla: !taco,
-        };
-      });
-    const all_faces = edges
-      .map(edge => graph.edges_faces[edge])
-      .reduce((a, b) => a.concat(b), []);
-    const left_tacos = edges_objects.filter(el => el.left_taco);
-    const right_tacos = edges_objects.filter(el => el.right_taco);
-    edges_objects.filter(el => el.tortillas);
-    const faces_left_taco = invert_map(left_tacos
-        .map(el => el.faces)
-        .reduce((a, b) => a.concat(b), []))
-      .map(val => true);
-    const faces_right_taco = invert_map(right_tacos
-        .map(el => el.faces)
-        .reduce((a, b) => a.concat(b), []))
-      .map(val => true);
-    const validate_layers = (layers_face) => {
-      const layers_right_tacos = layers_face
-        .filter(face => faces_right_taco[face]);
-      const layers_left_tacos = layers_face
-        .filter(face => faces_left_taco[face]);
-      layers_face.map(face => faces_pair[face]);
-      const right_taco_faces_pair = layers_right_tacos.map(face => faces_pair[face]);
-      const left_taco_faces_pair = layers_left_tacos.map(face => faces_pair[face]);
-      return validate_taco_stack(remove_single_instances(right_taco_faces_pair))
-        && validate_taco_stack(remove_single_instances(left_taco_faces_pair));
-    };
-    const recurse = (faces, matrix, layers_face = [], count = 0) => {
-      const next_face = faces[0];
-      if (next_face === undefined) { return [layers_face]; }
-      const layers_face_relative = layers_face
-        .map(face => matrix[next_face][face]);
-      const splice_indices = get_splice_indices(layers_face_relative);
-      const layer_permutations = splice_indices.map(() => layers_face.slice());
-      layer_permutations.forEach((layers, i) => layers
-        .splice(splice_indices[i], 0, next_face));
-      return layer_permutations
-        .filter(layers => validate_layers(layers))
-        .map(layers => recurse(faces.slice(1), matrix, layers, count + 1))
-        .reduce((a, b) => a.concat(b), []);
-    };
-    return recurse(all_faces, matrix);
-  };
-
-  const get_violations = (faces_layer, matrix) => {
-    const violations = [];
-    for (let i = 0; i < matrix.length - 1; i++) {
-      for (let j = i + 1; j < matrix[i].length; j++) {
-        if (i === j) { continue; }
-        const rule = matrix[i][j];
-        if (rule === undefined) { continue; }
-        const face_direction = Math.sign(faces_layer[i] - faces_layer[j]);
-        if (rule !== face_direction) {
-          violations.push([i, j, matrix[i][j]]);
-        }
-      }
-    }
-    return violations
-  };
-  const correct_violations = (layers_face, matrix) => {
-    const faces_layer = invert_map(layers_face);
-    const faces_adjust = faces_layer.map(() => []);
-    const violations = get_violations(faces_layer, matrix);
-    violations.forEach(el => {
-      const distance = (faces_layer[el[1]] - faces_layer[el[0]]);
-      faces_adjust[el[0]].push(distance);
-      faces_adjust[el[1]].push(-distance);
-    });
-    const layer_change = faces_adjust.map(arr => arr.length === 0
-      ? 0
-      : parseInt(arr.reduce((a, b) => a + b, 0) / arr.length));
-    const new_faces_layer = faces_layer
-      .map((layer, i) => layer + layer_change[i]);
-    const new_layers_face = new_faces_layer
-      .map((layer, face) => ({ layer, face }))
-      .sort((a, b) => a.layer - b.layer)
-      .map(el => el.face);
-    new_layers_face.forEach((_, i) => layers_face[i] = new_layers_face[i]);
-    return violations.length;
-  };
-  const make_layers_face = (matrix) => {
-    const faces_knowns = matrix.map(row => row.filter(fn_def));
-    faces_knowns.length;
-    const rows_sum = faces_knowns.map(row => row.reduce(fn_add, 0));
-    const layers_face = Object.keys(matrix)
-      .sort((a, b) => rows_sum[a] - rows_sum[b])
-      .map(n => parseInt(n));
-    let counter = 0;
-    let violation_count = 0;
-    do {
-      violation_count = correct_violations(layers_face, matrix);
-      counter++;
-    } while (violation_count !== 0 && counter < matrix.length)
-    return layers_face;
-  };
-
-  const get_face_symmetry_side = (graph, symmetry_line) => {
-    return make_faces_center(graph)
-      .map(center => math.core.subtract(center, symmetry_line.origin))
-      .map(center => math.core.cross2(center, symmetry_line.vector))
-      .map(side => side < 0 ? 1 : -1);
-  };
-  const flat_layer_order_symmetry_line = (graph, matrix, symmetry_line, face = 0) => {
-    const faces_side = get_face_symmetry_side(graph, symmetry_line);
-    for (let i = 0; i < faces_side.length; i++) {
-      for (let j = 0; j < faces_side.length; j++) {
-        if (i === j) { continue; }
-        if (faces_side[i] !== faces_side[j]) {
-          matrix[i][j] = faces_side[i];
-          matrix[j][i] = faces_side[j];
-        }
-      }
-    }
-  };
-
-  const make_faces_layer = (graph, face = 0, epsilon = math.core.EPSILON) => {
-    const matrix = make_layer_matrix(graph, face, epsilon);
-    const groups_edges = make_folded_groups_edges(graph, epsilon);
-    flat_layer_order_symmetry_line(graph, matrix, {
-      origin: [0,1],
-      vector: [Math.SQRT1_2, -Math.SQRT1_2],
-    });
-    for (let i = 0; i < groups_edges.length; i++) {
-      const rules = similar_edges_layers_permutations(graph, groups_edges[i], matrix)
-        .map(invert_map);
-      get_common_rules(rules).forEach(rule => {
-        matrix[rule[0]][rule[1]] = rule[2];
-      });
-    }
-    const layers_face = make_layers_face(matrix);
-    const faces_layer = invert_map(layers_face);
-    faces_layer.matrix = matrix;
-    return faces_layer;
   };
 
   var graph_methods = Object.assign(Object.create(null), {
@@ -6117,6 +6098,10 @@
   	simple_arrow,
   });
 
+  const flip_faces_layer = faces_layer => invert_map(
+  	invert_map(faces_layer).reverse()
+  );
+
   const get_unassigned_indices = (edges_assignment) => edges_assignment
     .map((_, i) => i)
     .filter(i => edges_assignment[i] === "U" || edges_assignment[i] === "u");
@@ -6156,17 +6141,19 @@
   		}));
   };
 
-  const flip_faces_layer = faces_layer => invert_map(
-  	invert_map(faces_layer).reverse()
-  );
-
   var layer = Object.assign(Object.create(null), {
-  	strip_solver: strip_layer_solver,
-  	layer_assignment_solver,
-  	self_intersect,
-  	walk_pleat_path,
+  	faces_layer_to_flat_orders,
   	flip_faces_layer,
+  	get_common_orders,
+  	get_layer_violations,
   	get_splice_indices,
+  	layer_assignment_solver,
+  	layers_face_solver: matrix_to_layers_permutations,
+  	make_layer_matrix,
+  	make_layers_face,
+  	self_intersect,
+  	strip_solver: strip_layer_solver,
+  	walk_pleat_path,
   },
   	fold_assignments,
   );
@@ -7023,18 +7010,21 @@
   const is_iterable = (obj) => {
     return obj != null && typeof obj[Symbol.iterator] === _function;
   };
-  const flatten_arrays = function () {
+  const semi_flatten_arrays = function () {
     switch (arguments.length) {
       case undefined:
       case 0: return Array.from(arguments);
       case 1: return is_iterable(arguments[0]) && typeof arguments[0] !== _string
-        ? flatten_arrays(...arguments[0])
+        ? semi_flatten_arrays(...arguments[0])
         : [arguments[0]];
       default:
         return Array.from(arguments).map(a => (is_iterable(a)
-          ? [...flatten_arrays(a)]
-          : a)).reduce((a, b) => a.concat(b), []);
+          ? [...semi_flatten_arrays(a)]
+          : a));
     }
+  };
+  const flatten_arrays = function () {
+    return semi_flatten_arrays(arguments).reduce((a, b) => a.concat(b), []);
   };
   var coordinates = (...args) => {
     return args.filter(a => typeof a === _number)
@@ -8062,8 +8052,8 @@
       }
     }
   };
-  const Args$1 = (a, b, c, d) => coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
-  const setPoints$1 = (element, a, b, c, d) => { Args$1(a, b, c, d)
+  const Args$1 = (...args) => coordinates(...semi_flatten_arrays(...args)).slice(0, 4);
+  const setPoints$1 = (element, ...args) => { Args$1(...args)
     .forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
   var lineDef = {
     line: {
@@ -8240,7 +8230,9 @@
       .map((_, i) => `${arguments[i * 2 + 0]},${arguments[i * 2 + 1]}`)
       .join(" ");
   };
-  const stringifyArgs = (...args) => [polyString(...coordinates(...flatten_arrays(...args)))];
+  const stringifyArgs = (...args) => [
+    polyString(...coordinates(...semi_flatten_arrays(...args)))
+  ];
   const setPoints = (element, ...args) => {
     element.setAttribute(_points, stringifyArgs(...args)[0]);
     return element;

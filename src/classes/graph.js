@@ -32,6 +32,7 @@ import {
   make_vertices_coords_folded,
   make_face_spanning_tree,
 } from "../graph/make";
+import make_faces_layer from "../graph/make_faces_layer";
 import explode_faces from "../graph/explode_faces";
 import {
   nearest_vertex,
@@ -99,11 +100,11 @@ Graph.prototype.splitFace = function (face, ...args) {
   return split_face(this, face, line.vector, line.origin);
 };
 /**
- * export
  * @returns {this} a deep copy of this object
  */
 Graph.prototype.copy = function () {
-  return Object.assign(Object.create(Graph.prototype), clone(this));
+  // return Object.assign(Object.create(Graph.prototype), clone(this));
+  return Object.assign(Object.create(this.__proto__), clone(this));
 };
 /**
  * @param {object} is a FOLD object.
@@ -126,15 +127,21 @@ Graph.prototype.clear = function () {
   fold_keys.orders.forEach(key => delete this[key]);
   // avoiding all "file_" keys, but file_frames will contain geometry
   delete this.file_frames;
-}
+};
 Graph.prototype.folded = function () {
   const vertices_coords = make_vertices_coords_folded(this, ...arguments);
+  // const faces_layer = this["faces_re:layer"]
+  //   ? this["faces_re:layer"]
+  //   : make_faces_layer(this, arguments[0], 0.001);
   return Object.assign(
-    Object.create(Graph.prototype),
-    Object.assign(clone(this), { vertices_coords }, { frame_classes: [S._foldedForm] }));
+    // Object.create(Graph.prototype),
+    Object.create(this.__proto__),
+    Object.assign(clone(this), {
+      vertices_coords,
+      // "faces_re:layer": faces_layer,
+      frame_classes: [S._foldedForm]
+    }));
 };
-
-;
 /**
  * graph components
  */
