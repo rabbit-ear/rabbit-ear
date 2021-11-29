@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 // import { make_triangle_pairs } from "../graph/arrays";
 /**
  * @description both ways of each rule is set face1-face2 and face2-face1

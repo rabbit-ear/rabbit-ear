@@ -43,6 +43,11 @@ export const get_longest_array = (arrays) => {
   }
   return arrays[max];
 };
+
+// export const matrix_to_array = (matrix) => {
+//   matrix.map(row => row.filter(a => a !== undefined))
+// };
+
 /**
  * @description convert a list of items {any} into a list of pairs
  * where each item is uniqely matched with another item (non-ordered)

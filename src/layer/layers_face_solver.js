@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import get_splice_indices from "./get_splice_indices";
 
 const shrink_collection = (indices) => {

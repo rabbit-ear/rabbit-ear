@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 const get_layer_violations = (matrix, faces_layer) => {
   const violations = [];
   for (let i = 0; i < matrix.length - 1; i++) {

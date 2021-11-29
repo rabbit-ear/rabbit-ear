@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import { invert_map } from "../graph/maps";
 
 const flip_faces_layer = faces_layer => invert_map(

@@ -3868,6 +3868,133 @@
     transform: apply_matrix_to_graph,
   };
 
+  const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
+    const visited_key = `${from} ${to}`;
+    if (visited[visited_key]) { return; }
+    visited[visited_key] = true;
+    matrix[from][to] = direction;
+    matrix[to][from] = -direction;
+    matrix[to]
+      .map((dir, index) => dir === direction ? index : undefined)
+      .filter(a => a !== undefined)
+      .map(index => walk_pleat_path(matrix, from, index, direction, visited));
+  };
+  const walk_all_pleat_paths = (matrix) => {
+    const visited = {};
+    matrix.forEach((_, from) => [-1, 0, 1]
+      .forEach(direction => matrix[from]
+        .map((dir, i) => dir === direction ? i : undefined)
+        .filter(a => a !== undefined)
+        .forEach(to => walk_pleat_path(matrix, from, to, direction, visited))));
+  };
+
+  var pleat_paths = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    walk_pleat_path: walk_pleat_path,
+    walk_all_pleat_paths: walk_all_pleat_paths
+  });
+
+  const faces_layer_to_flat_orders = faces_layer => faces_layer
+    .map((_, i) => faces_layer
+      .map((_, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
+    .reduce((a, b) => a.concat(b), [])
+    .filter(el => el[0] !== el[1]);
+
+  const get_common_orders = (faces_layers) => {
+    const orders = faces_layers
+      .map(faces_layer_to_flat_orders)
+      .reduce(fn_cat, []);
+    const rules = [];
+    for (let r = 0; r < orders.length; r++) {
+      const rule = orders[r];
+      if (!rules[rule[0]]) { rules[rule[0]] = []; }
+      if (!rules[rule[1]]) { rules[rule[1]] = []; }
+      if (rules[rule[0]][rule[1]] === false) { continue; }
+      if (rules[rule[0]][rule[1]] === undefined) {
+        rules[rule[0]][rule[1]] = rule[2];
+        rules[rule[1]][rule[0]] = -rule[2];
+        continue;
+      }
+      if (rules[rule[0]][rule[1]] !== rule[2]) {
+        rules[rule[0]][rule[1]] = false;
+        rules[rule[1]][rule[0]] = false;
+      }
+    }
+    return rules
+      .map((row, i) => row
+        .map((direction, j) => ([i, j, direction])))
+      .reduce((a, b) => a.concat(b), [])
+      .filter(el => el[2] !== false);
+  };
+
+  const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
+    if (!edges_vector) {
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+    }
+    const edge_count = edges_vector.length;
+    const edges_edges_parallel = Array
+      .from(Array(edge_count))
+      .map(() => Array.from(Array(edge_count)));
+    for (let i = 0; i < edge_count; i++) {
+      edges_edges_parallel[i][i] = true;
+    }
+    for (let i = 0; i < edge_count - 1; i++) {
+      for (let j = i + 1; j < edge_count; j++) {
+        const p = math.core.parallel(edges_vector[i], edges_vector[j], epsilon);
+        edges_edges_parallel[i][j] = p;
+        edges_edges_parallel[j][i] = p;
+      }
+    }
+    return edges_edges_parallel;
+  };
+  const make_edges_edges_overlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
+    if (!edges_vector) {
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+    }
+    const edges_origins = edges_vertices.map(verts => vertices_coords[verts[0]]);
+    const edges_edges_overlap = make_edges_edges_parallel({
+      vertices_coords, edges_vertices, edges_vector
+    }, epsilon)
+      .map(row => row.map(b => !b));
+    for (let i = 0; i < edges_edges_overlap.length - 1; i++) {
+      for (let j = i + 1; j < edges_edges_overlap.length; j++) {
+        if (!edges_edges_overlap[i][j]) { continue; }
+        edges_edges_overlap[i][j] = math.core.overlap_line_line(
+          edges_vector[i], edges_origins[i],
+          edges_vector[j], edges_origins[j],
+          math.core.exclude_s, math.core.exclude_s,
+          epsilon);
+        edges_edges_overlap[j][i] = edges_edges_overlap[i][j];
+      }
+    }
+    return edges_edges_overlap;
+  };
+
+  var edges_edges = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    make_edges_edges_parallel: make_edges_edges_parallel,
+    make_edges_edges_overlap: make_edges_edges_overlap
+  });
+
+  const make_edge_layer_matrix = (graph, face_matrix, epsilon) => {
+    const edges_edges_overlap_matrix = make_edges_edges_overlap(graph, epsilon);
+    const edges_faces = graph.edges_faces
+      ? graph.edges_faces
+      : make_edges_faces(graph);
+    const edges_edges_overlap = edges_edges_overlap_matrix
+      .map(row => row
+        .map((val, i) => val ? i : undefined)
+        .filter(a => a !== undefined));
+    const edge_matrix = edges_edges_overlap.map(() => []);
+    edges_edges_overlap
+      .forEach((row, e1) => row
+        .forEach(e2 => edges_faces[e1]
+          .forEach(f1 => edges_faces[e2]
+            .filter(f2 => face_matrix[f1][f2] !== undefined)
+            .forEach(f2 => { edge_matrix[e1][e2] = face_matrix[f1][f2]; }))));
+    return edge_matrix;
+  };
+
   const between = (arr, i, j) => (i < j)
     ? arr.slice(i + 1, j)
     : arr.slice(j + 1, i);
@@ -4174,52 +4301,16 @@
         : solutions);
   };
 
-  const faces_layer_to_flat_orders = faces_layer => faces_layer
-    .map((_, i) => faces_layer
-      .map((_, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
-    .reduce((a, b) => a.concat(b), [])
-    .filter(el => el[0] !== el[1]);
-
-  const get_common_orders = (faces_layers) => {
-    const orders = faces_layers
-      .map(faces_layer_to_flat_orders)
-      .reduce(fn_cat, []);
-    const rules = [];
-    for (let r = 0; r < orders.length; r++) {
-      const rule = orders[r];
-      if (!rules[rule[0]]) { rules[rule[0]] = []; }
-      if (!rules[rule[1]]) { rules[rule[1]] = []; }
-      if (rules[rule[0]][rule[1]] === false) { continue; }
-      if (rules[rule[0]][rule[1]] === undefined) {
-        rules[rule[0]][rule[1]] = rule[2];
-        rules[rule[1]][rule[0]] = -rule[2];
-        continue;
-      }
-      if (rules[rule[0]][rule[1]] !== rule[2]) {
-        rules[rule[0]][rule[1]] = false;
-        rules[rule[1]][rule[0]] = false;
-      }
-    }
-    return rules
-      .map((row, i) => row
-        .map((direction, j) => ([i, j, direction])))
-      .reduce((a, b) => a.concat(b), [])
-      .filter(el => el[2] !== false);
+  const make_edges_overlap_face_orders = (graph, matrix, epsilon) => {
+    const orders = [];
+    make_edge_layer_matrix(graph, matrix, epsilon)
+      .forEach((row, e1) => row
+        .forEach((rule, e2) => graph.edges_faces[e1]
+          .forEach(f1 => graph.edges_faces[e2]
+            .forEach(f2 => orders.push([f1, f2, rule], [f2, f1, -rule])))));
+    return orders;
   };
-
-  const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
-    const visited_key = `${from} ${to}`;
-    if (visited[visited_key]) { return; }
-    visited[visited_key] = true;
-    matrix[from][to] = direction;
-    matrix[to][from] = -direction;
-    matrix[to]
-      .map((dir, index) => dir === direction ? index : undefined)
-      .filter(a => a !== undefined)
-      .map(index => walk_pleat_path(matrix, from, index, direction, visited));
-  };
-
-  const make_layer_matrix = (graph, face, epsilon) => {
+  const make_single_vertex_face_orders = (graph, face, epsilon) => {
     const vertices_faces_layer = make_vertices_faces_layer(graph, face, epsilon);
     const fixed_orders = vertices_faces_layer
       .filter(solutions => solutions.length === 1)
@@ -4228,39 +4319,31 @@
     const multiple_common_orders = vertices_faces_layer
       .filter(solutions => solutions.length > 1)
       .map(get_common_orders);
-    const orders = fixed_orders.concat(multiple_common_orders);
-    const matrix = Array
-      .from(Array(graph.faces_vertices.length))
-      .map(() => Array(graph.faces_vertices.length));
-    orders.forEach(group => group.forEach(order => {
-      matrix[order[0]][order[1]] = order[2];
-    }));
-    const visited = {};
-    matrix.forEach((_, from) => [-1, 0, 1]
-      .forEach(direction => matrix[from]
-        .map((dir, i) => dir === direction ? i : undefined)
-        .filter(a => a !== undefined)
-        .forEach(to => walk_pleat_path(matrix, from, to, direction, visited))));
-    return matrix;
+    return fixed_orders.concat(multiple_common_orders);
   };
 
-  const overlapping_folded_edges = (graph, epsilon) => {
-    const vertices_coords = make_vertices_coords_folded(graph);
-    const vectors = make_edges_vector({
-      vertices_coords,
-      edges_vertices: graph.edges_vertices
-    });
-    const origins = graph.edges_vertices.map(verts => vertices_coords[verts[0]]);
-    const matrix = Array
-      .from(Array(graph.edges_vertices.length))
-      .map(() => []);
+  var make_orders = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    make_edges_overlap_face_orders: make_edges_overlap_face_orders,
+    make_single_vertex_face_orders: make_single_vertex_face_orders
+  });
+
+  const make_overlapping_parallel_edges = ({
+    vertices_coords, edges_vertices, edges_vector
+  }, epsilon) => {
+    if (!edges_vector) {
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+    }
+    const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+    const matrix = edges_vertices.map(() => []);
     for (let i = 0; i < matrix.length - 1; i++) {
     	for (let j = i + 1; j < matrix.length; j++) {
-    		let overlapping = math.core.parallel(vectors[i], vectors[j], epsilon);
+    		let overlapping = math.core
+          .parallel(edges_vector[i], edges_vector[j], epsilon);
     		if (overlapping) {
     			overlapping &= math.core.overlap_line_line(
-  	        vectors[i], origins[i],
-  	        vectors[j], origins[j],
+  	        edges_vector[i], edges_origin[i],
+  	        edges_vector[j], edges_origin[j],
   	        math.core.include_s, math.core.include_s,
   	        epsilon);
     		}
@@ -4286,8 +4369,8 @@
     }
     return groups;
   };
-  const make_folded_groups_edges = (graph, epsilon = math.core.EPSILON) => {
-    const overlapping_edges = overlapping_folded_edges(graph, epsilon);
+  const make_groups_edges = (graph, epsilon = math.core.EPSILON) => {
+    const overlapping_edges = make_overlapping_parallel_edges(graph, epsilon);
     const edges_group = make_groups_from_matrix(overlapping_edges);
     return invert_map(edges_group)
       .filter(el => typeof el === "object")
@@ -4344,26 +4427,24 @@
     });
     return stack.filter(n => count[n] > 1);
   };
-  const similar_edges_layers_permutations = (graph, edges, matrix) => {
-    const folded_vertices_coords = make_vertices_coords_folded(graph, 0);
-    const folded_faces_center = make_faces_center({
-      vertices_coords: folded_vertices_coords,
-      faces_vertices: graph.faces_vertices,
-    });
-    const folded_edge_vertices = graph.edges_vertices[edges[0]]
-      .map(vertex => folded_vertices_coords[vertex]);
-    const folded_edge_origin = folded_edge_vertices[0];
-    const folded_edge_vector = math.core
-      .subtract(folded_edge_vertices[1], folded_edge_vertices[0]);
+  const similar_edges_layers_permutations = ({
+    vertices_coords, edges_vertices, edges_faces, faces_vertices
+  }, edges, matrix) => {
+    const faces_center = make_faces_center({ vertices_coords, faces_vertices });
+    const similar_edge_vertices = edges_vertices[edges[0]]
+      .map(vertex => vertices_coords[vertex]);
+    const edge_origin = similar_edge_vertices[0];
+    const edge_vector = math.core
+      .subtract(similar_edge_vertices[1], similar_edge_vertices[0]);
     const folded_edges_faces_pair_side = edges
-      .map(edge => graph.edges_faces[edge])
+      .map(edge => edges_faces[edge])
       .map(pair => pair
         .map(face => math.core
-          .subtract(folded_faces_center[face], folded_edge_origin))
-        .map(point => math.core.cross2(point, folded_edge_vector))
+          .subtract(faces_center[face], edge_origin))
+        .map(point => math.core.cross2(point, edge_vector))
         .map(side => side < 0 ? 1 : -1));
     const faces_pair = invert_map(edges
-      .map(edge => graph.edges_faces[edge]));
+      .map(edge => edges_faces[edge]));
     const edges_objects = edges
       .map((edge, e) => {
         const sides = folded_edges_faces_pair_side[e];
@@ -4371,14 +4452,14 @@
         return {
           edge,
           pair: e,
-          faces: graph.edges_faces[edge],
+          faces: edges_faces[edge],
           left_taco: taco && sides[0] > 0,
           right_taco: taco && sides[0] <= 0,
           tortilla: !taco,
         };
       });
     const all_faces = edges
-      .map(edge => graph.edges_faces[edge])
+      .map(edge => edges_faces[edge])
       .reduce((a, b) => a.concat(b), []);
     const left_tacos = edges_objects.filter(el => el.left_taco);
     const right_tacos = edges_objects.filter(el => el.right_taco);
@@ -4417,6 +4498,28 @@
         .reduce((a, b) => a.concat(b), []);
     };
     return recurse(all_faces, matrix);
+  };
+
+  const make_layer_matrix = (graph, face, epsilon) => {
+    const matrix = Array
+      .from(Array(graph.faces_vertices.length))
+      .map(() => Array(graph.faces_vertices.length));
+    make_single_vertex_face_orders(graph, face, epsilon)
+      .forEach(group => group
+        .forEach(order => { matrix[order[0]][order[1]] = order[2]; }));
+    walk_all_pleat_paths(matrix);
+    make_edges_overlap_face_orders(graph, matrix, epsilon)
+      .forEach(order => { matrix[order[0]][order[1]] = order[2]; });
+    walk_all_pleat_paths(matrix);
+    const groups_edges = make_groups_edges(graph, epsilon);
+    for (let i = 0; i < groups_edges.length; i++) {
+      const relationships = similar_edges_layers_permutations(graph, groups_edges[i], matrix)
+        .map(invert_map);
+      get_common_orders(relationships).forEach(rule => {
+        matrix[rule[0]][rule[1]] = rule[2];
+      });
+    }
+    return matrix;
   };
 
   const get_layer_violations = (matrix, faces_layer) => {
@@ -4497,14 +4600,6 @@
 
   const make_faces_layer = (graph, face = 0, epsilon = math.core.EPSILON) => {
     const matrix = make_layer_matrix(graph, face, epsilon);
-    const groups_edges = make_folded_groups_edges(graph, epsilon);
-    for (let i = 0; i < groups_edges.length; i++) {
-      const relationships = similar_edges_layers_permutations(graph, groups_edges[i], matrix)
-        .map(invert_map);
-      get_common_orders(relationships).forEach(rule => {
-        matrix[rule[0]][rule[1]] = rule[2];
-      });
-    }
     const layers_face = make_layers_face(matrix);
     const faces_layer = invert_map(layers_face);
     faces_layer.matrix = matrix;
@@ -5004,12 +5099,14 @@
   };
   Graph.prototype.folded = function () {
     const vertices_coords = make_vertices_coords_folded(this, ...arguments);
-    return Object.assign(
+    const copy = Object.assign(
       Object.create(this.__proto__),
       Object.assign(clone(this), {
         vertices_coords,
         frame_classes: [_foldedForm]
       }));
+    delete copy.edges_vector;
+    return copy;
   };
   const shortenKeys = function (el, i, arr) {
     const object = Object.create(null);
@@ -5444,6 +5541,7 @@
   	make_faces_layer,
   },
   	make,
+  	edges_edges,
   	transform,
   	boundary,
   	walk,
@@ -6149,13 +6247,14 @@
   	get_splice_indices,
   	layer_assignment_solver,
   	layers_face_solver: matrix_to_layers_permutations,
-  	make_layer_matrix,
+  	make_face_layer_matrix: make_layer_matrix,
   	make_layers_face,
   	self_intersect,
   	strip_solver: strip_layer_solver,
-  	walk_pleat_path,
   },
   	fold_assignments,
+  	make_orders,
+  	pleat_paths,
   );
 
   const odd_assignment = (assignments) => {

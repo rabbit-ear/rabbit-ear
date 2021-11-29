@@ -1,9 +1,9 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../math";
 import { invert_map } from "../graph/maps";
-import {
-  make_faces_center,
-  make_vertices_coords_folded,
-} from "../graph/make";
+import { make_faces_center } from "../graph/make";
 import get_splice_indices from "./get_splice_indices";
 
 const validate_taco_stack = (stack) => {
@@ -40,30 +40,29 @@ const remove_single_instances = (stack) => {
   return stack.filter(n => count[n] > 1);
 };
 
-const similar_edges_layers_permutations = (graph, edges, matrix) => {
-  const folded_vertices_coords = make_vertices_coords_folded(graph, 0);
-  const folded_faces_center = make_faces_center({
-    vertices_coords: folded_vertices_coords,
-    faces_vertices: graph.faces_vertices,
-  });
+const similar_edges_layers_permutations = ({
+  vertices_coords, edges_vertices, edges_faces, faces_vertices
+}, edges, matrix) => {
+  // const folded_vertices_coords = make_vertices_coords_folded(graph, 0);
+  const faces_center = make_faces_center({ vertices_coords, faces_vertices });
   // all edges should lie on top of one another, though, the vectors will
   // differ. get one edge for comparing sidedness (vector doesn't matter)
-  const folded_edge_vertices = graph.edges_vertices[edges[0]]
-    .map(vertex => folded_vertices_coords[vertex]);
-  const folded_edge_origin = folded_edge_vertices[0];
-  const folded_edge_vector = math.core
-    .subtract(folded_edge_vertices[1], folded_edge_vertices[0]);
+  const similar_edge_vertices = edges_vertices[edges[0]]
+    .map(vertex => vertices_coords[vertex]);
+  const edge_origin = similar_edge_vertices[0];
+  const edge_vector = math.core
+    .subtract(similar_edge_vertices[1], similar_edge_vertices[0]);
 
   const folded_edges_faces_pair_side = edges
-    .map(edge => graph.edges_faces[edge])
+    .map(edge => edges_faces[edge])
     .map(pair => pair
       .map(face => math.core
-        .subtract(folded_faces_center[face], folded_edge_origin))
-      .map(point => math.core.cross2(point, folded_edge_vector))
+        .subtract(faces_center[face], edge_origin))
+      .map(point => math.core.cross2(point, edge_vector))
       .map(side => side < 0 ? 1 : -1));
 
   const faces_pair = invert_map(edges
-    .map(edge => graph.edges_faces[edge]));
+    .map(edge => edges_faces[edge]));
 
   const edges_objects = edges
     .map((edge, e) => {
@@ -72,7 +71,7 @@ const similar_edges_layers_permutations = (graph, edges, matrix) => {
       return {
         edge,
         pair: e,
-        faces: graph.edges_faces[edge],
+        faces: edges_faces[edge],
         left_taco: taco && sides[0] > 0,
         right_taco: taco && sides[0] <= 0,
         tortilla: !taco,
@@ -81,7 +80,7 @@ const similar_edges_layers_permutations = (graph, edges, matrix) => {
 
   // flat top level list of all faces involved
   const all_faces = edges
-    .map(edge => graph.edges_faces[edge])
+    .map(edge => edges_faces[edge])
     .reduce((a, b) => a.concat(b), []);
 
   const left_tacos = edges_objects.filter(el => el.left_taco);

@@ -1,4 +1,6 @@
-import { make_triangle_pairs } from "../graph/arrays";
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 /**
  * @param {number[]} one of the set [-1, 0, 1, undefined]. indicates
  * the relative location of a face we are attempting to splice, where

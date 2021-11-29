@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../math";
 import { make_faces_center } from "../graph/make";
 

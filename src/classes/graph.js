@@ -133,7 +133,7 @@ Graph.prototype.folded = function () {
   // const faces_layer = this["faces_re:layer"]
   //   ? this["faces_re:layer"]
   //   : make_faces_layer(this, arguments[0], 0.001);
-  return Object.assign(
+  const copy = Object.assign(
     // Object.create(Graph.prototype),
     Object.create(this.__proto__),
     Object.assign(clone(this), {
@@ -141,6 +141,9 @@ Graph.prototype.folded = function () {
       // "faces_re:layer": faces_layer,
       frame_classes: [S._foldedForm]
     }));
+  // delete anyt arrays that becomes incorrect due to folding
+  delete copy.edges_vector;
+  return copy;
 };
 /**
  * graph components

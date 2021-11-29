@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import { fn_cat } from "../symbols/functions";
 import faces_layer_to_flat_orders from "./faces_layer_to_flat_orders";
 /**
