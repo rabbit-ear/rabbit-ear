@@ -19,7 +19,7 @@ const between = (arr, i, j) => (i < j)
  * @param {boolean} do assignments contain a boundary? (to test for loop around)
  * @returns {boolean} does a violation occur. "false" means all good.
  */
-const self_intersect_faces = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+const taco_face_test = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
   // for every sector/face, the value is its index in the layers_face array
   const faces_layer = invert_map(layers_face);
   // for every sector, the location of the end of the sector after folding
@@ -69,14 +69,11 @@ const self_intersect_faces = (folded_faces, layers_face, is_circular = true, eps
     // console.log(i, "fold locations. below/above", fold_location,
     //   layers_between.map(index => fold_location[i] < faces_mins[index]),
     //   layers_between.map(index => fold_location[i] > faces_maxs[index]) );
-    if (!all_below_min && !all_above_max) {
-      // console.log("fail test at", i, j, all_below_min, all_above_max);
-      return true;
-    }
+    if (!all_below_min && !all_above_max) { return false; }
   }
   // last test: test the first assignment[0]. make sure the final crease turns
   // the correct direction to connect back to the beginning.
-  return false;
+  return true;
 };
 
-export default self_intersect_faces;
+export default taco_face_test;

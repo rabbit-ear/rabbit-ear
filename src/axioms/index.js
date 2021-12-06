@@ -27,6 +27,20 @@ const check_params = (params) => ({
     .map(l => l.u !== undefined && l.d !== undefined ? l : undefined)
     .filter(a => a !== undefined)
 });
+const axiom_vector_origin = (number, params) => {
+  const result = AxiomsVO[`axiom${number}`](...params.lines, ...params.points);
+  const array_results = axiom_returns_array(number)
+    ? result
+    : [result].filter(a => a !== undefined);
+  return array_results.map(line => math.line(line));
+};
+const axiom_normal_distance = (number, params) => {
+  const result = AxiomsUD[`axiom${number}ud`](...params.lines_ud, ...params.points)
+  const array_results = axiom_returns_array(number)
+    ? result
+    : [result].filter(a => a !== undefined);
+  return array_results.map(line => math.line.ud(line));
+};
 /**
  * @description compute the axiom given a set of parameters, and depending
  * on the parameters, use the axioms-u-d methods which parameterize lines
@@ -36,13 +50,9 @@ const check_params = (params) => ({
  * @returns {line[]} array of lines
  */
 const axiom_boundaryless = (number, params) => {
-  const useUD = params.lines_ud.length === params.lines.length;
-  const result = useUD
-    ? AxiomsUD[`axiom${number}ud`](...params.lines_ud, ...params.points)
-    : AxiomsVO[`axiom${number}`](...params.lines, ...params.points);
-  return axiom_returns_array(number) ? result : [result]
-    .filter(a => a !== undefined)
-    .map(l => useUD ? math.line.ud(l) : math.line(l));
+  return params.lines_ud.length === params.lines.length
+    ? axiom_normal_distance(number, params)
+    : axiom_vector_origin(number, params);
 };
 
 const filter_with_boundary = (number, params, solutions, boundary) => {

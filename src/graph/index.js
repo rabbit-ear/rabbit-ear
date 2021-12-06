@@ -43,7 +43,9 @@ import { join_collinear_edges } from "./join_edges";
 import make_vertex_faces_layer from "./vertex_faces_layer";
 import make_vertices_faces_layer from "./vertices_faces_layer";
 import make_faces_layer from "./make_faces_layer";
+import make_groups_edges from "./make_groups_edges";
 import * as edges_edges from "./edges_edges";
+import * as tacos from "./tacos";
 
 export default Object.assign(Object.create(null), {
 	// modifiers
@@ -76,9 +78,11 @@ export default Object.assign(Object.create(null), {
 	make_vertex_faces_layer,
 	make_vertices_faces_layer,
 	make_faces_layer,
+	make_groups_edges,
 },
 	make,
 	edges_edges,
+	tacos,
 	// create,
 	transform,
 	boundary,

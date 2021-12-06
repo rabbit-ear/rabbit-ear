@@ -29,9 +29,9 @@ import {
  * upright or flipped, the determinant calculation will be reversed.
  */
 const get_face_sidedness = (vector, origin, face_center, face_color) => {
-  const vec2 = [face_center[0] - origin[0], face_center[1] - origin[1]];
-  const det = vector[0] * vec2[1] - vector[1] * vec2[0];
-  return face_color ? det > 0 : det < 0;
+  const vec2 = math.core.subtract2(face_center, origin);
+  const det = math.core.cross2(vector, vec2);
+  return face_color ? det < 0 : det > 0;
 };
 /**
  * for quickly determining which side of a crease a face lies

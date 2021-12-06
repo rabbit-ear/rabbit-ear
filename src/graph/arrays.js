@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+import { fn_def } from "../symbols/functions";
 /**
  * @description given a list of integers (can contain duplicates),
  * this will return a sorted set of unique integers (removing duplicates).
@@ -44,10 +45,48 @@ export const get_longest_array = (arrays) => {
   return arrays[max];
 };
 
-// export const matrix_to_array = (matrix) => {
-//   matrix.map(row => row.filter(a => a !== undefined))
-// };
-
+/**
+ * @description convert a non-sparse matrix of true/false/undefined
+ * into arrays containing the index of the trues.
+ */
+export const boolean_matrix_to_indexed_array = matrix => matrix
+  .map(row => row
+    .map((value, i) => value === true ? i : undefined)
+    .filter(fn_def));
+/**
+ * triangle number, only visit half the indices. make unique pairs
+ */
+export const boolean_matrix_to_unique_index_pairs = matrix => {
+  const pairs = [];
+  for (let i = 0; i < matrix.length - 1; i++) {
+    for (let j = i + 1; j < matrix.length; j++) {
+      if (matrix[i][j]) {
+        pairs.push([i, j]);
+      }
+    }
+  }
+  return pairs;
+}
+/**
+ * @description given a self-relational array of arrays, for example,
+ * vertices_vertices, edges_edges, faces_faces, where the values in the
+ * inner arrays relate to the outer structure, create collection groups
+ * where each item is included in a group if it points to another member
+ * in that group.
+ */
+export const make_unique_sets_from_self_relational_arrays = (matrix) => {
+  const groups = [];
+  const recurse = (index, current_group) => {
+    if (groups[index] !== undefined) { return 0; }
+    groups[index] = current_group;
+    matrix[index].forEach(i => recurse(i, current_group));
+    return 1; // increment group # for next round
+  }
+  for (let row = 0, group = 0; row < matrix.length; row++) {
+    group += recurse(row, group);
+  }
+  return groups;
+};
 /**
  * @description convert a list of items {any} into a list of pairs
  * where each item is uniqely matched with another item (non-ordered)

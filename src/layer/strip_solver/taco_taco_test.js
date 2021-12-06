@@ -72,7 +72,10 @@ const generate_taco_stack = (layers_face, tacos) => {
 };
 
 const validate_taco_stack = (stack) => {
-  // create a copy of "stack" that removes 
+  // create a copy of "stack" that removes single faces currently missing
+  // their other pair partner. this removes boundary faces (with no adj. face)
+  // as well as stacks which are in the process of being constructed but not
+  // yet final
   const pairs = {};
   let count = 0;
   for (let i = 0; i < stack.length; i++) {
@@ -87,16 +90,16 @@ const validate_taco_stack = (stack) => {
     else if (pairs[stack[i]] !== undefined) {
       if (pairs[stack[i]] !== count) {
         // console.log("stack fail", pairs, stack[i], count);
-        return true;
+        return false;
       }
       count--;
       pairs[stack[i]] = undefined;
     }
   }
-  return false;
+  return true;
 };
 
-const self_intersect_tacos = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+const taco_taco_test = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
   const common_locations = common_fold_location(folded_faces, is_circular, epsilon);
   // console.log("common_locations", JSON.parse(JSON.stringify(common_locations)));
   // often the case during execution that the folded_faces array 
@@ -113,21 +116,21 @@ const self_intersect_tacos = (folded_faces, layers_face, is_circular = true, eps
     if (left_tacos.length > 1) {
       const stack = generate_taco_stack(layers_face, left_tacos);
       // console.log("TEST left taco", JSON.parse(JSON.stringify(stack)));
-      if (validate_taco_stack(stack)) {
+      if (!validate_taco_stack(stack)) {
         // console.log("left taco fail");
-        return true;
+        return false;
       }
     }
     if (right_tacos.length > 1) {
       const stack = generate_taco_stack(layers_face, right_tacos);
       // console.log("TEST right taco", JSON.parse(JSON.stringify(stack)));
-      if (validate_taco_stack(stack)) {
+      if (!validate_taco_stack(stack)) {
         // console.log("right taco fail");
-        return true;
+        return false;
       }
     }
   }
-  return false;
+  return true;
 };
 
-export default self_intersect_tacos;
+export default taco_taco_test;

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import strip_solver from "../layer/strip_solver";
+import strip_solver from "../layer/strip_solver/index";
 // import { make_vertices_sectors } from "./make";
 import { invert_map } from "./maps";
 import {

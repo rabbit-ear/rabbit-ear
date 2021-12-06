@@ -4,8 +4,8 @@
 import {
   fn_def,
   fn_add
-} from "../symbols/functions";
-import { invert_map } from "../graph/maps";
+} from "../../symbols/functions";
+import { invert_map } from "../../graph/maps";
 import get_layer_violations from "./get_layer_violations";
 
 const fix_layer_violations = (layers_face, matrix) => {

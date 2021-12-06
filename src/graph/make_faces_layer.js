@@ -1,12 +1,8 @@
-import math from "../math";
 import { invert_map } from "./maps";
-import make_face_layer_matrix from "../layer/make_face_layer_matrix";
-import make_groups_edges from "./make_groups_edges";
-import get_common_orders from "../layer/get_common_orders";
-import fold_edge_solver from "../layer/fold_edge_solver";
-import make_layers_face from "../layer/make_layers_face";
-import make_layers_face_solver from "../layer/layers_face_solver";
-import flat_layer_order_symmetry_line from "../layer/flat_layer_symmetry_line";
+import make_face_layer_matrix from "../layer/relationship/make_face_layer_matrix";
+import make_layers_face from "../layer/relationship/make_layers_face";
+// import make_layers_face_solver from "../layer/layers_face_solver";
+// import flat_layer_order_symmetry_line from "../layer/flat_layer_symmetry_line";
 
 const multiply_square_matrices = (a, b) => {
   const len = a.length;
@@ -38,25 +34,14 @@ const matrix_count = (matrix) => {
  * @description 
  * @param {object} a FOLD origami object. make sure it is FOLDED.
  */
-const make_faces_layer = (graph, face = 0, epsilon = math.core.EPSILON) => {
+const make_faces_layer = (graph, face = 0, epsilon) => {
   const matrix = make_face_layer_matrix(graph, face, epsilon);
-  // const groups_edges = make_groups_edges(graph, epsilon);
-
   // experimental section:
   // flat_layer_order_symmetry_line(graph, matrix, {
   //   origin: [0,1],
   //   vector: [Math.SQRT1_2, -Math.SQRT1_2],
   // });
 
-  // for (let i = 0; i < groups_edges.length; i++) {
-  //   const relationships = fold_edge_solver(graph, groups_edges[i], matrix)
-  //     .map(invert_map);
-  //   get_common_orders(relationships).forEach(rule => {
-  //     matrix[rule[0]][rule[1]] = rule[2];
-  //   });
-  // }
-
-  // at this point, our matrix is complete, get a layer order
   // single solution
   const layers_face = make_layers_face(matrix);
   // multiple solutions

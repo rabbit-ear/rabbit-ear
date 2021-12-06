@@ -5,13 +5,11 @@ import { walk_all_pleat_paths } from "./pleat_paths";
 import {
   make_edges_overlap_face_orders,
   make_single_vertex_face_orders,
-} from "./make_orders";
-
-import make_groups_edges from "../graph/make_groups_edges";
-import fold_edge_solver from "./fold_edge_solver";
-import get_common_orders from "./get_common_orders";
-import { invert_map } from "../graph/maps";
-
+} from "./make_relationships";
+import get_common_orders from "./common_relationships";
+import make_groups_edges from "../../graph/make_groups_edges";
+// import edge_stack_layer_solver from "./edge_stack_layer_solver";
+import { invert_map } from "../../graph/maps";
 /**
  * @description perform a layer solver on all vertices indipendently,
  * for each vertex, the result will be 1 or many solutions (hopefully not 0).
@@ -40,16 +38,16 @@ const make_layer_matrix = (graph, face, epsilon) => {
 
 
 
-  const groups_edges = make_groups_edges(graph, epsilon);
-  for (let i = 0; i < groups_edges.length; i++) {
-    const relationships = fold_edge_solver(graph, groups_edges[i], matrix)
-      .map(invert_map);
-    get_common_orders(relationships).forEach(rule => {
-      matrix[rule[0]][rule[1]] = rule[2];
-    });
-    // console.log("relationships", relationships);
-  }
-  // console.log("groups_edges", groups_edges);
+  // const groups_edges = make_groups_edges(graph, epsilon);
+  // for (let i = 0; i < groups_edges.length; i++) {
+  //   const relationships = edge_stack_layer_solver(graph, groups_edges[i], matrix)
+  //     .map(invert_map);
+  //   get_common_orders(relationships).forEach(rule => {
+  //     matrix[rule[0]][rule[1]] = rule[2];
+  //   });
+  //   // console.log("relationships", relationships);
+  // }
+  // // console.log("groups_edges", groups_edges);
 
 
 

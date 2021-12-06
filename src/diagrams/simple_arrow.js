@@ -15,7 +15,7 @@ const widest_perpendicular = (polygon, foldLine, point) => {
       math.core.include_l);
 		point = math.core.midpoint(...foldSegment);
 	}
-  const perpVector = math.core.rotate270(foldLine.vector);
+  const perpVector = math.core.rotate90(foldLine.vector);
 	const smallest = math.core
 		.clip_line_in_convex_polygon(polygon,
       perpVector,

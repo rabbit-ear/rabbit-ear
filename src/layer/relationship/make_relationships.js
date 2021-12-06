@@ -1,7 +1,10 @@
-import get_common_orders from "./get_common_orders";
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
+import get_common_orders from "./common_relationships";
 import make_edge_layer_matrix from "./make_edge_layer_matrix";
-import faces_layer_to_flat_orders from "./faces_layer_to_flat_orders";
-import make_vertices_faces_layer from "../graph/vertices_faces_layer";
+import faces_layer_to_flat_orders from "./faces_layer_to_relationships";
+import make_vertices_faces_layer from "../../graph/vertices_faces_layer";
 /**
  * @returns {number[][]} array of relationships: [f1, f2, dir]
  */

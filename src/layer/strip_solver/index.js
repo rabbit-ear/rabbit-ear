@@ -1,15 +1,14 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import math from "../math";
-import self_intersect from "./validate/self_intersect";
+import math from "../../math";
+import taco_test from "./taco_test";
 import {
   fold_faces_with_assignments,
   assignments_to_faces_vertical,
-} from "./fold_assignments";
-import { invert_map } from "../graph/maps";
-import { circular_array_valid_ranges } from "../graph/arrays";
-import clone from "../graph/clone";
+} from "../fold_assignments";
+import { invert_map } from "../../graph/maps";
+import clone from "../../graph/clone";
 /**
  * faces and assignments are fencepost aligned. assignments precedes faces.
  *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
@@ -21,7 +20,7 @@ const is_boundary = { "B": true, "b": true };
  * between the faces, this recursive algorithm finds every combination
  * of layer orderings that work without causing any self-intersections.
  * "faces" could be 1D lines, the term could be switched out here.
- * @param {number[]} ordered scalars, the length of paper between folds
+ * @param {number[]} ordered unsigned scalars, the length of paper between folds
  * @param {string[]} array of "M","V", assignment of fold between faces
  * @returns {number[][]} array of arrays. each inner array is a solution.
  * each solution is an ordering of faces_order, where each index is a
@@ -39,10 +38,7 @@ const strip_layer_solver = (ordered_scalars, assignments, epsilon = math.core.EP
   if (is_circular) {
     const start = faces_folded[0][0];
     const end = faces_folded[faces_folded.length - 1][1];
-    if (Math.abs(start - end) > epsilon) {
-      // console.log("easy fail, loop does not meet at beginning");
-      return [];
-    }
+    if (Math.abs(start - end) > epsilon) { return []; }
   };
   /**
    * @description Consectively visit each face from 0...n, recursively
@@ -61,9 +57,7 @@ const strip_layer_solver = (ordered_scalars, assignments, epsilon = math.core.EP
     // will the next face be above or below the current face's position?
     const next_dir = faces_updown[face];
     // test for any self-intersections throughout the entire layering
-    // console.log("RECURSE", face, layer);
-    if (self_intersect(faces_folded, layers_faces, is_circular, epsilon)) {
-      // console.log("intersection: face, layer, layers_faces", face, layer, layers_faces);
+    if (!taco_test(faces_folded, layers_faces, is_circular, epsilon)) {
       return [];
     }
     // Exit case: exit once we traverse through all faces.
@@ -75,17 +69,10 @@ const strip_layer_solver = (ordered_scalars, assignments, epsilon = math.core.EP
         const faces_layer = invert_map(layers_faces);
         const first_face_layer = faces_layer[0];
         const last_face_layer = faces_layer[face];
-        if (next_dir > 0 && last_face_layer > first_face_layer) {
-          // console.log("EXIT FAIL circular closing direction mismatch");
-          return [];
-        }
-        if (next_dir < 0 && last_face_layer < first_face_layer) {
-          // console.log("EXIT FAIL circular closing direction mismatch");
-          return [];
-        }
+        if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
+        if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
         // todo: what about === 0 ?
       }
-      // console.log("EXIT case ", layers_faces);
       return [layers_faces];
     }
     // Continue case:
@@ -124,7 +111,7 @@ const strip_layer_solver = (ordered_scalars, assignments, epsilon = math.core.EP
       .map((layers, i) => recurse(layers, next_face, splice_layers[i]))
       .reduce((a, b) => a.concat(b), []);
   };
-  // the final map converts the layers_faces into faces_layer.
+  // after collecting all layers_faces solutions, convert them into faces_layer
   return recurse().map(invert_map);
 };
 

@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import strip_solver from "./strip_solver";
+import strip_solver from "./strip_solver/index";
 import maekawa_assignments from "../single_vertex/maekawa_assignments";
 /**
  * faces and assignments are fencepost aligned. assignments precedes faces.
  *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
  * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
  */
-const layer_assignment_solver = (faces, assignments, epsilon) => {
+const single_vertex_assignment_solver = (faces, assignments, epsilon) => {
 	if (assignments == null) {
 		assignments = faces.map(() => "U");
 	}
@@ -25,4 +25,4 @@ const layer_assignment_solver = (faces, assignments, epsilon) => {
 		}));
 };
 
-export default layer_assignment_solver;
+export default single_vertex_assignment_solver;

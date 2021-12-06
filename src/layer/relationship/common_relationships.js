@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { fn_cat } from "../symbols/functions";
-import faces_layer_to_flat_orders from "./faces_layer_to_flat_orders";
+import { fn_cat } from "../../symbols/functions";
+import faces_layer_to_flat_orders from "./faces_layer_to_relationships";
 /**
  * @description often a single-vertex can have multiple valid layer orderings
  * for its folded state. given a set of possible layer order solutions of a
@@ -13,7 +13,7 @@ import faces_layer_to_flat_orders from "./faces_layer_to_flat_orders";
  * array of 3 numbers. the first two are faces, the third is the relationship.
  * so for example, "index 8 is below index 20" looks like [8, 20, -1].
  */
-const get_common_orders = (faces_layers) => {
+const common_relationships = (faces_layers) => {
   const orders = faces_layers
     .map(faces_layer_to_flat_orders)
     .reduce(fn_cat, []);
@@ -49,4 +49,4 @@ const get_common_orders = (faces_layers) => {
     .filter(el => el[2] !== false);
 };
 
-export default get_common_orders;
+export default common_relationships;

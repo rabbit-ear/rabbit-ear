@@ -205,7 +205,7 @@ export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, e
   // assign one matrix to every vertex from faces, identity matrix if none exist
   const vertices_matrix = vertices_faces
     .map(faces => faces
-      .filter(a => a !== undefined)
+      .filter(a => a != null) // must filter "undefined" and "null"
       .shift()) // get any face from the list
     .map(face => face === undefined
       ? math.core.identity3x4

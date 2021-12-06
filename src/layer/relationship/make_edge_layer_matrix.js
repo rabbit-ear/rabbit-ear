@@ -1,15 +1,29 @@
-import { make_edges_edges_overlap } from "../graph/edges_edges";
-import { make_edges_faces } from "../graph/make";
-
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
+import { make_edges_edges_crossing } from "../../graph/edges_edges";
+import { make_edges_faces } from "../../graph/make";
+import { boolean_matrix_to_indexed_array } from "../../graph/arrays";
+/**
+ * @desecription given a FOLD object in its folded state (vertices_coords),
+ * a pre-built +1/-1 face relationship matrix, gather together all edges
+ * that cross each other, where "crossing" means overlaps but not parallel.
+ * compare each edge to each edge by focusing on their adjacent face(s).
+ * If one face is defined (in the matrix) to be above or below one of the
+ * other edge's faces, we can set all the adjacent faces of these two edges
+ * to follow the same rule.
+ * 
+ * The similar test where we compare edges which overlap and ARE parallel
+ * is the taco-taco/tortilla test. This is a different function, located in
+ * ________________.
+ */
 const make_edge_layer_matrix = (graph, face_matrix, epsilon) => {
-  const edges_edges_overlap_matrix = make_edges_edges_overlap(graph, epsilon);
   const edges_faces = graph.edges_faces
     ? graph.edges_faces
     : make_edges_faces(graph);
-  const edges_edges_overlap = edges_edges_overlap_matrix
-    .map(row => row
-      .map((val, i) => val ? i : undefined)
-      .filter(a => a !== undefined))
+  const edges_edges_overlap = boolean_matrix_to_indexed_array(
+    make_edges_edges_crossing(graph, epsilon)
+  );
   // TODO
   // from this point on, keep a catalog of every face that gets updated,
   // and every face that wasn't able to update due to lack of information.

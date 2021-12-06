@@ -1,46 +1,13 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import math from "../math";
-import { invert_map } from "../graph/maps";
-import { make_faces_center } from "../graph/make";
-import get_splice_indices from "./get_splice_indices";
+import math from "../../math";
+import { invert_map } from "../../graph/maps";
+import { make_faces_center } from "../../graph/make";
+import validate_taco_pair_stack from "../validate_taco_pair_stack";
+import matrix_to_layers from "./matrix_to_layers";
 
-const validate_taco_stack = (stack) => {
-  // create a copy of "stack" that removes 
-  const pairs = {};
-  let count = 0;
-  for (let i = 0; i < stack.length; i++) {
-    // console.log(i, "validate stack", stack, JSON.parse(JSON.stringify(pairs)));
-    if (pairs[stack[i]] === undefined) {
-      count++;
-      pairs[stack[i]] = count;
-    }
-    // if we have seen this layer pair already, it MUST be appearing
-    // in the correct order, that is, as it gets popped off the stack,
-    // it must be the next-most-recently added pair to the stack.
-    else if (pairs[stack[i]] !== undefined) {
-      if (pairs[stack[i]] !== count) {
-        // console.log("stack fail", pairs, stack, stack[i], count);
-        return false;
-      }
-      count--;
-      pairs[stack[i]] = undefined;
-    }
-  }
-  return true;
-};
-
-const remove_single_instances = (stack) => {
-  const count = {};
-  stack.forEach(n => {
-    if (count[n] === undefined) { count[n] = 0; }
-    count[n]++;
-  });
-  return stack.filter(n => count[n] > 1);
-};
-
-const similar_edges_layers_permutations = ({
+const edge_stack_layer_solver = ({
   vertices_coords, edges_vertices, edges_faces, faces_vertices
 }, edges, matrix) => {
   // const folded_vertices_coords = make_vertices_coords_folded(graph, 0);
@@ -113,37 +80,13 @@ const similar_edges_layers_permutations = ({
     const layers_pair = layers_face.map(face => faces_pair[face]);
     const right_taco_faces_pair = layers_right_tacos.map(face => faces_pair[face]);
     const left_taco_faces_pair = layers_left_tacos.map(face => faces_pair[face]);
-
     // console.log("right, left_taco_faces_pair", right_taco_faces_pair, left_taco_faces_pair);
-    return validate_taco_stack(remove_single_instances(right_taco_faces_pair))
-      && validate_taco_stack(remove_single_instances(left_taco_faces_pair));
+    return validate_taco_pair_stack(right_taco_faces_pair)
+      && validate_taco_pair_stack(left_taco_faces_pair);
   };
 
-  const recurse = (faces, matrix, layers_face = [], count = 0) => {
-    // if (count > 8) { return []; }
-    const next_face = faces[0];
-    if (next_face === undefined) { return [layers_face]; }
-    // convert every face in the current layer stack to a "1" or "-1",
-    // indicating this new face's relationship to that layer's face.
-    const layers_face_relative = layers_face
-      .map(face => matrix[next_face][face]);
-    // find the lowest "-1" and the highest "1", all valid places
-    // for this face will be the layers between these two.
-    const splice_indices = get_splice_indices(layers_face_relative);
-    // prepare next recursion, duplicate in memory the layer_face so that
-    // future recursive calls aren't modifying the same memory location
-    const layer_permutations = splice_indices.map(() => layers_face.slice());
-    // splice in this face into each permutation at the valid index location
-    layer_permutations.forEach((layers, i) => layers
-      .splice(splice_indices[i], 0, next_face));
-    // test layer for self-intersections
-    return layer_permutations
-      .filter(layers => validate_layers(layers))
-      .map(layers => recurse(faces.slice(1), matrix, layers, count + 1))
-      .reduce((a, b) => a.concat(b), []);
-  };
-
-  return recurse(all_faces, matrix);
+  // return recurse(matrix, all_faces);
+  return matrix_to_layers(matrix, all_faces, [], validate_layers);
 };
 
-export default similar_edges_layers_permutations;
+export default edge_stack_layer_solver;
