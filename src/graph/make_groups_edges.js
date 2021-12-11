@@ -4,7 +4,7 @@ import { make_edges_edges_parallel_overlap } from "./edges_edges";
 import {
   boolean_matrix_to_indexed_array,
   make_unique_sets_from_self_relational_arrays,
-} from "./arrays";
+} from "../general/arrays";
 /**
  * we want to include this case, where one edge may not overlap another
  * but it still gets included because both are overlapped by a common edge.

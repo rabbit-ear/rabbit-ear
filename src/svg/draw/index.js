@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../../symbols/strings";
+import * as S from "../../general/strings";
 import { vertices_circle } from "./vertices";
 import { edges_paths } from "./edges";
 import {

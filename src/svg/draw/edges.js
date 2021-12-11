@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../../symbols/strings";
+import * as S from "../../general/strings";
 import { is_folded_form } from "../../graph/query";
 import {
 	edges_assignment_to_lowercase,

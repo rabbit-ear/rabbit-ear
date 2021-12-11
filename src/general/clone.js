@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../symbols/strings";
+import * as S from "../general/strings";
 /**
  * @description deep copy an object, like JSON.parse(JSON.stringify())
  *

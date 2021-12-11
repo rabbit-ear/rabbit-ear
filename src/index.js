@@ -21,7 +21,6 @@ import vertex from "./single_vertex/index";
 import axiom from "./axioms/index";
 import text from "./text/index";
 import use from "./use/index";
-
 /**
  * extensions
  * all extensions are optional, the library does not depend on them.

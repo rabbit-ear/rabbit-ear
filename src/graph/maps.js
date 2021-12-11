@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../symbols/strings";
+import * as S from "../general/strings";
 
 export const merge_simple_nextmaps = (...maps) => {
   if (maps.length === 0) { return; }

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../../symbols/strings";
+import * as S from "../../general/strings";
 
 // in each of these style functions, options has already been shortcut to the
 // specific geometry entry of the global options object, like:

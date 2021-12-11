@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { fn_def } from "../../symbols/functions";
+import { fn_def } from "../../general/functions";
 /**
- * @param {number[]} one of the set [-1, 0, 1, undefined]. indicates
+ * @param {number[]} array containing either -1, 0, 1, undefined. indicates
  * the relative location of a face we are attempting to splice, where
  * this face is allowed to splice, 1:above this index, -1:below this index.
  * this is NOT a row from a relationship matrix. rather, it is a

@@ -3,6 +3,7 @@
  */
 import get_splice_indices from "./get_splice_indices";
 const empty_fn = () => true;
+const overflow_protection = () => ({ count: 0 })
 /**
  * @description given a +1/-1 face relationship matrix, find all
  * valid possible layers_face arrangements.
@@ -13,8 +14,6 @@ const empty_fn = () => true;
  * are being built recursivly, as a way of filtering out the large set.
  * @returns
  */
-// todo: remove
-const overflow_protection = () => ({ count: 0 })
 const matrix_to_layers = (matrix, faces, layers_face = [], test_fn = empty_fn, overflow = overflow_protection()) => {
   // for the first time running this recursive method, user is allowed to leave
   // out "faces", and it will be built from the keys of the matrix.

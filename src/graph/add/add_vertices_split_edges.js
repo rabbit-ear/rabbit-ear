@@ -15,7 +15,7 @@ import count from "../count";
 import add_vertices from "./add_vertices";
 import { make_edges_coords } from "../make";
 import { transpose_graph_array_at_index } from "../../fold/spec";
-import clone from "../clone";
+import clone from "../../general/clone";
 import remove from "../remove";
 /**
  * todo: update the return object to include more information

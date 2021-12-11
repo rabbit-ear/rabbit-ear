@@ -2,8 +2,8 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import * as S from "../symbols/strings";
-import { fn_cat } from "../symbols/functions";
+import * as S from "../general/strings";
+import { fn_cat } from "../general/functions";
 import { get_graph_keys_with_prefix } from "../fold/spec";
 import GraphProto from "./graph";
 import flat_fold from "../graph/flat_fold/index";

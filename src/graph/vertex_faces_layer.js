@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import strip_solver from "../layer/strip_solver/index";
+import strip_layers from "../layer/strip_layers";
 // import { make_vertices_sectors } from "./make";
 import { invert_map } from "./maps";
 import {
   get_longest_array,
   circular_array_valid_ranges
-} from "./arrays";
+} from "../general/arrays";
 
 const make_vertex_faces_layer = ({
   vertices_faces, vertices_sectors, vertices_edges, edges_assignment
@@ -30,7 +30,7 @@ const make_vertex_faces_layer = ({
   const assignments = indices
     .map(i => vertices_edges[vertex][i])
     .map(edge => edges_assignment[edge]);
-  const sectors_layer = strip_solver(sectors, assignments, epsilon);
+  const sectors_layer = strip_layers(sectors, assignments, epsilon);
   // sectors_layer gives us solutions relating the sectors to indices 0...n
   // relate these to the original faces, in 2 steps:
   // 1. map back to vertices_faces, due to valid_array (avoiding undefineds)

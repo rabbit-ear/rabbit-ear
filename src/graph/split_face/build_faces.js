@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import { make_vertices_to_edge_bidirectional } from "../make";
-import { split_circular_array } from "../arrays";
+import { split_circular_array } from "../../general/arrays";
 /**
  * this must be done AFTER edges_vertices has been updated with the new edge.
  *

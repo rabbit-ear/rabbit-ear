@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../symbols/strings";
+import * as S from "../general/strings";
 import DrawGroups from "./draw/index";
 import fold_classes from "./classes";
 import linker from "./linker";

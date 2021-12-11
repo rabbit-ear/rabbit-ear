@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../../symbols/strings";
+import * as S from "../../general/strings";
 // get the SVG library from its binding to the root of the library
 import root from "../../root";
 

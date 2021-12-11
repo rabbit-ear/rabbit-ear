@@ -1,6 +1,6 @@
 import { invert_map } from "./maps";
-import make_face_layer_matrix from "../layer/relationship/make_face_layer_matrix";
-import make_layers_face from "../layer/relationship/make_layers_face";
+import make_face_layer_matrix from "../layer/matrix/make_face_layer_matrix";
+import matrix_to_layers_face from "../layer/matrix/matrix_to_layers_face";
 // import make_layers_face_solver from "../layer/layers_face_solver";
 // import flat_layer_order_symmetry_line from "../layer/flat_layer_symmetry_line";
 
@@ -43,7 +43,7 @@ const make_faces_layer = (graph, face = 0, epsilon) => {
   // });
 
   // single solution
-  const layers_face = make_layers_face(matrix);
+  const layers_face = matrix_to_layers_face(matrix);
   // multiple solutions
   // const solutions = make_layers_face_solver(matrix, initial_face_order);
   const faces_layer = invert_map(layers_face);

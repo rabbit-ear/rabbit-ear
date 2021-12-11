@@ -4,7 +4,7 @@
 import {
   fn_def,
   fn_add
-} from "../../symbols/functions";
+} from "../../general/functions";
 import { invert_map } from "../../graph/maps";
 import get_layer_violations from "./get_layer_violations";
 
@@ -32,8 +32,14 @@ const fix_layer_violations = (layers_face, matrix) => {
 
 /**
  * works even with "sparse" matrices, containing undefined rows
+ * @param {number[][]} face relationship matrix
+ * @param {number[]} the faces which will be built. optional.
+ * this will be built from the matrix if left empty.
  */
-const make_layers_face = (matrix) => {
+const matrix_to_layers_face = (matrix, faces) => {
+  if (!faces) {
+    faces = Object.keys(matrix).map(n => parseInt(n));
+  }
   // only consider faces which are contained inside the matrix
   // this allows for Javascript arrays with holes.
   const faces_knowns = matrix.map(row => row.filter(fn_def));
@@ -47,9 +53,7 @@ const make_layers_face = (matrix) => {
   // all of a faces +1 and -1 relationships to other faces. in the case of
   // a fully-saturated matrix, i think this generates the final solution.
   // in non-saturated matrices, it's only an approximation and needs adjustment
-  const layers_face = Object.keys(matrix)
-    .sort((a, b) => rows_sum[a] - rows_sum[b])
-    .map(n => parseInt(n));
+  const layers_face = faces.slice().sort((a, b) => rows_sum[a] - rows_sum[b]);
   // search for violations between pairs of faces, use these as a guide to
   // swap these faces' layers to bring them closer to their proper index.
   // repeat this swap until done.
@@ -62,7 +66,7 @@ const make_layers_face = (matrix) => {
   return layers_face;
 };
 
-export default make_layers_face;
+export default matrix_to_layers_face;
 
 
 // const fix_layer_violations_first = (layers_face, matrix) => {

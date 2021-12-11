@@ -4,40 +4,54 @@
 // top level
 import flip_faces_layer from "./flip_faces_layer";
 import single_vertex_assignment_solver from "./single_vertex_assignment_solver";
-// strip solver
-import strip_solver from "./strip_solver/index";
-import taco_test from "./strip_solver/taco_test";
-// layers relationships
-import common_relationships from "./relationship/common_relationships";
-import faces_layer_to_relationships from "./relationship/faces_layer_to_relationships";
-import get_layer_violations from "./relationship/get_layer_violations";
-import get_splice_indices from "./relationship/get_splice_indices";
-import make_face_layer_matrix from "./relationship/make_face_layer_matrix";
-import make_layers_face from "./relationship/make_layers_face";
-import make_layers_face_permutations from "./relationship/make_layers_face_permutations";
-import matrix_to_layers from "./relationship/matrix_to_layers";
-
+import strip_layers from "./strip_layers";
+// layers_face
+import make_layers_face from "./layers_face/make_layers_face";
+import make_layers_faces from "./layers_face/make_layers_faces";
+// layer relationship matrix
+import get_layer_violations from "./matrix/get_layer_violations";
+import get_splice_indices from "./matrix/get_splice_indices";
+import make_edges_tacos_layers_faces from "./matrix/make_edges_tacos_layers_faces";
+import make_face_layer_matrix from "./matrix/make_face_layer_matrix";
+import matrix_to_layers_face from "./matrix/matrix_to_layers_face";
+import matrix_to_layers from "./matrix/matrix_to_layers";
+// tacos
+import make_edges_tacos from "./tacos/make_edges_tacos"
+import make_folded_strip_tacos from "./tacos/make_folded_strip_tacos"
+import validate_crossing_edges_face_pairs from "./tacos/validate_crossing_edges_face_pairs"
+import validate_taco_taco_face_pairs from "./tacos/validate_taco_taco_face_pairs"
+import validate_taco_tortilla_pairs from "./tacos/validate_taco_tortilla_pairs"
+import validate_taco_tortilla_strip from "./tacos/validate_taco_tortilla_strip"
+// non-default level exports
 import * as fold_assignments from "./fold_assignments";
-import * as make_relationships from "./relationship/make_relationships";
-import * as pleat_paths from "./relationship/pleat_paths";
+import * as edges_crossing from "./matrix/edges_crossing";
+import * as relationships from "./matrix/relationships";
+import * as pleat_paths from "./matrix/pleat_paths";
 
 export default Object.assign(Object.create(null), {
 	flip_faces_layer,
 	single_vertex_assignment_solver,
+	strip_layers,
 
-	strip_solver,
-	taco_test,
+	make_layers_face,
+	make_layers_faces,
 
-	common_relationships,
-	faces_layer_to_relationships,
 	get_layer_violations,
 	get_splice_indices,
+	make_edges_tacos_layers_faces,
 	make_face_layer_matrix,
-	make_layers_face,
-	make_layers_face_permutations,
+	matrix_to_layers_face,
 	matrix_to_layers,
+
+	make_edges_tacos,
+	make_folded_strip_tacos,
+	validate_crossing_edges_face_pairs,
+	validate_taco_taco_face_pairs,
+	validate_taco_tortilla_pairs,
+	validate_taco_tortilla_strip,
 },
 	fold_assignments,
-	make_relationships,
+	edges_crossing,
+	relationships,
 	pleat_paths,
 );

@@ -2564,6 +2564,14 @@
     }
     return arrays[max];
   };
+  const remove_single_instances = (array) => {
+    const count = {};
+    array.forEach(n => {
+      if (count[n] === undefined) { count[n] = 0; }
+      count[n]++;
+    });
+    return array.filter(n => count[n] > 1);
+  };
   const boolean_matrix_to_indexed_array = matrix => matrix
     .map(row => row
       .map((value, i) => value === true ? i : undefined)
@@ -2628,6 +2636,7 @@
     unique_sorted_integers: unique_sorted_integers,
     split_circular_array: split_circular_array,
     get_longest_array: get_longest_array,
+    remove_single_instances: remove_single_instances,
     boolean_matrix_to_indexed_array: boolean_matrix_to_indexed_array,
     boolean_matrix_to_unique_index_pairs: boolean_matrix_to_unique_index_pairs,
     make_unique_sets_from_self_relational_arrays: make_unique_sets_from_self_relational_arrays,
@@ -3288,6 +3297,15 @@
         .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
     return coloring;
   };
+  const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
+    return faces_vertices
+      .map(vertices => vertices
+        .map(v => vertices_coords[v])
+        .map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
+        .map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]) )
+        .reduce((a, b) => a + b, 0))
+      .map(face => face < 0);
+  };
 
   var make = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -3322,7 +3340,8 @@
     make_faces_matrix: make_faces_matrix,
     make_faces_center: make_faces_center,
     make_faces_coloring_from_matrix: make_faces_coloring_from_matrix,
-    make_faces_coloring: make_faces_coloring
+    make_faces_coloring: make_faces_coloring,
+    make_faces_winding: make_faces_winding
   });
 
   const set_edges_angles = (graph) => {
@@ -3898,24 +3917,26 @@
   };
 
   const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
-    const visited_key = `${from} ${to}`;
-    if (visited[visited_key]) { return; }
-    visited[visited_key] = true;
-    matrix[from][to] = direction;
-    matrix[to][from] = -direction;
-    matrix[to]
+    const from_to = `${from} ${to}`;
+    if (visited[from_to] || from === to) { return []; }
+    visited[from_to] = true;
+    visited[`${to} ${from}`] = true;
+    return matrix[to]
       .map((dir, index) => dir === direction ? index : undefined)
       .filter(a => a !== undefined)
-      .map(index => walk_pleat_path(matrix, from, index, direction, visited));
+      .map(index => walk_pleat_path(matrix, from, index, direction, visited))
+      .reduce((a, b) => a.concat(b), [])
+      .concat([[from, to, direction], [to, from, -direction]]);
   };
-  const walk_all_pleat_paths = (matrix) => {
-    const visited = {};
-    matrix.forEach((_, from) => [-1, 0, 1]
-      .forEach(direction => matrix[from]
+  const walk_all_pleat_paths = matrix => matrix
+    .map((_, from) => [-1, 0, 1]
+      .map(direction => matrix[from]
         .map((dir, i) => dir === direction ? i : undefined)
         .filter(a => a !== undefined)
-        .forEach(to => walk_pleat_path(matrix, from, to, direction, visited))));
-  };
+        .map(to => walk_pleat_path(matrix, from, to, direction))
+        .reduce((a, b) => a.concat(b), []))
+      .reduce((a, b) => a.concat(b), []))
+    .reduce((a, b) => a.concat(b), []);
 
   var pleat_paths = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -3928,7 +3949,6 @@
       .map((_, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
     .reduce((a, b) => a.concat(b), [])
     .filter(el => el[0] !== el[1]);
-
   const common_relationships = (faces_layers) => {
     const orders = faces_layers
       .map(faces_layer_to_relationships)
@@ -3955,6 +3975,12 @@
       .reduce((a, b) => a.concat(b), [])
       .filter(el => el[2] !== false);
   };
+
+  var relationships = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    faces_layer_to_relationships: faces_layer_to_relationships,
+    common_relationships: common_relationships
+  });
 
   const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
     if (!edges_vector) {
@@ -4020,7 +4046,7 @@
     make_edges_edges_parallel_overlap: make_edges_edges_parallel_overlap
   });
 
-  const make_edge_layer_matrix = (graph, face_matrix, epsilon) => {
+  const make_edges_crossing_layer_matrix = (graph, face_matrix, epsilon) => {
     const edges_faces = graph.edges_faces
       ? graph.edges_faces
       : make_edges_faces(graph);
@@ -4036,40 +4062,183 @@
             .forEach(f2 => { edge_matrix[e1][e2] = face_matrix[f1][f2]; }))));
     return edge_matrix;
   };
+  const make_edges_crossing_face_orders = (graph, matrix, epsilon) => {
+    const orders = [];
+    make_edges_crossing_layer_matrix(graph, matrix, epsilon)
+      .forEach((row, e1) => row
+        .forEach((rule, e2) => graph.edges_faces[e1]
+          .forEach(f1 => graph.edges_faces[e2]
+            .forEach(f2 => orders.push([f1, f2, rule], [f2, f1, -rule])))));
+    return orders;
+  };
 
-  const between = (arr, i, j) => (i < j)
-    ? arr.slice(i + 1, j)
-    : arr.slice(j + 1, i);
-  const taco_face_test = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
-    const faces_layer = invert_map(layers_face);
-    const fold_location = folded_faces
-      .map(ends => ends ? ends[1] : undefined);
-    const faces_mins = folded_faces
-      .map(ends => ends ? Math.min(...ends) : undefined)
-      .map(n => n + epsilon);
-    const faces_maxs = folded_faces
-      .map(ends => ends ? Math.max(...ends) : undefined)
-      .map(n => n - epsilon);
-    const faces_array_circular = is_circular
-      && faces_layer.length === folded_faces.length;
-    const max = faces_layer.length + (faces_array_circular ? 0 : -1);
-    for (let i = 0; i < max; i += 1) {
-      const j = (i + 1) % faces_layer.length;
-      if (faces_layer[i] === faces_layer[j]) { continue; }
-      const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
-        .reduce((a, b) => a.concat(b), []);
-      const all_below_min = layers_between
-        .map(index => fold_location[i] < faces_mins[index])
-        .reduce(fn_and, true);
-      const all_above_max = layers_between
-        .map(index => fold_location[i] > faces_maxs[index])
-        .reduce(fn_and, true);
-      if (!all_below_min && !all_above_max) { return false; }
+  var edges_crossing = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    make_edges_crossing_layer_matrix: make_edges_crossing_layer_matrix,
+    make_edges_crossing_face_orders: make_edges_crossing_face_orders
+  });
+
+  const validate_taco_taco_face_pairs = (face_pair_stack) => {
+    const pair_stack = remove_single_instances(face_pair_stack);
+    const pairs = {};
+    let count = 0;
+    for (let i = 0; i < pair_stack.length; i++) {
+      if (pairs[pair_stack[i]] === undefined) {
+        count++;
+        pairs[pair_stack[i]] = count;
+      }
+      else if (pairs[pair_stack[i]] !== undefined) {
+        if (pairs[pair_stack[i]] !== count) {
+          return false;
+        }
+        count--;
+        pairs[pair_stack[i]] = undefined;
+      }
     }
     return true;
   };
 
-  const common_fold_location = (folded_faces, is_circular, epsilon) => {
+  const get_splice_indices = (layers_face_relative) => {
+    const highest_positive = layers_face_relative
+      .map((v, i) => v === 1 ? i : undefined)
+      .filter(fn_def)
+      .pop();
+    const lowest_negative = layers_face_relative
+      .map((v, i) => v === -1 ? i : undefined)
+      .filter(fn_def)
+      .shift();
+    const bottom_index = highest_positive === undefined
+      ? -1
+      : highest_positive;
+    const top_index = lowest_negative === undefined
+      ? layers_face_relative.length
+      : lowest_negative;
+    if (highest_positive > lowest_negative) { return []; }
+    const valid_length = top_index - bottom_index;
+    return Array
+      .from(Array(valid_length))
+      .map((_, i) => i + bottom_index + 1);
+  };
+
+  const empty_fn = () => true;
+  const overflow_protection = () => ({ count: 0 });
+  const matrix_to_layers = (matrix, faces, layers_face = [], test_fn = empty_fn, overflow = overflow_protection()) => {
+    if (!faces) { faces = Object.keys(matrix); }
+    overflow.count++;
+    if (overflow.count > 10000) {
+      console.warn("matrix_to_layers overflow protection");
+      return [];
+    }
+    const next_face = faces[0];
+    if (next_face === undefined) { return [layers_face]; }
+    const layers_face_relative = layers_face
+      .map(face => matrix[next_face][face]);
+    const splice_indices = get_splice_indices(layers_face_relative);
+    const layer_permutations = splice_indices.map(() => layers_face.slice());
+    layer_permutations.forEach((layers, i) => layers
+      .splice(splice_indices[i], 0, next_face));
+    return layer_permutations
+      .filter(test_fn)
+      .map(layers => matrix_to_layers(matrix, faces.slice(1), layers, test_fn, overflow))
+      .reduce((a, b) => a.concat(b), []);
+  };
+
+  const get_overlapping_edge_groups = (graph, epsilon) => invert_map(
+  	make_unique_sets_from_self_relational_arrays(
+  		boolean_matrix_to_indexed_array(
+  			make_edges_edges_parallel_overlap(graph, epsilon))))
+  	.filter(el => typeof el !== "number");
+  const edges_to_adjacent_faces = (graph, groups_edges) => groups_edges
+  	.map(edges => edges
+  		.map(edge => graph.edges_faces[edge]));
+  const make_edges_tacos = (graph, epsilon) => {
+  	const faces_center = make_faces_center(graph);
+  	const groups_edges = get_overlapping_edge_groups(graph, epsilon);
+  	const groups_edges_faces = edges_to_adjacent_faces(graph, groups_edges);
+  	const groups_tacos_edges = groups_edges
+  		.map((group, i) => group
+  			.filter((_, j) => groups_edges_faces[i][j].length > 1))
+  		.filter(arr => arr.length > 0);
+  	const groups_tacos_faces = groups_edges_faces
+  		.map(group => group
+  			.filter(el => el.length > 1))
+  		.filter(arr => arr.length > 0);
+  	const groups_tacos_edge_coords = groups_tacos_edges
+  		.map(edges => graph.edges_vertices[edges[0]]
+  			.map(vertex => graph.vertices_coords[vertex]));
+  	const groups_tacos_edge_origin = groups_tacos_edge_coords
+  		.map(coords => coords[0]);
+  	const groups_tacos_edge_vector = groups_tacos_edge_coords
+  		.map(coords => math.core.subtract2(coords[1], coords[0]));
+  	const groups_tacos_faces_center = groups_tacos_faces
+  		.map(faces => faces
+  			.map(face_pair => face_pair
+  				.map(face => faces_center[face])));
+  	const groups_tacos_faces_side = groups_tacos_faces_center
+  		.map((faces, i) => faces
+  			.map(pairs => pairs
+  				.map(center => math.core.cross2(
+  					math.core.subtract2(center, groups_tacos_edge_origin[i]),
+  					groups_tacos_edge_vector[i]))
+  				.map(cross => Math.sign(cross))));
+  	const groups_tacos_side = groups_tacos_faces_side
+  		.map(faces => faces
+  			.map(pairs => pairs[0] === pairs[1]
+  				? pairs[0]
+  				: 0));
+  	const groups_left_taco_count = groups_tacos_side
+  		.map(sides => sides.filter(side => side === 1).length);
+  	const groups_right_taco_count = groups_tacos_side
+  		.map(sides => sides.filter(side => side === -1).length);
+  	const groups_tortilla_count = groups_tacos_side
+  		.map(sides => sides.filter(side => side === 0).length);
+  	const groups_easy_valid = groups_tortilla_count
+  		.map((count, i) => groups_left_taco_count[i] + count < 2
+  			&& groups_right_taco_count[i] + count < 2);
+  	const tacos = groups_tacos_edges.map((edges, i) => ({
+  		left: edges.filter((_, j) => groups_tacos_side[i][j] === -1),
+  		right: edges.filter((_, j) => groups_tacos_side[i][j] === 1),
+  		both: edges.filter((_, j) => groups_tacos_side[i][j] === 0),
+  	})).filter((_, i) => groups_easy_valid[i] === false);
+  	tacos.edges = invert_map(groups_tacos_edges);
+  	return tacos;
+  };
+
+  const edge_tacos_to_face_pairs = (graph, tacos) => {
+    const faces_taco_pair = [];
+    let offset = 0;
+    let count = 0;
+    [tacos.left, tacos.right, tacos.both]
+    	.forEach(stack => {
+    		stack.map(edge => graph.edges_faces[edge]).forEach((el, i) => el
+  		    .forEach(f => { faces_taco_pair[f] = i + offset; count++; }));
+  		  offset += count;
+    	});
+    return faces_taco_pair;
+  };
+  const edge_tacos_to_faces_flat = (graph, tacos) => {
+  	return [tacos.left, tacos.right, tacos.both]
+  		.map(side => side.map(edge => graph.edges_faces[edge])
+  			.reduce((a, b) => a.concat(b), []))
+  		.reduce((a, b) => a.concat(b), []);
+  };
+  const make_edges_tacos_layers_faces = (graph, matrix, epsilon = 0.001) => {
+  	const edges_tacos = make_edges_tacos(graph, epsilon);
+    const tacos_face_pairs = edges_tacos
+      .map(taco => edge_tacos_to_face_pairs(graph, taco));
+    const validate_func = tacos_face_pairs
+    	.map(pairs => (layers_face) => {
+    		const pair_stack = layers_face
+  	      .map(face => pairs[face])
+  	      .filter(a => a !== undefined);
+    		return validate_taco_taco_face_pairs(pair_stack);
+    	});
+    return edges_tacos
+      .map(tacos => edge_tacos_to_faces_flat(graph, tacos))
+    	.map((faces, i) => matrix_to_layers(matrix, faces, [], validate_func[i]));
+  };
+
+  const make_folded_strip_tacos = (folded_faces, is_circular, epsilon) => {
     const faces_center = folded_faces
       .map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
     const locations = [];
@@ -4083,86 +4252,53 @@
       const sides = faces
         .map(f => faces_center[f])
         .map(center => center > fold_end);
-      const left_taco = !sides[0] && !sides[1];
-      const right_taco = sides[0] && sides[1];
-      const tortilla = sides[0] !== sides[1];
+      const taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
       const match = locations
         .filter(el => el.min < fold_end && el.max > fold_end)
         .shift();
-      const entry = { faces, left_taco, right_taco, tortilla };
+      const entry = { faces, taco_type };
       if (match) {
         match.pairs.push(entry);
       } else {
         locations.push({ min, max, pairs: [entry] });
       }
     });
-    return locations;
-  };
-  const generate_taco_stack = (layers_face, tacos) => {
-    const stack = [];
-    const taco_faces = JSON.parse(JSON.stringify(tacos.map(el => el.faces)));
-    for (let layer = 0; layer < layers_face.length; layer++) {
-      for (let pair = 0; pair < taco_faces.length; pair++) {
-        const indexOf = taco_faces[pair].indexOf(layers_face[layer]);
-        if (indexOf === -1) { continue; }
-        stack.push(pair);
-        taco_faces[pair].splice(indexOf, 1);
-      }
-    }
-    const pair_count = {};
-    stack.forEach(n => {
-      if (pair_count[n] === undefined) { pair_count[n] = 0; }
-      pair_count[n]++;
-    });
-    return stack.filter(n => pair_count[n] > 1);
-  };
-  const validate_taco_stack = (stack) => {
-    const pairs = {};
-    let count = 0;
-    for (let i = 0; i < stack.length; i++) {
-      if (pairs[stack[i]] === undefined) {
-        count++;
-        pairs[stack[i]] = count;
-      }
-      else if (pairs[stack[i]] !== undefined) {
-        if (pairs[stack[i]] !== count) {
-          return false;
-        }
-        count--;
-        pairs[stack[i]] = undefined;
-      }
-    }
-    return true;
-  };
-  const taco_taco_test = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
-    const common_locations = common_fold_location(folded_faces, is_circular, epsilon);
-    for (let l = 0; l < common_locations.length; l++) {
-      const location = common_locations[l];
-      const left_tacos = location.pairs.filter(el => el.left_taco);
-      const right_tacos = location.pairs.filter(el => el.right_taco);
-      location.pairs.filter(el => el.tortilla);
-      if (left_tacos.length > 1) {
-        const stack = generate_taco_stack(layers_face, left_tacos);
-        if (!validate_taco_stack(stack)) {
-          return false;
-        }
-      }
-      if (right_tacos.length > 1) {
-        const stack = generate_taco_stack(layers_face, right_tacos);
-        if (!validate_taco_stack(stack)) {
-          return false;
-        }
-      }
-    }
-    return true;
+    return locations
+      .map(el => el.pairs)
+      .filter(pairs => pairs.length > 1)
+      .map(pairs => ({
+        both: pairs.filter(el => el.taco_type === 0).map(el => el.faces),
+        left: pairs.filter(el => el.taco_type === 1).map(el => el.faces),
+        right: pairs.filter(el => el.taco_type === 2).map(el => el.faces),
+      }));
   };
 
-  const taco_test$1 = (folded_faces, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
-    if (!taco_face_test(folded_faces, layers_face, is_circular, epsilon)) {
-      return false;
-    }
-    if (!taco_taco_test(folded_faces, layers_face, is_circular, epsilon)) {
-      return false;
+  const between = (arr, i, j) => (i < j)
+    ? arr.slice(i + 1, j)
+    : arr.slice(j + 1, i);
+  const validate_taco_tortilla_strip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+    const faces_layer = invert_map(layers_face);
+    const fold_location = faces_folded
+      .map(ends => ends ? ends[1] : undefined);
+    const faces_mins = faces_folded
+      .map(ends => ends ? Math.min(...ends) : undefined)
+      .map(n => n + epsilon);
+    const faces_maxs = faces_folded
+      .map(ends => ends ? Math.max(...ends) : undefined)
+      .map(n => n - epsilon);
+    const max = faces_layer.length + (is_circular ? 0 : -1);
+    for (let i = 0; i < max; i += 1) {
+      const j = (i + 1) % faces_layer.length;
+      if (faces_layer[i] === faces_layer[j]) { continue; }
+      const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
+        .reduce(fn_cat, []);
+      const all_below_min = layers_between
+        .map(index => fold_location[i] < faces_mins[index])
+        .reduce(fn_and, true);
+      const all_above_max = layers_between
+        .map(index => fold_location[i] > faces_maxs[index])
+        .reduce(fn_and, true);
+      if (!all_below_min && !all_above_max) { return false; }
     }
     return true;
   };
@@ -4190,7 +4326,7 @@
         return updown;
       });
   };
-  const fold_faces_with_assignments = (faces, assignments) => {
+  const fold_strip_with_assignments = (faces, assignments) => {
     const faces_end = assignments_to_faces_flip(assignments)
       .map((flip, i) => faces[i] * (flip ? -1 : 1));
     const cumulative = faces.map(() => undefined);
@@ -4208,7 +4344,7 @@
     __proto__: null,
     assignments_to_faces_flip: assignments_to_faces_flip,
     assignments_to_faces_vertical: assignments_to_faces_vertical,
-    fold_faces_with_assignments: fold_faces_with_assignments
+    fold_strip_with_assignments: fold_strip_with_assignments
   });
 
   const clone = function (o) {
@@ -4236,9 +4372,23 @@
     return newO;
   };
 
+  const build_layers$1 = (layers_face, faces_pair) => layers_face
+    .map(f => faces_pair[f])
+    .filter(fn_def);
+  const validate = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
+    const flat_layers_face = math.core.flatten_arrays(layers_face);
+    if (!validate_taco_tortilla_strip(
+      faces_folded, layers_face, circ_and_done, epsilon
+    )) { return false; }
+    for (let i = 0; i < taco_face_pairs.length; i++) {
+      const pair_stack = build_layers$1(flat_layers_face, taco_face_pairs[i]);
+      if (!validate_taco_taco_face_pairs(pair_stack)) { return false; }
+    }
+    return true;
+  };
   const is_boundary = { "B": true, "b": true };
-  const strip_layer_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
-    const faces_folded = fold_faces_with_assignments(ordered_scalars, assignments);
+  const strip_layers = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+    const faces_folded = fold_strip_with_assignments(ordered_scalars, assignments);
     const faces_updown = assignments_to_faces_vertical(assignments);
     const is_circular = assignments
       .map(a => !(is_boundary[a]))
@@ -4247,32 +4397,39 @@
       const start = faces_folded[0][0];
       const end = faces_folded[faces_folded.length - 1][1];
       if (Math.abs(start - end) > epsilon) { return []; }
-    }  const recurse = (layers_faces = [0], face = 0, layer = 0) => {
+    }  const taco_face_pairs = make_folded_strip_tacos(faces_folded, is_circular, epsilon)
+      .map(taco => [taco.left, taco.right]
+        .map(invert_map)
+        .filter(arr => arr.length > 1))
+      .reduce((a, b) => a.concat(b), []);
+    const recurse = (layers_face = [0], face = 0, layer = 0) => {
       const next_face = face + 1;
       const next_dir = faces_updown[face];
-      if (!taco_test$1(faces_folded, layers_faces, is_circular, epsilon)) {
+      const is_done = face >= ordered_scalars.length - 1;
+      const circ_and_done = is_circular && is_done;
+      if (!validate(
+        faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon
+      )) {
         return [];
       }
-      if (face >= ordered_scalars.length - 1) {
-        if (is_circular) {
-          const faces_layer = invert_map(layers_faces);
-          const first_face_layer = faces_layer[0];
-          const last_face_layer = faces_layer[face];
-          if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
-          if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
-        }
-        return [layers_faces];
+      if (circ_and_done) {
+        const faces_layer = invert_map(layers_face);
+        const first_face_layer = faces_layer[0];
+        const last_face_layer = faces_layer[face];
+        if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
+        if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
       }
+      if (is_done) { return [layers_face]; }
       if (next_dir === 0) {
-        layers_faces[layer] = [next_face].concat(layers_faces[layer]);
-        return recurse(layers_faces, next_face, layer);
+        layers_face[layer] = [next_face].concat(layers_face[layer]);
+        return recurse(layers_face, next_face, layer);
       }
       const splice_layers = next_dir === 1
-        ? Array.from(Array(layers_faces.length - layer))
+        ? Array.from(Array(layers_face.length - layer))
           .map((_, i) => layer + i + 1)
         : Array.from(Array(layer + 1))
           .map((_, i) => i);
-      const next_layers_faces = splice_layers.map(i => clone(layers_faces));
+      const next_layers_faces = splice_layers.map(i => clone(layers_face));
       next_layers_faces
         .forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
       return next_layers_faces
@@ -4297,7 +4454,7 @@
     const assignments = indices
       .map(i => vertices_edges[vertex][i])
       .map(edge => edges_assignment[edge]);
-    const sectors_layer = strip_layer_solver(sectors, assignments, epsilon);
+    const sectors_layer = strip_layers(sectors, assignments, epsilon);
     const faces_layer = sectors_layer
       .map(invert_map)
       .map(arr => arr
@@ -4335,61 +4492,43 @@
         : solutions);
   };
 
-  const make_edges_overlap_face_orders = (graph, matrix, epsilon) => {
-    const orders = [];
-    make_edge_layer_matrix(graph, matrix, epsilon)
-      .forEach((row, e1) => row
-        .forEach((rule, e2) => graph.edges_faces[e1]
-          .forEach(f1 => graph.edges_faces[e2]
-            .forEach(f2 => orders.push([f1, f2, rule], [f2, f1, -rule])))));
-    return orders;
-  };
-  const make_single_vertex_face_orders = (graph, face, epsilon) => {
-    const vertices_faces_layer = make_vertices_faces_layer(graph, face, epsilon);
-    const fixed_orders = vertices_faces_layer
-      .filter(solutions => solutions.length === 1)
-      .map(solutions => solutions[0])
-      .map(faces_layer_to_relationships);
-    const multiple_common_orders = vertices_faces_layer
-      .filter(solutions => solutions.length > 1)
-      .map(common_relationships);
-    return fixed_orders.concat(multiple_common_orders);
-  };
-
-  var make_relationships = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    make_edges_overlap_face_orders: make_edges_overlap_face_orders,
-    make_single_vertex_face_orders: make_single_vertex_face_orders
-  });
-
-  const make_groups_edges = (graph, epsilon) => {
-    const overlap_matrix = make_edges_edges_parallel_overlap(graph, epsilon);
-    const overlapping_edges = boolean_matrix_to_indexed_array(overlap_matrix);
-    const edges_group = make_unique_sets_from_self_relational_arrays(overlapping_edges);
-    return invert_map(edges_group)
-      .filter(el => typeof el === "object")
-      .map(edges => edges
-        .filter(edge => graph.edges_faces[edge].length === 2))
-      .filter(edges => edges.length > 1);
-  };
-
-  const make_layer_matrix = (graph, face, epsilon) => {
+  const make_face_layer_matrix = (graph, face, epsilon) => {
+    const add_relationship = order => matrix[order[0]][order[1]] = order[2];
     const matrix = Array
       .from(Array(graph.faces_vertices.length))
       .map(() => Array(graph.faces_vertices.length));
-    make_single_vertex_face_orders(graph, face, epsilon)
+    const vertices_faces_layer = make_vertices_faces_layer(graph, face, epsilon);
+    vertices_faces_layer
+      .filter(solutions => solutions.length === 1)
+      .map(solutions => solutions[0])
+      .map(faces_layer_to_relationships)
       .forEach(group => group
-        .forEach(order => { matrix[order[0]][order[1]] = order[2]; }));
-    walk_all_pleat_paths(matrix);
-    make_edges_overlap_face_orders(graph, matrix, epsilon)
-      .forEach(order => { matrix[order[0]][order[1]] = order[2]; });
-    walk_all_pleat_paths(matrix);
+        .forEach(add_relationship));
+    vertices_faces_layer
+      .filter(solutions => solutions.length > 1)
+      .map(common_relationships)
+      .forEach(group => group
+        .forEach(add_relationship));
+    walk_all_pleat_paths(matrix)
+      .forEach(add_relationship);
+    make_edges_crossing_face_orders(graph, matrix, epsilon)
+      .forEach(add_relationship);
+    make_edges_tacos_layers_faces(graph, matrix, epsilon)
+      .map(layers_faces => layers_faces.map(invert_map))
+      .map(faces_layers => common_relationships(faces_layers))
+      .forEach(group => group
+        .forEach(add_relationship));
+    walk_all_pleat_paths(matrix)
+      .forEach(add_relationship);
+    make_edges_crossing_face_orders(graph, matrix, epsilon)
+      .forEach(add_relationship);
     return matrix;
   };
 
   const get_layer_violations = (matrix, faces_layer) => {
     const violations = [];
     for (let i = 0; i < matrix.length - 1; i++) {
+      if (faces_layer[i] === undefined) { continue; }
       for (let j = i + 1; j < matrix[i].length; j++) {
         if (i === j) { continue; }
         const rule = matrix[i][j];
@@ -4424,13 +4563,14 @@
     new_layers_face.forEach((_, i) => layers_face[i] = new_layers_face[i]);
     return violations.length;
   };
-  const make_layers_face = (matrix) => {
+  const matrix_to_layers_face = (matrix, faces) => {
+    if (!faces) {
+      faces = Object.keys(matrix).map(n => parseInt(n));
+    }
     const faces_knowns = matrix.map(row => row.filter(fn_def));
     faces_knowns.length;
     const rows_sum = faces_knowns.map(row => row.reduce(fn_add, 0));
-    const layers_face = Object.keys(matrix)
-      .sort((a, b) => rows_sum[a] - rows_sum[b])
-      .map(n => parseInt(n));
+    const layers_face = faces.slice().sort((a, b) => rows_sum[a] - rows_sum[b]);
     let counter = 0;
     let violation_count = 0;
     do {
@@ -4441,8 +4581,8 @@
   };
 
   const make_faces_layer = (graph, face = 0, epsilon) => {
-    const matrix = make_layer_matrix(graph, face, epsilon);
-    const layers_face = make_layers_face(matrix);
+    const matrix = make_face_layer_matrix(graph, face, epsilon);
+    const layers_face = matrix_to_layers_face(matrix);
     const faces_layer = invert_map(layers_face);
     faces_layer.matrix = matrix;
     return faces_layer;
@@ -5356,69 +5496,16 @@
   	};
   };
 
-  const get_overlapping_edge_groups = (graph, epsilon) => invert_map(
-  	make_unique_sets_from_self_relational_arrays(
-  		boolean_matrix_to_indexed_array(
-  			make_edges_edges_parallel_overlap(graph, epsilon))))
-  	.filter(el => typeof el !== "number");
-  const edges_to_adjacent_faces = (graph, groups_edges) => groups_edges
-  	.map(edges => edges
-  		.map(edge => graph.edges_faces[edge]));
-  const make_edges_tacos = (graph, epsilon) => {
-  	const faces_center = make_faces_center(graph);
-  	const groups_edges = get_overlapping_edge_groups(graph, epsilon);
-  	const groups_edges_faces = edges_to_adjacent_faces(graph, groups_edges);
-  	const groups_tacos_edges = groups_edges
-  		.map((group, i) => group
-  			.filter((_, j) => groups_edges_faces[i][j].length > 1))
-  		.filter(arr => arr.length > 0);
-  	const groups_tacos_faces = groups_edges_faces
-  		.map(group => group
-  			.filter(el => el.length > 1))
-  		.filter(arr => arr.length > 0);
-  	const groups_tacos_edge_coords = groups_tacos_edges
-  		.map(edges => graph.edges_vertices[edges[0]]
-  			.map(vertex => graph.vertices_coords[vertex]));
-  	const groups_tacos_edge_origin = groups_tacos_edge_coords
-  		.map(coords => coords[0]);
-  	const groups_tacos_edge_vector = groups_tacos_edge_coords
-  		.map(coords => math.core.subtract2(coords[1], coords[0]));
-  	const groups_tacos_faces_center = groups_tacos_faces
-  		.map(faces => faces
-  			.map(face_pair => face_pair
-  				.map(face => faces_center[face])));
-  	const groups_tacos_faces_side = groups_tacos_faces_center
-  		.map((faces, i) => faces
-  			.map(pairs => pairs
-  				.map(center => math.core.cross2(
-  					math.core.subtract2(center, groups_tacos_edge_origin[i]),
-  					groups_tacos_edge_vector[i]))
-  				.map(cross => Math.sign(cross))));
-  	const groups_tacos_side = groups_tacos_faces_side
-  		.map(faces => faces
-  			.map(pairs => pairs[0] === pairs[1]
-  				? pairs[0]
-  				: 0));
-  	const groups_left_taco_count = groups_tacos_side
-  		.map(sides => sides.filter(side => side === 1).length);
-  	const groups_right_taco_count = groups_tacos_side
-  		.map(sides => sides.filter(side => side === -1).length);
-  	const groups_tortilla_count = groups_tacos_side
-  		.map(sides => sides.filter(side => side === 0).length);
-  	const groups_easy_valid = groups_tortilla_count
-  		.map((count, i) => groups_left_taco_count[i] + count < 2
-  			&& groups_right_taco_count[i] + count < 2);
-  	return groups_tacos_edges.map((edges, i) => ({
-  		left: edges.filter((_, j) => groups_tacos_side[i][j] === -1),
-  		right: edges.filter((_, j) => groups_tacos_side[i][j] === 1),
-  		both: edges.filter((_, j) => groups_tacos_side[i][j] === 0),
-  	})).filter((_, i) => groups_easy_valid[i] === false);
+  const make_groups_edges = (graph, epsilon) => {
+    const overlap_matrix = make_edges_edges_parallel_overlap(graph, epsilon);
+    const overlapping_edges = boolean_matrix_to_indexed_array(overlap_matrix);
+    const edges_group = make_unique_sets_from_self_relational_arrays(overlapping_edges);
+    return invert_map(edges_group)
+      .filter(el => typeof el === "object")
+      .map(edges => edges
+        .filter(edge => graph.edges_faces[edge].length === 2))
+      .filter(edges => edges.length > 1);
   };
-
-  var tacos = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    make_edges_tacos: make_edges_tacos
-  });
 
   var graph_methods = Object.assign(Object.create(null), {
   	assign: assign$1,
@@ -5449,7 +5536,6 @@
   },
   	make,
   	edges_edges,
-  	tacos,
   	transform,
   	boundary,
   	walk,
@@ -5459,9 +5545,9 @@
   	span,
   	maps,
   	query,
-  	arrays,
   	remove_methods,
   	vertices_isolated,
+  	arrays,
   );
 
   const Create = {};
@@ -6147,7 +6233,7 @@
   	}
   	const all_assignments = maekawa_assignments(assignments);
   	const layers = all_assignments
-  		.map(assigns => strip_layer_solver(faces, assigns, epsilon));
+  		.map(assigns => strip_layers(faces, assigns, epsilon));
   	return all_assignments
   		.map((_, i) => i)
   		.filter(i => layers[i].length > 0)
@@ -6157,121 +6243,224 @@
   		}));
   };
 
-  const get_splice_indices = (layers_face_relative) => {
-    const highest_positive = layers_face_relative
-      .map((v, i) => v === 1 ? i : undefined)
-      .filter(fn_def)
-      .pop();
-    const lowest_negative = layers_face_relative
-      .map((v, i) => v === -1 ? i : undefined)
-      .filter(fn_def)
-      .shift();
-    const bottom_index = highest_positive === undefined
-      ? -1
-      : highest_positive;
-    const top_index = lowest_negative === undefined
-      ? layers_face_relative.length
-      : lowest_negative;
-    if (highest_positive > lowest_negative) { return []; }
-    const valid_length = top_index - bottom_index;
-    return Array
-      .from(Array(valid_length))
-      .map((_, i) => i + bottom_index + 1);
-  };
-
-  const remove_single_instances = (stack) => {
-    const count = {};
-    stack.forEach(n => {
-      if (count[n] === undefined) { count[n] = 0; }
-      count[n]++;
-    });
-    return stack.filter(n => count[n] > 1);
-  };
-  const validate_taco_pair_stack = (stack) => {
-    const pair_stack = remove_single_instances(stack);
-    const pairs = {};
-    let count = 0;
-    for (let i = 0; i < pair_stack.length; i++) {
-      if (pairs[pair_stack[i]] === undefined) {
-        count++;
-        pairs[pair_stack[i]] = count;
-      }
-      else if (pairs[pair_stack[i]] !== undefined) {
-        if (pairs[pair_stack[i]] !== count) {
-          return false;
-        }
-        count--;
-        pairs[pair_stack[i]] = undefined;
-      }
+  const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
+    if (!edges_vector) {
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
-    return true;
-  };
-
-  const empty_fn = () => true;
-  const overflow_protection = () => ({ count: 0 });
-  const matrix_to_layers = (matrix, faces, layers_face = [], test_fn = empty_fn, overflow = overflow_protection()) => {
-    if (!faces) { faces = Object.keys(matrix); }
-    overflow.count++;
-    if (overflow.count > 10000) {
-      console.warn("matrix_to_layers overflow protection");
-      return [];
-    }
-    const next_face = faces[0];
-    if (next_face === undefined) { return [layers_face]; }
-    const layers_face_relative = layers_face
-      .map(face => matrix[next_face][face]);
-    const splice_indices = get_splice_indices(layers_face_relative);
-    const layer_permutations = splice_indices.map(() => layers_face.slice());
-    layer_permutations.forEach((layers, i) => layers
-      .splice(splice_indices[i], 0, next_face));
-    return layer_permutations
-      .filter(test_fn)
-      .map(layers => matrix_to_layers(matrix, faces.slice(1), layers, test_fn, overflow))
-      .reduce((a, b) => a.concat(b), []);
-  };
-
-  const taco_test = (layers_face, tacos_faces_pairs) => {
-    for (let p = 0; p < tacos_faces_pairs.length; p++) {
-      const tacos_face = tacos_faces_pairs[p];
-      const layers_pair = layers_face.map(face => tacos_face[face])
-        .filter(a => a !== undefined);
-      if (!validate_taco_pair_stack(layers_pair)) { return false; }
-    }
-    return true;
-  };
-  const make_layers_face_permutations = (graph, matrix) => {
-    const tacos = make_edges_tacos(graph, 0.001);
-    const tacos_faces = tacos.map(stack => ({
-      left: stack.left.map(edge => graph.edges_faces[edge]),
-      right: stack.right.map(edge => graph.edges_faces[edge]),
-      both: stack.both.map(edge => graph.edges_faces[edge]),
+    const faces_winding = make_faces_winding({ vertices_coords, faces_vertices });
+    const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+    const matrix = edges_vertices
+      .map(() => Array.from(Array(faces_vertices.length)));
+    edges_faces.forEach((faces, e) => faces
+      .forEach(f => { matrix[e][f] = false; }));
+    edges_faces.forEach((faces, e) => faces
+      .forEach(f => { matrix[e][f] = false; }));
+    const edges_vertices_coords = edges_vertices
+      .map(verts => verts.map(v => vertices_coords[v]));
+    const faces_vertices_coords = faces_vertices
+      .map(verts => verts.map(v => vertices_coords[v]))
+      .map((polygon, f) => faces_winding[f] ? polygon : polygon.reverse());
+    matrix.forEach((row, e) => row.forEach((val, f) => {
+      if (val === false) { return; }
+      const point_in_poly = edges_vertices_coords[e]
+        .map(point => math.core.overlap_convex_polygon_point(
+          faces_vertices_coords[f],
+          point,
+          math.core.exclude,
+          0.001
+        )).reduce((a, b) => a || b, false);
+      if (point_in_poly) { matrix[e][f] = true; return; }
+      const edge_intersect = math.core.intersect_convex_polygon_line(
+        faces_vertices_coords[f],
+        edges_vector[e],
+        edges_origin[e],
+        math.core.exclude_s,
+        math.core.exclude_s,
+        0.001
+      );
+      if (edge_intersect) { matrix[e][f] = true; return; }
+      matrix[e][f] = false;
     }));
-    const tacos_faces_pairs = tacos_faces.map(stack => Object.assign([],
-      invert_map(stack.left),
-      invert_map(stack.right),
-      invert_map(stack.both)
-    ));
-    const test_function = (layer) => taco_test(layer, tacos_faces_pairs);
-    const faces = Object.keys(matrix).map(n => parseInt(n));
-    return matrix_to_layers(matrix, faces, [], test_function);
+    return matrix;
+  };
+
+  const validate_crossing_edges_face_pairs = (face_pair_stack) => {
+    const pair_stack = remove_single_instances(face_pair_stack);
+    let last_seen = undefined;
+    for (let i = 0; i < pair_stack.length; i++) {
+      if (last_seen === undefined) {
+        last_seen = pair_stack[i];
+      } else {
+        if (last_seen !== pair_stack[i]) { return false; }
+        last_seen = undefined;
+      }
+    }
+    return true;
+  };
+
+  const validate_taco_tortilla_pairs = (pair_stack) => {
+    if (pair_stack[0] === 0 && pair_stack[1] === 1 && pair_stack[2] === 0) {
+      return false;
+    }
+    if (pair_stack[0] === 1 && pair_stack[1] === 0 && pair_stack[2] === 1) {
+      return false;
+    }
+    return true;
+  };
+
+  const build_layers = (layers_face, faces_pair) => layers_face
+    .map(f => faces_pair[f])
+    .filter(a => a !== undefined);
+  const valid_check = (graph, layers_face, edge_tacos_face_pairs, crossing_edge_face_pairs, edge_face_overlap_tacos) => {
+    for (let t = 0; t < edge_tacos_face_pairs.length; t++) {
+      const pair_stack = build_layers(layers_face, edge_tacos_face_pairs[t]);
+      if (!validate_taco_taco_face_pairs(pair_stack)) { return false; }
+    }
+    for (let e = 0; e < crossing_edge_face_pairs.length; e++) {
+      const pair_stack = build_layers(layers_face, crossing_edge_face_pairs[e]);
+      if (!validate_crossing_edges_face_pairs(pair_stack)) {
+        return false;
+      }
+    }
+    for (let e = 0; e < edge_face_overlap_tacos.length; e++) {
+      const pair_stack = build_layers(layers_face, edge_face_overlap_tacos[e]);
+      if (pair_stack.length < 3) { continue; }
+      if (!validate_taco_tortilla_pairs(pair_stack)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const make_layers_face = (graph, matrix, faces, epsilon = 0.001) => {
+    const knowns = matrix.map(row => row
+      .reduce((a, b) => a + (b === undefined ? 0 : 1)));
+    const faces_sorted = matrix
+      .map((_, i) => i)
+      .sort((a, b) => knowns[b] - knowns[a]);
+    const edges_faces_tacos_pairs = make_edges_tacos(graph, epsilon)
+      .map(taco => ({
+        left: taco.left.map(e => graph.edges_faces[e]),
+        right: taco.right.map(e => graph.edges_faces[e]),
+        both: taco.both.map(e => graph.edges_faces[e]),
+      }))
+      .map(taco => [taco.left, taco.right]
+        .map(invert_map)
+        .filter(arr => arr.length > 1))
+      .reduce((a, b) => a.concat(b), []);
+    const edges_edges_crossing = make_edges_edges_crossing(graph);
+    const crossing_edge_pairs = boolean_matrix_to_unique_index_pairs(edges_edges_crossing);
+    const crossing_edge_face_pairs = crossing_edge_pairs
+      .map(edges => edges
+        .map(e => graph.edges_faces[e])
+        .filter(faces => faces.length > 1))
+      .filter(pairs => pairs.length > 1)
+      .map(invert_map);
+    const edges_faces_overlap = make_edges_faces_overlap(graph);
+    const edges_with_two_adjacent_faces = graph.edges_faces
+      .map(faces => faces.length > 1);
+    const edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap)
+      .map((faces, e) => edges_with_two_adjacent_faces[e] ? faces : []);
+    const edge_face_overlap_tacos = edges_overlap_faces.map((faces, e) => {
+      const e_f = graph.edges_faces[e];
+      return faces.map(face => invert_map([e_f, [face]]));
+    }).reduce((a, b) => a.concat(b), []);
+    const recurse = (faces, layers_face = []) => {
+      if (!faces.length) { return layers_face; }
+      const next_faces = faces.slice();
+      const face = next_faces.shift();
+      const layers_face_relative = layers_face.map(f => matrix[face][f]);
+      const splice_indices = get_splice_indices(layers_face_relative);
+      do {
+        const to_splice = splice_indices
+          .splice(Math.floor(splice_indices.length / 2), 1);
+        if (to_splice === undefined) { return undefined; }
+        const next_layers_face = layers_face.slice();
+        next_layers_face.splice(to_splice, 0, face);
+        if (!valid_check(graph, next_layers_face, edges_faces_tacos_pairs, crossing_edge_face_pairs, edge_face_overlap_tacos)) {
+          continue;
+        }
+        const res = recurse(next_faces, next_layers_face);
+        if (res !== undefined) { return res; }
+      } while (splice_indices.length);
+      return undefined;
+    };
+    return recurse(faces_sorted);
+  };
+
+  const layers_face_solver = (graph, matrix, epsilon = 0.001) => {
+    const knowns = matrix.map(row => row
+      .reduce((a, b) => a + (b === undefined ? 0 : 1)));
+    const faces_sorted = matrix
+      .map((_, i) => i)
+      .sort((a, b) => knowns[b] - knowns[a]);
+    const edges_faces_tacos_pairs = make_edges_tacos(graph, epsilon)
+      .map(taco => [taco.left, taco.right]
+        .map(arr => arr.map(e => graph.edges_faces[e]))
+        .map(invert_map)
+        .filter(arr => arr.length > 1))
+      .reduce((a, b) => a.concat(b), []);
+    const edges_faces_overlap = make_edges_faces_overlap(graph);
+    const edges_with_two_adjacent_faces = graph.edges_faces
+      .map(faces => faces.length > 1);
+    const edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap)
+      .map((faces, e) => edges_with_two_adjacent_faces[e] ? faces : []);
+    const edge_face_overlap_tacos = edges_overlap_faces.map((faces, e) => {
+      const e_f = graph.edges_faces[e];
+      return faces.map(face => invert_map([e_f, [face]]));
+    }).reduce((a, b) => a.concat(b), []);
+    const edges_edges_crossing = make_edges_edges_crossing(graph);
+    const crossing_edge_pairs = boolean_matrix_to_unique_index_pairs(edges_edges_crossing);
+    const crossing_edge_face_pairs = crossing_edge_pairs
+      .map(edges => edges
+        .map(e => graph.edges_faces[e])
+        .filter(faces => faces.length > 1))
+      .filter(pairs => pairs.length > 1)
+      .map(invert_map);
+    const recurse = (faces, layers_face = []) => {
+      if (!faces.length) { return [{layers_face}]; }
+      const next_faces = faces.slice();
+      const face = next_faces.shift();
+      const layers_face_relative = layers_face.map(f => matrix[face][f]);
+      const splice_indices = get_splice_indices(layers_face_relative);
+      return splice_indices.map(splice_index => {
+        const next_layers_face = layers_face.slice();
+        next_layers_face.splice(splice_index, 0, face);
+        if (!valid_check(graph, next_layers_face, edges_faces_tacos_pairs, crossing_edge_face_pairs, edge_face_overlap_tacos)) {
+          return undefined;
+        }
+        return recurse(next_faces, next_layers_face)
+          .reduce((a, b) => a.concat(b), [])
+      });
+    };
+    return recurse(faces_sorted)
+      .shift()
+      .filter(a => a !== undefined)
+      .map(el => el.layers_face);
   };
 
   var layer = Object.assign(Object.create(null), {
   	flip_faces_layer,
   	single_vertex_assignment_solver,
-  	strip_solver: strip_layer_solver,
-  	taco_test: taco_test$1,
-  	common_relationships,
-  	faces_layer_to_relationships,
+  	strip_layers,
+  	make_layers_face,
+  	make_layers_faces: layers_face_solver,
   	get_layer_violations,
   	get_splice_indices,
-  	make_face_layer_matrix: make_layer_matrix,
-  	make_layers_face,
-  	make_layers_face_permutations,
+  	make_edges_tacos_layers_faces,
+  	make_face_layer_matrix,
+  	matrix_to_layers_face,
   	matrix_to_layers,
+  	make_edges_tacos,
+  	make_folded_strip_tacos,
+  	validate_crossing_edges_face_pairs,
+  	validate_taco_taco_face_pairs,
+  	validate_taco_tortilla_pairs,
+  	validate_taco_tortilla_strip,
   },
   	fold_assignments,
-  	make_relationships,
+  	edges_crossing,
+  	relationships,
   	pleat_paths,
   );
 

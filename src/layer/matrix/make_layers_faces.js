@@ -1,10 +1,10 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { make_edges_tacos } from "../../graph/tacos";
+import make_edges_tacos from "../tacos/make_edges_tacos";
 import { invert_map } from "../../graph/maps";
-import validate_taco_pair_stack from "../validate_taco_pair_stack";
-import get_common_orders from "./common_relationships";
+import validate_taco_taco_face_pairs from "../tacos/validate_taco_taco_face_pairs";
+// import common_relationships from "./common_relationships";
 import matrix_to_layers from "./matrix_to_layers";
 
 const taco_test = (layers_face, tacos_faces_pairs) => {
@@ -12,12 +12,12 @@ const taco_test = (layers_face, tacos_faces_pairs) => {
     const tacos_face = tacos_faces_pairs[p];
     const layers_pair = layers_face.map(face => tacos_face[face])
       .filter(a => a !== undefined);
-    if (!validate_taco_pair_stack(layers_pair)) { return false; }
+    if (!validate_taco_taco_face_pairs(layers_pair)) { return false; }
   }
   return true;
 };
 
-const make_layers_face_permutations = (graph, matrix) => {
+const make_layers_faces = (graph, matrix) => {
   const tacos = make_edges_tacos(graph, 0.001);
   const tacos_faces = tacos.map(stack => ({
     left: stack.left.map(edge => graph.edges_faces[edge]),
@@ -54,7 +54,7 @@ const make_layers_face_permutations = (graph, matrix) => {
   // });
   // const orders = solutions
   //   .map(layers_faces => layers_faces.map(invert_map))
-  //   .map(faces_layers => get_common_orders(faces_layers));
+  //   .map(faces_layers => common_relationships(faces_layers));
   // orders.forEach(relationships => relationships
   //   .forEach(rule => { matrix[rule[0]][rule[1]] = rule[2]; }));
   
@@ -66,4 +66,4 @@ const make_layers_face_permutations = (graph, matrix) => {
   // console.log("orders", orders);
 };
 
-export default make_layers_face_permutations;
+export default make_layers_faces;

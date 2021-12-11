@@ -5,10 +5,16 @@
  * @description given a matrix with +1/-1 face relationship rules, and a
  * faces_layer, check every face against every face testing if any of the
  * faces in faces_layers are violating one of the rules in the matrix.
+ * 
+ * this is useful for testing the validity of a faces_layer order, or
+ * correcting an incorrect order, as it provides information on the violations.
+ *
+ * if you build a layer order properly you won't ever need this method. 
  */
 const get_layer_violations = (matrix, faces_layer) => {
   const violations = [];
   for (let i = 0; i < matrix.length - 1; i++) {
+    if (faces_layer[i] === undefined) { continue; }
     for (let j = i + 1; j < matrix[i].length; j++) {
       if (i === j) { continue; }
       const rule = matrix[i][j];

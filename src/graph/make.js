@@ -544,3 +544,15 @@ export const make_faces_coloring = function ({ faces_vertices, faces_faces }, ro
       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
   return coloring;
 };
+
+// todo, should this be > 0 or < 0 ?
+// cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+export const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
+  return faces_vertices
+    .map(vertices => vertices
+      .map(v => vertices_coords[v])
+      .map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
+      .map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]) )
+      .reduce((a, b) => a + b, 0))
+    .map(face => face < 0);
+};

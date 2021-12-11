@@ -4,7 +4,7 @@
 import math from "../../math";
 import split_convex_polygon from "../split_face/index";
 import { fold_faces_layer } from "./faces_layer";
-import clone from "../clone";
+import clone from "../../general/clone";
 import Count from "../count";
 import { face_containing_point } from "../nearest";
 import { edges_assignment_degrees } from "../../fold/spec";

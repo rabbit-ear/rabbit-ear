@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import { fn_add } from "../symbols/functions";
+import { fn_add } from "../general/functions";
 /**
  * @description given a list of numbers this method will sort them by
  *  even and odd indices and sum the two categories, returning two sums.

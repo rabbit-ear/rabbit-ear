@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import clone from "./clone";
-import * as S from "../symbols/strings";
+import clone from "../general/clone";
+import * as S from "../general/strings";
 
 export const flatten_frame = (graph, frame_num = 1) => {
   if (!graph.file_frames || graph.file_frames.length < frame_num) {

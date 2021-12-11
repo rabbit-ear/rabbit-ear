@@ -77,7 +77,7 @@ export const assignments_to_faces_vertical = (assignments) => {
  * @returns array of sector positions. any sectors caught between
  * multiple boundaries will be undefined.
  */
-export const fold_faces_with_assignments = (faces, assignments) => {
+export const fold_strip_with_assignments = (faces, assignments) => {
   // one number for each sector, locally, the movement away from 0.
   const faces_end = assignments_to_faces_flip(assignments)
     .map((flip, i) => faces[i] * (flip ? -1 : 1));

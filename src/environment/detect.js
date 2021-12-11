@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../symbols/strings";
+import * as S from "../general/strings";
 
 // compare to "undefined", the string
 const isBrowser = typeof window !== S._undefined

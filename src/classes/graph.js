@@ -3,7 +3,7 @@
  */
 import math from "../math";
 import setup from "./components";
-import * as S from "../symbols/strings";
+import * as S from "../general/strings";
 import {
   fold_keys,
   keys,
@@ -39,7 +39,7 @@ import {
   nearest_edge,
   face_containing_point,
 } from "../graph/nearest";
-import clone from "../graph/clone";
+import clone from "../general/clone";
 import add_vertices from "../graph/add/add_vertices";
 import split_edge from "../graph/split_edge/index";
 import split_face from "../graph/split_face/index";

@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../../math";
-import * as S from "../../symbols/strings";
+import * as S from "../../general/strings";
 import {
   get_graph_keys_with_suffix,
   get_graph_keys_with_prefix,

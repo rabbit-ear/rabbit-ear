@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import * as S from "../symbols/strings";
+import * as S from "../general/strings";
 import { get_graph_keys_with_suffix } from "../fold/spec";
 /**
  * @description Search inside arrays inside arrays and return

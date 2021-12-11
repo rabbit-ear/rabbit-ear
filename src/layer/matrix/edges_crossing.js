@@ -3,7 +3,7 @@
  */
 import { make_edges_edges_crossing } from "../../graph/edges_edges";
 import { make_edges_faces } from "../../graph/make";
-import { boolean_matrix_to_indexed_array } from "../../graph/arrays";
+import { boolean_matrix_to_indexed_array } from "../../general/arrays";
 /**
  * @desecription given a FOLD object in its folded state (vertices_coords),
  * a pre-built +1/-1 face relationship matrix, gather together all edges
@@ -15,9 +15,9 @@ import { boolean_matrix_to_indexed_array } from "../../graph/arrays";
  * 
  * The similar test where we compare edges which overlap and ARE parallel
  * is the taco-taco/tortilla test. This is a different function, located in
- * ________________.
+ * make_edges_tacos_layers_faces.
  */
-const make_edge_layer_matrix = (graph, face_matrix, epsilon) => {
+export const make_edges_crossing_layer_matrix = (graph, face_matrix, epsilon) => {
   const edges_faces = graph.edges_faces
     ? graph.edges_faces
     : make_edges_faces(graph);
@@ -48,4 +48,15 @@ const make_edge_layer_matrix = (graph, face_matrix, epsilon) => {
   return edge_matrix;
 };
 
-export default make_edge_layer_matrix;
+/**
+ * @returns {number[][]} array of relationships: [f1, f2, dir]
+ */
+export const make_edges_crossing_face_orders = (graph, matrix, epsilon) => {
+  const orders = [];
+  make_edges_crossing_layer_matrix(graph, matrix, epsilon)
+    .forEach((row, e1) => row
+      .forEach((rule, e2) => graph.edges_faces[e1]
+        .forEach(f1 => graph.edges_faces[e2]
+          .forEach(f2 => orders.push([f1, f2, rule], [f2, f1, -rule])))));
+  return orders;
+};

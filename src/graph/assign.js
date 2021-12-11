@@ -4,7 +4,7 @@
 import math from "../math";
 import count from "./count";
 import add_vertices from "./add/add_vertices";
-import * as S from "../symbols/strings";
+import * as S from "../general/strings";
 import {
   get_graph_keys_with_prefix,
   get_graph_keys_with_suffix,

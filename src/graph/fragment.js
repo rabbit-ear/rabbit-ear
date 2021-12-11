@@ -5,8 +5,8 @@ import math from "../math";
 import {
   fn_cat,
   fn_def,
-} from "../symbols/functions";
-import * as S from "../symbols/strings";
+} from "../general/functions";
+import * as S from "../general/strings";
 import {
 	edge_assignment_to_foldAngle,
 	edge_foldAngle_to_assignment,

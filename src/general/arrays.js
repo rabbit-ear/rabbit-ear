@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { fn_def } from "../symbols/functions";
+import { fn_def } from "../general/functions";
 /**
  * @description given a list of integers (can contain duplicates),
  * this will return a sorted set of unique integers (removing duplicates).
@@ -44,7 +44,21 @@ export const get_longest_array = (arrays) => {
   }
   return arrays[max];
 };
-
+/**
+ * @description given an array of any-type, return the same array but filter
+ * out any items which only appear once.
+ * @param {any[]} array of primitives which can become strings in an object.
+ * the intended use case is an array of {number[]}.
+ * @returns {any[]} input array, filtering out any items which only appear once.
+ */
+export const remove_single_instances = (array) => {
+  const count = {};
+  array.forEach(n => {
+    if (count[n] === undefined) { count[n] = 0; }
+    count[n]++;
+  });
+  return array.filter(n => count[n] > 1);
+};
 /**
  * @description convert a non-sparse matrix of true/false/undefined
  * into arrays containing the index of the trues.

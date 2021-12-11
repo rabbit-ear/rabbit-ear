@@ -10,7 +10,6 @@ import * as sort from "./sort";
 import * as span from "./span";
 import * as maps from "./maps";
 import * as query from "./query";
-import * as arrays from "./arrays";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
@@ -45,7 +44,11 @@ import make_vertices_faces_layer from "./vertices_faces_layer";
 import make_faces_layer from "./make_faces_layer";
 import make_groups_edges from "./make_groups_edges";
 import * as edges_edges from "./edges_edges";
-import * as tacos from "./tacos";
+// import * as tacos from "./tacos";
+
+// todo: not sure about this organization
+import * as arrays from "../general/arrays";
+import clone from "../general/clone";
 
 export default Object.assign(Object.create(null), {
 	// modifiers
@@ -82,7 +85,7 @@ export default Object.assign(Object.create(null), {
 },
 	make,
 	edges_edges,
-	tacos,
+	// tacos,
 	// create,
 	transform,
 	boundary,
@@ -93,9 +96,9 @@ export default Object.assign(Object.create(null), {
 	span,
 	maps,
 	query,
-	arrays,
 	// clean things
 	remove_methods,
 	vertices_isolated,
+	arrays,
 );
 

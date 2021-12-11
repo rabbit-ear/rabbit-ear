@@ -3,7 +3,7 @@
  */
 import math from "../math";
 import window from "../environment/window"
-import { fn_cat } from "../symbols/functions";
+import { fn_cat } from "../general/functions";
 
 // if three doesn't exist, throw an error
 

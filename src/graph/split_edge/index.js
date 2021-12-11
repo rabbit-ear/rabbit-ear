@@ -4,7 +4,7 @@
 import math from "../../math";
 import remove from "../remove";
 import { find_adjacent_faces_to_edge } from "../find";
-import * as S from "../../symbols/strings";
+import * as S from "../../general/strings";
 import split_edge_into_two from "./split_edge_into_two";
 import {
   update_vertices_vertices,

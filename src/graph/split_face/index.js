@@ -13,7 +13,7 @@ import {
 } from "./update";
 import { intersect_convex_face_line } from "../intersect_faces";
 import remove from "../remove";
-import * as S from "../../symbols/strings";
+import * as S from "../../general/strings";
 /**
  * @description divide a CONVEX face into two polygons with a straight line cut.
  * if the line ends exactly along existing vertices, they will be
