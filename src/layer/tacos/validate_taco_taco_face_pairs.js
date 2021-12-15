@@ -20,7 +20,6 @@ const validate_taco_taco_face_pairs = (face_pair_stack) => {
   const pairs = {};
   let count = 0;
   for (let i = 0; i < pair_stack.length; i++) {
-    // console.log(i, "validate stack", pair_stack, JSON.parse(JSON.stringify(pairs)));
     if (pairs[pair_stack[i]] === undefined) {
       count++;
       pairs[pair_stack[i]] = count;
@@ -29,10 +28,7 @@ const validate_taco_taco_face_pairs = (face_pair_stack) => {
     // in the correct order, that is, as it gets popped off the stack,
     // it must be the next-most-recently added pair to the stack.
     else if (pairs[pair_stack[i]] !== undefined) {
-      if (pairs[pair_stack[i]] !== count) {
-        // console.log("stack fail", pairs, pair_stack, pair_stack[i], count);
-        return false;
-      }
+      if (pairs[pair_stack[i]] !== count) { return false; }
       count--;
       pairs[pair_stack[i]] = undefined;
     }

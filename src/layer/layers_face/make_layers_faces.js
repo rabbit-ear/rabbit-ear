@@ -28,7 +28,7 @@ const layers_face_solver = (graph, matrix, epsilon = 0.001) => {
       .filter(arr => arr.length > 1))
     .reduce((a, b) => a.concat(b), []);
   // taco-tortillas overlap
-  const edges_faces_overlap = make_edges_faces_overlap(graph);
+  const edges_faces_overlap = make_edges_faces_overlap(graph, epsilon);
   const edges_with_two_adjacent_faces = graph.edges_faces
     .map(faces => faces.length > 1);
   const edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap)

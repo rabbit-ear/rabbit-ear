@@ -88,17 +88,6 @@ const make_edges_tacos = (graph, epsilon) => {
 		// 	if (el.both.length === 0) { delete el.both; }
 		// 	return el;
 		// });
-	// console.log("groups_tacos_edges", groups_tacos_edges);
-	// console.log("groups_tacos_faces", groups_tacos_faces);
-	// console.log("groups_tacos_edge_coords", groups_tacos_edge_coords);
-	// console.log("groups_tacos_edge_origin", groups_tacos_edge_origin);
-	// console.log("groups_tacos_edge_vector", groups_tacos_edge_vector);
-	// console.log("groups_tacos_faces_center", groups_tacos_faces_center);
-	// console.log("groups_tacos_faces_side", groups_tacos_faces_side);
-	// console.log("groups_tacos_side", groups_tacos_side);
-	// console.log("groups_left_taco_count", groups_left_taco_count);
-	// console.log("groups_right_taco_count", groups_right_taco_count);
-	// console.log("groups_tortilla_count", groups_tortilla_count);
 };
 
 export default make_edges_tacos;

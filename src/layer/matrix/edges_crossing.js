@@ -43,7 +43,7 @@ export const make_edges_crossing_layer_matrix = (graph, face_matrix, epsilon) =>
     .forEach((row, e1) => row
       .forEach(e2 => edges_faces[e1]
         .forEach(f1 => edges_faces[e2]
-          .filter(f2 => face_matrix[f1][f2] !== undefined)
+          .filter(f2 => face_matrix[f1][f2] != null)
           .forEach(f2 => { edge_matrix[e1][e2] = face_matrix[f1][f2]; }))));
   return edge_matrix;
 };

@@ -12,19 +12,19 @@
  * if you build a layer order properly you won't ever need this method. 
  */
 const get_layer_violations = (matrix, faces_layer) => {
+  const faces = Object.keys(faces_layer).map(n => parseInt(n));
   const violations = [];
-  for (let i = 0; i < matrix.length - 1; i++) {
-    if (faces_layer[i] === undefined) { continue; }
-    for (let j = i + 1; j < matrix[i].length; j++) {
-      if (i === j) { continue; }
+  faces.forEach(i => {
+    faces.forEach(j => {
+      if (i === j) { return; }
       const rule = matrix[i][j];
-      if (rule === undefined) { continue; }
+      if (rule == null) { return; }      
       const face_direction = Math.sign(faces_layer[i] - faces_layer[j]);
       if (rule !== face_direction) {
         violations.push([i, j, matrix[i][j]]);
       }
-    }
-  }
+    });
+  });
   return violations
 };
 

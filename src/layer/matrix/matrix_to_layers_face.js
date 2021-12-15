@@ -19,7 +19,7 @@ const fix_layer_violations = (layers_face, matrix) => {
   });
   const layer_change = faces_adjust.map(arr => arr.length === 0
     ? 0
-    : parseInt(arr.reduce((a, b) => a + b, 0) / arr.length));
+    : parseInt(arr.reduce(fn_add, 0) / arr.length));
   const new_faces_layer = faces_layer
     .map((layer, i) => layer + layer_change[i]);
   const new_layers_face = new_faces_layer
@@ -42,7 +42,7 @@ const matrix_to_layers_face = (matrix, faces) => {
   }
   // only consider faces which are contained inside the matrix
   // this allows for Javascript arrays with holes.
-  const faces_knowns = matrix.map(row => row.filter(fn_def));
+  const faces_knowns = matrix.map(row => row.filter(a => a != null));
   const face_count = faces_knowns.length;
   const rows_sum = faces_knowns.map(row => row.reduce(fn_add, 0));
   // const faces_layer_approximation = rows_sum

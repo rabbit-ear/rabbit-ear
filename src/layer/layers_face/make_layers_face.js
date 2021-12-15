@@ -43,7 +43,7 @@ const make_layers_face = (graph, matrix, faces, epsilon = 0.001) => {
       .filter(faces => faces.length > 1))
     .filter(pairs => pairs.length > 1)
     .map(invert_map);
-  const edges_faces_overlap = make_edges_faces_overlap(graph);
+  const edges_faces_overlap = make_edges_faces_overlap(graph, epsilon);
   const edges_with_two_adjacent_faces = graph.edges_faces
     .map(faces => faces.length > 1);
   const edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap)
