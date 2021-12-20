@@ -40,6 +40,10 @@ const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
   const vertices_faces_layer = graph.vertices_sectors
     .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
 
+  const faces_coloring_2 = make_faces_winding(graph);
+  console.log("faces_coloring", faces_coloring);
+  console.log("faces_coloring_2", faces_coloring_2);
+
   // console.log("vertices_faces_layer", JSON.parse(JSON.stringify(vertices_faces_layer)));
   // console.log("vertices_faces_layer solution star faces", JSON.parse(JSON.stringify(vertices_faces_layer
   //   .map(solution => solution.face))));
