@@ -1335,6 +1335,31 @@ const intersect = function (a, b, epsilon) {
   return intersect_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
 };
 
+const convex_polygons_overlap = (poly1, poly2, epsilon = EPSILON) => {
+  for (let p = 0; p < 2; p++) {
+    const polyA = p === 0 ? poly1 : poly2;
+    const polyB = p === 0 ? poly2 : poly1;
+    for (let i = 0; i < polyA.length; i++) {
+      const origin = polyA[i];
+      const vector = rotate90(subtract(polyA[(i + 1) % polyA.length], polyA[i]));
+      const projected = polyB
+        .map(p => subtract(p, origin))
+        .map(v => dot(vector, v));
+      const other_test_point = polyA[(i + 2) % polyA.length];
+      const side_a = dot(vector, subtract(other_test_point, origin));
+      const side = side_a > 0;
+      const one_sided = projected
+        .map(dot => side ? dot < epsilon : dot > -epsilon)
+        .reduce((a, b) => a && b, true);
+      if (one_sided) { return false; }
+    }
+  }
+  return true;
+};
+
+const overlap_circle_point = (radius, origin, point, func = exclude, epsilon = EPSILON) =>
+  func(radius - distance2(origin, point), epsilon);
+
 const overlap_line_line = (
   aVector, aOrigin,
   bVector, bOrigin,
@@ -1358,24 +1383,6 @@ const overlap_line_line = (
     && bFunction(t1, epsilon / magnitude(bVector));
 };
 
-const overlap_convex_polygons = (poly1, poly2, fn_line = exclude_s, fn_point = exclude, epsilon = EPSILON) => {
-  if (overlap_convex_polygon_point(poly1, poly2[0], fn_point, epsilon)) { return true; }
-  if (overlap_convex_polygon_point(poly2, poly1[0], fn_point, epsilon)) { return true; }
-  const e1 = poly1.map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p]);
-  const e2 = poly2.map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p]);
-  for (let i = 0; i < e1.length; i += 1) {
-    for (let j = 0; j < e2.length; j += 1) {
-      if (overlap_line_line(e1[i][0], e1[i][1], e2[j][0], e2[j][1], fn_line, fn_line, epsilon)) {
-        return true;
-      }
-    }
-  }
-  return false;
-};
-
-const overlap_circle_point = (radius, origin, point, func = exclude, epsilon = EPSILON) =>
-  func(radius - distance2(origin, point), epsilon);
-
 const overlap_param_form = {
   polygon: a => [a],
   rect: a => [a],
@@ -1387,7 +1394,7 @@ const overlap_param_form = {
 };
 const overlap_func = {
   polygon: {
-    polygon: (a, b, fnA, fnB, ep) => overlap_convex_polygons(...a, ...b, exclude_s, exclude, ep),
+    polygon: (a, b, fnA, fnB, ep) => convex_polygons_overlap(...a, ...b, exclude_s, exclude, ep),
     vector: (a, b, fnA, fnB, ep) => overlap_convex_polygon_point(...a, ...b, fnA, ep),
   },
   circle: {
@@ -2320,7 +2327,7 @@ math.core = Object.assign(Object.create(null),
     intersect_circle_circle,
     intersect_circle_line,
     intersect_line_line,
-    overlap_convex_polygons,
+    overlap_convex_polygons: convex_polygons_overlap,
     overlap_convex_polygon_point,
     overlap_line_line,
     overlap_line_point,

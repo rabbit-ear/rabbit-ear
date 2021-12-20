@@ -1,0 +1,144 @@
+import math from "../../math";
+import { make_faces_center } from "../../graph/make";
+import { make_edges_edges_parallel_overlap } from "../../graph/edges_edges";
+import {
+	boolean_matrix_to_indexed_array,
+	make_unique_sets_from_self_relational_arrays,
+} from "../../general/arrays";
+import { invert_map } from "../../graph/maps";
+
+const get_overlapping_edge_groups = (graph, epsilon) => invert_map(
+	make_unique_sets_from_self_relational_arrays(
+		boolean_matrix_to_indexed_array(
+			make_edges_edges_parallel_overlap(graph, epsilon))))
+	.filter(el => typeof el !== "number");
+
+const edges_to_adjacent_faces = (graph, groups_edges) => groups_edges
+	.map(edges => edges
+		.map(edge => graph.edges_faces[edge]));
+/**
+ * @description
+ * @param {object} a FOLD graph. vertices_coords should already be folded.
+ */
+const make_tacos_tortillas = (graph, epsilon) => {
+	const faces_center = make_faces_center(graph);
+	const groups_edges = get_overlapping_edge_groups(graph, epsilon);
+	const groups_edges_faces = edges_to_adjacent_faces(graph, groups_edges);
+	// filter out edges which only have one face (boundary edges). ignore them.
+	// they are folded tacos with only one side, there is no threat of
+	// tortillas intersection, as their edge is aligned with the fold edge.
+	const groups_tacos_edges = groups_edges
+		.map((group, i) => group
+			.filter((_, j) => groups_edges_faces[i][j].length > 1))
+		.filter(arr => arr.length > 0);
+	// console.log("groups_tacos_edges", groups_tacos_edges);
+	const groups_tacos_faces = groups_edges_faces
+		.map(group => group
+			.filter(el => el.length > 1))
+		.filter(arr => arr.length > 0);
+	// each group of taco edges are aligned along a common edge.
+	// get this edge coordinates, vector, origin.
+	const groups_tacos_edge_coords = groups_tacos_edges
+		.map(edges => graph.edges_vertices[edges[0]]
+			.map(vertex => graph.vertices_coords[vertex]));
+	const groups_tacos_edge_origin = groups_tacos_edge_coords
+		.map(coords => coords[0]);
+	const groups_tacos_edge_vector = groups_tacos_edge_coords
+		.map(coords => math.core.subtract2(coords[1], coords[0]));
+	const groups_tacos_faces_center = groups_tacos_faces
+		.map(faces => faces
+			.map(face_pair => face_pair
+				.map(face => faces_center[face])));
+	const groups_tacos_faces_side = groups_tacos_faces_center
+		.map((faces, i) => faces
+			.map(pairs => pairs
+				.map(center => math.core.cross2(
+					math.core.subtract2(center, groups_tacos_edge_origin[i]),
+					groups_tacos_edge_vector[i]))
+				.map(cross => Math.sign(cross))));
+	// turn every taco into a -1 or 1, depending on its direction,
+	// or a 0 in the case of a tortilla.
+	const groups_tacos_side = groups_tacos_faces_side
+		.map(group => group
+			.map(faces_side => faces_side[0] === faces_side[1]
+				? faces_side[0]
+				: 0));
+	// maintain groups but filter types by left/right taco / tortilla.
+	const groups_tacos_left = groups_tacos_edges
+		.map((edges, i) => edges
+			.filter((_, j) => groups_tacos_side[i][j] === -1));
+	const groups_tacos_right = groups_tacos_edges
+		.map((edges, i) => edges
+			.filter((_, j) => groups_tacos_side[i][j] === 1));
+	const groups_tortillas = groups_tacos_edges
+		.map((edges, i) => edges
+			.filter((_, j) => groups_tacos_side[i][j] === 0));
+
+	// up until now, all taco data is stored as edge indices.
+	// (except for face center / face-sidedness)
+	// now, data will be converted into faces, which needs to happen because
+	// taco-tortilla refers to one face from an edge. must convert to faces.
+
+	// taco-taco
+	// scissor join two arrays
+	const taco_taco_edges = [];
+	for (let i = 0; i < groups_tacos_edges.length; i++) {
+		if (groups_tacos_left[i].length) { taco_taco_edges.push(groups_tacos_left[i]); }
+		if (groups_tacos_right[i].length) { taco_taco_edges.push(groups_tacos_right[i]); }
+	}
+	const taco_taco = taco_taco_edges
+		.map(edges => edges
+			.map(e => graph.edges_faces[e]));
+
+	// tortilla-tortilla
+	const tortilla_tortilla = groups_tortillas
+		.map(edges => edges
+			.map(e => graph.edges_faces[e]))
+		.filter(group => group.length);
+
+	// taco-tortilla
+	const groups_tortillas_faces_left = groups_tacos_edges
+		.map((group, i) => group
+			.map((e, j) => graph.edges_faces[e]
+				.filter((_, k) => groups_tacos_faces_side[i][j][k] === -1))
+			.filter((_, j) => groups_tacos_side[i][j] === 0)
+			.reduce((a, b) => a.concat(b), []));
+	const groups_tortillas_faces_right = groups_tacos_edges
+		.map((group, i) => group
+			.map((e, j) => graph.edges_faces[e]
+				.filter((_, k) => groups_tacos_faces_side[i][j][k] === 1))
+			.filter((_, j) => groups_tacos_side[i][j] === 0)
+			.reduce((a, b) => a.concat(b), []));
+	const groups_taco_tortillas_left = groups_tortillas_faces_left
+		.map((tortillas, i) => tortillas.length && groups_tacos_left[i].length
+			? ({ tortillas, tacos: groups_tacos_left[i].map(e => graph.edges_faces[e]) })
+			: undefined)
+	const groups_taco_tortillas_right = groups_tortillas_faces_right
+		.map((tortillas, i) => tortillas.length && groups_tacos_right[i].length
+			? ({ tortillas, tacos: groups_tacos_right[i].map(e => graph.edges_faces[e]) })
+			: undefined)
+	// scissor join two arrays
+	const taco_tortilla = [];
+	for (let i = 0; i < groups_tacos_edges.length; i++) {
+		if (groups_taco_tortillas_left[i] !== undefined) {
+			taco_tortilla.push(groups_taco_tortillas_left[i]);
+		}
+		if (groups_taco_tortillas_right[i] !== undefined) {
+			taco_tortilla.push(groups_taco_tortillas_right[i]);
+		}
+	}
+
+	// console.log("groups_tacos_left", groups_tacos_left);
+	// console.log("groups_tacos_right", groups_tacos_right);
+	// console.log("taco_taco_edges", taco_taco_edges);
+	// console.log("taco_taco", taco_taco);
+	// console.log("tortilla_tortilla", tortilla_tortilla);
+
+  return {
+  	taco_taco,
+  	tortilla_tortilla,
+  	taco_tortilla,
+  };
+};
+
+export default make_tacos_tortillas;

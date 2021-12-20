@@ -4,8 +4,8 @@
 // top level
 // import flip_faces_layer from "./flip_faces_layer";
 // layer solver
-import layer_solver from "./layer_solver/index";
 import assignment_solver from "./layer_solver/assignment_solver";
+import layer_solver from "./layer_solver/index";
 import validate_layer_solver from "./layer_solver/validate_layer_solver";
 // layers_face
 import make_layers_face from "./layers_face/make_layers_face";
@@ -19,6 +19,7 @@ import matrix_to_layers_face from "./matrix/matrix_to_layers_face";
 import matrix_to_layers from "./matrix/matrix_to_layers";
 // tacos
 import make_edges_tacos from "./tacos/make_edges_tacos"
+import make_tacos_tortillas from "./tacos/make_tacos_tortillas";
 import make_folded_strip_tacos from "./tacos/make_folded_strip_tacos"
 import validate_crossing_edges_face_pairs from "./tacos/validate_crossing_edges_face_pairs"
 import validate_taco_taco_face_pairs from "./tacos/validate_taco_taco_face_pairs"
@@ -31,9 +32,9 @@ import * as relationships from "./matrix/relationships";
 import * as pleat_paths from "./matrix/pleat_paths";
 
 export default Object.assign(Object.create(null), {
-	assignment_solver,
 	// flip_faces_layer,
 
+	assignment_solver,
 	layer_solver,
 	validate_layer_solver,
 
@@ -48,6 +49,7 @@ export default Object.assign(Object.create(null), {
 	matrix_to_layers,
 
 	make_edges_tacos,
+	make_tacos_tortillas,
 	make_folded_strip_tacos,
 	validate_crossing_edges_face_pairs,
 	validate_taco_taco_face_pairs,

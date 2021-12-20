@@ -27,9 +27,11 @@ const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vecto
   const edges_vertices_coords = edges_vertices
     .map(verts => verts.map(v => vertices_coords[v]));
   const faces_vertices_coords = faces_vertices
-    .map(verts => verts.map(v => vertices_coords[v]))
-    .map((polygon, f) => faces_winding[f] ? polygon : polygon.reverse());
-
+    .map(verts => verts.map(v => vertices_coords[v]));
+    // .map((polygon, f) => faces_winding[f] ? polygon : polygon.reverse());
+  for (let f = 0; f < faces_winding.length; f++) {
+    if (!faces_winding[f]) { faces_vertices_coords[f].reverse(); }
+  }
   matrix.forEach((row, e) => row.forEach((val, f) => {
     if (val === false) { return; }
     // both segment endpoints, true if either one of them is inside the face.

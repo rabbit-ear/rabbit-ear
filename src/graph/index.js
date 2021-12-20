@@ -43,6 +43,7 @@ import make_vertex_faces_layer from "./vertex_faces_layer";
 import make_vertices_faces_layer from "./vertices_faces_layer";
 import make_faces_layer from "./make_faces_layer";
 import make_groups_edges from "./make_groups_edges";
+import make_edges_faces_overlap from "./make_edges_faces_overlap";
 import make_faces_faces_overlap from "./make_faces_faces_overlap";
 import * as edges_edges from "./edges_edges";
 // import * as tacos from "./tacos";
@@ -83,6 +84,7 @@ export default Object.assign(Object.create(null), {
 	make_vertices_faces_layer,
 	make_faces_layer,
 	make_groups_edges,
+	make_edges_faces_overlap,
 	make_faces_faces_overlap,
 },
 	make,

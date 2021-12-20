@@ -196,9 +196,9 @@ export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edge
       : math.core.counter_clockwise_sectors2(vectors));
 
 export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
-  if (!faces_matrix || root_face !== undefined) {
+  // if (!faces_matrix || root_face !== undefined) {
     faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
-  }
+  // }
   if (!vertices_faces) {
     vertices_faces = make_vertices_faces({ faces_vertices });
   }
@@ -545,8 +545,11 @@ export const make_faces_coloring = function ({ faces_vertices, faces_faces }, ro
   return coloring;
 };
 
-// todo, should this be > 0 or < 0 ?
+
 // cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+/**
+ * @returns {boolean} true if a face is counter-clockwise.
+ */
 export const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
   return faces_vertices
     .map(vertices => vertices
