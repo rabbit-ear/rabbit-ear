@@ -2,7 +2,10 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import make_vertex_faces_layer from "./vertex_faces_layer";
-import { make_faces_coloring, make_vertices_sectors } from "./make";
+import {
+  make_vertices_sectors,
+  make_faces_winding
+} from "./make";
 import { invert_map } from "./maps";
 /**
  * @description flip a faces_layer solution to reflect having turned
@@ -33,42 +36,14 @@ const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
     graph.vertices_sectors = make_vertices_sectors(graph);
   }
   // root face, and all faces with the same color, will be false
-  const faces_coloring = make_faces_coloring(graph, start_face).map(c => !c);
-  // if the initial face is flipped in the 
-  const flip_all = faces_coloring[start_face];
+  const faces_coloring = make_faces_winding(graph).map(c => !c);
   // the faces_layer solutions for every vertex and its adjacent faces
   const vertices_faces_layer = graph.vertices_sectors
     .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
-
-  const faces_coloring_2 = make_faces_winding(graph);
-  console.log("faces_coloring", faces_coloring);
-  console.log("faces_coloring_2", faces_coloring_2);
-
-  // console.log("vertices_faces_layer", JSON.parse(JSON.stringify(vertices_faces_layer)));
-  // console.log("vertices_faces_layer solution star faces", JSON.parse(JSON.stringify(vertices_faces_layer
-  //   .map(solution => solution.face))));
-
   // is each face flipped or not? (should the result be flipped too.)
-  // each solution was built from a starting face (solution.face),
-  // if this face is flipped in the coloring, flip the solution too.
-  // however, we also have to take into consideration the start_face,
-  // if this face is flipped the entire solution set needs to flip again.
-  // XOR with (start_face) and each face's (solution.face):
-  // 0 0 : 0 (no flip)
-  // 1 0 : 1 (flipped)
-  // 0 1 : 1 (flipped)
-  // 1 1 : 0 (no flip, because, 2 flips = no flips)
+  // if this face is flipped in the graph, flip the solution too.
   const vertices_solutions_flip = vertices_faces_layer
     .map(solution => faces_coloring[solution.face])
-    .map(solution_flipped => solution_flipped ^ flip_all);
-
-  // console.log("flip all", flip_all);
-  // console.log("specific solution, start face", vertices_faces_layer
-  //   .map(solution => solution.face));
-  // console.log("specific solution, flip", vertices_faces_layer
-  //   .map(solution => faces_coloring[solution.face]));
-  // console.log("vertices_solutions_flip", vertices_solutions_flip);
-
   return vertices_faces_layer
     .map((solutions, i) => vertices_solutions_flip[i]
       ? flip_solutions(solutions)

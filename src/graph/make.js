@@ -369,6 +369,22 @@ export const make_faces_vertices = graph => make_planar_faces(graph)
 export const make_faces_edges = graph => make_planar_faces(graph)
   .map(face => face.edges);
 
+const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
+  if (!edges_vertices) { return {}; }
+  const map = {};
+  edges_vertices
+    .map(ev => ev.sort((a, b) => a - b).join(" "))
+    .forEach((key, i) => { map[key] = i; });
+  return map;
+};
+
+export const make_faces_edges_from_vertices = (graph) => {
+  const map = make_vertices_to_edge_bidirectional(graph);
+  return graph.faces_vertices
+    .map(face => face
+      .map((v, i, arr) => [v, arr[(i + 1) % arr.length]].join(" ")))
+    .map(face => face.map(pair => map[pair]));
+};
 /**
  * @param {object} FOLD object, with entry "faces_vertices"
  * @returns {number[][]} each index relates to a face, each entry is an array
@@ -544,11 +560,10 @@ export const make_faces_coloring = function ({ faces_vertices, faces_faces }, ro
       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
   return coloring;
 };
-
-
 // cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
 /**
- * @returns {boolean} true if a face is counter-clockwise.
+ * @returns {boolean} true if a face is counter-clockwise. this should also
+ * mean a true face is upright, false face is flipped.
  */
 export const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
   return faces_vertices

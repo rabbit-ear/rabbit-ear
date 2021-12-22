@@ -116,6 +116,6 @@ export const make_edges_edges_parallel_overlap = ({ vertices_coords, edges_verti
     vertices_coords, edges_vertices, edges_vector
   }, epsilon);
   // only if lines are parallel, then run the more expensive overlap method
-  overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.include_s, epsilon);
+  overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
   return matrix;
 };

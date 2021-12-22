@@ -6,6 +6,7 @@ import {
 	make_unique_sets_from_self_relational_arrays,
 } from "../../general/arrays";
 import { invert_map } from "../../graph/maps";
+import make_edges_faces_overlap from "../../graph/make_edges_faces_overlap";
 
 const get_overlapping_edge_groups = (graph, epsilon) => invert_map(
 	make_unique_sets_from_self_relational_arrays(
@@ -87,6 +88,7 @@ const make_tacos_tortillas = (graph, epsilon) => {
 		if (groups_tacos_right[i].length) { taco_taco_edges.push(groups_tacos_right[i]); }
 	}
 	const taco_taco = taco_taco_edges
+		.filter(edges => edges.length > 1)
 		.map(edges => edges
 			.map(e => graph.edges_faces[e]));
 
@@ -118,21 +120,34 @@ const make_tacos_tortillas = (graph, epsilon) => {
 			? ({ tortillas, tacos: groups_tacos_right[i].map(e => graph.edges_faces[e]) })
 			: undefined)
 	// scissor join two arrays
-	const taco_tortilla = [];
+	const aligned_taco_tortilla = [];
 	for (let i = 0; i < groups_tacos_edges.length; i++) {
 		if (groups_taco_tortillas_left[i] !== undefined) {
-			taco_tortilla.push(groups_taco_tortillas_left[i]);
+			aligned_taco_tortilla.push(groups_taco_tortillas_left[i]);
 		}
 		if (groups_taco_tortillas_right[i] !== undefined) {
-			taco_tortilla.push(groups_taco_tortillas_right[i]);
+			aligned_taco_tortilla.push(groups_taco_tortillas_right[i]);
 		}
 	}
+  // taco-tortillas overlap
+  const edges_faces_overlap = make_edges_faces_overlap(graph, epsilon);
+  const edges_with_two_adjacent_faces = graph.edges_faces
+    .map(faces => faces.length > 1);
+  const edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap)
+    .map((faces, e) => edges_with_two_adjacent_faces[e] ? faces : []);
+  const crossing_taco_tortillas = edges_overlap_faces
+  	.map((tortillas, edge) => ({ tacos: [graph.edges_faces[edge]], tortillas }))
+  	.filter(el => el.tortillas.length);
+  const taco_tortilla = aligned_taco_tortilla.concat(crossing_taco_tortillas);
 
+	// console.log("groups_edges", groups_edges);
 	// console.log("groups_tacos_left", groups_tacos_left);
 	// console.log("groups_tacos_right", groups_tacos_right);
 	// console.log("taco_taco_edges", taco_taco_edges);
 	// console.log("taco_taco", taco_taco);
-	// console.log("tortilla_tortilla", tortilla_tortilla);
+	// console.log("edges_overlap_faces", edges_overlap_faces);
+	// console.log("aligned_taco_tortilla", aligned_taco_tortilla);
+	// console.log("crossing_taco_tortillas", crossing_taco_tortillas);
 
   return {
   	taco_taco,

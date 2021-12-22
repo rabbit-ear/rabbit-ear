@@ -1340,13 +1340,21 @@
   ) => {
     const denominator0 = cross2(aVector, bVector);
     const denominator1 = -denominator0;
-    if (Math.abs(denominator0) < epsilon) {
-      return overlap_line_point(aVector, aOrigin, bOrigin, aFunction, epsilon)
-       || overlap_line_point(flip(aVector), add(aOrigin, aVector), bOrigin, aFunction, epsilon)
-       || overlap_line_point(bVector, bOrigin, aOrigin, bFunction, epsilon)
-       || overlap_line_point(flip(bVector), add(bOrigin, bVector), aOrigin, bFunction, epsilon);
-    }
     const a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
+    if (Math.abs(denominator0) < epsilon) {
+      if (Math.abs(cross2(a2b, aVector)) > epsilon) { return false; }
+      const bPt1 = a2b;
+      const bPt2 = add(bPt1, bVector);
+      const aProjLen = dot(aVector, aVector);
+      const bProj1 = dot(bPt1, aVector) / aProjLen;
+      const bProj2 = dot(bPt2, aVector) / aProjLen;
+      const bProjSm = bProj1 < bProj2 ? bProj1 : bProj2;
+      const bProjLg = bProj1 < bProj2 ? bProj2 : bProj1;
+      const bOutside1 = bProjSm > 1 - epsilon;
+      const bOutside2 = bProjLg < epsilon;
+      if (bOutside1 || bOutside2) { return false; }
+      return true;
+    }
     const b2a = [-a2b[0], -a2b[1]];
     const t0 = cross2(a2b, bVector) / denominator0;
     const t1 = cross2(b2a, aVector) / denominator1;
@@ -3193,6 +3201,13 @@
     .map(face => face.vertices);
   const make_faces_edges = graph => make_planar_faces(graph)
     .map(face => face.edges);
+  const make_faces_edges_from_vertices = (graph) => {
+    const map = make_vertices_to_edge_bidirectional(graph);
+    return graph.faces_vertices
+      .map(face => face
+        .map((v, i, arr) => [v, arr[(i + 1) % arr.length]].join(" ")))
+      .map(face => face.map(pair => map[pair]));
+  };
   const make_faces_faces = ({ faces_vertices }) => {
     const faces_faces = faces_vertices.map(() => []);
     const edgeMap = {};
@@ -3339,6 +3354,7 @@
     make_planar_faces: make_planar_faces,
     make_faces_vertices: make_faces_vertices,
     make_faces_edges: make_faces_edges,
+    make_faces_edges_from_vertices: make_faces_edges_from_vertices,
     make_faces_faces: make_faces_faces,
     get_face_face_shared_vertices: get_face_face_shared_vertices,
     make_face_spanning_tree: make_face_spanning_tree,
@@ -3368,7 +3384,7 @@
       graph.edges_foldAngle[i] = 0;
     }
   };
-  const populate = (graph) => {
+  const populate = (graph, reface) => {
     if (typeof graph !== "object") { return; }
     if (!graph.edges_vertices) { return; }
     graph.vertices_edges = make_vertices_edges(graph);
@@ -3379,14 +3395,19 @@
       graph.vertices_sectors = make_vertices_sectors(graph);
     }
     set_edges_angles(graph);
-    if (graph.vertices_coords) {
+    if (reface === undefined && !graph.faces_vertices) { reface = true; }
+    if (reface && graph.vertices_coords) {
       const faces = make_planar_faces(graph);
       graph.faces_vertices = faces.map(face => face.vertices);
       graph.faces_edges = faces.map(face => face.edges);
       graph.faces_sectors = faces.map(face => face.angles);
     } else {
-      graph.faces_vertices = [];
-      graph.faces_edges = [];
+      if (graph.faces_vertices) {
+        graph.faces_edges = make_faces_edges_from_vertices(graph);
+      } else {
+        graph.faces_vertices = [];
+        graph.faces_edges = [];
+      }
     }
     graph.vertices_faces = make_vertices_faces(graph);
     graph.edges_faces = make_edges_faces(graph);
@@ -4040,7 +4061,7 @@
     const matrix = make_edges_edges_parallel({
       vertices_coords, edges_vertices, edges_vector
     }, epsilon);
-    overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.include_s, epsilon);
+    overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
     return matrix;
   };
 
@@ -4483,13 +4504,11 @@
     if (!graph.vertices_sectors) {
       graph.vertices_sectors = make_vertices_sectors(graph);
     }
-    const faces_coloring = make_faces_coloring(graph, start_face).map(c => !c);
-    const flip_all = faces_coloring[start_face];
+    const faces_coloring = make_faces_winding(graph).map(c => !c);
     const vertices_faces_layer = graph.vertices_sectors
       .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
     const vertices_solutions_flip = vertices_faces_layer
-      .map(solution => faces_coloring[solution.face])
-      .map(solution_flipped => solution_flipped ^ flip_all);
+      .map(solution => faces_coloring[solution.face]);
     return vertices_faces_layer
       .map((solutions, i) => vertices_solutions_flip[i]
         ? flip_solutions(solutions)
@@ -6542,6 +6561,7 @@
   		if (groups_tacos_right[i].length) { taco_taco_edges.push(groups_tacos_right[i]); }
   	}
   	const taco_taco = taco_taco_edges
+  		.filter(edges => edges.length > 1)
   		.map(edges => edges
   			.map(e => graph.edges_faces[e]));
   	const tortilla_tortilla = groups_tortillas
@@ -6568,15 +6588,24 @@
   		.map((tortillas, i) => tortillas.length && groups_tacos_right[i].length
   			? ({ tortillas, tacos: groups_tacos_right[i].map(e => graph.edges_faces[e]) })
   			: undefined);
-  	const taco_tortilla = [];
+  	const aligned_taco_tortilla = [];
   	for (let i = 0; i < groups_tacos_edges.length; i++) {
   		if (groups_taco_tortillas_left[i] !== undefined) {
-  			taco_tortilla.push(groups_taco_tortillas_left[i]);
+  			aligned_taco_tortilla.push(groups_taco_tortillas_left[i]);
   		}
   		if (groups_taco_tortillas_right[i] !== undefined) {
-  			taco_tortilla.push(groups_taco_tortillas_right[i]);
+  			aligned_taco_tortilla.push(groups_taco_tortillas_right[i]);
   		}
   	}
+    const edges_faces_overlap = make_edges_faces_overlap(graph, epsilon);
+    const edges_with_two_adjacent_faces = graph.edges_faces
+      .map(faces => faces.length > 1);
+    const edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap)
+      .map((faces, e) => edges_with_two_adjacent_faces[e] ? faces : []);
+    const crossing_taco_tortillas = edges_overlap_faces
+    	.map((tortillas, edge) => ({ tacos: [graph.edges_faces[edge]], tortillas }))
+    	.filter(el => el.tortillas.length);
+    const taco_tortilla = aligned_taco_tortilla.concat(crossing_taco_tortillas);
     return {
     	taco_taco,
     	tortilla_tortilla,

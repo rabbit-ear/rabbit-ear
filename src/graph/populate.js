@@ -15,6 +15,7 @@ import {
   make_edges_vector,
   make_faces_faces,
   make_faces_matrix,
+  make_faces_edges_from_vertices,
   make_planar_faces,
 } from "./make";
 import {
@@ -64,7 +65,7 @@ const set_edges_angles = (graph) => {
  * if you do have edges_assignment instead of edges_foldAngle the origami
  * will be limited to flat-foldable.
  */
-const populate = (graph) => {
+const populate = (graph, reface) => {
   if (typeof graph !== "object") { return; }
   if (!graph.edges_vertices) { return; }
   graph.vertices_edges = make_vertices_edges(graph);
@@ -77,15 +78,20 @@ const populate = (graph) => {
   }
   // some combination of edges_foldAngle and edges_assignment
   set_edges_angles(graph);
-  if (graph.vertices_coords) {
+  if (reface === undefined && !graph.faces_vertices) { reface = true; }
+  if (reface && graph.vertices_coords) {
     const faces = make_planar_faces(graph);
     graph.faces_vertices = faces.map(face => face.vertices);
     graph.faces_edges = faces.map(face => face.edges);
     graph.faces_sectors = faces.map(face => face.angles);
   } else {
     // todo we need a way of making faces that doesn't imply planar.
-    graph.faces_vertices = [];
-    graph.faces_edges = [];
+    if (graph.faces_vertices) {
+      graph.faces_edges = make_faces_edges_from_vertices(graph);
+    } else {
+      graph.faces_vertices = [];
+      graph.faces_edges = [];
+    }
   }
   // depending on the presence of vertices_vertices, this will
   // run the simple algorithm (no radial sorting) or the proper one.

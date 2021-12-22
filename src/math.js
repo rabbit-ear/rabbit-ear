@@ -1369,13 +1369,21 @@ const overlap_line_line = (
 ) => {
   const denominator0 = cross2(aVector, bVector);
   const denominator1 = -denominator0;
-  if (Math.abs(denominator0) < epsilon) {
-    return overlap_line_point(aVector, aOrigin, bOrigin, aFunction, epsilon)
-     || overlap_line_point(flip(aVector), add(aOrigin, aVector), bOrigin, aFunction, epsilon)
-     || overlap_line_point(bVector, bOrigin, aOrigin, bFunction, epsilon)
-     || overlap_line_point(flip(bVector), add(bOrigin, bVector), aOrigin, bFunction, epsilon);
-  }
   const a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
+  if (Math.abs(denominator0) < epsilon) {
+    if (Math.abs(cross2(a2b, aVector)) > epsilon) { return false; }
+    const bPt1 = a2b;
+    const bPt2 = add(bPt1, bVector);
+    const aProjLen = dot(aVector, aVector);
+    const bProj1 = dot(bPt1, aVector) / aProjLen;
+    const bProj2 = dot(bPt2, aVector) / aProjLen;
+    const bProjSm = bProj1 < bProj2 ? bProj1 : bProj2;
+    const bProjLg = bProj1 < bProj2 ? bProj2 : bProj1;
+    const bOutside1 = bProjSm > 1 - epsilon;
+    const bOutside2 = bProjLg < epsilon;
+    if (bOutside1 || bOutside2) { return false; }
+    return true;
+  }
   const b2a = [-a2b[0], -a2b[1]];
   const t0 = cross2(a2b, bVector) / denominator0;
   const t1 = cross2(b2a, aVector) / denominator1;
