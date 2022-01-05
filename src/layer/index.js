@@ -18,6 +18,8 @@ import make_face_layer_matrix from "./matrix/make_face_layer_matrix";
 import matrix_to_layers_face from "./matrix/matrix_to_layers_face";
 import matrix_to_layers from "./matrix/matrix_to_layers";
 // tacos
+import lookup from "./tacos/lookup"
+import make_conditions from "./tacos/make_conditions";
 import make_edges_tacos from "./tacos/make_edges_tacos"
 import make_tacos_tortillas from "./tacos/make_tacos_tortillas";
 import make_folded_strip_tacos from "./tacos/make_folded_strip_tacos"
@@ -48,6 +50,8 @@ export default Object.assign(Object.create(null), {
 	matrix_to_layers_face,
 	matrix_to_layers,
 
+	lookup,
+	make_conditions,
 	make_edges_tacos,
 	make_tacos_tortillas,
 	make_folded_strip_tacos,
