@@ -8,6 +8,18 @@ import {
   boolean_matrix_to_unique_index_pairs
 } from "../../general/arrays";
 
+// pretty fast hash function for Javascript strings
+// https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript
+const stringToHash = (string) => {
+  let hash = 0;
+  for (let i = 0; i < string.length; i++) {
+    hash = ((hash << 5) - hash) + string.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
+
+
 // const count_conditions = conditions => Object
 //   .keys(conditions)
 //   .filter(key => conditions[key] !== 0)
@@ -29,40 +41,35 @@ const prepare_maps = tacos_face_pairs => tacos_face_pairs
     const face_keys = face_pairs.map((pair, i) => keys_ordered[i]
       ? `${pair[0]} ${pair[1]}`
       : `${pair[1]} ${pair[0]}`);
-    return {
-      keys_ordered,
-      face_keys,
-      layer_map: Array(face_pairs.length).fill(0),
-    };
+    return { keys_ordered, face_keys };
   });
 
-const fill_layer_maps = (maps, conditions) => maps
-  .forEach(map => map.face_keys
-    .forEach((key, i) => {
+const fill_layer_maps = (maps, layers, conditions) => maps
+  .forEach((map, i) => map.face_keys
+    .forEach((key, j) => {
       if (!(key in conditions)) {
         console.warn(key, "not in conditions");
         return;
       }
       if (conditions[key] !== 0) {
-        const correct_flip = map.keys_ordered[i]
+        const correct_flip = map.keys_ordered[j]
           ? conditions[key]
           : -conditions[key];
         // convert above/below encoding (1, -1) to (1, 2)
-        map.layer_map[i] = correct_flip === -1 ? 2 : 1;
+        layers[i][j] = correct_flip === -1 ? 2 : 1;
       }
     }));
 
-const infer_next_steps = (maps, lookup_table) => maps
+const infer_next_steps = (maps, layers, lookup_table) => maps
   .map((map, i) => {
-    const key = map.layer_map.join("");
+    const key = layers[i].join("");
     const next_step = lookup_table[key];
     if (next_step === 0) {
-      console.warn("error, unsolvable", maps, i);
-      return;
+      throw "unsolvable";
     }
     if (next_step === 1) { return; }
     // modify map with the suggestion, move it to the next state.
-    map.layer_map[next_step[0]] = next_step[1];
+    layers[i][next_step[0]] = next_step[1];
     // prepare the suggestion to be added to the global conditions
     const next_step_key = map.face_keys[next_step[0]];
     const next_step_key_ordered = map.keys_ordered[next_step[0]];
@@ -72,20 +79,19 @@ const infer_next_steps = (maps, lookup_table) => maps
       ? next_step_solution_unordered
       : -next_step_solution_unordered;
     // console.log("next_step", next_step, next_step_key, next_step_solution);
-    // return suggestion
     return [next_step_key, next_step_solution];
   })
   .filter(a => a !== undefined);
 
 const make_conditions = (graph, epsilon = 1e-6) => {
-  // overlap conditions
-  // todo: turn this back into "const"
-  let conditions = {};
-  // const fail_conditions = {};
+  const start_conditions = {};
+
   const overlap_matrix = make_faces_faces_overlap(graph, epsilon);
   boolean_matrix_to_unique_index_pairs(half_matrix(overlap_matrix))
     .map(pair => pair.join(" "))
-    .forEach(key => { conditions[key] = 0; });
+    .forEach(key => { start_conditions[key] = 0; });
+
+  // kabuto_test_file(conditions);
   
   // neighbor faces determined by crease between them
   const assignment_direction = { M: 1, m: 1, V: -1, v: -1 };
@@ -99,33 +105,12 @@ const make_conditions = (graph, epsilon = 1e-6) => {
     const relationship = upright ? direction : -direction;
     const key1 = `${faces[0]} ${faces[1]}`;
     const key2 = `${faces[1]} ${faces[0]}`;
-    if (key1 in conditions) { conditions[key1] = relationship; }
-    if (key2 in conditions) { conditions[key2] = -relationship; }
+    if (key1 in start_conditions) { start_conditions[key1] = relationship; }
+    if (key2 in start_conditions) { start_conditions[key2] = -relationship; }
   });
 
-  // console.log("conditions count, neighbor faces", count_conditions(conditions));
-
-  // each single-vertex layer order, individually
-  // const vertices_faces_layer = ear.graph.make_vertices_faces_layer(graph, 0, epsilon);
-  // vertices_faces_layer
-  //   .filter(solutions => solutions.length === 1)
-  //   .map(solutions => solutions[0])
-  //   .map(ear.layer.faces_layer_to_relationships)
-  //   .forEach(group => group.forEach(order => {
-  //     const key = `${order[0]} ${order[1]}`;
-  //     if (key in conditions) { conditions[key] = order[2]; }
-  //   }));
-  // vertices_faces_layer
-  //   .filter(solutions => solutions.length > 1)
-  //   .map(ear.layer.common_relationships)
-  //   .forEach(group => group.forEach(order => {
-  //     const key = `${order[0]} ${order[1]}`;
-  //     if (key in conditions) { conditions[key] = order[2]; }
-  //   }));
-  // console.log("conditions count, single-vertices", count_conditions(conditions));
-
   const tacos_tortillas = make_tacos_tortillas(graph, epsilon);
-  console.log("tacos_tortillas", tacos_tortillas);
+  // console.log("tacos_tortillas", tacos_tortillas);
 
   // keys_ordered answers "is the first face < than second face" regarding
   // how this will be used to reference the conditions lookup table.
@@ -157,30 +142,85 @@ const make_conditions = (graph, epsilon = 1e-6) => {
   const taco_taco_map = prepare_maps(taco_taco_pairs);
   const taco_tortilla_map = prepare_maps(taco_tortilla_pairs);
   const tortilla_tortilla_map = prepare_maps(tortilla_tortilla_pairs);
+
+  const start_layers = {
+    taco_taco: taco_taco_pairs.map(el => Array(el.length).fill(0)),
+    taco_tortilla: taco_tortilla_pairs.map(el => Array(el.length).fill(0)),
+    tortilla_tortilla: tortilla_tortilla_pairs.map(el => Array(el.length).fill(0)),
+  };
+
+  // console.log("taco_taco_pairs", taco_taco_pairs);
+  // console.log("taco_tortilla_pairs", taco_tortilla_pairs);
+  // console.log("tortilla_tortilla_pairs", tortilla_tortilla_pairs);
   // console.log("taco_taco_map", taco_taco_map);
   // console.log("taco_tortilla_map", taco_tortilla_map);
   // console.log("tortilla_tortilla_map", tortilla_tortilla_map);
+  // console.log("layers", start_layers);
 
-  let next_steps;
-  let round = 0;
-  do {
-    fill_layer_maps(taco_taco_map, conditions);
-    fill_layer_maps(taco_tortilla_map, conditions);
-    fill_layer_maps(tortilla_tortilla_map, conditions);
+  // key: hash, value: conditions
+  const solutions = {};
 
-    next_steps = [
-      infer_next_steps(taco_taco_map, lookup.taco_taco),
-      infer_next_steps(taco_tortilla_map, lookup.taco_tortilla),
-      infer_next_steps(tortilla_tortilla_map, lookup.tortilla_tortilla),
-    ].reduce((a, b) => a.concat(b), []);
+  let recurse_count = 0;
+  // recursively uncover the remaining conditions
+  const recurse = (conditions, layers) => {
+    // console.log(recurse_count, "recurse", Object.values(conditions).filter(n => n === 0).length);
+    recurse_count++;
+    // given the current set of conditions, complete them as much as possible
+    // only adding the determined results certain from the current state.
+    let inner_loop_count = 0;
+    let next_steps;
+    do {
+      try {
+        fill_layer_maps(taco_taco_map, layers.taco_taco, conditions);
+        fill_layer_maps(taco_tortilla_map, layers.taco_tortilla, conditions);
+        fill_layer_maps(tortilla_tortilla_map, layers.tortilla_tortilla, conditions);
+        next_steps = [
+          infer_next_steps(taco_taco_map, layers.taco_taco, lookup.taco_taco),
+          infer_next_steps(taco_tortilla_map, layers.taco_tortilla, lookup.taco_tortilla),
+          infer_next_steps(tortilla_tortilla_map, layers.tortilla_tortilla, lookup.tortilla_tortilla),
+        ].reduce((a, b) => a.concat(b), []);
+        // console.log("solver loop", inner_loop_count, next_steps);
+        next_steps.forEach(el => { conditions[el[0]] = el[1]; });
+        inner_loop_count++;
+      } catch (err) {
+        // console.log(recurse_count, "errors thrown");
+        return; // no solution on this branch
+      }
+    } while (next_steps.length > 0);
+    // console.log("inner loop", inner_loop_count);
 
-    console.log("solver loop", round, next_steps);
+    const zero_keys = Object.keys(conditions)
+      .map(key => conditions[key] === 0 ? key : undefined)
+      .filter(a => a !== undefined);
 
-    next_steps.forEach(el => { conditions[el[0]] = el[1]; });
-    round++;
-  } while (next_steps.length > 0);
+    if (zero_keys.length === 0) {
+      const stringified = JSON.stringify(conditions);
+      const hash = stringToHash(stringified);
+      if (hash in solutions) {
+        if (JSON.stringify(solutions[hash]) !== stringified) {
+          console.warn("hash function broken");
+        }
+      }
+      solutions[hash] = conditions;
+      return;
+    }
+    // console.log("zero_keys", zero_keys);
+    return zero_keys.map(key => [-1, 1].map(dir => {
+      const clone_conditions = JSON.parse(JSON.stringify(conditions));
+      const clone_layers = JSON.parse(JSON.stringify(layers));
+      clone_conditions[key] = dir;
+      return recurse(clone_conditions, clone_layers);
+    }));
+  };
 
-  return conditions;
+  recurse(start_conditions, start_layers);
+
+  console.log(recurse_count, "recursion count");
+
+  return Object.values(solutions);
 };
+
+const kabuto_test_file = conditions => Object.assign(conditions, { "0 1": 1, "0 3": -1, "0 4": -1, "0 5": 0, "0 8": 1, "0 9": 1, "0 10": -1, "0 11": -1, "0 14": 0, "0 15": -1, "0 17": 0, "1 2": -1, "1 3": -1, "1 4": -1, "1 5": -1, "1 6": -1, "1 7": -1, "1 8": 1, "1 9": 1, "1 10": -1, "1 11": -1, "1 12": -1, "1 13": -1, "1 14": -1, "1 15": -1, "1 16": -1, "1 17": -1, "2 5": 0, "2 6": -1, "2 7": -1, "2 8": 1, "2 9": 1, "2 12": -1, "2 13": -1, "2 14": 0, "2 16": -1, "2 17": 0, "3 4": 1, "3 5": 0, "3 8": 1, "3 9": 1, "3 10": -1, "3 11": -1, "3 14": 0, "3 15": -1, "3 17": 0, "4 5": 0, "4 8": 1, "4 9": 1, "4 10": -1, "4 11": -1, "4 14": 0, "4 15": -1, "4 17": 0, "5 6": 0, "5 7": 0, "5 8": 1, "5 9": 1, "5 10": 0, "5 11": 0, "5 12": 0, "5 13": 0, "5 14": 1, "5 15": 0, "5 16": 0, "5 17": 1, "6 7": 1, "6 8": 1, "6 9": 1, "6 12": -1, "6 13": -1, "6 14": 0, "6 16": -1, "6 17": 0, "7 8": 1, "7 9": 1, "7 12": -1, "7 13": -1, "7 14": 0, "7 16": -1, "7 17": 0, "8 9": 1, "8 10": -1, "8 11": -1, "8 12": -1, "8 13": -1, "8 14": -1, "8 15": -1, "8 16": -1, "8 17": -1, "9 10": -1, "9 11": -1, "9 12": -1, "9 13": -1, "9 14": -1, "9 15": -1, "9 16": -1, "9 17": -1, "10 11": -1, "10 14": 0, "10 15": -1, "10 17": 0, "11 14": 0, "11 15": -1, "11 17": 0, "12 13": 1, "12 14": 0, "12 16": -1, "12 17": 0, "13 14": 0, "13 16": -1, "13 17": 0, "14 15": 0, "14 16": 0, "14 17": 1, "15 17": 0, "16 17": 0});
+
 
 export default make_conditions;

@@ -97,6 +97,7 @@ export const make_unique_sets_from_self_relational_arrays = (matrix) => {
     return 1; // increment group # for next round
   }
   for (let row = 0, group = 0; row < matrix.length; row++) {
+    if (!(row in matrix)) { continue; }
     group += recurse(row, group);
   }
   return groups;
