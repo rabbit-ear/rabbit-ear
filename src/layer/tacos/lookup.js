@@ -31,6 +31,15 @@ const taco_tortilla_valid_states = ["112", "121", "212", "221"];
 // A-C and B-D are connected
 // (A,C) (B,D)
 const tortilla_tortilla_valid_states = ["11", "22"];
+// (A,B) (B,C) (C,A)
+const transitivity_valid_states = [
+  "112",
+  "121",
+  "122",
+  "211",
+  "212",
+  "221",
+];
 /**
  * @param {object[]} states, array of objects containing permutations (keys)
  *  and their values (solution is possible or not)
@@ -153,4 +162,5 @@ export default {
   taco_taco: make_lookup(taco_taco_valid_states),
   taco_tortilla: make_lookup(taco_tortilla_valid_states),
   tortilla_tortilla: make_lookup(tortilla_tortilla_valid_states),
+  transitivity: make_lookup(transitivity_valid_states),
 };

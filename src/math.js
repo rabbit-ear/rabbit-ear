@@ -1265,6 +1265,45 @@ const intersect_convex_polygon_line = (
     : sects;
 };
 
+const intersect_polygon_polygon = (polygon1, polygon2, epsilon = EPSILON) => {
+	var cp1, cp2, s, e;
+	const inside = (p) => {
+		return ((cp2[0] - cp1[0]) * (p[1] - cp1[1]))
+			> ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon);
+	};
+	const intersection = () => {
+		var dc = [ cp1[0] - cp2[0], cp1[1] - cp2[1] ],
+			dp = [ s[0] - e[0], s[1] - e[1] ],
+			n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
+			n2 = s[0] * e[1] - s[1] * e[0],
+			n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
+		return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+	};
+	var outputList = polygon1;
+	cp1 = polygon2[polygon2.length-1];
+	for (var j in polygon2) {
+		cp2 = polygon2[j];
+		var inputList = outputList;
+		outputList = [];
+		s = inputList[inputList.length - 1];
+		for (var i in inputList) {
+			e = inputList[i];
+			if (inside(e)) {
+				if (!inside(s)) {
+					outputList.push(intersection());
+				}
+				outputList.push(e);
+			}
+			else if (inside(s)) {
+				outputList.push(intersection());
+			}
+			s = e;
+		}
+		cp1 = cp2;
+	}
+	return outputList;
+};
+
 const intersect_param_form = {
   polygon: a => [a],
   rect: a => [a],
@@ -1275,6 +1314,7 @@ const intersect_param_form = {
 };
 const intersect_func = {
   polygon: {
+    polygon: intersect_polygon_polygon,
     line: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
     ray: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
     segment: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
@@ -2332,6 +2372,7 @@ math.core = Object.assign(Object.create(null),
   {
     enclose_convex_polygons_inclusive,
     intersect_convex_polygon_line,
+    intersect_polygon_polygon,
     intersect_circle_circle,
     intersect_circle_line,
     intersect_line_line,

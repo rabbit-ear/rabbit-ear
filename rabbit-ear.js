@@ -1239,6 +1239,44 @@
       ? uniqueIncludes
       : sects;
   };
+  const intersect_polygon_polygon = (polygon1, polygon2, epsilon = EPSILON) => {
+  	var cp1, cp2, s, e;
+  	const inside = (p) => {
+  		return ((cp2[0] - cp1[0]) * (p[1] - cp1[1]))
+  			> ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon);
+  	};
+  	const intersection = () => {
+  		var dc = [ cp1[0] - cp2[0], cp1[1] - cp2[1] ],
+  			dp = [ s[0] - e[0], s[1] - e[1] ],
+  			n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
+  			n2 = s[0] * e[1] - s[1] * e[0],
+  			n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
+  		return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+  	};
+  	var outputList = polygon1;
+  	cp1 = polygon2[polygon2.length-1];
+  	for (var j in polygon2) {
+  		cp2 = polygon2[j];
+  		var inputList = outputList;
+  		outputList = [];
+  		s = inputList[inputList.length - 1];
+  		for (var i in inputList) {
+  			e = inputList[i];
+  			if (inside(e)) {
+  				if (!inside(s)) {
+  					outputList.push(intersection());
+  				}
+  				outputList.push(e);
+  			}
+  			else if (inside(s)) {
+  				outputList.push(intersection());
+  			}
+  			s = e;
+  		}
+  		cp1 = cp2;
+  	}
+  	return outputList;
+  };
   const intersect_param_form = {
     polygon: a => [a],
     rect: a => [a],
@@ -1249,6 +1287,7 @@
   };
   const intersect_func = {
     polygon: {
+      polygon: intersect_polygon_polygon,
       line: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
       ray: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
       segment: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
@@ -2277,6 +2316,7 @@
     {
       enclose_convex_polygons_inclusive,
       intersect_convex_polygon_line,
+      intersect_polygon_polygon,
       intersect_circle_circle,
       intersect_circle_line,
       intersect_line_line,
@@ -6524,6 +6564,14 @@
   ];
   const taco_tortilla_valid_states = ["112", "121", "212", "221"];
   const tortilla_tortilla_valid_states = ["11", "22"];
+  const transitivity_valid_states = [
+    "112",
+    "121",
+    "122",
+    "211",
+    "212",
+    "221",
+  ];
   const check_state = (states, t, key) => {
     const A = Array.from(key).map(char => parseInt(char));
     if (A.filter(x => x === 0).length !== t) { return; }
@@ -6589,6 +6637,7 @@
     taco_taco: make_lookup(taco_taco_valid_states),
     taco_tortilla: make_lookup(taco_tortilla_valid_states),
     tortilla_tortilla: make_lookup(tortilla_tortilla_valid_states),
+    transitivity: make_lookup(transitivity_valid_states),
   };
 
   const classify_faces_pair = (pair) => {
@@ -6700,6 +6749,60 @@
     };
   };
 
+  const make_overlapping_face_trios = (graph, overlap_matrix, epsilon = 1e-6) => {
+    const faces_winding = make_faces_winding(graph);
+    const polygons = graph.faces_vertices
+      .map(face => face
+        .map(v => graph.vertices_coords[v]));
+    polygons.forEach((face, i) => {
+      if (!faces_winding[i]) { face.reverse(); }
+    });
+    const matrix = graph.faces_vertices.map(() => []);
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix.length; j++) {
+        if (!overlap_matrix[i][j]) { continue; }
+        const polygon = math.core.intersect_polygon_polygon(polygons[i], polygons[j]);
+        if (polygon.length !== 0) { matrix[i][j] = polygon; }
+      }
+    }
+    const trios = [];
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix.length; j++) {
+        if (!matrix[i][j]) { continue; }
+        for (let k = j + 1; k < matrix.length; k++) {
+          if (i === k || j === k) { continue; }
+          if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
+          const polygon = math.core.intersect_polygon_polygon(matrix[i][j], polygons[k]);
+          if (polygon.length !== 0) { trios.push([i, j, k].sort((a, b) => a - b)); }
+        }
+      }
+    }
+    return trios;
+  };
+  const filter_transitivity = (overlapping_face_trios, tacos_tortillas) => {
+    const tacos_trios = {};
+    tacos_tortillas.taco_taco.map(tacos => [
+      [tacos[0][0], tacos[0][1], tacos[1][0]],
+      [tacos[0][0], tacos[0][1], tacos[1][1]],
+      [tacos[0][0], tacos[1][0], tacos[1][1]],
+      [tacos[0][1], tacos[1][0], tacos[1][1]],
+    ])
+    .forEach(trios => trios
+      .map(trio => trio
+        .sort((a, b) => a - b)
+        .join(" "))
+      .forEach(key => { tacos_trios[key] = true; }));
+    tacos_tortillas.taco_tortilla.map(el => [
+      el.taco[0], el.taco[1], el.tortilla
+    ])
+    .map(trio => trio
+      .sort((a, b) => a - b)
+      .join(" "))
+    .forEach(key => { tacos_trios[key] = true; });
+    console.log("tacos_trios", tacos_trios);
+    return overlapping_face_trios
+      .filter(trio => tacos_trios[trio.join(" ")] === undefined);
+  };
   const stringToHash = (string) => {
     let hash = 0;
     for (let i = 0; i < string.length; i++) {
@@ -6777,6 +6880,11 @@
       if (key2 in start_conditions) { start_conditions[key2] = -relationship; }
     });
     const tacos_tortillas = make_tacos_tortillas(graph, epsilon);
+    const overlapping_face_trios = make_overlapping_face_trios(graph, overlap_matrix, epsilon);
+    console.log("tacos_tortillas", tacos_tortillas);
+    const transitivity_trios = filter_transitivity(overlapping_face_trios, tacos_tortillas);
+    console.log("overlapping_face_trios", overlapping_face_trios);
+    console.log("transitivity_trios", transitivity_trios);
     const taco_taco_pairs = tacos_tortillas.taco_taco.map(el => [
       [el[0][0], el[0][1]],
       [el[1][0], el[1][1]],
@@ -6794,17 +6902,26 @@
       [el[0][0], el[0][1]],
       [el[1][0], el[1][1]],
     ]);
+    const transitivity_pairs = transitivity_trios.map(el => [
+      [el[0], el[1]],
+      [el[1], el[2]],
+      [el[2], el[0]],
+    ]);
     const taco_taco_map = prepare_maps(taco_taco_pairs);
     const taco_tortilla_map = prepare_maps(taco_tortilla_pairs);
     const tortilla_tortilla_map = prepare_maps(tortilla_tortilla_pairs);
+    const transitivity_map = prepare_maps(transitivity_pairs);
     const start_layers = {
       taco_taco: taco_taco_pairs.map(el => Array(el.length).fill(0)),
       taco_tortilla: taco_tortilla_pairs.map(el => Array(el.length).fill(0)),
       tortilla_tortilla: tortilla_tortilla_pairs.map(el => Array(el.length).fill(0)),
+      transitivity: transitivity_pairs.map(el => Array(el.length).fill(0)),
     };
     const solutions = {};
     let recurse_count = 0;
     const recurse = (conditions, layers) => {
+      if (recurse_count < 10)
+        console.log(recurse_count, "recurse", Object.values(conditions).filter(n => n === 0).length);
       recurse_count++;
       let inner_loop_count = 0;
       let next_steps;
@@ -6813,14 +6930,16 @@
           fill_layer_maps(taco_taco_map, layers.taco_taco, conditions);
           fill_layer_maps(taco_tortilla_map, layers.taco_tortilla, conditions);
           fill_layer_maps(tortilla_tortilla_map, layers.tortilla_tortilla, conditions);
+          fill_layer_maps(transitivity_map, layers.transitivity, conditions);
           next_steps = [
             infer_next_steps(taco_taco_map, layers.taco_taco, lookup.taco_taco),
             infer_next_steps(taco_tortilla_map, layers.taco_tortilla, lookup.taco_tortilla),
             infer_next_steps(tortilla_tortilla_map, layers.tortilla_tortilla, lookup.tortilla_tortilla),
+            infer_next_steps(transitivity_map, layers.transitivity, lookup.transitivity),
           ].reduce((a, b) => a.concat(b), []);
           next_steps.forEach(el => { conditions[el[0]] = el[1]; });
           inner_loop_count++;
-        } catch (err) {
+        } catch (error) {
           return;
         }
       } while (next_steps.length > 0);
@@ -6838,12 +6957,6 @@
         solutions[hash] = conditions;
         return;
       }
-      return zero_keys.map(key => [-1, 1].map(dir => {
-        const clone_conditions = JSON.parse(JSON.stringify(conditions));
-        const clone_layers = JSON.parse(JSON.stringify(layers));
-        clone_conditions[key] = dir;
-        return recurse(clone_conditions, clone_layers);
-      }));
     };
     recurse(start_conditions, start_layers);
     console.log(recurse_count, "recursion count");
