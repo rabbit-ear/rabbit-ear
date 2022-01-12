@@ -32,7 +32,7 @@ import {
   make_vertices_coords_folded,
   make_face_spanning_tree,
 } from "../graph/make";
-import make_faces_layer from "../graph/make_faces_layer";
+// import make_faces_layer from "../graph/make_faces_layer";
 import explode_faces from "../graph/explode_faces";
 import {
   nearest_vertex,

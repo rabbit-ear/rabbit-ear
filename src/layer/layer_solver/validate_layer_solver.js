@@ -1,7 +1,7 @@
 import math from "../../math";
 import { fn_def } from "../../general/functions";
-import validate_taco_tortilla_strip from "../tacos/validate_taco_tortilla_strip";
-import validate_taco_taco_face_pairs from "../tacos/validate_taco_taco_face_pairs";
+import validate_taco_tortilla_strip from "./validate_taco_tortilla_strip";
+import validate_taco_taco_face_pairs from "./validate_taco_taco_face_pairs";
 /**
  * @description given a layers_face (ensure that it is flat/only numbers)
  * convert a stack of taco_faces in the form of [[f1,f2], [f3,f4]]
