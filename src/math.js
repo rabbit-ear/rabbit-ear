@@ -925,7 +925,7 @@ const centroid = (points) => {
   }).reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
     .map(c => c * sixthArea);
 };
-const enclosing_rectangle = (points) => {
+const enclosing_box = (points) => {
   const mins = Array(points[0].length).fill(Infinity);
   const maxs = Array(points[0].length).fill(-Infinity);
   points.forEach(point => point
@@ -934,7 +934,11 @@ const enclosing_rectangle = (points) => {
       if (c > maxs[i]) { maxs[i] = c; }
     }));
   const lengths = maxs.map((max, i) => max - mins[i]);
-  return get_rect_params(mins[0], mins[1], lengths[0], lengths[1]);
+  return [mins, lengths];
+};
+const enclosing_rectangle = (points) => {
+  const box = enclosing_box(points);
+  return get_rect_params(box[0][0], box[0][1], box[1][0], box[1][1]);
 };
 const angle_array = count => Array
   .from(Array(Math.floor(count)))
@@ -1110,6 +1114,7 @@ var geometry = /*#__PURE__*/Object.freeze({
   circumcircle: circumcircle,
   signed_area: signed_area,
   centroid: centroid,
+  enclosing_box: enclosing_box,
   enclosing_rectangle: enclosing_rectangle,
   make_regular_polygon: make_regular_polygon,
   make_regular_polygon_side_aligned: make_regular_polygon_side_aligned,

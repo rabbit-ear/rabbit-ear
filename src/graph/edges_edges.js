@@ -77,7 +77,8 @@ const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
 };
 /**
  * @desecription find all edges which cross other edges. "cross" meaning
- * the segment overlaps the other segment and they are NOT parallel.
+ * the segment overlaps the other segment, excluding the epsilon space
+ * around the endpoints, and they are NOT parallel.
  */
 export const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
   if (!edges_vector) {

@@ -28,9 +28,14 @@ const taco_taco_valid_states = [
 // A-C is the taco, B is the tortilla
 // (A,C) (A,B) (B,C)
 const taco_tortilla_valid_states = ["112", "121", "212", "221"];
-// A-C and B-D are connected
+
+// A-B and C-D are connected, A is above/below C, B is above/below D
 // (A,C) (B,D)
+// in the case of tortilla-crossing face, the crossing face
+// appears twice, the same index appears in place of both C and D
 const tortilla_tortilla_valid_states = ["11", "22"];
+
+// const tortilla_face_valid_states = [];
 // (A,B) (B,C) (C,A)
 const transitivity_valid_states = [
   "112",

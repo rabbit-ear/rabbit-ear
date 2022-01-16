@@ -128,6 +128,17 @@ Graph.prototype.clear = function () {
   // avoiding all "file_" keys, but file_frames will contain geometry
   delete this.file_frames;
 };
+Graph.prototype.unitize = function () {
+  if (!this.vertices_coords) { return; }
+  // todo: check if 2D or 3D
+  const box = math.core.enclosing_box(this.vertices_coords);
+  const scale = box[1].map(n => 1 / n);
+  const origin = box[0];
+  this.vertices_coords = this.vertices_coords
+    .map(coord => math.core.subtract(coord, origin))
+    .map(coord => coord.map((n, i) => n * scale[i]));
+  return this;
+};
 Graph.prototype.folded = function () {
   const vertices_coords = make_vertices_coords_folded(this, ...arguments);
   // const faces_layer = this["faces_re:layer"]

@@ -1,6 +1,21 @@
 import lookup from "./lookup";
 import { boolean_matrix_to_unique_index_pairs } from "../../general/arrays";
 
+// const set_pleat_walk_paths = (conditions) => {
+//   console.log("BEFORE", JSON.parse(JSON.stringify(conditions)));
+//   const pairs = walk_pleat_paths(graph, undefined, epsilon);
+//   console.log("pairs", pairs);
+//   pairs
+//     .map(pair => pair.join(" "))
+//     .filter(key => conditions[key] === 0)
+//     .forEach(key => { conditions[key] = 1; });
+//   pairs
+//     .map(pair => pair.slice().reverse().join(" "))
+//     .filter(key => conditions[key] === 0)
+//     .forEach(key => { conditions[key] = -1; });
+//   console.log("AFTER", JSON.parse(JSON.stringify(conditions)));  
+// };
+
 const zero_count = obj => Object.keys(obj)
   .filter(key => obj[key] === 0)
   .length;
