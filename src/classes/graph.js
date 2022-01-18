@@ -30,6 +30,7 @@ import transform from "../graph/affine";
 import {
   make_vertices_vertices_vector,
   make_vertices_coords_folded,
+  make_vertices_coords_flat_folded,
   make_face_spanning_tree,
 } from "../graph/make";
 // import make_faces_layer from "../graph/make_faces_layer";
@@ -153,6 +154,17 @@ Graph.prototype.folded = function () {
       frame_classes: [S._foldedForm]
     }));
   // delete anyt arrays that becomes incorrect due to folding
+  delete copy.edges_vector;
+  return copy;
+};
+Graph.prototype.flatFolded = function () {
+  const vertices_coords = make_vertices_coords_flat_folded(this, ...arguments);
+  const copy = Object.assign(
+    Object.create(this.__proto__),
+    Object.assign(clone(this), {
+      vertices_coords,
+      frame_classes: [S._foldedForm]
+    }));
   delete copy.edges_vector;
   return copy;
 };

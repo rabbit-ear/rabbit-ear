@@ -214,6 +214,56 @@ export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, e
     .map(coord => math.core.resize(3, coord))
     .map((coord, i) => math.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
 };
+export const make_vertices_coords_flat_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
+  if (!edges_foldAngle) {
+    if (edges_assignment) {
+      edges_foldAngle = make_edges_foldAngle({ edges_assignment });
+    } else {
+      // if no edges_foldAngle data exists, everyone gets identity matrix
+      edges_foldAngle = Array(edges_vertices.length).fill(0);
+    }
+  }
+  // const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+  const vertices_coords_folded = [];
+  faces_vertices[root_face]
+    .forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
+  const faces_flipped = [];
+  faces_flipped[root_face] = false;
+  make_face_spanning_tree({ edges_vertices, faces_vertices, faces_faces }, root_face)
+    .slice(1) // remove the first level, it has no parent face
+    .forEach((level, l) => level
+      .forEach(entry => {
+        // coordinates and vectors of the reflecting edge
+        const coords = edges_vertices[entry.edge].map(v => vertices_coords_folded[v]);
+        if (coords[0] === undefined || coords[1] === undefined) { return; }
+        const coords_cp = edges_vertices[entry.edge].map(v => vertices_coords[v]);
+        const vector_cp = math.core.normalize2(math.core.subtract2(coords_cp[1], coords_cp[0]));
+        const origin_cp = coords_cp[0];
+        const normal_cp = math.core.rotate90(vector_cp);
+        const foldAngle = edges_foldAngle[entry.edge];
+        faces_flipped[entry.face] = (foldAngle > 0 || foldAngle < 0)
+          ? !faces_flipped[entry.parent]
+          : faces_flipped[entry.parent];
+        const vector_folded = math.core.normalize2(math.core.subtract2(coords[1], coords[0]));
+        const origin_folded = coords[0];    
+        const normal_folded = faces_flipped[entry.face]
+          ? math.core.rotate270(vector_folded)
+          : math.core.rotate90(vector_folded);
+        faces_vertices[entry.face]
+          .filter(v => vertices_coords_folded[v] === undefined)
+          .forEach(v => {
+            const coords_cp = vertices_coords[v];
+            const to_point = math.core.subtract2(coords_cp, origin_cp);
+            const project_norm = math.core.dot(to_point, normal_cp);
+            const project_line = math.core.dot(to_point, vector_cp);
+            const walk_up = math.core.scale2(vector_folded, project_line);
+            const walk_perp = math.core.scale2(normal_folded, project_norm);
+            const folded_coords = math.core.add2(math.core.add2(origin_folded, walk_up), walk_perp);
+            vertices_coords_folded[v] = folded_coords;
+          })
+      }));
+  return vertices_coords_folded;
+};
 /**
  *
  *    EDGES
@@ -449,11 +499,13 @@ export const get_face_face_shared_vertices = (face_a_vertices, face_b_vertices) 
 // except for the first level. the root level has no reference to the
 // parent face, or the edge_vertices shared between them
 // root_face will become the root node
-export const make_face_spanning_tree = ({ faces_vertices, faces_faces }, root_face = 0) => {
+export const make_face_spanning_tree = ({ edges_vertices, faces_vertices, faces_faces }, root_face = 0) => {
   if (!faces_faces) {
     faces_faces = make_faces_faces({ faces_vertices });
   }
   if (faces_faces.length === 0) { return []; }
+
+  const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
   const tree = [[{ face: root_face }]];
   const visited_faces = {};
   visited_faces[root_face] = true;
@@ -481,7 +533,10 @@ export const make_face_spanning_tree = ({ faces_vertices, faces_faces }, root_fa
         faces_vertices[el.face],
         faces_vertices[el.parent]
       )).forEach((ev, i) => {
-        next_level[i].edge_vertices = ev.slice(0, 2);
+        const edge_vertices = ev.slice(0, 2);
+        const edgeKey = edge_vertices.join(" ");
+        next_level[i].edge_vertices = edge_vertices;
+        next_level[i].edge = edge_map[edgeKey];
       });
     // append this next_level to the master tree
     tree[tree.length] = next_level;
@@ -510,20 +565,21 @@ export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldA
       edges_foldAngle = Array(edges_vertices.length).fill(0);
     }
   }
-  const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+  // const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
   const faces_matrix = faces_vertices.map(() => math.core.identity3x4);
-  make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
+  make_face_spanning_tree({ edges_vertices, faces_vertices, faces_faces }, root_face)
     .slice(1) // remove the first level, it has no parent face
     .forEach(level => level
       .forEach((entry) => {
-        const verts = entry.edge_vertices.map(v => vertices_coords[v]);
+        // const coords = entry.edge_vertices.map(v => vertices_coords[v]);
+        const coords = edges_vertices[entry.edge].map(v => vertices_coords[v]);
 //        const edgeKey = entry.edge_vertices.sort((a, b) => a - b).join(" ");
-        const edgeKey = entry.edge_vertices.join(" ");
-        const edge = edge_map[edgeKey];
+        // const edgeKey = entry.edge_vertices.join(" ");
+        // const edge = edge_map[edgeKey];
         const local_matrix = math.core.make_matrix3_rotate(
-          edges_foldAngle[edge] * Math.PI / 180, // rotation angle
-          math.core.subtract(...math.core.resize_up(verts[1], verts[0])), // line-vector
-          verts[0], // line-origin
+          edges_foldAngle[entry.edge] * Math.PI / 180, // rotation angle
+          math.core.subtract(...math.core.resize_up(coords[1], coords[0])), // line-vector
+          coords[0], // line-origin
         );
         faces_matrix[entry.face] = math.core
           .multiply_matrices3(faces_matrix[entry.parent], local_matrix);
@@ -552,10 +608,10 @@ export const make_faces_coloring_from_matrix = ({ faces_matrix }) => faces_matri
  * true/false: which face shares color with root face
  * the root face (and any similar-color face) will be marked as true
  */
-export const make_faces_coloring = function ({ faces_vertices, faces_faces }, root_face = 0) {
+export const make_faces_coloring = function ({ edges_vertices, faces_vertices, faces_faces }, root_face = 0) {
   const coloring = [];
   coloring[root_face] = true;
-  make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
+  make_face_spanning_tree({ edges_vertices, faces_vertices, faces_faces }, root_face)
     .forEach((level, i) => level
       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
   return coloring;
