@@ -28,7 +28,7 @@ const is_boundary = { "B": true, "b": true };
  * each solution is an ordering of faces_order, where each index is a
  * face and each value is the layer the face occupies.
  */
-const layer_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+const single_vertex_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
   const faces_folded = fold_strip_with_assignments(ordered_scalars, assignments);
   const faces_updown = assignments_to_faces_vertical(assignments);
   // todo: we only really need to check index [0] and [length-1]
@@ -134,4 +134,4 @@ const layer_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON)
   return recurse().map(invert_map);
 };
 
-export default layer_solver;
+export default single_vertex_solver;

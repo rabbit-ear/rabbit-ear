@@ -1,44 +1,3 @@
-import math from "../../math";
-import solver from "./solver";
-import make_tacos_tortillas from "../tacos/make_tacos_tortillas";
-import make_transitivity_trios from "../tacos/make_transitivity_trios";
-import make_faces_faces_overlap from "../../graph/make_faces_faces_overlap";
-import {
-  make_faces_winding
-} from "../../graph/make";
-/**
- * @description given a full set of trios of faces which overlap each other,
- * remove the three which are already covered in the taco-taco case.
- */
-const filter_transitivity = (transitivity_trios, tacos_tortillas) => {
-  // using the list of all taco-taco conditions, store all permutations of
-  // the three faces (sorted low to high) into a dictionary for quick lookup.
-  // store them as space-separated strings.
-  const tacos_trios = {};
-  tacos_tortillas.taco_taco.map(tacos => [
-    [tacos[0][0], tacos[0][1], tacos[1][0]], // a b c
-    [tacos[0][0], tacos[0][1], tacos[1][1]], // a b d
-    [tacos[0][0], tacos[1][0], tacos[1][1]], // a c d
-    [tacos[0][1], tacos[1][0], tacos[1][1]], // b c d
-  ])
-  .forEach(trios => trios
-    .map(trio => trio
-      .sort((a, b) => a - b)
-      .join(" "))
-    .forEach(key => { tacos_trios[key] = true; }));
-  // convert all taco-tortilla cases into similarly-formatted,
-  // space-separated strings.
-  tacos_tortillas.taco_tortilla.map(el => [
-    el.taco[0], el.taco[1], el.tortilla
-  ])
-  .map(trio => trio
-    .sort((a, b) => a - b)
-    .join(" "))
-  .forEach(key => { tacos_trios[key] = true; });
-  // return the filtered set of trios.
-  return transitivity_trios
-    .filter(trio => tacos_trios[trio.join(" ")] === undefined);
-};
 /**
  * @description Each taco/tortilla event involves the relationship between
  * 3 or 4 faces. The lookup table encodes the relationship between all
@@ -100,7 +59,7 @@ const refactor_pairs = (tacos_tortillas, transitivity_trios) => {
  * "face_keys": array of face keys (length 6,3,2,3), like "3 17".
  * "keys_ordered": matching-length array noting if the pair had to be flipped.
  */
-const prepare_maps = tacos_face_pairs => tacos_face_pairs
+const make_maps = tacos_face_pairs => tacos_face_pairs
   .map(face_pairs => {
     const keys_ordered = face_pairs.map(pair => pair[0] < pair[1]);
     const face_keys = face_pairs.map((pair, i) => keys_ordered[i]
@@ -109,27 +68,17 @@ const prepare_maps = tacos_face_pairs => tacos_face_pairs
     return { face_keys, keys_ordered };
   });
 
-const solve_layer_order = (graph, epsilon = 1e-6) => {
-  const overlap_matrix = make_faces_faces_overlap(graph, epsilon);
-  const faces_winding = make_faces_winding(graph);
-  const tacos_tortillas = make_tacos_tortillas(graph, epsilon);
-  const unfiltered_trios = make_transitivity_trios(graph, overlap_matrix, faces_winding, epsilon);
-  const transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
+const make_taco_maps = (tacos_tortillas, transitivity_trios) => {
   const pairs = refactor_pairs(tacos_tortillas, transitivity_trios);
-  // keys_ordered answers "is the first face < than second face" regarding
-  // how this will be used to reference the conditions lookup table.
-  const maps = {
-    taco_taco: prepare_maps(pairs.taco_taco),
-    taco_tortilla: prepare_maps(pairs.taco_tortilla),
-    tortilla_tortilla: prepare_maps(pairs.tortilla_tortilla),
-    transitivity: prepare_maps(pairs.transitivity),
-  };
-  // console.log("tacos_tortillas", tacos_tortillas);
-  // console.log("unfiltered_trios", unfiltered_trios);
-  // console.log("transitivity_trios", transitivity_trios);
   // console.log("pairs", pairs);
-  // console.log("maps", maps);
-  return solver(graph, maps, overlap_matrix, faces_winding);
+  // keys_ordered answers "is the first face < than second face?" regarding
+  // how this will be used to reference the conditions lookup table.
+  return {
+    taco_taco: make_maps(pairs.taco_taco),
+    taco_tortilla: make_maps(pairs.taco_tortilla),
+    tortilla_tortilla: make_maps(pairs.tortilla_tortilla),
+    transitivity: make_maps(pairs.transitivity),
+  };
 };
 
-export default solve_layer_order;
+export default make_taco_maps;
