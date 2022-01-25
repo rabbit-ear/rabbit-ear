@@ -194,83 +194,12 @@ export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edge
     .map(vectors => vectors.length === 1 // leaf node
       ? [math.core.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
       : math.core.counter_clockwise_sectors2(vectors));
-
-export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
-  // if (!faces_matrix || root_face !== undefined) {
-    faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
-  // }
-  if (!vertices_faces) {
-    vertices_faces = make_vertices_faces({ faces_vertices });
-  }
-  // assign one matrix to every vertex from faces, identity matrix if none exist
-  const vertices_matrix = vertices_faces
-    .map(faces => faces
-      .filter(a => a != null) // must filter "undefined" and "null"
-      .shift()) // get any face from the list
-    .map(face => face === undefined
-      ? math.core.identity3x4
-      : faces_matrix[face]);
-  return vertices_coords
-    .map(coord => math.core.resize(3, coord))
-    .map((coord, i) => math.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
-};
-export const make_vertices_coords_flat_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face = 0) => {
-  if (!edges_foldAngle) {
-    if (edges_assignment) {
-      edges_foldAngle = make_edges_foldAngle({ edges_assignment });
-    } else {
-      // if no edges_foldAngle data exists, everyone gets identity matrix
-      edges_foldAngle = Array(edges_vertices.length).fill(0);
-    }
-  }
-  // const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
-  const vertices_coords_folded = [];
-  faces_vertices[root_face]
-    .forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
-  const faces_flipped = [];
-  faces_flipped[root_face] = false;
-  make_face_spanning_tree({ edges_vertices, faces_vertices, faces_faces }, root_face)
-    .slice(1) // remove the first level, it has no parent face
-    .forEach((level, l) => level
-      .forEach(entry => {
-        // coordinates and vectors of the reflecting edge
-        const coords = edges_vertices[entry.edge].map(v => vertices_coords_folded[v]);
-        if (coords[0] === undefined || coords[1] === undefined) { return; }
-        const coords_cp = edges_vertices[entry.edge].map(v => vertices_coords[v]);
-        const vector_cp = math.core.normalize2(math.core.subtract2(coords_cp[1], coords_cp[0]));
-        const origin_cp = coords_cp[0];
-        const normal_cp = math.core.rotate90(vector_cp);
-        const foldAngle = edges_foldAngle[entry.edge];
-        faces_flipped[entry.face] = (foldAngle > 0 || foldAngle < 0)
-          ? !faces_flipped[entry.parent]
-          : faces_flipped[entry.parent];
-        const vector_folded = math.core.normalize2(math.core.subtract2(coords[1], coords[0]));
-        const origin_folded = coords[0];    
-        const normal_folded = faces_flipped[entry.face]
-          ? math.core.rotate270(vector_folded)
-          : math.core.rotate90(vector_folded);
-        faces_vertices[entry.face]
-          .filter(v => vertices_coords_folded[v] === undefined)
-          .forEach(v => {
-            const coords_cp = vertices_coords[v];
-            const to_point = math.core.subtract2(coords_cp, origin_cp);
-            const project_norm = math.core.dot(to_point, normal_cp);
-            const project_line = math.core.dot(to_point, vector_cp);
-            const walk_up = math.core.scale2(vector_folded, project_line);
-            const walk_perp = math.core.scale2(normal_folded, project_norm);
-            const folded_coords = math.core.add2(math.core.add2(origin_folded, walk_up), walk_perp);
-            vertices_coords_folded[v] = folded_coords;
-          })
-      }));
-  return vertices_coords_folded;
-};
 /**
  *
  *    EDGES
  *
  */
 // export const make_edges_vertices = ({ faces_vertices }) => { };
-
 /**
  * @param {object} FOLD object, with entries "edges_vertices", "vertices_edges".
  * @returns {number[][]} each entry relates to an edge, each array contains indices
@@ -385,7 +314,6 @@ export const make_edges_coords_min_max_inclusive = (graph, epsilon = math.core.E
       .map((vec, i) => vec
         .map(n => n + ep[i])));
 };
-
 /**
  *
  *    FACES
@@ -413,10 +341,10 @@ export const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices
 };
 
 // without sector detection, this could be simplified so much that it only uses vertices_vertices.
-export const make_faces_vertices = graph => make_planar_faces(graph)
+export const make_planar_faces_vertices = graph => make_planar_faces(graph)
   .map(face => face.vertices);
 
-export const make_faces_edges = graph => make_planar_faces(graph)
+export const make_planar_faces_edges = graph => make_planar_faces(graph)
   .map(face => face.edges);
 
 const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
@@ -466,167 +394,6 @@ export const make_faces_faces = ({ faces_vertices }) => {
   return faces_faces;
 };
 
-// const get_face_face_shared_vertices = (graph, face0, face1) => graph
-//   .faces_vertices[face0]
-//   .filter(v => graph.faces_vertices[face1].indexOf(v) !== -1)
-
-/**
- * @param {number[]}, list of vertex indices. one entry from faces_vertices
- * @param {number[]}, list of vertex indices. one entry from faces_vertices
- * @returns {number[]}, indices of vertices that are shared between faces
- *  and keep the vertices in the same order as the winding order of face a.
- */
-export const get_face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
-  // build a quick lookup table: T/F is a vertex in face B
-  const hash = {};
-  face_b_vertices.forEach((v) => { hash[v] = true; });
-  // make a copy of face A containing T/F, if the vertex is shared in face B
-  const match = face_a_vertices.map(v => hash[v] ? true : false);
-  // filter and keep only the shared vertices.
-  const shared_vertices = [];
-  const notShared = match.indexOf(false); // -1 if no match, code below still works
-  // before we filter the array we just need to cover the special case that
-  // the shared edge starts near the end of the array and wraps around
-  for (let i = notShared + 1; i < match.length; i += 1) {
-    if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
-  }
-  for (let i = 0; i < notShared; i += 1) {
-    if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
-  }
-  return shared_vertices;
-};
-// each element will have
-// except for the first level. the root level has no reference to the
-// parent face, or the edge_vertices shared between them
-// root_face will become the root node
-export const make_face_spanning_tree = ({ edges_vertices, faces_vertices, faces_faces }, root_face = 0) => {
-  if (!faces_faces) {
-    faces_faces = make_faces_faces({ faces_vertices });
-  }
-  if (faces_faces.length === 0) { return []; }
-
-  const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
-  const tree = [[{ face: root_face }]];
-  const visited_faces = {};
-  visited_faces[root_face] = true;
-  do {
-    // iterate the previous level's faces and gather their adjacent faces
-    const next_level_with_duplicates = tree[tree.length - 1]
-      .map(current => faces_faces[current.face]
-        .map(face => ({ face, parent: current.face })))
-      .reduce((a, b) => a.concat(b), []);
-    // at this point its likely many faces are duplicated either because:
-    // 1. they were already visited in previous levels
-    // 2. the same face was adjacent to a few different faces from this step
-    const dup_indices = {};
-    next_level_with_duplicates.forEach((el, i) => {
-      if (visited_faces[el.face]) { dup_indices[i] = true; }
-      visited_faces[el.face] = true;
-    });
-    // unqiue set of next level faces
-    const next_level = next_level_with_duplicates
-      .filter((_, i) => !dup_indices[i]);
-    // set next_level's edge_vertices
-    // we cannot depend on faces being convex and only sharing 2 vertices in common. if there are more than 2 edges, let's hope they are collinear. either way, grab the first 2 vertices if there are more.
-    next_level
-      .map(el => get_face_face_shared_vertices(
-        faces_vertices[el.face],
-        faces_vertices[el.parent]
-      )).forEach((ev, i) => {
-        const edge_vertices = ev.slice(0, 2);
-        const edgeKey = edge_vertices.join(" ");
-        next_level[i].edge_vertices = edge_vertices;
-        next_level[i].edge = edge_map[edgeKey];
-      });
-    // append this next_level to the master tree
-    tree[tree.length] = next_level;
-  } while (tree[tree.length - 1].length > 0);
-  if (tree.length > 0 && tree[tree.length - 1].length === 0) {
-    tree.pop();
-  }
-  return tree;
-};
-/**
- * This traverses an face-adjacency tree (edge-adjacent faces),
- * and recursively applies the affine transform that represents a fold
- * across the edge between the faces
- *
- * Flat/Mark creases are ignored!
- * the difference between the matrices of two faces separated by
- * a mark crease is the identity matrix.
- */
-// { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
-export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
-  if (!edges_foldAngle) {
-    if (edges_assignment) {
-      edges_foldAngle = make_edges_foldAngle({ edges_assignment });
-    } else {
-      // if no edges_foldAngle data exists, everyone gets identity matrix
-      edges_foldAngle = Array(edges_vertices.length).fill(0);
-    }
-  }
-  // const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
-  const faces_matrix = faces_vertices.map(() => math.core.identity3x4);
-  make_face_spanning_tree({ edges_vertices, faces_vertices, faces_faces }, root_face)
-    .slice(1) // remove the first level, it has no parent face
-    .forEach(level => level
-      .forEach((entry) => {
-        // const coords = entry.edge_vertices.map(v => vertices_coords[v]);
-        const coords = edges_vertices[entry.edge].map(v => vertices_coords[v]);
-//        const edgeKey = entry.edge_vertices.sort((a, b) => a - b).join(" ");
-        // const edgeKey = entry.edge_vertices.join(" ");
-        // const edge = edge_map[edgeKey];
-        const local_matrix = math.core.make_matrix3_rotate(
-          edges_foldAngle[entry.edge] * Math.PI / 180, // rotation angle
-          math.core.subtract(...math.core.resize_up(coords[1], coords[0])), // line-vector
-          coords[0], // line-origin
-        );
-        faces_matrix[entry.face] = math.core
-          .multiply_matrices3(faces_matrix[entry.parent], local_matrix);
-          // to build the inverse matrix, switch these two parameters
-          // .multiply_matrices3(local_matrix, faces_matrix[entry.parent]);
-      }));
-  return faces_matrix;
-};
-
 export const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertices
   .map(fv => fv.map(v => vertices_coords[v]))
   .map(coords => math.core.centroid(coords));
-
-/**
- * this face coloring skips marks joining the two faces separated by it.
- * it relates directly to if a face is flipped or not (determinant > 0)
- */
-export const make_faces_coloring_from_matrix = ({ faces_matrix }) => faces_matrix
-  .map(m => m[0] * m[4] - m[1] * m[3])
-  .map(c => c >= 0);
-// the old 2D matrix version
-// export const make_faces_coloring = ({ faces_matrix }) => faces_matrix
-//   .map(m => m[0] * m[3] - m[1] * m[2])
-//   .map(c => c >= 0);
-/**
- * true/false: which face shares color with root face
- * the root face (and any similar-color face) will be marked as true
- */
-export const make_faces_coloring = function ({ edges_vertices, faces_vertices, faces_faces }, root_face = 0) {
-  const coloring = [];
-  coloring[root_face] = true;
-  make_face_spanning_tree({ edges_vertices, faces_vertices, faces_faces }, root_face)
-    .forEach((level, i) => level
-      .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
-  return coloring;
-};
-// cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
-/**
- * @returns {boolean} true if a face is counter-clockwise. this should also
- * mean a true face is upright, false face is flipped.
- */
-export const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
-  return faces_vertices
-    .map(vertices => vertices
-      .map(v => vertices_coords[v])
-      .map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
-      .map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]) )
-      .reduce((a, b) => a + b, 0))
-    .map(face => face < 0);
-};

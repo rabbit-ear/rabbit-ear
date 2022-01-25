@@ -4,12 +4,14 @@
 // single vertex
 import maekawa_assignments from "./maekawa_assignments"
 import fold_angles4 from "./fold_angles4";
-import * as kawasaki from "./kawasaki";
+import * as kawasaki_math from "./kawasaki_math";
+import * as kawasaki_graph from "./kawasaki_graph";
 
 export default Object.assign(Object.create(null), {
 	maekawa_assignments,
 	fold_angles4,
 },
-	kawasaki,
+	kawasaki_math,
+	kawasaki_graph,
 );
 

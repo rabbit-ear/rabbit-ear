@@ -1,7 +1,7 @@
 import table from "./table";
 import complete_suggestions_loop from "./complete_suggestions_loop";
 import hashCode from "../../general/hashCode";
-import { unsigned_to_signed_layers } from "./general";
+import { unsigned_to_signed_conditions } from "./general";
 
 const count_zeros = conditions => Object
   .keys(conditions)
@@ -127,7 +127,7 @@ const solver_single = (graph, maps, conditions) => {
   } while (solution === undefined);
 
   // convert solutions from (1,2) to (+1,-1)
-  unsigned_to_signed_layers(solution);
+  unsigned_to_signed_conditions(solution);
 
   // console.log("solutions", solutions);
   // console.log("successes_hash", successes_hash);

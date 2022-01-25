@@ -1,7 +1,7 @@
 import table from "./table";
 import complete_suggestions_loop from "./complete_suggestions_loop";
 import hashCode from "../../general/hashCode";
-import { unsigned_to_signed_layers } from "./general";
+import { unsigned_to_signed_conditions } from "./general";
 
 const taco_types = Object.freeze(Object.keys(table));
 
@@ -159,9 +159,9 @@ const recursive_solver = (graph, maps, conditions_start) => {
   // algorithm is done!
   // convert solutions from (1,2) to (+1,-1)
   for (let i = 0; i < solutions.length; i++) {
-    unsigned_to_signed_layers(solutions[i]);
+    unsigned_to_signed_conditions(solutions[i]);
   }
-  unsigned_to_signed_layers(solutions.certain);
+  unsigned_to_signed_conditions(solutions.certain);
   // console.log("solutions", solutions);
   // console.log("successes_hash", successes_hash);
   // console.log("avoid", avoid);

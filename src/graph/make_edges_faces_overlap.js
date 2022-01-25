@@ -1,8 +1,8 @@
 import math from "../math";
 import {
   make_edges_vector,
-  make_faces_winding
 } from "./make";
+import { make_faces_winding } from "./faces_winding";
 
 const make_edges_subset_faces_overlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, edges, epsilon) => {
 };

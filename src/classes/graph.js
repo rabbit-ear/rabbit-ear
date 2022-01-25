@@ -28,11 +28,11 @@ import {
 } from "../graph/boundary";
 import transform from "../graph/affine";
 import {
-  make_vertices_vertices_vector,
   make_vertices_coords_folded,
   make_vertices_coords_flat_folded,
-  make_face_spanning_tree,
-} from "../graph/make";
+} from "../graph/vertices_coords_folded";
+import { make_face_spanning_tree } from "../graph/face_spanning_tree";
+import { multiply_vertices_faces_matrix2 } from "../graph/faces_matrix";
 // import make_faces_layer from "../graph/make_faces_layer";
 import explode_faces from "../graph/explode_faces";
 import {
@@ -129,6 +129,7 @@ Graph.prototype.clear = function () {
   // avoiding all "file_" keys, but file_frames will contain geometry
   delete this.file_frames;
 };
+// todo: broken. squishes
 Graph.prototype.unitize = function () {
   if (!this.vertices_coords) { return; }
   // todo: check if 2D or 3D
@@ -141,32 +142,33 @@ Graph.prototype.unitize = function () {
   return this;
 };
 Graph.prototype.folded = function () {
-  const vertices_coords = make_vertices_coords_folded(this, ...arguments);
+  const vertices_coords = this.faces_matrix2
+    ? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
+    : make_vertices_coords_folded(this, ...arguments);
   // const faces_layer = this["faces_re:layer"]
   //   ? this["faces_re:layer"]
   //   : make_faces_layer(this, arguments[0], 0.001);
-  const copy = Object.assign(
-    // Object.create(Graph.prototype),
+  return Object.assign(
     Object.create(this.__proto__),
     Object.assign(clone(this), {
       vertices_coords,
       // "faces_re:layer": faces_layer,
       frame_classes: [S._foldedForm]
     }));
-  // delete anyt arrays that becomes incorrect due to folding
-  delete copy.edges_vector;
-  return copy;
+  // delete any arrays that becomes incorrect due to folding
+  // delete copy.edges_vector;
+  // return copy;
 };
 Graph.prototype.flatFolded = function () {
-  const vertices_coords = make_vertices_coords_flat_folded(this, ...arguments);
-  const copy = Object.assign(
+  const vertices_coords = this.faces_matrix2
+    ? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
+    : make_vertices_coords_flat_folded(this, ...arguments);
+  return Object.assign(
     Object.create(this.__proto__),
     Object.assign(clone(this), {
       vertices_coords,
       frame_classes: [S._foldedForm]
     }));
-  delete copy.edges_vector;
-  return copy;
 };
 /**
  * graph components

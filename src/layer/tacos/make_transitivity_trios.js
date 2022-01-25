@@ -1,5 +1,5 @@
 import math from "../../math";
-import { make_faces_winding } from "../../graph/make";
+import { make_faces_winding } from "../../graph/faces_winding";
 import make_faces_faces_overlap from "../../graph/make_faces_faces_overlap";
 /**
  * @description given a folded graph, find all trios of faces which overlap

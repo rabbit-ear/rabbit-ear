@@ -51,7 +51,7 @@ test("kawasaki solutions", () => {
 	    [Math.cos(Math.PI * 3 / 3), Math.sin(Math.PI * 3 / 3)],
 	    [Math.cos(Math.PI * 5 / 3), Math.sin(Math.PI * 5 / 3)]
 		],
-	  ear.vertex.kawasaki_solutions([
+	  ear.vertex.kawasaki_solutions_vectors([
 	    [Math.cos(0), Math.sin(0)],
 	    [Math.cos(Math.PI * 2 / 3), Math.sin(Math.PI * 2 / 3)],
 	    [Math.cos(Math.PI * 4 / 3), Math.sin(Math.PI * 4 / 3)]
@@ -60,7 +60,7 @@ test("kawasaki solutions", () => {
 
 	const sqrt05 = Math.sqrt(1/2);
 	testArrays([undefined, undefined, [-sqrt05, -sqrt05]],
-	  ear.vertex.kawasaki_solutions([
+	  ear.vertex.kawasaki_solutions_vectors([
 	    [Math.cos(0), Math.sin(0)],
 	    [Math.cos(Math.PI / 4), Math.sin(Math.PI / 4)],
 	    [Math.cos(Math.PI / 2), Math.sin(Math.PI / 2)]

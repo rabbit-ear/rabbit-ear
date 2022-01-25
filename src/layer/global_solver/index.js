@@ -2,7 +2,7 @@ import make_tacos_tortillas from "../tacos/make_tacos_tortillas";
 import make_transitivity_trios from "../tacos/make_transitivity_trios";
 import filter_transitivity from "../tacos/filter_transitivity";
 import make_faces_faces_overlap from "../../graph/make_faces_faces_overlap";
-import { make_faces_winding } from "../../graph/make";
+import { make_faces_winding } from "../../graph/faces_winding";
 
 import make_taco_maps from "./make_taco_maps";
 import make_conditions from "./make_conditions";
@@ -23,10 +23,11 @@ const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
   // format the tacos and transitivity data into maps that relate to the
   // lookup table at the heart of the algorithm, located at "table.js"
   const maps = make_taco_maps(tacos_tortillas, transitivity_trios);
+  // console.log("overlap_matrix", overlap_matrix);
+  // console.log("faces_winding", faces_winding);
   // console.log("tacos_tortillas", tacos_tortillas);
   // console.log("unfiltered_trios", unfiltered_trios);
   // console.log("transitivity_trios", transitivity_trios);
-  // console.log("pairs", pairs);
   // console.log("maps", maps);
   // console.log("conditions", conditions);
   return { maps, conditions };

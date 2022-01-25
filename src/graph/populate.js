@@ -6,18 +6,18 @@ import {
   make_vertices_edges,
   make_vertices_edges_sorted, // todo resolve this duplicate work
   make_vertices_faces,
-  make_vertices_sectors,
+  // make_vertices_sectors,
   make_edges_edges,
   make_edges_faces,
   make_edges_foldAngle,
   make_edges_assignment,
-  make_edges_length,
-  make_edges_vector,
+  // make_edges_length,
+  // make_edges_vector,
   make_faces_faces,
-  make_faces_matrix,
   make_faces_edges_from_vertices,
   make_planar_faces,
 } from "./make";
+// import { make_faces_matrix } from "./faces_matrix";
 import {
   edge_assignment_to_foldAngle,
   edge_foldAngle_to_assignment,
@@ -28,7 +28,7 @@ import {
 //
 
 // try best not to lose information
-const set_edges_angles = (graph) => {
+const build_assignments_if_needed = (graph) => {
   const len = graph.edges_vertices.length;
   // we know that edges_vertices exists
   if (!graph.edges_assignment) { graph.edges_assignment = []; }
@@ -48,6 +48,41 @@ const set_edges_angles = (graph) => {
   for (let i = graph.edges_assignment.length; i < len; i += 1) {
     graph.edges_assignment[i] = "U";
     graph.edges_foldAngle[i] = 0;
+  }
+};
+/**
+ * @param {object} a FOLD object
+ * @param {boolean} reface should be set to "true" to force the algorithm into
+ * rebuilding the faces from scratch (walking edge to edge in the plane).
+ */
+const build_faces_if_needed = (graph, reface) => {
+  // if faces_vertices does not exist, we need to build it.
+  // todo: if faces_edges exists but not vertices (unusual but possible),
+  // then build faces_vertices from faces_edges and call it done.
+  if (reface === undefined && !graph.faces_vertices) { reface = true; }
+  // build planar faces (no Z) if the user asks for it or if faces do not exist.
+  // todo: this is making a big assumption that the faces are even planar
+  // to begin with.
+  if (reface && graph.vertices_coords) {
+    const faces = make_planar_faces(graph);
+    graph.faces_vertices = faces.map(face => face.vertices);
+    graph.faces_edges = faces.map(face => face.edges);
+    // graph.faces_sectors = faces.map(face => face.angles);
+    return;
+  }
+  // if both faces exist, and no request to be rebuilt, exit.
+  if (graph.faces_vertices && graph.faces_edges) { return; }
+  // between the two: faces_vertices and faces_edges,
+  // if only one exists, build the other.
+  if (graph.faces_vertices && !graph.faces_edges) {
+    graph.faces_edges = make_faces_edges_from_vertices(graph);
+  } else if (graph.faces_edges && !graph.faces_vertices) {
+    // todo: this method does not exist yet.
+    // graph.faces_vertices = make_faces_vertices_from_edges(graph);
+  } else {
+    // neither array exists, set placeholder empty arrays.
+    graph.faces_vertices = [];
+    graph.faces_edges = [];
   }
 };
 /**
@@ -72,37 +107,24 @@ const populate = (graph, reface) => {
   // graph.edges_edges = make_edges_edges(graph);
   graph.vertices_vertices = make_vertices_vertices(graph);
   graph.vertices_edges = make_vertices_edges_sorted(graph); // duplicating work here
-  if (graph.vertices_coords) {
-    graph.edges_vector = make_edges_vector(graph);
-    graph.vertices_sectors = make_vertices_sectors(graph);
-  }
-  // some combination of edges_foldAngle and edges_assignment
-  set_edges_angles(graph);
-  if (reface === undefined && !graph.faces_vertices) { reface = true; }
-  if (reface && graph.vertices_coords) {
-    const faces = make_planar_faces(graph);
-    graph.faces_vertices = faces.map(face => face.vertices);
-    graph.faces_edges = faces.map(face => face.edges);
-    graph.faces_sectors = faces.map(face => face.angles);
-  } else {
-    // todo we need a way of making faces that doesn't imply planar.
-    if (graph.faces_vertices) {
-      graph.faces_edges = make_faces_edges_from_vertices(graph);
-    } else {
-      graph.faces_vertices = [];
-      graph.faces_edges = [];
-    }
-  }
+  // if (graph.vertices_coords) {
+  //   graph.edges_vector = make_edges_vector(graph);
+  //   graph.vertices_sectors = make_vertices_sectors(graph);
+  // }
+  // make sure "edges_foldAngle" and "edges_assignment" are done.
+  build_assignments_if_needed(graph);
+  // make sure "faces_vertices" and "faces_edges" are built.
+  build_faces_if_needed(graph, reface);
   // depending on the presence of vertices_vertices, this will
   // run the simple algorithm (no radial sorting) or the proper one.
   graph.vertices_faces = make_vertices_faces(graph);
   graph.edges_faces = make_edges_faces(graph);
   graph.faces_faces = make_faces_faces(graph);
-  if (graph.vertices_coords) {
-    graph.faces_matrix = make_faces_matrix(graph);
-  }
+  // if (graph.vertices_coords) {
+  //   graph.faces_matrix = make_faces_matrix(graph);
+  // }
   return graph;
-}
+};
 
 /**
  * old description:

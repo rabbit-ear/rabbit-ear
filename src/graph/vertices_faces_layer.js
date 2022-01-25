@@ -3,9 +3,9 @@
  */
 import make_vertex_faces_layer from "./vertex_faces_layer";
 import {
-  make_vertices_sectors,
-  make_faces_winding
+  make_vertices_sectors
 } from "./make";
+import { make_faces_winding } from "./faces_winding";
 import { invert_map } from "./maps";
 /**
  * @description flip a faces_layer solution to reflect having turned

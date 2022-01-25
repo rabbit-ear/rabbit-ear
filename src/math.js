@@ -961,6 +961,16 @@ const make_regular_polygon_side_length = (sides = 3, length = 1) =>
   make_regular_polygon(sides, (length / 2) / Math.sin(Math.PI / sides));
 const make_regular_polygon_side_length_side_aligned = (sides = 3, length = 1) =>
   make_regular_polygon_side_aligned(sides, (length / 2) / Math.sin(Math.PI / sides));
+const make_polygon_non_collinear = (polygon, epsilon = EPSILON) => {
+  const edges_vector = polygon
+    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+    .map(pair => subtract(pair[1], pair[0]));
+  const vertex_collinear = edges_vector
+    .map((vector, i, arr) => [vector, arr[(i + arr.length - 1) % arr.length]])
+    .map(pair => !parallel(pair[1], pair[0], epsilon));
+  return polygon
+    .filter((vertex, v) => vertex_collinear[v]);
+};
 const split_convex_polygon = (poly, lineVector, linePoint) => {
   let vertices_intersections = poly.map((v, i) => {
     let intersection = overlap_line_point(lineVector, linePoint, v, include_l);
@@ -1122,6 +1132,7 @@ var geometry = /*#__PURE__*/Object.freeze({
   make_regular_polygon_inradius_side_aligned: make_regular_polygon_inradius_side_aligned,
   make_regular_polygon_side_length: make_regular_polygon_side_length,
   make_regular_polygon_side_length_side_aligned: make_regular_polygon_side_length_side_aligned,
+  make_polygon_non_collinear: make_polygon_non_collinear,
   split_convex_polygon: split_convex_polygon,
   convex_hull: convex_hull,
   straight_skeleton: straight_skeleton

@@ -1,4 +1,6 @@
 import { boolean_matrix_to_unique_index_pairs } from "../../general/arrays";
+import make_faces_faces_overlap from "../../graph/make_faces_faces_overlap";
+import { make_faces_winding } from "../../graph/faces_winding";
 /**
  * @description this is the initial step for building a set of conditions.
  * store the relationships between all adjacent faces, built from
@@ -8,6 +10,12 @@ import { boolean_matrix_to_unique_index_pairs } from "../../general/arrays";
  * values are layer orientations, 0 (unknown) 1 (a above b) 2 (b above a).
  */
 const make_conditions = (graph, overlap_matrix, faces_winding) => {
+  if (!faces_winding) {
+    faces_winding = make_faces_winding(graph);
+  }
+  if (!overlap_matrix) {
+    overlap_matrix = make_faces_faces_overlap(graph);
+  }
   const conditions = {};
   // flip 1 and 2 to be the other, leaving 0 to be 0.
   const flip = { 0:0, 1:2, 2:1 };

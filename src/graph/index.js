@@ -42,11 +42,14 @@ import { join_collinear_edges } from "./join_edges";
 import make_vertex_faces_layer from "./vertex_faces_layer";
 import make_vertices_faces_layer from "./vertices_faces_layer";
 // import make_faces_layer from "./make_faces_layer";
-import make_groups_edges from "./make_groups_edges";
+// import make_groups_edges from "./make_groups_edges";
 import make_edges_faces_overlap from "./make_edges_faces_overlap";
 import make_faces_faces_overlap from "./make_faces_faces_overlap";
 import * as edges_edges from "./edges_edges";
-// import * as tacos from "./tacos";
+import * as vertices_coords_folded from "./vertices_coords_folded";
+import * as face_spanning_tree from "./face_spanning_tree";
+import * as faces_matrix from "./faces_matrix";
+import * as faces_winding from "./faces_winding";
 
 // todo: not sure about this organization
 import * as arrays from "../general/arrays";
@@ -83,12 +86,16 @@ export default Object.assign(Object.create(null), {
 	make_vertex_faces_layer,
 	make_vertices_faces_layer,
 	// make_faces_layer,
-	make_groups_edges,
+	// make_groups_edges,
 	make_edges_faces_overlap,
 	make_faces_faces_overlap,
 },
 	make,
 	edges_edges,
+	vertices_coords_folded,
+	face_spanning_tree,
+	faces_matrix,
+	faces_winding,
 	// tacos,
 	// create,
 	transform,

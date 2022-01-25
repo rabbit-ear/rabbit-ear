@@ -51,7 +51,7 @@ export const kawasaki_solutions_radians = (radians) => radians
     : undefined));
 // or should we remove the indices so the array reports [ empty x2, ...]
 
-export const kawasaki_solutions = (vectors) => {
+export const kawasaki_solutions_vectors = (vectors) => {
   const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
   return kawasaki_solutions_radians(vectors_radians)
     .map(a => (a === undefined
