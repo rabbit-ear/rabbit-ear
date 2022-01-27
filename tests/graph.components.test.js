@@ -66,13 +66,13 @@ test("face components", () => {
   expect(graph.faces[0].simple).toBe(true);
 });
 
-test("face components with no faces", () => {
+test("face components with no faces, building faces", () => {
   const graph = ear.graph({
     vertices_coords: [[0,0], [1,0], [1,1]],
     edges_vertices: [[0, 1], [1, 2], [2, 0]],
     edges_assignment: ["U", "U", "U"],
   });
-  expect(graph.faces.length).toBe(0);
+  expect(graph.faces.length).toBe(1);
 });
 
 test("face component with no vertices coords", () => {
@@ -94,7 +94,7 @@ test("face component with no vertices", () => {
     faces_edges: [[0, 1, 2]]
   });
   expect(graph.faces.length).toBe(1);
-  expect(graph.faces[0].simple).toBe(null);
+  expect(graph.faces[0].simple).toBe(true);
 });
 
 test("face simple property", () => {

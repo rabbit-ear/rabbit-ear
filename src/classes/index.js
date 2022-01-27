@@ -9,6 +9,7 @@ import graph_methods from "../graph/index";
 import { file_spec, file_creator } from "../fold/keys";
 import { fold_object_certainty } from "../fold/spec";
 import create from "../graph/create";
+import populate from "../graph/populate";
 
 // if we ever need to call any of these constructors from somewhere
 // else inside the library (creating a circular dependency)
@@ -29,18 +30,22 @@ const default_graph = {
   origami: create.square,
 };
 
+/**
+ * Calling the initializer also runs populate(), which does
+ * take some computation time but it's very quick.
+ */
 Object.keys(ConstructorPrototypes).forEach(name => {
   Constructors[name] = function () {
     const argFolds = Array.from(arguments)
       .filter(a => fold_object_certainty(a))
        // deep copy input graph
       .map(obj => JSON.parse(JSON.stringify(obj)));
-    return Object.assign(
+    return populate(Object.assign(
       Object.create(ConstructorPrototypes[name]),
       (argFolds.length ? {} : default_graph[name]()),
       ...argFolds,
       { file_spec, file_creator }
-    );
+    ));
   };
   // tried to improve it. broke it.
   // Constructors[name] = function () {

@@ -80,8 +80,8 @@ test("populate", () => {
     "edges_vertices", "edges_faces",
     "faces_vertices", "faces_edges", "faces_faces"
   ]
-
-  extra_keys.forEach(key => expect(graph.vertices_vertices).toBe(undefined));
+  // calling graph() initializer now automatically runs populate();
+  // extra_keys.forEach(key => expect(graph.vertices_vertices).toBe(undefined));
   graph.populate();
   extra_keys.forEach(key => expect(graph.vertices_vertices).not.toBe(undefined))
 });

@@ -15,6 +15,7 @@ import {
   // make_edges_vector,
   make_faces_faces,
   make_faces_edges_from_vertices,
+  make_faces_vertices_from_edges,
   make_planar_faces,
 } from "./make";
 // import { make_faces_matrix } from "./faces_matrix";
@@ -59,7 +60,9 @@ const build_faces_if_needed = (graph, reface) => {
   // if faces_vertices does not exist, we need to build it.
   // todo: if faces_edges exists but not vertices (unusual but possible),
   // then build faces_vertices from faces_edges and call it done.
-  if (reface === undefined && !graph.faces_vertices) { reface = true; }
+  if (reface === undefined && !graph.faces_vertices && !graph.faces_edges) {
+    reface = true;
+  }
   // build planar faces (no Z) if the user asks for it or if faces do not exist.
   // todo: this is making a big assumption that the faces are even planar
   // to begin with.
@@ -77,8 +80,7 @@ const build_faces_if_needed = (graph, reface) => {
   if (graph.faces_vertices && !graph.faces_edges) {
     graph.faces_edges = make_faces_edges_from_vertices(graph);
   } else if (graph.faces_edges && !graph.faces_vertices) {
-    // todo: this method does not exist yet.
-    // graph.faces_vertices = make_faces_vertices_from_edges(graph);
+    graph.faces_vertices = make_faces_vertices_from_edges(graph);
   } else {
     // neither array exists, set placeholder empty arrays.
     graph.faces_vertices = [];
@@ -101,8 +103,8 @@ const build_faces_if_needed = (graph, reface) => {
  * will be limited to flat-foldable.
  */
 const populate = (graph, reface) => {
-  if (typeof graph !== "object") { return; }
-  if (!graph.edges_vertices) { return; }
+  if (typeof graph !== "object") { return graph; }
+  if (!graph.edges_vertices) { return graph; }
   graph.vertices_edges = make_vertices_edges(graph);
   // graph.edges_edges = make_edges_edges(graph);
   graph.vertices_vertices = make_vertices_vertices(graph);

@@ -3242,6 +3242,17 @@
     .map(face => face.vertices);
   const make_planar_faces_edges = graph => make_planar_faces(graph)
     .map(face => face.edges);
+  const make_faces_vertices_from_edges = (graph) => {
+    return graph.faces_edges
+      .map(edges => edges
+        .map(edge => graph.edges_vertices[edge])
+        .map((pairs, i, arr) => {
+          const next = arr[(i + 1) % arr.length];
+          return (pairs[0] === next[0] || pairs[0] === next[1])
+            ? pairs[1]
+            : pairs[0];
+        }));
+  };
   const make_faces_edges_from_vertices = (graph) => {
     const map = make_vertices_to_edge_bidirectional(graph);
     return graph.faces_vertices
@@ -3305,6 +3316,7 @@
     make_planar_faces: make_planar_faces,
     make_planar_faces_vertices: make_planar_faces_vertices,
     make_planar_faces_edges: make_planar_faces_edges,
+    make_faces_vertices_from_edges: make_faces_vertices_from_edges,
     make_faces_edges_from_vertices: make_faces_edges_from_vertices,
     make_faces_faces: make_faces_faces,
     make_faces_center: make_faces_center,
@@ -3331,7 +3343,9 @@
     }
   };
   const build_faces_if_needed = (graph, reface) => {
-    if (reface === undefined && !graph.faces_vertices) { reface = true; }
+    if (reface === undefined && !graph.faces_vertices && !graph.faces_edges) {
+      reface = true;
+    }
     if (reface && graph.vertices_coords) {
       const faces = make_planar_faces(graph);
       graph.faces_vertices = faces.map(face => face.vertices);
@@ -3341,14 +3355,16 @@
     if (graph.faces_vertices && graph.faces_edges) { return; }
     if (graph.faces_vertices && !graph.faces_edges) {
       graph.faces_edges = make_faces_edges_from_vertices(graph);
-    } else if (graph.faces_edges && !graph.faces_vertices) ; else {
+    } else if (graph.faces_edges && !graph.faces_vertices) {
+      graph.faces_vertices = make_faces_vertices_from_edges(graph);
+    } else {
       graph.faces_vertices = [];
       graph.faces_edges = [];
     }
   };
   const populate = (graph, reface) => {
-    if (typeof graph !== "object") { return; }
-    if (!graph.edges_vertices) { return; }
+    if (typeof graph !== "object") { return graph; }
+    if (!graph.edges_vertices) { return graph; }
     graph.vertices_edges = make_vertices_edges$1(graph);
     graph.vertices_vertices = make_vertices_vertices(graph);
     graph.vertices_edges = make_vertices_edges_sorted(graph);
@@ -5499,12 +5515,12 @@
       const argFolds = Array.from(arguments)
         .filter(a => fold_object_certainty(a))
         .map(obj => JSON.parse(JSON.stringify(obj)));
-      return Object.assign(
+      return populate(Object.assign(
         Object.create(ConstructorPrototypes[name]),
         (argFolds.length ? {} : default_graph[name]()),
         ...argFolds,
         { file_spec, file_creator }
-      );
+      ));
     };
     Constructors[name].prototype = ConstructorPrototypes[name];
     Constructors[name].prototype.constructor = Constructors[name];
