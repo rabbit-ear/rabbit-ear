@@ -1,6 +1,7 @@
 import math from "../math";
 import {
   make_edges_foldAngle,
+  make_edges_assignment,
   make_vertices_faces,
   make_vertices_to_edge_bidirectional,
 } from "./make";
@@ -65,6 +66,9 @@ const unassigned_angle = { U: true, u: true };
  */
 // { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
 export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+  if (!edges_assignment && edges_foldAngle) {
+    edges_assignment = make_edges_assignment({ edges_foldAngle });
+  }
   if (!edges_foldAngle) {
     if (edges_assignment) {
       edges_foldAngle = make_edges_foldAngle({ edges_assignment });

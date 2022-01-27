@@ -63,7 +63,7 @@ const face_snapshot = (graph, face) => ({
   winding: graph.faces_winding[face],
   crease: graph.faces_crease[face],
   side: graph.faces_side[face],
-  layer: graph["faces_re:layer"][face],
+  layer: graph.faces_layer[face],
 });
 /**
  * @description
@@ -85,8 +85,8 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
   populate(graph);
   // additionally, we need to ensure faces layer exists.
   // todo: if it doesn't exist, should we use the solver?
-  if (!graph["faces_re:layer"]) {
-    graph["faces_re:layer"] = Array(graph.faces_vertices.length).fill(0);
+  if (!graph.faces_layer) {
+    graph.faces_layer = Array(graph.faces_vertices.length).fill(0);
   }
   // these will be properties on the graph. as we iterate through faces,
   // splitting (removing 1 face, adding 2) inside "split_face", the remove
@@ -150,7 +150,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
           face.crease.origin,
           graph.faces_center[f],
           face.winding);
-        graph["faces_re:layer"][f] = face.layer;
+        graph.faces_layer[f] = face.layer;
       });
       return change;
     })
@@ -165,8 +165,8 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
   // split_changes.forEach(el => el.vertices.forEach(v => { vert_dict[v] = true; }));
   // const new_vertices = Object.keys(vert_dict).map(s => parseInt(s));
   // build a new face layer ordering
-  graph["faces_re:layer"] = fold_faces_layer(
-    graph["faces_re:layer"],
+  graph.faces_layer = fold_faces_layer(
+    graph.faces_layer,
     graph.faces_side,
   );
   // build new face matrices for the folded state. use face 0 as reference

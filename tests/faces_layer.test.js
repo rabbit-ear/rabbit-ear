@@ -19,7 +19,7 @@ test("", () => {
 	// 4  0  2  3  6  7  1  5
 	// 
 
-	const faces_layer = ear.graph.make_faces_layer(cp, 0, 0.001);
+	const faces_layer = ear.layer.make_faces_layers(cp);
 	// console.log("faces_layer", faces_layer);
 	// folded["faces_re:layer"] = faces_layer;
 	expect(true).toBe(true);

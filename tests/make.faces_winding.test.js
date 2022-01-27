@@ -21,3 +21,18 @@ test("faces winding, folded", () => {
 	// about half of the faces (within 5%) should be flipped
 	expect(Math.abs(up - down) < crane.faces_vertices.length * 0.05).toBe(true);
 });
+
+
+test("faces_coloring", () => {
+  // const craneJSON = fs.readFileSync("./tests/files/crane.fold");
+  // const crane = JSON.parse(craneJSON);
+  expect(true).toBe(true);
+  // todo bring this back
+
+  // const tree = ear.graph.make_face_spanning_tree(crane);
+  // const winding = ear.graph.make_faces_winding(crane);
+  // crane.faces_matrix = ear.graph.make_faces_matrix(crane);
+  // const coloring2 = ear.graph.make_faces_winding_from_matrix(crane.faces_matrix);
+  // expect(winding.length).toBe(coloring2.length);
+  // winding.forEach((color, i) => expect(color).toBe(coloring2[i]));
+});

@@ -96,7 +96,6 @@ test("axiom 6 with no params", () => {
 	}
 });
 
-
 test("axiom 6 with 3 results", () => {
 	const vectorA = [0, 1];
 	const originA = [1, 0];
@@ -108,14 +107,14 @@ test("axiom 6 with 3 results", () => {
 		{ vector: vectorA, origin: originA },
 		{ vector: vectorB, origin: originB },
 		pointA, pointB);
-
-	const lines = [{
-		origin: [0.14644660940672627, 0.8535533905932738],
-		vector: [0.9855985596534889, -0.16910197872576277],
-	},
+	const lines = [
 	{
 		origin: [0.8535533905932738, 0.14644660940672635],
 		vector: [0.16910197872576288, -0.9855985596534887],
+	},
+	{
+		origin: [0.14644660940672627, 0.8535533905932738],
+		vector: [0.9855985596534889, -0.16910197872576277],
 	},
 	{
 		origin: [0.4999999999999999, 0.4999999999999999],

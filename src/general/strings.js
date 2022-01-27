@@ -33,7 +33,7 @@ export const _file_frames = "file_frames";
 export const _file_classes = "file_classes";
 export const _faces_re_coloring = "faces_re:coloring";
 export const _faces_re_matrix = "faces_re:matrix";
-export const _faces_re_layer = "faces_re:layer";
+export const _faces_layer = "faces_layer";
 
 export const _boundary = "boundary";
 export const _mountain = "mountain";

@@ -2434,7 +2434,7 @@
   const _edges_foldAngle = "edges_foldAngle";
   const _frame_classes = "frame_classes";
   const _file_classes = "file_classes";
-  const _faces_re_layer = "faces_re:layer";
+  const _faces_layer = "faces_layer";
   const _boundary = "boundary";
   const _front = "front";
   const _back = "back";
@@ -3979,6 +3979,9 @@
   };
   const unassigned_angle = { U: true, u: true };
   const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+    if (!edges_assignment && edges_foldAngle) {
+      edges_assignment = make_edges_assignment({ edges_foldAngle });
+    }
     if (!edges_foldAngle) {
       if (edges_assignment) {
         edges_foldAngle = make_edges_foldAngle({ edges_assignment });
@@ -4852,13 +4855,13 @@
     winding: graph.faces_winding[face],
     crease: graph.faces_crease[face],
     side: graph.faces_side[face],
-    layer: graph["faces_re:layer"][face],
+    layer: graph.faces_layer[face],
   });
   const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
     const opposite_assignment = get_opposite_assignment(assignment);
     populate(graph);
-    if (!graph["faces_re:layer"]) {
-      graph["faces_re:layer"] = Array(graph.faces_vertices.length).fill(0);
+    if (!graph.faces_layer) {
+      graph.faces_layer = Array(graph.faces_vertices.length).fill(0);
     }
     graph.faces_center = graph.faces_vertices
       .map((_, i) => make_face_center(graph, i));
@@ -4902,7 +4905,7 @@
             face.crease.origin,
             graph.faces_center[f],
             face.winding);
-          graph["faces_re:layer"][f] = face.layer;
+          graph.faces_layer[f] = face.layer;
         });
         return change;
       })
@@ -4911,8 +4914,8 @@
     const edges_map = merge_nextmaps(...split_changes.map(el => el.edges.map)
       .filter(a => a !== undefined));
     const faces_remove = split_changes.map(el => el.faces.remove).reverse();
-    graph["faces_re:layer"] = fold_faces_layer(
-      graph["faces_re:layer"],
+    graph.faces_layer = fold_faces_layer(
+      graph.faces_layer,
       graph.faces_side,
     );
     const face0_was_split = faces_map && faces_map[0].length === 2;
@@ -6991,6 +6994,8 @@
   	assignment_solver,
   	single_vertex_solver,
   	validate_layer_solver,
+  	validate_taco_taco_face_pairs,
+  	validate_taco_tortilla_strip,
   	table: slow_lookup,
   	topological_order,
   	make_conditions,
@@ -7482,8 +7487,8 @@
   	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
   const finalize_faces = (graph, svg_faces, group, attributes) => {
   	const isFolded = is_folded_form(graph);
-    const orderIsCertain = graph[_faces_re_layer] != null
-      && graph[_faces_re_layer].length === graph[_faces_vertices].length;
+    const orderIsCertain = graph[_faces_layer] != null
+      && graph[_faces_layer].length === graph[_faces_vertices].length;
     const classNames = [ [_front], [_back] ];
     const faceDir = get_faces_winding(graph).map(c => c < 0);
     faceDir.map(w => (w ? classNames[0] : classNames[1]))
@@ -7497,7 +7502,7 @@
   			apply_style$1(svg_faces[i], attributes[className]);
   		});
     const facesInOrder = (orderIsCertain
-      ? faces_sorted_by_layer(graph[_faces_re_layer]).map(i => svg_faces[i])
+      ? faces_sorted_by_layer(graph[_faces_layer]).map(i => svg_faces[i])
       : svg_faces);
   	facesInOrder.forEach(face => group.appendChild(face));
   	Object.defineProperty(group, _front, {

@@ -54,8 +54,8 @@ const apply_style = (el, attributes = {}) => Object.keys(attributes)
 const finalize_faces = (graph, svg_faces, group, attributes) => {
 	const isFolded = is_folded_form(graph);
   // todo: include other ways of determining faces_ordering
-  const orderIsCertain = graph[S._faces_re_layer] != null
-    && graph[S._faces_re_layer].length === graph[S._faces_vertices].length;
+  const orderIsCertain = graph[S._faces_layer] != null
+    && graph[S._faces_layer].length === graph[S._faces_vertices].length;
   const classNames = [ [S._front], [S._back] ];
   const faceDir = get_faces_winding(graph).map(c => c < 0)
   faceDir.map(w => (w ? classNames[0] : classNames[1]))
@@ -70,7 +70,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 		});
 
   const facesInOrder = (orderIsCertain
-    ? faces_sorted_by_layer(graph[S._faces_re_layer]).map(i => svg_faces[i])
+    ? faces_sorted_by_layer(graph[S._faces_layer]).map(i => svg_faces[i])
     : svg_faces);
 	facesInOrder.forEach(face => group.appendChild(face));
 	

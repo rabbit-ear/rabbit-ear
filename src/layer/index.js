@@ -23,6 +23,8 @@ import * as tortilla_tortilla from "./tacos/tortilla_tortilla";
 import assignment_solver from "./single_vertex_solver/assignment_solver";
 import single_vertex_solver from "./single_vertex_solver/index";
 import validate_layer_solver from "./single_vertex_solver/validate_layer_solver";
+import validate_taco_taco_face_pairs from "./single_vertex_solver/validate_taco_taco_face_pairs";
+import validate_taco_tortilla_strip from "./single_vertex_solver/validate_taco_tortilla_strip";
 // layers_face
 // import make_layers_face from "./layers_face/make_layers_face";
 // import make_layers_faces from "./layers_face/make_layers_faces";
@@ -47,6 +49,8 @@ export default Object.assign(Object.create(null), {
 	assignment_solver,
 	single_vertex_solver,
 	validate_layer_solver,
+	validate_taco_taco_face_pairs,
+	validate_taco_tortilla_strip,
 
 	table,
 	topological_order,
