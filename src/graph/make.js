@@ -397,3 +397,15 @@ export const make_faces_faces = ({ faces_vertices }) => {
 export const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertices
   .map(fv => fv.map(v => vertices_coords[v]))
   .map(coords => math.core.centroid(coords));
+
+/**
+ * @description This uses point average, not centroid, faces must
+ * be convex, and again it's not precise, but in many use cases
+ * this is often more than sufficient.
+ */
+export const make_faces_center_quick = ({ vertices_coords, faces_vertices }) =>
+  faces_vertices
+    .map(vertices => vertices
+      .map(v => vertices_coords[v])
+      .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+      .map(el => el / vertices.length));

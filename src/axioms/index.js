@@ -58,7 +58,7 @@ const axiom_boundaryless = (number, params) => {
 const filter_with_boundary = (number, params, solutions, boundary) => {
   if (boundary == null) { return; }
   validate_axiom(number, params, boundary)
-    .forEach((valid, i) => { if (valid) { delete valid_solutions[i]; } });
+    .forEach((valid, i) => { if (!valid) { delete solutions[i]; } });
 };
 
 const axiom = (number, params = {}, boundary) => {

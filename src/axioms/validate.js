@@ -43,9 +43,7 @@ const validate_axiom3 = (params, boundary) => {
   if (segments[0] === undefined || segments[1] === undefined) {
     return [false, false];
   }
-  const results = axiom3(
-    params.lines[0].vector, params.lines[0].origin,
-    params.lines[1].vector, params.lines[1].origin);
+  const results = axiom3(params.lines[0], params.lines[1]);
   // test A:
   // make sure the results themselves lie in the polygon
   // exclusive! an exterior line collinear to polygon's point is excluded
@@ -100,9 +98,7 @@ const validate_axiom4 = (params, boundary) => {
 };
 
 const validate_axiom5 = (params, boundary) => {
-  const result = axiom5(
-    params.lines[0].vector, params.lines[0].origin,
-    params.points[0], params.points[1]);
+  const result = axiom5(params.lines[0], params.points[0], params.points[1]);
   if (result.length === 0) { return []; }
   const testParamPoints = params.points
     .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include))
@@ -115,8 +111,7 @@ const validate_axiom5 = (params, boundary) => {
 
 const validate_axiom6 = function (params, boundary) {
   const results = axiom6(
-    params.lines[0].vector, params.lines[0].origin,
-    params.lines[1].vector, params.lines[1].origin,
+    params.lines[0], params.lines[1],
     params.points[0], params.points[1]);
   if (results.length === 0) { return []; }
   const testParamPoints = params.points
@@ -137,9 +132,7 @@ const validate_axiom7 = (params, boundary) => {
   const paramPointTest = math.core
     .overlap_convex_polygon_point(boundary, params.points[0], math.core.include);
   // check if the reflected point on the fold line is inside the polygon
-  const foldLine = axiom7(
-    params.lines[0].vector, params.lines[0].origin,
-    params.lines[1].vector, params.points[0]);
+  const foldLine = axiom7(params.lines[1], params.lines[0], params.points[0]);
   if (foldLine === undefined) { return [false]; }
   const reflected = reflect_point(foldLine, params.points[0]);
   const reflectTest = math.core.overlap_convex_polygon_point(boundary, reflected, math.core.include);

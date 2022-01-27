@@ -8,6 +8,7 @@ import make_taco_maps from "./make_taco_maps";
 import make_conditions from "./make_conditions";
 import single_solver from "./single_solver";
 import recursive_solver from "./recursive_solver";
+import { dividing_axis } from "./dividing_axis";
 
 const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
   const overlap_matrix = make_faces_faces_overlap(graph, epsilon);
@@ -41,4 +42,30 @@ export const one_layer_conditions = (graph, epsilon = 1e-6) => {
 export const all_layer_conditions = (graph, epsilon = 1e-6) => {
   const data = make_maps_and_conditions(graph, epsilon);
   return recursive_solver(graph, data.maps, data.conditions);
+};
+
+
+const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6) => {
+  const overlap_matrix = make_faces_faces_overlap(folded, epsilon);
+  const faces_winding = make_faces_winding(folded);
+  const conditions = make_conditions(folded, overlap_matrix, faces_winding);
+  dividing_axis(cp, line, conditions);
+  // get all taco/tortilla/transitivity events.
+  const tacos_tortillas = make_tacos_tortillas(folded, epsilon);
+  const unfiltered_trios = make_transitivity_trios(folded, overlap_matrix, faces_winding, epsilon);
+  const transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
+  // format the tacos and transitivity data into maps that relate to the
+  // lookup table at the heart of the algorithm, located at "table.js"
+  const maps = make_taco_maps(tacos_tortillas, transitivity_trios);
+  return { maps, conditions };
+};
+
+export const one_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
+  const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
+  return single_solver(folded, data.maps, data.conditions);
+};
+
+export const all_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
+  const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
+  return recursive_solver(folded, data.maps, data.conditions);
 };

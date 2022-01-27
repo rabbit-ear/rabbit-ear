@@ -6,6 +6,7 @@ import maekawa_assignments from "./maekawa_assignments"
 import fold_angles4 from "./fold_angles4";
 import * as kawasaki_math from "./kawasaki_math";
 import * as kawasaki_graph from "./kawasaki_graph";
+import * as validate from "./validate";
 
 export default Object.assign(Object.create(null), {
 	maekawa_assignments,
@@ -13,5 +14,6 @@ export default Object.assign(Object.create(null), {
 },
 	kawasaki_math,
 	kawasaki_graph,
+	validate,
 );
 

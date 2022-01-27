@@ -110,7 +110,7 @@ const get_all_pleat_pairs = (graph, matrix) => {
       : this_polygon;
     // polygon doesn't exist. step forward the top pointer
     // (or, step top pointer backwards from this face)
-    while (new_polygon.length === 0) {
+    while (new_polygon === undefined) {
       // pop off the first face in the stack until we get a valid
       // series of intersections.
       stack.shift();
@@ -121,7 +121,7 @@ const get_all_pleat_pairs = (graph, matrix) => {
       for (let i = 1; i < stack.length; i++) {
         stack_increment.push(stack[i]);
         poly = intersect_polygon_polygon(poly, graph_polygons[stack[i]]);
-        if (poly.length === 0) { break; }
+        if (poly === undefined) { break; }
       }
       new_polygon = poly;
     }

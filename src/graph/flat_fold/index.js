@@ -161,9 +161,9 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
   const edges_map = merge_nextmaps(...split_changes.map(el => el.edges.map)
     .filter(a => a !== undefined));
   const faces_remove = split_changes.map(el => el.faces.remove).reverse();
-  const vert_dict = {};
-  split_changes.forEach(el => el.vertices.forEach(v => { vert_dict[v] = true; }));
-  const new_vertices = Object.keys(vert_dict).map(s => parseInt(s));
+  // const vert_dict = {};
+  // split_changes.forEach(el => el.vertices.forEach(v => { vert_dict[v] = true; }));
+  // const new_vertices = Object.keys(vert_dict).map(s => parseInt(s));
   // build a new face layer ordering
   graph["faces_re:layer"] = fold_faces_layer(
     graph["faces_re:layer"],
@@ -208,7 +208,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
   return {
     faces: { map: faces_map, remove: faces_remove },
     edges: { map: edges_map },
-    vertices: { new: new_vertices },
+    // vertices: { new: new_vertices },
   }
 };
 

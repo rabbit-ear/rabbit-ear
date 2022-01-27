@@ -6,6 +6,19 @@ import {
   make_vertices_vertices,
   make_vertices_to_edge_bidirectional,
 } from "./make";
+/**
+ * @description true false is a vertex on a boundary
+ */
+export const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
+  const vertices = {};
+  edges_vertices.forEach((v, i) => {
+    const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
+    if (!boundary) { return; }
+    vertices[v[0]] = true;
+    vertices[v[1]] = true;
+  });
+  return Object.keys(vertices).map(str => parseInt(str));
+};
 const empty_get_boundary = () => ({ vertices: [], edges: [] });
 /**
  * @description get the boundary as two arrays of vertices and edges

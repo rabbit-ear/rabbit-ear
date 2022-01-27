@@ -132,7 +132,7 @@ const solver_single = (graph, maps, conditions) => {
   // console.log("solutions", solutions);
   // console.log("successes_hash", successes_hash);
   // console.log("avoid", avoid);
-  // console.log(`${Date.now() - startDate}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
+  console.log(`${Date.now() - startDate}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
 
   return solution;
 };

@@ -1317,7 +1317,7 @@ const intersect_polygon_polygon = (polygon1, polygon2, epsilon = EPSILON) => {
 		}
 		cp1 = cp2;
 	}
-	return outputList;
+	return outputList.length === 0 ? undefined : outputList;
 };
 
 const intersect_param_form = {

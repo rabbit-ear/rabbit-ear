@@ -1291,7 +1291,7 @@
   		}
   		cp1 = cp2;
   	}
-  	return outputList;
+  	return outputList.length === 0 ? undefined : outputList;
   };
   const intersect_param_form = {
     polygon: a => [a],
@@ -3272,6 +3272,12 @@
   const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertices
     .map(fv => fv.map(v => vertices_coords[v]))
     .map(coords => math.core.centroid(coords));
+  const make_faces_center_quick = ({ vertices_coords, faces_vertices }) =>
+    faces_vertices
+      .map(vertices => vertices
+        .map(v => vertices_coords[v])
+        .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+        .map(el => el / vertices.length));
 
   var make = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -3301,7 +3307,8 @@
     make_planar_faces_edges: make_planar_faces_edges,
     make_faces_edges_from_vertices: make_faces_edges_from_vertices,
     make_faces_faces: make_faces_faces,
-    make_faces_center: make_faces_center
+    make_faces_center: make_faces_center,
+    make_faces_center_quick: make_faces_center_quick
   });
 
   const build_assignments_if_needed = (graph) => {
@@ -3733,6 +3740,16 @@
     return graph;
   };
 
+  const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
+    const vertices = {};
+    edges_vertices.forEach((v, i) => {
+      const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
+      if (!boundary) { return; }
+      vertices[v[0]] = true;
+      vertices[v[1]] = true;
+    });
+    return Object.keys(vertices).map(str => parseInt(str));
+  };
   const empty_get_boundary = () => ({ vertices: [], edges: [] });
   const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
     if (edges_assignment === undefined) { return empty_get_boundary(); }
@@ -3836,6 +3853,7 @@
 
   var boundary = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    get_boundary_vertices: get_boundary_vertices,
     get_boundary: get_boundary,
     get_planar_boundary: get_planar_boundary
   });
@@ -4893,9 +4911,6 @@
     const edges_map = merge_nextmaps(...split_changes.map(el => el.edges.map)
       .filter(a => a !== undefined));
     const faces_remove = split_changes.map(el => el.faces.remove).reverse();
-    const vert_dict = {};
-    split_changes.forEach(el => el.vertices.forEach(v => { vert_dict[v] = true; }));
-    const new_vertices = Object.keys(vert_dict).map(s => parseInt(s));
     graph["faces_re:layer"] = fold_faces_layer(
       graph["faces_re:layer"],
       graph.faces_side,
@@ -4924,7 +4939,6 @@
     return {
       faces: { map: faces_map, remove: faces_remove },
       edges: { map: edges_map },
-      vertices: { new: new_vertices },
     }
   };
 
@@ -5706,9 +5720,7 @@
     if (segments[0] === undefined || segments[1] === undefined) {
       return [false, false];
     }
-    const results = axiom3(
-      params.lines[0].vector, params.lines[0].origin,
-      params.lines[1].vector, params.lines[1].origin);
+    const results = axiom3(params.lines[0], params.lines[1]);
     const results_clip = results
       .map(line => line === undefined ? undefined : math.core
         .intersect_convex_polygon_line(
@@ -5753,9 +5765,7 @@
     ];
   };
   const validate_axiom5 = (params, boundary) => {
-    const result = axiom5(
-      params.lines[0].vector, params.lines[0].origin,
-      params.points[0], params.points[1]);
+    const result = axiom5(params.lines[0], params.points[0], params.points[1]);
     if (result.length === 0) { return []; }
     const testParamPoints = params.points
       .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include))
@@ -5767,8 +5777,7 @@
   };
   const validate_axiom6 = function (params, boundary) {
     const results = axiom6(
-      params.lines[0].vector, params.lines[0].origin,
-      params.lines[1].vector, params.lines[1].origin,
+      params.lines[0], params.lines[1],
       params.points[0], params.points[1]);
     if (results.length === 0) { return []; }
     const testParamPoints = params.points
@@ -5786,9 +5795,7 @@
   const validate_axiom7 = (params, boundary) => {
     const paramPointTest = math.core
       .overlap_convex_polygon_point(boundary, params.points[0], math.core.include);
-    const foldLine = axiom7(
-      params.lines[0].vector, params.lines[0].origin,
-      params.lines[1].vector, params.points[0]);
+    const foldLine = axiom7(params.lines[1], params.lines[0], params.points[0]);
     if (foldLine === undefined) { return [false]; }
     const reflected = reflect_point$1(foldLine, params.points[0]);
     const reflectTest = math.core.overlap_convex_polygon_point(boundary, reflected, math.core.include);
@@ -5856,7 +5863,7 @@
   const filter_with_boundary = (number, params, solutions, boundary) => {
     if (boundary == null) { return; }
     validate_axiom(number, params, boundary)
-      .forEach((valid, i) => { if (valid) { delete valid_solutions[i]; } });
+      .forEach((valid, i) => { if (!valid) { delete solutions[i]; } });
   };
   const axiom = (number, params = {}, boundary) => {
     const parameters = check_params(params);
@@ -6032,6 +6039,7 @@
         foldLine.origin,
         math.core.exclude,
         math.core.include_l);
+  		if (foldSegment === undefined) { return; }
   		point = math.core.midpoint(...foldSegment);
   	}
     const perpVector = math.core.rotate90(foldLine.vector);
@@ -6054,6 +6062,7 @@
   	const hull = math.core.convex_hull(graph.vertices_coords);
   	const rect = math.core.enclosing_rectangle(hull);
   	const segment = widest_perpendicular(hull, line);
+  	if (segment === undefined) { return undefined; }
     const vector = ear.math.subtract(segment[1], segment[0]);
     const length = ear.math.magnitude(vector);
     const direction = ear.math.dot(vector, [1, 0]);
@@ -6283,7 +6292,7 @@
       for (let j = i + 1; j < matrix.length; j++) {
         if (!overlap_matrix[i][j]) { continue; }
         const polygon = math.core.intersect_polygon_polygon(polygons[i], polygons[j], epsilon);
-        if (polygon.length !== 0) { matrix[i][j] = polygon; }
+        if (polygon) { matrix[i][j] = polygon; }
       }
     }
     const trios = [];
@@ -6294,7 +6303,7 @@
           if (i === k || j === k) { continue; }
           if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
           const polygon = math.core.intersect_polygon_polygon(matrix[i][j], polygons[k], epsilon);
-          if (polygon.length !== 0) { trios.push([i, j, k].sort((a, b) => a - b)); }
+          if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
         }
       }
     }
@@ -6588,6 +6597,9 @@
     return duplicate;
   };
   const solver_single = (graph, maps, conditions) => {
+    const startDate = new Date();
+    let recurse_count = 0;
+    let inner_loop_count = 0;
     const successes_hash = {};
     let layers = {
       taco_taco: maps.taco_taco.map(el => Array(6).fill(0)),
@@ -6598,6 +6610,7 @@
     complete_suggestions_loop(layers, maps, conditions);
     let solution;
     do {
+      recurse_count++;
       const zero_keys = Object.keys(conditions)
         .map(key => conditions[key] === 0 ? key : undefined)
         .filter(a => a !== undefined);
@@ -6616,6 +6629,7 @@
             }
             const clone_layers = duplicate_unsolved_layers$1(layers);
             clone_conditions[key] = dir;
+            inner_loop_count++;
             if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
               return undefined;
             }
@@ -6651,6 +6665,7 @@
       layers = unique_successes[0].layers;
     } while (solution === undefined);
     unsigned_to_signed_conditions(solution);
+    console.log(`${Date.now() - startDate}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
     return solution;
   };
 
@@ -6758,6 +6773,47 @@
     return solutions;
   };
 
+  const dividing_axis = (graph, line, conditions) => {
+  	const faces_side = make_faces_center_quick(graph)
+  		.map(center => math.core.subtract2(center, line.origin))
+  		.map(vector => math.core.cross2(line.vector, vector))
+  		.map(cross => Math.sign(cross));
+  	const sides = Object.keys(conditions)
+  		.map(key => {
+  			const pair = key.split(" ");
+  			if (conditions[key] === 0) { return }
+  			if (conditions[key] === 2) { pair.reverse(); }
+  			if (faces_side[pair[0]] === 1 && faces_side[pair[1]] === -1) {
+  				return true;
+  			}
+  			if (faces_side[pair[0]] === -1 && faces_side[pair[1]] === 1) {
+  				return false;
+  			}
+  		}).filter(a => a !== undefined);
+  	const is_valid = sides.reduce((a, b) => a && (b === sides[0]), true);
+  	if (!is_valid) { console.warn("line is not a dividing axis"); return; }
+  	const side = sides[0];
+  	Object.keys(conditions)
+  		.forEach(key => {
+  			const pair = key.split(" ");
+  			if (conditions[key] !== 0) { return }
+  			if (faces_side[pair[0]] === faces_side[pair[1]]) { return; }
+  			if (faces_side[pair[0]] === 1 && faces_side[pair[1]] === -1) {
+  				if (side) { conditions[key] = 1; }
+  				else      { conditions[key] = 2; }
+  			}
+  			if (faces_side[pair[0]] === -1 && faces_side[pair[1]] === 1) {
+  				if (side) { conditions[key] = 2; }
+  				else      { conditions[key] = 1; }
+  			}
+  		});
+  };
+
+  var dividing_axis$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    dividing_axis: dividing_axis
+  });
+
   const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
     const overlap_matrix = make_faces_faces_overlap(graph, epsilon);
     const faces_winding = make_faces_winding(graph);
@@ -6776,11 +6832,32 @@
     const data = make_maps_and_conditions(graph, epsilon);
     return recursive_solver(graph, data.maps, data.conditions);
   };
+  const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6) => {
+    const overlap_matrix = make_faces_faces_overlap(folded, epsilon);
+    const faces_winding = make_faces_winding(folded);
+    const conditions = make_conditions(folded, overlap_matrix, faces_winding);
+    dividing_axis(cp, line, conditions);
+    const tacos_tortillas = make_tacos_tortillas(folded, epsilon);
+    const unfiltered_trios = make_transitivity_trios(folded, overlap_matrix, faces_winding, epsilon);
+    const transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
+    const maps = make_taco_maps(tacos_tortillas, transitivity_trios);
+    return { maps, conditions };
+  };
+  const one_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
+    const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
+    return solver_single(folded, data.maps, data.conditions);
+  };
+  const all_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
+    const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
+    return recursive_solver(folded, data.maps, data.conditions);
+  };
 
   var global_layer_solvers = /*#__PURE__*/Object.freeze({
     __proto__: null,
     one_layer_conditions: one_layer_conditions,
-    all_layer_conditions: all_layer_conditions
+    all_layer_conditions: all_layer_conditions,
+    one_layer_conditions_with_axis: one_layer_conditions_with_axis,
+    all_layer_conditions_with_axis: all_layer_conditions_with_axis
   });
 
   const conditions_to_matrix = (conditions) => {
@@ -6846,14 +6923,21 @@
 
   const faces_layer_to_edges_assignments = (graph, faces_layer) => {
     const edges_assignment = [];
-    make_faces_winding(graph);
+    const faces_winding = make_faces_winding(graph);
     const edges_faces = graph.edges_faces
       ? graph.edges_faces
       : make_edges_faces(graph);
     edges_faces.forEach((faces, e) => {
-      edges_assignment[e] = faces.length > 1 ? "U" : "B";
+      if (faces.length === 1) { edges_assignment[e] = "B"; }
+      if (faces.length === 2) {
+        const windings = faces.map(f => faces_winding[f]);
+        if (windings[0] === windings[1]) { return "F"; }
+        const layers = faces.map(f => faces_layer[f]);
+        const local_dir = layers[0] < layers[1];
+        const global_dir = windings[0] ? local_dir : !local_dir;
+        edges_assignment[e] = global_dir ? "V" : "M";
+      }
     });
-    invert_map(faces_layer);
     return edges_assignment;
   };
 
@@ -6918,6 +7002,7 @@
   	global_layer_solvers,
   	general_global_solver,
   	edges_assignments,
+  	dividing_axis$1,
   	tortilla_tortilla,
   	fold_assignments,
   );
@@ -7000,12 +7085,51 @@
     kawasaki_solutions: kawasaki_solutions
   });
 
+  const maekawa_add = { M:-1, m:-1, V:1, v:1};
+  const validate_maekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
+    if (!vertices_edges) {
+      vertices_edges = make_vertices_edges$1({ edges_vertices });
+    }
+    const vertices_is_boundary = Array(vertices_edges.length).fill(false);
+    get_boundary_vertices({ edges_vertices, edges_assignment })
+      .forEach(v => { vertices_is_boundary[v] = true; });
+    const is_valid = vertices_edges
+      .map(edges => edges
+        .map(e => maekawa_add[edges_assignment[e]])
+        .reduce((a, b) => a + b, 0))
+      .map((sum, e) => vertices_is_boundary[e] || sum === 2 || sum === -2);
+    return is_valid
+      .map((valid, v) => !valid ? v : undefined)
+      .filter(a => a !== undefined);
+  };
+  const validate_kawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
+    if (!vertices_vertices) {
+      vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });
+    }
+    const vertices_is_boundary = Array(vertices_coords.length).fill(false);
+    get_boundary_vertices({ edges_vertices, edges_assignment })
+      .forEach(v => { vertices_is_boundary[v] = true; });
+    const is_valid = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+      .map(sectors => alternating_sum(sectors))
+      .map((pair, v) => vertices_is_boundary[v] || Math.abs(pair[0] - pair[1]) < epsilon);
+    return is_valid
+      .map((valid, v) => !valid ? v : undefined)
+      .filter(a => a !== undefined);
+  };
+
+  var validate = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    validate_maekawa: validate_maekawa,
+    validate_kawasaki: validate_kawasaki
+  });
+
   var vertex = Object.assign(Object.create(null), {
   	maekawa_assignments,
   	fold_angles4: single_vertex_fold_angles,
   },
   	kawasaki_math,
   	kawasaki_graph,
+  	validate,
   );
 
   var ar = [
