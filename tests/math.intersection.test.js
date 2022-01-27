@@ -387,7 +387,7 @@ test("polygon polygon, same polygon", () => {
     [[50, 0], [25, 25], [50, 50]],
     [[50, 0], [25, 25], [50, 50]]
   );
-  expect(res2b.length).toBe(0);
+  expect(res2b).toBe(undefined);
 
   // same polygon, array rotated
   const res3 = ear.math.intersect_polygon_polygon(
@@ -400,7 +400,7 @@ test("polygon polygon, same polygon", () => {
     [[50, 0], [25, 25], [50, 50]],
     [[50, 50], [50, 0], [25, 25]]
   );
-  expect(res3b.length).toBe(0);
+  expect(res3b).toBe(undefined);
 });
 
 test("polygon polygon, edge aligned", () => {
@@ -409,22 +409,22 @@ test("polygon polygon, edge aligned", () => {
   const poly3 = [[40, 40], [100, 40], [80, 80]];
   const poly4 = [[100, 40], [40, 40], [80, 0]];
   const res2 = ear.math.intersect_polygon_polygon(poly3, poly4);
-  expect(res2.length).toBe(0);
+  expect(res2).toBe(undefined);
 
   const poly5 = [[40, 40], [100, 40], [80, 80]];
   const poly6 = [[90, 40], [50, 40], [80, 0]];
   const res3 = ear.math.intersect_polygon_polygon(poly5, poly6);
-  expect(res3.length).toBe(0);
+  expect(res3).toBe(undefined);
 
   const poly7 = [[40, 40], [100, 40], [80, 80]];
   const poly8 = [[200, 40], [50, 40], [80, 0]];
   const res4 = ear.math.intersect_polygon_polygon(poly7, poly8);
-  expect(res4.length).toBe(0);
+  expect(res4).toBe(undefined);
 
   const poly9 = [[40, 40], [100, 40], [80, 80]];
   const poly10 = [[200, 40], [20, 40], [80, 0]];
   const res5 = ear.math.intersect_polygon_polygon(poly9, poly10);
-  expect(res5.length).toBe(0);
+  expect(res5).toBe(undefined);
 });
 
 test("polygon polygon, epsilon", () => {
@@ -433,9 +433,9 @@ test("polygon polygon, epsilon", () => {
   const poly11 = [[40, 40 - ep], [100, 40 - ep], [80, 80]];
   const poly12 = [[100, 40], [40, 40], [80, 0]];
   const res6 = ear.math.intersect_polygon_polygon(poly11, poly12);
-  expect(res6.length).toBe(0);
+  expect(res6).toBe(undefined);
   const res7 = ear.math.intersect_polygon_polygon(poly12, poly11);
-  expect(res7.length).toBe(0);
+  expect(res7).toBe(undefined);
 
   const poly13 = [[60, 10], [50, 50], [20, 20]];
   const poly14 = [[50+ep, 50+ep], [20, 20], [60, 10]];

@@ -1405,7 +1405,7 @@ const convex_polygons_overlap = (poly1, poly2, epsilon = EPSILON) => {
       const side_a = dot(vector, subtract(other_test_point, origin));
       const side = side_a > 0;
       const one_sided = projected
-        .map(dot => side ? dot < epsilon : dot > -epsilon)
+        .map(dotProd => side ? dotProd < epsilon : dotProd > -epsilon)
         .reduce((a, b) => a && b, true);
       if (one_sided) { return false; }
     }
@@ -1458,7 +1458,7 @@ const overlap_param_form = {
 };
 const overlap_func = {
   polygon: {
-    polygon: (a, b, fnA, fnB, ep) => convex_polygons_overlap(...a, ...b, exclude_s, exclude, ep),
+    polygon: (a, b, fnA, fnB, ep) => convex_polygons_overlap(...a, ...b, ep),
     vector: (a, b, fnA, fnB, ep) => overlap_convex_polygon_point(...a, ...b, fnA, ep),
   },
   circle: {
