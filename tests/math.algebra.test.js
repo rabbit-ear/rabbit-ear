@@ -135,11 +135,11 @@ test("parallel", () => {
   expect(ear.math.parallel([1, 0], [0, 1])).toBe(false);
   expect(ear.math.parallel([1, 0], [-1, 0])).toBe(true);
   // this is where the parallel test breaks down when it uses dot product
-  // expect(ear.math.parallel([1, 0], [1, 0.0014142])).toBe(true);
-  // expect(ear.math.parallel([1, 0], [1, 0.0014143])).toBe(false);
+  expect(ear.math.parallel([1, 0], [1, 0.0014142])).toBe(true);
+  expect(ear.math.parallel([1, 0], [1, 0.0014143])).toBe(false);
   // this is the parallel test using cross product
-  expect(ear.math.parallel([1, 0], [1, 0.0000009])).toBe(true);
-  expect(ear.math.parallel([1, 0], [1, 0.0000010])).toBe(false);
+  expect(ear.math.parallel2([1, 0], [1, 0.0000009])).toBe(true);
+  expect(ear.math.parallel2([1, 0], [1, 0.0000010])).toBe(false);
 });
 
 /*

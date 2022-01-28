@@ -9,6 +9,12 @@ import { get_edges_vertices_span } from "../span";
  * the edge with 2 edges that include the collinear vertex.
  */
 
+/**
+ * this DOES NOT return vertices that are already connected
+ * between two adjacent and collinear edges, in a valid graph
+ *    O------------O------------O
+ * for this you want: ___________ method
+ */
 
 /**
  * edges_collinear_vertices is a list of lists where for every edge there is a

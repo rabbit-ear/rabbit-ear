@@ -7,13 +7,28 @@ import {
   make_vertices_to_edge_bidirectional,
 } from "./make";
 /**
- * get the boundary face defined in vertices and edges by walking boundary
- * edges, defined by edges_assignment. no planar calculations
+ * @description true false is a vertex on a boundary
+ */
+export const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
+  const vertices = {};
+  edges_vertices.forEach((v, i) => {
+    const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
+    if (!boundary) { return; }
+    vertices[v[0]] = true;
+    vertices[v[1]] = true;
+  });
+  return Object.keys(vertices).map(str => parseInt(str));
+};
+const empty_get_boundary = () => ({ vertices: [], edges: [] });
+/**
+ * @description get the boundary as two arrays of vertices and edges
+ * by walking the boundary edges as defined by edges_assignment.
+ * if edges_assignment contains errors (or doesn't exist) this will fail.
+ * @param {object} a FOLD graph
+ * @returns {object} "vertices" and "edges" with arrays of indices.
  */
 export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
-  if (edges_assignment === undefined) {
-    return { vertices: [], edges: [] };
-  }
+  if (edges_assignment === undefined) { return empty_get_boundary(); }
   if (!vertices_edges) {
     vertices_edges = make_vertices_edges({ edges_vertices });
   }
@@ -25,9 +40,7 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
   for (let i = 0; i < edges_vertices_b.length; i += 1) {
     if (edges_vertices_b[i]) { edgeIndex = i; break; }
   }
-  if (edgeIndex === -1) {
-    return { vertices: [], edges: [] };
-  }
+  if (edgeIndex === -1) { return empty_get_boundary(); }
   edges_vertices_b[edgeIndex] = false;
   edge_walk.push(edgeIndex);
   vertex_walk.push(edges_vertices[edgeIndex][0]);
@@ -37,7 +50,7 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
     edgeIndex = vertices_edges[nextVertex]
       .filter(v => edges_vertices_b[v])
       .shift();
-    if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
+    if (edgeIndex === undefined) { return empty_get_boundary(); }
     if (edges_vertices[edgeIndex][0] === nextVertex) {
       [, nextVertex] = edges_vertices[edgeIndex];
     } else {
@@ -52,34 +65,16 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
   };
 };
 /**
- * @param {object} FOLD graph
- * @returns {number[]} indices of vertices that lie along the boundary
+ * @description get the boundary as two arrays of vertices and edges
+ * by walking the boundary edges in 2D and uncovering the concave hull.
+ * Does not consult edges_assignment, but does require vertices_coords.
+ * For repairing crease patterns, this will uncover boundary edges_assignments.
+ * @param {object} a FOLD graph
+ *  (vertices_coords, vertices_vertices, edges_vertices)
+ *  (vertices edges only required in case vertices_vertices needs to be built)
+ * @returns {object} "vertices" and "edges" with arrays of indices.
+ * @usage call populate() before to ensure this works.
  */
-// export const get_boundary_vertices_unsorted = ({
-// 	edges_vertices, vertices_edges, edges_assignment
-// }) => {
-//   if (!vertices_edges) {
-//     vertices_edges = make_vertices_edges({ edges_vertices });
-//   }
-//   const edges_isBoundary = edges_assignment
-//     .map(a => a === "b" || a === "B");
-//   return vertices_edges
-//     .map(edges => edges
-//       .map(edge => edges_isBoundary[edge])
-//       .reduce((a, b) => a || b, false));
-// };
-/**
- * get the 2D boundary face defined in vertices and edges by walking boundary
- * edges (in 2D!), with no regard to assignment. this will discover a boundary
- * when before there was none.
- *
- * this requires a FOLD format graph with entries:
- * - vertices_coords, vertices_vertices,
- * - (edges_vertices) (maybe not this one...)
- *
- * call the method populate() to fill the necessary arrays.
- */
-// vertices_edges is only needed in case vertices_vertices needs to be build
 export const get_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
   if (!vertices_vertices) {
     vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });    

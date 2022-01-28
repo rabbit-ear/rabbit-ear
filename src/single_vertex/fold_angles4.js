@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 const odd_assignment = (assignments) => {
 	let ms = 0;
 	let vs = 0;

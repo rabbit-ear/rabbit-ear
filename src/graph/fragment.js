@@ -5,17 +5,13 @@ import math from "../math";
 import {
   fn_cat,
   fn_def,
-} from "../symbols/functions";
-import {
-  VERTICES,
-  EDGES,
-  FACES,
-} from "./fold_keys";
+} from "../general/functions";
+import * as S from "../general/strings";
 import {
 	edge_assignment_to_foldAngle,
 	edge_foldAngle_to_assignment,
   get_graph_keys_with_prefix,
-} from "./fold_spec";
+} from "../fold/spec";
 import {
   remove_duplicate_vertices,
   remove_duplicate_edges,
@@ -168,17 +164,17 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 };
 
 const fragment_keep_keys = [
-  "vertices_coords",
-  "edges_vertices",
-  "edges_assignment",
-  "edges_foldAngle",
+  S._vertices_coords,
+  S._edges_vertices,
+  S._edges_assignment,
+  S._edges_foldAngle,
 ];
 
 const fragment = (graph, epsilon = math.core.EPSILON) => {
   // project all vertices onto the XY plane
   graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 
-  [VERTICES, EDGES, FACES]
+  [S._vertices, S._edges, S._faces]
     .map(key => get_graph_keys_with_prefix(graph, key))
     .reduce(fn_cat, [])
     .filter(key => !(fragment_keep_keys.includes(key)))

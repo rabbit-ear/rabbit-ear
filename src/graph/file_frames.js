@@ -1,13 +1,14 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import clone from "./clone";
+import clone from "../general/clone";
+import * as S from "../general/strings";
 
 export const flatten_frame = (graph, frame_num = 1) => {
   if (!graph.file_frames || graph.file_frames.length < frame_num) {
     return graph;
   }
-  const dontCopy = ["frame_parent", "frame_inherit"];
+  const dontCopy = [S._frame_parent, S._frame_inherit];
   const memo = { visited_frames: [] };
 
   const recurse = (recurse_graph, frame, orderArray) => {
@@ -44,7 +45,7 @@ export const flatten_frame = (graph, frame_num = 1) => {
 };
 
 export const merge_frame = function (graph, frame) {
-  const dontCopy = ["frame_parent", "frame_inherit"];
+  const dontCopy = [S._frame_parent, S._frame_inherit];
   const copy = clone(frame);
   dontCopy.forEach(key => delete copy[key]);
   // don't deep copy file_frames. stash. bring them back.
@@ -57,4 +58,3 @@ export const merge_frame = function (graph, frame) {
   Object.assign(fold, frame);
   return fold;
 };
-

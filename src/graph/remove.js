@@ -2,11 +2,11 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import count from "./count";
-import { unique_sorted_integers } from "./arrays";
+import { unique_sorted_integers } from "../general/arrays";
 import {
   get_graph_keys_with_suffix,
   get_graph_keys_with_prefix
-} from "./fold_spec";
+} from "../fold/spec";
 /**
  * Removes vertices, edges, or faces (or anything really)
  * remove elements from inside arrays, shift up remaining components,

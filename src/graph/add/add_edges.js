@@ -1,6 +1,13 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
+/**
+ * 
+ * 
+ * triavial method. possible that this method should just be removed
+ * 
+ * 
+ */
 import { remove_duplicate_edges } from "../clean/index";
 // this method is meant to add edges between EXISTING vertices.
 // this should split and rebuild faces.
@@ -8,12 +15,8 @@ import { remove_duplicate_edges } from "../clean/index";
 // todo: we need to make a remove_duplicate_edges that returns merge info
 
 // const edges = ear.graph.add_edges(graph, [[0, vertex], [1, vertex], [2, 3], [2, vertex]]);
-
-
 const add_edges = (graph, edges_vertices) => {
-  if (!graph.edges_vertices) {
-    graph.edges_vertices = [];
-  }
+  if (!graph.edges_vertices) { graph.edges_vertices = []; }
   // the user messed up the input and only provided one edge
   // it's easy to fix for them
   if (typeof edges_vertices[0] === "number") { edges_vertices = [edges_vertices]; }

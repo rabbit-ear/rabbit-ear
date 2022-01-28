@@ -35,6 +35,8 @@ export const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
       math.core.segment_limiter));
   return math.core.smallest_comparison_search(point, nearest_points, math.core.distance);
 };
+
+// todo: expand this. point on edge of face doesn't return face.
 /**
  * from a planar perspective, ignoring z components
  *

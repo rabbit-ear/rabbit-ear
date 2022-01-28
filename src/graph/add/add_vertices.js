@@ -3,9 +3,15 @@
  */
 import math from "../../math";
 /**
- * @param {object} destination FOLD graph, new vertices will be added to this graph
- * @param {object} source FOLD graph, vertices from here will be added to the other graph
- * @returns {array} index of vertex in new vertices_coords array. matches array size of source vertices.
+ * @description add vertices to a graph by adding their vertices_coords only. This
+ * will also compare against every existing vertex, only adding non-duplicate
+ * vertices, as determined by an epsilon.
+ * @param {object} FOLD graph, will be modified
+ * @param {number[][]} vertices_coords, vertices to be added to the graph
+ * @param {number} optional epsilon to compare if vertices are the same
+ * @returns {array} index of vertex in new vertices_coords array.
+ * the size of this array matches array size of source vertices.
+ * duplicate (non-added) vertices returns their pre-existing counterpart's index.
  */
 const add_vertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
   if (!graph.vertices_coords) { graph.vertices_coords = []; }

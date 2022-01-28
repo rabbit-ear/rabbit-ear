@@ -12,7 +12,7 @@ test("components", () => {
   expect(graph.vertices[5].coords[1]).toBe(1);
   expect(graph.vertices[5].vertices).not.toBe(undefined);
   expect(graph.vertices[5].edges).not.toBe(undefined);
-  expect(graph.vertices[5].sectors).not.toBe(undefined);
+  // expect(graph.vertices[5].sectors).not.toBe(undefined);
 });
 
 test("components with isolated vertex", () => {
@@ -27,7 +27,7 @@ test("components with isolated vertex", () => {
   expect(graph.vertices[3].coords).not.toBe(undefined);
   expect(graph.vertices[3].edges).toBe(undefined);
   expect(graph.vertices[3].vertices).toBe(undefined);
-  expect(graph.vertices[3].sectors).toBe(undefined);
+  // expect(graph.vertices[3].sectors).toBe(undefined);
   expect(graph.vertices[3].degree).toBe(null);
 
   expect(graph.edges.length).toBe(2);
@@ -35,8 +35,8 @@ test("components with isolated vertex", () => {
   expect(graph.edges[1].coords[1][0]).toBe(2);
   expect(graph.edges[1].coords[1][1]).toBe(0);
   expect(graph.edges[0].foldAngle).toBe(0);
-  expect(graph.edges[0].vector[0]).toBe(1);
-  expect(graph.edges[0].vector[1]).toBe(0);
+  // expect(graph.edges[0].vector[0]).toBe(1);
+  // expect(graph.edges[0].vector[1]).toBe(0);
   expect(graph.edges[0].vertices[0]).toBe(0);
   expect(graph.edges[0].vertices[1]).toBe(1);
 });
@@ -66,13 +66,13 @@ test("face components", () => {
   expect(graph.faces[0].simple).toBe(true);
 });
 
-test("face components with no faces", () => {
+test("face components with no faces, building faces", () => {
   const graph = ear.graph({
     vertices_coords: [[0,0], [1,0], [1,1]],
     edges_vertices: [[0, 1], [1, 2], [2, 0]],
     edges_assignment: ["U", "U", "U"],
   });
-  expect(graph.faces.length).toBe(0);
+  expect(graph.faces.length).toBe(1);
 });
 
 test("face component with no vertices coords", () => {
@@ -94,7 +94,7 @@ test("face component with no vertices", () => {
     faces_edges: [[0, 1, 2]]
   });
   expect(graph.faces.length).toBe(1);
-  expect(graph.faces[0].simple).toBe(null);
+  expect(graph.faces[0].simple).toBe(true);
 });
 
 test("face simple property", () => {

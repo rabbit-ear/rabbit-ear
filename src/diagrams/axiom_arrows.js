@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Robby Kraft
+ */
 import math from "../math";
 import axiom from "../axioms/index";
 
@@ -39,7 +42,6 @@ const widest_perp = (graph, foldLine, point) => {
 		math.core.add(point, scaled)
 	);
 };
-
 /**
  * like in axiom 3 when two segments don't intersect and the fold
  * line lies exactly between them

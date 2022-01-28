@@ -11,7 +11,7 @@ import { get_edges_edges_span } from "./span";
  * @param {object} FOLD graph. only requires { edges_vector, edges_origin }
  * if they don't exist this will build them from { vertices_coords, edges_vertices }
  *
- * @param {number} (optional) epsilon
+ * @param {number} epsilon, optional
  *
  * @returns {number[][][]} NxN matrix comparing indices, undefined in the case of
  * no intersection, a point object in array form if yes, and this array is stored
@@ -57,4 +57,3 @@ export const get_edges_edges_intersections = function ({
   }
   return edges_intersections;
 };
-

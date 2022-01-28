@@ -1,14 +1,17 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-const isBrowser = typeof window !== "undefined"
-  && typeof window.document !== "undefined";
+import * as S from "../general/strings";
 
-const isNode = typeof process !== "undefined"
+// compare to "undefined", the string
+const isBrowser = typeof window !== S._undefined
+  && typeof window.document !== S._undefined;
+
+const isNode = typeof process !== S._undefined
   && process.versions != null
   && process.versions.node != null;
 
-const isWebWorker = typeof self === "object"
+const isWebWorker = typeof self === S._object
   && self.constructor
   && self.constructor.name === "DedicatedWorkerGlobalScope";
 

@@ -2,55 +2,80 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import test_axiom from "./test_axiom";
-
+import validate_axiom from "./validate";
+import * as AxiomsVO from "./axioms";
+import * as AxiomsUD from "./axioms_ud";
 /**
- * this converts a user input object { points: ___, lines: ___ }
- * into the propert arrangement of input parameters for the axiom methods
+ * @description the core axiom methods return arrays for *some* of
+ * the axioms.
+ * @param {number} the axiom number
+ * @returns {boolean} true false, does the core method return an array?
  */
-const axiom_param_map = [null,
-  a => a,
-  a => a,
-  (_, l) => [l[0].vector, l[0].origin, l[1].vector, l[1].origin],
-  (p, l) => [l[0].vector, p[0]],
-  (p, l) => [l[0].vector, l[0].origin, p[0], p[1]],
-  (p, l) => [l[0].vector, l[0].origin, l[1].vector, l[1].origin, p[0], p[1]],
-  (p, l) => [l[0].vector, l[0].origin, l[1].vector, p[0]],
-];
-
-const axiom_paramify = (number, points, lines) => axiom_param_map[number]
-  ? axiom_param_map[number](points, lines)
-  : [];
-
-const axiom_arrayify = (number, result) => {
+const axiom_returns_array = (number) => {
   switch (number) {
-    case "1": case 1:
-    case "2": case 2:
-    case "4": case 4:
-    case "7": case 7: return [result];
-    case "3": case 3:
-    case "5": case 5:
-    case "6": case 6: return result;
-    default: break;
+    case 3: case "3":
+    case 5: case "5":
+    case 6: case "6": return true;
+    default: return false;
   }
 };
 
-const axiom = (number, params = {}) => {
-  const points = (params.points || []).map(p => math.core.get_vector(p))
-  const lines = (params.lines || []).map(l => math.core.get_line(l))
-  const result = math.core[`axiom${number}`](...axiom_paramify(number, points, lines));
-  return axiom_arrayify(number, result);
+const check_params = (params) => ({
+  points: (params.points || []).map(p => math.core.get_vector(p)),
+  lines: (params.lines || []).map(l => math.core.get_line(l)),
+  lines_ud: (params.lines || [])
+    .map(l => l.u !== undefined && l.d !== undefined ? l : undefined)
+    .filter(a => a !== undefined)
+});
+const axiom_vector_origin = (number, params) => {
+  const result = AxiomsVO[`axiom${number}`](...params.lines, ...params.points);
+  const array_results = axiom_returns_array(number)
+    ? result
+    : [result].filter(a => a !== undefined);
+  return array_results.map(line => math.line(line));
+};
+const axiom_normal_distance = (number, params) => {
+  const result = AxiomsUD[`axiom${number}ud`](...params.lines_ud, ...params.points)
+  const array_results = axiom_returns_array(number)
+    ? result
+    : [result].filter(a => a !== undefined);
+  return array_results.map(line => math.line.ud(line));
+};
+/**
+ * @description compute the axiom given a set of parameters, and depending
+ * on the parameters, use the axioms-u-d methods which parameterize lines
+ * in u-d form, otherwise use the methods on vector-origin lines.
+ * @param {number} the axiom number 1-7
+ * @param {object} axiom parameters
+ * @returns {line[]} array of lines
+ */
+const axiom_boundaryless = (number, params) => {
+  return params.lines_ud.length === params.lines.length
+    ? axiom_normal_distance(number, params)
+    : axiom_vector_origin(number, params);
 };
 
-const axioms = [null, 1, 2, 3, 4, 5, 6, 7];
-delete axioms[0];
+const filter_with_boundary = (number, params, solutions, boundary) => {
+  if (boundary == null) { return; }
+  validate_axiom(number, params, boundary)
+    .forEach((valid, i) => { if (!valid) { delete solutions[i]; } });
+};
 
-Object.keys(axioms).forEach(number => {
+const axiom = (number, params = {}, boundary) => {
+  const parameters = check_params(params);
+  const solutions = axiom_boundaryless(number, parameters);
+  filter_with_boundary(number, parameters, solutions, boundary);
+  return solutions;
+};
+
+Object.keys(AxiomsVO).forEach(key => { axiom[key] = AxiomsVO[key]; });
+Object.keys(AxiomsUD).forEach(key => { axiom[key] = AxiomsUD[key]; });
+
+[1, 2, 3, 4, 5, 6, 7].forEach(number => {
   axiom[number] = (...args) => axiom(number, ...args);
 });
 
 // probably move this to axioms/index
-axiom.test = test_axiom;
+axiom.validate = validate_axiom;
 
 export default axiom;
-

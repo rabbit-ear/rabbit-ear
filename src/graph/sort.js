@@ -6,6 +6,7 @@ import math from "../math";
  * @param {object} FOLD graph
  * @param {number[]} an array of vertex indices to be sorted
  * @param {number} the origin vertex, around which the vertices will be sorted
+ * @returns {number[]} indices of vertices, in sorted order
  */
 export const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) =>
   vertices
@@ -19,12 +20,15 @@ export const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, v
     .map(el => el.i)
     .map(i => vertices[i]);
 /**
- * sort an array of points along any direction. simple example: if you provide [1,0]
- * it sorts points according to their X value. this works for any vector.
+ * @description sort a subset of vertices from a graph along a vector.
+ * eg: given the vector [1,0], points according to their X value.
+ * @param {object} FOLD object
+ * @param {number[]} the indices of vertices to be sorted
+ * @param {number[]} a vector along which to sort vertices
+ * @returns {number[]} indices of vertices, in sorted order
  */
 export const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
   vertices
     .map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
     .sort((a, b) => a.d - b.d)
     .map(a => a.i);
-
