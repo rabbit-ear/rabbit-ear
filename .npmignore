@@ -7,4 +7,5 @@ coverage/
 rollup.config.js
 src/
 tests/
-
+contribute.md
+versions.md

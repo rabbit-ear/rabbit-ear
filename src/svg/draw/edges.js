@@ -129,5 +129,3 @@ export const edges_paths = (graph, attributes = {}) => {
 //     .foreach((a, i) => svg_edges[i][k.setAttributeNS](null, k._class, a));
 //   return svg_edges;
 // };
-
-
