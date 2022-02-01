@@ -3,13 +3,14 @@
  */
 import { sort_vertices_counter_clockwise } from "../sort";
 import {
-  make_vertices_edges_sorted,
+  make_vertices_edges,
   make_vertices_faces,
   make_edges_faces,
   make_faces_faces,
   make_vertices_to_edge_bidirectional,
 } from "../make";
 import { find_adjacent_faces_to_face } from "../find";
+const warning = "split_face potentially given a non-convex face";
 /**
  * @description a newly-added edge needs to update its two endpoints'
  * vertices_vertices. each vertices_vertices gains one additional
@@ -30,7 +31,7 @@ export const update_vertices_vertices = ({ vertices_coords, vertices_vertices, e
  */
 export const update_vertices_edges = ({ edges_vertices, vertices_edges, vertices_vertices }, edge) => {
   // the expensive way, rebuild all arrays
-  // graph.vertices_edges = make_vertices_edges_sorted(graph);
+  // graph.vertices_edges = make_vertices_edges(graph);
   if (!vertices_edges || !vertices_vertices) { return; }
   const vertices = edges_vertices[edge];
   // for each of the two vertices, check its vertices_vertices for the
@@ -44,59 +45,79 @@ export const update_vertices_edges = ({ edges_vertices, vertices_edges, vertices
       .splice(radial_index, 0, edge));
 };
 /**
- * 
- * search inside vertices_faces for an occurence of the removed face,
- * determine which of our two new faces needs to be put in its place
- * by checking faces_vertices, by way of this map we build below:
+ * @description search inside vertices_faces for an occurence
+ * of the removed face, determine which of our two new faces
+ * needs to be put in its place by checking faces_vertices
+ * by way of this map we build at the beginning.
  */
 export const update_vertices_faces = (graph, old_face, new_faces) => {
-  // give each vertex (key) an array value containing
-  // one or two face indices (only the new_faces).
-  const vertex_face_map = {};
+  // for each of the vertices (only the vertices involved in this split),
+  // use the new faces_vertices data (built in the previous method) to get
+  // a list of the new faces to be added to this vertex's vertices_faces.
+  const vertices_replacement_faces = {};
   new_faces
     .forEach((f, i) => graph.faces_vertices[f]
       .forEach(v => {
-        if (!vertex_face_map[v]) { vertex_face_map[v] = []; }
-        vertex_face_map[v].push(f);
+        if (!vertices_replacement_faces[v]) {
+          vertices_replacement_faces[v] = [];
+        }
+        vertices_replacement_faces[v].push(f);
       }));
   // these vertices need updating
   graph.faces_vertices[old_face].forEach(v => {
     const index = graph.vertices_faces[v].indexOf(old_face);
-    const replacements = vertex_face_map[v];
+    const replacements = vertices_replacement_faces[v];
     if (index === -1 || !replacements) {
-      console.warn("update_vertices_faces not supposed to be here");
+      console.warn(warning);
       return;
     }
     graph.vertices_faces[v].splice(index, 1, ...replacements);
   });
 };
 /**
- * 
+ * @description called near the end of the split_convex_face method.
+ * update the "edges_faces" array for every edge involved.
+ * figure out where the old_face's index is in each edges_faces array,
+ * figure out which of the new faces (or both) need to be added and
+ * substitute the old index with the new face's index/indices.
  */
 export const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
-  // give each edge (key) an array value containing
-  // one or two face indices (only the new_faces).
-  const edge_face_map = {};
+  // for each of the edges (only the edges involved in this split),
+  // use the new faces_edges data (built in the previous method) to get
+  // a list of the new faces to be added to this edge's edges_faces.
+  // most will be length of 1, except the edge which split the face will be 2.
+  const edges_replacement_faces = {};
   new_faces
     .forEach((f, i) => graph.faces_edges[f]
       .forEach(e => {
-        if (!edge_face_map[e]) { edge_face_map[e] = []; }
-        edge_face_map[e].push(f);
+        if (!edges_replacement_faces[e]) { edges_replacement_faces[e] = []; }
+        edges_replacement_faces[e].push(f);
       }));
   // these edges need updating
   const edges = [...graph.faces_edges[old_face], new_edge];
   edges.forEach(e => {
-    const replacements = edge_face_map[e];
+    // these are the faces which should be inserted into this edge's
+    // edges_faces array, we just need to find the old index to replace.
+    const replacements = edges_replacement_faces[e];
     // basically rewriting .indexOf(), but supporting multiple results.
+    // these will be the indices containing a reference to the old face.
     const indices = [];
     for (let i = 0; i < graph.edges_faces[e].length; i++) {
       if (graph.edges_faces[e][i] === old_face) { indices.push(i); }
     }
     if (indices.length === 0 || !replacements) {
-      console.warn("update_edges_faces not supposed to be here", index, replacements, JSON.parse(JSON.stringify(graph.edges_faces[e])));
+      console.warn(warning);
       return;
     }
+    // "indices" will most often be length 1, except for the one edge which
+    // was added which splits the face in half. the previous methods which
+    // did this gave that edge two references both to the same face, knowing
+    // that here we will replace both references to the pair of the new
+    // faces which the edge now divides.
+    // remove the old indices.
     indices.reverse().forEach(index => graph.edges_faces[e].splice(index, 1));
+    // in both cases when "indices" is length 1 or 2, get just one index
+    // at which to insert the new reference(s).
     const index = indices[indices.length - 1];
     graph.edges_faces[e].splice(index, 0, ...replacements);
   });

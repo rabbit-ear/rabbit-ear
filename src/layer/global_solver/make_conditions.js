@@ -1,5 +1,5 @@
 import { boolean_matrix_to_unique_index_pairs } from "../../general/arrays";
-import make_faces_faces_overlap from "../../graph/make_faces_faces_overlap";
+import { make_faces_faces_overlap } from "../../graph/overlap";
 import { make_faces_winding } from "../../graph/faces_winding";
 /**
  * @description this is the initial step for building a set of conditions.

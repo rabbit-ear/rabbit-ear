@@ -37,13 +37,13 @@ test("centroid", () => {
   expect(centroid.y).toBe(2 + 4 / 2);
 });
 
-test("enclosingRectangle", () => {
+test("boundingBox", () => {
   const r = ear.rect(1, 2, 3, 4);
-  const bounds = r.enclosingRectangle();
-  expect(bounds.x).toBe(1);
-  expect(bounds.y).toBe(2);
-  expect(bounds.width).toBe(3);
-  expect(bounds.height).toBe(4);
+  const bounds = r.boundingBox();
+  expect(bounds.min[0]).toBe(1);
+  expect(bounds.min[1]).toBe(2);
+  expect(bounds.span[0]).toBe(3);
+  expect(bounds.span[1]).toBe(4);
 });
 
 test("contains", () => {

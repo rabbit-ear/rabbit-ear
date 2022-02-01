@@ -1,8 +1,8 @@
 import math from "../../math";
+import { make_faces_polygon } from "../../graph/make";
 import { make_faces_winding } from "../../graph/faces_winding";
 import { make_edges_edges_crossing } from "../../graph/edges_edges";
 import { boolean_matrix_to_indexed_array } from "../../general/arrays";
-import make_faces_polygon from "../../graph/faces_polygon";
 
 export const make_tortilla_tortilla_edges_crossing = (graph, edges_faces_side, epsilon) => {
 	// get all tortilla edges. could also be done by searching

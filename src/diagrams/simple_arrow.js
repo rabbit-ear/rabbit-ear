@@ -43,13 +43,13 @@ const widest_perpendicular = (polygon, foldLine, point) => {
  */
 const simple_arrow = (graph, line) => {
 	const hull = math.core.convex_hull(graph.vertices_coords);
-	const rect = math.core.enclosing_rectangle(hull);
+	const box = math.core.bounding_box(hull);
 	const segment = widest_perpendicular(hull, line);
 	if (segment === undefined) { return undefined; }
   const vector = ear.math.subtract(segment[1], segment[0]);
   const length = ear.math.magnitude(vector);
   const direction = ear.math.dot(vector, [1, 0]);
-  const vmin = rect.width < rect.height ? rect.width : rect.height;
+  const vmin = box.span[0] < box.span[1] ? box.span[0] : box.span[1];
 
 	segment.head = {
 		width: vmin * 0.1,

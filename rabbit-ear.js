@@ -1,4 +1,4 @@
-/* Rabbit Ear 0.9.2 alpha 2022-01-28 (c) Robby Kraft, MIT License */
+/* Rabbit Ear 0.9.21 alpha 2022-01-29 (c) Robby Kraft, MIT License */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -8,144 +8,7 @@
 
   var root = Object.create(null);
 
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
-  }
-
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
-  }
-
-  function ownKeys(object, enumerableOnly) {
-    var keys = Object.keys(object);
-
-    if (Object.getOwnPropertySymbols) {
-      var symbols = Object.getOwnPropertySymbols(object);
-      if (enumerableOnly) symbols = symbols.filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-      });
-      keys.push.apply(keys, symbols);
-    }
-
-    return keys;
-  }
-
-  function _objectSpread2(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i] != null ? arguments[i] : {};
-
-      if (i % 2) {
-        ownKeys(Object(source), true).forEach(function (key) {
-          _defineProperty(target, key, source[key]);
-        });
-      } else if (Object.getOwnPropertyDescriptors) {
-        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
-        ownKeys(Object(source)).forEach(function (key) {
-          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
-        });
-      }
-    }
-
-    return target;
-  }
-
-  function _slicedToArray(arr, i) {
-    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
-  }
-
-  function _toConsumableArray(arr) {
-    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
-  }
-
-  function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
-  }
-
-  function _arrayWithHoles(arr) {
-    if (Array.isArray(arr)) return arr;
-  }
-
-  function _iterableToArray(iter) {
-    if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
-  }
-
-  function _iterableToArrayLimit(arr, i) {
-    if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"] != null) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-
-    return _arr;
-  }
-
-  function _unsupportedIterableToArray(o, minLen) {
-    if (!o) return;
-    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
-    var n = Object.prototype.toString.call(o).slice(8, -1);
-    if (n === "Object" && o.constructor) n = o.constructor.name;
-    if (n === "Map" || n === "Set") return Array.from(o);
-    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
-  }
-
-  function _arrayLikeToArray(arr, len) {
-    if (len == null || len > arr.length) len = arr.length;
-
-    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-
-    return arr2;
-  }
-
-  function _nonIterableSpread() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-
-  function _nonIterableRest() {
-    throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-
-  var type_of = function type_of(obj) {
+  const type_of = function (obj) {
     switch (obj.constructor.name) {
       case "vector":
       case "matrix":
@@ -155,92 +18,67 @@
       case "circle":
       case "ellipse":
       case "rect":
-      case "polygon":
-        return obj.constructor.name;
+      case "polygon": return obj.constructor.name;
     }
-    if (_typeof(obj) === "object") {
-      if (obj.radius != null) {
-        return "circle";
-      }
-      if (obj.width != null) {
-        return "rect";
-      }
-      if (obj.x != null || typeof obj[0] === "number") {
-        return "vector";
-      }
-      if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) {
-        return "segment";
-      }
-      if (obj.vector != null && obj.origin != null) {
-        return "line";
-      }
+    if (typeof obj === "object") {
+      if (obj.radius != null) { return "circle"; }
+      if (obj.width != null) { return "rect"; }
+      if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
+      if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
+      if (obj.vector != null && obj.origin != null) { return "line"; }
     }
     return undefined;
   };
-  var resize = function resize(d, v) {
-    return v.length === d ? v : Array(d).fill(0).map(function (z, i) {
-      return v[i] ? v[i] : z;
-    });
+  const resize = (d, v) => (v.length === d
+    ? v
+    : Array(d).fill(0).map((z, i) => (v[i] ? v[i] : z)));
+  const resize_up = (a, b) => {
+    const size = a.length > b.length ? a.length : b.length;
+    return [a, b].map(v => resize(size, v));
   };
-  var resize_up = function resize_up(a, b) {
-    var size = a.length > b.length ? a.length : b.length;
-    return [a, b].map(function (v) {
-      return resize(size, v);
-    });
+  const resize_down = (a, b) => {
+    const size = a.length > b.length ? b.length : a.length;
+    return [a, b].map(v => resize(size, v));
   };
-  var resize_down = function resize_down(a, b) {
-    var size = a.length > b.length ? b.length : a.length;
-    return [a, b].map(function (v) {
-      return resize(size, v);
-    });
-  };
-  var count_places = function count_places(num) {
-    var m = "".concat(num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-    if (!m) {
-      return 0;
-    }
+  const count_places = function (num) {
+    const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+    if (!m) { return 0; }
     return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
   };
-  var clean_number = function clean_number(num) {
-    var places = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 15;
-    if (typeof num !== "number") {
-      return num;
-    }
-    var crop = parseFloat(num.toFixed(places));
+  const clean_number = function (num, places = 15) {
+    if (typeof num !== "number") { return num; }
+    const crop = parseFloat(num.toFixed(places));
     if (count_places(crop) === Math.min(places, count_places(num))) {
       return num;
     }
     return crop;
   };
-  var is_iterable$1 = function is_iterable(obj) {
-    return obj != null && typeof obj[Symbol.iterator] === "function";
-  };
-  var semi_flatten_arrays$1 = function semi_flatten_arrays() {
+  const is_iterable$1 = obj => obj != null
+    && typeof obj[Symbol.iterator] === "function";
+  const semi_flatten_arrays$1 = function () {
     switch (arguments.length) {
       case undefined:
-      case 0:
-        return Array.from(arguments);
-      case 1:
-        return is_iterable$1(arguments[0]) && typeof arguments[0] !== "string" ? semi_flatten_arrays.apply(void 0, _toConsumableArray(arguments[0])) : [arguments[0]];
+      case 0: return Array.from(arguments);
+      case 1: return is_iterable$1(arguments[0]) && typeof arguments[0] !== "string"
+        ? semi_flatten_arrays$1(...arguments[0])
+        : [arguments[0]];
       default:
-        return Array.from(arguments).map(function (a) {
-          return is_iterable$1(a) ? _toConsumableArray(semi_flatten_arrays(a)) : a;
-        });
+        return Array.from(arguments).map(a => (is_iterable$1(a)
+          ? [...semi_flatten_arrays$1(a)]
+          : a));
     }
   };
-  var flatten_arrays$1 = function flatten_arrays() {
+  const flatten_arrays$1 = function () {
     switch (arguments.length) {
       case undefined:
-      case 0:
-        return Array.from(arguments);
-      case 1:
-        return is_iterable$1(arguments[0]) && typeof arguments[0] !== "string" ? flatten_arrays.apply(void 0, _toConsumableArray(arguments[0])) : [arguments[0]];
+      case 0: return Array.from(arguments);
+      case 1: return is_iterable$1(arguments[0]) && typeof arguments[0] !== "string"
+        ? flatten_arrays$1(...arguments[0])
+        : [arguments[0]];
       default:
-        return Array.from(arguments).map(function (a) {
-          return is_iterable$1(a) ? _toConsumableArray(flatten_arrays(a)) : a;
-        }).reduce(function (a, b) {
-          return a.concat(b);
-        }, []);
+        return Array.from(arguments).map(a => (is_iterable$1(a)
+          ? [...flatten_arrays$1(a)]
+          : a)).reduce((a, b) => a.concat(b), []);
     }
   };
   var resizers = Object.freeze({
@@ -252,10 +90,10 @@
     semi_flatten_arrays: semi_flatten_arrays$1,
     flatten_arrays: flatten_arrays$1
   });
-  var EPSILON = 1e-6;
-  var R2D = 180 / Math.PI;
-  var D2R = Math.PI / 180;
-  var TWO_PI = Math.PI * 2;
+  const EPSILON = 1e-6;
+  const R2D = 180 / Math.PI;
+  const D2R = Math.PI / 180;
+  const TWO_PI = Math.PI * 2;
   var constants = Object.freeze({
     __proto__: null,
     EPSILON: EPSILON,
@@ -263,69 +101,29 @@
     D2R: D2R,
     TWO_PI: TWO_PI
   });
-  var fn_true = function fn_true() {
-    return true;
-  };
-  var fn_square = function fn_square(n) {
-    return n * n;
-  };
-  var fn_add$1 = function fn_add(a, b) {
-    return a + (b || 0);
-  };
-  var fn_not_undefined = function fn_not_undefined(a) {
-    return a !== undefined;
-  };
-  var fn_and$1 = function fn_and(a, b) {
-    return a && b;
-  };
-  var fn_cat$1 = function fn_cat(a, b) {
-    return a.concat(b);
-  };
-  var fn_vec2_angle = function fn_vec2_angle(v) {
-    return Math.atan2(v[1], v[0]);
-  };
-  var fn_to_vec2 = function fn_to_vec2(a) {
-    return [Math.cos(a), Math.sin(a)];
-  };
-  var fn_equal = function fn_equal(a, b) {
-    return a === b;
-  };
-  var fn_epsilon_equal = function fn_epsilon_equal(a, b) {
-    return Math.abs(a - b) < EPSILON;
-  };
-  var include = function include(n) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : EPSILON;
-    return n > -epsilon;
-  };
-  var exclude = function exclude(n) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : EPSILON;
-    return n > epsilon;
-  };
-  var include_l = fn_true;
-  var exclude_l = fn_true;
-  var include_r = include;
-  var exclude_r = exclude;
-  var include_s = function include_s(t) {
-    var e = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : EPSILON;
-    return t > -e && t < 1 + e;
-  };
-  var exclude_s = function exclude_s(t) {
-    var e = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : EPSILON;
-    return t > e && t < 1 - e;
-  };
-  var line_limiter = function line_limiter(dist) {
-    return dist;
-  };
-  var ray_limiter = function ray_limiter(dist) {
-    return dist < -EPSILON ? 0 : dist;
-  };
-  var segment_limiter = function segment_limiter(dist) {
-    if (dist < -EPSILON) {
-      return 0;
-    }
-    if (dist > 1 + EPSILON) {
-      return 1;
-    }
+  const fn_true = () => true;
+  const fn_square = n => n * n;
+  const fn_add$1 = (a, b) => a + (b || 0);
+  const fn_not_undefined = a => a !== undefined;
+  const fn_and$1 = (a, b) => a && b;
+  const fn_cat$1 = (a, b) => a.concat(b);
+  const fn_vec2_angle = v => Math.atan2(v[1], v[0]);
+  const fn_to_vec2 = a => [Math.cos(a), Math.sin(a)];
+  const fn_equal = (a, b) => a === b;
+  const fn_epsilon_equal = (a, b) => Math.abs(a - b) < EPSILON;
+  const include = (n, epsilon = EPSILON) => n > -epsilon;
+  const exclude = (n, epsilon = EPSILON) => n > epsilon;
+  const include_l = fn_true;
+  const exclude_l = fn_true;
+  const include_r = include;
+  const exclude_r = exclude;
+  const include_s = (t, e = EPSILON) => t > -e && t < 1 + e;
+  const exclude_s = (t, e = EPSILON) => t > e && t < 1 - e;
+  const line_limiter = dist => dist;
+  const ray_limiter = dist => (dist < -EPSILON ? 0 : dist);
+  const segment_limiter = (dist) => {
+    if (dist < -EPSILON) { return 0; }
+    if (dist > 1 + EPSILON) { return 1; }
     return dist;
   };
   var functions = Object.freeze({
@@ -353,58 +151,78 @@
     segment_limiter: segment_limiter
   });
   var Constructors$1 = Object.create(null);
-  var identity2x2 = [1, 0, 0, 1];
-  var identity2x3 = identity2x2.concat(0, 0);
-  var multiply_matrix2_vector2 = function multiply_matrix2_vector2(matrix, vector) {
-    return [matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4], matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5]];
-  };
-  var multiply_matrix2_line2 = function multiply_matrix2_line2(matrix, vector, origin) {
-    return {
-      vector: [matrix[0] * vector[0] + matrix[2] * vector[1], matrix[1] * vector[0] + matrix[3] * vector[1]],
-      origin: [matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4], matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5]]
-    };
-  };
-  var multiply_matrices2 = function multiply_matrices2(m1, m2) {
-    return [m1[0] * m2[0] + m1[2] * m2[1], m1[1] * m2[0] + m1[3] * m2[1], m1[0] * m2[2] + m1[2] * m2[3], m1[1] * m2[2] + m1[3] * m2[3], m1[0] * m2[4] + m1[2] * m2[5] + m1[4], m1[1] * m2[4] + m1[3] * m2[5] + m1[5]];
-  };
-  var determinant2 = function determinant2(m) {
-    return m[0] * m[3] - m[1] * m[2];
-  };
-  var invert_matrix2 = function invert_matrix2(m) {
-    var det = determinant2(m);
+  const identity2x2 = [1, 0, 0, 1];
+  const identity2x3 = identity2x2.concat(0, 0);
+  const multiply_matrix2_vector2 = (matrix, vector) => [
+    matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
+    matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5]
+  ];
+  const multiply_matrix2_line2 = (matrix, vector, origin) => ({
+    vector: [
+      matrix[0] * vector[0] + matrix[2] * vector[1],
+      matrix[1] * vector[0] + matrix[3] * vector[1]
+    ],
+    origin: [
+      matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4],
+      matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5]
+    ],
+  });
+  const multiply_matrices2 = (m1, m2) => [
+    m1[0] * m2[0] + m1[2] * m2[1],
+    m1[1] * m2[0] + m1[3] * m2[1],
+    m1[0] * m2[2] + m1[2] * m2[3],
+    m1[1] * m2[2] + m1[3] * m2[3],
+    m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+    m1[1] * m2[4] + m1[3] * m2[5] + m1[5]
+  ];
+  const determinant2 = m => m[0] * m[3] - m[1] * m[2];
+  const invert_matrix2 = (m) => {
+    const det = determinant2(m);
     if (Math.abs(det) < 1e-6 || isNaN(det) || !isFinite(m[4]) || !isFinite(m[5])) {
       return undefined;
     }
-    return [m[3] / det, -m[1] / det, -m[2] / det, m[0] / det, (m[2] * m[5] - m[3] * m[4]) / det, (m[1] * m[4] - m[0] * m[5]) / det];
+    return [
+      m[3] / det,
+      -m[1] / det,
+      -m[2] / det,
+      m[0] / det,
+      (m[2] * m[5] - m[3] * m[4]) / det,
+      (m[1] * m[4] - m[0] * m[5]) / det
+    ];
   };
-  var make_matrix2_translate = function make_matrix2_translate() {
-    var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    return identity2x2.concat(x, y);
+  const make_matrix2_translate = (x = 0, y = 0) => identity2x2.concat(x, y);
+  const make_matrix2_scale = (x, y, origin = [0, 0]) => [
+    x,
+    0,
+    0,
+    y,
+    x * -origin[0] + origin[0],
+    y * -origin[1] + origin[1]
+  ];
+  const make_matrix2_rotate = (angle, origin = [0, 0]) => {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [
+      cos,
+      sin,
+      -sin,
+      cos,
+      origin[0],
+      origin[1]
+    ];
   };
-  var make_matrix2_scale = function make_matrix2_scale(x, y) {
-    var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 0];
-    return [x, 0, 0, y, x * -origin[0] + origin[0], y * -origin[1] + origin[1]];
-  };
-  var make_matrix2_rotate = function make_matrix2_rotate(angle) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0];
-    var cos = Math.cos(angle);
-    var sin = Math.sin(angle);
-    return [cos, sin, -sin, cos, origin[0], origin[1]];
-  };
-  var make_matrix2_reflect = function make_matrix2_reflect(vector) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0];
-    var angle = Math.atan2(vector[1], vector[0]);
-    var cosAngle = Math.cos(angle);
-    var sinAngle = Math.sin(angle);
-    var cos_Angle = Math.cos(-angle);
-    var sin_Angle = Math.sin(-angle);
-    var a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-    var b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-    var c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-    var d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-    var tx = origin[0] + a * -origin[0] + -origin[1] * c;
-    var ty = origin[1] + b * -origin[0] + -origin[1] * d;
+  const make_matrix2_reflect = (vector, origin = [0, 0]) => {
+    const angle = Math.atan2(vector[1], vector[0]);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    const cos_Angle = Math.cos(-angle);
+    const sin_Angle = Math.sin(-angle);
+    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+    const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+    const ty = origin[1] + b * -origin[0] + -origin[1] * d;
     return [a, b, c, d, tx, ty];
   };
   var matrix2 = Object.freeze({
@@ -421,265 +239,230 @@
     make_matrix2_rotate: make_matrix2_rotate,
     make_matrix2_reflect: make_matrix2_reflect
   });
-  var _magnitude = function magnitude(v) {
-    return Math.sqrt(v.map(fn_square).reduce(fn_add$1, 0));
+  const magnitude = v => Math.sqrt(v
+    .map(fn_square)
+    .reduce(fn_add$1, 0));
+  const magnitude2$1 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+  const mag_squared = v => v
+    .map(fn_square)
+    .reduce(fn_add$1, 0);
+  const normalize = (v) => {
+    const m = magnitude(v);
+    return m === 0 ? v : v.map(c => c / m);
   };
-  var magnitude2$1 = function magnitude2(v) {
-    return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
-  };
-  var mag_squared = function mag_squared(v) {
-    return v.map(fn_square).reduce(fn_add$1, 0);
-  };
-  var _normalize = function normalize(v) {
-    var m = _magnitude(v);
-    return m === 0 ? v : v.map(function (c) {
-      return c / m;
-    });
-  };
-  var normalize2 = function normalize2(v) {
-    var m = magnitude2$1(v);
+  const normalize2 = (v) => {
+    const m = magnitude2$1(v);
     return m === 0 ? v : [v[0] / m, v[1] / m];
   };
-  var _scale = function scale(v, s) {
-    return v.map(function (n) {
-      return n * s;
-    });
+  const scale = (v, s) => v.map(n => n * s);
+  const scale2$1 = (v, s) => [v[0] * s, v[1] * s];
+  const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
+  const add2$1 = (v, u) => [v[0] + u[0], v[1] + u[1]];
+  const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
+  const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
+  const dot = (v, u) => v
+    .map((_, i) => v[i] * u[i])
+    .reduce(fn_add$1, 0);
+  const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
+  const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
+  const midpoint2 = (v, u) => scale2$1(add2$1(v, u), 0.5);
+  const average = function () {
+    if (arguments.length === 0) { return []; }
+    const dimension = (arguments[0].length > 0) ? arguments[0].length : 0;
+    const sum = Array(dimension).fill(0);
+    Array.from(arguments)
+      .forEach(vec => sum.forEach((_, i) => { sum[i] += vec[i] || 0; }));
+    return sum.map(n => n / arguments.length);
   };
-  var scale2$1 = function scale2(v, s) {
-    return [v[0] * s, v[1] * s];
+  const lerp = (v, u, t) => {
+    const inv = 1.0 - t;
+    return v.map((n, i) => n * inv + (u[i] || 0) * t);
   };
-  var _add = function add(v, u) {
-    return v.map(function (n, i) {
-      return n + (u[i] || 0);
-    });
+  const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
+  const cross3 = (v, u) => [
+    v[1] * u[2] - v[2] * u[1],
+    v[2] * u[0] - v[0] * u[2],
+    v[0] * u[1] - v[1] * u[0],
+  ];
+  const distance = (v, u) => Math.sqrt(v
+    .map((_, i) => (v[i] - u[i]) ** 2)
+    .reduce(fn_add$1, 0));
+  const distance2$1 = (v, u) => {
+    const p = v[0] - u[0];
+    const q = v[1] - u[1];
+    return Math.sqrt((p * p) + (q * q));
   };
-  var add2$1 = function add2(v, u) {
-    return [v[0] + u[0], v[1] + u[1]];
+  const distance3 = (v, u) => {
+    const a = v[0] - u[0];
+    const b = v[1] - u[1];
+    const c = v[2] - u[2];
+    return Math.sqrt((a * a) + (b * b) + (c * c));
   };
-  var _subtract = function subtract(v, u) {
-    return v.map(function (n, i) {
-      return n - (u[i] || 0);
-    });
-  };
-  var subtract2 = function subtract2(v, u) {
-    return [v[0] - u[0], v[1] - u[1]];
-  };
-  var _dot = function dot(v, u) {
-    return v.map(function (_, i) {
-      return v[i] * u[i];
-    }).reduce(fn_add$1, 0);
-  };
-  var dot2 = function dot2(v, u) {
-    return v[0] * u[0] + v[1] * u[1];
-  };
-  var _midpoint = function midpoint(v, u) {
-    return v.map(function (n, i) {
-      return (n + u[i]) / 2;
-    });
-  };
-  var midpoint2 = function midpoint2(v, u) {
-    return scale2$1(add2$1(v, u), 0.5);
-  };
-  var average = function average() {
-    var _arguments = arguments;
-    if (arguments.length === 0) {
-      return [];
-    }
-    var dimension = arguments[0].length > 0 ? arguments[0].length : 0;
-    var sum = Array(dimension).fill(0);
-    Array.from(arguments).forEach(function (vec) {
-      return sum.forEach(function (_, i) {
-        sum[i] += vec[i] || 0;
-      });
-    });
-    return sum.map(function (n) {
-      return n / _arguments.length;
-    });
-  };
-  var _lerp = function lerp(v, u, t) {
-    var inv = 1.0 - t;
-    return v.map(function (n, i) {
-      return n * inv + (u[i] || 0) * t;
-    });
-  };
-  var cross2 = function cross2(v, u) {
-    return v[0] * u[1] - v[1] * u[0];
-  };
-  var cross3 = function cross3(v, u) {
-    return [v[1] * u[2] - v[2] * u[1], v[2] * u[0] - v[0] * u[2], v[0] * u[1] - v[1] * u[0]];
-  };
-  var distance = function distance(v, u) {
-    return Math.sqrt(v.map(function (_, i) {
-      return Math.pow(v[i] - u[i], 2);
-    }).reduce(fn_add$1, 0));
-  };
-  var distance2$1 = function distance2(v, u) {
-    var p = v[0] - u[0];
-    var q = v[1] - u[1];
-    return Math.sqrt(p * p + q * q);
-  };
-  var distance3 = function distance3(v, u) {
-    var a = v[0] - u[0];
-    var b = v[1] - u[1];
-    var c = v[2] - u[2];
-    return Math.sqrt(a * a + b * b + c * c);
-  };
-  var _flip = function flip(v) {
-    return v.map(function (n) {
-      return -n;
-    });
-  };
-  var _rotate = function rotate90(v) {
-    return [-v[1], v[0]];
-  };
-  var _rotate2 = function rotate270(v) {
-    return [v[1], -v[0]];
-  };
-  var degenerate = function degenerate(v) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : EPSILON;
-    return v.map(function (n) {
-      return Math.abs(n);
-    }).reduce(fn_add$1, 0) < epsilon;
-  };
-  var parallel = function parallel(v, u) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-    return 1 - Math.abs(_dot(_normalize(v), _normalize(u))) < epsilon;
-  };
-  var parallel2 = function parallel2(v, u) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-    return Math.abs(cross2(v, u)) < epsilon;
-  };
+  const flip$2 = v => v.map(n => -n);
+  const rotate90 = v => [-v[1], v[0]];
+  const rotate270 = v => [v[1], -v[0]];
+  const degenerate = (v, epsilon = EPSILON) => v
+    .map(n => Math.abs(n))
+    .reduce(fn_add$1, 0) < epsilon;
+  const parallel = (v, u, epsilon = EPSILON) => 1 - Math
+    .abs(dot(normalize(v), normalize(u))) < epsilon;
+  const parallel2 = (v, u, epsilon = EPSILON) => Math
+    .abs(cross2(v, u)) < epsilon;
   var algebra$1 = Object.freeze({
     __proto__: null,
-    magnitude: _magnitude,
+    magnitude: magnitude,
     magnitude2: magnitude2$1,
     mag_squared: mag_squared,
-    normalize: _normalize,
+    normalize: normalize,
     normalize2: normalize2,
-    scale: _scale,
+    scale: scale,
     scale2: scale2$1,
-    add: _add,
+    add: add,
     add2: add2$1,
-    subtract: _subtract,
+    subtract: subtract,
     subtract2: subtract2,
-    dot: _dot,
+    dot: dot,
     dot2: dot2,
-    midpoint: _midpoint,
+    midpoint: midpoint,
     midpoint2: midpoint2,
     average: average,
-    lerp: _lerp,
+    lerp: lerp,
     cross2: cross2,
     cross3: cross3,
     distance: distance,
     distance2: distance2$1,
     distance3: distance3,
-    flip: _flip,
-    rotate90: _rotate,
-    rotate270: _rotate2,
+    flip: flip$2,
+    rotate90: rotate90,
+    rotate270: rotate270,
     degenerate: degenerate,
     parallel: parallel,
     parallel2: parallel2
   });
-  var identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
-  var identity3x4 = Object.freeze(identity3x3.concat(0, 0, 0));
-  var is_identity3x4 = function is_identity3x4(m) {
-    return identity3x4.map(function (n, i) {
-      return Math.abs(n - m[i]) < EPSILON;
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true);
-  };
-  var multiply_matrix3_vector3 = function multiply_matrix3_vector3(m, vector) {
-    return [m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9], m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10], m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11]];
-  };
-  var multiply_matrix3_line3 = function multiply_matrix3_line3(m, vector, origin) {
-    return {
-      vector: [m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2], m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2], m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2]],
-      origin: [m[0] * origin[0] + m[3] * origin[1] + m[6] * origin[2] + m[9], m[1] * origin[0] + m[4] * origin[1] + m[7] * origin[2] + m[10], m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11]]
-    };
-  };
-  var multiply_matrices3 = function multiply_matrices3(m1, m2) {
-    return [m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2], m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2], m1[2] * m2[0] + m1[5] * m2[1] + m1[8] * m2[2], m1[0] * m2[3] + m1[3] * m2[4] + m1[6] * m2[5], m1[1] * m2[3] + m1[4] * m2[4] + m1[7] * m2[5], m1[2] * m2[3] + m1[5] * m2[4] + m1[8] * m2[5], m1[0] * m2[6] + m1[3] * m2[7] + m1[6] * m2[8], m1[1] * m2[6] + m1[4] * m2[7] + m1[7] * m2[8], m1[2] * m2[6] + m1[5] * m2[7] + m1[8] * m2[8], m1[0] * m2[9] + m1[3] * m2[10] + m1[6] * m2[11] + m1[9], m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10], m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11]];
-  };
-  var determinant3 = function determinant3(m) {
-    return m[0] * m[4] * m[8] - m[0] * m[7] * m[5] - m[3] * m[1] * m[8] + m[3] * m[7] * m[2] + m[6] * m[1] * m[5] - m[6] * m[4] * m[2];
-  };
-  var invert_matrix3 = function invert_matrix3(m) {
-    var det = determinant3(m);
-    if (Math.abs(det) < 1e-6 || isNaN(det) || !isFinite(m[9]) || !isFinite(m[10]) || !isFinite(m[11])) {
+  const identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+  const identity3x4 = Object.freeze(identity3x3.concat(0, 0, 0));
+  const is_identity3x4 = m => identity3x4
+    .map((n, i) => Math.abs(n - m[i]) < EPSILON)
+    .reduce((a, b) => a && b, true);
+  const multiply_matrix3_vector3 = (m, vector) => [
+    m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
+    m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10],
+    m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11]
+  ];
+  const multiply_matrix3_line3 = (m, vector, origin) => ({
+    vector: [
+      m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2],
+      m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2],
+      m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2]
+    ],
+    origin: [
+      m[0] * origin[0] + m[3] * origin[1] + m[6] * origin[2] + m[9],
+      m[1] * origin[0] + m[4] * origin[1] + m[7] * origin[2] + m[10],
+      m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11]
+    ],
+  });
+  const multiply_matrices3 = (m1, m2) => [
+    m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
+    m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2],
+    m1[2] * m2[0] + m1[5] * m2[1] + m1[8] * m2[2],
+    m1[0] * m2[3] + m1[3] * m2[4] + m1[6] * m2[5],
+    m1[1] * m2[3] + m1[4] * m2[4] + m1[7] * m2[5],
+    m1[2] * m2[3] + m1[5] * m2[4] + m1[8] * m2[5],
+    m1[0] * m2[6] + m1[3] * m2[7] + m1[6] * m2[8],
+    m1[1] * m2[6] + m1[4] * m2[7] + m1[7] * m2[8],
+    m1[2] * m2[6] + m1[5] * m2[7] + m1[8] * m2[8],
+    m1[0] * m2[9] + m1[3] * m2[10] + m1[6] * m2[11] + m1[9],
+    m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10],
+    m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11]
+  ];
+  const determinant3 = m => (
+      m[0] * m[4] * m[8]
+    - m[0] * m[7] * m[5]
+    - m[3] * m[1] * m[8]
+    + m[3] * m[7] * m[2]
+    + m[6] * m[1] * m[5]
+    - m[6] * m[4] * m[2]
+  );
+  const invert_matrix3 = (m) => {
+    const det = determinant3(m);
+    if (Math.abs(det) < 1e-6 || isNaN(det)
+      || !isFinite(m[9]) || !isFinite(m[10]) || !isFinite(m[11])) {
       return undefined;
     }
-    var inv = [m[4] * m[8] - m[7] * m[5], -m[1] * m[8] + m[7] * m[2], m[1] * m[5] - m[4] * m[2], -m[3] * m[8] + m[6] * m[5], m[0] * m[8] - m[6] * m[2], -m[0] * m[5] + m[3] * m[2], m[3] * m[7] - m[6] * m[4], -m[0] * m[7] + m[6] * m[1], m[0] * m[4] - m[3] * m[1], -m[3] * m[7] * m[11] + m[3] * m[8] * m[10] + m[6] * m[4] * m[11] - m[6] * m[5] * m[10] - m[9] * m[4] * m[8] + m[9] * m[5] * m[7], m[0] * m[7] * m[11] - m[0] * m[8] * m[10] - m[6] * m[1] * m[11] + m[6] * m[2] * m[10] + m[9] * m[1] * m[8] - m[9] * m[2] * m[7], -m[0] * m[4] * m[11] + m[0] * m[5] * m[10] + m[3] * m[1] * m[11] - m[3] * m[2] * m[10] - m[9] * m[1] * m[5] + m[9] * m[2] * m[4]];
-    var invDet = 1.0 / det;
-    return inv.map(function (n) {
-      return n * invDet;
-    });
+    const inv = [
+      m[4] * m[8] - m[7] * m[5],
+      -m[1] * m[8] + m[7] * m[2],
+      m[1] * m[5] - m[4] * m[2],
+      -m[3] * m[8] + m[6] * m[5],
+      m[0] * m[8] - m[6] * m[2],
+      -m[0] * m[5] + m[3] * m[2],
+      m[3] * m[7] - m[6] * m[4],
+      -m[0] * m[7] + m[6] * m[1],
+      m[0] * m[4] - m[3] * m[1],
+      -m[3] * m[7] * m[11] + m[3] * m[8] * m[10] + m[6] * m[4] * m[11]
+        - m[6] * m[5] * m[10] - m[9] * m[4] * m[8] + m[9] * m[5] * m[7],
+      m[0] * m[7] * m[11] - m[0] * m[8] * m[10] - m[6] * m[1] * m[11]
+        + m[6] * m[2] * m[10] + m[9] * m[1] * m[8] - m[9] * m[2] * m[7],
+      -m[0] * m[4] * m[11] + m[0] * m[5] * m[10] + m[3] * m[1] * m[11]
+        - m[3] * m[2] * m[10] - m[9] * m[1] * m[5] + m[9] * m[2] * m[4]
+    ];
+    const invDet = 1.0 / det;
+    return inv.map(n => n * invDet);
   };
-  var make_matrix3_translate = function make_matrix3_translate() {
-    var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var z = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    return identity3x3.concat(x, y, z);
-  };
-  var single_axis_rotate = function single_axis_rotate(angle, origin, i0, i1, sgn) {
-    var mat = identity3x3.concat([0, 1, 2].map(function (i) {
-      return origin[i] || 0;
-    }));
-    var cos = Math.cos(angle);
-    var sin = Math.sin(angle);
-    mat[i0 * 3 + i0] = cos;
-    mat[i0 * 3 + i1] = (sgn ? +1 : -1) * sin;
-    mat[i1 * 3 + i0] = (sgn ? -1 : +1) * sin;
-    mat[i1 * 3 + i1] = cos;
+  const make_matrix3_translate = (x = 0, y = 0, z = 0) => identity3x3.concat(x, y, z);
+  const single_axis_rotate = (angle, origin, i0, i1, sgn) => {
+    const mat = identity3x3.concat([0, 1, 2].map(i => origin[i] || 0));
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    mat[i0*3 + i0] = cos;
+    mat[i0*3 + i1] = (sgn ? +1 : -1) * sin;
+    mat[i1*3 + i0] = (sgn ? -1 : +1) * sin;
+    mat[i1*3 + i1] = cos;
     return mat;
   };
-  var make_matrix3_rotateX = function make_matrix3_rotateX(angle) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
-    return single_axis_rotate(angle, origin, 1, 2, true);
+  const make_matrix3_rotateX = (angle, origin = [0, 0, 0]) => single_axis_rotate(angle, origin, 1, 2, true);
+  const make_matrix3_rotateY = (angle, origin = [0, 0, 0]) => single_axis_rotate(angle, origin, 0, 2, false);
+  const make_matrix3_rotateZ = (angle, origin = [0, 0, 0]) => single_axis_rotate(angle, origin, 0, 1, true);
+  const make_matrix3_rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
+    const pos = [0, 1, 2].map(i => origin[i] || 0);
+    const [x, y, z] = resize(3, normalize(vector));
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    const t = 1 - c;
+    const trans     = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
+    const trans_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
+    return multiply_matrices3(trans_inv, multiply_matrices3([
+      t * x * x + c,     t * y * x + z * s, t * z * x - y * s,
+      t * x * y - z * s, t * y * y + c,     t * z * y + x * s,
+      t * x * z + y * s, t * y * z - x * s, t * z * z + c,
+      0, 0, 0], trans));
   };
-  var make_matrix3_rotateY = function make_matrix3_rotateY(angle) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
-    return single_axis_rotate(angle, origin, 0, 2, false);
-  };
-  var make_matrix3_rotateZ = function make_matrix3_rotateZ(angle) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
-    return single_axis_rotate(angle, origin, 0, 1, true);
-  };
-  var make_matrix3_rotate = function make_matrix3_rotate(angle) {
-    var vector = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 1];
-    var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 0, 0];
-    var pos = [0, 1, 2].map(function (i) {
-      return origin[i] || 0;
-    });
-    var _resize = resize(3, _normalize(vector)),
-        _resize2 = _slicedToArray(_resize, 3),
-        x = _resize2[0],
-        y = _resize2[1],
-        z = _resize2[2];
-    var c = Math.cos(angle);
-    var s = Math.sin(angle);
-    var t = 1 - c;
-    var trans = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
-    var trans_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
-    return multiply_matrices3(trans_inv, multiply_matrices3([t * x * x + c, t * y * x + z * s, t * z * x - y * s, t * x * y - z * s, t * y * y + c, t * z * y + x * s, t * x * z + y * s, t * y * z - x * s, t * z * z + c, 0, 0, 0], trans));
-  };
-  var make_matrix3_scale = function make_matrix3_scale(scale) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
-    return [scale, 0, 0, 0, scale, 0, 0, 0, scale, scale * -origin[0] + origin[0], scale * -origin[1] + origin[1], scale * -origin[2] + origin[2]];
-  };
-  var make_matrix3_reflectZ = function make_matrix3_reflectZ(vector) {
-    var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0];
-    var angle = Math.atan2(vector[1], vector[0]);
-    var cosAngle = Math.cos(angle);
-    var sinAngle = Math.sin(angle);
-    var cos_Angle = Math.cos(-angle);
-    var sin_Angle = Math.sin(-angle);
-    var a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-    var b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-    var c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-    var d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-    var tx = origin[0] + a * -origin[0] + -origin[1] * c;
-    var ty = origin[1] + b * -origin[0] + -origin[1] * d;
+  const make_matrix3_scale = (scale, origin = [0, 0, 0]) => [
+    scale,
+    0,
+    0,
+    0,
+    scale,
+    0,
+    0,
+    0,
+    scale,
+    scale * -origin[0] + origin[0],
+    scale * -origin[1] + origin[1],
+    scale * -origin[2] + origin[2]
+  ];
+  const make_matrix3_reflectZ = (vector, origin = [0, 0]) => {
+    const angle = Math.atan2(vector[1], vector[0]);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    const cos_Angle = Math.cos(-angle);
+    const sin_Angle = Math.sin(-angle);
+    const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+    const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+    const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+    const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+    const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+    const ty = origin[1] + b * -origin[0] + -origin[1] * d;
     return [a, b, 0, c, d, 0, 0, 0, 1, tx, ty, 0];
   };
   var matrix3 = Object.freeze({
@@ -700,142 +483,118 @@
     make_matrix3_scale: make_matrix3_scale,
     make_matrix3_reflectZ: make_matrix3_reflectZ
   });
-  var vector_origin_form = function vector_origin_form(vector, origin) {
-    return {
-      vector: vector || [],
-      origin: origin || []
-    };
-  };
-  var get_vector = function get_vector() {
-    if (arguments[0] instanceof Constructors$1.vector) {
-      return arguments[0];
+  const vector_origin_form = (vector, origin) => ({
+    vector: vector || [],
+    origin: origin || []
+  });
+  const get_vector = function () {
+    if (arguments[0] instanceof Constructors$1.vector) { return arguments[0]; }
+    let list = flatten_arrays$1(arguments);
+    if (list.length > 0
+      && typeof list[0] === "object"
+      && list[0] !== null
+      && !isNaN(list[0].x)) {
+      list = ["x", "y", "z"]
+        .map(c => list[0][c])
+        .filter(fn_not_undefined);
     }
-    var list = flatten_arrays$1(arguments);
-    if (list.length > 0 && _typeof(list[0]) === "object" && list[0] !== null && !isNaN(list[0].x)) {
-      list = ["x", "y", "z"].map(function (c) {
-        return list[0][c];
-      }).filter(fn_not_undefined);
-    }
-    return list.filter(function (n) {
-      return typeof n === "number";
-    });
+    return list.filter(n => typeof n === "number");
   };
-  var get_vector_of_vectors = function get_vector_of_vectors() {
-    return semi_flatten_arrays$1(arguments).map(function (el) {
-      return get_vector(el);
-    });
+  const get_vector_of_vectors = function () {
+    return semi_flatten_arrays$1(arguments)
+      .map(el => get_vector(el));
   };
-  var get_segment = function get_segment() {
+  const get_segment = function () {
     if (arguments[0] instanceof Constructors$1.segment) {
       return arguments[0];
     }
-    var args = semi_flatten_arrays$1(arguments);
+    const args = semi_flatten_arrays$1(arguments);
     if (args.length === 4) {
-      return [[args[0], args[1]], [args[2], args[3]]];
+      return [
+        [args[0], args[1]],
+        [args[2], args[3]]
+      ];
     }
-    return args.map(function (el) {
-      return get_vector(el);
-    });
+    return args.map(el => get_vector(el));
   };
-  var get_line = function get_line() {
-    var args = semi_flatten_arrays$1(arguments);
-    if (args.length === 0) {
-      return vector_origin_form([], []);
-    }
-    if (args[0] instanceof Constructors$1.line || args[0] instanceof Constructors$1.ray || args[0] instanceof Constructors$1.segment) {
-      return args[0];
-    }
+  const get_line = function () {
+    const args = semi_flatten_arrays$1(arguments);
+    if (args.length === 0) { return vector_origin_form([], []); }
+    if (args[0] instanceof Constructors$1.line
+      || args[0] instanceof Constructors$1.ray
+      || args[0] instanceof Constructors$1.segment) { return args[0]; }
     if (args[0].constructor === Object && args[0].vector !== undefined) {
       return vector_origin_form(args[0].vector || [], args[0].origin || []);
     }
-    return typeof args[0] === "number" ? vector_origin_form(get_vector(args)) : vector_origin_form.apply(void 0, _toConsumableArray(args.map(function (a) {
-      return get_vector(a);
-    })));
+    return typeof args[0] === "number"
+      ? vector_origin_form(get_vector(args))
+      : vector_origin_form(...args.map(a => get_vector(a)));
   };
-  var get_ray = get_line;
-  var get_rect_params = function get_rect_params() {
-    var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var width = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var height = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
-    return {
-      x: x,
-      y: y,
-      width: width,
-      height: height
-    };
+  const get_ray = get_line;
+  const get_rect_params = (x = 0, y = 0, width = 0, height = 0) => ({
+    x, y, width, height
+  });
+  const get_rect = function () {
+    if (arguments[0] instanceof Constructors$1.rect) { return arguments[0]; }
+    const list = flatten_arrays$1(arguments);
+    if (list.length > 0
+      && typeof list[0] === "object"
+      && list[0] !== null
+      && !isNaN(list[0].width)) {
+      return get_rect_params(...["x", "y", "width", "height"]
+        .map(c => list[0][c])
+        .filter(fn_not_undefined));
+    }
+    const numbers = list.filter(n => typeof n === "number");
+    const rect_params = numbers.length < 4
+      ? [, , ...numbers]
+      : numbers;
+    return get_rect_params(...rect_params);
   };
-  var get_rect = function get_rect() {
-    if (arguments[0] instanceof Constructors$1.rect) {
-      return arguments[0];
-    }
-    var list = flatten_arrays$1(arguments);
-    if (list.length > 0 && _typeof(list[0]) === "object" && list[0] !== null && !isNaN(list[0].width)) {
-      return get_rect_params.apply(void 0, _toConsumableArray(["x", "y", "width", "height"].map(function (c) {
-        return list[0][c];
-      }).filter(fn_not_undefined)));
-    }
-    var numbers = list.filter(function (n) {
-      return typeof n === "number";
-    });
-    var rect_params = numbers.length < 4 ? [,,].concat(_toConsumableArray(numbers)) : numbers;
-    return get_rect_params.apply(void 0, _toConsumableArray(rect_params));
-  };
-  var get_circle_params = function get_circle_params() {
-    var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-    return {
-      radius: radius,
-      origin: [].concat(args)
-    };
-  };
-  var get_circle = function get_circle() {
-    if (arguments[0] instanceof Constructors$1.circle) {
-      return arguments[0];
-    }
-    var vectors = get_vector_of_vectors(arguments);
-    var numbers = flatten_arrays$1(arguments).filter(function (a) {
-      return typeof a === "number";
-    });
+  const get_circle_params = (radius = 1, ...args) => ({
+  	radius,
+  	origin: [...args],
+  });
+  const get_circle = function () {
+  	if (arguments[0] instanceof Constructors$1.circle) { return arguments[0]; }
+    const vectors = get_vector_of_vectors(arguments);
+    const numbers = flatten_arrays$1(arguments).filter(a => typeof a === "number");
     if (arguments.length === 2) {
       if (vectors[1].length === 1) {
-        return get_circle_params.apply(void 0, [vectors[1][0]].concat(_toConsumableArray(vectors[0])));
+  			return get_circle_params(vectors[1][0], ...vectors[0]);
       } else if (vectors[0].length === 1) {
-        return get_circle_params.apply(void 0, [vectors[0][0]].concat(_toConsumableArray(vectors[1])));
+  			return get_circle_params(vectors[0][0], ...vectors[1]);
       } else if (vectors[0].length > 1 && vectors[1].length > 1) {
-        return get_circle_params.apply(void 0, [distance2$1.apply(void 0, _toConsumableArray(vectors))].concat(_toConsumableArray(vectors[0])));
-      }
-    } else {
-      switch (numbers.length) {
-        case 0:
-          return get_circle_params(1, 0, 0, 0);
-        case 1:
-          return get_circle_params(numbers[0], 0, 0, 0);
-        default:
-          return get_circle_params.apply(void 0, [numbers.pop()].concat(_toConsumableArray(numbers)));
+  			return get_circle_params(distance2$1(...vectors), ...vectors[0]);
       }
     }
-    return get_circle_params(1, 0, 0, 0);
+    else {
+      switch (numbers.length) {
+        case 0: return get_circle_params(1, 0, 0, 0);
+        case 1: return get_circle_params(numbers[0], 0, 0, 0);
+        default: return get_circle_params(numbers.pop(), ...numbers);
+      }
+    }
+  	return get_circle_params(1, 0, 0, 0);
   };
-  var maps_3x4 = [[0, 1, 3, 4, 9, 10], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [0, 1, 2, undefined, 3, 4, 5, undefined, 6, 7, 8, undefined, 9, 10, 11]];
-  [11, 7, 3].forEach(function (i) {
-    return delete maps_3x4[2][i];
-  });
-  var matrix_map_3x4 = function matrix_map_3x4(len) {
-    var i;
-    if (len < 8) i = 0;else if (len < 13) i = 1;else i = 2;
+  const maps_3x4 = [
+    [0, 1, 3, 4, 9, 10],
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    [0, 1, 2, undefined, 3, 4, 5, undefined, 6, 7, 8, undefined, 9, 10, 11]
+  ];
+  [11, 7, 3].forEach(i => delete maps_3x4[2][i]);
+  const matrix_map_3x4 = len => {
+    let i;
+    if (len < 8) i = 0;
+    else if (len < 13) i = 1;
+    else i = 2;
     return maps_3x4[i];
   };
-  var get_matrix_3x4 = function get_matrix_3x4() {
-    var mat = flatten_arrays$1(arguments);
-    var matrix = _toConsumableArray(identity3x4);
-    matrix_map_3x4(mat.length).forEach(function (n, i) {
-      if (mat[i] != null) {
-        matrix[n] = mat[i];
-      }
-    });
+  const get_matrix_3x4 = function () {
+    const mat = flatten_arrays$1(arguments);
+    const matrix = [...identity3x4];
+    matrix_map_3x4(mat.length)
+      .forEach((n, i) => { if (mat[i] != null) { matrix[n] = mat[i]; } });
     return matrix;
   };
   var getters = Object.freeze({
@@ -850,50 +609,35 @@
     get_circle: get_circle,
     get_matrix_3x4: get_matrix_3x4
   });
-  var array_similarity_test = function array_similarity_test(list, compFunc) {
-    return Array.from(Array(list.length - 1)).map(function (_, i) {
-      return compFunc(list[0], list[i + 1]);
-    }).reduce(fn_and$1, true);
-  };
-  var equivalent_vector2 = function equivalent_vector2(a, b) {
-    return [0, 1].map(function (i) {
-      return fn_epsilon_equal(a[i], b[i]);
-    }).reduce(fn_and$1, true);
-  };
-  var equivalent_numbers = function equivalent_numbers() {
-    if (arguments.length === 0) {
-      return false;
-    }
+  const array_similarity_test = (list, compFunc) => Array
+    .from(Array(list.length - 1))
+    .map((_, i) => compFunc(list[0], list[i + 1]))
+    .reduce(fn_and$1, true);
+  const equivalent_vector2 = (a, b) => [0, 1]
+    .map(i => fn_epsilon_equal(a[i], b[i]))
+    .reduce(fn_and$1, true);
+  const equivalent_numbers = function () {
+    if (arguments.length === 0) { return false; }
     if (arguments.length === 1 && arguments[0] !== undefined) {
-      return equivalent_numbers.apply(void 0, _toConsumableArray(arguments[0]));
+      return equivalent_numbers(...arguments[0]);
     }
     return array_similarity_test(arguments, fn_epsilon_equal);
   };
-  var equivalent_vectors = function equivalent_vectors() {
-    var args = Array.from(arguments);
-    var length = args.map(function (a) {
-      return a.length;
-    }).reduce(function (a, b) {
-      return a > b ? a : b;
-    });
-    var vecs = args.map(function (a) {
-      return resize(length, a);
-    });
-    return Array.from(Array(arguments.length - 1)).map(function (_, i) {
-      return vecs[0].map(function (_, n) {
-        return Math.abs(vecs[0][n] - vecs[i + 1][n]) < EPSILON;
-      }).reduce(fn_and$1, true);
-    }).reduce(fn_and$1, true);
+  const equivalent_vectors = function () {
+    const args = Array.from(arguments);
+    const length = args.map(a => a.length).reduce((a, b) => a > b ? a : b);
+    const vecs = args.map(a => resize(length, a));
+    return Array.from(Array(arguments.length - 1))
+      .map((_, i) => vecs[0]
+        .map((_, n) => Math.abs(vecs[0][n] - vecs[i + 1][n]) < EPSILON)
+        .reduce(fn_and$1, true))
+      .reduce(fn_and$1, true);
   };
-  var equivalent = function equivalent() {
-    var list = semi_flatten_arrays$1.apply(void 0, arguments);
-    if (list.length < 1) {
-      return false;
-    }
-    var typeofList = _typeof(list[0]);
-    if (typeofList === "undefined") {
-      return false;
-    }
+  const equivalent = function () {
+    const list = semi_flatten_arrays$1(...arguments);
+    if (list.length < 1) { return false; }
+    const typeofList = typeof list[0];
+    if (typeofList === "undefined") { return false; }
     switch (typeofList) {
       case "number":
         return array_similarity_test(list, fn_epsilon_equal);
@@ -901,14 +645,9 @@
       case "string":
         return array_similarity_test(list, fn_equal);
       case "object":
-        if (list[0].constructor === Array) {
-          return equivalent_vectors.apply(void 0, _toConsumableArray(list));
-        }
-        return array_similarity_test(list, function (a, b) {
-          return JSON.stringify(a) === JSON.stringify(b);
-        });
-      default:
-        return undefined;
+        if (list[0].constructor === Array) { return equivalent_vectors(...list); }
+        return array_similarity_test(list, (a, b) => JSON.stringify(a) === JSON.stringify(b));
+      default: return undefined;
     }
   };
   var equal = Object.freeze({
@@ -918,33 +657,19 @@
     equivalent_vectors: equivalent_vectors,
     equivalent: equivalent
   });
-  var sort_points_along_vector2 = function sort_points_along_vector2(points, vector) {
-    return points.map(function (point) {
-      return {
-        point: point,
-        d: point[0] * vector[0] + point[1] * vector[1]
-      };
-    }).sort(function (a, b) {
-      return a.d - b.d;
-    }).map(function (a) {
-      return a.point;
-    });
-  };
+  const sort_points_along_vector2 = (points, vector) => points
+    .map(point => ({ point, d: point[0] * vector[0] + point[1] * vector[1] }))
+    .sort((a, b) => a.d - b.d)
+    .map(a => a.point);
   var sort$1 = Object.freeze({
     __proto__: null,
     sort_points_along_vector2: sort_points_along_vector2
   });
-  var smallest_comparison_search = function smallest_comparison_search(obj, array, compare_func) {
-    var objs = array.map(function (o, i) {
-      return {
-        o: o,
-        i: i,
-        d: compare_func(obj, o)
-      };
-    });
-    var index;
-    var smallest_value = Infinity;
-    for (var i = 0; i < objs.length; i += 1) {
+  const smallest_comparison_search = (obj, array, compare_func) => {
+    const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
+    let index;
+    let smallest_value = Infinity;
+    for (let i = 0; i < objs.length; i += 1) {
       if (objs[i].d < smallest_value) {
         index = i;
         smallest_value = objs[i].d;
@@ -952,47 +677,37 @@
     }
     return index;
   };
-  var nearest_point2 = function nearest_point2(point, array_of_points) {
-    var index = smallest_comparison_search(point, array_of_points, distance2$1);
+  const nearest_point2 = (point, array_of_points) => {
+    const index = smallest_comparison_search(point, array_of_points, distance2$1);
     return index === undefined ? undefined : array_of_points[index];
   };
-  var nearest_point = function nearest_point(point, array_of_points) {
-    var index = smallest_comparison_search(point, array_of_points, distance);
+  const nearest_point = (point, array_of_points) => {
+    const index = smallest_comparison_search(point, array_of_points, distance);
     return index === undefined ? undefined : array_of_points[index];
   };
-  var nearest_point_on_line = function nearest_point_on_line(vector, origin, point, limiterFunc) {
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : EPSILON;
+  const nearest_point_on_line = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
     origin = resize(vector.length, origin);
     point = resize(vector.length, point);
-    var magSquared = mag_squared(vector);
-    var vectorToPoint = _subtract(point, origin);
-    var dotProd = _dot(vector, vectorToPoint);
-    var dist = dotProd / magSquared;
-    var d = limiterFunc(dist, epsilon);
-    return _add(origin, _scale(vector, d));
+    const magSquared = mag_squared(vector);
+    const vectorToPoint = subtract(point, origin);
+    const dotProd = dot(vector, vectorToPoint);
+    const dist = dotProd / magSquared;
+    const d = limiterFunc(dist, epsilon);
+    return add(origin, scale(vector, d))
   };
-  var nearest_point_on_polygon = function nearest_point_on_polygon(polygon, point) {
-    var v = polygon.map(function (p, i, arr) {
-      return _subtract(arr[(i + 1) % arr.length], p);
-    });
-    return polygon.map(function (p, i) {
-      return nearest_point_on_line(v[i], p, point, segment_limiter);
-    }).map(function (p, i) {
-      return {
-        point: p,
-        i: i,
-        distance: distance(p, point)
-      };
-    }).sort(function (a, b) {
-      return a.distance - b.distance;
-    }).shift();
+  const nearest_point_on_polygon = (polygon, point) => {
+    const v = polygon
+      .map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
+    return polygon
+      .map((p, i) => nearest_point_on_line(v[i], p, point, segment_limiter))
+      .map((p, i) => ({ point: p, i, distance: distance(p, point) }))
+      .sort((a, b) => a.distance - b.distance)
+      .shift();
   };
-  var nearest_point_on_circle = function nearest_point_on_circle(radius, origin, point) {
-    return _add(origin, _scale(_normalize(_subtract(point, origin)), radius));
-  };
-  var nearest_point_on_ellipse = function nearest_point_on_ellipse() {
-    return false;
-  };
+  const nearest_point_on_circle = (radius, origin, point) => add(
+    origin, scale(normalize(subtract(point, origin)), radius)
+  );
+  const nearest_point_on_ellipse = () => false;
   var nearest$1 = Object.freeze({
     __proto__: null,
     smallest_comparison_search: smallest_comparison_search,
@@ -1003,134 +718,108 @@
     nearest_point_on_circle: nearest_point_on_circle,
     nearest_point_on_ellipse: nearest_point_on_ellipse
   });
-  var is_counter_clockwise_between = function is_counter_clockwise_between(angle, angleA, angleB) {
-    while (angleB < angleA) {
-      angleB += TWO_PI;
-    }
-    while (angle > angleA) {
-      angle -= TWO_PI;
-    }
-    while (angle < angleA) {
-      angle += TWO_PI;
-    }
+  const is_counter_clockwise_between = (angle, angleA, angleB) => {
+    while (angleB < angleA) { angleB += TWO_PI; }
+    while (angle > angleA) { angle -= TWO_PI; }
+    while (angle < angleA) { angle += TWO_PI; }
     return angle < angleB;
   };
-  var clockwise_angle_radians = function clockwise_angle_radians(a, b) {
-    while (a < 0) {
-      a += TWO_PI;
-    }
-    while (b < 0) {
-      b += TWO_PI;
-    }
-    while (a > TWO_PI) {
-      a -= TWO_PI;
-    }
-    while (b > TWO_PI) {
-      b -= TWO_PI;
-    }
-    var a_b = a - b;
-    return a_b >= 0 ? a_b : TWO_PI - (b - a);
+  const clockwise_angle_radians = (a, b) => {
+    while (a < 0) { a += TWO_PI; }
+    while (b < 0) { b += TWO_PI; }
+    while (a > TWO_PI) { a -= TWO_PI; }
+    while (b > TWO_PI) { b -= TWO_PI; }
+    const a_b = a - b;
+    return (a_b >= 0)
+      ? a_b
+      : TWO_PI - (b - a);
   };
-  var counter_clockwise_angle_radians = function counter_clockwise_angle_radians(a, b) {
-    while (a < 0) {
-      a += TWO_PI;
-    }
-    while (b < 0) {
-      b += TWO_PI;
-    }
-    while (a > TWO_PI) {
-      a -= TWO_PI;
-    }
-    while (b > TWO_PI) {
-      b -= TWO_PI;
-    }
-    var b_a = b - a;
-    return b_a >= 0 ? b_a : TWO_PI - (a - b);
+  const counter_clockwise_angle_radians = (a, b) => {
+    while (a < 0) { a += TWO_PI; }
+    while (b < 0) { b += TWO_PI; }
+    while (a > TWO_PI) { a -= TWO_PI; }
+    while (b > TWO_PI) { b -= TWO_PI; }
+    const b_a = b - a;
+    return (b_a >= 0)
+      ? b_a
+      : TWO_PI - (a - b);
   };
-  var clockwise_angle2 = function clockwise_angle2(a, b) {
-    var dotProduct = b[0] * a[0] + b[1] * a[1];
-    var determinant = b[0] * a[1] - b[1] * a[0];
-    var angle = Math.atan2(determinant, dotProduct);
-    if (angle < 0) {
-      angle += TWO_PI;
-    }
+  const clockwise_angle2 = (a, b) => {
+    const dotProduct = b[0] * a[0] + b[1] * a[1];
+    const determinant = b[0] * a[1] - b[1] * a[0];
+    let angle = Math.atan2(determinant, dotProduct);
+    if (angle < 0) { angle += TWO_PI; }
     return angle;
   };
-  var counter_clockwise_angle2 = function counter_clockwise_angle2(a, b) {
-    var dotProduct = a[0] * b[0] + a[1] * b[1];
-    var determinant = a[0] * b[1] - a[1] * b[0];
-    var angle = Math.atan2(determinant, dotProduct);
-    if (angle < 0) {
-      angle += TWO_PI;
-    }
+  const counter_clockwise_angle2 = (a, b) => {
+    const dotProduct = a[0] * b[0] + a[1] * b[1];
+    const determinant = a[0] * b[1] - a[1] * b[0];
+    let angle = Math.atan2(determinant, dotProduct);
+    if (angle < 0) { angle += TWO_PI; }
     return angle;
   };
-  var clockwise_bisect2 = function clockwise_bisect2(a, b) {
-    return fn_to_vec2(fn_vec2_angle(a) - clockwise_angle2(a, b) / 2);
-  };
-  var counter_clockwise_bisect2 = function counter_clockwise_bisect2(a, b) {
-    return fn_to_vec2(fn_vec2_angle(a) + counter_clockwise_angle2(a, b) / 2);
-  };
-  var bisect_lines2 = function bisect_lines2(vectorA, originA, vectorB, originB) {
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : EPSILON;
-    var determinant = cross2(vectorA, vectorB);
-    var dotProd = _dot(vectorA, vectorB);
-    var bisects = determinant > -epsilon ? [counter_clockwise_bisect2(vectorA, vectorB)] : [clockwise_bisect2(vectorA, vectorB)];
-    bisects[1] = determinant > -epsilon ? _rotate(bisects[0]) : _rotate2(bisects[0]);
-    var numerator = (originB[0] - originA[0]) * vectorB[1] - vectorB[0] * (originB[1] - originA[1]);
-    var t = numerator / determinant;
-    var normalized = [vectorA, vectorB].map(function (vec) {
-      return _normalize(vec);
-    });
-    var isParallel = Math.abs(cross2.apply(void 0, _toConsumableArray(normalized))) < epsilon;
-    var origin = isParallel ? _midpoint(originA, originB) : [originA[0] + vectorA[0] * t, originA[1] + vectorA[1] * t];
-    var solution = bisects.map(function (vector) {
-      return {
-        vector: vector,
-        origin: origin
-      };
-    });
-    if (isParallel) {
-      delete solution[dotProd > -epsilon ? 1 : 0];
-    }
+  const clockwise_bisect2 = (a, b) => fn_to_vec2(
+    fn_vec2_angle(a) - clockwise_angle2(a, b) / 2
+  );
+  const counter_clockwise_bisect2 = (a, b) => fn_to_vec2(
+    fn_vec2_angle(a) + counter_clockwise_angle2(a, b) / 2
+  );
+  const bisect_lines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => {
+    const determinant = cross2(vectorA, vectorB);
+    const dotProd = dot(vectorA, vectorB);
+    const bisects = determinant > -epsilon
+      ? [counter_clockwise_bisect2(vectorA, vectorB)]
+      : [clockwise_bisect2(vectorA, vectorB)];
+    bisects[1] = determinant > -epsilon
+      ? rotate90(bisects[0])
+      : rotate270(bisects[0]);
+    const numerator = (originB[0] - originA[0]) * vectorB[1] - vectorB[0] * (originB[1] - originA[1]);
+    const t = numerator / determinant;
+    const normalized = [vectorA, vectorB].map(vec => normalize(vec));
+    const isParallel = Math.abs(cross2(...normalized)) < epsilon;
+    const origin = isParallel
+      ? midpoint(originA, originB)
+      : [originA[0] + vectorA[0] * t, originA[1] + vectorA[1] * t];
+    const solution = bisects.map(vector => ({ vector, origin }));
+    if (isParallel) { delete solution[(dotProd > -epsilon ? 1 : 0)]; }
     return solution;
   };
-  var counter_clockwise_order_radians = function counter_clockwise_order_radians() {
-    var radians = flatten_arrays$1(arguments);
-    var counter_clockwise = radians.map(function (_, i) {
-      return i;
-    }).sort(function (a, b) {
-      return radians[a] - radians[b];
-    });
-    return counter_clockwise.slice(counter_clockwise.indexOf(0), counter_clockwise.length).concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
+  const counter_clockwise_order_radians = function () {
+    const radians = flatten_arrays$1(arguments);
+    const counter_clockwise = radians
+      .map((_, i) => i)
+      .sort((a, b) => radians[a] - radians[b]);
+    return counter_clockwise
+      .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
+      .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
   };
-  var counter_clockwise_order2 = function counter_clockwise_order2() {
-    return counter_clockwise_order_radians(get_vector_of_vectors(arguments).map(fn_vec2_angle));
+  const counter_clockwise_order2 = function () {
+    return counter_clockwise_order_radians(
+      get_vector_of_vectors(arguments).map(fn_vec2_angle)
+    );
   };
-  var counter_clockwise_sectors_radians = function counter_clockwise_sectors_radians() {
-    var radians = flatten_arrays$1(arguments);
-    var ordered = counter_clockwise_order_radians(radians).map(function (i) {
-      return radians[i];
-    });
-    return ordered.map(function (rad, i, arr) {
-      return [rad, arr[(i + 1) % arr.length]];
-    }).map(function (pair) {
-      return counter_clockwise_angle_radians(pair[0], pair[1]);
-    });
+  const counter_clockwise_sectors_radians = function () {
+    const radians = flatten_arrays$1(arguments);
+    const ordered = counter_clockwise_order_radians(radians)
+      .map(i => radians[i]);
+    return ordered.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
+      .map(pair => counter_clockwise_angle_radians(pair[0], pair[1]));
   };
-  var counter_clockwise_sectors2 = function counter_clockwise_sectors2() {
-    return counter_clockwise_sectors_radians(get_vector_of_vectors(arguments).map(fn_vec2_angle));
+  const counter_clockwise_sectors2 = function () {
+    return counter_clockwise_sectors_radians(
+      get_vector_of_vectors(arguments).map(fn_vec2_angle)
+    );
   };
-  var counter_clockwise_subsect_radians = function counter_clockwise_subsect_radians(divisions, angleA, angleB) {
-    var angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
-    return Array.from(Array(divisions - 1)).map(function (_, i) {
-      return angleA + angle * (i + 1);
-    });
+  const counter_clockwise_subsect_radians = (divisions, angleA, angleB) => {
+    const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
+    return Array.from(Array(divisions - 1))
+      .map((_, i) => angleA + angle * (i + 1));
   };
-  var counter_clockwise_subsect2 = function counter_clockwise_subsect2(divisions, vectorA, vectorB) {
-    var angleA = Math.atan2(vectorA[1], vectorA[0]);
-    var angleB = Math.atan2(vectorB[1], vectorB[0]);
-    return counter_clockwise_subsect_radians(divisions, angleA, angleB).map(fn_to_vec2);
+  const counter_clockwise_subsect2 = (divisions, vectorA, vectorB) => {
+    const angleA = Math.atan2(vectorA[1], vectorA[0]);
+    const angleB = Math.atan2(vectorB[1], vectorB[0]);
+    return counter_clockwise_subsect_radians(divisions, angleA, angleB)
+      .map(fn_to_vec2);
   };
   var radial = Object.freeze({
     __proto__: null,
@@ -1149,330 +838,244 @@
     counter_clockwise_subsect_radians: counter_clockwise_subsect_radians,
     counter_clockwise_subsect2: counter_clockwise_subsect2
   });
-  var overlap_line_point = function overlap_line_point(vector, origin, point) {
-    var func = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : exclude_l;
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : EPSILON;
-    var p2p = _subtract(point, origin);
-    var lineMagSq = mag_squared(vector);
-    var lineMag = Math.sqrt(lineMagSq);
-    if (lineMag < epsilon) {
-      return false;
-    }
-    var cross = cross2(p2p, vector.map(function (n) {
-      return n / lineMag;
-    }));
-    var proj = _dot(p2p, vector) / lineMagSq;
+  const overlap_line_point = (vector, origin, point, func = exclude_l, epsilon = EPSILON) => {
+    const p2p = subtract(point, origin);
+    const lineMagSq = mag_squared(vector);
+    const lineMag = Math.sqrt(lineMagSq);
+    if (lineMag < epsilon) { return false; }
+    const cross = cross2(p2p, vector.map(n => n / lineMag));
+    const proj = dot(p2p, vector) / lineMagSq;
     return Math.abs(cross) < epsilon && func(proj, epsilon / lineMag);
   };
-  var intersect_line_line = function intersect_line_line(aVector, aOrigin, bVector, bOrigin) {
-    var aFunction = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : include_l;
-    var bFunction = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : include_l;
-    var epsilon = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : EPSILON;
-    var det_norm = cross2(_normalize(aVector), _normalize(bVector));
-    if (Math.abs(det_norm) < epsilon) {
-      return undefined;
-    }
-    var determinant0 = cross2(aVector, bVector);
-    var determinant1 = -determinant0;
-    var a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
-    var b2a = [-a2b[0], -a2b[1]];
-    var t0 = cross2(a2b, bVector) / determinant0;
-    var t1 = cross2(b2a, aVector) / determinant1;
-    if (aFunction(t0, epsilon / _magnitude(aVector)) && bFunction(t1, epsilon / _magnitude(bVector))) {
-      return _add(aOrigin, _scale(aVector, t0));
+  const intersect_line_line = (
+    aVector, aOrigin,
+    bVector, bOrigin,
+    aFunction = include_l,
+    bFunction = include_l,
+    epsilon = EPSILON
+  ) => {
+    const det_norm = cross2(normalize(aVector), normalize(bVector));
+    if (Math.abs(det_norm) < epsilon) { return undefined; }
+    const determinant0 = cross2(aVector, bVector);
+    const determinant1 = -determinant0;
+    const a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
+    const b2a = [-a2b[0], -a2b[1]];
+    const t0 = cross2(a2b, bVector) / determinant0;
+    const t1 = cross2(b2a, aVector) / determinant1;
+    if (aFunction(t0, epsilon / magnitude(aVector))
+      && bFunction(t1, epsilon / magnitude(bVector))) {
+      return add(aOrigin, scale(aVector, t0));
     }
     return undefined;
   };
-  var circumcircle = function circumcircle(a, b, c) {
-    var A = b[0] - a[0];
-    var B = b[1] - a[1];
-    var C = c[0] - a[0];
-    var D = c[1] - a[1];
-    var E = A * (a[0] + b[0]) + B * (a[1] + b[1]);
-    var F = C * (a[0] + c[0]) + D * (a[1] + c[1]);
-    var G = 2 * (A * (c[1] - b[1]) - B * (c[0] - b[0]));
+  const circumcircle = function (a, b, c) {
+    const A = b[0] - a[0];
+    const B = b[1] - a[1];
+    const C = c[0] - a[0];
+    const D = c[1] - a[1];
+    const E = A * (a[0] + b[0]) + B * (a[1] + b[1]);
+    const F = C * (a[0] + c[0]) + D * (a[1] + c[1]);
+    const G = 2 * (A * (c[1] - b[1]) - B * (c[0] - b[0]));
     if (Math.abs(G) < EPSILON) {
-      var minx = Math.min(a[0], b[0], c[0]);
-      var miny = Math.min(a[1], b[1], c[1]);
-      var _dx = (Math.max(a[0], b[0], c[0]) - minx) * 0.5;
-      var _dy = (Math.max(a[1], b[1], c[1]) - miny) * 0.5;
+      const minx = Math.min(a[0], b[0], c[0]);
+      const miny = Math.min(a[1], b[1], c[1]);
+      const dx = (Math.max(a[0], b[0], c[0]) - minx) * 0.5;
+      const dy = (Math.max(a[1], b[1], c[1]) - miny) * 0.5;
       return {
-        origin: [minx + _dx, miny + _dy],
-        radius: Math.sqrt(_dx * _dx + _dy * _dy)
+        origin: [minx + dx, miny + dy],
+        radius: Math.sqrt(dx * dx + dy * dy),
       };
     }
-    var origin = [(D * E - B * F) / G, (A * F - C * E) / G];
-    var dx = origin[0] - a[0];
-    var dy = origin[1] - a[1];
+    const origin = [(D * E - B * F) / G, (A * F - C * E) / G];
+    const dx = origin[0] - a[0];
+    const dy = origin[1] - a[1];
     return {
-      origin: origin,
-      radius: Math.sqrt(dx * dx + dy * dy)
+      origin,
+      radius: Math.sqrt(dx * dx + dy * dy),
     };
   };
-  var signed_area = function signed_area(points) {
-    return 0.5 * points.map(function (el, i, arr) {
-      var next = arr[(i + 1) % arr.length];
+  const signed_area = points => 0.5 * points
+    .map((el, i, arr) => {
+      const next = arr[(i + 1) % arr.length];
       return el[0] * next[1] - next[0] * el[1];
     }).reduce(fn_add$1, 0);
-  };
-  var _centroid = function centroid(points) {
-    var sixthArea = 1 / (6 * signed_area(points));
-    return points.map(function (el, i, arr) {
-      var next = arr[(i + 1) % arr.length];
-      var mag = el[0] * next[1] - next[0] * el[1];
+  const centroid = (points) => {
+    const sixthArea = 1 / (6 * signed_area(points));
+    return points.map((el, i, arr) => {
+      const next = arr[(i + 1) % arr.length];
+      const mag = el[0] * next[1] - next[0] * el[1];
       return [(el[0] + next[0]) * mag, (el[1] + next[1]) * mag];
-    }).reduce(function (a, b) {
-      return [a[0] + b[0], a[1] + b[1]];
-    }, [0, 0]).map(function (c) {
-      return c * sixthArea;
-    });
+    }).reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+      .map(c => c * sixthArea);
   };
-  var enclosing_box = function enclosing_box(points) {
-    var mins = Array(points[0].length).fill(Infinity);
-    var maxs = Array(points[0].length).fill(-Infinity);
-    points.forEach(function (point) {
-      return point.forEach(function (c, i) {
-        if (c < mins[i]) {
-          mins[i] = c;
-        }
-        if (c > maxs[i]) {
-          maxs[i] = c;
-        }
-      });
-    });
-    var lengths = maxs.map(function (max, i) {
-      return max - mins[i];
-    });
-    return [mins, lengths];
+  const bounding_box = (points, epsilon = 0) => {
+    const min = Array(points[0].length).fill(Infinity);
+    const max = Array(points[0].length).fill(-Infinity);
+    points.forEach(point => point
+      .forEach((c, i) => {
+        if (c < min[i]) { min[i] = c - epsilon; }
+        if (c > max[i]) { max[i] = c + epsilon; }
+      }));
+    const span = max.map((max, i) => max - min[i]);
+    return { min, max, span };
   };
-  var enclosing_rectangle = function enclosing_rectangle(points) {
-    var box = enclosing_box(points);
-    return get_rect_params(box[0][0], box[0][1], box[1][0], box[1][1]);
-  };
-  var angle_array = function angle_array(count) {
-    return Array.from(Array(Math.floor(count))).map(function (_, i) {
-      return TWO_PI * (i / count);
-    });
-  };
-  var angles_to_vecs = function angles_to_vecs(angles, radius) {
-    return angles.map(function (a) {
-      return [radius * Math.cos(a), radius * Math.sin(a)];
-    }).map(function (pt) {
-      return pt.map(function (n) {
-        return clean_number(n, 14);
-      });
-    });
-  };
-  var make_regular_polygon = function make_regular_polygon() {
-    var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
-    var radius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    return angles_to_vecs(angle_array(sides), radius);
-  };
-  var make_regular_polygon_side_aligned = function make_regular_polygon_side_aligned() {
-    var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
-    var radius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    var halfwedge = Math.PI / sides;
-    var angles = angle_array(sides).map(function (a) {
-      return a + halfwedge;
-    });
+  const angle_array = count => Array
+    .from(Array(Math.floor(count)))
+    .map((_, i) => TWO_PI * (i / count));
+  const angles_to_vecs = (angles, radius) => angles
+    .map(a => [radius * Math.cos(a), radius * Math.sin(a)])
+    .map(pt => pt.map(n => clean_number(n, 14)));
+  const make_regular_polygon = (sides = 3, radius = 1) =>
+    angles_to_vecs(angle_array(sides), radius);
+  const make_regular_polygon_side_aligned = (sides = 3, radius = 1) => {
+    const halfwedge = Math.PI / sides;
+    const angles = angle_array(sides).map(a => a + halfwedge);
     return angles_to_vecs(angles, radius);
   };
-  var make_regular_polygon_inradius = function make_regular_polygon_inradius() {
-    var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
-    var radius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    return make_regular_polygon(sides, radius / Math.cos(Math.PI / sides));
+  const make_regular_polygon_inradius = (sides = 3, radius = 1) =>
+    make_regular_polygon(sides, radius / Math.cos(Math.PI / sides));
+  const make_regular_polygon_inradius_side_aligned = (sides = 3, radius = 1) =>
+    make_regular_polygon_side_aligned(sides, radius / Math.cos(Math.PI / sides));
+  const make_regular_polygon_side_length = (sides = 3, length = 1) =>
+    make_regular_polygon(sides, (length / 2) / Math.sin(Math.PI / sides));
+  const make_regular_polygon_side_length_side_aligned = (sides = 3, length = 1) =>
+    make_regular_polygon_side_aligned(sides, (length / 2) / Math.sin(Math.PI / sides));
+  const make_polygon_non_collinear = (polygon, epsilon = EPSILON) => {
+    const edges_vector = polygon
+      .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+      .map(pair => subtract(pair[1], pair[0]));
+    const vertex_collinear = edges_vector
+      .map((vector, i, arr) => [vector, arr[(i + arr.length - 1) % arr.length]])
+      .map(pair => !parallel(pair[1], pair[0], epsilon));
+    return polygon
+      .filter((vertex, v) => vertex_collinear[v]);
   };
-  var make_regular_polygon_inradius_side_aligned = function make_regular_polygon_inradius_side_aligned() {
-    var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
-    var radius = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    return make_regular_polygon_side_aligned(sides, radius / Math.cos(Math.PI / sides));
-  };
-  var make_regular_polygon_side_length = function make_regular_polygon_side_length() {
-    var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
-    var length = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    return make_regular_polygon(sides, length / 2 / Math.sin(Math.PI / sides));
-  };
-  var make_regular_polygon_side_length_side_aligned = function make_regular_polygon_side_length_side_aligned() {
-    var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
-    var length = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    return make_regular_polygon_side_aligned(sides, length / 2 / Math.sin(Math.PI / sides));
-  };
-  var make_polygon_non_collinear = function make_polygon_non_collinear(polygon) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : EPSILON;
-    var edges_vector = polygon.map(function (v, i, arr) {
-      return [v, arr[(i + 1) % arr.length]];
-    }).map(function (pair) {
-      return _subtract(pair[1], pair[0]);
-    });
-    var vertex_collinear = edges_vector.map(function (vector, i, arr) {
-      return [vector, arr[(i + arr.length - 1) % arr.length]];
-    }).map(function (pair) {
-      return !parallel(pair[1], pair[0], epsilon);
-    });
-    return polygon.filter(function (vertex, v) {
-      return vertex_collinear[v];
-    });
-  };
-  var split_convex_polygon = function split_convex_polygon(poly, lineVector, linePoint) {
-    var vertices_intersections = poly.map(function (v, i) {
-      var intersection = overlap_line_point(lineVector, linePoint, v, include_l);
-      return {
-        point: intersection ? v : null,
-        at_index: i
-      };
-    }).filter(function (el) {
-      return el.point != null;
-    });
-    var edges_intersections = poly.map(function (v, i, arr) {
-      return {
-        point: intersect_line_line(lineVector, linePoint, _subtract(v, arr[(i + 1) % arr.length]), arr[(i + 1) % arr.length], exclude_l, exclude_s),
-        at_index: i
-      };
-    }).filter(function (el) {
-      return el.point != null;
-    });
+  const split_convex_polygon = (poly, lineVector, linePoint) => {
+    let vertices_intersections = poly.map((v, i) => {
+      let intersection = overlap_line_point(lineVector, linePoint, v, include_l);
+      return { point: intersection ? v : null, at_index: i };
+    }).filter(el => el.point != null);
+    let edges_intersections = poly.map((v, i, arr) => ({
+        point: intersect_line_line(
+          lineVector,
+          linePoint,
+          subtract(v, arr[(i + 1) % arr.length]),
+          arr[(i + 1) % arr.length],
+          exclude_l,
+          exclude_s),
+        at_index: i }))
+      .filter(el => el.point != null);
     if (edges_intersections.length == 2) {
-      var sorted_edges = edges_intersections.slice().sort(function (a, b) {
-        return a.at_index - b.at_index;
-      });
-      var face_a = poly.slice(sorted_edges[1].at_index + 1).concat(poly.slice(0, sorted_edges[0].at_index + 1));
+      let sorted_edges = edges_intersections.slice()
+        .sort((a,b) => a.at_index - b.at_index);
+      let face_a = poly
+        .slice(sorted_edges[1].at_index+1)
+        .concat(poly.slice(0, sorted_edges[0].at_index+1));
       face_a.push(sorted_edges[0].point);
       face_a.push(sorted_edges[1].point);
-      var face_b = poly.slice(sorted_edges[0].at_index + 1, sorted_edges[1].at_index + 1);
+      let face_b = poly
+        .slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index+1);
       face_b.push(sorted_edges[1].point);
       face_b.push(sorted_edges[0].point);
       return [face_a, face_b];
     } else if (edges_intersections.length == 1 && vertices_intersections.length == 1) {
       vertices_intersections[0]["type"] = "v";
       edges_intersections[0]["type"] = "e";
-      var sorted_geom = vertices_intersections.concat(edges_intersections).sort(function (a, b) {
-        return a.at_index - b.at_index;
-      });
-      var _face_a = poly.slice(sorted_geom[1].at_index + 1).concat(poly.slice(0, sorted_geom[0].at_index + 1));
-      if (sorted_geom[0].type === "e") {
-        _face_a.push(sorted_geom[0].point);
-      }
-      _face_a.push(sorted_geom[1].point);
-      var _face_b = poly.slice(sorted_geom[0].at_index + 1, sorted_geom[1].at_index + 1);
-      if (sorted_geom[1].type === "e") {
-        _face_b.push(sorted_geom[1].point);
-      }
-      _face_b.push(sorted_geom[0].point);
-      return [_face_a, _face_b];
+      let sorted_geom = vertices_intersections.concat(edges_intersections)
+        .sort((a,b) => a.at_index - b.at_index);
+      let face_a = poly.slice(sorted_geom[1].at_index+1)
+        .concat(poly.slice(0, sorted_geom[0].at_index+1));
+      if (sorted_geom[0].type === "e") { face_a.push(sorted_geom[0].point); }
+      face_a.push(sorted_geom[1].point);
+      let face_b = poly
+        .slice(sorted_geom[0].at_index+1, sorted_geom[1].at_index+1);
+      if (sorted_geom[1].type === "e") { face_b.push(sorted_geom[1].point); }
+      face_b.push(sorted_geom[0].point);
+      return [face_a, face_b];
     } else if (vertices_intersections.length == 2) {
-      var sorted_vertices = vertices_intersections.slice().sort(function (a, b) {
-        return a.at_index - b.at_index;
-      });
-      var _face_a2 = poly.slice(sorted_vertices[1].at_index).concat(poly.slice(0, sorted_vertices[0].at_index + 1));
-      var _face_b2 = poly.slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index + 1);
-      return [_face_a2, _face_b2];
+      let sorted_vertices = vertices_intersections.slice()
+        .sort((a,b) => a.at_index - b.at_index);
+      let face_a = poly
+        .slice(sorted_vertices[1].at_index)
+        .concat(poly.slice(0, sorted_vertices[0].at_index+1));
+      let face_b = poly
+        .slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index+1);
+      return [face_a, face_b];
     }
     return [poly.slice()];
   };
-  var convex_hull = function convex_hull(points) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-    var INFINITE_LOOP = 10000;
-    var sorted = points.slice().sort(function (a, b) {
-      return Math.abs(a[1] - b[1]) < epsilon ? a[0] - b[0] : a[1] - b[1];
-    });
-    var hull = [];
+  const convex_hull = (points, include_collinear = false, epsilon = EPSILON) => {
+    let INFINITE_LOOP = 10000;
+    let sorted = points.slice().sort((a, b) =>
+      (Math.abs(a[1] - b[1]) < epsilon
+        ? a[0] - b[0]
+        : a[1] - b[1]));
+    let hull = [];
     hull.push(sorted[0]);
-    var ang = 0;
-    var infiniteLoop = 0;
-    var _loop = function _loop() {
+    let ang = 0;
+    let infiniteLoop = 0;
+    do {
       infiniteLoop += 1;
-      var h = hull.length - 1;
-      var angles = sorted.filter(function (el) {
-        return !(Math.abs(el[0] - hull[h][0]) < epsilon && Math.abs(el[1] - hull[h][1]) < epsilon);
-      }).map(function (el) {
-        var angle = Math.atan2(hull[h][1] - el[1], hull[h][0] - el[0]);
-        while (angle < ang) {
-          angle += Math.PI * 2;
-        }
-        return {
-          node: el,
-          angle: angle,
-          distance: undefined
-        };
-      }).sort(function (a, b) {
-        return a.angle < b.angle ? -1 : a.angle > b.angle ? 1 : 0;
-      });
-      if (angles.length === 0) {
-        return {
-          v: undefined
-        };
-      }
-      var rightTurn = angles[0];
-      angles = angles.filter(function (el) {
-        return Math.abs(rightTurn.angle - el.angle) < epsilon;
-      }).map(function (el) {
-        var distance = Math.sqrt(Math.pow(hull[h][0] - el.node[0], 2) + Math.pow(hull[h][1] - el.node[1], 2));
-        el.distance = distance;
-        return el;
-      }).sort(function (a, b) {
-        return a.distance < b.distance ? 1 : a.distance > b.distance ? -1 : 0;
-      });
-      if (hull.filter(function (el) {
-        return el === angles[0].node;
-      }).length > 0) {
-        return {
-          v: hull
-        };
+      let h = hull.length - 1;
+      let angles = sorted
+        .filter(el => !(Math.abs(el[0] - hull[h][0]) < epsilon
+          && Math.abs(el[1] - hull[h][1]) < epsilon))
+        .map((el) => {
+          let angle = Math.atan2(hull[h][1] - el[1], hull[h][0] - el[0]);
+          while (angle < ang) { angle += Math.PI * 2; }
+          return { node: el, angle, distance: undefined };
+        })
+        .sort((a, b) => ((a.angle < b.angle) ? -1 : (a.angle > b.angle) ? 1 : 0));
+      if (angles.length === 0) { return undefined; }
+      let rightTurn = angles[0];
+      angles = angles.filter(el => Math.abs(rightTurn.angle - el.angle) < epsilon)
+        .map((el) => {
+          let distance = Math.sqrt(((hull[h][0] - el.node[0]) ** 2) + ((hull[h][1] - el.node[1]) ** 2));
+          el.distance = distance;
+          return el;
+        })
+        .sort((a, b) => ((a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0));
+      if (hull.filter(el => el === angles[0].node).length > 0) {
+        return hull;
       }
       hull.push(angles[0].node);
       ang = Math.atan2(hull[h][1] - angles[0].node[1], hull[h][0] - angles[0].node[0]);
-    };
-    do {
-      var _ret = _loop();
-      if (_typeof(_ret) === "object") return _ret.v;
     } while (infiniteLoop < INFINITE_LOOP);
   };
-  var recurse_skeleton = function recurse_skeleton(points, lines, bisectors) {
-    var intersects = points.map(function (origin, i) {
-      return {
-        vector: bisectors[i],
-        origin: origin
-      };
-    }).map(function (ray, i, arr) {
-      return intersect_line_line(ray.vector, ray.origin, arr[(i + 1) % arr.length].vector, arr[(i + 1) % arr.length].origin, exclude_r, exclude_r);
-    });
-    var projections = lines.map(function (line, i) {
-      return nearest_point_on_line(line.vector, line.origin, intersects[i], function (a) {
-        return a;
-      });
-    });
+  const recurse_skeleton = (points, lines, bisectors) => {
+    const intersects = points
+      .map((origin, i) => ({ vector: bisectors[i], origin }))
+      .map((ray, i, arr) => intersect_line_line(
+        ray.vector,
+        ray.origin,
+        arr[(i + 1) % arr.length].vector,
+        arr[(i + 1) % arr.length].origin,
+        exclude_r,
+        exclude_r));
+    const projections = lines.map((line, i) => nearest_point_on_line(
+      line.vector, line.origin, intersects[i], a => a));
     if (points.length === 3) {
-      return points.map(function (p) {
-        return {
-          type: "skeleton",
-          points: [p, intersects[0]]
-        };
-      }).concat([{
-        type: "perpendicular",
-        points: [projections[0], intersects[0]]
-      }]);
+      return points.map(p => ({ type:"skeleton", points: [p, intersects[0]] }))
+        .concat([{ type:"perpendicular", points: [projections[0], intersects[0]] }]);
     }
-    var projectionLengths = intersects.map(function (intersect, i) {
-      return distance(intersect, projections[i]);
+    const projectionLengths = intersects
+      .map((intersect, i) => distance(intersect, projections[i]));
+    let shortest = 0;
+    projectionLengths.forEach((len, i) => {
+      if (len < projectionLengths[shortest]) { shortest = i; }
     });
-    var shortest = 0;
-    projectionLengths.forEach(function (len, i) {
-      if (len < projectionLengths[shortest]) {
-        shortest = i;
-      }
-    });
-    var solutions = [{
-      type: "skeleton",
-      points: [points[shortest], intersects[shortest]]
-    }, {
-      type: "skeleton",
-      points: [points[(shortest + 1) % points.length], intersects[shortest]]
-    }, {
-      type: "perpendicular",
-      points: [projections[shortest], intersects[shortest]]
-    }];
-    var newVector = clockwise_bisect2(_flip(lines[(shortest + lines.length - 1) % lines.length].vector), lines[(shortest + 1) % lines.length].vector);
-    var shortest_is_last_index = shortest === points.length - 1;
+    const solutions = [
+      { type:"skeleton",
+        points: [points[shortest], intersects[shortest]] },
+      { type:"skeleton",
+        points: [points[(shortest + 1) % points.length], intersects[shortest]] },
+      { type:"perpendicular", points: [projections[shortest], intersects[shortest]] }
+    ];
+    const newVector = clockwise_bisect2(
+      flip$2(lines[(shortest + lines.length - 1) % lines.length].vector),
+      lines[(shortest + 1) % lines.length].vector
+    );
+    const shortest_is_last_index = shortest === points.length - 1;
     points.splice(shortest, 2, intersects[shortest]);
     lines.splice(shortest, 1);
     bisectors.splice(shortest, 2, newVector);
@@ -1483,33 +1086,23 @@
     }
     return solutions.concat(recurse_skeleton(points, lines, bisectors));
   };
-  var straight_skeleton = function straight_skeleton(points) {
-    var lines = points.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (side) {
-      return {
-        vector: _subtract(side[1], side[0]),
-        origin: side[0]
-      };
-    });
-    var bisectors = points.map(function (_, i, ar) {
-      return [(i - 1 + ar.length) % ar.length, i, (i + 1) % ar.length].map(function (i) {
-        return ar[i];
-      });
-    }).map(function (p) {
-      return [_subtract(p[0], p[1]), _subtract(p[2], p[1])];
-    }).map(function (v) {
-      return clockwise_bisect2.apply(void 0, _toConsumableArray(v));
-    });
-    return recurse_skeleton(_toConsumableArray(points), lines, bisectors);
+  const straight_skeleton = (points) => {
+    const lines = points
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(side => ({ vector: subtract(side[1], side[0]), origin: side[0] }));
+    const bisectors = points
+      .map((_, i, ar) => [(i - 1 + ar.length) % ar.length, i, (i + 1) % ar.length]
+        .map(i => ar[i]))
+      .map(p => [subtract(p[0], p[1]), subtract(p[2], p[1])])
+      .map(v => clockwise_bisect2(...v));
+    return recurse_skeleton([...points], lines, bisectors);
   };
   var geometry = Object.freeze({
     __proto__: null,
     circumcircle: circumcircle,
     signed_area: signed_area,
-    centroid: _centroid,
-    enclosing_box: enclosing_box,
-    enclosing_rectangle: enclosing_rectangle,
+    centroid: centroid,
+    bounding_box: bounding_box,
     make_regular_polygon: make_regular_polygon,
     make_regular_polygon_side_aligned: make_regular_polygon_side_aligned,
     make_regular_polygon_inradius: make_regular_polygon_inradius,
@@ -1521,725 +1114,550 @@
     convex_hull: convex_hull,
     straight_skeleton: straight_skeleton
   });
-  var vector_origin_to_ud = function vector_origin_to_ud(_ref) {
-    var vector = _ref.vector,
-        origin = _ref.origin;
-    var mag = _magnitude(vector);
-    var u = _rotate(vector);
-    var d = _dot(origin, u) / mag;
-    return {
-      u: _scale(u, 1 / mag),
-      d: d
-    };
+  const vector_origin_to_ud = ({ vector, origin }) => {
+    const mag = magnitude(vector);
+    const u = rotate90(vector);
+    const d = dot(origin, u) / mag;
+    return { u: scale(u, 1 / mag), d };
   };
-  var ud_to_vector_origin = function ud_to_vector_origin(_ref2) {
-    var u = _ref2.u,
-        d = _ref2.d;
-    return {
-      vector: _rotate2(u),
-      origin: _scale(u, d)
-    };
-  };
+  const ud_to_vector_origin = ({ u, d }) => ({
+    vector: rotate270(u),
+    origin: scale(u, d),
+  });
   var parameterize = Object.freeze({
     __proto__: null,
     vector_origin_to_ud: vector_origin_to_ud,
     ud_to_vector_origin: ud_to_vector_origin
   });
-  var acos_safe = function acos_safe(x) {
+  const acos_safe = (x) => {
     if (x >= 1.0) return 0;
     if (x <= -1.0) return Math.PI;
     return Math.acos(x);
   };
-  var rotate_vector2 = function rotate_vector2(center, pt, a) {
-    var x = pt[0] - center[0];
-    var y = pt[1] - center[1];
-    var xRot = x * Math.cos(a) + y * Math.sin(a);
-    var yRot = y * Math.cos(a) - x * Math.sin(a);
+  const rotate_vector2 = (center, pt, a) => {
+    const x = pt[0] - center[0];
+    const y = pt[1] - center[1];
+    const xRot = x * Math.cos(a) + y * Math.sin(a);
+    const yRot = y * Math.cos(a) - x * Math.sin(a);
     return [center[0] + xRot, center[1] + yRot];
   };
-  var intersect_circle_circle = function intersect_circle_circle(c1_radius, c1_origin, c2_radius, c2_origin) {
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : EPSILON;
-    var r = c1_radius < c2_radius ? c1_radius : c2_radius;
-    var R = c1_radius < c2_radius ? c2_radius : c1_radius;
-    var smCenter = c1_radius < c2_radius ? c1_origin : c2_origin;
-    var bgCenter = c1_radius < c2_radius ? c2_origin : c1_origin;
-    var vec = [smCenter[0] - bgCenter[0], smCenter[1] - bgCenter[1]];
-    var d = Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
-    if (d < epsilon) {
-      return undefined;
-    }
-    var point = vec.map(function (v, i) {
-      return v / d * R + bgCenter[i];
-    });
-    if (Math.abs(R + r - d) < epsilon || Math.abs(R - (r + d)) < epsilon) {
-      return [point];
-    }
-    if (d + r < R || R + r < d) {
-      return undefined;
-    }
-    var angle = acos_safe((r * r - d * d - R * R) / (-2.0 * d * R));
-    var pt1 = rotate_vector2(bgCenter, point, +angle);
-    var pt2 = rotate_vector2(bgCenter, point, -angle);
+  const intersect_circle_circle = (c1_radius, c1_origin, c2_radius, c2_origin, epsilon = EPSILON) => {
+    const r = (c1_radius < c2_radius) ? c1_radius : c2_radius;
+    const R = (c1_radius < c2_radius) ? c2_radius : c1_radius;
+    const smCenter = (c1_radius < c2_radius) ? c1_origin : c2_origin;
+    const bgCenter = (c1_radius < c2_radius) ? c2_origin : c1_origin;
+    const vec = [smCenter[0] - bgCenter[0], smCenter[1] - bgCenter[1]];
+    const d = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+    if (d < epsilon) { return undefined; }
+    const point = vec.map((v, i) => v / d * R + bgCenter[i]);
+    if (Math.abs((R + r) - d) < epsilon
+      || Math.abs(R - (r + d)) < epsilon) { return [point]; }
+    if ((d + r) < R || (R + r < d)) { return undefined; }
+    const angle = acos_safe((r * r - d * d - R * R) / (-2.0 * d * R));
+    const pt1 = rotate_vector2(bgCenter, point, +angle);
+    const pt2 = rotate_vector2(bgCenter, point, -angle);
     return [pt1, pt2];
   };
-  var intersect_circle_line = function intersect_circle_line(circle_radius, circle_origin, line_vector, line_origin) {
-    var line_func = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : include_l;
-    var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
-    var magSq = Math.pow(line_vector[0], 2) + Math.pow(line_vector[1], 2);
-    var mag = Math.sqrt(magSq);
-    var norm = mag === 0 ? line_vector : line_vector.map(function (c) {
-      return c / mag;
-    });
-    var rot90 = _rotate(norm);
-    var bvec = _subtract(line_origin, circle_origin);
-    var det = cross2(bvec, norm);
-    if (Math.abs(det) > circle_radius + epsilon) {
-      return undefined;
-    }
-    var side = Math.sqrt(Math.pow(circle_radius, 2) - Math.pow(det, 2));
-    var f = function f(s, i) {
-      return circle_origin[i] - rot90[i] * det + norm[i] * s;
-    };
-    var results = Math.abs(circle_radius - Math.abs(det)) < epsilon ? [side].map(function (s) {
-      return [s, s].map(f);
-    }) : [-side, side].map(function (s) {
-      return [s, s].map(f);
-    });
-    var ts = results.map(function (res) {
-      return res.map(function (n, i) {
-        return n - line_origin[i];
-      });
-    }).map(function (v) {
-      return v[0] * line_vector[0] + line_vector[1] * v[1];
-    }).map(function (d) {
-      return d / magSq;
-    });
-    return results.filter(function (_, i) {
-      return line_func(ts[i], epsilon);
-    });
+  const intersect_circle_line = (
+    circle_radius, circle_origin,
+    line_vector, line_origin,
+    line_func = include_l,
+    epsilon = EPSILON
+  ) => {
+    const magSq = line_vector[0] ** 2 + line_vector[1] ** 2;
+    const mag = Math.sqrt(magSq);
+    const norm = mag === 0 ? line_vector : line_vector.map(c => c / mag);
+    const rot90 = rotate90(norm);
+    const bvec = subtract(line_origin, circle_origin);
+    const det = cross2(bvec, norm);
+    if (Math.abs(det) > circle_radius + epsilon) { return undefined; }
+    const side = Math.sqrt((circle_radius ** 2) - (det ** 2));
+    const f = (s, i) => circle_origin[i] - rot90[i] * det + norm[i] * s;
+    const results = Math.abs(circle_radius - Math.abs(det)) < epsilon
+      ? [side].map((s) => [s, s].map(f))
+      : [-side, side].map((s) => [s, s].map(f));
+    const ts = results.map(res => res.map((n, i) => n - line_origin[i]))
+      .map(v => v[0] * line_vector[0] + line_vector[1] * v[1])
+      .map(d => d / magSq);
+    return results.filter((_, i) => line_func(ts[i], epsilon));
   };
-  var overlap_convex_polygon_point = function overlap_convex_polygon_point(poly, point) {
-    var func = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : exclude;
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : EPSILON;
-    return poly.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (s) {
-      return cross2(_normalize(_subtract(s[1], s[0])), _subtract(point, s[0]));
-    }).map(function (side) {
-      return func(side, epsilon);
-    }).map(function (s, _, arr) {
-      return s === arr[0];
-    }).reduce(function (prev, curr) {
-      return prev && curr;
-    }, true);
-  };
-  var get_unique_pair = function get_unique_pair(intersections) {
-    for (var i = 1; i < intersections.length; i += 1) {
+  const overlap_convex_polygon_point = (poly, point, func = exclude, epsilon = EPSILON) => poly
+    .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+    .map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])))
+    .map(side => func(side, epsilon))
+    .map((s, _, arr) => s === arr[0])
+    .reduce((prev, curr) => prev && curr, true);
+  const get_unique_pair = (intersections) => {
+    for (let i = 1; i < intersections.length; i += 1) {
       if (!equivalent_vector2(intersections[0], intersections[i])) {
         return [intersections[0], intersections[i]];
       }
     }
   };
-  var intersect_convex_polygon_line_inclusive = function intersect_convex_polygon_line_inclusive(poly, vector, origin) {
-    var fn_poly = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : include_s;
-    var fn_line = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : include_l;
-    var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
-    var intersections = poly.map(function (p, i, arr) {
-      return [p, arr[(i + 1) % arr.length]];
-    }).map(function (side) {
-      return intersect_line_line(_subtract(side[1], side[0]), side[0], vector, origin, fn_poly, fn_line, epsilon);
-    }).filter(function (a) {
-      return a !== undefined;
-    });
+  const intersect_convex_polygon_line_inclusive = (
+    poly,
+    vector, origin,
+    fn_poly = include_s,
+    fn_line = include_l,
+    epsilon = EPSILON
+  ) => {
+    const intersections = poly
+      .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+      .map(side => intersect_line_line(
+        subtract(side[1], side[0]), side[0],
+        vector, origin,
+        fn_poly, fn_line,
+        epsilon))
+      .filter(a => a !== undefined);
     switch (intersections.length) {
-      case 0:
-        return undefined;
-      case 1:
-        return [intersections];
+      case 0: return undefined;
+      case 1: return [intersections];
       default:
         return get_unique_pair(intersections) || [intersections[0]];
     }
   };
-  var intersect_convex_polygon_line = function intersect_convex_polygon_line(poly, vector, origin) {
-    var fn_poly = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : include_s;
-    var fn_line = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : exclude_l;
-    var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
-    var sects = intersect_convex_polygon_line_inclusive(poly, vector, origin, fn_poly, fn_line, epsilon);
-    var altFunc;
+  const intersect_convex_polygon_line = (
+    poly,
+    vector, origin,
+    fn_poly = include_s,
+    fn_line = exclude_l,
+    epsilon = EPSILON
+  ) => {
+    const sects = intersect_convex_polygon_line_inclusive(poly, vector, origin, fn_poly, fn_line, epsilon);
+    let altFunc;
     switch (fn_line) {
-      case exclude_r:
-        altFunc = include_r;
-        break;
-      case exclude_s:
-        altFunc = include_s;
-        break;
-      default:
-        return sects;
+      case exclude_r: altFunc = include_r; break;
+      case exclude_s: altFunc = include_s; break;
+      default: return sects;
     }
-    var includes = intersect_convex_polygon_line_inclusive(poly, vector, origin, include_s, altFunc, epsilon);
-    if (includes === undefined) {
-      return undefined;
-    }
-    var uniqueIncludes = get_unique_pair(includes);
+    const includes = intersect_convex_polygon_line_inclusive(poly, vector, origin, include_s, altFunc, epsilon);
+    if (includes === undefined) { return undefined; }
+    const uniqueIncludes = get_unique_pair(includes);
     if (uniqueIncludes === undefined) {
       switch (fn_line) {
-        case exclude_l:
-          return undefined;
+        case exclude_l: return undefined;
         case exclude_r:
-          return overlap_convex_polygon_point(poly, origin, exclude, epsilon) ? includes : undefined;
+          return overlap_convex_polygon_point(poly, origin, exclude, epsilon)
+            ? includes
+            : undefined;
         case exclude_s:
-          return overlap_convex_polygon_point(poly, _add(origin, vector), exclude, epsilon) || overlap_convex_polygon_point(poly, origin, exclude, epsilon) ? includes : undefined;
+          return overlap_convex_polygon_point(poly, add(origin, vector), exclude, epsilon)
+            || overlap_convex_polygon_point(poly, origin, exclude, epsilon)
+            ? includes
+            : undefined;
       }
     }
-    return overlap_convex_polygon_point(poly, _midpoint.apply(void 0, _toConsumableArray(uniqueIncludes)), exclude, epsilon) ? uniqueIncludes : sects;
+    return overlap_convex_polygon_point(poly, midpoint(...uniqueIncludes), exclude, epsilon)
+      ? uniqueIncludes
+      : sects;
   };
-  var intersect_polygon_polygon = function intersect_polygon_polygon(polygon1, polygon2) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-    var cp1, cp2, s, e;
-    var inside = function inside(p) {
-      return (cp2[0] - cp1[0]) * (p[1] - cp1[1]) > (cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon;
-    };
-    var intersection = function intersection() {
-      var dc = [cp1[0] - cp2[0], cp1[1] - cp2[1]],
-          dp = [s[0] - e[0], s[1] - e[1]],
-          n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
-          n2 = s[0] * e[1] - s[1] * e[0],
-          n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
-      return [(n1 * dp[0] - n2 * dc[0]) * n3, (n1 * dp[1] - n2 * dc[1]) * n3];
-    };
-    var outputList = polygon1;
-    cp1 = polygon2[polygon2.length - 1];
-    for (var j in polygon2) {
-      cp2 = polygon2[j];
-      var inputList = outputList;
-      outputList = [];
-      s = inputList[inputList.length - 1];
-      for (var i in inputList) {
-        e = inputList[i];
-        if (inside(e)) {
-          if (!inside(s)) {
-            outputList.push(intersection());
-          }
-          outputList.push(e);
-        } else if (inside(s)) {
-          outputList.push(intersection());
-        }
-        s = e;
-      }
-      cp1 = cp2;
-    }
-    return outputList.length === 0 ? undefined : outputList;
+  const intersect_polygon_polygon = (polygon1, polygon2, epsilon = EPSILON) => {
+  	var cp1, cp2, s, e;
+  	const inside = (p) => {
+  		return ((cp2[0] - cp1[0]) * (p[1] - cp1[1]))
+  			> ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon);
+  	};
+  	const intersection = () => {
+  		var dc = [ cp1[0] - cp2[0], cp1[1] - cp2[1] ],
+  			dp = [ s[0] - e[0], s[1] - e[1] ],
+  			n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
+  			n2 = s[0] * e[1] - s[1] * e[0],
+  			n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
+  		return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+  	};
+  	var outputList = polygon1;
+  	cp1 = polygon2[polygon2.length-1];
+  	for (var j in polygon2) {
+  		cp2 = polygon2[j];
+  		var inputList = outputList;
+  		outputList = [];
+  		s = inputList[inputList.length - 1];
+  		for (var i in inputList) {
+  			e = inputList[i];
+  			if (inside(e)) {
+  				if (!inside(s)) {
+  					outputList.push(intersection());
+  				}
+  				outputList.push(e);
+  			}
+  			else if (inside(s)) {
+  				outputList.push(intersection());
+  			}
+  			s = e;
+  		}
+  		cp1 = cp2;
+  	}
+  	return outputList.length === 0 ? undefined : outputList;
   };
-  var intersect_param_form = {
-    polygon: function polygon(a) {
-      return [a];
-    },
-    rect: function rect(a) {
-      return [a];
-    },
-    circle: function circle(a) {
-      return [a.radius, a.origin];
-    },
-    line: function line(a) {
-      return [a.vector, a.origin];
-    },
-    ray: function ray(a) {
-      return [a.vector, a.origin];
-    },
-    segment: function segment(a) {
-      return [a.vector, a.origin];
-    }
+  const intersect_param_form = {
+    polygon: a => [a],
+    rect: a => [a],
+    circle: a => [a.radius, a.origin],
+    line: a => [a.vector, a.origin],
+    ray: a => [a.vector, a.origin],
+    segment: a => [a.vector, a.origin],
   };
-  var intersect_func = {
+  const intersect_func = {
     polygon: {
       polygon: intersect_polygon_polygon,
-      line: function line(a, b, fnA, fnB, ep) {
-        return intersect_convex_polygon_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [include_s, fnB, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return intersect_convex_polygon_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [include_s, fnB, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return intersect_convex_polygon_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [include_s, fnB, ep]));
-      }
+      line: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
+      ray: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
+      segment: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...a, ...b, include_s, fnB, ep),
     },
     circle: {
-      circle: function circle(a, b, fnA, fnB, ep) {
-        return intersect_circle_circle.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [ep]));
-      },
-      line: function line(a, b, fnA, fnB, ep) {
-        return intersect_circle_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnB, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return intersect_circle_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnB, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return intersect_circle_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnB, ep]));
-      }
+      circle: (a, b, fnA, fnB, ep) => intersect_circle_circle(...a, ...b, ep),
+      line: (a, b, fnA, fnB, ep) => intersect_circle_line(...a, ...b, fnB, ep),
+      ray: (a, b, fnA, fnB, ep) => intersect_circle_line(...a, ...b, fnB, ep),
+      segment: (a, b, fnA, fnB, ep) => intersect_circle_line(...a, ...b, fnB, ep),
     },
     line: {
-      polygon: function polygon(a, b, fnA, fnB, ep) {
-        return intersect_convex_polygon_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [include_s, fnA, ep]));
-      },
-      circle: function circle(a, b, fnA, fnB, ep) {
-        return intersect_circle_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnA, ep]));
-      },
-      line: function line(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      }
+      polygon: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...b, ...a, include_s, fnA, ep),
+      circle: (a, b, fnA, fnB, ep) => intersect_circle_line(...b, ...a, fnA, ep),
+      line: (a, b, fnA, fnB, ep) => intersect_line_line(...a, ...b, fnA, fnB, ep),
+      ray: (a, b, fnA, fnB, ep) => intersect_line_line(...a, ...b, fnA, fnB, ep),
+      segment: (a, b, fnA, fnB, ep) => intersect_line_line(...a, ...b, fnA, fnB, ep),
     },
     ray: {
-      polygon: function polygon(a, b, fnA, fnB, ep) {
-        return intersect_convex_polygon_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [include_s, fnA, ep]));
-      },
-      circle: function circle(a, b, fnA, fnB, ep) {
-        return intersect_circle_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnA, ep]));
-      },
-      line: function line(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, fnA, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      }
+      polygon: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...b, ...a, include_s, fnA, ep),
+      circle: (a, b, fnA, fnB, ep) => intersect_circle_line(...b, ...a, fnA, ep),
+      line: (a, b, fnA, fnB, ep) => intersect_line_line(...b, ...a, fnB, fnA, ep),
+      ray: (a, b, fnA, fnB, ep) => intersect_line_line(...a, ...b, fnA, fnB, ep),
+      segment: (a, b, fnA, fnB, ep) => intersect_line_line(...a, ...b, fnA, fnB, ep),
     },
     segment: {
-      polygon: function polygon(a, b, fnA, fnB, ep) {
-        return intersect_convex_polygon_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [include_s, fnA, ep]));
-      },
-      circle: function circle(a, b, fnA, fnB, ep) {
-        return intersect_circle_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnA, ep]));
-      },
-      line: function line(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, fnA, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, fnA, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return intersect_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      }
-    }
+      polygon: (a, b, fnA, fnB, ep) => intersect_convex_polygon_line(...b, ...a, include_s, fnA, ep),
+      circle: (a, b, fnA, fnB, ep) => intersect_circle_line(...b, ...a, fnA, ep),
+      line: (a, b, fnA, fnB, ep) => intersect_line_line(...b, ...a, fnB, fnA, ep),
+      ray: (a, b, fnA, fnB, ep) => intersect_line_line(...b, ...a, fnB, fnA, ep),
+      segment: (a, b, fnA, fnB, ep) => intersect_line_line(...a, ...b, fnA, fnB, ep),
+    },
   };
-  var similar_intersect_types = {
-    polygon: "polygon",
-    rect: "polygon",
-    circle: "circle",
-    line: "line",
-    ray: "ray",
-    segment: "segment"
-  };
-  var default_intersect_domain_function = {
-    polygon: exclude,
-    rect: exclude,
-    circle: exclude,
-    line: exclude_l,
-    ray: exclude_r,
-    segment: exclude_s
-  };
-  var _intersect = function intersect(a, b, epsilon) {
-    var type_a = type_of(a);
-    var type_b = type_of(b);
-    var aT = similar_intersect_types[type_a];
-    var bT = similar_intersect_types[type_b];
-    var params_a = intersect_param_form[type_a](a);
-    var params_b = intersect_param_form[type_b](b);
-    var domain_a = a.domain_function || default_intersect_domain_function[type_a];
-    var domain_b = b.domain_function || default_intersect_domain_function[type_b];
-    return intersect_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
-  };
-  var convex_polygons_overlap = function convex_polygons_overlap(poly1, poly2) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : EPSILON;
-    for (var p = 0; p < 2; p++) {
-      var polyA = p === 0 ? poly1 : poly2;
-      var polyB = p === 0 ? poly2 : poly1;
-      var _loop2 = function _loop2(i) {
-        var origin = polyA[i];
-        var vector = _rotate(_subtract(polyA[(i + 1) % polyA.length], polyA[i]));
-        var projected = polyB.map(function (p) {
-          return _subtract(p, origin);
-        }).map(function (v) {
-          return _dot(vector, v);
-        });
-        var other_test_point = polyA[(i + 2) % polyA.length];
-        var side_a = _dot(vector, _subtract(other_test_point, origin));
-        var side = side_a > 0;
-        var one_sided = projected.map(function (dotProd) {
-          return side ? dotProd < epsilon : dotProd > -epsilon;
-        }).reduce(function (a, b) {
-          return a && b;
-        }, true);
-        if (one_sided) {
-          return {
-            v: false
-          };
-        }
-      };
-      for (var i = 0; i < polyA.length; i++) {
-        var _ret2 = _loop2(i);
-        if (_typeof(_ret2) === "object") return _ret2.v;
-      }
-    }
-    return true;
-  };
-  var overlap_circle_point = function overlap_circle_point(radius, origin, point) {
-    var func = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : exclude;
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : EPSILON;
-    return func(radius - distance2$1(origin, point), epsilon);
-  };
-  var overlap_line_line = function overlap_line_line(aVector, aOrigin, bVector, bOrigin) {
-    var aFunction = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : exclude_l;
-    var bFunction = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : exclude_l;
-    var epsilon = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : EPSILON;
-    var denominator0 = cross2(aVector, bVector);
-    var denominator1 = -denominator0;
-    var a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
-    if (Math.abs(denominator0) < epsilon) {
-      if (Math.abs(cross2(a2b, aVector)) > epsilon) {
-        return false;
-      }
-      var bPt1 = a2b;
-      var bPt2 = _add(bPt1, bVector);
-      var aProjLen = _dot(aVector, aVector);
-      var bProj1 = _dot(bPt1, aVector) / aProjLen;
-      var bProj2 = _dot(bPt2, aVector) / aProjLen;
-      var bProjSm = bProj1 < bProj2 ? bProj1 : bProj2;
-      var bProjLg = bProj1 < bProj2 ? bProj2 : bProj1;
-      var bOutside1 = bProjSm > 1 - epsilon;
-      var bOutside2 = bProjLg < epsilon;
-      if (bOutside1 || bOutside2) {
-        return false;
-      }
-      return true;
-    }
-    var b2a = [-a2b[0], -a2b[1]];
-    var t0 = cross2(a2b, bVector) / denominator0;
-    var t1 = cross2(b2a, aVector) / denominator1;
-    return aFunction(t0, epsilon / _magnitude(aVector)) && bFunction(t1, epsilon / _magnitude(bVector));
-  };
-  var overlap_param_form = {
-    polygon: function polygon(a) {
-      return [a];
-    },
-    rect: function rect(a) {
-      return [a];
-    },
-    circle: function circle(a) {
-      return [a.radius, a.origin];
-    },
-    line: function line(a) {
-      return [a.vector, a.origin];
-    },
-    ray: function ray(a) {
-      return [a.vector, a.origin];
-    },
-    segment: function segment(a) {
-      return [a.vector, a.origin];
-    },
-    vector: function vector(a) {
-      return [a];
-    }
-  };
-  var overlap_func = {
-    polygon: {
-      polygon: function polygon(a, b, fnA, fnB, ep) {
-        return convex_polygons_overlap.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [ep]));
-      },
-      vector: function vector(a, b, fnA, fnB, ep) {
-        return overlap_convex_polygon_point.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, ep]));
-      }
-    },
-    circle: {
-      vector: function vector(a, b, fnA, fnB, ep) {
-        return overlap_circle_point.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [exclude, ep]));
-      }
-    },
-    line: {
-      line: function line(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      vector: function vector(a, b, fnA, fnB, ep) {
-        return overlap_line_point.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, ep]));
-      }
-    },
-    ray: {
-      line: function line(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, fnA, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      vector: function vector(a, b, fnA, fnB, ep) {
-        return overlap_line_point.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, ep]));
-      }
-    },
-    segment: {
-      line: function line(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, fnA, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, fnA, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return overlap_line_line.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, fnB, ep]));
-      },
-      vector: function vector(a, b, fnA, fnB, ep) {
-        return overlap_line_point.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [fnA, ep]));
-      }
-    },
-    vector: {
-      polygon: function polygon(a, b, fnA, fnB, ep) {
-        return overlap_convex_polygon_point.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, ep]));
-      },
-      circle: function circle(a, b, fnA, fnB, ep) {
-        return overlap_circle_point.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [exclude, ep]));
-      },
-      line: function line(a, b, fnA, fnB, ep) {
-        return overlap_line_point.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, ep]));
-      },
-      ray: function ray(a, b, fnA, fnB, ep) {
-        return overlap_line_point.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, ep]));
-      },
-      segment: function segment(a, b, fnA, fnB, ep) {
-        return overlap_line_point.apply(void 0, _toConsumableArray(b).concat(_toConsumableArray(a), [fnB, ep]));
-      },
-      vector: function vector(a, b, fnA, fnB, ep) {
-        return equivalent_vector2.apply(void 0, _toConsumableArray(a).concat(_toConsumableArray(b), [ep]));
-      }
-    }
-  };
-  var similar_overlap_types = {
+  const similar_intersect_types = {
     polygon: "polygon",
     rect: "polygon",
     circle: "circle",
     line: "line",
     ray: "ray",
     segment: "segment",
-    vector: "vector"
   };
-  var default_overlap_domain_function = {
+  const default_intersect_domain_function = {
     polygon: exclude,
     rect: exclude,
     circle: exclude,
     line: exclude_l,
     ray: exclude_r,
     segment: exclude_s,
-    vector: exclude_l
   };
-  var _overlap = function overlap(a, b, epsilon) {
-    var type_a = type_of(a);
-    var type_b = type_of(b);
-    var aT = similar_overlap_types[type_a];
-    var bT = similar_overlap_types[type_b];
-    var params_a = overlap_param_form[type_a](a);
-    var params_b = overlap_param_form[type_b](b);
-    var domain_a = a.domain_function || default_overlap_domain_function[type_a];
-    var domain_b = b.domain_function || default_overlap_domain_function[type_b];
+  const intersect$1 = function (a, b, epsilon) {
+    const type_a = type_of(a);
+    const type_b = type_of(b);
+    const aT = similar_intersect_types[type_a];
+    const bT = similar_intersect_types[type_b];
+    const params_a = intersect_param_form[type_a](a);
+    const params_b = intersect_param_form[type_b](b);
+    const domain_a = a.domain_function || default_intersect_domain_function[type_a];
+    const domain_b = b.domain_function || default_intersect_domain_function[type_b];
+    return intersect_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
+  };
+  const overlap_convex_polygons = (poly1, poly2, epsilon = EPSILON) => {
+    for (let p = 0; p < 2; p++) {
+      const polyA = p === 0 ? poly1 : poly2;
+      const polyB = p === 0 ? poly2 : poly1;
+      for (let i = 0; i < polyA.length; i++) {
+        const origin = polyA[i];
+        const vector = rotate90(subtract(polyA[(i + 1) % polyA.length], polyA[i]));
+        const projected = polyB
+          .map(p => subtract(p, origin))
+          .map(v => dot(vector, v));
+        const other_test_point = polyA[(i + 2) % polyA.length];
+        const side_a = dot(vector, subtract(other_test_point, origin));
+        const side = side_a > 0;
+        const one_sided = projected
+          .map(dotProd => side ? dotProd < epsilon : dotProd > -epsilon)
+          .reduce((a, b) => a && b, true);
+        if (one_sided) { return false; }
+      }
+    }
+    return true;
+  };
+  const overlap_circle_point = (radius, origin, point, func = exclude, epsilon = EPSILON) =>
+    func(radius - distance2$1(origin, point), epsilon);
+  const overlap_line_line = (
+    aVector, aOrigin,
+    bVector, bOrigin,
+    aFunction = exclude_l,
+    bFunction = exclude_l,
+    epsilon = EPSILON
+  ) => {
+    const denominator0 = cross2(aVector, bVector);
+    const denominator1 = -denominator0;
+    const a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
+    if (Math.abs(denominator0) < epsilon) {
+      if (Math.abs(cross2(a2b, aVector)) > epsilon) { return false; }
+      const bPt1 = a2b;
+      const bPt2 = add(bPt1, bVector);
+      const aProjLen = dot(aVector, aVector);
+      const bProj1 = dot(bPt1, aVector) / aProjLen;
+      const bProj2 = dot(bPt2, aVector) / aProjLen;
+      const bProjSm = bProj1 < bProj2 ? bProj1 : bProj2;
+      const bProjLg = bProj1 < bProj2 ? bProj2 : bProj1;
+      const bOutside1 = bProjSm > 1 - epsilon;
+      const bOutside2 = bProjLg < epsilon;
+      if (bOutside1 || bOutside2) { return false; }
+      return true;
+    }
+    const b2a = [-a2b[0], -a2b[1]];
+    const t0 = cross2(a2b, bVector) / denominator0;
+    const t1 = cross2(b2a, aVector) / denominator1;
+    return aFunction(t0, epsilon / magnitude(aVector))
+      && bFunction(t1, epsilon / magnitude(bVector));
+  };
+  const overlap_param_form = {
+    polygon: a => [a],
+    rect: a => [a],
+    circle: a => [a.radius, a.origin],
+    line: a => [a.vector, a.origin],
+    ray: a => [a.vector, a.origin],
+    segment: a => [a.vector, a.origin],
+    vector: a => [a],
+  };
+  const overlap_func = {
+    polygon: {
+      polygon: (a, b, fnA, fnB, ep) => overlap_convex_polygons(...a, ...b, ep),
+      vector: (a, b, fnA, fnB, ep) => overlap_convex_polygon_point(...a, ...b, fnA, ep),
+    },
+    circle: {
+      vector: (a, b, fnA, fnB, ep) => overlap_circle_point(...a, ...b, exclude, ep),
+    },
+    line: {
+      line: (a, b, fnA, fnB, ep) => overlap_line_line(...a, ...b, fnA, fnB, ep),
+      ray: (a, b, fnA, fnB, ep) => overlap_line_line(...a, ...b, fnA, fnB, ep),
+      segment: (a, b, fnA, fnB, ep) => overlap_line_line(...a, ...b, fnA, fnB, ep),
+      vector: (a, b, fnA, fnB, ep) => overlap_line_point(...a, ...b, fnA, ep),
+    },
+    ray: {
+      line: (a, b, fnA, fnB, ep) => overlap_line_line(...b, ...a, fnB, fnA, ep),
+      ray: (a, b, fnA, fnB, ep) => overlap_line_line(...a, ...b, fnA, fnB, ep),
+      segment: (a, b, fnA, fnB, ep) => overlap_line_line(...a, ...b, fnA, fnB, ep),
+      vector: (a, b, fnA, fnB, ep) => overlap_line_point(...a, ...b, fnA, ep),
+    },
+    segment: {
+      line: (a, b, fnA, fnB, ep) => overlap_line_line(...b, ...a, fnB, fnA, ep),
+      ray: (a, b, fnA, fnB, ep) => overlap_line_line(...b, ...a, fnB, fnA, ep),
+      segment: (a, b, fnA, fnB, ep) => overlap_line_line(...a, ...b, fnA, fnB, ep),
+      vector: (a, b, fnA, fnB, ep) => overlap_line_point(...a, ...b, fnA, ep),
+    },
+    vector: {
+      polygon: (a, b, fnA, fnB, ep) => overlap_convex_polygon_point(...b, ...a, fnB, ep),
+      circle: (a, b, fnA, fnB, ep) => overlap_circle_point(...b, ...a, exclude, ep),
+      line: (a, b, fnA, fnB, ep) => overlap_line_point(...b, ...a, fnB, ep),
+      ray: (a, b, fnA, fnB, ep) => overlap_line_point(...b, ...a, fnB, ep),
+      segment: (a, b, fnA, fnB, ep) => overlap_line_point(...b, ...a, fnB, ep),
+      vector: (a, b, fnA, fnB, ep) => equivalent_vector2(...a, ...b, ep),
+    },
+  };
+  const similar_overlap_types = {
+    polygon: "polygon",
+    rect: "polygon",
+    circle: "circle",
+    line: "line",
+    ray: "ray",
+    segment: "segment",
+    vector: "vector",
+  };
+  const default_overlap_domain_function = {
+    polygon: exclude,
+    rect: exclude,
+    circle: exclude,
+    line: exclude_l,
+    ray: exclude_r,
+    segment: exclude_s,
+    vector: exclude_l,
+  };
+  const overlap$1 = function (a, b, epsilon) {
+    const type_a = type_of(a);
+    const type_b = type_of(b);
+    const aT = similar_overlap_types[type_a];
+    const bT = similar_overlap_types[type_b];
+    const params_a = overlap_param_form[type_a](a);
+    const params_b = overlap_param_form[type_b](b);
+    const domain_a = a.domain_function || default_overlap_domain_function[type_a];
+    const domain_b = b.domain_function || default_overlap_domain_function[type_b];
     return overlap_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
   };
-  var enclose_convex_polygons_inclusive = function enclose_convex_polygons_inclusive(outer, inner) {
-    var outerGoesInside = outer.map(function (p) {
-      return overlap_convex_polygon_point(inner, p, include);
-    }).reduce(function (a, b) {
-      return a || b;
-    }, false);
-    var innerGoesOutside = inner.map(function (p) {
-      return overlap_convex_polygon_point(inner, p, include);
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true);
-    return !outerGoesInside && innerGoesOutside;
+  const enclose_convex_polygons_inclusive = (outer, inner) => {
+    const outerGoesInside = outer
+      .map(p => overlap_convex_polygon_point(inner, p, include))
+      .reduce((a, b) => a || b, false);
+    const innerGoesOutside = inner
+      .map(p => overlap_convex_polygon_point(inner, p, include))
+      .reduce((a, b) => a && b, true);
+    return (!outerGoesInside && innerGoesOutside);
   };
-  var line_line_parameter = function line_line_parameter(line_vector, line_origin, poly_vector, poly_origin) {
-    var poly_line_func = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : include_s;
-    var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
-    var det_norm = cross2(_normalize(line_vector), _normalize(poly_vector));
-    if (Math.abs(det_norm) < epsilon) {
-      return undefined;
+  const overlap_bounding_boxes = (box1, box2) => {
+    const dimensions = box1.min.length > box2.min.length
+      ? box2.min.length
+      : box1.min.length;
+    for (let d = 0; d < dimensions; d++) {
+      if (box1.min[d] > box2.max[d] || box1.max[d] < box2.min[d]) {
+        return false;
+      }
     }
-    var determinant0 = cross2(line_vector, poly_vector);
-    var determinant1 = -determinant0;
-    var a2b = _subtract(poly_origin, line_origin);
-    var b2a = _flip(a2b);
-    var t0 = cross2(a2b, poly_vector) / determinant0;
-    var t1 = cross2(b2a, line_vector) / determinant1;
-    if (poly_line_func(t1, epsilon / _magnitude(poly_vector))) {
+    return true;
+  };
+  const line_line_parameter = (
+    line_vector, line_origin,
+    poly_vector, poly_origin,
+    poly_line_func = include_s,
+    epsilon = EPSILON
+  ) => {
+    const det_norm = cross2(normalize(line_vector), normalize(poly_vector));
+    if (Math.abs(det_norm) < epsilon) { return undefined; }
+    const determinant0 = cross2(line_vector, poly_vector);
+    const determinant1 = -determinant0;
+    const a2b = subtract(poly_origin, line_origin);
+    const b2a = flip$2(a2b);
+    const t0 = cross2(a2b, poly_vector) / determinant0;
+    const t1 = cross2(b2a, line_vector) / determinant1;
+    if (poly_line_func(t1, epsilon / magnitude(poly_vector))) {
       return t0;
     }
     return undefined;
   };
-  var line_point_from_parameter = function line_point_from_parameter(vector, origin, t) {
-    return _add(origin, _scale(vector, t));
-  };
-  var get_intersect_parameters = function get_intersect_parameters(poly, vector, origin, poly_line_func, epsilon) {
-    return poly.map(function (p, i, arr) {
-      return [_subtract(arr[(i + 1) % arr.length], p), p];
-    }).map(function (side) {
-      return line_line_parameter(vector, origin, side[0], side[1], poly_line_func, epsilon);
-    }).filter(fn_not_undefined).sort(function (a, b) {
-      return a - b;
-    });
-  };
-  var get_min_max = function get_min_max(numbers, func, scaled_epsilon) {
-    var a = 0;
-    var b = numbers.length - 1;
+  const line_point_from_parameter = (vector, origin, t) => add(origin, scale(vector, t));
+  const get_intersect_parameters = (poly, vector, origin, poly_line_func, epsilon) => poly
+    .map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p])
+    .map(side => line_line_parameter(
+      vector, origin,
+      side[0], side[1],
+      poly_line_func,
+      epsilon))
+    .filter(fn_not_undefined)
+    .sort((a, b) => a - b);
+  const get_min_max = (numbers, func, scaled_epsilon) => {
+    let a = 0;
+    let b = numbers.length - 1;
     while (a < b) {
-      if (func(numbers[a + 1] - numbers[a], scaled_epsilon)) {
-        break;
-      }
+      if (func(numbers[a+1] - numbers[a], scaled_epsilon)) { break; }
       a++;
     }
     while (b > a) {
-      if (func(numbers[b] - numbers[b - 1], scaled_epsilon)) {
-        break;
-      }
+      if (func(numbers[b] - numbers[b-1], scaled_epsilon)) { break; }
       b--;
     }
-    if (a >= b) {
-      return undefined;
-    }
+    if (a >= b) { return undefined; }
     return [numbers[a], numbers[b]];
   };
-  var clip_line_in_convex_polygon = function clip_line_in_convex_polygon(poly, vector, origin) {
-    var fn_poly = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : include;
-    var fn_line = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : include_l;
-    var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
-    var numbers = get_intersect_parameters(poly, vector, origin, include_s, epsilon);
-    if (numbers.length < 2) {
+  const clip_line_in_convex_polygon = (
+    poly,
+    vector,
+    origin,
+    fn_poly = include,
+    fn_line = include_l,
+    epsilon = EPSILON
+  ) => {
+    const numbers = get_intersect_parameters(poly, vector, origin, include_s, epsilon);
+    if (numbers.length < 2) { return undefined; }
+    const scaled_epsilon = (epsilon * 2) / magnitude(vector);
+    const ends = get_min_max(numbers, fn_poly, scaled_epsilon);
+    if (ends === undefined) { return undefined; }
+    const ends_clip = ends.map((t, i) => fn_line(t) ? t : (t < 0.5 ? 0 : 1));
+    if (Math.abs(ends_clip[0] - ends_clip[1]) < (epsilon * 2) / magnitude(vector)) {
       return undefined;
     }
-    var scaled_epsilon = epsilon * 2 / _magnitude(vector);
-    var ends = get_min_max(numbers, fn_poly, scaled_epsilon);
-    if (ends === undefined) {
-      return undefined;
-    }
-    var ends_clip = ends.map(function (t, i) {
-      return fn_line(t) ? t : t < 0.5 ? 0 : 1;
-    });
-    if (Math.abs(ends_clip[0] - ends_clip[1]) < epsilon * 2 / _magnitude(vector)) {
-      return undefined;
-    }
-    var mid = line_point_from_parameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
-    return overlap_convex_polygon_point(poly, mid, fn_poly, epsilon) ? ends_clip.map(function (t) {
-      return line_point_from_parameter(vector, origin, t);
-    }) : undefined;
+    const mid = line_point_from_parameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
+    return overlap_convex_polygon_point(poly, mid, fn_poly, epsilon)
+      ? ends_clip.map(t => line_point_from_parameter(vector, origin, t))
+      : undefined;
   };
-  var VectorArgs = function VectorArgs() {
-    this.push.apply(this, _toConsumableArray(get_vector(arguments)));
+  const VectorArgs = function () {
+    this.push(...get_vector(arguments));
   };
-  var VectorGetters = {
-    x: function x() {
-      return this[0];
-    },
-    y: function y() {
-      return this[1];
-    },
-    z: function z() {
-      return this[2];
-    }
+  const VectorGetters = {
+    x: function () { return this[0]; },
+    y: function () { return this[1]; },
+    z: function () { return this[2]; },
   };
-  var table = {
+  const table = {
     preserve: {
-      magnitude: function magnitude() {
-        return _magnitude(this);
-      },
-      isEquivalent: function isEquivalent() {
+      magnitude: function () { return magnitude(this); },
+      isEquivalent: function () {
         return equivalent_vectors(this, get_vector(arguments));
       },
-      isParallel: function isParallel() {
-        return parallel.apply(void 0, _toConsumableArray(resize_up(this, get_vector(arguments))));
+      isParallel: function () {
+        return parallel(...resize_up(this, get_vector(arguments)));
       },
-      isCollinear: function isCollinear(line) {
-        return _overlap(this, line);
+      isCollinear: function (line) {
+        return overlap$1(this, line);
       },
-      dot: function dot() {
-        return _dot.apply(void 0, _toConsumableArray(resize_up(this, get_vector(arguments))));
+      dot: function () {
+        return dot(...resize_up(this, get_vector(arguments)));
       },
-      distanceTo: function distanceTo() {
-        return distance.apply(void 0, _toConsumableArray(resize_up(this, get_vector(arguments))));
+      distanceTo: function () {
+        return distance(...resize_up(this, get_vector(arguments)));
       },
-      overlap: function overlap(other) {
-        return _overlap(this, other);
-      }
+      overlap: function (other) {
+        return overlap$1(this, other);
+      },
     },
     vector: {
-      copy: function copy() {
-        return _toConsumableArray(this);
+      copy: function () { return [...this]; },
+      normalize: function () { return normalize(this); },
+      scale: function () { return scale(this, arguments[0]); },
+      flip: function () { return flip$2(this); },
+      rotate90: function () { return rotate90(this); },
+      rotate270: function () { return rotate270(this); },
+      cross: function () {
+        return cross3(
+          resize(3, this),
+          resize(3, get_vector(arguments))
+        );
       },
-      normalize: function normalize() {
-        return _normalize(this);
+      transform: function () {
+        return multiply_matrix3_vector3(
+          get_matrix_3x4(arguments),
+          resize(3, this)
+        );
       },
-      scale: function scale() {
-        return _scale(this, arguments[0]);
+      add: function () {
+        return add(this, resize(this.length, get_vector(arguments)));
       },
-      flip: function flip() {
-        return _flip(this);
+      subtract: function () {
+        return subtract(this, resize(this.length, get_vector(arguments)));
       },
-      rotate90: function rotate90() {
-        return _rotate(this);
+      rotateZ: function (angle, origin) {
+        return multiply_matrix3_vector3(
+          get_matrix_3x4(make_matrix2_rotate(angle, origin)),
+          resize(3, this)
+        );
       },
-      rotate270: function rotate270() {
-        return _rotate2(this);
+      lerp: function (vector, pct) {
+        return lerp(this, resize(this.length, get_vector(vector)), pct);
       },
-      cross: function cross() {
-        return cross3(resize(3, this), resize(3, get_vector(arguments)));
+      midpoint: function () {
+        return midpoint(...resize_up(this, get_vector(arguments)));
       },
-      transform: function transform() {
-        return multiply_matrix3_vector3(get_matrix_3x4(arguments), resize(3, this));
-      },
-      add: function add() {
-        return _add(this, resize(this.length, get_vector(arguments)));
-      },
-      subtract: function subtract() {
-        return _subtract(this, resize(this.length, get_vector(arguments)));
-      },
-      rotateZ: function rotateZ(angle, origin) {
-        return multiply_matrix3_vector3(get_matrix_3x4(make_matrix2_rotate(angle, origin)), resize(3, this));
-      },
-      lerp: function lerp(vector, pct) {
-        return _lerp(this, resize(this.length, get_vector(vector)), pct);
-      },
-      midpoint: function midpoint() {
-        return _midpoint.apply(void 0, _toConsumableArray(resize_up(this, get_vector(arguments))));
-      },
-      bisect: function bisect() {
+      bisect: function () {
         return counter_clockwise_bisect2(this, get_vector(arguments));
-      }
+      },
     }
   };
-  var VectorMethods = {};
-  Object.keys(table.preserve).forEach(function (key) {
+  const VectorMethods = {};
+  Object.keys(table.preserve).forEach(key => {
     VectorMethods[key] = table.preserve[key];
   });
-  Object.keys(table.vector).forEach(function (key) {
+  Object.keys(table.vector).forEach(key => {
     VectorMethods[key] = function () {
-      return Constructors$1.vector.apply(Constructors$1, _toConsumableArray(table.vector[key].apply(this, arguments)));
+      return Constructors$1.vector(...table.vector[key].apply(this, arguments));
     };
   });
-  var VectorStatic = {
-    fromAngle: function fromAngle(angle) {
+  const VectorStatic = {
+    fromAngle: function (angle) {
       return Constructors$1.vector(Math.cos(angle), Math.sin(angle));
     },
-    fromAngleDegrees: function fromAngleDegrees(angle) {
+    fromAngleDegrees: function (angle) {
       return Constructors$1.vector.fromAngle(angle * D2R);
-    }
+    },
   };
   var Vector = {
     vector: {
@@ -2247,173 +1665,148 @@
       A: VectorArgs,
       G: VectorGetters,
       M: VectorMethods,
-      S: VectorStatic
+      S: VectorStatic,
     }
   };
   var Static = {
-    fromPoints: function fromPoints() {
-      var points = get_vector_of_vectors(arguments);
+    fromPoints: function () {
+      const points = get_vector_of_vectors(arguments);
       return this.constructor({
-        vector: _subtract(points[1], points[0]),
-        origin: points[0]
+        vector: subtract(points[1], points[0]),
+        origin: points[0],
       });
     },
-    fromAngle: function fromAngle() {
-      var angle = arguments[0] || 0;
+    fromAngle: function() {
+      const angle = arguments[0] || 0;
       return this.constructor({
         vector: [Math.cos(angle), Math.sin(angle)],
-        origin: [0, 0]
+        origin: [0, 0],
       });
     },
-    perpendicularBisector: function perpendicularBisector() {
-      var points = get_vector_of_vectors(arguments);
+    perpendicularBisector: function () {
+      const points = get_vector_of_vectors(arguments);
       return this.constructor({
-        vector: _rotate(_subtract(points[1], points[0])),
-        origin: average(points[0], points[1])
+        vector: rotate90(subtract(points[1], points[0])),
+        origin: average(points[0], points[1]),
       });
-    }
+    },
   };
-  var methods$1$1 = {
-    isParallel: function isParallel() {
-      var arr = resize_up(this.vector, get_line(arguments).vector);
-      return parallel.apply(void 0, _toConsumableArray(arr));
+  const methods$1$1 = {
+    isParallel: function () {
+      const arr = resize_up(this.vector, get_line(arguments).vector);
+      return parallel(...arr);
     },
-    isCollinear: function isCollinear() {
-      var line = get_line(arguments);
-      return overlap_line_point(this.vector, this.origin, line.origin) && parallel.apply(void 0, _toConsumableArray(resize_up(this.vector, line.vector)));
+    isCollinear: function () {
+      const line = get_line(arguments);
+      return overlap_line_point(this.vector, this.origin, line.origin)
+        && parallel(...resize_up(this.vector, line.vector));
     },
-    isDegenerate: function isDegenerate() {
-      var epsilon = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : EPSILON;
+    isDegenerate: function (epsilon = EPSILON) {
       return degenerate(this.vector, epsilon);
     },
-    reflectionMatrix: function reflectionMatrix() {
+    reflectionMatrix: function () {
       return Constructors$1.matrix(make_matrix3_reflectZ(this.vector, this.origin));
     },
-    nearestPoint: function nearestPoint() {
-      var point = get_vector(arguments);
-      return Constructors$1.vector(nearest_point_on_line(this.vector, this.origin, point, this.clip_function));
+    nearestPoint: function () {
+      const point = get_vector(arguments);
+      return Constructors$1.vector(
+        nearest_point_on_line(this.vector, this.origin, point, this.clip_function)
+      );
     },
-    transform: function transform() {
-      var dim = this.dimension;
-      var r = multiply_matrix3_line3(get_matrix_3x4(arguments), resize(3, this.vector), resize(3, this.origin));
+    transform: function () {
+      const dim = this.dimension;
+      const r = multiply_matrix3_line3(
+        get_matrix_3x4(arguments),
+        resize(3, this.vector),
+        resize(3, this.origin)
+      );
       return this.constructor(resize(dim, r.vector), resize(dim, r.origin));
     },
-    translate: function translate() {
-      var origin = _add.apply(void 0, _toConsumableArray(resize_up(this.origin, get_vector(arguments))));
+    translate: function () {
+      const origin = add(...resize_up(this.origin, get_vector(arguments)));
       return this.constructor(this.vector, origin);
     },
-    intersect: function intersect() {
-      return _intersect.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
+    intersect: function () {
+      return intersect$1(this, ...arguments);
     },
-    overlap: function overlap() {
-      return _overlap.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
+    overlap: function () {
+      return overlap$1(this, ...arguments);
     },
-    bisect: function bisect(lineType, epsilon) {
-      var _this = this;
-      var line = get_line(lineType);
-      return bisect_lines2(this.vector, this.origin, line.vector, line.origin, epsilon).map(function (line) {
-        return _this.constructor(line);
-      });
-    }
+    bisect: function (lineType, epsilon) {
+      const line = get_line(lineType);
+      return bisect_lines2(this.vector, this.origin, line.vector, line.origin, epsilon)
+        .map(line => this.constructor(line));
+    },
   };
   var Line = {
     line: {
       P: Object.prototype,
-      A: function A() {
-        var l = get_line.apply(void 0, arguments);
+      A: function () {
+        const l = get_line(...arguments);
         this.vector = Constructors$1.vector(l.vector);
         this.origin = Constructors$1.vector(resize(this.vector.length, l.origin));
-        var ud = vector_origin_to_ud({
-          vector: this.vector,
-          origin: this.origin
-        });
+        const ud = vector_origin_to_ud({ vector: this.vector, origin: this.origin });
         this.u = ud.u;
         this.d = ud.d;
-        Object.defineProperty(this, "domain_function", {
-          writable: true,
-          value: include_l
-        });
+        Object.defineProperty(this, "domain_function", { writable: true, value: include_l });
       },
       G: {
-        dimension: function dimension() {
-          return [this.vector, this.origin].map(function (p) {
-            return p.length;
-          }).reduce(function (a, b) {
-            return Math.max(a, b);
-          }, 0);
-        }
+        dimension: function () {
+          return [this.vector, this.origin]
+            .map(p => p.length)
+            .reduce((a, b) => Math.max(a, b), 0);
+        },
       },
       M: Object.assign({}, methods$1$1, {
-        inclusive: function inclusive() {
-          this.domain_function = include_l;
-          return this;
+        inclusive: function () { this.domain_function = include_l; return this; },
+        exclusive: function () { this.domain_function = exclude_l; return this; },
+        clip_function: dist => dist,
+        svgPath: function (length = 20000) {
+          const start = add(this.origin, scale(this.vector, -length / 2));
+          const end = scale(this.vector, length);
+          return `M${start[0]} ${start[1]}l${end[0]} ${end[1]}`;
         },
-        exclusive: function exclusive() {
-          this.domain_function = exclude_l;
-          return this;
-        },
-        clip_function: function clip_function(dist) {
-          return dist;
-        },
-        svgPath: function svgPath() {
-          var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 20000;
-          var start = _add(this.origin, _scale(this.vector, -length / 2));
-          var end = _scale(this.vector, length);
-          return "M".concat(start[0], " ").concat(start[1], "l").concat(end[0], " ").concat(end[1]);
-        }
       }),
       S: Object.assign({
-        ud: function ud() {
+        ud: function() {
           return this.constructor(ud_to_vector_origin(arguments[0]));
-        }
+        },
       }, Static)
     }
   };
   var Ray = {
     ray: {
       P: Object.prototype,
-      A: function A() {
-        var ray = get_line.apply(void 0, arguments);
+      A: function () {
+        const ray = get_line(...arguments);
         this.vector = Constructors$1.vector(ray.vector);
         this.origin = Constructors$1.vector(resize(this.vector.length, ray.origin));
-        Object.defineProperty(this, "domain_function", {
-          writable: true,
-          value: include_r
-        });
+        Object.defineProperty(this, "domain_function", { writable: true, value: include_r });
       },
       G: {
-        dimension: function dimension() {
-          return [this.vector, this.origin].map(function (p) {
-            return p.length;
-          }).reduce(function (a, b) {
-            return Math.max(a, b);
-          }, 0);
-        }
+        dimension: function () {
+          return [this.vector, this.origin]
+            .map(p => p.length)
+            .reduce((a, b) => Math.max(a, b), 0);
+        },
       },
       M: Object.assign({}, methods$1$1, {
-        inclusive: function inclusive() {
-          this.domain_function = include_r;
-          return this;
+        inclusive: function () { this.domain_function = include_r; return this; },
+        exclusive: function () { this.domain_function = exclude_r; return this; },
+        flip: function () {
+          return Constructors$1.ray(flip$2(this.vector), this.origin);
         },
-        exclusive: function exclusive() {
-          this.domain_function = exclude_r;
-          return this;
+        scale: function (scale) {
+          return Constructors$1.ray(this.vector.scale(scale), this.origin);
         },
-        flip: function flip() {
-          return Constructors$1.ray(_flip(this.vector), this.origin);
-        },
-        scale: function scale(_scale2) {
-          return Constructors$1.ray(this.vector.scale(_scale2), this.origin);
-        },
-        normalize: function normalize() {
+        normalize: function () {
           return Constructors$1.ray(this.vector.normalize(), this.origin);
         },
         clip_function: ray_limiter,
-        svgPath: function svgPath() {
-          var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10000;
-          var end = this.vector.scale(length);
-          return "M".concat(this.origin[0], " ").concat(this.origin[1], "l").concat(end[0], " ").concat(end[1]);
-        }
+        svgPath: function (length = 10000) {
+          const end = this.vector.scale(length);
+          return `M${this.origin[0]} ${this.origin[1]}l${end[0]} ${end[1]}`;
+        },
       }),
       S: Static
     }
@@ -2421,120 +1814,90 @@
   var Segment = {
     segment: {
       P: Array.prototype,
-      A: function A() {
-        var a = get_segment.apply(void 0, arguments);
-        this.push.apply(this, _toConsumableArray([a[0], a[1]].map(function (v) {
-          return Constructors$1.vector(v);
-        })));
-        this.vector = Constructors$1.vector(_subtract(this[1], this[0]));
+      A: function () {
+        const a = get_segment(...arguments);
+        this.push(...[a[0], a[1]].map(v => Constructors$1.vector(v)));
+        this.vector = Constructors$1.vector(subtract(this[1], this[0]));
         this.origin = this[0];
-        Object.defineProperty(this, "domain_function", {
-          writable: true,
-          value: include_s
-        });
+        Object.defineProperty(this, "domain_function", { writable: true, value: include_s });
       },
       G: {
-        points: function points() {
-          return this;
+        points: function () { return this; },
+        magnitude: function () { return magnitude(this.vector); },
+        dimension: function () {
+          return [this.vector, this.origin]
+            .map(p => p.length)
+            .reduce((a, b) => Math.max(a, b), 0);
         },
-        magnitude: function magnitude() {
-          return _magnitude(this.vector);
-        },
-        dimension: function dimension() {
-          return [this.vector, this.origin].map(function (p) {
-            return p.length;
-          }).reduce(function (a, b) {
-            return Math.max(a, b);
-          }, 0);
-        }
       },
       M: Object.assign({}, methods$1$1, {
-        inclusive: function inclusive() {
-          this.domain_function = include_s;
-          return this;
-        },
-        exclusive: function exclusive() {
-          this.domain_function = exclude_s;
-          return this;
-        },
+        inclusive: function () { this.domain_function = include_s; return this; },
+        exclusive: function () { this.domain_function = exclude_s; return this; },
         clip_function: segment_limiter,
-        transform: function transform() {
-          var dim = this.points[0].length;
-          for (var _len2 = arguments.length, innerArgs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            innerArgs[_key2] = arguments[_key2];
-          }
-          var mat = get_matrix_3x4(innerArgs);
-          var transformed_points = this.points.map(function (point) {
-            return resize(3, point);
-          }).map(function (point) {
-            return multiply_matrix3_vector3(mat, point);
-          }).map(function (point) {
-            return resize(dim, point);
-          });
+        transform: function (...innerArgs) {
+          const dim = this.points[0].length;
+          const mat = get_matrix_3x4(innerArgs);
+          const transformed_points = this.points
+            .map(point => resize(3, point))
+            .map(point => multiply_matrix3_vector3(mat, point))
+            .map(point => resize(dim, point));
           return Constructors$1.segment(transformed_points);
         },
-        translate: function translate() {
-          var translate = get_vector(arguments);
-          var transformed_points = this.points.map(function (point) {
-            return _add.apply(void 0, _toConsumableArray(resize_up(point, translate)));
-          });
+        translate: function() {
+          const translate = get_vector(arguments);
+          const transformed_points = this.points
+            .map(point => add(...resize_up(point, translate)));
           return Constructors$1.segment(transformed_points);
         },
-        midpoint: function midpoint() {
+        midpoint: function () {
           return Constructors$1.vector(average(this.points[0], this.points[1]));
         },
-        svgPath: function svgPath() {
-          var pointStrings = this.points.map(function (p) {
-            return "".concat(p[0], " ").concat(p[1]);
-          });
-          return ["M", "L"].map(function (cmd, i) {
-            return "".concat(cmd).concat(pointStrings[i]);
-          }).join("");
-        }
+        svgPath: function () {
+          const pointStrings = this.points.map(p => `${p[0]} ${p[1]}`);
+          return ["M", "L"].map((cmd, i) => `${cmd}${pointStrings[i]}`)
+            .join("");
+        },
       }),
       S: {
-        fromPoints: function fromPoints() {
-          return this.constructor.apply(this, arguments);
+        fromPoints: function () {
+          return this.constructor(...arguments);
         }
       }
     }
   };
-  var CircleArgs = function CircleArgs() {
-    var circle = get_circle.apply(void 0, arguments);
+  const CircleArgs = function () {
+    const circle = get_circle(...arguments);
     this.radius = circle.radius;
-    this.origin = Constructors$1.vector.apply(Constructors$1, _toConsumableArray(circle.origin));
+    this.origin = Constructors$1.vector(...circle.origin);
   };
-  var CircleGetters = {
-    x: function x() {
-      return this.origin[0];
-    },
-    y: function y() {
-      return this.origin[1];
-    },
-    z: function z() {
-      return this.origin[2];
-    }
+  const CircleGetters = {
+    x: function () { return this.origin[0]; },
+    y: function () { return this.origin[1]; },
+    z: function () { return this.origin[2]; },
   };
-  var pointOnEllipse = function pointOnEllipse(cx, cy, rx, ry, zRotation, arcAngle) {
-    var cos_rotate = Math.cos(zRotation);
-    var sin_rotate = Math.sin(zRotation);
-    var cos_arc = Math.cos(arcAngle);
-    var sin_arc = Math.sin(arcAngle);
-    return [cx + cos_rotate * rx * cos_arc + -sin_rotate * ry * sin_arc, cy + sin_rotate * rx * cos_arc + cos_rotate * ry * sin_arc];
+  const pointOnEllipse = function (cx, cy, rx, ry, zRotation, arcAngle) {
+    const cos_rotate = Math.cos(zRotation);
+    const sin_rotate = Math.sin(zRotation);
+    const cos_arc = Math.cos(arcAngle);
+    const sin_arc = Math.sin(arcAngle);
+    return [
+      cx + cos_rotate * rx * cos_arc + -sin_rotate * ry * sin_arc,
+      cy + sin_rotate * rx * cos_arc + cos_rotate * ry * sin_arc
+    ];
   };
-  var pathInfo = function pathInfo(cx, cy, rx, ry, zRotation, arcStart_, deltaArc_) {
-    var arcStart = arcStart_;
+  const pathInfo = function (cx, cy, rx, ry, zRotation, arcStart_, deltaArc_) {
+    let arcStart = arcStart_;
     if (arcStart < 0 && !isNaN(arcStart)) {
       while (arcStart < 0) {
         arcStart += Math.PI * 2;
       }
     }
-    var deltaArc = deltaArc_ > Math.PI * 2 ? Math.PI * 2 : deltaArc_;
-    var start = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart);
-    var middle = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc / 2);
-    var end = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc);
-    var fa = deltaArc / 2 > Math.PI ? 1 : 0;
-    var fs = deltaArc / 2 > 0 ? 1 : 0;
+    const deltaArc = deltaArc_ > Math.PI * 2 ? Math.PI * 2 : deltaArc_;
+    const start = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart);
+    const middle = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc / 2);
+    const end = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc);
+    const fa = ((deltaArc / 2) > Math.PI) ? 1 : 0;
+    const fs = ((deltaArc / 2) > 0) ? 1 : 0;
     return {
       x1: start[0],
       y1: start[1],
@@ -2542,90 +1905,84 @@
       y2: middle[1],
       x3: end[0],
       y3: end[1],
-      fa: fa,
-      fs: fs
+      fa,
+      fs
     };
   };
-  var cln = function cln(n) {
-    return clean_number(n, 4);
-  };
-  var ellipticalArcTo = function ellipticalArcTo(rx, ry, phi_degrees, fa, fs, endX, endY) {
-    return "A".concat(cln(rx), " ").concat(cln(ry), " ").concat(cln(phi_degrees), " ").concat(cln(fa), " ").concat(cln(fs), " ").concat(cln(endX), " ").concat(cln(endY));
-  };
-  var CircleMethods = {
-    nearestPoint: function nearestPoint() {
-      return Constructors$1.vector(nearest_point_on_circle(this.radius, this.origin, get_vector(arguments)));
+  const cln = n => clean_number(n, 4);
+  const ellipticalArcTo = (rx, ry, phi_degrees, fa, fs, endX, endY) =>
+    `A${cln(rx)} ${cln(ry)} ${cln(phi_degrees)} ${cln(fa)} ${cln(fs)} ${cln(endX)} ${cln(endY)}`;
+  const CircleMethods = {
+    nearestPoint: function () {
+      return Constructors$1.vector(nearest_point_on_circle(
+        this.radius,
+        this.origin,
+        get_vector(arguments)
+      ));
     },
-    intersect: function intersect(object) {
-      return _intersect(this, object);
+    intersect: function (object) {
+      return intersect$1(this, object);
     },
-    overlap: function overlap(object) {
-      return _overlap(this, object);
+    overlap: function (object) {
+      return overlap$1(this, object);
     },
-    svgPath: function svgPath() {
-      var arcStart = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-      var deltaArc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Math.PI * 2;
-      var info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
-      var arc1 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x2, info.y2);
-      var arc2 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x3, info.y3);
-      return "M".concat(info.x1, " ").concat(info.y1).concat(arc1).concat(arc2);
+    svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+      const info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
+      const arc1 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x2, info.y2);
+      const arc2 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x3, info.y3);
+      return `M${info.x1} ${info.y1}${arc1}${arc2}`;
     },
-    points: function points() {
-      var _this2 = this;
-      var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 128;
-      return Array.from(Array(count)).map(function (_, i) {
-        return 2 * Math.PI / count * i;
-      }).map(function (angle) {
-        return [_this2.origin[0] + _this2.radius * Math.cos(angle), _this2.origin[1] + _this2.radius * Math.sin(angle)];
-      });
+    points: function (count = 128) {
+      return Array.from(Array(count))
+        .map((_, i) => ((2 * Math.PI) / count) * i)
+        .map(angle => [
+          this.origin[0] + this.radius * Math.cos(angle),
+          this.origin[1] + this.radius * Math.sin(angle)
+        ]);
     },
-    polygon: function polygon() {
+    polygon: function () {
       return Constructors$1.polygon(this.points(arguments[0]));
     },
-    segments: function segments() {
-      var points = this.points(arguments[0]);
-      return points.map(function (point, i) {
-        var nextI = (i + 1) % points.length;
+    segments: function () {
+      const points = this.points(arguments[0]);
+      return points.map((point, i) => {
+        const nextI = (i + 1) % points.length;
         return [point, points[nextI]];
       });
     }
   };
-  var CircleStatic = {
-    fromPoints: function fromPoints() {
+  const CircleStatic = {
+    fromPoints: function () {
       if (arguments.length === 3) {
-        var result = circumcircle.apply(void 0, arguments);
+        const result = circumcircle(...arguments);
         return this.constructor(result.radius, result.origin);
       }
-      return this.constructor.apply(this, arguments);
+      return this.constructor(...arguments);
     },
-    fromThreePoints: function fromThreePoints() {
-      var result = circumcircle.apply(void 0, arguments);
+    fromThreePoints: function () {
+      const result = circumcircle(...arguments);
       return this.constructor(result.radius, result.origin);
     }
   };
   var Circle = {
-    circle: {
-      A: CircleArgs,
-      G: CircleGetters,
-      M: CircleMethods,
-      S: CircleStatic
-    }
+    circle: { A: CircleArgs, G: CircleGetters, M: CircleMethods, S: CircleStatic }
   };
-  var getFoci = function getFoci(center, rx, ry, spin) {
-    var order = rx > ry;
-    var lsq = order ? Math.pow(rx, 2) - Math.pow(ry, 2) : Math.pow(ry, 2) - Math.pow(rx, 2);
-    var l = Math.sqrt(lsq);
-    var trigX = order ? Math.cos(spin) : Math.sin(spin);
-    var trigY = order ? Math.sin(spin) : Math.cos(spin);
-    return [Constructors$1.vector(center[0] + l * trigX, center[1] + l * trigY), Constructors$1.vector(center[0] - l * trigX, center[1] - l * trigY)];
+  const getFoci = function (center, rx, ry, spin) {
+    const order = rx > ry;
+    const lsq = order ? (rx ** 2) - (ry ** 2) : (ry ** 2) - (rx ** 2);
+    const l = Math.sqrt(lsq);
+    const trigX = order ? Math.cos(spin) : Math.sin(spin);
+    const trigY = order ? Math.sin(spin) : Math.cos(spin);
+    return [
+      Constructors$1.vector(center[0] + l * trigX, center[1] + l * trigY),
+      Constructors$1.vector(center[0] - l * trigX, center[1] - l * trigY),
+    ];
   };
   var Ellipse = {
     ellipse: {
-      A: function A() {
-        var numbers = flatten_arrays$1(arguments).filter(function (a) {
-          return !isNaN(a);
-        });
-        var params = resize(5, numbers);
+      A: function () {
+        const numbers = flatten_arrays$1(arguments).filter(a => !isNaN(a));
+        const params = resize(5, numbers);
         this.rx = params[0];
         this.ry = params[1];
         this.origin = Constructors$1.vector(params[2], params[3]);
@@ -2633,183 +1990,161 @@
         this.foci = getFoci(this.origin, this.rx, this.ry, this.spin);
       },
       G: {
-        x: function x() {
-          return this.origin[0];
-        },
-        y: function y() {
-          return this.origin[1];
-        }
+        x: function () { return this.origin[0]; },
+        y: function () { return this.origin[1]; },
       },
       M: {
-        svgPath: function svgPath() {
-          var arcStart = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-          var deltaArc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Math.PI * 2;
-          var info = pathInfo(this.origin[0], this.origin[1], this.rx, this.ry, this.spin, arcStart, deltaArc);
-          var arc1 = ellipticalArcTo(this.rx, this.ry, this.spin / Math.PI * 180, info.fa, info.fs, info.x2, info.y2);
-          var arc2 = ellipticalArcTo(this.rx, this.ry, this.spin / Math.PI * 180, info.fa, info.fs, info.x3, info.y3);
-          return "M".concat(info.x1, " ").concat(info.y1).concat(arc1).concat(arc2);
+        svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+          const info = pathInfo(this.origin[0], this.origin[1], this.rx, this.ry, this.spin, arcStart, deltaArc);
+          const arc1 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x2, info.y2);
+          const arc2 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x3, info.y3);
+          return `M${info.x1} ${info.y1}${arc1}${arc2}`;
         },
-        points: function points() {
-          var _this3 = this;
-          var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 128;
-          return Array.from(Array(count)).map(function (_, i) {
-            return 2 * Math.PI / count * i;
-          }).map(function (angle) {
-            return pointOnEllipse(_this3.origin.x, _this3.origin.y, _this3.rx, _this3.ry, _this3.spin, angle);
-          });
+        points: function (count = 128) {
+          return Array.from(Array(count))
+            .map((_, i) => ((2 * Math.PI) / count) * i)
+            .map(angle => pointOnEllipse(
+              this.origin.x, this.origin.y,
+              this.rx, this.ry,
+              this.spin, angle
+            ));
         },
-        polygon: function polygon() {
+        polygon: function () {
           return Constructors$1.polygon(this.points(arguments[0]));
         },
-        segments: function segments() {
-          var points = this.points(arguments[0]);
-          return points.map(function (point, i) {
-            var nextI = (i + 1) % points.length;
+        segments: function () {
+          const points = this.points(arguments[0]);
+          return points.map((point, i) => {
+            const nextI = (i + 1) % points.length;
             return [point, points[nextI]];
           });
         }
       },
-      S: {}
+      S: {
+      }
     }
   };
-  var methods$6 = {
-    area: function area() {
+  const methods$6 = {
+    area: function () {
       return signed_area(this);
     },
-    centroid: function centroid() {
-      return Constructors$1.vector(_centroid(this));
+    centroid: function () {
+      return Constructors$1.vector(centroid(this));
     },
-    enclosingRectangle: function enclosingRectangle() {
-      return Constructors$1.rect(enclosing_rectangle(this));
+    boundingBox: function () {
+      return bounding_box(this);
     },
-    straightSkeleton: function straightSkeleton() {
+    straightSkeleton: function () {
       return straight_skeleton(this);
     },
-    scale: function scale(magnitude) {
-      var center = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _centroid(this);
-      var newPoints = this.map(function (p) {
-        return [0, 1].map(function (_, i) {
-          return p[i] - center[i];
-        });
-      }).map(function (vec) {
-        return vec.map(function (_, i) {
-          return center[i] + vec[i] * magnitude;
-        });
-      });
+    scale: function (magnitude, center = centroid(this)) {
+      const newPoints = this
+        .map(p => [0, 1].map((_, i) => p[i] - center[i]))
+        .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
       return this.constructor.fromPoints(newPoints);
     },
-    rotate: function rotate(angle) {
-      var centerPoint = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _centroid(this);
-      var newPoints = this.map(function (p) {
-        var vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
-        var mag = Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
-        var a = Math.atan2(vec[1], vec[0]);
-        return [centerPoint[0] + Math.cos(a + angle) * mag, centerPoint[1] + Math.sin(a + angle) * mag];
+    rotate: function (angle, centerPoint = centroid(this)) {
+      const newPoints = this.map((p) => {
+        const vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
+        const mag = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+        const a = Math.atan2(vec[1], vec[0]);
+        return [
+          centerPoint[0] + Math.cos(a + angle) * mag,
+          centerPoint[1] + Math.sin(a + angle) * mag,
+        ];
       });
       return Constructors$1.polygon(newPoints);
     },
-    translate: function translate() {
-      var vec = get_vector.apply(void 0, arguments);
-      var newPoints = this.map(function (p) {
-        return p.map(function (n, i) {
-          return n + vec[i];
-        });
-      });
+    translate: function () {
+      const vec = get_vector(...arguments);
+      const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
       return this.constructor.fromPoints(newPoints);
     },
-    transform: function transform() {
-      var m = get_matrix_3x4.apply(void 0, arguments);
-      var newPoints = this.map(function (p) {
-        return multiply_matrix3_vector3(m, resize(3, p));
-      });
+    transform: function () {
+      const m = get_matrix_3x4(...arguments);
+      const newPoints = this
+        .map(p => multiply_matrix3_vector3(m, resize(3, p)));
       return Constructors$1.polygon(newPoints);
     },
-    nearest: function nearest() {
-      var point = get_vector.apply(void 0, arguments);
-      var result = nearest_point_on_polygon(this, point);
-      return result === undefined ? undefined : Object.assign(result, {
-        edge: this.sides[result.i]
-      });
+    nearest: function () {
+      const point = get_vector(...arguments);
+      const result = nearest_point_on_polygon(this, point);
+      return result === undefined
+        ? undefined
+        : Object.assign(result, { edge: this.sides[result.i] });
     },
-    split: function split() {
-      var line = get_line.apply(void 0, arguments);
-      var split_func = split_convex_polygon;
-      return split_func(this, line.vector, line.origin).map(function (poly) {
-        return Constructors$1.polygon(poly);
-      });
+    split: function () {
+      const line = get_line(...arguments);
+      const split_func = split_convex_polygon;
+      return split_func(this, line.vector, line.origin)
+        .map(poly => Constructors$1.polygon(poly));
     },
-    overlap: function overlap() {
-      return _overlap.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
+    overlap: function () {
+      return overlap$1(this, ...arguments);
     },
-    intersect: function intersect() {
-      return _intersect.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
+    intersect: function () {
+      return intersect$1(this, ...arguments);
     },
-    clip: function clip(line_type, epsilon) {
-      var fn_line = line_type.domain_function ? line_type.domain_function : include_l;
-      var segment = clip_line_in_convex_polygon(this, line_type.vector, line_type.origin, this.domain_function, fn_line, epsilon);
+    clip: function (line_type, epsilon) {
+      const fn_line = line_type.domain_function ? line_type.domain_function : include_l;
+      const segment = clip_line_in_convex_polygon(this,
+        line_type.vector,
+        line_type.origin,
+        this.domain_function,
+        fn_line,
+        epsilon);
       return segment ? Constructors$1.segment(segment) : undefined;
     },
-    svgPath: function svgPath() {
-      var pre = Array(this.length).fill("L");
+    svgPath: function () {
+      const pre = Array(this.length).fill("L");
       pre[0] = "M";
-      return "".concat(this.map(function (p, i) {
-        return "".concat(pre[i]).concat(p[0], " ").concat(p[1]);
-      }).join(""), "z");
-    }
+      return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}z`;
+    },
   };
-  var rectToPoints = function rectToPoints(r) {
-    return [[r.x, r.y], [r.x + r.width, r.y], [r.x + r.width, r.y + r.height], [r.x, r.y + r.height]];
-  };
-  var rectToSides = function rectToSides(r) {
-    return [[[r.x, r.y], [r.x + r.width, r.y]], [[r.x + r.width, r.y], [r.x + r.width, r.y + r.height]], [[r.x + r.width, r.y + r.height], [r.x, r.y + r.height]], [[r.x, r.y + r.height], [r.x, r.y]]];
-  };
+  const rectToPoints = r => [
+    [r.x, r.y],
+    [r.x + r.width, r.y],
+    [r.x + r.width, r.y + r.height],
+    [r.x, r.y + r.height]
+  ];
+  const rectToSides = r => [
+    [[r.x, r.y], [r.x + r.width, r.y]],
+    [[r.x + r.width, r.y], [r.x + r.width, r.y + r.height]],
+    [[r.x + r.width, r.y + r.height], [r.x, r.y + r.height]],
+    [[r.x, r.y + r.height], [r.x, r.y]],
+  ];
   var Rect = {
     rect: {
       P: Array.prototype,
-      A: function A() {
-        var r = get_rect.apply(void 0, arguments);
+      A: function () {
+        const r = get_rect(...arguments);
         this.width = r.width;
         this.height = r.height;
         this.origin = Constructors$1.vector(r.x, r.y);
-        this.push.apply(this, _toConsumableArray(rectToPoints(this)));
-        Object.defineProperty(this, "domain_function", {
-          writable: true,
-          value: include
-        });
+        this.push(...rectToPoints(this));
+        Object.defineProperty(this, "domain_function", { writable: true, value: include });
       },
       G: {
-        x: function x() {
-          return this.origin[0];
-        },
-        y: function y() {
-          return this.origin[1];
-        },
-        center: function center() {
-          return Constructors$1.vector(this.origin[0] + this.width / 2, this.origin[1] + this.height / 2);
-        }
+        x: function () { return this.origin[0]; },
+        y: function () { return this.origin[1]; },
+        center: function () { return Constructors$1.vector(
+          this.origin[0] + this.width / 2,
+          this.origin[1] + this.height / 2,
+        ); },
       },
       M: Object.assign({}, methods$6, {
-        inclusive: function inclusive() {
-          this.domain_function = include;
-          return this;
+        inclusive: function () { this.domain_function = include; return this; },
+        exclusive: function () { this.domain_function = exclude; return this; },
+        area: function () { return this.width * this.height; },
+        segments: function () { return rectToSides(this); },
+        svgPath: function () {
+          return `M${this.origin.join(" ")}h${this.width}v${this.height}h${-this.width}Z`;
         },
-        exclusive: function exclusive() {
-          this.domain_function = exclude;
-          return this;
-        },
-        area: function area() {
-          return this.width * this.height;
-        },
-        segments: function segments() {
-          return rectToSides(this);
-        },
-        svgPath: function svgPath() {
-          return "M".concat(this.origin.join(" "), "h").concat(this.width, "v").concat(this.height, "h").concat(-this.width, "Z");
-        }
       }),
       S: {
-        fromPoints: function fromPoints() {
-          return Constructors$1.rect(enclosing_rectangle(get_vector_of_vectors(arguments)));
+        fromPoints: function () {
+          const box = bounding_box(get_vector_of_vectors(arguments));
+          return Constructors$1.rect(box.min[0], box.min[1], box.span[0], box.span[1]);
         }
       }
     }
@@ -2817,55 +2152,43 @@
   var Polygon = {
     polygon: {
       P: Array.prototype,
-      A: function A() {
-        this.push.apply(this, _toConsumableArray(semi_flatten_arrays$1(arguments)));
-        this.sides = this.map(function (p, i, arr) {
-          return [p, arr[(i + 1) % arr.length]];
-        });
-        this.vectors = this.sides.map(function (side) {
-          return _subtract(side[1], side[0]);
-        });
-        Object.defineProperty(this, "domain_function", {
-          writable: true,
-          value: include
-        });
+      A: function () {
+        this.push(...semi_flatten_arrays$1(arguments));
+        this.sides = this
+          .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+        this.vectors = this.sides.map(side => subtract(side[1], side[0]));
+        Object.defineProperty(this, "domain_function", { writable: true, value: include });
       },
       G: {
-        isConvex: function isConvex() {
+        isConvex: function () {
           return true;
         },
-        points: function points() {
+        points: function () {
           return this;
-        }
+        },
       },
       M: Object.assign({}, methods$6, {
-        inclusive: function inclusive() {
-          this.domain_function = include;
-          return this;
-        },
-        exclusive: function exclusive() {
-          this.domain_function = exclude;
-          return this;
-        },
-        segments: function segments() {
+        inclusive: function () { this.domain_function = include; return this; },
+        exclusive: function () { this.domain_function = exclude; return this; },
+        segments: function () {
           return this.sides;
-        }
+        },
       }),
       S: {
-        fromPoints: function fromPoints() {
-          return this.constructor.apply(this, arguments);
+        fromPoints: function () {
+          return this.constructor(...arguments);
         },
-        regularPolygon: function regularPolygon() {
-          return this.constructor(make_regular_polygon.apply(void 0, arguments));
+        regularPolygon: function () {
+          return this.constructor(make_regular_polygon(...arguments));
         },
-        convexHull: function convexHull() {
-          return this.constructor(convex_hull.apply(void 0, arguments));
-        }
+        convexHull: function () {
+          return this.constructor(convex_hull(...arguments));
+        },
       }
     }
   };
-  var assign$2 = function assign(thisMat, mat) {
-    for (var i = 0; i < 12; i += 1) {
+  const assign$2 = (thisMat, mat) => {
+    for (let i = 0; i < 12; i += 1) {
       thisMat[i] = mat[i];
     }
     return thisMat;
@@ -2873,190 +2196,194 @@
   var Matrix = {
     matrix: {
       P: Array.prototype,
-      A: function A() {
-        var _this4 = this;
-        get_matrix_3x4(arguments).forEach(function (m) {
-          return _this4.push(m);
-        });
+      A: function () {
+        get_matrix_3x4(arguments).forEach(m => this.push(m));
       },
-      G: {},
+      G: {
+      },
       M: {
-        copy: function copy() {
-          return Constructors$1.matrix.apply(Constructors$1, _toConsumableArray(Array.from(this)));
-        },
-        set: function set() {
+        copy: function () { return Constructors$1.matrix(...Array.from(this)); },
+        set: function () {
           return assign$2(this, get_matrix_3x4(arguments));
         },
-        isIdentity: function isIdentity() {
-          return is_identity3x4(this);
-        },
-        multiply: function multiply(mat) {
+        isIdentity: function () { return is_identity3x4(this); },
+        multiply: function (mat) {
           return assign$2(this, multiply_matrices3(this, mat));
         },
-        determinant: function determinant() {
+        determinant: function () {
           return determinant3(this);
         },
-        inverse: function inverse() {
+        inverse: function () {
           return assign$2(this, invert_matrix3(this));
         },
-        translate: function translate(x, y, z) {
-          return assign$2(this, multiply_matrices3(this, make_matrix3_translate(x, y, z)));
+        translate: function (x, y, z) {
+          return assign$2(this,
+            multiply_matrices3(this, make_matrix3_translate(x, y, z)));
         },
-        rotateX: function rotateX(radians) {
-          return assign$2(this, multiply_matrices3(this, make_matrix3_rotateX(radians)));
+        rotateX: function (radians) {
+          return assign$2(this,
+            multiply_matrices3(this, make_matrix3_rotateX(radians)));
         },
-        rotateY: function rotateY(radians) {
-          return assign$2(this, multiply_matrices3(this, make_matrix3_rotateY(radians)));
+        rotateY: function (radians) {
+          return assign$2(this,
+            multiply_matrices3(this, make_matrix3_rotateY(radians)));
         },
-        rotateZ: function rotateZ(radians) {
-          return assign$2(this, multiply_matrices3(this, make_matrix3_rotateZ(radians)));
+        rotateZ: function (radians) {
+          return assign$2(this,
+            multiply_matrices3(this, make_matrix3_rotateZ(radians)));
         },
-        rotate: function rotate(radians, vector, origin) {
-          var transform = make_matrix3_rotate(radians, vector, origin);
+        rotate: function (radians, vector, origin) {
+          const transform = make_matrix3_rotate(radians, vector, origin);
           return assign$2(this, multiply_matrices3(this, transform));
         },
-        scale: function scale(amount) {
-          return assign$2(this, multiply_matrices3(this, make_matrix3_scale(amount)));
+        scale: function (amount) {
+          return assign$2(this,
+            multiply_matrices3(this, make_matrix3_scale(amount)));
         },
-        reflectZ: function reflectZ(vector, origin) {
-          var transform = make_matrix3_reflectZ(vector, origin);
+        reflectZ: function (vector, origin) {
+          const transform = make_matrix3_reflectZ(vector, origin);
           return assign$2(this, multiply_matrices3(this, transform));
         },
-        transform: function transform() {
-          for (var _len3 = arguments.length, innerArgs = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            innerArgs[_key3] = arguments[_key3];
-          }
-          return Constructors$1.vector(multiply_matrix3_vector3(this, resize(3, get_vector(innerArgs))));
+        transform: function (...innerArgs) {
+          return Constructors$1.vector(
+            multiply_matrix3_vector3(this, resize(3, get_vector(innerArgs)))
+          );
         },
-        transformVector: function transformVector(vector) {
-          return Constructors$1.vector(multiply_matrix3_vector3(this, resize(3, get_vector(vector))));
+        transformVector: function (vector) {
+          return Constructors$1.vector(
+            multiply_matrix3_vector3(this, resize(3, get_vector(vector)))
+          );
         },
-        transformLine: function transformLine() {
-          for (var _len4 = arguments.length, innerArgs = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            innerArgs[_key4] = arguments[_key4];
-          }
-          var l = get_line(innerArgs);
+        transformLine: function (...innerArgs) {
+          const l = get_line(innerArgs);
           return Constructors$1.line(multiply_matrix3_line3(this, l.vector, l.origin));
-        }
+        },
       },
-      S: {}
+      S: {
+      }
     }
   };
-  var Definitions = Object.assign({}, Vector, Line, Ray, Segment, Circle, Ellipse, Rect, Polygon, Matrix);
-  var create = function create(primitiveName, args) {
-    var a = Object.create(Definitions[primitiveName].proto);
+  const Definitions = Object.assign({},
+    Vector,
+    Line,
+    Ray,
+    Segment,
+    Circle,
+    Ellipse,
+    Rect,
+    Polygon,
+    Matrix,
+  );
+  const create = function (primitiveName, args) {
+    const a = Object.create(Definitions[primitiveName].proto);
     Definitions[primitiveName].A.apply(a, args);
     return a;
   };
-  var vector = function vector() {
-    return create("vector", arguments);
-  };
-  var circle = function circle() {
-    return create("circle", arguments);
-  };
-  var ellipse = function ellipse() {
-    return create("ellipse", arguments);
-  };
-  var rect = function rect() {
-    return create("rect", arguments);
-  };
-  var polygon = function polygon() {
-    return create("polygon", arguments);
-  };
-  var line = function line() {
-    return create("line", arguments);
-  };
-  var ray = function ray() {
-    return create("ray", arguments);
-  };
-  var segment = function segment() {
-    return create("segment", arguments);
-  };
-  var matrix = function matrix() {
-    return create("matrix", arguments);
-  };
+  const vector = function () { return create("vector", arguments); };
+  const circle = function () { return create("circle", arguments); };
+  const ellipse = function () { return create("ellipse", arguments); };
+  const rect = function () { return create("rect", arguments); };
+  const polygon = function () { return create("polygon", arguments); };
+  const line = function () { return create("line", arguments); };
+  const ray = function () { return create("ray", arguments); };
+  const segment = function () { return create("segment", arguments); };
+  const matrix = function () { return create("matrix", arguments); };
   Object.assign(Constructors$1, {
-    vector: vector,
-    circle: circle,
-    ellipse: ellipse,
-    rect: rect,
-    polygon: polygon,
-    line: line,
-    ray: ray,
-    segment: segment,
-    matrix: matrix
+    vector,
+    circle,
+    ellipse,
+    rect,
+    polygon,
+    line,
+    ray,
+    segment,
+    matrix,
   });
-  Object.keys(Definitions).forEach(function (primitiveName) {
-    var Proto = {};
-    Proto.prototype = Definitions[primitiveName].P != null ? Object.create(Definitions[primitiveName].P) : Object.create(Object.prototype);
+  Object.keys(Definitions).forEach(primitiveName => {
+    const Proto = {};
+    Proto.prototype = Definitions[primitiveName].P != null
+      ? Object.create(Definitions[primitiveName].P)
+      : Object.create(Object.prototype);
     Proto.prototype.constructor = Proto;
     Constructors$1[primitiveName].prototype = Proto.prototype;
     Constructors$1[primitiveName].prototype.constructor = Constructors$1[primitiveName];
-    Object.keys(Definitions[primitiveName].G).forEach(function (key) {
-      return Object.defineProperty(Proto.prototype, key, {
-        get: Definitions[primitiveName].G[key]
-      });
-    });
-    Object.keys(Definitions[primitiveName].M).forEach(function (key) {
-      return Object.defineProperty(Proto.prototype, key, {
-        value: Definitions[primitiveName].M[key]
-      });
-    });
-    Object.keys(Definitions[primitiveName].S).forEach(function (key) {
-      return Object.defineProperty(Constructors$1[primitiveName], key, {
-        value: Definitions[primitiveName].S[key].bind(Constructors$1[primitiveName].prototype)
-      });
-    });
+    Object.keys(Definitions[primitiveName].G)
+      .forEach(key => Object.defineProperty(Proto.prototype, key, {
+        get: Definitions[primitiveName].G[key],
+      }));
+    Object.keys(Definitions[primitiveName].M)
+      .forEach(key => Object.defineProperty(Proto.prototype, key, {
+        value: Definitions[primitiveName].M[key],
+      }));
+    Object.keys(Definitions[primitiveName].S)
+      .forEach(key => Object.defineProperty(Constructors$1[primitiveName], key, {
+        value: Definitions[primitiveName].S[key]
+          .bind(Constructors$1[primitiveName].prototype),
+      }));
     Definitions[primitiveName].proto = Proto.prototype;
   });
-  var math = Constructors$1;
-  math.core = Object.assign(Object.create(null), constants, resizers, getters, functions, algebra$1, equal, sort$1, geometry, radial, matrix2, matrix3, nearest$1, parameterize, {
-    enclose_convex_polygons_inclusive: enclose_convex_polygons_inclusive,
-    intersect_convex_polygon_line: intersect_convex_polygon_line,
-    intersect_polygon_polygon: intersect_polygon_polygon,
-    intersect_circle_circle: intersect_circle_circle,
-    intersect_circle_line: intersect_circle_line,
-    intersect_line_line: intersect_line_line,
-    overlap_convex_polygons: convex_polygons_overlap,
-    overlap_convex_polygon_point: overlap_convex_polygon_point,
-    overlap_line_line: overlap_line_line,
-    overlap_line_point: overlap_line_point,
-    clip_line_in_convex_polygon: clip_line_in_convex_polygon
-  });
-  math["typeof"] = type_of;
-  math.intersect = _intersect;
-  math.overlap = _overlap;
+  const math = Constructors$1;
+  math.core = Object.assign(Object.create(null),
+    constants,
+    resizers,
+    getters,
+    functions,
+    algebra$1,
+    equal,
+    sort$1,
+    geometry,
+    radial,
+    matrix2,
+    matrix3,
+    nearest$1,
+    parameterize,
+    {
+      enclose_convex_polygons_inclusive,
+      intersect_convex_polygon_line,
+      intersect_polygon_polygon,
+      intersect_circle_circle,
+      intersect_circle_line,
+      intersect_line_line,
+      overlap_convex_polygons,
+      overlap_convex_polygon_point,
+      overlap_bounding_boxes,
+      overlap_line_line,
+      overlap_line_point,
+      clip_line_in_convex_polygon,
+    }
+  );
+  math.typeof = type_of;
+  math.intersect = intersect$1;
+  math.overlap = overlap$1;
 
-  var vertex_degree = function vertex_degree(v, i) {
-    var graph = this;
+  const vertex_degree = function (v, i) {
+    const graph = this;
     Object.defineProperty(v, "degree", {
-      get: function get() {
-        return graph.vertices_vertices && graph.vertices_vertices[i] ? graph.vertices_vertices[i].length : null;
-      }
+      get: () => (graph.vertices_vertices && graph.vertices_vertices[i]
+        ? graph.vertices_vertices[i].length
+        : null)
     });
   };
-  var edge_coords = function edge_coords(e, i) {
-    var graph = this;
+  const edge_coords = function (e, i) {
+    const graph = this;
     Object.defineProperty(e, "coords", {
-      get: function get() {
-        if (!graph.edges_vertices || !graph.edges_vertices[i] || !graph.vertices_coords) {
+      get: () => {
+        if (!graph.edges_vertices
+          || !graph.edges_vertices[i]
+          || !graph.vertices_coords) {
           return undefined;
         }
-        return graph.edges_vertices[i].map(function (v) {
-          return graph.vertices_coords[v];
-        });
+        return graph.edges_vertices[i].map(v => graph.vertices_coords[v]);
       }
     });
   };
-  var face_simple = function face_simple(f, i) {
-    var graph = this;
+  const face_simple = function (f, i) {
+    const graph = this;
     Object.defineProperty(f, "simple", {
-      get: function get() {
-        if (!graph.faces_vertices || !graph.faces_vertices[i]) {
-          return null;
-        }
-        for (var j = 0; j < f.length - 1; j += 1) {
-          for (var k = j + 1; k < f.length; k += 1) {
+      get: () => {
+        if (!graph.faces_vertices || !graph.faces_vertices[i]) { return null; }
+        for (let j = 0; j < f.length - 1; j += 1) {
+          for (let k = j + 1; k < f.length; k += 1) {
             if (graph.faces_vertices[i][j] === graph.faces_vertices[i][k]) {
               return false;
             }
@@ -3066,28 +2393,28 @@
       }
     });
   };
-  var face_coords = function face_coords(f, i) {
-    var graph = this;
+  const face_coords = function (f, i) {
+    const graph = this;
     Object.defineProperty(f, "coords", {
-      get: function get() {
-        if (!graph.faces_vertices || !graph.faces_vertices[i] || !graph.vertices_coords) {
+      get: () => {
+        if (!graph.faces_vertices
+          || !graph.faces_vertices[i]
+          || !graph.vertices_coords) {
           return undefined;
         }
-        return graph.faces_vertices[i].map(function (v) {
-          return graph.vertices_coords[v];
-        });
+        return graph.faces_vertices[i].map(v => graph.vertices_coords[v]);
       }
     });
   };
-  var setup_vertex = function setup_vertex(v, i) {
+  const setup_vertex = function (v, i) {
     vertex_degree.call(this, v, i);
     return v;
   };
-  var setup_edge = function setup_edge(e, i) {
+  const setup_edge = function (e, i) {
     edge_coords.call(this, e, i);
     return e;
   };
-  var setup_face = function setup_face(f, i) {
+  const setup_face = function (f, i) {
     face_simple.call(this, f, i);
     face_coords.call(this, f, i);
     return f;
@@ -3095,72 +2422,112 @@
   var setup = {
     vertices: setup_vertex,
     edges: setup_edge,
-    faces: setup_face
+    faces: setup_face,
   };
 
-  var _undefined$1 = "undefined";
-  var _boolean$1 = "boolean";
-  var _number$1 = "number";
-  var _object$1 = "object";
-  var _class$1 = "class";
-  var _index = "index";
-  var _vertices = "vertices";
-  var _edges = "edges";
-  var _faces = "faces";
-  var _boundaries = "boundaries";
-  var _vertices_coords = "vertices_coords";
-  var _edges_vertices = "edges_vertices";
-  var _faces_vertices = "faces_vertices";
-  var _faces_edges = "faces_edges";
-  var _edges_assignment = "edges_assignment";
-  var _edges_foldAngle = "edges_foldAngle";
-  var _frame_classes = "frame_classes";
-  var _file_classes = "file_classes";
-  var _faces_layer = "faces_layer";
-  var _boundary = "boundary";
-  var _front = "front";
-  var _back = "back";
-  var _foldedForm = "foldedForm";
-  var _black = "black";
-  var _white = "white";
-  var _none$1 = "none";
-  var _stroke_width = "stroke-width";
+  const _undefined$1 = "undefined";
+  const _boolean$1 = "boolean";
+  const _number$1 = "number";
+  const _object$1 = "object";
+  const _class$1 = "class";
+  const _index = "index";
+  const _vertices = "vertices";
+  const _edges = "edges";
+  const _faces = "faces";
+  const _boundaries = "boundaries";
+  const _vertices_coords = "vertices_coords";
+  const _edges_vertices = "edges_vertices";
+  const _faces_vertices = "faces_vertices";
+  const _faces_edges = "faces_edges";
+  const _edges_assignment = "edges_assignment";
+  const _edges_foldAngle = "edges_foldAngle";
+  const _frame_classes = "frame_classes";
+  const _file_classes = "file_classes";
+  const _faces_layer = "faces_layer";
+  const _boundary = "boundary";
+  const _front = "front";
+  const _back = "back";
+  const _foldedForm = "foldedForm";
+  const _black = "black";
+  const _white = "white";
+  const _none$1 = "none";
+  const _stroke_width = "stroke-width";
 
-  var file_spec = 1.1;
-  var file_creator = "Rabbit Ear";
-  var fold_keys = {
-    file: ["file_spec", "file_creator", "file_author", "file_title", "file_description", "file_classes", "file_frames"],
-    frame: ["frame_author", "frame_title", "frame_description", "frame_attributes", "frame_classes", "frame_unit", "frame_parent",
-    "frame_inherit"
+  const file_spec = 1.1;
+  const file_creator = "Rabbit Ear";
+  const fold_keys = {
+    file: [
+      "file_spec",
+      "file_creator",
+      "file_author",
+      "file_title",
+      "file_description",
+      "file_classes",
+      "file_frames"
     ],
-    graph: ["vertices_coords", "vertices_vertices", "vertices_faces", "edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle", "edges_length", "faces_vertices", "faces_edges",
-    "vertices_edges", "edges_edges", "faces_faces"],
-    orders: ["edgeOrders", "faceOrders"]
+    frame: [
+      "frame_author",
+      "frame_title",
+      "frame_description",
+      "frame_attributes",
+      "frame_classes",
+      "frame_unit",
+      "frame_parent",
+      "frame_inherit",
+    ],
+    graph: [
+      "vertices_coords",
+      "vertices_vertices",
+      "vertices_faces",
+      "edges_vertices",
+      "edges_faces",
+      "edges_assignment",
+      "edges_foldAngle",
+      "edges_length",
+      "faces_vertices",
+      "faces_edges",
+      "vertices_edges",
+      "edges_edges",
+      "faces_faces"
+    ],
+    orders: [
+      "edgeOrders",
+      "faceOrders"
+    ],
   };
-  var keys = Object.freeze([].concat(fold_keys.file).concat(fold_keys.frame).concat(fold_keys.graph).concat(fold_keys.orders));
-  var non_spec_keys = Object.freeze(["edges_vector", "vertices_sectors", "faces_sectors", "faces_matrix"]);
-  var edges_assignment_values = Array.from("MmVvBbFfUu");
+  const keys = Object.freeze([]
+    .concat(fold_keys.file)
+    .concat(fold_keys.frame)
+    .concat(fold_keys.graph)
+    .concat(fold_keys.orders));
+  const non_spec_keys = Object.freeze([
+    "edges_vector",
+    "vertices_sectors",
+    "faces_sectors",
+    "faces_matrix"
+  ]);
+  const edges_assignment_values = Array.from("MmVvBbFfUu");
 
-  var singularize = {
+  const singularize = {
     vertices: "vertex",
     edges: "edge",
-    faces: "face"
+    faces: "face",
   };
-  var edges_assignment_names = {
+  const edges_assignment_names = {
     b: "boundary",
     m: "mountain",
     v: "valley",
-    f: "mark",
+    f: "flat",
     u: "unassigned"
   };
-  edges_assignment_values.forEach(function (key) {
+  edges_assignment_values.forEach(key => {
     edges_assignment_names[key.toUpperCase()] = edges_assignment_names[key];
   });
-  var edges_assignment_to_lowercase = {};
-  edges_assignment_values.forEach(function (key) {
+  const edges_assignment_to_lowercase = {};
+  edges_assignment_values.forEach(key => {
     edges_assignment_to_lowercase[key] = key.toLowerCase();
   });
-  var edges_assignment_degrees = {
+  const edges_assignment_degrees = {
     M: -180,
     m: -180,
     V: 180,
@@ -3172,73 +2539,54 @@
     U: 0,
     u: 0
   };
-  var edge_assignment_to_foldAngle = function edge_assignment_to_foldAngle(assignment) {
-    return edges_assignment_degrees[assignment] || 0;
-  };
-  var edge_foldAngle_to_assignment = function edge_foldAngle_to_assignment(a) {
-    if (a > 0) {
-      return "V";
-    }
-    if (a < 0) {
-      return "M";
-    }
+  const edge_assignment_to_foldAngle = assignment =>
+    edges_assignment_degrees[assignment] || 0;
+  const edge_foldAngle_to_assignment = (a) => {
+    if (a > 0) { return "V"; }
+    if (a < 0) { return "M"; }
     return "U";
   };
-  var filter_keys_with_suffix = function filter_keys_with_suffix(graph, suffix) {
-    return Object.keys(graph).map(function (s) {
-      return s.substring(s.length - suffix.length, s.length) === suffix ? s : undefined;
-    }).filter(function (str) {
-      return str !== undefined;
-    });
-  };
-  var filter_keys_with_prefix = function filter_keys_with_prefix(graph, prefix) {
-    return Object.keys(graph).map(function (str) {
-      return str.substring(0, prefix.length) === prefix ? str : undefined;
-    }).filter(function (str) {
-      return str !== undefined;
-    });
-  };
-  var get_graph_keys_with_prefix = function get_graph_keys_with_prefix(graph, key) {
-    return filter_keys_with_prefix(graph, "".concat(key, "_"));
-  };
-  var get_graph_keys_with_suffix = function get_graph_keys_with_suffix(graph, key) {
-    return filter_keys_with_suffix(graph, "_".concat(key));
-  };
-  var transpose_graph_arrays = function transpose_graph_arrays(graph, geometry_key) {
-    var matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
-    if (matching_keys.length === 0) {
-      return [];
-    }
-    var len = Math.max.apply(Math, _toConsumableArray(matching_keys.map(function (arr) {
-      return graph[arr].length;
-    })));
-    var geometry = Array.from(Array(len)).map(function () {
-      return {};
-    });
-    matching_keys.forEach(function (key) {
-      return geometry.forEach(function (o, i) {
-        geometry[i][key] = graph[key][i];
-      });
-    });
+  const filter_keys_with_suffix = (graph, suffix) => Object
+    .keys(graph)
+    .map(s => (s.substring(s.length - suffix.length, s.length) === suffix
+      ? s : undefined))
+    .filter(str => str !== undefined);
+  const filter_keys_with_prefix = (graph, prefix) => Object
+    .keys(graph)
+    .map(str => (str.substring(0, prefix.length) === prefix
+      ? str : undefined))
+    .filter(str => str !== undefined);
+  const get_graph_keys_with_prefix = (graph, key) =>
+    filter_keys_with_prefix(graph, `${key}_`);
+  const get_graph_keys_with_suffix = (graph, key) =>
+    filter_keys_with_suffix(graph, `_${key}`);
+  const transpose_graph_arrays = (graph, geometry_key) => {
+    const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+    if (matching_keys.length === 0) { return []; }
+    const len = Math.max(...matching_keys.map(arr => graph[arr].length));
+    const geometry = Array.from(Array(len))
+      .map(() => ({}));
+    matching_keys
+      .forEach(key => geometry
+        .forEach((o, i) => { geometry[i][key] = graph[key][i]; }));
     return geometry;
   };
-  var transpose_graph_array_at_index = function transpose_graph_array_at_index(graph, geometry_key, index) {
-    var matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
-    if (matching_keys.length === 0) {
-      return undefined;
-    }
-    var geometry = {};
-    matching_keys.forEach(function (key) {
-      geometry[key] = graph[key][index];
-    });
+  const transpose_graph_array_at_index = function (
+    graph,
+    geometry_key,
+    index
+  ) {
+    const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+    if (matching_keys.length === 0) { return undefined; }
+    const geometry = {};
+    matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
     return geometry;
   };
-  var fold_object_certainty = function fold_object_certainty() {
-    var object = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    return Object.keys(object).length === 0 ? 0 : [].concat(keys, non_spec_keys).filter(function (key) {
-      return object[key];
-    }).length / Object.keys(object).length;
-  };
+  const fold_object_certainty = (object = {}) => (
+    Object.keys(object).length === 0
+      ? 0
+      : [].concat(keys, non_spec_keys)
+        .filter(key => object[key]).length / Object.keys(object).length);
 
   var fold_object = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -3257,108 +2605,61 @@
     fold_object_certainty: fold_object_certainty
   });
 
-  var max_arrays_length = function max_arrays_length() {
-    for (var _len = arguments.length, arrays = new Array(_len), _key = 0; _key < _len; _key++) {
-      arrays[_key] = arguments[_key];
-    }
-    return Math.max.apply(Math, [0].concat(_toConsumableArray(arrays.filter(function (el) {
-      return el !== undefined;
-    }).map(function (el) {
-      return el.length;
-    }))));
-  };
-  var count = function count(graph, key) {
-    return max_arrays_length.apply(void 0, _toConsumableArray(get_graph_keys_with_prefix(graph, key).map(function (key) {
-      return graph[key];
-    })));
-  };
-  count.vertices = function (_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        vertices_faces = _ref.vertices_faces,
-        vertices_vertices = _ref.vertices_vertices;
-    return max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
-  };
-  count.edges = function (_ref2) {
-    var edges_vertices = _ref2.edges_vertices,
-        edges_edges = _ref2.edges_edges,
-        edges_faces = _ref2.edges_faces;
-    return max_arrays_length(edges_vertices, edges_edges, edges_faces);
-  };
-  count.faces = function (_ref3) {
-    var faces_vertices = _ref3.faces_vertices,
-        faces_edges = _ref3.faces_edges,
-        faces_faces = _ref3.faces_faces;
-    return max_arrays_length(faces_vertices, faces_edges, faces_faces);
-  };
+  const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
+    .filter(el => el !== undefined)
+    .map(el => el.length)));
+  const count = (graph, key) => max_arrays_length(...get_graph_keys_with_prefix(graph, key).map(key => graph[key]));
+  count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
+    max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
+  count.edges = ({ edges_vertices, edges_edges, edges_faces }) =>
+    max_arrays_length(edges_vertices, edges_edges, edges_faces);
+  count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
+    max_arrays_length(faces_vertices, faces_edges, faces_faces);
 
-  var fn_and = function fn_and(a, b) {
-    return a && b;
-  };
-  var fn_cat = function fn_cat(a, b) {
-    return a.concat(b);
-  };
-  var fn_def = function fn_def(a) {
-    return a !== undefined;
-  };
-  var fn_add = function fn_add(a, b) {
-    return a + b;
-  };
+  const fn_and = (a, b) => a && b;
+  const fn_cat = (a, b) => a.concat(b);
+  const fn_def = a => a !== undefined;
+  const fn_add = (a, b) => a + b;
 
-  var unique_sorted_integers = function unique_sorted_integers(array) {
-    var keys = {};
-    array.forEach(function (_int) {
-      keys[_int] = true;
-    });
-    return Object.keys(keys).map(function (n) {
-      return parseInt(n);
-    }).sort(function (a, b) {
-      return a - b;
-    });
+  const unique_sorted_integers = (array) => {
+    const keys = {};
+    array.forEach((int) => { keys[int] = true; });
+    return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
   };
-  var split_circular_array = function split_circular_array(array, indices) {
-    indices.sort(function (a, b) {
-      return a - b;
-    });
-    return [array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)), array.slice(indices[0], indices[1] + 1)];
+  const split_circular_array = (array, indices) => {
+    indices.sort((a, b) => a - b);
+    return [
+      array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+      array.slice(indices[0], indices[1] + 1)
+    ];
   };
-  var get_longest_array = function get_longest_array(arrays) {
-    if (arrays.length === 1) {
-      return arrays[0];
-    }
-    var lengths = arrays.map(function (arr) {
-      return arr.length;
-    });
-    var max = 0;
-    for (var i = 0; i < arrays.length; i++) {
+  const get_longest_array = (arrays) => {
+    if (arrays.length === 1) { return arrays[0]; }
+    const lengths = arrays.map(arr => arr.length);
+    let max = 0;
+    for (let i = 0; i < arrays.length; i++) {
       if (lengths[i] > lengths[max]) {
         max = i;
       }
     }
     return arrays[max];
   };
-  var remove_single_instances = function remove_single_instances(array) {
-    var count = {};
-    array.forEach(function (n) {
-      if (count[n] === undefined) {
-        count[n] = 0;
-      }
+  const remove_single_instances = (array) => {
+    const count = {};
+    array.forEach(n => {
+      if (count[n] === undefined) { count[n] = 0; }
       count[n]++;
     });
-    return array.filter(function (n) {
-      return count[n] > 1;
-    });
+    return array.filter(n => count[n] > 1);
   };
-  var boolean_matrix_to_indexed_array = function boolean_matrix_to_indexed_array(matrix) {
-    return matrix.map(function (row) {
-      return row.map(function (value, i) {
-        return value === true ? i : undefined;
-      }).filter(fn_def);
-    });
-  };
-  var boolean_matrix_to_unique_index_pairs = function boolean_matrix_to_unique_index_pairs(matrix) {
-    var pairs = [];
-    for (var i = 0; i < matrix.length - 1; i++) {
-      for (var j = i + 1; j < matrix.length; j++) {
+  const boolean_matrix_to_indexed_array = matrix => matrix
+    .map(row => row
+      .map((value, i) => value === true ? i : undefined)
+      .filter(fn_def));
+  const boolean_matrix_to_unique_index_pairs = matrix => {
+    const pairs = [];
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix.length; j++) {
         if (matrix[i][j]) {
           pairs.push([i, j]);
         }
@@ -3366,64 +2667,49 @@
     }
     return pairs;
   };
-  var make_unique_sets_from_self_relational_arrays = function make_unique_sets_from_self_relational_arrays(matrix) {
-    var groups = [];
-    var recurse = function recurse(index, current_group) {
-      if (groups[index] !== undefined) {
-        return 0;
-      }
+  const make_unique_sets_from_self_relational_arrays = (matrix) => {
+    const groups = [];
+    const recurse = (index, current_group) => {
+      if (groups[index] !== undefined) { return 0; }
       groups[index] = current_group;
-      matrix[index].forEach(function (i) {
-        return recurse(i, current_group);
-      });
+      matrix[index].forEach(i => recurse(i, current_group));
       return 1;
     };
-    for (var row = 0, group = 0; row < matrix.length; row++) {
-      if (!(row in matrix)) {
-        continue;
-      }
+    for (let row = 0, group = 0; row < matrix.length; row++) {
+      if (!(row in matrix)) { continue; }
       group += recurse(row, group);
     }
     return groups;
   };
-  var make_triangle_pairs = function make_triangle_pairs(array) {
-    var pairs = Array(array.length * (array.length - 1) / 2);
-    var index = 0;
-    for (var i = 0; i < array.length - 1; i++) {
-      for (var j = i + 1; j < array.length; j++, index++) {
+  const make_triangle_pairs = (array) => {
+    const pairs = Array((array.length * (array.length - 1)) / 2);
+    let index = 0;
+    for (let i = 0; i < array.length - 1; i++) {
+      for (let j = i + 1; j < array.length; j++, index++) {
         pairs[index] = [array[i], array[j]];
       }
     }
     return pairs;
   };
-  var circular_array_valid_ranges = function circular_array_valid_ranges(array) {
-    var not_undefineds = array.map(function (el) {
-      return el !== undefined;
-    });
-    if (not_undefineds.reduce(function (a, b) {
-      return a && b;
-    }, true)) {
+  const circular_array_valid_ranges = (array) => {
+    const not_undefineds = array.map(el => el !== undefined);
+    if (not_undefineds.reduce((a, b) => a && b, true)) {
       return [[0, array.length - 1]];
     }
-    var first_not_undefined = not_undefineds.map(function (el, i, arr) {
-      return el && !arr[(i - 1 + arr.length) % arr.length];
-    });
-    var total = first_not_undefined.reduce(function (a, b) {
-      return a + (b ? 1 : 0);
-    }, 0);
-    var starts = Array(total);
-    var counts = Array(total).fill(0);
-    var index = not_undefineds[0] && not_undefineds[array.length - 1] ? 0 : total - 1;
-    not_undefineds.forEach(function (el, i) {
+    const first_not_undefined = not_undefineds
+      .map((el, i, arr) => el && !arr[(i - 1 + arr.length) % arr.length]);
+    const total = first_not_undefined.reduce((a, b) => a + (b ? 1 : 0), 0);
+    const starts = Array(total);
+    const counts = Array(total).fill(0);
+    let index = not_undefineds[0] && not_undefineds[array.length-1]
+      ? 0
+      : (total - 1);
+    not_undefineds.forEach((el, i) => {
       index = (index + (first_not_undefined[i] ? 1 : 0)) % counts.length;
       counts[index] += not_undefineds[i] ? 1 : 0;
-      if (first_not_undefined[i]) {
-        starts[index] = i;
-      }
+      if (first_not_undefined[i]) { starts[index] = i; }
     });
-    return starts.map(function (s, i) {
-      return [s, (s + counts[i] - 1) % array.length];
-    });
+    return starts.map((s, i) => [s, (s + counts[i] - 1) % array.length]);
   };
 
   var arrays = /*#__PURE__*/Object.freeze({
@@ -3439,106 +2725,79 @@
     circular_array_valid_ranges: circular_array_valid_ranges
   });
 
-  var remove_geometry_indices = function remove_geometry_indices(graph, key, removeIndices) {
-    var geometry_array_size = count(graph, key);
-    var removes = unique_sorted_integers(removeIndices);
-    var index_map = [];
-    var i, j, walk;
+  const remove_geometry_indices = (graph, key, removeIndices) => {
+    const geometry_array_size = count(graph, key);
+    const removes = unique_sorted_integers(removeIndices);
+    const index_map = [];
+    let i, j, walk;
     for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
       while (i === removes[walk]) {
-        index_map[i] = undefined;
+  			index_map[i] = undefined;
         i += 1;
         walk += 1;
       }
-      if (i < geometry_array_size) {
-        index_map[i] = j;
-      }
+      if (i < geometry_array_size) { index_map[i] = j; }
     }
-    get_graph_keys_with_suffix(graph, key).forEach(function (sKey) {
-      return graph[sKey].forEach(function (_, i) {
-        return graph[sKey][i].forEach(function (v, j) {
-          graph[sKey][i][j] = index_map[v];
-        });
-      });
-    });
+    get_graph_keys_with_suffix(graph, key)
+      .forEach(sKey => graph[sKey]
+        .forEach((_, i) => graph[sKey][i]
+          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
     removes.reverse();
-    get_graph_keys_with_prefix(graph, key).forEach(function (prefix_key) {
-      return removes.forEach(function (index) {
-        return graph[prefix_key].splice(index, 1);
-      });
-    });
+    get_graph_keys_with_prefix(graph, key)
+      .forEach((prefix_key) => removes
+        .forEach(index => graph[prefix_key]
+          .splice(index, 1)));
     return index_map;
   };
 
-  var get_edge_isolated_vertices = function get_edge_isolated_vertices(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices;
-    var count = vertices_coords.length;
-    var seen = Array(count).fill(false);
-    edges_vertices.forEach(function (ev) {
-      ev.filter(function (v) {
-        return !seen[v];
-      }).forEach(function (v) {
+  const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
+    edges_vertices.forEach((ev) => {
+      ev.filter(v => !seen[v]).forEach((v) => {
         seen[v] = true;
         count -= 1;
       });
     });
-    return seen.map(function (s, i) {
-      return s ? undefined : i;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
   };
-  var get_face_isolated_vertices = function get_face_isolated_vertices(_ref2) {
-    var vertices_coords = _ref2.vertices_coords,
-        faces_vertices = _ref2.faces_vertices;
-    var count = vertices_coords.length;
-    var seen = Array(count).fill(false);
-    faces_vertices.forEach(function (fv) {
-      fv.filter(function (v) {
-        return !seen[v];
-      }).forEach(function (v) {
+  const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
+    faces_vertices.forEach((fv) => {
+      fv.filter(v => !seen[v]).forEach((v) => {
         seen[v] = true;
         count -= 1;
       });
     });
-    return seen.map(function (s, i) {
-      return s ? undefined : i;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
   };
-  var get_isolated_vertices = function get_isolated_vertices(_ref3) {
-    var vertices_coords = _ref3.vertices_coords,
-        edges_vertices = _ref3.edges_vertices,
-        faces_vertices = _ref3.faces_vertices;
-    var count = vertices_coords.length;
-    var seen = Array(count).fill(false);
+  const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
     if (edges_vertices) {
-      edges_vertices.forEach(function (ev) {
-        ev.filter(function (v) {
-          return !seen[v];
-        }).forEach(function (v) {
+      edges_vertices.forEach((ev) => {
+        ev.filter(v => !seen[v]).forEach((v) => {
           seen[v] = true;
           count -= 1;
         });
       });
     }
     if (faces_vertices) {
-      faces_vertices.forEach(function (fv) {
-        fv.filter(function (v) {
-          return !seen[v];
-        }).forEach(function (v) {
+      faces_vertices.forEach((fv) => {
+        fv.filter(v => !seen[v]).forEach((v) => {
           seen[v] = true;
           count -= 1;
         });
       });
     }
-    return seen.map(function (s, i) {
-      return s ? undefined : i;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
   };
 
   var vertices_isolated = /*#__PURE__*/Object.freeze({
@@ -3548,10 +2807,9 @@
     get_isolated_vertices: get_isolated_vertices
   });
 
-  var get_circular_edges = function get_circular_edges(_ref) {
-    var edges_vertices = _ref.edges_vertices;
-    var circular = [];
-    for (var i = 0; i < edges_vertices.length; i += 1) {
+  const get_circular_edges = ({ edges_vertices }) => {
+    const circular = [];
+    for (let i = 0; i < edges_vertices.length; i += 1) {
       if (edges_vertices[i][0] === edges_vertices[i][1]) {
         circular.push(i);
       }
@@ -3559,16 +2817,13 @@
     return circular;
   };
 
-  var get_duplicate_edges = function get_duplicate_edges(_ref) {
-    var edges_vertices = _ref.edges_vertices;
-    if (!edges_vertices) {
-      return [];
-    }
-    var duplicates = [];
-    var map = {};
-    for (var i = 0; i < edges_vertices.length; i += 1) {
-      var a = "".concat(edges_vertices[i][0], " ").concat(edges_vertices[i][1]);
-      var b = "".concat(edges_vertices[i][1], " ").concat(edges_vertices[i][0]);
+  const get_duplicate_edges = ({ edges_vertices }) => {
+    if (!edges_vertices) { return []; }
+    const duplicates = [];
+    const map = {};
+    for (let i = 0; i < edges_vertices.length; i += 1) {
+      const a = `${edges_vertices[i][0]} ${edges_vertices[i][1]}`;
+      const b = `${edges_vertices[i][1]} ${edges_vertices[i][0]}`;
       if (map[a] !== undefined) {
         duplicates[i] = map[a];
       } else {
@@ -3579,144 +2834,109 @@
     return duplicates;
   };
 
-  var are_vertices_equivalent = function are_vertices_equivalent(a, b) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : math.core.EPSILON;
-    var degree = a.length;
-    for (var i = 0; i < degree; i += 1) {
+  const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
+    const degree = a.length;
+    for (let i = 0; i < degree; i += 1) {
       if (Math.abs(a[i] - b[i]) > epsilon) {
         return false;
       }
     }
     return true;
   };
-  var get_duplicate_vertices = function get_duplicate_vertices(_ref) {
-    var vertices_coords = _ref.vertices_coords;
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    var equivalent_matrix = vertices_coords.map(function () {
-      return [];
-    });
-    for (var i = 0; i < vertices_coords.length - 1; i += 1) {
-      for (var j = i + 1; j < vertices_coords.length; j += 1) {
-        equivalent_matrix[i][j] = are_vertices_equivalent(vertices_coords[i], vertices_coords[j], epsilon);
+  const get_duplicate_vertices = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+    const equivalent_matrix = vertices_coords.map(() => []);
+    for (let i = 0; i < vertices_coords.length - 1; i += 1) {
+      for (let j = i + 1; j < vertices_coords.length; j += 1) {
+        equivalent_matrix[i][j] = are_vertices_equivalent(
+          vertices_coords[i],
+          vertices_coords[j],
+          epsilon
+        );
       }
     }
-    var vertices_equivalent = equivalent_matrix.map(function (equiv) {
-      return equiv.map(function (el, j) {
-        return el ? j : undefined;
-      }).filter(function (a) {
-        return a !== undefined;
-      });
-    });
-    var clusters = [];
-    var visited = Array(vertices_coords.length).fill(false);
-    var visitedCount = 0;
-    var recurse = function recurse(cluster_index, i) {
-      if (visited[i] || visitedCount === vertices_coords.length) {
-        return;
-      }
+    const vertices_equivalent = equivalent_matrix
+      .map(equiv => equiv
+        .map((el, j) => (el ? j : undefined))
+        .filter(a => a !== undefined));
+    const clusters = [];
+    const visited = Array(vertices_coords.length).fill(false);
+    let visitedCount = 0;
+    const recurse = (cluster_index, i) => {
+      if (visited[i] || visitedCount === vertices_coords.length) { return; }
       visited[i] = true;
       visitedCount += 1;
-      if (!clusters[cluster_index]) {
-        clusters[cluster_index] = [];
-      }
+      if (!clusters[cluster_index]) { clusters[cluster_index] = []; }
       clusters[cluster_index].push(i);
       while (vertices_equivalent[i].length > 0) {
         recurse(cluster_index, vertices_equivalent[i][0]);
         vertices_equivalent[i].splice(0, 1);
       }
     };
-    for (var _i = 0; _i < vertices_coords.length; _i += 1) {
-      recurse(_i, _i);
-      if (visitedCount === vertices_coords.length) {
-        break;
-      }
+    for (let i = 0; i < vertices_coords.length; i += 1) {
+      recurse(i, i);
+      if (visitedCount === vertices_coords.length) { break; }
     }
-    return clusters.filter(function (a) {
-      return a.length;
-    });
+    return clusters.filter(a => a.length);
   };
 
-  var remove_isolated_vertices = function remove_isolated_vertices(graph) {
-    var remove_indices = get_isolated_vertices(graph);
+  const remove_isolated_vertices = graph => {
+    const remove_indices = get_isolated_vertices(graph);
     return {
       map: remove_geometry_indices(graph, _vertices, remove_indices),
-      remove: remove_indices
+      remove: remove_indices,
     };
   };
-  var remove_circular_edges = function remove_circular_edges(graph) {
-    var remove_indices = get_circular_edges(graph);
+  const remove_circular_edges = graph => {
+    const remove_indices = get_circular_edges(graph);
     if (remove_indices.length) {
-      var quick_lookup = {};
-      remove_indices.forEach(function (n) {
-        quick_lookup[n] = true;
-      });
-      get_graph_keys_with_suffix(graph, _edges).forEach(function (sKey) {
-        return graph[sKey]
-        .forEach(function (elem, i) {
-          for (var j = elem.length - 1; j >= 0; j -= 1) {
-            if (quick_lookup[elem[j]] === true) {
-              graph[sKey][i].splice(j, 1);
+      const quick_lookup = {};
+      remove_indices.forEach(n => { quick_lookup[n] = true; });
+      get_graph_keys_with_suffix(graph, _edges)
+        .forEach(sKey => graph[sKey]
+          .forEach((elem, i) => {
+            for (let j = elem.length - 1; j >= 0; j -= 1) {
+              if (quick_lookup[elem[j]] === true) {
+                graph[sKey][i].splice(j, 1);
+              }
             }
-          }
-        });
-      });
+          }));
     }
     return {
       map: remove_geometry_indices(graph, _edges, remove_indices),
-      remove: remove_indices
+      remove: remove_indices,
     };
   };
-  var remove_duplicate_edges = function remove_duplicate_edges(graph) {
-    var duplicates = get_duplicate_edges(graph);
-    var remove_indices = Object.keys(duplicates);
-    var map = remove_geometry_indices(graph, _edges, remove_indices);
-    duplicates.forEach(function (v, i) {
-      map[i] = v;
-    });
+  const remove_duplicate_edges = (graph) => {
+    const duplicates = get_duplicate_edges(graph);
+    const remove_indices = Object.keys(duplicates);
+    const map = remove_geometry_indices(graph, _edges, remove_indices);
+    duplicates.forEach((v, i) => { map[i] = v; });
     return {
-      map: map,
-      remove: remove_indices
+      map,
+      remove: remove_indices,
     };
   };
-  var remove_duplicate_vertices = function remove_duplicate_vertices(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    var clusters = get_duplicate_vertices(graph, epsilon);
-    var map = [];
-    clusters.forEach(function (verts, i) {
-      return verts.forEach(function (v) {
-        map[v] = i;
-      });
-    });
-    graph.vertices_coords = clusters.map(function (arr) {
-      return arr.map(function (i) {
-        return graph.vertices_coords[i];
-      });
-    }).map(function (arr) {
-      var _math$core;
-      return (_math$core = math.core).average.apply(_math$core, _toConsumableArray(arr));
-    });
-    get_graph_keys_with_suffix(graph, _vertices).forEach(function (sKey) {
-      return graph[sKey].forEach(function (_, i) {
-        return graph[sKey][i].forEach(function (v, j) {
-          graph[sKey][i][j] = map[v];
-        });
-      });
-    });
-    get_graph_keys_with_prefix(graph, _vertices).filter(function (a) {
-      return a !== _vertices_coords;
-    }).forEach(function (key) {
-      return delete graph[key];
-    });
-    var remove_indices = clusters.map(function (cluster) {
-      return cluster.length > 1 ? cluster.slice(1, cluster.length) : undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
+  const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
+    const clusters = get_duplicate_vertices(graph, epsilon);
+    const map = [];
+    clusters.forEach((verts, i) => verts.forEach(v => { map[v] = i; }));
+    graph.vertices_coords = clusters
+      .map(arr => arr.map(i => graph.vertices_coords[i]))
+      .map(arr => math.core.average(...arr));
+    get_graph_keys_with_suffix(graph, _vertices)
+      .forEach(sKey => graph[sKey]
+        .forEach((_, i) => graph[sKey][i]
+          .forEach((v, j) => { graph[sKey][i][j] = map[v]; })));
+    get_graph_keys_with_prefix(graph, _vertices)
+      .filter(a => a !== _vertices_coords)
+      .forEach(key => delete graph[key]);
+    const remove_indices = clusters
+      .map(cluster => cluster.length > 1 ? cluster.slice(1, cluster.length) : undefined)
+      .filter(a => a !== undefined)
+      .reduce((a, b) => a.concat(b), []);
     return {
-      map: map,
-      remove: remove_indices
+      map,
+      remove: remove_indices,
     };
   };
 
@@ -3728,84 +2948,63 @@
     remove_duplicate_vertices: remove_duplicate_vertices
   });
 
-  var clean = function clean(graph) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    if (_typeof(options) !== "object" || options.edges !== false) {
+  const clean = (graph, options = {}) => {
+    if (typeof options !== "object" || options.edges !== false) {
       remove_circular_edges(graph);
       remove_duplicate_edges(graph);
     }
-    if (_typeof(options) === "object" && options.vertices === true) {
+    if (typeof options === "object" && options.vertices === true) {
       remove_isolated_vertices(graph);
     }
     return graph;
   };
 
-  var array_in_array_max_number = function array_in_array_max_number(arrays) {
-    var max = -1;
-    arrays.filter(function (a) {
-      return a !== undefined;
-    }).forEach(function (arr) {
-      return arr.forEach(function (el) {
-        return el.forEach(function (e) {
-          if (e > max) {
-            max = e;
-          }
-        });
-      });
+  const array_in_array_max_number = (arrays) => {
+    let max = -1;
+    arrays
+      .filter(a => a !== undefined)
+      .forEach(arr => arr
+        .forEach(el => el
+          .forEach((e) => {
+            if (e > max) { max = e; }
+          })));
+    return max;
+  };
+  const max_num_in_orders = (array) => {
+    let max = -1;
+    array.forEach(el => {
+      if (el[0] > max) { max = el[0]; }
+      if (el[1] > max) { max = el[1]; }
     });
     return max;
   };
-  var max_num_in_orders = function max_num_in_orders(array) {
-    var max = -1;
-    array.forEach(function (el) {
-      if (el[0] > max) {
-        max = el[0];
-      }
-      if (el[1] > max) {
-        max = el[1];
-      }
-    });
-    return max;
-  };
-  var ordersArrayNames = {
+  const ordersArrayNames = {
     edges: "edgeOrders",
-    faces: "faceOrders"
+    faces: "faceOrders",
   };
-  var implied_count = function implied_count(graph, key) {
-    return Math.max(
-    array_in_array_max_number(get_graph_keys_with_suffix(graph, key).map(function (str) {
-      return graph[str];
-    })),
-    graph[ordersArrayNames[key]] ? max_num_in_orders(graph[ordersArrayNames[key]]) : -1) + 1;
-  };
-  implied_count.vertices = function (graph) {
-    return implied_count(graph, _vertices);
-  };
-  implied_count.edges = function (graph) {
-    return implied_count(graph, _edges);
-  };
-  implied_count.faces = function (graph) {
-    return implied_count(graph, _faces);
-  };
+  const implied_count = (graph, key) => Math.max(
+    array_in_array_max_number(
+      get_graph_keys_with_suffix(graph, key).map(str => graph[str])
+    ),
+    graph[ordersArrayNames[key]]
+      ? max_num_in_orders(graph[ordersArrayNames[key]])
+      : -1,
+  ) + 1;
+  implied_count.vertices = graph => implied_count(graph, _vertices);
+  implied_count.edges = graph => implied_count(graph, _edges);
+  implied_count.faces = graph => implied_count(graph, _faces);
 
-  var counter_clockwise_walk = function counter_clockwise_walk(_ref, v0, v1) {
-    var vertices_vertices = _ref.vertices_vertices,
-        vertices_sectors = _ref.vertices_sectors;
-    var walked_edges = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-    var this_walked_edges = {};
-    var face = {
-      vertices: [v0],
-      edges: [],
-      angles: []
-    };
-    var prev_vertex = v0;
-    var this_vertex = v1;
+  const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
+    const this_walked_edges = {};
+    const face = { vertices: [v0], edges: [], angles: [] };
+    let prev_vertex = v0;
+    let this_vertex = v1;
     while (true) {
-      var v_v = vertices_vertices[this_vertex];
-      var from_neighbor_i = v_v.indexOf(prev_vertex);
-      var next_neighbor_i = (from_neighbor_i + v_v.length - 1) % v_v.length;
-      var next_vertex = v_v[next_neighbor_i];
-      var next_edge_vertices = "".concat(this_vertex, " ").concat(next_vertex);
+      const v_v = vertices_vertices[this_vertex];
+      const from_neighbor_i = v_v.indexOf(prev_vertex);
+      const next_neighbor_i = (from_neighbor_i + v_v.length - 1) % v_v.length;
+      const next_vertex = v_v[next_neighbor_i];
+      const next_edge_vertices = `${this_vertex} ${next_vertex}`;
       if (this_walked_edges[next_edge_vertices]) {
         Object.assign(walked_edges, this_walked_edges);
         face.vertices.pop();
@@ -3817,72 +3016,44 @@
       }
       face.vertices.push(this_vertex);
       face.edges.push(next_edge_vertices);
-      face.angles.push(vertices_sectors[this_vertex][next_neighbor_i]);
+      if (vertices_sectors) {
+        face.angles.push(vertices_sectors[this_vertex][next_neighbor_i]);
+      }
       prev_vertex = this_vertex;
       this_vertex = next_vertex;
     }
   };
-  var planar_vertex_walk = function planar_vertex_walk(_ref2) {
-    var vertices_vertices = _ref2.vertices_vertices,
-        vertices_sectors = _ref2.vertices_sectors;
-    var graph = {
-      vertices_vertices: vertices_vertices,
-      vertices_sectors: vertices_sectors
-    };
-    var walked_edges = {};
-    return vertices_vertices.map(function (adj_verts, v) {
-      return adj_verts.map(function (adj_vert) {
-        return counter_clockwise_walk(graph, v, adj_vert, walked_edges);
-      }).filter(function (a) {
-        return a !== undefined;
-      });
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
+  const planar_vertex_walk = ({ vertices_vertices, vertices_sectors }) => {
+    const graph = { vertices_vertices, vertices_sectors };
+    const walked_edges = {};
+    return vertices_vertices
+      .map((adj_verts, v) => adj_verts
+        .map(adj_vert => counter_clockwise_walk(graph, v, adj_vert, walked_edges))
+        .filter(a => a !== undefined))
+      .reduce((a, b) => a.concat(b), [])
   };
 
   var walk = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    counter_clockwise_walk: counter_clockwise_walk,
     planar_vertex_walk: planar_vertex_walk
   });
 
-  var sort_vertices_counter_clockwise = function sort_vertices_counter_clockwise(_ref, vertices, vertex) {
-    var vertices_coords = _ref.vertices_coords;
-    return vertices.map(function (v) {
-      return vertices_coords[v];
-    }).map(function (coord) {
-      return math.core.subtract(coord, vertices_coords[vertex]);
-    }).map(function (vec) {
-      return Math.atan2(vec[1], vec[0]);
-    })
-    .map(function (angle) {
-      return angle > -math.core.EPSILON ? angle : angle + Math.PI * 2;
-    }).map(function (a, i) {
-      return {
-        a: a,
-        i: i
-      };
-    }).sort(function (a, b) {
-      return a.a - b.a;
-    }).map(function (el) {
-      return el.i;
-    }).map(function (i) {
-      return vertices[i];
-    });
-  };
-  var sort_vertices_along_vector = function sort_vertices_along_vector(_ref2, vertices, vector) {
-    var vertices_coords = _ref2.vertices_coords;
-    return vertices.map(function (i) {
-      return {
-        i: i,
-        d: math.core.dot(vertices_coords[i], vector)
-      };
-    }).sort(function (a, b) {
-      return a.d - b.d;
-    }).map(function (a) {
-      return a.i;
-    });
-  };
+  const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) =>
+    vertices
+      .map(v => vertices_coords[v])
+      .map(coord => math.core.subtract(coord, vertices_coords[vertex]))
+      .map(vec => Math.atan2(vec[1], vec[0]))
+      .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2)
+      .map((a, i) => ({a, i}))
+      .sort((a, b) => a.a - b.a)
+      .map(el => el.i)
+      .map(i => vertices[i]);
+  const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
+    vertices
+      .map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
+      .sort((a, b) => a.d - b.d)
+      .map(a => a.i);
 
   var sort = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -3890,426 +3061,220 @@
     sort_vertices_along_vector: sort_vertices_along_vector
   });
 
-  var make_vertices_edges$1 = function make_vertices_edges(_ref) {
-    var edges_vertices = _ref.edges_vertices;
-    var vertices_edges = [];
-    edges_vertices.forEach(function (ev, i) {
-      return ev.forEach(function (v) {
+  const make_vertices_edges_unsorted$1 = ({ edges_vertices }) => {
+    const vertices_edges = [];
+    edges_vertices.forEach((ev, i) => ev
+      .forEach((v) => {
         if (vertices_edges[v] === undefined) {
           vertices_edges[v] = [];
         }
         vertices_edges[v].push(i);
-      });
-    });
+      }));
     return vertices_edges;
   };
-  var make_vertices_edges_sorted = function make_vertices_edges_sorted(_ref2) {
-    var edges_vertices = _ref2.edges_vertices,
-        vertices_vertices = _ref2.vertices_vertices;
-    var edge_map = make_vertices_to_edge_bidirectional({
-      edges_vertices: edges_vertices
-    });
-    return vertices_vertices.map(function (verts, i) {
-      return verts.map(function (v) {
-        return edge_map["".concat(i, " ").concat(v)];
-      });
-    });
+  const make_vertices_edges = ({ edges_vertices, vertices_vertices }) => {
+    const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+    return vertices_vertices
+      .map((verts, i) => verts
+        .map(v => edge_map[`${i} ${v}`]));
   };
-  var make_vertices_vertices = function make_vertices_vertices(_ref3) {
-    var vertices_coords = _ref3.vertices_coords,
-        vertices_edges = _ref3.vertices_edges,
-        edges_vertices = _ref3.edges_vertices;
+  const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
     if (!vertices_edges) {
-      vertices_edges = make_vertices_edges$1({
-        edges_vertices: edges_vertices
-      });
+      vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
     }
-    var vertices_vertices = vertices_edges.map(function (edges, v) {
-      return edges
-      .map(function (edge) {
-        return edges_vertices[edge].filter(function (i) {
-          return i !== v;
-        });
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []);
-    });
-    return vertices_coords === undefined ? vertices_vertices : vertices_vertices.map(function (verts, i) {
-      return sort_vertices_counter_clockwise({
-        vertices_coords: vertices_coords
-      }, verts, i);
-    });
+    const vertices_vertices = vertices_edges
+      .map((edges, v) => edges
+        .map(edge => edges_vertices[edge]
+          .filter(i => i !== v))
+        .reduce((a, b) => a.concat(b), []));
+    return vertices_coords === undefined
+      ? vertices_vertices
+      : vertices_vertices
+        .map((verts, i) => sort_vertices_counter_clockwise({ vertices_coords }, verts, i));
   };
-  var make_vertices_faces_simple = function make_vertices_faces_simple(_ref4) {
-    var faces_vertices = _ref4.faces_vertices;
-    var vertices_faces = Array.from(Array(implied_count.vertices({
-      faces_vertices: faces_vertices
-    }))).map(function () {
-      return [];
-    });
-    faces_vertices.forEach(function (face, f) {
-      var hash = [];
-      face.forEach(function (vertex) {
-        hash[vertex] = f;
-      });
-      hash.forEach(function (fa, v) {
-        return vertices_faces[v].push(fa);
-      });
+  const make_vertices_faces_unsorted = ({ vertices_coords, faces_vertices }) => {
+    const vertices_faces = vertices_coords !== undefined
+      ? vertices_coords.map(() => [])
+      : Array.from(Array(implied_count.vertices({ faces_vertices }))).map(() => []);
+    faces_vertices.forEach((face, f) => {
+      const hash = [];
+      face.forEach((vertex) => { hash[vertex] = f; });
+      hash.forEach((fa, v) => vertices_faces[v].push(fa));
     });
     return vertices_faces;
   };
-  var make_vertices_faces = function make_vertices_faces(_ref5) {
-    var vertices_vertices = _ref5.vertices_vertices,
-        faces_vertices = _ref5.faces_vertices;
+  const make_vertices_faces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
     if (!vertices_vertices) {
-      return make_vertices_faces_simple({
-        faces_vertices: faces_vertices
-      });
+      return make_vertices_faces_unsorted({ vertices_coords, faces_vertices });
     }
-    var face_map = make_vertices_to_face({
-      faces_vertices: faces_vertices
-    });
-    return vertices_vertices.map(function (verts, v) {
-      return verts.map(function (vert, i, arr) {
-        return [arr[(i + 1) % arr.length], v, vert].join(" ");
-      });
-    }).map(function (keys) {
-      return keys.map(function (key) {
-        return face_map[key];
-      });
-    });
+    const face_map = make_vertices_to_face({ faces_vertices });
+    return vertices_vertices
+      .map((verts, v) => verts
+        .map((vert, i, arr) => [arr[(i + 1) % arr.length], v, vert]
+          .join(" ")))
+      .map(keys => keys
+        .map(key => face_map[key]));
   };
-  var make_vertices_to_edge_bidirectional = function make_vertices_to_edge_bidirectional(_ref6) {
-    var edges_vertices = _ref6.edges_vertices;
-    var map = {};
-    edges_vertices.map(function (ev) {
-      return ev.join(" ");
-    }).forEach(function (key, i) {
-      map[key] = i;
-    });
-    edges_vertices.map(function (ev) {
-      return "".concat(ev[1], " ").concat(ev[0]);
-    }).forEach(function (key, i) {
-      map[key] = i;
-    });
+  const make_vertices_to_edge_bidirectional = ({ edges_vertices }) => {
+    const map = {};
+    edges_vertices
+      .map(ev => ev.join(" "))
+      .forEach((key, i) => { map[key] = i; });
+    edges_vertices
+      .map(ev => `${ev[1]} ${ev[0]}`)
+      .forEach((key, i) => { map[key] = i; });
     return map;
   };
-  var make_vertices_to_edge = function make_vertices_to_edge(_ref7) {
-    var edges_vertices = _ref7.edges_vertices;
-    var map = {};
-    edges_vertices.map(function (ev) {
-      return ev.join(" ");
-    }).forEach(function (key, i) {
-      map[key] = i;
-    });
+  const make_vertices_to_edge = ({ edges_vertices }) => {
+    const map = {};
+    edges_vertices
+      .map(ev => ev.join(" "))
+      .forEach((key, i) => { map[key] = i; });
     return map;
   };
-  var make_vertices_to_face = function make_vertices_to_face(_ref8) {
-    var faces_vertices = _ref8.faces_vertices;
-    var map = {};
-    faces_vertices.forEach(function (face, f) {
-      return face.map(function (_, i) {
-        return [0, 1, 2].map(function (j) {
-          return (i + j) % face.length;
-        }).map(function (i) {
-          return face[i];
-        }).join(" ");
-      }).forEach(function (key) {
-        map[key] = f;
-      });
-    });
+  const make_vertices_to_face = ({ faces_vertices }) => {
+    const map = {};
+    faces_vertices
+      .forEach((face, f) => face
+        .map((_, i) => [0, 1, 2]
+          .map(j => (i + j) % face.length)
+          .map(i => face[i])
+          .join(" "))
+        .forEach(key => { map[key] = f; }));
     return map;
   };
-  var make_vertices_vertices_vector = function make_vertices_vertices_vector(_ref9) {
-    var vertices_coords = _ref9.vertices_coords,
-        vertices_vertices = _ref9.vertices_vertices,
-        edges_vertices = _ref9.edges_vertices,
-        edges_vector = _ref9.edges_vector;
+  const make_vertices_vertices_vector = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) => {
     if (!edges_vector) {
-      edges_vector = make_edges_vector({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
-    var edge_map = make_vertices_to_edge({
-      edges_vertices: edges_vertices
-    });
-    return vertices_vertices.map(function (_, a) {
-      return vertices_vertices[a].map(function (b) {
-        var edge_a = edge_map["".concat(a, " ").concat(b)];
-        var edge_b = edge_map["".concat(b, " ").concat(a)];
-        if (edge_a !== undefined) {
-          return edges_vector[edge_a];
-        }
-        if (edge_b !== undefined) {
-          return math.core.flip(edges_vector[edge_b]);
-        }
-      });
-    });
+    const edge_map = make_vertices_to_edge({ edges_vertices });
+    return vertices_vertices
+      .map((_, a) => vertices_vertices[a]
+        .map((b) => {
+          const edge_a = edge_map[`${a} ${b}`];
+          const edge_b = edge_map[`${b} ${a}`];
+          if (edge_a !== undefined) { return edges_vector[edge_a]; }
+          if (edge_b !== undefined) { return math.core.flip(edges_vector[edge_b]); }
+        }));
   };
-  var make_vertices_sectors = function make_vertices_sectors(_ref10) {
-    var vertices_coords = _ref10.vertices_coords,
-        vertices_vertices = _ref10.vertices_vertices,
-        edges_vertices = _ref10.edges_vertices,
-        edges_vector = _ref10.edges_vector;
-    return make_vertices_vertices_vector({
-      vertices_coords: vertices_coords,
-      vertices_vertices: vertices_vertices,
-      edges_vertices: edges_vertices,
-      edges_vector: edges_vector
-    }).map(function (vectors) {
-      return vectors.length === 1
-      ? [math.core.TWO_PI]
-      : math.core.counter_clockwise_sectors2(vectors);
-    });
-  };
-  var make_edges_edges = function make_edges_edges(_ref11) {
-    var edges_vertices = _ref11.edges_vertices,
-        vertices_edges = _ref11.vertices_edges;
-    return edges_vertices.map(function (verts, i) {
-      var side0 = vertices_edges[verts[0]].filter(function (e) {
-        return e !== i;
-      });
-      var side1 = vertices_edges[verts[1]].filter(function (e) {
-        return e !== i;
-      });
+  const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
+    make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+      .map(vectors => vectors.length === 1
+        ? [math.core.TWO_PI]
+        : math.core.counter_clockwise_sectors2(vectors));
+  const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
+    edges_vertices.map((verts, i) => {
+      const side0 = vertices_edges[verts[0]].filter(e => e !== i);
+      const side1 = vertices_edges[verts[1]].filter(e => e !== i);
       return side0.concat(side1);
     });
-  };
-  var make_edges_faces_simple = function make_edges_faces_simple(_ref12) {
-    var faces_edges = _ref12.faces_edges;
-    var edges_faces = Array.from(Array(implied_count.edges({
-      faces_edges: faces_edges
-    }))).map(function () {
-      return [];
-    });
-    faces_edges.forEach(function (face, f) {
-      var hash = [];
-      face.forEach(function (edge) {
-        hash[edge] = f;
-      });
-      hash.forEach(function (fa, e) {
-        return edges_faces[e].push(fa);
-      });
+  const make_edges_faces_unsorted = ({ edges_vertices, faces_edges }) => {
+    const edges_faces = edges_vertices !== undefined
+      ? edges_vertices.map(() => [])
+      : Array.from(Array(implied_count.edges({ faces_edges }))).map(() => []);
+    faces_edges.forEach((face, f) => {
+      const hash = [];
+      face.forEach((edge) => { hash[edge] = f; });
+      hash.forEach((fa, e) => edges_faces[e].push(fa));
     });
     return edges_faces;
   };
-  var make_edges_faces = function make_edges_faces(_ref13) {
-    var edges_vertices = _ref13.edges_vertices,
-        faces_edges = _ref13.faces_edges;
+  const make_edges_faces = ({ vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center }) => {
     if (!edges_vertices) {
-      return make_edges_faces_simple({
-        faces_edges: faces_edges
-      });
+      return make_edges_faces_unsorted({ faces_edges });
     }
-    var edges_faces = edges_vertices.map(function (ev) {
-      return [];
+    if (!edges_vector) {
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+    }
+    const edges_origin = edges_vertices.map(pair => vertices_coords[pair[0]]);
+    if (!faces_center) {
+      faces_center = make_faces_center({ vertices_coords, faces_vertices });
+    }
+    const edges_faces = edges_vertices.map(ev => []);
+    faces_edges.forEach((face, f) => {
+      const hash = [];
+      face.forEach((edge) => { hash[edge] = f; });
+      hash.forEach((fa, e) => edges_faces[e].push(fa));
     });
-    faces_edges.forEach(function (face, f) {
-      var hash = [];
-      face.forEach(function (edge) {
-        hash[edge] = f;
-      });
-      hash.forEach(function (fa, e) {
-        return edges_faces[e].push(fa);
-      });
+    edges_faces.forEach((faces, e) => {
+      const faces_cross = faces
+        .map(f => faces_center[f])
+        .map(center => math.core.subtract2(center, edges_origin[e]))
+        .map(vector => math.core.cross2(vector, edges_vector[e]));
+      faces.sort((a, b) => faces_cross[a] - faces_cross[b]);
     });
     return edges_faces;
   };
-  var assignment_angles = {
-    M: -180,
-    m: -180,
-    V: 180,
-    v: 180
-  };
-  var make_edges_foldAngle = function make_edges_foldAngle(_ref14) {
-    var edges_assignment = _ref14.edges_assignment;
-    return edges_assignment.map(function (a) {
-      return assignment_angles[a] || 0;
-    });
-  };
-  var make_edges_assignment = function make_edges_assignment(_ref15) {
-    var edges_foldAngle = _ref15.edges_foldAngle;
-    return edges_foldAngle.map(function (a) {
-      if (a === 0) {
-        return "F";
-      }
+  const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
+  const make_edges_foldAngle = ({ edges_assignment }) => edges_assignment
+    .map(a => assignment_angles[a] || 0);
+  const make_edges_assignment = ({ edges_foldAngle }) => edges_foldAngle
+    .map(a => {
+      if (a === 0) { return "F"; }
       return a < 0 ? "M" : "V";
     });
-  };
-  var make_edges_coords = function make_edges_coords(_ref16) {
-    var vertices_coords = _ref16.vertices_coords,
-        edges_vertices = _ref16.edges_vertices;
-    return edges_vertices.map(function (ev) {
-      return ev.map(function (v) {
-        return vertices_coords[v];
-      });
-    });
-  };
-  var make_edges_vector = function make_edges_vector(_ref17) {
-    var vertices_coords = _ref17.vertices_coords,
-        edges_vertices = _ref17.edges_vertices;
-    return make_edges_coords({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices
-    }).map(function (verts) {
-      return math.core.subtract(verts[1], verts[0]);
-    });
-  };
-  var make_edges_length = function make_edges_length(_ref18) {
-    var vertices_coords = _ref18.vertices_coords,
-        edges_vertices = _ref18.edges_vertices;
-    return make_edges_vector({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices
-    }).map(function (vec) {
-      return math.core.magnitude(vec);
-    });
-  };
-  var make_edges_coords_min_max = function make_edges_coords_min_max(_ref19) {
-    var vertices_coords = _ref19.vertices_coords,
-        edges_vertices = _ref19.edges_vertices,
-        edges_coords = _ref19.edges_coords;
+  const make_edges_coords = ({ vertices_coords, edges_vertices }) =>
+    edges_vertices
+      .map(ev => ev.map(v => vertices_coords[v]));
+  const make_edges_vector = ({ vertices_coords, edges_vertices }) =>
+    make_edges_coords({ vertices_coords, edges_vertices })
+      .map(verts => math.core.subtract(verts[1], verts[0]));
+  const make_edges_length = ({ vertices_coords, edges_vertices }) =>
+    make_edges_vector({ vertices_coords, edges_vertices })
+      .map(vec => math.core.magnitude(vec));
+  const make_edges_bounding_box = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = 0) => {
     if (!edges_coords) {
-      edges_coords = make_edges_coords({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
+      edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
     }
-    return edges_coords.map(function (coords) {
-      var mins = coords[0].map(function () {
-        return Infinity;
-      });
-      var maxs = coords[0].map(function () {
-        return -Infinity;
-      });
-      coords.forEach(function (coord) {
-        return coord.forEach(function (n, i) {
-          if (n < mins[i]) {
-            mins[i] = n;
-          }
-          if (n > maxs[i]) {
-            maxs[i] = n;
-          }
-        });
-      });
-      return [mins, maxs];
-    });
+    return edges_coords.map(coords => math.core.bounding_box(coords, epsilon))
   };
-  var make_edges_coords_min_max_exclusive = function make_edges_coords_min_max_exclusive(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    var ep = [+epsilon, -epsilon];
-    return make_edges_coords_min_max(graph).map(function (min_max) {
-      return min_max.map(function (vec, i) {
-        return vec.map(function (n) {
-          return n + ep[i];
-        });
-      });
-    });
-  };
-  var make_edges_coords_min_max_inclusive = function make_edges_coords_min_max_inclusive(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    var ep = [-epsilon, +epsilon];
-    return make_edges_coords_min_max(graph).map(function (min_max) {
-      return min_max.map(function (vec, i) {
-        return vec.map(function (n) {
-          return n + ep[i];
-        });
-      });
-    });
-  };
-  var make_planar_faces = function make_planar_faces(_ref20) {
-    var vertices_coords = _ref20.vertices_coords,
-        vertices_vertices = _ref20.vertices_vertices,
-        vertices_edges = _ref20.vertices_edges,
-        vertices_sectors = _ref20.vertices_sectors,
-        edges_vertices = _ref20.edges_vertices,
-        edges_vector = _ref20.edges_vector;
+  const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
     if (!vertices_vertices) {
-      vertices_vertices = make_vertices_vertices({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices,
-        vertices_edges: vertices_edges
-      });
+      vertices_vertices = make_vertices_vertices({ vertices_coords, edges_vertices, vertices_edges });
     }
     if (!vertices_sectors) {
-      vertices_sectors = make_vertices_sectors({
-        vertices_coords: vertices_coords,
-        vertices_vertices: vertices_vertices,
-        edges_vertices: edges_vertices,
-        edges_vector: edges_vector
-      });
+      vertices_sectors = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector });
     }
-    var vertices_edges_map = make_vertices_to_edge_bidirectional({
-      edges_vertices: edges_vertices
-    });
-    return planar_vertex_walk({
-      vertices_vertices: vertices_vertices,
-      vertices_sectors: vertices_sectors
-    }).map(function (f) {
-      return _objectSpread2(_objectSpread2({}, f), {}, {
-        edges: f.edges.map(function (e) {
-          return vertices_edges_map[e];
-        })
-      });
-    }).filter(function (face) {
-      return face.angles.map(function (a) {
-        return Math.PI - a;
-      }).reduce(function (a, b) {
-        return a + b;
-      }, 0) > 0;
-    });
+    const vertices_edges_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+    return planar_vertex_walk({ vertices_vertices, vertices_sectors })
+      .map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }))
+      .filter(face => face.angles
+        .map(a => Math.PI - a)
+        .reduce((a,b) => a + b, 0) > 0);
   };
-  var make_planar_faces_vertices = function make_planar_faces_vertices(graph) {
-    return make_planar_faces(graph).map(function (face) {
-      return face.vertices;
-    });
+  const make_planar_faces_vertices = graph => make_planar_faces(graph)
+    .map(face => face.vertices);
+  const make_planar_faces_edges = graph => make_planar_faces(graph)
+    .map(face => face.edges);
+  const make_faces_vertices_from_edges = (graph) => {
+    return graph.faces_edges
+      .map(edges => edges
+        .map(edge => graph.edges_vertices[edge])
+        .map((pairs, i, arr) => {
+          const next = arr[(i + 1) % arr.length];
+          return (pairs[0] === next[0] || pairs[0] === next[1])
+            ? pairs[1]
+            : pairs[0];
+        }));
   };
-  var make_planar_faces_edges = function make_planar_faces_edges(graph) {
-    return make_planar_faces(graph).map(function (face) {
-      return face.edges;
-    });
+  const make_faces_edges_from_vertices = (graph) => {
+    const map = make_vertices_to_edge_bidirectional(graph);
+    return graph.faces_vertices
+      .map(face => face
+        .map((v, i, arr) => [v, arr[(i + 1) % arr.length]].join(" ")))
+      .map(face => face.map(pair => map[pair]));
   };
-  var make_faces_vertices_from_edges = function make_faces_vertices_from_edges(graph) {
-    return graph.faces_edges.map(function (edges) {
-      return edges.map(function (edge) {
-        return graph.edges_vertices[edge];
-      }).map(function (pairs, i, arr) {
-        var next = arr[(i + 1) % arr.length];
-        return pairs[0] === next[0] || pairs[0] === next[1] ? pairs[1] : pairs[0];
-      });
-    });
-  };
-  var make_faces_edges_from_vertices = function make_faces_edges_from_vertices(graph) {
-    var map = make_vertices_to_edge_bidirectional(graph);
-    return graph.faces_vertices.map(function (face) {
-      return face.map(function (v, i, arr) {
-        return [v, arr[(i + 1) % arr.length]].join(" ");
-      });
-    }).map(function (face) {
-      return face.map(function (pair) {
-        return map[pair];
-      });
-    });
-  };
-  var make_faces_faces = function make_faces_faces(_ref22) {
-    var faces_vertices = _ref22.faces_vertices;
-    var faces_faces = faces_vertices.map(function () {
-      return [];
-    });
-    var edgeMap = {};
-    faces_vertices.forEach(function (vertices_index, idx1) {
-      var n = vertices_index.length;
-      vertices_index.forEach(function (v1, i, vs) {
-        var v2 = vs[(i + 1) % n];
-        if (v2 < v1) {
-          var _ref23 = [v2, v1];
-          v1 = _ref23[0];
-          v2 = _ref23[1];
-        }
-        var key = "".concat(v1, " ").concat(v2);
+  const make_faces_faces = ({ faces_vertices }) => {
+    const faces_faces = faces_vertices.map(() => []);
+    const edgeMap = {};
+    faces_vertices.forEach((vertices_index, idx1) => {
+      const n = vertices_index.length;
+      vertices_index.forEach((v1, i, vs) => {
+        let v2 = vs[(i + 1) % n];
+        if (v2 < v1) { [v1, v2] = [v2, v1]; }
+        const key = `${v1} ${v2}`;
         if (key in edgeMap) {
-          var idx2 = edgeMap[key];
+          const idx2 = edgeMap[key];
           faces_faces[idx1].push(idx2);
           faces_faces[idx2].push(idx1);
         } else {
@@ -4319,37 +3284,29 @@
     });
     return faces_faces;
   };
-  var make_faces_center = function make_faces_center(_ref24) {
-    var vertices_coords = _ref24.vertices_coords,
-        faces_vertices = _ref24.faces_vertices;
-    return faces_vertices.map(function (fv) {
-      return fv.map(function (v) {
-        return vertices_coords[v];
-      });
-    }).map(function (coords) {
-      return math.core.centroid(coords);
-    });
-  };
-  var make_faces_center_quick = function make_faces_center_quick(_ref25) {
-    var vertices_coords = _ref25.vertices_coords,
-        faces_vertices = _ref25.faces_vertices;
-    return faces_vertices.map(function (vertices) {
-      return vertices.map(function (v) {
-        return vertices_coords[v];
-      }).reduce(function (a, b) {
-        return [a[0] + b[0], a[1] + b[1]];
-      }, [0, 0]).map(function (el) {
-        return el / vertices.length;
-      });
-    });
-  };
+  const make_faces_polygon = ({ vertices_coords, faces_vertices }, epsilon) =>
+    faces_vertices
+      .map(verts => verts.map(v => vertices_coords[v]))
+      .map(polygon => math.core.make_polygon_non_collinear(polygon, epsilon));
+  const make_faces_polygon_quick = ({ vertices_coords, faces_vertices }) =>
+    faces_vertices
+      .map(verts => verts.map(v => vertices_coords[v]));
+  const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertices
+    .map(fv => fv.map(v => vertices_coords[v]))
+    .map(coords => math.core.centroid(coords));
+  const make_faces_center_quick = ({ vertices_coords, faces_vertices }) =>
+    faces_vertices
+      .map(vertices => vertices
+        .map(v => vertices_coords[v])
+        .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+        .map(el => el / vertices.length));
 
   var make = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    make_vertices_edges: make_vertices_edges$1,
-    make_vertices_edges_sorted: make_vertices_edges_sorted,
+    make_vertices_edges_unsorted: make_vertices_edges_unsorted$1,
+    make_vertices_edges: make_vertices_edges,
     make_vertices_vertices: make_vertices_vertices,
-    make_vertices_faces_simple: make_vertices_faces_simple,
+    make_vertices_faces_unsorted: make_vertices_faces_unsorted,
     make_vertices_faces: make_vertices_faces,
     make_vertices_to_edge_bidirectional: make_vertices_to_edge_bidirectional,
     make_vertices_to_edge: make_vertices_to_edge,
@@ -4357,66 +3314,56 @@
     make_vertices_vertices_vector: make_vertices_vertices_vector,
     make_vertices_sectors: make_vertices_sectors,
     make_edges_edges: make_edges_edges,
-    make_edges_faces_simple: make_edges_faces_simple,
+    make_edges_faces_unsorted: make_edges_faces_unsorted,
     make_edges_faces: make_edges_faces,
     make_edges_foldAngle: make_edges_foldAngle,
     make_edges_assignment: make_edges_assignment,
     make_edges_coords: make_edges_coords,
     make_edges_vector: make_edges_vector,
     make_edges_length: make_edges_length,
-    make_edges_coords_min_max: make_edges_coords_min_max,
-    make_edges_coords_min_max_exclusive: make_edges_coords_min_max_exclusive,
-    make_edges_coords_min_max_inclusive: make_edges_coords_min_max_inclusive,
+    make_edges_bounding_box: make_edges_bounding_box,
     make_planar_faces: make_planar_faces,
     make_planar_faces_vertices: make_planar_faces_vertices,
     make_planar_faces_edges: make_planar_faces_edges,
     make_faces_vertices_from_edges: make_faces_vertices_from_edges,
     make_faces_edges_from_vertices: make_faces_edges_from_vertices,
     make_faces_faces: make_faces_faces,
+    make_faces_polygon: make_faces_polygon,
+    make_faces_polygon_quick: make_faces_polygon_quick,
     make_faces_center: make_faces_center,
     make_faces_center_quick: make_faces_center_quick
   });
 
-  var build_assignments_if_needed = function build_assignments_if_needed(graph) {
-    var len = graph.edges_vertices.length;
-    if (!graph.edges_assignment) {
-      graph.edges_assignment = [];
-    }
-    if (!graph.edges_foldAngle) {
-      graph.edges_foldAngle = [];
-    }
+  const build_assignments_if_needed = (graph) => {
+    const len = graph.edges_vertices.length;
+    if (!graph.edges_assignment) { graph.edges_assignment = []; }
+    if (!graph.edges_foldAngle) { graph.edges_foldAngle = []; }
     if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
-      for (var i = graph.edges_foldAngle.length; i < graph.edges_assignment.length; i += 1) {
+      for (let i = graph.edges_foldAngle.length; i < graph.edges_assignment.length; i += 1) {
         graph.edges_foldAngle[i] = edge_assignment_to_foldAngle(graph.edges_assignment[i]);
       }
     }
     if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
-      for (var _i = graph.edges_assignment.length; _i < graph.edges_foldAngle.length; _i += 1) {
-        graph.edges_assignment[_i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[_i]);
+      for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
+        graph.edges_assignment[i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[i]);
       }
     }
-    for (var _i2 = graph.edges_assignment.length; _i2 < len; _i2 += 1) {
-      graph.edges_assignment[_i2] = "U";
-      graph.edges_foldAngle[_i2] = 0;
+    for (let i = graph.edges_assignment.length; i < len; i += 1) {
+      graph.edges_assignment[i] = "U";
+      graph.edges_foldAngle[i] = 0;
     }
   };
-  var build_faces_if_needed = function build_faces_if_needed(graph, reface) {
+  const build_faces_if_needed = (graph, reface) => {
     if (reface === undefined && !graph.faces_vertices && !graph.faces_edges) {
       reface = true;
     }
     if (reface && graph.vertices_coords) {
-      var faces = make_planar_faces(graph);
-      graph.faces_vertices = faces.map(function (face) {
-        return face.vertices;
-      });
-      graph.faces_edges = faces.map(function (face) {
-        return face.edges;
-      });
+      const faces = make_planar_faces(graph);
+      graph.faces_vertices = faces.map(face => face.vertices);
+      graph.faces_edges = faces.map(face => face.edges);
       return;
     }
-    if (graph.faces_vertices && graph.faces_edges) {
-      return;
-    }
+    if (graph.faces_vertices && graph.faces_edges) { return; }
     if (graph.faces_vertices && !graph.faces_edges) {
       graph.faces_edges = make_faces_edges_from_vertices(graph);
     } else if (graph.faces_edges && !graph.faces_vertices) {
@@ -4426,53 +3373,41 @@
       graph.faces_edges = [];
     }
   };
-  var populate = function populate(graph, reface) {
-    if (_typeof(graph) !== "object") {
-      return graph;
-    }
-    if (!graph.edges_vertices) {
-      return graph;
-    }
-    graph.vertices_edges = make_vertices_edges$1(graph);
+  const populate = (graph, reface) => {
+    if (typeof graph !== "object") { return graph; }
+    if (!graph.edges_vertices) { return graph; }
+    graph.vertices_edges = make_vertices_edges_unsorted$1(graph);
     graph.vertices_vertices = make_vertices_vertices(graph);
-    graph.vertices_edges = make_vertices_edges_sorted(graph);
+    graph.vertices_edges = make_vertices_edges(graph);
     build_assignments_if_needed(graph);
     build_faces_if_needed(graph, reface);
     graph.vertices_faces = make_vertices_faces(graph);
-    graph.edges_faces = make_edges_faces(graph);
+    graph.edges_faces = make_edges_faces_unsorted(graph);
     graph.faces_faces = make_faces_faces(graph);
     return graph;
   };
 
-  var get_edges_vertices_span = function get_edges_vertices_span(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    return make_edges_coords_min_max_inclusive(graph).map(function (min_max, e) {
-      return graph.vertices_coords.map(function (vert, v) {
-        return vert[0] > min_max[0][0] - epsilon && vert[1] > min_max[0][1] - epsilon && vert[0] < min_max[1][0] + epsilon && vert[1] < min_max[1][1] + epsilon;
-      });
-    });
-  };
-  var get_edges_edges_span = function get_edges_edges_span(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices,
-        edges_coords = _ref.edges_coords;
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    var min_max = make_edges_coords_min_max_inclusive({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices,
-      edges_coords: edges_coords
-    }, epsilon);
-    var span_overlaps = edges_vertices.map(function () {
-      return [];
-    });
-    for (var e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {
-      for (var e1 = e0 + 1; e1 < edges_vertices.length; e1 += 1) {
-        var outside_of = (min_max[e0][1][0] < min_max[e1][0][0] || min_max[e1][1][0] < min_max[e0][0][0]) && (min_max[e0][1][1] < min_max[e1][0][1] || min_max[e1][1][1] < min_max[e0][0][1]);
+  const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
+    make_edges_bounding_box(graph, epsilon)
+      .map((min_max, e) => graph.vertices_coords
+        .map((vert, v) => (
+          vert[0] > min_max.min[0] - epsilon &&
+          vert[1] > min_max.min[1] - epsilon &&
+          vert[0] < min_max.max[0] + epsilon &&
+          vert[1] < min_max.max[1] + epsilon)));
+  const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+    const min_max = make_edges_bounding_box({ vertices_coords, edges_vertices, edges_coords }, epsilon);
+    const span_overlaps = edges_vertices.map(() => []);
+    for (let e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {
+      for (let e1 = e0 + 1; e1 < edges_vertices.length; e1 += 1) {
+        const outside_of =
+          (min_max[e0].max[0] < min_max[e1].min[0] || min_max[e1].max[0] < min_max[e0].min[0])
+        &&(min_max[e0].max[1] < min_max[e1].min[1] || min_max[e1].max[1] < min_max[e0].min[1]);
         span_overlaps[e0][e1] = !outside_of;
         span_overlaps[e1][e0] = !outside_of;
       }
     }
-    for (var i = 0; i < edges_vertices.length; i += 1) {
+    for (let i = 0; i < edges_vertices.length; i += 1) {
       span_overlaps[i][i] = true;
     }
     return span_overlaps;
@@ -4484,199 +3419,183 @@
     get_edges_edges_span: get_edges_edges_span
   });
 
-  var get_collinear_vertices = function get_collinear_vertices(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices,
-        edges_coords = _ref.edges_coords;
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
+  const get_collinear_vertices = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
     if (!edges_coords) {
-      edges_coords = edges_vertices.map(function (ev) {
-        return ev.map(function (v) {
-          return vertices_coords[v];
-        });
-      });
+      edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
     }
-    var edges_span_vertices = get_edges_vertices_span({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices,
-      edges_coords: edges_coords
+    const edges_span_vertices = get_edges_vertices_span({
+      vertices_coords, edges_vertices, edges_coords
     }, epsilon);
-    for (var e = 0; e < edges_coords.length; e += 1) {
-      for (var v = 0; v < vertices_coords.length; v += 1) {
-        if (!edges_span_vertices[e][v]) {
-          continue;
-        }
-        edges_span_vertices[e][v] = math.core.overlap_line_point(math.core.subtract(edges_coords[e][1], edges_coords[e][0]), edges_coords[e][0], vertices_coords[v], math.core.exclude_s, epsilon);
+    for (let e = 0; e < edges_coords.length; e += 1) {
+      for (let v = 0; v < vertices_coords.length; v += 1) {
+        if (!edges_span_vertices[e][v]) { continue; }
+        edges_span_vertices[e][v] = math.core.overlap_line_point(
+          math.core.subtract(edges_coords[e][1], edges_coords[e][0]),
+          edges_coords[e][0],
+          vertices_coords[v],
+          math.core.exclude_s,
+          epsilon
+        );
       }
     }
-    return edges_span_vertices.map(function (verts) {
-      return verts.map(function (vert, i) {
-        return vert ? i : undefined;
-      }).filter(function (i) {
-        return i !== undefined;
-      });
-    });
+    return edges_span_vertices
+      .map(verts => verts
+        .map((vert, i) => vert ? i : undefined)
+        .filter(i => i !== undefined));
   };
 
-  var get_edges_edges_intersections = function get_edges_edges_intersections(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices,
-        edges_vector = _ref.edges_vector,
-        edges_origin = _ref.edges_origin;
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
+  const make_edges_segment_intersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
+    if (!edges_coords) {
+      edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
+    }
+    const segment_box = math.core.bounding_box([point1, point2], epsilon);
+    const segment_vector = math.core.subtract2(point2, point1);
+    return make_edges_bounding_box({ vertices_coords, edges_vertices, edges_coords }, epsilon)
+      .map(box => math.core.overlap_bounding_boxes(segment_box, box))
+      .map((overlap, i) => overlap ? (math.core.intersect_line_line(
+        segment_vector,
+        point1,
+        math.core.subtract2(edges_coords[i][1], edges_coords[i][0]),
+        edges_coords[i][0],
+        math.core.include_s,
+        math.core.include_s,
+        epsilon)) : undefined);
+  };
+  const make_edges_edges_intersection = function ({
+    vertices_coords, edges_vertices, edges_vector, edges_origin
+  }, epsilon = math.core.EPSILON) {
     if (!edges_vector) {
-      edges_vector = make_edges_vector({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
     if (!edges_origin) {
-      edges_origin = edges_vertices.map(function (ev) {
-        return vertices_coords[ev[0]];
-      });
+      edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
     }
-    var edges_intersections = edges_vector.map(function () {
-      return [];
-    });
-    var span = get_edges_edges_span({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices
-    }, epsilon);
-    for (var i = 0; i < edges_vector.length - 1; i += 1) {
-      for (var j = i + 1; j < edges_vector.length; j += 1) {
+    const edges_intersections = edges_vector.map(() => []);
+    const span = get_edges_edges_span({ vertices_coords, edges_vertices }, epsilon);
+    for (let i = 0; i < edges_vector.length - 1; i += 1) {
+      for (let j = i + 1; j < edges_vector.length; j += 1) {
         if (span[i][j] !== true) {
           edges_intersections[i][j] = undefined;
           continue;
         }
-        edges_intersections[i][j] = math.core.intersect_line_line(edges_vector[i], edges_origin[i], edges_vector[j], edges_origin[j], math.core.exclude_s, math.core.exclude_s, epsilon);
+        edges_intersections[i][j] = math.core.intersect_line_line(
+          edges_vector[i],
+          edges_origin[i],
+          edges_vector[j],
+          edges_origin[j],
+          math.core.exclude_s,
+          math.core.exclude_s,
+          epsilon
+        );
         edges_intersections[j][i] = edges_intersections[i][j];
       }
     }
     return edges_intersections;
   };
+  const intersect_convex_face_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
+    const face_vertices_indices = faces_vertices[face]
+      .map(v => vertices_coords[v])
+      .map(coord => math.core.overlap_line_point(vector, point, coord, () => true, epsilon))
+      .map((overlap, i) => overlap ? i : undefined)
+      .filter(i => i !== undefined);
+    const vertices = face_vertices_indices.map(i => faces_vertices[face][i]);
+    const vertices_are_neighbors = face_vertices_indices
+      .concat(face_vertices_indices.map(i => i + faces_vertices[face].length))
+      .map((n, i, arr) => arr[i + 1] - n === 1)
+      .reduce((a, b) => a || b, false);
+    if (vertices_are_neighbors) { return undefined; }
+    if (vertices.length > 1) { return { vertices, edges: [] }; }
+    const edges = faces_edges[face]
+      .map(edge => edges_vertices[edge]
+        .map(v => vertices_coords[v]))
+      .map(seg => math.core.intersect_line_line(
+        vector,
+        point,
+        math.core.subtract(seg[1], seg[0]),
+        seg[0],
+        math.core.include_l,
+        math.core.exclude_s,
+        epsilon
+      )).map((coords, face_edge_index) => ({
+        coords,
+        edge: faces_edges[face][face_edge_index],
+      }))
+      .filter(el => el.coords !== undefined)
+      .filter(el => !(vertices
+        .map(v => edges_vertices[el.edge].includes(v))
+        .reduce((a, b) => a || b, false)));
+    return (edges.length + vertices.length === 2
+      ? { vertices, edges }
+      : undefined);
+  };
 
-  var merge_simple_nextmaps = function merge_simple_nextmaps() {
-    for (var _len = arguments.length, maps = new Array(_len), _key = 0; _key < _len; _key++) {
-      maps[_key] = arguments[_key];
-    }
-    if (maps.length === 0) {
-      return;
-    }
-    var solution = maps[0].map(function (_, i) {
-      return i;
-    });
-    maps.forEach(function (map) {
-      return solution.forEach(function (s, i) {
-        solution[i] = map[s];
-      });
-    });
+  var intersect = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    make_edges_segment_intersection: make_edges_segment_intersection,
+    make_edges_edges_intersection: make_edges_edges_intersection,
+    intersect_convex_face_line: intersect_convex_face_line
+  });
+
+  const merge_simple_nextmaps = (...maps) => {
+    if (maps.length === 0) { return; }
+  	const solution = maps[0].map((_, i) => i);
+  	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
+  	return solution;
+  };
+  const merge_nextmaps = (...maps) => {
+    if (maps.length === 0) { return; }
+  	const solution = maps[0].map((_, i) => [i]);
+  	maps.forEach(map => {
+  		solution.forEach((s, i) => s.forEach((indx,j) => { solution[i][j] = map[indx]; }));
+  		solution.forEach((arr, i) => {
+  			solution[i] = arr
+  				.reduce((a,b) => a.concat(b), [])
+  				.filter(a => a !== undefined);
+  		});
+  	});
+  	return solution;
+  };
+  const merge_simple_backmaps = (...maps) => {
+    if (maps.length === 0) { return; }
+  	let solution = maps[0].map((_, i) => i);
+  	maps.forEach((map, i) => {
+  		const next = map.map(n => solution[n]);
+  	  solution = next;
+  	});
     return solution;
   };
-  var merge_nextmaps = function merge_nextmaps() {
-    for (var _len2 = arguments.length, maps = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      maps[_key2] = arguments[_key2];
-    }
-    if (maps.length === 0) {
-      return;
-    }
-    var solution = maps[0].map(function (_, i) {
-      return [i];
-    });
-    maps.forEach(function (map) {
-      solution.forEach(function (s, i) {
-        return s.forEach(function (indx, j) {
-          solution[i][j] = map[indx];
-        });
-      });
-      solution.forEach(function (arr, i) {
-        solution[i] = arr.reduce(function (a, b) {
-          return a.concat(b);
-        }, []).filter(function (a) {
-          return a !== undefined;
-        });
-      });
-    });
-    return solution;
+  const merge_backmaps = (...maps) => {
+    if (maps.length === 0) { return; }
+    let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
+    maps.forEach((map, i) => {
+  		let next = [];
+  	  map.forEach((el, j) => {
+        if (typeof el === _number$1) { next[j] = solution[el]; }
+  			else { next[j] = el.map(n => solution[n]).reduce((a,b) => a.concat(b), []); }
+  		});
+  		solution = next;
+  	});
+  	return solution;
   };
-  var merge_simple_backmaps = function merge_simple_backmaps() {
-    for (var _len3 = arguments.length, maps = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      maps[_key3] = arguments[_key3];
-    }
-    if (maps.length === 0) {
-      return;
-    }
-    var solution = maps[0].map(function (_, i) {
-      return i;
-    });
-    maps.forEach(function (map, i) {
-      var next = map.map(function (n) {
-        return solution[n];
-      });
-      solution = next;
-    });
-    return solution;
+  const invert_map = (map) => {
+  	const inv = [];
+  	map.forEach((n, i) => {
+  		if (n == null) { return; }
+  		if (typeof n === _number$1) {
+  			if (inv[n] !== undefined) {
+  				if (typeof inv[n] === _number$1) { inv[n] = [inv[n], i]; }
+  				else { inv[n].push(i); }
+  			}
+  			else { inv[n] = i; }
+  		}
+      if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }
+  	});
+  	return inv;
   };
-  var merge_backmaps = function merge_backmaps() {
-    for (var _len4 = arguments.length, maps = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-      maps[_key4] = arguments[_key4];
-    }
-    if (maps.length === 0) {
-      return;
-    }
-    var solution = maps[0].reduce(function (a, b) {
-      return a.concat(b);
-    }, []).map(function (_, i) {
-      return [i];
-    });
-    maps.forEach(function (map, i) {
-      var next = [];
-      map.forEach(function (el, j) {
-        if (_typeof(el) === _number$1) {
-          next[j] = solution[el];
-        } else {
-          next[j] = el.map(function (n) {
-            return solution[n];
-          }).reduce(function (a, b) {
-            return a.concat(b);
-          }, []);
-        }
-      });
-      solution = next;
-    });
-    return solution;
-  };
-  var invert_map = function invert_map(map) {
-    var inv = [];
-    map.forEach(function (n, i) {
-      if (n == null) {
-        return;
-      }
-      if (_typeof(n) === _number$1) {
-        if (inv[n] !== undefined) {
-          if (_typeof(inv[n]) === _number$1) {
-            inv[n] = [inv[n], i];
-          }
-          else {
-            inv[n].push(i);
-          }
-        } else {
-          inv[n] = i;
-        }
-      }
-      if (n.constructor === Array) {
-        n.forEach(function (m) {
-          inv[m] = i;
-        });
-      }
-    });
-    return inv;
-  };
-  var invert_simple_map = function invert_simple_map(map) {
-    var inv = [];
-    map.forEach(function (n, i) {
-      inv[n] = i;
-    });
-    return inv;
+  const invert_simple_map = (map) => {
+  	const inv = [];
+  	map.forEach((n, i) => { inv[n] = i; });
+  	return inv;
   };
 
   var maps = /*#__PURE__*/Object.freeze({
@@ -4689,412 +3608,323 @@
     invert_simple_map: invert_simple_map
   });
 
-  var fragment_graph = function fragment_graph(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    var edges_coords = graph.edges_vertices.map(function (ev) {
-      return ev.map(function (v) {
-        return graph.vertices_coords[v];
-      });
-    });
-    var edges_vector = edges_coords.map(function (e) {
-      return math.core.subtract(e[1], e[0]);
-    });
-    var edges_origin = edges_coords.map(function (e) {
-      return e[0];
-    });
-    var edges_intersections = get_edges_edges_intersections({
+  const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
+    const edges_coords = graph.edges_vertices
+      .map(ev => ev.map(v => graph.vertices_coords[v]));
+    const edges_vector = edges_coords.map(e => math.core.subtract(e[1], e[0]));
+    const edges_origin = edges_coords.map(e => e[0]);
+    const edges_intersections = make_edges_edges_intersection({
       vertices_coords: graph.vertices_coords,
       edges_vertices: graph.edges_vertices,
-      edges_vector: edges_vector,
-      edges_origin: edges_origin
+      edges_vector,
+      edges_origin
     }, 1e-6);
-    var edges_collinear_vertices = get_collinear_vertices({
+    const edges_collinear_vertices = get_collinear_vertices({
       vertices_coords: graph.vertices_coords,
       edges_vertices: graph.edges_vertices,
-      edges_coords: edges_coords
+      edges_coords
     }, epsilon);
-    if (edges_intersections.reduce(fn_cat, []).filter(fn_def).length === 0 && edges_collinear_vertices.reduce(fn_cat, []).filter(fn_def).length === 0) {
+    if (edges_intersections.reduce(fn_cat, []).filter(fn_def).length === 0 &&
+    edges_collinear_vertices.reduce(fn_cat, []).filter(fn_def).length === 0) {
       return;
     }
-    var counts = {
-      vertices: graph.vertices_coords.length
-    };
-    edges_intersections.forEach(function (edge) {
-      return edge.filter(fn_def).filter(function (a) {
-        return a.length === 2;
-      }).forEach(function (intersect) {
-        var newIndex = graph.vertices_coords.length;
-        graph.vertices_coords.push(_toConsumableArray(intersect));
-        intersect.splice(0, 2);
-        intersect.push(newIndex);
-      });
-    });
-    edges_intersections.forEach(function (edge, i) {
-      edge.forEach(function (intersect, j) {
+    const counts = { vertices: graph.vertices_coords.length };
+    edges_intersections
+      .forEach(edge => edge
+        .filter(fn_def)
+        .filter(a => a.length === 2)
+        .forEach((intersect) => {
+          const newIndex = graph.vertices_coords.length;
+          graph.vertices_coords.push([...intersect]);
+          intersect.splice(0, 2);
+          intersect.push(newIndex);
+        }));
+    edges_intersections.forEach((edge, i) => {
+      edge.forEach((intersect, j) => {
         if (intersect) {
           edges_intersections[i][j] = intersect[0];
         }
       });
     });
-    var edges_intersections_flat = edges_intersections.map(function (arr) {
-      return arr.filter(fn_def);
-    });
-    graph.edges_vertices.forEach(function (verts, i) {
-      return verts.push.apply(verts, _toConsumableArray(edges_intersections_flat[i]).concat(_toConsumableArray(edges_collinear_vertices[i])));
-    });
-    graph.edges_vertices.forEach(function (edge, i) {
+    const edges_intersections_flat = edges_intersections
+      .map(arr => arr.filter(fn_def));
+    graph.edges_vertices.forEach((verts, i) => verts
+      .push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
+    graph.edges_vertices.forEach((edge, i) => {
       graph.edges_vertices[i] = sort_vertices_along_vector({
         vertices_coords: graph.vertices_coords
       }, edge, edges_vector[i]);
     });
-    var edge_map = graph.edges_vertices.map(function (edge, i) {
-      return Array(edge.length - 1).fill(i);
-    }).reduce(fn_cat, []);
-    graph.edges_vertices = graph.edges_vertices.map(function (edge) {
-      return Array.from(Array(edge.length - 1)).map(function (_, i, arr) {
-        return [edge[i], edge[i + 1]];
-      });
-    }).reduce(fn_cat, []);
-    if (graph.edges_assignment && graph.edges_foldAngle && graph.edges_foldAngle.length > graph.edges_assignment.length) {
-      for (var i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
-        graph.edges_assignment[i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[i]);
-      }
-    }
+    const edge_map = graph.edges_vertices
+      .map((edge, i) => Array(edge.length - 1).fill(i))
+      .reduce(fn_cat, []);
+    graph.edges_vertices = graph.edges_vertices
+      .map(edge => Array.from(Array(edge.length - 1))
+        .map((_, i, arr) => [edge[i], edge[i + 1]]))
+      .reduce(fn_cat, []);
+  	if (graph.edges_assignment && graph.edges_foldAngle
+  		&& graph.edges_foldAngle.length > graph.edges_assignment.length) {
+  		for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
+  			graph.edges_assignment[i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[i]);
+  		}
+  	}
     if (graph.edges_assignment) {
-      graph.edges_assignment = edge_map.map(function (i) {
-        return graph.edges_assignment[i] || "U";
-      });
+      graph.edges_assignment = edge_map.map(i => graph.edges_assignment[i] || "U");
     }
     if (graph.edges_foldAngle) {
-      graph.edges_foldAngle = edge_map.map(function (i) {
-        return graph.edges_foldAngle[i];
-      }).map(function (a, i) {
-        return a === undefined ? edge_assignment_to_foldAngle(graph.edges_assignment[i]) : a;
-      });
+      graph.edges_foldAngle = edge_map
+  			.map(i => graph.edges_foldAngle[i])
+  			.map((a, i) => a === undefined
+  				? edge_assignment_to_foldAngle(graph.edges_assignment[i])
+  				: a);
     }
     return {
       vertices: {
-        "new": Array.from(Array(graph.vertices_coords.length - counts.vertices)).map(function (_, i) {
-          return counts.vertices + i;
-        })
+        new: Array.from(Array(graph.vertices_coords.length - counts.vertices))
+          .map((_, i) => counts.vertices + i),
       },
       edges: {
         backmap: edge_map
       }
     };
   };
-  var fragment_keep_keys = [_vertices_coords, _edges_vertices, _edges_assignment, _edges_foldAngle];
-  var fragment = function fragment(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    graph.vertices_coords = graph.vertices_coords.map(function (coord) {
-      return coord.slice(0, 2);
-    });
-    [_vertices, _edges, _faces].map(function (key) {
-      return get_graph_keys_with_prefix(graph, key);
-    }).reduce(fn_cat, []).filter(function (key) {
-      return !fragment_keep_keys.includes(key);
-    }).forEach(function (key) {
-      return delete graph[key];
-    });
-    var change = {
-      vertices: {},
-      edges: {}
-    };
-    var i;
-    for (i = 0; i < 20; i++) {
-      var resVert = remove_duplicate_vertices(graph, epsilon / 2);
-      var resEdgeDup = remove_duplicate_edges(graph);
-      var resEdgeCirc = remove_circular_edges(graph);
-      var resFrag = fragment_graph(graph, epsilon);
-      if (resFrag === undefined) {
-        change.vertices.map = change.vertices.map === undefined ? resVert.map : merge_nextmaps(change.vertices.map, resVert.map);
-        change.edges.map = change.edges.map === undefined ? merge_nextmaps(resEdgeDup.map, resEdgeCirc.map) : merge_nextmaps(change.edges.map, resEdgeDup.map, resEdgeCirc.map);
-        break;
-      }
-      var invert_frag = invert_map(resFrag.edges.backmap);
-      var edgemap = merge_nextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
-      change.vertices.map = change.vertices.map === undefined ? resVert.map : merge_nextmaps(change.vertices.map, resVert.map);
-      change.edges.map = change.edges.map === undefined ? edgemap : merge_nextmaps(change.edges.map, edgemap);
-    }
-    if (i === 20) {
-      console.warn("debug warning. fragment reached max iterations");
+  const fragment_keep_keys = [
+    _vertices_coords,
+    _edges_vertices,
+    _edges_assignment,
+    _edges_foldAngle,
+  ];
+  const fragment = (graph, epsilon = math.core.EPSILON) => {
+    graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
+    [_vertices, _edges, _faces]
+      .map(key => get_graph_keys_with_prefix(graph, key))
+      .reduce(fn_cat, [])
+      .filter(key => !(fragment_keep_keys.includes(key)))
+      .forEach(key => delete graph[key]);
+    const change = {
+  		vertices: {},
+  		edges: {},
+  	};
+  	let i;
+  	for (i = 0; i < 20; i++) {
+    	const resVert = remove_duplicate_vertices(graph, epsilon / 2);
+    	const resEdgeDup = remove_duplicate_edges(graph);
+    	const resEdgeCirc = remove_circular_edges(graph);
+    	const resFrag = fragment_graph(graph, epsilon);
+    	if (resFrag === undefined) {
+  			change.vertices.map = (change.vertices.map === undefined
+  				? resVert.map
+  				: merge_nextmaps(change.vertices.map, resVert.map));
+  			change.edges.map = (change.edges.map === undefined
+  				? merge_nextmaps(resEdgeDup.map, resEdgeCirc.map)
+  				: merge_nextmaps(change.edges.map, resEdgeDup.map, resEdgeCirc.map));
+  			break;
+  		}
+    	const invert_frag = invert_map(resFrag.edges.backmap);
+    	const edgemap = merge_nextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
+  		change.vertices.map = (change.vertices.map === undefined
+  			? resVert.map
+  			: merge_nextmaps(change.vertices.map, resVert.map));
+  		change.edges.map = (change.edges.map === undefined
+  			? edgemap
+  			: merge_nextmaps(change.edges.map, edgemap));
+  	}
+  	if (i === 20) {
+      console.warn("fragment reached max iterations");
     }
     return change;
   };
 
-  var add_vertices = function add_vertices(graph, vertices_coords) {
-    var _graph$vertices_coord;
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : math.core.EPSILON;
-    if (!graph.vertices_coords) {
-      graph.vertices_coords = [];
-    }
-    if (typeof vertices_coords[0] === "number") {
-      vertices_coords = [vertices_coords];
-    }
-    var vertices_equivalent_vertices = vertices_coords.map(function (vertex) {
-      return graph.vertices_coords.map(function (v) {
-        return math.core.distance(v, vertex) < epsilon;
-      }).map(function (on_vertex, i) {
-        return on_vertex ? i : undefined;
-      }).filter(function (a) {
-        return a !== undefined;
-      }).shift();
-    });
-    var index = graph.vertices_coords.length;
-    var unique_vertices = vertices_coords.filter(function (vert, i) {
-      return vertices_equivalent_vertices[i] === undefined;
-    });
-    (_graph$vertices_coord = graph.vertices_coords).push.apply(_graph$vertices_coord, _toConsumableArray(unique_vertices));
-    return vertices_equivalent_vertices.map(function (el) {
-      return el === undefined ? index++ : el;
-    });
+  const add_vertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
+    if (!graph.vertices_coords) { graph.vertices_coords = []; }
+    if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
+    const vertices_equivalent_vertices = vertices_coords
+      .map(vertex => graph.vertices_coords
+        .map(v => math.core.distance(v, vertex) < epsilon)
+        .map((on_vertex, i) => on_vertex ? i : undefined)
+        .filter(a => a !== undefined)
+        .shift());
+    let index = graph.vertices_coords.length;
+    const unique_vertices = vertices_coords
+      .filter((vert, i) => vertices_equivalent_vertices[i] === undefined);
+    graph.vertices_coords.push(...unique_vertices);
+    return vertices_equivalent_vertices
+      .map(el => el === undefined ? index++ : el);
   };
 
-  var vef = [_vertices, _edges, _faces];
-  var make_vertices_map_and_consider_duplicates = function make_vertices_map_and_consider_duplicates(target, source) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : math.core.EPSILON;
-    var index = target.vertices_coords.length;
-    return source.vertices_coords.map(function (vertex) {
-      return target.vertices_coords.map(function (v) {
-        return math.core.distance(v, vertex) < epsilon;
-      }).map(function (on_vertex, i) {
-        return on_vertex ? i : undefined;
-      }).filter(function (a) {
-        return a !== undefined;
-      }).shift();
-    }).map(function (el) {
-      return el === undefined ? index++ : el;
-    });
+  const vef = [_vertices, _edges, _faces];
+  const make_vertices_map_and_consider_duplicates = (target, source, epsilon = math.core.EPSILON) => {
+    let index = target.vertices_coords.length;
+    return source.vertices_coords
+      .map(vertex => target.vertices_coords
+        .map(v => math.core.distance(v, vertex) < epsilon)
+        .map((on_vertex, i) => on_vertex ? i : undefined)
+        .filter(a => a !== undefined)
+        .shift())
+      .map(el => el === undefined ? index++ : el);
   };
-  var get_edges_duplicate_from_source_in_target = function get_edges_duplicate_from_source_in_target(target, source) {
-    var source_duplicates = {};
-    var target_map = {};
-    for (var i = 0; i < target.edges_vertices.length; i += 1) {
-      target_map["".concat(target.edges_vertices[i][0], " ").concat(target.edges_vertices[i][1])] = i;
-      target_map["".concat(target.edges_vertices[i][1], " ").concat(target.edges_vertices[i][0])] = i;
+  const get_edges_duplicate_from_source_in_target = (target, source) => {
+    const source_duplicates = {};
+    const target_map = {};
+    for (let i = 0; i < target.edges_vertices.length; i += 1) {
+      target_map[`${target.edges_vertices[i][0]} ${target.edges_vertices[i][1]}`] = i;
+      target_map[`${target.edges_vertices[i][1]} ${target.edges_vertices[i][0]}`] = i;
     }
-    for (var _i = 0; _i < source.edges_vertices.length; _i += 1) {
-      var index = target_map["".concat(source.edges_vertices[_i][0], " ").concat(source.edges_vertices[_i][1])];
+    for (let i = 0; i < source.edges_vertices.length; i += 1) {
+      const index = target_map[`${source.edges_vertices[i][0]} ${source.edges_vertices[i][1]}`];
       if (index !== undefined) {
-        source_duplicates[_i] = index;
+        source_duplicates[i] = index;
       }
     }
     return source_duplicates;
   };
-  var update_suffixes = function update_suffixes(source, suffixes, keys, maps) {
-    return keys.forEach(function (geom) {
-      return suffixes[geom].forEach(function (key) {
-        return source[key].forEach(function (arr, i) {
-          return arr.forEach(function (el, j) {
-            source[key][i][j] = maps[geom][el];
-          });
-        });
-      });
-    });
-  };
-  var assign$1 = function assign(target, source) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : math.core.EPSILON;
-    var prefixes = {};
-    var suffixes = {};
-    var maps = {};
-    vef.forEach(function (key) {
+  const update_suffixes = (source, suffixes, keys, maps) => keys
+    .forEach(geom => suffixes[geom]
+      .forEach(key => source[key]
+        .forEach((arr, i) => arr
+          .forEach((el, j) => { source[key][i][j] = maps[geom][el]; }))));
+  const assign$1 = (target, source, epsilon = math.core.EPSILON) => {
+    const prefixes = {};
+    const suffixes = {};
+    const maps = {};
+    vef.forEach(key => {
       prefixes[key] = get_graph_keys_with_prefix(source, key);
       suffixes[key] = get_graph_keys_with_suffix(source, key);
     });
-    vef.forEach(function (geom) {
-      return prefixes[geom].filter(function (key) {
-        return !target[key];
-      }).forEach(function (key) {
-        target[key] = [];
-      });
-    });
+    vef.forEach(geom => prefixes[geom].filter(key => !target[key]).forEach(key => {
+      target[key] = [];
+    }));
     maps.vertices = make_vertices_map_and_consider_duplicates(target, source, epsilon);
     update_suffixes(source, suffixes, [_vertices], maps);
-    var target_edges_count = count.edges(target);
-    maps.edges = Array.from(Array(count.edges(source))).map(function (_, i) {
-      return target_edges_count + i;
-    });
-    var edge_dups = get_edges_duplicate_from_source_in_target(target, source);
-    Object.keys(edge_dups).forEach(function (i) {
-      maps.edges[i] = edge_dups[i];
-    });
-    var target_faces_count = count.faces(target);
-    maps.faces = Array.from(Array(count.faces(source))).map(function (_, i) {
-      return target_faces_count + i;
-    });
+    const target_edges_count = count.edges(target);
+    maps.edges = Array.from(Array(count.edges(source)))
+      .map((_, i) => target_edges_count + i);
+    const edge_dups = get_edges_duplicate_from_source_in_target(target, source);
+    Object.keys(edge_dups).forEach(i => { maps.edges[i] = edge_dups[i]; });
+    const target_faces_count = count.faces(target);
+    maps.faces = Array.from(Array(count.faces(source)))
+      .map((_, i) => target_faces_count + i);
     update_suffixes(source, suffixes, [_edges, _faces], maps);
-    vef.forEach(function (geom) {
-      return prefixes[geom].forEach(function (key) {
-        return source[key].forEach(function (el, i) {
-          var new_index = maps[geom][i];
-          target[key][new_index] = el;
-        });
-      });
-    });
+    vef.forEach(geom => prefixes[geom].forEach(key => source[key].forEach((el, i) => {
+      const new_index = maps[geom][i];
+      target[key][new_index] = el;
+    })));
     return maps;
   };
 
-  var subgraph = function subgraph(graph, components) {
-    var remove_indices = {};
-    var sorted_components = {};
-    [_faces, _edges, _vertices].forEach(function (key) {
-      remove_indices[key] = Array.from(Array(count[key](graph))).map(function (_, i) {
-        return i;
-      });
+  const subgraph = (graph, components) => {
+    const remove_indices = {};
+    const sorted_components = {};
+    [_faces, _edges, _vertices].forEach(key => {
+      remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
       sorted_components[key] = unique_sorted_integers(components[key] || []).reverse();
     });
-    Object.keys(sorted_components).forEach(function (key) {
-      return sorted_components[key].forEach(function (i) {
-        return remove_indices[key].splice(i, 1);
-      });
-    });
-    Object.keys(remove_indices).forEach(function (key) {
-      return remove_geometry_indices(graph, key, remove_indices[key]);
-    });
+    Object.keys(sorted_components)
+      .forEach(key => sorted_components[key]
+        .forEach(i => remove_indices[key].splice(i, 1)));
+    Object.keys(remove_indices)
+      .forEach(key => remove_geometry_indices(graph, key, remove_indices[key]));
     return graph;
   };
 
-  var get_boundary_vertices = function get_boundary_vertices(_ref) {
-    var edges_vertices = _ref.edges_vertices,
-        edges_assignment = _ref.edges_assignment;
-    var vertices = {};
-    edges_vertices.forEach(function (v, i) {
-      var boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
-      if (!boundary) {
-        return;
-      }
+  const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
+    const vertices = {};
+    edges_vertices.forEach((v, i) => {
+      const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
+      if (!boundary) { return; }
       vertices[v[0]] = true;
       vertices[v[1]] = true;
     });
-    return Object.keys(vertices).map(function (str) {
-      return parseInt(str);
-    });
+    return Object.keys(vertices).map(str => parseInt(str));
   };
-  var empty_get_boundary = function empty_get_boundary() {
-    return {
-      vertices: [],
-      edges: []
-    };
-  };
-  var get_boundary = function get_boundary(_ref2) {
-    var vertices_edges = _ref2.vertices_edges,
-        edges_vertices = _ref2.edges_vertices,
-        edges_assignment = _ref2.edges_assignment;
-    if (edges_assignment === undefined) {
-      return empty_get_boundary();
-    }
+  const empty_get_boundary = () => ({ vertices: [], edges: [] });
+  const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+    if (edges_assignment === undefined) { return empty_get_boundary(); }
     if (!vertices_edges) {
-      vertices_edges = make_vertices_edges$1({
-        edges_vertices: edges_vertices
-      });
+      vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
     }
-    var edges_vertices_b = edges_assignment.map(function (a) {
-      return a === "B" || a === "b";
-    });
-    var edge_walk = [];
-    var vertex_walk = [];
-    var edgeIndex = -1;
-    for (var i = 0; i < edges_vertices_b.length; i += 1) {
-      if (edges_vertices_b[i]) {
-        edgeIndex = i;
-        break;
-      }
+    const edges_vertices_b = edges_assignment
+      .map(a => a === "B" || a === "b");
+    const edge_walk = [];
+    const vertex_walk = [];
+    let edgeIndex = -1;
+    for (let i = 0; i < edges_vertices_b.length; i += 1) {
+      if (edges_vertices_b[i]) { edgeIndex = i; break; }
     }
-    if (edgeIndex === -1) {
-      return empty_get_boundary();
-    }
+    if (edgeIndex === -1) { return empty_get_boundary(); }
     edges_vertices_b[edgeIndex] = false;
     edge_walk.push(edgeIndex);
     vertex_walk.push(edges_vertices[edgeIndex][0]);
-    var nextVertex = edges_vertices[edgeIndex][1];
+    let nextVertex = edges_vertices[edgeIndex][1];
     while (vertex_walk[0] !== nextVertex) {
       vertex_walk.push(nextVertex);
-      edgeIndex = vertices_edges[nextVertex].filter(function (v) {
-        return edges_vertices_b[v];
-      }).shift();
-      if (edgeIndex === undefined) {
-        return empty_get_boundary();
-      }
+      edgeIndex = vertices_edges[nextVertex]
+        .filter(v => edges_vertices_b[v])
+        .shift();
+      if (edgeIndex === undefined) { return empty_get_boundary(); }
       if (edges_vertices[edgeIndex][0] === nextVertex) {
-        var _edges_vertices$edgeI = _slicedToArray(edges_vertices[edgeIndex], 2);
-        nextVertex = _edges_vertices$edgeI[1];
+        [, nextVertex] = edges_vertices[edgeIndex];
       } else {
-        var _edges_vertices$edgeI2 = _slicedToArray(edges_vertices[edgeIndex], 1);
-        nextVertex = _edges_vertices$edgeI2[0];
+        [nextVertex] = edges_vertices[edgeIndex];
       }
       edges_vertices_b[edgeIndex] = false;
       edge_walk.push(edgeIndex);
     }
     return {
       vertices: vertex_walk,
-      edges: edge_walk
+      edges: edge_walk,
     };
   };
-  var get_planar_boundary = function get_planar_boundary(_ref3) {
-    var vertices_coords = _ref3.vertices_coords,
-        vertices_edges = _ref3.vertices_edges,
-        vertices_vertices = _ref3.vertices_vertices,
-        edges_vertices = _ref3.edges_vertices;
+  const get_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
     if (!vertices_vertices) {
-      vertices_vertices = make_vertices_vertices({
-        vertices_coords: vertices_coords,
-        vertices_edges: vertices_edges,
-        edges_vertices: edges_vertices
-      });
+      vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });
     }
-    var edge_map = make_vertices_to_edge_bidirectional({
-      edges_vertices: edges_vertices
-    });
-    var edge_walk = [];
-    var vertex_walk = [];
-    var walk = {
+    const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+    const edge_walk = [];
+    const vertex_walk = [];
+    const walk = {
       vertices: vertex_walk,
-      edges: edge_walk
+      edges: edge_walk,
     };
-    var largestX = -Infinity;
-    var first_vertex_i = -1;
-    vertices_coords.forEach(function (v, i) {
+    let largestX = -Infinity;
+    let first_vertex_i = -1;
+    vertices_coords.forEach((v, i) => {
       if (v[0] > largestX) {
         largestX = v[0];
         first_vertex_i = i;
       }
     });
-    if (first_vertex_i === -1) {
-      return walk;
-    }
+    if (first_vertex_i === -1) { return walk; }
     vertex_walk.push(first_vertex_i);
-    var first_vc = vertices_coords[first_vertex_i];
-    var first_neighbors = vertices_vertices[first_vertex_i];
-    var counter_clock_first_i = first_neighbors.map(function (i) {
-      return vertices_coords[i];
-    }).map(function (vc) {
-      return [vc[0] - first_vc[0], vc[1] - first_vc[1]];
-    }).map(function (vec) {
-      return Math.atan2(vec[1], vec[0]);
-    }).map(function (angle) {
-      return angle < 0 ? angle + Math.PI * 2 : angle;
-    }).map(function (a, i) {
-      return {
-        a: a,
-        i: i
-      };
-    }).sort(function (a, b) {
-      return a.a - b.a;
-    }).shift().i;
-    var second_vertex_i = first_neighbors[counter_clock_first_i];
-    var first_edge_lookup = first_vertex_i < second_vertex_i ? "".concat(first_vertex_i, " ").concat(second_vertex_i) : "".concat(second_vertex_i, " ").concat(first_vertex_i);
-    var first_edge = edge_map[first_edge_lookup];
+    const first_vc = vertices_coords[first_vertex_i];
+    const first_neighbors = vertices_vertices[first_vertex_i];
+    const counter_clock_first_i = first_neighbors
+      .map(i => vertices_coords[i])
+      .map(vc => [vc[0] - first_vc[0], vc[1] - first_vc[1]])
+      .map(vec => Math.atan2(vec[1], vec[0]))
+      .map(angle => (angle < 0 ? angle + Math.PI * 2 : angle))
+      .map((a, i) => ({ a, i }))
+      .sort((a, b) => a.a - b.a)
+      .shift()
+      .i;
+    const second_vertex_i = first_neighbors[counter_clock_first_i];
+    const first_edge_lookup = first_vertex_i < second_vertex_i
+      ? `${first_vertex_i} ${second_vertex_i}`
+      : `${second_vertex_i} ${first_vertex_i}`;
+    const first_edge = edge_map[first_edge_lookup];
     edge_walk.push(first_edge);
-    var prev_vertex_i = first_vertex_i;
-    var this_vertex_i = second_vertex_i;
-    var protection = 0;
+    let prev_vertex_i = first_vertex_i;
+    let this_vertex_i = second_vertex_i;
+    let protection = 0;
     while (protection < 10000) {
-      var next_neighbors = vertices_vertices[this_vertex_i];
-      var from_neighbor_i = next_neighbors.indexOf(prev_vertex_i);
-      var next_neighbor_i = (from_neighbor_i + 1) % next_neighbors.length;
-      var next_vertex_i = next_neighbors[next_neighbor_i];
-      var next_edge_lookup = this_vertex_i < next_vertex_i ? "".concat(this_vertex_i, " ").concat(next_vertex_i) : "".concat(next_vertex_i, " ").concat(this_vertex_i);
-      var next_edge_i = edge_map[next_edge_lookup];
+      const next_neighbors = vertices_vertices[this_vertex_i];
+      const from_neighbor_i = next_neighbors.indexOf(prev_vertex_i);
+      const next_neighbor_i = (from_neighbor_i + 1) % next_neighbors.length;
+      const next_vertex_i = next_neighbors[next_neighbor_i];
+      const next_edge_lookup = this_vertex_i < next_vertex_i
+        ? `${this_vertex_i} ${next_vertex_i}`
+        : `${next_vertex_i} ${this_vertex_i}`;
+      const next_edge_i = edge_map[next_edge_lookup];
       if (next_edge_i === edge_walk[0]) {
         return walk;
       }
@@ -5115,128 +3945,86 @@
     get_planar_boundary: get_planar_boundary
   });
 
-  var apply_matrix_to_graph = function apply_matrix_to_graph(graph, matrix) {
-    filter_keys_with_suffix(graph, "coords").forEach(function (key) {
-      graph[key] = graph[key].map(function (v) {
-        return math.core.resize(3, v);
-      }).map(function (v) {
-        return math.core.multiply_matrix3_vector3(matrix, v);
-      });
+  const apply_matrix_to_graph = function (graph, matrix) {
+    filter_keys_with_suffix(graph, "coords").forEach((key) => {
+      graph[key] = graph[key]
+        .map(v => math.core.resize(3, v))
+        .map(v => math.core.multiply_matrix3_vector3(matrix, v));
     });
-    filter_keys_with_suffix(graph, "matrix").forEach(function (key) {
-      graph[key] = graph[key].map(function (m) {
-        return math.core.multiply_matrices3(m, matrix);
-      });
+    filter_keys_with_suffix(graph, "matrix").forEach((key) => {
+      graph[key] = graph[key]
+        .map(m => math.core.multiply_matrices3(m, matrix));
     });
     return graph;
   };
-  var transform_scale = function transform_scale(graph, scale) {
-    var _math$core;
-    for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      args[_key - 2] = arguments[_key];
-    }
-    var vector = (_math$core = math.core).get_vector.apply(_math$core, args);
-    var vector3 = math.core.resize(3, vector);
-    var matrix = math.core.make_matrix3_scale(scale, vector3);
+  const transform_scale = (graph, scale, ...args) => {
+    const vector = math.core.get_vector(...args);
+    const vector3 = math.core.resize(3, vector);
+    const matrix = math.core.make_matrix3_scale(scale, vector3);
     return apply_matrix_to_graph(graph, matrix);
   };
-  var transform_translate = function transform_translate(graph) {
-    var _math$core2, _math$core3;
-    for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      args[_key2 - 1] = arguments[_key2];
-    }
-    var vector = (_math$core2 = math.core).get_vector.apply(_math$core2, args);
-    var vector3 = math.core.resize(3, vector);
-    var matrix = (_math$core3 = math.core).make_matrix3_translate.apply(_math$core3, _toConsumableArray(vector3));
+  const transform_translate = (graph, ...args) => {
+    const vector = math.core.get_vector(...args);
+    const vector3 = math.core.resize(3, vector);
+    const matrix = math.core.make_matrix3_translate(...vector3);
     return apply_matrix_to_graph(graph, matrix);
   };
-  var transform_rotateZ = function transform_rotateZ(graph, angle) {
-    var _math$core4, _math$core5;
-    for (var _len3 = arguments.length, args = new Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
-      args[_key3 - 2] = arguments[_key3];
-    }
-    var vector = (_math$core4 = math.core).get_vector.apply(_math$core4, args);
-    var vector3 = math.core.resize(3, vector);
-    var matrix = (_math$core5 = math.core).make_matrix3_rotateZ.apply(_math$core5, [angle].concat(_toConsumableArray(vector3)));
+  const transform_rotateZ = (graph, angle, ...args) => {
+    const vector = math.core.get_vector(...args);
+    const vector3 = math.core.resize(3, vector);
+    const matrix = math.core.make_matrix3_rotateZ(angle, ...vector3);
     return apply_matrix_to_graph(graph, matrix);
   };
   var transform = {
     scale: transform_scale,
     translate: transform_translate,
     rotateZ: transform_rotateZ,
-    transform: apply_matrix_to_graph
+    transform: apply_matrix_to_graph,
   };
 
-  var get_face_face_shared_vertices = function get_face_face_shared_vertices(face_a_vertices, face_b_vertices) {
-    var hash = {};
-    face_b_vertices.forEach(function (v) {
-      hash[v] = true;
-    });
-    var match = face_a_vertices.map(function (v) {
-      return hash[v] ? true : false;
-    });
-    var shared_vertices = [];
-    var notShared = match.indexOf(false);
-    for (var i = notShared + 1; i < match.length; i += 1) {
-      if (match[i]) {
-        shared_vertices.push(face_a_vertices[i]);
-      }
+  const get_face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
+    const hash = {};
+    face_b_vertices.forEach((v) => { hash[v] = true; });
+    const match = face_a_vertices.map(v => hash[v] ? true : false);
+    const shared_vertices = [];
+    const notShared = match.indexOf(false);
+    for (let i = notShared + 1; i < match.length; i += 1) {
+      if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
     }
-    for (var _i = 0; _i < notShared; _i += 1) {
-      if (match[_i]) {
-        shared_vertices.push(face_a_vertices[_i]);
-      }
+    for (let i = 0; i < notShared; i += 1) {
+      if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
     }
     return shared_vertices;
   };
-  var make_face_spanning_tree = function make_face_spanning_tree(_ref) {
-    var faces_vertices = _ref.faces_vertices,
-        faces_faces = _ref.faces_faces;
-    var root_face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+  const make_face_spanning_tree = ({ faces_vertices, faces_faces }, root_face = 0) => {
     if (!faces_faces) {
-      faces_faces = make_faces_faces({
-        faces_vertices: faces_vertices
-      });
+      faces_faces = make_faces_faces({ faces_vertices });
     }
-    if (faces_faces.length === 0) {
-      return [];
-    }
-    var tree = [[{
-      face: root_face
-    }]];
-    var visited_faces = {};
+    if (faces_faces.length === 0) { return []; }
+    const tree = [[{ face: root_face }]];
+    const visited_faces = {};
     visited_faces[root_face] = true;
-    var _loop = function _loop() {
-      var next_level_with_duplicates = tree[tree.length - 1].map(function (current) {
-        return faces_faces[current.face].map(function (face) {
-          return {
-            face: face,
-            parent: current.face
-          };
-        });
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []);
-      var dup_indices = {};
-      next_level_with_duplicates.forEach(function (el, i) {
-        if (visited_faces[el.face]) {
-          dup_indices[i] = true;
-        }
+    do {
+      const next_level_with_duplicates = tree[tree.length - 1]
+        .map(current => faces_faces[current.face]
+          .map(face => ({ face, parent: current.face })))
+        .reduce((a, b) => a.concat(b), []);
+      const dup_indices = {};
+      next_level_with_duplicates.forEach((el, i) => {
+        if (visited_faces[el.face]) { dup_indices[i] = true; }
         visited_faces[el.face] = true;
       });
-      var next_level = next_level_with_duplicates.filter(function (_, i) {
-        return !dup_indices[i];
-      });
-      next_level.map(function (el) {
-        return get_face_face_shared_vertices(faces_vertices[el.face], faces_vertices[el.parent]);
-      }).forEach(function (ev, i) {
-        var edge_vertices = ev.slice(0, 2);
-        next_level[i].edge_vertices = edge_vertices;
-      });
+      const next_level = next_level_with_duplicates
+        .filter((_, i) => !dup_indices[i]);
+      next_level
+        .map(el => get_face_face_shared_vertices(
+          faces_vertices[el.face],
+          faces_vertices[el.parent]
+        )).forEach((ev, i) => {
+          const edge_vertices = ev.slice(0, 2);
+          next_level[i].edge_vertices = edge_vertices;
+        });
       tree[tree.length] = next_level;
-    };
-    do {
-      _loop();
     } while (tree[tree.length - 1].length > 0);
     if (tree.length > 0 && tree[tree.length - 1].length === 0) {
       tree.pop();
@@ -5250,260 +4038,160 @@
     make_face_spanning_tree: make_face_spanning_tree
   });
 
-  var assignment_is_folded = {
-    M: true,
-    m: true,
-    V: true,
-    v: true,
-    U: true,
-    u: true,
-    F: false,
-    f: false,
-    B: false,
-    b: false
-  };
-  var make_edges_is_flat_folded = function make_edges_is_flat_folded(_ref) {
-    var edges_vertices = _ref.edges_vertices,
-        edges_foldAngle = _ref.edges_foldAngle,
-        edges_assignment = _ref.edges_assignment;
-    if (edges_assignment === undefined) {
-      return edges_foldAngle === undefined ? edges_vertices.map(function (_) {
-        return true;
-      }) : edges_foldAngle.map(function (angle) {
-        return angle < 0 || angle > 0;
-      });
-    }
-    return edges_assignment.map(function (a) {
-      return assignment_is_folded[a];
-    });
-  };
-  var multiply_vertices_faces_matrix2 = function multiply_vertices_faces_matrix2(_ref2, faces_matrix) {
-    var vertices_coords = _ref2.vertices_coords,
-        vertices_faces = _ref2.vertices_faces,
-        faces_vertices = _ref2.faces_vertices;
+  const multiply_vertices_faces_matrix2 = ({ vertices_coords, vertices_faces, faces_vertices }, faces_matrix) => {
     if (!vertices_faces) {
-      vertices_faces = make_vertices_faces({
-        faces_vertices: faces_vertices
-      });
+      vertices_faces = make_vertices_faces({ faces_vertices });
     }
-    var vertices_matrix = vertices_faces.map(function (faces) {
-      return faces.filter(function (a) {
-        return a != null;
-      }).shift();
-    }).map(function (face) {
-      return face === undefined ? math.core.identity2x3 : faces_matrix[face];
-    });
-    return vertices_coords.map(function (coord, i) {
-      return math.core.multiply_matrix2_vector2(vertices_matrix[i], coord);
-    });
+    const vertices_matrix = vertices_faces
+      .map(faces => faces
+        .filter(a => a != null)
+        .shift())
+      .map(face => face === undefined
+        ? math.core.identity2x3
+        : faces_matrix[face]);
+    return vertices_coords
+      .map((coord, i) => math.core.multiply_matrix2_vector2(vertices_matrix[i], coord));
   };
-  var unassigned_angle = {
-    U: true,
-    u: true
-  };
-  var make_faces_matrix = function make_faces_matrix(_ref3) {
-    var vertices_coords = _ref3.vertices_coords,
-        edges_vertices = _ref3.edges_vertices,
-        edges_foldAngle = _ref3.edges_foldAngle,
-        edges_assignment = _ref3.edges_assignment,
-        faces_vertices = _ref3.faces_vertices,
-        faces_faces = _ref3.faces_faces;
-    var root_face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+  const unassigned_angle = { U: true, u: true };
+  const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
     if (!edges_assignment && edges_foldAngle) {
-      edges_assignment = make_edges_assignment({
-        edges_foldAngle: edges_foldAngle
-      });
+      edges_assignment = make_edges_assignment({ edges_foldAngle });
     }
     if (!edges_foldAngle) {
       if (edges_assignment) {
-        edges_foldAngle = make_edges_foldAngle({
-          edges_assignment: edges_assignment
-        });
+        edges_foldAngle = make_edges_foldAngle({ edges_assignment });
       } else {
         edges_foldAngle = Array(edges_vertices.length).fill(0);
       }
     }
-    var edge_map = make_vertices_to_edge_bidirectional({
-      edges_vertices: edges_vertices
-    });
-    var faces_matrix = faces_vertices.map(function () {
-      return math.core.identity3x4;
-    });
-    make_face_spanning_tree({
-      faces_vertices: faces_vertices,
-      faces_faces: faces_faces
-    }, root_face).slice(1)
-    .forEach(function (level) {
-      return level.forEach(function (entry) {
-        var _math$core;
-        var coords = entry.edge_vertices.map(function (v) {
-          return vertices_coords[v];
-        });
-        var edgeKey = entry.edge_vertices.join(" ");
-        var edge = edge_map[edgeKey];
-        var foldAngle = unassigned_angle[edges_assignment[edge]] ? Math.PI : edges_foldAngle[edge] * Math.PI / 180;
-        var local_matrix = math.core.make_matrix3_rotate(foldAngle,
-        (_math$core = math.core).subtract.apply(_math$core, _toConsumableArray(math.core.resize_up(coords[1], coords[0]))),
-        coords[0]
-        );
-        faces_matrix[entry.face] = math.core.multiply_matrices3(faces_matrix[entry.parent], local_matrix);
-      });
-    });
+    const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+    const faces_matrix = faces_vertices.map(() => math.core.identity3x4);
+    make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
+      .slice(1)
+      .forEach(level => level
+        .forEach((entry) => {
+          const coords = entry.edge_vertices.map(v => vertices_coords[v]);
+          const edgeKey = entry.edge_vertices.join(" ");
+          const edge = edge_map[edgeKey];
+          const foldAngle = unassigned_angle[edges_assignment[edge]]
+            ? Math.PI
+            : edges_foldAngle[edge] * Math.PI / 180;
+          const local_matrix = math.core.make_matrix3_rotate(
+            foldAngle,
+            math.core.subtract(...math.core.resize_up(coords[1], coords[0])),
+            coords[0],
+          );
+          faces_matrix[entry.face] = math.core
+            .multiply_matrices3(faces_matrix[entry.parent], local_matrix);
+        }));
     return faces_matrix;
   };
-  var make_faces_matrix2 = function make_faces_matrix2(_ref4) {
-    var vertices_coords = _ref4.vertices_coords,
-        edges_vertices = _ref4.edges_vertices,
-        edges_foldAngle = _ref4.edges_foldAngle,
-        edges_assignment = _ref4.edges_assignment,
-        faces_vertices = _ref4.faces_vertices,
-        faces_faces = _ref4.faces_faces;
-    var root_face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+  const assignment_is_folded = {
+    M: true, m: true, V: true, v: true, U: true, u: true,
+    F: false, f: false, B: false, b: false,
+  };
+  const make_edges_is_flat_folded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
+    if (edges_assignment === undefined) {
+      return edges_foldAngle === undefined
+        ? edges_vertices.map(_ => true)
+        : edges_foldAngle.map(angle => angle < 0 || angle > 0);
+    }
+    return edges_assignment.map(a => assignment_is_folded[a]);
+  };
+  const make_faces_matrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
     if (!edges_foldAngle) {
       if (edges_assignment) {
-        edges_foldAngle = make_edges_foldAngle({
-          edges_assignment: edges_assignment
-        });
+        edges_foldAngle = make_edges_foldAngle({ edges_assignment });
       } else {
         edges_foldAngle = Array(edges_vertices.length).fill(0);
       }
     }
-    var edges_is_folded = make_edges_is_flat_folded({
-      edges_vertices: edges_vertices,
-      edges_foldAngle: edges_foldAngle,
-      edges_assignment: edges_assignment
-    });
-    var edge_map = make_vertices_to_edge_bidirectional({
-      edges_vertices: edges_vertices
-    });
-    var faces_matrix = faces_vertices.map(function () {
-      return math.core.identity2x3;
-    });
-    make_face_spanning_tree({
-      faces_vertices: faces_vertices,
-      faces_faces: faces_faces
-    }, root_face).slice(1)
-    .forEach(function (level) {
-      return level.forEach(function (entry) {
-        var coords = entry.edge_vertices.map(function (v) {
-          return vertices_coords[v];
-        });
-        var edgeKey = entry.edge_vertices.join(" ");
-        var edge = edge_map[edgeKey];
-        var reflect_vector = math.core.subtract2(coords[1], coords[0]);
-        var reflect_origin = coords[0];
-        var local_matrix = edges_is_folded[edge] ? math.core.make_matrix2_reflect(reflect_vector, reflect_origin) : math.core.identity2x3;
-        faces_matrix[entry.face] = math.core.multiply_matrices2(faces_matrix[entry.parent], local_matrix);
-      });
-    });
+    const edges_is_folded = make_edges_is_flat_folded({ edges_vertices, edges_foldAngle, edges_assignment });
+    const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+    const faces_matrix = faces_vertices.map(() => math.core.identity2x3);
+    make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
+      .slice(1)
+      .forEach(level => level
+        .forEach((entry) => {
+          const coords = entry.edge_vertices.map(v => vertices_coords[v]);
+          const edgeKey = entry.edge_vertices.join(" ");
+          const edge = edge_map[edgeKey];
+          const reflect_vector = math.core.subtract2(coords[1], coords[0]);
+          const reflect_origin = coords[0];
+          const local_matrix = edges_is_folded[edge]
+            ? math.core.make_matrix2_reflect(reflect_vector, reflect_origin)
+            : math.core.identity2x3;
+          faces_matrix[entry.face] = math.core
+            .multiply_matrices2(faces_matrix[entry.parent], local_matrix);
+        }));
     return faces_matrix;
   };
 
   var faces_matrix = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    make_edges_is_flat_folded: make_edges_is_flat_folded,
     multiply_vertices_faces_matrix2: multiply_vertices_faces_matrix2,
     make_faces_matrix: make_faces_matrix,
+    make_edges_is_flat_folded: make_edges_is_flat_folded,
     make_faces_matrix2: make_faces_matrix2
   });
 
-  var make_vertices_coords_folded = function make_vertices_coords_folded(_ref, root_face) {
-    var vertices_coords = _ref.vertices_coords,
-        vertices_faces = _ref.vertices_faces,
-        edges_vertices = _ref.edges_vertices,
-        edges_foldAngle = _ref.edges_foldAngle,
-        edges_assignment = _ref.edges_assignment,
-        faces_vertices = _ref.faces_vertices,
-        faces_faces = _ref.faces_faces,
-        faces_matrix = _ref.faces_matrix;
-    faces_matrix = make_faces_matrix({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices,
-      edges_foldAngle: edges_foldAngle,
-      edges_assignment: edges_assignment,
-      faces_vertices: faces_vertices,
-      faces_faces: faces_faces
-    }, root_face);
+  const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
+    faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
     if (!vertices_faces) {
-      vertices_faces = make_vertices_faces({
-        faces_vertices: faces_vertices
-      });
+      vertices_faces = make_vertices_faces({ faces_vertices });
     }
-    var vertices_matrix = vertices_faces.map(function (faces) {
-      return faces.filter(function (a) {
-        return a != null;
-      })
-      .shift();
-    })
-    .map(function (face) {
-      return face === undefined ? math.core.identity3x4 : faces_matrix[face];
-    });
-    return vertices_coords.map(function (coord) {
-      return math.core.resize(3, coord);
-    }).map(function (coord, i) {
-      return math.core.multiply_matrix3_vector3(vertices_matrix[i], coord);
-    });
+    const vertices_matrix = vertices_faces
+      .map(faces => faces
+        .filter(a => a != null)
+        .shift())
+      .map(face => face === undefined
+        ? math.core.identity3x4
+        : faces_matrix[face]);
+    return vertices_coords
+      .map(coord => math.core.resize(3, coord))
+      .map((coord, i) => math.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
   };
-  var make_vertices_coords_flat_folded = function make_vertices_coords_flat_folded(_ref2) {
-    var vertices_coords = _ref2.vertices_coords,
-        edges_vertices = _ref2.edges_vertices,
-        edges_foldAngle = _ref2.edges_foldAngle,
-        edges_assignment = _ref2.edges_assignment,
-        faces_vertices = _ref2.faces_vertices,
-        faces_faces = _ref2.faces_faces;
-    var root_face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var edges_is_folded = make_edges_is_flat_folded({
-      edges_vertices: edges_vertices,
-      edges_foldAngle: edges_foldAngle,
-      edges_assignment: edges_assignment
-    });
-    var vertices_coords_folded = [];
-    faces_vertices[root_face].forEach(function (v) {
-      vertices_coords_folded[v] = _toConsumableArray(vertices_coords[v]);
-    });
-    var faces_flipped = [];
+  const make_vertices_coords_flat_folded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+    const edges_is_folded = make_edges_is_flat_folded({ edges_vertices, edges_foldAngle, edges_assignment });
+    const vertices_coords_folded = [];
+    faces_vertices[root_face]
+      .forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
+    const faces_flipped = [];
     faces_flipped[root_face] = false;
-    var edge_map = make_vertices_to_edge_bidirectional({
-      edges_vertices: edges_vertices
-    });
-    make_face_spanning_tree({
-      faces_vertices: faces_vertices,
-      faces_faces: faces_faces
-    }, root_face).slice(1)
-    .forEach(function (level, l) {
-      return level.forEach(function (entry) {
-        var edge_key = entry.edge_vertices.join(" ");
-        var edge = edge_map[edge_key];
-        var coords = edges_vertices[edge].map(function (v) {
-          return vertices_coords_folded[v];
-        });
-        if (coords[0] === undefined || coords[1] === undefined) {
-          return;
-        }
-        var coords_cp = edges_vertices[edge].map(function (v) {
-          return vertices_coords[v];
-        });
-        var origin_cp = coords_cp[0];
-        var vector_cp = math.core.normalize2(math.core.subtract2(coords_cp[1], coords_cp[0]));
-        var normal_cp = math.core.rotate90(vector_cp);
-        faces_flipped[entry.face] = edges_is_folded[edge] ? !faces_flipped[entry.parent] : faces_flipped[entry.parent];
-        var vector_folded = math.core.normalize2(math.core.subtract2(coords[1], coords[0]));
-        var origin_folded = coords[0];
-        var normal_folded = faces_flipped[entry.face] ? math.core.rotate270(vector_folded) : math.core.rotate90(vector_folded);
-        faces_vertices[entry.face].filter(function (v) {
-          return vertices_coords_folded[v] === undefined;
-        }).forEach(function (v) {
-          var coords_cp = vertices_coords[v];
-          var to_point = math.core.subtract2(coords_cp, origin_cp);
-          var project_norm = math.core.dot(to_point, normal_cp);
-          var project_line = math.core.dot(to_point, vector_cp);
-          var walk_up = math.core.scale2(vector_folded, project_line);
-          var walk_perp = math.core.scale2(normal_folded, project_norm);
-          var folded_coords = math.core.add2(math.core.add2(origin_folded, walk_up), walk_perp);
-          vertices_coords_folded[v] = folded_coords;
-        });
-      });
-    });
+    const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+    make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
+      .slice(1)
+      .forEach((level, l) => level
+        .forEach(entry => {
+          const edge_key = entry.edge_vertices.join(" ");
+          const edge = edge_map[edge_key];
+          const coords = edges_vertices[edge].map(v => vertices_coords_folded[v]);
+          if (coords[0] === undefined || coords[1] === undefined) { return; }
+          const coords_cp = edges_vertices[edge].map(v => vertices_coords[v]);
+          const origin_cp = coords_cp[0];
+          const vector_cp = math.core.normalize2(math.core.subtract2(coords_cp[1], coords_cp[0]));
+          const normal_cp = math.core.rotate90(vector_cp);
+          faces_flipped[entry.face] = edges_is_folded[edge]
+            ? !faces_flipped[entry.parent]
+            : faces_flipped[entry.parent];
+          const vector_folded = math.core.normalize2(math.core.subtract2(coords[1], coords[0]));
+          const origin_folded = coords[0];
+          const normal_folded = faces_flipped[entry.face]
+            ? math.core.rotate270(vector_folded)
+            : math.core.rotate90(vector_folded);
+          faces_vertices[entry.face]
+            .filter(v => vertices_coords_folded[v] === undefined)
+            .forEach(v => {
+              const coords_cp = vertices_coords[v];
+              const to_point = math.core.subtract2(coords_cp, origin_cp);
+              const project_norm = math.core.dot(to_point, normal_cp);
+              const project_line = math.core.dot(to_point, vector_cp);
+              const walk_up = math.core.scale2(vector_folded, project_line);
+              const walk_perp = math.core.scale2(normal_folded, project_norm);
+              const folded_coords = math.core.add2(math.core.add2(origin_folded, walk_up), walk_perp);
+              vertices_coords_folded[v] = folded_coords;
+            });
+        }));
     return vertices_coords_folded;
   };
 
@@ -5513,76 +4201,48 @@
     make_vertices_coords_flat_folded: make_vertices_coords_flat_folded
   });
 
-  var explode_faces = function explode_faces(graph) {
-    var vertices_coords = graph.faces_vertices.map(function (face) {
-      return face.map(function (v) {
-        return graph.vertices_coords[v];
-      });
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
-    var i = 0;
-    var faces_vertices = graph.faces_vertices.map(function (face) {
-      return face.map(function (v) {
-        return i++;
-      });
-    });
+  const explode_faces = (graph) => {
+    const vertices_coords = graph.faces_vertices
+      .map(face => face.map(v => graph.vertices_coords[v]))
+      .reduce((a, b) => a.concat(b), []);
+    let i = 0;
+    const faces_vertices = graph.faces_vertices
+      .map(face => face.map(v => i++));
     return {
       vertices_coords: JSON.parse(JSON.stringify(vertices_coords)),
-      faces_vertices: faces_vertices
-    };
+      faces_vertices,
+    }
   };
 
-  var nearest_vertex = function nearest_vertex(_ref, point) {
-    var vertices_coords = _ref.vertices_coords;
-    if (!vertices_coords) {
-      return undefined;
-    }
-    var p = math.core.resize(vertices_coords[0].length, point);
-    var nearest = vertices_coords.map(function (v, i) {
-      return {
-        d: math.core.distance(p, v),
-        i: i
-      };
-    }).sort(function (a, b) {
-      return a.d - b.d;
-    }).shift();
+  const nearest_vertex = ({ vertices_coords }, point) => {
+    if (!vertices_coords) { return undefined; }
+    const p = math.core.resize(vertices_coords[0].length, point);
+    const nearest = vertices_coords
+      .map((v, i) => ({ d: math.core.distance(p, v), i }))
+      .sort((a, b) => a.d - b.d)
+      .shift();
     return nearest ? nearest.i : undefined;
   };
-  var nearest_edge = function nearest_edge(_ref2, point) {
-    var vertices_coords = _ref2.vertices_coords,
-        edges_vertices = _ref2.edges_vertices;
-    if (!vertices_coords || !edges_vertices) {
-      return undefined;
-    }
-    var nearest_points = edges_vertices.map(function (e) {
-      return e.map(function (ev) {
-        return vertices_coords[ev];
-      });
-    }).map(function (e) {
-      return math.core.nearest_point_on_line(math.core.subtract(e[1], e[0]), e[0], point, math.core.segment_limiter);
-    });
+  const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
+    if (!vertices_coords || !edges_vertices) { return undefined; }
+    const nearest_points = edges_vertices
+      .map(e => e.map(ev => vertices_coords[ev]))
+      .map(e => math.core.nearest_point_on_line(
+        math.core.subtract(e[1], e[0]),
+        e[0],
+        point,
+        math.core.segment_limiter));
     return math.core.smallest_comparison_search(point, nearest_points, math.core.distance);
   };
-  var face_containing_point = function face_containing_point(_ref3, point) {
-    var vertices_coords = _ref3.vertices_coords,
-        faces_vertices = _ref3.faces_vertices;
-    if (!vertices_coords || !faces_vertices) {
-      return undefined;
-    }
-    var face = faces_vertices.map(function (fv, i) {
-      return {
-        face: fv.map(function (v) {
-          return vertices_coords[v];
-        }),
-        i: i
-      };
-    }).filter(function (f) {
-      return math.core.overlap_convex_polygon_point(f.face, point);
-    }).shift();
-    return face === undefined ? undefined : face.i;
+  const face_containing_point = ({ vertices_coords, faces_vertices }, point) => {
+    if (!vertices_coords || !faces_vertices) { return undefined; }
+    const face = faces_vertices
+      .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
+      .filter(f => math.core.overlap_convex_polygon_point(f.face, point))
+      .shift();
+    return (face === undefined ? undefined : face.i);
   };
-  var nearest_face = face_containing_point;
+  const nearest_face = face_containing_point;
 
   var nearest = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -5592,10 +4252,10 @@
     nearest_face: nearest_face
   });
 
-  var clone = function clone(o) {
-    var newO;
-    var i;
-    if (_typeof(o) !== _object$1) {
+  const clone = function (o) {
+    let newO;
+    let i;
+    if (typeof o !== _object$1) {
       return o;
     }
     if (!o) {
@@ -5617,24 +4277,17 @@
     return newO;
   };
 
-  var find_adjacent_faces_to_edge = function find_adjacent_faces_to_edge(_ref, edge) {
-    var vertices_faces = _ref.vertices_faces,
-        edges_vertices = _ref.edges_vertices,
-        edges_faces = _ref.edges_faces,
-        faces_edges = _ref.faces_edges,
-        faces_vertices = _ref.faces_vertices;
+  const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
     if (edges_faces && edges_faces[edge]) {
       return edges_faces[edge];
     }
-    var vertices = edges_vertices[edge];
+    const vertices = edges_vertices[edge];
     if (vertices_faces !== undefined) {
-      var faces = [];
-      for (var i = 0; i < vertices_faces[vertices[0]].length; i += 1) {
-        for (var j = 0; j < vertices_faces[vertices[1]].length; j += 1) {
+      const faces = [];
+      for (let i = 0; i < vertices_faces[vertices[0]].length; i += 1) {
+        for (let j = 0; j < vertices_faces[vertices[1]].length; j += 1) {
           if (vertices_faces[vertices[0]][i] === vertices_faces[vertices[1]][j]) {
-            if (vertices_faces[vertices[0]][i] === undefined) {
-              continue;
-            }
+            if (vertices_faces[vertices[0]][i] === undefined) { continue; }
             faces.push(vertices_faces[vertices[0]][i]);
           }
         }
@@ -5642,435 +4295,316 @@
       return faces;
     }
     if (faces_edges) {
-      var _faces = [];
-      for (var _i = 0; _i < faces_edges.length; _i += 1) {
-        for (var e = 0; e < faces_edges[_i].length; e += 1) {
-          if (faces_edges[_i][e] === edge) {
-            _faces.push(_i);
-          }
+      let faces = [];
+      for (let i = 0; i < faces_edges.length; i += 1) {
+        for (let e = 0; e < faces_edges[i].length; e += 1) {
+          if (faces_edges[i][e] === edge) { faces.push(i); }
         }
       }
-      return _faces;
+      return faces;
     }
     if (faces_vertices) {
       console.warn("todo: find_adjacent_faces_to_edge");
     }
   };
 
-  var split_edge_into_two = function split_edge_into_two(graph, edge_index, new_vertex) {
-    var edge_vertices = graph.edges_vertices[edge_index];
-    var new_edges = [{
-      edges_vertices: [edge_vertices[0], new_vertex]
-    }, {
-      edges_vertices: [new_vertex, edge_vertices[1]]
-    }];
-    new_edges.forEach(function (edge, i) {
-      return [_edges_assignment, _edges_foldAngle].filter(function (key) {
-        return graph[key] && graph[key][edge_index] !== undefined;
-      }).forEach(function (key) {
-        edge[key] = graph[key][edge_index];
-      });
-    });
+  const split_edge_into_two = (graph, edge_index, new_vertex) => {
+    const edge_vertices = graph.edges_vertices[edge_index];
+    const new_edges = [
+      { edges_vertices: [edge_vertices[0], new_vertex] },
+      { edges_vertices: [new_vertex, edge_vertices[1]] },
+    ];
+    new_edges.forEach((edge, i) => [_edges_assignment, _edges_foldAngle]
+      .filter(key => graph[key] && graph[key][edge_index] !== undefined)
+      .forEach(key => { edge[key] = graph[key][edge_index]; }));
     if (graph.vertices_coords && (graph.edges_length || graph.edges_vector)) {
-      var coords = new_edges.map(function (edge) {
-        return edge.edges_vertices.map(function (v) {
-          return graph.vertices_coords[v];
-        });
-      });
+      const coords = new_edges
+        .map(edge => edge.edges_vertices
+          .map(v => graph.vertices_coords[v]));
       if (graph.edges_vector) {
-        new_edges.forEach(function (edge, i) {
+        new_edges.forEach((edge, i) => {
           edge.edges_vector = math.core.subtract(coords[i][1], coords[i][0]);
         });
       }
       if (graph.edges_length) {
-        new_edges.forEach(function (edge, i) {
-          var _math$core;
-          edge.edges_length = (_math$core = math.core).distance2.apply(_math$core, _toConsumableArray(coords[i]));
+        new_edges.forEach((edge, i) => {
+          edge.edges_length = math.core.distance2(...coords[i]);
         });
       }
     }
     return new_edges;
   };
 
-  var update_vertices_vertices$1 = function update_vertices_vertices(_ref, vertex, incident_vertices) {
-    var vertices_vertices = _ref.vertices_vertices;
-    if (!vertices_vertices) {
-      return;
-    }
-    vertices_vertices[vertex] = _toConsumableArray(incident_vertices);
-    incident_vertices.forEach(function (v, i, arr) {
-      var otherV = arr[(i + 1) % arr.length];
-      var otherI = vertices_vertices[v].indexOf(otherV);
+  const update_vertices_vertices$1 = ({ vertices_vertices }, vertex, incident_vertices) => {
+    if (!vertices_vertices) { return; }
+    vertices_vertices[vertex] = [...incident_vertices];
+    incident_vertices.forEach((v, i, arr) => {
+      const otherV = arr[(i + 1) % arr.length];
+      const otherI = vertices_vertices[v].indexOf(otherV);
       vertices_vertices[v][otherI] = vertex;
     });
   };
-  var update_vertices_edges$1 = function update_vertices_edges(_ref2, old_edge, new_vertex, vertices, new_edges) {
-    var vertices_edges = _ref2.vertices_edges;
-    if (!vertices_edges) {
-      return;
-    }
-    vertices_edges[new_vertex] = _toConsumableArray(new_edges);
-    vertices.map(function (v) {
-      return vertices_edges[v].indexOf(old_edge);
-    }).forEach(function (index, i) {
-      vertices_edges[vertices[i]][index] = new_edges[i];
-    });
-  };
-  var update_vertices_faces$1 = function update_vertices_faces(_ref3, vertex, faces) {
-    var vertices_faces = _ref3.vertices_faces;
-    if (!vertices_faces) {
-      return;
-    }
-    vertices_faces[vertex] = _toConsumableArray(faces);
-  };
-  var update_edges_faces$1 = function update_edges_faces(_ref4, new_edges, faces) {
-    var edges_faces = _ref4.edges_faces;
-    if (!edges_faces) {
-      return;
-    }
-    new_edges.forEach(function (edge) {
-      return edges_faces[edge] = _toConsumableArray(faces);
-    });
-  };
-  var update_faces_vertices = function update_faces_vertices(_ref5, new_vertex, incident_vertices, faces) {
-    var faces_vertices = _ref5.faces_vertices;
-    if (!faces_vertices) {
-      return;
-    }
-    faces.map(function (i) {
-      return faces_vertices[i];
-    }).forEach(function (face) {
-      return face.map(function (fv, i, arr) {
-        var nextI = (i + 1) % arr.length;
-        return fv === incident_vertices[0] && arr[nextI] === incident_vertices[1] || fv === incident_vertices[1] && arr[nextI] === incident_vertices[0] ? nextI : undefined;
-      }).filter(function (el) {
-        return el !== undefined;
-      }).sort(function (a, b) {
-        return b - a;
-      }).forEach(function (i) {
-        return face.splice(i, 0, new_vertex);
+  const update_vertices_edges$1 = ({ vertices_edges }, old_edge, new_vertex, vertices, new_edges) => {
+    if (!vertices_edges) { return; }
+    vertices_edges[new_vertex] = [...new_edges];
+    vertices
+      .map(v => vertices_edges[v].indexOf(old_edge))
+      .forEach((index, i) => {
+        vertices_edges[vertices[i]][index] = new_edges[i];
       });
-    });
   };
-  var update_faces_edges = function update_faces_edges(_ref6, old_edge, new_vertex, new_edges, faces) {
-    var edges_vertices = _ref6.edges_vertices,
-        faces_edges = _ref6.faces_edges;
-    if (!faces_edges) {
-      return;
-    }
-    faces.map(function (i) {
-      return faces_edges[i];
-    }).forEach(function (face) {
-      var edgeIndex = face.indexOf(old_edge);
-      var prevEdge = face[(edgeIndex + face.length - 1) % face.length];
-      var nextEdge = face[(edgeIndex + 1) % face.length];
-      var vertices = [[prevEdge, old_edge], [old_edge, nextEdge]].map(function (pairs) {
-        var verts = pairs.map(function (e) {
-          return edges_vertices[e];
+  const update_vertices_faces$1 = ({ vertices_faces }, vertex, faces) => {
+    if (!vertices_faces) { return; }
+    vertices_faces[vertex] = [...faces];
+  };
+  const update_edges_faces$1 = ({ edges_faces }, new_edges, faces) => {
+    if (!edges_faces) { return; }
+    new_edges.forEach(edge => edges_faces[edge] = [...faces]);
+  };
+  const update_faces_vertices = ({ faces_vertices }, new_vertex, incident_vertices, faces) => {
+    if (!faces_vertices) { return; }
+    faces
+      .map(i => faces_vertices[i])
+        .forEach(face => face
+          .map((fv, i, arr) => {
+            const nextI = (i + 1) % arr.length;
+            return (fv === incident_vertices[0]
+                    && arr[nextI] === incident_vertices[1])
+                    || (fv === incident_vertices[1]
+                    && arr[nextI] === incident_vertices[0])
+              ? nextI : undefined;
+          }).filter(el => el !== undefined)
+          .sort((a, b) => b - a)
+          .forEach(i => face.splice(i, 0, new_vertex)));
+  };
+  const update_faces_edges = ({ edges_vertices, faces_edges }, old_edge, new_vertex, new_edges, faces) => {
+    if (!faces_edges) { return; }
+    faces
+      .map(i => faces_edges[i])
+      .forEach((face) => {
+        const edgeIndex = face.indexOf(old_edge);
+        const prevEdge = face[(edgeIndex + face.length - 1) % face.length];
+        const nextEdge = face[(edgeIndex + 1) % face.length];
+        const vertices = [
+          [prevEdge, old_edge],
+          [old_edge, nextEdge],
+        ].map((pairs) => {
+          const verts = pairs.map(e => edges_vertices[e]);
+          return verts[0][0] === verts[1][0] || verts[0][0] === verts[1][1]
+            ? verts[0][0] : verts[0][1];
+        }).reduce((a, b) => a.concat(b), []);
+        const edges = [
+          [vertices[0], new_vertex],
+          [new_vertex, vertices[1]],
+        ].map((verts) => {
+          const in0 = verts.map(v => edges_vertices[new_edges[0]].indexOf(v) !== -1)
+            .reduce((a, b) => a && b, true);
+          const in1 = verts.map(v => edges_vertices[new_edges[1]].indexOf(v) !== -1)
+            .reduce((a, b) => a && b, true);
+          if (in0) { return new_edges[0]; }
+          if (in1) { return new_edges[1]; }
+          throw new Error("split_edge() bad faces_edges");
         });
-        return verts[0][0] === verts[1][0] || verts[0][0] === verts[1][1] ? verts[0][0] : verts[0][1];
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []);
-      var edges = [[vertices[0], new_vertex], [new_vertex, vertices[1]]].map(function (verts) {
-        var in0 = verts.map(function (v) {
-          return edges_vertices[new_edges[0]].indexOf(v) !== -1;
-        }).reduce(function (a, b) {
-          return a && b;
-        }, true);
-        var in1 = verts.map(function (v) {
-          return edges_vertices[new_edges[1]].indexOf(v) !== -1;
-        }).reduce(function (a, b) {
-          return a && b;
-        }, true);
-        if (in0) {
-          return new_edges[0];
+        if (edgeIndex === face.length - 1) {
+          face.splice(edgeIndex, 1, edges[0]);
+          face.unshift(edges[1]);
+        } else {
+          face.splice(edgeIndex, 1, ...edges);
         }
-        if (in1) {
-          return new_edges[1];
-        }
-        throw new Error("split_edge() bad faces_edges");
+        return edges;
       });
-      if (edgeIndex === face.length - 1) {
-        face.splice(edgeIndex, 1, edges[0]);
-        face.unshift(edges[1]);
-      } else {
-        face.splice.apply(face, [edgeIndex, 1].concat(_toConsumableArray(edges)));
-      }
-      return edges;
-    });
   };
 
-  var split_edge = function split_edge(graph, old_edge, coords) {
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : math.core.EPSILON;
-    if (graph.edges_vertices.length < old_edge) {
-      return {};
-    }
-    var incident_vertices = graph.edges_vertices[old_edge];
+  const split_edge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
+    if (graph.edges_vertices.length < old_edge) { return {}; }
+    const incident_vertices = graph.edges_vertices[old_edge];
     if (!coords) {
-      var _math$core;
-      coords = (_math$core = math.core).midpoint.apply(_math$core, _toConsumableArray(incident_vertices));
+      coords = math.core.midpoint(...incident_vertices);
     }
-    var similar = incident_vertices.map(function (v) {
-      return graph.vertices_coords[v];
-    }).map(function (vert) {
-      return math.core.distance(vert, coords) < epsilon;
-    });
-    if (similar[0]) {
-      return {
-        vertex: incident_vertices[0],
-        edges: {}
-      };
-    }
-    if (similar[1]) {
-      return {
-        vertex: incident_vertices[1],
-        edges: {}
-      };
-    }
-    var vertex = graph.vertices_coords.length;
-    graph.vertices_coords[vertex] = coords;
-    var new_edges = [0, 1].map(function (i) {
-      return i + graph.edges_vertices.length;
-    });
-    split_edge_into_two(graph, old_edge, vertex).forEach(function (edge, i) {
-      return Object.keys(edge).forEach(function (key) {
-        graph[key][new_edges[i]] = edge[key];
-      });
-    });
+    const similar = incident_vertices
+      .map(v => graph.vertices_coords[v])
+  	  .map(vert => math.core.distance(vert, coords) < epsilon);
+  	if (similar[0]) { return { vertex: incident_vertices[0], edges: {} }; }
+  	if (similar[1]) { return { vertex: incident_vertices[1], edges: {} }; }
+  	const vertex = graph.vertices_coords.length;
+  	graph.vertices_coords[vertex] = coords;
+  	const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
+    split_edge_into_two(graph, old_edge, vertex)
+      .forEach((edge, i) => Object.keys(edge)
+        .forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
     update_vertices_vertices$1(graph, vertex, incident_vertices);
     update_vertices_edges$1(graph, old_edge, vertex, incident_vertices, new_edges);
-    var incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
+    const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
     if (incident_faces) {
       update_vertices_faces$1(graph, vertex, incident_faces);
       update_edges_faces$1(graph, new_edges, incident_faces);
       update_faces_vertices(graph, vertex, incident_vertices, incident_faces);
       update_faces_edges(graph, old_edge, vertex, new_edges, incident_faces);
     }
-    var edge_map = remove_geometry_indices(graph, _edges, [old_edge]);
-    new_edges.forEach(function (_, i) {
-      new_edges[i] = edge_map[new_edges[i]];
-    });
-    edge_map.splice(-2);
-    edge_map[old_edge] = new_edges;
-    return {
-      vertex: vertex,
+    const edge_map = remove_geometry_indices(graph, _edges, [ old_edge ]);
+    new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
+  	edge_map.splice(-2);
+  	edge_map[old_edge] = new_edges;
+  	return {
+      vertex,
       edges: {
         map: edge_map,
-        "new": new_edges,
-        remove: old_edge
-      }
+        new: new_edges,
+        remove: old_edge,
+      },
     };
   };
 
-  var make_edge = function make_edge(_ref, vertices, face) {
-    var _math$core, _math$core2;
-    var vertices_coords = _ref.vertices_coords;
-    var new_edge_coords = vertices.map(function (v) {
-      return vertices_coords[v];
-    }).reverse();
+  const make_edge = ({ vertices_coords }, vertices, face) => {
+    const new_edge_coords = vertices
+      .map(v => vertices_coords[v])
+      .reverse();
     return {
-      edges_vertices: _toConsumableArray(vertices),
+      edges_vertices: [...vertices],
       edges_foldAngle: 0,
       edges_assignment: "U",
-      edges_length: (_math$core = math.core).distance2.apply(_math$core, _toConsumableArray(new_edge_coords)),
-      edges_vector: (_math$core2 = math.core).subtract.apply(_math$core2, _toConsumableArray(new_edge_coords)),
-      edges_faces: [face, face]
+      edges_length: math.core.distance2(...new_edge_coords),
+      edges_vector: math.core.subtract(...new_edge_coords),
+      edges_faces: [face, face],
     };
   };
-  var rebuild_edge = function rebuild_edge(graph, face, vertices) {
-    var edge = graph.edges_vertices.length;
-    var new_edge = make_edge(graph, vertices, face);
-    Object.keys(new_edge).filter(function (key) {
-      return graph[key] !== undefined;
-    }).forEach(function (key) {
-      graph[key][edge] = new_edge[key];
-    });
+  const rebuild_edge = (graph, face, vertices) => {
+    const edge = graph.edges_vertices.length;
+    const new_edge = make_edge(graph, vertices, face);
+    Object.keys(new_edge)
+      .filter(key => graph[key] !== undefined)
+      .forEach((key) => { graph[key][edge] = new_edge[key]; });
     return edge;
   };
 
-  var make_faces = function make_faces(_ref, face, vertices) {
-    var edges_vertices = _ref.edges_vertices,
-        faces_vertices = _ref.faces_vertices,
-        faces_edges = _ref.faces_edges;
-        _ref.faces_faces;
-    var indices = vertices.map(function (el) {
-      return faces_vertices[face].indexOf(el);
-    });
-    var faces = split_circular_array(faces_vertices[face], indices).map(function (fv) {
-      return {
-        faces_vertices: fv
-      };
-    });
+  const make_faces = ({ edges_vertices, faces_vertices, faces_edges, faces_faces }, face, vertices) => {
+    const indices = vertices.map(el => faces_vertices[face].indexOf(el));
+    const faces = split_circular_array(faces_vertices[face], indices)
+      .map(fv => ({ faces_vertices: fv }));
     if (faces_edges) {
-      var vertices_to_edge = make_vertices_to_edge_bidirectional({
-        edges_vertices: edges_vertices
-      });
-      faces.map(function (face) {
-        return face.faces_vertices.map(function (fv, i, arr) {
-          return "".concat(fv, " ").concat(arr[(i + 1) % arr.length]);
-        }).map(function (key) {
-          return vertices_to_edge[key];
-        });
-      }).forEach(function (face_edges, i) {
-        faces[i].faces_edges = face_edges;
-      });
+      const vertices_to_edge = make_vertices_to_edge_bidirectional({ edges_vertices });
+      faces.map(face => face.faces_vertices
+          .map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
+          .map(key => vertices_to_edge[key]))
+        .forEach((face_edges, i) => { faces[i].faces_edges = face_edges; });
     }
     return faces;
   };
-  var build_faces = function build_faces(graph, face, vertices) {
-    var faces = [0, 1].map(function (i) {
-      return graph.faces_vertices.length + i;
-    });
-    make_faces(graph, face, vertices).forEach(function (face, i) {
-      return Object.keys(face).forEach(function (key) {
-        graph[key][faces[i]] = face[key];
-      });
-    });
+  const build_faces = (graph, face, vertices) => {
+    const faces = [0, 1].map(i => graph.faces_vertices.length + i);
+    make_faces(graph, face, vertices)
+      .forEach((face, i) => Object.keys(face)
+        .forEach((key) => { graph[key][faces[i]] = face[key]; }));
     return faces;
   };
 
-  var split_at_intersections = function split_at_intersections(graph, _ref) {
-    var vertices = _ref.vertices,
-        edges = _ref.edges;
-    var map;
-    var split_results = edges.map(function (el) {
-      var res = split_edge(graph, map ? map[el.edge] : el.edge, el.coords);
+  const split_at_intersections = (graph, { vertices, edges }) => {
+    let map;
+    const split_results = edges.map((el) => {
+      const res = split_edge(graph, map ? map[el.edge] : el.edge, el.coords);
       map = map ? merge_nextmaps(map, res.edges.map) : res.edges.map;
       return res;
     });
-    vertices.push.apply(vertices, _toConsumableArray(split_results.map(function (res) {
-      return res.vertex;
-    })));
-    var bkmap;
-    split_results.forEach(function (res) {
+    vertices.push(...split_results.map(res => res.vertex));
+    let bkmap;
+    split_results.forEach(res => {
       res.edges.remove = bkmap ? bkmap[res.edges.remove] : res.edges.remove;
-      var inverted = invert_simple_map(res.edges.map);
+      const inverted = invert_simple_map(res.edges.map);
       bkmap = bkmap ? merge_backmaps(bkmap, inverted) : inverted;
     });
     return {
-      vertices: vertices,
+      vertices,
       edges: {
-        map: map,
-        remove: split_results.map(function (res) {
-          return res.edges.remove;
-        })
+        map,
+        remove: split_results.map(res => res.edges.remove),
       }
     };
   };
 
-  var update_vertices_vertices = function update_vertices_vertices(_ref, edge) {
-    var vertices_coords = _ref.vertices_coords,
-        vertices_vertices = _ref.vertices_vertices,
-        edges_vertices = _ref.edges_vertices;
-    var v0 = edges_vertices[edge][0];
-    var v1 = edges_vertices[edge][1];
-    vertices_vertices[v0] = sort_vertices_counter_clockwise({
-      vertices_coords: vertices_coords
-    }, vertices_vertices[v0].concat(v1), v0);
-    vertices_vertices[v1] = sort_vertices_counter_clockwise({
-      vertices_coords: vertices_coords
-    }, vertices_vertices[v1].concat(v0), v1);
+  const warning = "split_face potentially given a non-convex face";
+  const update_vertices_vertices = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
+    const v0 = edges_vertices[edge][0];
+    const v1 = edges_vertices[edge][1];
+    vertices_vertices[v0] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v0].concat(v1), v0);
+    vertices_vertices[v1] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v1].concat(v0), v1);
   };
-  var update_vertices_edges = function update_vertices_edges(_ref2, edge) {
-    var edges_vertices = _ref2.edges_vertices,
-        vertices_edges = _ref2.vertices_edges,
-        vertices_vertices = _ref2.vertices_vertices;
-    if (!vertices_edges || !vertices_vertices) {
-      return;
-    }
-    var vertices = edges_vertices[edge];
-    vertices.map(function (v) {
-      return vertices_vertices[v];
-    }).map(function (vert_vert, i) {
-      return vert_vert.indexOf(vertices[(i + 1) % vertices.length]);
-    }).forEach(function (radial_index, i) {
-      return vertices_edges[vertices[i]].splice(radial_index, 0, edge);
-    });
+  const update_vertices_edges = ({ edges_vertices, vertices_edges, vertices_vertices }, edge) => {
+    if (!vertices_edges || !vertices_vertices) { return; }
+    const vertices = edges_vertices[edge];
+    vertices
+      .map(v => vertices_vertices[v])
+      .map((vert_vert, i) => vert_vert
+        .indexOf(vertices[(i + 1) % vertices.length]))
+      .forEach((radial_index, i) => vertices_edges[vertices[i]]
+        .splice(radial_index, 0, edge));
   };
-  var update_vertices_faces = function update_vertices_faces(graph, old_face, new_faces) {
-    var vertex_face_map = {};
-    new_faces.forEach(function (f, i) {
-      return graph.faces_vertices[f].forEach(function (v) {
-        if (!vertex_face_map[v]) {
-          vertex_face_map[v] = [];
-        }
-        vertex_face_map[v].push(f);
-      });
-    });
-    graph.faces_vertices[old_face].forEach(function (v) {
-      var _graph$vertices_faces;
-      var index = graph.vertices_faces[v].indexOf(old_face);
-      var replacements = vertex_face_map[v];
+  const update_vertices_faces = (graph, old_face, new_faces) => {
+    const vertices_replacement_faces = {};
+    new_faces
+      .forEach((f, i) => graph.faces_vertices[f]
+        .forEach(v => {
+          if (!vertices_replacement_faces[v]) {
+            vertices_replacement_faces[v] = [];
+          }
+          vertices_replacement_faces[v].push(f);
+        }));
+    graph.faces_vertices[old_face].forEach(v => {
+      const index = graph.vertices_faces[v].indexOf(old_face);
+      const replacements = vertices_replacement_faces[v];
       if (index === -1 || !replacements) {
-        console.warn("update_vertices_faces not supposed to be here");
+        console.warn(warning);
         return;
       }
-      (_graph$vertices_faces = graph.vertices_faces[v]).splice.apply(_graph$vertices_faces, [index, 1].concat(_toConsumableArray(replacements)));
+      graph.vertices_faces[v].splice(index, 1, ...replacements);
     });
   };
-  var update_edges_faces = function update_edges_faces(graph, old_face, new_edge, new_faces) {
-    var edge_face_map = {};
-    new_faces.forEach(function (f, i) {
-      return graph.faces_edges[f].forEach(function (e) {
-        if (!edge_face_map[e]) {
-          edge_face_map[e] = [];
-        }
-        edge_face_map[e].push(f);
-      });
-    });
-    var edges = [].concat(_toConsumableArray(graph.faces_edges[old_face]), [new_edge]);
-    edges.forEach(function (e) {
-      var _graph$edges_faces$e;
-      var replacements = edge_face_map[e];
-      var indices = [];
-      for (var i = 0; i < graph.edges_faces[e].length; i++) {
-        if (graph.edges_faces[e][i] === old_face) {
-          indices.push(i);
-        }
+  const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
+    const edges_replacement_faces = {};
+    new_faces
+      .forEach((f, i) => graph.faces_edges[f]
+        .forEach(e => {
+          if (!edges_replacement_faces[e]) { edges_replacement_faces[e] = []; }
+          edges_replacement_faces[e].push(f);
+        }));
+    const edges = [...graph.faces_edges[old_face], new_edge];
+    edges.forEach(e => {
+      const replacements = edges_replacement_faces[e];
+      const indices = [];
+      for (let i = 0; i < graph.edges_faces[e].length; i++) {
+        if (graph.edges_faces[e][i] === old_face) { indices.push(i); }
       }
       if (indices.length === 0 || !replacements) {
-        console.warn("update_edges_faces not supposed to be here", index, replacements, JSON.parse(JSON.stringify(graph.edges_faces[e])));
+        console.warn(warning);
         return;
       }
-      indices.reverse().forEach(function (index) {
-        return graph.edges_faces[e].splice(index, 1);
-      });
-      var index = indices[indices.length - 1];
-      (_graph$edges_faces$e = graph.edges_faces[e]).splice.apply(_graph$edges_faces$e, [index, 0].concat(_toConsumableArray(replacements)));
+      indices.reverse().forEach(index => graph.edges_faces[e].splice(index, 1));
+      const index = indices[indices.length - 1];
+      graph.edges_faces[e].splice(index, 0, ...replacements);
     });
   };
-  var update_faces_faces = function update_faces_faces(_ref3, old_face, new_faces) {
-    var faces_vertices = _ref3.faces_vertices,
-        faces_faces = _ref3.faces_faces;
-    var incident_faces = faces_faces[old_face];
-    var new_faces_vertices = new_faces.map(function (f) {
-      return faces_vertices[f];
-    });
-    var incident_face_face = incident_faces.map(function (f, i) {
-      var incident_face_vertices = faces_vertices[f];
-      var score = [0, 0];
-      for (var n = 0; n < new_faces_vertices.length; n++) {
-        var count = 0;
-        for (var j = 0; j < incident_face_vertices.length; j++) {
+  const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, new_faces) => {
+    const incident_faces = faces_faces[old_face];
+    const new_faces_vertices = new_faces.map(f => faces_vertices[f]);
+    const incident_face_face = incident_faces.map((f, i) => {
+      const incident_face_vertices = faces_vertices[f];
+      const score = [0, 0];
+      for (let n = 0; n < new_faces_vertices.length; n++) {
+        let count = 0;
+        for (let j = 0; j < incident_face_vertices.length; j++) {
           if (new_faces_vertices[n].indexOf(incident_face_vertices[j]) !== -1) {
             count++;
           }
         }
         score[n] = count;
       }
-      if (score[0] >= 2) {
-        return new_faces[0];
-      }
-      if (score[1] >= 2) {
-        return new_faces[1];
-      }
+      if (score[0] >= 2) { return new_faces[0]; }
+      if (score[1] >= 2) { return new_faces[1]; }
     });
-    new_faces.forEach(function (f, i, arr) {
+    new_faces.forEach((f, i, arr) => {
       faces_faces[f] = [arr[(i + 1) % new_faces.length]];
     });
-    incident_faces.forEach(function (f, i) {
-      for (var j = 0; j < faces_faces[f].length; j++) {
+    incident_faces.forEach((f, i) => {
+      for (let j = 0; j < faces_faces[f].length; j++) {
         if (faces_faces[f][j] === old_face) {
           faces_faces[f][j] = incident_face_face[i];
           faces_faces[incident_face_face[i]].push(f);
@@ -6079,408 +4613,381 @@
     });
   };
 
-  var intersect_convex_face_line = function intersect_convex_face_line(_ref, face, vector, point) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices,
-        faces_vertices = _ref.faces_vertices,
-        faces_edges = _ref.faces_edges;
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : math.core.EPSILON;
-    var face_vertices_indices = faces_vertices[face].map(function (v) {
-      return vertices_coords[v];
-    }).map(function (coord) {
-      return math.core.overlap_line_point(vector, point, coord, function () {
-        return true;
-      }, epsilon);
-    }).map(function (overlap, i) {
-      return overlap ? i : undefined;
-    }).filter(function (i) {
-      return i !== undefined;
-    });
-    var vertices = face_vertices_indices.map(function (i) {
-      return faces_vertices[face][i];
-    });
-    var vertices_are_neighbors = face_vertices_indices.concat(face_vertices_indices.map(function (i) {
-      return i + faces_vertices[face].length;
-    })).map(function (n, i, arr) {
-      return arr[i + 1] - n === 1;
-    }).reduce(function (a, b) {
-      return a || b;
-    }, false);
-    if (vertices_are_neighbors) {
-      return undefined;
-    }
-    if (vertices.length > 1) {
-      return {
-        vertices: vertices,
-        edges: []
-      };
-    }
-    var edges = faces_edges[face].map(function (edge) {
-      return edges_vertices[edge].map(function (v) {
-        return vertices_coords[v];
-      });
-    }).map(function (seg) {
-      return math.core.intersect_line_line(vector, point, math.core.subtract(seg[1], seg[0]), seg[0], math.core.include_l, math.core.exclude_s, epsilon);
-    }).map(function (coords, face_edge_index) {
-      return {
-        coords: coords,
-        edge: faces_edges[face][face_edge_index]
-      };
-    })
-    .filter(function (el) {
-      return el.coords !== undefined;
-    })
-    .filter(function (el) {
-      return !vertices.map(function (v) {
-        return edges_vertices[el.edge].includes(v);
-      }).reduce(function (a, b) {
-        return a || b;
-      }, false);
-    });
-    return edges.length + vertices.length === 2 ? {
-      vertices: vertices,
-      edges: edges
-    } : undefined;
-  };
-
-  var split_convex_face = function split_convex_face(graph, face, vector, point, epsilon) {
-    var intersect = intersect_convex_face_line(graph, face, vector, point, epsilon);
-    if (intersect === undefined) {
-      return undefined;
-    }
-    var result = split_at_intersections(graph, intersect);
-    result.edges["new"] = rebuild_edge(graph, face, result.vertices);
-    update_vertices_vertices(graph, result.edges["new"]);
-    update_vertices_edges(graph, result.edges["new"]);
-    var faces = build_faces(graph, face, result.vertices);
+  const split_convex_face = (graph, face, vector, point, epsilon) => {
+    const intersect = intersect_convex_face_line(graph, face, vector, point, epsilon);
+    if (intersect === undefined) { return undefined; }
+    const result = split_at_intersections(graph, intersect);
+    result.edges.new = rebuild_edge(graph, face, result.vertices);
+    update_vertices_vertices(graph, result.edges.new);
+    update_vertices_edges(graph, result.edges.new);
+    const faces = build_faces(graph, face, result.vertices);
     update_vertices_faces(graph, face, faces);
-    update_edges_faces(graph, face, result.edges["new"], faces);
+    update_edges_faces(graph, face, result.edges.new, faces);
     update_faces_faces(graph, face, faces);
-    var faces_map = remove_geometry_indices(graph, _faces, [face]);
-    faces.forEach(function (_, i) {
-      faces[i] = faces_map[faces[i]];
-    });
+    const faces_map = remove_geometry_indices(graph, _faces, [face]);
+    faces.forEach((_, i) => { faces[i] = faces_map[faces[i]]; });
     faces_map.splice(-2);
     faces_map[face] = faces;
     result.faces = {
       map: faces_map,
-      "new": faces,
-      remove: face
+      new: faces,
+      remove: face,
     };
     return result;
   };
 
-  var Graph = {};
+  const Graph = {};
   Graph.prototype = Object.create(Object.prototype);
   Graph.prototype.constructor = Graph;
-  var graphMethods = Object.assign({
-    clean: clean,
-    populate: populate,
-    fragment: fragment,
-    subgraph: subgraph,
-    assign: assign$1
-  }, transform);
-  Object.keys(graphMethods).forEach(function (key) {
+  const graphMethods = Object.assign({
+    clean,
+    populate,
+    fragment,
+    subgraph,
+    assign: assign$1,
+  },
+    transform,
+  );
+  Object.keys(graphMethods).forEach(key => {
     Graph.prototype[key] = function () {
-      return graphMethods[key].apply(graphMethods, [this].concat(Array.prototype.slice.call(arguments)));
+      return graphMethods[key](this, ...arguments);
     };
   });
-  var graphMethodsRenamed = {
+  const graphMethodsRenamed = {
     addVertices: add_vertices,
     splitEdge: split_edge,
     faceSpanningTree: make_face_spanning_tree,
-    explodeFaces: explode_faces
+    explodeFaces: explode_faces,
   };
-  Object.keys(graphMethodsRenamed).forEach(function (key) {
+  Object.keys(graphMethodsRenamed).forEach(key => {
     Graph.prototype[key] = function () {
-      return graphMethodsRenamed[key].apply(graphMethodsRenamed, [this].concat(Array.prototype.slice.call(arguments)));
+      return graphMethodsRenamed[key](this, ...arguments);
     };
   });
-  Graph.prototype.splitFace = function (face) {
-    var _math$core;
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-    var line = (_math$core = math.core).get_line.apply(_math$core, args);
+  Graph.prototype.splitFace = function (face, ...args) {
+    const line = math.core.get_line(...args);
     return split_convex_face(this, face, line.vector, line.origin);
   };
   Graph.prototype.copy = function () {
     return Object.assign(Object.create(this.__proto__), clone(this));
   };
-  Graph.prototype.load = function (object) {
-    var _this = this;
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    if (_typeof(object) !== _object$1) {
-      return;
-    }
+  Graph.prototype.load = function (object, options = {}) {
+    if (typeof object !== _object$1) { return; }
     if (options.append !== true) {
-      keys.forEach(function (key) {
-        return delete _this[key];
-      });
+      keys.forEach(key => delete this[key]);
     }
-    Object.assign(this, {
-      file_spec: file_spec,
-      file_creator: file_creator
-    }, clone(object));
+    Object.assign(this, { file_spec, file_creator }, clone(object));
   };
   Graph.prototype.clear = function () {
-    var _this2 = this;
-    fold_keys.graph.forEach(function (key) {
-      return delete _this2[key];
-    });
-    fold_keys.orders.forEach(function (key) {
-      return delete _this2[key];
-    });
+    fold_keys.graph.forEach(key => delete this[key]);
+    fold_keys.orders.forEach(key => delete this[key]);
     delete this.file_frames;
   };
   Graph.prototype.unitize = function () {
-    if (!this.vertices_coords) {
-      return;
-    }
-    var box = math.core.enclosing_box(this.vertices_coords);
-    var scale = box[1].map(function (n) {
-      return 1 / n;
-    });
-    var origin = box[0];
-    this.vertices_coords = this.vertices_coords.map(function (coord) {
-      return math.core.subtract(coord, origin);
-    }).map(function (coord) {
-      return coord.map(function (n, i) {
-        return n * scale[i];
-      });
-    });
+    if (!this.vertices_coords) { return; }
+    const box = math.core.bounding_box(this.vertices_coords);
+    const scale = box.span.map(n => n === 0 ? 1 : 1 / n);
+    const origin = box.min;
+    this.vertices_coords = this.vertices_coords
+      .map(coord => math.core.subtract(coord, origin))
+      .map(coord => coord.map((n, i) => n * scale[i]));
     return this;
   };
   Graph.prototype.folded = function () {
-    var vertices_coords = this.faces_matrix2 ? multiply_vertices_faces_matrix2(this, this.faces_matrix2) : make_vertices_coords_folded.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
-    return Object.assign(Object.create(this.__proto__), Object.assign(clone(this), {
-      vertices_coords: vertices_coords,
-      frame_classes: [_foldedForm]
-    }));
+    const vertices_coords = this.faces_matrix2
+      ? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
+      : make_vertices_coords_folded(this, ...arguments);
+    return Object.assign(
+      Object.create(this.__proto__),
+      Object.assign(clone(this), {
+        vertices_coords,
+        frame_classes: [_foldedForm]
+      }));
   };
   Graph.prototype.flatFolded = function () {
-    var vertices_coords = this.faces_matrix2 ? multiply_vertices_faces_matrix2(this, this.faces_matrix2) : make_vertices_coords_flat_folded.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
-    return Object.assign(Object.create(this.__proto__), Object.assign(clone(this), {
-      vertices_coords: vertices_coords,
-      frame_classes: [_foldedForm]
-    }));
+    const vertices_coords = this.faces_matrix2
+      ? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
+      : make_vertices_coords_flat_folded(this, ...arguments);
+    return Object.assign(
+      Object.create(this.__proto__),
+      Object.assign(clone(this), {
+        vertices_coords,
+        frame_classes: [_foldedForm]
+      }));
   };
-  var shortenKeys = function shortenKeys(el, i, arr) {
-    var _this3 = this;
-    var object = Object.create(null);
-    Object.keys(el).forEach(function (k) {
-      object[k.substring(_this3.length + 1)] = el[k];
+  const shortenKeys = function (el, i, arr) {
+    const object = Object.create(null);
+    Object.keys(el).forEach((k) => {
+      object[k.substring(this.length + 1)] = el[k];
     });
     return object;
   };
-  var getComponent = function getComponent(key) {
-    return transpose_graph_arrays(this, key).map(shortenKeys.bind(key)).map(setup[key].bind(this));
+  const getComponent = function (key) {
+    return transpose_graph_arrays(this, key)
+      .map(shortenKeys.bind(key))
+      .map(setup[key].bind(this));
   };
-  [_vertices, _edges, _faces].forEach(function (key) {
-    return Object.defineProperty(Graph.prototype, key, {
-      get: function get() {
-        return getComponent.call(this, key);
-      }
-    });
-  });
+  [_vertices, _edges, _faces]
+    .forEach(key => Object.defineProperty(Graph.prototype, key, {
+      get: function () { return getComponent.call(this, key); }
+    }));
   Object.defineProperty(Graph.prototype, _boundary, {
-    get: function get() {
-      var _this4 = this;
-      var boundary = get_boundary(this);
-      var poly = math.polygon(boundary.vertices.map(function (v) {
-        return _this4.vertices_coords[v];
-      }));
-      Object.keys(boundary).forEach(function (key) {
-        poly[key] = boundary[key];
-      });
+    get: function () {
+      const boundary = get_boundary(this);
+      const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
+      Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
       return Object.assign(poly, boundary);
     }
   });
-  var nearestMethods = {
+  const nearestMethods = {
     vertices: nearest_vertex,
     edges: nearest_edge,
-    faces: face_containing_point
+    faces: face_containing_point,
   };
   Graph.prototype.nearest = function () {
-    var _this5 = this;
-    var point = math.core.get_vector(arguments);
-    var nears = Object.create(null);
-    var cache = {};
-    [_vertices, _edges, _faces].forEach(function (key) {
+    const point = math.core.get_vector(arguments);
+    const nears = Object.create(null);
+    const cache = {};
+    [_vertices, _edges, _faces].forEach(key => {
       Object.defineProperty(nears, singularize[key], {
-        get: function get() {
-          if (cache[key] !== undefined) {
-            return cache[key];
-          }
-          cache[key] = nearestMethods[key](_this5, point);
+        get: () => {
+          if (cache[key] !== undefined) { return cache[key]; }
+          cache[key] = nearestMethods[key](this, point);
           return cache[key];
         }
       });
-      filter_keys_with_prefix(_this5, key).forEach(function (fold_key) {
-        return Object.defineProperty(nears, fold_key, {
-          get: function get() {
-            return _this5[fold_key][nears[singularize[key]]];
-          }
-        });
-      });
+      filter_keys_with_prefix(this, key).forEach(fold_key =>
+        Object.defineProperty(nears, fold_key, {
+          get: () => this[fold_key][nears[singularize[key]]]
+        }));
     });
     return nears;
   };
   var GraphProto = Graph.prototype;
 
-  var clip = function clip(_ref, line) {
-    var vertices_coords = _ref.vertices_coords,
-        vertices_edges = _ref.vertices_edges,
-        edges_vertices = _ref.edges_vertices,
-        edges_assignment = _ref.edges_assignment,
-        boundaries_vertices = _ref.boundaries_vertices;
+  const clip = function (
+    {vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices},
+    line) {
     if (!boundaries_vertices) {
       boundaries_vertices = get_boundary({
-        vertices_edges: vertices_edges,
-        edges_vertices: edges_vertices,
-        edges_assignment: edges_assignment
+        vertices_edges, edges_vertices, edges_assignment
       }).vertices;
     }
-    return math.polygon(boundaries_vertices.map(function (v) {
-      return vertices_coords[v];
-    })).clip(line);
+    return math.polygon(boundaries_vertices.map(v => vertices_coords[v]))
+      .clip(line);
   };
 
-  var add_edges = function add_edges(graph, edges_vertices) {
-    var _graph$edges_vertices;
-    if (!graph.edges_vertices) {
-      graph.edges_vertices = [];
-    }
-    if (typeof edges_vertices[0] === "number") {
-      edges_vertices = [edges_vertices];
-    }
-    var indices = edges_vertices.map(function (_, i) {
-      return graph.edges_vertices.length + i;
-    });
-    (_graph$edges_vertices = graph.edges_vertices).push.apply(_graph$edges_vertices, _toConsumableArray(edges_vertices));
-    var index_map = remove_duplicate_edges(graph).map;
-    return indices.map(function (i) {
-      return index_map[i];
-    });
+  const add_edges = (graph, edges_vertices) => {
+    if (!graph.edges_vertices) { graph.edges_vertices = []; }
+    if (typeof edges_vertices[0] === "number") { edges_vertices = [edges_vertices]; }
+    const indices = edges_vertices.map((_, i) => graph.edges_vertices.length + i);
+    graph.edges_vertices.push(...edges_vertices);
+    const index_map = remove_duplicate_edges(graph).map;
+    return indices.map(i => index_map[i]);
   };
 
-  var CreasePattern = {};
+  const add_segment_edges = (graph, segment_vertices) => {
+    const segment_edges = Array
+      .from(Array(segment_vertices.length - 1))
+      .map((_, i) => graph.edges_vertices.length + i);
+    const segment_edges_vertices = segment_edges
+      .map((_, i) => [segment_vertices[i], segment_vertices[i + 1]]);
+    segment_edges.forEach((e, i) => {
+      graph.edges_vertices[e] = segment_edges_vertices[i];
+    });
+    if (graph.edges_assignment) {
+      segment_edges.forEach(e => { graph.edges_assignment[e] = "U"; });
+    }
+    if (graph.edges_foldAngle) {
+      segment_edges.forEach(e => { graph.edges_foldAngle[e] = 0; });
+    }
+    for (let i = 0; i < segment_vertices.length; i++) {
+      const vertex = segment_vertices[i];
+      const prev = segment_vertices[i - 1];
+      const next = segment_vertices[i + 1];
+      const new_adjacent_vertices = [prev, next].filter(a => a !== undefined);
+      const previous_vertices_vertices = graph.vertices_vertices[vertex]
+        ? graph.vertices_vertices[vertex] : [];
+      const unsorted_vertices_vertices = previous_vertices_vertices
+        .concat(new_adjacent_vertices);
+      graph.vertices_vertices[vertex] = sort_vertices_counter_clockwise(
+        graph, unsorted_vertices_vertices, segment_vertices[i]);
+    }
+    const edge_map = make_vertices_to_edge_bidirectional(graph);
+    for (let i = 0; i < segment_vertices.length; i++) {
+      const vertex = segment_vertices[i];
+      graph.vertices_edges[vertex] = graph.vertices_vertices[vertex]
+        .map(v => edge_map[`${vertex} ${v}`]);
+    }
+    return segment_edges;
+  };
+  const add_segment_to_planar_graph = (graph, point1, point2, epsilon = math.core.EPSILON) => {
+    const segment = [point1, point2].map(p => [p[0], p[1]]);
+    const segment_vector = math.core.subtract2(segment[1], segment[0]);
+    graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
+    const intersections = make_edges_segment_intersection(graph, segment[0], segment[1], epsilon);
+    const intersected_edges = intersections
+      .map((pt, e) => pt === undefined ? undefined : e)
+      .filter(a => a !== undefined)
+      .sort((a, b) => a - b);
+    const faces_map = {};
+    intersected_edges
+      .forEach(e => graph.edges_faces[e]
+        .forEach(f => { faces_map[f] = true; }));
+    const intersected_faces = Object.keys(faces_map)
+      .map(s => parseInt(s))
+      .sort((a, b) => a - b);
+    const split_edge_results = intersected_edges
+      .reverse()
+      .map(edge => split_edge(graph, edge, intersections[edge], epsilon));
+    const split_edge_vertices = split_edge_results.map(el => el.vertex);
+    const split_edge_maps = split_edge_results.map(el => el.edges.map);
+    split_edge_maps
+      .splice(1)
+      .reduce((a, b) => merge_nextmaps(a, b), split_edge_maps[0]);
+    const endpoint_vertices = add_vertices(graph, segment, epsilon);
+    const new_vertex_hash = {};
+    split_edge_vertices.forEach(v => { new_vertex_hash[v] = true; });
+    endpoint_vertices.forEach(v => { new_vertex_hash[v] = true; });
+    const new_vertices = Object.keys(new_vertex_hash).map(n => parseInt(n));
+    const segment_vertices = sort_vertices_along_vector(graph, new_vertices, segment_vector);
+    const edge_map = make_vertices_to_edge_bidirectional(graph);
+    const segment_edges = add_segment_edges(graph, segment_vertices);
+    segment_edges.forEach(e => {
+      const v = graph.edges_vertices[e];
+      edge_map[`${v[0]} ${v[1]}`] = e;
+      edge_map[`${v[1]} ${v[0]}`] = e;
+    });
+    const segment_vertex_pairs = Array
+      .from(Array(segment_vertices.length - 1))
+      .map((_, i) => [
+        [segment_vertices[i], segment_vertices[i + 1]],
+        [segment_vertices[i + 1], segment_vertices[i]],
+      ]).reduce((a, b) => a.concat(b), []);
+    const walked_edges = {};
+    const walked_faces = segment_vertex_pairs
+      .map(pair => counter_clockwise_walk(graph, pair[0], pair[1], walked_edges))
+      .filter(a => a !== undefined);
+    remove_geometry_indices(graph, "faces", intersected_faces);
+    const new_faces = walked_faces
+      .map((_, i) => graph.faces_vertices.length + i);
+    if (graph.faces_vertices) {
+      new_faces.forEach((f, i) => {
+        graph.faces_vertices[f] = walked_faces[i].vertices;
+      });
+    }
+    if (graph.faces_edges) {
+      new_faces.forEach((f, i) => {
+        graph.faces_edges[f] = walked_faces[i].edges
+          .map(pair => edge_map[pair]);
+      });
+    }
+    if (graph.faces_angles) {
+      new_faces.forEach((f, i) => {
+        graph.faces_angles[f] = walked_faces[i].faces_angles;
+      });
+    }
+    if (graph.vertices_faces) {
+      graph.vertices_faces = make_vertices_faces(graph);
+    }
+    if (graph.edges_faces) {
+      graph.edges_faces = make_edges_faces_unsorted(graph);
+    }
+    if (graph.faces_faces) {
+      graph.faces_faces = make_faces_faces(graph);
+    }
+    if (graph.vertices_coords.length !== graph.vertices_vertices.length
+      || graph.vertices_coords.length !== graph.vertices_edges.length
+      || graph.vertices_coords.length !== graph.vertices_faces.length) {
+      console.warn("vertices mismatch", JSON.parse(JSON.stringify(graph)));
+    }
+    if (graph.edges_vertices.length !== graph.edges_faces.length
+      || graph.edges_vertices.length !== graph.edges_assignment.length) {
+      console.warn("edges mismatch", JSON.parse(JSON.stringify(graph)));
+    }
+    if (graph.faces_vertices.length !== graph.faces_edges.length
+      || graph.faces_vertices.length !== graph.faces_faces.length) {
+      console.warn("faces mismatch", JSON.parse(JSON.stringify(graph)));
+    }
+    return segment_edges;
+  };
+
+  const CreasePattern = {};
   CreasePattern.prototype = Object.create(GraphProto);
   CreasePattern.prototype.constructor = CreasePattern;
-  var arcResolution = 96;
-  var edges_array = function edges_array(array) {
-    var _this = this;
-    array.mountain = function () {
-      var degrees = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : -180;
-      array.forEach(function (i) {
-        _this.edges_assignment[i] = "M";
-        _this.edges_foldAngle[i] = degrees;
+  const arcResolution = 96;
+  const make_edges_array = function (array) {
+    array.mountain = (degrees = -180) => {
+      array.forEach(i => {
+        this.edges_assignment[i] = "M";
+        this.edges_foldAngle[i] = degrees;
       });
       return array;
     };
-    array.valley = function () {
-      var degrees = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 180;
-      array.forEach(function (i) {
-        _this.edges_assignment[i] = "V";
-        _this.edges_foldAngle[i] = degrees;
+    array.valley = (degrees = 180) => {
+      array.forEach(i => {
+        this.edges_assignment[i] = "V";
+        this.edges_foldAngle[i] = degrees;
       });
       return array;
     };
-    array.flat = function () {
-      array.forEach(function (i) {
-        _this.edges_assignment[i] = "F";
-        _this.edges_foldAngle[i] = 0;
+    array.flat = () => {
+      array.forEach(i => {
+        this.edges_assignment[i] = "F";
+        this.edges_foldAngle[i] = 0;
       });
       return array;
     };
     return array;
   };
-  ["line", "ray", "segment"].forEach(function (type) {
+  ["line", "ray", "segment"].forEach(type => {
     CreasePattern.prototype[type] = function () {
-      var primitive = math[type].apply(math, arguments);
-      if (!primitive) {
-        return;
-      }
-      var segment = clip(this, primitive);
-      if (!segment) {
-        return;
-      }
-      var vertices = add_vertices(this, segment);
-      var edges = add_edges(this, vertices);
-      var map = fragment(this).edges.map;
-      populate(this);
-      return edges_array.call(this, edges.map(function (e) {
-        return map[e];
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []));
+      const primitive = math[type](...arguments);
+      if (!primitive) { return; }
+      const segment = clip(this, primitive);
+      if (!segment) { return; }
+      const edges = add_segment_to_planar_graph(this, segment[0], segment[1]);
+      return make_edges_array.call(this, edges);
     };
   });
-  ["circle", "ellipse", "rect", "polygon"].forEach(function (fName) {
+  ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
     CreasePattern.prototype[fName] = function () {
-      var _this2 = this;
-      var primitive = math[fName].apply(math, arguments);
-      if (!primitive) {
-        return;
-      }
-      var segments = primitive.segments(arcResolution).map(function (segment) {
-        return math.segment(segment);
-      }).map(function (segment) {
-        return clip(_this2, segment);
-      }).filter(function (a) {
-        return a !== undefined;
+      const primitive = math[fName](...arguments);
+      if (!primitive) { return; }
+      const segments = primitive.segments(arcResolution)
+        .map(segment => math.segment(segment))
+        .map(segment => clip(this, segment))
+        .filter(a => a !== undefined);
+      if (!segments) { return; }
+      const vertices = [];
+      const edges = [];
+      segments.forEach(segment => {
+        const verts = add_vertices(this, segment);
+        vertices.push(...verts);
+        edges.push(...add_edges(this, verts));
       });
-      if (!segments) {
-        return;
-      }
-      var vertices = [];
-      var edges = [];
-      segments.forEach(function (segment) {
-        var verts = add_vertices(_this2, segment);
-        vertices.push.apply(vertices, _toConsumableArray(verts));
-        edges.push.apply(edges, _toConsumableArray(add_edges(_this2, verts)));
-      });
-      var map = fragment(this).edges.map;
+      const map = fragment(this).edges.map;
       populate(this);
-      return edges_array.call(this, edges.map(function (e) {
-        return map[e];
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []));
+      return make_edges_array.call(this, edges.map(e => map[e])
+        .reduce((a, b) => a.concat(b), []));
     };
   });
   var CreasePatternProto = CreasePattern.prototype;
 
-  var make_faces_winding_from_matrix = function make_faces_winding_from_matrix(faces_matrix) {
-    return faces_matrix.map(function (m) {
-      return m[0] * m[4] - m[1] * m[3];
-    }).map(function (c) {
-      return c >= 0;
-    });
-  };
-  var make_faces_winding_from_matrix2 = function make_faces_winding_from_matrix2(faces_matrix) {
-    return faces_matrix.map(function (m) {
-      return m[0] * m[3] - m[1] * m[2];
-    }).map(function (c) {
-      return c >= 0;
-    });
-  };
-  var make_faces_winding = function make_faces_winding(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        faces_vertices = _ref.faces_vertices;
-    return faces_vertices.map(function (vertices) {
-      return vertices.map(function (v) {
-        return vertices_coords[v];
-      }).map(function (point, i, arr) {
-        return [point, arr[(i + 1) % arr.length]];
-      }).map(function (pts) {
-        return (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]);
-      }).reduce(function (a, b) {
-        return a + b;
-      }, 0);
-    }).map(function (face) {
-      return face < 0;
-    });
+  const make_faces_winding_from_matrix = faces_matrix => faces_matrix
+    .map(m => m[0] * m[4] - m[1] * m[3])
+    .map(c => c >= 0);
+  const make_faces_winding_from_matrix2 = faces_matrix => faces_matrix
+    .map(m => m[0] * m[3] - m[1] * m[2])
+    .map(c => c >= 0);
+  const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
+    return faces_vertices
+      .map(vertices => vertices
+        .map(v => vertices_coords[v])
+        .map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
+        .map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]) )
+        .reduce((a, b) => a + b, 0))
+      .map(face => face < 0);
   };
 
   var faces_winding = /*#__PURE__*/Object.freeze({
@@ -6490,156 +4997,142 @@
     make_faces_winding: make_faces_winding
   });
 
-  var fold_faces_layer = function fold_faces_layer(faces_layer, faces_folding) {
-    var new_faces_layer = [];
-    var arr = faces_layer.map(function (_, i) {
-      return i;
-    });
-    var folding = arr.filter(function (i) {
-      return faces_folding[i];
-    });
-    var not_folding = arr.filter(function (i) {
-      return !faces_folding[i];
-    });
-    not_folding.sort(function (a, b) {
-      return faces_layer[a] - faces_layer[b];
-    }).forEach(function (face, i) {
-      new_faces_layer[face] = i;
-    });
-    folding.sort(function (a, b) {
-      return faces_layer[b] - faces_layer[a];
-    })
-    .forEach(function (face, i) {
-      new_faces_layer[face] = not_folding.length + i;
-    });
+  const fold_faces_layer = (faces_layer, faces_folding) => {
+    const new_faces_layer = [];
+    const arr = faces_layer.map((_, i) => i);
+    const folding = arr.filter(i => faces_folding[i]);
+    const not_folding = arr.filter(i => !faces_folding[i]);
+    not_folding
+      .sort((a, b) => faces_layer[a] - faces_layer[b])
+      .forEach((face, i) => { new_faces_layer[face] = i; });
+    folding
+      .sort((a, b) => faces_layer[b] - faces_layer[a])
+      .forEach((face, i) => { new_faces_layer[face] = not_folding.length + i; });
     return new_faces_layer;
   };
 
-  var make_face_side = function make_face_side(vector, origin, face_center, face_winding) {
-    var center_vector = math.core.subtract2(face_center, origin);
-    var determinant = math.core.cross2(vector, center_vector);
+  const make_face_side = (vector, origin, face_center, face_winding) => {
+    const center_vector = math.core.subtract2(face_center, origin);
+    const determinant = math.core.cross2(vector, center_vector);
     return face_winding ? determinant < 0 : determinant > 0;
   };
-  var make_face_center = function make_face_center(graph, face) {
-    return !graph.faces_vertices[face] ? [0, 0] : graph.faces_vertices[face].map(function (v) {
-      return graph.vertices_coords[v];
-    }).reduce(function (a, b) {
-      return [a[0] + b[0], a[1] + b[1]];
-    }, [0, 0]).map(function (el) {
-      return el / graph.faces_vertices[face].length;
-    });
-  };
-  var opposite_lookup = {
-    M: "V",
-    m: "V",
-    V: "M",
-    v: "M"
-  };
-  var get_opposite_assignment = function get_opposite_assignment(assign) {
-    return opposite_lookup[assign] || assign;
-  };
-  var face_snapshot = function face_snapshot(graph, face) {
-    return {
-      center: graph.faces_center[face],
-      matrix: graph.faces_matrix2[face],
-      winding: graph.faces_winding[face],
-      crease: graph.faces_crease[face],
-      side: graph.faces_side[face],
-      layer: graph.faces_layer[face]
-    };
-  };
-  var flat_fold = function flat_fold(graph, vector, origin) {
-    var assignment = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : "V";
-    var epsilon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : math.core.EPSILON;
-    var opposite_assignment = get_opposite_assignment(assignment);
+  const make_face_center = (graph, face) => !graph.faces_vertices[face]
+    ? [0, 0]
+    : graph.faces_vertices[face]
+      .map(v => graph.vertices_coords[v])
+      .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+      .map(el => el / graph.faces_vertices[face].length);
+  const opposite_lookup = { M:"V", m:"V", V:"M", v:"M" };
+  const get_opposite_assignment = assign => opposite_lookup[assign] || assign;
+  const face_snapshot = (graph, face) => ({
+    center: graph.faces_center[face],
+    matrix: graph.faces_matrix2[face],
+    winding: graph.faces_winding[face],
+    crease: graph.faces_crease[face],
+    side: graph.faces_side[face],
+    layer: graph.faces_layer[face],
+  });
+  const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
+    const opposite_assignment = get_opposite_assignment(assignment);
     populate(graph);
     if (!graph.faces_layer) {
       graph.faces_layer = Array(graph.faces_vertices.length).fill(0);
     }
-    graph.faces_center = graph.faces_vertices.map(function (_, i) {
-      return make_face_center(graph, i);
-    });
+    graph.faces_center = graph.faces_vertices
+      .map((_, i) => make_face_center(graph, i));
     if (!graph.faces_matrix2) {
       graph.faces_matrix2 = make_faces_matrix2(graph, 0);
     }
     graph.faces_winding = make_faces_winding_from_matrix2(graph.faces_matrix2);
-    graph.faces_crease = graph.faces_matrix2.map(math.core.invert_matrix2).map(function (matrix) {
-      return math.core.multiply_matrix2_line2(matrix, vector, origin);
-    });
-    graph.faces_side = graph.faces_vertices.map(function (_, i) {
-      return make_face_side(graph.faces_crease[i].vector, graph.faces_crease[i].origin, graph.faces_center[i], graph.faces_winding[i]);
-    });
-    var face0 = face_snapshot(graph, 0);
-    var split_changes = graph.faces_vertices.map(function (_, i) {
-      return i;
-    }).reverse().map(function (i) {
-      var face = face_snapshot(graph, i);
-      var change = split_convex_face(graph, i, face.crease.vector, face.crease.origin, epsilon);
-      if (change === undefined) {
-        return undefined;
-      }
-      graph.edges_assignment[change.edges["new"]] = face.winding ? assignment : opposite_assignment;
-      graph.edges_foldAngle[change.edges["new"]] = edge_assignment_to_foldAngle(graph.edges_assignment[change.edges["new"]]);
-      var new_faces = change.faces.map[change.faces.remove];
-      new_faces.forEach(function (f) {
-        graph.faces_center[f] = make_face_center(graph, f);
-        graph.faces_side[f] = make_face_side(face.crease.vector, face.crease.origin, graph.faces_center[f], face.winding);
-        graph.faces_layer[f] = face.layer;
-      });
-      return change;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    var faces_map = merge_nextmaps.apply(void 0, _toConsumableArray(split_changes.map(function (el) {
-      return el.faces.map;
-    })));
-    var edges_map = merge_nextmaps.apply(void 0, _toConsumableArray(split_changes.map(function (el) {
-      return el.edges.map;
-    }).filter(function (a) {
-      return a !== undefined;
-    })));
-    var faces_remove = split_changes.map(function (el) {
-      return el.faces.remove;
-    }).reverse();
-    graph.faces_layer = fold_faces_layer(graph.faces_layer, graph.faces_side);
-    var face0_was_split = faces_map && faces_map[0].length === 2;
-    var face0_newIndex = face0_was_split ? faces_map[0].filter(function (f) {
-      return graph.faces_side[f];
-    }).shift() : 0;
-    var face0_preMatrix = face0.matrix;
+    graph.faces_crease = graph.faces_matrix2
+      .map(math.core.invert_matrix2)
+      .map(matrix => math.core.multiply_matrix2_line2(matrix, vector, origin));
+    graph.faces_side = graph.faces_vertices
+      .map((_, i) => make_face_side(
+        graph.faces_crease[i].vector,
+        graph.faces_crease[i].origin,
+        graph.faces_center[i],
+        graph.faces_winding[i],
+      ));
+    const face0 = face_snapshot(graph, 0);
+    const split_changes = graph.faces_vertices
+      .map((_, i) => i)
+      .reverse()
+      .map((i) => {
+        const face = face_snapshot(graph, i);
+        const change = split_convex_face(
+          graph,
+          i,
+          face.crease.vector,
+          face.crease.origin,
+          epsilon);
+        if (change === undefined) { return undefined; }
+        graph.edges_assignment[change.edges.new] = face.winding
+          ? assignment
+          : opposite_assignment;
+        graph.edges_foldAngle[change.edges.new] = edge_assignment_to_foldAngle(
+          graph.edges_assignment[change.edges.new]);
+        const new_faces = change.faces.map[change.faces.remove];
+        new_faces.forEach(f => {
+          graph.faces_center[f] = make_face_center(graph, f);
+          graph.faces_side[f] = make_face_side(
+            face.crease.vector,
+            face.crease.origin,
+            graph.faces_center[f],
+            face.winding);
+          graph.faces_layer[f] = face.layer;
+        });
+        return change;
+      })
+      .filter(a => a !== undefined);
+    const faces_map = merge_nextmaps(...split_changes.map(el => el.faces.map));
+    const edges_map = merge_nextmaps(...split_changes.map(el => el.edges.map)
+      .filter(a => a !== undefined));
+    const faces_remove = split_changes.map(el => el.faces.remove).reverse();
+    graph.faces_layer = fold_faces_layer(
+      graph.faces_layer,
+      graph.faces_side,
+    );
+    const face0_was_split = faces_map && faces_map[0].length === 2;
+    const face0_newIndex = (face0_was_split
+      ? faces_map[0].filter(f => graph.faces_side[f]).shift()
+      : 0);
+    let face0_preMatrix = face0.matrix;
     if (assignment !== opposite_assignment) {
-      face0_preMatrix = !face0_was_split && !graph.faces_side[0] ? face0.matrix : math.core.multiply_matrices2(face0.matrix, math.core.make_matrix2_reflect(face0.crease.vector, face0.crease.origin));
+      face0_preMatrix = (!face0_was_split && !graph.faces_side[0]
+        ? face0.matrix
+        : math.core.multiply_matrices2(
+            face0.matrix,
+            math.core.make_matrix2_reflect(
+              face0.crease.vector,
+              face0.crease.origin))
+      );
     }
-    graph.faces_matrix2 = make_faces_matrix2(graph, face0_newIndex).map(function (matrix) {
-      return math.core.multiply_matrices2(face0_preMatrix, matrix);
-    });
+    graph.faces_matrix2 = make_faces_matrix2(graph, face0_newIndex)
+      .map(matrix => math.core.multiply_matrices2(face0_preMatrix, matrix));
     delete graph.faces_center;
     delete graph.faces_winding;
     delete graph.faces_crease;
     delete graph.faces_side;
     return {
-      faces: {
-        map: faces_map,
-        remove: faces_remove
-      },
-      edges: {
-        map: edges_map
-      }
-    };
+      faces: { map: faces_map, remove: faces_remove },
+      edges: { map: edges_map },
+    }
   };
 
-  var Origami = {};
+  const Origami = {};
   Origami.prototype = Object.create(GraphProto);
   Origami.prototype.constructor = Origami;
   Origami.prototype.flatFold = function () {
-    var line = math.core.get_line(arguments);
+    const line = math.core.get_line(arguments);
     flat_fold(this, line.vector, line.origin);
     return this;
   };
   var OrigamiProto = Origami.prototype;
 
-  var is_folded_form = function is_folded_form(graph) {
-    return graph.frame_classes && graph.frame_classes.includes("foldedForm") || graph.file_classes && graph.file_classes.includes("foldedForm");
+  const is_folded_form = (graph) => {
+  	return (graph.frame_classes && graph.frame_classes.includes("foldedForm"))
+  	 	|| (graph.file_classes && graph.file_classes.includes("foldedForm"));
   };
 
   var query = /*#__PURE__*/Object.freeze({
@@ -6647,211 +5140,134 @@
     is_folded_form: is_folded_form
   });
 
-  var join_collinear_edges = function join_collinear_edges(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices,
-        vertices_edges = _ref.vertices_edges,
-        edges_vector = _ref.edges_vector;
-    arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    if (!edges_vector) {
-      edges_vector = make_edges_vector({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
-    }
-    if (!vertices_edges) {
-      vertices_edges = make_vertices_edges$1({
-        edges_vertices: edges_vertices
-      });
-    }
-    var two_adjacencies_vertices = vertices_edges.map(function (ve, i) {
-      return ve.length === 2 ? i : undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    var adjacencies_are_parallel = two_adjacencies_vertices.map(function (vertex) {
-      return vertices_edges[vertex];
-    }).map(function (edges) {
-      return edges.map(function (edge) {
-        return edges_vector[edge];
-      });
-    }).map(function (vecs) {
-      var _math$core;
-      return (_math$core = math.core).parallel.apply(_math$core, _toConsumableArray(vecs));
-    });
-    var vertices_remove = two_adjacencies_vertices.filter(function (vertex, i) {
-      return adjacencies_are_parallel[i];
-    });
-    var joinable_edges = vertices_remove.map(function (v) {
-      return vertices_edges[v];
-    }).map(function (edges) {
-      return edges[0] < edges[1] ? edges : [edges[1], edges[0]];
-    });
-    var edges_to_join = {};
-    for (var i = 0; i < joinable_edges.length; i++) {
-      if (edges_to_join[joinable_edges[i][1]] === undefined) {
-        edges_to_join[joinable_edges[i][1]] = true;
-      } else {
-        console.log("WARNING. cannot safely remove edges. some overlaps");
-      }
-    }
-    var edges_keep = joinable_edges.map(function (edges) {
-      return edges[0];
-    });
-    var edges_remove = joinable_edges.map(function (edges) {
-      return edges[1];
-    });
-    var edges_remove_other_vertex = edges_remove.map(function (edge) {
-      return edges_vertices[edge];
-    }).map(function (vertices, i) {
-      if (vertices[0] === vertices_remove[i]) {
-        return vertices[1];
-      } else if (vertices[1] === vertices_remove[i]) {
-        return vertices[0];
-      } else {
-        console.log("WARNING, removed edge cannot find vertex");
-        return undefined;
-      }
-    });
-    edges_keep.forEach(function (edge, i) {
-      if (edges_vertices[edge][0] === vertices_remove[i]) {
-        edges_vertices[edge][0] = edges_remove_other_vertex[i];
-      } else if (edges_vertices[edge][1] === vertices_remove[i]) {
-        edges_vertices[edge][1] = edges_remove_other_vertex[i];
-      } else {
-        console.log("WARNING, joining edges cannot find vertex");
-      }
-    });
-    return {
-      vertices: vertices_remove,
-      edges: edges_remove
-    };
+  const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.core.EPSILON) => {
+  	if (!edges_vector) {
+  		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+  	}
+  	if (!vertices_edges) {
+  		vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
+  	}
+  	const two_adjacencies_vertices = vertices_edges
+  		.map((ve, i) => ve.length === 2 ? i : undefined)
+  		.filter(a => a !== undefined);
+  	const adjacencies_are_parallel = two_adjacencies_vertices
+  		.map(vertex => vertices_edges[vertex])
+  		.map(edges => edges.map(edge => edges_vector[edge]))
+  		.map(vecs => math.core.parallel(...vecs));
+  	const vertices_remove = two_adjacencies_vertices
+  		.filter((vertex, i) => adjacencies_are_parallel[i]);
+  	const joinable_edges = vertices_remove
+  		.map(v => vertices_edges[v])
+  		.map(edges => edges[0] < edges[1] ? edges : [edges[1], edges[0]]);
+  	const edges_to_join = {};
+  	for (let i = 0; i < joinable_edges.length; i++) {
+  		if (edges_to_join[joinable_edges[i][1]] === undefined) {
+  			edges_to_join[joinable_edges[i][1]] = true;
+  		} else {
+  			console.warn("cannot safely remove edges. some overlaps");
+  		}
+  	}
+  	const edges_keep = joinable_edges.map(edges => edges[0]);
+  	const edges_remove = joinable_edges.map(edges => edges[1]);
+  	const edges_remove_other_vertex = edges_remove
+  		.map(edge => edges_vertices[edge])
+  		.map((vertices, i) => {
+  			if (vertices[0] === vertices_remove[i]) { return vertices[1]; }
+  			else if (vertices[1] === vertices_remove[i]) { return vertices[0]; }
+  			else { console.warn("removed edge cannot find vertex"); return undefined; }
+  		});
+  	edges_keep
+  		.forEach((edge, i) => {
+  			if (edges_vertices[edge][0] === vertices_remove[i]) {
+  				edges_vertices[edge][0] = edges_remove_other_vertex[i];
+  			} else if (edges_vertices[edge][1] === vertices_remove[i]) {
+  				edges_vertices[edge][1] = edges_remove_other_vertex[i];
+  			} else {
+  				console.warn("joining edges cannot find vertex");
+  			}
+  		});
+  	return {
+  		vertices: vertices_remove,
+  		edges: edges_remove
+  	};
   };
 
-  var make_folded_strip_tacos = function make_folded_strip_tacos(folded_faces, is_circular, epsilon) {
-    var faces_center = folded_faces.map(function (ends) {
-      return ends ? (ends[0] + ends[1]) / 2 : undefined;
-    });
-    var locations = [];
-    folded_faces.forEach(function (ends, i) {
-      if (!ends) {
-        return;
-      }
-      if (!is_circular && i === folded_faces.length - 1) {
-        return;
-      }
-      var fold_end = ends[1];
-      var min = fold_end - epsilon * 2;
-      var max = fold_end + epsilon * 2;
-      var faces = [i, (i + 1) % folded_faces.length];
-      var sides = faces.map(function (f) {
-        return faces_center[f];
-      }).map(function (center) {
-        return center > fold_end;
-      });
-      var taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
-      var match = locations.filter(function (el) {
-        return el.min < fold_end && el.max > fold_end;
-      }).shift();
-      var entry = {
-        faces: faces,
-        taco_type: taco_type
-      };
+  const make_folded_strip_tacos = (folded_faces, is_circular, epsilon) => {
+    const faces_center = folded_faces
+      .map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
+    const locations = [];
+    folded_faces.forEach((ends, i) => {
+      if (!ends) { return; }
+      if (!is_circular && i === folded_faces.length - 1) { return; }
+      const fold_end = ends[1];
+      const min = fold_end - (epsilon * 2);
+      const max = fold_end + (epsilon * 2);
+      const faces = [i, (i+1) % folded_faces.length];
+      const sides = faces
+        .map(f => faces_center[f])
+        .map(center => center > fold_end);
+      const taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
+      const match = locations
+        .filter(el => el.min < fold_end && el.max > fold_end)
+        .shift();
+      const entry = { faces, taco_type };
       if (match) {
         match.pairs.push(entry);
       } else {
-        locations.push({
-          min: min,
-          max: max,
-          pairs: [entry]
-        });
+        locations.push({ min, max, pairs: [entry] });
       }
     });
-    return locations.map(function (el) {
-      return el.pairs;
-    }).filter(function (pairs) {
-      return pairs.length > 1;
-    }).map(function (pairs) {
-      return {
-        both: pairs.filter(function (el) {
-          return el.taco_type === 0;
-        }).map(function (el) {
-          return el.faces;
-        }),
-        left: pairs.filter(function (el) {
-          return el.taco_type === 1;
-        }).map(function (el) {
-          return el.faces;
-        }),
-        right: pairs.filter(function (el) {
-          return el.taco_type === 2;
-        }).map(function (el) {
-          return el.faces;
-        })
-      };
-    });
+    return locations
+      .map(el => el.pairs)
+      .filter(pairs => pairs.length > 1)
+      .map(pairs => ({
+        both: pairs.filter(el => el.taco_type === 0).map(el => el.faces),
+        left: pairs.filter(el => el.taco_type === 1).map(el => el.faces),
+        right: pairs.filter(el => el.taco_type === 2).map(el => el.faces),
+      }));
   };
 
-  var between = function between(arr, i, j) {
-    return i < j ? arr.slice(i + 1, j) : arr.slice(j + 1, i);
-  };
-  var validate_taco_tortilla_strip = function validate_taco_tortilla_strip(faces_folded, layers_face) {
-    var is_circular = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : math.core.EPSILON;
-    var faces_layer = invert_map(layers_face);
-    var fold_location = faces_folded.map(function (ends) {
-      return ends ? ends[1] : undefined;
-    });
-    var faces_mins = faces_folded.map(function (ends) {
-      return ends ? Math.min.apply(Math, _toConsumableArray(ends)) : undefined;
-    }).map(function (n) {
-      return n + epsilon;
-    });
-    var faces_maxs = faces_folded.map(function (ends) {
-      return ends ? Math.max.apply(Math, _toConsumableArray(ends)) : undefined;
-    }).map(function (n) {
-      return n - epsilon;
-    });
-    var max = faces_layer.length + (is_circular ? 0 : -1);
-    var _loop = function _loop(i) {
-      var j = (i + 1) % faces_layer.length;
-      if (faces_layer[i] === faces_layer[j]) {
-        return "continue";
-      }
-      var layers_between = between(layers_face, faces_layer[i], faces_layer[j]).reduce(fn_cat, []);
-      var all_below_min = layers_between.map(function (index) {
-        return fold_location[i] < faces_mins[index];
-      }).reduce(fn_and, true);
-      var all_above_max = layers_between.map(function (index) {
-        return fold_location[i] > faces_maxs[index];
-      }).reduce(fn_and, true);
-      if (!all_below_min && !all_above_max) {
-        return {
-          v: false
-        };
-      }
-    };
-    for (var i = 0; i < max; i += 1) {
-      var _ret = _loop(i);
-      if (_ret === "continue") continue;
-      if (_typeof(_ret) === "object") return _ret.v;
+  const between = (arr, i, j) => (i < j)
+    ? arr.slice(i + 1, j)
+    : arr.slice(j + 1, i);
+  const validate_taco_tortilla_strip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+    const faces_layer = invert_map(layers_face);
+    const fold_location = faces_folded
+      .map(ends => ends ? ends[1] : undefined);
+    const faces_mins = faces_folded
+      .map(ends => ends ? Math.min(...ends) : undefined)
+      .map(n => n + epsilon);
+    const faces_maxs = faces_folded
+      .map(ends => ends ? Math.max(...ends) : undefined)
+      .map(n => n - epsilon);
+    const max = faces_layer.length + (is_circular ? 0 : -1);
+    for (let i = 0; i < max; i += 1) {
+      const j = (i + 1) % faces_layer.length;
+      if (faces_layer[i] === faces_layer[j]) { continue; }
+      const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
+        .reduce(fn_cat, []);
+      const all_below_min = layers_between
+        .map(index => fold_location[i] < faces_mins[index])
+        .reduce(fn_and, true);
+      const all_above_max = layers_between
+        .map(index => fold_location[i] > faces_maxs[index])
+        .reduce(fn_and, true);
+      if (!all_below_min && !all_above_max) { return false; }
     }
     return true;
   };
 
-  var validate_taco_taco_face_pairs = function validate_taco_taco_face_pairs(face_pair_stack) {
-    var pair_stack = remove_single_instances(face_pair_stack);
-    var pairs = {};
-    var count = 0;
-    for (var i = 0; i < pair_stack.length; i++) {
+  const validate_taco_taco_face_pairs = (face_pair_stack) => {
+    const pair_stack = remove_single_instances(face_pair_stack);
+    const pairs = {};
+    let count = 0;
+    for (let i = 0; i < pair_stack.length; i++) {
       if (pairs[pair_stack[i]] === undefined) {
         count++;
         pairs[pair_stack[i]] = count;
       }
       else if (pairs[pair_stack[i]] !== undefined) {
-        if (pairs[pair_stack[i]] !== count) {
-          return false;
-        }
+        if (pairs[pair_stack[i]] !== count) { return false; }
         count--;
         pairs[pair_stack[i]] = undefined;
       }
@@ -6859,71 +5275,53 @@
     return true;
   };
 
-  var build_layers = function build_layers(layers_face, faces_pair) {
-    return layers_face.map(function (f) {
-      return faces_pair[f];
-    }).filter(fn_def);
-  };
-  var validate_layer_solver = function validate_layer_solver(faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) {
-    var flat_layers_face = math.core.flatten_arrays(layers_face);
-    if (!validate_taco_tortilla_strip(faces_folded, layers_face, circ_and_done, epsilon)) {
-      return false;
-    }
-    for (var i = 0; i < taco_face_pairs.length; i++) {
-      var pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
-      if (!validate_taco_taco_face_pairs(pair_stack)) {
-        return false;
-      }
+  const build_layers = (layers_face, faces_pair) => layers_face
+    .map(f => faces_pair[f])
+    .filter(fn_def);
+  const validate_layer_solver = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
+    const flat_layers_face = math.core.flatten_arrays(layers_face);
+    if (!validate_taco_tortilla_strip(
+      faces_folded, layers_face, circ_and_done, epsilon
+    )) { return false; }
+    for (let i = 0; i < taco_face_pairs.length; i++) {
+      const pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
+      if (!validate_taco_taco_face_pairs(pair_stack)) { return false; }
     }
     return true;
   };
 
-  var change_map = {
-    V: true,
-    v: true,
-    M: true,
-    m: true
+  const change_map = { V: true, v: true, M: true, m: true };
+  const assignments_to_faces_flip = (assignments) => {
+    let counter = 0;
+    const shifted_assignments = assignments.slice(1);
+    return [false].concat(shifted_assignments
+      .map(a => change_map[a] ? ++counter : counter)
+      .map(count => count % 2 === 1));
   };
-  var assignments_to_faces_flip = function assignments_to_faces_flip(assignments) {
-    var counter = 0;
-    var shifted_assignments = assignments.slice(1);
-    return [false].concat(shifted_assignments.map(function (a) {
-      return change_map[a] ? ++counter : counter;
-    }).map(function (count) {
-      return count % 2 === 1;
-    }));
+  const up_down = { V: 1, v: 1, M: -1, m: -1 };
+  const upOrDown = (mv, i) => i % 2 === 0
+    ?  (up_down[mv] || 0)
+    : -(up_down[mv] || 0);
+  const assignments_to_faces_vertical = (assignments) => {
+    let iterator = 0;
+    return assignments
+      .slice(1)
+      .concat([assignments[0]])
+      .map(a => {
+        const updown = upOrDown(a, iterator);
+        iterator += up_down[a] === undefined ? 0 : 1;
+        return updown;
+      });
   };
-  var up_down = {
-    V: 1,
-    v: 1,
-    M: -1,
-    m: -1
-  };
-  var upOrDown = function upOrDown(mv, i) {
-    return i % 2 === 0 ? up_down[mv] || 0 : -(up_down[mv] || 0);
-  };
-  var assignments_to_faces_vertical = function assignments_to_faces_vertical(assignments) {
-    var iterator = 0;
-    return assignments.slice(1).concat([assignments[0]]).map(function (a) {
-      var updown = upOrDown(a, iterator);
-      iterator += up_down[a] === undefined ? 0 : 1;
-      return updown;
-    });
-  };
-  var fold_strip_with_assignments = function fold_strip_with_assignments(faces, assignments) {
-    var faces_end = assignments_to_faces_flip(assignments).map(function (flip, i) {
-      return faces[i] * (flip ? -1 : 1);
-    });
-    var cumulative = faces.map(function () {
-      return undefined;
-    });
+  const fold_strip_with_assignments = (faces, assignments) => {
+    const faces_end = assignments_to_faces_flip(assignments)
+      .map((flip, i) => faces[i] * (flip ? -1 : 1));
+    const cumulative = faces.map(() => undefined);
     cumulative[0] = [0, faces_end[0]];
-    for (var i = 1; i < faces.length; i++) {
-      if (assignments[i] === "B" || assignments[i] === "b") {
-        break;
-      }
-      var prev = (i - 1 + faces.length) % faces.length;
-      var prev_end = cumulative[prev][1];
+    for (let i = 1; i < faces.length; i++) {
+      if (assignments[i] === "B" || assignments[i] === "b") { break; }
+      const prev = (i - 1 + faces.length) % faces.length;
+      const prev_end = cumulative[prev][1];
       cumulative[i] = [prev_end, prev_end + faces_end[i]];
     }
     return cumulative;
@@ -6936,245 +5334,158 @@
     fold_strip_with_assignments: fold_strip_with_assignments
   });
 
-  var is_boundary = {
-    "B": true,
-    "b": true
-  };
-  var single_vertex_solver = function single_vertex_solver(ordered_scalars, assignments) {
-    var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : math.core.EPSILON;
-    var faces_folded = fold_strip_with_assignments(ordered_scalars, assignments);
-    var faces_updown = assignments_to_faces_vertical(assignments);
-    var is_circular = assignments.map(function (a) {
-      return !is_boundary[a];
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true);
+  const is_boundary = { "B": true, "b": true };
+  const single_vertex_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+    const faces_folded = fold_strip_with_assignments(ordered_scalars, assignments);
+    const faces_updown = assignments_to_faces_vertical(assignments);
+    const is_circular = assignments
+      .map(a => !(is_boundary[a]))
+      .reduce((a, b) => a && b, true);
     if (is_circular) {
-      var start = faces_folded[0][0];
-      var end = faces_folded[faces_folded.length - 1][1];
-      if (Math.abs(start - end) > epsilon) {
-        return [];
-      }
-    }
-    var taco_face_pairs = make_folded_strip_tacos(faces_folded, is_circular, epsilon).map(function (taco) {
-      return [taco.left, taco.right].map(invert_map).filter(function (arr) {
-        return arr.length > 1;
-      });
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
-    var recurse = function recurse() {
-      var layers_face = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [0];
-      var face = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-      var layer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-      var next_face = face + 1;
-      var next_dir = faces_updown[face];
-      var is_done = face >= ordered_scalars.length - 1;
-      var circ_and_done = is_circular && is_done;
-      if (!validate_layer_solver(faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon)) {
+      const start = faces_folded[0][0];
+      const end = faces_folded[faces_folded.length - 1][1];
+      if (Math.abs(start - end) > epsilon) { return []; }
+    }  const taco_face_pairs = make_folded_strip_tacos(faces_folded, is_circular, epsilon)
+      .map(taco => [taco.left, taco.right]
+        .map(invert_map)
+        .filter(arr => arr.length > 1))
+      .reduce((a, b) => a.concat(b), []);
+    const recurse = (layers_face = [0], face = 0, layer = 0) => {
+      const next_face = face + 1;
+      const next_dir = faces_updown[face];
+      const is_done = face >= ordered_scalars.length - 1;
+      const circ_and_done = is_circular && is_done;
+      if (!validate_layer_solver(
+        faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon
+      )) {
         return [];
       }
       if (circ_and_done) {
-        var faces_layer = invert_map(layers_face);
-        var first_face_layer = faces_layer[0];
-        var last_face_layer = faces_layer[face];
-        if (next_dir > 0 && last_face_layer > first_face_layer) {
-          return [];
-        }
-        if (next_dir < 0 && last_face_layer < first_face_layer) {
-          return [];
-        }
+        const faces_layer = invert_map(layers_face);
+        const first_face_layer = faces_layer[0];
+        const last_face_layer = faces_layer[face];
+        if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
+        if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
       }
-      if (is_done) {
-        return [layers_face];
-      }
+      if (is_done) { return [layers_face]; }
       if (next_dir === 0) {
         layers_face[layer] = [next_face].concat(layers_face[layer]);
         return recurse(layers_face, next_face, layer);
       }
-      var splice_layers = next_dir === 1 ? Array.from(Array(layers_face.length - layer)).map(function (_, i) {
-        return layer + i + 1;
-      }) : Array.from(Array(layer + 1)).map(function (_, i) {
-        return i;
-      });
-      var next_layers_faces = splice_layers.map(function (i) {
-        return clone(layers_face);
-      });
-      next_layers_faces.forEach(function (layers, i) {
-        return layers.splice(splice_layers[i], 0, next_face);
-      });
-      return next_layers_faces.map(function (layers, i) {
-        return recurse(layers, next_face, splice_layers[i]);
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []);
+      const splice_layers = next_dir === 1
+        ? Array.from(Array(layers_face.length - layer))
+          .map((_, i) => layer + i + 1)
+        : Array.from(Array(layer + 1))
+          .map((_, i) => i);
+      const next_layers_faces = splice_layers.map(i => clone(layers_face));
+      next_layers_faces
+        .forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
+      return next_layers_faces
+        .map((layers, i) => recurse(layers, next_face, splice_layers[i]))
+        .reduce((a, b) => a.concat(b), []);
     };
     return recurse().map(invert_map);
   };
 
-  var make_vertex_faces_layer = function make_vertex_faces_layer(_ref, vertex, epsilon) {
-    var vertices_faces = _ref.vertices_faces,
-        vertices_sectors = _ref.vertices_sectors,
-        vertices_edges = _ref.vertices_edges,
-        edges_assignment = _ref.edges_assignment;
-    var faces = vertices_faces[vertex];
-    var range = get_longest_array(circular_array_valid_ranges(faces));
-    if (range === undefined) {
-      return;
-    }
-    while (range[1] < range[0]) {
-      range[1] += faces.length;
-    }
-    var indices = Array.from(Array(range[1] - range[0] + 1)).map(function (_, i) {
-      return (range[0] + i) % faces.length;
-    });
-    var sectors = indices.map(function (i) {
-      return vertices_sectors[vertex][i];
-    });
-    var assignments = indices.map(function (i) {
-      return vertices_edges[vertex][i];
-    }).map(function (edge) {
-      return edges_assignment[edge];
-    });
-    var sectors_layer = single_vertex_solver(sectors, assignments, epsilon);
-    var faces_layer = sectors_layer.map(invert_map).map(function (arr) {
-      return arr.map(function (face) {
-        return _typeof(face) !== "object" ? faces[indices[face]] : face.map(function (f) {
-          return faces[indices[f]];
-        });
-      });
-    }).map(invert_map);
+  const make_vertex_faces_layer = ({
+    vertices_faces, vertices_sectors, vertices_edges, edges_assignment
+  }, vertex, epsilon) => {
+    const faces = vertices_faces[vertex];
+    const range = get_longest_array(circular_array_valid_ranges(faces));
+    if (range === undefined) { return; }
+    while (range[1] < range[0]) { range[1] += faces.length; }
+    const indices = Array
+      .from(Array(range[1] - range[0] + 1))
+      .map((_, i) => (range[0] + i) % faces.length);
+    const sectors = indices
+      .map(i => vertices_sectors[vertex][i]);
+    const assignments = indices
+      .map(i => vertices_edges[vertex][i])
+      .map(edge => edges_assignment[edge]);
+    const sectors_layer = single_vertex_solver(sectors, assignments, epsilon);
+    const faces_layer = sectors_layer
+      .map(invert_map)
+      .map(arr => arr
+        .map(face => typeof face !== "object"
+          ? faces[indices[face]]
+          : face.map(f => faces[indices[f]])))
+      .map(invert_map);
     faces_layer.face = faces[indices[0]];
     return faces_layer;
   };
 
-  var flip_solutions = function flip_solutions(solutions) {
-    var face = solutions.face;
-    var flipped = solutions.map(invert_map).map(function (list) {
-      return list.reverse();
-    }).map(invert_map);
+  const flip_solutions = solutions => {
+    const face = solutions.face;
+    const flipped = solutions
+      .map(invert_map)
+      .map(list => list.reverse())
+      .map(invert_map);
     flipped.face = face;
     return flipped;
   };
-  var make_vertices_faces_layer = function make_vertices_faces_layer(graph) {
-    var epsilon = arguments.length > 2 ? arguments[2] : undefined;
+  const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
     if (!graph.vertices_sectors) {
       graph.vertices_sectors = make_vertices_sectors(graph);
     }
-    var faces_coloring = make_faces_winding(graph).map(function (c) {
-      return !c;
-    });
-    var vertices_faces_layer = graph.vertices_sectors.map(function (_, vertex) {
-      return make_vertex_faces_layer(graph, vertex, epsilon);
-    });
-    var vertices_solutions_flip = vertices_faces_layer.map(function (solution) {
-      return faces_coloring[solution.face];
-    });
-    return vertices_faces_layer.map(function (solutions, i) {
-      return vertices_solutions_flip[i] ? flip_solutions(solutions) : solutions;
-    });
+    const faces_coloring = make_faces_winding(graph).map(c => !c);
+    const vertices_faces_layer = graph.vertices_sectors
+      .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
+    const vertices_solutions_flip = vertices_faces_layer
+      .map(solution => faces_coloring[solution.face]);
+    return vertices_faces_layer
+      .map((solutions, i) => vertices_solutions_flip[i]
+        ? flip_solutions(solutions)
+        : solutions);
   };
 
-  var make_edges_faces_overlap = function make_edges_faces_overlap(_ref2, epsilon) {
-    var vertices_coords = _ref2.vertices_coords,
-        edges_vertices = _ref2.edges_vertices,
-        edges_vector = _ref2.edges_vector,
-        edges_faces = _ref2.edges_faces;
-        _ref2.faces_edges;
-        var faces_vertices = _ref2.faces_vertices;
+  const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
     if (!edges_vector) {
-      edges_vector = make_edges_vector({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
-    var faces_winding = make_faces_winding({
-      vertices_coords: vertices_coords,
-      faces_vertices: faces_vertices
-    });
-    var edges_origin = edges_vertices.map(function (verts) {
-      return vertices_coords[verts[0]];
-    });
-    var matrix = edges_vertices.map(function () {
-      return Array.from(Array(faces_vertices.length));
-    });
-    edges_faces.forEach(function (faces, e) {
-      return faces.forEach(function (f) {
-        matrix[e][f] = false;
-      });
-    });
-    edges_faces.forEach(function (faces, e) {
-      return faces.forEach(function (f) {
-        matrix[e][f] = false;
-      });
-    });
-    var edges_vertices_coords = edges_vertices.map(function (verts) {
-      return verts.map(function (v) {
-        return vertices_coords[v];
-      });
-    });
-    var faces_vertices_coords = faces_vertices.map(function (verts) {
-      return verts.map(function (v) {
-        return vertices_coords[v];
-      });
-    });
-    for (var f = 0; f < faces_winding.length; f++) {
-      if (!faces_winding[f]) {
-        faces_vertices_coords[f].reverse();
-      }
+    const faces_winding = make_faces_winding({ vertices_coords, faces_vertices });
+    const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+    const matrix = edges_vertices
+      .map(() => Array.from(Array(faces_vertices.length)));
+    edges_faces.forEach((faces, e) => faces
+      .forEach(f => { matrix[e][f] = false; }));
+    const edges_vertices_coords = edges_vertices
+      .map(verts => verts.map(v => vertices_coords[v]));
+    const faces_vertices_coords = faces_vertices
+      .map(verts => verts.map(v => vertices_coords[v]));
+    for (let f = 0; f < faces_winding.length; f++) {
+      if (!faces_winding[f]) { faces_vertices_coords[f].reverse(); }
     }
-    matrix.forEach(function (row, e) {
-      return row.forEach(function (val, f) {
-        if (val === false) {
-          return;
-        }
-        var point_in_poly = edges_vertices_coords[e].map(function (point) {
-          return math.core.overlap_convex_polygon_point(faces_vertices_coords[f], point, math.core.exclude, epsilon);
-        }).reduce(function (a, b) {
-          return a || b;
-        }, false);
-        if (point_in_poly) {
-          matrix[e][f] = true;
-          return;
-        }
-        var edge_intersect = math.core.intersect_convex_polygon_line(faces_vertices_coords[f], edges_vector[e], edges_origin[e], math.core.exclude_s, math.core.exclude_s, epsilon);
-        if (edge_intersect) {
-          matrix[e][f] = true;
-          return;
-        }
-        matrix[e][f] = false;
-      });
-    });
+    matrix.forEach((row, e) => row.forEach((val, f) => {
+      if (val === false) { return; }
+      const point_in_poly = edges_vertices_coords[e]
+        .map(point => math.core.overlap_convex_polygon_point(
+          faces_vertices_coords[f],
+          point,
+          math.core.exclude,
+          epsilon
+        )).reduce((a, b) => a || b, false);
+      if (point_in_poly) { matrix[e][f] = true; return; }
+      const edge_intersect = math.core.intersect_convex_polygon_line(
+        faces_vertices_coords[f],
+        edges_vector[e],
+        edges_origin[e],
+        math.core.exclude_s,
+        math.core.exclude_s,
+        epsilon
+      );
+      if (edge_intersect) { matrix[e][f] = true; return; }
+      matrix[e][f] = false;
+    }));
     return matrix;
   };
-
-  var make_faces_polygon = function make_faces_polygon(_ref, epsilon) {
-    var vertices_coords = _ref.vertices_coords,
-        faces_vertices = _ref.faces_vertices;
-    return faces_vertices.map(function (verts) {
-      return verts.map(function (v) {
-        return vertices_coords[v];
-      });
-    }).map(function (polygon) {
-      return math.core.make_polygon_non_collinear(polygon, epsilon);
-    });
-  };
-
-  var make_faces_faces_overlap = function make_faces_faces_overlap(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        faces_vertices = _ref.faces_vertices;
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    var matrix = Array.from(Array(faces_vertices.length)).map(function () {
-      return Array.from(Array(faces_vertices.length));
-    });
-    var faces_polygon = make_faces_polygon({
-      vertices_coords: vertices_coords,
-      faces_vertices: faces_vertices
-    }, epsilon);
-    for (var i = 0; i < faces_vertices.length - 1; i++) {
-      for (var j = i + 1; j < faces_vertices.length; j++) {
-        var overlap = math.core.overlap_convex_polygons(faces_polygon[i], faces_polygon[j],
-        epsilon);
+  const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
+    const matrix = Array.from(Array(faces_vertices.length))
+      .map(() => Array.from(Array(faces_vertices.length)));
+    const faces_polygon = make_faces_polygon({ vertices_coords, faces_vertices }, epsilon);
+    for (let i = 0; i < faces_vertices.length - 1; i++) {
+      for (let j = i + 1; j < faces_vertices.length; j++) {
+        const overlap = math.core.overlap_convex_polygons(
+          faces_polygon[i], faces_polygon[j], epsilon);
         matrix[i][j] = overlap;
         matrix[j][i] = overlap;
       }
@@ -7182,85 +5493,64 @@
     return matrix;
   };
 
-  var make_edges_edges_parallel = function make_edges_edges_parallel(_ref, epsilon) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices,
-        edges_vector = _ref.edges_vector;
+  var overlap = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    make_edges_faces_overlap: make_edges_faces_overlap,
+    make_faces_faces_overlap: make_faces_faces_overlap
+  });
+
+  const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
     if (!edges_vector) {
-      edges_vector = make_edges_vector({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
-    var edge_count = edges_vector.length;
-    var edges_edges_parallel = Array.from(Array(edge_count)).map(function () {
-      return Array.from(Array(edge_count));
-    });
-    for (var i = 0; i < edge_count - 1; i++) {
-      for (var j = i + 1; j < edge_count; j++) {
-        var p = math.core.parallel(edges_vector[i], edges_vector[j], epsilon);
+    const edge_count = edges_vector.length;
+    const edges_edges_parallel = Array
+      .from(Array(edge_count))
+      .map(() => Array.from(Array(edge_count)));
+    for (let i = 0; i < edge_count - 1; i++) {
+      for (let j = i + 1; j < edge_count; j++) {
+        const p = math.core.parallel(edges_vector[i], edges_vector[j], epsilon);
         edges_edges_parallel[i][j] = p;
         edges_edges_parallel[j][i] = p;
       }
     }
     return edges_edges_parallel;
   };
-  var overwrite_edges_overlaps = function overwrite_edges_overlaps(matrix, vectors, origins, func, epsilon) {
-    for (var i = 0; i < matrix.length - 1; i++) {
-      for (var j = i + 1; j < matrix.length; j++) {
-        if (!matrix[i][j]) {
-          continue;
-        }
-        matrix[i][j] = math.core.overlap_line_line(vectors[i], origins[i], vectors[j], origins[j], func, func, epsilon);
+  const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix.length; j++) {
+        if (!matrix[i][j]) { continue; }
+        matrix[i][j] = math.core.overlap_line_line(
+          vectors[i], origins[i],
+          vectors[j], origins[j],
+          func, func,
+          epsilon);
         matrix[j][i] = matrix[i][j];
       }
     }
   };
-  var make_edges_edges_crossing = function make_edges_edges_crossing(_ref2, epsilon) {
-    var vertices_coords = _ref2.vertices_coords,
-        edges_vertices = _ref2.edges_vertices,
-        edges_vector = _ref2.edges_vector;
+  const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
     if (!edges_vector) {
-      edges_vector = make_edges_vector({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
-    var edges_origin = edges_vertices.map(function (verts) {
-      return vertices_coords[verts[0]];
-    });
-    var matrix = make_edges_edges_parallel({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices,
-      edges_vector: edges_vector
-    }, epsilon).map(function (row) {
-      return row.map(function (b) {
-        return !b;
-      });
-    });
-    for (var i = 0; i < matrix.length; i++) {
+    const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+    const matrix = make_edges_edges_parallel({
+      vertices_coords, edges_vertices, edges_vector
+    }, epsilon)
+      .map(row => row.map(b => !b));
+    for (let i = 0; i < matrix.length; i++) {
       matrix[i][i] = undefined;
     }
     overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
     return matrix;
   };
-  var make_edges_edges_parallel_overlap = function make_edges_edges_parallel_overlap(_ref3, epsilon) {
-    var vertices_coords = _ref3.vertices_coords,
-        edges_vertices = _ref3.edges_vertices,
-        edges_vector = _ref3.edges_vector;
+  const make_edges_edges_parallel_overlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
     if (!edges_vector) {
-      edges_vector = make_edges_vector({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
     }
-    var edges_origin = edges_vertices.map(function (verts) {
-      return vertices_coords[verts[0]];
-    });
-    var matrix = make_edges_edges_parallel({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices,
-      edges_vector: edges_vector
+    const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+    const matrix = make_edges_edges_parallel({
+      vertices_coords, edges_vertices, edges_vector
     }, epsilon);
     overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
     return matrix;
@@ -7274,291 +5564,252 @@
   });
 
   var graph_methods = Object.assign(Object.create(null), {
-    assign: assign$1,
-    add_vertices: add_vertices,
-    add_edges: add_edges,
-    split_edge: split_edge,
-    split_face: split_convex_face,
-    flat_fold: flat_fold,
-    clean: clean,
-    get_circular_edges: get_circular_edges,
-    get_duplicate_edges: get_duplicate_edges,
-    get_duplicate_vertices: get_duplicate_vertices,
-    get_collinear_vertices: get_collinear_vertices,
-    count: count,
-    implied: implied_count,
-    fragment: fragment,
-    remove: remove_geometry_indices,
-    populate: populate,
-    subgraph: subgraph,
-    explode_faces: explode_faces,
-    clip: clip,
-    intersect_convex_face_line: intersect_convex_face_line,
-    join_collinear_edges: join_collinear_edges,
-    make_vertex_faces_layer: make_vertex_faces_layer,
-    make_vertices_faces_layer: make_vertices_faces_layer,
-    make_edges_faces_overlap: make_edges_faces_overlap,
-    make_faces_faces_overlap: make_faces_faces_overlap
-  }, make, edges_edges, vertices_coords_folded, face_spanning_tree, faces_matrix, faces_winding,
-  transform, boundary, walk, nearest, fold_object, sort, span, maps, query,
-  remove_methods, vertices_isolated, arrays);
+  	assign: assign$1,
+  	add_vertices,
+  	add_edges,
+  	split_edge,
+  	split_face: split_convex_face,
+  	flat_fold,
+  	planar_fold: add_segment_to_planar_graph,
+  	clean,
+  	get_circular_edges,
+  	get_duplicate_edges,
+  	get_duplicate_vertices,
+  	get_collinear_vertices,
+  	count,
+  	implied: implied_count,
+  	fragment,
+  	remove: remove_geometry_indices,
+  	populate,
+  	subgraph,
+  	explode_faces,
+  	clip,
+  	join_collinear_edges,
+  	make_vertex_faces_layer,
+  	make_vertices_faces_layer,
+  },
+  	make,
+  	overlap,
+  	intersect,
+  	edges_edges,
+  	vertices_coords_folded,
+  	face_spanning_tree,
+  	faces_matrix,
+  	faces_winding,
+  	transform,
+  	boundary,
+  	walk,
+  	nearest,
+  	fold_object,
+  	sort,
+  	span,
+  	maps,
+  	query,
+  	remove_methods,
+  	vertices_isolated,
+  	arrays,
+  );
 
-  var Create = {};
-  var make_rect_vertices_coords = function make_rect_vertices_coords(w, h) {
-    return [[0, 0], [w, 0], [w, h], [0, h]];
-  };
-  var make_closed_polygon = function make_closed_polygon(vertices_coords) {
-    return populate({
-      vertices_coords: vertices_coords,
-      edges_vertices: vertices_coords.map(function (_, i, arr) {
-        return [i, (i + 1) % arr.length];
-      }),
-      edges_assignment: Array(vertices_coords.length).fill("B")
-    });
-  };
-  var polygon_names = [null, null, null, "triangle", null, "pentagon", "hexagon", "heptagon", "octogon", "nonagon", "decagon", "hendecagon", "dodecagon"];
-  polygon_names.map(function (str, i) {
-    return str === null ? i : undefined;
-  }).filter(function (a) {
-    return a !== undefined;
-  }).forEach(function (i) {
-    return delete polygon_names[i];
+  const Create = {};
+  const make_rect_vertices_coords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
+  const make_closed_polygon = (vertices_coords) => populate({
+    vertices_coords,
+    edges_vertices: vertices_coords
+      .map((_, i, arr) => [i, (i + 1) % arr.length]),
+    edges_assignment: Array(vertices_coords.length).fill("B"),
   });
-  polygon_names.forEach(function (name, i) {
-    Create[name] = function () {
-      return make_closed_polygon(math.core.make_regular_polygon_side_length(i));
-    };
+  const polygon_names = [
+    null,
+    null,
+    null,
+    "triangle",
+    null,
+    "pentagon",
+    "hexagon",
+    "heptagon",
+    "octogon",
+    "nonagon",
+    "decagon",
+    "hendecagon",
+    "dodecagon"
+  ];
+  polygon_names
+    .map((str, i) => str === null ? i : undefined)
+    .filter(a => a !== undefined)
+    .forEach(i => delete polygon_names[i]);
+  polygon_names.forEach((name, i) => {
+    Create[name] = () => make_closed_polygon(math.core
+      .make_regular_polygon_side_length(i));
   });
-  Create.square = function () {
-    return make_closed_polygon(make_rect_vertices_coords(1, 1));
-  };
-  Create.rectangle = function () {
-    var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
-    var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    return make_closed_polygon(make_rect_vertices_coords(width, height));
-  };
-  Create.circle = function () {
-    var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 90;
-    return make_closed_polygon(math.core.make_regular_polygon(sides));
-  };
-  Create.kite = function () {
-    return populate({
-      vertices_coords: [[0, 0], [Math.sqrt(2) - 1, 0], [1, 0], [1, 1 - (Math.sqrt(2) - 1)], [1, 1], [0, 1]],
-      edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [5, 1], [3, 5], [5, 2]],
-      edges_assignment: Array.from("BBBBBBVVF")
-    });
-  };
+  Create.square = () =>
+    make_closed_polygon(make_rect_vertices_coords(1, 1));
+  Create.rectangle = (width = 1, height = 1) =>
+    make_closed_polygon(make_rect_vertices_coords(width, height));
+  Create.circle = (sides = 90) =>
+    make_closed_polygon(math.core.make_regular_polygon(sides));
+  Create.kite = () => populate({
+    vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
+    edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
+    edges_assignment: Array.from("BBBBBBVVF")
+  });
 
-  var Constructors = Object.create(null);
-  var ConstructorPrototypes = {
+  const Constructors = Object.create(null);
+  const ConstructorPrototypes = {
     graph: GraphProto,
     cp: CreasePatternProto,
-    origami: OrigamiProto
+    origami: OrigamiProto,
   };
-  var default_graph = {
-    graph: function graph() {
-      return {};
-    },
+  const default_graph = {
+    graph: () => ({}),
     cp: Create.square,
-    origami: Create.square
+    origami: Create.square,
   };
-  Object.keys(ConstructorPrototypes).forEach(function (name) {
+  Object.keys(ConstructorPrototypes).forEach(name => {
     Constructors[name] = function () {
-      var argFolds = Array.from(arguments).filter(function (a) {
-        return fold_object_certainty(a);
-      })
-      .map(function (obj) {
-        return JSON.parse(JSON.stringify(obj));
-      });
-      return populate(Object.assign.apply(Object, [Object.create(ConstructorPrototypes[name]), argFolds.length ? {} : default_graph[name]()].concat(_toConsumableArray(argFolds), [{
-        file_spec: file_spec,
-        file_creator: file_creator
-      }])));
+      const argFolds = Array.from(arguments)
+        .filter(a => fold_object_certainty(a))
+        .map(obj => JSON.parse(JSON.stringify(obj)));
+      return populate(Object.assign(
+        Object.create(ConstructorPrototypes[name]),
+        (argFolds.length ? {} : default_graph[name]()),
+        ...argFolds,
+        { file_spec, file_creator }
+      ));
     };
     Constructors[name].prototype = ConstructorPrototypes[name];
     Constructors[name].prototype.constructor = Constructors[name];
-    Object.keys(Create).forEach(function (funcName) {
+    Object.keys(Create).forEach(funcName => {
       Constructors[name][funcName] = function () {
-        return Constructors[name](Create[funcName].apply(Create, arguments));
+        return Constructors[name](Create[funcName](...arguments));
       };
     });
   });
   Object.assign(Constructors.graph, graph_methods);
 
-  var intersection_ud = function intersection_ud(line1, line2) {
-    var det = math.core.cross2(line1.u, line2.u);
-    if (Math.abs(det) < math.core.EPSILON) {
-      return undefined;
-    }
-    var x = line1.d * line2.u[1] - line2.d * line1.u[1];
-    var y = line2.d * line1.u[0] - line1.d * line2.u[0];
+  const intersection_ud = (line1, line2) => {
+    const det = math.core.cross2(line1.u, line2.u);
+    if (Math.abs(det) < math.core.EPSILON) { return undefined; }
+    const x = line1.d * line2.u[1] - line2.d * line1.u[1];
+    const y = line2.d * line1.u[0] - line1.d * line2.u[0];
     return [x / det, y / det];
   };
-  var axiom1ud = function axiom1ud(point1, point2) {
-    var u = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
-    return {
-      u: u,
-      d: math.core.dot2(math.core.add2(point1, point2), u) / 2.0
-    };
+  const axiom1ud = (point1, point2) => {
+    const u = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
+    return { u, d: math.core.dot2(math.core.add2(point1, point2), u) / 2.0 };
   };
-  var axiom2ud = function axiom2ud(point1, point2) {
-    var u = math.core.normalize2(math.core.subtract2(point2, point1));
-    return {
-      u: u,
-      d: math.core.dot2(math.core.add2(point1, point2), u) / 2.0
-    };
+  const axiom2ud = (point1, point2) => {
+    const u = math.core.normalize2(math.core.subtract2(point2, point1));
+    return { u, d: math.core.dot2(math.core.add2(point1, point2), u) / 2.0 };
   };
-  var axiom3ud = function axiom3ud(line1, line2) {
-    var intersect = intersection_ud(line1, line2);
-    return intersect === undefined ? [{
-      u: line1.u,
-      d: (line1.d + line2.d * math.core.dot2(line1.u, line2.u)) / 2.0
-    }] : [math.core.add2, math.core.subtract2].map(function (f) {
-      return math.core.normalize2(f(line1.u, line2.u));
-    }).map(function (u) {
-      return {
-        u: u,
-        d: math.core.dot2(intersect, u)
-      };
-    });
+  const axiom3ud = (line1, line2) => {
+    const intersect = intersection_ud(line1, line2);
+    return intersect === undefined
+      ? [{ u: line1.u, d: (line1.d + line2.d * math.core.dot2(line1.u, line2.u)) / 2.0 }]
+      : [math.core.add2, math.core.subtract2]
+        .map(f => math.core.normalize2(f(line1.u, line2.u)))
+        .map(u => ({ u, d: math.core.dot2(intersect, u) }));
   };
-  var axiom4ud = function axiom4ud(line, point) {
-    var u = math.core.rotate90(line.u);
-    var d = math.core.dot2(point, u);
-    return {
-      u: u,
-      d: d
-    };
+   const axiom4ud = (line, point) => {
+    const u = math.core.rotate90(line.u);
+    const d = math.core.dot2(point, u);
+    return {u, d};
   };
-  var axiom5ud = function axiom5ud(line, point1, point2) {
-    var p1base = math.core.dot2(point1, line.u);
-    var a = line.d - p1base;
-    var c = math.core.distance2(point1, point2);
-    if (a > c) {
-      return [];
-    }
-    var b = Math.sqrt(c * c - a * a);
-    var a_vec = math.core.scale2(line.u, a);
-    var base_center = math.core.add2(point1, a_vec);
-    var base_vector = math.core.scale2(math.core.rotate90(line.u), b);
-    var mirrors = b < math.core.EPSILON ? [base_center] : [math.core.add2(base_center, base_vector), math.core.subtract2(base_center, base_vector)];
-    return mirrors.map(function (pt) {
-      return math.core.normalize2(math.core.subtract2(point2, pt));
-    }).map(function (u) {
-      return {
-        u: u,
-        d: math.core.dot2(point1, u)
-      };
-    });
+  const axiom5ud = (line, point1, point2) => {
+    const p1base = math.core.dot2(point1, line.u);
+    const a = line.d - p1base;
+    const c = math.core.distance2(point1, point2);
+    if (a > c) { return []; }
+    const b = Math.sqrt(c * c - a * a);
+    const a_vec = math.core.scale2(line.u, a);
+    const base_center = math.core.add2(point1, a_vec);
+    const base_vector = math.core.scale2(math.core.rotate90(line.u), b);
+    const mirrors = b < math.core.EPSILON
+      ? [base_center]
+      : [math.core.add2(base_center, base_vector), math.core.subtract2(base_center, base_vector)];
+    return mirrors
+      .map(pt => math.core.normalize2(math.core.subtract2(point2, pt)))
+      .map(u => ({ u, d: math.core.dot2(point1, u) }));
   };
-  var cubrt = function cubrt(n) {
-    return n < 0 ? -Math.pow(-n, 1 / 3) : Math.pow(n, 1 / 3);
-  };
-  var polynomial = function polynomial(degree, a, b, c, d) {
+  const cubrt = n => n < 0
+    ? -Math.pow(-n, 1/3)
+    : Math.pow(n, 1/3);
+  const polynomial = (degree, a, b, c, d) => {
     switch (degree) {
-      case 1:
-        return [-d / c];
-      case 2:
-        {
-          var discriminant = Math.pow(c, 2.0) - 4.0 * b * d;
-          if (discriminant < -math.core.EPSILON) {
-            return [];
-          }
-          var q1 = -c / (2.0 * b);
-          if (discriminant < math.core.EPSILON) {
-            return [q1];
-          }
-          var q2 = Math.sqrt(discriminant) / (2.0 * b);
-          return [q1 + q2, q1 - q2];
+      case 1: return [-d / c];
+      case 2: {
+        let discriminant = Math.pow(c, 2.0) - (4.0 * b * d);
+        if (discriminant < -math.core.EPSILON) { return []; }
+        let q1 = -c / (2.0 * b);
+        if (discriminant < math.core.EPSILON) { return [q1]; }
+        let q2 = Math.sqrt(discriminant) / (2.0 * b);
+        return [q1 + q2, q1 - q2];
+      }
+      case 3: {
+        let a2 = b / a;
+        let a1 = c / a;
+        let a0 = d / a;
+        let q = (3.0 * a1 - Math.pow(a2, 2.0)) / 9.0;
+        let r = (9.0 * a2 * a1 - 27.0 * a0 - 2.0 * Math.pow(a2, 3.0)) / 54.0;
+        let d0 = Math.pow(q, 3.0) + Math.pow(r, 2.0);
+        let u = -a2 / 3.0;
+        if (d0 > 0.0) {
+          let sqrt_d0 = Math.sqrt(d0);
+          let s = cubrt(r + sqrt_d0);
+          let t = cubrt(r - sqrt_d0);
+          return [u + s + t];
         }
-      case 3:
-        {
-          var a2 = b / a;
-          var a1 = c / a;
-          var a0 = d / a;
-          var q = (3.0 * a1 - Math.pow(a2, 2.0)) / 9.0;
-          var r = (9.0 * a2 * a1 - 27.0 * a0 - 2.0 * Math.pow(a2, 3.0)) / 54.0;
-          var d0 = Math.pow(q, 3.0) + Math.pow(r, 2.0);
-          var u = -a2 / 3.0;
-          if (d0 > 0.0) {
-            var _sqrt_d = Math.sqrt(d0);
-            var s = cubrt(r + _sqrt_d);
-            var t = cubrt(r - _sqrt_d);
-            return [u + s + t];
-          }
-          if (Math.abs(d0) < math.core.EPSILON) {
-            var _s = Math.pow(r, 1.0 / 3.0);
-            if (r < 0.0) {
-              return [];
-            }
-            return [u + 2.0 * _s, u - _s];
-          }
-          var sqrt_d0 = Math.sqrt(-d0);
-          var phi = Math.atan2(sqrt_d0, r) / 3.0;
-          var r_s = Math.pow(Math.pow(r, 2.0) - d0, 1.0 / 6.0);
-          var s_r = r_s * Math.cos(phi);
-          var s_i = r_s * Math.sin(phi);
-          return [u + 2.0 * s_r, u - s_r - Math.sqrt(3.0) * s_i, u - s_r + Math.sqrt(3.0) * s_i];
+        if (Math.abs(d0) < math.core.EPSILON) {
+          let s = Math.pow(r, 1.0/3.0);
+          if (r < 0.0) { return []; }
+          return [u + 2.0 * s, u - s];
         }
-      default:
-        return [];
+        let sqrt_d0 = Math.sqrt(-d0);
+        let phi = Math.atan2(sqrt_d0, r) / 3.0;
+        let r_s = Math.pow((Math.pow(r, 2.0) - d0), 1.0/6.0);
+        let s_r = r_s * Math.cos(phi);
+        let s_i = r_s * Math.sin(phi);
+        return [
+          u + 2.0 * s_r,
+          u - s_r - Math.sqrt(3.0) * s_i,
+          u - s_r + Math.sqrt(3.0) * s_i
+        ];
+      }
+      default: return [];
     }
   };
-  var axiom6ud = function axiom6ud(line1, line2, point1, point2) {
-    if (Math.abs(1.0 - math.core.dot2(line1.u, point1) / line1.d) < 0.02) {
-      return [];
-    }
-    var line_vec = math.core.rotate90(line1.u);
-    var vec1 = math.core.subtract2(math.core.add2(point1, math.core.scale2(line1.u, line1.d)), math.core.scale2(point2, 2.0));
-    var vec2 = math.core.subtract2(math.core.scale2(line1.u, line1.d), point1);
-    var c1 = math.core.dot2(point2, line2.u) - line2.d;
-    var c2 = 2.0 * math.core.dot2(vec2, line_vec);
-    var c3 = math.core.dot2(vec2, vec2);
-    var c4 = math.core.dot2(math.core.add2(vec1, vec2), line_vec);
-    var c5 = math.core.dot2(vec1, vec2);
-    var c6 = math.core.dot2(line_vec, line2.u);
-    var c7 = math.core.dot2(vec2, line2.u);
-    var a = c6;
-    var b = c1 + c4 * c6 + c7;
-    var c = c1 * c2 + c5 * c6 + c4 * c7;
-    var d = c1 * c3 + c5 * c7;
-    var polynomial_degree = 0;
-    if (Math.abs(c) > math.core.EPSILON) {
-      polynomial_degree = 1;
-    }
-    if (Math.abs(b) > math.core.EPSILON) {
-      polynomial_degree = 2;
-    }
-    if (Math.abs(a) > math.core.EPSILON) {
-      polynomial_degree = 3;
-    }
-    return polynomial(polynomial_degree, a, b, c, d).map(function (n) {
-      return math.core.add2(math.core.scale2(line1.u, line1.d), math.core.scale2(line_vec, n));
-    }).map(function (p) {
-      return {
-        p: p,
-        u: math.core.normalize2(math.core.subtract2(p, point1))
-      };
-    }).map(function (el) {
-      return {
-        u: el.u,
-        d: math.core.dot2(el.u, math.core.midpoint2(el.p, point1))
-      };
-    });
+  const axiom6ud = (line1, line2, point1, point2) => {
+    if (Math.abs(1.0 - (math.core.dot2(line1.u, point1) / line1.d)) < 0.02) { return []; }
+    const line_vec = math.core.rotate90(line1.u);
+    const vec1 = math.core.subtract2(math.core.add2(point1, math.core.scale2(line1.u, line1.d)), math.core.scale2(point2, 2.0));
+    const vec2 = math.core.subtract2(math.core.scale2(line1.u, line1.d), point1);
+    const c1 = math.core.dot2(point2, line2.u) - line2.d;
+    const c2 = 2.0 * math.core.dot2(vec2, line_vec);
+    const c3 = math.core.dot2(vec2, vec2);
+    const c4 = math.core.dot2(math.core.add2(vec1, vec2), line_vec);
+    const c5 = math.core.dot2(vec1, vec2);
+    const c6 = math.core.dot2(line_vec, line2.u);
+    const c7 = math.core.dot2(vec2, line2.u);
+    const a = c6;
+    const b = c1 + c4 * c6 + c7;
+    const c = c1 * c2 + c5 * c6 + c4 * c7;
+    const d = c1 * c3 + c5 * c7;
+    let polynomial_degree = 0;
+    if (Math.abs(c) > math.core.EPSILON) { polynomial_degree = 1; }
+    if (Math.abs(b) > math.core.EPSILON) { polynomial_degree = 2; }
+    if (Math.abs(a) > math.core.EPSILON) { polynomial_degree = 3; }
+    return polynomial(polynomial_degree, a, b, c, d)
+      .map(n => math.core.add2(math.core.scale2(line1.u, line1.d), math.core.scale2(line_vec, n)))
+      .map(p => ({ p, u: math.core.normalize2(math.core.subtract2(p, point1)) }))
+      .map(el => ({ u: el.u, d: math.core.dot2(el.u, math.core.midpoint2(el.p, point1)) }));
   };
-  var axiom7ud = function axiom7ud(line1, line2, point) {
-    var u = math.core.rotate90(line1.u);
-    var u_u = math.core.dot2(u, line2.u);
-    if (Math.abs(u_u) < math.core.EPSILON) {
-      return undefined;
-    }
-    var a = math.core.dot2(point, u);
-    var b = math.core.dot2(point, line2.u);
-    var d = (line2.d + 2.0 * a * u_u - b) / (2.0 * u_u);
-    return {
-      u: u,
-      d: d
-    };
+  const axiom7ud = (line1, line2, point) => {
+    let u = math.core.rotate90(line1.u);
+    let u_u = math.core.dot2(u, line2.u);
+    if (Math.abs(u_u) < math.core.EPSILON) { return undefined; }
+    let a = math.core.dot2(point, u);
+    let b = math.core.dot2(point, line2.u);
+    let d = (line2.d + 2.0 * a * u_u - b) / (2.0 * u_u);
+    return {u, d};
   };
 
   var AxiomsUD = /*#__PURE__*/Object.freeze({
@@ -7572,48 +5823,46 @@
     axiom7ud: axiom7ud
   });
 
-  var axiom1 = function axiom1(point1, point2) {
-    var _math$core;
-    return {
-      vector: math.core.normalize2((_math$core = math.core).subtract2.apply(_math$core, _toConsumableArray(math.core.resize_up(point2, point1)))),
-      origin: point1
-    };
-  };
-  var axiom2 = function axiom2(point1, point2) {
-    var _math$core2;
-    return {
-      vector: math.core.normalize2(math.core.rotate90((_math$core2 = math.core).subtract2.apply(_math$core2, _toConsumableArray(math.core.resize_up(point2, point1))))),
-      origin: math.core.midpoint2(point1, point2)
-    };
-  };
-  var axiom3 = function axiom3(line1, line2) {
-    return math.core.bisect_lines2(line1.vector, line1.origin, line2.vector, line2.origin);
-  };
-  var axiom4 = function axiom4(line, point) {
-    return {
-      vector: math.core.rotate90(math.core.normalize2(line.vector)),
-      origin: point
-    };
-  };
-  var axiom5 = function axiom5(line, point1, point2) {
-    return (math.core.intersect_circle_line(math.core.distance2(point1, point2), point1, line.vector, line.origin, math.core.include_l) || []).map(function (sect) {
-      var _math$core3;
-      return {
-        vector: math.core.normalize2(math.core.rotate90((_math$core3 = math.core).subtract2.apply(_math$core3, _toConsumableArray(math.core.resize_up(sect, point2))))),
-        origin: math.core.midpoint2(point2, sect)
-      };
-    });
-  };
-  var axiom6 = function axiom6(line1, line2, point1, point2) {
-    return axiom6ud(math.core.vector_origin_to_ud(line1), math.core.vector_origin_to_ud(line2), point1, point2).map(math.core.ud_to_vector_origin);
-  };
-  var axiom7 = function axiom7(line1, line2, point) {
-    var _math$core4;
-    var intersect = math.core.intersect_line_line(line1.vector, line1.origin, line2.vector, point, math.core.include_l, math.core.include_l);
-    return intersect === undefined ? undefined : {
-      vector: math.core.normalize2(math.core.rotate90((_math$core4 = math.core).subtract2.apply(_math$core4, _toConsumableArray(math.core.resize_up(intersect, point))))),
-      origin: math.core.midpoint2(point, intersect)
-    };
+  const axiom1 = (point1, point2) => ({
+    vector: math.core.normalize2(math.core.subtract2(...math.core.resize_up(point2, point1))),
+    origin: point1
+  });
+  const axiom2 = (point1, point2) => ({
+    vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resize_up(point2, point1)))),
+    origin: math.core.midpoint2(point1, point2)
+  });
+  const axiom3 = (line1, line2) => math.core.bisect_lines2(
+    line1.vector, line1.origin, line2.vector, line2.origin
+  );
+  const axiom4 = (line, point) => ({
+    vector: math.core.rotate90(math.core.normalize2(line.vector)),
+    origin: point
+  });
+  const axiom5 = (line, point1, point2) => (math.core.intersect_circle_line(
+      math.core.distance2(point1, point2),
+      point1,
+      line.vector,
+      line.origin,
+      math.core.include_l
+    ) || []).map(sect => ({
+      vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resize_up(sect, point2)))),
+      origin: math.core.midpoint2(point2, sect)
+    }));
+  const axiom6 = (line1, line2, point1, point2) => axiom6ud(
+    math.core.vector_origin_to_ud(line1),
+    math.core.vector_origin_to_ud(line2),
+    point1, point2).map(math.core.ud_to_vector_origin);
+  const axiom7 = (line1, line2, point) => {
+    const intersect = math.core.intersect_line_line(
+      line1.vector, line1.origin,
+      line2.vector, point,
+      math.core.include_l, math.core.include_l);
+    return intersect === undefined
+      ? undefined
+      : ({
+          vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resize_up(intersect, point)))),
+          origin: math.core.midpoint2(point, intersect)
+      });
   };
 
   var AxiomsVO = /*#__PURE__*/Object.freeze({
@@ -7627,475 +5876,442 @@
     axiom7: axiom7
   });
 
-  var reflect_point$1 = function reflect_point(foldLine, point) {
-    var matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
+  const reflect_point$1 = (foldLine, point) => {
+    const matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
     return math.core.multiply_matrix2_vector2(matrix, point);
   };
-  var validate_axiom1_2 = function validate_axiom1_2(params, boundary) {
-    return [params.points.map(function (p) {
-      return math.core.overlap_convex_polygon_point(boundary, p, ear.math.include);
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true)];
-  };
-  var validate_axiom3 = function validate_axiom3(params, boundary) {
-    var segments = params.lines.map(function (line) {
-      return math.core.clip_line_in_convex_polygon(boundary, line.vector, line.origin, math.core.include, math.core.include_l);
-    });
+  const validate_axiom1_2 = (params, boundary) => [params.points
+    .map(p => math.core.overlap_convex_polygon_point(boundary, p, ear.math.include))
+    .reduce((a, b) => a && b, true)];
+  const validate_axiom3 = (params, boundary) => {
+    const segments = params.lines.map(line => math.core
+      .clip_line_in_convex_polygon(boundary,
+        line.vector,
+        line.origin,
+        math.core.include,
+        math.core.include_l));
     if (segments[0] === undefined || segments[1] === undefined) {
       return [false, false];
     }
-    var results = axiom3(params.lines[0], params.lines[1]);
-    var results_clip = results.map(function (line) {
-      return line === undefined ? undefined : math.core.intersect_convex_polygon_line(boundary, line.vector, line.origin, ear.math.include_s, ear.math.exclude_l);
-    });
-    var results_inside = [0, 1].map(function (i) {
-      return results_clip[i] !== undefined;
-    });
-    var seg0Reflect = results.map(function (foldLine, i) {
-      return foldLine === undefined ? undefined : [reflect_point$1(foldLine, segments[0][0]), reflect_point$1(foldLine, segments[0][1])];
-    });
-    var reflectMatch = seg0Reflect.map(function (seg, i) {
-      return seg === undefined ? false : math.core.overlap_line_point(math.core.subtract(segments[1][1], segments[1][0]), segments[1][0], seg[0], math.core.include_s) || math.core.overlap_line_point(math.core.subtract(segments[1][1], segments[1][0]), segments[1][0], seg[1], math.core.include_s) || math.core.overlap_line_point(math.core.subtract(seg[1], seg[0]), seg[0], segments[1][0], math.core.include_s) || math.core.overlap_line_point(math.core.subtract(seg[1], seg[0]), seg[0], segments[1][1], math.core.include_s);
-    });
-    return [0, 1].map(function (i) {
-      return reflectMatch[i] === true && results_inside[i] === true;
-    });
+    const results = axiom3(params.lines[0], params.lines[1]);
+    const results_clip = results
+      .map(line => line === undefined ? undefined : math.core
+        .intersect_convex_polygon_line(
+          boundary,
+          line.vector,
+          line.origin,
+          ear.math.include_s,
+          ear.math.exclude_l));
+    const results_inside = [0, 1].map((i) => results_clip[i] !== undefined);
+    const seg0Reflect = results
+      .map((foldLine, i) => foldLine === undefined ? undefined : [
+        reflect_point$1(foldLine, segments[0][0]),
+        reflect_point$1(foldLine, segments[0][1])
+      ]);
+    const reflectMatch = seg0Reflect
+      .map((seg, i) => seg === undefined ? false : (
+        math.core.overlap_line_point(math.core
+          .subtract(segments[1][1], segments[1][0]),
+          segments[1][0], seg[0], math.core.include_s) ||
+        math.core.overlap_line_point(math.core
+          .subtract(segments[1][1], segments[1][0]),
+          segments[1][0], seg[1], math.core.include_s) ||
+        math.core.overlap_line_point(math.core
+          .subtract(seg[1], seg[0]), seg[0],
+          segments[1][0], math.core.include_s) ||
+        math.core.overlap_line_point(math.core
+          .subtract(seg[1], seg[0]), seg[0],
+          segments[1][1], math.core.include_s)
+      ));
+    return [0, 1].map(i => reflectMatch[i] === true && results_inside[i] === true);
   };
-  var validate_axiom4 = function validate_axiom4(params, boundary) {
-    var intersect = math.core.intersect_line_line(params.lines[0].vector, params.lines[0].origin, math.core.rotate90(params.lines[0].vector), params.points[0], math.core.include_l, math.core.include_l);
-    return [[params.points[0], intersect].filter(function (a) {
-      return a !== undefined;
-    }).map(function (p) {
-      return math.core.overlap_convex_polygon_point(boundary, p, math.core.include);
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true)];
+  const validate_axiom4 = (params, boundary) => {
+    const intersect = math.core.intersect_line_line(
+      params.lines[0].vector, params.lines[0].origin,
+      math.core.rotate90(params.lines[0].vector), params.points[0],
+      math.core.include_l, math.core.include_l);
+    return [
+      [params.points[0], intersect]
+        .filter(a => a !== undefined)
+        .map(p => math.core.overlap_convex_polygon_point(boundary, p, math.core.include))
+        .reduce((a, b) => a && b, true)
+    ];
   };
-  var validate_axiom5 = function validate_axiom5(params, boundary) {
-    var result = axiom5(params.lines[0], params.points[0], params.points[1]);
-    if (result.length === 0) {
-      return [];
-    }
-    var testParamPoints = params.points.map(function (point) {
-      return math.core.overlap_convex_polygon_point(boundary, point, math.core.include);
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true);
-    var testReflections = result.map(function (foldLine) {
-      return reflect_point$1(foldLine, params.points[1]);
-    }).map(function (point) {
-      return math.core.overlap_convex_polygon_point(boundary, point, math.core.include);
-    });
-    return testReflections.map(function (ref) {
-      return ref && testParamPoints;
-    });
+  const validate_axiom5 = (params, boundary) => {
+    const result = axiom5(params.lines[0], params.points[0], params.points[1]);
+    if (result.length === 0) { return []; }
+    const testParamPoints = params.points
+      .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include))
+      .reduce((a, b) => a && b, true);
+    const testReflections = result
+      .map(foldLine => reflect_point$1(foldLine, params.points[1]))
+      .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
+    return testReflections.map(ref => ref && testParamPoints);
   };
-  var validate_axiom6 = function validate_axiom6(params, boundary) {
-    var results = axiom6(params.lines[0], params.lines[1], params.points[0], params.points[1]);
-    if (results.length === 0) {
-      return [];
-    }
-    var testParamPoints = params.points.map(function (point) {
-      return math.core.overlap_convex_polygon_point(boundary, point, math.core.include);
-    }).reduce(function (a, b) {
-      return a && b;
-    }, true);
-    if (!testParamPoints) {
-      return results.map(function () {
-        return false;
-      });
-    }
-    var testReflect0 = results.map(function (foldLine) {
-      return reflect_point$1(foldLine, params.points[0]);
-    }).map(function (point) {
-      return math.core.overlap_convex_polygon_point(boundary, point, math.core.include);
-    });
-    var testReflect1 = results.map(function (foldLine) {
-      return reflect_point$1(foldLine, params.points[1]);
-    }).map(function (point) {
-      return math.core.overlap_convex_polygon_point(boundary, point, math.core.include);
-    });
-    return results.map(function (_, i) {
-      return testReflect0[i] && testReflect1[i];
-    });
+  const validate_axiom6 = function (params, boundary) {
+    const results = axiom6(
+      params.lines[0], params.lines[1],
+      params.points[0], params.points[1]);
+    if (results.length === 0) { return []; }
+    const testParamPoints = params.points
+      .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include))
+      .reduce((a, b) => a && b, true);
+    if (!testParamPoints) { return results.map(() => false); }
+    const testReflect0 = results
+      .map(foldLine => reflect_point$1(foldLine, params.points[0]))
+      .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
+    const testReflect1 = results
+      .map(foldLine => reflect_point$1(foldLine, params.points[1]))
+      .map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
+    return results.map((_, i) => testReflect0[i] && testReflect1[i]);
   };
-  var validate_axiom7 = function validate_axiom7(params, boundary) {
-    var paramPointTest = math.core.overlap_convex_polygon_point(boundary, params.points[0], math.core.include);
-    var foldLine = axiom7(params.lines[1], params.lines[0], params.points[0]);
-    if (foldLine === undefined) {
-      return [false];
-    }
-    var reflected = reflect_point$1(foldLine, params.points[0]);
-    var reflectTest = math.core.overlap_convex_polygon_point(boundary, reflected, math.core.include);
-    var paramLineTest = math.core.intersect_convex_polygon_line(boundary, params.lines[1].vector, params.lines[1].origin, math.core.include_s, math.core.include_l) !== undefined;
+  const validate_axiom7 = (params, boundary) => {
+    const paramPointTest = math.core
+      .overlap_convex_polygon_point(boundary, params.points[0], math.core.include);
+    const foldLine = axiom7(params.lines[1], params.lines[0], params.points[0]);
+    if (foldLine === undefined) { return [false]; }
+    const reflected = reflect_point$1(foldLine, params.points[0]);
+    const reflectTest = math.core.overlap_convex_polygon_point(boundary, reflected, math.core.include);
+    const paramLineTest = (math.core.intersect_convex_polygon_line(boundary,
+      params.lines[1].vector,
+      params.lines[1].origin,
+      math.core.include_s,
+      math.core.include_l) !== undefined);
     return [paramPointTest && reflectTest && paramLineTest];
   };
-  var validate_axiom_funcs = [null, validate_axiom1_2, validate_axiom1_2, validate_axiom3, validate_axiom4, validate_axiom5, validate_axiom6, validate_axiom7];
+  const validate_axiom_funcs = [null,
+    validate_axiom1_2,
+    validate_axiom1_2,
+    validate_axiom3,
+    validate_axiom4,
+    validate_axiom5,
+    validate_axiom6,
+    validate_axiom7,
+  ];
   delete validate_axiom_funcs[0];
-  var validate_axiom = function validate_axiom(number, params, obj) {
-    var boundary = _typeof(obj) === "object" && obj.vertices_coords ? get_boundary(obj).vertices.map(function (v) {
-      return obj.vertices_coords[v];
-    }) : obj;
+  const validate_axiom = (number, params, obj) => {
+    const boundary = (typeof obj === "object" && obj.vertices_coords)
+      ? get_boundary(obj).vertices.map(v => obj.vertices_coords[v])
+      : obj;
     return validate_axiom_funcs[number](params, boundary);
   };
-  Object.keys(validate_axiom_funcs).forEach(function (number) {
-    validate_axiom[number] = function () {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      return validate_axiom.apply(void 0, [number].concat(args));
-    };
+  Object.keys(validate_axiom_funcs).forEach(number => {
+    validate_axiom[number] = (...args) => validate_axiom(number, ...args);
   });
 
-  var axiom_returns_array = function axiom_returns_array(number) {
+  const axiom_returns_array = (number) => {
     switch (number) {
-      case 3:
-      case "3":
-      case 5:
-      case "5":
-      case 6:
-      case "6":
-        return true;
-      default:
-        return false;
+      case 3: case "3":
+      case 5: case "5":
+      case 6: case "6": return true;
+      default: return false;
     }
   };
-  var check_params = function check_params(params) {
-    return {
-      points: (params.points || []).map(function (p) {
-        return math.core.get_vector(p);
-      }),
-      lines: (params.lines || []).map(function (l) {
-        return math.core.get_line(l);
-      }),
-      lines_ud: (params.lines || []).map(function (l) {
-        return l.u !== undefined && l.d !== undefined ? l : undefined;
-      }).filter(function (a) {
-        return a !== undefined;
-      })
-    };
+  const check_params = (params) => ({
+    points: (params.points || []).map(p => math.core.get_vector(p)),
+    lines: (params.lines || []).map(l => math.core.get_line(l)),
+    lines_ud: (params.lines || [])
+      .map(l => l.u !== undefined && l.d !== undefined ? l : undefined)
+      .filter(a => a !== undefined)
+  });
+  const axiom_vector_origin = (number, params) => {
+    const result = AxiomsVO[`axiom${number}`](...params.lines, ...params.points);
+    const array_results = axiom_returns_array(number)
+      ? result
+      : [result].filter(a => a !== undefined);
+    return array_results.map(line => math.line(line));
   };
-  var axiom_vector_origin = function axiom_vector_origin(number, params) {
-    var result = AxiomsVO["axiom".concat(number)].apply(AxiomsVO, _toConsumableArray(params.lines).concat(_toConsumableArray(params.points)));
-    var array_results = axiom_returns_array(number) ? result : [result].filter(function (a) {
-      return a !== undefined;
-    });
-    return array_results.map(function (line) {
-      return math.line(line);
-    });
+  const axiom_normal_distance = (number, params) => {
+    const result = AxiomsUD[`axiom${number}ud`](...params.lines_ud, ...params.points);
+    const array_results = axiom_returns_array(number)
+      ? result
+      : [result].filter(a => a !== undefined);
+    return array_results.map(line => math.line.ud(line));
   };
-  var axiom_normal_distance = function axiom_normal_distance(number, params) {
-    var result = AxiomsUD["axiom".concat(number, "ud")].apply(AxiomsUD, _toConsumableArray(params.lines_ud).concat(_toConsumableArray(params.points)));
-    var array_results = axiom_returns_array(number) ? result : [result].filter(function (a) {
-      return a !== undefined;
-    });
-    return array_results.map(function (line) {
-      return math.line.ud(line);
-    });
+  const axiom_boundaryless = (number, params) => {
+    return params.lines_ud.length === params.lines.length
+      ? axiom_normal_distance(number, params)
+      : axiom_vector_origin(number, params);
   };
-  var axiom_boundaryless = function axiom_boundaryless(number, params) {
-    return params.lines_ud.length === params.lines.length ? axiom_normal_distance(number, params) : axiom_vector_origin(number, params);
+  const filter_with_boundary = (number, params, solutions, boundary) => {
+    if (boundary == null) { return; }
+    validate_axiom(number, params, boundary)
+      .forEach((valid, i) => { if (!valid) { delete solutions[i]; } });
   };
-  var filter_with_boundary = function filter_with_boundary(number, params, solutions, boundary) {
-    if (boundary == null) {
-      return;
-    }
-    validate_axiom(number, params, boundary).forEach(function (valid, i) {
-      if (!valid) {
-        delete solutions[i];
-      }
-    });
-  };
-  var axiom = function axiom(number) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var boundary = arguments.length > 2 ? arguments[2] : undefined;
-    var parameters = check_params(params);
-    var solutions = axiom_boundaryless(number, parameters);
+  const axiom = (number, params = {}, boundary) => {
+    const parameters = check_params(params);
+    const solutions = axiom_boundaryless(number, parameters);
     filter_with_boundary(number, parameters, solutions, boundary);
     return solutions;
   };
-  Object.keys(AxiomsVO).forEach(function (key) {
-    axiom[key] = AxiomsVO[key];
-  });
-  Object.keys(AxiomsUD).forEach(function (key) {
-    axiom[key] = AxiomsUD[key];
-  });
-  [1, 2, 3, 4, 5, 6, 7].forEach(function (number) {
-    axiom[number] = function () {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      return axiom.apply(void 0, [number].concat(args));
-    };
+  Object.keys(AxiomsVO).forEach(key => { axiom[key] = AxiomsVO[key]; });
+  Object.keys(AxiomsUD).forEach(key => { axiom[key] = AxiomsUD[key]; });
+  [1, 2, 3, 4, 5, 6, 7].forEach(number => {
+    axiom[number] = (...args) => axiom(number, ...args);
   });
   axiom.validate = validate_axiom;
 
-  var line_line_for_arrows = function line_line_for_arrows(a, b) {
-    return math.core.intersect_line_line(a.vector, a.origin, b.vector, b.origin, math.core.include_l, math.core.include_l);
-  };
-  var reflect_point = function reflect_point(foldLine, point) {
-    var matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
+  const line_line_for_arrows = (a, b) => math.core.intersect_line_line(
+  	a.vector, a.origin, b.vector, b.origin, math.core.include_l, math.core.include_l
+  );
+  const reflect_point = (foldLine, point) => {
+  	const matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
     return math.core.multiply_matrix2_vector2(matrix, point);
   };
-  var boundary_for_arrows = function boundary_for_arrows(_ref) {
-    var vertices_coords = _ref.vertices_coords;
-    return math.core.convex_hull(vertices_coords);
+  const boundary_for_arrows = ({ vertices_coords }) => math.core
+  	.convex_hull(vertices_coords);
+  const widest_perp = (graph, foldLine, point) => {
+  	const boundary = boundary_for_arrows(graph);
+  	if (point === undefined) {
+  		const foldSegment = math.core.clip_line_in_convex_polygon(boundary,
+        foldLine.vector,
+        foldLine.origin,
+        math.core.exclude,
+        math.core.include_l);
+  		point = math.core.midpoint(...foldSegment);
+  	}
+    const perpVector = math.core.rotate270(foldLine.vector);
+  	const smallest = math.core
+  		.clip_line_in_convex_polygon(boundary,
+        perpVector,
+        point,
+        math.core.exclude,
+        math.core.include_l)
+    	.map(pt => math.core.distance(point, pt))
+      .sort((a, b) => a - b)
+      .shift();
+  	const scaled = math.core.scale(math.core.normalize(perpVector), smallest);
+  	return math.segment(
+  		math.core.add(point, math.core.flip(scaled)),
+  		math.core.add(point, scaled)
+  	);
   };
-  var widest_perp = function widest_perp(graph, foldLine, point) {
-    var boundary = boundary_for_arrows(graph);
-    if (point === undefined) {
-      var _math$core;
-      var foldSegment = math.core.clip_line_in_convex_polygon(boundary, foldLine.vector, foldLine.origin, math.core.exclude, math.core.include_l);
-      point = (_math$core = math.core).midpoint.apply(_math$core, _toConsumableArray(foldSegment));
-    }
-    var perpVector = math.core.rotate270(foldLine.vector);
-    var smallest = math.core.clip_line_in_convex_polygon(boundary, perpVector, point, math.core.exclude, math.core.include_l).map(function (pt) {
-      return math.core.distance(point, pt);
-    }).sort(function (a, b) {
-      return a - b;
-    }).shift();
-    var scaled = math.core.scale(math.core.normalize(perpVector), smallest);
-    return math.segment(math.core.add(point, math.core.flip(scaled)), math.core.add(point, scaled));
+  const between_2_segments = (params, segments, foldLine) => {
+  	const midpoints = segments
+  		.map(seg => math.core.midpoint(seg[0], seg[1]));
+  	const midpointLine = math.line.fromPoints(...midpoints);
+  	const origin = math.intersect(foldLine, midpointLine);
+  	const perpLine = math.line(foldLine.vector.rotate90(), origin);
+  	return math.segment(params.lines.map(line => math.intersect(line, perpLine)));
   };
-  var between_2_segments = function between_2_segments(params, segments, foldLine) {
-    var _math$line;
-    var midpoints = segments.map(function (seg) {
-      return math.core.midpoint(seg[0], seg[1]);
-    });
-    var midpointLine = (_math$line = math.line).fromPoints.apply(_math$line, _toConsumableArray(midpoints));
-    var origin = math.intersect(foldLine, midpointLine);
-    var perpLine = math.line(foldLine.vector.rotate90(), origin);
-    return math.segment(params.lines.map(function (line) {
-      return math.intersect(line, perpLine);
-    }));
+  const between_2_intersecting_segments = (params, intersect, foldLine, boundary) => {
+    const paramVectors = params.lines.map(l => l.vector);
+    const flippedVectors = paramVectors.map(math.core.flip);
+    const paramRays = paramVectors
+      .concat(flippedVectors)
+      .map(vec => math.ray(vec, intersect));
+    const a1 = paramRays.filter(ray =>
+      math.core.dot(ray.vector, foldLine.vector) > 0 &&
+      math.core.cross2(ray.vector, foldLine.vector) > 0
+    ).shift();
+    const a2 = paramRays.filter(ray =>
+      math.core.dot(ray.vector, foldLine.vector) > 0 &&
+      math.core.cross2(ray.vector, foldLine.vector) < 0
+    ).shift();
+    const b1 = paramRays.filter(ray =>
+      math.core.dot(ray.vector, foldLine.vector) < 0 &&
+      math.core.cross2(ray.vector, foldLine.vector) > 0
+    ).shift();
+    const b2 = paramRays.filter(ray =>
+      math.core.dot(ray.vector, foldLine.vector) < 0 &&
+      math.core.cross2(ray.vector, foldLine.vector) < 0
+    ).shift();
+    const rayEndpoints = [a1, a2, b1, b2].map(ray => math.core
+  		.intersect_convex_polygon_line(boundary, ray.vector, ray.origin, math.core.exclude_s, math.core.exclude_r)
+  		.shift()
+  		.shift());
+    const rayLengths = rayEndpoints
+      .map(pt => math.core.distance(pt, intersect));
+  	const arrowStart = (rayLengths[0] < rayLengths[1]
+  		? rayEndpoints[0]
+  		: rayEndpoints[1]);
+  	const arrowEnd = (rayLengths[0] < rayLengths[1]
+  		? math.core.add(a2.origin, a2.vector.normalize().scale(rayLengths[0]))
+  		: math.core.add(a1.origin, a1.vector.normalize().scale(rayLengths[1])));
+  	const arrowStart2 = (rayLengths[2] < rayLengths[3]
+  		? rayEndpoints[2]
+  		: rayEndpoints[3]);
+  	const arrowEnd2 = (rayLengths[2] < rayLengths[3]
+  		? math.core.add(b2.origin, b2.vector.normalize().scale(rayLengths[2]))
+  		: math.core.add(b1.origin, b1.vector.normalize().scale(rayLengths[3])));
+  	return [
+  		math.segment(arrowStart, arrowEnd),
+  		math.segment(arrowStart2, arrowEnd2)
+  	];
   };
-  var between_2_intersecting_segments = function between_2_intersecting_segments(params, intersect, foldLine, boundary) {
-    var paramVectors = params.lines.map(function (l) {
-      return l.vector;
-    });
-    var flippedVectors = paramVectors.map(math.core.flip);
-    var paramRays = paramVectors.concat(flippedVectors).map(function (vec) {
-      return math.ray(vec, intersect);
-    });
-    var a1 = paramRays.filter(function (ray) {
-      return math.core.dot(ray.vector, foldLine.vector) > 0 && math.core.cross2(ray.vector, foldLine.vector) > 0;
-    }).shift();
-    var a2 = paramRays.filter(function (ray) {
-      return math.core.dot(ray.vector, foldLine.vector) > 0 && math.core.cross2(ray.vector, foldLine.vector) < 0;
-    }).shift();
-    var b1 = paramRays.filter(function (ray) {
-      return math.core.dot(ray.vector, foldLine.vector) < 0 && math.core.cross2(ray.vector, foldLine.vector) > 0;
-    }).shift();
-    var b2 = paramRays.filter(function (ray) {
-      return math.core.dot(ray.vector, foldLine.vector) < 0 && math.core.cross2(ray.vector, foldLine.vector) < 0;
-    }).shift();
-    var rayEndpoints = [a1, a2, b1, b2].map(function (ray) {
-      return math.core.intersect_convex_polygon_line(boundary, ray.vector, ray.origin, math.core.exclude_s, math.core.exclude_r).shift().shift();
-    });
-    var rayLengths = rayEndpoints.map(function (pt) {
-      return math.core.distance(pt, intersect);
-    });
-    var arrowStart = rayLengths[0] < rayLengths[1] ? rayEndpoints[0] : rayEndpoints[1];
-    var arrowEnd = rayLengths[0] < rayLengths[1] ? math.core.add(a2.origin, a2.vector.normalize().scale(rayLengths[0])) : math.core.add(a1.origin, a1.vector.normalize().scale(rayLengths[1]));
-    var arrowStart2 = rayLengths[2] < rayLengths[3] ? rayEndpoints[2] : rayEndpoints[3];
-    var arrowEnd2 = rayLengths[2] < rayLengths[3] ? math.core.add(b2.origin, b2.vector.normalize().scale(rayLengths[2])) : math.core.add(b1.origin, b1.vector.normalize().scale(rayLengths[3]));
-    return [math.segment(arrowStart, arrowEnd), math.segment(arrowStart2, arrowEnd2)];
+  const axiom_1_arrows = (params, graph) => axiom(1, params)
+  	.map(foldLine => [widest_perp(graph, foldLine)]);
+  const axiom_2_arrows = params => [
+  	[math.segment(params.points)]
+  ];
+  const axiom_3_arrows = (params, graph) => {
+  	const boundary = boundary_for_arrows(graph);
+  	const segs = params.lines.map(l => math.core
+  		.clip_line_in_convex_polygon(boundary,
+        l.vector,
+        l.origin,
+        math.core.exclude,
+        math.core.include_l));
+    const segVecs = segs.map(seg => math.core.subtract(seg[1], seg[0]));
+    const intersect = math.core.intersect_line_line(
+  		segVecs[0], segs[0][0], segVecs[1], segs[1][0],
+      math.core.exclude_s, math.core.exclude_s);
+    return !intersect
+  		? [between_2_segments(params, segs, axiom(3, params)
+  			.filter(a => a !== undefined).shift())]
+  		: axiom(3, params).map(foldLine => between_2_intersecting_segments(
+  				params, intersect, foldLine, boundary
+  			));
   };
-  var axiom_1_arrows = function axiom_1_arrows(params, graph) {
-    return axiom(1, params).map(function (foldLine) {
-      return [widest_perp(graph, foldLine)];
-    });
-  };
-  var axiom_2_arrows = function axiom_2_arrows(params) {
-    return [[math.segment(params.points)]];
-  };
-  var axiom_3_arrows = function axiom_3_arrows(params, graph) {
-    var boundary = boundary_for_arrows(graph);
-    var segs = params.lines.map(function (l) {
-      return math.core.clip_line_in_convex_polygon(boundary, l.vector, l.origin, math.core.exclude, math.core.include_l);
-    });
-    var segVecs = segs.map(function (seg) {
-      return math.core.subtract(seg[1], seg[0]);
-    });
-    var intersect = math.core.intersect_line_line(segVecs[0], segs[0][0], segVecs[1], segs[1][0], math.core.exclude_s, math.core.exclude_s);
-    return !intersect ? [between_2_segments(params, segs, axiom(3, params).filter(function (a) {
-      return a !== undefined;
-    }).shift())] : axiom(3, params).map(function (foldLine) {
-      return between_2_intersecting_segments(params, intersect, foldLine, boundary);
-    });
-  };
-  var axiom_4_arrows = function axiom_4_arrows(params, graph) {
-    return axiom(4, params).map(function (foldLine) {
-      return [widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[0]))];
-    });
-  };
-  var axiom_5_arrows = function axiom_5_arrows(params) {
-    return axiom(5, params).map(function (foldLine) {
-      return [math.segment(params.points[1], reflect_point(foldLine, params.points[1]))];
-    });
-  };
-  var axiom_6_arrows = function axiom_6_arrows(params) {
-    return axiom(6, params).map(function (foldLine) {
-      return params.points.map(function (pt) {
-        return math.segment(pt, reflect_point(foldLine, pt));
-      });
-    });
-  };
-  var axiom_7_arrows = function axiom_7_arrows(params, graph) {
-    return axiom(7, params).map(function (foldLine) {
-      return [math.segment(params.points[0], reflect_point(foldLine, params.points[0])), widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1]))];
-    });
-  };
-  var arrow_functions = [null, axiom_1_arrows, axiom_2_arrows, axiom_3_arrows, axiom_4_arrows, axiom_5_arrows, axiom_6_arrows, axiom_7_arrows];
+  const axiom_4_arrows = (params, graph) => axiom(4, params)
+  	.map(foldLine => [widest_perp(
+  		graph,
+  		foldLine,
+  		line_line_for_arrows(foldLine, params.lines[0])
+  	)]);
+  const axiom_5_arrows = (params) => axiom(5, params)
+  	.map(foldLine => [math.segment(
+  		params.points[1],
+  		reflect_point(foldLine, params.points[1])
+  	)]);
+  const axiom_6_arrows = (params) => axiom(6, params)
+  	.map(foldLine => params.points
+  		.map(pt => math.segment(pt, reflect_point(foldLine, pt))));
+  const axiom_7_arrows = (params, graph) => axiom(7, params)
+  	.map(foldLine => [
+  		math.segment(params.points[0], reflect_point(foldLine, params.points[0])),
+  		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1]))
+  	]);
+  const arrow_functions = [null,
+  	axiom_1_arrows,
+  	axiom_2_arrows,
+  	axiom_3_arrows,
+  	axiom_4_arrows,
+  	axiom_5_arrows,
+  	axiom_6_arrows,
+  	axiom_7_arrows,
+  ];
   delete arrow_functions[0];
-  var axiom_arrows = function axiom_arrows(number) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var points = params.points ? params.points.map(function (p) {
-      return math.core.get_vector(p);
-    }) : undefined;
-    var lines = params.lines ? params.lines.map(function (l) {
-      return math.core.get_line(l);
-    }) : undefined;
-    for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      args[_key - 2] = arguments[_key];
-    }
-    return arrow_functions[number].apply(arrow_functions, [{
-      points: points,
-      lines: lines
-    }].concat(args));
+  const axiom_arrows = (number, params = {}, ...args) => {
+  	const points = params.points
+  		? params.points.map(p => math.core.get_vector(p))
+  		: undefined;
+  	const lines = params.lines
+      ? params.lines.map(l => math.core.get_line(l))
+  		: undefined;
+  	return arrow_functions[number]({ points, lines }, ...args);
   };
-  Object.keys(arrow_functions).forEach(function (number) {
-    axiom_arrows[number] = function () {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-      return axiom_arrows.apply(void 0, [number].concat(args));
-    };
+  Object.keys(arrow_functions).forEach(number => {
+    axiom_arrows[number] = (...args) => axiom_arrows(number, ...args);
   });
 
-  var widest_perpendicular = function widest_perpendicular(polygon, foldLine, point) {
-    if (point === undefined) {
-      var _math$core;
-      var foldSegment = math.core.clip_line_in_convex_polygon(polygon, foldLine.vector, foldLine.origin, math.core.exclude, math.core.include_l);
-      if (foldSegment === undefined) {
-        return;
-      }
-      point = (_math$core = math.core).midpoint.apply(_math$core, _toConsumableArray(foldSegment));
-    }
-    var perpVector = math.core.rotate90(foldLine.vector);
-    var smallest = math.core.clip_line_in_convex_polygon(polygon, perpVector, point, math.core.exclude, math.core.include_l).map(function (pt) {
-      return math.core.distance(point, pt);
-    }).sort(function (a, b) {
-      return a - b;
-    }).shift();
-    var scaled = math.core.scale(math.core.normalize(perpVector), smallest);
-    return math.segment(math.core.add(point, math.core.flip(scaled)), math.core.add(point, scaled));
+  const widest_perpendicular = (polygon, foldLine, point) => {
+  	if (point === undefined) {
+  		const foldSegment = math.core.clip_line_in_convex_polygon(polygon,
+        foldLine.vector,
+        foldLine.origin,
+        math.core.exclude,
+        math.core.include_l);
+  		if (foldSegment === undefined) { return; }
+  		point = math.core.midpoint(...foldSegment);
+  	}
+    const perpVector = math.core.rotate90(foldLine.vector);
+  	const smallest = math.core
+  		.clip_line_in_convex_polygon(polygon,
+        perpVector,
+        point,
+        math.core.exclude,
+        math.core.include_l)
+    	.map(pt => math.core.distance(point, pt))
+      .sort((a, b) => a - b)
+      .shift();
+  	const scaled = math.core.scale(math.core.normalize(perpVector), smallest);
+  	return math.segment(
+  		math.core.add(point, math.core.flip(scaled)),
+  		math.core.add(point, scaled)
+  	);
   };
-  var simple_arrow = function simple_arrow(graph, line) {
-    var hull = math.core.convex_hull(graph.vertices_coords);
-    var rect = math.core.enclosing_rectangle(hull);
-    var segment = widest_perpendicular(hull, line);
-    if (segment === undefined) {
-      return undefined;
-    }
-    var vector = ear.math.subtract(segment[1], segment[0]);
-    var length = ear.math.magnitude(vector);
-    var direction = ear.math.dot(vector, [1, 0]);
-    var vmin = rect.width < rect.height ? rect.width : rect.height;
-    segment.head = {
-      width: vmin * 0.1,
-      height: vmin * 0.15
-    };
-    segment.bend = direction > 0 ? 0.3 : -0.3;
-    segment.padding = length * 0.05;
-    return segment;
+  const simple_arrow = (graph, line) => {
+  	const hull = math.core.convex_hull(graph.vertices_coords);
+  	const box = math.core.bounding_box(hull);
+  	const segment = widest_perpendicular(hull, line);
+  	if (segment === undefined) { return undefined; }
+    const vector = ear.math.subtract(segment[1], segment[0]);
+    const length = ear.math.magnitude(vector);
+    const direction = ear.math.dot(vector, [1, 0]);
+    const vmin = box.span[0] < box.span[1] ? box.span[0] : box.span[1];
+  	segment.head = {
+  		width: vmin * 0.1,
+  		height: vmin * 0.15,
+  	};
+  	segment.bend = direction > 0 ? 0.3 : -0.3;
+  	segment.padding = length * 0.05;
+  	return segment;
   };
 
   var diagram = Object.assign(Object.create(null),
-  {
-    axiom_arrows: axiom_arrows,
-    simple_arrow: simple_arrow
+  	{
+  	axiom_arrows,
+  	simple_arrow,
   });
 
-  var make_tortilla_tortilla_edges_crossing = function make_tortilla_tortilla_edges_crossing(graph, edges_faces_side, epsilon) {
-    var tortilla_edge_indices = edges_faces_side.map(function (side) {
-      return side.length === 2 && side[0] !== side[1];
-    }).map(function (bool, i) {
-      return bool ? i : undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    var edges_crossing_matrix = make_edges_edges_crossing(graph, epsilon);
-    var edges_crossing = boolean_matrix_to_indexed_array(edges_crossing_matrix);
-    var tortilla_edges_crossing = tortilla_edge_indices.map(function (i) {
-      return edges_crossing[i];
-    });
-    return tortilla_edges_crossing.map(function (edges, i) {
-      return {
-        tortilla_edge: tortilla_edge_indices[i],
-        crossing_edges: edges
-      };
-    }).filter(function (el) {
-      return el.crossing_edges.length;
-    });
+  const make_tortilla_tortilla_edges_crossing = (graph, edges_faces_side, epsilon) => {
+  	const tortilla_edge_indices = edges_faces_side
+  		.map(side => side.length === 2 && side[0] !== side[1])
+  		.map((bool, i) => bool ? i : undefined)
+  		.filter(a => a !== undefined);
+  	const edges_crossing_matrix = make_edges_edges_crossing(graph, epsilon);
+  	const edges_crossing = boolean_matrix_to_indexed_array(edges_crossing_matrix);
+  	const tortilla_edges_crossing = tortilla_edge_indices
+  		.map(i => edges_crossing[i]);
+  	return tortilla_edges_crossing.map((edges, i) => ({
+  		tortilla_edge: tortilla_edge_indices[i],
+  		crossing_edges: edges,
+  	})).filter(el => el.crossing_edges.length);
   };
-  var make_tortillas_faces_crossing = function make_tortillas_faces_crossing(graph, edges_faces_side, epsilon) {
-    var faces_winding = make_faces_winding(graph);
-    var faces_polygon = make_faces_polygon(graph, epsilon);
-    for (var i = 0; i < faces_polygon.length; i++) {
-      if (!faces_winding[i]) {
-        faces_polygon[i].reverse();
-      }
-    }
-    var tortilla_edge_indices = edges_faces_side.map(function (side) {
-      return side.length === 2 && side[0] !== side[1];
-    }).map(function (bool, i) {
-      return bool ? i : undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    var edges_coords = tortilla_edge_indices.map(function (e) {
-      return graph.edges_vertices[e];
-    }).map(function (edge) {
-      return edge.map(function (vertex) {
-        return graph.vertices_coords[vertex];
-      });
-    });
-    var edges_vector = edges_coords.map(function (coords) {
-      return math.core.subtract2(coords[1], coords[0]);
-    });
-    var matrix = [];
-    tortilla_edge_indices.forEach(function (e) {
-      matrix[e] = [];
-    });
-    var result = tortilla_edge_indices.map(function (e, ei) {
-      return faces_polygon.map(function (poly, f) {
-        return math.core.clip_line_in_convex_polygon(poly, edges_vector[ei], edges_coords[ei][0], math.core.exclude, math.core.exclude_s, epsilon);
-      }).map(function (result, f) {
-        return result !== undefined;
-      });
-    });
-    result.forEach(function (faces, ei) {
-      return faces.forEach(function (overlap, f) {
-        if (overlap) {
-          matrix[tortilla_edge_indices[ei]].push(f);
-        }
-      });
-    });
-    return matrix;
+  const make_tortillas_faces_crossing = (graph, edges_faces_side, epsilon) => {
+  	const faces_winding = make_faces_winding(graph);
+  	const faces_polygon = make_faces_polygon(graph, epsilon);
+  	for (let i = 0; i < faces_polygon.length; i++) {
+  		if (!faces_winding[i]) { faces_polygon[i].reverse(); }
+  	}
+  	const tortilla_edge_indices = edges_faces_side
+  		.map(side => side.length === 2 && side[0] !== side[1])
+  		.map((bool, i) => bool ? i : undefined)
+  		.filter(a => a !== undefined);
+  	const edges_coords = tortilla_edge_indices
+  		.map(e => graph.edges_vertices[e])
+  		.map(edge => edge
+  			.map(vertex => graph.vertices_coords[vertex]));
+  	const edges_vector = edges_coords
+  		.map(coords => math.core.subtract2(coords[1], coords[0]));
+    const matrix = [];
+    tortilla_edge_indices.forEach(e => { matrix[e] = []; });
+  	const result = tortilla_edge_indices
+  		.map((e, ei) => faces_polygon
+  			.map((poly, f) => math.core.clip_line_in_convex_polygon(
+  				poly,
+  				edges_vector[ei],
+  				edges_coords[ei][0],
+  				math.core.exclude,
+  				math.core.exclude_s,
+  				epsilon))
+  			.map((result, f) => result !== undefined));
+  	result.forEach((faces, ei) => faces
+  		.forEach((overlap, f) => {
+  			if (overlap) {
+  				matrix[tortilla_edge_indices[ei]].push(f);
+  			}
+  		}));
+  	return matrix;
   };
-  var make_tortilla_tortilla_faces_crossing = function make_tortilla_tortilla_faces_crossing(graph, edges_faces_side, epsilon) {
-    make_tortilla_tortilla_edges_crossing(graph, edges_faces_side, epsilon);
-    var tortillas_faces_crossing = make_tortillas_faces_crossing(graph, edges_faces_side, epsilon);
-    var tortilla_faces_results = tortillas_faces_crossing.map(function (faces, e) {
-      return faces.map(function (face) {
-        return [graph.edges_faces[e], [face, face]];
-      });
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
-    return tortilla_faces_results;
+  const make_tortilla_tortilla_faces_crossing = (graph, edges_faces_side, epsilon) => {
+  	make_tortilla_tortilla_edges_crossing(graph, edges_faces_side, epsilon);
+  	const tortillas_faces_crossing = make_tortillas_faces_crossing(graph, edges_faces_side, epsilon);
+  	const tortilla_faces_results = tortillas_faces_crossing
+  		.map((faces, e) => faces.map(face => [graph.edges_faces[e], [face, face]]))
+  		.reduce((a, b) => a.concat(b), []);
+  	return tortilla_faces_results;
   };
 
   var tortilla_tortilla = /*#__PURE__*/Object.freeze({
@@ -8105,352 +6321,300 @@
     make_tortilla_tortilla_faces_crossing: make_tortilla_tortilla_faces_crossing
   });
 
-  var make_edges_faces_side = function make_edges_faces_side(graph, faces_center) {
-    var edges_origin = graph.edges_vertices.map(function (vertices) {
-      return graph.vertices_coords[vertices[0]];
-    });
-    var edges_vector = graph.edges_vertices.map(function (vertices) {
-      return math.core.subtract2(graph.vertices_coords[vertices[1]], graph.vertices_coords[vertices[0]]);
-    });
-    return graph.edges_faces.map(function (faces, i) {
-      return faces.map(function (face) {
-        return math.core.cross2(math.core.subtract2(faces_center[face], edges_origin[i]), edges_vector[i]);
-      }).map(function (cross) {
-        return Math.sign(cross);
-      });
-    });
+  const make_edges_faces_side = (graph, faces_center) => {
+  	const edges_origin = graph.edges_vertices
+  		.map(vertices => graph.vertices_coords[vertices[0]]);
+  	const edges_vector = graph.edges_vertices
+  		.map(vertices => math.core.subtract2(
+  			graph.vertices_coords[vertices[1]],
+  			graph.vertices_coords[vertices[0]],
+  		));
+  	return graph.edges_faces
+  		.map((faces, i) => faces
+  			.map(face => math.core.cross2(
+  				math.core.subtract2(
+  					faces_center[face],
+  					edges_origin[i]),
+  					edges_vector[i]))
+  			.map(cross => Math.sign(cross)));
   };
-  var make_tacos_faces_side = function make_tacos_faces_side(graph, faces_center, tacos_edges, tacos_faces) {
-    var tacos_edge_coords = tacos_edges.map(function (edges) {
-      return graph.edges_vertices[edges[0]].map(function (vertex) {
-        return graph.vertices_coords[vertex];
-      });
-    });
-    var tacos_edge_origin = tacos_edge_coords.map(function (coords) {
-      return coords[0];
-    });
-    var tacos_edge_vector = tacos_edge_coords.map(function (coords) {
-      return math.core.subtract2(coords[1], coords[0]);
-    });
-    var tacos_faces_center = tacos_faces.map(function (faces) {
-      return faces.map(function (face_pair) {
-        return face_pair.map(function (face) {
-          return faces_center[face];
-        });
-      });
-    });
-    return tacos_faces_center.map(function (faces, i) {
-      return faces.map(function (pairs) {
-        return pairs.map(function (center) {
-          return math.core.cross2(math.core.subtract2(center, tacos_edge_origin[i]), tacos_edge_vector[i]);
-        }).map(function (cross) {
-          return Math.sign(cross);
-        });
-      });
-    });
+  const make_tacos_faces_side = (graph, faces_center, tacos_edges, tacos_faces) => {
+  	const tacos_edge_coords = tacos_edges
+  		.map(edges => graph.edges_vertices[edges[0]]
+  			.map(vertex => graph.vertices_coords[vertex]));
+  	const tacos_edge_origin = tacos_edge_coords
+  		.map(coords => coords[0]);
+  	const tacos_edge_vector = tacos_edge_coords
+  		.map(coords => math.core.subtract2(coords[1], coords[0]));
+  	const tacos_faces_center = tacos_faces
+  		.map(faces => faces
+  			.map(face_pair => face_pair
+  				.map(face => faces_center[face])));
+  	return tacos_faces_center
+  		.map((faces, i) => faces
+  			.map(pairs => pairs
+  				.map(center => math.core.cross2(
+  					math.core.subtract2(
+  						center,
+  						tacos_edge_origin[i]),
+  						tacos_edge_vector[i]))
+  				.map(cross => Math.sign(cross))));
   };
 
-  var classify_faces_pair = function classify_faces_pair(pair) {
-    if (pair[0] === 1 && pair[1] === -1 || pair[0] === -1 && pair[1] === 1) {
-      return "both";
-    }
-    if (pair[0] === 1 && pair[1] === 1) {
-      return "right";
-    }
-    if (pair[0] === -1 && pair[1] === -1) {
-      return "left";
-    }
+  const classify_faces_pair = (pair) => {
+  	if ((pair[0] === 1 && pair[1] === -1) ||
+  		(pair[0] === -1 && pair[1] === 1)) {
+  		return "both";
+  	}
+  	if ((pair[0] === 1 && pair[1] === 1)) { return "right"; }
+  	if ((pair[0] === -1 && pair[1] === -1)) { return "left"; }
   };
-  var is_taco_taco = function is_taco_taco(classes) {
-    return classes[0] === classes[1] && classes[0] !== "both";
+  const is_taco_taco = (classes) => {
+  	return classes[0] === classes[1] && classes[0] !== "both";
   };
-  var is_tortilla_tortilla = function is_tortilla_tortilla(classes) {
-    return classes[0] === classes[1] && classes[0] === "both";
+  const is_tortilla_tortilla = (classes) => {
+  	return classes[0] === classes[1] && classes[0] === "both";
   };
-  var is_taco_tortilla = function is_taco_tortilla(classes) {
-    return classes[0] !== classes[1] && (classes[0] === "both" || classes[1] === "both");
+  const is_taco_tortilla = (classes) => {
+  	return classes[0] !== classes[1]
+  		&& (classes[0] === "both" || classes[1] === "both");
   };
-  var make_taco_tortilla = function make_taco_tortilla(face_pairs, types, faces_side) {
-    var direction = types[0] === "left" || types[1] === "left" ? -1 : 1;
-    var taco = types[0] === "both" ? _toConsumableArray(face_pairs[1]) : _toConsumableArray(face_pairs[0]);
-    var index = types[0] === "both" ? 0 : 1;
-    var tortilla = faces_side[index][0] === direction ? face_pairs[index][0] : face_pairs[index][1];
+  const make_taco_tortilla = (face_pairs, types, faces_side) => {
+  	const direction = types[0] === "left" || types[1] === "left" ? -1 : 1;
+  	const taco = types[0] === "both" ? [...face_pairs[1]] : [...face_pairs[0]];
+  	const index = types[0] === "both" ? 0 : 1;
+  	const tortilla = faces_side[index][0] === direction
+  		? face_pairs[index][0]
+  		: face_pairs[index][1];
+  	return { taco, tortilla };
+  };
+  const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
+  	if (face_pairs === undefined) { return undefined; }
+  	return (tortillas_sides[0][0] === tortillas_sides[1][0])
+  		? face_pairs
+  		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
+  };
+  const make_tacos_tortillas = (graph, epsilon = math.core.EPSILON) => {
+  	const faces_center = make_faces_center(graph);
+  	const edges_faces_side = make_edges_faces_side(graph, faces_center);
+  	const edge_edge_overlap_matrix = make_edges_edges_parallel_overlap(graph, epsilon);
+  	const tacos_edges = boolean_matrix_to_unique_index_pairs(edge_edge_overlap_matrix)
+  		.filter(pair => pair
+  			.map(edge => graph.edges_faces[edge].length > 1)
+  			.reduce((a, b) => a && b, true));
+  	const tacos_faces = tacos_edges
+  		.map(pair => pair
+  			.map(edge => graph.edges_faces[edge]));
+  	const tacos_faces_side = make_tacos_faces_side(graph, faces_center, tacos_edges, tacos_faces);
+  	const tacos_types = tacos_faces_side
+  		.map((faces, i) => faces
+  			.map(classify_faces_pair));
+  	const taco_taco = tacos_types
+  		.map((pair, i) => is_taco_taco(pair) ? tacos_faces[i] : undefined)
+  		.filter(a => a !== undefined);
+  	const tortilla_tortilla_aligned = tacos_types
+  		.map((pair, i) => is_tortilla_tortilla(pair) ? tacos_faces[i] : undefined)
+  		.map((pair, i) => make_tortilla_tortilla(pair, tacos_faces_side[i]))
+  		.filter(a => a !== undefined);
+  	const tortilla_tortilla_crossing = make_tortilla_tortilla_faces_crossing(graph, edges_faces_side, epsilon);
+  	const tortilla_tortilla = tortilla_tortilla_aligned
+  		.concat(tortilla_tortilla_crossing);
+  	const taco_tortilla_aligned = tacos_types
+  		.map((pair, i) => is_taco_tortilla(pair)
+  			? make_taco_tortilla(tacos_faces[i], tacos_types[i], tacos_faces_side[i])
+  			: undefined)
+  		.filter(a => a !== undefined);
+    const edges_faces_overlap = make_edges_faces_overlap(graph, epsilon);
+    const edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap)
+      .map((faces, e) => edges_faces_side[e].length > 1
+      	&& edges_faces_side[e][0] === edges_faces_side[e][1]
+      		? faces
+      		: []);
+    const taco_tortillas_crossing = edges_overlap_faces
+    	.map((tortillas, edge) => ({ taco: graph.edges_faces[edge], tortillas }))
+    	.filter(el => el.tortillas.length);
+    const taco_tortilla_crossing = taco_tortillas_crossing
+    	.map(el => el.tortillas
+    		.map(tortilla => ({ taco: [...el.taco], tortilla })))
+    	.reduce((a, b) => a.concat(b), []);
+    const taco_tortilla = taco_tortilla_aligned
+    	.concat(taco_tortilla_crossing)
+    	.sort((a, b) => a.tortilla - b.tortilla);
     return {
-      taco: taco,
-      tortilla: tortilla
-    };
-  };
-  var make_tortilla_tortilla = function make_tortilla_tortilla(face_pairs, tortillas_sides) {
-    if (face_pairs === undefined) {
-      return undefined;
-    }
-    return tortillas_sides[0][0] === tortillas_sides[1][0] ? face_pairs : [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
-  };
-  var make_tacos_tortillas = function make_tacos_tortillas(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
-    var faces_center = make_faces_center(graph);
-    var edges_faces_side = make_edges_faces_side(graph, faces_center);
-    var edge_edge_overlap_matrix = make_edges_edges_parallel_overlap(graph, epsilon);
-    var tacos_edges = boolean_matrix_to_unique_index_pairs(edge_edge_overlap_matrix).filter(function (pair) {
-      return pair.map(function (edge) {
-        return graph.edges_faces[edge].length > 1;
-      }).reduce(function (a, b) {
-        return a && b;
-      }, true);
-    });
-    var tacos_faces = tacos_edges.map(function (pair) {
-      return pair.map(function (edge) {
-        return graph.edges_faces[edge];
-      });
-    });
-    var tacos_faces_side = make_tacos_faces_side(graph, faces_center, tacos_edges, tacos_faces);
-    var tacos_types = tacos_faces_side.map(function (faces, i) {
-      return faces.map(classify_faces_pair);
-    });
-    var taco_taco = tacos_types.map(function (pair, i) {
-      return is_taco_taco(pair) ? tacos_faces[i] : undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    var tortilla_tortilla_aligned = tacos_types.map(function (pair, i) {
-      return is_tortilla_tortilla(pair) ? tacos_faces[i] : undefined;
-    }).map(function (pair, i) {
-      return make_tortilla_tortilla(pair, tacos_faces_side[i]);
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    var tortilla_tortilla_crossing = make_tortilla_tortilla_faces_crossing(graph, edges_faces_side, epsilon);
-    var tortilla_tortilla = tortilla_tortilla_aligned.concat(tortilla_tortilla_crossing);
-    var taco_tortilla_aligned = tacos_types.map(function (pair, i) {
-      return is_taco_tortilla(pair) ? make_taco_tortilla(tacos_faces[i], tacos_types[i], tacos_faces_side[i]) : undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    var edges_faces_overlap = make_edges_faces_overlap(graph, epsilon);
-    var edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap).map(function (faces, e) {
-      return edges_faces_side[e].length > 1 && edges_faces_side[e][0] === edges_faces_side[e][1] ? faces : [];
-    });
-    var taco_tortillas_crossing = edges_overlap_faces.map(function (tortillas, edge) {
-      return {
-        taco: graph.edges_faces[edge],
-        tortillas: tortillas
-      };
-    }).filter(function (el) {
-      return el.tortillas.length;
-    });
-    var taco_tortilla_crossing = taco_tortillas_crossing.map(function (el) {
-      return el.tortillas.map(function (tortilla) {
-        return {
-          taco: _toConsumableArray(el.taco),
-          tortilla: tortilla
-        };
-      });
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
-    var taco_tortilla = taco_tortilla_aligned.concat(taco_tortilla_crossing).sort(function (a, b) {
-      return a.tortilla - b.tortilla;
-    });
-    return {
-      taco_taco: taco_taco,
-      tortilla_tortilla: tortilla_tortilla,
-      taco_tortilla: taco_tortilla
+    	taco_taco,
+    	tortilla_tortilla,
+    	taco_tortilla,
     };
   };
 
-  var make_transitivity_trios = function make_transitivity_trios(graph, overlap_matrix, faces_winding) {
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : math.core.EPSILON;
+  const make_transitivity_trios = (graph, overlap_matrix, faces_winding, epsilon = math.core.EPSILON) => {
     if (!overlap_matrix) {
       overlap_matrix = make_faces_faces_overlap(graph, epsilon);
     }
     if (!faces_winding) {
       faces_winding = make_faces_winding(graph);
     }
-    var polygons = graph.faces_vertices.map(function (face) {
-      return face.map(function (v) {
-        return graph.vertices_coords[v];
-      });
+    const polygons = graph.faces_vertices
+      .map(face => face
+        .map(v => graph.vertices_coords[v]));
+    polygons.forEach((face, i) => {
+      if (!faces_winding[i]) { face.reverse(); }
     });
-    polygons.forEach(function (face, i) {
-      if (!faces_winding[i]) {
-        face.reverse();
-      }
-    });
-    var matrix = graph.faces_vertices.map(function () {
-      return [];
-    });
-    for (var i = 0; i < matrix.length - 1; i++) {
-      for (var j = i + 1; j < matrix.length; j++) {
-        if (!overlap_matrix[i][j]) {
-          continue;
-        }
-        var polygon = math.core.intersect_polygon_polygon(polygons[i], polygons[j], epsilon);
-        if (polygon) {
-          matrix[i][j] = polygon;
-        }
+    const matrix = graph.faces_vertices.map(() => []);
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix.length; j++) {
+        if (!overlap_matrix[i][j]) { continue; }
+        const polygon = math.core.intersect_polygon_polygon(polygons[i], polygons[j], epsilon);
+        if (polygon) { matrix[i][j] = polygon; }
       }
     }
-    var trios = [];
-    for (var _i = 0; _i < matrix.length - 1; _i++) {
-      for (var _j = _i + 1; _j < matrix.length; _j++) {
-        if (!matrix[_i][_j]) {
-          continue;
-        }
-        for (var k = _j + 1; k < matrix.length; k++) {
-          if (_i === k || _j === k) {
-            continue;
-          }
-          if (!overlap_matrix[_i][k] || !overlap_matrix[_j][k]) {
-            continue;
-          }
-          var _polygon = math.core.intersect_polygon_polygon(matrix[_i][_j], polygons[k], epsilon);
-          if (_polygon) {
-            trios.push([_i, _j, k].sort(function (a, b) {
-              return a - b;
-            }));
-          }
+    const trios = [];
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix.length; j++) {
+        if (!matrix[i][j]) { continue; }
+        for (let k = j + 1; k < matrix.length; k++) {
+          if (i === k || j === k) { continue; }
+          if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
+          const polygon = math.core.intersect_polygon_polygon(matrix[i][j], polygons[k], epsilon);
+          if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
         }
       }
     }
     return trios;
   };
 
-  var filter_transitivity = function filter_transitivity(transitivity_trios, tacos_tortillas) {
-    var tacos_trios = {};
-    tacos_tortillas.taco_taco.map(function (tacos) {
-      return [[tacos[0][0], tacos[0][1], tacos[1][0]],
+  const filter_transitivity = (transitivity_trios, tacos_tortillas) => {
+    const tacos_trios = {};
+    tacos_tortillas.taco_taco.map(tacos => [
+      [tacos[0][0], tacos[0][1], tacos[1][0]],
       [tacos[0][0], tacos[0][1], tacos[1][1]],
       [tacos[0][0], tacos[1][0], tacos[1][1]],
-      [tacos[0][1], tacos[1][0], tacos[1][1]]
-      ];
-    }).forEach(function (trios) {
-      return trios.map(function (trio) {
-        return trio.sort(function (a, b) {
-          return a - b;
-        }).join(" ");
-      }).forEach(function (key) {
-        tacos_trios[key] = true;
-      });
-    });
-    tacos_tortillas.taco_tortilla.map(function (el) {
-      return [el.taco[0], el.taco[1], el.tortilla];
-    }).map(function (trio) {
-      return trio.sort(function (a, b) {
-        return a - b;
-      }).join(" ");
-    }).forEach(function (key) {
-      tacos_trios[key] = true;
-    });
-    return transitivity_trios.filter(function (trio) {
-      return tacos_trios[trio.join(" ")] === undefined;
-    });
+      [tacos[0][1], tacos[1][0], tacos[1][1]],
+    ])
+    .forEach(trios => trios
+      .map(trio => trio
+        .sort((a, b) => a - b)
+        .join(" "))
+      .forEach(key => { tacos_trios[key] = true; }));
+    tacos_tortillas.taco_tortilla.map(el => [
+      el.taco[0], el.taco[1], el.tortilla
+    ])
+    .map(trio => trio
+      .sort((a, b) => a - b)
+      .join(" "))
+    .forEach(key => { tacos_trios[key] = true; });
+    return transitivity_trios
+      .filter(trio => tacos_trios[trio.join(" ")] === undefined);
   };
 
-  var refactor_pairs = function refactor_pairs(tacos_tortillas, transitivity_trios) {
-    var pairs = {};
-    pairs.taco_taco = tacos_tortillas.taco_taco.map(function (el) {
-      return [[el[0][0], el[0][1]], [el[1][0], el[1][1]], [el[1][0], el[0][1]], [el[0][0], el[1][1]], [el[0][0], el[1][0]], [el[0][1], el[1][1]]];
-    });
-    pairs.taco_tortilla = tacos_tortillas.taco_tortilla.map(function (el) {
-      return [[el.taco[0], el.taco[1]], [el.taco[0], el.tortilla], [el.tortilla, el.taco[1]]];
-    });
-    pairs.tortilla_tortilla = tacos_tortillas.tortilla_tortilla.map(function (el) {
-      return [[el[0][0], el[1][0]], [el[0][1], el[1][1]]];
-    });
-    pairs.transitivity = transitivity_trios.map(function (el) {
-      return [[el[0], el[1]], [el[1], el[2]], [el[2], el[0]]];
-    });
+  const refactor_pairs = (tacos_tortillas, transitivity_trios) => {
+    const pairs = {};
+    pairs.taco_taco = tacos_tortillas.taco_taco.map(el => [
+      [el[0][0], el[0][1]],
+      [el[1][0], el[1][1]],
+      [el[1][0], el[0][1]],
+      [el[0][0], el[1][1]],
+      [el[0][0], el[1][0]],
+      [el[0][1], el[1][1]],
+    ]);
+    pairs.taco_tortilla = tacos_tortillas.taco_tortilla.map(el => [
+      [el.taco[0], el.taco[1]],
+      [el.taco[0], el.tortilla],
+      [el.tortilla, el.taco[1]],
+    ]);
+    pairs.tortilla_tortilla = tacos_tortillas.tortilla_tortilla.map(el => [
+      [el[0][0], el[1][0]],
+      [el[0][1], el[1][1]],
+    ]);
+    pairs.transitivity = transitivity_trios.map(el => [
+      [el[0], el[1]],
+      [el[1], el[2]],
+      [el[2], el[0]],
+    ]);
     return pairs;
   };
-  var make_maps = function make_maps(tacos_face_pairs) {
-    return tacos_face_pairs.map(function (face_pairs) {
-      var keys_ordered = face_pairs.map(function (pair) {
-        return pair[0] < pair[1];
-      });
-      var face_keys = face_pairs.map(function (pair, i) {
-        return keys_ordered[i] ? "".concat(pair[0], " ").concat(pair[1]) : "".concat(pair[1], " ").concat(pair[0]);
-      });
-      return {
-        face_keys: face_keys,
-        keys_ordered: keys_ordered
-      };
+  const make_maps = tacos_face_pairs => tacos_face_pairs
+    .map(face_pairs => {
+      const keys_ordered = face_pairs.map(pair => pair[0] < pair[1]);
+      const face_keys = face_pairs.map((pair, i) => keys_ordered[i]
+        ? `${pair[0]} ${pair[1]}`
+        : `${pair[1]} ${pair[0]}`);
+      return { face_keys, keys_ordered };
     });
-  };
-  var make_taco_maps = function make_taco_maps(tacos_tortillas, transitivity_trios) {
-    var pairs = refactor_pairs(tacos_tortillas, transitivity_trios);
+  const make_taco_maps = (tacos_tortillas, transitivity_trios) => {
+    const pairs = refactor_pairs(tacos_tortillas, transitivity_trios);
     return {
       taco_taco: make_maps(pairs.taco_taco),
       taco_tortilla: make_maps(pairs.taco_tortilla),
       tortilla_tortilla: make_maps(pairs.tortilla_tortilla),
-      transitivity: make_maps(pairs.transitivity)
+      transitivity: make_maps(pairs.transitivity),
     };
   };
 
-  var make_conditions = function make_conditions(graph, overlap_matrix, faces_winding) {
+  const make_conditions = (graph, overlap_matrix, faces_winding) => {
     if (!faces_winding) {
       faces_winding = make_faces_winding(graph);
     }
     if (!overlap_matrix) {
       overlap_matrix = make_faces_faces_overlap(graph);
     }
-    var conditions = {};
-    var flip = {
-      0: 0,
-      1: 2,
-      2: 1
-    };
-    boolean_matrix_to_unique_index_pairs(overlap_matrix).map(function (pair) {
-      return pair.join(" ");
-    }).forEach(function (key) {
-      conditions[key] = 0;
-    });
-    var assignment_direction = {
-      M: 1,
-      m: 1,
-      V: 2,
-      v: 2
-    };
-    graph.edges_faces.forEach(function (faces, edge) {
-      var assignment = graph.edges_assignment[edge];
-      var local_order = assignment_direction[assignment];
-      if (faces.length < 2 || local_order === undefined) {
-        return;
-      }
-      var upright = faces_winding[faces[0]];
-      var global_order = upright ? local_order : flip[local_order];
-      var key1 = "".concat(faces[0], " ").concat(faces[1]);
-      var key2 = "".concat(faces[1], " ").concat(faces[0]);
-      if (key1 in conditions) {
-        conditions[key1] = global_order;
-      }
-      if (key2 in conditions) {
-        conditions[key2] = flip[global_order];
-      }
+    const conditions = {};
+    const flip = { 0:0, 1:2, 2:1 };
+    boolean_matrix_to_unique_index_pairs(overlap_matrix)
+      .map(pair => pair.join(" "))
+      .forEach(key => { conditions[key] = 0; });
+    const assignment_direction = { M: 1, m: 1, V: 2, v: 2 };
+    graph.edges_faces.forEach((faces, edge) => {
+      const assignment = graph.edges_assignment[edge];
+      const local_order = assignment_direction[assignment];
+      if (faces.length < 2 || local_order === undefined) { return; }
+      const upright = faces_winding[faces[0]];
+      const global_order = upright ? local_order : flip[local_order];
+      const key1 = `${faces[0]} ${faces[1]}`;
+      const key2 = `${faces[1]} ${faces[0]}`;
+      if (key1 in conditions) { conditions[key1] = global_order; }
+      if (key2 in conditions) { conditions[key2] = flip[global_order]; }
     });
     return conditions;
   };
 
-  var taco_taco_valid_states = ["111112", "111121", "111222", "112111", "121112", "121222", "122111", "122212", "211121", "211222", "212111", "212221", "221222", "222111", "222212", "222221"];
-  var taco_tortilla_valid_states = ["112", "121", "212", "221"];
-  var tortilla_tortilla_valid_states = ["11", "22"];
-  var transitivity_valid_states = ["112", "121", "122", "211", "212", "221"];
-  var check_state = function check_state(states, t, key) {
-    var A = Array.from(key).map(function (_char) {
-      return parseInt(_char);
-    });
-    if (A.filter(function (x) {
-      return x === 0;
-    }).length !== t) {
-      return;
-    }
+  const taco_taco_valid_states = [
+    "111112",
+    "111121",
+    "111222",
+    "112111",
+    "121112",
+    "121222",
+    "122111",
+    "122212",
+    "211121",
+    "211222",
+    "212111",
+    "212221",
+    "221222",
+    "222111",
+    "222212",
+    "222221",
+  ];
+  const taco_tortilla_valid_states = ["112", "121", "212", "221"];
+  const tortilla_tortilla_valid_states = ["11", "22"];
+  const transitivity_valid_states = [
+    "112",
+    "121",
+    "122",
+    "211",
+    "212",
+    "221",
+  ];
+  const check_state = (states, t, key) => {
+    const A = Array.from(key).map(char => parseInt(char));
+    if (A.filter(x => x === 0).length !== t) { return; }
     states[t][key] = false;
-    var solution = false;
-    for (var i = 0; i < A.length; i++) {
-      var modifications = [];
-      if (A[i] !== 0) {
-        continue;
-      }
-      for (var x = 1; x <= 2; x++) {
+    let solution = false;
+    for (let i = 0; i < A.length; i++) {
+      const modifications = [];
+      if (A[i] !== 0) { continue; }
+      for (let x = 1; x <= 2; x++) {
         A[i] = x;
         if (states[t - 1][A.join("")] !== false) {
           modifications.push([i, x]);
@@ -8469,162 +6633,116 @@
     }
     states[t][key] = solution;
   };
-  var make_lookup = function make_lookup(valid_states) {
-    var choose_count = valid_states[0].length;
-    var states = Array.from(Array(choose_count + 1)).map(function () {
-      return {};
-    });
-    Array.from(Array(Math.pow(2, choose_count))).map(function (_, i) {
-      return i.toString(2);
-    }).map(function (str) {
-      return Array.from(str).map(function (n) {
-        return parseInt(n) + 1;
-      }).join("");
-    }).map(function (str) {
-      return ("11111" + str).slice(-choose_count);
-    }).forEach(function (key) {
-      states[0][key] = false;
-    });
-    valid_states.forEach(function (s) {
-      states[0][s] = true;
-    });
-    Array.from(Array(choose_count)).map(function (_, i) {
-      return i + 1;
-    })
-    .map(function (t) {
-      return Array.from(Array(Math.pow(3, choose_count))).map(function (_, i) {
-        return i.toString(3);
-      }).map(function (str) {
-        return ("000000" + str).slice(-choose_count);
-      }).forEach(function (key) {
-        return check_state(states, t, key);
+  const make_lookup = (valid_states) => {
+    const choose_count = valid_states[0].length;
+    const states = Array
+      .from(Array(choose_count + 1))
+      .map(() => ({}));
+    Array.from(Array( Math.pow(2, choose_count) ))
+      .map((_, i) => i.toString(2))
+      .map(str => Array.from(str).map(n => parseInt(n) + 1).join(""))
+      .map(str => ("11111" + str).slice(-choose_count))
+      .forEach(key => { states[0][key] = false; });
+    valid_states.forEach(s => { states[0][s] = true; });
+    Array.from(Array(choose_count))
+      .map((_, i) => i + 1)
+      .map(t => Array.from(Array( Math.pow(3, choose_count) ))
+        .map((_, i) => i.toString(3))
+        .map(str => ("000000" + str).slice(-choose_count))
+        .forEach(key => check_state(states, t, key)));
+    let outs = [];
+    Array.from(Array(choose_count + 1))
+      .map((_, i) => choose_count - i)
+      .forEach(t => {
+        const A = [];
+        Object.keys(states[t]).forEach(key => {
+          let out = states[t][key];
+          if (out.constructor === Array) { out = out[0]; }
+          A.push([key, out]);
+        });
+        outs = outs.concat(A);
       });
-    });
-    var outs = [];
-    Array.from(Array(choose_count + 1)).map(function (_, i) {
-      return choose_count - i;
-    }).forEach(function (t) {
-      var A = [];
-      Object.keys(states[t]).forEach(function (key) {
-        var out = states[t][key];
-        if (out.constructor === Array) {
-          out = out[0];
-        }
-        A.push([key, out]);
-      });
-      outs = outs.concat(A);
-    });
-    outs.sort(function (a, b) {
-      return parseInt(a[0]) - parseInt(b[0]);
-    });
-    var lookup = {};
-    outs.forEach(function (el) {
-      lookup[el[0]] = Object.freeze(el[1]);
-    });
+    outs.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+    const lookup = {};
+    outs.forEach(el => { lookup[el[0]] = Object.freeze(el[1]); });
     return Object.freeze(lookup);
   };
-  var slow_lookup = {
+  const slow_lookup = {
     taco_taco: make_lookup(taco_taco_valid_states),
     taco_tortilla: make_lookup(taco_tortilla_valid_states),
     tortilla_tortilla: make_lookup(tortilla_tortilla_valid_states),
-    transitivity: make_lookup(transitivity_valid_states)
+    transitivity: make_lookup(transitivity_valid_states),
   };
 
-  var taco_types$2 = Object.freeze(Object.keys(slow_lookup));
-  var flip$1 = {
-    0: 0,
-    1: 2,
-    2: 1
-  };
-  var fill_layers_from_conditions = function fill_layers_from_conditions(layers, maps, conditions) {
-    return layers.forEach(function (layer, i) {
-      return maps[i].face_keys.forEach(function (key, j) {
-        if (!(key in conditions)) {
-          console.warn(key, "not in conditions");
-          return;
-        }
+  const taco_types$2 = Object.freeze(Object.keys(slow_lookup));
+  const flip$1 = { 0:0, 1:2, 2:1 };
+  const fill_layers_from_conditions = (layers, maps, conditions) => layers
+    .forEach((layer, i) => maps[i].face_keys
+      .forEach((key, j) => {
+        if (!(key in conditions)) { console.warn(key, "not in conditions"); return }
         if (conditions[key] !== 0) {
-          var orientation = maps[i].keys_ordered[j] ? conditions[key] : flip$1[conditions[key]];
+          const orientation = maps[i].keys_ordered[j]
+            ? conditions[key]
+            : flip$1[conditions[key]];
           if (layers[i][j] !== 0 && layers[i][j] !== orientation) {
             throw "fill conflict";
           }
           layers[i][j] = orientation;
         }
-      });
-    });
-  };
-  var infer_next_steps = function infer_next_steps(layers, maps, lookup_table) {
-    return layers.map(function (layer, i) {
-      var map = maps[i];
-      var key = layer.join("");
-      var next_step = lookup_table[key];
-      if (next_step === false) {
-        throw "unsolvable";
-      }
-      if (next_step === true) {
-        return;
-      }
+      }));
+  const infer_next_steps = (layers, maps, lookup_table) => layers
+    .map((layer, i) => {
+      const map = maps[i];
+      const key = layer.join("");
+      const next_step = lookup_table[key];
+      if (next_step === false) { throw "unsolvable"; }
+      if (next_step === true) { return; }
       if (layer[next_step[0]] !== 0 && layer[next_step[0]] !== next_step[1]) {
         throw "infer conflict";
       }
       layers[i][next_step[0]] = next_step[1];
-      var condition_key = map.face_keys[next_step[0]];
-      var condition_value = map.keys_ordered[next_step[0]] ? next_step[1] : flip$1[next_step[1]];
+      const condition_key = map.face_keys[next_step[0]];
+      const condition_value = map.keys_ordered[next_step[0]]
+        ? next_step[1]
+        : flip$1[next_step[1]];
       return [condition_key, condition_value];
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-  };
-  var complete_suggestions_loop = function complete_suggestions_loop(layers, maps, conditions, avoid) {
-    var next_steps;
+    }).filter(a => a !== undefined);
+  const complete_suggestions_loop = (layers, maps, conditions, avoid) => {
+    let next_steps;
     do {
       try {
-        for (var t = 0; t < taco_types$2.length; t++) {
-          var type = taco_types$2[t];
+        for (let t = 0; t < taco_types$2.length; t++) {
+          const type = taco_types$2[t];
           fill_layers_from_conditions(layers[type], maps[type], conditions);
         }
-        next_steps = taco_types$2.map(function (type) {
-          return infer_next_steps(layers[type], maps[type], slow_lookup[type], avoid);
-        }).reduce(function (a, b) {
-          return a.concat(b);
-        }, []);
-        next_steps.forEach(function (el) {
-          conditions[el[0]] = el[1];
-        });
-      } catch (error) {
-        return false;
-      }
+        next_steps = taco_types$2
+          .map(type => infer_next_steps(layers[type], maps[type], slow_lookup[type], avoid))
+          .reduce((a, b) => a.concat(b), []);
+        next_steps.forEach(el => { conditions[el[0]] = el[1]; });
+      } catch (error) { return false; }
     } while (next_steps.length > 0);
     return true;
   };
 
-  var hashCode = function hashCode(string) {
-    var hash = 0;
-    for (var i = 0; i < string.length; i++) {
-      hash = (hash << 5) - hash + string.charCodeAt(i);
+  const hashCode = (string) => {
+    let hash = 0;
+    for (let i = 0; i < string.length; i++) {
+      hash = ((hash << 5) - hash) + string.charCodeAt(i);
       hash |= 0;
     }
     return hash;
   };
 
-  var to_signed_layer_convert = {
-    0: 0,
-    1: 1,
-    2: -1
-  };
-  var to_unsigned_layer_convert = {
-    0: 0,
-    1: 1,
-    "-1": 2
-  };
-  var unsigned_to_signed_conditions = function unsigned_to_signed_conditions(conditions) {
-    Object.keys(conditions).forEach(function (key) {
+  const to_signed_layer_convert = { 0:0, 1:1, 2:-1 };
+  const to_unsigned_layer_convert = { 0:0, 1:1, "-1":2 };
+  const unsigned_to_signed_conditions = (conditions) => {
+    Object.keys(conditions).forEach(key => {
       conditions[key] = to_signed_layer_convert[conditions[key]];
     });
     return conditions;
   };
-  var signed_to_unsigned_conditions = function signed_to_unsigned_conditions(conditions) {
-    Object.keys(conditions).forEach(function (key) {
+  const signed_to_unsigned_conditions = (conditions) => {
+    Object.keys(conditions).forEach(key => {
       conditions[key] = to_unsigned_layer_convert[conditions[key]];
     });
     return conditions;
@@ -8636,324 +6754,232 @@
     signed_to_unsigned_conditions: signed_to_unsigned_conditions
   });
 
-  var count_zeros = function count_zeros(conditions) {
-    return Object.keys(conditions).filter(function (key) {
-      return conditions[key] === 0;
-    }).length;
-  };
-  var taco_types$1 = Object.freeze(Object.keys(slow_lookup));
-  var duplicate_unsolved_layers$1 = function duplicate_unsolved_layers(layers) {
-    var duplicate = {};
-    taco_types$1.forEach(function (type) {
-      duplicate[type] = [];
-    });
-    taco_types$1.forEach(function (type) {
-      return layers[type].forEach(function (layer, i) {
+  const count_zeros = conditions => Object
+    .keys(conditions)
+    .filter(key => conditions[key] === 0).length;
+  const taco_types$1 = Object.freeze(Object.keys(slow_lookup));
+  const duplicate_unsolved_layers$1 = (layers) => {
+    const duplicate = {};
+    taco_types$1.forEach(type => { duplicate[type] = []; });
+    taco_types$1.forEach(type => layers[type]
+      .forEach((layer, i) => {
         if (layer.indexOf(0) !== -1) {
-          duplicate[type][i] = _toConsumableArray(layer);
+          duplicate[type][i] = [...layer];
         }
-      });
-    });
+      }));
     return duplicate;
   };
-  var solver_single = function solver_single(graph, maps, conditions) {
-    var startDate = new Date();
-    var recurse_count = 0;
-    var inner_loop_count = 0;
-    var successes_hash = {};
-    var layers = {
-      taco_taco: maps.taco_taco.map(function (el) {
-        return Array(6).fill(0);
-      }),
-      taco_tortilla: maps.taco_tortilla.map(function (el) {
-        return Array(3).fill(0);
-      }),
-      tortilla_tortilla: maps.tortilla_tortilla.map(function (el) {
-        return Array(2).fill(0);
-      }),
-      transitivity: maps.transitivity.map(function (el) {
-        return Array(3).fill(0);
-      })
+  const solver_single = (graph, maps, conditions) => {
+    const startDate = new Date();
+    let recurse_count = 0;
+    let inner_loop_count = 0;
+    const successes_hash = {};
+    let layers = {
+      taco_taco: maps.taco_taco.map(el => Array(6).fill(0)),
+      taco_tortilla: maps.taco_tortilla.map(el => Array(3).fill(0)),
+      tortilla_tortilla: maps.tortilla_tortilla.map(el => Array(2).fill(0)),
+      transitivity: maps.transitivity.map(el => Array(3).fill(0)),
     };
     complete_suggestions_loop(layers, maps, conditions);
-    var solution;
-    var _loop = function _loop() {
+    let solution;
+    do {
       recurse_count++;
-      var zero_keys = Object.keys(conditions).map(function (key) {
-        return conditions[key] === 0 ? key : undefined;
-      }).filter(function (a) {
-        return a !== undefined;
-      });
+      const zero_keys = Object.keys(conditions)
+        .map(key => conditions[key] === 0 ? key : undefined)
+        .filter(a => a !== undefined);
       if (zero_keys.length === 0) {
         solution = conditions;
-        return "break";
+        break;
       }
-      var avoid = {};
-      var successes = zero_keys.map(function (key, i) {
-        return [1, 2].map(function (dir) {
-          if (avoid[key] && avoid[key][dir]) {
-            return;
-          }
-          var clone_conditions = JSON.parse(JSON.stringify(conditions));
-          if (successes_hash[JSON.stringify(clone_conditions)]) {
-            console.log("early hash caught!");
-            return;
-          }
-          var clone_layers = duplicate_unsolved_layers$1(layers);
-          clone_conditions[key] = dir;
-          inner_loop_count++;
-          if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
-            return undefined;
-          }
-          Object.keys(clone_conditions).filter(function (key) {
-            return conditions[key] === 0;
-          }).forEach(function (key) {
-            if (!avoid[key]) {
-              avoid[key] = {};
+      const avoid = {};
+      const successes = zero_keys
+        .map((key, i) => [1, 2]
+          .map(dir => {
+            if (avoid[key] && avoid[key][dir]) { return; }
+            const clone_conditions = JSON.parse(JSON.stringify(conditions));
+            if (successes_hash[JSON.stringify(clone_conditions)]) {
+              console.log("early hash caught!"); return;
             }
-            avoid[key][dir] = true;
-          });
-          return {
-            conditions: clone_conditions,
-            layers: clone_layers,
-            zero_count: count_zeros(clone_conditions)
-          };
-        }).filter(function (a) {
-          return a !== undefined;
-        });
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []).sort(function (a, b) {
-        return b.zero_count - a.zero_count;
-      });
-      var unique_successes = successes.map(function (success) {
-        return JSON.stringify(success.conditions);
-      }).map(function (string) {
-        return hashCode(string);
-      }).map(function (hash, i) {
-        if (successes_hash[hash]) {
-          return;
-        }
-        successes_hash[hash] = successes[i];
-        return successes[i];
-      }).filter(function (a) {
-        return a !== undefined;
-      });
+            const clone_layers = duplicate_unsolved_layers$1(layers);
+            clone_conditions[key] = dir;
+            inner_loop_count++;
+            if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
+              return undefined;
+            }
+            Object.keys(clone_conditions)
+              .filter(key => conditions[key] === 0)
+              .forEach(key => {
+                if (!avoid[key]) { avoid[key] = {}; }
+                avoid[key][dir] = true;
+              });
+            return {
+              conditions: clone_conditions,
+              layers: clone_layers,
+              zero_count: count_zeros(clone_conditions),
+            };
+          })
+          .filter(a => a !== undefined))
+        .reduce((a, b) => a.concat(b), [])
+        .sort((a, b) => b.zero_count - a.zero_count);
+      const unique_successes = successes
+        .map(success => JSON.stringify(success.conditions))
+        .map(string => hashCode(string))
+        .map((hash, i) => {
+          if (successes_hash[hash]) { return; }
+          successes_hash[hash] = successes[i];
+          return successes[i];
+        })
+        .filter(a => a !== undefined);
       if (!unique_successes.length) {
         console.warn("ran out of successes");
-        return {
-          v: void 0
-        };
+        return;
       }
       conditions = unique_successes[0].conditions;
       layers = unique_successes[0].layers;
-    };
-    do {
-      var _ret = _loop();
-      if (_ret === "break") break;
-      if (_typeof(_ret) === "object") return _ret.v;
     } while (solution === undefined);
     unsigned_to_signed_conditions(solution);
-    console.log("".concat(Date.now() - startDate, "ms recurse_count"), recurse_count, "inner_loop_count", inner_loop_count);
+    console.log(`${Date.now() - startDate}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
     return solution;
   };
 
-  var taco_types = Object.freeze(Object.keys(slow_lookup));
-  var duplicate_unsolved_layers = function duplicate_unsolved_layers(layers) {
-    var duplicate = {};
-    taco_types.forEach(function (type) {
-      duplicate[type] = [];
-    });
-    taco_types.forEach(function (type) {
-      return layers[type].forEach(function (layer, i) {
+  const taco_types = Object.freeze(Object.keys(slow_lookup));
+  const duplicate_unsolved_layers = (layers) => {
+    const duplicate = {};
+    taco_types.forEach(type => { duplicate[type] = []; });
+    taco_types.forEach(type => layers[type]
+      .forEach((layer, i) => {
         if (layer.indexOf(0) !== -1) {
-          duplicate[type][i] = _toConsumableArray(layer);
+          duplicate[type][i] = [...layer];
         }
-      });
-    });
+      }));
     return duplicate;
   };
-  var precheck = function precheck(layers, maps, face_pair_key, new_dir) {
+  const precheck = (layers, maps, face_pair_key, new_dir) => {
     try {
-      taco_types.forEach(function (taco_type) {
-        return layers.forEach(function (layer, i) {
-          var map = maps[taco_type][i];
-          for (var m = 0; m < map.face_keys.length; m++) {
-            if (map.face_keys[m] === face_pair_key) {
-              var dir = map.keys_ordered[m] ? new_dir : flip[new_dir];
-              var new_layer = _toConsumableArray(layer);
-              new_layer[m] = dir;
-              var new_layer_key = new_layer.join("");
-              if (slow_lookup[taco_type][new_layer_key] === false) {
-                console.log("precheck found a fail case", face_pair_key, taco_type, new_layer_key, slow_lookup[type][new_layer_key]);
-                throw "precheck";
-              }
+      taco_types.forEach(taco_type => layers.forEach((layer, i) => {
+        const map = maps[taco_type][i];
+        for (let m = 0; m < map.face_keys.length; m++) {
+          if (map.face_keys[m] === face_pair_key) {
+            const dir = map.keys_ordered[m] ? new_dir : flip[new_dir];
+            const new_layer = [...layer];
+            new_layer[m] = dir;
+            const new_layer_key = new_layer.join("");
+            if (slow_lookup[taco_type][new_layer_key] === false) {
+              console.log("precheck found a fail case", face_pair_key, taco_type, new_layer_key, slow_lookup[type][new_layer_key]);
+              throw "precheck";
             }
           }
-        });
-      });
+        }
+      }));
     } catch (error) {
       return false;
     }
     return true;
   };
-  var recursive_solver = function recursive_solver(graph, maps, conditions_start) {
-    var startDate = new Date();
-    var recurse_count = 0;
-    var inner_loop_count = 0;
-    var successes_hash = {};
-    var recurse = function recurse(layers, conditions) {
+  const recursive_solver = (graph, maps, conditions_start) => {
+    const startDate = new Date();
+    let recurse_count = 0;
+    let inner_loop_count = 0;
+    const successes_hash = {};
+    const recurse = (layers, conditions) => {
       recurse_count++;
-      var zero_keys = Object.keys(conditions).map(function (key) {
-        return conditions[key] === 0 ? key : undefined;
-      }).filter(function (a) {
-        return a !== undefined;
-      });
-      if (zero_keys.length === 0) {
-        return [conditions];
-      }
-      var avoid = {};
-      var successes = zero_keys.map(function (key, i) {
-        return [1, 2].map(function (dir) {
-          if (avoid[key] && avoid[key][dir]) {
-            return;
-          }
-          if (precheck(layers, maps, key, dir)) {
-            console.log("precheck caught!");
-            return;
-          }
-          var clone_conditions = JSON.parse(JSON.stringify(conditions));
-          if (successes_hash[JSON.stringify(clone_conditions)]) {
-            console.log("early hash caught!");
-            return;
-          }
-          var clone_layers = duplicate_unsolved_layers(layers);
-          clone_conditions[key] = dir;
-          inner_loop_count++;
-          if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
-            return undefined;
-          }
-          Object.keys(clone_conditions).filter(function (key) {
-            return conditions[key] === 0;
-          }).forEach(function (key) {
-            if (!avoid[key]) {
-              avoid[key] = {};
+      const zero_keys = Object.keys(conditions)
+        .map(key => conditions[key] === 0 ? key : undefined)
+        .filter(a => a !== undefined);
+      if (zero_keys.length === 0) { return [conditions]; }
+      const avoid = {};
+      const successes = zero_keys
+        .map((key, i) => [1, 2]
+          .map(dir => {
+            if (avoid[key] && avoid[key][dir]) { return; }
+            if (precheck(layers, maps, key, dir)) {
+              console.log("precheck caught!"); return;
             }
-            avoid[key][dir] = true;
-          });
-          return {
-            conditions: clone_conditions,
-            layers: clone_layers
-          };
-        }).filter(function (a) {
-          return a !== undefined;
-        });
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []);
-      var unique_successes = successes.map(function (success) {
-        return JSON.stringify(success.conditions);
-      }).map(function (string) {
-        return hashCode(string);
-      }).map(function (hash, i) {
-        if (successes_hash[hash]) {
-          return;
-        }
-        successes_hash[hash] = successes[i];
-        return successes[i];
-      }).filter(function (a) {
-        return a !== undefined;
-      });
-      return unique_successes.map(function (success) {
-        return recurse(success.layers, success.conditions);
-      }).reduce(function (a, b) {
-        return a.concat(b);
-      }, []);
+            const clone_conditions = JSON.parse(JSON.stringify(conditions));
+            if (successes_hash[JSON.stringify(clone_conditions)]) {
+              console.log("early hash caught!"); return;
+            }
+            const clone_layers = duplicate_unsolved_layers(layers);
+            clone_conditions[key] = dir;
+            inner_loop_count++;
+            if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
+              return undefined;
+            }
+            Object.keys(clone_conditions)
+              .filter(key => conditions[key] === 0)
+              .forEach(key => {
+                if (!avoid[key]) { avoid[key] = {}; }
+                avoid[key][dir] = true;
+              });
+            return { conditions: clone_conditions, layers: clone_layers };
+          })
+          .filter(a => a !== undefined))
+        .reduce((a, b) => a.concat(b), []);
+      const unique_successes = successes
+        .map(success => JSON.stringify(success.conditions))
+        .map(string => hashCode(string))
+        .map((hash, i) => {
+          if (successes_hash[hash]) { return; }
+          successes_hash[hash] = successes[i];
+          return successes[i];
+        })
+        .filter(a => a !== undefined);
+      return unique_successes
+        .map(success => recurse(success.layers, success.conditions))
+        .reduce((a, b) => a.concat(b), []);
     };
-    var layers_start = {
-      taco_taco: maps.taco_taco.map(function (el) {
-        return Array(6).fill(0);
-      }),
-      taco_tortilla: maps.taco_tortilla.map(function (el) {
-        return Array(3).fill(0);
-      }),
-      tortilla_tortilla: maps.tortilla_tortilla.map(function (el) {
-        return Array(2).fill(0);
-      }),
-      transitivity: maps.transitivity.map(function (el) {
-        return Array(3).fill(0);
-      })
+    const layers_start = {
+      taco_taco: maps.taco_taco.map(el => Array(6).fill(0)),
+      taco_tortilla: maps.taco_tortilla.map(el => Array(3).fill(0)),
+      tortilla_tortilla: maps.tortilla_tortilla.map(el => Array(2).fill(0)),
+      transitivity: maps.transitivity.map(el => Array(3).fill(0)),
     };
     complete_suggestions_loop(layers_start, maps, conditions_start);
-    var certain = conditions_start;
-    var solutions = recurse(layers_start, conditions_start);
+    const certain = conditions_start;
+    const solutions = recurse(layers_start, conditions_start);
     solutions.certain = JSON.parse(JSON.stringify(certain));
-    for (var i = 0; i < solutions.length; i++) {
+    for (let i = 0; i < solutions.length; i++) {
       unsigned_to_signed_conditions(solutions[i]);
     }
     unsigned_to_signed_conditions(solutions.certain);
-    console.log("".concat(Date.now() - startDate, "ms recurse_count"), recurse_count, "inner_loop_count", inner_loop_count);
+    console.log(`${Date.now() - startDate}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
     return solutions;
   };
 
-  var dividing_axis = function dividing_axis(graph, line, conditions) {
-    var faces_side = make_faces_center_quick(graph).map(function (center) {
-      return math.core.subtract2(center, line.origin);
-    }).map(function (vector) {
-      return math.core.cross2(line.vector, vector);
-    }).map(function (cross) {
-      return Math.sign(cross);
-    });
-    var sides = Object.keys(conditions).map(function (key) {
-      var pair = key.split(" ");
-      if (conditions[key] === 0) {
-        return;
-      }
-      if (conditions[key] === 2) {
-        pair.reverse();
-      }
-      if (faces_side[pair[0]] === 1 && faces_side[pair[1]] === -1) {
-        return true;
-      }
-      if (faces_side[pair[0]] === -1 && faces_side[pair[1]] === 1) {
-        return false;
-      }
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    var is_valid = sides.reduce(function (a, b) {
-      return a && b === sides[0];
-    }, true);
-    if (!is_valid) {
-      console.warn("line is not a dividing axis");
-      return;
-    }
-    var side = sides[0];
-    Object.keys(conditions).forEach(function (key) {
-      var pair = key.split(" ");
-      if (conditions[key] !== 0) {
-        return;
-      }
-      if (faces_side[pair[0]] === faces_side[pair[1]]) {
-        return;
-      }
-      if (faces_side[pair[0]] === 1 && faces_side[pair[1]] === -1) {
-        if (side) {
-          conditions[key] = 1;
-        }
-        else {
-          conditions[key] = 2;
-        }
-      }
-      if (faces_side[pair[0]] === -1 && faces_side[pair[1]] === 1) {
-        if (side) {
-          conditions[key] = 2;
-        }
-        else {
-          conditions[key] = 1;
-        }
-      }
-    });
+  const dividing_axis = (graph, line, conditions) => {
+  	const faces_side = make_faces_center_quick(graph)
+  		.map(center => math.core.subtract2(center, line.origin))
+  		.map(vector => math.core.cross2(line.vector, vector))
+  		.map(cross => Math.sign(cross));
+  	const sides = Object.keys(conditions)
+  		.map(key => {
+  			const pair = key.split(" ");
+  			if (conditions[key] === 0) { return }
+  			if (conditions[key] === 2) { pair.reverse(); }
+  			if (faces_side[pair[0]] === 1 && faces_side[pair[1]] === -1) {
+  				return true;
+  			}
+  			if (faces_side[pair[0]] === -1 && faces_side[pair[1]] === 1) {
+  				return false;
+  			}
+  		}).filter(a => a !== undefined);
+  	const is_valid = sides.reduce((a, b) => a && (b === sides[0]), true);
+  	if (!is_valid) { console.warn("line is not a dividing axis"); return; }
+  	const side = sides[0];
+  	Object.keys(conditions)
+  		.forEach(key => {
+  			const pair = key.split(" ");
+  			if (conditions[key] !== 0) { return }
+  			if (faces_side[pair[0]] === faces_side[pair[1]]) { return; }
+  			if (faces_side[pair[0]] === 1 && faces_side[pair[1]] === -1) {
+  				if (side) { conditions[key] = 1; }
+  				else      { conditions[key] = 2; }
+  			}
+  			if (faces_side[pair[0]] === -1 && faces_side[pair[1]] === 1) {
+  				if (side) { conditions[key] = 2; }
+  				else      { conditions[key] = 1; }
+  			}
+  		});
   };
 
   var dividing_axis$1 = /*#__PURE__*/Object.freeze({
@@ -8961,53 +6987,41 @@
     dividing_axis: dividing_axis
   });
 
-  var make_maps_and_conditions = function make_maps_and_conditions(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1e-6;
-    var overlap_matrix = make_faces_faces_overlap(graph, epsilon);
-    var faces_winding = make_faces_winding(graph);
-    var conditions = make_conditions(graph, overlap_matrix, faces_winding);
-    var tacos_tortillas = make_tacos_tortillas(graph, epsilon);
-    var unfiltered_trios = make_transitivity_trios(graph, overlap_matrix, faces_winding, epsilon);
-    var transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
-    var maps = make_taco_maps(tacos_tortillas, transitivity_trios);
-    return {
-      maps: maps,
-      conditions: conditions
-    };
+  const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
+    const overlap_matrix = make_faces_faces_overlap(graph, epsilon);
+    const faces_winding = make_faces_winding(graph);
+    const conditions = make_conditions(graph, overlap_matrix, faces_winding);
+    const tacos_tortillas = make_tacos_tortillas(graph, epsilon);
+    const unfiltered_trios = make_transitivity_trios(graph, overlap_matrix, faces_winding, epsilon);
+    const transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
+    const maps = make_taco_maps(tacos_tortillas, transitivity_trios);
+    return { maps, conditions };
   };
-  var one_layer_conditions = function one_layer_conditions(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1e-6;
-    var data = make_maps_and_conditions(graph, epsilon);
+  const one_layer_conditions = (graph, epsilon = 1e-6) => {
+    const data = make_maps_and_conditions(graph, epsilon);
     return solver_single(graph, data.maps, data.conditions);
   };
-  var all_layer_conditions = function all_layer_conditions(graph) {
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1e-6;
-    var data = make_maps_and_conditions(graph, epsilon);
+  const all_layer_conditions = (graph, epsilon = 1e-6) => {
+    const data = make_maps_and_conditions(graph, epsilon);
     return recursive_solver(graph, data.maps, data.conditions);
   };
-  var make_maps_and_conditions_dividing_axis = function make_maps_and_conditions_dividing_axis(folded, cp, line) {
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1e-6;
-    var overlap_matrix = make_faces_faces_overlap(folded, epsilon);
-    var faces_winding = make_faces_winding(folded);
-    var conditions = make_conditions(folded, overlap_matrix, faces_winding);
+  const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6) => {
+    const overlap_matrix = make_faces_faces_overlap(folded, epsilon);
+    const faces_winding = make_faces_winding(folded);
+    const conditions = make_conditions(folded, overlap_matrix, faces_winding);
     dividing_axis(cp, line, conditions);
-    var tacos_tortillas = make_tacos_tortillas(folded, epsilon);
-    var unfiltered_trios = make_transitivity_trios(folded, overlap_matrix, faces_winding, epsilon);
-    var transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
-    var maps = make_taco_maps(tacos_tortillas, transitivity_trios);
-    return {
-      maps: maps,
-      conditions: conditions
-    };
+    const tacos_tortillas = make_tacos_tortillas(folded, epsilon);
+    const unfiltered_trios = make_transitivity_trios(folded, overlap_matrix, faces_winding, epsilon);
+    const transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
+    const maps = make_taco_maps(tacos_tortillas, transitivity_trios);
+    return { maps, conditions };
   };
-  var one_layer_conditions_with_axis = function one_layer_conditions_with_axis(folded, cp, line) {
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1e-6;
-    var data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
+  const one_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
+    const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
     return solver_single(folded, data.maps, data.conditions);
   };
-  var all_layer_conditions_with_axis = function all_layer_conditions_with_axis(folded, cp, line) {
-    var epsilon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1e-6;
-    var data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
+  const all_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
+    const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
     return recursive_solver(folded, data.maps, data.conditions);
   };
 
@@ -9019,104 +7033,85 @@
     all_layer_conditions_with_axis: all_layer_conditions_with_axis
   });
 
-  var conditions_to_matrix = function conditions_to_matrix(conditions) {
-    var condition_keys = Object.keys(conditions);
-    var face_pairs = condition_keys.map(function (key) {
-      return key.split(" ").map(function (n) {
-        return parseInt(n);
-      });
-    });
-    var faces = [];
-    face_pairs.reduce(function (a, b) {
-      return a.concat(b);
-    }, []).forEach(function (f) {
-      return faces[f] = undefined;
-    });
-    var matrix = faces.map(function () {
-      return [];
-    });
+  const conditions_to_matrix = (conditions) => {
+    const condition_keys = Object.keys(conditions);
+    const face_pairs = condition_keys
+      .map(key => key.split(" ").map(n => parseInt(n)));
+    const faces = [];
     face_pairs
-    .map(function (_ref) {
-      var _ref2 = _slicedToArray(_ref, 2),
-          a = _ref2[0],
-          b = _ref2[1];
-      matrix[a][b] = conditions["".concat(a, " ").concat(b)];
-      matrix[b][a] = -conditions["".concat(a, " ").concat(b)];
-    });
+      .reduce((a, b) => a.concat(b), [])
+      .forEach(f => faces[f] = undefined);
+    const matrix = faces.map(() => []);
+    face_pairs
+      .map(([a, b]) => {
+        matrix[a][b] = conditions[`${a} ${b}`];
+        matrix[b][a] = -conditions[`${a} ${b}`];
+      });
     return matrix;
   };
 
-  var topological_order = function topological_order(conditions) {
-    var matrix = conditions_to_matrix(conditions);
-    var parent_face_counts = matrix.map(function (row, i) {
-      return row.map(function (n) {
-        return n === -1 ? 1 : 0;
-      }).reduce(function (a, b) {
-        return a + b;
-      }, 0);
-    });
-    var layers_face = [];
-    var num_faces = parent_face_counts.length;
-    for (var i = 0; i < num_faces; i++) {
-      var top_face = parent_face_counts.indexOf(0);
+  const topological_order = (conditions) => {
+    const matrix = conditions_to_matrix(conditions);
+    const parent_face_counts = matrix
+      .map((row, i) => row
+        .map(n => n === -1 ? 1 : 0)
+        .reduce((a, b) => a + b, 0));
+    const layers_face = [];
+    const num_faces = parent_face_counts.length;
+    for (let i = 0; i < num_faces; i++) {
+      let top_face = parent_face_counts.indexOf(0);
       if (top_face === -1) {
         console.warn("cycle detected");
         return [];
       }
       layers_face.push(top_face);
-      matrix[top_face].forEach(function (dir, i) {
-        if (dir === 1) {
-          parent_face_counts[i]--;
-        }
+      matrix[top_face].forEach((dir, i) => {
+        if (dir === 1) { parent_face_counts[i]--; }
       });
       delete parent_face_counts[top_face];
     }
     return layers_face.reverse();
   };
 
-  var make_faces_layers = function make_faces_layers(graph, epsilon) {
-    var conditions = all_layer_conditions(graph, epsilon);
-    return conditions.map(topological_order).map(invert_map);
+  const make_faces_layers = (graph, epsilon) => {
+    const conditions = all_layer_conditions(graph, epsilon);
+    return conditions
+      .map(topological_order)
+      .map(invert_map);
   };
 
-  var make_faces_layers_async = function make_faces_layers_async(graph, epsilon) {
-    var timeout = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2000;
-    var timer = new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        return reject();
-      }, timeout);
+  const make_faces_layers_async = (graph, epsilon, timeout = 2000) => {
+    var timer = new Promise((resolve, reject) => {
+      setTimeout(() => reject(), timeout);
     });
-    var solver = new Promise(function (resolve, reject) {
-      return resolve(all_layer_conditions(graph, epsilon));
-    });
-    return Promise.race([solver, timer]).then(function (value) {
-      return value.map(topological_order).map(invert_map);
-    })["catch"](function (err) {
-      console.warn("make_faces_layers_async timeout. to increase timeout, use third parameter (graph, epsilon, timeout)");
-      return [];
-    });
+    var solver = new Promise((resolve, reject) => resolve(
+      all_layer_conditions(graph, epsilon)));
+    return Promise.race([solver, timer])
+      .then((value) => value.map(topological_order).map(invert_map))
+      .catch((err) => {
+        console.warn("make_faces_layers_async timeout. to increase timeout, use third parameter (graph, epsilon, timeout)");
+        return [];
+      });
   };
 
-  var faces_layer_to_edges_assignments = function faces_layer_to_edges_assignments(graph, faces_layer) {
-    var edges_assignment = [];
-    var faces_winding = make_faces_winding(graph);
-    var edges_faces = graph.edges_faces ? graph.edges_faces : make_edges_faces(graph);
-    edges_faces.forEach(function (faces, e) {
-      if (faces.length === 1) {
-        edges_assignment[e] = "B";
-      }
+  const flip_faces_layer = faces_layer => invert_map(
+    invert_map(faces_layer).reverse()
+  );
+
+  const faces_layer_to_edges_assignments = (graph, faces_layer) => {
+    const edges_assignment = [];
+    const faces_winding = make_faces_winding(graph);
+    const edges_faces = graph.edges_faces
+      ? graph.edges_faces
+      : make_edges_faces(graph);
+    edges_faces.forEach((faces, e) => {
+      if (faces.length === 1) { edges_assignment[e] = "B"; }
       if (faces.length === 2) {
-        var windings = faces.map(function (f) {
-          return faces_winding[f];
-        });
-        if (windings[0] === windings[1]) {
-          return "F";
-        }
-        var layers = faces.map(function (f) {
-          return faces_layer[f];
-        });
-        var local_dir = layers[0] < layers[1];
-        var global_dir = windings[0] ? local_dir : !local_dir;
+        const windings = faces.map(f => faces_winding[f]);
+        if (windings[0] === windings[1]) { return "F"; }
+        const layers = faces.map(f => faces_layer[f]);
+        const local_dir = layers[0] < layers[1];
+        const global_dir = windings[0] ? local_dir : !local_dir;
         edges_assignment[e] = global_dir ? "V" : "M";
       }
     });
@@ -9128,170 +7123,120 @@
     faces_layer_to_edges_assignments: faces_layer_to_edges_assignments
   });
 
-  var get_unassigned_indices = function get_unassigned_indices(edges_assignment) {
-    return edges_assignment.map(function (_, i) {
-      return i;
-    }).filter(function (i) {
-      return edges_assignment[i] === "U" || edges_assignment[i] === "u";
-    });
-  };
-  var maekawa_assignments = function maekawa_assignments(vertices_edges_assignments) {
-    var unassigneds = get_unassigned_indices(vertices_edges_assignments);
-    var permuts = Array.from(Array(Math.pow(2, unassigneds.length))).map(function (_, i) {
-      return i.toString(2);
-    }).map(function (l) {
-      return Array(unassigneds.length - l.length + 1).join("0") + l;
-    }).map(function (str) {
-      return Array.from(str).map(function (l) {
-        return l === "0" ? "V" : "M";
-      });
-    });
-    var all = permuts.map(function (perm) {
-      var array = vertices_edges_assignments.slice();
-      unassigneds.forEach(function (index, i) {
-        array[index] = perm[i];
-      });
+  const get_unassigned_indices = (edges_assignment) => edges_assignment
+    .map((_, i) => i)
+    .filter(i => edges_assignment[i] === "U" || edges_assignment[i] === "u");
+  const maekawa_assignments = (vertices_edges_assignments) => {
+    const unassigneds = get_unassigned_indices(vertices_edges_assignments);
+    const permuts = Array.from(Array(2 ** unassigneds.length))
+      .map((_, i) => i.toString(2))
+      .map(l => Array(unassigneds.length - l.length + 1).join("0") + l)
+      .map(str => Array.from(str).map(l => l === "0" ? "V" : "M"));
+    const all = permuts.map(perm => {
+      const array = vertices_edges_assignments.slice();
+      unassigneds.forEach((index, i) => { array[index] = perm[i]; });
       return array;
     });
-    if (vertices_edges_assignments.includes("B") || vertices_edges_assignments.includes("b")) {
+    if (vertices_edges_assignments.includes("B") ||
+      vertices_edges_assignments.includes("b")) {
       return all;
     }
-    var count_m = all.map(function (a) {
-      return a.filter(function (l) {
-        return l === "M" || l === "m";
-      }).length;
-    });
-    var count_v = all.map(function (a) {
-      return a.filter(function (l) {
-        return l === "V" || l === "v";
-      }).length;
-    });
-    return all.filter(function (_, i) {
-      return Math.abs(count_m[i] - count_v[i]) === 2;
-    });
+    const count_m = all.map(a => a.filter(l => l === "M" || l === "m").length);
+    const count_v = all.map(a => a.filter(l => l === "V" || l === "v").length);
+    return all.filter((_, i) => Math.abs(count_m[i] - count_v[i]) === 2);
   };
 
-  var assignment_solver = function assignment_solver(faces, assignments, epsilon) {
-    if (assignments == null) {
-      assignments = faces.map(function () {
-        return "U";
-      });
-    }
-    var all_assignments = maekawa_assignments(assignments);
-    var layers = all_assignments.map(function (assigns) {
-      return single_vertex_solver(faces, assigns, epsilon);
-    });
-    return all_assignments.map(function (_, i) {
-      return i;
-    }).filter(function (i) {
-      return layers[i].length > 0;
-    }).map(function (i) {
-      return {
-        assignment: all_assignments[i],
-        layer: layers[i]
-      };
-    });
+  const assignment_solver = (faces, assignments, epsilon) => {
+  	if (assignments == null) {
+  		assignments = faces.map(() => "U");
+  	}
+  	const all_assignments = maekawa_assignments(assignments);
+  	const layers = all_assignments
+  		.map(assigns => single_vertex_solver(faces, assigns, epsilon));
+  	return all_assignments
+  		.map((_, i) => i)
+  		.filter(i => layers[i].length > 0)
+  		.map(i => ({
+  			assignment: all_assignments[i],
+  			layer: layers[i],
+  		}));
   };
 
   var layer = Object.assign(Object.create(null), {
-    make_faces_layers: make_faces_layers,
-    make_faces_layers_async: make_faces_layers_async,
-    assignment_solver: assignment_solver,
-    single_vertex_solver: single_vertex_solver,
-    validate_layer_solver: validate_layer_solver,
-    validate_taco_taco_face_pairs: validate_taco_taco_face_pairs,
-    validate_taco_tortilla_strip: validate_taco_tortilla_strip,
-    table: slow_lookup,
-    topological_order: topological_order,
-    make_conditions: make_conditions,
-    conditions_to_matrix: conditions_to_matrix,
-    make_tacos_tortillas: make_tacos_tortillas,
-    make_folded_strip_tacos: make_folded_strip_tacos,
-    make_transitivity_trios: make_transitivity_trios
-  }, global_layer_solvers, general_global_solver, edges_assignments, dividing_axis$1, tortilla_tortilla, fold_assignments);
+  	make_faces_layers,
+  	make_faces_layers_async,
+  	flip_faces_layer,
+  	assignment_solver,
+  	single_vertex_solver,
+  	validate_layer_solver,
+  	validate_taco_taco_face_pairs,
+  	validate_taco_tortilla_strip,
+  	table: slow_lookup,
+  	topological_order,
+  	make_conditions,
+  	conditions_to_matrix,
+  	make_tacos_tortillas,
+  	make_folded_strip_tacos,
+  	make_transitivity_trios,
+  },
+  	global_layer_solvers,
+  	general_global_solver,
+  	edges_assignments,
+  	dividing_axis$1,
+  	tortilla_tortilla,
+  	fold_assignments,
+  );
 
-  var odd_assignment = function odd_assignment(assignments) {
-    var ms = 0;
-    var vs = 0;
-    for (var i = 0; i < assignments.length; i += 1) {
-      if (assignments[i] === "M" || assignments[i] === "m") {
-        ms += 1;
-      }
-      if (assignments[i] === "V" || assignments[i] === "v") {
-        vs += 1;
-      }
-    }
-    for (var _i = 0; _i < assignments.length; _i += 1) {
-      if (ms > vs && (assignments[_i] === "V" || assignments[_i] === "v")) {
-        return _i;
-      }
-      if (vs > ms && (assignments[_i] === "M" || assignments[_i] === "m")) {
-        return _i;
-      }
-    }
+  const odd_assignment = (assignments) => {
+  	let ms = 0;
+  	let vs = 0;
+  	for (let i = 0; i < assignments.length; i += 1) {
+  		if (assignments[i] === "M" || assignments[i] === "m") { ms += 1; }
+  		if (assignments[i] === "V" || assignments[i] === "v") { vs += 1; }
+  	}
+  	for (let i = 0; i < assignments.length; i += 1) {
+  		if (ms > vs && (assignments[i] === "V" || assignments[i] === "v")) { return i; }
+  		if (vs > ms && (assignments[i] === "M" || assignments[i] === "m")) { return i; }
+  	}
   };
-  var single_vertex_fold_angles = function single_vertex_fold_angles(sectors, assignments) {
-    var t = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var odd = odd_assignment(assignments);
-    if (odd === undefined) {
-      return;
-    }
-    var a = sectors[(odd + 1) % sectors.length];
-    var b = sectors[(odd + 2) % sectors.length];
-    var pbc = Math.PI * t;
-    var cosE = -Math.cos(a) * Math.cos(b) + Math.sin(a) * Math.sin(b) * Math.cos(Math.PI - pbc);
-    var res = Math.cos(Math.PI - pbc) - Math.pow(Math.sin(Math.PI - pbc), 2) * Math.sin(a) * Math.sin(b) / (1 - cosE);
-    var pab = -Math.acos(res) + Math.PI;
-    return odd % 2 === 0 ? [pab, pbc, pab, pbc].map(function (n, i) {
-      return odd === i ? -n : n;
-    }) : [pbc, pab, pbc, pab].map(function (n, i) {
-      return odd === i ? -n : n;
-    });
+  const single_vertex_fold_angles = (sectors, assignments, t = 0) => {
+  	const odd = odd_assignment(assignments);
+  	if (odd === undefined) { return; }
+  	const a = sectors[(odd + 1) % sectors.length];
+  	const b = sectors[(odd + 2) % sectors.length];
+  	const pbc = Math.PI * t;
+  	const cosE = -Math.cos(a)*Math.cos(b) + Math.sin(a)*Math.sin(b)*Math.cos(Math.PI - pbc);
+  	const res = Math.cos(Math.PI - pbc) - ((Math.sin(Math.PI - pbc) ** 2) * Math.sin(a) * Math.sin(b))/(1 - cosE);
+  	const pab = -Math.acos(res) + Math.PI;
+  	return odd % 2 === 0
+  		? [pab, pbc, pab, pbc].map((n, i) => odd === i ? -n : n)
+  		: [pbc, pab, pbc, pab].map((n, i) => odd === i ? -n : n);
   };
 
-  var alternating_sum = function alternating_sum(numbers) {
-    return [0, 1].map(function (even_odd) {
-      return numbers.filter(function (_, i) {
-        return i % 2 === even_odd;
-      }).reduce(fn_add, 0);
-    });
+  const alternating_sum = (numbers) => [0, 1]
+    .map(even_odd => numbers
+      .filter((_, i) => i % 2 === even_odd)
+      .reduce(fn_add, 0));
+  const alternating_sum_difference = (sectors) => {
+    const halfsum = sectors.reduce(fn_add, 0) / 2;
+    return alternating_sum(sectors).map(s => s - halfsum);
   };
-  var alternating_sum_difference = function alternating_sum_difference(sectors) {
-    var halfsum = sectors.reduce(fn_add, 0) / 2;
-    return alternating_sum(sectors).map(function (s) {
-      return s - halfsum;
-    });
-  };
-  var kawasaki_solutions_radians = function kawasaki_solutions_radians(radians) {
-    return radians
-    .map(function (v, i, arr) {
-      return [v, arr[(i + 1) % arr.length]];
-    }).map(function (pair) {
-      var _math$core;
-      return (_math$core = math.core).counter_clockwise_angle_radians.apply(_math$core, _toConsumableArray(pair));
-    })
-    .map(function (_, i, arr) {
-      return arr.slice(i + 1, arr.length).concat(arr.slice(0, i));
-    })
-    .map(function (opposite_sectors) {
-      return alternating_sum(opposite_sectors).map(function (s) {
-        return Math.PI - s;
-      });
-    })
-    .map(function (kawasakis, i) {
-      return radians[i] + kawasakis[0];
-    })
-    .map(function (angle, i) {
-      return math.core.is_counter_clockwise_between(angle, radians[i], radians[(i + 1) % radians.length]) ? angle : undefined;
-    });
-  };
-  var kawasaki_solutions_vectors = function kawasaki_solutions_vectors(vectors) {
-    var vectors_radians = vectors.map(function (v) {
-      return Math.atan2(v[1], v[0]);
-    });
-    return kawasaki_solutions_radians(vectors_radians).map(function (a) {
-      return a === undefined ? undefined : [Math.cos(a), Math.sin(a)];
-    });
+  const kawasaki_solutions_radians = (radians) => radians
+    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+    .map(pair => math.core.counter_clockwise_angle_radians(...pair))
+    .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+    .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
+    .map((kawasakis, i) => radians[i] + kawasakis[0])
+    .map((angle, i) => (math.core.is_counter_clockwise_between(angle,
+      radians[i], radians[(i + 1) % radians.length])
+      ? angle
+      : undefined));
+  const kawasaki_solutions_vectors = (vectors) => {
+    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+    return kawasaki_solutions_radians(vectors_radians)
+      .map(a => (a === undefined
+        ? undefined
+        : [Math.cos(a), Math.sin(a)]));
   };
 
   var kawasaki_math = /*#__PURE__*/Object.freeze({
@@ -9302,28 +7247,16 @@
     kawasaki_solutions_vectors: kawasaki_solutions_vectors
   });
 
-  var kawasaki_solutions = function kawasaki_solutions(_ref, vertex) {
-    var vertices_coords = _ref.vertices_coords,
-        vertices_edges = _ref.vertices_edges,
-        edges_vertices = _ref.edges_vertices,
-        edges_vectors = _ref.edges_vectors;
+  const kawasaki_solutions = ({ vertices_coords, vertices_edges, edges_vertices, edges_vectors }, vertex) => {
     if (!edges_vectors) {
-      edges_vectors = make_edges_vector({
-        vertices_coords: vertices_coords,
-        edges_vertices: edges_vertices
-      });
+      edges_vectors = make_edges_vector({ vertices_coords, edges_vertices });
     }
     if (!vertices_edges) {
-      vertices_edges = make_vertices_edges({
-        edges_vertices: edges_vertices
-      });
+      vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
     }
-    var vectors = vertices_edges[vertex].map(function (i) {
-      return edges_vectors[i];
-    });
-    var sortedVectors = math.core.counter_clockwise_order2(vectors).map(function (i) {
-      return vectors[i];
-    });
+    const vectors = vertices_edges[vertex].map(i => edges_vectors[i]);
+    const sortedVectors = math.core.counter_clockwise_order2(vectors)
+      .map(i => vectors[i]);
     return kawasaki_solutions_vectors(sortedVectors);
   };
 
@@ -9332,80 +7265,36 @@
     kawasaki_solutions: kawasaki_solutions
   });
 
-  var maekawa_add = {
-    M: -1,
-    m: -1,
-    V: 1,
-    v: 1
-  };
-  var validate_maekawa = function validate_maekawa(_ref) {
-    var edges_vertices = _ref.edges_vertices,
-        vertices_edges = _ref.vertices_edges,
-        edges_assignment = _ref.edges_assignment;
+  const maekawa_add = { M:-1, m:-1, V:1, v:1};
+  const validate_maekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
     if (!vertices_edges) {
-      vertices_edges = make_vertices_edges$1({
-        edges_vertices: edges_vertices
-      });
+      vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
     }
-    var vertices_is_boundary = Array(vertices_edges.length).fill(false);
-    get_boundary_vertices({
-      edges_vertices: edges_vertices,
-      edges_assignment: edges_assignment
-    }).forEach(function (v) {
-      vertices_is_boundary[v] = true;
-    });
-    var is_valid = vertices_edges.map(function (edges) {
-      return edges.map(function (e) {
-        return maekawa_add[edges_assignment[e]];
-      }).reduce(function (a, b) {
-        return a + b;
-      }, 0);
-    }).map(function (sum, e) {
-      return vertices_is_boundary[e] || sum === 2 || sum === -2;
-    });
-    return is_valid.map(function (valid, v) {
-      return !valid ? v : undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
+    const vertices_is_boundary = Array(vertices_edges.length).fill(false);
+    get_boundary_vertices({ edges_vertices, edges_assignment })
+      .forEach(v => { vertices_is_boundary[v] = true; });
+    const is_valid = vertices_edges
+      .map(edges => edges
+        .map(e => maekawa_add[edges_assignment[e]])
+        .reduce((a, b) => a + b, 0))
+      .map((sum, e) => vertices_is_boundary[e] || sum === 2 || sum === -2);
+    return is_valid
+      .map((valid, v) => !valid ? v : undefined)
+      .filter(a => a !== undefined);
   };
-  var validate_kawasaki = function validate_kawasaki(_ref2) {
-    var vertices_coords = _ref2.vertices_coords,
-        vertices_vertices = _ref2.vertices_vertices,
-        vertices_edges = _ref2.vertices_edges,
-        edges_vertices = _ref2.edges_vertices,
-        edges_assignment = _ref2.edges_assignment,
-        edges_vector = _ref2.edges_vector;
-    var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : math.core.EPSILON;
+  const validate_kawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
     if (!vertices_vertices) {
-      vertices_vertices = make_vertices_vertices({
-        vertices_coords: vertices_coords,
-        vertices_edges: vertices_edges,
-        edges_vertices: edges_vertices
-      });
+      vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });
     }
-    var vertices_is_boundary = Array(vertices_coords.length).fill(false);
-    get_boundary_vertices({
-      edges_vertices: edges_vertices,
-      edges_assignment: edges_assignment
-    }).forEach(function (v) {
-      vertices_is_boundary[v] = true;
-    });
-    var is_valid = make_vertices_sectors({
-      vertices_coords: vertices_coords,
-      vertices_vertices: vertices_vertices,
-      edges_vertices: edges_vertices,
-      edges_vector: edges_vector
-    }).map(function (sectors) {
-      return alternating_sum(sectors);
-    }).map(function (pair, v) {
-      return vertices_is_boundary[v] || Math.abs(pair[0] - pair[1]) < epsilon;
-    });
-    return is_valid.map(function (valid, v) {
-      return !valid ? v : undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    });
+    const vertices_is_boundary = Array(vertices_coords.length).fill(false);
+    get_boundary_vertices({ edges_vertices, edges_assignment })
+      .forEach(v => { vertices_is_boundary[v] = true; });
+    const is_valid = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+      .map(sectors => alternating_sum(sectors))
+      .map((pair, v) => vertices_is_boundary[v] || Math.abs(pair[0] - pair[1]) < epsilon);
+    return is_valid
+      .map((valid, v) => !valid ? v : undefined)
+      .filter(a => a !== undefined);
   };
 
   var validate = /*#__PURE__*/Object.freeze({
@@ -9415,9 +7304,13 @@
   });
 
   var vertex = Object.assign(Object.create(null), {
-    maekawa_assignments: maekawa_assignments,
-    fold_angles4: single_vertex_fold_angles
-  }, kawasaki_math, kawasaki_graph, validate);
+  	maekawa_assignments,
+  	fold_angles4: single_vertex_fold_angles,
+  },
+  	kawasaki_math,
+  	kawasaki_graph,
+  	validate,
+  );
 
   var ar = [
   	null,
@@ -9635,426 +7528,290 @@
   };
 
   var text = {
-    axioms: axioms,
-    folds: folds
+    axioms,
+    folds,
   };
 
-  var use = function use(library) {
+  const use = function (library) {
     if (library == null || typeof library.linker !== "function") {
       return;
     }
     library.linker(this);
   };
 
-  var vertices_circle = function vertices_circle(graph) {
-    var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var g = root.svg.g();
-    if (!graph || !graph.vertices_coords) {
-      return g;
-    }
-    graph.vertices_coords.map(function (v) {
-      return root.svg.circle(v[0], v[1], 0.01);
-    })
-    .forEach(function (v) {
-      return g.appendChild(v);
-    });
-    g.setAttributeNS(null, "fill", _none$1);
-    Object.keys(attributes).forEach(function (attr) {
-      return g.setAttributeNS(null, attr, attributes[attr]);
-    });
+  const vertices_circle = (graph, attributes = {}) => {
+  	const g = root.svg.g();
+  	if (!graph || !graph.vertices_coords) { return g; }
+    graph.vertices_coords
+      .map(v => root.svg.circle(v[0], v[1], 0.01))
+  		.forEach(v => g.appendChild(v));
+  	g.setAttributeNS(null, "fill", _none$1);
+  	Object.keys(attributes)
+  		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
     return g;
   };
 
-  var GROUP_FOLDED = {};
-  var GROUP_FLAT = {
-    stroke: _black
+  const GROUP_FOLDED = {};
+  const GROUP_FLAT = {
+  	stroke: _black,
   };
-  var STYLE_FOLDED = {};
-  var STYLE_FLAT = {
-    m: {
-      stroke: "red"
-    },
-    v: {
-      stroke: "blue"
-    },
-    f: {
-      stroke: "lightgray"
-    }
+  const STYLE_FOLDED = {};
+  const STYLE_FLAT = {
+  	m: { stroke: "red" },
+  	v: { stroke: "blue" },
+  	f: { stroke: "lightgray" },
   };
-  var edges_assignment_indices = function edges_assignment_indices(graph) {
-    var assignment_indices = {
-      u: [],
-      f: [],
-      v: [],
-      m: [],
-      b: []
-    };
-    var lowercase_assignment = graph[_edges_assignment].map(function (a) {
-      return edges_assignment_to_lowercase[a];
-    });
-    graph[_edges_vertices].map(function (_, i) {
-      return lowercase_assignment[i] || "u";
-    }).forEach(function (a, i) {
-      return assignment_indices[a].push(i);
-    });
+  const edges_assignment_indices = (graph) => {
+    const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
+    const lowercase_assignment = graph[_edges_assignment]
+  		.map(a => edges_assignment_to_lowercase[a]);
+    graph[_edges_vertices]
+  		.map((_, i) => lowercase_assignment[i] || "u")
+  		.forEach((a, i) => assignment_indices[a].push(i));
     return assignment_indices;
   };
-  var edges_coords = function edges_coords(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices;
-    if (!vertices_coords || !edges_vertices) {
-      return [];
-    }
-    return edges_vertices.map(function (ev) {
-      return ev.map(function (v) {
-        return vertices_coords[v];
-      });
-    });
+  const edges_coords = ({ vertices_coords, edges_vertices }) => {
+  	if (!vertices_coords || !edges_vertices) { return []; }
+  	return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
   };
-  var segment_to_path = function segment_to_path(s) {
-    return "M".concat(s[0][0], " ").concat(s[0][1], "L").concat(s[1][0], " ").concat(s[1][1]);
-  };
-  var edges_path_data = function edges_path_data(graph) {
-    return edges_coords(graph).map(function (segment) {
-      return segment_to_path(segment);
-    }).join("");
-  };
-  var edges_path_data_assign = function edges_path_data_assign(_ref2) {
-    var vertices_coords = _ref2.vertices_coords,
-        edges_vertices = _ref2.edges_vertices,
-        edges_assignment = _ref2.edges_assignment;
-    if (!vertices_coords || !edges_vertices) {
-      return {};
-    }
-    if (!edges_assignment) {
-      return {
-        u: edges_path_data({
-          vertices_coords: vertices_coords,
-          edges_vertices: edges_vertices
-        })
-      };
-    }
-    var data = edges_assignment_indices({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices,
-      edges_assignment: edges_assignment
-    });
-    Object.keys(data).forEach(function (key) {
-      data[key] = edges_path_data({
-        vertices_coords: vertices_coords,
-        edges_vertices: data[key].map(function (i) {
-          return edges_vertices[i];
-        })
-      });
-    });
-    Object.keys(data).forEach(function (key) {
-      if (data[key] === "") {
-        delete data[key];
-      }
-    });
+  const segment_to_path = s => `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
+  const edges_path_data = (graph) => edges_coords(graph)
+  	.map(segment => segment_to_path(segment)).join("");
+  const edges_path_data_assign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
+  	if (!vertices_coords || !edges_vertices) { return {}; }
+  	if (!edges_assignment) {
+  		return ({ u: edges_path_data({ vertices_coords, edges_vertices }) });
+  	}
+    const data = edges_assignment_indices({ vertices_coords, edges_vertices, edges_assignment });
+  	Object.keys(data).forEach(key => {
+  		data[key] = edges_path_data({
+  			vertices_coords,
+  			edges_vertices: data[key].map(i => edges_vertices[i]),
+  		});
+  	});
+  	Object.keys(data).forEach(key => {
+  		if (data[key] === "") { delete data[key]; }
+  	});
     return data;
   };
-  var edges_paths_assign = function edges_paths_assign(_ref3) {
-    var vertices_coords = _ref3.vertices_coords,
-        edges_vertices = _ref3.edges_vertices,
-        edges_assignment = _ref3.edges_assignment;
-    var data = edges_path_data_assign({
-      vertices_coords: vertices_coords,
-      edges_vertices: edges_vertices,
-      edges_assignment: edges_assignment
-    });
-    Object.keys(data).forEach(function (assignment) {
-      var path = root.svg.path(data[assignment]);
+  const edges_paths_assign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
+  	const data = edges_path_data_assign({ vertices_coords, edges_vertices, edges_assignment });
+    Object.keys(data).forEach(assignment => {
+      const path = root.svg.path(data[assignment]);
       path.setAttributeNS(null, _class$1, edges_assignment_names[assignment]);
       data[assignment] = path;
     });
-    return data;
+  	return data;
   };
-  var apply_style$2 = function apply_style(el) {
-    var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return Object.keys(attributes).forEach(function (key) {
-      return el.setAttributeNS(null, key, attributes[key]);
-    });
-  };
-  var edges_paths = function edges_paths(graph) {
-    var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var group = root.svg.g();
-    if (!graph) {
-      return group;
-    }
-    var isFolded = is_folded_form(graph);
-    var paths = edges_paths_assign(graph);
-    Object.keys(paths).forEach(function (key) {
-      paths[key].setAttributeNS(null, _class$1, edges_assignment_names[key]);
-      apply_style$2(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
-      apply_style$2(paths[key], attributes[key]);
-      apply_style$2(paths[key], attributes[edges_assignment_names[key]]);
-      group.appendChild(paths[key]);
-      Object.defineProperty(group, edges_assignment_names[key], {
-        get: function get() {
-          return paths[key];
-        }
-      });
-    });
-    apply_style$2(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
-    apply_style$2(group, attributes.stroke ? {
-      stroke: attributes.stroke
-    } : {});
-    return group;
+  const apply_style$2 = (el, attributes = {}) => Object.keys(attributes)
+  	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
+  const edges_paths = (graph, attributes = {}) => {
+    const group = root.svg.g();
+    if (!graph) { return group; }
+  	const isFolded = is_folded_form(graph);
+  	const paths = edges_paths_assign(graph);
+  	Object.keys(paths).forEach(key => {
+  		paths[key].setAttributeNS(null, _class$1, edges_assignment_names[key]);
+  		apply_style$2(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
+  		apply_style$2(paths[key], attributes[key]);
+  		apply_style$2(paths[key], attributes[edges_assignment_names[key]]);
+  		group.appendChild(paths[key]);
+  		Object.defineProperty(group, edges_assignment_names[key], { get: () => paths[key] });
+  	});
+  	apply_style$2(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+  	apply_style$2(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+  	return group;
   };
 
-  var FACE_STYLE_FOLDED_ORDERED = {
-    back: {
-      fill: _white
-    },
-    front: {
-      fill: "#ddd"
-    }
+  const FACE_STYLE_FOLDED_ORDERED = {
+    back: { fill: _white },
+    front: { fill: "#ddd" }
   };
-  var FACE_STYLE_FOLDED_UNORDERED = {
-    back: {
-      opacity: 0.1
-    },
-    front: {
-      opacity: 0.1
-    }
+  const FACE_STYLE_FOLDED_UNORDERED = {
+    back: { opacity: 0.1 },
+    front: { opacity: 0.1 }
   };
-  var FACE_STYLE_FLAT = {
+  const FACE_STYLE_FLAT = {
   };
-  var GROUP_STYLE_FOLDED_ORDERED = {
+  const GROUP_STYLE_FOLDED_ORDERED = {
     stroke: _black,
     "stroke-linejoin": "bevel"
   };
-  var GROUP_STYLE_FOLDED_UNORDERED = {
+  const GROUP_STYLE_FOLDED_UNORDERED = {
     stroke: _none$1,
     fill: _black,
     "stroke-linejoin": "bevel"
   };
-  var GROUP_STYLE_FLAT = {
-    fill: _none$1
+  const GROUP_STYLE_FLAT = {
+  	fill: _none$1
   };
-  var faces_sorted_by_layer = function faces_sorted_by_layer(faces_layer) {
-    return faces_layer.map(function (layer, i) {
-      return {
-        layer: layer,
-        i: i
-      };
-    }).sort(function (a, b) {
-      return a.layer - b.layer;
-    }).map(function (el) {
-      return el.i;
-    });
+  const faces_sorted_by_layer = function (faces_layer) {
+    return faces_layer.map((layer, i) => ({ layer, i }))
+      .sort((a, b) => a.layer - b.layer)
+      .map(el => el.i);
   };
-  var apply_style$1 = function apply_style(el) {
-    var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return Object.keys(attributes).forEach(function (key) {
-      return el.setAttributeNS(null, key, attributes[key]);
-    });
+  const apply_style$1 = (el, attributes = {}) => Object.keys(attributes)
+  	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
+  const finalize_faces = (graph, svg_faces, group, attributes) => {
+  	const isFolded = is_folded_form(graph);
+    const orderIsCertain = graph[_faces_layer] != null
+      && graph[_faces_layer].length === graph[_faces_vertices].length;
+    const classNames = [[_front], [_back]];
+    const faces_winding = make_faces_winding(graph);
+    faces_winding.map(w => (w ? classNames[0] : classNames[1]))
+      .forEach((className, i) => {
+  			svg_faces[i].setAttributeNS(null, _class$1, className);
+  			apply_style$1(svg_faces[i], isFolded
+  				? (orderIsCertain
+            ? FACE_STYLE_FOLDED_ORDERED[className]
+            : FACE_STYLE_FOLDED_UNORDERED[className])
+  				: FACE_STYLE_FLAT[className]);
+  			apply_style$1(svg_faces[i], attributes[className]);
+  		});
+    const facesInOrder = (orderIsCertain
+      ? faces_sorted_by_layer(graph[_faces_layer]).map(i => svg_faces[i])
+      : svg_faces);
+  	facesInOrder.forEach(face => group.appendChild(face));
+  	Object.defineProperty(group, _front, {
+  		get: () => svg_faces.filter((_, i) => faces_winding[i]),
+  	});
+  	Object.defineProperty(group, _back, {
+  		get: () => svg_faces.filter((_, i) => !faces_winding[i]),
+  	});
+  	apply_style$1(group, isFolded
+      ? (orderIsCertain ? GROUP_STYLE_FOLDED_ORDERED : GROUP_STYLE_FOLDED_UNORDERED)
+      : GROUP_STYLE_FLAT);
+  	return group;
   };
-  var finalize_faces = function finalize_faces(graph, svg_faces, group, attributes) {
-    var isFolded = is_folded_form(graph);
-    var orderIsCertain = graph[_faces_layer] != null && graph[_faces_layer].length === graph[_faces_vertices].length;
-    var classNames = [[_front], [_back]];
-    var faces_winding = make_faces_winding(graph);
-    faces_winding.map(function (w) {
-      return w ? classNames[0] : classNames[1];
-    }).forEach(function (className, i) {
-      svg_faces[i].setAttributeNS(null, _class$1, className);
-      apply_style$1(svg_faces[i], isFolded ? orderIsCertain ? FACE_STYLE_FOLDED_ORDERED[className] : FACE_STYLE_FOLDED_UNORDERED[className] : FACE_STYLE_FLAT[className]);
-      apply_style$1(svg_faces[i], attributes[className]);
-    });
-    var facesInOrder = orderIsCertain ? faces_sorted_by_layer(graph[_faces_layer]).map(function (i) {
-      return svg_faces[i];
-    }) : svg_faces;
-    facesInOrder.forEach(function (face) {
-      return group.appendChild(face);
-    });
-    Object.defineProperty(group, _front, {
-      get: function get() {
-        return svg_faces.filter(function (_, i) {
-          return faces_winding[i];
-        });
-      }
-    });
-    Object.defineProperty(group, _back, {
-      get: function get() {
-        return svg_faces.filter(function (_, i) {
-          return !faces_winding[i];
-        });
-      }
-    });
-    apply_style$1(group, isFolded ? orderIsCertain ? GROUP_STYLE_FOLDED_ORDERED : GROUP_STYLE_FOLDED_UNORDERED : GROUP_STYLE_FLAT);
-    return group;
-  };
-  var faces_vertices_polygon = function faces_vertices_polygon(graph) {
-    var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var g = root.svg.g();
-    if (!graph || !graph.vertices_coords || !graph.faces_vertices) {
-      return g;
-    }
-    var svg_faces = graph.faces_vertices.map(function (fv) {
-      return fv.map(function (v) {
-        return [0, 1].map(function (i) {
-          return graph.vertices_coords[v][i];
-        });
-      });
-    }).map(function (face) {
-      return root.svg.polygon(face);
-    });
-    svg_faces.forEach(function (face, i) {
-      return face.setAttributeNS(null, _index, i);
-    });
-    g.setAttributeNS(null, "fill", _white);
+  const faces_vertices_polygon = (graph, attributes = {}) => {
+  	const g = root.svg.g();
+  	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
+    const svg_faces = graph.faces_vertices
+      .map(fv => fv.map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
+      .map(face => root.svg.polygon(face));
+    svg_faces.forEach((face, i) => face.setAttributeNS(null, _index, i));
+  	g.setAttributeNS(null, "fill", _white);
     return finalize_faces(graph, svg_faces, g, attributes);
   };
-  var faces_edges_polygon = function faces_edges_polygon(graph) {
-    var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var g = root.svg.g();
-    if (!graph || _faces_edges in graph === false || _edges_vertices in graph === false || _vertices_coords in graph === false) {
+  const faces_edges_polygon = function (graph, attributes = {}) {
+  	const g = root.svg.g();
+    if (!graph
+      || _faces_edges in graph === false
+      || _edges_vertices in graph === false
+      || _vertices_coords in graph === false) {
       return g;
     }
-    var svg_faces = graph[_faces_edges].map(function (face_edges) {
-      return face_edges.map(function (edge) {
-        return graph[_edges_vertices][edge];
-      }).map(function (vi, i, arr) {
-        var next = arr[(i + 1) % arr.length];
-        return vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1];
-      }).map(function (v) {
-        return [0, 1].map(function (i) {
-          return graph[_vertices_coords][v][i];
-        });
-      });
-    }).map(function (face) {
-      return root.svg.polygon(face);
-    });
-    svg_faces.forEach(function (face, i) {
-      return face.setAttributeNS(null, _index, i);
-    });
-    g.setAttributeNS(null, "fill", "white");
+    const svg_faces = graph[_faces_edges]
+      .map(face_edges => face_edges
+        .map(edge => graph[_edges_vertices][edge])
+        .map((vi, i, arr) => {
+          const next = arr[(i + 1) % arr.length];
+          return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
+        }).map(v => [0, 1].map(i => graph[_vertices_coords][v][i])))
+      .map(face => root.svg.polygon(face));
+    svg_faces.forEach((face, i) => face.setAttributeNS(null, _index, i));
+  	g.setAttributeNS(null, "fill", "white");
     return finalize_faces(graph, svg_faces, g, attributes);
   };
 
-  var FOLDED = {
-    fill: _none$1
+  const FOLDED = {
+  	fill: _none$1,
   };
-  var FLAT = {
-    stroke: _black,
-    fill: _white
+  const FLAT = {
+  	stroke: _black,
+  	fill: _white,
   };
-  var apply_style = function apply_style(el) {
-    var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return Object.keys(attributes).forEach(function (key) {
-      return el.setAttributeNS(null, key, attributes[key]);
-    });
-  };
-  var boundaries_polygon = function boundaries_polygon(graph) {
-    var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var g = root.svg.g();
-    if (!graph || !graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) {
-      return g;
-    }
-    var boundary = get_boundary(graph).vertices.map(function (v) {
-      return [0, 1].map(function (i) {
-        return graph.vertices_coords[v][i];
-      });
-    });
-    if (boundary.length === 0) {
-      return g;
-    }
-    var poly = root.svg.polygon(boundary);
+  const apply_style = (el, attributes = {}) => Object.keys(attributes)
+  	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
+  const boundaries_polygon = (graph, attributes = {}) => {
+  	const g = root.svg.g();
+  	if (!graph || !graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) { return g; }
+    const boundary = get_boundary(graph)
+  		.vertices
+      .map(v => [0, 1].map(i => graph.vertices_coords[v][i]));
+    if (boundary.length === 0) { return g; }
+    const poly = root.svg.polygon(boundary);
     poly.setAttributeNS(null, _class$1, _boundary);
-    g.appendChild(poly);
-    apply_style(g, is_folded_form(graph) ? FOLDED : FLAT);
-    Object.keys(attributes).forEach(function (attr) {
-      return g.setAttributeNS(null, attr, attributes[attr]);
-    });
+  	g.appendChild(poly);
+  	apply_style(g, is_folded_form(graph) ? FOLDED : FLAT);
+  	Object.keys(attributes)
+  		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
     return g;
   };
 
-  var faces_draw_function = function faces_draw_function(graph, options) {
-    return graph != null && graph[_faces_vertices] != null ? faces_vertices_polygon(graph, options) : faces_edges_polygon(graph, options);
-  };
-  var svg_draw_func = {
+  const faces_draw_function = (graph, options) => (
+    graph != null && graph[_faces_vertices] != null
+      ? faces_vertices_polygon(graph, options)
+      : faces_edges_polygon(graph, options));
+  const svg_draw_func = {
     vertices: vertices_circle,
     edges: edges_paths,
     faces: faces_draw_function,
     boundaries: boundaries_polygon
   };
-  var draw_group = function draw_group(key) {
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-    var group = svg_draw_func[key].apply(svg_draw_func, args);
+  const draw_group = (key, ...args) => {
+    const group = svg_draw_func[key](...args);
     group.setAttributeNS(null, _class$1, key);
     return group;
   };
-  var DrawGroups = function DrawGroups(graph) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return [_boundaries, _faces, _edges, _vertices].map(function (key) {
-      return draw_group(key, graph, options[key]);
-    });
-  };
-  [_boundaries, _faces, _edges, _vertices].forEach(function (key) {
-    DrawGroups[key] = function (graph) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  const DrawGroups = (graph, options = {}) => [
+    _boundaries,
+    _faces,
+    _edges,
+    _vertices].map(key => draw_group(key, graph, options[key]));
+  [_boundaries,
+    _faces,
+    _edges,
+    _vertices,
+  ].forEach(key => {
+    DrawGroups[key] = function (graph, options = {}) {
       return draw_group(key, graph, options[key]);
     };
   });
 
-  var fold_classes = function fold_classes(graph) {
-    return [graph[_file_classes] ? graph[_file_classes] : [], graph[_frame_classes] ? graph[_frame_classes] : []].reduce(function (a, b) {
-      return a.concat(b);
-    });
-  };
+  const fold_classes = graph => [
+  	(graph[_file_classes] ? graph[_file_classes] : []),
+  	(graph[_frame_classes] ? graph[_frame_classes] : []),
+  ].reduce((a, b) => a.concat(b));
 
-  var linker = function linker(library) {
+  const linker = function (library) {
     library.graph.svg = this;
-    var graphProtoMethods = {
+    const graphProtoMethods = {
       svg: this
     };
-    Object.keys(graphProtoMethods).forEach(function (key) {
+    Object.keys(graphProtoMethods).forEach(key => {
       library.graph.prototype[key] = function () {
-        return graphProtoMethods[key].apply(graphProtoMethods, [this].concat(Array.prototype.slice.call(arguments)));
+        return graphProtoMethods[key](this, ...arguments);
       };
     });
   };
 
-  var bounding_rect = function bounding_rect(_ref) {
-    var vertices_coords = _ref.vertices_coords;
+  const bounding_rect = function ({ vertices_coords }) {
     if (vertices_coords == null || vertices_coords.length <= 0) {
       return undefined;
     }
-    var min = Array(2).fill(Infinity);
-    var max = Array(2).fill(-Infinity);
-    vertices_coords.forEach(function (v) {
-      if (v[0] < min[0]) {
-        min[0] = v[0];
-      }
-      if (v[0] > max[0]) {
-        max[0] = v[0];
-      }
-      if (v[1] < min[1]) {
-        min[1] = v[1];
-      }
-      if (v[1] > max[1]) {
-        max[1] = v[1];
-      }
+    const min = Array(2).fill(Infinity);
+    const max = Array(2).fill(-Infinity);
+    vertices_coords.forEach(v => {
+      if (v[0] < min[0]) { min[0] = v[0]; }
+      if (v[0] > max[0]) { max[0] = v[0]; }
+      if (v[1] < min[1]) { min[1] = v[1]; }
+      if (v[1] > max[1]) { max[1] = v[1]; }
     });
-    var invalid = isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1]);
-    return invalid ? undefined : [min[0], min[1], max[0] - min[0], max[1] - min[1]];
+    const invalid = isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1]);
+    return (invalid
+      ? undefined
+      : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
   };
-  var make_svg_attributes = function make_svg_attributes(graph, options) {
-    var setViewBox = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    var attributes = {
-      overflow: "visible"
+  const make_svg_attributes = (graph, options, setViewBox = true) => {
+    const attributes = {
+      overflow: "visible",
     };
-    if (!graph) {
-      return attributes;
-    }
-    var viewBox = bounding_rect(graph);
+    if (!graph) { return attributes; }
+    const viewBox = bounding_rect(graph);
     if (viewBox && setViewBox) {
       attributes.viewBox = viewBox.join(" ");
-      var vmax = Math.max(viewBox[2], viewBox[3]);
+      const vmax = Math.max(viewBox[2], viewBox[3]);
       attributes[_stroke_width] = vmax / 100;
       attributes.width = viewBox[2];
       attributes.height = viewBox[3];
@@ -10062,98 +7819,82 @@
     attributes[_class$1] = ["origami"].concat(fold_classes(graph)).join(" ");
     return attributes;
   };
-  var setR = function setR(group, radius) {
-    for (var i = 0; i < group.childNodes.length; i++) {
+  const setR = (group, radius) => {
+    for (let i = 0; i < group.childNodes.length; i++) {
       group.childNodes[i].setAttributeNS(null, "r", radius);
     }
   };
-  var drawInto = function drawInto(element, graph) {
-    for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      args[_key - 2] = arguments[_key];
-    }
-    var options = args.filter(function (el) {
-      return _typeof(el) === _object$1;
-    }).shift() || {};
-    var setViewBox = args.filter(function (el) {
-      return _typeof(el) === _boolean$1;
-    }).shift();
-    var attrs = make_svg_attributes(graph, options, setViewBox);
-    Object.keys(attrs).forEach(function (attr) {
-      return element.setAttributeNS(null, attr, attrs[attr]);
-    });
-    var groups = DrawGroups(graph, options);
-    groups.filter(function (group) {
-      return group.childNodes.length > 0;
-    }).forEach(function (group) {
-      return element.appendChild(group);
-    });
-    if (attrs[_stroke_width]) {
-      setR(groups[3], attrs[_stroke_width] * 2);
-    }
-    Object.keys(DrawGroups).forEach(function (key, i) {
-      return Object.defineProperty(element, key, {
-        get: function get() {
-          return groups[i];
-        }
-      });
-    });
+  const drawInto = (element, graph, ...args) => {
+    const options = args.filter(el => typeof el === _object$1).shift() || {};
+    const setViewBox = args.filter(el => typeof el === _boolean$1).shift();
+    const attrs = make_svg_attributes(graph, options, setViewBox);
+    Object.keys(attrs)
+      .forEach(attr => element.setAttributeNS(null, attr, attrs[attr]));
+    const groups = DrawGroups(graph, options);
+    groups.filter(group => group.childNodes.length > 0)
+      .forEach(group => element.appendChild(group));
+    if (attrs[_stroke_width]) { setR(groups[3], attrs[_stroke_width] * 2); }
+    Object.keys(DrawGroups).forEach((key, i) =>
+      Object.defineProperty(element, key, { get: () => groups[i] }));
     return element;
   };
-  var FOLDtoSVG = function FOLDtoSVG(graph, options, setViewBox) {
-    return drawInto(root.svg(), graph, options, setViewBox);
-  };
-  Object.keys(DrawGroups).forEach(function (key) {
+  const FOLDtoSVG = (graph, options, setViewBox) => (
+    drawInto(root.svg(), graph, options, setViewBox)
+  );
+  Object.keys(DrawGroups).forEach(key => {
     FOLDtoSVG[key] = DrawGroups[key];
   });
   FOLDtoSVG.drawInto = drawInto;
   Object.defineProperty(FOLDtoSVG, "linker", {
     enumerable: false,
-    value: linker.bind(FOLDtoSVG)
+    value: linker.bind(FOLDtoSVG),
   });
 
-  var _NodeNames$v;
-  var SVG_Constructor = {
-    init: function init() {}
+  const SVG_Constructor = {
+    init: () => {},
   };
-  function SVG() {
-    return SVG_Constructor.init.apply(SVG_Constructor, arguments);
+  function SVG () {
+    return SVG_Constructor.init(...arguments);
   }
-  var _class = "class";
-  var _function = "function";
-  var _undefined = "undefined";
-  var _boolean = "boolean";
-  var _number = "number";
-  var _string = "string";
-  var _object = "object";
-  var _svg = "svg";
-  var _path = "path";
-  var _id = "id";
-  var _style = "style";
-  var _viewBox = "viewBox";
-  var _transform = "transform";
-  var _points = "points";
-  var _stroke = "stroke";
-  var _fill = "fill";
-  var _none = "none";
-  var _arrow = "arrow";
-  var _head = "head";
-  var _tail = "tail";
-  var isBrowser$1 = (typeof window === "undefined" ? "undefined" : _typeof(window)) !== _undefined && _typeof(window.document) !== _undefined;
-  var isNode$1 = (typeof process === "undefined" ? "undefined" : _typeof(process)) !== _undefined && process.versions != null && process.versions.node != null;
-  var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) === _object && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
+  const _class = "class";
+  const _function = "function";
+  const _undefined = "undefined";
+  const _boolean = "boolean";
+  const _number = "number";
+  const _string = "string";
+  const _object = "object";
+  const _svg = "svg";
+  const _path = "path";
+  const _id = "id";
+  const _style = "style";
+  const _viewBox = "viewBox";
+  const _transform = "transform";
+  const _points = "points";
+  const _stroke = "stroke";
+  const _fill = "fill";
+  const _none = "none";
+  const _arrow = "arrow";
+  const _head = "head";
+  const _tail = "tail";
+  const isBrowser$1 = typeof window !== _undefined
+    && typeof window.document !== _undefined;
+  const isNode$1 = typeof process !== _undefined
+    && process.versions != null
+    && process.versions.node != null;
+  const isWebWorker = typeof self === _object
+    && self.constructor
+    && self.constructor.name === "DedicatedWorkerGlobalScope";
   var detect = Object.freeze({
     __proto__: null,
     isBrowser: isBrowser$1,
     isNode: isNode$1,
     isWebWorker: isWebWorker
   });
-  var htmlString$1 = "<!DOCTYPE html><title>.</title>";
-  var Window$1 = function () {
-    var win = {};
+  const htmlString$1 = "<!DOCTYPE html><title>.</title>";
+  const Window$1 = (function () {
+    let win = {};
     if (isNode$1) {
-      var _require = require("@xmldom/xmldom"),
-          DOMParser = _require.DOMParser,
-          XMLSerializer = _require.XMLSerializer;
+      const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
       win.DOMParser = DOMParser;
       win.XMLSerializer = XMLSerializer;
       win.document = new DOMParser().parseFromString(htmlString$1, "text/html");
@@ -10161,96 +7902,137 @@
       win = window;
     }
     return win;
-  }();
+  }());
   var NS = "http://www.w3.org/2000/svg";
   var NodeNames = {
-    s: ["svg"],
-    d: ["defs"],
-    h: ["desc", "filter", "metadata", "style", "script", "title", "view"],
-    c: ["cdata"],
-    g: ["g"],
-    v: ["circle", "ellipse", "line", "path", "polygon", "polyline", "rect"],
-    t: ["text"],
-    i: ["marker", "symbol", "clipPath", "mask"],
-    p: ["linearGradient", "radialGradient", "pattern"],
-    cT: ["textPath", "tspan"],
-    cG: ["stop"],
-    cF: ["feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting", "feDisplacementMap", "feDistantLight", "feDropShadow", "feFlood", "feFuncA", "feFuncB", "feFuncG", "feFuncR", "feGaussianBlur", "feImage", "feMerge", "feMergeNode", "feMorphology", "feOffset", "fePointLight", "feSpecularLighting", "feSpotLight", "feTile", "feTurbulence"]
+    s: [
+      "svg",
+    ],
+    d: [
+      "defs",
+    ],
+    h: [
+      "desc",
+      "filter",
+      "metadata",
+      "style",
+      "script",
+      "title",
+      "view",
+    ],
+    c: [
+      "cdata",
+    ],
+    g: [
+      "g",
+    ],
+    v: [
+      "circle",
+      "ellipse",
+      "line",
+      "path",
+      "polygon",
+      "polyline",
+      "rect",
+    ],
+    t: [
+      "text",
+    ],
+    i: [
+      "marker",
+      "symbol",
+      "clipPath",
+      "mask",
+    ],
+    p: [
+      "linearGradient",
+      "radialGradient",
+      "pattern",
+    ],
+    cT: [
+      "textPath",
+      "tspan",
+    ],
+    cG: [
+      "stop",
+    ],
+    cF: [
+      "feBlend",
+      "feColorMatrix",
+      "feComponentTransfer",
+      "feComposite",
+      "feConvolveMatrix",
+      "feDiffuseLighting",
+      "feDisplacementMap",
+      "feDistantLight",
+      "feDropShadow",
+      "feFlood",
+      "feFuncA",
+      "feFuncB",
+      "feFuncG",
+      "feFuncR",
+      "feGaussianBlur",
+      "feImage",
+      "feMerge",
+      "feMergeNode",
+      "feMorphology",
+      "feOffset",
+      "fePointLight",
+      "feSpecularLighting",
+      "feSpotLight",
+      "feTile",
+      "feTurbulence",
+    ],
   };
-  var vec = function vec(a, d) {
-    return [Math.cos(a) * d, Math.sin(a) * d];
-  };
-  var arcPath = function arcPath(x, y, radius, startAngle, endAngle) {
-    var includeCenter = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
-    if (endAngle == null) {
-      return "";
-    }
-    var start = vec(startAngle, radius);
-    var end = vec(endAngle, radius);
-    var arcVec = [end[0] - start[0], end[1] - start[1]];
-    var py = start[0] * end[1] - start[1] * end[0];
-    var px = start[0] * end[0] + start[1] * end[1];
-    var arcdir = Math.atan2(py, px) > 0 ? 0 : 1;
-    var d = includeCenter ? "M ".concat(x, ",").concat(y, " l ").concat(start[0], ",").concat(start[1], " ") : "M ".concat(x + start[0], ",").concat(y + start[1], " ");
+  const vec = (a, d) => [Math.cos(a) * d, Math.sin(a) * d];
+  const arcPath = (x, y, radius, startAngle, endAngle, includeCenter = false) => {
+    if (endAngle == null) { return ""; }
+    const start = vec(startAngle, radius);
+    const end = vec(endAngle, radius);
+    const arcVec = [end[0] - start[0], end[1] - start[1]];
+    const py = start[0] * end[1] - start[1] * end[0];
+    const px = start[0] * end[0] + start[1] * end[1];
+    const arcdir = (Math.atan2(py, px) > 0 ? 0 : 1);
+    let d = (includeCenter
+      ? `M ${x},${y} l ${start[0]},${start[1]} `
+      : `M ${x+start[0]},${y+start[1]} `);
     d += ["a ", radius, radius, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
-    if (includeCenter) {
-      d += " Z";
-    }
+    if (includeCenter) { d += " Z"; }
     return d;
   };
-  var arcArguments = function arcArguments(a, b, c, d, e) {
-    return [arcPath(a, b, c, d, e, false)];
-  };
+  const arcArguments = (a, b, c, d, e) => [arcPath(a, b, c, d, e, false)];
   var Arc = {
     arc: {
       nodeName: _path,
       attributes: ["d"],
       args: arcArguments,
       methods: {
-        setArc: function setArc(el) {
-          for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-            args[_key - 1] = arguments[_key];
-          }
-          return el.setAttribute("d", arcArguments.apply(void 0, args));
-        }
+        setArc: (el, ...args) => el.setAttribute("d", arcArguments(...args)),
       }
     }
   };
-  var wedgeArguments = function wedgeArguments(a, b, c, d, e) {
-    return [arcPath(a, b, c, d, e, true)];
-  };
+  const wedgeArguments = (a, b, c, d, e) => [arcPath(a, b, c, d, e, true)];
   var Wedge = {
     wedge: {
       nodeName: _path,
       args: wedgeArguments,
       attributes: ["d"],
       methods: {
-        setArc: function setArc(el) {
-          for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-            args[_key2 - 1] = arguments[_key2];
-          }
-          return el.setAttribute("d", wedgeArguments.apply(void 0, args));
-        }
+        setArc: (el, ...args) => el.setAttribute("d", wedgeArguments(...args)),
       }
     }
   };
-  var COUNT = 128;
-  var parabolaArguments = function parabolaArguments() {
-    var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : -1;
-    var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var width = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2;
-    var height = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
-    return Array.from(Array(COUNT + 1)).map(function (_, i) {
-      return (i - COUNT) / COUNT * 2 + 1;
-    }).map(function (i) {
-      return [x + (i + 1) * width * 0.5, y + Math.pow(i, 2) * height];
-    });
-  };
-  var parabolaPathString = function parabolaPathString(a, b, c, d) {
-    return [parabolaArguments(a, b, c, d).map(function (n) {
-      return "".concat(n[0], ",").concat(n[1]);
-    }).join(" ")];
-  };
+  const COUNT = 128;
+  const parabolaArguments = (x = -1, y = 0, width = 2, height = 1) => Array
+    .from(Array(COUNT + 1))
+    .map((_, i) => (i - (COUNT)) / COUNT * 2 + 1)
+    .map(i => [
+      x + (i + 1) * width * 0.5,
+      y + (i ** 2) * height
+    ]);
+  const parabolaPathString = (a, b, c, d) => [
+    parabolaArguments(a, b, c, d).map(n => `${n[0]},${n[1]}`).join(" ")
+  ];
   var Parabola = {
     parabola: {
       nodeName: "polyline",
@@ -10258,26 +8040,17 @@
       args: parabolaPathString
     }
   };
-  var regularPolygonArguments = function regularPolygonArguments(sides, cX, cY, radius) {
-    var origin = [cX, cY];
-    return Array.from(Array(sides)).map(function (el, i) {
-      return 2 * Math.PI * i / sides;
-    }).map(function (a) {
-      return [Math.cos(a), Math.sin(a)];
-    }).map(function (pts) {
-      return origin.map(function (o, i) {
-        return o + radius * pts[i];
-      });
-    });
+  const regularPolygonArguments = (sides, cX, cY, radius) => {
+    const origin = [cX, cY];
+    return Array.from(Array(sides))
+      .map((el, i) => 2 * Math.PI * i / sides)
+      .map(a => [Math.cos(a), Math.sin(a)])
+      .map(pts => origin.map((o, i) => o + radius * pts[i]));
   };
-  var polygonPathString = function polygonPathString(sides) {
-    var cX = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var cY = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var radius = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
-    return [regularPolygonArguments(sides, cX, cY, radius).map(function (a) {
-      return "".concat(a[0], ",").concat(a[1]);
-    }).join(" ")];
-  };
+  const polygonPathString = (sides, cX = 0, cY = 0, radius = 1) => [
+    regularPolygonArguments(sides, cX, cY, radius)
+      .map(a => `${a[0]},${a[1]}`).join(" ")
+  ];
   var RegularPolygon = {
     regularPolygon: {
       nodeName: "polygon",
@@ -10285,18 +8058,13 @@
       args: polygonPathString
     }
   };
-  var roundRectArguments = function roundRectArguments(x, y, width, height) {
-    var cornerRadius = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
-    if (cornerRadius > width / 2) {
-      cornerRadius = width / 2;
-    }
-    if (cornerRadius > height / 2) {
-      cornerRadius = height / 2;
-    }
-    var w = width - cornerRadius * 2;
-    var h = height - cornerRadius * 2;
-    var s = "A".concat(cornerRadius, " ").concat(cornerRadius, " 0 0 1");
-    return ["M".concat(x + (width - w) / 2, ",").concat(y), "h".concat(w), s, "".concat(x + width, ",").concat(y + (height - h) / 2), "v".concat(h), s, "".concat(x + width - cornerRadius, ",").concat(y + height), "h".concat(-w), s, "".concat(x, ",").concat(y + height - cornerRadius), "v".concat(-h), s, "".concat(x + cornerRadius, ",").concat(y)].join(" ");
+  const roundRectArguments = (x, y, width, height, cornerRadius = 0) => {
+    if (cornerRadius > width / 2) { cornerRadius = width / 2; }
+    if (cornerRadius > height / 2) { cornerRadius = height / 2; }
+    const w = width - cornerRadius * 2;
+    const h = height - cornerRadius * 2;
+    const s = `A${cornerRadius} ${cornerRadius} 0 0 1`;
+    return [`M${x + (width - w) / 2},${y}`, `h${w}`, s, `${x + width},${y + (height - h) / 2}`, `v${h}`, s, `${x + width - cornerRadius},${y + height}`, `h${-w}`, s, `${x},${y + height - cornerRadius}`, `v${-h}`, s, `${x + cornerRadius},${y}`].join(" ");
   };
   var RoundRect = {
     roundRect: {
@@ -10306,82 +8074,56 @@
     }
   };
   var Case = {
-    toCamel: function toCamel(s) {
-      return s.replace(/([-_][a-z])/ig, function ($1) {
-        return $1.toUpperCase().replace("-", "").replace("_", "");
-      });
-    },
-    toKebab: function toKebab(s) {
-      return s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2").toLowerCase();
-    },
-    capitalized: function capitalized(s) {
-      return s.charAt(0).toUpperCase() + s.slice(1);
-    }
+    toCamel: s => s
+      .replace(/([-_][a-z])/ig, $1 => $1
+      .toUpperCase()
+      .replace("-", "")
+      .replace("_", "")),
+     toKebab: s => s
+       .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+       .replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2")
+       .toLowerCase(),
+    capitalized: s => s
+      .charAt(0).toUpperCase() + s.slice(1)
   };
-  var is_iterable = function is_iterable(obj) {
-    return obj != null && _typeof(obj[Symbol.iterator]) === _function;
+  const is_iterable = (obj) => {
+    return obj != null && typeof obj[Symbol.iterator] === _function;
   };
-  var semi_flatten_arrays = function semi_flatten_arrays() {
+  const semi_flatten_arrays = function () {
     switch (arguments.length) {
       case undefined:
-      case 0:
-        return Array.from(arguments);
-      case 1:
-        return is_iterable(arguments[0]) && _typeof(arguments[0]) !== _string ? semi_flatten_arrays.apply(void 0, _toConsumableArray(arguments[0])) : [arguments[0]];
+      case 0: return Array.from(arguments);
+      case 1: return is_iterable(arguments[0]) && typeof arguments[0] !== _string
+        ? semi_flatten_arrays(...arguments[0])
+        : [arguments[0]];
       default:
-        return Array.from(arguments).map(function (a) {
-          return is_iterable(a) ? _toConsumableArray(semi_flatten_arrays(a)) : a;
-        });
+        return Array.from(arguments).map(a => (is_iterable(a)
+          ? [...semi_flatten_arrays(a)]
+          : a));
     }
   };
-  var flatten_arrays = function flatten_arrays() {
-    return semi_flatten_arrays(arguments).reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
+  const flatten_arrays = function () {
+    return semi_flatten_arrays(arguments).reduce((a, b) => a.concat(b), []);
   };
-  var coordinates = function coordinates() {
-    for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      args[_key3] = arguments[_key3];
-    }
-    return args.filter(function (a) {
-      return _typeof(a) === _number;
-    }).concat(args.filter(function (a) {
-      return _typeof(a) === _object && a !== null;
-    }).map(function (el) {
-      if (_typeof(el.x) === _number) {
-        return [el.x, el.y];
-      }
-      if (_typeof(el[0]) === _number) {
-        return [el[0], el[1]];
-      }
-      return undefined;
-    }).filter(function (a) {
-      return a !== undefined;
-    }).reduce(function (a, b) {
-      return a.concat(b);
-    }, []));
+  var coordinates = (...args) => {
+    return args.filter(a => typeof a === _number)
+      .concat(
+        args.filter(a => typeof a === _object && a !== null)
+          .map((el) => {
+            if (typeof el.x === _number) { return [el.x, el.y]; }
+            if (typeof el[0] === _number) { return [el[0], el[1]]; }
+            return undefined;
+          }).filter(a => a !== undefined)
+          .reduce((a, b) => a.concat(b), [])
+      );
   };
-  var magnitudeSq2 = function magnitudeSq2(a) {
-    return Math.pow(a[0], 2) + Math.pow(a[1], 2);
-  };
-  var magnitude2 = function magnitude2(a) {
-    return Math.sqrt(magnitudeSq2(a));
-  };
-  var distanceSq2 = function distanceSq2(a, b) {
-    return magnitudeSq2(sub2(a, b));
-  };
-  var distance2 = function distance2(a, b) {
-    return Math.sqrt(distanceSq2(a, b));
-  };
-  var add2 = function add2(a, b) {
-    return [a[0] + b[0], a[1] + b[1]];
-  };
-  var sub2 = function sub2(a, b) {
-    return [a[0] - b[0], a[1] - b[1]];
-  };
-  var scale2 = function scale2(a, s) {
-    return [a[0] * s, a[1] * s];
-  };
+  const magnitudeSq2 = (a) => (a[0] ** 2) + (a[1] ** 2);
+  const magnitude2 = (a) => Math.sqrt(magnitudeSq2(a));
+  const distanceSq2 = (a, b) => magnitudeSq2(sub2(a, b));
+  const distance2 = (a, b) => Math.sqrt(distanceSq2(a, b));
+  const add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
+  const sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
+  const scale2 = (a, s) => [a[0] * s, a[1] * s];
   var algebra = Object.freeze({
     __proto__: null,
     magnitudeSq2: magnitudeSq2,
@@ -10392,84 +8134,61 @@
     sub2: sub2,
     scale2: scale2
   });
-  var ends = [_tail, _head];
-  var stringifyPoint = function stringifyPoint(p) {
-    return p.join(",");
-  };
-  var pointsToPath = function pointsToPath(points) {
-    return "M" + points.map(function (pt) {
-      return pt.join(",");
-    }).join("L") + "Z";
-  };
-  var makeArrowPaths = function makeArrowPaths(options) {
-    var pts = [[0, 1], [2, 3]].map(function (pt) {
-      return pt.map(function (i) {
-        return options.points[i] || 0;
-      });
-    });
-    var vector = sub2(pts[1], pts[0]);
-    var midpoint = add2(pts[0], scale2(vector, 0.5));
-    var len = magnitude2(vector);
-    var minLength = ends.map(function (s) {
-      return options[s].visible ? (1 + options[s].padding) * options[s].height * 2.5 : 0;
-    }).reduce(function (a, b) {
-      return a + b;
-    }, 0);
+  const ends = [_tail, _head];
+  const stringifyPoint = p => p.join(",");
+  const pointsToPath = (points) => "M" + points.map(pt => pt.join(",")).join("L") + "Z";
+  const makeArrowPaths = function (options) {
+    let pts = [[0,1], [2,3]].map(pt => pt.map(i => options.points[i] || 0));
+    let vector = sub2(pts[1], pts[0]);
+    let midpoint = add2(pts[0], scale2(vector, 0.5));
+    const len = magnitude2(vector);
+    const minLength = ends
+      .map(s => (options[s].visible
+        ? (1 + options[s].padding) * options[s].height * 2.5
+        : 0))
+      .reduce((a, b) => a + b, 0);
     if (len < minLength) {
-      var minVec = len === 0 ? [minLength, 0] : scale2(vector, minLength / len);
-      pts = [sub2, add2].map(function (f) {
-        return f(midpoint, scale2(minVec, 0.5));
-      });
+      const minVec = len === 0 ? [minLength, 0] : scale2(vector, minLength / len);
+      pts = [sub2, add2].map(f => f(midpoint, scale2(minVec, 0.5)));
       vector = sub2(pts[1], pts[0]);
     }
-    var perpendicular = [vector[1], -vector[0]];
-    var bezPoint = add2(midpoint, scale2(perpendicular, options.bend));
-    var bezs = pts.map(function (pt) {
-      return sub2(bezPoint, pt);
-    });
-    var bezsLen = bezs.map(function (v) {
-      return magnitude2(v);
-    });
-    var bezsNorm = bezs.map(function (bez, i) {
-      return bezsLen[i] === 0 ? bez : scale2(bez, 1 / bezsLen[i]);
-    });
-    var vectors = bezsNorm.map(function (norm) {
-      return scale2(norm, -1);
-    });
-    var normals = vectors.map(function (vec) {
-      return [vec[1], -vec[0]];
-    });
-    var pad = ends.map(function (s, i) {
-      return options[s].padding ? options[s].padding : options.padding ? options.padding : 0.0;
-    });
-    var scales = ends.map(function (s, i) {
-      return options[s].height * (options[s].visible ? 1 : 0);
-    }).map(function (n, i) {
-      return n + pad[i];
-    });
-    var arcs = pts.map(function (pt, i) {
-      return add2(pt, scale2(bezsNorm[i], scales[i]));
-    });
+    let perpendicular = [vector[1], -vector[0]];
+    let bezPoint = add2(midpoint, scale2(perpendicular, options.bend));
+    const bezs = pts.map(pt => sub2(bezPoint, pt));
+    const bezsLen = bezs.map(v => magnitude2(v));
+    const bezsNorm = bezs.map((bez, i) => bezsLen[i] === 0
+      ? bez
+      : scale2(bez, 1 / bezsLen[i]));
+    const vectors = bezsNorm.map(norm => scale2(norm, -1));
+    const normals = vectors.map(vec => [vec[1], -vec[0]]);
+    const pad = ends.map((s, i) => options[s].padding
+      ? options[s].padding
+      : (options.padding ? options.padding : 0.0));
+    const scales = ends
+      .map((s, i) => options[s].height * (options[s].visible ? 1 : 0))
+      .map((n, i) => n + pad[i]);
+    const arcs = pts.map((pt, i) => add2(pt, scale2(bezsNorm[i], scales[i])));
     vector = sub2(arcs[1], arcs[0]);
     perpendicular = [vector[1], -vector[0]];
     midpoint = add2(arcs[0], scale2(vector, 0.5));
     bezPoint = add2(midpoint, scale2(perpendicular, options.bend));
-    var controls = arcs.map(function (arc, i) {
-      return add2(arc, scale2(sub2(bezPoint, arc), options.pinch));
-    });
-    var polyPoints = ends.map(function (s, i) {
-      return [add2(arcs[i], scale2(vectors[i], options[s].height)), add2(arcs[i], scale2(normals[i], options[s].width / 2)), add2(arcs[i], scale2(normals[i], -options[s].width / 2))];
-    });
+    const controls = arcs
+      .map((arc, i) => add2(arc, scale2(sub2(bezPoint, arc), options.pinch)));
+    const polyPoints = ends.map((s, i) => [
+      add2(arcs[i], scale2(vectors[i], options[s].height)),
+      add2(arcs[i], scale2(normals[i], options[s].width / 2)),
+      add2(arcs[i], scale2(normals[i], -options[s].width / 2)),
+    ]);
     return {
-      line: "M".concat(stringifyPoint(arcs[0]), "C").concat(stringifyPoint(controls[0]), ",").concat(stringifyPoint(controls[1]), ",").concat(stringifyPoint(arcs[1])),
+      line: `M${stringifyPoint(arcs[0])}C${stringifyPoint(controls[0])},${stringifyPoint(controls[1])},${stringifyPoint(arcs[1])}`,
       tail: pointsToPath(polyPoints[0]),
-      head: pointsToPath(polyPoints[1])
+      head: pointsToPath(polyPoints[1]),
     };
   };
-  var setArrowheadOptions = function setArrowheadOptions(element, options, which) {
-    if (_typeof(options) === _boolean) {
+  const setArrowheadOptions = (element, options, which) => {
+    if (typeof options === _boolean) {
       element.options[which].visible = options;
-    } else if (_typeof(options) === _object) {
+    } else if (typeof options === _object) {
       Object.assign(element.options[which], options);
       if (options.visible == null) {
         element.options[which].visible = true;
@@ -10478,145 +8197,111 @@
       element.options[which].visible = true;
     }
   };
-  var setArrowStyle = function setArrowStyle(element) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var which = arguments.length > 2 ? arguments[2] : undefined;
-    var path = element.getElementsByClassName("".concat(_arrow, "-").concat(which))[0];
-    Object.keys(options).map(function (key) {
-      return {
-        key: key,
-        fn: path[Case.toCamel(key)]
-      };
-    }).filter(function (el) {
-      return _typeof(el.fn) === _function;
-    }).forEach(function (el) {
-      return el.fn(options[el.key]);
-    });
+  const setArrowStyle = (element, options = {}, which) => {
+    const path = element.getElementsByClassName(`${_arrow}-${which}`)[0];
+    Object.keys(options)
+      .map(key => ({ key, fn: path[Case.toCamel(key)] }))
+      .filter(el => typeof el.fn === _function)
+      .forEach(el => el.fn(options[el.key]));
   };
-  var redraw = function redraw(element) {
-    var paths = makeArrowPaths(element.options);
-    Object.keys(paths).map(function (path) {
-      return {
-        path: path,
-        element: element.getElementsByClassName("".concat(_arrow, "-").concat(path))[0]
-      };
-    }).filter(function (el) {
-      return el.element;
-    }).map(function (el) {
-      el.element.setAttribute("d", paths[el.path]);
-      return el;
-    }).filter(function (el) {
-      return element.options[el.path];
-    }).forEach(function (el) {
-      return el.element.setAttribute("visibility", element.options[el.path].visible ? "visible" : "hidden");
-    });
+  const redraw = (element) => {
+    const paths = makeArrowPaths(element.options);
+    Object.keys(paths)
+      .map(path => ({
+        path,
+        element: element.getElementsByClassName(`${_arrow}-${path}`)[0]
+      }))
+      .filter(el => el.element)
+      .map(el => { el.element.setAttribute("d", paths[el.path]); return el; })
+      .filter(el => element.options[el.path])
+      .forEach(el => el.element.setAttribute(
+        "visibility",
+        element.options[el.path].visible
+          ? "visible"
+          : "hidden"));
     return element;
   };
-  var setPoints$3 = function setPoints$3(element) {
-    for (var _len4 = arguments.length, args = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-      args[_key4 - 1] = arguments[_key4];
-    }
-    element.options.points = coordinates.apply(void 0, _toConsumableArray(flatten_arrays.apply(void 0, args))).slice(0, 4);
+  const setPoints$3 = (element, ...args) => {
+    element.options.points = coordinates(...flatten_arrays(...args)).slice(0, 4);
     return redraw(element);
   };
-  var bend$1 = function bend$1(element, amount) {
+  const bend$1 = (element, amount) => {
     element.options.bend = amount;
     return redraw(element);
   };
-  var pinch$1 = function pinch$1(element, amount) {
+  const pinch$1 = (element, amount) => {
     element.options.pinch = amount;
     return redraw(element);
   };
-  var padding = function padding(element, amount) {
+  const padding = (element, amount) => {
     element.options.padding = amount;
     return redraw(element);
   };
-  var head = function head(element, options) {
+  const head = (element, options) => {
     setArrowheadOptions(element, options, _head);
     setArrowStyle(element, options, _head);
     return redraw(element);
   };
-  var tail = function tail(element, options) {
+  const tail = (element, options) => {
     setArrowheadOptions(element, options, _tail);
     setArrowStyle(element, options, _tail);
     return redraw(element);
   };
-  var getLine = function getLine(element) {
-    return element.getElementsByClassName("".concat(_arrow, "-line"))[0];
-  };
-  var getHead = function getHead(element) {
-    return element.getElementsByClassName("".concat(_arrow, "-").concat(_head))[0];
-  };
-  var getTail = function getTail(element) {
-    return element.getElementsByClassName("".concat(_arrow, "-").concat(_tail))[0];
-  };
+  const getLine = element => element.getElementsByClassName(`${_arrow}-line`)[0];
+  const getHead = element => element.getElementsByClassName(`${_arrow}-${_head}`)[0];
+  const getTail = element => element.getElementsByClassName(`${_arrow}-${_tail}`)[0];
   var methods$5 = {
     setPoints: setPoints$3,
     points: setPoints$3,
     bend: bend$1,
     pinch: pinch$1,
-    padding: padding,
-    head: head,
-    tail: tail,
-    getLine: getLine,
-    getHead: getHead,
-    getTail: getTail
+    padding,
+    head,
+    tail,
+    getLine,
+    getHead,
+    getTail,
   };
-  var endOptions = function endOptions() {
-    return {
-      visible: false,
-      width: 8,
-      height: 10,
-      padding: 0.0
-    };
-  };
-  var makeArrowOptions = function makeArrowOptions() {
-    return {
-      head: endOptions(),
-      tail: endOptions(),
-      bend: 0.0,
-      padding: 0.0,
-      pinch: 0.618,
-      points: []
-    };
-  };
-  var arrowKeys = Object.keys(makeArrowOptions());
-  var matchingOptions = function matchingOptions() {
-    for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-      args[_key5] = arguments[_key5];
-    }
-    for (var a = 0; a < args.length; a++) {
-      if (_typeof(args[a]) !== _object) {
-        continue;
-      }
-      var keys = Object.keys(args[a]);
-      for (var i = 0; i < keys.length; i++) {
+  const endOptions = () => ({
+    visible: false,
+    width: 8,
+    height: 10,
+    padding: 0.0,
+  });
+  const makeArrowOptions = () => ({
+    head: endOptions(),
+    tail: endOptions(),
+    bend: 0.0,
+    padding: 0.0,
+    pinch: 0.618,
+    points: [],
+  });
+  const arrowKeys = Object.keys(makeArrowOptions());
+  const matchingOptions = (...args) => {
+    for (let a = 0; a < args.length; a++) {
+      if (typeof args[a] !== _object) { continue; }
+      const keys = Object.keys(args[a]);
+      for (let i = 0; i < keys.length; i++) {
         if (arrowKeys.includes(keys[i])) {
           return args[a];
         }
       }
     }
   };
-  var init = function init(element) {
+  const init = function (element, ...args) {
     element.setAttribute(_class, _arrow);
-    var paths = ["line", _tail, _head].map(function (key) {
-      return SVG.path().setClass("".concat(_arrow, "-").concat(key)).appendTo(element);
-    });
+    const paths = ["line", _tail, _head]
+      .map(key => SVG.path().setClass(`${_arrow}-${key}`).appendTo(element));
     paths[0].setAttribute(_style, "fill:none;");
     paths[1].setAttribute(_stroke, _none);
     paths[2].setAttribute(_stroke, _none);
     element.options = makeArrowOptions();
-    for (var _len6 = arguments.length, args = new Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-      args[_key6 - 1] = arguments[_key6];
-    }
-    methods$5.setPoints.apply(methods$5, [element].concat(args));
-    var options = matchingOptions.apply(void 0, args);
+    methods$5.setPoints(element, ...args);
+    const options = matchingOptions(...args);
     if (options) {
-      Object.keys(options).filter(function (key) {
-        return methods$5[key];
-      }).forEach(function (key) {
-        return methods$5[key](element, options[key]);
-      });
+      Object.keys(options)
+        .filter(key => methods$5[key])
+        .forEach(key => methods$5[key](element, options[key]));
     }
     return element;
   };
@@ -10624,72 +8309,63 @@
     arrow: {
       nodeName: "g",
       attributes: [],
-      args: function args() {
-        return [];
-      },
+      args: () => [],
       methods: methods$5,
-      init: init
+      init,
     }
   };
-  var makeCurvePath = function makeCurvePath() {
-    var endpoints = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-    var bend = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var pinch = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0.5;
-    var tailPt = [endpoints[0] || 0, endpoints[1] || 0];
-    var headPt = [endpoints[2] || 0, endpoints[3] || 0];
-    var vector = sub2(headPt, tailPt);
-    var midpoint = add2(tailPt, scale2(vector, 0.5));
-    var perpendicular = [vector[1], -vector[0]];
-    var bezPoint = add2(midpoint, scale2(perpendicular, bend));
-    var tailControl = add2(tailPt, scale2(sub2(bezPoint, tailPt), pinch));
-    var headControl = add2(headPt, scale2(sub2(bezPoint, headPt), pinch));
-    return "M".concat(tailPt[0], ",").concat(tailPt[1], "C").concat(tailControl[0], ",").concat(tailControl[1], " ").concat(headControl[0], ",").concat(headControl[1], " ").concat(headPt[0], ",").concat(headPt[1]);
+  const makeCurvePath = (endpoints = [], bend = 0, pinch = 0.5) => {
+    const tailPt = [endpoints[0] || 0, endpoints[1] || 0];
+    const headPt = [endpoints[2] || 0, endpoints[3] || 0];
+    const vector = sub2(headPt, tailPt);
+    const midpoint = add2(tailPt, scale2(vector, 0.5));
+    const perpendicular = [vector[1], -vector[0]];
+    const bezPoint = add2(midpoint, scale2(perpendicular, bend));
+    const tailControl = add2(tailPt, scale2(sub2(bezPoint, tailPt), pinch));
+    const headControl = add2(headPt, scale2(sub2(bezPoint, headPt), pinch));
+    return `M${tailPt[0]},${tailPt[1]}C${tailControl[0]},${tailControl[1]} ${headControl[0]},${headControl[1]} ${headPt[0]},${headPt[1]}`;
   };
-  var curveArguments = function curveArguments() {
-    return [makeCurvePath(coordinates.apply(void 0, _toConsumableArray(flatten_arrays.apply(void 0, arguments))))];
+  const curveArguments = (...args) => [
+    makeCurvePath(coordinates(...flatten_arrays(...args)))
+  ];
+  const getNumbersFromPathCommand = str => str
+    .slice(1)
+    .split(/[, ]+/)
+    .map(s => parseFloat(s));
+  const getCurveTos = d => d
+    .match(/[Cc][(0-9), .-]+/)
+    .map(curve => getNumbersFromPathCommand(curve));
+  const getMoveTos = d => d
+    .match(/[Mm][(0-9), .-]+/)
+    .map(curve => getNumbersFromPathCommand(curve));
+  const getCurveEndpoints = (d) => {
+    const move = getMoveTos(d).shift();
+    const curve = getCurveTos(d).shift();
+    const start = move
+      ? [move[move.length-2], move[move.length-1]]
+      : [0, 0];
+    const end = curve
+      ? [curve[curve.length-2], curve[curve.length-1]]
+      : [0, 0];
+    return [...start, ...end];
   };
-  var getNumbersFromPathCommand = function getNumbersFromPathCommand(str) {
-    return str.slice(1).split(/[, ]+/).map(function (s) {
-      return parseFloat(s);
-    });
-  };
-  var getCurveTos = function getCurveTos(d) {
-    return d.match(/[Cc][(0-9), .-]+/).map(function (curve) {
-      return getNumbersFromPathCommand(curve);
-    });
-  };
-  var getMoveTos = function getMoveTos(d) {
-    return d.match(/[Mm][(0-9), .-]+/).map(function (curve) {
-      return getNumbersFromPathCommand(curve);
-    });
-  };
-  var getCurveEndpoints = function getCurveEndpoints(d) {
-    var move = getMoveTos(d).shift();
-    var curve = getCurveTos(d).shift();
-    var start = move ? [move[move.length - 2], move[move.length - 1]] : [0, 0];
-    var end = curve ? [curve[curve.length - 2], curve[curve.length - 1]] : [0, 0];
-    return [].concat(start, end);
-  };
-  var setPoints$2 = function setPoints$2(element) {
-    for (var _len7 = arguments.length, args = new Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
-      args[_key7 - 1] = arguments[_key7];
-    }
-    var coords = coordinates.apply(void 0, _toConsumableArray(flatten_arrays.apply(void 0, args))).slice(0, 4);
+  const setPoints$2 = (element, ...args) => {
+    const coords = coordinates(...flatten_arrays(...args)).slice(0, 4);
     element.setAttribute("d", makeCurvePath(coords, element._bend, element._pinch));
     return element;
   };
-  var bend = function bend(element, amount) {
+  const bend = (element, amount) => {
     element._bend = amount;
-    return setPoints$2.apply(void 0, [element].concat(_toConsumableArray(getCurveEndpoints(element.getAttribute("d")))));
+    return setPoints$2(element, ...getCurveEndpoints(element.getAttribute("d")));
   };
-  var pinch = function pinch(element, amount) {
+  const pinch = (element, amount) => {
     element._pinch = amount;
-    return setPoints$2.apply(void 0, [element].concat(_toConsumableArray(getCurveEndpoints(element.getAttribute("d")))));
+    return setPoints$2(element, ...getCurveEndpoints(element.getAttribute("d")));
   };
   var methods$4 = {
     setPoints: setPoints$2,
-    bend: bend,
-    pinch: pinch
+    bend,
+    pinch,
   };
   var Curve = {
     curve: {
@@ -10699,12 +8375,20 @@
       methods: methods$4
     }
   };
-  var nodes = {};
-  Object.assign(nodes, Arc, Wedge, Parabola, RegularPolygon, RoundRect, Arrow, Curve);
-  var customPrimitives = Object.keys(nodes);
-  var headerStuff = [NodeNames.h, NodeNames.p, NodeNames.i];
-  var drawingShapes = [NodeNames.g, NodeNames.v, NodeNames.t, customPrimitives];
-  var folders = {
+  const nodes = {};
+  Object.assign(nodes,
+    Arc,
+    Wedge,
+    Parabola,
+    RegularPolygon,
+    RoundRect,
+    Arrow,
+    Curve
+  );
+  const customPrimitives = Object.keys(nodes);
+  const headerStuff = [NodeNames.h, NodeNames.p, NodeNames.i];
+  const drawingShapes = [NodeNames.g, NodeNames.v, NodeNames.t, customPrimitives];
+  const folders = {
     svg: [NodeNames.s, NodeNames.d].concat(headerStuff).concat(drawingShapes),
     g: drawingShapes,
     text: [NodeNames.cT],
@@ -10715,84 +8399,71 @@
     marker: drawingShapes,
     symbol: drawingShapes,
     clipPath: drawingShapes,
-    mask: drawingShapes
+    mask: drawingShapes,
   };
-  var nodesAndChildren = Object.create(null);
-  Object.keys(folders).forEach(function (key) {
-    nodesAndChildren[key] = folders[key].reduce(function (a, b) {
-      return a.concat(b);
-    }, []);
+  const nodesAndChildren = Object.create(null);
+  Object.keys(folders).forEach((key) => {
+    nodesAndChildren[key] = folders[key].reduce((a, b) => a.concat(b), []);
   });
-  var viewBoxValue = function viewBoxValue(x, y, width, height) {
-    var padding = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
-    var scale = 1.0;
-    var d = width / scale - width;
-    var X = x - d - padding;
-    var Y = y - d - padding;
-    var W = width + d * 2 + padding * 2;
-    var H = height + d * 2 + padding * 2;
+  const viewBoxValue = function (x, y, width, height, padding = 0) {
+    const scale = 1.0;
+    const d = (width / scale) - width;
+    const X = (x - d) - padding;
+    const Y = (y - d) - padding;
+    const W = (width + d * 2) + padding * 2;
+    const H = (height + d * 2) + padding * 2;
     return [X, Y, W, H].join(" ");
   };
-  function viewBox$1() {
-    var numbers = coordinates.apply(void 0, _toConsumableArray(flatten_arrays(arguments)));
-    if (numbers.length === 2) {
-      numbers.unshift(0, 0);
-    }
-    return numbers.length === 4 ? viewBoxValue.apply(void 0, _toConsumableArray(numbers)) : undefined;
+  function viewBox$1 () {
+    const numbers = coordinates(...flatten_arrays(arguments));
+    if (numbers.length === 2) { numbers.unshift(0, 0); }
+    return numbers.length === 4 ? viewBoxValue(...numbers) : undefined;
   }
-  var cdata = function cdata(textContent) {
-    return new Window$1.DOMParser().parseFromString("<root></root>", "text/xml").createCDATASection("".concat(textContent));
-  };
-  var removeChildren = function removeChildren(element) {
+  const cdata = (textContent) => (new Window$1.DOMParser())
+    .parseFromString("<root></root>", "text/xml")
+    .createCDATASection(`${textContent}`);
+  const removeChildren = (element) => {
     while (element.lastChild) {
       element.removeChild(element.lastChild);
     }
     return element;
   };
-  var appendTo = function appendTo(element, parent) {
+  const appendTo = (element, parent) => {
     if (parent != null) {
       parent.appendChild(element);
     }
     return element;
   };
-  var setAttributes = function setAttributes(element, attrs) {
-    return Object.keys(attrs).forEach(function (key) {
-      return element.setAttribute(Case.toKebab(key), attrs[key]);
-    });
-  };
-  var moveChildren = function moveChildren(target, source) {
+  const setAttributes = (element, attrs) => Object.keys(attrs)
+    .forEach(key => element.setAttribute(Case.toKebab(key), attrs[key]));
+  const moveChildren = (target, source) => {
     while (source.childNodes.length > 0) {
-      var node = source.childNodes[0];
+      const node = source.childNodes[0];
       source.removeChild(node);
       target.appendChild(node);
     }
     return target;
   };
-  var clearSVG = function clearSVG(element) {
-    Array.from(element.attributes).filter(function (a) {
-      return a !== "xmlns";
-    }).forEach(function (attr) {
-      return element.removeAttribute(attr.name);
-    });
+  const clearSVG = (element) => {
+    Array.from(element.attributes)
+      .filter(a => a !== "xmlns")
+      .forEach(attr => element.removeAttribute(attr.name));
     return removeChildren(element);
   };
-  var assignSVG = function assignSVG(target, source) {
-    Array.from(source.attributes).forEach(function (attr) {
-      return target.setAttribute(attr.name, attr.value);
-    });
+  const assignSVG = (target, source) => {
+    Array.from(source.attributes)
+      .forEach(attr => target.setAttribute(attr.name, attr.value));
     return moveChildren(target, source);
   };
   var dom = {
-    removeChildren: removeChildren,
-    appendTo: appendTo,
-    setAttributes: setAttributes
+    removeChildren,
+    appendTo,
+    setAttributes,
   };
-  var filterWhitespaceNodes = function filterWhitespaceNodes(node) {
-    if (node === null) {
-      return node;
-    }
-    for (var i = node.childNodes.length - 1; i >= 0; i -= 1) {
-      var child = node.childNodes[i];
+  const filterWhitespaceNodes = (node) => {
+    if (node === null) { return node; }
+    for (let i = node.childNodes.length - 1; i >= 0; i -= 1) {
+      const child = node.childNodes[i];
       if (child.nodeType === 3 && child.data.match(/^\s*$/)) {
         node.removeChild(child);
       }
@@ -10802,37 +8473,36 @@
     }
     return node;
   };
-  var parse = function parse(string) {
-    return new Window$1.DOMParser().parseFromString(string, "text/xml");
-  };
-  var checkParseError = function checkParseError(xml) {
-    var parserErrors = xml.getElementsByTagName("parsererror");
+  const parse = string => (new Window$1.DOMParser())
+    .parseFromString(string, "text/xml");
+  const checkParseError = xml => {
+    const parserErrors = xml.getElementsByTagName("parsererror");
     if (parserErrors.length > 0) {
       throw new Error(parserErrors[0]);
     }
     return filterWhitespaceNodes(xml.documentElement);
   };
-  var async = function async(input) {
-    return new Promise(function (resolve, reject) {
-      if (_typeof(input) === _string || input instanceof String) {
-        fetch(input).then(function (response) {
-          return response.text();
-        }).then(function (str) {
-          return checkParseError(parse(str));
-        }).then(function (xml) {
-          return xml.nodeName === _svg ? xml : xml.getElementsByTagName(_svg)[0];
-        }).then(function (svg) {
-          return svg == null ? reject("valid XML found, but no SVG element") : resolve(svg);
-        })["catch"](function (err) {
-          return reject(err);
-        });
-      } else if (input instanceof Window$1.Document) {
+  const async = function (input) {
+    return new Promise((resolve, reject) => {
+      if (typeof input === _string || input instanceof String) {
+        fetch(input)
+          .then(response => response.text())
+          .then(str => checkParseError(parse(str)))
+          .then(xml => xml.nodeName === _svg
+            ? xml
+            : xml.getElementsByTagName(_svg)[0])
+          .then(svg => (svg == null
+              ? reject("valid XML found, but no SVG element")
+              : resolve(svg)))
+          .catch(err => reject(err));
+      }
+      else if (input instanceof Window$1.Document) {
         return asyncDone(input);
       }
     });
   };
-  var sync = function sync(input) {
-    if (_typeof(input) === _string || input instanceof String) {
+  const sync = function (input) {
+    if (typeof input === _string || input instanceof String) {
       try {
         return checkParseError(parse(input));
       } catch (error) {
@@ -10843,39 +8513,46 @@
       return input;
     }
   };
-  var isFilename = function isFilename(input) {
-    return _typeof(input) === _string && /^[\w,\s-]+\.[A-Za-z]{3}$/.test(input) && input.length < 10000;
-  };
-  var Load = function Load(input) {
-    return isFilename(input) && isBrowser$1 && _typeof(Window$1.fetch) === _function ? async(input) : sync(input);
-  };
-  function vkXML(text, step) {
-    var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
-    var len = ar.length;
-    var inComment = false;
-    var deep = 0;
-    var str = "";
-    var space = step != null && typeof step === "string" ? step : "\t";
-    var shift = ["\n"];
-    for (var si = 0; si < 100; si += 1) {
+  const isFilename = input => typeof input === _string
+    && /^[\w,\s-]+\.[A-Za-z]{3}$/.test(input)
+    && input.length < 10000;
+  const Load = input => (isFilename(input)
+    && isBrowser$1
+    && typeof Window$1.fetch === _function
+    ? async(input)
+    : sync(input));
+  function vkXML (text, step) {
+    const ar = text.replace(/>\s{0,}</g, "><")
+      .replace(/</g, "~::~<")
+      .replace(/\s*xmlns\:/g, "~::~xmlns:")
+      .split("~::~");
+    const len = ar.length;
+    let inComment = false;
+    let deep = 0;
+    let str = "";
+    const space = (step != null && typeof step === "string" ? step : "\t");
+    const shift = ["\n"];
+    for (let si = 0; si < 100; si += 1) {
       shift.push(shift[si] + space);
     }
-    for (var ix = 0; ix < len; ix += 1) {
+    for (let ix = 0; ix < len; ix += 1) {
       if (ar[ix].search(/<!/) > -1) {
         str += shift[deep] + ar[ix];
         inComment = true;
-        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1 || ar[ix].search(/!DOCTYPE/) > -1) {
+        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+          || ar[ix].search(/!DOCTYPE/) > -1) {
           inComment = false;
         }
       } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
         str += ar[ix];
         inComment = false;
-      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix]) && /^<[\w:\-\.\,]+/.exec(ar[ix - 1]) == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
+      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
+        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
+        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
         str += ar[ix];
-        if (!inComment) {
-          deep -= 1;
-        }
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1 && ar[ix].search(/\/>/) === -1) {
+        if (!inComment) { deep -= 1; }
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
+        && ar[ix].search(/\/>/) === -1) {
         str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
       } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
         str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
@@ -10891,29 +8568,27 @@
         str += ar[ix];
       }
     }
-    return str[0] === "\n" ? str.slice(1) : str;
+    return (str[0] === "\n") ? str.slice(1) : str;
   }
-  var SAVE_OPTIONS = function SAVE_OPTIONS() {
-    return {
-      download: false,
-      output: _string,
-      windowStyle: false,
-      filename: "image.svg"
-    };
-  };
-  var getWindowStylesheets = function getWindowStylesheets() {
-    var css = [];
+  const SAVE_OPTIONS = () => ({
+    download: false,
+    output: _string,
+    windowStyle: false,
+    filename: "image.svg"
+  });
+  const getWindowStylesheets = function () {
+    const css = [];
     if (Window$1.document.styleSheets) {
-      for (var s = 0; s < Window$1.document.styleSheets.length; s += 1) {
-        var sheet = Window$1.document.styleSheets[s];
+      for (let s = 0; s < Window$1.document.styleSheets.length; s += 1) {
+        const sheet = Window$1.document.styleSheets[s];
         try {
-          var rules = "cssRules" in sheet ? sheet.cssRules : sheet.rules;
-          for (var r = 0; r < rules.length; r += 1) {
-            var rule = rules[r];
+          const rules = ("cssRules" in sheet) ? sheet.cssRules : sheet.rules;
+          for (let r = 0; r < rules.length; r += 1) {
+            const rule = rules[r];
             if ("cssText" in rule) {
               css.push(rule.cssText);
             } else {
-              css.push("".concat(rule.selectorText, " {\n").concat(rule.style.cssText, "\n}\n"));
+              css.push(`${rule.selectorText} {\n${rule.style.cssText}\n}\n`);
             }
           }
         } catch (error) {
@@ -10923,53 +8598,50 @@
     }
     return css.join("\n");
   };
-  var downloadInBrowser = function downloadInBrowser(filename, contentsAsString) {
-    var blob = new Window$1.Blob([contentsAsString], {
-      type: "text/plain"
-    });
-    var a = Window$1.document.createElement("a");
+  const downloadInBrowser = function (filename, contentsAsString) {
+    const blob = new Window$1.Blob([contentsAsString], { type: "text/plain" });
+    const a = Window$1.document.createElement("a");
     a.setAttribute("href", Window$1.URL.createObjectURL(blob));
     a.setAttribute("download", filename);
     Window$1.document.body.appendChild(a);
     a.click();
     Window$1.document.body.removeChild(a);
   };
-  var save = function save(svg, options) {
+  const save = function (svg, options) {
     options = Object.assign(SAVE_OPTIONS(), options);
     if (options.windowStyle) {
-      var styleContainer = Window$1.document.createElementNS(NS, _style);
+      const styleContainer = Window$1.document.createElementNS(NS, _style);
       styleContainer.setAttribute("type", "text/css");
       styleContainer.innerHTML = getWindowStylesheets();
       svg.appendChild(styleContainer);
     }
-    var source = new Window$1.XMLSerializer().serializeToString(svg);
-    var formattedString = vkXML(source);
+    const source = (new Window$1.XMLSerializer()).serializeToString(svg);
+    const formattedString = vkXML(source);
     if (options.download && isBrowser$1 && !isNode$1) {
       downloadInBrowser(options.filename, formattedString);
     }
-    return options.output === _svg ? svg : formattedString;
+    return (options.output === _svg ? svg : formattedString);
   };
-  var setViewBox = function setViewBox(element) {
-    for (var _len8 = arguments.length, args = new Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
-      args[_key8 - 1] = arguments[_key8];
-    }
-    var viewBox = args.length === 1 && _typeof(args[0]) === _string ? args[0] : viewBox$1.apply(void 0, args);
+  const setViewBox = (element, ...args) => {
+    const viewBox = args.length === 1 && typeof args[0] === _string
+      ? args[0]
+      : viewBox$1(...args);
     if (viewBox) {
       element.setAttribute(_viewBox, viewBox);
     }
     return element;
   };
-  var getViewBox = function getViewBox(element) {
-    var vb = element.getAttribute(_viewBox);
-    return vb == null ? undefined : vb.split(" ").map(function (n) {
-      return parseFloat(n);
-    });
+  const getViewBox = function (element) {
+    const vb = element.getAttribute(_viewBox);
+    return (vb == null
+      ? undefined
+      : vb.split(" ").map(n => parseFloat(n)));
   };
-  var convertToViewBox = function convertToViewBox(svg, x, y) {
-    var pt = svg.createSVGPoint();
+  const convertToViewBox = function (svg, x, y) {
+    const pt = svg.createSVGPoint();
     pt.x = x;
     pt.y = y;
-    var svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
     return [svgPoint.x, svgPoint.y];
   };
   var viewBox = Object.freeze({
@@ -10978,55 +8650,52 @@
     getViewBox: getViewBox,
     convertToViewBox: convertToViewBox
   });
-  var loadSVG = function loadSVG(target, data) {
-    var result = Load(data);
-    if (result == null) {
-      return;
-    }
-    return _typeof(result.then) === _function ? result.then(function (svg) {
-      return assignSVG(target, svg);
-    }) : assignSVG(target, result);
+  const loadSVG = (target, data) => {
+    const result = Load(data);
+    if (result == null) { return; }
+    return (typeof result.then === _function)
+      ? result.then(svg => assignSVG(target, svg))
+      : assignSVG(target, result);
   };
-  var getFrame = function getFrame(element) {
-    var viewBox = getViewBox(element);
+  const getFrame = function (element) {
+    const viewBox = getViewBox(element);
     if (viewBox !== undefined) {
       return viewBox;
     }
-    if (_typeof(element.getBoundingClientRect) === _function) {
-      var rr = element.getBoundingClientRect();
+    if (typeof element.getBoundingClientRect === _function) {
+      const rr = element.getBoundingClientRect();
       return [rr.x, rr.y, rr.width, rr.height];
     }
     return [];
   };
-  var setPadding = function setPadding(element, padding) {
-    var viewBox = getViewBox(element);
+  const setPadding = function (element, padding) {
+    const viewBox = getViewBox(element);
     if (viewBox !== undefined) {
-      setViewBox.apply(void 0, [element].concat(_toConsumableArray([-padding, -padding, padding * 2, padding * 2].map(function (nudge, i) {
-        return viewBox[i] + nudge;
-      }))));
+      setViewBox(element, ...[-padding, -padding, padding * 2, padding * 2]
+        .map((nudge, i) => viewBox[i] + nudge));
     }
     return element;
   };
-  var bgClass = "svg-background-rectangle";
-  var background = function background(element, color) {
-    var backRect = Array.from(element.childNodes).filter(function (child) {
-      return child.getAttribute(_class) === bgClass;
-    }).shift();
+  const bgClass = "svg-background-rectangle";
+  const background = function (element, color) {
+    let backRect = Array.from(element.childNodes)
+      .filter(child => child.getAttribute(_class) === bgClass)
+      .shift();
     if (backRect == null) {
-      backRect = this.Constructor.apply(this, ["rect"].concat(_toConsumableArray(getFrame(element))));
+      backRect = this.Constructor("rect", ...getFrame(element));
       backRect.setAttribute(_class, bgClass);
       backRect.setAttribute(_stroke, _none);
-      element.insertBefore(backRect, element.firstChild);
+  		element.insertBefore(backRect, element.firstChild);
     }
     backRect.setAttribute(_fill, color);
     return element;
   };
-  var findStyleSheet = function findStyleSheet(element) {
-    var styles = element.getElementsByTagName(_style);
+  const findStyleSheet = function (element) {
+    const styles = element.getElementsByTagName(_style);
     return styles.length === 0 ? undefined : styles[0];
   };
-  var _stylesheet = function stylesheet(element, textContent) {
-    var styleSection = findStyleSheet(element);
+  const stylesheet = function (element, textContent) {
+    let styleSection = findStyleSheet(element);
     if (styleSection == null) {
       styleSection = this.Constructor(_style);
       element.insertBefore(styleSection, element.firstChild);
@@ -11038,172 +8707,134 @@
   var methods$3 = {
     clear: clearSVG,
     size: setViewBox,
-    setViewBox: setViewBox,
-    getViewBox: getViewBox,
+    setViewBox,
+    getViewBox,
     padding: setPadding,
-    background: background,
-    getWidth: function getWidth(el) {
-      return getFrame(el)[2];
-    },
-    getHeight: function getHeight(el) {
-      return getFrame(el)[3];
-    },
-    stylesheet: function stylesheet(el, text) {
-      return _stylesheet.call(this, el, text);
-    },
+    background,
+    getWidth: el => getFrame(el)[2],
+    getHeight: el => getFrame(el)[3],
+    stylesheet: function (el, text) { return stylesheet.call(this, el, text); },
     load: loadSVG,
-    save: save
+    save: save,
   };
-  var libraries = {
+  const libraries = {
     math: {
-      vector: function vector() {
-        for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
-          args[_key9] = arguments[_key9];
-        }
-        return [].concat(args);
-      }
+      vector: (...args) => [...args]
     }
   };
-  var categories = {
+  const categories = {
     move: ["mousemove", "touchmove"],
     press: ["mousedown", "touchstart"],
     release: ["mouseup", "touchend"]
   };
-  var handlerNames = Object.values(categories).reduce(function (a, b) {
-    return a.concat(b);
-  }, []);
-  var off = function off(element, handlers) {
-    return handlerNames.forEach(function (handlerName) {
-      handlers[handlerName].forEach(function (func) {
-        return element.removeEventListener(handlerName, func);
-      });
-      handlers[handlerName] = [];
-    });
+  const handlerNames = Object.values(categories)
+    .reduce((a, b) => a.concat(b), []);
+  const off = (element, handlers) => handlerNames.forEach((handlerName) => {
+    handlers[handlerName].forEach(func => element.removeEventListener(handlerName, func));
+    handlers[handlerName] = [];
+  });
+  const defineGetter = (obj, prop, value) => Object.defineProperty(obj, prop, {
+    get: () => value,
+    enumerable: true,
+    configurable: true,
+  });
+  const assignPress = (e, startPoint) => {
+  	["pressX", "pressY"].filter(prop => !e.hasOwnProperty(prop))
+  		.forEach((prop, i) => defineGetter(e, prop, startPoint[i]));
+  	if (!e.hasOwnProperty("press")) {
+  		defineGetter(e, "press", libraries.math.vector(...startPoint));
+  	}
   };
-  var defineGetter = function defineGetter(obj, prop, value) {
-    return Object.defineProperty(obj, prop, {
-      get: function get() {
-        return value;
-      },
-      enumerable: true,
-      configurable: true
-    });
-  };
-  var assignPress = function assignPress(e, startPoint) {
-    ["pressX", "pressY"].filter(function (prop) {
-      return !e.hasOwnProperty(prop);
-    }).forEach(function (prop, i) {
-      return defineGetter(e, prop, startPoint[i]);
-    });
-    if (!e.hasOwnProperty("press")) {
-      var _libraries$math;
-      defineGetter(e, "press", (_libraries$math = libraries.math).vector.apply(_libraries$math, _toConsumableArray(startPoint)));
-    }
-  };
-  var TouchEvents = function TouchEvents(element) {
-    var startPoint = [];
-    var handlers = [];
-    Object.keys(categories).forEach(function (key) {
-      categories[key].forEach(function (handler) {
+  const TouchEvents = function (element) {
+    let startPoint = [];
+    const handlers = [];
+    Object.keys(categories).forEach((key) => {
+      categories[key].forEach((handler) => {
         handlers[handler] = [];
       });
     });
-    var removeHandler = function removeHandler(category) {
-      return categories[category].forEach(function (handlerName) {
-        return handlers[handlerName].forEach(function (func) {
-          return element.removeEventListener(handlerName, func);
-        });
-      });
-    };
-    var categoryUpdate = {
-      press: function press(e, viewPoint) {
+    const removeHandler = category => categories[category]
+      .forEach(handlerName => handlers[handlerName]
+        .forEach(func => element.removeEventListener(handlerName, func)));
+    const categoryUpdate = {
+      press: (e, viewPoint) => {
         startPoint = viewPoint;
-        assignPress(e, startPoint);
-      },
-      release: function release() {},
-      move: function move(e, viewPoint) {
+  			assignPress(e, startPoint);
+  		},
+      release: () => {},
+      move: (e, viewPoint) => {
         if (e.buttons > 0 && startPoint[0] === undefined) {
           startPoint = viewPoint;
         } else if (e.buttons === 0 && startPoint[0] !== undefined) {
           startPoint = [];
         }
-        assignPress(e, startPoint);
+  			assignPress(e, startPoint);
       }
     };
-    Object.keys(categories).forEach(function (category) {
-      var propName = "on" + Case.capitalized(category);
+    Object.keys(categories).forEach((category) => {
+      const propName = "on" + Case.capitalized(category);
       Object.defineProperty(element, propName, {
-        set: function set(handler) {
-          return handler == null ? removeHandler(category) : categories[category].forEach(function (handlerName) {
-            var handlerFunc = function handlerFunc(e) {
-              var pointer = e.touches != null ? e.touches[0] : e;
-              if (pointer !== undefined) {
-                var viewPoint = convertToViewBox(element, pointer.clientX, pointer.clientY).map(function (n) {
-                  return isNaN(n) ? undefined : n;
-                });
-                ["x", "y"].filter(function (prop) {
-                  return !e.hasOwnProperty(prop);
-                }).forEach(function (prop, i) {
-                  return defineGetter(e, prop, viewPoint[i]);
-                });
-                if (!e.hasOwnProperty("position")) {
-                  var _libraries$math2;
-                  defineGetter(e, "position", (_libraries$math2 = libraries.math).vector.apply(_libraries$math2, _toConsumableArray(viewPoint)));
+        set: (handler) => (handler == null)
+          ? removeHandler(category)
+          : categories[category].forEach((handlerName) => {
+              const handlerFunc = (e) => {
+                const pointer = (e.touches != null
+                  ? e.touches[0]
+                  : e);
+                if (pointer !== undefined) {
+                  const viewPoint = convertToViewBox(element, pointer.clientX, pointer.clientY)
+  									.map(n => isNaN(n) ? undefined : n);
+                  ["x", "y"]
+                    .filter(prop => !e.hasOwnProperty(prop))
+                    .forEach((prop, i) => defineGetter(e, prop, viewPoint[i]));
+  								if (!e.hasOwnProperty("position")) {
+  									defineGetter(e, "position", libraries.math.vector(...viewPoint));
+  								}
+                  categoryUpdate[category](e, viewPoint);
                 }
-                categoryUpdate[category](e, viewPoint);
+                handler(e);
+              };
+              if (element.addEventListener) {
+                handlers[handlerName].push(handlerFunc);
+                element.addEventListener(handlerName, handlerFunc);
               }
-              handler(e);
-            };
-            if (element.addEventListener) {
-              handlers[handlerName].push(handlerFunc);
-              element.addEventListener(handlerName, handlerFunc);
-            }
-          });
-        },
+            }),
         enumerable: true
       });
     });
-    Object.defineProperty(element, "off", {
-      value: function value() {
-        return off(element, handlers);
-      }
-    });
+    Object.defineProperty(element, "off", { value: () => off(element, handlers) });
   };
-  var UUID = function UUID() {
-    return Math.random().toString(36).replace(/[^a-z]+/g, '').concat("aaaaa").substr(0, 5);
-  };
-  var Animation = function Animation(element) {
-    var start;
-    var handlers = {};
-    var frame = 0;
-    var requestId;
-    var removeHandlers = function removeHandlers() {
+  var UUID = () => Math.random()
+    .toString(36)
+    .replace(/[^a-z]+/g, '')
+    .concat("aaaaa")
+    .substr(0, 5);
+  const Animation = function (element) {
+    let start;
+    const handlers = {};
+    let frame = 0;
+    let requestId;
+    const removeHandlers = () => {
       if (Window$1.cancelAnimationFrame) {
         Window$1.cancelAnimationFrame(requestId);
       }
-      Object.keys(handlers).forEach(function (uuid) {
-        return delete handlers[uuid];
-      });
+      Object.keys(handlers)
+        .forEach(uuid => delete handlers[uuid]);
       start = undefined;
       frame = 0;
     };
     Object.defineProperty(element, "play", {
-      set: function set(handler) {
+      set: (handler) => {
         removeHandlers();
-        if (handler == null) {
-          return;
-        }
-        var uuid = UUID();
-        var handlerFunc = function handlerFunc(e) {
+        if (handler == null) { return; }
+        const uuid = UUID();
+        const handlerFunc = (e) => {
           if (!start) {
             start = e;
             frame = 0;
           }
-          var progress = (e - start) * 0.001;
-          handler({
-            time: progress,
-            frame: frame
-          });
+          const progress = (e - start) * 0.001;
+          handler({ time: progress, frame });
           frame += 1;
           if (handlers[uuid]) {
             requestId = Window$1.requestAnimationFrame(handlers[uuid]);
@@ -11216,259 +8847,175 @@
       },
       enumerable: true
     });
-    Object.defineProperty(element, "stop", {
-      value: removeHandlers,
-      enumerable: true
-    });
+    Object.defineProperty(element, "stop", { value: removeHandlers, enumerable: true });
   };
-  var removeFromParent = function removeFromParent(svg) {
-    return svg && svg.parentNode ? svg.parentNode.removeChild(svg) : undefined;
-  };
-  var possiblePositionAttributes = [["cx", "cy"], ["x", "y"]];
-  var controlPoint = function controlPoint(parent) {
-    var position = [0, 0];
-    var cp = {
+  const removeFromParent = svg => (svg && svg.parentNode
+    ? svg.parentNode.removeChild(svg)
+    : undefined);
+  const possiblePositionAttributes = [["cx", "cy"], ["x", "y"]];
+  const controlPoint = function (parent, options = {}) {
+    const position = [0, 0];
+    const cp = {
       selected: false,
       svg: undefined,
-      updatePosition: function updatePosition(input) {
-        return input;
-      }
+      updatePosition: input => input,
     };
-    var updateSVG = function updateSVG() {
-      if (!cp.svg) {
-        return;
-      }
+    const updateSVG = () => {
+      if (!cp.svg) { return; }
       if (!cp.svg.parentNode) {
         parent.appendChild(cp.svg);
       }
-      possiblePositionAttributes.filter(function (coords) {
-        return cp.svg[coords[0]] != null;
-      }).forEach(function (coords) {
-        return coords.forEach(function (attr, i) {
+      possiblePositionAttributes
+        .filter(coords => cp.svg[coords[0]] != null)
+        .forEach(coords => coords.forEach((attr, i) => {
           cp.svg.setAttribute(attr, position[i]);
-        });
-      });
+        }));
     };
-    var proxy = new Proxy(position, {
-      set: function set(target, property, value) {
+    const proxy = new Proxy(position, {
+      set: (target, property, value) => {
         target[property] = value;
         updateSVG();
         return true;
       }
     });
-    var setPosition = function setPosition() {
-      coordinates.apply(void 0, _toConsumableArray(flatten_arrays.apply(void 0, arguments))).forEach(function (n, i) {
-        position[i] = n;
-      });
+    const setPosition = function (...args) {
+      coordinates(...flatten_arrays(...args))
+        .forEach((n, i) => { position[i] = n; });
       updateSVG();
-      if (_typeof(position.delegate) === _function) {
+      if (typeof position.delegate === _function) {
         position.delegate.apply(position.pointsContainer, [proxy, position.pointsContainer]);
       }
     };
     position.delegate = undefined;
     position.setPosition = setPosition;
-    position.onMouseMove = function (mouse) {
-      return cp.selected ? setPosition(cp.updatePosition(mouse)) : undefined;
-    };
-    position.onMouseUp = function () {
-      cp.selected = false;
-    };
-    position.distance = function (mouse) {
-      return Math.sqrt(distanceSq2(mouse, position));
-    };
-    ["x", "y"].forEach(function (prop, i) {
-      return Object.defineProperty(position, prop, {
-        get: function get() {
-          return position[i];
-        },
-        set: function set(v) {
-          position[i] = v;
-        }
-      });
-    });
-    [_svg, "updatePosition", "selected"].forEach(function (key) {
-      return Object.defineProperty(position, key, {
-        get: function get() {
-          return cp[key];
-        },
-        set: function set(v) {
-          cp[key] = v;
-        }
-      });
-    });
+    position.onMouseMove = mouse => (cp.selected
+      ? setPosition(cp.updatePosition(mouse))
+      : undefined);
+    position.onMouseUp = () => { cp.selected = false; };
+    position.distance = mouse => Math.sqrt(distanceSq2(mouse, position));
+    ["x", "y"].forEach((prop, i) => Object.defineProperty(position, prop, {
+      get: () => position[i],
+      set: (v) => { position[i] = v; }
+    }));
+    [_svg, "updatePosition", "selected"].forEach(key => Object
+      .defineProperty(position, key, {
+        get: () => cp[key],
+        set: (v) => { cp[key] = v; }
+      }));
     Object.defineProperty(position, "remove", {
-      value: function value() {
+      value: () => {
         removeFromParent(cp.svg);
         position.delegate = undefined;
       }
     });
     return proxy;
   };
-  var controls = function controls(svg, number, options) {
-    var selected;
-    var delegate;
-    var points = Array.from(Array(number)).map(function () {
-      return controlPoint(svg);
-    });
-    var protocol = function protocol(point) {
-      return _typeof(delegate) === _function ? delegate.call(points, point, selected, points) : undefined;
-    };
-    points.forEach(function (p) {
+  const controls = function (svg, number, options) {
+    let selected;
+    let delegate;
+    const points = Array.from(Array(number))
+      .map(() => controlPoint(svg, options));
+    const protocol = point => (typeof delegate === _function
+      ? delegate.call(points, point, selected, points)
+      : undefined);
+    points.forEach((p) => {
       p.delegate = protocol;
       p.pointsContainer = points;
     });
-    var mousePressedHandler = function mousePressedHandler(mouse) {
-      if (!(points.length > 0)) {
-        return;
-      }
-      selected = points.map(function (p, i) {
-        return {
-          i: i,
-          d: distanceSq2(p, [mouse.x, mouse.y])
-        };
-      }).sort(function (a, b) {
-        return a.d - b.d;
-      }).shift().i;
+    const mousePressedHandler = function (mouse) {
+      if (!(points.length > 0)) { return; }
+      selected = points
+        .map((p, i) => ({ i, d: distanceSq2(p, [mouse.x, mouse.y]) }))
+        .sort((a, b) => a.d - b.d)
+        .shift()
+        .i;
       points[selected].selected = true;
     };
-    var mouseMovedHandler = function mouseMovedHandler(mouse) {
-      points.forEach(function (p) {
-        return p.onMouseMove(mouse);
-      });
+    const mouseMovedHandler = function (mouse) {
+      points.forEach(p => p.onMouseMove(mouse));
     };
-    var mouseReleasedHandler = function mouseReleasedHandler() {
-      points.forEach(function (p) {
-        return p.onMouseUp();
-      });
+    const mouseReleasedHandler = function () {
+      points.forEach(p => p.onMouseUp());
       selected = undefined;
     };
     svg.onPress = mousePressedHandler;
     svg.onMove = mouseMovedHandler;
     svg.onRelease = mouseReleasedHandler;
-    Object.defineProperty(points, "selectedIndex", {
-      get: function get() {
-        return selected;
-      }
-    });
-    Object.defineProperty(points, "selected", {
-      get: function get() {
-        return points[selected];
-      }
-    });
+    Object.defineProperty(points, "selectedIndex", { get: () => selected });
+    Object.defineProperty(points, "selected", { get: () => points[selected] });
     Object.defineProperty(points, "add", {
-      value: function value(opt) {
-        points.push(controlPoint(svg));
-      }
+      value: (opt) => {
+        points.push(controlPoint(svg, opt));
+      },
     });
-    points.removeAll = function () {
+    points.removeAll = () => {
       while (points.length > 0) {
         points.pop().remove();
       }
     };
-    var functionalMethods = {
-      onChange: function onChange(func, runOnceAtStart) {
+    const functionalMethods = {
+      onChange: (func, runOnceAtStart) => {
         delegate = func;
         if (runOnceAtStart === true) {
-          var index = points.length - 1;
+          const index = points.length - 1;
           func.call(points, points[index], index, points);
         }
       },
-      position: function position(func) {
-        return points.forEach(function (p, i) {
-          return p.setPosition(func.call(points, p, i, points));
-        });
-      },
-      svg: function svg(func) {
-        return points.forEach(function (p, i) {
-          p.svg = func.call(points, p, i, points);
-        });
-      }
+      position: func => points.forEach((p, i) => p.setPosition(func.call(points, p, i, points))),
+      svg: func => points.forEach((p, i) => { p.svg = func.call(points, p, i, points); }),
     };
-    Object.keys(functionalMethods).forEach(function (key) {
+    Object.keys(functionalMethods).forEach((key) => {
       points[key] = function () {
-        if (_typeof(arguments[0]) === _function) {
-          functionalMethods[key].apply(functionalMethods, arguments);
+        if (typeof arguments[0] === _function) {
+          functionalMethods[key](...arguments);
         }
         return points;
       };
     });
     points.parent = function (parent) {
       if (parent != null && parent.appendChild != null) {
-        points.forEach(function (p) {
-          parent.appendChild(p.svg);
-        });
+        points.forEach((p) => { parent.appendChild(p.svg); });
       }
       return points;
     };
     return points;
   };
-  var applyControlsToSVG = function applyControlsToSVG(svg) {
-    svg.controls = function () {
-      for (var _len10 = arguments.length, args = new Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
-        args[_key10] = arguments[_key10];
-      }
-      return controls.call.apply(controls, [svg, svg].concat(args));
-    };
+  const applyControlsToSVG = (svg) => {
+    svg.controls = (...args) => controls.call(svg, svg, ...args);
   };
-  var ElementConstructor = new Window$1.DOMParser().parseFromString("<div />", "text/xml").documentElement.constructor;
+  const ElementConstructor = (new Window$1.DOMParser())
+    .parseFromString("<div />", "text/xml").documentElement.constructor;
   var svgDef = {
     svg: {
-      args: function args() {
-        return [viewBox$1(coordinates.apply(void 0, arguments))].filter(function (a) {
-          return a != null;
-        });
-      },
+      args: (...args) => [viewBox$1(coordinates(...args))].filter(a => a != null),
       methods: methods$3,
-      init: function init(element) {
-        for (var _len11 = arguments.length, args = new Array(_len11 > 1 ? _len11 - 1 : 0), _key11 = 1; _key11 < _len11; _key11++) {
-          args[_key11 - 1] = arguments[_key11];
-        }
-        args.filter(function (a) {
-          return _typeof(a) === _string;
-        }).forEach(function (string) {
-          return loadSVG(element, string);
-        });
-        args.filter(function (a) {
-          return a != null;
-        }).filter(function (arg) {
-          return arg instanceof ElementConstructor;
-        }).filter(function (el) {
-          return _typeof(el.appendChild) === _function;
-        }).forEach(function (parent) {
-          return parent.appendChild(element);
-        });
+      init: (element, ...args) => {
+        args.filter(a => typeof a === _string)
+          .forEach(string => loadSVG(element, string));
+        args.filter(a => a != null)
+          .filter(arg => arg instanceof ElementConstructor)
+          .filter(el => typeof el.appendChild === _function)
+          .forEach(parent => parent.appendChild(element));
         TouchEvents(element);
         Animation(element);
         applyControlsToSVG(element);
       }
     }
   };
-  var loadGroup = function loadGroup(group) {
-    for (var _len12 = arguments.length, sources = new Array(_len12 > 1 ? _len12 - 1 : 0), _key12 = 1; _key12 < _len12; _key12++) {
-      sources[_key12 - 1] = arguments[_key12];
-    }
-    var elements = sources.map(function (source) {
-      return sync(source);
-    }).filter(function (a) {
-      return a !== undefined;
-    });
-    elements.filter(function (element) {
-      return element.tagName === _svg;
-    }).forEach(function (element) {
-      return moveChildren(group, element);
-    });
-    elements.filter(function (element) {
-      return element.tagName !== _svg;
-    }).forEach(function (element) {
-      return group.appendChild(element);
-    });
+  const loadGroup = (group, ...sources) => {
+    const elements = sources.map(source => sync(source))
+      .filter(a => a !== undefined);
+    elements.filter(element => element.tagName === _svg)
+      .forEach(element => moveChildren(group, element));
+    elements.filter(element => element.tagName !== _svg)
+      .forEach(element => group.appendChild(element));
     return group;
   };
   var gDef = {
     g: {
       init: loadGroup,
       methods: {
-        load: loadGroup
+        load: loadGroup,
       }
     }
   };
@@ -11484,76 +9031,92 @@
     text: ["x", "y"],
     mask: [_id],
     symbol: [_id],
-    clipPath: [_id, "clip-rule"],
-    marker: [_id, "markerHeight", "markerUnits", "markerWidth", "orient", "refX", "refY"],
-    linearGradient: ["x1", "x2", "y1", "y2"],
-    radialGradient: ["cx", "cy", "r", "fr", "fx", "fy"],
-    stop: ["offset", "stop-color", "stop-opacity"],
-    pattern: ["patternContentUnits", "patternTransform", "patternUnits"]
+    clipPath: [
+      _id,
+      "clip-rule",
+    ],
+    marker: [
+      _id,
+      "markerHeight",
+      "markerUnits",
+      "markerWidth",
+      "orient",
+      "refX",
+      "refY",
+    ],
+    linearGradient: [
+      "x1",
+      "x2",
+      "y1",
+      "y2",
+    ],
+    radialGradient: [
+      "cx",
+      "cy",
+      "r",
+      "fr",
+      "fx",
+      "fy",
+    ],
+    stop: [
+      "offset",
+      "stop-color",
+      "stop-opacity",
+    ],
+    pattern: [
+      "patternContentUnits",
+      "patternTransform",
+      "patternUnits",
+    ],
   });
-  var setRadius = function setRadius(el, r) {
+  const setRadius = (el, r) => {
     el.setAttribute(attributes.circle[2], r);
     return el;
   };
-  var setOrigin = function setOrigin(el, a, b) {
-    _toConsumableArray(coordinates.apply(void 0, _toConsumableArray(flatten_arrays(a, b))).slice(0, 2)).forEach(function (value, i) {
-      return el.setAttribute(attributes.circle[i], value);
-    });
+  const setOrigin = (el, a, b) => {
+    [...coordinates(...flatten_arrays(a, b)).slice(0, 2)]
+      .forEach((value, i) => el.setAttribute(attributes.circle[i], value));
     return el;
   };
-  var fromPoints = function fromPoints(a, b, c, d) {
-    return [a, b, distance2([a, b], [c, d])];
-  };
+  const fromPoints = (a, b, c, d) => [a, b, distance2([a, b], [c, d])];
   var circleDef = {
     circle: {
-      args: function args(a, b, c, d) {
-        var coords = coordinates.apply(void 0, _toConsumableArray(flatten_arrays(a, b, c, d)));
+      args: (a, b, c, d) => {
+        const coords = coordinates(...flatten_arrays(a, b, c, d));
         switch (coords.length) {
-          case 0:
-          case 1:
-            return [,,].concat(_toConsumableArray(coords));
-          case 2:
-          case 3:
-            return coords;
-          default:
-            return fromPoints.apply(void 0, _toConsumableArray(coords));
+          case 0: case 1: return [, , ...coords]
+          case 2: case 3: return coords;
+          default: return fromPoints(...coords);
         }
       },
       methods: {
         radius: setRadius,
-        setRadius: setRadius,
+        setRadius,
         origin: setOrigin,
-        setOrigin: setOrigin,
+        setOrigin,
         center: setOrigin,
         setCenter: setOrigin,
         position: setOrigin,
-        setPosition: setOrigin
+        setPosition: setOrigin,
       }
     }
   };
-  var setRadii = function setRadii(el, rx, ry) {
-    [,, rx, ry].forEach(function (value, i) {
-      return el.setAttribute(attributes.ellipse[i], value);
-    });
+  const setRadii = (el, rx, ry) => {
+    [, , rx, ry].forEach((value, i) => el.setAttribute(attributes.ellipse[i], value));
     return el;
   };
-  var setCenter = function setCenter(el, a, b) {
-    _toConsumableArray(coordinates.apply(void 0, _toConsumableArray(flatten_arrays(a, b))).slice(0, 2)).forEach(function (value, i) {
-      return el.setAttribute(attributes.ellipse[i], value);
-    });
+  const setCenter = (el, a, b) => {
+    [...coordinates(...flatten_arrays(a, b)).slice(0, 2)]
+      .forEach((value, i) => el.setAttribute(attributes.ellipse[i], value));
     return el;
   };
   var ellipseDef = {
     ellipse: {
-      args: function args(a, b, c, d) {
-        var coords = coordinates.apply(void 0, _toConsumableArray(flatten_arrays(a, b, c, d))).slice(0, 4);
+      args: (a, b, c, d) => {
+        const coords = coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
         switch (coords.length) {
-          case 0:
-          case 1:
-          case 2:
-            return [,,].concat(_toConsumableArray(coords));
-          default:
-            return coords;
+          case 0: case 1: case 2: return [, , ...coords]
+          default: return coords;
         }
       },
       methods: {
@@ -11562,35 +9125,26 @@
         origin: setCenter,
         setOrigin: setCenter,
         center: setCenter,
-        setCenter: setCenter,
+        setCenter,
         position: setCenter,
-        setPosition: setCenter
+        setPosition: setCenter,
       }
     }
   };
-  var Args$1 = function Args$1() {
-    return coordinates.apply(void 0, _toConsumableArray(semi_flatten_arrays.apply(void 0, arguments))).slice(0, 4);
-  };
-  var setPoints$1 = function setPoints$1(element) {
-    for (var _len13 = arguments.length, args = new Array(_len13 > 1 ? _len13 - 1 : 0), _key13 = 1; _key13 < _len13; _key13++) {
-      args[_key13 - 1] = arguments[_key13];
-    }
-    Args$1.apply(void 0, args).forEach(function (value, i) {
-      return element.setAttribute(attributes.line[i], value);
-    });
-    return element;
-  };
+  const Args$1 = (...args) => coordinates(...semi_flatten_arrays(...args)).slice(0, 4);
+  const setPoints$1 = (element, ...args) => { Args$1(...args)
+    .forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
   var lineDef = {
     line: {
       args: Args$1,
       methods: {
-        setPoints: setPoints$1
+        setPoints: setPoints$1,
       }
     }
   };
-  var markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
-  var digitRegEx = /-?[0-9]*\.?\d+/g;
-  var pathCommands = {
+  const markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
+  const digitRegEx = /-?[0-9]*\.?\d+/g;
+  const pathCommands = {
     m: "move",
     l: "line",
     v: "vertical",
@@ -11602,95 +9156,80 @@
     t: "smoothQuadCurve",
     z: "close"
   };
-  Object.keys(pathCommands).forEach(function (key) {
-    var s = pathCommands[key];
+  Object.keys(pathCommands).forEach((key) => {
+    const s = pathCommands[key];
     pathCommands[key.toUpperCase()] = s.charAt(0).toUpperCase() + s.slice(1);
   });
-  var parsePathCommands = function parsePathCommands(str) {
-    var results = [];
-    var match;
+  const parsePathCommands = function (str) {
+    const results = [];
+    let match;
     while ((match = markerRegEx.exec(str)) !== null) {
       results.push(match);
     }
-    return results.map(function (match) {
-      return {
-        command: str[match.index],
-        index: match.index
-      };
-    }).reduceRight(function (all, cur) {
-      var chunk = str.substring(cur.index, all.length ? all[all.length - 1].index : str.length);
-      return all.concat([{
-        command: cur.command,
-        index: cur.index,
-        chunk: chunk.length > 0 ? chunk.substr(1, chunk.length - 1) : chunk
-      }]);
-    }, []).reverse().map(function (el) {
-      var values = el.chunk.match(digitRegEx);
+    return results.map(match => ({
+      command: str[match.index],
+      index: match.index
+    }))
+    .reduceRight((all, cur) => {
+      const chunk = str.substring(cur.index, all.length ? all[all.length - 1].index : str.length);
+      return all.concat([
+         { command: cur.command,
+         index: cur.index,
+         chunk: (chunk.length > 0) ? chunk.substr(1, chunk.length - 1) : chunk }
+      ]);
+    }, [])
+    .reverse()
+    .map((el) => {
+      const values = el.chunk.match(digitRegEx);
       el.en = pathCommands[el.command];
       el.values = values ? values.map(parseFloat) : [];
       delete el.chunk;
       return el;
     });
   };
-  var getD = function getD(el) {
-    var attr = el.getAttribute("d");
-    return attr == null ? "" : attr;
+  const getD = (el) => {
+    const attr = el.getAttribute("d");
+    return (attr == null) ? "" : attr;
   };
-  var clear = function clear(element) {
+  const clear = element => {
     element.removeAttribute("d");
     return element;
   };
-  var appendPathCommand = function appendPathCommand(el, command) {
-    for (var _len14 = arguments.length, args = new Array(_len14 > 2 ? _len14 - 2 : 0), _key14 = 2; _key14 < _len14; _key14++) {
-      args[_key14 - 2] = arguments[_key14];
-    }
-    el.setAttribute("d", "".concat(getD(el)).concat(command).concat(flatten_arrays.apply(void 0, args).join(" ")));
+  const appendPathCommand = (el, command, ...args) => {
+    el.setAttribute("d", `${getD(el)}${command}${flatten_arrays(...args).join(" ")}`);
     return el;
   };
-  var getCommands = function getCommands(element) {
-    return parsePathCommands(getD(element));
-  };
-  var methods$2 = {
+  const getCommands = element => parsePathCommands(getD(element));
+  const methods$2 = {
     addCommand: appendPathCommand,
     appendCommand: appendPathCommand,
-    clear: clear,
+    clear,
     getCommands: getCommands,
     get: getCommands,
-    getD: function getD(el) {
-      return el.getAttribute("d");
-    }
+    getD: el => el.getAttribute("d"),
   };
-  Object.keys(pathCommands).forEach(function (key) {
-    methods$2[pathCommands[key]] = function (el) {
-      for (var _len15 = arguments.length, args = new Array(_len15 > 1 ? _len15 - 1 : 0), _key15 = 1; _key15 < _len15; _key15++) {
-        args[_key15 - 1] = arguments[_key15];
-      }
-      return appendPathCommand.apply(void 0, [el, key].concat(args));
-    };
+  Object.keys(pathCommands).forEach((key) => {
+    methods$2[pathCommands[key]] = (el, ...args) => appendPathCommand(el, key, ...args);
   });
   var pathDef = {
     path: {
       methods: methods$2
     }
   };
-  var setRectSize = function setRectSize(el, rx, ry) {
-    [,, rx, ry].forEach(function (value, i) {
-      return el.setAttribute(attributes.rect[i], value);
-    });
+  const setRectSize = (el, rx, ry) => {
+    [, , rx, ry]
+      .forEach((value, i) => el.setAttribute(attributes.rect[i], value));
     return el;
   };
-  var setRectOrigin = function setRectOrigin(el, a, b) {
-    _toConsumableArray(coordinates.apply(void 0, _toConsumableArray(flatten_arrays(a, b))).slice(0, 2)).forEach(function (value, i) {
-      return el.setAttribute(attributes.rect[i], value);
-    });
+  const setRectOrigin = (el, a, b) => {
+    [...coordinates(...flatten_arrays(a, b)).slice(0, 2)]
+      .forEach((value, i) => el.setAttribute(attributes.rect[i], value));
     return el;
   };
-  var fixNegatives = function fixNegatives(arr) {
-    [0, 1].forEach(function (i) {
+  const fixNegatives = function (arr) {
+    [0, 1].forEach(i => {
       if (arr[2 + i] < 0) {
-        if (arr[0 + i] === undefined) {
-          arr[0 + i] = 0;
-        }
+        if (arr[0 + i] === undefined) { arr[0 + i] = 0; }
         arr[0 + i] += arr[2 + i];
         arr[2 + i] = -arr[2 + i];
       }
@@ -11699,16 +9238,11 @@
   };
   var rectDef = {
     rect: {
-      args: function args(a, b, c, d) {
-        var coords = coordinates.apply(void 0, _toConsumableArray(flatten_arrays(a, b, c, d))).slice(0, 4);
+      args: (a, b, c, d) => {
+        const coords = coordinates(...flatten_arrays(a, b, c, d)).slice(0, 4);
         switch (coords.length) {
-          case 0:
-          case 1:
-          case 2:
-          case 3:
-            return fixNegatives([,,].concat(_toConsumableArray(coords)));
-          default:
-            return fixNegatives(coords);
+          case 0: case 1: case 2: case 3: return fixNegatives([, , ...coords]);
+          default: return fixNegatives(coords);
         }
       },
       methods: {
@@ -11717,18 +9251,18 @@
         center: setRectOrigin,
         setCenter: setRectOrigin,
         size: setRectSize,
-        setSize: setRectSize
+        setSize: setRectSize,
       }
     }
   };
   var styleDef = {
     style: {
-      init: function init(el, text) {
-        el.textContent = "";
-        el.appendChild(cdata(text));
+      init: (el, text) => {
+          el.textContent = "";
+          el.appendChild(cdata(text));
       },
       methods: {
-        setTextContent: function setTextContent(el, text) {
+        setTextContent: (el, text) => {
           el.textContent = "";
           el.appendChild(cdata(text));
           return el;
@@ -11738,387 +9272,460 @@
   };
   var textDef = {
     text: {
-      args: function args(a, b, c) {
-        return coordinates.apply(void 0, _toConsumableArray(flatten_arrays(a, b, c))).slice(0, 2);
-      },
-      init: function init(element, a, b, c, d) {
-        var text = [a, b, c, d].filter(function (a) {
-          return _typeof(a) === _string;
-        }).shift();
+      args: (a, b, c) => coordinates(...flatten_arrays(a, b, c)).slice(0, 2),
+      init: (element, a, b, c, d) => {
+        const text = [a,b,c,d].filter(a => typeof a === _string).shift();
         if (text) {
           element.appendChild(Window$1.document.createTextNode(text));
         }
       }
     }
   };
-  var makeIDString = function makeIDString() {
-    return Array.from(arguments).filter(function (a) {
-      return _typeof(a) === _string || a instanceof String;
-    }).shift() || UUID();
+  const makeIDString = function () {
+    return Array.from(arguments)
+      .filter(a => typeof a === _string || a instanceof String)
+      .shift() || UUID();
   };
-  var args = function args() {
-    return [makeIDString.apply(void 0, arguments)];
-  };
+  const args = (...args) => [makeIDString(...args)];
   var maskTypes = {
-    mask: {
-      args: args
-    },
-    clipPath: {
-      args: args
-    },
-    symbol: {
-      args: args
-    },
+    mask: { args: args },
+    clipPath: { args: args },
+    symbol: { args: args },
     marker: {
       args: args,
       methods: {
         size: setViewBox,
         setViewBox: setViewBox
       }
-    }
+    },
   };
-  var getPoints = function getPoints(el) {
-    var attr = el.getAttribute(_points);
-    return attr == null ? "" : attr;
+  const getPoints = (el) => {
+    const attr = el.getAttribute(_points);
+    return (attr == null) ? "" : attr;
   };
-  var polyString = function polyString() {
-    var _arguments = arguments;
-    return Array.from(Array(Math.floor(arguments.length / 2))).map(function (_, i) {
-      return "".concat(_arguments[i * 2 + 0], ",").concat(_arguments[i * 2 + 1]);
-    }).join(" ");
+  const polyString = function () {
+    return Array
+      .from(Array(Math.floor(arguments.length / 2)))
+      .map((_, i) => `${arguments[i * 2 + 0]},${arguments[i * 2 + 1]}`)
+      .join(" ");
   };
-  var stringifyArgs = function stringifyArgs() {
-    return [polyString.apply(void 0, _toConsumableArray(coordinates.apply(void 0, _toConsumableArray(semi_flatten_arrays.apply(void 0, arguments)))))];
-  };
-  var setPoints = function setPoints(element) {
-    for (var _len16 = arguments.length, args = new Array(_len16 > 1 ? _len16 - 1 : 0), _key16 = 1; _key16 < _len16; _key16++) {
-      args[_key16 - 1] = arguments[_key16];
-    }
-    element.setAttribute(_points, stringifyArgs.apply(void 0, args)[0]);
+  const stringifyArgs = (...args) => [
+    polyString(...coordinates(...semi_flatten_arrays(...args)))
+  ];
+  const setPoints = (element, ...args) => {
+    element.setAttribute(_points, stringifyArgs(...args)[0]);
     return element;
   };
-  var addPoint = function addPoint(element) {
-    for (var _len17 = arguments.length, args = new Array(_len17 > 1 ? _len17 - 1 : 0), _key17 = 1; _key17 < _len17; _key17++) {
-      args[_key17 - 1] = arguments[_key17];
-    }
-    element.setAttribute(_points, [getPoints(element), stringifyArgs.apply(void 0, args)[0]].filter(function (a) {
-      return a !== "";
-    }).join(" "));
+  const addPoint = (element, ...args) => {
+    element.setAttribute(_points, [getPoints(element), stringifyArgs(...args)[0]]
+      .filter(a => a !== "")
+      .join(" "));
     return element;
   };
-  var Args = function Args() {
-    return arguments.length === 1 && _typeof(arguments.length <= 0 ? undefined : arguments[0]) === _string ? [arguments.length <= 0 ? undefined : arguments[0]] : stringifyArgs.apply(void 0, arguments);
+  const Args = function (...args) {
+    return args.length === 1 && typeof args[0] === _string
+      ? [args[0]]
+      : stringifyArgs(...args);
   };
   var polyDefs = {
     polyline: {
       args: Args,
       methods: {
-        setPoints: setPoints,
-        addPoint: addPoint
+        setPoints,
+        addPoint
       }
     },
     polygon: {
       args: Args,
       methods: {
-        setPoints: setPoints,
-        addPoint: addPoint
+        setPoints,
+        addPoint
       }
     }
   };
-  var Spec = Object.assign({}, svgDef, gDef, circleDef, ellipseDef, lineDef, pathDef, rectDef, styleDef, textDef, maskTypes, polyDefs);
+  var Spec = Object.assign({},
+    svgDef,
+    gDef,
+    circleDef,
+    ellipseDef,
+    lineDef,
+    pathDef,
+    rectDef,
+    styleDef,
+    textDef,
+    maskTypes,
+    polyDefs,
+  );
   var ManyElements = {
-    presentation: ["color", "color-interpolation", "cursor", "direction", "display", "fill", "fill-opacity", "fill-rule", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "image-rendering", "letter-spacing", "opacity", "overflow", "paint-order", "pointer-events", "preserveAspectRatio", "shape-rendering", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "tabindex", "transform-origin", "user-select", "vector-effect", "visibility"],
-    animation: ["accumulate", "additive", "attributeName", "begin", "by", "calcMode", "dur", "end", "from", "keyPoints", "keySplines", "keyTimes", "max", "min", "repeatCount", "repeatDur", "restart", "to", "values"],
-    effects: ["azimuth", "baseFrequency", "bias", "color-interpolation-filters", "diffuseConstant", "divisor", "edgeMode", "elevation", "exponent", "filter", "filterRes", "filterUnits", "flood-color", "flood-opacity", "in", "in2", "intercept", "k1", "k2", "k3", "k4", "kernelMatrix", "lighting-color", "limitingConeAngle", "mode", "numOctaves", "operator", "order", "pointsAtX", "pointsAtY", "pointsAtZ", "preserveAlpha", "primitiveUnits", "radius", "result", "seed", "specularConstant", "specularExponent", "stdDeviation", "stitchTiles", "surfaceScale", "targetX", "targetY", "type", "xChannelSelector", "yChannelSelector"],
-    text: ["dx", "dy", "alignment-baseline", "baseline-shift", "dominant-baseline", "lengthAdjust", "method", "overline-position", "overline-thickness", "rotate", "spacing", "startOffset", "strikethrough-position", "strikethrough-thickness", "text-anchor", "text-decoration", "text-rendering", "textLength", "underline-position", "underline-thickness", "word-spacing", "writing-mode"],
-    gradient: ["gradientTransform", "gradientUnits", "spreadMethod"]
+    presentation: [
+      "color",
+      "color-interpolation",
+      "cursor",
+      "direction",
+      "display",
+      "fill",
+      "fill-opacity",
+      "fill-rule",
+      "font-family",
+      "font-size",
+      "font-size-adjust",
+      "font-stretch",
+      "font-style",
+      "font-variant",
+      "font-weight",
+      "image-rendering",
+      "letter-spacing",
+      "opacity",
+      "overflow",
+      "paint-order",
+      "pointer-events",
+      "preserveAspectRatio",
+      "shape-rendering",
+      "stroke",
+      "stroke-dasharray",
+      "stroke-dashoffset",
+      "stroke-linecap",
+      "stroke-linejoin",
+      "stroke-miterlimit",
+      "stroke-opacity",
+      "stroke-width",
+      "tabindex",
+      "transform-origin",
+      "user-select",
+      "vector-effect",
+      "visibility"
+    ],
+    animation: [
+      "accumulate",
+      "additive",
+      "attributeName",
+      "begin",
+      "by",
+      "calcMode",
+      "dur",
+      "end",
+      "from",
+      "keyPoints",
+      "keySplines",
+      "keyTimes",
+      "max",
+      "min",
+      "repeatCount",
+      "repeatDur",
+      "restart",
+      "to",
+      "values",
+    ],
+    effects: [
+      "azimuth",
+      "baseFrequency",
+      "bias",
+      "color-interpolation-filters",
+      "diffuseConstant",
+      "divisor",
+      "edgeMode",
+      "elevation",
+      "exponent",
+      "filter",
+      "filterRes",
+      "filterUnits",
+      "flood-color",
+      "flood-opacity",
+      "in",
+      "in2",
+      "intercept",
+      "k1",
+      "k2",
+      "k3",
+      "k4",
+      "kernelMatrix",
+      "lighting-color",
+      "limitingConeAngle",
+      "mode",
+      "numOctaves",
+      "operator",
+      "order",
+      "pointsAtX",
+      "pointsAtY",
+      "pointsAtZ",
+      "preserveAlpha",
+      "primitiveUnits",
+      "radius",
+      "result",
+      "seed",
+      "specularConstant",
+      "specularExponent",
+      "stdDeviation",
+      "stitchTiles",
+      "surfaceScale",
+      "targetX",
+      "targetY",
+      "type",
+      "xChannelSelector",
+      "yChannelSelector",
+    ],
+    text: [
+      "dx",
+      "dy",
+      "alignment-baseline",
+      "baseline-shift",
+      "dominant-baseline",
+      "lengthAdjust",
+      "method",
+      "overline-position",
+      "overline-thickness",
+      "rotate",
+      "spacing",
+      "startOffset",
+      "strikethrough-position",
+      "strikethrough-thickness",
+      "text-anchor",
+      "text-decoration",
+      "text-rendering",
+      "textLength",
+      "underline-position",
+      "underline-thickness",
+      "word-spacing",
+      "writing-mode",
+    ],
+    gradient: [
+      "gradientTransform",
+      "gradientUnits",
+      "spreadMethod",
+    ],
   };
-  Object.values(NodeNames).reduce(function (a, b) {
-    return a.concat(b);
-  }, []).filter(function (nodeName) {
-    return attributes[nodeName] === undefined;
-  }).forEach(function (nodeName) {
-    attributes[nodeName] = [];
-  });
-  [[[_svg, "defs", "g"].concat(NodeNames.v, NodeNames.t), ManyElements.presentation], [["filter"], ManyElements.effects], [NodeNames.cT.concat("text"), ManyElements.text], [NodeNames.cF, ManyElements.effects], [NodeNames.cG, ManyElements.gradient]].forEach(function (pair) {
-    return pair[0].forEach(function (key) {
-      attributes[key] = attributes[key].concat(pair[1]);
-    });
-  });
-  var getClassList = function getClassList(element) {
-    if (element == null) {
-      return [];
-    }
-    var currentClass = element.getAttribute(_class);
-    return currentClass == null ? [] : currentClass.split(" ").filter(function (s) {
-      return s !== "";
-    });
+  Object.values(NodeNames)
+    .reduce((a,b) => a.concat(b), [])
+    .filter(nodeName => attributes[nodeName] === undefined)
+    .forEach(nodeName => { attributes[nodeName] = []; });
+  [ [[_svg, "defs", "g"].concat(NodeNames.v, NodeNames.t), ManyElements.presentation],
+    [["filter"], ManyElements.effects],
+    [NodeNames.cT.concat("text"), ManyElements.text],
+    [NodeNames.cF, ManyElements.effects],
+    [NodeNames.cG, ManyElements.gradient],
+  ].forEach(pair => pair[0].forEach(key => {
+    attributes[key] = attributes[key].concat(pair[1]);
+  }));
+  const getClassList = (element) => {
+    if (element == null) { return []; }
+    const currentClass = element.getAttribute(_class);
+    return (currentClass == null
+      ? []
+      : currentClass.split(" ").filter(s => s !== ""));
   };
   var classMethods = {
-    addClass: function addClass(element, newClass) {
-      var classes = getClassList(element).filter(function (c) {
-        return c !== newClass;
-      });
+    addClass: (element, newClass) => {
+      const classes = getClassList(element)
+        .filter(c => c !== newClass);
       classes.push(newClass);
       element.setAttributeNS(null, _class, classes.join(" "));
     },
-    removeClass: function removeClass(element, removedClass) {
-      var classes = getClassList(element).filter(function (c) {
-        return c !== removedClass;
-      });
+    removeClass: (element, removedClass) => {
+      const classes = getClassList(element)
+        .filter(c => c !== removedClass);
       element.setAttributeNS(null, _class, classes.join(" "));
     },
-    setClass: function setClass(element, className) {
+    setClass: (element, className) => {
       element.setAttributeNS(null, _class, className);
     },
-    setId: function setId(element, idName) {
+    setId: (element, idName) => {
       element.setAttributeNS(null, _id, idName);
     }
   };
-  var getAttr = function getAttr(element) {
-    var t = element.getAttribute(_transform);
-    return t == null || t === "" ? undefined : t;
+  const getAttr = (element) => {
+    const t = element.getAttribute(_transform);
+    return (t == null || t === "") ? undefined : t;
   };
-  var methods$1 = {
-    clearTransform: function clearTransform(el) {
-      el.removeAttribute(_transform);
-      return el;
-    }
+  const methods$1 = {
+    clearTransform: (el) => { el.removeAttribute(_transform); return el; }
   };
-  ["translate", "rotate", "scale", "matrix"].forEach(function (key) {
-    methods$1[key] = function (element) {
-      for (var _len18 = arguments.length, args = new Array(_len18 > 1 ? _len18 - 1 : 0), _key18 = 1; _key18 < _len18; _key18++) {
-        args[_key18 - 1] = arguments[_key18];
-      }
-      return element.setAttribute(_transform, [getAttr(element), "".concat(key, "(").concat(args.join(" "), ")")].filter(function (a) {
-        return a !== undefined;
-      }).join(" "));
-    };
+  ["translate", "rotate", "scale", "matrix"].forEach(key => {
+    methods$1[key] = (element, ...args) => element.setAttribute(
+      _transform,
+      [getAttr(element), `${key}(${args.join(" ")})`]
+        .filter(a => a !== undefined)
+        .join(" "));
   });
-  var findIdURL = function findIdURL(arg) {
-    if (arg == null) {
-      return "";
-    }
-    if (_typeof(arg) === _string) {
-      return arg.slice(0, 3) === "url" ? arg : "url(#".concat(arg, ")");
+  const findIdURL = function (arg) {
+    if (arg == null) { return ""; }
+    if (typeof arg === _string) {
+      return arg.slice(0, 3) === "url"
+        ? arg
+        : `url(#${arg})`;
     }
     if (arg.getAttribute != null) {
-      var idString = arg.getAttribute(_id);
-      return "url(#".concat(idString, ")");
+      const idString = arg.getAttribute(_id);
+      return `url(#${idString})`;
     }
     return "";
   };
-  var methods = {};
-  ["clip-path", "mask", "symbol", "marker-end", "marker-mid", "marker-start"].forEach(function (attr) {
-    methods[Case.toCamel(attr)] = function (element, parent) {
-      return element.setAttribute(attr, findIdURL(parent));
-    };
+  const methods = {};
+  ["clip-path",
+    "mask",
+    "symbol",
+    "marker-end",
+    "marker-mid",
+    "marker-start",
+  ].forEach(attr => {
+    methods[Case.toCamel(attr)] = (element, parent) => element.setAttribute(attr, findIdURL(parent));
   });
-  var Nodes = {};
-  (_NodeNames$v = NodeNames.v).push.apply(_NodeNames$v, _toConsumableArray(Object.keys(nodes)));
-  Object.keys(nodes).forEach(function (node) {
-    nodes[node].attributes = nodes[node].attributes === undefined ? _toConsumableArray(ManyElements.presentation) : nodes[node].attributes.concat(ManyElements.presentation);
+  const Nodes = {};
+  NodeNames.v.push(...Object.keys(nodes));
+  Object.keys(nodes).forEach((node) => {
+    nodes[node].attributes = (nodes[node].attributes === undefined
+      ? [...ManyElements.presentation]
+      : nodes[node].attributes.concat(ManyElements.presentation));
   });
   Object.assign(Nodes, Spec, nodes);
-  Object.keys(NodeNames).forEach(function (key) {
-    return NodeNames[key].filter(function (nodeName) {
-      return Nodes[nodeName] === undefined;
-    }).forEach(function (nodeName) {
-      Nodes[nodeName] = {};
-    });
-  });
-  var passthrough = function passthrough() {
-    return Array.from(arguments);
-  };
-  Object.keys(Nodes).forEach(function (key) {
-    if (!Nodes[key].nodeName) {
-      Nodes[key].nodeName = key;
-    }
-    if (!Nodes[key].init) {
-      Nodes[key].init = passthrough;
-    }
-    if (!Nodes[key].args) {
-      Nodes[key].args = passthrough;
-    }
-    if (!Nodes[key].methods) {
-      Nodes[key].methods = {};
-    }
+  Object.keys(NodeNames)
+    .forEach(key => NodeNames[key]
+      .filter(nodeName => Nodes[nodeName] === undefined)
+      .forEach((nodeName) => {
+        Nodes[nodeName] = {};
+      }));
+  const passthrough = function () { return Array.from(arguments); };
+  Object.keys(Nodes).forEach((key) => {
+    if (!Nodes[key].nodeName) { Nodes[key].nodeName = key; }
+    if (!Nodes[key].init) { Nodes[key].init = passthrough; }
+    if (!Nodes[key].args) { Nodes[key].args = passthrough; }
+    if (!Nodes[key].methods) { Nodes[key].methods = {}; }
     if (!Nodes[key].attributes) {
       Nodes[key].attributes = attributes[key] || [];
     }
   });
-  var assign = function assign(groups, Methods) {
-    groups.forEach(function (n) {
-      return Object.keys(Methods).forEach(function (method) {
+  const assign = (groups, Methods) => {
+    groups.forEach(n =>
+      Object.keys(Methods).forEach((method) => {
         Nodes[n].methods[method] = function () {
-          Methods[method].apply(Methods, arguments);
+          Methods[method](...arguments);
           return arguments[0];
         };
-      });
-    });
+      }));
   };
   assign(flatten_arrays(NodeNames.t, NodeNames.v, NodeNames.g, NodeNames.s, NodeNames.p, NodeNames.i, NodeNames.h, NodeNames.d), classMethods);
   assign(flatten_arrays(NodeNames.t, NodeNames.v, NodeNames.g, NodeNames.s, NodeNames.p, NodeNames.i, NodeNames.h, NodeNames.d), dom);
   assign(flatten_arrays(NodeNames.v, NodeNames.g, NodeNames.s), methods$1);
   assign(flatten_arrays(NodeNames.t, NodeNames.v, NodeNames.g), methods);
-  var RequiredAttrMap = {
+  const RequiredAttrMap = {
     svg: {
       version: "1.1",
-      xmlns: NS
+      xmlns: NS,
     },
     style: {
       type: "text/css"
     }
   };
-  var RequiredAttributes = function RequiredAttributes(element, nodeName) {
+  const RequiredAttributes = (element, nodeName) => {
     if (RequiredAttrMap[nodeName]) {
-      Object.keys(RequiredAttrMap[nodeName]).forEach(function (key) {
-        return element.setAttribute(key, RequiredAttrMap[nodeName][key]);
-      });
+      Object.keys(RequiredAttrMap[nodeName])
+        .forEach(key => element.setAttribute(key, RequiredAttrMap[nodeName][key]));
     }
   };
-  var bound = {};
-  var constructor = function constructor(nodeName) {
-    var _Nodes$nodeName, _Nodes$nodeName2;
-    for (var _len19 = arguments.length, args = new Array(_len19 > 1 ? _len19 - 1 : 0), _key19 = 1; _key19 < _len19; _key19++) {
-      args[_key19 - 1] = arguments[_key19];
-    }
-    var element = Window$1.document.createElementNS(NS, Nodes[nodeName].nodeName);
+  const bound = {};
+  const constructor = (nodeName, ...args) => {
+    const element = Window$1.document.createElementNS(NS, Nodes[nodeName].nodeName);
     RequiredAttributes(element, nodeName);
-    (_Nodes$nodeName = Nodes[nodeName]).init.apply(_Nodes$nodeName, [element].concat(args));
-    (_Nodes$nodeName2 = Nodes[nodeName]).args.apply(_Nodes$nodeName2, args).forEach(function (v, i) {
+    Nodes[nodeName].init(element, ...args);
+    Nodes[nodeName].args(...args).forEach((v, i) => {
       if (Nodes[nodeName].attributes[i] != null) {
         element.setAttribute(Nodes[nodeName].attributes[i], v);
       }
     });
-    Nodes[nodeName].attributes.forEach(function (attribute) {
+    Nodes[nodeName].attributes.forEach((attribute) => {
       Object.defineProperty(element, Case.toCamel(attribute), {
-        value: function value() {
-          element.setAttribute.apply(element, [attribute].concat(Array.prototype.slice.call(arguments)));
+        value: function () {
+          element.setAttribute(attribute, ...arguments);
           return element;
         }
       });
     });
-    Object.keys(Nodes[nodeName].methods).forEach(function (methodName) {
-      return Object.defineProperty(element, methodName, {
-        value: function value() {
-          var _Nodes$nodeName$metho;
-          return (_Nodes$nodeName$metho = Nodes[nodeName].methods[methodName]).call.apply(_Nodes$nodeName$metho, [bound, element].concat(Array.prototype.slice.call(arguments)));
+    Object.keys(Nodes[nodeName].methods).forEach(methodName =>
+      Object.defineProperty(element, methodName, {
+        value: function () {
+          return Nodes[nodeName].methods[methodName].call(bound, element, ...arguments);
         }
-      });
-    });
+      }));
     if (nodesAndChildren[nodeName]) {
-      nodesAndChildren[nodeName].forEach(function (childNode) {
-        var value = function value() {
-          var childElement = constructor.apply(void 0, [childNode].concat(Array.prototype.slice.call(arguments)));
+      nodesAndChildren[nodeName].forEach((childNode) => {
+        const value = function () {
+          const childElement = constructor(childNode, ...arguments);
           element.appendChild(childElement);
           return childElement;
         };
-        if (Nodes[childNode]["static"]) {
-          Object.keys(Nodes[childNode]["static"]).forEach(function (key) {
+        if (Nodes[childNode].static) {
+          Object.keys(Nodes[childNode].static).forEach(key => {
             value[key] = function () {
-              var _Nodes$childNode$stat;
-              return (_Nodes$childNode$stat = Nodes[childNode]["static"])[key].apply(_Nodes$childNode$stat, [element].concat(Array.prototype.slice.call(arguments)));
+              return Nodes[childNode].static[key](element, ...arguments);
             };
           });
         }
-        Object.defineProperty(element, childNode, {
-          value: value
-        });
+        Object.defineProperty(element, childNode, { value });
       });
     }
     return element;
   };
   bound.Constructor = constructor;
-  var elements = {};
-  Object.keys(NodeNames).forEach(function (key) {
-    return NodeNames[key].forEach(function (nodeName) {
-      elements[nodeName] = function () {
-        for (var _len20 = arguments.length, args = new Array(_len20), _key20 = 0; _key20 < _len20; _key20++) {
-          args[_key20] = arguments[_key20];
-        }
-        return constructor.apply(void 0, [nodeName].concat(args));
-      };
-    });
-  });
-  var link_rabbitear_math = function link_rabbitear_math(svg, ear) {
-    ["segment", "circle", "ellipse", "rect", "polygon"].filter(function (key) {
-      return ear[key] && ear[key].prototype;
-    }).forEach(function (key) {
-      ear[key].prototype.svg = function () {
-        return svg.path(this.svgPath());
-      };
-    });
+  const elements = {};
+  Object.keys(NodeNames).forEach(key => NodeNames[key]
+    .forEach((nodeName) => {
+      elements[nodeName] = (...args) => constructor(nodeName, ...args);
+    }));
+  const link_rabbitear_math = (svg, ear) => {
+    [ "segment",
+      "circle",
+      "ellipse",
+      "rect",
+      "polygon",
+    ].filter(key => ear[key] && ear[key].prototype)
+      .forEach((key) => {
+        ear[key].prototype.svg = function () { return svg.path(this.svgPath()); };
+      });
     libraries.math.vector = ear.vector;
   };
-  var link_rabbitear_graph = function link_rabbitear_graph(svg, ear) {
-    var NODE_NAME = "origami";
+  const link_rabbitear_graph = (svg, ear) => {
+    const NODE_NAME = "origami";
     Nodes[NODE_NAME] = {
       nodeName: "svg",
-      init: function init(element) {
-        var _ear$graph$svg;
-        for (var _len21 = arguments.length, args = new Array(_len21 > 1 ? _len21 - 1 : 0), _key21 = 1; _key21 < _len21; _key21++) {
-          args[_key21 - 1] = arguments[_key21];
-        }
-        return (_ear$graph$svg = ear.graph.svg).drawInto.apply(_ear$graph$svg, [element].concat(args));
+      init: function (element, ...args) {
+        return ear.graph.svg.drawInto(element, ...args);
       },
-      args: function args() {
-        return [];
-      },
+      args: () => [],
       methods: Nodes.svg.methods,
       attributes: Nodes.svg.attributes,
-      "static": {}
+      static: {},
     };
-    Object.keys(ear.graph.svg).forEach(function (key) {
-      Nodes[NODE_NAME]["static"][key] = function (element) {
-        var _ear$graph$svg2;
-        for (var _len22 = arguments.length, args = new Array(_len22 > 1 ? _len22 - 1 : 0), _key22 = 1; _key22 < _len22; _key22++) {
-          args[_key22 - 1] = arguments[_key22];
-        }
-        var child = (_ear$graph$svg2 = ear.graph.svg)[key].apply(_ear$graph$svg2, args);
+    Object.keys(ear.graph.svg).forEach(key => {
+      Nodes[NODE_NAME].static[key] = (element, ...args) => {
+        const child = ear.graph.svg[key](...args);
         element.appendChild(child);
         return child;
       };
     });
-    nodesAndChildren[NODE_NAME] = _toConsumableArray(nodesAndChildren.svg);
+    nodesAndChildren[NODE_NAME] = [...nodesAndChildren.svg];
     nodesAndChildren.svg.push(NODE_NAME);
     nodesAndChildren.g.push(NODE_NAME);
-    svg[NODE_NAME] = function () {
-      for (var _len23 = arguments.length, args = new Array(_len23), _key23 = 0; _key23 < _len23; _key23++) {
-        args[_key23] = arguments[_key23];
-      }
-      return constructor.apply(void 0, [NODE_NAME].concat(args));
-    };
-    Object.keys(ear.graph.svg).forEach(function (key) {
+    svg[NODE_NAME] = (...args) => constructor(NODE_NAME, ...args);
+    Object.keys(ear.graph.svg).forEach(key => {
       svg[NODE_NAME][key] = ear.graph.svg[key];
     });
   };
-  var Linker = function Linker(lib) {
-    if (lib.graph && lib.origami) {
+  const Linker = function (lib) {
+  	if (lib.graph && lib.origami) {
       lib.svg = this;
       link_rabbitear_math(this, lib);
       link_rabbitear_graph(this, lib);
-    }
+  	}
   };
-  var initialize = function initialize(svg) {
-    for (var _len24 = arguments.length, args = new Array(_len24 > 1 ? _len24 - 1 : 0), _key24 = 1; _key24 < _len24; _key24++) {
-      args[_key24 - 1] = arguments[_key24];
-    }
-    args.filter(function (arg) {
-      return _typeof(arg) === _function;
-    }).forEach(function (func) {
-      return func.call(svg, svg);
-    });
+  const initialize = function (svg, ...args) {
+    args.filter(arg => typeof arg === _function)
+      .forEach(func => func.call(svg, svg));
   };
   SVG_Constructor.init = function () {
-    var _arguments2 = arguments;
-    var svg = constructor.apply(void 0, [_svg].concat(Array.prototype.slice.call(arguments)));
+    const svg = constructor(_svg, ...arguments);
     if (Window$1.document.readyState === "loading") {
-      Window$1.document.addEventListener("DOMContentLoaded", function () {
-        return initialize.apply(void 0, [svg].concat(_toConsumableArray(_arguments2)));
-      });
+      Window$1.document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
     } else {
-      initialize.apply(void 0, [svg].concat(Array.prototype.slice.call(arguments)));
+      initialize(svg, ...arguments);
     }
     return svg;
   };
@@ -12127,26 +9734,26 @@
   Object.assign(SVG, elements);
   SVG.core = Object.assign(Object.create(null), {
     load: Load,
-    save: save,
-    coordinates: coordinates,
+    save,
+    coordinates,
     flatten: flatten_arrays,
-    attributes: attributes,
+    attributes,
     children: nodesAndChildren,
-    cdata: cdata,
-    detect: detect
+    cdata,
+    detect,
   }, Case, classMethods, dom, algebra, methods$1, viewBox);
 
-  var isBrowser = (typeof window === "undefined" ? "undefined" : _typeof(window)) !== _undefined$1 && _typeof(window.document) !== _undefined$1;
-  var isNode = (typeof process === "undefined" ? "undefined" : _typeof(process)) !== _undefined$1 && process.versions != null && process.versions.node != null;
-  (typeof self === "undefined" ? "undefined" : _typeof(self)) === _object$1 && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
+  const isBrowser = typeof window !== _undefined$1
+    && typeof window.document !== _undefined$1;
+  const isNode = typeof process !== _undefined$1
+    && process.versions != null
+    && process.versions.node != null;
 
-  var htmlString = "<!DOCTYPE html><title>.</title>";
-  var Window = function () {
-    var win = {};
+  const htmlString = "<!DOCTYPE html><title>.</title>";
+  const Window = (function () {
+    let win = {};
     if (isNode) {
-      var _require = require("@xmldom/xmldom"),
-          DOMParser = _require.DOMParser,
-          XMLSerializer = _require.XMLSerializer;
+      const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
       win.DOMParser = DOMParser;
       win.XMLSerializer = XMLSerializer;
       win.document = new DOMParser().parseFromString(htmlString, "text/html");
@@ -12154,118 +9761,114 @@
       win = window;
     }
     return win;
-  }();
+  }());
 
-  var make_faces_geometry = function make_faces_geometry(graph) {
-    var THREE = Window.THREE;
-    var vertices = graph.vertices_coords.map(function (v) {
-      return [v[0], v[1], v[2] || 0];
-    }).reduce(fn_cat, []);
-    var normals = graph.vertices_coords.map(function (v) {
-      return [0, 0, 1];
-    }).reduce(fn_cat, []);
-    var colors = graph.vertices_coords.map(function (v) {
-      return [1, 1, 1];
-    }).reduce(fn_cat, []);
-    var faces = graph.faces_vertices.map(function (fv) {
-      return fv.map(function (v, i, arr) {
-        return [arr[0], arr[i + 1], arr[i + 2]];
-      }).slice(0, fv.length - 2);
-    }).reduce(fn_cat, []).reduce(fn_cat, []);
-    var geometry = new THREE.BufferGeometry();
+  const make_faces_geometry = (graph) => {
+  	const { THREE } = Window;
+    const vertices = graph.vertices_coords
+      .map(v => [v[0], v[1], v[2] || 0])
+      .reduce(fn_cat, []);
+    const normals = graph.vertices_coords
+      .map(v => [0, 0, 1])
+      .reduce(fn_cat, []);
+    const colors = graph.vertices_coords
+      .map(v => [1, 1, 1])
+      .reduce(fn_cat, []);
+    const faces = graph.faces_vertices
+      .map(fv => fv
+        .map((v, i, arr) => [arr[0], arr[i+1], arr[i+2]])
+        .slice(0, fv.length - 2))
+      .reduce(fn_cat, [])
+      .reduce(fn_cat, []);
+    const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
     geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
     geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     geometry.setIndex(faces);
     return geometry;
   };
-  var make_edge_cylinder = function make_edge_cylinder(edge_coords, edge_vector, radius) {
-    var end_pad = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+  const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
     if (math.core.mag_squared(edge_vector) < math.core.EPSILON) {
-      return [];
-    }
-    var normalized = math.core.normalize(edge_vector);
-    var perp = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map(function (vec) {
-      return math.core.cross3(vec, normalized);
-    }).sort(function (a, b) {
-      return math.core.magnitude(b) - math.core.magnitude(a);
-    }).shift();
-    var rotated = [math.core.normalize(perp)];
-    for (var i = 1; i < 4; i += 1) {
-      rotated.push(math.core.cross3(rotated[i - 1], normalized));
-    }
-    var dirs = rotated.map(function (v) {
-      return math.core.scale(v, radius);
-    });
-    var nudge = [-end_pad, end_pad].map(function (n) {
-      return math.core.scale(normalized, n);
-    });
-    var coords = end_pad === 0 ? edge_coords : edge_coords.map(function (coord, i) {
-      return math.core.add(coord, nudge[i]);
-    });
-    return coords.map(function (v) {
-      return dirs.map(function (dir) {
-        return math.core.add(v, dir);
-      });
-    }).reduce(fn_cat, []);
+  		return [];
+  	}
+    const normalized = math.core.normalize(edge_vector);
+    const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
+      .map(vec => math.core.cross3(vec, normalized))
+  		.sort((a, b) => math.core.magnitude(b) - math.core.magnitude(a))
+  		.shift();
+    const rotated = [ math.core.normalize(perp) ];
+  	for (let i = 1; i < 4; i += 1) {
+  		rotated.push(math.core.cross3(rotated[i - 1], normalized));
+  	}
+    const dirs = rotated.map(v => math.core.scale(v, radius));
+  	const nudge = [-end_pad, end_pad].map(n => math.core.scale(normalized, n));
+  	const coords = end_pad === 0
+  		? edge_coords
+  		: edge_coords.map((coord, i) => math.core.add(coord, nudge[i]));
+    return coords
+      .map(v => dirs.map(dir => math.core.add(v, dir)))
+      .reduce(fn_cat, []);
   };
-  var make_edges_geometry = function make_edges_geometry(_ref) {
-    var vertices_coords = _ref.vertices_coords,
-        edges_vertices = _ref.edges_vertices,
-        edges_assignment = _ref.edges_assignment,
-        edges_coords = _ref.edges_coords,
-        edges_vector = _ref.edges_vector;
-    var scale = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.002;
-    var end_pad = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var THREE = Window.THREE;
+  const make_edges_geometry = function ({
+    vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
+  }, scale=0.002, end_pad = 0) {
+  	const { THREE } = Window;
     if (!edges_coords) {
-      edges_coords = edges_vertices.map(function (edge) {
-        return edge.map(function (v) {
-          return vertices_coords[v];
-        });
-      });
+      edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
     }
     if (!edges_vector) {
-      edges_vector = edges_coords.map(function (edge) {
-        return math.core.subtract(edge[1], edge[0]);
-      });
+      edges_vector = edges_coords.map(edge => math.core.subtract(edge[1], edge[0]));
     }
-    edges_coords = edges_coords.map(function (edge) {
-      return edge.map(function (coord) {
-        return math.core.resize(3, coord);
-      });
-    });
-    edges_vector = edges_vector.map(function (vec) {
-      return math.core.resize(3, vec);
-    });
-    var colorAssignments = {
-      "B": [0.0, 0.0, 0.0],
-      "M": [0.0, 0.0, 0.0],
-      "F": [0.0, 0.0, 0.0],
-      "V": [0.0, 0.0, 0.0]
+    edges_coords = edges_coords
+      .map(edge => edge
+        .map(coord => math.core.resize(3, coord)));
+  	edges_vector = edges_vector
+  		.map(vec => math.core.resize(3, vec));
+    const colorAssignments = {
+      "B": [0.0,0.0,0.0],
+      "M": [0.0,0.0,0.0],
+      "F": [0.0,0.0,0.0],
+      "V": [0.0,0.0,0.0],
     };
-    var colors = edges_assignment.map(function (e) {
-      return [colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]];
-    }).reduce(fn_cat, []).reduce(fn_cat, []).reduce(fn_cat, []);
-    var vertices = edges_coords.map(function (coords, i) {
-      return make_edge_cylinder(coords, edges_vector[i], scale, end_pad);
-    }).reduce(fn_cat, []).reduce(fn_cat, []);
-    var normals = edges_vector.map(function (vector) {
-      if (math.core.mag_squared(vector) < math.core.EPSILON) {
-        throw "degenerate edge";
-      }
-      var normalized = math.core.normalize(vector);
+    const colors = edges_assignment.map(e =>
+      [colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+      colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
+    ).reduce(fn_cat, [])
+     .reduce(fn_cat, [])
+     .reduce(fn_cat, []);
+    const vertices = edges_coords
+      .map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale, end_pad))
+      .reduce(fn_cat, [])
+      .reduce(fn_cat, []);
+  	const normals = edges_vector.map(vector => {
+      if (math.core.mag_squared(vector) < math.core.EPSILON) { throw "degenerate edge"; }
+      let normalized = math.core.normalize(vector);
       math.core.scale(normalized, scale);
-      var c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0, 0, -1])), scale);
-      var c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0, 0, 1])), scale);
-      return [c0, [-c0[2], c0[1], c0[0]], c1, [-c1[2], c1[1], c1[0]], c0, [-c0[2], c0[1], c0[0]], c1, [-c1[2], c1[1], c1[0]]];
-    }).reduce(fn_cat, []).reduce(fn_cat, []);
-    var faces = edges_coords.map(function (e, i) {
+      const c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,-1])), scale);
+      const c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,1])), scale);
       return [
-      i * 8 + 0, i * 8 + 4, i * 8 + 1, i * 8 + 1, i * 8 + 4, i * 8 + 5, i * 8 + 1, i * 8 + 5, i * 8 + 2, i * 8 + 2, i * 8 + 5, i * 8 + 6, i * 8 + 2, i * 8 + 6, i * 8 + 3, i * 8 + 3, i * 8 + 6, i * 8 + 7, i * 8 + 3, i * 8 + 7, i * 8 + 0, i * 8 + 0, i * 8 + 7, i * 8 + 4,
-      i * 8 + 0, i * 8 + 1, i * 8 + 3, i * 8 + 1, i * 8 + 2, i * 8 + 3, i * 8 + 5, i * 8 + 4, i * 8 + 7, i * 8 + 7, i * 8 + 6, i * 8 + 5];
-    }).reduce(fn_cat, []);
-    var geometry = new THREE.BufferGeometry();
+        c0, [-c0[2], c0[1], c0[0]],
+        c1, [-c1[2], c1[1], c1[0]],
+        c0, [-c0[2], c0[1], c0[0]],
+        c1, [-c1[2], c1[1], c1[0]]
+      ]
+    }).reduce(fn_cat, [])
+      .reduce(fn_cat, []);
+    let faces = edges_coords.map((e,i) => [
+      i*8+0, i*8+4, i*8+1,
+      i*8+1, i*8+4, i*8+5,
+      i*8+1, i*8+5, i*8+2,
+      i*8+2, i*8+5, i*8+6,
+      i*8+2, i*8+6, i*8+3,
+      i*8+3, i*8+6, i*8+7,
+      i*8+3, i*8+7, i*8+0,
+      i*8+0, i*8+7, i*8+4,
+      i*8+0, i*8+1, i*8+3,
+      i*8+1, i*8+2, i*8+3,
+      i*8+5, i*8+4, i*8+7,
+      i*8+7, i*8+6, i*8+5,
+    ]).reduce(fn_cat, []);
+    const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
     geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
     geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
@@ -12280,23 +9883,21 @@
     make_edges_geometry: make_edges_geometry
   });
 
-  var ear$1 = Object.assign(root, Constructors, {
-    math: math.core,
-    axiom: axiom,
-    diagram: diagram,
-    layer: layer,
-    vertex: vertex,
-    text: text,
-    webgl: webgl
+  const ear$1 = Object.assign(root, Constructors, {
+  	math: math.core,
+  	axiom,
+  	diagram,
+    layer,
+  	vertex,
+  	text,
+  	webgl,
   });
-  Object.keys(math).filter(function (key) {
-    return key !== "core";
-  }).forEach(function (key) {
-    ear$1[key] = math[key];
-  });
+  Object.keys(math)
+    .filter(key => key !== "core")
+    .forEach((key) => { ear$1[key] = math[key]; });
   Object.defineProperty(ear$1, "use", {
-    enumerable: false,
-    value: use.bind(ear$1)
+  	enumerable: false,
+  	value: use.bind(ear$1),
   });
   ear$1.use(FOLDtoSVG);
   ear$1.use(SVG);

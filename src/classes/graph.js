@@ -133,9 +133,9 @@ Graph.prototype.clear = function () {
 Graph.prototype.unitize = function () {
   if (!this.vertices_coords) { return; }
   // todo: check if 2D or 3D
-  const box = math.core.enclosing_box(this.vertices_coords);
-  const scale = box[1].map(n => 1 / n);
-  const origin = box[0];
+  const box = math.core.bounding_box(this.vertices_coords);
+  const scale = box.span.map(n => n === 0 ? 1 : 1 / n);
+  const origin = box.min;
   this.vertices_coords = this.vertices_coords
     .map(coord => math.core.subtract(coord, origin))
     .map(coord => coord.map((n, i) => n * scale[i]));

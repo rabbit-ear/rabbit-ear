@@ -28,6 +28,7 @@ import add_edges from "./add/add_edges";
 import split_edge from "./split_edge/index";
 import split_face from "./split_face/index";
 import flat_fold from "./flat_fold/index";
+import planar_fold from "./planar_fold/index";
 // clean things
 import * as remove_methods from "./clean/index"
 import clean from "./clean/clean";
@@ -37,14 +38,11 @@ import get_duplicate_vertices from "./clean/vertices_duplicate";
 import get_collinear_vertices from "./clean/vertices_collinear";
 import * as vertices_isolated from "./clean/vertices_isolated";
 // various
-import { intersect_convex_face_line } from "./intersect_faces";
+import * as intersect from "./intersect";
 import { join_collinear_edges } from "./join_edges";
 import make_vertex_faces_layer from "./vertex_faces_layer";
 import make_vertices_faces_layer from "./vertices_faces_layer";
-// import make_faces_layer from "./make_faces_layer";
-// import make_groups_edges from "./make_groups_edges";
-import make_edges_faces_overlap from "./make_edges_faces_overlap";
-import make_faces_faces_overlap from "./make_faces_faces_overlap";
+import * as overlap from "./overlap";
 import * as edges_edges from "./edges_edges";
 import * as vertices_coords_folded from "./vertices_coords_folded";
 import * as face_spanning_tree from "./face_spanning_tree";
@@ -65,6 +63,7 @@ export default Object.assign(Object.create(null), {
 	split_edge,
 	split_face,
 	flat_fold,
+	planar_fold,
 	// clean things
 	clean,
 	get_circular_edges,
@@ -81,16 +80,13 @@ export default Object.assign(Object.create(null), {
 	explode_faces,
 	clip,
 	// various
-	intersect_convex_face_line,
 	join_collinear_edges,
 	make_vertex_faces_layer,
 	make_vertices_faces_layer,
-	// make_faces_layer,
-	// make_groups_edges,
-	make_edges_faces_overlap,
-	make_faces_faces_overlap,
 },
 	make,
+	overlap,
+	intersect,
 	edges_edges,
 	vertices_coords_folded,
 	face_spanning_tree,

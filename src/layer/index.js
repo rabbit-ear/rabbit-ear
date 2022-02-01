@@ -5,6 +5,7 @@
 // import flip_faces_layer from "./flip_faces_layer";
 import make_faces_layers from "./make_faces_layers";
 import make_faces_layers_async from "./make_faces_layers_async";
+import flip_faces_layer from "./flip_faces_layer";
 // global layer solver
 import table from "./global_solver/table"
 import * as global_layer_solvers from "./global_solver/index"
@@ -45,6 +46,7 @@ import * as fold_assignments from "./single_vertex_solver/fold_assignments";
 export default Object.assign(Object.create(null), {
 	make_faces_layers,
 	make_faces_layers_async,
+	flip_faces_layer,
 
 	assignment_solver,
 	single_vertex_solver,

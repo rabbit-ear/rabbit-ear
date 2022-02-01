@@ -925,20 +925,16 @@ const centroid = (points) => {
   }).reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
     .map(c => c * sixthArea);
 };
-const enclosing_box = (points) => {
-  const mins = Array(points[0].length).fill(Infinity);
-  const maxs = Array(points[0].length).fill(-Infinity);
+const bounding_box = (points, epsilon = 0) => {
+  const min = Array(points[0].length).fill(Infinity);
+  const max = Array(points[0].length).fill(-Infinity);
   points.forEach(point => point
     .forEach((c, i) => {
-      if (c < mins[i]) { mins[i] = c; }
-      if (c > maxs[i]) { maxs[i] = c; }
+      if (c < min[i]) { min[i] = c - epsilon; }
+      if (c > max[i]) { max[i] = c + epsilon; }
     }));
-  const lengths = maxs.map((max, i) => max - mins[i]);
-  return [mins, lengths];
-};
-const enclosing_rectangle = (points) => {
-  const box = enclosing_box(points);
-  return get_rect_params(box[0][0], box[0][1], box[1][0], box[1][1]);
+  const span = max.map((max, i) => max - min[i]);
+  return { min, max, span };
 };
 const angle_array = count => Array
   .from(Array(Math.floor(count)))
@@ -1124,8 +1120,7 @@ var geometry = /*#__PURE__*/Object.freeze({
   circumcircle: circumcircle,
   signed_area: signed_area,
   centroid: centroid,
-  enclosing_box: enclosing_box,
-  enclosing_rectangle: enclosing_rectangle,
+  bounding_box: bounding_box,
   make_regular_polygon: make_regular_polygon,
   make_regular_polygon_side_aligned: make_regular_polygon_side_aligned,
   make_regular_polygon_inradius: make_regular_polygon_inradius,
@@ -1391,7 +1386,7 @@ const intersect = function (a, b, epsilon) {
   return intersect_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
 };
 
-const convex_polygons_overlap = (poly1, poly2, epsilon = EPSILON) => {
+const overlap_convex_polygons = (poly1, poly2, epsilon = EPSILON) => {
   for (let p = 0; p < 2; p++) {
     const polyA = p === 0 ? poly1 : poly2;
     const polyB = p === 0 ? poly2 : poly1;
@@ -1458,7 +1453,7 @@ const overlap_param_form = {
 };
 const overlap_func = {
   polygon: {
-    polygon: (a, b, fnA, fnB, ep) => convex_polygons_overlap(...a, ...b, ep),
+    polygon: (a, b, fnA, fnB, ep) => overlap_convex_polygons(...a, ...b, ep),
     vector: (a, b, fnA, fnB, ep) => overlap_convex_polygon_point(...a, ...b, fnA, ep),
   },
   circle: {
@@ -1529,6 +1524,18 @@ const enclose_convex_polygons_inclusive = (outer, inner) => {
     .map(p => overlap_convex_polygon_point(inner, p, include))
     .reduce((a, b) => a && b, true);
   return (!outerGoesInside && innerGoesOutside);
+};
+
+const overlap_bounding_boxes = (box1, box2) => {
+  const dimensions = box1.min.length > box2.min.length
+    ? box2.min.length
+    : box1.min.length;
+  for (let d = 0; d < dimensions; d++) {
+    if (box1.min[d] > box2.max[d] || box1.max[d] < box2.min[d]) {
+      return false;
+    }
+  }
+  return true;
 };
 
 const line_line_parameter = (
@@ -2075,8 +2082,8 @@ const methods = {
   centroid: function () {
     return Constructors.vector(centroid(this));
   },
-  enclosingRectangle: function () {
-    return Constructors.rect(enclosing_rectangle(this));
+  boundingBox: function () {
+    return bounding_box(this);
   },
   straightSkeleton: function () {
     return straight_skeleton(this);
@@ -2188,7 +2195,8 @@ var Rect = {
     }),
     S: {
       fromPoints: function () {
-        return Constructors.rect(enclosing_rectangle(get_vector_of_vectors(arguments)));
+        const box = bounding_box(get_vector_of_vectors(arguments));
+        return Constructors.rect(box.min[0], box.min[1], box.span[0], box.span[1]);
       }
     }
   }
@@ -2392,8 +2400,9 @@ math.core = Object.assign(Object.create(null),
     intersect_circle_circle,
     intersect_circle_line,
     intersect_line_line,
-    overlap_convex_polygons: convex_polygons_overlap,
+    overlap_convex_polygons,
     overlap_convex_polygon_point,
+    overlap_bounding_boxes,
     overlap_line_line,
     overlap_line_point,
     clip_line_in_convex_polygon,

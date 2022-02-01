@@ -4,7 +4,7 @@
 import math from "../math";
 import {
   make_vertices_vertices,
-  make_vertices_edges,
+  make_vertices_edges_unsorted,
   make_vertices_sectors,
 } from "../graph/make";
 import { get_boundary_vertices } from "../graph/boundary";
@@ -17,7 +17,7 @@ const maekawa_add = { M:-1, m:-1, V:1, v:1};
  */
 export const validate_maekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
   if (!vertices_edges) {
-    vertices_edges = make_vertices_edges({ edges_vertices });
+    vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
   }
   const vertices_is_boundary = Array(vertices_edges.length).fill(false);
   get_boundary_vertices({ edges_vertices, edges_assignment })

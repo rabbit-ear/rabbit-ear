@@ -37,12 +37,12 @@ test("centroid", () => {
 
 });
 
-test("enclosing_rectangle", () => {
-  const rect = ear.math.enclosing_rectangle([[1,0], [0,1], [-1,0], [0,-1]]);
-  expect(rect.x).toBe(-1);
-  expect(rect.y).toBe(-1);
-  expect(rect.width).toBe(2);
-  expect(rect.height).toBe(2);
+test("bounding_box", () => {
+  const box = ear.math.bounding_box([[1,0], [0,1], [-1,0], [0,-1]]);
+  expect(box.min[0]).toBe(-1);
+  expect(box.min[1]).toBe(-1);
+  expect(box.span[0]).toBe(2);
+  expect(box.span[1]).toBe(2);
 });
 
 test("make_regular_polygon", () => {

@@ -7,7 +7,7 @@ import {
 	boolean_matrix_to_unique_index_pairs,
 	boolean_matrix_to_indexed_array,
 } from "../../general/arrays";
-import make_edges_faces_overlap from "../../graph/make_edges_faces_overlap";
+import { make_edges_faces_overlap } from "../../graph/overlap";
 import { make_tortilla_tortilla_faces_crossing } from "./tortilla_tortilla";
 import {
 	make_edges_faces_side,

@@ -30,7 +30,7 @@ export const edges_assignment_names = {
   b: "boundary",
   m: "mountain",
   v: "valley",
-  f: "mark",
+  f: "flat",
   u: "unassigned"
 };
 edges_assignment_values.forEach(key => {

@@ -8,6 +8,7 @@ import add_vertices from "../graph/add/add_vertices";
 import add_edges from "../graph/add/add_edges";
 import fragment from "../graph/fragment";
 import populate from "../graph/populate";
+import planar_fold from "../graph/planar_fold/index";
 /**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.
@@ -22,7 +23,7 @@ CreasePattern.prototype.constructor = CreasePattern;
  */
 const arcResolution = 96;
 
-const edges_array = function (array) {
+const make_edges_array = function (array) {
   array.mountain = (degrees = -180) => {
     array.forEach(i => {
       this.edges_assignment[i] = "M";
@@ -47,18 +48,29 @@ const edges_array = function (array) {
   return array;
 };
 
+// ["line", "ray", "segment"].forEach(type => {
+//   CreasePattern.prototype[type] = function () {
+//     const primitive = math[type](...arguments);
+//     if (!primitive) { return; }
+//     const segment = clip(this, primitive);
+//     if (!segment) { return; }
+//     const vertices = add_vertices(this, segment);
+//     const edges = add_edges(this, vertices);
+//     const map = fragment(this).edges.map;
+//     populate(this);
+//     return make_edges_array.call(this, edges.map(e => map[e])
+//       .reduce((a, b) => a.concat(b), []));
+//   };
+// });
+
 ["line", "ray", "segment"].forEach(type => {
   CreasePattern.prototype[type] = function () {
     const primitive = math[type](...arguments);
     if (!primitive) { return; }
     const segment = clip(this, primitive);
     if (!segment) { return; }
-    const vertices = add_vertices(this, segment);
-    const edges = add_edges(this, vertices);
-    const map = fragment(this).edges.map;
-    populate(this);
-    return edges_array.call(this, edges.map(e => map[e])
-      .reduce((a, b) => a.concat(b), []));
+    const edges = planar_fold(this, segment[0], segment[1]);
+    return make_edges_array.call(this, edges);
   };
 });
 
@@ -80,7 +92,7 @@ const edges_array = function (array) {
     });
     const map = fragment(this).edges.map;
     populate(this);
-    return edges_array.call(this, edges.map(e => map[e])
+    return make_edges_array.call(this, edges.map(e => map[e])
       .reduce((a, b) => a.concat(b), []));
   };
 });

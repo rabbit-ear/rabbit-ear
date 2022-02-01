@@ -18,7 +18,7 @@ import {
   remove_circular_edges,
 } from "./clean/index";
 import get_collinear_vertices from "./clean/vertices_collinear";
-import { get_edges_edges_intersections } from "./intersect_edges";
+import { make_edges_edges_intersection } from "./intersect";
 import { sort_vertices_along_vector } from "./sort";
 import {
 	merge_simple_nextmaps,
@@ -59,7 +59,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   // points (an [x,y] array), with an important detail, because each edge
   // intersects with another edge, this [x,y] point is a shallow pointer
   // to the same one in the other edge's intersection array.
-  const edges_intersections = get_edges_edges_intersections({
+  const edges_intersections = make_edges_edges_intersection({
     vertices_coords: graph.vertices_coords,
     edges_vertices: graph.edges_vertices,
     edges_vector,
@@ -210,7 +210,7 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 	}
 
 	if (i === 20) {
-    console.warn("debug warning. fragment reached max iterations");
+    console.warn("fragment reached max iterations");
   }
   return change;
 };
