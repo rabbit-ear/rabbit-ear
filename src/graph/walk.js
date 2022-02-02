@@ -62,3 +62,13 @@ export const planar_vertex_walk = ({ vertices_vertices, vertices_sectors }) => {
       .filter(a => a !== undefined))
     .reduce((a, b) => a.concat(b), [])
 };
+/**
+ * @description 180 - sector angle = the turn angle. counter clockwise
+ * turns are +, clockwise will be -, this removes the one face that
+ * outlines the piece with opposite winding enclosing Infinity.
+ * @param {object} walked_faces, the result from calling "planar_vertex_walk"
+ */
+export const filter_walked_boundary_face = walked_faces => walked_faces
+  .filter(face => face.angles
+    .map(a => Math.PI - a)
+    .reduce((a,b) => a + b, 0) > 0);

@@ -8,7 +8,7 @@ import add_vertices from "../graph/add/add_vertices";
 import add_edges from "../graph/add/add_edges";
 import fragment from "../graph/fragment";
 import populate from "../graph/populate";
-import planar_fold from "../graph/planar_fold/index";
+import add_planar_segment from "../graph/add_planar_segment/index";
 /**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.
@@ -69,7 +69,7 @@ const make_edges_array = function (array) {
     if (!primitive) { return; }
     const segment = clip(this, primitive);
     if (!segment) { return; }
-    const edges = planar_fold(this, segment[0], segment[1]);
+    const edges = add_planar_segment(this, segment[0], segment[1]);
     return make_edges_array.call(this, edges);
   };
 });

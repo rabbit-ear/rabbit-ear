@@ -111,7 +111,9 @@ const populate = (graph, reface) => {
   graph.vertices_edges = make_vertices_edges_unsorted(graph);
   graph.vertices_vertices = make_vertices_vertices(graph);
   graph.vertices_edges = make_vertices_edges(graph);
-  // todo, really considering bringing back edges_vector.
+  // todo consider adding vertices_sectors, these are used for
+  // planar graphs (crease patterns) for walking faces
+  // todo, what is the reason to have edges_vector?
   // if (graph.vertices_coords) {
   //   graph.edges_vector = make_edges_vector(graph);
   // }

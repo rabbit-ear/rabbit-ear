@@ -3,7 +3,10 @@
  */
 import math from "../math";
 import implied from "./count_implied";
-import { planar_vertex_walk } from "./walk";
+import {
+  planar_vertex_walk,
+  filter_walked_boundary_face,
+} from "./walk";
 import { sort_vertices_counter_clockwise } from "./sort";
 /**
  * all of the graph methods follow a similar format.
@@ -317,17 +320,12 @@ export const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices
     vertices_sectors = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector });
   }
   const vertices_edges_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+  // removes the one face that outlines the piece with opposite winding.
   // planar_vertex_walk stores edges as vertex pair strings, "4 9",
   // convert these into edge indices
-  // additionally,
-  // 180 - sector angle = the turn angle.
-  // counter clockwise turns are +, clockwise will be -
-  // this removes the one face that outlines the piece with opposite winding enclosing Infinity
-  return planar_vertex_walk({ vertices_vertices, vertices_sectors })
-    .map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }))
-    .filter(face => face.angles
-      .map(a => Math.PI - a)
-      .reduce((a,b) => a + b, 0) > 0);
+  return filter_walked_boundary_face(
+      planar_vertex_walk({ vertices_vertices, vertices_sectors }))
+    .map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
 };
 
 // without sector detection, this could be simplified so much that it only uses vertices_vertices.

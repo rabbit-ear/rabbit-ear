@@ -3032,11 +3032,16 @@
         .filter(a => a !== undefined))
       .reduce((a, b) => a.concat(b), [])
   };
+  const filter_walked_boundary_face = walked_faces => walked_faces
+    .filter(face => face.angles
+      .map(a => Math.PI - a)
+      .reduce((a,b) => a + b, 0) > 0);
 
   var walk = /*#__PURE__*/Object.freeze({
     __proto__: null,
     counter_clockwise_walk: counter_clockwise_walk,
-    planar_vertex_walk: planar_vertex_walk
+    planar_vertex_walk: planar_vertex_walk,
+    filter_walked_boundary_face: filter_walked_boundary_face
   });
 
   const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) =>
@@ -3236,11 +3241,9 @@
       vertices_sectors = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector });
     }
     const vertices_edges_map = make_vertices_to_edge_bidirectional({ edges_vertices });
-    return planar_vertex_walk({ vertices_vertices, vertices_sectors })
-      .map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }))
-      .filter(face => face.angles
-        .map(a => Math.PI - a)
-        .reduce((a,b) => a + b, 0) > 0);
+    return filter_walked_boundary_face(
+        planar_vertex_walk({ vertices_vertices, vertices_sectors }))
+      .map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
   };
   const make_planar_faces_vertices = graph => make_planar_faces(graph)
     .map(face => face.vertices);
@@ -4344,6 +4347,14 @@
       vertices_vertices[v][otherI] = vertex;
     });
   };
+  const update_vertices_sectors = ({ vertices_coords, vertices_vertices, vertices_sectors }, vertex) => {
+    if (!vertices_sectors) { return; }
+    vertices_sectors[vertex] = vertices_vertices[vertex].length === 1
+      ? [math.core.TWO_PI]
+      : math.core.counter_clockwise_sectors2(vertices_vertices[vertex]
+        .map(v => math.core
+          .subtract2(vertices_coords[v], vertices_coords[vertex])));
+  };
   const update_vertices_edges$1 = ({ vertices_edges }, old_edge, new_vertex, vertices, new_edges) => {
     if (!vertices_edges) { return; }
     vertices_edges[new_vertex] = [...new_edges];
@@ -4365,54 +4376,25 @@
     if (!faces_vertices) { return; }
     faces
       .map(i => faces_vertices[i])
-        .forEach(face => face
-          .map((fv, i, arr) => {
-            const nextI = (i + 1) % arr.length;
-            return (fv === incident_vertices[0]
-                    && arr[nextI] === incident_vertices[1])
-                    || (fv === incident_vertices[1]
-                    && arr[nextI] === incident_vertices[0])
-              ? nextI : undefined;
-          }).filter(el => el !== undefined)
-          .sort((a, b) => b - a)
-          .forEach(i => face.splice(i, 0, new_vertex)));
+      .forEach(face => face
+        .map((fv, i, arr) => {
+          const nextI = (i + 1) % arr.length;
+          return (fv === incident_vertices[0]
+                  && arr[nextI] === incident_vertices[1])
+                  || (fv === incident_vertices[1]
+                  && arr[nextI] === incident_vertices[0])
+            ? nextI : undefined;
+        }).filter(el => el !== undefined)
+        .sort((a, b) => b - a)
+        .forEach(i => face.splice(i, 0, new_vertex)));
   };
-  const update_faces_edges = ({ edges_vertices, faces_edges }, old_edge, new_vertex, new_edges, faces) => {
-    if (!faces_edges) { return; }
+  const update_faces_edges_with_vertices = ({ edges_vertices, faces_vertices, faces_edges }, faces) => {
+    const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
     faces
-      .map(i => faces_edges[i])
-      .forEach((face) => {
-        const edgeIndex = face.indexOf(old_edge);
-        const prevEdge = face[(edgeIndex + face.length - 1) % face.length];
-        const nextEdge = face[(edgeIndex + 1) % face.length];
-        const vertices = [
-          [prevEdge, old_edge],
-          [old_edge, nextEdge],
-        ].map((pairs) => {
-          const verts = pairs.map(e => edges_vertices[e]);
-          return verts[0][0] === verts[1][0] || verts[0][0] === verts[1][1]
-            ? verts[0][0] : verts[0][1];
-        }).reduce((a, b) => a.concat(b), []);
-        const edges = [
-          [vertices[0], new_vertex],
-          [new_vertex, vertices[1]],
-        ].map((verts) => {
-          const in0 = verts.map(v => edges_vertices[new_edges[0]].indexOf(v) !== -1)
-            .reduce((a, b) => a && b, true);
-          const in1 = verts.map(v => edges_vertices[new_edges[1]].indexOf(v) !== -1)
-            .reduce((a, b) => a && b, true);
-          if (in0) { return new_edges[0]; }
-          if (in1) { return new_edges[1]; }
-          throw new Error("split_edge() bad faces_edges");
-        });
-        if (edgeIndex === face.length - 1) {
-          face.splice(edgeIndex, 1, edges[0]);
-          face.unshift(edges[1]);
-        } else {
-          face.splice(edgeIndex, 1, ...edges);
-        }
-        return edges;
-      });
+      .map(f => faces_vertices[f]
+        .map((vertex, i, arr) => [vertex, arr[(i + 1) % arr.length]])
+        .map(pair => edge_map[pair.join(" ")]))
+      .forEach((edges, i) => { faces_edges[faces[i]] = edges; });
   };
 
   const split_edge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
@@ -4433,13 +4415,14 @@
       .forEach((edge, i) => Object.keys(edge)
         .forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
     update_vertices_vertices$1(graph, vertex, incident_vertices);
+    update_vertices_sectors(graph, vertex);
     update_vertices_edges$1(graph, old_edge, vertex, incident_vertices, new_edges);
     const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
     if (incident_faces) {
       update_vertices_faces$1(graph, vertex, incident_faces);
       update_edges_faces$1(graph, new_edges, incident_faces);
       update_faces_vertices(graph, vertex, incident_vertices, incident_faces);
-      update_faces_edges(graph, old_edge, vertex, new_edges, incident_faces);
+      update_faces_edges_with_vertices(graph, incident_faces);
     }
     const edge_map = remove_geometry_indices(graph, _edges, [ old_edge ]);
     new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
@@ -4819,13 +4802,25 @@
       graph.vertices_edges[vertex] = graph.vertices_vertices[vertex]
         .map(v => edge_map[`${vertex} ${v}`]);
     }
+    segment_vertices
+      .map(center => graph.vertices_vertices[center].length === 1
+      ? [math.core.TWO_PI]
+      : math.core.counter_clockwise_sectors2(graph.vertices_vertices[center]
+        .map(v => math.core
+          .subtract2(graph.vertices_coords[v], graph.vertices_coords[center]))))
+      .forEach((sectors, i) => {
+        graph.vertices_sectors[segment_vertices[i]] = sectors;
+      });
     return segment_edges;
   };
-  const add_segment_to_planar_graph = (graph, point1, point2, epsilon = math.core.EPSILON) => {
+  const add_planar_segment = (graph, point1, point2, epsilon = math.core.EPSILON) => {
+    if (!graph.vertices_sectors) {
+      graph.vertices_sectors = make_vertices_sectors(graph);
+    }
     const segment = [point1, point2].map(p => [p[0], p[1]]);
     const segment_vector = math.core.subtract2(segment[1], segment[0]);
-    graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
-    const intersections = make_edges_segment_intersection(graph, segment[0], segment[1], epsilon);
+    const intersections = make_edges_segment_intersection(
+      graph, segment[0], segment[1], epsilon);
     const intersected_edges = intersections
       .map((pt, e) => pt === undefined ? undefined : e)
       .filter(a => a !== undefined)
@@ -4841,10 +4836,6 @@
       .reverse()
       .map(edge => split_edge(graph, edge, intersections[edge], epsilon));
     const split_edge_vertices = split_edge_results.map(el => el.vertex);
-    const split_edge_maps = split_edge_results.map(el => el.edges.map);
-    split_edge_maps
-      .splice(1)
-      .reduce((a, b) => merge_nextmaps(a, b), split_edge_maps[0]);
     const endpoint_vertices = add_vertices(graph, segment, epsilon);
     const new_vertex_hash = {};
     split_edge_vertices.forEach(v => { new_vertex_hash[v] = true; });
@@ -4858,16 +4849,16 @@
       edge_map[`${v[0]} ${v[1]}`] = e;
       edge_map[`${v[1]} ${v[0]}`] = e;
     });
-    const segment_vertex_pairs = Array
-      .from(Array(segment_vertices.length - 1))
-      .map((_, i) => [
-        [segment_vertices[i], segment_vertices[i + 1]],
-        [segment_vertices[i + 1], segment_vertices[i]],
-      ]).reduce((a, b) => a.concat(b), []);
+    const face_walk_start_pairs = segment_vertices
+      .map((v, i) => graph.vertices_vertices[v]
+        .map(adj_v => [[adj_v, v], [v, adj_v]]))
+      .reduce((a, b) => a.concat(b), [])
+      .reduce((a, b) => a.concat(b), []);
     const walked_edges = {};
-    const walked_faces = segment_vertex_pairs
+    const all_walked_faces = face_walk_start_pairs
       .map(pair => counter_clockwise_walk(graph, pair[0], pair[1], walked_edges))
       .filter(a => a !== undefined);
+    const walked_faces = filter_walked_boundary_face(all_walked_faces);
     remove_geometry_indices(graph, "faces", intersected_faces);
     const new_faces = walked_faces
       .map((_, i) => graph.faces_vertices.length + i);
@@ -4946,7 +4937,7 @@
       if (!primitive) { return; }
       const segment = clip(this, primitive);
       if (!segment) { return; }
-      const edges = add_segment_to_planar_graph(this, segment[0], segment[1]);
+      const edges = add_planar_segment(this, segment[0], segment[1]);
       return make_edges_array.call(this, edges);
     };
   });
@@ -5570,7 +5561,7 @@
   	split_edge,
   	split_face: split_convex_face,
   	flat_fold,
-  	planar_fold: add_segment_to_planar_graph,
+  	add_planar_segment,
   	clean,
   	get_circular_edges,
   	get_duplicate_edges,
