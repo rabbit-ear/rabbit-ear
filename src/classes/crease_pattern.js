@@ -9,6 +9,8 @@ import add_edges from "../graph/add/add_edges";
 import fragment from "../graph/fragment";
 import populate from "../graph/populate";
 import add_planar_segment from "../graph/add_planar_segment/index";
+import remove_planar_edge from "../graph/remove_planar_edge/index";
+import { join_collinear_edges } from "../graph/join_edges";
 /**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.
@@ -96,5 +98,11 @@ const make_edges_array = function (array) {
       .reduce((a, b) => a.concat(b), []));
   };
 });
+
+CreasePattern.prototype.removeEdge = function (edge) {
+  remove_planar_edge(this, edge);
+  // join_collinear_edges(this);
+  return true;
+};
 
 export default CreasePattern.prototype;

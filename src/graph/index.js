@@ -29,6 +29,7 @@ import split_edge from "./split_edge/index";
 import split_face from "./split_face/index";
 import flat_fold from "./flat_fold/index";
 import add_planar_segment from "./add_planar_segment/index";
+import remove_planar_edge from "./remove_planar_edge/index";
 // clean things
 import * as remove_methods from "./clean/index"
 import clean from "./clean/clean";
@@ -64,6 +65,7 @@ export default Object.assign(Object.create(null), {
 	split_face,
 	flat_fold,
 	add_planar_segment,
+	remove_planar_edge,
 	// clean things
 	clean,
 	get_circular_edges,

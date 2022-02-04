@@ -191,12 +191,14 @@ const getComponent = function (key) {
 
 [S._vertices, S._edges, S._faces]
   .forEach(key => Object.defineProperty(Graph.prototype, key, {
+    enumerable: true,
     get: function () { return getComponent.call(this, key); }
   }));
  
 // todo: get boundaries, plural
 // get boundary. only if the edges_assignment
 Object.defineProperty(Graph.prototype, S._boundary, {
+  enumerable: true,
   get: function () {
     const boundary = get_boundary(this);
     const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
@@ -238,6 +240,7 @@ Graph.prototype.nearest = function () {
   const cache = {};
   [S._vertices, S._edges, S._faces].forEach(key => {
     Object.defineProperty(nears, singularize[key], {
+      enumerable: true,
       get: () => {
         if (cache[key] !== undefined) { return cache[key]; }
         cache[key] = nearestMethods[key](this, point);
@@ -246,6 +249,7 @@ Graph.prototype.nearest = function () {
     });
     filter_keys_with_prefix(this, key).forEach(fold_key =>
       Object.defineProperty(nears, fold_key, {
+        enumerable: true,
         get: () => this[fold_key][nears[singularize[key]]]
       }));
   });

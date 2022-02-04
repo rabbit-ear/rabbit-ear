@@ -4338,7 +4338,7 @@
     return new_edges;
   };
 
-  const update_vertices_vertices$1 = ({ vertices_vertices }, vertex, incident_vertices) => {
+  const update_vertices_vertices$2 = ({ vertices_vertices }, vertex, incident_vertices) => {
     if (!vertices_vertices) { return; }
     vertices_vertices[vertex] = [...incident_vertices];
     incident_vertices.forEach((v, i, arr) => {
@@ -4355,7 +4355,7 @@
         .map(v => math.core
           .subtract2(vertices_coords[v], vertices_coords[vertex])));
   };
-  const update_vertices_edges$1 = ({ vertices_edges }, old_edge, new_vertex, vertices, new_edges) => {
+  const update_vertices_edges$2 = ({ vertices_edges }, old_edge, new_vertex, vertices, new_edges) => {
     if (!vertices_edges) { return; }
     vertices_edges[new_vertex] = [...new_edges];
     vertices
@@ -4414,9 +4414,9 @@
     split_edge_into_two(graph, old_edge, vertex)
       .forEach((edge, i) => Object.keys(edge)
         .forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
-    update_vertices_vertices$1(graph, vertex, incident_vertices);
+    update_vertices_vertices$2(graph, vertex, incident_vertices);
     update_vertices_sectors(graph, vertex);
-    update_vertices_edges$1(graph, old_edge, vertex, incident_vertices, new_edges);
+    update_vertices_edges$2(graph, old_edge, vertex, incident_vertices, new_edges);
     const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
     if (incident_faces) {
       update_vertices_faces$1(graph, vertex, incident_faces);
@@ -4505,13 +4505,13 @@
   };
 
   const warning = "split_face potentially given a non-convex face";
-  const update_vertices_vertices = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
+  const update_vertices_vertices$1 = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
     const v0 = edges_vertices[edge][0];
     const v1 = edges_vertices[edge][1];
     vertices_vertices[v0] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v0].concat(v1), v0);
     vertices_vertices[v1] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v1].concat(v0), v1);
   };
-  const update_vertices_edges = ({ edges_vertices, vertices_edges, vertices_vertices }, edge) => {
+  const update_vertices_edges$1 = ({ edges_vertices, vertices_edges, vertices_vertices }, edge) => {
     if (!vertices_edges || !vertices_vertices) { return; }
     const vertices = edges_vertices[edge];
     vertices
@@ -4601,8 +4601,8 @@
     if (intersect === undefined) { return undefined; }
     const result = split_at_intersections(graph, intersect);
     result.edges.new = rebuild_edge(graph, face, result.vertices);
-    update_vertices_vertices(graph, result.edges.new);
-    update_vertices_edges(graph, result.edges.new);
+    update_vertices_vertices$1(graph, result.edges.new);
+    update_vertices_edges$1(graph, result.edges.new);
     const faces = build_faces(graph, face, result.vertices);
     update_vertices_faces(graph, face, faces);
     update_edges_faces(graph, face, result.edges.new, faces);
@@ -4712,9 +4712,11 @@
   };
   [_vertices, _edges, _faces]
     .forEach(key => Object.defineProperty(Graph.prototype, key, {
+      enumerable: true,
       get: function () { return getComponent.call(this, key); }
     }));
   Object.defineProperty(Graph.prototype, _boundary, {
+    enumerable: true,
     get: function () {
       const boundary = get_boundary(this);
       const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
@@ -4733,6 +4735,7 @@
     const cache = {};
     [_vertices, _edges, _faces].forEach(key => {
       Object.defineProperty(nears, singularize[key], {
+        enumerable: true,
         get: () => {
           if (cache[key] !== undefined) { return cache[key]; }
           cache[key] = nearestMethods[key](this, point);
@@ -4741,6 +4744,7 @@
       });
       filter_keys_with_prefix(this, key).forEach(fold_key =>
         Object.defineProperty(nears, fold_key, {
+          enumerable: true,
           get: () => this[fold_key][nears[singularize[key]]]
         }));
     });
@@ -4903,6 +4907,166 @@
     return segment_edges;
   };
 
+  const update_vertices_vertices = ({ vertices_vertices }, vertices) => {
+  	const other = [vertices[1], vertices[0]];
+  	vertices
+  		.map((v, i) => vertices_vertices[v].indexOf(other[i]))
+  		.forEach((index, i) => vertices_vertices[vertices[i]].splice(index, 1));
+  };
+  const update_vertices_edges = ({ vertices_edges }, edge, vertices) => {
+  	vertices
+  		.map((v, i) => vertices_edges[v].indexOf(edge))
+  		.forEach((index, i) => vertices_edges[vertices[i]].splice(index, 1));
+  };
+  const join_faces = (graph, faces, edge, vertices) => {
+  	[faces[1], faces[0]];
+  	const faces_edge_index = faces
+  		.map(f => graph.faces_edges[f].indexOf(edge));
+  	const faces_vertices_index = [];
+  	faces.forEach((face, f) => graph.faces_vertices[face]
+  		.forEach((v, i, arr) => {
+  			const next = arr[(i + 1) % arr.length];
+  			if ((v === vertices[0] && next === vertices[1])
+  				|| (v === vertices[1] && next === vertices[0])) {
+  				faces_vertices_index[f] = i;
+  			}
+  		}));
+  	if (faces_vertices_index[0] === undefined || faces_vertices_index[1] === undefined) { console.warn("remove_planar_edge error joining faces"); }
+  	const edges_len_before = faces
+  		.map(f => graph.faces_edges[f].length);
+  	const vertices_len_before = faces
+  		.map(f => graph.faces_vertices[f].length);
+  	const edges_len_after = edges_len_before.map(len => len - 1);
+  	const vertices_len_after = vertices_len_before.map(len => len - 1);
+  	const faces_edge_keep = faces_edge_index
+  		.map((e, i) => (e + 1) % edges_len_before[i]);
+  	const faces_vertex_keep = faces_vertices_index
+  		.map((v, i) => (v + 1) % vertices_len_before[i]);
+  	const new_faces_edges = faces
+  		.map((face, f) => Array.from(Array(edges_len_after[f]))
+  			.map((_, i) => (faces_edge_keep[f] + i) % edges_len_before[f])
+  			.map(index => graph.faces_edges[face][index]));
+  	const new_faces_vertices = faces
+  		.map((face, f) => Array.from(Array(vertices_len_after[f]))
+  			.map((_, i) => (faces_vertex_keep[f] + i) % vertices_len_before[f])
+  			.map(index => graph.faces_vertices[face][index]));
+  	const new_faces_faces = faces
+  		.map(f => graph.faces_faces[f])
+  		.reduce((a, b) => a.concat(b), [])
+  		.filter(f => f !== faces[0] && f !== faces[1]);
+  	return {
+  		vertices: new_faces_vertices[0].concat(new_faces_vertices[1]),
+  		edges: new_faces_edges[0].concat(new_faces_edges[1]),
+  		faces: new_faces_faces,
+  	};
+  };
+  const remove_planar_edge = (graph, edge) => {
+  	const vertices = [...graph.edges_vertices[edge]]
+  		.sort((a, b) => b - a);
+  	const faces = [...graph.edges_faces[edge]];
+  	update_vertices_vertices(graph, vertices);
+  	update_vertices_edges(graph, edge, vertices);
+  	const vertices_should_remove = vertices
+  		.map(v => graph.vertices_vertices[v].length === 0);
+  	const remove_vertices = vertices
+  		.filter((vertex, i) => vertices_should_remove[i]);
+  	if (faces.length === 2 && faces[0] !== faces[1]) {
+  		const new_face = graph.faces_vertices.length;
+  		const new_face_data = join_faces(graph, faces, edge, vertices);
+  		graph.faces_vertices.push(new_face_data.vertices);
+  		graph.faces_edges.push(new_face_data.edges);
+  		graph.faces_faces.push(new_face_data.faces);
+  		graph.vertices_faces.forEach((arr, i) => {
+  			let already_added = false;
+  			arr.forEach((face, j) => {
+  				if (face === faces[0] || face === faces[1]) {
+  					graph.vertices_faces[i][j] = new_face;
+  					already_added ? arr.splice(i, 1) : arr.splice(i, 1, new_face);
+  					already_added = true;
+  				}
+  			});
+  		});
+  		graph.edges_faces.forEach((arr, i) => arr.forEach((face, j) => {
+  			if (face === faces[0] || face === faces[1]) {
+  				graph.edges_faces[i][j] = new_face;
+  			}
+  		}));
+  		graph.faces_faces.forEach((arr, i) => arr.forEach((face, j) => {
+  			if (face === faces[0] || face === faces[1]) {
+  				graph.faces_faces[i][j] = new_face;
+  			}
+  		}));
+  		graph.faces_vertices.forEach(fv => fv.forEach(f => {
+  			if (f === undefined) {
+  				console.log("FOUND ONE before remove", graph.faces_vertices);
+  			}
+  		}));
+  		remove_geometry_indices(graph, "faces", faces);
+  	}
+  	if (faces.length === 2 && faces[0] === faces[1] && remove_vertices.length) {
+  		const face = faces[0];
+  		graph.faces_vertices[face] = graph.faces_vertices[face]
+  			.filter(v => !remove_vertices.includes(v))
+  			.filter((v, i, arr) => v !== arr[(i+1)%arr.length]);
+  		graph.faces_edges[face] = graph.faces_edges[face]
+  			.filter(e => e !== edge);
+  	}
+  	remove_geometry_indices(graph, "edges", [edge]);
+  	remove_geometry_indices(graph, "vertices", remove_vertices);
+  };
+
+  const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.core.EPSILON) => {
+  	if (!edges_vector) {
+  		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+  	}
+  	if (!vertices_edges) {
+  		vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
+  	}
+  	const two_adjacencies_vertices = vertices_edges
+  		.map((ve, i) => ve.length === 2 ? i : undefined)
+  		.filter(a => a !== undefined);
+  	const adjacencies_are_parallel = two_adjacencies_vertices
+  		.map(vertex => vertices_edges[vertex])
+  		.map(edges => edges.map(edge => edges_vector[edge]))
+  		.map(vecs => math.core.parallel(...vecs));
+  	const vertices_remove = two_adjacencies_vertices
+  		.filter((vertex, i) => adjacencies_are_parallel[i]);
+  	const joinable_edges = vertices_remove
+  		.map(v => vertices_edges[v])
+  		.map(edges => edges[0] < edges[1] ? edges : [edges[1], edges[0]]);
+  	const edges_to_join = {};
+  	for (let i = 0; i < joinable_edges.length; i++) {
+  		if (edges_to_join[joinable_edges[i][1]] === undefined) {
+  			edges_to_join[joinable_edges[i][1]] = true;
+  		} else {
+  			console.warn("cannot safely remove edges. some overlaps");
+  		}
+  	}
+  	const edges_keep = joinable_edges.map(edges => edges[0]);
+  	const edges_remove = joinable_edges.map(edges => edges[1]);
+  	const edges_remove_other_vertex = edges_remove
+  		.map(edge => edges_vertices[edge])
+  		.map((vertices, i) => {
+  			if (vertices[0] === vertices_remove[i]) { return vertices[1]; }
+  			else if (vertices[1] === vertices_remove[i]) { return vertices[0]; }
+  			else { console.warn("removed edge cannot find vertex"); return undefined; }
+  		});
+  	edges_keep
+  		.forEach((edge, i) => {
+  			if (edges_vertices[edge][0] === vertices_remove[i]) {
+  				edges_vertices[edge][0] = edges_remove_other_vertex[i];
+  			} else if (edges_vertices[edge][1] === vertices_remove[i]) {
+  				edges_vertices[edge][1] = edges_remove_other_vertex[i];
+  			} else {
+  				console.warn("joining edges cannot find vertex");
+  			}
+  		});
+  	return {
+  		vertices: vertices_remove,
+  		edges: edges_remove
+  	};
+  };
+
   const CreasePattern = {};
   CreasePattern.prototype = Object.create(GraphProto);
   CreasePattern.prototype.constructor = CreasePattern;
@@ -4963,6 +5127,10 @@
         .reduce((a, b) => a.concat(b), []));
     };
   });
+  CreasePattern.prototype.removeEdge = function (edge) {
+    remove_planar_edge(this, edge);
+    return true;
+  };
   var CreasePatternProto = CreasePattern.prototype;
 
   const make_faces_winding_from_matrix = faces_matrix => faces_matrix
@@ -5130,58 +5298,6 @@
     __proto__: null,
     is_folded_form: is_folded_form
   });
-
-  const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.core.EPSILON) => {
-  	if (!edges_vector) {
-  		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
-  	}
-  	if (!vertices_edges) {
-  		vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
-  	}
-  	const two_adjacencies_vertices = vertices_edges
-  		.map((ve, i) => ve.length === 2 ? i : undefined)
-  		.filter(a => a !== undefined);
-  	const adjacencies_are_parallel = two_adjacencies_vertices
-  		.map(vertex => vertices_edges[vertex])
-  		.map(edges => edges.map(edge => edges_vector[edge]))
-  		.map(vecs => math.core.parallel(...vecs));
-  	const vertices_remove = two_adjacencies_vertices
-  		.filter((vertex, i) => adjacencies_are_parallel[i]);
-  	const joinable_edges = vertices_remove
-  		.map(v => vertices_edges[v])
-  		.map(edges => edges[0] < edges[1] ? edges : [edges[1], edges[0]]);
-  	const edges_to_join = {};
-  	for (let i = 0; i < joinable_edges.length; i++) {
-  		if (edges_to_join[joinable_edges[i][1]] === undefined) {
-  			edges_to_join[joinable_edges[i][1]] = true;
-  		} else {
-  			console.warn("cannot safely remove edges. some overlaps");
-  		}
-  	}
-  	const edges_keep = joinable_edges.map(edges => edges[0]);
-  	const edges_remove = joinable_edges.map(edges => edges[1]);
-  	const edges_remove_other_vertex = edges_remove
-  		.map(edge => edges_vertices[edge])
-  		.map((vertices, i) => {
-  			if (vertices[0] === vertices_remove[i]) { return vertices[1]; }
-  			else if (vertices[1] === vertices_remove[i]) { return vertices[0]; }
-  			else { console.warn("removed edge cannot find vertex"); return undefined; }
-  		});
-  	edges_keep
-  		.forEach((edge, i) => {
-  			if (edges_vertices[edge][0] === vertices_remove[i]) {
-  				edges_vertices[edge][0] = edges_remove_other_vertex[i];
-  			} else if (edges_vertices[edge][1] === vertices_remove[i]) {
-  				edges_vertices[edge][1] = edges_remove_other_vertex[i];
-  			} else {
-  				console.warn("joining edges cannot find vertex");
-  			}
-  		});
-  	return {
-  		vertices: vertices_remove,
-  		edges: edges_remove
-  	};
-  };
 
   const make_folded_strip_tacos = (folded_faces, is_circular, epsilon) => {
     const faces_center = folded_faces
@@ -5562,6 +5678,7 @@
   	split_face: split_convex_face,
   	flat_fold,
   	add_planar_segment,
+  	remove_planar_edge,
   	clean,
   	get_circular_edges,
   	get_duplicate_edges,
