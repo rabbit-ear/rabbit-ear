@@ -3991,11 +3991,18 @@
     const match = face_a_vertices.map(v => hash[v] ? true : false);
     const shared_vertices = [];
     const notShared = match.indexOf(false);
+    const already_added = {};
     for (let i = notShared + 1; i < match.length; i += 1) {
-      if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
+      if (match[i] && !already_added[face_a_vertices[i]]) {
+        shared_vertices.push(face_a_vertices[i]);
+        already_added[face_a_vertices[i]] = true;
+      }
     }
     for (let i = 0; i < notShared; i += 1) {
-      if (match[i]) { shared_vertices.push(face_a_vertices[i]); }
+      if (match[i] && !already_added[face_a_vertices[i]]) {
+        shared_vertices.push(face_a_vertices[i]);
+        already_added[face_a_vertices[i]] = true;
+      }
     }
     return shared_vertices;
   };
