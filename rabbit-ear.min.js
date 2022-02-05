@@ -4773,12 +4773,18 @@
     return indices.map(i => index_map[i]);
   };
 
-  const add_segment_edges = (graph, segment_vertices) => {
-    const segment_edges = Array
+  const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
+    const unfiltered_segment_edges_vertices = Array
       .from(Array(segment_vertices.length - 1))
-      .map((_, i) => graph.edges_vertices.length + i);
-    const segment_edges_vertices = segment_edges
       .map((_, i) => [segment_vertices[i], segment_vertices[i + 1]]);
+    const seg_not_exist_yet = unfiltered_segment_edges_vertices
+      .map(verts => verts.join(" "))
+      .map((str, i) => pre_edge_map[str] === undefined);
+    const segment_edges_vertices = unfiltered_segment_edges_vertices
+      .filter((_, i) => seg_not_exist_yet[i]);
+    const segment_edges = Array
+      .from(Array(segment_edges_vertices.length))
+      .map((_, i) => graph.edges_vertices.length + i);
     segment_edges.forEach((e, i) => {
       graph.edges_vertices[e] = segment_edges_vertices[i];
     });
@@ -4790,8 +4796,8 @@
     }
     for (let i = 0; i < segment_vertices.length; i++) {
       const vertex = segment_vertices[i];
-      const prev = segment_vertices[i - 1];
-      const next = segment_vertices[i + 1];
+      const prev = seg_not_exist_yet[i - 1] ? segment_vertices[i - 1] : undefined;
+      const next = seg_not_exist_yet[i] ? segment_vertices[i + 1] : undefined;
       const new_adjacent_vertices = [prev, next].filter(a => a !== undefined);
       const previous_vertices_vertices = graph.vertices_vertices[vertex]
         ? graph.vertices_vertices[vertex] : [];
@@ -4847,7 +4853,7 @@
     const new_vertices = Object.keys(new_vertex_hash).map(n => parseInt(n));
     const segment_vertices = sort_vertices_along_vector(graph, new_vertices, segment_vector);
     const edge_map = make_vertices_to_edge_bidirectional(graph);
-    const segment_edges = add_segment_edges(graph, segment_vertices);
+    const segment_edges = add_segment_edges(graph, segment_vertices, edge_map);
     segment_edges.forEach(e => {
       const v = graph.edges_vertices[e];
       edge_map[`${v[0]} ${v[1]}`] = e;
@@ -5067,6 +5073,94 @@
   	};
   };
 
+  const alternating_sum = (numbers) => [0, 1]
+    .map(even_odd => numbers
+      .filter((_, i) => i % 2 === even_odd)
+      .reduce(fn_add, 0));
+  const alternating_sum_difference = (sectors) => {
+    const halfsum = sectors.reduce(fn_add, 0) / 2;
+    return alternating_sum(sectors).map(s => s - halfsum);
+  };
+  const kawasaki_solutions_radians = (radians) => radians
+    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+    .map(pair => math.core.counter_clockwise_angle_radians(...pair))
+    .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+    .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
+    .map((kawasakis, i) => radians[i] + kawasakis[0])
+    .map((angle, i) => (math.core.is_counter_clockwise_between(angle,
+      radians[i], radians[(i + 1) % radians.length])
+      ? angle
+      : undefined));
+  const kawasaki_solutions_vectors = (vectors) => {
+    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+    return kawasaki_solutions_radians(vectors_radians)
+      .map(a => (a === undefined
+        ? undefined
+        : [Math.cos(a), Math.sin(a)]));
+  };
+
+  var kawasaki_math = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    alternating_sum: alternating_sum,
+    alternating_sum_difference: alternating_sum_difference,
+    kawasaki_solutions_radians: kawasaki_solutions_radians,
+    kawasaki_solutions_vectors: kawasaki_solutions_vectors
+  });
+
+  const flat_assignment = { B:true, b:true, F:true, f:true, U:true, u:true };
+  const vertices_flat = ({ vertices_edges, edges_assignment }) => vertices_edges
+    .map(edges => edges
+      .map(e => flat_assignment[edges_assignment[e]])
+      .reduce((a, b) => a && b, true))
+    .map((valid, i) => valid ? i : undefined)
+    .filter(a => a !== undefined);
+  const folded_assignments = { M:true, m:true, V:true, v:true};
+  const maekawa_assignments$1 = { M:-1, m:-1, V:1, v:1};
+  const validate_maekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
+    if (!vertices_edges) {
+      vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
+    }
+    const is_valid = vertices_edges
+      .map(edges => edges
+        .map(e => maekawa_assignments$1[edges_assignment[e]])
+        .filter(a => a !== undefined)
+        .reduce((a, b) => a + b, 0))
+      .map(sum => sum === 2 || sum === -2);
+    get_boundary_vertices({ edges_vertices, edges_assignment })
+      .forEach(v => { is_valid[v] = true; });
+    vertices_flat({ vertices_edges, edges_assignment })
+      .forEach(v => { is_valid[v] = true; });
+    return is_valid
+      .map((valid, v) => !valid ? v : undefined)
+      .filter(a => a !== undefined);
+  };
+  const validate_kawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
+    if (!vertices_vertices) {
+      vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });
+    }
+    const is_valid = make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+      .map((vectors, v) => vectors
+        .filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
+      .map(vectors => vectors.length > 1
+        ? math.core.counter_clockwise_sectors2(vectors)
+        : [0, 0])
+      .map(sectors => alternating_sum(sectors))
+      .map((pair, v) => Math.abs(pair[0] - pair[1]) < epsilon);
+    get_boundary_vertices({ edges_vertices, edges_assignment })
+      .forEach(v => { is_valid[v] = true; });
+    vertices_flat({ vertices_edges, edges_assignment })
+      .forEach(v => { is_valid[v] = true; });
+    return is_valid
+      .map((valid, v) => !valid ? v : undefined)
+      .filter(a => a !== undefined);
+  };
+
+  var validate = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    validate_maekawa: validate_maekawa,
+    validate_kawasaki: validate_kawasaki
+  });
+
   const CreasePattern = {};
   CreasePattern.prototype = Object.create(GraphProto);
   CreasePattern.prototype.constructor = CreasePattern;
@@ -5130,6 +5224,15 @@
   CreasePattern.prototype.removeEdge = function (edge) {
     remove_planar_edge(this, edge);
     return true;
+  };
+  CreasePattern.prototype.validate = function (epsilon) {
+    const vertices = this.vertices_coords
+      .map(() => ({ maekawa: true, kawasaki: true }));
+    validate_kawasaki(this, epsilon)
+      .forEach(v => { vertices[v].kawasaki = false; });
+    validate_maekawa(this)
+      .forEach(v => { vertices[v].maekawa = false; });
+    return vertices;
   };
   var CreasePatternProto = CreasePattern.prototype;
 
@@ -7181,6 +7284,10 @@
     return layers_face.reverse();
   };
 
+  const make_faces_layer = (graph, epsilon) => {
+    return invert_map(topological_order(one_layer_conditions(graph, epsilon)));
+  };
+
   const make_faces_layers = (graph, epsilon) => {
     const conditions = all_layer_conditions(graph, epsilon);
     return conditions
@@ -7271,6 +7378,7 @@
   };
 
   var layer = Object.assign(Object.create(null), {
+  	make_faces_layer,
   	make_faces_layers,
   	make_faces_layers_async,
   	flip_faces_layer,
@@ -7321,40 +7429,6 @@
   		: [pbc, pab, pbc, pab].map((n, i) => odd === i ? -n : n);
   };
 
-  const alternating_sum = (numbers) => [0, 1]
-    .map(even_odd => numbers
-      .filter((_, i) => i % 2 === even_odd)
-      .reduce(fn_add, 0));
-  const alternating_sum_difference = (sectors) => {
-    const halfsum = sectors.reduce(fn_add, 0) / 2;
-    return alternating_sum(sectors).map(s => s - halfsum);
-  };
-  const kawasaki_solutions_radians = (radians) => radians
-    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-    .map(pair => math.core.counter_clockwise_angle_radians(...pair))
-    .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
-    .map(opposite_sectors => alternating_sum(opposite_sectors).map(s => Math.PI - s))
-    .map((kawasakis, i) => radians[i] + kawasakis[0])
-    .map((angle, i) => (math.core.is_counter_clockwise_between(angle,
-      radians[i], radians[(i + 1) % radians.length])
-      ? angle
-      : undefined));
-  const kawasaki_solutions_vectors = (vectors) => {
-    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
-    return kawasaki_solutions_radians(vectors_radians)
-      .map(a => (a === undefined
-        ? undefined
-        : [Math.cos(a), Math.sin(a)]));
-  };
-
-  var kawasaki_math = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    alternating_sum: alternating_sum,
-    alternating_sum_difference: alternating_sum_difference,
-    kawasaki_solutions_radians: kawasaki_solutions_radians,
-    kawasaki_solutions_vectors: kawasaki_solutions_vectors
-  });
-
   const kawasaki_solutions = ({ vertices_coords, vertices_edges, edges_vertices, edges_vectors }, vertex) => {
     if (!edges_vectors) {
       edges_vectors = make_edges_vector({ vertices_coords, edges_vertices });
@@ -7371,44 +7445,6 @@
   var kawasaki_graph = /*#__PURE__*/Object.freeze({
     __proto__: null,
     kawasaki_solutions: kawasaki_solutions
-  });
-
-  const maekawa_add = { M:-1, m:-1, V:1, v:1};
-  const validate_maekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
-    if (!vertices_edges) {
-      vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
-    }
-    const vertices_is_boundary = Array(vertices_edges.length).fill(false);
-    get_boundary_vertices({ edges_vertices, edges_assignment })
-      .forEach(v => { vertices_is_boundary[v] = true; });
-    const is_valid = vertices_edges
-      .map(edges => edges
-        .map(e => maekawa_add[edges_assignment[e]])
-        .reduce((a, b) => a + b, 0))
-      .map((sum, e) => vertices_is_boundary[e] || sum === 2 || sum === -2);
-    return is_valid
-      .map((valid, v) => !valid ? v : undefined)
-      .filter(a => a !== undefined);
-  };
-  const validate_kawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
-    if (!vertices_vertices) {
-      vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });
-    }
-    const vertices_is_boundary = Array(vertices_coords.length).fill(false);
-    get_boundary_vertices({ edges_vertices, edges_assignment })
-      .forEach(v => { vertices_is_boundary[v] = true; });
-    const is_valid = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
-      .map(sectors => alternating_sum(sectors))
-      .map((pair, v) => vertices_is_boundary[v] || Math.abs(pair[0] - pair[1]) < epsilon);
-    return is_valid
-      .map((valid, v) => !valid ? v : undefined)
-      .filter(a => a !== undefined);
-  };
-
-  var validate = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    validate_maekawa: validate_maekawa,
-    validate_kawasaki: validate_kawasaki
   });
 
   var vertex = Object.assign(Object.create(null), {

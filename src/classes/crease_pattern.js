@@ -11,6 +11,10 @@ import populate from "../graph/populate";
 import add_planar_segment from "../graph/add_planar_segment/index";
 import remove_planar_edge from "../graph/remove_planar_edge/index";
 import { join_collinear_edges } from "../graph/join_edges";
+import {
+  validate_maekawa,
+  validate_kawasaki,
+} from "../single_vertex/validate";
 /**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.
@@ -103,6 +107,16 @@ CreasePattern.prototype.removeEdge = function (edge) {
   remove_planar_edge(this, edge);
   // join_collinear_edges(this);
   return true;
+};
+
+CreasePattern.prototype.validate = function (epsilon) {
+  const vertices = this.vertices_coords
+    .map(() => ({ maekawa: true, kawasaki: true }));
+  validate_kawasaki(this, epsilon)
+    .forEach(v => { vertices[v].kawasaki = false; });
+  validate_maekawa(this)
+    .forEach(v => { vertices[v].maekawa = false; });
+  return vertices;
 };
 
 export default CreasePattern.prototype;

@@ -28,20 +28,32 @@ import {
  * @description given a list of vertices in a graph which:
  * - these vertices have alreaddy been added to the graph
  * - this list of vertices has already been sorted along the vector
- * create a set of edges in the graph that connect these vertices.
+ * create a set of edges in the graph that connect these vertices, with
+ * one important detail: don't add edges which already exist in the graph.
+ *
  * appending: edges_vertices, edges_assignment ("U"), edges_foldAngle (0).
  * rebuilding: vertices_vertices, vertices_edges.
  * ignoring face data. faces will be walked and rebuilt later.
  */
-const add_segment_edges = (graph, segment_vertices) => {
-  // now build the data for the edges which compose the new segment.
-  // the new edges' edges_ indices.
-  const segment_edges = Array
+const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
+  // without looking at the graph, connect all the segment vertices
+  // fenceposted to create a list of N-1 edges.
+  const unfiltered_segment_edges_vertices = Array
     .from(Array(segment_vertices.length - 1))
-    .map((_, i) => graph.edges_vertices.length + i);
-  // the new edges' edges_vertices data.
-  const segment_edges_vertices = segment_edges
     .map((_, i) => [segment_vertices[i], segment_vertices[i + 1]]);
+  // check the list of segments against the edge_map and mark
+  // each segment which already exists as "false".
+  const seg_not_exist_yet = unfiltered_segment_edges_vertices
+    .map(verts => verts.join(" "))
+    .map((str, i) => pre_edge_map[str] === undefined);
+  // now, build the actual edges which will be added to the graph
+  // by filtering out the edges which already exist
+  const segment_edges_vertices = unfiltered_segment_edges_vertices
+    .filter((_, i) => seg_not_exist_yet[i]);
+  // these are the indices of the new segments.
+  const segment_edges = Array
+    .from(Array(segment_edges_vertices.length))
+    .map((_, i) => graph.edges_vertices.length + i)
   // add new edges to the graph, these edges compose the new segment.
   // add edges_vertices.
   segment_edges.forEach((e, i) => {
@@ -55,10 +67,15 @@ const add_segment_edges = (graph, segment_vertices) => {
     segment_edges.forEach(e => { graph.edges_foldAngle[e] = 0; });
   }
   // build vertices_vertices
+  // for each vertex (n), get the previous (n-1) and the next (n+1)
+  // by default, the endpoints will not have neighbor vertices on either side,
+  // and most importantly, use the "seg_not_exist_yet" from earlier to
+  // check if an edge already existed, and prevent joining vertices across
+  // these already existing edges.
   for (let i = 0; i < segment_vertices.length; i++) {
     const vertex = segment_vertices[i];
-    const prev = segment_vertices[i - 1];
-    const next = segment_vertices[i + 1];
+    const prev = seg_not_exist_yet[i - 1] ? segment_vertices[i - 1] : undefined;
+    const next = seg_not_exist_yet[i] ? segment_vertices[i + 1] : undefined;
     const new_adjacent_vertices = [prev, next].filter(a => a !== undefined);
     // for the two vertices that are the segment's endpoints, if they are
     // not collinear vertices, they will not yet have a vertices_vertices.
