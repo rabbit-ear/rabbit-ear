@@ -9,6 +9,8 @@
 
 █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇█
 */
+// needed to check the environment
+import { isWebWorker } from "./environment/detect";
 // the library itself
 import root from "./root";
 // object-oriented style object constructors
@@ -64,7 +66,9 @@ Object.defineProperty(ear, "use", {
 /**
  * binding the extensions must happen after the library has been initialized.
  */
-ear.use(foldToSVG); // must happen before SVG
-ear.use(SVG);
+if (!isWebWorker) {
+  ear.use(foldToSVG); // must happen before SVG
+  ear.use(SVG);
+}
 
 export default ear;

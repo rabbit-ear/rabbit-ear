@@ -4,6 +4,7 @@
 import * as S from "../../general/strings";
 import { is_folded_form } from "../../graph/query";
 import {
+	edges_foldAngle_all_flat,
 	edges_assignment_to_lowercase,
 	edges_assignment_names,
 } from "../../fold/spec";
@@ -19,8 +20,11 @@ const GROUP_FLAT = {
 const STYLE_FOLDED = {};
 
 const STYLE_FLAT = {
+	M: { stroke: "red" },
 	m: { stroke: "red" },
+	V: { stroke: "blue" },
 	v: { stroke: "blue" },
+	F: { stroke: "lightgray" },
 	f: { stroke: "lightgray" },
 };
 
@@ -112,6 +116,51 @@ export const edges_paths = (graph, attributes = {}) => {
 	apply_style(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 	return group;
 };
+
+const angle_to_opacity = (foldAngle) => (Math.abs(foldAngle) / 180);
+
+export const edges_lines = (graph, attributes = {}) => {
+	const group = root.svg.g();
+	if (!graph) { return group; }
+	const isFolded = is_folded_form(graph);
+	const edges_assignment = (graph.edges_assignment
+		? graph.edges_assignment
+		: make_edges_assignment(graph))
+		.map(assign => edges_assignment_to_lowercase[assign]);
+	const groups_by_key = {};
+	["b", "m", "v", "f", "u"].forEach(k => {
+		const child_group = root.svg.g();
+		group.appendChild(child_group);
+		child_group.setAttributeNS(null, S._class, edges_assignment_names[k]);
+		apply_style(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
+		apply_style(child_group, attributes[edges_assignment_names[k]]);
+		Object.defineProperty(group, edges_assignment_names[k], {
+			get: () => child_group
+		});
+		groups_by_key[k] = child_group;
+	});
+	const lines = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v]))
+		.map(l => root.svg.line(l[0][0], l[0][1], l[1][0], l[1][1]));
+	if (graph.edges_foldAngle) {
+		lines.forEach((line, i) => {
+			const angle = graph.edges_foldAngle[i];
+			if (angle === 0 || angle === 180 || angle === -180) { return;}
+			line.setAttributeNS(null, "opacity", angle_to_opacity(angle));
+		})
+	}
+	lines.forEach((line, i) => groups_by_key[edges_assignment[i]]
+		.appendChild(line));
+
+	apply_style(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+	apply_style(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+
+	return group;
+};
+
+export const draw_edges = (graph, attributes) => edges_foldAngle_all_flat(graph)
+	? edges_paths(graph, attributes)
+	: edges_lines(graph, attributes);
 
 // const make_edges_assignment_names = ({ edges_vertices, edges_assignment }) => {
 // 	if (!edges_vertices) { return []; }

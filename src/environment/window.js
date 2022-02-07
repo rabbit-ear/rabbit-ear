@@ -1,10 +1,10 @@
 /**
- * SVG (c) Robby Kraft
+ * Rabbit Ear (c) Robby Kraft
  */
 /**
- * provide DOMParser, XMLSerializer, and document for both browser
- * and or nodejs environments.
- * - browser: built-in window object
+ * find a DOMParser, XMLSerializer, and document, works for both the
+ * browser and nodejs environments.
+ * - browser: get the built-in window object
  * - nodejs: package XMLDOM, https://www.npmjs.com/package/@xmldom/xmldom
  */
 import {
@@ -33,3 +33,7 @@ const Window = (function () {
 }());
 
 export default Window;
+
+
+
+

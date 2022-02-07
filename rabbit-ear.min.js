@@ -6,6 +6,43 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.ear = factory());
 }(this, (function () { 'use strict';
 
+  const _undefined$1 = "undefined";
+  const _boolean$1 = "boolean";
+  const _number$1 = "number";
+  const _object$1 = "object";
+  const _class$1 = "class";
+  const _index = "index";
+  const _vertices = "vertices";
+  const _edges = "edges";
+  const _faces = "faces";
+  const _boundaries = "boundaries";
+  const _vertices_coords = "vertices_coords";
+  const _edges_vertices = "edges_vertices";
+  const _faces_vertices = "faces_vertices";
+  const _faces_edges = "faces_edges";
+  const _edges_assignment = "edges_assignment";
+  const _edges_foldAngle = "edges_foldAngle";
+  const _frame_classes = "frame_classes";
+  const _file_classes = "file_classes";
+  const _faces_layer = "faces_layer";
+  const _boundary = "boundary";
+  const _front = "front";
+  const _back = "back";
+  const _foldedForm = "foldedForm";
+  const _black = "black";
+  const _white = "white";
+  const _none$1 = "none";
+  const _stroke_width = "stroke-width";
+
+  const isBrowser$1 = typeof window !== _undefined$1
+    && typeof window.document !== _undefined$1;
+  const isNode$1 = typeof process !== _undefined$1
+    && process.versions != null
+    && process.versions.node != null;
+  const isWebWorker$1 = typeof self === _object$1
+    && self.constructor
+    && self.constructor.name === "DedicatedWorkerGlobalScope";
+
   var root = Object.create(null);
 
   const type_of = function (obj) {
@@ -2425,34 +2462,6 @@
     faces: setup_face,
   };
 
-  const _undefined$1 = "undefined";
-  const _boolean$1 = "boolean";
-  const _number$1 = "number";
-  const _object$1 = "object";
-  const _class$1 = "class";
-  const _index = "index";
-  const _vertices = "vertices";
-  const _edges = "edges";
-  const _faces = "faces";
-  const _boundaries = "boundaries";
-  const _vertices_coords = "vertices_coords";
-  const _edges_vertices = "edges_vertices";
-  const _faces_vertices = "faces_vertices";
-  const _faces_edges = "faces_edges";
-  const _edges_assignment = "edges_assignment";
-  const _edges_foldAngle = "edges_foldAngle";
-  const _frame_classes = "frame_classes";
-  const _file_classes = "file_classes";
-  const _faces_layer = "faces_layer";
-  const _boundary = "boundary";
-  const _front = "front";
-  const _back = "back";
-  const _foldedForm = "foldedForm";
-  const _black = "black";
-  const _white = "white";
-  const _none$1 = "none";
-  const _stroke_width = "stroke-width";
-
   const file_spec = 1.1;
   const file_creator = "Rabbit Ear";
   const fold_keys = {
@@ -2546,6 +2555,15 @@
     if (a < 0) { return "M"; }
     return "U";
   };
+  const flat_angles = { 0: true, "-0": true, 180: true, "-180": true };
+  const edge_foldAngle_is_flat = angle => flat_angles[angle] === true;
+  const edges_foldAngle_all_flat = ({ edges_foldAngle }) => {
+    if (!edges_foldAngle) { return true; }
+    for (let i = 0; i < edges_foldAngle.length; i++) {
+      if (!flat_angles[edges_foldAngle[i]]) { return false; }
+    }
+    return true;
+  };
   const filter_keys_with_suffix = (graph, suffix) => Object
     .keys(graph)
     .map(s => (s.substring(s.length - suffix.length, s.length) === suffix
@@ -2596,6 +2614,8 @@
     edges_assignment_degrees: edges_assignment_degrees,
     edge_assignment_to_foldAngle: edge_assignment_to_foldAngle,
     edge_foldAngle_to_assignment: edge_foldAngle_to_assignment,
+    edge_foldAngle_is_flat: edge_foldAngle_is_flat,
+    edges_foldAngle_all_flat: edges_foldAngle_all_flat,
     filter_keys_with_suffix: filter_keys_with_suffix,
     filter_keys_with_prefix: filter_keys_with_prefix,
     get_graph_keys_with_prefix: get_graph_keys_with_prefix,
@@ -3213,7 +3233,7 @@
   const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
   const make_edges_foldAngle = ({ edges_assignment }) => edges_assignment
     .map(a => assignment_angles[a] || 0);
-  const make_edges_assignment = ({ edges_foldAngle }) => edges_foldAngle
+  const make_edges_assignment$1 = ({ edges_foldAngle }) => edges_foldAngle
     .map(a => {
       if (a === 0) { return "F"; }
       return a < 0 ? "M" : "V";
@@ -3320,7 +3340,7 @@
     make_edges_faces_unsorted: make_edges_faces_unsorted,
     make_edges_faces: make_edges_faces,
     make_edges_foldAngle: make_edges_foldAngle,
-    make_edges_assignment: make_edges_assignment,
+    make_edges_assignment: make_edges_assignment$1,
     make_edges_coords: make_edges_coords,
     make_edges_vector: make_edges_vector,
     make_edges_length: make_edges_length,
@@ -4065,7 +4085,7 @@
   const unassigned_angle = { U: true, u: true };
   const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
     if (!edges_assignment && edges_foldAngle) {
-      edges_assignment = make_edges_assignment({ edges_foldAngle });
+      edges_assignment = make_edges_assignment$1({ edges_foldAngle });
     }
     if (!edges_foldAngle) {
       if (edges_assignment) {
@@ -7708,8 +7728,11 @@
   };
   const STYLE_FOLDED = {};
   const STYLE_FLAT = {
+  	M: { stroke: "red" },
   	m: { stroke: "red" },
+  	V: { stroke: "blue" },
   	v: { stroke: "blue" },
+  	F: { stroke: "lightgray" },
   	f: { stroke: "lightgray" },
   };
   const edges_assignment_indices = (graph) => {
@@ -7773,6 +7796,46 @@
   	apply_style$2(group, attributes.stroke ? { stroke: attributes.stroke } : {});
   	return group;
   };
+  const angle_to_opacity = (foldAngle) => (Math.abs(foldAngle) / 180);
+  const edges_lines = (graph, attributes = {}) => {
+  	const group = root.svg.g();
+  	if (!graph) { return group; }
+  	const isFolded = is_folded_form(graph);
+  	const edges_assignment = (graph.edges_assignment
+  		? graph.edges_assignment
+  		: make_edges_assignment(graph))
+  		.map(assign => edges_assignment_to_lowercase[assign]);
+  	const groups_by_key = {};
+  	["b", "m", "v", "f", "u"].forEach(k => {
+  		const child_group = root.svg.g();
+  		group.appendChild(child_group);
+  		child_group.setAttributeNS(null, _class$1, edges_assignment_names[k]);
+  		apply_style$2(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
+  		apply_style$2(child_group, attributes[edges_assignment_names[k]]);
+  		Object.defineProperty(group, edges_assignment_names[k], {
+  			get: () => child_group
+  		});
+  		groups_by_key[k] = child_group;
+  	});
+  	const lines = graph.edges_vertices
+  		.map(ev => ev.map(v => graph.vertices_coords[v]))
+  		.map(l => root.svg.line(l[0][0], l[0][1], l[1][0], l[1][1]));
+  	if (graph.edges_foldAngle) {
+  		lines.forEach((line, i) => {
+  			const angle = graph.edges_foldAngle[i];
+  			if (angle === 0 || angle === 180 || angle === -180) { return;}
+  			line.setAttributeNS(null, "opacity", angle_to_opacity(angle));
+  		});
+  	}
+  	lines.forEach((line, i) => groups_by_key[edges_assignment[i]]
+  		.appendChild(line));
+  	apply_style$2(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+  	apply_style$2(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+  	return group;
+  };
+  const draw_edges = (graph, attributes) => edges_foldAngle_all_flat(graph)
+  	? edges_paths(graph, attributes)
+  	: edges_lines(graph, attributes);
 
   const FACE_STYLE_FOLDED_ORDERED = {
     back: { fill: _white },
@@ -7896,7 +7959,7 @@
       : faces_edges_polygon(graph, options));
   const svg_draw_func = {
     vertices: vertices_circle,
-    edges: edges_paths,
+    edges: draw_edges,
     faces: faces_draw_function,
     boundaries: boundaries_polygon
   };
@@ -8027,9 +8090,9 @@
   const _arrow = "arrow";
   const _head = "head";
   const _tail = "tail";
-  const isBrowser$1 = typeof window !== _undefined
+  const isBrowser = typeof window !== _undefined
     && typeof window.document !== _undefined;
-  const isNode$1 = typeof process !== _undefined
+  const isNode = typeof process !== _undefined
     && process.versions != null
     && process.versions.node != null;
   const isWebWorker = typeof self === _object
@@ -8037,19 +8100,19 @@
     && self.constructor.name === "DedicatedWorkerGlobalScope";
   var detect = Object.freeze({
     __proto__: null,
-    isBrowser: isBrowser$1,
-    isNode: isNode$1,
+    isBrowser: isBrowser,
+    isNode: isNode,
     isWebWorker: isWebWorker
   });
   const htmlString$1 = "<!DOCTYPE html><title>.</title>";
   const Window$1 = (function () {
     let win = {};
-    if (isNode$1) {
+    if (isNode) {
       const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
       win.DOMParser = DOMParser;
       win.XMLSerializer = XMLSerializer;
       win.document = new DOMParser().parseFromString(htmlString$1, "text/html");
-    } else if (isBrowser$1) {
+    } else if (isBrowser) {
       win = window;
     }
     return win;
@@ -8668,7 +8731,7 @@
     && /^[\w,\s-]+\.[A-Za-z]{3}$/.test(input)
     && input.length < 10000;
   const Load = input => (isFilename(input)
-    && isBrowser$1
+    && isBrowser
     && typeof Window$1.fetch === _function
     ? async(input)
     : sync(input));
@@ -8768,7 +8831,7 @@
     }
     const source = (new Window$1.XMLSerializer()).serializeToString(svg);
     const formattedString = vkXML(source);
-    if (options.download && isBrowser$1 && !isNode$1) {
+    if (options.download && isBrowser && !isNode) {
       downloadInBrowser(options.filename, formattedString);
     }
     return (options.output === _svg ? svg : formattedString);
@@ -9134,8 +9197,6 @@
   const applyControlsToSVG = (svg) => {
     svg.controls = (...args) => controls.call(svg, svg, ...args);
   };
-  const ElementConstructor = (new Window$1.DOMParser())
-    .parseFromString("<div />", "text/xml").documentElement.constructor;
   var svgDef = {
     svg: {
       args: (...args) => [viewBox$1(coordinates(...args))].filter(a => a != null),
@@ -9144,7 +9205,6 @@
         args.filter(a => typeof a === _string)
           .forEach(string => loadSVG(element, string));
         args.filter(a => a != null)
-          .filter(arg => arg instanceof ElementConstructor)
           .filter(el => typeof el.appendChild === _function)
           .forEach(parent => parent.appendChild(element));
         TouchEvents(element);
@@ -9894,21 +9954,15 @@
     detect,
   }, Case, classMethods, dom, algebra, methods$1, viewBox);
 
-  const isBrowser = typeof window !== _undefined$1
-    && typeof window.document !== _undefined$1;
-  const isNode = typeof process !== _undefined$1
-    && process.versions != null
-    && process.versions.node != null;
-
   const htmlString = "<!DOCTYPE html><title>.</title>";
   const Window = (function () {
     let win = {};
-    if (isNode) {
+    if (isNode$1) {
       const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
       win.DOMParser = DOMParser;
       win.XMLSerializer = XMLSerializer;
       win.document = new DOMParser().parseFromString(htmlString, "text/html");
-    } else if (isBrowser) {
+    } else if (isBrowser$1) {
       win = window;
     }
     return win;
@@ -10050,8 +10104,10 @@
   	enumerable: false,
   	value: use.bind(ear$1),
   });
-  ear$1.use(FOLDtoSVG);
-  ear$1.use(SVG);
+  if (!isWebWorker$1) {
+    ear$1.use(FOLDtoSVG);
+    ear$1.use(SVG);
+  }
 
   return ear$1;
 

@@ -1180,8 +1180,6 @@ const applyControlsToSVG = (svg) => {
   svg.controls = (...args) => controls.call(svg, svg, ...args);
 };
 
-const ElementConstructor = (new Window.DOMParser())
-  .parseFromString("<div />", "text/xml").documentElement.constructor;
 var svgDef = {
   svg: {
     args: (...args) => [viewBox$1(coordinates(...args))].filter(a => a != null),
@@ -1190,7 +1188,6 @@ var svgDef = {
       args.filter(a => typeof a === _string)
         .forEach(string => loadSVG(element, string));
       args.filter(a => a != null)
-        .filter(arg => arg instanceof ElementConstructor)
         .filter(el => typeof el.appendChild === _function)
         .forEach(parent => parent.appendChild(element));
       TouchEvents(element);
