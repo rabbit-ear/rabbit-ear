@@ -808,7 +808,7 @@ const counter_clockwise_order_radians = function () {
 };
 const counter_clockwise_order2 = function () {
   return counter_clockwise_order_radians(
-    get_vector_of_vectors(arguments).map(fn_vec2_angle)
+    semi_flatten_arrays(arguments).map(fn_vec2_angle)
   );
 };
 const counter_clockwise_sectors_radians = function () {

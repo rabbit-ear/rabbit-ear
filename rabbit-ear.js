@@ -832,7 +832,7 @@
   };
   const counter_clockwise_order2 = function () {
     return counter_clockwise_order_radians(
-      get_vector_of_vectors(arguments).map(fn_vec2_angle)
+      semi_flatten_arrays$1(arguments).map(fn_vec2_angle)
     );
   };
   const counter_clockwise_sectors_radians = function () {
@@ -4272,7 +4272,28 @@
       .shift();
     return (face === undefined ? undefined : face.i);
   };
-  const nearest_face = face_containing_point;
+  const nearest_face = (graph, point) => {
+    const face = face_containing_point(graph, point);
+    if (face !== undefined) { return face; }
+    if (graph.edges_faces) {
+      const edge = nearest_edge(graph, point);
+      const faces = graph.edges_faces[edge];
+      if (faces.length === 1) { return faces[0]; }
+      if (faces.length > 1) {
+        const faces_center = make_faces_center_quick({
+          vertices_coords: graph.vertices_coords,
+          faces_vertices: faces.map(f => graph.faces_vertices[f])
+        });
+        const distances = faces_center
+          .map(center => math.core.distance(center, point));
+        let shortest = 0;
+        for (let i = 0; i < distances.length; i++) {
+          if (distances[i] < distances[shortest]) { shortest = i; }
+        }
+        return faces[shortest];
+      }
+    }
+  };
 
   var nearest = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -4655,23 +4676,16 @@
     fragment,
     subgraph,
     assign: assign$1,
+    addVertices: add_vertices,
+    splitEdge: split_edge,
+    faceSpanningTree: make_face_spanning_tree,
+    explodeFaces: explode_faces,
   },
     transform,
   );
   Object.keys(graphMethods).forEach(key => {
     Graph.prototype[key] = function () {
       return graphMethods[key](this, ...arguments);
-    };
-  });
-  const graphMethodsRenamed = {
-    addVertices: add_vertices,
-    splitEdge: split_edge,
-    faceSpanningTree: make_face_spanning_tree,
-    explodeFaces: explode_faces,
-  };
-  Object.keys(graphMethodsRenamed).forEach(key => {
-    Graph.prototype[key] = function () {
-      return graphMethodsRenamed[key](this, ...arguments);
     };
   });
   Graph.prototype.splitFace = function (face, ...args) {
@@ -4681,26 +4695,24 @@
   Graph.prototype.copy = function () {
     return Object.assign(Object.create(this.__proto__), clone(this));
   };
-  Graph.prototype.load = function (object, options = {}) {
-    if (typeof object !== _object$1) { return; }
-    if (options.append !== true) {
-      keys.forEach(key => delete this[key]);
-    }
-    Object.assign(this, { file_spec, file_creator }, clone(object));
-  };
   Graph.prototype.clear = function () {
     fold_keys.graph.forEach(key => delete this[key]);
     fold_keys.orders.forEach(key => delete this[key]);
     delete this.file_frames;
+    return this;
+  };
+  Graph.prototype.boundingBox = function () {
+    return math.rect.fromPoints(this.vertices_coords);
   };
   Graph.prototype.unitize = function () {
     if (!this.vertices_coords) { return; }
     const box = math.core.bounding_box(this.vertices_coords);
-    const scale = box.span.map(n => n === 0 ? 1 : 1 / n);
+    const longest = Math.max(...box.span);
+    const scale = longest === 0 ? 1 : (1 / longest);
     const origin = box.min;
     this.vertices_coords = this.vertices_coords
       .map(coord => math.core.subtract(coord, origin))
-      .map(coord => coord.map((n, i) => n * scale[i]));
+      .map(coord => coord.map((n, i) => n * scale));
     return this;
   };
   Graph.prototype.folded = function () {
@@ -4754,7 +4766,7 @@
   const nearestMethods = {
     vertices: nearest_vertex,
     edges: nearest_edge,
-    faces: face_containing_point,
+    faces: nearest_face,
   };
   Graph.prototype.nearest = function () {
     const point = math.core.get_vector(arguments);
@@ -6134,12 +6146,12 @@
     const results = axiom3(params.lines[0], params.lines[1]);
     const results_clip = results
       .map(line => line === undefined ? undefined : math.core
-        .intersect_convex_polygon_line(
-          boundary,
-          line.vector,
-          line.origin,
-          ear.math.include_s,
-          ear.math.exclude_l));
+      .clip_line_in_convex_polygon(
+        boundary,
+        line.vector,
+        line.origin,
+        math.core.include,
+        math.core.include_l));
     const results_inside = [0, 1].map((i) => results_clip[i] !== undefined);
     const seg0Reflect = results
       .map((foldLine, i) => foldLine === undefined ? undefined : [
@@ -7295,12 +7307,12 @@
         .map(n => n === -1 ? 1 : 0)
         .reduce((a, b) => a + b, 0));
     const layers_face = [];
-    const num_faces = parent_face_counts.length;
+    const num_faces = parent_face_counts.filter(a => a != null).length;
     for (let i = 0; i < num_faces; i++) {
       let top_face = parent_face_counts.indexOf(0);
       if (top_face === -1) {
         console.warn("cycle detected");
-        return [];
+        return undefined;
       }
       layers_face.push(top_face);
       matrix[top_face].forEach((dir, i) => {
@@ -7310,17 +7322,34 @@
     }
     return layers_face.reverse();
   };
+  const complete_topological_order = (graph, layers_face) => {
+    const faces_layer = invert_map(layers_face);
+    const missed_faces = graph.faces_vertices
+      .map((_, f) => faces_layer[f] === undefined ? f : undefined)
+      .filter(a => a !== undefined);
+    faces_layer.reduce((a, b) => a > b ? a : b, 0);
+    missed_faces.forEach((face, i) => { faces_layer[face] = i + 1; });
+    return faces_layer;
+  };
+
+  var topological_order$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    topological_order: topological_order,
+    complete_topological_order: complete_topological_order
+  });
 
   const make_faces_layer = (graph, epsilon) => {
-    return invert_map(topological_order(one_layer_conditions(graph, epsilon)));
+    const layers_face = topological_order(one_layer_conditions(graph, epsilon));
+    if (layers_face === undefined) { return []; }
+    return complete_topological_order(graph, layers_face);
   };
 
-  const make_faces_layers = (graph, epsilon) => {
-    const conditions = all_layer_conditions(graph, epsilon);
-    return conditions
+  const make_faces_layers = (graph, epsilon) =>
+    all_layer_conditions(graph, epsilon)
       .map(topological_order)
-      .map(invert_map);
-  };
+      .map(layers_face => layers_face === undefined
+        ? []
+        : complete_topological_order(graph, layers_face));
 
   const make_faces_layers_async = (graph, epsilon, timeout = 2000) => {
     var timer = new Promise((resolve, reject) => {
@@ -7415,7 +7444,6 @@
   	validate_taco_taco_face_pairs,
   	validate_taco_tortilla_strip,
   	table: slow_lookup,
-  	topological_order,
   	make_conditions,
   	conditions_to_matrix,
   	make_tacos_tortillas,
@@ -7426,6 +7454,7 @@
   	general_global_solver,
   	edges_assignments,
   	dividing_axis$1,
+  	topological_order$1,
   	tortilla_tortilla,
   	fold_assignments,
   );
@@ -8316,9 +8345,6 @@
           : a));
     }
   };
-  const flatten_arrays = function () {
-    return semi_flatten_arrays(arguments).reduce((a, b) => a.concat(b), []);
-  };
   var coordinates = (...args) => {
     return args.filter(a => typeof a === _number)
       .concat(
@@ -8436,7 +8462,7 @@
     return element;
   };
   const setPoints$3 = (element, ...args) => {
-    element.options.points = coordinates(...flatten_arrays(...args)).slice(0, 4);
+    element.options.points = coordinates(...semi_flatten_arrays(...args)).slice(0, 4);
     return redraw(element);
   };
   const bend$1 = (element, amount) => {
@@ -8527,6 +8553,9 @@
       methods: methods$5,
       init,
     }
+  };
+  const flatten_arrays = function () {
+    return semi_flatten_arrays(arguments).reduce((a, b) => a.concat(b), []);
   };
   const makeCurvePath = (endpoints = [], bend = 0, pinch = 0.5) => {
     const tailPt = [endpoints[0] || 0, endpoints[1] || 0];

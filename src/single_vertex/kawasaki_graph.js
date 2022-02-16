@@ -5,6 +5,7 @@ import math from "../math";
 import { kawasaki_solutions_vectors } from "./kawasaki_math";
 import { make_edges_vector } from "../graph/make";
 
+// todo: this is doing too much work in preparation
 export const kawasaki_solutions = ({ vertices_coords, vertices_edges, edges_vertices, edges_vectors }, vertex) => {
   // to calculate Kawasaki's theorem, we need the 3 edges
   // as vectors, and we need them sorted radially.

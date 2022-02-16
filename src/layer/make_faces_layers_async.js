@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import { all_layer_conditions } from "./global_solver/index";
-import topological_order from "./global_solver/topological_order";
+import { topological_order } from "./global_solver/topological_order";
 import { invert_map } from "../graph/maps";
 /**
  * @description for a flat-foldable origami, this will return
@@ -19,6 +19,7 @@ const make_faces_layers_async = (graph, epsilon, timeout = 2000) => {
   var solver = new Promise((resolve, reject) => resolve(
     all_layer_conditions(graph, epsilon)));
   return Promise.race([solver, timer])
+  // todo this is broken now, toplogical order needs to use complete_topological_order.
     .then((value) => value.map(topological_order).map(invert_map))
     .catch((err) => {
       console.warn("make_faces_layers_async timeout. to increase timeout, use third parameter (graph, epsilon, timeout)");

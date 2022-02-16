@@ -47,14 +47,22 @@ const validate_axiom3 = (params, boundary) => {
   // test A:
   // make sure the results themselves lie in the polygon
   // exclusive! an exterior line collinear to polygon's point is excluded
+  // const results_clip = results
+  //   .map(line => line === undefined ? undefined : math.core
+  //     .intersect_convex_polygon_line(
+  //       boundary,
+  //       line.vector,
+  //       line.origin,
+  //       ear.math.include_s,
+  //       ear.math.exclude_l));
   const results_clip = results
     .map(line => line === undefined ? undefined : math.core
-      .intersect_convex_polygon_line(
-        boundary,
-        line.vector,
-        line.origin,
-        ear.math.include_s,
-        ear.math.exclude_l));
+    .clip_line_in_convex_polygon(
+      boundary,
+      line.vector,
+      line.origin,
+      math.core.include,
+      math.core.include_l));
   const results_inside = [0, 1].map((i) => results_clip[i] !== undefined);
   // test B:
   // make sure that for each of the results, the result lies between two

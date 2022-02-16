@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
+import { make_faces_center_quick } from "./make";
 /**
  * @returns index of nearest vertex in vertices_ arrays or
  * this is the only one of the nearest_ functions that works in 3-dimensions
@@ -35,11 +36,8 @@ export const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
       math.core.segment_limiter));
   return math.core.smallest_comparison_search(point, nearest_points, math.core.distance);
 };
-
-// todo: expand this. point on edge of face doesn't return face.
 /**
  * from a planar perspective, ignoring z components
- *
  */
 export const face_containing_point = ({ vertices_coords, faces_vertices }, point) => {
   if (!vertices_coords || !faces_vertices) { return undefined; }
@@ -50,5 +48,25 @@ export const face_containing_point = ({ vertices_coords, faces_vertices }, point
   return (face === undefined ? undefined : face.i);
 };
 
-export const nearest_face = face_containing_point;
-
+export const nearest_face = (graph, point) => {
+  const face = face_containing_point(graph, point);
+  if (face !== undefined) { return face; }
+  if (graph.edges_faces) {
+    const edge = nearest_edge(graph, point);
+    const faces = graph.edges_faces[edge];
+    if (faces.length === 1) { return faces[0]; }
+    if (faces.length > 1) {
+      const faces_center = make_faces_center_quick({
+        vertices_coords: graph.vertices_coords,
+        faces_vertices: faces.map(f => graph.faces_vertices[f])
+      });
+      const distances = faces_center
+        .map(center => math.core.distance(center, point));
+      let shortest = 0;
+      for (let i = 0; i < distances.length; i++) {
+        if (distances[i] < distances[shortest]) { shortest = i; }
+      }
+      return faces[shortest];
+    }
+  }
+};

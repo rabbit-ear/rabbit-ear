@@ -22,10 +22,7 @@ import populate from "../graph/populate";
 import fragment from "../graph/fragment";
 import assign from "../graph/assign";
 import subgraph from "../graph/subgraph";
-import {
-//   bounding_rect,
-  get_boundary,
-} from "../graph/boundary";
+import { get_boundary } from "../graph/boundary";
 import transform from "../graph/affine";
 import {
   make_vertices_coords_folded,
@@ -33,19 +30,16 @@ import {
 } from "../graph/vertices_coords_folded";
 import { make_face_spanning_tree } from "../graph/face_spanning_tree";
 import { multiply_vertices_faces_matrix2 } from "../graph/faces_matrix";
-// import make_faces_layer from "../graph/make_faces_layer";
 import explode_faces from "../graph/explode_faces";
 import {
   nearest_vertex,
   nearest_edge,
-  face_containing_point,
+  nearest_face,
 } from "../graph/nearest";
 import clone from "../general/clone";
 import add_vertices from "../graph/add/add_vertices";
 import split_edge from "../graph/split_edge/index";
 import split_face from "../graph/split_face/index";
-
-// import changed from "./changed";
 /**
  * Graph - a flat-array, index-based graph with faces, edges, and vertices
  * with ability for vertices to exist in Euclidean space.
@@ -65,37 +59,22 @@ const graphMethods = Object.assign({
   fragment,
   subgraph,
   assign,
+  // convert snake_case to camelCase
+  addVertices: add_vertices,
+  splitEdge: split_edge,
+  faceSpanningTree: make_face_spanning_tree,
+  explodeFaces: explode_faces,
 },
   transform,
 );
-
 Object.keys(graphMethods).forEach(key => {
   Graph.prototype[key] = function () {
     return graphMethods[key](this, ...arguments);
   }
 });
-
-// // Graph.prototype.count = {};
-// ["vertices", "edges", "faces"].forEach(key => {
-//   Graph.prototype.count[key] = function () {
-//     console.log(this);
-//     return count[key](this, ...arguments);
-//   }
-//   Graph.prototype.count[key].bind(Graph.prototype); 
-// });
-
-// todo: need a snake to camel case conversion, merge with graphMethods above
-const graphMethodsRenamed = {
-  addVertices: add_vertices,
-  splitEdge: split_edge,
-  faceSpanningTree: make_face_spanning_tree,
-  explodeFaces: explode_faces,
-};
-Object.keys(graphMethodsRenamed).forEach(key => {
-  Graph.prototype[key] = function () {
-    return graphMethodsRenamed[key](this, ...arguments);
-  }
-});
+/**
+ * methods below here need some kind of pre-processing of their arguments
+ */
 Graph.prototype.splitFace = function (face, ...args) {
   const line = math.core.get_line(...args);
   return split_face(this, face, line.vector, line.origin);
@@ -112,35 +91,59 @@ Graph.prototype.copy = function () {
  * @param {options}
  *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
  */
-Graph.prototype.load = function (object, options = {}) {
-  if (typeof object !== S._object) { return; }
-  if (options.append !== true) {
-    keys.forEach(key => delete this[key]);
-  }
-  // allow overwriting of file_spec and file_creator if included in import
-  Object.assign(this, { file_spec, file_creator }, clone(object));
-};
+// Graph.prototype.load = function (object, options = {}) {
+//   if (typeof object !== S._object) { return; }
+//   if (options.append !== true) {
+//     keys.forEach(key => delete this[key]);
+//   }
+//   // allow overwriting of file_spec and file_creator if included in import
+//   Object.assign(this, { file_spec, file_creator }, clone(object));
+// };
 /**
- * this clears all components from the graph, leaving other keys untouched.
+ * this clears all components from the graph, leaving metadata and other
+ * keys untouched.
  */
 Graph.prototype.clear = function () {
   fold_keys.graph.forEach(key => delete this[key]);
   fold_keys.orders.forEach(key => delete this[key]);
-  // avoiding all "file_" keys, but file_frames will contain geometry
+  // the code above just avoided deleting all "file_" keys,
+  // however, file_frames needs to be removed as it contains geometry.
   delete this.file_frames;
+  return this;
 };
-// todo: broken. squishes
+/**
+ * @description get the axis-aligned bounding rectangle that encloses
+ * all the vertices of the graph. not only the boundary vertices.
+ */
+Graph.prototype.boundingBox = function () {
+  return math.rect.fromPoints(this.vertices_coords);
+};
+/**
+ * @description alter the vertices by moving the corner of the graph
+ * to the origin and shrink or expand the vertices until they
+ * aspect fit inside the unit square.
+ */
 Graph.prototype.unitize = function () {
   if (!this.vertices_coords) { return; }
-  // todo: check if 2D or 3D
   const box = math.core.bounding_box(this.vertices_coords);
-  const scale = box.span.map(n => n === 0 ? 1 : 1 / n);
+  const longest = Math.max(...box.span);
+  const scale = longest === 0 ? 1 : (1 / longest);
   const origin = box.min;
   this.vertices_coords = this.vertices_coords
     .map(coord => math.core.subtract(coord, origin))
-    .map(coord => coord.map((n, i) => n * scale[i]));
+    .map(coord => coord.map((n, i) => n * scale));
   return this;
 };
+/**
+ * @description return a copy of this graph with the vertices folded.
+ * This method works for both 2D and 3D origami.
+ * The angle of the fold is searched for in this order:
+ * - faces_matrix2 if it exists
+ * - edges_foldAngle if it exists
+ * - edges_assignment if it exists
+ * Careful, repeated calls to this method will repeatedly fold the vertices
+ * resulting in a behavior that is surely unintended.
+ */
 Graph.prototype.folded = function () {
   const vertices_coords = this.faces_matrix2
     ? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
@@ -159,6 +162,14 @@ Graph.prototype.folded = function () {
   // delete copy.edges_vector;
   // return copy;
 };
+/**
+ * @description return a copy of this graph with the vertices folded.
+ * This method will work for 2D only.
+ * The angle of the fold is searched for in this order:
+ * - faces_matrix2 if it exists
+ * - edges_assignment or edges_foldAngle if it exists
+ * If neither exists, this method will assume that ALL edges are flat-folded.
+ */
 Graph.prototype.flatFolded = function () {
   const vertices_coords = this.faces_matrix2
     ? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
@@ -194,7 +205,7 @@ const getComponent = function (key) {
     enumerable: true,
     get: function () { return getComponent.call(this, key); }
   }));
- 
+
 // todo: get boundaries, plural
 // get boundary. only if the edges_assignment
 Object.defineProperty(Graph.prototype, S._boundary, {
@@ -212,28 +223,13 @@ Object.defineProperty(Graph.prototype, S._boundary, {
 const nearestMethods = {
   vertices: nearest_vertex,
   edges: nearest_edge,
-  faces: face_containing_point,
+  faces: nearest_face,
 };
-
-// // bind FOLD graph to "this"
-// // key is "vertices" "edges" or "faces"
-// const nearestElement = function (key, ...args) {
-//   const point = math.core.get_vector(...args);
-//   const index = nearestMethods[key](this, point);
-//   const result = transpose_graph_array_at_index(this, key, index);
-//   setup[key].call(this, result, index);
-//   result.index = index;
-//   return result;
-// };
-// Graph.prototype.nearest = function () {
-//   const nears = Object.create(null);
-//   ["vertices", "edges", "faces"]
-//     .forEach(key => Object.defineProperty(nears, singularize[key], {
-//       get: () => nearestElement.call(this, key, ...arguments)
-//     }));
-//   return nears;
-// };
-
+/**
+ * @description given a point, this will return the nearest vertex, edge,
+ * and face, as well as the nearest entry inside all of the "vertices_",
+ * "edges_", and "faces_" arrays.
+ */
 Graph.prototype.nearest = function () {
   const point = math.core.get_vector(arguments);
   const nears = Object.create(null);
@@ -257,4 +253,3 @@ Graph.prototype.nearest = function () {
 };
 
 export default Graph.prototype;
-
