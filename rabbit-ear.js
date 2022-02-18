@@ -2625,6 +2625,315 @@
     fold_object_certainty: fold_object_certainty
   });
 
+  const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
+    const degree = a.length;
+    for (let i = 0; i < degree; i += 1) {
+      if (Math.abs(a[i] - b[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const get_vertices_clusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+    const equivalent_matrix = vertices_coords.map(() => []);
+    for (let i = 0; i < vertices_coords.length - 1; i += 1) {
+      for (let j = i + 1; j < vertices_coords.length; j += 1) {
+        equivalent_matrix[i][j] = are_vertices_equivalent(
+          vertices_coords[i],
+          vertices_coords[j],
+          epsilon
+        );
+      }
+    }
+    const vertices_equivalent = equivalent_matrix
+      .map(equiv => equiv
+        .map((el, j) => (el ? j : undefined))
+        .filter(a => a !== undefined));
+    const clusters = [];
+    const visited = Array(vertices_coords.length).fill(false);
+    let visitedCount = 0;
+    const recurse = (cluster_index, i) => {
+      if (visited[i] || visitedCount === vertices_coords.length) { return; }
+      visited[i] = true;
+      visitedCount += 1;
+      if (!clusters[cluster_index]) { clusters[cluster_index] = []; }
+      clusters[cluster_index].push(i);
+      while (vertices_equivalent[i].length > 0) {
+        recurse(cluster_index, vertices_equivalent[i][0]);
+        vertices_equivalent[i].splice(0, 1);
+      }
+    };
+    for (let i = 0; i < vertices_coords.length; i += 1) {
+      recurse(i, i);
+      if (visitedCount === vertices_coords.length) { break; }
+    }
+    return clusters.filter(a => a.length);
+  };
+
+  const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
+    .filter(el => el !== undefined)
+    .map(el => el.length)));
+  const count = (graph, key) => max_arrays_length(...get_graph_keys_with_prefix(graph, key).map(key => graph[key]));
+  count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
+    max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
+  count.edges = ({ edges_vertices, edges_edges, edges_faces }) =>
+    max_arrays_length(edges_vertices, edges_edges, edges_faces);
+  count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
+    max_arrays_length(faces_vertices, faces_edges, faces_faces);
+
+  const fn_and = (a, b) => a && b;
+  const fn_cat = (a, b) => a.concat(b);
+  const fn_def = a => a !== undefined;
+  const fn_add = (a, b) => a + b;
+
+  const unique_sorted_integers = (array) => {
+    const keys = {};
+    array.forEach((int) => { keys[int] = true; });
+    return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
+  };
+  const split_circular_array = (array, indices) => {
+    indices.sort((a, b) => a - b);
+    return [
+      array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+      array.slice(indices[0], indices[1] + 1)
+    ];
+  };
+  const get_longest_array = (arrays) => {
+    if (arrays.length === 1) { return arrays[0]; }
+    const lengths = arrays.map(arr => arr.length);
+    let max = 0;
+    for (let i = 0; i < arrays.length; i++) {
+      if (lengths[i] > lengths[max]) {
+        max = i;
+      }
+    }
+    return arrays[max];
+  };
+  const remove_single_instances = (array) => {
+    const count = {};
+    array.forEach(n => {
+      if (count[n] === undefined) { count[n] = 0; }
+      count[n]++;
+    });
+    return array.filter(n => count[n] > 1);
+  };
+  const boolean_matrix_to_indexed_array = matrix => matrix
+    .map(row => row
+      .map((value, i) => value === true ? i : undefined)
+      .filter(fn_def));
+  const boolean_matrix_to_unique_index_pairs = matrix => {
+    const pairs = [];
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix.length; j++) {
+        if (matrix[i][j]) {
+          pairs.push([i, j]);
+        }
+      }
+    }
+    return pairs;
+  };
+  const make_unique_sets_from_self_relational_arrays = (matrix) => {
+    const groups = [];
+    const recurse = (index, current_group) => {
+      if (groups[index] !== undefined) { return 0; }
+      groups[index] = current_group;
+      matrix[index].forEach(i => recurse(i, current_group));
+      return 1;
+    };
+    for (let row = 0, group = 0; row < matrix.length; row++) {
+      if (!(row in matrix)) { continue; }
+      group += recurse(row, group);
+    }
+    return groups;
+  };
+  const make_triangle_pairs = (array) => {
+    const pairs = Array((array.length * (array.length - 1)) / 2);
+    let index = 0;
+    for (let i = 0; i < array.length - 1; i++) {
+      for (let j = i + 1; j < array.length; j++, index++) {
+        pairs[index] = [array[i], array[j]];
+      }
+    }
+    return pairs;
+  };
+  const circular_array_valid_ranges = (array) => {
+    const not_undefineds = array.map(el => el !== undefined);
+    if (not_undefineds.reduce((a, b) => a && b, true)) {
+      return [[0, array.length - 1]];
+    }
+    const first_not_undefined = not_undefineds
+      .map((el, i, arr) => el && !arr[(i - 1 + arr.length) % arr.length]);
+    const total = first_not_undefined.reduce((a, b) => a + (b ? 1 : 0), 0);
+    const starts = Array(total);
+    const counts = Array(total).fill(0);
+    let index = not_undefineds[0] && not_undefineds[array.length-1]
+      ? 0
+      : (total - 1);
+    not_undefineds.forEach((el, i) => {
+      index = (index + (first_not_undefined[i] ? 1 : 0)) % counts.length;
+      counts[index] += not_undefineds[i] ? 1 : 0;
+      if (first_not_undefined[i]) { starts[index] = i; }
+    });
+    return starts.map((s, i) => [s, (s + counts[i] - 1) % array.length]);
+  };
+
+  var arrays = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    unique_sorted_integers: unique_sorted_integers,
+    split_circular_array: split_circular_array,
+    get_longest_array: get_longest_array,
+    remove_single_instances: remove_single_instances,
+    boolean_matrix_to_indexed_array: boolean_matrix_to_indexed_array,
+    boolean_matrix_to_unique_index_pairs: boolean_matrix_to_unique_index_pairs,
+    make_unique_sets_from_self_relational_arrays: make_unique_sets_from_self_relational_arrays,
+    make_triangle_pairs: make_triangle_pairs,
+    circular_array_valid_ranges: circular_array_valid_ranges
+  });
+
+  const remove_geometry_indices = (graph, key, removeIndices) => {
+    const geometry_array_size = count(graph, key);
+    const removes = unique_sorted_integers(removeIndices);
+    const index_map = [];
+    let i, j, walk;
+    for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
+      while (i === removes[walk]) {
+  			index_map[i] = undefined;
+        i += 1;
+        walk += 1;
+      }
+      if (i < geometry_array_size) { index_map[i] = j; }
+    }
+    get_graph_keys_with_suffix(graph, key)
+      .forEach(sKey => graph[sKey]
+        .forEach((_, i) => graph[sKey][i]
+          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+    removes.reverse();
+    get_graph_keys_with_prefix(graph, key)
+      .forEach((prefix_key) => removes
+        .forEach(index => graph[prefix_key]
+          .splice(index, 1)));
+    return index_map;
+  };
+
+  const replace_geometry_indices = (graph, key, replaceIndices) => {
+    const geometry_array_size = count(graph, key);
+    const removes = Object.keys(replaceIndices).map(n => parseInt(n));
+    const replaces = unique_sorted_integers(removes);
+    const index_map = [];
+    let i, j, walk;
+    for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
+      while (i === replaces[walk]) {
+  			index_map[i] = replaceIndices[replaces[walk]];
+        i += 1;
+        walk += 1;
+      }
+      if (i < geometry_array_size) { index_map[i] = j; }
+    }
+    get_graph_keys_with_suffix(graph, key)
+      .forEach(sKey => graph[sKey]
+        .forEach((_, i) => graph[sKey][i]
+          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+    replaces.reverse();
+    get_graph_keys_with_prefix(graph, key)
+      .forEach((prefix_key) => replaces
+        .forEach(index => graph[prefix_key]
+          .splice(index, 1)));
+    return index_map;
+  };
+
+  const get_duplicate_vertices = (graph, epsilon) => {
+  	return get_vertices_clusters(graph, epsilon)
+  		.filter(arr => arr.length > 1);
+  };
+  const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
+    edges_vertices.forEach((ev) => {
+      ev.filter(v => !seen[v]).forEach((v) => {
+        seen[v] = true;
+        count -= 1;
+      });
+    });
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
+    faces_vertices.forEach((fv) => {
+      fv.filter(v => !seen[v]).forEach((v) => {
+        seen[v] = true;
+        count -= 1;
+      });
+    });
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
+    if (edges_vertices) {
+      edges_vertices.forEach((ev) => {
+        ev.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
+    }
+    if (faces_vertices) {
+      faces_vertices.forEach((fv) => {
+        fv.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
+    }
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const remove_isolated_vertices = (graph, remove_indices) => {
+    if (!remove_indices) {
+      remove_indices = get_isolated_vertices(graph);
+    }
+    return {
+      map: remove_geometry_indices(graph, _vertices, remove_indices),
+      remove: remove_indices,
+    };
+  };
+  const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
+    const replace_indices = [];
+    const remove_indices = [];
+    const clusters = get_vertices_clusters(graph, epsilon)
+      .filter(arr => arr.length > 1);
+    clusters.forEach(cluster => {
+      for (let i = 1; i < cluster.length; i++) {
+        replace_indices[cluster[i]] = cluster[0];
+        remove_indices.push(cluster[i]);
+      }
+    });
+    clusters
+      .map(arr => arr.map(i => graph.vertices_coords[i]))
+      .map(arr => math.core.average(...arr))
+      .forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
+    return {
+      map: replace_geometry_indices(graph, _vertices, replace_indices),
+      remove: remove_indices,
+    }
+  };
+
+  var vertices_violations = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    get_duplicate_vertices: get_duplicate_vertices,
+    get_edge_isolated_vertices: get_edge_isolated_vertices,
+    get_face_isolated_vertices: get_face_isolated_vertices,
+    get_isolated_vertices: get_isolated_vertices,
+    remove_isolated_vertices: remove_isolated_vertices,
+    remove_duplicate_vertices: remove_duplicate_vertices
+  });
+
   const array_in_array_max_number = (arrays) => {
     let max = -1;
     arrays
@@ -3006,177 +3315,6 @@
     make_faces_center_quick: make_faces_center_quick
   });
 
-  const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
-    .filter(el => el !== undefined)
-    .map(el => el.length)));
-  const count = (graph, key) => max_arrays_length(...get_graph_keys_with_prefix(graph, key).map(key => graph[key]));
-  count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
-    max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
-  count.edges = ({ edges_vertices, edges_edges, edges_faces }) =>
-    max_arrays_length(edges_vertices, edges_edges, edges_faces);
-  count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
-    max_arrays_length(faces_vertices, faces_edges, faces_faces);
-
-  const fn_and = (a, b) => a && b;
-  const fn_cat = (a, b) => a.concat(b);
-  const fn_def = a => a !== undefined;
-  const fn_add = (a, b) => a + b;
-
-  const unique_sorted_integers = (array) => {
-    const keys = {};
-    array.forEach((int) => { keys[int] = true; });
-    return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
-  };
-  const split_circular_array = (array, indices) => {
-    indices.sort((a, b) => a - b);
-    return [
-      array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
-      array.slice(indices[0], indices[1] + 1)
-    ];
-  };
-  const get_longest_array = (arrays) => {
-    if (arrays.length === 1) { return arrays[0]; }
-    const lengths = arrays.map(arr => arr.length);
-    let max = 0;
-    for (let i = 0; i < arrays.length; i++) {
-      if (lengths[i] > lengths[max]) {
-        max = i;
-      }
-    }
-    return arrays[max];
-  };
-  const remove_single_instances = (array) => {
-    const count = {};
-    array.forEach(n => {
-      if (count[n] === undefined) { count[n] = 0; }
-      count[n]++;
-    });
-    return array.filter(n => count[n] > 1);
-  };
-  const boolean_matrix_to_indexed_array = matrix => matrix
-    .map(row => row
-      .map((value, i) => value === true ? i : undefined)
-      .filter(fn_def));
-  const boolean_matrix_to_unique_index_pairs = matrix => {
-    const pairs = [];
-    for (let i = 0; i < matrix.length - 1; i++) {
-      for (let j = i + 1; j < matrix.length; j++) {
-        if (matrix[i][j]) {
-          pairs.push([i, j]);
-        }
-      }
-    }
-    return pairs;
-  };
-  const make_unique_sets_from_self_relational_arrays = (matrix) => {
-    const groups = [];
-    const recurse = (index, current_group) => {
-      if (groups[index] !== undefined) { return 0; }
-      groups[index] = current_group;
-      matrix[index].forEach(i => recurse(i, current_group));
-      return 1;
-    };
-    for (let row = 0, group = 0; row < matrix.length; row++) {
-      if (!(row in matrix)) { continue; }
-      group += recurse(row, group);
-    }
-    return groups;
-  };
-  const make_triangle_pairs = (array) => {
-    const pairs = Array((array.length * (array.length - 1)) / 2);
-    let index = 0;
-    for (let i = 0; i < array.length - 1; i++) {
-      for (let j = i + 1; j < array.length; j++, index++) {
-        pairs[index] = [array[i], array[j]];
-      }
-    }
-    return pairs;
-  };
-  const circular_array_valid_ranges = (array) => {
-    const not_undefineds = array.map(el => el !== undefined);
-    if (not_undefineds.reduce((a, b) => a && b, true)) {
-      return [[0, array.length - 1]];
-    }
-    const first_not_undefined = not_undefineds
-      .map((el, i, arr) => el && !arr[(i - 1 + arr.length) % arr.length]);
-    const total = first_not_undefined.reduce((a, b) => a + (b ? 1 : 0), 0);
-    const starts = Array(total);
-    const counts = Array(total).fill(0);
-    let index = not_undefineds[0] && not_undefineds[array.length-1]
-      ? 0
-      : (total - 1);
-    not_undefineds.forEach((el, i) => {
-      index = (index + (first_not_undefined[i] ? 1 : 0)) % counts.length;
-      counts[index] += not_undefineds[i] ? 1 : 0;
-      if (first_not_undefined[i]) { starts[index] = i; }
-    });
-    return starts.map((s, i) => [s, (s + counts[i] - 1) % array.length]);
-  };
-
-  var arrays = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    unique_sorted_integers: unique_sorted_integers,
-    split_circular_array: split_circular_array,
-    get_longest_array: get_longest_array,
-    remove_single_instances: remove_single_instances,
-    boolean_matrix_to_indexed_array: boolean_matrix_to_indexed_array,
-    boolean_matrix_to_unique_index_pairs: boolean_matrix_to_unique_index_pairs,
-    make_unique_sets_from_self_relational_arrays: make_unique_sets_from_self_relational_arrays,
-    make_triangle_pairs: make_triangle_pairs,
-    circular_array_valid_ranges: circular_array_valid_ranges
-  });
-
-  const remove_geometry_indices = (graph, key, removeIndices) => {
-    const geometry_array_size = count(graph, key);
-    const removes = unique_sorted_integers(removeIndices);
-    const index_map = [];
-    let i, j, walk;
-    for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
-      while (i === removes[walk]) {
-  			index_map[i] = undefined;
-        i += 1;
-        walk += 1;
-      }
-      if (i < geometry_array_size) { index_map[i] = j; }
-    }
-    get_graph_keys_with_suffix(graph, key)
-      .forEach(sKey => graph[sKey]
-        .forEach((_, i) => graph[sKey][i]
-          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
-    removes.reverse();
-    get_graph_keys_with_prefix(graph, key)
-      .forEach((prefix_key) => removes
-        .forEach(index => graph[prefix_key]
-          .splice(index, 1)));
-    return index_map;
-  };
-
-  const replace_geometry_indices = (graph, key, replaceIndices) => {
-    const geometry_array_size = count(graph, key);
-    const removes = Object.keys(replaceIndices).map(n => parseInt(n));
-    const replaces = unique_sorted_integers(removes);
-    const index_map = [];
-    let i, j, walk;
-    for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
-      while (i === replaces[walk]) {
-  			index_map[i] = replaceIndices[replaces[walk]];
-        i += 1;
-        walk += 1;
-      }
-      if (i < geometry_array_size) { index_map[i] = j; }
-    }
-    get_graph_keys_with_suffix(graph, key)
-      .forEach(sKey => graph[sKey]
-        .forEach((_, i) => graph[sKey][i]
-          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
-    replaces.reverse();
-    get_graph_keys_with_prefix(graph, key)
-      .forEach((prefix_key) => replaces
-        .forEach(index => graph[prefix_key]
-          .splice(index, 1)));
-    return index_map;
-  };
-
   const get_circular_edges = ({ edges_vertices }) => {
     const circular = [];
     for (let i = 0; i < edges_vertices.length; i += 1) {
@@ -3252,146 +3390,98 @@
     remove_duplicate_edges: remove_duplicate_edges
   });
 
-  const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
-    const degree = a.length;
-    for (let i = 0; i < degree; i += 1) {
-      if (Math.abs(a[i] - b[i]) > epsilon) {
-        return false;
-      }
-    }
-    return true;
+  const merge_simple_nextmaps = (...maps) => {
+    if (maps.length === 0) { return; }
+  	const solution = maps[0].map((_, i) => i);
+  	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
+  	return solution;
   };
-  const get_vertices_clusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
-    const equivalent_matrix = vertices_coords.map(() => []);
-    for (let i = 0; i < vertices_coords.length - 1; i += 1) {
-      for (let j = i + 1; j < vertices_coords.length; j += 1) {
-        equivalent_matrix[i][j] = are_vertices_equivalent(
-          vertices_coords[i],
-          vertices_coords[j],
-          epsilon
-        );
-      }
-    }
-    const vertices_equivalent = equivalent_matrix
-      .map(equiv => equiv
-        .map((el, j) => (el ? j : undefined))
-        .filter(a => a !== undefined));
-    const clusters = [];
-    const visited = Array(vertices_coords.length).fill(false);
-    let visitedCount = 0;
-    const recurse = (cluster_index, i) => {
-      if (visited[i] || visitedCount === vertices_coords.length) { return; }
-      visited[i] = true;
-      visitedCount += 1;
-      if (!clusters[cluster_index]) { clusters[cluster_index] = []; }
-      clusters[cluster_index].push(i);
-      while (vertices_equivalent[i].length > 0) {
-        recurse(cluster_index, vertices_equivalent[i][0]);
-        vertices_equivalent[i].splice(0, 1);
-      }
-    };
-    for (let i = 0; i < vertices_coords.length; i += 1) {
-      recurse(i, i);
-      if (visitedCount === vertices_coords.length) { break; }
-    }
-    return clusters.filter(a => a.length);
+  const merge_nextmaps = (...maps) => {
+    if (maps.length === 0) { return; }
+  	const solution = maps[0].map((_, i) => [i]);
+  	maps.forEach(map => {
+  		solution.forEach((s, i) => s.forEach((indx,j) => { solution[i][j] = map[indx]; }));
+  		solution.forEach((arr, i) => {
+  			solution[i] = arr
+  				.reduce((a,b) => a.concat(b), [])
+  				.filter(a => a !== undefined);
+  		});
+  	});
+  	return solution;
   };
-
-  const get_duplicate_vertices = (graph, epsilon) => {
-  	return get_vertices_clusters(graph, epsilon)
-  		.filter(arr => arr.length > 1);
+  const merge_simple_backmaps = (...maps) => {
+    if (maps.length === 0) { return; }
+  	let solution = maps[0].map((_, i) => i);
+  	maps.forEach((map, i) => {
+  		const next = map.map(n => solution[n]);
+  	  solution = next;
+  	});
+    return solution;
   };
-  const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
-    let count = vertices_coords.length;
-    const seen = Array(count).fill(false);
-    edges_vertices.forEach((ev) => {
-      ev.filter(v => !seen[v]).forEach((v) => {
-        seen[v] = true;
-        count -= 1;
-      });
-    });
-    return seen
-      .map((s, i) => (s ? undefined : i))
-      .filter(a => a !== undefined);
+  const merge_backmaps = (...maps) => {
+    if (maps.length === 0) { return; }
+    let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
+    maps.forEach((map, i) => {
+  		let next = [];
+  	  map.forEach((el, j) => {
+        if (typeof el === _number$1) { next[j] = solution[el]; }
+  			else { next[j] = el.map(n => solution[n]).reduce((a,b) => a.concat(b), []); }
+  		});
+  		solution = next;
+  	});
+  	return solution;
   };
-  const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
-    let count = vertices_coords.length;
-    const seen = Array(count).fill(false);
-    faces_vertices.forEach((fv) => {
-      fv.filter(v => !seen[v]).forEach((v) => {
-        seen[v] = true;
-        count -= 1;
-      });
-    });
-    return seen
-      .map((s, i) => (s ? undefined : i))
-      .filter(a => a !== undefined);
+  const invert_map = (map) => {
+  	const inv = [];
+  	map.forEach((n, i) => {
+  		if (n == null) { return; }
+  		if (typeof n === _number$1) {
+  			if (inv[n] !== undefined) {
+  				if (typeof inv[n] === _number$1) { inv[n] = [inv[n], i]; }
+  				else { inv[n].push(i); }
+  			}
+  			else { inv[n] = i; }
+  		}
+      if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }
+  	});
+  	return inv;
   };
-  const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
-    let count = vertices_coords.length;
-    const seen = Array(count).fill(false);
-    if (edges_vertices) {
-      edges_vertices.forEach((ev) => {
-        ev.filter(v => !seen[v]).forEach((v) => {
-          seen[v] = true;
-          count -= 1;
-        });
-      });
-    }
-    if (faces_vertices) {
-      faces_vertices.forEach((fv) => {
-        fv.filter(v => !seen[v]).forEach((v) => {
-          seen[v] = true;
-          count -= 1;
-        });
-      });
-    }
-    return seen
-      .map((s, i) => (s ? undefined : i))
-      .filter(a => a !== undefined);
-  };
-  const remove_isolated_vertices = (graph, remove_indices) => {
-    if (!remove_indices) {
-      remove_indices = get_isolated_vertices(graph);
-    }
-    return {
-      map: remove_geometry_indices(graph, _vertices, remove_indices),
-      remove: remove_indices,
-    };
-  };
-  const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
-    const clusters = get_vertices_clusters(graph, epsilon);
-    const map = [];
-    clusters.forEach((verts, i) => verts.forEach(v => { map[v] = i; }));
-    graph.vertices_coords = clusters
-      .map(arr => arr.map(i => graph.vertices_coords[i]))
-      .map(arr => math.core.average(...arr));
-    get_graph_keys_with_suffix(graph, _vertices)
-      .forEach(sKey => graph[sKey]
-        .forEach((_, i) => graph[sKey][i]
-          .forEach((v, j) => { graph[sKey][i][j] = map[v]; })));
-    get_graph_keys_with_prefix(graph, _vertices)
-      .filter(a => a !== _vertices_coords)
-      .forEach(key => delete graph[key]);
-    const remove_indices = clusters
-      .map(cluster => cluster.length > 1 ? cluster.slice(1, cluster.length) : undefined)
-      .filter(a => a !== undefined)
-      .reduce((a, b) => a.concat(b), []);
-    return {
-      map,
-      remove: remove_indices,
-    };
+  const invert_simple_map = (map) => {
+  	const inv = [];
+  	map.forEach((n, i) => { inv[n] = i; });
+  	return inv;
   };
 
-  var vertices_violations = /*#__PURE__*/Object.freeze({
+  var maps = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    get_duplicate_vertices: get_duplicate_vertices,
-    get_edge_isolated_vertices: get_edge_isolated_vertices,
-    get_face_isolated_vertices: get_face_isolated_vertices,
-    get_isolated_vertices: get_isolated_vertices,
-    remove_isolated_vertices: remove_isolated_vertices,
-    remove_duplicate_vertices: remove_duplicate_vertices
+    merge_simple_nextmaps: merge_simple_nextmaps,
+    merge_nextmaps: merge_nextmaps,
+    merge_simple_backmaps: merge_simple_backmaps,
+    merge_backmaps: merge_backmaps,
+    invert_map: invert_map,
+    invert_simple_map: invert_simple_map
   });
+
+  const clean = (graph, epsilon) => {
+    const change_v1 = remove_duplicate_vertices(graph);
+    const change_e1 = remove_circular_edges(graph);
+    const change_e2 = remove_duplicate_edges(graph);
+    const change_v2 = remove_isolated_vertices(graph);
+    const change_v1_backmap = invert_simple_map(change_v1.map);
+    const change_v2_remove = change_v2.remove.map(e => change_v1_backmap[e]);
+    const change_e1_backmap = invert_simple_map(change_e1.map);
+    const change_e2_remove = change_e2.remove.map(e => change_e1_backmap[e]);
+    return {
+      vertices: {
+        map: merge_simple_nextmaps(change_v1.map, change_v2.map),
+        remove: change_v1.remove.concat(change_v2_remove),
+      },
+      edges: {
+        map: merge_simple_nextmaps(change_e1.map, change_e2.map),
+        remove: change_e1.remove.concat(change_e2_remove),
+      },
+    }
+  };
 
   const validate_references = (graph) => {
   	const counts = {
@@ -3437,18 +3527,6 @@
   			references: references.faces,
   		}
   	};
-  };
-
-  const VEF = ["vertices", "edges", "faces"];
-  const clean = (graph, epsilon) => {
-    const report = validate$1(graph, epsilon);
-    const refs = VEF.filter(key => report[key].references === false);
-    if (refs.length) { console.warn(refs, "clean() reference outside array"); }
-    remove_circular_edges(graph, report.edges.circular);
-    remove_duplicate_edges(graph, report.edges.duplicate);
-    remove_isolated_vertices(graph, report.vertices.isolated);
-    remove_duplicate_vertices(graph);
-    return graph;
   };
 
   const build_assignments_if_needed = (graph) => {
@@ -3656,78 +3734,6 @@
     make_edges_segment_intersection: make_edges_segment_intersection,
     make_edges_edges_intersection: make_edges_edges_intersection,
     intersect_convex_face_line: intersect_convex_face_line
-  });
-
-  const merge_simple_nextmaps = (...maps) => {
-    if (maps.length === 0) { return; }
-  	const solution = maps[0].map((_, i) => i);
-  	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
-  	return solution;
-  };
-  const merge_nextmaps = (...maps) => {
-    if (maps.length === 0) { return; }
-  	const solution = maps[0].map((_, i) => [i]);
-  	maps.forEach(map => {
-  		solution.forEach((s, i) => s.forEach((indx,j) => { solution[i][j] = map[indx]; }));
-  		solution.forEach((arr, i) => {
-  			solution[i] = arr
-  				.reduce((a,b) => a.concat(b), [])
-  				.filter(a => a !== undefined);
-  		});
-  	});
-  	return solution;
-  };
-  const merge_simple_backmaps = (...maps) => {
-    if (maps.length === 0) { return; }
-  	let solution = maps[0].map((_, i) => i);
-  	maps.forEach((map, i) => {
-  		const next = map.map(n => solution[n]);
-  	  solution = next;
-  	});
-    return solution;
-  };
-  const merge_backmaps = (...maps) => {
-    if (maps.length === 0) { return; }
-    let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
-    maps.forEach((map, i) => {
-  		let next = [];
-  	  map.forEach((el, j) => {
-        if (typeof el === _number$1) { next[j] = solution[el]; }
-  			else { next[j] = el.map(n => solution[n]).reduce((a,b) => a.concat(b), []); }
-  		});
-  		solution = next;
-  	});
-  	return solution;
-  };
-  const invert_map = (map) => {
-  	const inv = [];
-  	map.forEach((n, i) => {
-  		if (n == null) { return; }
-  		if (typeof n === _number$1) {
-  			if (inv[n] !== undefined) {
-  				if (typeof inv[n] === _number$1) { inv[n] = [inv[n], i]; }
-  				else { inv[n].push(i); }
-  			}
-  			else { inv[n] = i; }
-  		}
-      if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }
-  	});
-  	return inv;
-  };
-  const invert_simple_map = (map) => {
-  	const inv = [];
-  	map.forEach((n, i) => { inv[n] = i; });
-  	return inv;
-  };
-
-  var maps = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    merge_simple_nextmaps: merge_simple_nextmaps,
-    merge_nextmaps: merge_nextmaps,
-    merge_simple_backmaps: merge_simple_backmaps,
-    merge_backmaps: merge_backmaps,
-    invert_map: invert_map,
-    invert_simple_map: invert_simple_map
   });
 
   const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
