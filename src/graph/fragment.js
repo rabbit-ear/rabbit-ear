@@ -14,10 +14,12 @@ import {
 } from "../fold/spec";
 import {
   remove_duplicate_vertices,
+} from "./vertices_violations";
+import {
   remove_duplicate_edges,
   remove_circular_edges,
-} from "./clean/index";
-import get_collinear_vertices from "./clean/vertices_collinear";
+} from "./edges_violations";
+import { get_vertices_edges_overlap } from "./vertices_collinear";
 import { make_edges_edges_intersection } from "./intersect";
 import { sort_vertices_along_vector } from "./sort";
 import {
@@ -67,7 +69,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   }, 1e-6);
   // check the new edges' vertices against every edge, in case
   // one of the endpoints lies along an edge.
-  const edges_collinear_vertices = get_collinear_vertices({
+  const edges_collinear_vertices = get_vertices_edges_overlap({
     vertices_coords: graph.vertices_coords,
     edges_vertices: graph.edges_vertices,
     edges_coords
@@ -188,7 +190,9 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 	for (i = 0; i < 20; i++) {
   	const resVert = remove_duplicate_vertices(graph, epsilon / 2);
   	const resEdgeDup = remove_duplicate_edges(graph);
+    // console.log("before", JSON.parse(JSON.stringify(graph)));
   	const resEdgeCirc = remove_circular_edges(graph);
+    // console.log("circular", resEdgeCirc);
   	const resFrag = fragment_graph(graph, epsilon);
   	if (resFrag === undefined) { 
 			change.vertices.map = (change.vertices.map === undefined

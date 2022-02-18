@@ -13,6 +13,7 @@ import * as query from "./query";
 import count from "./count";
 import implied from "./count_implied";
 import remove from "./remove";
+import replace from "./replace";
 import populate from "./populate";
 import assign from "./assign";
 import transform from "./affine";
@@ -20,35 +21,31 @@ import subgraph from "./subgraph";
 import explode_faces from "./explode_faces";
 import clip from "./clip";
 import fragment from "./fragment";
+import clean from "./clean";
+import validate from "./validate";
+import get_vertices_clusters from "./vertices_clusters";
 // import create from "./create";
 // add things
-import add_vertices from "./add/add_vertices";
 // import add_vertices_split_edges from "./add/add_vertices_split_edges";
+import add_vertices from "./add/add_vertices";
 import add_edges from "./add/add_edges";
 import split_edge from "./split_edge/index";
 import split_face from "./split_face/index";
 import flat_fold from "./flat_fold/index";
-import add_planar_segment from "./add_planar_segment/index";
+import add_planar_segment from "./add/add_planar_segment";
 import remove_planar_edge from "./remove_planar_edge/index";
-// clean things
-import * as remove_methods from "./clean/index"
-import clean from "./clean/clean";
-import get_circular_edges from "./clean/edges_circular";
-import get_duplicate_edges from "./clean/edges_duplicate";
-import get_duplicate_vertices from "./clean/vertices_duplicate";
-import get_collinear_vertices from "./clean/vertices_collinear";
-import * as vertices_isolated from "./clean/vertices_isolated";
-// various
 import * as intersect from "./intersect";
-import { join_collinear_edges } from "./join_edges";
-import make_vertex_faces_layer from "./vertex_faces_layer";
-import make_vertices_faces_layer from "./vertices_faces_layer";
 import * as overlap from "./overlap";
+import * as vertices_violations from "./vertices_violations";
+import * as edges_violations from "./edges_violations";
+import * as vertices_collinear from "./vertices_collinear";
+import * as faces_layer from "./faces_layer";
 import * as edges_edges from "./edges_edges";
 import * as vertices_coords_folded from "./vertices_coords_folded";
 import * as face_spanning_tree from "./face_spanning_tree";
 import * as faces_matrix from "./faces_matrix";
 import * as faces_winding from "./faces_winding";
+import { join_collinear_edges } from "./join_edges";
 
 // todo: not sure about this organization
 import * as arrays from "../general/arrays";
@@ -66,25 +63,22 @@ export default Object.assign(Object.create(null), {
 	flat_fold,
 	add_planar_segment,
 	remove_planar_edge,
-	// clean things
-	clean,
-	get_circular_edges,
-	get_duplicate_edges,
-	get_duplicate_vertices,
-	get_collinear_vertices,
+	// validate
+	validate,
+	get_vertices_clusters,
 	//
+	// clean,
 	count,
 	implied,
 	fragment,
 	remove,
+	replace,
 	populate,
 	subgraph,
 	explode_faces,
 	clip,
 	// various
 	join_collinear_edges,
-	make_vertex_faces_layer,
-	make_vertices_faces_layer,
 },
 	make,
 	overlap,
@@ -94,6 +88,7 @@ export default Object.assign(Object.create(null), {
 	face_spanning_tree,
 	faces_matrix,
 	faces_winding,
+	faces_layer,
 	// tacos,
 	// create,
 	transform,
@@ -105,9 +100,10 @@ export default Object.assign(Object.create(null), {
 	span,
 	maps,
 	query,
-	// clean things
-	remove_methods,
-	vertices_isolated,
+	vertices_violations,
+	edges_violations,
+	vertices_collinear,
+	// vertices_isolated,
 	arrays,
 );
 

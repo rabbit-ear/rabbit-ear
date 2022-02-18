@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 test("clusters", () => {
-  const clusters = ear.graph.get_duplicate_vertices({ vertices_coords: [
+  const clusters = ear.graph.get_vertices_clusters({ vertices_coords: [
     [0, 0],
     [1, 1],
     [0.00000000001, 0],
@@ -19,7 +19,7 @@ test("clusters", () => {
 
 test("clusters, inside epsilon", () => {
   const epsilon = ear.math.EPSILON * 0.9;
-  const clusters = ear.graph.get_duplicate_vertices({ vertices_coords: [
+  const clusters = ear.graph.get_vertices_clusters({ vertices_coords: [
     [0.5, 0.5],
     [0.5, 0.5 + epsilon],
     [0.5, 0.5 + epsilon * 2],
@@ -34,7 +34,7 @@ test("clusters, inside epsilon", () => {
 
 test("clusters, outside epsilon", () => {
   const epsilon = ear.math.EPSILON * 1.1;
-  const clusters = ear.graph.get_duplicate_vertices({ vertices_coords: [
+  const clusters = ear.graph.get_vertices_clusters({ vertices_coords: [
     [0.5, 0.5],
     [0.5, 0.5 + epsilon],
     [0.5, 0.5 + epsilon * 2],

@@ -10,9 +10,10 @@ test("no face graph", () => {
     "edges_assignment": ["B","B"]
   });
 
-  expect(origami.edges_faces.length).toBe(0);
+  expect(origami.edges_faces.length).toBe(2);
+  expect(origami.edges_faces[0].length).toBe(0);
+  expect(origami.edges_faces[1].length).toBe(0);
 });
-
 
 test("edges faces direction", () => {
   const graph = {

@@ -17,7 +17,8 @@ import {
   transpose_graph_array_at_index,
 } from "../fold/spec";
 // import count from "../graph/count";
-import clean from "../graph/clean/clean";
+import clean from "../graph/clean";
+import validate from "../graph/validate";
 import populate from "../graph/populate";
 import fragment from "../graph/fragment";
 import assign from "../graph/assign";
@@ -55,6 +56,7 @@ Graph.prototype.constructor = Graph;
 const graphMethods = Object.assign({
   // count,
   clean,
+  validate,
   populate,
   fragment,
   subgraph,

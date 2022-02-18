@@ -13,45 +13,46 @@ test("copy", () => {
   expect(graph.vertices_coords.length).toBe(0);
 });
 
-test("load", () => {
-  const graph = ear.graph();
-  // this shouldn't do anything, but also won't throw an error
-  graph.load();
-  // now, load.
-  graph.load({
-    vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
-    edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]],
-    faces_vertices: [[0, 1, 2], [2, 3, 0]],
-    faces_edges: [[0, 1, 4], [2, 3, 4]],
-  });
-  expect(graph.vertices_coords.length).toBe(4);
-  expect(graph.vertices_coords[2][0]).toBe(1);
-  expect(graph.vertices_coords[2][1]).toBe(1);
-});
+// "load" has been removed for now.
+// test("load", () => {
+//   const graph = ear.graph();
+//   // this shouldn't do anything, but also won't throw an error
+//   graph.load();
+//   // now, load.
+//   graph.load({
+//     vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
+//     edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]],
+//     faces_vertices: [[0, 1, 2], [2, 3, 0]],
+//     faces_edges: [[0, 1, 4], [2, 3, 4]],
+//   });
+//   expect(graph.vertices_coords.length).toBe(4);
+//   expect(graph.vertices_coords[2][0]).toBe(1);
+//   expect(graph.vertices_coords[2][1]).toBe(1);
+// });
 
-test("load, rewrite, and append", () => {
-  const graph = ear.graph();
-  graph.load({
-    edges_assignment: ["V", "M", "U", "F"],
-  });
-  expect(graph.edges_assignment[3]).toBe("F");
-  graph.load({
-    edges_assignment: ["U", "U", "U", "U"],
-  });
-  expect(graph.edges_assignment[3]).toBe("U");
-  graph.load({
-    vertices_coords: [[0.5, 0.5], [0.25, 0.25]],
-  });
-  // edges_assignment has been overwritten
-  expect(graph.edges_assignment).toBe(undefined);
-  expect(graph.vertices_coords[0][0]).toBe(0.5);
-  // now load a graph but don't overwrite
-  graph.load({
-    edges_assignment: ["U", "U", "U", "U"],
-  }, { append: true });
-  expect(graph.edges_assignment[3]).toBe("U");
-  expect(graph.vertices_coords[0][0]).toBe(0.5);
-});
+// test("load, rewrite, and append", () => {
+//   const graph = ear.graph();
+//   graph.load({
+//     edges_assignment: ["V", "M", "U", "F"],
+//   });
+//   expect(graph.edges_assignment[3]).toBe("F");
+//   graph.load({
+//     edges_assignment: ["U", "U", "U", "U"],
+//   });
+//   expect(graph.edges_assignment[3]).toBe("U");
+//   graph.load({
+//     vertices_coords: [[0.5, 0.5], [0.25, 0.25]],
+//   });
+//   // edges_assignment has been overwritten
+//   expect(graph.edges_assignment).toBe(undefined);
+//   expect(graph.vertices_coords[0][0]).toBe(0.5);
+//   // now load a graph but don't overwrite
+//   graph.load({
+//     edges_assignment: ["U", "U", "U", "U"],
+//   }, { append: true });
+//   expect(graph.edges_assignment[3]).toBe("U");
+//   expect(graph.vertices_coords[0][0]).toBe(0.5);
+// });
 
 test("clear", () => {
   const graph = ear.graph({

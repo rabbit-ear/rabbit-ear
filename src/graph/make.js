@@ -93,6 +93,7 @@ export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_
  * use make_vertices_faces for that, which requires vertices_vertices.
  */
 export const make_vertices_faces_unsorted = ({ vertices_coords, faces_vertices }) => {
+  if (!faces_vertices) { return vertices_coords.map(() => []); }
   // instead of initializing the array ahead of time (we would need to know
   // the length of something like vertices_coords)
   const vertices_faces = vertices_coords !== undefined
@@ -113,6 +114,7 @@ export const make_vertices_faces_unsorted = ({ vertices_coords, faces_vertices }
  * this does arrange faces in counter-clockwise order, as the spec suggests
  */
 export const make_vertices_faces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
+  if (!faces_vertices) { return vertices_coords.map(() => []); }
   if (!vertices_vertices) {
     return make_vertices_faces_unsorted({ vertices_coords, faces_vertices });
   }
@@ -365,33 +367,53 @@ export const make_faces_edges_from_vertices = (graph) => {
 /**
  * @param {object} FOLD object, with entry "faces_vertices"
  * @returns {number[][]} each index relates to a face, each entry is an array
- *   of numbers, each number is an index of an edge-adjacent face to this face.
+ * of numbers, each number is an index of an edge-adjacent face to this face.
  * @description faces_faces is a list of edge-adjacent face indices for each face.
  */
 export const make_faces_faces = ({ faces_vertices }) => {
-  // if (!faces_vertices) { return undefined; }
   const faces_faces = faces_vertices.map(() => []);
-  // create a map where each key is a string of the vertices of an edge,
-  // like "3 4"
-  // and each value is an array of faces adjacent to this edge. 
   const edgeMap = {};
-  faces_vertices.forEach((vertices_index, idx1) => {
-    const n = vertices_index.length;
-    vertices_index.forEach((v1, i, vs) => {
-      let v2 = vs[(i + 1) % n];
-      if (v2 < v1) { [v1, v2] = [v2, v1]; }
-      const key = `${v1} ${v2}`;
-      if (key in edgeMap) {
-        const idx2 = edgeMap[key];
-        faces_faces[idx1].push(idx2);
-        faces_faces[idx2].push(idx1);
-      } else {
-        edgeMap[key] = idx1;
-      }
+  faces_vertices
+    .map((face, f) => face
+      .map((v0, i, arr) => {
+        let v1 = arr[(i + 1) % face.length];
+        if (v1 < v0) { [v0, v1] = [v1, v0]; }
+        const key = `${v0} ${v1}`;
+        if (edgeMap[key] === undefined) { edgeMap[key] = {}; }
+        edgeMap[key][f] = true;
+      }));
+  Object.values(edgeMap)
+    .map(obj => Object.keys(obj))
+    .filter(arr => arr.length > 1)
+    .forEach(pair => {
+      faces_faces[pair[0]].push(parseInt(pair[1]));
+      faces_faces[pair[1]].push(parseInt(pair[0]));
     });
-  });
   return faces_faces;
 };
+// export const make_faces_faces = ({ faces_vertices }) => {
+//   // if (!faces_vertices) { return undefined; }
+//   const faces_faces = faces_vertices.map(() => []);
+//   // create a map where each key is a string of the vertices of an edge,
+//   // like "3 4"
+//   // and each value is an array of faces adjacent to this edge. 
+//   const edgeMap = {};
+//   faces_vertices.forEach((vertices_index, idx1) => {
+//     vertices_index.forEach((v1, i, vs) => {
+//       let v2 = vs[(i + 1) % vertices_index.length];
+//       if (v2 < v1) { [v1, v2] = [v2, v1]; }
+//       const key = `${v1} ${v2}`;
+//       if (key in edgeMap) {
+//         const idx2 = edgeMap[key];
+//         faces_faces[idx1].push(idx2);
+//         faces_faces[idx2].push(idx1);
+//       } else {
+//         edgeMap[key] = idx1;
+//       }
+//     });
+//   });
+//   return faces_faces;
+// };
 /**
  * @description map vertices_coords onto each face's set of vertices,
  * turning each face into an array of points, with an additional step:

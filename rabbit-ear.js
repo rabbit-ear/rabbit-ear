@@ -2625,360 +2625,6 @@
     fold_object_certainty: fold_object_certainty
   });
 
-  const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
-    .filter(el => el !== undefined)
-    .map(el => el.length)));
-  const count = (graph, key) => max_arrays_length(...get_graph_keys_with_prefix(graph, key).map(key => graph[key]));
-  count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
-    max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
-  count.edges = ({ edges_vertices, edges_edges, edges_faces }) =>
-    max_arrays_length(edges_vertices, edges_edges, edges_faces);
-  count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
-    max_arrays_length(faces_vertices, faces_edges, faces_faces);
-
-  const fn_and = (a, b) => a && b;
-  const fn_cat = (a, b) => a.concat(b);
-  const fn_def = a => a !== undefined;
-  const fn_add = (a, b) => a + b;
-
-  const unique_sorted_integers = (array) => {
-    const keys = {};
-    array.forEach((int) => { keys[int] = true; });
-    return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
-  };
-  const split_circular_array = (array, indices) => {
-    indices.sort((a, b) => a - b);
-    return [
-      array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
-      array.slice(indices[0], indices[1] + 1)
-    ];
-  };
-  const get_longest_array = (arrays) => {
-    if (arrays.length === 1) { return arrays[0]; }
-    const lengths = arrays.map(arr => arr.length);
-    let max = 0;
-    for (let i = 0; i < arrays.length; i++) {
-      if (lengths[i] > lengths[max]) {
-        max = i;
-      }
-    }
-    return arrays[max];
-  };
-  const remove_single_instances = (array) => {
-    const count = {};
-    array.forEach(n => {
-      if (count[n] === undefined) { count[n] = 0; }
-      count[n]++;
-    });
-    return array.filter(n => count[n] > 1);
-  };
-  const boolean_matrix_to_indexed_array = matrix => matrix
-    .map(row => row
-      .map((value, i) => value === true ? i : undefined)
-      .filter(fn_def));
-  const boolean_matrix_to_unique_index_pairs = matrix => {
-    const pairs = [];
-    for (let i = 0; i < matrix.length - 1; i++) {
-      for (let j = i + 1; j < matrix.length; j++) {
-        if (matrix[i][j]) {
-          pairs.push([i, j]);
-        }
-      }
-    }
-    return pairs;
-  };
-  const make_unique_sets_from_self_relational_arrays = (matrix) => {
-    const groups = [];
-    const recurse = (index, current_group) => {
-      if (groups[index] !== undefined) { return 0; }
-      groups[index] = current_group;
-      matrix[index].forEach(i => recurse(i, current_group));
-      return 1;
-    };
-    for (let row = 0, group = 0; row < matrix.length; row++) {
-      if (!(row in matrix)) { continue; }
-      group += recurse(row, group);
-    }
-    return groups;
-  };
-  const make_triangle_pairs = (array) => {
-    const pairs = Array((array.length * (array.length - 1)) / 2);
-    let index = 0;
-    for (let i = 0; i < array.length - 1; i++) {
-      for (let j = i + 1; j < array.length; j++, index++) {
-        pairs[index] = [array[i], array[j]];
-      }
-    }
-    return pairs;
-  };
-  const circular_array_valid_ranges = (array) => {
-    const not_undefineds = array.map(el => el !== undefined);
-    if (not_undefineds.reduce((a, b) => a && b, true)) {
-      return [[0, array.length - 1]];
-    }
-    const first_not_undefined = not_undefineds
-      .map((el, i, arr) => el && !arr[(i - 1 + arr.length) % arr.length]);
-    const total = first_not_undefined.reduce((a, b) => a + (b ? 1 : 0), 0);
-    const starts = Array(total);
-    const counts = Array(total).fill(0);
-    let index = not_undefineds[0] && not_undefineds[array.length-1]
-      ? 0
-      : (total - 1);
-    not_undefineds.forEach((el, i) => {
-      index = (index + (first_not_undefined[i] ? 1 : 0)) % counts.length;
-      counts[index] += not_undefineds[i] ? 1 : 0;
-      if (first_not_undefined[i]) { starts[index] = i; }
-    });
-    return starts.map((s, i) => [s, (s + counts[i] - 1) % array.length]);
-  };
-
-  var arrays = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    unique_sorted_integers: unique_sorted_integers,
-    split_circular_array: split_circular_array,
-    get_longest_array: get_longest_array,
-    remove_single_instances: remove_single_instances,
-    boolean_matrix_to_indexed_array: boolean_matrix_to_indexed_array,
-    boolean_matrix_to_unique_index_pairs: boolean_matrix_to_unique_index_pairs,
-    make_unique_sets_from_self_relational_arrays: make_unique_sets_from_self_relational_arrays,
-    make_triangle_pairs: make_triangle_pairs,
-    circular_array_valid_ranges: circular_array_valid_ranges
-  });
-
-  const remove_geometry_indices = (graph, key, removeIndices) => {
-    const geometry_array_size = count(graph, key);
-    const removes = unique_sorted_integers(removeIndices);
-    const index_map = [];
-    let i, j, walk;
-    for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
-      while (i === removes[walk]) {
-  			index_map[i] = undefined;
-        i += 1;
-        walk += 1;
-      }
-      if (i < geometry_array_size) { index_map[i] = j; }
-    }
-    get_graph_keys_with_suffix(graph, key)
-      .forEach(sKey => graph[sKey]
-        .forEach((_, i) => graph[sKey][i]
-          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
-    removes.reverse();
-    get_graph_keys_with_prefix(graph, key)
-      .forEach((prefix_key) => removes
-        .forEach(index => graph[prefix_key]
-          .splice(index, 1)));
-    return index_map;
-  };
-
-  const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
-    let count = vertices_coords.length;
-    const seen = Array(count).fill(false);
-    edges_vertices.forEach((ev) => {
-      ev.filter(v => !seen[v]).forEach((v) => {
-        seen[v] = true;
-        count -= 1;
-      });
-    });
-    return seen
-      .map((s, i) => (s ? undefined : i))
-      .filter(a => a !== undefined);
-  };
-  const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
-    let count = vertices_coords.length;
-    const seen = Array(count).fill(false);
-    faces_vertices.forEach((fv) => {
-      fv.filter(v => !seen[v]).forEach((v) => {
-        seen[v] = true;
-        count -= 1;
-      });
-    });
-    return seen
-      .map((s, i) => (s ? undefined : i))
-      .filter(a => a !== undefined);
-  };
-  const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
-    let count = vertices_coords.length;
-    const seen = Array(count).fill(false);
-    if (edges_vertices) {
-      edges_vertices.forEach((ev) => {
-        ev.filter(v => !seen[v]).forEach((v) => {
-          seen[v] = true;
-          count -= 1;
-        });
-      });
-    }
-    if (faces_vertices) {
-      faces_vertices.forEach((fv) => {
-        fv.filter(v => !seen[v]).forEach((v) => {
-          seen[v] = true;
-          count -= 1;
-        });
-      });
-    }
-    return seen
-      .map((s, i) => (s ? undefined : i))
-      .filter(a => a !== undefined);
-  };
-
-  var vertices_isolated = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    get_edge_isolated_vertices: get_edge_isolated_vertices,
-    get_face_isolated_vertices: get_face_isolated_vertices,
-    get_isolated_vertices: get_isolated_vertices
-  });
-
-  const get_circular_edges = ({ edges_vertices }) => {
-    const circular = [];
-    for (let i = 0; i < edges_vertices.length; i += 1) {
-      if (edges_vertices[i][0] === edges_vertices[i][1]) {
-        circular.push(i);
-      }
-    }
-    return circular;
-  };
-
-  const get_duplicate_edges = ({ edges_vertices }) => {
-    if (!edges_vertices) { return []; }
-    const duplicates = [];
-    const map = {};
-    for (let i = 0; i < edges_vertices.length; i += 1) {
-      const a = `${edges_vertices[i][0]} ${edges_vertices[i][1]}`;
-      const b = `${edges_vertices[i][1]} ${edges_vertices[i][0]}`;
-      if (map[a] !== undefined) {
-        duplicates[i] = map[a];
-      } else {
-        map[a] = i;
-        map[b] = i;
-      }
-    }
-    return duplicates;
-  };
-
-  const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
-    const degree = a.length;
-    for (let i = 0; i < degree; i += 1) {
-      if (Math.abs(a[i] - b[i]) > epsilon) {
-        return false;
-      }
-    }
-    return true;
-  };
-  const get_duplicate_vertices = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
-    const equivalent_matrix = vertices_coords.map(() => []);
-    for (let i = 0; i < vertices_coords.length - 1; i += 1) {
-      for (let j = i + 1; j < vertices_coords.length; j += 1) {
-        equivalent_matrix[i][j] = are_vertices_equivalent(
-          vertices_coords[i],
-          vertices_coords[j],
-          epsilon
-        );
-      }
-    }
-    const vertices_equivalent = equivalent_matrix
-      .map(equiv => equiv
-        .map((el, j) => (el ? j : undefined))
-        .filter(a => a !== undefined));
-    const clusters = [];
-    const visited = Array(vertices_coords.length).fill(false);
-    let visitedCount = 0;
-    const recurse = (cluster_index, i) => {
-      if (visited[i] || visitedCount === vertices_coords.length) { return; }
-      visited[i] = true;
-      visitedCount += 1;
-      if (!clusters[cluster_index]) { clusters[cluster_index] = []; }
-      clusters[cluster_index].push(i);
-      while (vertices_equivalent[i].length > 0) {
-        recurse(cluster_index, vertices_equivalent[i][0]);
-        vertices_equivalent[i].splice(0, 1);
-      }
-    };
-    for (let i = 0; i < vertices_coords.length; i += 1) {
-      recurse(i, i);
-      if (visitedCount === vertices_coords.length) { break; }
-    }
-    return clusters.filter(a => a.length);
-  };
-
-  const remove_isolated_vertices = graph => {
-    const remove_indices = get_isolated_vertices(graph);
-    return {
-      map: remove_geometry_indices(graph, _vertices, remove_indices),
-      remove: remove_indices,
-    };
-  };
-  const remove_circular_edges = graph => {
-    const remove_indices = get_circular_edges(graph);
-    if (remove_indices.length) {
-      const quick_lookup = {};
-      remove_indices.forEach(n => { quick_lookup[n] = true; });
-      get_graph_keys_with_suffix(graph, _edges)
-        .forEach(sKey => graph[sKey]
-          .forEach((elem, i) => {
-            for (let j = elem.length - 1; j >= 0; j -= 1) {
-              if (quick_lookup[elem[j]] === true) {
-                graph[sKey][i].splice(j, 1);
-              }
-            }
-          }));
-    }
-    return {
-      map: remove_geometry_indices(graph, _edges, remove_indices),
-      remove: remove_indices,
-    };
-  };
-  const remove_duplicate_edges = (graph) => {
-    const duplicates = get_duplicate_edges(graph);
-    const remove_indices = Object.keys(duplicates);
-    const map = remove_geometry_indices(graph, _edges, remove_indices);
-    duplicates.forEach((v, i) => { map[i] = v; });
-    return {
-      map,
-      remove: remove_indices,
-    };
-  };
-  const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
-    const clusters = get_duplicate_vertices(graph, epsilon);
-    const map = [];
-    clusters.forEach((verts, i) => verts.forEach(v => { map[v] = i; }));
-    graph.vertices_coords = clusters
-      .map(arr => arr.map(i => graph.vertices_coords[i]))
-      .map(arr => math.core.average(...arr));
-    get_graph_keys_with_suffix(graph, _vertices)
-      .forEach(sKey => graph[sKey]
-        .forEach((_, i) => graph[sKey][i]
-          .forEach((v, j) => { graph[sKey][i][j] = map[v]; })));
-    get_graph_keys_with_prefix(graph, _vertices)
-      .filter(a => a !== _vertices_coords)
-      .forEach(key => delete graph[key]);
-    const remove_indices = clusters
-      .map(cluster => cluster.length > 1 ? cluster.slice(1, cluster.length) : undefined)
-      .filter(a => a !== undefined)
-      .reduce((a, b) => a.concat(b), []);
-    return {
-      map,
-      remove: remove_indices,
-    };
-  };
-
-  var remove_methods = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    remove_isolated_vertices: remove_isolated_vertices,
-    remove_circular_edges: remove_circular_edges,
-    remove_duplicate_edges: remove_duplicate_edges,
-    remove_duplicate_vertices: remove_duplicate_vertices
-  });
-
-  const clean = (graph, options = {}) => {
-    if (typeof options !== "object" || options.edges !== false) {
-      remove_circular_edges(graph);
-      remove_duplicate_edges(graph);
-    }
-    if (typeof options === "object" && options.vertices === true) {
-      remove_isolated_vertices(graph);
-    }
-    return graph;
-  };
-
   const array_in_array_max_number = (arrays) => {
     let max = -1;
     arrays
@@ -3118,6 +2764,7 @@
         .map((verts, i) => sort_vertices_counter_clockwise({ vertices_coords }, verts, i));
   };
   const make_vertices_faces_unsorted = ({ vertices_coords, faces_vertices }) => {
+    if (!faces_vertices) { return vertices_coords.map(() => []); }
     const vertices_faces = vertices_coords !== undefined
       ? vertices_coords.map(() => [])
       : Array.from(Array(implied_count.vertices({ faces_vertices }))).map(() => []);
@@ -3129,6 +2776,7 @@
     return vertices_faces;
   };
   const make_vertices_faces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
+    if (!faces_vertices) { return vertices_coords.map(() => []); }
     if (!vertices_vertices) {
       return make_vertices_faces_unsorted({ vertices_coords, faces_vertices });
     }
@@ -3290,21 +2938,22 @@
   const make_faces_faces = ({ faces_vertices }) => {
     const faces_faces = faces_vertices.map(() => []);
     const edgeMap = {};
-    faces_vertices.forEach((vertices_index, idx1) => {
-      const n = vertices_index.length;
-      vertices_index.forEach((v1, i, vs) => {
-        let v2 = vs[(i + 1) % n];
-        if (v2 < v1) { [v1, v2] = [v2, v1]; }
-        const key = `${v1} ${v2}`;
-        if (key in edgeMap) {
-          const idx2 = edgeMap[key];
-          faces_faces[idx1].push(idx2);
-          faces_faces[idx2].push(idx1);
-        } else {
-          edgeMap[key] = idx1;
-        }
+    faces_vertices
+      .map((face, f) => face
+        .map((v0, i, arr) => {
+          let v1 = arr[(i + 1) % face.length];
+          if (v1 < v0) { [v0, v1] = [v1, v0]; }
+          const key = `${v0} ${v1}`;
+          if (edgeMap[key] === undefined) { edgeMap[key] = {}; }
+          edgeMap[key][f] = true;
+        }));
+    Object.values(edgeMap)
+      .map(obj => Object.keys(obj))
+      .filter(arr => arr.length > 1)
+      .forEach(pair => {
+        faces_faces[pair[0]].push(parseInt(pair[1]));
+        faces_faces[pair[1]].push(parseInt(pair[0]));
       });
-    });
     return faces_faces;
   };
   const make_faces_polygon = ({ vertices_coords, faces_vertices }, epsilon) =>
@@ -3356,6 +3005,451 @@
     make_faces_center: make_faces_center,
     make_faces_center_quick: make_faces_center_quick
   });
+
+  const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
+    .filter(el => el !== undefined)
+    .map(el => el.length)));
+  const count = (graph, key) => max_arrays_length(...get_graph_keys_with_prefix(graph, key).map(key => graph[key]));
+  count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
+    max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
+  count.edges = ({ edges_vertices, edges_edges, edges_faces }) =>
+    max_arrays_length(edges_vertices, edges_edges, edges_faces);
+  count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
+    max_arrays_length(faces_vertices, faces_edges, faces_faces);
+
+  const fn_and = (a, b) => a && b;
+  const fn_cat = (a, b) => a.concat(b);
+  const fn_def = a => a !== undefined;
+  const fn_add = (a, b) => a + b;
+
+  const unique_sorted_integers = (array) => {
+    const keys = {};
+    array.forEach((int) => { keys[int] = true; });
+    return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
+  };
+  const split_circular_array = (array, indices) => {
+    indices.sort((a, b) => a - b);
+    return [
+      array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+      array.slice(indices[0], indices[1] + 1)
+    ];
+  };
+  const get_longest_array = (arrays) => {
+    if (arrays.length === 1) { return arrays[0]; }
+    const lengths = arrays.map(arr => arr.length);
+    let max = 0;
+    for (let i = 0; i < arrays.length; i++) {
+      if (lengths[i] > lengths[max]) {
+        max = i;
+      }
+    }
+    return arrays[max];
+  };
+  const remove_single_instances = (array) => {
+    const count = {};
+    array.forEach(n => {
+      if (count[n] === undefined) { count[n] = 0; }
+      count[n]++;
+    });
+    return array.filter(n => count[n] > 1);
+  };
+  const boolean_matrix_to_indexed_array = matrix => matrix
+    .map(row => row
+      .map((value, i) => value === true ? i : undefined)
+      .filter(fn_def));
+  const boolean_matrix_to_unique_index_pairs = matrix => {
+    const pairs = [];
+    for (let i = 0; i < matrix.length - 1; i++) {
+      for (let j = i + 1; j < matrix.length; j++) {
+        if (matrix[i][j]) {
+          pairs.push([i, j]);
+        }
+      }
+    }
+    return pairs;
+  };
+  const make_unique_sets_from_self_relational_arrays = (matrix) => {
+    const groups = [];
+    const recurse = (index, current_group) => {
+      if (groups[index] !== undefined) { return 0; }
+      groups[index] = current_group;
+      matrix[index].forEach(i => recurse(i, current_group));
+      return 1;
+    };
+    for (let row = 0, group = 0; row < matrix.length; row++) {
+      if (!(row in matrix)) { continue; }
+      group += recurse(row, group);
+    }
+    return groups;
+  };
+  const make_triangle_pairs = (array) => {
+    const pairs = Array((array.length * (array.length - 1)) / 2);
+    let index = 0;
+    for (let i = 0; i < array.length - 1; i++) {
+      for (let j = i + 1; j < array.length; j++, index++) {
+        pairs[index] = [array[i], array[j]];
+      }
+    }
+    return pairs;
+  };
+  const circular_array_valid_ranges = (array) => {
+    const not_undefineds = array.map(el => el !== undefined);
+    if (not_undefineds.reduce((a, b) => a && b, true)) {
+      return [[0, array.length - 1]];
+    }
+    const first_not_undefined = not_undefineds
+      .map((el, i, arr) => el && !arr[(i - 1 + arr.length) % arr.length]);
+    const total = first_not_undefined.reduce((a, b) => a + (b ? 1 : 0), 0);
+    const starts = Array(total);
+    const counts = Array(total).fill(0);
+    let index = not_undefineds[0] && not_undefineds[array.length-1]
+      ? 0
+      : (total - 1);
+    not_undefineds.forEach((el, i) => {
+      index = (index + (first_not_undefined[i] ? 1 : 0)) % counts.length;
+      counts[index] += not_undefineds[i] ? 1 : 0;
+      if (first_not_undefined[i]) { starts[index] = i; }
+    });
+    return starts.map((s, i) => [s, (s + counts[i] - 1) % array.length]);
+  };
+
+  var arrays = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    unique_sorted_integers: unique_sorted_integers,
+    split_circular_array: split_circular_array,
+    get_longest_array: get_longest_array,
+    remove_single_instances: remove_single_instances,
+    boolean_matrix_to_indexed_array: boolean_matrix_to_indexed_array,
+    boolean_matrix_to_unique_index_pairs: boolean_matrix_to_unique_index_pairs,
+    make_unique_sets_from_self_relational_arrays: make_unique_sets_from_self_relational_arrays,
+    make_triangle_pairs: make_triangle_pairs,
+    circular_array_valid_ranges: circular_array_valid_ranges
+  });
+
+  const remove_geometry_indices = (graph, key, removeIndices) => {
+    const geometry_array_size = count(graph, key);
+    const removes = unique_sorted_integers(removeIndices);
+    const index_map = [];
+    let i, j, walk;
+    for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
+      while (i === removes[walk]) {
+  			index_map[i] = undefined;
+        i += 1;
+        walk += 1;
+      }
+      if (i < geometry_array_size) { index_map[i] = j; }
+    }
+    get_graph_keys_with_suffix(graph, key)
+      .forEach(sKey => graph[sKey]
+        .forEach((_, i) => graph[sKey][i]
+          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+    removes.reverse();
+    get_graph_keys_with_prefix(graph, key)
+      .forEach((prefix_key) => removes
+        .forEach(index => graph[prefix_key]
+          .splice(index, 1)));
+    return index_map;
+  };
+
+  const replace_geometry_indices = (graph, key, replaceIndices) => {
+    const geometry_array_size = count(graph, key);
+    const removes = Object.keys(replaceIndices).map(n => parseInt(n));
+    const replaces = unique_sorted_integers(removes);
+    const index_map = [];
+    let i, j, walk;
+    for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
+      while (i === replaces[walk]) {
+  			index_map[i] = replaceIndices[replaces[walk]];
+        i += 1;
+        walk += 1;
+      }
+      if (i < geometry_array_size) { index_map[i] = j; }
+    }
+    get_graph_keys_with_suffix(graph, key)
+      .forEach(sKey => graph[sKey]
+        .forEach((_, i) => graph[sKey][i]
+          .forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+    replaces.reverse();
+    get_graph_keys_with_prefix(graph, key)
+      .forEach((prefix_key) => replaces
+        .forEach(index => graph[prefix_key]
+          .splice(index, 1)));
+    return index_map;
+  };
+
+  const get_circular_edges = ({ edges_vertices }) => {
+    const circular = [];
+    for (let i = 0; i < edges_vertices.length; i += 1) {
+      if (edges_vertices[i][0] === edges_vertices[i][1]) {
+        circular.push(i);
+      }
+    }
+    return circular;
+  };
+  const get_duplicate_edges = ({ edges_vertices }) => {
+    if (!edges_vertices) { return []; }
+    const duplicates = [];
+    const map = {};
+    for (let i = 0; i < edges_vertices.length; i += 1) {
+      const a = `${edges_vertices[i][0]} ${edges_vertices[i][1]}`;
+      const b = `${edges_vertices[i][1]} ${edges_vertices[i][0]}`;
+      if (map[a] !== undefined) {
+        duplicates[i] = map[a];
+      } else {
+        map[a] = i;
+        map[b] = i;
+      }
+    }
+    return duplicates;
+  };
+  const splice_remove_values_from_suffixes = (graph, suffix, remove_indices) => {
+    const remove_map = {};
+    remove_indices.forEach(n => { remove_map[n] = true; });
+    get_graph_keys_with_suffix(graph, suffix)
+      .forEach(sKey => graph[sKey]
+        .forEach((elem, i) => {
+          for (let j = elem.length - 1; j >= 0; j--) {
+            if (remove_map[elem[j]] === true) {
+              graph[sKey][i].splice(j, 1);
+            }
+          }
+        }));
+  };
+  const remove_circular_edges = (graph, remove_indices) => {
+    if (!remove_indices) {
+      remove_indices = get_circular_edges(graph);
+    }
+    if (remove_indices.length) {
+      splice_remove_values_from_suffixes(graph, _edges, remove_indices);
+    }
+    return {
+      map: remove_geometry_indices(graph, _edges, remove_indices),
+      remove: remove_indices,
+    };
+  };
+  const remove_duplicate_edges = (graph, replace_indices) => {
+    if (!replace_indices) {
+      replace_indices = get_duplicate_edges(graph);
+    }
+    const remove = Object.keys(replace_indices).map(n => parseInt(n));
+    const map = replace_geometry_indices(graph, _edges, replace_indices);
+    if (remove.length) {
+      if (graph.vertices_edges || graph.vertices_vertices || graph.vertices_faces) {
+        graph.vertices_edges = make_vertices_edges_unsorted$1(graph);
+        graph.vertices_vertices = make_vertices_vertices(graph);
+        graph.vertices_edges = make_vertices_edges(graph);
+        graph.vertices_faces = make_vertices_faces(graph);
+      }
+    }
+    return { map, remove };
+  };
+
+  var edges_violations = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    get_circular_edges: get_circular_edges,
+    get_duplicate_edges: get_duplicate_edges,
+    remove_circular_edges: remove_circular_edges,
+    remove_duplicate_edges: remove_duplicate_edges
+  });
+
+  const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
+    const degree = a.length;
+    for (let i = 0; i < degree; i += 1) {
+      if (Math.abs(a[i] - b[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const get_vertices_clusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+    const equivalent_matrix = vertices_coords.map(() => []);
+    for (let i = 0; i < vertices_coords.length - 1; i += 1) {
+      for (let j = i + 1; j < vertices_coords.length; j += 1) {
+        equivalent_matrix[i][j] = are_vertices_equivalent(
+          vertices_coords[i],
+          vertices_coords[j],
+          epsilon
+        );
+      }
+    }
+    const vertices_equivalent = equivalent_matrix
+      .map(equiv => equiv
+        .map((el, j) => (el ? j : undefined))
+        .filter(a => a !== undefined));
+    const clusters = [];
+    const visited = Array(vertices_coords.length).fill(false);
+    let visitedCount = 0;
+    const recurse = (cluster_index, i) => {
+      if (visited[i] || visitedCount === vertices_coords.length) { return; }
+      visited[i] = true;
+      visitedCount += 1;
+      if (!clusters[cluster_index]) { clusters[cluster_index] = []; }
+      clusters[cluster_index].push(i);
+      while (vertices_equivalent[i].length > 0) {
+        recurse(cluster_index, vertices_equivalent[i][0]);
+        vertices_equivalent[i].splice(0, 1);
+      }
+    };
+    for (let i = 0; i < vertices_coords.length; i += 1) {
+      recurse(i, i);
+      if (visitedCount === vertices_coords.length) { break; }
+    }
+    return clusters.filter(a => a.length);
+  };
+
+  const get_duplicate_vertices = (graph, epsilon) => {
+  	return get_vertices_clusters(graph, epsilon)
+  		.filter(arr => arr.length > 1);
+  };
+  const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
+    edges_vertices.forEach((ev) => {
+      ev.filter(v => !seen[v]).forEach((v) => {
+        seen[v] = true;
+        count -= 1;
+      });
+    });
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
+    faces_vertices.forEach((fv) => {
+      fv.filter(v => !seen[v]).forEach((v) => {
+        seen[v] = true;
+        count -= 1;
+      });
+    });
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
+    let count = vertices_coords.length;
+    const seen = Array(count).fill(false);
+    if (edges_vertices) {
+      edges_vertices.forEach((ev) => {
+        ev.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
+    }
+    if (faces_vertices) {
+      faces_vertices.forEach((fv) => {
+        fv.filter(v => !seen[v]).forEach((v) => {
+          seen[v] = true;
+          count -= 1;
+        });
+      });
+    }
+    return seen
+      .map((s, i) => (s ? undefined : i))
+      .filter(a => a !== undefined);
+  };
+  const remove_isolated_vertices = (graph, remove_indices) => {
+    if (!remove_indices) {
+      remove_indices = get_isolated_vertices(graph);
+    }
+    return {
+      map: remove_geometry_indices(graph, _vertices, remove_indices),
+      remove: remove_indices,
+    };
+  };
+  const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
+    const clusters = get_vertices_clusters(graph, epsilon);
+    const map = [];
+    clusters.forEach((verts, i) => verts.forEach(v => { map[v] = i; }));
+    graph.vertices_coords = clusters
+      .map(arr => arr.map(i => graph.vertices_coords[i]))
+      .map(arr => math.core.average(...arr));
+    get_graph_keys_with_suffix(graph, _vertices)
+      .forEach(sKey => graph[sKey]
+        .forEach((_, i) => graph[sKey][i]
+          .forEach((v, j) => { graph[sKey][i][j] = map[v]; })));
+    get_graph_keys_with_prefix(graph, _vertices)
+      .filter(a => a !== _vertices_coords)
+      .forEach(key => delete graph[key]);
+    const remove_indices = clusters
+      .map(cluster => cluster.length > 1 ? cluster.slice(1, cluster.length) : undefined)
+      .filter(a => a !== undefined)
+      .reduce((a, b) => a.concat(b), []);
+    return {
+      map,
+      remove: remove_indices,
+    };
+  };
+
+  var vertices_violations = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    get_duplicate_vertices: get_duplicate_vertices,
+    get_edge_isolated_vertices: get_edge_isolated_vertices,
+    get_face_isolated_vertices: get_face_isolated_vertices,
+    get_isolated_vertices: get_isolated_vertices,
+    remove_isolated_vertices: remove_isolated_vertices,
+    remove_duplicate_vertices: remove_duplicate_vertices
+  });
+
+  const validate_references = (graph) => {
+  	const counts = {
+  		vertices: count.vertices(graph),
+  		edges: count.edges(graph),
+  		faces: count.faces(graph),
+  	};
+  	const implied = {
+  		vertices: implied_count.vertices(graph),
+  		edges: implied_count.edges(graph),
+  		faces: implied_count.faces(graph),
+  	};
+  	return {
+  		vertices: counts.vertices >= implied.vertices,
+  		edges: counts.edges >= implied.edges,
+  		faces: counts.faces >= implied.faces,
+  	}
+  };
+  const validate$1 = (graph, epsilon) => {
+  	const duplicate_edges = get_duplicate_edges(graph);
+  	const circular_edges = get_circular_edges(graph);
+  	const isolated_vertices = get_isolated_vertices(graph);
+  	const duplicate_vertices = get_duplicate_vertices(graph, epsilon);
+  	const references = validate_references(graph);
+  	const is_perfect = duplicate_edges.length === 0
+  		&& circular_edges.length === 0
+  		&& isolated_vertices.length === 0
+  		&& references.vertices && references.edges && references.faces;
+  	const summary = is_perfect ? "valid" : "problematic";
+  	return {
+  		summary,
+  		vertices: {
+  			isolated: isolated_vertices,
+  			duplicate: duplicate_vertices,
+  			references: references.vertices,
+  		},
+  		edges: {
+  			circular: circular_edges,
+  			duplicate: duplicate_edges,
+  			references: references.edges,
+  		},
+  		faces: {
+  			references: references.faces,
+  		}
+  	};
+  };
+
+  const VEF = ["vertices", "edges", "faces"];
+  const clean = (graph, epsilon) => {
+    const report = validate$1(graph, epsilon);
+    const refs = VEF.filter(key => report[key].references === false);
+    if (refs.length) { console.warn(refs, "clean() reference outside array"); }
+    remove_circular_edges(graph, report.edges.circular);
+    remove_duplicate_edges(graph, report.edges.duplicate);
+    remove_isolated_vertices(graph, report.vertices.isolated);
+    remove_duplicate_vertices(graph);
+    return graph;
+  };
 
   const build_assignments_if_needed = (graph) => {
     const len = graph.edges_vertices.length;
@@ -3442,7 +3536,7 @@
     get_edges_edges_span: get_edges_edges_span
   });
 
-  const get_collinear_vertices = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+  const get_vertices_edges_overlap = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
     if (!edges_coords) {
       edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
     }
@@ -3466,6 +3560,11 @@
         .map((vert, i) => vert ? i : undefined)
         .filter(i => i !== undefined));
   };
+
+  var vertices_collinear = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    get_vertices_edges_overlap: get_vertices_edges_overlap
+  });
 
   const make_edges_segment_intersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
     if (!edges_coords) {
@@ -3642,7 +3741,7 @@
       edges_vector,
       edges_origin
     }, 1e-6);
-    const edges_collinear_vertices = get_collinear_vertices({
+    const edges_collinear_vertices = get_vertices_edges_overlap({
       vertices_coords: graph.vertices_coords,
       edges_vertices: graph.edges_vertices,
       edges_coords
@@ -4672,6 +4771,7 @@
   Graph.prototype.constructor = Graph;
   const graphMethods = Object.assign({
     clean,
+    validate: validate$1,
     populate,
     fragment,
     subgraph,
@@ -5441,6 +5541,67 @@
     is_folded_form: is_folded_form
   });
 
+  const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
+    if (!edges_vector) {
+      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+    }
+    const faces_winding = make_faces_winding({ vertices_coords, faces_vertices });
+    const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+    const matrix = edges_vertices
+      .map(() => Array.from(Array(faces_vertices.length)));
+    edges_faces.forEach((faces, e) => faces
+      .forEach(f => { matrix[e][f] = false; }));
+    const edges_vertices_coords = edges_vertices
+      .map(verts => verts.map(v => vertices_coords[v]));
+    const faces_vertices_coords = faces_vertices
+      .map(verts => verts.map(v => vertices_coords[v]));
+    for (let f = 0; f < faces_winding.length; f++) {
+      if (!faces_winding[f]) { faces_vertices_coords[f].reverse(); }
+    }
+    matrix.forEach((row, e) => row.forEach((val, f) => {
+      if (val === false) { return; }
+      const point_in_poly = edges_vertices_coords[e]
+        .map(point => math.core.overlap_convex_polygon_point(
+          faces_vertices_coords[f],
+          point,
+          math.core.exclude,
+          epsilon
+        )).reduce((a, b) => a || b, false);
+      if (point_in_poly) { matrix[e][f] = true; return; }
+      const edge_intersect = math.core.intersect_convex_polygon_line(
+        faces_vertices_coords[f],
+        edges_vector[e],
+        edges_origin[e],
+        math.core.exclude_s,
+        math.core.exclude_s,
+        epsilon
+      );
+      if (edge_intersect) { matrix[e][f] = true; return; }
+      matrix[e][f] = false;
+    }));
+    return matrix;
+  };
+  const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
+    const matrix = Array.from(Array(faces_vertices.length))
+      .map(() => Array.from(Array(faces_vertices.length)));
+    const faces_polygon = make_faces_polygon({ vertices_coords, faces_vertices }, epsilon);
+    for (let i = 0; i < faces_vertices.length - 1; i++) {
+      for (let j = i + 1; j < faces_vertices.length; j++) {
+        const overlap = math.core.overlap_convex_polygons(
+          faces_polygon[i], faces_polygon[j], epsilon);
+        matrix[i][j] = overlap;
+        matrix[j][i] = overlap;
+      }
+    }
+    return matrix;
+  };
+
+  var overlap = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    make_edges_faces_overlap: make_edges_faces_overlap,
+    make_faces_faces_overlap: make_faces_faces_overlap
+  });
+
   const make_folded_strip_tacos = (folded_faces, is_circular, epsilon) => {
     const faces_center = folded_faces
       .map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
@@ -5662,7 +5823,6 @@
     faces_layer.face = faces[indices[0]];
     return faces_layer;
   };
-
   const flip_solutions = solutions => {
     const face = solutions.face;
     const flipped = solutions
@@ -5687,65 +5847,10 @@
         : solutions);
   };
 
-  const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
-    if (!edges_vector) {
-      edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
-    }
-    const faces_winding = make_faces_winding({ vertices_coords, faces_vertices });
-    const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-    const matrix = edges_vertices
-      .map(() => Array.from(Array(faces_vertices.length)));
-    edges_faces.forEach((faces, e) => faces
-      .forEach(f => { matrix[e][f] = false; }));
-    const edges_vertices_coords = edges_vertices
-      .map(verts => verts.map(v => vertices_coords[v]));
-    const faces_vertices_coords = faces_vertices
-      .map(verts => verts.map(v => vertices_coords[v]));
-    for (let f = 0; f < faces_winding.length; f++) {
-      if (!faces_winding[f]) { faces_vertices_coords[f].reverse(); }
-    }
-    matrix.forEach((row, e) => row.forEach((val, f) => {
-      if (val === false) { return; }
-      const point_in_poly = edges_vertices_coords[e]
-        .map(point => math.core.overlap_convex_polygon_point(
-          faces_vertices_coords[f],
-          point,
-          math.core.exclude,
-          epsilon
-        )).reduce((a, b) => a || b, false);
-      if (point_in_poly) { matrix[e][f] = true; return; }
-      const edge_intersect = math.core.intersect_convex_polygon_line(
-        faces_vertices_coords[f],
-        edges_vector[e],
-        edges_origin[e],
-        math.core.exclude_s,
-        math.core.exclude_s,
-        epsilon
-      );
-      if (edge_intersect) { matrix[e][f] = true; return; }
-      matrix[e][f] = false;
-    }));
-    return matrix;
-  };
-  const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
-    const matrix = Array.from(Array(faces_vertices.length))
-      .map(() => Array.from(Array(faces_vertices.length)));
-    const faces_polygon = make_faces_polygon({ vertices_coords, faces_vertices }, epsilon);
-    for (let i = 0; i < faces_vertices.length - 1; i++) {
-      for (let j = i + 1; j < faces_vertices.length; j++) {
-        const overlap = math.core.overlap_convex_polygons(
-          faces_polygon[i], faces_polygon[j], epsilon);
-        matrix[i][j] = overlap;
-        matrix[j][i] = overlap;
-      }
-    }
-    return matrix;
-  };
-
-  var overlap = /*#__PURE__*/Object.freeze({
+  var faces_layer = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    make_edges_faces_overlap: make_edges_faces_overlap,
-    make_faces_faces_overlap: make_faces_faces_overlap
+    make_vertex_faces_layer: make_vertex_faces_layer,
+    make_vertices_faces_layer: make_vertices_faces_layer
   });
 
   const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
@@ -5821,22 +5926,18 @@
   	flat_fold,
   	add_planar_segment,
   	remove_planar_edge,
-  	clean,
-  	get_circular_edges,
-  	get_duplicate_edges,
-  	get_duplicate_vertices,
-  	get_collinear_vertices,
+  	validate: validate$1,
+  	get_vertices_clusters,
   	count,
   	implied: implied_count,
   	fragment,
   	remove: remove_geometry_indices,
+  	replace: replace_geometry_indices,
   	populate,
   	subgraph,
   	explode_faces,
   	clip,
   	join_collinear_edges,
-  	make_vertex_faces_layer,
-  	make_vertices_faces_layer,
   },
   	make,
   	overlap,
@@ -5846,6 +5947,7 @@
   	face_spanning_tree,
   	faces_matrix,
   	faces_winding,
+  	faces_layer,
   	transform,
   	boundary,
   	walk,
@@ -5855,8 +5957,9 @@
   	span,
   	maps,
   	query,
-  	remove_methods,
-  	vertices_isolated,
+  	vertices_violations,
+  	edges_violations,
+  	vertices_collinear,
   	arrays,
   );
 

@@ -8,7 +8,7 @@ import add_vertices from "../graph/add/add_vertices";
 import add_edges from "../graph/add/add_edges";
 import fragment from "../graph/fragment";
 import populate from "../graph/populate";
-import add_planar_segment from "../graph/add_planar_segment/index";
+import add_planar_segment from "../graph/add/add_planar_segment";
 import remove_planar_edge from "../graph/remove_planar_edge/index";
 import { join_collinear_edges } from "../graph/join_edges";
 import {
