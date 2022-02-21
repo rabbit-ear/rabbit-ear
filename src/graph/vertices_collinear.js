@@ -3,6 +3,39 @@
  */
 import math from "../math";
 import { get_edges_vertices_span } from "./span";
+
+const get_opposite_vertices = (graph, vertex, edges) => {
+  edges.forEach(edge => {
+    if (graph.edges_vertices[edge][0] === vertex
+      && graph.edges_vertices[edge][1] === vertex) {
+      console.warn("remove_planar_vertex circular edge");
+    }
+  });
+  return edges.map(edge => graph.edges_vertices[edge][0] === vertex
+    ? graph.edges_vertices[edge][1]
+    : graph.edges_vertices[edge][0]);
+};
+
+/**
+ * @description determine if a vertex is between only two edges and
+ * those edges are parallel, rendering the vertex potentially unnecessary.
+ */
+export const is_vertex_collinear = (graph, vertex) => {
+  const edges = graph.vertices_edges[vertex];
+  if (edges === undefined || edges.length !== 2) { return false; }
+  // don't just check if they are parallel, use the direction of the vertex
+  // to make sure the center vertex is inbetween, instead of the odd
+  // case where the two edges are on top of one another with
+  // a leaf-like vertex.
+  const vertices = get_opposite_vertices(graph, vertex, edges);
+  const vectors = [[vertices[0], vertex], [vertex, vertices[1]]]
+    .map(verts => verts.map(v => graph.vertices_coords[v]))
+    .map(segment => ear.math.subtract(segment[1], segment[0]))
+    .map(vector => ear.math.normalize(vector));
+  const is_parallel = ear.math
+    .equivalent_numbers(1.0, ear.math.dot(...vectors));
+  return is_parallel;
+};
 /**
  * check each vertex against each edge, we want to know if a vertex is
  * lying collinear along an edge, the usual intention is to substitute

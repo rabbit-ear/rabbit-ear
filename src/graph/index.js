@@ -33,7 +33,8 @@ import split_edge from "./split_edge/index";
 import split_face from "./split_face/index";
 import flat_fold from "./flat_fold/index";
 import add_planar_segment from "./add/add_planar_segment";
-import remove_planar_edge from "./remove_planar_edge/index";
+import remove_planar_vertex from "./remove/remove_planar_vertex";
+import remove_planar_edge from "./remove/remove_planar_edge";
 import * as intersect from "./intersect";
 import * as overlap from "./overlap";
 import * as vertices_violations from "./vertices_violations";
@@ -45,7 +46,7 @@ import * as vertices_coords_folded from "./vertices_coords_folded";
 import * as face_spanning_tree from "./face_spanning_tree";
 import * as faces_matrix from "./faces_matrix";
 import * as faces_winding from "./faces_winding";
-import { join_collinear_edges } from "./join_edges";
+// import { join_collinear_edges } from "./join_edges";
 
 // todo: not sure about this organization
 import * as arrays from "../general/arrays";
@@ -62,6 +63,7 @@ export default Object.assign(Object.create(null), {
 	split_face,
 	flat_fold,
 	add_planar_segment,
+	remove_planar_vertex,
 	remove_planar_edge,
 	// validate
 	validate,
@@ -78,7 +80,7 @@ export default Object.assign(Object.create(null), {
 	explode_faces,
 	clip,
 	// various
-	join_collinear_edges,
+	// join_collinear_edges,
 },
 	make,
 	overlap,

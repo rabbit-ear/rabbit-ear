@@ -9,8 +9,11 @@ import add_edges from "../graph/add/add_edges";
 import fragment from "../graph/fragment";
 import populate from "../graph/populate";
 import add_planar_segment from "../graph/add/add_planar_segment";
-import remove_planar_edge from "../graph/remove_planar_edge/index";
-import { join_collinear_edges } from "../graph/join_edges";
+import remove_planar_edge from "../graph/remove/remove_planar_edge";
+import { is_vertex_collinear } from "../graph/vertices_collinear";
+import { edge_foldAngle_is_flat } from "../fold/spec";
+import remove_planar_vertex from "../graph/remove/remove_planar_vertex";
+import validate from "../graph/validate";
 import {
   validate_maekawa,
   validate_kawasaki,
@@ -103,20 +106,57 @@ const make_edges_array = function (array) {
   };
 });
 
+
+// ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
+//   CreasePattern.prototype[fName] = function () {
+//     const primitive = math[fName](...arguments);
+//     if (!primitive) { return; }
+//     const segments = primitive.segments(arcResolution)
+//       .map(segment => math.segment(segment))
+//       .map(segment => clip(this, segment))
+//       .filter(a => a !== undefined);
+//     if (!segments) { return; }
+//     const vertices = [];
+//     // const edges = [];
+//     const edges = segments.map(segment => {
+//       return add_planar_segment(this, segment[0], segment[1]);
+//     });
+//     console.log("verts, edges", vertices, edges);
+//     // return make_edges_array.call(this, edges
+//     //   .reduce((a, b) => a.concat(b), []));
+//   };
+// });
+
+
 CreasePattern.prototype.removeEdge = function (edge) {
+  const vertices = this.edges_vertices[edge];
   remove_planar_edge(this, edge);
-  // join_collinear_edges(this);
+  vertices
+    .map(v => is_vertex_collinear(this, v))
+    .map((collinear, i) => collinear ? vertices[i] : undefined)
+    .filter(a => a !== undefined)
+    .sort((a, b) => b - a)
+    .forEach(v => remove_planar_vertex(this, v));
   return true;
 };
 
 CreasePattern.prototype.validate = function (epsilon) {
-  const vertices = this.vertices_coords
-    .map(() => ({ maekawa: true, kawasaki: true }));
-  validate_kawasaki(this, epsilon)
-    .forEach(v => { vertices[v].kawasaki = false; });
-  validate_maekawa(this)
-    .forEach(v => { vertices[v].maekawa = false; });
-  return vertices;
+  const valid = validate(this, epsilon);
+  valid.vertices.kawasaki = validate_kawasaki(this, epsilon);
+  valid.vertices.maekawa = validate_maekawa(this);
+  if (this.edges_foldAngle) {
+    valid.edges.not_flat = this.edges_foldAngle
+      .map((angle, i) => edge_foldAngle_is_flat(angle) ? undefined : i)
+      .filter(a => a !== undefined);
+  }
+  if (valid.summary === "valid") {
+    if (valid.vertices.kawasaki.length || valid.vertices.maekawa.length) {
+      valid.summary = "invalid";
+    } else if (valid.edges.not_flat.length) {
+      valid.summary = "not flat";
+    }
+  }
+  return valid;
 };
 
 export default CreasePattern.prototype;

@@ -3614,6 +3614,29 @@
     get_edges_edges_span: get_edges_edges_span
   });
 
+  const get_opposite_vertices$1 = (graph, vertex, edges) => {
+    edges.forEach(edge => {
+      if (graph.edges_vertices[edge][0] === vertex
+        && graph.edges_vertices[edge][1] === vertex) {
+        console.warn("remove_planar_vertex circular edge");
+      }
+    });
+    return edges.map(edge => graph.edges_vertices[edge][0] === vertex
+      ? graph.edges_vertices[edge][1]
+      : graph.edges_vertices[edge][0]);
+  };
+  const is_vertex_collinear = (graph, vertex) => {
+    const edges = graph.vertices_edges[vertex];
+    if (edges === undefined || edges.length !== 2) { return false; }
+    const vertices = get_opposite_vertices$1(graph, vertex, edges);
+    const vectors = [[vertices[0], vertex], [vertex, vertices[1]]]
+      .map(verts => verts.map(v => graph.vertices_coords[v]))
+      .map(segment => ear.math.subtract(segment[1], segment[0]))
+      .map(vector => ear.math.normalize(vector));
+    const is_parallel = ear.math
+      .equivalent_numbers(1.0, ear.math.dot(...vectors));
+    return is_parallel;
+  };
   const get_vertices_edges_overlap = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
     if (!edges_coords) {
       edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
@@ -3641,6 +3664,7 @@
 
   var vertices_collinear = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    is_vertex_collinear: is_vertex_collinear,
     get_vertices_edges_overlap: get_vertices_edges_overlap
   });
 
@@ -5166,56 +5190,60 @@
   	remove_geometry_indices(graph, "vertices", remove_vertices);
   };
 
-  const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.core.EPSILON) => {
-  	if (!edges_vector) {
-  		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
-  	}
-  	if (!vertices_edges) {
-  		vertices_edges = make_vertices_edges_unsorted$1({ edges_vertices });
-  	}
-  	const two_adjacencies_vertices = vertices_edges
-  		.map((ve, i) => ve.length === 2 ? i : undefined)
-  		.filter(a => a !== undefined);
-  	const adjacencies_are_parallel = two_adjacencies_vertices
-  		.map(vertex => vertices_edges[vertex])
-  		.map(edges => edges.map(edge => edges_vector[edge]))
-  		.map(vecs => math.core.parallel(...vecs));
-  	const vertices_remove = two_adjacencies_vertices
-  		.filter((vertex, i) => adjacencies_are_parallel[i]);
-  	const joinable_edges = vertices_remove
-  		.map(v => vertices_edges[v])
-  		.map(edges => edges[0] < edges[1] ? edges : [edges[1], edges[0]]);
-  	const edges_to_join = {};
-  	for (let i = 0; i < joinable_edges.length; i++) {
-  		if (edges_to_join[joinable_edges[i][1]] === undefined) {
-  			edges_to_join[joinable_edges[i][1]] = true;
-  		} else {
-  			console.warn("cannot safely remove edges. some overlaps");
+  const get_opposite_vertices = (graph, vertex, edges) => {
+  	edges.forEach(edge => {
+  		if (graph.edges_vertices[edge][0] === vertex
+  			&& graph.edges_vertices[edge][1] === vertex) {
+  			console.warn("remove_planar_vertex circular edge");
   		}
+  	});
+  	return edges.map(edge => graph.edges_vertices[edge][0] === vertex
+  		? graph.edges_vertices[edge][1]
+  		: graph.edges_vertices[edge][0]);
+  };
+  const remove_planar_vertex = (graph, vertex) => {
+  	const edges = graph.vertices_edges[vertex];
+  	const faces = unique_sorted_integers(graph.vertices_faces[vertex]
+  		.filter(a => a != null));
+  	if (edges.length !== 2 || faces.length > 2) {
+  		console.warn("cannot remove non 2-degree vertex yet (e,f)", edges, faces);
+  		return;
   	}
-  	const edges_keep = joinable_edges.map(edges => edges[0]);
-  	const edges_remove = joinable_edges.map(edges => edges[1]);
-  	const edges_remove_other_vertex = edges_remove
-  		.map(edge => edges_vertices[edge])
-  		.map((vertices, i) => {
-  			if (vertices[0] === vertices_remove[i]) { return vertices[1]; }
-  			else if (vertices[1] === vertices_remove[i]) { return vertices[0]; }
-  			else { console.warn("removed edge cannot find vertex"); return undefined; }
-  		});
-  	edges_keep
-  		.forEach((edge, i) => {
-  			if (edges_vertices[edge][0] === vertices_remove[i]) {
-  				edges_vertices[edge][0] = edges_remove_other_vertex[i];
-  			} else if (edges_vertices[edge][1] === vertices_remove[i]) {
-  				edges_vertices[edge][1] = edges_remove_other_vertex[i];
-  			} else {
-  				console.warn("joining edges cannot find vertex");
-  			}
-  		});
-  	return {
-  		vertices: vertices_remove,
-  		edges: edges_remove
-  	};
+  	const vertices = get_opposite_vertices(graph, vertex, edges);
+  	const vertices_reverse = vertices.slice().reverse();
+  	edges.sort((a, b) => a - b);
+  	vertices.forEach(v => {
+  		const index = graph.vertices_edges[v].indexOf(edges[1]);
+  		if (index === -1) { return; }
+  		graph.vertices_edges[v][index] = edges[0];
+  	});
+  	vertices.forEach((v, i) => {
+  		const index = graph.vertices_vertices[v].indexOf(vertex);
+  		if (index === -1) {
+  			console.warn("remove_planar_vertex unknown vertex issue");
+  			return;
+  		}
+  		graph.vertices_vertices[v][index] = vertices_reverse[i];
+  	});
+  	graph.edges_vertices[edges[0]] = [...vertices];
+  	faces.forEach(face => {
+  		const index = graph.faces_vertices[face].indexOf(vertex);
+  		if (index === -1) {
+  			console.warn("remove_planar_vertex unknown face_vertex issue");
+  			return;
+  		}
+  		graph.faces_vertices[face].splice(index, 1);
+  	});
+  	faces.forEach(face => {
+  		const index = graph.faces_edges[face].indexOf(edges[1]);
+  		if (index === -1) {
+  			console.warn("remove_planar_vertex unknown face_edge issue");
+  			return;
+  		}
+  		graph.faces_edges[face].splice(index, 1);
+  	});
+  	remove_geometry_indices(graph, "vertices", [vertex]);
+  	remove_geometry_indices(graph, "edges", [edges[1]]);
   };
 
   const alternating_sum = (numbers) => [0, 1]
@@ -5367,17 +5395,33 @@
     };
   });
   CreasePattern.prototype.removeEdge = function (edge) {
+    const vertices = this.edges_vertices[edge];
     remove_planar_edge(this, edge);
+    vertices
+      .map(v => is_vertex_collinear(this, v))
+      .map((collinear, i) => collinear ? vertices[i] : undefined)
+      .filter(a => a !== undefined)
+      .sort((a, b) => b - a)
+      .forEach(v => remove_planar_vertex(this, v));
     return true;
   };
   CreasePattern.prototype.validate = function (epsilon) {
-    const vertices = this.vertices_coords
-      .map(() => ({ maekawa: true, kawasaki: true }));
-    validate_kawasaki(this, epsilon)
-      .forEach(v => { vertices[v].kawasaki = false; });
-    validate_maekawa(this)
-      .forEach(v => { vertices[v].maekawa = false; });
-    return vertices;
+    const valid = validate$1(this, epsilon);
+    valid.vertices.kawasaki = validate_kawasaki(this, epsilon);
+    valid.vertices.maekawa = validate_maekawa(this);
+    if (this.edges_foldAngle) {
+      valid.edges.not_flat = this.edges_foldAngle
+        .map((angle, i) => edge_foldAngle_is_flat(angle) ? undefined : i)
+        .filter(a => a !== undefined);
+    }
+    if (valid.summary === "valid") {
+      if (valid.vertices.kawasaki.length || valid.vertices.maekawa.length) {
+        valid.summary = "invalid";
+      } else if (valid.edges.not_flat.length) {
+        valid.summary = "not flat";
+      }
+    }
+    return valid;
   };
   var CreasePatternProto = CreasePattern.prototype;
 
@@ -5931,6 +5975,7 @@
   	split_face: split_convex_face,
   	flat_fold,
   	add_planar_segment,
+  	remove_planar_vertex,
   	remove_planar_edge,
   	validate: validate$1,
   	get_vertices_clusters,
@@ -5943,7 +5988,6 @@
   	subgraph,
   	explode_faces,
   	clip,
-  	join_collinear_edges,
   },
   	make,
   	overlap,
@@ -7410,6 +7454,7 @@
   };
 
   const topological_order = (conditions) => {
+    if (!conditions) { return undefined; }
     const matrix = conditions_to_matrix(conditions);
     const parent_face_counts = matrix
       .map((row, i) => row

@@ -34,7 +34,6 @@ test("fragment dup verts", () => {
 	expect(graph.vertices_coords.length).toBe(5);
 });
 
-
 test("fragment, one edges crossing boundary, more assignments than fold angles", () => {
   const graph = ear.graph.square();
   graph.vertices_coords.push([-0.1, 0.3], [1.1, 0.9]);

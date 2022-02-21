@@ -2,6 +2,7 @@ import conditions_to_matrix from "./conditions_to_matrix";
 import { invert_map } from "../../graph/maps";
 
 export const topological_order = (conditions) => {
+  if (!conditions) { return undefined; }
   // this matrix will be used to build the parent_face_counts,
   // this matrix itself will remain unchanged.
   const matrix = conditions_to_matrix(conditions);

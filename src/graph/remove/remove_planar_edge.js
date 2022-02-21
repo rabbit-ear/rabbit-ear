@@ -4,7 +4,6 @@
  * This rebuilding makes this method differ from the "remove()" method.
  */
 import remove from "../remove";
-// import join_faces from "../join_faces";
 /**
  * @description given two (soon to be) formerly adjacent vertices,
  * remove mention of the other from each's vertices_vertices.
