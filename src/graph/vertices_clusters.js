@@ -23,10 +23,13 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
  * an array of vertex indices.
  * if there are no duplicates, it returns [ [0], [1], [2], [3], [4], ... ]
  * if there are it looks like: [ [0, 2], [1], [3], [4, 5]]
+ * if vertices_coords is not present, instead of undefined,
+ *  it returns an empty array.
  */
 // clusters is an array of arrays of numbers
 // each entry in clusters is an array of vertex indices
 const get_vertices_clusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+  if (!vertices_coords) { return []; }
   // equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices
   // only top triangle is used
   //             j  j  j

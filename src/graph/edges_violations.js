@@ -13,6 +13,19 @@ import {
 } from "../fold/spec";
 import remove from "./remove";
 import replace from "./replace";
+
+// export const get_undefined_edges = ({ edges_vertices }) => {
+//   const bad = [];
+//   for (let i = 0; i < edges_vertices.length; i += 1) {
+//     if (edges_vertices[i][0] === undefined
+//       || edges_vertices[i][1] === undefined
+//       || edges_vertices[i][0] === null
+//       || edges_vertices[i][1] === null) {
+//       bad.push(i);
+//     }
+//   }
+//   return bad;
+// };
 /**
  * @description get the indices of all circular edges. circular edges are
  * edges where both of its edges_vertices is the same vertex.

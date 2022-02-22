@@ -8,6 +8,7 @@ import {
 import {
   remove_circular_edges,
   remove_duplicate_edges,
+  // remove_undefined_edges,
 } from "./edges_violations";
 import {
   merge_simple_nextmaps,
@@ -23,11 +24,14 @@ import {
 const clean = (graph, epsilon) => {
   // duplicate vertices has to be done first as it's possible that
   // this will create circular/duplicate edges.
-  const change_v1 = remove_duplicate_vertices(graph);
+  const change_v1 = remove_duplicate_vertices(graph, epsilon);
   const change_e1 = remove_circular_edges(graph);
   const change_e2 = remove_duplicate_edges(graph);
   // isolated vertices is last. removing edges can create isolated vertices
   const change_v2 = remove_isolated_vertices(graph);
+  // todo: it's possible that an edges_vertices now contains undefineds,
+  // like [4, undefined]. but this should not be happening
+
   // return a summary of changes.
   // use the maps to update the removed indices from the second step
   // to their previous index before change 1 occurred.

@@ -37,12 +37,16 @@ const replace_geometry_indices = (graph, key, replaceIndices) => {
   for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
     while (i === replaces[walk]) {
       // this prevents arrays with holes
-			index_map[i] = replaceIndices[replaces[walk]];
+      index_map[i] = index_map[replaceIndices[replaces[walk]]];
+      if (index_map[i] === undefined) {
+        console.log("replace() found an undefined", index_map);
+      }
       i += 1;
       walk += 1;
     }
     if (i < geometry_array_size) { index_map[i] = j; }
   }
+  // console.log("replace index_map", index_map);
 	// update every component that points to vertices_coords
   // these arrays do not change their size, only their contents
   get_graph_keys_with_suffix(graph, key)

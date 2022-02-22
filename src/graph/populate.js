@@ -20,7 +20,6 @@ import {
   edge_assignment_to_foldAngle,
   edge_foldAngle_to_assignment,
 } from "../fold/spec";
-
 /**
  * @description populate() has been one of the hardest methods to
  * nail down, not to write, moreso in what it should do, and what

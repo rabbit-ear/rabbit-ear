@@ -2606,7 +2606,7 @@
       : [].concat(keys, non_spec_keys)
         .filter(key => object[key]).length / Object.keys(object).length);
 
-  var fold_object = /*#__PURE__*/Object.freeze({
+  var fold_spec = /*#__PURE__*/Object.freeze({
     __proto__: null,
     singularize: singularize,
     edges_assignment_names: edges_assignment_names,
@@ -2635,6 +2635,7 @@
     return true;
   };
   const get_vertices_clusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+    if (!vertices_coords) { return []; }
     const equivalent_matrix = vertices_coords.map(() => []);
     for (let i = 0; i < vertices_coords.length - 1; i += 1) {
       for (let j = i + 1; j < vertices_coords.length; j += 1) {
@@ -2823,7 +2824,10 @@
     let i, j, walk;
     for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
       while (i === replaces[walk]) {
-  			index_map[i] = replaceIndices[replaces[walk]];
+        index_map[i] = index_map[replaceIndices[replaces[walk]]];
+        if (index_map[i] === undefined) {
+          console.log("replace() found an undefined", index_map);
+        }
         i += 1;
         walk += 1;
       }
@@ -2846,6 +2850,7 @@
   		.filter(arr => arr.length > 1);
   };
   const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
+    if (!vertices_coords || !edges_vertices) { return []; }
     let count = vertices_coords.length;
     const seen = Array(count).fill(false);
     edges_vertices.forEach((ev) => {
@@ -2859,6 +2864,7 @@
       .filter(a => a !== undefined);
   };
   const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
+    if (!vertices_coords || !faces_vertices) { return []; }
     let count = vertices_coords.length;
     const seen = Array(count).fill(false);
     faces_vertices.forEach((fv) => {
@@ -2872,6 +2878,7 @@
       .filter(a => a !== undefined);
   };
   const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
+    if (!vertices_coords) { return []; }
     let count = vertices_coords.length;
     const seen = Array(count).fill(false);
     if (edges_vertices) {
@@ -3463,7 +3470,7 @@
   });
 
   const clean = (graph, epsilon) => {
-    const change_v1 = remove_duplicate_vertices(graph);
+    const change_v1 = remove_duplicate_vertices(graph, epsilon);
     const change_e1 = remove_circular_edges(graph);
     const change_e2 = remove_duplicate_edges(graph);
     const change_v2 = remove_isolated_vertices(graph);
@@ -5968,48 +5975,50 @@
   });
 
   var graph_methods = Object.assign(Object.create(null), {
-  	assign: assign$1,
+  	count,
+  	implied: implied_count,
+  	validate: validate$1,
+  	clean,
+  	populate,
+  	remove: remove_geometry_indices,
+  	replace: replace_geometry_indices,
+  	remove_planar_vertex,
+  	remove_planar_edge,
   	add_vertices,
   	add_edges,
   	split_edge,
   	split_face: split_convex_face,
   	flat_fold,
   	add_planar_segment,
-  	remove_planar_vertex,
-  	remove_planar_edge,
-  	validate: validate$1,
-  	get_vertices_clusters,
-  	count,
-  	implied: implied_count,
-  	fragment,
-  	remove: remove_geometry_indices,
-  	replace: replace_geometry_indices,
-  	populate,
+  	assign: assign$1,
   	subgraph,
   	explode_faces,
   	clip,
+  	fragment,
+  	get_vertices_clusters,
+  	clone,
   },
   	make,
-  	overlap,
+  	boundary,
+  	walk,
+  	nearest,
+  	fold_spec,
+  	sort,
+  	span,
+  	maps,
+  	query,
   	intersect,
+  	overlap,
+  	transform,
+  	vertices_violations,
+  	edges_violations,
+  	vertices_collinear,
+  	faces_layer,
   	edges_edges,
   	vertices_coords_folded,
   	face_spanning_tree,
   	faces_matrix,
   	faces_winding,
-  	faces_layer,
-  	transform,
-  	boundary,
-  	walk,
-  	nearest,
-  	fold_object,
-  	sort,
-  	span,
-  	maps,
-  	query,
-  	vertices_violations,
-  	edges_violations,
-  	vertices_collinear,
   	arrays,
   );
 

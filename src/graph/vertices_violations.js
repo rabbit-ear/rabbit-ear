@@ -17,6 +17,7 @@ export const get_duplicate_vertices = (graph, epsilon) => {
 };
 
 export const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
+  if (!vertices_coords || !edges_vertices) { return []; }
   let count = vertices_coords.length;
   const seen = Array(count).fill(false);
   edges_vertices.forEach((ev) => {
@@ -31,6 +32,7 @@ export const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) 
 };
 
 export const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
+  if (!vertices_coords || !faces_vertices) { return []; }
   let count = vertices_coords.length;
   const seen = Array(count).fill(false);
   faces_vertices.forEach((fv) => {
@@ -47,6 +49,7 @@ export const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) 
 // todo this could be improved. for loop instead of forEach + filter.
 // break the loop early.
 export const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
+  if (!vertices_coords) { return []; }
   let count = vertices_coords.length;
   const seen = Array(count).fill(false);
   if (edges_vertices) {
