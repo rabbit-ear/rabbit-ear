@@ -5,20 +5,20 @@ import math from "../../math";
 import { fn_cat } from "../../general/functions";
 import { face_containing_point } from "../nearest";
 import populate from "../populate";
-import {
-  merge_nextmaps,
-} from "../maps";
+import { merge_nextmaps } from "../maps";
 import {
   make_faces_faces,
   make_faces_edges_from_vertices,
 } from "../make";
-import { make_faces_matrix2 } from "../faces_matrix";
+import {
+  make_faces_matrix2,
+  multiply_vertices_faces_matrix2,
+} from "../faces_matrix";
+import { make_edges_line_parallel_overlap } from "../intersect";
 import { make_faces_winding_from_matrix2 } from "../faces_winding";
-import { make_vertices_coords_flat_folded } from "../vertices_coords_folded";
 import split_convex_polygon from "../split_face/index";
 import { edge_assignment_to_foldAngle } from "../../fold/spec";
 import { fold_faces_layer } from "./faces_layer";
-
 /**
  * @description this determines which side of a line (using cross product)
  * a face lies in a folded form, except, the face is the face in
@@ -46,6 +46,7 @@ const make_face_center = (graph, face) => !graph.faces_vertices[face]
     .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
     .map(el => el / graph.faces_vertices[face].length);
 
+const unfolded_assignment = { F:true, f:true, U:true, u:true };
 const opposite_lookup = { M:"V", m:"V", V:"M", v:"M" };
 /**
  * @description for a mountain or valley, return the opposite.
@@ -76,12 +77,13 @@ const face_snapshot = (graph, face) => ({
  * So, we will create copies of the crease line, one per face, transformed
  * into place by its face's matrix, which superimposes many copies of the
  * crease line onto the crease pattern, each in place
- * 
  */
 const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
   const opposite_assignment = get_opposite_assignment(assignment);
   // make sure the input graph contains the necessary data.
-  // this takes care of standard FOLD-spec arrays.
+  // this takes care of all standard FOLD-spec arrays.
+  // todo: this could be optimized by trusting that the existing arrays
+  // are accurate, checking if they exist and skipping them if so.
   populate(graph);
   // additionally, we need to ensure faces layer exists.
   // todo: if it doesn't exist, should we use the solver?
@@ -110,6 +112,38 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
       graph.faces_center[i],
       graph.faces_winding[i],
     ));
+  // before we start splitting faces, we have to handle the case where
+  // a face has already been split along the fold crease, and the crease
+  // is of assignment flat or unassigned ("f", "u"), the split_face method
+  // will not catch these. we need to find these edges before we modify
+  // the graph, find the face they are attached to and if it is flipped,
+  // and set the edge to the proper "V" or "M".
+  const vertices_coords_folded = multiply_vertices_faces_matrix2(graph,
+    graph.faces_matrix2);
+  // get all (folded) edges which lie parallel and overlap the crease line
+  const collinear_edges = make_edges_line_parallel_overlap({
+    vertices_coords: vertices_coords_folded,
+    edges_vertices: graph.edges_vertices,
+  }, vector, origin, epsilon)
+    .map((is_collinear, e) => is_collinear ? e : undefined)
+    .filter(e => e !== undefined)
+    .filter(e => unfolded_assignment[graph.edges_assignment[e]]);
+  // get the first valid adjacent face for each edge, get that face's winding,
+  // which determines the crease assignment, and assign it to the edge
+  collinear_edges.map(e => {
+    for (let i = 0; i < graph.edges_faces[e].length; i++) {
+      if (graph.edges_faces[e][i] != null) {
+        return graph.edges_faces[e][i];
+      }
+    }
+    console.warn("flat_fold edges_faces issue");
+  }).map(f => graph.faces_winding[f])
+    .map(winding => winding ? assignment : opposite_assignment)
+    .forEach((assignment, e) => {
+      graph.edges_assignment[collinear_edges[e]] = assignment;
+      graph.edges_foldAngle[collinear_edges[e]] = edge_assignment_to_foldAngle(
+        assignment);
+    });
   // before we start splitting, capture the state of face 0. we will use
   // it when rebuilding the graph's matrices after all splitting is finished.
   const face0 = face_snapshot(graph, 0);
@@ -129,7 +163,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
         i,
         face.crease.vector,
         face.crease.origin,
-        epsilon); 
+        epsilon);
       // console.log("split convex polygon change", change);
       if (change === undefined) { return undefined; }
       // const face_winding = folded.faces_winding[i];

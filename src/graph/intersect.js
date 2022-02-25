@@ -8,6 +8,34 @@ import {
   make_edges_bounding_box,
 } from "./make";
 import { get_edges_edges_span } from "./span";
+
+/**
+ * @param {object} a FOLD object
+ * @param {number[]} vector. a line defined by a vector crossing a point
+ * @param {number[]} point. a line defined by a vector crossing a point
+ */
+export const make_edges_line_parallel_overlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
+  const normalized = math.core.normalize2(vector);
+  const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
+  const edges_vector = edges_vertices
+    .map(ev => ev.map(v => vertices_coords[v]))
+    .map(edge => math.core.subtract2(edge[1], edge[0]));
+  // first, filter out edges which are not parallel
+  const overlap = edges_vector
+    .map(vec => math.core.parallel2(vec, vector, epsilon));
+  // second, filter out edges which do not lie on top of the line
+  for (let e = 0; e < edges_vertices.length; e++) {
+    if (!overlap[e]) { continue; }
+    if (math.core.equivalent_vector2(edges_origin[e], point)) {
+      overlap[e] = true;
+      continue;
+    }
+    const vec = math.core.normalize2(math.core.subtract2(edges_origin[e], point));
+    const dot = Math.abs(math.core.dot2(vec, normalized));
+    overlap[e] = Math.abs(1.0 - dot) < epsilon;
+  }
+  return overlap;
+};
 /**
  * @description return the indices of edges which overlap the segment
  * @param {object} a FOLD graph

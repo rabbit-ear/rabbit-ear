@@ -3675,6 +3675,26 @@
     get_vertices_edges_overlap: get_vertices_edges_overlap
   });
 
+  const make_edges_line_parallel_overlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
+    const normalized = math.core.normalize2(vector);
+    const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
+    const edges_vector = edges_vertices
+      .map(ev => ev.map(v => vertices_coords[v]))
+      .map(edge => math.core.subtract2(edge[1], edge[0]));
+    const overlap = edges_vector
+      .map(vec => math.core.parallel2(vec, vector, epsilon));
+    for (let e = 0; e < edges_vertices.length; e++) {
+      if (!overlap[e]) { continue; }
+      if (math.core.equivalent_vector2(edges_origin[e], point)) {
+        overlap[e] = true;
+        continue;
+      }
+      const vec = math.core.normalize2(math.core.subtract2(edges_origin[e], point));
+      const dot = Math.abs(math.core.dot2(vec, normalized));
+      overlap[e] = Math.abs(1.0 - dot) < epsilon;
+    }
+    return overlap;
+  };
   const make_edges_segment_intersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
     if (!edges_coords) {
       edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
@@ -3762,6 +3782,7 @@
 
   var intersect = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    make_edges_line_parallel_overlap: make_edges_line_parallel_overlap,
     make_edges_segment_intersection: make_edges_segment_intersection,
     make_edges_edges_intersection: make_edges_edges_intersection,
     intersect_convex_face_line: intersect_convex_face_line
@@ -4367,6 +4388,29 @@
     make_vertices_coords_flat_folded: make_vertices_coords_flat_folded
   });
 
+  const make_faces_winding_from_matrix = faces_matrix => faces_matrix
+    .map(m => m[0] * m[4] - m[1] * m[3])
+    .map(c => c >= 0);
+  const make_faces_winding_from_matrix2 = faces_matrix => faces_matrix
+    .map(m => m[0] * m[3] - m[1] * m[2])
+    .map(c => c >= 0);
+  const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
+    return faces_vertices
+      .map(vertices => vertices
+        .map(v => vertices_coords[v])
+        .map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
+        .map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]) )
+        .reduce((a, b) => a + b, 0))
+      .map(face => face < 0);
+  };
+
+  var faces_winding = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    make_faces_winding_from_matrix: make_faces_winding_from_matrix,
+    make_faces_winding_from_matrix2: make_faces_winding_from_matrix2,
+    make_faces_winding: make_faces_winding
+  });
+
   const explode_faces = (graph) => {
     const vertices_coords = graph.faces_vertices
       .map(face => face.map(v => graph.vertices_coords[v]))
@@ -4377,8 +4421,46 @@
     return {
       vertices_coords: JSON.parse(JSON.stringify(vertices_coords)),
       faces_vertices,
-    }
+    };
   };
+  const explode_shrink_faces = ({ vertices_coords, faces_vertices }, shrink = 0.333) => {
+    const graph = explode_faces({ vertices_coords, faces_vertices });
+    const faces_winding = make_faces_winding(graph);
+    const faces_vectors = graph.faces_vertices
+      .map(vertices => vertices.map(v => graph.vertices_coords[v]))
+      .map(points => points.map((p, i, arr) => math.core.subtract2(p, arr[(i+1) % arr.length])));
+    const faces_centers = make_faces_center_quick({ vertices_coords, faces_vertices });
+    const faces_point_distances = faces_vertices
+      .map(vertices => vertices.map(v => vertices_coords[v]))
+      .map((points, f) => points
+        .map(point => ear.math.distance2(point, faces_centers[f])));
+    console.log("faces_point_distances", faces_point_distances);
+    const faces_bisectors = faces_vectors
+      .map((vectors, f) => vectors
+        .map((vector, i, arr) => [
+          vector,
+          math.core.flip(arr[(i - 1 + arr.length) % arr.length])
+        ]).map(pair => faces_winding[f]
+          ? math.core.counter_clockwise_bisect2(...pair)
+          : math.core.clockwise_bisect2(...pair)))
+      .map((vectors, f) => vectors
+        .map((vector, i) => ear.math.scale(vector, faces_point_distances[f][i])));
+    graph.faces_vertices
+      .forEach((vertices, f) => vertices
+        .forEach((v, i) => {
+          graph.vertices_coords[v] = math.core.add2(
+            graph.vertices_coords[v],
+            math.core.scale2(faces_bisectors[f][i], -shrink),
+          );
+        }));
+    return graph;
+  };
+
+  var explode_faces$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    explode_faces: explode_faces,
+    explode_shrink_faces: explode_shrink_faces
+  });
 
   const nearest_vertex = ({ vertices_coords }, point) => {
     if (!vertices_coords) { return undefined; }
@@ -4817,6 +4899,7 @@
     splitEdge: split_edge,
     faceSpanningTree: make_face_spanning_tree,
     explodeFaces: explode_faces,
+    explodeShrinkFaces: explode_shrink_faces,
   },
     transform,
   );
@@ -5432,29 +5515,6 @@
   };
   var CreasePatternProto = CreasePattern.prototype;
 
-  const make_faces_winding_from_matrix = faces_matrix => faces_matrix
-    .map(m => m[0] * m[4] - m[1] * m[3])
-    .map(c => c >= 0);
-  const make_faces_winding_from_matrix2 = faces_matrix => faces_matrix
-    .map(m => m[0] * m[3] - m[1] * m[2])
-    .map(c => c >= 0);
-  const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
-    return faces_vertices
-      .map(vertices => vertices
-        .map(v => vertices_coords[v])
-        .map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
-        .map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]) )
-        .reduce((a, b) => a + b, 0))
-      .map(face => face < 0);
-  };
-
-  var faces_winding = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    make_faces_winding_from_matrix: make_faces_winding_from_matrix,
-    make_faces_winding_from_matrix2: make_faces_winding_from_matrix2,
-    make_faces_winding: make_faces_winding
-  });
-
   const fold_faces_layer = (faces_layer, faces_folding) => {
     const new_faces_layer = [];
     const arr = faces_layer.map((_, i) => i);
@@ -5480,6 +5540,7 @@
       .map(v => graph.vertices_coords[v])
       .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
       .map(el => el / graph.faces_vertices[face].length);
+  const unfolded_assignment = { F:true, f:true, U:true, u:true };
   const opposite_lookup = { M:"V", m:"V", V:"M", v:"M" };
   const get_opposite_assignment = assign => opposite_lookup[assign] || assign;
   const face_snapshot = (graph, face) => ({
@@ -5512,6 +5573,29 @@
         graph.faces_center[i],
         graph.faces_winding[i],
       ));
+    const vertices_coords_folded = multiply_vertices_faces_matrix2(graph,
+      graph.faces_matrix2);
+    const collinear_edges = make_edges_line_parallel_overlap({
+      vertices_coords: vertices_coords_folded,
+      edges_vertices: graph.edges_vertices,
+    }, vector, origin, epsilon)
+      .map((is_collinear, e) => is_collinear ? e : undefined)
+      .filter(e => e !== undefined)
+      .filter(e => unfolded_assignment[graph.edges_assignment[e]]);
+    collinear_edges.map(e => {
+      for (let i = 0; i < graph.edges_faces[e].length; i++) {
+        if (graph.edges_faces[e][i] != null) {
+          return graph.edges_faces[e][i];
+        }
+      }
+      console.warn("flat_fold edges_faces issue");
+    }).map(f => graph.faces_winding[f])
+      .map(winding => winding ? assignment : opposite_assignment)
+      .forEach((assignment, e) => {
+        graph.edges_assignment[collinear_edges[e]] = assignment;
+        graph.edges_foldAngle[collinear_edges[e]] = edge_assignment_to_foldAngle(
+          assignment);
+      });
     const face0 = face_snapshot(graph, 0);
     const split_changes = graph.faces_vertices
       .map((_, i) => i)
@@ -5992,7 +6076,6 @@
   	add_planar_segment,
   	assign: assign$1,
   	subgraph,
-  	explode_faces,
   	clip,
   	fragment,
   	get_vertices_clusters,
@@ -6019,6 +6102,7 @@
   	face_spanning_tree,
   	faces_matrix,
   	faces_winding,
+  	explode_faces$1,
   	arrays,
   );
 

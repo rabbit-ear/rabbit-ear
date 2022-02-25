@@ -22,6 +22,7 @@ import * as vertices_coords_folded from "./vertices_coords_folded";
 import * as face_spanning_tree from "./face_spanning_tree";
 import * as faces_matrix from "./faces_matrix";
 import * as faces_winding from "./faces_winding";
+import * as explode_faces from "./explode_faces";
 import count from "./count";
 import implied from "./count_implied";
 import validate from "./validate";
@@ -39,7 +40,6 @@ import flat_fold from "./flat_fold/index";
 import add_planar_segment from "./add/add_planar_segment";
 import assign from "./assign";
 import subgraph from "./subgraph";
-import explode_faces from "./explode_faces";
 import clip from "./clip";
 import fragment from "./fragment";
 import get_vertices_clusters from "./vertices_clusters";
@@ -67,7 +67,6 @@ export default Object.assign(Object.create(null), {
 	add_planar_segment,
 	assign,
 	subgraph,
-	explode_faces,
 	clip,
 	fragment,
 	get_vertices_clusters,
@@ -94,5 +93,6 @@ export default Object.assign(Object.create(null), {
 	face_spanning_tree,
 	faces_matrix,
 	faces_winding,
+	explode_faces,
 	arrays,
 );

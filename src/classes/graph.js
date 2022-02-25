@@ -31,7 +31,7 @@ import {
 } from "../graph/vertices_coords_folded";
 import { make_face_spanning_tree } from "../graph/face_spanning_tree";
 import { multiply_vertices_faces_matrix2 } from "../graph/faces_matrix";
-import explode_faces from "../graph/explode_faces";
+import { explode_faces, explode_shrink_faces } from "../graph/explode_faces";
 import {
   nearest_vertex,
   nearest_edge,
@@ -66,6 +66,7 @@ const graphMethods = Object.assign({
   splitEdge: split_edge,
   faceSpanningTree: make_face_spanning_tree,
   explodeFaces: explode_faces,
+  explodeShrinkFaces: explode_shrink_faces,
 },
   transform,
 );
