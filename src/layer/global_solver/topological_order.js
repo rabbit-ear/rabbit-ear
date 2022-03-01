@@ -1,6 +1,8 @@
 import conditions_to_matrix from "./conditions_to_matrix";
+import { invert_map } from "../../graph/maps";
 
-const topological_order = (conditions) => {
+export const topological_order = (conditions) => {
+  if (!conditions) { return undefined; }
   // this matrix will be used to build the parent_face_counts,
   // this matrix itself will remain unchanged.
   const matrix = conditions_to_matrix(conditions);
@@ -13,7 +15,7 @@ const topological_order = (conditions) => {
       .reduce((a, b) => a + b, 0));
   // the final layer stack.
   const layers_face = [];
-  const num_faces = parent_face_counts.length;
+  const num_faces = parent_face_counts.filter(a => a != null).length;
   // faces with no parent (top of stack) will be added to the stack first.
   for (let i = 0; i < num_faces; i++) {
     let top_face = parent_face_counts.indexOf(0);
@@ -22,7 +24,7 @@ const topological_order = (conditions) => {
     if (top_face === -1) {
       // throw "cycle detected";
       console.warn("cycle detected");
-      return [];
+      return undefined;
     }
     layers_face.push(top_face);
     // before we remove top_face from the matrix, locate all of the
@@ -38,4 +40,12 @@ const topological_order = (conditions) => {
   return layers_face.reverse();
 };
 
-export default topological_order;
+export const complete_topological_order = (graph, layers_face) => {
+  const faces_layer = invert_map(layers_face);
+  const missed_faces = graph.faces_vertices
+    .map((_, f) => faces_layer[f] === undefined ? f : undefined)
+    .filter(a => a !== undefined);
+  const max = faces_layer.reduce((a, b) => a > b ? a : b, 0);
+  missed_faces.forEach((face, i) => { faces_layer[face] = i + 1; });
+  return faces_layer;
+};

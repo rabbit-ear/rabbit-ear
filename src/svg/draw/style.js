@@ -9,7 +9,7 @@ import * as S from "../../general/strings";
 
 const component_classes = {
   vertices: [],
-  edges: [S._unassigned, S._mark, S._valley, S._mountain, S._boundary],
+  edges: [S._unassigned, S._flat, S._valley, S._mountain, S._boundary],
   faces: [S._front, S._back, S._foldedForm],
   boundaries: [],
 };

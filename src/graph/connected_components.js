@@ -9,6 +9,8 @@
 /**
  * @description given a vertex, this will traverse adjacent edges and collect
  * all connected vertices.
+ * The idea is that if there are two or more separated graphs, this is
+ * meant to find them.
  */
 
 const get_connected_vertices = ({ vertices_vertices }) => {

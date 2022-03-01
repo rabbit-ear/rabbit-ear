@@ -1,37 +1,13 @@
 import math from "../math";
 import {
-  make_edges_foldAngle,
-  make_edges_assignment,
   make_vertices_faces,
   make_vertices_to_edge_bidirectional,
+  make_edges_foldAngle,
+  make_edges_assignment,
 } from "./make";
 import {
   make_face_spanning_tree,
 } from "./face_spanning_tree";
-
-const assignment_is_folded = {
-  M: true, m: true, V: true, v: true, U: true, u: true,
-  F: false, f: false, B: false, b: false,
-};
-/**
- * @description this is assuming the crease pattern contains flat folds only.
- * for every edge, give us a boolean:
- * - "true" if the edge is folded, valley or mountain, or unassigned
- * - "false" if the edge is not folded, flat or boundary.
- * "unassigned" is considered folded so that an unsolved crease pattern
- * can be fed into here and we still compute the folded state.
- * However, if there is no edges_assignments, and we have to use edges_foldAngle,
- * the "unassigned" trick will no longer work, only +/- non zero numbers get
- * counted as folded edges (true).
- */
-export const make_edges_is_flat_folded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
-  if (edges_assignment === undefined) {
-    return edges_foldAngle === undefined
-      ? edges_vertices.map(_ => true)
-      : edges_foldAngle.map(angle => angle < 0 || angle > 0);
-  }
-  return edges_assignment.map(a => assignment_is_folded[a]);  
-};
 /**
  * @description given a FOLD object and a set of 2x3 matrices, one per face,
  * "fold" the vertices by finding one matrix per vertex and multiplying them.
@@ -101,6 +77,34 @@ export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldA
           // .multiply_matrices3(local_matrix, faces_matrix[entry.parent]);
       }));
   return faces_matrix;
+};
+/**
+ * @description this is assuming the crease pattern contains flat folds only.
+ * for every edge, give us a boolean:
+ * - "true" if the edge is folded, valley or mountain, or unassigned
+ * - "false" if the edge is not folded, flat or boundary.
+ * 
+ * "unassigned" is considered folded so that an unsolved crease pattern
+ * can be fed into here and we still compute the folded state.
+ * However, if there is no edges_assignments, and we have to use edges_foldAngle,
+ * the "unassigned" trick will no longer work, only +/- non zero numbers get
+ * counted as folded edges (true).
+ * 
+ * For this reason, treating "unassigned" as a folded edge, this method's
+ * functionality is better considered to be specific to make_faces_matrix2,
+ * instead of a generalized method. 
+ */
+const assignment_is_folded = {
+  M: true, m: true, V: true, v: true, U: true, u: true,
+  F: false, f: false, B: false, b: false,
+};
+export const make_edges_is_flat_folded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
+  if (edges_assignment === undefined) {
+    return edges_foldAngle === undefined
+      ? edges_vertices.map(_ => true)
+      : edges_foldAngle.map(angle => angle < 0 || angle > 0);
+  }
+  return edges_assignment.map(a => assignment_is_folded[a]);  
 };
 /**
  * @description 2D matrices, for flat-folded origami

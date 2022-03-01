@@ -3,27 +3,31 @@
  */
 import {
   make_vertices_vertices,
-  make_vertices_edges,
-  make_vertices_edges_sorted, // todo resolve this duplicate work
+  make_vertices_edges_unsorted,
+  make_vertices_edges, // todo resolve this duplicate work
   make_vertices_faces,
-  // make_vertices_sectors,
   make_edges_edges,
-  make_edges_faces,
+  make_edges_faces_unsorted,
   make_edges_foldAngle,
   make_edges_assignment,
-  // make_edges_length,
   // make_edges_vector,
   make_faces_faces,
   make_faces_edges_from_vertices,
   make_faces_vertices_from_edges,
   make_planar_faces,
 } from "./make";
-// import { make_faces_matrix } from "./faces_matrix";
 import {
   edge_assignment_to_foldAngle,
   edge_foldAngle_to_assignment,
 } from "../fold/spec";
-
+/**
+ * @description populate() has been one of the hardest methods to
+ * nail down, not to write, moreso in what it should do, and what
+ * function it serves in the greater library.
+ * Currently, it is run once when a user imports their crease pattern
+ * for the first time, preparing it for use with methods like
+ * "split_face" or "flat_fold", which expect a well-populated graph.
+ */
 //
 // big todo: populate assumes the graph is planar and rebuilds planar faces
 //
@@ -91,13 +95,11 @@ const build_faces_if_needed = (graph, reface) => {
  * this function attempts to rebuild useful geometries in your graph.
  * right now let's say it's important to have:
  * - vertices_coords
- * - either edges_vertices or faces_vertices
+ * - either edges_vertices or faces_vertices - todo: this isn't true yet.
  * - either edges_foldAngle or edges_assignment
  *
  * this WILL REWRITE components that aren't the primary source keys,
  * like vertices_vertices.
- * the idea is many of these keys can be easily forgotten as the more
- * important parts of the graph get build up. hence, overwriting these keys.
  *
  * if you do have edges_assignment instead of edges_foldAngle the origami
  * will be limited to flat-foldable.
@@ -105,13 +107,14 @@ const build_faces_if_needed = (graph, reface) => {
 const populate = (graph, reface) => {
   if (typeof graph !== "object") { return graph; }
   if (!graph.edges_vertices) { return graph; }
-  graph.vertices_edges = make_vertices_edges(graph);
-  // graph.edges_edges = make_edges_edges(graph);
+  graph.vertices_edges = make_vertices_edges_unsorted(graph);
   graph.vertices_vertices = make_vertices_vertices(graph);
-  graph.vertices_edges = make_vertices_edges_sorted(graph); // duplicating work here
+  graph.vertices_edges = make_vertices_edges(graph);
+  // todo consider adding vertices_sectors, these are used for
+  // planar graphs (crease patterns) for walking faces
+  // todo, what is the reason to have edges_vector?
   // if (graph.vertices_coords) {
   //   graph.edges_vector = make_edges_vector(graph);
-  //   graph.vertices_sectors = make_vertices_sectors(graph);
   // }
   // make sure "edges_foldAngle" and "edges_assignment" are done.
   build_assignments_if_needed(graph);
@@ -120,11 +123,8 @@ const populate = (graph, reface) => {
   // depending on the presence of vertices_vertices, this will
   // run the simple algorithm (no radial sorting) or the proper one.
   graph.vertices_faces = make_vertices_faces(graph);
-  graph.edges_faces = make_edges_faces(graph);
+  graph.edges_faces = make_edges_faces_unsorted(graph);
   graph.faces_faces = make_faces_faces(graph);
-  // if (graph.vertices_coords) {
-  //   graph.faces_matrix = make_faces_matrix(graph);
-  // }
   return graph;
 };
 
@@ -200,7 +200,7 @@ const populate = (graph, reface) => {
 //     }
 //   }
 //   if (graph.vertices_edges == null) {
-//     const vertices_edges = make_vertices_edges(graph);
+//     const vertices_edges = make_vertices_edges_unsorted(graph);
 //     if (vertices_edges !== undefined) {
 //       graph.vertices_edges = vertices_edges;
 //     }

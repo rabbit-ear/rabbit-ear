@@ -10,9 +10,11 @@ import {
   update_vertices_vertices,
   update_vertices_edges,
   update_vertices_faces,
+  update_vertices_sectors,
   update_edges_faces,
   update_faces_vertices,
-  update_faces_edges,
+  update_faces_edges_with_vertices,
+  // update_faces_edges,
 } from "./update";
 /**
  * @description split an edge with a new vertex, replacing the old
@@ -59,14 +61,17 @@ const split_edge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
       .forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
   // done with: vertices_coords, edges_vertices, edges_assignment, edges_foldAngle
   update_vertices_vertices(graph, vertex, incident_vertices);
+  update_vertices_sectors(graph, vertex); // after vertices_vertices
   update_vertices_edges(graph, old_edge, vertex, incident_vertices, new_edges);
-  // done with: vertices_edges, vertices_vertices
+  // done with: vertices_edges, vertices_vertices, and
+  // vertices_sectors if it exists.
   const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
   if (incident_faces) {
     update_vertices_faces(graph, vertex, incident_faces);
     update_edges_faces(graph, new_edges, incident_faces);
     update_faces_vertices(graph, vertex, incident_vertices, incident_faces);
-    update_faces_edges(graph, old_edge, vertex, new_edges, incident_faces);
+    update_faces_edges_with_vertices(graph, incident_faces);
+    // update_faces_edges(graph, old_edge, vertex, new_edges, incident_faces);
   }
   // done with: vertices_faces, edges_faces, faces_vertices, faces_edges
   // and we don't need to bother with faces_faces and faceOrders.

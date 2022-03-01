@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import { make_edges_coords_min_max_inclusive } from "./make";
+import { make_edges_bounding_box } from "./make";
 /**
  * contains methods for fast-approximating if geometry overlaps.
  * for example testing if edge's rectangular bounding boxes overlap.
@@ -12,13 +12,13 @@ import { make_edges_coords_min_max_inclusive } from "./make";
  * the question "does this vertex sit inside the edge's bounding rectangle?"
  */
 export const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
-  make_edges_coords_min_max_inclusive(graph)
+  make_edges_bounding_box(graph, epsilon)
     .map((min_max, e) => graph.vertices_coords
       .map((vert, v) => (
-        vert[0] > min_max[0][0] - epsilon &&
-        vert[1] > min_max[0][1] - epsilon &&
-        vert[0] < min_max[1][0] + epsilon &&
-        vert[1] < min_max[1][1] + epsilon)));
+        vert[0] > min_max.min[0] - epsilon &&
+        vert[1] > min_max.min[1] - epsilon &&
+        vert[0] < min_max.max[0] + epsilon &&
+        vert[1] < min_max.max[1] + epsilon)));
 /**
  * part of an algorithm for segment-segment intersection
  * this answers if it's possible that lines *might* overlap
@@ -34,7 +34,7 @@ export const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
  * 3 [  ,  ,  , t]
  */
 export const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
-  const min_max = make_edges_coords_min_max_inclusive({ vertices_coords, edges_vertices, edges_coords }, epsilon);
+  const min_max = make_edges_bounding_box({ vertices_coords, edges_vertices, edges_coords }, epsilon);
   const span_overlaps = edges_vertices.map(() => []);
   // span_overlaps will be false if no overlap possible, true if overlap is possible.
   for (let e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {
@@ -42,8 +42,8 @@ export const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_co
       // if first max is less than second min, or second max is less than first min,
       // for both X and Y
       const outside_of = 
-        (min_max[e0][1][0] < min_max[e1][0][0] || min_max[e1][1][0] < min_max[e0][0][0])
-      &&(min_max[e0][1][1] < min_max[e1][0][1] || min_max[e1][1][1] < min_max[e0][0][1]);
+        (min_max[e0].max[0] < min_max[e1].min[0] || min_max[e1].max[0] < min_max[e0].min[0])
+      &&(min_max[e0].max[1] < min_max[e1].min[1] || min_max[e1].max[1] < min_max[e0].min[1]);
       // true if the spans are not touching. flip for overlap
       span_overlaps[e0][e1] = !outside_of;
       span_overlaps[e1][e0] = !outside_of;

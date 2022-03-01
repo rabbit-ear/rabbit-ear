@@ -30,7 +30,7 @@ export const edges_assignment_names = {
   b: "boundary",
   m: "mountain",
   v: "valley",
-  f: "mark",
+  f: "flat",
   u: "unassigned"
 };
 edges_assignment_values.forEach(key => {
@@ -74,6 +74,22 @@ export const edge_foldAngle_to_assignment = (a) => {
   if (a < 0) { return "M"; }
   // if (a === 0) { return "F"; }
   return "U";
+};
+const flat_angles = { 0: true, "-0": true, 180: true, "-180": true };
+export const edge_foldAngle_is_flat = angle => flat_angles[angle] === true;
+/**
+ * @description determine if an edges_foldAngle array contains only
+ * flat-folded angles, strictly the set: 0, -180, or +180.
+ * If a graph contains no "edges_foldAngle", implicitly the angles
+ * are flat, and the method returns "true".
+ * @returns {boolean} is the graph flat-foldable according to foldAngles.
+ */
+export const edges_foldAngle_all_flat = ({ edges_foldAngle }) => {
+  if (!edges_foldAngle) { return true; }
+  for (let i = 0; i < edges_foldAngle.length; i++) {
+    if (!flat_angles[edges_foldAngle[i]]) { return false; }
+  }
+  return true;
 };
 /**
  * @param {object} any object

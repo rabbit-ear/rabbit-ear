@@ -1,7 +1,7 @@
 import make_tacos_tortillas from "../tacos/make_tacos_tortillas";
 import make_transitivity_trios from "../tacos/make_transitivity_trios";
 import filter_transitivity from "../tacos/filter_transitivity";
-import make_faces_faces_overlap from "../../graph/make_faces_faces_overlap";
+import { make_faces_faces_overlap } from "../../graph/overlap";
 import { make_faces_winding } from "../../graph/faces_winding";
 
 import make_taco_maps from "./make_taco_maps";

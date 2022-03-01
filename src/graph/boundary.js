@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import {
-  make_vertices_edges,
+  make_vertices_edges_unsorted,
   make_vertices_vertices,
   make_vertices_to_edge_bidirectional,
 } from "./make";
@@ -30,7 +30,7 @@ const empty_get_boundary = () => ({ vertices: [], edges: [] });
 export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
   if (edges_assignment === undefined) { return empty_get_boundary(); }
   if (!vertices_edges) {
-    vertices_edges = make_vertices_edges({ edges_vertices });
+    vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
   }
   const edges_vertices_b = edges_assignment
     .map(a => a === "B" || a === "b");

@@ -8,7 +8,7 @@
  * 
  * 
  */
-import { remove_duplicate_edges } from "../clean/index";
+import { remove_duplicate_edges } from "../edges_violations";
 // this method is meant to add edges between EXISTING vertices.
 // this should split and rebuild faces.
 

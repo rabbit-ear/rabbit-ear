@@ -37,7 +37,8 @@ const remove_geometry_indices = (graph, key, removeIndices) => {
   let i, j, walk;
   for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
     while (i === removes[walk]) {
-			index_map[i] = undefined; // this prevents arrays with holes
+      // this prevents arrays with holes
+			index_map[i] = undefined;
       i += 1;
       walk += 1;
     }

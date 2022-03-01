@@ -54,6 +54,9 @@ const recursive_solver = (graph, maps, conditions_start) => {
   const startDate = new Date();
   let recurse_count = 0;
   let inner_loop_count = 0;
+  let avoidcount = 0;
+  let failguesscount = 0;
+  // todo: it appears this never happens, remove after testing.
   // successful conditions will often be duplicates of one another.
   // filter only a set of unique conditions. use a hash table to compare.
   // not only do we store hashes of the final solutions, but,
@@ -61,7 +64,7 @@ const recursive_solver = (graph, maps, conditions_start) => {
   // the conditions as much as possible after each guess, store these
   // partially-completed conditions here too. this dramatically reduces the
   // number of recursive branches.
-  const successes_hash = {};
+  // const successes_hash = {};
   /**
    * the input parameters will not be modified. they will be copied,
    * their copies modified, then passed along to the next recurse.
@@ -91,21 +94,21 @@ const recursive_solver = (graph, maps, conditions_start) => {
     const successes = zero_keys
       .map((key, i) => [1, 2]
         .map(dir => {
-          if (avoid[key] && avoid[key][dir]) { return; }
+          if (avoid[key] && avoid[key][dir]) { avoidcount++; return; }
           // todo: it appears that this never happens. remove after testing.
-          if (precheck(layers, maps, key, dir)) {
-            console.log("precheck caught!"); return;
-          }
+          // if (precheck(layers, maps, key, dir)) {
+          //   console.log("precheck caught!"); return;
+          // }
           const clone_conditions = JSON.parse(JSON.stringify(conditions));
           // todo: it appears that this never happens. remove after testing.
-          if (successes_hash[JSON.stringify(clone_conditions)]) {
-            console.log("early hash caught!"); return;
-          }
+          // if (successes_hash[JSON.stringify(clone_conditions)]) {
+          //   console.log("early hash caught!"); return;
+          // }
           const clone_layers = duplicate_unsolved_layers(layers);
           clone_conditions[key] = dir;
           inner_loop_count++;
           if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
-            return undefined;
+            failguesscount++; return;
           }
           Object.keys(clone_conditions)
             .filter(key => conditions[key] === 0)
@@ -118,15 +121,18 @@ const recursive_solver = (graph, maps, conditions_start) => {
         .filter(a => a !== undefined))
       .reduce((a, b) => a.concat(b), []);
 
-    const unique_successes = successes
-      .map(success => JSON.stringify(success.conditions))
-      .map(string => hashCode(string))
-      .map((hash, i) => {
-        if (successes_hash[hash]) { return; }
-        successes_hash[hash] = successes[i];
-        return successes[i];
-      })
-      .filter(a => a !== undefined);
+    // todo: it appears that this never happens. remove after testing.
+    // const unique_successes = successes
+    //   .map(success => JSON.stringify(success.conditions))
+    //   .map(string => hashCode(string))
+    //   .map((hash, i) => {
+    //     if (successes_hash[hash]) { return; }
+    //     successes_hash[hash] = successes[i];
+    //     return successes[i];
+    //   })
+    //   .filter(a => a !== undefined);
+
+    // console.log("recurse", unique_successes.length, successes.length);
 
     // console.log("successes", successes);
     // console.log("successes_hash", successes_hash);
@@ -134,7 +140,8 @@ const recursive_solver = (graph, maps, conditions_start) => {
     // console.log("unique_successes", unique_successes.length);
 
     // console.timeEnd(`recurse ${this_recurse_count}`);
-    return unique_successes
+    return successes
+    // return unique_successes
       .map(success => recurse(success.layers, success.conditions))
       .reduce((a, b) => a.concat(b), []);
   };
@@ -154,7 +161,22 @@ const recursive_solver = (graph, maps, conditions_start) => {
   const certain = conditions_start;
   // the set of solutions as an array, with the certain values
   // under the key "certain".
-  const solutions = recurse(layers_start, conditions_start);
+  const solutions_before = recurse(layers_start, conditions_start);
+
+
+  // todo: it appears that this never happens. remove after testing.
+  const successes_hash = {};
+  const solutions = solutions_before
+    .map(conditions => JSON.stringify(conditions))
+    .map(string => hashCode(string))
+    .map((hash, i) => {
+      if (successes_hash[hash]) { return; }
+      successes_hash[hash] = solutions_before[i];
+      return solutions_before[i];
+    })
+    .filter(a => a !== undefined);
+
+
   solutions.certain = JSON.parse(JSON.stringify(certain));
   // algorithm is done!
   // convert solutions from (1,2) to (+1,-1)
@@ -165,8 +187,10 @@ const recursive_solver = (graph, maps, conditions_start) => {
   // console.log("solutions", solutions);
   // console.log("successes_hash", successes_hash);
   // console.log("avoid", avoid);
-  console.log(`${Date.now() - startDate}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
-
+  const duration = Date.now() - startDate;
+  if (duration > 50) {
+    console.log(`${duration}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count, "memo avoid count", avoidcount, "bad guesses", failguesscount, `repeated solutions ${solutions_before.length}/${solutions.length}`);
+  }
   return solutions;
 };
 

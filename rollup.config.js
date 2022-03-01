@@ -3,7 +3,7 @@ import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup"
 import { terser } from "rollup-plugin-terser";
 
-const version = "0.9.2 alpha 2022-01-28";
+const version = "0.9.21 alpha 2022-01-29";
 const input = "src/index.js";
 const name = "ear";
 const banner = `/* Rabbit Ear ${version} (c) Robby Kraft, MIT License */\n`;
@@ -18,10 +18,10 @@ module.exports = [{
   },
   plugins: [
     json(),
-    babel({
-      babelHelpers: "bundled",
-      presets: ["@babel/preset-env"]
-    }),
+    // babel({
+    //   babelHelpers: "bundled",
+    //   presets: ["@babel/preset-env"]
+    // }),
     cleanup(),
     // terser({
     //   keep_fnames: true,
@@ -40,17 +40,17 @@ module.exports = [{
   },
   plugins: [
     json(),
-    babel({
-      babelHelpers: "bundled",
-      presets: ["@babel/preset-env"]
-    }),
+    // babel({
+    //   babelHelpers: "bundled",
+    //   presets: ["@babel/preset-env"]
+    // }),
     cleanup(),
-    terser({
-      keep_fnames: true,
-      format: {
-        comments: "all",
-      },
-    }),
+    // terser({
+    //   keep_fnames: true,
+    //   format: {
+    //     comments: "all",
+    //   },
+    // }),
   ]
 }];
 

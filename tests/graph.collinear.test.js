@@ -1,28 +1,37 @@
 const ear = require("../rabbit-ear");
 
-// todo
+// this graph looks like this: (except, square)
+//
+//  o--o--o--o--o--o--o--o--o-----o
+//  |                             |
+//  o-----------------------------o
+//
+const collinearSquare = {
+  vertices_coords: [[0, 0], [0.1, 0], [0.2, 0], [0.3, 0], [0.4, 0], [0.5, 0],
+    [0.6, 0], [0.7, 0], [0.8, 0], [1, 0], [1, 1], [0, 1]],
+  vertices_vertices: [[11, 1], [0, 2], [1, 3], [2, 4], [3, 5], [4, 6],
+    [5, 7], [6, 8], [7, 9], [8, 10], [9, 11], [10, 0]],
+  vertices_faces: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]],
+  edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
+    [7, 8], [8, 9], [9, 10], [10, 11], [11, 0]],
+  edges_faces: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]],
+  edges_assignment: ["B", "B", "B", "B", "B", "B", "B", "B", "B", "B", "B", "B"],
+  edges_foldAngle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  faces_vertices: [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]],
+  faces_edges: [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+};
 
-test("collinear vertices", () => {
-	const collinearSquare = {
-		vertices_coords: [[0, 0], [0.1, 0], [0.2, 0], [0.3, 0], [0.4, 0], [0.5, 0],
-    	[0.6, 0], [0.7, 0], [0.8, 0], [1, 0], [1, 1], [0, 1]],
-		vertices_vertices: [[11, 1], [0, 2], [1, 3], [2, 4], [3, 5], [4, 6],
-    	[5, 7], [6, 8], [7, 9], [8, 10], [9, 11], [10, 0]],
-		vertices_faces: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]],
-  	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
-    	[7, 8], [8, 9], [9, 10], [10, 11], [11, 0]],
-  	edges_faces: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]],
-  	edges_assignment: ["B", "B", "B", "B", "B", "B", "B", "B", "B", "B", "B", "B"],
-  	edges_foldAngle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  	faces_vertices: [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]],
-  	faces_edges: [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
-	};
-
-	const verts = ear.graph.get_collinear_vertices(collinearSquare);
-
-	expect(true).toBe(true);
-
+test("vertices edges overlap vertices", () => {
+  // all vertices are in the boundary. this will return nothing
+  const verts = ear.graph.get_vertices_edges_overlap(collinearSquare);
+  verts.forEach(arr => expect(arr.length).toBe(0));
 });
+
+// todo
+// test("collinear vertices", () => {
+//   const verts = ear.graph.get_collinear_vertices(collinearSquare);
+//   expect(true).toBe(true);
+// });
 
 test("remove collinear vertices", () => {
 	expect(true).toBe(true);
@@ -43,4 +52,25 @@ test("remove collinear vertices", () => {
   expect(graph.vertices_coords[2][1]).toBe(2);
 });
 
+test("get collinear vertices overlapping an edge", () => {
+  const graph = ear.graph.square();
 
+  for (let i = 0; i < 4; i += 1) {
+    ear.graph.add_edges(
+      graph,
+      ear.graph.add_vertices(graph, [[Math.random(), 0], [Math.random(), 1]])
+    );
+    ear.graph.add_edges(
+      graph,
+      ear.graph.add_vertices(graph, [[0, Math.random()], [1, Math.random()]])
+    );
+  }
+  const res = ear.graph.get_vertices_edges_overlap(graph);
+  expect(res[0].length).toBe(4);
+  expect(res[1].length).toBe(4);
+  expect(res[2].length).toBe(4);
+  expect(res[3].length).toBe(4);
+  for (var i = 4; i < res.length; i += 1) {
+    expect(res[i].length).toBeLessThan(4);
+  }
+});

@@ -1,6 +1,6 @@
 const ear = require("../rabbit-ear.js");
 
-test("fragment 2 lines", () => {
+test("fragment 2 lines, x formation", () => {
 	const graph = {
 		vertices_coords: [[1, 1], [9, 2], [2, 9], [11, 10]],
 		edges_vertices: [[0, 3], [1, 2]],
@@ -10,7 +10,7 @@ test("fragment 2 lines", () => {
 	expect(graph.vertices_coords.length).toBe(5);
 });
 
-test("fragment two loops", () => {
+test("fragment two loops 'x-' x with a horizontal dash from its center", () => {
 	const graph = {
 		vertices_coords: [[0, 0], [1, 0], [0, 1], [1, 1], [0.5, 0.5], [2, 0.5]],
 		edges_vertices: [[0, 3], [1, 2], [4, 5]],
@@ -33,7 +33,6 @@ test("fragment dup verts", () => {
 	expect(JSON.stringify(res.edges.map)).toBe(JSON.stringify([[0], [1], [2], [3]]));
 	expect(graph.vertices_coords.length).toBe(5);
 });
-
 
 test("fragment, one edges crossing boundary, more assignments than fold angles", () => {
   const graph = ear.graph.square();
@@ -72,3 +71,13 @@ test("fragment, two crossing edges, more assignments than fold angles", () => {
   expect(graph.edges_foldAngle.filter(a => a === -180).length).toBe(4);
 });
 
+test("fragment 2 lines, collinear", () => {
+	const graph = {
+		vertices_coords: [[1, 1], [3, 3], [5, 5], [7, 7]],
+		edges_vertices: [[0, 3], [1, 2]],
+		edges_assignment: ["M", "V"]
+	};
+	const res = ear.graph.fragment(graph);
+	expect(graph.vertices_coords.length).toBe(4);
+	expect(graph.edges_vertices.length).toBe(3);
+});

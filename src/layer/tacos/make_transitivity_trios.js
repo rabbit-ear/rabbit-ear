@@ -1,6 +1,6 @@
 import math from "../../math";
 import { make_faces_winding } from "../../graph/faces_winding";
-import make_faces_faces_overlap from "../../graph/make_faces_faces_overlap";
+import { make_faces_faces_overlap } from "../../graph/overlap";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the

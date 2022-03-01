@@ -53,11 +53,11 @@ src/
   axioms/
   classes/
   diagrams/
-  environment/
   fold/
   graph/
   layer/
   single_vertex/
+  svg/
   text/
   use/
   webgl/
@@ -78,10 +78,6 @@ These are object-oriented class-like interfaces for creating origami "objects", 
 ### diagrams/
 
 All methods relating to generating origami diagrams. Most of it relates to rendering.
-
-### environment/
-
-Just a few files for detecting and managing Node vs Browser, like getting the "window" object.
 
 ### extensions/
 

@@ -3,7 +3,10 @@
  */
 import math from "../math";
 import implied from "./count_implied";
-import { planar_vertex_walk } from "./walk";
+import {
+  planar_vertex_walk,
+  filter_walked_boundary_face,
+} from "./walk";
 import { sort_vertices_counter_clockwise } from "./sort";
 /**
  * all of the graph methods follow a similar format.
@@ -24,7 +27,7 @@ import { sort_vertices_counter_clockwise } from "./sort";
  * @returns {number[][]} array of array of numbers. each index is a vertex with
  *   the content an array of numbers, edge indices this vertex is adjacent.
  */
-export const make_vertices_edges = ({ edges_vertices }) => {
+export const make_vertices_edges_unsorted = ({ edges_vertices }) => {
   const vertices_edges = [];
   // iterate over edges_vertices and swap the index for each of the contents
   // each edge (index 0: [3, 4]) will be converted into (index 3: [0], index 4: [0])
@@ -45,11 +48,11 @@ export const make_vertices_edges = ({ edges_vertices }) => {
  *
  * this one corresponds to vertices_vertices!
  */
-export const make_vertices_edges_sorted = ({ edges_vertices, vertices_vertices }) => {
+export const make_vertices_edges = ({ edges_vertices, vertices_vertices }) => {
   const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
   return vertices_vertices
     .map((verts, i) => verts
-      .map(v => edge_map[`${i} ${v}`]))
+      .map(v => edge_map[`${i} ${v}`]));
 };
 /**
  * discover adjacent vertices by way of their edge relationships.
@@ -70,7 +73,7 @@ export const make_vertices_edges_sorted = ({ edges_vertices, vertices_vertices }
  */
 export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
   if (!vertices_edges) {
-    vertices_edges = make_vertices_edges({ edges_vertices });
+    vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
   }
   // use adjacent edges to find adjacent vertices
   const vertices_vertices = vertices_edges
@@ -87,14 +90,15 @@ export const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_
 };
 /**
  * this DOES NOT arrange faces in counter-clockwise order, as the spec suggests
- * use make_vertices_faces_sorted for that, which requires vertices_vertices.
+ * use make_vertices_faces for that, which requires vertices_vertices.
  */
-export const make_vertices_faces_simple = ({ faces_vertices }) => {
+export const make_vertices_faces_unsorted = ({ vertices_coords, faces_vertices }) => {
+  if (!faces_vertices) { return vertices_coords.map(() => []); }
   // instead of initializing the array ahead of time (we would need to know
   // the length of something like vertices_coords)
-  const vertices_faces = Array
-    .from(Array(implied.vertices({ faces_vertices })))
-    .map(() => []);
+  const vertices_faces = vertices_coords !== undefined
+    ? vertices_coords.map(() => [])
+    : Array.from(Array(implied.vertices({ faces_vertices }))).map(() => []);
   // iterate over every face, then iterate over each of the face's vertices
   faces_vertices.forEach((face, f) => {
     // in the case that one face visits the same vertex multiple times,
@@ -109,9 +113,10 @@ export const make_vertices_faces_simple = ({ faces_vertices }) => {
 /**
  * this does arrange faces in counter-clockwise order, as the spec suggests
  */
-export const make_vertices_faces = ({ vertices_vertices, faces_vertices }) => {
+export const make_vertices_faces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
+  if (!faces_vertices) { return vertices_coords.map(() => []); }
   if (!vertices_vertices) {
-    return make_vertices_faces_simple({ faces_vertices });
+    return make_vertices_faces_unsorted({ vertices_coords, faces_vertices });
   }
   const face_map = make_vertices_to_face({ faces_vertices });
   return vertices_vertices
@@ -205,7 +210,7 @@ export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edge
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  *   of other edges that are vertex-adjacent.
  * @description edges_edges are vertex-adjacent edges. make sure to call
- *   make_vertices_edges before calling this.
+ *   make_vertices_edges_unsorted before calling this.
  */
 export const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
   edges_vertices.map((verts, i) => {
@@ -215,13 +220,12 @@ export const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
   });
   // if (!edges_vertices || !vertices_edges) { return undefined; }
 
-// todo: make_edges_faces c-clockwise
-export const make_edges_faces_simple = ({ faces_edges }) => {
+export const make_edges_faces_unsorted = ({ edges_vertices, faces_edges }) => {
   // instead of initializing the array ahead of time (we would need to know
   // the length of something like edges_vertices)
-  const edges_faces = Array
-    .from(Array(implied.edges({ faces_edges })))
-    .map(() => []);
+  const edges_faces = edges_vertices !== undefined
+    ? edges_vertices.map(() => [])
+    : Array.from(Array(implied.edges({ faces_edges }))).map(() => []);
   // todo: does not arrange counter-clockwise
   faces_edges.forEach((face, f) => {
     const hash = [];
@@ -233,9 +237,16 @@ export const make_edges_faces_simple = ({ faces_edges }) => {
   return edges_faces;
 };
 
-export const make_edges_faces = ({ edges_vertices, faces_edges }) => {
+export const make_edges_faces = ({ vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center }) => {
   if (!edges_vertices) {
-    return make_edges_faces_simple({ faces_edges });
+    return make_edges_faces_unsorted({ faces_edges });
+  }
+  if (!edges_vector) {
+    edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+  }
+  const edges_origin = edges_vertices.map(pair => vertices_coords[pair[0]]);
+  if (!faces_center) {
+    faces_center = make_faces_center({ vertices_coords, faces_vertices });
   }
   const edges_faces = edges_vertices.map(ev => []);
   faces_edges.forEach((face, f) => {
@@ -244,6 +255,15 @@ export const make_edges_faces = ({ edges_vertices, faces_edges }) => {
     // this hash acts as a set allowing one occurence of each edge index.
     face.forEach((edge) => { hash[edge] = f; });
     hash.forEach((fa, e) => edges_faces[e].push(fa));
+  });
+  // sort edges_faces in 2D based on which side of the edge's vector
+  // each face lies, sorting the face on the left first. see FOLD spec.
+  edges_faces.forEach((faces, e) => {
+    const faces_cross = faces
+      .map(f => faces_center[f])
+      .map(center => math.core.subtract2(center, edges_origin[e]))
+      .map(vector => math.core.cross2(vector, edges_vector[e]));
+    faces.sort((a, b) => faces_cross[a] - faces_cross[b]);
   });
   return edges_faces;
 };
@@ -278,41 +298,16 @@ export const make_edges_length = ({ vertices_coords, edges_vertices }) =>
   make_edges_vector({ vertices_coords, edges_vertices })
     .map(vec => math.core.magnitude(vec));
 /**
- * @description for each axis get the min and max coordinate value for each edge.
+ * @description for each edge, get the bounding box in n-dimensions.
  * for fast line-sweep algorithms.
  *
- * @returns {number[][][]} an array matching length of edges, where each edge
- * is [[minX, minY], [maxX, maxY]], or x,y,z or however many n-dimensions
- * actually, right now this looks like it's hard coded to 2D
+ * @returns {object[]} an array of boxes matching length of edges.
  */
-export const make_edges_coords_min_max = ({ vertices_coords, edges_vertices, edges_coords }) => {
+export const make_edges_bounding_box = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = 0) => {
   if (!edges_coords) {
     edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
   }
-  return edges_coords.map(coords => {
-    // how many dimensions is each coordinate? ask the first one, coords[0].length
-    const mins = coords[0].map(() => Infinity);
-    const maxs = coords[0].map(() => -Infinity);
-    coords.forEach(coord => coord.forEach((n, i) => {
-      if (n < mins[i]) { mins[i] = n; }
-      if (n > maxs[i]) { maxs[i] = n; }
-    }));
-    return [mins, maxs];
-  });
-};
-export const make_edges_coords_min_max_exclusive = (graph, epsilon = math.core.EPSILON) => {
-  const ep = [+epsilon, -epsilon];
-  return make_edges_coords_min_max(graph)
-    .map(min_max => min_max
-      .map((vec, i) => vec
-        .map(n => n + ep[i])));
-};
-export const make_edges_coords_min_max_inclusive = (graph, epsilon = math.core.EPSILON) => {
-  const ep = [-epsilon, +epsilon];
-  return make_edges_coords_min_max(graph)
-    .map(min_max => min_max
-      .map((vec, i) => vec
-        .map(n => n + ep[i])));
+  return edges_coords.map(coords => math.core.bounding_box(coords, epsilon))
 };
 /**
  *
@@ -327,17 +322,12 @@ export const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices
     vertices_sectors = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector });
   }
   const vertices_edges_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+  // removes the one face that outlines the piece with opposite winding.
   // planar_vertex_walk stores edges as vertex pair strings, "4 9",
   // convert these into edge indices
-  // additionally,
-  // 180 - sector angle = the turn angle.
-  // counter clockwise turns are +, clockwise will be -
-  // this removes the one face that outlines the piece with opposite winding enclosing Infinity
-  return planar_vertex_walk({ vertices_vertices, vertices_sectors })
-    .map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }))
-    .filter(face => face.angles
-      .map(a => Math.PI - a)
-      .reduce((a,b) => a + b, 0) > 0);
+  return filter_walked_boundary_face(
+      planar_vertex_walk({ vertices_vertices, vertices_sectors }))
+    .map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
 };
 
 // without sector detection, this could be simplified so much that it only uses vertices_vertices.
@@ -377,38 +367,77 @@ export const make_faces_edges_from_vertices = (graph) => {
 /**
  * @param {object} FOLD object, with entry "faces_vertices"
  * @returns {number[][]} each index relates to a face, each entry is an array
- *   of numbers, each number is an index of an edge-adjacent face to this face.
+ * of numbers, each number is an index of an edge-adjacent face to this face.
  * @description faces_faces is a list of edge-adjacent face indices for each face.
  */
 export const make_faces_faces = ({ faces_vertices }) => {
-  // if (!faces_vertices) { return undefined; }
   const faces_faces = faces_vertices.map(() => []);
-  // create a map where each key is a string of the vertices of an edge,
-  // like "3 4"
-  // and each value is an array of faces adjacent to this edge. 
   const edgeMap = {};
-  faces_vertices.forEach((vertices_index, idx1) => {
-    const n = vertices_index.length;
-    vertices_index.forEach((v1, i, vs) => {
-      let v2 = vs[(i + 1) % n];
-      if (v2 < v1) { [v1, v2] = [v2, v1]; }
-      const key = `${v1} ${v2}`;
-      if (key in edgeMap) {
-        const idx2 = edgeMap[key];
-        faces_faces[idx1].push(idx2);
-        faces_faces[idx2].push(idx1);
-      } else {
-        edgeMap[key] = idx1;
-      }
+  faces_vertices
+    .map((face, f) => face
+      .map((v0, i, arr) => {
+        let v1 = arr[(i + 1) % face.length];
+        if (v1 < v0) { [v0, v1] = [v1, v0]; }
+        const key = `${v0} ${v1}`;
+        if (edgeMap[key] === undefined) { edgeMap[key] = {}; }
+        edgeMap[key][f] = true;
+      }));
+  Object.values(edgeMap)
+    .map(obj => Object.keys(obj))
+    .filter(arr => arr.length > 1)
+    .forEach(pair => {
+      faces_faces[pair[0]].push(parseInt(pair[1]));
+      faces_faces[pair[1]].push(parseInt(pair[0]));
     });
-  });
   return faces_faces;
 };
-
+// export const make_faces_faces = ({ faces_vertices }) => {
+//   // if (!faces_vertices) { return undefined; }
+//   const faces_faces = faces_vertices.map(() => []);
+//   // create a map where each key is a string of the vertices of an edge,
+//   // like "3 4"
+//   // and each value is an array of faces adjacent to this edge. 
+//   const edgeMap = {};
+//   faces_vertices.forEach((vertices_index, idx1) => {
+//     vertices_index.forEach((v1, i, vs) => {
+//       let v2 = vs[(i + 1) % vertices_index.length];
+//       if (v2 < v1) { [v1, v2] = [v2, v1]; }
+//       const key = `${v1} ${v2}`;
+//       if (key in edgeMap) {
+//         const idx2 = edgeMap[key];
+//         faces_faces[idx1].push(idx2);
+//         faces_faces[idx2].push(idx1);
+//       } else {
+//         edgeMap[key] = idx1;
+//       }
+//     });
+//   });
+//   return faces_faces;
+// };
+/**
+ * @description map vertices_coords onto each face's set of vertices,
+ * turning each face into an array of points, with an additional step:
+ * ensure that each polygon has 0 collinear vertices.
+ * this can result in a polygon with fewer vertices than is contained
+ * in that polygon's faces_vertices array.
+ */
+export const make_faces_polygon = ({ vertices_coords, faces_vertices }, epsilon) =>
+  faces_vertices
+    .map(verts => verts.map(v => vertices_coords[v]))
+    .map(polygon => math.core.make_polygon_non_collinear(polygon, epsilon));
+/**
+ * @description map vertices_coords onto each face's set of vertices,
+ * turning each face into an array of points.
+ */
+export const make_faces_polygon_quick = ({ vertices_coords, faces_vertices }) =>
+  faces_vertices
+    .map(verts => verts.map(v => vertices_coords[v]));
+/**
+ * @description for every face, get one point that is the face's centroid.
+ */
 export const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertices
   .map(fv => fv.map(v => vertices_coords[v]))
   .map(coords => math.core.centroid(coords));
-
 /**
  * @description This uses point average, not centroid, faces must
  * be convex, and again it's not precise, but in many use cases

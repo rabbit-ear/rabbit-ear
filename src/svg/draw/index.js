@@ -3,7 +3,7 @@
  */
 import * as S from "../../general/strings";
 import { vertices_circle } from "./vertices";
-import { edges_paths } from "./edges";
+import { edges_paths, draw_edges } from "./edges";
 import {
   faces_vertices_polygon,
   faces_edges_polygon,
@@ -18,7 +18,7 @@ const faces_draw_function = (graph, options) => (
 
 const svg_draw_func = {
   vertices: vertices_circle,
-  edges: edges_paths,
+  edges: draw_edges, // edges_paths
   faces: faces_draw_function,
   boundaries: boundaries_polygon
 };

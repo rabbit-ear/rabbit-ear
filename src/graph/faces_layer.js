@@ -2,14 +2,15 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import single_vertex_solver from "../layer/single_vertex_solver/index";
-// import { make_vertices_sectors } from "./make";
 import { invert_map } from "./maps";
 import {
   get_longest_array,
   circular_array_valid_ranges
 } from "../general/arrays";
+import { make_vertices_sectors } from "./make";
+import { make_faces_winding } from "./faces_winding";
 
-const make_vertex_faces_layer = ({
+export const make_vertex_faces_layer = ({
   vertices_faces, vertices_sectors, vertices_edges, edges_assignment
 }, vertex, epsilon) => {
   // vertices_faces will contain "undefined" for sectors outside the boundary
@@ -48,4 +49,45 @@ const make_vertex_faces_layer = ({
   return faces_layer;
 };
 
-export default make_vertex_faces_layer;
+/**
+ * @description flip a faces_layer solution to reflect having turned
+ * over the origami.
+ * @param {number[][]} an array of one or more faces_layer solutions
+ */
+const flip_solutions = solutions => {
+  const face = solutions.face;
+  const flipped = solutions
+    .map(invert_map)
+    .map(list => list.reverse())
+    .map(invert_map);
+  flipped.face = face;
+  return flipped;
+};
+/**
+ * @description compute the faces_layer solutions for every vertex in the
+ * graph, taking into considering which face the solver began with each
+ * time, and for faces which are upsidedown, flip those solutions also,
+ * this way all notion of "above/below" are global, not local to a face
+ * according to that face's normal.
+ * @param {object} a FOLD graph
+ * @param {number} this face will remain fixed
+ * @param {number} epsilon, HIGHLY recommended, like: 0.001
+ */
+export const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
+  if (!graph.vertices_sectors) {
+    graph.vertices_sectors = make_vertices_sectors(graph);
+  }
+  // root face, and all faces with the same color, will be false
+  const faces_coloring = make_faces_winding(graph).map(c => !c);
+  // the faces_layer solutions for every vertex and its adjacent faces
+  const vertices_faces_layer = graph.vertices_sectors
+    .map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
+  // is each face flipped or not? (should the result be flipped too.)
+  // if this face is flipped in the graph, flip the solution too.
+  const vertices_solutions_flip = vertices_faces_layer
+    .map(solution => faces_coloring[solution.face])
+  return vertices_faces_layer
+    .map((solutions, i) => vertices_solutions_flip[i]
+      ? flip_solutions(solutions)
+      : solutions);
+};

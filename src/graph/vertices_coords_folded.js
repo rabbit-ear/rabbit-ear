@@ -34,6 +34,7 @@ export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, e
 /**
  * @description this method works for 2D only (no z value).
  * if a edges_assignment is "U", assumed to be folded ("V" or "M").
+ * also, if no edge foldAngle or assignments exist, assume all edges are folded.
  */
 // export const make_vertices_coords_flat_folded = make_vertices_coords_folded;
 export const make_vertices_coords_flat_folded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {

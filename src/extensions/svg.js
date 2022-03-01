@@ -269,10 +269,6 @@ const semi_flatten_arrays = function () {
   }
 };
 
-const flatten_arrays = function () {
-  return semi_flatten_arrays(arguments).reduce((a, b) => a.concat(b), []);
-};
-
 var coordinates = (...args) => {
   return args.filter(a => typeof a === _number)
     .concat(
@@ -394,7 +390,7 @@ const redraw = (element) => {
   return element;
 };
 const setPoints$3 = (element, ...args) => {
-  element.options.points = coordinates(...flatten_arrays(...args)).slice(0, 4);
+  element.options.points = coordinates(...semi_flatten_arrays(...args)).slice(0, 4);
   return redraw(element);
 };
 const bend$1 = (element, amount) => {
@@ -488,6 +484,10 @@ var Arrow = {
     methods: methods$5,
     init,
   }
+};
+
+const flatten_arrays = function () {
+  return semi_flatten_arrays(arguments).reduce((a, b) => a.concat(b), []);
 };
 
 const makeCurvePath = (endpoints = [], bend = 0, pinch = 0.5) => {
@@ -1180,8 +1180,6 @@ const applyControlsToSVG = (svg) => {
   svg.controls = (...args) => controls.call(svg, svg, ...args);
 };
 
-const ElementConstructor = (new Window.DOMParser())
-  .parseFromString("<div />", "text/xml").documentElement.constructor;
 var svgDef = {
   svg: {
     args: (...args) => [viewBox$1(coordinates(...args))].filter(a => a != null),
@@ -1190,7 +1188,6 @@ var svgDef = {
       args.filter(a => typeof a === _string)
         .forEach(string => loadSVG(element, string));
       args.filter(a => a != null)
-        .filter(arg => arg instanceof ElementConstructor)
         .filter(el => typeof el.appendChild === _function)
         .forEach(parent => parent.appendChild(element));
       TouchEvents(element);

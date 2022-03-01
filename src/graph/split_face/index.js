@@ -11,7 +11,7 @@ import {
   update_edges_faces,
   update_faces_faces,
 } from "./update";
-import { intersect_convex_face_line } from "../intersect_faces";
+import { intersect_convex_face_line } from "../intersect";
 import remove from "../remove";
 import * as S from "../../general/strings";
 /**
