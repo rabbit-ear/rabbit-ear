@@ -15,11 +15,22 @@ import { invert_map } from "../graph/maps";
  * @param {object} a FOLD object, make sure the vertices
  * have already been folded.
  */
-const make_faces_layers = (graph, epsilon) =>
-  all_layer_conditions(graph, epsilon)
-    .map(topological_order)
-    .map(layers_face => layers_face === undefined
+// const make_faces_layers = (graph, epsilon) =>
+//   all_layer_conditions(graph, epsilon)
+//     .map(topological_order)
+//     .map(layers_face => layers_face === undefined
+//       ? []
+//       : complete_topological_order(graph, layers_face));
+
+const make_faces_layers = (graph, epsilon) => {
+  // console.log("make_faces_layers");
+  const conditions = all_layer_conditions(graph, epsilon);
+  // console.log("conditions", conditions);
+  const layers_faces = conditions.map(topological_order);
+  // console.log("layers_faces", layers_faces);
+  return layers_faces.map(layers_face => layers_face === undefined
       ? []
       : complete_topological_order(graph, layers_face));
+}
 
 export default make_faces_layers;

@@ -335,7 +335,7 @@
     const c = v[2] - u[2];
     return Math.sqrt((a * a) + (b * b) + (c * c));
   };
-  const flip$2 = v => v.map(n => -n);
+  const flip$1 = v => v.map(n => -n);
   const rotate90 = v => [-v[1], v[0]];
   const rotate270 = v => [v[1], -v[0]];
   const degenerate = (v, epsilon = EPSILON) => v
@@ -369,7 +369,7 @@
     distance: distance,
     distance2: distance2$1,
     distance3: distance3,
-    flip: flip$2,
+    flip: flip$1,
     rotate90: rotate90,
     rotate270: rotate270,
     degenerate: degenerate,
@@ -1109,7 +1109,7 @@
       { type:"perpendicular", points: [projections[shortest], intersects[shortest]] }
     ];
     const newVector = clockwise_bisect2(
-      flip$2(lines[(shortest + lines.length - 1) % lines.length].vector),
+      flip$1(lines[(shortest + lines.length - 1) % lines.length].vector),
       lines[(shortest + 1) % lines.length].vector
     );
     const shortest_is_last_index = shortest === points.length - 1;
@@ -1553,7 +1553,7 @@
     const determinant0 = cross2(line_vector, poly_vector);
     const determinant1 = -determinant0;
     const a2b = subtract(poly_origin, line_origin);
-    const b2a = flip$2(a2b);
+    const b2a = flip$1(a2b);
     const t0 = cross2(a2b, poly_vector) / determinant0;
     const t1 = cross2(b2a, line_vector) / determinant1;
     if (poly_line_func(t1, epsilon / magnitude(poly_vector))) {
@@ -1641,7 +1641,7 @@
       copy: function () { return [...this]; },
       normalize: function () { return normalize(this); },
       scale: function () { return scale(this, arguments[0]); },
-      flip: function () { return flip$2(this); },
+      flip: function () { return flip$1(this); },
       rotate90: function () { return rotate90(this); },
       rotate270: function () { return rotate270(this); },
       cross: function () {
@@ -1831,7 +1831,7 @@
         inclusive: function () { this.domain_function = include_r; return this; },
         exclusive: function () { this.domain_function = exclude_r; return this; },
         flip: function () {
-          return Constructors$1.ray(flip$2(this.vector), this.origin);
+          return Constructors$1.ray(flip$1(this.vector), this.origin);
         },
         scale: function (scale) {
           return Constructors$1.ray(this.vector.scale(scale), this.origin);
@@ -5582,14 +5582,9 @@
       .map((is_collinear, e) => is_collinear ? e : undefined)
       .filter(e => e !== undefined)
       .filter(e => unfolded_assignment[graph.edges_assignment[e]]);
-    collinear_edges.map(e => {
-      for (let i = 0; i < graph.edges_faces[e].length; i++) {
-        if (graph.edges_faces[e][i] != null) {
-          return graph.edges_faces[e][i];
-        }
-      }
-      console.warn("flat_fold edges_faces issue");
-    }).map(f => graph.faces_winding[f])
+    collinear_edges
+      .map(e => graph.edges_faces[e].find(f => f != null))
+      .map(f => graph.faces_winding[f])
       .map(winding => winding ? assignment : opposite_assignment)
       .forEach((assignment, e) => {
         graph.edges_assignment[collinear_edges[e]] = assignment;
@@ -7171,7 +7166,7 @@
   };
 
   const taco_types$2 = Object.freeze(Object.keys(slow_lookup));
-  const flip$1 = { 0:0, 1:2, 2:1 };
+  const flip = { 0:0, 1:2, 2:1 };
   const fill_layers_from_conditions = (layers, maps, conditions) => layers
     .forEach((layer, i) => maps[i].face_keys
       .forEach((key, j) => {
@@ -7179,7 +7174,7 @@
         if (conditions[key] !== 0) {
           const orientation = maps[i].keys_ordered[j]
             ? conditions[key]
-            : flip$1[conditions[key]];
+            : flip[conditions[key]];
           if (layers[i][j] !== 0 && layers[i][j] !== orientation) {
             throw "fill conflict";
           }
@@ -7200,7 +7195,7 @@
       const condition_key = map.face_keys[next_step[0]];
       const condition_value = map.keys_ordered[next_step[0]]
         ? next_step[1]
-        : flip$1[next_step[1]];
+        : flip[next_step[1]];
       return [condition_key, condition_value];
     }).filter(a => a !== undefined);
   const complete_suggestions_loop = (layers, maps, conditions, avoid) => {
@@ -7334,7 +7329,8 @@
       layers = unique_successes[0].layers;
     } while (solution === undefined);
     unsigned_to_signed_conditions(solution);
-    console.log(`${Date.now() - startDate}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
+    const duration = Date.now() - startDate;
+      console.log(`${duration}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
     return solution;
   };
 
@@ -7350,33 +7346,12 @@
       }));
     return duplicate;
   };
-  const precheck = (layers, maps, face_pair_key, new_dir) => {
-    try {
-      taco_types.forEach(taco_type => layers.forEach((layer, i) => {
-        const map = maps[taco_type][i];
-        for (let m = 0; m < map.face_keys.length; m++) {
-          if (map.face_keys[m] === face_pair_key) {
-            const dir = map.keys_ordered[m] ? new_dir : flip[new_dir];
-            const new_layer = [...layer];
-            new_layer[m] = dir;
-            const new_layer_key = new_layer.join("");
-            if (slow_lookup[taco_type][new_layer_key] === false) {
-              console.log("precheck found a fail case", face_pair_key, taco_type, new_layer_key, slow_lookup[type][new_layer_key]);
-              throw "precheck";
-            }
-          }
-        }
-      }));
-    } catch (error) {
-      return false;
-    }
-    return true;
-  };
   const recursive_solver = (graph, maps, conditions_start) => {
     const startDate = new Date();
     let recurse_count = 0;
     let inner_loop_count = 0;
-    const successes_hash = {};
+    let avoidcount = 0;
+    let failguesscount = 0;
     const recurse = (layers, conditions) => {
       recurse_count++;
       const zero_keys = Object.keys(conditions)
@@ -7387,19 +7362,13 @@
       const successes = zero_keys
         .map((key, i) => [1, 2]
           .map(dir => {
-            if (avoid[key] && avoid[key][dir]) { return; }
-            if (precheck(layers, maps, key, dir)) {
-              console.log("precheck caught!"); return;
-            }
+            if (avoid[key] && avoid[key][dir]) { avoidcount++; return; }
             const clone_conditions = JSON.parse(JSON.stringify(conditions));
-            if (successes_hash[JSON.stringify(clone_conditions)]) {
-              console.log("early hash caught!"); return;
-            }
             const clone_layers = duplicate_unsolved_layers(layers);
             clone_conditions[key] = dir;
             inner_loop_count++;
             if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
-              return undefined;
+              failguesscount++; return;
             }
             Object.keys(clone_conditions)
               .filter(key => conditions[key] === 0)
@@ -7411,16 +7380,7 @@
           })
           .filter(a => a !== undefined))
         .reduce((a, b) => a.concat(b), []);
-      const unique_successes = successes
-        .map(success => JSON.stringify(success.conditions))
-        .map(string => hashCode(string))
-        .map((hash, i) => {
-          if (successes_hash[hash]) { return; }
-          successes_hash[hash] = successes[i];
-          return successes[i];
-        })
-        .filter(a => a !== undefined);
-      return unique_successes
+      return successes
         .map(success => recurse(success.layers, success.conditions))
         .reduce((a, b) => a.concat(b), []);
     };
@@ -7432,13 +7392,24 @@
     };
     complete_suggestions_loop(layers_start, maps, conditions_start);
     const certain = conditions_start;
-    const solutions = recurse(layers_start, conditions_start);
+    const solutions_before = recurse(layers_start, conditions_start);
+    const successes_hash = {};
+    const solutions = solutions_before
+      .map(conditions => JSON.stringify(conditions))
+      .map(string => hashCode(string))
+      .map((hash, i) => {
+        if (successes_hash[hash]) { return; }
+        successes_hash[hash] = solutions_before[i];
+        return solutions_before[i];
+      })
+      .filter(a => a !== undefined);
     solutions.certain = JSON.parse(JSON.stringify(certain));
     for (let i = 0; i < solutions.length; i++) {
       unsigned_to_signed_conditions(solutions[i]);
     }
     unsigned_to_signed_conditions(solutions.certain);
-    console.log(`${Date.now() - startDate}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
+    const duration = Date.now() - startDate;
+      console.log(`${duration}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count, "memo avoid count", avoidcount, "bad guesses", failguesscount, `repeated solutions ${solutions_before.length}/${solutions.length}`);
     return solutions;
   };
 
@@ -7591,12 +7562,13 @@
     return complete_topological_order(graph, layers_face);
   };
 
-  const make_faces_layers = (graph, epsilon) =>
-    all_layer_conditions(graph, epsilon)
-      .map(topological_order)
-      .map(layers_face => layers_face === undefined
+  const make_faces_layers = (graph, epsilon) => {
+    const conditions = all_layer_conditions(graph, epsilon);
+    const layers_faces = conditions.map(topological_order);
+    return layers_faces.map(layers_face => layers_face === undefined
         ? []
         : complete_topological_order(graph, layers_face));
+  };
 
   const make_faces_layers_async = (graph, epsilon, timeout = 2000) => {
     var timer = new Promise((resolve, reject) => {

@@ -113,11 +113,11 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
       graph.faces_winding[i],
     ));
   // before we start splitting faces, we have to handle the case where
-  // a face has already been split along the fold crease, and the crease
-  // is of assignment flat or unassigned ("f", "u"), the split_face method
+  // a flat crease already exists along the fold crease, already splitting
+  // two faces (assignment "F" or "U" only), the split_face method
   // will not catch these. we need to find these edges before we modify
-  // the graph, find the face they are attached to and if it is flipped,
-  // and set the edge to the proper "V" or "M".
+  // the graph, find the face they are attached to and whether the face
+  // is flipped, and set the edge to the proper "V" or "M" (and foldAngle).
   const vertices_coords_folded = multiply_vertices_faces_matrix2(graph,
     graph.faces_matrix2);
   // get all (folded) edges which lie parallel and overlap the crease line
@@ -130,14 +130,9 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
     .filter(e => unfolded_assignment[graph.edges_assignment[e]]);
   // get the first valid adjacent face for each edge, get that face's winding,
   // which determines the crease assignment, and assign it to the edge
-  collinear_edges.map(e => {
-    for (let i = 0; i < graph.edges_faces[e].length; i++) {
-      if (graph.edges_faces[e][i] != null) {
-        return graph.edges_faces[e][i];
-      }
-    }
-    console.warn("flat_fold edges_faces issue");
-  }).map(f => graph.faces_winding[f])
+  collinear_edges
+    .map(e => graph.edges_faces[e].find(f => f != null))
+    .map(f => graph.faces_winding[f])
     .map(winding => winding ? assignment : opposite_assignment)
     .forEach((assignment, e) => {
       graph.edges_assignment[collinear_edges[e]] = assignment;
