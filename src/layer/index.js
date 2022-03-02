@@ -5,7 +5,6 @@
 // import flip_faces_layer from "./flip_faces_layer";
 import make_faces_layer from "./make_faces_layer";
 import make_faces_layers from "./make_faces_layers";
-import make_faces_layers_async from "./make_faces_layers_async";
 import flip_faces_layer from "./flip_faces_layer";
 // global layer solver
 import table from "./global_solver/table"
@@ -13,7 +12,7 @@ import * as global_layer_solvers from "./global_solver/index"
 import * as general_global_solver from "./global_solver/general"
 import * as edges_assignments from "./global_solver/edges_assignments"
 import * as dividing_axis from "./global_solver/dividing_axis"
-import * as topological_order from "./global_solver/topological_order";
+import topological_order from "./global_solver/topological_order";
 import make_conditions from "./global_solver/make_conditions";
 import conditions_to_matrix from "./global_solver/conditions_to_matrix";
 // tacos
@@ -47,7 +46,6 @@ import * as fold_assignments from "./single_vertex_solver/fold_assignments";
 export default Object.assign(Object.create(null), {
 	make_faces_layer,
 	make_faces_layers,
-	make_faces_layers_async,
 	flip_faces_layer,
 
 	assignment_solver,
@@ -58,6 +56,7 @@ export default Object.assign(Object.create(null), {
 
 	table,
 	make_conditions,
+	topological_order,
 	conditions_to_matrix,
 
 	make_tacos_tortillas,
@@ -68,7 +67,6 @@ export default Object.assign(Object.create(null), {
 	general_global_solver,
 	edges_assignments,
 	dividing_axis,
-	topological_order,
 	tortilla_tortilla,
 	fold_assignments,
 );

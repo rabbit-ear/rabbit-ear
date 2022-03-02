@@ -45,7 +45,9 @@ const solver_single = (graph, maps, conditions) => {
     transitivity: maps.transitivity.map(el => Array(3).fill(0)),
   };
 
-  complete_suggestions_loop(layers, maps, conditions)
+  if (!complete_suggestions_loop(layers, maps, conditions)) {
+    return undefined;
+  }
   certain_conditions = conditions;
 
   let solution;
@@ -118,7 +120,7 @@ const solver_single = (graph, maps, conditions) => {
 
     // console.timeEnd(`recurse ${this_recurse_count}`);
     if (!unique_successes.length) {
-      console.warn("ran out of successes");
+      console.warn("layer solver, no solutions found");
       return;
     }
     conditions = unique_successes[0].conditions;

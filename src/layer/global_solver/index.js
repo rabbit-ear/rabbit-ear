@@ -3,6 +3,7 @@ import make_transitivity_trios from "../tacos/make_transitivity_trios";
 import filter_transitivity from "../tacos/filter_transitivity";
 import { make_faces_faces_overlap } from "../../graph/overlap";
 import { make_faces_winding } from "../../graph/faces_winding";
+import { unsigned_to_signed_conditions } from "./general";
 
 import make_taco_maps from "./make_taco_maps";
 import make_conditions from "./make_conditions";
@@ -36,12 +37,15 @@ const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
 
 export const one_layer_conditions = (graph, epsilon = 1e-6) => {
   const data = make_maps_and_conditions(graph, epsilon);
-  return single_solver(graph, data.maps, data.conditions);
+  const solutions = single_solver(graph, data.maps, data.conditions);
+  return solutions;
 };
 
 export const all_layer_conditions = (graph, epsilon = 1e-6) => {
   const data = make_maps_and_conditions(graph, epsilon);
-  return recursive_solver(graph, data.maps, data.conditions);
+  const solutions = recursive_solver(graph, data.maps, data.conditions);
+  solutions.certain = unsigned_to_signed_conditions(JSON.parse(JSON.stringify(data.conditions)));
+  return solutions;
 };
 
 
@@ -62,10 +66,13 @@ const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6
 
 export const one_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
   const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
-  return single_solver(folded, data.maps, data.conditions);
+  const solutions = single_solver(folded, data.maps, data.conditions);
+  return solutions;
 };
 
 export const all_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
   const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
-  return recursive_solver(folded, data.maps, data.conditions);
+  const solutions = recursive_solver(folded, data.maps, data.conditions);
+  solutions.certain = unsigned_to_signed_conditions(JSON.parse(JSON.stringify(data.conditions)));
+  return solutions;
 };

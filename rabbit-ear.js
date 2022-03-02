@@ -6998,6 +6998,27 @@
       .filter(trio => tacos_trios[trio.join(" ")] === undefined);
   };
 
+  const to_signed_layer_convert = { 0:0, 1:1, 2:-1 };
+  const to_unsigned_layer_convert = { 0:0, 1:1, "-1":2 };
+  const unsigned_to_signed_conditions = (conditions) => {
+    Object.keys(conditions).forEach(key => {
+      conditions[key] = to_signed_layer_convert[conditions[key]];
+    });
+    return conditions;
+  };
+  const signed_to_unsigned_conditions = (conditions) => {
+    Object.keys(conditions).forEach(key => {
+      conditions[key] = to_unsigned_layer_convert[conditions[key]];
+    });
+    return conditions;
+  };
+
+  var general_global_solver = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    unsigned_to_signed_conditions: unsigned_to_signed_conditions,
+    signed_to_unsigned_conditions: signed_to_unsigned_conditions
+  });
+
   const refactor_pairs = (tacos_tortillas, transitivity_trios) => {
     const pairs = {};
     pairs.taco_taco = tacos_tortillas.taco_taco.map(el => [
@@ -7170,7 +7191,10 @@
   const fill_layers_from_conditions = (layers, maps, conditions) => layers
     .forEach((layer, i) => maps[i].face_keys
       .forEach((key, j) => {
-        if (!(key in conditions)) { console.warn(key, "not in conditions"); return }
+        if (!(key in conditions)) {
+          console.warn(key, "not in conditions");
+          return;
+        }
         if (conditions[key] !== 0) {
           const orientation = maps[i].keys_ordered[j]
             ? conditions[key]
@@ -7224,27 +7248,6 @@
     return hash;
   };
 
-  const to_signed_layer_convert = { 0:0, 1:1, 2:-1 };
-  const to_unsigned_layer_convert = { 0:0, 1:1, "-1":2 };
-  const unsigned_to_signed_conditions = (conditions) => {
-    Object.keys(conditions).forEach(key => {
-      conditions[key] = to_signed_layer_convert[conditions[key]];
-    });
-    return conditions;
-  };
-  const signed_to_unsigned_conditions = (conditions) => {
-    Object.keys(conditions).forEach(key => {
-      conditions[key] = to_unsigned_layer_convert[conditions[key]];
-    });
-    return conditions;
-  };
-
-  var general_global_solver = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    unsigned_to_signed_conditions: unsigned_to_signed_conditions,
-    signed_to_unsigned_conditions: signed_to_unsigned_conditions
-  });
-
   const count_zeros = conditions => Object
     .keys(conditions)
     .filter(key => conditions[key] === 0).length;
@@ -7271,7 +7274,9 @@
       tortilla_tortilla: maps.tortilla_tortilla.map(el => Array(2).fill(0)),
       transitivity: maps.transitivity.map(el => Array(3).fill(0)),
     };
-    complete_suggestions_loop(layers, maps, conditions);
+    if (!complete_suggestions_loop(layers, maps, conditions)) {
+      return undefined;
+    }
     let solution;
     do {
       recurse_count++;
@@ -7322,7 +7327,7 @@
         })
         .filter(a => a !== undefined);
       if (!unique_successes.length) {
-        console.warn("ran out of successes");
+        console.warn("layer solver, no solutions found");
         return;
       }
       conditions = unique_successes[0].conditions;
@@ -7330,7 +7335,9 @@
     } while (solution === undefined);
     unsigned_to_signed_conditions(solution);
     const duration = Date.now() - startDate;
+    if (duration > 50) {
       console.log(`${duration}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count);
+    }
     return solution;
   };
 
@@ -7390,8 +7397,9 @@
       tortilla_tortilla: maps.tortilla_tortilla.map(el => Array(2).fill(0)),
       transitivity: maps.transitivity.map(el => Array(3).fill(0)),
     };
-    complete_suggestions_loop(layers_start, maps, conditions_start);
-    const certain = conditions_start;
+    if (!complete_suggestions_loop(layers_start, maps, conditions_start)) {
+      return [];
+    }
     const solutions_before = recurse(layers_start, conditions_start);
     const successes_hash = {};
     const solutions = solutions_before
@@ -7403,13 +7411,13 @@
         return solutions_before[i];
       })
       .filter(a => a !== undefined);
-    solutions.certain = JSON.parse(JSON.stringify(certain));
     for (let i = 0; i < solutions.length; i++) {
       unsigned_to_signed_conditions(solutions[i]);
     }
-    unsigned_to_signed_conditions(solutions.certain);
     const duration = Date.now() - startDate;
-      console.log(`${duration}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count, "memo avoid count", avoidcount, "bad guesses", failguesscount, `repeated solutions ${solutions_before.length}/${solutions.length}`);
+    if (duration > 50) {
+      console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "avoided", avoidcount, "bad guesses", failguesscount, `solutions ${solutions_before.length}/${solutions.length}`);
+    }
     return solutions;
   };
 
@@ -7466,11 +7474,14 @@
   };
   const one_layer_conditions = (graph, epsilon = 1e-6) => {
     const data = make_maps_and_conditions(graph, epsilon);
-    return solver_single(graph, data.maps, data.conditions);
+    const solutions = solver_single(graph, data.maps, data.conditions);
+    return solutions;
   };
   const all_layer_conditions = (graph, epsilon = 1e-6) => {
     const data = make_maps_and_conditions(graph, epsilon);
-    return recursive_solver(graph, data.maps, data.conditions);
+    const solutions = recursive_solver(graph, data.maps, data.conditions);
+    solutions.certain = unsigned_to_signed_conditions(JSON.parse(JSON.stringify(data.conditions)));
+    return solutions;
   };
   const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6) => {
     const overlap_matrix = make_faces_faces_overlap(folded, epsilon);
@@ -7485,11 +7496,14 @@
   };
   const one_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
     const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
-    return solver_single(folded, data.maps, data.conditions);
+    const solutions = solver_single(folded, data.maps, data.conditions);
+    return solutions;
   };
   const all_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
     const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
-    return recursive_solver(folded, data.maps, data.conditions);
+    const solutions = recursive_solver(folded, data.maps, data.conditions);
+    solutions.certain = unsigned_to_signed_conditions(JSON.parse(JSON.stringify(data.conditions)));
+    return solutions;
   };
 
   var global_layer_solvers = /*#__PURE__*/Object.freeze({
@@ -7500,88 +7514,59 @@
     all_layer_conditions_with_axis: all_layer_conditions_with_axis
   });
 
-  const conditions_to_matrix = (conditions) => {
-    const condition_keys = Object.keys(conditions);
-    const face_pairs = condition_keys
-      .map(key => key.split(" ").map(n => parseInt(n)));
-    const faces = [];
-    face_pairs
-      .reduce((a, b) => a.concat(b), [])
-      .forEach(f => faces[f] = undefined);
-    const matrix = faces.map(() => []);
-    face_pairs
-      .map(([a, b]) => {
-        matrix[a][b] = conditions[`${a} ${b}`];
-        matrix[b][a] = -conditions[`${a} ${b}`];
-      });
-    return matrix;
-  };
-
-  const topological_order = (conditions) => {
-    if (!conditions) { return undefined; }
-    const matrix = conditions_to_matrix(conditions);
-    const parent_face_counts = matrix
-      .map((row, i) => row
-        .map(n => n === -1 ? 1 : 0)
-        .reduce((a, b) => a + b, 0));
-    const layers_face = [];
-    const num_faces = parent_face_counts.filter(a => a != null).length;
-    for (let i = 0; i < num_faces; i++) {
-      let top_face = parent_face_counts.indexOf(0);
-      if (top_face === -1) {
-        console.warn("cycle detected");
-        return undefined;
+  const topological_order = (conditions, graph) => {
+    if (!conditions) { return []; }
+    const faces_children = [];
+    Object.keys(conditions).map(key => {
+      const pair = key.split(" ").map(n => parseInt(n));
+      if (conditions[key] === -1) { pair.reverse(); }
+      if (faces_children[pair[0]] === undefined) {
+        faces_children[pair[0]] = [];
       }
-      layers_face.push(top_face);
-      matrix[top_face].forEach((dir, i) => {
-        if (dir === 1) { parent_face_counts[i]--; }
+      faces_children[pair[0]].push(pair[1]);
+    });
+    if (graph && graph.faces_vertices) {
+      graph.faces_vertices.forEach((_, f) => {
+        if (faces_children[f] === undefined) {
+          faces_children[f] = [];
+        }
       });
-      delete parent_face_counts[top_face];
     }
-    return layers_face.reverse();
+    const layers_face = [];
+    const faces_visited = [];
+    let protection = 0;
+    for (let f = 0; f < faces_children.length; f++) {
+      if (faces_visited[f]) { continue; }
+      const stack = [f];
+      while (stack.length && protection < faces_children.length * 2) {
+        const stack_end = stack[stack.length - 1];
+        if (faces_children[stack_end].length) {
+          const next = faces_children[stack_end].pop();
+          if (!faces_visited[next]) { stack.push(next); }
+          continue;
+        } else {
+          layers_face.push(stack_end);
+          faces_visited[stack_end] = true;
+          stack.pop();
+        }
+        protection++;
+      }
+    }
+    if (protection >= faces_children.length * 2) {
+      console.warn("fix protection in topological order");
+    }
+    return layers_face;
   };
-  const complete_topological_order = (graph, layers_face) => {
-    const faces_layer = invert_map(layers_face);
-    const missed_faces = graph.faces_vertices
-      .map((_, f) => faces_layer[f] === undefined ? f : undefined)
-      .filter(a => a !== undefined);
-    faces_layer.reduce((a, b) => a > b ? a : b, 0);
-    missed_faces.forEach((face, i) => { faces_layer[face] = i + 1; });
-    return faces_layer;
-  };
-
-  var topological_order$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    topological_order: topological_order,
-    complete_topological_order: complete_topological_order
-  });
 
   const make_faces_layer = (graph, epsilon) => {
-    const layers_face = topological_order(one_layer_conditions(graph, epsilon));
-    if (layers_face === undefined) { return []; }
-    return complete_topological_order(graph, layers_face);
+    const conditions = one_layer_conditions(graph, epsilon);
+    return invert_map(topological_order(conditions, graph));
   };
 
   const make_faces_layers = (graph, epsilon) => {
-    const conditions = all_layer_conditions(graph, epsilon);
-    const layers_faces = conditions.map(topological_order);
-    return layers_faces.map(layers_face => layers_face === undefined
-        ? []
-        : complete_topological_order(graph, layers_face));
-  };
-
-  const make_faces_layers_async = (graph, epsilon, timeout = 2000) => {
-    var timer = new Promise((resolve, reject) => {
-      setTimeout(() => reject(), timeout);
-    });
-    var solver = new Promise((resolve, reject) => resolve(
-      all_layer_conditions(graph, epsilon)));
-    return Promise.race([solver, timer])
-      .then((value) => value.map(topological_order).map(invert_map))
-      .catch((err) => {
-        console.warn("make_faces_layers_async timeout. to increase timeout, use third parameter (graph, epsilon, timeout)");
-        return [];
-      });
+    return all_layer_conditions(graph, epsilon)
+      .map(conditions => topological_order(conditions, graph))
+      .map(invert_map);
   };
 
   const flip_faces_layer = faces_layer => invert_map(
@@ -7612,6 +7597,23 @@
     __proto__: null,
     faces_layer_to_edges_assignments: faces_layer_to_edges_assignments
   });
+
+  const conditions_to_matrix = (conditions) => {
+    const condition_keys = Object.keys(conditions);
+    const face_pairs = condition_keys
+      .map(key => key.split(" ").map(n => parseInt(n)));
+    const faces = [];
+    face_pairs
+      .reduce((a, b) => a.concat(b), [])
+      .forEach(f => faces[f] = undefined);
+    const matrix = faces.map(() => []);
+    face_pairs
+      .map(([a, b]) => {
+        matrix[a][b] = conditions[`${a} ${b}`];
+        matrix[b][a] = -conditions[`${a} ${b}`];
+      });
+    return matrix;
+  };
 
   const get_unassigned_indices = (edges_assignment) => edges_assignment
     .map((_, i) => i)
@@ -7655,7 +7657,6 @@
   var layer = Object.assign(Object.create(null), {
   	make_faces_layer,
   	make_faces_layers,
-  	make_faces_layers_async,
   	flip_faces_layer,
   	assignment_solver,
   	single_vertex_solver,
@@ -7664,6 +7665,7 @@
   	validate_taco_tortilla_strip,
   	table: slow_lookup,
   	make_conditions,
+  	topological_order,
   	conditions_to_matrix,
   	make_tacos_tortillas,
   	make_folded_strip_tacos,
@@ -7673,7 +7675,6 @@
   	general_global_solver,
   	edges_assignments,
   	dividing_axis$1,
-  	topological_order$1,
   	tortilla_tortilla,
   	fold_assignments,
   );
