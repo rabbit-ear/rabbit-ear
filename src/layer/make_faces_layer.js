@@ -2,10 +2,7 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import { one_layer_conditions } from "./global_solver/index";
-import {
-  topological_order,
-  complete_topological_order,
-} from "./global_solver/topological_order";
+import topological_order from "./global_solver/topological_order";
 import { invert_map } from "../graph/maps";
 /**
  * @description for a flat-foldable origami, this will return
@@ -16,9 +13,8 @@ import { invert_map } from "../graph/maps";
  * have already been folded.
  */
 const make_faces_layer = (graph, epsilon) => {
-  const layers_face = topological_order(one_layer_conditions(graph, epsilon));
-  if (layers_face === undefined) { return []; }
-  return complete_topological_order(graph, layers_face);
-}
+  const conditions = one_layer_conditions(graph, epsilon);
+  return invert_map(topological_order(conditions, graph));
+};
 
 export default make_faces_layer;

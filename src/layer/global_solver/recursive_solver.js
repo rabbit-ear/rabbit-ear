@@ -95,6 +95,7 @@ const recursive_solver = (graph, maps, conditions_start) => {
       .map((key, i) => [1, 2]
         .map(dir => {
           if (avoid[key] && avoid[key][dir]) { avoidcount++; return; }
+          // console.log("recursing with", key, dir);
           // todo: it appears that this never happens. remove after testing.
           // if (precheck(layers, maps, key, dir)) {
           //   console.log("precheck caught!"); return;
@@ -156,9 +157,14 @@ const recursive_solver = (graph, maps, conditions_start) => {
   // this could be left out and simply starting the recursion. however,
   // we want to capture the "certain" relationships, the ones decided
   // after consulting the table before any guessing or recursion is done.
-  complete_suggestions_loop(layers_start, maps, conditions_start);
-  // the face orders that must be for every case.
-  const certain = conditions_start;
+  if (!complete_suggestions_loop(layers_start, maps, conditions_start)) {
+    // failure. do not proceed.
+    // console.log("failure. do not proceed");
+    return [];
+  }
+  // // the face orders that must be for every case.
+  // const certain = conditions_start;
+  // console.log("HERE 2", conditions_start);
   // the set of solutions as an array, with the certain values
   // under the key "certain".
   const solutions_before = recurse(layers_start, conditions_start);
@@ -176,20 +182,19 @@ const recursive_solver = (graph, maps, conditions_start) => {
     })
     .filter(a => a !== undefined);
 
-
-  solutions.certain = JSON.parse(JSON.stringify(certain));
+  // solutions.certain = JSON.parse(JSON.stringify(certain));
   // algorithm is done!
   // convert solutions from (1,2) to (+1,-1)
   for (let i = 0; i < solutions.length; i++) {
     unsigned_to_signed_conditions(solutions[i]);
   }
-  unsigned_to_signed_conditions(solutions.certain);
+  // unsigned_to_signed_conditions(solutions.certain);
   // console.log("solutions", solutions);
   // console.log("successes_hash", successes_hash);
   // console.log("avoid", avoid);
   const duration = Date.now() - startDate;
   if (duration > 50) {
-    console.log(`${duration}ms recurse_count`, recurse_count, "inner_loop_count", inner_loop_count, "memo avoid count", avoidcount, "bad guesses", failguesscount, `repeated solutions ${solutions_before.length}/${solutions.length}`);
+    console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "avoided", avoidcount, "bad guesses", failguesscount, `solutions ${solutions_before.length}/${solutions.length}`);
   }
   return solutions;
 };

@@ -12,11 +12,21 @@ const fill_layers_from_conditions = (layers, maps, conditions) => layers
     .forEach((key, j) => {
       // todo: possible this error will never show if we can guarantee that
       // tacos/tortillas have been properly built
-      if (!(key in conditions)) { console.warn(key, "not in conditions"); return }
+      if (!(key in conditions)) {
+        console.warn(key, "not in conditions");
+        return;
+      }
+      // if conditions[key] is 1 or 2, not 0, apply the suggestion.
       if (conditions[key] !== 0) {
+        // orient the suggestion based on if the face pair was flipped or not.
         const orientation = maps[i].keys_ordered[j]
           ? conditions[key]
           : flip[conditions[key]];
+        // now it's possible that this face pair has already been set (not 0).
+        // if so, double check that the previously set value is the same as
+        // the new one, otherwise the conflict means that this layer
+        // arrangement is unsolvable and needs to report the fail all the way
+        // back up to the original recursive call.
         if (layers[i][j] !== 0 && layers[i][j] !== orientation) {
           throw "fill conflict";
         }
@@ -44,11 +54,14 @@ const infer_next_steps = (layers, maps, lookup_table) => layers
       : flip[next_step[1]];
     // console.log("conditions value", map.keys_ordered[next_step[0]], map.face_keys[next_step[0]]);
     // if (avoid[condition_key] === condition_value) { throw "avoid"; }
+    // if (map.face_keys[0] === "3 6") {
+    //   console.log("layer, map, next_step", layer, map, next_step);
+    //   console.log("condition key value", condition_key, condition_value);
+    // }
     return [condition_key, condition_value];
   }).filter(a => a !== undefined);
 
 const complete_suggestions_loop = (layers, maps, conditions, avoid) => {
-  // console.log("complete_suggestions_loop", Object.keys(lookup).map(type => layers[type].filter(el => el !== undefined).length));
   // given the current set of conditions, complete them as much as possible
   // only adding the determined results certain from the current state.
   let next_steps;
