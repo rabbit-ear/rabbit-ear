@@ -45,7 +45,22 @@ const solver_single = (graph, maps, conditions) => {
     transitivity: maps.transitivity.map(el => Array(3).fill(0)),
   };
 
-  if (!complete_suggestions_loop(layers, maps, conditions)) {
+  // pair_layer_map[taco_type][face_pair] = [] array of indices in map
+  const pair_layer_map = {};
+  taco_types.forEach(taco_type => { pair_layer_map[taco_type] = {}; });
+  taco_types.forEach(taco_type => Object.keys(conditions)
+    .forEach(pair => { pair_layer_map[taco_type][pair] = []; }));
+  taco_types
+    .forEach(taco_type => maps[taco_type]
+      .forEach((el, i) => el.face_keys
+        .forEach(pair => {
+          pair_layer_map[taco_type][pair].push(i);
+        })));
+  // console.log("pair_layer_map", pair_layer_map);
+
+
+
+  if (!complete_suggestions_loop(layers, maps, conditions, pair_layer_map)) {
     return undefined;
   }
   certain_conditions = conditions;
@@ -85,7 +100,7 @@ const solver_single = (graph, maps, conditions) => {
           const clone_layers = duplicate_unsolved_layers(layers);
           clone_conditions[key] = dir;
           inner_loop_count++;
-          if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
+          if (!complete_suggestions_loop(clone_layers, maps, clone_conditions, pair_layer_map)) {
             return undefined;
           }
           Object.keys(clone_conditions)

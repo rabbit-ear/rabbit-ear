@@ -1,6 +1,8 @@
 const topological_order = (conditions, graph) => {
   if (!conditions) { return []; }
   const faces_children = [];
+  // use the conditions face pair relationships to fill an array where
+  // index: face, value: array of the face's children (faces below the face)
   Object.keys(conditions).map(key => {
     const pair = key.split(" ").map(n => parseInt(n));
     if (conditions[key] === -1) { pair.reverse(); }
@@ -9,6 +11,8 @@ const topological_order = (conditions, graph) => {
     }
     faces_children[pair[0]].push(pair[1]);
   });
+  // not all faces are encoded in the conditions. use the graph to fill in
+  // any remaining faces with empty arrays (no child faces / faces below)
   if (graph && graph.faces_vertices) {
     graph.faces_vertices.forEach((_, f) => {
       if (faces_children[f] === undefined) {

@@ -15,7 +15,7 @@ const duplicate_unsolved_layers = (layers) => {
       }
     }));
   return duplicate;
-}
+};
 
 // on second thought, precheck will always succeed, because we tried
 // both iterations last loop.
@@ -56,6 +56,23 @@ const recursive_solver = (graph, maps, conditions_start) => {
   let inner_loop_count = 0;
   let avoidcount = 0;
   let failguesscount = 0;
+  // time
+  let clone_time = 0;
+  let solve_time = 0;
+
+  // pair_layer_map[taco_type][face_pair] = [] array of indices in map
+  const pair_layer_map = {};
+  taco_types.forEach(taco_type => { pair_layer_map[taco_type] = {}; });
+  taco_types.forEach(taco_type => Object.keys(conditions_start)
+    .forEach(pair => { pair_layer_map[taco_type][pair] = []; }));
+  taco_types
+    .forEach(taco_type => maps[taco_type]
+      .forEach((el, i) => el.face_keys
+        .forEach(pair => {
+          pair_layer_map[taco_type][pair].push(i);
+        })));
+  // console.log("pair_layer_map", pair_layer_map);
+
   // todo: it appears this never happens, remove after testing.
   // successful conditions will often be duplicates of one another.
   // filter only a set of unique conditions. use a hash table to compare.
@@ -100,7 +117,10 @@ const recursive_solver = (graph, maps, conditions_start) => {
           // if (precheck(layers, maps, key, dir)) {
           //   console.log("precheck caught!"); return;
           // }
+          const clone_start = new Date();
           const clone_conditions = JSON.parse(JSON.stringify(conditions));
+          clone_time += (Date.now() - clone_start);
+
           // todo: it appears that this never happens. remove after testing.
           // if (successes_hash[JSON.stringify(clone_conditions)]) {
           //   console.log("early hash caught!"); return;
@@ -108,9 +128,13 @@ const recursive_solver = (graph, maps, conditions_start) => {
           const clone_layers = duplicate_unsolved_layers(layers);
           clone_conditions[key] = dir;
           inner_loop_count++;
-          if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
-            failguesscount++; return;
+          const solve_start = new Date();
+          if (!complete_suggestions_loop(clone_layers, maps, clone_conditions, pair_layer_map)) {
+            failguesscount++;
+            solve_time += (Date.now() - solve_start);
+            return;
           }
+          solve_time += (Date.now() - solve_start);
           Object.keys(clone_conditions)
             .filter(key => conditions[key] === 0)
             .forEach(key => {
@@ -157,7 +181,7 @@ const recursive_solver = (graph, maps, conditions_start) => {
   // this could be left out and simply starting the recursion. however,
   // we want to capture the "certain" relationships, the ones decided
   // after consulting the table before any guessing or recursion is done.
-  if (!complete_suggestions_loop(layers_start, maps, conditions_start)) {
+  if (!complete_suggestions_loop(layers_start, maps, conditions_start, pair_layer_map)) {
     // failure. do not proceed.
     // console.log("failure. do not proceed");
     return [];
@@ -194,7 +218,7 @@ const recursive_solver = (graph, maps, conditions_start) => {
   // console.log("avoid", avoid);
   const duration = Date.now() - startDate;
   if (duration > 50) {
-    console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "avoided", avoidcount, "bad guesses", failguesscount, `solutions ${solutions_before.length}/${solutions.length}`);
+    console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "avoided", avoidcount, "bad guesses", failguesscount, `solutions ${solutions_before.length}/${solutions.length}`, "durations: clone, solve", clone_time, solve_time);
   }
   return solutions;
 };

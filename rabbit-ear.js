@@ -7188,8 +7188,12 @@
 
   const taco_types$2 = Object.freeze(Object.keys(slow_lookup));
   const flip = { 0:0, 1:2, 2:1 };
-  const fill_layers_from_conditions = (layers, maps, conditions) => layers
-    .forEach((layer, i) => maps[i].face_keys
+  const fill_layers_from_conditions = (layers, maps, conditions, fill_indices) => {
+    const changed = {};
+    const iterators = fill_indices
+      ? fill_indices
+      : Object.keys(layers);
+    iterators.forEach(i => maps[i].face_keys
       .forEach((key, j) => {
         if (!(key in conditions)) {
           console.warn(key, "not in conditions");
@@ -7203,16 +7207,22 @@
             throw "fill conflict";
           }
           layers[i][j] = orientation;
+          changed[i] = true;
         }
       }));
-  const infer_next_steps = (layers, maps, lookup_table) => layers
-    .map((layer, i) => {
+    return changed;
+  };
+  const infer_next_steps = (layers, maps, lookup_table, changed_indices) => {
+    const iterators = changed_indices
+      ? changed_indices
+      : Object.keys(layers);
+    return iterators.map(i => {
       const map = maps[i];
-      const key = layer.join("");
+      const key = layers[i].join("");
       const next_step = lookup_table[key];
       if (next_step === false) { throw "unsolvable"; }
       if (next_step === true) { return; }
-      if (layer[next_step[0]] !== 0 && layer[next_step[0]] !== next_step[1]) {
+      if (layers[i][next_step[0]] !== 0 && layers[i][next_step[0]] !== next_step[1]) {
         throw "infer conflict";
       }
       layers[i][next_step[0]] = next_step[1];
@@ -7222,18 +7232,33 @@
         : flip[next_step[1]];
       return [condition_key, condition_value];
     }).filter(a => a !== undefined);
-  const complete_suggestions_loop = (layers, maps, conditions, avoid) => {
+  };
+  const complete_suggestions_loop = (layers, maps, conditions, pair_layer_map) => {
     let next_steps;
+    let next_steps_indices = {};
     do {
       try {
+        const fill_changed = {};
+        taco_types$2.forEach(taco_type => { fill_changed[taco_type] = {}; });
         for (let t = 0; t < taco_types$2.length; t++) {
           const type = taco_types$2[t];
-          fill_layers_from_conditions(layers[type], maps[type], conditions);
+          fill_changed[type] = fill_layers_from_conditions(layers[type], maps[type], conditions, next_steps_indices[type]);
         }
+        taco_types$2.forEach(type => {
+          fill_changed[type] = Object.keys(fill_changed[type]);
+        });
         next_steps = taco_types$2
-          .map(type => infer_next_steps(layers[type], maps[type], slow_lookup[type], avoid))
-          .reduce((a, b) => a.concat(b), []);
+          .flatMap(type => infer_next_steps(layers[type], maps[type], slow_lookup[type], fill_changed[type]));
         next_steps.forEach(el => { conditions[el[0]] = el[1]; });
+        taco_types$2.forEach(type => { next_steps_indices[type] = {}; });
+        taco_types$2.forEach(taco_type => next_steps
+          .forEach(el => pair_layer_map[taco_type][el[0]]
+            .forEach(i => {
+              next_steps_indices[taco_type][i] = true;
+            })));
+        taco_types$2.forEach(type => {
+          next_steps_indices[type] = Object.keys(next_steps_indices[type]);
+        });
       } catch (error) { return false; }
     } while (next_steps.length > 0);
     return true;
@@ -7274,7 +7299,17 @@
       tortilla_tortilla: maps.tortilla_tortilla.map(el => Array(2).fill(0)),
       transitivity: maps.transitivity.map(el => Array(3).fill(0)),
     };
-    if (!complete_suggestions_loop(layers, maps, conditions)) {
+    const pair_layer_map = {};
+    taco_types$1.forEach(taco_type => { pair_layer_map[taco_type] = {}; });
+    taco_types$1.forEach(taco_type => Object.keys(conditions)
+      .forEach(pair => { pair_layer_map[taco_type][pair] = []; }));
+    taco_types$1
+      .forEach(taco_type => maps[taco_type]
+        .forEach((el, i) => el.face_keys
+          .forEach(pair => {
+            pair_layer_map[taco_type][pair].push(i);
+          })));
+    if (!complete_suggestions_loop(layers, maps, conditions, pair_layer_map)) {
       return undefined;
     }
     let solution;
@@ -7299,7 +7334,7 @@
             const clone_layers = duplicate_unsolved_layers$1(layers);
             clone_conditions[key] = dir;
             inner_loop_count++;
-            if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
+            if (!complete_suggestions_loop(clone_layers, maps, clone_conditions, pair_layer_map)) {
               return undefined;
             }
             Object.keys(clone_conditions)
@@ -7359,6 +7394,18 @@
     let inner_loop_count = 0;
     let avoidcount = 0;
     let failguesscount = 0;
+    let clone_time = 0;
+    let solve_time = 0;
+    const pair_layer_map = {};
+    taco_types.forEach(taco_type => { pair_layer_map[taco_type] = {}; });
+    taco_types.forEach(taco_type => Object.keys(conditions_start)
+      .forEach(pair => { pair_layer_map[taco_type][pair] = []; }));
+    taco_types
+      .forEach(taco_type => maps[taco_type]
+        .forEach((el, i) => el.face_keys
+          .forEach(pair => {
+            pair_layer_map[taco_type][pair].push(i);
+          })));
     const recurse = (layers, conditions) => {
       recurse_count++;
       const zero_keys = Object.keys(conditions)
@@ -7370,13 +7417,19 @@
         .map((key, i) => [1, 2]
           .map(dir => {
             if (avoid[key] && avoid[key][dir]) { avoidcount++; return; }
+            const clone_start = new Date();
             const clone_conditions = JSON.parse(JSON.stringify(conditions));
+            clone_time += (Date.now() - clone_start);
             const clone_layers = duplicate_unsolved_layers(layers);
             clone_conditions[key] = dir;
             inner_loop_count++;
-            if (!complete_suggestions_loop(clone_layers, maps, clone_conditions)) {
-              failguesscount++; return;
+            const solve_start = new Date();
+            if (!complete_suggestions_loop(clone_layers, maps, clone_conditions, pair_layer_map)) {
+              failguesscount++;
+              solve_time += (Date.now() - solve_start);
+              return;
             }
+            solve_time += (Date.now() - solve_start);
             Object.keys(clone_conditions)
               .filter(key => conditions[key] === 0)
               .forEach(key => {
@@ -7397,7 +7450,7 @@
       tortilla_tortilla: maps.tortilla_tortilla.map(el => Array(2).fill(0)),
       transitivity: maps.transitivity.map(el => Array(3).fill(0)),
     };
-    if (!complete_suggestions_loop(layers_start, maps, conditions_start)) {
+    if (!complete_suggestions_loop(layers_start, maps, conditions_start, pair_layer_map)) {
       return [];
     }
     const solutions_before = recurse(layers_start, conditions_start);
@@ -7416,7 +7469,7 @@
     }
     const duration = Date.now() - startDate;
     if (duration > 50) {
-      console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "avoided", avoidcount, "bad guesses", failguesscount, `solutions ${solutions_before.length}/${solutions.length}`);
+      console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "avoided", avoidcount, "bad guesses", failguesscount, `solutions ${solutions_before.length}/${solutions.length}`, "durations: clone, solve", clone_time, solve_time);
     }
     return solutions;
   };
