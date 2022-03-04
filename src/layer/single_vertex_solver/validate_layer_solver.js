@@ -1,5 +1,4 @@
 import math from "../../math";
-import { fn_def } from "../../general/functions";
 import validate_taco_tortilla_strip from "./validate_taco_tortilla_strip";
 import validate_taco_taco_face_pairs from "./validate_taco_taco_face_pairs";
 /**
@@ -10,7 +9,7 @@ import validate_taco_taco_face_pairs from "./validate_taco_taco_face_pairs";
  */
 const build_layers = (layers_face, faces_pair) => layers_face
   .map(f => faces_pair[f])
-  .filter(fn_def);
+  .filter(a => a !== undefined);
 
 const validate_layer_solver = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
   // if the strip contains "F" assignments, layers_face will contain

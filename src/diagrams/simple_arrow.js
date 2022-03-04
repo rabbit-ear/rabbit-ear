@@ -46,9 +46,9 @@ const simple_arrow = (graph, line) => {
 	const box = math.core.bounding_box(hull);
 	const segment = widest_perpendicular(hull, line);
 	if (segment === undefined) { return undefined; }
-  const vector = ear.math.subtract(segment[1], segment[0]);
-  const length = ear.math.magnitude(vector);
-  const direction = ear.math.dot(vector, [1, 0]);
+  const vector = math.core.subtract(segment[1], segment[0]);
+  const length = math.core.magnitude(vector);
+  const direction = math.core.dot(vector, [1, 0]);
   const vmin = box.span[0] < box.span[1] ? box.span[0] : box.span[1];
 
 	segment.head = {

@@ -22,7 +22,7 @@ import * as vertices_coords_folded from "./vertices_coords_folded";
 import * as face_spanning_tree from "./face_spanning_tree";
 import * as faces_matrix from "./faces_matrix";
 import * as faces_winding from "./faces_winding";
-import * as explode_faces from "./explode_faces";
+import * as explode_faces_methods from "./explode_faces";
 import count from "./count";
 import implied from "./count_implied";
 import validate from "./validate";
@@ -93,6 +93,6 @@ export default Object.assign(Object.create(null), {
 	face_spanning_tree,
 	faces_matrix,
 	faces_winding,
-	explode_faces,
+	explode_faces_methods,
 	arrays,
 );

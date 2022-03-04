@@ -2,10 +2,6 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import {
-  fn_cat,
-  fn_def,
-} from "../general/functions";
 import * as S from "../general/strings";
 import {
 	edge_assignment_to_foldAngle,
@@ -75,8 +71,8 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
     edges_coords
   }, epsilon);
   // exit early
-  if (edges_intersections.reduce(fn_cat, []).filter(fn_def).length === 0 &&
-  edges_collinear_vertices.reduce(fn_cat, []).filter(fn_def).length === 0) {
+  if (edges_intersections.flat().filter(a => a !== undefined).length === 0 &&
+  edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
     return;
   }
   // remember, edges_intersections contains intersections [x,y] points
@@ -92,7 +88,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   // add new vertices (intersection points) to the graph
   edges_intersections
     .forEach(edge => edge
-      .filter(fn_def)
+      .filter(a => a !== undefined)
       .filter(a => a.length === 2)
       .forEach((intersect) => {
         const newIndex = graph.vertices_coords.length;
@@ -110,7 +106,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   });
 
   const edges_intersections_flat = edges_intersections
-    .map(arr => arr.filter(fn_def));
+    .map(arr => arr.filter(a => a !== undefined));
   // add lists of vertices into each element in edges_vertices
   // edges verts now contains an illegal arrangement of more than 2 verts
   // to be resolved below
@@ -128,12 +124,12 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
   // the value at each index is the edge that this edge was formed from.
   const edge_map = graph.edges_vertices
     .map((edge, i) => Array(edge.length - 1).fill(i))
-    .reduce(fn_cat, []);
+    .flat();
 
   graph.edges_vertices = graph.edges_vertices
     .map(edge => Array.from(Array(edge.length - 1))
       .map((_, i, arr) => [edge[i], edge[i + 1]]))
-    .reduce(fn_cat, []);
+    .flat();
   // copy over edge metadata if it exists
 	// make foldAngles and assignments match if foldAngle is longer
 	if (graph.edges_assignment && graph.edges_foldAngle
@@ -178,7 +174,7 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 
   [S._vertices, S._edges, S._faces]
     .map(key => get_graph_keys_with_prefix(graph, key))
-    .reduce(fn_cat, [])
+    .flat()
     .filter(key => !(fragment_keep_keys.includes(key)))
     .forEach(key => delete graph[key]);
 

@@ -8,7 +8,7 @@ const line_line_for_arrows = (a, b) => math.core.intersect_line_line(
 	a.vector, a.origin, b.vector, b.origin, math.core.include_l, math.core.include_l
 );
 
-const reflect_point = (foldLine, point) => {
+const diagram_reflect_point = (foldLine, point) => {
 	const matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
   return math.core.multiply_matrix2_vector2(matrix, point);
 };
@@ -139,16 +139,16 @@ const axiom_4_arrows = (params, graph) => axiom(4, params)
 const axiom_5_arrows = (params) => axiom(5, params)
 	.map(foldLine => [math.segment(
 		params.points[1],
-		reflect_point(foldLine, params.points[1])
+		diagram_reflect_point(foldLine, params.points[1])
 	)]);
 
 const axiom_6_arrows = (params) => axiom(6, params)
 	.map(foldLine => params.points
-		.map(pt => math.segment(pt, reflect_point(foldLine, pt))));
+		.map(pt => math.segment(pt, diagram_reflect_point(foldLine, pt))));
 
 const axiom_7_arrows = (params, graph) => axiom(7, params)
 	.map(foldLine => [
-		math.segment(params.points[0], reflect_point(foldLine, params.points[0])),
+		math.segment(params.points[0], diagram_reflect_point(foldLine, params.points[0])),
 		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1]))
 	]);
 

@@ -2,7 +2,6 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../math";
-import { fn_add } from "../general/functions";
 /**
  * @description given a list of numbers this method will sort them by
  *  even and odd indices and sum the two categories, returning two sums.
@@ -12,7 +11,7 @@ import { fn_add } from "../general/functions";
 export const alternating_sum = (numbers) => [0, 1]
   .map(even_odd => numbers
     .filter((_, i) => i % 2 === even_odd)
-    .reduce(fn_add, 0));
+    .reduce((a, b) => a + b, 0));
 /**
  * @description alternating_sum, filter odd and even into two categories, then
  *  then set them to be the deviation from the average of the sum.
@@ -22,7 +21,7 @@ export const alternating_sum = (numbers) => [0, 1]
  *  second, the result will be [1, -1]. (not [2, 0] or something with a 2 in it)
  */
 export const alternating_sum_difference = (sectors) => {
-  const halfsum = sectors.reduce(fn_add, 0) / 2;
+  const halfsum = sectors.reduce((a, b) => a + b, 0) / 2;
   return alternating_sum(sectors).map(s => s - halfsum);
 };
 

@@ -18,7 +18,7 @@ const make_conditions = (graph, overlap_matrix, faces_winding) => {
   }
   const conditions = {};
   // flip 1 and 2 to be the other, leaving 0 to be 0.
-  const flip = { 0:0, 1:2, 2:1 };
+  const flip_condition = { 0:0, 1:2, 2:1 };
   // set all conditions (every pair of overlapping faces) initially to 0
   boolean_matrix_to_unique_index_pairs(overlap_matrix)
     .map(pair => pair.join(" "))
@@ -35,11 +35,11 @@ const make_conditions = (graph, overlap_matrix, faces_winding) => {
     // the direction of "m" or "v" will be inverted if face[0] is flipped.
     const upright = faces_winding[faces[0]];
     // now we know from a global perspective the order between the face pair.
-    const global_order = upright ? local_order : flip[local_order];
+    const global_order = upright ? local_order : flip_condition[local_order];
     const key1 = `${faces[0]} ${faces[1]}`;
     const key2 = `${faces[1]} ${faces[0]}`;
     if (key1 in conditions) { conditions[key1] = global_order; }
-    if (key2 in conditions) { conditions[key2] = flip[global_order]; }
+    if (key2 in conditions) { conditions[key2] = flip_condition[global_order]; }
   });
   return conditions;
 };

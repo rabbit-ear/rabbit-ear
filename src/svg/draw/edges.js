@@ -3,6 +3,7 @@
  */
 import * as S from "../../general/strings";
 import { is_folded_form } from "../../graph/query";
+import { make_edges_assignment } from "../../graph/make";
 import {
 	edges_foldAngle_all_flat,
 	edges_assignment_to_lowercase,

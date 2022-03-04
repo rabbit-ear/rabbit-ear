@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { fn_def } from "../general/functions";
 /**
  * @description given a list of integers (can contain duplicates),
  * this will return a sorted set of unique integers (removing duplicates).
@@ -66,7 +65,7 @@ export const remove_single_instances = (array) => {
 export const boolean_matrix_to_indexed_array = matrix => matrix
   .map(row => row
     .map((value, i) => value === true ? i : undefined)
-    .filter(fn_def));
+    .filter(a => a !== undefined));
 /**
  * triangle number, only visit half the indices. make unique pairs
  */

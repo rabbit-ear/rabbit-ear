@@ -16,7 +16,7 @@ import populate from "../graph/populate";
 // move this line into a file "Constructors.js", and remove the
 // export at the bottom. have all files point to "Constructors.js"
 // instead, and all circular dependencies will be avoided.
-const Constructors = Object.create(null);
+const ObjectConstructors = Object.create(null);
 
 const ConstructorPrototypes = {
   graph: GraphProto,
@@ -35,7 +35,7 @@ const default_graph = {
  * take some computation time but it's very quick.
  */
 Object.keys(ConstructorPrototypes).forEach(name => {
-  Constructors[name] = function () {
+  ObjectConstructors[name] = function () {
     const argFolds = Array.from(arguments)
       .filter(a => fold_object_certainty(a))
        // deep copy input graph
@@ -48,7 +48,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
     ));
   };
   // tried to improve it. broke it.
-  // Constructors[name] = function () {
+  // ObjectConstructors[name] = function () {
   //   const certain = Array.from(arguments)
   //     .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
   //     .sort((a, b) => a.certainty - b.certainty);
@@ -74,16 +74,16 @@ Object.keys(ConstructorPrototypes).forEach(name => {
   //     { file_spec, file_creator }
   //   );
   // };
-  Constructors[name].prototype = ConstructorPrototypes[name];
-  Constructors[name].prototype.constructor = Constructors[name];
+  ObjectConstructors[name].prototype = ConstructorPrototypes[name];
+  ObjectConstructors[name].prototype.constructor = ObjectConstructors[name];
   // wrap static constructors with "this" initializer
   Object.keys(create).forEach(funcName => {
-    Constructors[name][funcName] = function () {
-      return Constructors[name](create[funcName](...arguments));
+    ObjectConstructors[name][funcName] = function () {
+      return ObjectConstructors[name](create[funcName](...arguments));
     };
   });
 });
 
-Object.assign(Constructors.graph, graph_methods);
+Object.assign(ObjectConstructors.graph, graph_methods);
 
-export default Constructors;
+export default ObjectConstructors;

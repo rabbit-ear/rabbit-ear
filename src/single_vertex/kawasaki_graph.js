@@ -3,7 +3,10 @@
  */
 import math from "../math";
 import { kawasaki_solutions_vectors } from "./kawasaki_math";
-import { make_edges_vector } from "../graph/make";
+import {
+  make_edges_vector,
+  make_vertices_edges_unsorted,
+} from "../graph/make";
 
 // todo: this is doing too much work in preparation
 export const kawasaki_solutions = ({ vertices_coords, vertices_edges, edges_vertices, edges_vectors }, vertex) => {

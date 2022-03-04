@@ -1,10 +1,6 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import {
-  fn_def,
-  fn_add
-} from "../../general/functions";
 import { invert_map } from "../../graph/maps";
 import get_layer_violations from "./get_layer_violations";
 
@@ -19,7 +15,7 @@ const fix_layer_violations = (layers_face, matrix) => {
   });
   const layer_change = faces_adjust.map(arr => arr.length === 0
     ? 0
-    : parseInt(arr.reduce(fn_add, 0) / arr.length));
+    : parseInt(arr.reduce((a, b) => a + b, 0) / arr.length));
   const new_faces_layer = faces_layer
     .map((layer, i) => layer + layer_change[i]);
   const new_layers_face = new_faces_layer
@@ -44,7 +40,7 @@ const matrix_to_layers_face = (matrix, faces) => {
   // this allows for Javascript arrays with holes.
   const faces_knowns = matrix.map(row => row.filter(a => a != null));
   const face_count = faces_knowns.length;
-  const rows_sum = faces_knowns.map(row => row.reduce(fn_add, 0));
+  const rows_sum = faces_knowns.map(row => row.reduce((a, b) => a + b, 0));
   // const faces_layer_approximation = rows_sum
   //   .map(layer => layer + face_count - 1);
   // const faces_layer_certainty = faces_knowns

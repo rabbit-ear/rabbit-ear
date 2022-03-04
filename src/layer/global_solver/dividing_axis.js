@@ -4,7 +4,7 @@ import { make_faces_center_quick } from "../../graph/make";
  * @description {object} unlike most methods in the layer solver, "graph"
  * here refers to the crease pattern, not the folded form
  */
-export const dividing_axis = (graph, line, conditions) => {
+const dividing_axis = (graph, line, conditions) => {
 	const faces_side = make_faces_center_quick(graph)
 		.map(center => math.core.subtract2(center, line.origin))
 		.map(vector => math.core.cross2(line.vector, vector))
@@ -41,3 +41,5 @@ export const dividing_axis = (graph, line, conditions) => {
 			}
 		});
 };
+
+export default dividing_axis;

@@ -11,7 +11,7 @@ import table from "./global_solver/table"
 import * as global_layer_solvers from "./global_solver/index"
 import * as general_global_solver from "./global_solver/general"
 import * as edges_assignments from "./global_solver/edges_assignments"
-import * as dividing_axis from "./global_solver/dividing_axis"
+import dividing_axis from "./global_solver/dividing_axis"
 import topological_order from "./global_solver/topological_order";
 import make_conditions from "./global_solver/make_conditions";
 import conditions_to_matrix from "./global_solver/conditions_to_matrix";
@@ -56,6 +56,7 @@ export default Object.assign(Object.create(null), {
 
 	table,
 	make_conditions,
+	dividing_axis,
 	topological_order,
 	conditions_to_matrix,
 
@@ -66,7 +67,6 @@ export default Object.assign(Object.create(null), {
 	global_layer_solvers,
 	general_global_solver,
 	edges_assignments,
-	dividing_axis,
 	tortilla_tortilla,
 	fold_assignments,
 );

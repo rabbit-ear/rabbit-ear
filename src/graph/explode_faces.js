@@ -30,7 +30,7 @@ export const explode_shrink_faces = ({ vertices_coords, faces_vertices }, shrink
   const faces_point_distances = faces_vertices
     .map(vertices => vertices.map(v => vertices_coords[v]))
     .map((points, f) => points
-      .map(point => ear.math.distance2(point, faces_centers[f])));
+      .map(point => math.core.distance2(point, faces_centers[f])));
   console.log("faces_point_distances", faces_point_distances);
   const faces_bisectors = faces_vectors
     .map((vectors, f) => vectors
@@ -41,7 +41,7 @@ export const explode_shrink_faces = ({ vertices_coords, faces_vertices }, shrink
         ? math.core.counter_clockwise_bisect2(...pair)
         : math.core.clockwise_bisect2(...pair)))
     .map((vectors, f) => vectors
-      .map((vector, i) => ear.math.scale(vector, faces_point_distances[f][i])))
+      .map((vector, i) => math.core.scale(vector, faces_point_distances[f][i])))
   graph.faces_vertices
     .forEach((vertices, f) => vertices
       .forEach((v, i) => {

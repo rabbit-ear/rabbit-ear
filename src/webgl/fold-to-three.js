@@ -3,7 +3,6 @@
  */
 import math from "../math";
 import window from "../environment/window"
-import { fn_cat } from "../general/functions";
 
 // if three doesn't exist, throw an error
 
@@ -12,19 +11,18 @@ export const make_faces_geometry = (graph) => {
 	const { THREE } = window;
   const vertices = graph.vertices_coords
     .map(v => [v[0], v[1], v[2] || 0])
-    .reduce(fn_cat, []);
+    .flat();
   const normals = graph.vertices_coords
     .map(v => [0, 0, 1])
-    .reduce(fn_cat, []);
+    .flat();
   const colors = graph.vertices_coords
     .map(v => [1, 1, 1])
-    .reduce(fn_cat, []);
+    .flat();
   const faces = graph.faces_vertices
     .map(fv => fv
       .map((v, i, arr) => [arr[0], arr[i+1], arr[i+2]])
       .slice(0, fv.length - 2))
-    .reduce(fn_cat, [])
-    .reduce(fn_cat, []);
+    .flat(2);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
   geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
@@ -58,7 +56,7 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
 	//console.log(dirs);
   return coords
     .map(v => dirs.map(dir => math.core.add(v, dir)))
-    .reduce(fn_cat, []);
+    .flat();
 };
 
 export const make_edges_geometry = function ({
@@ -88,14 +86,11 @@ export const make_edges_geometry = function ({
   const colors = edges_assignment.map(e => 
     [colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
     colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
-  ).reduce(fn_cat, [])
-   .reduce(fn_cat, [])
-   .reduce(fn_cat, []);
+  ).flat(3);
 
   const vertices = edges_coords
     .map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale, end_pad))
-    .reduce(fn_cat, [])
-    .reduce(fn_cat, []);
+    .flat(2);
 
 	const normals = edges_vector.map(vector => {
     if (math.core.mag_squared(vector) < math.core.EPSILON) { throw "degenerate edge"; }
@@ -113,8 +108,7 @@ export const make_edges_geometry = function ({
       c0, [-c0[2], c0[1], c0[0]],
       c1, [-c1[2], c1[1], c1[0]]
     ]
-  }).reduce(fn_cat, [])
-    .reduce(fn_cat, []);
+  }).flat(2);
 
   let faces = edges_coords.map((e,i) => [
     // 8 triangles making the long cylinder
@@ -131,7 +125,7 @@ export const make_edges_geometry = function ({
     i*8+1, i*8+2, i*8+3,
     i*8+5, i*8+4, i*8+7,
     i*8+7, i*8+6, i*8+5,
-  ]).reduce(fn_cat, []);
+  ]).flat();
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));

@@ -30,10 +30,10 @@ export const is_vertex_collinear = (graph, vertex) => {
   const vertices = get_opposite_vertices(graph, vertex, edges);
   const vectors = [[vertices[0], vertex], [vertex, vertices[1]]]
     .map(verts => verts.map(v => graph.vertices_coords[v]))
-    .map(segment => ear.math.subtract(segment[1], segment[0]))
-    .map(vector => ear.math.normalize(vector));
-  const is_parallel = ear.math
-    .equivalent_numbers(1.0, ear.math.dot(...vectors));
+    .map(segment => math.core.subtract(segment[1], segment[0]))
+    .map(vector => math.core.normalize(vector));
+  const is_parallel = math.core
+    .equivalent_numbers(1.0, math.core.dot(...vectors));
   return is_parallel;
 };
 /**

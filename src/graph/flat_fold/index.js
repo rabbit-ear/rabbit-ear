@@ -2,7 +2,6 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../../math";
-import { fn_cat } from "../../general/functions";
 import { face_containing_point } from "../nearest";
 import populate from "../populate";
 import { merge_nextmaps } from "../maps";

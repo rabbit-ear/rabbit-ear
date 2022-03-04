@@ -24,7 +24,7 @@ const vertices_flat = ({ vertices_edges, edges_assignment }) => vertices_edges
   .filter(a => a !== undefined);
 
 const folded_assignments = { M:true, m:true, V:true, v:true};
-const maekawa_assignments = { M:-1, m:-1, V:1, v:1};
+const maekawa_signs = { M:-1, m:-1, V:1, v:1};
 /**
  * @description these methods will check the entire graph and return
  * indices of vertices which have issues.
@@ -35,7 +35,7 @@ export const validate_maekawa = ({ edges_vertices, vertices_edges, edges_assignm
   }
   const is_valid = vertices_edges
     .map(edges => edges
-      .map(e => maekawa_assignments[edges_assignment[e]])
+      .map(e => maekawa_signs[edges_assignment[e]])
       .filter(a => a !== undefined)
       .reduce((a, b) => a + b, 0))
     .map(sum => sum === 2 || sum === -2);

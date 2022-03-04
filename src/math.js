@@ -1731,7 +1731,7 @@ var Static = {
   },
 };
 
-const methods$1 = {
+const LinesMethods = {
   isParallel: function () {
     const arr = resize_up(this.vector, get_line(arguments).vector);
     return parallel(...arr);
@@ -1798,7 +1798,7 @@ var Line = {
           .reduce((a, b) => Math.max(a, b), 0);
       },
     },
-    M: Object.assign({}, methods$1, {
+    M: Object.assign({}, LinesMethods, {
       inclusive: function () { this.domain_function = include_l; return this; },
       exclusive: function () { this.domain_function = exclude_l; return this; },
       clip_function: dist => dist,
@@ -1832,7 +1832,7 @@ var Ray = {
           .reduce((a, b) => Math.max(a, b), 0);
       },
     },
-    M: Object.assign({}, methods$1, {
+    M: Object.assign({}, LinesMethods, {
       inclusive: function () { this.domain_function = include_r; return this; },
       exclusive: function () { this.domain_function = exclude_r; return this; },
       flip: function () {
@@ -1873,7 +1873,7 @@ var Segment = {
           .reduce((a, b) => Math.max(a, b), 0);
       },
     },
-    M: Object.assign({}, methods$1, {
+    M: Object.assign({}, LinesMethods, {
       inclusive: function () { this.domain_function = include_s; return this; },
       exclusive: function () { this.domain_function = exclude_s; return this; },
       clip_function: segment_limiter,
@@ -2075,7 +2075,7 @@ var Ellipse = {
   }
 };
 
-const methods = {
+const PolygonMethods = {
   area: function () {
     return signed_area(this);
   },
@@ -2184,7 +2184,7 @@ var Rect = {
         this.origin[1] + this.height / 2,
       ); },
     },
-    M: Object.assign({}, methods, {
+    M: Object.assign({}, PolygonMethods, {
       inclusive: function () { this.domain_function = include; return this; },
       exclusive: function () { this.domain_function = exclude; return this; },
       area: function () { return this.width * this.height; },
@@ -2220,7 +2220,7 @@ var Polygon = {
         return this;
       },
     },
-    M: Object.assign({}, methods, {
+    M: Object.assign({}, PolygonMethods, {
       inclusive: function () { this.domain_function = include; return this; },
       exclusive: function () { this.domain_function = exclude; return this; },
       segments: function () {
@@ -2241,7 +2241,7 @@ var Polygon = {
   }
 };
 
-const assign = (thisMat, mat) => {
+const array_assign = (thisMat, mat) => {
   for (let i = 0; i < 12; i += 1) {
     thisMat[i] = mat[i];
   }
@@ -2258,45 +2258,45 @@ var Matrix = {
     M: {
       copy: function () { return Constructors.matrix(...Array.from(this)); },
       set: function () {
-        return assign(this, get_matrix_3x4(arguments));
+        return array_assign(this, get_matrix_3x4(arguments));
       },
       isIdentity: function () { return is_identity3x4(this); },
       multiply: function (mat) {
-        return assign(this, multiply_matrices3(this, mat));
+        return array_assign(this, multiply_matrices3(this, mat));
       },
       determinant: function () {
         return determinant3(this);
       },
       inverse: function () {
-        return assign(this, invert_matrix3(this));
+        return array_assign(this, invert_matrix3(this));
       },
       translate: function (x, y, z) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_translate(x, y, z)));
       },
       rotateX: function (radians) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_rotateX(radians)));
       },
       rotateY: function (radians) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_rotateY(radians)));
       },
       rotateZ: function (radians) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_rotateZ(radians)));
       },
       rotate: function (radians, vector, origin) {
         const transform = make_matrix3_rotate(radians, vector, origin);
-        return assign(this, multiply_matrices3(this, transform));
+        return array_assign(this, multiply_matrices3(this, transform));
       },
       scale: function (amount) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_scale(amount)));
       },
       reflectZ: function (vector, origin) {
         const transform = make_matrix3_reflectZ(vector, origin);
-        return assign(this, multiply_matrices3(this, transform));
+        return array_assign(this, multiply_matrices3(this, transform));
       },
       transform: function (...innerArgs) {
         return Constructors.vector(

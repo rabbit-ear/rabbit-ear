@@ -6,7 +6,7 @@ const taco_types = Object.freeze(Object.keys(table));
  * 0: unknown, 1: face A is above B, 2: face B is above A.
  * this map will flip 1 and 2, leaving 0 to be 0.
  */
-const flip = { 0:0, 1:2, 2:1 };
+const flip_conditions = { 0:0, 1:2, 2:1 };
 
 const fill_layers_from_conditions = (layers, maps, conditions, fill_indices) => {
   // todo, get the CHANGED conditions. changed from last time we updated things.
@@ -30,7 +30,7 @@ const fill_layers_from_conditions = (layers, maps, conditions, fill_indices) => 
         // orient the suggestion based on if the face pair was flipped or not.
         const orientation = maps[i].keys_ordered[j]
           ? conditions[key]
-          : flip[conditions[key]];
+          : flip_conditions[conditions[key]];
         // now it's possible that this face pair has already been set (not 0).
         // if so, double check that the previously set value is the same as
         // the new one, otherwise the conflict means that this layer
@@ -65,7 +65,7 @@ const infer_next_steps = (layers, maps, lookup_table, changed_indices) => {
     const condition_key = map.face_keys[next_step[0]];
     const condition_value = map.keys_ordered[next_step[0]]
       ? next_step[1]
-      : flip[next_step[1]];
+      : flip_conditions[next_step[1]];
     // console.log("conditions value", map.keys_ordered[next_step[0]], map.face_keys[next_step[0]]);
     // if (avoid[condition_key] === condition_value) { throw "avoid"; }
     // if (map.face_keys[0] === "3 6") {

@@ -2,7 +2,6 @@
  * Rabbit Ear (c) Robby Kraft
  */
 import math from "../../math";
-import { fn_and, fn_cat } from "../../general/functions";
 import { invert_map } from "../../graph/maps";
 /**
  * @description given two indices, return a copy of the array between them,
@@ -59,15 +58,15 @@ const validate_taco_tortilla_strip = (faces_folded, layers_face, is_circular = t
     // result of between contains both numbers and arrays: [5,[0,1],2,[3,4]]
     // the reduce will bring everything to the top level: [5,0,1,2,3,4]
     const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
-      .reduce(fn_cat, []);
+      .flat();
     // check if the fold line is (below/above) ALL of the sectors between it
     // it will be above if
     const all_below_min = layers_between
       .map(index => fold_location[i] < faces_mins[index])
-      .reduce(fn_and, true);
+      .reduce((a, b) => a && b, true);
     const all_above_max = layers_between
       .map(index => fold_location[i] > faces_maxs[index])
-      .reduce(fn_and, true);
+      .reduce((a, b) => a && b, true);
     if (!all_below_min && !all_above_max) { return false; }
   }
   return true;

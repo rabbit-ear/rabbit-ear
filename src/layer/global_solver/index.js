@@ -9,7 +9,7 @@ import make_taco_maps from "./make_taco_maps";
 import make_conditions from "./make_conditions";
 import single_solver from "./single_solver";
 import recursive_solver from "./recursive_solver";
-import { dividing_axis } from "./dividing_axis";
+import dividing_axis from "./dividing_axis";
 
 const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
   const overlap_matrix = make_faces_faces_overlap(graph, epsilon);

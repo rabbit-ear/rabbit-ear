@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { fn_def } from "../../general/functions";
 /**
  * @param {number[]} array containing either -1, 0, 1, undefined. indicates
  * the relative location of a face we are attempting to splice, where
@@ -17,11 +16,11 @@ import { fn_def } from "../../general/functions";
 const get_splice_indices = (layers_face_relative) => {
   const highest_positive = layers_face_relative
     .map((v, i) => v === 1 ? i : undefined)
-    .filter(fn_def)
+    .filter(a => a !== undefined)
     .pop();
   const lowest_negative = layers_face_relative
     .map((v, i) => v === -1 ? i : undefined)
-    .filter(fn_def)
+    .filter(a => a !== undefined)
     .shift();
   const bottom_index = highest_positive === undefined
     ? -1

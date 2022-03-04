@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Robby Kraft
  */
-import { fn_cat } from "../../general/functions";
 /**
  * @description given a faces_layer N-length, create an NxN list of
  * pairs relating each index to another as an array, where the first two
@@ -41,7 +40,7 @@ export const faces_layer_to_relationships = faces_layer => faces_layer
 export const common_relationships = (faces_layers) => {
   const orders = faces_layers
     .map(faces_layer_to_relationships)
-    .reduce(fn_cat, []);
+    .flat();
   // use this hashtable "rules" to ensure consistencies across all rules.
   const rules = [];
   // iterate all rules (these already include their inverses), store them in

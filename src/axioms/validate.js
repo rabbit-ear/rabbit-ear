@@ -29,7 +29,7 @@ const reflect_point = (foldLine, point) => {
  * inside the boundary polygon, the solution is valid.
  */
 const validate_axiom1_2 = (params, boundary) => [params.points
-  .map(p => math.core.overlap_convex_polygon_point(boundary, p, ear.math.include))
+  .map(p => math.core.overlap_convex_polygon_point(boundary, p, math.core.include))
   .reduce((a, b) => a && b, true)];
 
 const validate_axiom3 = (params, boundary) => {
@@ -53,8 +53,8 @@ const validate_axiom3 = (params, boundary) => {
   //       boundary,
   //       line.vector,
   //       line.origin,
-  //       ear.math.include_s,
-  //       ear.math.exclude_l));
+  //       math.core.include_s,
+  //       math.core.exclude_l));
   const results_clip = results
     .map(line => line === undefined ? undefined : math.core
     .clip_line_in_convex_polygon(
