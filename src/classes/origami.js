@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import math from "../math";
 import GraphProto from "./graph";
@@ -13,9 +13,9 @@ Origami.prototype = Object.create(GraphProto);
 Origami.prototype.constructor = Origami;
 
 Origami.prototype.flatFold = function () {
-  const line = math.core.get_line(arguments);
-  const changes = flat_fold(this, line.vector, line.origin);
-  return this;
+	const line = math.core.get_line(arguments);
+	const changes = flat_fold(this, line.vector, line.origin);
+	return this;
 };
 
 export default Origami.prototype;

@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import GraphProto from "./graph";
 import CreasePatternProto from "./crease_pattern";
@@ -19,15 +19,15 @@ import populate from "../graph/populate";
 const ObjectConstructors = Object.create(null);
 
 const ConstructorPrototypes = {
-  graph: GraphProto,
-  cp: CreasePatternProto,
-  origami: OrigamiProto,
+	graph: GraphProto,
+	cp: CreasePatternProto,
+	origami: OrigamiProto,
 };
 
 const default_graph = {
-  graph: () => ({}),
-  cp: create.square,
-  origami: create.square,
+	graph: () => ({}),
+	cp: create.unit_square,
+	origami: create.unit_square,
 };
 
 /**
@@ -35,53 +35,53 @@ const default_graph = {
  * take some computation time but it's very quick.
  */
 Object.keys(ConstructorPrototypes).forEach(name => {
-  ObjectConstructors[name] = function () {
-    const argFolds = Array.from(arguments)
-      .filter(a => fold_object_certainty(a))
-       // deep copy input graph
-      .map(obj => JSON.parse(JSON.stringify(obj)));
-    return populate(Object.assign(
-      Object.create(ConstructorPrototypes[name]),
-      (argFolds.length ? {} : default_graph[name]()),
-      ...argFolds,
-      { file_spec, file_creator }
-    ));
-  };
-  // tried to improve it. broke it.
-  // ObjectConstructors[name] = function () {
-  //   const certain = Array.from(arguments)
-  //     .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
-  //     .sort((a, b) => a.certainty - b.certainty);
-  //   const fold = certain.length && certain[0].certainty > 0.1
-  //     ? JSON.parse(JSON.stringify(certain.shift().arg))
-  //     : default_graph[name]();
-  //   console.log("FOLD", fold);
-  //   // const otherArguments = certain
-  //   //   .map(el => el.arg);
-  //   // const argFold = Array.from(arguments)
-  //   //   .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
-  //   //   .sort((a, b) => a.certainty - b.certainty)
-  //   //   .shift();
-  //   // const start = argFold
-  //   //   ? clone(argFold)
-  //   //   : default_graph[name]()
-  //   //   .map(obj => JSON.parse(JSON.stringify(obj)));
-  //   return Object.assign(
-  //     Object.create(ConstructorPrototypes[name]),
-  //     // (argFolds.length ? {} : default_graph[name]()),
-  //     fold,
-  //     // ...otherArguments,
-  //     { file_spec, file_creator }
-  //   );
-  // };
-  ObjectConstructors[name].prototype = ConstructorPrototypes[name];
-  ObjectConstructors[name].prototype.constructor = ObjectConstructors[name];
-  // wrap static constructors with "this" initializer
-  Object.keys(create).forEach(funcName => {
-    ObjectConstructors[name][funcName] = function () {
-      return ObjectConstructors[name](create[funcName](...arguments));
-    };
-  });
+	ObjectConstructors[name] = function () {
+		const argFolds = Array.from(arguments)
+			.filter(a => fold_object_certainty(a))
+			 // deep copy input graph
+			.map(obj => JSON.parse(JSON.stringify(obj)));
+		return populate(Object.assign(
+			Object.create(ConstructorPrototypes[name]),
+			(argFolds.length ? {} : default_graph[name]()),
+			...argFolds,
+			{ file_spec, file_creator }
+		));
+	};
+	// tried to improve it. broke it.
+	// ObjectConstructors[name] = function () {
+	//   const certain = Array.from(arguments)
+	//     .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
+	//     .sort((a, b) => a.certainty - b.certainty);
+	//   const fold = certain.length && certain[0].certainty > 0.1
+	//     ? JSON.parse(JSON.stringify(certain.shift().arg))
+	//     : default_graph[name]();
+	//   console.log("FOLD", fold);
+	//   // const otherArguments = certain
+	//   //   .map(el => el.arg);
+	//   // const argFold = Array.from(arguments)
+	//   //   .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
+	//   //   .sort((a, b) => a.certainty - b.certainty)
+	//   //   .shift();
+	//   // const start = argFold
+	//   //   ? clone(argFold)
+	//   //   : default_graph[name]()
+	//   //   .map(obj => JSON.parse(JSON.stringify(obj)));
+	//   return Object.assign(
+	//     Object.create(ConstructorPrototypes[name]),
+	//     // (argFolds.length ? {} : default_graph[name]()),
+	//     fold,
+	//     // ...otherArguments,
+	//     { file_spec, file_creator }
+	//   );
+	// };
+	ObjectConstructors[name].prototype = ConstructorPrototypes[name];
+	ObjectConstructors[name].prototype.constructor = ObjectConstructors[name];
+	// wrap static constructors with "this" initializer
+	Object.keys(create).forEach(funcName => {
+		ObjectConstructors[name][funcName] = function () {
+			return ObjectConstructors[name](create[funcName](...arguments));
+		};
+	});
 });
 
 Object.assign(ObjectConstructors.graph, graph_methods);

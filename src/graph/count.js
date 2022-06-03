@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import { get_graph_keys_with_prefix } from "../fold/spec";
 /**
@@ -7,8 +7,8 @@ import { get_graph_keys_with_prefix } from "../fold/spec";
  * @returns {number} the length of the longest array
  */
 const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
-  .filter(el => el !== undefined)
-  .map(el => el.length)));
+	.filter(el => el !== undefined)
+	.map(el => el.length)));
 /**
  * @description Get the number of vertices, edges, or faces in the graph by
  * simply checking the length of arrays starting with the key; in the case
@@ -27,10 +27,10 @@ const count = (graph, key) => max_arrays_length(...get_graph_keys_with_prefix(gr
 
 // standard graph components names
 count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
-  max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
+	max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
 count.edges = ({ edges_vertices, edges_edges, edges_faces }) =>
-  max_arrays_length(edges_vertices, edges_edges, edges_faces);
+	max_arrays_length(edges_vertices, edges_edges, edges_faces);
 count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
-  max_arrays_length(faces_vertices, faces_edges, faces_faces);
+	max_arrays_length(faces_vertices, faces_edges, faces_faces);
 
 export default count;

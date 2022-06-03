@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import * as S from "../../general/strings";
 import { is_folded_form } from "../../graph/query";
@@ -36,13 +36,13 @@ const STYLE_FLAT = {
  * if no edges_assignment, or only some defined, remaining edges become "unassigned"
  */
 const edges_assignment_indices = (graph) => {
-  const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
-  const lowercase_assignment = graph[S._edges_assignment]
+	const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
+	const lowercase_assignment = graph[S._edges_assignment]
 		.map(a => edges_assignment_to_lowercase[a]);
-  graph[S._edges_vertices]
+	graph[S._edges_vertices]
 		.map((_, i) => lowercase_assignment[i] || "u")
 		.forEach((a, i) => assignment_indices[a].push(i));
-  return assignment_indices;
+	return assignment_indices;
 };
 
 const edges_coords = ({ vertices_coords, edges_vertices }) => {
@@ -62,8 +62,8 @@ const edges_path_data_assign = ({ vertices_coords, edges_vertices, edges_assignm
 	if (!edges_assignment) {
 		return ({ u: edges_path_data({ vertices_coords, edges_vertices }) });
 	}
-  // const segments = edges_coords({ vertices_coords, edges_vertices, edges_assignment });
-  const data = edges_assignment_indices({ vertices_coords, edges_vertices, edges_assignment });
+	// const segments = edges_coords({ vertices_coords, edges_vertices, edges_assignment });
+	const data = edges_assignment_indices({ vertices_coords, edges_vertices, edges_assignment });
 	// replace each value in data from array of indices [1,2,3] to path string "M2,3L2.."
 	Object.keys(data).forEach(key => {
 		data[key] = edges_path_data({
@@ -74,7 +74,7 @@ const edges_path_data_assign = ({ vertices_coords, edges_vertices, edges_assignm
 	Object.keys(data).forEach(key => {
 		if (data[key] === "") { delete data[key]; }
 	});
-  return data;
+	return data;
 };
 
 /**
@@ -82,11 +82,11 @@ const edges_path_data_assign = ({ vertices_coords, edges_vertices, edges_assignm
  */
 const edges_paths_assign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
 	const data = edges_path_data_assign({ vertices_coords, edges_vertices, edges_assignment });
-  Object.keys(data).forEach(assignment => {
-    const path = root.svg.path(data[assignment]);
-    path.setAttributeNS(null, S._class, edges_assignment_names[assignment]);
-    data[assignment] = path;
-  });
+	Object.keys(data).forEach(assignment => {
+		const path = root.svg.path(data[assignment]);
+		path.setAttributeNS(null, S._class, edges_assignment_names[assignment]);
+		data[assignment] = path;
+	});
 	return data;
 };
 
@@ -99,8 +99,8 @@ const apply_style = (el, attributes = {}) => Object.keys(attributes)
  * if no edges_assignment exists, there will be an array of 1 path.
  */
 export const edges_paths = (graph, attributes = {}) => {
-  const group = root.svg.g();
-  if (!graph) { return group; }
+	const group = root.svg.g();
+	if (!graph) { return group; }
 	const isFolded = is_folded_form(graph);
 	const paths = edges_paths_assign(graph);
 	Object.keys(paths).forEach(key => {

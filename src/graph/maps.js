@@ -1,17 +1,17 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import * as S from "../general/strings";
 
 export const merge_simple_nextmaps = (...maps) => {
-  if (maps.length === 0) { return; }
+	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => i);
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
 	return solution;
 };
 
 export const merge_nextmaps = (...maps) => {
-  if (maps.length === 0) { return; }
+	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => [i]);
 	maps.forEach(map => {
 		solution.forEach((s, i) => s.forEach((indx,j) => { solution[i][j] = map[indx]; }));
@@ -25,22 +25,22 @@ export const merge_nextmaps = (...maps) => {
 };
 
 export const merge_simple_backmaps = (...maps) => {
-  if (maps.length === 0) { return; }
+	if (maps.length === 0) { return; }
 	let solution = maps[0].map((_, i) => i);
 	maps.forEach((map, i) => {
 		const next = map.map(n => solution[n]);
-	  solution = next;
+		solution = next;
 	});
-  return solution;
+	return solution;
 };
 
 export const merge_backmaps = (...maps) => {
-  if (maps.length === 0) { return; }
-  let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
-  maps.forEach((map, i) => {
+	if (maps.length === 0) { return; }
+	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
+	maps.forEach((map, i) => {
 		let next = [];
-	  map.forEach((el, j) => {
-      if (typeof el === S._number) { next[j] = solution[el]; }
+		map.forEach((el, j) => {
+			if (typeof el === S._number) { next[j] = solution[el]; }
 			else { next[j] = el.map(n => solution[n]).reduce((a,b) => a.concat(b), []); }
 		});
 		solution = next;
@@ -62,7 +62,7 @@ export const invert_map = (map) => {
 			}
 			else { inv[n] = i; }
 		}
-    if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }	
+		if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }	
 	});
 	return inv;
 };

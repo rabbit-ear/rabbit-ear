@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 // single vertex
 import maekawa_assignments from "./maekawa_assignments"

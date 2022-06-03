@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../../math";
 import { make_faces_polygon } from "../../graph/make";
 import { make_faces_winding } from "../../graph/faces_winding";
@@ -43,9 +46,9 @@ export const make_tortillas_faces_crossing = (graph, edges_faces_side, epsilon) 
 			.map(vertex => graph.vertices_coords[vertex]));
 	const edges_vector = edges_coords
 		.map(coords => math.core.subtract2(coords[1], coords[0]));
-  const matrix = [];
-  tortilla_edge_indices.forEach(e => { matrix[e] = []; });
-  // console.log("clip", tortilla_edge_indices
+	const matrix = [];
+	tortilla_edge_indices.forEach(e => { matrix[e] = []; });
+	// console.log("clip", tortilla_edge_indices
 		// .map((e, ei) => faces_polygon
 		// 	.map((poly, f) => math.core.clip_line_in_convex_polygon(
 		// 		poly,

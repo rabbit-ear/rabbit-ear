@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
 import { make_vertices_to_edge_bidirectional } from "../make";
@@ -13,28 +13,28 @@ import { make_vertices_to_edge_bidirectional } from "../make";
  * @param {number[]} vertices that make up the split edge. new vertex lies between.
  */
 export const update_vertices_vertices = ({ vertices_vertices }, vertex, incident_vertices) => {
-  if (!vertices_vertices) { return; }
-  // create a new entry for this new vertex
-  // only 2 vertices, no need to worry about winding order.
-  vertices_vertices[vertex] = [...incident_vertices];
-  // for each incident vertex in the vertices_vertices, replace the other incident
-  // vertex's entry with this new vertex, the new vertex takes its place.
-  incident_vertices.forEach((v, i, arr) => {
-    const otherV = arr[(i + 1) % arr.length];
-    const otherI = vertices_vertices[v].indexOf(otherV);
-    vertices_vertices[v][otherI] = vertex;
-  });
+	if (!vertices_vertices) { return; }
+	// create a new entry for this new vertex
+	// only 2 vertices, no need to worry about winding order.
+	vertices_vertices[vertex] = [...incident_vertices];
+	// for each incident vertex in the vertices_vertices, replace the other incident
+	// vertex's entry with this new vertex, the new vertex takes its place.
+	incident_vertices.forEach((v, i, arr) => {
+		const otherV = arr[(i + 1) % arr.length];
+		const otherI = vertices_vertices[v].indexOf(otherV);
+		vertices_vertices[v][otherI] = vertex;
+	});
 };
 /**
  * @description run this after vertices_vertices has been built
  */
 export const update_vertices_sectors = ({ vertices_coords, vertices_vertices, vertices_sectors }, vertex) => {
-  if (!vertices_sectors) { return; }
-  vertices_sectors[vertex] = vertices_vertices[vertex].length === 1
-    ? [math.core.TWO_PI]
-    : math.core.counter_clockwise_sectors2(vertices_vertices[vertex]
-      .map(v => math.core
-        .subtract2(vertices_coords[v], vertices_coords[vertex])));
+	if (!vertices_sectors) { return; }
+	vertices_sectors[vertex] = vertices_vertices[vertex].length === 1
+		? [math.core.TWO_PI]
+		: math.core.counter_clockwise_sectors2(vertices_vertices[vertex]
+			.map(v => math.core
+				.subtract2(vertices_coords[v], vertices_coords[vertex])));
 };
 /**
  * @description an edge was just split into two by the addition of a vertex.
@@ -48,16 +48,16 @@ export const update_vertices_sectors = ({ vertices_coords, vertices_vertices, ve
  * @param {number[]} new_edges the two new edges, must be aligned with "vertices"
  */
 export const update_vertices_edges = ({ vertices_edges }, old_edge, new_vertex, vertices, new_edges) => {
-  if (!vertices_edges) { return; }
-  // update 1 vertex, our new vertex
-  vertices_edges[new_vertex] = [...new_edges];
-  // update the two vertices, our new vertex replaces the alternate
-  // vertex in each of their arrays.  0-------x-------0
-  vertices
-    .map(v => vertices_edges[v].indexOf(old_edge))
-    .forEach((index, i) => {
-      vertices_edges[vertices[i]][index] = new_edges[i];
-    });
+	if (!vertices_edges) { return; }
+	// update 1 vertex, our new vertex
+	vertices_edges[new_vertex] = [...new_edges];
+	// update the two vertices, our new vertex replaces the alternate
+	// vertex in each of their arrays.  0-------x-------0
+	vertices
+		.map(v => vertices_edges[v].indexOf(old_edge))
+		.forEach((index, i) => {
+			vertices_edges[vertices[i]][index] = new_edges[i];
+		});
 };
 /**
  * @description a new vertex was added between two faces, update the
@@ -67,8 +67,8 @@ export const update_vertices_edges = ({ vertices_edges }, old_edge, new_vertex, 
  * @param {number[]} array of 0, 1, or 2 incident faces.
  */
 export const update_vertices_faces = ({ vertices_faces }, vertex, faces) => {
-  if (!vertices_faces) { return; }
-  vertices_faces[vertex] = [...faces];
+	if (!vertices_faces) { return; }
+	vertices_faces[vertex] = [...faces];
 };
 /**
  * @description a new vertex was added between two faces, update the
@@ -78,8 +78,8 @@ export const update_vertices_faces = ({ vertices_faces }, vertex, faces) => {
  * @param {number[]} array of 0, 1, or 2 incident faces.
  */
 export const update_edges_faces = ({ edges_faces }, new_edges, faces) => {
-  if (!edges_faces) { return; }
-  new_edges.forEach(edge => edges_faces[edge] = [...faces]);
+	if (!edges_faces) { return; }
+	new_edges.forEach(edge => edges_faces[edge] = [...faces]);
 };
 /**
  * @description a new vertex was added, splitting an edge. rebuild the
@@ -90,29 +90,29 @@ export const update_edges_faces = ({ edges_faces }, new_edges, faces) => {
  * @param {number[]} the two vertices of the old edge
  */
 export const update_faces_vertices = ({ faces_vertices }, new_vertex, incident_vertices, faces) => {
-  // exit if we don't even have faces_vertices
-  if (!faces_vertices) { return; }
-  faces
-    .map(i => faces_vertices[i])
-    .forEach(face => face
-      .map((fv, i, arr) => {
-        const nextI = (i + 1) % arr.length;
-        return (fv === incident_vertices[0]
-                && arr[nextI] === incident_vertices[1])
-                || (fv === incident_vertices[1]
-                && arr[nextI] === incident_vertices[0])
-          ? nextI : undefined;
-      }).filter(el => el !== undefined)
-      .sort((a, b) => b - a)
-      .forEach(i => face.splice(i, 0, new_vertex)));
+	// exit if we don't even have faces_vertices
+	if (!faces_vertices) { return; }
+	faces
+		.map(i => faces_vertices[i])
+		.forEach(face => face
+			.map((fv, i, arr) => {
+				const nextI = (i + 1) % arr.length;
+				return (fv === incident_vertices[0]
+								&& arr[nextI] === incident_vertices[1])
+								|| (fv === incident_vertices[1]
+								&& arr[nextI] === incident_vertices[0])
+					? nextI : undefined;
+			}).filter(el => el !== undefined)
+			.sort((a, b) => b - a)
+			.forEach(i => face.splice(i, 0, new_vertex)));
 };
 export const update_faces_edges_with_vertices = ({ edges_vertices, faces_vertices, faces_edges }, faces) => {
-  const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
-  faces
-    .map(f => faces_vertices[f]
-      .map((vertex, i, arr) => [vertex, arr[(i + 1) % arr.length]])
-      .map(pair => edge_map[pair.join(" ")]))
-    .forEach((edges, i) => { faces_edges[faces[i]] = edges; });
+	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+	faces
+		.map(f => faces_vertices[f]
+			.map((vertex, i, arr) => [vertex, arr[(i + 1) % arr.length]])
+			.map(pair => edge_map[pair.join(" ")]))
+		.forEach((edges, i) => { faces_edges[faces[i]] = edges; });
 };
 
 // const edges_shared_vertex = ({ edges_vertices }, e0, e1) => {

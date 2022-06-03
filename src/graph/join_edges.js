@@ -1,5 +1,5 @@
 // /**
-//  * Rabbit Ear (c) Robby Kraft
+//  * Rabbit Ear (c) Kraft
 //  */
 // import math from "../math";
 // import {

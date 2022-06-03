@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 // top level
 // import flip_faces_layer from "./flip_faces_layer";

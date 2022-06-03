@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import remove from "../remove";
 import { unique_sorted_integers } from "../../general/arrays";
 

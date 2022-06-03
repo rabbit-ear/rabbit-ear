@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import math from "../math";
 /**
@@ -9,16 +9,16 @@ import math from "../math";
  * @returns {number[]} indices of vertices, in sorted order
  */
 export const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) =>
-  vertices
-    .map(v => vertices_coords[v])
-    .map(coord => math.core.subtract(coord, vertices_coords[vertex]))
-    .map(vec => Math.atan2(vec[1], vec[0]))
-    // optional line, this makes the cycle loop start/end along the +X axis
-    .map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2)
-    .map((a, i) => ({a, i}))
-    .sort((a, b) => a.a - b.a)
-    .map(el => el.i)
-    .map(i => vertices[i]);
+	vertices
+		.map(v => vertices_coords[v])
+		.map(coord => math.core.subtract(coord, vertices_coords[vertex]))
+		.map(vec => Math.atan2(vec[1], vec[0]))
+		// optional line, this makes the cycle loop start/end along the +X axis
+		.map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2)
+		.map((a, i) => ({a, i}))
+		.sort((a, b) => a.a - b.a)
+		.map(el => el.i)
+		.map(i => vertices[i]);
 /**
  * @description sort a subset of vertices from a graph along a vector.
  * eg: given the vector [1,0], points according to their X value.
@@ -28,7 +28,7 @@ export const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, v
  * @returns {number[]} indices of vertices, in sorted order
  */
 export const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
-  vertices
-    .map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
-    .sort((a, b) => a.d - b.d)
-    .map(a => a.i);
+	vertices
+		.map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
+		.sort((a, b) => a.d - b.d)
+		.map(a => a.i);

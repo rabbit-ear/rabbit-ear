@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 test("regular polygon bases", () => {
-	const names = ["triangle", "square", "pentagon", "hexagon", "heptagon", "octogon", "nonagon", "decagon", "hendecagon", "dodecagon"];
+	const names = ["triangle", "square", "pentagon", "hexagon", "heptagon", "octagon", "nonagon", "decagon", "hendecagon", "dodecagon"];
 	names.forEach((name, i) => {
 		let g = ear.graph[name]();
 		expect(g.vertices_coords.length).toBe(i + 3);

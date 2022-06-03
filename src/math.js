@@ -1,4 +1,4 @@
-/* Math (c) Robby Kraft, MIT License */
+/* Math (c) Kraft, MIT License */
 const type_of = function (obj) {
   switch (obj.constructor.name) {
     case "vector":
@@ -777,6 +777,28 @@ const clockwise_bisect2 = (a, b) => fn_to_vec2(
 const counter_clockwise_bisect2 = (a, b) => fn_to_vec2(
   fn_vec2_angle(a) + counter_clockwise_angle2(a, b) / 2
 );
+const clockwise_subsect_radians = (divisions, angleA, angleB) => {
+  const angle = clockwise_angle_radians(angleA, angleB) / divisions;
+  return Array.from(Array(divisions - 1))
+    .map((_, i) => angleA + angle * (i + 1));
+};
+const counter_clockwise_subsect_radians = (divisions, angleA, angleB) => {
+  const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
+  return Array.from(Array(divisions - 1))
+    .map((_, i) => angleA + angle * (i + 1));
+};
+const clockwise_subsect2 = (divisions, vectorA, vectorB) => {
+  const angleA = Math.atan2(vectorA[1], vectorA[0]);
+  const angleB = Math.atan2(vectorB[1], vectorB[0]);
+  return clockwise_subsect_radians(divisions, angleA, angleB)
+    .map(fn_to_vec2);
+};
+const counter_clockwise_subsect2 = (divisions, vectorA, vectorB) => {
+  const angleA = Math.atan2(vectorA[1], vectorA[0]);
+  const angleB = Math.atan2(vectorB[1], vectorB[0]);
+  return counter_clockwise_subsect_radians(divisions, angleA, angleB)
+    .map(fn_to_vec2);
+};
 const bisect_lines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => {
   const determinant = cross2(vectorA, vectorB);
   const dotProd = dot(vectorA, vectorB);
@@ -823,17 +845,6 @@ const counter_clockwise_sectors2 = function () {
     get_vector_of_vectors(arguments).map(fn_vec2_angle)
   );
 };
-const counter_clockwise_subsect_radians = (divisions, angleA, angleB) => {
-  const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
-  return Array.from(Array(divisions - 1))
-    .map((_, i) => angleA + angle * (i + 1));
-};
-const counter_clockwise_subsect2 = (divisions, vectorA, vectorB) => {
-  const angleA = Math.atan2(vectorA[1], vectorA[0]);
-  const angleB = Math.atan2(vectorB[1], vectorB[0]);
-  return counter_clockwise_subsect_radians(divisions, angleA, angleB)
-    .map(fn_to_vec2);
-};
 
 var radial = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -844,13 +855,15 @@ var radial = /*#__PURE__*/Object.freeze({
   counter_clockwise_angle2: counter_clockwise_angle2,
   clockwise_bisect2: clockwise_bisect2,
   counter_clockwise_bisect2: counter_clockwise_bisect2,
+  clockwise_subsect_radians: clockwise_subsect_radians,
+  counter_clockwise_subsect_radians: counter_clockwise_subsect_radians,
+  clockwise_subsect2: clockwise_subsect2,
+  counter_clockwise_subsect2: counter_clockwise_subsect2,
   bisect_lines2: bisect_lines2,
   counter_clockwise_order_radians: counter_clockwise_order_radians,
   counter_clockwise_order2: counter_clockwise_order2,
   counter_clockwise_sectors_radians: counter_clockwise_sectors_radians,
-  counter_clockwise_sectors2: counter_clockwise_sectors2,
-  counter_clockwise_subsect_radians: counter_clockwise_subsect_radians,
-  counter_clockwise_subsect2: counter_clockwise_subsect2
+  counter_clockwise_sectors2: counter_clockwise_sectors2
 });
 
 const overlap_line_point = (vector, origin, point, func = exclude_l, epsilon = EPSILON) => {
@@ -966,6 +979,29 @@ const make_polygon_non_collinear = (polygon, epsilon = EPSILON) => {
     .map(pair => !parallel(pair[1], pair[0], epsilon));
   return polygon
     .filter((vertex, v) => vertex_collinear[v]);
+};
+const pleat_parallel = (count, a, b) => {
+  const origins = Array.from(Array(count - 1))
+    .map((_, i) => (i + 1) / count)
+    .map(t => lerp(a.origin, b.origin, t));
+  const vector = [...a.vector];
+  return origins.map(origin => ({ origin, vector }));
+};
+const pleat_angle = (count, a, b) => {
+  const origin = intersect_line_line(
+    a.vector, a.origin,
+    b.vector, b.origin);
+  const vectors = clockwise_angle2(a.vector, b.vector) < counter_clockwise_angle2(a.vector, b.vector)
+    ? clockwise_subsect2(count, a.vector, b.vector)
+    : counter_clockwise_subsect2(count, a.vector, b.vector);
+  return vectors.map(vector => ({ origin, vector }));
+};
+const pleat = (count, a, b) => {
+  const lineA = get_line(a);
+  const lineB = get_line(b);
+  return parallel(lineA.vector, lineB.vector)
+    ? pleat_parallel(count, lineA, lineB)
+    : pleat_angle(count, lineA, lineB);
 };
 const split_convex_polygon = (poly, lineVector, linePoint) => {
   let vertices_intersections = poly.map((v, i) => {
@@ -1128,6 +1164,7 @@ var geometry = /*#__PURE__*/Object.freeze({
   make_regular_polygon_side_length: make_regular_polygon_side_length,
   make_regular_polygon_side_length_side_aligned: make_regular_polygon_side_length_side_aligned,
   make_polygon_non_collinear: make_polygon_non_collinear,
+  pleat: pleat,
   split_convex_polygon: split_convex_polygon,
   convex_hull: convex_hull,
   straight_skeleton: straight_skeleton

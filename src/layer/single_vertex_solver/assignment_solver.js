@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import layer_solver from "./index";
 import maekawa_assignments from "../../single_vertex/maekawa_assignments";

@@ -186,5 +186,5 @@
 		[7, 11, 13, 15],
 		[13, 14, 0, 5]
 	],
-	"re:code": "cp.load(ear.bases.square);\n\ncp.segment(0,0,1,1);\ncp.segment(1,0,0,1).mountain(90);\ncp.segment(0, 1, 0.414213562373095, 0)\n  .valley();\ncp.segment(0, 1, 1, 1-0.414213562373095)\n  .valley();\n"
+	"re:code": "cp.load(ear.bases.unit_square);\n\ncp.segment(0,0,1,1);\ncp.segment(1,0,0,1).mountain(90);\ncp.segment(0, 1, 0.414213562373095, 0)\n  .valley();\ncp.segment(0, 1, 1, 1-0.414213562373095)\n  .valley();\n"
 }

@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../../math";
 import { make_faces_center_quick } from "../../graph/make";
 /**

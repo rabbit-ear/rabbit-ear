@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * @description given a faces_layer N-length, create an NxN list of
@@ -17,10 +17,10 @@
  * and skip over the indices which aren't used.
  */
 export const faces_layer_to_relationships = faces_layer => faces_layer
-  .map((_, i) => faces_layer
-    .map((_, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
-  .reduce((a, b) => a.concat(b), [])
-  .filter(el => el[0] !== el[1]);
+	.map((_, i) => faces_layer
+		.map((_, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
+	.reduce((a, b) => a.concat(b), [])
+	.filter(el => el[0] !== el[1]);
 // import { make_triangle_pairs } from "../general/arrays";
 // const faces_layer_to_relationships = faces_layer =>
 //   make_triangle_pairs(Object.keys(faces_layer))
@@ -38,38 +38,38 @@ export const faces_layer_to_relationships = faces_layer => faces_layer
  * so for example, "index 8 is below index 20" looks like [8, 20, -1].
  */
 export const common_relationships = (faces_layers) => {
-  const orders = faces_layers
-    .map(faces_layer_to_relationships)
-    .flat();
-  // use this hashtable "rules" to ensure consistencies across all rules.
-  const rules = [];
-  // iterate all rules (these already include their inverses), store them in
-  // the hashtable which checking for contradictions to the rule.
-  for (let r = 0; r < orders.length; r++) {
-    const rule = orders[r];
-    // make sure these rows contain arrays
-    if (!rules[rule[0]]) { rules[rule[0]] = []; }
-    if (!rules[rule[1]]) { rules[rule[1]] = []; }
-    // if the rule was already invalidated, skip.
-    if (rules[rule[0]][rule[1]] === false) { continue; }
-    // if the rule hasn't been set, set it and return.
-    if (rules[rule[0]][rule[1]] === undefined) {
-      rules[rule[0]][rule[1]] = rule[2];
-      rules[rule[1]][rule[0]] = -rule[2];
-      continue;
-    }
-    // if we uncover an inconsistency, invalidate both this rule and
-    // the rule's inverse to prevent future contradictions.
-    if (rules[rule[0]][rule[1]] !== rule[2]) {
-      rules[rule[0]][rule[1]] = false;
-      rules[rule[1]][rule[0]] = false;
-    }
-  }
-  return rules
-    .map((row, i) => row
-      .map((direction, j) => ([i, j, direction])))
-    .reduce((a, b) => a.concat(b), [])
-    .filter(el => el[2] !== false);
+	const orders = faces_layers
+		.map(faces_layer_to_relationships)
+		.flat();
+	// use this hashtable "rules" to ensure consistencies across all rules.
+	const rules = [];
+	// iterate all rules (these already include their inverses), store them in
+	// the hashtable which checking for contradictions to the rule.
+	for (let r = 0; r < orders.length; r++) {
+		const rule = orders[r];
+		// make sure these rows contain arrays
+		if (!rules[rule[0]]) { rules[rule[0]] = []; }
+		if (!rules[rule[1]]) { rules[rule[1]] = []; }
+		// if the rule was already invalidated, skip.
+		if (rules[rule[0]][rule[1]] === false) { continue; }
+		// if the rule hasn't been set, set it and return.
+		if (rules[rule[0]][rule[1]] === undefined) {
+			rules[rule[0]][rule[1]] = rule[2];
+			rules[rule[1]][rule[0]] = -rule[2];
+			continue;
+		}
+		// if we uncover an inconsistency, invalidate both this rule and
+		// the rule's inverse to prevent future contradictions.
+		if (rules[rule[0]][rule[1]] !== rule[2]) {
+			rules[rule[0]][rule[1]] = false;
+			rules[rule[1]][rule[0]] = false;
+		}
+	}
+	return rules
+		.map((row, i) => row
+			.map((direction, j) => ([i, j, direction])))
+		.reduce((a, b) => a.concat(b), [])
+		.filter(el => el[2] !== false);
 };
 
 // this has been incorporated directly into the one place it is being used,

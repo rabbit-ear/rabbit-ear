@@ -1,11 +1,11 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import math from "../math";
 import get_vertices_clusters from "./vertices_clusters";
 import {
-  get_graph_keys_with_suffix,
-  get_graph_keys_with_prefix,
+	get_graph_keys_with_suffix,
+	get_graph_keys_with_prefix,
 } from "../fold/spec";
 import * as S from "../general/strings";
 import remove from "./remove";
@@ -17,60 +17,60 @@ export const get_duplicate_vertices = (graph, epsilon) => {
 };
 
 export const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
-  if (!vertices_coords || !edges_vertices) { return []; }
-  let count = vertices_coords.length;
-  const seen = Array(count).fill(false);
-  edges_vertices.forEach((ev) => {
-    ev.filter(v => !seen[v]).forEach((v) => {
-      seen[v] = true;
-      count -= 1;
-    });
-  });
-  return seen
-    .map((s, i) => (s ? undefined : i))
-    .filter(a => a !== undefined);
+	if (!vertices_coords || !edges_vertices) { return []; }
+	let count = vertices_coords.length;
+	const seen = Array(count).fill(false);
+	edges_vertices.forEach((ev) => {
+		ev.filter(v => !seen[v]).forEach((v) => {
+			seen[v] = true;
+			count -= 1;
+		});
+	});
+	return seen
+		.map((s, i) => (s ? undefined : i))
+		.filter(a => a !== undefined);
 };
 
 export const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
-  if (!vertices_coords || !faces_vertices) { return []; }
-  let count = vertices_coords.length;
-  const seen = Array(count).fill(false);
-  faces_vertices.forEach((fv) => {
-    fv.filter(v => !seen[v]).forEach((v) => {
-      seen[v] = true;
-      count -= 1;
-    });
-  });
-  return seen
-    .map((s, i) => (s ? undefined : i))
-    .filter(a => a !== undefined);
+	if (!vertices_coords || !faces_vertices) { return []; }
+	let count = vertices_coords.length;
+	const seen = Array(count).fill(false);
+	faces_vertices.forEach((fv) => {
+		fv.filter(v => !seen[v]).forEach((v) => {
+			seen[v] = true;
+			count -= 1;
+		});
+	});
+	return seen
+		.map((s, i) => (s ? undefined : i))
+		.filter(a => a !== undefined);
 };
 
 // todo this could be improved. for loop instead of forEach + filter.
 // break the loop early.
 export const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
-  if (!vertices_coords) { return []; }
-  let count = vertices_coords.length;
-  const seen = Array(count).fill(false);
-  if (edges_vertices) {
-    edges_vertices.forEach((ev) => {
-      ev.filter(v => !seen[v]).forEach((v) => {
-        seen[v] = true;
-        count -= 1;
-      });
-    });
-  }
-  if (faces_vertices) {
-    faces_vertices.forEach((fv) => {
-      fv.filter(v => !seen[v]).forEach((v) => {
-        seen[v] = true;
-        count -= 1;
-      });
-    });
-  }
-  return seen
-    .map((s, i) => (s ? undefined : i))
-    .filter(a => a !== undefined);
+	if (!vertices_coords) { return []; }
+	let count = vertices_coords.length;
+	const seen = Array(count).fill(false);
+	if (edges_vertices) {
+		edges_vertices.forEach((ev) => {
+			ev.filter(v => !seen[v]).forEach((v) => {
+				seen[v] = true;
+				count -= 1;
+			});
+		});
+	}
+	if (faces_vertices) {
+		faces_vertices.forEach((fv) => {
+			fv.filter(v => !seen[v]).forEach((v) => {
+				seen[v] = true;
+				count -= 1;
+			});
+		});
+	}
+	return seen
+		.map((s, i) => (s ? undefined : i))
+		.filter(a => a !== undefined);
 };
 /**
  * @description remove any vertices which are not a part of any edge or
@@ -82,13 +82,13 @@ export const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_v
  * @param {number[]} optional. the result of get_isolated_vertices. 
  */
 export const remove_isolated_vertices = (graph, remove_indices) => {
-  if (!remove_indices) {
-    remove_indices = get_isolated_vertices(graph);
-  }
-  return {
-    map: remove(graph, S._vertices, remove_indices),
-    remove: remove_indices,
-  };
+	if (!remove_indices) {
+		remove_indices = get_isolated_vertices(graph);
+	}
+	return {
+		map: remove(graph, S._vertices, remove_indices),
+		remove: remove_indices,
+	};
 };
 
 // todo
@@ -103,31 +103,31 @@ export const remove_isolated_vertices = (graph, remove_indices) => {
  * this has the potential to create circular and duplicate edges
  */
 export const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
-  // replaces array will be [index:value] index is the element to delete,
-  // value is the index this element will be replaced by.
-  const replace_indices = [];
-  // "remove" is only needed for the return value summary.
-  const remove_indices = [];
-  // clusters is array of indices, for example: [ [4, 13, 7], [0, 9] ]
-  const clusters = get_vertices_clusters(graph, epsilon)
-    .filter(arr => arr.length > 1);
-  // for each cluster of n, all indices from [1...n] will be replaced with [0]
-  clusters.forEach(cluster => {
-    for (let i = 1; i < cluster.length; i++) {
-      replace_indices[cluster[i]] = cluster[0];
-      remove_indices.push(cluster[i]);
-    }
-  });
-  // for each cluster, average all vertices-to-merge to get their new point.
-  // set the vertex at the index[0] (the index to keep) to the new point.
-  clusters
-    .map(arr => arr.map(i => graph.vertices_coords[i]))
-    .map(arr => math.core.average(...arr))
-    .forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
-  return {
-    map: replace(graph, S._vertices, replace_indices),
-    remove: remove_indices,    
-  }
+	// replaces array will be [index:value] index is the element to delete,
+	// value is the index this element will be replaced by.
+	const replace_indices = [];
+	// "remove" is only needed for the return value summary.
+	const remove_indices = [];
+	// clusters is array of indices, for example: [ [4, 13, 7], [0, 9] ]
+	const clusters = get_vertices_clusters(graph, epsilon)
+		.filter(arr => arr.length > 1);
+	// for each cluster of n, all indices from [1...n] will be replaced with [0]
+	clusters.forEach(cluster => {
+		for (let i = 1; i < cluster.length; i++) {
+			replace_indices[cluster[i]] = cluster[0];
+			remove_indices.push(cluster[i]);
+		}
+	});
+	// for each cluster, average all vertices-to-merge to get their new point.
+	// set the vertex at the index[0] (the index to keep) to the new point.
+	clusters
+		.map(arr => arr.map(i => graph.vertices_coords[i]))
+		.map(arr => math.core.average(...arr))
+		.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
+	return {
+		map: replace(graph, S._vertices, replace_indices),
+		remove: remove_indices,    
+	}
 };
 
 // export const remove_duplicate_vertices_first = (graph, epsilon = math.core.EPSILON) => {

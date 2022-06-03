@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * find a DOMParser, XMLSerializer, and document. works for both browser
@@ -15,18 +15,18 @@ import { isNode, isBrowser } from "./detect";
  * in the case of nodejs, the package "xmldom" provides the methods.
  */
 const Window = (function () {
-  let win = {};
-  if (isNode) {
-    const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
-    win.DOMParser = DOMParser;
-    win.XMLSerializer = XMLSerializer;
-    // smallest, valid HTML5 document: doctype with non-whitespace title
-    win.document = new DOMParser().parseFromString(
-      "<!DOCTYPE html><title>.</title>", "text/html");
-  } else if (isBrowser) {
-    win = window;
-  }
-  return win;
+	let win = {};
+	if (isNode) {
+		const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
+		win.DOMParser = DOMParser;
+		win.XMLSerializer = XMLSerializer;
+		// smallest, valid HTML5 document: doctype with non-whitespace title
+		win.document = new DOMParser().parseFromString(
+			"<!DOCTYPE html><title>.</title>", "text/html");
+	} else if (isBrowser) {
+		win = window;
+	}
+	return win;
 }());
 
 export default Window;
