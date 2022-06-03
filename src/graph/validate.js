@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import {
 	get_duplicate_edges,
 	get_circular_edges

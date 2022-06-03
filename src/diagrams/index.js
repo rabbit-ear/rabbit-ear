@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 // import * as arrows from "./arrows";
 import axiom_arrows from "./axiom_arrows";

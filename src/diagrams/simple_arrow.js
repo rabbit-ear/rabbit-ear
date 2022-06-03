@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import math from "../math";
 
@@ -9,23 +9,23 @@ const boundary_for_arrows = ({ vertices_coords }) => math.core
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {
 		const foldSegment = math.core.clip_line_in_convex_polygon(polygon,
-      foldLine.vector,
-      foldLine.origin,
-      math.core.exclude,
-      math.core.include_l);
+			foldLine.vector,
+			foldLine.origin,
+			math.core.exclude,
+			math.core.include_l);
 		if (foldSegment === undefined) { return; }
 		point = math.core.midpoint(...foldSegment);
 	}
-  const perpVector = math.core.rotate90(foldLine.vector);
+	const perpVector = math.core.rotate90(foldLine.vector);
 	const smallest = math.core
 		.clip_line_in_convex_polygon(polygon,
-      perpVector,
-      point,
-      math.core.exclude,
-      math.core.include_l)
-  	.map(pt => math.core.distance(point, pt))
-    .sort((a, b) => a - b)
-    .shift();
+			perpVector,
+			point,
+			math.core.exclude,
+			math.core.include_l)
+		.map(pt => math.core.distance(point, pt))
+		.sort((a, b) => a - b)
+		.shift();
 	const scaled = math.core.scale(math.core.normalize(perpVector), smallest);
 	return math.segment(
 		math.core.add(point, math.core.flip(scaled)),
@@ -46,10 +46,10 @@ const simple_arrow = (graph, line) => {
 	const box = math.core.bounding_box(hull);
 	const segment = widest_perpendicular(hull, line);
 	if (segment === undefined) { return undefined; }
-  const vector = ear.math.subtract(segment[1], segment[0]);
-  const length = ear.math.magnitude(vector);
-  const direction = ear.math.dot(vector, [1, 0]);
-  const vmin = box.span[0] < box.span[1] ? box.span[0] : box.span[1];
+	const vector = math.core.subtract(segment[1], segment[0]);
+	const length = math.core.magnitude(vector);
+	const direction = math.core.dot(vector, [1, 0]);
+	const vmin = box.span[0] < box.span[1] ? box.span[0] : box.span[1];
 
 	segment.head = {
 		width: vmin * 0.1,

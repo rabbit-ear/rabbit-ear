@@ -1,7 +1,6 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
-import { fn_def } from "../../general/functions";
 /**
  * @param {number[]} array containing either -1, 0, 1, undefined. indicates
  * the relative location of a face we are attempting to splice, where
@@ -15,25 +14,25 @@ import { fn_def } from "../../general/functions";
  * [1, 1, 1, undefined, undefined]: valid to insert: [3, 4, 5]
  */
 const get_splice_indices = (layers_face_relative) => {
-  const highest_positive = layers_face_relative
-    .map((v, i) => v === 1 ? i : undefined)
-    .filter(fn_def)
-    .pop();
-  const lowest_negative = layers_face_relative
-    .map((v, i) => v === -1 ? i : undefined)
-    .filter(fn_def)
-    .shift();
-  const bottom_index = highest_positive === undefined
-    ? -1
-    : highest_positive;
-  const top_index = lowest_negative === undefined
-    ? layers_face_relative.length
-    : lowest_negative;
-  if (highest_positive > lowest_negative) { return []; }
-  const valid_length = top_index - bottom_index;
-  return Array
-    .from(Array(valid_length))
-    .map((_, i) => i + bottom_index + 1);
+	const highest_positive = layers_face_relative
+		.map((v, i) => v === 1 ? i : undefined)
+		.filter(a => a !== undefined)
+		.pop();
+	const lowest_negative = layers_face_relative
+		.map((v, i) => v === -1 ? i : undefined)
+		.filter(a => a !== undefined)
+		.shift();
+	const bottom_index = highest_positive === undefined
+		? -1
+		: highest_positive;
+	const top_index = lowest_negative === undefined
+		? layers_face_relative.length
+		: lowest_negative;
+	if (highest_positive > lowest_negative) { return []; }
+	const valid_length = top_index - bottom_index;
+	return Array
+		.from(Array(valid_length))
+		.map((_, i) => i + bottom_index + 1);
 };
 
 export default get_splice_indices;

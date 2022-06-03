@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
 /**
@@ -15,34 +15,34 @@ import math from "../../math";
  */
 // const make_edge = ({ vertices_coords }, vertices, faces) => {
 const make_edge = ({ vertices_coords }, vertices, face) => {
-  // coords reversed for "vector", so index [0] comes last in subtract
-  const new_edge_coords = vertices
-    .map(v => vertices_coords[v])
-    .reverse();
-  return {
-    edges_vertices: [...vertices],
-    edges_foldAngle: 0,
-    edges_assignment: "U",
-    edges_length: math.core.distance2(...new_edge_coords),
-    edges_vector: math.core.subtract(...new_edge_coords),
-    edges_faces: [face, face],
-  };
+	// coords reversed for "vector", so index [0] comes last in subtract
+	const new_edge_coords = vertices
+		.map(v => vertices_coords[v])
+		.reverse();
+	return {
+		edges_vertices: [...vertices],
+		edges_foldAngle: 0,
+		edges_assignment: "U",
+		edges_length: math.core.distance2(...new_edge_coords),
+		edges_vector: math.core.subtract(...new_edge_coords),
+		edges_faces: [face, face],
+	};
 };
 /**
  * 
  */
 const rebuild_edge = (graph, face, vertices) => {
-  // now that 2 vertices are in place, add a new edge between them.
-  const edge = graph.edges_vertices.length;
-  // construct data for our new edge (vertices, assignent, foldAngle...)
-  // and the entry for edges_faces will be [x, x] where x is the index of
-  // the old face, twice, and will be replaced later in this function.
-  const new_edge = make_edge(graph, vertices, face);
-  // ignoring any keys that aren't a part of our graph, add the new edge
-  Object.keys(new_edge)
-    .filter(key => graph[key] !== undefined)
-    .forEach((key) => { graph[key][edge] = new_edge[key]; });
-  return edge;
+	// now that 2 vertices are in place, add a new edge between them.
+	const edge = graph.edges_vertices.length;
+	// construct data for our new edge (vertices, assignent, foldAngle...)
+	// and the entry for edges_faces will be [x, x] where x is the index of
+	// the old face, twice, and will be replaced later in this function.
+	const new_edge = make_edge(graph, vertices, face);
+	// ignoring any keys that aren't a part of our graph, add the new edge
+	Object.keys(new_edge)
+		.filter(key => graph[key] !== undefined)
+		.forEach((key) => { graph[key][edge] = new_edge[key]; });
+	return edge;
 };
 
 export default rebuild_edge;

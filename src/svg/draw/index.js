@@ -1,33 +1,36 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import * as S from "../../general/strings";
 import { vertices_circle } from "./vertices";
 import { edges_paths, draw_edges } from "./edges";
 import {
-  faces_vertices_polygon,
-  faces_edges_polygon,
+	faces_vertices_polygon,
+	faces_edges_polygon,
 } from "./faces";
 import { boundaries_polygon } from "./boundaries";
+import root from "../../root";
 
 // preference for using faces_vertices over faces_edges, it runs faster
 const faces_draw_function = (graph, options) => (
-  graph != null && graph[S._faces_vertices] != null
-    ? faces_vertices_polygon(graph, options)
-    : faces_edges_polygon(graph, options));
+	graph != null && graph[S._faces_vertices] != null
+		? faces_vertices_polygon(graph, options)
+		: faces_edges_polygon(graph, options));
 
 const svg_draw_func = {
-  vertices: vertices_circle,
-  edges: draw_edges, // edges_paths
-  faces: faces_draw_function,
-  boundaries: boundaries_polygon
+	vertices: vertices_circle,
+	edges: draw_edges, // edges_paths
+	faces: faces_draw_function,
+	boundaries: boundaries_polygon
 };
 
-const draw_group = (key, ...args) => {
-  // vertices is the only one that uses "options"
-  const group = svg_draw_func[key](...args);
-  group.setAttributeNS(null, S._class, key);
-  return group;
+/**
+ * @param {string} key will be either "vertices", "edges", "faces", "boundaries"
+ */
+const draw_group = (key, graph, options) => {
+	const group = options === false ? (root.svg.g()) : svg_draw_func[key](graph, options);
+	group.setAttributeNS(null, S._class, key);
+	return group;
 };
 /**
  * @description renders a FOLD object into SVG elements, sorted into groups.
@@ -37,20 +40,20 @@ const draw_group = (key, ...args) => {
  *  edges, vertices, each of the graph components drawn into an SVG group.
  */
 const DrawGroups = (graph, options = {}) => [
-  S._boundaries,
-  S._faces,
-  S._edges,
-  S._vertices].map(key => draw_group(key, graph, options[key]));
+	S._boundaries,
+	S._faces,
+	S._edges,
+	S._vertices].map(key => draw_group(key, graph, options[key]));
 
 // static style draw methods for individual components
 [S._boundaries,
-  S._faces,
-  S._edges,
-  S._vertices,
+	S._faces,
+	S._edges,
+	S._vertices,
 ].forEach(key => {
-  DrawGroups[key] = function (graph, options = {}) {
-    return draw_group(key, graph, options[key]);
-  };
+	DrawGroups[key] = function (graph, options = {}) {
+		return draw_group(key, graph, options[key]);
+	};
 });
 
 /**

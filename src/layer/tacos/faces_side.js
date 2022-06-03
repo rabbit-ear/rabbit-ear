@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../../math";
 
 export const make_edges_faces_side = (graph, faces_center) => {

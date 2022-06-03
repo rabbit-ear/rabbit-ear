@@ -1,4 +1,4 @@
-/* Math (c) Robby Kraft, MIT License */
+/* Math (c) Kraft, MIT License */
 const type_of = function (obj) {
   switch (obj.constructor.name) {
     case "vector":
@@ -777,6 +777,28 @@ const clockwise_bisect2 = (a, b) => fn_to_vec2(
 const counter_clockwise_bisect2 = (a, b) => fn_to_vec2(
   fn_vec2_angle(a) + counter_clockwise_angle2(a, b) / 2
 );
+const clockwise_subsect_radians = (divisions, angleA, angleB) => {
+  const angle = clockwise_angle_radians(angleA, angleB) / divisions;
+  return Array.from(Array(divisions - 1))
+    .map((_, i) => angleA + angle * (i + 1));
+};
+const counter_clockwise_subsect_radians = (divisions, angleA, angleB) => {
+  const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
+  return Array.from(Array(divisions - 1))
+    .map((_, i) => angleA + angle * (i + 1));
+};
+const clockwise_subsect2 = (divisions, vectorA, vectorB) => {
+  const angleA = Math.atan2(vectorA[1], vectorA[0]);
+  const angleB = Math.atan2(vectorB[1], vectorB[0]);
+  return clockwise_subsect_radians(divisions, angleA, angleB)
+    .map(fn_to_vec2);
+};
+const counter_clockwise_subsect2 = (divisions, vectorA, vectorB) => {
+  const angleA = Math.atan2(vectorA[1], vectorA[0]);
+  const angleB = Math.atan2(vectorB[1], vectorB[0]);
+  return counter_clockwise_subsect_radians(divisions, angleA, angleB)
+    .map(fn_to_vec2);
+};
 const bisect_lines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => {
   const determinant = cross2(vectorA, vectorB);
   const dotProd = dot(vectorA, vectorB);
@@ -823,17 +845,6 @@ const counter_clockwise_sectors2 = function () {
     get_vector_of_vectors(arguments).map(fn_vec2_angle)
   );
 };
-const counter_clockwise_subsect_radians = (divisions, angleA, angleB) => {
-  const angle = counter_clockwise_angle_radians(angleA, angleB) / divisions;
-  return Array.from(Array(divisions - 1))
-    .map((_, i) => angleA + angle * (i + 1));
-};
-const counter_clockwise_subsect2 = (divisions, vectorA, vectorB) => {
-  const angleA = Math.atan2(vectorA[1], vectorA[0]);
-  const angleB = Math.atan2(vectorB[1], vectorB[0]);
-  return counter_clockwise_subsect_radians(divisions, angleA, angleB)
-    .map(fn_to_vec2);
-};
 
 var radial = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -844,13 +855,15 @@ var radial = /*#__PURE__*/Object.freeze({
   counter_clockwise_angle2: counter_clockwise_angle2,
   clockwise_bisect2: clockwise_bisect2,
   counter_clockwise_bisect2: counter_clockwise_bisect2,
+  clockwise_subsect_radians: clockwise_subsect_radians,
+  counter_clockwise_subsect_radians: counter_clockwise_subsect_radians,
+  clockwise_subsect2: clockwise_subsect2,
+  counter_clockwise_subsect2: counter_clockwise_subsect2,
   bisect_lines2: bisect_lines2,
   counter_clockwise_order_radians: counter_clockwise_order_radians,
   counter_clockwise_order2: counter_clockwise_order2,
   counter_clockwise_sectors_radians: counter_clockwise_sectors_radians,
-  counter_clockwise_sectors2: counter_clockwise_sectors2,
-  counter_clockwise_subsect_radians: counter_clockwise_subsect_radians,
-  counter_clockwise_subsect2: counter_clockwise_subsect2
+  counter_clockwise_sectors2: counter_clockwise_sectors2
 });
 
 const overlap_line_point = (vector, origin, point, func = exclude_l, epsilon = EPSILON) => {
@@ -966,6 +979,29 @@ const make_polygon_non_collinear = (polygon, epsilon = EPSILON) => {
     .map(pair => !parallel(pair[1], pair[0], epsilon));
   return polygon
     .filter((vertex, v) => vertex_collinear[v]);
+};
+const pleat_parallel = (count, a, b) => {
+  const origins = Array.from(Array(count - 1))
+    .map((_, i) => (i + 1) / count)
+    .map(t => lerp(a.origin, b.origin, t));
+  const vector = [...a.vector];
+  return origins.map(origin => ({ origin, vector }));
+};
+const pleat_angle = (count, a, b) => {
+  const origin = intersect_line_line(
+    a.vector, a.origin,
+    b.vector, b.origin);
+  const vectors = clockwise_angle2(a.vector, b.vector) < counter_clockwise_angle2(a.vector, b.vector)
+    ? clockwise_subsect2(count, a.vector, b.vector)
+    : counter_clockwise_subsect2(count, a.vector, b.vector);
+  return vectors.map(vector => ({ origin, vector }));
+};
+const pleat = (count, a, b) => {
+  const lineA = get_line(a);
+  const lineB = get_line(b);
+  return parallel(lineA.vector, lineB.vector)
+    ? pleat_parallel(count, lineA, lineB)
+    : pleat_angle(count, lineA, lineB);
 };
 const split_convex_polygon = (poly, lineVector, linePoint) => {
   let vertices_intersections = poly.map((v, i) => {
@@ -1128,6 +1164,7 @@ var geometry = /*#__PURE__*/Object.freeze({
   make_regular_polygon_side_length: make_regular_polygon_side_length,
   make_regular_polygon_side_length_side_aligned: make_regular_polygon_side_length_side_aligned,
   make_polygon_non_collinear: make_polygon_non_collinear,
+  pleat: pleat,
   split_convex_polygon: split_convex_polygon,
   convex_hull: convex_hull,
   straight_skeleton: straight_skeleton
@@ -1731,7 +1768,7 @@ var Static = {
   },
 };
 
-const methods$1 = {
+const LinesMethods = {
   isParallel: function () {
     const arr = resize_up(this.vector, get_line(arguments).vector);
     return parallel(...arr);
@@ -1798,7 +1835,7 @@ var Line = {
           .reduce((a, b) => Math.max(a, b), 0);
       },
     },
-    M: Object.assign({}, methods$1, {
+    M: Object.assign({}, LinesMethods, {
       inclusive: function () { this.domain_function = include_l; return this; },
       exclusive: function () { this.domain_function = exclude_l; return this; },
       clip_function: dist => dist,
@@ -1832,7 +1869,7 @@ var Ray = {
           .reduce((a, b) => Math.max(a, b), 0);
       },
     },
-    M: Object.assign({}, methods$1, {
+    M: Object.assign({}, LinesMethods, {
       inclusive: function () { this.domain_function = include_r; return this; },
       exclusive: function () { this.domain_function = exclude_r; return this; },
       flip: function () {
@@ -1873,7 +1910,7 @@ var Segment = {
           .reduce((a, b) => Math.max(a, b), 0);
       },
     },
-    M: Object.assign({}, methods$1, {
+    M: Object.assign({}, LinesMethods, {
       inclusive: function () { this.domain_function = include_s; return this; },
       exclusive: function () { this.domain_function = exclude_s; return this; },
       clip_function: segment_limiter,
@@ -2075,7 +2112,7 @@ var Ellipse = {
   }
 };
 
-const methods = {
+const PolygonMethods = {
   area: function () {
     return signed_area(this);
   },
@@ -2184,7 +2221,7 @@ var Rect = {
         this.origin[1] + this.height / 2,
       ); },
     },
-    M: Object.assign({}, methods, {
+    M: Object.assign({}, PolygonMethods, {
       inclusive: function () { this.domain_function = include; return this; },
       exclusive: function () { this.domain_function = exclude; return this; },
       area: function () { return this.width * this.height; },
@@ -2220,7 +2257,7 @@ var Polygon = {
         return this;
       },
     },
-    M: Object.assign({}, methods, {
+    M: Object.assign({}, PolygonMethods, {
       inclusive: function () { this.domain_function = include; return this; },
       exclusive: function () { this.domain_function = exclude; return this; },
       segments: function () {
@@ -2241,7 +2278,7 @@ var Polygon = {
   }
 };
 
-const assign = (thisMat, mat) => {
+const array_assign = (thisMat, mat) => {
   for (let i = 0; i < 12; i += 1) {
     thisMat[i] = mat[i];
   }
@@ -2258,45 +2295,45 @@ var Matrix = {
     M: {
       copy: function () { return Constructors.matrix(...Array.from(this)); },
       set: function () {
-        return assign(this, get_matrix_3x4(arguments));
+        return array_assign(this, get_matrix_3x4(arguments));
       },
       isIdentity: function () { return is_identity3x4(this); },
       multiply: function (mat) {
-        return assign(this, multiply_matrices3(this, mat));
+        return array_assign(this, multiply_matrices3(this, mat));
       },
       determinant: function () {
         return determinant3(this);
       },
       inverse: function () {
-        return assign(this, invert_matrix3(this));
+        return array_assign(this, invert_matrix3(this));
       },
       translate: function (x, y, z) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_translate(x, y, z)));
       },
       rotateX: function (radians) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_rotateX(radians)));
       },
       rotateY: function (radians) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_rotateY(radians)));
       },
       rotateZ: function (radians) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_rotateZ(radians)));
       },
       rotate: function (radians, vector, origin) {
         const transform = make_matrix3_rotate(radians, vector, origin);
-        return assign(this, multiply_matrices3(this, transform));
+        return array_assign(this, multiply_matrices3(this, transform));
       },
       scale: function (amount) {
-        return assign(this,
+        return array_assign(this,
           multiply_matrices3(this, make_matrix3_scale(amount)));
       },
       reflectZ: function (vector, origin) {
         const transform = make_matrix3_reflectZ(vector, origin);
-        return assign(this, multiply_matrices3(this, transform));
+        return array_assign(this, multiply_matrices3(this, transform));
       },
       transform: function (...innerArgs) {
         return Constructors.vector(

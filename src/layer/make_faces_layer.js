@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import { one_layer_conditions } from "./global_solver/index";
 import topological_order from "./global_solver/topological_order";
@@ -13,8 +13,8 @@ import { invert_map } from "../graph/maps";
  * have already been folded.
  */
 const make_faces_layer = (graph, epsilon) => {
-  const conditions = one_layer_conditions(graph, epsilon);
-  return invert_map(topological_order(conditions, graph));
+	const conditions = one_layer_conditions(graph, epsilon);
+	return invert_map(topological_order(conditions, graph));
 };
 
 export default make_faces_layer;

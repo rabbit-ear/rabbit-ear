@@ -1,8 +1,8 @@
 const ear = require("rabbit-ear");
 
 const build_layers = (layers_face, faces_pair) => layers_face
-  .map(f => faces_pair[f])
-  .filter(a => a !== undefined);
+	.map(f => faces_pair[f])
+	.filter(a => a !== undefined);
 
 const inc = (arr, i, modlen) => arr[i] = (arr[i] + 1) % modlen;
 
@@ -60,30 +60,30 @@ test("self-intersect, with flat, folds touching", () => {
 test("self-intersect, taco taco intersecting odd one out", () => {
 	const folded_faces = [[0,2],[2,0],[0,2],[2,0]];
 	const layers_face = [0,3,1,2];
-  const taco_face_pairs = ear.layer.make_folded_strip_tacos(folded_faces, true, 0.001)
-    .map(taco => [taco.left, taco.right]
-      .map(ear.graph.invert_map)
-      .filter(arr => arr.length > 1))
-    .reduce((a, b) => a.concat(b), []);
+	const taco_face_pairs = ear.layer.make_folded_strip_tacos(folded_faces, true, 0.001)
+		.map(taco => [taco.left, taco.right]
+			.map(ear.graph.invert_map)
+			.filter(arr => arr.length > 1))
+		.reduce((a, b) => a.concat(b), []);
 
-  const result = taco_face_pairs
-  	.map(taco_pairs => build_layers(layers_face, taco_pairs))
-  	.map(pair_stack => ear.layer.validate_taco_taco_face_pairs(pair_stack))
-  	.reduce((a, b) => a && b, true);
-  expect(result).toBe(false);
+	const result = taco_face_pairs
+		.map(taco_pairs => build_layers(layers_face, taco_pairs))
+		.map(pair_stack => ear.layer.validate_taco_taco_face_pairs(pair_stack))
+		.reduce((a, b) => a && b, true);
+	expect(result).toBe(false);
 
 	// rotate the results, expecting the same result
 	for (let i = 0; i < folded_faces.length; i++) {
 		folded_faces.unshift(folded_faces.pop());
 		inc_layers(layers_face, folded_faces.length);
-	  const result_shift = ear.layer.make_folded_strip_tacos(folded_faces, true, 0.001)
-	    .map(taco => [taco.left, taco.right]
-	      .map(ear.graph.invert_map)
-	      .filter(arr => arr.length > 1))
-	    .reduce((a, b) => a.concat(b), [])
-	  	.map(taco_pairs => build_layers(layers_face, taco_pairs))
-	  	.map(pair_stack => ear.layer.validate_taco_taco_face_pairs(pair_stack))
-	  	.reduce((a, b) => a && b, true);
+		const result_shift = ear.layer.make_folded_strip_tacos(folded_faces, true, 0.001)
+			.map(taco => [taco.left, taco.right]
+				.map(ear.graph.invert_map)
+				.filter(arr => arr.length > 1))
+			.reduce((a, b) => a.concat(b), [])
+			.map(taco_pairs => build_layers(layers_face, taco_pairs))
+			.map(pair_stack => ear.layer.validate_taco_taco_face_pairs(pair_stack))
+			.reduce((a, b) => a && b, true);
 		expect(result_shift).toBe(false);
 	}
 });

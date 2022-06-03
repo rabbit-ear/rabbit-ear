@@ -1,9 +1,9 @@
 {
-  "en": {
-    "B": "boundary",
-    "M": "mountain",
-    "V": "valley",
-    "F": "mark",
-    "U": "unassigned",
-  }
+	"en": {
+		"B": "boundary",
+		"M": "mountain",
+		"V": "valley",
+		"F": "mark",
+		"U": "unassigned",
+	}
 }

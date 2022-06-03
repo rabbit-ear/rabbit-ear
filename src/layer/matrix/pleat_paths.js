@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * @param {number[][]} matrix of relationships between faces.
@@ -12,20 +12,20 @@
  * an array of 3 items: face index A and B, and the relationship: -1, 0, 1.
  */
 export const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
-  // we only need to check one arrangement
-  const from_to = `${from} ${to}`;
-  if (visited[from_to] || from === to) { return []; }
-  // but we want to set both arrangements
-  visited[from_to] = true;
-  visited[`${to} ${from}`] = true;
-  // set matrix for both directions between face pair
-  // gather the next iteration's indices, recurse.
-  return matrix[to]
-    .map((dir, index) => dir === direction ? index : undefined)
-    .filter(a => a !== undefined)
-    .map(index => walk_pleat_path(matrix, from, index, direction, visited))
-    .reduce((a, b) => a.concat(b), [])
-    .concat([[from, to, direction], [to, from, -direction]]);
+	// we only need to check one arrangement
+	const from_to = `${from} ${to}`;
+	if (visited[from_to] || from === to) { return []; }
+	// but we want to set both arrangements
+	visited[from_to] = true;
+	visited[`${to} ${from}`] = true;
+	// set matrix for both directions between face pair
+	// gather the next iteration's indices, recurse.
+	return matrix[to]
+		.map((dir, index) => dir === direction ? index : undefined)
+		.filter(a => a !== undefined)
+		.map(index => walk_pleat_path(matrix, from, index, direction, visited))
+		.reduce((a, b) => a.concat(b), [])
+		.concat([[from, to, direction], [to, from, -direction]]);
 };
 /**
  * @description starting from every face, for both "above" and "below",
@@ -39,14 +39,14 @@ export const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
  * an array of 3 items: face index A and B, and the relationship: -1, 0, 1.
  */
 export const walk_all_pleat_paths = matrix => matrix
-  .map((_, from) => [-1, 0, 1]
-    .map(direction => matrix[from]
-      .map((dir, i) => dir === direction ? i : undefined)
-      .filter(a => a !== undefined)
-      .map(to => walk_pleat_path(matrix, from, to, direction))
-      .reduce((a, b) => a.concat(b), []))
-    .reduce((a, b) => a.concat(b), []))
-  .reduce((a, b) => a.concat(b), []);
+	.map((_, from) => [-1, 0, 1]
+		.map(direction => matrix[from]
+			.map((dir, i) => dir === direction ? i : undefined)
+			.filter(a => a !== undefined)
+			.map(to => walk_pleat_path(matrix, from, to, direction))
+			.reduce((a, b) => a.concat(b), []))
+		.reduce((a, b) => a.concat(b), []))
+	.reduce((a, b) => a.concat(b), []);
 // export const walk_all_pleat_paths = (matrix) => {
 //   return matrix
 //     .map((_, from) => {

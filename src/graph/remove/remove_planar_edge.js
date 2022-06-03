@@ -1,4 +1,7 @@
 /**
+ * Rabbit Ear (c) Kraft
+ */
+/**
  * @description this method will remove an edge from a graph and
  * rebuild the adjacent graph data, including rebuilding faces.
  * This rebuilding makes this method differ from the "remove()" method.

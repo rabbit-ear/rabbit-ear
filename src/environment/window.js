@@ -1,18 +1,13 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
- * find a DOMParser, XMLSerializer, and document, works for both the
- * browser and nodejs environments.
- * - browser: get the built-in window object
+ * find a DOMParser, XMLSerializer, and document. works for both browser
+ * and nodejs environments.
+ * - browser: built-in window object
  * - nodejs: package XMLDOM, https://www.npmjs.com/package/@xmldom/xmldom
  */
-import {
-  isBrowser,
-  isNode,
-} from "./detect";
-// the most minimal, valid, HTML5 document: doctype with non-whitespace title
-const htmlString = "<!DOCTYPE html><title>.</title>";
+import { isNode, isBrowser } from "./detect";
 /**
  * @description an object named "window" with DOMParser, XMLSerializer,
  * and document.
@@ -20,20 +15,18 @@ const htmlString = "<!DOCTYPE html><title>.</title>";
  * in the case of nodejs, the package "xmldom" provides the methods.
  */
 const Window = (function () {
-  let win = {};
-  if (isNode) {
-    const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
-    win.DOMParser = DOMParser;
-    win.XMLSerializer = XMLSerializer;
-    win.document = new DOMParser().parseFromString(htmlString, "text/html");
-  } else if (isBrowser) {
-    win = window;
-  }
-  return win;
+	let win = {};
+	if (isNode) {
+		const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
+		win.DOMParser = DOMParser;
+		win.XMLSerializer = XMLSerializer;
+		// smallest, valid HTML5 document: doctype with non-whitespace title
+		win.document = new DOMParser().parseFromString(
+			"<!DOCTYPE html><title>.</title>", "text/html");
+	} else if (isBrowser) {
+		win = window;
+	}
+	return win;
 }());
 
 export default Window;
-
-
-
-

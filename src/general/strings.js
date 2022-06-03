@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 // this is a really verbose way of coding this but so far this is the best
 // way i can find to compress references in the minified .js file

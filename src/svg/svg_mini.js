@@ -1,5 +1,5 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
 import * as S from "../general/strings";
 import window from "../environment/window";
@@ -15,24 +15,24 @@ const svg = () => window.document.createElementNS(SVG_NS, "svg");
 svg.g = () => window.document.createElementNS(SVG_NS, "g");
 
 svg.path = function (d) {
-  const p = window.document.createElementNS(SVG_NS, "path");
-  p.setAttributeNS(null, "d", d);
-  return p;
+	const p = window.document.createElementNS(SVG_NS, "path");
+	p.setAttributeNS(null, "d", d);
+	return p;
 };
 
 svg.polygon = function (pointsArray) {
-  const shape = window.document.createElementNS(SVG_NS, "polygon");
-  const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
-  shape.setAttributeNS(null, "points", pointsString);
-  return shape;
+	const shape = window.document.createElementNS(SVG_NS, "polygon");
+	const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
+	shape.setAttributeNS(null, "points", pointsString);
+	return shape;
 };
 
 svg.circle = function (x, y, radius) {
-  const shape = window.document.createElementNS(SVG_NS, "circle");
-  shape.setAttributeNS(null, "cx", x);
-  shape.setAttributeNS(null, "cy", y);
-  shape.setAttributeNS(null, "r", radius);
-  return shape;
+	const shape = window.document.createElementNS(SVG_NS, "circle");
+	shape.setAttributeNS(null, "cx", x);
+	shape.setAttributeNS(null, "cy", y);
+	shape.setAttributeNS(null, "r", radius);
+	return shape;
 };
 
 svg.NS = SVG_NS;

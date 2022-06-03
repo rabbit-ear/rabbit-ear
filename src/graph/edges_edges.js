@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../math";
 import { make_edges_vector } from "./make";
 /**
@@ -5,24 +8,24 @@ import { make_edges_vector } from "./make";
  * except the diagonal [i][i] which contains undefined.
  */
 export const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => { // = math.core.EPSILON) => {
-  if (!edges_vector) {
-    edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
-  }
-  const edge_count = edges_vector.length;
-  const edges_edges_parallel = Array
-    .from(Array(edge_count))
-    .map(() => Array.from(Array(edge_count)));
-  for (let i = 0; i < edge_count - 1; i++) {
-    for (let j = i + 1; j < edge_count; j++) {
-      const p = math.core.parallel(edges_vector[i], edges_vector[j], epsilon);
-      edges_edges_parallel[i][j] = p;
-      edges_edges_parallel[j][i] = p;
-    }
-  }
-  // for (let i = 0; i < edge_count; i++) {
-  //   edges_edges_parallel[i][i] = undefined;
-  // }
-  return edges_edges_parallel;
+	if (!edges_vector) {
+		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+	}
+	const edge_count = edges_vector.length;
+	const edges_edges_parallel = Array
+		.from(Array(edge_count))
+		.map(() => Array.from(Array(edge_count)));
+	for (let i = 0; i < edge_count - 1; i++) {
+		for (let j = i + 1; j < edge_count; j++) {
+			const p = math.core.parallel(edges_vector[i], edges_vector[j], epsilon);
+			edges_edges_parallel[i][j] = p;
+			edges_edges_parallel[j][i] = p;
+		}
+	}
+	// for (let i = 0; i < edge_count; i++) {
+	//   edges_edges_parallel[i][i] = undefined;
+	// }
+	return edges_edges_parallel;
 };
 
 // const edges_radians = edges_vector
@@ -60,19 +63,19 @@ export const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edg
  * provide a comparison function (func) to specify inclusive/exclusivity.
  */
 const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
-  // relationship between i and j is non-directional.
-  for (let i = 0; i < matrix.length - 1; i++) {
-    for (let j = i + 1; j < matrix.length; j++) {
-      // if value is are already false, skip.
-      if (!matrix[i][j]) { continue; }
-      matrix[i][j] = math.core.overlap_line_line(
-        vectors[i], origins[i],
-        vectors[j], origins[j],
-        func, func,
-        epsilon);
-      matrix[j][i] = matrix[i][j];
-    }
-  }
+	// relationship between i and j is non-directional.
+	for (let i = 0; i < matrix.length - 1; i++) {
+		for (let j = i + 1; j < matrix.length; j++) {
+			// if value is are already false, skip.
+			if (!matrix[i][j]) { continue; }
+			matrix[i][j] = math.core.overlap_line_line(
+				vectors[i], origins[i],
+				vectors[j], origins[j],
+				func, func,
+				epsilon);
+			matrix[j][i] = matrix[i][j];
+		}
+	}
 };
 /**
  * @desecription find all edges which cross other edges. "cross" meaning
@@ -80,22 +83,22 @@ const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
  * around the endpoints, and they are NOT parallel.
  */
 export const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
-  if (!edges_vector) {
-    edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
-  }
-  // use graph vertices_coords for edges vertices
-  const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-  // convert parallel into NOT parallel.
-  const matrix = make_edges_edges_parallel({
-    vertices_coords, edges_vertices, edges_vector
-  }, epsilon)
-    .map(row => row.map(b => !b));
-  for (let i = 0; i < matrix.length; i++) {
-    matrix[i][i] = undefined;
-  }
-  // if edges are parallel (not this value), skip.
-  overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
-  return matrix;
+	if (!edges_vector) {
+		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+	}
+	// use graph vertices_coords for edges vertices
+	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+	// convert parallel into NOT parallel.
+	const matrix = make_edges_edges_parallel({
+		vertices_coords, edges_vertices, edges_vector
+	}, epsilon)
+		.map(row => row.map(b => !b));
+	for (let i = 0; i < matrix.length; i++) {
+		matrix[i][i] = undefined;
+	}
+	// if edges are parallel (not this value), skip.
+	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
+	return matrix;
 };
 /**
  * @desecription find all edges which overlap one another, meaning
@@ -107,17 +110,17 @@ export const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edg
 // the vector. converting it into 2 numbers, and now all you have to do is
 // test if these two numbers overlap other edges' two numbers.
 export const make_edges_edges_parallel_overlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
-  if (!edges_vector) {
-    edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
-  }
-  const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-  // start with edges-edges parallel matrix
-  const matrix = make_edges_edges_parallel({
-    vertices_coords, edges_vertices, edges_vector
-  }, epsilon);
-  // only if lines are parallel, then run the more expensive overlap method
-  overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
-  return matrix;
+	if (!edges_vector) {
+		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+	}
+	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+	// start with edges-edges parallel matrix
+	const matrix = make_edges_edges_parallel({
+		vertices_coords, edges_vertices, edges_vector
+	}, epsilon);
+	// only if lines are parallel, then run the more expensive overlap method
+	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
+	return matrix;
 };
 /**
  * we want to include this case, where one edge may not overlap another
@@ -135,21 +138,21 @@ export const make_edges_edges_parallel_overlap = ({ vertices_coords, edges_verti
  */
 /*
 const make_groups_edges = (graph, epsilon) => {
-  // gather together all edges which lie on top of one another in the
-  // folded state. take each edge's two adjacent faces, 
-  const overlap_matrix = make_edges_edges_parallel_overlap(graph, epsilon)
-  const overlapping_edges = boolean_matrix_to_indexed_array(overlap_matrix);
-  // each index will be an edge, each value is a group, starting with 0,
-  // incrementing upwards. for all unique edges, array will be [0, 1, 2, 3...]
-  // if edges 0 and 3 share a group, array will be [0, 1, 2, 0, 3...]
-  const edges_group = make_unique_sets_from_self_relational_arrays(overlapping_edges);
-  // gather groups, but remove groups with only one edge, and from the
-  // remaining sets, remove any edges which lie on the boundary.
-  // finally, remove sets with only one edge (after removing).
-  return invert_map(edges_group)
-    .filter(el => typeof el === "object")
-    .map(edges => edges
-      .filter(edge => graph.edges_faces[edge].length === 2))
-    .filter(edges => edges.length > 1);
+	// gather together all edges which lie on top of one another in the
+	// folded state. take each edge's two adjacent faces, 
+	const overlap_matrix = make_edges_edges_parallel_overlap(graph, epsilon)
+	const overlapping_edges = boolean_matrix_to_indexed_array(overlap_matrix);
+	// each index will be an edge, each value is a group, starting with 0,
+	// incrementing upwards. for all unique edges, array will be [0, 1, 2, 3...]
+	// if edges 0 and 3 share a group, array will be [0, 1, 2, 0, 3...]
+	const edges_group = make_unique_sets_from_self_relational_arrays(overlapping_edges);
+	// gather groups, but remove groups with only one edge, and from the
+	// remaining sets, remove any edges which lie on the boundary.
+	// finally, remove sets with only one edge (after removing).
+	return invert_map(edges_group)
+		.filter(el => typeof el === "object")
+		.map(edges => edges
+			.filter(edge => graph.edges_faces[edge].length === 2))
+		.filter(edges => edges.length > 1);
 };
 */

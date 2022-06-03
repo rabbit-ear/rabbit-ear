@@ -1,33 +1,29 @@
 /**
- * Rabbit Ear (c) Robby Kraft
+ * Rabbit Ear (c) Kraft
  */
-import {
-  fn_def,
-  fn_add
-} from "../../general/functions";
 import { invert_map } from "../../graph/maps";
 import get_layer_violations from "./get_layer_violations";
 
 const fix_layer_violations = (layers_face, matrix) => {
-  const faces_layer = invert_map(layers_face);
-  const faces_adjust = faces_layer.map(() => []);
-  const violations = get_layer_violations(matrix, faces_layer);
-  violations.forEach(el => {
-    const distance = (faces_layer[el[1]] - faces_layer[el[0]]);
-    faces_adjust[el[0]].push(distance);
-    faces_adjust[el[1]].push(-distance);
-  });
-  const layer_change = faces_adjust.map(arr => arr.length === 0
-    ? 0
-    : parseInt(arr.reduce(fn_add, 0) / arr.length));
-  const new_faces_layer = faces_layer
-    .map((layer, i) => layer + layer_change[i]);
-  const new_layers_face = new_faces_layer
-    .map((layer, face) => ({ layer, face }))
-    .sort((a, b) => a.layer - b.layer)
-    .map(el => el.face);
-  new_layers_face.forEach((_, i) => layers_face[i] = new_layers_face[i]);
-  return violations.length;
+	const faces_layer = invert_map(layers_face);
+	const faces_adjust = faces_layer.map(() => []);
+	const violations = get_layer_violations(matrix, faces_layer);
+	violations.forEach(el => {
+		const distance = (faces_layer[el[1]] - faces_layer[el[0]]);
+		faces_adjust[el[0]].push(distance);
+		faces_adjust[el[1]].push(-distance);
+	});
+	const layer_change = faces_adjust.map(arr => arr.length === 0
+		? 0
+		: parseInt(arr.reduce((a, b) => a + b, 0) / arr.length));
+	const new_faces_layer = faces_layer
+		.map((layer, i) => layer + layer_change[i]);
+	const new_layers_face = new_faces_layer
+		.map((layer, face) => ({ layer, face }))
+		.sort((a, b) => a.layer - b.layer)
+		.map(el => el.face);
+	new_layers_face.forEach((_, i) => layers_face[i] = new_layers_face[i]);
+	return violations.length;
 };
 
 /**
@@ -37,33 +33,33 @@ const fix_layer_violations = (layers_face, matrix) => {
  * this will be built from the matrix if left empty.
  */
 const matrix_to_layers_face = (matrix, faces) => {
-  if (!faces) {
-    faces = Object.keys(matrix).map(n => parseInt(n));
-  }
-  // only consider faces which are contained inside the matrix
-  // this allows for Javascript arrays with holes.
-  const faces_knowns = matrix.map(row => row.filter(a => a != null));
-  const face_count = faces_knowns.length;
-  const rows_sum = faces_knowns.map(row => row.reduce(fn_add, 0));
-  // const faces_layer_approximation = rows_sum
-  //   .map(layer => layer + face_count - 1);
-  // const faces_layer_certainty = faces_knowns
-  //   .map((row, i) => row.length / (face_count - 1));
-  // a first guess at layes_face order can be approximated by adding up
-  // all of a faces +1 and -1 relationships to other faces. in the case of
-  // a fully-saturated matrix, i think this generates the final solution.
-  // in non-saturated matrices, it's only an approximation and needs adjustment
-  const layers_face = faces.slice().sort((a, b) => rows_sum[a] - rows_sum[b]);
-  // search for violations between pairs of faces, use these as a guide to
-  // swap these faces' layers to bring them closer to their proper index.
-  // repeat this swap until done.
-  let counter = 0;
-  let violation_count = 0; // when this is zero, loop will end
-  do {
-    violation_count = fix_layer_violations(layers_face, matrix);
-    counter++;
-  } while (violation_count !== 0 && counter < matrix.length)
-  return layers_face;
+	if (!faces) {
+		faces = Object.keys(matrix).map(n => parseInt(n));
+	}
+	// only consider faces which are contained inside the matrix
+	// this allows for Javascript arrays with holes.
+	const faces_knowns = matrix.map(row => row.filter(a => a != null));
+	const face_count = faces_knowns.length;
+	const rows_sum = faces_knowns.map(row => row.reduce((a, b) => a + b, 0));
+	// const faces_layer_approximation = rows_sum
+	//   .map(layer => layer + face_count - 1);
+	// const faces_layer_certainty = faces_knowns
+	//   .map((row, i) => row.length / (face_count - 1));
+	// a first guess at layes_face order can be approximated by adding up
+	// all of a faces +1 and -1 relationships to other faces. in the case of
+	// a fully-saturated matrix, i think this generates the final solution.
+	// in non-saturated matrices, it's only an approximation and needs adjustment
+	const layers_face = faces.slice().sort((a, b) => rows_sum[a] - rows_sum[b]);
+	// search for violations between pairs of faces, use these as a guide to
+	// swap these faces' layers to bring them closer to their proper index.
+	// repeat this swap until done.
+	let counter = 0;
+	let violation_count = 0; // when this is zero, loop will end
+	do {
+		violation_count = fix_layer_violations(layers_face, matrix);
+		counter++;
+	} while (violation_count !== 0 && counter < matrix.length)
+	return layers_face;
 };
 
 export default matrix_to_layers_face;

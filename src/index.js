@@ -1,11 +1,14 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 /*
 ▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁
-                    _     _     _ _
-                   | |   | |   (_) |
-          _ __ __ _| |__ | |__  _| |_    ___  __ _ _ __
-         | '__/ _` | '_ \| '_ \| | __|  / _ \/ _` | '__|
-         | | | (_| | |_) | |_) | | |_  |  __/ (_| | |
-         |_|  \__,_|_.__/|_.__/|_|\__|  \___|\__,_|_|
+										_     _     _ _
+									 | |   | |   (_) |
+					_ __ __ _| |__ | |__  _| |_    ___  __ _ _ __
+				 | '__/ _` | '_ \| '_ \| | __|  / _ \/ _` | '__|
+				 | | | (_| | |_) | |_) | | |_  |  __/ (_| | |
+				 |_|  \__,_|_.__/|_.__/|_|\__|  \___|\__,_|_|
 
 █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇█
 */
@@ -42,7 +45,7 @@ const ear = Object.assign(root, Constructors, {
 	math: math.core,
 	axiom,
 	diagram,
-  layer,
+	layer,
 	vertex,
 	text,
 	webgl,
@@ -53,8 +56,8 @@ const ear = Object.assign(root, Constructors, {
  * to this library's top level.
  */
 Object.keys(math)
-  .filter(key => key !== "core")
-  .forEach((key) => { ear[key] = math[key]; });
+	.filter(key => key !== "core")
+	.forEach((key) => { ear[key] = math[key]; });
 /**
  * use() must bind this library to "this", as a way of making this library
  * mutable, so that the extension can bind itself throughout this library.
@@ -67,8 +70,8 @@ Object.defineProperty(ear, "use", {
  * binding the extensions must happen after the library has been initialized.
  */
 if (!isWebWorker) {
-  ear.use(foldToSVG); // must happen before SVG
-  ear.use(SVG);
+	ear.use(foldToSVG); // must happen before SVG
+	ear.use(SVG);
 }
 
 export default ear;

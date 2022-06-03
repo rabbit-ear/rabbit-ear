@@ -17,5 +17,5 @@
 		"M",
 		"M"
 	],
-	"re:code": "{\n  // modules\n  RabbitEar.use(window.FoldToSvg);\n  RabbitEar.use(window.SVG);\n}\n\n// cp.load(RabbitEar.bases.square);\ncp.mountain(0,0,1,1);\ncp.valley(0,1,1,1);\nlet v = ear.vector(0.5,0.5,1,1);\n\nconsole.log(cp)"
+	"re:code": "{\n  // modules\n  RabbitEar.use(window.FoldToSvg);\n  RabbitEar.use(window.SVG);\n}\n\n// cp.load(RabbitEar.bases.unit_square);\ncp.mountain(0,0,1,1);\ncp.valley(0,1,1,1);\nlet v = ear.vector(0.5,0.5,1,1);\n\nconsole.log(cp)"
 }
