@@ -8328,6 +8328,8 @@
 		});
 	};
 
+	const DEFAULT_STROKE_WIDTH = 1 / 100;
+	const DEFAULT_CIRCLE_RADIUS = 1 / 50;
 	const get_bounding_rect = ({ vertices_coords }) => {
 		if (vertices_coords == null || vertices_coords.length === 0) {
 			return undefined;
@@ -8373,13 +8375,13 @@
 			const strokeWidth = options.strokeWidth ? options.strokeWidth : options["stroke-width"];
 			const strokeWidthValue = typeof strokeWidth === "number"
 				? vmax * strokeWidth
-				: vmax / 100;
+				: vmax * DEFAULT_STROKE_WIDTH;
 			element.setAttributeNS(null, "stroke-width", strokeWidthValue);
 		}
 		if (groups[3].length) {
 			const radius = typeof options.radius === "number"
 				? vmax * options.radius
-				: vmax / 50;
+				: vmax * DEFAULT_CIRCLE_RADIUS;
 			setR(groups[3], radius);
 		}
 	};

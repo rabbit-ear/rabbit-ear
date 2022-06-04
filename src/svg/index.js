@@ -8,16 +8,8 @@ import linker from "./linker";
 // get the SVG library from its binding to the root of the library
 import root from "../root";
 
-const example = {
-	vertices: false,
-	edges: {},
-	faces: {},
-	boundaries: {},
-	strokeWidth: 0.01,
-	viewBox: true,
-	radius: 0.2,
-};
-
+const DEFAULT_STROKE_WIDTH = 1 / 100;
+const DEFAULT_CIRCLE_RADIUS = 1 / 50;
 /**
  * @description get a bounding box from a FOLD graph by inspecting its vertices.
  * @param {object} FOLD object with vertices_coords
@@ -47,42 +39,9 @@ const getViewBox = (graph) => {
 		? ""
 		: viewBox.join(" ");
 };
-// const makeViewBox = function (x, y, width, height, padding = 0) {
-//   const scale = 1.0;
-//   const d = (width / scale) - width;
-//   const X = (x - d) - padding;
-//   const Y = (y - d) - padding;
-//   const W = (width + d * 2) + padding * 2;
-//   const H = (height + d * 2) + padding * 2;
-//   return [X, Y, W, H].join(" ");
-// };
 /**
- * @description extract the relevant information from a FOLD graph and create
- * an object with keys and values for attributes for an SVG.
- * @param {object} FOLD object
- * @returns {object} svg attributes as keys and values.
- */
-// const make_svg_attributes = (graph, options, setViewBox = true) => {
-// 	const attributes = {
-// 		overflow: "visible",
-// 	};
-// 	if (!graph) { return attributes; }
-// 	// get the dimensions of the graph (if they exist) and set two attributes:
-// 	// viewBox, stroke-width
-// 	const viewBox = get_bounding_rect(graph);
-// 	if (viewBox && setViewBox) {
-// 		attributes.viewBox = viewBox.join(" ");
-// 		const vmax = Math.max(viewBox[2], viewBox[3]);
-// 		attributes[S._stroke_width] = vmax / 100;
-// 		attributes.width = viewBox[2];
-// 		attributes.height = viewBox[3];
-// 	}
-// 	// add top level classes, "graph" and anything from the FOLD like "foldedForm"
-// 	attributes[S._class] = ["origami"].concat(fold_classes(graph)).join(" ");
-// 	return attributes;
-// };
-/**
- * set the attribute "r" (radius) on all child elements in this group
+ * @description given a group assumed to contain only circle elements,
+ * set the "r" attribute on all circles.
  */
 const setR = (group, radius) => {
 	for (let i = 0; i < group.childNodes.length; i++) {
@@ -90,36 +49,17 @@ const setR = (group, radius) => {
 	}
 };
 /**
- * @description renders a FOLD object into an SVG, ensuring visibility by
- *  setting the viewBox and the stroke-width attributes on the SVG.
- * @param {SVGElement} an already initialized SVG DOM element.
- * @param {object} FOLD object
- * @param {object} options (optional)
- * @returns {SVGElement} the same SVG parameter object.
+ * @description search up the parent-chain until we find an <svg>, or return undefined
  */
-// const drawInto = (element, graph, ...args) => {
-// 	const options = args.filter(el => typeof el === S._object).shift() || {};
-// 	const setViewBox = args.filter(el => typeof el === S._boolean).shift();
-// 	const attrs = make_svg_attributes(graph, options, setViewBox);
-// 	Object.keys(attrs)
-// 		.forEach(attr => element.setAttributeNS(null, attr, attrs[attr]));
-// 	const groups = DrawGroups(graph, options);
-// 	groups.filter(group => group.childNodes.length > 0)
-// 		.forEach(group => element.appendChild(group));
-// 	// give vertices special treatment. set their radius a factor of stroke-width
-// 	// DrawGroups() is hard-coded to return 4 elements, the last is vertices
-// 	if (attrs[S._stroke_width]) { setR(groups[3], attrs[S._stroke_width] * 2); }
-// 	// set custom getters on the <svg> element to grab the component groups
-// 	Object.keys(DrawGroups).forEach((key, i) =>
-// 		Object.defineProperty(element, key, { get: () => groups[i] }));
-// 	return element;
-// };
 const findSVGInParents = (element) => {
 	if ((element.nodeName || "").toUpperCase() === "SVG") { return element; }
 	return element.parentNode ? findSVGInParents(element.parentNode) : undefined;
 };
 /**
- * 
+ * @description a subroutine of drawInto(). there are style properties which
+ * are impossible to set universally, because they are dependent upon the input
+ * FOLD object (imagine, FOLD within 1x1 square, and FOLD within 600x600).
+ * this includes the viewBox, stroke width, and radius of circles.
  */
 const applyTopLevelOptions = (element, groups, graph, options) => {
 	if (!(options.strokeWidth || options.viewBox || groups[3].length)) { return; }
@@ -134,18 +74,23 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 		const strokeWidth = options.strokeWidth ? options.strokeWidth : options["stroke-width"];
 		const strokeWidthValue = typeof strokeWidth === "number"
 			? vmax * strokeWidth
-			: vmax / 100;
+			: vmax * DEFAULT_STROKE_WIDTH;
 		element.setAttributeNS(null, "stroke-width", strokeWidthValue);
 	}
 	if (groups[3].length) {
 		const radius = typeof options.radius === "number"
 			? vmax * options.radius
-			: vmax / 50;
+			: vmax * DEFAULT_CIRCLE_RADIUS;
 		setR(groups[3], radius);
 	}
 };
 /**
- * 
+ * @description renders a FOLD object into an SVG, ensuring visibility by
+ *  setting the viewBox and the stroke-width attributes on the SVG.
+ * @param {SVGElement} an already initialized SVG DOM element.
+ * @param {object} FOLD object
+ * @param {object} options (optional)
+ * @returns {SVGElement} the first SVG parameter object.
  */
 const drawInto = (element, graph, options = {}) => {
 	const groups = DrawGroups(graph, options);
@@ -167,9 +112,6 @@ const drawInto = (element, graph, options = {}) => {
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
  */
-// const FOLDtoSVG = (graph, options, setViewBox) => (
-// 	drawInto(root.svg(), graph, options, setViewBox)
-// );
 const FOLDtoSVG = (graph, options) => drawInto(root.svg(), graph, options);
 /**
  * @description adding static-like methods to the main function, four for
