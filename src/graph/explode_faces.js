@@ -38,8 +38,8 @@ export const explode_shrink_faces = ({ vertices_coords, faces_vertices }, shrink
 				vector,
 				math.core.flip(arr[(i - 1 + arr.length) % arr.length])
 			]).map(pair => faces_winding[f]
-				? math.core.counter_clockwise_bisect2(...pair)
-				: math.core.clockwise_bisect2(...pair)))
+				? math.core.counterClockwiseBisect2(...pair)
+				: math.core.clockwiseBisect2(...pair)))
 		.map((vectors, f) => vectors
 			.map((vector, i) => math.core.scale(vector, faces_point_distances[f][i])))
 	graph.faces_vertices

@@ -62,7 +62,7 @@ export const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edg
 /**
  * @description a subroutine for the two methods below.
  * given a matrix which was already worked on, consider only the true values,
- * compute the overlap_line_line method for each edge-pairs.
+ * compute the overlapLineLine method for each edge-pairs.
  * provide a comparison function (func) to specify inclusive/exclusivity.
  */
 const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
@@ -71,7 +71,7 @@ const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
 		for (let j = i + 1; j < matrix.length; j++) {
 			// if value is are already false, skip.
 			if (!matrix[i][j]) { continue; }
-			matrix[i][j] = math.core.overlap_line_line(
+			matrix[i][j] = math.core.overlapLineLine(
 				vectors[i], origins[i],
 				vectors[j], origins[j],
 				func, func,
@@ -103,7 +103,7 @@ export const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edg
 		matrix[i][i] = undefined;
 	}
 	// if edges are parallel (not this value), skip.
-	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
+	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
 	return matrix;
 };
 // todo, improvement suggestion:
@@ -128,7 +128,7 @@ export const make_edges_edges_parallel_overlap = ({ vertices_coords, edges_verti
 		vertices_coords, edges_vertices, edges_vector
 	}, epsilon);
 	// only if lines are parallel, then run the more expensive overlap method
-	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
+	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
 	return matrix;
 };
 /**

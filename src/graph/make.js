@@ -198,7 +198,7 @@ export const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edge
 	make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
 		.map(vectors => vectors.length === 1 // leaf node
 			? [math.core.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
-			: math.core.counter_clockwise_sectors2(vectors));
+			: math.core.counterClockwiseSectors2(vectors));
 /**
  *
  *    EDGES
@@ -307,7 +307,7 @@ export const make_edges_bounding_box = ({ vertices_coords, edges_vertices, edges
 	if (!edges_coords) {
 		edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
 	}
-	return edges_coords.map(coords => math.core.bounding_box(coords, epsilon))
+	return edges_coords.map(coords => math.core.boundingBox(coords, epsilon))
 };
 /**
  *
@@ -424,7 +424,7 @@ export const make_faces_faces = ({ faces_vertices }) => {
 export const make_faces_polygon = ({ vertices_coords, faces_vertices }, epsilon) =>
 	faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]))
-		.map(polygon => math.core.make_polygon_non_collinear(polygon, epsilon));
+		.map(polygon => math.core.makePolygonNonCollinear(polygon, epsilon));
 /**
  * @description map vertices_coords onto each face's set of vertices,
  * turning each face into an array of points.

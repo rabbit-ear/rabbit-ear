@@ -29,12 +29,12 @@ export const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
 	const nearest_points = edges_vertices
 		.map(e => e.map(ev => vertices_coords[ev]))
-		.map(e => math.core.nearest_point_on_line(
+		.map(e => math.core.nearestPointOnLine(
 			math.core.subtract(e[1], e[0]),
 			e[0],
 			point,
-			math.core.segment_limiter));
-	return math.core.smallest_comparison_search(point, nearest_points, math.core.distance);
+			math.core.segmentLimiter));
+	return math.core.smallestComparisonSearch(point, nearest_points, math.core.distance);
 };
 /**
  * from a planar perspective, ignoring z components
@@ -43,7 +43,7 @@ export const face_containing_point = ({ vertices_coords, faces_vertices }, point
 	if (!vertices_coords || !faces_vertices) { return undefined; }
 	const face = faces_vertices
 		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-		.filter(f => math.core.overlap_convex_polygon_point(f.face, point))
+		.filter(f => math.core.overlapConvexPolygonPoint(f.face, point))
 		.shift();
 	return (face === undefined ? undefined : face.i);
 };

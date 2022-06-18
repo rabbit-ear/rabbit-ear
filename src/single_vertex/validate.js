@@ -66,7 +66,7 @@ export const validate_kawasaki = ({ vertices_coords, vertices_vertices, vertices
 		.map((vectors, v) => vectors
 			.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
 		.map(vectors => vectors.length > 1
-			? math.core.counter_clockwise_sectors2(vectors)
+			? math.core.counterClockwiseSectors2(vectors)
 			: [0, 0])
 		.map(sectors => alternating_sum(sectors))
 		.map((pair, v) => Math.abs(pair[0] - pair[1]) < epsilon);

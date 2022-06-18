@@ -33,7 +33,7 @@ import replace from "./replace";
 import remove_planar_vertex from "./remove/remove_planar_vertex";
 import remove_planar_edge from "./remove/remove_planar_edge";
 import add_vertices from "./add/add_vertices";
-// import add_edges from "./add/add_edges";
+import add_edges from "./add/add_edges";
 import split_edge from "./split_edge/index";
 import split_face from "./split_face/index";
 import flat_fold from "./flat_fold/index";
@@ -60,7 +60,7 @@ export default Object.assign(Object.create(null), {
 	remove_planar_vertex,
 	remove_planar_edge,
 	add_vertices,
-	// add_edges,
+	add_edges,
 	split_edge,
 	split_face,
 	flat_fold,

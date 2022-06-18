@@ -97,7 +97,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	segment_vertices
 		.map(center => graph.vertices_vertices[center].length === 1
 		? [math.core.TWO_PI]
-		: math.core.counter_clockwise_sectors2(graph.vertices_vertices[center]
+		: math.core.counterClockwiseSectors2(graph.vertices_vertices[center]
 			.map(v => math.core
 				.subtract2(graph.vertices_coords[v], graph.vertices_coords[center]))))
 		.forEach((sectors, i) => {

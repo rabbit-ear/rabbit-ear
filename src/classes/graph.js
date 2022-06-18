@@ -79,7 +79,7 @@ Object.keys(graphMethods).forEach(key => {
  * methods below here need some kind of pre-processing of their arguments
  */
 Graph.prototype.splitFace = function (face, ...args) {
-	const line = math.core.get_line(...args);
+	const line = math.core.getLine(...args);
 	return split_face(this, face, line.vector, line.origin);
 };
 /**
@@ -240,7 +240,7 @@ const nearestMethods = {
  * "edges_", and "faces_" arrays.
  */
 Graph.prototype.nearest = function () {
-	const point = math.core.get_vector(arguments);
+	const point = math.core.getVector(arguments);
 	const nears = Object.create(null);
 	const cache = {};
 	[S._vertices, S._edges, S._faces].forEach(key => {

@@ -34,10 +34,10 @@ import use from "./use/index";
  * to build Rabbit Ear without these extensions, comment out these lines
  * as well as the .use() method calls at the bottom of this file.
  */
-// /** convert a FOLD object into an SVG */
-// import foldToSVG from "./svg/index";
-// /** SVG drawing library with a lot of functionality */
-// import SVG from "./extensions/svg"; // replaces minified substitute
+/** convert a FOLD object into an SVG */
+import foldToSVG from "./svg/index";
+/** SVG drawing library with a lot of functionality */
+import SVG from "./extensions/svg"; // replaces minified substitute
 // /** WebGL extension, draw FOLD objects into WebGL canvas. */
 // import * as webgl from "./webgl/fold-to-three";
 
@@ -70,8 +70,8 @@ Object.defineProperty(ear, "use", {
  * binding the extensions must happen after the library has been initialized.
  */
 if (!isWebWorker) {
-	// ear.use(foldToSVG); // must happen before SVG
-	// ear.use(SVG);
+	ear.use(foldToSVG); // must happen before SVG
+	ear.use(SVG);
 }
 
 export default ear;

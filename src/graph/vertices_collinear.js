@@ -33,7 +33,7 @@ export const is_vertex_collinear = (graph, vertex) => {
 		.map(segment => math.core.subtract(segment[1], segment[0]))
 		.map(vector => math.core.normalize(vector));
 	const is_parallel = math.core
-		.equivalent_numbers(1.0, math.core.dot(...vectors));
+		.equivalentNumbers(1.0, math.core.dot(...vectors));
 	return is_parallel;
 };
 /**
@@ -68,11 +68,11 @@ export const get_vertices_edges_overlap = ({ vertices_coords, edges_vertices, ed
 	for (let e = 0; e < edges_coords.length; e += 1) {
 		for (let v = 0; v < vertices_coords.length; v += 1) {
 			if (!edges_span_vertices[e][v]) { continue; }
-			edges_span_vertices[e][v] = math.core.overlap_line_point(
+			edges_span_vertices[e][v] = math.core.overlapLinePoint(
 				math.core.subtract(edges_coords[e][1], edges_coords[e][0]),
 				edges_coords[e][0],
 				vertices_coords[v],
-				math.core.exclude_s,
+				math.core.excludeS,
 				epsilon
 			);
 		}

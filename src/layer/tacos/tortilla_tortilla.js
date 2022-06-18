@@ -56,31 +56,31 @@ export const make_tortillas_faces_crossing = (graph, edges_faces_side, epsilon) 
 	tortilla_edge_indices.forEach(e => { matrix[e] = []; });
 	// console.log("clip", tortilla_edge_indices
 		// .map((e, ei) => faces_polygon
-		// 	.map((poly, f) => math.core.clip_line_in_convex_polygon(
+		// 	.map((poly, f) => math.core.clipLineInConvexPolygon(
 		// 		poly,
 		// 		edges_vector[ei],
 		// 		edges_coords[ei][0],
 		// 		math.core.exclude,
-		// 		math.core.exclude_s,
+		// 		math.core.excludeS,
 		// 		epsilon))));
 	const result = tortilla_edge_indices
 		.map((e, ei) => faces_polygon
-			.map((poly, f) => math.core.clip_line_in_convex_polygon(
+			.map((poly, f) => math.core.clipLineInConvexPolygon(
 				poly,
 				edges_vector[ei],
 				edges_coords[ei][0],
 				math.core.exclude,
-				math.core.exclude_s,
+				math.core.excludeS,
 				epsilon))
 			.map((result, f) => result !== undefined));
 	// const result = tortilla_edge_indices
 	// 	.map((e, ei) => faces_polygon
-	// 		.map((poly, f) => math.core.intersect_convex_polygon_line(
+	// 		.map((poly, f) => math.core.intersectConvexPolygonLine(
 	// 			poly,
 	// 			edges_vector[ei],
 	// 			edges_coords[ei][0],
-	// 			math.core.exclude_s,
-	// 			math.core.include_l ))
+	// 			math.core.excludeS,
+	// 			math.core.includeL ))
 	// 			// epsilon))
 	// 		.map((result, f) => result !== undefined));
 	result.forEach((faces, ei) => faces

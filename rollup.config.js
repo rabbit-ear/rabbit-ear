@@ -1,7 +1,7 @@
-import babel from "@rollup/plugin-babel";
+// import babel from "@rollup/plugin-babel";
 import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup"
-import { terser } from "rollup-plugin-terser";
+// import { terser } from "rollup-plugin-terser";
 
 const version = "0.9.xx alpha 2022-05-13";
 const input = "src/index.js";

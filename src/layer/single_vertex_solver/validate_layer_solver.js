@@ -24,7 +24,7 @@ const validate_layer_solver = (faces_folded, layers_face, taco_face_pairs, circ_
 	// but in this specific use case we can be guaranteed that only one of those
 	// will be used in the build_layers, as only one of a set of flat-
 	// strip faces can exist in one taco stack location.
-	const flat_layers_face = math.core.flatten_arrays(layers_face);
+	const flat_layers_face = math.core.flattenArrays(layers_face);
 	// taco-tortilla intersections
 	if (!validate_taco_tortilla_strip(
 		faces_folded, layers_face, circ_and_done, epsilon

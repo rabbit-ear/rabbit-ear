@@ -27,7 +27,7 @@ test("fold in 3d", () => {
 	// apply that transform.
 	const vertices_faces = ear.graph.make_vertices_faces(cp);
 	const new_vertices_coords = cp.vertices_coords
-		.map((coords, i) => ear.math.multiply_matrix3_vector3(
+		.map((coords, i) => ear.math.multiplyMatrix3Vector3(
 			faces_matrix[vertices_faces[i][0]],
 			ear.math.resize(3, coords)
 		));

@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
 import { invert_map } from "../../graph/maps";
 import { make_faces_center } from "../../graph/make";
 import validate_taco_taco_face_pairs from "../tacos/validate_taco_taco_face_pairs";

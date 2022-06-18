@@ -27,7 +27,7 @@ export const kawasaki_solutions = ({ vertices_coords, vertices_edges, edges_vert
 		vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
 	}
 	const vectors = vertices_edges[vertex].map(i => edges_vectors[i]);
-	const sortedVectors = math.core.counter_clockwise_order2(vectors)
+	const sortedVectors = math.core.counterClockwiseOrder2(vectors)
 		.map(i => vectors[i]);
 	return kawasaki_solutions_vectors(sortedVectors);
 };

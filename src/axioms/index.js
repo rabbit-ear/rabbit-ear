@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import validate_axiom from "./validate";
+import validateAxiom from "./validate";
 import * as AxiomsVO from "./axioms";
 import * as AxiomsUD from "./axioms_ud";
 /**
@@ -11,7 +11,7 @@ import * as AxiomsUD from "./axioms_ud";
  * @param {number} the axiom number
  * @returns {boolean} true false, does the core method return an array?
  */
-const axiom_returns_array = (number) => {
+const axiomReturnsArray = (number) => {
 	switch (number) {
 		case 3: case "3":
 		case 5: case "5":
@@ -20,23 +20,23 @@ const axiom_returns_array = (number) => {
 	}
 };
 
-const check_params = (params) => ({
-	points: (params.points || []).map(p => math.core.get_vector(p)),
-	lines: (params.lines || []).map(l => math.core.get_line(l)),
+const checkParams = (params) => ({
+	points: (params.points || []).map(p => math.core.getVector(p)),
+	lines: (params.lines || []).map(l => math.core.getLine(l)),
 	lines_ud: (params.lines || [])
 		.map(l => l.u !== undefined && l.d !== undefined ? l : undefined)
 		.filter(a => a !== undefined)
 });
-const axiom_vector_origin = (number, params) => {
+const axiomVectorOrigin = (number, params) => {
 	const result = AxiomsVO[`axiom${number}`](...params.lines, ...params.points);
-	const array_results = axiom_returns_array(number)
+	const array_results = axiomReturnsArray(number)
 		? result
 		: [result].filter(a => a !== undefined);
 	return array_results.map(line => math.line(line));
 };
-const axiom_normal_distance = (number, params) => {
+const axiomNormalDistance = (number, params) => {
 	const result = AxiomsUD[`axiom${number}ud`](...params.lines_ud, ...params.points)
-	const array_results = axiom_returns_array(number)
+	const array_results = axiomReturnsArray(number)
 		? result
 		: [result].filter(a => a !== undefined);
 	return array_results.map(line => math.line.ud(line));
@@ -54,15 +54,15 @@ const axiom_normal_distance = (number, params) => {
 
 
  // here's the problem. the mismatch between what gets recalculated inside the boundary test and here.
-const axiom_boundaryless = (number, params) => {
+const axiomBoundaryless = (number, params) => {
 	return params.lines_ud.length === params.lines.length
-		? axiom_normal_distance(number, params)
-		: axiom_vector_origin(number, params);
+		? axiomNormalDistance(number, params)
+		: axiomVectorOrigin(number, params);
 };
 
-const filter_with_boundary = (number, params, solutions, boundary) => {
+const filterWithBoundary = (number, params, solutions, boundary) => {
 	if (boundary == null) { return; }
-	validate_axiom(number, params, boundary, solutions)
+	validateAxiom(number, params, boundary, solutions)
 		.forEach((valid, i) => { if (!valid) { delete solutions[i]; } });
 };
 /**
@@ -80,9 +80,9 @@ const filter_with_boundary = (number, params, solutions, boundary) => {
  * @returns {Line[]} an array of solutions as lines, or an empty array if no solutions.
  */
 const axiom = (number, params = {}, boundary) => {
-	const parameters = check_params(params);
-	const solutions = axiom_boundaryless(number, parameters);
-	filter_with_boundary(number, parameters, solutions, boundary);
+	const parameters = checkParams(params);
+	const solutions = axiomBoundaryless(number, parameters);
+	filterWithBoundary(number, parameters, solutions, boundary);
 	return solutions;
 };
 
@@ -94,6 +94,6 @@ Object.keys(AxiomsUD).forEach(key => { axiom[key] = AxiomsUD[key]; });
 });
 
 // probably move this to axioms/index
-axiom.validate = validate_axiom;
+axiom.validate = validateAxiom;
 
 export default axiom;

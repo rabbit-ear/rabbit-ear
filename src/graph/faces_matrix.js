@@ -31,7 +31,7 @@ export const multiply_vertices_faces_matrix2 = ({ vertices_coords, vertices_face
 			? math.core.identity2x3
 			: faces_matrix[face]);
 	return vertices_coords
-		.map((coord, i) => math.core.multiply_matrix2_vector2(vertices_matrix[i], coord));
+		.map((coord, i) => math.core.multiplyMatrix2Vector2(vertices_matrix[i], coord));
 };
 const unassigned_angle = { U: true, u: true };
 /**
@@ -69,15 +69,15 @@ export const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldA
 				const foldAngle = unassigned_angle[edges_assignment[edge]]
 					? Math.PI
 					: edges_foldAngle[edge] * Math.PI / 180;
-				const local_matrix = math.core.make_matrix3_rotate(
+				const local_matrix = math.core.makeMatrix3Rotate(
 					foldAngle, // rotation angle
-					math.core.subtract(...math.core.resize_up(coords[1], coords[0])), // line-vector
+					math.core.subtract(...math.core.resizeUp(coords[1], coords[0])), // line-vector
 					coords[0], // line-origin
 				);
 				faces_matrix[entry.face] = math.core
-					.multiply_matrices3(faces_matrix[entry.parent], local_matrix);
+					.multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
 					// to build the inverse matrix, switch these two parameters
-					// .multiply_matrices3(local_matrix, faces_matrix[entry.parent]);
+					// .multiplyMatrices3(local_matrix, faces_matrix[entry.parent]);
 			}));
 	return faces_matrix;
 };
@@ -134,12 +134,12 @@ export const make_faces_matrix2 = ({ vertices_coords, edges_vertices, edges_fold
 				const reflect_vector = math.core.subtract2(coords[1], coords[0]);
 				const reflect_origin = coords[0];
 				const local_matrix = edges_is_folded[edge]
-					? math.core.make_matrix2_reflect(reflect_vector, reflect_origin)
+					? math.core.makeMatrix2Reflect(reflect_vector, reflect_origin)
 					: math.core.identity2x3;
 				faces_matrix[entry.face] = math.core
-					.multiply_matrices2(faces_matrix[entry.parent], local_matrix);
+					.multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
 					// to build the inverse matrix, switch these two parameters
-					// .multiply_matrices2(local_matrix, faces_matrix[entry.parent]);
+					// .multiplyMatrices2(local_matrix, faces_matrix[entry.parent]);
 			}));
 	return faces_matrix;
 };

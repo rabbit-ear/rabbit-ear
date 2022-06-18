@@ -10,12 +10,12 @@ test("regular polygon bases", () => {
 	});
 });
 
-test("other shapes", () => {
-	const circle = ear.graph.circle();
-	expect(circle.vertices_coords.length).toBe(90);
-	const circle64 = ear.graph.circle(64);
-	expect(circle64.vertices_coords.length).toBe(64);
-});
+// test("other shapes", () => {
+// 	const circle = ear.graph.circle();
+// 	expect(circle.vertices_coords.length).toBe(90);
+// 	const circle64 = ear.graph.circle(64);
+// 	expect(circle64.vertices_coords.length).toBe(64);
+// });
 
 test("bases", () => {
 	const kite = ear.graph.kite();

@@ -108,8 +108,8 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 	}
 	graph.faces_winding = make_faces_winding_from_matrix2(graph.faces_matrix2);
 	graph.faces_crease = graph.faces_matrix2
-		.map(math.core.invert_matrix2)
-		.map(matrix => math.core.multiply_matrix2_line2(matrix, vector, origin));
+		.map(math.core.invertMatrix2)
+		.map(matrix => math.core.multiplyMatrix2Line2(matrix, vector, origin));
 	graph.faces_side = graph.faces_vertices
 		.map((_, i) => make_face_side(
 			graph.faces_crease[i].vector,
@@ -221,9 +221,9 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 	if (assignment !== opposite_assignment) {
 		face0_preMatrix = (!face0_was_split && !graph.faces_side[0]
 			? face0.matrix
-			: math.core.multiply_matrices2(
+			: math.core.multiplyMatrices2(
 					face0.matrix,
-					math.core.make_matrix2_reflect(
+					math.core.makeMatrix2Reflect(
 						face0.crease.vector,
 						face0.crease.origin))
 		);
@@ -232,7 +232,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 	// setting face 0 as the identity matrix, then multiply every
 	// face's matrix by face 0's actual starting matrix
 	graph.faces_matrix2 = make_faces_matrix2(graph, face0_newIndex)
-		.map(matrix => math.core.multiply_matrices2(face0_preMatrix, matrix));
+		.map(matrix => math.core.multiplyMatrices2(face0_preMatrix, matrix));
 	// these are no longer needed. some of them haven't even been fully rebuilt.
 	delete graph.faces_center;
 	delete graph.faces_winding;

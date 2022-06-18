@@ -15,11 +15,11 @@ test("magnitude", () => {
 });
 
 test("mag sq", () => {
-	expect(ear.math.mag_squared([1, 1, 1, 1])).toBe(4);
-	expect(ear.math.mag_squared([])).toBe(0);
-	expect(ear.math.mag_squared([1, -2, 3]))
+	expect(ear.math.magSquared([1, 1, 1, 1])).toBe(4);
+	expect(ear.math.magSquared([])).toBe(0);
+	expect(ear.math.magSquared([1, -2, 3]))
 		.toBe((1 ** 2) + (2 ** 2) + (3 ** 2));
-	expect(ear.math.mag_squared([-100])).toBe(100 * 100);
+	expect(ear.math.magSquared([-100])).toBe(100 * 100);
 });
 
 test("normalize", () => {

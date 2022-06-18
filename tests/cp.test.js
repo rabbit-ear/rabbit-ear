@@ -14,7 +14,7 @@ test("cp draw methods", () => {
 	cp.line([Math.random() - 0.5, Math.random() - 0.5], [0.5, 0.5]);
 	cp.segment(Math.random(), Math.random(), Math.random(), Math.random());
 	cp.ray([Math.random(), Math.random()]);
-	cp.circle(Math.random());
+	// cp.circle(Math.random());
 	cp.rect(Math.random(), Math.random(), Math.random(), Math.random());
 });
 

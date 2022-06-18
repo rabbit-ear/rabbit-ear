@@ -56,7 +56,7 @@ polygon_names
  */
 polygon_names.forEach((name, i) => {
 	Create[name] = () => make_closed_polygon(math.core
-		.make_regular_polygon_side_length(i));
+		.makePolygonSideLength(i));
 })
 /**
  * special cases
@@ -70,7 +70,7 @@ Create.unit_square = () =>
 Create.rectangle = (width = 1, height = 1) =>
 	make_closed_polygon(make_rect_vertices_coords(width, height));
 // Create.circle = (sides = 90) =>
-// 	make_closed_polygon(math.core.make_regular_polygon(sides));
+// 	make_closed_polygon(math.core.makePolygon(sides));
 // origami bases. todo: more
 Create.kite = () => populate({
 	vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],

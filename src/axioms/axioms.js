@@ -34,7 +34,7 @@ import { axiom6ud } from "./axioms_ud";
  * @returns {VectorOriginLine} the line in {vector, origin} form
  */
 export const axiom1 = (point1, point2) => ({
-	vector: math.core.normalize2(math.core.subtract2(...math.core.resize_up(point2, point1))),
+	vector: math.core.normalize2(math.core.subtract2(...math.core.resizeUp(point2, point1))),
 	origin: point1
 });
 /**
@@ -44,10 +44,10 @@ export const axiom1 = (point1, point2) => ({
  * @returns {VectorOriginLine} the line in {vector, origin} form
  */
 export const axiom2 = (point1, point2) => ({
-	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resize_up(point2, point1)))),
+	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(point2, point1)))),
 	origin: math.core.midpoint2(point1, point2)
 });
-// todo: make sure these all get a resize_up or whatever is necessary
+// todo: make sure these all get a resizeUp or whatever is necessary
 /**
  * @description origami axiom 3: form two lines that make the two angular bisectors between
  * two input lines, and in the case of parallel inputs only one solution will be given
@@ -55,7 +55,7 @@ export const axiom2 = (point1, point2) => ({
  * @param {VectorOriginLine} line2 one 2D line in {vector, origin} form
  * @returns {VectorOriginLine[]} an array of lines in {vector, origin} form
  */
-export const axiom3 = (line1, line2) => math.core.bisect_lines2(
+export const axiom3 = (line1, line2) => math.core.bisectLines2(
 	line1.vector, line1.origin, line2.vector, line2.origin
 );
 /**
@@ -77,14 +77,14 @@ export const axiom4 = (line, point) => ({
  * @param {number[]} point one 2D point, the point that is being brought onto the line
  * @returns {VectorOriginLine[]} an array of lines in {vector, origin} form
  */
-export const axiom5 = (line, point1, point2) => (math.core.intersect_circle_line(
+export const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
 		math.core.distance2(point1, point2),
 		point1,
 		line.vector,
 		line.origin,
 		math.core.include_l
 	) || []).map(sect => ({
-		vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resize_up(sect, point2)))),
+		vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(sect, point2)))),
 		origin: math.core.midpoint2(point2, sect)
 	}));
 /**
@@ -97,9 +97,9 @@ export const axiom5 = (line, point1, point2) => (math.core.intersect_circle_line
  * @returns {VectorOriginLine[]} an array of lines in {vector, origin} form
  */
 export const axiom6 = (line1, line2, point1, point2) => axiom6ud(
-	math.core.vector_origin_to_ud(line1),
-	math.core.vector_origin_to_ud(line2),
-	point1, point2).map(math.core.ud_to_vector_origin);
+	math.core.vectorOriginToUD(line1),
+	math.core.vectorOriginToUD(line2),
+	point1, point2).map(math.core.UDToVectorOrigin);
 		// .map(Constructors.line);
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
@@ -113,7 +113,7 @@ export const axiom6 = (line1, line2, point1, point2) => axiom6ud(
  * or undefined if the given lines are parallel
  */
 export const axiom7 = (line1, line2, point) => {
-	const intersect = math.core.intersect_line_line(
+	const intersect = math.core.intersectLineLine(
 		line1.vector, line1.origin,
 		line2.vector, point,
 		math.core.include_l, math.core.include_l);
@@ -121,7 +121,7 @@ export const axiom7 = (line1, line2, point) => {
 		? undefined
 		: ({//Constructors.line(
 // todo: switch this out, but test it as you do
-				vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resize_up(intersect, point)))),
+				vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(intersect, point)))),
 				// vector: math.core.normalize2(math.core.rotate90(line2.vector)),
 				origin: math.core.midpoint2(point, intersect)
 		});

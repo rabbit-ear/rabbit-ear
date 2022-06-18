@@ -13,7 +13,7 @@ Origami.prototype = Object.create(GraphProto);
 Origami.prototype.constructor = Origami;
 
 Origami.prototype.flatFold = function () {
-	const line = math.core.get_line(arguments);
+	const line = math.core.getLine(arguments);
 	const changes = flat_fold(this, line.vector, line.origin);
 	return this;
 };

@@ -32,7 +32,7 @@ export const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, e
 			: faces_matrix[face]);
 	return vertices_coords
 		.map(coord => math.core.resize(3, coord))
-		.map((coord, i) => math.core.multiply_matrix3_vector3(vertices_matrix[i], coord));
+		.map((coord, i) => math.core.multiplyMatrix3Vector3(vertices_matrix[i], coord));
 };
 /**
  * @description this method works for 2D only (no z value).

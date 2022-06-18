@@ -32,7 +32,7 @@ export const update_vertices_sectors = ({ vertices_coords, vertices_vertices, ve
 	if (!vertices_sectors) { return; }
 	vertices_sectors[vertex] = vertices_vertices[vertex].length === 1
 		? [math.core.TWO_PI]
-		: math.core.counter_clockwise_sectors2(vertices_vertices[vertex]
+		: math.core.counterClockwiseSectors2(vertices_vertices[vertex]
 			.map(v => math.core
 				.subtract2(vertices_coords[v], vertices_coords[vertex])));
 };

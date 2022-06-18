@@ -2,7 +2,6 @@
  * Rabbit Ear (c) Kraft
  */
 import * as S from "../../general/strings";
-import math from "../../math";
 import { is_folded_form } from "../../graph/query";
 import { make_faces_winding } from "../../graph/faces_winding";
 // get the SVG library from its binding to the root of the library

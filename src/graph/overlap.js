@@ -35,19 +35,19 @@ export const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edge
 		if (val === false) { return; }
 		// both segment endpoints, true if either one of them is inside the face.
 		const point_in_poly = edges_vertices_coords[e]
-			.map(point => math.core.overlap_convex_polygon_point(
+			.map(point => math.core.overlapConvexPolygonPoint(
 				faces_vertices_coords[f],
 				point,
 				math.core.exclude,
 				epsilon
 			)).reduce((a, b) => a || b, false);
 		if (point_in_poly) { matrix[e][f] = true; return; }
-		const edge_intersect = math.core.intersect_convex_polygon_line(
+		const edge_intersect = math.core.intersectConvexPolygonLine(
 			faces_vertices_coords[f],
 			edges_vector[e],
 			edges_origin[e],
-			math.core.exclude_s,
-			math.core.exclude_s,
+			math.core.excludeS,
+			math.core.excludeS,
 			epsilon
 		);
 		if (edge_intersect) { matrix[e][f] = true; return; }
@@ -87,7 +87,7 @@ export const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, ep
 	const faces_polygon = make_faces_polygon({ vertices_coords, faces_vertices }, epsilon);
 	for (let i = 0; i < faces_vertices.length - 1; i++) {
 		for (let j = i + 1; j < faces_vertices.length; j++) {
-			const overlap = math.core.overlap_convex_polygons(
+			const overlap = math.core.overlapConvexPolygons(
 				faces_polygon[i], faces_polygon[j], epsilon);
 			matrix[i][j] = overlap;
 			matrix[j][i] = overlap;
