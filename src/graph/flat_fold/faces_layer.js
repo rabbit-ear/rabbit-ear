@@ -7,7 +7,6 @@
  * it flips the folding faces over, appends them to the non-folding ordering,
  * and (re-indexes/normalizes) all the z-index values to be the minimum
  * whole number set starting with 0.
- *
  * @param {number[]} each index is a face, each value is the z-layer order.
  * @param {boolean[]} each index is a face, T/F will the face be folded over?
  * @returns {number[]} each index is a face, each value is the z-layer order.

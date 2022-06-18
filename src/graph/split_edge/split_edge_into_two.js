@@ -8,9 +8,9 @@ import * as S from "../../general/strings";
  * { edges_vertices, edges_assignment, edges_foldAngle }
  * including external to the spec: { edges_length, edges_vector }
  * this does not rebuild edges_edges.
- * @param {object} FOLD object, modified in place
- * @param {number} the index of the edge that will be split by the new vertex
- * @param {number} the index of the new vertex
+ * @param {object} graph a FOLD object, modified in place
+ * @param {number} edge_index the index of the edge that will be split by the new vertex
+ * @param {number} new_vertex the index of the new vertex
  * @returns {object[]} array of two edge objects, containing edge data as FOLD keys
  */
 const split_edge_into_two = (graph, edge_index, new_vertex) => {

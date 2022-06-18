@@ -7,6 +7,10 @@ import fold_angles4 from "./fold_angles4";
 import * as kawasaki_math from "./kawasaki_math";
 import * as kawasaki_graph from "./kawasaki_graph";
 import * as validate_single_vertex from "./validate";
+/**
+ * @description A collection of operations done on single vertices
+ * (one vertex in a graph typically surrounded by edges).
+ */
 
 export default Object.assign(Object.create(null), {
 	maekawa_assignments,

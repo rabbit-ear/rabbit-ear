@@ -47,6 +47,11 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 			{ file_spec, file_creator }
 		));
 	};
+
+// const graph = function () { return create("graph", arguments); };
+// const cp = function () { return create("cp", arguments); };
+// const origami = function () { return create("origami", arguments); };
+
 	// tried to improve it. broke it.
 	// ObjectConstructors[name] = function () {
 	//   const certain = Array.from(arguments)

@@ -84,7 +84,13 @@ const join_faces = (graph, faces, edge, vertices) => {
 		faces: new_faces_faces,
 	};
 };
-
+/**
+ * @description remove an edge from a planar graph, rebuild affected faces,
+ * remove any newly isolated vertices.
+ * @param {object} graph a FOLD graph
+ * @param {number} edge the index of the edge to be removed
+ * @returns {undefined}
+ */
 const remove_planar_edge = (graph, edge) => {
 	// the edge's vertices, sorted large to small.
 	// if they are isolated, we want to remove them.

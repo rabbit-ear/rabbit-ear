@@ -13,11 +13,15 @@ const odd_assignment = (assignments) => {
 		if (vs > ms && (assignments[i] === "M" || assignments[i] === "m")) { return i; }
 	}
 }
-
 /**
- * this only works for degree-4 vertices
+ * @description fold a degree-4 single vertex in 3D.
+ * @usage this only works for degree-4 vertices
+ * @param {number[]} sectors an array of sector angles, sorted, around the single vertex.
+ * @param {string[]} assignments an array of FOLD spec characters, "M" or "V".
+ * @param {number} t the fold amount between 0 and 1.
+ * @returns {number[]} four fold angles as numbers in an array.
  */
-const single_vertex_fold_angles = (sectors, assignments, t = 0) => {
+const fold_angles4 = (sectors, assignments, t = 0) => {
 	const odd = odd_assignment(assignments);
 	if (odd === undefined) { return; }
 	const a = sectors[(odd + 1) % sectors.length];
@@ -36,5 +40,5 @@ const single_vertex_fold_angles = (sectors, assignments, t = 0) => {
 		: [pbc, pab, pbc, pab].map((n, i) => odd === i ? -n : n);
 };
 
-export default single_vertex_fold_angles;
+export default fold_angles4;
 

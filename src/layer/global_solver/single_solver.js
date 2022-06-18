@@ -31,7 +31,13 @@ const duplicate_unsolved_layers = (layers) => {
 // if you ever encounter this hash again (the same set of solved and unknowns),
 // we can revert this branch entirely.
 // and this hash table can be stored "globally" for each run.
-
+/**
+ * @description find only one layer solution to a folded graph.
+ * @param {object} graph a FOLD graph
+ * @param {object[]} maps the result of calling make_taco_maps
+ * @param {object} conditions space-separated face-pairs as keys, values are initially all 0, the result of calling make_conditions
+ * @returns {object} solution where keys are space-separated face pairs and values are +1 or -1 describing if the second face is above or below the first.
+ */
 const solver_single = (graph, maps, conditions) => {
 	const startDate = new Date();
 	let recurse_count = 0;

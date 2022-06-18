@@ -79,6 +79,9 @@ const infer_next_steps = (layers, maps, lookup_table, changed_indices) => {
 	}).filter(a => a !== undefined);
 };
 
+/**
+ * @description complete_suggestions_loop
+ */
 const complete_suggestions_loop = (layers, maps, conditions, pair_layer_map) => {
 	// given the current set of conditions, complete them as much as possible
 	// only adding the determined results certain from the current state.

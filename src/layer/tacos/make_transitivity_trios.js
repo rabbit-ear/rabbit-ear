@@ -8,6 +8,10 @@ import { make_faces_faces_overlap } from "../../graph/overlap";
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
  * intersection of all three faces.
+ * @param {object} graph a FOLD graph
+ * @param {boolean[][]} overlap_matrix an overlap-relationship between every face
+ * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} list of arrays containing three face indices.
  */
 const make_transitivity_trios = (graph, overlap_matrix, faces_winding, epsilon = math.core.EPSILON) => {

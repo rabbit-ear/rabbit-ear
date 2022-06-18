@@ -12,6 +12,14 @@ import math from "../math";
 								__/ |
 							 |___/
 */
+
+/**
+ * @typedef UDLine
+ * @type {object}
+ * @property {number[]} u - the line's normal vector
+ * @property {number} d - the shortest distance from the origin to the line
+ */
+
 const intersection_ud = (line1, line2) => {
 	const det = math.core.cross2(line1.u, line2.u);
 	if (Math.abs(det) < math.core.EPSILON) { return undefined; }
@@ -23,7 +31,7 @@ const intersection_ud = (line1, line2) => {
  * @description origami axiom 1: form a line that passes between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
- * @returns {{u: number[], d: number}} the line in {u, d} form
+ * @returns {UDLine} the line in {u, d} form
  */
 export const axiom1ud = (point1, point2) => {
 	const u = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
@@ -33,7 +41,7 @@ export const axiom1ud = (point1, point2) => {
  * @description origami axiom 2: form a perpendicular bisector between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
- * @returns {{u: number[], d: number}} the line in {u, d} form
+ * @returns {UDLine} the line in {u, d} form
  */
 export const axiom2ud = (point1, point2) => {
 	const u = math.core.normalize2(math.core.subtract2(point2, point1));
@@ -42,9 +50,9 @@ export const axiom2ud = (point1, point2) => {
 /**
  * @description origami axiom 3: form two lines that make the two angular bisectors between
  * two input lines, and in the case of parallel inputs only one solution will be given
- * @param {{u: number[], d: number}} line1 one 2D line in {vector, origin} form
- * @param {{u: number[], d: number}} line2 one 2D line in {vector, origin} form
- * @returns {{u: number[], d: number}[]} an array of lines in {u, d} form
+ * @param {UDLine} line1 one 2D line in {vector, origin} form
+ * @param {UDLine} line2 one 2D line in {vector, origin} form
+ * @returns {UDLine[]} an array of lines in {u, d} form
  */
 export const axiom3ud = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
@@ -58,9 +66,9 @@ export const axiom3ud = (line1, line2) => {
 /**
  * @description origami axiom 4: form a line perpendicular to a given line that
  * passes through a point.
- * @param {{u: number[], d: number}} line one 2D line in {u, d} form
+ * @param {UDLine} line one 2D line in {u, d} form
  * @param {number[]} point one 2D point
- * @returns {{u: number[], d: number}} the line in {u, d} form
+ * @returns {UDLine} the line in {u, d} form
  */
  export const axiom4ud = (line, point) => {
 	const u = math.core.rotate90(line.u);
@@ -70,10 +78,10 @@ export const axiom3ud = (line1, line2) => {
 /**
  * @description origami axiom 5: form up to two lines that pass through a point that also
  * brings another point onto a given line
- * @param {{u: number[], d: number}} line one 2D line in {u, d} form
+ * @param {UDLine} line one 2D line in {u, d} form
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
- * @returns {{u: number[], d: number}[]} an array of lines in {u, d} form
+ * @returns {UDLine[]} an array of lines in {u, d} form
  */
 export const axiom5ud = (line, point1, point2) => {
 	const p1base = math.core.dot2(point1, line.u);
@@ -159,11 +167,11 @@ const polynomial = (degree, a, b, c, d) => {
 /**
  * @description origami axiom 6: form up to three lines that are made by bringing
  * a point to a line and a second point to a second line.
- * @param {{u: number[], d: number}} line1 one 2D line in {u, d} form
- * @param {{u: number[], d: number}} line2 one 2D line in {u, d} form
+ * @param {UDLine} line1 one 2D line in {u, d} form
+ * @param {UDLine} line2 one 2D line in {u, d} form
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
- * @returns {{u: number[], d: number}[]} an array of lines in {u, d} form
+ * @returns {UDLine[]} an array of lines in {u, d} form
  */
 export const axiom6ud = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
@@ -198,12 +206,12 @@ export const axiom6ud = (line1, line2, point1, point2) => {
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
  * while being perpendicular to another given line.
- * @param {{u: number[], d: number}} line1 one 2D line in {u, d} form,
+ * @param {UDLine} line1 one 2D line in {u, d} form,
  * the line the point will be brought onto.
- * @param {{u: number[], d: number}} line2 one 2D line in {u, d} form,
+ * @param {UDLine} line2 one 2D line in {u, d} form,
  * the line which the perpendicular will be based off.
  * @param {number[]} point the point to bring onto the line
- * @returns {{u: number[], d: number} | undefined} the line in {u, d} form
+ * @returns {UDLine | undefined} the line in {u, d} form
  * or undefined if the given lines are parallel
  */
 export const axiom7ud = (line1, line2, point) => {

@@ -6,7 +6,13 @@ import { make_faces_polygon } from "../../graph/make";
 import { make_faces_winding } from "../../graph/faces_winding";
 import { make_edges_edges_crossing } from "../../graph/edges_edges";
 import { boolean_matrix_to_indexed_array } from "../../general/arrays";
-
+/**
+ * @description make_tortilla_tortilla_edges_crossing
+ * @param {object} graph a FOLD object graph
+ * @param {todo} todo todo
+ * @param {number} [epsilon=1e-6] optional epsilon value
+ * @returns todo
+ */
 export const make_tortilla_tortilla_edges_crossing = (graph, edges_faces_side, epsilon) => {
 	// get all tortilla edges. could also be done by searching
 	// "edges_assignment" for all instances of F/f. perhaps this way is better.

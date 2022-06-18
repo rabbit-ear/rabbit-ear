@@ -66,8 +66,14 @@ const face_snapshot = (graph, face) => ({
 	layer: graph.faces_layer[face],
 });
 /**
- * @description
- * @param {object} a FOLD graph in crease pattern form.
+ * @description make a crease that passes through the entire origami and modify the
+ * faces order to simulate one side of the faces flipped over and set on top.
+ * @param {object} graph a FOLD graph in crease pattern form, will be modified in place
+ * @param {number[]} vector a 2D vector describing the line as an array of numbers
+ * @param {number[]} origin a 2D origin describing the line as an array of numbers
+ * @param {string} assignment (M/V/F) a FOLD spec encoding of the direction of the fold
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a summary of changes to faces/edges.
  * algorithm outline:
  * Because we want to return the new modified origami in crease pattern form,
  * as we iterate through the faces, splitting faces which cross the crease

@@ -37,20 +37,29 @@ const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
 	// console.log("conditions", conditions);
 	return { maps, conditions };
 };
-
+/**
+ * @description iteratively calculate only one solution to layer order, ignoring any other solutions
+ * @param {object} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a set of solutions where keys are face pairs and values are +1 or -1, the relationship of the two faces.
+ */
 export const one_layer_conditions = (graph, epsilon = 1e-6) => {
 	const data = make_maps_and_conditions(graph, epsilon);
-	const solutions = single_solver(graph, data.maps, data.conditions);
-	return solutions;
+	const solution = single_solver(graph, data.maps, data.conditions);
+	return solution;
 };
-
+/**
+ * @description recursively calculate all solutions to layer order
+ * @param {object} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a set of solutions where keys are face pairs and values are +1 or -1, the relationship of the two faces.
+ */
 export const all_layer_conditions = (graph, epsilon = 1e-6) => {
 	const data = make_maps_and_conditions(graph, epsilon);
 	const solutions = recursive_solver(graph, data.maps, data.conditions);
 	solutions.certain = unsigned_to_signed_conditions(JSON.parse(JSON.stringify(data.conditions)));
 	return solutions;
 };
-
 
 const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6) => {
 	const overlap_matrix = make_faces_faces_overlap(folded, epsilon);
@@ -66,13 +75,23 @@ const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6
 	const maps = make_taco_maps(tacos_tortillas, transitivity_trios);
 	return { maps, conditions };
 };
-
+/**
+ * @description iteratively calculate only one solution to layer order, ignoring any other solutions, enforcing a symmetry line where two sets of faces never cross above/below each other
+ * @param {object} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a set of solutions where keys are face pairs and values are +1 or -1, the relationship of the two faces.
+ */
 export const one_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
 	const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
-	const solutions = single_solver(folded, data.maps, data.conditions);
-	return solutions;
+	const solution = single_solver(folded, data.maps, data.conditions);
+	return solution;
 };
-
+/**
+ * @description recursively calculate all solutions to layer order, enforcing a symmetry line where two sets of faces never cross above/below each other
+ * @param {object} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a set of solutions where keys are face pairs and values are +1 or -1, the relationship of the two faces.
+ */
 export const all_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
 	const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
 	const solutions = recursive_solver(folded, data.maps, data.conditions);

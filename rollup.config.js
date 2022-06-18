@@ -16,6 +16,15 @@ module.exports = [{
   input,
   output: {
     name,
+    file: "rabbit-ear.comments.js",
+    format: "es",
+    banner,
+  },
+  plugins: [json()],
+}, {
+  input,
+  output: {
+    name,
     file: "rabbit-ear.js",
     format: "umd",
 		// format: "es",

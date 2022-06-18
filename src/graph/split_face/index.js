@@ -18,11 +18,12 @@ import * as S from "../../general/strings";
  * @description divide a CONVEX face into two polygons with a straight line cut.
  * if the line ends exactly along existing vertices, they will be
  * used, otherwise, new vertices will be added (splitting edges).
- * @param {object} FOLD object, modified in place
- * @param {number} index of face to split
- * @param {number[]} the vector component describing the cutting line
- * @param {number[]} the point component describing the cutting line
- * @returns {object | undefined} a summary of changes to the FOLD object,
+ * @param {object} graph a FOLD object, modified in place
+ * @param {number} face index of face to split
+ * @param {number[]} vector the vector component describing the cutting line
+ * @param {number[]} point the point component describing the cutting line
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object|undefined} a summary of changes to the FOLD object,
  *  or undefined if no change (no intersection).
  */
 const split_convex_face = (graph, face, vector, point, epsilon) => {

@@ -52,7 +52,13 @@ const precheck = (layers, maps, face_pair_key, new_dir) => {
 // if you ever encounter this hash again (the same set of solved and unknowns),
 // we can revert this branch entirely.
 // and this hash table can be stored "globally" for each run.
-
+/**
+ * @description recursively find all solutions to a folded graph.
+ * @param {object} graph a FOLD graph
+ * @param {object[]} maps the result of calling make_taco_maps
+ * @param {object} conditions space-separated face-pairs as keys, values are initially all 0, the result of calling make_conditions
+ * @returns {object[]} array of solutions where keys are space-separated face pairs and values are +1 or -1 describing if the second face is above or below the first.
+ */
 const recursive_solver = (graph, maps, conditions_start) => {
 	const startDate = new Date();
 	let recurse_count = 0;

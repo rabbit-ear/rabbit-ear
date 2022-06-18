@@ -7,6 +7,15 @@ const get_unassigned_indices = (edges_assignment) => edges_assignment
 
 // sectors and assignments are fenceposted.
 // sectors[i] is bounded by assignment[i] assignment[i + 1]
+/**
+ * @description given a set of assignments (M/V/F/B/U characters), which contains
+ * some U (unassigned), find all permutations of mountain valley to replace all U.
+ * This function solves only one single vertex, the assignments are sorted radially
+ * around the vertex. This validates according to Maekawa's theorem only.
+ * @param {string[]} vertices_edges_assignments array of single characters FOLD spec edges assignments.
+ * @returns {string[][]} array of arrays of strings, all permutations where "U"
+ * assignments have been replaced with "V" or "M".
+ */
 const maekawa_assignments = (vertices_edges_assignments) => {
 	const unassigneds = get_unassigned_indices(vertices_edges_assignments);
 	const permuts = Array.from(Array(2 ** unassigneds.length))

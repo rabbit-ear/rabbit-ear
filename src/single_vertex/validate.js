@@ -26,8 +26,11 @@ const vertices_flat = ({ vertices_edges, edges_assignment }) => vertices_edges
 const folded_assignments = { M:true, m:true, V:true, v:true};
 const maekawa_signs = { M:-1, m:-1, V:1, v:1};
 /**
- * @description these methods will check the entire graph and return
- * indices of vertices which have issues.
+ * @description using edges_assignment, check if Maekawa's theorem is satisfied
+ * for all vertices, and if not, return the vertices which violate the theorem.
+ * todo: this assumes that valley/mountain folds are flat folded.
+ * @param {object} graph a FOLD object
+ * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
  */
 export const validate_maekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
 	if (!vertices_edges) {
@@ -48,7 +51,13 @@ export const validate_maekawa = ({ edges_vertices, vertices_edges, edges_assignm
 		.map((valid, v) => !valid ? v : undefined)
 		.filter(a => a !== undefined);
 };
-
+/**
+ * @description using the vertices of the edges, check if Kawasaki's theorem is satisfied
+ * for all vertices, and if not, return the vertices which violate the theorem.
+ * @param {object} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
+ */
 export const validate_kawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
 	if (!vertices_vertices) {
 		vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });

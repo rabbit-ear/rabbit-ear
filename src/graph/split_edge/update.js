@@ -8,9 +8,9 @@ import { make_vertices_to_edge_bidirectional } from "../make";
  * update new vertex's vertices_vertices, as well as the split edge's
  * endpoint's vertices_vertices to include the new vertex in place of the
  * old endpoints, preserving all other vertices_vertices of the endpoints.
- * @param {object} FOLD object, modified in place
- * @param {number} index of new vertex
- * @param {number[]} vertices that make up the split edge. new vertex lies between.
+ * @param {object} graph a FOLD object, modified in place
+ * @param {number} vertex index of new vertex
+ * @param {number[]} incident_vertices vertices that make up the split edge. new vertex lies between.
  */
 export const update_vertices_vertices = ({ vertices_vertices }, vertex, incident_vertices) => {
 	if (!vertices_vertices) { return; }
@@ -41,10 +41,10 @@ export const update_vertices_sectors = ({ vertices_coords, vertices_vertices, ve
  * update vertices_edges for the new vertex, as well as the split edge's
  * endpoint's vertices_edges to include the two new edges in place of the
  * old one while preserving all other vertices_vertices in each endpoint.
- * @param {object} FOLD object, modified in place
- * @param {number[]} vertices the old edge's two vertices, must be aligned with "new_edges"
+ * @param {object} graph a FOLD object, modified in place
  * @param {number} old_edge the index of the old edge
  * @param {number} new_vertex the index of the new vertex splitting the edge
+ * @param {number[]} vertices the old edge's two vertices, must be aligned with "new_edges"
  * @param {number[]} new_edges the two new edges, must be aligned with "vertices"
  */
 export const update_vertices_edges = ({ vertices_edges }, old_edge, new_vertex, vertices, new_edges) => {
@@ -62,9 +62,9 @@ export const update_vertices_edges = ({ vertices_edges }, old_edge, new_vertex, 
 /**
  * @description a new vertex was added between two faces, update the
  * vertices_faces with the already-known faces indices.
- * @param {object} FOLD object, modified in place
- * @param {number} the new vertex
- * @param {number[]} array of 0, 1, or 2 incident faces.
+ * @param {object} graph a FOLD object, modified in place
+ * @param {number} vertex the index of the new vertex
+ * @param {number[]} faces array of 0, 1, or 2 incident faces.
  */
 export const update_vertices_faces = ({ vertices_faces }, vertex, faces) => {
 	if (!vertices_faces) { return; }
@@ -73,9 +73,9 @@ export const update_vertices_faces = ({ vertices_faces }, vertex, faces) => {
 /**
  * @description a new vertex was added between two faces, update the
  * edges_faces with the already-known faces indices.
- * @param {object} FOLD object, modified in place
- * @param {number[]} array of 2 new edges
- * @param {number[]} array of 0, 1, or 2 incident faces.
+ * @param {object} graph a FOLD object, modified in place
+ * @param {number[]} new_edges array of 2 new edges
+ * @param {number[]} faces array of 0, 1, or 2 incident faces.
  */
 export const update_edges_faces = ({ edges_faces }, new_edges, faces) => {
 	if (!edges_faces) { return; }
@@ -84,10 +84,10 @@ export const update_edges_faces = ({ edges_faces }, new_edges, faces) => {
 /**
  * @description a new vertex was added, splitting an edge. rebuild the
  * two incident faces by replacing the old edge with new one.
- * @param {object} FOLD object, modified in place
- * @param {number[]} indices of two faces to be rebuilt
- * @param {number} new vertex index
- * @param {number[]} the two vertices of the old edge
+ * @param {object} graph a FOLD object, modified in place
+ * @param {number[]} new_vertex indices of two faces to be rebuilt
+ * @param {number} incident_vertices new vertex index
+ * @param {number[]} faces the two vertices of the old edge
  */
 export const update_faces_vertices = ({ faces_vertices }, new_vertex, incident_vertices, faces) => {
 	// exit if we don't even have faces_vertices

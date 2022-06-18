@@ -9,8 +9,10 @@ import { invert_map } from "../graph/maps";
  * ONLY ONE of the possible layer arrangements of the faces.
  * first it finds all pairwise face layer conditions, then
  * finds a topological ordering of each condition.
- * @param {object} a FOLD object, make sure the vertices
+ * @param {object} graph a FOLD object, make sure the vertices
  * have already been folded.
+ * @param {number} [epsilon=1e-6] an optional epsilon value
+ * @returns {number[]} a faces_layer object, describing, for each face (key) which layer the face inhabits (value)
  */
 const make_faces_layer = (graph, epsilon) => {
 	const conditions = one_layer_conditions(graph, epsilon);

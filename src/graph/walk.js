@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description
+ * @description discover a face by walking neighboring vertices until returning to the start.
  * @param {object} FOLD graph
  * @param {number} starting vertex
  * @param {number} second vertex, this sets the direction of the walk

@@ -23,8 +23,7 @@ export const singularize = {
 	faces: "face",
 };
 /**
- * English word for what each edge assignment stands for.
- * both upper and lowercase letter keys reference the word.
+ * @description get the English word for every FOLD spec assignment character (like "M", or "b")
  */
 export const edges_assignment_names = {
 	b: "boundary",
@@ -38,13 +37,15 @@ edges_assignment_values.forEach(key => {
 });
 /**
  * @description convert upper or lowercase edge assignments to lowercase.
- * because edge assignments can be lower or uppercase, this object
- * contains both cases as keys, where the values are only lowercase
+ * Use this to make all assignment cases consistently lowercase.
  */
 export const edges_assignment_to_lowercase = {};
 edges_assignment_values.forEach(key => {
 	edges_assignment_to_lowercase[key] = key.toLowerCase();
 });
+/**
+ * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b")
+ */
 export const edges_assignment_degrees = {
 	M: -180,
 	m: -180,

@@ -15,7 +15,13 @@ const get_opposite_vertices = (graph, vertex, edges) => {
 		? graph.edges_vertices[edge][1]
 		: graph.edges_vertices[edge][0]);
 };
-
+/**
+ * @description given a degree-2 vertex, remove this vertex, merge the adjacent
+ * edges into one, and rebuild the faces on either side.
+ * @param {object} graph a FOLD graph
+ * @param {number} edge the index of the edge to be removed
+ * @returns {undefined}
+ */
 const remove_planar_vertex = (graph, vertex) => {
 	const edges = graph.vertices_edges[vertex];
 	const faces = unique_sorted_integers(graph.vertices_faces[vertex]

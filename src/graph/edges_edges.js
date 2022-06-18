@@ -4,6 +4,9 @@
 import math from "../math";
 import { make_edges_vector } from "./make";
 /**
+ * @description todo: something something edges parallel
+ * @param {object} fold a FOLD graph.
+ * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean[][]} a boolean matrix containing true/false for all,
  * except the diagonal [i][i] which contains undefined.
  */
@@ -81,6 +84,9 @@ const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
  * @desecription find all edges which cross other edges. "cross" meaning
  * the segment overlaps the other segment, excluding the epsilon space
  * around the endpoints, and they are NOT parallel.
+ * @param {object} fold a FOLD graph.
+ * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
+ * @returns todo something todo
  */
 export const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 	if (!edges_vector) {
@@ -100,15 +106,18 @@ export const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edg
 	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.exclude_s, epsilon);
 	return matrix;
 };
-/**
- * @desecription find all edges which overlap one another, meaning
- * the segment overlaps the other segment and they ARE parallel.
- */
 // todo, improvement suggestion:
 // first grouping edges into categories with edges which share parallel-ness.
 // then, express every edge's endpoints in terms of the length along
 // the vector. converting it into 2 numbers, and now all you have to do is
 // test if these two numbers overlap other edges' two numbers.
+/**
+ * @desecription find all edges which overlap one another, meaning
+ * the segment overlaps the other segment and they ARE parallel.
+ * @param {object} fold a FOLD graph.
+ * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
+ * @returns todo something todo
+ */
 export const make_edges_edges_parallel_overlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });

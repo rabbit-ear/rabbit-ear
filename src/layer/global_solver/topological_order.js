@@ -1,6 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+/**
+ * @description find a topological ordering from a set of conditions
+ * @param {object} conditions a solution of face layer conditions where the keys are space-separated pair of faces, and the value is +1 0 or -1.
+ * @param {object} graph a FOLD graph
+ * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
+ */
 const topological_order = (conditions, graph) => {
 	if (!conditions) { return []; }
 	const faces_children = [];

@@ -41,6 +41,8 @@ const axiom_normal_distance = (number, params) => {
 		: [result].filter(a => a !== undefined);
 	return array_results.map(line => math.line.ud(line));
 };
+
+
 /**
  * @description compute the axiom given a set of parameters, and depending
  * on the parameters, use the axioms-u-d methods which parameterize lines
@@ -63,7 +65,20 @@ const filter_with_boundary = (number, params, solutions, boundary) => {
 	validate_axiom(number, params, boundary, solutions)
 		.forEach((valid, i) => { if (!valid) { delete solutions[i]; } });
 };
+/**
+ * The point and line parameter object passed into the axioms function.
+ * @typedef {object} AxiomParams
+ * @property {Array} lines an array of all lines
+ * @property {Array} points an array of all points
+ */
 
+/**
+ * @description seven origami axioms
+ * @param {number} number the axiom number, 1-7
+ * @param {AxiomParams} params the origami axiom parameters, lines and points, in one object.
+ * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
+ * @returns {Line[]} an array of solutions as lines, or an empty array if no solutions.
+ */
 const axiom = (number, params = {}, boundary) => {
 	const parameters = check_params(params);
 	const solutions = axiom_boundaryless(number, parameters);

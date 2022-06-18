@@ -27,11 +27,11 @@ import {
  * - faces_faces
  * todo: edgeOrders
  * @usage requires edges_vertices to be defined
- * @param {object} FOLD object, modified in place
- * @param {number} index of old edge to be split
- * @param {number[]} coordinates of the new vertex to be added. optional.
+ * @param {object} graph FOLD object, modified in place
+ * @param {number} old_edge index of old edge to be split
+ * @param {number[]} coords coordinates of the new vertex to be added. optional.
  * if omitted, a vertex will be generated at the edge's midpoint.
- * @param epsilon, if an incident vertex is within this distance
+ * @param {number} [epsilon=1e-6] if an incident vertex is within this distance
  * the function will not split the edge, simply return this vertex.
  * @returns {object} a summary of the changes with keys "vertex", "edges"
  * "vertex" is the index of the new vertex (or old index, if similar)

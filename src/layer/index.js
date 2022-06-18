@@ -14,6 +14,9 @@ import * as edges_assignments from "./global_solver/edges_assignments"
 import dividing_axis from "./global_solver/dividing_axis"
 import topological_order from "./global_solver/topological_order";
 import make_conditions from "./global_solver/make_conditions";
+import make_taco_maps from "./global_solver/make_taco_maps";
+import recursive_solver from "./global_solver/recursive_solver";
+import single_solver from "./global_solver/single_solver";
 import conditions_to_matrix from "./global_solver/conditions_to_matrix";
 // tacos
 import make_tacos_tortillas from "./tacos/make_tacos_tortillas";
@@ -43,6 +46,10 @@ import * as fold_assignments from "./single_vertex_solver/fold_assignments";
 // import * as relationships from "./matrix/relationships";
 // import * as pleat_paths from "./matrix/pleat_paths";
 
+/**
+ * @description A collection of methods for calculating the layer order
+ * of the faces of an origami in its folded state.
+ */
 export default Object.assign(Object.create(null), {
 	make_faces_layer,
 	make_faces_layers,
@@ -56,6 +63,9 @@ export default Object.assign(Object.create(null), {
 
 	table,
 	make_conditions,
+	make_taco_maps,
+	recursive_solver,
+	single_solver,
 	dividing_axis,
 	topological_order,
 	conditions_to_matrix,

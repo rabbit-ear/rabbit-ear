@@ -18,7 +18,7 @@ export const make_faces_winding_from_matrix2 = faces_matrix => faces_matrix
 
 // cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
 /**
- * @returns {boolean} true if a face is counter-clockwise. this should also
+ * @returns {boolean[]} true if a face is counter-clockwise. this should also
  * mean a true face is upright, false face is flipped.
  */
 export const make_faces_winding = ({ vertices_coords, faces_vertices }) => {

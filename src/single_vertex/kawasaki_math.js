@@ -5,7 +5,7 @@ import math from "../math";
 /**
  * @description given a list of numbers this method will sort them by
  *  even and odd indices and sum the two categories, returning two sums.
- * @param {number[]} one list of numbers
+ * @param {number[]} numbers one list of numbers
  * @returns {number[]} one array of two sums, even and odd indices
  */
 export const alternating_sum = (numbers) => [0, 1]
@@ -15,7 +15,7 @@ export const alternating_sum = (numbers) => [0, 1]
 /**
  * @description alternating_sum, filter odd and even into two categories, then
  *  then set them to be the deviation from the average of the sum.
- * @param {number[]} one list of numbers
+ * @param {number[]} sectors one list of numbers
  * @returns {number[]} one array of two numbers. if both alternating sets sum
  *  to the same, the result will be [0, 0]. if the first set is 2 more than the
  *  second, the result will be [1, -1]. (not [2, 0] or something with a 2 in it)
@@ -29,9 +29,11 @@ export const alternating_sum_difference = (sectors) => {
 //   return alternating_deviation(...interior_angles(...vectors));
 // };
 /**
- * @param {number[]} the angle of the edges in radians, like vectors around a vertex
- * @returns {number[]} for every sector,
- * this is hard coded to work for flat-plane, where sectors sum to 360deg
+ * @description given a set of edges around a single vertex (expressed as an array of radian angles), find all possible single-ray additions which when added to the set, the set
+ * satisfies Kawasaki's theorem.
+ * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
+ * @param {number[]} radians the angle of the edges in radians, like vectors around a vertex. pre-sorted.
+ * @returns {number[]} for every sector either one vector (as an angle in radians) or undefined if that sector contains no solution.
  */
 export const kawasaki_solutions_radians = (radians) => radians
 	// counter clockwise angle between this index and the next
@@ -49,7 +51,13 @@ export const kawasaki_solutions_radians = (radians) => radians
 		? angle
 		: undefined));
 // or should we remove the indices so the array reports [ empty x2, ...]
-
+/**
+ * @description given a set of edges around a single vertex (expressed as an array of vectors), find all possible single-ray additions which when added to the set, the set
+ * satisfies Kawasaki's theorem.
+ * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
+ * @param {number[][]} vectors array of vectors, the edges around a single vertex. pre-sorted.
+ * @returns {number[][]} for every sector either one vector or undefined if that sector contains no solution.
+ */
 export const kawasaki_solutions_vectors = (vectors) => {
 	const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
 	return kawasaki_solutions_radians(vectors_radians)

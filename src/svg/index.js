@@ -64,10 +64,10 @@ const findSVGInParents = (element) => {
 const applyTopLevelOptions = (element, groups, graph, options) => {
 	if (!(options.strokeWidth || options.viewBox || groups[3].length)) { return; }
 	const bounds = get_bounding_rect(graph);
-	const vmax = Math.max(bounds[2], bounds[3]);
+	const vmax = bounds ? Math.max(bounds[2], bounds[3]) : 1;
 	const svgElement = findSVGInParents(element);
 	if (svgElement && options.viewBox) {
-		const viewBoxValue = bounds ? bounds.join(" ") : "";
+		const viewBoxValue = bounds ? bounds.join(" ") : "0 0 1 1";
 		svgElement.setAttributeNS(null, "viewBox", viewBoxValue);
 	}
 	if (options.strokeWidth || options["stroke-width"]) {

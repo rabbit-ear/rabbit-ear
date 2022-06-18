@@ -21,7 +21,7 @@ import clean from "../graph/clean";
 import validate from "../graph/validate";
 import populate from "../graph/populate";
 import fragment from "../graph/fragment";
-import assign from "../graph/assign";
+// import assign from "../graph/assign";
 import subgraph from "../graph/subgraph";
 import { get_boundary } from "../graph/boundary";
 import transform from "../graph/affine";
@@ -60,7 +60,7 @@ const graphMethods = Object.assign({
 	populate,
 	fragment,
 	subgraph,
-	assign,
+	// assign,
 	// convert snake_case to camelCase
 	addVertices: add_vertices,
 	splitEdge: split_edge,

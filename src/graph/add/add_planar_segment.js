@@ -106,8 +106,15 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	return segment_edges;
 };
 /**
- * fragment_edges is the fragment operation but will only operate on a
- * subset of edges.
+ * @description Given a valid planar graph this method will add a new segment
+ * between two points anywhere in the 2D plane, and fix up the graph by clipping
+ * overlapping segments and making new vertices and rebuilding the affected faces.
+ * If edges_assignment or edges_foldAngle exist, this will append "U" and 0.
+ * @param {object} graph a planar FOLD graph, modified in place.
+ * @param {number[]} point1 a 2D point as an array of numbers
+ * @param {number[]} point2 a 2D point as an array of numbers
+ * @param {number} [epsilon=1e-6] optional epsilon for merging vertices
+ * @returns {number[]} the indices of the new edge(s) composing the segment.
  */
 const add_planar_segment = (graph, point1, point2, epsilon = math.core.EPSILON) => {
 	// vertices_sectors not a part of the spec, might not be included.

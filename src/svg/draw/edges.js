@@ -30,8 +30,17 @@ const STYLE_FLAT = {
 };
 
 /**
- * @returns an object with 5 keys, each value is an array 
- * {b:[], m:[], v:[], f:[], u:[]}
+ * @typedef EdgesAssignmentIndices
+ * @type {object}
+ * @property {number[]} b - boundary edge indices
+ * @property {number[]} m - mountain edge indices
+ * @property {number[]} v - valley edge indices
+ * @property {number[]} f - flat edge indices
+ * @property {number[]} u - unassigned edge indices
+ */
+
+/**
+ * @returns {EdgesAssignmentIndices} an object with 5 keys, each value is an array 
  * arrays contain the unique indices of each edge from the edges_ arrays sorted by assignment
  * if no edges_assignment, or only some defined, remaining edges become "unassigned"
  */
@@ -50,7 +59,7 @@ const edges_coords = ({ vertices_coords, edges_vertices }) => {
 	return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 };
 /**
- * segment is a line segment in the form: [[x1, y1], [x2, y2]]
+ * a segment is a line segment in the form: [[x1, y1], [x2, y2]]
  */
 const segment_to_path = s => `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
 
