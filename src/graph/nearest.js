@@ -2,14 +2,14 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { make_faces_center_quick } from "./make";
+import { makeFacesCenterQuick } from "./make";
 /**
  * @returns index of nearest vertex in vertices_ arrays or
  * this is the only one of the nearest_ functions that works in 3-dimensions
  *
  * todo: improve with space partitioning
  */
-export const nearest_vertex = ({ vertices_coords }, point) => {
+export const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
 	// resize our point to be the same dimension as the first vertex
 	const p = math.core.resize(vertices_coords[0].length, point);
@@ -25,7 +25,7 @@ export const nearest_vertex = ({ vertices_coords }, point) => {
  * returns index of nearest edge in edges_ arrays or
  *  undefined if there are no vertices_coords or edges_vertices
  */
-export const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
+export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
 	const nearest_points = edges_vertices
 		.map(e => e.map(ev => vertices_coords[ev]))
@@ -39,7 +39,7 @@ export const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
 /**
  * from a planar perspective, ignoring z components
  */
-export const face_containing_point = ({ vertices_coords, faces_vertices }, point) => {
+export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
 	if (!vertices_coords || !faces_vertices) { return undefined; }
 	const face = faces_vertices
 		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
@@ -48,15 +48,15 @@ export const face_containing_point = ({ vertices_coords, faces_vertices }, point
 	return (face === undefined ? undefined : face.i);
 };
 
-export const nearest_face = (graph, point) => {
-	const face = face_containing_point(graph, point);
+export const nearestFace = (graph, point) => {
+	const face = faceContainingPoint(graph, point);
 	if (face !== undefined) { return face; }
 	if (graph.edges_faces) {
-		const edge = nearest_edge(graph, point);
+		const edge = nearestEdge(graph, point);
 		const faces = graph.edges_faces[edge];
 		if (faces.length === 1) { return faces[0]; }
 		if (faces.length > 1) {
-			const faces_center = make_faces_center_quick({
+			const faces_center = makeFacesCenterQuick({
 				vertices_coords: graph.vertices_coords,
 				faces_vertices: faces.map(f => graph.faces_vertices[f])
 			});

@@ -12,9 +12,9 @@
 //  */
 // import math from "../../math";
 // import count from "../count";
-// import add_vertices from "./add_vertices";
-// import { make_edges_coords } from "../make";
-// import { transpose_graph_array_at_index } from "../../fold/spec";
+// import addVertices from "./addVertices";
+// import { makeEdgesCoords } from "../make";
+// import { transposeGraphArrayAtIndex } from "../../fold/spec";
 // import clone from "../../general/clone";
 // import remove from "../remove";
 // /**
@@ -24,11 +24,11 @@
 //  * @param {object} source FOLD graph, vertices from here will be added to the other graph
 //  * @returns {array} index of vertex in new vertices_coords array. matches array size of source vertices.
 //  */
-// const add_vertices_split_edges = (graph, vertices_coords) => {
-// 	const new_indices = add_vertices(graph, vertices_coords);
+// const addVertices_splitEdges = (graph, vertices_coords) => {
+// 	const new_indices = addVertices(graph, vertices_coords);
 // 	// determine if any vertex lies collinear along an edge
 // 	// if so, we must split existing edge at the vertex point
-// 	const edges_coords = make_edges_coords(graph);
+// 	const edges_coords = makeEdgesCoords(graph);
 // 	const vertices_edge_collinear = vertices_coords
 // 		.map(v => edges_coords
 // 			.map(edge => math.core.overlap_line_point(
@@ -49,7 +49,7 @@
 // 		.filter(el => el.e !== undefined)
 // 		.map(el => {
 // 			// new edges will retain old edge's properties (foldAngle, assignment...)
-// 			const edge = transpose_graph_array_at_index(graph, "edges", el.e);
+// 			const edge = transposeGraphArrayAtIndex(graph, "edges", el.e);
 // 			// return new edges (copy of old edge) with updated edges_vertices
 // 			return [edge, clone(edge)]
 // 				.map((obj, i) => Object.assign(obj, {
@@ -72,4 +72,4 @@
 // 	return new_indices;
 // };
 
-// export default add_vertices_split_edges;
+// export default addVertices_splitEdges;

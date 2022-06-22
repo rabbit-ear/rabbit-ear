@@ -3,7 +3,7 @@
  */
 import * as S from "../general/strings";
 import DrawGroups from "./draw/index";
-import fold_classes from "./classes";
+// import fold_classes from "./classes";
 import linker from "./linker";
 // get the SVG library from its binding to the root of the library
 import root from "../root";
@@ -16,7 +16,7 @@ const DEFAULT_CIRCLE_RADIUS = 1 / 50;
  * @returns {number[] | undefined} bounding box as [x, y, width, height]
  *  or undefined if no vertices_coords exist.
  */
-const get_bounding_rect = ({ vertices_coords }) => {
+const getBoundingRect = ({ vertices_coords }) => {
 	if (vertices_coords == null || vertices_coords.length === 0) {
 		return undefined;
 	}
@@ -34,7 +34,7 @@ const get_bounding_rect = ({ vertices_coords }) => {
 		: [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
 };
 const getViewBox = (graph) => {
-	const viewBox = get_bounding_rect(graph);
+	const viewBox = getBoundingRect(graph);
 	return viewBox === undefined
 		? ""
 		: viewBox.join(" ");
@@ -63,7 +63,7 @@ const findSVGInParents = (element) => {
  */
 const applyTopLevelOptions = (element, groups, graph, options) => {
 	if (!(options.strokeWidth || options.viewBox || groups[3].length)) { return; }
-	const bounds = get_bounding_rect(graph);
+	const bounds = getBoundingRect(graph);
 	const vmax = bounds ? Math.max(bounds[2], bounds[3]) : 1;
 	const svgElement = findSVGInParents(element);
 	if (svgElement && options.viewBox) {
@@ -85,6 +85,8 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 	}
 };
 /**
+ * @name svg
+ * @memberof graph
  * @description renders a FOLD object into an SVG, ensuring visibility by
  *  setting the viewBox and the stroke-width attributes on the SVG.
  * @param {SVGElement} an already initialized SVG DOM element.
@@ -108,7 +110,7 @@ const drawInto = (element, graph, options = {}) => {
  *  setting the viewBox and the stroke-width attributes on the SVG.
  *  The drawInto() method will accept options/setViewBox in any order.
  * @param {object} graph FOLD object
- * @param {object} options (optional)
+ * @param {object?} options optional options object to style components
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
  */

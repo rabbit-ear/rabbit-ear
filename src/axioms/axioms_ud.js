@@ -20,7 +20,7 @@ import math from "../math";
  * @property {number} d - the shortest distance from the origin to the line
  */
 
-const intersection_ud = (line1, line2) => {
+const intersectionUD = (line1, line2) => {
 	const det = math.core.cross2(line1.u, line2.u);
 	if (Math.abs(det) < math.core.EPSILON) { return undefined; }
 	const x = line1.d * line2.u[1] - line2.d * line1.u[1];
@@ -56,7 +56,7 @@ export const axiom2ud = (point1, point2) => {
  */
 export const axiom3ud = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
-	const intersect = intersection_ud(line1, line2);
+	const intersect = intersectionUD(line1, line2);
 	return intersect === undefined
 		? [{ u: line1.u, d: (line1.d + line2.d * math.core.dot2(line1.u, line2.u)) / 2.0 }]
 		: [math.core.add2, math.core.subtract2]

@@ -9,9 +9,9 @@ test("duplicate edges", () => {
 		faces_edges: [[0,1,2,3,4,5]],
 	};
 	ear.graph.populate(graph);
-	ear.graph.remove_duplicate_edges(graph);
+	ear.graph.removeDuplicateEdges(graph);
 	
-	// remove_duplicate_edges now automatically fixes the vertices
+	// removeDuplicateEdges now automatically fixes the vertices
 	// we don't need to run populate
 	// expect(graph.vertices_vertices[2].length).toBe(4);
 	// expect(graph.vertices_edges[2].length).toBe(4);

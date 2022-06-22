@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { edges_assignment_names } from "../fold/spec";
+import { edgesAssignmentNames } from "../fold/spec";
 import axiom_instructions_data from "../text/axioms.json";
 
 // the diagram frame IS little fold files.
@@ -24,7 +24,7 @@ const make_instructions = (construction) => {
 		return get_instructions_for_axiom(axiom);
 	}
 	return construction.assignment
-		? { en: `${edges_assignment_names[construction.assignment]} fold` }
+		? { en: `${edgesAssignmentNames[construction.assignment]} fold` }
 		: { en: "" };
 };
 
@@ -41,7 +41,7 @@ const diagram_step = (construction) => {
 		case "fold":
 			return {
 				"re:diagram_lines": [{
-					"re:diagram_line_classes": [edges_assignment_names[construction.assignment]],
+					"re:diagram_line_classes": [edgesAssignmentNames[construction.assignment]],
 					"re:diagram_line_coords": construction.edge,
 				}],
 				"re:diagram_arrows": [{

@@ -8,7 +8,7 @@ import math from "../math";
  * @param {number} the origin vertex, around which the vertices will be sorted
  * @returns {number[]} indices of vertices, in sorted order
  */
-export const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) =>
+export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) =>
 	vertices
 		.map(v => vertices_coords[v])
 		.map(coord => math.core.subtract(coord, vertices_coords[vertex]))
@@ -27,7 +27,7 @@ export const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, v
  * @param {number[]} a vector along which to sort vertices
  * @returns {number[]} indices of vertices, in sorted order
  */
-export const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
+export const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) =>
 	vertices
 		.map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
 		.sort((a, b) => a.d - b.d)

@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { make_edges_bounding_box } from "./make";
+import { makeEdgesBoundingBox } from "./make";
 /**
  * contains methods for fast-approximating if geometry overlaps.
  * for example testing if edge's rectangular bounding boxes overlap.
@@ -11,8 +11,8 @@ import { make_edges_bounding_box } from "./make";
  * an array matching vertices_ length, containing true/false, answering
  * the question "does this vertex sit inside the edge's bounding rectangle?"
  */
-export const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
-	make_edges_bounding_box(graph, epsilon)
+export const getEdgesVerticesSpan = (graph, epsilon = math.core.EPSILON) =>
+	makeEdgesBoundingBox(graph, epsilon)
 		.map((min_max, e) => graph.vertices_coords
 			.map((vert, v) => (
 				vert[0] > min_max.min[0] - epsilon &&
@@ -33,8 +33,8 @@ export const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
  * 2 [  ,  , t,  ]
  * 3 [  ,  ,  , t]
  */
-export const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
-	const min_max = make_edges_bounding_box({ vertices_coords, edges_vertices, edges_coords }, epsilon);
+export const getEdgesEdgesSpan = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+	const min_max = makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon);
 	const span_overlaps = edges_vertices.map(() => []);
 	// span_overlaps will be false if no overlap possible, true if overlap is possible.
 	for (let e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {

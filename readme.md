@@ -56,7 +56,7 @@ src/
   fold/
   graph/
   layer/
-  single_vertex/
+  singleVertex/
   svg/
   text/
   use/
@@ -105,7 +105,7 @@ All code related to the manipulation of a graph, this graph being in FOLD format
 
 All code related to solving the layer order of faces in a folded origami.
 
-### single_vertex/
+### singleVertex/
 
 Everything single-vertex related, like Kawasaki and Maekawa's theorem.
 

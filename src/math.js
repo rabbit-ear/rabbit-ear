@@ -1714,7 +1714,7 @@ const intersectLineLine = (
   bFunction = includeL,
   epsilon = EPSILON
 ) => {
-  // a normalized determinant gives consisten values across all epsilon ranges
+  // a normalized determinant gives consistent values across all epsilon ranges
   const det_norm = cross2(normalize(aVector), normalize(bVector));
   // lines are parallel
   if (Math.abs(det_norm) < epsilon) { return undefined; }

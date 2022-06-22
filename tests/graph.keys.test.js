@@ -3,7 +3,7 @@ const ear = require("../rabbit-ear");
 test("edge angle assinments", () => {
 	const assignments = ["B", "b", "M", "m", "V", "v", "F", "f", "U", "u"];
 	const angles = [0, 0, -180, -180, 180, 180, 0, 0, 0, 0];
-	const calculated = assignments.map(a => ear.graph.edge_assignment_to_foldAngle(a));
+	const calculated = assignments.map(a => ear.graph.edgeAssignmentToFoldAngle(a));
 	expect(ear.math.equivalent(calculated, angles)).toBe(true);
 });
 
@@ -33,7 +33,7 @@ test("prefix key search test", () => {
 		"vertices_vertices_vertices",
 		"vertices_vertices_vertices_coords"
 	];
-	const calculated = ear.graph.get_graph_keys_with_prefix(graph, "vertices");
+	const calculated = ear.graph.getGraphKeysWithPrefix(graph, "vertices");
 
 	expect(expected).toEqual(
 		expect.arrayContaining(calculated)
@@ -66,7 +66,7 @@ test("suffix key search test", () => {
 		"_vertices_vertices",
 	];
 
-	const calculated = ear.graph.get_graph_keys_with_suffix(graph, "vertices");
+	const calculated = ear.graph.getGraphKeysWithSuffix(graph, "vertices");
 
 	expect(expected).toEqual(
 		expect.arrayContaining(calculated)
@@ -118,7 +118,7 @@ test("prefix key with extensions search test", () => {
 		"vertices_vertices_vertices_re:coords"
 	];
 
-	const calculated = ear.graph.get_graph_keys_with_prefix(graph, "vertices");
+	const calculated = ear.graph.getGraphKeysWithPrefix(graph, "vertices");
 
 	expect(expected).toEqual(
 		expect.arrayContaining(calculated)
@@ -145,7 +145,7 @@ test("transpose geometry arrays", () => {
 		faces_vertices: [[1, 4, 5, 0], [4, 1, 2, 3]],
 		faces_edges: [[6, 4, 5, 0], [6, 1, 2, 3]]
 	};
-	const transposedVertices = ear.graph.transpose_graph_arrays(graph, "vertices");
+	const transposedVertices = ear.graph.transposeGraphArrays(graph, "vertices");
 
 	const expectedVertex1 = {
 		vertices_coords: [0.5, 0],

@@ -2,12 +2,12 @@
  * Rabbit Ear (c) Kraft
  */
 import GraphProto from "./graph";
-import CreasePatternProto from "./crease_pattern";
+import CreasePatternProto from "./creasePattern";
 import OrigamiProto from "./origami";
 
 import graph_methods from "../graph/index";
 import { file_spec, file_creator } from "../fold/keys";
-import { fold_object_certainty } from "../fold/spec";
+import { isFoldObject } from "../fold/spec";
 import create from "../graph/create";
 import populate from "../graph/populate";
 
@@ -37,7 +37,7 @@ const default_graph = {
 Object.keys(ConstructorPrototypes).forEach(name => {
 	ObjectConstructors[name] = function () {
 		const argFolds = Array.from(arguments)
-			.filter(a => fold_object_certainty(a))
+			.filter(a => isFoldObject(a))
 			 // deep copy input graph
 			.map(obj => JSON.parse(JSON.stringify(obj)));
 		return populate(Object.assign(
@@ -55,7 +55,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 	// tried to improve it. broke it.
 	// ObjectConstructors[name] = function () {
 	//   const certain = Array.from(arguments)
-	//     .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
+	//     .map(arg => ({ arg, certainty: isFoldObject(arg) }))
 	//     .sort((a, b) => a.certainty - b.certainty);
 	//   const fold = certain.length && certain[0].certainty > 0.1
 	//     ? JSON.parse(JSON.stringify(certain.shift().arg))
@@ -64,7 +64,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 	//   // const otherArguments = certain
 	//   //   .map(el => el.arg);
 	//   // const argFold = Array.from(arguments)
-	//   //   .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
+	//   //   .map(arg => ({ arg, certainty: isFoldObject(arg) }))
 	//   //   .sort((a, b) => a.certainty - b.certainty)
 	//   //   .shift();
 	//   // const start = argFold

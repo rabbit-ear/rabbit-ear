@@ -2,14 +2,14 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	make_vertices_edges_unsorted,
-	make_vertices_vertices,
-	make_vertices_to_edge_bidirectional,
+	makeVerticesEdgesUnsorted,
+	makeVerticesVertices,
+	makeVerticesToEdgeBidirectional,
 } from "./make";
 /**
  * @description true false is a vertex on a boundary
  */
-export const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
+export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
 	const vertices = {};
 	edges_vertices.forEach((v, i) => {
 		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
@@ -19,7 +19,7 @@ export const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
 	});
 	return Object.keys(vertices).map(str => parseInt(str));
 };
-const empty_get_boundary = () => ({ vertices: [], edges: [] });
+const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
 /**
  * @description get the boundary as two arrays of vertices and edges
  * by walking the boundary edges as defined by edges_assignment.
@@ -27,10 +27,10 @@ const empty_get_boundary = () => ({ vertices: [], edges: [] });
  * @param {object} a FOLD graph
  * @returns {object} "vertices" and "edges" with arrays of indices.
  */
-export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
-	if (edges_assignment === undefined) { return empty_get_boundary(); }
+export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
 	if (!vertices_edges) {
-		vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const edges_vertices_b = edges_assignment
 		.map(a => a === "B" || a === "b");
@@ -40,7 +40,7 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
 	for (let i = 0; i < edges_vertices_b.length; i += 1) {
 		if (edges_vertices_b[i]) { edgeIndex = i; break; }
 	}
-	if (edgeIndex === -1) { return empty_get_boundary(); }
+	if (edgeIndex === -1) { return emptyBoundaryObject(); }
 	edges_vertices_b[edgeIndex] = false;
 	edge_walk.push(edgeIndex);
 	vertex_walk.push(edges_vertices[edgeIndex][0]);
@@ -50,7 +50,7 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
 		edgeIndex = vertices_edges[nextVertex]
 			.filter(v => edges_vertices_b[v])
 			.shift();
-		if (edgeIndex === undefined) { return empty_get_boundary(); }
+		if (edgeIndex === undefined) { return emptyBoundaryObject(); }
 		if (edges_vertices[edgeIndex][0] === nextVertex) {
 			[, nextVertex] = edges_vertices[edgeIndex];
 		} else {
@@ -75,11 +75,11 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
  */
-export const get_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
+export const getPlanarBoundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
 	if (!vertices_vertices) {
-		vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });    
+		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });    
 	}
-	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const edge_walk = [];
 	const vertex_walk = [];
 	const walk = {

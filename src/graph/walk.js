@@ -9,7 +9,7 @@
  * @param {object} to prevent walking down duplicate paths, or finding duplicate
  * faces, this dictionary will store and check against vertex pairs "i j".
  */
-export const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
+export const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
 	// this gives us a quick lookup to see if we've visited this edge before.
 	const this_walked_edges = {};
@@ -53,12 +53,12 @@ export const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, 
 	}
 };
 
-export const planar_vertex_walk = ({ vertices_vertices, vertices_sectors }) => {
+export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 	const graph = { vertices_vertices, vertices_sectors };
 	const walked_edges = {};
 	return vertices_vertices
 		.map((adj_verts, v) => adj_verts
-			.map(adj_vert => counter_clockwise_walk(graph, v, adj_vert, walked_edges))
+			.map(adj_vert => counterClockwiseWalk(graph, v, adj_vert, walked_edges))
 			.filter(a => a !== undefined))
 		.reduce((a, b) => a.concat(b), [])
 };
@@ -66,9 +66,9 @@ export const planar_vertex_walk = ({ vertices_vertices, vertices_sectors }) => {
  * @description 180 - sector angle = the turn angle. counter clockwise
  * turns are +, clockwise will be -, this removes the one face that
  * outlines the piece with opposite winding enclosing Infinity.
- * @param {object} walked_faces, the result from calling "planar_vertex_walk"
+ * @param {object} walked_faces, the result from calling "planarVertexWalk"
  */
-export const filter_walked_boundary_face = walked_faces => walked_faces
+export const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles
 		.map(a => Math.PI - a)
 		.reduce((a,b) => a + b, 0) > 0);

@@ -3,17 +3,17 @@
  */
 import math from "../math";
 import {
-	make_edges_vector,
-	make_edges_coords,
-	make_faces_polygon,
+	makeEdgesVector,
+	makeEdgesCoords,
+	makeFacesPolygon,
 } from "./make";
-import { make_faces_winding } from "./faces_winding";
+import { makeFacesWinding } from "./facesWinding";
 
-export const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
+export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
-	const faces_winding = make_faces_winding({ vertices_coords, faces_vertices });
+	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
 	// use graph vertices_coords for edges vertices
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	// convert parallel into NOT parallel.
@@ -56,10 +56,10 @@ export const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edge
 	return matrix;
 };
 
-// const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
+// const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
 //   const matrix = Array.from(Array(faces_vertices.length))
 //     .map(() => Array.from(Array(faces_vertices.length)));
-//   const faces_polygon = make_faces_polygon({ vertices_coords, faces_vertices }, epsilon);
+//   const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
 //   for (let i = 0; i < faces_vertices.length - 1; i++) {
 //     for (let j = i + 1; j < faces_vertices.length; j++) {
 //       const intersection = math.core.intersect_polygon_polygon(
@@ -81,10 +81,10 @@ export const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edge
  * of booleans, where both halves of the matrix are filled,
  * matrix[i][j] === matrix[j][i].
  */
-export const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
+export const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))
 		.map(() => Array.from(Array(faces_vertices.length)));
-	const faces_polygon = make_faces_polygon({ vertices_coords, faces_vertices }, epsilon);
+	const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
 	for (let i = 0; i < faces_vertices.length - 1; i++) {
 		for (let j = i + 1; j < faces_vertices.length; j++) {
 			const overlap = math.core.overlapConvexPolygons(

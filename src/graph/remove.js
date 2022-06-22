@@ -2,10 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import count from "./count";
-import { unique_sorted_integers } from "../general/arrays";
+import { uniqueSortedIntegers } from "../general/arrays";
 import {
-	get_graph_keys_with_suffix,
-	get_graph_keys_with_prefix
+	getGraphKeysWithSuffix,
+	getGraphKeysWithPrefix
 } from "../fold/spec";
 /**
  * Removes vertices, edges, or faces (or anything really)
@@ -30,9 +30,9 @@ import {
 // given removeIndices: [4, 6, 7];
 // given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 // map becomes (_=undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6];
-const remove_geometry_indices = (graph, key, removeIndices) => {
+const removeGeometryIndices = (graph, key, removeIndices) => {
 	const geometry_array_size = count(graph, key);
-	const removes = unique_sorted_integers(removeIndices);
+	const removes = uniqueSortedIntegers(removeIndices);
 	const index_map = [];
 	let i, j, walk;
 	for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
@@ -46,18 +46,18 @@ const remove_geometry_indices = (graph, key, removeIndices) => {
 	}
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
-	get_graph_keys_with_suffix(graph, key)
+	getGraphKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
 			.forEach((_, i) => graph[sKey][i]
 				.forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
 	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays do change their size, their contents are untouched
 	removes.reverse();
-	get_graph_keys_with_prefix(graph, key)
+	getGraphKeysWithPrefix(graph, key)
 		.forEach((prefix_key) => removes
 			.forEach(index => graph[prefix_key]
 				.splice(index, 1)));
 	return index_map;
 };
 
-export default remove_geometry_indices;
+export default removeGeometryIndices;

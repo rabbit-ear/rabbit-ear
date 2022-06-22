@@ -8,7 +8,7 @@ import window from "../environment/window"
 
 // const make_faces_geometry = (graph, material) => {
 export const make_faces_geometry = (graph) => {
-	const { THREE } = window;
+	const { THREE } = window();
 	const vertices = graph.vertices_coords
 		.map(v => [v[0], v[1], v[2] || 0])
 		.flat();

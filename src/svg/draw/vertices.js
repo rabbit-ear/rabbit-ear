@@ -5,7 +5,7 @@ import * as S from "../../general/strings";
 // get the SVG library from its binding to the root of the library
 import root from "../../root";
 
-export const vertices_circle = (graph, attributes = {}) => {
+export const verticesCircle = (graph, attributes = {}) => {
 	const g = root.svg.g();
 	if (!graph || !graph.vertices_coords) { return g; }
 	const svg_vertices = graph.vertices_coords

@@ -7,8 +7,6 @@ ear.graph.svg
 methods in this extension will render FOLD objects into SVG. This includes features such as:
 
 - style differentiating edges by mountain/valley, faces by front/back
-- 
-
 
 ## API
 

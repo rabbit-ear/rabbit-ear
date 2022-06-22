@@ -13,7 +13,6 @@ const component_classes = {
 	faces: [S._front, S._back, S._foldedForm],
 	boundaries: [],
 };
-
 /**
  * @param {<g>} svg group element containing the children
  * @param {object} options object

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-export const is_folded_form = (graph) => {
+export const isFoldedForm = (graph) => {
 	return (graph.frame_classes && graph.frame_classes.includes("foldedForm"))
 		|| (graph.file_classes && graph.file_classes.includes("foldedForm"));
 };

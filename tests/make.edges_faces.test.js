@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 test("edges_faces square", () => {
-  const result = ear.graph.make_edges_faces({
+  const result = ear.graph.makeEdgesFaces({
     faces_edges: [[0, 4, 3], [1, 2, 4]]
   });
   expect(result[0]).toEqual(expect.arrayContaining([0]));
@@ -12,7 +12,7 @@ test("edges_faces square", () => {
 });
 
 test("edges_faces", () => {
-  const result = ear.graph.make_edges_faces({
+  const result = ear.graph.makeEdgesFaces({
     faces_edges: [[8, 7, 6], [5, 4, 3]]
   });
   expect(result[0].length).toBe(0);

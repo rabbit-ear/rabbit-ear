@@ -5,7 +5,17 @@
 const SVG_Constructor = {
 	init: () => {},
 };
-
+/**
+ * @name svg
+ * @description Create an svg element, the object will be bound with instance methods for creating children and styles.
+ * @memberof SVG
+ * @param {Element} [parent=undefined] optional parent DOM element, this will append to.
+ * @param {number} [width=undefined] optional width of viewBox (if present, include height)
+ * @param {number} [height=undefined] optional height of viewBox (if present, include width)
+ * @param {function} [callback=undefined] optional function which will be
+ * executed upon completion of initialization.
+ * @returns {Element} one svg DOM element
+ */
 function SVG () {
 	return SVG_Constructor.init(...arguments);
 }
@@ -42,45 +52,50 @@ const str_tail = "tail";
  * SVG (c) Kraft
  */
 
-var detect = {
 // compare to "undefined", the string
-	isBrowser: typeof window !== str_undefined
-		&& typeof window.document !== str_undefined,
-	isNode: typeof process !== str_undefined
-		&& process.versions != null
-		&& process.versions.node != null,
-	isWebWorker: typeof self === str_object
-		&& self.constructor
-		&& self.constructor.name === "DedicatedWorkerGlobalScope",
+const isBrowser = typeof window !== str_undefined
+	&& typeof window.document !== str_undefined;
+
+const isNode = typeof process !== str_undefined
+	&& process.versions != null
+	&& process.versions.node != null;
+
+const svgErrors = [];
+
+svgErrors[10] = `"error 010: window" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )`;
+
+/**
+ * SVG (c) Kraft
+ */
+
+const svgWindowContainer = { window: undefined };
+
+const buildHTMLDocument = (newWindow) => new newWindow.DOMParser()
+	.parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
+
+const setWindow = (newWindow) => {
+	// make sure window has a document. xmldom does not, and requires it be built.
+	if (!newWindow.document) { newWindow.document = buildHTMLDocument(newWindow); }
+	svgWindowContainer.window = newWindow;
+	return svgWindowContainer.window;
+};
+// if we are in the browser, by default use the browser's "window".
+if (isBrowser) { svgWindowContainer.window = window; }
+/**
+ * @description get the "window" object, which should have
+ * DOMParser, XMLSerializer, and document.
+ */
+const SVGWindow = () => {
+	if (svgWindowContainer.window === undefined) {
+    throw svgErrors[10];
+	}
+	return svgWindowContainer.window;
 };
 
 /**
  * SVG (c) Kraft
  */
-/**
- * @description an object named "window" with DOMParser, XMLSerializer,
- * and document.
- * in the case of browser-usage, this object is simply the browser window,
- * in the case of nodejs, the package "xmldom" provides the methods.
- */
-const SVGWindow = (function () {
-	let win = {};
-	if (detect.isNode) {
-		const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
-		win.DOMParser = DOMParser;
-		win.XMLSerializer = XMLSerializer;
-		// smallest, valid HTML5 document: doctype with non-whitespace title
-		win.document = new DOMParser().parseFromString(
-			"<!DOCTYPE html><title>.</title>", "text/html");
-	} else if (detect.isBrowser) {
-		win = window;
-	}
-	return win;
-}());
-
-/**
- * SVG (c) Kraft
- */
+/** @description The namespace of an SVG element, the value of the attribute xmlns */
 var NS = "http://www.w3.org/2000/svg";
 
 /**
@@ -809,7 +824,7 @@ function viewBox$1 () {
  * SVG (c) Kraft
  */
 
-const cdata = (textContent) => (new SVGWindow.DOMParser())
+const cdata = (textContent) => (new SVGWindow().DOMParser())
 	.parseFromString("<root></root>", "text/xml")
 	.createCDATASection(`${textContent}`);
 
@@ -892,7 +907,7 @@ const filterWhitespaceNodes = (node) => {
  * parse and checkParseError go together. 
  * checkParseError needs to be called to pull out the .documentElement
  */
-const parse = string => (new SVGWindow.DOMParser())
+const parse = string => (new SVGWindow().DOMParser())
 	.parseFromString(string, "text/xml");
 
 const checkParseError = xml => {
@@ -922,7 +937,7 @@ const async = function (input) {
 						: resolve(svg)))
 				.catch(err => reject(err));
 		}
-		else if (input instanceof SVGWindow.Document) {
+		else if (input instanceof SVGWindow().Document) {
 			return asyncDone(input);
 		}
 	});
@@ -948,8 +963,8 @@ const isFilename = input => typeof input === str_string
 	&& input.length < 10000;
 
 const Load = input => (isFilename(input) 
-	&& detect.isBrowser
-	&& typeof SVGWindow.fetch === str_function
+	&& isBrowser
+	&& typeof SVGWindow().fetch === str_function
 	? async(input)
 	: sync(input));
 
@@ -1039,9 +1054,9 @@ const SAVE_OPTIONS = () => ({
 
 const getWindowStylesheets = function () {
 	const css = [];
-	if (SVGWindow.document.styleSheets) {
-		for (let s = 0; s < SVGWindow.document.styleSheets.length; s += 1) {
-			const sheet = SVGWindow.document.styleSheets[s];
+	if (SVGWindow().document.styleSheets) {
+		for (let s = 0; s < SVGWindow().document.styleSheets.length; s += 1) {
+			const sheet = SVGWindow().document.styleSheets[s];
 			try {
 				const rules = ("cssRules" in sheet) ? sheet.cssRules : sheet.rules;
 				for (let r = 0; r < rules.length; r += 1) {
@@ -1061,13 +1076,13 @@ const getWindowStylesheets = function () {
 };
 
 const downloadInBrowser = function (filename, contentsAsString) {
-	const blob = new SVGWindow.Blob([contentsAsString], { type: "text/plain" });
-	const a = SVGWindow.document.createElement("a");
-	a.setAttribute("href", SVGWindow.URL.createObjectURL(blob));
+	const blob = new SVGWindow().Blob([contentsAsString], { type: "text/plain" });
+	const a = SVGWindow().document.createElement("a");
+	a.setAttribute("href", SVGWindow().URL.createObjectURL(blob));
 	a.setAttribute("download", filename);
-	SVGWindow.document.body.appendChild(a);
+	SVGWindow().document.body.appendChild(a);
 	a.click();
-	SVGWindow.document.body.removeChild(a);
+	SVGWindow().document.body.removeChild(a);
 };
 
 const save = function (svg, options) {
@@ -1076,16 +1091,16 @@ const save = function (svg, options) {
 	// stylesheets present on the window, this allows them to be included.
 	// default: not included.
 	if (options.windowStyle) {
-		const styleContainer = SVGWindow.document.createElementNS(NS, str_style);
+		const styleContainer = SVGWindow().document.createElementNS(NS, str_style);
 		styleContainer.setAttribute("type", "text/css");
 		styleContainer.innerHTML = getWindowStylesheets();
 		svg.appendChild(styleContainer);
 	}
 	// convert the SVG to a string and format it with good indentation
-	const source = (new SVGWindow.XMLSerializer()).serializeToString(svg);
+	const source = (new SVGWindow().XMLSerializer()).serializeToString(svg);
 	const formattedString = vkXML(source);
 	//
-	if (options.download && detect.isBrowser && !detect.isNode) {
+	if (options.download && isBrowser && !isNode) {
 		downloadInBrowser(options.filename, formattedString);
 	}
 	return (options.output === str_svg ? svg : formattedString);
@@ -1209,7 +1224,7 @@ const background = function (element, color) {
 		.filter(child => child.getAttribute(str_class) === bgClass)
 		.shift();
 	if (backRect == null) {
-		backRect = this.Constructor("rect", ...getFrame(element));
+		backRect = this.Constructor("rect", null, ...getFrame(element));
 		backRect.setAttribute(str_class, bgClass);
 		backRect.setAttribute(str_stroke, str_none);
 		element.insertBefore(backRect, element.firstChild);
@@ -1392,8 +1407,8 @@ const Animation = function (element) {
 	let requestId;
 
 	const removeHandlers = () => {
-		if (SVGWindow.cancelAnimationFrame) {
-			SVGWindow.cancelAnimationFrame(requestId);
+		if (SVGWindow().cancelAnimationFrame) {
+			SVGWindow().cancelAnimationFrame(requestId);
 		}
 		Object.keys(handlers)
 			.forEach(uuid => delete handlers[uuid]);
@@ -1416,15 +1431,15 @@ const Animation = function (element) {
 				// prepare next frame
 				frame += 1;
 				if (handlers[uuid]) {
-					requestId = SVGWindow.requestAnimationFrame(handlers[uuid]);
+					requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
 				}
 			};
 			handlers[uuid] = handlerFunc;
 			// node.js doesn't have requestAnimationFrame
 			// we don't need to duplicate this if statement above, because it won't
 			// ever be called if this one is prevented.
-			if (SVGWindow.requestAnimationFrame) {
-				requestId = SVGWindow.requestAnimationFrame(handlers[uuid]);
+			if (SVGWindow().requestAnimationFrame) {
+				requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
 			}
 		},
 		enumerable: true
@@ -1602,9 +1617,6 @@ const applyControlsToSVG = (svg) => {
 /**
  * SVG (c) Kraft
  */
-
-// const ElementConstructor = (new window.DOMParser())
-//   .parseFromString("<div />", "text/xml").documentElement.constructor;
 
 // const findWindowBooleanParam = (...params) => params
 //   .filter(arg => typeof arg === S.str_object)
@@ -1799,7 +1811,11 @@ const Args$1 = (...args) => coordinates(...svg_semi_flatten_arrays(...args)).sli
 
 const setPoints$1 = (element, ...args) => { Args$1(...args)
 	.forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
-
+/**
+ * @name line
+ * @description SVG Line element
+ * @memberof SVG
+ */
 var lineDef = {
 	line: {
 		args: Args$1,
@@ -2026,7 +2042,10 @@ var styleDef = {
 /**
  * SVG (c) Kraft
  */
-
+/**
+ * @description SVG text element
+ * @memberof SVG
+ */
 var textDef = {
 	text: {
 		// assuming people will at most supply coordinate (x,y,z) and text
@@ -2034,12 +2053,12 @@ var textDef = {
 		init: (element, a, b, c, d) => {
 			const text = [a,b,c,d].filter(a => typeof a === str_string).shift();
 			if (text) {
-				element.appendChild(SVGWindow.document.createTextNode(text));
+				element.appendChild(SVGWindow().document.createTextNode(text));
 				// it seems like this is excessive and will never happen
 				// if (element.firstChild) {
 				//   element.firstChild.nodeValue = text;
 				// } else {
-				//   element.appendChild(window.document.createTextNode(text));
+				//   element.appendChild(window().document.createTextNode(text));
 				// }
 			}
 		}
@@ -2486,7 +2505,7 @@ const RequiredAttributes = (element, nodeName) => {
 const bound = {};
 
 const constructor = (nodeName, parent, ...args) => {
-	const element = SVGWindow.document.createElementNS(NS, Nodes[nodeName].nodeName);
+	const element = SVGWindow().document.createElementNS(NS, Nodes[nodeName].nodeName);
 	if (parent) { parent.appendChild(element); }
 	RequiredAttributes(element, nodeName);
 	Nodes[nodeName].init(element, ...args);
@@ -2635,8 +2654,8 @@ const initialize = function (svg, ...args) {
 SVG_Constructor.init = function () {
 	const svg = constructor(str_svg, null, ...arguments);
 	// call initialize as soon as possible. check if page has loaded
-	if (SVGWindow.document.readyState === "loading") {
-		SVGWindow.document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
+	if (SVGWindow().document.readyState === "loading") {
+		SVGWindow().document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
 	} else {
 		initialize(svg, ...arguments);
 	}
@@ -2646,8 +2665,8 @@ SVG_Constructor.init = function () {
 // const SVG = function () {
 // 	const svg = Constructor(S.str_svg, null, ...arguments);
 // 	// call initialize as soon as possible. check if page has loaded
-// 	if (window.document.readyState === "loading") {
-// 		window.document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
+// 	if (window().document.readyState === "loading") {
+// 		window().document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
 // 	} else {
 // 		initialize(svg, ...arguments);
 // 	}
@@ -2667,5 +2686,13 @@ SVG.core = Object.assign(Object.create(null), {
 	children: nodesAndChildren,
 	cdata,
 }, Case, classMethods, dom, svg_algebra, TransformMethods, viewBox);
+
+// the window object, from which the document is used to createElement.
+// when using Node.js, this must be set to to the
+// default export of the library @xmldom/xmldom
+Object.defineProperty(SVG, "window", {
+	enumerable: false,
+	set: value => setWindow(value),
+});
 
 export { SVG as default };

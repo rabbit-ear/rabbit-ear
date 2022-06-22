@@ -10,25 +10,25 @@ import window from "../environment/window";
  */
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-const svg = () => window.document.createElementNS(SVG_NS, "svg");
+const svg = () => window().document.createElementNS(SVG_NS, "svg");
 
-svg.g = () => window.document.createElementNS(SVG_NS, "g");
+svg.g = () => window().document.createElementNS(SVG_NS, "g");
 
 svg.path = function (d) {
-	const p = window.document.createElementNS(SVG_NS, "path");
+	const p = window().document.createElementNS(SVG_NS, "path");
 	p.setAttributeNS(null, "d", d);
 	return p;
 };
 
 svg.polygon = function (pointsArray) {
-	const shape = window.document.createElementNS(SVG_NS, "polygon");
+	const shape = window().document.createElementNS(SVG_NS, "polygon");
 	const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
 	shape.setAttributeNS(null, "points", pointsString);
 	return shape;
 };
 
 svg.circle = function (x, y, radius) {
-	const shape = window.document.createElementNS(SVG_NS, "circle");
+	const shape = window().document.createElementNS(SVG_NS, "circle");
 	shape.setAttributeNS(null, "cx", x);
 	shape.setAttributeNS(null, "cy", y);
 	shape.setAttributeNS(null, "r", radius);

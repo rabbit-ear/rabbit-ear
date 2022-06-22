@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { get_graph_keys_with_prefix } from "../fold/spec";
+import { getGraphKeysWithPrefix } from "../fold/spec";
 /**
  * @param {any[]} arrays any number of arrays
  * @returns {number} the length of the longest array
@@ -23,7 +23,7 @@ const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
  * @param {string} the prefix for a key, eg: "vertices" 
  * @returns {number} the number of vertices, edges, or faces in the graph.
  */
-const count = (graph, key) => max_arrays_length(...get_graph_keys_with_prefix(graph, key).map(key => graph[key]));
+const count = (graph, key) => max_arrays_length(...getGraphKeysWithPrefix(graph, key).map(key => graph[key]));
 
 // standard graph components names
 count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>

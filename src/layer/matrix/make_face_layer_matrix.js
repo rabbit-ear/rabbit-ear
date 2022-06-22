@@ -8,8 +8,8 @@ import {
 } from "./relationships";
 import { make_edges_crossing_face_orders } from "./edges_crossing";
 import make_edges_tacos_layers_faces from "./make_edges_tacos_layers_faces";
-import { invert_map } from "../../graph/maps";
-import make_vertices_faces_layer from "../../graph/vertices_faces_layer";
+import { invertMap } from "../../graph/maps";
+import makeVerticesFacesLayer from "../../graph/vertices_faces_layer";
 import get_layer_violations from "./get_layer_violations";
 
 const matrix_count = (matrix) => {
@@ -37,7 +37,7 @@ const make_face_layer_matrix = (graph, face, epsilon) => {
 		.map(() => Array(graph.faces_vertices.length));
 
 	// each single-vertex layer order, individually
-	const vertices_faces_layer = make_vertices_faces_layer(graph, face, epsilon);
+	const vertices_faces_layer = makeVerticesFacesLayer(graph, face, epsilon);
 	// extract all the solutions at vertices where there is only one solution
 	// we can be absolutely certain about these rules.
 	vertices_faces_layer
@@ -72,7 +72,7 @@ const make_face_layer_matrix = (graph, face, epsilon) => {
 	// console.log("taco tortillas", matrix_count(matrix));
 
 	make_edges_tacos_layers_faces(graph, matrix, epsilon)
-		.map(layers_faces => layers_faces.map(invert_map))
+		.map(layers_faces => layers_faces.map(invertMap))
 		.map(faces_layers => common_relationships(faces_layers))
 		.forEach(group => group
 			.forEach(add_relationship));
@@ -106,7 +106,7 @@ const make_face_layer_matrix = (graph, face, epsilon) => {
 	// console.log("walk again again", matrix_count(matrix));
 
 	make_edges_tacos_layers_faces(graph, matrix, epsilon)
-		.map(layers_faces => layers_faces.map(invert_map))
+		.map(layers_faces => layers_faces.map(invertMap))
 		.map(faces_layers => common_relationships(faces_layers))
 		.forEach(group => group
 			.forEach(add_relationship));

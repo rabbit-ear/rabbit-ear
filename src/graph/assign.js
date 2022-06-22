@@ -3,11 +3,11 @@
 //  */
 // import math from "../math";
 // import count from "./count";
-// import add_vertices from "./add/add_vertices";
+// import addVertices from "./add/addVertices";
 // import * as S from "../general/strings";
 // import {
-// 	get_graph_keys_with_prefix,
-// 	get_graph_keys_with_suffix,
+// 	getGraphKeysWithPrefix,
+// 	getGraphKeysWithSuffix,
 // } from "../fold/spec";
 
 // const vef = [S._vertices, S._edges, S._faces];
@@ -60,8 +60,8 @@
 // 	const maps = {};
 // 	// gather info
 // 	vef.forEach(key => {
-// 		prefixes[key] = get_graph_keys_with_prefix(source, key);
-// 		suffixes[key] = get_graph_keys_with_suffix(source, key);
+// 		prefixes[key] = getGraphKeysWithPrefix(source, key);
+// 		suffixes[key] = getGraphKeysWithSuffix(source, key);
 // 	});
 // 	// if source keys don't exist in the target, create empty arrays
 // 	vef.forEach(geom => prefixes[geom].filter(key => !target[key]).forEach(key => {

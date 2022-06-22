@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { filter_keys_with_suffix } from "../fold/spec";
+import { filterKeysWithSuffix } from "../fold/spec";
 /**
  * @description apply an affine transform to a graph; this includes
  * modifying the position of any key ending with "_coords" and multiplying
@@ -13,14 +13,14 @@ import { filter_keys_with_suffix } from "../fold/spec";
  */
 const apply_matrix_to_graph = function (graph, matrix) {
 	// apply to anything with a coordinate value
-	filter_keys_with_suffix(graph, "coords").forEach((key) => {
+	filterKeysWithSuffix(graph, "coords").forEach((key) => {
 		graph[key] = graph[key]
 			.map(v => math.core.resize(3, v))
 			.map(v => math.core.multiplyMatrix3Vector3(matrix, v));
 	});
 	// update all matrix types
 	// todo, are these being multiplied in the right order?
-	filter_keys_with_suffix(graph, "matrix").forEach((key) => {
+	filterKeysWithSuffix(graph, "matrix").forEach((key) => {
 		graph[key] = graph[key]
 			.map(m => math.core.multiplyMatrices3(m, matrix));
 	});

@@ -17,7 +17,7 @@ test("isolated vertices", () => {
 	  vertices_edges: [[1,3],[0,2],null,[0,1],null,[2,3]]
 	};
 	
-	const isolated = ear.graph.get_isolated_vertices(graph);
+	const isolated = ear.graph.getIsolatedVertices(graph);
 	expect(isolated.length).toBe(2);
 	expect(isolated[0]).toBe(2);
 	expect(isolated[1]).toBe(4);

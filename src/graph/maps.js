@@ -3,14 +3,14 @@
  */
 import * as S from "../general/strings";
 
-export const merge_simple_nextmaps = (...maps) => {
+export const mergeSimpleNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => i);
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
 	return solution;
 };
 
-export const merge_nextmaps = (...maps) => {
+export const mergeNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => [i]);
 	maps.forEach(map => {
@@ -24,7 +24,7 @@ export const merge_nextmaps = (...maps) => {
 	return solution;
 };
 
-export const merge_simple_backmaps = (...maps) => {
+export const mergeSimpleBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	let solution = maps[0].map((_, i) => i);
 	maps.forEach((map, i) => {
@@ -34,7 +34,7 @@ export const merge_simple_backmaps = (...maps) => {
 	return solution;
 };
 
-export const merge_backmaps = (...maps) => {
+export const mergeBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
 	maps.forEach((map, i) => {
@@ -48,7 +48,7 @@ export const merge_backmaps = (...maps) => {
 	return solution;
 };
 
-export const invert_map = (map) => {
+export const invertMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => {
 		if (n == null) { return; }
@@ -67,7 +67,7 @@ export const invert_map = (map) => {
 	return inv;
 };
 
-export const invert_simple_map = (map) => {
+export const invertSimpleMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => { inv[n] = i; });
 	return inv;

@@ -3,18 +3,18 @@
  */
 import math from "../math";
 import {
-	make_edges_vector,
-	make_edges_coords,
-	make_edges_bounding_box,
+	makeEdgesVector,
+	makeEdgesCoords,
+	makeEdgesBoundingBox,
 } from "./make";
-import { get_edges_edges_span } from "./span";
+import { getEdgesEdgesSpan } from "./span";
 
 /**
  * @param {object} a FOLD object
  * @param {number[]} vector. a line defined by a vector crossing a point
  * @param {number[]} point. a line defined by a vector crossing a point
  */
-export const make_edges_line_parallel_overlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
+export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
 	const normalized = math.core.normalize2(vector);
 	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	const edges_vector = edges_vertices
@@ -43,16 +43,16 @@ export const make_edges_line_parallel_overlap = ({ vertices_coords, edges_vertic
  * @param {number[]} point2, the second point of the segment
  * @returns {number[]} array of edge indices which overlap the segment
  */
-export const make_edges_segment_intersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
+export const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
-		edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
+		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}
 	const segment_box = math.core.boundingBox([point1, point2], epsilon);
 	const segment_vector = math.core.subtract2(point2, point1);
 	// convert each edge into a bounding box, do bounding-box intersection
 	// with the segment, filter these results, then run actual intersection
 	// algorithm on this subset.
-	return make_edges_bounding_box({ vertices_coords, edges_vertices, edges_coords }, epsilon)
+	return makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon)
 		.map(box => math.core.overlapBoundingBoxes(segment_box, box))
 		.map((overlap, i) => overlap ? (math.core.intersectLineLine(
 			segment_vector,
@@ -83,17 +83,17 @@ export const make_edges_segment_intersection = ({ vertices_coords, edges_vertice
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
  */
-export const make_edges_edges_intersection = function ({
+export const makeEdgesEdgesIntersection = function ({
 	vertices_coords, edges_vertices, edges_vector, edges_origin
 }, epsilon = math.core.EPSILON) {
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	if (!edges_origin) {
 		edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	}
 	const edges_intersections = edges_vector.map(() => []);
-	const span = get_edges_edges_span({ vertices_coords, edges_vertices }, epsilon);
+	const span = getEdgesEdgesSpan({ vertices_coords, edges_vertices }, epsilon);
 	for (let i = 0; i < edges_vector.length - 1; i += 1) {
 		for (let j = i + 1; j < edges_vector.length; j += 1) {
 			if (span[i][j] !== true) {
@@ -134,7 +134,7 @@ export const make_edges_edges_intersection = function ({
  * @returns {object | undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
  */
-export const intersect_convex_face_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
+export const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
 	// give us back the indices in the faces_vertices[face] array
 	// we can count on these being sorted (important later)
 	const face_vertices_indices = faces_vertices[face]

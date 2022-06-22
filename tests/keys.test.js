@@ -7,17 +7,17 @@ test("keys", () => {
 	// expect(ear.graph.file_creator).toBe("Rabbit Ear");
 });
 
-test("edge_assignment_to_foldAngle", () => {
-	expect(ear.graph.edge_assignment_to_foldAngle("")).toBe(0);
+test("edgeAssignmentToFoldAngle", () => {
+	expect(ear.graph.edgeAssignmentToFoldAngle("")).toBe(0);
 	// every letter besides "m", "v"
 	"abcdefghijklnopqrstuwxyzABCDEFGHIJKLNOPQRSTUWXYZ.!@#$%^&*(){}[]-=_+"
 		.split("")
-		.forEach(ch => expect(ear.graph.edge_assignment_to_foldAngle(ch))
+		.forEach(ch => expect(ear.graph.edgeAssignmentToFoldAngle(ch))
 			.toBe(0));
-	expect(ear.graph.edge_assignment_to_foldAngle("v")).toBe(180);
-	expect(ear.graph.edge_assignment_to_foldAngle("V")).toBe(180);
-	expect(ear.graph.edge_assignment_to_foldAngle("m")).toBe(-180);
-	expect(ear.graph.edge_assignment_to_foldAngle("M")).toBe(-180);
+	expect(ear.graph.edgeAssignmentToFoldAngle("v")).toBe(180);
+	expect(ear.graph.edgeAssignmentToFoldAngle("V")).toBe(180);
+	expect(ear.graph.edgeAssignmentToFoldAngle("m")).toBe(-180);
+	expect(ear.graph.edgeAssignmentToFoldAngle("M")).toBe(-180);
 });
 
 const key_test = {
@@ -34,45 +34,45 @@ const key_test = {
 	_test_test_test_: 0,
 };
 
-test("filter_keys_with_suffix", () => {
-	const result = ear.graph.filter_keys_with_suffix(key_test, "test")
+test("filterKeysWithSuffix", () => {
+	const result = ear.graph.filterKeysWithSuffix(key_test, "test")
 	expect(result.length).toBe(6);
 });
 
-test("filter_keys_with_prefix", () => {
-	const result = ear.graph.filter_keys_with_prefix(key_test, "test")
+test("filterKeysWithPrefix", () => {
+	const result = ear.graph.filterKeysWithPrefix(key_test, "test")
 	expect(result.length).toBe(6);
 });
 
-test("get_graph_keys_with_prefix", () => {
-	const result = ear.graph.get_graph_keys_with_prefix(key_test, "test")
+test("getGraphKeysWithPrefix", () => {
+	const result = ear.graph.getGraphKeysWithPrefix(key_test, "test")
 	expect(result.length).toBe(3);
 });
 
-test("get_graph_keys_with_suffix", () => {
-	const result = ear.graph.get_graph_keys_with_suffix(key_test, "test")
+test("getGraphKeysWithSuffix", () => {
+	const result = ear.graph.getGraphKeysWithSuffix(key_test, "test")
 	expect(result.length).toBe(3);
 });
 
-test("transpose_graph_arrays", () => {
+test("transposeGraphArrays", () => {
 	const craneString = fs.readFileSync("./tests/files/crane.fold", "utf-8");
 	const crane = JSON.parse(craneString);
-	const result = ear.graph.transpose_graph_arrays(crane, "edges");
+	const result = ear.graph.transposeGraphArrays(crane, "edges");
 	expect(result.length).toBe(crane.edges_vertices.length);
 	expect(result[0].edges_vertices.length).toBe(2);
 	expect(result[0].edges_assignment.length).toBe(1); // string, "M" or "V" or something
 	// no key
-	expect(ear.graph.transpose_graph_arrays(crane, "nokey").length)
+	expect(ear.graph.transposeGraphArrays(crane, "nokey").length)
 		.toBe(0);
 });
 
-test("transpose_graph_array_at_index", () => {
+test("transposeGraphArrayAtIndex", () => {
 	const craneString = fs.readFileSync("./tests/files/crane.fold", "utf-8");
 	const crane = JSON.parse(craneString);
-	const result = ear.graph.transpose_graph_array_at_index(crane, "edges", 10);
+	const result = ear.graph.transposeGraphArrayAtIndex(crane, "edges", 10);
 	expect(result.edges_vertices.length).toBe(2);
 	expect(result.edges_assignment.length).toBe(1); // string, "M" or "V" or something
 	// no key
-	expect(ear.graph.transpose_graph_array_at_index(crane, "nokey", 0))
+	expect(ear.graph.transposeGraphArrayAtIndex(crane, "nokey", 0))
 		.toBe(undefined);
 });

@@ -3,7 +3,7 @@
  */
 import math from "../math";
 import GraphProto from "./graph";
-import flat_fold from "../graph/flat_fold/index";
+import flatFold from "../graph/flatFold/index";
 /**
  * Origami - a model of an origami paper
  * prototype is Graph
@@ -14,7 +14,7 @@ Origami.prototype.constructor = Origami;
 
 Origami.prototype.flatFold = function () {
 	const line = math.core.getLine(arguments);
-	const changes = flat_fold(this, line.vector, line.origin);
+	const changes = flatFold(this, line.vector, line.origin);
 	return this;
 };
 

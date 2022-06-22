@@ -14,13 +14,13 @@ const overflow_protection = () => ({ count: 0 })
  * are being built recursivly, as a way of filtering out the large set.
  * @returns
  */
-const matrix_to_layers = (matrix, faces, layers_face = [], test_fn = empty_fn, overflow = overflow_protection()) => {
+const matrixToLayers = (matrix, faces, layers_face = [], test_fn = empty_fn, overflow = overflow_protection()) => {
 	// for the first time running this recursive method, user is allowed to leave
 	// out "faces", and it will be built from the keys of the matrix.
 	if (!faces) { faces = Object.keys(matrix); }
 	overflow.count++;
 	if (overflow.count > 10000) {
-		console.warn("matrix_to_layers overflow protection");
+		console.warn("matrixToLayers overflow protection");
 		return [];
 	}
 	const next_face = faces[0];
@@ -42,8 +42,8 @@ const matrix_to_layers = (matrix, faces, layers_face = [], test_fn = empty_fn, o
 	// test layer for self-intersections
 	return layer_permutations
 		.filter(test_fn)
-		.map(layers => matrix_to_layers(matrix, faces.slice(1), layers, test_fn, overflow))
+		.map(layers => matrixToLayers(matrix, faces.slice(1), layers, test_fn, overflow))
 		.reduce((a, b) => a.concat(b), []);
 };
 
-export default matrix_to_layers;
+export default matrixToLayers;

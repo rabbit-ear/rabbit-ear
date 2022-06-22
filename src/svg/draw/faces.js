@@ -2,8 +2,8 @@
  * Rabbit Ear (c) Kraft
  */
 import * as S from "../../general/strings";
-import { is_folded_form } from "../../graph/query";
-import { make_faces_winding } from "../../graph/faces_winding";
+import { isFoldedForm } from "../../graph/query";
+import { makeFacesWinding } from "../../graph/facesWinding";
 // get the SVG library from its binding to the root of the library
 import root from "../../root";
 
@@ -47,13 +47,13 @@ const apply_style = (el, attributes = {}) => Object.keys(attributes)
  * and applies style attributes to the group itself too.
  */
 const finalize_faces = (graph, svg_faces, group, attributes) => {
-	const isFolded = is_folded_form(graph);
+	const isFolded = isFoldedForm(graph);
 	// currently, layer order is determined by "faces_layer" key, and
 	// ensuring that the length matches the number of faces in the graph.
 	const orderIsCertain = graph[S._faces_layer] != null
 		&& graph[S._faces_layer].length === graph[S._faces_vertices].length;
 	const classNames = [[S._front], [S._back]];
-	const faces_winding = make_faces_winding(graph);
+	const faces_winding = makeFacesWinding(graph);
 	// counter-clockwise faces are "face up", their front facing the camera
 	// clockwise faces means "flipped", their back is facing the camera.
 	// set these class names, and apply the style as attributes on each face.
@@ -91,7 +91,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
  * @returns {SVGElement[]} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
-export const faces_vertices_polygon = (graph, attributes = {}) => {
+export const facesVerticesPolygon = (graph, attributes = {}) => {
 	const g = root.svg.g();
 	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
 	const svg_faces = graph.faces_vertices
@@ -107,7 +107,7 @@ export const faces_vertices_polygon = (graph, attributes = {}) => {
  * @returns {SVGElement[]} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
-export const faces_edges_polygon = function (graph, attributes = {}) {
+export const facesEdgesPolygon = function (graph, attributes = {}) {
 	const g = root.svg.g();
 	if (!graph
 		|| S._faces_edges in graph === false

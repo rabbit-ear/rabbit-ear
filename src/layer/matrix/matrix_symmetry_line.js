@@ -2,14 +2,14 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { make_faces_center } from "../../graph/make";
+import { makeFacesCenter } from "../../graph/make";
 
 // this honestly should be avoided until a lot more testing.
 // it makes a lot of assumptions.
 // assumes that all of the faces on either side of the symmetry line
 // in the crease pattern remain on their side of the symmetry line
 // in the folded form.
-const get_face_symmetry_side = (graph, symmetry_line) => make_faces_center(graph)
+const get_face_symmetry_side = (graph, symmetry_line) => makeFacesCenter(graph)
 	.map(center => math.core.subtract(center, symmetry_line.origin))
 	.map(center => math.core.cross2(center, symmetry_line.vector))
 	.map(side => side < 0 ? 1 : -1);

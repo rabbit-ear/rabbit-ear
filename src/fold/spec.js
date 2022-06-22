@@ -3,8 +3,8 @@
  */
 import {
 	keys,
-	non_spec_keys,
-	edges_assignment_values,
+	keysOutOfSpec,
+	edgesAssignmentValues,
 } from "./keys";
 /**
  * this contains two types of methods.
@@ -25,28 +25,28 @@ export const singularize = {
 /**
  * @description get the English word for every FOLD spec assignment character (like "M", or "b")
  */
-export const edges_assignment_names = {
+export const edgesAssignmentNames = {
 	b: "boundary",
 	m: "mountain",
 	v: "valley",
 	f: "flat",
 	u: "unassigned"
 };
-edges_assignment_values.forEach(key => {
-	edges_assignment_names[key.toUpperCase()] = edges_assignment_names[key];
+edgesAssignmentValues.forEach(key => {
+	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
 });
 /**
  * @description convert upper or lowercase edge assignments to lowercase.
  * Use this to make all assignment cases consistently lowercase.
  */
-export const edges_assignment_to_lowercase = {};
-edges_assignment_values.forEach(key => {
-	edges_assignment_to_lowercase[key] = key.toLowerCase();
+export const edgesAssignmentToLowercase = {};
+edgesAssignmentValues.forEach(key => {
+	edgesAssignmentToLowercase[key] = key.toLowerCase();
 });
 /**
  * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b")
  */
-export const edges_assignment_degrees = {
+export const edgesAssignmentDegrees = {
 	M: -180,
 	m: -180,
 	V: 180,
@@ -62,22 +62,22 @@ export const edges_assignment_degrees = {
  * @param {string} one edge assignment letter, any case: M V B F U
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
  */
-export const edge_assignment_to_foldAngle = assignment =>
-	edges_assignment_degrees[assignment] || 0;
+export const edgeAssignmentToFoldAngle = assignment =>
+	edgesAssignmentDegrees[assignment] || 0;
 /**
  * @param {number} fold angle in degrees.
  * @returns {string} one edge assignment letter: M V or U, no boundary detection.
  *
  * todo: what should be the behavior for 0, undefined, null?
  */
-export const edge_foldAngle_to_assignment = (a) => {
+export const edgeFoldAngleToAssignment = (a) => {
 	if (a > 0) { return "V"; }
 	if (a < 0) { return "M"; }
 	// if (a === 0) { return "F"; }
 	return "U";
 };
 const flat_angles = { 0: true, "-0": true, 180: true, "-180": true };
-export const edge_foldAngle_is_flat = angle => flat_angles[angle] === true;
+export const edgeFoldAngleIsFlat = angle => flat_angles[angle] === true;
 /**
  * @description determine if an edges_foldAngle array contains only
  * flat-folded angles, strictly the set: 0, -180, or +180.
@@ -85,7 +85,7 @@ export const edge_foldAngle_is_flat = angle => flat_angles[angle] === true;
  * are flat, and the method returns "true".
  * @returns {boolean} is the graph flat-foldable according to foldAngles.
  */
-export const edges_foldAngle_all_flat = ({ edges_foldAngle }) => {
+export const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	if (!edges_foldAngle) { return true; }
 	for (let i = 0; i < edges_foldAngle.length; i++) {
 		if (!flat_angles[edges_foldAngle[i]]) { return false; }
@@ -97,7 +97,7 @@ export const edges_foldAngle_all_flat = ({ edges_foldAngle }) => {
  * @param {string} a suffix to match against the keys
  * @returns {string[]} array of keys that end with the string param
  */
-export const filter_keys_with_suffix = (graph, suffix) => Object
+export const filterKeysWithSuffix = (graph, suffix) => Object
 	.keys(graph)
 	.map(s => (s.substring(s.length - suffix.length, s.length) === suffix
 		? s : undefined))
@@ -107,7 +107,7 @@ export const filter_keys_with_suffix = (graph, suffix) => Object
  * @param {string} a prefix to match against the keys
  * @returns {string[]} array of keys that start with the string param
  */
-export const filter_keys_with_prefix = (graph, prefix) => Object
+export const filterKeysWithPrefix = (graph, prefix) => Object
 	.keys(graph)
 	.map(str => (str.substring(0, prefix.length) === prefix
 		? str : undefined))
@@ -120,8 +120,8 @@ export const filter_keys_with_prefix = (graph, prefix) => Object
  * vertices_coords, vertices_faces,
  * but not edges_vertices, or verticesCoords (must end with _)
  */
-export const get_graph_keys_with_prefix = (graph, key) =>
-	filter_keys_with_prefix(graph, `${key}_`);
+export const getGraphKeysWithPrefix = (graph, key) =>
+	filterKeysWithPrefix(graph, `${key}_`);
 /**
  * return a list of keys from a FOLD object that match a provided
  * string such that the key ENDS WITH this string, preceded by _.
@@ -130,15 +130,15 @@ export const get_graph_keys_with_prefix = (graph, key) =>
  * edges_vertices, faces_vertices,
  * but not vertices_coords, or edgesvertices (must prefix with _)
  */
-export const get_graph_keys_with_suffix = (graph, key) =>
-	filter_keys_with_suffix(graph, `_${key}`);
+export const getGraphKeysWithSuffix = (graph, key) =>
+	filterKeysWithSuffix(graph, `_${key}`);
 
 /**
  * this takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating 1 array of objects with the keys
  */
-export const transpose_graph_arrays = (graph, geometry_key) => {
-	const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+export const transposeGraphArrays = (graph, geometry_key) => {
+	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return []; }
 	const len = Math.max(...matching_keys.map(arr => graph[arr].length));
 	const geometry = Array.from(Array(len))
@@ -160,12 +160,12 @@ export const transpose_graph_arrays = (graph, geometry_key) => {
  * this takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating 1 array of objects with the keys
  */
-export const transpose_graph_array_at_index = function (
+export const transposeGraphArrayAtIndex = function (
 	graph,
 	geometry_key,
 	index
 ) {
-	const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return undefined; }
 	const geometry = {};
 	// matching_keys
@@ -175,8 +175,8 @@ export const transpose_graph_array_at_index = function (
 	return geometry;
 };
 
-export const fold_object_certainty = (object = {}) => (
+export const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
 		? 0
-		: [].concat(keys, non_spec_keys)
+		: [].concat(keys, keysOutOfSpec)
 			.filter(key => object[key]).length / Object.keys(object).length);

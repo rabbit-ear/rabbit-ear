@@ -5,7 +5,7 @@
 import * as S from "../general/strings";
 import remove from "./remove";
 import count from "./count";
-import { unique_sorted_integers } from "../general/arrays";
+import { uniqueSortedIntegers } from "../general/arrays";
 // maybe we can do this without copying the entire graph first. use the component arrays to bring over only what is necessary
 
 // todo: this is still an early sketch. needs to be completed
@@ -15,7 +15,7 @@ const subgraph = (graph, components) => {
 	const sorted_components = {};
 	[S._faces, S._edges, S._vertices].forEach(key => {
 		remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
-		sorted_components[key] = unique_sorted_integers(components[key] || []).reverse();
+		sorted_components[key] = uniqueSortedIntegers(components[key] || []).reverse();
 	});
 	Object.keys(sorted_components)
 		.forEach(key => sorted_components[key]

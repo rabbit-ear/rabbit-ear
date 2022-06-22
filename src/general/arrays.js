@@ -7,7 +7,7 @@
  * @param {number[]} array of integers
  * @returns {number[]} set of sorted, unique integers
  */
-export const unique_sorted_integers = (array) => {
+export const uniqueSortedIntegers = (array) => {
 	const keys = {};
 	array.forEach((int) => { keys[int] = true; });
 	return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
@@ -19,7 +19,7 @@ export const unique_sorted_integers = (array) => {
  * @param {number[]} two numbers, indices that divide the array into 2 parts.
  * @returns {any[][]} the same array split into two portions, inside an array.
  */
-export const split_circular_array = (array, indices) => {
+export const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
 	return [
 		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
@@ -32,7 +32,7 @@ export const split_circular_array = (array, indices) => {
  * @param {any[][]} this is an array of arrays.
  * @return {any[]} one of the arrays from the set
  */
-export const get_longest_array = (arrays) => {
+export const getLongestArray = (arrays) => {
 	if (arrays.length === 1) { return arrays[0]; }
 	const lengths = arrays.map(arr => arr.length);
 	let max = 0;
@@ -50,7 +50,7 @@ export const get_longest_array = (arrays) => {
  * the intended use case is an array of {number[]}.
  * @returns {any[]} input array, filtering out any items which only appear once.
  */
-export const remove_single_instances = (array) => {
+export const removeSingleInstances = (array) => {
 	const count = {};
 	array.forEach(n => {
 		if (count[n] === undefined) { count[n] = 0; }
@@ -62,14 +62,14 @@ export const remove_single_instances = (array) => {
  * @description convert a non-sparse matrix of true/false/undefined
  * into arrays containing the index of the trues.
  */
-export const boolean_matrix_to_indexed_array = matrix => matrix
+export const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
 		.map((value, i) => value === true ? i : undefined)
 		.filter(a => a !== undefined));
 /**
  * triangle number, only visit half the indices. make unique pairs
  */
-export const boolean_matrix_to_unique_index_pairs = matrix => {
+export const booleanMatrixToUniqueIndexPairs = matrix => {
 	const pairs = [];
 	for (let i = 0; i < matrix.length - 1; i++) {
 		for (let j = i + 1; j < matrix.length; j++) {
@@ -87,7 +87,7 @@ export const boolean_matrix_to_unique_index_pairs = matrix => {
  * where each item is included in a group if it points to another member
  * in that group.
  */
-export const make_unique_sets_from_self_relational_arrays = (matrix) => {
+export const makeUniqueSetsFromSelfRelationalArrays = (matrix) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -107,7 +107,7 @@ export const make_unique_sets_from_self_relational_arrays = (matrix) => {
  * the length is a triangle number, ie: 6 + 5 + 4 + 3 + 2 + 1
  * (length * (length-1)) / 2
  */
-export const make_triangle_pairs = (array) => {
+export const makeTrianglePairs = (array) => {
 	const pairs = Array((array.length * (array.length - 1)) / 2);
 	let index = 0;
 	for (let i = 0; i < array.length - 1; i++) {
@@ -125,7 +125,7 @@ export const make_triangle_pairs = (array) => {
  * will return two entries: [ [8, 1], [3, 5] ]
  * @param {any[]} the array, which possibly contains holes
  */
-export const circular_array_valid_ranges = (array) => {
+export const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.
 	const not_undefineds = array.map(el => el !== undefined);
 	if (not_undefineds.reduce((a, b) => a && b, true)) {
@@ -162,7 +162,7 @@ export const circular_array_valid_ranges = (array) => {
  * it's possible that the holes exist at the end of the array,
  * causing it to misreport the (intended) length.
  */
-// const circular_array_valid_range = (array, array_length) => {
+// const circularArrayValidRange = (array, array_length) => {
 //   let start, end;
 //   for (start = array_length - 1;
 //     start >= 0 && array[start] !== undefined;
@@ -174,7 +174,7 @@ export const circular_array_valid_ranges = (array) => {
 //   return [start, end];
 // };
 
-// this is now "invert_simple_map" in maps.js
+// this is now "invertSimpleMap" in maps.js
 // export const invert_array = (a) => {
 // 	const b = [];
 // 	a.forEach((n, i) => { b[n] = i; });

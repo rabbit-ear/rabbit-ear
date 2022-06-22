@@ -14,6 +14,7 @@
 */
 // needed to check the environment
 import { isWebWorker } from "./environment/detect";
+import { setWindow } from "./environment/window";
 // the library itself
 import root from "./root";
 // object-oriented style object constructors
@@ -22,9 +23,11 @@ import Constructors from "./classes/index";
 import math from "./math";
 import diagram from "./diagrams/index";
 import layer from "./layer/index";
-import vertex from "./single_vertex/index";
+import singleVertex from "./singleVertex/index";
 import axiom from "./axioms/index";
 import text from "./text/index";
+// a minified substitute SVG library
+// import svg from "./svg/svg_mini";
 import use from "./use/index";
 /**
  * extensions
@@ -38,17 +41,18 @@ import use from "./use/index";
 import foldToSVG from "./svg/index";
 /** SVG drawing library with a lot of functionality */
 import SVG from "./extensions/svg"; // replaces minified substitute
-// /** WebGL extension, draw FOLD objects into WebGL canvas. */
-// import * as webgl from "./webgl/fold-to-three";
+/** WebGL extension, draw FOLD objects into WebGL canvas. */
+import * as webgl from "./webgl/fold-to-three";
 
 const ear = Object.assign(root, Constructors, {
 	math: math.core,
 	axiom,
 	diagram,
 	layer,
-	vertex,
+	singleVertex,
 	text,
-	// webgl,
+	webgl,
+	// svg,
 });
 /**
  * math is uniquely constructed where all the core methods are exposed
@@ -73,5 +77,19 @@ if (!isWebWorker) {
 	ear.use(foldToSVG); // must happen before SVG
 	ear.use(SVG);
 }
+
+Object.defineProperty(ear, "window", {
+	enumerable: false,
+	set: value => {
+		setWindow(value);
+		// hardcoded. update window in extensions automatically, if we know them.
+		SVG.window = value;
+	},
+});
+
+// Object.defineProperty(ear, "three", {
+// 	enumerable: false,
+// 	set: value => setTHREE(value),
+// });
 
 export default ear;

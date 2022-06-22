@@ -36,10 +36,9 @@
 	"bugs": {
 		"url": "https://github.com/robbykraft/Origami/issues"
 	},
-	"dependencies": {
-		"@xmldom/xmldom": "^0.8.2"
-	},
+	"dependencies": {},
 	"devDependencies": {
+		"@xmldom/xmldom": "^0.8.2",
 		"@babel/preset-env": "^7.18.2",
 		"jest": "^28.1.0",
 		"rollup": "^2.75.5",

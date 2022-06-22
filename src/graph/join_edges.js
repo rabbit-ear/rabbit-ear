@@ -3,16 +3,16 @@
 //  */
 // import math from "../math";
 // import {
-// 	make_edges_vector,
-// 	make_vertices_edges_unsorted
+// 	makeEdgesVector,
+// 	makeVerticesEdgesUnsorted
 // } from "./make";
 
 // export const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.core.EPSILON) => {
 // 	if (!edges_vector) {
-// 		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+// 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 // 	}
 // 	if (!vertices_edges) {
-// 		vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
+// 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 // 	}
 // 	// list of vertex indices which have exactly 2 adjacent vertices.
 // 	const two_adjacencies_vertices = vertices_edges
