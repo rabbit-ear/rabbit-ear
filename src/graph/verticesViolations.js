@@ -11,11 +11,21 @@ import * as S from "../general/strings";
 import remove from "./remove";
 import replace from "./replace";
 
+/**
+ * @description get the indices of all vertices which lie close to other vertices
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} arrays of clusters of similar vertices. todo check this
+ */
 export const getDuplicateVertices = (graph, epsilon) => {
 	return getVerticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1);
 };
-
+/**
+ * @description get the indices of all vertices which make no appearance in any edge.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} the indices of the isolated vertices
+ */
 export const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
 	let count = vertices_coords.length;
@@ -30,7 +40,11 @@ export const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => 
 		.map((s, i) => (s ? undefined : i))
 		.filter(a => a !== undefined);
 };
-
+/**
+ * @description get the indices of all vertices which make no appearance in any face.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} the indices of the isolated vertices
+ */
 export const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 	if (!vertices_coords || !faces_vertices) { return []; }
 	let count = vertices_coords.length;
@@ -48,6 +62,11 @@ export const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => 
 
 // todo this could be improved. for loop instead of forEach + filter.
 // break the loop early.
+/**
+ * @description get the indices of all vertices which make no appearance in any edge or face.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} the indices of the isolated vertices
+ */
 export const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
 	if (!vertices_coords) { return []; }
 	let count = vertices_coords.length;

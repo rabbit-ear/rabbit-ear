@@ -18,7 +18,8 @@ import {
  * @description clean will remove bad graph data. this includes:
  * - duplicate (Euclidean distance) and isolated vertices
  * - circular and duplicate edges.
- * @param {object} FOLD object
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} summary of changes, a nextmap and the indices removed.
  */
 const clean = (graph, epsilon) => {

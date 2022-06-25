@@ -85,13 +85,13 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 	}
 };
 /**
- * @name svg
+ * @name drawInto
  * @memberof graph
  * @description renders a FOLD object into an SVG, ensuring visibility by
- *  setting the viewBox and the stroke-width attributes on the SVG.
- * @param {SVGElement} an already initialized SVG DOM element.
- * @param {object} FOLD object
- * @param {object} options (optional)
+ * setting the viewBox and the stroke-width attributes on the SVG.
+ * @param {SVGElement} element an already initialized SVG DOM element.
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options an optional options object to style the rendering
  * @returns {SVGElement} the first SVG parameter object.
  */
 const drawInto = (element, graph, options = {}) => {
@@ -106,10 +106,11 @@ const drawInto = (element, graph, options = {}) => {
 	return element;
 };
 /**
+ * @name svg
+ * @memberof graph
  * @description renders a FOLD object as an SVG, ensuring visibility by
- *  setting the viewBox and the stroke-width attributes on the SVG.
- *  The drawInto() method will accept options/setViewBox in any order.
- * @param {object} graph FOLD object
+ * setting the viewBox and the stroke-width attributes on the SVG.
+ * @param {object} graph a FOLD object
  * @param {object?} options optional options object to style components
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.

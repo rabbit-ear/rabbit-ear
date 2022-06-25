@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import axioms from "./axioms.json";
-import folds from "./folds.json";
+import instructions from "./instructions.json";
 /**
  * @description A multi-lingual raw-text reference containing a rudimentary
  * set of origami operations, the aim being to parameterize origami instructions
@@ -10,5 +10,5 @@ import folds from "./folds.json";
  */
 export default {
 	axioms,
-	folds,
+	instructions,
 };

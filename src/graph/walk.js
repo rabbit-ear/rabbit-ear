@@ -3,11 +3,13 @@
  */
 /**
  * @description discover a face by walking neighboring vertices until returning to the start.
- * @param {object} FOLD graph
- * @param {number} starting vertex
- * @param {number} second vertex, this sets the direction of the walk
- * @param {object} to prevent walking down duplicate paths, or finding duplicate
- * faces, this dictionary will store and check against vertex pairs "i j".
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} v0 starting vertex
+ * @param {number} v1 second vertex, this sets the direction of the walk
+ * @param {object} [walked_edges={}] memo object, to prevent walking down
+ * duplicate paths, or finding duplicate faces, this dictionary will
+ * store and check against vertex pairs "i j".
+ * @returns {object} the walked face, an object arrays of numbers under "vertices", "edges", and "angles"
  */
 export const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.

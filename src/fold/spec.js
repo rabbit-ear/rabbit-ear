@@ -6,6 +6,7 @@ import {
 	keysOutOfSpec,
 	edgesAssignmentValues,
 } from "./keys";
+import math from "../math";
 /**
  * this contains two types of methods.
  * 1. methods that are mostly references, including lists of keys
@@ -15,12 +16,20 @@ import {
  *    and re-arranging keys or values based on key queries.
  */
 /**
- * English conversion from the plural form of words to the singular
+ * @description English conversion of the names of graph components from plural to singular.
  */
 export const singularize = {
 	vertices: "vertex",
 	edges: "edge",
 	faces: "face",
+};
+/**
+ * @description English conversion of the names of graph components from singular to plural.
+ */
+export const pluralize = {
+	vertex: "vertices",
+	edge: "edges",
+	face: "faces",
 };
 /**
  * @description get the English word for every FOLD spec assignment character (like "M", or "b")
@@ -36,15 +45,7 @@ edgesAssignmentValues.forEach(key => {
 	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
 });
 /**
- * @description convert upper or lowercase edge assignments to lowercase.
- * Use this to make all assignment cases consistently lowercase.
- */
-export const edgesAssignmentToLowercase = {};
-edgesAssignmentValues.forEach(key => {
-	edgesAssignmentToLowercase[key] = key.toLowerCase();
-});
-/**
- * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b")
+ * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b"). **this assumes the creases are flat folded.**
  */
 export const edgesAssignmentDegrees = {
 	M: -180,
@@ -76,19 +77,27 @@ export const edgeFoldAngleToAssignment = (a) => {
 	// if (a === 0) { return "F"; }
 	return "U";
 };
-const flat_angles = { 0: true, "-0": true, 180: true, "-180": true };
-export const edgeFoldAngleIsFlat = angle => flat_angles[angle] === true;
 /**
- * @description determine if an edges_foldAngle array contains only
- * flat-folded angles, strictly the set: 0, -180, or +180.
- * If a graph contains no "edges_foldAngle", implicitly the angles
- * are flat, and the method returns "true".
+ * @description Test if a fold angle is a flat fold, which includes -180, 0, 180,
+ * and the +/- epsilon around each number.
+ * @param {number} angle fold angle in degrees
+ * @returns {boolean} true if the fold angle is flat
+ */
+export const edgeFoldAngleIsFlat = angle => math.core.fnEpsilonEqual(0, angle)
+ || math.core.fnEpsilonEqual(-180, angle)
+ || math.core.fnEpsilonEqual(180, angle);
+/**
+ * @description Provide a FOLD graph and determine if all edges_foldAngle
+ * angles are flat, which includes -180, 0, 180, and the +/- epsilon
+ * around each number. If a graph contains no "edges_foldAngle",
+ * the angles are considered flat, and the method returns "true".
+ * @param {FOLD} graph a FOLD graph
  * @returns {boolean} is the graph flat-foldable according to foldAngles.
  */
 export const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	if (!edges_foldAngle) { return true; }
 	for (let i = 0; i < edges_foldAngle.length; i++) {
-		if (!flat_angles[edges_foldAngle[i]]) { return false; }
+		if (!edgeFoldAngleIsFlat(edges_foldAngle[i])) { return false; }
 	}
 	return true;
 };

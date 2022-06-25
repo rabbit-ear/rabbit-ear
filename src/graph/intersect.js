@@ -117,7 +117,7 @@ export const makeEdgesEdgesIntersection = function ({
 	return edges_intersections;
 };
 /**
- * @description intersect a CONVEX face with a line and return the location
+ * @description intersect a convex face with a line and return the location
  * of the intersections as components of the graph. this is an EXCLUSIVE
  * intersection. line collinear to the edge counts as no intersection.
  * there are 5 cases:
@@ -126,12 +126,12 @@ export const makeEdgesEdgesIntersection = function ({
  * - intersect two vertices (valid, or undefined if neighbors)
  * - intersect one vertex and one edge (valid)
  * - intersect two edges (valid)
- * @param {object} FOLD object
- * @param {number} the index of the face
- * @param {number[]} the vector component describing the line
- * @param {number[]} the point component describing the line
- * @param {number} epsilon, optional
- * @returns {object | undefined} "vertices" and "edges" keys, indices of the
+ * @param {FOLD} graph a FOLD object
+ * @param {number} face the index of the face
+ * @param {number[]} vector the vector component describing the line
+ * @param {number[]} origin a point that lies along the line
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
  */
 export const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {

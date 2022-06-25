@@ -6,8 +6,8 @@ import math from "../../math";
  * @description add vertices to a graph by adding their vertices_coords only. This
  * will also compare against every existing vertex, only adding non-duplicate
  * vertices, as determined by an epsilon.
- * @param {object} graph a FOLD graph, modified in place.
- * @param {number[][]} vertices_coords, array of points to be added to the graph
+ * @param {FOLD} graph a FOLD graph, modified in place.
+ * @param {number[][]} vertices_coords array of points to be added to the graph
  * @param {number} [epsilon=1e-6] optional epsilon to merge similar vertices
  * @returns {number[]} index of vertex in new vertices_coords array.
  * the size of this array matches array size of source vertices.

@@ -6,7 +6,6 @@ import { isFoldedForm } from "../../graph/query";
 import { makeEdgesAssignment } from "../../graph/make";
 import {
 	edgesFoldAngleAreAllFlat,
-	edgesAssignmentToLowercase,
 	edgesAssignmentNames,
 } from "../../fold/spec";
 // get the SVG library from its binding to the root of the library
@@ -30,24 +29,14 @@ const STYLE_FLAT = {
 };
 
 /**
- * @typedef EdgesAssignmentIndices
- * @type {object}
- * @property {number[]} b - boundary edge indices
- * @property {number[]} m - mountain edge indices
- * @property {number[]} v - valley edge indices
- * @property {number[]} f - flat edge indices
- * @property {number[]} u - unassigned edge indices
- */
-
-/**
- * @returns {EdgesAssignmentIndices} an object with 5 keys, each value is an array 
+ * @returns {object} an object with 5 keys, each value is an array 
  * arrays contain the unique indices of each edge from the edges_ arrays sorted by assignment
  * if no edges_assignment, or only some defined, remaining edges become "unassigned"
  */
 const edgesAssignmentIndices = (graph) => {
 	const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
 	const lowercase_assignment = graph[S._edges_assignment]
-		.map(a => edgesAssignmentToLowercase[a]);
+		.map(a => a.toLowerCase());
 	graph[S._edges_vertices]
 		.map((_, i) => lowercase_assignment[i] || "u")
 		.forEach((a, i) => assignment_indices[a].push(i));
@@ -136,7 +125,7 @@ export const edgesLines = (graph, attributes = {}) => {
 	const edges_assignment = (graph.edges_assignment
 		? graph.edges_assignment
 		: makeEdgesAssignment(graph))
-		.map(assign => edgesAssignmentToLowercase[assign]);
+		.map(assign => assign.toLowerCase());
 	const groups_by_key = {};
 	["b", "m", "v", "f", "u"].forEach(k => {
 		const child_group = root.svg.g();

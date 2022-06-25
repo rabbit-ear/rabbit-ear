@@ -7,9 +7,9 @@ import { filterKeysWithSuffix } from "../fold/spec";
  * @description apply an affine transform to a graph; this includes
  * modifying the position of any key ending with "_coords" and multiplying
  * any matrix in keys that end with "_matrix".
- * @param {object} a FOLD graph
- * @param {number[]} 3x4 matrix as a 12 number array
- * @returns {object} the same input graph, modified
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} matrix a 3x4 matrix as a 12 number array
+ * @returns {FOLD} the same input graph, modified
  */
 const apply_matrix_to_graph = function (graph, matrix) {
 	// apply to anything with a coordinate value
@@ -28,10 +28,10 @@ const apply_matrix_to_graph = function (graph, matrix) {
 };
 /**
  * @description apply a uniform affine scale to a graph.
- * @param {object} a FOLD graph
- * @param {number} the scale amount
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} scale the scale amount
  * @param {number[]} optional. an array or series of numbers, the center of scale.
- * @returns {object} the same input graph, modified.
+ * @returns {FOLD} the same input graph, modified.
  */
 const transform_scale = (graph, scale, ...args) => {
 	const vector = math.core.getVector(...args);
@@ -41,9 +41,9 @@ const transform_scale = (graph, scale, ...args) => {
 };
 /**
  * @description apply a translation to a graph.
- * @param {object} a FOLD graph
+ * @param {FOLD} graph a FOLD graph
  * @param {number[]} optional. an array or series of numbers, the translation vector
- * @returns {object} the same input graph, modified
+ * @returns {FOLD} the same input graph, modified
  */
 const transform_translate = (graph, ...args) => {
 	const vector = math.core.getVector(...args);
@@ -53,10 +53,10 @@ const transform_translate = (graph, ...args) => {
 };
 /**
  * @description apply a rotation to a graph around the +Z axis.
- * @param {object} a FOLD graph
+ * @param {FOLD} graph a FOLD graph
  * @param {number} the rotation amount in radians
  * @param {number[]} optional. an array or series of numbers, the center of rotation
- * @returns {object} the same input graph, modified
+ * @returns {FOLD} the same input graph, modified
  */
 const transform_rotateZ = (graph, angle, ...args) => {
 	const vector = math.core.getVector(...args);

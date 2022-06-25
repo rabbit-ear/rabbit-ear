@@ -59,15 +59,23 @@ export const removeSingleInstances = (array) => {
 	return array.filter(n => count[n] > 1);
 };
 /**
- * @description convert a non-sparse matrix of true/false/undefined
- * into arrays containing the index of the trues.
+ * @description convert a sparse or dense matrix containing true/false/undefined
+ * into arrays containing the indices of all true values.
+ * @param {Array<Array<boolean|undefined>>} matrix 2D matrix containing boolean or undefined
+ * @returns {number[][]} array of arrays of numbers
  */
 export const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
 		.map((value, i) => value === true ? i : undefined)
 		.filter(a => a !== undefined));
 /**
- * triangle number, only visit half the indices. make unique pairs
+ * @description consult the upper right half triangle of the matrix,
+ * find all truthy values, gather the row/column index pairs,
+ * return them as pairs of indices in a single array.
+ * Triangle number, only visit half the indices. make unique pairs
+ * @param {any[][]} matrix a matrix containing any type
+ * @returns {number[][]} array of pairs of numbers, the pairs of indices
+ * which are truthy in the matrix.
  */
 export const booleanMatrixToUniqueIndexPairs = matrix => {
 	const pairs = [];
@@ -121,9 +129,12 @@ export const makeTrianglePairs = (array) => {
  * @description given an array containing undefineds, gather all contiguous
  * series of valid entries, and return the list of their indices in the form
  * of [start_index, final_index].
- * For example [0, 1, undefined, 2, 3, 4, undefined, undefined, 5]
- * will return two entries: [ [8, 1], [3, 5] ]
- * @param {any[]} the array, which possibly contains holes
+ * @param {any[]} array the array which is allowed to contain holes
+ * @returns {number[][]} array containing pairs of numbers
+ * @example
+ * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
+ * // will return
+ * [ [8, 1], [3, 5] ]
  */
 export const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.

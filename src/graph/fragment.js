@@ -167,7 +167,13 @@ const fragment_keep_keys = [
 	S._edges_assignment,
 	S._edges_foldAngle,
 ];
-
+/**
+ * @description Planarize a graph into the 2D XY plane, split edges, rebuild faces.
+ * The graph provided as a method argument will be modified in place.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a summary of changes to the graph
+ */
 const fragment = (graph, epsilon = math.core.EPSILON) => {
 	// project all vertices onto the XY plane
 	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));

@@ -6,6 +6,13 @@ import { makeFacesCenterQuick } from "./make";
 import { makeFacesWinding } from "./facesWinding";
 
 // todo, expand this to include edges, edges_faces, etc..
+/**
+ * @description Create a modified graph which contains vertices_coords and faces_vertices
+ * but that for every face, vertices_coords has been duplicated so that faces
+ * do not share vertices.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {FOLD} a new FOLD graph with exploded faces
+ */
 export const explodeFaces = (graph) => {
 	const vertices_coords = graph.faces_vertices
 		.map(face => face.map(v => graph.vertices_coords[v]))
@@ -19,7 +26,15 @@ export const explodeFaces = (graph) => {
 		faces_vertices,
 	};
 };
-
+/**
+ * @description Create a modified graph which contains vertices_coords and faces_vertices
+ * but that for every face, vertices_coords has been duplicated so that faces
+ * do not share vertices, and finally, a scaling transform has been applied to every
+ * face creating a gap between all faces.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [shrink=0.333] a scale factor for a shrinking transform
+ * @returns {FOLD} a new FOLD graph with exploded faces
+ */
 export const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink = 0.333) => {
 	const graph = explodeFaces({ vertices_coords, faces_vertices });
 	const faces_winding = makeFacesWinding(graph);

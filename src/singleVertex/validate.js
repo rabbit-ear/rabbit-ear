@@ -29,7 +29,7 @@ const maekawa_signs = { M:-1, m:-1, V:1, v:1};
  * @description using edges_assignment, check if Maekawa's theorem is satisfied
  * for all vertices, and if not, return the vertices which violate the theorem.
  * todo: this assumes that valley/mountain folds are flat folded.
- * @param {object} graph a FOLD object
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
  */
 export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
@@ -54,7 +54,7 @@ export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignme
 /**
  * @description using the vertices of the edges, check if Kawasaki's theorem is satisfied
  * for all vertices, and if not, return the vertices which violate the theorem.
- * @param {object} graph a FOLD object
+ * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
  */

@@ -8,13 +8,19 @@ const SVG_Constructor = {
 /**
  * @name svg
  * @description Create an svg element, the object will be bound with instance methods for creating children and styles.
- * @memberof SVG
+ * @memberof svg
  * @param {Element} [parent=undefined] optional parent DOM element, this will append to.
  * @param {number} [width=undefined] optional width of viewBox (if present, include height)
  * @param {number} [height=undefined] optional height of viewBox (if present, include width)
  * @param {function} [callback=undefined] optional function which will be
  * executed upon completion of initialization.
  * @returns {Element} one svg DOM element
+ * @example
+ * var svg = ear.svg(document.body, 640, 480)
+ * @example
+ * ear.svg(640, 480, document.body, (svg) => {
+ *   // window did load, and "svg" is scoped
+ * })
  */
 function SVG () {
 	return SVG_Constructor.init(...arguments);
@@ -824,7 +830,7 @@ function viewBox$1 () {
  * SVG (c) Kraft
  */
 
-const cdata = (textContent) => (new SVGWindow().DOMParser())
+const cdata = (textContent) => (new (SVGWindow()).DOMParser())
 	.parseFromString("<root></root>", "text/xml")
 	.createCDATASection(`${textContent}`);
 
@@ -907,7 +913,7 @@ const filterWhitespaceNodes = (node) => {
  * parse and checkParseError go together. 
  * checkParseError needs to be called to pull out the .documentElement
  */
-const parse = string => (new SVGWindow().DOMParser())
+const parse = string => (new (SVGWindow()).DOMParser())
 	.parseFromString(string, "text/xml");
 
 const checkParseError = xml => {
@@ -1076,7 +1082,7 @@ const getWindowStylesheets = function () {
 };
 
 const downloadInBrowser = function (filename, contentsAsString) {
-	const blob = new SVGWindow().Blob([contentsAsString], { type: "text/plain" });
+	const blob = new (SVGWindow()).Blob([contentsAsString], { type: "text/plain" });
 	const a = SVGWindow().document.createElement("a");
 	a.setAttribute("href", SVGWindow().URL.createObjectURL(blob));
 	a.setAttribute("download", filename);
@@ -1097,7 +1103,7 @@ const save = function (svg, options) {
 		svg.appendChild(styleContainer);
 	}
 	// convert the SVG to a string and format it with good indentation
-	const source = (new SVGWindow().XMLSerializer()).serializeToString(svg);
+	const source = (new (SVGWindow()).XMLSerializer()).serializeToString(svg);
 	const formattedString = vkXML(source);
 	//
 	if (options.download && isBrowser && !isNode) {

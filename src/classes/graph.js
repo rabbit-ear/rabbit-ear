@@ -42,9 +42,10 @@ import addVertices from "../graph/add/addVertices";
 import splitEdge from "../graph/splitEdge/index";
 import splitFace from "../graph/splitFace/index";
 /**
- * Graph - a flat-array, index-based graph with faces, edges, and vertices
- * with ability for vertices to exist in Euclidean space.
- * The naming scheme for keys follows the FOLD format.
+ * @name Graph
+ * @description a graph which includes faces, edges, and vertices, and additional
+ * origami-specific information like fold angles of edges and layer order of faces.
+ * @param {FOLD} [graph] an optional FOLD object, otherwise the graph will initialize empty
  */
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);
@@ -221,7 +222,8 @@ Object.defineProperty(Graph.prototype, S._boundary, {
 	enumerable: true,
 	get: function () {
 		const boundary = getBoundary(this);
-		const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
+		// const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
+		const poly = boundary.vertices.map(v => this.vertices_coords[v]);
 		Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
 		return Object.assign(poly, boundary);
 	}

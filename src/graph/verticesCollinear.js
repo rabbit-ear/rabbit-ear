@@ -32,9 +32,7 @@ export const isVertexCollinear = (graph, vertex) => {
 		.map(verts => verts.map(v => graph.vertices_coords[v]))
 		.map(segment => math.core.subtract(segment[1], segment[0]))
 		.map(vector => math.core.normalize(vector));
-	const is_parallel = math.core
-		.equivalentNumbers(1.0, math.core.dot(...vectors));
-	return is_parallel;
+	return math.core.fnEpsilonEqual(1.0, math.core.dot(...vectors));
 };
 /**
  * check each vertex against each edge, we want to know if a vertex is

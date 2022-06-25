@@ -12,93 +12,88 @@ import math from "../math";
 								__/ |
 							 |___/
 */
-
-/**
- * @typedef UDLine
- * @type {object}
- * @property {number[]} u - the line's normal vector
- * @property {number} d - the shortest distance from the origin to the line
- */
-
 const intersectionUD = (line1, line2) => {
-	const det = math.core.cross2(line1.u, line2.u);
+	const det = math.core.cross2(line1.normal, line2.normal);
 	if (Math.abs(det) < math.core.EPSILON) { return undefined; }
-	const x = line1.d * line2.u[1] - line2.d * line1.u[1];
-	const y = line2.d * line1.u[0] - line1.d * line2.u[0];
+	const x = line1.distance * line2.normal[1] - line2.distance * line1.normal[1];
+	const y = line2.distance * line1.normal[0] - line1.distance * line2.normal[0];
 	return [x / det, y / det];
 };
 /**
  * @description origami axiom 1: form a line that passes between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
- * @returns {UDLine} the line in {u, d} form
+ * @returns {UniqueLine} the line in {normal, distance} form
  */
-export const axiom1ud = (point1, point2) => {
-	const u = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
-	return { u, d: math.core.dot2(math.core.add2(point1, point2), u) / 2.0 };
+export const normalAxiom1 = (point1, point2) => {
+	const normal = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
+	return { normal, distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0 };
 };
 /**
  * @description origami axiom 2: form a perpendicular bisector between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
- * @returns {UDLine} the line in {u, d} form
+ * @returns {UniqueLine} the line in {normal, distance} form
  */
-export const axiom2ud = (point1, point2) => {
-	const u = math.core.normalize2(math.core.subtract2(point2, point1));
-	return { u, d: math.core.dot2(math.core.add2(point1, point2), u) / 2.0 };
+export const normalAxiom2 = (point1, point2) => {
+	const normal = math.core.normalize2(math.core.subtract2(point2, point1));
+	return { normal, distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0 };
 };
 /**
  * @description origami axiom 3: form two lines that make the two angular bisectors between
  * two input lines, and in the case of parallel inputs only one solution will be given
- * @param {UDLine} line1 one 2D line in {vector, origin} form
- * @param {UDLine} line2 one 2D line in {vector, origin} form
- * @returns {UDLine[]} an array of lines in {u, d} form
+ * @param {UniqueLine} line1 one 2D line in {vector, origin} form
+ * @param {UniqueLine} line2 one 2D line in {vector, origin} form
+ * @returns {UniqueLine[]} an array of lines in {normal, distance} form
  */
-export const axiom3ud = (line1, line2) => {
+export const normalAxiom3 = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
 	const intersect = intersectionUD(line1, line2);
 	return intersect === undefined
-		? [{ u: line1.u, d: (line1.d + line2.d * math.core.dot2(line1.u, line2.u)) / 2.0 }]
+		? [{
+				normal: line1.normal,
+				distance: (line1.distance + line2.distance * math.core.dot2(line1.normal, line2.normal)) / 2.0
+			}]
 		: [math.core.add2, math.core.subtract2]
-			.map(f => math.core.normalize2(f(line1.u, line2.u)))
-			.map(u => ({ u, d: math.core.dot2(intersect, u) }));
+			.map(f => math.core.normalize2(f(line1.normal, line2.normal)))
+			.map(normal => ({ normal, distance: math.core.dot2(intersect, normal) }));
 };
 /**
  * @description origami axiom 4: form a line perpendicular to a given line that
  * passes through a point.
- * @param {UDLine} line one 2D line in {u, d} form
+ * @param {UniqueLine} line one 2D line in {normal, distance} form
  * @param {number[]} point one 2D point
- * @returns {UDLine} the line in {u, d} form
+ * @returns {UniqueLine} the line in {normal, distance} form
  */
- export const axiom4ud = (line, point) => {
-	const u = math.core.rotate90(line.u);
-	const d = math.core.dot2(point, u);
-	return {u, d};
+ export const normalAxiom4 = (line, point) => {
+	const normal = math.core.rotate90(line.normal);
+	const distance = math.core.dot2(point, normal);
+	return { normal, distance };
 };
 /**
  * @description origami axiom 5: form up to two lines that pass through a point that also
  * brings another point onto a given line
- * @param {UDLine} line one 2D line in {u, d} form
+ * @param {UniqueLine} line one 2D line in {normal, distance} form
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
- * @returns {UDLine[]} an array of lines in {u, d} form
+ * @returns {UniqueLine[]} an array of lines in {normal, distance} form
  */
-export const axiom5ud = (line, point1, point2) => {
-	const p1base = math.core.dot2(point1, line.u);
-	const a = line.d - p1base;
+export const normalAxiom5 = (line, point1, point2) => {
+	const p1base = math.core.dot2(point1, line.normal);
+	const a = line.distance - p1base;
 	const c = math.core.distance2(point1, point2);
 	if (a > c) { return []; }
 	const b = Math.sqrt(c * c - a * a);
-	const a_vec = math.core.scale2(line.u, a);
+	const a_vec = math.core.scale2(line.normal, a);
 	const base_center = math.core.add2(point1, a_vec);
-	const base_vector = math.core.scale2(math.core.rotate90(line.u), b);
+	const base_vector = math.core.scale2(math.core.rotate90(line.normal), b);
 	// if b is near 0 we have one solution, otherwise two
 	const mirrors = b < math.core.EPSILON
 		? [base_center]
 		: [math.core.add2(base_center, base_vector), math.core.subtract2(base_center, base_vector)];
 	return mirrors
 		.map(pt => math.core.normalize2(math.core.subtract2(point2, pt)))
-		.map(u => ({ u, d: math.core.dot2(point1, u) }));
+		.map(normal => ({ normal, distance: math.core.dot2(point1, normal) }));
 };
 
 // cube root preserve sign
@@ -167,27 +162,27 @@ const polynomial = (degree, a, b, c, d) => {
 /**
  * @description origami axiom 6: form up to three lines that are made by bringing
  * a point to a line and a second point to a second line.
- * @param {UDLine} line1 one 2D line in {u, d} form
- * @param {UDLine} line2 one 2D line in {u, d} form
+ * @param {UniqueLine} line1 one 2D line in {normal, distance} form
+ * @param {UniqueLine} line2 one 2D line in {normal, distance} form
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
- * @returns {UDLine[]} an array of lines in {u, d} form
+ * @returns {UniqueLine[]} an array of lines in {normal, distance} form
  */
-export const axiom6ud = (line1, line2, point1, point2) => {
+export const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
 	// for some reason this epsilon is much higher than 1e-6
-	if (Math.abs(1.0 - (math.core.dot2(line1.u, point1) / line1.d)) < 0.02) { return []; }
+	if (Math.abs(1.0 - (math.core.dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
 	// line vec is the first line's vector, along the line, not the normal
-	const line_vec = math.core.rotate90(line1.u);
-	const vec1 = math.core.subtract2(math.core.add2(point1, math.core.scale2(line1.u, line1.d)), math.core.scale2(point2, 2.0));
-	const vec2 = math.core.subtract2(math.core.scale2(line1.u, line1.d), point1);
-	const c1 = math.core.dot2(point2, line2.u) - line2.d;
+	const line_vec = math.core.rotate90(line1.normal);
+	const vec1 = math.core.subtract2(math.core.add2(point1, math.core.scale2(line1.normal, line1.distance)), math.core.scale2(point2, 2.0));
+	const vec2 = math.core.subtract2(math.core.scale2(line1.normal, line1.distance), point1);
+	const c1 = math.core.dot2(point2, line2.normal) - line2.distance;
 	const c2 = 2.0 * math.core.dot2(vec2, line_vec);
 	const c3 = math.core.dot2(vec2, vec2);
 	const c4 = math.core.dot2(math.core.add2(vec1, vec2), line_vec);
 	const c5 = math.core.dot2(vec1, vec2);
-	const c6 = math.core.dot2(line_vec, line2.u);
-	const c7 = math.core.dot2(vec2, line2.u);
+	const c6 = math.core.dot2(line_vec, line2.normal);
+	const c7 = math.core.dot2(vec2, line2.normal);
 	const a = c6;
 	const b = c1 + c4 * c6 + c7;
 	const c = c1 * c2 + c5 * c6 + c4 * c7;
@@ -199,28 +194,28 @@ export const axiom6ud = (line1, line2, point1, point2) => {
 	if (Math.abs(b) > math.core.EPSILON) { polynomial_degree = 2; }
 	if (Math.abs(a) > math.core.EPSILON) { polynomial_degree = 3; }
 	return polynomial(polynomial_degree, a, b, c, d)
-		.map(n => math.core.add2(math.core.scale2(line1.u, line1.d), math.core.scale2(line_vec, n)))
-		.map(p => ({ p, u: math.core.normalize2(math.core.subtract2(p, point1)) }))
-		.map(el => ({ u: el.u, d: math.core.dot2(el.u, math.core.midpoint2(el.p, point1)) }));
+		.map(n => math.core.add2(math.core.scale2(line1.normal, line1.distance), math.core.scale2(line_vec, n)))
+		.map(p => ({ p, normal: math.core.normalize2(math.core.subtract2(p, point1)) }))
+		.map(el => ({ normal: el.normal, distance: math.core.dot2(el.normal, math.core.midpoint2(el.p, point1)) }));
 };
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
  * while being perpendicular to another given line.
- * @param {UDLine} line1 one 2D line in {u, d} form,
+ * @param {UniqueLine} line1 one 2D line in {normal, distance} form,
  * the line the point will be brought onto.
- * @param {UDLine} line2 one 2D line in {u, d} form,
+ * @param {UniqueLine} line2 one 2D line in {normal, distance} form,
  * the line which the perpendicular will be based off.
  * @param {number[]} point the point to bring onto the line
- * @returns {UDLine | undefined} the line in {u, d} form
+ * @returns {UniqueLine | undefined} the line in {normal, distance} form
  * or undefined if the given lines are parallel
  */
-export const axiom7ud = (line1, line2, point) => {
-	let u = math.core.rotate90(line1.u);
-	let u_u = math.core.dot2(u, line2.u);
-	// if u_u is close to 0, the two input lines are parallel, no solution
-	if (Math.abs(u_u) < math.core.EPSILON) { return undefined; }
-	let a = math.core.dot2(point, u);
-	let b = math.core.dot2(point, line2.u);
-	let d = (line2.d + 2.0 * a * u_u - b) / (2.0 * u_u);
-	return {u, d};
+export const normalAxiom7 = (line1, line2, point) => {
+	let normal = math.core.rotate90(line1.normal);
+	let norm_norm = math.core.dot2(normal, line2.normal);
+	// if norm_norm is close to 0, the two input lines are parallel, no solution
+	if (Math.abs(norm_norm) < math.core.EPSILON) { return undefined; }
+	let a = math.core.dot2(point, normal);
+	let b = math.core.dot2(point, line2.normal);
+	let distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
+	return { normal, distance };
 };

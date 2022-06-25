@@ -42,8 +42,8 @@ const ordersArrayNames = {
  * @description Get the number of vertices, edges, or faces in the graph, as
  * evidenced by their appearance in other arrays; ie: searching faces_vertices
  * for the largest vertex index, and inferring number of vertices is that long.
- * @param {object} a FOLD graph
- * @param {string} the prefix for a key, eg: "vertices" 
+ * @param {FOLD} graph a FOLD graph
+ * @param {string} key the prefix for a key, eg: "vertices" 
  * @returns {number} the number of vertices, edges, or faces in the graph.
  */
 const countImplied = (graph, key) => Math.max(

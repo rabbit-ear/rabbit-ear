@@ -24,7 +24,7 @@ import * as facesMatrix from "./facesMatrix";
 import * as facesWinding from "./facesWinding";
 import * as explodeFacesMethods from "./explodeFaces";
 import count from "./count";
-import implied from "./countImplied";
+import countImplied from "./countImplied";
 import validate from "./validate";
 import clean from "./clean";
 import populate from "./populate";
@@ -33,7 +33,7 @@ import replace from "./replace";
 import removePlanarVertex from "./remove/removePlanarVertex";
 import removePlanarEdge from "./remove/removePlanarEdge";
 import addVertices from "./add/addVertices";
-import addEdges from "./add/addEdges";
+// import addEdges from "./add/addEdges";
 import splitEdge from "./splitEdge/index";
 import splitFace from "./splitFace/index";
 import flatFold from "./flatFold/index";
@@ -51,7 +51,7 @@ import clone from "../general/clone";
 
 export default Object.assign(Object.create(null), {
 	count,
-	implied,
+	countImplied,
 	validate,
 	clean,
 	populate,
@@ -60,7 +60,7 @@ export default Object.assign(Object.create(null), {
 	removePlanarVertex,
 	removePlanarEdge,
 	addVertices,
-	addEdges,
+	// addEdges,
 	splitEdge,
 	splitFace,
 	flatFold,

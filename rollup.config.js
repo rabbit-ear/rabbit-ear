@@ -44,27 +44,27 @@ module.exports = [{
     //   },
     // }),
   ]
-}, {
-  input,
-  output: {
-    name,
-    file: "rabbit-ear.min.js",
-    format: "umd",
-    banner,
-  },
-  plugins: [
-    json(),
-    // babel({
-    //   babelHelpers: "bundled",
-    //   presets: ["@babel/preset-env"]
-    // }),
-    cleanup(),
-    // terser({
-    //   keep_fnames: true,
-    //   format: {
-    //     comments: "all",
-    //   },
-    // }),
-  ]
+// }, {
+//   input,
+//   output: {
+//     name,
+//     file: "rabbit-ear.min.js",
+//     format: "umd",
+//     banner,
+//   },
+//   plugins: [
+//     json(),
+//     babel({
+//       babelHelpers: "bundled",
+//       presets: ["@babel/preset-env"]
+//     }),
+//     cleanup(),
+//     terser({
+//       keep_fnames: true,
+//       format: {
+//         comments: "all",
+//       },
+//     }),
+//   ]
 }];
 

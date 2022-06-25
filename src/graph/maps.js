@@ -47,7 +47,11 @@ export const mergeBackmaps = (...maps) => {
 	});
 	return solution;
 };
-
+/**
+ * @description invert an array of integers so that indices become values and values become indices. in the case of multiple values trying to insert into the same index, a child array is made to house both (or more) numbers.
+ * @param {number[]|number[][]} map an array of integers
+ * @returns {number[]|number[][]} the inverted map
+ */
 export const invertMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => {
@@ -66,7 +70,11 @@ export const invertMap = (map) => {
 	});
 	return inv;
 };
-
+/**
+ * @description invert an array of integers so that indices become values and values become indices. duplicate entries will be overwritten.
+ * @param {number[]} map an array of integers
+ * @returns {number[]} the inverted map
+ */
 export const invertSimpleMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => { inv[n] = i; });

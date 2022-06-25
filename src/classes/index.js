@@ -26,8 +26,8 @@ const ConstructorPrototypes = {
 
 const default_graph = {
 	graph: () => ({}),
-	cp: create.unit_square,
-	origami: create.unit_square,
+	cp: create.square,
+	origami: create.square,
 };
 
 /**
@@ -82,6 +82,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 	ObjectConstructors[name].prototype = ConstructorPrototypes[name];
 	ObjectConstructors[name].prototype.constructor = ObjectConstructors[name];
 	// wrap static constructors with "this" initializer
+	// all the polygon names
 	Object.keys(create).forEach(funcName => {
 		ObjectConstructors[name][funcName] = function () {
 			return ObjectConstructors[name](create[funcName](...arguments));

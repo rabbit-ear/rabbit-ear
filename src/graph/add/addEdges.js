@@ -4,17 +4,13 @@
 /**
  * 
  * 
- * triavial method. possible that this method should just be removed
+ * triavial method. possible that this method should just be removed.
+ * right now, it is not included in the main export.
  * 
  * 
  */
 import { removeDuplicateEdges } from "../edgesViolations";
-// this method is meant to add edges between EXISTING vertices.
-// this should split and rebuild faces.
 
-// todo: we need to make a removeDuplicateEdges that returns merge info
-
-// const edges = ear.graph.addEdges(graph, [[0, vertex], [1, vertex], [2, 3], [2, vertex]]);
 const addEdges = (graph, edges_vertices) => {
 	if (!graph.edges_vertices) { graph.edges_vertices = []; }
 	// the user messed up the input and only provided one edge

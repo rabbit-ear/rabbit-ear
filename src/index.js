@@ -29,6 +29,9 @@ import text from "./text/index";
 // a minified substitute SVG library
 // import svg from "./svg/svg_mini";
 import use from "./use/index";
+// separate file for all the types
+import emptyTypeFunc from "./types/ear.d.ts";
+emptyTypeFunc();
 /**
  * extensions
  * all extensions are optional, the library does not depend on them.

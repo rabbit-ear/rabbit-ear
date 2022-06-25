@@ -1,0 +1,44 @@
+{
+	"fold": {
+		"es": "doblez"
+	},
+	"valley fold": {
+		"es": "doblez de valle",
+		"zh": "谷摺"
+	},
+	"mountain fold": {
+		"es": "doblez de montaña",
+		"zh": "山摺"
+	},
+	"inside reverse fold": {
+		"zh": "內中割摺"
+	},
+	"outside reverse fold": {
+		"zh": "外中割摺"
+	},
+	"sink": {},
+	"open sink": {
+		"zh": "開放式沉壓摺"
+	},
+	"closed sink": {
+		"zh": "封閉式沉壓摺"
+	},
+	"rabbit ear": {
+		"zh": "兔耳摺"
+	},
+	"double rabbit ear": {
+		"zh": "雙兔耳摺"
+	},
+	"petal fold": {
+		"zh": "花瓣摺"
+	},
+	"blintz": {
+		"zh": "坐墊基"
+	},
+	"squash": {
+		"zh": "壓摺"
+	},
+	"flip over": {
+		"es": "dale la vuelta a tu papel"
+	}
+}

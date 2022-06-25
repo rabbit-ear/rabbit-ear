@@ -279,29 +279,36 @@ export const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
 		if (a === 0) { return "F"; }
 		return a < 0 ? "M" : "V";
 	});
-
+/**
+ * @description map vertices_coords onto edges_vertices so that the result
+ * is an edge array where each edge contains its two points. Each point being
+ * the 2D or 3D coordinate as an array of numbers.
+ * @param {FOLD} graph a FOLD graph with vertices and edges
+ * @returns {number[][][]} an array of array of points (which are arrays of numbers)
+ */
 export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) =>
 	edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]));
 /**
- * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
+ * @param {FOLD} graph a FOLD graph, with "vertices_coords", "edges_vertices"
  * @returns {number[]} a vector beginning at vertex 0, ending at vertex 1
  */
 export const makeEdgesVector = ({ vertices_coords, edges_vertices }) =>
 	makeEdgesCoords({ vertices_coords, edges_vertices })
 		.map(verts => math.core.subtract(verts[1], verts[0]));
 /**
- * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
+ * @param {FOLD} graph a FOLD graph, with "vertices_coords", "edges_vertices"
  * @returns {number[]} the Euclidean distance between each edge's vertices.
  */
 export const makeEdgesLength = ({ vertices_coords, edges_vertices }) =>
 	makeEdgesVector({ vertices_coords, edges_vertices })
 		.map(vec => math.core.magnitude(vec));
 /**
- * @description for each edge, get the bounding box in n-dimensions.
- * for fast line-sweep algorithms.
- *
- * @returns {object[]} an array of boxes matching length of edges.
+ * @description Make an array of axis-aligned bounding boxes, one for each edge,
+ * that encloses the edge, and will work in n-dimensions. Intended for
+ * fast line-sweep algorithms.
+ * @param {FOLD} graph a FOLD graph with vertices and edges.
+ * @returns {object[]} an array of boxes, length matching the number of edges
  */
 export const makeEdgesBoundingBox = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = 0) => {
 	if (!edges_coords) {
@@ -365,7 +372,7 @@ export const makeFacesEdgesFromVertices = (graph) => {
 		.map(face => face.map(pair => map[pair]));
 };
 /**
- * @param {object} FOLD object, with entry "faces_vertices"
+ * @param {FOLD} graph a FOLD graph, with entry "faces_vertices"
  * @returns {number[][]} each index relates to a face, each entry is an array
  * of numbers, each number is an index of an edge-adjacent face to this face.
  * @description faces_faces is a list of edge-adjacent face indices for each face.

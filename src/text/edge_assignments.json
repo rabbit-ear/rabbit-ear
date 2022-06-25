@@ -3,7 +3,7 @@
 		"B": "boundary",
 		"M": "mountain",
 		"V": "valley",
-		"F": "mark",
+		"F": "flat",
 		"U": "unassigned",
 	}
 }
