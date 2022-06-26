@@ -10,6 +10,7 @@
  * duplicate paths, or finding duplicate faces, this dictionary will
  * store and check against vertex pairs "i j".
  * @returns {object} the walked face, an object arrays of numbers under "vertices", "edges", and "angles"
+ * @linkcode Origami ./src/graph/walk.js 13
  */
 export const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
@@ -60,6 +61,7 @@ export const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0
  * @param {FOLD} graph a FOLD graph
  * @returns {object[]} an array of face objects, where each face has number arrays,
  * "vertices", "edges", and "angles". vertices and edges are indices, angles are radians.
+ * @linkcode Origami ./src/graph/walk.js 64
  */
 export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 	const graph = { vertices_vertices, vertices_sectors };
@@ -80,6 +82,7 @@ export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
  * outlines the piece with opposite winding enclosing Infinity.
  * @param {object[]} walked_faces the result from calling "planarVertexWalk()"
  * @returns {object[]} the same input array with one fewer element
+ * @linkcode Origami ./src/graph/walk.js 85
  */
 export const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles

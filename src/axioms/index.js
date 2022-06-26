@@ -13,6 +13,7 @@ import * as Validate from "./validate";
  * where the lines are either {RayLine} or {UniqueLine}.
  * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
+ * @linkcode Origami ./src/axioms/index.js 16
  */
 const axiom = (number, params = {}, boundary) => BoundaryAxioms
 	.axiomInBoundary(number, params, boundary);

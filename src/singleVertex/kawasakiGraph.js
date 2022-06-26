@@ -16,6 +16,7 @@ import {
  * @param {object} graph a FOLD object
  * @param {number} vertex the index of the vertex
  * @returns {number[][]} for every sector either one vector or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiGraph.js 19
  */
 export const kawasakiSolutions = ({ vertices_coords, vertices_edges, edges_vertices, edges_vectors }, vertex) => {
 	// to calculate Kawasaki's theorem, we need the 3 edges

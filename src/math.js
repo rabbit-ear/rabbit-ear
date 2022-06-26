@@ -15,6 +15,7 @@
  * @description get the type of an object, which includes the custom types in this library.
  * @param {any} any object
  * @returns {string} the type name
+ * @linkcode Math ./src/arguments/typeof.js 17
  */
 const typeOf = function (obj) {
   switch (obj.constructor.name) {
@@ -147,18 +148,22 @@ var resizers = /*#__PURE__*/Object.freeze({
  */
 /**
  * @description this epsilon is used throughout the library
+ * @linkcode Math ./src/core/constants.js 6
  */
 const EPSILON = 1e-6;
 /**
  * @description radians to degrees
+ * @linkcode Math ./src/core/constants.js 11
  */
 const R2D = 180 / Math.PI;
 /**
  * @description degrees to radians
+ * @linkcode Math ./src/core/constants.js 16
  */
 const D2R = Math.PI / 180;
 /**
  * @description pi x 2
+ * @linkcode Math ./src/core/constants.js 21
  */
 const TWO_PI = Math.PI * 2;
 
@@ -186,6 +191,7 @@ const fnTrue = () => true;
  * @description multiply a parameter by itself
  * @param {number} n a number
  * @returns {number} a number
+ * @linkcode Math ./src/arguments/functions.js 18
  */
 const fnSquare = n => n * n;
 /**
@@ -193,12 +199,14 @@ const fnSquare = n => n * n;
  * @param {number} a a number
  * @param {number} b a number
  * @returns {number} a number
+ * @linkcode Math ./src/arguments/functions.js 26
  */
 const fnAdd = (a, b) => a + (b || 0);
 /**
  * @description is an input not undefined? using Javascript's triple equals !==
  * @param {any} a any input
  * @returns {boolean} true if the input is not undefined
+ * @linkcode Math ./src/arguments/functions.js 33
  */
 const fnNotUndefined = a => a !== undefined;
 /**
@@ -206,6 +214,7 @@ const fnNotUndefined = a => a !== undefined;
  * @param {any} a any input
  * @param {any} b any input
  * @returns {boolean} the AND of both inputs
+ * @linkcode Math ./src/arguments/functions.js 41
  */
 const fnAnd = (a, b) => a && b;
 /**
@@ -213,18 +222,21 @@ const fnAnd = (a, b) => a && b;
  * @param {Array} a any array input
  * @param {Array} b any array input
  * @returns {Array} one joined array
+ * @linkcode Math ./src/arguments/functions.js 49
  */
 const fnCat = (a, b) => a.concat(b);
 /**
  * @description convert a 2D vector to an angle in radians
  * @param {number[]} v an input vector
  * @returns {number} the angle in radians
+ * @linkcode Math ./src/arguments/functions.js 56
  */
 const fnVec2Angle = v => Math.atan2(v[1], v[0]);
 /**
  * @description convert an angle in radians to a 2D vector
  * @param {number} a the angle in radians
  * @returns {number[]} a 2D vector
+ * @linkcode Math ./src/arguments/functions.js 63
  */
 const fnToVec2 = a => [Math.cos(a), Math.sin(a)];
 /**
@@ -232,6 +244,7 @@ const fnToVec2 = a => [Math.cos(a), Math.sin(a)];
  * @param {any} a any input
  * @param {any} b any input
  * @returns {boolean} true if the inputs are equal
+ * @linkcode Math ./src/arguments/functions.js 71
  */
 const fnEqual = (a, b) => a === b;
 /**
@@ -239,6 +252,7 @@ const fnEqual = (a, b) => a === b;
  * @param {number} a any number input
  * @param {number} b any number input
  * @returns {boolean} true if the numbers are near each other
+ * @linkcode Math ./src/arguments/functions.js 79
  */
 const fnEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
 /**
@@ -247,10 +261,11 @@ const fnEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
  * @param {number[]} a an array of numbers
  * @param {number[]} b an array of numbers
  * @returns {boolean} true if the vectors are similar within an epsilon
+ * @linkcode Math ./src/arguments/functions.js 88
  */
 const fnEpsilonEqualVectors = (a, b) => {
-  for (let i = 0; i < a.length; i++) {
-    if (!fnEpsilonEqual(a[i], b[i])) { return false; }
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if (!fnEpsilonEqual(a[i] || 0, b[i] || 0)) { return false; }
   }
   return true;
 };
@@ -261,31 +276,52 @@ const fnEpsilonEqualVectors = (a, b) => {
  * @description the inclusive test used in intersection algorithms, returns
  * true if the number is positive, including the epsilon between -epsilon and 0.
  * @returns {boolean} -Infinity...{false}...-epsilon...{true}...+Infinity
+ * @linkcode Math ./src/arguments/functions.js 103
  */
 const include = (n, epsilon = EPSILON) => n > -epsilon;
 /**
  * @description the exclusive test used in intersection algorithms, returns
  * true if the number is positive, excluding the epsilon between 0 and +epsilon.
  * @returns {boolean} -Infinity...{false}...+epsilon...{true}...+Infinity
+ * @linkcode Math ./src/arguments/functions.js 110
  */
 const exclude = (n, epsilon = EPSILON) => n > epsilon;
-/** @description the function parameter for an inclusive line */
+/**
+ * @description the function parameter for an inclusive line
+ * @linkcode Math ./src/arguments/functions.js 115
+ */
 const includeL = fnTrue;
-/** @description the function parameter for an exclusive line */
+/**
+ * @description the function parameter for an exclusive line
+ * @linkcode Math ./src/arguments/functions.js 120
+ */
 const excludeL = fnTrue;
-/** @description the function parameter for an inclusive ray */
+/**
+ * @description the function parameter for an inclusive ray
+ * @linkcode Math ./src/arguments/functions.js 125
+ */
 const includeR = include;
-/** @description the function parameter for an exclusive ray */
+/**
+ * @description the function parameter for an exclusive ray
+ * @linkcode Math ./src/arguments/functions.js 130
+ */
 const excludeR = exclude;
-/** @description the function parameter for an inclusive segment */
+/**
+ * @description the function parameter for an inclusive segment
+ * @linkcode Math ./src/arguments/functions.js 135
+ */
 const includeS = (t, e = EPSILON) => t > -e && t < 1 + e;
-/** @description the function parameter for an exclusive segment */
+/**
+ * @description the function parameter for an exclusive segment
+ * @linkcode Math ./src/arguments/functions.js 140
+ */
 const excludeS = (t, e = EPSILON) => t > e && t < 1 - e;
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The line method allows all values.
  * @param {number} t the length along the vector
  * @returns {number} the clamped input value
+ * @linkcode Math ./src/arguments/functions.js 148
  */
 const lineLimiter = dist => dist;
 /**
@@ -293,6 +329,7 @@ const lineLimiter = dist => dist;
  * The ray method clamps values below -epsilon to be 0.
  * @param {number} t the length along the vector
  * @returns {number} the clamped input value
+ * @linkcode Math ./src/arguments/functions.js 156
  */
 const rayLimiter = dist => (dist < -EPSILON ? 0 : dist);
 /**
@@ -300,6 +337,7 @@ const rayLimiter = dist => (dist < -EPSILON ? 0 : dist);
  * The segment method clamps values below -epsilon to be 0 and above 1+epsilon to 1.
  * @param {number} t the length along the vector
  * @returns {number} the clamped input value
+ * @linkcode Math ./src/arguments/functions.js 164
  */
 const segmentLimiter = (dist) => {
   if (dist < -EPSILON) { return 0; }
@@ -349,10 +387,12 @@ var Constructors = Object.create(null);
  */
 /**
  * @description the identity matrix for 2x2 matrices
+ * @linkcode Math ./src/core/matrix2.js 6
  */
 const identity2x2 = [1, 0, 0, 1];
 /**
  * @description the identity matrix for 2x3 matrices (zero translation)
+ * @linkcode Math ./src/core/matrix2.js 11
  */
 const identity2x3 = identity2x2.concat(0, 0);
 
@@ -360,6 +400,7 @@ const identity2x3 = identity2x2.concat(0, 0);
  * @param {number[]} vector, in array form
  * @param {number[]} matrix, in array form
  * @returns {number[]} vector, the input vector transformed by the matrix
+ * @linkcode Math ./src/core/matrix2.js 19
  */
 const multiplyMatrix2Vector2 = (matrix, vector) => [
   matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
@@ -368,6 +409,7 @@ const multiplyMatrix2Vector2 = (matrix, vector) => [
 /**
  * @param line in point-vector form, matrix
  * @returns transformed line in point-vector form
+ * @linkcode Math ./src/core/matrix2.js 28
  */
 const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
   vector: [
@@ -382,6 +424,7 @@ const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
 /**
  * @param {number[]} matrix, matrix, left/right order matches what you'd see on a page.
  * @returns {number[]} matrix
+ * @linkcode Math ./src/core/matrix2.js 43
  */
 const multiplyMatrices2 = (m1, m2) => [
   m1[0] * m2[0] + m1[2] * m2[1],
@@ -396,12 +439,14 @@ const multiplyMatrices2 = (m1, m2) => [
  * in the case of 2x3, the translation component is ignored.
  * @param {number[]} matrix one matrix in array form
  * @returns {number} the determinant of the matrix
+ * @linkcode Math ./src/core/matrix2.js 58
  */
 const determinant2 = m => m[0] * m[3] - m[1] * m[2];
 /**
  * @description invert a 2x3 matrix
  * @param {number[]} matrix one matrix in array form
  * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
+ * @linkcode Math ./src/core/matrix2.js 65
  */
 const invertMatrix2 = (m) => {
   const det = determinant2(m);
@@ -420,11 +465,13 @@ const invertMatrix2 = (m) => {
 /**
  * @param {number} x, y
  * @returns {number[]} matrix
+ * @linkcode Math ./src/core/matrix2.js 84
  */
 const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
 /**
  * @param ratio of scale, optional origin homothetic center (0,0 default)
  * @returns {number[]} matrix
+ * @linkcode Math ./src/core/matrix2.js 90
  */
 const makeMatrix2Scale = (x, y, origin = [0, 0]) => [
   x,
@@ -437,6 +484,7 @@ const makeMatrix2Scale = (x, y, origin = [0, 0]) => [
 /**
  * @param angle of rotation, origin of transformation
  * @returns {number[]} matrix
+ * @linkcode Math ./src/core/matrix2.js 103
  */
 const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
   const cos = Math.cos(angle);
@@ -455,6 +503,7 @@ const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
  * to leave it empty and make a reflection through the origin.
  * @param line in vector-origin form
  * @returns matrix
+ * @linkcode Math ./src/core/matrix2.js 122
  */
 const makeMatrix2Reflect = (vector, origin = [0, 0]) => {
   // the line of reflection passes through origin, runs along vector
@@ -520,6 +569,7 @@ var matrix2 = /*#__PURE__*/Object.freeze({
  * @description compute the magnitude an n-dimensional vector
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 32
  */
 const magnitude = v => Math.sqrt(v
   .map(fnSquare)
@@ -528,12 +578,14 @@ const magnitude = v => Math.sqrt(v
  * @description compute the magnitude a 2D vector
  * @param {number[]} v one 2D vector
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 41
  */
 const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
 /**
  * @description compute the square-magnitude an n-dimensional vector
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 48
  */
 const magSquared = v => v
   .map(fnSquare)
@@ -542,6 +594,7 @@ const magSquared = v => v
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching the input vector
+ * @linkcode Math ./src/core/algebra.js 57
  */
 const normalize = (v) => {
   const m = magnitude(v);
@@ -551,6 +604,7 @@ const normalize = (v) => {
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 67
  */
 const normalize2 = (v) => {
   const m = magnitude2(v);
@@ -561,6 +615,7 @@ const normalize2 = (v) => {
  * @param {number[]} v one vector, n-dimensions
  * @param {number} s one scalar
  * @returns {number[]} one vector
+ * @linkcode Math ./src/core/algebra.js 78
  */
 const scale = (v, s) => v.map(n => n * s);
 /**
@@ -568,6 +623,7 @@ const scale = (v, s) => v.map(n => n * s);
  * @param {number[]} v one 2D vector
  * @param {number} s one scalar
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 86
  */
 const scale2 = (v, s) => [v[0] * s, v[1] * s];
 /**
@@ -575,6 +631,7 @@ const scale2 = (v, s) => [v[0] * s, v[1] * s];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching first parameter
+ * @linkcode Math ./src/core/algebra.js 94
  */
 const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
 /**
@@ -582,6 +639,7 @@ const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 102
  */
 const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
 /**
@@ -589,6 +647,7 @@ const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching first parameter
+ * @linkcode Math ./src/core/algebra.js 110
  */
 const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
 /**
@@ -596,6 +655,7 @@ const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 118
  */
 const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
 /**
@@ -603,6 +663,7 @@ const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 126
  */
 const dot = (v, u) => v
   .map((_, i) => v[i] * u[i])
@@ -612,6 +673,7 @@ const dot = (v, u) => v
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 136
  */
 const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
 /**
@@ -619,6 +681,7 @@ const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one vector, dimension matching first parameter
+ * @linkcode Math ./src/core/algebra.js 144
  */
 const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
 /**
@@ -626,12 +689,14 @@ const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 152
  */
 const midpoint2 = (v, u) => scale2(add2(v, u), 0.5);
 /**
  * @description the average of N number of vectors, similar to midpoint, but can accept more than 2 inputs
  * @param {number[]} ...args any number of input vectors
  * @returns {number[]} one vector, dimension matching first parameter
+ * @linkcode Math ./src/core/algebra.js 159
  */
 const average = function () {
   if (arguments.length === 0) { return []; }
@@ -647,6 +712,7 @@ const average = function () {
  * @param {number[]} u one vector, n-dimensions
  * @param {number} t one scalar between 0 and 1 (not clamped)
  * @returns {number[]} one vector, dimensions matching first parameter
+ * @linkcode Math ./src/core/algebra.js 175
  */
 const lerp = (v, u, t) => {
   const inv = 1.0 - t;
@@ -657,6 +723,7 @@ const lerp = (v, u, t) => {
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar; the determinant; the magnitude of the vector
+ * @linkcode Math ./src/core/algebra.js 186
  */
 const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
 /**
@@ -664,6 +731,7 @@ const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number[]} one 3D vector
+ * @linkcode Math ./src/core/algebra.js 194
  */
 const cross3 = (v, u) => [
   v[1] * u[2] - v[2] * u[1],
@@ -675,6 +743,7 @@ const cross3 = (v, u) => [
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 206
  */
 const distance = (v, u) => Math.sqrt(v
   .map((_, i) => (v[i] - u[i]) ** 2)
@@ -684,6 +753,7 @@ const distance = (v, u) => Math.sqrt(v
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 216
  */
 const distance2 = (v, u) => {
   const p = v[0] - u[0];
@@ -695,6 +765,7 @@ const distance2 = (v, u) => {
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 228
  */
 const distance3 = (v, u) => {
   const a = v[0] - u[0];
@@ -706,18 +777,21 @@ const distance3 = (v, u) => {
  * @description return a copy of the input vector where each element's sign flipped
  * @param {number[]} v one vector, n-dimensions
  * @returns {number[]} one vector, dimensions matching input parameter
+ * @linkcode Math ./src/core/algebra.js 240
  */
 const flip = v => v.map(n => -n);
 /**
  * @description return a copy of the input vector rotated 90 degrees counter-clockwise
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 247
  */
 const rotate90 = v => [-v[1], v[0]];
 /**
  * @description return a copy of the input vector rotated 270 degrees counter-clockwise
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 254
  */
 const rotate270 = v => [v[1], -v[0]];
 /**
@@ -725,6 +799,7 @@ const rotate270 = v => [v[1], -v[0]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} is the magnitude of the vector smaller than the epsilon?
+ * @linkcode Math ./src/core/algebra.js 262
  */
 const degenerate = (v, epsilon = EPSILON) => v
   .map(n => Math.abs(n))
@@ -735,6 +810,7 @@ const degenerate = (v, epsilon = EPSILON) => v
  * @param {number[]} u one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
+ * @linkcode Math ./src/core/algebra.js 273
  */
 const parallel = (v, u, epsilon = EPSILON) => 1 - Math
   .abs(dot(normalize(v), normalize(u))) < epsilon;
@@ -744,6 +820,7 @@ const parallel = (v, u, epsilon = EPSILON) => 1 - Math
  * @param {number[]} u one 2D vector
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
+ * @linkcode Math ./src/core/algebra.js 283
  */
 const parallel2 = (v, u, epsilon = EPSILON) => Math
   .abs(cross2(v, u)) < epsilon;
@@ -785,16 +862,19 @@ var algebra = /*#__PURE__*/Object.freeze({
  */
 /**
  * @description the identity matrix for 3x3 matrices
+ * @linkcode Math ./src/core/matrix3.js 14
  */
 const identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
 /**
  * @description the identity matrix for 3x4 matrices (zero translation)
+ * @linkcode Math ./src/core/matrix3.js 19
  */
 const identity3x4 = Object.freeze(identity3x3.concat(0, 0, 0));
 /**
  * @description test if a 3x4 matrix is the identity matrix within an epsilon
  * @param {number[]} matrix a 3x4 matrix
  * @returns {boolean} true if the matrix is the identity matrix
+ * @linkcode Math ./src/core/matrix3.js 26
  */
 const isIdentity3x4 = m => identity3x4
   .map((n, i) => Math.abs(n - m[i]) < EPSILON)
@@ -804,6 +884,7 @@ const isIdentity3x4 = m => identity3x4
  * @param {number[]} matrix one matrix in array form
  * @param {number[]} vector in array form
  * @returns {number[]} the transformed vector
+ * @linkcode Math ./src/core/matrix3.js 36
  */
 const multiplyMatrix3Vector3 = (m, vector) => [
   m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
@@ -816,6 +897,7 @@ const multiplyMatrix3Vector3 = (m, vector) => [
  * @param {number[]} vector the vector of the line
  * @param {number[]} origin the origin of the line
  * @returns {object} transformed line in point-vector form
+ * @linkcode Math ./src/core/matrix3.js 49
  */
 const multiplyMatrix3Line3 = (m, vector, origin) => ({
   vector: [
@@ -834,6 +916,7 @@ const multiplyMatrix3Line3 = (m, vector, origin) => ({
  * @param {number[]} matrix the first matrix
  * @param {number[]} matrix the second matrix
  * @returns {number[]} one matrix, the product of the two
+ * @linkcode Math ./src/core/matrix3.js 68
  */
 const multiplyMatrices3 = (m1, m2) => [
   m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
@@ -854,6 +937,7 @@ const multiplyMatrices3 = (m1, m2) => [
  * in the case of 3x4, the translation component is ignored.
  * @param {number[]} matrix one matrix in array form
  * @returns {number} the determinant of the matrix
+ * @linkcode Math ./src/core/matrix3.js 89
  */
 const determinant3 = m => (
     m[0] * m[4] * m[8]
@@ -867,6 +951,7 @@ const determinant3 = m => (
  * @description invert a 3x4 matrix
  * @param {number[]} matrix one matrix in array form
  * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
+ * @linkcode Math ./src/core/matrix3.js 103
  */
 const invertMatrix3 = (m) => {
   const det = determinant3(m);
@@ -900,6 +985,7 @@ const invertMatrix3 = (m) => {
  * @param {number} [y=0] the y component of the translation
  * @param {number} [z=0] the z component of the translation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 137
  */
 const makeMatrix3Translate = (x = 0, y = 0, z = 0) => identity3x3.concat(x, y, z);
 
@@ -921,6 +1007,7 @@ const singleAxisRotate = (angle, origin, i0, i1, sgn) => {
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 159
  */
 const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 1, 2, true);
 /**
@@ -928,6 +1015,7 @@ const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 167
  */
 const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 0, 2, false);
 /**
@@ -935,6 +1023,7 @@ const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 175
  */
 const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 0, 1, true);
 /**
@@ -944,6 +1033,7 @@ const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle
  * @param {number[]} [vector=[0,0,1]] the axis of rotation
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 185
  */
 const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
   const pos = [0, 1, 2].map(i => origin[i] || 0);
@@ -964,6 +1054,7 @@ const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
  * @param {number} [scale=1] the uniform scale value
  * @param {number[]} [origin=[0,0,0]] the center of transformation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 231
  */
 const makeMatrix3Scale = (scale = 1, origin = [0, 0, 0]) => [
   scale,
@@ -985,6 +1076,7 @@ const makeMatrix3Scale = (scale = 1, origin = [0, 0, 0]) => [
  * @param {number[]} vector one 2D vector specifying the reflection axis
  * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 253
  */
 const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {
   // the line of reflection passes through origin, runs along vector
@@ -1341,6 +1433,7 @@ var equal = /*#__PURE__*/Object.freeze({
  * @param {number[][]} points array of points (which are arrays of numbers)
  * @param {number[]} vector one 2D vector
  * @returns {number[][]} the same points, sorted.
+ * @linkcode Math ./src/core/sort.js 9
  */
 const sortPointsAlongVector2 = (points, vector) => points
 	.map(point => ({ point, d: point[0] * vector[0] + point[1] * vector[1] }))
@@ -1362,6 +1455,7 @@ var sort = /*#__PURE__*/Object.freeze({
  * @param {function} compare_func a function which takes two items (which match
  * the type of the first parameter), execution of this function should return a scalar.
  * @returns {number[]} the index from the set which minimizes the compare function
+ * @linkcode Math ./src/core/nearest.js 27
  */
 const smallestComparisonSearch = (obj, array, compare_func) => {
   const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
@@ -1380,6 +1474,7 @@ const smallestComparisonSearch = (obj, array, compare_func) => {
  * @param {number[]} point the 2D point to test nearness to
  * @param {number[][]} array_of_points an array of 2D points to test against
  * @returns {number[]} one point from the array of points
+ * @linkcode Math ./src/core/nearest.js 46
  */
 const nearestPoint2 = (point, array_of_points) => {
   // todo speed up with partitioning
@@ -1391,6 +1486,7 @@ const nearestPoint2 = (point, array_of_points) => {
  * @param {number[]} point the point to test nearness to
  * @param {number[][]} array_of_points an array of points to test against
  * @returns {number[]} one point from the array of points
+ * @linkcode Math ./src/core/nearest.js 58
  */
 const nearestPoint = (point, array_of_points) => {
   // todo speed up with partitioning
@@ -1406,6 +1502,7 @@ const nearestPoint = (point, array_of_points) => {
  * for segments, greater than 0 for rays, or unbounded for lines.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} a point
+ * @linkcode Math ./src/core/nearest.js 74
  */
 const nearestPointOnLine = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
   origin = resize(vector.length, origin);
@@ -1424,6 +1521,7 @@ const nearestPointOnLine = (vector, origin, point, limiterFunc, epsilon = EPSILO
  * @param {number[][]} polygon an array of points (which are arrays of numbers)
  * @param {number[]} point the point to test nearness to
  * @returns {number[]} a point
+ * @linkcode Math ./src/core/nearest.js 93
  */
 const nearestPointOnPolygon = (polygon, point) => {
   const v = polygon
@@ -1441,6 +1539,7 @@ const nearestPointOnPolygon = (polygon, point) => {
  * @param {number[]} origin the origin of the circle as an array of numbers.
  * @param {number[]} point the point to test nearness to
  * @returns {number[]} a point
+ * @linkcode Math ./src/core/nearest.js 111
  */
 const nearestPointOnCircle = (radius, origin, point) => add(
   origin, scale(normalize(subtract(point, origin)), radius)
@@ -1469,6 +1568,7 @@ var nearest = /*#__PURE__*/Object.freeze({
  * @param {number} floor angle in radians, lower bound
  * @param {number} ceiling angle in radians, upper bound
  * @returns {boolean} is the angle between floor and ceiling
+ * @linkcode Math ./src/core/radial.js 37
  */
 const isCounterClockwiseBetween = (angle, floor, ceiling) => {
   while (ceiling < floor) { ceiling += TWO_PI; }
@@ -1482,6 +1582,7 @@ const isCounterClockwiseBetween = (angle, floor, ceiling) => {
  * @param {number} a vector as an angle in radians
  * @param {number} b vector as an angle in radians
  * @returns {number} interior angle in radians
+ * @linkcode Math ./src/core/radial.js 51
  */
 const clockwiseAngleRadians = (a, b) => {
   // this is on average 50 to 100 times faster than clockwiseAngle2
@@ -1500,6 +1601,7 @@ const clockwiseAngleRadians = (a, b) => {
  * @param {number} a vector as an angle in radians
  * @param {number} b vector as an angle in radians
  * @returns {number} interior angle in radians, counter-clockwise from a to b
+ * @linkcode Math ./src/core/radial.js 70
  */
 const counterClockwiseAngleRadians = (a, b) => {
   // this is on average 50 to 100 times faster than counterClockwiseAngle2
@@ -1518,6 +1620,7 @@ const counterClockwiseAngleRadians = (a, b) => {
  * @param {number[]} a vector as an array of two numbers
  * @param {number[]} b vector as an array of two numbers
  * @returns {number} interior angle in radians, clockwise from a to b
+ * @linkcode Math ./src/core/radial.js 89
  */
 const clockwiseAngle2 = (a, b) => {
   const dotProduct = b[0] * a[0] + b[1] * a[1];
@@ -1532,6 +1635,7 @@ const clockwiseAngle2 = (a, b) => {
  * @param {number[]} a vector as an array of two numbers
  * @param {number[]} b vector as an array of two numbers
  * @returns {number} interior angle in radians, counter-clockwise from a to b
+ * @linkcode Math ./src/core/radial.js 104
  */
 const counterClockwiseAngle2 = (a, b) => {
   const dotProduct = a[0] * b[0] + a[1] * b[1];
@@ -1555,6 +1659,7 @@ const counterClockwiseAngle2 = (a, b) => {
  * @param {number[]} a one 2D vector
  * @param {number[]} b one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/radial.js 128
  */
 const clockwiseBisect2 = (a, b) => fnToVec2(
   fnVec2Angle(a) - clockwiseAngle2(a, b) / 2
@@ -1564,6 +1669,7 @@ const clockwiseBisect2 = (a, b) => fnToVec2(
  * @param {number[]} a one 2D vector
  * @param {number[]} b one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/radial.js 138
  */
 const counterClockwiseBisect2 = (a, b) => fnToVec2(
   fnVec2Angle(a) + counterClockwiseAngle2(a, b) / 2
@@ -1574,6 +1680,7 @@ const counterClockwiseBisect2 = (a, b) => fnToVec2(
  * @param {number} angleA one angle in radians
  * @param {number} angleB one angle in radians
  * @returns {number[]} array of angles in radians
+ * @linkcode Math ./src/core/radial.js 149
  */
 const clockwiseSubsectRadians = (divisions, angleA, angleB) => {
   const angle = clockwiseAngleRadians(angleA, angleB) / divisions;
@@ -1586,6 +1693,7 @@ const clockwiseSubsectRadians = (divisions, angleA, angleB) => {
  * @param {number} angleA one angle in radians
  * @param {number} angleB one angle in radians
  * @returns {number[]} array of angles in radians
+ * @linkcode Math ./src/core/radial.js 162
  */
 const counterClockwiseSubsectRadians = (divisions, angleA, angleB) => {
   const angle = counterClockwiseAngleRadians(angleA, angleB) / divisions;
@@ -1598,6 +1706,7 @@ const counterClockwiseSubsectRadians = (divisions, angleA, angleB) => {
  * @param {number[]} vectorA one vector in array form
  * @param {number[]} vectorB one vector in array form
  * @returns {number[][]} array of vectors (which are arrays of numbers)
+ * @linkcode Math ./src/core/radial.js 175
  */
 const clockwiseSubsect2 = (divisions, vectorA, vectorB) => {
   const angleA = Math.atan2(vectorA[1], vectorA[0]);
@@ -1611,6 +1720,7 @@ const clockwiseSubsect2 = (divisions, vectorA, vectorB) => {
  * @param {number[]} vectorA one vector in array form
  * @param {number[]} vectorB one vector in array form
  * @returns {number[][]} array of vectors (which are arrays of numbers)
+ * @linkcode Math ./src/core/radial.js 189
  */
 const counterClockwiseSubsect2 = (divisions, vectorA, vectorB) => {
   const angleA = Math.atan2(vectorA[1], vectorA[0]);
@@ -1627,6 +1737,7 @@ const counterClockwiseSubsect2 = (divisions, vectorA, vectorB) => {
  * @param {number[]} originB the origin of the first line, as an array of numbers
  * @param {number} [epsilon=1e-6] an optional epsilon for testing parallel-ness.
  * @returns {object[]} an array of objects with "vector" and "origin" keys defining a line
+ * @linkcode Math ./src/core/radial.js 206
  */
 const bisectLines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => {
   const determinant = cross2(vectorA, vectorB);
@@ -1659,6 +1770,7 @@ const bisectLines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => 
  * @param {number[]|...number} args array or sequence of angles in radians
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
+ * @linkcode Math ./src/core/radial.js 239
  */
 const counterClockwiseOrderRadians = function () {
   const radians = Array.from(arguments).flat();
@@ -1675,6 +1787,7 @@ const counterClockwiseOrderRadians = function () {
  * @param {number[][]} args array of vectors (which are arrays of numbers)
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
+ * @linkcode Math ./src/core/radial.js 256
  */
 const counterClockwiseOrder2 = function () {
   return counterClockwiseOrderRadians(
@@ -1686,6 +1799,7 @@ const counterClockwiseOrder2 = function () {
  * consecutive parameters. if radially unsorted, this will sort them.
  * @param {number[]|...number} args array or sequence of angles in radians
  * @returns {number[]} array of sector angles in radians
+ * @linkcode Math ./src/core/radial.js 268
  */
 const counterClockwiseSectorsRadians = function () {
   const radians = Array.from(arguments).flat();
@@ -1699,6 +1813,7 @@ const counterClockwiseSectorsRadians = function () {
  * consecutive parameters. if radially unsorted, this will sort them.
  * @param {number[][]} args array of 2D vectors (higher dimensions will be ignored)
  * @returns {number[]} array of sector angles in radians
+ * @linkcode Math ./src/core/radial.js 282
  */
 const counterClockwiseSectors2 = function () {
   return counterClockwiseSectorsRadians(
@@ -1778,6 +1893,7 @@ const overlapLinePoint = (vector, origin, point, func = excludeL, epsilon = EPSI
  * @param {function} [bFunction=includeL] second line's boolean test normalized value lies collinear
  * @param {number} [epsilon=1e-6] optional epsilon
  * @returns {number[]|undefined} one 2D point or undefined
+ * @linkcode Math ./src/intersection/intersect-line-line.js 27
 */
 const intersectLineLine = (
   aVector, aOrigin,
@@ -1814,6 +1930,7 @@ const intersectLineLine = (
  * @returns {circle} one circle with keys "radius" (number) and "origin" (number[])
  * @example
  * var centroid = polygon.centroid()
+ * @linkcode Math ./src/core/geometry.js 44
  */
 const circumcircle = function (a, b, c) {
   const A = b[0] - a[0];
@@ -1847,6 +1964,7 @@ const circumcircle = function (a, b, c) {
  * @returns {number} the area of the polygon
  * @example
  * var area = polygon.signedArea()
+ * @linkcode Math ./src/core/geometry.js 78
  */
 const signedArea = points => 0.5 * points
   .map((el, i, arr) => {
@@ -1859,6 +1977,7 @@ const signedArea = points => 0.5 * points
  * @returns {number[]} one 2D point as an array of numbers
  * @example
  * var centroid = polygon.centroid()
+ * @linkcode Math ./src/core/geometry.js 91
  */
 const centroid = (points) => {
   const sixthArea = 1 / (6 * signedArea(points));
@@ -1877,6 +1996,7 @@ const centroid = (points) => {
  * @param {number[][]} points an array of unsorted points, in any dimension
  * @param {number} [padding=0] optionally add padding around the box
  * @returns {BoundingBox} an object where "min" and "max" are two points and "span" is the lengths
+ * @linkcode Math ./src/core/geometry.js 110
  */
 const boundingBox = (points, padding = 0) => {
   const min = Array(points[0].length).fill(Infinity);
@@ -1909,6 +2029,7 @@ const anglesToVecs = (angles, radius) => angles
  * @param {number} sides the number of sides in the polygon
  * @param {number} [circumradius=1] the polygon's circumradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 143
  */
 const makePolygonCircumradius = (sides = 3, radius = 1) =>
   anglesToVecs(angleArray(sides), radius);
@@ -1918,6 +2039,7 @@ const makePolygonCircumradius = (sides = 3, radius = 1) =>
  * @param {number} sides the number of sides in the polygon
  * @param {number} [circumradius=1] the polygon's circumradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 153
  */
 const makePolygonCircumradiusSide = (sides = 3, radius = 1) => {
   const halfwedge = Math.PI / sides;
@@ -1930,6 +2052,7 @@ const makePolygonCircumradiusSide = (sides = 3, radius = 1) => {
  * @param {number} sides the number of sides in the polygon
  * @param {number} [inradius=1] the polygon's inradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 166
  */
 const makePolygonInradius = (sides = 3, radius = 1) => 
   makePolygonCircumradius(sides, radius / Math.cos(Math.PI / sides));
@@ -1939,6 +2062,7 @@ const makePolygonInradius = (sides = 3, radius = 1) =>
  * @param {number} sides the number of sides in the polygon
  * @param {number} [inradius=1] the polygon's inradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 176
  */
 const makePolygonInradiusSide = (sides = 3, radius = 1) =>
   makePolygonCircumradiusSide(sides, radius / Math.cos(Math.PI / sides));
@@ -1948,6 +2072,7 @@ const makePolygonInradiusSide = (sides = 3, radius = 1) =>
  * @param {number} sides the number of sides in the polygon
  * @param {number} [length=1] the polygon's side length
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 186
  */
 const makePolygonSideLength = (sides = 3, length = 1) =>
   makePolygonCircumradius(sides, (length / 2) / Math.sin(Math.PI / sides));
@@ -1957,6 +2082,7 @@ const makePolygonSideLength = (sides = 3, length = 1) =>
  * @param {number} sides the number of sides in the polygon
  * @param {number} [length=1] the polygon's side length
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 196
  */
 const makePolygonSideLengthSide = (sides = 3, length = 1) =>
   makePolygonCircumradiusSide(sides, (length / 2) / Math.sin(Math.PI / sides));
@@ -1965,6 +2091,7 @@ const makePolygonSideLengthSide = (sides = 3, length = 1) =>
  * @param {number[][]} polygon a polygon as an array of ordered points in array form
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} a copy of the polygon with collinear points removed
+ * @linkcode Math ./src/core/geometry.js 205
  */
 const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
   // index map [i] to [i, i+1]
@@ -2005,6 +2132,7 @@ const pleatAngle = (count, a, b) => {
  * @param {line} object with two keys/values: { vector: [], origin: [] }
  * @param {number} the number of faces, the number of lines will be n-1.
  * @returns {line[]} an array of lines, objects which contain "vector" and "origin"
+ * @linkcode Math ./src/core/geometry.js 246
  */
 const pleat = (count, a, b) => {
   const lineA = getLine(a);
@@ -2020,6 +2148,7 @@ const pleat = (count, a, b) => {
  * @param {number[]} origin the origin component of the line
  * @returns {number[][][]} an array of one or two polygons, each polygon is an array of points,
  * each point is an array of numbers.
+ * @linkcode Math ./src/core/geometry.js 262
  */
 const splitConvexPolygon = (poly, lineVector, linePoint) => {
   // todo: should this return undefined if no intersection?
@@ -2093,6 +2222,7 @@ const splitConvexPolygon = (poly, lineVector, linePoint) => {
  * @param {boolean} [include_collinear=false] should we include points collinear along a boundary edge? by default, no (false).
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} an array of points (which are arrays of numbers)
+ * @linkcode Math ./src/core/geometry.js 336
  */
 const convexHull = (points, include_collinear = false, epsilon = EPSILON) => {
   // # points in the convex hull before escaping function
@@ -2253,6 +2383,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
  * make sure:
  *  - your polygon is convex (todo: make this algorithm work with non-convex)
  *  - your polygon points are sorted counter-clockwise
+ * @linkcode Math ./src/core/geometry.js 497
  */
 const straightSkeleton = (points) => {
   // first time running this function, create the 2nd and 3rd parameters
@@ -2324,6 +2455,7 @@ var geometry = /*#__PURE__*/Object.freeze({
 /**
  * @description convert a line from one parameterization into another.
  * convert vector-origin into u-d (normal, distance-to-origin)
+ * @linkcode Math ./src/core/parameterize.js 34
  */
 // export const vectorOriginToUD = ({ vector, origin }) => {
 const makeNormalDistanceLine = ({ vector, origin }) => {
@@ -2336,6 +2468,7 @@ const makeNormalDistanceLine = ({ vector, origin }) => {
 /**
  * @description convert a line from one parameterization into another.
  * convert u-d (normal, distance-to-origin) into vector-origin
+ * @linkcode Math ./src/core/parameterize.js 47
  */
 // export const UDToVectorOrigin = ({ u, d }) => ({
 const makeVectorOriginLine = ({ normal, distance }) => ({
@@ -2375,6 +2508,7 @@ const rotateVector2 = (center, pt, a) => {
  * @param {number[]} origin2 the second circle's origin
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]|undefined} an array of one or two points, or undefined if no intersection 
+ * @linkcode Math ./src/intersection/intersect-circle-circle.js 28
  */
 const intersectCircleCircle = (c1_radius, c1_origin, c2_radius, c2_origin, epsilon = EPSILON) => {
   // sort by largest-smallest radius
@@ -2413,6 +2547,7 @@ const intersectCircleCircle = (c1_radius, c1_origin, c2_radius, c2_origin, epsil
  * @param {number[]} lineOrigin the origin component of the line
  * @param {function} [lineFunc=includeL] set the line/ray/segment and inclusive/exclusive
  * @param {number} [epsilon=1e-6] an optional epsilon
+ * @linkcode Math ./src/intersection/intersect-circle-line.js 20
  */
 const intersectCircleLine = (
   circle_radius, circle_origin,
@@ -2453,6 +2588,7 @@ const intersectCircleLine = (
  * @param {number[][]} polygon in array of array form
  * @param {function} true for positive numbers, in/exclude near zero
  * @returns {boolean} is the point inside the polygon?
+ * @linkcode Math ./src/intersection/overlap-polygon-point.js 23
  */
 const overlapConvexPolygonPoint = (poly, point, func = exclude, epsilon = EPSILON) => poly
   .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
@@ -2539,12 +2675,13 @@ const intersectConvexPolygonLineInclusive = (
 };
 
 /**
- * generalized line-ray-segment intersection with convex polygon function
+ * @description generalized line-ray-segment intersection with convex polygon function
  * for lines and rays, line1 and line2 are the vector, origin in that order.
  * for segments, line1 and line2 are the two endpoints.
  *
  * this doubles as the exclusive condition, and the main export since it
  * checks for exclusive/inclusive and can early-return
+ * @linkcode Math ./src/intersection/intersect-polygon-line.js 72
  */
 const intersectConvexPolygonLine = (
   poly,
@@ -2681,6 +2818,15 @@ const default_intersect_domain_function = {
   segment: excludeS,
 };
 
+/**
+ * @name intersect
+ * @description get the intersection of two geometry objects, the type of each is inferred.
+ * @param {any} a any geometry object
+ * @param {any} b any geometry object
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {number[]|number[][]|undefined} the type of the result varies depending on the type of the input parameters, it is always one point, or an array of points, or undefined if no intersection.
+ * @linkcode Math ./src/intersection/intersect.js 92
+ */
 const intersect = function (a, b, epsilon) {
   const type_a = typeOf(a);
   const type_b = typeOf(b);
@@ -2699,6 +2845,7 @@ const intersect = function (a, b, epsilon) {
 /**
  * @description find out if two convex polygons are overlapping by searching
  * for a dividing axis, which should be one side from one of the polygons.
+ * @linkcode Math ./src/intersection/overlap-polygons.js 13
  */
 const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
   for (let p = 0; p < 2; p++) {
@@ -2752,6 +2899,7 @@ const overlapCirclePoint = (radius, origin, point, func = exclude, epsilon = EPS
  * @param {number[]} array of 2 numbers, the second line's origin
  * @param {function} first line's boolean test normalized value lies collinear
  * @param {function} seconde line's boolean test normalized value lies collinear
+ * @linkcode Math ./src/intersection/overlap-line-line.js 25
 */
 
 // export const exclude_s = (t, e = EPSILON) => t > e && t < 1 - e;
@@ -2876,7 +3024,15 @@ const default_overlap_domain_function = {
   segment: excludeS,
   vector: excludeL, // not used
 };
-
+/**
+ * @name overlap
+ * @description test whether or not two geometry objects overlap each other.
+ * @param {any} a any geometry object
+ * @param {any} b any geometry object
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {boolean} true if the two objects overlap.
+ * @linkcode Math ./src/intersection/overlap.js 109
+ */
 const overlap = function (a, b, epsilon) {
   const type_a = typeOf(a);
   const type_b = typeOf(b);
@@ -2901,6 +3057,7 @@ const overlap = function (a, b, epsilon) {
  * @returns {boolean} is the "inner" polygon completely inside the "outer"
  *
  * @todo: should one function be include and the other exclude?
+ * @linkcode Math ./src/intersection/enclose-polygons.js 18
  */
 const enclosingPolygonPolygon = (outer, inner, fnInclusive=include) => {
   // these points should be *not inside* (false)
@@ -2922,6 +3079,7 @@ const enclosingPolygonPolygon = (outer, inner, fnInclusive=include) => {
  * @param {BoundingBox} box1 an axis-aligned bounding box, the result of calling boundingBox(...)
  * @param {BoundingBox} box2 an axis-aligned bounding box, the result of calling boundingBox(...)
  * @returns {boolean} true if the bounding boxes overlap each other
+ * @linkcode Math ./src/intersection/overlap-bounding-boxes.js 9
  */
 const overlapBoundingBoxes = (box1, box2) => {
   const dimensions = box1.min.length > box2.min.length
@@ -4433,27 +4591,8 @@ math.core = Object.assign(Object.create(null),
     clipPolygonPolygon,
   }
 );
-/**
- * @description get the type of an object, which includes the custom types in this library.
- * @param {any} any object
- * @returns {string} the type name
- */
 math.typeof = typeOf;
-/**
- * @description get the intersection of two geometry objects, the type of each is inferred.
- * @param {any} a any geometry object
- * @param {any} b any geometry object
- * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {number[]|number[][]|undefined} the type of the result varies depending on the type of the input parameters, it is always one point, or an array of points, or undefined if no intersection.
- */
 math.intersect = intersect;
-/**
- * @description test whether or not two geometry objects overlap each other.
- * @param {any} a any geometry object
- * @param {any} b any geometry object
- * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {boolean} true if the two objects overlap.
- */
 math.overlap = overlap;
 
 export { math as default };

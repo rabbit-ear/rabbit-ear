@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 const testEqualVectors = function (...args) {
-  expect(ear.math.equivalentVectors(...args)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(...args)).toBe(true);
 };
 
 test("nearest point", () => {
@@ -69,9 +69,9 @@ test("makePolygonCircumradius", () => {
 });
 
 test("make regular polygon side aligned", () => {
-	const square = ear.math.makePolygonCircumradiusS(4);
+	const square = ear.math.makePolygonCircumradiusSide(4);
 	expect(square[0][0]).toBeCloseTo(Math.sqrt(2) / 2);
-	const square2 = ear.math.makePolygonCircumradiusS(4, 2);
+	const square2 = ear.math.makePolygonCircumradiusSide(4, 2);
 	expect(square2[0][0]).toBeCloseTo(Math.sqrt(2));
 });
 
@@ -82,9 +82,9 @@ test("make regular polygon inradius", () => {
 });
 
 test("make_polygon_inradius_s", () => {
-	const square = ear.math.makePolygonInradiusS(4);
+	const square = ear.math.makePolygonInradiusSide(4);
 	expect(square[0][0]).toBe(1);
-	const square2 = ear.math.makePolygonInradiusS(4, 2);
+	const square2 = ear.math.makePolygonInradiusSide(4, 2);
 	expect(square2[0][0]).toBe(2);
 });
 
@@ -98,9 +98,9 @@ test("make_polygon_side_length", () => {
 });
 
 test("make_polygon_side_length_s", () => {
-	const square = ear.math.makePolygonSideLengthS(4);
+	const square = ear.math.makePolygonSideLengthSide(4);
 	expect(square[0][0]).toBe(0.5);
-	const square2 = ear.math.makePolygonSideLengthS(4, 2);
+	const square2 = ear.math.makePolygonSideLengthSide(4, 2);
 	expect(square2[0][0]).toBe(1);
 });
 
@@ -210,11 +210,11 @@ test("straight skeleton triangle", () => {
 	["skeleton", "skeleton", "skeleton", "perpendicular"]
 		.forEach((key, i) => expect(skeleton[i].type).toBe(key));
 	[[1, 0], [0, f1f]].forEach((pt, i) => ear.math
-		.equivalentVectors(pt, skeleton[0].points[i]));
+		.fnEpsilonEqualVectors(pt, skeleton[0].points[i]));
 	[[0, 1], [0, f1f]].forEach((pt, i) => ear.math
-		.equivalentVectors(pt, skeleton[1].points[i]));
+		.fnEpsilonEqualVectors(pt, skeleton[1].points[i]));
 	[[-1, 0], [0, f1f]].forEach((pt, i) => ear.math
-		.equivalentVectors(pt, skeleton[2].points[i]));
+		.fnEpsilonEqualVectors(pt, skeleton[2].points[i]));
 });
 
 test("straight skeleton quad", () => {

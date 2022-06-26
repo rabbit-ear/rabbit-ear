@@ -12,6 +12,7 @@ import math from "../../math";
  * @returns {number[]} index of vertex in new vertices_coords array.
  * the size of this array matches array size of source vertices.
  * duplicate (non-added) vertices returns their pre-existing counterpart's index.
+ * @linkcode Origami ./src/graph/add/addVertices.js 15
  */
 const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }

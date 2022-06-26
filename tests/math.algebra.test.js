@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 const testEqual = function (...args) {
-  expect(ear.math.equivalent(...args)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(...args)).toBe(true);
 };
 
 /**

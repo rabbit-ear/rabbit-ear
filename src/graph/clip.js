@@ -11,6 +11,7 @@ import { getBoundary } from "./boundary";
  * @param {RayLine|number[][]} line a line or a segment
  * @returns {number[][]|undefined} a segment, a pair of two points,
  * or undefined if no intersection
+ * @linkcode Origami ./src/graph/clip.js 14
  */
 const clip = function (graph, line) {
 	const polygon = getBoundary(graph).vertices.map(v => graph.vertices_coords[v]);

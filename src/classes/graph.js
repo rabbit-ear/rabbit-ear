@@ -46,6 +46,7 @@ import splitFace from "../graph/splitFace/index";
  * @description a graph which includes faces, edges, and vertices, and additional
  * origami-specific information like fold angles of edges and layer order of faces.
  * @param {FOLD} [graph] an optional FOLD object, otherwise the graph will initialize empty
+ * @linkcode Origami ./src/classes/graph.js 49
  */
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);

@@ -15,6 +15,7 @@ const get_unassigned_indices = (edges_assignment) => edges_assignment
  * @param {string[]} vertices_edges_assignments array of single characters FOLD spec edges assignments.
  * @returns {string[][]} array of arrays of strings, all permutations where "U"
  * assignments have been replaced with "V" or "M".
+ * @linkcode Origami ./src/singleVertex/maekawaAssignments.js 18
  */
 const maekawaAssignments = (vertices_edges_assignments) => {
 	const unassigneds = get_unassigned_indices(vertices_edges_assignments);

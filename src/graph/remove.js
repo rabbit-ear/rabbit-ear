@@ -30,6 +30,7 @@ import {
  * given removeIndices: [4, 6, 7];
  * given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
  * map becomes (_=undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6];
+ * @linkcode Origami ./src/graph/remove.js 33
  */
 const removeGeometryIndices = (graph, key, removeIndices) => {
 	const geometry_array_size = count(graph, key);

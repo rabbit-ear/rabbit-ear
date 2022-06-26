@@ -111,6 +111,7 @@ const build_faces_if_needed = (graph, reface) => {
  * @param {FOLD} graph a FOLD graph
  * @param {boolean} [reface=false] optional boolean, request to rebuild all faces
  * @return {FOLD} graph the same input graph object
+ * @linkcode Origami ./src/graph/populate.js 114
  */
 const populate = (graph, reface) => {
 	if (typeof graph !== "object") { return graph; }

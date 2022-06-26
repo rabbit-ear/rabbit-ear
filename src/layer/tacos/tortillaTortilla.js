@@ -56,7 +56,7 @@ export const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => 
 	tortilla_edge_indices.forEach(e => { matrix[e] = []; });
 	// console.log("clip", tortilla_edge_indices
 		// .map((e, ei) => faces_polygon
-		// 	.map((poly, f) => math.core.clipLineInConvexPolygon(
+		// 	.map((poly, f) => math.core.clipLineConvexPolygon(
 		// 		poly,
 		// 		edges_vector[ei],
 		// 		edges_coords[ei][0],
@@ -65,7 +65,7 @@ export const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => 
 		// 		epsilon))));
 	const result = tortilla_edge_indices
 		.map((e, ei) => faces_polygon
-			.map((poly, f) => math.core.clipLineInConvexPolygon(
+			.map((poly, f) => math.core.clipLineConvexPolygon(
 				poly,
 				edges_vector[ei],
 				edges_coords[ei][0],

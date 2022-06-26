@@ -19,7 +19,7 @@ const boundary_for_arrows = ({ vertices_coords }) => math.core
 const widest_perp = (graph, foldLine, point) => {
 	const boundary = boundary_for_arrows(graph);
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineInConvexPolygon(boundary,
+		const foldSegment = math.core.clipLineConvexPolygon(boundary,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
@@ -28,7 +28,7 @@ const widest_perp = (graph, foldLine, point) => {
 	}
 	const perpVector = math.core.rotate270(foldLine.vector);
 	const smallest = math.core
-		.clipLineInConvexPolygon(boundary,
+		.clipLineConvexPolygon(boundary,
 			perpVector,
 			point,
 			math.core.exclude,
@@ -112,7 +112,7 @@ const axiom_2_arrows = params => [
 const axiom_3_arrows = (params, graph) => {
 	const boundary = boundary_for_arrows(graph);
 	const segs = params.lines.map(l => math.core
-		.clipLineInConvexPolygon(boundary,
+		.clipLineConvexPolygon(boundary,
 			l.vector,
 			l.origin,
 			math.core.exclude,

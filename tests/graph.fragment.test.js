@@ -35,7 +35,7 @@ test("fragment dup verts", () => {
 });
 
 test("fragment, one edges crossing boundary, more assignments than fold angles", () => {
-  const graph = ear.graph.unit_square();
+  const graph = ear.graph.square();
   graph.vertices_coords.push([-0.1, 0.3], [1.1, 0.9]);
   graph.edges_vertices.push([4, 5]);
   graph.edges_assignment.push("V");
@@ -51,7 +51,7 @@ test("fragment, one edges crossing boundary, more assignments than fold angles",
 });
 
 test("fragment, two crossing edges, more assignments than fold angles", () => {
-  const graph = ear.graph.unit_square();
+  const graph = ear.graph.square();
   graph.vertices_coords.push([-0.1, 0.3], [1.1, 0.9]);
   graph.vertices_coords.push([0.2, -0.1], [0.8, 1.1]);
   graph.edges_vertices.push([4, 5]);

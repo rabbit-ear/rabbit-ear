@@ -7,6 +7,7 @@ import * as S from "../general/strings";
  * and this will merge them into one nextmap which reflects all changes to the graph.
  * @param {...number[]} ...maps a sequence of simple nextmaps
  * @returns {number[]} one nextmap reflecting the sum of changes
+ * @linkcode Origami ./src/graph/maps.js 10
  */
 export const mergeSimpleNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
@@ -19,6 +20,7 @@ export const mergeSimpleNextmaps = (...maps) => {
  * and this will merge them into one nextmap which reflects all changes to the graph.
  * @param {...number[][]} ...maps a sequence of nextmaps
  * @returns {number[][]} one nextmap reflecting the sum of changes
+ * @linkcode Origami ./src/graph/maps.js 23
  */
 export const mergeNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
@@ -38,6 +40,7 @@ export const mergeNextmaps = (...maps) => {
  * and this will merge them into one backmap which reflects all changes to the graph.
  * @param {...number[]} ...maps a sequence of simplebackmaps
  * @returns {number[]} one backmap reflecting the sum of changes
+ * @linkcode Origami ./src/graph/maps.js 43
  */
 export const mergeSimpleBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
@@ -53,6 +56,7 @@ export const mergeSimpleBackmaps = (...maps) => {
  * and this will merge them into one backmap which reflects all changes to the graph.
  * @param {...number[][]} ...maps a sequence of backmaps
  * @returns {number[][]} one backmap reflecting the sum of changes
+ * @linkcode Origami ./src/graph/maps.js 59
  */
 export const mergeBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
@@ -71,6 +75,7 @@ export const mergeBackmaps = (...maps) => {
  * @description invert an array of integers so that indices become values and values become indices. in the case of multiple values trying to insert into the same index, a child array is made to house both (or more) numbers.
  * @param {number[]|number[][]} map an array of integers
  * @returns {number[]|number[][]} the inverted map
+ * @linkcode Origami ./src/graph/maps.js 78
  */
 export const invertMap = (map) => {
 	const inv = [];
@@ -94,6 +99,7 @@ export const invertMap = (map) => {
  * @description invert an array of integers so that indices become values and values become indices. duplicate entries will be overwritten.
  * @param {number[]} map an array of integers
  * @returns {number[]} the inverted map
+ * @linkcode Origami ./src/graph/maps.js 102
  */
 export const invertSimpleMap = (map) => {
 	const inv = [];

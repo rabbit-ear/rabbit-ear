@@ -5,7 +5,8 @@
 	"main": "./rabbit-ear.js",
 	"scripts": {
 		"test": "jest",
-		"clean": "node tests/clean.js"
+		"clean": "node tests/clean.js",
+		"lineno": "node tests/lineno.js"
 	},
 	"license": "MIT",
 	"author": {

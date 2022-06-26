@@ -36,6 +36,7 @@ import {
  * @returns {object} a summary of the changes with keys "vertex", "edges"
  * "vertex" is the index of the new vertex (or old index, if similar)
  * "edge" is a summary of changes to edges, with "map" and "remove"
+ * @linkcode Origami ./src/graph/splitEdge/index.js 39
  */
 const splitEdge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
 	// make sure old_edge is a valid index

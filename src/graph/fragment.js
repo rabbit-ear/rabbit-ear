@@ -173,6 +173,7 @@ const fragment_keep_keys = [
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to the graph
+ * @linkcode Origami ./src/graph/fragment.js 176
  */
 const fragment = (graph, epsilon = math.core.EPSILON) => {
 	// project all vertices onto the XY plane

@@ -11,6 +11,7 @@ import * as S from "../general/strings";
  * @author https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
  * @param {object} o
  * @returns {object} a deep copy of the input
+ * @linkcode Origami ./src/general/clone.js 14
  */
 const clone = function (o) {
 	let newO;

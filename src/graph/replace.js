@@ -26,6 +26,7 @@ import {
  *
  * this can handle removing multiple indices at once; and is faster than
  * otherwise calling this multiple times with only one or a few removals.
+ * @linkcode Origami ./src/graph/replace.js 29
  */
 // replaceIndices: [4:3, 7:5, 8:3, 12:3, 14:9] where keys are indices to remove
 const replaceGeometryIndices = (graph, key, replaceIndices) => {

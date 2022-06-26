@@ -25,6 +25,7 @@ import { normalAxiom6 } from "./axiomsNormDist";
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {RayLine} the line in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 28
  */
 export const axiom1 = (point1, point2) => ({
 	vector: math.core.normalize2(math.core.subtract2(...math.core.resizeUp(point2, point1))),
@@ -35,6 +36,7 @@ export const axiom1 = (point1, point2) => ({
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {RayLine} the line in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 39
  */
 export const axiom2 = (point1, point2) => ({
 	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(point2, point1)))),
@@ -47,6 +49,7 @@ export const axiom2 = (point1, point2) => ({
  * @param {RayLine} line1 one 2D line in {vector, origin} form
  * @param {RayLine} line2 one 2D line in {vector, origin} form
  * @returns {RayLine[]} an array of lines in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 52
  */
 export const axiom3 = (line1, line2) => math.core.bisectLines2(
 	line1.vector, line1.origin, line2.vector, line2.origin
@@ -57,6 +60,7 @@ export const axiom3 = (line1, line2) => math.core.bisectLines2(
  * @param {RayLine} line one 2D line in {vector, origin} form
  * @param {number[]} point one 2D point
  * @returns {RayLine} the line in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 63
  */
 export const axiom4 = (line, point) => ({
 	vector: math.core.rotate90(math.core.normalize2(line.vector)),
@@ -69,6 +73,7 @@ export const axiom4 = (line, point) => ({
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
  * @returns {RayLine[]} an array of lines in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 76
  */
 export const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
 		math.core.distance2(point1, point2),
@@ -88,8 +93,9 @@ export const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
  * @returns {RayLine[]} an array of lines in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 96
  */
-export const axiom6 = (line1, line2, point1, point2) => axiom6ud(
+export const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
 	math.core.makeNormalDistanceLine(line1),
 	math.core.makeNormalDistanceLine(line2),
 	point1, point2).map(math.core.makeVectorOriginLine);
@@ -104,6 +110,7 @@ export const axiom6 = (line1, line2, point1, point2) => axiom6ud(
  * @param {number[]} point the point to bring onto the line
  * @returns {RayLine | undefined} the line in {vector, origin} form
  * or undefined if the given lines are parallel
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 113
  */
 export const axiom7 = (line1, line2, point) => {
 	const intersect = math.core.intersectLineLine(

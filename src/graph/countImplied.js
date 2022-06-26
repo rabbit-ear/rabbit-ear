@@ -45,6 +45,7 @@ const ordersArrayNames = {
  * @param {FOLD} graph a FOLD graph
  * @param {string} key the prefix for a key, eg: "vertices" 
  * @returns {number} the number of vertices, edges, or faces in the graph.
+ * @linkcode Origami ./src/graph/countImplied.js 48
  */
 const countImplied = (graph, key) => Math.max(
 	// return the maximum value between (1/2):

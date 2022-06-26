@@ -4,7 +4,7 @@ test("edge angle assinments", () => {
 	const assignments = ["B", "b", "M", "m", "V", "v", "F", "f", "U", "u"];
 	const angles = [0, 0, -180, -180, 180, 180, 0, 0, 0, 0];
 	const calculated = assignments.map(a => ear.graph.edgeAssignmentToFoldAngle(a));
-	expect(ear.math.equivalent(calculated, angles)).toBe(true);
+	expect(ear.math.fnEpsilonEqualVectors(calculated, angles)).toBe(true);
 });
 
 

@@ -11,6 +11,7 @@ import { makeEdgesBoundingBox } from "./make";
  * @param {number} [epsilon=1e-6] an optional epsilon to be added as padding to the bounding boxes
  * @returns {boolean[][]} array matching edges_ length where each value is
  * an array matching vertices_ length, containing true/false.
+ * @linkcode Origami ./src/graph/span.js 14
  */
 export const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.core.EPSILON) =>
 	makeEdgesBoundingBox(graph, epsilon)
@@ -35,6 +36,7 @@ export const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.core.EPSIL
  * 2 [  ,  , t,  ]
  * 3 [  ,  ,  , t]
  * ```
+ * @linkcode Origami ./src/graph/span.js 39
  */
 export const getEdgesEdgesOverlapingSpans = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
 	const min_max = makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon);

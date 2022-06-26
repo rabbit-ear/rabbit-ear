@@ -1,28 +1,34 @@
 const ear = require("rabbit-ear");
 
+const isEqual = (...args) => args
+	.map(el => JSON.stringify(el))
+	.map((el, i, arr) => [el, arr[(i + 1) % arr.length]])
+	.map(pair => pair[0] === pair[1])
+	.reduce((a, b) => a && b, true);
+
 test("assignmentsToFacesFlip, empty", () => {
-	const res1 = ear.math.equivalent(ear.layer
-		.assignmentsToFacesFlip([]),
-		[]);
 	try {
 		ear.vertex.assignmentsToFacesFlip(undefined)
 	} catch(error) {
 		expect(error).not.toBe(undefined);
 	}
-	expect([res1].reduce((a, b) => a && b, true)).toBe(true);
+	const res1 = isEqual(ear.layer
+		.assignmentsToFacesFlip([]),
+		[]);
+	expect(res1).toBe(false);
 });
 
 test("assignmentsToFacesFlip, mv only", () => {
-	const res1 = ear.math.equivalent(ear.layer
+	const res1 = isEqual(ear.layer
 		.assignmentsToFacesFlip(Array.from("mmmm")),
 		[false, true, false, true]);
-	const res2 = ear.math.equivalent(ear.layer
+	const res2 = isEqual(ear.layer
 		.assignmentsToFacesFlip(Array.from("mVvM")),
 		[false, true, false, true]);
-	const res3 = ear.math.equivalent(ear.layer
+	const res3 = isEqual(ear.layer
 		.assignmentsToFacesFlip(Array.from("m")),
 		[false]);
-	const res4 = ear.math.equivalent(ear.layer
+	const res4 = isEqual(ear.layer
 		.assignmentsToFacesFlip(Array.from("V")),
 		[false]);
 	expect([res1, res2, res3, res4].reduce((a, b) => a && b, true))
@@ -30,16 +36,16 @@ test("assignmentsToFacesFlip, mv only", () => {
 });
 
 test("assignmentsToFacesFlip, with flat folds", () => {
-	const res1 = ear.math.equivalent(ear.layer
+	const res1 = isEqual(ear.layer
 		.assignmentsToFacesFlip(Array.from("ffff")),
 		[false, false, false, false]);
-	const res2 = ear.math.equivalent(ear.layer
+	const res2 = isEqual(ear.layer
 		.assignmentsToFacesFlip(Array.from("mfff")),
 		[false, false, false, false]);
-	const res3 = ear.math.equivalent(ear.layer
+	const res3 = isEqual(ear.layer
 		.assignmentsToFacesFlip(Array.from("ffffm")),
 		[false, false, false, false, true]);
-	const res4 = ear.math.equivalent(ear.layer
+	const res4 = isEqual(ear.layer
 		.assignmentsToFacesFlip(Array.from("vvffff")),
 		[false, true, true, true, true, true]);
 	expect([res1, res2, res3, res4].reduce((a, b) => a && b, true))

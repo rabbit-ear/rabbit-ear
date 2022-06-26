@@ -368,35 +368,35 @@ test("collinear segment intersections, types not core", () => {
   ].forEach(res => expect(res).toBe(undefined));
 });
 
-test("polygon polygon, same polygon", () => {
+test("clip polygon polygon, same polygon", () => {
   // all of the "b" cases are flipped clockwise and should return no solution
   // same polygon
-  const res1 = ear.math.intersectPolygonPolygon(
+  const res1 = ear.math.clipPolygonPolygon(
     [[60, 10], [50, 50], [20, 20]],
     [[50, 50], [20, 20], [60, 10]]
   );
   expect(res1.length).toBe(3);
 
-  const res2 = ear.math.intersectPolygonPolygon(
+  const res2 = ear.math.clipPolygonPolygon(
     [[50, 50], [25, 25], [50, 0]],
     [[50, 50], [25, 25], [50, 0]]
   );
   expect(res2.length).toBe(3);
 
-  const res2b = ear.math.intersectPolygonPolygon(
+  const res2b = ear.math.clipPolygonPolygon(
     [[50, 0], [25, 25], [50, 50]],
     [[50, 0], [25, 25], [50, 50]]
   );
   expect(res2b).toBe(undefined);
 
   // same polygon, array rotated
-  const res3 = ear.math.intersectPolygonPolygon(
+  const res3 = ear.math.clipPolygonPolygon(
     [[50, 50], [25, 25], [50, 0]],
     [[25, 25], [50, 0], [50, 50]]
   );
   expect(res3.length).toBe(3);
 
-  const res3b = ear.math.intersectPolygonPolygon(
+  const res3b = ear.math.clipPolygonPolygon(
     [[50, 0], [25, 25], [50, 50]],
     [[50, 50], [50, 0], [25, 25]]
   );
@@ -408,22 +408,22 @@ test("polygon polygon, edge aligned", () => {
 
   const poly3 = [[40, 40], [100, 40], [80, 80]];
   const poly4 = [[100, 40], [40, 40], [80, 0]];
-  const res2 = ear.math.intersectPolygonPolygon(poly3, poly4);
+  const res2 = ear.math.clipPolygonPolygon(poly3, poly4);
   expect(res2).toBe(undefined);
 
   const poly5 = [[40, 40], [100, 40], [80, 80]];
   const poly6 = [[90, 40], [50, 40], [80, 0]];
-  const res3 = ear.math.intersectPolygonPolygon(poly5, poly6);
+  const res3 = ear.math.clipPolygonPolygon(poly5, poly6);
   expect(res3).toBe(undefined);
 
   const poly7 = [[40, 40], [100, 40], [80, 80]];
   const poly8 = [[200, 40], [50, 40], [80, 0]];
-  const res4 = ear.math.intersectPolygonPolygon(poly7, poly8);
+  const res4 = ear.math.clipPolygonPolygon(poly7, poly8);
   expect(res4).toBe(undefined);
 
   const poly9 = [[40, 40], [100, 40], [80, 80]];
   const poly10 = [[200, 40], [20, 40], [80, 0]];
-  const res5 = ear.math.intersectPolygonPolygon(poly9, poly10);
+  const res5 = ear.math.clipPolygonPolygon(poly9, poly10);
   expect(res5).toBe(undefined);
 });
 
@@ -432,23 +432,23 @@ test("polygon polygon, epsilon", () => {
   const ep = 1e-10;
   const poly11 = [[40, 40 - ep], [100, 40 - ep], [80, 80]];
   const poly12 = [[100, 40], [40, 40], [80, 0]];
-  const res6 = ear.math.intersectPolygonPolygon(poly11, poly12);
+  const res6 = ear.math.clipPolygonPolygon(poly11, poly12);
   expect(res6).toBe(undefined);
-  const res7 = ear.math.intersectPolygonPolygon(poly12, poly11);
+  const res7 = ear.math.clipPolygonPolygon(poly12, poly11);
   expect(res7).toBe(undefined);
 
   const poly13 = [[60, 10], [50, 50], [20, 20]];
   const poly14 = [[50+ep, 50+ep], [20, 20], [60, 10]];
-  const res8 = ear.math.intersectPolygonPolygon(poly13, poly14);
+  const res8 = ear.math.clipPolygonPolygon(poly13, poly14);
   expect(res8.length).toBe(3);
-  const res9 = ear.math.intersectPolygonPolygon(poly14, poly13);
+  const res9 = ear.math.clipPolygonPolygon(poly14, poly13);
   expect(res9.length).toBe(3);
 
   const poly15 = [[60, 10], [50, 50], [20, 20]];
   const poly16 = [[50-ep, 50-ep], [20, 20], [60, 10]];
-  const res10 = ear.math.intersectPolygonPolygon(poly15, poly16);
+  const res10 = ear.math.clipPolygonPolygon(poly15, poly16);
   expect(res10.length).toBe(3);
-  const res11 = ear.math.intersectPolygonPolygon(poly16, poly15);
+  const res11 = ear.math.clipPolygonPolygon(poly16, poly15);
   expect(res11.length).toBe(3);
 });
 
@@ -468,6 +468,6 @@ test("polygon polygon collinear edge", () => {
     [-0.21213203435596423,0.21213203435596426],
     [-0.42426406871192857,-0.28284271247461895]
   ];
-  const res1 = ear.math.intersectPolygonPolygon(polygon1, polygon2);
-  const res2 = ear.math.intersectPolygonPolygon(polygon2, polygon1);
+  const res1 = ear.math.clipPolygonPolygon(polygon1, polygon2);
+  const res2 = ear.math.clipPolygonPolygon(polygon2, polygon1);
 });

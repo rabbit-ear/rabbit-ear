@@ -1,14 +1,14 @@
 const ear = require("../rabbit-ear");
 
-test("regular polygon bases", () => {
-	const names = ["triangle", "square", "pentagon", "hexagon", "heptagon", "octagon", "nonagon", "decagon", "hendecagon", "dodecagon"];
-	names.forEach((name, i) => {
-		let g = ear.graph[name]();
-		expect(g.vertices_coords.length).toBe(i + 3);
-		expect(g.edges_vertices.length).toBe(i + 3);
-		expect(g.faces_vertices.length).toBe(1);
-	});
-});
+// test("regular polygon bases", () => {
+// 	const names = ["triangle", "square", "pentagon", "hexagon", "heptagon", "octagon", "nonagon", "decagon", "hendecagon", "dodecagon"];
+// 	names.forEach((name, i) => {
+// 		let g = ear.graph[name]();
+// 		expect(g.vertices_coords.length).toBe(i + 3);
+// 		expect(g.edges_vertices.length).toBe(i + 3);
+// 		expect(g.faces_vertices.length).toBe(1);
+// 	});
+// });
 
 // test("other shapes", () => {
 // 	const circle = ear.graph.circle();

@@ -31,6 +31,7 @@ const maekawa_signs = { M:-1, m:-1, V:1, v:1};
  * todo: this assumes that valley/mountain folds are flat folded.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
+ * @linkcode Origami ./src/singleVertex/validate.js 34
  */
 export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
 	if (!vertices_edges) {
@@ -57,6 +58,7 @@ export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignme
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
+ * @linkcode Origami ./src/singleVertex/validate.js 61
  */
 export const validateKawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
 	if (!vertices_vertices) {

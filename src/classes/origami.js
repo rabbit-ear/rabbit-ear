@@ -10,6 +10,7 @@ import flatFold from "../graph/flatFold/index";
  * create a single-face graph with a unit square boundary.
  * @prototype Graph
  * @param {FOLD} [graph] an optional FOLD object
+ * @linkcode Origami ./src/classes/origami.js 13
  */
 const Origami = {};
 Origami.prototype = Object.create(GraphProto);

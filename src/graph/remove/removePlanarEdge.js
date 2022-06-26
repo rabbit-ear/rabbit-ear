@@ -90,6 +90,7 @@ const join_faces = (graph, faces, edge, vertices) => {
  * @param {object} graph a FOLD graph
  * @param {number} edge the index of the edge to be removed
  * @returns {undefined}
+ * @linkcode Origami ./src/graph/remove/removePlanarEdge.js 93
  */
 const removePlanarEdge = (graph, edge) => {
 	// the edge's vertices, sorted large to small.

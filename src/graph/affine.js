@@ -12,6 +12,7 @@ import { filterKeysWithSuffix } from "../fold/spec";
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} matrix a 3x4 matrix as a 12 number array
  * @returns {FOLD} the same input graph, modified
+ * @linkcode Origami ./src/graph/affine.js 15
  */
 const apply_matrix_to_graph = function (graph, matrix) {
 	// apply to anything with a coordinate value
@@ -36,6 +37,7 @@ const apply_matrix_to_graph = function (graph, matrix) {
  * @param {number} scale the scale amount
  * @param {number[]} optional. an array or series of numbers, the center of scale.
  * @returns {FOLD} the same input graph, modified.
+ * @linkcode Origami ./src/graph/affine.js 40
  */
 const transform_scale = (graph, scale, ...args) => {
 	const vector = math.core.getVector(...args);
@@ -50,6 +52,7 @@ const transform_scale = (graph, scale, ...args) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} optional. an array or series of numbers, the translation vector
  * @returns {FOLD} the same input graph, modified
+ * @linkcode Origami ./src/graph/affine.js 55
  */
 const transform_translate = (graph, ...args) => {
 	const vector = math.core.getVector(...args);
@@ -65,6 +68,7 @@ const transform_translate = (graph, ...args) => {
  * @param {number} the rotation amount in radians
  * @param {number[]} optional. an array or series of numbers, the center of rotation
  * @returns {FOLD} the same input graph, modified
+ * @linkcode Origami ./src/graph/affine.js 71
  */
 const transform_rotateZ = (graph, angle, ...args) => {
 	const vector = math.core.getVector(...args);

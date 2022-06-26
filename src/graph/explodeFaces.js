@@ -12,6 +12,7 @@ import { makeFacesWinding } from "./facesWinding";
  * do not share vertices.
  * @param {FOLD} graph a FOLD graph
  * @returns {FOLD} a new FOLD graph with exploded faces
+ * @linkcode Origami ./src/graph/explodeFaces.js 15
  */
 export const explodeFaces = (graph) => {
 	const vertices_coords = graph.faces_vertices
@@ -34,6 +35,7 @@ export const explodeFaces = (graph) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number} [shrink=0.333] a scale factor for a shrinking transform
  * @returns {FOLD} a new FOLD graph with exploded faces
+ * @linkcode Origami ./src/graph/explodeFaces.js 38
  */
 export const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink = 0.333) => {
 	const graph = explodeFaces({ vertices_coords, faces_vertices });

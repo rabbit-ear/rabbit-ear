@@ -12,7 +12,8 @@ import { makeFacesFaces } from "./make";
  * @param {number[]} face_a_vertices the faces_vertices entry for face A
  * @param {number[]} face_b_vertices the faces_vertices entry for face B
  * @returns {number[]} indices of vertices that are shared between faces maintaining
- *  the vertices in the same order as the winding order of face A.
+ * the vertices in the same order as the winding order of face A.
+ * @linkcode Origami ./src/graph/faceSpanningTree.js 16
  */
 // todo: this was throwing errors in the case of weird nonconvex faces with
 // single edges poking in. the "already_added" was added to fix this.
@@ -55,6 +56,7 @@ export const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
  * @returns {object[][]} a tree arranged as an array containin arrays of nodes. each inner
  * array contains all nodes at that depth (0, 1, 2...) each node contains:
  * "face" {number} "parent" {number} "edge_vertices" {number[]}
+ * @linkcode Origami ./src/graph/faceSpanningTree.js 59
  */
 export const makeFaceSpanningTree = ({ faces_vertices, faces_faces }, root_face = 0) => {
 	if (!faces_faces) {

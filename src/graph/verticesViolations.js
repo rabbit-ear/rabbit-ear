@@ -16,6 +16,7 @@ import replace from "./replace";
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} arrays of clusters of similar vertices. todo check this
+ * @linkcode Origami ./src/graph/verticesViolations.js 19
  */
 export const getDuplicateVertices = (graph, epsilon) => {
 	return getVerticesClusters(graph, epsilon)
@@ -25,6 +26,7 @@ export const getDuplicateVertices = (graph, epsilon) => {
  * @description Get the indices of all vertices which make no appearance in any edge.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
+ * @linkcode Origami ./src/graph/verticesViolations.js 29
  */
 export const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
@@ -44,6 +46,7 @@ export const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => 
  * @description Get the indices of all vertices which make no appearance in any face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
+ * @linkcode Origami ./src/graph/verticesViolations.js 49
  */
 export const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 	if (!vertices_coords || !faces_vertices) { return []; }
@@ -66,6 +69,7 @@ export const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => 
  * @description Get the indices of all vertices which make no appearance in any edge or face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
+ * @linkcode Origami ./src/graph/verticesViolations.js 72
  */
 export const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
 	if (!vertices_coords) { return []; }
@@ -101,6 +105,8 @@ export const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_ver
  * @param {number[]} [remove_indices] Leave this empty. Otherwise, if
  * getIsolatedVertices() has already been called, provide the result here to speed
  * up the algorithm.
+ * @returns {object} summary of changes
+ * @linkcode Origami ./src/graph/verticesViolations.js 109
  */
 export const removeIsolatedVertices = (graph, remove_indices) => {
 	if (!remove_indices) {
@@ -124,6 +130,7 @@ export const removeIsolatedVertices = (graph, remove_indices) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} summary of changes
+ * @linkcode Origami ./src/graph/verticesViolations.js 133
  */
 export const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 	// replaces array will be [index:value] index is the element to delete,

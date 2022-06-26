@@ -11,6 +11,7 @@ import { makeEdgesVector } from "./make";
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} a boolean matrix, are two edges parallel?
  * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
+ * @linkcode Origami ./src/graph/edgesEdges.js 14
  */
 export const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => { // = math.core.EPSILON) => {
 	if (!edges_vector) {

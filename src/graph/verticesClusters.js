@@ -28,6 +28,7 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
  * @example
  * no clusters: [ [0], [1], [2], [3], [4], ... ]
  * clusters: [ [0, 5], [1], [3], [2, 4]]
+ * @linkcode Origami ./src/graph/verticesClusters.js 31
  */
 const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
 	if (!vertices_coords) { return []; }

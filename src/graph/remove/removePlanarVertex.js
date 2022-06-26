@@ -21,6 +21,7 @@ const getOppositeVertices = (graph, vertex, edges) => {
  * @param {object} graph a FOLD graph
  * @param {number} edge the index of the edge to be removed
  * @returns {undefined}
+ * @linkcode Origami ./src/graph/remove/removePlanarVertex.js 24
  */
 const removePlanarVertex = (graph, vertex) => {
 	const edges = graph.vertices_edges[vertex];

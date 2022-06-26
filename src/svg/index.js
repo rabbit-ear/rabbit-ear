@@ -93,6 +93,7 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
  * @param {FOLD} graph a FOLD object
  * @param {object} options an optional options object to style the rendering
  * @returns {SVGElement} the first SVG parameter object.
+ * @linkcode Origami ./src/svg/index.js 96
  */
 const drawInto = (element, graph, options = {}) => {
 	const groups = DrawGroups(graph, options);
@@ -114,6 +115,7 @@ const drawInto = (element, graph, options = {}) => {
  * @param {object?} options optional options object to style components
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
+ * @linkcode Origami ./src/svg/index.js 118
  */
 const FOLDtoSVG = (graph, options) => drawInto(root.svg(), graph, options);
 /**

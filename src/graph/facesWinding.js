@@ -7,6 +7,7 @@
  * checking the determinant.
  * @param {number[][]} faces_matrix for every face, a 3x4 transform matrix
  * @returns {boolean[]} true if a face is counter-clockwise.
+ * @linkcode Origami ./src/graph/facesWinding.js 10
  */
 export const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
 	.map(m => m[0] * m[4] - m[1] * m[3])
@@ -17,6 +18,7 @@ export const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
  * 2D matrices.
  * @param {number[][]} faces_matrix for every face, a 2x3 transform matrix
  * @returns {boolean[]} true if a face is counter-clockwise.
+ * @linkcode Origami ./src/graph/facesWinding.js 21
  */
 export const makeFacesWindingFromMatrix2 = faces_matrix => faces_matrix
 	.map(m => m[0] * m[3] - m[1] * m[2])
@@ -28,6 +30,7 @@ export const makeFacesWindingFromMatrix2 = faces_matrix => faces_matrix
  * @param {FOLD} graph a FOLD graph
  * @returns {boolean[]} true if a face is counter-clockwise.
  * @attribution cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+ * @linkcode Origami ./src/graph/facesWinding.js 33
  */
 export const makeFacesWinding = ({ vertices_coords, faces_vertices }) => {
 	return faces_vertices

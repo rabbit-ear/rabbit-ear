@@ -1,4 +1,5 @@
 import math from "../math";
+import { arrayify } from "./methods";
 import * as AxiomsVO from "./axiomsVecOrigin";
 import * as AxiomsND from "./axiomsNormDist";
 import * as Validate from "./validate";
@@ -8,19 +9,14 @@ const paramsVecsToNorms = (params) => ({
 	lines: params.lines.map(math.core.makeVectorOriginLine),
 });
 /**
- * @description The core axiom methods return arrays for *some* of the axioms.
- * Standardize the output so that all of them are inside arrays.
- * @param {number} the axiom number
- * @param {Line|Line[]} the solutions from having run the axiom method
- * @returns {Line[]} the solution lines, now consistently inside an array.
+ * @description All axiom method arguments are ordered such that all lines are
+ * listed first, followed by all points. convert the axiom params object
+ * (with "points", "lines" keys) into a single flat array
  */
-const arrayify = (axiomNumber, solutions) => {
-	switch (axiomNumber) {
-		case 3: case "3":
-		case 5: case "5":
-		case 6: case "6": return solutions;
-		default: return [solutions];
-	}
+const spreadParams = (params) => {
+	const lines = params.lines ? params.lines : [];
+	const points = params.points ? params.points : [];
+	return [...lines, ...points];
 };
 /**
  * @description Perform one of the seven origami axioms, and provide a boundary so that
@@ -30,10 +26,11 @@ const arrayify = (axiomNumber, solutions) => {
  * where the lines are only {RayLine} lines.
  * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 29
  */
 export const axiomInBoundary = (number, params = {}, boundary) => {
 	const solutions = arrayify(number,
-		AxiomsVO[`axiom${number}`](...params.lines, ...params.points));
+		AxiomsVO[`axiom${number}`](...spreadParams(params)));
 		// .filter(a => a !== undefined);
 		// .map(line => math.line(line));
 	if (boundary) {
@@ -52,10 +49,11 @@ export const axiomInBoundary = (number, params = {}, boundary) => {
  * where the lines are only {UniqueLine} lines.
  * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
  * @returns {UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 52
  */
 export const normalAxiomInBoundary = (number, params = {}, boundary) => {
 	const solutions = arrayify(number,
-		AxiomsND[`normalAxiom${number}`](...params.lines, ...params.points));
+		AxiomsND[`normalAxiom${number}`](...spreadParams(params)));
 	if (boundary) {
 		arrayify(number, Validate[`validateAxiom${number}`](paramsVecsToNorms(params), boundary, solutions))
 			.forEach((valid, i) => valid ? i : undefined)

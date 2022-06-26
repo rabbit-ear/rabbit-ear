@@ -20,6 +20,7 @@ import { makeFaceSpanningTree } from "./faceSpanningTree";
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
+ * @linkcode Origami ./src/graph/verticesCoordsFolded.js 23
  */
 export const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
 	faces_matrix = makeFacesMatrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
@@ -47,6 +48,7 @@ export const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edge
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
+ * @linkcode Origami ./src/graph/verticesCoordsFolded.js 51
  */
 export const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });

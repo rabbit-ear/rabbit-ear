@@ -6,6 +6,7 @@
  * this will return only the unique integers (removing duplicates).
  * @param {number[]} array an array of integers
  * @returns {number[]} set of unique integers
+ * @linkcode Origami ./src/general/arrays.js 9
  */
 export const uniqueIntegers = (array) => {
 	const keys = {};
@@ -19,6 +20,7 @@ export const uniqueIntegers = (array) => {
  * in sorted order *sometimes*, but this is not strictly defined.
  * @param {number[]} array an array of integers
  * @returns {number[]} set of sorted, unique integers
+ * @linkcode Origami ./src/general/arrays.js 23
  */
 export const uniqueSortedIntegers = (array) => uniqueIntegers(array)
 	.sort((a, b) => a - b);
@@ -27,6 +29,7 @@ export const uniqueSortedIntegers = (array) => uniqueIntegers(array)
  * @param {any[]} array an array that is meant to be thought of as circular
  * @param {number[]} indices two numbers, indices that divide the array into 2 parts
  * @returns {any[][]} the same array split into two arrays
+ * @linkcode Origami ./src/general/arrays.js 32
  */
 export const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
@@ -40,6 +43,7 @@ export const splitCircularArray = (array, indices) => {
  * the first array in the list with the longest length.
  * @param {any[][]} arrays an array of arrays of any type
  * @return {any[]} one of the arrays from the set
+ * @linkcode Origami ./src/general/arrays.js 46
  */
 export const getLongestArray = (arrays) => {
 	if (arrays.length === 1) { return arrays[0]; }
@@ -58,6 +62,7 @@ export const getLongestArray = (arrays) => {
  * matching to compare, so this works for primitives (bool, number, string) not objects or arrays.
  * @param {any[]} array an array of any type.
  * @returns {any[]} the same input array but filtered to remove elements which appear only once.
+ * @linkcode Origami ./src/general/arrays.js 65
  */
 export const removeSingleInstances = (array) => {
 	const count = {};
@@ -72,6 +77,7 @@ export const removeSingleInstances = (array) => {
  * into arrays containing the indices `[i,j]` of all true values.
  * @param {Array<Array<boolean|undefined>>} matrix a 2D matrix containing boolean or undefined
  * @returns {number[][]} array of arrays of numbers
+ * @linkcode Origami ./src/general/arrays.js 80
  */
 export const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
@@ -85,6 +91,7 @@ export const booleanMatrixToIndexedArray = matrix => matrix
  * @param {any[][]} matrix a matrix containing any type
  * @returns {number[][]} array of pairs of numbers, the pairs of indices
  * which are truthy in the matrix.
+ * @linkcode Origami ./src/general/arrays.js 94
  */
 export const booleanMatrixToUniqueIndexPairs = matrix => {
 	const pairs = [];
@@ -105,6 +112,7 @@ export const booleanMatrixToUniqueIndexPairs = matrix => {
  * in that group.
  * @param {number[][]} matrix an array of arrays of numbers
  * @returns {number[][]} groups of the indices where each index appears only once
+ * @linkcode Origami ./src/general/arrays.js 115
  */
 export const makeSelfRelationalArrayClusters = (matrix) => {
 	const groups = [];
@@ -146,6 +154,7 @@ export const makeSelfRelationalArrayClusters = (matrix) => {
  * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
  * // will return
  * [ [8, 1], [3, 5] ]
+ * @linkcode Origami ./src/general/arrays.js 157
  */
 export const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.

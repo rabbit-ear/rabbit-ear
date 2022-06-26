@@ -44,6 +44,7 @@ const validate_references = (graph) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a report on the validity state of the graph. a "summary" string,
  * and "vertices" "edges" and "faces" information
+ * @linkcode Origami ./src/graph/validate.js 47
  */
 const validate = (graph, epsilon) => {
 	const duplicate_edges = getDuplicateEdges(graph);

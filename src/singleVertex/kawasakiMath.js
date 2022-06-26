@@ -7,6 +7,7 @@ import math from "../math";
  *  even and odd indices and sum the two categories, returning two sums.
  * @param {number[]} numbers one list of numbers
  * @returns {number[]} one array of two sums, even and odd indices
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 10
  */
 export const alternatingSum = (numbers) => [0, 1]
 	.map(even_odd => numbers
@@ -19,6 +20,7 @@ export const alternatingSum = (numbers) => [0, 1]
  * @returns {number[]} one array of two numbers. if both alternating sets sum
  *  to the same, the result will be [0, 0]. if the first set is 2 more than the
  *  second, the result will be [1, -1]. (not [2, 0] or something with a 2 in it)
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 23
  */
 export const alternatingSumDifference = (sectors) => {
 	const halfsum = sectors.reduce((a, b) => a + b, 0) / 2;
@@ -34,6 +36,7 @@ export const alternatingSumDifference = (sectors) => {
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
  * @param {number[]} radians the angle of the edges in radians, like vectors around a vertex. pre-sorted.
  * @returns {number[]} for every sector either one vector (as an angle in radians) or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 39
  */
 export const kawasakiSolutionsRadians = (radians) => radians
 	// counter clockwise angle between this index and the next
@@ -57,6 +60,7 @@ export const kawasakiSolutionsRadians = (radians) => radians
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
  * @param {number[][]} vectors array of vectors, the edges around a single vertex. pre-sorted.
  * @returns {number[][]} for every sector either one vector or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 63
  */
 export const kawasakiSolutionsVectors = (vectors) => {
 	const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));

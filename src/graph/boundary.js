@@ -13,6 +13,7 @@ import {
  * or does not contain boundary edges, this will return an empty array.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
+ * @linkcode Origami ./src/graph/boundary.js 16
  */
 export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) =>
 	uniqueIntegers(edges_vertices
@@ -39,6 +40,7 @@ const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
  * only works in 2D.
  * @param {FOLD} graph a FOLD graph
  * @returns {object} with "vertices" and "edges" with arrays of indices.
+ * @linkcode Origami ./src/graph/boundary.js 43
  */
 export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
@@ -87,6 +89,7 @@ export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }
  * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
+ * @linkcode Origami ./src/graph/boundary.js 92
  */
 export const getPlanarBoundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
 	if (!vertices_vertices) {

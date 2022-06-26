@@ -33,13 +33,13 @@ import replace from "./replace";
 import removePlanarVertex from "./remove/removePlanarVertex";
 import removePlanarEdge from "./remove/removePlanarEdge";
 import addVertices from "./add/addVertices";
-// import addEdges from "./add/addEdges";
+import addEdges from "./add/addEdges";
 import splitEdge from "./splitEdge/index";
 import splitFace from "./splitFace/index";
 import flatFold from "./flatFold/index";
 import addPlanarSegment from "./add/addPlanarSegment";
 // import assign from "./assign";
-// import subgraph from "./subgraph";
+import subgraph from "./subgraph";
 import clip from "./clip";
 import fragment from "./fragment";
 import getVerticesClusters from "./verticesClusters";
@@ -60,13 +60,13 @@ export default Object.assign(Object.create(null), {
 	removePlanarVertex,
 	removePlanarEdge,
 	addVertices,
-	// addEdges,
+	addEdges,
 	splitEdge,
 	splitFace,
 	flatFold,
 	addPlanarSegment,
 	// assign,
-	// subgraph,
+	subgraph,
 	clip,
 	fragment,
 	getVerticesClusters,

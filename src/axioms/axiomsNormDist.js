@@ -24,6 +24,7 @@ const intersectionUD = (line1, line2) => {
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 27
  */
 export const normalAxiom1 = (point1, point2) => {
 	const normal = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
@@ -34,6 +35,7 @@ export const normalAxiom1 = (point1, point2) => {
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 38
  */
 export const normalAxiom2 = (point1, point2) => {
 	const normal = math.core.normalize2(math.core.subtract2(point2, point1));
@@ -45,6 +47,7 @@ export const normalAxiom2 = (point1, point2) => {
  * @param {UniqueLine} line1 one 2D line in {vector, origin} form
  * @param {UniqueLine} line2 one 2D line in {vector, origin} form
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 50
  */
 export const normalAxiom3 = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
@@ -64,6 +67,7 @@ export const normalAxiom3 = (line1, line2) => {
  * @param {UniqueLine} line one 2D line in {normal, distance} form
  * @param {number[]} point one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 70
  */
  export const normalAxiom4 = (line, point) => {
 	const normal = math.core.rotate90(line.normal);
@@ -77,6 +81,7 @@ export const normalAxiom3 = (line1, line2) => {
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 84
  */
 export const normalAxiom5 = (line, point1, point2) => {
 	const p1base = math.core.dot2(point1, line.normal);
@@ -167,6 +172,7 @@ const polynomial = (degree, a, b, c, d) => {
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 175
  */
 export const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
@@ -208,6 +214,7 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
  * @param {number[]} point the point to bring onto the line
  * @returns {UniqueLine | undefined} the line in {normal, distance} form
  * or undefined if the given lines are parallel
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 217
  */
 export const normalAxiom7 = (line1, line2, point) => {
 	let normal = math.core.rotate90(line1.normal);

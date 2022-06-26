@@ -22,6 +22,7 @@ const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
  * @param {FOLD} graph a FOLD graph
  * @param {string} key the prefix for a key, eg: "vertices" 
  * @returns {number} the number of the requested element type in the graph
+ * @linkcode Origami ./src/graph/count.js 25
  */
 const count = (graph, key) => max_arrays_length(...getGraphKeysWithPrefix(graph, key).map(key => graph[key]));
 

@@ -15,6 +15,7 @@ import { getEdgesEdgesOverlapingSpans } from "./span";
  * @param {number[]} vector a line defined by a vector crossing a point
  * @param {number[]} point a line defined by a vector crossing a point
  * @returns {boolean[]} length matching number of edges, true if parallel and overlapping
+ * @linkcode Origami ./src/graph/intersect.js 18
  */
 export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
 	const normalized = math.core.normalize2(vector);
@@ -46,6 +47,7 @@ export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }
  * @param {number[]} point2, the second point of the segment
  * @returns {number[]} array length matching number of edges containing a point
  * if there is an intersection, and undefined if no intersection.
+ * @linkcode Origami ./src/graph/intersect.js 50
  */
 export const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
@@ -82,6 +84,7 @@ export const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, 
  * 1 [ x,  ,  , x]
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
+ * @linkcode Origami ./src/graph/intersect.js 87
  */
 export const makeEdgesEdgesIntersection = function ({
 	vertices_coords, edges_vertices, edges_vector, edges_origin
@@ -133,6 +136,7 @@ export const makeEdgesEdgesIntersection = function ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
+ * @linkcode Origami ./src/graph/intersect.js 139
  */
 export const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
 	// give us back the indices in the faces_vertices[face] array

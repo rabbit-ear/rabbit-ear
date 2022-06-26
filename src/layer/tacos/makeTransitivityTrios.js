@@ -33,7 +33,7 @@ const makeTransitivityTrios = (graph, overlap_matrix, faces_winding, epsilon = m
 	for (let i = 0; i < matrix.length - 1; i++) {
 		for (let j = i + 1; j < matrix.length; j++) {
 			if (!overlap_matrix[i][j]) { continue; }
-			const polygon = math.core.intersectPolygonPolygon(polygons[i], polygons[j], epsilon);
+			const polygon = math.core.clipPolygonPolygon(polygons[i], polygons[j], epsilon);
 			if (polygon) { matrix[i][j] = polygon; }
 		}
 	}
@@ -44,7 +44,7 @@ const makeTransitivityTrios = (graph, overlap_matrix, faces_winding, epsilon = m
 			for (let k = j + 1; k < matrix.length; k++) {
 				if (i === k || j === k) { continue; }
 				if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
-				const polygon = math.core.intersectPolygonPolygon(matrix[i][j], polygons[k], epsilon);
+				const polygon = math.core.clipPolygonPolygon(matrix[i][j], polygons[k], epsilon);
 				if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
 			}
 		}

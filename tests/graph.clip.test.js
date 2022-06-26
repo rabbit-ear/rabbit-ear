@@ -24,7 +24,8 @@ test("clip line", () => {
 
 test("clip line exclusive, edges collinear", () => {
 	// expect(ear.graph.clip(graph, ear.line([1, 0], [0, 1]))).toBe(undefined);
-	const boundary = ear.graph.unit_square().boundary;
+	const cp = ear.graph.square();
+	const boundary = ear.polygon(cp.boundary.vertices.map(v => cp.vertices_coords[v]));
 	boundary.exclusive();
 	expect(boundary.clip(ear.line([1, 0], [0, 1]))).toBe(undefined);
 	expect(boundary.clip(ear.line([1, 0], [0, 0]))).toBe(undefined);
@@ -35,7 +36,7 @@ test("clip line exclusive, edges collinear", () => {
 });
 
 test("clip ray", () => {
-	const square = ear.graph.unit_square();
+	const square = ear.graph.square();
 	const seg = ear.graph.clip(square, ear.ray([0.1, -0.5], [0.5, 0.5]));
 	expect(seg[0][0]).toBe(0.5);
 	expect(seg[0][1]).toBe(0.5);

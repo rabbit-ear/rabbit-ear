@@ -18,6 +18,7 @@ import {
  * if vertices_faces does not exist it will be built.
  * @param {number[][]} an array of 2x3 matrices. one per face.
  * @returns {number[][]} a new set of vertices_coords, transformed.
+ * @linkcode Origami ./src/graph/facesMatrix.js 21
  */
 export const multiplyVerticesFacesMatrix2 = ({ vertices_coords, vertices_faces, faces_vertices }, faces_matrix) => {
 	if (!vertices_faces) {
@@ -43,6 +44,7 @@ const unassigned_angle = { U: true, u: true };
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 3x4 matrix (an array of 12 numbers).
+ * @linkcode Origami ./src/graph/facesMatrix.js 47
  */
 // { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
 export const makeFacesMatrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
@@ -101,6 +103,7 @@ const assignment_is_folded = {
  * @param {FOLD} graph a FOLD graph
  * @returns {boolean[]} for every edge, is it folded? or has the potential to be folded?
  * "unassigned"=yes
+ * @linkcode Origami ./src/graph/facesMatrix.js 106
  */
 export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
 	if (edges_assignment === undefined) {
@@ -117,6 +120,7 @@ export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assig
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 2x3 matrix (an array of 6 numbers).
+ * @linkcode Origami ./src/graph/facesMatrix.js 123
  */
 export const makeFacesMatrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
 	if (!edges_foldAngle) {

@@ -2,11 +2,12 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description given an edge, uncover the adjacent faces
- * @param {object} FOLD graph
- * @param {number} index of the edge in the graph
+ * @description Given an edge, uncover the adjacent faces.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} edge index of the edge in the graph
  * {number[]} indices of the two vertices making up the edge
  * @returns {number[]} array of 0, 1, or 2 numbers, the edge's adjacent faces
+ * @linkcode Origami ./src/graph/find.js 10
  */
 export const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
 	// easiest case, if edges_faces already exists.
@@ -49,7 +50,13 @@ export const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_
 		// }
 	}
 };
-
+/**
+ * @description Given a face, uncover the adjacent faces.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} face index of the face in the graph
+ * @returns {number[]} array the face's adjacent faces
+ * @linkcode Origami ./src/graph/find.js 58
+ */
 export const findAdjacentFacesToFace = ({ vertices_faces, edges_faces, faces_edges, faces_vertices, faces_faces }, face) => {
 	if (faces_faces && faces_faces[face]) {
 		return faces_faces[face];

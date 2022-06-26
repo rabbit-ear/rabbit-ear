@@ -15,6 +15,7 @@ import { makeFacesWinding } from "./facesWinding";
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
+ * @linkcode Origami ./src/graph/overlap.js 18
  */
 export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
 	if (!edges_vector) {
@@ -89,6 +90,7 @@ export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_v
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
+ * @linkcode Origami ./src/graph/overlap.js 93
  */
 export const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))

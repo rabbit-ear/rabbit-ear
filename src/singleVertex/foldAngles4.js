@@ -20,6 +20,7 @@ const odd_assignment = (assignments) => {
  * @param {string[]} assignments an array of FOLD spec characters, "M" or "V".
  * @param {number} t the fold amount between 0 and 1.
  * @returns {number[]} four fold angles as numbers in an array.
+ * @linkcode Origami ./src/singleVertex/foldAngles4.js 23
  */
 const foldAngles4 = (sectors, assignments, t = 0) => {
 	const odd = odd_assignment(assignments);

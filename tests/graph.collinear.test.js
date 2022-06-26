@@ -53,7 +53,7 @@ test("remove collinear vertices", () => {
 });
 
 test("get collinear vertices overlapping an edge", () => {
-	const graph = ear.graph.unit_square();
+	const graph = ear.graph.square();
 
 	for (let i = 0; i < 4; i += 1) {
 		ear.graph.addEdges(

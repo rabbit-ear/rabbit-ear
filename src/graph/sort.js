@@ -10,6 +10,7 @@ import math from "../math";
  * @param {number[]} vertices an array of vertex indices to be sorted
  * @param {number} vertex the origin vertex, around which the vertices will be sorted
  * @returns {number[]} indices of vertices, in sorted order
+ * @linkcode Origami ./src/graph/sort.js 13
  */
 export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) =>
 	vertices
@@ -29,6 +30,7 @@ export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vert
  * @param {number[]} vertices the indices of vertices to be sorted
  * @param {number[]} vector a vector along which to sort vertices
  * @returns {number[]} indices of vertices, in sorted order
+ * @linkcode Origami ./src/graph/sort.js 33
  */
 export const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) =>
 	vertices

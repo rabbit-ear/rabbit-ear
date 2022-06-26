@@ -8,7 +8,7 @@ const boundary_for_arrows = ({ vertices_coords }) => math.core
 
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineInConvexPolygon(polygon,
+		const foldSegment = math.core.clipLineConvexPolygon(polygon,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
@@ -18,7 +18,7 @@ const widest_perpendicular = (polygon, foldLine, point) => {
 	}
 	const perpVector = math.core.rotate90(foldLine.vector);
 	const smallest = math.core
-		.clipLineInConvexPolygon(polygon,
+		.clipLineConvexPolygon(polygon,
 			perpVector,
 			point,
 			math.core.exclude,

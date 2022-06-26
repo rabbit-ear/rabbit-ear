@@ -4,7 +4,7 @@ const testArrays = (a, b) => {
 	a.forEach((_, i) => {
 		if (typeof a[i] === "number") { expect(a[i]).toBeCloseTo(b[i]); }
 		else if (typeof a[i] === "object" && a[i].constructor === Array) {
-			expect(ear.math.equivalentVectors(a[i], b[i])).toBe(true);
+			expect(ear.math.fnEpsilonEqualVectors(a[i], b[i])).toBe(true);
 		}
 		else { expect(a[i]).toBe(b[i]); }
 	});

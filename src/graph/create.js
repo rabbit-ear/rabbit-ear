@@ -82,6 +82,14 @@ Create.square = (scale = 1) =>
  */
 Create.rectangle = (width = 1, height = 1) =>
 	make_closed_polygon(make_rect_vertices_coords(width, height));
+/**
+ * @description Create a new FOLD object with a regular-polygon shaped boundary.
+ * @param {number} [sides=3] the number of sides to the polygon
+ * @param {number} [radius=1] the circumradius
+ * @returns {FOLD} a FOLD object
+ */
+Create.polygon = (sides = 3, radius = 1) =>
+  make_closed_polygon(math.core.makePolygonCircumradius(sides, radius));
 // Create.circle = (sides = 90) =>
 // 	make_closed_polygon(math.core.makePolygon(sides));
 // origami bases. todo: more

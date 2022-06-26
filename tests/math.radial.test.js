@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 const testEqualVectors = function (...args) {
-  expect(ear.math.equivalentVectors(...args)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(...args)).toBe(true);
 };
 
 test("isCounterClockwiseBetween", () => {

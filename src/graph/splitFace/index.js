@@ -25,6 +25,7 @@ import * as S from "../../general/strings";
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} a summary of changes to the FOLD object,
  *  or undefined if no change (no intersection).
+ * @linkcode Origami ./src/graph/splitFace/index.js 28
  */
 const splitFace = (graph, face, vector, point, epsilon) => {
 	// survey face for any intersections which cross directly over a vertex

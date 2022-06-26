@@ -1,7 +1,7 @@
 const ear = require("../rabbit-ear");
 
 test("edges coords bounding box", () => {
-  const graph = ear.graph.unit_square();
+  const graph = ear.graph.square();
   for (let i = 0; i < 4; i += 1) {
     ear.graph.addEdges(
       graph,

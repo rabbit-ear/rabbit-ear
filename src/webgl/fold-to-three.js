@@ -62,7 +62,7 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
 export const make_edges_geometry = function ({
 	vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
 }, scale=0.002, end_pad = 0) {
-	const { THREE } = window;
+	const { THREE } = window();
 	if (!edges_coords) {
 		edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
 	}

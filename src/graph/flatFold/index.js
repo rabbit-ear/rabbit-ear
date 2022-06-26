@@ -74,14 +74,14 @@ const face_snapshot = (graph, face) => ({
  * @param {string} assignment (M/V/F) a FOLD spec encoding of the direction of the fold
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to faces/edges.
- * algorithm outline:
- * Because we want to return the new modified origami in crease pattern form,
+ * @algorithm Because we want to return the new modified origami in crease pattern form,
  * as we iterate through the faces, splitting faces which cross the crease
  * line, we have to be modifying the crease pattern, as opposed to modifying
  * a folded form then unfolding the vertices, which would be less precise.
  * So, we will create copies of the crease line, one per face, transformed
  * into place by its face's matrix, which superimposes many copies of the
  * crease line onto the crease pattern, each in place
+ * @linkcode Origami ./src/graph/flatFold/index.js 84
  */
 const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
