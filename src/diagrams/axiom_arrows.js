@@ -4,35 +4,35 @@
 import math from "../math";
 import axiom from "../axioms/index";
 
-const line_line_for_arrows = (a, b) => math.core.intersect_line_line(
-	a.vector, a.origin, b.vector, b.origin, math.core.include_l, math.core.include_l
+const line_line_for_arrows = (a, b) => math.core.intersectLineLine(
+	a.vector, a.origin, b.vector, b.origin, math.core.includeL, math.core.includeL
 );
 
 const diagram_reflect_point = (foldLine, point) => {
-	const matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
-	return math.core.multiply_matrix2_vector2(matrix, point);
+	const matrix = math.core.makeMatrix2Reflect(foldLine.vector, foldLine.origin);
+	return math.core.multiplyMatrix2Vector2(matrix, point);
 };
 
 const boundary_for_arrows = ({ vertices_coords }) => math.core
-	.convex_hull(vertices_coords);
+	.convexHull(vertices_coords);
 
 const widest_perp = (graph, foldLine, point) => {
 	const boundary = boundary_for_arrows(graph);
 	if (point === undefined) {
-		const foldSegment = math.core.clip_line_in_convex_polygon(boundary,
+		const foldSegment = math.core.clipLineConvexPolygon(boundary,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
-			math.core.include_l);
+			math.core.includeL);
 		point = math.core.midpoint(...foldSegment);
 	}
 	const perpVector = math.core.rotate270(foldLine.vector);
 	const smallest = math.core
-		.clip_line_in_convex_polygon(boundary,
+		.clipLineConvexPolygon(boundary,
 			perpVector,
 			point,
 			math.core.exclude,
-			math.core.include_l)
+			math.core.includeL)
 		.map(pt => math.core.distance(point, pt))
 		.sort((a, b) => a - b)
 		.shift();
@@ -79,7 +79,7 @@ const between_2_intersecting_segments = (params, intersect, foldLine, boundary) 
 		math.core.cross2(ray.vector, foldLine.vector) < 0
 	).shift();
 	const rayEndpoints = [a1, a2, b1, b2].map(ray => math.core
-		.intersect_convex_polygon_line(boundary, ray.vector, ray.origin, math.core.exclude_s, math.core.exclude_r)
+		.intersectConvexPolygonLine(boundary, ray.vector, ray.origin, math.core.excludeS, math.core.excludeR)
 		.shift()
 		.shift());
 	const rayLengths = rayEndpoints
@@ -112,15 +112,15 @@ const axiom_2_arrows = params => [
 const axiom_3_arrows = (params, graph) => {
 	const boundary = boundary_for_arrows(graph);
 	const segs = params.lines.map(l => math.core
-		.clip_line_in_convex_polygon(boundary,
+		.clipLineConvexPolygon(boundary,
 			l.vector,
 			l.origin,
 			math.core.exclude,
-			math.core.include_l));
+			math.core.includeL));
 	const segVecs = segs.map(seg => math.core.subtract(seg[1], seg[0]));
-	const intersect = math.core.intersect_line_line(
+	const intersect = math.core.intersectLineLine(
 		segVecs[0], segs[0][0], segVecs[1], segs[1][0],
-		math.core.exclude_s, math.core.exclude_s);
+		math.core.excludeS, math.core.excludeS);
 	return !intersect
 		? [between_2_segments(params, segs, axiom(3, params)
 			.filter(a => a !== undefined).shift())]
@@ -164,19 +164,19 @@ const arrow_functions = [null,
 
 delete arrow_functions[0];
 
-const axiom_arrows = (number, params = {}, ...args) => {
+const axiomArrows = (number, params = {}, ...args) => {
 	const points = params.points
-		? params.points.map(p => math.core.get_vector(p))
+		? params.points.map(p => math.core.getVector(p))
 		: undefined;
 	const lines = params.lines
-		? params.lines.map(l => math.core.get_line(l))
+		? params.lines.map(l => math.core.getLine(l))
 		: undefined;
 	return arrow_functions[number]({ points, lines }, ...args);
 };
 
 Object.keys(arrow_functions).forEach(number => {
-	axiom_arrows[number] = (...args) => axiom_arrows(number, ...args);
+	axiomArrows[number] = (...args) => axiomArrows(number, ...args);
 });
 
-export default axiom_arrows;
+export default axiomArrows;
 

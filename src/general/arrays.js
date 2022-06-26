@@ -2,24 +2,36 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description given a list of integers (can contain duplicates),
- * this will return a sorted set of unique integers (removing duplicates).
- * @param {number[]} array of integers
- * @returns {number[]} set of sorted, unique integers
+ * @description Given a list of integers (can contain duplicates),
+ * this will return only the unique integers (removing duplicates).
+ * @param {number[]} array an array of integers
+ * @returns {number[]} set of unique integers
+ * @linkcode Origami ./src/general/arrays.js 9
  */
-export const unique_sorted_integers = (array) => {
+export const uniqueIntegers = (array) => {
 	const keys = {};
 	array.forEach((int) => { keys[int] = true; });
-	return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
+	return Object.keys(keys).map(n => parseInt(n));
 };
 /**
- * @description a circular array (data wraps around) needs 2 indices to be split.
- * "indices" will be sorted, smaller index first.
- * @param {any[]} an array that is meant to be thought of as circular
- * @param {number[]} two numbers, indices that divide the array into 2 parts.
- * @returns {any[][]} the same array split into two portions, inside an array.
+ * @description Given a list of integers (can contain duplicates),
+ * this will return a sorted set of unique integers (removing duplicates).
+ * note: this sort appears to be unnecessary, as Object.keys() returns them
+ * in sorted order *sometimes*, but this is not strictly defined.
+ * @param {number[]} array an array of integers
+ * @returns {number[]} set of sorted, unique integers
+ * @linkcode Origami ./src/general/arrays.js 23
  */
-export const split_circular_array = (array, indices) => {
+export const uniqueSortedIntegers = (array) => uniqueIntegers(array)
+	.sort((a, b) => a - b);
+/**
+ * @description A circular array (data wraps around) requires 2 indices if you intend to split it into two arrays. The "indices" parameter will be sorted, smaller index first.
+ * @param {any[]} array an array that is meant to be thought of as circular
+ * @param {number[]} indices two numbers, indices that divide the array into 2 parts
+ * @returns {any[][]} the same array split into two arrays
+ * @linkcode Origami ./src/general/arrays.js 32
+ */
+export const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
 	return [
 		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
@@ -27,12 +39,13 @@ export const split_circular_array = (array, indices) => {
 	];
 };
 /**
- * @description this will iterate over the array of arrays and returning
+ * @description This will iterate over the array of arrays and returning
  * the first array in the list with the longest length.
- * @param {any[][]} this is an array of arrays.
+ * @param {any[][]} arrays an array of arrays of any type
  * @return {any[]} one of the arrays from the set
+ * @linkcode Origami ./src/general/arrays.js 46
  */
-export const get_longest_array = (arrays) => {
+export const getLongestArray = (arrays) => {
 	if (arrays.length === 1) { return arrays[0]; }
 	const lengths = arrays.map(arr => arr.length);
 	let max = 0;
@@ -44,13 +57,14 @@ export const get_longest_array = (arrays) => {
 	return arrays[max];
 };
 /**
- * @description given an array of any-type, return the same array but filter
- * out any items which only appear once.
- * @param {any[]} array of primitives which can become strings in an object.
- * the intended use case is an array of {number[]}.
- * @returns {any[]} input array, filtering out any items which only appear once.
+ * @description Given an array of any type, return the same array but filter
+ * out any items which only appear once. The comparison uses conversion-to-string then
+ * matching to compare, so this works for primitives (bool, number, string) not objects or arrays.
+ * @param {any[]} array an array of any type.
+ * @returns {any[]} the same input array but filtered to remove elements which appear only once.
+ * @linkcode Origami ./src/general/arrays.js 65
  */
-export const remove_single_instances = (array) => {
+export const removeSingleInstances = (array) => {
 	const count = {};
 	array.forEach(n => {
 		if (count[n] === undefined) { count[n] = 0; }
@@ -59,17 +73,27 @@ export const remove_single_instances = (array) => {
 	return array.filter(n => count[n] > 1);
 };
 /**
- * @description convert a non-sparse matrix of true/false/undefined
- * into arrays containing the index of the trues.
+ * @description Convert a sparse or dense matrix containing true/false/undefined
+ * into arrays containing the indices `[i,j]` of all true values.
+ * @param {Array<Array<boolean|undefined>>} matrix a 2D matrix containing boolean or undefined
+ * @returns {number[][]} array of arrays of numbers
+ * @linkcode Origami ./src/general/arrays.js 80
  */
-export const boolean_matrix_to_indexed_array = matrix => matrix
+export const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
 		.map((value, i) => value === true ? i : undefined)
 		.filter(a => a !== undefined));
 /**
- * triangle number, only visit half the indices. make unique pairs
+ * @description consult the upper right half triangle of the matrix,
+ * find all truthy values, gather the row/column index pairs,
+ * return them as pairs of indices in a single array.
+ * Triangle number, only visit half the indices. make unique pairs
+ * @param {any[][]} matrix a matrix containing any type
+ * @returns {number[][]} array of pairs of numbers, the pairs of indices
+ * which are truthy in the matrix.
+ * @linkcode Origami ./src/general/arrays.js 94
  */
-export const boolean_matrix_to_unique_index_pairs = matrix => {
+export const booleanMatrixToUniqueIndexPairs = matrix => {
 	const pairs = [];
 	for (let i = 0; i < matrix.length - 1; i++) {
 		for (let j = i + 1; j < matrix.length; j++) {
@@ -83,11 +107,14 @@ export const boolean_matrix_to_unique_index_pairs = matrix => {
 /**
  * @description given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
- * inner arrays relate to the outer structure, create collection groups
+ * inner arrays relate to the indices of the outer array, create collection groups
  * where each item is included in a group if it points to another member
  * in that group.
+ * @param {number[][]} matrix an array of arrays of numbers
+ * @returns {number[][]} groups of the indices where each index appears only once
+ * @linkcode Origami ./src/general/arrays.js 115
  */
-export const make_unique_sets_from_self_relational_arrays = (matrix) => {
+export const makeSelfRelationalArrayClusters = (matrix) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -107,25 +134,29 @@ export const make_unique_sets_from_self_relational_arrays = (matrix) => {
  * the length is a triangle number, ie: 6 + 5 + 4 + 3 + 2 + 1
  * (length * (length-1)) / 2
  */
-export const make_triangle_pairs = (array) => {
-	const pairs = Array((array.length * (array.length - 1)) / 2);
-	let index = 0;
-	for (let i = 0; i < array.length - 1; i++) {
-		for (let j = i + 1; j < array.length; j++, index++) {
-			pairs[index] = [array[i], array[j]];
-		}
-	}
-	return pairs;
-};
+// export const makeTrianglePairs = (array) => {
+// 	const pairs = Array((array.length * (array.length - 1)) / 2);
+// 	let index = 0;
+// 	for (let i = 0; i < array.length - 1; i++) {
+// 		for (let j = i + 1; j < array.length; j++, index++) {
+// 			pairs[index] = [array[i], array[j]];
+// 		}
+// 	}
+// 	return pairs;
+// };
 /**
  * @description given an array containing undefineds, gather all contiguous
  * series of valid entries, and return the list of their indices in the form
  * of [start_index, final_index].
- * For example [0, 1, undefined, 2, 3, 4, undefined, undefined, 5]
- * will return two entries: [ [8, 1], [3, 5] ]
- * @param {any[]} the array, which possibly contains holes
+ * @param {any[]} array the array which is allowed to contain holes
+ * @returns {number[][]} array containing pairs of numbers
+ * @example
+ * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
+ * // will return
+ * [ [8, 1], [3, 5] ]
+ * @linkcode Origami ./src/general/arrays.js 157
  */
-export const circular_array_valid_ranges = (array) => {
+export const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.
 	const not_undefineds = array.map(el => el !== undefined);
 	if (not_undefineds.reduce((a, b) => a && b, true)) {
@@ -162,7 +193,7 @@ export const circular_array_valid_ranges = (array) => {
  * it's possible that the holes exist at the end of the array,
  * causing it to misreport the (intended) length.
  */
-// const circular_array_valid_range = (array, array_length) => {
+// const circularArrayValidRange = (array, array_length) => {
 //   let start, end;
 //   for (start = array_length - 1;
 //     start >= 0 && array[start] !== undefined;
@@ -174,7 +205,7 @@ export const circular_array_valid_ranges = (array) => {
 //   return [start, end];
 // };
 
-// this is now "invert_simple_map" in maps.js
+// this is now "invertSimpleMap" in maps.js
 // export const invert_array = (a) => {
 // 	const b = [];
 // 	a.forEach((n, i) => { b[n] = i; });

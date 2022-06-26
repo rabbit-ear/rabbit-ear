@@ -3,9 +3,10 @@
  */
 import {
 	keys,
-	non_spec_keys,
-	edges_assignment_values,
+	keysOutOfSpec,
+	edgesAssignmentValues,
 } from "./keys";
+import math from "../math";
 /**
  * this contains two types of methods.
  * 1. methods that are mostly references, including lists of keys
@@ -15,7 +16,8 @@ import {
  *    and re-arranging keys or values based on key queries.
  */
 /**
- * English conversion from the plural form of words to the singular
+ * @description English conversion of the names of graph components from plural to singular.
+ * @linkcode Origami ./src/fold/spec.js 20
  */
 export const singularize = {
 	vertices: "vertex",
@@ -23,29 +25,33 @@ export const singularize = {
 	faces: "face",
 };
 /**
- * English word for what each edge assignment stands for.
- * both upper and lowercase letter keys reference the word.
+ * @description English conversion of the names of graph components from singular to plural.
+ * @linkcode Origami ./src/fold/spec.js 29
  */
-export const edges_assignment_names = {
+export const pluralize = {
+	vertex: "vertices",
+	edge: "edges",
+	face: "faces",
+};
+/**
+ * @description get the English word for every FOLD spec assignment character (like "M", or "b")
+ * @linkcode Origami ./src/fold/spec.js 38
+ */
+export const edgesAssignmentNames = {
 	b: "boundary",
 	m: "mountain",
 	v: "valley",
 	f: "flat",
 	u: "unassigned"
 };
-edges_assignment_values.forEach(key => {
-	edges_assignment_names[key.toUpperCase()] = edges_assignment_names[key];
+edgesAssignmentValues.forEach(key => {
+	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
 });
 /**
- * @description convert upper or lowercase edge assignments to lowercase.
- * because edge assignments can be lower or uppercase, this object
- * contains both cases as keys, where the values are only lowercase
+ * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b"). **this assumes the creases are flat folded.**
+ * @linkcode Origami ./src/fold/spec.js 52
  */
-export const edges_assignment_to_lowercase = {};
-edges_assignment_values.forEach(key => {
-	edges_assignment_to_lowercase[key] = key.toLowerCase();
-});
-export const edges_assignment_degrees = {
+export const edgesAssignmentDegrees = {
 	M: -180,
 	m: -180,
 	V: 180,
@@ -58,86 +64,111 @@ export const edges_assignment_degrees = {
 	u: 0
 };
 /**
- * @param {string} one edge assignment letter, any case: M V B F U
+ * @description Convert an assignment character to a foldAngle in degrees. This assumes
+ * that all assignments are flat folds.
+ * @param {string} assignment one edge assignment letter: M V B F U
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
+ * @linkcode Origami ./src/fold/spec.js 71
  */
-export const edge_assignment_to_foldAngle = assignment =>
-	edges_assignment_degrees[assignment] || 0;
+export const edgeAssignmentToFoldAngle = assignment =>
+	edgesAssignmentDegrees[assignment] || 0;
 /**
- * @param {number} fold angle in degrees.
- * @returns {string} one edge assignment letter: M V or U, no boundary detection.
- *
- * todo: what should be the behavior for 0, undefined, null?
+ * @description Convert a foldAngle to an edge assignment character.
+ * @param {number} angle fold angle in degrees
+ * @returns {string} one edge assignment letter: M V or U, no boundary detection
+ * @todo should "U" be "F" instead, if so, we are assigning potental "B" edges to "F".
+ * @linkcode Origami ./src/fold/spec.js 80
  */
-export const edge_foldAngle_to_assignment = (a) => {
-	if (a > 0) { return "V"; }
-	if (a < 0) { return "M"; }
-	// if (a === 0) { return "F"; }
+export const edgeFoldAngleToAssignment = (a) => {
+	if (a > math.core.EPSILON) { return "V"; }
+	if (a < -math.core.EPSILON) { return "M"; }
+	// if (math.core.fnEpsilonEqual(0, a)) { return "F"; }
 	return "U";
 };
-const flat_angles = { 0: true, "-0": true, 180: true, "-180": true };
-export const edge_foldAngle_is_flat = angle => flat_angles[angle] === true;
 /**
- * @description determine if an edges_foldAngle array contains only
- * flat-folded angles, strictly the set: 0, -180, or +180.
- * If a graph contains no "edges_foldAngle", implicitly the angles
- * are flat, and the method returns "true".
- * @returns {boolean} is the graph flat-foldable according to foldAngles.
+ * @description Test if a fold angle is a flat fold, which includes -180, 0, 180,
+ * and the +/- epsilon around each number.
+ * @param {number} angle fold angle in degrees
+ * @returns {boolean} true if the fold angle is flat
+ * @linkcode Origami ./src/fold/spec.js 93
  */
-export const edges_foldAngle_all_flat = ({ edges_foldAngle }) => {
+export const edgeFoldAngleIsFlat = angle => math.core.fnEpsilonEqual(0, angle)
+ || math.core.fnEpsilonEqual(-180, angle)
+ || math.core.fnEpsilonEqual(180, angle);
+/**
+ * @description Provide a FOLD graph and determine if all edges_foldAngle
+ * angles are flat, which includes -180, 0, 180, and the +/- epsilon
+ * around each number. If a graph contains no "edges_foldAngle",
+ * the angles are considered flat, and the method returns "true".
+ * @param {FOLD} graph a FOLD graph
+ * @returns {boolean} is the graph flat-foldable according to foldAngles.
+ * @linkcode Origami ./src/fold/spec.js 105
+ */
+export const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	if (!edges_foldAngle) { return true; }
 	for (let i = 0; i < edges_foldAngle.length; i++) {
-		if (!flat_angles[edges_foldAngle[i]]) { return false; }
+		if (!edgeFoldAngleIsFlat(edges_foldAngle[i])) { return false; }
 	}
 	return true;
 };
 /**
- * @param {object} any object
- * @param {string} a suffix to match against the keys
- * @returns {string[]} array of keys that end with the string param
+ * @description Get all keys in an object that end with the provided suffix.
+ * @param {object} obj an object
+ * @param {string} suffix a suffix to match against the keys
+ * @returns {string[]} array of keys that end with the suffix
+ * @linkcode Origami ./src/fold/spec.js 119
  */
-export const filter_keys_with_suffix = (graph, suffix) => Object
+export const filterKeysWithSuffix = (graph, suffix) => Object
 	.keys(graph)
 	.map(s => (s.substring(s.length - suffix.length, s.length) === suffix
 		? s : undefined))
 	.filter(str => str !== undefined);
 /**
- * @param {object} any object
- * @param {string} a prefix to match against the keys
- * @returns {string[]} array of keys that start with the string param
+ * @description Get all keys in an object that start with the provided prefix.
+ * @param {object} obj an object
+ * @param {string} prefix a prefix to match against the keys
+ * @returns {string[]} array of keys that start with the prefix
+ * @linkcode Origami ./src/fold/spec.js 131
  */
-export const filter_keys_with_prefix = (graph, prefix) => Object
-	.keys(graph)
+export const filterKeysWithPrefix = (obj, prefix) => Object
+	.keys(obj)
 	.map(str => (str.substring(0, prefix.length) === prefix
 		? str : undefined))
 	.filter(str => str !== undefined);
 /**
- * return a list of keys from a FOLD object that match a provided
- * string such that the key STARTS WITH this string followed by a _.
- *
+ * @description Get all keys in a graph which contain a "_" prefixed by the provided string.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} prefix a prefix to match against the keys
+ * @returns {string[]} array of keys that start with the prefix
  * for example: "vertices" will return:
  * vertices_coords, vertices_faces,
  * but not edges_vertices, or verticesCoords (must end with _)
+ * @linkcode Origami ./src/fold/spec.js 146
  */
-export const get_graph_keys_with_prefix = (graph, key) =>
-	filter_keys_with_prefix(graph, `${key}_`);
+export const getGraphKeysWithPrefix = (graph, key) =>
+	filterKeysWithPrefix(graph, `${key}_`);
 /**
- * return a list of keys from a FOLD object that match a provided
- * string such that the key ENDS WITH this string, preceded by _.
- *
+ * @description Get all keys in a graph which contain a "_" followed by the provided suffix.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} suffix a suffix to match against the keys
+ * @returns {string[]} array of keys that end with the suffix
  * for example: "vertices" will return:
  * edges_vertices, faces_vertices,
  * but not vertices_coords, or edgesvertices (must prefix with _)
+ * @linkcode Origami ./src/fold/spec.js 158
  */
-export const get_graph_keys_with_suffix = (graph, key) =>
-	filter_keys_with_suffix(graph, `_${key}`);
-
+export const getGraphKeysWithSuffix = (graph, key) =>
+	filterKeysWithSuffix(graph, `_${key}`);
 /**
- * this takes in a geometry_key (vectors, edges, faces), and flattens
- * across all related arrays, creating 1 array of objects with the keys
+ * @description This takes in a geometry_key (vectors, edges, faces), and flattens
+ * across all related arrays, creating one object with the keys for every index.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} geometry_key a geometry item like "vertices"
+ * @returns {object[]} an array of objects with FOLD keys but the values are from this single element
+ * @linkcode Origami ./src/fold/spec.js 168
  */
-export const transpose_graph_arrays = (graph, geometry_key) => {
-	const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+export const transposeGraphArrays = (graph, geometry_key) => {
+	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return []; }
 	const len = Math.max(...matching_keys.map(arr => graph[arr].length));
 	const geometry = Array.from(Array(len))
@@ -154,17 +185,21 @@ export const transpose_graph_arrays = (graph, geometry_key) => {
 			.forEach((o, i) => { geometry[i][key] = graph[key][i]; }));
 	return geometry;
 };
-
 /**
- * this takes in a geometry_key (vectors, edges, faces), and flattens
- * across all related arrays, creating 1 array of objects with the keys
+ * @description This takes in a geometry_key (vectors, edges, faces), and flattens
+ * across all related arrays, creating one object with the keys.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} geometry_key a geometry item like "vertices"
+ * @param {number} the index of an element
+ * @returns {object} an object with FOLD keys but the values are from this single element
+ * @linkcode Origami ./src/fold/spec.js 195
  */
-export const transpose_graph_array_at_index = function (
+export const transposeGraphArrayAtIndex = function (
 	graph,
 	geometry_key,
 	index
 ) {
-	const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return undefined; }
 	const geometry = {};
 	// matching_keys
@@ -173,9 +208,14 @@ export const transpose_graph_array_at_index = function (
 	matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
 	return geometry;
 };
-
-export const fold_object_certainty = (object = {}) => (
+/**
+ * @description Using heuristics, try to determine if an object is a FOLD object.
+ * @param {FOLD} graph a FOLD object
+ * @returns {number} value between 0 and 1, zero meaning no chance, one meaning 100% chance
+ * @linkcode Origami ./src/fold/spec.js 215
+ */
+export const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
 		? 0
-		: [].concat(keys, non_spec_keys)
+		: [].concat(keys, keysOutOfSpec)
 			.filter(key => object[key]).length / Object.keys(object).length);

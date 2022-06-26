@@ -11,7 +11,7 @@ export const file_creator = "Rabbit Ear";
 /**
  * top-level keys in a FOLD object, sorted into usage categories.
  */
-export const fold_keys = {
+export const foldKeys = {
 	file: [
 		"file_spec",
 		"file_creator",
@@ -58,15 +58,15 @@ export const fold_keys = {
  * top-level keys from a FOLD object in one flat array
  */
 export const keys = Object.freeze([]
-	.concat(fold_keys.file)
-	.concat(fold_keys.frame)
-	.concat(fold_keys.graph)
-	.concat(fold_keys.orders));
+	.concat(foldKeys.file)
+	.concat(foldKeys.frame)
+	.concat(foldKeys.graph)
+	.concat(foldKeys.orders));
 /**
  * top-level keys from a FOLD object used by this library,
  * not in the official spec. made when calling populate().
  */
-export const non_spec_keys = Object.freeze([
+export const keysOutOfSpec = Object.freeze([
 	"edges_vector",
 	"vertices_sectors",
 	"faces_sectors",
@@ -109,4 +109,4 @@ export const frame_attributes = [
 /**
  * array of single characers, the values of an edge assignment
  */
-export const edges_assignment_values = Array.from("MmVvBbFfUu");
+export const edgesAssignmentValues = Array.from("MmVvBbFfUu");

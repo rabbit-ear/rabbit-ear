@@ -22,19 +22,19 @@ test("edges faces direction", () => {
 		edges_assignment: ["B", "B", "B", "B", "M"],
 	};
 	// prepare
-	const planar_faces = ear.graph.make_planar_faces(graph);
+	const planar_faces = ear.graph.makePlanarFaces(graph);
 	graph.faces_vertices = planar_faces
 		.map(face => face.vertices);
 	graph.faces_edges = planar_faces
 		.map(face => face.edges);
 
-	const edges_faces1 = ear.graph.make_edges_faces(graph);
+	const edges_faces1 = ear.graph.makeEdgesFaces(graph);
 	expect(edges_faces1[4][0]).toBe(0);
 	expect(edges_faces1[4][1]).toBe(1);
 
 	graph.edges_vertices = [[0,1], [1,2], [2,3], [3,0], [0,2]];
 
-	const edges_faces2 = ear.graph.make_edges_faces(graph);
+	const edges_faces2 = ear.graph.makeEdgesFaces(graph);
 	expect(edges_faces2[4][0]).toBe(1);
 	expect(edges_faces2[4][1]).toBe(0);
 })

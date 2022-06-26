@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { invert_map } from "../../graph/maps";
+import { invertMap } from "../../graph/maps";
 import get_layer_violations from "./get_layer_violations";
 
 const fix_layer_violations = (layers_face, matrix) => {
-	const faces_layer = invert_map(layers_face);
+	const faces_layer = invertMap(layers_face);
 	const faces_adjust = faces_layer.map(() => []);
 	const violations = get_layer_violations(matrix, faces_layer);
 	violations.forEach(el => {
@@ -32,7 +32,7 @@ const fix_layer_violations = (layers_face, matrix) => {
  * @param {number[]} the faces which will be built. optional.
  * this will be built from the matrix if left empty.
  */
-const matrix_to_layers_face = (matrix, faces) => {
+const matrixToLayersFace = (matrix, faces) => {
 	if (!faces) {
 		faces = Object.keys(matrix).map(n => parseInt(n));
 	}
@@ -62,11 +62,11 @@ const matrix_to_layers_face = (matrix, faces) => {
 	return layers_face;
 };
 
-export default matrix_to_layers_face;
+export default matrixToLayersFace;
 
 
 // const fix_layer_violations_first = (layers_face, matrix) => {
-//   const faces_layer = invert_map(layers_face);
+//   const faces_layer = invertMap(layers_face);
 //   const violations = get_layer_violations(matrix, faces_layer);
 
 //   const swap_layers = (layer1, layer2) => {

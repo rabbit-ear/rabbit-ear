@@ -11,7 +11,7 @@ test("circular edges", () => {
 			[0, 1, 2, 3], [0, 3, 4]
 		]
 	};
-	const res = ear.graph.remove_circular_edges(graph);
+	const res = ear.graph.removeCircularEdges(graph);
 	expect(res[2]).toBe(undefined);
 	arraysMatch(graph.faces_edges[0], [0, 1, 2]);
 	arraysMatch(graph.faces_edges[1], [0, 2, 3]);

@@ -4,25 +4,25 @@
 import math from "../math";
 
 const boundary_for_arrows = ({ vertices_coords }) => math.core
-	.convex_hull(vertices_coords);
+	.convexHull(vertices_coords);
 
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {
-		const foldSegment = math.core.clip_line_in_convex_polygon(polygon,
+		const foldSegment = math.core.clipLineConvexPolygon(polygon,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
-			math.core.include_l);
+			math.core.includeL);
 		if (foldSegment === undefined) { return; }
 		point = math.core.midpoint(...foldSegment);
 	}
 	const perpVector = math.core.rotate90(foldLine.vector);
 	const smallest = math.core
-		.clip_line_in_convex_polygon(polygon,
+		.clipLineConvexPolygon(polygon,
 			perpVector,
 			point,
 			math.core.exclude,
-			math.core.include_l)
+			math.core.includeL)
 		.map(pt => math.core.distance(point, pt))
 		.sort((a, b) => a - b)
 		.shift();
@@ -41,9 +41,9 @@ const widest_perpendicular = (polygon, foldLine, point) => {
  * @returns {SVGElement} one SVG element containing an arrow that matches
  * the dimensions of the FOLD graph.
  */
-const simple_arrow = (graph, line) => {
-	const hull = math.core.convex_hull(graph.vertices_coords);
-	const box = math.core.bounding_box(hull);
+const simpleArrow = (graph, line) => {
+	const hull = math.core.convexHull(graph.vertices_coords);
+	const box = math.core.boundingBox(hull);
 	const segment = widest_perpendicular(hull, line);
 	if (segment === undefined) { return undefined; }
 	const vector = math.core.subtract(segment[1], segment[0]);
@@ -60,4 +60,4 @@ const simple_arrow = (graph, line) => {
 	return segment;
 };
 
-export default simple_arrow;
+export default simpleArrow;

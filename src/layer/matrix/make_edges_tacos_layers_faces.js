@@ -1,11 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import { invert_map } from "../../graph/maps";
-import { make_faces_center } from "../../graph/make";
-import validate_taco_taco_face_pairs from "../tacos/validate_taco_taco_face_pairs";
-import matrix_to_layers from "./matrix_to_layers";
+import { invertMap } from "../../graph/maps";
+import { makeFacesCenter } from "../../graph/make";
+import validateTacoTacoFacePairs from "../tacos/validateTacoTacoFacePairs";
+import matrixToLayers from "./matrixToLayers";
 import make_edges_tacos from "../tacos/make_edges_tacos";
 /**
  * @param object with keys: left, right, both, where left and right are
@@ -50,11 +49,11 @@ const make_edges_tacos_layers_faces = (graph, matrix, epsilon = 0.001) => {
 			const pair_stack = layers_face
 				.map(face => pairs[face])
 				.filter(a => a !== undefined);
-			return validate_taco_taco_face_pairs(pair_stack);
+			return validateTacoTacoFacePairs(pair_stack);
 		});
 	return edges_tacos
 		.map(tacos => edge_tacos_to_faces_flat(graph, tacos))
-		.map((faces, i) => matrix_to_layers(matrix, faces, [], validate_func[i]));
+		.map((faces, i) => matrixToLayers(matrix, faces, [], validate_func[i]));
 };
 
 export default make_edges_tacos_layers_faces;

@@ -4,25 +4,25 @@
 import math from "../math";
 import * as S from "../general/strings";
 import {
-	edge_assignment_to_foldAngle,
-	edge_foldAngle_to_assignment,
-	get_graph_keys_with_prefix,
+	edgeAssignmentToFoldAngle,
+	edgeFoldAngleToAssignment,
+	getGraphKeysWithPrefix,
 } from "../fold/spec";
 import {
-	remove_duplicate_vertices,
-} from "./vertices_violations";
+	removeDuplicateVertices,
+} from "./verticesViolations";
 import {
-	remove_duplicate_edges,
-	remove_circular_edges,
-} from "./edges_violations";
-import { get_vertices_edges_overlap } from "./vertices_collinear";
-import { make_edges_edges_intersection } from "./intersect";
-import { sort_vertices_along_vector } from "./sort";
+	removeDuplicateEdges,
+	removeCircularEdges,
+} from "./edgesViolations";
+import { getVerticesEdgesOverlap } from "./verticesCollinear";
+import { makeEdgesEdgesIntersection } from "./intersect";
+import { sortVerticesAlongVector } from "./sort";
 import {
-	merge_simple_nextmaps,
-	merge_nextmaps,
-	merge_backmaps,
-	invert_map,
+	mergeSimpleNextmaps,
+	mergeNextmaps,
+	mergeBackmaps,
+	invertMap,
 } from "./maps";
 
 /**
@@ -57,7 +57,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	// points (an [x,y] array), with an important detail, because each edge
 	// intersects with another edge, this [x,y] point is a shallow pointer
 	// to the same one in the other edge's intersection array.
-	const edges_intersections = make_edges_edges_intersection({
+	const edges_intersections = makeEdgesEdgesIntersection({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
@@ -65,7 +65,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	}, 1e-6);
 	// check the new edges' vertices against every edge, in case
 	// one of the endpoints lies along an edge.
-	const edges_collinear_vertices = get_vertices_edges_overlap({
+	const edges_collinear_vertices = getVerticesEdgesOverlap({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_coords
@@ -115,7 +115,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 		// .push(...edges_intersections_flat[i]));
 
 	graph.edges_vertices.forEach((edge, i) => {
-		graph.edges_vertices[i] = sort_vertices_along_vector({
+		graph.edges_vertices[i] = sortVerticesAlongVector({
 			vertices_coords: graph.vertices_coords
 		}, edge, edges_vector[i]);
 	});
@@ -135,7 +135,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	if (graph.edges_assignment && graph.edges_foldAngle
 		&& graph.edges_foldAngle.length > graph.edges_assignment.length) {
 		for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
-			graph.edges_assignment[i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[i]);
+			graph.edges_assignment[i] = edgeFoldAngleToAssignment(graph.edges_foldAngle[i]);
 		}
 	}
 	// copy over assignments and fold angle and base fold angle off assigments if it's shorter
@@ -146,7 +146,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 		graph.edges_foldAngle = edge_map
 			.map(i => graph.edges_foldAngle[i])
 			.map((a, i) => a === undefined
-				? edge_assignment_to_foldAngle(graph.edges_assignment[i])
+				? edgeAssignmentToFoldAngle(graph.edges_assignment[i])
 				: a);
 	}
 	return {
@@ -167,13 +167,20 @@ const fragment_keep_keys = [
 	S._edges_assignment,
 	S._edges_foldAngle,
 ];
-
+/**
+ * @description Planarize a graph into the 2D XY plane, split edges, rebuild faces.
+ * The graph provided as a method argument will be modified in place.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a summary of changes to the graph
+ * @linkcode Origami ./src/graph/fragment.js 176
+ */
 const fragment = (graph, epsilon = math.core.EPSILON) => {
 	// project all vertices onto the XY plane
 	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 
 	[S._vertices, S._edges, S._faces]
-		.map(key => get_graph_keys_with_prefix(graph, key))
+		.map(key => getGraphKeysWithPrefix(graph, key))
 		.flat()
 		.filter(key => !(fragment_keep_keys.includes(key)))
 		.forEach(key => delete graph[key]);
@@ -184,29 +191,29 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 	};
 	let i;
 	for (i = 0; i < 20; i++) {
-		const resVert = remove_duplicate_vertices(graph, epsilon / 2);
-		const resEdgeDup = remove_duplicate_edges(graph);
+		const resVert = removeDuplicateVertices(graph, epsilon / 2);
+		const resEdgeDup = removeDuplicateEdges(graph);
 		// console.log("before", JSON.parse(JSON.stringify(graph)));
-		const resEdgeCirc = remove_circular_edges(graph);
+		const resEdgeCirc = removeCircularEdges(graph);
 		// console.log("circular", resEdgeCirc);
 		const resFrag = fragment_graph(graph, epsilon);
 		if (resFrag === undefined) { 
 			change.vertices.map = (change.vertices.map === undefined
 				? resVert.map
-				: merge_nextmaps(change.vertices.map, resVert.map));
+				: mergeNextmaps(change.vertices.map, resVert.map));
 			change.edges.map = (change.edges.map === undefined
-				? merge_nextmaps(resEdgeDup.map, resEdgeCirc.map)
-				: merge_nextmaps(change.edges.map, resEdgeDup.map, resEdgeCirc.map));
+				? mergeNextmaps(resEdgeDup.map, resEdgeCirc.map)
+				: mergeNextmaps(change.edges.map, resEdgeDup.map, resEdgeCirc.map));
 			break;
 		}
-		const invert_frag = invert_map(resFrag.edges.backmap);
-		const edgemap = merge_nextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
+		const invert_frag = invertMap(resFrag.edges.backmap);
+		const edgemap = mergeNextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
 		change.vertices.map = (change.vertices.map === undefined
 			? resVert.map
-			: merge_nextmaps(change.vertices.map, resVert.map));
+			: mergeNextmaps(change.vertices.map, resVert.map));
 		change.edges.map = (change.edges.map === undefined
 			? edgemap
-			: merge_nextmaps(change.edges.map, edgemap));
+			: mergeNextmaps(change.edges.map, edgemap));
 	}
 
 	if (i === 20) {

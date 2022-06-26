@@ -8,14 +8,14 @@ const crane = {
 };
 
 test("faces winding, flat cp", () => {
-	const windings = ear.graph.make_faces_winding(crane);
+	const windings = ear.graph.makeFacesWinding(crane);
 	// all must be true (counter-clockwise)
 	expect(windings.reduce((a, b) => a && b, true)).toBe(true);
 });
 
 test("faces winding, folded", () => {
 	const folded = ear.origami(crane).folded();
-	const windings = ear.graph.make_faces_winding(folded);
+	const windings = ear.graph.makeFacesWinding(folded);
 	const up = windings.filter(a => a === true).length;
 	const down = windings.filter(a => a === false).length;
 	// about half of the faces (within 5%) should be flipped
@@ -29,10 +29,10 @@ test("faces_coloring", () => {
   expect(true).toBe(true);
   // todo bring this back
 
-  // const tree = ear.graph.make_face_spanning_tree(crane);
-  // const winding = ear.graph.make_faces_winding(crane);
-  // crane.faces_matrix = ear.graph.make_faces_matrix(crane);
-  // const coloring2 = ear.graph.make_faces_winding_from_matrix(crane.faces_matrix);
+  // const tree = ear.graph.makeFaceSpanningTree(crane);
+  // const winding = ear.graph.makeFacesWinding(crane);
+  // crane.faces_matrix = ear.graph.makeFacesMatrix(crane);
+  // const coloring2 = ear.graph.makeFacesWindingFromMatrix(crane.faces_matrix);
   // expect(winding.length).toBe(coloring2.length);
   // winding.forEach((color, i) => expect(color).toBe(coloring2[i]));
 });

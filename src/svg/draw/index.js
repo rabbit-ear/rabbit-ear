@@ -2,32 +2,32 @@
  * Rabbit Ear (c) Kraft
  */
 import * as S from "../../general/strings";
-import { vertices_circle } from "./vertices";
-import { edges_paths, draw_edges } from "./edges";
+import { verticesCircle } from "./vertices";
+import { edgesPaths, drawEdges } from "./edges";
 import {
-	faces_vertices_polygon,
-	faces_edges_polygon,
+	facesVerticesPolygon,
+	facesEdgesPolygon,
 } from "./faces";
-import { boundaries_polygon } from "./boundaries";
+import { boundariesPolygon } from "./boundaries";
 import root from "../../root";
 
 // preference for using faces_vertices over faces_edges, it runs faster
-const faces_draw_function = (graph, options) => (
+const facesDrawFunction = (graph, options) => (
 	graph != null && graph[S._faces_vertices] != null
-		? faces_vertices_polygon(graph, options)
-		: faces_edges_polygon(graph, options));
+		? facesVerticesPolygon(graph, options)
+		: facesEdgesPolygon(graph, options));
 
 const svg_draw_func = {
-	vertices: vertices_circle,
-	edges: draw_edges, // edges_paths
-	faces: faces_draw_function,
-	boundaries: boundaries_polygon
+	vertices: verticesCircle,
+	edges: drawEdges, // edgesPaths
+	faces: facesDrawFunction,
+	boundaries: boundariesPolygon
 };
 
 /**
  * @param {string} key will be either "vertices", "edges", "faces", "boundaries"
  */
-const draw_group = (key, graph, options) => {
+const drawGroup = (key, graph, options) => {
 	const group = options === false ? (root.svg.g()) : svg_draw_func[key](graph, options);
 	group.setAttributeNS(null, S._class, key);
 	return group;
@@ -43,7 +43,7 @@ const DrawGroups = (graph, options = {}) => [
 	S._boundaries,
 	S._faces,
 	S._edges,
-	S._vertices].map(key => draw_group(key, graph, options[key]));
+	S._vertices].map(key => drawGroup(key, graph, options[key]));
 
 // static style draw methods for individual components
 [S._boundaries,
@@ -52,7 +52,7 @@ const DrawGroups = (graph, options = {}) => [
 	S._vertices,
 ].forEach(key => {
 	DrawGroups[key] = function (graph, options = {}) {
-		return draw_group(key, graph, options[key]);
+		return drawGroup(key, graph, options[key]);
 	};
 });
 

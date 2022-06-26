@@ -5,46 +5,48 @@ import math from "../math";
 import setup from "./components";
 import * as S from "../general/strings";
 import {
-	fold_keys,
+	foldKeys,
 	keys,
 	file_spec,
 	file_creator,
 } from "../fold/keys";
 import {
 	singularize,
-	filter_keys_with_prefix,
-	transpose_graph_arrays,
-	transpose_graph_array_at_index,
+	filterKeysWithPrefix,
+	transposeGraphArrays,
+	transposeGraphArrayAtIndex,
 } from "../fold/spec";
 // import count from "../graph/count";
 import clean from "../graph/clean";
 import validate from "../graph/validate";
 import populate from "../graph/populate";
 import fragment from "../graph/fragment";
-import assign from "../graph/assign";
-import subgraph from "../graph/subgraph";
-import { get_boundary } from "../graph/boundary";
+// import assign from "../graph/assign";
+// import subgraph from "../graph/subgraph";
+import { getBoundary } from "../graph/boundary";
 import transform from "../graph/affine";
 import {
-	make_vertices_coords_folded,
-	make_vertices_coords_flat_folded,
-} from "../graph/vertices_coords_folded";
-import { make_face_spanning_tree } from "../graph/face_spanning_tree";
-import { multiply_vertices_faces_matrix2 } from "../graph/faces_matrix";
-import { explode_faces, explode_shrink_faces } from "../graph/explode_faces";
+	makeVerticesCoordsFolded,
+	makeVerticesCoordsFlatFolded,
+} from "../graph/verticesCoordsFolded";
+import { makeFaceSpanningTree } from "../graph/faceSpanningTree";
+import { multiplyVerticesFacesMatrix2 } from "../graph/facesMatrix";
+import { explodeFaces, explodeShrinkFaces } from "../graph/explodeFaces";
 import {
-	nearest_vertex,
-	nearest_edge,
-	nearest_face,
+	nearestVertex,
+	nearestEdge,
+	nearestFace,
 } from "../graph/nearest";
 import clone from "../general/clone";
-import add_vertices from "../graph/add/add_vertices";
-import split_edge from "../graph/split_edge/index";
-import split_face from "../graph/split_face/index";
+import addVertices from "../graph/add/addVertices";
+import splitEdge from "../graph/splitEdge/index";
+import splitFace from "../graph/splitFace/index";
 /**
- * Graph - a flat-array, index-based graph with faces, edges, and vertices
- * with ability for vertices to exist in Euclidean space.
- * The naming scheme for keys follows the FOLD format.
+ * @name Graph
+ * @description a graph which includes faces, edges, and vertices, and additional
+ * origami-specific information like fold angles of edges and layer order of faces.
+ * @param {FOLD} [graph] an optional FOLD object, otherwise the graph will initialize empty
+ * @linkcode Origami ./src/classes/graph.js 49
  */
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);
@@ -59,14 +61,14 @@ const graphMethods = Object.assign({
 	validate,
 	populate,
 	fragment,
-	subgraph,
-	assign,
+	// subgraph,
+	// assign,
 	// convert snake_case to camelCase
-	addVertices: add_vertices,
-	splitEdge: split_edge,
-	faceSpanningTree: make_face_spanning_tree,
-	explodeFaces: explode_faces,
-	explodeShrinkFaces: explode_shrink_faces,
+	addVertices: addVertices,
+	splitEdge: splitEdge,
+	faceSpanningTree: makeFaceSpanningTree,
+	explodeFaces: explodeFaces,
+	explodeShrinkFaces: explodeShrinkFaces,
 },
 	transform,
 );
@@ -79,8 +81,8 @@ Object.keys(graphMethods).forEach(key => {
  * methods below here need some kind of pre-processing of their arguments
  */
 Graph.prototype.splitFace = function (face, ...args) {
-	const line = math.core.get_line(...args);
-	return split_face(this, face, line.vector, line.origin);
+	const line = math.core.getLine(...args);
+	return splitFace(this, face, line.vector, line.origin);
 };
 /**
  * @returns {this} a deep copy of this object
@@ -109,8 +111,8 @@ Graph.prototype.copy = function () {
  * keys untouched.
  */
 Graph.prototype.clear = function () {
-	fold_keys.graph.forEach(key => delete this[key]);
-	fold_keys.orders.forEach(key => delete this[key]);
+	foldKeys.graph.forEach(key => delete this[key]);
+	foldKeys.orders.forEach(key => delete this[key]);
 	// the code above just avoided deleting all "file_" keys,
 	// however, file_frames needs to be removed as it contains geometry.
 	delete this.file_frames;
@@ -151,11 +153,11 @@ Graph.prototype.unitize = function () {
  */
 Graph.prototype.folded = function () {
 	const vertices_coords = this.faces_matrix2
-		? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
-		: make_vertices_coords_folded(this, ...arguments);
+		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
+		: makeVerticesCoordsFolded(this, ...arguments);
 	// const faces_layer = this["faces_re:layer"]
 	//   ? this["faces_re:layer"]
-	//   : make_faces_layer(this, arguments[0], 0.001);
+	//   : makeFacesLayer(this, arguments[0], 0.001);
 	return Object.assign(
 		// todo: switch this for:
 		// Object.getPrototypeOf(this);
@@ -179,8 +181,8 @@ Graph.prototype.folded = function () {
  */
 Graph.prototype.flatFolded = function () {
 	const vertices_coords = this.faces_matrix2
-		? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
-		: make_vertices_coords_flat_folded(this, ...arguments);
+		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
+		: makeVerticesCoordsFlatFolded(this, ...arguments);
 	return Object.assign(
 		// todo: switch this for:
 		// Object.getPrototypeOf(this);
@@ -204,7 +206,7 @@ const shortenKeys = function (el, i, arr) {
 };
 // bind the FOLD graph to "this"
 const getComponent = function (key) {
-	return transpose_graph_arrays(this, key)
+	return transposeGraphArrays(this, key)
 		.map(shortenKeys.bind(key))
 		.map(setup[key].bind(this));
 };
@@ -220,8 +222,9 @@ const getComponent = function (key) {
 Object.defineProperty(Graph.prototype, S._boundary, {
 	enumerable: true,
 	get: function () {
-		const boundary = get_boundary(this);
-		const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
+		const boundary = getBoundary(this);
+		// const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
+		const poly = boundary.vertices.map(v => this.vertices_coords[v]);
 		Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
 		return Object.assign(poly, boundary);
 	}
@@ -230,9 +233,9 @@ Object.defineProperty(Graph.prototype, S._boundary, {
  * graph components based on Euclidean distance
  */
 const nearestMethods = {
-	vertices: nearest_vertex,
-	edges: nearest_edge,
-	faces: nearest_face,
+	vertices: nearestVertex,
+	edges: nearestEdge,
+	faces: nearestFace,
 };
 /**
  * @description given a point, this will return the nearest vertex, edge,
@@ -240,7 +243,7 @@ const nearestMethods = {
  * "edges_", and "faces_" arrays.
  */
 Graph.prototype.nearest = function () {
-	const point = math.core.get_vector(arguments);
+	const point = math.core.getVector(arguments);
 	const nears = Object.create(null);
 	const cache = {};
 	[S._vertices, S._edges, S._faces].forEach(key => {
@@ -252,7 +255,7 @@ Graph.prototype.nearest = function () {
 				return cache[key];
 			}
 		});
-		filter_keys_with_prefix(this, key).forEach(fold_key =>
+		filterKeysWithPrefix(this, key).forEach(fold_key =>
 			Object.defineProperty(nears, fold_key, {
 				enumerable: true,
 				get: () => this[fold_key][nears[singularize[key]]]

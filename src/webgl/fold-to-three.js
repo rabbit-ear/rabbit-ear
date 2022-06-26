@@ -8,7 +8,7 @@ import window from "../environment/window"
 
 // const make_faces_geometry = (graph, material) => {
 export const make_faces_geometry = (graph) => {
-	const { THREE } = window;
+	const { THREE } = window();
 	const vertices = graph.vertices_coords
 		.map(v => [v[0], v[1], v[2] || 0])
 		.flat();
@@ -32,7 +32,7 @@ export const make_faces_geometry = (graph) => {
 };
 
 const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
-	if (math.core.mag_squared(edge_vector) < math.core.EPSILON) {
+	if (math.core.magSquared(edge_vector) < math.core.EPSILON) {
 		return [];
 	}
 	const normalized = math.core.normalize(edge_vector);
@@ -62,7 +62,7 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
 export const make_edges_geometry = function ({
 	vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
 }, scale=0.002, end_pad = 0) {
-	const { THREE } = window;
+	const { THREE } = window();
 	if (!edges_coords) {
 		edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
 	}
@@ -93,7 +93,7 @@ export const make_edges_geometry = function ({
 		.flat(2);
 
 	const normals = edges_vector.map(vector => {
-		if (math.core.mag_squared(vector) < math.core.EPSILON) { throw "degenerate edge"; }
+		if (math.core.magSquared(vector) < math.core.EPSILON) { throw "degenerate edge"; }
 		let normalized = math.core.normalize(vector);
 		// scale to line width
 		const scaled = math.core.scale(normalized, scale);

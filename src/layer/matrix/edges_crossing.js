@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { make_edges_edges_crossing } from "../../graph/edges_edges";
-import { make_edges_faces } from "../../graph/make";
-import { boolean_matrix_to_indexed_array } from "../../general/arrays";
+import { makeEdgesEdgesCrossing } from "../../graph/edgesEdges";
+import { makeEdgesFaces } from "../../graph/make";
+import { booleanMatrixToIndexedArray } from "../../general/arrays";
 /**
  * @desecription given a FOLD object in its folded state (vertices_coords),
  * a pre-built +1/-1 face relationship matrix, gather together all edges
@@ -20,9 +20,9 @@ import { boolean_matrix_to_indexed_array } from "../../general/arrays";
 export const make_edges_crossing_layer_matrix = (graph, face_matrix, epsilon) => {
 	const edges_faces = graph.edges_faces
 		? graph.edges_faces
-		: make_edges_faces(graph);
-	const edges_edges_overlap = boolean_matrix_to_indexed_array(
-		make_edges_edges_crossing(graph, epsilon)
+		: makeEdgesFaces(graph);
+	const edges_edges_overlap = booleanMatrixToIndexedArray(
+		makeEdgesEdgesCrossing(graph, epsilon)
 	);
 	// TODO
 	// from this point on, keep a catalog of every face that gets updated,

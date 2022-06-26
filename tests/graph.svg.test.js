@@ -1,4 +1,7 @@
 const ear = require("../rabbit-ear");
+const xmldom = require("@xmldom/xmldom");
+
+ear.window = xmldom;
 
 test("graph svg extension", () => {
 	const cp = ear.cp();

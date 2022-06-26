@@ -13,63 +13,63 @@ import * as query from "./query";
 import * as intersect from "./intersect";
 import transform from "./affine";
 import * as overlap from "./overlap";
-import * as vertices_violations from "./vertices_violations";
-import * as edges_violations from "./edges_violations";
-import * as vertices_collinear from "./vertices_collinear";
-import * as faces_layer from "./faces_layer";
-import * as edges_edges from "./edges_edges";
-import * as vertices_coords_folded from "./vertices_coords_folded";
-import * as face_spanning_tree from "./face_spanning_tree";
-import * as faces_matrix from "./faces_matrix";
-import * as faces_winding from "./faces_winding";
-import * as explode_faces_methods from "./explode_faces";
+import * as verticesViolations from "./verticesViolations";
+import * as edgesViolations from "./edgesViolations";
+import * as vertices_collinear from "./verticesCollinear";
+// import * as facesLayer from "./facesLayer";
+import * as edgesEdges from "./edgesEdges";
+import * as verticesCoordsFolded from "./verticesCoordsFolded";
+import * as faceSpanningTree from "./faceSpanningTree";
+import * as facesMatrix from "./facesMatrix";
+import * as facesWinding from "./facesWinding";
+import * as explodeFacesMethods from "./explodeFaces";
 import count from "./count";
-import implied from "./count_implied";
+import countImplied from "./countImplied";
 import validate from "./validate";
 import clean from "./clean";
 import populate from "./populate";
 import remove from "./remove";
 import replace from "./replace";
-import remove_planar_vertex from "./remove/remove_planar_vertex";
-import remove_planar_edge from "./remove/remove_planar_edge";
-import add_vertices from "./add/add_vertices";
-import add_edges from "./add/add_edges";
-import split_edge from "./split_edge/index";
-import split_face from "./split_face/index";
-import flat_fold from "./flat_fold/index";
-import add_planar_segment from "./add/add_planar_segment";
-import assign from "./assign";
+import removePlanarVertex from "./remove/removePlanarVertex";
+import removePlanarEdge from "./remove/removePlanarEdge";
+import addVertices from "./add/addVertices";
+import addEdges from "./add/addEdges";
+import splitEdge from "./splitEdge/index";
+import splitFace from "./splitFace/index";
+import flatFold from "./flatFold/index";
+import addPlanarSegment from "./add/addPlanarSegment";
+// import assign from "./assign";
 import subgraph from "./subgraph";
 import clip from "./clip";
 import fragment from "./fragment";
-import get_vertices_clusters from "./vertices_clusters";
+import getVerticesClusters from "./verticesClusters";
 // import create from "./create";
 // todo: not sure about this organization
 import * as arrays from "../general/arrays";
 import clone from "../general/clone";
-// import add_vertices_split_edges from "./add/add_vertices_split_edges";
+// import addVertices_splitEdges from "./add/addVertices_splitEdges";
 
 export default Object.assign(Object.create(null), {
 	count,
-	implied,
+	countImplied,
 	validate,
 	clean,
 	populate,
 	remove,
 	replace,
-	remove_planar_vertex,
-	remove_planar_edge,
-	add_vertices,
-	add_edges,
-	split_edge,
-	split_face,
-	flat_fold,
-	add_planar_segment,
-	assign,
+	removePlanarVertex,
+	removePlanarEdge,
+	addVertices,
+	addEdges,
+	splitEdge,
+	splitFace,
+	flatFold,
+	addPlanarSegment,
+	// assign,
 	subgraph,
 	clip,
 	fragment,
-	get_vertices_clusters,
+	getVerticesClusters,
 	clone,
 },
 	make,
@@ -84,15 +84,15 @@ export default Object.assign(Object.create(null), {
 	intersect,
 	overlap,
 	transform,
-	vertices_violations,
-	edges_violations,
+	verticesViolations,
+	edgesViolations,
 	vertices_collinear,
-	faces_layer,
-	edges_edges,
-	vertices_coords_folded,
-	face_spanning_tree,
-	faces_matrix,
-	faces_winding,
-	explode_faces_methods,
+	// facesLayer,
+	edgesEdges,
+	verticesCoordsFolded,
+	faceSpanningTree,
+	facesMatrix,
+	facesWinding,
+	explodeFacesMethods,
 	arrays,
 );

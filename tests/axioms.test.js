@@ -1,29 +1,35 @@
 const ear = require("../rabbit-ear");
 
+const isEqual = (...args) => args
+	.map(el => JSON.stringify(el))
+	.map((el, i, arr) => [el, arr[(i + 1) % arr.length]])
+	.map(pair => pair[0] === pair[1])
+	.reduce((a, b) => a && b, true);
+
 test("axiom 1", () => {
   const res0 = ear.axiom.axiom1([2/3, 1/3], [1/3, 2/3]);
   const res1 = ear.axiom.axiom1([2/3, 1/3, 0], [1/3, 2/3, 0]);
   const expected = {
-		vector: [-Math.SQRT1_2, Math.SQRT1_2],
 		origin: [2/3, 1/3],
+		vector: [-Math.SQRT1_2, Math.SQRT1_2],
 	};
-  expect(ear.math.equivalent(res0.vector, expected.vector)).toBe(true);
-  expect(ear.math.equivalent(res0.origin, expected.origin)).toBe(true);
-  expect(ear.math.equivalent(res1.vector, expected.vector)).toBe(true);
-  expect(ear.math.equivalent(res1.origin, expected.origin)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(res0.vector, expected.vector)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(res0.origin, expected.origin)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(res1.vector, expected.vector)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(res1.origin, expected.origin)).toBe(true);
 });
 
 test("axiom 2", () => {
   const res0 = ear.axiom.axiom2([2/3, 1/3], [1/3, 2/3]);
   const res1 = ear.axiom.axiom2([2/3, 1/3, 0], [1/3, 2/3, 0]);
   const expected = {
-		vector: [-Math.SQRT1_2, -Math.SQRT1_2],
 		origin: [0.5, 0.5],
+		vector: [-Math.SQRT1_2, -Math.SQRT1_2],
 	};
-  expect(ear.math.equivalent(res0.vector, expected.vector)).toBe(true);
-  expect(ear.math.equivalent(res0.origin, expected.origin)).toBe(true);
-  expect(ear.math.equivalent(res1.vector, expected.vector)).toBe(true);
-  expect(ear.math.equivalent(res1.origin, expected.origin)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(res0.vector, expected.vector)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(res0.origin, expected.origin)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(res1.vector, expected.vector)).toBe(true);
+  expect(ear.math.fnEpsilonEqualVectors(res1.origin, expected.origin)).toBe(true);
 });
 
 test("axiom 3", () => {
@@ -35,10 +41,10 @@ test("axiom 3", () => {
     { origin: [0.5, 0.5], vector: [Math.SQRT1_2, Math.SQRT1_2] },
     { origin: [0.5, 0.5], vector: [Math.SQRT1_2, -Math.SQRT1_2] },
   ];
-	expect(ear.math.equivalent(res[0].vector, expected[0].vector)).toBe(true);
-	expect(ear.math.equivalent(res[0].origin, expected[0].origin)).toBe(true);
-	expect(ear.math.equivalent(res[1].vector, expected[1].vector)).toBe(true);
-	expect(ear.math.equivalent(res[1].origin, expected[1].origin)).toBe(true);
+	expect(ear.math.fnEpsilonEqualVectors(res[0].vector, expected[0].vector)).toBe(true);
+	expect(ear.math.fnEpsilonEqualVectors(res[0].origin, expected[0].origin)).toBe(true);
+	expect(ear.math.fnEpsilonEqualVectors(res[1].vector, expected[1].vector)).toBe(true);
+	expect(ear.math.fnEpsilonEqualVectors(res[1].origin, expected[1].origin)).toBe(true);
 });
 
 test("axiom 4", () => {

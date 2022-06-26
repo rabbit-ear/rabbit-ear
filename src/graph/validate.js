@@ -2,17 +2,17 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	get_duplicate_edges,
-	get_circular_edges
-} from "./edges_violations";
+	getDuplicateEdges,
+	getCircularEdges
+} from "./edgesViolations";
 import {
-	get_duplicate_vertices,
-	get_isolated_vertices,
-} from "./vertices_violations";
+	getDuplicateVertices,
+	getIsolatedVertices,
+} from "./verticesViolations";
 import count from "./count";
-import count_implied from "./count_implied";
+import countImplied from "./countImplied";
 
-// import get_vertices_edges_overlap from "./vertices_edges_overlap";
+// import getVerticesEdgesOverlap from "./vertices_edges_overlap";
 
 /**
  * @description iterate over all graph cross-references between vertices,
@@ -28,9 +28,9 @@ const validate_references = (graph) => {
 		faces: count.faces(graph),
 	};
 	const implied = {
-		vertices: count_implied.vertices(graph),
-		edges: count_implied.edges(graph),
-		faces: count_implied.faces(graph),
+		vertices: countImplied.vertices(graph),
+		edges: countImplied.edges(graph),
+		faces: countImplied.faces(graph),
 	};
 	return {
 		vertices: counts.vertices >= implied.vertices,
@@ -38,12 +38,19 @@ const validate_references = (graph) => {
 		faces: counts.faces >= implied.faces,
 	}
 };
-
+/**
+ * @description Validate a graph, get back a report on its duplicate/circular components.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a report on the validity state of the graph. a "summary" string,
+ * and "vertices" "edges" and "faces" information
+ * @linkcode Origami ./src/graph/validate.js 47
+ */
 const validate = (graph, epsilon) => {
-	const duplicate_edges = get_duplicate_edges(graph);
-	const circular_edges = get_circular_edges(graph);
-	const isolated_vertices = get_isolated_vertices(graph);
-	const duplicate_vertices = get_duplicate_vertices(graph, epsilon);
+	const duplicate_edges = getDuplicateEdges(graph);
+	const circular_edges = getCircularEdges(graph);
+	const isolated_vertices = getIsolatedVertices(graph);
+	const duplicate_vertices = getDuplicateVertices(graph, epsilon);
 	const references = validate_references(graph);
 	const is_perfect = duplicate_edges.length === 0
 		&& circular_edges.length === 0

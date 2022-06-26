@@ -21,9 +21,9 @@ export const faces_layer_to_relationships = faces_layer => faces_layer
 		.map((_, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
 	.reduce((a, b) => a.concat(b), [])
 	.filter(el => el[0] !== el[1]);
-// import { make_triangle_pairs } from "../general/arrays";
+// import { makeTrianglePairs } from "../general/arrays";
 // const faces_layer_to_relationships = faces_layer =>
-//   make_triangle_pairs(Object.keys(faces_layer))
+//   makeTrianglePairs(Object.keys(faces_layer))
 //     .map(pair => pair.concat(
 //       Math.sign(faces_layer[pair[0]] - faces_layer[pair[1]])
 //     ));
@@ -79,7 +79,7 @@ export const common_relationships = (faces_layers) => {
 //  * @returns {number[][][]} array of array of relationships: [f1, f2, dir]
 //  */
 // export const make_single_vertex_face_orders = (graph, face, epsilon) => {
-//   const vertices_faces_layer = make_vertices_faces_layer(graph, face, epsilon);
+//   const vertices_faces_layer = makeVerticesFacesLayer(graph, face, epsilon);
 //   // extract all the solutions at vertices where there is only one solution
 //   // we can be absolutely certain about these rules. add them first.
 //   const fixed_orders = vertices_faces_layer

@@ -2,31 +2,39 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * find a DOMParser, XMLSerializer, and document. works for both browser
- * and nodejs environments.
- * - browser: built-in window object
- * - nodejs: package XMLDOM, https://www.npmjs.com/package/@xmldom/xmldom
+ * maintain one "window" object for both browser and nodejs. if a browser window
+ * object exists, it will set to this, including inside a node/react website for example
+ * in backend-specific nodejs you will need to assign this window object yourself to a
+ * XML DOM library, (listed below), by running: ear.window = xmldom (the default export)
+ * - @xmldom/xmldom: https://www.npmjs.com/package/@xmldom/xmldom
+ * note: xmldom supports DOMParser, XMLSerializer, and document, but not
+ * cancelAnimationFrame, requestAnimationFrame, fetch, which are used by this library.
  */
-import { isNode, isBrowser } from "./detect";
-/**
- * @description an object named "window" with DOMParser, XMLSerializer,
- * and document.
- * in the case of browser-usage, this object is simply the browser window,
- * in the case of nodejs, the package "xmldom" provides the methods.
- */
-const Window = (function () {
-	let win = {};
-	if (isNode) {
-		const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
-		win.DOMParser = DOMParser;
-		win.XMLSerializer = XMLSerializer;
-		// smallest, valid HTML5 document: doctype with non-whitespace title
-		win.document = new DOMParser().parseFromString(
-			"<!DOCTYPE html><title>.</title>", "text/html");
-	} else if (isBrowser) {
-		win = window;
-	}
-	return win;
-}());
+import { isBrowser } from "./detect";
+import errors from "./errors";
 
-export default Window;
+const windowContainer = { window: undefined };
+
+const buildDocument = (newWindow) => new newWindow.DOMParser()
+  .parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
+
+export const setWindow = (newWindow) => {
+  // make sure window has a document. xmldom does not, and requires it be built.
+  if (!newWindow.document) { newWindow.document = buildDocument(newWindow); }
+  windowContainer.window = newWindow
+  return windowContainer.window;
+};
+// if we are in the browser, by default use the browser's "window".
+if (isBrowser) { windowContainer.window = window; }
+/**
+ * @description get the "window" object, which should have
+ * DOMParser, XMLSerializer, and document.
+ */
+const RabbitEarWindow = () => {
+  if (windowContainer.window === undefined) {
+    throw errors[10];
+  }
+  return windowContainer.window;
+};
+
+export default RabbitEarWindow;

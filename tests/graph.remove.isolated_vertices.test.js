@@ -15,7 +15,7 @@ test("isolated vertex", () => {
 	expect(JSON.stringify(graph.faces_vertices[0]))
 		.toBe(JSON.stringify([0,2,3,4]));
 
-	const res = ear.graph.remove_isolated_vertices(graph);
+	const res = ear.graph.removeIsolatedVertices(graph);
 
 	expect(graph.vertices_coords.length).toBe(4);
 	expect(graph.vertices_edges.length).toBe(4);

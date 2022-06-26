@@ -2,14 +2,17 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description
- * @param {object} FOLD graph
- * @param {number} starting vertex
- * @param {number} second vertex, this sets the direction of the walk
- * @param {object} to prevent walking down duplicate paths, or finding duplicate
- * faces, this dictionary will store and check against vertex pairs "i j".
+ * @description discover a face by walking neighboring vertices until returning to the start.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} v0 starting vertex
+ * @param {number} v1 second vertex, this sets the direction of the walk
+ * @param {object} [walked_edges={}] memo object, to prevent walking down
+ * duplicate paths, or finding duplicate faces, this dictionary will
+ * store and check against vertex pairs "i j".
+ * @returns {object} the walked face, an object arrays of numbers under "vertices", "edges", and "angles"
+ * @linkcode Origami ./src/graph/walk.js 13
  */
-export const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
+export const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
 	// this gives us a quick lookup to see if we've visited this edge before.
 	const this_walked_edges = {};
@@ -52,23 +55,36 @@ export const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, 
 		this_vertex = next_vertex;
 	}
 };
-
-export const planar_vertex_walk = ({ vertices_vertices, vertices_sectors }) => {
+/**
+ * @description Given a planar graph, discover all faces by counter-clockwise walking
+ * by starting at every edge.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {object[]} an array of face objects, where each face has number arrays,
+ * "vertices", "edges", and "angles". vertices and edges are indices, angles are radians.
+ * @linkcode Origami ./src/graph/walk.js 64
+ */
+export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 	const graph = { vertices_vertices, vertices_sectors };
 	const walked_edges = {};
 	return vertices_vertices
 		.map((adj_verts, v) => adj_verts
-			.map(adj_vert => counter_clockwise_walk(graph, v, adj_vert, walked_edges))
+			.map(adj_vert => counterClockwiseWalk(graph, v, adj_vert, walked_edges))
 			.filter(a => a !== undefined))
-		.reduce((a, b) => a.concat(b), [])
+		.flat();
 };
 /**
- * @description 180 - sector angle = the turn angle. counter clockwise
+ * @description This should be used in conjuction with planarVertexWalk() and 
+ * counterClockwiseWalk(). There will be one face in the which winds around the
+ * outside of the boundary and encloses the space outside around. This method will
+ * find that face and remove it from the set.
+ * @algorithm 180 - sector angle = the turn angle. counter clockwise
  * turns are +, clockwise will be -, this removes the one face that
  * outlines the piece with opposite winding enclosing Infinity.
- * @param {object} walked_faces, the result from calling "planar_vertex_walk"
+ * @param {object[]} walked_faces the result from calling "planarVertexWalk()"
+ * @returns {object[]} the same input array with one fewer element
+ * @linkcode Origami ./src/graph/walk.js 85
  */
-export const filter_walked_boundary_face = walked_faces => walked_faces
+export const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles
 		.map(a => Math.PI - a)
 		.reduce((a,b) => a + b, 0) > 0);

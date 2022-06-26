@@ -5,21 +5,21 @@ test("empty", () => expect(true).toBe(true));
 // test("add edges", () => {
 //   const graph = {};
 
-//   ear.graph.add_edges(graph, {
+//   ear.graph.addEdges(graph, {
 //     edges_vertices: [
-//       ear.graph.add_vertices(graph, [[0, 0], [1, 1]])
+//       ear.graph.addVertices(graph, [[0, 0], [1, 1]])
 //     ]
 //   });
 
-//   ear.graph.add_edges(graph, {
+//   ear.graph.addEdges(graph, {
 //     edges_vertices: [
-//       ear.graph.add_vertices(graph, [[2, 2], [3, 3]])
+//       ear.graph.addVertices(graph, [[2, 2], [3, 3]])
 //     ]
 //   });
 
-//   ear.graph.add_edges(graph, {
+//   ear.graph.addEdges(graph, {
 //     edges_vertices: [
-//       ear.graph.add_vertices(graph, [[1, 1], [2, 2]])
+//       ear.graph.addVertices(graph, [[1, 1], [2, 2]])
 //     ]
 //   });
 

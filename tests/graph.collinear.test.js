@@ -23,7 +23,7 @@ const collinearSquare = {
 
 test("vertices edges overlap vertices", () => {
 	// all vertices are in the boundary. this will return nothing
-	const verts = ear.graph.get_vertices_edges_overlap(collinearSquare);
+	const verts = ear.graph.getVerticesEdgesOverlap(collinearSquare);
 	verts.forEach(arr => expect(arr.length).toBe(0));
 });
 
@@ -53,19 +53,19 @@ test("remove collinear vertices", () => {
 });
 
 test("get collinear vertices overlapping an edge", () => {
-	const graph = ear.graph.unit_square();
+	const graph = ear.graph.square();
 
 	for (let i = 0; i < 4; i += 1) {
-		ear.graph.add_edges(
+		ear.graph.addEdges(
 			graph,
-			ear.graph.add_vertices(graph, [[Math.random(), 0], [Math.random(), 1]])
+			ear.graph.addVertices(graph, [[Math.random(), 0], [Math.random(), 1]])
 		);
-		ear.graph.add_edges(
+		ear.graph.addEdges(
 			graph,
-			ear.graph.add_vertices(graph, [[0, Math.random()], [1, Math.random()]])
+			ear.graph.addVertices(graph, [[0, Math.random()], [1, Math.random()]])
 		);
 	}
-	const res = ear.graph.get_vertices_edges_overlap(graph);
+	const res = ear.graph.getVerticesEdgesOverlap(graph);
 	expect(res[0].length).toBe(4);
 	expect(res[1].length).toBe(4);
 	expect(res[2].length).toBe(4);

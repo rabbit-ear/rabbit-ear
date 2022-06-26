@@ -23,9 +23,8 @@ export {
 
 // // for debugging, uncomment to log system on boot
 // const operating_systems = [
-//   isBrowser ? "browser" : "",
-//   isWebWorker ? "web-worker" : "",
-//   isNode ? "node" : "",
-// ].filter(a => a !== "").join(" ");
+//   isBrowser ? "browser" : undefined,
+//   isWebWorker ? "web-worker" : undefined,
+//   isNode ? "node" : undefined,
+// ].filter(a => a !== undefined).join(" ");
 // console.log(`RabbitEar [${operating_systems}]`);
-

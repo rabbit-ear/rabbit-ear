@@ -1,36 +1,51 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import { uniqueIntegers } from "../general/arrays";
 import {
-	make_vertices_edges_unsorted,
-	make_vertices_vertices,
-	make_vertices_to_edge_bidirectional,
+	makeVerticesEdgesUnsorted,
+	makeVerticesVertices,
+	makeVerticesToEdgeBidirectional,
 } from "./make";
 /**
- * @description true false is a vertex on a boundary
+ * @description For every vertex return a true if the vertex lies along a boundary
+ * edge, as defined by edges_assignment. If edges_assignment is not present,
+ * or does not contain boundary edges, this will return an empty array.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
+ * @linkcode Origami ./src/graph/boundary.js 16
  */
-export const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
-	const vertices = {};
-	edges_vertices.forEach((v, i) => {
-		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
-		if (!boundary) { return; }
-		vertices[v[0]] = true;
-		vertices[v[1]] = true;
-	});
-	return Object.keys(vertices).map(str => parseInt(str));
-};
-const empty_get_boundary = () => ({ vertices: [], edges: [] });
+export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) =>
+	uniqueIntegers(edges_vertices
+		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
+		.flat());
+// export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
+// 	// assign vertices to a hash table to make sure they are unique.
+// 	const vertices = {};
+// 	edges_vertices.forEach((v, i) => {
+// 		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
+// 		if (!boundary) { return; }
+// 		vertices[v[0]] = true;
+// 		vertices[v[1]] = true;
+// 	});
+// 	return Object.keys(vertices).map(str => parseInt(str));
+// };
+
+const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
 /**
- * @description get the boundary as two arrays of vertices and edges
- * by walking the boundary edges as defined by edges_assignment.
- * if edges_assignment contains errors (or doesn't exist) this will fail.
- * @param {object} a FOLD graph
- * @returns {object} "vertices" and "edges" with arrays of indices.
+ * @description Get the boundary of a FOLD graph in terms of both vertices and edges.
+ * This works by walking the boundary edges as defined by edges_assignment ("B" or "b").
+ * If edges_assignment doesn't exist, or contains errors, this will not work, and you
+ * will need the more robust algorithm getPlanarBoundary() which walks the graph, but
+ * only works in 2D.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {object} with "vertices" and "edges" with arrays of indices.
+ * @linkcode Origami ./src/graph/boundary.js 43
  */
-export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
-	if (edges_assignment === undefined) { return empty_get_boundary(); }
+export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
 	if (!vertices_edges) {
-		vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const edges_vertices_b = edges_assignment
 		.map(a => a === "B" || a === "b");
@@ -40,7 +55,7 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
 	for (let i = 0; i < edges_vertices_b.length; i += 1) {
 		if (edges_vertices_b[i]) { edgeIndex = i; break; }
 	}
-	if (edgeIndex === -1) { return empty_get_boundary(); }
+	if (edgeIndex === -1) { return emptyBoundaryObject(); }
 	edges_vertices_b[edgeIndex] = false;
 	edge_walk.push(edgeIndex);
 	vertex_walk.push(edges_vertices[edgeIndex][0]);
@@ -50,7 +65,7 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
 		edgeIndex = vertices_edges[nextVertex]
 			.filter(v => edges_vertices_b[v])
 			.shift();
-		if (edgeIndex === undefined) { return empty_get_boundary(); }
+		if (edgeIndex === undefined) { return emptyBoundaryObject(); }
 		if (edges_vertices[edgeIndex][0] === nextVertex) {
 			[, nextVertex] = edges_vertices[edgeIndex];
 		} else {
@@ -65,21 +80,22 @@ export const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment 
 	};
 };
 /**
- * @description get the boundary as two arrays of vertices and edges
+ * @description Get the boundary as two arrays of vertices and edges
  * by walking the boundary edges in 2D and uncovering the concave hull.
  * Does not consult edges_assignment, but does require vertices_coords.
  * For repairing crease patterns, this will uncover boundary edges_assignments.
- * @param {object} a FOLD graph
- *  (vertices_coords, vertices_vertices, edges_vertices)
- *  (vertices edges only required in case vertices_vertices needs to be built)
+ * @param {FOLD} graph a FOLD graph
+ * (vertices_coords, vertices_vertices, edges_vertices)
+ * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
+ * @linkcode Origami ./src/graph/boundary.js 92
  */
-export const get_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
+export const getPlanarBoundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
 	if (!vertices_vertices) {
-		vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });    
+		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });    
 	}
-	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const edge_walk = [];
 	const vertex_walk = [];
 	const walk = {
