@@ -19,15 +19,16 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
 	return true;
 };
 /**
- * @returns {number[][]} array of array of numbers, each array is
- * an array of vertex indices.
- * if there are no duplicates, it returns [ [0], [1], [2], [3], [4], ... ]
- * if there are it looks like: [ [0, 2], [1], [3], [4, 5]]
- * if vertices_coords is not present, instead of undefined,
- *  it returns an empty array.
+ * @description Find all clusters of vertices which lie within an epsilon of each other.
+ * Each cluster is an array of vertex indices. If no clusters exist, the method returns
+ * N-number of arrays, each with a single vertex entry.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} array of arrays of vertex indices.
+ * @example
+ * no clusters: [ [0], [1], [2], [3], [4], ... ]
+ * clusters: [ [0, 5], [1], [3], [2, 4]]
  */
-// clusters is an array of arrays of numbers
-// each entry in clusters is an array of vertex indices
 const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
 	if (!vertices_coords) { return []; }
 	// equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices

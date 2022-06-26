@@ -104,6 +104,14 @@ const build_faces_if_needed = (graph, reface) => {
  * if you do have edges_assignment instead of edges_foldAngle the origami
  * will be limited to flat-foldable.
  */
+/**
+ * @description Populate all arrays in a FOLD graph. This includes building adjacency
+ * components like vertices_vertices, making edges_assignments from foldAngles or
+ * visa-versa, and building faces if they don't exist.
+ * @param {FOLD} graph a FOLD graph
+ * @param {boolean} [reface=false] optional boolean, request to rebuild all faces
+ * @return {FOLD} graph the same input graph object
+ */
 const populate = (graph, reface) => {
 	if (typeof graph !== "object") { return graph; }
 	if (!graph.edges_vertices) { return graph; }

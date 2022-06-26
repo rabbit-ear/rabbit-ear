@@ -6,13 +6,13 @@ import { makeFacesCenter } from "../../graph/make";
 import { makeEdgesEdgesParallelOverlap } from "../../graph/edgesEdges";
 import {
 	booleanMatrixToIndexedArray,
-	makeUniqueSetsFromSelfRelationalArrays,
+	makeSelfRelationalArrayClusters,
 } from "../../general/arrays";
 import { invertMap } from "../../graph/maps";
 import makeEdgesFacesOverlap from "../../graph/makeEdgesFacesOverlap";
 
 const get_overlapping_edge_groups = (graph, epsilon) => invertMap(
-	makeUniqueSetsFromSelfRelationalArrays(
+	makeSelfRelationalArrayClusters(
 		booleanMatrixToIndexedArray(
 			makeEdgesEdgesParallelOverlap(graph, epsilon))))
 	.filter(el => typeof el !== "number");

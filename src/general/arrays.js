@@ -2,22 +2,31 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description given a list of integers (can contain duplicates),
- * this will return a sorted set of unique integers (removing duplicates).
- * @param {number[]} array of integers
- * @returns {number[]} set of sorted, unique integers
+ * @description Given a list of integers (can contain duplicates),
+ * this will return only the unique integers (removing duplicates).
+ * @param {number[]} array an array of integers
+ * @returns {number[]} set of unique integers
  */
-export const uniqueSortedIntegers = (array) => {
+export const uniqueIntegers = (array) => {
 	const keys = {};
 	array.forEach((int) => { keys[int] = true; });
-	return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
+	return Object.keys(keys).map(n => parseInt(n));
 };
 /**
- * @description a circular array (data wraps around) needs 2 indices to be split.
- * "indices" will be sorted, smaller index first.
- * @param {any[]} an array that is meant to be thought of as circular
- * @param {number[]} two numbers, indices that divide the array into 2 parts.
- * @returns {any[][]} the same array split into two portions, inside an array.
+ * @description Given a list of integers (can contain duplicates),
+ * this will return a sorted set of unique integers (removing duplicates).
+ * note: this sort appears to be unnecessary, as Object.keys() returns them
+ * in sorted order *sometimes*, but this is not strictly defined.
+ * @param {number[]} array an array of integers
+ * @returns {number[]} set of sorted, unique integers
+ */
+export const uniqueSortedIntegers = (array) => uniqueIntegers(array)
+	.sort((a, b) => a - b);
+/**
+ * @description A circular array (data wraps around) requires 2 indices if you intend to split it into two arrays. The "indices" parameter will be sorted, smaller index first.
+ * @param {any[]} array an array that is meant to be thought of as circular
+ * @param {number[]} indices two numbers, indices that divide the array into 2 parts
+ * @returns {any[][]} the same array split into two arrays
  */
 export const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
@@ -27,9 +36,9 @@ export const splitCircularArray = (array, indices) => {
 	];
 };
 /**
- * @description this will iterate over the array of arrays and returning
+ * @description This will iterate over the array of arrays and returning
  * the first array in the list with the longest length.
- * @param {any[][]} this is an array of arrays.
+ * @param {any[][]} arrays an array of arrays of any type
  * @return {any[]} one of the arrays from the set
  */
 export const getLongestArray = (arrays) => {
@@ -44,11 +53,11 @@ export const getLongestArray = (arrays) => {
 	return arrays[max];
 };
 /**
- * @description given an array of any-type, return the same array but filter
- * out any items which only appear once.
- * @param {any[]} array of primitives which can become strings in an object.
- * the intended use case is an array of {number[]}.
- * @returns {any[]} input array, filtering out any items which only appear once.
+ * @description Given an array of any type, return the same array but filter
+ * out any items which only appear once. The comparison uses conversion-to-string then
+ * matching to compare, so this works for primitives (bool, number, string) not objects or arrays.
+ * @param {any[]} array an array of any type.
+ * @returns {any[]} the same input array but filtered to remove elements which appear only once.
  */
 export const removeSingleInstances = (array) => {
 	const count = {};
@@ -59,9 +68,9 @@ export const removeSingleInstances = (array) => {
 	return array.filter(n => count[n] > 1);
 };
 /**
- * @description convert a sparse or dense matrix containing true/false/undefined
- * into arrays containing the indices of all true values.
- * @param {Array<Array<boolean|undefined>>} matrix 2D matrix containing boolean or undefined
+ * @description Convert a sparse or dense matrix containing true/false/undefined
+ * into arrays containing the indices `[i,j]` of all true values.
+ * @param {Array<Array<boolean|undefined>>} matrix a 2D matrix containing boolean or undefined
  * @returns {number[][]} array of arrays of numbers
  */
 export const booleanMatrixToIndexedArray = matrix => matrix
@@ -91,11 +100,13 @@ export const booleanMatrixToUniqueIndexPairs = matrix => {
 /**
  * @description given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
- * inner arrays relate to the outer structure, create collection groups
+ * inner arrays relate to the indices of the outer array, create collection groups
  * where each item is included in a group if it points to another member
  * in that group.
+ * @param {number[][]} matrix an array of arrays of numbers
+ * @returns {number[][]} groups of the indices where each index appears only once
  */
-export const makeUniqueSetsFromSelfRelationalArrays = (matrix) => {
+export const makeSelfRelationalArrayClusters = (matrix) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -115,16 +126,16 @@ export const makeUniqueSetsFromSelfRelationalArrays = (matrix) => {
  * the length is a triangle number, ie: 6 + 5 + 4 + 3 + 2 + 1
  * (length * (length-1)) / 2
  */
-export const makeTrianglePairs = (array) => {
-	const pairs = Array((array.length * (array.length - 1)) / 2);
-	let index = 0;
-	for (let i = 0; i < array.length - 1; i++) {
-		for (let j = i + 1; j < array.length; j++, index++) {
-			pairs[index] = [array[i], array[j]];
-		}
-	}
-	return pairs;
-};
+// export const makeTrianglePairs = (array) => {
+// 	const pairs = Array((array.length * (array.length - 1)) / 2);
+// 	let index = 0;
+// 	for (let i = 0; i < array.length - 1; i++) {
+// 		for (let j = i + 1; j < array.length; j++, index++) {
+// 			pairs[index] = [array[i], array[j]];
+// 		}
+// 	}
+// 	return pairs;
+// };
 /**
  * @description given an array containing undefineds, gather all contiguous
  * series of valid entries, and return the list of their indices in the form

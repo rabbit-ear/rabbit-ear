@@ -16,7 +16,7 @@ import * as overlap from "./overlap";
 import * as verticesViolations from "./verticesViolations";
 import * as edgesViolations from "./edgesViolations";
 import * as vertices_collinear from "./verticesCollinear";
-import * as facesLayer from "./facesLayer";
+// import * as facesLayer from "./facesLayer";
 import * as edgesEdges from "./edgesEdges";
 import * as verticesCoordsFolded from "./verticesCoordsFolded";
 import * as faceSpanningTree from "./faceSpanningTree";
@@ -39,7 +39,7 @@ import splitFace from "./splitFace/index";
 import flatFold from "./flatFold/index";
 import addPlanarSegment from "./add/addPlanarSegment";
 // import assign from "./assign";
-import subgraph from "./subgraph";
+// import subgraph from "./subgraph";
 import clip from "./clip";
 import fragment from "./fragment";
 import getVerticesClusters from "./verticesClusters";
@@ -66,7 +66,7 @@ export default Object.assign(Object.create(null), {
 	flatFold,
 	addPlanarSegment,
 	// assign,
-	subgraph,
+	// subgraph,
 	clip,
 	fragment,
 	getVerticesClusters,
@@ -87,7 +87,7 @@ export default Object.assign(Object.create(null), {
 	verticesViolations,
 	edgesViolations,
 	vertices_collinear,
-	facesLayer,
+	// facesLayer,
 	edgesEdges,
 	verticesCoordsFolded,
 	faceSpanningTree,

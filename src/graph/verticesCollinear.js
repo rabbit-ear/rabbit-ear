@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { getEdgesVerticesSpan } from "./span";
+import { getEdgesVerticesOverlappingSpan } from "./span";
 
 const getOppositeVertices = (graph, vertex, edges) => {
 	edges.forEach(edge => {
@@ -17,8 +17,12 @@ const getOppositeVertices = (graph, vertex, edges) => {
 };
 
 /**
- * @description determine if a vertex is between only two edges and
- * those edges are parallel, rendering the vertex potentially unnecessary.
+ * @description determine if a vertex exists between two and only two edges, and
+ * those edges are both parallel and on opposite ends of the vertex. The idea is
+ * that this vertex can be removed and the graph would appear similar.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} vertex an index of a vertex in the graph
+ * @returns {boolean} true if the vertex is collinear and can be removed.
  */
 export const isVertexCollinear = (graph, vertex) => {
 	const edges = graph.vertices_edges[vertex];
@@ -46,11 +50,12 @@ export const isVertexCollinear = (graph, vertex) => {
  * for this you want: ___________ method
  */
 /**
- * edges_collinear_vertices is a list of lists where for every edge there is a
+ * @description Get a list of lists where for every edge there is a
  * list filled with vertices that lies collinear to the edge, where
  * collinearity only counts if the vertex lies between the edge's endpoints,
  * excluding the endpoints themselves.
- * 
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
  */
@@ -58,7 +63,7 @@ export const getVerticesEdgesOverlap = ({ vertices_coords, edges_vertices, edges
 	if (!edges_coords) {
 		edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 	}
-	const edges_span_vertices = getEdgesVerticesSpan({
+	const edges_span_vertices = getEdgesVerticesOverlappingSpan({
 		vertices_coords, edges_vertices, edges_coords
 	}, epsilon);
 	// todo, consider pushing values into a results array instead of modifying,

@@ -1,31 +1,44 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import { uniqueIntegers } from "../general/arrays";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices,
 	makeVerticesToEdgeBidirectional,
 } from "./make";
 /**
- * @description true false is a vertex on a boundary
+ * @description For every vertex return a true if the vertex lies along a boundary
+ * edge, as defined by edges_assignment. If edges_assignment is not present,
+ * or does not contain boundary edges, this will return an empty array.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
  */
-export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
-	const vertices = {};
-	edges_vertices.forEach((v, i) => {
-		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
-		if (!boundary) { return; }
-		vertices[v[0]] = true;
-		vertices[v[1]] = true;
-	});
-	return Object.keys(vertices).map(str => parseInt(str));
-};
+export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) =>
+	uniqueIntegers(edges_vertices
+		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
+		.flat());
+// export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
+// 	// assign vertices to a hash table to make sure they are unique.
+// 	const vertices = {};
+// 	edges_vertices.forEach((v, i) => {
+// 		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
+// 		if (!boundary) { return; }
+// 		vertices[v[0]] = true;
+// 		vertices[v[1]] = true;
+// 	});
+// 	return Object.keys(vertices).map(str => parseInt(str));
+// };
+
 const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
 /**
- * @description get the boundary as two arrays of vertices and edges
- * by walking the boundary edges as defined by edges_assignment.
- * if edges_assignment contains errors (or doesn't exist) this will fail.
- * @param {object} a FOLD graph
- * @returns {object} "vertices" and "edges" with arrays of indices.
+ * @description Get the boundary of a FOLD graph in terms of both vertices and edges.
+ * This works by walking the boundary edges as defined by edges_assignment ("B" or "b").
+ * If edges_assignment doesn't exist, or contains errors, this will not work, and you
+ * will need the more robust algorithm getPlanarBoundary() which walks the graph, but
+ * only works in 2D.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {object} with "vertices" and "edges" with arrays of indices.
  */
 export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
@@ -65,13 +78,13 @@ export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }
 	};
 };
 /**
- * @description get the boundary as two arrays of vertices and edges
+ * @description Get the boundary as two arrays of vertices and edges
  * by walking the boundary edges in 2D and uncovering the concave hull.
  * Does not consult edges_assignment, but does require vertices_coords.
  * For repairing crease patterns, this will uncover boundary edges_assignments.
- * @param {object} a FOLD graph
- *  (vertices_coords, vertices_vertices, edges_vertices)
- *  (vertices edges only required in case vertices_vertices needs to be built)
+ * @param {FOLD} graph a FOLD graph
+ * (vertices_coords, vertices_vertices, edges_vertices)
+ * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
  */

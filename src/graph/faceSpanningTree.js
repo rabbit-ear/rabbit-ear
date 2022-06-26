@@ -8,10 +8,11 @@ import { makeFacesFaces } from "./make";
 //   .filter(v => graph.faces_vertices[face1].indexOf(v) !== -1)
 
 /**
- * @param {number[]}, list of vertex indices. one entry from faces_vertices
- * @param {number[]}, list of vertex indices. one entry from faces_vertices
- * @returns {number[]}, indices of vertices that are shared between faces
- *  and keep the vertices in the same order as the winding order of face a.
+ * @description given two faces, get the vertices which are shared between the two faces.
+ * @param {number[]} face_a_vertices the faces_vertices entry for face A
+ * @param {number[]} face_b_vertices the faces_vertices entry for face B
+ * @returns {number[]} indices of vertices that are shared between faces maintaining
+ *  the vertices in the same order as the winding order of face A.
  */
 // todo: this was throwing errors in the case of weird nonconvex faces with
 // single edges poking in. the "already_added" was added to fix this.
@@ -47,6 +48,14 @@ export const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
 // except for the first level. the root level has no reference to the
 // parent face, or the edge_vertices shared between them
 // root_face will become the root node
+/**
+ * @description Make a minimum spanning tree of a graph that edge-adjacent faces.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [root_face=0] the face index to be the root node
+ * @returns {object[][]} a tree arranged as an array containin arrays of nodes. each inner
+ * array contains all nodes at that depth (0, 1, 2...) each node contains:
+ * "face" {number} "parent" {number} "edge_vertices" {number[]}
+ */
 export const makeFaceSpanningTree = ({ faces_vertices, faces_faces }, root_face = 0) => {
 	if (!faces_faces) {
 		faces_faces = makeFacesFaces({ faces_vertices });

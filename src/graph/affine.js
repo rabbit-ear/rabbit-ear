@@ -4,6 +4,8 @@
 import math from "../math";
 import { filterKeysWithSuffix } from "../fold/spec";
 /**
+ * @name transform
+ * @memberof graph
  * @description apply an affine transform to a graph; this includes
  * modifying the position of any key ending with "_coords" and multiplying
  * any matrix in keys that end with "_matrix".
@@ -27,6 +29,8 @@ const apply_matrix_to_graph = function (graph, matrix) {
 	return graph;
 };
 /**
+ * @name scale
+ * @memberof graph
  * @description apply a uniform affine scale to a graph.
  * @param {FOLD} graph a FOLD graph
  * @param {number} scale the scale amount
@@ -40,6 +44,8 @@ const transform_scale = (graph, scale, ...args) => {
 	return apply_matrix_to_graph(graph, matrix);
 };
 /**
+ * @name translate
+ * @memberof graph
  * @description apply a translation to a graph.
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} optional. an array or series of numbers, the translation vector
@@ -52,6 +58,8 @@ const transform_translate = (graph, ...args) => {
 	return apply_matrix_to_graph(graph, matrix);
 };
 /**
+ * @name rotateZ
+ * @memberof graph
  * @description apply a rotation to a graph around the +Z axis.
  * @param {FOLD} graph a FOLD graph
  * @param {number} the rotation amount in radians

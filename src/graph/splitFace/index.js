@@ -15,18 +15,18 @@ import { intersectConvexFaceLine } from "../intersect";
 import remove from "../remove";
 import * as S from "../../general/strings";
 /**
- * @description divide a CONVEX face into two polygons with a straight line cut.
+ * @description divide a **convex** face into two polygons with a straight line cut.
  * if the line ends exactly along existing vertices, they will be
  * used, otherwise, new vertices will be added (splitting edges).
- * @param {object} graph a FOLD object, modified in place
+ * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} face index of face to split
- * @param {number[]} vector the vector component describing the cutting line
- * @param {number[]} point the point component describing the cutting line
+ * @param {number[]} vector the vector component of the cutting line
+ * @param {number[]} point the point component of the cutting line
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} a summary of changes to the FOLD object,
  *  or undefined if no change (no intersection).
  */
-const splitConvexFace = (graph, face, vector, point, epsilon) => {
+const splitFace = (graph, face, vector, point, epsilon) => {
 	// survey face for any intersections which cross directly over a vertex
 	const intersect = intersectConvexFaceLine(graph, face, vector, point, epsilon);
 	// if no intersection exists, return undefined.
@@ -65,4 +65,4 @@ const splitConvexFace = (graph, face, vector, point, epsilon) => {
 	return result;
 };
 
-export default splitConvexFace;
+export default splitFace;

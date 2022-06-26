@@ -60,21 +60,23 @@ export const edgesAssignmentDegrees = {
 	u: 0
 };
 /**
- * @param {string} one edge assignment letter, any case: M V B F U
+ * @description Convert an assignment character to a foldAngle in degrees. This assumes
+ * that all assignments are flat folds.
+ * @param {string} assignment one edge assignment letter: M V B F U
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
  */
 export const edgeAssignmentToFoldAngle = assignment =>
 	edgesAssignmentDegrees[assignment] || 0;
 /**
- * @param {number} fold angle in degrees.
- * @returns {string} one edge assignment letter: M V or U, no boundary detection.
- *
- * todo: what should be the behavior for 0, undefined, null?
+ * @description Convert a foldAngle to an edge assignment character.
+ * @param {number} angle fold angle in degrees
+ * @returns {string} one edge assignment letter: M V or U, no boundary detection
+ * @todo should "U" be "F" instead, if so, we are assigning potental "B" edges to "F".
  */
 export const edgeFoldAngleToAssignment = (a) => {
-	if (a > 0) { return "V"; }
-	if (a < 0) { return "M"; }
-	// if (a === 0) { return "F"; }
+	if (a > math.core.EPSILON) { return "V"; }
+	if (a < -math.core.EPSILON) { return "M"; }
+	// if (math.core.fnEpsilonEqual(0, a)) { return "F"; }
 	return "U";
 };
 /**
@@ -102,9 +104,10 @@ export const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	return true;
 };
 /**
- * @param {object} any object
- * @param {string} a suffix to match against the keys
- * @returns {string[]} array of keys that end with the string param
+ * @description Get all keys in an object that end with the provided suffix.
+ * @param {object} obj an object
+ * @param {string} suffix a suffix to match against the keys
+ * @returns {string[]} array of keys that end with the suffix
  */
 export const filterKeysWithSuffix = (graph, suffix) => Object
 	.keys(graph)
@@ -112,19 +115,21 @@ export const filterKeysWithSuffix = (graph, suffix) => Object
 		? s : undefined))
 	.filter(str => str !== undefined);
 /**
- * @param {object} any object
- * @param {string} a prefix to match against the keys
- * @returns {string[]} array of keys that start with the string param
+ * @description Get all keys in an object that start with the provided prefix.
+ * @param {object} obj an object
+ * @param {string} prefix a prefix to match against the keys
+ * @returns {string[]} array of keys that start with the prefix
  */
-export const filterKeysWithPrefix = (graph, prefix) => Object
-	.keys(graph)
+export const filterKeysWithPrefix = (obj, prefix) => Object
+	.keys(obj)
 	.map(str => (str.substring(0, prefix.length) === prefix
 		? str : undefined))
 	.filter(str => str !== undefined);
 /**
- * return a list of keys from a FOLD object that match a provided
- * string such that the key STARTS WITH this string followed by a _.
- *
+ * @description Get all keys in a graph which contain a "_" prefixed by the provided string.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} prefix a prefix to match against the keys
+ * @returns {string[]} array of keys that start with the prefix
  * for example: "vertices" will return:
  * vertices_coords, vertices_faces,
  * but not edges_vertices, or verticesCoords (must end with _)
@@ -132,19 +137,22 @@ export const filterKeysWithPrefix = (graph, prefix) => Object
 export const getGraphKeysWithPrefix = (graph, key) =>
 	filterKeysWithPrefix(graph, `${key}_`);
 /**
- * return a list of keys from a FOLD object that match a provided
- * string such that the key ENDS WITH this string, preceded by _.
- *
+ * @description Get all keys in a graph which contain a "_" followed by the provided suffix.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} suffix a suffix to match against the keys
+ * @returns {string[]} array of keys that end with the suffix
  * for example: "vertices" will return:
  * edges_vertices, faces_vertices,
  * but not vertices_coords, or edgesvertices (must prefix with _)
  */
 export const getGraphKeysWithSuffix = (graph, key) =>
 	filterKeysWithSuffix(graph, `_${key}`);
-
 /**
- * this takes in a geometry_key (vectors, edges, faces), and flattens
- * across all related arrays, creating 1 array of objects with the keys
+ * @description This takes in a geometry_key (vectors, edges, faces), and flattens
+ * across all related arrays, creating one object with the keys for every index.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} geometry_key a geometry item like "vertices"
+ * @returns {object[]} an array of objects with FOLD keys but the values are from this single element
  */
 export const transposeGraphArrays = (graph, geometry_key) => {
 	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
@@ -164,10 +172,13 @@ export const transposeGraphArrays = (graph, geometry_key) => {
 			.forEach((o, i) => { geometry[i][key] = graph[key][i]; }));
 	return geometry;
 };
-
 /**
- * this takes in a geometry_key (vectors, edges, faces), and flattens
- * across all related arrays, creating 1 array of objects with the keys
+ * @description This takes in a geometry_key (vectors, edges, faces), and flattens
+ * across all related arrays, creating one object with the keys.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} geometry_key a geometry item like "vertices"
+ * @param {number} the index of an element
+ * @returns {object} an object with FOLD keys but the values are from this single element
  */
 export const transposeGraphArrayAtIndex = function (
 	graph,
@@ -183,7 +194,11 @@ export const transposeGraphArrayAtIndex = function (
 	matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
 	return geometry;
 };
-
+/**
+ * @description Using heuristics, try to determine if an object is a FOLD object.
+ * @param {FOLD} graph a FOLD object
+ * @returns {number} value between 0 and 1, zero meaning no chance, one meaning 100% chance
+ */
 export const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
 		? 0

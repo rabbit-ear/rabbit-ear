@@ -27,10 +27,10 @@ import replace from "./replace";
 //   return bad;
 // };
 /**
- * @description get the indices of all circular edges. circular edges are
+ * @description Get the indices of all circular edges. Circular edges are
  * edges where both of its edges_vertices is the same vertex.
- * @param {object} a FOLD graph
- * @returns {number[]} array of indices of circular edges. empty array if none.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} array of indices of circular edges. empty if none.
  */
 export const getCircularEdges = ({ edges_vertices }) => {
 	const circular = [];
@@ -42,17 +42,18 @@ export const getCircularEdges = ({ edges_vertices }) => {
 	return circular;
 };
 /**
- * @description get the indices of all duplicate edges by marking the
+ * @description Get the indices of all duplicate edges by marking the
  * second/third/... as duplicate (not the first of the duplicates).
  * The result is given as an array with holes, where:
  * - the indices are the indices of the duplicate edges.
  * - the values are the indices of the first occurence of the duplicate.
  * Under this system, many edges can be duplicates of the same edge.
  * Order is not important. [5,9] and [9,5] are still duplicate.
- * @param {object} a FOLD object
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} an array where the redundant edges are the indices,
  * and the values are the indices of the first occurence of the duplicate.
- * @example {number[]} array, [4:3, 7:5, 8:3, 12:3, 14:9] where indices
+ * @example
+ * {number[]} array, [4:3, 7:5, 8:3, 12:3, 14:9] where indices
  * (3, 4, 8, 12) are all duplicates. (5,7), (9,14) are also duplicates.
  */
 export const getDuplicateEdges = ({ edges_vertices }) => {
@@ -76,10 +77,13 @@ export const getDuplicateEdges = ({ edges_vertices }) => {
 	return duplicates;
 };
 /**
- * @description given a set of graph geometry (vertices/edges/faces) indices,
+ * @description Given a set of graph geometry (vertices/edges/faces) indices,
  * get all the arrays which reference these geometries, (eg: end in _edges),
- * and remove (splice) that entry from the array if it contains a remove value
- * @example removing indices [4, 7] from "edges", then a faces_edges entry
+ * and remove (splice) that entry from the array if it contains a remove value.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} suffix a component intended as a suffix, like "vertices" for "edges_vertices"
+ * @example
+ * removing indices [4, 7] from "edges", then a faces_edges entry
  * which was [15, 13, 4, 9, 2] will become [15, 13, 9, 2].
  */
 const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
@@ -96,6 +100,14 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
 				}
 			}));
 };
+/**
+ * @description Find and remove all circular edges from a graph.
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} [remove_indices=undefined] Leave this empty. Otherwise, if
+ * getCircularEdges() has already been called, provide the result here to speed
+ * up the algorithm.
+ * @returns {object} a summary of changes
+ */
 export const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {
 		remove_indices = getCircularEdges(graph);
@@ -114,9 +126,15 @@ export const removeCircularEdges = (graph, remove_indices) => {
 	};
 };
 /**
- * @description if an edge is removed, it will mess up the vertices
- * data, so all of the vertices_ arrays will be rebuilt if this
- * method successfully found and removed a duplicate edge.
+ * @description Find and remove all duplicate edges from a graph.
+ * If an edge is removed, it will mess up the vertices data (vertices_vertices, 
+ * vertices_edges, vertices_faces) so if this method successfully found and
+ * removed a duplicate edge, the vertices arrays will be rebuilt as well.
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} [replace_indices=undefined] Leave this empty. Otherwise, if
+ * getDuplicateEdges() has already been called, provide the result here to speed
+ * up the algorithm.
+ * @returns {object} a summary of changes
  */
 export const removeDuplicateEdges = (graph, replace_indices) => {
 	// index: edge to remove, value: the edge which should replace it.

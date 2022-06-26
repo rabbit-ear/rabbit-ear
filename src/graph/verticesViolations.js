@@ -12,7 +12,7 @@ import remove from "./remove";
 import replace from "./replace";
 
 /**
- * @description get the indices of all vertices which lie close to other vertices
+ * @description Get the indices of all vertices which lie close to other vertices.
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} arrays of clusters of similar vertices. todo check this
@@ -22,7 +22,7 @@ export const getDuplicateVertices = (graph, epsilon) => {
 		.filter(arr => arr.length > 1);
 };
 /**
- * @description get the indices of all vertices which make no appearance in any edge.
+ * @description Get the indices of all vertices which make no appearance in any edge.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
  */
@@ -41,7 +41,7 @@ export const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => 
 		.filter(a => a !== undefined);
 };
 /**
- * @description get the indices of all vertices which make no appearance in any face.
+ * @description Get the indices of all vertices which make no appearance in any face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
  */
@@ -63,7 +63,7 @@ export const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => 
 // todo this could be improved. for loop instead of forEach + filter.
 // break the loop early.
 /**
- * @description get the indices of all vertices which make no appearance in any edge or face.
+ * @description Get the indices of all vertices which make no appearance in any edge or face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
  */
@@ -92,13 +92,15 @@ export const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_ver
 		.filter(a => a !== undefined);
 };
 /**
- * @description remove any vertices which are not a part of any edge or
+ * @description Remove any vertices which are not a part of any edge or
  * face. This will shift up the remaining vertices indices so that the
  * vertices arrays will not have any holes, and, additionally it searches
  * through all _vertices reference arrays and updates the index
  * references for the shifted vertices.
- * @param {object} a FOLD graph
- * @param {number[]} optional. the result of getIsolatedVertices. 
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} [remove_indices] Leave this empty. Otherwise, if
+ * getIsolatedVertices() has already been called, provide the result here to speed
+ * up the algorithm.
  */
 export const removeIsolatedVertices = (graph, remove_indices) => {
 	if (!remove_indices) {
@@ -115,11 +117,13 @@ export const removeIsolatedVertices = (graph, remove_indices) => {
 // };
 
 /**
- * @description this will shrink the number of vertices in the graph,
- * if vertices are too close it will keep the first one, find the geometric
- * average of all merging points, and set the one vertex's vertices_coords.
- * 
- * this has the potential to create circular and duplicate edges
+ * @description This will shrink the number of vertices in the graph,
+ * if vertices are close within an epsilon, it will keep the first one,
+ * find the average of close points, and assign it to the remaining vertex.
+ * **this has the potential to create circular and duplicate edges**.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} summary of changes
  */
 export const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 	// replaces array will be [index:value] index is the element to delete,

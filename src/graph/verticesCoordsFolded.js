@@ -8,14 +8,18 @@ import {
 } from "./make";
 import {
 	makeFacesMatrix,
-	makeEdgesIsFlatFolded,
+	makeEdgesIsFolded,
 } from "./facesMatrix";
 import { makeFaceSpanningTree } from "./faceSpanningTree";
 /**
- * @description this method works in both 2D and 3D
+ * @description Fold a graph along its edges and return the position
+ * of the folded vertices. This method works in both 2D and 3D
  * unassigned edges are treated as flat fold (mountain/valley 180deg)
  * as a way of (assuming the user is giving a flat folded origami), help
  * solve things about an origami that is currently being figured out.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [root_face=0] the index of the face that will remain in place
+ * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  */
 export const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
 	faces_matrix = makeFacesMatrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
@@ -35,13 +39,17 @@ export const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edge
 		.map((coord, i) => math.core.multiplyMatrix3Vector3(vertices_matrix[i], coord));
 };
 /**
- * @description this method works for 2D only (no z value).
+ * @description Fold a graph along its edges and return the position of the folded
+ * vertices. this method works for 2D only (no z value).
  * if a edges_assignment is "U", assumed to be folded ("V" or "M").
- * also, if no edge foldAngle or assignments exist, assume all edges are folded.
+ * Finally, if no edge foldAngle or assignments exist, this method will
+ * assume all edges are flat-folded (except boundary) and will fold everything.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [root_face=0] the index of the face that will remain in place
+ * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  */
-// export const makeVerticesCoordsFlatFolded = makeVerticesCoordsFolded;
 export const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
-	const edges_is_folded = makeEdgesIsFlatFolded({ edges_vertices, edges_foldAngle, edges_assignment });
+	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const vertices_coords_folded = [];
 	faces_vertices[root_face]
 		.forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });

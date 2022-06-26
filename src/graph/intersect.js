@@ -7,12 +7,14 @@ import {
 	makeEdgesCoords,
 	makeEdgesBoundingBox,
 } from "./make";
-import { getEdgesEdgesSpan } from "./span";
+import { getEdgesEdgesOverlapingSpans } from "./span";
 
 /**
- * @param {object} a FOLD object
- * @param {number[]} vector. a line defined by a vector crossing a point
- * @param {number[]} point. a line defined by a vector crossing a point
+ * @description Find all edges in a graph which lie parallel along a line (infinite line).
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} vector a line defined by a vector crossing a point
+ * @param {number[]} point a line defined by a vector crossing a point
+ * @returns {boolean[]} length matching number of edges, true if parallel and overlapping
  */
 export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
 	const normalized = math.core.normalize2(vector);
@@ -37,11 +39,13 @@ export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }
 	return overlap;
 };
 /**
- * @description return the indices of edges which overlap the segment
+ * @description Find all edges in a graph which lie parallel along a segment, the
+ * endpoints of the segments and the edges are inclusive.
  * @param {object} a FOLD graph
  * @param {number[]} point1, the first point of the segment
  * @param {number[]} point2, the second point of the segment
- * @returns {number[]} array of edge indices which overlap the segment
+ * @returns {number[]} array length matching number of edges containing a point
+ * if there is an intersection, and undefined if no intersection.
  */
 export const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
@@ -64,19 +68,15 @@ export const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, 
 			epsilon)) : undefined);
 };
 /**
- * this method compares every edge against every edge (n^2) to see if the
+ * @description This method compares every edge against every edge (n^2) to see if the
  * segments exclusively intersect each other (touching endpoints doesn't count)
- *
- * @param {object} FOLD graph. only requires { edges_vector, edges_origin }
+ * @param {FOLD} graph a FOLD graph. only requires { edges_vector, edges_origin }
  * if they don't exist this will build them from { vertices_coords, edges_vertices }
- *
- * @param {number} epsilon, optional
- *
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][][]} NxN matrix comparing indices, undefined in the case of
  * no intersection, a point object in array form if yes, and this array is stored
  * in 2 PLACES! both [i][j] and [j][i], however it is stored by reference,
  * it is the same js object.
- *
  *     0  1  2  3
  * 0 [  , x,  ,  ]
  * 1 [ x,  ,  , x]
@@ -93,7 +93,7 @@ export const makeEdgesEdgesIntersection = function ({
 		edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	}
 	const edges_intersections = edges_vector.map(() => []);
-	const span = getEdgesEdgesSpan({ vertices_coords, edges_vertices }, epsilon);
+	const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
 	for (let i = 0; i < edges_vector.length - 1; i += 1) {
 		for (let j = i + 1; j < edges_vector.length; j += 1) {
 			if (span[i][j] !== true) {

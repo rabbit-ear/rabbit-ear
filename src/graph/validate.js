@@ -38,7 +38,13 @@ const validate_references = (graph) => {
 		faces: counts.faces >= implied.faces,
 	}
 };
-
+/**
+ * @description Validate a graph, get back a report on its duplicate/circular components.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a report on the validity state of the graph. a "summary" string,
+ * and "vertices" "edges" and "faces" information
+ */
 const validate = (graph, epsilon) => {
 	const duplicate_edges = getDuplicateEdges(graph);
 	const circular_edges = getCircularEdges(graph);

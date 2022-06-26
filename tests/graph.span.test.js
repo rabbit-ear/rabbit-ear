@@ -14,9 +14,9 @@ test("span test", () => {
 			ear.graph.addVertices(graph, [[0, rand()], [1, rand()]])
 		);
 	}
-	ear.graph.getEdgesEdgesSpan(graph);
+	ear.graph.getEdgesEdgesOverlapingSpans(graph);
 	expect(true).toBe(true);
 });
 
-ear.graph.getEdgesEdgesSpan
-ear.graph.getEdgesVerticesSpan
+ear.graph.getEdgesEdgesOverlapingSpans
+ear.graph.getEdgesVerticesOverlappingSpan

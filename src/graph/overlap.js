@@ -8,7 +8,14 @@ import {
 	makeFacesPolygon,
 } from "./make";
 import { makeFacesWinding } from "./facesWinding";
-
+/**
+ * @description Return an ExF matrix (number of: E=edges, F=faces), relating every edge
+ * to every face. Value will contain true if the edge and face overlap each other, excluding
+ * the space around the edge's endpoints, and the edges of the face.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
+ */
 export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -76,10 +83,12 @@ export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_v
 //   return matrix;
 // };
 /**
- * @description compare every face to every face, do they overlap?
- * return the result in the form of a matrix, an array of arrays
- * of booleans, where both halves of the matrix are filled,
- * matrix[i][j] === matrix[j][i].
+ * @description Compare every face to every face to answer: do the two faces overlap?
+ * Return the result in the form of a matrix, an array of arrays of booleans,
+ * where both halves of the matrix are filled, matrix[i][j] === matrix[j][i].
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
  */
 export const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))

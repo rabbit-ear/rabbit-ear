@@ -2,14 +2,24 @@
  * Rabbit Ear (c) Kraft
  */
 import * as S from "../general/strings";
-
+/**
+ * @description Provide two or more simple nextmaps in the order they were made
+ * and this will merge them into one nextmap which reflects all changes to the graph.
+ * @param {...number[]} ...maps a sequence of simple nextmaps
+ * @returns {number[]} one nextmap reflecting the sum of changes
+ */
 export const mergeSimpleNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => i);
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
 	return solution;
 };
-
+/**
+ * @description Provide two or more nextmaps in the order they were made
+ * and this will merge them into one nextmap which reflects all changes to the graph.
+ * @param {...number[][]} ...maps a sequence of nextmaps
+ * @returns {number[][]} one nextmap reflecting the sum of changes
+ */
 export const mergeNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => [i]);
@@ -23,7 +33,12 @@ export const mergeNextmaps = (...maps) => {
 	});
 	return solution;
 };
-
+/**
+ * @description Provide two or more simple backmaps in the order they were made
+ * and this will merge them into one backmap which reflects all changes to the graph.
+ * @param {...number[]} ...maps a sequence of simplebackmaps
+ * @returns {number[]} one backmap reflecting the sum of changes
+ */
 export const mergeSimpleBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	let solution = maps[0].map((_, i) => i);
@@ -33,7 +48,12 @@ export const mergeSimpleBackmaps = (...maps) => {
 	});
 	return solution;
 };
-
+/**
+ * @description Provide two or more  backmaps in the order they were made
+ * and this will merge them into one backmap which reflects all changes to the graph.
+ * @param {...number[][]} ...maps a sequence of backmaps
+ * @returns {number[][]} one backmap reflecting the sum of changes
+ */
 export const mergeBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);

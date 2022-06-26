@@ -2,24 +2,32 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * true/false: which face shares color with root face
- * the root face (and any similar-color face) will be marked as true
- *
- * this face coloring skips marks joining the two faces separated by it.
- * it relates directly to if a face is flipped or not (determinant > 0)
+ * @description For every face, return a boolean indicating if the face has
+ * been flipped over or not (false=flipped), by using the faces_matrix and
+ * checking the determinant.
+ * @param {number[][]} faces_matrix for every face, a 3x4 transform matrix
+ * @returns {boolean[]} true if a face is counter-clockwise.
  */
 export const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
 	.map(m => m[0] * m[4] - m[1] * m[3])
 	.map(c => c >= 0);
-// the 2D matrix
+/**
+ * @description For every face, return a boolean indicating if the face has
+ * been flipped over or not (false=flipped), by using a faces_matrix containing
+ * 2D matrices.
+ * @param {number[][]} faces_matrix for every face, a 2x3 transform matrix
+ * @returns {boolean[]} true if a face is counter-clockwise.
+ */
 export const makeFacesWindingFromMatrix2 = faces_matrix => faces_matrix
 	.map(m => m[0] * m[3] - m[1] * m[2])
 	.map(c => c >= 0);
-
-// cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
 /**
- * @returns {boolean[]} true if a face is counter-clockwise. this should also
- * mean a true face is upright, false face is flipped.
+ * @description For every face, return a boolean if the face's vertices are
+ * in counter-clockwise winding. For origami models, this translates to
+ * true meaning the face is upright, false meaning the face is flipped over.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {boolean[]} true if a face is counter-clockwise.
+ * @attribution cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
  */
 export const makeFacesWinding = ({ vertices_coords, faces_vertices }) => {
 	return faces_vertices

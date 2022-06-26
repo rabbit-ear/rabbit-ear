@@ -1743,7 +1743,14 @@ const setOrigin = (el, a, b) => {
 };
 
 const fromPoints = (a, b, c, d) => [a, b, svg_distance2([a, b], [c, d])];
-
+/**
+ * @name circle
+ * @memberof svg
+ * @description Draw an SVG Circle element.
+ * @param {number} radius the radius of the circle
+ * @param {...number|number[]} center the center of the circle
+ * @returns {Element} an SVG node element
+ */
 var circleDef = {
 	circle: {
 		args: (a, b, c, d) => {
@@ -2004,7 +2011,16 @@ const fixNegatives = function (arr) {
 	});
 	return arr;
 };
-
+/**
+ * @name rect
+ * @memberof svg
+ * @description Draw an SVG Rect element.
+ * @param {number} x the x coordinate of the corner
+ * @param {number} y the y coordinate of the corner
+ * @param {number} width the length along the x dimension
+ * @param {number} height the length along the y dimension
+ * @returns {Element} an SVG node element
+ */
 var rectDef = {
 	rect: {
 		args: (a, b, c, d) => {

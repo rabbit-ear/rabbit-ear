@@ -22,7 +22,7 @@ import validate from "../graph/validate";
 import populate from "../graph/populate";
 import fragment from "../graph/fragment";
 // import assign from "../graph/assign";
-import subgraph from "../graph/subgraph";
+// import subgraph from "../graph/subgraph";
 import { getBoundary } from "../graph/boundary";
 import transform from "../graph/affine";
 import {
@@ -60,7 +60,7 @@ const graphMethods = Object.assign({
 	validate,
 	populate,
 	fragment,
-	subgraph,
+	// subgraph,
 	// assign,
 	// convert snake_case to camelCase
 	addVertices: addVertices,

@@ -171,7 +171,7 @@
 	};
 	const include = (n, epsilon = EPSILON) => n > -epsilon;
 	const exclude = (n, epsilon = EPSILON) => n > epsilon;
-	const includeL = fnTrue;
+	const includeL$1 = fnTrue;
 	const excludeL = fnTrue;
 	const includeR = include;
 	const excludeR = exclude;
@@ -199,7 +199,7 @@
 	  fnEpsilonEqualVectors: fnEpsilonEqualVectors,
 	  include: include,
 	  exclude: exclude,
-	  includeL: includeL,
+	  includeL: includeL$1,
 	  excludeL: excludeL,
 	  includeR: includeR,
 	  excludeR: excludeR,
@@ -819,7 +819,7 @@
 	  return solution;
 	};
 	const counterClockwiseOrderRadians = function () {
-	  const radians = flattenArrays(arguments);
+	  const radians = Array.from(arguments).flat();
 	  const counter_clockwise = radians
 	    .map((_, i) => i)
 	    .sort((a, b) => radians[a] - radians[b]);
@@ -833,7 +833,7 @@
 	  );
 	};
 	const counterClockwiseSectorsRadians = function () {
-	  const radians = flattenArrays(arguments);
+	  const radians = Array.from(arguments).flat();
 	  const ordered = counterClockwiseOrderRadians(radians)
 	    .map(i => radians[i]);
 	  return ordered.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
@@ -875,8 +875,8 @@
 	const intersectLineLine = (
 	  aVector, aOrigin,
 	  bVector, bOrigin,
-	  aFunction = includeL,
-	  bFunction = includeL,
+	  aFunction = includeL$1,
+	  bFunction = includeL$1,
 	  epsilon = EPSILON
 	) => {
 	  const det_norm = cross2(normalize(aVector), normalize(bVector));
@@ -1000,7 +1000,7 @@
 	};
 	const splitConvexPolygon = (poly, lineVector, linePoint) => {
 	  let vertices_intersections = poly.map((v, i) => {
-	    let intersection = overlapLinePoint(lineVector, linePoint, v, includeL);
+	    let intersection = overlapLinePoint(lineVector, linePoint, v, includeL$1);
 	    return { point: intersection ? v : null, at_index: i };
 	  }).filter(el => el.point != null);
 	  let edges_intersections = poly.map((v, i, arr) => ({
@@ -1210,7 +1210,7 @@
 	const intersectCircleLine = (
 	  circle_radius, circle_origin,
 	  line_vector, line_origin,
-	  line_func = includeL,
+	  line_func = includeL$1,
 	  epsilon = EPSILON
 	) => {
 	  const magSq = line_vector[0] ** 2 + line_vector[1] ** 2;
@@ -1247,7 +1247,7 @@
 	  poly,
 	  vector, origin,
 	  fn_poly = includeS,
-	  fn_line = includeL,
+	  fn_line = includeL$1,
 	  epsilon = EPSILON
 	) => {
 	  const intersections = poly
@@ -1558,12 +1558,12 @@
 	  if (a >= b) { return undefined; }
 	  return [numbers[a], numbers[b]];
 	};
-	const clipLineConvexPolygon$1 = (
+	const clipLineConvexPolygon = (
 	  poly,
 	  vector,
 	  origin,
 	  fnPoly = include,
-	  fnLine = includeL,
+	  fnLine = includeL$1,
 	  epsilon = EPSILON
 	) => {
 	  const numbers = getIntersectParameters(poly, vector, origin, includeS, epsilon);
@@ -1618,7 +1618,787 @@
 		}
 		return outputList.length === 0 ? undefined : outputList;
 	};
-	const math = Object.create(null);
+	const VectorArgs = function () {
+	  this.push(...getVector(arguments));
+	};
+	const VectorGetters = {
+	  x: function () { return this[0]; },
+	  y: function () { return this[1]; },
+	  z: function () { return this[2]; },
+	};
+	const table = {
+	  preserve: {
+	    magnitude: function () { return magnitude(this); },
+	    isEquivalent: function () {
+	      return fnEpsilonEqualVectors(this, getVector(arguments));
+	    },
+	    isParallel: function () {
+	      return parallel(...resizeUp(this, getVector(arguments)));
+	    },
+	    isCollinear: function (line) {
+	      return overlap$1(this, line);
+	    },
+	    dot: function () {
+	      return dot(...resizeUp(this, getVector(arguments)));
+	    },
+	    distanceTo: function () {
+	      return distance(...resizeUp(this, getVector(arguments)));
+	    },
+	    overlap: function (other) {
+	      return overlap$1(this, other);
+	    },
+	  },
+	  vector: {
+	    copy: function () { return [...this]; },
+	    normalize: function () { return normalize(this); },
+	    scale: function () { return scale(this, arguments[0]); },
+	    flip: function () { return flip(this); },
+	    rotate90: function () { return rotate90(this); },
+	    rotate270: function () { return rotate270(this); },
+	    cross: function () {
+	      return cross3(
+	        resize(3, this),
+	        resize(3, getVector(arguments))
+	      );
+	    },
+	    transform: function () {
+	      return multiplyMatrix3Vector3(
+	        getMatrix3x4(arguments),
+	        resize(3, this)
+	      );
+	    },
+	    add: function () {
+	      return add(this, resize(this.length, getVector(arguments)));
+	    },
+	    subtract: function () {
+	      return subtract(this, resize(this.length, getVector(arguments)));
+	    },
+	    rotateZ: function (angle, origin) {
+	      return multiplyMatrix3Vector3(
+	        getMatrix3x4(makeMatrix2Rotate(angle, origin)),
+	        resize(3, this)
+	      );
+	    },
+	    lerp: function (vector, pct) {
+	      return lerp(this, resize(this.length, getVector(vector)), pct);
+	    },
+	    midpoint: function () {
+	      return midpoint(...resizeUp(this, getVector(arguments)));
+	    },
+	    bisect: function () {
+	      return counterClockwiseBisect2(this, getVector(arguments));
+	    },
+	  }
+	};
+	const VectorMethods = {};
+	Object.keys(table.preserve).forEach(key => {
+	  VectorMethods[key] = table.preserve[key];
+	});
+	Object.keys(table.vector).forEach(key => {
+	  VectorMethods[key] = function () {
+	    return Constructors.vector(...table.vector[key].apply(this, arguments));
+	  };
+	});
+	const VectorStatic = {
+	  fromAngle: function (angle) {
+	    return Constructors.vector(Math.cos(angle), Math.sin(angle));
+	  },
+	  fromAngleDegrees: function (angle) {
+	    return Constructors.vector.fromAngle(angle * D2R);
+	  },
+	};
+	var Vector = {
+	  vector: {
+	    P: Array.prototype,
+	    A: VectorArgs,
+	    G: VectorGetters,
+	    M: VectorMethods,
+	    S: VectorStatic,
+	  }
+	};
+	var Static = {
+	  fromPoints: function () {
+	    const points = getVectorOfVectors(arguments);
+	    return this.constructor({
+	      vector: subtract(points[1], points[0]),
+	      origin: points[0],
+	    });
+	  },
+	  fromAngle: function() {
+	    const angle = arguments[0] || 0;
+	    return this.constructor({
+	      vector: [Math.cos(angle), Math.sin(angle)],
+	      origin: [0, 0],
+	    });
+	  },
+	  perpendicularBisector: function () {
+	    const points = getVectorOfVectors(arguments);
+	    return this.constructor({
+	      vector: rotate90(subtract(points[1], points[0])),
+	      origin: average(points[0], points[1]),
+	    });
+	  },
+	};
+	const LinesMethods = {
+	  isParallel: function () {
+	    const arr = resizeUp(this.vector, getLine$1(arguments).vector);
+	    return parallel(...arr);
+	  },
+	  isCollinear: function () {
+	    const line = getLine$1(arguments);
+	    return overlapLinePoint(this.vector, this.origin, line.origin)
+	      && parallel(...resizeUp(this.vector, line.vector));
+	  },
+	  isDegenerate: function (epsilon = EPSILON) {
+	    return degenerate(this.vector, epsilon);
+	  },
+	  reflectionMatrix: function () {
+	    return Constructors.matrix(makeMatrix3ReflectZ(this.vector, this.origin));
+	  },
+	  nearestPoint: function () {
+	    const point = getVector(arguments);
+	    return Constructors.vector(
+	      nearestPointOnLine(this.vector, this.origin, point, this.clip_function)
+	    );
+	  },
+	  transform: function () {
+	    const dim = this.dimension;
+	    const r = multiplyMatrix3Line3(
+	      getMatrix3x4(arguments),
+	      resize(3, this.vector),
+	      resize(3, this.origin)
+	    );
+	    return this.constructor(resize(dim, r.vector), resize(dim, r.origin));
+	  },
+	  translate: function () {
+	    const origin = add(...resizeUp(this.origin, getVector(arguments)));
+	    return this.constructor(this.vector, origin);
+	  },
+	  intersect: function () {
+	    return intersect$1(this, ...arguments);
+	  },
+	  overlap: function () {
+	    return overlap$1(this, ...arguments);
+	  },
+	  bisect: function (lineType, epsilon) {
+	    const line = getLine$1(lineType);
+	    return bisectLines2(this.vector, this.origin, line.vector, line.origin, epsilon)
+	      .map(line => this.constructor(line));
+	  },
+	};
+	var Line = {
+	  line: {
+	    P: Object.prototype,
+	    A: function () {
+	      const l = getLine$1(...arguments);
+	      this.vector = Constructors.vector(l.vector);
+	      this.origin = Constructors.vector(resize(this.vector.length, l.origin));
+	      const alt = makeNormalDistanceLine({ vector: this.vector, origin: this.origin });
+	      this.normal = alt.normal;
+	      this.distance = alt.distance;
+	      Object.defineProperty(this, "domain_function", { writable: true, value: includeL$1 });
+	    },
+	    G: {
+	      dimension: function () {
+	        return [this.vector, this.origin]
+	          .map(p => p.length)
+	          .reduce((a, b) => Math.max(a, b), 0);
+	      },
+	    },
+	    M: Object.assign({}, LinesMethods, {
+	      inclusive: function () { this.domain_function = includeL$1; return this; },
+	      exclusive: function () { this.domain_function = excludeL; return this; },
+	      clip_function: dist => dist,
+	      svgPath: function (length = 20000) {
+	        const start = add(this.origin, scale(this.vector, -length / 2));
+	        const end = scale(this.vector, length);
+	        return `M${start[0]} ${start[1]}l${end[0]} ${end[1]}`;
+	      },
+	    }),
+	    S: Object.assign({
+	      fromNormalDistance: function() {
+	        return this.constructor(makeVectorOriginLine(arguments[0]));
+	      },
+	    }, Static)
+	  }
+	};
+	var Ray = {
+	  ray: {
+	    P: Object.prototype,
+	    A: function () {
+	      const ray = getLine$1(...arguments);
+	      this.vector = Constructors.vector(ray.vector);
+	      this.origin = Constructors.vector(resize(this.vector.length, ray.origin));
+	      Object.defineProperty(this, "domain_function", { writable: true, value: includeR });
+	    },
+	    G: {
+	      dimension: function () {
+	        return [this.vector, this.origin]
+	          .map(p => p.length)
+	          .reduce((a, b) => Math.max(a, b), 0);
+	      },
+	    },
+	    M: Object.assign({}, LinesMethods, {
+	      inclusive: function () { this.domain_function = includeR; return this; },
+	      exclusive: function () { this.domain_function = excludeR; return this; },
+	      flip: function () {
+	        return Constructors.ray(flip(this.vector), this.origin);
+	      },
+	      scale: function (scale) {
+	        return Constructors.ray(this.vector.scale(scale), this.origin);
+	      },
+	      normalize: function () {
+	        return Constructors.ray(this.vector.normalize(), this.origin);
+	      },
+	      clip_function: rayLimiter,
+	      svgPath: function (length = 10000) {
+	        const end = this.vector.scale(length);
+	        return `M${this.origin[0]} ${this.origin[1]}l${end[0]} ${end[1]}`;
+	      },
+	    }),
+	    S: Static
+	  }
+	};
+	var Segment = {
+	  segment: {
+	    P: Array.prototype,
+	    A: function () {
+	      const a = getSegment(...arguments);
+	      this.push(...[a[0], a[1]].map(v => Constructors.vector(v)));
+	      this.vector = Constructors.vector(subtract(this[1], this[0]));
+	      this.origin = this[0];
+	      Object.defineProperty(this, "domain_function", { writable: true, value: includeS });
+	    },
+	    G: {
+	      points: function () { return this; },
+	      magnitude: function () { return magnitude(this.vector); },
+	      dimension: function () {
+	        return [this.vector, this.origin]
+	          .map(p => p.length)
+	          .reduce((a, b) => Math.max(a, b), 0);
+	      },
+	    },
+	    M: Object.assign({}, LinesMethods, {
+	      inclusive: function () { this.domain_function = includeS; return this; },
+	      exclusive: function () { this.domain_function = excludeS; return this; },
+	      clip_function: segmentLimiter,
+	      transform: function (...innerArgs) {
+	        const dim = this.points[0].length;
+	        const mat = getMatrix3x4(innerArgs);
+	        const transformed_points = this.points
+	          .map(point => resize(3, point))
+	          .map(point => multiplyMatrix3Vector3(mat, point))
+	          .map(point => resize(dim, point));
+	        return Constructors.segment(transformed_points);
+	      },
+	      translate: function() {
+	        const translate = getVector(arguments);
+	        const transformed_points = this.points
+	          .map(point => add(...resizeUp(point, translate)));
+	        return Constructors.segment(transformed_points);
+	      },
+	      midpoint: function () {
+	        return Constructors.vector(average(this.points[0], this.points[1]));
+	      },
+	      svgPath: function () {
+	        const pointStrings = this.points.map(p => `${p[0]} ${p[1]}`);
+	        return ["M", "L"].map((cmd, i) => `${cmd}${pointStrings[i]}`)
+	          .join("");
+	      },
+	    }),
+	    S: {
+	      fromPoints: function () {
+	        return this.constructor(...arguments);
+	      }
+	    }
+	  }
+	};
+	const CircleArgs = function () {
+	  const circle = getCircle(...arguments);
+	  this.radius = circle.radius;
+	  this.origin = Constructors.vector(...circle.origin);
+	};
+	const CircleGetters = {
+	  x: function () { return this.origin[0]; },
+	  y: function () { return this.origin[1]; },
+	  z: function () { return this.origin[2]; },
+	};
+	const pointOnEllipse = function (cx, cy, rx, ry, zRotation, arcAngle) {
+	  const cos_rotate = Math.cos(zRotation);
+	  const sin_rotate = Math.sin(zRotation);
+	  const cos_arc = Math.cos(arcAngle);
+	  const sin_arc = Math.sin(arcAngle);
+	  return [
+	    cx + cos_rotate * rx * cos_arc + -sin_rotate * ry * sin_arc,
+	    cy + sin_rotate * rx * cos_arc + cos_rotate * ry * sin_arc
+	  ];
+	};
+	const pathInfo = function (cx, cy, rx, ry, zRotation, arcStart_, deltaArc_) {
+	  let arcStart = arcStart_;
+	  if (arcStart < 0 && !isNaN(arcStart)) {
+	    while (arcStart < 0) {
+	      arcStart += Math.PI * 2;
+	    }
+	  }
+	  const deltaArc = deltaArc_ > Math.PI * 2 ? Math.PI * 2 : deltaArc_;
+	  const start = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart);
+	  const middle = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc / 2);
+	  const end = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc);
+	  const fa = ((deltaArc / 2) > Math.PI) ? 1 : 0;
+	  const fs = ((deltaArc / 2) > 0) ? 1 : 0;
+	  return {
+	    x1: start[0],
+	    y1: start[1],
+	    x2: middle[0],
+	    y2: middle[1],
+	    x3: end[0],
+	    y3: end[1],
+	    fa,
+	    fs
+	  };
+	};
+	const cln = n => cleanNumber(n, 4);
+	const ellipticalArcTo = (rx, ry, phi_degrees, fa, fs, endX, endY) =>
+	  `A${cln(rx)} ${cln(ry)} ${cln(phi_degrees)} ${cln(fa)} ${cln(fs)} ${cln(endX)} ${cln(endY)}`;
+	const CircleMethods = {
+	  nearestPoint: function () {
+	    return Constructors.vector(nearestPointOnCircle(
+	      this.radius,
+	      this.origin,
+	      getVector(arguments)
+	    ));
+	  },
+	  intersect: function (object) {
+	    return intersect$1(this, object);
+	  },
+	  overlap: function (object) {
+	    return overlap$1(this, object);
+	  },
+	  svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+	    const info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
+	    const arc1 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x2, info.y2);
+	    const arc2 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x3, info.y3);
+	    return `M${info.x1} ${info.y1}${arc1}${arc2}`;
+	  },
+	  points: function (count = 128) {
+	    return Array.from(Array(count))
+	      .map((_, i) => ((2 * Math.PI) / count) * i)
+	      .map(angle => [
+	        this.origin[0] + this.radius * Math.cos(angle),
+	        this.origin[1] + this.radius * Math.sin(angle)
+	      ]);
+	  },
+	  polygon: function () {
+	    return Constructors.polygon(this.points(arguments[0]));
+	  },
+	  segments: function () {
+	    const points = this.points(arguments[0]);
+	    return points.map((point, i) => {
+	      const nextI = (i + 1) % points.length;
+	      return [point, points[nextI]];
+	    });
+	  }
+	};
+	const CircleStatic = {
+	  fromPoints: function () {
+	    if (arguments.length === 3) {
+	      const result = circumcircle(...arguments);
+	      return this.constructor(result.radius, result.origin);
+	    }
+	    return this.constructor(...arguments);
+	  },
+	  fromThreePoints: function () {
+	    const result = circumcircle(...arguments);
+	    return this.constructor(result.radius, result.origin);
+	  }
+	};
+	var Circle = {
+	  circle: { A: CircleArgs, G: CircleGetters, M: CircleMethods, S: CircleStatic }
+	};
+	const getFoci = function (center, rx, ry, spin) {
+	  const order = rx > ry;
+	  const lsq = order ? (rx ** 2) - (ry ** 2) : (ry ** 2) - (rx ** 2);
+	  const l = Math.sqrt(lsq);
+	  const trigX = order ? Math.cos(spin) : Math.sin(spin);
+	  const trigY = order ? Math.sin(spin) : Math.cos(spin);
+	  return [
+	    Constructors.vector(center[0] + l * trigX, center[1] + l * trigY),
+	    Constructors.vector(center[0] - l * trigX, center[1] - l * trigY),
+	  ];
+	};
+	var Ellipse = {
+	  ellipse: {
+	    A: function () {
+	      const numbers = flattenArrays(arguments).filter(a => !isNaN(a));
+	      const params = resize(5, numbers);
+	      this.rx = params[0];
+	      this.ry = params[1];
+	      this.origin = Constructors.vector(params[2], params[3]);
+	      this.spin = params[4];
+	      this.foci = getFoci(this.origin, this.rx, this.ry, this.spin);
+	    },
+	    G: {
+	      x: function () { return this.origin[0]; },
+	      y: function () { return this.origin[1]; },
+	    },
+	    M: {
+	      svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+	        const info = pathInfo(this.origin[0], this.origin[1], this.rx, this.ry, this.spin, arcStart, deltaArc);
+	        const arc1 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x2, info.y2);
+	        const arc2 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x3, info.y3);
+	        return `M${info.x1} ${info.y1}${arc1}${arc2}`;
+	      },
+	      points: function (count = 128) {
+	        return Array.from(Array(count))
+	          .map((_, i) => ((2 * Math.PI) / count) * i)
+	          .map(angle => pointOnEllipse(
+	            this.origin.x, this.origin.y,
+	            this.rx, this.ry,
+	            this.spin, angle
+	          ));
+	      },
+	      polygon: function () {
+	        return Constructors.polygon(this.points(arguments[0]));
+	      },
+	      segments: function () {
+	        const points = this.points(arguments[0]);
+	        return points.map((point, i) => {
+	          const nextI = (i + 1) % points.length;
+	          return [point, points[nextI]];
+	        });
+	      }
+	    },
+	    S: {
+	    }
+	  }
+	};
+	const PolygonMethods = {
+	  area: function () {
+	    return signedArea(this);
+	  },
+	  centroid: function () {
+	    return Constructors.vector(centroid(this));
+	  },
+	  boundingBox: function () {
+	    return boundingBox(this);
+	  },
+	  straightSkeleton: function () {
+	    return straightSkeleton(this);
+	  },
+	  scale: function (magnitude, center = centroid(this)) {
+	    const newPoints = this
+	      .map(p => [0, 1].map((_, i) => p[i] - center[i]))
+	      .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
+	    return this.constructor.fromPoints(newPoints);
+	  },
+	  rotate: function (angle, centerPoint = centroid(this)) {
+	    const newPoints = this.map((p) => {
+	      const vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
+	      const mag = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+	      const a = Math.atan2(vec[1], vec[0]);
+	      return [
+	        centerPoint[0] + Math.cos(a + angle) * mag,
+	        centerPoint[1] + Math.sin(a + angle) * mag,
+	      ];
+	    });
+	    return Constructors.polygon(newPoints);
+	  },
+	  translate: function () {
+	    const vec = getVector(...arguments);
+	    const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
+	    return this.constructor.fromPoints(newPoints);
+	  },
+	  transform: function () {
+	    const m = getMatrix3x4(...arguments);
+	    const newPoints = this
+	      .map(p => multiplyMatrix3Vector3(m, resize(3, p)));
+	    return Constructors.polygon(newPoints);
+	  },
+	  nearest: function () {
+	    const point = getVector(...arguments);
+	    const result = nearestPointOnPolygon(this, point);
+	    return result === undefined
+	      ? undefined
+	      : Object.assign(result, { edge: this.sides[result.i] });
+	  },
+	  split: function () {
+	    const line = getLine$1(...arguments);
+	    const split_func = splitConvexPolygon;
+	    return split_func(this, line.vector, line.origin)
+	      .map(poly => Constructors.polygon(poly));
+	  },
+	  overlap: function () {
+	    return overlap$1(this, ...arguments);
+	  },
+	  intersect: function () {
+	    return intersect$1(this, ...arguments);
+	  },
+	  clip: function (line_type, epsilon) {
+	    const fn_line = line_type.domain_function ? line_type.domain_function : includeL$1;
+	    const segment = clipLineConvexPolygon(this,
+	      line_type.vector,
+	      line_type.origin,
+	      this.domain_function,
+	      fn_line,
+	      epsilon);
+	    return segment ? Constructors.segment(segment) : undefined;
+	  },
+	  svgPath: function () {
+	    const pre = Array(this.length).fill("L");
+	    pre[0] = "M";
+	    return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}z`;
+	  },
+	};
+	const rectToPoints = r => [
+	  [r.x, r.y],
+	  [r.x + r.width, r.y],
+	  [r.x + r.width, r.y + r.height],
+	  [r.x, r.y + r.height]
+	];
+	const rectToSides = r => [
+	  [[r.x, r.y], [r.x + r.width, r.y]],
+	  [[r.x + r.width, r.y], [r.x + r.width, r.y + r.height]],
+	  [[r.x + r.width, r.y + r.height], [r.x, r.y + r.height]],
+	  [[r.x, r.y + r.height], [r.x, r.y]],
+	];
+	var Rect = {
+	  rect: {
+	    P: Array.prototype,
+	    A: function () {
+	      const r = getRect(...arguments);
+	      this.width = r.width;
+	      this.height = r.height;
+	      this.origin = Constructors.vector(r.x, r.y);
+	      this.push(...rectToPoints(this));
+	      Object.defineProperty(this, "domain_function", { writable: true, value: include });
+	    },
+	    G: {
+	      x: function () { return this.origin[0]; },
+	      y: function () { return this.origin[1]; },
+	      center: function () { return Constructors.vector(
+	        this.origin[0] + this.width / 2,
+	        this.origin[1] + this.height / 2,
+	      ); },
+	    },
+	    M: Object.assign({}, PolygonMethods, {
+	      inclusive: function () { this.domain_function = include; return this; },
+	      exclusive: function () { this.domain_function = exclude; return this; },
+	      area: function () { return this.width * this.height; },
+	      segments: function () { return rectToSides(this); },
+	      svgPath: function () {
+	        return `M${this.origin.join(" ")}h${this.width}v${this.height}h${-this.width}Z`;
+	      },
+	    }),
+	    S: {
+	      fromPoints: function () {
+	        const box = boundingBox(getVectorOfVectors(arguments));
+	        return Constructors.rect(box.min[0], box.min[1], box.span[0], box.span[1]);
+	      }
+	    }
+	  }
+	};
+	var Polygon = {
+	  polygon: {
+	    P: Array.prototype,
+	    A: function () {
+	      this.push(...semiFlattenArrays(arguments));
+	      this.sides = this
+	        .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+	      this.vectors = this.sides.map(side => subtract(side[1], side[0]));
+	      Object.defineProperty(this, "domain_function", { writable: true, value: include });
+	    },
+	    G: {
+	      isConvex: function () {
+	        return undefined;
+	      },
+	      points: function () {
+	        return this;
+	      },
+	    },
+	    M: Object.assign({}, PolygonMethods, {
+	      inclusive: function () { this.domain_function = include; return this; },
+	      exclusive: function () { this.domain_function = exclude; return this; },
+	      segments: function () {
+	        return this.sides;
+	      },
+	    }),
+	    S: {
+	      fromPoints: function () {
+	        return this.constructor(...arguments);
+	      },
+	      regularPolygon: function () {
+	        return this.constructor(makePolygonCircumradius(...arguments));
+	      },
+	      convexHull: function () {
+	        return this.constructor(convexHull(...arguments));
+	      },
+	    }
+	  }
+	};
+	var Polyline = {
+	  polyline: {
+	    P: Array.prototype,
+	    A: function () {
+	      this.push(...semiFlattenArrays(arguments));
+	    },
+	    G: {
+	      points: function () {
+	        return this;
+	      },
+	    },
+	    M: {
+	      svgPath: function () {
+	        const pre = Array(this.length).fill("L");
+	        pre[0] = "M";
+	        return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}`;
+	      },
+	    },
+	    S: {
+	      fromPoints: function () {
+	        return this.constructor(...arguments);
+	      },
+	    }
+	  }
+	};
+	const array_assign = (thisMat, mat) => {
+	  for (let i = 0; i < 12; i += 1) {
+	    thisMat[i] = mat[i];
+	  }
+	  return thisMat;
+	};
+	var Matrix = {
+	  matrix: {
+	    P: Array.prototype,
+	    A: function () {
+	      getMatrix3x4(arguments).forEach(m => this.push(m));
+	    },
+	    G: {
+	    },
+	    M: {
+	      copy: function () { return Constructors.matrix(...Array.from(this)); },
+	      set: function () {
+	        return array_assign(this, getMatrix3x4(arguments));
+	      },
+	      isIdentity: function () { return isIdentity3x4(this); },
+	      multiply: function (mat) {
+	        return array_assign(this, multiplyMatrices3(this, mat));
+	      },
+	      determinant: function () {
+	        return determinant3(this);
+	      },
+	      inverse: function () {
+	        return array_assign(this, invertMatrix3(this));
+	      },
+	      translate: function (x, y, z) {
+	        return array_assign(this,
+	          multiplyMatrices3(this, makeMatrix3Translate(x, y, z)));
+	      },
+	      rotateX: function (radians) {
+	        return array_assign(this,
+	          multiplyMatrices3(this, makeMatrix3RotateX(radians)));
+	      },
+	      rotateY: function (radians) {
+	        return array_assign(this,
+	          multiplyMatrices3(this, makeMatrix3RotateY(radians)));
+	      },
+	      rotateZ: function (radians) {
+	        return array_assign(this,
+	          multiplyMatrices3(this, makeMatrix3RotateZ(radians)));
+	      },
+	      rotate: function (radians, vector, origin) {
+	        const transform = makeMatrix3Rotate(radians, vector, origin);
+	        return array_assign(this, multiplyMatrices3(this, transform));
+	      },
+	      scale: function (amount) {
+	        return array_assign(this,
+	          multiplyMatrices3(this, makeMatrix3Scale(amount)));
+	      },
+	      reflectZ: function (vector, origin) {
+	        const transform = makeMatrix3ReflectZ(vector, origin);
+	        return array_assign(this, multiplyMatrices3(this, transform));
+	      },
+	      transform: function (...innerArgs) {
+	        return Constructors.vector(
+	          multiplyMatrix3Vector3(this, resize(3, getVector(innerArgs)))
+	        );
+	      },
+	      transformVector: function (vector) {
+	        return Constructors.vector(
+	          multiplyMatrix3Vector3(this, resize(3, getVector(vector)))
+	        );
+	      },
+	      transformLine: function (...innerArgs) {
+	        const l = getLine$1(innerArgs);
+	        return Constructors.line(multiplyMatrix3Line3(this, l.vector, l.origin));
+	      },
+	    },
+	    S: {
+	    }
+	  }
+	};
+	const Definitions = Object.assign({},
+	  Vector,
+	  Line,
+	  Ray,
+	  Segment,
+	  Circle,
+	  Ellipse,
+	  Rect,
+	  Polygon,
+	  Polyline,
+	  Matrix,
+	);
+	const create = function (primitiveName, args) {
+	  const a = Object.create(Definitions[primitiveName].proto);
+	  Definitions[primitiveName].A.apply(a, args);
+	  return a;
+	};
+	const vector = function () { return create("vector", arguments); };
+	const line = function () { return create("line", arguments); };
+	const ray = function () { return create("ray", arguments); };
+	const segment = function () { return create("segment", arguments); };
+	const circle = function () { return create("circle", arguments); };
+	const ellipse = function () { return create("ellipse", arguments); };
+	const rect = function () { return create("rect", arguments); };
+	const polygon = function () { return create("polygon", arguments); };
+	const polyline = function () { return create("polyline", arguments); };
+	const matrix = function () { return create("matrix", arguments); };
+	Object.assign(Constructors, {
+	  vector,
+	  line,
+	  ray,
+	  segment,
+	  circle,
+	  ellipse,
+	  rect,
+	  polygon,
+	  polyline,
+	  matrix,
+	});
+	Object.keys(Definitions).forEach(primitiveName => {
+	  const Proto = {};
+	  Proto.prototype = Definitions[primitiveName].P != null
+	    ? Object.create(Definitions[primitiveName].P)
+	    : Object.create(Object.prototype);
+	  Proto.prototype.constructor = Proto;
+	  Constructors[primitiveName].prototype = Proto.prototype;
+	  Constructors[primitiveName].prototype.constructor = Constructors[primitiveName];
+	  Object.keys(Definitions[primitiveName].G)
+	    .forEach(key => Object.defineProperty(Proto.prototype, key, {
+	      get: Definitions[primitiveName].G[key],
+	    }));
+	  Object.keys(Definitions[primitiveName].M)
+	    .forEach(key => Object.defineProperty(Proto.prototype, key, {
+	      value: Definitions[primitiveName].M[key],
+	    }));
+	  Object.keys(Definitions[primitiveName].S)
+	    .forEach(key => Object.defineProperty(Constructors[primitiveName], key, {
+	      value: Definitions[primitiveName].S[key]
+	        .bind(Constructors[primitiveName].prototype),
+	    }));
+	  Definitions[primitiveName].proto = Proto.prototype;
+	});
+	const math = Constructors;
 	math.core = Object.assign(Object.create(null),
 	  constants,
 	  resizers,
@@ -1644,7 +2424,7 @@
 	    overlapBoundingBoxes,
 	    overlapLineLine,
 	    overlapLinePoint,
-	    clipLineConvexPolygon: clipLineConvexPolygon$1,
+	    clipLineConvexPolygon,
 	    clipPolygonPolygon,
 	  }
 	);
@@ -1811,8 +2591,8 @@
 	const edgeAssignmentToFoldAngle = assignment =>
 		edgesAssignmentDegrees[assignment] || 0;
 	const edgeFoldAngleToAssignment = (a) => {
-		if (a > 0) { return "V"; }
-		if (a < 0) { return "M"; }
+		if (a > math.core.EPSILON) { return "V"; }
+		if (a < -math.core.EPSILON) { return "M"; }
 		return "U";
 	};
 	const edgeFoldAngleIsFlat = angle => math.core.fnEpsilonEqual(0, angle)
@@ -1830,8 +2610,8 @@
 		.map(s => (s.substring(s.length - suffix.length, s.length) === suffix
 			? s : undefined))
 		.filter(str => str !== undefined);
-	const filterKeysWithPrefix = (graph, prefix) => Object
-		.keys(graph)
+	const filterKeysWithPrefix = (obj, prefix) => Object
+		.keys(obj)
 		.map(str => (str.substring(0, prefix.length) === prefix
 			? str : undefined))
 		.filter(str => str !== undefined);
@@ -1943,11 +2723,13 @@
 	count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
 		max_arrays_length(faces_vertices, faces_edges, faces_faces);
 
-	const uniqueSortedIntegers = (array) => {
+	const uniqueIntegers = (array) => {
 		const keys = {};
 		array.forEach((int) => { keys[int] = true; });
-		return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
+		return Object.keys(keys).map(n => parseInt(n));
 	};
+	const uniqueSortedIntegers = (array) => uniqueIntegers(array)
+		.sort((a, b) => a - b);
 	const splitCircularArray = (array, indices) => {
 		indices.sort((a, b) => a - b);
 		return [
@@ -1989,7 +2771,7 @@
 		}
 		return pairs;
 	};
-	const makeUniqueSetsFromSelfRelationalArrays = (matrix) => {
+	const makeSelfRelationalArrayClusters = (matrix) => {
 		const groups = [];
 		const recurse = (index, current_group) => {
 			if (groups[index] !== undefined) { return 0; }
@@ -2002,16 +2784,6 @@
 			group += recurse(row, group);
 		}
 		return groups;
-	};
-	const makeTrianglePairs = (array) => {
-		const pairs = Array((array.length * (array.length - 1)) / 2);
-		let index = 0;
-		for (let i = 0; i < array.length - 1; i++) {
-			for (let j = i + 1; j < array.length; j++, index++) {
-				pairs[index] = [array[i], array[j]];
-			}
-		}
-		return pairs;
 	};
 	const circularArrayValidRanges = (array) => {
 		const not_undefineds = array.map(el => el !== undefined);
@@ -2036,14 +2808,14 @@
 
 	var arrays = /*#__PURE__*/Object.freeze({
 		__proto__: null,
+		uniqueIntegers: uniqueIntegers,
 		uniqueSortedIntegers: uniqueSortedIntegers,
 		splitCircularArray: splitCircularArray,
 		getLongestArray: getLongestArray,
 		removeSingleInstances: removeSingleInstances,
 		booleanMatrixToIndexedArray: booleanMatrixToIndexedArray,
 		booleanMatrixToUniqueIndexPairs: booleanMatrixToUniqueIndexPairs,
-		makeUniqueSetsFromSelfRelationalArrays: makeUniqueSetsFromSelfRelationalArrays,
-		makeTrianglePairs: makeTrianglePairs,
+		makeSelfRelationalArrayClusters: makeSelfRelationalArrayClusters,
 		circularArrayValidRanges: circularArrayValidRanges
 	});
 
@@ -2268,7 +3040,7 @@
 			.map((adj_verts, v) => adj_verts
 				.map(adj_vert => counterClockwiseWalk(graph, v, adj_vert, walked_edges))
 				.filter(a => a !== undefined))
-			.reduce((a, b) => a.concat(b), [])
+			.flat();
 	};
 	const filterWalkedBoundaryFace = walked_faces => walked_faces
 		.filter(face => face.angles
@@ -2485,10 +3257,6 @@
 				planarVertexWalk({ vertices_vertices, vertices_sectors }))
 			.map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
 	};
-	const makePlanarFacesVertices = graph => makePlanarFaces(graph)
-		.map(face => face.vertices);
-	const makePlanarFacesEdges = graph => makePlanarFaces(graph)
-		.map(face => face.edges);
 	const makeFacesVerticesFromEdges = (graph) => {
 		return graph.faces_edges
 			.map(edges => edges
@@ -2567,8 +3335,6 @@
 		makeEdgesLength: makeEdgesLength,
 		makeEdgesBoundingBox: makeEdgesBoundingBox,
 		makePlanarFaces: makePlanarFaces,
-		makePlanarFacesVertices: makePlanarFacesVertices,
-		makePlanarFacesEdges: makePlanarFacesEdges,
 		makeFacesVerticesFromEdges: makeFacesVerticesFromEdges,
 		makeFacesEdgesFromVertices: makeFacesEdgesFromVertices,
 		makeFacesFaces: makeFacesFaces,
@@ -2845,15 +3611,15 @@
 		return graph;
 	};
 
-	const getEdgesVerticesSpan = (graph, epsilon = math.core.EPSILON) =>
+	const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.core.EPSILON) =>
 		makeEdgesBoundingBox(graph, epsilon)
-			.map((min_max, e) => graph.vertices_coords
-				.map((vert, v) => (
-					vert[0] > min_max.min[0] - epsilon &&
-					vert[1] > min_max.min[1] - epsilon &&
-					vert[0] < min_max.max[0] + epsilon &&
-					vert[1] < min_max.max[1] + epsilon)));
-	const getEdgesEdgesSpan = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+			.map(min_max => graph.vertices_coords
+				.map(vert => (
+					vert[0] > min_max.min[0] &&
+					vert[1] > min_max.min[1] &&
+					vert[0] < min_max.max[0] &&
+					vert[1] < min_max.max[1])));
+	const getEdgesEdgesOverlapingSpans = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
 		const min_max = makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon);
 		const span_overlaps = edges_vertices.map(() => []);
 		for (let e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {
@@ -2873,8 +3639,8 @@
 
 	var span = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		getEdgesVerticesSpan: getEdgesVerticesSpan,
-		getEdgesEdgesSpan: getEdgesEdgesSpan
+		getEdgesVerticesOverlappingSpan: getEdgesVerticesOverlappingSpan,
+		getEdgesEdgesOverlapingSpans: getEdgesEdgesOverlapingSpans
 	});
 
 	const getOppositeVertices$1 = (graph, vertex, edges) => {
@@ -2902,7 +3668,7 @@
 		if (!edges_coords) {
 			edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 		}
-		const edges_span_vertices = getEdgesVerticesSpan({
+		const edges_span_vertices = getEdgesVerticesOverlappingSpan({
 			vertices_coords, edges_vertices, edges_coords
 		}, epsilon);
 		for (let e = 0; e < edges_coords.length; e += 1) {
@@ -2976,7 +3742,7 @@
 			edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 		}
 		const edges_intersections = edges_vector.map(() => []);
-		const span = getEdgesEdgesSpan({ vertices_coords, edges_vertices }, epsilon);
+		const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
 		for (let i = 0; i < edges_vector.length - 1; i += 1) {
 			for (let j = i + 1; j < edges_vector.length; j += 1) {
 				if (span[i][j] !== true) {
@@ -3169,31 +3935,10 @@
 		return change;
 	};
 
-	const subgraph = (graph, components) => {
-		const remove_indices = {};
-		const sorted_components = {};
-		[_faces, _edges, _vertices].forEach(key => {
-			remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
-			sorted_components[key] = uniqueSortedIntegers(components[key] || []).reverse();
-		});
-		Object.keys(sorted_components)
-			.forEach(key => sorted_components[key]
-				.forEach(i => remove_indices[key].splice(i, 1)));
-		Object.keys(remove_indices)
-			.forEach(key => removeGeometryIndices(graph, key, remove_indices[key]));
-		return graph;
-	};
-
-	const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
-		const vertices = {};
-		edges_vertices.forEach((v, i) => {
-			const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
-			if (!boundary) { return; }
-			vertices[v[0]] = true;
-			vertices[v[1]] = true;
-		});
-		return Object.keys(vertices).map(str => parseInt(str));
-	};
+	const getBoundaryVertices = ({ edges_vertices, edges_assignment }) =>
+		uniqueIntegers(edges_vertices
+			.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
+			.flat());
 	const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
 	const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 		if (edges_assignment === undefined) { return emptyBoundaryObject(); }
@@ -3454,11 +4199,11 @@
 		M: true, m: true, V: true, v: true, U: true, u: true,
 		F: false, f: false, B: false, b: false,
 	};
-	const makeEdgesIsFlatFolded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
+	const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
 		if (edges_assignment === undefined) {
 			return edges_foldAngle === undefined
 				? edges_vertices.map(_ => true)
-				: edges_foldAngle.map(angle => angle < 0 || angle > 0);
+				: edges_foldAngle.map(angle => angle < -math.core.EPSILON || angle > math.core.EPSILON);
 		}
 		return edges_assignment.map(a => assignment_is_folded[a]);
 	};
@@ -3470,7 +4215,7 @@
 				edges_foldAngle = Array(edges_vertices.length).fill(0);
 			}
 		}
-		const edges_is_folded = makeEdgesIsFlatFolded({ edges_vertices, edges_foldAngle, edges_assignment });
+		const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 		const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 		const faces_matrix = faces_vertices.map(() => math.core.identity2x3);
 		makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
@@ -3495,7 +4240,7 @@
 		__proto__: null,
 		multiplyVerticesFacesMatrix2: multiplyVerticesFacesMatrix2,
 		makeFacesMatrix: makeFacesMatrix,
-		makeEdgesIsFlatFolded: makeEdgesIsFlatFolded,
+		makeEdgesIsFolded: makeEdgesIsFolded,
 		makeFacesMatrix2: makeFacesMatrix2
 	});
 
@@ -3516,7 +4261,7 @@
 			.map((coord, i) => math.core.multiplyMatrix3Vector3(vertices_matrix[i], coord));
 	};
 	const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
-		const edges_is_folded = makeEdgesIsFlatFolded({ edges_vertices, edges_foldAngle, edges_assignment });
+		const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 		const vertices_coords_folded = [];
 		faces_vertices[root_face]
 			.forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
@@ -4056,7 +4801,7 @@
 		});
 	};
 
-	const splitConvexFace = (graph, face, vector, point, epsilon) => {
+	const splitFace = (graph, face, vector, point, epsilon) => {
 		const intersect = intersectConvexFaceLine(graph, face, vector, point, epsilon);
 		if (intersect === undefined) { return undefined; }
 		const result = split_at_intersections(graph, intersect);
@@ -4087,7 +4832,6 @@
 		validate,
 		populate,
 		fragment,
-		subgraph,
 		addVertices: addVertices,
 		splitEdge: splitEdge,
 		faceSpanningTree: makeFaceSpanningTree,
@@ -4103,7 +4847,7 @@
 	});
 	Graph.prototype.splitFace = function (face, ...args) {
 		const line = math.core.getLine(...args);
-		return splitConvexFace(this, face, line.vector, line.origin);
+		return splitFace(this, face, line.vector, line.origin);
 	};
 	Graph.prototype.copy = function () {
 		return Object.assign(Object.create(this.__proto__), clone(this));
@@ -4208,9 +4952,10 @@
 		const polygon = getBoundary(graph).vertices.map(v => graph.vertices_coords[v]);
 		const vector = line.vector ? line.vector : ear.math.subtract2(line[1], line[0]);
 		const origin = line.origin ? line.origin : line[0];
-		return clipLineConvexPolygon(polygon, vector, origin,
+	  const fn_line = line.domain_function ? line.domain_function : includeL;
+		return math.core.clipLineConvexPolygon(polygon, vector, origin,
 			math.core.include,
-			math.core.includeL);
+			fn_line);
 	};
 
 	const addEdges = (graph, edges_vertices) => {
@@ -4787,7 +5532,7 @@
 			.reverse()
 			.map((i) => {
 				const face = face_snapshot(graph, i);
-				const change = splitConvexFace(
+				const change = splitFace(
 					graph,
 					i,
 					face.crease.vector,
@@ -4928,257 +5673,6 @@
 		makeFacesFacesOverlap: makeFacesFacesOverlap
 	});
 
-	const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
-		const faces_center = folded_faces
-			.map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
-		const locations = [];
-		folded_faces.forEach((ends, i) => {
-			if (!ends) { return; }
-			if (!is_circular && i === folded_faces.length - 1) { return; }
-			const fold_end = ends[1];
-			const min = fold_end - (epsilon * 2);
-			const max = fold_end + (epsilon * 2);
-			const faces = [i, (i+1) % folded_faces.length];
-			const sides = faces
-				.map(f => faces_center[f])
-				.map(center => center > fold_end);
-			const taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
-			const match = locations
-				.filter(el => el.min < fold_end && el.max > fold_end)
-				.shift();
-			const entry = { faces, taco_type };
-			if (match) {
-				match.pairs.push(entry);
-			} else {
-				locations.push({ min, max, pairs: [entry] });
-			}
-		});
-		return locations
-			.map(el => el.pairs)
-			.filter(pairs => pairs.length > 1)
-			.map(pairs => ({
-				both: pairs.filter(el => el.taco_type === 0).map(el => el.faces),
-				left: pairs.filter(el => el.taco_type === 1).map(el => el.faces),
-				right: pairs.filter(el => el.taco_type === 2).map(el => el.faces),
-			}));
-	};
-
-	const between = (arr, i, j) => (i < j)
-		? arr.slice(i + 1, j)
-		: arr.slice(j + 1, i);
-	const validateTacoTortillaStrip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
-		const faces_layer = invertMap(layers_face);
-		const fold_location = faces_folded
-			.map(ends => ends ? ends[1] : undefined);
-		const faces_mins = faces_folded
-			.map(ends => ends ? Math.min(...ends) : undefined)
-			.map(n => n + epsilon);
-		const faces_maxs = faces_folded
-			.map(ends => ends ? Math.max(...ends) : undefined)
-			.map(n => n - epsilon);
-		const max = faces_layer.length + (is_circular ? 0 : -1);
-		for (let i = 0; i < max; i += 1) {
-			const j = (i + 1) % faces_layer.length;
-			if (faces_layer[i] === faces_layer[j]) { continue; }
-			const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
-				.flat();
-			const all_below_min = layers_between
-				.map(index => fold_location[i] < faces_mins[index])
-				.reduce((a, b) => a && b, true);
-			const all_above_max = layers_between
-				.map(index => fold_location[i] > faces_maxs[index])
-				.reduce((a, b) => a && b, true);
-			if (!all_below_min && !all_above_max) { return false; }
-		}
-		return true;
-	};
-
-	const validateTacoTacoFacePairs = (face_pair_stack) => {
-		const pair_stack = removeSingleInstances(face_pair_stack);
-		const pairs = {};
-		let count = 0;
-		for (let i = 0; i < pair_stack.length; i++) {
-			if (pairs[pair_stack[i]] === undefined) {
-				count++;
-				pairs[pair_stack[i]] = count;
-			}
-			else if (pairs[pair_stack[i]] !== undefined) {
-				if (pairs[pair_stack[i]] !== count) { return false; }
-				count--;
-				pairs[pair_stack[i]] = undefined;
-			}
-		}
-		return true;
-	};
-
-	const build_layers = (layers_face, faces_pair) => layers_face
-		.map(f => faces_pair[f])
-		.filter(a => a !== undefined);
-	const validateLayerSolver = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
-		const flat_layers_face = math.core.flattenArrays(layers_face);
-		if (!validateTacoTortillaStrip(
-			faces_folded, layers_face, circ_and_done, epsilon
-		)) { return false; }
-		for (let i = 0; i < taco_face_pairs.length; i++) {
-			const pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
-			if (!validateTacoTacoFacePairs(pair_stack)) { return false; }
-		}
-		return true;
-	};
-
-	const change_map = { V: true, v: true, M: true, m: true };
-	const assignmentsToFacesFlip = (assignments) => {
-		let counter = 0;
-		const shifted_assignments = assignments.slice(1);
-		return [false].concat(shifted_assignments
-			.map(a => change_map[a] ? ++counter : counter)
-			.map(count => count % 2 === 1));
-	};
-	const up_down = { V: 1, v: 1, M: -1, m: -1 };
-	const upOrDown = (mv, i) => i % 2 === 0
-		?  (up_down[mv] || 0)
-		: -(up_down[mv] || 0);
-	const assignmentsToFacesVertical = (assignments) => {
-		let iterator = 0;
-		return assignments
-			.slice(1)
-			.concat([assignments[0]])
-			.map(a => {
-				const updown = upOrDown(a, iterator);
-				iterator += up_down[a] === undefined ? 0 : 1;
-				return updown;
-			});
-	};
-	const foldStripWithAssignments = (faces, assignments) => {
-		const faces_end = assignmentsToFacesFlip(assignments)
-			.map((flip, i) => faces[i] * (flip ? -1 : 1));
-		const cumulative = faces.map(() => undefined);
-		cumulative[0] = [0, faces_end[0]];
-		for (let i = 1; i < faces.length; i++) {
-			if (assignments[i] === "B" || assignments[i] === "b") { break; }
-			const prev = (i - 1 + faces.length) % faces.length;
-			const prev_end = cumulative[prev][1];
-			cumulative[i] = [prev_end, prev_end + faces_end[i]];
-		}
-		return cumulative;
-	};
-
-	var foldAssignments = /*#__PURE__*/Object.freeze({
-		__proto__: null,
-		assignmentsToFacesFlip: assignmentsToFacesFlip,
-		assignmentsToFacesVertical: assignmentsToFacesVertical,
-		foldStripWithAssignments: foldStripWithAssignments
-	});
-
-	const is_boundary = { "B": true, "b": true };
-	const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
-		const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
-		const faces_updown = assignmentsToFacesVertical(assignments);
-		const is_circular = assignments
-			.map(a => !(is_boundary[a]))
-			.reduce((a, b) => a && b, true);
-		if (is_circular) {
-			const start = faces_folded[0][0];
-			const end = faces_folded[faces_folded.length - 1][1];
-			if (Math.abs(start - end) > epsilon) { return []; }
-		}	const taco_face_pairs = makeFoldedStripTacos(faces_folded, is_circular, epsilon)
-			.map(taco => [taco.left, taco.right]
-				.map(invertMap)
-				.filter(arr => arr.length > 1))
-			.reduce((a, b) => a.concat(b), []);
-		const recurse = (layers_face = [0], face = 0, layer = 0) => {
-			const next_face = face + 1;
-			const next_dir = faces_updown[face];
-			const is_done = face >= ordered_scalars.length - 1;
-			const circ_and_done = is_circular && is_done;
-			if (!validateLayerSolver(
-				faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon
-			)) {
-				return [];
-			}
-			if (circ_and_done) {
-				const faces_layer = invertMap(layers_face);
-				const first_face_layer = faces_layer[0];
-				const last_face_layer = faces_layer[face];
-				if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
-				if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
-			}
-			if (is_done) { return [layers_face]; }
-			if (next_dir === 0) {
-				layers_face[layer] = [next_face].concat(layers_face[layer]);
-				return recurse(layers_face, next_face, layer);
-			}
-			const splice_layers = next_dir === 1
-				? Array.from(Array(layers_face.length - layer))
-					.map((_, i) => layer + i + 1)
-				: Array.from(Array(layer + 1))
-					.map((_, i) => i);
-			const next_layers_faces = splice_layers.map(i => clone(layers_face));
-			next_layers_faces
-				.forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
-			return next_layers_faces
-				.map((layers, i) => recurse(layers, next_face, splice_layers[i]))
-				.reduce((a, b) => a.concat(b), []);
-		};
-		return recurse().map(invertMap);
-	};
-
-	const makeVertexFacesLayer = ({
-		vertices_faces, vertices_sectors, vertices_edges, edges_assignment
-	}, vertex, epsilon) => {
-		const faces = vertices_faces[vertex];
-		const range = getLongestArray(circularArrayValidRanges(faces));
-		if (range === undefined) { return; }
-		while (range[1] < range[0]) { range[1] += faces.length; }
-		const indices = Array
-			.from(Array(range[1] - range[0] + 1))
-			.map((_, i) => (range[0] + i) % faces.length);
-		const sectors = indices
-			.map(i => vertices_sectors[vertex][i]);
-		const assignments = indices
-			.map(i => vertices_edges[vertex][i])
-			.map(edge => edges_assignment[edge]);
-		const sectors_layer = singleVertexSolver(sectors, assignments, epsilon);
-		const faces_layer = sectors_layer
-			.map(invertMap)
-			.map(arr => arr
-				.map(face => typeof face !== "object"
-					? faces[indices[face]]
-					: face.map(f => faces[indices[f]])))
-			.map(invertMap);
-		faces_layer.face = faces[indices[0]];
-		return faces_layer;
-	};
-	const flip_solutions = solutions => {
-		const face = solutions.face;
-		const flipped = solutions
-			.map(invertMap)
-			.map(list => list.reverse())
-			.map(invertMap);
-		flipped.face = face;
-		return flipped;
-	};
-	const makeVerticesFacesLayer = (graph, start_face = 0, epsilon) => {
-		if (!graph.vertices_sectors) {
-			graph.vertices_sectors = makeVerticesSectors(graph);
-		}
-		const faces_coloring = makeFacesWinding(graph).map(c => !c);
-		const vertices_faces_layer = graph.vertices_sectors
-			.map((_, vertex) => makeVertexFacesLayer(graph, vertex, epsilon));
-		const vertices_solutions_flip = vertices_faces_layer
-			.map(solution => faces_coloring[solution.face]);
-		return vertices_faces_layer
-			.map((solutions, i) => vertices_solutions_flip[i]
-				? flip_solutions(solutions)
-				: solutions);
-	};
-
-	var facesLayer = /*#__PURE__*/Object.freeze({
-		__proto__: null,
-		makeVertexFacesLayer: makeVertexFacesLayer,
-		makeVerticesFacesLayer: makeVerticesFacesLayer
-	});
-
 	const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 		if (!edges_vector) {
 			edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -5255,10 +5749,9 @@
 		removePlanarEdge,
 		addVertices,
 		splitEdge,
-		splitFace: splitConvexFace,
+		splitFace,
 		flatFold,
 		addPlanarSegment,
-		subgraph,
 		clip,
 		fragment,
 		getVerticesClusters,
@@ -5279,7 +5772,6 @@
 		verticesViolations,
 		edgesViolations,
 		vertices_collinear,
-		facesLayer,
 		edgesEdges,
 		verticesCoordsFolded,
 		faceSpanningTree,
@@ -6812,6 +7304,201 @@
 		return matrix;
 	};
 
+	const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
+		const faces_center = folded_faces
+			.map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
+		const locations = [];
+		folded_faces.forEach((ends, i) => {
+			if (!ends) { return; }
+			if (!is_circular && i === folded_faces.length - 1) { return; }
+			const fold_end = ends[1];
+			const min = fold_end - (epsilon * 2);
+			const max = fold_end + (epsilon * 2);
+			const faces = [i, (i+1) % folded_faces.length];
+			const sides = faces
+				.map(f => faces_center[f])
+				.map(center => center > fold_end);
+			const taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
+			const match = locations
+				.filter(el => el.min < fold_end && el.max > fold_end)
+				.shift();
+			const entry = { faces, taco_type };
+			if (match) {
+				match.pairs.push(entry);
+			} else {
+				locations.push({ min, max, pairs: [entry] });
+			}
+		});
+		return locations
+			.map(el => el.pairs)
+			.filter(pairs => pairs.length > 1)
+			.map(pairs => ({
+				both: pairs.filter(el => el.taco_type === 0).map(el => el.faces),
+				left: pairs.filter(el => el.taco_type === 1).map(el => el.faces),
+				right: pairs.filter(el => el.taco_type === 2).map(el => el.faces),
+			}));
+	};
+
+	const between = (arr, i, j) => (i < j)
+		? arr.slice(i + 1, j)
+		: arr.slice(j + 1, i);
+	const validateTacoTortillaStrip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+		const faces_layer = invertMap(layers_face);
+		const fold_location = faces_folded
+			.map(ends => ends ? ends[1] : undefined);
+		const faces_mins = faces_folded
+			.map(ends => ends ? Math.min(...ends) : undefined)
+			.map(n => n + epsilon);
+		const faces_maxs = faces_folded
+			.map(ends => ends ? Math.max(...ends) : undefined)
+			.map(n => n - epsilon);
+		const max = faces_layer.length + (is_circular ? 0 : -1);
+		for (let i = 0; i < max; i += 1) {
+			const j = (i + 1) % faces_layer.length;
+			if (faces_layer[i] === faces_layer[j]) { continue; }
+			const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
+				.flat();
+			const all_below_min = layers_between
+				.map(index => fold_location[i] < faces_mins[index])
+				.reduce((a, b) => a && b, true);
+			const all_above_max = layers_between
+				.map(index => fold_location[i] > faces_maxs[index])
+				.reduce((a, b) => a && b, true);
+			if (!all_below_min && !all_above_max) { return false; }
+		}
+		return true;
+	};
+
+	const validateTacoTacoFacePairs = (face_pair_stack) => {
+		const pair_stack = removeSingleInstances(face_pair_stack);
+		const pairs = {};
+		let count = 0;
+		for (let i = 0; i < pair_stack.length; i++) {
+			if (pairs[pair_stack[i]] === undefined) {
+				count++;
+				pairs[pair_stack[i]] = count;
+			}
+			else if (pairs[pair_stack[i]] !== undefined) {
+				if (pairs[pair_stack[i]] !== count) { return false; }
+				count--;
+				pairs[pair_stack[i]] = undefined;
+			}
+		}
+		return true;
+	};
+
+	const build_layers = (layers_face, faces_pair) => layers_face
+		.map(f => faces_pair[f])
+		.filter(a => a !== undefined);
+	const validateLayerSolver = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
+		const flat_layers_face = math.core.flattenArrays(layers_face);
+		if (!validateTacoTortillaStrip(
+			faces_folded, layers_face, circ_and_done, epsilon
+		)) { return false; }
+		for (let i = 0; i < taco_face_pairs.length; i++) {
+			const pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
+			if (!validateTacoTacoFacePairs(pair_stack)) { return false; }
+		}
+		return true;
+	};
+
+	const change_map = { V: true, v: true, M: true, m: true };
+	const assignmentsToFacesFlip = (assignments) => {
+		let counter = 0;
+		const shifted_assignments = assignments.slice(1);
+		return [false].concat(shifted_assignments
+			.map(a => change_map[a] ? ++counter : counter)
+			.map(count => count % 2 === 1));
+	};
+	const up_down = { V: 1, v: 1, M: -1, m: -1 };
+	const upOrDown = (mv, i) => i % 2 === 0
+		?  (up_down[mv] || 0)
+		: -(up_down[mv] || 0);
+	const assignmentsToFacesVertical = (assignments) => {
+		let iterator = 0;
+		return assignments
+			.slice(1)
+			.concat([assignments[0]])
+			.map(a => {
+				const updown = upOrDown(a, iterator);
+				iterator += up_down[a] === undefined ? 0 : 1;
+				return updown;
+			});
+	};
+	const foldStripWithAssignments = (faces, assignments) => {
+		const faces_end = assignmentsToFacesFlip(assignments)
+			.map((flip, i) => faces[i] * (flip ? -1 : 1));
+		const cumulative = faces.map(() => undefined);
+		cumulative[0] = [0, faces_end[0]];
+		for (let i = 1; i < faces.length; i++) {
+			if (assignments[i] === "B" || assignments[i] === "b") { break; }
+			const prev = (i - 1 + faces.length) % faces.length;
+			const prev_end = cumulative[prev][1];
+			cumulative[i] = [prev_end, prev_end + faces_end[i]];
+		}
+		return cumulative;
+	};
+
+	var foldAssignments = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		assignmentsToFacesFlip: assignmentsToFacesFlip,
+		assignmentsToFacesVertical: assignmentsToFacesVertical,
+		foldStripWithAssignments: foldStripWithAssignments
+	});
+
+	const is_boundary = { "B": true, "b": true };
+	const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+		const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
+		const faces_updown = assignmentsToFacesVertical(assignments);
+		const is_circular = assignments
+			.map(a => !(is_boundary[a]))
+			.reduce((a, b) => a && b, true);
+		if (is_circular) {
+			const start = faces_folded[0][0];
+			const end = faces_folded[faces_folded.length - 1][1];
+			if (Math.abs(start - end) > epsilon) { return []; }
+		}	const taco_face_pairs = makeFoldedStripTacos(faces_folded, is_circular, epsilon)
+			.map(taco => [taco.left, taco.right]
+				.map(invertMap)
+				.filter(arr => arr.length > 1))
+			.reduce((a, b) => a.concat(b), []);
+		const recurse = (layers_face = [0], face = 0, layer = 0) => {
+			const next_face = face + 1;
+			const next_dir = faces_updown[face];
+			const is_done = face >= ordered_scalars.length - 1;
+			const circ_and_done = is_circular && is_done;
+			if (!validateLayerSolver(
+				faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon
+			)) {
+				return [];
+			}
+			if (circ_and_done) {
+				const faces_layer = invertMap(layers_face);
+				const first_face_layer = faces_layer[0];
+				const last_face_layer = faces_layer[face];
+				if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
+				if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
+			}
+			if (is_done) { return [layers_face]; }
+			if (next_dir === 0) {
+				layers_face[layer] = [next_face].concat(layers_face[layer]);
+				return recurse(layers_face, next_face, layer);
+			}
+			const splice_layers = next_dir === 1
+				? Array.from(Array(layers_face.length - layer))
+					.map((_, i) => layer + i + 1)
+				: Array.from(Array(layer + 1))
+					.map((_, i) => i);
+			const next_layers_faces = splice_layers.map(i => clone(layers_face));
+			next_layers_faces
+				.forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
+			return next_layers_faces
+				.map((layers, i) => recurse(layers, next_face, splice_layers[i]))
+				.reduce((a, b) => a.concat(b), []);
+		};
+		return recurse().map(invertMap);
+	};
+
 	const get_unassigned_indices = (edges_assignment) => edges_assignment
 		.map((_, i) => i)
 		.filter(i => edges_assignment[i] === "U" || edges_assignment[i] === "u");
@@ -7227,94 +7914,6 @@
 	 * @description This is a line parameterization which 
 	 * @property {number[]} u - the line's normal vector
 	 * @property {number} d - the shortest distance from the origin to the line
-	 */
-
-	/**
-	 * 
-	 * Math primitives
-	 * 
-	 */
-
-	/**
-	 * @typedef vector
-	 * @type {object}
-	 * @description a vector/point primitive. there is no limit to the number of dimensions.
-	 * @property {number[]} 0...n array indices for the individual vector values.
-	 */
-
-	/**
-	 * @typedef matrix
-	 * @type {object}
-	 * @description a 3x4 matrix representing a transformation in 3D space, including a translation component.
-	 * @property {number[]} 0...11 array indices for the individual matrix values
-	 */
-
-	/**
-	 * @typedef line
-	 * @type {object}
-	 * @description a line primitive
-	 * @property {number[]} vector a vector which represents the direction of the line
-	 * @property {number[]} origin a point that passes through the line
-	 */
-
-	/**
-	 * @typedef ray
-	 * @type {object}
-	 * @description a ray primitive
-	 * @property {number[]} vector a vector which represents the direction of the line
-	 * @property {number[]} origin the origin of the ray
-	 */
-
-	/**
-	 * @typedef segment
-	 * @type {object}
-	 * @description a segment primitive, defined by two endpoints
-	 * @property {number[]} 0 array index 0, the location of the first point
-	 * @property {number[]} 1 array index 1, the location of the second point
-	 * @property {number[]} vector a vector which represents the direction and length of the segment
-	 * @property {number[]} origin the first segment point
-	 */
-
-	/**
-	 * @typedef rect
-	 * @type {object}
-	 * @description an axis-aligned rectangle primitive
-	 * @property {number} width
-	 * @property {number} height
-	 * @property {number[]} origin the bottom left corner (or top level for Y-down computer screens)
-	 */
-
-	/**
-	 * @typedef circle
-	 * @type {object}
-	 * @description a circle primitive
-	 * @property {number} radius
-	 * @property {number[]} origin
-	 */
-
-	/**
-	 * @typedef ellipse
-	 * @type {object}
-	 * @description a ellipse primitive
-	 * @property {number} rx radius in the primary axis
-	 * @property {number} ry radius in the secondary axis
-	 * @property {number} spin the angle of rotation through the center in radians
-	 * @property {number[]} origin the center of the ellipse
-	 * @property {number[][]} foci array of two points, each focus of the ellipse
-	 */
-
-	/**
-	 * @typedef polygon
-	 * @type {object}
-	 * @description a polygon primitive
-	 * @property {number[][]} points a sequence of points, each point being an array of numbers
-	 */
-
-	/**
-	 * @typedef polyline
-	 * @type {object}
-	 * @description a polyline primitive
-	 * @property {number[][]} points a sequence of points, each point being an array of numbers
 	 */
 
 	const emptyTypeFunc = () => console.log("rabbit ear types");

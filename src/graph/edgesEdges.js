@@ -4,11 +4,13 @@
 import math from "../math";
 import { makeEdgesVector } from "./make";
 /**
- * @description todo: something something edges parallel
- * @param {object} fold a FOLD graph.
- * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
- * @returns {boolean[][]} a boolean matrix containing true/false for all,
- * except the diagonal [i][i] which contains undefined.
+ * @description Create an NxN matrix (N number of edges) that relates edges to each other,
+ * inside each entry is true/false, true if the two edges are parallel within an epsilon.
+ * Both sides of the matrix are filled, the diagonal is left undefined.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[][]} a boolean matrix, are two edges parallel?
+ * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
  */
 export const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => { // = math.core.EPSILON) => {
 	if (!edges_vector) {
@@ -60,7 +62,7 @@ export const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_
 // }
 
 /**
- * @description a subroutine for the two methods below.
+ * @description A subroutine for the two methods below.
  * given a matrix which was already worked on, consider only the true values,
  * compute the overlapLineLine method for each edge-pairs.
  * provide a comparison function (func) to specify inclusive/exclusivity.
@@ -81,12 +83,14 @@ const overwriteEdgesOverlaps = (matrix, vectors, origins, func, epsilon) => {
 	}
 };
 /**
- * @desecription find all edges which cross other edges. "cross" meaning
- * the segment overlaps the other segment, excluding the epsilon space
- * around the endpoints, and they are NOT parallel.
+ * @description Find all edges which cross other edges, "cross" meaning
+ * the segment overlaps the other segment in a non-parallel way. This also
+ * excludes the epsilon space around the endpoints so that adjacent edges
+ * are automatically considered not crossing. All parallel line pairs,
+ * even if overlapping, are marked false.
  * @param {object} fold a FOLD graph.
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
- * @returns todo something todo
+ * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
  */
 export const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 	if (!edges_vector) {
@@ -112,11 +116,12 @@ export const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_
 // the vector. converting it into 2 numbers, and now all you have to do is
 // test if these two numbers overlap other edges' two numbers.
 /**
- * @desecription find all edges which overlap one another, meaning
- * the segment overlaps the other segment and they ARE parallel.
- * @param {object} fold a FOLD graph.
- * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
- * @returns todo something todo
+ * @description Find all edges which are parallel to each other AND they overlap.
+ * The epsilon space around vertices is not considered, so, edges must be
+ * truly overlapping for them to be true.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
  */
 export const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 	if (!edges_vector) {
@@ -154,7 +159,7 @@ const make_groups_edges = (graph, epsilon) => {
 	// each index will be an edge, each value is a group, starting with 0,
 	// incrementing upwards. for all unique edges, array will be [0, 1, 2, 3...]
 	// if edges 0 and 3 share a group, array will be [0, 1, 2, 0, 3...]
-	const edges_group = makeUniqueSetsFromSelfRelationalArrays(overlapping_edges);
+	const edges_group = makeSelfRelationalArrayClusters(overlapping_edges);
 	// gather groups, but remove groups with only one edge, and from the
 	// remaining sets, remove any edges which lie on the boundary.
 	// finally, remove sets with only one edge (after removing).

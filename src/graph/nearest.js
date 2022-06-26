@@ -4,10 +4,11 @@
 import math from "../math";
 import { makeFacesCenterQuick } from "./make";
 /**
- * @returns index of nearest vertex in vertices_ arrays or
- * this is the only one of the nearest_ functions that works in 3-dimensions
- *
- * todo: improve with space partitioning
+ * @description Iterate through all vertices in a graph and find the one nearest to a provided point. This is the only of the "nearest" graph operations that works in 3D.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the nearest vertex
+ * @returns {number} the index of the nearest vertex
+ * @todo improve with space partitioning
  */
 export const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
@@ -22,8 +23,10 @@ export const nearestVertex = ({ vertices_coords }, point) => {
 	return nearest ? nearest.i : undefined;
 };
 /**
- * returns index of nearest edge in edges_ arrays or
- *  undefined if there are no vertices_coords or edges_vertices
+ * @description Iterate through all edges in a graph and find the one nearest to a provided point.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the nearest edge
+ * @returns {number|undefined} the index of the nearest edge, or undefined if there are no vertices_coords or edges_vertices
  */
 export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
@@ -37,7 +40,11 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	return math.core.smallestComparisonSearch(point, nearest_points, math.core.distance);
 };
 /**
- * from a planar perspective, ignoring z components
+ * @description Iterate through all faces in a graph and find one that encloses a point.
+ * This method assumes the graph is in 2D, it ignores any z components.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the enclosing face
+ * @returns {number|undefined} the index of the face, or undefined if no face encloses a point
  */
 export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
 	if (!vertices_coords || !faces_vertices) { return undefined; }
@@ -47,7 +54,14 @@ export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) 
 		.shift();
 	return (face === undefined ? undefined : face.i);
 };
-
+/**
+ * @description Iterate through all faces in a graph and find one nearest to a point.
+ * This method assumes the graph is in 2D, it ignores any z components.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the nearest face
+ * @returns {number|undefined} the index of the face, or undefined if edges_faces is not defined.
+ * @todo make this work if edges_faces is not defined (not hard)
+ */
 export const nearestFace = (graph, point) => {
 	const face = faceContainingPoint(graph, point);
 	if (face !== undefined) { return face; }

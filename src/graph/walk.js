@@ -54,7 +54,13 @@ export const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0
 		this_vertex = next_vertex;
 	}
 };
-
+/**
+ * @description Given a planar graph, discover all faces by counter-clockwise walking
+ * by starting at every edge.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {object[]} an array of face objects, where each face has number arrays,
+ * "vertices", "edges", and "angles". vertices and edges are indices, angles are radians.
+ */
 export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 	const graph = { vertices_vertices, vertices_sectors };
 	const walked_edges = {};
@@ -62,13 +68,18 @@ export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 		.map((adj_verts, v) => adj_verts
 			.map(adj_vert => counterClockwiseWalk(graph, v, adj_vert, walked_edges))
 			.filter(a => a !== undefined))
-		.reduce((a, b) => a.concat(b), [])
+		.flat();
 };
 /**
- * @description 180 - sector angle = the turn angle. counter clockwise
+ * @description This should be used in conjuction with planarVertexWalk() and 
+ * counterClockwiseWalk(). There will be one face in the which winds around the
+ * outside of the boundary and encloses the space outside around. This method will
+ * find that face and remove it from the set.
+ * @algorithm 180 - sector angle = the turn angle. counter clockwise
  * turns are +, clockwise will be -, this removes the one face that
  * outlines the piece with opposite winding enclosing Infinity.
- * @param {object} walked_faces, the result from calling "planarVertexWalk"
+ * @param {object[]} walked_faces the result from calling "planarVertexWalk()"
+ * @returns {object[]} the same input array with one fewer element
  */
 export const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles

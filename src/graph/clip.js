@@ -16,21 +16,15 @@ const clip = function (graph, line) {
 	const polygon = getBoundary(graph).vertices.map(v => graph.vertices_coords[v]);
 	const vector = line.vector ? line.vector : ear.math.subtract2(line[1], line[0]);
 	const origin = line.origin ? line.origin : line[0];
-	return clipLineConvexPolygon(polygon, vector, origin,
+  const fn_line = line.domain_function ? line.domain_function : includeL;
+	return math.core.clipLineConvexPolygon(polygon, vector, origin,
 		math.core.include,
-		math.core.includeL);
+		fn_line);
 };
 
-// const clip = function (
-// 	{vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices},
-// 	line) {
-// 	if (!boundaries_vertices) {
-// 		boundaries_vertices = getBoundary({
-// 			vertices_edges, edges_vertices, edges_assignment
-// 		}).vertices;
-// 	}
-// 	return math.polygon(boundaries_vertices.map(v => vertices_coords[v]))
-// 		.clip(line);
+// const clip = function (graph, line) {
+// 	const polygon = getBoundary(graph).vertices.map(v => vertices_coords[v]);
+// 	return math.polygon(polygon).clip(line);
 // };
 
 export default clip;
