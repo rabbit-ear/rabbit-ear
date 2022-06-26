@@ -1,4 +1,4 @@
-/* Rabbit Ear 0.9.xx alpha 2022-05-13 (c) Kraft, MIT License */
+/* Rabbit Ear 0.9.3 alpha 2022-06-26 (c) Kraft, MIT License */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -363,7 +363,7 @@
     var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : EPSILON;
     return n > epsilon;
   };
-  var includeL$1 = fnTrue;
+  var includeL = fnTrue;
   var excludeL = fnTrue;
   var includeR = include;
   var excludeR = exclude;
@@ -405,7 +405,7 @@
     fnEpsilonEqualVectors: fnEpsilonEqualVectors,
     include: include,
     exclude: exclude,
-    includeL: includeL$1,
+    includeL: includeL,
     excludeL: excludeL,
     includeR: includeR,
     excludeR: excludeR,
@@ -1174,8 +1174,8 @@
     return Math.abs(cross) < epsilon && func(proj, epsilon / lineMag);
   };
   var intersectLineLine = function intersectLineLine(aVector, aOrigin, bVector, bOrigin) {
-    var aFunction = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : includeL$1;
-    var bFunction = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : includeL$1;
+    var aFunction = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : includeL;
+    var bFunction = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : includeL;
     var epsilon = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : EPSILON;
     var det_norm = cross2(_normalize(aVector), _normalize(bVector));
     if (Math.abs(det_norm) < epsilon) {
@@ -1354,7 +1354,7 @@
   };
   var splitConvexPolygon = function splitConvexPolygon(poly, lineVector, linePoint) {
     var vertices_intersections = poly.map(function (v, i) {
-      var intersection = overlapLinePoint(lineVector, linePoint, v, includeL$1);
+      var intersection = overlapLinePoint(lineVector, linePoint, v, includeL);
       return {
         point: intersection ? v : null,
         at_index: i
@@ -1634,7 +1634,7 @@
     return [pt1, pt2];
   };
   var intersectCircleLine = function intersectCircleLine(circle_radius, circle_origin, line_vector, line_origin) {
-    var line_func = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : includeL$1;
+    var line_func = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : includeL;
     var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
     var magSq = Math.pow(line_vector[0], 2) + Math.pow(line_vector[1], 2);
     var mag = Math.sqrt(magSq);
@@ -1694,7 +1694,7 @@
   };
   var intersectConvexPolygonLineInclusive = function intersectConvexPolygonLineInclusive(poly, vector, origin) {
     var fn_poly = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : includeS;
-    var fn_line = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : includeL$1;
+    var fn_line = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : includeL;
     var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
     var intersections = poly.map(function (p, i, arr) {
       return [p, arr[(i + 1) % arr.length]];
@@ -2145,7 +2145,7 @@
   };
   var clipLineConvexPolygon = function clipLineConvexPolygon(poly, vector, origin) {
     var fnPoly = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : include;
-    var fnLine = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : includeL$1;
+    var fnLine = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : includeL;
     var epsilon = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : EPSILON;
     var numbers = getIntersectParameters(poly, vector, origin, includeS, epsilon);
     if (numbers.length < 2) {
@@ -2394,7 +2394,7 @@
         this.distance = alt.distance;
         Object.defineProperty(this, "domain_function", {
           writable: true,
-          value: includeL$1
+          value: includeL
         });
       },
       G: {
@@ -2408,7 +2408,7 @@
       },
       M: Object.assign({}, LinesMethods, {
         inclusive: function inclusive() {
-          this.domain_function = includeL$1;
+          this.domain_function = includeL;
           return this;
         },
         exclusive: function exclusive() {
@@ -2809,7 +2809,7 @@
       return _intersect.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
     },
     clip: function clip(line_type, epsilon) {
-      var fn_line = line_type.domain_function ? line_type.domain_function : includeL$1;
+      var fn_line = line_type.domain_function ? line_type.domain_function : includeL;
       var segment = clipLineConvexPolygon(this, line_type.vector, line_type.origin, this.domain_function, fn_line, epsilon);
       return segment ? Constructors.segment(segment) : undefined;
     },
@@ -4922,7 +4922,7 @@
       if (!overlap[e]) {
         continue;
       }
-      if (math.core.equivalentVector2(edges_origin[e], point)) {
+      if (math.core.fnEpsilonEqualVectors(edges_origin[e], point)) {
         overlap[e] = true;
         continue;
       }
@@ -6634,9 +6634,9 @@
     var polygon = getBoundary(graph).vertices.map(function (v) {
       return graph.vertices_coords[v];
     });
-    var vector = line.vector ? line.vector : ear.math.subtract2(line[1], line[0]);
+    var vector = line.vector ? line.vector : math.core.subtract2(line[1], line[0]);
     var origin = line.origin ? line.origin : line[0];
-    var fn_line = line.domain_function ? line.domain_function : includeL;
+    var fn_line = line.domain_function ? line.domain_function : math.core.includeL;
     return math.core.clipLineConvexPolygon(polygon, vector, origin, math.core.include, fn_line);
   };
 
@@ -8078,6 +8078,19 @@
         return [solutions];
     }
   };
+  var unarrayify = function unarrayify(axiomNumber, solutions) {
+    switch (axiomNumber) {
+      case 3:
+      case "3":
+      case 5:
+      case "5":
+      case 6:
+      case "6":
+        return solutions;
+      default:
+        return solutions ? solutions[0] : undefined;
+    }
+  };
 
   var reflectPoint = function reflectPoint(foldLine, point) {
     var matrix = math.core.makeMatrix2Reflect(foldLine.vector, foldLine.origin);
@@ -8115,7 +8128,7 @@
     });
   };
   var validateAxiom4 = function validateAxiom4(params, boundary) {
-    var intersect = math.core.intersect_line_line(params.lines[0].vector, params.lines[0].origin, math.core.rotate90(params.lines[0].vector), params.points[0], math.core.includeL, math.core.includeL);
+    var intersect = math.core.intersectLineLine(params.lines[0].vector, params.lines[0].origin, math.core.rotate90(params.lines[0].vector), params.points[0], math.core.includeL, math.core.includeL);
     return [params.points[0], intersect].filter(function (a) {
       return a !== undefined;
     }).map(function (p) {
@@ -8178,10 +8191,12 @@
     var reflected = reflectPoint(result, params.points[0]);
     var reflectTest = math.core.overlapConvexPolygonPoint(boundary, reflected, math.core.include);
     var paramLineTest = math.core.intersectConvexPolygonLine(boundary, params.lines[1].vector, params.lines[1].origin, math.core.includeS, math.core.includeL) !== undefined;
-    return [paramPointTest && reflectTest && paramLineTest];
+    var intersect = math.core.intersectLineLine(params.lines[1].vector, params.lines[1].origin, result.vector, result.origin, math.core.includeL, math.core.includeL);
+    var intersectInsideTest = intersect ? math.core.overlapConvexPolygonPoint(boundary, intersect, math.core.include) : false;
+    return paramPointTest && reflectTest && paramLineTest && intersectInsideTest;
   };
-  var validate = function validate(number, params, boundary, result) {
-    return arrayify(number, [null, validateAxiom1, validateAxiom2, validateAxiom3, validateAxiom4, validateAxiom5, validateAxiom6, validateAxiom7][number](params, boundary, result));
+  var validate = function validate(number, params, boundary, results) {
+    return arrayify(number, [null, validateAxiom1, validateAxiom2, validateAxiom3, validateAxiom4, validateAxiom5, validateAxiom6, validateAxiom7][number](params, boundary, unarrayify(number, results)));
   };
 
   var Validate = /*#__PURE__*/Object.freeze({
@@ -13086,7 +13101,7 @@
     make_edges_geometry: make_edges_geometry
   });
 
-  var ear$1 = Object.assign(root, ObjectConstructors, {
+  var ear = Object.assign(root, ObjectConstructors, {
     math: math.core,
     axiom: axiom,
     diagram: diagram,
@@ -13098,17 +13113,17 @@
   Object.keys(math).filter(function (key) {
     return key !== "core";
   }).forEach(function (key) {
-    ear$1[key] = math[key];
+    ear[key] = math[key];
   });
-  Object.defineProperty(ear$1, "use", {
+  Object.defineProperty(ear, "use", {
     enumerable: false,
-    value: use.bind(ear$1)
+    value: use.bind(ear)
   });
   if (!isWebWorker) {
-    ear$1.use(FOLDtoSVG);
-    ear$1.use(SVG);
+    ear.use(FOLDtoSVG);
+    ear.use(SVG);
   }
-  Object.defineProperty(ear$1, "window", {
+  Object.defineProperty(ear, "window", {
     enumerable: false,
     set: function set(value) {
       setWindow$1(value);
@@ -13116,6 +13131,6 @@
     }
   });
 
-  return ear$1;
+  return ear;
 
 })));

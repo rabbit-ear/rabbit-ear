@@ -29,7 +29,7 @@ export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }
 	// second, filter out edges which do not lie on top of the line
 	for (let e = 0; e < edges_vertices.length; e++) {
 		if (!overlap[e]) { continue; }
-		if (math.core.equivalentVector2(edges_origin[e], point)) {
+		if (math.core.fnEpsilonEqualVectors(edges_origin[e], point)) {
 			overlap[e] = true;
 			continue;
 		}

@@ -3,7 +3,7 @@
  */
 import math from "../math";
 import { getBoundary } from "../graph/boundary";
-import { arrayify } from "./methods";
+import { arrayify, unarrayify } from "./methods";
 
 const reflectPoint = (foldLine, point) => {
 	const matrix = math.core.makeMatrix2Reflect(foldLine.vector, foldLine.origin);
@@ -105,7 +105,7 @@ export const validateAxiom3 = (params, boundary, results) => {
  * @linkcode Origami ./src/axioms/validate.js 105
  */
 export const validateAxiom4 = (params, boundary) => {
-	const intersect = math.core.intersect_line_line(
+	const intersect = math.core.intersectLineLine(
 		params.lines[0].vector,
 		params.lines[0].origin,
 		math.core.rotate90(params.lines[0].vector),
@@ -178,7 +178,18 @@ export const validateAxiom7 = (params, boundary, result) => {
 		params.lines[1].origin,
 		math.core.includeS,
 		math.core.includeL) !== undefined);
-	return [paramPointTest && reflectTest && paramLineTest];
+	// same test we do for axiom 4
+	const intersect = math.core.intersectLineLine(
+		params.lines[1].vector,
+		params.lines[1].origin,
+		result.vector,
+		result.origin,
+		math.core.includeL,
+		math.core.includeL);
+	const intersectInsideTest = intersect
+		? math.core.overlapConvexPolygonPoint(boundary, intersect, math.core.include)
+		: false;
+	return paramPointTest && reflectTest && paramLineTest && intersectInsideTest;
 };
 /**
  * @description Validate an axiom, this will run one of the submethods ("validateAxiom1", ...).
@@ -187,9 +198,9 @@ export const validateAxiom7 = (params, boundary, result) => {
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 190
+ * @linkcode Origami ./src/axioms/validate.js 201
  */
-export const validate = (number, params, boundary, result) => arrayify(number, [null,
+export const validate = (number, params, boundary, results) => arrayify(number, [null,
 	validateAxiom1,
 	validateAxiom2,
 	validateAxiom3,
@@ -197,4 +208,4 @@ export const validate = (number, params, boundary, result) => arrayify(number, [
 	validateAxiom5,
 	validateAxiom6,
 	validateAxiom7,
-][number](params, boundary, result));
+][number](params, boundary, unarrayify(number, results)));
