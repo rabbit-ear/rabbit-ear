@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("split edge similar endpoint", () => {
 	const graph = ear.graph.kite();

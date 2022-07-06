@@ -43,7 +43,7 @@ const ordersArrayNames = {
  * evidenced by their appearance in other arrays; ie: searching faces_vertices
  * for the largest vertex index, and inferring number of vertices is that long.
  * @param {FOLD} graph a FOLD graph
- * @param {string} key the prefix for a key, eg: "vertices" 
+ * @param {string} key the prefix for a key, eg: "vertices"
  * @returns {number} the number of vertices, edges, or faces in the graph.
  * @linkcode Origami ./src/graph/countImplied.js 48
  */
@@ -51,7 +51,7 @@ const countImplied = (graph, key) => Math.max(
 	// return the maximum value between (1/2):
 	// 1. a found geometry in another geometry's array ("vertex" in "faces_vertices")
 	array_in_array_max_number(
-		getGraphKeysWithSuffix(graph, key).map(str => graph[str])
+		getGraphKeysWithSuffix(graph, key).map(str => graph[str]),
 	),
 	// 2. a found geometry in a faceOrders or edgeOrders type of array (special case)
 	graph[ordersArrayNames[key]]

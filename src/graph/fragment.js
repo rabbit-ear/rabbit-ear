@@ -19,9 +19,7 @@ import { getVerticesEdgesOverlap } from "./verticesCollinear";
 import { makeEdgesEdgesIntersection } from "./intersect";
 import { sortVerticesAlongVector } from "./sort";
 import {
-	mergeSimpleNextmaps,
 	mergeNextmaps,
-	mergeBackmaps,
 	invertMap,
 } from "./maps";
 
@@ -61,18 +59,18 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
-		edges_origin
+		edges_origin,
 	}, 1e-6);
 	// check the new edges' vertices against every edge, in case
 	// one of the endpoints lies along an edge.
 	const edges_collinear_vertices = getVerticesEdgesOverlap({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
-		edges_coords
+		edges_coords,
 	}, epsilon);
 	// exit early
-	if (edges_intersections.flat().filter(a => a !== undefined).length === 0 &&
-	edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
+	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
+		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
 		return;
 	}
 	// remember, edges_intersections contains intersections [x,y] points
@@ -102,7 +100,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 			if (intersect) {
 				edges_intersections[i][j] = intersect[0];
 			}
-		})
+		});
 	});
 
 	const edges_intersections_flat = edges_intersections
@@ -112,11 +110,11 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	// to be resolved below
 	graph.edges_vertices.forEach((verts, i) => verts
 		.push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
-		// .push(...edges_intersections_flat[i]));
+	// .push(...edges_intersections_flat[i]));
 
 	graph.edges_vertices.forEach((edge, i) => {
 		graph.edges_vertices[i] = sortVerticesAlongVector({
-			vertices_coords: graph.vertices_coords
+			vertices_coords: graph.vertices_coords,
 		}, edge, edges_vector[i]);
 	});
 
@@ -128,7 +126,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 
 	graph.edges_vertices = graph.edges_vertices
 		.map(edge => Array.from(Array(edge.length - 1))
-			.map((_, i, arr) => [edge[i], edge[i + 1]]))
+			.map((_, i, arr) => [edge[i], edge[i + 1]])) // todo, is this supposed to be % arr.length
 		.flat();
 	// copy over edge metadata if it exists
 	// make foldAngles and assignments match if foldAngle is longer
@@ -145,9 +143,9 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	if (graph.edges_foldAngle) {
 		graph.edges_foldAngle = edge_map
 			.map(i => graph.edges_foldAngle[i])
-			.map((a, i) => a === undefined
+			.map((a, i) => (a === undefined
 				? edgeAssignmentToFoldAngle(graph.edges_assignment[i])
-				: a);
+				: a));
 	}
 	return {
 		vertices: {
@@ -156,7 +154,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 		},
 		edges: {
 			backmap: edge_map
-		}
+		},
 	};
 	// return graph;
 };
@@ -173,7 +171,7 @@ const fragment_keep_keys = [
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to the graph
- * @linkcode Origami ./src/graph/fragment.js 176
+ * @linkcode Origami ./src/graph/fragment.js 174
  */
 const fragment = (graph, epsilon = math.core.EPSILON) => {
 	// project all vertices onto the XY plane
@@ -190,14 +188,14 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 		edges: {},
 	};
 	let i;
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i += 1) {
 		const resVert = removeDuplicateVertices(graph, epsilon / 2);
 		const resEdgeDup = removeDuplicateEdges(graph);
 		// console.log("before", JSON.parse(JSON.stringify(graph)));
 		const resEdgeCirc = removeCircularEdges(graph);
 		// console.log("circular", resEdgeCirc);
 		const resFrag = fragment_graph(graph, epsilon);
-		if (resFrag === undefined) { 
+		if (resFrag === undefined) {
 			change.vertices.map = (change.vertices.map === undefined
 				? resVert.map
 				: mergeNextmaps(change.vertices.map, resVert.map));

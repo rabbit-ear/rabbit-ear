@@ -10,12 +10,12 @@ const linker = function (library) {
 	library.graph.svg = this;
 
 	const graphProtoMethods = {
-		svg: this
+		svg: this,
 	};
 	Object.keys(graphProtoMethods).forEach(key => {
 		library.graph.prototype[key] = function () {
 			return graphProtoMethods[key](this, ...arguments);
-		}
+		};
 	});
 };
 

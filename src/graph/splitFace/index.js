@@ -35,7 +35,7 @@ const splitFace = (graph, face, vector, point, epsilon) => {
 	// this result will be appended to (vertices, edges) and returned by this method.
 	const result = split_at_intersections(graph, intersect);
 	// this modifies the graph by only adding an edge between existing vertices
-	result.edges.new = rebuild_edge(graph, face, result.vertices)
+	result.edges.new = rebuild_edge(graph, face, result.vertices);
 	// update all changes to vertices and edges (anything other than faces).
 	update_vertices_vertices(graph, result.edges.new);
 	update_vertices_edges(graph, result.edges.new);

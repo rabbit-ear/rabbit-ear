@@ -16,13 +16,13 @@ import errors from "./errors";
 const windowContainer = { window: undefined };
 
 const buildDocument = (newWindow) => new newWindow.DOMParser()
-  .parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
+	.parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
 
 export const setWindow = (newWindow) => {
-  // make sure window has a document. xmldom does not, and requires it be built.
-  if (!newWindow.document) { newWindow.document = buildDocument(newWindow); }
-  windowContainer.window = newWindow
-  return windowContainer.window;
+	// make sure window has a document. xmldom does not, and requires it be built.
+	if (!newWindow.document) { newWindow.document = buildDocument(newWindow); }
+	windowContainer.window = newWindow;
+	return windowContainer.window;
 };
 // if we are in the browser, by default use the browser's "window".
 if (isBrowser) { windowContainer.window = window; }
@@ -31,10 +31,10 @@ if (isBrowser) { windowContainer.window = window; }
  * DOMParser, XMLSerializer, and document.
  */
 const RabbitEarWindow = () => {
-  if (windowContainer.window === undefined) {
-    throw errors[10];
-  }
-  return windowContainer.window;
+	if (windowContainer.window === undefined) {
+		throw errors[10];
+	}
+	return windowContainer.window;
 };
 
 export default RabbitEarWindow;

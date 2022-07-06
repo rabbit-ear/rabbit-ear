@@ -11,9 +11,10 @@ import * as Validate from "./validate";
  * @param {number} number the axiom number, 1-7. **note, 0 is not an option**
  * @param {AxiomParams} params the origami axiom parameters, lines and points,
  * where the lines are either {RayLine} or {UniqueLine}.
- * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
+ * @param {number[][]} [boundary] the optional boundary,
+ * including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/index.js 16
+ * @linkcode Origami ./src/axioms/index.js 17
  */
 const axiom = (number, params = {}, boundary) => BoundaryAxioms
 	.axiomInBoundary(number, params, boundary);

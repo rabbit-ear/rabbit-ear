@@ -2,13 +2,8 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
-import { faceContainingPoint } from "../nearest";
 import populate from "../populate";
 import { mergeNextmaps } from "../maps";
-import {
-	makeFacesFaces,
-	makeFacesEdgesFromVertices,
-} from "../make";
 import {
 	makeFacesMatrix2,
 	multiplyVerticesFacesMatrix2,
@@ -38,15 +33,19 @@ const make_face_side = (vector, origin, face_center, face_winding) => {
  * discrepencies) don't use this method, it's only being used
  * for faces which lie completely on one side or the other.
  */
-const make_face_center = (graph, face) => !graph.faces_vertices[face]
+const make_face_center = (graph, face) => (!graph.faces_vertices[face]
 	? [0, 0]
 	: graph.faces_vertices[face]
 		.map(v => graph.vertices_coords[v])
 		.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
-		.map(el => el / graph.faces_vertices[face].length);
+		.map(el => el / graph.faces_vertices[face].length));
 
-const unfolded_assignment = { F:true, f:true, U:true, u:true };
-const opposite_lookup = { M:"V", m:"V", V:"M", v:"M" };
+const unfolded_assignment = {
+	F: true, f: true, U: true, u: true,
+};
+const opposite_lookup = {
+	M: "V", m: "V", V: "M", v: "M",
+};
 /**
  * @description for a mountain or valley, return the opposite.
  * in the case of any other crease (boundary, flat, ...) return the input.
@@ -81,7 +80,7 @@ const face_snapshot = (graph, face) => ({
  * So, we will create copies of the crease line, one per face, transformed
  * into place by its face's matrix, which superimposes many copies of the
  * crease line onto the crease pattern, each in place
- * @linkcode Origami ./src/graph/flatFold/index.js 84
+ * @linkcode Origami ./src/graph/flatFold/index.js 83
  */
 const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
@@ -123,14 +122,16 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	// will not catch these. we need to find these edges before we modify
 	// the graph, find the face they are attached to and whether the face
 	// is flipped, and set the edge to the proper "V" or "M" (and foldAngle).
-	const vertices_coords_folded = multiplyVerticesFacesMatrix2(graph,
-		graph.faces_matrix2);
+	const vertices_coords_folded = multiplyVerticesFacesMatrix2(
+		graph,
+		graph.faces_matrix2,
+	);
 	// get all (folded) edges which lie parallel and overlap the crease line
 	const collinear_edges = makeEdgesLineParallelOverlap({
 		vertices_coords: vertices_coords_folded,
 		edges_vertices: graph.edges_vertices,
 	}, vector, origin, epsilon)
-		.map((is_collinear, e) => is_collinear ? e : undefined)
+		.map((is_collinear, e) => (is_collinear ? e : undefined))
 		.filter(e => e !== undefined)
 		.filter(e => unfolded_assignment[graph.edges_assignment[e]]);
 	// get the first valid adjacent face for each edge, get that face's winding,
@@ -138,11 +139,12 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	collinear_edges
 		.map(e => graph.edges_faces[e].find(f => f != null))
 		.map(f => graph.faces_winding[f])
-		.map(winding => winding ? assignment : opposite_assignment)
-		.forEach((assignment, e) => {
-			graph.edges_assignment[collinear_edges[e]] = assignment;
+		.map(winding => (winding ? assignment : opposite_assignment))
+		.forEach((assign, e) => {
+			graph.edges_assignment[collinear_edges[e]] = assign;
 			graph.edges_foldAngle[collinear_edges[e]] = edgeAssignmentToFoldAngle(
-				assignment);
+				assign,
+			);
 		});
 	// before we start splitting, capture the state of face 0. we will use
 	// it when rebuilding the graph's matrices after all splitting is finished.
@@ -163,7 +165,8 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 				i,
 				face.crease.vector,
 				face.crease.origin,
-				epsilon);
+				epsilon,
+			);
 			// console.log("split convex polygon change", change);
 			if (change === undefined) { return undefined; }
 			// const face_winding = folded.faces_winding[i];
@@ -183,7 +186,8 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 					face.crease.vector,
 					face.crease.origin,
 					graph.faces_center[f],
-					face.winding);
+					face.winding,
+				);
 				graph.faces_layer[f] = face.layer;
 			});
 			return change;
@@ -222,10 +226,12 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 		face0_preMatrix = (!face0_was_split && !graph.faces_side[0]
 			? face0.matrix
 			: math.core.multiplyMatrices2(
-					face0.matrix,
-					math.core.makeMatrix2Reflect(
-						face0.crease.vector,
-						face0.crease.origin))
+				face0.matrix,
+				math.core.makeMatrix2Reflect(
+					face0.crease.vector,
+					face0.crease.origin,
+				),
+			)
 		);
 	}
 	// build our new faces_matrices using face 0 as the starting point,
@@ -243,7 +249,7 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 		faces: { map: faces_map, remove: faces_remove },
 		edges: { map: edges_map },
 		// vertices: { new: new_vertices },
-	}
+	};
 };
 
 export default flatFold;

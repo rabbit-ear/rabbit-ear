@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
+// import * as S from "../general/strings";
 /**
  * @description given a FOLD object, gather all the class names and return
  * them in a single array
@@ -14,3 +14,13 @@ import * as S from "../general/strings";
 // ].reduce((a, b) => a.concat(b));
 
 // export default foldClasses;
+
+export const addClassToClassList = (el, ...classes) => {
+	if (!el) { return; }
+	const classArray = (el.getAttribute("class") || "")
+		.split(" ");
+	classArray.push(...classes);
+	el.setAttribute("class", classArray
+		.filter(a => a !== undefined)
+		.join(" "));
+};

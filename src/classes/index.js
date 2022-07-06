@@ -25,11 +25,16 @@ const ConstructorPrototypes = {
 };
 
 const default_graph = {
-	graph: () => ({}),
+	graph: () => {},
 	cp: create.square,
 	origami: create.square,
 };
 
+const CustomProperties = {
+	graph: () => ({ file_spec, file_creator }),
+	cp: () => ({ file_spec, file_creator, frame_classes: ["creasePattern"] }),
+	origami: () => ({ file_spec, file_creator, frame_classes: ["foldedForm"] }),
+};
 /**
  * Calling the initializer also runs populate(), which does
  * take some computation time but it's very quick.
@@ -44,7 +49,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 			Object.create(ConstructorPrototypes[name]),
 			(argFolds.length ? {} : default_graph[name]()),
 			...argFolds,
-			{ file_spec, file_creator }
+			CustomProperties[name]()
 		));
 	};
 

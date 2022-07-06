@@ -2,7 +2,6 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { getBoundary } from "../graph/boundary";
 import { arrayify, unarrayify } from "./methods";
 
 const reflectPoint = (foldLine, point) => {
@@ -15,7 +14,7 @@ const reflectPoint = (foldLine, point) => {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 18
+ * @linkcode Origami ./src/axioms/validate.js 17
  */
 export const validateAxiom1 = (params, boundary) => params.points
 	.map(p => math.core.overlapConvexPolygonPoint(boundary, p, math.core.include))
@@ -26,7 +25,7 @@ export const validateAxiom1 = (params, boundary) => params.points
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 29
+ * @linkcode Origami ./src/axioms/validate.js 28
  */
 export const validateAxiom2 = validateAxiom1;
 /**
@@ -35,7 +34,7 @@ export const validateAxiom2 = validateAxiom1;
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 38
+ * @linkcode Origami ./src/axioms/validate.js 37
  */
 export const validateAxiom3 = (params, boundary, results) => {
 	const segments = params.lines
@@ -59,39 +58,52 @@ export const validateAxiom3 = (params, boundary, results) => {
 	//       line.origin,
 	//       math.core.includeS,
 	//       math.core.excludeL));
-	const results_clip = results.map(line => line === undefined
+	const results_clip = results.map(line => (line === undefined
 		? undefined
-		: math.core.clipLineConvexPolygon(boundary,
+		: math.core.clipLineConvexPolygon(
+			boundary,
 			line.vector,
 			line.origin,
 			math.core.include,
-			math.core.includeL));
+			math.core.includeL,
+		)));
 	const results_inside = [0, 1].map((i) => results_clip[i] !== undefined);
 	// test B:
 	// make sure that for each of the results, the result lies between two
 	// of the parameters, in other words, reflect the segment 0 both ways
 	// (both fold solutions) and make sure there is overlap with segment 1
-	const seg0Reflect = results.map((foldLine, i) => foldLine === undefined
+	const seg0Reflect = results.map(foldLine => (foldLine === undefined
 		? undefined
 		: [
 			reflectPoint(foldLine, segments[0][0]),
-			reflectPoint(foldLine, segments[0][1])
-		]);
-	const reflectMatch = seg0Reflect.map((seg, i) => seg === undefined
+			reflectPoint(foldLine, segments[0][1]),
+		]));
+	const reflectMatch = seg0Reflect.map(seg => (seg === undefined
 		? false
-		: (math.core.overlapLinePoint(math.core
-				.subtract(segments[1][1], segments[1][0]),
-				segments[1][0], seg[0], math.core.includeS) ||
-			math.core.overlapLinePoint(math.core
-				.subtract(segments[1][1], segments[1][0]),
-				segments[1][0], seg[1], math.core.includeS) ||
-			math.core.overlapLinePoint(math.core
-				.subtract(seg[1], seg[0]), seg[0],
-				segments[1][0], math.core.includeS) ||
-			math.core.overlapLinePoint(math.core
-				.subtract(seg[1], seg[0]), seg[0],
-				segments[1][1], math.core.includeS)
-		));
+		: (math.core.overlapLinePoint(
+			math.core.subtract(segments[1][1], segments[1][0]),
+			segments[1][0],
+			seg[0],
+			math.core.includeS,
+		)
+		|| math.core.overlapLinePoint(
+			math.core.subtract(segments[1][1], segments[1][0]),
+			segments[1][0],
+			seg[1],
+			math.core.includeS,
+		)
+		|| math.core.overlapLinePoint(
+			math.core.subtract(seg[1], seg[0]),
+			seg[0],
+			segments[1][0],
+			math.core.includeS,
+		)
+		|| math.core.overlapLinePoint(
+			math.core.subtract(seg[1], seg[0]),
+			seg[0],
+			segments[1][1],
+			math.core.includeS,
+		))));
 	// valid if A and B
 	return [0, 1].map(i => reflectMatch[i] === true && results_inside[i] === true);
 };
@@ -102,7 +114,7 @@ export const validateAxiom3 = (params, boundary, results) => {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 105
+ * @linkcode Origami ./src/axioms/validate.js 117
  */
 export const validateAxiom4 = (params, boundary) => {
 	const intersect = math.core.intersectLineLine(
@@ -111,7 +123,8 @@ export const validateAxiom4 = (params, boundary) => {
 		math.core.rotate90(params.lines[0].vector),
 		params.points[0],
 		math.core.includeL,
-		math.core.includeL);
+		math.core.includeL,
+	);
 	return [params.points[0], intersect]
 		.filter(a => a !== undefined)
 		.map(p => math.core.overlapConvexPolygonPoint(boundary, p, math.core.include))
@@ -123,7 +136,7 @@ export const validateAxiom4 = (params, boundary) => {
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 126
+ * @linkcode Origami ./src/axioms/validate.js 139
  */
 export const validateAxiom5 = (params, boundary, results) => {
 	if (results.length === 0) { return []; }
@@ -141,7 +154,7 @@ export const validateAxiom5 = (params, boundary, results) => {
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 144
+ * @linkcode Origami ./src/axioms/validate.js 157
  */
 export const validateAxiom6 = function (params, boundary, results) {
 	if (results.length === 0) { return []; }
@@ -162,7 +175,7 @@ export const validateAxiom6 = function (params, boundary, results) {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 165
+ * @linkcode Origami ./src/axioms/validate.js 178
  */
 export const validateAxiom7 = (params, boundary, result) => {
 	// check if the point parameter is inside the polygon
@@ -173,11 +186,13 @@ export const validateAxiom7 = (params, boundary, result) => {
 	const reflected = reflectPoint(result, params.points[0]);
 	const reflectTest = math.core.overlapConvexPolygonPoint(boundary, reflected, math.core.include);
 	// check if the line to fold onto itself is somewhere inside the polygon
-	const paramLineTest = (math.core.intersectConvexPolygonLine(boundary,
+	const paramLineTest = (math.core.intersectConvexPolygonLine(
+		boundary,
 		params.lines[1].vector,
 		params.lines[1].origin,
 		math.core.includeS,
-		math.core.includeL) !== undefined);
+		math.core.includeL,
+	) !== undefined);
 	// same test we do for axiom 4
 	const intersect = math.core.intersectLineLine(
 		params.lines[1].vector,
@@ -185,7 +200,8 @@ export const validateAxiom7 = (params, boundary, result) => {
 		result.vector,
 		result.origin,
 		math.core.includeL,
-		math.core.includeL);
+		math.core.includeL,
+	);
 	const intersectInsideTest = intersect
 		? math.core.overlapConvexPolygonPoint(boundary, intersect, math.core.include)
 		: false;
@@ -198,7 +214,7 @@ export const validateAxiom7 = (params, boundary, result) => {
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 201
+ * @linkcode Origami ./src/axioms/validate.js 217
  */
 export const validate = (number, params, boundary, results) => arrayify(number, [null,
 	validateAxiom1,

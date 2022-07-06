@@ -8,7 +8,7 @@ import { invertMap } from "../graph/maps";
  * @returns {object} a new faces_layer array
  */
 const flipFacesLayer = faces_layer => invertMap(
-	invertMap(faces_layer).reverse()
+	invertMap(faces_layer).reverse(),
 );
 
 export default flipFacesLayer;

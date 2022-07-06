@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear.js");
+const ear = require("rabbit-ear");
 const fs = require("fs");
 
 test("keys", () => {
@@ -35,22 +35,22 @@ const key_test = {
 };
 
 test("filterKeysWithSuffix", () => {
-	const result = ear.graph.filterKeysWithSuffix(key_test, "test")
+	const result = ear.graph.filterKeysWithSuffix(key_test, "test");
 	expect(result.length).toBe(6);
 });
 
 test("filterKeysWithPrefix", () => {
-	const result = ear.graph.filterKeysWithPrefix(key_test, "test")
+	const result = ear.graph.filterKeysWithPrefix(key_test, "test");
 	expect(result.length).toBe(6);
 });
 
 test("getGraphKeysWithPrefix", () => {
-	const result = ear.graph.getGraphKeysWithPrefix(key_test, "test")
+	const result = ear.graph.getGraphKeysWithPrefix(key_test, "test");
 	expect(result.length).toBe(3);
 });
 
 test("getGraphKeysWithSuffix", () => {
-	const result = ear.graph.getGraphKeysWithSuffix(key_test, "test")
+	const result = ear.graph.getGraphKeysWithSuffix(key_test, "test");
 	expect(result.length).toBe(3);
 });
 

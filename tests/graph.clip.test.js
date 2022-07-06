@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("clip line", () => {
 	const graph = {
@@ -19,7 +19,6 @@ test("clip line", () => {
 	expect(segment1[0][1]).toBe(0);
 	expect(segment1[1][0]).toBe(1);
 	expect(segment1[1][1]).toBe(1);
-
 });
 
 test("clip line exclusive, edges collinear", () => {
@@ -43,4 +42,3 @@ test("clip ray", () => {
 	expect(seg[1][0]).toBe(0.6);
 	expect(seg[1][1]).toBe(0);
 });
-

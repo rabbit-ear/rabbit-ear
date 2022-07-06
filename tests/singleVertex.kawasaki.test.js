@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 const testArrays = (a, b) => {
 	a.forEach((_, i) => {

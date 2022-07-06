@@ -3,11 +3,10 @@ const ear = require("rabbit-ear");
 // because there are no faces to build edges_faces, the question is:
 // should edges_faces be empty, or contain empty arrays one for each edge
 test("no face graph", () => {
-
 	const origami = ear.origami({
-		"vertices_coords": [[0,0], [0.5,0.5], [1,0]],
-		"edges_vertices": [[0,1], [1,2]],
-		"edges_assignment": ["B","B"]
+		vertices_coords: [[0, 0], [0.5, 0.5], [1, 0]],
+		edges_vertices: [[0, 1], [1, 2]],
+		edges_assignment: ["B", "B"],
 	});
 
 	expect(origami.edges_faces.length).toBe(2);
@@ -17,8 +16,8 @@ test("no face graph", () => {
 
 test("edges faces direction", () => {
 	const graph = {
-		vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
-		edges_vertices: [[0,1], [1,2], [2,3], [3,0], [2,0]],
+		vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+		edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [2, 0]],
 		edges_assignment: ["B", "B", "B", "B", "M"],
 	};
 	// prepare
@@ -32,9 +31,9 @@ test("edges faces direction", () => {
 	expect(edges_faces1[4][0]).toBe(0);
 	expect(edges_faces1[4][1]).toBe(1);
 
-	graph.edges_vertices = [[0,1], [1,2], [2,3], [3,0], [0,2]];
+	graph.edges_vertices = [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]];
 
 	const edges_faces2 = ear.graph.makeEdgesFaces(graph);
 	expect(edges_faces2[4][0]).toBe(1);
 	expect(edges_faces2[4][1]).toBe(0);
-})
+});

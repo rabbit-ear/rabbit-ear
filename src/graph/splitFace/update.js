@@ -2,14 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { sortVerticesCounterClockwise } from "../sort";
-import {
-	makeVerticesEdges,
-	makeVerticesFaces,
-	makeEdgesFaces,
-	makeFacesFaces,
-	makeVerticesToEdgeBidirectional,
-} from "../make";
-import { findAdjacentFacesToFace } from "../find";
+
 const warning = "splitFace potentially given a non-convex face";
 /**
  * @description a newly-added edge needs to update its two endpoints'
@@ -18,18 +11,30 @@ const warning = "splitFace potentially given a non-convex face";
  * @param {object} FOLD object
  * @param {number} index of the newly-added edge
  */
-export const update_vertices_vertices = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
+export const update_vertices_vertices = ({
+	vertices_coords, vertices_vertices, edges_vertices,
+}, edge) => {
 	const v0 = edges_vertices[edge][0];
 	const v1 = edges_vertices[edge][1];
-	vertices_vertices[v0] = sortVerticesCounterClockwise({ vertices_coords }, vertices_vertices[v0].concat(v1), v0);
-	vertices_vertices[v1] = sortVerticesCounterClockwise({ vertices_coords }, vertices_vertices[v1].concat(v0), v1);
+	vertices_vertices[v0] = sortVerticesCounterClockwise(
+		{ vertices_coords },
+		vertices_vertices[v0].concat(v1),
+		v0,
+	);
+	vertices_vertices[v1] = sortVerticesCounterClockwise(
+		{ vertices_coords },
+		vertices_vertices[v1].concat(v0),
+		v1,
+	);
 };
 /**
  * vertices_vertices was just run before this method. use it.
  * vertices_edges should be up to date, except for the addition
  * of this one new edge at both ends of 
  */
-export const update_vertices_edges = ({ edges_vertices, vertices_edges, vertices_vertices }, edge) => {
+export const update_vertices_edges = ({
+	edges_vertices, vertices_edges, vertices_vertices,
+}, edge) => {
 	// the expensive way, rebuild all arrays
 	// graph.vertices_edges = makeVerticesEdges(graph);
 	if (!vertices_edges || !vertices_vertices) { return; }
@@ -56,7 +61,7 @@ export const update_vertices_faces = (graph, old_face, new_faces) => {
 	// a list of the new faces to be added to this vertex's vertices_faces.
 	const vertices_replacement_faces = {};
 	new_faces
-		.forEach((f, i) => graph.faces_vertices[f]
+		.forEach(f => graph.faces_vertices[f]
 			.forEach(v => {
 				if (!vertices_replacement_faces[v]) {
 					vertices_replacement_faces[v] = [];
@@ -88,7 +93,7 @@ export const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
 	// most will be length of 1, except the edge which split the face will be 2.
 	const edges_replacement_faces = {};
 	new_faces
-		.forEach((f, i) => graph.faces_edges[f]
+		.forEach(f => graph.faces_edges[f]
 			.forEach(e => {
 				if (!edges_replacement_faces[e]) { edges_replacement_faces[e] = []; }
 				edges_replacement_faces[e].push(f);
@@ -102,7 +107,7 @@ export const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
 		// basically rewriting .indexOf(), but supporting multiple results.
 		// these will be the indices containing a reference to the old face.
 		const indices = [];
-		for (let i = 0; i < graph.edges_faces[e].length; i++) {
+		for (let i = 0; i < graph.edges_faces[e].length; i += 1) {
 			if (graph.edges_faces[e][i] === old_face) { indices.push(i); }
 		}
 		if (indices.length === 0 || !replacements) {
@@ -134,14 +139,14 @@ export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, ne
 	const new_faces_vertices = new_faces.map(f => faces_vertices[f]);
 	// for each of the incident faces (to the old face), set one of two
 	// indices, one of the two new faces. this is the new incident face.
-	const incident_face_face = incident_faces.map((f, i) => {
+	const incident_face_face = incident_faces.map(f => {
 		const incident_face_vertices = faces_vertices[f];
 		const score = [0, 0];
-		for (let n = 0; n < new_faces_vertices.length; n++) {
+		for (let n = 0; n < new_faces_vertices.length; n += 1) {
 			let count = 0;
-			for (let j = 0; j < incident_face_vertices.length; j++) {
+			for (let j = 0; j < incident_face_vertices.length; j += 1) {
 				if (new_faces_vertices[n].indexOf(incident_face_vertices[j]) !== -1) {
-					count++;
+					count += 1;
 				}
 			}
 			score[n] = count;
@@ -157,7 +162,7 @@ export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, ne
 	// 2 things, fill the new face's arrays and update each of the
 	// incident faces to point to the correct of the two new faces.
 	incident_faces.forEach((f, i) => {
-		for (let j = 0; j < faces_faces[f].length; j++) {
+		for (let j = 0; j < faces_faces[f].length; j += 1) {
 			if (faces_faces[f][j] === old_face) {
 				faces_faces[f][j] = incident_face_face[i];
 				faces_faces[incident_face_face[i]].push(f);

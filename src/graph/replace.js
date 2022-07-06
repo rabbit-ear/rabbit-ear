@@ -5,7 +5,7 @@ import count from "./count";
 import { uniqueSortedIntegers } from "../general/arrays";
 import {
 	getGraphKeysWithSuffix,
-	getGraphKeysWithPrefix
+	getGraphKeysWithPrefix,
 } from "../fold/spec";
 /**
  * @name replace
@@ -31,7 +31,7 @@ import {
 // replaceIndices: [4:3, 7:5, 8:3, 12:3, 14:9] where keys are indices to remove
 const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	const geometry_array_size = count(graph, key);
-	const removes = Object.keys(replaceIndices).map(n => parseInt(n));
+	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
 	const replaces = uniqueSortedIntegers(removes);
 	const index_map = [];
 	let i, j, walk;
@@ -52,8 +52,8 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	// these arrays do not change their size, only their contents
 	getGraphKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
-			.forEach((_, i) => graph[sKey][i]
-				.forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+			.forEach((_, ii) => graph[sKey][ii]
+				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
 	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays do change their size, their contents are untouched
 	replaces.reverse();

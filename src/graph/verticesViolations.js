@@ -3,10 +3,6 @@
  */
 import math from "../math";
 import getVerticesClusters from "./verticesClusters";
-import {
-	getGraphKeysWithSuffix,
-	getGraphKeysWithPrefix,
-} from "../fold/spec";
 import * as S from "../general/strings";
 import remove from "./remove";
 import replace from "./replace";
@@ -16,17 +12,17 @@ import replace from "./replace";
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} arrays of clusters of similar vertices. todo check this
- * @linkcode Origami ./src/graph/verticesViolations.js 19
+ * @linkcode Origami ./src/graph/verticesViolations.js 15
  */
-export const getDuplicateVertices = (graph, epsilon) => {
-	return getVerticesClusters(graph, epsilon)
-		.filter(arr => arr.length > 1);
-};
+export const getDuplicateVertices = (graph, epsilon) => (
+	getVerticesClusters(graph, epsilon)
+		.filter(arr => arr.length > 1)
+);
 /**
  * @description Get the indices of all vertices which make no appearance in any edge.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 29
+ * @linkcode Origami ./src/graph/verticesViolations.js 25
  */
 export const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
@@ -46,7 +42,7 @@ export const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => 
  * @description Get the indices of all vertices which make no appearance in any face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 49
+ * @linkcode Origami ./src/graph/verticesViolations.js 45
  */
 export const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 	if (!vertices_coords || !faces_vertices) { return []; }
@@ -69,7 +65,7 @@ export const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => 
  * @description Get the indices of all vertices which make no appearance in any edge or face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 72
+ * @linkcode Origami ./src/graph/verticesViolations.js 68
  */
 export const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
 	if (!vertices_coords) { return []; }
@@ -106,7 +102,7 @@ export const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_ver
  * getIsolatedVertices() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} summary of changes
- * @linkcode Origami ./src/graph/verticesViolations.js 109
+ * @linkcode Origami ./src/graph/verticesViolations.js 105
  */
 export const removeIsolatedVertices = (graph, remove_indices) => {
 	if (!remove_indices) {
@@ -130,7 +126,7 @@ export const removeIsolatedVertices = (graph, remove_indices) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} summary of changes
- * @linkcode Origami ./src/graph/verticesViolations.js 133
+ * @linkcode Origami ./src/graph/verticesViolations.js 129
  */
 export const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 	// replaces array will be [index:value] index is the element to delete,
@@ -143,7 +139,7 @@ export const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 		.filter(arr => arr.length > 1);
 	// for each cluster of n, all indices from [1...n] will be replaced with [0]
 	clusters.forEach(cluster => {
-		for (let i = 1; i < cluster.length; i++) {
+		for (let i = 1; i < cluster.length; i += 1) {
 			replace_indices[cluster[i]] = cluster[0];
 			remove_indices.push(cluster[i]);
 		}
@@ -156,8 +152,8 @@ export const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 		.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
 	return {
 		map: replace(graph, S._vertices, replace_indices),
-		remove: remove_indices,    
-	}
+		remove: remove_indices,
+	};
 };
 
 // export const removeDuplicateVertices_first = (graph, epsilon = math.core.EPSILON) => {

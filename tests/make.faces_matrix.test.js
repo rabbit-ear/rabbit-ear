@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("faces matrix, diagonal fold", () => {
   const result = ear.graph.makeFacesMatrix({

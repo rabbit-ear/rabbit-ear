@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 const arraysTest = (a, b) => a
   .forEach((_, i) => expect(a[i]).toBeCloseTo(b[i]));

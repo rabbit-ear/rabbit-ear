@@ -3,7 +3,7 @@
  */
 import {
 	getDuplicateEdges,
-	getCircularEdges
+	getCircularEdges,
 } from "./edgesViolations";
 import {
 	getDuplicateVertices,
@@ -36,7 +36,7 @@ const validate_references = (graph) => {
 		vertices: counts.vertices >= implied.vertices,
 		edges: counts.edges >= implied.edges,
 		faces: counts.faces >= implied.faces,
-	}
+	};
 };
 /**
  * @description Validate a graph, get back a report on its duplicate/circular components.
@@ -72,7 +72,7 @@ const validate = (graph, epsilon) => {
 		},
 		faces: {
 			references: references.faces,
-		}
+		},
 	};
 };
 

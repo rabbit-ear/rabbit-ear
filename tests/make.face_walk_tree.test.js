@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 const fs = require("fs");
 
 // tree object is an array inside an array, looks like:

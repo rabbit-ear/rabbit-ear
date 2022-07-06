@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("methods", () => {
 	const cp = ear.cp();
@@ -29,4 +29,3 @@ test("cp draw methods", () => {
 	l.flat();
 	expect(cp.edges_assignment[cp.edges_assignment.length - 1]).toBe("F");
 });
-

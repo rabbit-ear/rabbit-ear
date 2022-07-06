@@ -19,10 +19,12 @@ export const flattenFrame = (graph, frame_num = 1) => {
 		orderArray = [frame].concat(orderArray);
 		if (frame === 0) { return orderArray; }
 		if (recurse_graph.file_frames[frame - 1].frame_inherit
-			 && recurse_graph.file_frames[frame - 1].frame_parent != null) {
-			return recurse(recurse_graph,
+			&& recurse_graph.file_frames[frame - 1].frame_parent != null) {
+			return recurse(
+				recurse_graph,
 				recurse_graph.file_frames[frame - 1].frame_parent,
-				orderArray);
+				orderArray,
+			);
 		}
 		return orderArray;
 	};

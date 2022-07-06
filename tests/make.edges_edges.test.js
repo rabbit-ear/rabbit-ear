@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("edges_edges square", () => {
   const graph = { edges_vertices: [[0, 1], [1,2], [2,3], [3,0]] };

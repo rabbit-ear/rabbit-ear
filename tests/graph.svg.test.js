@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 const xmldom = require("@xmldom/xmldom");
 
 ear.window = xmldom;

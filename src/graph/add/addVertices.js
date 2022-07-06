@@ -25,7 +25,7 @@ const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
 	const vertices_equivalent_vertices = vertices_coords
 		.map(vertex => graph.vertices_coords
 			.map(v => math.core.distance(v, vertex) < epsilon)
-			.map((on_vertex, i) => on_vertex ? i : undefined)
+			.map((on_vertex, i) => (on_vertex ? i : undefined))
 			.filter(a => a !== undefined)
 			.shift());
 	// to be used in the return data array
@@ -36,7 +36,7 @@ const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
 	graph.vertices_coords.push(...unique_vertices);
 	// return the indices of the added vertices in the destination graph
 	return vertices_equivalent_vertices
-		.map(el => el === undefined ? index++ : el);
+		.map(el => (el === undefined ? index++ : el));
 };
 
 export default addVertices;

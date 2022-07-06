@@ -7,7 +7,7 @@
  * @returns {boolean} true if the graph is folded.
  * @linkcode Origami ./src/graph/query.js 8
  */
-export const isFoldedForm = (graph) => {
-	return (graph.frame_classes && graph.frame_classes.includes("foldedForm"))
-		|| (graph.file_classes && graph.file_classes.includes("foldedForm"));
-};
+export const isFoldedForm = (graph) => (
+	(graph.frame_classes && graph.frame_classes.includes("foldedForm"))
+		|| (graph.file_classes && graph.file_classes.includes("foldedForm"))
+);

@@ -4,25 +4,29 @@
 import math from "../math";
 
 const boundary_for_arrows = ({ vertices_coords }) => math.core
-	.convexHull(vertices_coords);
+	.convexHullPoints(vertices_coords);
 
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineConvexPolygon(polygon,
+		const foldSegment = math.core.clipLineConvexPolygon(
+			polygon,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
-			math.core.includeL);
+			math.core.includeL,
+		);
 		if (foldSegment === undefined) { return; }
 		point = math.core.midpoint(...foldSegment);
 	}
 	const perpVector = math.core.rotate90(foldLine.vector);
 	const smallest = math.core
-		.clipLineConvexPolygon(polygon,
+		.clipLineConvexPolygon(
+			polygon,
 			perpVector,
 			point,
 			math.core.exclude,
-			math.core.includeL)
+			math.core.includeL,
+		)
 		.map(pt => math.core.distance(point, pt))
 		.sort((a, b) => a - b)
 		.shift();
@@ -42,7 +46,7 @@ const widest_perpendicular = (polygon, foldLine, point) => {
  * the dimensions of the FOLD graph.
  */
 const simpleArrow = (graph, line) => {
-	const hull = math.core.convexHull(graph.vertices_coords);
+	const hull = boundary_for_arrows(graph);
 	const box = math.core.boundingBox(hull);
 	const segment = widest_perpendicular(hull, line);
 	if (segment === undefined) { return undefined; }

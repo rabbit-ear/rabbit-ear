@@ -18,7 +18,7 @@ const isWebWorker = typeof self === S._object
 export {
 	isBrowser,
 	isNode,
-	isWebWorker
+	isWebWorker,
 };
 
 // // for debugging, uncomment to log system on boot

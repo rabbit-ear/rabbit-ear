@@ -7,7 +7,6 @@ import {
 } from "../intersect";
 import splitEdge from "../splitEdge/index";
 import remove from "../remove";
-import { mergeNextmaps } from "../maps";
 import {
 	sortVerticesAlongVector,
 	sortVerticesCounterClockwise,
@@ -19,7 +18,7 @@ import {
 	makeEdgesFacesUnsorted,
 	makeFacesFaces,
 } from "../make";
-import addVertices from "../add/addVertices";
+import addVertices from "./addVertices";
 import {
 	counterClockwiseWalk,
 	filterWalkedBoundaryFace,
@@ -45,7 +44,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	// each segment which already exists as "false".
 	const seg_not_exist_yet = unfiltered_segment_edges_vertices
 		.map(verts => verts.join(" "))
-		.map((str, i) => pre_edge_map[str] === undefined);
+		.map(str => pre_edge_map[str] === undefined);
 	// now, build the actual edges which will be added to the graph
 	// by filtering out the edges which already exist
 	const segment_edges_vertices = unfiltered_segment_edges_vertices
@@ -53,7 +52,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	// these are the indices of the new segments.
 	const segment_edges = Array
 		.from(Array(segment_edges_vertices.length))
-		.map((_, i) => graph.edges_vertices.length + i)
+		.map((_, i) => graph.edges_vertices.length + i);
 	// add new edges to the graph, these edges compose the new segment.
 	// add edges_vertices.
 	segment_edges.forEach((e, i) => {
@@ -72,7 +71,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	// and most importantly, use the "seg_not_exist_yet" from earlier to
 	// check if an edge already existed, and prevent joining vertices across
 	// these already existing edges.
-	for (let i = 0; i < segment_vertices.length; i++) {
+	for (let i = 0; i < segment_vertices.length; i += 1) {
 		const vertex = segment_vertices[i];
 		const prev = seg_not_exist_yet[i - 1] ? segment_vertices[i - 1] : undefined;
 		const next = seg_not_exist_yet[i] ? segment_vertices[i + 1] : undefined;
@@ -84,22 +83,25 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 		const unsorted_vertices_vertices = previous_vertices_vertices
 			.concat(new_adjacent_vertices);
 		graph.vertices_vertices[vertex] = sortVerticesCounterClockwise(
-			graph, unsorted_vertices_vertices, segment_vertices[i]);
+			graph,
+			unsorted_vertices_vertices,
+			segment_vertices[i],
+		);
 	}
 	// build vertices_edges from vertices_vertices
 	const edge_map = makeVerticesToEdgeBidirectional(graph);
-	for (let i = 0; i < segment_vertices.length; i++) {
+	for (let i = 0; i < segment_vertices.length; i += 1) {
 		const vertex = segment_vertices[i];
 		graph.vertices_edges[vertex] = graph.vertices_vertices[vertex]
 			.map(v => edge_map[`${vertex} ${v}`]);
 	}
 	// build vertices_sectors from vertices_vertices
 	segment_vertices
-		.map(center => graph.vertices_vertices[center].length === 1
-		? [math.core.TWO_PI]
-		: math.core.counterClockwiseSectors2(graph.vertices_vertices[center]
-			.map(v => math.core
-				.subtract2(graph.vertices_coords[v], graph.vertices_coords[center]))))
+		.map(center => (graph.vertices_vertices[center].length === 1
+			? [math.core.TWO_PI]
+			: math.core.counterClockwiseSectors2(graph.vertices_vertices[center]
+				.map(v => math.core
+					.subtract2(graph.vertices_coords[v], graph.vertices_coords[center])))))
 		.forEach((sectors, i) => {
 			graph.vertices_sectors[segment_vertices[i]] = sectors;
 		});
@@ -117,7 +119,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
  * @param {number[]} point2 a 2D point as an array of numbers
  * @param {number} [epsilon=1e-6] optional epsilon for merging vertices
  * @returns {number[]} the indices of the new edge(s) composing the segment.
- * @linkcode Origami ./src/graph/add/addPlanarSegment.js 120
+ * @linkcode Origami ./src/graph/add/addPlanarSegment.js 122
  */
 const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) => {
 	// vertices_sectors not a part of the spec, might not be included.
@@ -134,10 +136,14 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 	//   .map(coord => coord.slice(0, 2));
 	// get all edges which intersect the segment.
 	const intersections = makeEdgesSegmentIntersection(
-		graph, segment[0], segment[1], epsilon);
+		graph,
+		segment[0],
+		segment[1],
+		epsilon,
+	);
 	// get the indices of the edges, sorted.
 	const intersected_edges = intersections
-		.map((pt, e) => pt === undefined ? undefined : e)
+		.map((pt, e) => (pt === undefined ? undefined : e))
 		.filter(a => a !== undefined)
 		.sort((a, b) => a - b);
 	// using edges_faces, get all faces which have an edge intersected.
@@ -146,7 +152,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 		.forEach(e => graph.edges_faces[e]
 			.forEach(f => { faces_map[f] = true; }));
 	const intersected_faces = Object.keys(faces_map)
-		.map(s => parseInt(s))
+		.map(s => parseInt(s, 10))
 		.sort((a, b) => a - b);
 	// split all intersected edges into two edges, in reverse order
 	// so that the "remove()" call only ever removes the last from the
@@ -154,7 +160,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 	// vertices, faces, adjacent of each, etc..
 	const splitEdge_results = intersected_edges
 		.reverse()
-		.map(edge => splitEdge(graph, edge, intersections[edge], epsilon))
+		.map(edge => splitEdge(graph, edge, intersections[edge], epsilon));
 	const splitEdge_vertices = splitEdge_results.map(el => el.vertex);
 	// do we need this? changelog for edges? maybe it will be useful someday.
 	// todo, should this list be reversed?
@@ -176,7 +182,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 	const new_vertex_hash = {};
 	splitEdge_vertices.forEach(v => { new_vertex_hash[v] = true; });
 	endpoint_vertices.forEach(v => { new_vertex_hash[v] = true; });
-	const new_vertices = Object.keys(new_vertex_hash).map(n => parseInt(n));
+	const new_vertices = Object.keys(new_vertex_hash).map(n => parseInt(n, 10));
 	// these vertices are sorted in the direction of the segment
 	const segment_vertices = sortVerticesAlongVector(graph, new_vertices, segment_vector);
 
@@ -208,7 +214,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 	// additionally, we don't have to worry about repeating faces, the
 	// method has a protection against that ("walked_edges").
 	const face_walk_start_pairs = segment_vertices
-		.map((v, i) => graph.vertices_vertices[v]
+		.map(v => graph.vertices_vertices[v]
 			.map(adj_v => [[adj_v, v], [v, adj_v]]))
 		.reduce((a, b) => a.concat(b), [])
 		.reduce((a, b) => a.concat(b), []);

@@ -20,7 +20,7 @@ const get_instructions_for_axiom = (axiom) => {
 
 const make_instructions = (construction) => {
 	const axiom = construction.axiom || 0;
-	if (!isNaN(axiom) && axiom != null && axiom > 0 && axiom < 8) {
+	if (!Number.isNaN(axiom) && axiom != null && axiom > 0 && axiom < 8) {
 		return get_instructions_for_axiom(axiom);
 	}
 	return construction.assignment
@@ -30,33 +30,32 @@ const make_instructions = (construction) => {
 
 const diagram_step = (construction) => {
 	switch (construction.type) {
-		case "flip":
-			return {
-				"re:diagram_arrows": [{
-					"re:diagram_arrow_classes": ["flip"],
-					"re:diagram_arrow_coords": []
-				}],
-				"re:diagram_instructions": { en: "flip over" }
-			};
-		case "fold":
-			return {
-				"re:diagram_lines": [{
-					"re:diagram_line_classes": [edgesAssignmentNames[construction.assignment]],
-					"re:diagram_line_coords": construction.edge,
-				}],
-				"re:diagram_arrows": [{
-					"re:diagram_arrowClasses": [],
-					"re:diagram_arrow_coords": make_arrow_coords(construction, graph)
-				}],
-				"re:diagram_instructions": make_instructions(construction)
-			};
-		case "squash":
-		case "sink":
-		case "pleat":
-		default:
-			return { error: `construction type (${construction.type}) not yet defined` };
+	case "flip":
+		return {
+			"re:diagram_arrows": [{
+				"re:diagram_arrow_classes": ["flip"],
+				"re:diagram_arrow_coords": [],
+			}],
+			"re:diagram_instructions": { en: "flip over" },
+		};
+	case "fold":
+		return {
+			"re:diagram_lines": [{
+				"re:diagram_line_classes": [edgesAssignmentNames[construction.assignment]],
+				"re:diagram_line_coords": construction.edge,
+			}],
+			"re:diagram_arrows": [{
+				"re:diagram_arrowClasses": [],
+				"re:diagram_arrow_coords": make_arrow_coords(construction, graph),
+			}],
+			"re:diagram_instructions": make_instructions(construction),
+		};
+	case "squash":
+	case "sink":
+	case "pleat":
+	default:
+		return { error: `construction type (${construction.type}) not yet defined` };
 	}
 };
 
 export default diagram_step;
-

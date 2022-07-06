@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// maybe we can do this without copying the entire graph first. use the component arrays to bring over only what is necessary
+// maybe we can do this without copying the entire graph first.
+// use the component arrays to bring over only what is necessary
 
 // todo: this is still an early sketch. needs to be completed
 

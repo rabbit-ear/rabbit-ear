@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("vertices vertices", () => {
   const result = ear.graph.makeVerticesVertices({

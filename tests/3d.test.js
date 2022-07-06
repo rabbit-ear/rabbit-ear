@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear.js");
+const ear = require("rabbit-ear");
 const fs = require("fs");
 
 test("fold in 3d", () => {
@@ -29,7 +29,7 @@ test("fold in 3d", () => {
 	const new_vertices_coords = cp.vertices_coords
 		.map((coords, i) => ear.math.multiplyMatrix3Vector3(
 			faces_matrix[vertices_faces[i][0]],
-			ear.math.resize(3, coords)
+			ear.math.resize(3, coords),
 		));
 
 	// modify the original graph, replace the vertices_coords with the new set.

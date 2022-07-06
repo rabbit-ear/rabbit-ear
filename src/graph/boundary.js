@@ -15,10 +15,10 @@ import {
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
  * @linkcode Origami ./src/graph/boundary.js 16
  */
-export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) =>
+export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => (
 	uniqueIntegers(edges_vertices
 		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
-		.flat());
+		.flat()));
 // export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
 // 	// assign vertices to a hash table to make sure they are unique.
 // 	const vertices = {};
@@ -91,9 +91,11 @@ export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }
  * @usage call populate() before to ensure this works.
  * @linkcode Origami ./src/graph/boundary.js 92
  */
-export const getPlanarBoundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
+export const getPlanarBoundary = ({
+	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
+}) => {
 	if (!vertices_vertices) {
-		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });    
+		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const edge_walk = [];

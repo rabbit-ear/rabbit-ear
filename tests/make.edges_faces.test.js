@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("edges_faces square", () => {
   const result = ear.graph.makeEdgesFaces({

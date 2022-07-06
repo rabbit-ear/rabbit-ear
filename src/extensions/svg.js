@@ -7,7 +7,8 @@ const SVG_Constructor = {
 };
 /**
  * @name svg
- * @description Create an svg element, the object will be bound with instance methods for creating children and styles.
+ * @description Create an svg element, the object will be bound with instance
+ * methods for creating children and styles.
  * @memberof svg
  * @param {Element} [parent=undefined] optional parent DOM element, this will append to.
  * @param {number} [width=undefined] optional width of viewBox (if present, include height)
@@ -21,6 +22,7 @@ const SVG_Constructor = {
  * ear.svg(640, 480, document.body, (svg) => {
  *   // window did load, and "svg" is scoped
  * })
+ * @linkcode SVG ./src/library.js 24
  */
 function SVG () {
 	return SVG_Constructor.init(...arguments);
@@ -68,7 +70,7 @@ const isNode = typeof process !== str_undefined
 
 const svgErrors = [];
 
-svgErrors[10] = `"error 010: window" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )`;
+svgErrors[10] = "\"error 010: window\" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )";
 
 /**
  * SVG (c) Kraft
@@ -93,7 +95,7 @@ if (isBrowser) { svgWindowContainer.window = window; }
  */
 const SVGWindow = () => {
 	if (svgWindowContainer.window === undefined) {
-    throw svgErrors[10];
+		throw svgErrors[10];
 	}
 	return svgWindowContainer.window;
 };
@@ -192,19 +194,42 @@ var NodeNames = {
 /**
  * SVG (c) Kraft
  */
-const vec = (a, d) => [Math.cos(a) * d, Math.sin(a) * d];
+const svg_add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
+const svg_sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const svg_scale2 = (a, s) => [a[0] * s, a[1] * s];
+const svg_magnitudeSq2 = (a) => (a[0] ** 2) + (a[1] ** 2);
+const svg_magnitude2 = (a) => Math.sqrt(svg_magnitudeSq2(a));
+const svg_distanceSq2 = (a, b) => svg_magnitudeSq2(svg_sub2(a, b));
+const svg_distance2 = (a, b) => Math.sqrt(svg_distanceSq2(a, b));
+const svg_polar_to_cart = (a, d) => [Math.cos(a) * d, Math.sin(a) * d];
+
+var svg_algebra = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	svg_add2: svg_add2,
+	svg_sub2: svg_sub2,
+	svg_scale2: svg_scale2,
+	svg_magnitudeSq2: svg_magnitudeSq2,
+	svg_magnitude2: svg_magnitude2,
+	svg_distanceSq2: svg_distanceSq2,
+	svg_distance2: svg_distance2,
+	svg_polar_to_cart: svg_polar_to_cart
+});
+
+/**
+ * SVG (c) Kraft
+ */
 
 const arcPath = (x, y, radius, startAngle, endAngle, includeCenter = false) => {
 	if (endAngle == null) { return ""; }
-	const start = vec(startAngle, radius);
-	const end = vec(endAngle, radius);
+	const start = svg_polar_to_cart(startAngle, radius);
+	const end = svg_polar_to_cart(endAngle, radius);
 	const arcVec = [end[0] - start[0], end[1] - start[1]];
 	const py = start[0] * end[1] - start[1] * end[0];
 	const px = start[0] * end[0] + start[1] * end[1];
 	const arcdir = (Math.atan2(py, px) > 0 ? 0 : 1);
 	let d = (includeCenter
 		? `M ${x},${y} l ${start[0]},${start[1]} `
-		: `M ${x+start[0]},${y+start[1]} `);
+		: `M ${x + start[0]},${y + start[1]} `);
 	d += ["a ", radius, radius, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
 	if (includeCenter) { d += " Z"; }
 	return d;
@@ -223,8 +248,8 @@ var Arc = {
 		args: arcArguments,
 		methods: {
 			setArc: (el, ...args) => el.setAttribute("d", arcArguments(...args)),
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -240,8 +265,8 @@ var Wedge = {
 		attributes: ["d"],
 		methods: {
 			setArc: (el, ...args) => el.setAttribute("d", wedgeArguments(...args)),
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -251,14 +276,14 @@ const COUNT = 128;
 
 const parabolaArguments = (x = -1, y = 0, width = 2, height = 1) => Array
 	.from(Array(COUNT + 1))
-	.map((_, i) => (i - (COUNT)) / COUNT * 2 + 1)
+	.map((_, i) => ((i - (COUNT)) / COUNT) * 2 + 1)
 	.map(i => [
 		x + (i + 1) * width * 0.5,
-		y + (i ** 2) * height
+		y + (i ** 2) * height,
 	]);
 
 const parabolaPathString = (a, b, c, d) => [
-	parabolaArguments(a, b, c, d).map(n => `${n[0]},${n[1]}`).join(" ")
+	parabolaArguments(a, b, c, d).map(n => `${n[0]},${n[1]}`).join(" "),
 ];
 
 /**
@@ -282,14 +307,14 @@ const regularPolygonArguments = (sides, cX, cY, radius) => {
 	// if we want edge-aligned, add this value to the angle.
 	// const halfwedge = Math.PI / sides;
 	return Array.from(Array(sides))
-		.map((el, i) => 2 * Math.PI * i / sides)
+		.map((el, i) => 2 * Math.PI * (i / sides))
 		.map(a => [Math.cos(a), Math.sin(a)])
 		.map(pts => origin.map((o, i) => o + radius * pts[i]));
 };
 
 const polygonPathString = (sides, cX = 0, cY = 0, radius = 1) => [
 	regularPolygonArguments(sides, cX, cY, radius)
-		.map(a => `${a[0]},${a[1]}`).join(" ")
+		.map(a => `${a[0]},${a[1]}`).join(" "),
 ];
 
 /**
@@ -300,8 +325,8 @@ var RegularPolygon = {
 	regularPolygon: {
 		nodeName: "polygon",
 		attributes: [str_points],
-		args: polygonPathString
-	}
+		args: polygonPathString,
+	},
 };
 
 /**
@@ -324,8 +349,8 @@ var RoundRect = {
 	roundRect: {
 		nodeName: str_path,
 		attributes: ["d"],
-		args: roundRectArguments
-	}
+		args: roundRectArguments,
+	},
 };
 
 /**
@@ -334,40 +359,38 @@ var RoundRect = {
 var Case = {
 	toCamel: s => s
 		.replace(/([-_][a-z])/ig, $1 => $1
-		.toUpperCase()
-		.replace("-", "")
-		.replace("_", "")),
-	 toKebab: s => s
-		 .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-		 .replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2")
-		 .toLowerCase(),
+			.toUpperCase()
+			.replace("-", "")
+			.replace("_", "")),
+	toKebab: s => s
+		.replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+		.replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2")
+		.toLowerCase(),
 	capitalized: s => s
-		.charAt(0).toUpperCase() + s.slice(1)
+		.charAt(0).toUpperCase() + s.slice(1),
 };
 
 /**
  * SVG (c) Kraft
  */
 
-const svg_is_iterable = (obj) => {
-	return obj != null && typeof obj[Symbol.iterator] === str_function;
-};
+const svg_is_iterable = (obj) => obj != null && typeof obj[Symbol.iterator] === str_function;
 /**
- * flatten only until the point of comma separated entities. recursive
+ * @description flatten only until the point of comma separated entities. recursive
  * @returns always an array
  */
 const svg_semi_flatten_arrays = function () {
 	switch (arguments.length) {
-		case undefined:
-		case 0: return Array.from(arguments);
-		// only if its an array (is iterable) and NOT a string
-		case 1: return svg_is_iterable(arguments[0]) && typeof arguments[0] !== str_string
-			? svg_semi_flatten_arrays(...arguments[0])
-			: [arguments[0]];
-		default:
-			return Array.from(arguments).map(a => (svg_is_iterable(a)
-				? [...svg_semi_flatten_arrays(a)]
-				: a));
+	case undefined:
+	case 0: return Array.from(arguments);
+	// only if its an array (is iterable) and NOT a string
+	case 1: return svg_is_iterable(arguments[0]) && typeof arguments[0] !== str_string
+		? svg_semi_flatten_arrays(...arguments[0])
+		: [arguments[0]];
+	default:
+		return Array.from(arguments).map(a => (svg_is_iterable(a)
+			? [...svg_semi_flatten_arrays(a)]
+			: a));
 	}
 };
 
@@ -383,41 +406,17 @@ const svg_semi_flatten_arrays = function () {
  * it's necessary the entries sit at the top level of ...args
  * findCoordinates(...flatten(...args));
  */
-var coordinates = (...args) => {
-	// [top-level numbers] concat [{x:,y:} and [0,1]] style
-	return args.filter(a => typeof a === str_number)
-		.concat(
-			args.filter(a => typeof a === str_object && a !== null)
-				.map((el) => {
-					if (typeof el.x === str_number) { return [el.x, el.y]; }
-					if (typeof el[0] === str_number) { return [el[0], el[1]]; }
-					return undefined;
-				}).filter(a => a !== undefined)
-				.reduce((a, b) => a.concat(b), [])
-		);
-};
-
-/**
- * SVG (c) Kraft
- */
-const svg_magnitudeSq2 = (a) => (a[0] ** 2) + (a[1] ** 2);
-const svg_magnitude2 = (a) => Math.sqrt(svg_magnitudeSq2(a));
-const svg_distanceSq2 = (a, b) => svg_magnitudeSq2(svg_sub2(a, b));
-const svg_distance2 = (a, b) => Math.sqrt(svg_distanceSq2(a, b));
-const svg_add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
-const svg_sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
-const svg_scale2 = (a, s) => [a[0] * s, a[1] * s];
-
-var svg_algebra = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	svg_magnitudeSq2: svg_magnitudeSq2,
-	svg_magnitude2: svg_magnitude2,
-	svg_distanceSq2: svg_distanceSq2,
-	svg_distance2: svg_distance2,
-	svg_add2: svg_add2,
-	svg_sub2: svg_sub2,
-	svg_scale2: svg_scale2
-});
+var coordinates = (...args) => args
+	.filter(a => typeof a === str_number)
+	.concat(args
+		.filter(a => typeof a === str_object && a !== null)
+		.map((el) => {
+			if (typeof el.x === str_number) { return [el.x, el.y]; }
+			if (typeof el[0] === str_number) { return [el[0], el[1]]; }
+			return undefined;
+		}).filter(a => a !== undefined)
+		.reduce((a, b) => a.concat(b), []));
+// [top-level numbers] concat [{x:,y:} and [0,1]] style
 
 /**
  * SVG (c) Kraft
@@ -501,12 +500,23 @@ const setArrowheadOptions = (element, options, which) => {
 	}
 };
 
-const setArrowStyle = (element, options = {}, which) => {
+const setArrowStyle = (element, options = {}, which = str_head) => {
 	const path = element.getElementsByClassName(`${str_arrow}-${which}`)[0];
+	// find options which translate to object methods (el.stroke("red"))
 	Object.keys(options)
 		.map(key => ({ key, fn: path[Case.toCamel(key)] }))
-		.filter(el => typeof el.fn === str_function)
+		.filter(el => typeof el.fn === str_function && el.key !== "class")
 		.forEach(el => el.fn(options[el.key]));
+	// find options which don't work as methods, set as attributes
+	// Object.keys(options)
+	// 	.map(key => ({ key, fn: path[Case.toCamel(key)] }))
+	// 	.filter(el => typeof el.fn !== S.str_function && el.key !== "class")
+	// 	.forEach(el => path.setAttribute(el.key, options[el.key]));
+	//
+	// apply a class attribute (add, don't overwrite existing classes)
+	Object.keys(options)
+		.filter(key => key === "class")
+		.forEach(key => path.classList.add(options[key]));
 };
 
 const redraw = (element) => {
@@ -514,7 +524,7 @@ const redraw = (element) => {
 	Object.keys(paths)
 		.map(path => ({
 			path,
-			element: element.getElementsByClassName(`${str_arrow}-${path}`)[0]
+			element: element.getElementsByClassName(`${str_arrow}-${path}`)[0],
 		}))
 		.filter(el => el.element)
 		.map(el => { el.element.setAttribute("d", paths[el.path]); return el; })
@@ -523,7 +533,8 @@ const redraw = (element) => {
 			"visibility",
 			element.options[el.path].visible
 				? "visible"
-				: "hidden"));
+				: "hidden",
+		));
 	return element;
 };
 
@@ -602,21 +613,23 @@ const makeArrowOptions = () => ({
 const arrowKeys = Object.keys(makeArrowOptions());
 
 const matchingOptions = (...args) => {
-	for (let a = 0; a < args.length; a++) {
+	for (let a = 0; a < args.length; a += 1) {
 		if (typeof args[a] !== str_object) { continue; }
 		const keys = Object.keys(args[a]);
-		for (let i = 0; i < keys.length; i++) {
+		for (let i = 0; i < keys.length; i += 1) {
 			if (arrowKeys.includes(keys[i])) {
 				return args[a];
 			}
 		}
 	}
+	return undefined;
 };
 
 const init = function (element, ...args) {
-	element.setAttribute(str_class, str_arrow);
+	element.classList.add(str_arrow);
+	// element.setAttribute(S.str_class, S.str_arrow);
 	const paths = ["line", str_tail, str_head]
-		.map(key => SVG.path().setClass(`${str_arrow}-${key}`).appendTo(element));
+		.map(key => SVG.path().addClass(`${str_arrow}-${key}`).appendTo(element));
 	paths[0].setAttribute(str_style, "fill:none;");
 	paths[1].setAttribute(str_stroke, str_none);
 	paths[2].setAttribute(str_stroke, str_none);
@@ -639,18 +652,17 @@ var Arrow = {
 	arrow: {
 		nodeName: "g",
 		attributes: [],
-		args: () => [],  // one function
-		methods: ArrowMethods,  // object of functions
+		args: () => [], // one function
+		methods: ArrowMethods, // object of functions
 		init,
-	}
+	},
 };
 
 /**
  * SVG (c) Kraft
  */
-
 /**
- * totally flatten, recursive
+ * @description totally flatten, recursive
  * @returns an array, always.
  */
 const svg_flatten_arrays = function () {
@@ -679,7 +691,7 @@ const makeCurvePath = (endpoints = [], bend = 0, pinch = 0.5) => {
  */
 
 const curveArguments = (...args) => [
-	makeCurvePath(coordinates(...svg_flatten_arrays(...args)))
+	makeCurvePath(coordinates(...svg_flatten_arrays(...args))),
 ];
 
 /**
@@ -704,10 +716,10 @@ const getCurveEndpoints = (d) => {
 	const move = getMoveTos(d).shift();
 	const curve = getCurveTos(d).shift();
 	const start = move
-		? [move[move.length-2], move[move.length-1]]
+		? [move[move.length - 2], move[move.length - 1]]
 		: [0, 0];
 	const end = curve
-		? [curve[curve.length-2], curve[curve.length-1]]
+		? [curve[curve.length - 2], curve[curve.length - 1]]
 		: [0, 0];
 	return [...start, ...end];
 };
@@ -746,9 +758,9 @@ var Curve = {
 	curve: {
 		nodeName: str_path,
 		attributes: ["d"],
-		args: curveArguments,  // one function
-		methods: curve_methods  // object of functions
-	}
+		args: curveArguments, // one function
+		methods: curve_methods, // object of functions
+	},
 };
 
 /**
@@ -757,7 +769,8 @@ var Curve = {
 
 const nodes = {};
 
-Object.assign(nodes,
+Object.assign(
+	nodes,
 	// to include/exclude nodes from this library
 	// comment out nodes below, rebuild
 	Arc,
@@ -766,7 +779,7 @@ Object.assign(nodes,
 	RegularPolygon,
 	RoundRect,
 	Arrow,
-	Curve
+	Curve,
 );
 
 /**
@@ -910,7 +923,7 @@ const filterWhitespaceNodes = (node) => {
 };
 
 /**
- * parse and checkParseError go together. 
+ * parse and checkParseError go together.
  * checkParseError needs to be called to pull out the .documentElement
  */
 const parse = string => (new (SVGWindow()).DOMParser())
@@ -935,15 +948,14 @@ const async = function (input) {
 			fetch(input)
 				.then(response => response.text())
 				.then(str => checkParseError(parse(str)))
-				.then(xml => xml.nodeName === str_svg
+				.then(xml => (xml.nodeName === str_svg
 					? xml
-					: xml.getElementsByTagName(str_svg)[0])
+					: xml.getElementsByTagName(str_svg)[0]))
 				.then(svg => (svg == null
-						? reject("valid XML found, but no SVG element")
-						: resolve(svg)))
+					? reject(new Error("valid XML found, but no SVG element"))
+					: resolve(svg)))
 				.catch(err => reject(err));
-		}
-		else if (input instanceof SVGWindow().Document) {
+		} else if (input instanceof SVGWindow().Document) {
 			return asyncDone(input);
 		}
 	});
@@ -968,7 +980,7 @@ const isFilename = input => typeof input === str_string
 	&& /^[\w,\s-]+\.[A-Za-z]{3}$/.test(input)
 	&& input.length < 10000;
 
-const Load = input => (isFilename(input) 
+const Load = input => (isFilename(input)
 	&& isBrowser
 	&& typeof SVGWindow().fetch === str_function
 	? async(input)
@@ -1055,7 +1067,7 @@ const SAVE_OPTIONS = () => ({
 	download: false, // trigger a file download (browser only)
 	output: str_string, // output type ("string", "svg") string or XML DOM object
 	windowStyle: false, // include any external stylesheets present on the window object
-	filename: "image.svg" // if "download" is true, the filename for the downloaded file
+	filename: "image.svg", // if "download" is true, the filename for the downloaded file
 });
 
 const getWindowStylesheets = function () {
@@ -1138,6 +1150,7 @@ const convertToViewBox = function (svg, x, y) {
 	const pt = svg.createSVGPoint();
 	pt.x = x;
 	pt.y = y;
+	// todo: i thought this threw an error once. something about getScreenCTM.
 	const svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
 	return [svgPoint.x, svgPoint.y];
 };
@@ -1282,8 +1295,8 @@ var methods$1 = {
  */
 const libraries = {
 	math: {
-		vector: (...args) => [...args]
-	}
+		vector: (...args) => [...args],
+	},
 };
 
 /**
@@ -1312,9 +1325,9 @@ const defineGetter = (obj, prop, value) => Object.defineProperty(obj, prop, {
 });
 
 const assignPress = (e, startPoint) => {
-	["pressX", "pressY"].filter(prop => !e.hasOwnProperty(prop))
+	["pressX", "pressY"].filter(prop => !Object.prototype.hasOwnProperty.call(e, prop))
 		.forEach((prop, i) => defineGetter(e, prop, startPoint[i]));
-	if (!e.hasOwnProperty("press")) {
+	if (!Object.prototype.hasOwnProperty.call(e, "press")) {
 		defineGetter(e, "press", libraries.math.vector(...startPoint));
 	}
 };
@@ -1350,42 +1363,46 @@ const TouchEvents = function (element) {
 				startPoint = [];
 			}
 			assignPress(e, startPoint);
-		}
+		},
 	};
 
 	// assign handlers for onMove, onPress, onRelease
 	Object.keys(categories).forEach((category) => {
-		const propName = "on" + Case.capitalized(category);
+		const propName = `on${Case.capitalized(category)}`;
 		Object.defineProperty(element, propName, {
-			set: (handler) => (handler == null)
-				? removeHandler(category)
-				: categories[category].forEach((handlerName) => {
-						const handlerFunc = (e) => {
-							// const pointer = (e.touches != null && e.touches.length
-							const pointer = (e.touches != null
-								? e.touches[0]
-								: e);
-							// onRelease events don't have a pointer
-							if (pointer !== undefined) {
-								const viewPoint = convertToViewBox(element, pointer.clientX, pointer.clientY)
-									.map(n => isNaN(n) ? undefined : n); // e.target
-								["x", "y"]
-									.filter(prop => !e.hasOwnProperty(prop))
-									.forEach((prop, i) => defineGetter(e, prop, viewPoint[i]));
-								if (!e.hasOwnProperty("position")) {
-									defineGetter(e, "position", libraries.math.vector(...viewPoint));
-								}
-								categoryUpdate[category](e, viewPoint);
+			set: (handler) => {
+				if (handler == null) {
+					removeHandler(category);
+					return;
+				}
+				categories[category].forEach((handlerName) => {
+					const handlerFunc = (e) => {
+						// const pointer = (e.touches != null && e.touches.length
+						const pointer = (e.touches != null
+							? e.touches[0]
+							: e);
+						// onRelease events don't have a pointer
+						if (pointer !== undefined) {
+							const viewPoint = convertToViewBox(element, pointer.clientX, pointer.clientY)
+								.map(n => (Number.isNaN(n) ? undefined : n)); // e.target
+							["x", "y"]
+								.filter(prop => !Object.prototype.hasOwnProperty.call(e, prop))
+								.forEach((prop, i) => defineGetter(e, prop, viewPoint[i]));
+							if (!Object.prototype.hasOwnProperty.call(e, "position")) {
+								defineGetter(e, "position", libraries.math.vector(...viewPoint));
 							}
-							handler(e);
-						};
-						// node.js doesn't have addEventListener
-						if (element.addEventListener) {
-							handlers[handlerName].push(handlerFunc);
-							element.addEventListener(handlerName, handlerFunc);
+							categoryUpdate[category](e, viewPoint);
 						}
-					}),
-			enumerable: true
+						handler(e);
+					};
+					// node.js doesn't have addEventListener
+					if (element.addEventListener) {
+						handlers[handlerName].push(handlerFunc);
+						element.addEventListener(handlerName, handlerFunc);
+					}
+				});
+			},
+			enumerable: true,
 		});
 	});
 
@@ -1397,7 +1414,7 @@ const TouchEvents = function (element) {
  */
 var UUID = () => Math.random()
 	.toString(36)
-	.replace(/[^a-z]+/g, '')
+	.replace(/[^a-z]+/g, "")
 	.concat("aaaaa")
 	.substr(0, 5);
 
@@ -1406,6 +1423,7 @@ var UUID = () => Math.random()
  */
 
 const Animation = function (element) {
+	// let fps; // todo: bring this back
 
 	let start;
 	const handlers = {};
@@ -1448,7 +1466,7 @@ const Animation = function (element) {
 				requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
 			}
 		},
-		enumerable: true
+		enumerable: true,
 	});
 	Object.defineProperty(element, "stop", { value: removeHandlers, enumerable: true });
 };
@@ -1490,7 +1508,7 @@ const controlPoint = function (parent, options = {}) {
 			target[property] = value;
 			updateSVG();
 			return true;
-		}
+		},
 	});
 
 	const setPosition = function (...args) {
@@ -1522,14 +1540,14 @@ const controlPoint = function (parent, options = {}) {
 	[str_svg, "updatePosition", "selected"].forEach(key => Object
 		.defineProperty(position, key, {
 			get: () => cp[key],
-			set: (v) => { cp[key] = v; }
+			set: (v) => { cp[key] = v; },
 		}));
 	Object.defineProperty(position, "remove", {
 		value: () => {
 			// todo, do we need to do any other unwinding?
 			removeFromParent(cp.svg);
 			position.delegate = undefined;
-		}
+		},
 	});
 
 	return proxy;
@@ -1643,8 +1661,8 @@ var svgDef = {
 			TouchEvents(element);
 			Animation(element);
 			applyControlsToSVG(element);
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -1666,8 +1684,8 @@ var gDef = {
 		init: loadGroup,
 		methods: {
 			load: loadGroup,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -1710,7 +1728,7 @@ var attributes = Object.assign(Object.create(null), {
 	radialGradient: [
 		"cx", // <radialGradient>
 		"cy", // <radialGradient>
-		"r",  // <radialGradient>
+		"r", // <radialGradient>
 		"fr", // <radialGradient>
 		"fx", // <radialGradient>
 		"fy", // <radialGradient>
@@ -1750,6 +1768,7 @@ const fromPoints = (a, b, c, d) => [a, b, svg_distance2([a, b], [c, d])];
  * @param {number} radius the radius of the circle
  * @param {...number|number[]} center the center of the circle
  * @returns {Element} an SVG node element
+ * @linkcode SVG ./src/nodes/spec/circle.js 28
  */
 var circleDef = {
 	circle: {
@@ -1757,10 +1776,10 @@ var circleDef = {
 			const coords = coordinates(...svg_flatten_arrays(a, b, c, d));
 			// console.log("SVG circle coords", coords);
 			switch (coords.length) {
-				case 0: case 1: return [, , ...coords]
-				case 2: case 3: return coords;
-				// case 4
-				default: return fromPoints(...coords);
+			case 0: case 1: return [, , ...coords];
+			case 2: case 3: return coords;
+			// case 4
+			default: return fromPoints(...coords);
 			}
 			// return coordinates(...flatten(a, b, c)).slice(0, 3);
 		},
@@ -1773,8 +1792,8 @@ var circleDef = {
 			setCenter: setOrigin,
 			position: setOrigin,
 			setPosition: setOrigin,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -1799,8 +1818,8 @@ var ellipseDef = {
 		args: (a, b, c, d) => {
 			const coords = coordinates(...svg_flatten_arrays(a, b, c, d)).slice(0, 4);
 			switch (coords.length) {
-				case 0: case 1: case 2: return [, , ...coords]
-				default: return coords;
+			case 0: case 1: case 2: return [, , ...coords];
+			default: return coords;
 			}
 		},
 		methods: {
@@ -1812,8 +1831,8 @@ var ellipseDef = {
 			setCenter,
 			position: setCenter,
 			setPosition: setCenter,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -1822,20 +1841,23 @@ var ellipseDef = {
 
 const Args$1 = (...args) => coordinates(...svg_semi_flatten_arrays(...args)).slice(0, 4);
 
-const setPoints$1 = (element, ...args) => { Args$1(...args)
-	.forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
+const setPoints$1 = (element, ...args) => {
+	Args$1(...args).forEach((value, i) => element.setAttribute(attributes.line[i], value));
+	return element;
+};
 /**
  * @name line
  * @description SVG Line element
  * @memberof SVG
+ * @linkcode SVG ./src/nodes/spec/line.js 18
  */
 var lineDef = {
 	line: {
 		args: Args$1,
 		methods: {
 			setPoints: setPoints$1,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -1855,7 +1877,7 @@ const pathCommands = {
 	s: "smoothCurve",
 	q: "quadCurve",
 	t: "smoothQuadCurve",
-	z: "close"
+	z: "close",
 };
 
 // const expectedArguments = {
@@ -1889,26 +1911,26 @@ const parsePathCommands = function (str) {
 	while ((match = markerRegEx.exec(str)) !== null) {
 		results.push(match);
 	}
-	return results.map(match => ({
-		command: str[match.index],
-		index: match.index
+	return results.map(m => ({
+		command: str[m.index],
+		index: m.index,
 	}))
-	.reduceRight((all, cur) => {
-		const chunk = str.substring(cur.index, all.length ? all[all.length - 1].index : str.length);
-		return all.concat([
-			 { command: cur.command,
-			 index: cur.index,
-			 chunk: (chunk.length > 0) ? chunk.substr(1, chunk.length - 1) : chunk }
-		]);
-	}, [])
-	.reverse()
-	.map((el) => {
-		const values = el.chunk.match(digitRegEx);
-		el.en = pathCommands[el.command];
-		el.values = values ? values.map(parseFloat) : [];
-		delete el.chunk;
-		return el;
-	});
+		.reduceRight((all, cur) => {
+			const chunk = str.substring(cur.index, all.length ? all[all.length - 1].index : str.length);
+			return all.concat([{
+				command: cur.command,
+				index: cur.index,
+				chunk: (chunk.length > 0) ? chunk.substr(1, chunk.length - 1) : chunk,
+			}]);
+		}, [])
+		.reverse()
+		.map((el) => {
+			const values = el.chunk.match(digitRegEx);
+			el.en = pathCommands[el.command];
+			el.values = values ? values.map(parseFloat) : [];
+			delete el.chunk;
+			return el;
+		});
 };
 
 /**
@@ -1980,8 +2002,8 @@ Object.keys(pathCommands).forEach((key) => {
 
 var pathDef = {
 	path: {
-		methods: path_methods
-	}
+		methods: path_methods,
+	},
 };
 
 /**
@@ -2020,14 +2042,15 @@ const fixNegatives = function (arr) {
  * @param {number} width the length along the x dimension
  * @param {number} height the length along the y dimension
  * @returns {Element} an SVG node element
+ * @linkcode SVG ./src/nodes/spec/rect.js 40
  */
 var rectDef = {
 	rect: {
 		args: (a, b, c, d) => {
 			const coords = coordinates(...svg_flatten_arrays(a, b, c, d)).slice(0, 4);
 			switch (coords.length) {
-				case 0: case 1: case 2: case 3: return fixNegatives([, , ...coords]);
-				default: return fixNegatives(coords);
+			case 0: case 1: case 2: case 3: return fixNegatives([, , ...coords]);
+			default: return fixNegatives(coords);
 			}
 		},
 		methods: {
@@ -2037,8 +2060,8 @@ var rectDef = {
 			setCenter: setRectOrigin,
 			size: setRectSize,
 			setSize: setRectSize,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -2048,17 +2071,17 @@ var rectDef = {
 var styleDef = {
 	style: {
 		init: (el, text) => {
-				el.textContent = "";
-				el.appendChild(cdata(text));
+			el.textContent = "";
+			el.appendChild(cdata(text));
 		},
 		methods: {
 			setTextContent: (el, text) => {
 				el.textContent = "";
 				el.appendChild(cdata(text));
 				return el;
-			}
-		}
-	}
+			},
+		},
+	},
 };
 
 /**
@@ -2067,13 +2090,14 @@ var styleDef = {
 /**
  * @description SVG text element
  * @memberof SVG
+ * @linkcode SVG ./src/nodes/spec/text.js 11
  */
 var textDef = {
 	text: {
 		// assuming people will at most supply coordinate (x,y,z) and text
 		args: (a, b, c) => coordinates(...svg_flatten_arrays(a, b, c)).slice(0, 2),
 		init: (element, a, b, c, d) => {
-			const text = [a,b,c,d].filter(a => typeof a === str_string).shift();
+			const text = [a, b, c, d].filter(el => typeof el === str_string).shift();
 			if (text) {
 				element.appendChild(SVGWindow().document.createTextNode(text));
 				// it seems like this is excessive and will never happen
@@ -2083,8 +2107,8 @@ var textDef = {
 				//   element.appendChild(window().document.createTextNode(text));
 				// }
 			}
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -2097,18 +2121,18 @@ const makeIDString = function () {
 		.shift() || UUID();
 };
 
-const args = (...args) => [makeIDString(...args)];
+const maskArgs = (...args) => [makeIDString(...args)];
 
 var maskTypes = {
-	mask: { args: args },
-	clipPath: { args: args },
-	symbol: { args: args },
+	mask: { args: maskArgs },
+	clipPath: { args: maskArgs },
+	symbol: { args: maskArgs },
 	marker: {
-		args: args,
+		args: maskArgs,
 		methods: {
 			size: setViewBox,
-			setViewBox: setViewBox
-		}
+			setViewBox: setViewBox,
+		},
 	},
 };
 
@@ -2129,7 +2153,7 @@ const polyString = function () {
 };
 
 const stringifyArgs = (...args) => [
-	polyString(...coordinates(...svg_semi_flatten_arrays(...args)))
+	polyString(...coordinates(...svg_semi_flatten_arrays(...args))),
 ];
 
 const setPoints = (element, ...args) => {
@@ -2159,22 +2183,21 @@ var polyDefs = {
 		args: Args,
 		methods: {
 			setPoints,
-			addPoint
-		}
+			addPoint,
+		},
 	},
 	polygon: {
 		args: Args,
 		methods: {
 			setPoints,
-			addPoint
-		}
-	}
+			addPoint,
+		},
+	},
 };
 
 /**
  * SVG (c) Kraft
  */
-
 /**
  * in each of these instances, arguments maps the arguments to attributes
  * as the attributes are listed in the "attributes" folder.
@@ -2184,7 +2207,8 @@ var polyDefs = {
  * make sure it is returning an array.
  *
  */
-var Spec = Object.assign({},
+var Spec = Object.assign(
+	{},
 	svgDef,
 	gDef,
 	circleDef,
@@ -2239,7 +2263,7 @@ var ManyElements = {
 		"transform-origin", // added by Robby
 		"user-select", // added by Robby
 		"vector-effect",
-		"visibility"
+		"visibility",
 	],
 	animation: [
 		"accumulate", // controls whether or not an animation is cumulative
@@ -2313,16 +2337,16 @@ var ManyElements = {
 	text: [
 		// "x",   // <text>
 		// "y",   // <text>
-		"dx",  // <text>
-		"dy",  // <text>
+		"dx", // <text>
+		"dy", // <text>
 		"alignment-baseline", // specifies how a text alignts vertically
 		"baseline-shift",
 		"dominant-baseline",
-		"lengthAdjust",  // <text>
+		"lengthAdjust", // <text>
 		"method", // for <textPath> only
 		"overline-position",
 		"overline-thickness",
-		"rotate",  // rotates each individual glyph
+		"rotate", // rotates each individual glyph
 		"spacing",
 		"startOffset", // <textPath>
 		"strikethrough-position",
@@ -2330,7 +2354,7 @@ var ManyElements = {
 		"text-anchor",
 		"text-decoration",
 		"text-rendering",
-		"textLength",   // <text>
+		"textLength", // <text>
 		"underline-position",
 		"underline-thickness",
 		"word-spacing",
@@ -2348,11 +2372,11 @@ var ManyElements = {
  */
 
 Object.values(NodeNames)
-	.reduce((a,b) => a.concat(b), [])
+	.reduce((a, b) => a.concat(b), [])
 	.filter(nodeName => attributes[nodeName] === undefined)
 	.forEach(nodeName => { attributes[nodeName] = []; });
 
-[ [[str_svg, "defs", "g"].concat(NodeNames.v, NodeNames.t), ManyElements.presentation],
+[[[str_svg, "defs", "g"].concat(NodeNames.v, NodeNames.t), ManyElements.presentation],
 	[["filter"], ManyElements.effects],
 	[NodeNames.cT.concat("text"), ManyElements.text], // todo: should we include "svg" here?
 	[NodeNames.cF, ManyElements.effects],
@@ -2390,7 +2414,7 @@ var classMethods = {
 	},
 	setId: (element, idName) => {
 		element.setAttributeNS(null, str_id, idName);
-	}
+	},
 };
 
 /**
@@ -2403,7 +2427,7 @@ const getAttr = (element) => {
 };
 
 const TransformMethods = {
-	clearTransform: (el) => { el.removeAttribute(str_transform); return el; }
+	clearTransform: (el) => { el.removeAttribute(str_transform); return el; },
 };
 
 ["translate", "rotate", "scale", "matrix"].forEach(key => {
@@ -2411,7 +2435,8 @@ const TransformMethods = {
 		str_transform,
 		[getAttr(element), `${key}(${args.join(" ")})`]
 			.filter(a => a !== undefined)
-			.join(" "));
+			.join(" "),
+	);
 });
 
 /**
@@ -2488,8 +2513,8 @@ Object.keys(Nodes).forEach((key) => {
 });
 
 const assignMethods = (groups, Methods) => {
-	groups.forEach(n =>
-		Object.keys(Methods).forEach((method) => {
+	groups.forEach(n => Object
+		.keys(Methods).forEach((method) => {
 			Nodes[n].methods[method] = function () {
 				Methods[method](...arguments);
 				return arguments[0];
@@ -2512,8 +2537,8 @@ const RequiredAttrMap = {
 		xmlns: NS,
 	},
 	style: {
-		type: "text/css"
-	}
+		type: "text/css",
+	},
 };
 
 // required attributes for elements like <svg>, <style>
@@ -2546,8 +2571,8 @@ const constructor = (nodeName, parent, ...args) => {
 		});
 	});
 	// custom methods from each primitive's definition
-	Object.keys(Nodes[nodeName].methods).forEach(methodName =>
-		Object.defineProperty(element, methodName, {
+	Object.keys(Nodes[nodeName].methods).forEach(methodName => Object
+		.defineProperty(element, methodName, {
 			value: function () {
 				// all custom methods are attached to the node.
 				// if there is no return value specified,
@@ -2555,8 +2580,9 @@ const constructor = (nodeName, parent, ...args) => {
 				// to encourage method-chaining design.
 				// nevermind.
 				// things need to be able to return undefined
-				return Nodes[nodeName].methods[methodName].call(bound, element, ...arguments);// || element;
-			}
+				return Nodes[nodeName].methods[methodName].call(bound, element, ...arguments);
+				// || element;
+			},
 		}));
 	// a method to create a child and automatically append it to this node
 	if (nodesAndChildren[nodeName]) {
@@ -2601,7 +2627,7 @@ Object.keys(NodeNames).forEach(key => NodeNames[key]
 const link_rabbitear_math = (svg, ear) => {
 	// give all primitives a .svg() method that turns them into a <path>
 	// ignoring primitives: "vector", "line", "ray", "matrix", "plane"
-	[ "segment",
+	["segment",
 		"circle",
 		"ellipse",
 		"rect",
@@ -2714,7 +2740,7 @@ SVG.core = Object.assign(Object.create(null), {
 // default export of the library @xmldom/xmldom
 Object.defineProperty(SVG, "window", {
 	enumerable: false,
-	set: value => setWindow(value),
+	set: value => { setWindow(value); },
 });
 
 export { SVG as default };

@@ -1,8 +1,8 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("count, empty, invalid", (done) => {
 	try {
-		ear.graph.count.vertices()
+		ear.graph.count.vertices();
 	} catch (error) {
 		expect(error).not.toBe(undefined);
 		done();

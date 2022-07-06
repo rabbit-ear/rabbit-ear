@@ -8,7 +8,7 @@ import root from "../../root";
 export const verticesCircle = (graph, attributes = {}) => {
 	const g = root.svg.g();
 	if (!graph || !graph.vertices_coords) { return g; }
-	const svg_vertices = graph.vertices_coords
+	graph.vertices_coords
 		.map(v => root.svg.circle(v[0], v[1], 0.01)) // radius overwritten in "style"
 		.forEach(v => g.appendChild(v));
 	// default style

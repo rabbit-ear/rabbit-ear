@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear.js");
+const ear = require("rabbit-ear");
 
 test("make vertices_edges 1", () => {
   const result = ear.graph.makeVerticesEdgesUnsorted({

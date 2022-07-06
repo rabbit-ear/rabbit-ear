@@ -73,5 +73,4 @@ test("add vertices unique", () => {
 	};
 
 	ear.graph.addVertices(graph, [[0.33, 0.33], [0.5, 0.5]]);
-
 });

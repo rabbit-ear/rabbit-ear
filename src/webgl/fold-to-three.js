@@ -2,10 +2,8 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import window from "../environment/window"
-
+import window from "../environment/window";
 // if three doesn't exist, throw an error
-
 // const make_faces_geometry = (graph, material) => {
 export const make_faces_geometry = (graph) => {
 	const { THREE } = window();
@@ -13,14 +11,14 @@ export const make_faces_geometry = (graph) => {
 		.map(v => [v[0], v[1], v[2] || 0])
 		.flat();
 	const normals = graph.vertices_coords
-		.map(v => [0, 0, 1])
+		.map(() => [0, 0, 1])
 		.flat();
 	const colors = graph.vertices_coords
-		.map(v => [1, 1, 1])
+		.map(() => [1, 1, 1])
 		.flat();
 	const faces = graph.faces_vertices
 		.map(fv => fv
-			.map((v, i, arr) => [arr[0], arr[i+1], arr[i+2]])
+			.map((v, i, arr) => [arr[0], arr[i + 1], arr[i + 2]])
 			.slice(0, fv.length - 2))
 		.flat(2);
 	const geometry = new THREE.BufferGeometry();
@@ -36,11 +34,11 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
 		return [];
 	}
 	const normalized = math.core.normalize(edge_vector);
-	const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
+	const perp = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 		.map(vec => math.core.cross3(vec, normalized))
 		.sort((a, b) => math.core.magnitude(b) - math.core.magnitude(a))
 		.shift();
-	const rotated = [ math.core.normalize(perp) ];
+	const rotated = [math.core.normalize(perp)];
 	// const mat = math.core.make_matrix3_rotate(Math.PI/9, normalized);
 	// for (let i = 1; i < 4; i += 1) {
 	// 	rotated.push(math.core.multiply_matrix3_vector3(mat, rotated[i - 1]));
@@ -53,7 +51,7 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
 	const coords = end_pad === 0
 		? edge_coords
 		: edge_coords.map((coord, i) => math.core.add(coord, nudge[i]));
-	//console.log(dirs);
+	// console.log(dirs);
 	return coords
 		.map(v => dirs.map(dir => math.core.add(v, dir)))
 		.flat();
@@ -76,55 +74,57 @@ export const make_edges_geometry = function ({
 	edges_vector = edges_vector
 		.map(vec => math.core.resize(3, vec));
 	const colorAssignments = {
-		"B": [0.0,0.0,0.0],
- // "M": [0.9,0.31,0.16],
-		"M": [0.0,0.0,0.0],//[34/255, 76/255, 117/255], //[0.6,0.2,0.11],
-		"F": [0.0,0.0,0.0],//[0.25,0.25,0.25],
-		"V": [0.0,0.0,0.0],//[227/255, 85/255, 54/255]//[0.12,0.35,0.50]
+		B: [0.0, 0.0, 0.0],
+		// M: [0.9, 0.31, 0.16],
+		M: [0.0, 0.0, 0.0], // [34/255, 76/255, 117/255], //[0.6,0.2,0.11],
+		F: [0.0, 0.0, 0.0], // [0.25,0.25,0.25],
+		V: [0.0, 0.0, 0.0], // [227/255, 85/255, 54/255]//[0.12,0.35,0.50]
 	};
 
-	const colors = edges_assignment.map(e => 
-		[colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
-		colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
-	).flat(3);
+	const colors = edges_assignment.map(e => [
+		colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+		colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+	]).flat(3);
 
 	const vertices = edges_coords
 		.map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale, end_pad))
 		.flat(2);
 
 	const normals = edges_vector.map(vector => {
-		if (math.core.magSquared(vector) < math.core.EPSILON) { throw "degenerate edge"; }
-		let normalized = math.core.normalize(vector);
+		if (math.core.magSquared(vector) < math.core.EPSILON) {
+			throw new Error("degenerate edge");
+		}
+		const normalized = math.core.normalize(vector);
 		// scale to line width
-		const scaled = math.core.scale(normalized, scale);
+		// const scaled = math.core.scale(normalized, scale);
 		// let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];
-		const c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,-1])), scale);
-		const c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,1])), scale);
+		const c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0, 0, -1])), scale);
+		const c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0, 0, 1])), scale);
 		// let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
 		// let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
 		return [
 			c0, [-c0[2], c0[1], c0[0]],
 			c1, [-c1[2], c1[1], c1[0]],
 			c0, [-c0[2], c0[1], c0[0]],
-			c1, [-c1[2], c1[1], c1[0]]
-		]
+			c1, [-c1[2], c1[1], c1[0]],
+		];
 	}).flat(2);
 
-	let faces = edges_coords.map((e,i) => [
+	const faces = edges_coords.map((e, i) => [
 		// 8 triangles making the long cylinder
-		i*8+0, i*8+4, i*8+1,
-		i*8+1, i*8+4, i*8+5,
-		i*8+1, i*8+5, i*8+2,
-		i*8+2, i*8+5, i*8+6,
-		i*8+2, i*8+6, i*8+3,
-		i*8+3, i*8+6, i*8+7,
-		i*8+3, i*8+7, i*8+0,
-		i*8+0, i*8+7, i*8+4,
+		i * 8 + 0, i * 8 + 4, i * 8 + 1,
+		i * 8 + 1, i * 8 + 4, i * 8 + 5,
+		i * 8 + 1, i * 8 + 5, i * 8 + 2,
+		i * 8 + 2, i * 8 + 5, i * 8 + 6,
+		i * 8 + 2, i * 8 + 6, i * 8 + 3,
+		i * 8 + 3, i * 8 + 6, i * 8 + 7,
+		i * 8 + 3, i * 8 + 7, i * 8 + 0,
+		i * 8 + 0, i * 8 + 7, i * 8 + 4,
 		// endcaps
-		i*8+0, i*8+1, i*8+3,
-		i*8+1, i*8+2, i*8+3,
-		i*8+5, i*8+4, i*8+7,
-		i*8+7, i*8+6, i*8+5,
+		i * 8 + 0, i * 8 + 1, i * 8 + 3,
+		i * 8 + 1, i * 8 + 2, i * 8 + 3,
+		i * 8 + 5, i * 8 + 4, i * 8 + 7,
+		i * 8 + 7, i * 8 + 6, i * 8 + 5,
 	]).flat();
 
 	const geometry = new THREE.BufferGeometry();

@@ -7,10 +7,10 @@
  */
 export const arrayify = (axiomNumber, solutions) => {
 	switch (axiomNumber) {
-		case 3: case "3":
-		case 5: case "5":
-		case 6: case "6": return solutions;
-		default: return [solutions];
+	case 3: case "3":
+	case 5: case "5":
+	case 6: case "6": return solutions;
+	default: return [solutions];
 	}
 };
 /**
@@ -20,9 +20,9 @@ export const arrayify = (axiomNumber, solutions) => {
  */
 export const unarrayify = (axiomNumber, solutions) => {
 	switch (axiomNumber) {
-		case 3: case "3":
-		case 5: case "5":
-		case 6: case "6": return solutions;
-		default: return solutions ? solutions[0] : undefined;
+	case 3: case "3":
+	case 5: case "5":
+	case 6: case "6": return solutions;
+	default: return solutions ? solutions[0] : undefined;
 	}
 };

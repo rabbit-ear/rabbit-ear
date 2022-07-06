@@ -32,7 +32,7 @@ const update_vertices_faces = () => {
  * @param {number[]} two face indices in an array.
  */
 const join_faces = (graph, faces, edge, vertices) => {
-	const other = [faces[1], faces[0]];
+	// const other = [faces[1], faces[0]];
 	// the index of the edge in the face's faces_edges array.
 	const faces_edge_index = faces
 		.map(f => graph.faces_edges[f].indexOf(edge));
@@ -98,7 +98,8 @@ const removePlanarEdge = (graph, edge) => {
 	const vertices = [...graph.edges_vertices[edge]]
 		.sort((a, b) => b - a);
 	const faces = [...graph.edges_faces[edge]];
-	// console.log("removing edge", edge, "with", faces.length, "adjacent faces", faces, "and", vertices.length, "adjacent vertices", vertices);
+	// console.log("removing edge", edge, "with", faces.length, "adjacent faces",
+	// faces, "and", vertices.length, "adjacent vertices", vertices);
 	update_vertices_vertices(graph, vertices);
 	update_vertices_edges(graph, edge, vertices);
 	// is the vertex isolated? if so, mark it for removal
@@ -129,7 +130,8 @@ const removePlanarEdge = (graph, edge) => {
 			arr.forEach((face, j) => {
 				if (face === faces[0] || face === faces[1]) {
 					graph.vertices_faces[i][j] = new_face;
-					already_added ? arr.splice(i, 1) : arr.splice(i, 1, new_face);
+					const params = already_added ? [i, 1] : [i, 1, new_face];
+					arr.splice(...params);
 					already_added = true;
 				}
 			});

@@ -4,7 +4,7 @@
 import math from "../math";
 import {
 	makeEdgesVector,
-	makeEdgesCoords,
+	// makeEdgesCoords,
 	makeFacesPolygon,
 } from "./make";
 import { makeFacesWinding } from "./facesWinding";
@@ -17,7 +17,9 @@ import { makeFacesWinding } from "./facesWinding";
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
  * @linkcode Origami ./src/graph/overlap.js 18
  */
-export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
+export const makeEdgesFacesOverlap = ({
+	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
+}, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -36,7 +38,7 @@ export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_v
 	const faces_vertices_coords = faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
 		// .map((polygon, f) => faces_winding[f] ? polygon : polygon.reverse());
-	for (let f = 0; f < faces_winding.length; f++) {
+	for (let f = 0; f < faces_winding.length; f += 1) {
 		if (!faces_winding[f]) { faces_vertices_coords[f].reverse(); }
 	}
 	matrix.forEach((row, e) => row.forEach((val, f) => {
@@ -47,7 +49,7 @@ export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_v
 				faces_vertices_coords[f],
 				point,
 				math.core.exclude,
-				epsilon
+				epsilon,
 			)).reduce((a, b) => a || b, false);
 		if (point_in_poly) { matrix[e][f] = true; return; }
 		const edge_intersect = math.core.intersectConvexPolygonLine(
@@ -56,7 +58,7 @@ export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_v
 			edges_origin[e],
 			math.core.excludeS,
 			math.core.excludeS,
-			epsilon
+			epsilon,
 		);
 		if (edge_intersect) { matrix[e][f] = true; return; }
 		matrix[e][f] = false;
@@ -90,16 +92,21 @@ export const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_v
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
- * @linkcode Origami ./src/graph/overlap.js 93
+ * @linkcode Origami ./src/graph/overlap.js 95
  */
-export const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
+export const makeFacesFacesOverlap = ({
+	vertices_coords, faces_vertices,
+}, epsilon = math.core.EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))
 		.map(() => Array.from(Array(faces_vertices.length)));
 	const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
-	for (let i = 0; i < faces_vertices.length - 1; i++) {
-		for (let j = i + 1; j < faces_vertices.length; j++) {
+	for (let i = 0; i < faces_vertices.length - 1; i += 1) {
+		for (let j = i + 1; j < faces_vertices.length; j += 1) {
 			const overlap = math.core.overlapConvexPolygons(
-				faces_polygon[i], faces_polygon[j], epsilon);
+				faces_polygon[i],
+				faces_polygon[j],
+				epsilon,
+			);
 			matrix[i][j] = overlap;
 			matrix[j][i] = overlap;
 		}

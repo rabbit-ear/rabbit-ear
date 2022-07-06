@@ -52,7 +52,7 @@ const split_at_intersections = (graph, { vertices, edges }) => {
 		edges: {
 			map,
 			remove: split_results.map(res => res.edges.remove),
-		}
+		},
 	};
 };
 

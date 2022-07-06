@@ -95,7 +95,7 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
 		.forEach(sKey => graph[sKey] // faces_edges or vertices_edges...
 			.forEach((elem, i) => { // faces_edges[0], faces_edges[1], ...
 				// reverse iterate through array, remove elements with splice
-				for (let j = elem.length - 1; j >= 0; j--) {
+				for (let j = elem.length - 1; j >= 0; j -= 1) {
 					if (remove_map[elem[j]] === true) {
 						graph[sKey][i].splice(j, 1);
 					}
@@ -130,7 +130,7 @@ export const removeCircularEdges = (graph, remove_indices) => {
 };
 /**
  * @description Find and remove all duplicate edges from a graph.
- * If an edge is removed, it will mess up the vertices data (vertices_vertices, 
+ * If an edge is removed, it will mess up the vertices data (vertices_vertices,
  * vertices_edges, vertices_faces) so if this method successfully found and
  * removed a duplicate edge, the vertices arrays will be rebuilt as well.
  * @param {FOLD} graph a FOLD object
@@ -145,7 +145,7 @@ export const removeDuplicateEdges = (graph, replace_indices) => {
 	if (!replace_indices) {
 		replace_indices = getDuplicateEdges(graph);
 	}
-	const remove = Object.keys(replace_indices).map(n => parseInt(n));
+	const remove = Object.keys(replace_indices).map(n => parseInt(n, 10));
 	const map = replace(graph, S._edges, replace_indices);
 	// if edges were removed, we need to rebuild vertices_edges and then
 	// vertices_vertices since that was built from vertices_edges, and then

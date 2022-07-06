@@ -71,8 +71,8 @@ const make_closed_polygon = (vertices_coords) => populate({
  * @param {number} [scale=1] the length of the sides.
  * @returns {FOLD} a FOLD object
  */
-Create.square = (scale = 1) =>
-	make_closed_polygon(make_rect_vertices_coords(scale, scale));
+Create.square = (scale = 1) => (
+	make_closed_polygon(make_rect_vertices_coords(scale, scale)));
 /**
  * @description Create a new FOLD object which contains one rectangular face,
  * including vertices and boundary edges.
@@ -80,16 +80,16 @@ Create.square = (scale = 1) =>
  * @param {number} [height=1] the height of the rectangle
  * @returns {FOLD} a FOLD object
  */
-Create.rectangle = (width = 1, height = 1) =>
-	make_closed_polygon(make_rect_vertices_coords(width, height));
+Create.rectangle = (width = 1, height = 1) => (
+	make_closed_polygon(make_rect_vertices_coords(width, height)));
 /**
  * @description Create a new FOLD object with a regular-polygon shaped boundary.
  * @param {number} [sides=3] the number of sides to the polygon
  * @param {number} [radius=1] the circumradius
  * @returns {FOLD} a FOLD object
  */
-Create.polygon = (sides = 3, radius = 1) =>
-  make_closed_polygon(math.core.makePolygonCircumradius(sides, radius));
+Create.polygon = (sides = 3, radius = 1) => (
+	make_closed_polygon(math.core.makePolygonCircumradius(sides, radius)));
 // Create.circle = (sides = 90) =>
 // 	make_closed_polygon(math.core.makePolygon(sides));
 // origami bases. todo: more
@@ -98,9 +98,11 @@ Create.polygon = (sides = 3, radius = 1) =>
  * @returns {FOLD} a FOLD object
  */
 Create.kite = () => populate({
-	vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
-	edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
-	edges_assignment: Array.from("BBBBBBVVF")
+	vertices_coords: [
+		[0, 0], [Math.sqrt(2) - 1, 0], [1, 0], [1, 1 - (Math.sqrt(2) - 1)], [1, 1], [0, 1],
+	],
+	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [5, 1], [3, 5], [5, 2]],
+	edges_assignment: Array.from("BBBBBBVVF"),
 });
 
 export default Create;

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
+import * as S from "./strings";
 /**
  * @description deep copy an object, like JSON.parse(JSON.stringify())
  *

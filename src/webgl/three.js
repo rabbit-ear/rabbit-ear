@@ -47,12 +47,11 @@ const View3D = function (...args) {
 		.shift();
 	if (prop.cp == null) { prop.cp = CreasePattern(unitSquare); }
 
-
 	function bootThreeJS(domParent) {
 		var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
 		var controls = new THREE.OrbitControls(camera, domParent);
 		controls.enableZoom = false;
-//    camera.position.set(0.5, 0.5, 1.5);
+		// camera.position.set(0.5, 0.5, 1.5);
 		camera.position.set(-0.75, 2, -0.025);
 		// controls.target.set(0.5, 0.5, 0.0);
 		controls.target.set(0.0, 0.0, 0.0);
@@ -64,7 +63,7 @@ const View3D = function (...args) {
 		if (window.devicePixelRatio !== 1) {
 			renderer.setPixelRatio(window.devicePixelRatio);
 		}
-		
+
 		renderer.setClearColor("#FFFFFF");
 		renderer.setSize(domParent.clientWidth, domParent.clientHeight);
 		domParent.appendChild(renderer.domElement);
@@ -82,8 +81,7 @@ const View3D = function (...args) {
 		var ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
 		scene.add(ambientLight);
 
-
-		var render = function() {
+		var render = function () {
 			requestAnimationFrame(render);
 			renderer.render(scene, camera);
 			controls.update();
@@ -94,7 +92,7 @@ const View3D = function (...args) {
 	}
 
 	// after page load, find a parent element for the canvas in the arguments
-	const attachToDOM = function() {
+	const attachToDOM = function () {
 		let functions = args.filter((arg) => typeof arg === "function");
 		let numbers = args.filter((arg) => !isNaN(arg));
 		let element = args.filter((arg) =>
@@ -113,29 +111,27 @@ const View3D = function (...args) {
 		if (numbers.length >= 2) {
 			// _svg.setAttributeNS(null, "width", numbers[0]);
 			// _svg.setAttributeNS(null, "height", numbers[1]);
-		} 
+		}
 		if (functions.length >= 1) {
 			functions[0]();
 		}
 	};
 
-
-	if (document.readyState === 'loading') {
+	if (document.readyState === "loading") {
 		// wait until after the <body> has rendered
-		document.addEventListener('DOMContentLoaded', attachToDOM);
+		document.addEventListener("DOMContentLoaded", attachToDOM);
 	} else {
 		attachToDOM();
 	}
-
 
 	function draw() {
 		var material = new THREE.MeshPhongMaterial({
 			color: 0xffffff,
 			side: THREE.DoubleSide,
-			flatShading:true,
-			shininess:0,
-			specular:0xffffff,
-			reflectivity:0
+			flatShading: true,
+			shininess: 0,
+			specular: 0xffffff,
+			reflectivity: 0,
 		});
 
 		let graph = prop.frame
@@ -150,12 +146,12 @@ const View3D = function (...args) {
 		allMeshes.forEach(mesh => scene.add(mesh));
 	}
 
-	const setCreasePattern = function(cp) {
+	const setCreasePattern = function (cp) {
 		// todo: check if cp is a CreasePattern type
 		prop.cp = cp;
 		draw();
 		prop.cp.onchange = draw;
-	}
+	};
 
 	// const load = function(input, callback) { // epsilon
 	//   load_file(input, function(fold) {
@@ -164,12 +160,12 @@ const View3D = function (...args) {
 	//   });
 	// }
 
-	const isFoldedState = function() {
+	const isFoldedState = function () {
 		if (prop.cp == undefined || prop.cp.frame_classes == undefined) { return false; }
 		let frame_classes = prop.cp.frame_classes;
 		if (frame > 0 &&
-			 prop.cp.file_frames[frame - 1] != undefined &&
-			 prop.cp.file_frames[frame - 1].frame_classes != undefined) {
+			prop.cp.file_frames[frame - 1] != undefined &&
+			prop.cp.file_frames[frame - 1].frame_classes != undefined) {
 			frame_classes = prop.cp.file_frames[frame - 1].frame_classes;
 		}
 		// try to discern folded state
@@ -181,7 +177,7 @@ const View3D = function (...args) {
 		}
 		// inconclusive
 		return false;
-	}
+	};
 
 	// return Object.freeze({
 	return {
@@ -203,7 +199,7 @@ const View3D = function (...args) {
 			let frameZero = JSON.parse(JSON.stringify(prop.cp));
 			delete frameZero.file_frames;
 			return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
-		}
+		},
 	// });
 	};
 

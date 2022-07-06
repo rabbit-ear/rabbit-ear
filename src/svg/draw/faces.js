@@ -5,15 +5,16 @@ import * as S from "../../general/strings";
 import { isFoldedForm } from "../../graph/query";
 import { makeFacesWinding } from "../../graph/facesWinding";
 // get the SVG library from its binding to the root of the library
+import { addClassToClassList } from "../classes";
 import root from "../../root";
 
 const FACE_STYLE_FOLDED_ORDERED = {
 	back: { fill: S._white },
-	front: { fill: "#ddd" }
+	front: { fill: "#ddd" },
 };
 const FACE_STYLE_FOLDED_UNORDERED = {
 	back: { opacity: 0.1 },
-	front: { opacity: 0.1 }
+	front: { opacity: 0.1 },
 };
 const FACE_STYLE_FLAT = {
 	// back: { fill: "white", stroke: "none" },
@@ -21,15 +22,15 @@ const FACE_STYLE_FLAT = {
 };
 const GROUP_STYLE_FOLDED_ORDERED = {
 	stroke: S._black,
-	"stroke-linejoin": "bevel"
+	"stroke-linejoin": "bevel",
 };
 const GROUP_STYLE_FOLDED_UNORDERED = {
 	stroke: S._none,
 	fill: S._black,
-	"stroke-linejoin": "bevel"
+	"stroke-linejoin": "bevel",
 };
 const GROUP_STYLE_FLAT = {
-	fill: S._none
+	fill: S._none,
 };
 
 const faces_sorted_by_layer = function (faces_layer) {
@@ -38,7 +39,7 @@ const faces_sorted_by_layer = function (faces_layer) {
 		.map(el => el.i);
 };
 
-const apply_style = (el, attributes = {}) => Object.keys(attributes)
+const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 /**
@@ -59,13 +60,15 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 	// set these class names, and apply the style as attributes on each face.
 	faces_winding.map(w => (w ? classNames[0] : classNames[1]))
 		.forEach((className, i) => {
-			svg_faces[i].setAttributeNS(null, S._class, className);
-			apply_style(svg_faces[i], isFolded
+			addClassToClassList(svg_faces[i], className);
+			// svg_faces[i].classList.add(className);
+			// svg_faces[i].setAttributeNS(null, S._class, className);
+			applyFacesStyle(svg_faces[i], (isFolded
 				? (orderIsCertain
 					? FACE_STYLE_FOLDED_ORDERED[className]
 					: FACE_STYLE_FOLDED_UNORDERED[className])
-				: FACE_STYLE_FLAT[className]);
-			apply_style(svg_faces[i], attributes[className]);
+				: FACE_STYLE_FLAT[className]));
+			applyFacesStyle(svg_faces[i], attributes[className]);
 		});
 	// if the layer-order exists, sort the faces in order of faces_layer
 	const facesInOrder = (orderIsCertain
@@ -80,9 +83,11 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 		get: () => svg_faces.filter((_, i) => !faces_winding[i]),
 	});
 	// set style attributes to the group itself which contains the faces.
-	apply_style(group, isFolded
-		? (orderIsCertain ? GROUP_STYLE_FOLDED_ORDERED : GROUP_STYLE_FOLDED_UNORDERED)
-		: GROUP_STYLE_FLAT);
+	applyFacesStyle(group, (isFolded
+		? (orderIsCertain
+			? GROUP_STYLE_FOLDED_ORDERED
+			: GROUP_STYLE_FOLDED_UNORDERED)
+		: GROUP_STYLE_FLAT));
 	return group;
 };
 /**

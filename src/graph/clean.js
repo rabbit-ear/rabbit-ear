@@ -50,7 +50,7 @@ const clean = (graph, epsilon) => {
 			map: mergeSimpleNextmaps(change_e1.map, change_e2.map),
 			remove: change_e1.remove.concat(change_e2_remove),
 		},
-	}
+	};
 };
 
 export default clean;
