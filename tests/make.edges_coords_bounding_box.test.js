@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("edges coords bounding box", () => {
   const graph = ear.graph.square();

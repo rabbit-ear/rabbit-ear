@@ -9,6 +9,7 @@ import {
 	facesEdgesPolygon,
 } from "./faces";
 import { boundariesPolygon } from "./boundaries";
+import { addClassToClassList } from "../classes";
 import root from "../../root";
 
 // preference for using faces_vertices over faces_edges, it runs faster
@@ -21,7 +22,7 @@ const svg_draw_func = {
 	vertices: verticesCircle,
 	edges: drawEdges, // edgesPaths
 	faces: facesDrawFunction,
-	boundaries: boundariesPolygon
+	boundaries: boundariesPolygon,
 };
 
 /**
@@ -29,7 +30,9 @@ const svg_draw_func = {
  */
 const drawGroup = (key, graph, options) => {
 	const group = options === false ? (root.svg.g()) : svg_draw_func[key](graph, options);
-	group.setAttributeNS(null, S._class, key);
+	// group.classList.add(key);
+	addClassToClassList(group, key);
+	// group.setAttributeNS(null, S._class, key);
 	return group;
 };
 /**

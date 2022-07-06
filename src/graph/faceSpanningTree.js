@@ -23,7 +23,7 @@ export const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
 	const hash = {};
 	face_b_vertices.forEach((v) => { hash[v] = true; });
 	// make a copy of face A containing T/F, if the vertex is shared in face B
-	const match = face_a_vertices.map(v => hash[v] ? true : false);
+	const match = face_a_vertices.map(v => !!hash[v]);
 	// filter and keep only the shared vertices.
 	const shared_vertices = [];
 	const notShared = match.indexOf(false); // -1 if no match, code below still works
@@ -85,11 +85,13 @@ export const makeFaceSpanningTree = ({ faces_vertices, faces_faces }, root_face 
 		const next_level = next_level_with_duplicates
 			.filter((_, i) => !dup_indices[i]);
 		// set next_level's edge_vertices
-		// we cannot depend on faces being convex and only sharing 2 vertices in common. if there are more than 2 edges, let's hope they are collinear. either way, grab the first 2 vertices if there are more.
+		// we cannot depend on faces being convex and only sharing 2 vertices in common.
+		// if there are more than 2 edges, let's hope they are collinear.
+		// either way, grab the first 2 vertices if there are more.
 		next_level
 			.map(el => getFaceFaceSharedVertices(
 				faces_vertices[el.face],
-				faces_vertices[el.parent]
+				faces_vertices[el.parent],
 			)).forEach((ev, i) => {
 				const edge_vertices = ev.slice(0, 2);
 				// const edgeKey = edge_vertices.join(" ");

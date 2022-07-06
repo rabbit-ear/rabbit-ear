@@ -12,7 +12,8 @@ import { invertMap } from "../graph/maps";
  * @param {object} graph a FOLD object, make sure the vertices
  * have already been folded.
  * @param {number} [epsilon=1e-6] an optional epsilon value
- * @returns {number[]} a faces_layer object, describing, for each face (key) which layer the face inhabits (value)
+ * @returns {number[]} a faces_layer object, describing,
+ * for each face (key) which layer the face inhabits (value)
  */
 const makeFacesLayer = (graph, epsilon) => {
 	const conditions = oneLayerConditions(graph, epsilon);

@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("solver", () => {
 	const sectors = [12, 11, 6, 2, 3, 4, 5, 9];

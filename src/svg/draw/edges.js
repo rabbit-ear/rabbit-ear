@@ -4,6 +4,7 @@
 import * as S from "../../general/strings";
 import { isFoldedForm } from "../../graph/query";
 import { makeEdgesAssignment } from "../../graph/make";
+import { addClassToClassList } from "../classes";
 import {
 	edgesFoldAngleAreAllFlat,
 	edgesAssignmentNames,
@@ -29,12 +30,14 @@ const STYLE_FLAT = {
 };
 
 /**
- * @returns {object} an object with 5 keys, each value is an array 
+ * @returns {object} an object with 5 keys, each value is an array
  * arrays contain the unique indices of each edge from the edges_ arrays sorted by assignment
  * if no edges_assignment, or only some defined, remaining edges become "unassigned"
  */
 const edgesAssignmentIndices = (graph) => {
-	const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
+	const assignment_indices = {
+		u: [], f: [], v: [], m: [], b: [],
+	};
 	const lowercase_assignment = graph[S._edges_assignment]
 		.map(a => a.toLowerCase());
 	graph[S._edges_vertices]
@@ -82,13 +85,14 @@ const edgesPathsAssign = ({ vertices_coords, edges_vertices, edges_assignment })
 	const data = edgesPathDataAssign({ vertices_coords, edges_vertices, edges_assignment });
 	Object.keys(data).forEach(assignment => {
 		const path = root.svg.path(data[assignment]);
-		path.setAttributeNS(null, S._class, edgesAssignmentNames[assignment]);
+		addClassToClassList(path, edgesAssignmentNames[assignment]);
+		// path.setAttributeNS(null, S._class, edgesAssignmentNames[assignment]);
 		data[assignment] = path;
 	});
 	return data;
 };
 
-const applyStyle = (el, attributes = {}) => Object.keys(attributes)
+const applyEdgesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 /**
@@ -102,17 +106,19 @@ export const edgesPaths = (graph, attributes = {}) => {
 	const isFolded = isFoldedForm(graph);
 	const paths = edgesPathsAssign(graph);
 	Object.keys(paths).forEach(key => {
-		paths[key].setAttributeNS(null, S._class, edgesAssignmentNames[key]);
-		applyStyle(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
-		applyStyle(paths[key], attributes[key]);
-		applyStyle(paths[key], attributes[edgesAssignmentNames[key]]);
+		addClassToClassList(paths[key], edgesAssignmentNames[key]);
+		// paths[key].classList.add(edgesAssignmentNames[key]);
+		// paths[key].setAttributeNS(null, S._class, edgesAssignmentNames[key]);
+		applyEdgesStyle(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
+		applyEdgesStyle(paths[key], attributes[key]);
+		applyEdgesStyle(paths[key], attributes[edgesAssignmentNames[key]]);
 		group.appendChild(paths[key]);
 		Object.defineProperty(group, edgesAssignmentNames[key], { get: () => paths[key] });
 	});
-	applyStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
 	// todo: everything else that isn't a class name. filter out classes
 	// const no_class_attributes = Object.keys(attributes).filter(
-	applyStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+	applyEdgesStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 	return group;
 };
 
@@ -130,11 +136,13 @@ export const edgesLines = (graph, attributes = {}) => {
 	["b", "m", "v", "f", "u"].forEach(k => {
 		const child_group = root.svg.g();
 		group.appendChild(child_group);
-		child_group.setAttributeNS(null, S._class, edgesAssignmentNames[k]);
-		applyStyle(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
-		applyStyle(child_group, attributes[edgesAssignmentNames[k]]);
+		addClassToClassList(child_group, edgesAssignmentNames[k]);
+		// child_group.classList.add(edgesAssignmentNames[k]);
+		// child_group.setAttributeNS(null, S._class, edgesAssignmentNames[k]);
+		applyEdgesStyle(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
+		applyEdgesStyle(child_group, attributes[edgesAssignmentNames[k]]);
 		Object.defineProperty(group, edgesAssignmentNames[k], {
-			get: () => child_group
+			get: () => child_group,
 		});
 		groups_by_key[k] = child_group;
 	});
@@ -144,22 +152,24 @@ export const edgesLines = (graph, attributes = {}) => {
 	if (graph.edges_foldAngle) {
 		lines.forEach((line, i) => {
 			const angle = graph.edges_foldAngle[i];
-			if (angle === 0 || angle === 180 || angle === -180) { return;}
+			if (angle === 0 || angle === 180 || angle === -180) { return; }
 			line.setAttributeNS(null, "opacity", angleToOpacity(angle));
-		})
+		});
 	}
 	lines.forEach((line, i) => groups_by_key[edges_assignment[i]]
 		.appendChild(line));
 
-	applyStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
-	applyStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+	applyEdgesStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 
 	return group;
 };
 
-export const drawEdges = (graph, attributes) => edgesFoldAngleAreAllFlat(graph)
-	? edgesPaths(graph, attributes)
-	: edgesLines(graph, attributes);
+export const drawEdges = (graph, attributes) => (
+	edgesFoldAngleAreAllFlat(graph)
+		? edgesPaths(graph, attributes)
+		: edgesLines(graph, attributes)
+);
 
 // const make_edgesAssignmentNames = ({ edges_vertices, edges_assignment }) => {
 // 	if (!edges_vertices) { return []; }

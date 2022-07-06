@@ -13,7 +13,9 @@ import { makeEdgesVector } from "./make";
  * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
  * @linkcode Origami ./src/graph/edgesEdges.js 14
  */
-export const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => { // = math.core.EPSILON) => {
+export const makeEdgesEdgesParallel = ({
+	vertices_coords, edges_vertices, edges_vector,
+}, epsilon) => { // = math.core.EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -21,8 +23,8 @@ export const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_
 	const edges_edges_parallel = Array
 		.from(Array(edge_count))
 		.map(() => Array.from(Array(edge_count)));
-	for (let i = 0; i < edge_count - 1; i++) {
-		for (let j = i + 1; j < edge_count; j++) {
+	for (let i = 0; i < edge_count - 1; i += 1) {
+		for (let j = i + 1; j < edge_count; j += 1) {
 			const p = math.core.parallel(edges_vector[i], edges_vector[j], epsilon);
 			edges_edges_parallel[i][j] = p;
 			edges_edges_parallel[j][i] = p;
@@ -70,15 +72,19 @@ export const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_
  */
 const overwriteEdgesOverlaps = (matrix, vectors, origins, func, epsilon) => {
 	// relationship between i and j is non-directional.
-	for (let i = 0; i < matrix.length - 1; i++) {
-		for (let j = i + 1; j < matrix.length; j++) {
+	for (let i = 0; i < matrix.length - 1; i += 1) {
+		for (let j = i + 1; j < matrix.length; j += 1) {
 			// if value is are already false, skip.
 			if (!matrix[i][j]) { continue; }
 			matrix[i][j] = math.core.overlapLineLine(
-				vectors[i], origins[i],
-				vectors[j], origins[j],
-				func, func,
-				epsilon);
+				vectors[i],
+				origins[i],
+				vectors[j],
+				origins[j],
+				func,
+				func,
+				epsilon,
+			);
 			matrix[j][i] = matrix[i][j];
 		}
 	}
@@ -93,7 +99,9 @@ const overwriteEdgesOverlaps = (matrix, vectors, origins, func, epsilon) => {
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
  */
-export const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
+export const makeEdgesEdgesCrossing = ({
+	vertices_coords, edges_vertices, edges_vector,
+}, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -101,10 +109,10 @@ export const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	// convert parallel into NOT parallel.
 	const matrix = makeEdgesEdgesParallel({
-		vertices_coords, edges_vertices, edges_vector
+		vertices_coords, edges_vertices, edges_vector,
 	}, epsilon)
 		.map(row => row.map(b => !b));
-	for (let i = 0; i < matrix.length; i++) {
+	for (let i = 0; i < matrix.length; i += 1) {
 		matrix[i][i] = undefined;
 	}
 	// if edges are parallel (not this value), skip.
@@ -124,14 +132,16 @@ export const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
  */
-export const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
+export const makeEdgesEdgesParallelOverlap = ({
+	vertices_coords, edges_vertices, edges_vector,
+}, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	// start with edges-edges parallel matrix
 	const matrix = makeEdgesEdgesParallel({
-		vertices_coords, edges_vertices, edges_vector
+		vertices_coords, edges_vertices, edges_vector,
 	}, epsilon);
 	// only if lines are parallel, then run the more expensive overlap method
 	overwriteEdgesOverlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
@@ -140,10 +150,10 @@ export const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices,
 /**
  * we want to include this case, where one edge may not overlap another
  * but it still gets included because both are overlapped by a common edge.
- * 
+ *
  *  |----a-----|    |-------c------|
  *          |-----b----|
- * 
+ *
  * "a" and "c" are included together because b causes them to be so.
  */
 /**
@@ -154,7 +164,7 @@ export const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices,
 /*
 const make_groups_edges = (graph, epsilon) => {
 	// gather together all edges which lie on top of one another in the
-	// folded state. take each edge's two adjacent faces, 
+	// folded state. take each edge's two adjacent faces,
 	const overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon)
 	const overlapping_edges = booleanMatrixToIndexedArray(overlap_matrix);
 	// each index will be an edge, each value is a group, starting with 0,

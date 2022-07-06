@@ -12,12 +12,11 @@ import { invertMap } from "../graph/maps";
  * @param {object} graph a FOLD object, make sure the vertices
  * have already been folded.
  * @param {number} [epsilon=1e-6] an optional epsilon value
- * @returns {number[][]} an array of faces_layer objects, describing, for each face (key) which layer the face inhabits (value)
+ * @returns {number[][]} an array of faces_layer objects, describing,
+ * for each face (key) which layer the face inhabits (value)
  */
-const makeFacesLayers = (graph, epsilon) => {
-	return allLayerConditions(graph, epsilon)
-		.map(conditions => topologicalOrder(conditions, graph))
-		.map(invertMap);
-};
+const makeFacesLayers = (graph, epsilon) => allLayerConditions(graph, epsilon)
+	.map(conditions => topologicalOrder(conditions, graph))
+	.map(invertMap);
 
 export default makeFacesLayers;

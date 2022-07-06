@@ -20,7 +20,9 @@ import {
  * @returns {number[][]} a new set of vertices_coords, transformed.
  * @linkcode Origami ./src/graph/facesMatrix.js 21
  */
-export const multiplyVerticesFacesMatrix2 = ({ vertices_coords, vertices_faces, faces_vertices }, faces_matrix) => {
+export const multiplyVerticesFacesMatrix2 = ({
+	vertices_coords, vertices_faces, faces_vertices,
+}, faces_matrix) => {
 	if (!vertices_faces) {
 		vertices_faces = makeVerticesFaces({ faces_vertices });
 	}
@@ -28,9 +30,9 @@ export const multiplyVerticesFacesMatrix2 = ({ vertices_coords, vertices_faces, 
 		.map(faces => faces
 			.filter(a => a != null)
 			.shift())
-		.map(face => face === undefined
+		.map(face => (face === undefined
 			? math.core.identity2x3
-			: faces_matrix[face]);
+			: faces_matrix[face]));
 	return vertices_coords
 		.map((coord, i) => math.core.multiplyMatrix2Vector2(vertices_matrix[i], coord));
 };
@@ -44,10 +46,12 @@ const unassigned_angle = { U: true, u: true };
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 3x4 matrix (an array of 12 numbers).
- * @linkcode Origami ./src/graph/facesMatrix.js 47
+ * @linkcode Origami ./src/graph/facesMatrix.js 49
  */
 // { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
-export const makeFacesMatrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+export const makeFacesMatrix = ({
+	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
+}, root_face = 0) => {
 	if (!edges_assignment && edges_foldAngle) {
 		edges_assignment = makeEdgesAssignment({ edges_foldAngle });
 	}
@@ -79,14 +83,13 @@ export const makeFacesMatrix = ({ vertices_coords, edges_vertices, edges_foldAng
 				);
 				faces_matrix[entry.face] = math.core
 					.multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
-					// to build the inverse matrix, switch these two parameters
-					// .multiplyMatrices3(local_matrix, faces_matrix[entry.parent]);
+				// to build the inverse matrix, switch these two parameters
+				// .multiplyMatrices3(local_matrix, faces_matrix[entry.parent]);
 			}));
 	return faces_matrix;
 };
 const assignment_is_folded = {
-	M: true, m: true, V: true, v: true, U: true, u: true,
-	F: false, f: false, B: false, b: false,
+	M: true, m: true, V: true, v: true, U: true, u: true, F: false, f: false, B: false, b: false,
 };
 /**
  * @description For every edge, give us a boolean:
@@ -99,19 +102,19 @@ const assignment_is_folded = {
  * counted as folded edges (true).
  * For this reason, treating "unassigned" as a folded edge, this method's
  * functionality is better considered to be specific to makeFacesMatrix2,
- * instead of a generalized method. 
+ * instead of a generalized method.
  * @param {FOLD} graph a FOLD graph
  * @returns {boolean[]} for every edge, is it folded? or has the potential to be folded?
  * "unassigned"=yes
- * @linkcode Origami ./src/graph/facesMatrix.js 106
+ * @linkcode Origami ./src/graph/facesMatrix.js 109
  */
-export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
+export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment }) => {
 	if (edges_assignment === undefined) {
 		return edges_foldAngle === undefined
-			? edges_vertices.map(_ => true)
+			? edges_vertices.map(() => true)
 			: edges_foldAngle.map(angle => angle < -math.core.EPSILON || angle > math.core.EPSILON);
 	}
-	return edges_assignment.map(a => assignment_is_folded[a]);  
+	return edges_assignment.map(a => assignment_is_folded[a]);
 };
 /**
  * @description This ignores any 3D data, and treats all creases as flat-folded.
@@ -120,9 +123,11 @@ export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assig
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 2x3 matrix (an array of 6 numbers).
- * @linkcode Origami ./src/graph/facesMatrix.js 123
+ * @linkcode Origami ./src/graph/facesMatrix.js 126
  */
-export const makeFacesMatrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+export const makeFacesMatrix2 = ({
+	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
+}, root_face = 0) => {
 	if (!edges_foldAngle) {
 		if (edges_assignment) {
 			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
@@ -148,8 +153,8 @@ export const makeFacesMatrix2 = ({ vertices_coords, edges_vertices, edges_foldAn
 					: math.core.identity2x3;
 				faces_matrix[entry.face] = math.core
 					.multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
-					// to build the inverse matrix, switch these two parameters
-					// .multiplyMatrices2(local_matrix, faces_matrix[entry.parent]);
+				// to build the inverse matrix, switch these two parameters
+				// .multiplyMatrices2(local_matrix, faces_matrix[entry.parent]);
 			}));
 	return faces_matrix;
 };

@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 const fs = require("fs");
 
 // we do want this method. bring this back (idk when it was even here)

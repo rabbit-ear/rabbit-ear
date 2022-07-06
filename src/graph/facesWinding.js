@@ -32,12 +32,10 @@ export const makeFacesWindingFromMatrix2 = faces_matrix => faces_matrix
  * @attribution cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
  * @linkcode Origami ./src/graph/facesWinding.js 33
  */
-export const makeFacesWinding = ({ vertices_coords, faces_vertices }) => {
-	return faces_vertices
-		.map(vertices => vertices
-			.map(v => vertices_coords[v])
-			.map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
-			.map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]) )
-			.reduce((a, b) => a + b, 0))
-		.map(face => face < 0);
-};
+export const makeFacesWinding = ({ vertices_coords, faces_vertices }) => faces_vertices
+	.map(vertices => vertices
+		.map(v => vertices_coords[v])
+		.map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
+		.map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]))
+		.reduce((a, b) => a + b, 0))
+	.map(face => face < 0);

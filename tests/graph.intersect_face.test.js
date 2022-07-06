@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 // ear.graph.intersectConvexFaceLine(graph, face, vector, point);
 
@@ -47,10 +47,10 @@ test("intersect face test, 2 vertices, large epsilon", () => {
 
 test("intersect face test, collinear to edge", () => {
 	const graph = ear.graph.square();
-	[ ear.graph.intersectConvexFaceLine(graph, 0, [1, 0], [0, 0]),
+	[ear.graph.intersectConvexFaceLine(graph, 0, [1, 0], [0, 0]),
 		ear.graph.intersectConvexFaceLine(graph, 0, [0, 1], [1, 0]),
 		ear.graph.intersectConvexFaceLine(graph, 0, [1, 0], [1, 1]),
-		ear.graph.intersectConvexFaceLine(graph, 0, [0, 1], [0, 1])
+		ear.graph.intersectConvexFaceLine(graph, 0, [0, 1], [0, 1]),
 	].forEach(res => expect(res).toBe(undefined));
 });
 
@@ -59,7 +59,7 @@ test("epsilon-close to both edge and vertex intersection", () => {
 	// the intersection was close to both a vertex and its edge
 	const line = ear.line([-1, 1.01], [0.999, 0.015]);
 	const res = ear.graph.intersectConvexFaceLine(
-		ear.graph.square(), 0, line.vector, line.origin, 0.01
+		ear.graph.square(), 0, line.vector, line.origin, 0.01,
 	);
 	expect(res.vertices.length).toBe(1);
 	expect(res.edges.length).toBe(1);
@@ -68,7 +68,7 @@ test("epsilon-close to both edge and vertex intersection", () => {
 test("outside the polygon", () => {
 	const line = ear.line([1, 0], [0, 10]);
 	const res = ear.graph.intersectConvexFaceLine(
-		ear.graph.square(), 0, line.vector, line.origin
+		ear.graph.square(), 0, line.vector, line.origin,
 	);
 	expect(res).toBe(undefined);
 });

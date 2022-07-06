@@ -10,7 +10,9 @@ import {
 import { getBoundaryVertices } from "../graph/boundary";
 import { alternatingSum } from "./kawasakiMath";
 
-const flat_assignment = { B:true, b:true, F:true, f:true, U:true, u:true };
+const flat_assignment = {
+	B: true, b: true, F: true, f: true, U: true, u: true,
+};
 /**
  * @description get all vertices indices which are adjacent to edges
  * with no mountain/valleys, only containing either flat, unassigned,
@@ -20,18 +22,22 @@ const vertices_flat = ({ vertices_edges, edges_assignment }) => vertices_edges
 	.map(edges => edges
 		.map(e => flat_assignment[edges_assignment[e]])
 		.reduce((a, b) => a && b, true))
-	.map((valid, i) => valid ? i : undefined)
+	.map((valid, i) => (valid ? i : undefined))
 	.filter(a => a !== undefined);
 
-const folded_assignments = { M:true, m:true, V:true, v:true};
-const maekawa_signs = { M:-1, m:-1, V:1, v:1};
+const folded_assignments = {
+	M: true, m: true, V: true, v: true,
+};
+const maekawa_signs = {
+	M: -1, m: -1, V: 1, v: 1,
+};
 /**
  * @description using edges_assignment, check if Maekawa's theorem is satisfied
  * for all vertices, and if not, return the vertices which violate the theorem.
  * todo: this assumes that valley/mountain folds are flat folded.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
- * @linkcode Origami ./src/singleVertex/validate.js 34
+ * @linkcode Origami ./src/singleVertex/validate.js 40
  */
 export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
 	if (!vertices_edges) {
@@ -49,7 +55,7 @@ export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignme
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	return is_valid
-		.map((valid, v) => !valid ? v : undefined)
+		.map((valid, v) => (!valid ? v : undefined))
 		.filter(a => a !== undefined);
 };
 /**
@@ -58,20 +64,29 @@ export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignme
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
- * @linkcode Origami ./src/singleVertex/validate.js 61
+ * @linkcode Origami ./src/singleVertex/validate.js 67
  */
-export const validateKawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
+export const validateKawasaki = ({
+	vertices_coords,
+	vertices_vertices,
+	vertices_edges,
+	edges_vertices,
+	edges_assignment,
+	edges_vector,
+}, epsilon = math.core.EPSILON) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
-	const is_valid = makeVerticesVerticesVector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+	const is_valid = makeVerticesVerticesVector({
+		vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+	})
 		.map((vectors, v) => vectors
 			.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
-		.map(vectors => vectors.length > 1
+		.map(vectors => (vectors.length > 1
 			? math.core.counterClockwiseSectors2(vectors)
-			: [0, 0])
-		.map(sectors => alternating_sum(sectors))
-		.map((pair, v) => Math.abs(pair[0] - pair[1]) < epsilon);
+			: [0, 0]))
+		.map(sectors => alternatingSum(sectors))
+		.map(pair => Math.abs(pair[0] - pair[1]) < epsilon);
 
 	// overwrite any false values to true for all boundary vertices
 	getBoundaryVertices({ edges_vertices, edges_assignment })
@@ -79,6 +94,6 @@ export const validateKawasaki = ({ vertices_coords, vertices_vertices, vertices_
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	return is_valid
-		.map((valid, v) => !valid ? v : undefined)
+		.map((valid, v) => (!valid ? v : undefined))
 		.filter(a => a !== undefined);
 };

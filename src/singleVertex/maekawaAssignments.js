@@ -12,24 +12,25 @@ const get_unassigned_indices = (edges_assignment) => edges_assignment
  * some U (unassigned), find all permutations of mountain valley to replace all U.
  * This function solves only one single vertex, the assignments are sorted radially
  * around the vertex. This validates according to Maekawa's theorem only.
- * @param {string[]} vertices_edges_assignments array of single characters FOLD spec edges assignments.
+ * @param {string[]} vertices_edges_assignments array of single character
+ * FOLD spec edges assignments.
  * @returns {string[][]} array of arrays of strings, all permutations where "U"
  * assignments have been replaced with "V" or "M".
- * @linkcode Origami ./src/singleVertex/maekawaAssignments.js 18
+ * @linkcode Origami ./src/singleVertex/maekawaAssignments.js 19
  */
 const maekawaAssignments = (vertices_edges_assignments) => {
 	const unassigneds = get_unassigned_indices(vertices_edges_assignments);
 	const permuts = Array.from(Array(2 ** unassigneds.length))
 		.map((_, i) => i.toString(2))
 		.map(l => Array(unassigneds.length - l.length + 1).join("0") + l)
-		.map(str => Array.from(str).map(l => l === "0" ? "V" : "M"));
+		.map(str => Array.from(str).map(l => (l === "0" ? "V" : "M")));
 	const all = permuts.map(perm => {
 		const array = vertices_edges_assignments.slice();
-		unassigneds.forEach((index, i) => { array[index] = perm[i]; })
+		unassigneds.forEach((index, i) => { array[index] = perm[i]; });
 		return array;
 	});
-	if (vertices_edges_assignments.includes("B") ||
-		vertices_edges_assignments.includes("b")) {
+	if (vertices_edges_assignments.includes("B")
+		|| vertices_edges_assignments.includes("b")) {
 		return all;
 	}
 	const count_m = all.map(a => a.filter(l => l === "M" || l === "m").length);

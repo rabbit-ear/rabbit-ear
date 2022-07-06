@@ -11,7 +11,7 @@
 export const uniqueIntegers = (array) => {
 	const keys = {};
 	array.forEach((int) => { keys[int] = true; });
-	return Object.keys(keys).map(n => parseInt(n));
+	return Object.keys(keys).map(n => parseInt(n, 10));
 };
 /**
  * @description Given a list of integers (can contain duplicates),
@@ -25,17 +25,19 @@ export const uniqueIntegers = (array) => {
 export const uniqueSortedIntegers = (array) => uniqueIntegers(array)
 	.sort((a, b) => a - b);
 /**
- * @description A circular array (data wraps around) requires 2 indices if you intend to split it into two arrays. The "indices" parameter will be sorted, smaller index first.
+ * @description A circular array (data wraps around) requires 2 indices
+ * if you intend to split it into two arrays. The "indices" parameter
+ * will be sorted, smaller index first.
  * @param {any[]} array an array that is meant to be thought of as circular
  * @param {number[]} indices two numbers, indices that divide the array into 2 parts
  * @returns {any[][]} the same array split into two arrays
- * @linkcode Origami ./src/general/arrays.js 32
+ * @linkcode Origami ./src/general/arrays.js 34
  */
 export const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
 	return [
 		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
-		array.slice(indices[0], indices[1] + 1)
+		array.slice(indices[0], indices[1] + 1),
 	];
 };
 /**
@@ -43,13 +45,13 @@ export const splitCircularArray = (array, indices) => {
  * the first array in the list with the longest length.
  * @param {any[][]} arrays an array of arrays of any type
  * @return {any[]} one of the arrays from the set
- * @linkcode Origami ./src/general/arrays.js 46
+ * @linkcode Origami ./src/general/arrays.js 48
  */
 export const getLongestArray = (arrays) => {
 	if (arrays.length === 1) { return arrays[0]; }
 	const lengths = arrays.map(arr => arr.length);
 	let max = 0;
-	for (let i = 0; i < arrays.length; i++) {
+	for (let i = 0; i < arrays.length; i += 1) {
 		if (lengths[i] > lengths[max]) {
 			max = i;
 		}
@@ -62,13 +64,13 @@ export const getLongestArray = (arrays) => {
  * matching to compare, so this works for primitives (bool, number, string) not objects or arrays.
  * @param {any[]} array an array of any type.
  * @returns {any[]} the same input array but filtered to remove elements which appear only once.
- * @linkcode Origami ./src/general/arrays.js 65
+ * @linkcode Origami ./src/general/arrays.js 67
  */
 export const removeSingleInstances = (array) => {
 	const count = {};
 	array.forEach(n => {
 		if (count[n] === undefined) { count[n] = 0; }
-		count[n]++;
+		count[n] += 1;
 	});
 	return array.filter(n => count[n] > 1);
 };
@@ -77,11 +79,11 @@ export const removeSingleInstances = (array) => {
  * into arrays containing the indices `[i,j]` of all true values.
  * @param {Array<Array<boolean|undefined>>} matrix a 2D matrix containing boolean or undefined
  * @returns {number[][]} array of arrays of numbers
- * @linkcode Origami ./src/general/arrays.js 80
+ * @linkcode Origami ./src/general/arrays.js 82
  */
 export const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
-		.map((value, i) => value === true ? i : undefined)
+		.map((value, i) => (value === true ? i : undefined))
 		.filter(a => a !== undefined));
 /**
  * @description consult the upper right half triangle of the matrix,
@@ -91,19 +93,19 @@ export const booleanMatrixToIndexedArray = matrix => matrix
  * @param {any[][]} matrix a matrix containing any type
  * @returns {number[][]} array of pairs of numbers, the pairs of indices
  * which are truthy in the matrix.
- * @linkcode Origami ./src/general/arrays.js 94
+ * @linkcode Origami ./src/general/arrays.js 96
  */
 export const booleanMatrixToUniqueIndexPairs = matrix => {
 	const pairs = [];
-	for (let i = 0; i < matrix.length - 1; i++) {
-		for (let j = i + 1; j < matrix.length; j++) {
+	for (let i = 0; i < matrix.length - 1; i += 1) {
+		for (let j = i + 1; j < matrix.length; j += 1) {
 			if (matrix[i][j]) {
 				pairs.push([i, j]);
 			}
 		}
 	}
 	return pairs;
-}
+};
 /**
  * @description given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
@@ -112,7 +114,7 @@ export const booleanMatrixToUniqueIndexPairs = matrix => {
  * in that group.
  * @param {number[][]} matrix an array of arrays of numbers
  * @returns {number[][]} groups of the indices where each index appears only once
- * @linkcode Origami ./src/general/arrays.js 115
+ * @linkcode Origami ./src/general/arrays.js 117
  */
 export const makeSelfRelationalArrayClusters = (matrix) => {
 	const groups = [];
@@ -121,8 +123,8 @@ export const makeSelfRelationalArrayClusters = (matrix) => {
 		groups[index] = current_group;
 		matrix[index].forEach(i => recurse(i, current_group));
 		return 1; // increment group # for next round
-	}
-	for (let row = 0, group = 0; row < matrix.length; row++) {
+	};
+	for (let row = 0, group = 0; row < matrix.length; row += 1) {
 		if (!(row in matrix)) { continue; }
 		group += recurse(row, group);
 	}
@@ -154,7 +156,7 @@ export const makeSelfRelationalArrayClusters = (matrix) => {
  * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
  * // will return
  * [ [8, 1], [3, 5] ]
- * @linkcode Origami ./src/general/arrays.js 157
+ * @linkcode Origami ./src/general/arrays.js 159
  */
 export const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.
@@ -173,7 +175,7 @@ export const circularArrayValidRanges = (array) => {
 	const counts = Array(total).fill(0);
 	// we want the set that includes index 0 to be listed first,
 	// if that doesn't exist, the next lowest index should be first.
-	let index = not_undefineds[0] && not_undefineds[array.length-1]
+	let index = not_undefineds[0] && not_undefineds[array.length - 1]
 		? 0
 		: (total - 1);
 	not_undefineds.forEach((el, i) => {
@@ -212,11 +214,10 @@ export const circularArrayValidRanges = (array) => {
 // 	return b;
 // };
 
-//export const invert_array = (a) => {
+// export const invert_array = (a) => {
 //  const b = [];
 //  a.forEach((x, i) => {
 //		if (typeof x === "number") { b[x] = i; }
 //	});
 //  return b;
-//};
-
+// };

@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("valley fold", () => {
 	const origami = ear.origami();
@@ -18,4 +18,3 @@ test("valley fold", () => {
 	expect(ear.graph.count.faces(origami)).toBe(4);
 	// console.log("valley folded origami", origami);
 });
-

@@ -31,12 +31,15 @@ export const alternatingSumDifference = (sectors) => {
 //   return alternating_deviation(...interior_angles(...vectors));
 // };
 /**
- * @description given a set of edges around a single vertex (expressed as an array of radian angles), find all possible single-ray additions which when added to the set, the set
- * satisfies Kawasaki's theorem.
+ * @description given a set of edges around a single vertex (expressed as an array
+ * of radian angles), find all possible single-ray additions which
+ * when added to the set, the set satisfies Kawasaki's theorem.
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
- * @param {number[]} radians the angle of the edges in radians, like vectors around a vertex. pre-sorted.
- * @returns {number[]} for every sector either one vector (as an angle in radians) or undefined if that sector contains no solution.
- * @linkcode Origami ./src/singleVertex/kawasakiMath.js 39
+ * @param {number[]} radians the angle of the edges in radians,
+ * like vectors around a vertex. pre-sorted.
+ * @returns {number[]} for every sector either one vector (as an angle in radians)
+ * or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 42
  */
 export const kawasakiSolutionsRadians = (radians) => radians
 	// counter clockwise angle between this index and the next
@@ -49,18 +52,23 @@ export const kawasakiSolutionsRadians = (radians) => radians
 	// add the deviation to the edge to get the absolute position
 	.map((kawasakis, i) => radians[i] + kawasakis[0])
 	// sometimes this results in a solution OUTSIDE the sector. ignore these
-	.map((angle, i) => (math.core.isCounterClockwiseBetween(angle,
-		radians[i], radians[(i + 1) % radians.length])
+	.map((angle, i) => (math.core.isCounterClockwiseBetween(
+		angle,
+		radians[i],
+		radians[(i + 1) % radians.length],
+	)
 		? angle
 		: undefined));
 // or should we remove the indices so the array reports [ empty x2, ...]
 /**
- * @description given a set of edges around a single vertex (expressed as an array of vectors), find all possible single-ray additions which when added to the set, the set
- * satisfies Kawasaki's theorem.
+ * @description given a set of edges around a single vertex (expressed as an array
+ * of vectors), find all possible single-ray additions which
+ * when added to the set, the set satisfies Kawasaki's theorem.
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
  * @param {number[][]} vectors array of vectors, the edges around a single vertex. pre-sorted.
- * @returns {number[][]} for every sector either one vector or undefined if that sector contains no solution.
- * @linkcode Origami ./src/singleVertex/kawasakiMath.js 63
+ * @returns {number[][]} for every sector either one vector
+ * or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 71
  */
 export const kawasakiSolutionsVectors = (vectors) => {
 	const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));

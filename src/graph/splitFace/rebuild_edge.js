@@ -29,7 +29,7 @@ const make_edge = ({ vertices_coords }, vertices, face) => {
 	};
 };
 /**
- * 
+ *
  */
 const rebuild_edge = (graph, face, vertices) => {
 	// now that 2 vertices are in place, add a new edge between them.

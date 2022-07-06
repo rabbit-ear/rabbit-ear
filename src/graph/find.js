@@ -9,7 +9,9 @@
  * @returns {number[]} array of 0, 1, or 2 numbers, the edge's adjacent faces
  * @linkcode Origami ./src/graph/find.js 10
  */
-export const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
+export const findAdjacentFacesToEdge = ({
+	vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices,
+}, edge) => {
 	// easiest case, if edges_faces already exists.
 	if (edges_faces && edges_faces[edge]) {
 		return edges_faces[edge];
@@ -33,7 +35,7 @@ export const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_
 		return faces;
 	}
 	if (faces_edges) {
-		let faces = [];
+		const faces = [];
 		for (let i = 0; i < faces_edges.length; i += 1) {
 			for (let e = 0; e < faces_edges[i].length; e += 1) {
 				if (faces_edges[i][e] === edge) { faces.push(i); }
@@ -55,9 +57,11 @@ export const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_
  * @param {FOLD} graph a FOLD graph
  * @param {number} face index of the face in the graph
  * @returns {number[]} array the face's adjacent faces
- * @linkcode Origami ./src/graph/find.js 58
+ * @linkcode Origami ./src/graph/find.js 60
  */
-export const findAdjacentFacesToFace = ({ vertices_faces, edges_faces, faces_edges, faces_vertices, faces_faces }, face) => {
+export const findAdjacentFacesToFace = ({
+	vertices_faces, edges_faces, faces_edges, faces_vertices, faces_faces,
+}, face) => {
 	if (faces_faces && faces_faces[face]) {
 		return faces_faces[face];
 	}

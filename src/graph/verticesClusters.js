@@ -46,7 +46,7 @@ const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) =
 			equivalent_matrix[i][j] = are_vertices_equivalent(
 				vertices_coords[i],
 				vertices_coords[j],
-				epsilon
+				epsilon,
 			);
 		}
 	}
@@ -59,7 +59,7 @@ const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) =
 			.filter(a => a !== undefined));
 	// clusters is an array of arrays of numbers
 	// each entry in clusters is an array of vertex indices
-	// now we will recurse 
+	// now we will recurse
 	const clusters = [];
 	const visited = Array(vertices_coords.length).fill(false);
 	let visitedCount = 0;

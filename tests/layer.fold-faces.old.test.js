@@ -76,16 +76,17 @@ const ear = require("rabbit-ear");
 // 	res4.forEach(el => expect(el.reduce((a, b) => a + 1, 0)).toBe(4));
 // });
 
-
 test("foldStripWithAssignments, 8-vertex", () => {
 	const res1 = ear.layer.foldStripWithAssignments(
 		[2, 2, 2, 2, 2, 2, 2, 2],
-		Array.from("MVBMFBFM"));
+		Array.from("MVBMFBFM"),
+	);
 	expect(res1.filter(a => a !== undefined).length).toBe(2);
 
 	const res2 = ear.layer.foldStripWithAssignments(
 		[2, 2, 2, 2, 2, 2, 2, 2],
-		Array.from("MVMVBBBB"));
+		Array.from("MVMVBBBB"),
+	);
 	expect(res2.filter(a => a !== undefined).length).toBe(4);
 });
 
@@ -105,4 +106,3 @@ test("foldStripWithAssignments, 8-vertex", () => {
 // 		Array.from("MVMVBBBB"));
 // 	expect(res1.reduce((a,b) => a + 1, 0)).toBe(5);
 // });
-

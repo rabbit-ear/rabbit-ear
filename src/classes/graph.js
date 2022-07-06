@@ -6,15 +6,11 @@ import setup from "./components";
 import * as S from "../general/strings";
 import {
 	foldKeys,
-	keys,
-	file_spec,
-	file_creator,
 } from "../fold/keys";
 import {
 	singularize,
 	filterKeysWithPrefix,
 	transposeGraphArrays,
-	transposeGraphArrayAtIndex,
 } from "../fold/spec";
 // import count from "../graph/count";
 import clean from "../graph/clean";
@@ -46,7 +42,7 @@ import splitFace from "../graph/splitFace/index";
  * @description a graph which includes faces, edges, and vertices, and additional
  * origami-specific information like fold angles of edges and layer order of faces.
  * @param {FOLD} [graph] an optional FOLD object, otherwise the graph will initialize empty
- * @linkcode Origami ./src/classes/graph.js 49
+ * @linkcode Origami ./src/classes/graph.js 45
  */
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);
@@ -75,7 +71,7 @@ const graphMethods = Object.assign({
 Object.keys(graphMethods).forEach(key => {
 	Graph.prototype[key] = function () {
 		return graphMethods[key](this, ...arguments);
-	}
+	};
 });
 /**
  * methods below here need some kind of pre-processing of their arguments
@@ -89,7 +85,8 @@ Graph.prototype.splitFace = function (face, ...args) {
  */
 Graph.prototype.copy = function () {
 	// return Object.assign(Object.create(Graph.prototype), clone(this));
-	return Object.assign(Object.create(this.__proto__), clone(this));
+	// return Object.assign(Object.create(this.__proto__), clone(this));
+	return Object.assign(Object.create(Object.getPrototypeOf(this)), clone(this));
 	// todo: switch this for:
 	// Object.getPrototypeOf(this);
 };
@@ -131,14 +128,14 @@ Graph.prototype.boundingBox = function () {
  * aspect fit inside the unit square.
  */
 Graph.prototype.unitize = function () {
-	if (!this.vertices_coords) { return; }
+	if (!this.vertices_coords) { return this; }
 	const box = math.core.bounding_box(this.vertices_coords);
 	const longest = Math.max(...box.span);
 	const scale = longest === 0 ? 1 : (1 / longest);
 	const origin = box.min;
 	this.vertices_coords = this.vertices_coords
 		.map(coord => math.core.subtract(coord, origin))
-		.map(coord => coord.map((n, i) => n * scale));
+		.map(coord => coord.map(n => n * scale));
 	return this;
 };
 /**
@@ -160,13 +157,14 @@ Graph.prototype.folded = function () {
 	//   : makeFacesLayer(this, arguments[0], 0.001);
 	return Object.assign(
 		// todo: switch this for:
-		// Object.getPrototypeOf(this);
-		Object.create(this.__proto__),
+		Object.create(Object.getPrototypeOf(this)),
+		// Object.create(this.__proto__),
 		Object.assign(clone(this), {
 			vertices_coords,
 			// "faces_re:layer": faces_layer,
-			frame_classes: [S._foldedForm]
-		}));
+			frame_classes: [S._foldedForm],
+		}),
+	);
 	// delete any arrays that becomes incorrect due to folding
 	// delete copy.edges_vector;
 	// return copy;
@@ -186,18 +184,20 @@ Graph.prototype.flatFolded = function () {
 	return Object.assign(
 		// todo: switch this for:
 		// Object.getPrototypeOf(this);
-		Object.create(this.__proto__),
+		Object.create(Object.getPrototypeOf(this)),
+		// Object.create(this.__proto__),
 		Object.assign(clone(this), {
 			vertices_coords,
-			frame_classes: [S._foldedForm]
-		}));
+			frame_classes: [S._foldedForm],
+		}),
+	);
 };
 /**
  * graph components
  */
 // bind "vertices", "edges", or "faces" to "this"
 // then we can pass in this function directly to map()
-const shortenKeys = function (el, i, arr) {
+const shortenKeys = function (el) {
 	const object = Object.create(null);
 	Object.keys(el).forEach((k) => {
 		object[k.substring(this.length + 1)] = el[k];
@@ -214,7 +214,7 @@ const getComponent = function (key) {
 [S._vertices, S._edges, S._faces]
 	.forEach(key => Object.defineProperty(Graph.prototype, key, {
 		enumerable: true,
-		get: function () { return getComponent.call(this, key); }
+		get: function () { return getComponent.call(this, key); },
 	}));
 
 // todo: get boundaries, plural
@@ -227,7 +227,7 @@ Object.defineProperty(Graph.prototype, S._boundary, {
 		const poly = boundary.vertices.map(v => this.vertices_coords[v]);
 		Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
 		return Object.assign(poly, boundary);
-	}
+	},
 });
 /**
  * graph components based on Euclidean distance
@@ -253,12 +253,12 @@ Graph.prototype.nearest = function () {
 				if (cache[key] !== undefined) { return cache[key]; }
 				cache[key] = nearestMethods[key](this, point);
 				return cache[key];
-			}
+			},
 		});
 		filterKeysWithPrefix(this, key).forEach(fold_key =>
 			Object.defineProperty(nears, fold_key, {
 				enumerable: true,
-				get: () => this[fold_key][nears[singularize[key]]]
+				get: () => this[fold_key][nears[singularize[key]]],
 			}));
 	});
 	return nears;

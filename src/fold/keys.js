@@ -19,7 +19,7 @@ export const foldKeys = {
 		"file_title",
 		"file_description",
 		"file_classes",
-		"file_frames"
+		"file_frames",
 	],
 	frame: [
 		"frame_author",
@@ -47,11 +47,11 @@ export const foldKeys = {
 		// face-adjacent. this library uses as EDGE-ADJACENT.
 		"vertices_edges",
 		"edges_edges",
-		"faces_faces"
+		"faces_faces",
 	],
 	orders: [
 		"edgeOrders",
-		"faceOrders"
+		"faceOrders",
 	],
 };
 /**
@@ -70,7 +70,7 @@ export const keysOutOfSpec = Object.freeze([
 	"edges_vector",
 	"vertices_sectors",
 	"faces_sectors",
-	"faces_matrix"
+	"faces_matrix",
 ]);
 // "faces_ear:matrix",
 // "faces_ear:layer",
@@ -85,13 +85,13 @@ export const file_classes = [
 	"singleModel",
 	"multiModel",
 	"animation",
-	"diagrams"
+	"diagrams",
 ];
 export const frame_classes = [
 	"creasePattern",
 	"foldedForm",
 	"graph",
-	"linkage"
+	"linkage",
 ];
 export const frame_attributes = [
 	"2D",
@@ -104,7 +104,7 @@ export const frame_attributes = [
 	"selfTouching",
 	"nonSelfTouching",
 	"selfIntersecting",
-	"nonSelfIntersecting"
+	"nonSelfIntersecting",
 ];
 /**
  * array of single characers, the values of an edge assignment

@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear.js");
+const ear = require("rabbit-ear");
 try {
 	const svg = require("../../SVG/svg.js");
 

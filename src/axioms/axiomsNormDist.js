@@ -28,18 +28,24 @@ const intersectionUD = (line1, line2) => {
  */
 export const normalAxiom1 = (point1, point2) => {
 	const normal = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
-	return { normal, distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0 };
+	return {
+		normal,
+		distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0,
+	};
 };
 /**
  * @description origami axiom 2: form a perpendicular bisector between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 38
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 41
  */
 export const normalAxiom2 = (point1, point2) => {
 	const normal = math.core.normalize2(math.core.subtract2(point2, point1));
-	return { normal, distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0 };
+	return {
+		normal,
+		distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0,
+	};
 };
 /**
  * @description origami axiom 3: form two lines that make the two angular bisectors between
@@ -47,16 +53,16 @@ export const normalAxiom2 = (point1, point2) => {
  * @param {UniqueLine} line1 one 2D line in {vector, origin} form
  * @param {UniqueLine} line2 one 2D line in {vector, origin} form
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 50
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 56
  */
 export const normalAxiom3 = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
 	const intersect = intersectionUD(line1, line2);
 	return intersect === undefined
 		? [{
-				normal: line1.normal,
-				distance: (line1.distance + line2.distance * math.core.dot2(line1.normal, line2.normal)) / 2.0
-			}]
+			normal: line1.normal,
+			distance: (line1.distance + line2.distance * math.core.dot2(line1.normal, line2.normal)) / 2,
+		}]
 		: [math.core.add2, math.core.subtract2]
 			.map(f => math.core.normalize2(f(line1.normal, line2.normal)))
 			.map(normal => ({ normal, distance: math.core.dot2(intersect, normal) }));
@@ -67,9 +73,9 @@ export const normalAxiom3 = (line1, line2) => {
  * @param {UniqueLine} line one 2D line in {normal, distance} form
  * @param {number[]} point one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 70
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 76
  */
- export const normalAxiom4 = (line, point) => {
+export const normalAxiom4 = (line, point) => {
 	const normal = math.core.rotate90(line.normal);
 	const distance = math.core.dot2(point, normal);
 	return { normal, distance };
@@ -81,7 +87,7 @@ export const normalAxiom3 = (line1, line2) => {
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 84
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 90
  */
 export const normalAxiom5 = (line, point1, point2) => {
 	const p1base = math.core.dot2(point1, line.normal);
@@ -102,66 +108,66 @@ export const normalAxiom5 = (line, point1, point2) => {
 };
 
 // cube root preserve sign
-const cubrt = n => n < 0
-	? -Math.pow(-n, 1/3)
-	: Math.pow(n, 1/3);
+const cubrt = n => (n < 0
+	? -Math.pow(-n, 1 / 3)
+	: Math.pow(n, 1 / 3));
 
 // Robert Lang's cubic solver from Reference Finder
 // https://langorigami.com/article/referencefinder/
 const polynomial = (degree, a, b, c, d) => {
 	switch (degree) {
-		case 1: return [-d / c];
-		case 2: {
-			// quadratic
-			let discriminant = Math.pow(c, 2.0) - (4.0 * b * d);
-			// no solution
-			if (discriminant < -math.core.EPSILON) { return []; }
-			// one solution
-			let q1 = -c / (2.0 * b);
-			if (discriminant < math.core.EPSILON) { return [q1]; }
-			// two solutions
-			let q2 = Math.sqrt(discriminant) / (2.0 * b);
-			return [q1 + q2, q1 - q2];
+	case 1: return [-d / c];
+	case 2: {
+		// quadratic
+		const discriminant = Math.pow(c, 2.0) - (4.0 * b * d);
+		// no solution
+		if (discriminant < -math.core.EPSILON) { return []; }
+		// one solution
+		const q1 = -c / (2.0 * b);
+		if (discriminant < math.core.EPSILON) { return [q1]; }
+		// two solutions
+		const q2 = Math.sqrt(discriminant) / (2.0 * b);
+		return [q1 + q2, q1 - q2];
+	}
+	case 3: {
+		// cubic
+		// Cardano's formula. convert to depressed cubic
+		const a2 = b / a;
+		const a1 = c / a;
+		const a0 = d / a;
+		const q = (3.0 * a1 - Math.pow(a2, 2.0)) / 9.0;
+		const r = (9.0 * a2 * a1 - 27.0 * a0 - 2.0 * Math.pow(a2, 3.0)) / 54.0;
+		const d0 = Math.pow(q, 3.0) + Math.pow(r, 2.0);
+		const u = -a2 / 3.0;
+		// one solution
+		if (d0 > 0.0) {
+			const sqrt_d0 = Math.sqrt(d0);
+			const s = cubrt(r + sqrt_d0);
+			const t = cubrt(r - sqrt_d0);
+			return [u + s + t];
 		}
-		case 3: {
-			// cubic
-			// Cardano's formula. convert to depressed cubic
-			let a2 = b / a;
-			let a1 = c / a;
-			let a0 = d / a;
-			let q = (3.0 * a1 - Math.pow(a2, 2.0)) / 9.0;
-			let r = (9.0 * a2 * a1 - 27.0 * a0 - 2.0 * Math.pow(a2, 3.0)) / 54.0;
-			let d0 = Math.pow(q, 3.0) + Math.pow(r, 2.0);
-			let u = -a2 / 3.0;
-			// one solution
-			if (d0 > 0.0) {
-				let sqrt_d0 = Math.sqrt(d0);
-				let s = cubrt(r + sqrt_d0);
-				let t = cubrt(r - sqrt_d0);
-				return [u + s + t];
-			}
-			// two solutions
-			if (Math.abs(d0) < math.core.EPSILON) {
-				let s = Math.pow(r, 1.0/3.0);
-				// let S = cubrt(R);
-				// instead of checking if S is NaN, check if R was negative
-				// if (isNaN(S)) { break; }
-				if (r < 0.0) { return []; }
-				return [u + 2.0 * s, u - s];
-			}
-			// three solutions
-			let sqrt_d0 = Math.sqrt(-d0);
-			let phi = Math.atan2(sqrt_d0, r) / 3.0;
-			let r_s = Math.pow((Math.pow(r, 2.0) - d0), 1.0/6.0);
-			let s_r = r_s * Math.cos(phi);
-			let s_i = r_s * Math.sin(phi);
-			return [
-				u + 2.0 * s_r,
-				u - s_r - Math.sqrt(3.0) * s_i,
-				u - s_r + Math.sqrt(3.0) * s_i
-			];      
+		// two solutions
+		if (Math.abs(d0) < math.core.EPSILON) {
+			const s = Math.pow(r, 1.0 / 3.0);
+			// const S = cubrt(R);
+			// instead of checking if S is NaN, check if R was negative
+			// if (isNaN(S)) { break; }
+			if (r < 0.0) { return []; }
+			return [u + 2.0 * s, u - s];
 		}
-		default: return [];
+		// three solutions
+		const sqrt_d0 = Math.sqrt(-d0);
+		const phi = Math.atan2(sqrt_d0, r) / 3.0;
+		const r_s = Math.pow((Math.pow(r, 2.0) - d0), 1.0 / 6.0);
+		const s_r = r_s * Math.cos(phi);
+		const s_i = r_s * Math.sin(phi);
+		return [
+			u + 2.0 * s_r,
+			u - s_r - Math.sqrt(3.0) * s_i,
+			u - s_r + Math.sqrt(3.0) * s_i,
+		];
+	}
+	default: return [];
 	}
 };
 /**
@@ -172,7 +178,7 @@ const polynomial = (degree, a, b, c, d) => {
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 175
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 181
  */
 export const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
@@ -180,7 +186,10 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
 	if (Math.abs(1.0 - (math.core.dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
 	// line vec is the first line's vector, along the line, not the normal
 	const line_vec = math.core.rotate90(line1.normal);
-	const vec1 = math.core.subtract2(math.core.add2(point1, math.core.scale2(line1.normal, line1.distance)), math.core.scale2(point2, 2.0));
+	const vec1 = math.core.subtract2(
+		math.core.add2(point1, math.core.scale2(line1.normal, line1.distance)),
+		math.core.scale2(point2, 2.0),
+	);
 	const vec2 = math.core.subtract2(math.core.scale2(line1.normal, line1.distance), point1);
 	const c1 = math.core.dot2(point2, line2.normal) - line2.distance;
 	const c2 = 2.0 * math.core.dot2(vec2, line_vec);
@@ -200,9 +209,15 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
 	if (Math.abs(b) > math.core.EPSILON) { polynomial_degree = 2; }
 	if (Math.abs(a) > math.core.EPSILON) { polynomial_degree = 3; }
 	return polynomial(polynomial_degree, a, b, c, d)
-		.map(n => math.core.add2(math.core.scale2(line1.normal, line1.distance), math.core.scale2(line_vec, n)))
+		.map(n => math.core.add2(
+			math.core.scale2(line1.normal, line1.distance),
+			math.core.scale2(line_vec, n),
+		))
 		.map(p => ({ p, normal: math.core.normalize2(math.core.subtract2(p, point1)) }))
-		.map(el => ({ normal: el.normal, distance: math.core.dot2(el.normal, math.core.midpoint2(el.p, point1)) }));
+		.map(el => ({
+			normal: el.normal,
+			distance: math.core.dot2(el.normal, math.core.midpoint2(el.p, point1)),
+		}));
 };
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
@@ -214,15 +229,15 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
  * @param {number[]} point the point to bring onto the line
  * @returns {UniqueLine | undefined} the line in {normal, distance} form
  * or undefined if the given lines are parallel
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 217
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 232
  */
 export const normalAxiom7 = (line1, line2, point) => {
-	let normal = math.core.rotate90(line1.normal);
-	let norm_norm = math.core.dot2(normal, line2.normal);
+	const normal = math.core.rotate90(line1.normal);
+	const norm_norm = math.core.dot2(normal, line2.normal);
 	// if norm_norm is close to 0, the two input lines are parallel, no solution
 	if (Math.abs(norm_norm) < math.core.EPSILON) { return undefined; }
-	let a = math.core.dot2(point, normal);
-	let b = math.core.dot2(point, line2.normal);
-	let distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
+	const a = math.core.dot2(point, normal);
+	const b = math.core.dot2(point, line2.normal);
+	const distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
 	return { normal, distance };
 };

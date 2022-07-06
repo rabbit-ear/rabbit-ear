@@ -17,7 +17,9 @@ import { getEdgesEdgesOverlapingSpans } from "./span";
  * @returns {boolean[]} length matching number of edges, true if parallel and overlapping
  * @linkcode Origami ./src/graph/intersect.js 18
  */
-export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
+export const makeEdgesLineParallelOverlap = ({
+	vertices_coords, edges_vertices,
+}, vector, point, epsilon = math.core.EPSILON) => {
 	const normalized = math.core.normalize2(vector);
 	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	const edges_vector = edges_vertices
@@ -27,7 +29,7 @@ export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }
 	const overlap = edges_vector
 		.map(vec => math.core.parallel2(vec, vector, epsilon));
 	// second, filter out edges which do not lie on top of the line
-	for (let e = 0; e < edges_vertices.length; e++) {
+	for (let e = 0; e < edges_vertices.length; e += 1) {
 		if (!overlap[e]) { continue; }
 		if (math.core.fnEpsilonEqualVectors(edges_origin[e], point)) {
 			overlap[e] = true;
@@ -47,9 +49,11 @@ export const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }
  * @param {number[]} point2, the second point of the segment
  * @returns {number[]} array length matching number of edges containing a point
  * if there is an intersection, and undefined if no intersection.
- * @linkcode Origami ./src/graph/intersect.js 50
+ * @linkcode Origami ./src/graph/intersect.js 52
  */
-export const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
+export const makeEdgesSegmentIntersection = ({
+	vertices_coords, edges_vertices, edges_coords,
+}, point1, point2, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
 		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}
@@ -60,14 +64,15 @@ export const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, 
 	// algorithm on this subset.
 	return makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon)
 		.map(box => math.core.overlapBoundingBoxes(segment_box, box))
-		.map((overlap, i) => overlap ? (math.core.intersectLineLine(
+		.map((overlap, i) => (overlap ? (math.core.intersectLineLine(
 			segment_vector,
 			point1,
 			math.core.subtract2(edges_coords[i][1], edges_coords[i][0]),
 			edges_coords[i][0],
 			math.core.includeS,
 			math.core.includeS,
-			epsilon)) : undefined);
+			epsilon,
+		)) : undefined));
 };
 /**
  * @description This method compares every edge against every edge (n^2) to see if the
@@ -84,10 +89,10 @@ export const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, 
  * 1 [ x,  ,  , x]
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
- * @linkcode Origami ./src/graph/intersect.js 87
+ * @linkcode Origami ./src/graph/intersect.js 92
  */
 export const makeEdgesEdgesIntersection = function ({
-	vertices_coords, edges_vertices, edges_vector, edges_origin
+	vertices_coords, edges_vertices, edges_vector, edges_origin,
 }, epsilon = math.core.EPSILON) {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -112,7 +117,7 @@ export const makeEdgesEdgesIntersection = function ({
 				edges_origin[j],
 				math.core.excludeS,
 				math.core.excludeS,
-				epsilon
+				epsilon,
 			);
 			edges_intersections[j][i] = edges_intersections[i][j];
 		}
@@ -136,18 +141,20 @@ export const makeEdgesEdgesIntersection = function ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
- * @linkcode Origami ./src/graph/intersect.js 139
+ * @linkcode Origami ./src/graph/intersect.js 144
  */
-export const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
+export const intersectConvexFaceLine = ({
+	vertices_coords, edges_vertices, faces_vertices, faces_edges,
+}, face, vector, point, epsilon = math.core.EPSILON) => {
 	// give us back the indices in the faces_vertices[face] array
 	// we can count on these being sorted (important later)
 	const face_vertices_indices = faces_vertices[face]
 		.map(v => vertices_coords[v])
 		.map(coord => math.core.overlapLinePoint(vector, point, coord, () => true, epsilon))
-		.map((overlap, i) => overlap ? i : undefined)
+		.map((overlap, i) => (overlap ? i : undefined))
 		.filter(i => i !== undefined);
 	// o-----o---o  we have to test against cases like this, where more than two
-	// |         |  vertices lie along one line. 
+	// |         |  vertices lie along one line.
 	// o---------o
 	const vertices = face_vertices_indices.map(i => faces_vertices[face][i]);
 	// concat a duplication of the array where the second array's vertices'
@@ -175,7 +182,7 @@ export const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces
 			seg[0],
 			math.core.includeL,
 			math.core.excludeS,
-			epsilon
+			epsilon,
 		)).map((coords, face_edge_index) => ({
 			coords,
 			edge: faces_edges[face][face_edge_index],

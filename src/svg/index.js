@@ -5,6 +5,7 @@ import * as S from "../general/strings";
 import DrawGroups from "./draw/index";
 // import fold_classes from "./classes";
 import linker from "./linker";
+import { addClassToClassList } from "./classes";
 // get the SVG library from its binding to the root of the library
 import root from "../root";
 
@@ -28,7 +29,10 @@ const getBoundingRect = ({ vertices_coords }) => {
 		if (v[1] < min[1]) { min[1] = v[1]; }
 		if (v[1] > max[1]) { max[1] = v[1]; }
 	});
-	const invalid = isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1]);
+	const invalid = Number.isNaN(min[0])
+		|| Number.isNaN(min[1])
+		|| Number.isNaN(max[0])
+		|| Number.isNaN(max[1]);
 	return (invalid
 		? undefined
 		: [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
@@ -44,7 +48,7 @@ const getViewBox = (graph) => {
  * set the "r" attribute on all circles.
  */
 const setR = (group, radius) => {
-	for (let i = 0; i < group.childNodes.length; i++) {
+	for (let i = 0; i < group.childNodes.length; i += 1) {
 		group.childNodes[i].setAttributeNS(null, "r", radius);
 	}
 };
@@ -62,7 +66,8 @@ const findSVGInParents = (element) => {
  * this includes the viewBox, stroke width, and radius of circles.
  */
 const applyTopLevelOptions = (element, groups, graph, options) => {
-	if (!(options.strokeWidth || options.viewBox || groups[3].length)) { return; }
+	const hasVertices = groups[3] && groups[3].childNodes.length;
+	if (!(options.strokeWidth || options.viewBox || hasVertices)) { return; }
 	const bounds = getBoundingRect(graph);
 	const vmax = bounds ? Math.max(bounds[2], bounds[3]) : 1;
 	const svgElement = findSVGInParents(element);
@@ -71,17 +76,38 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 		svgElement.setAttributeNS(null, "viewBox", viewBoxValue);
 	}
 	if (options.strokeWidth || options["stroke-width"]) {
-		const strokeWidth = options.strokeWidth ? options.strokeWidth : options["stroke-width"];
+		const strokeWidth = options.strokeWidth
+			? options.strokeWidth
+			: options["stroke-width"];
 		const strokeWidthValue = typeof strokeWidth === "number"
 			? vmax * strokeWidth
 			: vmax * DEFAULT_STROKE_WIDTH;
 		element.setAttributeNS(null, "stroke-width", strokeWidthValue);
 	}
-	if (groups[3].length) {
-		const radius = typeof options.radius === "number"
-			? vmax * options.radius
+	if (hasVertices) {
+		const userRadius = options.vertices && options.vertices.radius != null
+			? options.vertices.radius
+			: options.radius;
+		const radius = typeof userRadius === "string" ? parseFloat(userRadius) : userRadius;
+		const r = typeof radius === "number" && !Number.isNaN(radius)
+			? vmax * radius
 			: vmax * DEFAULT_CIRCLE_RADIUS;
-		setR(groups[3], radius);
+		setR(groups[3], r);
+	}
+};
+/**
+ * @description Inspect the FOLD object for its classes, which will be
+ * in "file_classes" and "frame_classes", and set these as classes on
+ * the top level element.
+ */
+const applyTopLevelClasses = (element, graph) => {
+	const newClasses = [
+		graph.file_classes || [],
+		graph.frame_classes || [],
+	].flat();
+	if (newClasses.length) {
+		addClassToClassList(element, ...newClasses);
+		// element.classList.add(...newClasses);
 	}
 };
 /**
@@ -93,13 +119,14 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
  * @param {FOLD} graph a FOLD object
  * @param {object} options an optional options object to style the rendering
  * @returns {SVGElement} the first SVG parameter object.
- * @linkcode Origami ./src/svg/index.js 96
+ * @linkcode Origami ./src/svg/index.js 122
  */
 const drawInto = (element, graph, options = {}) => {
 	const groups = DrawGroups(graph, options);
 	groups.filter(group => group.childNodes.length > 0)
 		.forEach(group => element.appendChild(group));
 	applyTopLevelOptions(element, groups, graph, options);
+	applyTopLevelClasses(element, graph);
 	// set custom getters on the element to grab the component groups
 	Object.keys(DrawGroups)
 		.filter(key => element[key] == null)
@@ -115,7 +142,7 @@ const drawInto = (element, graph, options = {}) => {
  * @param {object?} options optional options object to style components
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
- * @linkcode Origami ./src/svg/index.js 118
+ * @linkcode Origami ./src/svg/index.js 145
  */
 const FOLDtoSVG = (graph, options) => drawInto(root.svg(), graph, options);
 /**

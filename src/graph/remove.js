@@ -5,7 +5,7 @@ import count from "./count";
 import { uniqueSortedIntegers } from "../general/arrays";
 import {
 	getGraphKeysWithSuffix,
-	getGraphKeysWithPrefix
+	getGraphKeysWithPrefix,
 } from "../fold/spec";
 /**
  * @name remove
@@ -50,8 +50,8 @@ const removeGeometryIndices = (graph, key, removeIndices) => {
 	// these arrays do not change their size, only their contents
 	getGraphKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
-			.forEach((_, i) => graph[sKey][i]
-				.forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+			.forEach((_, ii) => graph[sKey][ii]
+				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
 	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays do change their size, their contents are untouched
 	removes.reverse();

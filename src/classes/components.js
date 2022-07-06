@@ -1,14 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
 
 const vertex_degree = function (v, i) {
 	const graph = this;
 	Object.defineProperty(v, "degree", {
 		get: () => (graph.vertices_vertices && graph.vertices_vertices[i]
 			? graph.vertices_vertices[i].length
-			: null)
+			: null),
 	});
 };
 
@@ -22,7 +21,7 @@ const edge_coords = function (e, i) {
 				return undefined;
 			}
 			return graph.edges_vertices[i].map(v => graph.vertices_coords[v]);
-		}
+		},
 	});
 };
 
@@ -39,7 +38,7 @@ const face_simple = function (f, i) {
 				}
 			}
 			return true;
-		}
+		},
 	});
 };
 
@@ -53,7 +52,7 @@ const face_coords = function (f, i) {
 				return undefined;
 			}
 			return graph.faces_vertices[i].map(v => graph.vertices_coords[v]);
-		}
+		},
 	});
 };
 

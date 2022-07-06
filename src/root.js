@@ -30,7 +30,8 @@ export default Object.create(null);
  * @property {number[]} [edges_foldAngle] in degrees, the fold angle of each edge
  * @property {number[][]} [faces_vertices] each face defined by a sequence of vertex indices
  * @property {number[][]} [faces_edges] each face defined by a sequence of edge indices
- * @property {number[][]} [faces_faces] for each face, a list of faces which are edge-adjacent neighbors.
+ * @property {number[][]} [faces_faces] for each face, a list of faces which
+ * are edge-adjacent neighbors.
  * @property {FOLD[]} [file_frames] array of embedded FOLD objects, good for representing
  * a linear sequence like diagram steps for example.
  * @example
@@ -43,14 +44,14 @@ export default Object.create(null);
  * }
  */
 
-
 /**
  * @typedef BoundingBox
  * @type {object}
  * @description An n-dimensional axis-aligned bounding box that ecloses a space.
  * @property {number[]} min the corner point of the box that is a minima along all axes.
  * @property {number[]} max the corner point of the box that is a maxima along all axes.
- * @property {number[]} span the lengths of the box along all dimensions, the difference between the maxima and minima.
+ * @property {number[]} span the lengths of the box along all dimensions,
+ * the difference between the maxima and minima.
  * @example
  * {
  *   min: [-3, -10],
@@ -58,7 +59,6 @@ export default Object.create(null);
  *   span: [8, 9],
  * }
  */
-
 
 /**
  * @typedef RayLine
@@ -76,7 +76,8 @@ export default Object.create(null);
 /**
  * @typedef UniqueLine
  * @type {object}
- * @description This is a line parameterization which 
- * @property {number[]} u - the line's normal vector
- * @property {number} d - the shortest distance from the origin to the line
+ * @description This is a parameterization of an infinite line which gives each line a
+ * unique parameterization, making checking for duplicates easily.
+ * @property {number[]} normal - the line's normal vector
+ * @property {number} distance - the shortest distance from the origin to the line
  */

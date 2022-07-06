@@ -12,4 +12,3 @@ const use = function (library) {
 };
 
 export default use;
-

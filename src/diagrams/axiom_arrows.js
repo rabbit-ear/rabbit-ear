@@ -5,7 +5,12 @@ import math from "../math";
 import axiom from "../axioms/index";
 
 const line_line_for_arrows = (a, b) => math.core.intersectLineLine(
-	a.vector, a.origin, b.vector, b.origin, math.core.includeL, math.core.includeL
+	a.vector,
+	a.origin,
+	b.vector,
+	b.origin,
+	math.core.includeL,
+	math.core.includeL,
 );
 
 const diagram_reflect_point = (foldLine, point) => {
@@ -19,27 +24,30 @@ const boundary_for_arrows = ({ vertices_coords }) => math.core
 const widest_perp = (graph, foldLine, point) => {
 	const boundary = boundary_for_arrows(graph);
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineConvexPolygon(boundary,
+		const foldSegment = math.core.clipLineConvexPolygon(
+			boundary,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
-			math.core.includeL);
+			math.core.includeL,
+		);
 		point = math.core.midpoint(...foldSegment);
 	}
 	const perpVector = math.core.rotate270(foldLine.vector);
 	const smallest = math.core
-		.clipLineConvexPolygon(boundary,
+		.clipLineConvexPolygon(
+			boundary,
 			perpVector,
 			point,
 			math.core.exclude,
-			math.core.includeL)
-		.map(pt => math.core.distance(point, pt))
+			math.core.includeL,
+		).map(pt => math.core.distance(point, pt))
 		.sort((a, b) => a - b)
 		.shift();
 	const scaled = math.core.scale(math.core.normalize(perpVector), smallest);
 	return math.segment(
 		math.core.add(point, math.core.flip(scaled)),
-		math.core.add(point, scaled)
+		math.core.add(point, scaled),
 	);
 };
 /**
@@ -62,26 +70,31 @@ const between_2_intersecting_segments = (params, intersect, foldLine, boundary) 
 		.concat(flippedVectors)
 		.map(vec => math.ray(vec, intersect));
 	// 4 points based on quadrants
-	const a1 = paramRays.filter(ray =>
-		math.core.dot(ray.vector, foldLine.vector) > 0 &&
-		math.core.cross2(ray.vector, foldLine.vector) > 0
-	).shift();
-	const a2 = paramRays.filter(ray =>
-		math.core.dot(ray.vector, foldLine.vector) > 0 &&
-		math.core.cross2(ray.vector, foldLine.vector) < 0
-	).shift();
-	const b1 = paramRays.filter(ray =>
-		math.core.dot(ray.vector, foldLine.vector) < 0 &&
-		math.core.cross2(ray.vector, foldLine.vector) > 0
-	).shift();
-	const b2 = paramRays.filter(ray =>
-		math.core.dot(ray.vector, foldLine.vector) < 0 &&
-		math.core.cross2(ray.vector, foldLine.vector) < 0
-	).shift();
-	const rayEndpoints = [a1, a2, b1, b2].map(ray => math.core
-		.intersectConvexPolygonLine(boundary, ray.vector, ray.origin, math.core.excludeS, math.core.excludeR)
-		.shift()
-		.shift());
+	const a1 = paramRays.filter(ray => (
+		math.core.dot(ray.vector, foldLine.vector) > 0
+		&& math.core.cross2(ray.vector, foldLine.vector) > 0))
+		.shift();
+	const a2 = paramRays.filter(ray => (
+		math.core.dot(ray.vector, foldLine.vector) > 0
+		&& math.core.cross2(ray.vector, foldLine.vector) < 0))
+		.shift();
+	const b1 = paramRays.filter(ray => (
+		math.core.dot(ray.vector, foldLine.vector) < 0
+		&& math.core.cross2(ray.vector, foldLine.vector) > 0))
+		.shift();
+	const b2 = paramRays.filter(ray => (
+		math.core.dot(ray.vector, foldLine.vector) < 0
+		&& math.core.cross2(ray.vector, foldLine.vector) < 0))
+		.shift();
+	const rayEndpoints = [a1, a2, b1, b2]
+		.map(ray => math.core.intersectConvexPolygonLine(
+			boundary,
+			ray.vector,
+			ray.origin,
+			math.core.excludeS,
+			math.core.excludeR,
+		).shift()
+			.shift());
 	const rayLengths = rayEndpoints
 		.map(pt => math.core.distance(pt, intersect));
 	const arrowStart = (rayLengths[0] < rayLengths[1]
@@ -98,7 +111,7 @@ const between_2_intersecting_segments = (params, intersect, foldLine, boundary) 
 		: math.core.add(b1.origin, b1.vector.normalize().scale(rayLengths[3])));
 	return [
 		math.segment(arrowStart, arrowEnd),
-		math.segment(arrowStart2, arrowEnd2)
+		math.segment(arrowStart2, arrowEnd2),
 	];
 };
 
@@ -106,40 +119,50 @@ const axiom_1_arrows = (params, graph) => axiom(1, params)
 	.map(foldLine => [widest_perp(graph, foldLine)]);
 
 const axiom_2_arrows = params => [
-	[math.segment(params.points)]
+	[math.segment(params.points)],
 ];
 
 const axiom_3_arrows = (params, graph) => {
 	const boundary = boundary_for_arrows(graph);
 	const segs = params.lines.map(l => math.core
-		.clipLineConvexPolygon(boundary,
+		.clipLineConvexPolygon(
+			boundary,
 			l.vector,
 			l.origin,
 			math.core.exclude,
-			math.core.includeL));
+			math.core.includeL,
+		));
 	const segVecs = segs.map(seg => math.core.subtract(seg[1], seg[0]));
 	const intersect = math.core.intersectLineLine(
-		segVecs[0], segs[0][0], segVecs[1], segs[1][0],
-		math.core.excludeS, math.core.excludeS);
+		segVecs[0],
+		segs[0][0],
+		segVecs[1],
+		segs[1][0],
+		math.core.excludeS,
+		math.core.excludeS,
+	);
 	return !intersect
 		? [between_2_segments(params, segs, axiom(3, params)
 			.filter(a => a !== undefined).shift())]
 		: axiom(3, params).map(foldLine => between_2_intersecting_segments(
-				params, intersect, foldLine, boundary
-			));
+			params,
+			intersect,
+			foldLine,
+			boundary,
+		));
 };
 
 const axiom_4_arrows = (params, graph) => axiom(4, params)
 	.map(foldLine => [widest_perp(
 		graph,
 		foldLine,
-		line_line_for_arrows(foldLine, params.lines[0])
+		line_line_for_arrows(foldLine, params.lines[0]),
 	)]);
 
 const axiom_5_arrows = (params) => axiom(5, params)
 	.map(foldLine => [math.segment(
 		params.points[1],
-		diagram_reflect_point(foldLine, params.points[1])
+		diagram_reflect_point(foldLine, params.points[1]),
 	)]);
 
 const axiom_6_arrows = (params) => axiom(6, params)
@@ -149,7 +172,7 @@ const axiom_6_arrows = (params) => axiom(6, params)
 const axiom_7_arrows = (params, graph) => axiom(7, params)
 	.map(foldLine => [
 		math.segment(params.points[0], diagram_reflect_point(foldLine, params.points[0])),
-		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1]))
+		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1])),
 	]);
 
 const arrow_functions = [null,
@@ -179,4 +202,3 @@ Object.keys(arrow_functions).forEach(number => {
 });
 
 export default axiomArrows;
-

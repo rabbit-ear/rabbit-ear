@@ -31,7 +31,7 @@ const style_component = (group, { attributes }, component) => {
 		.filter(key => !classes.includes(key))
 		.forEach(key => group.setAttributeNS(null, key, attributes[component][key]));
 	// class specific needs to visit each element individually, check its classes.
-	if (classes.length === 0) { return; }  // done if there are no classes (vertices)
+	if (classes.length === 0) { return; } // done if there are no classes (vertices)
 	Array.from(group.childNodes)
 		// for each element, for each class, apply attribute if class exists on element
 		.forEach(child => Object.keys(attributes[component][child.getAttribute(S._class)] || {})

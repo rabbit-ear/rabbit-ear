@@ -10,7 +10,8 @@ import { makeVerticesToEdgeBidirectional } from "../make";
  * old endpoints, preserving all other vertices_vertices of the endpoints.
  * @param {object} graph a FOLD object, modified in place
  * @param {number} vertex index of new vertex
- * @param {number[]} incident_vertices vertices that make up the split edge. new vertex lies between.
+ * @param {number[]} incident_vertices vertices that make up the split edge.
+ * the new vertex lies between.
  */
 export const update_vertices_vertices = ({ vertices_vertices }, vertex, incident_vertices) => {
 	if (!vertices_vertices) { return; }
@@ -28,7 +29,9 @@ export const update_vertices_vertices = ({ vertices_vertices }, vertex, incident
 /**
  * @description run this after vertices_vertices has been built
  */
-export const update_vertices_sectors = ({ vertices_coords, vertices_vertices, vertices_sectors }, vertex) => {
+export const update_vertices_sectors = ({
+	vertices_coords, vertices_vertices, vertices_sectors,
+}, vertex) => {
 	if (!vertices_sectors) { return; }
 	vertices_sectors[vertex] = vertices_vertices[vertex].length === 1
 		? [math.core.TWO_PI]
@@ -47,7 +50,9 @@ export const update_vertices_sectors = ({ vertices_coords, vertices_vertices, ve
  * @param {number[]} vertices the old edge's two vertices, must be aligned with "new_edges"
  * @param {number[]} new_edges the two new edges, must be aligned with "vertices"
  */
-export const update_vertices_edges = ({ vertices_edges }, old_edge, new_vertex, vertices, new_edges) => {
+export const update_vertices_edges = ({
+	vertices_edges,
+}, old_edge, new_vertex, vertices, new_edges) => {
 	if (!vertices_edges) { return; }
 	// update 1 vertex, our new vertex
 	vertices_edges[new_vertex] = [...new_edges];
@@ -79,7 +84,7 @@ export const update_vertices_faces = ({ vertices_faces }, vertex, faces) => {
  */
 export const update_edges_faces = ({ edges_faces }, new_edges, faces) => {
 	if (!edges_faces) { return; }
-	new_edges.forEach(edge => edges_faces[edge] = [...faces]);
+	new_edges.forEach(edge => { edges_faces[edge] = [...faces]; });
 };
 /**
  * @description a new vertex was added, splitting an edge. rebuild the
@@ -106,7 +111,9 @@ export const update_faces_vertices = ({ faces_vertices }, new_vertex, incident_v
 			.sort((a, b) => b - a)
 			.forEach(i => face.splice(i, 0, new_vertex)));
 };
-export const update_faces_edges_with_vertices = ({ edges_vertices, faces_vertices, faces_edges }, faces) => {
+export const update_faces_edges_with_vertices = ({
+	edges_vertices, faces_vertices, faces_edges,
+}, faces) => {
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	faces
 		.map(f => faces_vertices[f]

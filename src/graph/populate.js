@@ -6,10 +6,10 @@ import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesEdges, // todo resolve this duplicate work
 	makeVerticesFaces,
-	makeEdgesEdges,
+	// makeEdgesEdges,
 	makeEdgesFacesUnsorted,
-	makeEdgesFoldAngle,
-	makeEdgesAssignment,
+	// makeEdgesFoldAngle,
+	// makeEdgesAssignment,
 	// makeEdgesVector,
 	makeFacesFaces,
 	makeFacesEdgesFromVertices,

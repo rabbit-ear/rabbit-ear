@@ -73,7 +73,7 @@
 //  * @param {FOLD} graph a FOLD graph
 //  * @param {number} [start_face=0] this face will remain fixed
 //  * @param {number} [epsilon=1e-6] an optional epsilon
-//  * @returns 
+//  * @returns
 //  */
 // export const makeVerticesFacesLayer = (graph, start_face = 0, epsilon) => {
 // 	if (!graph.vertices_sectors) {

@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 // test("regular polygon bases", () => {
 // 	const names = ["triangle", "square", "pentagon", "hexagon", "heptagon", "octagon", "nonagon", "decagon", "hendecagon", "dodecagon"];
@@ -24,4 +24,3 @@ test("bases", () => {
 
 	// const bird = ear.graph.bird();
 });
-

@@ -11,9 +11,9 @@ const getOppositeVertices = (graph, vertex, edges) => {
 			console.warn("removePlanarVertex circular edge");
 		}
 	});
-	return edges.map(edge => graph.edges_vertices[edge][0] === vertex
+	return edges.map(edge => (graph.edges_vertices[edge][0] === vertex
 		? graph.edges_vertices[edge][1]
-		: graph.edges_vertices[edge][0]);
+		: graph.edges_vertices[edge][0]));
 };
 /**
  * @description given a degree-2 vertex, remove this vertex, merge the adjacent

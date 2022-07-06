@@ -1,4 +1,4 @@
-const ear = require("../rabbit-ear");
+const ear = require("rabbit-ear");
 
 test("duplicate edges", () => {
 	const graph = {
@@ -16,7 +16,7 @@ test("duplicate edges", () => {
 			[2, 4],
 			[3, 4],
 			[4, 0],
-		]
+		],
 	};
 	const result = ear.graph.getDuplicateEdges(graph);
 	expect(result[4]).toBe(3);
@@ -30,7 +30,7 @@ test("invalid edges", () => {
 			[0, 1, 2],
 			[3, 4, 5],
 			[2, 1, 0],
-		]
+		],
 	};
 	const result1 = ear.graph.getDuplicateEdges(graph1);
 	expect(result1.length).toBe(0);
@@ -40,7 +40,7 @@ test("invalid edges", () => {
 			[0, 1, 2],
 			[3, 4, 5],
 			[0, 1, 2],
-		]
+		],
 	};
 	const result2 = ear.graph.getDuplicateEdges(graph2);
 	expect(result2[0]).toBe(undefined);
@@ -64,11 +64,13 @@ test("duplicate edges, invalid input 2", () => {
 
 test("duplicate edges, with undefined", (done) => {
 	try {
-		ear.graph.getDuplicateEdges({ edges_vertices: [
-			[0, 1],
-			undefined,
-			[1, 0],
-		]});
+		ear.graph.getDuplicateEdges({
+			edges_vertices: [
+				[0, 1],
+				undefined,
+				[1, 0],
+			],
+		});
 	} catch (error) {
 		expect(error).not.toBe(undefined);
 		done();

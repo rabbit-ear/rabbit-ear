@@ -9,10 +9,13 @@
  * @param {object} [walked_edges={}] memo object, to prevent walking down
  * duplicate paths, or finding duplicate faces, this dictionary will
  * store and check against vertex pairs "i j".
- * @returns {object} the walked face, an object arrays of numbers under "vertices", "edges", and "angles"
- * @linkcode Origami ./src/graph/walk.js 13
+ * @returns {object} the walked face, an object arrays of numbers
+ * under "vertices", "edges", and "angles"
+ * @linkcode Origami ./src/graph/walk.js 14
  */
-export const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
+export const counterClockwiseWalk = ({
+	vertices_vertices, vertices_sectors,
+}, v0, v1, walked_edges = {}) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
 	// this gives us a quick lookup to see if we've visited this edge before.
 	const this_walked_edges = {};
@@ -61,7 +64,7 @@ export const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0
  * @param {FOLD} graph a FOLD graph
  * @returns {object[]} an array of face objects, where each face has number arrays,
  * "vertices", "edges", and "angles". vertices and edges are indices, angles are radians.
- * @linkcode Origami ./src/graph/walk.js 64
+ * @linkcode Origami ./src/graph/walk.js 67
  */
 export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 	const graph = { vertices_vertices, vertices_sectors };
@@ -73,7 +76,7 @@ export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 		.flat();
 };
 /**
- * @description This should be used in conjuction with planarVertexWalk() and 
+ * @description This should be used in conjuction with planarVertexWalk() and
  * counterClockwiseWalk(). There will be one face in the which winds around the
  * outside of the boundary and encloses the space outside around. This method will
  * find that face and remove it from the set.
@@ -82,9 +85,9 @@ export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
  * outlines the piece with opposite winding enclosing Infinity.
  * @param {object[]} walked_faces the result from calling "planarVertexWalk()"
  * @returns {object[]} the same input array with one fewer element
- * @linkcode Origami ./src/graph/walk.js 85
+ * @linkcode Origami ./src/graph/walk.js 88
  */
 export const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles
 		.map(a => Math.PI - a)
-		.reduce((a,b) => a + b, 0) > 0);
+		.reduce((a, b) => a + b, 0) > 0);

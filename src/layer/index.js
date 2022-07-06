@@ -7,11 +7,11 @@ import makeFacesLayer from "./makeFacesLayer";
 import makeFacesLayers from "./makeFacesLayers";
 import flipFacesLayer from "./flipFacesLayer";
 // global layer solver
-import table from "./globalSolver/table"
-import * as globalSolvers from "./globalSolver/index"
-import * as globalSolverGeneral from "./globalSolver/general"
-import * as edgesAssignments from "./globalSolver/edgesAssignments"
-import dividingAxis from "./globalSolver/dividingAxis"
+import table from "./globalSolver/table";
+import * as globalSolvers from "./globalSolver/index";
+import * as globalSolverGeneral from "./globalSolver/general";
+import * as edgesAssignments from "./globalSolver/edgesAssignments";
+import dividingAxis from "./globalSolver/dividingAxis";
 import topologicalOrder from "./globalSolver/topologicalOrder";
 import makeConditions from "./globalSolver/makeConditions";
 import makeTacoMaps from "./globalSolver/makeTacoMaps";
@@ -20,7 +20,7 @@ import singleSolver from "./globalSolver/singleSolver";
 import conditionsToMatrix from "./globalSolver/conditionsToMatrix";
 // tacos
 import makeTacosTortillas from "./tacos/makeTacosTortillas";
-import makeFoldedStripTacos from "./tacos/makeFoldedStripTacos"
+import makeFoldedStripTacos from "./tacos/makeFoldedStripTacos";
 import makeTransitivityTrios from "./tacos/makeTransitivityTrios";
 import * as tortillaTortilla from "./tacos/tortillaTortilla";
 // single-vertex layer solver
@@ -50,30 +50,32 @@ import * as foldAssignments from "./singleVertexSolver/foldAssignments";
  * @description A collection of methods for calculating the layer order
  * of the faces of an origami in its folded state.
  */
-export default Object.assign(Object.create(null), {
-	makeFacesLayer,
-	makeFacesLayers,
-	flipFacesLayer,
+export default Object.assign(
+	Object.create(null),
+	{
+		makeFacesLayer,
+		makeFacesLayers,
+		flipFacesLayer,
 
-	assignmentSolver,
-	singleVertexSolver,
-	validateLayerSolver,
-	validateTacoTacoFacePairs,
-	validateTacoTortillaStrip,
+		assignmentSolver,
+		singleVertexSolver,
+		validateLayerSolver,
+		validateTacoTacoFacePairs,
+		validateTacoTortillaStrip,
 
-	table,
-	makeConditions,
-	makeTacoMaps,
-	recursiveSolver,
-	singleSolver,
-	dividingAxis,
-	topologicalOrder,
-	conditionsToMatrix,
+		table,
+		makeConditions,
+		makeTacoMaps,
+		recursiveSolver,
+		singleSolver,
+		dividingAxis,
+		topologicalOrder,
+		conditionsToMatrix,
 
-	makeTacosTortillas,
-	makeFoldedStripTacos,
-	makeTransitivityTrios,
-},
+		makeTacosTortillas,
+		makeFoldedStripTacos,
+		makeTransitivityTrios,
+	},
 	globalSolvers,
 	globalSolverGeneral,
 	edgesAssignments,
