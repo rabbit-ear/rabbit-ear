@@ -1,4 +1,5 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 test("", () => {
 	let cp = ear.cp.rectangle(0.3);

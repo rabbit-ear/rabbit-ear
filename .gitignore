@@ -2,3 +2,6 @@
 node_modules/
 coverage/
 
+# the compiled library with all JSDoc comments,
+# for building the documentation. exclude from repo
+rabbit-ear.comments.js

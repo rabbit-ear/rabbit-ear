@@ -1,3 +1,4 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 const t = 0.38268343236509;
@@ -24,9 +25,9 @@ const s = Math.SQRT1_2;
 // ]
 test("16 angles of lines, through the origin", () => {
 	const angles = Array.from(Array(16))
-		.map((_, i) => (Math.PI * 2) / 16 * i);
+		.map((_, i) => ((Math.PI * 2) / 16) * i);
 	const vectors = angles.map(a => [Math.cos(a), Math.sin(a)]);
-	const origins = angles.map(a => [0, 0]);
+	const origins = angles.map(() => [0, 0]);
 	vectors
 		.map((vector, i) => ({ vector, origin: origins[i] }))
 		.map(vec_or => ear.math.rayLineToUniqueLine(vec_or))
@@ -59,7 +60,7 @@ test("16 angles of lines, through the origin", () => {
 // ];
 test("16 angles of lines, not through the origin, dir 1", () => {
 	const angles = Array.from(Array(16))
-		.map((_, i) => (Math.PI * 2) / 16 * i);
+		.map((_, i) => ((Math.PI * 2) / 16) * i);
 	const vectors = angles.map(a => [Math.cos(a), Math.sin(a)]);
 	const origins = angles
 		.map(a => [Math.cos(a + Math.PI / 2), Math.sin(a + Math.PI / 2)]);
@@ -77,7 +78,7 @@ test("16 angles of lines, not through the origin, dir 1", () => {
 
 test("16 angles of lines, not through the origin, dir 2", () => {
 	const angles = Array.from(Array(16))
-		.map((_, i) => (Math.PI * 2) / 16 * i);
+		.map((_, i) => ((Math.PI * 2) / 16) * i);
 	const vectors = angles.map(a => [Math.cos(a), Math.sin(a)]);
 	const origins = angles
 		.map(a => [Math.cos(a - Math.PI / 2), Math.sin(a - Math.PI / 2)]);

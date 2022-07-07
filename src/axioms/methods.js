@@ -10,6 +10,8 @@ export const arrayify = (axiomNumber, solutions) => {
 	case 3: case "3":
 	case 5: case "5":
 	case 6: case "6": return solutions;
+	// 7 is the only axiom which can return a single undefined (not in an array)
+	case 7: case "7": return solutions === undefined ? [] : [solutions];
 	default: return [solutions];
 	}
 };

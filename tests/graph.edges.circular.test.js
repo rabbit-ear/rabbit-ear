@@ -1,4 +1,5 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 const arraysMatch = (a, b) => a.forEach((_, i) => expect(a[i]).toBe(b[i]));
 

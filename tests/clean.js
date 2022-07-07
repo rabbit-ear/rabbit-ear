@@ -20,4 +20,4 @@ const deleteFolderRecursive = function (path) {
 	}
 };
 
-deleteFolderRecursive("./tests/output");
+deleteFolderRecursive("./tests/files/svg");

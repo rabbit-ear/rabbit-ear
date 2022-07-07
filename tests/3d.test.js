@@ -1,5 +1,6 @@
-const ear = require("rabbit-ear");
 const fs = require("fs");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 test("fold in 3d", () => {
 	const file = "bird-base-3d.fold";
@@ -36,4 +37,5 @@ test("fold in 3d", () => {
 	cp.vertices_coords = new_vertices_coords;
 
 	fs.writeFileSync(`./tests/files/folded-${file}`, JSON.stringify(cp));
+	expect(true).toBe(true);
 });

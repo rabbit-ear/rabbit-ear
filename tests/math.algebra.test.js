@@ -1,9 +1,9 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 const testEqual = function (...args) {
 	expect(ear.math.fnEpsilonEqualVectors(...args)).toBe(true);
 };
-
 /**
  * algebra core
  */
@@ -37,21 +37,21 @@ test("scale", () => {
 });
 
 test("add", () => {
-	expect(ear.math.add([1], [1,2,3]).length).toBe(1);
-	expect(ear.math.add([1], [1,2,3])[0]).toBe(2);
-	expect(ear.math.add([1,2,3], [1,2])[0]).toBe(2);
-	expect(ear.math.add([1,2,3], [1,2])[1]).toBe(4);
-	expect(ear.math.add([1,2,3], [1,2])[2]).toBe(3);
-	expect(ear.math.add([1,2,3], [])[0]).toBe(1);
+	expect(ear.math.add([1], [1, 2, 3]).length).toBe(1);
+	expect(ear.math.add([1], [1, 2, 3])[0]).toBe(2);
+	expect(ear.math.add([1, 2, 3], [1, 2])[0]).toBe(2);
+	expect(ear.math.add([1, 2, 3], [1, 2])[1]).toBe(4);
+	expect(ear.math.add([1, 2, 3], [1, 2])[2]).toBe(3);
+	expect(ear.math.add([1, 2, 3], [])[0]).toBe(1);
 });
 
 test("subtract", () => {
-	expect(ear.math.subtract([1], [2,3,4]).length).toBe(1);
-	expect(ear.math.subtract([1], [2,3,4])[0]).toBe(-1);
-	expect(ear.math.subtract([1,2,3], [1,2])[0]).toBe(0);
-	expect(ear.math.subtract([1,2,3], [1,2])[1]).toBe(0);
-	expect(ear.math.subtract([1,2,3], [1,2])[2]).toBe(3);
-	expect(ear.math.subtract([1,2,3], [])[0]).toBe(1);
+	expect(ear.math.subtract([1], [2, 3, 4]).length).toBe(1);
+	expect(ear.math.subtract([1], [2, 3, 4])[0]).toBe(-1);
+	expect(ear.math.subtract([1, 2, 3], [1, 2])[0]).toBe(0);
+	expect(ear.math.subtract([1, 2, 3], [1, 2])[1]).toBe(0);
+	expect(ear.math.subtract([1, 2, 3], [1, 2])[2]).toBe(3);
+	expect(ear.math.subtract([1, 2, 3], [])[0]).toBe(1);
 });
 
 test("dot", () => {
@@ -62,10 +62,10 @@ test("dot", () => {
 });
 
 test("midpoint", () => {
-	expect(ear.math.midpoint([1,2], [5,6,7]).length).toBe(2);
-	expect(ear.math.midpoint([1,2], [5,6,7])[0]).toBe(3);
-	expect(ear.math.midpoint([1,2], [5,6,7])[1]).toBe(4);
-	expect(ear.math.midpoint([], [5,6,7]).length).toBe(0);
+	expect(ear.math.midpoint([1, 2], [5, 6, 7]).length).toBe(2);
+	expect(ear.math.midpoint([1, 2], [5, 6, 7])[0]).toBe(3);
+	expect(ear.math.midpoint([1, 2], [5, 6, 7])[1]).toBe(4);
+	expect(ear.math.midpoint([], [5, 6, 7]).length).toBe(0);
 });
 
 test("average function", () => {
@@ -74,21 +74,27 @@ test("average function", () => {
 	expect(ear.math.average(0, 1, 2).length).toBe(0);
 	expect(ear.math.average([], [], []).length).toBe(0);
 	// correct
-	testEqual([3.75, 4.75],
-		ear.math.average([4, 1], [5, 6], [4, 6], [2, 6]));
-	testEqual([4, 5, 3],
-		ear.math.average([1, 2, 3], [4, 5, 6], [7, 8]));
-	testEqual([4, 5, 6],
-		ear.math.average([1, 2, 3], [4, 5, 6], [7, 8, 9]));
+	testEqual(
+		[3.75, 4.75],
+		ear.math.average([4, 1], [5, 6], [4, 6], [2, 6]),
+	);
+	testEqual(
+		[4, 5, 3],
+		ear.math.average([1, 2, 3], [4, 5, 6], [7, 8]),
+	);
+	testEqual(
+		[4, 5, 6],
+		ear.math.average([1, 2, 3], [4, 5, 6], [7, 8, 9]),
+	);
 });
 
 test("lerp", () => {
-	expect(ear.math.lerp([0,1], [2,0], 0)[0]).toBe(0);
-	expect(ear.math.lerp([0,1], [2,0], 0)[1]).toBe(1);
-	expect(ear.math.lerp([0,1], [2,0], 1)[0]).toBe(2);
-	expect(ear.math.lerp([0,1], [2,0], 1)[1]).toBe(0);
-	expect(ear.math.lerp([0,1], [2,0], 0.5)[0]).toBe(1);
-	expect(ear.math.lerp([0,1], [2,0], 0.5)[1]).toBe(0.5);
+	expect(ear.math.lerp([0, 1], [2, 0], 0)[0]).toBe(0);
+	expect(ear.math.lerp([0, 1], [2, 0], 0)[1]).toBe(1);
+	expect(ear.math.lerp([0, 1], [2, 0], 1)[0]).toBe(2);
+	expect(ear.math.lerp([0, 1], [2, 0], 1)[1]).toBe(0);
+	expect(ear.math.lerp([0, 1], [2, 0], 0.5)[0]).toBe(1);
+	expect(ear.math.lerp([0, 1], [2, 0], 0.5)[1]).toBe(0.5);
 });
 
 test("cross2", () => {
@@ -97,19 +103,19 @@ test("cross2", () => {
 });
 
 test("cross3", () => {
-	expect(ear.math.cross3([-3,0,-2], [5,-1,2])[0]).toBe(-2);
-	expect(ear.math.cross3([-3,0,-2], [5,-1,2])[1]).toBe(-4);
-	expect(ear.math.cross3([-3,0,-2], [5,-1,2])[2]).toBe(3);
-	expect(isNaN(ear.math.cross3([-3,0], [5,-1,2])[0])).toBe(true);
-	expect(isNaN(ear.math.cross3([-3,0], [5,-1,2])[1])).toBe(true);
-	expect(isNaN(ear.math.cross3([-3,0], [5,-1,2])[2])).toBe(false);
+	expect(ear.math.cross3([-3, 0, -2], [5, -1, 2])[0]).toBe(-2);
+	expect(ear.math.cross3([-3, 0, -2], [5, -1, 2])[1]).toBe(-4);
+	expect(ear.math.cross3([-3, 0, -2], [5, -1, 2])[2]).toBe(3);
+	expect(Number.isNaN(ear.math.cross3([-3, 0], [5, -1, 2])[0])).toBe(true);
+	expect(Number.isNaN(ear.math.cross3([-3, 0], [5, -1, 2])[1])).toBe(true);
+	expect(Number.isNaN(ear.math.cross3([-3, 0], [5, -1, 2])[2])).toBe(false);
 });
 
 test("distance3", () => {
-	const r1 = ear.math.distance3([1,2,3], [4,5,6]);
-	const r2 = ear.math.distance3([1,2,3], [4,5]);
+	const r1 = ear.math.distance3([1, 2, 3], [4, 5, 6]);
+	const r2 = ear.math.distance3([1, 2, 3], [4, 5]);
 	expect(r1).toBeCloseTo(5.196152422706632);
-	expect(isNaN(r2)).toBe(true);
+	expect(Number.isNaN(r2)).toBe(true);
 });
 
 test("rotate90, rotate270", () => {
@@ -144,7 +150,7 @@ test("parallel", () => {
 
 /*
 test("alternating sum", () => {
-	const r1 = ear.math.alternating_sum([1,2,3,4,5,6]);
+	const r1 = ear.math.alternating_sum([1, 2, 3, 4, 5, 6]);
 	expect(r1[0]).toBe(9);
 	expect(r1[1]).toBe(12);
 	const r2 = ear.math.alternating_sum([1, undefined, 3, 4, 5, 6]);
@@ -155,4 +161,3 @@ test("alternating sum", () => {
 	expect(r3[1]).toBe(0);
 });
 */
-

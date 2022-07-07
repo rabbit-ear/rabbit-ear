@@ -1,9 +1,10 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 const objMatch = (a, b) => expect(JSON.stringify(a)).toBe(JSON.stringify(b));
 
 const arrMatch = (a, b) => {
-	a.forEach((_, i) => expect(a[i] == b[i]).toBe(true));
+	a.forEach((_, i) => expect(a[i] === b[i]).toBe(true));
 	expect(a.length).toBe(b.length);
 };
 
@@ -39,8 +40,8 @@ test("merge with undefineds", () => {
 	// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 	const map1 = [0, 1, 2, null, 3, 4, null, null, 5, 6];
 	const map2 = [0, null, 1, 2, 3, 4, null];
-	const expected = [0, null, 1, null, 2, 3, null, null, 4, null];
-	// const expected = [0, null, 1, undefined, 2, 3, undefined, undefined, 4, null];
+	// const expected = [0, null, 1, null, 2, 3, null, null, 4, null];
+	const expected = [0, null, 1, undefined, 2, 3, undefined, undefined, 4, null];
 	const res = ear.graph.mergeSimpleNextmaps(map1, map2);
 	arrMatch(res, expected);
 });

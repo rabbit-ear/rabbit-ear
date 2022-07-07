@@ -1,4 +1,5 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 // because there are no faces to build edges_faces, the question is:
 // should edges_faces be empty, or contain empty arrays one for each edge

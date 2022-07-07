@@ -4,7 +4,7 @@
 import math from "../math";
 
 const boundary_for_arrows = ({ vertices_coords }) => math.core
-	.convexHullPoints(vertices_coords);
+	.convexHull(vertices_coords);
 
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {

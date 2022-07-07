@@ -1,4 +1,5 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 test("count, empty, invalid", (done) => {
 	try {

@@ -1,4 +1,4 @@
-/* Rabbit Ear 0.9.31 alpha 2022-07-06 (c) Kraft, MIT License */
+/* Rabbit Ear 0.9.31 alpha 2022-07-07 (c) Kraft, MIT License */
 
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -1096,13 +1096,13 @@
 		stack.pop();
 		return stack;
 	};
-	const convexHullPoints = (points = [], includeCollinear = false, epsilon = EPSILON) => (
+	const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) => (
 		convexHullIndices(points, includeCollinear, epsilon)
 			.map(i => points[i]));
-	var convexHull = Object.freeze({
+	var convexHull$1 = Object.freeze({
 		__proto__: null,
 		convexHullIndices: convexHullIndices,
-		convexHullPoints: convexHullPoints
+		convexHull: convexHull
 	});
 	const intersectLineLine = (
 		aVector,
@@ -1947,7 +1947,7 @@
 				},
 			}),
 			S: Object.assign({
-				fromNormalDistance: function() {
+				fromNormalDistance: function () {
 					return this.constructor(uniqueLineToRayLine(arguments[0]));
 				},
 			}, Static),
@@ -2384,7 +2384,7 @@
 					return this.constructor(makePolygonCircumradius(...arguments));
 				},
 				convexHull: function () {
-					return this.constructor(convexHullPoints(...arguments));
+					return this.constructor(convexHull(...arguments));
 				},
 			},
 		},
@@ -2572,7 +2572,7 @@
 		algebra,
 		sort$1,
 		radial,
-		convexHull,
+		convexHull$1,
 		pleat$1,
 		polygons,
 		radial,
@@ -6391,6 +6391,7 @@
 		case 3: case "3":
 		case 5: case "5":
 		case 6: case "6": return solutions;
+		case 7: case "7": return solutions === undefined ? [] : [solutions];
 		default: return [solutions];
 		}
 	};
@@ -6564,7 +6565,7 @@
 		const solutions = arrayify(
 			number,
 			AxiomsVO[`axiom${number}`](...spreadParams(params)),
-		);
+		).map(l => math.line(l));
 		if (boundary) {
 			arrayify(number, Validate[`validateAxiom${number}`](params, boundary, solutions))
 				.forEach((valid, i) => (valid ? i : undefined))
@@ -6577,7 +6578,7 @@
 		const solutions = arrayify(
 			number,
 			AxiomsND[`normalAxiom${number}`](...spreadParams(params)),
-		);
+		).map(l => math.line.fromNormalDistance(l));
 		if (boundary) {
 			arrayify(number, Validate[`validateAxiom${number}`](paramsVecsToNorms(params), boundary, solutions))
 				.forEach((valid, i) => (valid ? i : undefined))
@@ -6777,7 +6778,7 @@
 	});
 
 	const boundary_for_arrows = ({ vertices_coords }) => math.core
-		.convexHullPoints(vertices_coords);
+		.convexHull(vertices_coords);
 	const widest_perpendicular = (polygon, foldLine, point) => {
 		if (point === undefined) {
 			const foldSegment = math.core.clipLineConvexPolygon(

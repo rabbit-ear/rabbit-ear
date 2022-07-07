@@ -43,10 +43,11 @@
 		"url": "https://github.com/robbykraft/Origami/issues"
 	},
 	"devDependencies": {
-		"@xmldom/xmldom": "^0.8.2",
 		"@babel/preset-env": "^7.18.6",
-		"@rollup/plugin-json": "^4.1.0",
+		"@jest/globals": "^28.1.2",
 		"@rollup/plugin-babel": "^5.3.1",
+		"@rollup/plugin-json": "^4.1.0",
+		"@xmldom/xmldom": "^0.8.2",
 		"eslint": "^8.19.0",
 		"eslint-config-airbnb-base": "^15.0.0",
 		"eslint-plugin-import": "^2.26.0",
@@ -58,6 +59,9 @@
 	"jest": {
 		"testEnvironment": "node",
 		"collectCoverage": true,
-		"testMatch": [ "**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(test).[jt]s?(x)" ]
+		"testMatch": [
+			"**/__tests__/**/*.[jt]s?(x)",
+			"**/?(*.)+(test).[jt]s?(x)"
+		]
 	}
 }

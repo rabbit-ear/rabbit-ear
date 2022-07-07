@@ -2256,17 +2256,18 @@ const convexHullIndices = (points = [], includeCollinear = false, epsilon = EPSI
  * @param {number[][]} points array of points, each point is an array of numbers
  * @param {boolean} [includeCollinear=false] true to include points collinear along the boundary
  * @param {number} [epsilon=1e-6] undefined behavior when larger than 0.01
- * @returns {number[]} the convex hull as a list of points
- * @linkcode Math ./src/geometry/convex-hull.js 59
+ * @returns {number[][]} the convex hull as a list of points,
+ * where each point is an array of numbers
+ * @linkcode Math ./src/geometry/convex-hull.js 60
  */
-const convexHullPoints = (points = [], includeCollinear = false, epsilon = EPSILON) => (
+const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) => (
 	convexHullIndices(points, includeCollinear, epsilon)
 		.map(i => points[i]));
 
-var convexHull = /*#__PURE__*/Object.freeze({
+var convexHull$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	convexHullIndices: convexHullIndices,
-	convexHullPoints: convexHullPoints
+	convexHull: convexHull
 });
 
 /**
@@ -3680,7 +3681,7 @@ var Line = {
 		}),
 
 		S: Object.assign({
-			fromNormalDistance: function() {
+			fromNormalDistance: function () {
 				return this.constructor(uniqueLineToRayLine(arguments[0]));
 			},
 		}, Static),
@@ -4306,7 +4307,7 @@ var Polygon = {
 				return this.constructor(makePolygonCircumradius(...arguments));
 			},
 			convexHull: function () {
-				return this.constructor(convexHullPoints(...arguments));
+				return this.constructor(convexHull(...arguments));
 			},
 		},
 	},
@@ -4782,7 +4783,7 @@ math.core = Object.assign(
 	sort,
 
 	radial,
-	convexHull,
+	convexHull$1,
 	pleat$1,
 	polygons,
 	radial,

@@ -1,4 +1,5 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 const isEqual = (...args) => args
 	.map(el => JSON.stringify(el))
@@ -9,7 +10,7 @@ const isEqual = (...args) => args
 test("assignmentsToFacesFlip, empty", () => {
 	try {
 		ear.vertex.assignmentsToFacesFlip(undefined);
-	} catch(error) {
+	} catch (error) {
 		expect(error).not.toBe(undefined);
 	}
 	const res1 = isEqual(

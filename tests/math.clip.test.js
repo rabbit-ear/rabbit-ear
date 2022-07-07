@@ -1,39 +1,64 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
-const exclude = ear.math.exclude;
-const include = ear.math.include;
-const includeL = ear.math.includeL;
-const excludeL = ear.math.excludeL;
-const includeR = ear.math.includeR;
-const excludeR = ear.math.excludeR;
-const includeS = ear.math.includeS;
-const excludeS = ear.math.excludeS;
+const {
+	exclude,
+	include,
+	includeL,
+	excludeL,
+	includeR,
+	excludeR,
+	includeS,
+	excludeS,
+} = ear.math;
 
 const clip_line_in_convex_poly_inclusive = function () {
-	return ear.math.clipLineConvexPolygon(...arguments,
-		ear.math.include, ear.math.includeL);
+	return ear.math.clipLineConvexPolygon(
+		...arguments,
+		ear.math.include,
+		ear.math.includeL,
+	);
 };
 const clip_line_in_convex_poly_exclusive = function () {
-	return ear.math.clipLineConvexPolygon(...arguments,
-		ear.math.exclude, ear.math.excludeL);
+	return ear.math.clipLineConvexPolygon(
+		...arguments,
+		ear.math.exclude,
+		ear.math.excludeL,
+	);
 };
 const clip_ray_in_convex_poly_inclusive = function () {
-	return ear.math.clipLineConvexPolygon(...arguments,
-		ear.math.include, ear.math.includeR);
+	return ear.math.clipLineConvexPolygon(
+		...arguments,
+		ear.math.include,
+		ear.math.includeR,
+	);
 };
 const clip_ray_in_convex_poly_exclusive = function () {
-	return ear.math.clipLineConvexPolygon(...arguments,
-		ear.math.exclude, ear.math.excludeR);
+	return ear.math.clipLineConvexPolygon(
+		...arguments,
+		ear.math.exclude,
+		ear.math.excludeR,
+	);
 };
 const clip_segment_in_convex_poly_inclusive = function (poly, s0, s1) {
 	const vector = [s1[0] - s0[0], s1[1] - s0[1]];
-	return ear.math.clipLineConvexPolygon(poly, vector, s0,
-		ear.math.include, ear.math.includeS);
+	return ear.math.clipLineConvexPolygon(
+		poly,
+		vector,
+		s0,
+		ear.math.include,
+		ear.math.includeS,
+	);
 };
 const clip_segment_in_convex_poly_exclusive = function (poly, s0, s1) {
 	const vector = [s1[0] - s0[0], s1[1] - s0[1]];
-	return ear.math.clipLineConvexPolygon(poly, vector, s0,
-		ear.math.exclude, ear.math.excludeS);
+	return ear.math.clipLineConvexPolygon(
+		poly,
+		vector,
+		s0,
+		ear.math.exclude,
+		ear.math.excludeS,
+	);
 };
 
 test("collinear line", () => {
@@ -68,7 +93,7 @@ test("collinear line", () => {
 
 test("vertex-incident line", () => {
 	// all cases will return undefined
-	const quad = ear.polygon([1,0], [0,1], [-1,0], [0,-1]);
+	const quad = ear.polygon([1, 0], [0, 1], [-1, 0], [0, -1]);
 	const lineHoriz1 = [[1, 0], [-1, 1]];
 	const lineHoriz2 = [[1, 0], [-1, -1]];
 	const lineVert1 = [[0, 1], [-1, -1]];
@@ -140,7 +165,7 @@ test("collinear core, segment", () => {
 
 test("vertex-incident segment", () => {
 	// all cases will return undefined
-	const quad = ear.polygon([1,0], [0,1], [-1,0], [0,-1]);
+	const quad = ear.polygon([1, 0], [0, 1], [-1, 0], [0, -1]);
 	const horiz1 = [[1, 0], [-1, 1]];
 	const horiz2 = [[1, 0], [-1, -1]];
 	const vert1 = [[0, 1], [-1, -1]];
@@ -157,7 +182,6 @@ test("vertex-incident segment", () => {
 	];
 	results.forEach(res => expect(res).toBe(undefined));
 });
-
 
 test("collinear core, ray", () => {
 	const rect = ear.rect(1, 1);
@@ -189,7 +213,7 @@ test("collinear core, ray", () => {
 
 test("vertex-incident ray", () => {
 	// all cases will return undefined
-	const quad = ear.polygon([1,0], [0,1], [-1,0], [0,-1]);
+	const quad = ear.polygon([1, 0], [0, 1], [-1, 0], [0, -1]);
 	const horiz1 = [[1, 0], [-1, 1]];
 	const horiz2 = [[1, 0], [-1, -1]];
 	const vert1 = [[0, 1], [-1, -1]];
@@ -222,11 +246,13 @@ test("collinear core, segment", () => {
 test("collinear core, segment, spanning multiple points", () => {
 	const poly = [[0, 0], [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [0, 5]];
 	const seg = [[5, -1], [5, 6]];
-	const res = ear.math.clipLineConvexPolygon(poly,
+	const res = ear.math.clipLineConvexPolygon(
+		poly,
 		ear.math.subtract(seg[1], seg[0]),
 		seg[0],
 		ear.math.include,
-		ear.math.includeS);
+		ear.math.includeS,
+	);
 	expect(res[0][0]).toBe(5);
 	expect(res[0][1]).toBe(0);
 	expect(res[1][0]).toBe(5);
@@ -329,7 +355,8 @@ test("core clip", () => {
 	const poly = [...ear.rect(-1, -1, 2, 2)];
 	const vector = [1, 1];
 	const origin = [0, 0];
-	[ clip_line_in_convex_poly_inclusive(poly, vector, origin),
+	[
+		clip_line_in_convex_poly_inclusive(poly, vector, origin),
 		clip_ray_in_convex_poly_exclusive(poly, vector, origin),
 		clip_ray_in_convex_poly_inclusive(poly, vector, origin),
 		clip_segment_in_convex_poly_exclusive(poly, vector, origin),
@@ -343,7 +370,8 @@ test("core no clip", () => {
 	const origin = [10, 0];
 	const seg0 = [10, 0];
 	const seg1 = [0, 10];
-	[ clip_line_in_convex_poly_inclusive(poly, vector, origin),
+	[
+		clip_line_in_convex_poly_inclusive(poly, vector, origin),
 		clip_ray_in_convex_poly_exclusive(poly, vector, origin),
 		clip_ray_in_convex_poly_inclusive(poly, vector, origin),
 		clip_segment_in_convex_poly_exclusive(poly, seg0, seg1),
@@ -366,7 +394,8 @@ test("core clip segments exclusive", () => {
 		[0.2, 0.2],
 		[10, 10],
 		ear.math.include,
-		ear.math.includeS);
+		ear.math.includeS,
+	);
 	expect(result1).toBe(undefined);
 	// inside and collinear
 	const seg2 = [[0, 0], [1, 0]];
@@ -375,7 +404,8 @@ test("core clip segments exclusive", () => {
 		[1, 0],
 		[0, 0],
 		ear.math.include,
-		ear.math.includeS);
+		ear.math.includeS,
+	);
 	expect(ear.math.fnEpsilonEqualVectors(seg2[0], result2[0])).toBe(true);
 	expect(ear.math.fnEpsilonEqualVectors(seg2[1], result2[1])).toBe(true);
 	// outside and collinear
@@ -386,7 +416,8 @@ test("core clip segments exclusive", () => {
 		[5, 0],
 		[1, 0],
 		ear.math.exclude,
-		ear.math.excludeS);
+		ear.math.excludeS,
+	);
 	expect(result3).toBe(undefined);
 
 	// inside and collinear
@@ -420,7 +451,8 @@ test("core clip segments inclusive", () => {
 		[5, 0],
 		[1, 0],
 		ear.math.include,
-		ear.math.includeS);
+		ear.math.includeS,
+	);
 	expect(result3).toBe(undefined);
 	// inside and collinear
 	const seg4 = [[-1, 0], [1, 0]];
@@ -428,4 +460,3 @@ test("core clip segments inclusive", () => {
 	expect(ear.math.fnEpsilonEqualVectors(seg4[0], result4[0])).toBe(true);
 	expect(ear.math.fnEpsilonEqualVectors(seg4[1], result4[1])).toBe(true);
 });
-
