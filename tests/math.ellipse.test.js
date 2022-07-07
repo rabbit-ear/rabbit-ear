@@ -1,3 +1,4 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 test("x, y", () => {
@@ -17,9 +18,9 @@ test("x, y", () => {
 test("foci", () => {
 	const result = ear.ellipse(1, 0.5).foci;
 	// one of these is negative
-	expect(Math.abs(result[0].x)).toBeCloseTo(Math.sqrt(3)/2);
+	expect(Math.abs(result[0].x)).toBeCloseTo(Math.sqrt(3) / 2);
 	expect(result[0].y).toBeCloseTo(0);
-	expect(Math.abs(result[1].x)).toBeCloseTo(Math.sqrt(3)/2);
+	expect(Math.abs(result[1].x)).toBeCloseTo(Math.sqrt(3) / 2);
 	expect(result[1].y).toBeCloseTo(0);
 });
 // test("nearestPoint", () => {

@@ -1,7 +1,10 @@
+const { test, expect } = require("@jest/globals");
+
 test("empty", () => expect(true).toBe(true));
 
 /*
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 test("addVertices_splitEdges", () => {
 	const graph = {

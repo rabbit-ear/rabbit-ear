@@ -1,4 +1,6 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
+
 try {
 	const svg = require("../../SVG/svg.js");
 
@@ -6,7 +8,7 @@ try {
 		ear.use(svg);
 		expect(true).toBe(true);
 	});
-	
+
 	test("use, invalid", () => {
 		ear.use({});
 		ear.use(() => {});

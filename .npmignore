@@ -1,5 +1,5 @@
 .DS_Store
-.eslintrc.json
+.eslintrc.js
 .git
 .gitignore
 .travis.yml
@@ -9,3 +9,7 @@ src/
 tests/
 contribute.md
 versions.md
+
+# builds of Rabbit Ear
+rabbit-ear.comments.js
+rabbit-ear.min.js

@@ -1,4 +1,5 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 const isEqual = (...args) => args
 	.map(el => JSON.stringify(el))
@@ -97,7 +98,7 @@ test("axiom 6 rewrite", () => {
 test("axiom 6 with no params", () => {
 	try {
 		ear.axiom.axiom6({ vector: [], origin: [] }, { vector: [], origin: [] }, [], []);
-	} catch(err) {
+	} catch (err) {
 		expect(err).not.toBe(undefined);
 	}
 });

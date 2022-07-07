@@ -1,3 +1,4 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 test("segment", () => {
@@ -24,8 +25,8 @@ test("circle", () => {
 
 test("ellipse", () => {
 	expect(ear.ellipse(1, 2).svgPath()).toBe("M1 0A1 2 0 0 1 -1 0A1 2 0 0 1 1 0");
-	expect(ear.ellipse(1, 2).svgPath(-Math.PI).slice(0,4)).toBe("M-1 ");
-	expect(ear.ellipse(1, 2).svgPath(-Math.PI*2)).toBe("M1 0A1 2 0 0 1 -1 0A1 2 0 0 1 1 0");
+	expect(ear.ellipse(1, 2).svgPath(-Math.PI).slice(0, 4)).toBe("M-1 ");
+	expect(ear.ellipse(1, 2).svgPath(-Math.PI * 2)).toBe("M1 0A1 2 0 0 1 -1 0A1 2 0 0 1 1 0");
 });
 
 test("polygon", () => {

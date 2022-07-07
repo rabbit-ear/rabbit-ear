@@ -33,9 +33,7 @@ export const axiomInBoundary = (number, params = {}, boundary) => {
 	const solutions = arrayify(
 		number,
 		AxiomsVO[`axiom${number}`](...spreadParams(params)),
-	);
-		// .filter(a => a !== undefined);
-		// .map(line => math.line(line));
+	).map(l => math.line(l));
 	if (boundary) {
 		arrayify(number, Validate[`validateAxiom${number}`](params, boundary, solutions))
 			.forEach((valid, i) => (valid ? i : undefined))
@@ -53,13 +51,13 @@ export const axiomInBoundary = (number, params = {}, boundary) => {
  * @param {number[][]} [boundary] the optional boundary,
  * including this will exclude results that lie outside.
  * @returns {UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/axiomsInBoundary.js 56
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 54
  */
 export const normalAxiomInBoundary = (number, params = {}, boundary) => {
 	const solutions = arrayify(
 		number,
 		AxiomsND[`normalAxiom${number}`](...spreadParams(params)),
-	);
+	).map(l => math.line.fromNormalDistance(l));
 	if (boundary) {
 		arrayify(number, Validate[`validateAxiom${number}`](paramsVecsToNorms(params), boundary, solutions))
 			.forEach((valid, i) => (valid ? i : undefined))

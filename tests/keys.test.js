@@ -1,5 +1,6 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
 const fs = require("fs");
+const ear = require("../rabbit-ear");
 
 test("keys", () => {
 	// expect(ear.graph.file_spec).toBe(1.1)

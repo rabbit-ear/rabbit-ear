@@ -1,4 +1,5 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 // test("circularArrayValidRanges", () => {
 // 	circularArrayValidRanges([0, 1, undefined, 2, 3, undefined, undefined, 4])

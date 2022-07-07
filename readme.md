@@ -2,15 +2,33 @@
 
 [![Build Status](https://travis-ci.org/robbykraft/Origami.svg?branch=master)](https://travis-ci.org/robbykraft/Origami)
 
-This is a Javascript library for modeling origami. Check out the [documentation](https://rabbitear.org/docs/).
+This is a Javascript library for modeling origami.
 
-# usage
+# overview
 
-The compiled library is one file and works in the browser or Node.
+This library assists the user in encoding, modifying, and rendering origami models. Origami models are encoded as [FOLD](https://github.com/edemaine/FOLD/) objects, which is a graph data structure format. Rabbit Ear contains methods for modifying FOLD graphs, a small math library, an SVG rendering library, and various origami-specific calculations.
 
-```html
+The [docs](https://rabbitear.org/docs/) contain technical references for coding with this library.
+
+The [book](https://rabbitear.org/book/) contains higher-level explanations and interactive examples.
+
+# installation
+
+Rabbit Ear is compiled into one file in various formats:
+
+**UMD module** for html \<script\> tags and node.js require()
+
+``` bash
 https://robbykraft.github.io/Origami/rabbit-ear.js
 ```
+
+**ES module** for ES 2015 import/export
+
+```
+https://robbykraft.github.io/Origami/rabbit-ear.module.js
+```
+
+Install via. npm with:
 
 ```
 npm install rabbit-ear
@@ -18,34 +36,27 @@ npm install rabbit-ear
 
 # developers
 
-clone this repo and `cd` into the directory.
+To compile this project on your computer, make sure you have [node and npm](https://nodejs.org/) installed, and clone this repository.
 
 ```shell
 git clone https://github.com/robbykraft/Origami.git
 cd Origami/
+npm i
 ```
 
-install npm. (if you don't already have it install [NodeJS](https://nodejs.org/))
-
-````shell
-npm install
-````
-
- npm will install [rollup](https://rollupjs.org/), the compilation tool that creates `rabbit-ear.js`. compile by typing
+ npm will install [rollup](https://rollupjs.org/), the compilation tool that creates `rabbit-ear.js`. Compile the library by typing:
 
 ```shell
 rollup -c
 ```
 
-run the tests to ensure everything worked.
+Run the tests to ensure everything worked.
 
 ```shell
 npm test
 ```
 
-# src/
-
-an overview of the contents of the source folder
+Here is an overview of the contents of the source folder.
 
 ```
 src/
@@ -81,7 +92,7 @@ All methods relating to generating origami diagrams. Most of it relates to rende
 
 ### extensions/
 
-Chunks of code which are currently included in the library, but this library could be built without it. For example the "SVG" library can be removed and Rabbit Ear can successfully compile without it.
+Code which is currently included in the library, but this library could be built without it. The "SVG" library can be removed and Rabbit Ear can successfully compile and run without it.
 
 ### fold/
 
@@ -89,7 +100,7 @@ This library is designed around the FOLD graph spec. This contains methods and i
 
 ### general/
 
-More computer-sciency level data structure kind of stuff, like the manipulation of arrays, memory, strings, etc.
+Manipulation of arrays, memory, strings, etc.
 
 ### graph/
 
@@ -115,11 +126,11 @@ Conversion of a FOLD object into an SVG rendering, with case-specific styling fo
 
 ### text/
 
-Datasets of multilingual text, intended to describe fold operations, parts of the paper, etc.. Intended for use when constructing diagrams.
+Multilingual text, intended to contain instructions for fold operations, parts of the paper, etc.
 
 ### webgl/
 
-Conversion of the FOLD format into WebGL mesh format and rendering. Intended as a substitute for the SVG renderer.
+Conversion of the FOLD format into WebGL mesh format and rendering. Intended as a substitute for the SVG renderer. *not much to see here*
 
 # references
 
@@ -128,10 +139,8 @@ This repo is the main entrypoint for building the Rabbit Ear library. The librar
 - [Origami](https://github.com/robbykraft/Origami) (this repo)
 - [Math](https://github.com/robbykraft/Math) **required by this repo** and is included in the build
 - [SVG](https://github.com/robbykraft/SVG) included in build
-- [fold-to-svg](https://github.com/robbykraft/fold-to-svg) included in build
-- [svg-to-fold](https://github.com/robbykraft/svg-to-fold) right now **not** included
 - [examples](https://github.com/robbykraft/Examples) the example sketches found in the docs
-- [docs](https://github.com/robbykraft/Docs) the docs at [http://rabbitear.org/docs](http://rabbitear.org/docs)
+- [book](https://github.com/robbykraft/Docs) the book at [http://rabbitear.org/book](http://rabbitear.org/book)
 
 # license
 

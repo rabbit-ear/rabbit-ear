@@ -1,3 +1,4 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 test("overlap method", () => {
@@ -55,7 +56,6 @@ test("overlap method", () => {
 		vector2.overlap(vector3),
 	].forEach(overlap => expect(overlap).toBe(true));
 });
-
 
 test("point on line", () => {
 	expect(ear.math.overlapLinePoint([5, 5], [0, 0], [2, 2])).toBe(true);
@@ -136,13 +136,12 @@ test("overlap.point_on_segment_inclusive", () => {
 	)).toBe(false);
 });
 
-
 test("point on line epsilon", () => {
 
 });
 
 test("point in poly", () => {
-	const poly = [[1,0], [0,1], [-1,0], [0,-1]];
+	const poly = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 0.0])).toBe(true);
 	expect(ear.math.overlapConvexPolygonPoint(poly, [0.999, 0.0])).toBe(true);
 	expect(ear.math.overlapConvexPolygonPoint(poly, [0.9999999999, 0.0])).toBe(false);
@@ -162,7 +161,7 @@ test("point in poly", () => {
 });
 
 test("convex point in poly inclusive", () => {
-	const poly = [[1,0], [0,1], [-1,0], [0,-1]];
+	const poly = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 0.0], ear.math.include))
 		.toBe(true);
 	expect(ear.math.overlapConvexPolygonPoint(poly, [0.999, 0.0], ear.math.include))
@@ -202,7 +201,7 @@ test("convex point in poly inclusive", () => {
 });
 
 test("convex point in poly exclusive", () => {
-	const poly = [[1,0], [0,1], [-1,0], [0,-1]];
+	const poly = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 0.0], ear.math.exclude))
 		.toBe(true);
 	expect(ear.math.overlapConvexPolygonPoint(poly, [0.999, 0.0], ear.math.exclude))
@@ -246,18 +245,84 @@ test("overlap lines", () => {
 	const b0 = [5, 0];
 	const b1 = [2, 2];
 
-	expect(ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.includeL, ear.math.includeL)).toBe(true);
-	expect(ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.includeL, ear.math.includeR)).toBe(true);
-	expect(ear.math.overlapLineLine(aV, aP, ear.math.subtract(b1, b0), b0, ear.math.includeL, ear.math.includeS)).toBe(false);
-	expect(ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.includeR, ear.math.includeR)).toBe(true);
-	expect(ear.math.overlapLineLine(aV, aP, ear.math.subtract(b1, b0), b0, ear.math.includeR, ear.math.includeS)).toBe(false);
-	expect(ear.math.overlapLineLine(ear.math.subtract(a1, a0), a0, ear.math.subtract(b1, b0), b0, ear.math.includeS, ear.math.includeS)).toBe(false);
-	expect(ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.excludeL, ear.math.excludeL)).toBe(true);
-	expect(ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.excludeL, ear.math.excludeR)).toBe(true);
-	expect(ear.math.overlapLineLine(aV, aP, ear.math.subtract(b1, b0), b0, ear.math.excludeL, ear.math.excludeS)).toBe(false);
-	expect(ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.excludeR, ear.math.excludeR)).toBe(true);
-	expect(ear.math.overlapLineLine(aV, aP, ear.math.subtract(b1, b0), b0, ear.math.excludeR, ear.math.excludeS)).toBe(false);
-	expect(ear.math.overlapLineLine(ear.math.subtract(a1, a0), a0, ear.math.subtract(b1, b0), b0, ear.math.excludeS, ear.math.excludeS)).toBe(false);
+	expect(
+		ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.includeL, ear.math.includeL),
+	).toBe(true);
+	expect(
+		ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.includeL, ear.math.includeR),
+	).toBe(true);
+	expect(
+		ear.math.overlapLineLine(
+			aV,
+			aP,
+			ear.math.subtract(b1, b0),
+			b0,
+			ear.math.includeL,
+			ear.math.includeS,
+		),
+	).toBe(false);
+	expect(
+		ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.includeR, ear.math.includeR),
+	).toBe(true);
+	expect(
+		ear.math.overlapLineLine(
+			aV,
+			aP,
+			ear.math.subtract(b1, b0),
+			b0,
+			ear.math.includeR,
+			ear.math.includeS,
+		),
+	).toBe(false);
+	expect(
+		ear.math.overlapLineLine(
+			ear.math.subtract(a1, a0),
+			a0,
+			ear.math.subtract(b1, b0),
+			b0,
+			ear.math.includeS,
+			ear.math.includeS,
+		),
+	).toBe(false);
+	expect(
+		ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.excludeL, ear.math.excludeL),
+	).toBe(true);
+	expect(
+		ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.excludeL, ear.math.excludeR),
+	).toBe(true);
+	expect(
+		ear.math.overlapLineLine(
+			aV,
+			aP,
+			ear.math.subtract(b1, b0),
+			b0,
+			ear.math.excludeL,
+			ear.math.excludeS,
+		),
+	).toBe(false);
+	expect(
+		ear.math.overlapLineLine(aV, aP, bV, bP, ear.math.excludeR, ear.math.excludeR),
+	).toBe(true);
+	expect(
+		ear.math.overlapLineLine(
+			aV,
+			aP,
+			ear.math.subtract(b1, b0),
+			b0,
+			ear.math.excludeR,
+			ear.math.excludeS,
+		),
+	).toBe(false);
+	expect(
+		ear.math.overlapLineLine(
+			ear.math.subtract(a1, a0),
+			a0,
+			ear.math.subtract(b1, b0),
+			b0,
+			ear.math.excludeS,
+			ear.math.excludeS,
+		),
+	).toBe(false);
 });
 // if we choose to bring back exclusive / inclusive polygon overlap
 // test("convex polygons overlap with point inside each other", () => {
@@ -285,9 +350,9 @@ test("overlap lines", () => {
 // });
 // until then, exclusive only
 test("convex polygons overlap", () => {
-	const poly1 = [[1,0], [0,1], [-1,0]];  // top
-	const poly2 = [[0,1], [-1,0], [0,-1]]; // left
-	const poly3 = [[1,0], [0,1], [0,-1]];  // right
+	const poly1 = [[1, 0], [0, 1], [-1, 0]]; // top
+	const poly2 = [[0, 1], [-1, 0], [0, -1]]; // left
+	const poly3 = [[1, 0], [0, 1], [0, -1]]; // right
 	// exclusive
 	expect(ear.math.overlapConvexPolygons(poly1, poly2)).toBe(true);
 	expect(ear.math.overlapConvexPolygons(poly2, poly3)).toBe(false);
@@ -295,9 +360,9 @@ test("convex polygons overlap", () => {
 });
 
 test("enclosingPolygonPolygon", () => {
-	const poly1 = [[1,0], [0,1], [-1,0], [0,-1]];
-	const poly2 = [[10,0], [0,10], [-10,0], [0,-10]];
-	const poly3 = [[8,8], [-8,8], [-8,-8], [8,-8]];
+	const poly1 = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+	const poly2 = [[10, 0], [0, 10], [-10, 0], [0, -10]];
+	const poly3 = [[8, 8], [-8, 8], [-8, -8], [8, -8]];
 	expect(ear.math.enclosingPolygonPolygon(poly2, poly1)).toBe(true);
 	expect(ear.math.enclosingPolygonPolygon(poly3, poly1)).toBe(true);
 	// todo, this should be false i think
@@ -305,4 +370,3 @@ test("enclosingPolygonPolygon", () => {
 	expect(ear.math.enclosingPolygonPolygon(poly1, poly2)).toBe(false);
 	expect(ear.math.enclosingPolygonPolygon(poly1, poly3)).toBe(false);
 });
-

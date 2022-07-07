@@ -1,3 +1,4 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 test("convexHull", () => {
@@ -7,8 +8,8 @@ test("convexHull", () => {
 		[1, 1],
 		[0, 1],
 	];
-	const res0 = ear.math.convexHullPoints(rect);
-	const res1 = ear.math.convexHullPoints(rect, true);
+	const res0 = ear.math.convexHull(rect);
+	const res1 = ear.math.convexHull(rect, true);
 	expect(res0.length).toBe(4);
 	expect(res1.length).toBe(4);
 });
@@ -24,8 +25,8 @@ test("convexHull collinear", () => {
 		[1, 0.5],
 		[0.5, 1],
 	];
-	const res0 = ear.math.convexHullPoints(rect_collinear);
-	const res1 = ear.math.convexHullPoints(rect_collinear, true);
+	const res0 = ear.math.convexHull(rect_collinear);
+	const res1 = ear.math.convexHull(rect_collinear, true);
 	expect(res0.length).toBe(4);
 	expect(res1.length).toBe(8);
 });
@@ -46,8 +47,8 @@ test("convexHull collinear", () => {
 		[3, 2],
 		[2, 3],
 	];
-	const res0 = ear.math.convexHullPoints(rect_collinear);
-	const res1 = ear.math.convexHullPoints(rect_collinear, true);
+	const res0 = ear.math.convexHull(rect_collinear);
+	const res1 = ear.math.convexHull(rect_collinear, true);
 	expect(res0.length).toBe(4);
 	expect(res1.length).toBe(12);
 });
@@ -59,8 +60,8 @@ test("convexHull axisaligned", () => {
 		[0, 1],
 		[0, -1],
 	];
-	const res0 = ear.math.convexHullPoints(rect);
-	const res1 = ear.math.convexHullPoints(rect, true);
+	const res0 = ear.math.convexHull(rect);
+	const res1 = ear.math.convexHull(rect, true);
 	expect(res0.length).toBe(4);
 	expect(res1.length).toBe(4);
 });
@@ -76,8 +77,8 @@ test("convexHull collinear axisaligned", () => {
 		[-0.5, -0.5],
 		[-0.5, 0.5],
 	];
-	const res0 = ear.math.convexHullPoints(rect);
-	const res1 = ear.math.convexHullPoints(rect, true);
+	const res0 = ear.math.convexHull(rect);
+	const res1 = ear.math.convexHull(rect, true);
 	expect(res0.length).toBe(4);
 	expect(res1.length).toBe(8);
 });
@@ -98,8 +99,8 @@ test("convexHull collinear axisaligned", () => {
 		[-1, 2],
 		[-2, 1],
 	];
-	const res0 = ear.math.convexHullPoints(rect);
-	const res1 = ear.math.convexHullPoints(rect, true);
+	const res0 = ear.math.convexHull(rect);
+	const res1 = ear.math.convexHull(rect, true);
 	expect(res0.length).toBe(4);
 	expect(res1.length).toBe(12);
 });

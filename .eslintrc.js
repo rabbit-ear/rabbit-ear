@@ -23,6 +23,6 @@ module.exports = {
 		"object-shorthand": 0,
 		"prefer-rest-params": 0,
 		"prefer-default-export": 0,
-		quotes: ["error", "double"],
+		quotes: ["error", "double", { allowTemplateLiterals: true }],
 	},
 };

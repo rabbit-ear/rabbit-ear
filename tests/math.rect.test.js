@@ -1,8 +1,9 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 // static
 test("static fromPoints", () => {
-	const r = ear.rect.fromPoints([1,1], [3,2]);
+	const r = ear.rect.fromPoints([1, 1], [3, 2]);
 	expect(r.width).toBe(2);
 	expect(r.height).toBe(1);
 });
@@ -53,7 +54,7 @@ test("contains", () => {
 });
 
 test("svg", () => {
-	const r = ear.rect(1,2,3,4);
+	const r = ear.rect(1, 2, 3, 4);
 	expect(r.svgPath()).toBe("M1 2h3v4h-3Z");
 });
 

@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const repoName = "Origami";
+const repoName = "Math";
 
 const regex = /\*(\s*)\@linkcode.*/g;
 
@@ -11,7 +11,7 @@ const processFile = (path) => {
 	if (!matches) { return; }
 	const lineNumbers = contents
 		.split(/\r?\n/)
-		.map((line, i) => (line.match(regex) !== null ? i : undefined))
+		.map((line, i) => line.match(regex) !== null ? i : undefined)
 		.filter(a => a !== undefined)
 		.map(num => num + 1); // line numbers start with 1
 	if (matches.length !== lineNumbers.length) {
@@ -21,7 +21,7 @@ const processFile = (path) => {
 	const lines = values.map(value => `* @linkcode ${value}`);
 
 	let count = 0;
-	const fn = () => lines[count++];
+	const fn = (a, b, c, d) => lines[count++];
 	const modified = contents.replace(regex, fn);
 	fs.writeFileSync(path, modified);
 
@@ -29,7 +29,7 @@ const processFile = (path) => {
 };
 
 const searchDir = (path) => {
-	const contents = fs.readdirSync(path, { withFileTypes: true });
+	const contents = fs.readdirSync(path, {withFileTypes:true});
 	const files = contents.filter(el => el.isFile());
 	const directories = contents.filter(el => el.isDirectory());
 	// console.log("checking dir", path);

@@ -213,8 +213,9 @@ export const validateAxiom7 = (params, boundary, result) => {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
- * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 217
+ * @returns {boolean|boolean[]} for every solution, true if valid. Axioms 1, 2, 4, 7
+ * return one boolean, 3, 5, 6 return arrays of booleans.
+ * @linkcode Origami ./src/axioms/validate.js 218
  */
 export const validate = (number, params, boundary, results) => arrayify(number, [null,
 	validateAxiom1,

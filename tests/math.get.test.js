@@ -1,17 +1,18 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 const equalTest = (a, b) => expect(JSON.stringify(a))
 	.toBe(JSON.stringify(b));
 
 test("get with real types", () => {
-	const vector = ear.vector(1,2,3);
-	const matrix = ear.matrix(1,2,3,4);
-	const line = ear.line(1,2);
-	const ray = ear.ray(1,2);
-	const segment = ear.segment([1,2],[3,4]);
+	const vector = ear.vector(1, 2, 3);
+	const matrix = ear.matrix(1, 2, 3, 4);
+	const line = ear.line(1, 2);
+	const ray = ear.ray(1, 2);
+	const segment = ear.segment([1, 2], [3, 4]);
 	const circle = ear.circle(1);
-	const rect = ear.rect(2,4);
-	const ellipse = ear.ellipse(1,2);
+	const rect = ear.rect(2, 4);
+	const ellipse = ear.ellipse(1, 2);
 	expect(ear.math.getVector(vector)[2]).toBe(3);
 	// expect(ear.math.getVectorOfVectors(segment)[0]).toBe(1);
 	expect(ear.math.getSegment(segment)[0][1]).toBe(2);
@@ -24,51 +25,51 @@ test("get with real types", () => {
 test("getVector", () => {
 	equalTest(
 		[1, 2, 3, 4],
-		ear.math.getVector([[[1, 2, 3, 4]]])
+		ear.math.getVector([[[1, 2, 3, 4]]]),
 	);
 	equalTest(
 		[1, 2, 3, 4],
-		ear.math.getVector(1, 2, 3, 4)
+		ear.math.getVector(1, 2, 3, 4),
 	);
 	equalTest(
 		[1, 2, 3, 4, 2, 4],
-		ear.math.getVector([1, 2, 3, 4], [2, 4])
+		ear.math.getVector([1, 2, 3, 4], [2, 4]),
 	);
 	equalTest(
 		[1, 2, 3, 4, 6, 7, 6],
-		ear.math.getVector([1, 2, 3, 4], [6, 7], 6)
+		ear.math.getVector([1, 2, 3, 4], [6, 7], 6),
 	);
 	equalTest(
 		[1, 2, 3, 4, 6, 7, 6, 2, 4, 5],
-		ear.math.getVector([1, 2, 3, 4], [6, 7], 6, 2, 4, 5)
+		ear.math.getVector([1, 2, 3, 4], [6, 7], 6, 2, 4, 5),
 	);
 	equalTest(
 		[5, 3],
-		ear.math.getVector({ x: 5, y: 3 })
+		ear.math.getVector({ x: 5, y: 3 }),
 	);
 	equalTest(
 		[5, 3],
-		ear.math.getVector([[[{ x: 5, y: 3 }]]])
+		ear.math.getVector([[[{ x: 5, y: 3 }]]]),
 	);
 	equalTest(
 		[5, 3],
-		ear.math.getVector([[[5, 3]]])
+		ear.math.getVector([[[5, 3]]]),
 	);
 	equalTest(
 		[5, 3],
-		ear.math.getVector([[[5], [3]]])
+		ear.math.getVector([[[5], [3]]]),
 	);
 	equalTest(
 		[5, 3],
-		ear.math.getVector([[[5]], [[3]]])
+		ear.math.getVector([[[5]], [[3]]]),
 	);
 	equalTest(
 		[5, 3],
-		ear.math.getVector([[[5]]], [[[3]]])
+		ear.math.getVector([[[5]]], [[[3]]]),
 	);
 	equalTest(
 		[5, 3],
-		ear.math.getVector([[[5]]], 3)
+		ear.math.getVector([[[5]]], 3),
 	);
 });
 
@@ -83,24 +84,42 @@ test("getLine", () => {
 });
 
 test("getVectorOfVectors", () => {
-	equalTest([[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors({ x: 1, y: 2 }, { x: 3, y: 4 }));
-	equalTest([[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors([[[{ x: 1, y: 2 }, { x: 3, y: 4 }]]]));
-	equalTest([[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors([[[1, 2], [3, 4]]]));
-	equalTest([[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors([[[1, 2]], [[3, 4]]]));
-	equalTest([[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors([[[1, 2]]], [[[3, 4]]]));
-	equalTest([[1], [2], [3], [4]],
-		ear.math.getVectorOfVectors([[[1], [2], [3], [4]]]));
-	equalTest([[1], [2], [3], [4]],
-		ear.math.getVectorOfVectors([[[1]], [[2]], [[3]], [[4]]]));
-	equalTest([[1], [2], [3], [4]],
-		ear.math.getVectorOfVectors([[[1]]], 2, 3, 4));
-	equalTest([[1], [2], [3], [4]],
-		ear.math.getVectorOfVectors([[[1, 2, 3, 4]]]));
+	equalTest(
+		[[1, 2], [3, 4]],
+		ear.math.getVectorOfVectors({ x: 1, y: 2 }, { x: 3, y: 4 }),
+	);
+	equalTest(
+		[[1, 2], [3, 4]],
+		ear.math.getVectorOfVectors([[[{ x: 1, y: 2 }, { x: 3, y: 4 }]]]),
+	);
+	equalTest(
+		[[1, 2], [3, 4]],
+		ear.math.getVectorOfVectors([[[1, 2], [3, 4]]]),
+	);
+	equalTest(
+		[[1, 2], [3, 4]],
+		ear.math.getVectorOfVectors([[[1, 2]], [[3, 4]]]),
+	);
+	equalTest(
+		[[1, 2], [3, 4]],
+		ear.math.getVectorOfVectors([[[1, 2]]], [[[3, 4]]]),
+	);
+	equalTest(
+		[[1], [2], [3], [4]],
+		ear.math.getVectorOfVectors([[[1], [2], [3], [4]]]),
+	);
+	equalTest(
+		[[1], [2], [3], [4]],
+		ear.math.getVectorOfVectors([[[1]], [[2]], [[3]], [[4]]]),
+	);
+	equalTest(
+		[[1], [2], [3], [4]],
+		ear.math.getVectorOfVectors([[[1]]], 2, 3, 4),
+	);
+	equalTest(
+		[[1], [2], [3], [4]],
+		ear.math.getVectorOfVectors([[[1, 2, 3, 4]]]),
+	);
 });
 
 test("getSegment", () => {

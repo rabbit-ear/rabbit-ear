@@ -1,4 +1,5 @@
-const ear = require("rabbit-ear");
+const { test, expect } = require("@jest/globals");
+const ear = require("../rabbit-ear");
 
 test("layer solver, simple staircase", () => {
 	const res = ear.layer.singleVertexSolver([3, 2, 3, 2, 3], Array.from("BVMVMB"));

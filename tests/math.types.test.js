@@ -1,3 +1,4 @@
+const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 const names = [
@@ -37,11 +38,11 @@ test("primitives constructor", () => primitives
 		.toBe(true)));
 
 test("type guessing", () => {
-	const vector1 = { x: 1, y: 2, z: 3};
+	const vector1 = { x: 1, y: 2, z: 3 };
 	const vector2 = [1, 2, 3];
-	const line = { vector: [1, 1], origin: [0.5, 0.5]};
-	const segment = [[1,2], [4,5]];
-	const circle = {radius: 1};
+	const line = { vector: [1, 1], origin: [0.5, 0.5] };
+	const segment = [[1, 2], [4, 5]];
+	const circle = { radius: 1 };
 	const rect = { width: 2, height: 1 };
 
 	expect(ear.typeof(vector1)).toBe("vector");
@@ -55,4 +56,3 @@ test("type guessing", () => {
 	expect(ear.typeof(true)).toBe(undefined);
 	expect(ear.typeof("s")).toBe(undefined);
 });
-
