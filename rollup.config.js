@@ -2,7 +2,7 @@ import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup";
 import { terser } from "rollup-plugin-terser";
 
-const version = "0.9.31 alpha 2022-07-07";
+const version = "0.9.31 alpha 2022-07-08";
 const input = "src/index.js";
 const name = "ear";
 const banner = `/* Rabbit Ear ${version} (c) Kraft, MIT License */\n`;

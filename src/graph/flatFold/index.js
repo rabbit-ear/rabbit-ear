@@ -19,11 +19,14 @@ import { foldFacesLayer } from "./facesLayer";
  * the crease pattern and the line (vector origin) is transformed
  * by the face matrix. because of this, we use face_winding to know
  * if this face was flipped over, reversing the result.
+ * @note by flipping the < and > in the return, this one change
+ * will modify the entire method to toggle which side of the line
+ * are the faces which will be folded over.
  */
 const make_face_side = (vector, origin, face_center, face_winding) => {
 	const center_vector = math.core.subtract2(face_center, origin);
 	const determinant = math.core.cross2(vector, center_vector);
-	return face_winding ? determinant < 0 : determinant > 0;
+	return face_winding ? determinant > 0 : determinant < 0;
 };
 /**
  * for quickly determining which side of a crease a face lies
@@ -80,7 +83,7 @@ const face_snapshot = (graph, face) => ({
  * So, we will create copies of the crease line, one per face, transformed
  * into place by its face's matrix, which superimposes many copies of the
  * crease line onto the crease pattern, each in place
- * @linkcode Origami ./src/graph/flatFold/index.js 83
+ * @linkcode Origami ./src/graph/flatFold/index.js 86
  */
 const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
@@ -211,7 +214,7 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	// we need its original matrix, and if face 0 was split we need to know
 	// which of its two new faces doesn't move as the new faces matrix
 	// calculation requires we provide the one face that doesn't move.
-	const face0_was_split = faces_map && faces_map[0].length === 2;
+	const face0_was_split = faces_map && faces_map[0] && faces_map[0].length === 2;
 	const face0_newIndex = (face0_was_split
 		? faces_map[0].filter(f => graph.faces_side[f]).shift()
 		: 0);

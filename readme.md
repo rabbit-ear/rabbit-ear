@@ -16,21 +16,21 @@ The [book](https://rabbitear.org/book/) contains higher-level explanations and i
 
 Rabbit Ear is compiled into one file in various formats:
 
-**UMD module** for html \<script\> tags and node.js require()
+**UMD module** for html \<script\> tags and node.js require(). [link](https://robbykraft.github.io/Origami/rabbit-ear.js)
 
-``` bash
+```
 https://robbykraft.github.io/Origami/rabbit-ear.js
 ```
 
-**ES module** for ES 2015 import/export
+**ES module** for ES 2015 import/export. [link](https://robbykraft.github.io/Origami/rabbit-ear.module.js)
 
 ```
 https://robbykraft.github.io/Origami/rabbit-ear.module.js
 ```
 
-Install via. npm with:
+Node package is on NPM [link](https://www.npmjs.com/package/rabbit-ear). to install:
 
-```
+```bash
 npm install rabbit-ear
 ```
 

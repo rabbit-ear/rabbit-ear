@@ -17,10 +17,11 @@
 
 export const addClassToClassList = (el, ...classes) => {
 	if (!el) { return; }
-	const classArray = (el.getAttribute("class") || "")
-		.split(" ");
+	const hash = {};
+	const getClass = el.getAttribute("class");
+	const classArray = getClass ? getClass.split(" ") : [];
 	classArray.push(...classes);
-	el.setAttribute("class", classArray
-		.filter(a => a !== undefined)
-		.join(" "));
+	classArray.forEach(str => { hash[str] = true; });
+	const classString = Object.keys(hash).join(" ");
+	el.setAttribute("class", classString);
 };

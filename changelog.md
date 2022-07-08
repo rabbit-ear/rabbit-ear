@@ -4,6 +4,8 @@ axiom function wrapper has changed. `validate()` is now exposed to the user, as 
 
 new convex hull algorithm. two entrypoints: `convexHull` returns points, `convexHullIndices` returns indices of points from your points parameter array.
 
+`onLeave` added to the other three methods `onMove` `onPress` `onRelease` for SVG elements.
+
 # 0.9.3 alpha
 
 no longer requiring @xmldom/xmldom as a dependency. This library now has zero dependencies! [1]
