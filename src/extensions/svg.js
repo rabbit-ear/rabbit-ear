@@ -1306,7 +1306,7 @@ const libraries = {
 const categories = {
 	move: ["mousemove", "touchmove"],
 	press: ["mousedown", "touchstart"], // "mouseover",
-	release: ["mouseup", "touchend"], // "mouseleave", "touchcancel",
+	release: ["mouseup", "touchend"],
 	leave: ["mouseleave", "touchcancel"],
 };
 

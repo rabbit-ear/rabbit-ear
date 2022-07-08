@@ -1,4 +1,4 @@
-/* Rabbit Ear 0.9.31 alpha 2022-07-07 (c) Kraft, MIT License */
+/* Rabbit Ear 0.9.31 alpha 2022-07-08 (c) Kraft, MIT License */
 
 const _undefined = "undefined";
 const _number = "number";
@@ -5738,7 +5738,7 @@ const foldFacesLayer = (faces_layer, faces_folding) => {
 const make_face_side = (vector, origin, face_center, face_winding) => {
 	const center_vector = math.core.subtract2(face_center, origin);
 	const determinant = math.core.cross2(vector, center_vector);
-	return face_winding ? determinant < 0 : determinant > 0;
+	return face_winding ? determinant > 0 : determinant < 0;
 };
 const make_face_center = (graph, face) => (!graph.faces_vertices[face]
 	? [0, 0]
@@ -5845,7 +5845,7 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 		graph.faces_layer,
 		graph.faces_side,
 	);
-	const face0_was_split = faces_map && faces_map[0].length === 2;
+	const face0_was_split = faces_map && faces_map[0] && faces_map[0].length === 2;
 	const face0_newIndex = (face0_was_split
 		? faces_map[0].filter(f => graph.faces_side[f]).shift()
 		: 0);
@@ -8299,12 +8299,13 @@ const verticesCircle = (graph, attributes = {}) => {
 
 const addClassToClassList = (el, ...classes) => {
 	if (!el) { return; }
-	const classArray = (el.getAttribute("class") || "")
-		.split(" ");
+	const hash = {};
+	const getClass = el.getAttribute("class");
+	const classArray = getClass ? getClass.split(" ") : [];
 	classArray.push(...classes);
-	el.setAttribute("class", classArray
-		.filter(a => a !== undefined)
-		.join(" "));
+	classArray.forEach(str => { hash[str] = true; });
+	const classString = Object.keys(hash).join(" ");
+	el.setAttribute("class", classString);
 };
 
 const GROUP_FOLDED = {};
