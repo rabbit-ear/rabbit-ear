@@ -3,10 +3,10 @@
  */
 import makeFacesFacesOverlap from "../../graph/makeFacesFacesOverlap";
 import {
-	makeFacesWinding
+	makeFacesWinding,
 } from "../../graph/make";
 import {
-	booleanMatrixToUniqueIndexPairs
+	booleanMatrixToUniqueIndexPairs,
 } from "../../general/arrays";
 // algorithm outline.
 //
@@ -30,7 +30,6 @@ const clone = obj => JSON.parse(JSON.stringify(obj));
 
 // top level keys are the direction. value will be an NxN matrix with holes.
 const empty_tree = () => ({ "-1": [], "1": []});
-
 
 /**
  * @param {number[][]} this matrix is filled in on both sides, it relates
@@ -56,7 +55,6 @@ const walk_pleat_path = (matrix, direction, current, parent, tree = empty_tree()
 	return tree;
 };
 
-
 /**
  * the matrix encodes above/below, in the flat-folded state
  */
@@ -67,13 +65,12 @@ const walk_all_pleat_paths = (matrix) => {
 	return tree;
 };
 
-
 const get_all_pleat_pairs = (graph, matrix) => {
 	const faces_winding = makeFacesWinding(graph);
 	const trees = walk_all_pleat_paths(matrix);
 	[-1, 1].forEach(dir => trees[dir]
 		.forEach(el => {
-			const parents = Object.keys(el.parents).map(n => parseInt(n));
+			const parents = Object.keys(el.parents).map(n => parseInt(n, 10));
 			el.parents = parents;
 		}));
 	// const roots = {};
@@ -85,7 +82,7 @@ const get_all_pleat_pairs = (graph, matrix) => {
 	// we only need one of these branches.
 	const tree = trees[1];
 	const roots = tree
-		.map((el, face) => el.parents.length === 0 ? face : undefined)
+		.map((el, face) => (el.parents.length === 0 ? face : undefined))
 		.filter(a => a !== undefined);
 
 	// clips will be a deeply nested objects where a polygon is
@@ -109,7 +106,7 @@ const get_all_pleat_pairs = (graph, matrix) => {
 		visited[index] = true;
 		// console.log("polygon intersection", stack.join("-"), parent_polygon, this_polygon);
 		let new_polygon = parent_polygon
-			? ear.math.intersect_polygon_polygon(parent_polygon, this_polygon)
+			? ear.math.intersectPolygonPolygon(parent_polygon, this_polygon)
 			: this_polygon;
 		// polygon doesn't exist. step forward the top pointer
 		// (or, step top pointer backwards from this face)
@@ -118,12 +115,12 @@ const get_all_pleat_pairs = (graph, matrix) => {
 			// series of intersections.
 			stack.shift();
 			if (stack.length < 2) { break; }
-			const stack_increment = [ stack[0] ];
+			const stack_increment = [stack[0]];
 			// const new_key = stack.join("-");
 			let poly = graph_polygons[stack[0]];
-			for (let i = 1; i < stack.length; i++) {
+			for (let i = 1; i < stack.length; i += 1) {
 				stack_increment.push(stack[i]);
-				poly = intersect_polygon_polygon(poly, graph_polygons[stack[i]]);
+				poly = ear.math.intersectPolygonPolygon(poly, graph_polygons[stack[i]]);
 				if (poly === undefined) { break; }
 			}
 			new_polygon = poly;
@@ -142,16 +139,15 @@ const get_all_pleat_pairs = (graph, matrix) => {
 
 	const sequences = Object.keys(polygons_dictionary)
 		.filter(key => polygons_dictionary[key].length > 0)
-		.map(string => string.split("-").map(n => parseInt(n)));
-
+		.map(string => string.split("-").map(n => parseInt(n, 10)));
 
 	const pairs = [];
 	sequences.forEach(sequence => {
 		const last_face = sequence.pop();
-		for (let i = 0; i < sequence.length; i++) {
+		for (let i = 0; i < sequence.length; i += 1) {
 			pairs.push([sequence[i], last_face]);
 		}
-	})
+	});
 
 	// console.log("tree", tree);
 	// console.log("roots", roots);
@@ -191,7 +187,6 @@ const make_matrix = (graph, epsilon) => {
 };
 
 const walk_pleat_paths = (graph, matrix, epsilon = 1e-7) => {
-
 	// if (!matrix) { matrix = make_matrix(graph, epsilon); }
 
 	matrix = make_matrix(graph, epsilon);

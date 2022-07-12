@@ -21,13 +21,15 @@ const makeConditions = (graph, overlap_matrix, faces_winding) => {
 	}
 	const conditions = {};
 	// flip 1 and 2 to be the other, leaving 0 to be 0.
-	const flip_condition = { 0:0, 1:2, 2:1 };
+	const flip_condition = { 0: 0, 1: 2, 2: 1 };
 	// set all conditions (every pair of overlapping faces) initially to 0
 	booleanMatrixToUniqueIndexPairs(overlap_matrix)
 		.map(pair => pair.join(" "))
 		.forEach(key => { conditions[key] = 0; });
 	// neighbor faces determined by crease between them
-	const assignment_direction = { M: 1, m: 1, V: 2, v: 2 };
+	const assignment_direction = {
+		M: 1, m: 1, V: 2, v: 2,
+	};
 	graph.edges_faces.forEach((faces, edge) => {
 		// the crease assignment determines the order between pairs of faces.
 		const assignment = graph.edges_assignment[edge];

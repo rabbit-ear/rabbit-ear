@@ -35,12 +35,12 @@ const dividingAxis = (graph, line, conditions) => {
 			if (conditions[key] !== 0) { return }
 			if (faces_side[pair[0]] === faces_side[pair[1]]) { return; }
 			if (faces_side[pair[0]] === 1 && faces_side[pair[1]] === -1) {
-				if (side) { conditions[key] = 1; } // A is above B
-				else      { conditions[key] = 2; } // B is above A
+				// 1: A is above B, 2: B is above A
+				conditions[key] = side ? 1 : 2;
 			}
 			if (faces_side[pair[0]] === -1 && faces_side[pair[1]] === 1) {
-				if (side) { conditions[key] = 2; } // B is above A
-				else      { conditions[key] = 1; } // A is above B
+				// 2: B is above A, 1: A is above B
+				conditions[key] = side ? 2 : 1;
 			}
 		});
 };

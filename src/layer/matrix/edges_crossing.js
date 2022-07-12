@@ -12,7 +12,7 @@ import { booleanMatrixToIndexedArray } from "../../general/arrays";
  * If one face is defined (in the matrix) to be above or below one of the
  * other edge's faces, we can set all the adjacent faces of these two edges
  * to follow the same rule.
- * 
+ *
  * The similar test where we compare edges which overlap and ARE parallel
  * is the taco-taco/tortilla test. This is a different function, located in
  * make_edges_tacos_layers_faces.
@@ -22,15 +22,15 @@ export const make_edges_crossing_layer_matrix = (graph, face_matrix, epsilon) =>
 		? graph.edges_faces
 		: makeEdgesFaces(graph);
 	const edges_edges_overlap = booleanMatrixToIndexedArray(
-		makeEdgesEdgesCrossing(graph, epsilon)
+		makeEdgesEdgesCrossing(graph, epsilon),
 	);
 	// TODO
 	// from this point on, keep a catalog of every face that gets updated,
 	// and every face that wasn't able to update due to lack of information.
 	// we need to allow for a face that got passed over due to lack of info
 	// to be able to be revisited and worked upon if new information was uncovered
-	const faces_did_update = {};
-	const faces_not_updated = {};
+	// const faces_did_update = {};
+	// const faces_not_updated = {};
 	// for every edge-edge pair overlap, get all adjacent faces involved
 	// (each should have 1 or 2, 1 for boundary edges). check the face_matrix
 	// for any rules about faces orders between any of these faces.

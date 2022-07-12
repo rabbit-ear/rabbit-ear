@@ -2,8 +2,9 @@
  * Rabbit Ear (c) Kraft
  */
 import get_splice_indices from "./get_splice_indices";
+
 const empty_fn = () => true;
-const overflow_protection = () => ({ count: 0 })
+const overflow_protection = () => ({ count: 0 });
 /**
  * @description given a +1/-1 face relationship matrix, find all
  * valid possible layers_face arrangements.
@@ -14,11 +15,17 @@ const overflow_protection = () => ({ count: 0 })
  * are being built recursivly, as a way of filtering out the large set.
  * @returns
  */
-const matrixToLayers = (matrix, faces, layers_face = [], test_fn = empty_fn, overflow = overflow_protection()) => {
+const matrixToLayers = (
+	matrix,
+	faces,
+	layers_face = [],
+	test_fn = empty_fn,
+	overflow = overflow_protection(),
+) => {
 	// for the first time running this recursive method, user is allowed to leave
 	// out "faces", and it will be built from the keys of the matrix.
 	if (!faces) { faces = Object.keys(matrix); }
-	overflow.count++;
+	overflow.count += 1;
 	if (overflow.count > 10000) {
 		console.warn("matrixToLayers overflow protection");
 		return [];

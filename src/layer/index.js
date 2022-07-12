@@ -24,8 +24,8 @@ import makeFoldedStripTacos from "./tacos/makeFoldedStripTacos";
 import makeTransitivityTrios from "./tacos/makeTransitivityTrios";
 import * as tortillaTortilla from "./tacos/tortillaTortilla";
 // single-vertex layer solver
-import assignmentSolver from "./singleVertexSolver/assignmentSolver";
 import singleVertexSolver from "./singleVertexSolver/index";
+import singleVertexAssignmentSolver from "./singleVertexSolver/assignmentSolver";
 import validateLayerSolver from "./singleVertexSolver/validateLayerSolver";
 import validateTacoTacoFacePairs from "./singleVertexSolver/validateTacoTacoFacePairs";
 import validateTacoTortillaStrip from "./singleVertexSolver/validateTacoTortillaStrip";
@@ -57,8 +57,8 @@ export default Object.assign(
 		makeFacesLayers,
 		flipFacesLayer,
 
-		assignmentSolver,
 		singleVertexSolver,
+		singleVertexAssignmentSolver,
 		validateLayerSolver,
 		validateTacoTacoFacePairs,
 		validateTacoTortillaStrip,

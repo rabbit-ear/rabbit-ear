@@ -15,11 +15,11 @@
  */
 const get_splice_indices = (layers_face_relative) => {
 	const highest_positive = layers_face_relative
-		.map((v, i) => v === 1 ? i : undefined)
+		.map((v, i) => (v === 1 ? i : undefined))
 		.filter(a => a !== undefined)
 		.pop();
 	const lowest_negative = layers_face_relative
-		.map((v, i) => v === -1 ? i : undefined)
+		.map((v, i) => (v === -1 ? i : undefined))
 		.filter(a => a !== undefined)
 		.shift();
 	const bottom_index = highest_positive === undefined

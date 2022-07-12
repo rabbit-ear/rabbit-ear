@@ -13,16 +13,16 @@ const fix_layer_violations = (layers_face, matrix) => {
 		faces_adjust[el[0]].push(distance);
 		faces_adjust[el[1]].push(-distance);
 	});
-	const layer_change = faces_adjust.map(arr => arr.length === 0
+	const layer_change = faces_adjust.map(arr => (arr.length === 0
 		? 0
-		: parseInt(arr.reduce((a, b) => a + b, 0) / arr.length));
+		: parseInt(arr.reduce((a, b) => a + b, 0) / arr.length, 10)));
 	const new_faces_layer = faces_layer
 		.map((layer, i) => layer + layer_change[i]);
 	const new_layers_face = new_faces_layer
 		.map((layer, face) => ({ layer, face }))
 		.sort((a, b) => a.layer - b.layer)
 		.map(el => el.face);
-	new_layers_face.forEach((_, i) => layers_face[i] = new_layers_face[i]);
+	new_layers_face.forEach((_, i) => { layers_face[i] = new_layers_face[i]; });
 	return violations.length;
 };
 
@@ -34,7 +34,7 @@ const fix_layer_violations = (layers_face, matrix) => {
  */
 const matrixToLayersFace = (matrix, faces) => {
 	if (!faces) {
-		faces = Object.keys(matrix).map(n => parseInt(n));
+		faces = Object.keys(matrix).map(n => parseInt(n, 10));
 	}
 	// only consider faces which are contained inside the matrix
 	// this allows for Javascript arrays with holes.
@@ -57,13 +57,12 @@ const matrixToLayersFace = (matrix, faces) => {
 	let violation_count = 0; // when this is zero, loop will end
 	do {
 		violation_count = fix_layer_violations(layers_face, matrix);
-		counter++;
-	} while (violation_count !== 0 && counter < matrix.length)
+		counter += 1;
+	} while (violation_count !== 0 && counter < matrix.length);
 	return layers_face;
 };
 
 export default matrixToLayersFace;
-
 
 // const fix_layer_violations_first = (layers_face, matrix) => {
 //   const faces_layer = invertMap(layers_face);

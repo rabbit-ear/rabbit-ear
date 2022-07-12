@@ -9,11 +9,11 @@
  * (b) confirm that this layer order is invalid
  * (c) not only confirm validity (a) but also uncover another relationship
  * between other pairs of faces involved in the taco/tortilla event.
- * 
+ *
  * The values of each state above is encoded as:
  * (a) is true, (b) is false, (c) encodes which index needs to change and
  * what the new value should become (either a 1 or 2).
- * 
+ *
  * And the keys representing each state are n-long, one for every pair of
  * faces involved, and encodes each pair as a 0, 1, or 2, each meaning:
  * 0: order unknown, 1: face a is above b, 2: face b is above a.
@@ -73,19 +73,19 @@ const transitivity_valid_states = [
  */
 const check_state = (states, t, key) => {
 	// convert the key into an array of integers (0, 1, 2)
-	const A = Array.from(key).map(char => parseInt(char));
+	const A = Array.from(key).map(char => parseInt(char, 10));
 	// for each "t" index of states, only include keys which contain
 	// "t" number of unknowns (0s).
 	if (A.filter(x => x === 0).length !== t) { return; }
 	states[t][key] = false;
 	// solution will either be 0, 1, or an array of modifications
 	let solution = false;
-	for (let i = 0; i < A.length; i++) {
+	for (let i = 0; i < A.length; i += 1) {
 		const modifications = [];
 		// look at the unknown layers only (index is 0)
 		if (A[i] !== 0) { continue; }
 		// in place of the unknowns, try each of the possible states (1, 2)
-		for (let x = 1; x <= 2; x++) {
+		for (let x = 1; x <= 2; x += 1) {
 			// temporarily set the state to this new possible state.
 			A[i] = x;
 			// if this state exists in the previous set, save this solution.
@@ -139,10 +139,10 @@ const make_lookup = (valid_states) => {
 	// examples for (6): 111112, 212221
 	// set the value of these to "false" (solution is impossible)
 	// with the valid cases to be overwritten in the next step.
-	Array.from(Array( Math.pow(2, choose_count) ))
+	Array.from(Array(Math.pow(2, choose_count)))
 		.map((_, i) => i.toString(2))
-		.map(str => Array.from(str).map(n => parseInt(n) + 1).join(""))
-		.map(str => ("11111" + str).slice(-choose_count))
+		.map(str => Array.from(str).map(n => parseInt(n, 10) + 1).join(""))
+		.map(str => (`11111${str}`).slice(-choose_count))
 		.forEach(key => { states[0][key] = false; });
 	// set the valid cases to "true" (solution is possible)
 	valid_states.forEach(s => { states[0][s] = true; });
@@ -152,9 +152,9 @@ const make_lookup = (valid_states) => {
 		.map((_, i) => i + 1)
 		// make all permuations of 0s, 1s, and 2s now, length of choose_count.
 		// (all possibile permuations of layer orders)
-		.map(t => Array.from(Array( Math.pow(3, choose_count) ))
+		.map(t => Array.from(Array(Math.pow(3, choose_count)))
 			.map((_, i) => i.toString(3))
-			.map(str => ("000000" + str).slice(-choose_count))
+			.map(str => (`000000${str}`).slice(-choose_count))
 			.forEach(key => check_state(states, t, key)));
 	// todo: the filter at the beginning of check_state is throwing away
 	// a lot of solutions, duplicating work, in the first array here, instead
@@ -190,7 +190,7 @@ const make_lookup = (valid_states) => {
 		});
 	// this is unnecessary but because for Javascipt object keys,
 	// insertion order is preserved, sort keys for cleaner output.
-	outs.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+	outs.sort((a, b) => parseInt(a[0], 10) - parseInt(b[0], 10));
 	// return data as an object.
 	// recursively freeze result, this is intended to be an immutable reference
 	const lookup = {};

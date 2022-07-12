@@ -3,7 +3,6 @@
  */
 import { makeFacesWinding } from "../../graph/facesWinding";
 import { makeEdgesFaces } from "../../graph/make";
-import { invertMap } from "../../graph/maps";
 
 export const facesLayerToEdgesAssignments = (graph, faces_layer) => {
 	const edges_assignment = [];
@@ -22,10 +21,9 @@ export const facesLayerToEdgesAssignments = (graph, faces_layer) => {
 			const global_dir = windings[0] ? local_dir : !local_dir;
 			edges_assignment[e] = global_dir ? "V" : "M";
 		}
-	});  
+	});
 	return edges_assignment;
 };
-
 
 // export const layer_conditions_to_edges_assignments = (graph, conditions) => {
 //   const edges_assignment = [];
@@ -34,6 +32,6 @@ export const facesLayerToEdgesAssignments = (graph, faces_layer) => {
 //   const edges_faces = graph.edges_faces
 //     ? graph.edges_faces
 //     : makeEdgesFaces(graph);
-//  
+//
 //   return edges_assignment;
 // };

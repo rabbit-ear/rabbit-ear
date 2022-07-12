@@ -9,12 +9,14 @@
 /**
  * these are the only creases that change the direction of the paper
  */
-const change_map = { V: true, v: true, M: true, m: true };
+const change_map = {
+	V: true, v: true, M: true, m: true,
+};
 /**
  * @description convert a list of assignments into an array of
  * booleans stating if that face between the pair of assignments
  * has been flipped (true) or not (false). the first face is false.
- * 
+ *
  * another way of saying this is if a face is "false", the face is
  * moving to the right, if "true" moving to the left.
  */
@@ -25,7 +27,7 @@ export const assignmentsToFacesFlip = (assignments) => {
 	const shifted_assignments = assignments.slice(1);
 	// globally, the location that each fold takes place along the +X
 	return [false].concat(shifted_assignments
-		.map(a => change_map[a] ? ++counter : counter)
+		.map(a => (change_map[a] ? ++counter : counter))
 		.map(count => count % 2 === 1));
 };
 /**
@@ -33,18 +35,20 @@ export const assignmentsToFacesFlip = (assignments) => {
  * valley fold sets the paper above the previous sector (and mountain below),
  * but a valley fold AFTER a valley fold moves the paper below.
  */
-const up_down = { V: 1, v: 1, M: -1, m: -1 };
-const upOrDown = (mv, i) => i % 2 === 0
-	?  (up_down[mv] || 0)
-	: -(up_down[mv] || 0);
+const up_down = {
+	V: 1, v: 1, M: -1, m: -1,
+};
+const upOrDown = (mv, i) => (i % 2 === 0
+	? (up_down[mv] || 0)
+	: -(up_down[mv] || 0));
 /**
  * @description convert a list of assignments into an array of
  * numbers stating if that face between the pair of assignments
  * has been raised above or below the previous face in the +Z axis.
- * 
+ *
  * +1 means this face lies above the previous face, -1 below.
  * the first face implicitly starts at 0.
- * 
+ *
  * These values describe the relationship between the current index
  * and the next face (i + 1)%length index. and it describes the location
  * of the second of the pair.
@@ -69,11 +73,11 @@ export const assignmentsToFacesVertical = (assignments) => {
  * along the numberline, returning each sector as a pair of numbers
  * that mark the two ends of the of the folded sector: [end1, end2].
  * The first sector is always starts at 0, and spans [0, sector].
- * 
+ *
  * When a boundary edge is encountered, the walk stops, no sectors after
  * the boundary will be included in the result. The algorithm will walk in
  * one direction, incrementing, starting at index "start", stopping at "end".
- * 
+ *
  * @returns array of sector positions. any sectors caught between
  * multiple boundaries will be undefined.
  */
@@ -85,7 +89,7 @@ export const foldStripWithAssignments = (faces, assignments) => {
 	// [ the start of the sector, the end of the sector ]
 	const cumulative = faces.map(() => undefined);
 	cumulative[0] = [0, faces_end[0]];
-	for (let i = 1; i < faces.length; i++) {
+	for (let i = 1; i < faces.length; i += 1) {
 		if (assignments[i] === "B" || assignments[i] === "b") { break; }
 		const prev = (i - 1 + faces.length) % faces.length;
 		const prev_end = cumulative[prev][1];

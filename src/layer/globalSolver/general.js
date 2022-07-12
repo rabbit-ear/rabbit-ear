@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-const to_signed_layer_convert = { 0:0, 1:1, 2:-1 };
-const to_unsigned_layer_convert = { 0:0, 1:1, "-1":2 };
+const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
+const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
 /**
  * @description convert a layer-encoding (above/below) object
  * from 1,2 to 1,-1.
@@ -23,3 +23,6 @@ export const signedToUnsignedConditions = (conditions) => {
 	});
 	return conditions;
 };
+
+export const joinConditions = (...args) => Object
+	.assign(JSON.parse(JSON.stringify(args[0])), ...args.slice(1));

@@ -9,23 +9,22 @@ const taco_types = Object.freeze(Object.keys(table));
  * 0: unknown, 1: face A is above B, 2: face B is above A.
  * this map will flip 1 and 2, leaving 0 to be 0.
  */
-const flip_conditions = { 0:0, 1:2, 2:1 };
+const flip_conditions = { 0: 0, 1: 2, 2: 1 };
 
 const fill_layers_from_conditions = (layers, maps, conditions, fill_indices) => {
 	// todo, get the CHANGED conditions. changed from last time we updated things.
 	// then, this return array "changed" will actually be relevant.
 	// this is an object, so we can set the key and prevent duplicates.
 	const changed = {};
-	const iterators = fill_indices
-		? fill_indices
-		: Object.keys(layers);
+	const iterators = (fill_indices || Object.keys(layers));
 	// layers.forEach((layer, i) => maps[i].face_keys
 	iterators.forEach(i => maps[i].face_keys
 		.forEach((key, j) => {
 			// todo: possible this error will never show if we can guarantee that
 			// tacos/tortillas have been properly built
 			if (!(key in conditions)) {
-				console.warn(key, "not in conditions");
+				// todo: uncomment this:
+				// console.warn(key, "not in conditions");
 				return;
 			}
 			// if conditions[key] is 1 or 2, not 0, apply the suggestion.
@@ -40,7 +39,7 @@ const fill_layers_from_conditions = (layers, maps, conditions, fill_indices) => 
 				// arrangement is unsolvable and needs to report the fail all the way
 				// back up to the original recursive call.
 				if (layers[i][j] !== 0 && layers[i][j] !== orientation) {
-					throw "fill conflict";
+					throw new Error("fill conflict");
 				}
 				layers[i][j] = orientation;
 				changed[i] = true;
@@ -49,17 +48,15 @@ const fill_layers_from_conditions = (layers, maps, conditions, fill_indices) => 
 	return changed;
 };
 const infer_next_steps = (layers, maps, lookup_table, changed_indices) => {
-	const iterators = changed_indices
-		? changed_indices
-		: Object.keys(layers);
+	const iterators = (changed_indices || Object.keys(layers));
 	return iterators.map(i => {
 		const map = maps[i];
 		const key = layers[i].join("");
 		const next_step = lookup_table[key];
-		if (next_step === false) { throw "unsolvable"; }
+		if (next_step === false) { throw new Error("unsolvable"); }
 		if (next_step === true) { return; }
 		if (layers[i][next_step[0]] !== 0 && layers[i][next_step[0]] !== next_step[1]) {
-			throw "infer conflict";
+			throw new Error("infer conflict");
 		}
 		layers[i][next_step[0]] = next_step[1];
 		// if (layers[i].indexOf(0) === -1) { delete layers[i]; }
@@ -96,9 +93,14 @@ const completeSuggestionsLoop = (layers, maps, conditions, pair_layer_map) => {
 			// const start_one = new Date();
 			const fill_changed = {};
 			taco_types.forEach(taco_type => { fill_changed[taco_type] = {}; });
-			for (let t = 0; t < taco_types.length; t++) {
+			for (let t = 0; t < taco_types.length; t += 1) {
 				const type = taco_types[t];
-				fill_changed[type] = fill_layers_from_conditions(layers[type], maps[type], conditions, next_steps_indices[type]);
+				fill_changed[type] = fill_layers_from_conditions(
+					layers[type],
+					maps[type],
+					conditions,
+					next_steps_indices[type],
+				);
 			}
 			taco_types.forEach(type => {
 				fill_changed[type] = Object.keys(fill_changed[type]);
@@ -107,7 +109,12 @@ const completeSuggestionsLoop = (layers, maps, conditions, pair_layer_map) => {
 			// time_one += (Date.now() - start_one);
 			// const start_two = new Date();
 			next_steps = taco_types
-				.flatMap(type => infer_next_steps(layers[type], maps[type], table[type], fill_changed[type]));
+				.flatMap(type => infer_next_steps(
+					layers[type],
+					maps[type],
+					table[type],
+					fill_changed[type],
+				));
 			next_steps.forEach(el => { conditions[el[0]] = el[1]; });
 			// reset next_step_indices
 			taco_types.forEach(type => { next_steps_indices[type] = {}; });

@@ -15,7 +15,7 @@
 const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
 	// center of each face, will be used to see if a taco faces left or right
 	const faces_center = folded_faces
-		.map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
+		.map((ends) => (ends ? (ends[0] + ends[1]) / 2 : undefined));
 	const locations = [];
 	// gather all fold locations that match, add them to the same group.
 	// for every fold location, make one of these objects where the pairs are
@@ -32,7 +32,7 @@ const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
 		const fold_end = ends[1];
 		const min = fold_end - (epsilon * 2);
 		const max = fold_end + (epsilon * 2);
-		const faces = [i, (i+1) % folded_faces.length];
+		const faces = [i, (i + 1) % folded_faces.length];
 		// which side of the crease is the face on?
 		// false = left (-), true = right (+)
 		const sides = faces

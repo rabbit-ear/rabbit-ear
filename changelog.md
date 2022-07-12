@@ -1,3 +1,7 @@
+# 0.9.32 alpha
+
+ear.layer.assignmentSolver renamed to ear.layer.singleVertexAssignmentSolver
+
 # 0.9.31 alpha
 
 axiom function wrapper has changed. `validate()` is now exposed to the user, as is the `axiomInBoundary` methods. Normal-distance parameterization methods are now named as such.

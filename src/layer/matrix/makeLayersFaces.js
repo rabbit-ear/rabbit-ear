@@ -8,7 +8,7 @@ import validateTacoTacoFacePairs from "../tacos/validateTacoTacoFacePairs";
 import matrixToLayers from "./matrixToLayers";
 
 const taco_test = (layers_face, tacos_faces_pairs) => {
-	for (let p = 0; p < tacos_faces_pairs.length; p++) {
+	for (let p = 0; p < tacos_faces_pairs.length; p += 1) {
 		const tacos_face = tacos_faces_pairs[p];
 		const layers_pair = layers_face.map(face => tacos_face[face])
 			.filter(a => a !== undefined);
@@ -31,14 +31,15 @@ const makeLayersFaces = (graph, matrix) => {
 	//   stack.both.forEach((pairs, i) => pairs.forEach(f => { faces[f] = i; }));
 	//   return faces;
 	// });
-	const tacos_faces_pairs = tacos_faces.map(stack => Object.assign([],
+	const tacos_faces_pairs = tacos_faces.map(stack => Object.assign(
+		[],
 		invertMap(stack.left),
 		invertMap(stack.right),
-		invertMap(stack.both)
+		invertMap(stack.both),
 	));
 
 	const test_function = (layer) => taco_test(layer, tacos_faces_pairs);
-	const faces = Object.keys(matrix).map(n => parseInt(n));
+	const faces = Object.keys(matrix).map(n => parseInt(n, 10));
 	return matrixToLayers(matrix, faces, [], test_function);
 
 	// const tacos_faces_flat = tacos_faces.map(stack => Object.assign([],
@@ -57,7 +58,7 @@ const makeLayersFaces = (graph, matrix) => {
 	//   .map(faces_layers => common_relationships(faces_layers));
 	// orders.forEach(relationships => relationships
 	//   .forEach(rule => { matrix[rule[0]][rule[1]] = rule[2]; }));
-	
+
 	// console.log("tacos", tacos);
 	// console.log("tacos_faces", tacos_faces);
 	// console.log("tacos_faces_pairs", tacos_faces_pairs);

@@ -16,8 +16,10 @@ export const makeEdgesFacesSide = (graph, faces_center) => {
 			.map(face => math.core.cross2(
 				math.core.subtract2(
 					faces_center[face],
-					edges_origin[i]),
-					edges_vector[i]))
+					edges_origin[i],
+				),
+				edges_vector[i],
+			))
 			.map(cross => Math.sign(cross)));
 };
 /**
@@ -49,7 +51,9 @@ export const makeTacosFacesSide = (graph, faces_center, tacos_edges, tacos_faces
 				.map(center => math.core.cross2(
 					math.core.subtract2(
 						center,
-						tacos_edge_origin[i]),
-						tacos_edge_vector[i]))
+						tacos_edge_origin[i],
+					),
+					tacos_edge_vector[i],
+				))
 				.map(cross => Math.sign(cross))));
 };

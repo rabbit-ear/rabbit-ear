@@ -8,7 +8,7 @@ rollup.config.js
 src/
 tests/
 contribute.md
-versions.md
+changelog.md
 
 # builds of Rabbit Ear
 rabbit-ear.comments.js

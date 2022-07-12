@@ -35,8 +35,10 @@ const duplicate_unsolved_layers = (layers) => {
  * @description find only one layer solution to a folded graph.
  * @param {object} graph a FOLD graph
  * @param {object[]} maps the result of calling makeTacoMaps
- * @param {object} conditions space-separated face-pairs as keys, values are initially all 0, the result of calling makeConditions
- * @returns {object} solution where keys are space-separated face pairs and values are +1 or -1 describing if the second face is above or below the first.
+ * @param {object} conditions space-separated face-pairs as keys,
+ * values are initially all 0, the result of calling makeConditions
+ * @returns {object} solution where keys are space-separated face pairs
+ * and values are +1 or -1 describing if the second face is above or below the first.
  */
 const singleSolver = (graph, maps, conditions) => {
 	const startDate = new Date();
@@ -48,10 +50,10 @@ const singleSolver = (graph, maps, conditions) => {
 	let certain_conditions = {};
 
 	let layers = {
-		taco_taco: maps.taco_taco.map(el => Array(6).fill(0)),
-		taco_tortilla: maps.taco_tortilla.map(el => Array(3).fill(0)),
-		tortilla_tortilla: maps.tortilla_tortilla.map(el => Array(2).fill(0)),
-		transitivity: maps.transitivity.map(el => Array(3).fill(0)),
+		taco_taco: maps.taco_taco.map(() => Array(6).fill(0)),
+		taco_tortilla: maps.taco_tortilla.map(() => Array(3).fill(0)),
+		tortilla_tortilla: maps.tortilla_tortilla.map(() => Array(2).fill(0)),
+		transitivity: maps.transitivity.map(() => Array(3).fill(0)),
 	};
 
 	// pair_layer_map[taco_type][face_pair] = [] array of indices in map
@@ -67,8 +69,6 @@ const singleSolver = (graph, maps, conditions) => {
 				})));
 	// console.log("pair_layer_map", pair_layer_map);
 
-
-
 	if (!completeSuggestionsLoop(layers, maps, conditions, pair_layer_map)) {
 		return undefined;
 	}
@@ -79,9 +79,9 @@ const singleSolver = (graph, maps, conditions) => {
 	do {
 		const this_recurse_count = recurse_count;
 		// console.time(`recurse ${this_recurse_count}`);
-		recurse_count++;
+		recurse_count += 1;
 		const zero_keys = Object.keys(conditions)
-			.map(key => conditions[key] === 0 ? key : undefined)
+			.map(key => (conditions[key] === 0 ? key : undefined))
 			.filter(a => a !== undefined);
 		// solution found. exit.
 		if (zero_keys.length === 0) {
@@ -96,7 +96,7 @@ const singleSolver = (graph, maps, conditions) => {
 		const avoid = {};
 
 		const successes = zero_keys
-			.map((key, i) => [1, 2]
+			.map(key => [1, 2]
 				.map(dir => {
 					if (avoid[key] && avoid[key][dir]) { return; }
 					// if (precheck(layers, maps, key, dir)) {
@@ -108,15 +108,15 @@ const singleSolver = (graph, maps, conditions) => {
 					}
 					const clone_layers = duplicate_unsolved_layers(layers);
 					clone_conditions[key] = dir;
-					inner_loop_count++;
+					inner_loop_count += 1;
 					if (!completeSuggestionsLoop(clone_layers, maps, clone_conditions, pair_layer_map)) {
 						return undefined;
 					}
 					Object.keys(clone_conditions)
-						.filter(key => conditions[key] === 0)
-						.forEach(key => {
-							if (!avoid[key]) { avoid[key] = {}; }
-							avoid[key][dir] = true;
+						.filter(k => conditions[k] === 0)
+						.forEach(k => {
+							if (!avoid[k]) { avoid[k] = {}; }
+							avoid[k][dir] = true;
 						});
 					return {
 						conditions: clone_conditions,
@@ -149,7 +149,6 @@ const singleSolver = (graph, maps, conditions) => {
 		}
 		conditions = unique_successes[0].conditions;
 		layers = unique_successes[0].layers;
-
 	} while (solution === undefined);
 
 	// convert solutions from (1,2) to (+1,-1)

@@ -3,11 +3,8 @@
  */
 import table from "./table";
 import completeSuggestionsLoop from "./completeSuggestionsLoop";
+import hashCode from "../../general/hashCode";
 import { unsignedToSignedConditions } from "./general";
-import {
-	makeFaceGroups,
-	processFaceGroups,
-} from "./branching";
 
 const taco_types = Object.freeze(Object.keys(table));
 
@@ -23,38 +20,31 @@ const duplicate_unsolved_layers = (layers) => {
 	return duplicate;
 };
 
-const makeBranchingSets = (certain, overlap) => {
-	// console.log("CERTAIHN", solutions.certain);
-	// const bipartiteFaces = makeBipartiteFaces(solutions.certain);
-	// console.log("bipartiteFaces", bipartiteFaces);
-	// const bipartiteGraph = makeBipartiteGraph(data.overlap, solutions.certain);
-	// console.log("bipartiteGraph", bipartiteGraph);
-	// const processed = processGraph(bipartiteGraph, data.overlap, solutions.certain);
-	// console.log("processed", processed);
-	const faceGroups = makeFaceGroups(certain, overlap);
-	// console.log("faceGroups", faceGroups);
-	const keySides = processFaceGroups(certain, faceGroups);
-	// get all keys involved in branches
-	const allBranchingKeys = {};
-	keySides
-		.forEach(sides => sides
-			.forEach(side => side
-				.forEach(key => { allBranchingKeys[key] = true; })));
-	// copy only the known conditions to a master object
-	const knownConditions = {};
-	Object.keys(certain)
-		// .filter(key => !allBranchingKeys[key]) // remove only branching key cases
-		.filter(key => certain[key] !== 0) // remove all unknown cases
-		.forEach(key => { knownConditions[key] = certain[key]; });
-	// console.log("allBranchingKeys", allBranchingKeys);
-	// console.log("keySides", keySides);
-	// console.log("knownConditions", knownConditions);
-	return keySides.map(sides => sides.map(side => {
-		const copy = JSON.parse(JSON.stringify(knownConditions));
-		side.forEach(key => { copy[key] = 0; });
-		return copy;
-	}));
+// on second thought, precheck will always succeed, because we tried
+// both iterations last loop.
+const precheck = (layers, maps, face_pair_key, new_dir) => {
+	try {
+		taco_types.forEach(taco_type => layers.forEach((layer, i) => {
+			const map = maps[taco_type][i];
+			for (let m = 0; m < map.face_keys.length; m += 1) {
+				if (map.face_keys[m] === face_pair_key) {
+					const dir = map.keys_ordered[m] ? new_dir : flip[new_dir];
+					const new_layer = [...layer];
+					new_layer[m] = dir;
+					const new_layer_key = new_layer.join("");
+					if (table[taco_type][new_layer_key] === false) {
+						console.log("precheck found a fail case", face_pair_key, taco_type, new_layer_key, table[type][new_layer_key]);
+						throw new Error("precheck");
+					}
+				}
+			}
+		}));
+	} catch (error) {
+		return false;
+	}
+	return true;
 };
+
 // take all the conditions which HAVE been solved (filter out the zeros),
 // make a hash of this, store it, with the intention that in the future
 // you will be running all possible above/below on all unknowns.
@@ -71,7 +61,7 @@ const makeBranchingSets = (certain, overlap) => {
  * @returns {object[]} array of solutions where keys are space-separated face pairs
  * and values are +1 or -1 describing if the second face is above or below the first.
  */
-const recursiveSolver = (graph, maps, conditions_start, overlap) => {
+const recursiveSolver = (graph, maps, conditions_start) => {
 	const startDate = new Date();
 	let recurse_count = 0;
 	let inner_loop_count = 0;
@@ -93,26 +83,22 @@ const recursiveSolver = (graph, maps, conditions_start, overlap) => {
 					pair_layer_map[taco_type][pair].push(i);
 				})));
 	// console.log("pair_layer_map", pair_layer_map);
-	const layers_start = {
-		taco_taco: maps.taco_taco.map(() => Array(6).fill(0)),
-		taco_tortilla: maps.taco_tortilla.map(() => Array(3).fill(0)),
-		tortilla_tortilla: maps.tortilla_tortilla.map(() => Array(2).fill(0)),
-		transitivity: maps.transitivity.map(() => Array(3).fill(0)),
-	};
-	// "conditions_start" is now filled with results only for those face-pairs
-	// which are consistent across all layer permutations. If there is only one
-	// layer order, all conditions will be solved by this step.
-	if (!completeSuggestionsLoop(layers_start, maps, conditions_start, pair_layer_map)) {
-		// failure. do not proceed.
-		// console.log("failure. do not proceed");
-		return [];
-	}
+
+	// todo: it appears this never happens, remove after testing.
+	// successful conditions will often be duplicates of one another.
+	// filter only a set of unique conditions. use a hash table to compare.
+	// not only do we store hashes of the final solutions, but,
+	// each round of the recurse involves guessing, and, after we complete
+	// the conditions as much as possible after each guess, store these
+	// partially-completed conditions here too. this dramatically reduces the
+	// number of recursive branches.
+	// const successes_hash = {};
 	/**
 	 * the input parameters will not be modified. they will be copied,
 	 * their copies modified, then passed along to the next recurse.
 	 */
 	const recurse = (layers, conditions) => {
-		// const this_recurse_count = recurse_count;
+		const this_recurse_count = recurse_count;
 		// console.time(`recurse ${this_recurse_count}`);
 		recurse_count += 1;
 		const zero_keys = Object.keys(conditions)
@@ -133,13 +119,23 @@ const recursiveSolver = (graph, maps, conditions_start, overlap) => {
 		// avoid any guesses which are stored inside "avoid", as the outcome
 		// has already been determined.
 		const avoid = {};
-		return zero_keys
+		const successes = zero_keys
 			.map(key => [1, 2]
 				.map(dir => {
-					if (avoid[key] && avoid[key][dir]) { avoidcount += 1; return undefined; }
+					if (avoid[key] && avoid[key][dir]) { avoidcount += 1; return; }
+					// console.log("recursing with", key, dir);
+					// todo: it appears that this never happens. remove after testing.
+					// if (precheck(layers, maps, key, dir)) {
+					//   console.log("precheck caught!"); return;
+					// }
 					const clone_start = new Date();
 					const clone_conditions = JSON.parse(JSON.stringify(conditions));
 					clone_time += (Date.now() - clone_start);
+
+					// todo: it appears that this never happens. remove after testing.
+					// if (successes_hash[JSON.stringify(clone_conditions)]) {
+					//   console.log("early hash caught!"); return;
+					// }
 					const clone_layers = duplicate_unsolved_layers(layers);
 					clone_conditions[key] = dir;
 					inner_loop_count += 1;
@@ -147,7 +143,7 @@ const recursiveSolver = (graph, maps, conditions_start, overlap) => {
 					if (!completeSuggestionsLoop(clone_layers, maps, clone_conditions, pair_layer_map)) {
 						failguesscount += 1;
 						solve_time += (Date.now() - solve_start);
-						return undefined;
+						return;
 					}
 					solve_time += (Date.now() - solve_start);
 					Object.keys(clone_conditions)
@@ -159,48 +155,80 @@ const recursiveSolver = (graph, maps, conditions_start, overlap) => {
 					return { conditions: clone_conditions, layers: clone_layers };
 				})
 				.filter(a => a !== undefined))
-			.flat()
-			.map(success => recurse(success.layers, success.conditions))
-			.flat();
-	};
-	//
-	const branches = makeBranchingSets(conditions_start, overlap);
-	const branchesSolutions = branches
-		.map(pairs => pairs
-			.map(conditions => recurse(layers_start, conditions)));
-	// for each branch solution, filter out all the known starting conditions
-	// so that each solution only contains those which are unique to it
-	const branchSolutions = branchesSolutions
-		.map(pairs => pairs
-			.map(solutions => solutions
-				.map(conditions => {
-					const filtered = {};
-					Object.keys(conditions)
-						.filter(key => conditions_start[key] === 0)
-						.forEach(key => { filtered[key] = conditions[key]; });
-					return filtered;
-				})));
-	const solutions = branchSolutions.flat();
+			.reduce((a, b) => a.concat(b), []);
 
+		// todo: it appears that this never happens. remove after testing.
+		// const unique_successes = successes
+		//   .map(success => JSON.stringify(success.conditions))
+		//   .map(string => hashCode(string))
+		//   .map((hash, i) => {
+		//     if (successes_hash[hash]) { return; }
+		//     successes_hash[hash] = successes[i];
+		//     return successes[i];
+		//   })
+		//   .filter(a => a !== undefined);
+
+		// console.log("recurse", unique_successes.length, successes.length);
+
+		// console.log("successes", successes);
+		// console.log("successes_hash", successes_hash);
+		// console.log("unique_successes", unique_successes);
+		// console.log("unique_successes", unique_successes.length);
+
+		// console.timeEnd(`recurse ${this_recurse_count}`);
+		return successes
+		// return unique_successes
+			.map(success => recurse(success.layers, success.conditions))
+			.reduce((a, b) => a.concat(b), []);
+	};
+
+	const layers_start = {
+		taco_taco: maps.taco_taco.map(() => Array(6).fill(0)),
+		taco_tortilla: maps.taco_tortilla.map(() => Array(3).fill(0)),
+		tortilla_tortilla: maps.tortilla_tortilla.map(() => Array(2).fill(0)),
+		transitivity: maps.transitivity.map(() => Array(3).fill(0)),
+	};
+
+	// this could be left out and simply starting the recursion. however,
+	// we want to capture the "certain" relationships, the ones decided
+	// after consulting the table before any guessing or recursion is done.
+	if (!completeSuggestionsLoop(layers_start, maps, conditions_start, pair_layer_map)) {
+		// failure. do not proceed.
+		// console.log("failure. do not proceed");
+		return [];
+	}
+	// // the face orders that must be for every case.
+	// const certain = conditions_start;
+	// console.log("HERE 2", conditions_start);
+	// the set of solutions as an array, with the certain values
+	// under the key "certain".
+	const solutions_before = recurse(layers_start, conditions_start);
+
+	// todo: it appears that this never happens. remove after testing.
+	const successes_hash = {};
+	const solutions = solutions_before
+		.map(conditions => JSON.stringify(conditions))
+		.map(string => hashCode(string))
+		.map((hash, i) => {
+			if (successes_hash[hash]) { return; }
+			successes_hash[hash] = solutions_before[i];
+			return solutions_before[i];
+		})
+		.filter(a => a !== undefined);
+
+	// solutions.certain = JSON.parse(JSON.stringify(certain));
 	// algorithm is done!
 	// convert solutions from (1,2) to (+1,-1)
 	for (let i = 0; i < solutions.length; i += 1) {
-		for (let j = 0; j < solutions[i].length; j += 1) {
-			unsignedToSignedConditions(solutions[i][j]);
-		}
+		unsignedToSignedConditions(solutions[i]);
 	}
-	solutions.certain = unsignedToSignedConditions(conditions_start);
 	// unsignedToSignedConditions(solutions.certain);
 	// console.log("solutions", solutions);
 	// console.log("successes_hash", successes_hash);
 	// console.log("avoid", avoid);
-	console.log("branches", branches);
-	console.log("branchesSolutions", branchesSolutions);
-	console.log("branchSolutions", branchSolutions);
-	console.log("solutions", solutions);
 	const duration = Date.now() - startDate;
 	if (duration > 50) {
-		console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "avoided", avoidcount, "bad guesses", failguesscount, `solutions ${solutions.length}`, "durations: clone, solve", clone_time, solve_time);
+		console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "avoided", avoidcount, "bad guesses", failguesscount, `solutions ${solutions_before.length}/${solutions.length}`, "durations: clone, solve", clone_time, solve_time);
 	}
 	return solutions;
 };

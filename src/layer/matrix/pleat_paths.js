@@ -21,7 +21,7 @@ export const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
 	// set matrix for both directions between face pair
 	// gather the next iteration's indices, recurse.
 	return matrix[to]
-		.map((dir, index) => dir === direction ? index : undefined)
+		.map((dir, index) => (dir === direction ? index : undefined))
 		.filter(a => a !== undefined)
 		.map(index => walk_pleat_path(matrix, from, index, direction, visited))
 		.reduce((a, b) => a.concat(b), [])
@@ -41,7 +41,7 @@ export const walk_pleat_path = (matrix, from, to, direction, visited = {}) => {
 export const walk_all_pleat_paths = matrix => matrix
 	.map((_, from) => [-1, 0, 1]
 		.map(direction => matrix[from]
-			.map((dir, i) => dir === direction ? i : undefined)
+			.map((dir, i) => (dir === direction ? i : undefined))
 			.filter(a => a !== undefined)
 			.map(to => walk_pleat_path(matrix, from, to, direction))
 			.reduce((a, b) => a.concat(b), []))

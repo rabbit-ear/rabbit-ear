@@ -8,34 +8,39 @@ import { invertMap } from "../../graph/maps";
  * excluding the elements at the indices themselves.
  * @returns {any[]} the subarray exclusively between the two indices.
  */
-const between = (arr, i, j) => (i < j)
+const between = (arr, i, j) => (i < j
 	? arr.slice(i + 1, j)
-	: arr.slice(j + 1, i);
+	: arr.slice(j + 1, i));
 /**
  * because this test is meant to run during the intermediate steps while
  * the a strip is being assembled, the strip may eventually be circular,
  * but currently it isn't.
- * 
+ *
  * @params {[number, number][]} for every sector, "start" and "end" of each sector
  * this is the output of having run "foldStripWithAssignments"
  * @param {number[]} layers_face, index is z-layer, value is the sector/face.
  * @param {boolean} do assignments contain a boundary? (to test for loop around)
  * @returns {boolean} does a violation occur. "false" means all good.
  */
-const validateTacoTortillaStrip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+const validateTacoTortillaStrip = (
+	faces_folded,
+	layers_face,
+	is_circular = true,
+	epsilon = math.core.EPSILON,
+) => {
 	// for every sector/face, the value is its index in the layers_face array
 	const faces_layer = invertMap(layers_face);
 	// for every sector, the location of the end of the sector after folding
 	// (the far end, the second end visited by the walk)
 	const fold_location = faces_folded
-		.map(ends => ends ? ends[1] : undefined);
+		.map(ends => (ends ? ends[1] : undefined));
 	// for every sector, the location of the end which lies nearest to -Infinity
 	const faces_mins = faces_folded
-		.map(ends => ends ? Math.min(...ends) : undefined)
+		.map(ends => (ends ? Math.min(...ends) : undefined))
 		.map(n => n + epsilon);
 	// for every sector, the location of the end which lies nearest to +Infinity
 	const faces_maxs = faces_folded
-		.map(ends => ends ? Math.max(...ends) : undefined)
+		.map(ends => (ends ? Math.max(...ends) : undefined))
 		.map(n => n - epsilon);
 	// we can't test the loop back around when j==end and i==0 because they only
 	// connect after the piece has been completed,

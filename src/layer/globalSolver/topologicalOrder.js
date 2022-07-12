@@ -3,7 +3,8 @@
  */
 /**
  * @description find a topological ordering from a set of conditions
- * @param {object} conditions a solution of face layer conditions where the keys are space-separated pair of faces, and the value is +1 0 or -1.
+ * @param {object} conditions a solution of face layer conditions where
+ * the keys are space-separated pair of faces, and the value is +1 0 or -1.
  * @param {object} graph a FOLD graph
  * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
  */
@@ -13,7 +14,7 @@ const topologicalOrder = (conditions, graph) => {
 	// use the conditions face pair relationships to fill an array where
 	// index: face, value: array of the face's children (faces below the face)
 	Object.keys(conditions).map(key => {
-		const pair = key.split(" ").map(n => parseInt(n));
+		const pair = key.split(" ").map(n => parseInt(n, 10));
 		if (conditions[key] === -1) { pair.reverse(); }
 		if (faces_children[pair[0]] === undefined) {
 			faces_children[pair[0]] = [];
@@ -33,7 +34,7 @@ const topologicalOrder = (conditions, graph) => {
 	const layers_face = [];
 	const faces_visited = [];
 	let protection = 0;
-	for (let f = 0; f < faces_children.length; f++) {
+	for (let f = 0; f < faces_children.length; f += 1) {
 		if (faces_visited[f]) { continue; }
 		const stack = [f];
 		while (stack.length && protection < faces_children.length * 2) {
@@ -48,7 +49,7 @@ const topologicalOrder = (conditions, graph) => {
 				faces_visited[stack_end] = true;
 				stack.pop();
 			}
-			protection++;
+			protection += 1;
 		}
 	}
 	// console.log("faces_children", faces_children);

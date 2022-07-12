@@ -22,17 +22,16 @@ const validateTacoTacoFacePairs = (face_pair_stack) => {
 	const pair_stack = removeSingleInstances(face_pair_stack);
 	const pairs = {};
 	let count = 0;
-	for (let i = 0; i < pair_stack.length; i++) {
+	for (let i = 0; i < pair_stack.length; i += 1) {
 		if (pairs[pair_stack[i]] === undefined) {
-			count++;
+			count += 1;
 			pairs[pair_stack[i]] = count;
-		}
-		// if we have seen this layer pair already, it MUST be appearing
-		// in the correct order, that is, as it gets popped off the stack,
-		// it must be the next-most-recently added pair to the stack.
-		else if (pairs[pair_stack[i]] !== undefined) {
+		} else if (pairs[pair_stack[i]] !== undefined) {
+			// if we have seen this layer pair already, it MUST be appearing
+			// in the correct order, that is, as it gets popped off the stack,
+			// it must be the next-most-recently added pair to the stack.
 			if (pairs[pair_stack[i]] !== count) { return false; }
-			count--;
+			count -= 1;
 			pairs[pair_stack[i]] = undefined;
 		}
 	}

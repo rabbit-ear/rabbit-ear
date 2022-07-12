@@ -10,17 +10,20 @@ import {
 } from "./foldAssignments";
 import { invertMap } from "../../graph/maps";
 import clone from "../../general/clone";
+
+const is_boundary = { B: true, b: true };
 /**
- * faces and assignments are fencepost aligned. assignments precedes faces.
- *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
- * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
- */
-const is_boundary = { "B": true, "b": true };
-/**
- * @description given an ordered set of faces and crease assignments
+ * @description Given an ordered set of faces and crease assignments
  * between the faces, this recursive algorithm finds every combination
  * of layer orderings that work without causing any self-intersections.
- * "faces" could be 1D lines, the term could be switched out here.
+ * "scalars" could be sector angles, where the sum of angles doesn't need to
+ * add up to 360, or this method can solve a strip of paper where "scalars"
+ * is not radial, simply 1D lengths between folds.
+ * If "scalars" represents a 1D folded strip which does not loop around, make
+ * sure to include two "B" assignments in the correct location.
+ * faces and assignments are fencepost aligned. assignments precedes faces.
+ * faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
+ * assig: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
  * @param {number[]} ordered unsigned scalars, the length of paper between folds
  * @param {string[]} array of "M","V", assignment of fold between faces
  * @returns {number[][]} array of arrays. each inner array is a solution.
@@ -40,7 +43,7 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EP
 		const start = faces_folded[0][0];
 		const end = faces_folded[faces_folded.length - 1][1];
 		if (Math.abs(start - end) > epsilon) { return []; }
-	};
+	}
 	// prepare tacos ahead of time, since we know the fold locations
 	// only grab the left and right tacos. return their adjacent faces in the
 	// form of which pair they are a part of, as an inverted array.
@@ -74,7 +77,11 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EP
 		const circ_and_done = is_circular && is_done;
 		// test for any self-intersections throughout the entire layering
 		if (!validateLayerSolver(
-			faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon
+			faces_folded,
+			layers_face,
+			taco_face_pairs,
+			circ_and_done,
+			epsilon,
 		)) {
 			return [];
 		}
@@ -89,7 +96,7 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EP
 			if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
 			if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
 			// todo: what about === 0 ?
-		}    
+		}
 
 		// Exit case. all faces have been traversed.
 		if (is_done) { return [layers_face]; }
@@ -120,11 +127,11 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EP
 				.map((_, i) => i);
 		// recursively attempt to fit the next folded face at all possible layers.
 		// make a deep copy of the layers_face arrays.
-		const next_layers_faces = splice_layers.map(i => clone(layers_face));
+		const next_layers_faces = splice_layers.map(() => clone(layers_face));
 		// insert the next_face into all possible valid locations (above or below)
 		next_layers_faces
 			.forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
-		// recursively call 
+		// recursively call
 		return next_layers_faces
 			.map((layers, i) => recurse(layers, next_face, splice_layers[i]))
 			.reduce((a, b) => a.concat(b), []);

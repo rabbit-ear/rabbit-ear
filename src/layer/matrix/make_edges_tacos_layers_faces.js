@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { invertMap } from "../../graph/maps";
 import { makeFacesCenter } from "../../graph/make";
 import validateTacoTacoFacePairs from "../tacos/validateTacoTacoFacePairs";
 import matrixToLayers from "./matrixToLayers";
@@ -15,11 +14,11 @@ const edge_tacos_to_face_pairs = (graph, tacos) => {
 	const faces_taco_pair = [];
 	let offset = 0;
 	let count = 0;
-	const fn = (face, pair) => { faces_taco_pair[face] = pair + offset; count++; };
+	// const fn = (face, pair) => { faces_taco_pair[face] = pair + offset; count++; };
 	[tacos.left, tacos.right, tacos.both]
 		.forEach(stack => {
 			stack.map(edge => graph.edges_faces[edge]).forEach((el, i) => el
-				.forEach(f => { faces_taco_pair[f] = i + offset; count++; }));
+				.forEach(f => { faces_taco_pair[f] = i + offset; count += 1; }));
 			offset += count;
 		});
 	return faces_taco_pair;
@@ -28,14 +27,12 @@ const edge_tacos_to_face_pairs = (graph, tacos) => {
  * @description convert a shared-edge taco stack (a list of edge indices)
  * into the faces adjacent to those edges, into a flat-array.
  */
-const edge_tacos_to_faces_flat = (graph, tacos) => {
-	return [tacos.left, tacos.right, tacos.both]
-		.map(side => side.map(edge => graph.edges_faces[edge])
-			.reduce((a, b) => a.concat(b), []))
-		.reduce((a, b) => a.concat(b), []);
-};
+const edge_tacos_to_faces_flat = (graph, tacos) => [tacos.left, tacos.right, tacos.both]
+	.map(side => side.map(edge => graph.edges_faces[edge])
+		.reduce((a, b) => a.concat(b), []))
+	.reduce((a, b) => a.concat(b), []);
 /**
- * 
+ *
  */
 const make_edges_tacos_layers_faces = (graph, matrix, epsilon = 0.001) => {
 	// the next few arrays will match in length.

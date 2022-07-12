@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../../math";
 import { makeFacesCenter } from "../../graph/make";
 
 // this honestly should be avoided until a lot more testing.
@@ -12,15 +12,15 @@ import { makeFacesCenter } from "../../graph/make";
 const get_face_symmetry_side = (graph, symmetry_line) => makeFacesCenter(graph)
 	.map(center => math.core.subtract(center, symmetry_line.origin))
 	.map(center => math.core.cross2(center, symmetry_line.vector))
-	.map(side => side < 0 ? 1 : -1);
+	.map(side => (side < 0 ? 1 : -1));
 
 const set_matrix_symmetry_line = (graph, matrix, symmetry_line, face = 0) => {
 	// todo, get which side the face is in, make that the -1 or 1 todo also
 	// figure out which of those
 	const faces_side = get_face_symmetry_side(graph, symmetry_line);
 	// console.log("faces_side", faces_side);
-	for (let i = 0; i < faces_side.length; i++) {
-		for (let j = 0; j < faces_side.length; j++) {
+	for (let i = 0; i < faces_side.length; i += 1) {
+		for (let j = 0; j < faces_side.length; j += 1) {
 			if (i === j) { continue; }
 			if (faces_side[i] !== faces_side[j]) {
 				matrix[i][j] = faces_side[i];

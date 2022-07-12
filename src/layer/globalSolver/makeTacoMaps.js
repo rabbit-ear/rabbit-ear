@@ -65,9 +65,9 @@ const refactor_pairs = (tacos_tortillas, transitivity_trios) => {
 const make_maps = tacos_face_pairs => tacos_face_pairs
 	.map(face_pairs => {
 		const keys_ordered = face_pairs.map(pair => pair[0] < pair[1]);
-		const face_keys = face_pairs.map((pair, i) => keys_ordered[i]
+		const face_keys = face_pairs.map((pair, i) => (keys_ordered[i]
 			? `${pair[0]} ${pair[1]}`
-			: `${pair[1]} ${pair[0]}`);
+			: `${pair[1]} ${pair[0]}`));
 		return { face_keys, keys_ordered };
 	});
 

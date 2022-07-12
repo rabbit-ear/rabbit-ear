@@ -12,13 +12,13 @@
  * @param {number[]} faces_layer solutions.
  * @returns {number[][]} array of rules where each rule is a 3-item array
  * the first two numbers are face indices, 3rd is direction +1, -1, or 0.
- * 
+ *
  * note: MUST be written using .forEach, it must accept arrays with holes
  * and skip over the indices which aren't used.
  */
 export const faces_layer_to_relationships = faces_layer => faces_layer
 	.map((_, i) => faces_layer
-		.map((_, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
+		.map((__, j) => ([i, j, Math.sign(faces_layer[i] - faces_layer[j])])))
 	.reduce((a, b) => a.concat(b), [])
 	.filter(el => el[0] !== el[1]);
 // import { makeTrianglePairs } from "../general/arrays";
@@ -45,7 +45,7 @@ export const common_relationships = (faces_layers) => {
 	const rules = [];
 	// iterate all rules (these already include their inverses), store them in
 	// the hashtable which checking for contradictions to the rule.
-	for (let r = 0; r < orders.length; r++) {
+	for (let r = 0; r < orders.length; r += 1) {
 		const rule = orders[r];
 		// make sure these rows contain arrays
 		if (!rules[rule[0]]) { rules[rule[0]] = []; }
