@@ -141,7 +141,43 @@ export const processFaceGroups = (conditions, faceGroups) => {
 	// console.log("groups", groups);
 	return keycombos;
 };
-
+/**
+ * @param {} conditions is the set of face-pair conditions after round 1, where
+ * all cases have been solved which are true for all layer arrangements.
+ * @param {boolean[][]} overlap the face-face overlap matrix
+ */
+export const makeBranchingSets = (conditions, overlap) => {
+	// console.log("CERTAIHN", conditions);
+	// const bipartiteFaces = makeBipartiteFaces(conditions);
+	// console.log("bipartiteFaces", bipartiteFaces);
+	// const bipartiteGraph = makeBipartiteGraph(data.overlap, conditions);
+	// console.log("bipartiteGraph", bipartiteGraph);
+	// const processed = processGraph(bipartiteGraph, data.overlap, conditions);
+	// console.log("processed", processed);
+	const faceGroups = makeFaceGroups(conditions, overlap);
+	// console.log("faceGroups", faceGroups);
+	const keySides = processFaceGroups(conditions, faceGroups);
+	// get all keys involved in branches
+	const allBranchingKeys = {};
+	keySides
+		.forEach(sides => sides
+			.forEach(side => side
+				.forEach(key => { allBranchingKeys[key] = true; })));
+	// copy only the known conditions to a master object
+	const knownConditions = {};
+	Object.keys(conditions)
+		// .filter(key => !allBranchingKeys[key]) // remove only branching key cases
+		.filter(key => conditions[key] !== 0) // remove all unknown cases
+		.forEach(key => { knownConditions[key] = conditions[key]; });
+	// console.log("allBranchingKeys", allBranchingKeys);
+	// console.log("keySides", keySides);
+	// console.log("knownConditions", knownConditions);
+	return keySides.map(sides => sides.map(side => {
+		const copy = JSON.parse(JSON.stringify(knownConditions));
+		side.forEach(key => { copy[key] = 0; });
+		return copy;
+	}));
+};
 // const makeBipartiteFaces = (conditions) => {
 // 	const allFaces = {};
 // 	Object.keys(conditions)

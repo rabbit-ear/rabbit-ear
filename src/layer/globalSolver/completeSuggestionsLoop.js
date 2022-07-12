@@ -47,6 +47,9 @@ const fill_layers_from_conditions = (layers, maps, conditions, fill_indices) => 
 		}));
 	return changed;
 };
+/**
+ * @description infer
+ */
 const infer_next_steps = (layers, maps, lookup_table, changed_indices) => {
 	const iterators = (changed_indices || Object.keys(layers));
 	return iterators.map(i => {
@@ -54,7 +57,7 @@ const infer_next_steps = (layers, maps, lookup_table, changed_indices) => {
 		const key = layers[i].join("");
 		const next_step = lookup_table[key];
 		if (next_step === false) { throw new Error("unsolvable"); }
-		if (next_step === true) { return; }
+		if (next_step === true) { return undefined; }
 		if (layers[i][next_step[0]] !== 0 && layers[i][next_step[0]] !== next_step[1]) {
 			throw new Error("infer conflict");
 		}
@@ -85,7 +88,7 @@ const completeSuggestionsLoop = (layers, maps, conditions, pair_layer_map) => {
 	// let time_one = 0;
 	// let time_two = 0;
 	let next_steps;
-	let next_steps_indices = {};
+	const next_steps_indices = {};
 	do {
 		try {
 			// inner_inner_loop_count++;

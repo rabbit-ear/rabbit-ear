@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { allLayerConditions } from "./globalSolver/index";
+import globalLayerSolver from "./globalSolver/index";
 import topologicalOrder from "./globalSolver/topologicalOrder";
 import { invertMap } from "../graph/maps";
 /**
@@ -15,7 +15,7 @@ import { invertMap } from "../graph/maps";
  * @returns {number[][]} an array of faces_layer objects, describing,
  * for each face (key) which layer the face inhabits (value)
  */
-const makeFacesLayers = (graph, epsilon) => allLayerConditions(graph, epsilon)
+const makeFacesLayers = (graph, epsilon) => globalLayerSolver(graph, epsilon)
 	.map(conditions => topologicalOrder(conditions, graph))
 	.map(invertMap);
 

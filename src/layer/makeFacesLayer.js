@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { oneLayerConditions } from "./globalSolver/index";
-import topologicalOrder from "./globalSolver/topologicalOrder";
-import { invertMap } from "../graph/maps";
+// import { allLayerConditions } from "./globalSolver/index";
+// import topologicalOrder from "./globalSolver/topologicalOrder";
+// import { invertMap } from "../graph/maps";
 /**
  * @description for a flat-foldable origami, this will return
  * ONLY ONE of the possible layer arrangements of the faces.
@@ -15,9 +15,9 @@ import { invertMap } from "../graph/maps";
  * @returns {number[]} a faces_layer object, describing,
  * for each face (key) which layer the face inhabits (value)
  */
-const makeFacesLayer = (graph, epsilon) => {
-	const conditions = oneLayerConditions(graph, epsilon);
-	return invertMap(topologicalOrder(conditions, graph));
-};
+// const makeFacesLayer = (graph, epsilon) => {
+// 	const conditions = allLayerConditions(graph, epsilon)[0];
+// 	return invertMap(topologicalOrder(conditions, graph));
+// };
 
-export default makeFacesLayer;
+// export default makeFacesLayer;
