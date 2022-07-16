@@ -198,14 +198,14 @@ const make_lookup = (valid_states) => {
 	return Object.freeze(lookup);
 };
 
-const slow_lookup = {
+const layerTable = {
 	taco_taco: make_lookup(taco_taco_valid_states),
 	taco_tortilla: make_lookup(taco_tortilla_valid_states),
 	tortilla_tortilla: make_lookup(tortilla_tortilla_valid_states),
 	transitivity: make_lookup(transitivity_valid_states),
 };
 
-export default slow_lookup;
+export default layerTable;
 
 // const done_result = { 0: false, 1: true };
 // const make_number = (key, value) => {
@@ -215,11 +215,11 @@ export default slow_lookup;
 //   return parseInt(base_three, 3);
 // };
 // const quick_lookup = {};
-// Object.keys(slow_lookup).forEach(type => {
+// Object.keys(layerTable).forEach(type => {
 //   quick_lookup[type] = [];
-//   Object.keys(slow_lookup[type]).forEach(key => {
+//   Object.keys(layerTable[type]).forEach(key => {
 //     const base_ten = parseInt(key, 3);
-//     const value = slow_lookup[type][key];
+//     const value = layerTable[type][key];
 //     const done = value === 0 || value === 1;
 //     const new_value = done ? done_result[value] : make_number(key, value);
 //     quick_lookup[type][base_ten] = new_value;

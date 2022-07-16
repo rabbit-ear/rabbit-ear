@@ -9,132 +9,174 @@ const taco_types = Object.freeze(Object.keys(table));
  * 0: unknown, 1: face A is above B, 2: face B is above A.
  * this map will flip 1 and 2, leaving 0 to be 0.
  */
-const flip_conditions = { 0: 0, 1: 2, 2: 1 };
+const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
 
-const fill_layers_from_conditions = (layers, maps, conditions, fill_indices) => {
-	// todo, get the CHANGED conditions. changed from last time we updated things.
+/**
+ * @returns {string[]} but effectively {number[]} where the array is a subset
+ * of indices from the nextConstraintIndices parameter. These are the indices
+ * of "constraints" array which have a change in them since the last round.
+ */
+const fillConstraintsFromFacePairsOrder = (
+	facePairsOrder,
+	constraints,
+	constraintsInfo,
+	nextConstraintIndices,
+) => {
+	// todo, get the CHANGED facePairsOrder. changed from last time we updated things.
 	// then, this return array "changed" will actually be relevant.
 	// this is an object, so we can set the key and prevent duplicates.
 	const changed = {};
-	const iterators = (fill_indices || Object.keys(layers));
-	// layers.forEach((layer, i) => maps[i].face_keys
-	iterators.forEach(i => maps[i].face_keys
+	const iterators = (nextConstraintIndices || Object.keys(constraints));
+	// constraints.forEach((layer, i) => constraintsInfo[i].face_keys
+	// each constraint info contains the list of face-pair keys involved
+	iterators.forEach(i => constraintsInfo[i].face_keys
 		.forEach((key, j) => {
-			// todo: possible this error will never show if we can guarantee that
-			// tacos/tortillas have been properly built
-			if (!(key in conditions)) {
-				// todo: uncomment this:
-				// console.warn(key, "not in conditions");
-				return;
-			}
-			// if conditions[key] is 1 or 2, not 0, apply the suggestion.
-			if (conditions[key] !== 0) {
-				// orient the suggestion based on if the face pair was flipped or not.
-				const orientation = maps[i].keys_ordered[j]
-					? conditions[key]
-					: flip_conditions[conditions[key]];
+			// this can happen when working on a branch of a soluion, the key is not present.
+			if (!(key in facePairsOrder)) { return; }
+			// for each face-pair, check if it contains a layer order (1 or 2),
+			// and if so, update the constraintsOrder with this order.
+			if (facePairsOrder[key] !== 0) {
+				// if the pair of faces in the key was flipped, flip the suggestion too
+				const orientation = constraintsInfo[i].keys_ordered[j]
+					? facePairsOrder[key]
+					: flipFacePairOrder[facePairsOrder[key]];
 				// now it's possible that this face pair has already been set (not 0).
 				// if so, double check that the previously set value is the same as
 				// the new one, otherwise the conflict means that this layer
 				// arrangement is unsolvable and needs to report the fail all the way
 				// back up to the original recursive call.
-				if (layers[i][j] !== 0 && layers[i][j] !== orientation) {
+				if (constraints[i][j] !== 0 && constraints[i][j] !== orientation) {
 					throw new Error("fill conflict");
 				}
-				layers[i][j] = orientation;
+				constraints[i][j] = orientation;
 				changed[i] = true;
 			}
 		}));
-	return changed;
+	// return changed;
+	return Object.keys(changed);
 };
 /**
- * @description infer
+ * @description given all the new face-pair orders which have been updated since
+ * last round (indices of "modifiedIndices"), iterate through the new changes, gather
+ * the lookup_table's suggested next steps, and check that none of the previous changes
+ * resulted in an invalid state according to the lookup_table.
+ * @param {array} constraints
+ * @param {array} constraintsInfo
+ * @param {object} lookup_table
+ * @param {string[]} but effectively {number[]}, the list of "constraints" indices which
+ * were modified since we last ran this function. we only need to visit these.
  */
-const infer_next_steps = (layers, maps, lookup_table, changed_indices) => {
-	const iterators = (changed_indices || Object.keys(layers));
+const getSuggestedFacePairOrders = (
+	constraints,
+	constraintsInfo,
+	lookup_table,
+	modifiedIndices,
+) => {
+	const iterators = (modifiedIndices || Object.keys(constraints));
 	return iterators.map(i => {
-		const map = maps[i];
-		const key = layers[i].join("");
+		const info = constraintsInfo[i];
+		const key = constraints[i].join("");
 		const next_step = lookup_table[key];
 		if (next_step === false) { throw new Error("unsolvable"); }
 		if (next_step === true) { return undefined; }
-		if (layers[i][next_step[0]] !== 0 && layers[i][next_step[0]] !== next_step[1]) {
+		if (constraints[i][next_step[0]] !== 0 && constraints[i][next_step[0]] !== next_step[1]) {
 			throw new Error("infer conflict");
 		}
-		layers[i][next_step[0]] = next_step[1];
-		// if (layers[i].indexOf(0) === -1) { delete layers[i]; }
+		constraints[i][next_step[0]] = next_step[1];
+		// if (constraints[i].indexOf(0) === -1) { delete constraints[i]; }
 		// format this next_step change into face-pair-key and above/below value
-		// so that it can be added to the conditions object.
-		const condition_key = map.face_keys[next_step[0]];
-		const condition_value = map.keys_ordered[next_step[0]]
+		// so that it can be added to the facePairsOrder object.
+		const condition_key = info.face_keys[next_step[0]];
+		const condition_value = info.keys_ordered[next_step[0]]
 			? next_step[1]
-			: flip_conditions[next_step[1]];
-		// console.log("conditions value", map.keys_ordered[next_step[0]], map.face_keys[next_step[0]]);
-		// if (avoid[condition_key] === condition_value) { throw "avoid"; }
-		// if (map.face_keys[0] === "3 6") {
-		//   console.log("layer, map, next_step", layer, map, next_step);
-		//   console.log("condition key value", condition_key, condition_value);
-		// }
+			: flipFacePairOrder[next_step[1]];
 		return [condition_key, condition_value];
 	}).filter(a => a !== undefined);
 };
-
 /**
- * @description completeSuggestionsLoop
+ * @description Given a set of facePairs, get the indices in the constraints array
+ * which contains an appearance of any one of these facePairs.
+ * @returns {object} with 4 keys: taco_taco, taco_tortilla, tortilla_tortilla, transitivity,
+ * where each value is {string[]} (but effectively number[], they are indices as strings).
+ * These indices are integer string type, but it doesn't matter for our use.
  */
-const completeSuggestionsLoop = (layers, maps, conditions, pair_layer_map) => {
-	// given the current set of conditions, complete them as much as possible
+const getConstraintIndicesContainingFacePairs = (facePairs, pairConstraintLookup) => {
+	// temporarily store indices as keys in a hash
+	const hash = {};
+	taco_types.forEach(type => { hash[type] = {}; });
+	// for every taco type, iterate through all facePairs.
+	taco_types.forEach(taco_type => facePairs
+		.forEach(facePair => pairConstraintLookup[taco_type][facePair]
+			.forEach(i => { hash[taco_type][i] = true; })));
+	// convert hash into an array of indices
+	const indices = {};
+	taco_types.forEach(type => { indices[type] = Object.keys(hash[type]); });
+	return indices;
+};
+/**
+ * @description This method will loop. Given a set of facePairs and their
+ * layer order, update the constraints array with all changed facePairs, use the
+ * constraints to consult the taco-tortilla lookup_table for any suggested changes,
+ * apply the changes to the facePairs layer order, repeat.
+ */
+const completeSuggestionsLoop = (
+	facePairsOrder,
+	constraints,
+	constraintsInfo,
+	pairConstraintLookup,
+) => {
+	// given the current set of facePairsOrder, complete them as much as possible
 	// only adding the determined results certain from the current state.
-	// let time_one = 0;
-	// let time_two = 0;
-	let next_steps;
-	const next_steps_indices = {};
+	let facePairsOrderChanges;
+	// each round, the facePair orders are updated, and these altered facePairs are
+	// scattered throughout the constraints. gather all of the changed indices here.
+	// { taco_taco: [6, 25, 98, 150...], taco_tortilla: [54, 112, ...], ... }
+	const nextConstraintsIndices = {};
 	do {
 		try {
-			// inner_inner_loop_count++;
 			// for each: taco_taco, taco_tortilla, tortilla_tortilla, transitivity
-			// const start_one = new Date();
-			const fill_changed = {};
-			taco_types.forEach(taco_type => { fill_changed[taco_type] = {}; });
-			for (let t = 0; t < taco_types.length; t += 1) {
-				const type = taco_types[t];
-				fill_changed[type] = fill_layers_from_conditions(
-					layers[type],
-					maps[type],
-					conditions,
-					next_steps_indices[type],
+			const modifiedConstraints = {};
+			taco_types.forEach(taco_type => { modifiedConstraints[taco_type] = {}; });
+			// for each taco-condition type, fill any unset constraints with the orders
+			// in facePairsOrder. return a list of the modified indices in constraints.
+			taco_types.forEach(type => {
+				modifiedConstraints[type] = fillConstraintsFromFacePairsOrder(
+					facePairsOrder,
+					constraints[type],
+					constraintsInfo[type],
+					nextConstraintsIndices[type],
 				);
-			}
-			taco_types.forEach(type => {
-				fill_changed[type] = Object.keys(fill_changed[type]);
 			});
-			// console.log("fill_changed", fill_changed);
-			// time_one += (Date.now() - start_one);
-			// const start_two = new Date();
-			next_steps = taco_types
-				.flatMap(type => infer_next_steps(
-					layers[type],
-					maps[type],
-					table[type],
-					fill_changed[type],
-				));
-			next_steps.forEach(el => { conditions[el[0]] = el[1]; });
-			// reset next_step_indices
-			taco_types.forEach(type => { next_steps_indices[type] = {}; });
-			// each next step is [condition_key, condition_value]. get the key.
-			taco_types.forEach(taco_type => next_steps
-				.forEach(el => pair_layer_map[taco_type][el[0]]
-					.forEach(i => {
-						next_steps_indices[taco_type][i] = true;
-					})));
-			taco_types.forEach(type => {
-				next_steps_indices[type] = Object.keys(next_steps_indices[type]);
-			});
-			// console.log("next steps changed", next_steps_indices);
-			// time_two += (Date.now() - start_two);
-		} catch (error) { return false; } // no solution on this branch
-	} while (next_steps.length > 0);
-	// console.log("complete", time_one, time_two);
+			// for every constraint (only consult the ones changed in this round), consult
+			// the lookup_table for any suggestions and format them as arrays of two indices:
+			// [face_pair, order], and gather them together without applying the changes.
+			// the lookup table will also report valid/invalid states. if invalid, throw an error.
+			facePairsOrderChanges = taco_types.flatMap(type => getSuggestedFacePairOrders(
+				constraints[type],
+				constraintsInfo[type],
+				table[type],
+				modifiedConstraints[type],
+			));
+			// update the facePairsOrder with all suggested changes.
+			// todo: will it ever happen that an order will be overwritten with a different
+			// value? if not, why?
+			facePairsOrderChanges.forEach(el => { facePairsOrder[el[0]] = el[1]; });
+			// update the nextConstraintsIndices with all the constraints indices containing
+			// facePair keys which were changed in this round. to be used next loop.
+			Object.apply(nextConstraintsIndices, getConstraintIndicesContainingFacePairs(
+				facePairsOrderChanges.map(el => el[0]), // the facePair keys as an array.
+				pairConstraintLookup,
+			));
+		} catch (error) {
+			// "false" indicates that the given parameters are faulty, the solver which called
+			// this method made an incorrect guess, and this entire solution should be thrown out.
+			return false;
+		}
+		// as long as facePairsOrder was changed, do one more loop, see if there
+		// are more layer order suggestions from the lookup_table.
+	} while (facePairsOrderChanges.length > 0);
+	// all constraints for any modified facePairs layer orders have been checked
+	// in the lookup_table and nowhere did we encounter an "invalid" state.
 	return true;
 };
 

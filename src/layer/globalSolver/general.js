@@ -33,10 +33,12 @@ export const joinConditions = (...args) => Object
 
 const taco_types = Object.freeze(Object.keys(table));
 
-export const duplicateUnsolvedLayers = (layers) => {
+export const duplicateUnsolvedConstraints = (constraints) => {
 	const duplicate = {};
 	taco_types.forEach(type => { duplicate[type] = []; });
-	taco_types.forEach(type => layers[type]
+	// todo, can remove this .indexOf by creating a counter of "remaining unsolved"
+	// which decreases inside completeSuggestionsLoop anytime a 0 is flipped to 1 or 2
+	taco_types.forEach(type => constraints[type]
 		.forEach((layer, i) => {
 			if (layer.indexOf(0) !== -1) {
 				duplicate[type][i] = [...layer];

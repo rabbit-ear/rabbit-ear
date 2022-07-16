@@ -15,8 +15,8 @@ import * as foldAssignments from "./singleVertexSolver/foldAssignments";
 import globalLayerSolver from "./globalSolver/index";
 import table from "./globalSolver/table";
 import topologicalOrder from "./globalSolver/topologicalOrder";
-import makeConditions from "./globalSolver/makeConditions";
-import makeTacoMaps from "./globalSolver/makeTacoMaps";
+import makeFacePairsOrder from "./globalSolver/makeFacePairsOrder";
+import makeConstraintsInfo from "./globalSolver/makeConstraintsInfo";
 import * as globalSolverGeneral from "./globalSolver/general";
 import makeTacosTortillas from "./tacos/makeTacosTortillas";
 import makeFoldedStripTacos from "./tacos/makeFoldedStripTacos";
@@ -40,8 +40,8 @@ export default Object.assign(
 
 		globalLayerSolver,
 		table,
-		makeConditions,
-		makeTacoMaps,
+		makeFacePairsOrder,
+		makeConstraintsInfo,
 		topologicalOrder,
 		makeTacosTortillas,
 		makeFoldedStripTacos,

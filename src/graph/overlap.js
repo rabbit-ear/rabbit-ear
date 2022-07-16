@@ -91,7 +91,7 @@ export const makeEdgesFacesOverlap = ({
  * where both halves of the matrix are filled, matrix[i][j] === matrix[j][i].
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
+ * @returns {boolean[][]} face-face matrix answering: do they overlap?
  * @linkcode Origami ./src/graph/overlap.js 95
  */
 export const makeFacesFacesOverlap = ({
