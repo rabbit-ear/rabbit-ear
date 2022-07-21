@@ -74,6 +74,39 @@ const getFacesWithUnknownOrdersArray = (...orders) => {
 		.flat();
 	return uniqueIntegers(unknownKeys.map(key => key.split(" ")).flat());
 };
+/**
+ * @description given a current set of modified facePairs keys, (modified
+ * since the last time we ran this), get all condition indices that
+ * include one or more of these facePairs; filtering out the faces
+ * which, for every case, are already solved.
+ */
+const getConstraintIndicesFromFacePairs = (
+	constraints,
+	facePairConstraints,
+	facePairsSubsetArray,
+	...orders
+) => {
+	const facesWithUnknownOrders = {};
+	getFacesWithUnknownOrdersArray(...orders)
+		.forEach(f => { facesWithUnknownOrders[f] = true; });
+
+	const constraintIndices = {};
+	taco_types.forEach(type => {
+		// given the array of modified facePairs since last round, get all
+		// the indices in the constraints array in which these facePairs exist.
+		const duplicates = facePairsSubsetArray
+			.flatMap(facePair => facePairConstraints[type][facePair]);
+		// filter these constraint indices so that (1) no duplicates and
+		// (2) only faces which appear in an unknown order (0) are included,
+		// which is done by consulting constraints[i] and checking all faces
+		// mentioned in this array, testing if any of them are unknown
+		constraintIndices[type] = uniqueIntegers(duplicates)
+			.filter(i => constraints[type][i]
+				.map(f => facesWithUnknownOrders[f])
+				.reduce((a, b) => a || b, false));
+	});
+	return constraintIndices;
+};
 
 /**
  * @description Update the orders, check for the implications,
@@ -92,35 +125,6 @@ const propagate = (
 	facePairConstraints,
 	initiallyModifiedFacePairs,
 ) => {
-	/**
-	 * @description given a current set of modified facePairs keys, (modified
-	 * since the last time we ran this), get all condition indices that
-	 * include one or more of these facePairs; filtering out the faces
-	 * which, for every case, are already solved.
-	 */
-	const getConstraintIndicesFromFacePairs = (facePairsSubsetArray, ...orders) => {
-		const facesWithUnknownOrders = {};
-		getFacesWithUnknownOrdersArray(...orders)
-			.forEach(f => { facesWithUnknownOrders[f] = true; });
-
-		const constraintIndices = {};
-		taco_types.forEach(type => {
-			// given the array of modified facePairs since last round, get all
-			// the indices in the constraints array in which these facePairs exist.
-			const duplicates = facePairsSubsetArray
-				.flatMap(facePair => facePairConstraints[type][facePair]);
-			// filter these constraint indices so that (1) no duplicates and
-			// (2) only faces which appear in an unknown order (0) are included,
-			// which is done by consulting constraints[i] and checking all faces
-			// mentioned in this array, testing if any of them are unknown
-			constraintIndices[type] = uniqueIntegers(duplicates)
-				.filter(i => constraints[type][i]
-					.map(f => facesWithUnknownOrders[f])
-					.reduce((a, b) => a || b, false));
-		});
-		return constraintIndices;
-	};
-
 	let modifiedFacePairs = initiallyModifiedFacePairs;
 	// begin loop
 	// all updates to "facePairsOrder", temporarily stored here until we can
@@ -133,6 +137,8 @@ const propagate = (
 		console.log("+++ START LOOP +++ ", loopCount);
 		loopCount += 1;
 		const modifiedConstraintIndices = getConstraintIndicesFromFacePairs(
+			constraints,
+			facePairConstraints,
 			modifiedFacePairs,
 			facePairsOrder,
 		);
