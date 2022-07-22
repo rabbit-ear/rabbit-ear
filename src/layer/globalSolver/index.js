@@ -33,33 +33,63 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		facePairsOrder,
 	} = prepare(graph, epsilon);
 
-	const initialKnownFacePairKeys = Object.keys(facePairsOrder)
-		.filter(key => facePairsOrder[key] !== 0);
-
 	// "startingFacePairsOrder" is now filled with results only for those face-pairs
 	// which are consistent across all layer permutations. If there is only one
 	// layer order, all facePairsOrder will be solved by this step.
-	if (!propagate(
-		facePairsOrder,
+	const initialResult = propagate(
 		constraints,
 		facePairConstraints,
-		initialKnownFacePairKeys,
-	)) {
-		// failure. do not proceed.
-		// console.log("failure. do not proceed");
-		return [];
-	}
+		Object.keys(facePairsOrder).filter(key => facePairsOrder[key] !== 0),
+		facePairsOrder,
+	);
+	// failure. do not proceed.
+	if (!initialResult) { return undefined; }
+	Object.keys(initialResult)
+		.filter(key => initialResult[key] !== 0)
+		.forEach(key => { facePairsOrder[key] = initialResult[key]; });
+	// console.log("initialResult", initialResult);
+	// Object.apply(facePairsOrder, initialResult);
+	// console.log("facePairsOrder", facePairsOrder);
 	/**
 	 * the input parameters will not be modified. they will be copied,
 	 * their copies modified, then passed along to the next recurse.
 	 */
 	// const this_recurse_count = recurse_count;
 	// console.time(`recurse ${this_recurse_count}`);
-	const zero_keys = Object.keys(facePairsOrder)
+	const unsolved_keys = Object.keys(facePairsOrder)
 		.map(key => (facePairsOrder[key] === 0 ? key : undefined))
 		.filter(a => a !== undefined);
+	console.log("unsolved_keys", unsolved_keys);
+
+	// record this guess. this will be undone if result comes back "false".
+	const guess = {};
+	guess[unsolved_keys[0]] = 1;
+
+	const resultAfterGuess = propagate(
+		constraints,
+		facePairConstraints,
+		[unsolved_keys[0]],
+		facePairsOrder,
+		guess,
+	);
+	console.log("resultAfterGuess", resultAfterGuess);
+
+	// const branches = makeBranchingSets(facePairsOrder, overlap);
+	// const branchesSolutions = branches
+	// 	.map(pairs => pairs
+	// 		.map(facePairsOrder => recurse(startingConstraints, facePairsOrder)));
+
+	// const secondResult = propagate(
+	// 	facePairsOrder,
+	// 	constraints,
+	// 	facePairConstraints,
+	// 	Object.keys(facePairsOrder).filter(key => facePairsOrder[key] !== 0),
+	// );
+
+	// console.log("secondResult", Object.keys(secondResult).length);
+
 	// solution found. exit.
-	if (zero_keys.length === 0) { return [facePairsOrder]; }
+	// if (zero_keys.length === 0) { return [facePairsOrder]; }
 	// console.log("recurse. # zero keys", zero_keys.length);
 	// for every unknown face-pair relationship (zero_keys), try setting both
 	// above/below cases, test it out, and if it's a success the inner loop
@@ -72,7 +102,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// relationships inside "seen". later as we continue our guessing, we can
 	// seen any guesses which are stored inside "seen", as the outcome
 	// has already been determined.
-	const seen = {};
+	// const seen = {};
 	// const result = zero_keys
 	// 	.map(key => [1, 2]
 	// 		.map(dir => {
@@ -146,6 +176,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// 	console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "seen", seencount, "bad guesses", failguesscount, `solutions ${solutions.length}`, "durations: clone, solve", clone_time, solve_time);
 	// }
 	// return solutions;
+	return unsignedToSignedConditions(facePairsOrder);
 };
 
 export default globalLayerSolver;

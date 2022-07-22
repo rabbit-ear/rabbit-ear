@@ -19,13 +19,6 @@ const makeConstraints = (tacos_tortillas, transitivity_trios) => {
 	pairs.taco_tortilla = tacos_tortillas.taco_tortilla.map(el => [
 		el.taco[0], el.tortilla, el.taco[1],
 	]);
-	// // A-C and B-D are connected. A:[0][0] C:[0][1] B:[1][0] D:[1][1]
-	// // (A,C) (B,D)
-	// pairs.tortilla_tortilla = tacos_tortillas.tortilla_tortilla.map(el => [
-	//   [el[0][0], el[0][1]],
-	//   [el[1][0], el[1][1]],
-	// ]);
-
 	// A-B and C-D are connected, where A is above/below C and B is above/below D
 	// A:[0][0] B:[0][1] C:[1][0] D:[1][1]
 	// (A,C) (B,D)

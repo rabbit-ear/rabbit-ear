@@ -48,9 +48,13 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 	const facePairs = facePairsArray.map((pair, i) => (flipped[i]
 		? `${pair[1]} ${pair[0]}`
 		: `${pair[0]} ${pair[1]}`));
-	const key = facePairs.map(facePair => {
-		for (let i = 0; i < orders.length; i += 1) {
-			if (orders[i][facePair]) { return orders[i][facePair]; }
+	const key = facePairs.map((facePair, i) => {
+		for (let o = 0; o < orders.length; o += 1) {
+			if (orders[o][facePair]) {
+				return flipped[i]
+					? flipFacePairOrder[orders[o][facePair]]
+					: orders[o][facePair];
+			}
 		}
 		return 0;
 	}).join("");
@@ -63,7 +67,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 	const implicationOrder = flipped[implication[0]]
 		? flipFacePairOrder[implication[1]]
 		: implication[1];
-	console.log("implication", implication, implicationFacePair, implicationOrder, flipped[implication[0]]);
+	// console.log("implication", implication, implicationFacePair, implicationOrder, flipped[implication[0]]);
 	return [implicationFacePair, implicationOrder];
 };
 
@@ -107,24 +111,25 @@ const getConstraintIndicesFromFacePairs = (
 	});
 	return constraintIndices;
 };
-
 /**
  * @description Update the orders, check for the implications,
  * update more orders, repeat.
- * @param {any} facePairsOrder the solution.
  * @param {any} constraints the list of taco/tortilla/trans constraints,
  * each constraint being a list of face indices
  * @param {any} facePairConstraints a reference for every "n m" face pair key,
  * which indices does this key appear in.
- * @param {any} initiallyModifiedFacePairs array of face pair keys whose value was updated
- * since the last call to "propagate"
+ * @param {any} initiallyModifiedFacePairs array of face pair keys
+ * whose value was updated since the last call to "propagate"
+ * @param {any} facePairsOrder the solution.
  */
 const propagate = (
-	facePairsOrder,
 	constraints,
 	facePairConstraints,
 	initiallyModifiedFacePairs,
+	...orders
 ) => {
+	// console.log("START propagate");
+	// console.log("initiallyModifiedFacePairs", initiallyModifiedFacePairs);
 	let modifiedFacePairs = initiallyModifiedFacePairs;
 	// begin loop
 	// all updates to "facePairsOrder", temporarily stored here until we can
@@ -134,38 +139,39 @@ const propagate = (
 	let loopCount = 0;
 
 	do {
-		console.log("+++ START LOOP +++ ", loopCount);
 		loopCount += 1;
 		const modifiedConstraintIndices = getConstraintIndicesFromFacePairs(
 			constraints,
 			facePairConstraints,
 			modifiedFacePairs,
-			facePairsOrder,
+			...orders,
+			// implications,
 		);
 
-		// console.log("facesWithUnknownOrders", facesWithUnknownOrders);
-		console.log("initiallyModifiedFacePairs", initiallyModifiedFacePairs);
-		console.log("modifiedConstraintIndices", modifiedConstraintIndices);
 		// todo: do you get better results by fast forwarding through all taco-taco
 		// implications (or transitivity, or any one in particular), before then
 		// moving onto the other sets, or is it faster to depth-first search through all?
 		// the modifications that happened this round
 		const roundModificationsFacePairs = {};
-		taco_types.forEach(type => {
+		for (let t = 0; t < taco_types.length; t += 1) {
+			const type = taco_types[t];
 			const indices = modifiedConstraintIndices[type];
 			for (let i = 0; i < indices.length; i += 1) {
 				const lookupResult = buildRuleAndLookup(
 					type,
 					constraints[type][indices[i]],
-					facePairsOrder,
+					...orders,
 					implications,
 				);
-				if (lookupResult === false) { return false; }
 				if (lookupResult === true) { continue; }
+				if (lookupResult === false) {
+					console.warn("invalid state found", type, constraints[type][indices[i]]);
+					return false;
+				}
 				if (implications[lookupResult[0]]) {
 					// rule already exists. make sure the results match
 					if (implications[lookupResult[0]] !== lookupResult[1]) {
-						console.log("order conflict");
+						console.warn("order conflict", type, constraints[type][indices[i]]);
 						return false;
 					}
 				} else {
@@ -173,13 +179,15 @@ const propagate = (
 					implications[lookupResult[0]] = lookupResult[1];
 				}
 			}
-		});
-		console.log("roundModificationsFacePairs", roundModificationsFacePairs);
-		console.log("implications", implications);
+		}
 		modifiedFacePairs = Object.keys(roundModificationsFacePairs);
-		console.log("END modifiedFacePairs", modifiedFacePairs.length, modifiedFacePairs);
-	} while (modifiedFacePairs.length && loopCount < 20);
-	return true;
+		// console.log("LOOP", loopCount);
+		// console.log("modifiedConstraintIndices", modifiedConstraintIndices);
+		// console.log("roundModificationsFacePairs", roundModificationsFacePairs);
+		// console.log("implications", implications);
+		// console.log("modifiedFacePairs", modifiedFacePairs.length, modifiedFacePairs);
+	} while (modifiedFacePairs.length && loopCount < 1000);
+	return implications;
 };
 
 export default propagate;

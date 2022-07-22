@@ -6955,9 +6955,13 @@
 		const facePairs = facePairsArray.map((pair, i) => (flipped[i]
 			? `${pair[1]} ${pair[0]}`
 			: `${pair[0]} ${pair[1]}`));
-		const key = facePairs.map(facePair => {
-			for (let i = 0; i < orders.length; i += 1) {
-				if (orders[i][facePair]) { return orders[i][facePair]; }
+		const key = facePairs.map((facePair, i) => {
+			for (let o = 0; o < orders.length; o += 1) {
+				if (orders[o][facePair]) {
+					return flipped[i]
+						? flipFacePairOrder[orders[o][facePair]]
+						: orders[o][facePair];
+				}
 			}
 			return 0;
 		}).join("");
@@ -6968,7 +6972,6 @@
 		const implicationOrder = flipped[implication[0]]
 			? flipFacePairOrder[implication[1]]
 			: implication[1];
-		console.log("implication", implication, implicationFacePair, implicationOrder, flipped[implication[0]]);
 		return [implicationFacePair, implicationOrder];
 	};
 	const getFacesWithUnknownOrdersArray = (...orders) => {
@@ -6978,54 +6981,62 @@
 			.flat();
 		return uniqueIntegers(unknownKeys.map(key => key.split(" ")).flat());
 	};
+	const getConstraintIndicesFromFacePairs = (
+		constraints,
+		facePairConstraints,
+		facePairsSubsetArray,
+		...orders
+	) => {
+		const facesWithUnknownOrders = {};
+		getFacesWithUnknownOrdersArray(...orders)
+			.forEach(f => { facesWithUnknownOrders[f] = true; });
+		const constraintIndices = {};
+		taco_types$1.forEach(type => {
+			const duplicates = facePairsSubsetArray
+				.flatMap(facePair => facePairConstraints[type][facePair]);
+			constraintIndices[type] = uniqueIntegers(duplicates)
+				.filter(i => constraints[type][i]
+					.map(f => facesWithUnknownOrders[f])
+					.reduce((a, b) => a || b, false));
+		});
+		return constraintIndices;
+	};
 	const propagate = (
-		facePairsOrder,
 		constraints,
 		facePairConstraints,
 		initiallyModifiedFacePairs,
+		...orders
 	) => {
-		const getConstraintIndicesFromFacePairs = (facePairsSubsetArray, ...orders) => {
-			const facesWithUnknownOrders = {};
-			getFacesWithUnknownOrdersArray(...orders)
-				.forEach(f => { facesWithUnknownOrders[f] = true; });
-			const constraintIndices = {};
-			taco_types$1.forEach(type => {
-				const duplicates = facePairsSubsetArray
-					.flatMap(facePair => facePairConstraints[type][facePair]);
-				constraintIndices[type] = uniqueIntegers(duplicates)
-					.filter(i => constraints[type][i]
-						.map(f => facesWithUnknownOrders[f])
-						.reduce((a, b) => a || b, false));
-			});
-			return constraintIndices;
-		};
 		let modifiedFacePairs = initiallyModifiedFacePairs;
 		const implications = {};
 		let loopCount = 0;
 		do {
-			console.log("+++ START LOOP +++ ", loopCount);
 			loopCount += 1;
 			const modifiedConstraintIndices = getConstraintIndicesFromFacePairs(
+				constraints,
+				facePairConstraints,
 				modifiedFacePairs,
-				facePairsOrder,
+				...orders,
 			);
-			console.log("initiallyModifiedFacePairs", initiallyModifiedFacePairs);
-			console.log("modifiedConstraintIndices", modifiedConstraintIndices);
 			const roundModificationsFacePairs = {};
-			taco_types$1.forEach(type => {
+			for (let t = 0; t < taco_types$1.length; t += 1) {
+				const type = taco_types$1[t];
 				const indices = modifiedConstraintIndices[type];
 				for (let i = 0; i < indices.length; i += 1) {
 					const lookupResult = buildRuleAndLookup(
 						type,
 						constraints[type][indices[i]],
-						facePairsOrder,
+						...orders,
 						implications,
 					);
-					if (lookupResult === false) { return false; }
 					if (lookupResult === true) { continue; }
+					if (lookupResult === false) {
+						console.warn("invalid state found", type, constraints[type][indices[i]]);
+						return false;
+					}
 					if (implications[lookupResult[0]]) {
 						if (implications[lookupResult[0]] !== lookupResult[1]) {
-							console.log("order conflict");
+							console.warn("order conflict", type, constraints[type][indices[i]]);
 							return false;
 						}
 					} else {
@@ -7033,13 +7044,10 @@
 						implications[lookupResult[0]] = lookupResult[1];
 					}
 				}
-			});
-			console.log("roundModificationsFacePairs", roundModificationsFacePairs);
-			console.log("implications", implications);
+			}
 			modifiedFacePairs = Object.keys(roundModificationsFacePairs);
-			console.log("END modifiedFacePairs", modifiedFacePairs.length, modifiedFacePairs);
-		} while (modifiedFacePairs.length && loopCount < 20);
-		return true;
+		} while (modifiedFacePairs.length && loopCount < 1000);
+		return implications;
 	};
 
 	const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
@@ -7478,17 +7486,10 @@
 		const unfiltered_trios = makeTransitivityTrios(graph, overlap, facesWinding, epsilon);
 		const transitivity_trios = filterTransitivity(unfiltered_trios, tacos_tortillas);
 		const constraints = makeConstraints(tacos_tortillas, transitivity_trios);
-		const constraintsInfo = makeConstraintsInfo(tacos_tortillas, transitivity_trios);
-		const facePairConstraints = makeFacePairConstraintLookup(facePairsOrder, constraintsInfo);
-		console.log("overlap", overlap);
-		console.log("facesWinding", facesWinding);
-		console.log("tacos_tortillas", tacos_tortillas);
-		console.log("unfiltered_trios", unfiltered_trios);
-		console.log("transitivity_trios", transitivity_trios);
-		console.log("constraints", constraints);
-		console.log("constraintsInfo", constraintsInfo);
-		console.log("facePairsOrder", facePairsOrder);
-		console.log("facePairConstraints", facePairConstraints);
+		const facePairConstraints = makeFacePairConstraintLookup(
+			facePairsOrder,
+			makeConstraintsInfo(tacos_tortillas, transitivity_trios),
+		);
 		return {
 			facePairsOrder,
 			constraints,
@@ -7504,18 +7505,31 @@
 			overlap,
 			facePairsOrder,
 		} = prepare(graph, epsilon);
-		const initialKnownFacePairKeys = Object.keys(facePairsOrder)
-			.filter(key => facePairsOrder[key] !== 0);
-		if (!propagate(
-			facePairsOrder,
+		const initialResult = propagate(
 			constraints,
 			facePairConstraints,
-			initialKnownFacePairKeys,
-		)) ;
-		const zero_keys = Object.keys(facePairsOrder)
+			Object.keys(facePairsOrder).filter(key => facePairsOrder[key] !== 0),
+			facePairsOrder,
+		);
+		if (!initialResult) { return undefined; }
+		Object.keys(initialResult)
+			.filter(key => initialResult[key] !== 0)
+			.forEach(key => { facePairsOrder[key] = initialResult[key]; });
+		const unsolved_keys = Object.keys(facePairsOrder)
 			.map(key => (facePairsOrder[key] === 0 ? key : undefined))
 			.filter(a => a !== undefined);
-		if (zero_keys.length === 0) { return [facePairsOrder]; }
+		console.log("unsolved_keys", unsolved_keys);
+		const guess = {};
+		guess[unsolved_keys[0]] = 1;
+		const resultAfterGuess = propagate(
+			constraints,
+			facePairConstraints,
+			[unsolved_keys[0]],
+			facePairsOrder,
+			guess,
+		);
+		console.log("resultAfterGuess", resultAfterGuess);
+		return unsignedToSignedConditions(facePairsOrder);
 	};
 
 	const topologicalOrder = (conditions, graph) => {

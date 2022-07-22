@@ -7,6 +7,10 @@ import makeConstraints from "./makeConstraints";
 import makeConstraintsInfo from "./makeConstraintsInfo";
 import makeFacePairsOrder from "./makeFacePairsOrder";
 
+
+
+
+// todo. better
 const makeFacePairConstraintLookup = (facePairsOrder, constraintsInfo) => {
 	const taco_types = Object.keys(constraintsInfo);
 	const pairConstraintLooup = {};
@@ -39,17 +43,18 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// format the tacos and transitivity data into maps that relate to the
 	// lookup table at the heart of the algorithm, located at "table.js"
 	const constraints = makeConstraints(tacos_tortillas, transitivity_trios);
-	const constraintsInfo = makeConstraintsInfo(tacos_tortillas, transitivity_trios);
-	const facePairConstraints = makeFacePairConstraintLookup(facePairsOrder, constraintsInfo);
-	console.log("overlap", overlap);
-	console.log("facesWinding", facesWinding);
-	console.log("tacos_tortillas", tacos_tortillas);
-	console.log("unfiltered_trios", unfiltered_trios);
-	console.log("transitivity_trios", transitivity_trios);
-	console.log("constraints", constraints);
-	console.log("constraintsInfo", constraintsInfo);
-	console.log("facePairsOrder", facePairsOrder);
-	console.log("facePairConstraints", facePairConstraints);
+	const facePairConstraints = makeFacePairConstraintLookup(
+		facePairsOrder,
+		makeConstraintsInfo(tacos_tortillas, transitivity_trios),
+	);
+	// console.log("overlap", overlap);
+	// console.log("facesWinding", facesWinding);
+	// console.log("tacos_tortillas", tacos_tortillas);
+	// console.log("unfiltered_trios", unfiltered_trios);
+	// console.log("transitivity_trios", transitivity_trios);
+	// console.log("constraints", constraints);
+	// console.log("facePairsOrder", facePairsOrder);
+	// console.log("facePairConstraints", facePairConstraints);
 	return {
 		facePairsOrder,
 		constraints,
