@@ -58,4 +58,49 @@ const makeFacePairsOrder = (graph, overlap_matrix, faces_winding) => {
 	return facePairsOrder;
 };
 
+/**
+ * @description returns an array of face-pair space-separated strings
+ */
+export const makeFacePairs = (graph, overlap_matrix) => {
+	if (!overlap_matrix) {
+		overlap_matrix = makeFacesFacesOverlap(graph);
+	}
+	return booleanMatrixToUniqueIndexPairs(overlap_matrix)
+		.map(pair => pair.join(" "));
+};
+
+/**
+ * @param {FOLD} graph a FOLD graph
+ * @param {string[]} facePairs an array of space-separated face-pair strings
+ */
+export const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
+	if (!faces_winding) {
+		faces_winding = makeFacesWinding(graph);
+	}
+	const facePairsHash = {};
+	facePairs.forEach(key => { facePairsHash[key] = true; });
+	const soution = {};
+	graph.edges_faces.forEach((faces, edge) => {
+		// the crease assignment determines the order between pairs of faces.
+		const assignment = graph.edges_assignment[edge];
+		const local_order = make_conditions_assignment_direction[assignment];
+		// skip boundary edges or edges with confusing assignments.
+		if (faces.length < 2 || local_order === undefined) { return; }
+		// face[0] is the origin face.
+		// the direction of "m" or "v" will be inverted if face[0] is flipped.
+		const upright = faces_winding[faces[0]];
+		// now we know from a global perspective the order between the face pair.
+		const global_order = upright
+			? local_order
+			: make_conditions_flip_condition[local_order];
+		const key1 = `${faces[0]} ${faces[1]}`;
+		const key2 = `${faces[1]} ${faces[0]}`;
+		if (key1 in facePairsHash) { soution[key1] = global_order; }
+		if (key2 in facePairsHash) {
+			soution[key2] = make_conditions_flip_condition[global_order];
+		}
+	});
+	return soution;
+};
+
 export default makeFacePairsOrder;

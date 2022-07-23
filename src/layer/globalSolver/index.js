@@ -5,6 +5,7 @@ import propagate from "./propagate";
 import {
 	unsignedToSignedConditions,
 	duplicateUnsolvedConstraints,
+	joinConditions,
 } from "./general";
 import { makeBranchingSets } from "./branching";
 import prepare from "./prepare";
@@ -16,6 +17,88 @@ import prepare from "./prepare";
 // we can revert this branch entirely.
 // and this hash table can be stored "globally" for each run.
 /**
+ * @param constraints
+ * @param facePairConstraints
+ * @param {string[]} unsolvedKeys array of facePair keys to be solved
+ * @param orders
+ */
+const solveBranch = (
+	constraints,
+	facePairConstraints,
+	unsolvedKeys,
+	...orders
+) => {
+	const unsolvedCount = unsolvedKeys.length;
+	if (!unsolvedCount) { return []; }
+	// console.log("solveBranch depth", orders.length, "unsolved", unsolvedCount, unsolvedKeys);
+	const seen = {};
+
+	const completedSolutions = [];
+	const unfinishedSolutions = [];
+
+	for (let g = 0; g < unsolvedKeys.length; g += 1) {
+		const guessKey = unsolvedKeys[g];
+		// array of 0, 1, or 2 objects with only one key/value.
+		// the key is the facePair and the value is either 1 or 2.
+		// this array will be 0-length if these combinations have already
+		// by other iterations, as stored in the "seen" object.
+		const guesses = [1, 2]
+			.filter(b => !(seen[guessKey] && seen[guessKey][b]))
+			.map(b => ({ [guessKey]: b }));
+		// console.log("guesses", guesses.length, guesses);
+		// given the same guessKey with both 1 and 2 as the guess, run propagate.
+		const results = guesses.map(guess => propagate(
+			constraints,
+			facePairConstraints,
+			[guessKey],
+			...orders,
+			guess,
+		));
+		// bad results will be false. skip these. if the result is valid,
+		// add the new keys to the "seen" variable and check if all variables
+		// have been solved, or there is more guess work still to do.
+		results.forEach((result, i) => {
+			if (result === false) { return; }
+			// currently, the 1 guess itself is left out of the result object.
+			// we could either combine the objects, or add this guess directly in.
+			result[guessKey] = guesses[i][guessKey];
+			const keys = Object.keys(result);
+			// even though we are skipping "seen" keys at the beginning of this loop,
+			// check every key against the seen object, reject if we see a match.
+			for (let k = 0; k < keys.length; k += 1) {
+				const key = keys[k];
+				if (seen[key] && seen[key][result[key]]) { return; }
+			}
+			// set the seen object:
+			// example: { "3 5": { 1: true, 2: true}, "3 6": { 2: true }}
+			keys.filter(key => !seen[key]).forEach(key => { seen[key] = {}; });
+			keys.forEach(key => { seen[key][result[key]] = true; });
+			// store the result
+			if (Object.keys(result).length === unsolvedCount) {
+				completedSolutions.push(result);
+			} else {
+				unfinishedSolutions.push(result);
+			}
+		});
+		// for now, this works because all the keys in "result"
+		// are only 1 or 2, not 0. if it contained 0 we would have to filter
+	}
+	// console.log("branch end", completedSolutions.length, "unfinished", unfinishedSolutions.length);
+	const recursed = unfinishedSolutions
+		.map(order => solveBranch(
+			constraints,
+			facePairConstraints,
+			unsolvedKeys.filter(key => !(key in order)),
+			...orders,
+			order,
+		));
+	return completedSolutions
+		.map(order => ([...orders, order]))
+		.concat(...recursed);
+	// console.log("recursed", recursed);
+	// return completedSolutions.concat(recursed);
+};
+/**
  * @description recursively calculate all solutions to layer order
  * @param {object} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
@@ -23,160 +106,99 @@ import prepare from "./prepare";
  * and values are +1 or -1, the relationship of the two faces.
  */
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
-	// algorithm running time info
-	const startDate = new Date();
-
 	const {
 		constraints,
 		facePairConstraints,
 		overlap,
 		facePairsOrder,
+		edgeAdjacentOrders,
 	} = prepare(graph, epsilon);
-
-	// "startingFacePairsOrder" is now filled with results only for those face-pairs
-	// which are consistent across all layer permutations. If there is only one
-	// layer order, all facePairsOrder will be solved by this step.
+	// algorithm running time info
+	const startDate = new Date();
+	// propagate layer order starting with only the edge-adjacent face orders
 	const initialResult = propagate(
 		constraints,
 		facePairConstraints,
-		Object.keys(facePairsOrder).filter(key => facePairsOrder[key] !== 0),
-		facePairsOrder,
+		Object.keys(edgeAdjacentOrders),
+		// facePairsOrder,
+		edgeAdjacentOrders,
 	);
-	// failure. do not proceed.
+	// graph does not have a valid layer order. no solution
 	if (!initialResult) { return undefined; }
-	Object.keys(initialResult)
-		.filter(key => initialResult[key] !== 0)
-		.forEach(key => { facePairsOrder[key] = initialResult[key]; });
-	// console.log("initialResult", initialResult);
-	// Object.apply(facePairsOrder, initialResult);
-	// console.log("facePairsOrder", facePairsOrder);
-	/**
-	 * the input parameters will not be modified. they will be copied,
-	 * their copies modified, then passed along to the next recurse.
-	 */
-	// const this_recurse_count = recurse_count;
-	// console.time(`recurse ${this_recurse_count}`);
-	const unsolved_keys = Object.keys(facePairsOrder)
-		.map(key => (facePairsOrder[key] === 0 ? key : undefined))
-		.filter(a => a !== undefined);
-	console.log("unsolved_keys", unsolved_keys);
+	// "initialResult" now contains the layer solutions which are true for all cases
+	// combine edgeAdjacentOrders into initialResult. from now on,
+	// we can forget about edgeAdjacentOrders as it is already included.
+	// update: skipping this and including edgeAdjacentOrders in solveBranch now.
+	// Object.keys(edgeAdjacentOrders)
+	// 	.forEach(key => { initialResult[key] = edgeAdjacentOrders[key]; });
+	// find any independent branch sets of faces
+	const branches = makeBranchingSets(overlap, facePairsOrder, edgeAdjacentOrders, initialResult);
+	console.log("branches", branches);
 
-	// record this guess. this will be undone if result comes back "false".
-	const guess = {};
-	guess[unsolved_keys[0]] = 1;
-
-	const resultAfterGuess = propagate(
-		constraints,
-		facePairConstraints,
-		[unsolved_keys[0]],
-		facePairsOrder,
-		guess,
-	);
-	console.log("resultAfterGuess", resultAfterGuess);
-
-	// const branches = makeBranchingSets(facePairsOrder, overlap);
-	// const branchesSolutions = branches
-	// 	.map(pairs => pairs
-	// 		.map(facePairsOrder => recurse(startingConstraints, facePairsOrder)));
-
-	// const secondResult = propagate(
-	// 	facePairsOrder,
+	const branchResults = branches
+		.map(cluster => cluster
+			.map(side => solveBranch(
+				constraints,
+				facePairConstraints,
+				Object.keys(side),
+				// facePairsOrder,
+				edgeAdjacentOrders,
+				initialResult,
+			)));
+	// const branchResults = [[solveBranch(
 	// 	constraints,
 	// 	facePairConstraints,
-	// 	Object.keys(facePairsOrder).filter(key => facePairsOrder[key] !== 0),
-	// );
+	// 	Object.keys(facePairsOrder)
+	// 		.filter(key => !(key in edgeAdjacentOrders))
+	// 		.filter(key => !(key in initialResult)),
+	// 	// facePairsOrder,
+	// 	edgeAdjacentOrders,
+	// 	initialResult,
+	// )]];
 
-	// console.log("secondResult", Object.keys(secondResult).length);
+	console.log("branchResults", branchResults);
+	// algorithm is done!
+	const results = branchResults
+		.map(branch => branch
+			.map(side => side
+				.map(solutions => solutions.slice().splice(2))));
+	const joined = results
+		.map(branch => branch
+			.map(side => side
+				.map(solutions => joinConditions(...solutions))));
 
-	// solution found. exit.
-	// if (zero_keys.length === 0) { return [facePairsOrder]; }
-	// console.log("recurse. # zero keys", zero_keys.length);
-	// for every unknown face-pair relationship (zero_keys), try setting both
-	// above/below cases, test it out, and if it's a success the inner loop
-	// will either encounter a fail state, in which case reject it, or it
-	// reaches a stable state where all suggestions have been satisfied.
-	// "seen":
-	// within this one recursive round, we can be sure that all of our guesses
-	// only need to happen once, since the source data is the same. so, if inside
-	// one guess, more face relationships are uncovered, store those newly found
-	// relationships inside "seen". later as we continue our guessing, we can
-	// seen any guesses which are stored inside "seen", as the outcome
-	// has already been determined.
-	// const seen = {};
-	// const result = zero_keys
-	// 	.map(key => [1, 2]
-	// 		.map(dir => {
-	// 			if (seen[key] && seen[key][dir]) { seencount += 1; return undefined; }
-	// 			const clone_start = new Date();
-	// 			const clone_facePairsOrder = JSON.parse(JSON.stringify(facePairsOrder));
-	// 			clone_time += (Date.now() - clone_start);
-	// 			const clone_constraints = duplicateUnsolvedConstraints(constraints);
-	// 			clone_facePairsOrder[key] = dir;
-	// 			inner_loop_count += 1;
-	// 			const solve_start = new Date();
-	// 			if (!propagate(
-	// 				clone_facePairsOrder,
-	// 				clone_constraints,
-	// 				constraintsInfo,
-	// 				pairConstraintLookup,
-	// 			)) {
-	// 				failguesscount += 1;
-	// 				solve_time += (Date.now() - solve_start);
-	// 				return undefined;
-	// 			}
-	// 			solve_time += (Date.now() - solve_start);
-	// 			Object.keys(clone_facePairsOrder)
-	// 				.filter(k => facePairsOrder[k] === 0)
-	// 				.forEach(k => {
-	// 					if (!seen[k]) { seen[k] = {}; }
-	// 					seen[k][dir] = true;
-	// 				});
-	// 			return { facePairsOrder: clone_facePairsOrder, constraints: clone_constraints };
-	// 		})
-	// 		.filter(a => a !== undefined))
-	// 	.flat()
-	// 	.map(success => recurse(success.constraints, success.facePairsOrder))
-	// 	.flat();
-	// //
-	// const branches = makeBranchingSets(startingFacePairsOrder, overlap);
-	// const branchesSolutions = branches
-	// 	.map(pairs => pairs
-	// 		.map(facePairsOrder => recurse(startingConstraints, facePairsOrder)));
-	// // for each branch solution, filter out all the known starting facePairsOrder
-	// // so that each solution only contains those which are unique to it
-	// const branchSolutions = branchesSolutions
-	// 	.map(pairs => pairs
-	// 		.map(solutions => solutions
-	// 			.map(facePairsOrder => {
-	// 				const filtered = {};
-	// 				Object.keys(facePairsOrder)
-	// 					.filter(key => startingFacePairsOrder[key] === 0)
-	// 					.forEach(key => { filtered[key] = facePairsOrder[key]; });
-	// 				return filtered;
-	// 			})));
+	console.log("results", results);
+	console.log("joined", joined);
+	const certain = joinConditions(edgeAdjacentOrders, initialResult);
+
+	// convert solutions from (1,2) to (+1,-1)
+	unsignedToSignedConditions(certain);
+	joined
+		.forEach(branch => branch
+			.forEach(side => side
+				.forEach(solutions => unsignedToSignedConditions(solutions))));
+	certain.branches = joined;
+
+	// const resultsCombined = results.map(res => {
+	// 	const combined = {};
+	// 	res.solution.forEach(solution => Object.keys(solution)
+	// 		.forEach(key => { combined[key] = solution[key]; }));
+	// 	return combined;
+	// }).map(solution => unsignedToSignedConditions(solution));
+
+	// console.log("branch results merged", resultsCombined);
+
 	// const solutions = branchSolutions.flat();
-	// // algorithm is done!
-	// // convert solutions from (1,2) to (+1,-1)
 	// for (let i = 0; i < solutions.length; i += 1) {
 	// 	for (let j = 0; j < solutions[i].length; j += 1) {
 	// 		unsignedToSignedConditions(solutions[i][j]);
 	// 	}
 	// }
-	// solutions.certain = unsignedToSignedConditions(startingFacePairsOrder);
-	// // unsignedToSignedConditions(solutions.certain);
-	// // console.log("solutions", solutions);
-	// // console.log("successes_hash", successes_hash);
-	// // console.log("seen", seen);
-	// // console.log("branches", branches);
-	// // console.log("branchesSolutions", branchesSolutions);
-	// // console.log("branchSolutions", branchSolutions);
-	// // console.log("solutions", solutions);
-	// const duration = Date.now() - startDate;
-	// if (duration > 50) {
-	// 	console.log(`${duration}ms recurses`, recurse_count, "inner loops", inner_loop_count, "seen", seencount, "bad guesses", failguesscount, `solutions ${solutions.length}`, "durations: clone, solve", clone_time, solve_time);
-	// }
+	const duration = Date.now() - startDate;
+	// if (duration > 50) { console.log(`${duration}ms`); }
+	console.log(`${duration}ms`);
 	// return solutions;
-	return unsignedToSignedConditions(facePairsOrder);
+	return certain;
 };
 
 export default globalLayerSolver;

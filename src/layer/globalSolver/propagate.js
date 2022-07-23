@@ -11,7 +11,6 @@ const taco_types = Object.freeze(Object.keys(table));
  * this map will flip 1 and 2, leaving 0 to be 0.
  */
 const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
-
 /**
  * @param {string} type one of the four:
  * "taco_taco", "taco_tortilla", "tortilla_tortilla", "transitivity"
@@ -81,19 +80,41 @@ const getFacesWithUnknownOrdersArray = (...orders) => {
 /**
  * @description given a current set of modified facePairs keys, (modified
  * since the last time we ran this), get all condition indices that
- * include one or more of these facePairs; filtering out the faces
- * which, for every case, are already solved.
+ * include one or more of these facePairs. Additionally, filter out
+ * the faces which only ever appear in solved facePairs.
  */
+// const getConstraintIndicesFromFacePairs = (
+// 	constraints,
+// 	facePairConstraints,
+// 	facePairsSubsetArray,
+// 	...orders
+// ) => {
+// 	const facesWithUnknownOrders = {};
+// 	getFacesWithUnknownOrdersArray(...orders)
+// 		.forEach(f => { facesWithUnknownOrders[f] = true; });
+
+// 	const constraintIndices = {};
+// 	taco_types.forEach(type => {
+// 		// given the array of modified facePairs since last round, get all
+// 		// the indices in the constraints array in which these facePairs exist.
+// 		const duplicates = facePairsSubsetArray
+// 			.flatMap(facePair => facePairConstraints[type][facePair]);
+// 		// filter these constraint indices so that (1) no duplicates and
+// 		// (2) only faces which appear in an unknown order (0) are included,
+// 		// which is done by consulting constraints[i] and checking all faces
+// 		// mentioned in this array, testing if any of them are unknown
+// 		constraintIndices[type] = uniqueIntegers(duplicates)
+// 			.filter(i => constraints[type][i]
+// 				.map(f => facesWithUnknownOrders[f])
+// 				.reduce((a, b) => a || b, false));
+// 	});
+// 	return constraintIndices;
+// };
 const getConstraintIndicesFromFacePairs = (
 	constraints,
 	facePairConstraints,
 	facePairsSubsetArray,
-	...orders
 ) => {
-	const facesWithUnknownOrders = {};
-	getFacesWithUnknownOrdersArray(...orders)
-		.forEach(f => { facesWithUnknownOrders[f] = true; });
-
 	const constraintIndices = {};
 	taco_types.forEach(type => {
 		// given the array of modified facePairs since last round, get all
@@ -105,9 +126,7 @@ const getConstraintIndicesFromFacePairs = (
 		// which is done by consulting constraints[i] and checking all faces
 		// mentioned in this array, testing if any of them are unknown
 		constraintIndices[type] = uniqueIntegers(duplicates)
-			.filter(i => constraints[type][i]
-				.map(f => facesWithUnknownOrders[f])
-				.reduce((a, b) => a || b, false));
+			.filter(i => constraints[type][i]);
 	});
 	return constraintIndices;
 };
@@ -140,14 +159,16 @@ const propagate = (
 
 	do {
 		loopCount += 1;
+		// using the facePairs which were modified in the last loop,
+		// get all constraint indices which involve any of the individual faces
+		// from any of these facePairs.
 		const modifiedConstraintIndices = getConstraintIndicesFromFacePairs(
 			constraints,
 			facePairConstraints,
 			modifiedFacePairs,
-			...orders,
-			// implications,
+			// ...orders,
+			// // implications,
 		);
-
 		// todo: do you get better results by fast forwarding through all taco-taco
 		// implications (or transitivity, or any one in particular), before then
 		// moving onto the other sets, or is it faster to depth-first search through all?
@@ -175,8 +196,9 @@ const propagate = (
 						return false;
 					}
 				} else {
-					roundModificationsFacePairs[lookupResult[0]] = true;
-					implications[lookupResult[0]] = lookupResult[1];
+					const [key, value] = lookupResult;
+					roundModificationsFacePairs[key] = true;
+					implications[lookupResult[0]] = value;
 				}
 			}
 		}
@@ -187,6 +209,7 @@ const propagate = (
 		// console.log("implications", implications);
 		// console.log("modifiedFacePairs", modifiedFacePairs.length, modifiedFacePairs);
 	} while (modifiedFacePairs.length && loopCount < 1000);
+	if (loopCount === 1000) { console.log("!!! loop reached 1000. early exit"); }
 	return implications;
 };
 

@@ -115,7 +115,7 @@ export const makeFacePairsGroups = (facePairsOrder, faceGroups) => {
  * all cases have been solved which are true for all layer arrangements.
  * @param {boolean[][]} overlap the face-face overlap matrix
  */
-export const makeBranchingSets = (conditions, overlap) => {
+export const makeBranchingCompleteSets = (conditions, overlap) => {
 	// console.log("CERTAIHN", conditions);
 	// const bipartiteFaces = makeBipartiteFaces(conditions);
 	// console.log("bipartiteFaces", bipartiteFaces);
@@ -138,15 +138,38 @@ export const makeBranchingSets = (conditions, overlap) => {
 		// .filter(key => !allBranchingKeys[key]) // remove only branching key cases
 		.filter(key => conditions[key] !== 0) // remove all unknown cases
 		.forEach(key => { knownConditions[key] = conditions[key]; });
-	// console.log("faceOtherFaces", faceOtherFaces);
-	// console.log("faceGroups", faceGroups);
-	// console.log("facePairsByGroup", facePairsByGroup);
-	// console.log("allBranchingKeys", allBranchingKeys);
-	// console.log("knownConditions", knownConditions);
+	console.log("faceOtherFaces", faceOtherFaces);
+	console.log("faceGroups", faceGroups);
+	console.log("facePairsByGroup", facePairsByGroup);
+	console.log("allBranchingKeys", allBranchingKeys);
+	console.log("knownConditions", knownConditions);
 	return facePairsByGroup.map(sides => sides.map(side => {
 		const copy = JSON.parse(JSON.stringify(knownConditions));
 		side.forEach(key => { copy[key] = 0; });
 		return copy;
+	}));
+};
+/**
+ * @param {} facePairsOrder is the set of face-pair facePairsOrder after round 1,
+ * where all cases have been solved which are true for all layer arrangements.
+ * @param {boolean[][]} overlap the face-face overlap matrix
+ */
+export const makeBranchingSets = (overlap, ...orders) => {
+	const facePairsOrder = {};
+	orders.forEach(ord => Object.keys(ord).forEach(key => {
+		facePairsOrder[key] = facePairsOrder[key] || ord[key];
+	}));
+
+	const faceOtherFaces = makeUnsolvedFaceOtherFaces(facePairsOrder, overlap);
+	const faceGroups = makeFaceGroups(faceOtherFaces, overlap);
+	const facePairsByGroup = makeFacePairsGroups(facePairsOrder, faceGroups);
+	// console.log("faceOtherFaces", faceOtherFaces);
+	// console.log("faceGroups", faceGroups);
+	// console.log("facePairsByGroup", facePairsByGroup);
+	return facePairsByGroup.map(sides => sides.map(keyArray => {
+		const object = {};
+		keyArray.forEach(key => { object[key] = 0; });
+		return object;
 	}));
 };
 

@@ -5,8 +5,10 @@ import { makeFacesFacesOverlap } from "../../graph/overlap";
 import { makeFacesWinding } from "../../graph/facesWinding";
 import makeConstraints from "./makeConstraints";
 import makeConstraintsInfo from "./makeConstraintsInfo";
-import makeFacePairsOrder from "./makeFacePairsOrder";
-
+import makeFacePairsOrder, {
+	makeFacePairs,
+	solveEdgeAdjacentFacePairs,
+} from "./makeFacePairsOrder";
 
 
 
@@ -35,7 +37,7 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// string, low index first, as the keys of an object.
 	// initialize all values to 0, but set neighbor faces to either 1 or 2.
 	// {object} with keys like "3 15", "5 14"
-	const facePairsOrder = makeFacePairsOrder(graph, overlap, facesWinding);
+	const facePairsOrderOld = makeFacePairsOrder(graph, overlap, facesWinding);
 	// get all taco/tortilla/transitivity events.
 	const tacos_tortillas = makeTacosTortillas(graph, epsilon);
 	const unfiltered_trios = makeTransitivityTrios(graph, overlap, facesWinding, epsilon);
@@ -44,9 +46,13 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// lookup table at the heart of the algorithm, located at "table.js"
 	const constraints = makeConstraints(tacos_tortillas, transitivity_trios);
 	const facePairConstraints = makeFacePairConstraintLookup(
-		facePairsOrder,
+		facePairsOrderOld,
 		makeConstraintsInfo(tacos_tortillas, transitivity_trios),
 	);
+	const facePairsArray = makeFacePairs(graph, overlap);
+	const facePairsOrder = {};
+	facePairsArray.forEach(facePair => { facePairsOrder[facePair] = 0; });
+	const edgeAdjacentOrders = solveEdgeAdjacentFacePairs(graph, facePairsArray, facesWinding);
 	// console.log("overlap", overlap);
 	// console.log("facesWinding", facesWinding);
 	// console.log("tacos_tortillas", tacos_tortillas);
@@ -54,12 +60,14 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// console.log("transitivity_trios", transitivity_trios);
 	// console.log("constraints", constraints);
 	// console.log("facePairsOrder", facePairsOrder);
-	// console.log("facePairConstraints", facePairConstraints);
+	console.log("facePairConstraints", facePairConstraints);
 	return {
-		facePairsOrder,
 		constraints,
 		facePairConstraints,
 		overlap,
+		facePairsOrder,
+		facePairsArray,
+		edgeAdjacentOrders,
 	};
 };
 
