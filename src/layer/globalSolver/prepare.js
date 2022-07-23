@@ -60,7 +60,7 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// console.log("transitivity_trios", transitivity_trios);
 	// console.log("constraints", constraints);
 	// console.log("facePairsOrder", facePairsOrder);
-	console.log("facePairConstraints", facePairConstraints);
+	// console.log("facePairConstraints", facePairConstraints);
 	return {
 		constraints,
 		facePairConstraints,

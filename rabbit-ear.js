@@ -6933,24 +6933,21 @@
 
 	const taco_types$1 = Object.freeze(Object.keys(layerTable));
 	const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
-	const constraintToFacePairs = (type, f) => {
-		switch (type) {
-		case "taco_taco": return [
+	const constraintToFacePairs = ({
+		taco_taco: f => [
 			[f[0], f[2]],
 			[f[1], f[3]],
 			[f[1], f[2]],
 			[f[0], f[3]],
 			[f[0], f[1]],
 			[f[2], f[3]],
-		];
-		case "taco_tortilla": return [[f[0], f[2]], [f[0], f[1]], [f[1], f[2]]];
-		case "tortilla_tortilla": return [[f[0], f[2]], [f[1], f[3]]];
-		case "transitivity": return [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]];
-		default: return undefined;
-		}
-	};
+		],
+		taco_tortilla: f => [[f[0], f[2]], [f[0], f[1]], [f[1], f[2]]],
+		tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
+		transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
+	});
 	const buildRuleAndLookup = (type, constraint, ...orders) => {
-		const facePairsArray = constraintToFacePairs(type, constraint);
+		const facePairsArray = constraintToFacePairs[type](constraint);
 		const flipped = facePairsArray.map(pair => pair[1] < pair[0]);
 		const facePairs = facePairsArray.map((pair, i) => (flipped[i]
 			? `${pair[1]} ${pair[0]}`
@@ -6981,9 +6978,9 @@
 	) => {
 		const constraintIndices = {};
 		taco_types$1.forEach(type => {
-			const duplicates = facePairsSubsetArray
+			const constraintIndicesWithDups = facePairsSubsetArray
 				.flatMap(facePair => facePairConstraints[type][facePair]);
-			constraintIndices[type] = uniqueIntegers(duplicates)
+			constraintIndices[type] = uniqueIntegers(constraintIndicesWithDups)
 				.filter(i => constraints[type][i]);
 		});
 		return constraintIndices;
@@ -6995,10 +6992,8 @@
 		...orders
 	) => {
 		let modifiedFacePairs = initiallyModifiedFacePairs;
-		const implications = {};
-		let loopCount = 0;
+		const newOrders = {};
 		do {
-			loopCount += 1;
 			const modifiedConstraintIndices = getConstraintIndicesFromFacePairs(
 				constraints,
 				facePairConstraints,
@@ -7013,29 +7008,28 @@
 						type,
 						constraints[type][indices[i]],
 						...orders,
-						implications,
+						newOrders,
 					);
 					if (lookupResult === true) { continue; }
 					if (lookupResult === false) {
 						console.warn("invalid state found", type, constraints[type][indices[i]]);
 						return false;
 					}
-					if (implications[lookupResult[0]]) {
-						if (implications[lookupResult[0]] !== lookupResult[1]) {
+					if (newOrders[lookupResult[0]]) {
+						if (newOrders[lookupResult[0]] !== lookupResult[1]) {
 							console.warn("order conflict", type, constraints[type][indices[i]]);
 							return false;
 						}
 					} else {
 						const [key, value] = lookupResult;
 						roundModificationsFacePairs[key] = true;
-						implications[lookupResult[0]] = value;
+						newOrders[lookupResult[0]] = value;
 					}
 				}
 			}
 			modifiedFacePairs = Object.keys(roundModificationsFacePairs);
-		} while (modifiedFacePairs.length && loopCount < 1000);
-		if (loopCount === 1000) { console.log("!!! loop reached 1000. early exit"); }
-		return implications;
+		} while (modifiedFacePairs.length);
+		return newOrders;
 	};
 
 	const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
@@ -7607,7 +7601,6 @@
 		const facePairsOrder = {};
 		facePairsArray.forEach(facePair => { facePairsOrder[facePair] = 0; });
 		const edgeAdjacentOrders = solveEdgeAdjacentFacePairs(graph, facePairsArray, facesWinding);
-		console.log("facePairConstraints", facePairConstraints);
 		return {
 			constraints,
 			facePairConstraints,
@@ -7671,6 +7664,7 @@
 			.concat(...recursed);
 	};
 	const globalLayerSolver = (graph, epsilon = 1e-6) => {
+		const prepareStartDate = new Date();
 		const {
 			constraints,
 			facePairConstraints,
@@ -7678,6 +7672,7 @@
 			facePairsOrder,
 			edgeAdjacentOrders,
 		} = prepare(graph, epsilon);
+		const prepareDuration = Date.now() - prepareStartDate;
 		const startDate = new Date();
 		const initialResult = propagate(
 			constraints,
@@ -7697,6 +7692,20 @@
 					edgeAdjacentOrders,
 					initialResult,
 				)));
+		if (!branches.length) {
+			const remainingKeys = Object.keys(facePairsOrder)
+				.filter(key => !(key in edgeAdjacentOrders))
+				.filter(key => !(key in initialResult));
+			console.log("remaining", remainingKeys.length, "to solve");
+			const remainingResult = solveBranch(
+				constraints,
+				facePairConstraints,
+				remainingKeys,
+				edgeAdjacentOrders,
+				initialResult,
+			);
+			console.log("remaining result", remainingResult);
+		}
 		console.log("branchResults", branchResults);
 		const results = branchResults
 			.map(branch => branch
@@ -7705,10 +7714,10 @@
 		const joined = results
 			.map(branch => branch
 				.map(side => side
-					.map(solutions => joinConditions(...solutions))));
+					.map(solutions => Object.assign({}, ...solutions))));
 		console.log("results", results);
 		console.log("joined", joined);
-		const certain = joinConditions(edgeAdjacentOrders, initialResult);
+		const certain = { ...edgeAdjacentOrders, ...initialResult };
 		unsignedToSignedConditions(certain);
 		joined
 			.forEach(branch => branch
@@ -7716,7 +7725,7 @@
 					.forEach(solutions => unsignedToSignedConditions(solutions))));
 		certain.branches = joined;
 		const duration = Date.now() - startDate;
-		console.log(`${duration}ms`);
+		console.log(`preparation ${prepareDuration}ms solver ${duration}ms`);
 		return certain;
 	};
 

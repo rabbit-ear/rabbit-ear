@@ -4,8 +4,7 @@
 import propagate from "./propagate";
 import {
 	unsignedToSignedConditions,
-	duplicateUnsolvedConstraints,
-	joinConditions,
+	// joinConditions,
 } from "./general";
 import { makeBranchingSets } from "./branching";
 import prepare from "./prepare";
@@ -106,6 +105,7 @@ const solveBranch = (
  * and values are +1 or -1, the relationship of the two faces.
  */
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
+	const prepareStartDate = new Date();
 	const {
 		constraints,
 		facePairConstraints,
@@ -114,6 +114,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		edgeAdjacentOrders,
 	} = prepare(graph, epsilon);
 	// algorithm running time info
+	const prepareDuration = Date.now() - prepareStartDate;
 	const startDate = new Date();
 	// propagate layer order starting with only the edge-adjacent face orders
 	const initialResult = propagate(
@@ -145,16 +146,22 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 				edgeAdjacentOrders,
 				initialResult,
 			)));
-	// const branchResults = [[solveBranch(
-	// 	constraints,
-	// 	facePairConstraints,
-	// 	Object.keys(facePairsOrder)
-	// 		.filter(key => !(key in edgeAdjacentOrders))
-	// 		.filter(key => !(key in initialResult)),
-	// 	// facePairsOrder,
-	// 	edgeAdjacentOrders,
-	// 	initialResult,
-	// )]];
+
+	if (!branches.length) {
+		const remainingKeys = Object.keys(facePairsOrder)
+			.filter(key => !(key in edgeAdjacentOrders))
+			.filter(key => !(key in initialResult));
+		console.log("remaining", remainingKeys.length, "to solve");
+		const remainingResult = solveBranch(
+			constraints,
+			facePairConstraints,
+			remainingKeys,
+			// facePairsOrder,
+			edgeAdjacentOrders,
+			initialResult,
+		);
+		console.log("remaining result", remainingResult);
+	}
 
 	console.log("branchResults", branchResults);
 	// algorithm is done!
@@ -165,11 +172,11 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const joined = results
 		.map(branch => branch
 			.map(side => side
-				.map(solutions => joinConditions(...solutions))));
+				.map(solutions => Object.assign({}, ...solutions))));
 
 	console.log("results", results);
 	console.log("joined", joined);
-	const certain = joinConditions(edgeAdjacentOrders, initialResult);
+	const certain = { ...edgeAdjacentOrders, ...initialResult };
 
 	// convert solutions from (1,2) to (+1,-1)
 	unsignedToSignedConditions(certain);
@@ -196,7 +203,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// }
 	const duration = Date.now() - startDate;
 	// if (duration > 50) { console.log(`${duration}ms`); }
-	console.log(`${duration}ms`);
+	console.log(`preparation ${prepareDuration}ms solver ${duration}ms`);
 	// return solutions;
 	return certain;
 };
