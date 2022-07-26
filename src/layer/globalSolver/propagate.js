@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import table from "./table";
+import { constraintToFacePairs } from "./general";
 import { uniqueIntegers } from "../../general/arrays";
 /**
  * @typedef Constraint
@@ -25,30 +26,6 @@ const taco_types = Object.freeze(Object.keys(table));
  * this map will flip 1 and 2, leaving 0 to be 0.
  */
 const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
-/**
- * @description Convert an array of faces which are involved in one
- * taco/tortilla/transitivity condition into an array of arrays where
- * each face is paired with the others in the precise combination that
- * the solver is expecting for this particular condition.
- * @param {number[]} an array of the faces involved in this particular condition.
- */
-const constraintToFacePairs = ({
-	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
-	taco_taco: f => [
-		[f[0], f[2]],
-		[f[1], f[3]],
-		[f[1], f[2]],
-		[f[0], f[3]],
-		[f[0], f[1]],
-		[f[2], f[3]],
-	],
-	// taco_tortilla (A,C) (A,B) (B,C)
-	taco_tortilla: f => [[f[0], f[2]], [f[0], f[1]], [f[1], f[2]]],
-	// tortilla_tortilla (A,C) (B,D)
-	tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
-	// transitivity (A,B) (B,C) (C,A)
-	transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
-});
 /**
  * @description Given one particular taco/tortilla/transitivity constraint,
  * arrange its faces in all combinations of facePairs and check if any of
@@ -183,12 +160,15 @@ const getConstraintIndicesFromFacePairs = (
  * array in which **both** of these faces appear.
  * @param {string[]} initiallyModifiedFacePairs an array of facePair string keys.
  * These are the keys which had a layer change since the last time running this method.
- * @param {any} facePairsOrder the solution.
+ * @param {any} skipKeys new
+ * @param {object} any number of facePairsOrder solutions which relate facePairs
+ * (key) like "3 5" to an order, either 0, 1, or 2.
  */
 const propagate = (
 	constraints,
 	facePairConstraints,
 	initiallyModifiedFacePairs,
+	skipKeys = {},
 	...orders
 ) => {
 	// "modifiedFacePairs" is an array of facePair strings, as we make updates and
@@ -228,6 +208,10 @@ const propagate = (
 					// consider throwing an error, we can convey descriptive information
 					// about which faces are causing a problem
 					console.warn("invalid state found", type, constraints[type][indices[i]]);
+					return false;
+				}
+				if (skipKeys[lookupResult[0]] && skipKeys[lookupResult[0]][lookupResult[1]]) {
+					console.log("skip key");
 					return false;
 				}
 				if (newOrders[lookupResult[0]]) {

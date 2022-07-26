@@ -3,6 +3,34 @@
  */
 import table from "./table";
 
+export const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
+	? `${pair[0]} ${pair[1]}`
+	: `${pair[1]} ${pair[0]}`);
+/**
+ * @description Convert an array of faces which are involved in one
+ * taco/tortilla/transitivity condition into an array of arrays where
+ * each face is paired with the others in the precise combination that
+ * the solver is expecting for this particular condition.
+ * @param {number[]} an array of the faces involved in this particular condition.
+ */
+export const constraintToFacePairs = ({
+	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
+	taco_taco: f => [
+		[f[0], f[2]],
+		[f[1], f[3]],
+		[f[1], f[2]],
+		[f[0], f[3]],
+		[f[0], f[1]],
+		[f[2], f[3]],
+	],
+	// taco_tortilla (A,C) (A,B) (B,C)
+	taco_tortilla: f => [[f[0], f[2]], [f[0], f[1]], [f[1], f[2]]],
+	// tortilla_tortilla (A,C) (B,D)
+	tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
+	// transitivity (A,B) (B,C) (C,A)
+	transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
+});
+
 const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
 const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
 /**

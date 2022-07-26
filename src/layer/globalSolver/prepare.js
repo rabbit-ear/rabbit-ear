@@ -4,28 +4,52 @@ import filterTransitivity from "../tacos/filterTransitivity";
 import { makeFacesFacesOverlap } from "../../graph/overlap";
 import { makeFacesWinding } from "../../graph/facesWinding";
 import makeConstraints from "./makeConstraints";
-import makeConstraintsInfo from "./makeConstraintsInfo";
-import makeFacePairsOrder, {
+import {
 	makeFacePairs,
 	solveEdgeAdjacentFacePairs,
 } from "./makeFacePairsOrder";
-
-
-
-// todo. better
-const makeFacePairConstraintLookup = (facePairsOrder, constraintsInfo) => {
-	const taco_types = Object.keys(constraintsInfo);
-	const pairConstraintLooup = {};
-	taco_types.forEach(taco_type => { pairConstraintLooup[taco_type] = {}; });
-	taco_types.forEach(taco_type => Object.keys(facePairsOrder)
-		.forEach(pair => { pairConstraintLooup[taco_type][pair] = []; }));
-	taco_types
-		.forEach(taco_type => constraintsInfo[taco_type]
-			.forEach((el, i) => el.face_keys
-				.forEach(pair => {
-					pairConstraintLooup[taco_type][pair].push(i);
-				})));
-	return pairConstraintLooup;
+import {
+	constraintToFacePairs,
+	pairArrayToSortedPairString,
+} from "./general";
+/**
+ * @description Given a list of constraints for each taco/tortilla/transitivity,
+ * convert each constraint from an array of faces into an array of face-pair
+ * strings, where the smallest index is listed first.
+ */
+const constraintsToFacePairs = (constraints) => {
+	// convert all conditions to all facePair combinations
+	const conditionFacePairs = {};
+	Object.keys(constraints).forEach(type => {
+		conditionFacePairs[type] = constraints[type]
+			.map(constraint => constraintToFacePairs[type](constraint))
+			.map(arrays => arrays.map(pairArrayToSortedPairString));
+	});
+	return conditionFacePairs;
+};
+/**
+ * @description Given a list of constraints for each taco/tortilla/transitivity,
+ * create a reverse-lookup map, where the keys are the face-pairs, and the value
+ * is an array of indices from the "constraints" parameter in which this
+ * face-pair appears.
+ */
+const makeFacePairConstraintLookup = (constraints) => {
+	// convert all conditions to all facePair combinations
+	const constraintFacePairs = constraintsToFacePairs(constraints);
+	const lookup = {};
+	Object.keys(constraintFacePairs)
+		.forEach(type => { lookup[type] = {}; });
+	// for every key, (for every taco type), initialize an empty array
+	Object.keys(constraintFacePairs)
+		.forEach(type => constraintFacePairs[type]
+			.forEach(keys => keys
+				.forEach(key => { lookup[type][key] = []; })));
+	// for every key, (for every taco type), push the index to the array
+	Object.keys(constraintFacePairs)
+		.forEach(type => constraintFacePairs[type]
+			.forEach((keys, i) => keys
+				.forEach(key => lookup[type][key].push(i))));
+	return lookup;
 };
 
 const prepare = (graph, epsilon = 1e-6) => {
@@ -33,11 +57,6 @@ const prepare = (graph, epsilon = 1e-6) => {
 	const overlap = makeFacesFacesOverlap(graph, epsilon);
 	// {boolean[]} for every face, true:counter-clockwise, false:flipped
 	const facesWinding = makeFacesWinding(graph);
-	// facePairsOrder encodes every pair of overlapping faces as a space-separated
-	// string, low index first, as the keys of an object.
-	// initialize all values to 0, but set neighbor faces to either 1 or 2.
-	// {object} with keys like "3 15", "5 14"
-	const facePairsOrderOld = makeFacePairsOrder(graph, overlap, facesWinding);
 	// get all taco/tortilla/transitivity events.
 	const tacos_tortillas = makeTacosTortillas(graph, epsilon);
 	const unfiltered_trios = makeTransitivityTrios(graph, overlap, facesWinding, epsilon);
@@ -45,10 +64,9 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// format the tacos and transitivity data into maps that relate to the
 	// lookup table at the heart of the algorithm, located at "table.js"
 	const constraints = makeConstraints(tacos_tortillas, transitivity_trios);
-	const facePairConstraints = makeFacePairConstraintLookup(
-		facePairsOrderOld,
-		makeConstraintsInfo(tacos_tortillas, transitivity_trios),
-	);
+	const facePairConstraints = makeFacePairConstraintLookup(constraints);
+	// these are all the variables we need to solve- all overlapping faces in
+	// pairwise combinations, as a space-separated string, smallest index first
 	const facePairsArray = makeFacePairs(graph, overlap);
 	const facePairsOrder = {};
 	facePairsArray.forEach(facePair => { facePairsOrder[facePair] = 0; });
@@ -64,9 +82,8 @@ const prepare = (graph, epsilon = 1e-6) => {
 	return {
 		constraints,
 		facePairConstraints,
-		overlap,
-		facePairsOrder,
 		facePairsArray,
+		facePairsOrder,
 		edgeAdjacentOrders,
 	};
 };

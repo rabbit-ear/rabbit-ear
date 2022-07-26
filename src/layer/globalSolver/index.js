@@ -2,19 +2,9 @@
  * Rabbit Ear (c) Kraft
  */
 import propagate from "./propagate";
-import {
-	unsignedToSignedConditions,
-	// joinConditions,
-} from "./general";
-import { makeBranchingSets } from "./branching";
+import { unsignedToSignedConditions } from "./general";
+import getBranches from "./getBranches";
 import prepare from "./prepare";
-// take all the facePairsOrder which HAVE been solved (filter out the zeros),
-// make a hash of this, store it, with the intention that in the future
-// you will be running all possible above/below on all unknowns.
-// this way,
-// if you ever encounter this hash again (the same set of solved and unknowns),
-// we can revert this branch entirely.
-// and this hash table can be stored "globally" for each run.
 /**
  * @param constraints
  * @param facePairConstraints
@@ -29,13 +19,16 @@ const solveBranch = (
 ) => {
 	const unsolvedCount = unsolvedKeys.length;
 	if (!unsolvedCount) { return []; }
-	// console.log("solveBranch depth", orders.length, "unsolved", unsolvedCount, unsolvedKeys);
+	// if (orders.length > 6) { return []; }
+	// console.log("solveBranch depth", orders.length, "unsolved", unsolvedCount);
 	const seen = {};
 
 	const completedSolutions = [];
 	const unfinishedSolutions = [];
 
-	for (let g = 0; g < unsolvedKeys.length; g += 1) {
+	for (let g = 0; g < unsolvedCount; g += 1) {
+		const seenCount = Object.keys(seen).length;
+		if (seenCount === unsolvedCount) { break; }
 		const guessKey = unsolvedKeys[g];
 		// array of 0, 1, or 2 objects with only one key/value.
 		// the key is the facePair and the value is either 1 or 2.
@@ -44,12 +37,18 @@ const solveBranch = (
 		const guesses = [1, 2]
 			.filter(b => !(seen[guessKey] && seen[guessKey][b]))
 			.map(b => ({ [guessKey]: b }));
+		// if (orders.length < 5) {
+		// 	console.log("depth", orders.length, "loop", g, guessKey, seenCount, seen[guessKey]);
+		// } else if (g % 100 === 0) {
+		// 	console.log("depth", orders.length, "loop", g, guessKey, seenCount, seen[guessKey]);
+		// }
 		// console.log("guesses", guesses.length, guesses);
 		// given the same guessKey with both 1 and 2 as the guess, run propagate.
 		const results = guesses.map(guess => propagate(
 			constraints,
 			facePairConstraints,
 			[guessKey],
+			seen,
 			...orders,
 			guess,
 		));
@@ -66,7 +65,10 @@ const solveBranch = (
 			// check every key against the seen object, reject if we see a match.
 			for (let k = 0; k < keys.length; k += 1) {
 				const key = keys[k];
-				if (seen[key] && seen[key][result[key]]) { return; }
+				if (seen[key] && seen[key][result[key]]) {
+					// console.log("duplicate uncovered. skipping.");
+					return;
+				}
 			}
 			// set the seen object:
 			// example: { "3 5": { 1: true, 2: true}, "3 6": { 2: true }}
@@ -82,7 +84,7 @@ const solveBranch = (
 		// for now, this works because all the keys in "result"
 		// are only 1 or 2, not 0. if it contained 0 we would have to filter
 	}
-	// console.log("branch end", completedSolutions.length, "unfinished", unfinishedSolutions.length);
+	// console.log("recurse finished", unfinishedSolutions.length, completedSolutions.length);
 	const recursed = unfinishedSolutions
 		.map(order => solveBranch(
 			constraints,
@@ -94,9 +96,19 @@ const solveBranch = (
 	return completedSolutions
 		.map(order => ([...orders, order]))
 		.concat(...recursed);
-	// console.log("recursed", recursed);
-	// return completedSolutions.concat(recursed);
 };
+// const logInformation = (remainingKeys, facePairConstraints) => {
+// 	const remainingConditions = {};
+// 	Object.keys(facePairConstraints).forEach(type => {
+// 		const containsDuplicates = remainingKeys
+// 			.filter(key => facePairConstraints[type][key])
+// 			.map(key => facePairConstraints[type][key])
+// 			.flat();
+// 		remainingConditions[type] = uniqueIntegers(containsDuplicates);
+// 	});
+// 	console.log("remaining", remainingKeys.length, "to solve", remainingKeys);
+// 	console.log("remaining conditions", remainingConditions);
+// };
 /**
  * @description recursively calculate all solutions to layer order
  * @param {object} graph a FOLD graph
@@ -109,7 +121,6 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const {
 		constraints,
 		facePairConstraints,
-		overlap,
 		facePairsOrder,
 		edgeAdjacentOrders,
 	} = prepare(graph, epsilon);
@@ -121,91 +132,50 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		constraints,
 		facePairConstraints,
 		Object.keys(edgeAdjacentOrders),
+		undefined, // skip keys
 		// facePairsOrder,
 		edgeAdjacentOrders,
 	);
 	// graph does not have a valid layer order. no solution
 	if (!initialResult) { return undefined; }
-	// "initialResult" now contains the layer solutions which are true for all cases
-	// combine edgeAdjacentOrders into initialResult. from now on,
-	// we can forget about edgeAdjacentOrders as it is already included.
-	// update: skipping this and including edgeAdjacentOrders in solveBranch now.
-	// Object.keys(edgeAdjacentOrders)
-	// 	.forEach(key => { initialResult[key] = edgeAdjacentOrders[key]; });
-	// find any independent branch sets of faces
-	const branches = makeBranchingSets(overlap, facePairsOrder, edgeAdjacentOrders, initialResult);
-	console.log("branches", branches);
+	// const allKeys = Object.keys(facePairsOrder);
 
+	const remainingKeys = Object.keys(facePairsOrder)
+		.filter(key => !(key in edgeAdjacentOrders))
+		.filter(key => !(key in initialResult));
+
+	// group the remaining keys into groups that are isolated from one another
+	const branches = getBranches(remainingKeys, constraints, facePairConstraints);
 	const branchResults = branches
-		.map(cluster => cluster
-			.map(side => solveBranch(
-				constraints,
-				facePairConstraints,
-				Object.keys(side),
-				// facePairsOrder,
-				edgeAdjacentOrders,
-				initialResult,
-			)));
-
-	if (!branches.length) {
-		const remainingKeys = Object.keys(facePairsOrder)
-			.filter(key => !(key in edgeAdjacentOrders))
-			.filter(key => !(key in initialResult));
-		console.log("remaining", remainingKeys.length, "to solve");
-		const remainingResult = solveBranch(
+		.map(branch => solveBranch(
 			constraints,
 			facePairConstraints,
-			remainingKeys,
-			// facePairsOrder,
+			branch,
 			edgeAdjacentOrders,
 			initialResult,
-		);
-		console.log("remaining result", remainingResult);
-	}
-
-	console.log("branchResults", branchResults);
-	// algorithm is done!
-	const results = branchResults
+		));
+	const branchResultsMerged = branchResults
 		.map(branch => branch
-			.map(side => side
-				.map(solutions => solutions.slice().splice(2))));
-	const joined = results
-		.map(branch => branch
-			.map(side => side
-				.map(solutions => Object.assign({}, ...solutions))));
+			.map(solution => Object.assign({}, ...solution)));
 
-	console.log("results", results);
-	console.log("joined", joined);
-	const certain = { ...edgeAdjacentOrders, ...initialResult };
-
+	const solution = { ...edgeAdjacentOrders, ...initialResult };
 	// convert solutions from (1,2) to (+1,-1)
-	unsignedToSignedConditions(certain);
-	joined
+	unsignedToSignedConditions(solution);
+	branchResultsMerged
 		.forEach(branch => branch
-			.forEach(side => side
-				.forEach(solutions => unsignedToSignedConditions(solutions))));
-	certain.branches = joined;
+			.forEach(solutions => unsignedToSignedConditions(solutions)));
+	solution.branches = branchResultsMerged;
 
-	// const resultsCombined = results.map(res => {
-	// 	const combined = {};
-	// 	res.solution.forEach(solution => Object.keys(solution)
-	// 		.forEach(key => { combined[key] = solution[key]; }));
-	// 	return combined;
-	// }).map(solution => unsignedToSignedConditions(solution));
-
-	// console.log("branch results merged", resultsCombined);
-
-	// const solutions = branchSolutions.flat();
-	// for (let i = 0; i < solutions.length; i += 1) {
-	// 	for (let j = 0; j < solutions[i].length; j += 1) {
-	// 		unsignedToSignedConditions(solutions[i][j]);
-	// 	}
-	// }
+	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
+	// console.log("initialResult", initialResult);
+	// console.log("remainingKeys", remainingKeys);
+	console.log("branches", branches);
+	console.log("branchResults", branchResults);
+	console.log("branchResultsMerged", branchResultsMerged);
 	const duration = Date.now() - startDate;
-	// if (duration > 50) { console.log(`${duration}ms`); }
+	// if (duration > 50) {}
 	console.log(`preparation ${prepareDuration}ms solver ${duration}ms`);
-	// return solutions;
-	return certain;
+	return solution;
 };
 
 export default globalLayerSolver;
