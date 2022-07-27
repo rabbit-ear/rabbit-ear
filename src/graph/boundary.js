@@ -1,12 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import math from "../math";
 import { uniqueIntegers } from "../general/arrays";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices,
 	makeVerticesToEdgeBidirectional,
 } from "./make";
+
+export const getBoundingBox = ({ vertices_coords }, padding) => math.core
+	.boundingBox(vertices_coords, padding);
 /**
  * @description For every vertex return a true if the vertex lies along a boundary
  * edge, as defined by edges_assignment. If edges_assignment is not present,

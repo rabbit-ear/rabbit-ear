@@ -124,10 +124,11 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
  * include one or more of these facePairs.
  * @param {Constraints} constraints an object containing all four cases, inside
  * of each is an (very large, typically) array of all constraints as a list of faces.
- * @param {object} a map which contains, for every taco/tortilla/transitivity case
- * (top level keys), inside each is an object which relates each facePair (key) to
- * an array of indices (value), where each index is an index in the "constraints"
- * array in which **both** of these faces appear.
+ * @param {object} facePairConstraints a map which contains, for every
+ * taco/tortilla/transitivity case (top level keys), inside each is an object
+ * which relates each facePair (key) to an array of indices (value),
+ * where each index is an index in the "constraints" array
+ * in which **both** of these faces appear.
  * @param {string[]} facePairsSubsetArray an array of facePair string keys.
  */
 const getConstraintIndicesFromFacePairs = (
@@ -160,15 +161,13 @@ const getConstraintIndicesFromFacePairs = (
  * array in which **both** of these faces appear.
  * @param {string[]} initiallyModifiedFacePairs an array of facePair string keys.
  * These are the keys which had a layer change since the last time running this method.
- * @param {any} skipKeys new
- * @param {object} any number of facePairsOrder solutions which relate facePairs
- * (key) like "3 5" to an order, either 0, 1, or 2.
+ * @param {...object} ...orders any number of facePairsOrder solutions
+ * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
  */
 const propagate = (
 	constraints,
 	facePairConstraints,
 	initiallyModifiedFacePairs,
-	skipKeys = {},
 	...orders
 ) => {
 	// "modifiedFacePairs" is an array of facePair strings, as we make updates and
@@ -210,10 +209,6 @@ const propagate = (
 					console.warn("invalid state found", type, constraints[type][indices[i]]);
 					return false;
 				}
-				if (skipKeys[lookupResult[0]] && skipKeys[lookupResult[0]][lookupResult[1]]) {
-					// console.log("skip key");
-					return false;
-				}
 				if (newOrders[lookupResult[0]]) {
 					// rule already exists. make sure the results match
 					if (newOrders[lookupResult[0]] !== lookupResult[1]) {
@@ -228,7 +223,6 @@ const propagate = (
 			}
 		}
 		modifiedFacePairs = Object.keys(roundModificationsFacePairs);
-		// console.log("LOOP", loopCount);
 		// console.log("modifiedConstraintIndices", modifiedConstraintIndices);
 		// console.log("roundModificationsFacePairs", roundModificationsFacePairs);
 		// console.log("newOrders", newOrders);

@@ -4146,6 +4146,8 @@
 		return change;
 	};
 
+	const getBoundingBox = ({ vertices_coords }, padding) => math.core
+		.boundingBox(vertices_coords, padding);
 	const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => (
 		uniqueIntegers(edges_vertices
 			.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
@@ -4255,6 +4257,7 @@
 
 	var boundary = /*#__PURE__*/Object.freeze({
 		__proto__: null,
+		getBoundingBox: getBoundingBox,
 		getBoundaryVertices: getBoundaryVertices,
 		getBoundary: getBoundary,
 		getPlanarBoundary: getPlanarBoundary
@@ -7048,7 +7051,6 @@
 		constraints,
 		facePairConstraints,
 		initiallyModifiedFacePairs,
-		skipKeys = {},
 		...orders
 	) => {
 		let modifiedFacePairs = initiallyModifiedFacePairs;
@@ -7073,9 +7075,6 @@
 					if (lookupResult === true) { continue; }
 					if (lookupResult === false) {
 						console.warn("invalid state found", type, constraints[type][indices[i]]);
-						return false;
-					}
-					if (skipKeys[lookupResult[0]] && skipKeys[lookupResult[0]][lookupResult[1]]) {
 						return false;
 					}
 					if (newOrders[lookupResult[0]]) {
@@ -7502,122 +7501,12 @@
 		};
 	};
 
-	let propagateCount = 0;
-	const solveBranch = (
-		constraints,
-		facePairConstraints,
-		unsolvedKeys,
-		...orders
-	) => {
-		const unsolvedCount = unsolvedKeys.length;
-		if (!unsolvedCount) { return []; }
-		const allDoneBranchKeysArray = [];
-		for (let i = 2; i < orders.length; i += 1) {
-			allDoneBranchKeysArray.push(Object.keys(orders[i]).join(", "));
-		}
-		const completedSolutions = [];
-		const unfinishedSolutions = [];
-		const seen = {};
-		const guessKey = unsolvedKeys[0];
-			const guesses = [1, 2]
-				.filter(b => !(seen[guessKey] && seen[guessKey][b]))
-				.map(b => ({ [guessKey]: b }));
-			const results = guesses.map(guess => {
-				propagateCount += 1;
-				return propagate(
-					constraints,
-					facePairConstraints,
-					[guessKey],
-					seen,
-					...orders,
-					guess,
-				);
-			});
-			results.forEach((result, i) => {
-				if (result === false) { return; }
-				result[guessKey] = guesses[i][guessKey];
-				const keys = Object.keys(result);
-				for (let k = 0; k < keys.length; k += 1) {
-					const key = keys[k];
-					if (seen[key] && seen[key][result[key]]) {
-						return;
-					}
-				}
-				keys.filter(key => !seen[key]).forEach(key => { seen[key] = {}; });
-				keys.forEach(key => { seen[key][result[key]] = true; });
-				if (Object.keys(result).length === unsolvedCount) {
-					completedSolutions.push(result);
-				} else {
-					unfinishedSolutions.push(result);
-				}
-			});
-		const recursed = unfinishedSolutions
-			.map(order => solveBranch(
-				constraints,
-				facePairConstraints,
-				unsolvedKeys.filter(key => !(key in order)),
-				...orders,
-				order,
-			));
-		return completedSolutions
-			.map(order => ([...orders, order]))
-			.concat(...recursed);
-	};
-	const globalLayerSolver = (graph, epsilon = 1e-6) => {
-		propagateCount = 0;
-		const prepareStartDate = new Date();
-		const {
-			constraints,
-			facePairConstraints,
-			facePairsOrder,
-			edgeAdjacentOrders,
-		} = prepare(graph, epsilon);
-		const prepareDuration = Date.now() - prepareStartDate;
-		const startDate = new Date();
-		const initialResult = propagate(
-			constraints,
-			facePairConstraints,
-			Object.keys(edgeAdjacentOrders),
-			undefined,
-			edgeAdjacentOrders,
-		);
-		if (!initialResult) { return undefined; }
-		const remainingKeys = Object.keys(facePairsOrder)
-			.filter(key => !(key in edgeAdjacentOrders))
-			.filter(key => !(key in initialResult));
-		const branches = getBranches(remainingKeys, constraints, facePairConstraints);
-		const branchResults = branches
-			.map(branch => solveBranch(
-				constraints,
-				facePairConstraints,
-				branch,
-				edgeAdjacentOrders,
-				initialResult,
-			));
-		const branchResultsMerged = branchResults
-			.map(branch => branch
-				.map(solution => Object.assign({}, ...solution)));
-		const solution = { ...edgeAdjacentOrders, ...initialResult };
-		unsignedToSignedConditions(solution);
-		branchResultsMerged
-			.forEach(branch => branch
-				.forEach(solutions => unsignedToSignedConditions(solutions)));
-		solution.branches = branchResultsMerged;
-		console.log("propagateCount", propagateCount);
-		console.log("branches", branches);
-		console.log("branchResults", branchResults);
-		console.log("branchResultsMerged", branchResultsMerged);
-		const duration = Date.now() - startDate;
-		console.log(`preparation ${prepareDuration}ms solver ${duration}ms`);
-		return solution;
-	};
-
-	const topologicalOrder = (conditions, graph) => {
-		if (!conditions) { return []; }
+	const topologicalOrder = (facePairOrders, graph) => {
+		if (!facePairOrders) { return []; }
 		const faces_children = [];
-		Object.keys(conditions).map(key => {
+		Object.keys(facePairOrders).map(key => {
 			const pair = key.split(" ").map(n => parseInt(n, 10));
-			if (conditions[key] === -1) { pair.reverse(); }
+			if (facePairOrders[key] === -1) { pair.reverse(); }
 			if (faces_children[pair[0]] === undefined) {
 				faces_children[pair[0]] = [];
 			}
@@ -7638,7 +7527,7 @@
 			const stack = [f];
 			while (stack.length && protection < faces_children.length * 2) {
 				const stack_end = stack[stack.length - 1];
-				if (faces_children[stack_end].length) {
+				if (faces_children[stack_end] && faces_children[stack_end].length) {
 					const next = faces_children[stack_end].pop();
 					if (!faces_visited[next]) { stack.push(next); }
 					continue;
@@ -7654,6 +7543,106 @@
 			console.warn("fix protection in topological order");
 		}
 		return layers_face;
+	};
+
+	const LayerPrototype = {
+		count: function () {
+			return this.branches.map(arr => arr.length);
+		},
+		solution: function (...indices) {
+			const option = Array(this.branches.length)
+				.fill(0)
+				.map((n, i) => (indices[i] != null ? indices[i] : n));
+			const branchesSolution = this.branches
+				? this.branches.map((options, i) => options[option[i]])
+				: [];
+			return Object.assign({}, this.root, ...branchesSolution);
+		},
+		facesLayer: function (...indices) {
+			return invertMap(topologicalOrder(this.solution(...indices)));
+		},
+	};
+
+	const solveBranch = (
+		constraints,
+		facePairConstraints,
+		unsolvedKeys,
+		...orders
+	) => {
+		if (!unsolvedKeys.length) { return []; }
+		const guessKey = unsolvedKeys[0];
+		const completedSolutions = [];
+		const unfinishedSolutions = [];
+		[1, 2].forEach(b => {
+			const result = propagate(
+				constraints,
+				facePairConstraints,
+				[guessKey],
+				...orders,
+				{ [guessKey]: b },
+			);
+			if (result === false) { return; }
+			result[guessKey] = b;
+			if (Object.keys(result).length === unsolvedKeys.length) {
+				completedSolutions.push(result);
+			} else {
+				unfinishedSolutions.push(result);
+			}
+		});
+		const recursed = unfinishedSolutions
+			.map(order => solveBranch(
+				constraints,
+				facePairConstraints,
+				unsolvedKeys.filter(key => !(key in order)),
+				...orders,
+				order,
+			));
+		return completedSolutions
+			.map(order => ([...orders, order]))
+			.concat(...recursed);
+	};
+	const globalLayerSolver = (graph, epsilon = 1e-6) => {
+		const prepareStartDate = new Date();
+		const {
+			constraints,
+			facePairConstraints,
+			facePairsOrder,
+			edgeAdjacentOrders,
+		} = prepare(graph, epsilon);
+		const prepareDuration = Date.now() - prepareStartDate;
+		const startDate = new Date();
+		const initialResult = propagate(
+			constraints,
+			facePairConstraints,
+			Object.keys(edgeAdjacentOrders),
+			edgeAdjacentOrders,
+		);
+		if (!initialResult) { return undefined; }
+		const remainingKeys = Object.keys(facePairsOrder)
+			.filter(key => !(key in edgeAdjacentOrders))
+			.filter(key => !(key in initialResult));
+		const branchResults = getBranches(remainingKeys, constraints, facePairConstraints)
+			.map(unsolvedKeys => solveBranch(
+				constraints,
+				facePairConstraints,
+				unsolvedKeys,
+				edgeAdjacentOrders,
+				initialResult,
+			));
+		const branches = branchResults
+			.map(branch => branch
+				.map(solution => Object.assign({}, ...solution)));
+		const root = { ...edgeAdjacentOrders, ...initialResult };
+		unsignedToSignedConditions(root);
+		branches
+			.forEach(branch => branch
+				.forEach(solutions => unsignedToSignedConditions(solutions)));
+		const duration = Date.now() - startDate;
+		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
+		return Object.assign(
+			Object.create(LayerPrototype),
+			{ root, branches },
+		);
 	};
 
 	const makeFacesLayers = (graph, epsilon) => globalLayerSolver(graph, epsilon)
