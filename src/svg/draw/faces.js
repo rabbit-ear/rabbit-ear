@@ -3,6 +3,7 @@
  */
 import * as S from "../../general/strings";
 import { isFoldedForm } from "../../graph/query";
+import { invertMap } from "../../graph/maps";
 import { makeFacesWinding } from "../../graph/facesWinding";
 // get the SVG library from its binding to the root of the library
 import { addClassToClassList } from "../classes";
@@ -32,11 +33,15 @@ const GROUP_STYLE_FOLDED_UNORDERED = {
 const GROUP_STYLE_FLAT = {
 	fill: S._none,
 };
-
-const faces_sorted_by_layer = function (faces_layer) {
-	return faces_layer.map((layer, i) => ({ layer, i }))
-		.sort((a, b) => a.layer - b.layer)
-		.map(el => el.i);
+/**
+ * this ended up being a nice function. i got some things for free.
+ */
+const faces_sorted_by_layer = function (faces_layer, graph) {
+	const faceCount = graph.faces_vertices.length || graph.faces_edges.length;
+	const missingFaces = Array.from(Array(faceCount))
+		.map((_, i) => i)
+		.filter(i => faces_layer[i] == null);
+	return missingFaces.concat(invertMap(faces_layer));
 };
 
 const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
@@ -51,8 +56,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 	const isFolded = isFoldedForm(graph);
 	// currently, layer order is determined by "faces_layer" key, and
 	// ensuring that the length matches the number of faces in the graph.
-	const orderIsCertain = graph[S._faces_layer] != null
-		&& graph[S._faces_layer].length === graph[S._faces_vertices].length;
+	const orderIsCertain = graph[S._faces_layer] != null;
 	const classNames = [[S._front], [S._back]];
 	const faces_winding = makeFacesWinding(graph);
 	// counter-clockwise faces are "face up", their front facing the camera
@@ -72,7 +76,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 		});
 	// if the layer-order exists, sort the faces in order of faces_layer
 	const facesInOrder = (orderIsCertain
-		? faces_sorted_by_layer(graph[S._faces_layer]).map(i => svg_faces[i])
+		? faces_sorted_by_layer(graph[S._faces_layer], graph).map(i => svg_faces[i])
 		: svg_faces);
 	facesInOrder.forEach(face => group.appendChild(face));
 	// these custom getters allows you to grab all "front" or "back" faces only.

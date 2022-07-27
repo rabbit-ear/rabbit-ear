@@ -8418,17 +8418,18 @@
 	const GROUP_STYLE_FLAT = {
 		fill: _none,
 	};
-	const faces_sorted_by_layer = function (faces_layer) {
-		return faces_layer.map((layer, i) => ({ layer, i }))
-			.sort((a, b) => a.layer - b.layer)
-			.map(el => el.i);
+	const faces_sorted_by_layer = function (faces_layer, graph) {
+		const faceCount = graph.faces_vertices.length || graph.faces_edges.length;
+		const missingFaces = Array.from(Array(faceCount))
+			.map((_, i) => i)
+			.filter(i => faces_layer[i] == null);
+		return missingFaces.concat(invertMap(faces_layer));
 	};
 	const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
 		.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 	const finalize_faces = (graph, svg_faces, group, attributes) => {
 		const isFolded = isFoldedForm(graph);
-		const orderIsCertain = graph[_faces_layer] != null
-			&& graph[_faces_layer].length === graph[_faces_vertices].length;
+		const orderIsCertain = graph[_faces_layer] != null;
 		const classNames = [[_front], [_back]];
 		const faces_winding = makeFacesWinding(graph);
 		faces_winding.map(w => (w ? classNames[0] : classNames[1]))
@@ -8442,7 +8443,7 @@
 				applyFacesStyle(svg_faces[i], attributes[className]);
 			});
 		const facesInOrder = (orderIsCertain
-			? faces_sorted_by_layer(graph[_faces_layer]).map(i => svg_faces[i])
+			? faces_sorted_by_layer(graph[_faces_layer], graph).map(i => svg_faces[i])
 			: svg_faces);
 		facesInOrder.forEach(face => group.appendChild(face));
 		Object.defineProperty(group, _front, {
