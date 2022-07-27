@@ -211,7 +211,7 @@ const propagate = (
 					return false;
 				}
 				if (skipKeys[lookupResult[0]] && skipKeys[lookupResult[0]][lookupResult[1]]) {
-					console.log("skip key");
+					// console.log("skip key");
 					return false;
 				}
 				if (newOrders[lookupResult[0]]) {

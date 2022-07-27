@@ -11,6 +11,7 @@ import prepare from "./prepare";
  * @param {string[]} unsolvedKeys array of facePair keys to be solved
  * @param orders
  */
+let propagateCount = 0;
 const solveBranch = (
 	constraints,
 	facePairConstraints,
@@ -21,15 +22,34 @@ const solveBranch = (
 	if (!unsolvedCount) { return []; }
 	// if (orders.length > 6) { return []; }
 	// console.log("solveBranch depth", orders.length, "unsolved", unsolvedCount);
-	const seen = {};
+	const allDoneBranchKeysArray = [];
+	for (let i = 2; i < orders.length; i += 1) {
+		allDoneBranchKeysArray.push(Object.keys(orders[i]).join(", "));
+	}
+	const allDoneBranchKeys = allDoneBranchKeysArray.join(", ");
+	// console.log(orders.length, allDoneBranchKeys);
 
 	const completedSolutions = [];
 	const unfinishedSolutions = [];
 
-	for (let g = 0; g < unsolvedCount; g += 1) {
-		const seenCount = Object.keys(seen).length;
-		if (seenCount === unsolvedCount) { break; }
-		const guessKey = unsolvedKeys[g];
+	const seen = {};
+
+	// update notes:
+	// it should be possible to, instead of guessing each of these keys and
+	// recursively branching from each guess, (which is one way the duplicate
+	// problem is caused), it should be possible to only guess on one key here.
+	// (guessing both 1 and 2). then recursively calling based on any or all results.
+	// that way, each recursive branch only every splits into 2 (at most). which
+	// almost makes it maybe we should just do iterative.
+	// for (let g = 0; g < unsolvedCount; g += 1) {
+	// 	const seenCount = Object.keys(seen).length;
+	// 	if (seenCount === unsolvedCount) { break; }
+	// 	const guessKey = unsolvedKeys[g];
+	// for (let g = 0; g < unsolvedCount; g += 1) {
+	// 	const seenCount = Object.keys(seen).length;
+	// 	if (seenCount === unsolvedCount) { break; }
+	const guessKey = unsolvedKeys[0];
+
 		// array of 0, 1, or 2 objects with only one key/value.
 		// the key is the facePair and the value is either 1 or 2.
 		// this array will be 0-length if these combinations have already
@@ -44,14 +64,26 @@ const solveBranch = (
 		// }
 		// console.log("guesses", guesses.length, guesses);
 		// given the same guessKey with both 1 and 2 as the guess, run propagate.
-		const results = guesses.map(guess => propagate(
-			constraints,
-			facePairConstraints,
-			[guessKey],
-			seen,
-			...orders,
-			guess,
-		));
+		const results = guesses.map(guess => {
+			// console.log("propagate", orders.length, guessKey, guess);
+			propagateCount += 1;
+			return propagate(
+				constraints,
+				facePairConstraints,
+				[guessKey],
+				seen,
+				...orders,
+				guess,
+			);
+		});
+		// const results = guesses.map(guess => propagate(
+		// 	constraints,
+		// 	facePairConstraints,
+		// 	[guessKey],
+		// 	seen,
+		// 	...orders,
+		// 	guess,
+		// ));
 		// bad results will be false. skip these. if the result is valid,
 		// add the new keys to the "seen" variable and check if all variables
 		// have been solved, or there is more guess work still to do.
@@ -83,7 +115,8 @@ const solveBranch = (
 		});
 		// for now, this works because all the keys in "result"
 		// are only 1 or 2, not 0. if it contained 0 we would have to filter
-	}
+	// update: remove loop
+	// }
 	// console.log("recurse finished", unfinishedSolutions.length, completedSolutions.length);
 	const recursed = unfinishedSolutions
 		.map(order => solveBranch(
@@ -117,6 +150,7 @@ const solveBranch = (
  * and values are +1 or -1, the relationship of the two faces.
  */
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
+	propagateCount = 0;
 	const prepareStartDate = new Date();
 	const {
 		constraints,
@@ -147,10 +181,10 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// group the remaining keys into groups that are isolated from one another
 	const branches = getBranches(remainingKeys, constraints, facePairConstraints);
 	const branchResults = branches
-		.map(branch => solveBranch(
+		.map(unsolvedKeys => solveBranch(
 			constraints,
 			facePairConstraints,
-			branch,
+			unsolvedKeys,
 			edgeAdjacentOrders,
 			initialResult,
 		));
@@ -165,6 +199,8 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		.forEach(branch => branch
 			.forEach(solutions => unsignedToSignedConditions(solutions)));
 	solution.branches = branchResultsMerged;
+
+	console.log("propagateCount", propagateCount);
 
 	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
 	// console.log("initialResult", initialResult);

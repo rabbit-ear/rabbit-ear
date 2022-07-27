@@ -7070,7 +7070,6 @@ const propagate = (
 					return false;
 				}
 				if (skipKeys[lookupResult[0]] && skipKeys[lookupResult[0]][lookupResult[1]]) {
-					console.log("skip key");
 					return false;
 				}
 				if (newOrders[lookupResult[0]]) {
@@ -7497,6 +7496,7 @@ const prepare = (graph, epsilon = 1e-6) => {
 	};
 };
 
+let propagateCount = 0;
 const solveBranch = (
 	constraints,
 	facePairConstraints,
@@ -7505,24 +7505,28 @@ const solveBranch = (
 ) => {
 	const unsolvedCount = unsolvedKeys.length;
 	if (!unsolvedCount) { return []; }
-	const seen = {};
+	const allDoneBranchKeysArray = [];
+	for (let i = 2; i < orders.length; i += 1) {
+		allDoneBranchKeysArray.push(Object.keys(orders[i]).join(", "));
+	}
 	const completedSolutions = [];
 	const unfinishedSolutions = [];
-	for (let g = 0; g < unsolvedCount; g += 1) {
-		const seenCount = Object.keys(seen).length;
-		if (seenCount === unsolvedCount) { break; }
-		const guessKey = unsolvedKeys[g];
+	const seen = {};
+	const guessKey = unsolvedKeys[0];
 		const guesses = [1, 2]
 			.filter(b => !(seen[guessKey] && seen[guessKey][b]))
 			.map(b => ({ [guessKey]: b }));
-		const results = guesses.map(guess => propagate(
-			constraints,
-			facePairConstraints,
-			[guessKey],
-			seen,
-			...orders,
-			guess,
-		));
+		const results = guesses.map(guess => {
+			propagateCount += 1;
+			return propagate(
+				constraints,
+				facePairConstraints,
+				[guessKey],
+				seen,
+				...orders,
+				guess,
+			);
+		});
 		results.forEach((result, i) => {
 			if (result === false) { return; }
 			result[guessKey] = guesses[i][guessKey];
@@ -7541,7 +7545,6 @@ const solveBranch = (
 				unfinishedSolutions.push(result);
 			}
 		});
-	}
 	const recursed = unfinishedSolutions
 		.map(order => solveBranch(
 			constraints,
@@ -7555,6 +7558,7 @@ const solveBranch = (
 		.concat(...recursed);
 };
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
+	propagateCount = 0;
 	const prepareStartDate = new Date();
 	const {
 		constraints,
@@ -7593,6 +7597,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		.forEach(branch => branch
 			.forEach(solutions => unsignedToSignedConditions(solutions)));
 	solution.branches = branchResultsMerged;
+	console.log("propagateCount", propagateCount);
 	console.log("branches", branches);
 	console.log("branchResults", branchResults);
 	console.log("branchResultsMerged", branchResultsMerged);
