@@ -2,23 +2,6 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description algorithm designed by Jason Ku.
- * Every taco/tortilla event encodes the relationship between 3 or 4 faces,
- * and given a known subset of orders between faces involved, we can either:
- * (a) confirm that this layer order is valid (even if not yet finished)
- * (b) confirm that this layer order is invalid
- * (c) not only confirm validity (a) but also uncover another relationship
- * between other pairs of faces involved in the taco/tortilla event.
- *
- * The values of each state above is encoded as:
- * (a) is true, (b) is false, (c) encodes which index needs to change and
- * what the new value should become (either a 1 or 2).
- *
- * And the keys representing each state are n-long, one for every pair of
- * faces involved, and encodes each pair as a 0, 1, or 2, each meaning:
- * 0: order unknown, 1: face a is above b, 2: face b is above a.
- */
-/**
  * @description each state encodes a valid layer combination. each number
  * describes a relationship between pairs of faces, indicating:
  * - 1: the first face is above the second face
@@ -197,7 +180,19 @@ const make_lookup = (valid_states) => {
 	outs.forEach(el => { lookup[el[0]] = Object.freeze(el[1]); });
 	return Object.freeze(lookup);
 };
-
+/**
+ * @name table
+ * @memberof layer
+ * @description This lookup table encodes all possible taco-taco,
+ * taco-tortilla, tortilla-tortilla, and transitivity constraints between
+ * groups of faces in a folded graph. Given an encoded state, as a key
+ * of this object, the value represents either:
+ * - {boolean} true: the layer order is so far valid
+ * - {boolean} false: the layer order is invalid
+ * - {number[]}: the layer order is valid, and, here is another
+ * relationship which can be inferred from the current state.
+ * This is an implementation of an algorithm designed by [Jason Ku](//jasonku.mit.edu).
+ */
 const layerTable = {
 	taco_taco: make_lookup(taco_taco_valid_states),
 	taco_tortilla: make_lookup(taco_tortilla_valid_states),

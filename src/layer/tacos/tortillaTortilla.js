@@ -8,7 +8,7 @@ import { makeEdgesEdgesCrossing } from "../../graph/edgesEdges";
 import { booleanMatrixToIndexedArray } from "../../general/arrays";
 /**
  * @description makeTortillaTortillaEdgesCrossing
- * @param {object} graph a FOLD object graph
+ * @param {FOLD} graph a FOLD object graph
  * @param {todo} todo todo
  * @param {number} [epsilon=1e-6] optional epsilon value
  * @returns todo

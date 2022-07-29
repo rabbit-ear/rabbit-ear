@@ -59,8 +59,14 @@ const make_conditions_assignment_direction = {
 // };
 
 /**
- * @description returns an array of face-pair space-separated strings
- * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 63
+ * @description Given a folded graph, return an array of face-pair
+ * space-separated strings which represent all pairs of overlapping faces,
+ * these are the conditions needed to be solved by a layer solver.
+ * @param {FOLD} graph a FOLD graph, with the vertices already folded.
+ * @param {number[][]} [overlap_matrix] the result of makeFacesFacesOverlap,
+ * this will be calculated unless it is already provided.
+ * @returns {string[]} array of facePair strings.
+ * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 69
  */
 export const makeFacePairs = (graph, overlap_matrix) => {
 	if (!overlap_matrix) {
@@ -79,7 +85,7 @@ export const makeFacePairs = (graph, overlap_matrix) => {
  * @returns {object} an object describing all the solved facePairs (keys) and
  * their layer order 1 or 2 (value), the object only includes those facePairs
  * which are solved, so, no 0-value entries will exist.
- * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 82
+ * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 88
  */
 export const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
 	if (!faces_winding) {

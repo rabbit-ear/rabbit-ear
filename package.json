@@ -1,6 +1,6 @@
 {
 	"name": "rabbit-ear",
-	"version": "0.9.31",
+	"version": "0.9.32",
 	"description": "origami design library",
 	"main": "./rabbit-ear.js",
 	"module": "./rabbit-ear.module.js",

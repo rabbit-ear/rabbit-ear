@@ -6930,6 +6930,51 @@ var diagram = Object.assign(
 const flipFacesLayer = faces_layer => invertMap(
 	invertMap(faces_layer).reverse(),
 );
+const facesLayerToEdgesAssignments = (graph, faces_layer) => {
+	const edges_assignment = [];
+	const faces_winding = makeFacesWinding(graph);
+	const edges_faces = graph.edges_faces
+		? graph.edges_faces
+		: makeEdgesFaces(graph);
+	edges_faces.forEach((faces, e) => {
+		if (faces.length === 1) { edges_assignment[e] = "B"; }
+		if (faces.length === 2) {
+			const windings = faces.map(f => faces_winding[f]);
+			if (windings[0] === windings[1]) {
+				edges_assignment[e] = "F";
+				return;
+			}
+			const layers = faces.map(f => faces_layer[f]);
+			const local_dir = layers[0] < layers[1];
+			const global_dir = windings[0] ? local_dir : !local_dir;
+			edges_assignment[e] = global_dir ? "V" : "M";
+		}
+	});
+	return edges_assignment;
+};
+const ordersToMatrix = (orders) => {
+	const condition_keys = Object.keys(orders);
+	const face_pairs = condition_keys
+		.map(key => key.split(" ").map(n => parseInt(n, 10)));
+	const faces = [];
+	face_pairs
+		.reduce((a, b) => a.concat(b), [])
+		.forEach(f => { faces[f] = undefined; });
+	const matrix = faces.map(() => []);
+	face_pairs
+		.forEach(([a, b]) => {
+			matrix[a][b] = orders[`${a} ${b}`];
+			matrix[b][a] = -orders[`${a} ${b}`];
+		});
+	return matrix;
+};
+
+var general = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	flipFacesLayer: flipFacesLayer,
+	facesLayerToEdgesAssignments: facesLayerToEdgesAssignments,
+	ordersToMatrix: ordersToMatrix
+});
 
 const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
 	const faces_center = folded_faces
@@ -7069,6 +7114,7 @@ const assignmentsToFacesVertical = (assignments) => {
 			return updown;
 		});
 };
+
 const foldStripWithAssignments = (faces, assignments) => {
 	const faces_end = assignmentsToFacesFlip(assignments)
 		.map((flip, i) => faces[i] * (flip ? -1 : 1));
@@ -7082,13 +7128,6 @@ const foldStripWithAssignments = (faces, assignments) => {
 	}
 	return cumulative;
 };
-
-var foldAssignments = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	assignmentsToFacesFlip: assignmentsToFacesFlip,
-	assignmentsToFacesVertical: assignmentsToFacesVertical,
-	foldStripWithAssignments: foldStripWithAssignments
-});
 
 const is_boundary = { B: true, b: true };
 const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
@@ -7324,45 +7363,12 @@ const constraintToFacePairsStrings = ({
 	],
 });
 const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
 const unsignedToSignedOrders = (orders) => {
 	Object.keys(orders).forEach(key => {
 		orders[key] = to_signed_layer_convert[orders[key]];
 	});
 	return orders;
 };
-const signedToUnsignedOrders = (orders) => {
-	Object.keys(orders).forEach(key => {
-		orders[key] = to_unsigned_layer_convert[orders[key]];
-	});
-	return orders;
-};
-const ordersToMatrix = (orders) => {
-	const condition_keys = Object.keys(orders);
-	const face_pairs = condition_keys
-		.map(key => key.split(" ").map(n => parseInt(n, 10)));
-	const faces = [];
-	face_pairs
-		.reduce((a, b) => a.concat(b), [])
-		.forEach(f => { faces[f] = undefined; });
-	const matrix = faces.map(() => []);
-	face_pairs
-		.forEach(([a, b]) => {
-			matrix[a][b] = orders[`${a} ${b}`];
-			matrix[b][a] = -orders[`${a} ${b}`];
-		});
-	return matrix;
-};
-
-var globalSolverGeneral = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	constraintToFacePairs: constraintToFacePairs,
-	pairArrayToSortedPairString: pairArrayToSortedPairString,
-	constraintToFacePairsStrings: constraintToFacePairsStrings,
-	unsignedToSignedOrders: unsignedToSignedOrders,
-	signedToUnsignedOrders: signedToUnsignedOrders,
-	ordersToMatrix: ordersToMatrix
-});
 
 const taco_types = Object.freeze(Object.keys(layerTable));
 const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
@@ -7488,20 +7494,6 @@ const getBranches = (remainingKeys, constraints, constraintsLookup) => {
 	return groups;
 };
 
-const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsilon) => {
-	const tortilla_edge_indices = edges_faces_side
-		.map(side => side.length === 2 && side[0] !== side[1])
-		.map((bool, i) => (bool ? i : undefined))
-		.filter(a => a !== undefined);
-	const edges_crossing_matrix = makeEdgesEdgesCrossing(graph, epsilon);
-	const edges_crossing = booleanMatrixToIndexedArray(edges_crossing_matrix);
-	const tortilla_edges_crossing = tortilla_edge_indices
-		.map(i => edges_crossing[i]);
-	return tortilla_edges_crossing.map((edges, i) => ({
-		tortilla_edge: tortilla_edge_indices[i],
-		crossing_edges: edges,
-	})).filter(el => el.crossing_edges.length);
-};
 const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
 	const faces_winding = makeFacesWinding(graph);
 	const faces_polygon = makeFacesPolygon(graph, epsilon);
@@ -7546,13 +7538,6 @@ const makeTortillaTortillaFacesCrossing = (graph, edges_faces_side, epsilon) => 
 		.reduce((a, b) => a.concat(b), []);
 	return tortilla_faces_results;
 };
-
-var tortillaTortilla = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	makeTortillaTortillaEdgesCrossing: makeTortillaTortillaEdgesCrossing,
-	makeTortillasFacesCrossing: makeTortillasFacesCrossing,
-	makeTortillaTortillaFacesCrossing: makeTortillaTortillaFacesCrossing
-});
 
 const makeEdgesFacesSide = (graph, faces_center) => {
 	const edges_origin = graph.edges_vertices
@@ -7773,12 +7758,6 @@ const makeConstraintsLookup = (constraints) => {
 	return lookup;
 };
 
-var makeConstraints$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	makeConstraints: makeConstraints,
-	makeConstraintsLookup: makeConstraintsLookup
-});
-
 const make_conditions_flip_condition = { 0: 0, 1: 2, 2: 1 };
 const make_conditions_assignment_direction = {
 	M: 1, m: 1, V: 2, v: 2,
@@ -7889,6 +7868,18 @@ const keysToFaceOrders = (facePairs) => {
 	faceOrders.map((faces, i) => faces.push(facePairs[keys[i]]));
 	return faceOrders;
 };
+const makePermutations = (counts) => {
+	const totalLength = counts.reduce((a, b) => a * b, 1);
+	const maxPlace = counts.slice();
+	for (let i = maxPlace.length - 2; i >= 0; i -= 1) {
+		maxPlace[i] *= maxPlace[i + 1];
+	}
+	maxPlace.push(1);
+	maxPlace.shift();
+	return Array.from(Array(totalLength))
+		.map((_, i) => counts
+			.map((c, j) => Math.floor(i / maxPlace[j]) % c));
+};
 const LayerPrototype = {
 	count: function () {
 		return this.branches.map(arr => arr.length);
@@ -7902,11 +7893,23 @@ const LayerPrototype = {
 			: [];
 		return Object.assign({}, this.root, ...branchesSolution);
 	},
+	allSolutions: function () {
+		return makePermutations(this.count())
+			.map(count => this.solution(...count));
+	},
 	facesLayer: function (...indices) {
 		return invertMap(topologicalOrder(this.solution(...indices)));
 	},
+	allFacesLayers: function () {
+		return makePermutations(this.count())
+			.map(count => this.facesLayer(...count));
+	},
 	faceOrders: function (...indices) {
 		return keysToFaceOrders(this.solution(...indices));
+	},
+	allFaceOrders: function () {
+		return makePermutations(this.count())
+			.map(count => this.faceOrders(...count));
 	},
 };
 
@@ -7997,24 +8000,21 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 var layer = Object.assign(
 	Object.create(null),
 	{
-		flipFacesLayer,
-		singleVertexSolver,
-		singleVertexAssignmentSolver: assignmentSolver,
-		validateLayerSolver,
-		validateTacoTacoFacePairs,
-		validateTacoTortillaStrip,
 		solver: globalLayerSolver,
 		table: layerTable,
 		topologicalOrder,
 		makeTacosTortillas,
 		makeFoldedStripTacos,
 		makeTransitivityTrios,
+		singleVertexSolver,
+		singleVertexAssignmentSolver: assignmentSolver,
+		validateLayerSolver,
+		validateTacoTacoFacePairs,
+		validateTacoTortillaStrip,
+		foldStripWithAssignments,
 	},
-	makeConstraints$1,
+	general,
 	makeFacePairsOrder,
-	globalSolverGeneral,
-	tortillaTortilla,
-	foldAssignments,
 );
 
 const odd_assignment = (assignments) => {

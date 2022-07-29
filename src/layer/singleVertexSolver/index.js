@@ -4,10 +4,8 @@
 import math from "../../math";
 import makeFoldedStripTacos from "../tacos/makeFoldedStripTacos";
 import validateLayerSolver from "./validateLayerSolver";
-import {
-	foldStripWithAssignments,
-	assignmentsToFacesVertical,
-} from "./foldAssignments";
+import foldStripWithAssignments from "./foldStripWithAssignments";
+import { assignmentsToFacesVertical } from "./general";
 import { invertMap } from "../../graph/maps";
 import clone from "../../general/clone";
 
@@ -29,7 +27,7 @@ const is_boundary = { B: true, b: true };
  * @returns {number[][]} array of arrays. each inner array is a solution.
  * each solution is an ordering of faces_order, where each index is a
  * face and each value is the layer the face occupies.
- * @linkcode Origami ./src/layer/singleVertexSolver/index.js 32
+ * @linkcode Origami ./src/layer/singleVertexSolver/index.js 30
  */
 const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
 	const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
