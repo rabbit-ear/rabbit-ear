@@ -21,6 +21,7 @@ const between = (arr, i, j) => (i < j
  * @param {number[]} layers_face, index is z-layer, value is the sector/face.
  * @param {boolean} do assignments contain a boundary? (to test for loop around)
  * @returns {boolean} does a violation occur. "false" means all good.
+ * @linkcode Origami ./src/layer/singleVertexSolver/validateTacoTortillaStrip.js 24
  */
 const validateTacoTortillaStrip = (
 	faces_folded,

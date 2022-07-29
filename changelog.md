@@ -1,6 +1,14 @@
 # 0.9.32 alpha
 
-ear.layer.assignmentSolver renamed to ear.layer.singleVertexAssignmentSolver
+new layer solver implementation at ear.layer.solver(), huge performance improvement.
+
+ear.layer.assignmentSolver renamed to ear.layer.singleVertexAssignmentSolver.
+
+ear.math.enclosingBoundingBoxes, new method. test if one bounding box is entirely inside another.
+
+ear.graph.makeEdgesEdgesSimilar, answers which edges have the same endpoints (vertices) as other edges. endpoints can be in any order.
+
+performance improvements for ear.graph.makeFacesFacesOverlap, ear.graph.makeEdgesFacesOverlap.
 
 # 0.9.31 alpha
 

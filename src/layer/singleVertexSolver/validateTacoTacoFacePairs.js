@@ -13,6 +13,7 @@ import { removeSingleInstances } from "../../general/arrays";
  * @param {number[]} stacking order of each face where each face is
  * encoded as its pair number identifier.
  * @returns {boolean} true if the taco stack passes this test. false if fails.
+ * @linkcode Origami ./src/layer/singleVertexSolver/validateTacoTacoFacePairs.js 16
  */
 const validateTacoTacoFacePairs = (face_pair_stack) => {
 	// create a copy of "stack" that removes single faces currently missing

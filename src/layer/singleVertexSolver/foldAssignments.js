@@ -19,6 +19,7 @@ const change_map = {
  *
  * another way of saying this is if a face is "false", the face is
  * moving to the right, if "true" moving to the left.
+ * @linkcode Origami ./src/layer/singleVertexSolver/foldAssignments.js 22
  */
 export const assignmentsToFacesFlip = (assignments) => {
 	let counter = 0;
@@ -54,6 +55,7 @@ const upOrDown = (mv, i) => (i % 2 === 0
  * of the second of the pair.
  * index [0] indicates how face [1] is above/below face[0].
  * @returns {number[]} unit directionality. +1 for up, -1 down
+ * @linkcode Origami ./src/layer/singleVertexSolver/foldAssignments.js 58
  */
 export const assignmentsToFacesVertical = (assignments) => {
 	let iterator = 0;
@@ -80,6 +82,7 @@ export const assignmentsToFacesVertical = (assignments) => {
  *
  * @returns array of sector positions. any sectors caught between
  * multiple boundaries will be undefined.
+ * @linkcode Origami ./src/layer/singleVertexSolver/foldAssignments.js 85
  */
 export const foldStripWithAssignments = (faces, assignments) => {
 	// one number for each sector, locally, the movement away from 0.

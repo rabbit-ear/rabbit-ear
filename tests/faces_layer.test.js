@@ -19,7 +19,8 @@ test("", () => {
 	// to become
 	// 4  0  2  3  6  7  1  5
 	//
-	const faces_layer = ear.layer.makeFacesLayers(cp);
+	// const faces_layer = ear.layer.makeFacesLayers(cp);
+	const solution = ear.layer.solver(cp);
 	// console.log("faces_layer", faces_layer);
 	// folded["faces_re:layer"] = faces_layer;
 	expect(true).toBe(true);

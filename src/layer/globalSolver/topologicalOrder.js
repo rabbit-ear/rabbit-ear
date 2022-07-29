@@ -7,13 +7,14 @@
  * the keys are space-separated pair of faces, and the value is +1 0 or -1.
  * @param {FOLD} graph an optional FOLD graph
  * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
+ * @linkcode Origami ./src/layer/globalSolver/topologicalOrder.js 10
  */
 const topologicalOrder = (facePairOrders, graph) => {
 	if (!facePairOrders) { return []; }
 	const faces_children = [];
 	// use the facePairOrders face pair relationships to fill an array where
 	// index: face, value: array of the face's children (faces below the face)
-	Object.keys(facePairOrders).map(key => {
+	Object.keys(facePairOrders).forEach(key => {
 		const pair = key.split(" ").map(n => parseInt(n, 10));
 		if (facePairOrders[key] === -1) { pair.reverse(); }
 		if (faces_children[pair[0]] === undefined) {

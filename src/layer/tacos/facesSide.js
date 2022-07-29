@@ -27,6 +27,7 @@ export const makeEdgesFacesSide = (graph, faces_center) => {
  * edges and the edges' adjacent faces, give each face a +1 or -1 based
  * on which side of the edge it is on. "side" determined by the cross-
  * product against the edge's vector.
+ * @linkcode Origami ./src/layer/tacos/facesSide.js 30
  */
 export const makeTacosFacesSide = (graph, faces_center, tacos_edges, tacos_faces) => {
 	// there are two edges involved in a taco, grab the first one.

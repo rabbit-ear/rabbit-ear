@@ -41,6 +41,7 @@ const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
  * @returns true if valid, false if invalid, and in the case of an implied
  * change, return an array where the first item is a facePair ("3 5"), and
  * the second is the order (like 1 or 2).
+ * @linkcode Origami ./src/layer/globalSolver/propagate.js 44
  */
 const buildRuleAndLookup = (type, constraint, ...orders) => {
 	// regroup the N faces into an array of pairs, giving us the
@@ -93,7 +94,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
  */
 // const getConstraintIndicesFromFacePairs = (
 // 	constraints,
-// 	facePairConstraints,
+// 	constraintsLookup,
 // 	facePairsSubsetArray,
 // 	...orders
 // ) => {
@@ -106,7 +107,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 // 		// given the array of modified facePairs since last round, get all
 // 		// the indices in the constraints array in which these facePairs exist.
 // 		const duplicates = facePairsSubsetArray
-// 			.flatMap(facePair => facePairConstraints[type][facePair]);
+// 			.flatMap(facePair => constraintsLookup[type][facePair]);
 // 		// filter these constraint indices so that (1) no duplicates and
 // 		// (2) only faces which appear in an unknown order (0) are included,
 // 		// which is done by consulting constraints[i] and checking all faces
@@ -124,16 +125,17 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
  * include one or more of these facePairs.
  * @param {Constraints} constraints an object containing all four cases, inside
  * of each is an (very large, typically) array of all constraints as a list of faces.
- * @param {object} facePairConstraints a map which contains, for every
+ * @param {object} constraintsLookup a map which contains, for every
  * taco/tortilla/transitivity case (top level keys), inside each is an object
  * which relates each facePair (key) to an array of indices (value),
  * where each index is an index in the "constraints" array
  * in which **both** of these faces appear.
  * @param {string[]} facePairsSubsetArray an array of facePair string keys.
+ * @linkcode Origami ./src/layer/globalSolver/propagate.js 134
  */
 const getConstraintIndicesFromFacePairs = (
 	constraints,
-	facePairConstraints,
+	constraintsLookup,
 	facePairsSubsetArray,
 ) => {
 	const constraintIndices = {};
@@ -142,7 +144,7 @@ const getConstraintIndicesFromFacePairs = (
 		// the indices in the constraints array in which these facePairs exist.
 		// this array will contain duplicates
 		const constraintIndicesWithDups = facePairsSubsetArray
-			.flatMap(facePair => facePairConstraints[type][facePair]);
+			.flatMap(facePair => constraintsLookup[type][facePair]);
 		// filter these constraint indices to remove duplicates
 		constraintIndices[type] = uniqueIntegers(constraintIndicesWithDups)
 			.filter(i => constraints[type][i]);
@@ -163,10 +165,11 @@ const getConstraintIndicesFromFacePairs = (
  * These are the keys which had a layer change since the last time running this method.
  * @param {...object} ...orders any number of facePairsOrder solutions
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
+ * @linkcode Origami ./src/layer/globalSolver/propagate.js 168
  */
 const propagate = (
 	constraints,
-	facePairConstraints,
+	constraintsLookup,
 	initiallyModifiedFacePairs,
 	...orders
 ) => {
@@ -184,7 +187,7 @@ const propagate = (
 		// from any of these facePairs.
 		const modifiedConstraintIndices = getConstraintIndicesFromFacePairs(
 			constraints,
-			facePairConstraints,
+			constraintsLookup,
 			modifiedFacePairs,
 		);
 		// todo: do you get better results by fast forwarding through all taco-taco

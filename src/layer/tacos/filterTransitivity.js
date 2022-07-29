@@ -6,6 +6,7 @@
  * overlap each other), and the set of pre-computed taco-taco and
  * taco-tortilla events, remove any transitivity condition where the three
  * faces are already covered in a taco-taco case.
+ * @linkcode Origami ./src/layer/tacos/filterTransitivity.js 9
  */
 const filterTransitivity = (transitivity_trios, tacos_tortillas) => {
 	// will contain taco-taco and taco-tortilla events encoded as all
@@ -14,25 +15,20 @@ const filterTransitivity = (transitivity_trios, tacos_tortillas) => {
 	// using the list of all taco-taco conditions, store all permutations of
 	// the three faces (sorted low to high) into a dictionary for quick lookup.
 	// store them as space-separated strings.
-	tacos_tortillas.taco_taco.map(tacos => [
-		[tacos[0][0], tacos[0][1], tacos[1][0]], // a b c
-		[tacos[0][0], tacos[0][1], tacos[1][1]], // a b d
-		[tacos[0][0], tacos[1][0], tacos[1][1]], // a c d
-		[tacos[0][1], tacos[1][0], tacos[1][1]], // b c d
-	])
-		.forEach(trios => trios
-			.map(trio => trio
-				.sort((a, b) => a - b)
-				.join(" "))
-			.forEach(key => { tacos_trios[key] = true; }));
+	tacos_tortillas.taco_taco
+		.map(tacos => [tacos[0][0], tacos[0][1], tacos[1][0], tacos[1][1]]
+			.sort((a, b) => a - b))
+		.forEach(taco => [
+			`${taco[0]} ${taco[1]} ${taco[2]}`,
+			`${taco[0]} ${taco[1]} ${taco[3]}`,
+			`${taco[0]} ${taco[2]} ${taco[3]}`,
+			`${taco[1]} ${taco[2]} ${taco[3]}`,
+		].forEach(key => { tacos_trios[key] = true; }));
 	// convert all taco-tortilla cases into similarly-formatted,
 	// space-separated strings.
-	tacos_tortillas.taco_tortilla.map(el => [
-		el.taco[0], el.taco[1], el.tortilla,
-	])
-		.map(trio => trio
-			.sort((a, b) => a - b)
-			.join(" "))
+	tacos_tortillas.taco_tortilla
+		.map(el => [el.taco[0], el.taco[1], el.tortilla]
+			.sort((a, b) => a - b).join(" "))
 		.forEach(key => { tacos_trios[key] = true; });
 	// return the filtered set of trios.
 	return transitivity_trios

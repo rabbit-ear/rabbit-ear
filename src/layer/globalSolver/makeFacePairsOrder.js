@@ -60,6 +60,7 @@ const make_conditions_assignment_direction = {
 
 /**
  * @description returns an array of face-pair space-separated strings
+ * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 63
  */
 export const makeFacePairs = (graph, overlap_matrix) => {
 	if (!overlap_matrix) {
@@ -70,8 +71,15 @@ export const makeFacePairs = (graph, overlap_matrix) => {
 };
 
 /**
+ * @description Given a FOLD graph, already folded, find the layer arrangement
+ * between neighboring faces (using edges_faces), and assign this facePair
+ * a 1 or 2, checking whether faces have been flipped or not.
  * @param {FOLD} graph a FOLD graph
  * @param {string[]} facePairs an array of space-separated face-pair strings
+ * @returns {object} an object describing all the solved facePairs (keys) and
+ * their layer order 1 or 2 (value), the object only includes those facePairs
+ * which are solved, so, no 0-value entries will exist.
+ * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 82
  */
 export const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
 	if (!faces_winding) {

@@ -2831,6 +2831,51 @@ var generalIntersect = /*#__PURE__*/Object.freeze({
 /**
  * Math (c) Kraft
  */
+/**
+ *
+ */
+const enclosingBoundingBoxes = (outer, inner) => {
+	const dimensions = Math.min(outer.min.length, inner.min.length);
+	for (let d = 0; d < dimensions; d += 1) {
+		// if one minimum is above the other's maximum, or visa versa
+		if (inner.min[d] < outer.min[d] || inner.max[d] > outer.max[d]) {
+			return false;
+		}
+	}
+	return true;
+};
+/**
+ * @description does one polygon (outer) completely enclose another polygon (inner),
+ * currently, this only works for convex polygons.
+ * @param {number[][]} outer a 2D convex polygon
+ * @param {number[][]} inner a 2D convex polygon
+ * @param {function} [fnInclusive] by default, the boundary is considered inclusive
+ * @returns {boolean} is the "inner" polygon completely inside the "outer"
+ *
+ * @todo: should one function be include and the other exclude?
+ * @linkcode Math ./src/intersection/encloses.js 30
+ */
+const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
+	// these points should be *not inside* (false)
+	const outerGoesInside = outer
+		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
+		.reduce((a, b) => a || b, false);
+	// these points should be *inside* (true)
+	const innerGoesOutside = inner
+		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
+		.reduce((a, b) => a && b, true);
+	return (!outerGoesInside && innerGoesOutside);
+};
+
+var encloses = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	enclosingBoundingBoxes: enclosingBoundingBoxes,
+	enclosingPolygonPolygon: enclosingPolygonPolygon
+});
+
+/**
+ * Math (c) Kraft
+ */
 
 const acosSafe = (x) => {
 	if (x >= 1.0) return 0;
@@ -3369,32 +3414,6 @@ const overlap = function (a, b, epsilon) {
  * Math (c) Kraft
  */
 /**
- * @description does one polygon (outer) completely enclose another polygon (inner),
- * currently, this only works for convex polygons.
- * @param {number[][]} outer a 2D convex polygon
- * @param {number[][]} inner a 2D convex polygon
- * @param {function} [fnInclusive] by default, the boundary is considered inclusive
- * @returns {boolean} is the "inner" polygon completely inside the "outer"
- *
- * @todo: should one function be include and the other exclude?
- * @linkcode Math ./src/intersection/enclose-polygons.js 17
- */
-const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
-	// these points should be *not inside* (false)
-	const outerGoesInside = outer
-		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
-		.reduce((a, b) => a || b, false);
-	// these points should be *inside* (true)
-	const innerGoesOutside = inner
-		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
-		.reduce((a, b) => a && b, true);
-	return (!outerGoesInside && innerGoesOutside);
-};
-
-/**
- * Math (c) Kraft
- */
-/**
  * @description Test if two axis-aligned bounding boxes overlap each other.
  * @param {BoundingBox} box1 an axis-aligned bounding box, the result of calling boundingBox(...)
  * @param {BoundingBox} box2 an axis-aligned bounding box, the result of calling boundingBox(...)
@@ -3402,9 +3421,7 @@ const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
  * @linkcode Math ./src/intersection/overlap-bounding-boxes.js 9
  */
 const overlapBoundingBoxes = (box1, box2) => {
-	const dimensions = box1.min.length > box2.min.length
-		? box2.min.length
-		: box1.min.length;
+	const dimensions = Math.min(box1.min.length, box2.min.length);
 	for (let d = 0; d < dimensions; d += 1) {
 		// if one minimum is above the other's maximum, or visa versa
 		if (box1.min[d] > box2.max[d] || box1.max[d] < box2.min[d]) {
@@ -4793,8 +4810,8 @@ math.core = Object.assign(
 	nearest,
 	parameterize,
 	generalIntersect,
+	encloses,
 	{
-		enclosingPolygonPolygon,
 		intersectConvexPolygonLine,
 		intersectCircleCircle,
 		intersectCircleLine,

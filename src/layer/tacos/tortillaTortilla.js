@@ -12,6 +12,7 @@ import { booleanMatrixToIndexedArray } from "../../general/arrays";
  * @param {todo} todo todo
  * @param {number} [epsilon=1e-6] optional epsilon value
  * @returns todo
+ * @linkcode Origami ./src/layer/tacos/tortillaTortilla.js 15
  */
 export const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsilon) => {
 	// get all tortilla edges. could also be done by searching
@@ -100,17 +101,16 @@ export const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => 
 };
 
 export const makeTortillaTortillaFacesCrossing = (graph, edges_faces_side, epsilon) => {
-	const tortilla_tortilla_edges = makeTortillaTortillaEdgesCrossing(
-		graph,
-		edges_faces_side,
-		epsilon,
-	);
+	// const tortilla_tortilla_edges = makeTortillaTortillaEdgesCrossing(
+	// 	graph,
+	// 	edges_faces_side,
+	// 	epsilon,
+	// );
 	// console.log("tortilla_tortilla_edges", tortilla_tortilla_edges);
 	const tortillas_faces_crossing = makeTortillasFacesCrossing(graph, edges_faces_side, epsilon);
 	const tortilla_faces_results = tortillas_faces_crossing
 		.map((faces, e) => faces.map(face => [graph.edges_faces[e], [face, face]]))
 		.reduce((a, b) => a.concat(b), []);
-
 	// const tortilla_tortilla_results = tortilla_tortilla_edges
 	// 	.map(el => ({
 	// 		tortilla_faces: graph.edges_faces[el.tortilla_edge],

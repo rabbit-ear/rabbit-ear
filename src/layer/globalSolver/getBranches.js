@@ -1,12 +1,14 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import {
-	constraintToFacePairs,
-	pairArrayToSortedPairString,
-	// joinConditions,
+	constraintToFacePairsStrings,
 } from "./general";
 /**
  * @param {string[]} remainingKeys array of facePair keys which are unsolved
+ * @linkcode Origami ./src/layer/globalSolver/getBranches.js 9
  */
-const getBranches = (remainingKeys, constraints, facePairConstraints) => {
+const getBranches = (remainingKeys, constraints, constraintsLookup) => {
 	const taco_types = Object.keys(constraints);
 	// move remainingKeys into a dictionary.
 	// we will delete keys from this dictionary as we visit them
@@ -40,15 +42,14 @@ const getBranches = (remainingKeys, constraints, facePairConstraints) => {
 			// visit each taco/tortilla/transitivity type, and inside each type,
 			// visit all constraints, store the constraints in the neighborsHash.
 			taco_types.forEach(type => {
-				// skip if facePairConstraints for a type/key doesn't exist.
-				const indices = facePairConstraints[type][key];
+				// skip if constraintsLookup for a type/key doesn't exist.
+				const indices = constraintsLookup[type][key];
 				if (!indices) { return; }
 				// for each constraint index, convert it into its 3 or 4 face indices,
 				// then convert these into all permutations of face-pair strings.
 				indices
 					.map(c => constraints[type][c])
-					.map(faces => constraintToFacePairs[type](faces)
-						.map(pairArrayToSortedPairString)
+					.map(faces => constraintToFacePairsStrings[type](faces)
 						// add each facePair to the neighborsHash.
 						.forEach(facePair => { neighborsHash[facePair] = true; }));
 			});

@@ -9,6 +9,7 @@ import validateTacoTacoFacePairs from "./validateTacoTacoFacePairs";
  * convert a stack of taco_faces in the form of [[f1,f2], [f3,f4]]
  * into a flat array of the layers_face where each face is now an index
  * to the location of the pair the face is inside of in taco_faces.
+ * @linkcode Origami ./src/layer/singleVertexSolver/validateLayerSolver.js 12
  */
 const build_layers = (layers_face, faces_pair) => layers_face
 	.map(f => faces_pair[f])

@@ -13,6 +13,7 @@ import { makeFacesFacesOverlap } from "../../graph/overlap";
  * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} list of arrays containing three face indices.
+ * @linkcode Origami ./src/layer/tacos/makeTransitivityTrios.js 16
  */
 const makeTransitivityTrios = (
 	graph,

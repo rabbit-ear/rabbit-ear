@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import propagate from "./propagate";
-import { unsignedToSignedConditions } from "./general";
+import { unsignedToSignedOrders } from "./general";
 import getBranches from "./getBranches";
 import prepare from "./prepare";
 import LayerPrototype from "./prototype";
@@ -18,7 +18,7 @@ import LayerPrototype from "./prototype";
  * each depth. Combine these solutions using Object.assign({}, ...orders)
  * @param {Constraints} constraints an object containing all four cases, inside
  * of each is an (very large, typically) array of all constraints as a list of faces.
- * @param {object} facePairConstraints a map which contains, for every
+ * @param {object} constraintsLookup a map which contains, for every
  * taco/tortilla/transitivity case (top level keys), inside each is an object
  * which relates each facePair (key) to an array of indices (value),
  * where each index is an index in the "constraints" array
@@ -26,10 +26,11 @@ import LayerPrototype from "./prototype";
  * @param {string[]} unsolvedKeys array of facePair keys to be solved
  * @param {...object} ...orders any number of facePairsOrder solutions
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
+ * @linkcode Origami ./src/layer/globalSolver/index.js 29
  */
 const solveBranch = (
 	constraints,
-	facePairConstraints,
+	constraintsLookup,
 	unsolvedKeys,
 	...orders
 ) => {
@@ -41,7 +42,7 @@ const solveBranch = (
 	[1, 2].forEach(b => {
 		const result = propagate(
 			constraints,
-			facePairConstraints,
+			constraintsLookup,
 			[guessKey],
 			...orders,
 			{ [guessKey]: b },
@@ -64,7 +65,7 @@ const solveBranch = (
 	const recursed = unfinishedSolutions
 		.map(order => solveBranch(
 			constraints,
-			facePairConstraints,
+			constraintsLookup,
 			unsolvedKeys.filter(key => !(key in order)),
 			...orders,
 			order,
@@ -74,6 +75,8 @@ const solveBranch = (
 		.concat(...recursed);
 };
 /**
+ * @name solver
+ * @memberof layer
  * @description Recursively calculate all layer order solutions between faces
  * in a flat-folded FOLD graph.
  * @param {FOLD} graph a flat-folded FOLD graph, where the vertices
@@ -83,13 +86,14 @@ const solveBranch = (
  * and values are +1 or -1 describing the relationship of the two faces.
  * Results are stored in "root" and "branches", to compile a complete solution,
  * append the "root" to one selection from each array in "branches".
+ * @linkcode Origami ./src/layer/globalSolver/index.js 89
  */
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const prepareStartDate = new Date();
 	const {
 		constraints,
-		facePairConstraints,
-		facePairsOrder,
+		constraintsLookup,
+		facePairs,
 		edgeAdjacentOrders,
 	} = prepare(graph, epsilon);
 	// algorithm running time info
@@ -98,22 +102,22 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// propagate layer order starting with only the edge-adjacent face orders
 	const initialResult = propagate(
 		constraints,
-		facePairConstraints,
+		constraintsLookup,
 		Object.keys(edgeAdjacentOrders),
 		edgeAdjacentOrders,
 	);
 	// graph does not have a valid layer order. no solution
 	if (!initialResult) { return undefined; }
 	// get all keys unsolved after the first round of propagate
-	const remainingKeys = Object.keys(facePairsOrder)
+	const remainingKeys = facePairs
 		.filter(key => !(key in edgeAdjacentOrders))
 		.filter(key => !(key in initialResult));
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
-	const branchResults = getBranches(remainingKeys, constraints, facePairConstraints)
+	const branchResults = getBranches(remainingKeys, constraints, constraintsLookup)
 		.map(unsolvedKeys => solveBranch(
 			constraints,
-			facePairConstraints,
+			constraintsLookup,
 			unsolvedKeys,
 			edgeAdjacentOrders,
 			initialResult,
@@ -127,14 +131,17 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// the set of face-pair solutions which are true for all branches
 	const root = { ...edgeAdjacentOrders, ...initialResult };
 	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
-	unsignedToSignedConditions(root);
+	unsignedToSignedOrders(root);
 	branches
 		.forEach(branch => branch
-			.forEach(solutions => unsignedToSignedConditions(solutions)));
+			.forEach(solutions => unsignedToSignedOrders(solutions)));
 	const duration = Date.now() - startDate;
-	// console.log("branchResults", branchResults);
+	// console.log(`variables (${facePairs.length} total): ${Object.keys(edgeAdjacentOrders).length} neighbor faces, ${Object.keys(initialResult).length} propagate, ${remainingKeys.length} in branches`);
+	if (duration > 50) {
+		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
+	}
 	// console.log("branches", branches);
-	console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
+	// console.log("branchResults", branchResults);
 	return Object.assign(
 		Object.create(LayerPrototype),
 		{ root, branches },
