@@ -14,7 +14,7 @@ import { makeEdgesFacesOverlap } from "../../graph/overlap";
 import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla";
 import {
 	makeEdgesFacesSide,
-	makeTacosFacesSide
+	makeTacosFacesSide,
 } from "./facesSide";
 /**
  * @description classify a pair of adjacent faces encoded as +1 or -1
@@ -24,8 +24,8 @@ import {
  * - "right": a taco facing right
  */
 const classify_faces_pair = (pair) => {
-	if ((pair[0] === 1 && pair[1] === -1) ||
-		(pair[0] === -1 && pair[1] === 1)) {
+	if ((pair[0] === 1 && pair[1] === -1)
+		|| (pair[0] === -1 && pair[1] === 1)) {
 		return "both";
 	}
 	if ((pair[0] === 1 && pair[1] === 1)) { return "right"; }
@@ -33,21 +33,17 @@ const classify_faces_pair = (pair) => {
 };
 
 // pairs of tacos are valid taco-taco if they are both "left" or "right".
-const is_taco_taco = (classes) => {
-	return classes[0] === classes[1] && classes[0] !== "both";
-};
+const is_taco_taco = (classes) => classes[0] === classes[1]
+	&& classes[0] !== "both";
 
 // pairs of tortillas are valid tortillas if both of them are "both".
-const is_tortilla_tortilla = (classes) => {
-	return classes[0] === classes[1] && classes[0] === "both";
-};
+const is_tortilla_tortilla = (classes) => classes[0] === classes[1]
+	&& classes[0] === "both";
 
 // pairs of face-pairs are valid taco-tortillas if one is "both" (tortilla)
 // and the other is either a "left" or "right" taco.
-const is_taco_tortilla = (classes) => {
-	return classes[0] !== classes[1]
-		&& (classes[0] === "both" || classes[1] === "both");
-};
+const is_taco_tortilla = (classes) => classes[0] !== classes[1]
+	&& (classes[0] === "both" || classes[1] === "both");
 /**
  * @description this kind of taco-tortilla is edge-aligned with a tortilla
  * that is made of two faces. there are 4 faces involved, we only need 3.
@@ -72,13 +68,13 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
 /**
- * @description given a FOLD object, find all instances of edges overlapping which
+ * @description Given a FOLD object, find all instances of edges overlapping which
  * classify as taco/tortillas to determine layer order.
- * @param {object} a FOLD graph. vertices_coords should already be folded.
+ * @param {FOLD} graph a FOLD graph. vertices_coords should already be folded.
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {object} an object containing keys: taco_taco, tortilla_tortilla, taco_tortilla
- *
- * due to the face_center calculation to determine face-edge sidedness, this
+ * @linkcode Origami ./src/layer/tacos/makeTacosTortillas.js 76
+ * @notes due to the face_center calculation to determine face-edge sidedness, this
  * is currently hardcoded to only work with convex polygons.
  */
 const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
@@ -89,6 +85,7 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	const edges_faces_side = makeEdgesFacesSide(graph, faces_center);
 	// for every edge, find all other edges which are parallel to this edge and
 	// overlap the edge, excluding the epsilon space around the endpoints.
+	// 130ms:
 	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon);
 	// convert this matrix into unique pairs ([4, 9] but not [9, 4])
 	// thse pairs are also sorted such that the smaller index is first.
@@ -105,7 +102,7 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	const tacos_faces_side = makeTacosFacesSide(graph, faces_center, tacos_edges, tacos_faces);
 	// each pair of faces is either a "left" or "right" (taco) or "both" (tortilla).
 	const tacos_types = tacos_faces_side
-		.map((faces, i) => faces
+		.map(faces => faces
 			.map(classify_faces_pair));
 	// this completes taco-taco, however both tortilla-tortilla and taco-tortilla
 	// has two varieties.
@@ -116,7 +113,7 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	// tortilla-tortilla, and (2) those tacos which simply cross through the
 	// middle of a face. this completes taco-tortilla (1).
 	const taco_taco = tacos_types
-		.map((pair, i) => is_taco_taco(pair) ? tacos_faces[i] : undefined)
+		.map((pair, i) => (is_taco_taco(pair) ? tacos_faces[i] : undefined))
 		.filter(a => a !== undefined);
 	// tortilla-tortilla contains one additional required ordering:
 	// [a,b], [c,d] means a and b are connected, and c and d are connected,
@@ -124,40 +121,42 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	// get the first of the two tacos_edges, use this as the origin/vector.
 	// recompute the face-sidedness using these. see: make_tortilla_tortilla.
 	const tortilla_tortilla_aligned = tacos_types
-		.map((pair, i) => is_tortilla_tortilla(pair) ? tacos_faces[i] : undefined)
+		.map((pair, i) => (is_tortilla_tortilla(pair) ? tacos_faces[i] : undefined))
 		.map((pair, i) => make_tortilla_tortilla(pair, tacos_faces_side[i]))
 		.filter(a => a !== undefined);
-	const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(graph, edges_faces_side, epsilon);
-	// console.log("tortilla_tortilla_aligned", tortilla_tortilla_aligned);
-	// console.log("tortilla_tortilla_crossing", tortilla_tortilla_crossing);
+	// 5ms:
+	const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(
+		graph,
+		edges_faces_side,
+		epsilon,
+	);
 	const tortilla_tortilla = tortilla_tortilla_aligned
 		.concat(tortilla_tortilla_crossing);
 	// taco-tortilla (1), first case. taco overlaps tortilla.
 	const taco_tortilla_aligned = tacos_types
-		.map((pair, i) => is_taco_tortilla(pair)
+		.map((pair, i) => (is_taco_tortilla(pair)
 			? make_taco_tortilla(tacos_faces[i], tacos_types[i], tacos_faces_side[i])
-			: undefined)
+			: undefined))
 		.filter(a => a !== undefined);
 	// taco-tortilla (2), the second of two cases, when a taco overlaps a face.
+	// 750ms:
 	const edges_faces_overlap = makeEdgesFacesOverlap(graph, epsilon);
+	// 10ms:
 	const edges_overlap_faces = booleanMatrixToIndexedArray(edges_faces_overlap)
-		.map((faces, e) => edges_faces_side[e].length > 1
+		.map((faces, e) => (edges_faces_side[e].length > 1
 			&& edges_faces_side[e][0] === edges_faces_side[e][1]
-				? faces
-				: []);
+			? faces
+			: []));
 	const taco_tortillas_crossing = edges_overlap_faces
 		.map((tortillas, edge) => ({ taco: graph.edges_faces[edge], tortillas }))
 		.filter(el => el.tortillas.length);
 	const taco_tortilla_crossing = taco_tortillas_crossing
-		.map(el => el.tortillas
-			.map(tortilla => ({ taco: [...el.taco], tortilla })))
-		.reduce((a, b) => a.concat(b), []);
+		.flatMap(el => el.tortillas
+			.map(tortilla => ({ taco: [...el.taco], tortilla })));
 	// finally, join both taco-tortilla cases together into one.
-	// unnecessary, but sort them, why not.
-	const taco_tortilla = taco_tortilla_aligned
-		.concat(taco_tortilla_crossing)
-		.sort((a, b) => a.tortilla - b.tortilla);
-
+	const taco_tortilla = taco_tortilla_aligned.concat(taco_tortilla_crossing);
+	// console.log("tortilla_tortilla_aligned", tortilla_tortilla_aligned);
+	// console.log("tortilla_tortilla_crossing", tortilla_tortilla_crossing);
 	return {
 		taco_taco,
 		tortilla_tortilla,

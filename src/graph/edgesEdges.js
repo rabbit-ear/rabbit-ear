@@ -2,7 +2,64 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { makeEdgesVector } from "./make";
+import {
+	makeEdgesVector,
+	makeEdgesCoords,
+	makeEdgesBoundingBox,
+} from "./make";
+import { booleanMatrixToIndexedArray } from "../general/arrays";
+/**
+ * @description Similar edges are defined by their coordinates, it doesn't matter
+ * the order, so long as the two endpoints match
+ */
+export const makeEdgesEdgesSimilar = ({
+	vertices_coords, edges_vertices, edges_coords,
+}, epsilon = math.core.EPSILON) => {
+	// ///////////////////////////////////////
+	// idk why this isn't working. it's leaving out some indices. something with
+	// the group building - indices.slice(), something there.
+	if (!edges_coords) {
+		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
+	}
+	const edges_boundingBox = makeEdgesBoundingBox({
+		vertices_coords, edges_vertices, edges_coords,
+	});
+	const matrix = Array.from(Array(edges_coords.length)).map(() => []);
+	const dimensions = edges_boundingBox.length ? edges_boundingBox[0].min.length : 0;
+	for (let i = 0; i < edges_coords.length - 1; i += 1) {
+		for (let j = i + 1; j < edges_coords.length; j += 1) {
+			let similar = true;
+			for (let d = 0; d < dimensions; d += 1) {
+				if (!math.core.fnEpsilonEqual(
+					edges_boundingBox[i].min[d],
+					edges_boundingBox[j].min[d],
+					epsilon,
+				) || !math.core.fnEpsilonEqual(
+					edges_boundingBox[i].max[d],
+					edges_boundingBox[j].max[d],
+					epsilon,
+				)) {
+					similar = false;
+				}
+			}
+			matrix[i][j] = similar;
+			matrix[j][i] = similar;
+		}
+	}
+	for (let i = 0; i < edges_coords.length - 1; i += 1) {
+		for (let j = i + 1; j < edges_coords.length; j += 1) {
+			if (!matrix[i][j]) { continue; }
+			const test0 = math.core.fnEpsilonEqualVectors(edges_coords[i][0], edges_coords[j][0], epsilon)
+				&& math.core.fnEpsilonEqualVectors(edges_coords[i][1], edges_coords[j][1], epsilon);
+			const test1 = math.core.fnEpsilonEqualVectors(edges_coords[i][0], edges_coords[j][1], epsilon)
+				&& math.core.fnEpsilonEqualVectors(edges_coords[i][1], edges_coords[j][0], epsilon);
+			const similar = test0 || test1;
+			matrix[i][j] = similar;
+			matrix[j][i] = similar;
+		}
+	}
+	return booleanMatrixToIndexedArray(matrix);
+};
 /**
  * @description Create an NxN matrix (N number of edges) that relates edges to each other,
  * inside each entry is true/false, true if the two edges are parallel within an epsilon.
@@ -11,7 +68,7 @@ import { makeEdgesVector } from "./make";
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} a boolean matrix, are two edges parallel?
  * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
- * @linkcode Origami ./src/graph/edgesEdges.js 14
+ * @linkcode Origami ./src/graph/edgesEdges.js 71
  */
 export const makeEdgesEdgesParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
@@ -19,20 +76,58 @@ export const makeEdgesEdgesParallel = ({
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
+	// let lastTime = new Date();
 	const edge_count = edges_vector.length;
+	const normalized = edges_vector
+		.map(vec => math.core.normalize(vec));
+	// ///////////////////////////////////////
+	// idk why this isn't working. it's leaving out some indices. something with
+	// the group building - indices.slice(), something there.
+	// const dots = normalized
+	// 	.map(vec => math.core.dot(vec, [1, 0]));
+	// const indices = Array.from(Array(edge_count))
+	// 	.map((_, i) => i)
+	// 	.sort((a, b) => dots[a] - dots[b]);
+	// let start = 0;
+	// const groups = [];
+	// for (let i = 1; i < indices.length; i += 1) {
+	// 	if (!math.core.fnEpsilonEqual(dots[indices[start]], dots[indices[i]], epsilon)) {
+	// 		groups.push(indices.slice(start, i));
+	// 		start = i;
+	// 	}
+	// }
+	// if (groups.length > 2) {
+	// 	if (math.core.fnEpsilonEqual(groups[0][0], -1, epsilon)
+	// 		&& math.core.fnEpsilonEqual(groups[groups.length - 1][0], 1, epsilon)) {
+	// 		const lastGroup = groups.pop();
+	// 		groups[0] = groups[0].concat(lastGroup);
+	// 	}
+	// }
+	// const edges_edges_parallel = Array
+	// 	.from(Array(edge_count))
+	// 	.map(() => Array(edge_count).fill(false));
+	// for (let g = 0; g < groups.length; g += 1) {
+	// 	for (let i = 0; i < groups[g].length - 1; i += 1) {
+	// 		for (let j = i + 1; j < groups[g].length; j += 1) {
+	// 			edges_edges_parallel[groups[g][i]][groups[g][j]] = true;
+	// 			edges_edges_parallel[groups[g][j]][groups[g][i]] = true;
+	// 		}
+	// 	}
+	// }
+	// console.log("groups", groups);
+	// for (let i = 0; i < edge_count; i += 1) {
+	// 	edges_edges_parallel[i][i] = undefined;
+	// }
 	const edges_edges_parallel = Array
 		.from(Array(edge_count))
 		.map(() => Array.from(Array(edge_count)));
 	for (let i = 0; i < edge_count - 1; i += 1) {
 		for (let j = i + 1; j < edge_count; j += 1) {
-			const p = math.core.parallel(edges_vector[i], edges_vector[j], epsilon);
+			const p = (1 - Math.abs(math.core.dot(normalized[i], normalized[j])) < epsilon);
 			edges_edges_parallel[i][j] = p;
 			edges_edges_parallel[j][i] = p;
 		}
 	}
-	// for (let i = 0; i < edge_count; i++) {
-	//   edges_edges_parallel[i][i] = undefined;
-	// }
 	return edges_edges_parallel;
 };
 

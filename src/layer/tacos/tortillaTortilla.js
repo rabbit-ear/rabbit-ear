@@ -8,17 +8,18 @@ import { makeEdgesEdgesCrossing } from "../../graph/edgesEdges";
 import { booleanMatrixToIndexedArray } from "../../general/arrays";
 /**
  * @description makeTortillaTortillaEdgesCrossing
- * @param {object} graph a FOLD object graph
+ * @param {FOLD} graph a FOLD object graph
  * @param {todo} todo todo
  * @param {number} [epsilon=1e-6] optional epsilon value
  * @returns todo
+ * @linkcode Origami ./src/layer/tacos/tortillaTortilla.js 15
  */
 export const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsilon) => {
 	// get all tortilla edges. could also be done by searching
 	// "edges_assignment" for all instances of F/f. perhaps this way is better.
 	const tortilla_edge_indices = edges_faces_side
 		.map(side => side.length === 2 && side[0] !== side[1])
-		.map((bool, i) => bool ? i : undefined)
+		.map((bool, i) => (bool ? i : undefined))
 		.filter(a => a !== undefined);
 	// get all edges which cross these tortilla edges. these edges can even be
 	// boundary edges, it doesn't matter how many adjacent faces they have.
@@ -39,12 +40,12 @@ export const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsil
 export const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
 	const faces_winding = makeFacesWinding(graph);
 	const faces_polygon = makeFacesPolygon(graph, epsilon);
-	for (let i = 0; i < faces_polygon.length; i++) {
+	for (let i = 0; i < faces_polygon.length; i += 1) {
 		if (!faces_winding[i]) { faces_polygon[i].reverse(); }
 	}
 	const tortilla_edge_indices = edges_faces_side
 		.map(side => side.length === 2 && side[0] !== side[1])
-		.map((bool, i) => bool ? i : undefined)
+		.map((bool, i) => (bool ? i : undefined))
 		.filter(a => a !== undefined);
 	const edges_coords = tortilla_edge_indices
 		.map(e => graph.edges_vertices[e])
@@ -55,24 +56,25 @@ export const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => 
 	const matrix = [];
 	tortilla_edge_indices.forEach(e => { matrix[e] = []; });
 	// console.log("clip", tortilla_edge_indices
-		// .map((e, ei) => faces_polygon
-		// 	.map((poly, f) => math.core.clipLineConvexPolygon(
-		// 		poly,
-		// 		edges_vector[ei],
-		// 		edges_coords[ei][0],
-		// 		math.core.exclude,
-		// 		math.core.excludeS,
-		// 		epsilon))));
+	//	 .map((e, ei) => faces_polygon
+	//	 	.map((poly, f) => math.core.clipLineConvexPolygon(
+	//	 		poly,
+	//	 		edges_vector[ei],
+	//	 		edges_coords[ei][0],
+	//	 		math.core.exclude,
+	//	 		math.core.excludeS,
+	//	 		epsilon))));
 	const result = tortilla_edge_indices
 		.map((e, ei) => faces_polygon
-			.map((poly, f) => math.core.clipLineConvexPolygon(
+			.map(poly => math.core.clipLineConvexPolygon(
 				poly,
 				edges_vector[ei],
 				edges_coords[ei][0],
 				math.core.exclude,
 				math.core.excludeS,
-				epsilon))
-			.map((result, f) => result !== undefined));
+				epsilon,
+			))
+			.map(res => res !== undefined));
 	// const result = tortilla_edge_indices
 	// 	.map((e, ei) => faces_polygon
 	// 		.map((poly, f) => math.core.intersectConvexPolygonLine(
@@ -96,16 +98,19 @@ export const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => 
 	// console.log("result", result);
 	// console.log("matrix", matrix);
 	return matrix;
-}
+};
 
 export const makeTortillaTortillaFacesCrossing = (graph, edges_faces_side, epsilon) => {
-	const tortilla_tortilla_edges = makeTortillaTortillaEdgesCrossing(graph, edges_faces_side, epsilon);
+	// const tortilla_tortilla_edges = makeTortillaTortillaEdgesCrossing(
+	// 	graph,
+	// 	edges_faces_side,
+	// 	epsilon,
+	// );
 	// console.log("tortilla_tortilla_edges", tortilla_tortilla_edges);
 	const tortillas_faces_crossing = makeTortillasFacesCrossing(graph, edges_faces_side, epsilon);
 	const tortilla_faces_results = tortillas_faces_crossing
 		.map((faces, e) => faces.map(face => [graph.edges_faces[e], [face, face]]))
 		.reduce((a, b) => a.concat(b), []);
-
 	// const tortilla_tortilla_results = tortilla_tortilla_edges
 	// 	.map(el => ({
 	// 		tortilla_faces: graph.edges_faces[el.tortilla_edge],

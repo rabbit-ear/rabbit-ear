@@ -82,6 +82,12 @@ test("layer solver, wrong final crease direction 2", () => {
 	expect(JSON.stringify(invalid)).toBe(JSON.stringify([]));
 });
 
+test("solver", () => {
+	const sectors = [12, 11, 6, 2, 3, 4, 5, 9];
+	const assignments = ["V", "V", "V", "M", "V", "V", "M", "M"];
+	ear.layer.singleVertexSolver(sectors, assignments);
+});
+
 test("layer solver, wrong final crease direction3, invalid edge-crossing", () => {
 	// taco taco problem:
 	//
@@ -102,7 +108,6 @@ test("layer solver, wrong final crease direction3, invalid edge-crossing", () =>
 	expect(invalid.length).toBe(0);
 	expect(JSON.stringify(invalid)).toBe(JSON.stringify([]));
 });
-
 
 test("layer solver, simple staircase, wraparound, final crease wrong direction 2", () => {
 	const res = ear.layer.singleVertexSolver([3, 2, 3, 2, 3, 5], Array.from("MVMVMV"));

@@ -2,23 +2,6 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description algorithm designed by Jason Ku.
- * Every taco/tortilla event encodes the relationship between 3 or 4 faces,
- * and given a known subset of orders between faces involved, we can either:
- * (a) confirm that this layer order is valid (even if not yet finished)
- * (b) confirm that this layer order is invalid
- * (c) not only confirm validity (a) but also uncover another relationship
- * between other pairs of faces involved in the taco/tortilla event.
- * 
- * The values of each state above is encoded as:
- * (a) is true, (b) is false, (c) encodes which index needs to change and
- * what the new value should become (either a 1 or 2).
- * 
- * And the keys representing each state are n-long, one for every pair of
- * faces involved, and encodes each pair as a 0, 1, or 2, each meaning:
- * 0: order unknown, 1: face a is above b, 2: face b is above a.
- */
-/**
  * @description each state encodes a valid layer combination. each number
  * describes a relationship between pairs of faces, indicating:
  * - 1: the first face is above the second face
@@ -73,19 +56,19 @@ const transitivity_valid_states = [
  */
 const check_state = (states, t, key) => {
 	// convert the key into an array of integers (0, 1, 2)
-	const A = Array.from(key).map(char => parseInt(char));
+	const A = Array.from(key).map(char => parseInt(char, 10));
 	// for each "t" index of states, only include keys which contain
 	// "t" number of unknowns (0s).
 	if (A.filter(x => x === 0).length !== t) { return; }
 	states[t][key] = false;
 	// solution will either be 0, 1, or an array of modifications
 	let solution = false;
-	for (let i = 0; i < A.length; i++) {
+	for (let i = 0; i < A.length; i += 1) {
 		const modifications = [];
 		// look at the unknown layers only (index is 0)
 		if (A[i] !== 0) { continue; }
 		// in place of the unknowns, try each of the possible states (1, 2)
-		for (let x = 1; x <= 2; x++) {
+		for (let x = 1; x <= 2; x += 1) {
 			// temporarily set the state to this new possible state.
 			A[i] = x;
 			// if this state exists in the previous set, save this solution.
@@ -139,10 +122,10 @@ const make_lookup = (valid_states) => {
 	// examples for (6): 111112, 212221
 	// set the value of these to "false" (solution is impossible)
 	// with the valid cases to be overwritten in the next step.
-	Array.from(Array( Math.pow(2, choose_count) ))
+	Array.from(Array(Math.pow(2, choose_count)))
 		.map((_, i) => i.toString(2))
-		.map(str => Array.from(str).map(n => parseInt(n) + 1).join(""))
-		.map(str => ("11111" + str).slice(-choose_count))
+		.map(str => Array.from(str).map(n => parseInt(n, 10) + 1).join(""))
+		.map(str => (`11111${str}`).slice(-choose_count))
 		.forEach(key => { states[0][key] = false; });
 	// set the valid cases to "true" (solution is possible)
 	valid_states.forEach(s => { states[0][s] = true; });
@@ -152,9 +135,9 @@ const make_lookup = (valid_states) => {
 		.map((_, i) => i + 1)
 		// make all permuations of 0s, 1s, and 2s now, length of choose_count.
 		// (all possibile permuations of layer orders)
-		.map(t => Array.from(Array( Math.pow(3, choose_count) ))
+		.map(t => Array.from(Array(Math.pow(3, choose_count)))
 			.map((_, i) => i.toString(3))
-			.map(str => ("000000" + str).slice(-choose_count))
+			.map(str => (`000000${str}`).slice(-choose_count))
 			.forEach(key => check_state(states, t, key)));
 	// todo: the filter at the beginning of check_state is throwing away
 	// a lot of solutions, duplicating work, in the first array here, instead
@@ -190,22 +173,34 @@ const make_lookup = (valid_states) => {
 		});
 	// this is unnecessary but because for Javascipt object keys,
 	// insertion order is preserved, sort keys for cleaner output.
-	outs.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+	outs.sort((a, b) => parseInt(a[0], 10) - parseInt(b[0], 10));
 	// return data as an object.
 	// recursively freeze result, this is intended to be an immutable reference
 	const lookup = {};
 	outs.forEach(el => { lookup[el[0]] = Object.freeze(el[1]); });
 	return Object.freeze(lookup);
 };
-
-const slow_lookup = {
+/**
+ * @name table
+ * @memberof layer
+ * @description This lookup table encodes all possible taco-taco,
+ * taco-tortilla, tortilla-tortilla, and transitivity constraints between
+ * groups of faces in a folded graph. Given an encoded state, as a key
+ * of this object, the value represents either:
+ * - {boolean} true: the layer order is so far valid
+ * - {boolean} false: the layer order is invalid
+ * - {number[]}: the layer order is valid, and, here is another
+ * relationship which can be inferred from the current state.
+ * This is an implementation of an algorithm designed by [Jason Ku](//jasonku.mit.edu).
+ */
+const layerTable = {
 	taco_taco: make_lookup(taco_taco_valid_states),
 	taco_tortilla: make_lookup(taco_tortilla_valid_states),
 	tortilla_tortilla: make_lookup(tortilla_tortilla_valid_states),
 	transitivity: make_lookup(transitivity_valid_states),
 };
 
-export default slow_lookup;
+export default layerTable;
 
 // const done_result = { 0: false, 1: true };
 // const make_number = (key, value) => {
@@ -215,11 +210,11 @@ export default slow_lookup;
 //   return parseInt(base_three, 3);
 // };
 // const quick_lookup = {};
-// Object.keys(slow_lookup).forEach(type => {
+// Object.keys(layerTable).forEach(type => {
 //   quick_lookup[type] = [];
-//   Object.keys(slow_lookup[type]).forEach(key => {
+//   Object.keys(layerTable[type]).forEach(key => {
 //     const base_ten = parseInt(key, 3);
-//     const value = slow_lookup[type][key];
+//     const value = layerTable[type][key];
 //     const done = value === 0 || value === 1;
 //     const new_value = done ? done_result[value] : make_number(key, value);
 //     quick_lookup[type][base_ten] = new_value;

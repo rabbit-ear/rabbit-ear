@@ -7,15 +7,20 @@
 /**
  * @description make an array of objects where each object represents one
  * fold line, and contains all the tacos and tortillas sharing the fold line.
+ * @param {number[][]} folded_faces sectors in their folded positions, the result
+ * of calling "foldStripWithAssignments"
+ * @param {boolean} is_circular if the folded strip wraps around and joins with itself.
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object[]} array of taco objects. each taco object represents one
  * fold location shared by multiple tacos. each taco object contains keys:
  * "both", "left", "right" where the values are an array of pairs of faces,
  * the pairs of adjacent faces around the taco edge. "left": [ [2,3] [6,0] ]
+ * @linkcode Origami ./src/layer/tacos/makeFoldedStripTacos.js 18
  */
 const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
 	// center of each face, will be used to see if a taco faces left or right
 	const faces_center = folded_faces
-		.map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
+		.map((ends) => (ends ? (ends[0] + ends[1]) / 2 : undefined));
 	const locations = [];
 	// gather all fold locations that match, add them to the same group.
 	// for every fold location, make one of these objects where the pairs are
@@ -32,7 +37,7 @@ const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
 		const fold_end = ends[1];
 		const min = fold_end - (epsilon * 2);
 		const max = fold_end + (epsilon * 2);
-		const faces = [i, (i+1) % folded_faces.length];
+		const faces = [i, (i + 1) % folded_faces.length];
 		// which side of the crease is the face on?
 		// false = left (-), true = right (+)
 		const sides = faces

@@ -2,25 +2,27 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description find a topological ordering from a set of conditions
- * @param {object} conditions a solution of face layer conditions where the keys are space-separated pair of faces, and the value is +1 0 or -1.
- * @param {object} graph a FOLD graph
+ * @description find a topological ordering from a set of facePairOrders
+ * @param {object} facePairOrders a solution of face layer facePairOrders where
+ * the keys are space-separated pair of faces, and the value is +1 0 or -1.
+ * @param {FOLD} graph an optional FOLD graph
  * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
+ * @linkcode Origami ./src/layer/globalSolver/topologicalOrder.js 10
  */
-const topologicalOrder = (conditions, graph) => {
-	if (!conditions) { return []; }
+const topologicalOrder = (facePairOrders, graph) => {
+	if (!facePairOrders) { return []; }
 	const faces_children = [];
-	// use the conditions face pair relationships to fill an array where
+	// use the facePairOrders face pair relationships to fill an array where
 	// index: face, value: array of the face's children (faces below the face)
-	Object.keys(conditions).map(key => {
-		const pair = key.split(" ").map(n => parseInt(n));
-		if (conditions[key] === -1) { pair.reverse(); }
+	Object.keys(facePairOrders).forEach(key => {
+		const pair = key.split(" ").map(n => parseInt(n, 10));
+		if (facePairOrders[key] === -1) { pair.reverse(); }
 		if (faces_children[pair[0]] === undefined) {
 			faces_children[pair[0]] = [];
 		}
 		faces_children[pair[0]].push(pair[1]);
 	});
-	// not all faces are encoded in the conditions. use the graph to fill in
+	// not all faces are encoded in the facePairOrders. use the graph to fill in
 	// any remaining faces with empty arrays (no child faces / faces below)
 	if (graph && graph.faces_vertices) {
 		graph.faces_vertices.forEach((_, f) => {
@@ -33,12 +35,12 @@ const topologicalOrder = (conditions, graph) => {
 	const layers_face = [];
 	const faces_visited = [];
 	let protection = 0;
-	for (let f = 0; f < faces_children.length; f++) {
+	for (let f = 0; f < faces_children.length; f += 1) {
 		if (faces_visited[f]) { continue; }
 		const stack = [f];
 		while (stack.length && protection < faces_children.length * 2) {
 			const stack_end = stack[stack.length - 1];
-			if (faces_children[stack_end].length) {
+			if (faces_children[stack_end] && faces_children[stack_end].length) {
 				const next = faces_children[stack_end].pop();
 				if (!faces_visited[next]) { stack.push(next); }
 				continue;
@@ -48,7 +50,7 @@ const topologicalOrder = (conditions, graph) => {
 				faces_visited[stack_end] = true;
 				stack.pop();
 			}
-			protection++;
+			protection += 1;
 		}
 	}
 	// console.log("faces_children", faces_children);

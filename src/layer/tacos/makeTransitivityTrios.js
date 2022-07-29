@@ -8,13 +8,19 @@ import { makeFacesFacesOverlap } from "../../graph/overlap";
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
  * intersection of all three faces.
- * @param {object} graph a FOLD graph
+ * @param {FOLD} graph a FOLD graph
  * @param {boolean[][]} overlap_matrix an overlap-relationship between every face
  * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} list of arrays containing three face indices.
+ * @linkcode Origami ./src/layer/tacos/makeTransitivityTrios.js 16
  */
-const makeTransitivityTrios = (graph, overlap_matrix, faces_winding, epsilon = math.core.EPSILON) => {
+const makeTransitivityTrios = (
+	graph,
+	overlap_matrix,
+	faces_winding,
+	epsilon = math.core.EPSILON,
+) => {
 	if (!overlap_matrix) {
 		overlap_matrix = makeFacesFacesOverlap(graph, epsilon);
 	}
@@ -30,18 +36,18 @@ const makeTransitivityTrios = (graph, overlap_matrix, faces_winding, epsilon = m
 		if (!faces_winding[i]) { face.reverse(); }
 	});
 	const matrix = graph.faces_vertices.map(() => []);
-	for (let i = 0; i < matrix.length - 1; i++) {
-		for (let j = i + 1; j < matrix.length; j++) {
+	for (let i = 0; i < matrix.length - 1; i += 1) {
+		for (let j = i + 1; j < matrix.length; j += 1) {
 			if (!overlap_matrix[i][j]) { continue; }
 			const polygon = math.core.clipPolygonPolygon(polygons[i], polygons[j], epsilon);
 			if (polygon) { matrix[i][j] = polygon; }
 		}
 	}
 	const trios = [];
-	for (let i = 0; i < matrix.length - 1; i++) {
-		for (let j = i + 1; j < matrix.length; j++) {
+	for (let i = 0; i < matrix.length - 1; i += 1) {
+		for (let j = i + 1; j < matrix.length; j += 1) {
 			if (!matrix[i][j]) { continue; }
-			for (let k = j + 1; k < matrix.length; k++) {
+			for (let k = j + 1; k < matrix.length; k += 1) {
 				if (i === k || j === k) { continue; }
 				if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
 				const polygon = math.core.clipPolygonPolygon(matrix[i][j], polygons[k], epsilon);
