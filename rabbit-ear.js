@@ -6529,16 +6529,61 @@
 		makeFacesFacesOverlap: makeFacesFacesOverlap
 	});
 
-	const triangulate = (indices) => Array.from(Array(indices.length - 2))
+	const triangulateVertices = (indices) => Array.from(Array(indices.length - 2))
 		.map((_, i) => [indices[0], indices[i + 1], indices[i + 2]]);
 	const triangulateConvexFacesVertices = ({ faces_vertices }) => faces_vertices
 		.flatMap(vertices => (vertices.length < 4
 			? [vertices]
-			: triangulate(vertices)));
+			: triangulateVertices(vertices)));
+	const makeTriangulatedConvexFacesMap = ({ faces_vertices }) => {
+		let i = 0;
+		return faces_vertices.flatMap(vertices => {
+			if (vertices.length < 4) { return [i++]; }
+			const face = Array.from(Array(vertices.length - 2)).map(() => i);
+			i += 1;
+			return face;
+		});
+	};
+	const triangulate = (graph, earcut) => {
+		const edgeLookup = makeVerticesToEdgeBidirectional(graph);
+		const facesMap = makeTriangulatedConvexFacesMap(graph);
+		graph.faces_vertices = triangulateConvexFacesVertices(graph);
+		let e = graph.edges_vertices.length;
+		const newEdgesVertices = [];
+		graph.faces_edges = graph.faces_vertices
+			.map(vertices => vertices
+				.map((v, i, arr) => {
+					const edge_vertices = [v, arr[(i + 1) % arr.length]];
+					const vertexPair = edge_vertices.join(" ");
+					if (vertexPair in edgeLookup) { return edgeLookup[vertexPair]; }
+					newEdgesVertices.push(edge_vertices);
+					return e++;
+				}));
+		const newEdgeCount = newEdgesVertices.length;
+		graph.edges_vertices.push(...newEdgesVertices);
+		if (graph.edges_assignment) {
+			graph.edges_assignment.push(...Array(newEdgeCount).fill("J"));
+		}
+		if (graph.edges_foldAngle) {
+			graph.edges_foldAngle.push(...Array(newEdgeCount).fill(0));
+		}
+		if (graph.vertices_vertices) { delete graph.vertices_vertices; }
+		if (graph.vertices_edges) { delete graph.vertices_edges; }
+		if (graph.vertices_faces) { delete graph.vertices_faces; }
+		if (graph.edges_faces) { delete graph.edges_faces; }
+		if (graph.faces_faces) { delete graph.faces_faces; }
+		if (graph.faceOrders) {
+			console.log("triangulate() method on graph with faceOrders, do not use faceOrders");
+		}
+		return {
+			faces: { map: facesMap },
+		};
+	};
 
 	var triangulate$1 = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		triangulateConvexFacesVertices: triangulateConvexFacesVertices
+		triangulateConvexFacesVertices: triangulateConvexFacesVertices,
+		triangulate: triangulate
 	});
 
 	const subgraph = (graph, components) => {
