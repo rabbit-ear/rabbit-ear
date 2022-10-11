@@ -11,7 +11,8 @@ import { makeFacesWinding } from "./facesWinding";
 /**
  * @description Create a modified graph which separates all faces from each other.
  * This will add new vertices and new edges. Most adjacency arrays will be
- * deleted, however, edges_assignment and foldAngle will be correctly rebuild.
+ * deleted as a lot of it becomes trivial. However, edges_assignment and foldAngle
+ * will remain and be correctly updated to match the new edge indices.
  * @param {FOLD} graph a FOLD graph, will be modified in place
  * @returns {object} a summary of changes to the vertices and edges
  * @linkcode Origami ./src/graph/explodeFaces.js 15
