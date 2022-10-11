@@ -77,7 +77,7 @@ const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) =
 		}
 	};
 	// every vertex will be recusively visited, depth first.
-	// begin with the first vertex, follow 
+	// begin with the first vertex, follow
 	for (let i = 0; i < vertices_coords.length; i += 1) {
 		recurse(i, i);
 		if (visitedCount === vertices_coords.length) { break; }

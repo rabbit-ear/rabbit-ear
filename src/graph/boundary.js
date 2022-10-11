@@ -8,7 +8,18 @@ import {
 	makeVerticesVertices,
 	makeVerticesToEdgeBidirectional,
 } from "./make";
-
+/**
+ * @description Make an axis-aligned bounding box that encloses the vertices of
+ * a FOLD object. the optional padding is used to make the bounding box
+ * inclusive / exclusive by adding padding on all sides, or inset in the case
+ * of negative number. (positive=inclusive boundary, negative=exclusive boundary)
+ * @param {FOLD} graph a FOLD graph
+ * @param {number?} padding an optional padding around the vertices
+ * to be included in the bounding box.
+ * @returns {BoundingBox?} dimensions stored as "span" "min" and "max".
+ * "undefined" if no vertices exist in the graph.
+ * @linkcode
+ */
 export const getBoundingBox = ({ vertices_coords }, padding) => math.core
 	.boundingBox(vertices_coords, padding);
 /**

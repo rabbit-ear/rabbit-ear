@@ -34,6 +34,7 @@ import replace from "./replace";
  * @linkcode Origami ./src/graph/edgesViolations.js 34
  */
 export const getCircularEdges = ({ edges_vertices }) => {
+	if (!edges_vertices) { return []; }
 	const circular = [];
 	for (let i = 0; i < edges_vertices.length; i += 1) {
 		if (edges_vertices[i][0] === edges_vertices[i][1]) {

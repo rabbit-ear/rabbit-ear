@@ -6,9 +6,19 @@ import {
 } from "./general";
 /**
  * @param {string[]} remainingKeys array of facePair keys which are unsolved
+ * @param {any} constraints
+ * @param {any} constraintsLookup
+ * @param {object} constraintsNeighborsMemo given a face-pair (key), the value is an
+ * array of all other face-pairs which are included in some condition (taco/tortilla/trans)
+ * in which the face-pair key also appears.
  * @linkcode Origami ./src/layer/globalSolver/getBranches.js 9
  */
-const getBranches = (remainingKeys, constraints, constraintsLookup) => {
+const getBranches = (
+	remainingKeys,
+	constraints,
+	constraintsLookup,
+	constraintsNeighborsMemo = {},
+) => {
 	const taco_types = Object.keys(constraints);
 	// move remainingKeys into a dictionary.
 	// we will delete keys from this dictionary as we visit them
@@ -37,28 +47,37 @@ const getBranches = (remainingKeys, constraints, constraintsLookup) => {
 			// add this key to the current group
 			group.push(key);
 			// we are about to loop through all of this key's neighbors
-			// collect all neighbors into one hash to remove duplicates.
-			const neighborsHash = {};
-			// visit each taco/tortilla/transitivity type, and inside each type,
-			// visit all constraints, store the constraints in the neighborsHash.
-			taco_types.forEach(type => {
-				// skip if constraintsLookup for a type/key doesn't exist.
-				const indices = constraintsLookup[type][key];
-				if (!indices) { return; }
-				// for each constraint index, convert it into its 3 or 4 face indices,
-				// then convert these into all permutations of face-pair strings.
-				indices
-					.map(c => constraints[type][c])
-					.map(faces => constraintToFacePairsStrings[type](faces)
-						// add each facePair to the neighborsHash.
-						.forEach(facePair => { neighborsHash[facePair] = true; }));
-			});
+			// if they already exist, use the data from the memo
+			let neighborsArray;
+			if (constraintsNeighborsMemo[key]) {
+				neighborsArray = constraintsNeighborsMemo[key];
+			} else {
+				// collect all neighbors into one hash to remove duplicates.
+				const neighborsHash = {};
+				// visit each taco/tortilla/transitivity type, and inside each type,
+				// visit all constraints, store the constraints in the neighborsHash.
+				taco_types.forEach(type => {
+					// skip if constraintsLookup for a type/key doesn't exist.
+					const indices = constraintsLookup[type][key];
+					if (!indices) { return; }
+					// for each constraint index, convert it into its 3 or 4 face indices,
+					// then convert these into all permutations of face-pair strings.
+					indices
+						.map(c => constraints[type][c])
+						.map(faces => constraintToFacePairsStrings[type](faces)
+							// add each facePair to the neighborsHash.
+							.forEach(facePair => { neighborsHash[facePair] = true; }));
+				});
+				neighborsArray = Object.keys(neighborsHash);
+				constraintsNeighborsMemo[key] = neighborsArray;
+			}
 			// get all neighbors from the hash, filtering out facePairs
 			// which were already visited any time in this method ("keys"),
 			// and already visited and included inside this stack ("stackHash")
-			const neighbors = Object.keys(neighborsHash)
+			const neighbors = neighborsArray
 				.filter(facePair => keys[facePair])
 				.filter(facePair => !stackHash[facePair]);
+			// console.log("branch search", key, "connected to", neighborsArray);
 			// add these facePairs to the stack (and hash) to be visited next loop.
 			stack.push(...neighbors);
 			neighbors.forEach(facePair => { stackHash[facePair] = true; });

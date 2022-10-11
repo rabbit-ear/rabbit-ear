@@ -52,6 +52,7 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// console.log("facePairsOrder", facePairsOrder);
 	// console.log("constraints", constraints);
 	// console.log("constraintsLookup", constraintsLookup);
+	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
 	// console.log(`transitivity: ${unfiltered_trios.length} down to ${transitivity_trios.length} (${unfiltered_trios.length - transitivity_trios.length} removed from tacos/tortillas)`);
 	// console.log(`${constraints.taco_taco.length} taco-taco, ${constraints.taco_tortilla.length} taco-tortilla, ${constraints.tortilla_tortilla.length} tortilla-tortilla, ${constraints.transitivity.length} transitivity`);
 	return {

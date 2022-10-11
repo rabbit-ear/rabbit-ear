@@ -1,3 +1,15 @@
+# 0.9.33 alpha
+
+new WebGL implementation!
+
+new Matrix4 type. new Quaternion type. new projection matrices.
+
+new method `ear.graph.nearest`, which was already in the `graph()` object as a prototype method. now exists in the top level.
+
+all matrix scale methods takes an array of values instead of one number, allowing non-uniform axis scaling.
+
+`ear.graph.getBoundingBox` will return "undefined" if the graph does not contain any vertices_coords. previously this would throw an error.
+
 # 0.9.32 alpha
 
 new layer solver implementation at ear.layer.solver(), huge performance improvement. solver returns data bound to a prototype which includes methods to process and analyze the data. methods include

@@ -31,6 +31,7 @@ import LayerPrototype from "./prototype";
 const solveBranch = (
 	constraints,
 	constraintsLookup,
+	constraintsNeighborsMemo,
 	unsolvedKeys,
 	...orders
 ) => {
@@ -63,13 +64,26 @@ const solveBranch = (
 	// recursively call this method with any unsolved solutions and filter
 	// any keys that were found in that solution out of the unsolved keys
 	const recursed = unfinishedSolutions
-		.map(order => solveBranch(
-			constraints,
-			constraintsLookup,
-			unsolvedKeys.filter(key => !(key in order)),
-			...orders,
-			order,
-		));
+		.map(order => {
+			const remainingKeys = unsolvedKeys.filter(key => !(key in order));
+			return getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo)
+				.map(branchUnsolvedKeys => solveBranch(
+					constraints,
+					constraintsLookup,
+					constraintsNeighborsMemo,
+					branchUnsolvedKeys,
+					...orders,
+					order,
+				));
+		});
+	// const recursed = unfinishedSolutions
+	// 	.map(order => solveBranch(
+	// 		constraints,
+	// 		constraintsLookup,
+	// 		unsolvedKeys.filter(key => !(key in order)),
+	// 		...orders,
+	// 		order,
+	// 	));
 	return completedSolutions
 		.map(order => ([...orders, order]))
 		.concat(...recursed);
@@ -114,10 +128,12 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		.filter(key => !(key in initialResult));
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
-	const branchResults = getBranches(remainingKeys, constraints, constraintsLookup)
+	const constraintsNeighborsMemo = {};
+	const branchResults = getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo)
 		.map(unsolvedKeys => solveBranch(
 			constraints,
 			constraintsLookup,
+			constraintsNeighborsMemo,
 			unsolvedKeys,
 			edgeAdjacentOrders,
 			initialResult,
@@ -125,22 +141,23 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// solver is finished. each branch result is spread across multiple objects
 	// containing a solution for a subset of the entire set of faces, one for
 	// each recursion depth. for each branch solution, merge its objects into one.
-	const branches = branchResults
-		.map(branch => branch
-			.map(solution => Object.assign({}, ...solution)));
+	const branches = branchResults;
+	// const branches = branchResults
+	// 	.map(branch => branch
+	// 		.map(solution => Object.assign({}, ...solution)));
 	// the set of face-pair solutions which are true for all branches
 	const root = { ...edgeAdjacentOrders, ...initialResult };
 	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
 	unsignedToSignedOrders(root);
-	branches
-		.forEach(branch => branch
-			.forEach(solutions => unsignedToSignedOrders(solutions)));
+	// branches
+	// 	.forEach(branch => branch
+	// 		.forEach(solutions => unsignedToSignedOrders(solutions)));
 	const duration = Date.now() - startDate;
 	// console.log(`variables (${facePairs.length} total): ${Object.keys(edgeAdjacentOrders).length} neighbor faces, ${Object.keys(initialResult).length} propagate, ${remainingKeys.length} in branches`);
-	if (duration > 50) {
+	// if (duration > 50) {
 		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
-	}
-	// console.log("branches", branches);
+	// }
+	console.log("branches", branches);
 	// console.log("branchResults", branchResults);
 	return Object.assign(
 		Object.create(LayerPrototype),

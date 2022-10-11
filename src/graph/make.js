@@ -99,6 +99,17 @@ export const makeVerticesVertices = ({ vertices_coords, vertices_edges, edges_ve
 		: vertices_vertices
 			.map((verts, i) => sortVerticesCounterClockwise({ vertices_coords }, verts, i));
 };
+export const makeVerticesVerticesUnsorted = ({ vertices_edges, edges_vertices }) => {
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
+	// use adjacent edges to find adjacent vertices
+	return vertices_edges
+		.map((edges, v) => edges
+			// the adjacent edge's edges_vertices also contains this vertex,
+			// filter it out and we're left with the adjacent vertices
+			.flatMap(edge => edges_vertices[edge].filter(i => i !== v)));
+};
 /**
  * @description Make `vertices_faces` **not sorted** counter-clockwise,
  * which should be used sparingly. Prefer makeVerticesFaces().
@@ -348,14 +359,6 @@ const assignment_angles = {
 	M: -180, m: -180, V: 180, v: 180,
 };
 /**
- * @description Convert edges assignment into fold angle in degrees for every edge.
- * @param {FOLD} graph a FOLD object, with edges_assignment
- * @returns {number[]} array of fold angles in degrees
- * @linkcode Origami ./src/graph/make.js 354
- */
-export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
-	.map(a => assignment_angles[a] || 0);
-/**
  * @description Convert edges fold angle into assignment for every edge.
  * @param {FOLD} graph a FOLD object, with edges_foldAngle
  * @returns {string[]} array of fold assignments
@@ -367,6 +370,43 @@ export const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
 		if (a === 0) { return "F"; }
 		return a < 0 ? "M" : "V";
 	});
+/**
+ * @description Convert edges assignment into fold angle in degrees for every edge.
+ * @param {FOLD} graph a FOLD object, with edges_assignment
+ * @returns {number[]} array of fold angles in degrees
+ * @linkcode Origami ./src/graph/make.js 354
+ */
+export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
+	.map(a => assignment_angles[a] || 0);
+
+// angle between two 3D vectors
+// α = arccos[(xa * xb + ya * yb + za * zb) / (√(xa2 + ya2 + za2) * √(xb2 + yb2 + zb2))]
+// angle between two 2D vectors
+// α = arccos[(xa * xb + ya * yb) / (√(xa2 + ya2) * √(xb2 + yb2))]
+
+/// <summary>
+/// This calculates the 180-Dihedral angle between two faces (0 angle means co-planar).
+/// </summary>
+/// <returns></returns>
+export const makeEdgesFoldAngleFromFaces = ({ vertices_coords, edges_faces, faces_vertices }) => {
+	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	const faces_center = makeFacesCenter({ vertices_coords, faces_vertices });
+	// get the angle between two adjacent face normals, where parallel normals have 0 angle.
+	// additionally, create a vector from one face's center to the other and check the sign of
+	// the dot product with one of the normals, this clarifies if the fold is mountain or valley.
+	return edges_faces.map(faces => {
+		if (faces.Length < 2) { return 0.0; }
+		const a = faces_normal[faces[0]];
+		const b = faces_normal[faces[1]];
+		const a2b = math.core
+			.normalize(math.core
+				.subtract(faces_center[faces[1]], faces_center[faces[0]]));
+		// for mountain creases (faces facing away from each other), set the sign to negative.
+		const sign = Math.sign(math.core.dot(a, a2b));
+		return (Vector3d.VectorAngle(a, b) * (180 / Math.PI)) * sign;
+	});
+};
+
 /**
  * @description map vertices_coords onto edges_vertices so that the result
  * is an edge array where each edge contains its two points. Each point being
@@ -590,3 +630,14 @@ export const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) => fac
 		.map(v => vertices_coords[v])
 		.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
 		.map(el => el / vertices.length));
+
+export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => faces_vertices
+	.map(vertices => vertices
+		.map(vertex => vertices_coords[vertex]))
+	.map(polygon => {
+		// cross product unit vectors from point 0 to point 1 and 2.
+		// as long as the face winding data is consistent, this gives consistent face normals
+		const a = math.core.resize(3, math.core.subtract(polygon[1], polygon[0]));
+		const b = math.core.resize(3, math.core.subtract(polygon[2], polygon[0]));
+		return math.core.normalize3(math.core.cross3(a, b));
+	});

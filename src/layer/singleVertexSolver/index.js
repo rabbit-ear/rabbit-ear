@@ -25,7 +25,7 @@ const is_boundary = { B: true, b: true };
  * @param {number[]} ordered unsigned scalars, the length of paper between folds
  * @param {string[]} array of "M","V", assignment of fold between faces
  * @returns {number[][]} array of arrays. each inner array is a solution.
- * each solution is an ordering of faces_order, where each index is a
+ * each solution is an ordering of faces_layer, where each index is a
  * face and each value is the layer the face occupies.
  * @linkcode Origami ./src/layer/singleVertexSolver/index.js 30
  */

@@ -6,6 +6,7 @@ import DrawGroups from "./draw/index";
 // import fold_classes from "./classes";
 import linker from "./linker";
 import { addClassToClassList } from "./classes";
+import { makeEdgesLength } from "../graph/make";
 // get the SVG library from its binding to the root of the library
 import root from "../root";
 
@@ -52,6 +53,21 @@ const setR = (group, radius) => {
 		group.childNodes[i].setAttributeNS(null, "r", radius);
 	}
 };
+
+// this sorts all edge lengths to find the 10% shortest length, to ignore outliers
+const getTenthPercentLength = ({ vertices_coords, edges_vertices, edges_length }) => {
+	if (!vertices_coords || !edges_vertices) {
+		return undefined;
+	}
+	if (!edges_length) {
+		edges_length = makeEdgesLength({ vertices_coords, edges_vertices });
+	}
+	const sortedLengths = edges_length
+		.slice()
+		.sort((a, b) => a - b);
+	const index_tenth_percent = Math.floor(sortedLengths.length * 0.1);
+	return sortedLengths[index_tenth_percent];
+};
 /**
  * @description search up the parent-chain until we find an <svg>, or return undefined
  */
@@ -63,7 +79,11 @@ const findSVGInParents = (element) => {
  * @description a subroutine of drawInto(). there are style properties which
  * are impossible to set universally, because they are dependent upon the input
  * FOLD object (imagine, FOLD within 1x1 square, and FOLD within 600x600).
- * this includes the viewBox, stroke width, and radius of circles.
+ * this includes:
+ * - "viewBox": calculate the viewBox to fit the 2D bounds of the graph.
+ * - "padding": padding incorporated into the viewBox, as a scale of the vmax.
+ * - "stroke-width": as a scale of the vmax.
+ * - "radius": the radius of the vertices (circles), as a scale of the vmax.
  */
 const applyTopLevelOptions = (element, groups, graph, options) => {
 	const hasVertices = groups[3] && groups[3].childNodes.length;
@@ -75,13 +95,32 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 		const viewBoxValue = bounds ? bounds.join(" ") : "0 0 1 1";
 		svgElement.setAttributeNS(null, "viewBox", viewBoxValue);
 	}
+	if (svgElement && options.padding) {
+		const viewBoxString = svgElement.getAttribute("viewBox");
+		if (viewBoxString != null) {
+			const pad = options.padding * vmax;
+			const viewBox = viewBoxString.split(" ").map(n => parseFloat(n));
+			const newViewBox = [-pad, -pad, pad * 2, pad * 2]
+				.map((nudge, i) => viewBox[i] + nudge)
+				.join(" ");
+			svgElement.setAttributeNS(null, "viewBox", newViewBox);
+		}
+	}
 	if (options.strokeWidth || options["stroke-width"]) {
 		const strokeWidth = options.strokeWidth
 			? options.strokeWidth
 			: options["stroke-width"];
-		const strokeWidthValue = typeof strokeWidth === "number"
-			? vmax * strokeWidth
-			: vmax * DEFAULT_STROKE_WIDTH;
+		const lengthBased = getTenthPercentLength(graph);
+		let strokeWidthValue;
+		if (lengthBased) {
+			strokeWidthValue = typeof strokeWidth === "number"
+				? 10 * lengthBased * strokeWidth
+				: 10 * lengthBased * DEFAULT_STROKE_WIDTH;
+		} else {
+			strokeWidthValue = typeof strokeWidth === "number"
+				? vmax * strokeWidth
+				: vmax * DEFAULT_STROKE_WIDTH;
+		}
 		element.setAttributeNS(null, "stroke-width", strokeWidthValue);
 	}
 	if (hasVertices) {
@@ -129,8 +168,9 @@ const drawInto = (element, graph, options = {}) => {
 	applyTopLevelClasses(element, graph);
 	// set custom getters on the element to grab the component groups
 	Object.keys(DrawGroups)
-		.filter(key => element[key] == null)
-		.forEach((key, i) => Object.defineProperty(element, key, { get: () => groups[i] }));
+		.map((key, i) => ({ key, i }))
+		.filter(el => element[el.key] == null)
+		.forEach(el => Object.defineProperty(element, el.key, { get: () => groups[el.i] }));
 	return element;
 };
 /**

@@ -2,6 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
+import {
+	singularize,
+	filterKeysWithPrefix,
+} from "../fold/spec";
 import { makeFacesCenterQuick } from "./make";
 /**
  * @description Iterate through all vertices in a graph and find the one nearest to a
@@ -90,4 +94,64 @@ export const nearestFace = (graph, point) => {
 			return faces[shortest];
 		}
 	}
+	return undefined;
 };
+/**
+ * @description Return an object which contains information regarding
+ * vertices, edges, and faces, which indices are closest to the provided point.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the nearest face
+ * @returns {object} object which contains information about the nearest components,
+ * some of which is stored in a getter, which delays the computation until called.
+ * @linkcode
+ */
+export const nearest = (graph, ...args) => {
+	const nearestMethods = {
+		vertices: nearestVertex,
+		edges: nearestEdge,
+		faces: nearestFace,
+	};
+	const point = math.core.getVector(...args);
+	const nears = Object.create(null);
+	["vertices", "edges", "faces"].forEach(key => {
+		Object.defineProperty(nears, singularize[key], {
+			enumerable: true,
+			get: () => nearestMethods[key](graph, point),
+		});
+		filterKeysWithPrefix(graph, key)
+			.forEach(fold_key => Object.defineProperty(nears, fold_key, {
+				enumerable: true,
+				get: () => graph[fold_key][nears[singularize[key]]],
+			}));
+	});
+	return nears;
+};
+/**
+ * @todo this needs testing: does the cache cause a memory leak after many repeated calls?
+ */
+// export const nearest = (graph, ...args) => {
+// 	const nearestMethods = {
+// 		vertices: nearestVertex,
+// 		edges: nearestEdge,
+// 		faces: nearestFace,
+// 	};
+// 	const point = math.core.getVector(...args);
+// 	const nears = Object.create(null);
+// 	const cache = {};
+// 	["vertices", "edges", "faces"].forEach(key => {
+// 		Object.defineProperty(nears, singularize[key], {
+// 			enumerable: true,
+// 			get: () => {
+// 				if (cache[key] !== undefined) { return cache[key]; }
+// 				cache[key] = nearestMethods[key](graph, point);
+// 				return cache[key];
+// 			},
+// 		});
+// 		filterKeysWithPrefix(graph, key)
+// 			.forEach(fold_key => Object.defineProperty(nears, fold_key, {
+// 				enumerable: true,
+// 				get: () => graph[fold_key][nears[singularize[key]]],
+// 			}));
+// 	});
+// 	return nears;
+// };

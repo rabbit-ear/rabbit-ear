@@ -12,11 +12,15 @@ import { boundariesPolygon } from "./boundaries";
 import { addClassToClassList } from "../classes";
 import root from "../../root";
 
-// preference for using faces_vertices over faces_edges, it runs faster
-const facesDrawFunction = (graph, options) => (
-	graph != null && graph[S._faces_vertices] != null
-		? facesVerticesPolygon(graph, options)
-		: facesEdgesPolygon(graph, options));
+const facesDrawFunction = (graph, options) => {
+	if (graph && graph[S._faces_vertices]) {
+		return facesVerticesPolygon(graph, options);
+	}
+	if (graph && graph[S._faces_edges]) {
+		return facesEdgesPolygon(graph, options);
+	}
+	return root.svg.g();
+};
 
 const svg_draw_func = {
 	vertices: verticesCircle,

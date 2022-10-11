@@ -42,7 +42,8 @@ import foldToSVG from "./svg/index";
 /** SVG drawing library with a lot of functionality */
 import SVG from "./extensions/svg"; // replaces minified substitute
 /** WebGL extension, draw FOLD objects into WebGL canvas. */
-import * as webgl from "./webgl/fold-to-three";
+// import * as webgl from "./webgl/fold-to-three";
+import webgl from "./webgl/index";
 
 const ear = Object.assign(root, Constructors, {
 	math: math.core,

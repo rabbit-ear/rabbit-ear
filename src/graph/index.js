@@ -5,14 +5,15 @@ import * as make from "./make";
 import * as boundary from "./boundary";
 import * as walk from "./walk";
 import * as nearest from "./nearest";
-import * as fold_spec from "../fold/spec";
 import * as sort from "./sort";
 import * as span from "./span";
 import * as maps from "./maps";
 import * as query from "./query";
+import * as sets from "./sets";
 import * as intersect from "./intersect";
 import transform from "./affine";
 import * as overlap from "./overlap";
+import * as triangulate from "./triangulate";
 import * as verticesViolations from "./verticesViolations";
 import * as edgesViolations from "./edgesViolations";
 import * as vertices_collinear from "./verticesCollinear";
@@ -42,12 +43,20 @@ import addPlanarSegment from "./add/addPlanarSegment";
 import subgraph from "./subgraph";
 import clip from "./clip";
 import fragment from "./fragment";
+import { flattenFrame } from "./fileFrames";
 import getVerticesClusters from "./verticesClusters";
 // import create from "./create";
 // todo: not sure about this organization
 import * as arrays from "../general/arrays";
 import clone from "../general/clone";
 // import addVertices_splitEdges from "./add/addVertices_splitEdges";
+import * as fold_spec from "../fold/spec";
+import {
+	keys as foldKeys,
+	file_classes as foldFileClasses,
+	frame_classes as foldFrameClasses,
+	frame_attributes as foldFrameAttributes,
+} from "../fold/keys";
 
 export default Object.assign(
 	Object.create(null),
@@ -73,6 +82,13 @@ export default Object.assign(
 		fragment,
 		getVerticesClusters,
 		clone,
+		// file_frames
+		flattenFrame,
+		// fold file keys
+		foldKeys,
+		foldFileClasses,
+		foldFrameClasses,
+		foldFrameAttributes,
 	},
 	make,
 	boundary,
@@ -83,8 +99,10 @@ export default Object.assign(
 	span,
 	maps,
 	query,
+	sets,
 	intersect,
 	overlap,
+	triangulate,
 	transform,
 	verticesViolations,
 	edgesViolations,

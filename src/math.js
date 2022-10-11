@@ -432,6 +432,13 @@ const magnitude = v => Math.sqrt(v
  */
 const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
 /**
+ * @description compute the magnitude a 3D vector
+ * @param {number[]} v one 3D vector
+ * @returns {number} one scalar
+ * @linkcode
+ */
+const magnitude3 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+/**
  * @description compute the square-magnitude an n-dimensional vector
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar
@@ -459,6 +466,16 @@ const normalize = (v) => {
 const normalize2 = (v) => {
 	const m = magnitude2(v);
 	return m === 0 ? v : [v[0] / m, v[1] / m];
+};
+/**
+ * @description normalize the input vector and return a new vector as a copy
+ * @param {number[]} v one 3D vector
+ * @returns {number[]} one 3D vector
+ * @linkcode
+ */
+const normalize3 = (v) => {
+	const m = magnitude3(v);
+	return m === 0 ? v : [v[0] / m, v[1] / m, v[2] / m];
 };
 /**
  * @description scale an input vector by one number, return a copy.
@@ -495,6 +512,15 @@ const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
  */
 const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
 /**
+ * @description add two vectors and return the sum as another vector,
+ * do not modify the input vectors.
+ * @param {number[]} v one 3D vector
+ * @param {number[]} u one 3D vector
+ * @returns {number[]} one 3D vector
+ * @linkcode Math ./src/algebra/vectors.js 104
+ */
+const add3 = (v, u) => [v[0] + u[0], v[1] + u[1], v[2] + u[2]];
+/**
  * @description subtract the second vector from the first, return the result as a copy.
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
@@ -510,6 +536,14 @@ const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
  * @linkcode Math ./src/algebra/vectors.js 120
  */
 const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
+/**
+ * @description subtract the second vector from the first, return the result as a copy.
+ * @param {number[]} v one 3D vector
+ * @param {number[]} u one 3D vector
+ * @returns {number[]} one 3D vector
+ * @linkcode Math ./src/algebra/vectors.js 120
+ */
+const subtract3 = (v, u) => [v[0] - u[0], v[1] - u[1], v[2] - u[2]];
 /**
  * @description compute the dot product of two vectors.
  * @param {number[]} v one vector, n-dimensions
@@ -683,15 +717,19 @@ var algebra = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	magnitude: magnitude,
 	magnitude2: magnitude2,
+	magnitude3: magnitude3,
 	magSquared: magSquared,
 	normalize: normalize,
 	normalize2: normalize2,
+	normalize3: normalize3,
 	scale: scale,
 	scale2: scale2,
 	add: add,
 	add2: add2,
+	add3: add3,
 	subtract: subtract,
 	subtract2: subtract2,
+	subtract3: subtract3,
 	dot: dot,
 	dot2: dot2,
 	midpoint: midpoint,
@@ -941,19 +979,13 @@ const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
  * @returns {number[]} one 3x4 matrix
  * @linkcode Math ./src/algebra/matrix3.js 237
  */
-const makeMatrix3Scale = (scale = 1, origin = [0, 0, 0]) => [
-	scale,
-	0,
-	0,
-	0,
-	scale,
-	0,
-	0,
-	0,
-	scale,
-	scale * -origin[0] + origin[0],
-	scale * -origin[1] + origin[1],
-	scale * -origin[2] + origin[2],
+const makeMatrix3Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
+	scale[0], 0, 0,
+	0, scale[1], 0,
+	0, 0, scale[2],
+	scale[0] * -origin[0] + origin[0],
+	scale[1] * -origin[1] + origin[1],
+	scale[2] * -origin[2] + origin[2],
 ];
 /**
  * @description make a 3x4 representing a reflection across a line in the XY plane
@@ -1577,13 +1609,13 @@ const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
  * @returns {number[]} matrix
  * @linkcode Math ./src/algebra/matrix2.js 92
  */
-const makeMatrix2Scale = (x, y, origin = [0, 0]) => [
-	x,
+const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
+	scale[0],
 	0,
 	0,
-	y,
-	x * -origin[0] + origin[0],
-	y * -origin[1] + origin[1],
+	scale[1],
+	scale[0] * -origin[0] + origin[0],
+	scale[1] * -origin[1] + origin[1],
 ];
 /**
  * @param angle of rotation, origin of transformation
@@ -1645,6 +1677,382 @@ var matrix2 = /*#__PURE__*/Object.freeze({
 	makeMatrix2Scale: makeMatrix2Scale,
 	makeMatrix2Rotate: makeMatrix2Rotate,
 	makeMatrix2Reflect: makeMatrix2Reflect
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description the identity matrix for 3x3 matrices
+ * @linkcode Math ./src/algebra/matrix3.js 14
+ */
+const identity4x4 = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+/**
+ * @description test if a 4x4 matrix is the identity matrix within an epsilon
+ * @param {number[]} matrix a 4x4 matrix
+ * @returns {boolean} true if the matrix is the identity matrix
+ * @linkcode Math ./src/algebra/matrix3.js 26
+ */
+const isIdentity4x4 = m => identity4x4
+	.map((n, i) => Math.abs(n - m[i]) < EPSILON)
+	.reduce((a, b) => a && b, true);
+/**
+ * @description multiply one 3D vector by a 4x4 matrix
+ * @param {number[]} matrix one matrix in array form
+ * @param {number[]} vector in array form
+ * @returns {number[]} the transformed vector
+ * @linkcode Math ./src/algebra/matrix3.js 36
+ */
+const multiplyMatrix4Vector3 = (m, vector) => [
+	m[0] * vector[0] + m[4] * vector[1] + m[8] * vector[2] + m[12],
+	m[1] * vector[0] + m[5] * vector[1] + m[9] * vector[2] + m[13],
+	m[2] * vector[0] + m[6] * vector[1] + m[10] * vector[2] + m[14],
+];
+/**
+ * @description multiply one 3D line by a 4x4 matrix
+ * @param {number[]} matrix one matrix in array form
+ * @param {number[]} vector the vector of the line
+ * @param {number[]} origin the origin of the line
+ * @returns {object} transformed line in point-vector form
+ * @linkcode Math ./src/algebra/matrix3.js 49
+ */
+const multiplyMatrix4Line3 = (m, vector, origin) => ({
+	vector: [
+		m[0] * vector[0] + m[4] * vector[1] + m[8] * vector[2],
+		m[1] * vector[0] + m[5] * vector[1] + m[9] * vector[2],
+		m[2] * vector[0] + m[6] * vector[1] + m[10] * vector[2],
+	],
+	origin: [
+		m[0] * origin[0] + m[4] * origin[1] + m[8] * origin[2] + m[12],
+		m[1] * origin[0] + m[5] * origin[1] + m[9] * origin[2] + m[13],
+		m[2] * origin[0] + m[6] * origin[1] + m[10] * origin[2] + m[14],
+	],
+});
+/**
+ * @description multiply two 4x4 matrices together
+ * @param {number[]} matrix the first matrix
+ * @param {number[]} matrix the second matrix
+ * @returns {number[]} one matrix, the product of the two
+ * @linkcode Math ./src/algebra/matrix3.js 68
+ */
+const multiplyMatrices4 = (m1, m2) => [
+	m1[0] * m2[0] + m1[4] * m2[1] + m1[8] * m2[2] + m1[12] * m2[3],
+	m1[1] * m2[0] + m1[5] * m2[1] + m1[9] * m2[2] + m1[13] * m2[3],
+	m1[2] * m2[0] + m1[6] * m2[1] + m1[10] * m2[2] + m1[14] * m2[3],
+	m1[3] * m2[0] + m1[7] * m2[1] + m1[11] * m2[2] + m1[15] * m2[3],
+	m1[0] * m2[4] + m1[4] * m2[5] + m1[8] * m2[6] + m1[12] * m2[7],
+	m1[1] * m2[4] + m1[5] * m2[5] + m1[9] * m2[6] + m1[13] * m2[7],
+	m1[2] * m2[4] + m1[6] * m2[5] + m1[10] * m2[6] + m1[14] * m2[7],
+	m1[3] * m2[4] + m1[7] * m2[5] + m1[11] * m2[6] + m1[15] * m2[7],
+	m1[0] * m2[8] + m1[4] * m2[9] + m1[8] * m2[10] + m1[12] * m2[11],
+	m1[1] * m2[8] + m1[5] * m2[9] + m1[9] * m2[10] + m1[13] * m2[11],
+	m1[2] * m2[8] + m1[6] * m2[9] + m1[10] * m2[10] + m1[14] * m2[11],
+	m1[3] * m2[8] + m1[7] * m2[9] + m1[11] * m2[10] + m1[15] * m2[11],
+	m1[0] * m2[12] + m1[4] * m2[13] + m1[8] * m2[14] + m1[12] * m2[15],
+	m1[1] * m2[12] + m1[5] * m2[13] + m1[9] * m2[14] + m1[13] * m2[15],
+	m1[2] * m2[12] + m1[6] * m2[13] + m1[10] * m2[14] + m1[14] * m2[15],
+	m1[3] * m2[12] + m1[7] * m2[13] + m1[11] * m2[14] + m1[15] * m2[15],
+];
+/**
+ * @description calculate the determinant of a 4x4 or 3x3 matrix.
+ * in the case of 4x4, the translation component is ignored.
+ * @param {number[]} matrix one matrix in array form
+ * @returns {number} the determinant of the matrix
+ * @linkcode Math ./src/algebra/matrix3.js 89
+ */
+const determinant4 = m => {
+	const A2323 = m[10] * m[15] - m[11] * m[14];
+	const A1323 = m[9] * m[15] - m[11] * m[13];
+	const A1223 = m[9] * m[14] - m[10] * m[13];
+	const A0323 = m[8] * m[15] - m[11] * m[12];
+	const A0223 = m[8] * m[14] - m[10] * m[12];
+	const A0123 = m[8] * m[13] - m[9] * m[12];
+	return (
+			m[0] * (m[5] * A2323 - m[6] * A1323 + m[7] * A1223)
+		- m[1] * (m[4] * A2323 - m[6] * A0323 + m[7] * A0223)
+		+ m[2] * (m[4] * A1323 - m[5] * A0323 + m[7] * A0123)
+		- m[3] * (m[4] * A1223 - m[5] * A0223 + m[6] * A0123)
+	);
+};
+/**
+ * @description invert a 4x4 matrix
+ * @param {number[]} matrix one matrix in array form
+ * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
+ * @linkcode Math ./src/algebra/matrix3.js 103
+ */
+const invertMatrix4 = (m) => {
+	const det = determinant4(m);
+	if (Math.abs(det) < 1e-6 || Number.isNaN(det)
+		|| !Number.isFinite(m[12]) || !Number.isFinite(m[13]) || !Number.isFinite(m[14])) {
+		return undefined;
+	}
+	const A2323 = m[10] * m[15] - m[11] * m[14];
+	const A1323 = m[9] * m[15] - m[11] * m[13];
+	const A1223 = m[9] * m[14] - m[10] * m[13];
+	const A0323 = m[8] * m[15] - m[11] * m[12];
+	const A0223 = m[8] * m[14] - m[10] * m[12];
+	const A0123 = m[8] * m[13] - m[9] * m[12];
+	const A2313 = m[6] * m[15] - m[7] * m[14];
+	const A1313 = m[5] * m[15] - m[7] * m[13];
+	const A1213 = m[5] * m[14] - m[6] * m[13];
+	const A2312 = m[6] * m[11] - m[7] * m[10];
+	const A1312 = m[5] * m[11] - m[7] * m[9];
+	const A1212 = m[5] * m[10] - m[6] * m[9];
+	const A0313 = m[4] * m[15] - m[7] * m[12];
+	const A0213 = m[4] * m[14] - m[6] * m[12];
+	const A0312 = m[4] * m[11] - m[7] * m[8];
+	const A0212 = m[4] * m[10] - m[6] * m[8];
+	const A0113 = m[4] * m[13] - m[5] * m[12];
+	const A0112 = m[4] * m[9] - m[5] * m[8];
+	const inv = [
+		+(m[5] * A2323 - m[6] * A1323 + m[7] * A1223),
+		-(m[1] * A2323 - m[2] * A1323 + m[3] * A1223),
+		+(m[1] * A2313 - m[2] * A1313 + m[3] * A1213),
+		-(m[1] * A2312 - m[2] * A1312 + m[3] * A1212),
+		-(m[4] * A2323 - m[6] * A0323 + m[7] * A0223),
+		+(m[0] * A2323 - m[2] * A0323 + m[3] * A0223),
+		-(m[0] * A2313 - m[2] * A0313 + m[3] * A0213),
+		+(m[0] * A2312 - m[2] * A0312 + m[3] * A0212),
+		+(m[4] * A1323 - m[5] * A0323 + m[7] * A0123),
+		-(m[0] * A1323 - m[1] * A0323 + m[3] * A0123),
+		+(m[0] * A1313 - m[1] * A0313 + m[3] * A0113),
+		-(m[0] * A1312 - m[1] * A0312 + m[3] * A0112),
+		-(m[4] * A1223 - m[5] * A0223 + m[6] * A0123),
+		+(m[0] * A1223 - m[1] * A0223 + m[2] * A0123),
+		-(m[0] * A1213 - m[1] * A0213 + m[2] * A0113),
+		+(m[0] * A1212 - m[1] * A0212 + m[2] * A0112),
+	];
+	const invDet = 1.0 / det;
+	return inv.map(n => n * invDet);
+};
+const identity4x3 = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]);
+/**
+ * @description make a 4x4 matrix representing a translation in 3D
+ * @param {number} [x=0] the x component of the translation
+ * @param {number} [y=0] the y component of the translation
+ * @param {number} [z=0] the z component of the translation
+ * @returns {number[]} one 4x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 137
+ */
+const makeMatrix4Translate = (x = 0, y = 0, z = 0) => [...identity4x3, x, y, z, 1];
+// i0 and i1 direct which columns and rows are filled
+// sgn manages right hand rule
+const singleAxisRotate4 = (angle, origin, i0, i1, sgn) => {
+	const mat = makeMatrix4Translate(...origin);
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+	mat[i0 * 4 + i0] = cos;
+	mat[i0 * 4 + i1] = (sgn ? +1 : -1) * sin;
+	mat[i1 * 4 + i0] = (sgn ? -1 : +1) * sin;
+	mat[i1 * 4 + i1] = cos;
+	return mat;
+};
+
+/**
+ * @description make a 4x4 matrix representing a rotation in 3D around the x-axis
+ * (allowing you to specify the center of rotation if needed).
+ * @param {number} angle the angle of rotation in radians
+ * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @returns {number[]} one 4x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 160
+ */
+const makeMatrix4RotateX = (angle, origin = [0, 0, 0]) => (
+	singleAxisRotate4(angle, origin, 1, 2, true));
+/**
+ * @description make a 4x4 matrix representing a rotation in 3D around the y-axis
+ * (allowing you to specify the center of rotation if needed).
+ * @param {number} angle the angle of rotation in radians
+ * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @returns {number[]} one 4x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 170
+ */
+const makeMatrix4RotateY = (angle, origin = [0, 0, 0]) => (
+	singleAxisRotate4(angle, origin, 0, 2, false));
+/**
+ * @description make a 4x4 matrix representing a rotation in 3D around the z-axis
+ * (allowing you to specify the center of rotation if needed).
+ * @param {number} angle the angle of rotation in radians
+ * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @returns {number[]} one 4x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 180
+ */
+const makeMatrix4RotateZ = (angle, origin = [0, 0, 0]) => (
+	singleAxisRotate4(angle, origin, 0, 1, true));
+/**
+ * @description make a 4x4 matrix representing a rotation in 3D
+ * around a given vector and around a given center of rotation.
+ * @param {number} angle the angle of rotation in radians
+ * @param {number[]} [vector=[0,0,1]] the axis of rotation
+ * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @returns {number[]} one 4x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 191
+ */
+const makeMatrix4Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
+	const pos = [0, 1, 2].map(i => origin[i] || 0);
+	const [x, y, z] = resize(3, normalize(vector));
+	const c = Math.cos(angle);
+	const s = Math.sin(angle);
+	const t = 1 - c;
+	const trans = makeMatrix4Translate(-pos[0], -pos[1], -pos[2]);
+	const trans_inv = makeMatrix4Translate(pos[0], pos[1], pos[2]);
+	return multiplyMatrices4(trans_inv, multiplyMatrices4([
+		t * x * x + c,     t * y * x + z * s, t * z * x - y * s, 0,
+		t * x * y - z * s, t * y * y + c,     t * z * y + x * s, 0,
+		t * x * z + y * s, t * y * z - x * s, t * z * z + c, 0,
+		0, 0, 0, 1], trans));
+};
+/**
+ * @description make a 4x4 matrix representing a uniform scale.
+ * @param {number} [scale=1] the uniform scale value
+ * @param {number[]} [origin=[0,0,0]] the center of transformation
+ * @returns {number[]} one 4x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 237
+ */
+const makeMatrix4Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
+	scale[0], 0, 0, 0,
+	0, scale[1], 0, 0,
+	0, 0, scale[2], 0,
+	scale[0] * -origin[0] + origin[0],
+	scale[1] * -origin[1] + origin[1],
+	scale[2] * -origin[2] + origin[2],
+	1,
+];
+/**
+ * @description make a 4x4 representing a reflection across a line in the XY plane
+ * This is a 2D operation, assumes everything is in the XY plane.
+ * @param {number[]} vector one 2D vector specifying the reflection axis
+ * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
+ * @returns {number[]} one 4x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 259
+ */
+const makeMatrix4ReflectZ = (vector, origin = [0, 0]) => {
+	// the line of reflection passes through origin, runs along vector
+	const angle = Math.atan2(vector[1], vector[0]);
+	const cosAngle = Math.cos(angle);
+	const sinAngle = Math.sin(angle);
+	const cos_Angle = Math.cos(-angle);
+	const sin_Angle = Math.sin(-angle);
+	const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+	const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+	const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+	const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+	const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+	const ty = origin[1] + b * -origin[0] + -origin[1] * d;
+	return [a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1];
+};
+/**
+ * @param {number} FOV field of view in radians
+ * @param {number} aspect aspect ratio
+ * @param {number} near z-near
+ * @param {number} far z-far
+ */
+const makePerspectiveMatrix4 = (FOV, aspect, near, far) => {
+	const f = Math.tan(Math.PI * 0.5 - 0.5 * FOV);
+	const rangeInv = 1.0 / (near - far);
+	return [
+		f / aspect, 0, 0, 0,
+		0, f, 0, 0,
+		0, 0, (near + far) * rangeInv, -1,
+		0, 0, near * far * rangeInv * 2, 0,
+	];
+};
+/**
+ *
+ */
+const makeOrthographicMatrix4 = (top, right, bottom, left, near, far) => [
+	2 / (right - left), 0, 0, 0,
+	0, 2 / (top - bottom), 0, 0,
+	0, 0, 2 / (near - far), 0,
+	(left + right) / (left - right),
+	(bottom + top) / (bottom - top),
+	(near + far) / (near - far),
+	1,
+];
+/**
+ * @param {number[]} position the location of the camera in 3D space
+ * @param {number[]} target the point in space the camera is looking towards
+ * @param {number[]} up the vector pointing up out the top of the camera.
+ */
+const makeLookAtMatrix4 = (position, target, up) => {
+	const zAxis = normalize3(subtract3(position, target));
+	const xAxis = normalize3(cross3(up, zAxis));
+	const yAxis = normalize3(cross3(zAxis, xAxis));
+	return [
+		xAxis[0], xAxis[1], xAxis[2], 0,
+		yAxis[0], yAxis[1], yAxis[2], 0,
+		zAxis[0], zAxis[1], zAxis[2], 0,
+		position[0], position[1], position[2], 1,
+	];
+};
+/**
+ * 2D operation, assuming everything is 0 in the z plane
+ * @param line in vector-origin form
+ * @returns matrix3
+ */
+// export const make_matrix3_reflect = (vector, origin = [0, 0, 0]) => {
+//   // the line of reflection passes through origin, runs along vector
+//   return [];
+// };
+
+//               __                                           _
+//   _________  / /_  ______ ___  ____     ____ ___  ____ _  (_)___  _____
+//  / ___/ __ \/ / / / / __ `__ \/ __ \   / __ `__ \/ __ `/ / / __ \/ ___/
+// / /__/ /_/ / / /_/ / / / / / / / / /  / / / / / / /_/ / / / /_/ / /
+// \___/\____/_/\__,_/_/ /_/ /_/_/ /_/  /_/ /_/ /_/\__,_/_/ /\____/_/
+//                                                     /___/
+
+var matrix4 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	identity4x4: identity4x4,
+	isIdentity4x4: isIdentity4x4,
+	multiplyMatrix4Vector3: multiplyMatrix4Vector3,
+	multiplyMatrix4Line3: multiplyMatrix4Line3,
+	multiplyMatrices4: multiplyMatrices4,
+	determinant4: determinant4,
+	invertMatrix4: invertMatrix4,
+	makeMatrix4Translate: makeMatrix4Translate,
+	makeMatrix4RotateX: makeMatrix4RotateX,
+	makeMatrix4RotateY: makeMatrix4RotateY,
+	makeMatrix4RotateZ: makeMatrix4RotateZ,
+	makeMatrix4Rotate: makeMatrix4Rotate,
+	makeMatrix4Scale: makeMatrix4Scale,
+	makeMatrix4ReflectZ: makeMatrix4ReflectZ,
+	makePerspectiveMatrix4: makePerspectiveMatrix4,
+	makeOrthographicMatrix4: makeOrthographicMatrix4,
+	makeLookAtMatrix4: makeLookAtMatrix4
+});
+
+// const quaternionFromTwoVectors = (v1, v2) => {
+// 	// q.w = Math.sqrt((v1.Length ^ 2) * (v2.Length ^ 2)) + dotproduct(v1, v2);
+// 	const xyz = ear.math.cross3(v1, v2);
+// 	const w = Math.sqrt(ear.math.magSquared(v1) * ear.math.magSquared(v2)) + ear.math.dot(v1, v2);
+// 	return ear.math.normalize([...xyz, w]);
+// };
+const quaternionFromTwoVectors = (u, v) => {
+	const w = cross3(u, v);
+	const q = [w[0], w[1], w[2], dot(u, v)];
+	q[3] += magnitude(q);
+	return normalize(q);
+};
+/**
+ * @param {number[]} quaternion array of numbers with indices x=0, y=1, z=2, w=3
+ */
+const matrix4FromQuaternion = (quaternion) => multiplyMatrices4([
+	quaternion[3], quaternion[2], -quaternion[1], quaternion[0],
+	-quaternion[2], quaternion[3], quaternion[0], quaternion[1],
+	quaternion[1], -quaternion[0], quaternion[3], quaternion[2],
+	-quaternion[0], -quaternion[1], -quaternion[2], quaternion[3],
+], [
+	quaternion[3], quaternion[2], -quaternion[1], -quaternion[0],
+	-quaternion[2], quaternion[3], quaternion[0], -quaternion[1],
+	quaternion[1], -quaternion[0], quaternion[3], -quaternion[2],
+	quaternion[0], quaternion[1], quaternion[2], quaternion[3],
+]);
+
+var quaternion = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	quaternionFromTwoVectors: quaternionFromTwoVectors,
+	matrix4FromQuaternion: matrix4FromQuaternion
 });
 
 /**
@@ -2528,10 +2936,12 @@ const centroid = (points) => {
  * (positive=inclusive boundary, negative=exclusive boundary)
  * @param {number[][]} points an array of unsorted points, in any dimension
  * @param {number} [padding=0] optionally add padding around the box
- * @returns {BoundingBox} an object where "min" and "max" are two points and "span" is the lengths
+ * @returns {BoundingBox?} an object where "min" and "max" are two points and
+ * "span" is the lengths. returns "undefined" if no points were provided.
  * @linkcode Math ./src/geometry/polygons.js 186
  */
 const boundingBox = (points, padding = 0) => {
+	if (!points || !points.length) { return undefined; }
 	const min = Array(points[0].length).fill(Infinity);
 	const max = Array(points[0].length).fill(-Infinity);
 	points.forEach(point => point
@@ -4454,10 +4864,10 @@ var Matrix = {
 				const transform = makeMatrix3Rotate(radians, vector, origin);
 				return array_assign(this, multiplyMatrices3(this, transform));
 			},
-			scale: function (amount) {
+			scale: function (...args) {
 				return array_assign(
 					this,
-					multiplyMatrices3(this, makeMatrix3Scale(amount)),
+					multiplyMatrices3(this, makeMatrix3Scale(...args)),
 				);
 			},
 			reflectZ: function (vector, origin) {
@@ -4807,6 +5217,8 @@ math.core = Object.assign(
 
 	matrix2,
 	matrix3,
+	matrix4,
+	quaternion,
 	nearest,
 	parameterize,
 	generalIntersect,
