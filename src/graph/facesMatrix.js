@@ -75,7 +75,7 @@ export const makeFacesMatrix = ({
 				// if the assignment is unassigned, assume it is a flat fold.
 				const foldAngle = unassigned_angle[edges_assignment[edge]]
 					? Math.PI
-					: edges_foldAngle[edge] * Math.PI / 180;
+					: (edges_foldAngle[edge] * Math.PI) / 180;
 				const local_matrix = math.core.makeMatrix3Rotate(
 					foldAngle, // rotation angle
 					math.core.subtract(...math.core.resizeUp(coords[1], coords[0])), // line-vector

@@ -388,14 +388,20 @@ export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 /// This calculates the 180-Dihedral angle between two faces (0 angle means co-planar).
 /// </summary>
 /// <returns></returns>
-export const makeEdgesFoldAngleFromFaces = ({ vertices_coords, edges_faces, faces_vertices }) => {
-	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
-	const faces_center = makeFacesCenter({ vertices_coords, faces_vertices });
+export const makeEdgesFoldAngleFromFaces = ({
+	vertices_coords, edges_faces, faces_vertices, faces_normal, faces_center,
+}) => {
+	if (!faces_normal) {
+		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	}
+	if (!faces_center) {
+		faces_center = makeFacesCenter({ vertices_coords, faces_vertices });
+	}
 	// get the angle between two adjacent face normals, where parallel normals have 0 angle.
 	// additionally, create a vector from one face's center to the other and check the sign of
 	// the dot product with one of the normals, this clarifies if the fold is mountain or valley.
 	return edges_faces.map(faces => {
-		if (faces.Length < 2) { return 0.0; }
+		if (faces.length < 2) { return 0.0; }
 		const a = faces_normal[faces[0]];
 		const b = faces_normal[faces[1]];
 		const a2b = math.core
@@ -403,7 +409,7 @@ export const makeEdgesFoldAngleFromFaces = ({ vertices_coords, edges_faces, face
 				.subtract(faces_center[faces[1]], faces_center[faces[0]]));
 		// for mountain creases (faces facing away from each other), set the sign to negative.
 		const sign = Math.sign(math.core.dot(a, a2b));
-		return (Vector3d.VectorAngle(a, b) * (180 / Math.PI)) * sign;
+		return (Math.acos(math.core.dot(a, b)) * (180 / Math.PI)) * sign;
 	});
 };
 

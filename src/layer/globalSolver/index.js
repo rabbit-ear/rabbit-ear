@@ -2,10 +2,13 @@
  * Rabbit Ear (c) Kraft
  */
 import propagate from "./propagate";
-import { unsignedToSignedOrders } from "./general";
+import { keysToFaceOrders } from "./general";
 import getBranches from "./getBranches";
 import prepare from "./prepare";
 import LayerPrototype from "./prototype";
+import { makeFacesNormal } from "../../graph/make";
+
+// const keysToFaceOrders = a => a;
 /**
  * @description Given an array of unsolved facePair keys, attempt to solve
  * the entire set by guessing both states (1, 2) for one key, propagate any
@@ -33,6 +36,7 @@ const solveBranch = (
 	constraintsLookup,
 	constraintsNeighborsMemo,
 	unsolvedKeys,
+	solutionNode,
 	...orders
 ) => {
 	if (!unsolvedKeys.length) { return []; }
@@ -63,8 +67,10 @@ const solveBranch = (
 	});
 	// recursively call this method with any unsolved solutions and filter
 	// any keys that were found in that solution out of the unsolved keys
+	// solutionNode.branches = unfinishedSolutions.map(order => ({ faceOrders: order }));
+	const childNodes = unfinishedSolutions.map(order => ({ faceOrders: order }));
 	const recursed = unfinishedSolutions
-		.map(order => {
+		.map((order, i) => {
 			const remainingKeys = unsolvedKeys.filter(key => !(key in order));
 			return getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo)
 				.map(branchUnsolvedKeys => solveBranch(
@@ -72,6 +78,7 @@ const solveBranch = (
 					constraintsLookup,
 					constraintsNeighborsMemo,
 					branchUnsolvedKeys,
+					childNodes[i],
 					...orders,
 					order,
 				));
@@ -81,9 +88,39 @@ const solveBranch = (
 	// 		constraints,
 	// 		constraintsLookup,
 	// 		unsolvedKeys.filter(key => !(key in order)),
+	// 		solutionNode,
 	// 		...orders,
 	// 		order,
 	// 	));
+
+	// if (childNodes.length === 1) {
+	// 	Object.assign(solutionNode, childNodes[0]);
+	// } else if (childNodes.length > 1) {
+	// 	solutionNode.choose = childNodes;
+	// }
+
+	// we will either have:
+	// - one or more completed solutions and AT MOST ONE unfinished solution
+	// - no completed solutions and TWO unfinished solutions
+	if (completedSolutions.length) {
+		solutionNode.finished = completedSolutions.map(order => ({ faceOrders: order }));
+	}
+	if (childNodes.length) {
+		solutionNode.unfinished = childNodes;
+	}
+
+	// const nextLevel = []
+	// 	.concat(childNodes)
+	// 	.concat(completedSolutions.map(order => ({ faceOrders: order })));
+	// if (nextLevel.length === 1) {
+	// 	Object.assign(solutionNode, nextLevel[0]);
+	// } else if (childNodes.length > 1) {
+	// 	solutionNode.and = nextLevel;
+	// } else {
+	// 	solutionNode.or = nextLevel;
+	// }
+	if (childNodes.length > 1 && completedSolutions.length) { console.log("HAPPENED"); }
+
 	return completedSolutions
 		.map(order => ([...orders, order]))
 		.concat(...recursed);
@@ -122,6 +159,8 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	);
 	// graph does not have a valid layer order. no solution
 	if (!initialResult) { return undefined; }
+	const solution = {
+	};
 	// get all keys unsolved after the first round of propagate
 	const remainingKeys = facePairs
 		.filter(key => !(key in edgeAdjacentOrders))
@@ -129,26 +168,51 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
 	const constraintsNeighborsMemo = {};
-	const branchResults = getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo)
-		.map(unsolvedKeys => solveBranch(
-			constraints,
-			constraintsLookup,
-			constraintsNeighborsMemo,
-			unsolvedKeys,
-			edgeAdjacentOrders,
-			initialResult,
-		));
+	const branches = getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo);
+	const nextLevel = branches.map(() => ({}));
+	const branchResults = branches.map((unsolvedKeys, i) => solveBranch(
+		constraints,
+		constraintsLookup,
+		constraintsNeighborsMemo,
+		unsolvedKeys,
+		nextLevel[i],
+		edgeAdjacentOrders,
+		initialResult,
+	));
+
+	if (nextLevel.length) {
+		solution.unfinished = nextLevel;
+	}
+	solution.faceOrders = { ...edgeAdjacentOrders, ...initialResult };
+
 	// solver is finished. each branch result is spread across multiple objects
 	// containing a solution for a subset of the entire set of faces, one for
 	// each recursion depth. for each branch solution, merge its objects into one.
-	const branches = branchResults;
+	// const topLevelBranches = branchResults;
 	// const branches = branchResults
 	// 	.map(branch => branch
 	// 		.map(solution => Object.assign({}, ...solution)));
 	// the set of face-pair solutions which are true for all branches
-	const root = { ...edgeAdjacentOrders, ...initialResult };
+	// const root = { ...edgeAdjacentOrders, ...initialResult };
+	// solution.branches[0].faceOrders = { ...edgeAdjacentOrders, ...initialResult };
+
+	const faces_normal = graph.faces_normal
+		? graph.faces_normal
+		: makeFacesNormal(graph);
+	// this is hardcoded to flat foldings along the +Z. wait this is not needed
+	const z_vector = [0, 0, 1];
+
+	const recurse = (node) => {
+		if (node.faceOrders) {
+			node.faceOrders = keysToFaceOrders(node.faceOrders, faces_normal, z_vector);
+		}
+		if (node.finished) { node.finished.forEach(child => recurse(child)); }
+		if (node.unfinished) { node.unfinished.forEach(child => recurse(child)); }
+	};
+	recurse(solution);
+
 	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
-	unsignedToSignedOrders(root);
+	// unsignedToSignedOrders(root);
 	// branches
 	// 	.forEach(branch => branch
 	// 		.forEach(solutions => unsignedToSignedOrders(solutions)));
@@ -157,11 +221,13 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// if (duration > 50) {
 		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
 	// }
-	console.log("branches", branches);
+	// console.log("solution", solution);
+	console.log("branches", branchResults);
 	// console.log("branchResults", branchResults);
 	return Object.assign(
 		Object.create(LayerPrototype),
-		{ root, branches },
+		// { root, branches: branchResults },
+		solution,
 	);
 };
 

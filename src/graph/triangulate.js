@@ -22,13 +22,9 @@ const makeTriangulatedConvexFacesMap = ({ faces_vertices }) => {
 		return face;
 	});
 };
-
-// export const triangulateConvexFacesEdges = ({ faces_edges }) => faces_edges
-// 	.flatMap(edges => (edges.length < 4
-// 		? [edges]
-// 		: triangulate(edges)));
-
+// todo, add earcut functionality, if the user provides a reference to the library
 export const triangulate = (graph, earcut) => {
+	if (!graph.faces_vertices) { return {}; }
 	const edgeLookup = makeVerticesToEdgeBidirectional(graph);
 	const facesMap = makeTriangulatedConvexFacesMap(graph);
 	graph.faces_vertices = triangulateConvexFacesVertices(graph);

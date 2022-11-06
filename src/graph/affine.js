@@ -39,10 +39,11 @@ const apply_matrix_to_graph = function (graph, matrix) {
  * @returns {FOLD} the same input graph, modified.
  * @linkcode Origami ./src/graph/affine.js 40
  */
-const transform_scale = (graph, scale, ...args) => {
-	const vector = math.core.getVector(...args);
-	const vector3 = math.core.resize(3, vector);
-	const matrix = math.core.makeMatrix3Scale(scale, vector3);
+const transform_scale = (graph, ...args) => {
+	const scale = args.length === 1
+		? [args[0], args[0], args[0]]
+		: [1, 1, 1].map((n, i) => (args[i] === undefined ? n : args[i]));
+	const matrix = math.core.makeMatrix3Scale(scale);
 	return apply_matrix_to_graph(graph, matrix);
 };
 /**

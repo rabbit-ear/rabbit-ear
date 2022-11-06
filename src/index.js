@@ -26,6 +26,7 @@ import layer from "./layer/index";
 import singleVertex from "./singleVertex/index";
 import axiom from "./axioms/index";
 import text from "./text/index";
+import convert from "./convert/index";
 // a minified substitute SVG library
 // import svg from "./svg/svg_mini";
 import use from "./use/index";
@@ -52,6 +53,7 @@ const ear = Object.assign(root, Constructors, {
 	layer,
 	singleVertex,
 	text,
+	convert,
 	webgl,
 	// svg,
 });

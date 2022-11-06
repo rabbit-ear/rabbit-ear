@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import math from "../../math";
 /**
  * @description Convert an array of faces which are involved in one
  * taco/tortilla/transitivity condition into an array of arrays where
@@ -121,4 +122,22 @@ export const ordersToMatrix = (orders) => {
 			matrix[b][a] = -orders[`${a} ${b}`];
 		});
 	return matrix;
+};
+/**
+ * face pairs: "# #" space separated integer indices. values: 1 or 2.
+ */
+export const keysToFaceOrders = (facePairs, faces_normal, vector) => {
+	const faces_normal_match = faces_normal
+		.map(normal => math.core.dot(normal, vector) > 0);
+	const keys = Object.keys(facePairs);
+	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
+	faceOrders.forEach((faces, i) => {
+		const value = to_signed_layer_convert[facePairs[keys[i]]];
+		// const side = (value === -1) ^ (!faces_normal_match[faces[1]])
+		const side = (!faces_normal_match[faces[1]])
+			? -value
+			: value;
+		faces.push(side);
+	});
+	return faceOrders;
 };
