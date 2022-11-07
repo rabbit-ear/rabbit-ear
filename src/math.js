@@ -435,14 +435,14 @@ const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
  * @description compute the magnitude a 3D vector
  * @param {number[]} v one 3D vector
  * @returns {number} one scalar
- * @linkcode
+ * @linkcode Math ./src/algebra/vectors.js 48
  */
 const magnitude3 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 /**
  * @description compute the square-magnitude an n-dimensional vector
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar
- * @linkcode Math ./src/algebra/vectors.js 48
+ * @linkcode Math ./src/algebra/vectors.js 55
  */
 const magSquared = v => v
 	.map(fnSquare)
@@ -451,7 +451,7 @@ const magSquared = v => v
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching the input vector
- * @linkcode Math ./src/algebra/vectors.js 57
+ * @linkcode Math ./src/algebra/vectors.js 64
  */
 const normalize = (v) => {
 	const m = magnitude(v);
@@ -461,7 +461,7 @@ const normalize = (v) => {
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/algebra/vectors.js 67
+ * @linkcode Math ./src/algebra/vectors.js 74
  */
 const normalize2 = (v) => {
 	const m = magnitude2(v);
@@ -471,7 +471,7 @@ const normalize2 = (v) => {
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one 3D vector
  * @returns {number[]} one 3D vector
- * @linkcode
+ * @linkcode Math ./src/algebra/vectors.js 84
  */
 const normalize3 = (v) => {
 	const m = magnitude3(v);
@@ -482,7 +482,7 @@ const normalize3 = (v) => {
  * @param {number[]} v one vector, n-dimensions
  * @param {number} s one scalar
  * @returns {number[]} one vector
- * @linkcode Math ./src/algebra/vectors.js 78
+ * @linkcode Math ./src/algebra/vectors.js 95
  */
 const scale = (v, s) => v.map(n => n * s);
 /**
@@ -490,7 +490,7 @@ const scale = (v, s) => v.map(n => n * s);
  * @param {number[]} v one 2D vector
  * @param {number} s one scalar
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/algebra/vectors.js 86
+ * @linkcode Math ./src/algebra/vectors.js 103
  */
 const scale2 = (v, s) => [v[0] * s, v[1] * s];
 /**
@@ -499,7 +499,7 @@ const scale2 = (v, s) => [v[0] * s, v[1] * s];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching first parameter
- * @linkcode Math ./src/algebra/vectors.js 95
+ * @linkcode Math ./src/algebra/vectors.js 112
  */
 const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
 /**
@@ -508,7 +508,7 @@ const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/algebra/vectors.js 104
+ * @linkcode Math ./src/algebra/vectors.js 121
  */
 const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
 /**
@@ -517,7 +517,7 @@ const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number[]} one 3D vector
- * @linkcode Math ./src/algebra/vectors.js 104
+ * @linkcode Math ./src/algebra/vectors.js 130
  */
 const add3 = (v, u) => [v[0] + u[0], v[1] + u[1], v[2] + u[2]];
 /**
@@ -525,7 +525,7 @@ const add3 = (v, u) => [v[0] + u[0], v[1] + u[1], v[2] + u[2]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching first parameter
- * @linkcode Math ./src/algebra/vectors.js 112
+ * @linkcode Math ./src/algebra/vectors.js 138
  */
 const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
 /**
@@ -533,7 +533,7 @@ const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/algebra/vectors.js 120
+ * @linkcode Math ./src/algebra/vectors.js 146
  */
 const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
 /**
@@ -541,7 +541,7 @@ const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number[]} one 3D vector
- * @linkcode Math ./src/algebra/vectors.js 120
+ * @linkcode Math ./src/algebra/vectors.js 154
  */
 const subtract3 = (v, u) => [v[0] - u[0], v[1] - u[1], v[2] - u[2]];
 /**
@@ -549,7 +549,7 @@ const subtract3 = (v, u) => [v[0] - u[0], v[1] - u[1], v[2] - u[2]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one scalar
- * @linkcode Math ./src/algebra/vectors.js 128
+ * @linkcode Math ./src/algebra/vectors.js 162
  */
 const dot = (v, u) => v
 	.map((_, i) => v[i] * u[i])
@@ -559,7 +559,7 @@ const dot = (v, u) => v
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar
- * @linkcode Math ./src/algebra/vectors.js 138
+ * @linkcode Math ./src/algebra/vectors.js 172
  */
 const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
 /**
@@ -567,7 +567,7 @@ const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one vector, dimension matching first parameter
- * @linkcode Math ./src/algebra/vectors.js 146
+ * @linkcode Math ./src/algebra/vectors.js 180
  */
 const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
 /**
@@ -575,7 +575,7 @@ const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one 2D vector
- * @linkcode Math ./src/algebra/vectors.js 154
+ * @linkcode Math ./src/algebra/vectors.js 188
  */
 const midpoint2 = (v, u) => scale2(add2(v, u), 0.5);
 /**
@@ -583,7 +583,7 @@ const midpoint2 = (v, u) => scale2(add2(v, u), 0.5);
  * but can accept more than 2 inputs
  * @param {number[]} ...args any number of input vectors
  * @returns {number[]} one vector, dimension matching first parameter
- * @linkcode Math ./src/algebra/vectors.js 162
+ * @linkcode Math ./src/algebra/vectors.js 196
  */
 const average = function () {
 	if (arguments.length === 0) { return []; }
@@ -599,7 +599,7 @@ const average = function () {
  * @param {number[]} u one vector, n-dimensions
  * @param {number} t one scalar between 0 and 1 (not clamped)
  * @returns {number[]} one vector, dimensions matching first parameter
- * @linkcode Math ./src/algebra/vectors.js 178
+ * @linkcode Math ./src/algebra/vectors.js 212
  */
 const lerp = (v, u, t) => {
 	const inv = 1.0 - t;
@@ -611,7 +611,7 @@ const lerp = (v, u, t) => {
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar; the determinant; the magnitude of the vector
- * @linkcode Math ./src/algebra/vectors.js 190
+ * @linkcode Math ./src/algebra/vectors.js 224
  */
 const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
 /**
@@ -619,7 +619,7 @@ const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number[]} one 3D vector
- * @linkcode Math ./src/algebra/vectors.js 198
+ * @linkcode Math ./src/algebra/vectors.js 232
  */
 const cross3 = (v, u) => [
 	v[1] * u[2] - v[2] * u[1],
@@ -631,7 +631,7 @@ const cross3 = (v, u) => [
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one scalar
- * @linkcode Math ./src/algebra/vectors.js 210
+ * @linkcode Math ./src/algebra/vectors.js 244
  */
 const distance = (v, u) => Math.sqrt(v
 	.map((_, i) => (v[i] - u[i]) ** 2)
@@ -641,7 +641,7 @@ const distance = (v, u) => Math.sqrt(v
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar
- * @linkcode Math ./src/algebra/vectors.js 220
+ * @linkcode Math ./src/algebra/vectors.js 254
  */
 const distance2 = (v, u) => {
 	const p = v[0] - u[0];
@@ -653,7 +653,7 @@ const distance2 = (v, u) => {
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number} one scalar
- * @linkcode Math ./src/algebra/vectors.js 232
+ * @linkcode Math ./src/algebra/vectors.js 266
  */
 const distance3 = (v, u) => {
 	const a = v[0] - u[0];
@@ -665,21 +665,21 @@ const distance3 = (v, u) => {
  * @description return a copy of the input vector where each element's sign flipped
  * @param {number[]} v one vector, n-dimensions
  * @returns {number[]} one vector, dimensions matching input parameter
- * @linkcode Math ./src/algebra/vectors.js 244
+ * @linkcode Math ./src/algebra/vectors.js 278
  */
 const flip = v => v.map(n => -n);
 /**
  * @description return a copy of the input vector rotated 90 degrees counter-clockwise
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/algebra/vectors.js 251
+ * @linkcode Math ./src/algebra/vectors.js 285
  */
 const rotate90 = v => [-v[1], v[0]];
 /**
  * @description return a copy of the input vector rotated 270 degrees counter-clockwise
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/algebra/vectors.js 258
+ * @linkcode Math ./src/algebra/vectors.js 292
  */
 const rotate270 = v => [v[1], -v[0]];
 /**
@@ -687,7 +687,7 @@ const rotate270 = v => [v[1], -v[0]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} is the magnitude of the vector smaller than the epsilon?
- * @linkcode Math ./src/algebra/vectors.js 266
+ * @linkcode Math ./src/algebra/vectors.js 300
  */
 const degenerate = (v, epsilon = EPSILON) => v
 	.map(n => Math.abs(n))
@@ -698,7 +698,7 @@ const degenerate = (v, epsilon = EPSILON) => v
  * @param {number[]} u one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
- * @linkcode Math ./src/algebra/vectors.js 277
+ * @linkcode Math ./src/algebra/vectors.js 311
  */
 const parallel = (v, u, epsilon = EPSILON) => 1 - Math
 	.abs(dot(normalize(v), normalize(u))) < epsilon;
@@ -708,7 +708,7 @@ const parallel = (v, u, epsilon = EPSILON) => 1 - Math
  * @param {number[]} u one 2D vector
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
- * @linkcode Math ./src/algebra/vectors.js 287
+ * @linkcode Math ./src/algebra/vectors.js 321
  */
 const parallel2 = (v, u, epsilon = EPSILON) => Math
 	.abs(cross2(v, u)) < epsilon;
@@ -993,7 +993,7 @@ const makeMatrix3Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
  * @param {number[]} vector one 2D vector specifying the reflection axis
  * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
  * @returns {number[]} one 3x4 matrix
- * @linkcode Math ./src/algebra/matrix3.js 259
+ * @linkcode Math ./src/algebra/matrix3.js 253
  */
 const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {
 	// the line of reflection passes through origin, runs along vector
@@ -1684,14 +1684,14 @@ var matrix2 = /*#__PURE__*/Object.freeze({
  */
 /**
  * @description the identity matrix for 3x3 matrices
- * @linkcode Math ./src/algebra/matrix3.js 14
+ * @linkcode Math ./src/algebra/matrix4.js 19
  */
 const identity4x4 = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 /**
  * @description test if a 4x4 matrix is the identity matrix within an epsilon
  * @param {number[]} matrix a 4x4 matrix
  * @returns {boolean} true if the matrix is the identity matrix
- * @linkcode Math ./src/algebra/matrix3.js 26
+ * @linkcode Math ./src/algebra/matrix4.js 26
  */
 const isIdentity4x4 = m => identity4x4
 	.map((n, i) => Math.abs(n - m[i]) < EPSILON)
@@ -1701,7 +1701,7 @@ const isIdentity4x4 = m => identity4x4
  * @param {number[]} matrix one matrix in array form
  * @param {number[]} vector in array form
  * @returns {number[]} the transformed vector
- * @linkcode Math ./src/algebra/matrix3.js 36
+ * @linkcode Math ./src/algebra/matrix4.js 36
  */
 const multiplyMatrix4Vector3 = (m, vector) => [
 	m[0] * vector[0] + m[4] * vector[1] + m[8] * vector[2] + m[12],
@@ -1714,7 +1714,7 @@ const multiplyMatrix4Vector3 = (m, vector) => [
  * @param {number[]} vector the vector of the line
  * @param {number[]} origin the origin of the line
  * @returns {object} transformed line in point-vector form
- * @linkcode Math ./src/algebra/matrix3.js 49
+ * @linkcode Math ./src/algebra/matrix4.js 49
  */
 const multiplyMatrix4Line3 = (m, vector, origin) => ({
 	vector: [
@@ -1733,7 +1733,7 @@ const multiplyMatrix4Line3 = (m, vector, origin) => ({
  * @param {number[]} matrix the first matrix
  * @param {number[]} matrix the second matrix
  * @returns {number[]} one matrix, the product of the two
- * @linkcode Math ./src/algebra/matrix3.js 68
+ * @linkcode Math ./src/algebra/matrix4.js 68
  */
 const multiplyMatrices4 = (m1, m2) => [
 	m1[0] * m2[0] + m1[4] * m2[1] + m1[8] * m2[2] + m1[12] * m2[3],
@@ -1758,7 +1758,7 @@ const multiplyMatrices4 = (m1, m2) => [
  * in the case of 4x4, the translation component is ignored.
  * @param {number[]} matrix one matrix in array form
  * @returns {number} the determinant of the matrix
- * @linkcode Math ./src/algebra/matrix3.js 89
+ * @linkcode Math ./src/algebra/matrix4.js 93
  */
 const determinant4 = m => {
 	const A2323 = m[10] * m[15] - m[11] * m[14];
@@ -1778,7 +1778,7 @@ const determinant4 = m => {
  * @description invert a 4x4 matrix
  * @param {number[]} matrix one matrix in array form
  * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
- * @linkcode Math ./src/algebra/matrix3.js 103
+ * @linkcode Math ./src/algebra/matrix4.js 113
  */
 const invertMatrix4 = (m) => {
 	const det = determinant4(m);
@@ -1832,7 +1832,7 @@ const identity4x3 = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]);
  * @param {number} [y=0] the y component of the translation
  * @param {number} [z=0] the z component of the translation
  * @returns {number[]} one 4x4 matrix
- * @linkcode Math ./src/algebra/matrix3.js 137
+ * @linkcode Math ./src/algebra/matrix4.js 167
  */
 const makeMatrix4Translate = (x = 0, y = 0, z = 0) => [...identity4x3, x, y, z, 1];
 // i0 and i1 direct which columns and rows are filled
@@ -1854,7 +1854,7 @@ const singleAxisRotate4 = (angle, origin, i0, i1, sgn) => {
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 4x4 matrix
- * @linkcode Math ./src/algebra/matrix3.js 160
+ * @linkcode Math ./src/algebra/matrix4.js 189
  */
 const makeMatrix4RotateX = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate4(angle, origin, 1, 2, true));
@@ -1864,7 +1864,7 @@ const makeMatrix4RotateX = (angle, origin = [0, 0, 0]) => (
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 4x4 matrix
- * @linkcode Math ./src/algebra/matrix3.js 170
+ * @linkcode Math ./src/algebra/matrix4.js 199
  */
 const makeMatrix4RotateY = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate4(angle, origin, 0, 2, false));
@@ -1874,7 +1874,7 @@ const makeMatrix4RotateY = (angle, origin = [0, 0, 0]) => (
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 4x4 matrix
- * @linkcode Math ./src/algebra/matrix3.js 180
+ * @linkcode Math ./src/algebra/matrix4.js 209
  */
 const makeMatrix4RotateZ = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate4(angle, origin, 0, 1, true));
@@ -1885,7 +1885,7 @@ const makeMatrix4RotateZ = (angle, origin = [0, 0, 0]) => (
  * @param {number[]} [vector=[0,0,1]] the axis of rotation
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 4x4 matrix
- * @linkcode Math ./src/algebra/matrix3.js 191
+ * @linkcode Math ./src/algebra/matrix4.js 220
  */
 const makeMatrix4Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
 	const pos = [0, 1, 2].map(i => origin[i] || 0);
@@ -1906,7 +1906,7 @@ const makeMatrix4Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
  * @param {number} [scale=1] the uniform scale value
  * @param {number[]} [origin=[0,0,0]] the center of transformation
  * @returns {number[]} one 4x4 matrix
- * @linkcode Math ./src/algebra/matrix3.js 237
+ * @linkcode Math ./src/algebra/matrix4.js 241
  */
 const makeMatrix4Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
 	scale[0], 0, 0, 0,
@@ -1923,7 +1923,7 @@ const makeMatrix4Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
  * @param {number[]} vector one 2D vector specifying the reflection axis
  * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
  * @returns {number[]} one 4x4 matrix
- * @linkcode Math ./src/algebra/matrix3.js 259
+ * @linkcode Math ./src/algebra/matrix4.js 258
  */
 const makeMatrix4ReflectZ = (vector, origin = [0, 0]) => {
 	// the line of reflection passes through origin, runs along vector
@@ -2938,7 +2938,7 @@ const centroid = (points) => {
  * @param {number} [padding=0] optionally add padding around the box
  * @returns {BoundingBox?} an object where "min" and "max" are two points and
  * "span" is the lengths. returns "undefined" if no points were provided.
- * @linkcode Math ./src/geometry/polygons.js 186
+ * @linkcode Math ./src/geometry/polygons.js 187
  */
 const boundingBox = (points, padding = 0) => {
 	if (!points || !points.length) { return undefined; }

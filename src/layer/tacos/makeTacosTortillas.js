@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
-import { makeFacesCenter } from "../../graph/make";
+import { makeFacesConvexCenter } from "../../graph/make";
 import {
 	makeEdgesEdgesParallelOverlap,
 } from "../../graph/edgesEdges";
@@ -81,7 +81,7 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	// given a graph which is already in its folded state,
 	// find which edges are tacos, or in other words, find out which
 	// edges overlap with another edge.
-	const faces_center = makeFacesCenter(graph);
+	const faces_center = makeFacesConvexCenter(graph);
 	const edges_faces_side = makeEdgesFacesSide(graph, faces_center);
 	// for every edge, find all other edges which are parallel to this edge and
 	// overlap the edge, excluding the epsilon space around the endpoints.

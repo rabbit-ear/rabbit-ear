@@ -57,7 +57,7 @@ export const getCircularEdges = ({ edges_vertices }) => {
  * @example
  * {number[]} array, [4:3, 7:5, 8:3, 12:3, 14:9] where indices
  * (3, 4, 8, 12) are all duplicates. (5,7), (9,14) are also duplicates.
- * @linkcode Origami ./src/graph/edgesViolations.js 59
+ * @linkcode Origami ./src/graph/edgesViolations.js 60
  */
 export const getDuplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
@@ -110,7 +110,7 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
  * getCircularEdges() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} a summary of changes
- * @linkcode Origami ./src/graph/edgesViolations.js 112
+ * @linkcode Origami ./src/graph/edgesViolations.js 113
  */
 export const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {
@@ -139,7 +139,7 @@ export const removeCircularEdges = (graph, remove_indices) => {
  * getDuplicateEdges() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} a summary of changes
- * @linkcode Origami ./src/graph/edgesViolations.js 141
+ * @linkcode Origami ./src/graph/edgesViolations.js 142
  */
 export const removeDuplicateEdges = (graph, replace_indices) => {
 	// index: edge to remove, value: the edge which should replace it.

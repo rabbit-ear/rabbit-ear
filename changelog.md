@@ -14,6 +14,8 @@ new `.convert` with the first (of many, hopefully) file conversions: `.obj` to `
 
 `makeEdgesAssignment` has been renamed to `makeEdgesAssignmentSimple` and `makeEdgesAssignment` now also assigns "B" boundary edges by checking edges_faces for # of incident faces.
 
+`makeFacesCenter` and `makeFacesCenterQuick` become `makeFacesCenter2D` and `makeFacesConvexCenter` respectively.
+
 # 0.9.32 alpha
 
 new layer solver implementation at ear.layer.solver(), huge performance improvement. solver returns data bound to a prototype which includes methods to process and analyze the data. methods include

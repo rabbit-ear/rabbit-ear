@@ -5,7 +5,7 @@ import {
 	makeEdgesAssignment,
 	makeFacesEdgesFromVertices,
 	makeFacesNormal,
-	makeFacesCenterQuick,
+	makeFacesConvexCenter,
 } from "../graph/make";
 import {
 	file_spec,
@@ -51,8 +51,14 @@ const parseVertex = (vertex) => vertex
 	.slice(1)
 	.map(str => parseFloat(str));
 /**
- * @param {string} obj the contents of an OBJ file,
- * expected to contain vertices and faces
+ * @description Convert an OBJ mesh file into a FOLD object. The conversion
+ * will create edge definitions and give them assignments and fold angles
+ * depending on the dihedral angles, or boundary edges if only one face is adjacent.
+ * @param {string} obj a string containing the contents of an OBJ file,
+ * expected to contain at least vertices and faces. All groups or object
+ * separations are currently ignored, the contents are treated as one object.
+ * @returns {object} a FOLD representation of the OBJ file.
+ * @linkcode Origami ./src/convert/obj.js 61
  */
 const objToFold = (file) => {
 	const lines = file.split("\n").map(line => line.trim().split(/\s+/));
@@ -69,13 +75,17 @@ const objToFold = (file) => {
 		}
 	}
 	graph.faces_normal = makeFacesNormal(graph);
-	graph.faces_center = makeFacesCenterQuick(graph);
+	graph.faces_center = makeFacesConvexCenter(graph);
 	graph.edges_vertices = makeEdgesVertices(graph);
 	graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	// graph.edges_faces = makeEdgesFaces(graph);
 	graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	graph.edges_foldAngle = makeEdgesFoldAngleFromFaces(graph);
 	graph.edges_assignment = makeEdgesAssignment(graph);
+	// faces_normal and faces_center are not a part of the spec.
+	// edges_faces was built unsorted. the sorted method is slower to construct,
+	// and unnecessary for our purposes. the user can build this (and the
+	// other incomplete fields) if they want them.
 	delete graph.faces_normal;
 	delete graph.faces_center;
 	delete graph.edges_faces;

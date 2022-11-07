@@ -11,7 +11,7 @@ import {
  * @param {object} constraintsNeighborsMemo given a face-pair (key), the value is an
  * array of all other face-pairs which are included in some condition (taco/tortilla/trans)
  * in which the face-pair key also appears.
- * @linkcode Origami ./src/layer/globalSolver/getBranches.js 9
+ * @linkcode Origami ./src/layer/globalSolver/getBranches.js 14
  */
 const getBranches = (
 	remainingKeys,

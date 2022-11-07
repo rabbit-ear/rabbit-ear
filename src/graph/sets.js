@@ -7,7 +7,7 @@ import {
  * these indices, these pairs represent edges, separate the set of indices into
  * disjointed graphs. By providing "indices", this allows for isolated vertices.
  * @param {number[][]} edges edges of the graph encoded as as pairs of vertex indices.
- * @returns
+ * @returns something. todo.
  * @example to call with faceOrders create a copy of faceOrders and remove
  * the [2] third index for "pairs".
  */

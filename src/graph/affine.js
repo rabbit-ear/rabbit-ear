@@ -53,7 +53,7 @@ const transform_scale = (graph, ...args) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} optional. an array or series of numbers, the translation vector
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 55
+ * @linkcode Origami ./src/graph/affine.js 56
  */
 const transform_translate = (graph, ...args) => {
 	const vector = math.core.getVector(...args);
@@ -69,7 +69,7 @@ const transform_translate = (graph, ...args) => {
  * @param {number} the rotation amount in radians
  * @param {number[]} optional. an array or series of numbers, the center of rotation
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 71
+ * @linkcode Origami ./src/graph/affine.js 72
  */
 const transform_rotateZ = (graph, angle, ...args) => {
 	const vector = math.core.getVector(...args);

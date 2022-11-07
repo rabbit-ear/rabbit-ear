@@ -4,7 +4,7 @@
 import math from "../math";
 import clone from "../general/clone";
 import {
-	makeFacesCenterQuick,
+	makeFacesConvexCenter,
 	makeFacesEdgesFromVertices,
 } from "./make";
 import { makeFacesWinding } from "./facesWinding";
@@ -15,7 +15,7 @@ import { makeFacesWinding } from "./facesWinding";
  * will remain and be correctly updated to match the new edge indices.
  * @param {FOLD} graph a FOLD graph, will be modified in place
  * @returns {object} a summary of changes to the vertices and edges
- * @linkcode Origami ./src/graph/explodeFaces.js 15
+ * @linkcode Origami ./src/graph/explodeFaces.js 18
  */
 export const explode = (graph) => {
 	// make sure we have faces_vertices (required) and faces_edges (can be built)
@@ -68,7 +68,7 @@ export const explode = (graph) => {
  * do not share vertices.
  * @param {FOLD} graph a FOLD graph
  * @returns {FOLD} a new FOLD graph with exploded faces
- * @linkcode Origami ./src/graph/explodeFaces.js 15
+ * @linkcode Origami ./src/graph/explodeFaces.js 71
  */
 export const explodeFaces = (graph) => {
 	const vertices_coords = graph.faces_vertices
@@ -92,7 +92,7 @@ export const explodeFaces = (graph) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number} [shrink=0.333] a scale factor for a shrinking transform
  * @returns {FOLD} a new FOLD graph with exploded faces
- * @linkcode Origami ./src/graph/explodeFaces.js 38
+ * @linkcode Origami ./src/graph/explodeFaces.js 95
  */
 export const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink = 0.333) => {
 	const graph = explodeFaces({ vertices_coords, faces_vertices });
@@ -100,7 +100,7 @@ export const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink =
 	const faces_vectors = graph.faces_vertices
 		.map(vertices => vertices.map(v => graph.vertices_coords[v]))
 		.map(points => points.map((p, i, arr) => math.core.subtract2(p, arr[(i+1) % arr.length])));
-	const faces_centers = makeFacesCenterQuick({ vertices_coords, faces_vertices });
+	const faces_centers = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 	const faces_point_distances = faces_vertices
 		.map(vertices => vertices.map(v => vertices_coords[v]))
 		.map((points, f) => points

@@ -1,4 +1,4 @@
-/* Rabbit Ear 0.9.32 alpha 2022-07-29 (c) Kraft, MIT License */
+/* Rabbit Ear 0.9.33 alpha 2022-07-29 (c) Kraft, MIT License */
 
 const _undefined = "undefined";
 const _number = "number";
@@ -3655,7 +3655,7 @@ const makeEdgesFaces = ({
 	}
 	const edges_origin = edges_vertices.map(pair => vertices_coords[pair[0]]);
 	if (!faces_center) {
-		faces_center = makeFacesCenter({ vertices_coords, faces_vertices });
+		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 	}
 	const edges_faces = edges_vertices.map(() => []);
 	faces_edges.forEach((face, f) => {
@@ -3701,15 +3701,16 @@ const makeEdgesFoldAngleFromFaces = ({
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 	if (!faces_center) {
-		faces_center = makeFacesCenter({ vertices_coords, faces_vertices });
+		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 	}
 	return edges_faces.map(faces => {
-		if (faces.length < 2) { return 0.0; }
+		if (faces.length < 2) { return 0; }
 		const a = faces_normal[faces[0]];
 		const b = faces_normal[faces[1]];
-		const a2b = math.core
-			.normalize(math.core
-				.subtract(faces_center[faces[1]], faces_center[faces[0]]));
+		const a2b = math.core.normalize(math.core.subtract(
+			faces_center[faces[1]],
+			faces_center[faces[0]],
+		));
 		const sign = Math.sign(math.core.dot(a, a2b));
 		return (Math.acos(math.core.dot(a, b)) * (180 / Math.PI)) * sign;
 	});
@@ -3789,13 +3790,13 @@ const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) => faces
 	.map(polygon => math.core.makePolygonNonCollinear(polygon, epsilon));
 const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(verts => verts.map(v => vertices_coords[v]));
-const makeFacesCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
+const makeFacesCenter2D = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(fv => fv.map(v => vertices_coords[v]))
 	.map(coords => math.core.centroid(coords));
-const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) => faces_vertices
+const makeFacesConvexCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(vertices => vertices
 		.map(v => vertices_coords[v])
-		.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+		.reduce((a, b) => math.core.add(a, b), Array(vertices_coords[0].length).fill(0))
 		.map(el => el / vertices.length));
 const makeFacesNormal = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(vertices => vertices
@@ -3836,8 +3837,8 @@ var make = /*#__PURE__*/Object.freeze({
 	makeFacesFaces: makeFacesFaces,
 	makeFacesPolygon: makeFacesPolygon,
 	makeFacesPolygonQuick: makeFacesPolygonQuick,
-	makeFacesCenter: makeFacesCenter,
-	makeFacesCenterQuick: makeFacesCenterQuick,
+	makeFacesCenter2D: makeFacesCenter2D,
+	makeFacesConvexCenter: makeFacesConvexCenter,
 	makeFacesNormal: makeFacesNormal
 });
 
@@ -4952,7 +4953,7 @@ const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink = 0.333)
 	const faces_vectors = graph.faces_vertices
 		.map(vertices => vertices.map(v => graph.vertices_coords[v]))
 		.map(points => points.map((p, i, arr) => math.core.subtract2(p, arr[(i+1) % arr.length])));
-	const faces_centers = makeFacesCenterQuick({ vertices_coords, faces_vertices });
+	const faces_centers = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 	const faces_point_distances = faces_vertices
 		.map(vertices => vertices.map(v => vertices_coords[v]))
 		.map((points, f) => points
@@ -5022,7 +5023,7 @@ const nearestFace = (graph, point) => {
 		const faces = graph.edges_faces[edge];
 		if (faces.length === 1) { return faces[0]; }
 		if (faces.length > 1) {
-			const faces_center = makeFacesCenterQuick({
+			const faces_center = makeFacesConvexCenter({
 				vertices_coords: graph.vertices_coords,
 				faces_vertices: faces.map(f => graph.faces_vertices[f]),
 			});
@@ -8146,7 +8147,7 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
 const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
-	const faces_center = makeFacesCenter(graph);
+	const faces_center = makeFacesConvexCenter(graph);
 	const edges_faces_side = makeEdgesFacesSide(graph, faces_center);
 	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon);
 	const tacos_edges = booleanMatrixToUniqueIndexPairs(edge_edge_overlap_matrix)
@@ -8877,7 +8878,7 @@ const objToFold = (file) => {
 		}
 	}
 	graph.faces_normal = makeFacesNormal(graph);
-	graph.faces_center = makeFacesCenterQuick(graph);
+	graph.faces_center = makeFacesConvexCenter(graph);
 	graph.edges_vertices = makeEdgesVertices(graph);
 	graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	graph.edges_faces = makeEdgesFacesUnsorted(graph);
