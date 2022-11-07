@@ -1,11 +1,31 @@
 import {
-	makeEdgesFaces,
+	// makeEdgesFaces,
+	makeEdgesFacesUnsorted,
 	makeEdgesFoldAngleFromFaces,
 	makeEdgesAssignment,
 	makeFacesEdgesFromVertices,
 	makeFacesNormal,
 	makeFacesCenterQuick,
 } from "../graph/make";
+import {
+	file_spec,
+	file_creator,
+} from "../fold/keys";
+
+const addMetadata = (graph) => {
+	graph.file_spec = file_spec;
+	graph.file_creator = file_creator;
+	let frameClass = "creasePattern";
+	for (let i = 0; i < graph.edges_foldAngle.length; i += 1) {
+		if (graph.edges_foldAngle[i] !== 0
+			&& graph.edges_foldAngle[i] !== -180
+			&& graph.edges_foldAngle[i] !== 180) {
+			frameClass = "foldedForm";
+			break;
+		}
+	}
+	graph.frame_classes = [frameClass];
+};
 
 const pairify = (list) => list.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
 
@@ -36,9 +56,6 @@ const parseVertex = (vertex) => vertex
  */
 const objToFold = (file) => {
 	const lines = file.split("\n").map(line => line.trim().split(/\s+/));
-	// console.log("parsing OBJ", lines.length, "lines",
-	// 	lines.filter(l => l[0] === "f" || l[0] === "F"), "faces",
-	// 	lines.filter(l => l[0] === "v" || l[0] === "V"), "vertices");
 	const graph = {
 		vertices_coords: [],
 		faces_vertices: [],
@@ -55,11 +72,14 @@ const objToFold = (file) => {
 	graph.faces_center = makeFacesCenterQuick(graph);
 	graph.edges_vertices = makeEdgesVertices(graph);
 	graph.faces_edges = makeFacesEdgesFromVertices(graph);
-	graph.edges_faces = makeEdgesFaces(graph);
+	// graph.edges_faces = makeEdgesFaces(graph);
+	graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	graph.edges_foldAngle = makeEdgesFoldAngleFromFaces(graph);
 	graph.edges_assignment = makeEdgesAssignment(graph);
 	delete graph.faces_normal;
 	delete graph.faces_center;
+	delete graph.edges_faces;
+	addMetadata(graph);
 	return graph;
 };
 

@@ -3681,11 +3681,23 @@
 	const assignment_angles = {
 		M: -180, m: -180, V: 180, v: 180,
 	};
-	const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
+	const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngle
 		.map(a => {
 			if (a === 0) { return "F"; }
 			return a < 0 ? "M" : "V";
 		});
+	const makeEdgesAssignment = ({
+		edges_vertices, edges_foldAngle, edges_faces, faces_edges,
+	}) => {
+		if (!edges_faces) {
+			edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+		}
+		return edges_foldAngle.map((a, i) => {
+			if (edges_faces[i].length < 2) { return "B"; }
+			if (a === 0) { return "F"; }
+			return a < 0 ? "M" : "V";
+		});
+	};
 	const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 		.map(a => assignment_angles[a] || 0);
 	const makeEdgesFoldAngleFromFaces = ({
@@ -3816,6 +3828,7 @@
 		makeEdgesEdges: makeEdgesEdges,
 		makeEdgesFacesUnsorted: makeEdgesFacesUnsorted,
 		makeEdgesFaces: makeEdgesFaces,
+		makeEdgesAssignmentSimple: makeEdgesAssignmentSimple,
 		makeEdgesAssignment: makeEdgesAssignment,
 		makeEdgesFoldAngle: makeEdgesFoldAngle,
 		makeEdgesFoldAngleFromFaces: makeEdgesFoldAngleFromFaces,
@@ -8823,6 +8836,20 @@
 		instructions,
 	};
 
+	const addMetadata = (graph) => {
+		graph.file_spec = file_spec;
+		graph.file_creator = file_creator;
+		let frameClass = "creasePattern";
+		for (let i = 0; i < graph.edges_foldAngle.length; i += 1) {
+			if (graph.edges_foldAngle[i] !== 0
+				&& graph.edges_foldAngle[i] !== -180
+				&& graph.edges_foldAngle[i] !== 180) {
+				frameClass = "foldedForm";
+				break;
+			}
+		}
+		graph.frame_classes = [frameClass];
+	};
 	const pairify = (list) => list.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
 	const makeEdgesVertices = ({ faces_vertices }) => {
 		const edgeExists = {};
@@ -8859,11 +8886,13 @@
 		graph.faces_center = makeFacesCenterQuick(graph);
 		graph.edges_vertices = makeEdgesVertices(graph);
 		graph.faces_edges = makeFacesEdgesFromVertices(graph);
-		graph.edges_faces = makeEdgesFaces(graph);
+		graph.edges_faces = makeEdgesFacesUnsorted(graph);
 		graph.edges_foldAngle = makeEdgesFoldAngleFromFaces(graph);
 		graph.edges_assignment = makeEdgesAssignment(graph);
 		delete graph.faces_normal;
 		delete graph.faces_center;
+		delete graph.edges_faces;
+		addMetadata(graph);
 		return graph;
 	};
 

@@ -10,6 +10,10 @@ all matrix scale methods takes an array of values instead of one number, allowin
 
 `ear.graph.getBoundingBox` will return "undefined" if the graph does not contain any vertices_coords. previously this would throw an error.
 
+new `.convert` with the first (of many, hopefully) file conversions: `.obj` to `.fold`, which includes computing edges_foldAngle and giving them a "M" "V" assignment.
+
+`makeEdgesAssignment` has been renamed to `makeEdgesAssignmentSimple` and `makeEdgesAssignment` now also assigns "B" boundary edges by checking edges_faces for # of incident faces.
+
 # 0.9.32 alpha
 
 new layer solver implementation at ear.layer.solver(), huge performance improvement. solver returns data bound to a prototype which includes methods to process and analyze the data. methods include

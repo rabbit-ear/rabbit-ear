@@ -359,17 +359,37 @@ const assignment_angles = {
 	M: -180, m: -180, V: 180, v: 180,
 };
 /**
- * @description Convert edges fold angle into assignment for every edge.
+ * @description Convert edges fold angle into assignment for every edge. This simple
+ * method will only result in "M" "V" and "F", depending on crease angle.
+ * "makeEdgesAssignment()" will also assign "B"
  * @param {FOLD} graph a FOLD object, with edges_foldAngle
  * @returns {string[]} array of fold assignments
  * @linkcode Origami ./src/graph/make.js 362
  */
-export const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
+export const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngle
 	.map(a => {
-		// todo, consider finding the boundary
 		if (a === 0) { return "F"; }
 		return a < 0 ? "M" : "V";
 	});
+/**
+ * @description Convert edges fold angle into assignment for every edge. This method
+ * will assign "M" "V" "F" and "B" for edges with only one incident face.
+ * @param {FOLD} graph a FOLD object, with edges_foldAngle
+ * @returns {string[]} array of fold assignments
+ * @linkcode Origami ./src/graph/make.js 362
+ */
+export const makeEdgesAssignment = ({
+	edges_vertices, edges_foldAngle, edges_faces, faces_edges,
+}) => {
+	if (!edges_faces) {
+		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+	}
+	return edges_foldAngle.map((a, i) => {
+		if (edges_faces[i].length < 2) { return "B"; }
+		if (a === 0) { return "F"; }
+		return a < 0 ? "M" : "V";
+	});
+};
 /**
  * @description Convert edges assignment into fold angle in degrees for every edge.
  * @param {FOLD} graph a FOLD object, with edges_assignment
