@@ -54,9 +54,7 @@ export const triangulate = (graph, earcut) => {
 	if (graph.vertices_faces) { delete graph.vertices_faces; }
 	if (graph.edges_faces) { delete graph.edges_faces; }
 	if (graph.faces_faces) { delete graph.faces_faces; }
-	if (graph.faceOrders) {
-		console.log("triangulate() method on graph with faceOrders, do not use faceOrders");
-	}
+	if (graph.faceOrders) { delete graph.faceOrders; }
 	return {
 		faces: { map: facesMap },
 	};

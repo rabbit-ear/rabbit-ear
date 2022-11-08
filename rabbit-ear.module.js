@@ -6507,20 +6507,16 @@ const getFacesFacesOverlap = ({
 }, epsilon = math.core.EPSILON) => {
 	const coplanarFaces = getCoplanarFaces({ vertices_coords, faces_vertices }, epsilon);
 	const targetVector = [0, 0, 1];
-	const axisAngles = coplanarFaces
+	const transforms = coplanarFaces
 		.map(cluster => math.core.resize(3, cluster.normal))
 		.map(normal => {
-			const cross = math.core.cross3(normal, targetVector);
 			const dot = math.core.dot(normal, targetVector);
-			if (Math.abs(dot + 1) < epsilon * 10) {
-				return { axis: [1, 0, 0], angle: Math.PI };
-			}
-			const axis = math.core.normalize(cross);
-			const angle = Math.asin(math.core.magnitude(cross));
-			return { axis, angle };
+			return (Math.abs(dot + 1) < epsilon * 10)
+				? math.core.makeMatrix4Rotate(Math.PI, [1, 0, 0])
+				: math.core
+					.matrix4FromQuaternion(math.core
+						.quaternionFromTwoVectors(normal, targetVector));
 		});
-	const transforms = axisAngles
-		.map(el => math.core.makeMatrix3Rotate(el.angle, el.axis));
 	const vertices_coords3D = vertices_coords
 		.map(coord => math.core.resize(3, coord));
 	const polygons3D = coplanarFaces
@@ -6532,7 +6528,7 @@ const getFacesFacesOverlap = ({
 	const polygons2D = polygons3D
 		.map((cluster, i) => cluster
 			.map(points => points
-				.map(point => math.core.multiplyMatrix3Vector3(transforms[i], point))
+				.map(point => math.core.multiplyMatrix4Vector3(transforms[i], point))
 				.map(point => [point[0], point[1]])));
 	const faces_overlap = faces_vertices.map(() => []);
 	polygons2D.forEach((polygons, c) => {
@@ -6698,9 +6694,7 @@ const triangulate = (graph, earcut) => {
 	if (graph.vertices_faces) { delete graph.vertices_faces; }
 	if (graph.edges_faces) { delete graph.edges_faces; }
 	if (graph.faces_faces) { delete graph.faces_faces; }
-	if (graph.faceOrders) {
-		console.log("triangulate() method on graph with faceOrders, do not use faceOrders");
-	}
+	if (graph.faceOrders) { delete graph.faceOrders; }
 	return {
 		faces: { map: facesMap },
 	};

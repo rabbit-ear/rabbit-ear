@@ -132,22 +132,19 @@ export const getFacesFacesOverlap = ({
 	// intersection algorithm is 2D only, so we just need to create a transform for
 	// each cluster which rotates the plane in common with all faces into the XY plane.
 	const targetVector = [0, 0, 1];
-	// todo: here. need to make sure they don't all become flipped (clockwise)
-	const axisAngles = coplanarFaces
+	const transforms = coplanarFaces
 		.map(cluster => math.core.resize(3, cluster.normal))
 		.map(normal => {
-			const cross = math.core.cross3(normal, targetVector);
+			// if dot is -1, the points are already in XY plane and the normal is inverted.
+			// the quaternion will be undefined, so we need a special case because
+			// we still need the points to undergo a 180 degree flip over
 			const dot = math.core.dot(normal, targetVector);
-			// check if dot is -1. already in XY plane, requires a 180 degree rotation.
-			if (Math.abs(dot + 1) < epsilon * 10) {
-				return { axis: [1, 0, 0], angle: Math.PI };
-			}
-			const axis = math.core.normalize(cross);
-			const angle = Math.asin(math.core.magnitude(cross));
-			return { axis, angle };
+			return (Math.abs(dot + 1) < epsilon * 10)
+				? math.core.makeMatrix4Rotate(Math.PI, [1, 0, 0])
+				: math.core
+					.matrix4FromQuaternion(math.core
+						.quaternionFromTwoVectors(normal, targetVector));
 		});
-	const transforms = axisAngles
-		.map(el => math.core.makeMatrix3Rotate(el.angle, el.axis));
 	// make sure we are using 3D points for this next part
 	const vertices_coords3D = vertices_coords
 		.map(coord => math.core.resize(3, coord));
@@ -164,7 +161,7 @@ export const getFacesFacesOverlap = ({
 	const polygons2D = polygons3D
 		.map((cluster, i) => cluster
 			.map(points => points
-				.map(point => math.core.multiplyMatrix3Vector3(transforms[i], point))
+				.map(point => math.core.multiplyMatrix4Vector3(transforms[i], point))
 				.map(point => [point[0], point[1]])));
 	// todo: we can store and return the actual polygon that is the overlap
 	// of the two faces. which would be used in some folding algorithms.
@@ -182,7 +179,6 @@ export const getFacesFacesOverlap = ({
 		}
 	});
 	// console.log("coplanarFaces", coplanarFaces);
-	// console.log("axisAngles", axisAngles);
 	// console.log("transforms", transforms);
 	// console.log("polygons3D", polygons3D);
 	// console.log("polygons2D", polygons2D);
