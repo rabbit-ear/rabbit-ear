@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { booleanMatrixToUniqueIndexPairs } from "../../general/arrays";
-import { makeFacesFacesOverlap } from "../../graph/overlap";
+import { getFacesFaces2DOverlap } from "../../graph/overlap";
 import { makeFacesWinding } from "../../graph/facesWinding";
 // flip 1 and 2 to be the other, leaving 0 to be 0.
 const make_conditions_flip_condition = { 0: 0, 1: 2, 2: 1 };
@@ -28,7 +28,7 @@ const make_conditions_assignment_direction = {
 // 		faces_winding = makeFacesWinding(graph);
 // 	}
 // 	if (!overlap_matrix) {
-// 		overlap_matrix = makeFacesFacesOverlap(graph);
+// 		overlap_matrix = getFacesFaces2DOverlap(graph);
 // 	}
 // 	const facePairsOrder = {};
 // 	// set all facePairsOrder (every pair of overlapping faces) initially to 0
@@ -63,14 +63,14 @@ const make_conditions_assignment_direction = {
  * space-separated strings which represent all pairs of overlapping faces,
  * these are the conditions needed to be solved by a layer solver.
  * @param {FOLD} graph a FOLD graph, with the vertices already folded.
- * @param {number[][]} [overlap_matrix] the result of makeFacesFacesOverlap,
+ * @param {number[][]} [overlap_matrix] the result of getFacesFaces2DOverlap,
  * this will be calculated unless it is already provided.
  * @returns {string[]} array of facePair strings.
  * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 69
  */
 export const makeFacePairs = (graph, overlap_matrix) => {
 	if (!overlap_matrix) {
-		overlap_matrix = makeFacesFacesOverlap(graph);
+		overlap_matrix = getFacesFaces2DOverlap(graph);
 	}
 	return booleanMatrixToUniqueIndexPairs(overlap_matrix)
 		.map(pair => pair.join(" "));

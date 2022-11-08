@@ -3,7 +3,7 @@
  */
 import math from "../../math";
 import { makeFacesWinding } from "../../graph/facesWinding";
-import { makeFacesFacesOverlap } from "../../graph/overlap";
+import { getFacesFaces2DOverlap } from "../../graph/overlap";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
@@ -22,7 +22,7 @@ const makeTransitivityTrios = (
 	epsilon = math.core.EPSILON,
 ) => {
 	if (!overlap_matrix) {
-		overlap_matrix = makeFacesFacesOverlap(graph, epsilon);
+		overlap_matrix = getFacesFaces2DOverlap(graph, epsilon);
 	}
 	if (!faces_winding) {
 		faces_winding = makeFacesWinding(graph);

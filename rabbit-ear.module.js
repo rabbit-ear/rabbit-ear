@@ -6441,6 +6441,114 @@ var edgesEdges = /*#__PURE__*/Object.freeze({
 	makeEdgesEdgesParallelOverlap: makeEdgesEdgesParallelOverlap
 });
 
+const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
+	const indices = floats
+		.map((v, i) => ({ v, i }))
+		.sort((a, b) => a.v - b.v)
+		.map(el => el.i);
+	const groups = [[indices[0]]];
+	for (let i = 1; i < indices.length; i += 1) {
+		const index = indices[i];
+		const g = groups.length - 1;
+		const prev = groups[g][groups[g].length - 1];
+		if (Math.abs(floats[prev] - floats[index]) < epsilon) {
+			groups[g].push(index);
+		} else {
+			groups.push([index]);
+		}
+	}
+	return groups;
+};
+const parallelNormalized = (v, u, epsilon = math.core.EPSILON) => 1 - Math
+	.abs(math.core.dot(v, u)) < epsilon;
+const getCoplanarFaces = ({
+	vertices_coords, faces_vertices,
+}, epsilon = math.core.EPSILON) => {
+	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	const facesNormalMatch = faces_vertices.map(() => []);
+	for (let a = 0; a < faces_vertices.length - 1; a += 1) {
+		for (let b = a + 1; b < faces_vertices.length; b += 1) {
+			if (a === b) { continue; }
+			if (parallelNormalized(faces_normal[a], faces_normal[b], epsilon)) {
+				facesNormalMatch[a].push(b);
+				facesNormalMatch[b].push(a);
+			}
+		}
+	}
+	const facesNormalMatchCluster = makeSelfRelationalArrayClusters(facesNormalMatch);
+	const normalClustersFaces = invertMap(facesNormalMatchCluster)
+		.map(el => (typeof el === "number" ? [el] : el));
+	const normalClustersNormal = normalClustersFaces
+		.map(faces => faces_normal[faces[0]]);
+	const faces_clusterAligned = [];
+	normalClustersFaces.forEach((faces, i) => faces.forEach(f => {
+		faces_clusterAligned[f] = math.core
+			.dot(faces_normal[f], normalClustersNormal[i]) > 0;
+	}));
+	const facesOneVertex = faces_vertices.map(fv => vertices_coords[fv[0]]);
+	const normalClustersFacesDot = normalClustersFaces
+		.map((faces, i) => faces
+			.map(f => math.core.dot(facesOneVertex[f], normalClustersNormal[i])));
+	const clustersClusters = normalClustersFacesDot
+		.map((dots, i) => clusterArrayValues(dots)
+			.map(cluster => cluster.map(index => normalClustersFaces[i][index])));
+	const clustersNormal = clustersClusters
+		.flatMap((cluster, i) => cluster
+			.map(() => [...normalClustersNormal[i]]));
+	const clusters = clustersClusters.flat();
+	return clusters.map((faces, i) => ({
+		normal: clustersNormal[i],
+		faces,
+		facesAligned: faces.map(f => faces_clusterAligned[f]),
+	}));
+};
+const getFacesFacesOverlap = ({
+	vertices_coords, faces_vertices,
+}, epsilon = math.core.EPSILON) => {
+	const coplanarFaces = getCoplanarFaces({ vertices_coords, faces_vertices }, epsilon);
+	const targetVector = [0, 0, 1];
+	const axisAngles = coplanarFaces
+		.map(cluster => math.core.resize(3, cluster.normal))
+		.map(normal => {
+			const cross = math.core.cross3(normal, targetVector);
+			const dot = math.core.dot(normal, targetVector);
+			if (Math.abs(dot + 1) < epsilon * 10) {
+				return { axis: [1, 0, 0], angle: Math.PI };
+			}
+			const axis = math.core.normalize(cross);
+			const angle = Math.asin(math.core.magnitude(cross));
+			return { axis, angle };
+		});
+	const transforms = axisAngles
+		.map(el => math.core.makeMatrix3Rotate(el.angle, el.axis));
+	const vertices_coords3D = vertices_coords
+		.map(coord => math.core.resize(3, coord));
+	const polygons3D = coplanarFaces
+		.map(cluster => cluster.faces
+			.map((f, i) => (cluster.facesAligned[i]
+				? faces_vertices[f]
+				: faces_vertices[f].slice().reverse()))
+			.map(verts => verts.map(v => vertices_coords3D[v])));
+	const polygons2D = polygons3D
+		.map((cluster, i) => cluster
+			.map(points => points
+				.map(point => math.core.multiplyMatrix3Vector3(transforms[i], point))
+				.map(point => [point[0], point[1]])));
+	const faces_overlap = faces_vertices.map(() => []);
+	polygons2D.forEach((polygons, c) => {
+		for (let i = 0; i < polygons.length - 1; i += 1) {
+			for (let j = i + 1; j < polygons.length; j += 1) {
+				const clip = math.core.clipPolygonPolygon(polygons[i], polygons[j]);
+				if (clip !== undefined) {
+					const faces = [coplanarFaces[c].faces[i], coplanarFaces[c].faces[j]];
+					faces_overlap[faces[0]].push(faces[1]);
+					faces_overlap[faces[1]].push(faces[0]);
+				}
+			}
+		}
+	});
+	return faces_overlap;
+};
 const makeEdgesFacesOverlap = ({
 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
 }, epsilon) => {
@@ -6504,7 +6612,7 @@ const makeEdgesFacesOverlap = ({
 	}
 	return matrix;
 };
-const makeFacesFacesOverlap = ({
+const getFacesFaces2DOverlap = ({
 	vertices_coords, faces_vertices,
 }, epsilon = math.core.EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))
@@ -6540,8 +6648,10 @@ const makeFacesFacesOverlap = ({
 
 var overlap = /*#__PURE__*/Object.freeze({
 	__proto__: null,
+	getCoplanarFaces: getCoplanarFaces,
+	getFacesFacesOverlap: getFacesFacesOverlap,
 	makeEdgesFacesOverlap: makeEdgesFacesOverlap,
-	makeFacesFacesOverlap: makeFacesFacesOverlap
+	getFacesFaces2DOverlap: getFacesFaces2DOverlap
 });
 
 const triangulateVertices = (indices) => Array.from(Array(indices.length - 2))
@@ -8207,7 +8317,7 @@ const makeTransitivityTrios = (
 	epsilon = math.core.EPSILON,
 ) => {
 	if (!overlap_matrix) {
-		overlap_matrix = makeFacesFacesOverlap(graph, epsilon);
+		overlap_matrix = getFacesFaces2DOverlap(graph, epsilon);
 	}
 	if (!faces_winding) {
 		faces_winding = makeFacesWinding(graph);
@@ -8298,7 +8408,7 @@ const make_conditions_assignment_direction = {
 };
 const makeFacePairs = (graph, overlap_matrix) => {
 	if (!overlap_matrix) {
-		overlap_matrix = makeFacesFacesOverlap(graph);
+		overlap_matrix = getFacesFaces2DOverlap(graph);
 	}
 	return booleanMatrixToUniqueIndexPairs(overlap_matrix)
 		.map(pair => pair.join(" "));
@@ -8335,7 +8445,7 @@ var makeFacePairsOrder = /*#__PURE__*/Object.freeze({
 });
 
 const prepare = (graph, epsilon = 1e-6) => {
-	const overlap = makeFacesFacesOverlap(graph, epsilon);
+	const overlap = getFacesFaces2DOverlap(graph, epsilon);
 	const facesWinding = makeFacesWinding(graph);
 	const tacos_tortillas = makeTacosTortillas(graph, epsilon);
 	const unfiltered_trios = makeTransitivityTrios(graph, overlap, facesWinding, epsilon);

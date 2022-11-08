@@ -16,6 +16,10 @@ new `.convert` with the first (of many, hopefully) file conversions: `.obj` to `
 
 `makeFacesCenter` and `makeFacesCenterQuick` become `makeFacesCenter2D` and `makeFacesConvexCenter` respectively.
 
+new methods `getCoplanarFaces`,  `getFacesFacesOverlap` which will find all groups of faces which share the same plane in 3D space (`getCoplanarFaces`), and then in the case of `getFacesFacesOverlap` actually compute whether or not they overlap.
+
+`makeFacesFacesOverlap` renamed to `getFacesFaces2DOverlap`
+
 # 0.9.32 alpha
 
 new layer solver implementation at ear.layer.solver(), huge performance improvement. solver returns data bound to a prototype which includes methods to process and analyze the data. methods include
