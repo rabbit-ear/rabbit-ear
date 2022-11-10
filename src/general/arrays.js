@@ -107,6 +107,31 @@ export const booleanMatrixToUniqueIndexPairs = matrix => {
 	return pairs;
 };
 /**
+ * @description Given a self-relational array of arrays, for example,
+ * vertices_vertices, edges_edges, faces_faces, where the values in the
+ * inner arrays relate to the indices of the outer array, create a list of
+ * all pairwise combinations of related indices. This handles circular
+ * references, and ensures that no duplicate pairs appear by maintaining
+ * for [i, j] that i <= j.
+ * @param {number[][]} array_array an array of arrays of integers
+ * @returns {number[][]} array of two-dimensional array pairs of indices.
+ * @linkcode Origami ./src/general/arrays.js 118
+ */
+export const selfRelationalUniqueIndexPairs = array_array => {
+	const circular = [];
+	const pairs = [];
+	for (let i = 0; i < array_array.length; i += 1) {
+		for (let j = 0; j < array_array[i].length; j += 1) {
+			if (i < array_array[i][j]) { pairs.push([i, array_array[i][j]]); }
+			if (i === array_array[i][j] && !circular[i]) {
+				circular[i] = true;
+				pairs.push([i, array_array[i][j]]);
+			}
+		}
+	}
+	return pairs;
+};
+/**
  * @description given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
  * inner arrays relate to the indices of the outer array, create collection groups
@@ -114,18 +139,18 @@ export const booleanMatrixToUniqueIndexPairs = matrix => {
  * in that group.
  * @param {number[][]} matrix an array of arrays of numbers
  * @returns {number[][]} groups of the indices where each index appears only once
- * @linkcode Origami ./src/general/arrays.js 117
+ * @linkcode Origami ./src/general/arrays.js 142
  */
-export const makeSelfRelationalArrayClusters = (matrix) => {
+export const makeSelfRelationalArrayClusters = (array_array) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
 		groups[index] = current_group;
-		matrix[index].forEach(i => recurse(i, current_group));
+		array_array[index].forEach(i => recurse(i, current_group));
 		return 1; // increment group # for next round
 	};
-	for (let row = 0, group = 0; row < matrix.length; row += 1) {
-		if (!(row in matrix)) { continue; }
+	for (let row = 0, group = 0; row < array_array.length; row += 1) {
+		if (!(row in array_array)) { continue; }
 		group += recurse(row, group);
 	}
 	return groups;
@@ -156,7 +181,7 @@ export const makeSelfRelationalArrayClusters = (matrix) => {
  * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
  * // will return
  * [ [8, 1], [3, 5] ]
- * @linkcode Origami ./src/general/arrays.js 159
+ * @linkcode Origami ./src/general/arrays.js 184
  */
 export const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.

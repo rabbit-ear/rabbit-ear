@@ -1,6 +1,6 @@
 # 0.9.33 alpha
 
-new WebGL implementation!
+new WebGL implementation. see: https://foldfile.com
 
 new Matrix4 type. new Quaternion type. new projection matrices.
 
@@ -16,9 +16,11 @@ new `.convert` with the first (of many, hopefully) file conversions: `.obj` to `
 
 `makeFacesCenter` and `makeFacesCenterQuick` become `makeFacesCenter2D` and `makeFacesConvexCenter` respectively.
 
-new methods `getCoplanarFaces`,  `getFacesFacesOverlap` which will find all groups of faces which share the same plane in 3D space (`getCoplanarFaces`), and then in the case of `getFacesFacesOverlap` actually compute whether or not they overlap.
+new methods `getCoplanarFacesGroups`,  `getOverlappingFacesGroups` which will find all groups of faces which share the same plane in 3D space (`getCoplanarFacesGroups`), and then in the case of `getOverlappingFacesGroups` actually compute whether or not they overlap.
 
 `makeFacesFacesOverlap` renamed to `getFacesFaces2DOverlap`
+
+new method `selfRelationalUniqueIndexPairs`, given any array of self-referential data (vertices_vertices, faces_faces, etc), create a list of unique pairwise combinations of related indices.
 
 # 0.9.32 alpha
 

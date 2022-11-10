@@ -3208,16 +3208,30 @@
 		}
 		return pairs;
 	};
-	const makeSelfRelationalArrayClusters = (matrix) => {
+	const selfRelationalUniqueIndexPairs = array_array => {
+		const circular = [];
+		const pairs = [];
+		for (let i = 0; i < array_array.length; i += 1) {
+			for (let j = 0; j < array_array[i].length; j += 1) {
+				if (i < array_array[i][j]) { pairs.push([i, array_array[i][j]]); }
+				if (i === array_array[i][j] && !circular[i]) {
+					circular[i] = true;
+					pairs.push([i, array_array[i][j]]);
+				}
+			}
+		}
+		return pairs;
+	};
+	const makeSelfRelationalArrayClusters = (array_array) => {
 		const groups = [];
 		const recurse = (index, current_group) => {
 			if (groups[index] !== undefined) { return 0; }
 			groups[index] = current_group;
-			matrix[index].forEach(i => recurse(i, current_group));
+			array_array[index].forEach(i => recurse(i, current_group));
 			return 1;
 		};
-		for (let row = 0, group = 0; row < matrix.length; row += 1) {
-			if (!(row in matrix)) { continue; }
+		for (let row = 0, group = 0; row < array_array.length; row += 1) {
+			if (!(row in array_array)) { continue; }
 			group += recurse(row, group);
 		}
 		return groups;
@@ -3252,6 +3266,7 @@
 		removeSingleInstances: removeSingleInstances,
 		booleanMatrixToIndexedArray: booleanMatrixToIndexedArray,
 		booleanMatrixToUniqueIndexPairs: booleanMatrixToUniqueIndexPairs,
+		selfRelationalUniqueIndexPairs: selfRelationalUniqueIndexPairs,
 		makeSelfRelationalArrayClusters: makeSelfRelationalArrayClusters,
 		circularArrayValidRanges: circularArrayValidRanges
 	});
@@ -6467,7 +6482,7 @@
 	};
 	const parallelNormalized = (v, u, epsilon = math.core.EPSILON) => 1 - Math
 		.abs(math.core.dot(v, u)) < epsilon;
-	const getCoplanarFaces = ({
+	const getCoplanarFacesGroups = ({
 		vertices_coords, faces_vertices,
 	}, epsilon = math.core.EPSILON) => {
 		const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
@@ -6508,10 +6523,16 @@
 			facesAligned: faces.map(f => faces_clusterAligned[f]),
 		}));
 	};
-	const getFacesFacesOverlap = ({
+	const getOverlappingFacesGroups = ({
 		vertices_coords, faces_vertices,
 	}, epsilon = math.core.EPSILON) => {
-		const coplanarFaces = getCoplanarFaces({ vertices_coords, faces_vertices }, epsilon);
+		const coplanarFaces = getCoplanarFacesGroups({ vertices_coords, faces_vertices }, epsilon);
+		const faces_coplanarIndex = [];
+		coplanarFaces.forEach((cluster, i) => cluster.faces
+			.forEach(f => { faces_coplanarIndex[f] = i; }));
+		const faces_groupNormalAligned = [];
+		coplanarFaces.forEach(cluster => cluster.facesAligned
+			.forEach((aligned, j) => { faces_groupNormalAligned[cluster.faces[j]] = aligned; }));
 		const targetVector = [0, 0, 1];
 		const transforms = coplanarFaces
 			.map(cluster => math.core.resize(3, cluster.normal))
@@ -6536,20 +6557,31 @@
 				.map(points => points
 					.map(point => math.core.multiplyMatrix4Vector3(transforms[i], point))
 					.map(point => [point[0], point[1]])));
-		const faces_overlap = faces_vertices.map(() => []);
+		const faces_facesOverlap = faces_vertices.map(() => []);
 		polygons2D.forEach((polygons, c) => {
 			for (let i = 0; i < polygons.length - 1; i += 1) {
 				for (let j = i + 1; j < polygons.length; j += 1) {
 					const clip = math.core.clipPolygonPolygon(polygons[i], polygons[j]);
 					if (clip !== undefined) {
 						const faces = [coplanarFaces[c].faces[i], coplanarFaces[c].faces[j]];
-						faces_overlap[faces[0]].push(faces[1]);
-						faces_overlap[faces[1]].push(faces[0]);
+						faces_facesOverlap[faces[0]].push(faces[1]);
+						faces_facesOverlap[faces[1]].push(faces[0]);
 					}
 				}
 			}
 		});
-		return faces_overlap;
+		const faces_group = makeSelfRelationalArrayClusters(faces_facesOverlap);
+		const groups_faces = invertMap(faces_group)
+			.map(el => (typeof el === "number" ? [el] : el));
+		return {
+			groups_plane: groups_faces.map(faces => ({
+				normal: coplanarFaces[faces_coplanarIndex[faces[0]]].normal,
+				origin: vertices_coords3D[faces_vertices[faces[0]][0]],
+			})),
+			faces_group: faces_group,
+			faces_groupNormalAligned,
+			faces_facesOverlap,
+		};
 	};
 	const makeEdgesFacesOverlap = ({
 		vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
@@ -6650,8 +6682,8 @@
 
 	var overlap = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		getCoplanarFaces: getCoplanarFaces,
-		getFacesFacesOverlap: getFacesFacesOverlap,
+		getCoplanarFacesGroups: getCoplanarFacesGroups,
+		getOverlappingFacesGroups: getOverlappingFacesGroups,
 		makeEdgesFacesOverlap: makeEdgesFacesOverlap,
 		getFacesFaces2DOverlap: getFacesFaces2DOverlap
 	});

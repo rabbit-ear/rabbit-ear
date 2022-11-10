@@ -2028,6 +2028,13 @@ var matrix4 = /*#__PURE__*/Object.freeze({
 // 	const w = Math.sqrt(ear.math.magSquared(v1) * ear.math.magSquared(v2)) + ear.math.dot(v1, v2);
 // 	return ear.math.normalize([...xyz, w]);
 // };
+/**
+ * @description Create a quaternion which represents a rotation from
+ * one 3D vector to another.
+ * @param {number[]} u a 3D vector
+ * @param {number[]} v a 3D vector
+ * @returns {number[]} a quaternion representing a rotation
+ */
 const quaternionFromTwoVectors = (u, v) => {
 	const w = cross3(u, v);
 	const q = [w[0], w[1], w[2], dot(u, v)];
@@ -2036,6 +2043,11 @@ const quaternionFromTwoVectors = (u, v) => {
 };
 /**
  * @param {number[]} quaternion array of numbers with indices x=0, y=1, z=2, w=3
+ */
+/**
+ * @description Create a 4x4 matrix from a quaternion
+ * @param {number[]} quaternion a quaternion
+ * @returns {number[]} a 4x4 matrix (array of 16 numbers)
  */
 const matrix4FromQuaternion = (quaternion) => multiplyMatrices4([
 	quaternion[3], quaternion[2], -quaternion[1], quaternion[0],

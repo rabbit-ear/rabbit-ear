@@ -52,7 +52,7 @@ const parallelNormalized = (v, u, epsilon = math.core.EPSILON) => 1 - Math
  * a normal vector, a list of face indices, and a matching list indicating
  * if the face shares the normal vector or the face is flipped 180 degrees.
  */
-export const getCoplanarFaces = ({
+export const getCoplanarFacesGroups = ({
 	vertices_coords, faces_vertices,
 }, epsilon = math.core.EPSILON) => {
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
@@ -124,10 +124,17 @@ export const getCoplanarFaces = ({
  * @returns {number[][]} an array matching the length of faces, for every face,
  * the list of indices of faces which overlap this face.
  */
-export const getFacesFacesOverlap = ({
+export const getOverlappingFacesGroups = ({
 	vertices_coords, faces_vertices,
 }, epsilon = math.core.EPSILON) => {
-	const coplanarFaces = getCoplanarFaces({ vertices_coords, faces_vertices }, epsilon);
+	const coplanarFaces = getCoplanarFacesGroups({ vertices_coords, faces_vertices }, epsilon);
+	// before we go too far, make a reverse lookup for fast-access of the above data
+	const faces_coplanarIndex = [];
+	coplanarFaces.forEach((cluster, i) => cluster.faces
+		.forEach(f => { faces_coplanarIndex[f] = i; }));
+	const faces_groupNormalAligned = [];
+	coplanarFaces.forEach(cluster => cluster.facesAligned
+		.forEach((aligned, j) => { faces_groupNormalAligned[cluster.faces[j]] = aligned; }));
 	// all polygon sets will be planar to each other, however the polygon-polygon
 	// intersection algorithm is 2D only, so we just need to create a transform for
 	// each cluster which rotates the plane in common with all faces into the XY plane.
@@ -165,25 +172,40 @@ export const getFacesFacesOverlap = ({
 				.map(point => [point[0], point[1]])));
 	// todo: we can store and return the actual polygon that is the overlap
 	// of the two faces. which would be used in some folding algorithms.
-	const faces_overlap = faces_vertices.map(() => []);
+	const faces_facesOverlap = faces_vertices.map(() => []);
 	polygons2D.forEach((polygons, c) => {
 		for (let i = 0; i < polygons.length - 1; i += 1) {
 			for (let j = i + 1; j < polygons.length; j += 1) {
 				const clip = math.core.clipPolygonPolygon(polygons[i], polygons[j]);
 				if (clip !== undefined) {
 					const faces = [coplanarFaces[c].faces[i], coplanarFaces[c].faces[j]];
-					faces_overlap[faces[0]].push(faces[1]);
-					faces_overlap[faces[1]].push(faces[0]);
+					faces_facesOverlap[faces[0]].push(faces[1]);
+					faces_facesOverlap[faces[1]].push(faces[0]);
 				}
 			}
 		}
 	});
+	const faces_group = makeSelfRelationalArrayClusters(faces_facesOverlap);
+	const groups_faces = invertMap(faces_group)
+		.map(el => (typeof el === "number" ? [el] : el));
 	// console.log("coplanarFaces", coplanarFaces);
 	// console.log("transforms", transforms);
 	// console.log("polygons3D", polygons3D);
 	// console.log("polygons2D", polygons2D);
-	// console.log("faces_overlap", faces_overlap);
-	return faces_overlap;
+	// console.log("faces_facesOverlap", faces_facesOverlap);
+	// console.log("faces_group", faces_group);
+	// console.log("groups_faces", groups_faces);
+	return {
+		groups_plane: groups_faces.map(faces => ({
+			normal: coplanarFaces[faces_coplanarIndex[faces[0]]].normal,
+			origin: vertices_coords3D[faces_vertices[faces[0]][0]],
+		})),
+		// groups_normal: groups_faces
+		// 	.map(faces => coplanarFaces[faces_coplanarIndex[faces[0]]].normal),
+		faces_group: faces_group,
+		faces_groupNormalAligned,
+		faces_facesOverlap,
+	};
 };
 /**
  * @description Return an ExF matrix (number of: E=edges, F=faces), relating every edge
@@ -192,7 +214,7 @@ export const getFacesFacesOverlap = ({
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
- * @linkcode Origami ./src/graph/overlap.js 199
+ * @linkcode Origami ./src/graph/overlap.js 217
  */
 export const makeEdgesFacesOverlap = ({
 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
@@ -314,7 +336,7 @@ export const makeEdgesFacesOverlap = ({
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} face-face matrix answering: do they overlap?
- * @linkcode Origami ./src/graph/overlap.js 321
+ * @linkcode Origami ./src/graph/overlap.js 339
  */
 export const getFacesFaces2DOverlap = ({
 	vertices_coords, faces_vertices,
