@@ -3208,19 +3208,37 @@
 		}
 		return pairs;
 	};
-	const selfRelationalUniqueIndexPairs = array_array => {
+	const selfRelationalUniqueIndexPairs = (array_array) => {
 		const circular = [];
 		const pairs = [];
-		for (let i = 0; i < array_array.length; i += 1) {
-			for (let j = 0; j < array_array[i].length; j += 1) {
-				if (i < array_array[i][j]) { pairs.push([i, array_array[i][j]]); }
-				if (i === array_array[i][j] && !circular[i]) {
-					circular[i] = true;
-					pairs.push([i, array_array[i][j]]);
-				}
+		array_array.forEach((arr, i) => arr.forEach(j => {
+			if (i < j) { pairs.push([i, j]); }
+			if (i === j && !circular[i]) {
+				circular[i] = true;
+				pairs.push([i, j]);
+			}
+		}));
+		return pairs;
+	};
+	const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
+		const indices = floats
+			.map((v, i) => ({ v, i }))
+			.sort((a, b) => a.v - b.v)
+			.map(el => el.i);
+		const groups = [[indices[0]]];
+		for (let i = 1; i < indices.length; i += 1) {
+			const index = indices[i];
+			const g = groups.length - 1;
+			const prev = groups[g][groups[g].length - 1];
+			if (Math.abs(floats[prev] - floats[index]) < epsilon) {
+				groups[g].push(index);
+			} else {
+				groups.push([index]);
 			}
 		}
-		return pairs;
+		return groups;
+	};
+	const sortedParallelVectorIndices = (vectors) => {
 	};
 	const makeSelfRelationalArrayClusters = (array_array) => {
 		const groups = [];
@@ -3267,6 +3285,8 @@
 		booleanMatrixToIndexedArray: booleanMatrixToIndexedArray,
 		booleanMatrixToUniqueIndexPairs: booleanMatrixToUniqueIndexPairs,
 		selfRelationalUniqueIndexPairs: selfRelationalUniqueIndexPairs,
+		clusterArrayValues: clusterArrayValues,
+		sortedParallelVectorIndices: sortedParallelVectorIndices,
 		makeSelfRelationalArrayClusters: makeSelfRelationalArrayClusters,
 		circularArrayValidRanges: circularArrayValidRanges
 	});
@@ -3702,9 +3722,12 @@
 			return a < 0 ? "M" : "V";
 		});
 	const makeEdgesAssignment = ({
-		edges_vertices, edges_foldAngle, edges_faces, faces_edges,
+		edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges,
 	}) => {
 		if (!edges_faces) {
+			if (!faces_edges) {
+				faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+			}
 			edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
 		}
 		return edges_foldAngle.map((a, i) => {
@@ -3716,15 +3739,22 @@
 	const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 		.map(a => assignment_angles[a] || 0);
 	const makeEdgesFoldAngleFromFaces = ({
-		vertices_coords, edges_faces, faces_vertices, faces_normal, faces_center,
+		vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_normal, faces_center,
 	}) => {
+		if (!edges_faces) {
+			if (!faces_edges) {
+				faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+			}
+			edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+		}
 		if (!faces_normal) {
 			faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 		}
 		if (!faces_center) {
 			faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 		}
-		return edges_faces.map(faces => {
+		return edges_faces.map((faces, e) => {
+			if (faces.length > 2) { console.warn("makeEdgesFoldAngleFromFaces non manifold"); }
 			if (faces.length < 2) { return 0; }
 			const a = faces_normal[faces[0]];
 			const b = faces_normal[faces[1]];
@@ -3732,7 +3762,16 @@
 				faces_center[faces[1]],
 				faces_center[faces[0]],
 			));
-			const sign = Math.sign(math.core.dot(a, a2b));
+			let sign = Math.sign(math.core.dot(a, a2b));
+			if (sign === 0) {
+				if (edges_assignment && edges_assignment[e]) {
+					if (edges_assignment[e] === "F" || edges_assignment[e] === "F") { sign = 0; }
+					if (edges_assignment[e] === "M" || edges_assignment[e] === "m") { sign = -1; }
+					if (edges_assignment[e] === "V" || edges_assignment[e] === "v") { sign = 1; }
+				} else {
+					console.warn("makeEdgesFoldAngleFromFaces cannot determine flat folded faces");
+				}
+			}
 			return (Math.acos(math.core.dot(a, b)) * (180 / Math.PI)) * sign;
 		});
 	};
@@ -6387,41 +6426,74 @@
 	};
 	const makeEdgesEdgesParallel = ({
 		vertices_coords, edges_vertices, edges_vector,
-	}, epsilon) => {
+	}, epsilon = math.core.EPSILON) => {
 		if (!edges_vector) {
 			edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 		}
-		const edge_count = edges_vector.length;
-		const normalized = edges_vector
-			.map(vec => math.core.normalize(vec));
-		const edges_edges_parallel = Array
-			.from(Array(edge_count))
-			.map(() => Array.from(Array(edge_count)));
-		for (let i = 0; i < edge_count - 1; i += 1) {
-			for (let j = i + 1; j < edge_count; j += 1) {
-				const p = (1 - Math.abs(math.core.dot(normalized[i], normalized[j])) < epsilon);
-				edges_edges_parallel[i][j] = p;
-				edges_edges_parallel[j][i] = p;
-			}
-		}
-		return edges_edges_parallel;
+		const normalized = edges_vector.map(vec => math.core.normalize(vec));
+		return normalized
+			.map((vec1, i) => normalized
+				.map((vec2, j) => (i === j
+					? undefined
+					: (1 - Math.abs(math.core.dot(normalized[i], normalized[j])) < epsilon)))
+				.map((parallel, j) => (parallel ? j : undefined))
+				.filter(a => a !== undefined));
 	};
-	const overwriteEdgesOverlaps = (matrix, vectors, origins, func, epsilon) => {
-		for (let i = 0; i < matrix.length - 1; i += 1) {
-			for (let j = i + 1; j < matrix.length; j += 1) {
-				if (!matrix[i][j]) { continue; }
-				matrix[i][j] = math.core.overlapLineLine(
-					vectors[i],
-					origins[i],
-					vectors[j],
-					origins[j],
-					func,
-					func,
-					epsilon,
-				);
-				matrix[j][i] = matrix[i][j];
-			}
+	const makeEdgesEdgesNotParallel = ({
+		vertices_coords, edges_vertices, edges_vector,
+	}, epsilon = math.core.EPSILON) => {
+		if (!edges_vector) {
+			edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 		}
+		const normalized = edges_vector.map(vec => math.core.normalize(vec));
+		return normalized
+			.map((vec1, i) => normalized
+				.map((vec2, j) => (i === j
+					? undefined
+					: (1 - Math.abs(math.core.dot(normalized[i], normalized[j])) < epsilon)))
+				.map((parallel, j) => (parallel ? undefined : j))
+				.filter(a => a !== undefined));
+	};
+	const makeEdgesEdges2DParallel = ({
+		vertices_coords, edges_vertices, edges_vector,
+	}, epsilon = math.core.EPSILON) => {
+		if (!edges_vector) {
+			edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+		}
+		const sorted = edges_vector
+			.map(vec => Math.atan2(vec[1], vec[0]))
+			.map((a, i) => ({ a, i }))
+			.sort((a, b) => a.a - b.a);
+		let found = -1;
+		sorted.forEach((el, i) => {
+			{ return; }
+		});
+		const shifted = sorted
+			.slice(found)
+			.concat(sorted.slice(0, found))
+			.filter(a => a);
+		console.log("shifted", shifted);
+	};
+	const overwriteEdgesOverlaps = (edges_edges, vectors, origins, func, epsilon) => {
+		const edges_edgesOverlap = edges_edges.map(() => []);
+		edges_edges
+			.forEach((arr, i) => arr
+				.forEach(j => {
+					if (i >= j) { return; }
+					if (math.core.overlapLineLine(
+						vectors[i],
+						origins[i],
+						vectors[j],
+						origins[j],
+						func,
+						func,
+						epsilon,
+					)) {
+						edges_edgesOverlap[i].push(j);
+						edges_edgesOverlap[j].push(i);
+					}
+				}));
+		return edges_edgesOverlap;
 	};
 	const makeEdgesEdgesCrossing = ({
 		vertices_coords, edges_vertices, edges_vector,
@@ -6430,15 +6502,10 @@
 			edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 		}
 		const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-		const matrix = makeEdgesEdgesParallel({
+		const edge_edgesNotParallel = makeEdgesEdgesNotParallel({
 			vertices_coords, edges_vertices, edges_vector,
-		}, epsilon)
-			.map(row => row.map(b => !b));
-		for (let i = 0; i < matrix.length; i += 1) {
-			matrix[i][i] = undefined;
-		}
-		overwriteEdgesOverlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
-		return matrix;
+		}, epsilon);
+		return overwriteEdgesOverlaps(edge_edgesNotParallel, edges_vector, edges_origin, math.core.excludeS, epsilon);
 	};
 	const makeEdgesEdgesParallelOverlap = ({
 		vertices_coords, edges_vertices, edges_vector,
@@ -6447,39 +6514,21 @@
 			edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 		}
 		const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-		const matrix = makeEdgesEdgesParallel({
+		const edges_edgesParallel = makeEdgesEdgesParallel({
 			vertices_coords, edges_vertices, edges_vector,
 		}, epsilon);
-		overwriteEdgesOverlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
-		return matrix;
+		return overwriteEdgesOverlaps(edges_edgesParallel, edges_vector, edges_origin, math.core.excludeS, epsilon);
 	};
 
 	var edgesEdges = /*#__PURE__*/Object.freeze({
 		__proto__: null,
 		makeEdgesEdgesSimilar: makeEdgesEdgesSimilar,
 		makeEdgesEdgesParallel: makeEdgesEdgesParallel,
+		makeEdgesEdges2DParallel: makeEdgesEdges2DParallel,
 		makeEdgesEdgesCrossing: makeEdgesEdgesCrossing,
 		makeEdgesEdgesParallelOverlap: makeEdgesEdgesParallelOverlap
 	});
 
-	const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
-		const indices = floats
-			.map((v, i) => ({ v, i }))
-			.sort((a, b) => a.v - b.v)
-			.map(el => el.i);
-		const groups = [[indices[0]]];
-		for (let i = 1; i < indices.length; i += 1) {
-			const index = indices[i];
-			const g = groups.length - 1;
-			const prev = groups[g][groups[g].length - 1];
-			if (Math.abs(floats[prev] - floats[index]) < epsilon) {
-				groups[g].push(index);
-			} else {
-				groups.push([index]);
-			}
-		}
-		return groups;
-	};
 	const parallelNormalized = (v, u, epsilon = math.core.EPSILON) => 1 - Math
 		.abs(math.core.dot(v, u)) < epsilon;
 	const getCoplanarFacesGroups = ({
@@ -6578,6 +6627,7 @@
 				normal: coplanarFaces[faces_coplanarIndex[faces[0]]].normal,
 				origin: vertices_coords3D[faces_vertices[faces[0]][0]],
 			})),
+			groups_transformXY: groups_faces.map(faces => transforms[faces_coplanarIndex[faces[0]]]),
 			faces_group: faces_group,
 			faces_groupNormalAligned,
 			faces_facesOverlap,
@@ -6591,59 +6641,50 @@
 		}
 		const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
 		const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-		const matrix = edges_vertices
-			.map(() => Array.from(Array(faces_vertices.length)));
-		edges_faces.forEach((faces, e) => faces
-			.forEach(f => { matrix[e][f] = false; }));
-		const edges_similar = makeEdgesEdgesSimilar({ vertices_coords, edges_vertices });
 		const edges_coords = edges_vertices
 			.map(verts => verts.map(v => vertices_coords[v]));
 		const faces_coords = faces_vertices
 			.map(verts => verts.map(v => vertices_coords[v]));
-		for (let f = 0; f < faces_winding.length; f += 1) {
-			if (!faces_winding[f]) { faces_coords[f].reverse(); }
-		}
+		faces_winding.forEach((winding, i) => {
+			if (!winding) {
+				faces_coords[i].reverse();
+			}
+		});
+		const matrix = edges_vertices
+			.map(() => faces_vertices
+				.map(() => undefined));
+		edges_faces.forEach((faces, e) => faces
+			.forEach(f => { matrix[e][f] = false; }));
 		const edges_bounds = makeEdgesBoundingBox({ edges_coords });
 		const faces_bounds = faces_coords
 			.map(coords => math.core.boundingBox(coords));
-		for (let e = 0; e < matrix.length; e += 1) {
-			for (let f = 0; f < matrix[e].length; f += 1) {
-				if (matrix[e][f] === false) { continue; }
-				if (!math.core.overlapBoundingBoxes(faces_bounds[f], edges_bounds[e])) {
-					matrix[e][f] = false;
-					continue;
-				}
-			}
-		}
-		const finished_edges = {};
-		for (let e = 0; e < matrix.length; e += 1) {
-			if (finished_edges[e]) { continue; }
-			for (let f = 0; f < matrix[e].length; f += 1) {
-				if (matrix[e][f] !== undefined) { continue; }
-				const point_in_poly = edges_coords[e]
-					.map(point => math.core.overlapConvexPolygonPoint(
-						faces_coords[f],
-						point,
-						math.core.exclude,
-						epsilon,
-					)).reduce((a, b) => a || b, false);
-				if (point_in_poly) { matrix[e][f] = true; continue; }
-				const edge_intersect = math.core.intersectConvexPolygonLine(
-					faces_coords[f],
-					edges_vector[e],
-					edges_origin[e],
-					math.core.excludeS,
-					math.core.excludeS,
-					epsilon,
-				);
-				if (edge_intersect) { matrix[e][f] = true; continue; }
+		edges_bounds.forEach((edge_bounds, e) => faces_bounds.forEach((face_bounds, f) => {
+			if (matrix[e][f] === false) { return; }
+			if (!math.core.overlapBoundingBoxes(face_bounds, edge_bounds)) {
 				matrix[e][f] = false;
 			}
-			edges_similar[e].forEach(adjacent_edge => {
-				matrix[adjacent_edge] = matrix[e].slice();
-				finished_edges[adjacent_edge] = true;
-			});
-		}
+		}));
+		edges_coords.forEach((edge_coords, e) => faces_coords.forEach((face_coords, f) => {
+			if (matrix[e][f] !== undefined) { return; }
+			const point_in_poly = edges_coords[e]
+				.map(point => math.core.overlapConvexPolygonPoint(
+					faces_coords[f],
+					point,
+					math.core.exclude,
+					epsilon,
+				)).reduce((a, b) => a || b, false);
+			if (point_in_poly) { matrix[e][f] = true; return; }
+			const edge_intersect = math.core.intersectConvexPolygonLine(
+				faces_coords[f],
+				edges_vector[e],
+				edges_origin[e],
+				math.core.excludeS,
+				math.core.excludeS,
+				epsilon,
+			);
+			if (edge_intersect) { matrix[e][f] = true; return; }
+			matrix[e][f] = false;
+		}));
 		return matrix;
 	};
 	const getFacesFaces2DOverlap = ({
@@ -7991,31 +8032,31 @@
 		tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
 		transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
 	});
-	const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
+	const pairArrayToSortedPairString$1 = pair => (pair[0] < pair[1]
 		? `${pair[0]} ${pair[1]}`
 		: `${pair[1]} ${pair[0]}`);
-	const constraintToFacePairsStrings = ({
+	const constraintToFacePairsStrings$1 = ({
 		taco_taco: f => [
-			pairArrayToSortedPairString([f[0], f[2]]),
-			pairArrayToSortedPairString([f[1], f[3]]),
-			pairArrayToSortedPairString([f[1], f[2]]),
-			pairArrayToSortedPairString([f[0], f[3]]),
-			pairArrayToSortedPairString([f[0], f[1]]),
-			pairArrayToSortedPairString([f[2], f[3]]),
+			pairArrayToSortedPairString$1([f[0], f[2]]),
+			pairArrayToSortedPairString$1([f[1], f[3]]),
+			pairArrayToSortedPairString$1([f[1], f[2]]),
+			pairArrayToSortedPairString$1([f[0], f[3]]),
+			pairArrayToSortedPairString$1([f[0], f[1]]),
+			pairArrayToSortedPairString$1([f[2], f[3]]),
 		],
 		taco_tortilla: f => [
-			pairArrayToSortedPairString([f[0], f[2]]),
-			pairArrayToSortedPairString([f[0], f[1]]),
-			pairArrayToSortedPairString([f[1], f[2]]),
+			pairArrayToSortedPairString$1([f[0], f[2]]),
+			pairArrayToSortedPairString$1([f[0], f[1]]),
+			pairArrayToSortedPairString$1([f[1], f[2]]),
 		],
 		tortilla_tortilla: f => [
-			pairArrayToSortedPairString([f[0], f[2]]),
-			pairArrayToSortedPairString([f[1], f[3]]),
+			pairArrayToSortedPairString$1([f[0], f[2]]),
+			pairArrayToSortedPairString$1([f[1], f[3]]),
 		],
 		transitivity: f => [
-			pairArrayToSortedPairString([f[0], f[1]]),
-			pairArrayToSortedPairString([f[1], f[2]]),
-			pairArrayToSortedPairString([f[2], f[0]]),
+			pairArrayToSortedPairString$1([f[0], f[1]]),
+			pairArrayToSortedPairString$1([f[1], f[2]]),
+			pairArrayToSortedPairString$1([f[2], f[0]]),
 		],
 	});
 	const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
@@ -8152,7 +8193,7 @@
 						if (!indices) { return; }
 						indices
 							.map(c => constraints[type][c])
-							.map(faces => constraintToFacePairsStrings[type](faces)
+							.map(faces => constraintToFacePairsStrings$1[type](faces)
 								.forEach(facePair => { neighborsHash[facePair] = true; }));
 					});
 					neighborsArray = Object.keys(neighborsHash);
@@ -8170,7 +8211,7 @@
 		return groups;
 	};
 
-	const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
+	const makeTortillasFacesCrossing$1 = (graph, edges_faces_side, epsilon) => {
 		const faces_winding = makeFacesWinding(graph);
 		const faces_polygon = makeFacesPolygon(graph, epsilon);
 		for (let i = 0; i < faces_polygon.length; i += 1) {
@@ -8207,15 +8248,15 @@
 			}));
 		return matrix;
 	};
-	const makeTortillaTortillaFacesCrossing = (graph, edges_faces_side, epsilon) => {
-		const tortillas_faces_crossing = makeTortillasFacesCrossing(graph, edges_faces_side, epsilon);
+	const makeTortillaTortillaFacesCrossing$1 = (graph, edges_faces_side, epsilon) => {
+		const tortillas_faces_crossing = makeTortillasFacesCrossing$1(graph, edges_faces_side, epsilon);
 		const tortilla_faces_results = tortillas_faces_crossing
 			.map((faces, e) => faces.map(face => [graph.edges_faces[e], [face, face]]))
 			.reduce((a, b) => a.concat(b), []);
 		return tortilla_faces_results;
 	};
 
-	const makeEdgesFacesSide = (graph, faces_center) => {
+	const makeEdgesFacesSide$1 = (graph, faces_center) => {
 		const edges_origin = graph.edges_vertices
 			.map(vertices => graph.vertices_coords[vertices[0]]);
 		const edges_vector = graph.edges_vertices
@@ -8234,7 +8275,7 @@
 				))
 				.map(cross => Math.sign(cross)));
 	};
-	const makeTacosFacesSide = (graph, faces_center, tacos_edges, tacos_faces) => {
+	const makeTacosFacesSide$1 = (graph, faces_center, tacos_edges, tacos_faces) => {
 		const tacos_edge_coords = tacos_edges
 			.map(edges => graph.edges_vertices[edges[0]]
 				.map(vertex => graph.vertices_coords[vertex]));
@@ -8259,21 +8300,22 @@
 					.map(cross => Math.sign(cross))));
 	};
 
-	const classify_faces_pair = (pair) => {
+	const classify_faces_pair$1 = (pair) => {
 		if ((pair[0] === 1 && pair[1] === -1)
 			|| (pair[0] === -1 && pair[1] === 1)) {
 			return "both";
 		}
 		if ((pair[0] === 1 && pair[1] === 1)) { return "right"; }
 		if ((pair[0] === -1 && pair[1] === -1)) { return "left"; }
+		return undefined;
 	};
-	const is_taco_taco = (classes) => classes[0] === classes[1]
+	const is_taco_taco$1 = (classes) => classes[0] === classes[1]
 		&& classes[0] !== "both";
-	const is_tortilla_tortilla = (classes) => classes[0] === classes[1]
+	const is_tortilla_tortilla$1 = (classes) => classes[0] === classes[1]
 		&& classes[0] === "both";
-	const is_taco_tortilla = (classes) => classes[0] !== classes[1]
+	const is_taco_tortilla$1 = (classes) => classes[0] !== classes[1]
 		&& (classes[0] === "both" || classes[1] === "both");
-	const make_taco_tortilla = (face_pairs, types, faces_side) => {
+	const make_taco_tortilla$1 = (face_pairs, types, faces_side) => {
 		const direction = types[0] === "left" || types[1] === "left" ? -1 : 1;
 		const taco = types[0] === "both" ? [...face_pairs[1]] : [...face_pairs[0]];
 		const index = types[0] === "both" ? 0 : 1;
@@ -8282,15 +8324,15 @@
 			: face_pairs[index][1];
 		return { taco, tortilla };
 	};
-	const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
+	const make_tortilla_tortilla$1 = (face_pairs, tortillas_sides) => {
 		if (face_pairs === undefined) { return undefined; }
 		return (tortillas_sides[0][0] === tortillas_sides[1][0])
 			? face_pairs
 			: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 	};
-	const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
+	const makeTacosTortillas$1 = (graph, epsilon = math.core.EPSILON) => {
 		const faces_center = makeFacesConvexCenter(graph);
-		const edges_faces_side = makeEdgesFacesSide(graph, faces_center);
+		const edges_faces_side = makeEdgesFacesSide$1(graph, faces_center);
 		const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon);
 		const tacos_edges = booleanMatrixToUniqueIndexPairs(edge_edge_overlap_matrix)
 			.filter(pair => pair
@@ -8299,18 +8341,18 @@
 		const tacos_faces = tacos_edges
 			.map(pair => pair
 				.map(edge => graph.edges_faces[edge]));
-		const tacos_faces_side = makeTacosFacesSide(graph, faces_center, tacos_edges, tacos_faces);
+		const tacos_faces_side = makeTacosFacesSide$1(graph, faces_center, tacos_edges, tacos_faces);
 		const tacos_types = tacos_faces_side
 			.map(faces => faces
-				.map(classify_faces_pair));
+				.map(classify_faces_pair$1));
 		const taco_taco = tacos_types
-			.map((pair, i) => (is_taco_taco(pair) ? tacos_faces[i] : undefined))
+			.map((pair, i) => (is_taco_taco$1(pair) ? tacos_faces[i] : undefined))
 			.filter(a => a !== undefined);
 		const tortilla_tortilla_aligned = tacos_types
-			.map((pair, i) => (is_tortilla_tortilla(pair) ? tacos_faces[i] : undefined))
-			.map((pair, i) => make_tortilla_tortilla(pair, tacos_faces_side[i]))
+			.map((pair, i) => (is_tortilla_tortilla$1(pair) ? tacos_faces[i] : undefined))
+			.map((pair, i) => make_tortilla_tortilla$1(pair, tacos_faces_side[i]))
 			.filter(a => a !== undefined);
-		const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(
+		const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing$1(
 			graph,
 			edges_faces_side,
 			epsilon,
@@ -8318,8 +8360,8 @@
 		const tortilla_tortilla = tortilla_tortilla_aligned
 			.concat(tortilla_tortilla_crossing);
 		const taco_tortilla_aligned = tacos_types
-			.map((pair, i) => (is_taco_tortilla(pair)
-				? make_taco_tortilla(tacos_faces[i], tacos_types[i], tacos_faces_side[i])
+			.map((pair, i) => (is_taco_tortilla$1(pair)
+				? make_taco_tortilla$1(tacos_faces[i], tacos_types[i], tacos_faces_side[i])
 				: undefined))
 			.filter(a => a !== undefined);
 		const edges_faces_overlap = makeEdgesFacesOverlap(graph, epsilon);
@@ -8342,7 +8384,7 @@
 		};
 	};
 
-	const makeTransitivityTrios = (
+	const makeTransitivityTrios$1 = (
 		graph,
 		overlap_matrix,
 		faces_winding,
@@ -8383,7 +8425,7 @@
 		return trios;
 	};
 
-	const filterTransitivity = (transitivity_trios, tacos_tortillas) => {
+	const filterTransitivity$1 = (transitivity_trios, tacos_tortillas) => {
 		const tacos_trios = {};
 		tacos_tortillas.taco_taco
 			.map(tacos => [tacos[0][0], tacos[0][1], tacos[1][0], tacos[1][1]]
@@ -8402,7 +8444,7 @@
 			.filter(trio => tacos_trios[trio.join(" ")] === undefined);
 	};
 
-	const makeConstraints = (tacos_tortillas, transitivity_trios) => {
+	const makeConstraints$1 = (tacos_tortillas, transitivity_trios) => {
 		const constraints = {};
 		constraints.taco_taco = tacos_tortillas.taco_taco.map(el => [
 			el[0][0], el[1][0], el[0][1], el[1][1],
@@ -8418,12 +8460,12 @@
 		]);
 		return constraints;
 	};
-	const makeConstraintsLookup = (constraints) => {
+	const makeConstraintsLookup$1 = (constraints) => {
 		const lookup = {};
 		Object.keys(constraints).forEach(key => { lookup[key] = {}; });
 		Object.keys(constraints).forEach(type => {
 			constraints[type]
-				.forEach((constraint, i) => constraintToFacePairsStrings[type](constraint)
+				.forEach((constraint, i) => constraintToFacePairsStrings$1[type](constraint)
 					.forEach(key => {
 						if (lookup[type][key] === undefined) {
 							lookup[type][key] = [];
@@ -8434,8 +8476,8 @@
 		return lookup;
 	};
 
-	const make_conditions_flip_condition = { 0: 0, 1: 2, 2: 1 };
-	const make_conditions_assignment_direction = {
+	const make_conditions_flip_condition$1 = { 0: 0, 1: 2, 2: 1 };
+	const make_conditions_assignment_direction$1 = {
 		M: 1, m: 1, V: 2, v: 2,
 	};
 	const makeFacePairs = (graph, overlap_matrix) => {
@@ -8445,7 +8487,7 @@
 		return booleanMatrixToUniqueIndexPairs(overlap_matrix)
 			.map(pair => pair.join(" "));
 	};
-	const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
+	const solveEdgeAdjacentFacePairs$1 = (graph, facePairs, faces_winding) => {
 		if (!faces_winding) {
 			faces_winding = makeFacesWinding(graph);
 		}
@@ -8454,17 +8496,17 @@
 		const soution = {};
 		graph.edges_faces.forEach((faces, edge) => {
 			const assignment = graph.edges_assignment[edge];
-			const local_order = make_conditions_assignment_direction[assignment];
+			const local_order = make_conditions_assignment_direction$1[assignment];
 			if (faces.length < 2 || local_order === undefined) { return; }
 			const upright = faces_winding[faces[0]];
 			const global_order = upright
 				? local_order
-				: make_conditions_flip_condition[local_order];
+				: make_conditions_flip_condition$1[local_order];
 			const key1 = `${faces[0]} ${faces[1]}`;
 			const key2 = `${faces[1]} ${faces[0]}`;
 			if (key1 in facePairsHash) { soution[key1] = global_order; }
 			if (key2 in facePairsHash) {
-				soution[key2] = make_conditions_flip_condition[global_order];
+				soution[key2] = make_conditions_flip_condition$1[global_order];
 			}
 		});
 		return soution;
@@ -8473,19 +8515,19 @@
 	var makeFacePairsOrder = /*#__PURE__*/Object.freeze({
 		__proto__: null,
 		makeFacePairs: makeFacePairs,
-		solveEdgeAdjacentFacePairs: solveEdgeAdjacentFacePairs
+		solveEdgeAdjacentFacePairs: solveEdgeAdjacentFacePairs$1
 	});
 
-	const prepare = (graph, epsilon = 1e-6) => {
+	const prepare$1 = (graph, epsilon = 1e-6) => {
 		const overlap = getFacesFaces2DOverlap(graph, epsilon);
 		const facesWinding = makeFacesWinding(graph);
-		const tacos_tortillas = makeTacosTortillas(graph, epsilon);
-		const unfiltered_trios = makeTransitivityTrios(graph, overlap, facesWinding, epsilon);
-		const transitivity_trios = filterTransitivity(unfiltered_trios, tacos_tortillas);
-		const constraints = makeConstraints(tacos_tortillas, transitivity_trios);
-		const constraintsLookup = makeConstraintsLookup(constraints);
+		const tacos_tortillas = makeTacosTortillas$1(graph, epsilon);
+		const unfiltered_trios = makeTransitivityTrios$1(graph, overlap, facesWinding, epsilon);
+		const transitivity_trios = filterTransitivity$1(unfiltered_trios, tacos_tortillas);
+		const constraints = makeConstraints$1(tacos_tortillas, transitivity_trios);
+		const constraintsLookup = makeConstraintsLookup$1(constraints);
 		const facePairs = makeFacePairs(graph, overlap);
-		const edgeAdjacentOrders = solveEdgeAdjacentFacePairs(graph, facePairs, facesWinding);
+		const edgeAdjacentOrders = solveEdgeAdjacentFacePairs$1(graph, facePairs, facesWinding);
 		return {
 			constraints,
 			constraintsLookup,
@@ -8587,7 +8629,7 @@
 			constraintsLookup,
 			facePairs,
 			edgeAdjacentOrders,
-		} = prepare(graph, epsilon);
+		} = prepare$1(graph, epsilon);
 		const prepareDuration = Date.now() - prepareStartDate;
 		const startDate = new Date();
 		const initialResult = propagate(
@@ -8683,15 +8725,427 @@
 		return layers_face;
 	};
 
+	const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
+		const faces_winding = makeFacesWinding(graph);
+		const faces_polygon = makeFacesPolygon(graph, epsilon);
+		faces_winding.forEach((winding, i) => {
+			if (!winding) {
+				faces_polygon[i].reverse();
+			}
+		});
+		const tortilla_edge_indices = edges_faces_side
+			.map(side => side.length === 2 && side[0] !== side[1])
+			.map((bool, i) => (bool ? i : undefined))
+			.filter(a => a !== undefined);
+		const edges_coords = tortilla_edge_indices
+			.map(e => graph.edges_vertices[e])
+			.map(edge => edge
+				.map(vertex => graph.vertices_coords[vertex]));
+		const edges_vector = edges_coords
+			.map(coords => math.core.subtract2(coords[1], coords[0]));
+		const matrix = [];
+		tortilla_edge_indices.forEach(e => { matrix[e] = []; });
+		const result = tortilla_edge_indices
+			.map((e, ei) => faces_polygon
+				.map(poly => math.core.clipLineConvexPolygon(
+					poly,
+					edges_vector[ei],
+					edges_coords[ei][0],
+					math.core.exclude,
+					math.core.excludeS,
+					epsilon,
+				))
+				.map(res => res !== undefined));
+		result.forEach((faces, ei) => faces
+			.forEach((overlap, f) => {
+				if (overlap) {
+					matrix[tortilla_edge_indices[ei]].push(f);
+				}
+			}));
+		return matrix;
+	};
+	const makeTortillaTortillaFacesCrossing = (graph, edges_faces_side, epsilon) => {
+		const tortillas_faces_crossing = makeTortillasFacesCrossing(graph, edges_faces_side, epsilon);
+		const tortilla_faces_results = tortillas_faces_crossing
+			.map((faces, e) => faces.map(face => [graph.edges_faces[e], [face, face]]))
+			.reduce((a, b) => a.concat(b), []);
+		return tortilla_faces_results;
+	};
+
+	const makeEdgesFacesSide = (graph) => {
+		const edges_origin = graph.edges_vertices
+			.map(vertices => graph.vertices_coords[vertices[0]]);
+		const edges_vector = graph.edges_vertices
+			.map(vertices => math.core.subtract2(
+				graph.vertices_coords[vertices[1]],
+				graph.vertices_coords[vertices[0]],
+			));
+		return graph.edges_faces
+			.map((faces, i) => faces
+				.map(face => math.core.cross2(
+					math.core.subtract2(
+						graph.faces_center[face],
+						edges_origin[i],
+					),
+					edges_vector[i],
+				))
+				.map(cross => Math.sign(cross)));
+	};
+	const makeTacosFacesSide = (graph, tacos_edges, tacos_faces) => {
+		const tacos_edge_coords = tacos_edges
+			.map(edges => graph.edges_vertices[edges[0]]
+				.map(vertex => graph.vertices_coords[vertex]));
+		const tacos_edge_origin = tacos_edge_coords
+			.map(coords => coords[0]);
+		const tacos_edge_vector = tacos_edge_coords
+			.map(coords => math.core.subtract2(coords[1], coords[0]));
+		const tacos_faces_center = tacos_faces
+			.map(faces => faces
+				.map(face_pair => face_pair
+					.map(face => graph.faces_center[face])));
+		return tacos_faces_center
+			.map((faces, i) => faces
+				.map(pairs => pairs
+					.map(center => math.core.cross2(
+						math.core.subtract2(
+							center,
+							tacos_edge_origin[i],
+						),
+						tacos_edge_vector[i],
+					))
+					.map(cross => Math.sign(cross))));
+	};
+
+	const classify_faces_pair = (pair) => {
+		if ((pair[0] === 1 && pair[1] === -1)
+			|| (pair[0] === -1 && pair[1] === 1)) {
+			return "both";
+		}
+		if ((pair[0] === 1 && pair[1] === 1)) { return "right"; }
+		if ((pair[0] === -1 && pair[1] === -1)) { return "left"; }
+		return undefined;
+	};
+	const is_taco_taco = (classes) => classes[0] === classes[1]
+		&& classes[0] !== "both";
+	const is_tortilla_tortilla = (classes) => classes[0] === classes[1]
+		&& classes[0] === "both";
+	const is_taco_tortilla = (classes) => classes[0] !== classes[1]
+		&& (classes[0] === "both" || classes[1] === "both");
+	const make_taco_tortilla = (face_pairs, types, faces_side) => {
+		const direction = types[0] === "left" || types[1] === "left" ? -1 : 1;
+		const taco = types[0] === "both" ? [...face_pairs[1]] : [...face_pairs[0]];
+		const index = types[0] === "both" ? 0 : 1;
+		const tortilla = faces_side[index][0] === direction
+			? face_pairs[index][0]
+			: face_pairs[index][1];
+		return { taco, tortilla };
+	};
+	const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
+		if (face_pairs === undefined) { return undefined; }
+		return (tortillas_sides[0][0] === tortillas_sides[1][0])
+			? face_pairs
+			: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
+	};
+	const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
+		const edges_faces_side = makeEdgesFacesSide(graph);
+		const edges_edgesParallelOverlap = makeEdgesEdgesParallelOverlap(graph, epsilon);
+		const tacos_edges = selfRelationalUniqueIndexPairs(edges_edgesParallelOverlap)
+			.filter(pair => pair
+				.map(edge => graph.edges_faces[edge].length > 1)
+				.reduce((a, b) => a && b, true));
+		const tacos_faces = tacos_edges
+			.map(pair => pair
+				.map(edge => graph.edges_faces[edge]));
+		const tacos_faces_side = makeTacosFacesSide(graph, tacos_edges, tacos_faces);
+		const tacos_types = tacos_faces_side
+			.map(faces => faces
+				.map(classify_faces_pair));
+		const taco_taco = tacos_types
+			.map((pair, i) => (is_taco_taco(pair) ? tacos_faces[i] : undefined))
+			.filter(a => a !== undefined);
+		const tortilla_tortilla_aligned = tacos_types
+			.map((pair, i) => (is_tortilla_tortilla(pair) ? tacos_faces[i] : undefined))
+			.map((pair, i) => make_tortilla_tortilla(pair, tacos_faces_side[i]))
+			.filter(a => a !== undefined);
+		const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(
+			graph,
+			edges_faces_side,
+			epsilon,
+		);
+		const tortilla_tortilla = tortilla_tortilla_aligned
+			.concat(tortilla_tortilla_crossing);
+		const taco_tortilla_aligned = tacos_types
+			.map((pair, i) => (is_taco_tortilla(pair)
+				? make_taco_tortilla(tacos_faces[i], tacos_types[i], tacos_faces_side[i])
+				: undefined))
+			.filter(a => a !== undefined);
+		const edges_faces_overlap = makeEdgesFacesOverlap(graph, epsilon);
+		const edges_overlap_faces = booleanMatrixToIndexedArray(edges_faces_overlap)
+			.map((faces, e) => (edges_faces_side[e].length > 1
+				&& edges_faces_side[e][0] === edges_faces_side[e][1]
+				? faces
+				: []));
+		const taco_tortillas_crossing = edges_overlap_faces
+			.map((tortillas, edge) => ({ taco: graph.edges_faces[edge], tortillas }))
+			.filter(el => el.tortillas.length);
+		const taco_tortilla_crossing = taco_tortillas_crossing
+			.flatMap(el => el.tortillas
+				.map(tortilla => ({ taco: [...el.taco], tortilla })));
+		const taco_tortilla = taco_tortilla_aligned.concat(taco_tortilla_crossing);
+		return {
+			taco_taco,
+			tortilla_tortilla,
+			taco_tortilla,
+		};
+	};
+
+	const makeTransitivityTrios = (
+		graph,
+		faces_facesOverlap,
+		faces_winding,
+		epsilon = math.core.EPSILON,
+	) => {
+		const polygons = graph.faces_vertices
+			.map(face => face
+				.map(v => graph.vertices_coords[v]));
+		makeFacesWinding(graph).forEach((winding, i) => {
+			if (!winding) {
+				polygons[i].reverse();
+			}
+		});
+		const matrix = graph.faces_vertices.map(() => []);
+		polygons.forEach((_, f1) => faces_facesOverlap[f1].forEach(f2 => {
+			matrix[f1][f2] = math.core
+				.clipPolygonPolygon(polygons[f1], polygons[f2], epsilon);
+		}));
+		const trios = [];
+		matrix.forEach((row, i) => row.forEach((poly, j) => {
+			if (!matrix[i][j]) { return; }
+			matrix.forEach((_, k) => {
+				if (i === k || j === k) { return; }
+				if (!faces_facesOverlap[i][k] || !faces_facesOverlap[j][k]) { return; }
+				const polygon = math.core.clipPolygonPolygon(poly, polygons[k], epsilon);
+				if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
+			});
+		}));
+		return trios;
+	};
+
+	const filterTransitivity = (transitivity_trios, tacos_tortillas) => {
+		const tacos_trios = {};
+		tacos_tortillas.taco_taco
+			.map(tacos => [tacos[0][0], tacos[0][1], tacos[1][0], tacos[1][1]]
+				.sort((a, b) => a - b))
+			.forEach(taco => [
+				`${taco[0]} ${taco[1]} ${taco[2]}`,
+				`${taco[0]} ${taco[1]} ${taco[3]}`,
+				`${taco[0]} ${taco[2]} ${taco[3]}`,
+				`${taco[1]} ${taco[2]} ${taco[3]}`,
+			].forEach(key => { tacos_trios[key] = true; }));
+		tacos_tortillas.taco_tortilla
+			.map(el => [el.taco[0], el.taco[1], el.tortilla]
+				.sort((a, b) => a - b).join(" "))
+			.forEach(key => { tacos_trios[key] = true; });
+		return transitivity_trios
+			.filter(trio => tacos_trios[trio.join(" ")] === undefined);
+	};
+
+	const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
+		? `${pair[0]} ${pair[1]}`
+		: `${pair[1]} ${pair[0]}`);
+	const constraintToFacePairsStrings = ({
+		taco_taco: f => [
+			pairArrayToSortedPairString([f[0], f[2]]),
+			pairArrayToSortedPairString([f[1], f[3]]),
+			pairArrayToSortedPairString([f[1], f[2]]),
+			pairArrayToSortedPairString([f[0], f[3]]),
+			pairArrayToSortedPairString([f[0], f[1]]),
+			pairArrayToSortedPairString([f[2], f[3]]),
+		],
+		taco_tortilla: f => [
+			pairArrayToSortedPairString([f[0], f[2]]),
+			pairArrayToSortedPairString([f[0], f[1]]),
+			pairArrayToSortedPairString([f[1], f[2]]),
+		],
+		tortilla_tortilla: f => [
+			pairArrayToSortedPairString([f[0], f[2]]),
+			pairArrayToSortedPairString([f[1], f[3]]),
+		],
+		transitivity: f => [
+			pairArrayToSortedPairString([f[0], f[1]]),
+			pairArrayToSortedPairString([f[1], f[2]]),
+			pairArrayToSortedPairString([f[2], f[0]]),
+		],
+	});
+
+	const makeConstraints = (tacos_tortillas, transitivity_trios) => {
+		const constraints = {};
+		constraints.taco_taco = tacos_tortillas.taco_taco.map(el => [
+			el[0][0], el[1][0], el[0][1], el[1][1],
+		]);
+		constraints.taco_tortilla = tacos_tortillas.taco_tortilla.map(el => [
+			el.taco[0], el.tortilla, el.taco[1],
+		]);
+		constraints.tortilla_tortilla = tacos_tortillas.tortilla_tortilla.map(el => [
+			el[0][0], el[0][1], el[1][0], el[1][1],
+		]);
+		constraints.transitivity = transitivity_trios.map(el => [
+			el[0], el[1], el[2],
+		]);
+		return constraints;
+	};
+	const makeConstraintsLookup = (constraints) => {
+		const lookup = {};
+		Object.keys(constraints).forEach(key => { lookup[key] = {}; });
+		Object.keys(constraints).forEach(type => {
+			constraints[type]
+				.forEach((constraint, i) => constraintToFacePairsStrings[type](constraint)
+					.forEach(key => {
+						if (lookup[type][key] === undefined) {
+							lookup[type][key] = [];
+						}
+						lookup[type][key].push(i);
+					}));
+		});
+		return lookup;
+	};
+
+	const make_conditions_flip_condition = { 0: 0, 1: 2, 2: 1 };
+	const make_conditions_assignment_direction = {
+		M: 1, m: 1, V: 2, v: 2,
+	};
+	const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
+		const facePairsHash = {};
+		facePairs.forEach(key => { facePairsHash[key] = true; });
+		const soution = {};
+		graph.edges_faces.forEach((faces, edge) => {
+			const assignment = graph.edges_assignment[edge];
+			const local_order = make_conditions_assignment_direction[assignment];
+			if (faces.length < 2 || local_order === undefined) { return; }
+			const upright = faces_winding[faces[0]];
+			const global_order = upright
+				? local_order
+				: make_conditions_flip_condition[local_order];
+			const key1 = `${faces[0]} ${faces[1]}`;
+			const key2 = `${faces[1]} ${faces[0]}`;
+			if (key1 in facePairsHash) { soution[key1] = global_order; }
+			if (key2 in facePairsHash) {
+				soution[key2] = make_conditions_flip_condition[global_order];
+			}
+		});
+		return soution;
+	};
+
+	const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
+		const copies = overlapInfo.groups_transformXY.map(() => ({ ...graph }));
+		filterKeysWithPrefix(graph, "vertices")
+			.forEach(key => copies.forEach(obj => delete obj[key]));
+		copies.forEach(obj => delete obj.edges_edges);
+		copies.forEach(obj => delete obj.edges_faces);
+		const faceKeys = filterKeysWithPrefix(graph, "faces");
+		copies.forEach((obj, i) => faceKeys.forEach(key => {
+			obj[key] = [];
+			groups_faces[i].forEach(f => { obj[key][f] = graph[key][f]; });
+		}));
+		const vertices_coords_3d = graph.vertices_coords
+			.map(coord => math.core.resize(3, coord));
+		const groups_vertices_hash = groups_faces.map(() => ({}));
+		groups_faces
+			.forEach((faces, i) => faces
+				.forEach(face => graph.faces_vertices[face]
+					.forEach(v => { groups_vertices_hash[i][v] = true; })));
+		const groups_vertices = groups_vertices_hash
+			.map(obj => Object.keys(obj).map(n => parseInt(n, 10)));
+		copies.forEach(obj => { obj.vertices_coords = []; });
+		overlapInfo.groups_transformXY
+			.forEach((transform, i) => groups_vertices[i]
+				.forEach(v => {
+					const res = math.core.multiplyMatrix4Vector3(transform, vertices_coords_3d[v]);
+					copies[i].vertices_coords[v] = [res[0], res[1]];
+				}));
+		const groups_edges_hash = groups_faces.map(() => ({}));
+		groups_faces
+			.forEach((faces, i) => faces
+				.forEach(face => graph.faces_edges[face]
+					.forEach(e => { groups_edges_hash[i][e] = true; })));
+		const groups_edges = groups_edges_hash
+			.map(obj => Object.keys(obj).map(n => parseInt(n, 10)));
+		const edgeKeys = filterKeysWithPrefix(graph, "edges");
+		copies.forEach((obj, i) => edgeKeys.forEach(key => {
+			obj[key] = [];
+			groups_edges[i].forEach(e => { obj[key][e] = graph[key][e]; });
+		}));
+		copies.forEach(obj => { obj.edges_faces = makeEdgesFacesUnsorted(obj); });
+		return copies;
+	};
+	const prepare = (graphInput, epsilon = 1e-6) => {
+		const graph = { ...graphInput };
+		if (!graph.faces_edges) {
+			graph.faces_edges = makeFacesEdgesFromVertices(graph);
+		}
+		const overlapInfo = getOverlappingFacesGroups(graph, epsilon);
+		console.log("prepare", overlapInfo);
+		const groups_faces = invertMap(overlapInfo.faces_group)
+			.map(el => (el.constructor === Array ? el : [el]));
+		const graphCopies = graphGroupCopies(graph, overlapInfo, groups_faces);
+		console.log("graphCopies", graphCopies);
+		const faces_polygon = [];
+		groups_faces
+			.map((faces, g) => faces
+				.map(face => graph.faces_vertices[face])
+				.map(vertices => vertices.map(v => graphCopies[g].vertices_coords[v]))
+				.forEach((polygon, f) => { faces_polygon[faces[f]] = polygon; }));
+		const faces_center = faces_polygon
+			.map(polygon => polygon
+				.reduce((a, b) => math.core.add(a, b), [0, 0])
+				.map(el => el / polygon.length));
+		console.log("faces_polygon", faces_polygon);
+		console.log("faces_center", faces_center);
+		graphCopies.forEach(el => {
+			el.faces_center = el.faces_vertices.map((_, i) => faces_center[i]);
+		});
+		const groups_tacos_tortillas = graphCopies
+			.map(el => makeTacosTortillas(el, epsilon));
+		console.log("groups_tacos_tortillas", groups_tacos_tortillas);
+		const groups_unfiltered_trios = graphCopies
+			.map(el => makeTransitivityTrios(
+				el,
+				overlapInfo.faces_facesOverlap,
+				overlapInfo.faces_groupNormalAligned,
+				epsilon,
+			));
+		const groups_transitivity_trios = groups_unfiltered_trios
+			.map((trios, i) => filterTransitivity(trios, groups_tacos_tortillas[i]));
+		console.log("groups_transitivity_trios", groups_transitivity_trios);
+		const groups_constraints = groups_tacos_tortillas
+			.map((tacos_tortillas, i) => makeConstraints(tacos_tortillas, groups_transitivity_trios[i]));
+		const groups_constraintsLookup = groups_constraints
+			.map(constraints => makeConstraintsLookup(constraints));
+		console.log("groups_constraints", groups_constraints);
+		console.log("groups_constraintsLookup", groups_constraintsLookup);
+		const facePairs = selfRelationalUniqueIndexPairs(overlapInfo.faces_facesOverlap)
+			.map(pair => pair.join(" "));
+		const groups_edgeAdjacentOrders = graphCopies
+			.map(el => solveEdgeAdjacentFacePairs(el, facePairs, overlapInfo.faces_groupNormalAligned));
+		console.log("facePairs", facePairs);
+		console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
+		return {
+			groups_constraints,
+			groups_constraintsLookup,
+			facePairs,
+			groups_edgeAdjacentOrders,
+		};
+	};
+
 	var layer = Object.assign(
 		Object.create(null),
 		{
 			solver: globalLayerSolver,
 			table: layerTable,
 			topologicalOrder,
-			makeTacosTortillas,
+			makeTacosTortillas: makeTacosTortillas$1,
 			makeFoldedStripTacos,
-			makeTransitivityTrios,
+			makeTransitivityTrios: makeTransitivityTrios$1,
 			singleVertexSolver,
 			singleVertexAssignmentSolver: assignmentSolver,
 			validateLayerSolver,
@@ -8701,6 +9155,9 @@
 		},
 		general,
 		makeFacePairsOrder,
+		{
+			prepare,
+		},
 	);
 
 	const odd_assignment = (assignments) => {

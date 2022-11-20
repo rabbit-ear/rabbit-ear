@@ -2641,6 +2641,12 @@ const mirror = (arr) => arr.concat(arr.slice(0, -1).reverse());
  */
 const convexHullIndices = (points = [], includeCollinear = false, epsilon = EPSILON) => {
 	if (points.length < 2) { return []; }
+	// if includeCollinear is true, we need to walk collinear points,
+	// problem is we don't know if we should be going towards or away from
+	// the origin point, so to work around that, make a mirror of all collinear
+	// vertices so that it walks both directions, ie: 1,6,5,13,5,6,1.
+	// half of them will be ignored due to being rejected from the
+	// threePointTurnDirection call, and the correct half will be saved.
 	const order = radialSortPointIndices(points, epsilon)
 		.map(arr => (arr.length === 1 ? arr : mirror(arr)))
 		.flat();

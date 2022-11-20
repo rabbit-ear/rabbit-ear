@@ -2,13 +2,15 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
-import { makeFacesConvexCenter } from "../../graph/make";
 import {
+	makeEdgesEdgesParallel,
+	makeEdgesEdges2DParallel,
 	makeEdgesEdgesParallelOverlap,
 } from "../../graph/edgesEdges";
 import {
 	booleanMatrixToUniqueIndexPairs,
 	booleanMatrixToIndexedArray,
+	selfRelationalUniqueIndexPairs,
 } from "../../general/arrays";
 import { makeEdgesFacesOverlap } from "../../graph/overlap";
 import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla";
@@ -71,7 +73,8 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 /**
  * @description Given a FOLD object, find all instances of edges overlapping which
  * classify as taco/tortillas to determine layer order.
- * @param {FOLD} graph a FOLD graph. vertices_coords should already be folded.
+ * @param {FOLD} graph a FOLD graph. vertices_coords should already be folded and
+ * faces_center should be pre-calculated.
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {object} an object containing keys: taco_taco, tortilla_tortilla, taco_tortilla
  * @linkcode Origami ./src/layer/tacos/makeTacosTortillas.js 76
@@ -82,15 +85,19 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	// given a graph which is already in its folded state,
 	// find which edges are tacos, or in other words, find out which
 	// edges overlap with another edge.
-	const faces_center = makeFacesConvexCenter(graph);
-	const edges_faces_side = makeEdgesFacesSide(graph, faces_center);
+	const edges_faces_side = makeEdgesFacesSide(graph);
+	// const eep = makeEdgesEdgesParallel(graph);
+	// console.log("eep", eep);
+	// const edges_edges_parallel = makeEdgesEdges2DParallel(graph);
+	// console.log("edges_edges_parallel", edges_edges_parallel);
 	// for every edge, find all other edges which are parallel to this edge and
 	// overlap the edge, excluding the epsilon space around the endpoints.
 	// 130ms:
-	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon);
+	const edges_edgesParallelOverlap = makeEdgesEdgesParallelOverlap(graph, epsilon);
 	// convert this matrix into unique pairs ([4, 9] but not [9, 4])
 	// thse pairs are also sorted such that the smaller index is first.
-	const tacos_edges = booleanMatrixToUniqueIndexPairs(edge_edge_overlap_matrix)
+	const tacos_edges = selfRelationalUniqueIndexPairs(edges_edgesParallelOverlap)
+	// const tacos_edges = booleanMatrixToUniqueIndexPairs(edge_edge_overlap_matrix)
 		.filter(pair => pair
 			.map(edge => graph.edges_faces[edge].length > 1)
 			.reduce((a, b) => a && b, true));
@@ -100,7 +107,7 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	// convert every face into a +1 or -1 based on which side of the edge is it on.
 	// ie: tacos will have similar numbers, tortillas will have one of either.
 	// the +1/-1 is determined by the cross product to the vector of the edge.
-	const tacos_faces_side = makeTacosFacesSide(graph, faces_center, tacos_edges, tacos_faces);
+	const tacos_faces_side = makeTacosFacesSide(graph, tacos_edges, tacos_faces);
 	// each pair of faces is either a "left" or "right" (taco) or "both" (tortilla).
 	const tacos_types = tacos_faces_side
 		.map(faces => faces
@@ -126,6 +133,9 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 		.map((pair, i) => make_tortilla_tortilla(pair, tacos_faces_side[i]))
 		.filter(a => a !== undefined);
 	// 5ms:
+
+	// todo: faces_winding is used here. we need to pass in the new version.
+	//
 	const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(
 		graph,
 		edges_faces_side,

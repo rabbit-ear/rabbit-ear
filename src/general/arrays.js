@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import math from "../math";
 /**
  * @description Given a list of integers (can contain duplicates),
  * this will return only the unique integers (removing duplicates).
@@ -26,8 +27,8 @@ export const uniqueSortedIntegers = (array) => uniqueIntegers(array)
 	.sort((a, b) => a - b);
 /**
  * @description A circular array (data wraps around) requires 2 indices
- * if you intend to split it into two arrays. The "indices" parameter
- * will be sorted, smaller index first.
+ * if you intend to split it into two arrays. The pair of indices can be
+ * provided in any order, they will be sorted, smaller index first.
  * @param {any[]} array an array that is meant to be thought of as circular
  * @param {number[]} indices two numbers, indices that divide the array into 2 parts
  * @returns {any[][]} the same array split into two arrays
@@ -117,19 +118,73 @@ export const booleanMatrixToUniqueIndexPairs = matrix => {
  * @returns {number[][]} array of two-dimensional array pairs of indices.
  * @linkcode Origami ./src/general/arrays.js 118
  */
-export const selfRelationalUniqueIndexPairs = array_array => {
+export const selfRelationalUniqueIndexPairs = (array_array) => {
 	const circular = [];
 	const pairs = [];
-	for (let i = 0; i < array_array.length; i += 1) {
-		for (let j = 0; j < array_array[i].length; j += 1) {
-			if (i < array_array[i][j]) { pairs.push([i, array_array[i][j]]); }
-			if (i === array_array[i][j] && !circular[i]) {
-				circular[i] = true;
-				pairs.push([i, array_array[i][j]]);
-			}
+	array_array.forEach((arr, i) => arr.forEach(j => {
+		if (i < j) { pairs.push([i, j]); }
+		if (i === j && !circular[i]) {
+			circular[i] = true;
+			pairs.push([i, j]);
+		}
+	}));
+	// for (let i = 0; i < array_array.length; i += 1) {
+	// 	for (let j = 0; j < array_array[i].length; j += 1) {
+	// 		if (i < array_array[i][j]) { pairs.push([i, array_array[i][j]]); }
+	// 		if (i === array_array[i][j] && !circular[i]) {
+	// 			circular[i] = true;
+	// 			pairs.push([i, array_array[i][j]]);
+	// 		}
+	// 	}
+	// }
+	return pairs;
+};
+// export const selfRelationalUniqueIndexPairs = (array_array) => {
+// 	const circular = [];
+// 	const pairs = [];
+// 	for (let i = 0; i < array_array.length; i += 1) {
+// 		for (let j = 0; j < array_array[i].length; j += 1) {
+// 			if (i < array_array[i][j]) { pairs.push([i, array_array[i][j]]); }
+// 			if (i === array_array[i][j] && !circular[i]) {
+// 				circular[i] = true;
+// 				pairs.push([i, array_array[i][j]]);
+// 			}
+// 		}
+// 	}
+// 	return pairs;
+// };
+/**
+ * @description Given an array of floats, make a sorted copy of the array,
+ * then walk through the array and group similar values into clusters.
+ * Cluster epsilon is relative to the neighbor not the entire group,
+ * so 1, 2, 3, 4, 5 will all be clustered together if the epsilon is 1.5.
+ * @param {number[]} floats an array of numbers
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} array of array of indices to the input array.
+ */
+export const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
+	const indices = floats
+		.map((v, i) => ({ v, i }))
+		.sort((a, b) => a.v - b.v)
+		.map(el => el.i);
+	const groups = [[indices[0]]];
+	for (let i = 1; i < indices.length; i += 1) {
+		const index = indices[i];
+		const g = groups.length - 1;
+		const prev = groups[g][groups[g].length - 1];
+		if (Math.abs(floats[prev] - floats[index]) < epsilon) {
+			groups[g].push(index);
+		} else {
+			groups.push([index]);
 		}
 	}
-	return pairs;
+	return groups;
+};
+/**
+ * @param {number[][]} vectors a list of vectors which has already been normalized
+ */
+export const sortedParallelVectorIndices = (vectors) => {
+
 };
 /**
  * @description given a self-relational array of arrays, for example,

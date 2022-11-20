@@ -379,9 +379,12 @@ export const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngl
  * @linkcode Origami ./src/graph/make.js 379
  */
 export const makeEdgesAssignment = ({
-	edges_vertices, edges_foldAngle, edges_faces, faces_edges,
+	edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges,
 }) => {
 	if (!edges_faces) {
+		if (!faces_edges) {
+			faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+		}
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
 	}
 	return edges_foldAngle.map((a, i) => {
@@ -403,14 +406,25 @@ export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 // α = arccos[(xa * xb + ya * yb + za * zb) / (√(xa2 + ya2 + za2) * √(xb2 + yb2 + zb2))]
 // angle between two 2D vectors
 // α = arccos[(xa * xb + ya * yb) / (√(xa2 + ya2) * √(xb2 + yb2))]
-
-/// <summary>
-/// This calculates the 180-Dihedral angle between two faces (0 angle means co-planar).
-/// </summary>
-/// <returns></returns>
+/**
+ * @description Inspecting adjacent faces, and referencing their normals, infer
+ * the foldAngle for every edge. This will result in a negative number for
+ * mountain creases, and positive for valley. This works well for 3D models,
+ * but will fail for flat-folded models, in which case, edges_assignment
+ * will be consulted to differentiate between 180 degree M or V folds.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} for every edge, an angle in degrees.
+ * @linkcode
+ */
 export const makeEdgesFoldAngleFromFaces = ({
-	vertices_coords, edges_faces, faces_vertices, faces_normal, faces_center,
+	vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_normal, faces_center,
 }) => {
+	if (!edges_faces) {
+		if (!faces_edges) {
+			faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+		}
+		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+	}
 	if (!faces_normal) {
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
@@ -420,18 +434,29 @@ export const makeEdgesFoldAngleFromFaces = ({
 	// get the angle between two adjacent face normals, where parallel normals have 0 angle.
 	// additionally, create a vector from one face's center to the other and check the sign of
 	// the dot product with one of the normals, this clarifies if the fold is mountain or valley.
-	return edges_faces.map(faces => {
+	return edges_faces.map((faces, e) => {
 		// todo: non-manifold graphs (faces > 2) will not work. warn user.
+		if (faces.length > 2) { console.warn("makeEdgesFoldAngleFromFaces non manifold"); }
 		if (faces.length < 2) { return 0; }
 		const a = faces_normal[faces[0]];
 		const b = faces_normal[faces[1]];
-		// console.log("facepair", math.core.dot(a, b));
 		const a2b = math.core.normalize(math.core.subtract(
 			faces_center[faces[1]],
 			faces_center[faces[0]],
 		));
 		// for mountain creases (faces facing away from each other), set the sign to negative.
-		const sign = Math.sign(math.core.dot(a, a2b));
+		let sign = Math.sign(math.core.dot(a, a2b));
+		// if the sign is zero, the faces are coplanar, it's impossible to tell if
+		// this was because of a mountain or a valley fold.
+		if (sign === 0) {
+			if (edges_assignment && edges_assignment[e]) {
+				if (edges_assignment[e] === "F" || edges_assignment[e] === "F") { sign = 0; }
+				if (edges_assignment[e] === "M" || edges_assignment[e] === "m") { sign = -1; }
+				if (edges_assignment[e] === "V" || edges_assignment[e] === "v") { sign = 1; }
+			} else {
+				console.warn("makeEdgesFoldAngleFromFaces cannot determine flat folded faces");
+			}
+		}
 		return (Math.acos(math.core.dot(a, b)) * (180 / Math.PI)) * sign;
 	});
 };

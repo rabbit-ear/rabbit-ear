@@ -21,6 +21,9 @@ import makeTacosTortillas from "./tacos/makeTacosTortillas";
 import makeFoldedStripTacos from "./tacos/makeFoldedStripTacos";
 import makeTransitivityTrios from "./tacos/makeTransitivityTrios";
 // import * as tortillaTortilla from "./tacos/tortillaTortilla";
+
+import prepare from "./solver3d/prepare";
+
 /**
  * @description A collection of methods for calculating the layer order
  * of the faces of an origami in its folded state.
@@ -47,4 +50,7 @@ export default Object.assign(
 	makeFacePairsOrder,
 	// globalSolverGeneral,
 	// tortillaTortilla,
+	{
+		prepare,
+	},
 );
