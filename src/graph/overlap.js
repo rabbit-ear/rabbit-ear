@@ -3,16 +3,16 @@
  */
 import math from "../math";
 import {
-	makeSelfRelationalArrayClusters,
 	clusterArrayValues,
 } from "../general/arrays";
+import { 	connectedComponentsArray } from "./connectedComponents";
 import { invertMap } from "./maps";
 import {
 	makeEdgesVector,
 	makeEdgesBoundingBox,
 	makeFacesNormal,
 } from "./make";
-import { makeEdgesEdgesSimilar } from "./edgesEdges";
+// import { makeEdgesEdgesSimilar } from "./edgesEdges";
 import { makeFacesWinding } from "./facesWinding";
 /**
  * @description query whether two normalized vectors are parallel, which
@@ -49,7 +49,7 @@ export const getCoplanarFacesGroups = ({
 		}
 	}
 	// create disjoint sets of faces which all share the same normal
-	const facesNormalMatchCluster = makeSelfRelationalArrayClusters(facesNormalMatch);
+	const facesNormalMatchCluster = connectedComponentsArray(facesNormalMatch);
 	const normalClustersFaces = invertMap(facesNormalMatchCluster)
 		.map(el => (typeof el === "number" ? [el] : el));
 	// for each cluster, choose one normal, this normal is now associated with the cluster.
@@ -110,9 +110,12 @@ export const getOverlappingFacesGroups = ({
 	const faces_coplanarIndex = [];
 	coplanarFaces.forEach((cluster, i) => cluster.faces
 		.forEach(f => { faces_coplanarIndex[f] = i; }));
-	const faces_groupNormalAligned = [];
+	// for every face, is the face's normal aligned with the group's normal?
+	// true: aligned, false: flipped 180 degrees (the only options. these faces are planar)
+	// this also indicates if the winding is counterclockwise (true) or clockwise (false)
+	const faces_winding = [];
 	coplanarFaces.forEach(cluster => cluster.facesAligned
-		.forEach((aligned, j) => { faces_groupNormalAligned[cluster.faces[j]] = aligned; }));
+		.forEach((aligned, j) => { faces_winding[cluster.faces[j]] = aligned; }));
 	// all polygon sets will be planar to each other, however the polygon-polygon
 	// intersection algorithm is 2D only, so we just need to create a transform for
 	// each cluster which rotates the plane in common with all faces into the XY plane.
@@ -163,7 +166,7 @@ export const getOverlappingFacesGroups = ({
 			}
 		}
 	});
-	const faces_group = makeSelfRelationalArrayClusters(faces_facesOverlap);
+	const faces_group = connectedComponentsArray(faces_facesOverlap);
 	const groups_faces = invertMap(faces_group)
 		.map(el => (typeof el === "number" ? [el] : el));
 	// console.log("coplanarFaces", coplanarFaces);
@@ -182,7 +185,7 @@ export const getOverlappingFacesGroups = ({
 		// groups_normal: groups_faces
 		// 	.map(faces => coplanarFaces[faces_coplanarIndex[faces[0]]].normal),
 		faces_group: faces_group,
-		faces_groupNormalAligned,
+		faces_winding,
 		faces_facesOverlap,
 	};
 };
@@ -193,7 +196,7 @@ export const getOverlappingFacesGroups = ({
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
- * @linkcode Origami ./src/graph/overlap.js 217
+ * @linkcode Origami ./src/graph/overlap.js 199
  */
 export const makeEdgesFacesOverlap = ({
 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
@@ -341,7 +344,7 @@ export const makeEdgesFacesOverlap = ({
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} face-face matrix answering: do they overlap?
- * @linkcode Origami ./src/graph/overlap.js 339
+ * @linkcode Origami ./src/graph/overlap.js 347
  */
 export const getFacesFaces2DOverlap = ({
 	vertices_coords, faces_vertices,

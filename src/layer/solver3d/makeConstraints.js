@@ -9,7 +9,7 @@ import {
  * 3 or 4 faces. The lookup table encodes the relationship between all
  * permutations of pairs of these faces in a particular order.
  * 6: taco-taco, 3: taco-tortilla, 2: tortilla-tortilla, 3: transitivity.
- * @linkcode Origami ./src/layer/globalSolver/makeConstraints.js 12
+ * @linkcode Origami ./src/layer/solver3d/makeConstraints.js 12
  */
 export const makeConstraints = (tacos_tortillas, transitivity_trios) => {
 	const constraints = {};

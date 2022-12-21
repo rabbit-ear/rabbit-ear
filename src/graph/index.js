@@ -18,6 +18,7 @@ import * as verticesViolations from "./verticesViolations";
 import * as edgesViolations from "./edgesViolations";
 import * as vertices_collinear from "./verticesCollinear";
 // import * as facesLayer from "./facesLayer";
+import * as connectedComponents from "./connectedComponents";
 import * as edgesEdges from "./edgesEdges";
 import * as verticesCoordsFolded from "./verticesCoordsFolded";
 import * as faceSpanningTree from "./faceSpanningTree";
@@ -108,6 +109,7 @@ export default Object.assign(
 	edgesViolations,
 	vertices_collinear,
 	// facesLayer,
+	connectedComponents,
 	edgesEdges,
 	verticesCoordsFolded,
 	faceSpanningTree,

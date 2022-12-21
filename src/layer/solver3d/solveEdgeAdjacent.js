@@ -16,12 +16,12 @@ const make_conditions_assignment_direction = {
  * @returns {object} an object describing all the solved facePairs (keys) and
  * their layer order 1 or 2 (value), the object only includes those facePairs
  * which are solved, so, no 0-value entries will exist.
- * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 88
+ * @linkcode Origami ./src/layer/solver3d/solveEdgeAdjacent.js 19
  */
 const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
 	const facePairsHash = {};
 	facePairs.forEach(key => { facePairsHash[key] = true; });
-	const soution = {};
+	const solution = {};
 	graph.edges_faces.forEach((faces, edge) => {
 		// the crease assignment determines the order between pairs of faces.
 		const assignment = graph.edges_assignment[edge];
@@ -37,12 +37,13 @@ const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
 			: make_conditions_flip_condition[local_order];
 		const key1 = `${faces[0]} ${faces[1]}`;
 		const key2 = `${faces[1]} ${faces[0]}`;
-		if (key1 in facePairsHash) { soution[key1] = global_order; }
+		console.log("adj edge", assignment, upright, local_order, global_order, solution);
+		if (key1 in facePairsHash) { solution[key1] = global_order; }
 		if (key2 in facePairsHash) {
-			soution[key2] = make_conditions_flip_condition[global_order];
+			solution[key2] = make_conditions_flip_condition[global_order];
 		}
 	});
-	return soution;
+	return solution;
 };
 
 export default solveEdgeAdjacentFacePairs;

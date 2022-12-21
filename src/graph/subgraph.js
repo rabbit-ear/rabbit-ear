@@ -9,14 +9,14 @@
 import * as S from "../general/strings";
 import remove from "./remove";
 import count from "./count";
-import { uniqueSortedIntegers } from "../general/arrays";
+import { uniqueSortedNumbers } from "../general/arrays";
 
 const subgraph = (graph, components) => {
 	const remove_indices = {};
 	const sorted_components = {};
 	[S._faces, S._edges, S._vertices].forEach(key => {
 		remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
-		sorted_components[key] = uniqueSortedIntegers(components[key] || []).reverse();
+		sorted_components[key] = uniqueSortedNumbers(components[key] || []).reverse();
 	});
 	Object.keys(sorted_components)
 		.forEach(key => sorted_components[key]

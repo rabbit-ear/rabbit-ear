@@ -69,7 +69,7 @@ export const makeEdgesEdgesSimilar = ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} a boolean matrix, are two edges parallel?
  * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
- * @linkcode Origami ./src/graph/edgesEdges.js 71
+ * @linkcode Origami ./src/graph/edgesEdges.js 72
  */
 export const makeEdgesEdgesParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
@@ -356,7 +356,7 @@ const make_groups_edges = (graph, epsilon) => {
 	// each index will be an edge, each value is a group, starting with 0,
 	// incrementing upwards. for all unique edges, array will be [0, 1, 2, 3...]
 	// if edges 0 and 3 share a group, array will be [0, 1, 2, 0, 3...]
-	const edges_group = makeSelfRelationalArrayClusters(overlapping_edges);
+	const edges_group = connectedComponentsArray(overlapping_edges);
 	// gather groups, but remove groups with only one edge, and from the
 	// remaining sets, remove any edges which lie on the boundary.
 	// finally, remove sets with only one edge (after removing).

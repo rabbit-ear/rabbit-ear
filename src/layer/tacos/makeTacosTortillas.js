@@ -74,7 +74,7 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
  * @param {FOLD} graph a FOLD graph. vertices_coords should already be folded.
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {object} an object containing keys: taco_taco, tortilla_tortilla, taco_tortilla
- * @linkcode Origami ./src/layer/tacos/makeTacosTortillas.js 76
+ * @linkcode Origami ./src/layer/tacos/makeTacosTortillas.js 77
  * @notes due to the face_center calculation to determine face-edge sidedness, this
  * is currently hardcoded to only work with convex polygons.
  */

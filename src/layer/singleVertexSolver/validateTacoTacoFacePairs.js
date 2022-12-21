@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { removeSingleInstances } from "../../general/arrays";
+import { nonUniqueElements } from "../../general/arrays";
 /**
  * @description test a stack of tacos (all left or right) for self-intersection.
  * for a collection of tacos which all point in the same direction,
@@ -20,7 +20,7 @@ const validateTacoTacoFacePairs = (face_pair_stack) => {
 	// their other pair partner. this removes boundary faces (with no adj. face)
 	// as well as stacks which are in the process of being constructed but not
 	// yet final
-	const pair_stack = removeSingleInstances(face_pair_stack);
+	const pair_stack = nonUniqueElements(face_pair_stack);
 	const pairs = {};
 	let count = 0;
 	for (let i = 0; i < pair_stack.length; i += 1) {

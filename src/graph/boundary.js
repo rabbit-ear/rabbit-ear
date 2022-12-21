@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { uniqueIntegers } from "../general/arrays";
+import { uniqueElements } from "../general/arrays";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices,
@@ -31,7 +31,7 @@ export const getBoundingBox = ({ vertices_coords }, padding) => math.core
  * @linkcode Origami ./src/graph/boundary.js 31
  */
 export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => (
-	uniqueIntegers(edges_vertices
+	uniqueElements(edges_vertices
 		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
 		.flat()));
 // export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {

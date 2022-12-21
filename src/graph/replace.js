@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import count from "./count";
-import { uniqueSortedIntegers } from "../general/arrays";
+import { uniqueSortedNumbers } from "../general/arrays";
 import {
 	getGraphKeysWithSuffix,
 	getGraphKeysWithPrefix,
@@ -32,7 +32,7 @@ import {
 const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	const geometry_array_size = count(graph, key);
 	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
-	const replaces = uniqueSortedIntegers(removes);
+	const replaces = uniqueSortedNumbers(removes);
 	const index_map = [];
 	let i, j, walk;
 	for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {

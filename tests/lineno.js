@@ -25,7 +25,7 @@ const processFile = (path) => {
 	const modified = contents.replace(regex, fn);
 	fs.writeFileSync(path, modified);
 
-	console.log(`modified ${path} with ${matches.length} line number entries`);
+	// console.log(`modified ${path} with ${matches.length} line number entries`);
 };
 
 const searchDir = (path) => {

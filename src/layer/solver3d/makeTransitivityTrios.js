@@ -3,7 +3,6 @@
  */
 import math from "../../math";
 import { makeFacesWinding } from "../../graph/facesWinding";
-import { getFacesFaces2DOverlap } from "../../graph/overlap";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
@@ -13,7 +12,7 @@ import { getFacesFaces2DOverlap } from "../../graph/overlap";
  * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} list of arrays containing three face indices.
- * @linkcode Origami ./src/layer/tacos/makeTransitivityTrios.js 16
+ * @linkcode Origami ./src/layer/solver3d/makeTransitivityTrios.js 15
  */
 const makeTransitivityTrios = (
 	graph,

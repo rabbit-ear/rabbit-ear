@@ -22,6 +22,7 @@ import makeFoldedStripTacos from "./tacos/makeFoldedStripTacos";
 import makeTransitivityTrios from "./tacos/makeTransitivityTrios";
 // import * as tortillaTortilla from "./tacos/tortillaTortilla";
 
+import solver3d from "./solver3d/index";
 import prepare from "./solver3d/prepare";
 
 /**
@@ -51,6 +52,7 @@ export default Object.assign(
 	// globalSolverGeneral,
 	// tortillaTortilla,
 	{
+		solver3d,
 		prepare,
 	},
 );

@@ -85,22 +85,14 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	}
 	const overlapInfo = getOverlappingFacesGroups(graph, epsilon);
-
-	console.log("prepare", overlapInfo);
-
 	// these groups have more than 1 face in them.
 	// const groups = groups_faces
 	// 	.map((faces, i) => ({ faces, i }))
 	// 	.filter(el => el.faces.length > 1)
 	// 	.map(el => el.i);
-
 	const groups_faces = invertMap(overlapInfo.faces_group)
 		.map(el => (el.constructor === Array ? el : [el]));
-
 	const graphCopies = graphGroupCopies(graph, overlapInfo, groups_faces);
-
-	console.log("graphCopies", graphCopies);
-
 	const faces_polygon = [];
 	groups_faces
 		.map((faces, g) => faces
@@ -111,69 +103,58 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		.map(polygon => polygon
 			.reduce((a, b) => math.core.add(a, b), [0, 0])
 			.map(el => el / polygon.length));
-
-	console.log("faces_polygon", faces_polygon);
-	console.log("faces_center", faces_center);
-
 	graphCopies.forEach(el => {
 		el.faces_center = el.faces_vertices.map((_, i) => faces_center[i]);
 	});
-
 	const groups_tacos_tortillas = graphCopies
 		.map(el => makeTacosTortillas(el, epsilon));
-	console.log("groups_tacos_tortillas", groups_tacos_tortillas);
-
 	const groups_unfiltered_trios = graphCopies
 		.map(el => makeTransitivityTrios(
 			el,
 			overlapInfo.faces_facesOverlap,
-			overlapInfo.faces_groupNormalAligned,
+			overlapInfo.faces_winding,
 			epsilon,
 		));
-	// console.log("groups_unfiltered_trios", groups_unfiltered_trios);
 	const groups_transitivity_trios = groups_unfiltered_trios
 		.map((trios, i) => filterTransitivity(trios, groups_tacos_tortillas[i]));
-
-	console.log("groups_transitivity_trios", groups_transitivity_trios);
-
 	const groups_constraints = groups_tacos_tortillas
 		.map((tacos_tortillas, i) => makeConstraints(tacos_tortillas, groups_transitivity_trios[i]));
 	const groups_constraintsLookup = groups_constraints
 		.map(constraints => makeConstraintsLookup(constraints));
-
-	console.log("groups_constraints", groups_constraints);
-	console.log("groups_constraintsLookup", groups_constraintsLookup);
-
-	// const facesWinding = makeFacesWinding(graph);
-	// const tacos_tortillas = makeTacosTortillas(graph, epsilon);
-	// const unfiltered_trios = makeTransitivityTrios(graph, overlap, facesWinding, epsilon);
-	// const transitivity_trios = filterTransitivity(unfiltered_trios, tacos_tortillas);
-	// const constraints = makeConstraints(tacos_tortillas, transitivity_trios);
-	// const constraintsLookup = makeConstraintsLookup(constraints);
-	// bad const facePairs = makeFacePairs(graph, overlap);
-	const facePairs = selfRelationalUniqueIndexPairs(overlapInfo.faces_facesOverlap)
-		.map(pair => pair.join(" "));
+	const facePairsInts = selfRelationalUniqueIndexPairs(overlapInfo.faces_facesOverlap);
+	const facePairs = facePairsInts.map(pair => pair.join(" "));
 	const groups_edgeAdjacentOrders = graphCopies
-		.map(el => solveEdgeAdjacent(el, facePairs, overlapInfo.faces_groupNormalAligned));
+		.map(el => solveEdgeAdjacent(el, facePairs, overlapInfo.faces_winding));
 
-	console.log("facePairs", facePairs);
-	console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
+	const facePairsIndex_group = facePairsInts.map(pair => overlapInfo.faces_group[pair[0]]);
+	const groups_facePairsIndex = invertMap(facePairsIndex_group)
+		.map(el => (el.constructor === Array ? el : [el]));
+	const groups_facePairsWithHoles = groups_facePairsIndex
+		.map(indices => indices.map(i => facePairs[i]));
+	const groups_facePairs = groups_constraints
+		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
 
-	// console.log("overlap", overlap);
-	// console.log("facesWinding", facesWinding);
-	// console.log("tacos_tortillas", tacos_tortillas);
-	// console.log("unfiltered_trios", unfiltered_trios);
-	// console.log("transitivity_trios", transitivity_trios);
-	// console.log("facePairsOrder", facePairsOrder);
-	// console.log("constraints", constraints);
-	// console.log("constraintsLookup", constraintsLookup);
-	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
+	console.log("prepare", overlapInfo);
+	// console.log("graphCopies", graphCopies);
+	// console.log("faces_polygon", faces_polygon);
+	// console.log("faces_center", faces_center);
+	// console.log("groups_tacos_tortillas", groups_tacos_tortillas);
+	// // console.log("groups_unfiltered_trios", groups_unfiltered_trios);
+	// console.log("groups_transitivity_trios", groups_transitivity_trios);
+	// console.log("groups_constraints", groups_constraints);
+	// console.log("groups_constraintsLookup", groups_constraintsLookup);
+	// console.log("facePairs", facePairs);
+	// console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
+	// console.log("facePairsIndex_group", facePairsIndex_group);
+	// console.log("groups_facePairsIndex", groups_facePairsIndex);
+	// console.log("groups_facePairs", groups_facePairsWithHoles);
+
 	// console.log(`transitivity: ${unfiltered_trios.length} down to ${transitivity_trios.length} (${unfiltered_trios.length - transitivity_trios.length} removed from tacos/tortillas)`);
 	// console.log(`${constraints.taco_taco.length} taco-taco, ${constraints.taco_tortilla.length} taco-tortilla, ${constraints.tortilla_tortilla.length} tortilla-tortilla, ${constraints.transitivity.length} transitivity`);
 	return {
 		groups_constraints,
 		groups_constraintsLookup,
-		facePairs,
+		groups_facePairs,
 		groups_edgeAdjacentOrders,
 	};
 };

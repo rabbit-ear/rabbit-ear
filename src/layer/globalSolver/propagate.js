@@ -3,7 +3,7 @@
  */
 import table from "./table";
 import { constraintToFacePairs } from "./general";
-import { uniqueIntegers } from "../../general/arrays";
+import { uniqueElements } from "../../general/arrays";
 /**
  * @typedef Constraint
  * @type {number[]}
@@ -84,7 +84,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 // 		.map(facePairsOrder => Object.keys(facePairsOrder)
 // 			.filter(key => facePairsOrder[key] !== 0))
 // 		.flat();
-// 	return uniqueIntegers(unknownKeys.map(key => key.split(" ")).flat());
+// 	return uniqueElements(unknownKeys.map(key => key.split(" ")).flat());
 // };
 /**
  * @description Given a current set of modified facePairs keys, (modified
@@ -112,7 +112,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 // 		// (2) only faces which appear in an unknown order (0) are included,
 // 		// which is done by consulting constraints[i] and checking all faces
 // 		// mentioned in this array, testing if any of them are unknown
-// 		constraintIndices[type] = uniqueIntegers(duplicates)
+// 		constraintIndices[type] = uniqueElements(duplicates)
 // 			.filter(i => constraints[type][i]
 // 				.map(f => facesWithUnknownOrders[f])
 // 				.reduce((a, b) => a || b, false));
@@ -146,7 +146,7 @@ const getConstraintIndicesFromFacePairs = (
 		const constraintIndicesWithDups = facePairsSubsetArray
 			.flatMap(facePair => constraintsLookup[type][facePair]);
 		// filter these constraint indices to remove duplicates
-		constraintIndices[type] = uniqueIntegers(constraintIndicesWithDups)
+		constraintIndices[type] = uniqueElements(constraintIndicesWithDups)
 			.filter(i => constraints[type][i]);
 	});
 	return constraintIndices;

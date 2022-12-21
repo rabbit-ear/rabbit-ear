@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import remove from "../remove";
-import { uniqueSortedIntegers } from "../../general/arrays";
+import { uniqueSortedNumbers } from "../../general/arrays";
 
 const getOppositeVertices = (graph, vertex, edges) => {
 	edges.forEach(edge => {
@@ -25,8 +25,8 @@ const getOppositeVertices = (graph, vertex, edges) => {
  */
 const removePlanarVertex = (graph, vertex) => {
 	const edges = graph.vertices_edges[vertex];
-	const faces = uniqueSortedIntegers(graph.vertices_faces[vertex]
-		.filter(a => a != null))
+	const faces = uniqueSortedNumbers(graph.vertices_faces[vertex]
+		.filter(a => a != null));
 	if (edges.length !== 2 || faces.length > 2) {
 		console.warn("cannot remove non 2-degree vertex yet (e,f)", edges, faces);
 		return;
