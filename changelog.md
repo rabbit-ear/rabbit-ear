@@ -2,6 +2,8 @@
 
 new WebGL implementation. see: https://foldfile.com
 
+New subcategory `ear.webgl` containing at least: `createProgram`, `initialize`, `foldedForm`, `creasePattern`, `rebuildViewport`, `makeProjectionMatrix`, `makeModelMatrix`, `drawProgram`, `deallocProgram`, with many more methods specific to drawing different styles with different shaders.
+
 new Matrix4 type. new Quaternion type. new projection matrices.
 
 new method `ear.graph.nearest`, which was already in the `graph()` object as a prototype method. now exists in the top level.
@@ -9,6 +11,10 @@ new method `ear.graph.nearest`, which was already in the `graph()` object as a p
 all matrix scale methods takes an array of values instead of one number, allowing non-uniform axis scaling.
 
 `ear.graph.getBoundingBox` will return "undefined" if the graph does not contain any vertices_coords. previously this would throw an error.
+
+new `nudgeVerticesWithFacesLayer`, `nudgeVerticesWithFaceOrders` for nudging vertices in an exploded graph based on layer order.
+
+`src/layer/topological.js` contains a new topological sort method. currently not being exported.
 
 new `.convert` with the first (of many, hopefully) file conversions: `.obj` to `.fold`, which includes computing edges_foldAngle and giving them a "M" "V" assignment.
 

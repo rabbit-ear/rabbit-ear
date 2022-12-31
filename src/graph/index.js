@@ -14,6 +14,7 @@ import * as intersect from "./intersect";
 import transform from "./affine";
 import * as overlap from "./overlap";
 import * as triangulate from "./triangulate";
+import * as normals from "./normals";
 import * as verticesViolations from "./verticesViolations";
 import * as edgesViolations from "./edgesViolations";
 import * as vertices_collinear from "./verticesCollinear";
@@ -104,6 +105,7 @@ export default Object.assign(
 	intersect,
 	overlap,
 	triangulate,
+	normals,
 	transform,
 	verticesViolations,
 	edgesViolations,

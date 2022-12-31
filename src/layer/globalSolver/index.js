@@ -6,7 +6,7 @@ import { keysToFaceOrders } from "./general";
 import getBranches from "./getBranches";
 import prepare from "./prepare";
 import LayerPrototype from "./prototype";
-import { makeFacesNormal } from "../../graph/make";
+import { makeFacesNormal } from "../../graph/normals";
 
 // const keysToFaceOrders = a => a;
 /**

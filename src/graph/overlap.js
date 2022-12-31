@@ -10,8 +10,8 @@ import { invertMap } from "./maps";
 import {
 	makeEdgesVector,
 	makeEdgesBoundingBox,
-	makeFacesNormal,
 } from "./make";
+import { makeFacesNormal } from "./normals";
 // import { makeEdgesEdgesSimilar } from "./edgesEdges";
 import { makeFacesWinding } from "./facesWinding";
 /**

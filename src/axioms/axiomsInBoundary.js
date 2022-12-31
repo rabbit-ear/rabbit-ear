@@ -29,7 +29,7 @@ const spreadParams = (params) => {
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
  * @linkcode Origami ./src/axioms/axiomsInBoundary.js 30
  */
-export const axiomInBoundary = (number, params = {}, boundary) => {
+export const axiomInBoundary = (number, params = {}, boundary = undefined) => {
 	const solutions = arrayify(
 		number,
 		AxiomsVO[`axiom${number}`](...spreadParams(params)),
@@ -53,7 +53,7 @@ export const axiomInBoundary = (number, params = {}, boundary) => {
  * @returns {UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
  * @linkcode Origami ./src/axioms/axiomsInBoundary.js 54
  */
-export const normalAxiomInBoundary = (number, params = {}, boundary) => {
+export const normalAxiomInBoundary = (number, params = {}, boundary = undefined) => {
 	const solutions = arrayify(
 		number,
 		AxiomsND[`normalAxiom${number}`](...spreadParams(params)),

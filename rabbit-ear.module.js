@@ -34,6 +34,9 @@ const isWebWorker = typeof self === _object
 	&& self.constructor
 	&& self.constructor.name === "DedicatedWorkerGlobalScope";
 
+const errorMessages = [];
+errorMessages[10] = "\"error 010: window\" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )";
+
 const windowContainer = { window: undefined };
 const buildDocument = (newWindow) => new newWindow.DOMParser()
 	.parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
@@ -43,6 +46,12 @@ const setWindow$1 = (newWindow) => {
 	return windowContainer.window;
 };
 if (isBrowser$1) { windowContainer.window = window; }
+const RabbitEarWindow = () => {
+	if (windowContainer.window === undefined) {
+		throw errorMessages[10];
+	}
+	return windowContainer.window;
+};
 
 var root = Object.create(null);
 
@@ -3503,6 +3512,32 @@ var sort = /*#__PURE__*/Object.freeze({
 	sortVerticesAlongVector: sortVerticesAlongVector
 });
 
+const makeFacesNormal = ({ vertices_coords, faces_vertices }) => faces_vertices
+	.map(vertices => vertices
+		.map(vertex => vertices_coords[vertex]))
+	.map(polygon => {
+		const a = math.core.resize(3, math.core.subtract(polygon[1], polygon[0]));
+		const b = math.core.resize(3, math.core.subtract(polygon[2], polygon[0]));
+		return math.core.normalize3(math.core.cross3(a, b));
+	});
+const makeVerticesNormal = ({ vertices_coords, faces_vertices, faces_normal }) => {
+	const add3 = (a, b) => { a[0] += b[0]; a[1] += b[1]; a[2] += b[2]; };
+	if (!faces_normal) {
+		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	}
+	const vertices_normals = vertices_coords.map(() => [0, 0, 0]);
+	faces_vertices
+		.forEach((vertices, f) => vertices
+			.forEach(v => add3(vertices_normals[v], faces_normal[f])));
+	return vertices_normals.map(v => math.core.normalize3(v));
+};
+
+var normals = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	makeFacesNormal: makeFacesNormal,
+	makeVerticesNormal: makeVerticesNormal
+});
+
 const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
 	const vertices_edges = [];
 	edges_vertices.forEach((ev, i) => ev
@@ -3809,14 +3844,6 @@ const makeFacesConvexCenter = ({ vertices_coords, faces_vertices }) => faces_ver
 		.map(v => vertices_coords[v])
 		.reduce((a, b) => math.core.add(a, b), Array(vertices_coords[0].length).fill(0))
 		.map(el => el / vertices.length));
-const makeFacesNormal = ({ vertices_coords, faces_vertices }) => faces_vertices
-	.map(vertices => vertices
-		.map(vertex => vertices_coords[vertex]))
-	.map(polygon => {
-		const a = math.core.resize(3, math.core.subtract(polygon[1], polygon[0]));
-		const b = math.core.resize(3, math.core.subtract(polygon[2], polygon[0]));
-		return math.core.normalize3(math.core.cross3(a, b));
-	});
 
 var make = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -3849,8 +3876,7 @@ var make = /*#__PURE__*/Object.freeze({
 	makeFacesPolygon: makeFacesPolygon,
 	makeFacesPolygonQuick: makeFacesPolygonQuick,
 	makeFacesCenter2D: makeFacesCenter2D,
-	makeFacesConvexCenter: makeFacesConvexCenter,
-	makeFacesNormal: makeFacesNormal
+	makeFacesConvexCenter: makeFacesConvexCenter
 });
 
 const getCircularEdges = ({ edges_vertices }) => {
@@ -6853,6 +6879,7 @@ var graph_methods = Object.assign(
 	intersect,
 	overlap,
 	triangulate$1,
+	normals,
 	transform,
 	verticesViolations,
 	edgesViolations,
@@ -7322,7 +7349,7 @@ const spreadParams = (params) => {
 	const points = params.points ? params.points : [];
 	return [...lines, ...points];
 };
-const axiomInBoundary = (number, params = {}, boundary) => {
+const axiomInBoundary = (number, params = {}, boundary = undefined) => {
 	const solutions = arrayify(
 		number,
 		AxiomsVO[`axiom${number}`](...spreadParams(params)),
@@ -7335,7 +7362,7 @@ const axiomInBoundary = (number, params = {}, boundary) => {
 	}
 	return solutions;
 };
-const normalAxiomInBoundary = (number, params = {}, boundary) => {
+const normalAxiomInBoundary = (number, params = {}, boundary = undefined) => {
 	const solutions = arrayify(
 		number,
 		AxiomsND[`normalAxiom${number}`](...spreadParams(params)),
@@ -8653,7 +8680,7 @@ const globalLayerSolver$1 = (graph, epsilon = 1e-6) => {
 	);
 };
 
-const topologicalOrder$1 = (facePairOrders, graph) => {
+const topologicalOrder$2 = (facePairOrders, graph) => {
 	if (!facePairOrders) { return []; }
 	const faces_children = [];
 	Object.keys(facePairOrders).forEach(key => {
@@ -9360,7 +9387,7 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	};
 };
 
-const topologicalOrder = (facePairOrders, graph) => {
+const topologicalOrder$1 = (facePairOrders, graph) => {
 	if (!facePairOrders) { return []; }
 	const faces_children = [];
 	Object.keys(facePairOrders).forEach(key => {
@@ -9440,7 +9467,7 @@ const LayerPrototype = {
 			.map(count => this.solution(...count));
 	},
 	facesLayer: function (...indices) {
-		return invertMap(topologicalOrder(this.solution(...indices)));
+		return invertMap(topologicalOrder$1(this.solution(...indices)));
 	},
 	allFacesLayers: function () {
 		return makePermutations(this.count())
@@ -9546,7 +9573,7 @@ var layer = Object.assign(
 	{
 		solver: globalLayerSolver$1,
 		table: layerTable$1,
-		topologicalOrder: topologicalOrder$1,
+		topologicalOrder: topologicalOrder$2,
 		makeTacosTortillas: makeTacosTortillas$1,
 		makeFoldedStripTacos,
 		makeTransitivityTrios: makeTransitivityTrios$1,
@@ -9895,14 +9922,14 @@ const objToFold = (file) => {
 	return graph;
 };
 
-const getContainingValue = (oripa, key) => Array
+const getContainingValue = (oripa, value) => Array
 	.from(oripa.children)
 	.filter(el => el.attributes.length && Array.from(el.attributes)
-		.filter(attr => attr.nodeValue === key)
+		.filter(attr => attr.nodeValue === value)
 		.shift() !== undefined)
 	.shift();
-const getMetadataValue = (oripa, key) => {
-	const parentNode = getContainingValue(oripa, key);
+const getMetadataValue = (oripa, value) => {
+	const parentNode = getContainingValue(oripa, value);
 	const node = parentNode
 		? Array.from(parentNode.children).shift()
 		: null;
@@ -9929,14 +9956,7 @@ const parseLines = (lines) => lines.map(line => {
 			.children[0]
 			.textContent));
 });
-const opxAssignment = {
-	0: "U",
-	1: "B",
-	2: "M",
-	3: "V",
-	4: "U",
-	5: "U",
-};
+const opxAssignment = ["F", "B", "M", "V", "U"];
 const makeFOLD = (lines, epsilon) => {
 	const fold = {};
 	fold.vertices_coords = lines
@@ -9972,7 +9992,7 @@ const setMetadata = (oripa, fold) => {
 };
 const opxToFOLD = (file, epsilon) => {
 	try {
-		const parsed = (new DOMParser()).parseFromString(file, "text/xml");
+		const parsed = (new (RabbitEarWindow().DOMParser)()).parseFromString(file, "text/xml");
 		const oripa = Array.from(parsed.documentElement.children)
 			.filter(el => Array.from(el.classList).includes("oripa.DataSet"))
 			.shift();
@@ -9980,7 +10000,7 @@ const opxToFOLD = (file, epsilon) => {
 		setMetadata(oripa, fold);
 		return fold;
 	} catch (error) {
-		console.error("ORIPA bad file format", error);
+		console.error(error);
 	}
 	return undefined;
 };
@@ -12381,12 +12401,761 @@ const initializeWebGL = (canvasElement, preferredVersion) => {
 	throw new Error("WebGl not Supported");
 };
 
+const rebuildViewport = (gl, canvas) => {
+	if (!gl) { return; }
+	const devicePixelRatio = window.devicePixelRatio || 1;
+	const size = [canvas.clientWidth, canvas.clientHeight]
+		.map(n => n * devicePixelRatio);
+	if (canvas.width !== size[0] || canvas.height !== size[1]) {
+		canvas.width = size[0];
+		canvas.height = size[1];
+	}
+	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+};
+const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 45) => {
+	if (!canvas) { return math.core.identity4x4; }
+	const Z_NEAR = 0.1;
+	const Z_FAR = 3;
+	const ORTHO_FAR = -100;
+	const ORTHO_NEAR = 100;
+	const bounds = [canvas.clientWidth, canvas.clientHeight];
+	const vmin = Math.min(...bounds);
+	const padding = [0, 1].map(i => ((bounds[i] - vmin) / vmin) / 2);
+	const side = padding.map(p => p + 0.5);
+	return perspective === "orthographic"
+		? math.core.makeOrthographicMatrix4(side[1], side[0], -side[1], -side[0], ORTHO_FAR, ORTHO_NEAR)
+		: math.core.makePerspectiveMatrix4(fov * (Math.PI / 180), bounds[0] / bounds[1], Z_NEAR, Z_FAR);
+};
+const makeModelMatrix = (graph) => {
+	if (!graph) { return math.core.identity4x4; }
+	const bounds = getBoundingBox(graph);
+	if (!bounds) { return math.core.identity4x4; }
+	const scale = Math.max(...bounds.span);
+	const center = math.core.resize(3, math.core.midpoint(bounds.min, bounds.max));
+	const scalePositionMatrix = [scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, ...center, 1];
+	return math.core.invertMatrix4(scalePositionMatrix);
+};
+
+var view = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	rebuildViewport: rebuildViewport,
+	makeProjectionMatrix: makeProjectionMatrix,
+	makeModelMatrix: makeModelMatrix
+});
+
+const hexToRGB = (value) => {
+	const numbersOnly = value.replace(/#(?=\S)/g, "");
+	const hexString = numbersOnly.length === 3
+		? [0, 0, 1, 1, 2, 2].map(i => numbersOnly[i]).join("")
+		: numbersOnly;
+	const c = parseInt(hexString, 16);
+	return [(c >> 16) & 255, (c >> 8) & 255, c & 255]
+		.map(n => n / 255);
+};
+
+const uniformFunc = (gl, i, func, value) => {
+	switch (func) {
+	case "uniformMatrix4fv": gl[func](i, false, value); break;
+	default: gl[func](i, value); break;
+	}
+};
+const drawProgram = (gl, version, bundle, uniforms = {}) => {
+	gl.useProgram(bundle.program);
+	bundle.flags.forEach(flag => gl.enable(flag));
+	const uniformCount = gl.getProgramParameter(bundle.program, gl.ACTIVE_UNIFORMS);
+	for (let i = 0; i < uniformCount; i += 1) {
+		const uniformName = gl.getActiveUniform(bundle.program, i).name;
+		const uniform = uniforms[uniformName];
+		if (uniform) {
+			const index = gl.getUniformLocation(bundle.program, uniformName);
+			uniformFunc(gl, index, uniform.func, uniform.value);
+		}
+	}
+	bundle.vertexArrays.forEach(el => {
+		gl.bindBuffer(gl.ARRAY_BUFFER, el.buffer);
+		gl.bufferData(gl.ARRAY_BUFFER, el.data, gl.STATIC_DRAW);
+		gl.vertexAttribPointer(el.location, el.length, el.type, false, 0, 0);
+		gl.enableVertexAttribArray(el.location);
+	});
+	bundle.elementArrays.forEach(el => {
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, el.buffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, el.data, gl.STATIC_DRAW);
+		gl.drawElements(
+			el.mode,
+			el.data.length,
+			version === 2 ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,
+			el.buffer,
+		);
+	});
+	bundle.flags.forEach(flag => gl.disable(flag));
+};
+const deallocProgram = (gl, bundle) => {
+	bundle.vertexArrays.forEach(vert => gl.disableVertexAttribArray(vert.location));
+	bundle.vertexArrays.forEach(vert => gl.deleteBuffer(vert.buffer));
+	bundle.elementArrays.forEach(elements => gl.deleteBuffer(elements.buffer));
+	gl.deleteProgram(bundle.program);
+};
+
+var program = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	drawProgram: drawProgram,
+	deallocProgram: deallocProgram
+});
+
+const makeFacesVertexData = (graph, options = {}) => {
+	const vertices_coords = graph.vertices_coords
+		.map(coord => [...coord].concat(Array(3 - coord.length).fill(0)));
+	const vertices_normal = makeVerticesNormal(graph);
+	const vertices_barycentric = vertices_coords
+		.map((_, i) => i % 3)
+		.map(n => [n === 0 ? 1 : 0, n === 1 ? 1 : 0, n === 2 ? 1 : 0]);
+	const facesEdgesIsJoined = graph.faces_edges
+		.map(edges => edges
+			.map(e => graph.edges_assignment[e])
+			.map(a => a === "J" || a === "j"));
+	if (!options.showTrianglulation) {
+		for (let i = 0; i < facesEdgesIsJoined.length; i += 1) {
+			if (facesEdgesIsJoined[i][0]) {
+				vertices_barycentric[i * 3 + 0][2] = vertices_barycentric[i * 3 + 1][2] = 100;
+			}
+			if (facesEdgesIsJoined[i][1]) {
+				vertices_barycentric[i * 3 + 1][0] = vertices_barycentric[i * 3 + 2][0] = 100;
+			}
+			if (facesEdgesIsJoined[i][2]) {
+				vertices_barycentric[i * 3 + 0][1] = vertices_barycentric[i * 3 + 2][1] = 100;
+			}
+		}
+	}
+	return {
+		vertices_coords,
+		vertices_normal,
+		vertices_barycentric,
+	};
+};
+const ASSIGNMENT_COLOR$1 = {
+	B: [0.3, 0.3, 0.3], b: [0.3, 0.3, 0.3],
+	V: [0.2, 0.4, 0.6], v: [0.2, 0.4, 0.6],
+	M: [0.75, 0.25, 0.15], m: [0.75, 0.25, 0.15],
+	F: [0.2, 0.2, 0.2],    f: [0.2, 0.2, 0.2],
+	U: [0.2, 0.2, 0.2],    u: [0.2, 0.2, 0.2],
+};
+const makeThickEdgesVertexData = (graph, assignment_color = ASSIGNMENT_COLOR$1) => {
+	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
+	const vertices_coords3D = graph.vertices_coords
+		.map(coord => [...coord].concat(Array(3 - coord.length).fill(0)));
+	const vertices_coords = graph.edges_vertices
+		.flatMap(edge => edge
+			.map(v => vertices_coords3D[v]))
+		.flatMap(coord => [coord, coord, coord, coord]);
+	const edgesVector = makeEdgesVector(graph);
+	const vertices_color = graph.edges_assignment
+		? graph.edges_assignment
+			.flatMap(a => Array(8).fill(assignment_color[a]))
+		: graph.edges_vertices
+			.flatMap(() => Array(8).fill(assignment_color.U));
+	const verticesEdgesVector = edgesVector
+		.flatMap(el => [el, el, el, el, el, el, el, el]);
+	const vertices_vector = graph.edges_vertices
+		.flatMap(() => [
+			[1, 0],
+			[0, 1],
+			[-1, 0],
+			[0, -1],
+			[1, 0],
+			[0, 1],
+			[-1, 0],
+			[0, -1],
+		]);
+	return {
+		vertices_coords,
+		vertices_color,
+		verticesEdgesVector,
+		vertices_vector,
+	};
+};
+
+var foldedData = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	makeFacesVertexData: makeFacesVertexData,
+	makeThickEdgesVertexData: makeThickEdgesVertexData
+});
+
+const makeFoldedVertexArrays = (gl, program, graph, options = {}) => {
+	if (!graph || !graph.vertices_coords || !graph.faces_vertices) {
+		return [];
+	}
+	const {
+		vertices_coords,
+		vertices_normal,
+		vertices_barycentric,
+	} = makeFacesVertexData(graph, options);
+	return [{
+		location: gl.getAttribLocation(program, "v_position"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: vertices_coords[0].length,
+		data: new Float32Array(vertices_coords.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "v_normal"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: vertices_normal[0].length,
+		data: new Float32Array(vertices_normal.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "v_barycentric"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: 3,
+		data: new Float32Array(vertices_barycentric.flat()),
+	},
+	].filter(el => el.location !== -1);
+};
+const makeFoldedElementArrays = (gl, version = 1, graph = {}) => {
+	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return []; }
+	return [{
+		mode: gl.TRIANGLES,
+		buffer: gl.createBuffer(),
+		data: version === 2
+			? new Uint32Array(graph.faces_vertices.flat())
+			: new Uint16Array(graph.faces_vertices.flat()),
+	}];
+};
+const makeThickEdgesVertexArrays = (gl, program, graph, options = {}) => {
+	if (!graph || !graph.vertices_coords || !graph.edges_vertices) {
+		return [];
+	}
+	const {
+		vertices_coords,
+		vertices_color,
+		verticesEdgesVector,
+		vertices_vector,
+	} = makeThickEdgesVertexData(graph, options.assignment_color);
+	return [{
+		location: gl.getAttribLocation(program, "v_position"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: vertices_coords[0].length,
+		data: new Float32Array(vertices_coords.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "v_color"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: vertices_color[0].length,
+		data: new Float32Array(vertices_color.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "edge_vector"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: verticesEdgesVector[0].length,
+		data: new Float32Array(verticesEdgesVector.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "vertex_vector"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: vertices_vector[0].length,
+		data: new Float32Array(vertices_vector.flat()),
+	}].filter(el => el.location !== -1);
+};
+const makeThickEdgesElementArrays = (gl, version = 1, graph = {}) => {
+	if (!graph || !graph.edges_vertices) { return []; }
+	const edgesTriangles = graph.edges_vertices
+		.map((_, i) => i * 8)
+		.flatMap(i => [
+			i + 0, i + 1, i + 4,
+			i + 4, i + 1, i + 5,
+			i + 1, i + 2, i + 5,
+			i + 5, i + 2, i + 6,
+			i + 2, i + 3, i + 6,
+			i + 6, i + 3, i + 7,
+			i + 3, i + 0, i + 7,
+			i + 7, i + 0, i + 4,
+		]);
+	return [{
+		mode: gl.TRIANGLES,
+		buffer: gl.createBuffer(),
+		data: version === 2
+			? new Uint32Array(edgesTriangles)
+			: new Uint16Array(edgesTriangles),
+	}];
+};
+
+var foldedArrays = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	makeFoldedVertexArrays: makeFoldedVertexArrays,
+	makeFoldedElementArrays: makeFoldedElementArrays,
+	makeThickEdgesVertexArrays: makeThickEdgesVertexArrays,
+	makeThickEdgesElementArrays: makeThickEdgesElementArrays
+});
+
+const topologicalOrder = ({ faceOrders, faces_normal }, faces) => {
+	if (!faceOrders) { return []; }
+	const facesHash = {};
+	faces.forEach(face => { facesHash[face] = true; });
+	faces[0];
+	const faces_normal_match = [];
+	faces.map(face => {
+		faces_normal_match[face] = math.core
+			.dot(faces_normal[face], faces_normal[faces[0]]) > 0;
+	});
+	const facesBelow = [];
+	faces.forEach(face => { facesBelow[face] = []; });
+	faceOrders.forEach(order => {
+		if (!facesHash[order[0]]) { return; }
+		const pair = (order[2] === -1) ^ (!faces_normal_match[order[1]])
+			? [order[1], order[0]]
+			: [order[0], order[1]];
+		facesBelow[pair[0]].push(pair[1]);
+	});
+	const layers_face = [];
+	const faces_visited = {};
+	const recurse = (face) => {
+		faces_visited[face] = true;
+		facesBelow[face].forEach(f => {
+			if (faces_visited[f]) { return; }
+			recurse(f);
+		});
+		layers_face.push(face);
+	};
+	faces.forEach(face => {
+		if (faces_visited[face]) { return; }
+		recurse(face);
+	});
+	return layers_face;
+};
+
+const nudgeVerticesWithFacesLayer = ({ faces_layer }) => {
+	const result = [];
+	const layers_face = invertMap(faces_layer);
+	layers_face.forEach((face, layer) => {
+		result[face] = {
+			vector: [0, 0, 1],
+			layer,
+		};
+	});
+	return result;
+};
+const nudgeVerticesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
+	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	const sets_faces = getDisjointedVertices({
+		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
+	});
+	const sets_layers_face = sets_faces
+		.map(faces => topologicalOrder({ faceOrders, faces_normal }, faces));
+	const sets_normals = sets_faces.map(faces => faces_normal[faces[0]]);
+	const result = [];
+	sets_layers_face.forEach((set, i) => set.forEach((face, index) => {
+		result[face] = {
+			vector: sets_normals[i],
+			layer: index,
+		};
+	}));
+	return result;
+};
+
+const LAYER_NUDGE = 1e-5;
+const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
+	const exploded = JSON.parse(JSON.stringify(graph));
+	if (!exploded.edges_assignment) {
+		const edgeCount = count.edges(graph) || countImplied.edges(graph);
+		exploded.edges_assignment = Array(edgeCount).fill("U");
+	}
+	let faces_nudge = [];
+	if (exploded.faceOrders) {
+		faces_nudge = nudgeVerticesWithFaceOrders(exploded);
+	} else if (exploded.faces_layer) {
+		faces_nudge = nudgeVerticesWithFacesLayer(exploded);
+	}
+	const change = triangulate(exploded);
+	const change2 = explode(exploded);
+	Object.assign(change, change2);
+	if (change.faces) {
+		change.faces.map.forEach((oldFace, face) => {
+			const nudge = faces_nudge[oldFace];
+			if (!nudge) { return; }
+			exploded.faces_vertices[face].forEach(v => {
+				const vec = math.core.scale(nudge.vector, nudge.layer * layerNudge);
+				exploded.vertices_coords[v] = math.core.add(
+					math.core.resize(3, exploded.vertices_coords[v]),
+					vec,
+				);
+			});
+		});
+	}
+	return exploded;
+};
+
+const makeUniforms$1 = (gl, {
+	projectionMatrix, viewMatrix, modelMatrix, canvas,
+	opacity, touchPoint, frontColor, backColor, strokeWidth,
+}) => ({
+	u_matrix: {
+		func: "uniformMatrix4fv",
+		value: math.core.multiplyMatrices4(math.core
+			.multiplyMatrices4(projectionMatrix, viewMatrix), modelMatrix),
+	},
+	u_projection: {
+		func: "uniformMatrix4fv",
+		value: projectionMatrix,
+	},
+	u_modelView: {
+		func: "uniformMatrix4fv",
+		value: math.core.multiplyMatrices4(viewMatrix, modelMatrix),
+	},
+	u_opacity: {
+		func: "uniform1f",
+		value: opacity,
+	},
+	u_touch: {
+		func: "uniform2fv",
+		value: touchPoint,
+	},
+	u_resolution: {
+		func: "uniform2fv",
+		value: [canvas.clientWidth, canvas.clientHeight]
+			.map(n => n * window.devicePixelRatio || 1),
+	},
+	u_frontColor: {
+		func: "uniform3fv",
+		value: hexToRGB(frontColor),
+	},
+	u_backColor: {
+		func: "uniform3fv",
+		value: hexToRGB(backColor),
+	},
+	u_strokeWidth: {
+		func: "uniform1f",
+		value: strokeWidth,
+	},
+});
+
+var vertexV1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_normal;\n\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nvarying vec3 normal_color;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\n\tnormal_color = vec3(\n\t\tdot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
+
+var fragmentV1 = "#version 100\n\nprecision mediump float;\nuniform float u_opacity;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\tgl_FragColor = vec4(color, u_opacity)\n}\n";
+
+var vertexV2 = "#version 300 es\n\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\n\nin vec3 v_position;\nin vec3 v_normal;\nout vec3 front_color;\nout vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tvec3 normal_color = vec3(\n\t\tdot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
+
+var fragmentV2 = "#version 300 es\nprecision highp float;\n\nuniform float u_opacity;\nin vec3 front_color;\nin vec3 back_color;\nout vec4 outColor;\n\nvoid main () {\n\tgl_FragDepth = gl_FragCoord.z;\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\toutColor = vec4(color, u_opacity);\n}\n";
+
+var vertexOutlinedV1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_normal;\nattribute vec3 v_barycentric;\n\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nvarying vec3 normal_color;\nvarying vec3 barycentric;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tbarycentric = v_barycentric;\n\n\tnormal_color = vec3(\n\t\tdot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\t// normal_color = vec3(\n\t// \tdot(v_normal, vec4(1, 0, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 1, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 0, 1, 0).xyz)\n\t// );\n\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
+
+var fragmentOutlinedV1 = "#version 100\n\nprecision mediump float;\nuniform float u_opacity;\nvarying vec3 barycentric;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\n// float edgeFactor(vec3 barycenter) {\n// \tvec3 d = fwidth(barycenter);\n// \tvec3 a3 = smoothstep(vec3(0.0), d*3.5, barycenter);\n// \treturn min(min(a3.x, a3.y), a3.z);\n// }\n\nvoid main () {\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\t// gl_FragColor = vec4(blend_color.rgb, u_opacity);\n\t// gl_FragDepth = 0.5;\n\n\t// barycentric #1\n\tgl_FragColor = any(lessThan(barycentric, vec3(0.02)))\n\t\t? vec4(0.0, 0.0, 0.0, 1.0)\n\t\t: vec4(color, u_opacity);\n\t// barycentric #2\n\t// gl_FragColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);\n}\n";
+
+var vertexOutlinedV2 = "#version 300 es\n\n// uniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\n\nin vec3 v_position;\nin vec3 v_normal;\nin vec3 v_barycentric;\nin float v_rawEdge;\n// in uint8_t \nout vec3 front_color;\nout vec3 back_color;\nout vec3 barycentric;\n// flat out int rawEdge;\nflat out int provokedVertex;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tprovokedVertex = gl_VertexID;\n\tbarycentric = v_barycentric;\n\t// rawEdge = int(v_rawEdge);\n\n\tvec3 normal_color = vec3(\n\t\tdot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\t// normal_color = vec3(\n\t// \tdot(v_normal, vec4(1, 0, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 1, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 0, 1, 0).xyz)\n\t// );\n\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
+
+var fragmentOutlinedV2 = "#version 300 es\n// precision mediump float;\nprecision highp float;\n\nuniform float u_opacity;\n\nuniform vec2 u_touch;\nuniform vec2 u_resolution;\n\n// in int gl_PrimitiveID;\n// in highp vec4 gl_FragCoord;\n// in mediump vec2 gl_PointCoord; // 0.0 to 1.0, location on the screen\n// in bool gl_FrontFacing;\n// out highp float gl_FragDepth;\n\nflat in int provokedVertex;\n\nin vec3 front_color;\nin vec3 back_color;\nin vec3 barycentric;\n// flat in int rawEdge;\nout vec4 outColor;\n\nfloat hue2rgb (float p, float q, float t) {\n\twhile (t < 0.0) t += 1.0;\n\twhile (t > 1.0) t -= 1.0;\n\tif (t < 1.0 / 6.0) return p + (q - p) * 6.0 * t;\n\tif (t < 1.0 / 2.0) return q;\n\tif (t < 2.0 / 3.0) return p + (q - p) * (2.0 / 3.0 - t) * 6.0;\n\treturn p;\n}\nvec3 hslToRgb (float h, float s, float l) {\n\tif (s == 0.0) { return vec3(l, l, l); }\n\tfloat q = l < 0.5 ? l * (1.0 + s) : l + s - l * s;\n\tfloat p = 2.0 * l - q;\n\tfloat r = hue2rgb(p, q, h + 1.0 / 3.0);\n\tfloat g = hue2rgb(p, q, h);\n\tfloat b = hue2rgb(p, q, h - 1.0 / 3.0);\n\treturn vec3(r, g, b);\n}\n\nfloat edgeFactor(vec3 barycenter) {\n\tvec3 d = fwidth(barycenter);\n\tvec3 a3 = smoothstep(vec3(0.0), d*3.5, barycenter);\n\treturn min(min(a3.x, a3.y), a3.z);\n}\n\nvoid main () {\n\tgl_FragDepth = gl_FragCoord.z;\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\t// vec3 color = hslToRgb(float(gl_PrimitiveID) / 57.0, 0.5, 0.8);\n\t// vec3 color = hslToRgb(float(provokedVertex) * 1.618, 1.0, 0.45);\n\n\t// original output\n\t// outColor = vec4(color, u_opacity);\n\n\t// barycentric #1\n\t// outColor = any(lessThan(barycentric, vec3(0.02)))\n\t// \t? vec4(0.0, 0.0, 0.0, 1.0)\n\t// \t: vec4(color, u_opacity);\n\n\t// barycentric #2\n\toutColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);\n\t// barycentric #2, transparent faces (kindof. bug)\n\t// outColor = vec4(1.0, 1.0, 1.0, (1.0-edgeFactor(barycentric))*0.95);\n\n\t// // barycentric #3 with raw edge\n\t// bool side2 = bool(rawEdge & 1);\n\t// bool side0 = bool(rawEdge & 2);\n\t// bool side1 = bool(rawEdge & 4);\n\t// if ((barycentric.x < 0.02 && side0)\n\t// \t|| (barycentric.y < 0.02 && side1)\n\t// \t|| (barycentric.z < 0.02 && side2)) {\n\t// \toutColor = vec4(0.0, 0.0, 0.0, 1.0);\n\t// }\n\t// else {\n\t// \toutColor = vec4(color, u_opacity);\n\t// }\n\n\t\n\t// if (provokedVertex == 8) {\n\t// \toutColor = vec4(1, 1, 0, 1);\n\t// }\n\n\t// vec2 fragScale = vec2(gl_FragCoord.x / u_resolution.x, gl_FragCoord.y / u_resolution.y);\n\t// vec2 touchScale = vec2(u_touch.x / u_resolution.x, u_touch.y / u_resolution.y);\n\t// // fix. invert.\n\t// touchScale.y = 1.0 - touchScale.y;\n\t// float dist = distance(touchScale, fragScale);\n\t// if (dist < 0.1) {\n\t// \tfloat t = dist / 0.1;\n\t// \toutColor.r = outColor.r * t + 1.0 * (1.0 - t);\n\t// }\n}\n";
+
+var vertexThickEdgesV1$1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_color;\nattribute vec3 edge_vector;\nattribute vec2 vertex_vector;\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\nvarying vec3 blend_color;\n\nvoid main () {\n\t// find an axis with which to compute the cross product\n\t// we want the axis which is most unlike the edge_vector\n\tfloat xdot = dot(vec3(1,0,0), edge_vector);\n\tfloat ydot = dot(vec3(0,1,0), edge_vector);\n\tvec3 axis = xdot < ydot ? vec3(1,0,0) : vec3(0,1,0); // 0:x, 1:y\n\t// these are two perpendicular vectors to the edge_vector\n\t// together all three of them are the basis vectors\n\tvec3 edge_norm = normalize(edge_vector);\n\tvec3 one = cross(axis, edge_norm);\n\tvec3 two = cross(one, edge_norm);\n\t// displace the point along a vector from its original spot\n\tvec3 displace = normalize(\n\t\tone * vertex_vector.x +\n\t\ttwo * vertex_vector.y) * u_strokeWidth;\n\t// gl_Position = u_matrix * vec4(vec3(side, 0) + v_position, 1);\n\tgl_Position = u_matrix * vec4(v_position + displace, 1);\n\t// gl_Position = u_matrix * vec4(v_position, 1);\n\tblend_color = v_color;\n}\n";
+
+var vertexThickEdgesV2$1 = "#version 300 es\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\n\nin vec3 v_position;\nin vec3 v_color;\nin vec3 edge_vector;\nin vec2 vertex_vector;\nout vec3 blend_color;\n\nvoid main () {\n\t// find an axis with which to compute the cross product\n\t// we want the axis which is most unlike the edge_vector\n\tfloat xdot = dot(vec3(1,0,0), edge_vector);\n\tfloat ydot = dot(vec3(0,1,0), edge_vector);\n\tvec3 axis = xdot < ydot ? vec3(1,0,0) : vec3(0,1,0); // 0:x, 1:y\n\t// these are two perpendicular vectors to the edge_vector\n\t// together all three of them are the basis vectors\n\tvec3 edge_norm = normalize(edge_vector);\n\tvec3 one = cross(axis, edge_norm);\n\tvec3 two = cross(one, edge_norm);\n\t// displace the point along a vector from its original spot\n\tvec3 displace = normalize(\n\t\tone * vertex_vector.x +\n\t\ttwo * vertex_vector.y) * u_strokeWidth;\n\t// gl_Position = u_matrix * vec4(vec3(side, 0) + v_position, 1);\n\tgl_Position = u_matrix * vec4(v_position + displace, 1);\n\t// gl_Position = u_matrix * vec4(v_position, 1);\n\tblend_color = v_color;\n}\n";
+
+var fragmentSimpleV1$1 = "#version 100\n\nprecision mediump float;\nvarying vec3 blend_color;\n\nvoid main () {\n\tgl_FragColor = vec4(blend_color.rgb, 1);\n}\n";
+
+var fragmentSimpleV2$1 = "#version 300 es\n\nprecision mediump float;\nin vec3 blend_color;\nout vec4 outColor;\n \nvoid main() {\n\toutColor = vec4(blend_color.rgb, 1);\n}\n";
+
+const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
+	const exploded = makeExplodedGraph(graph, options.layerNudge);
+	const program = version === 1
+		? createProgram(gl, vertexV1, fragmentV1)
+		: createProgram(gl, vertexV2, fragmentV2);
+	return {
+		program,
+		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
+		elementArrays: makeFoldedElementArrays(gl, version, exploded),
+		flags: [gl.DEPTH_TEST],
+		makeUniforms: makeUniforms$1,
+	};
+};
+const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
+	const program = version === 1
+		? createProgram(gl, vertexThickEdgesV1$1, fragmentSimpleV1$1)
+		: createProgram(gl, vertexThickEdgesV2$1, fragmentSimpleV2$1);
+	return {
+		program,
+		vertexArrays: makeThickEdgesVertexArrays(gl, program, graph, options),
+		elementArrays: makeThickEdgesElementArrays(gl, version, graph),
+		flags: [gl.DEPTH_TEST],
+		makeUniforms: makeUniforms$1,
+	};
+};
+const foldedFormFacesOutlined = (gl, version = 1, graph = {}, options = {}) => {
+	const exploded = makeExplodedGraph(graph, options.layerNudge);
+	const program = version === 1
+		? createProgram(gl, vertexOutlinedV1, fragmentOutlinedV1)
+		: createProgram(gl, vertexOutlinedV2, fragmentOutlinedV2);
+	return {
+		program,
+		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
+		elementArrays: makeFoldedElementArrays(gl, version, exploded),
+		flags: [gl.DEPTH_TEST],
+		makeUniforms: makeUniforms$1,
+	};
+};
+
+var foldedPrograms = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	foldedFormFaces: foldedFormFaces,
+	foldedFormEdges: foldedFormEdges,
+	foldedFormFacesOutlined: foldedFormFacesOutlined
+});
+
+const WebGLFoldedForm = (gl, version = 1, graph = {}, options = {}) => {
+	const programs = [];
+	if (options.outlines === false) {
+		programs.push(foldedFormFaces(gl, version, graph, options));
+	} else {
+		programs.push(foldedFormFacesOutlined(gl, version, graph, options));
+	}
+	if (options.edges === true) {
+		programs.push(foldedFormEdges(gl, version, graph, options));
+	}
+	return programs;
+};
+
+const ASSIGNMENT_COLOR = {
+	B: [0.3, 0.3, 0.3], b: [0.3, 0.3, 0.3],
+	V: [0.2, 0.4, 0.6], v: [0.2, 0.4, 0.6],
+	M: [0.75, 0.25, 0.15], m: [0.75, 0.25, 0.15],
+	F: [0.2, 0.2, 0.2],    f: [0.2, 0.2, 0.2],
+	U: [0.2, 0.2, 0.2],    u: [0.2, 0.2, 0.2],
+};
+const make2D$1 = (coords) => coords
+	.map(coord => [0, 1]
+		.map(i => coord[i] || 0));
+const makeCPEdgesVertexData = (graph, assignment_color = ASSIGNMENT_COLOR) => {
+	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
+	const vertices_coords = make2D$1(graph.edges_vertices
+		.flatMap(edge => edge
+			.map(v => graph.vertices_coords[v]))
+		.flatMap(coord => [coord, coord]));
+	const edgesVector = make2D$1(makeEdgesVector(graph));
+	const vertices_color = graph.edges_assignment
+		? graph.edges_assignment.flatMap(a => [
+			assignment_color[a],
+			assignment_color[a],
+			assignment_color[a],
+			assignment_color[a],
+		])
+		: graph.edges_vertices.flatMap(() => [
+			assignment_color.U,
+			assignment_color.U,
+			assignment_color.U,
+			assignment_color.U,
+		]);
+	const verticesEdgesVector = edgesVector
+		.flatMap(el => [el, el, el, el]);
+	const vertices_vector = graph.edges_vertices
+		.flatMap(() => [[1, 0], [-1, 0], [-1, 0], [1, 0]]);
+	return {
+		vertices_coords,
+		vertices_color,
+		verticesEdgesVector,
+		vertices_vector,
+	};
+};
+
+var cpData = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	makeCPEdgesVertexData: makeCPEdgesVertexData
+});
+
+const makeCPEdgesVertexArrays = (gl, program, graph) => {
+	if (!graph || !graph.vertices_coords || !graph.edges_vertices) {
+		return [];
+	}
+	const {
+		vertices_coords,
+		vertices_color,
+		verticesEdgesVector,
+		vertices_vector,
+	} = makeCPEdgesVertexData(graph);
+	return [{
+		location: gl.getAttribLocation(program, "v_position"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: 2,
+		data: new Float32Array(vertices_coords.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "v_color"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: vertices_color[0].length,
+		data: new Float32Array(vertices_color.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "edge_vector"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: verticesEdgesVector[0].length,
+		data: new Float32Array(verticesEdgesVector.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "vertex_vector"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: vertices_vector[0].length,
+		data: new Float32Array(vertices_vector.flat()),
+	}].filter(el => el.location !== -1);
+};
+const makeCPEdgesElementArrays = (gl, version = 1, graph = {}) => {
+	if (!graph || !graph.edges_vertices) { return []; }
+	const edgesTriangles = graph.edges_vertices
+		.map((_, i) => i * 4)
+		.flatMap(i => [i + 0, i + 1, i + 2, i + 2, i + 3, i + 0]);
+	return [{
+		mode: gl.TRIANGLES,
+		buffer: gl.createBuffer(),
+		data: version === 2
+			? new Uint32Array(edgesTriangles)
+			: new Uint16Array(edgesTriangles),
+	}];
+};
+const make2D = (coords) => coords
+	.map(coord => [0, 1]
+		.map(i => coord[i] || 0));
+const makeCPFacesVertexArrays = (gl, program, graph) => {
+	if (!graph || !graph.vertices_coords) { return []; }
+	const vertices_color = graph.vertices_coords.map(() => [0.11, 0.11, 0.11]);
+	return [{
+		location: gl.getAttribLocation(program, "v_position"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: 2,
+		data: new Float32Array(make2D(graph.vertices_coords).flat()),
+	}, {
+		location: gl.getAttribLocation(program, "v_color"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: vertices_color[0].length,
+		data: new Float32Array(vertices_color.flat()),
+	}].filter(el => el.location !== -1);
+};
+const makeCPFacesElementArrays = (gl, version = 1, graph = {}) => {
+	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return []; }
+	return [{
+		mode: gl.TRIANGLES,
+		buffer: gl.createBuffer(),
+		data: version === 2
+			? new Uint32Array(triangulateConvexFacesVertices(graph).flat())
+			: new Uint16Array(triangulateConvexFacesVertices(graph).flat()),
+	}];
+};
+
+var cpArrays = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	makeCPEdgesVertexArrays: makeCPEdgesVertexArrays,
+	makeCPEdgesElementArrays: makeCPEdgesElementArrays,
+	makeCPFacesVertexArrays: makeCPFacesVertexArrays,
+	makeCPFacesElementArrays: makeCPFacesElementArrays
+});
+
+const makeUniforms = (gl, {
+	projectionMatrix, viewMatrix, modelMatrix, strokeWidth,
+}) => ({
+	u_matrix: {
+		func: "uniformMatrix4fv",
+		value: math.core.multiplyMatrices4(math.core
+			.multiplyMatrices4(projectionMatrix, viewMatrix), modelMatrix),
+	},
+	u_projection: {
+		func: "uniformMatrix4fv",
+		value: projectionMatrix,
+	},
+	u_modelView: {
+		func: "uniformMatrix4fv",
+		value: math.core.multiplyMatrices4(viewMatrix, modelMatrix),
+	},
+	u_strokeWidth: {
+		func: "uniform1f",
+		value: strokeWidth / 2,
+	},
+});
+
+var vertexSimpleV1 = "#version 100\n\nuniform mat4 u_matrix;\n\nattribute vec2 v_position;\nattribute vec3 v_color;\nvarying vec3 blend_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 0, 1);\n\tblend_color = v_color;\n}\n";
+
+var vertexThickEdgesV1 = "#version 100\n\nattribute vec2 v_position;\nattribute vec3 v_color;\nattribute vec2 edge_vector;\nattribute vec2 vertex_vector;\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\nvarying vec3 blend_color;\n\nvoid main () {\n\t// dot(normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t// this one works\n\tfloat sign = vertex_vector[0];\n\tvec2 side = normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign)) * u_strokeWidth;\n\tgl_Position = u_matrix * vec4(side + v_position, 0, 1);\n\n\t// vec3 forward = (u_modelView * vec4(0, 0, 1, 0)).xyz;\n\t// float sign = vertex_vector[0];\n\t// vec2 side = normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign));\n\t// vec3 side3d = (u_modelView * vec4(side, 0, 1)).xyz;\n\t// vec3 c = normalize(cross(side3d, forward)) * u_strokeWidth;\n\t// // gl_Position = u_matrix * vec4(v_position.x + c.x, v_position.y + c.y, c.z, 1);\n\t// gl_Position = u_matrix * vec4(v_position, 0, 1) + u_projection * vec4(c, 1);\n\t\n\t// vec3 forward = (u_modelView * vec4(0, 0, 1, 0)).xyz;\n\t// vec3 edgeVec3d = (u_modelView * vec4(edge_vector, 0, 0)).xyz;\n\t// vec3 thick = normalize(cross(edgeVec3d, forward)) * sign * u_strokeWidth;\n\t// vec2 side = normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign)) * u_strokeWidth;\n\t// vec4 projected_vector = u_matrix * vec4(normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign)), 0, 1);\n\t// gl_Position = u_matrix * vec4(v_position, 0, 1) + vec4(thick.xyz, 0);\n\t// gl_Position = u_matrix * vec4(v_position, 0, 1) + vec4(0, u_strokeWidth * sign, 0, 0);\n\tblend_color = v_color;\n}\n";
+
+var fragmentSimpleV1 = "#version 100\n\nprecision mediump float;\nvarying vec3 blend_color;\n\nvoid main () {\n\tgl_FragColor = vec4(blend_color.rgb, 1);\n}\n";
+
+var vertexSimpleV2 = "#version 300 es\n\nuniform mat4 u_matrix;\n\nin vec2 v_position;\nin vec3 v_color;\nout vec3 blend_color;\n// flat out vec3 blend_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 0, 1);\n\tblend_color = v_color;\n}\n";
+
+var vertexThickEdgesV2 = "#version 300 es\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\n\nin vec2 v_position;\nin vec3 v_color;\nin vec2 edge_vector;\nin vec2 vertex_vector;\nout vec3 blend_color;\n\nvoid main () {\n\t// dot(normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t// this one works\n\tfloat sign = vertex_vector[0];\n\tvec2 side = normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign)) * u_strokeWidth;\n\tgl_Position = u_matrix * vec4(side + v_position, 0, 1);\n\tblend_color = v_color;\n}\n";
+
+var fragmentSimpleV2 = "#version 300 es\nprecision mediump float;\n// precision highp float;\n\n// flat in vec4 blend_color;\nin vec3 blend_color;\nout vec4 outColor;\n \nvoid main() {\n\toutColor = vec4(blend_color.rgb, 1);\n}\n";
+
+const cpFacesV1 = (gl, version = 1, graph = {}) => {
+	const program = createProgram(gl, vertexSimpleV1, fragmentSimpleV1);
+	return {
+		program,
+		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
+		elementArrays: makeCPFacesElementArrays(gl, version, graph),
+		flags: [],
+		makeUniforms,
+	};
+};
+const cpEdgesV1 = (gl, version = 1, graph = {}) => {
+	const program = createProgram(gl, vertexThickEdgesV1, fragmentSimpleV1);
+	return {
+		program,
+		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph),
+		elementArrays: makeCPEdgesElementArrays(gl, version, graph),
+		flags: [],
+		makeUniforms,
+	};
+};
+const cpFacesV2 = (gl, version = 2, graph = {}) => {
+	const program = createProgram(gl, vertexSimpleV2, fragmentSimpleV2);
+	return {
+		program,
+		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
+		elementArrays: makeCPFacesElementArrays(gl, version, graph),
+		flags: [],
+		makeUniforms,
+	};
+};
+const cpEdgesV2 = (gl, version = 2, graph = {}) => {
+	const program = createProgram(gl, vertexThickEdgesV2, fragmentSimpleV2);
+	return {
+		program,
+		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph),
+		elementArrays: makeCPEdgesElementArrays(gl, version, graph),
+		flags: [],
+		makeUniforms,
+	};
+};
+
+var cpPrograms = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	cpFacesV1: cpFacesV1,
+	cpEdgesV1: cpEdgesV1,
+	cpFacesV2: cpFacesV2,
+	cpEdgesV2: cpEdgesV2
+});
+
+const WebGLCreasePattern = (gl, version = 1, graph = {}) => {
+	switch (version) {
+	case 1:
+		return [cpFacesV1(gl, version, graph), cpEdgesV1(gl, version, graph)];
+	case 2:
+	default:
+		return [cpFacesV2(gl, version, graph), cpEdgesV2(gl, version, graph)];
+	}
+};
+
 var webgl = Object.assign(
 	Object.create(null),
 	{
 		createProgram,
 		initialize: initializeWebGL,
+		foldedForm: WebGLFoldedForm,
+		creasePattern: WebGLCreasePattern,
+		hexToRGB,
 	},
+	view,
+	program,
+	foldedArrays,
+	foldedData,
+	foldedPrograms,
+	cpArrays,
+	cpData,
+	cpPrograms,
 );
 
 const ear = Object.assign(root, ObjectConstructors, {

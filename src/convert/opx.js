@@ -7,12 +7,13 @@ import {
 } from "../graph/make";
 import { removeDuplicateVertices } from "../graph/verticesViolations";
 /**
- *
+ * @description given a parsed xml object, get the branch which
+ * contains a node which has some node containing the value specified.
  */
-const getContainingValue = (oripa, key) => Array
+const getContainingValue = (oripa, value) => Array
 	.from(oripa.children)
 	.filter(el => el.attributes.length && Array.from(el.attributes)
-		.filter(attr => attr.nodeValue === key)
+		.filter(attr => attr.nodeValue === value)
 		.shift() !== undefined)
 	.shift();
 /**
@@ -20,8 +21,8 @@ const getContainingValue = (oripa, key) => Array
  * I'm not sure how many there are, but at least I've seen:
  * memo, originalAuthorName, title
  */
-const getMetadataValue = (oripa, key) => {
-	const parentNode = getContainingValue(oripa, key);
+const getMetadataValue = (oripa, value) => {
+	const parentNode = getContainingValue(oripa, value);
 	const node = parentNode
 		? Array.from(parentNode.children).shift()
 		: null;
@@ -62,17 +63,8 @@ const parseLines = (lines) => lines.map(line => {
 });
 /**
  * @description ORIPA line assignments are numbered.
- * I'm not sure how many types of lines there are,
- * or which one (2,3) is mountain and valley.
  */
-const opxAssignment = {
-	0: "U", // not sure what this is
-	1: "B", // boundary
-	2: "M", // unsure which is M and V
-	3: "V", // unsure which is M and V
-	4: "U", // not sure if used
-	5: "U", // not sure if used
-};
+const opxAssignment = ["F", "B", "M", "V", "U"];
 const makeFOLD = (lines, epsilon) => {
 	const fold = {};
 	fold.vertices_coords = lines
@@ -115,7 +107,7 @@ const setMetadata = (oripa, fold) => {
  */
 const opxToFOLD = (file, epsilon) => {
 	try {
-		const parsed = (new DOMParser()).parseFromString(file, "text/xml");
+		const parsed = (new (window().DOMParser)()).parseFromString(file, "text/xml");
 		const oripa = Array.from(parsed.documentElement.children)
 			.filter(el => Array.from(el.classList).includes("oripa.DataSet"))
 			.shift();
@@ -123,7 +115,7 @@ const opxToFOLD = (file, epsilon) => {
 		setMetadata(oripa, fold);
 		return fold;
 	} catch (error) {
-		console.error("ORIPA bad file format", error);
+		console.error(error);
 	}
 	return undefined;
 };

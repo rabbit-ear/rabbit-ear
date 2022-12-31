@@ -1,11 +1,17 @@
 import json from "@rollup/plugin-json";
 import cleanup from "rollup-plugin-cleanup";
-import { terser } from "rollup-plugin-terser";
+import terser from "@rollup/plugin-terser";
+import { string } from "rollup-plugin-string";
 
 const version = "0.9.33 alpha 2022-07-29";
 const input = "src/index.js";
 const name = "ear";
 const banner = `/* Rabbit Ear ${version} (c) Kraft, MIT License */\n`;
+
+const pluginString = string({
+	include: ["**/*.frag", "**/*.vert"],
+	// exclude: ["**/index.html"],
+});
 
 export default [{
 	input,
@@ -15,7 +21,7 @@ export default [{
 		format: "umd",
 		banner,
 	},
-	plugins: [json(), cleanup()],
+	plugins: [json(), cleanup(), pluginString],
 }, {
 	input,
 	output: {
@@ -24,7 +30,7 @@ export default [{
 		format: "es",
 		banner,
 	},
-	plugins: [json(), cleanup()],
+	plugins: [json(), cleanup(), pluginString],
 }, {
 	input,
 	output: {
@@ -33,7 +39,7 @@ export default [{
 		format: "es",
 		banner,
 	},
-	plugins: [json()],
+	plugins: [json(), pluginString],
 }, {
 	input,
 	output: {
@@ -45,6 +51,7 @@ export default [{
 	plugins: [
 		json(),
 		cleanup(),
+		pluginString,
 		terser({
 			keep_fnames: true,
 			format: {

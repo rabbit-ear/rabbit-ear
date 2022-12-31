@@ -4,9 +4,9 @@ import {
 	makeEdgesFoldAngleFromFaces,
 	makeEdgesAssignment,
 	makeFacesEdgesFromVertices,
-	makeFacesNormal,
 	makeFacesConvexCenter,
 } from "../graph/make";
+import { makeFacesNormal } from "../graph/normals";
 import {
 	file_spec,
 	file_creator,

@@ -8,6 +8,7 @@ import {
 	filterWalkedBoundaryFace,
 } from "./walk";
 import { sortVerticesCounterClockwise } from "./sort";
+import { makeFacesNormal } from "./normals";
 /**
  * all of the graph methods follow a similar format.
  * the first argument is a FOLD graph. and the graph remains unmodified.
@@ -683,14 +684,3 @@ export const makeFacesConvexCenter = ({ vertices_coords, faces_vertices }) => fa
 		.map(v => vertices_coords[v])
 		.reduce((a, b) => math.core.add(a, b), Array(vertices_coords[0].length).fill(0))
 		.map(el => el / vertices.length));
-
-export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => faces_vertices
-	.map(vertices => vertices
-		.map(vertex => vertices_coords[vertex]))
-	.map(polygon => {
-		// cross product unit vectors from point 0 to point 1 and 2.
-		// as long as the face winding data is consistent, this gives consistent face normals
-		const a = math.core.resize(3, math.core.subtract(polygon[1], polygon[0]));
-		const b = math.core.resize(3, math.core.subtract(polygon[2], polygon[0]));
-		return math.core.normalize3(math.core.cross3(a, b));
-	});
