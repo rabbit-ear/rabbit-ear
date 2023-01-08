@@ -37,7 +37,7 @@ const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
 			: make_conditions_flip_condition[local_order];
 		const key1 = `${faces[0]} ${faces[1]}`;
 		const key2 = `${faces[1]} ${faces[0]}`;
-		console.log("adj edge", assignment, upright, local_order, global_order, solution);
+		// console.log("adj edge", assignment, upright, local_order, global_order, solution);
 		if (key1 in facePairsHash) { solution[key1] = global_order; }
 		if (key2 in facePairsHash) {
 			solution[key2] = make_conditions_flip_condition[global_order];

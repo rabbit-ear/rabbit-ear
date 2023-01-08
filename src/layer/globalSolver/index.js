@@ -159,8 +159,8 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	);
 	// graph does not have a valid layer order. no solution
 	if (!initialResult) { return undefined; }
-	const solution = {
-	};
+	console.log("2D initialResult", JSON.parse(JSON.stringify(initialResult)));
+	const solution = {};
 	// get all keys unsolved after the first round of propagate
 	const remainingKeys = facePairs
 		.filter(key => !(key in edgeAdjacentOrders))
@@ -196,6 +196,8 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// const root = { ...edgeAdjacentOrders, ...initialResult };
 	// solution.branches[0].faceOrders = { ...edgeAdjacentOrders, ...initialResult };
 
+	console.log("2D solution", JSON.parse(JSON.stringify(solution.faceOrders)));
+
 	const faces_normal = graph.faces_normal
 		? graph.faces_normal
 		: makeFacesNormal(graph);
@@ -211,6 +213,8 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	};
 	recurse(solution);
 
+	console.log("2D solution final", JSON.parse(JSON.stringify(solution.faceOrders)));
+
 	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
 	// unsignedToSignedOrders(root);
 	// branches
@@ -221,7 +225,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// if (duration > 50) {
 		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
 	// }
-	// console.log("solution", solution);
+	console.log("solution", solution);
 	console.log("branches", branchResults);
 	// console.log("branchResults", branchResults);
 	return Object.assign(

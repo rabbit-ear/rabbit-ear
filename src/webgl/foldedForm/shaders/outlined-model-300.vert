@@ -24,9 +24,9 @@ void main () {
 	// rawEdge = int(v_rawEdge);
 
 	vec3 normal_color = vec3(
-		dot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),
-		dot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),
-		dot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)
+		dot(v_normal, normalize(u_modelView * vec4(1, 0, 0, 0)).xyz),
+		dot(v_normal, normalize(u_modelView * vec4(0, 1, 0, 0)).xyz),
+		dot(v_normal, normalize(u_modelView * vec4(0, 0, 1, 0)).xyz)
 	);
 	// normal_color = vec3(
 	// 	dot(v_normal, vec4(1, 0, 0, 0).xyz),

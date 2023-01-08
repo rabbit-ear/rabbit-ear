@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
 /**
  * @description Convert an array of faces which are involved in one
  * taco/tortilla/transitivity condition into an array of arrays where
@@ -73,31 +72,31 @@ export const constraintToFacePairsStrings = ({
 });
 
 const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
+// const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
 /**
  * @description convert a layer-encoding 1,2 into 1,-1. modified in place!
  * @param {object} facePairOrders object with face-pair keys and values either 0, 1, 2.
  * @returns {object} the same object with values either 0, 1, -1.
  * @linkcode Origami ./src/layer/solver3d/general.js 81
  */
-export const unsignedToSignedOrders = (orders) => {
-	Object.keys(orders).forEach(key => {
-		orders[key] = to_signed_layer_convert[orders[key]];
-	});
-	return orders;
-};
+// export const unsignedToSignedOrders = (orders) => {
+// 	Object.keys(orders).forEach(key => {
+// 		orders[key] = to_signed_layer_convert[orders[key]];
+// 	});
+// 	return orders;
+// };
 /**
  * @description convert a layer-encoding 1,-1 into 1,2. modified in place!
  * @param {object} facePairOrders object with face-pair keys and values either 0, 1, -1.
  * @returns {object} the same object with values either 0, 1, 2.
  * @linkcode Origami ./src/layer/solver3d/general.js 93
  */
-export const signedToUnsignedOrders = (orders) => {
-	Object.keys(orders).forEach(key => {
-		orders[key] = to_unsigned_layer_convert[orders[key]];
-	});
-	return orders;
-};
+// export const signedToUnsignedOrders = (orders) => {
+// 	Object.keys(orders).forEach(key => {
+// 		orders[key] = to_unsigned_layer_convert[orders[key]];
+// 	});
+// 	return orders;
+// };
 /**
  * @description Convert a set of face-pair layer orders (+1,-1,0)
  * into a face-face relationship matrix.
@@ -106,38 +105,62 @@ export const signedToUnsignedOrders = (orders) => {
  * as values showing the relationship between i to j in face[i][j].
  * @linkcode Origami ./src/layer/solver3d/general.js 107
  */
-export const ordersToMatrix = (orders) => {
-	const condition_keys = Object.keys(orders);
-	const face_pairs = condition_keys
-		.map(key => key.split(" ").map(n => parseInt(n, 10)));
-	const faces = [];
-	face_pairs
-		.reduce((a, b) => a.concat(b), [])
-		.forEach(f => { faces[f] = undefined; });
-	const matrix = faces.map(() => []);
-	face_pairs
-		// .filter((_, i) => orders[condition_keys[i]] !== 0)
-		.forEach(([a, b]) => {
-			matrix[a][b] = orders[`${a} ${b}`];
-			matrix[b][a] = -orders[`${a} ${b}`];
-		});
-	return matrix;
-};
+// export const ordersToMatrix = (orders) => {
+// 	const condition_keys = Object.keys(orders);
+// 	const face_pairs = condition_keys
+// 		.map(key => key.split(" ").map(n => parseInt(n, 10)));
+// 	const faces = [];
+// 	face_pairs
+// 		.reduce((a, b) => a.concat(b), [])
+// 		.forEach(f => { faces[f] = undefined; });
+// 	const matrix = faces.map(() => []);
+// 	face_pairs
+// 		// .filter((_, i) => orders[condition_keys[i]] !== 0)
+// 		.forEach(([a, b]) => {
+// 			matrix[a][b] = orders[`${a} ${b}`];
+// 			matrix[b][a] = -orders[`${a} ${b}`];
+// 		});
+// 	return matrix;
+// };
 /**
  * face pairs: "# #" space separated integer indices. values: 1 or 2.
  */
-export const keysToFaceOrders = (facePairs, faces_normal, vector) => {
-	const faces_normal_match = faces_normal
-		.map(normal => math.core.dot(normal, vector) > 0);
+const keysToFaceOrders = (facePairs, faces_aligned) => {
 	const keys = Object.keys(facePairs);
-	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
+	const faceOrders = keys.map(string => string
+		.split(" ")
+		.map(n => parseInt(n, 10)));
 	faceOrders.forEach((faces, i) => {
 		const value = to_signed_layer_convert[facePairs[keys[i]]];
-		// const side = (value === -1) ^ (!faces_normal_match[faces[1]])
-		const side = (!faces_normal_match[faces[1]])
-			? -value
-			: value;
+		// equivalent to: side = (!faces_aligned[faces[1]]) ? -value : value
+		const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;
 		faces.push(side);
 	});
 	return faceOrders;
+};
+/**
+ * @description traverse the solution tree, convert any orders
+ * from { string: number } where string is a face pair, like "3 29",
+ * and the number is one of either (1,2) into the FOLD spec facesOrder
+ * format, like [3, 29, -1].
+ * The string becomes .split(" ") and the (1,2) order becomes (1,-1).
+ */
+export const reformatSolution = (solution, faces_winding) => {
+	if (solution.orders) {
+		solution.orders = solution.orders
+			.flatMap(order => keysToFaceOrders(order, faces_winding));
+	}
+	if (solution.leaves) {
+		solution.leaves = solution.leaves
+			.map(order => keysToFaceOrders(order, faces_winding));
+	}
+	if (solution.partitions) {
+		solution.partitions
+			.forEach(child => reformatSolution(child, faces_winding));
+	}
+	if (solution.node) {
+		solution.node
+			.forEach(child => reformatSolution(child, faces_winding));
+	}
+	return solution;
 };

@@ -6346,7 +6346,7 @@
 				delete indicesHash[key];
 				group.push(key);
 				const neighbors = vertices_vertices[key]
-					? vertices_vertices[key].filter(i => indicesHash[i] && !stackHash[i])
+					? vertices_vertices[key].filter(v => indicesHash[v] && !stackHash[v])
 					: [];
 				stack.push(...neighbors);
 				neighbors.forEach(index => { stackHash[index] = true; });
@@ -8168,7 +8168,7 @@
 		return newOrders;
 	};
 
-	const getBranches$1 = (
+	const getBranches = (
 		remainingKeys,
 		constraints,
 		constraintsLookup,
@@ -8533,6 +8533,7 @@
 		const constraintsLookup = makeConstraintsLookup$1(constraints);
 		const facePairs = makeFacePairs(graph, overlap);
 		const edgeAdjacentOrders = solveEdgeAdjacentFacePairs$1(graph, facePairs, facesWinding);
+		console.log("edgeAdjacentOrders", edgeAdjacentOrders);
 		return {
 			constraints,
 			constraintsLookup,
@@ -8567,13 +8568,13 @@
 		};
 		return recurse(solution);
 	};
-	const LayerPrototype$1 = {
+	const LayerPrototype = {
 		allSolutions: function () {
 			return linearizeSolutions(this);
 		},
 	};
 
-	const solveBranch$1 = (
+	const solveBranch = (
 		constraints,
 		constraintsLookup,
 		constraintsNeighborsMemo,
@@ -8605,8 +8606,8 @@
 		const recursed = unfinishedSolutions
 			.map((order, i) => {
 				const remainingKeys = unsolvedKeys.filter(key => !(key in order));
-				return getBranches$1(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo)
-					.map(branchUnsolvedKeys => solveBranch$1(
+				return getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo)
+					.map(branchUnsolvedKeys => solveBranch(
 						constraints,
 						constraintsLookup,
 						constraintsNeighborsMemo,
@@ -8644,15 +8645,15 @@
 			edgeAdjacentOrders,
 		);
 		if (!initialResult) { return undefined; }
-		const solution = {
-		};
+		console.log("2D initialResult", JSON.parse(JSON.stringify(initialResult)));
+		const solution = {};
 		const remainingKeys = facePairs
 			.filter(key => !(key in edgeAdjacentOrders))
 			.filter(key => !(key in initialResult));
 		const constraintsNeighborsMemo = {};
-		const branches = getBranches$1(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo);
+		const branches = getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo);
 		const nextLevel = branches.map(() => ({}));
-		const branchResults = branches.map((unsolvedKeys, i) => solveBranch$1(
+		const branchResults = branches.map((unsolvedKeys, i) => solveBranch(
 			constraints,
 			constraintsLookup,
 			constraintsNeighborsMemo,
@@ -8665,6 +8666,7 @@
 			solution.unfinished = nextLevel;
 		}
 		solution.faceOrders = { ...edgeAdjacentOrders, ...initialResult };
+		console.log("2D solution", JSON.parse(JSON.stringify(solution.faceOrders)));
 		const faces_normal = graph.faces_normal
 			? graph.faces_normal
 			: makeFacesNormal(graph);
@@ -8677,16 +8679,18 @@
 			if (node.unfinished) { node.unfinished.forEach(child => recurse(child)); }
 		};
 		recurse(solution);
+		console.log("2D solution final", JSON.parse(JSON.stringify(solution.faceOrders)));
 		const duration = Date.now() - startDate;
 			console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
+		console.log("solution", solution);
 		console.log("branches", branchResults);
 		return Object.assign(
-			Object.create(LayerPrototype$1),
+			Object.create(LayerPrototype),
 			solution,
 		);
 	};
 
-	const topologicalOrder$2 = (facePairOrders, graph) => {
+	const topologicalOrder$1 = (facePairOrders, graph) => {
 		if (!facePairOrders) { return []; }
 		const faces_children = [];
 		Object.keys(facePairOrders).forEach(key => {
@@ -8867,11 +8871,36 @@
 		],
 	});
 	const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-	const unsignedToSignedOrders = (orders) => {
-		Object.keys(orders).forEach(key => {
-			orders[key] = to_signed_layer_convert[orders[key]];
+	const keysToFaceOrders = (facePairs, faces_aligned) => {
+		const keys = Object.keys(facePairs);
+		const faceOrders = keys.map(string => string
+			.split(" ")
+			.map(n => parseInt(n, 10)));
+		faceOrders.forEach((faces, i) => {
+			const value = to_signed_layer_convert[facePairs[keys[i]]];
+			const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;
+			faces.push(side);
 		});
-		return orders;
+		return faceOrders;
+	};
+	const reformatSolution = (solution, faces_winding) => {
+		if (solution.orders) {
+			solution.orders = solution.orders
+				.flatMap(order => keysToFaceOrders(order, faces_winding));
+		}
+		if (solution.leaves) {
+			solution.leaves = solution.leaves
+				.map(order => keysToFaceOrders(order, faces_winding));
+		}
+		if (solution.partitions) {
+			solution.partitions
+				.forEach(child => reformatSolution(child, faces_winding));
+		}
+		if (solution.node) {
+			solution.node
+				.forEach(child => reformatSolution(child, faces_winding));
+		}
+		return solution;
 	};
 
 	const taco_types = Object.freeze(Object.keys(layerTable));
@@ -8962,13 +8991,24 @@
 		return newOrders;
 	};
 
-	const getBranches = (
+	const getNeighborsArray = (key, constraints, constraintsLookup) => {
+		const neighborsHash = {};
+		Object.keys(constraints).forEach(type => {
+			const indices = constraintsLookup[type][key];
+			if (!indices) { return; }
+			indices
+				.map(c => constraints[type][c])
+				.map(faces => constraintToFacePairsStrings[type](faces)
+					.forEach(facePair => { neighborsHash[facePair] = true; }));
+		});
+		return Object.keys(neighborsHash);
+	};
+	const getDisjointSets = (
 		remainingKeys,
 		constraints,
 		constraintsLookup,
 		constraintsNeighborsMemo = {},
 	) => {
-		const taco_types = Object.keys(constraints);
 		const keys = {};
 		remainingKeys.forEach(key => { keys[key] = true; });
 		let i = 0;
@@ -8982,25 +9022,12 @@
 				const key = stack.shift();
 				delete keys[key];
 				group.push(key);
-				let neighborsArray;
-				if (constraintsNeighborsMemo[key]) {
-					neighborsArray = constraintsNeighborsMemo[key];
-				} else {
-					const neighborsHash = {};
-					taco_types.forEach(type => {
-						const indices = constraintsLookup[type][key];
-						if (!indices) { return; }
-						indices
-							.map(c => constraints[type][c])
-							.map(faces => constraintToFacePairsStrings[type](faces)
-								.forEach(facePair => { neighborsHash[facePair] = true; }));
-					});
-					neighborsArray = Object.keys(neighborsHash);
-					constraintsNeighborsMemo[key] = neighborsArray;
-				}
+				const neighborsArray = constraintsNeighborsMemo[key]
+					? constraintsNeighborsMemo[key]
+					: getNeighborsArray(key, constraints, constraintsLookup);
+				constraintsNeighborsMemo[key] = neighborsArray;
 				const neighbors = neighborsArray
-					.filter(facePair => keys[facePair])
-					.filter(facePair => !stackHash[facePair]);
+					.filter(facePair => keys[facePair] && !stackHash[facePair]);
 				stack.push(...neighbors);
 				neighbors.forEach(facePair => { stackHash[facePair] = true; });
 			} while (stack.length);
@@ -9285,7 +9312,6 @@
 				: make_conditions_flip_condition[local_order];
 			const key1 = `${faces[0]} ${faces[1]}`;
 			const key2 = `${faces[1]} ${faces[0]}`;
-			console.log("adj edge", assignment, upright, local_order, global_order, solution);
 			if (key1 in facePairsHash) { solution[key1] = global_order; }
 			if (key2 in facePairsHash) {
 				solution[key2] = make_conditions_flip_condition[global_order];
@@ -9385,116 +9411,58 @@
 		const groups_facePairs = groups_constraints
 			.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
 		console.log("prepare", overlapInfo);
+		console.log("groups_constraints", groups_constraints);
+		console.log("groups_constraintsLookup", groups_constraintsLookup);
 		return {
 			groups_constraints,
 			groups_constraintsLookup,
 			groups_facePairs,
 			groups_edgeAdjacentOrders,
+			faces_winding: overlapInfo.faces_winding,
 		};
 	};
 
-	const topologicalOrder$1 = (facePairOrders, graph) => {
-		if (!facePairOrders) { return []; }
-		const faces_children = [];
-		Object.keys(facePairOrders).forEach(key => {
-			const pair = key.split(" ").map(n => parseInt(n, 10));
-			if (facePairOrders[key] === -1) { pair.reverse(); }
-			if (faces_children[pair[0]] === undefined) {
-				faces_children[pair[0]] = [];
-			}
-			faces_children[pair[0]].push(pair[1]);
-		});
-		if (graph && graph.faces_vertices) {
-			graph.faces_vertices.forEach((_, f) => {
-				if (faces_children[f] === undefined) {
-					faces_children[f] = [];
-				}
-			});
+	const solveRemaining = (
+		constraints,
+		constraintsLookup,
+		remainingKeys,
+		solvedOrders,
+		...orders
+	) => {
+		if (!remainingKeys.length) { return undefined; }
+		const disjointSets = getDisjointSets(remainingKeys, constraints, constraintsLookup);
+		if (disjointSets.length > 1) {
+			return {
+				orders,
+				partitions: disjointSets
+					.map(branchKeys => solveNode(
+						constraints,
+						constraintsLookup,
+						branchKeys,
+						solvedOrders,
+						...orders,
+					)),
+			};
 		}
-		const layers_face = [];
-		const faces_visited = [];
-		let protection = 0;
-		for (let f = 0; f < faces_children.length; f += 1) {
-			if (faces_visited[f]) { continue; }
-			const stack = [f];
-			while (stack.length && protection < faces_children.length * 2) {
-				const stack_end = stack[stack.length - 1];
-				if (faces_children[stack_end] && faces_children[stack_end].length) {
-					const next = faces_children[stack_end].pop();
-					if (!faces_visited[next]) { stack.push(next); }
-					continue;
-				} else {
-					layers_face.push(stack_end);
-					faces_visited[stack_end] = true;
-					stack.pop();
-				}
-				protection += 1;
-			}
-		}
-		if (protection >= faces_children.length * 2) {
-			console.warn("fix protection in topological order");
-		}
-		return layers_face;
+		return {
+			orders,
+			...solveNode(
+				constraints,
+				constraintsLookup,
+				disjointSets[0],
+				solvedOrders,
+				...orders,
+			),
+		};
 	};
-
-	const keysToFaceOrders = (facePairs) => {
-		const keys = Object.keys(facePairs);
-		const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
-		faceOrders.map((faces, i) => faces.push(facePairs[keys[i]]));
-		return faceOrders;
-	};
-	const makePermutations = (counts) => {
-		const totalLength = counts.reduce((a, b) => a * b, 1);
-		const maxPlace = counts.slice();
-		for (let i = maxPlace.length - 2; i >= 0; i -= 1) {
-			maxPlace[i] *= maxPlace[i + 1];
-		}
-		maxPlace.push(1);
-		maxPlace.shift();
-		return Array.from(Array(totalLength))
-			.map((_, i) => counts
-				.map((c, j) => Math.floor(i / maxPlace[j]) % c));
-	};
-	const LayerPrototype = {
-		count: function () {
-			return this.branches.map(arr => arr.length);
-		},
-		solution: function (...indices) {
-			const option = Array(this.branches.length)
-				.fill(0)
-				.map((n, i) => (indices[i] != null ? indices[i] : n));
-			const branchesSolution = this.branches
-				? this.branches.map((options, i) => options[option[i]])
-				: [];
-			return Object.assign({}, this.root, ...branchesSolution);
-		},
-		allSolutions: function () {
-			return makePermutations(this.count())
-				.map(count => this.solution(...count));
-		},
-		facesLayer: function (...indices) {
-			return invertMap(topologicalOrder$1(this.solution(...indices)));
-		},
-		allFacesLayers: function () {
-			return makePermutations(this.count())
-				.map(count => this.facesLayer(...count));
-		},
-		faceOrders: function (...indices) {
-			return keysToFaceOrders(this.solution(...indices));
-		},
-		allFaceOrders: function () {
-			return makePermutations(this.count())
-				.map(count => this.faceOrders(...count));
-		},
-	};
-
-	const solveBranch = (
+	const solveNode = (
 		constraints,
 		constraintsLookup,
 		unsolvedKeys,
+		solvedOrders,
 		...orders
 	) => {
-		if (!unsolvedKeys.length) { return []; }
+		if (!unsolvedKeys.length) { return {}; }
 		const guessKey = unsolvedKeys[0];
 		const completedSolutions = [];
 		const unfinishedSolutions = [];
@@ -9503,30 +9471,38 @@
 				constraints,
 				constraintsLookup,
 				[guessKey],
+				...solvedOrders,
 				...orders,
 				{ [guessKey]: b },
 			);
 			if (result === false) { return; }
 			result[guessKey] = b;
-			if (Object.keys(result).length === unsolvedKeys.length) {
-				completedSolutions.push(result);
-			} else {
-				unfinishedSolutions.push(result);
-			}
+			const array = Object.keys(result).length === unsolvedKeys.length
+				? completedSolutions
+				: unfinishedSolutions;
+			array.push(result);
 		});
-		const recursed = unfinishedSolutions
-			.map(order => solveBranch(
+		const solution = {
+			leaves: completedSolutions,
+			node: unfinishedSolutions.map(order => solveRemaining(
 				constraints,
 				constraintsLookup,
 				unsolvedKeys.filter(key => !(key in order)),
-				...orders,
+				[...solvedOrders, ...orders],
 				order,
-			));
-		return completedSolutions
-			.map(order => ([...orders, order]))
-			.concat(...recursed);
+			)),
+		};
+		if (solution.leaves.length === 0) { delete solution.leaves; }
+		if (solution.node.length === 0) { delete solution.node; }
+		return solution;
 	};
-	const groupLayerSolver = (constraints, constraintsLookup, facePairs, edgeAdjacentOrders) => {
+	const groupLayerSolver = (
+		constraints,
+		constraintsLookup,
+		facePairs,
+		edgeAdjacentOrders,
+		faces_winding,
+	) => {
 		const initialResult = propagate(
 			constraints,
 			constraintsLookup,
@@ -9537,26 +9513,15 @@
 		const remainingKeys = facePairs
 			.filter(key => !(key in edgeAdjacentOrders))
 			.filter(key => !(key in initialResult));
-		const branchResults = getBranches(remainingKeys, constraints, constraintsLookup)
-			.map(unsolvedKeys => solveBranch(
-				constraints,
-				constraintsLookup,
-				unsolvedKeys,
-				edgeAdjacentOrders,
-				initialResult,
-			));
-		const branches = branchResults
-			.map(branch => branch
-				.map(solution => Object.assign({}, ...solution)));
-		const root = { ...edgeAdjacentOrders, ...initialResult };
-		unsignedToSignedOrders(root);
-		branches
-			.forEach(branch => branch
-				.forEach(solutions => unsignedToSignedOrders(solutions)));
-		return Object.assign(
-			Object.create(LayerPrototype),
-			{ root, branches },
+		const solution = solveRemaining(
+			constraints,
+			constraintsLookup,
+			remainingKeys,
+			[],
+			edgeAdjacentOrders,
+			initialResult,
 		);
+		return reformatSolution(solution, faces_winding);
 	};
 	const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		const {
@@ -9564,14 +9529,16 @@
 			groups_constraintsLookup,
 			groups_facePairs,
 			groups_edgeAdjacentOrders,
+			faces_winding,
 		} = prepare(graph, epsilon);
-		const result = groups_constraints.map((constraints, i) => groupLayerSolver(
+		const groupLayers = groups_constraints.map((constraints, i) => groupLayerSolver(
 			constraints,
 			groups_constraintsLookup[i],
 			groups_facePairs[i],
 			groups_edgeAdjacentOrders[i],
+			faces_winding,
 		));
-		return result;
+		return { groupLayers };
 	};
 
 	var layer = Object.assign(
@@ -9579,7 +9546,7 @@
 		{
 			solver: globalLayerSolver$1,
 			table: layerTable$1,
-			topologicalOrder: topologicalOrder$2,
+			topologicalOrder: topologicalOrder$1,
 			makeTacosTortillas: makeTacosTortillas$1,
 			makeFoldedStripTacos,
 			makeTransitivityTrios: makeTransitivityTrios$1,
@@ -12539,11 +12506,16 @@
 		};
 	};
 	const ASSIGNMENT_COLOR$1 = {
-		B: [0.3, 0.3, 0.3], b: [0.3, 0.3, 0.3],
-		V: [0.2, 0.4, 0.6], v: [0.2, 0.4, 0.6],
-		M: [0.75, 0.25, 0.15], m: [0.75, 0.25, 0.15],
-		F: [0.2, 0.2, 0.2],    f: [0.2, 0.2, 0.2],
-		U: [0.2, 0.2, 0.2],    u: [0.2, 0.2, 0.2],
+		B: [0.3, 0.3, 0.3],
+		b: [0.3, 0.3, 0.3],
+		V: [0.2, 0.4, 0.6],
+		v: [0.2, 0.4, 0.6],
+		M: [0.75, 0.25, 0.15],
+		m: [0.75, 0.25, 0.15],
+		F: [0.2, 0.2, 0.2],
+		f: [0.2, 0.2, 0.2],
+		U: [0.2, 0.2, 0.2],
+		u: [0.2, 0.2, 0.2],
 	};
 	const makeThickEdgesVertexData = (graph, assignment_color = ASSIGNMENT_COLOR$1) => {
 		if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
@@ -12834,25 +12806,25 @@
 		},
 	});
 
-	var vertexV1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_normal;\n\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nvarying vec3 normal_color;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\n\tnormal_color = vec3(\n\t\tdot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
+	var vertexV1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_normal;\n\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nvarying vec3 normal_color;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\n\tnormal_color = vec3(\n\t\tdot(v_normal, normalize(u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, normalize(u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, normalize(u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
 
 	var fragmentV1 = "#version 100\n\nprecision mediump float;\nuniform float u_opacity;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\tgl_FragColor = vec4(color, u_opacity)\n}\n";
 
-	var vertexV2 = "#version 300 es\n\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\n\nin vec3 v_position;\nin vec3 v_normal;\nout vec3 front_color;\nout vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tvec3 normal_color = vec3(\n\t\tdot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
+	var vertexV2 = "#version 300 es\n\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\n\nin vec3 v_position;\nin vec3 v_normal;\nout vec3 front_color;\nout vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tvec3 normal_color = vec3(\n\t\tdot(v_normal, normalize(u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, normalize(u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, normalize(u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
 
 	var fragmentV2 = "#version 300 es\nprecision highp float;\n\nuniform float u_opacity;\nin vec3 front_color;\nin vec3 back_color;\nout vec4 outColor;\n\nvoid main () {\n\tgl_FragDepth = gl_FragCoord.z;\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\toutColor = vec4(color, u_opacity);\n}\n";
 
-	var vertexOutlinedV1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_normal;\nattribute vec3 v_barycentric;\n\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nvarying vec3 normal_color;\nvarying vec3 barycentric;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tbarycentric = v_barycentric;\n\n\tnormal_color = vec3(\n\t\tdot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\t// normal_color = vec3(\n\t// \tdot(v_normal, vec4(1, 0, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 1, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 0, 1, 0).xyz)\n\t// );\n\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
+	var vertexOutlinedV1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_normal;\nattribute vec3 v_barycentric;\n\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nvarying vec3 normal_color;\nvarying vec3 barycentric;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tbarycentric = v_barycentric;\n\n\tnormal_color = vec3(\n\t\tdot(v_normal, normalize(u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, normalize(u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, normalize(u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\t// normal_color = vec3(\n\t// \tdot(v_normal, vec4(1, 0, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 1, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 0, 1, 0).xyz)\n\t// );\n\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
 
 	var fragmentOutlinedV1 = "#version 100\n\nprecision mediump float;\nuniform float u_opacity;\nvarying vec3 barycentric;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\n// float edgeFactor(vec3 barycenter) {\n// \tvec3 d = fwidth(barycenter);\n// \tvec3 a3 = smoothstep(vec3(0.0), d*3.5, barycenter);\n// \treturn min(min(a3.x, a3.y), a3.z);\n// }\n\nvoid main () {\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\t// gl_FragColor = vec4(blend_color.rgb, u_opacity);\n\t// gl_FragDepth = 0.5;\n\n\t// barycentric #1\n\tgl_FragColor = any(lessThan(barycentric, vec3(0.02)))\n\t\t? vec4(0.0, 0.0, 0.0, 1.0)\n\t\t: vec4(color, u_opacity);\n\t// barycentric #2\n\t// gl_FragColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);\n}\n";
 
-	var vertexOutlinedV2 = "#version 300 es\n\n// uniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\n\nin vec3 v_position;\nin vec3 v_normal;\nin vec3 v_barycentric;\nin float v_rawEdge;\n// in uint8_t \nout vec3 front_color;\nout vec3 back_color;\nout vec3 barycentric;\n// flat out int rawEdge;\nflat out int provokedVertex;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tprovokedVertex = gl_VertexID;\n\tbarycentric = v_barycentric;\n\t// rawEdge = int(v_rawEdge);\n\n\tvec3 normal_color = vec3(\n\t\tdot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\t// normal_color = vec3(\n\t// \tdot(v_normal, vec4(1, 0, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 1, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 0, 1, 0).xyz)\n\t// );\n\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
+	var vertexOutlinedV2 = "#version 300 es\n\n// uniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\n\nin vec3 v_position;\nin vec3 v_normal;\nin vec3 v_barycentric;\nin float v_rawEdge;\n// in uint8_t \nout vec3 front_color;\nout vec3 back_color;\nout vec3 barycentric;\n// flat out int rawEdge;\nflat out int provokedVertex;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tprovokedVertex = gl_VertexID;\n\tbarycentric = v_barycentric;\n\t// rawEdge = int(v_rawEdge);\n\n\tvec3 normal_color = vec3(\n\t\tdot(v_normal, normalize(u_modelView * vec4(1, 0, 0, 0)).xyz),\n\t\tdot(v_normal, normalize(u_modelView * vec4(0, 1, 0, 0)).xyz),\n\t\tdot(v_normal, normalize(u_modelView * vec4(0, 0, 1, 0)).xyz)\n\t);\n\t// normal_color = vec3(\n\t// \tdot(v_normal, vec4(1, 0, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 1, 0, 0).xyz),\n\t// \tdot(v_normal, vec4(0, 0, 1, 0).xyz)\n\t// );\n\n\tfloat grayX = abs(normal_color.x);\n\tfloat grayY = abs(normal_color.y);\n\tfloat grayZ = abs(normal_color.z);\n\tfloat gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;\n\tfloat c = clamp(gray, 0.0, 1.0);\n\tfront_color = u_frontColor * c;\n\tback_color = u_backColor * c;\n}\n";
 
 	var fragmentOutlinedV2 = "#version 300 es\n// precision mediump float;\nprecision highp float;\n\nuniform float u_opacity;\n\nuniform vec2 u_touch;\nuniform vec2 u_resolution;\n\n// in int gl_PrimitiveID;\n// in highp vec4 gl_FragCoord;\n// in mediump vec2 gl_PointCoord; // 0.0 to 1.0, location on the screen\n// in bool gl_FrontFacing;\n// out highp float gl_FragDepth;\n\nflat in int provokedVertex;\n\nin vec3 front_color;\nin vec3 back_color;\nin vec3 barycentric;\n// flat in int rawEdge;\nout vec4 outColor;\n\nfloat hue2rgb (float p, float q, float t) {\n\twhile (t < 0.0) t += 1.0;\n\twhile (t > 1.0) t -= 1.0;\n\tif (t < 1.0 / 6.0) return p + (q - p) * 6.0 * t;\n\tif (t < 1.0 / 2.0) return q;\n\tif (t < 2.0 / 3.0) return p + (q - p) * (2.0 / 3.0 - t) * 6.0;\n\treturn p;\n}\nvec3 hslToRgb (float h, float s, float l) {\n\tif (s == 0.0) { return vec3(l, l, l); }\n\tfloat q = l < 0.5 ? l * (1.0 + s) : l + s - l * s;\n\tfloat p = 2.0 * l - q;\n\tfloat r = hue2rgb(p, q, h + 1.0 / 3.0);\n\tfloat g = hue2rgb(p, q, h);\n\tfloat b = hue2rgb(p, q, h - 1.0 / 3.0);\n\treturn vec3(r, g, b);\n}\n\nfloat edgeFactor(vec3 barycenter) {\n\tvec3 d = fwidth(barycenter);\n\tvec3 a3 = smoothstep(vec3(0.0), d*3.5, barycenter);\n\treturn min(min(a3.x, a3.y), a3.z);\n}\n\nvoid main () {\n\tgl_FragDepth = gl_FragCoord.z;\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\t// vec3 color = hslToRgb(float(gl_PrimitiveID) / 57.0, 0.5, 0.8);\n\t// vec3 color = hslToRgb(float(provokedVertex) * 1.618, 1.0, 0.45);\n\n\t// original output\n\t// outColor = vec4(color, u_opacity);\n\n\t// barycentric #1\n\t// outColor = any(lessThan(barycentric, vec3(0.02)))\n\t// \t? vec4(0.0, 0.0, 0.0, 1.0)\n\t// \t: vec4(color, u_opacity);\n\n\t// barycentric #2\n\toutColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);\n\t// barycentric #2, transparent faces (kindof. bug)\n\t// outColor = vec4(1.0, 1.0, 1.0, (1.0-edgeFactor(barycentric))*0.95);\n\n\t// // barycentric #3 with raw edge\n\t// bool side2 = bool(rawEdge & 1);\n\t// bool side0 = bool(rawEdge & 2);\n\t// bool side1 = bool(rawEdge & 4);\n\t// if ((barycentric.x < 0.02 && side0)\n\t// \t|| (barycentric.y < 0.02 && side1)\n\t// \t|| (barycentric.z < 0.02 && side2)) {\n\t// \toutColor = vec4(0.0, 0.0, 0.0, 1.0);\n\t// }\n\t// else {\n\t// \toutColor = vec4(color, u_opacity);\n\t// }\n\n\t\n\t// if (provokedVertex == 8) {\n\t// \toutColor = vec4(1, 1, 0, 1);\n\t// }\n\n\t// vec2 fragScale = vec2(gl_FragCoord.x / u_resolution.x, gl_FragCoord.y / u_resolution.y);\n\t// vec2 touchScale = vec2(u_touch.x / u_resolution.x, u_touch.y / u_resolution.y);\n\t// // fix. invert.\n\t// touchScale.y = 1.0 - touchScale.y;\n\t// float dist = distance(touchScale, fragScale);\n\t// if (dist < 0.1) {\n\t// \tfloat t = dist / 0.1;\n\t// \toutColor.r = outColor.r * t + 1.0 * (1.0 - t);\n\t// }\n}\n";
 
-	var vertexThickEdgesV1$1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_color;\nattribute vec3 edge_vector;\nattribute vec2 vertex_vector;\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\nvarying vec3 blend_color;\n\nvoid main () {\n\t// find an axis with which to compute the cross product\n\t// we want the axis which is most unlike the edge_vector\n\tfloat xdot = dot(vec3(1,0,0), edge_vector);\n\tfloat ydot = dot(vec3(0,1,0), edge_vector);\n\tvec3 axis = xdot < ydot ? vec3(1,0,0) : vec3(0,1,0); // 0:x, 1:y\n\t// these are two perpendicular vectors to the edge_vector\n\t// together all three of them are the basis vectors\n\tvec3 edge_norm = normalize(edge_vector);\n\tvec3 one = cross(axis, edge_norm);\n\tvec3 two = cross(one, edge_norm);\n\t// displace the point along a vector from its original spot\n\tvec3 displace = normalize(\n\t\tone * vertex_vector.x +\n\t\ttwo * vertex_vector.y) * u_strokeWidth;\n\t// gl_Position = u_matrix * vec4(vec3(side, 0) + v_position, 1);\n\tgl_Position = u_matrix * vec4(v_position + displace, 1);\n\t// gl_Position = u_matrix * vec4(v_position, 1);\n\tblend_color = v_color;\n}\n";
+	var vertexThickEdgesV1$1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_color;\nattribute vec3 edge_vector;\nattribute vec2 vertex_vector;\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\nvarying vec3 blend_color;\n\nvoid main () {\n\tvec3 edge_norm = normalize(edge_vector);\n\t// find an axis with which to compute the cross product\n\t// we want the axis which is most unlike the edge_vector\n\tfloat xdot = abs(dot(vec3(1,0,0), edge_norm));\n\tfloat ydot = abs(dot(vec3(0,1,0), edge_norm));\n\tfloat zdot = abs(dot(vec3(0,0,1), edge_norm));\n\tvec3 xory = xdot < ydot ? vec3(1,0,0) : vec3(0,1,0);\n\tvec3 axis = xdot > zdot && ydot > zdot ? vec3(0,0,1) : xory;\n\t// these are two perpendicular vectors to the edge_vector\n\t// together all three of them are the basis vectors\n\tvec3 one = cross(axis, edge_norm);\n\tvec3 two = cross(one, edge_norm);\n\t// displace the point along a vector from its original spot\n\tvec3 displace = normalize(\n\t\tone * vertex_vector.x +\n\t\ttwo * vertex_vector.y) * u_strokeWidth;\n\t// gl_Position = u_matrix * vec4(vec3(side, 0) + v_position, 1);\n\tgl_Position = u_matrix * vec4(v_position + displace, 1);\n\t// gl_Position = u_matrix * vec4(v_position, 1);\n\tblend_color = v_color;\n}\n";
 
-	var vertexThickEdgesV2$1 = "#version 300 es\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\n\nin vec3 v_position;\nin vec3 v_color;\nin vec3 edge_vector;\nin vec2 vertex_vector;\nout vec3 blend_color;\n\nvoid main () {\n\t// find an axis with which to compute the cross product\n\t// we want the axis which is most unlike the edge_vector\n\tfloat xdot = dot(vec3(1,0,0), edge_vector);\n\tfloat ydot = dot(vec3(0,1,0), edge_vector);\n\tvec3 axis = xdot < ydot ? vec3(1,0,0) : vec3(0,1,0); // 0:x, 1:y\n\t// these are two perpendicular vectors to the edge_vector\n\t// together all three of them are the basis vectors\n\tvec3 edge_norm = normalize(edge_vector);\n\tvec3 one = cross(axis, edge_norm);\n\tvec3 two = cross(one, edge_norm);\n\t// displace the point along a vector from its original spot\n\tvec3 displace = normalize(\n\t\tone * vertex_vector.x +\n\t\ttwo * vertex_vector.y) * u_strokeWidth;\n\t// gl_Position = u_matrix * vec4(vec3(side, 0) + v_position, 1);\n\tgl_Position = u_matrix * vec4(v_position + displace, 1);\n\t// gl_Position = u_matrix * vec4(v_position, 1);\n\tblend_color = v_color;\n}\n";
+	var vertexThickEdgesV2$1 = "#version 300 es\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\n\nin vec3 v_position;\nin vec3 v_color;\nin vec3 edge_vector;\nin vec2 vertex_vector;\nout vec3 blend_color;\n\nvoid main () {\n\tvec3 edge_norm = normalize(edge_vector);\n\t// find an axis with which to compute the cross product\n\t// we want the axis which is most unlike the edge_vector\n\tfloat xdot = abs(dot(vec3(1,0,0), edge_norm));\n\tfloat ydot = abs(dot(vec3(0,1,0), edge_norm));\n\tfloat zdot = abs(dot(vec3(0,0,1), edge_norm));\n\tvec3 xory = xdot < ydot ? vec3(1,0,0) : vec3(0,1,0);\n\tvec3 axis = xdot > zdot && ydot > zdot ? vec3(0,0,1) : xory;\n\t// these are two perpendicular vectors to the edge_vector\n\t// together all three of them are the basis vectors\n\tvec3 one = cross(axis, edge_norm);\n\tvec3 two = cross(one, edge_norm);\n\t// displace the point along a vector from its original spot\n\tvec3 displace = normalize(\n\t\tone * vertex_vector.x +\n\t\ttwo * vertex_vector.y) * u_strokeWidth;\n\t// gl_Position = u_matrix * vec4(vec3(side, 0) + v_position, 1);\n\tgl_Position = u_matrix * vec4(v_position + displace, 1);\n\t// gl_Position = u_matrix * vec4(v_position, 1);\n\tblend_color = v_color;\n}\n";
 
 	var fragmentSimpleV1$1 = "#version 100\n\nprecision mediump float;\nvarying vec3 blend_color;\n\nvoid main () {\n\tgl_FragColor = vec4(blend_color.rgb, 1);\n}\n";
 
@@ -12906,10 +12878,12 @@
 
 	const WebGLFoldedForm = (gl, version = 1, graph = {}, options = {}) => {
 		const programs = [];
-		if (options.outlines === false) {
-			programs.push(foldedFormFaces(gl, version, graph, options));
-		} else {
-			programs.push(foldedFormFacesOutlined(gl, version, graph, options));
+		if (options.faces !== false) {
+			if (options.outlines === false) {
+				programs.push(foldedFormFaces(gl, version, graph, options));
+			} else {
+				programs.push(foldedFormFacesOutlined(gl, version, graph, options));
+			}
 		}
 		if (options.edges === true) {
 			programs.push(foldedFormEdges(gl, version, graph, options));
@@ -12918,11 +12892,16 @@
 	};
 
 	const ASSIGNMENT_COLOR = {
-		B: [0.3, 0.3, 0.3], b: [0.3, 0.3, 0.3],
-		V: [0.2, 0.4, 0.6], v: [0.2, 0.4, 0.6],
-		M: [0.75, 0.25, 0.15], m: [0.75, 0.25, 0.15],
-		F: [0.2, 0.2, 0.2],    f: [0.2, 0.2, 0.2],
-		U: [0.2, 0.2, 0.2],    u: [0.2, 0.2, 0.2],
+		B: [0.3, 0.3, 0.3],
+		b: [0.3, 0.3, 0.3],
+		V: [0.2, 0.4, 0.6],
+		v: [0.2, 0.4, 0.6],
+		M: [0.75, 0.25, 0.15],
+		m: [0.75, 0.25, 0.15],
+		F: [0.2, 0.2, 0.2],
+		f: [0.2, 0.2, 0.2],
+		U: [0.2, 0.2, 0.2],
+		u: [0.2, 0.2, 0.2],
 	};
 	const make2D$1 = (coords) => coords
 		.map(coord => [0, 1]

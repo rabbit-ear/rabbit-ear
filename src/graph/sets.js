@@ -53,7 +53,7 @@ export const getDisjointedVertices = ({ edges_vertices, vertices_edges, vertices
 			// which were already visited any time in this method ("keys"),
 			// and already visited and included inside this stack ("stackHash")
 			const neighbors = vertices_vertices[key]
-				? vertices_vertices[key].filter(i => indicesHash[i] && !stackHash[i])
+				? vertices_vertices[key].filter(v => indicesHash[v] && !stackHash[v])
 				: [];
 			// console.log("branch search", key, "connected to", neighborsArray);
 			// add these facePairs to the stack (and hash) to be visited next loop.

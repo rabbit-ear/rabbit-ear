@@ -13,9 +13,9 @@ out vec3 back_color;
 void main () {
 	gl_Position = u_matrix * vec4(v_position, 1);
 	vec3 normal_color = vec3(
-		dot(v_normal, (u_modelView * vec4(1, 0, 0, 0)).xyz),
-		dot(v_normal, (u_modelView * vec4(0, 1, 0, 0)).xyz),
-		dot(v_normal, (u_modelView * vec4(0, 0, 1, 0)).xyz)
+		dot(v_normal, normalize(u_modelView * vec4(1, 0, 0, 0)).xyz),
+		dot(v_normal, normalize(u_modelView * vec4(0, 1, 0, 0)).xyz),
+		dot(v_normal, normalize(u_modelView * vec4(0, 0, 1, 0)).xyz)
 	);
 	float grayX = abs(normal_color.x);
 	float grayY = abs(normal_color.y);

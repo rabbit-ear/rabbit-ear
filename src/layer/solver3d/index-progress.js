@@ -3,7 +3,7 @@
  */
 import propagate from "./propagate";
 import {
-	reformatSolution,
+	keysToFaceOrders,
 } from "./general";
 import getDisjointSets from "./getDisjointSets";
 import prepare from "./prepare";
@@ -15,7 +15,6 @@ const solveRemaining = (
 	constraints,
 	constraintsLookup,
 	remainingKeys,
-	solvedOrders,
 	...orders
 ) => {
 	if (!remainingKeys.length) { return undefined; }
@@ -23,27 +22,21 @@ const solveRemaining = (
 	if (disjointSets.length > 1) {
 		// console.log("FOUND disjointSets", disjointSets);
 		return {
-			orders,
 			partitions: disjointSets
 				.map(branchKeys => solveNode(
 					constraints,
 					constraintsLookup,
 					branchKeys,
-					solvedOrders,
 					...orders,
 				)),
 		};
 	}
-	return {
-		orders,
-		...solveNode(
-			constraints,
-			constraintsLookup,
-			disjointSets[0],
-			solvedOrders,
-			...orders,
-		),
-	};
+	return solveNode(
+		constraints,
+		constraintsLookup,
+		disjointSets[0],
+		...orders,
+	);
 };
 /**
  * @description Given an array of unsolved facePair keys, attempt to solve
@@ -71,10 +64,9 @@ const solveNode = (
 	constraints,
 	constraintsLookup,
 	unsolvedKeys,
-	solvedOrders,
 	...orders
 ) => {
-	if (!unsolvedKeys.length) { return {}; }
+	if (!unsolvedKeys.length) { return []; }
 	const guessKey = unsolvedKeys[0];
 	const completedSolutions = [];
 	const unfinishedSolutions = [];
@@ -84,7 +76,6 @@ const solveNode = (
 			constraints,
 			constraintsLookup,
 			[guessKey],
-			...solvedOrders,
 			...orders,
 			{ [guessKey]: b },
 		);
@@ -95,25 +86,54 @@ const solveNode = (
 		// we could either combine the objects, or add this guess directly in.
 		result[guessKey] = b;
 		// store the result as either completed or unfinished
-		const array = Object.keys(result).length === unsolvedKeys.length
-			? completedSolutions
-			: unfinishedSolutions;
-		array.push(result);
+		if (Object.keys(result).length === unsolvedKeys.length) {
+			// completedSolutions.push(result);
+			completedSolutions.push([...orders, result]);
+		} else {
+			unfinishedSolutions.push(result);
+		}
 	});
-	// solution contains leaves and (recursive) nodes, only if non-empty.
-	const solution = {
-		leaves: completedSolutions,
+
+	const result = {
+		leaf: completedSolutions,
 		node: unfinishedSolutions.map(order => solveRemaining(
 			constraints,
 			constraintsLookup,
 			unsolvedKeys.filter(key => !(key in order)),
-			[...solvedOrders, ...orders],
+			...orders,
 			order,
 		)),
 	};
-	if (solution.leaves.length === 0) { delete solution.leaves; }
-	if (solution.node.length === 0) { delete solution.node; }
-	return solution;
+	if (result.leaf.length === 0) { delete result.leaf; }
+	if (result.node.length === 0) { delete result.node; }
+	return result;
+	// const res = {};
+	// if (completedSolutions.length) { res.finished = completedSolutions; }
+	// if (unfinishedSolutions.length) {
+	// 	res.unfinished = unfinishedSolutions.map(order => solveNode(
+	// 		constraints,
+	// 		constraintsLookup,
+	// 		unsolvedKeys.filter(key => !(key in order)),
+	// 		...orders,
+	// 		order,
+	// 	));
+	// }
+
+	// old code
+
+	// recursively call this method with any unsolved solutions and filter
+	// any keys that were found in that solution out of the unsolved keys
+	// const recursed = unfinishedSolutions
+	// 	.map(order => solveNode(
+	// 		constraints,
+	// 		constraintsLookup,
+	// 		unsolvedKeys.filter(key => !(key in order)),
+	// 		...orders,
+	// 		order,
+	// 	));
+	// return completedSolutions
+	// 	.map(order => ([...orders, order]))
+	// 	.concat(...recursed);
 };
 /**
  * @name solver
@@ -149,18 +169,78 @@ const groupLayerSolver = (
 	const remainingKeys = facePairs
 		.filter(key => !(key in edgeAdjacentOrders))
 		.filter(key => !(key in initialResult));
+	console.log("START remainingKeys", remainingKeys);
+	// console.log("first partitions", getDisjointSets(remainingKeys, constraints, constraintsLookup));
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
-	const solution = solveRemaining(
+	const results = solveRemaining(
 		constraints,
 		constraintsLookup,
 		remainingKeys,
-		[],
 		edgeAdjacentOrders,
 		initialResult,
 	);
-	// console.log("3D solver solution", solution);
-	return reformatSolution(solution, faces_winding);
+	// const branchResults = getDisjointSets(remainingKeys, constraints, constraintsLookup)
+	// 	.map(unsolvedKeys => solveNode(
+	// 		constraints,
+	// 		constraintsLookup,
+	// 		unsolvedKeys,
+	// 		edgeAdjacentOrders,
+	// 		initialResult,
+	// 	));
+	console.log("3D solver results", results);
+	// solver is finished. each branch result is spread across multiple objects
+	// containing a solution for a subset of the entire set of faces, one for
+	// each recursion depth. for each branch solution, merge its objects into one.
+	// const partitionsUnsigned = branchResults
+	// 	.map(branch => branch
+	// 		.map(solution => Object.assign({}, ...solution)));
+	// the set of face-pair solutions which are true for all partitions
+	const root = { ...edgeAdjacentOrders, ...initialResult };
+
+	// console.log("3D partitions", JSON.parse(JSON.stringify(partitionsUnsigned)));
+	// console.log("3D solver root", JSON.parse(JSON.stringify(root)));
+
+	// old approach
+	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
+	// unsignedToSignedOrders(root);
+	// partitions
+	// 	.forEach(branch => branch
+	// 		.forEach(solutions => unsignedToSignedOrders(solutions)));
+
+	// group_plane.normal;
+	// faces_winding;
+
+	// new approach
+	// const faces_normal = graph.faces_normal
+	// 	? graph.faces_normal
+	// 	: makeFacesNormal(graph);
+	// this is hardcoded to flat foldings along the +Z. wait this is not needed
+	// const z_vector = [0, 0, 1];
+	const rootSigned = keysToFaceOrders(root, faces_winding);
+	const rootSignedObj = {};
+	rootSigned.forEach(tri => { rootSignedObj[`${tri[0]} ${tri[1]}`] = tri[2]; });
+	// const partitionsSigned = partitionsUnsigned
+	// 	.map(branch => branch
+	// 		.map(solutions => keysToFaceOrders(solutions)));
+
+	console.log("rootSigned", rootSignedObj);
+
+	// const recurse = (node) => {
+	// 	if (node.faceOrders) {
+	// 		node.faceOrders = keysToFaceOrders(node.faceOrders, faces_winding, group_plane.normal);
+	// 	}
+	// 	if (node.finished) { node.finished.forEach(child => recurse(child)); }
+	// 	if (node.unfinished) { node.unfinished.forEach(child => recurse(child)); }
+	// };
+	// recurse(solution);
+
+	// console.log("partitions", partitions);
+	// console.log("branchResults", branchResults);
+	return Object.assign(
+		Object.create(LayerPrototype),
+		// { root: rootSignedObj, partitions: partitionsSigned },
+	);
 };
 
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
@@ -171,18 +251,14 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		groups_edgeAdjacentOrders,
 		faces_winding,
 	} = prepare(graph, epsilon);
-	const groupLayers = groups_constraints.map((constraints, i) => groupLayerSolver(
+	const result = groups_constraints.map((constraints, i) => groupLayerSolver(
 		constraints,
 		groups_constraintsLookup[i],
 		groups_facePairs[i],
 		groups_edgeAdjacentOrders[i],
 		faces_winding,
 	));
-	// return Object.assign(
-	// 	Object.create(LayerPrototype),
-	// 	groupLayers,
-	// );
-	return { groupLayers };
+	return result;
 };
 
 export default globalLayerSolver;

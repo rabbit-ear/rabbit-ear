@@ -141,8 +141,8 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	// console.log("groups_tacos_tortillas", groups_tacos_tortillas);
 	// // console.log("groups_unfiltered_trios", groups_unfiltered_trios);
 	// console.log("groups_transitivity_trios", groups_transitivity_trios);
-	// console.log("groups_constraints", groups_constraints);
-	// console.log("groups_constraintsLookup", groups_constraintsLookup);
+	console.log("groups_constraints", groups_constraints);
+	console.log("groups_constraintsLookup", groups_constraintsLookup);
 	// console.log("facePairs", facePairs);
 	// console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
 	// console.log("facePairsIndex_group", facePairsIndex_group);
@@ -156,6 +156,7 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		groups_constraintsLookup,
 		groups_facePairs,
 		groups_edgeAdjacentOrders,
+		faces_winding: overlapInfo.faces_winding,
 	};
 };
 

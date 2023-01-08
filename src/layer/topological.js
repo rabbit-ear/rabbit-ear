@@ -7,7 +7,7 @@ import math from "../math";
  * @param {number[]} faces a subset of face indices where all faces have been
  * @param {FOLD} graph an optional FOLD graph
  * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
- * @linkcode Origami ./src/layer/globalSolver/topologicalOrder.js 10
+ * @linkcode Origami ./src/layer/topological.js 10
  */
 const topologicalOrder = ({ faceOrders, faces_normal }, faces) => {
 	if (!faceOrders) { return []; }
