@@ -45,14 +45,15 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// 15ms:
 	const edgeAdjacentOrders = solveEdgeAdjacentFacePairs(graph, facePairs, facesWinding);
 	// console.log("overlap", overlap);
+	// console.log("graph", graph);
 	// console.log("facesWinding", facesWinding);
 	// console.log("tacos_tortillas", tacos_tortillas);
 	// console.log("unfiltered_trios", unfiltered_trios);
 	// console.log("transitivity_trios", transitivity_trios);
-	// console.log("facePairsOrder", facePairsOrder);
+	// console.log("facePairs", facePairs);
 	// console.log("constraints", constraints);
 	// console.log("constraintsLookup", constraintsLookup);
-	console.log("edgeAdjacentOrders", edgeAdjacentOrders);
+	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
 	// console.log(`transitivity: ${unfiltered_trios.length} down to ${transitivity_trios.length} (${unfiltered_trios.length - transitivity_trios.length} removed from tacos/tortillas)`);
 	// console.log(`${constraints.taco_taco.length} taco-taco, ${constraints.taco_tortilla.length} taco-tortilla, ${constraints.tortilla_tortilla.length} tortilla-tortilla, ${constraints.transitivity.length} transitivity`);
 	return {

@@ -163,6 +163,9 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 			.map(tortilla => ({ taco: [...el.taco], tortilla })));
 	// finally, join both taco-tortilla cases together into one.
 	const taco_tortilla = taco_tortilla_aligned.concat(taco_tortilla_crossing);
+	// console.log("edges_faces_side", edges_faces_side);
+	// console.log("edges_edgesParallelOverlap", edges_edgesParallelOverlap);
+	// console.log("tacos_edges", tacos_edges);
 	// console.log("tortilla_tortilla_aligned", tortilla_tortilla_aligned);
 	// console.log("tortilla_tortilla_crossing", tortilla_tortilla_crossing);
 	return {

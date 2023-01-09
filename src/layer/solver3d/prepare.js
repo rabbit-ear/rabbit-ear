@@ -70,12 +70,10 @@ const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
 		groups_edges[i].forEach(e => { obj[key][e] = graph[key][e]; });
 	}));
 	copies.forEach(obj => { obj.edges_faces = makeEdgesFacesUnsorted(obj); });
-
 	// const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 	// console.log("groups_faces", groups_faces);
 	// console.log("groups_vertices", groups_vertices);
 	// console.log("groups_edges", groups_edges);
-
 	return copies;
 };
 
@@ -133,24 +131,20 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		.map(indices => indices.map(i => facePairs[i]));
 	const groups_facePairs = groups_constraints
 		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
-
-	console.log("prepare", overlapInfo);
+	// console.log("prepare", overlapInfo);
 	// console.log("graphCopies", graphCopies);
 	// console.log("faces_polygon", faces_polygon);
 	// console.log("faces_center", faces_center);
 	// console.log("groups_tacos_tortillas", groups_tacos_tortillas);
-	// // console.log("groups_unfiltered_trios", groups_unfiltered_trios);
+	// console.log("groups_unfiltered_trios", groups_unfiltered_trios);
 	// console.log("groups_transitivity_trios", groups_transitivity_trios);
-	console.log("groups_constraints", groups_constraints);
-	console.log("groups_constraintsLookup", groups_constraintsLookup);
+	// console.log("groups_constraints", groups_constraints);
+	// console.log("groups_constraintsLookup", groups_constraintsLookup);
 	// console.log("facePairs", facePairs);
 	// console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
 	// console.log("facePairsIndex_group", facePairsIndex_group);
 	// console.log("groups_facePairsIndex", groups_facePairsIndex);
 	// console.log("groups_facePairs", groups_facePairsWithHoles);
-
-	// console.log(`transitivity: ${unfiltered_trios.length} down to ${transitivity_trios.length} (${unfiltered_trios.length - transitivity_trios.length} removed from tacos/tortillas)`);
-	// console.log(`${constraints.taco_taco.length} taco-taco, ${constraints.taco_tortilla.length} taco-tortilla, ${constraints.tortilla_tortilla.length} tortilla-tortilla, ${constraints.transitivity.length} transitivity`);
 	return {
 		groups_constraints,
 		groups_constraintsLookup,

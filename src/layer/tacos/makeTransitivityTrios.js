@@ -27,6 +27,8 @@ const makeTransitivityTrios = (
 	if (!faces_winding) {
 		faces_winding = makeFacesWinding(graph);
 	}
+	// console.log("overlap_matrix", overlap_matrix);
+	// console.log("faces_winding", faces_winding);
 	// prepare a list of all faces in the graph as lists of vertices
 	// also, make sure they all have the same winding (reverse if necessary)
 	const polygons = graph.faces_vertices
@@ -55,6 +57,8 @@ const makeTransitivityTrios = (
 			}
 		}
 	}
+	// console.log("matrix", matrix);
+	// console.log("trios", trios);
 	return trios;
 };
 

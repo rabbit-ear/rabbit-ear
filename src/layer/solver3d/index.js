@@ -9,43 +9,6 @@ import getDisjointSets from "./getDisjointSets";
 import prepare from "./prepare";
 import LayerPrototype from "./prototype";
 /**
- *
- */
-const solveRemaining = (
-	constraints,
-	constraintsLookup,
-	remainingKeys,
-	solvedOrders,
-	...orders
-) => {
-	if (!remainingKeys.length) { return undefined; }
-	const disjointSets = getDisjointSets(remainingKeys, constraints, constraintsLookup);
-	if (disjointSets.length > 1) {
-		// console.log("FOUND disjointSets", disjointSets);
-		return {
-			orders,
-			partitions: disjointSets
-				.map(branchKeys => solveNode(
-					constraints,
-					constraintsLookup,
-					branchKeys,
-					solvedOrders,
-					...orders,
-				)),
-		};
-	}
-	return {
-		orders,
-		...solveNode(
-			constraints,
-			constraintsLookup,
-			disjointSets[0],
-			solvedOrders,
-			...orders,
-		),
-	};
-};
-/**
  * @description Given an array of unsolved facePair keys, attempt to solve
  * the entire set by guessing both states (1, 2) for one key, propagate any
  * implications, repeat another guess (1, 2) on another key, propagate, repeat...
@@ -67,7 +30,7 @@ const solveRemaining = (
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
  * @linkcode Origami ./src/layer/solver3d/index.js 29
  */
-const solveNode = (
+const solveNonBranchingNode = (
 	constraints,
 	constraintsLookup,
 	unsolvedKeys,
@@ -103,7 +66,7 @@ const solveNode = (
 	// solution contains leaves and (recursive) nodes, only if non-empty.
 	const solution = {
 		leaves: completedSolutions,
-		node: unfinishedSolutions.map(order => solveRemaining(
+		node: unfinishedSolutions.map(order => solveNode(
 			constraints,
 			constraintsLookup,
 			unsolvedKeys.filter(key => !(key in order)),
@@ -114,6 +77,46 @@ const solveNode = (
 	if (solution.leaves.length === 0) { delete solution.leaves; }
 	if (solution.node.length === 0) { delete solution.node; }
 	return solution;
+};
+/**
+ * @description Before we solve each node, check to see if there are
+ * any disjoint sets, if so, create a branch where each individual
+ * disjoint set gets solved and the branch structure is preserved.
+ * If no disjoint sets, solve and return the node.
+ */
+const solveNode = (
+	constraints,
+	constraintsLookup,
+	remainingKeys,
+	solvedOrders,
+	...orders
+) => {
+	if (!remainingKeys.length) { return { orders }; }
+	const disjointSets = getDisjointSets(remainingKeys, constraints, constraintsLookup);
+	if (disjointSets.length > 1) {
+		// console.log("FOUND disjointSets", disjointSets);
+		return {
+			orders,
+			partitions: disjointSets
+				.map(branchKeys => solveNonBranchingNode(
+					constraints,
+					constraintsLookup,
+					branchKeys,
+					solvedOrders,
+					...orders,
+				)),
+		};
+	}
+	return {
+		orders,
+		...solveNonBranchingNode(
+			constraints,
+			constraintsLookup,
+			disjointSets[0],
+			solvedOrders,
+			...orders,
+		),
+	};
 };
 /**
  * @name solver
@@ -151,7 +154,7 @@ const groupLayerSolver = (
 		.filter(key => !(key in initialResult));
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
-	const solution = solveRemaining(
+	const solution = solveNode(
 		constraints,
 		constraintsLookup,
 		remainingKeys,
@@ -159,10 +162,22 @@ const groupLayerSolver = (
 		edgeAdjacentOrders,
 		initialResult,
 	);
-	// console.log("3D solver solution", solution);
 	return reformatSolution(solution, faces_winding);
 };
-
+/**
+ * @name solver3d
+ * @memberof layer
+ * @description Recursively calculate all layer order solutions between
+ * co-planar faces in a 2D or 3D FOLD graph.
+ * @param {FOLD} graph a flat-folded FOLD graph, where the vertices
+ * have already been folded.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a set of solutions where keys are face pairs
+ * and values are +1 or -1 describing the relationship of the two faces.
+ * Results are stored in "root" and "partitions", to compile a complete solution,
+ * append the "root" to one selection from each array in "partitions".
+ * @linkcode Origami ./src/layer/solver3d/index.js 89
+ */
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const {
 		groups_constraints,
@@ -171,18 +186,17 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		groups_edgeAdjacentOrders,
 		faces_winding,
 	} = prepare(graph, epsilon);
-	const groupLayers = groups_constraints.map((constraints, i) => groupLayerSolver(
+	const solutions = groups_constraints.map((constraints, i) => groupLayerSolver(
 		constraints,
 		groups_constraintsLookup[i],
 		groups_facePairs[i],
 		groups_edgeAdjacentOrders[i],
 		faces_winding,
-	));
-	// return Object.assign(
-	// 	Object.create(LayerPrototype),
-	// 	groupLayers,
-	// );
-	return { groupLayers };
+	)).filter(solution => solution.orders.length);
+	return Object.assign(
+		Object.create(LayerPrototype),
+		{ groups: solutions },
+	);
 };
 
 export default globalLayerSolver;

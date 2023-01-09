@@ -304,7 +304,13 @@ export const makeEdgesEdgesCrossing = ({
 		vertices_coords, edges_vertices, edges_vector,
 	}, epsilon);
 	// if edges are parallel (not this value), skip.
-	return overwriteEdgesOverlaps(edge_edgesNotParallel, edges_vector, edges_origin, math.core.excludeS, epsilon);
+	return overwriteEdgesOverlaps(
+		edge_edgesNotParallel,
+		edges_vector,
+		edges_origin,
+		math.core.excludeS,
+		epsilon,
+	);
 };
 // todo, improvement suggestion:
 // first grouping edges into categories with edges which share parallel-ness.
@@ -331,7 +337,13 @@ export const makeEdgesEdgesParallelOverlap = ({
 		vertices_coords, edges_vertices, edges_vector,
 	}, epsilon);
 	// only if lines are parallel, then run the more expensive overlap method
-	return overwriteEdgesOverlaps(edges_edgesParallel, edges_vector, edges_origin, math.core.excludeS, epsilon);
+	return overwriteEdgesOverlaps(
+		edges_edgesParallel,
+		edges_vector,
+		edges_origin,
+		math.core.excludeS,
+		epsilon,
+	);
 };
 /**
  * we want to include this case, where one edge may not overlap another

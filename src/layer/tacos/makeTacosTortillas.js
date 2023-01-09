@@ -68,6 +68,20 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 		? face_pairs
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
+
+/**
+ * @description convert a FOLD spec self-relational array
+ * (like vertices_vertices / faces_faces), into a non-sparse
+ * boolean matrix with false/true, true if elements point to each other
+ */
+const indicesToBooleanMatrix = (array_array) => {
+	const matrix = Array.from(Array(array_array.length))
+		.map(() => Array(array_array.length).fill(false));
+	array_array
+		.forEach((arr, i) => arr
+			.forEach(j => { matrix[i][j] = true; }));
+	return matrix;
+};
 /**
  * @description Given a FOLD object, find all instances of edges overlapping which
  * classify as taco/tortillas to determine layer order.
@@ -88,9 +102,12 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	// overlap the edge, excluding the epsilon space around the endpoints.
 	// 130ms:
 	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon);
+	const boolean_edge_edge_overlap = indicesToBooleanMatrix(edge_edge_overlap_matrix);
+	// console.log("boolean_edge_edge_overlap", boolean_edge_edge_overlap);
 	// convert this matrix into unique pairs ([4, 9] but not [9, 4])
 	// thse pairs are also sorted such that the smaller index is first.
-	const tacos_edges = booleanMatrixToUniqueIndexPairs(edge_edge_overlap_matrix)
+	const tacos_edges = booleanMatrixToUniqueIndexPairs(boolean_edge_edge_overlap)
+	// const tacos_edges = booleanMatrixToUniqueIndexPairs(edge_edge_overlap_matrix)
 		.filter(pair => pair
 			.map(edge => graph.edges_faces[edge].length > 1)
 			.reduce((a, b) => a && b, true));
@@ -156,6 +173,9 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 			.map(tortilla => ({ taco: [...el.taco], tortilla })));
 	// finally, join both taco-tortilla cases together into one.
 	const taco_tortilla = taco_tortilla_aligned.concat(taco_tortilla_crossing);
+	// console.log("edges_faces_side", edges_faces_side);
+	// console.log("edge_edge_overlap_matrix", edge_edge_overlap_matrix);
+	// console.log("tacos_edges", tacos_edges);
 	// console.log("tortilla_tortilla_aligned", tortilla_tortilla_aligned);
 	// console.log("tortilla_tortilla_crossing", tortilla_tortilla_crossing);
 	return {

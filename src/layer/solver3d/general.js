@@ -72,56 +72,6 @@ export const constraintToFacePairsStrings = ({
 });
 
 const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-// const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
-/**
- * @description convert a layer-encoding 1,2 into 1,-1. modified in place!
- * @param {object} facePairOrders object with face-pair keys and values either 0, 1, 2.
- * @returns {object} the same object with values either 0, 1, -1.
- * @linkcode Origami ./src/layer/solver3d/general.js 81
- */
-// export const unsignedToSignedOrders = (orders) => {
-// 	Object.keys(orders).forEach(key => {
-// 		orders[key] = to_signed_layer_convert[orders[key]];
-// 	});
-// 	return orders;
-// };
-/**
- * @description convert a layer-encoding 1,-1 into 1,2. modified in place!
- * @param {object} facePairOrders object with face-pair keys and values either 0, 1, -1.
- * @returns {object} the same object with values either 0, 1, 2.
- * @linkcode Origami ./src/layer/solver3d/general.js 93
- */
-// export const signedToUnsignedOrders = (orders) => {
-// 	Object.keys(orders).forEach(key => {
-// 		orders[key] = to_unsigned_layer_convert[orders[key]];
-// 	});
-// 	return orders;
-// };
-/**
- * @description Convert a set of face-pair layer orders (+1,-1,0)
- * into a face-face relationship matrix.
- * @param {object} facePairOrders object one set of face-pair layer orders (+1,-1,0)
- * @returns {number[][]} NxN matrix, number of faces, containing +1,-1,0
- * as values showing the relationship between i to j in face[i][j].
- * @linkcode Origami ./src/layer/solver3d/general.js 107
- */
-// export const ordersToMatrix = (orders) => {
-// 	const condition_keys = Object.keys(orders);
-// 	const face_pairs = condition_keys
-// 		.map(key => key.split(" ").map(n => parseInt(n, 10)));
-// 	const faces = [];
-// 	face_pairs
-// 		.reduce((a, b) => a.concat(b), [])
-// 		.forEach(f => { faces[f] = undefined; });
-// 	const matrix = faces.map(() => []);
-// 	face_pairs
-// 		// .filter((_, i) => orders[condition_keys[i]] !== 0)
-// 		.forEach(([a, b]) => {
-// 			matrix[a][b] = orders[`${a} ${b}`];
-// 			matrix[b][a] = -orders[`${a} ${b}`];
-// 		});
-// 	return matrix;
-// };
 /**
  * face pairs: "# #" space separated integer indices. values: 1 or 2.
  */
@@ -144,6 +94,11 @@ const keysToFaceOrders = (facePairs, faces_aligned) => {
  * and the number is one of either (1,2) into the FOLD spec facesOrder
  * format, like [3, 29, -1].
  * The string becomes .split(" ") and the (1,2) order becomes (1,-1).
+ * Modifies the solution parameter object in place.
+ * @param {object} solution the result of calling src/layer/solver/index.js
+ * @param {boolean[]} faces_winding for every face true or false,
+ * specifically, the property on the result of getOverlappingFacesGroups.
+ * @returns {object} the solution parameter, modified in place.
  */
 export const reformatSolution = (solution, faces_winding) => {
 	if (solution.orders) {
