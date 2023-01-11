@@ -1,7 +1,11 @@
 /**
+ * Rabbit Ear (c) Kraft
+ */
+/**
  * @description Convert a hex-style color string into 3 RGB values
  * @param {string} value a hex color code as a string
  * @returns {number[]} three values between 0 and 1
+ * @linkcode Origami ./src/webgl/general/hexToRGB.js 8
  */
 const hexToRGB = (value) => {
 	const numbersOnly = value.replace(/#(?=\S)/g, "");

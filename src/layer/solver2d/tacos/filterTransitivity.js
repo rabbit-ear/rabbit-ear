@@ -6,7 +6,7 @@
  * overlap each other), and the set of pre-computed taco-taco and
  * taco-tortilla events, remove any transitivity condition where the three
  * faces are already covered in a taco-taco case.
- * @linkcode Origami ./src/layer/tacos/filterTransitivity.js 9
+ * @linkcode Origami ./src/layer/solver2d/tacos/filterTransitivity.js 9
  */
 const filterTransitivity = (transitivity_trios, tacos_tortillas) => {
 	// will contain taco-taco and taco-tortilla events encoded as all

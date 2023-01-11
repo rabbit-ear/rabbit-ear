@@ -8,7 +8,7 @@ import math from "../../math";
  * each face is paired with the others in the precise combination that
  * the solver is expecting for this particular condition.
  * @param {number[]} an array of the faces involved in this particular condition.
- * @linkcode Origami ./src/layer/globalSolver/general.js 11
+ * @linkcode Origami ./src/layer/solver2d/general.js 11
  */
 export const constraintToFacePairs = ({
 	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
@@ -30,7 +30,7 @@ export const constraintToFacePairs = ({
 /**
  * @description Given an array of a pair of integers, sort the smallest
  * to be first, and format them into a space-separated string.
- * @linkcode Origami ./src/layer/globalSolver/general.js 33
+ * @linkcode Origami ./src/layer/solver2d/general.js 33
  */
 export const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
 	? `${pair[0]} ${pair[1]}`
@@ -41,7 +41,7 @@ export const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
  * each face is paired with the others in the precise combination that
  * the solver is expecting for this particular condition.
  * @param {number[]} an array of the faces involved in this particular condition.
- * @linkcode Origami ./src/layer/globalSolver/general.js 44
+ * @linkcode Origami ./src/layer/solver2d/general.js 44
  */
 export const constraintToFacePairsStrings = ({
 	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
@@ -78,7 +78,7 @@ const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
  * @description convert a layer-encoding 1,2 into 1,-1. modified in place!
  * @param {object} facePairOrders object with face-pair keys and values either 0, 1, 2.
  * @returns {object} the same object with values either 0, 1, -1.
- * @linkcode Origami ./src/layer/globalSolver/general.js 81
+ * @linkcode Origami ./src/layer/solver2d/general.js 81
  */
 export const unsignedToSignedOrders = (orders) => {
 	Object.keys(orders).forEach(key => {
@@ -90,7 +90,7 @@ export const unsignedToSignedOrders = (orders) => {
  * @description convert a layer-encoding 1,-1 into 1,2. modified in place!
  * @param {object} facePairOrders object with face-pair keys and values either 0, 1, -1.
  * @returns {object} the same object with values either 0, 1, 2.
- * @linkcode Origami ./src/layer/globalSolver/general.js 93
+ * @linkcode Origami ./src/layer/solver2d/general.js 93
  */
 export const signedToUnsignedOrders = (orders) => {
 	Object.keys(orders).forEach(key => {
@@ -104,7 +104,7 @@ export const signedToUnsignedOrders = (orders) => {
  * @param {object} facePairOrders object one set of face-pair layer orders (+1,-1,0)
  * @returns {number[][]} NxN matrix, number of faces, containing +1,-1,0
  * as values showing the relationship between i to j in face[i][j].
- * @linkcode Origami ./src/layer/globalSolver/general.js 107
+ * @linkcode Origami ./src/layer/solver2d/general.js 107
  */
 export const ordersToMatrix = (orders) => {
 	const condition_keys = Object.keys(orders);

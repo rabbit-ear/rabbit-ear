@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 const initializeWebGL = (canvasElement, preferredVersion) => {
 	const contextName = [null, "webgl", "webgl2"];
 	// set the size of the drawingBuffer to include retina display level pixels (if exist),

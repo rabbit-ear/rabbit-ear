@@ -7660,19 +7660,17 @@ const facesLayerToEdgesAssignments = (graph, faces_layer) => {
 	});
 	return edges_assignment;
 };
-const ordersToMatrix = (orders) => {
-	const condition_keys = Object.keys(orders);
-	const face_pairs = condition_keys
-		.map(key => key.split(" ").map(n => parseInt(n, 10)));
+const faceOrdersToMatrix = (faceOrders) => {
 	const faces = [];
-	face_pairs
-		.reduce((a, b) => a.concat(b), [])
-		.forEach(f => { faces[f] = undefined; });
+	faceOrders.forEach(order => {
+		faces[order[0]] = undefined;
+		faces[order[1]] = undefined;
+	});
 	const matrix = faces.map(() => []);
-	face_pairs
-		.forEach(([a, b]) => {
-			matrix[a][b] = orders[`${a} ${b}`];
-			matrix[b][a] = -orders[`${a} ${b}`];
+	faceOrders
+		.forEach(([a, b, c]) => {
+			matrix[a][b] = c;
+			matrix[b][a] = -c;
 		});
 	return matrix;
 };
@@ -7681,7 +7679,78 @@ var general = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	flipFacesLayer: flipFacesLayer,
 	facesLayerToEdgesAssignments: facesLayerToEdgesAssignments,
-	ordersToMatrix: ordersToMatrix
+	faceOrdersToMatrix: faceOrdersToMatrix
+});
+
+const topologicalOrder$1 = ({ faceOrders, faces_normal }, faces) => {
+	if (!faceOrders) { return []; }
+	const facesHash = {};
+	faces.forEach(face => { facesHash[face] = true; });
+	faces[0];
+	const faces_normal_match = [];
+	faces.map(face => {
+		faces_normal_match[face] = math.core
+			.dot(faces_normal[face], faces_normal[faces[0]]) > 0;
+	});
+	const facesBelow = [];
+	faces.forEach(face => { facesBelow[face] = []; });
+	faceOrders.forEach(order => {
+		if (!facesHash[order[0]]) { return; }
+		const pair = (order[2] === -1) ^ (!faces_normal_match[order[1]])
+			? [order[1], order[0]]
+			: [order[0], order[1]];
+		facesBelow[pair[0]].push(pair[1]);
+	});
+	const layers_face = [];
+	const faces_visited = {};
+	const recurse = (face) => {
+		faces_visited[face] = true;
+		facesBelow[face].forEach(f => {
+			if (faces_visited[f]) { return; }
+			recurse(f);
+		});
+		layers_face.push(face);
+	};
+	faces.forEach(face => {
+		if (faces_visited[face]) { return; }
+		recurse(face);
+	});
+	return layers_face;
+};
+
+const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
+	const faces_nudge = [];
+	const layers_face = invertMap(faces_layer);
+	layers_face.forEach((face, layer) => {
+		faces_nudge[face] = {
+			vector: [0, 0, 1],
+			layer,
+		};
+	});
+	return faces_nudge;
+};
+const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
+	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	const sets_faces = getDisjointedVertices({
+		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
+	});
+	const sets_layers_face = sets_faces
+		.map(faces => topologicalOrder$1({ faceOrders, faces_normal }, faces));
+	const sets_normals = sets_faces.map(faces => faces_normal[faces[0]]);
+	const faces_nudge = [];
+	sets_layers_face.forEach((set, i) => set.forEach((face, index) => {
+		faces_nudge[face] = {
+			vector: sets_normals[i],
+			layer: index,
+		};
+	}));
+	return faces_nudge;
+};
+
+var nudge = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	nudgeFacesWithFacesLayer: nudgeFacesWithFacesLayer,
+	nudgeFacesWithFaceOrders: nudgeFacesWithFaceOrders
 });
 
 const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
@@ -8794,7 +8863,7 @@ const globalLayerSolver$1 = (graph, epsilon = 1e-6) => {
 	);
 };
 
-const topologicalOrder$1 = (facePairOrders, graph) => {
+const topologicalOrder = (facePairOrders, graph) => {
 	if (!facePairOrders) { return []; }
 	const faces_children = [];
 	Object.keys(facePairOrders).forEach(key => {
@@ -9607,15 +9676,13 @@ var layer = Object.assign(
 	{
 		solver: globalLayerSolver$1,
 		solver2d: globalLayerSolver,
-		topologicalOrder: topologicalOrder$1,
+		topologicalOrder,
 		singleVertexSolver,
 		singleVertexAssignmentSolver: assignmentSolver,
-		validateLayerSolver,
-		validateTacoTacoFacePairs,
-		validateTacoTortillaStrip,
 		foldStripWithAssignments,
 	},
 	general,
+	nudge,
 );
 
 const odd_assignment = (assignments) => {
@@ -12718,71 +12785,6 @@ var foldedArrays = /*#__PURE__*/Object.freeze({
 	makeThickEdgesElementArrays: makeThickEdgesElementArrays
 });
 
-const topologicalOrder = ({ faceOrders, faces_normal }, faces) => {
-	if (!faceOrders) { return []; }
-	const facesHash = {};
-	faces.forEach(face => { facesHash[face] = true; });
-	faces[0];
-	const faces_normal_match = [];
-	faces.map(face => {
-		faces_normal_match[face] = math.core
-			.dot(faces_normal[face], faces_normal[faces[0]]) > 0;
-	});
-	const facesBelow = [];
-	faces.forEach(face => { facesBelow[face] = []; });
-	faceOrders.forEach(order => {
-		if (!facesHash[order[0]]) { return; }
-		const pair = (order[2] === -1) ^ (!faces_normal_match[order[1]])
-			? [order[1], order[0]]
-			: [order[0], order[1]];
-		facesBelow[pair[0]].push(pair[1]);
-	});
-	const layers_face = [];
-	const faces_visited = {};
-	const recurse = (face) => {
-		faces_visited[face] = true;
-		facesBelow[face].forEach(f => {
-			if (faces_visited[f]) { return; }
-			recurse(f);
-		});
-		layers_face.push(face);
-	};
-	faces.forEach(face => {
-		if (faces_visited[face]) { return; }
-		recurse(face);
-	});
-	return layers_face;
-};
-
-const nudgeVerticesWithFacesLayer = ({ faces_layer }) => {
-	const result = [];
-	const layers_face = invertMap(faces_layer);
-	layers_face.forEach((face, layer) => {
-		result[face] = {
-			vector: [0, 0, 1],
-			layer,
-		};
-	});
-	return result;
-};
-const nudgeVerticesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
-	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
-	const sets_faces = getDisjointedVertices({
-		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
-	});
-	const sets_layers_face = sets_faces
-		.map(faces => topologicalOrder({ faceOrders, faces_normal }, faces));
-	const sets_normals = sets_faces.map(faces => faces_normal[faces[0]]);
-	const result = [];
-	sets_layers_face.forEach((set, i) => set.forEach((face, index) => {
-		result[face] = {
-			vector: sets_normals[i],
-			layer: index,
-		};
-	}));
-	return result;
-};
-
 const LAYER_NUDGE = 1e-5;
 const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	const exploded = JSON.parse(JSON.stringify(graph));
@@ -12792,9 +12794,9 @@ const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	}
 	let faces_nudge = [];
 	if (exploded.faceOrders) {
-		faces_nudge = nudgeVerticesWithFaceOrders(exploded);
+		faces_nudge = nudgeFacesWithFaceOrders(exploded);
 	} else if (exploded.faces_layer) {
-		faces_nudge = nudgeVerticesWithFacesLayer(exploded);
+		faces_nudge = nudgeFacesWithFacesLayer(exploded);
 	}
 	const change = triangulate(exploded);
 	const change2 = explode(exploded);

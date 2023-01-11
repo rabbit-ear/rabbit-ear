@@ -48,25 +48,23 @@ export const facesLayerToEdgesAssignments = (graph, faces_layer) => {
 /**
  * @description Convert a set of face-pair layer orders (+1,-1,0)
  * into a face-face relationship matrix.
- * @param {object} facePairOrders object one set of face-pair layer orders (+1,-1,0)
+ * @param {number[]} faceOrders an array of FOLD spec faceOrders.
  * @returns {number[][]} NxN matrix, number of faces, containing +1,-1,0
  * as values showing the relationship between i to j in face[i][j].
  * @linkcode Origami ./src/layer/general.js 54
  */
-export const ordersToMatrix = (orders) => {
-	const condition_keys = Object.keys(orders);
-	const face_pairs = condition_keys
-		.map(key => key.split(" ").map(n => parseInt(n, 10)));
+export const faceOrdersToMatrix = (faceOrders) => {
 	const faces = [];
-	face_pairs
-		.reduce((a, b) => a.concat(b), [])
-		.forEach(f => { faces[f] = undefined; });
+	faceOrders.forEach(order => {
+		faces[order[0]] = undefined;
+		faces[order[1]] = undefined;
+	});
 	const matrix = faces.map(() => []);
-	face_pairs
+	faceOrders
 		// .filter((_, i) => orders[condition_keys[i]] !== 0)
-		.forEach(([a, b]) => {
-			matrix[a][b] = orders[`${a} ${b}`];
-			matrix[b][a] = -orders[`${a} ${b}`];
+		.forEach(([a, b, c]) => {
+			matrix[a][b] = c;
+			matrix[b][a] = -c;
 		});
 	return matrix;
 };

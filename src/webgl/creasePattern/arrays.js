@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import { makeCPEdgesVertexData } from "./data";
 import { triangulateConvexFacesVertices } from "../../graph/triangulate";
 

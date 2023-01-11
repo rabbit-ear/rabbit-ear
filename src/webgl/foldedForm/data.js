@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import { makeVerticesNormal } from "../../graph/normals";
 import { makeEdgesVector } from "../../graph/make";
 

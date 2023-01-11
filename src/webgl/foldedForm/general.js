@@ -1,7 +1,10 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../../math";
 import {
-	nudgeVerticesWithFaceOrders,
-	nudgeVerticesWithFacesLayer,
+	nudgeFacesWithFaceOrders,
+	nudgeFacesWithFacesLayer,
 } from "../../layer/nudge";
 import count from "../../graph/count";
 import countImplied from "../../graph/countImplied";
@@ -23,9 +26,9 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	}
 	let faces_nudge = [];
 	if (exploded.faceOrders) {
-		faces_nudge = nudgeVerticesWithFaceOrders(exploded);
+		faces_nudge = nudgeFacesWithFaceOrders(exploded);
 	} else if (exploded.faces_layer) {
-		faces_nudge = nudgeVerticesWithFacesLayer(exploded);
+		faces_nudge = nudgeFacesWithFacesLayer(exploded);
 	}
 	// console.log("faces_nudge", faces_nudge);
 	const change = triangulate(exploded);

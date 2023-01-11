@@ -29,7 +29,7 @@ import { makeFacesNormal } from "../../graph/normals";
  * @param {string[]} unsolvedKeys array of facePair keys to be solved
  * @param {...object} ...orders any number of facePairsOrder solutions
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
- * @linkcode Origami ./src/layer/globalSolver/index.js 32
+ * @linkcode Origami ./src/layer/solver2d/index.js 32
  */
 const solveBranch = (
 	constraints,
@@ -137,7 +137,7 @@ const solveBranch = (
  * and values are +1 or -1 describing the relationship of the two faces.
  * Results are stored in "root" and "branches", to compile a complete solution,
  * append the "root" to one selection from each array in "branches".
- * @linkcode Origami ./src/layer/globalSolver/index.js 140
+ * @linkcode Origami ./src/layer/solver2d/index.js 140
  */
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const prepareStartDate = new Date();

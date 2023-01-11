@@ -12,7 +12,7 @@ import { booleanMatrixToIndexedArray } from "../../../general/arrays";
  * @param {todo} todo todo
  * @param {number} [epsilon=1e-6] optional epsilon value
  * @returns todo
- * @linkcode Origami ./src/layer/tacos/tortillaTortilla.js 15
+ * @linkcode Origami ./src/layer/solver2d/tacos/tortillaTortilla.js 15
  */
 export const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsilon) => {
 	// get all tortilla edges. could also be done by searching

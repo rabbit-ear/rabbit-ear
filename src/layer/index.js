@@ -3,12 +3,13 @@
  */
 // top level
 import * as general from "./general";
+import * as nudge from "./nudge";
 // single-vertex layer solver
 import singleVertexSolver from "./singleVertexSolver/index";
 import singleVertexAssignmentSolver from "./singleVertexSolver/assignmentSolver";
-import validateLayerSolver from "./singleVertexSolver/validateLayerSolver";
-import validateTacoTacoFacePairs from "./singleVertexSolver/validateTacoTacoFacePairs";
-import validateTacoTortillaStrip from "./singleVertexSolver/validateTacoTortillaStrip";
+// import validateLayerSolver from "./singleVertexSolver/validateLayerSolver";
+// import validateTacoTacoFacePairs from "./singleVertexSolver/validateTacoTacoFacePairs";
+// import validateTacoTortillaStrip from "./singleVertexSolver/validateTacoTortillaStrip";
 import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignments";
 // global layer solver
 import solver from "./solver3d/index";
@@ -41,12 +42,13 @@ export default Object.assign(
 
 		singleVertexSolver,
 		singleVertexAssignmentSolver,
-		validateLayerSolver,
-		validateTacoTacoFacePairs,
-		validateTacoTortillaStrip,
+		// validateLayerSolver,
+		// validateTacoTacoFacePairs,
+		// validateTacoTortillaStrip,
 		foldStripWithAssignments,
 	},
 	general,
+	nudge,
 	// makeConstraints,
 	// makeFacePairsOrder,
 	// globalSolverGeneral,

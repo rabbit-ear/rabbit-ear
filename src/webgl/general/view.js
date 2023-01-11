@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../../math";
 import { getBoundingBox } from "../../graph/boundary";
 /**

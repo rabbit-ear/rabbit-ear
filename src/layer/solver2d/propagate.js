@@ -41,7 +41,7 @@ const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
  * @returns true if valid, false if invalid, and in the case of an implied
  * change, return an array where the first item is a facePair ("3 5"), and
  * the second is the order (like 1 or 2).
- * @linkcode Origami ./src/layer/globalSolver/propagate.js 44
+ * @linkcode Origami ./src/layer/solver2d/propagate.js 44
  */
 const buildRuleAndLookup = (type, constraint, ...orders) => {
 	// regroup the N faces into an array of pairs, giving us the
@@ -131,7 +131,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
  * where each index is an index in the "constraints" array
  * in which **both** of these faces appear.
  * @param {string[]} facePairsSubsetArray an array of facePair string keys.
- * @linkcode Origami ./src/layer/globalSolver/propagate.js 134
+ * @linkcode Origami ./src/layer/solver2d/propagate.js 134
  */
 const getConstraintIndicesFromFacePairs = (
 	constraints,
@@ -165,7 +165,7 @@ const getConstraintIndicesFromFacePairs = (
  * These are the keys which had a layer change since the last time running this method.
  * @param {...object} ...orders any number of facePairsOrder solutions
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
- * @linkcode Origami ./src/layer/globalSolver/propagate.js 168
+ * @linkcode Origami ./src/layer/solver2d/propagate.js 168
  */
 const propagate = (
 	constraints,

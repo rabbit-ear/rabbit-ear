@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import { makeEdgesVector } from "../../graph/make";
 
 const ASSIGNMENT_COLOR = {

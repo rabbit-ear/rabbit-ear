@@ -5,20 +5,37 @@ import { makeFacesNormal } from "../graph/normals";
 import { invertMap } from "../graph/maps";
 import topologicalOrder from "./topological";
 import { getDisjointedVertices } from "../graph/sets";
-
-export const nudgeVerticesWithFacesLayer = ({ faces_layer }) => {
-	const result = [];
+/**
+ * @description Given a graph with a faces_layer, a topological sorting
+ * of faces, for a flat-folded 2D graph, get an array where every face
+ * is given a layer and a vector, which will always be [0, 0, 1].
+ * @param {FOLD} graph a FOLD graph with the parameter faces_layer.
+ * @returns {object[]} an array of objects, one for every face, each
+ * with properties "vector" and "layer".
+ * @linkcode Origami ./src/layer/nudge.js 15
+ */
+export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
+	const faces_nudge = [];
 	const layers_face = invertMap(faces_layer);
 	layers_face.forEach((face, layer) => {
-		result[face] = {
+		faces_nudge[face] = {
 			vector: [0, 0, 1],
 			layer,
 		};
 	});
-	return result;
+	return faces_nudge;
 };
-
-export const nudgeVerticesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
+/**
+ * @description Given a graph which contains a faceOrders, get an array
+ * of information for each face, what is its displacement vector, and
+ * what is its displacement magnitude integer, indicating which layer
+ * this face lies on.
+ * @param {FOLD} graph a FOLD graph with faceOrders.
+ * @returns {object[]} an array of objects, one for every face, each
+ * with properties "vector" and "layer".
+ * @linkcode Origami ./src/layer/nudge.js 36
+ */
+export const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	const sets_faces = getDisjointedVertices({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
@@ -26,32 +43,12 @@ export const nudgeVerticesWithFaceOrders = ({ vertices_coords, faces_vertices, f
 	const sets_layers_face = sets_faces
 		.map(faces => topologicalOrder({ faceOrders, faces_normal }, faces));
 	const sets_normals = sets_faces.map(faces => faces_normal[faces[0]]);
-	const result = [];
+	const faces_nudge = [];
 	sets_layers_face.forEach((set, i) => set.forEach((face, index) => {
-		result[face] = {
+		faces_nudge[face] = {
 			vector: sets_normals[i],
 			layer: index,
 		};
 	}));
-	// console.log("sets_faces", sets_faces);
-	// console.log("sets_normals", sets_normals);
-	// console.log("sets_layers_face", sets_layers_face);
-	return result;
+	return faces_nudge;
 };
-
-// export const nudgeVerticesWithFaceOrdersOld = ({ vertices_coords, faces_vertices, faceOrders }, normals) => {
-// 	const sets_faces = ear.graph.getDisjointedVertices({ edges_vertices: faceOrders.map(tri => [tri[0], tri[1]]) });
-// 	const sets_single_face = sets_faces.map(faces => faces[0]);
-// 	const sets_normal = sets_single_face.map(face => normals[face]);
-// 	console.log("sets_faces", sets_faces);
-// 	console.log("sets_normal", sets_normal);
-// 	const faces_set_hash = {};
-// 	sets_faces.forEach((faces, i) => faces.forEach(f => {
-// 		faces_set_hash[f] = i;
-// 	}));
-// 	const faces_set = [];
-// 	Object.keys(faces_set_hash).map(n => parseInt(n, 10)).forEach(f => {
-// 		faces_set[f] = faces_set_hash[f];
-// 	});
-// 	console.log("faces_set", faces_set);
-// };

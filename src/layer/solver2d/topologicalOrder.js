@@ -7,7 +7,7 @@
  * the keys are space-separated pair of faces, and the value is +1 0 or -1.
  * @param {FOLD} graph an optional FOLD graph
  * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
- * @linkcode Origami ./src/layer/globalSolver/topologicalOrder.js 10
+ * @linkcode Origami ./src/layer/solver2d/topologicalOrder.js 10
  */
 const topologicalOrder = (facePairOrders, graph) => {
 	if (!facePairOrders) { return []; }

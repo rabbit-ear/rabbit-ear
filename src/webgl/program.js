@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 // the uniform is an object and the object should be structured like this:
 // {
 // 	u_modelView: {

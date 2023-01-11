@@ -66,7 +66,7 @@ const make_conditions_assignment_direction = {
  * @param {number[][]} [overlap_matrix] the result of getFacesFaces2DOverlap,
  * this will be calculated unless it is already provided.
  * @returns {string[]} array of facePair strings.
- * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 69
+ * @linkcode Origami ./src/layer/solver2d/makeFacePairsOrder.js 69
  */
 export const makeFacePairs = (graph, overlap_matrix) => {
 	if (!overlap_matrix) {
@@ -85,7 +85,7 @@ export const makeFacePairs = (graph, overlap_matrix) => {
  * @returns {object} an object describing all the solved facePairs (keys) and
  * their layer order 1 or 2 (value), the object only includes those facePairs
  * which are solved, so, no 0-value entries will exist.
- * @linkcode Origami ./src/layer/globalSolver/makeFacePairsOrder.js 88
+ * @linkcode Origami ./src/layer/solver2d/makeFacePairsOrder.js 88
  */
 export const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
 	if (!faces_winding) {

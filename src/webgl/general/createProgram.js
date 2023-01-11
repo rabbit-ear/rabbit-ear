@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 // WebGL boilerplate from https://webglfundamentals.org
 /**
  * @description Creates and compiles a shader.

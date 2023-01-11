@@ -15,7 +15,7 @@
  * fold location shared by multiple tacos. each taco object contains keys:
  * "both", "left", "right" where the values are an array of pairs of faces,
  * the pairs of adjacent faces around the taco edge. "left": [ [2,3] [6,0] ]
- * @linkcode Origami ./src/layer/tacos/makeFoldedStripTacos.js 18
+ * @linkcode Origami ./src/layer/singleVertexSolver/makeFoldedStripTacos.js 18
  */
 const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
 	// center of each face, will be used to see if a taco faces left or right
