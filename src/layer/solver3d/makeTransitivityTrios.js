@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
+import { makeFacesPolygon } from "../../graph/make";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
@@ -21,9 +22,13 @@ const makeTransitivityTrios = (
 ) => {
 	// prepare a list of all faces in the graph as lists of vertices
 	// also, make sure they all have the same winding (reverse if necessary)
-	const polygons = graph.faces_vertices
-		.map(face => face
-			.map(v => graph.vertices_coords[v]));
+	// todo: i replaced this with makeFacesPolygon so that it runs
+	// math.core.makePolygonNonCollinear, which removes collinear vertices
+	// which is necessary for the polygon polygon clip method.
+	const polygons = makeFacesPolygon(graph, epsilon);
+	// const polygons = graph.faces_vertices
+	// 	.map(face => face
+	// 		.map(v => graph.vertices_coords[v]));
 	// todo: why did i write this one? i just uncommented the block below.
 	// makeFacesWinding(graph).forEach((winding, i) => {
 	// 	if (!winding) { polygons[i].reverse(); }

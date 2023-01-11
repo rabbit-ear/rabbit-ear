@@ -1,7 +1,7 @@
-import math from "../math";
 /**
  * Rabbit Ear (c) Kraft
  */
+import math from "../math";
 /**
  * @description find a topological ordering from a set of faceOrders
  * @param {number[]} faces a subset of face indices where all faces have been

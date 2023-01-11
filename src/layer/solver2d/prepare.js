@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import makeTacosTortillas from "../tacos/makeTacosTortillas";
-import makeTransitivityTrios from "../tacos/makeTransitivityTrios";
-import filterTransitivity from "../tacos/filterTransitivity";
+import makeTacosTortillas from "./tacos/makeTacosTortillas";
+import makeTransitivityTrios from "./tacos/makeTransitivityTrios";
+import filterTransitivity from "./tacos/filterTransitivity";
 import { getFacesFaces2DOverlap } from "../../graph/overlap";
 import { makeFacesWinding } from "../../graph/facesWinding";
 import {

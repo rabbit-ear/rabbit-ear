@@ -7,7 +7,7 @@
  * each face is paired with the others in the precise combination that
  * the solver is expecting for this particular condition.
  * @param {number[]} an array of the faces involved in this particular condition.
- * @linkcode Origami ./src/layer/solver3d/general.js 11
+ * @linkcode Origami ./src/layer/solver3d/general.js 10
  */
 export const constraintToFacePairs = ({
 	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
@@ -29,7 +29,7 @@ export const constraintToFacePairs = ({
 /**
  * @description Given an array of a pair of integers, sort the smallest
  * to be first, and format them into a space-separated string.
- * @linkcode Origami ./src/layer/solver3d/general.js 33
+ * @linkcode Origami ./src/layer/solver3d/general.js 32
  */
 export const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
 	? `${pair[0]} ${pair[1]}`
@@ -40,7 +40,7 @@ export const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
  * each face is paired with the others in the precise combination that
  * the solver is expecting for this particular condition.
  * @param {number[]} an array of the faces involved in this particular condition.
- * @linkcode Origami ./src/layer/solver3d/general.js 44
+ * @linkcode Origami ./src/layer/solver3d/general.js 43
  */
 export const constraintToFacePairsStrings = ({
 	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)

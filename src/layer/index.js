@@ -11,19 +11,18 @@ import validateTacoTacoFacePairs from "./singleVertexSolver/validateTacoTacoFace
 import validateTacoTortillaStrip from "./singleVertexSolver/validateTacoTortillaStrip";
 import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignments";
 // global layer solver
-import solver from "./globalSolver/index";
-import table from "./globalSolver/table";
-import topologicalOrder from "./globalSolver/topologicalOrder";
-// import * as makeConstraints from "./globalSolver/makeConstraints";
-import * as makeFacePairsOrder from "./globalSolver/makeFacePairsOrder";
-// import * as globalSolverGeneral from "./globalSolver/general";
-import makeTacosTortillas from "./tacos/makeTacosTortillas";
-import makeFoldedStripTacos from "./tacos/makeFoldedStripTacos";
-import makeTransitivityTrios from "./tacos/makeTransitivityTrios";
-// import * as tortillaTortilla from "./tacos/tortillaTortilla";
-
-import solver3d from "./solver3d/index";
-import prepare from "./solver3d/prepare";
+import solver from "./solver3d/index";
+import topologicalOrder from "./solver3d/topologicalOrder";
+// old global layer solver in 2D
+import solver2d from "./solver2d/index";
+// import table from "./solver2d/table";
+// import * as makeConstraints from "./solver2d/makeConstraints";
+// import * as makeFacePairsOrder from "./solver2d/makeFacePairsOrder";
+// import * as globalSolverGeneral from "./solver2d/general";
+// import makeTacosTortillas from "./solver2d/tacos/makeTacosTortillas";
+// import makeFoldedStripTacos from "./solver2d/tacos/makeFoldedStripTacos";
+// import makeTransitivityTrios from "./solver2d/tacos/makeTransitivityTrios";
+// import * as tortillaTortilla from "./solver2d/tacos/tortillaTortilla";
 
 /**
  * @description A collection of methods for calculating the layer order
@@ -33,11 +32,12 @@ export default Object.assign(
 	Object.create(null),
 	{
 		solver,
-		table,
+		solver2d,
+		// table,
 		topologicalOrder,
-		makeTacosTortillas,
-		makeFoldedStripTacos,
-		makeTransitivityTrios,
+		// makeTacosTortillas,
+		// makeFoldedStripTacos,
+		// makeTransitivityTrios,
 
 		singleVertexSolver,
 		singleVertexAssignmentSolver,
@@ -48,11 +48,7 @@ export default Object.assign(
 	},
 	general,
 	// makeConstraints,
-	makeFacePairsOrder,
+	// makeFacePairsOrder,
 	// globalSolverGeneral,
 	// tortillaTortilla,
-	{
-		solver3d,
-		prepare,
-	},
 );

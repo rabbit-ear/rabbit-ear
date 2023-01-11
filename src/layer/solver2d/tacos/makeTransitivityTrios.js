@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import { makeFacesWinding } from "../../graph/facesWinding";
-import { getFacesFaces2DOverlap } from "../../graph/overlap";
+import math from "../../../math";
+import { makeFacesWinding } from "../../../graph/facesWinding";
+import { getFacesFaces2DOverlap } from "../../../graph/overlap";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the

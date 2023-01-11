@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import { makeFacesNormal } from "../graph/normals";
 import { invertMap } from "../graph/maps";
 import topologicalOrder from "./topological";

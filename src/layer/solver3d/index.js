@@ -28,7 +28,7 @@ import LayerPrototype from "./prototype";
  * @param {string[]} unsolvedKeys array of facePair keys to be solved
  * @param {...object} ...orders any number of facePairsOrder solutions
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
- * @linkcode Origami ./src/layer/solver3d/index.js 29
+ * @linkcode Origami ./src/layer/solver3d/index.js 31
  */
 const solveNonBranchingNode = (
 	constraints,
@@ -130,7 +130,7 @@ const solveNode = (
  * and values are +1 or -1 describing the relationship of the two faces.
  * Results are stored in "root" and "partitions", to compile a complete solution,
  * append the "root" to one selection from each array in "partitions".
- * @linkcode Origami ./src/layer/solver3d/index.js 89
+ * @linkcode Origami ./src/layer/solver3d/index.js 133
  */
 const groupLayerSolver = (
 	constraints,
@@ -165,7 +165,7 @@ const groupLayerSolver = (
 	return reformatSolution(solution, faces_winding);
 };
 /**
- * @name solver3d
+ * @name solver
  * @memberof layer
  * @description Recursively calculate all layer order solutions between
  * co-planar faces in a 2D or 3D FOLD graph.
@@ -176,7 +176,7 @@ const groupLayerSolver = (
  * and values are +1 or -1 describing the relationship of the two faces.
  * Results are stored in "root" and "partitions", to compile a complete solution,
  * append the "root" to one selection from each array in "partitions".
- * @linkcode Origami ./src/layer/solver3d/index.js 89
+ * @linkcode Origami ./src/layer/solver3d/index.js 179
  */
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const {

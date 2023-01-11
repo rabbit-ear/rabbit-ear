@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
-import makeFoldedStripTacos from "../tacos/makeFoldedStripTacos";
+import makeFoldedStripTacos from "./makeFoldedStripTacos";
 import validateLayerSolver from "./validateLayerSolver";
 import foldStripWithAssignments from "./foldStripWithAssignments";
 import { assignmentsToFacesVertical } from "./general";

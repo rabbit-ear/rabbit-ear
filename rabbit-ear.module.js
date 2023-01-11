@@ -8071,19 +8071,36 @@ const constraintToFacePairsStrings$1 = ({
 	],
 });
 const to_signed_layer_convert$1 = { 0: 0, 1: 1, 2: -1 };
-const keysToFaceOrders$1 = (facePairs, faces_normal, vector) => {
-	const faces_normal_match = faces_normal
-		.map(normal => math.core.dot(normal, vector) > 0);
+const keysToFaceOrders$1 = (facePairs, faces_aligned) => {
 	const keys = Object.keys(facePairs);
-	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
+	const faceOrders = keys.map(string => string
+		.split(" ")
+		.map(n => parseInt(n, 10)));
 	faceOrders.forEach((faces, i) => {
 		const value = to_signed_layer_convert$1[facePairs[keys[i]]];
-		const side = (!faces_normal_match[faces[1]])
-			? -value
-			: value;
+		const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;
 		faces.push(side);
 	});
 	return faceOrders;
+};
+const reformatSolution = (solution, faces_winding) => {
+	if (solution.orders) {
+		solution.orders = solution.orders
+			.flatMap(order => keysToFaceOrders$1(order, faces_winding));
+	}
+	if (solution.leaves) {
+		solution.leaves = solution.leaves
+			.map(order => keysToFaceOrders$1(order, faces_winding));
+	}
+	if (solution.partitions) {
+		solution.partitions
+			.forEach(child => reformatSolution(child, faces_winding));
+	}
+	if (solution.node) {
+		solution.node
+			.forEach(child => reformatSolution(child, faces_winding));
+	}
+	return solution;
 };
 
 const taco_types$1 = Object.freeze(Object.keys(layerTable$1));
@@ -8174,13 +8191,24 @@ const propagate$1 = (
 	return newOrders;
 };
 
-const getBranches = (
+const getNeighborsArray = (key, constraints, constraintsLookup) => {
+	const neighborsHash = {};
+	Object.keys(constraints).forEach(type => {
+		const indices = constraintsLookup[type][key];
+		if (!indices) { return; }
+		indices
+			.map(c => constraints[type][c])
+			.map(faces => constraintToFacePairsStrings$1[type](faces)
+				.forEach(facePair => { neighborsHash[facePair] = true; }));
+	});
+	return Object.keys(neighborsHash);
+};
+const getDisjointSets = (
 	remainingKeys,
 	constraints,
 	constraintsLookup,
 	constraintsNeighborsMemo = {},
 ) => {
-	const taco_types = Object.keys(constraints);
 	const keys = {};
 	remainingKeys.forEach(key => { keys[key] = true; });
 	let i = 0;
@@ -8194,25 +8222,12 @@ const getBranches = (
 			const key = stack.shift();
 			delete keys[key];
 			group.push(key);
-			let neighborsArray;
-			if (constraintsNeighborsMemo[key]) {
-				neighborsArray = constraintsNeighborsMemo[key];
-			} else {
-				const neighborsHash = {};
-				taco_types.forEach(type => {
-					const indices = constraintsLookup[type][key];
-					if (!indices) { return; }
-					indices
-						.map(c => constraints[type][c])
-						.map(faces => constraintToFacePairsStrings$1[type](faces)
-							.forEach(facePair => { neighborsHash[facePair] = true; }));
-				});
-				neighborsArray = Object.keys(neighborsHash);
-				constraintsNeighborsMemo[key] = neighborsArray;
-			}
+			const neighborsArray = constraintsNeighborsMemo[key]
+				? constraintsNeighborsMemo[key]
+				: getNeighborsArray(key, constraints, constraintsLookup);
+			constraintsNeighborsMemo[key] = neighborsArray;
 			const neighbors = neighborsArray
-				.filter(facePair => keys[facePair])
-				.filter(facePair => !stackHash[facePair]);
+				.filter(facePair => keys[facePair] && !stackHash[facePair]);
 			stack.push(...neighbors);
 			neighbors.forEach(facePair => { stackHash[facePair] = true; });
 		} while (stack.length);
@@ -8225,9 +8240,11 @@ const getBranches = (
 const makeTortillasFacesCrossing$1 = (graph, edges_faces_side, epsilon) => {
 	const faces_winding = makeFacesWinding(graph);
 	const faces_polygon = makeFacesPolygon(graph, epsilon);
-	for (let i = 0; i < faces_polygon.length; i += 1) {
-		if (!faces_winding[i]) { faces_polygon[i].reverse(); }
-	}
+	faces_winding.forEach((winding, i) => {
+		if (!winding) {
+			faces_polygon[i].reverse();
+		}
+	});
 	const tortilla_edge_indices = edges_faces_side
 		.map(side => side.length === 2 && side[0] !== side[1])
 		.map((bool, i) => (bool ? i : undefined))
@@ -8267,7 +8284,7 @@ const makeTortillaTortillaFacesCrossing$1 = (graph, edges_faces_side, epsilon) =
 	return tortilla_faces_results;
 };
 
-const makeEdgesFacesSide$1 = (graph, faces_center) => {
+const makeEdgesFacesSide$1 = (graph) => {
 	const edges_origin = graph.edges_vertices
 		.map(vertices => graph.vertices_coords[vertices[0]]);
 	const edges_vector = graph.edges_vertices
@@ -8279,14 +8296,14 @@ const makeEdgesFacesSide$1 = (graph, faces_center) => {
 		.map((faces, i) => faces
 			.map(face => math.core.cross2(
 				math.core.subtract2(
-					faces_center[face],
+					graph.faces_center[face],
 					edges_origin[i],
 				),
 				edges_vector[i],
 			))
 			.map(cross => Math.sign(cross)));
 };
-const makeTacosFacesSide$1 = (graph, faces_center, tacos_edges, tacos_faces) => {
+const makeTacosFacesSide$1 = (graph, tacos_edges, tacos_faces) => {
 	const tacos_edge_coords = tacos_edges
 		.map(edges => graph.edges_vertices[edges[0]]
 			.map(vertex => graph.vertices_coords[vertex]));
@@ -8297,7 +8314,7 @@ const makeTacosFacesSide$1 = (graph, faces_center, tacos_edges, tacos_faces) => 
 	const tacos_faces_center = tacos_faces
 		.map(faces => faces
 			.map(face_pair => face_pair
-				.map(face => faces_center[face])));
+				.map(face => graph.faces_center[face])));
 	return tacos_faces_center
 		.map((faces, i) => faces
 			.map(pairs => pairs
@@ -8341,27 +8358,17 @@ const make_tortilla_tortilla$1 = (face_pairs, tortillas_sides) => {
 		? face_pairs
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
-const indicesToBooleanMatrix = (array_array) => {
-	const matrix = Array.from(Array(array_array.length))
-		.map(() => Array(array_array.length).fill(false));
-	array_array
-		.forEach((arr, i) => arr
-			.forEach(j => { matrix[i][j] = true; }));
-	return matrix;
-};
 const makeTacosTortillas$1 = (graph, epsilon = math.core.EPSILON) => {
-	const faces_center = makeFacesConvexCenter(graph);
-	const edges_faces_side = makeEdgesFacesSide$1(graph, faces_center);
-	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon);
-	const boolean_edge_edge_overlap = indicesToBooleanMatrix(edge_edge_overlap_matrix);
-	const tacos_edges = booleanMatrixToUniqueIndexPairs(boolean_edge_edge_overlap)
+	const edges_faces_side = makeEdgesFacesSide$1(graph);
+	const edges_edgesParallelOverlap = makeEdgesEdgesParallelOverlap(graph, epsilon);
+	const tacos_edges = selfRelationalUniqueIndexPairs(edges_edgesParallelOverlap)
 		.filter(pair => pair
 			.map(edge => graph.edges_faces[edge].length > 1)
 			.reduce((a, b) => a && b, true));
 	const tacos_faces = tacos_edges
 		.map(pair => pair
 			.map(edge => graph.edges_faces[edge]));
-	const tacos_faces_side = makeTacosFacesSide$1(graph, faces_center, tacos_edges, tacos_faces);
+	const tacos_faces_side = makeTacosFacesSide$1(graph, tacos_edges, tacos_faces);
 	const tacos_types = tacos_faces_side
 		.map(faces => faces
 			.map(classify_faces_pair$1));
@@ -8406,42 +8413,30 @@ const makeTacosTortillas$1 = (graph, epsilon = math.core.EPSILON) => {
 
 const makeTransitivityTrios$1 = (
 	graph,
-	overlap_matrix,
+	faces_facesOverlap,
 	faces_winding,
 	epsilon = math.core.EPSILON,
 ) => {
-	if (!overlap_matrix) {
-		overlap_matrix = getFacesFaces2DOverlap(graph, epsilon);
-	}
-	if (!faces_winding) {
-		faces_winding = makeFacesWinding(graph);
-	}
-	const polygons = graph.faces_vertices
-		.map(face => face
-			.map(v => graph.vertices_coords[v]));
+	const polygons = makeFacesPolygon(graph, epsilon);
 	polygons.forEach((face, i) => {
 		if (!faces_winding[i]) { face.reverse(); }
 	});
 	const matrix = graph.faces_vertices.map(() => []);
-	for (let i = 0; i < matrix.length - 1; i += 1) {
-		for (let j = i + 1; j < matrix.length; j += 1) {
-			if (!overlap_matrix[i][j]) { continue; }
-			const polygon = math.core.clipPolygonPolygon(polygons[i], polygons[j], epsilon);
-			if (polygon) { matrix[i][j] = polygon; }
-		}
-	}
+	polygons.forEach((_, f1) => faces_facesOverlap[f1].forEach(f2 => {
+		if (f2 <= f1) { return; }
+		const polygon = math.core
+			.clipPolygonPolygon(polygons[f1], polygons[f2], epsilon);
+		if (polygon) { matrix[f1][f2] = polygon; }
+	}));
 	const trios = [];
-	for (let i = 0; i < matrix.length - 1; i += 1) {
-		for (let j = i + 1; j < matrix.length; j += 1) {
-			if (!matrix[i][j]) { continue; }
-			for (let k = j + 1; k < matrix.length; k += 1) {
-				if (i === k || j === k) { continue; }
-				if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
-				const polygon = math.core.clipPolygonPolygon(matrix[i][j], polygons[k], epsilon);
-				if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
-			}
-		}
-	}
+	matrix.forEach((row, i) => row.forEach((poly, j) => {
+		if (j <= i || !matrix[i][j]) { return; }
+		matrix.forEach((_, k) => {
+			if (k <= i || k <= j) { return; }
+			const polygon = math.core.clipPolygonPolygon(poly, polygons[k], epsilon);
+			if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
+		});
+	}));
 	return trios;
 };
 
@@ -8500,20 +8495,10 @@ const make_conditions_flip_condition$1 = { 0: 0, 1: 2, 2: 1 };
 const make_conditions_assignment_direction$1 = {
 	M: 1, m: 1, V: 2, v: 2,
 };
-const makeFacePairs = (graph, overlap_matrix) => {
-	if (!overlap_matrix) {
-		overlap_matrix = getFacesFaces2DOverlap(graph);
-	}
-	return booleanMatrixToUniqueIndexPairs(overlap_matrix)
-		.map(pair => pair.join(" "));
-};
 const solveEdgeAdjacentFacePairs$1 = (graph, facePairs, faces_winding) => {
-	if (!faces_winding) {
-		faces_winding = makeFacesWinding(graph);
-	}
 	const facePairsHash = {};
 	facePairs.forEach(key => { facePairsHash[key] = true; });
-	const soution = {};
+	const solution = {};
 	graph.edges_faces.forEach((faces, edge) => {
 		const assignment = graph.edges_assignment[edge];
 		const local_order = make_conditions_assignment_direction$1[assignment];
@@ -8524,79 +8509,177 @@ const solveEdgeAdjacentFacePairs$1 = (graph, facePairs, faces_winding) => {
 			: make_conditions_flip_condition$1[local_order];
 		const key1 = `${faces[0]} ${faces[1]}`;
 		const key2 = `${faces[1]} ${faces[0]}`;
-		if (key1 in facePairsHash) { soution[key1] = global_order; }
+		if (key1 in facePairsHash) { solution[key1] = global_order; }
 		if (key2 in facePairsHash) {
-			soution[key2] = make_conditions_flip_condition$1[global_order];
+			solution[key2] = make_conditions_flip_condition$1[global_order];
 		}
 	});
-	return soution;
+	return solution;
 };
 
-var makeFacePairsOrder = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	makeFacePairs: makeFacePairs,
-	solveEdgeAdjacentFacePairs: solveEdgeAdjacentFacePairs$1
-});
-
-const prepare$1 = (graph, epsilon = 1e-6) => {
-	const overlap = getFacesFaces2DOverlap(graph, epsilon);
-	const facesWinding = makeFacesWinding(graph);
-	const tacos_tortillas = makeTacosTortillas$1(graph, epsilon);
-	const unfiltered_trios = makeTransitivityTrios$1(graph, overlap, facesWinding, epsilon);
-	const transitivity_trios = filterTransitivity$1(unfiltered_trios, tacos_tortillas);
-	const constraints = makeConstraints$1(tacos_tortillas, transitivity_trios);
-	const constraintsLookup = makeConstraintsLookup$1(constraints);
-	const facePairs = makeFacePairs(graph, overlap);
-	const edgeAdjacentOrders = solveEdgeAdjacentFacePairs$1(graph, facePairs, facesWinding);
-	return {
-		constraints,
-		constraintsLookup,
-		facePairs,
-		edgeAdjacentOrders,
-	};
+const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
+	const copies = overlapInfo.groups_transformXY.map(() => ({ ...graph }));
+	filterKeysWithPrefix(graph, "vertices")
+		.forEach(key => copies.forEach(obj => delete obj[key]));
+	copies.forEach(obj => delete obj.edges_edges);
+	copies.forEach(obj => delete obj.edges_faces);
+	const faceKeys = filterKeysWithPrefix(graph, "faces");
+	copies.forEach((obj, i) => faceKeys.forEach(key => {
+		obj[key] = [];
+		groups_faces[i].forEach(f => { obj[key][f] = graph[key][f]; });
+	}));
+	const vertices_coords_3d = graph.vertices_coords
+		.map(coord => math.core.resize(3, coord));
+	const groups_vertices_hash = groups_faces.map(() => ({}));
+	groups_faces
+		.forEach((faces, i) => faces
+			.forEach(face => graph.faces_vertices[face]
+				.forEach(v => { groups_vertices_hash[i][v] = true; })));
+	const groups_vertices = groups_vertices_hash
+		.map(obj => Object.keys(obj).map(n => parseInt(n, 10)));
+	copies.forEach(obj => { obj.vertices_coords = []; });
+	overlapInfo.groups_transformXY
+		.forEach((transform, i) => groups_vertices[i]
+			.forEach(v => {
+				const res = math.core.multiplyMatrix4Vector3(transform, vertices_coords_3d[v]);
+				copies[i].vertices_coords[v] = [res[0], res[1]];
+			}));
+	const groups_edges_hash = groups_faces.map(() => ({}));
+	groups_faces
+		.forEach((faces, i) => faces
+			.forEach(face => graph.faces_edges[face]
+				.forEach(e => { groups_edges_hash[i][e] = true; })));
+	const groups_edges = groups_edges_hash
+		.map(obj => Object.keys(obj).map(n => parseInt(n, 10)));
+	const edgeKeys = filterKeysWithPrefix(graph, "edges");
+	copies.forEach((obj, i) => edgeKeys.forEach(key => {
+		obj[key] = [];
+		groups_edges[i].forEach(e => { obj[key][e] = graph[key][e]; });
+	}));
+	copies.forEach(obj => { obj.edges_faces = makeEdgesFacesUnsorted(obj); });
+	return copies;
 };
-
-const match = (listA, listB) => {
-	const res = [];
-	for (let i = 0; i < listA.length; i += 1) {
-		for (let j = 0; j < listB.length; j += 1) {
-			res.push([listA[i], listB[j]]);
-		}
+const prepare$1 = (graphInput, epsilon = 1e-6) => {
+	const graph = { ...graphInput };
+	if (!graph.faces_edges) {
+		graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	}
-	return res;
-};
-const linearizeSolutions = (solution) => {
-	const recurse = (node, stack = []) => {
-		if (node.faceOrders) { stack.push(node.faceOrders); }
-		const finished = node.finished
-			? node.finished.map(fin => [...stack, fin.faceOrders])
-			: undefined;
-		if (node.unfinished) {
-			const unf = node.unfinished.map(el => recurse(el, JSON.parse(JSON.stringify(stack))));
-			const unfinished = (unf.length > 1) ? match(...unf) : unf;
-			unfinished.forEach(el => { el.branch = true; });
-			finished.forEach(el => el.push(...unfinished));
-		}
-		finished.finished = true;
-		return finished;
+	const overlapInfo = getOverlappingFacesGroups(graph, epsilon);
+	const groups_faces = invertMap(overlapInfo.faces_group)
+		.map(el => (el.constructor === Array ? el : [el]));
+	const graphCopies = graphGroupCopies(graph, overlapInfo, groups_faces);
+	const faces_polygon = [];
+	groups_faces
+		.map((faces, g) => faces
+			.map(face => graph.faces_vertices[face])
+			.map(vertices => vertices.map(v => graphCopies[g].vertices_coords[v]))
+			.forEach((polygon, f) => { faces_polygon[faces[f]] = polygon; }));
+	const faces_center = faces_polygon
+		.map(polygon => polygon
+			.reduce((a, b) => math.core.add(a, b), [0, 0])
+			.map(el => el / polygon.length));
+	graphCopies.forEach(el => {
+		el.faces_center = el.faces_vertices.map((_, i) => faces_center[i]);
+	});
+	const groups_tacos_tortillas = graphCopies
+		.map(el => makeTacosTortillas$1(el, epsilon));
+	const groups_unfiltered_trios = graphCopies
+		.map(el => makeTransitivityTrios$1(
+			el,
+			overlapInfo.faces_facesOverlap,
+			overlapInfo.faces_winding,
+			epsilon,
+		));
+	const groups_transitivity_trios = groups_unfiltered_trios
+		.map((trios, i) => filterTransitivity$1(trios, groups_tacos_tortillas[i]));
+	const groups_constraints = groups_tacos_tortillas
+		.map((tacos_tortillas, i) => makeConstraints$1(tacos_tortillas, groups_transitivity_trios[i]));
+	const groups_constraintsLookup = groups_constraints
+		.map(constraints => makeConstraintsLookup$1(constraints));
+	const facePairsInts = selfRelationalUniqueIndexPairs(overlapInfo.faces_facesOverlap);
+	const facePairs = facePairsInts.map(pair => pair.join(" "));
+	const groups_edgeAdjacentOrders = graphCopies
+		.map(el => solveEdgeAdjacentFacePairs$1(el, facePairs, overlapInfo.faces_winding));
+	const facePairsIndex_group = facePairsInts.map(pair => overlapInfo.faces_group[pair[0]]);
+	const groups_facePairsIndex = invertMap(facePairsIndex_group)
+		.map(el => (el.constructor === Array ? el : [el]));
+	const groups_facePairsWithHoles = groups_facePairsIndex
+		.map(indices => indices.map(i => facePairs[i]));
+	const groups_facePairs = groups_constraints
+		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
+	return {
+		groups_constraints,
+		groups_constraintsLookup,
+		groups_facePairs,
+		groups_edgeAdjacentOrders,
+		faces_winding: overlapInfo.faces_winding,
 	};
-	return recurse(solution);
+};
+
+const matchHolistic = (arrayOfArrays) => {
+	const lengths = arrayOfArrays.map(part => part.length);
+	const compounding = lengths.slice();
+	for (let i = compounding.length - 2; i >= 0; i -= 1) {
+		compounding[i] *= compounding[i + 1];
+	}
+	const scales = compounding.slice();
+	scales.push(1);
+	scales.shift();
+	return Array.from(Array(compounding[0]))
+		.map((_, i) => i)
+		.map(i => scales
+			.map((d, j) => Math.floor(i / d) % lengths[j]));
+};
+const allSolutions = (n, ...orders) => {
+	const ordersSoFar = n.orders ? [...orders, n.orders] : [...orders];
+	if (n.partitions) {
+		const parts = n.partitions.map(el => allSolutions(el));
+		const combinations = matchHolistic(parts);
+		return combinations
+			.map(indices => indices.flatMap((i, j) => parts[j][i]))
+			.map(solution => [...ordersSoFar, ...solution]);
+	}
+	const solutions = [];
+	if (n.leaves) {
+		n.leaves.forEach(order => solutions.push([...ordersSoFar, order]));
+	}
+	if (n.node) {
+		const branches = n.node
+			.flatMap(el => allSolutions(el, ...ordersSoFar));
+		solutions.push(...branches);
+	}
+	if (!n.leaves && !n.node) { solutions.push([...ordersSoFar]); }
+	return solutions;
 };
 const LayerPrototype$1 = {
 	allSolutions: function () {
-		return linearizeSolutions(this);
+		if (!this.allSolutionsMemo) {
+			this.allSolutionsMemo = this.groups
+				.map(group => allSolutions(group));
+		}
+		return this.allSolutionsMemo;
+	},
+	count: function () {
+		return this.allSolutions().map(solution => solution.length);
+	},
+	solution: function (groupIndices = []) {
+		const solutions = this.allSolutions();
+		const indices = Array(solutions.length)
+			.fill(0)
+			.map((n, i) => (groupIndices[i] != null ? groupIndices[i] : n));
+		return solutions
+			.flatMap((solution, i) => solution[indices[i]].flat());
 	},
 };
 
-const solveBranch = (
+const solveNonBranchingNode = (
 	constraints,
 	constraintsLookup,
-	constraintsNeighborsMemo,
 	unsolvedKeys,
-	solutionNode,
+	solvedOrders,
 	...orders
 ) => {
-	if (!unsolvedKeys.length) { return []; }
+	if (!unsolvedKeys.length) { return {}; }
 	const guessKey = unsolvedKeys[0];
 	const completedSolutions = [];
 	const unfinishedSolutions = [];
@@ -8605,53 +8688,71 @@ const solveBranch = (
 			constraints,
 			constraintsLookup,
 			[guessKey],
+			...solvedOrders,
 			...orders,
 			{ [guessKey]: b },
 		);
 		if (result === false) { return; }
 		result[guessKey] = b;
-		if (Object.keys(result).length === unsolvedKeys.length) {
-			completedSolutions.push(result);
-		} else {
-			unfinishedSolutions.push(result);
-		}
+		const array = Object.keys(result).length === unsolvedKeys.length
+			? completedSolutions
+			: unfinishedSolutions;
+		array.push(result);
 	});
-	const childNodes = unfinishedSolutions.map(order => ({ faceOrders: order }));
-	const recursed = unfinishedSolutions
-		.map((order, i) => {
-			const remainingKeys = unsolvedKeys.filter(key => !(key in order));
-			return getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo)
-				.map(branchUnsolvedKeys => solveBranch(
+	const solution = {
+		leaves: completedSolutions,
+		node: unfinishedSolutions.map(order => solveNode(
+			constraints,
+			constraintsLookup,
+			unsolvedKeys.filter(key => !(key in order)),
+			[...solvedOrders, ...orders],
+			order,
+		)),
+	};
+	if (solution.leaves.length === 0) { delete solution.leaves; }
+	if (solution.node.length === 0) { delete solution.node; }
+	return solution;
+};
+const solveNode = (
+	constraints,
+	constraintsLookup,
+	remainingKeys,
+	solvedOrders,
+	...orders
+) => {
+	if (!remainingKeys.length) { return { orders }; }
+	const disjointSets = getDisjointSets(remainingKeys, constraints, constraintsLookup);
+	if (disjointSets.length > 1) {
+		return {
+			orders,
+			partitions: disjointSets
+				.map(branchKeys => solveNonBranchingNode(
 					constraints,
 					constraintsLookup,
-					constraintsNeighborsMemo,
-					branchUnsolvedKeys,
-					childNodes[i],
+					branchKeys,
+					solvedOrders,
 					...orders,
-					order,
-				));
-		});
-	if (completedSolutions.length) {
-		solutionNode.finished = completedSolutions.map(order => ({ faceOrders: order }));
+				)),
+		};
 	}
-	if (childNodes.length) {
-		solutionNode.unfinished = childNodes;
-	}
-	if (childNodes.length > 1 && completedSolutions.length) { console.log("HAPPENED"); }
-	return completedSolutions
-		.map(order => ([...orders, order]))
-		.concat(...recursed);
+	return {
+		orders,
+		...solveNonBranchingNode(
+			constraints,
+			constraintsLookup,
+			disjointSets[0],
+			solvedOrders,
+			...orders,
+		),
+	};
 };
-const globalLayerSolver$1 = (graph, epsilon = 1e-6) => {
-	const prepareStartDate = new Date();
-	const {
-		constraints,
-		constraintsLookup,
-		facePairs,
-		edgeAdjacentOrders,
-	} = prepare$1(graph, epsilon);
-	const prepareDuration = Date.now() - prepareStartDate;
-	const startDate = new Date();
+const groupLayerSolver = (
+	constraints,
+	constraintsLookup,
+	facePairs,
+	edgeAdjacentOrders,
+	faces_winding,
+) => {
 	const initialResult = propagate$1(
 		constraints,
 		constraintsLookup,
@@ -8659,48 +8760,37 @@ const globalLayerSolver$1 = (graph, epsilon = 1e-6) => {
 		edgeAdjacentOrders,
 	);
 	if (!initialResult) { return undefined; }
-	console.log("2D initialResult", JSON.parse(JSON.stringify(initialResult)));
-	const solution = {};
 	const remainingKeys = facePairs
 		.filter(key => !(key in edgeAdjacentOrders))
 		.filter(key => !(key in initialResult));
-	const constraintsNeighborsMemo = {};
-	const branches = getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo);
-	const nextLevel = branches.map(() => ({}));
-	const branchResults = branches.map((unsolvedKeys, i) => solveBranch(
+	const solution = solveNode(
 		constraints,
 		constraintsLookup,
-		constraintsNeighborsMemo,
-		unsolvedKeys,
-		nextLevel[i],
+		remainingKeys,
+		[],
 		edgeAdjacentOrders,
 		initialResult,
-	));
-	if (nextLevel.length) {
-		solution.unfinished = nextLevel;
-	}
-	solution.faceOrders = { ...edgeAdjacentOrders, ...initialResult };
-	console.log("2D solution", JSON.parse(JSON.stringify(solution.faceOrders)));
-	const faces_normal = graph.faces_normal
-		? graph.faces_normal
-		: makeFacesNormal(graph);
-	const z_vector = [0, 0, 1];
-	const recurse = (node) => {
-		if (node.faceOrders) {
-			node.faceOrders = keysToFaceOrders$1(node.faceOrders, faces_normal, z_vector);
-		}
-		if (node.finished) { node.finished.forEach(child => recurse(child)); }
-		if (node.unfinished) { node.unfinished.forEach(child => recurse(child)); }
-	};
-	recurse(solution);
-	console.log("2D solution final", JSON.parse(JSON.stringify(solution.faceOrders)));
-	const duration = Date.now() - startDate;
-		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
-	console.log("solution", solution);
-	console.log("branches", branchResults);
+	);
+	return reformatSolution(solution, faces_winding);
+};
+const globalLayerSolver$1 = (graph, epsilon = 1e-6) => {
+	const {
+		groups_constraints,
+		groups_constraintsLookup,
+		groups_facePairs,
+		groups_edgeAdjacentOrders,
+		faces_winding,
+	} = prepare$1(graph, epsilon);
+	const solutions = groups_constraints.map((constraints, i) => groupLayerSolver(
+		constraints,
+		groups_constraintsLookup[i],
+		groups_facePairs[i],
+		groups_edgeAdjacentOrders[i],
+		faces_winding,
+	)).filter(solution => solution.orders.length);
 	return Object.assign(
 		Object.create(LayerPrototype$1),
-		solution,
+		{ groups: solutions },
 	);
 };
 
@@ -8885,36 +8975,19 @@ const constraintToFacePairsStrings = ({
 	],
 });
 const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-const keysToFaceOrders = (facePairs, faces_aligned) => {
+const keysToFaceOrders = (facePairs, faces_normal, vector) => {
+	const faces_normal_match = faces_normal
+		.map(normal => math.core.dot(normal, vector) > 0);
 	const keys = Object.keys(facePairs);
-	const faceOrders = keys.map(string => string
-		.split(" ")
-		.map(n => parseInt(n, 10)));
+	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
 	faceOrders.forEach((faces, i) => {
 		const value = to_signed_layer_convert[facePairs[keys[i]]];
-		const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;
+		const side = (!faces_normal_match[faces[1]])
+			? -value
+			: value;
 		faces.push(side);
 	});
 	return faceOrders;
-};
-const reformatSolution = (solution, faces_winding) => {
-	if (solution.orders) {
-		solution.orders = solution.orders
-			.flatMap(order => keysToFaceOrders(order, faces_winding));
-	}
-	if (solution.leaves) {
-		solution.leaves = solution.leaves
-			.map(order => keysToFaceOrders(order, faces_winding));
-	}
-	if (solution.partitions) {
-		solution.partitions
-			.forEach(child => reformatSolution(child, faces_winding));
-	}
-	if (solution.node) {
-		solution.node
-			.forEach(child => reformatSolution(child, faces_winding));
-	}
-	return solution;
 };
 
 const taco_types = Object.freeze(Object.keys(layerTable));
@@ -9005,24 +9078,13 @@ const propagate = (
 	return newOrders;
 };
 
-const getNeighborsArray = (key, constraints, constraintsLookup) => {
-	const neighborsHash = {};
-	Object.keys(constraints).forEach(type => {
-		const indices = constraintsLookup[type][key];
-		if (!indices) { return; }
-		indices
-			.map(c => constraints[type][c])
-			.map(faces => constraintToFacePairsStrings[type](faces)
-				.forEach(facePair => { neighborsHash[facePair] = true; }));
-	});
-	return Object.keys(neighborsHash);
-};
-const getDisjointSets = (
+const getBranches = (
 	remainingKeys,
 	constraints,
 	constraintsLookup,
 	constraintsNeighborsMemo = {},
 ) => {
+	const taco_types = Object.keys(constraints);
 	const keys = {};
 	remainingKeys.forEach(key => { keys[key] = true; });
 	let i = 0;
@@ -9036,12 +9098,25 @@ const getDisjointSets = (
 			const key = stack.shift();
 			delete keys[key];
 			group.push(key);
-			const neighborsArray = constraintsNeighborsMemo[key]
-				? constraintsNeighborsMemo[key]
-				: getNeighborsArray(key, constraints, constraintsLookup);
-			constraintsNeighborsMemo[key] = neighborsArray;
+			let neighborsArray;
+			if (constraintsNeighborsMemo[key]) {
+				neighborsArray = constraintsNeighborsMemo[key];
+			} else {
+				const neighborsHash = {};
+				taco_types.forEach(type => {
+					const indices = constraintsLookup[type][key];
+					if (!indices) { return; }
+					indices
+						.map(c => constraints[type][c])
+						.map(faces => constraintToFacePairsStrings[type](faces)
+							.forEach(facePair => { neighborsHash[facePair] = true; }));
+				});
+				neighborsArray = Object.keys(neighborsHash);
+				constraintsNeighborsMemo[key] = neighborsArray;
+			}
 			const neighbors = neighborsArray
-				.filter(facePair => keys[facePair] && !stackHash[facePair]);
+				.filter(facePair => keys[facePair])
+				.filter(facePair => !stackHash[facePair]);
 			stack.push(...neighbors);
 			neighbors.forEach(facePair => { stackHash[facePair] = true; });
 		} while (stack.length);
@@ -9054,11 +9129,9 @@ const getDisjointSets = (
 const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
 	const faces_winding = makeFacesWinding(graph);
 	const faces_polygon = makeFacesPolygon(graph, epsilon);
-	faces_winding.forEach((winding, i) => {
-		if (!winding) {
-			faces_polygon[i].reverse();
-		}
-	});
+	for (let i = 0; i < faces_polygon.length; i += 1) {
+		if (!faces_winding[i]) { faces_polygon[i].reverse(); }
+	}
 	const tortilla_edge_indices = edges_faces_side
 		.map(side => side.length === 2 && side[0] !== side[1])
 		.map((bool, i) => (bool ? i : undefined))
@@ -9098,7 +9171,7 @@ const makeTortillaTortillaFacesCrossing = (graph, edges_faces_side, epsilon) => 
 	return tortilla_faces_results;
 };
 
-const makeEdgesFacesSide = (graph) => {
+const makeEdgesFacesSide = (graph, faces_center) => {
 	const edges_origin = graph.edges_vertices
 		.map(vertices => graph.vertices_coords[vertices[0]]);
 	const edges_vector = graph.edges_vertices
@@ -9110,14 +9183,14 @@ const makeEdgesFacesSide = (graph) => {
 		.map((faces, i) => faces
 			.map(face => math.core.cross2(
 				math.core.subtract2(
-					graph.faces_center[face],
+					faces_center[face],
 					edges_origin[i],
 				),
 				edges_vector[i],
 			))
 			.map(cross => Math.sign(cross)));
 };
-const makeTacosFacesSide = (graph, tacos_edges, tacos_faces) => {
+const makeTacosFacesSide = (graph, faces_center, tacos_edges, tacos_faces) => {
 	const tacos_edge_coords = tacos_edges
 		.map(edges => graph.edges_vertices[edges[0]]
 			.map(vertex => graph.vertices_coords[vertex]));
@@ -9128,7 +9201,7 @@ const makeTacosFacesSide = (graph, tacos_edges, tacos_faces) => {
 	const tacos_faces_center = tacos_faces
 		.map(faces => faces
 			.map(face_pair => face_pair
-				.map(face => graph.faces_center[face])));
+				.map(face => faces_center[face])));
 	return tacos_faces_center
 		.map((faces, i) => faces
 			.map(pairs => pairs
@@ -9172,17 +9245,27 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 		? face_pairs
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
+const indicesToBooleanMatrix = (array_array) => {
+	const matrix = Array.from(Array(array_array.length))
+		.map(() => Array(array_array.length).fill(false));
+	array_array
+		.forEach((arr, i) => arr
+			.forEach(j => { matrix[i][j] = true; }));
+	return matrix;
+};
 const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
-	const edges_faces_side = makeEdgesFacesSide(graph);
-	const edges_edgesParallelOverlap = makeEdgesEdgesParallelOverlap(graph, epsilon);
-	const tacos_edges = selfRelationalUniqueIndexPairs(edges_edgesParallelOverlap)
+	const faces_center = makeFacesConvexCenter(graph);
+	const edges_faces_side = makeEdgesFacesSide(graph, faces_center);
+	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon);
+	const boolean_edge_edge_overlap = indicesToBooleanMatrix(edge_edge_overlap_matrix);
+	const tacos_edges = booleanMatrixToUniqueIndexPairs(boolean_edge_edge_overlap)
 		.filter(pair => pair
 			.map(edge => graph.edges_faces[edge].length > 1)
 			.reduce((a, b) => a && b, true));
 	const tacos_faces = tacos_edges
 		.map(pair => pair
 			.map(edge => graph.edges_faces[edge]));
-	const tacos_faces_side = makeTacosFacesSide(graph, tacos_edges, tacos_faces);
+	const tacos_faces_side = makeTacosFacesSide(graph, faces_center, tacos_edges, tacos_faces);
 	const tacos_types = tacos_faces_side
 		.map(faces => faces
 			.map(classify_faces_pair));
@@ -9227,10 +9310,16 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 
 const makeTransitivityTrios = (
 	graph,
-	faces_facesOverlap,
+	overlap_matrix,
 	faces_winding,
 	epsilon = math.core.EPSILON,
 ) => {
+	if (!overlap_matrix) {
+		overlap_matrix = getFacesFaces2DOverlap(graph, epsilon);
+	}
+	if (!faces_winding) {
+		faces_winding = makeFacesWinding(graph);
+	}
 	const polygons = graph.faces_vertices
 		.map(face => face
 			.map(v => graph.vertices_coords[v]));
@@ -9238,21 +9327,25 @@ const makeTransitivityTrios = (
 		if (!faces_winding[i]) { face.reverse(); }
 	});
 	const matrix = graph.faces_vertices.map(() => []);
-	polygons.forEach((_, f1) => faces_facesOverlap[f1].forEach(f2 => {
-		if (f2 <= f1) { return; }
-		const polygon = math.core
-			.clipPolygonPolygon(polygons[f1], polygons[f2], epsilon);
-		if (polygon) { matrix[f1][f2] = polygon; }
-	}));
+	for (let i = 0; i < matrix.length - 1; i += 1) {
+		for (let j = i + 1; j < matrix.length; j += 1) {
+			if (!overlap_matrix[i][j]) { continue; }
+			const polygon = math.core.clipPolygonPolygon(polygons[i], polygons[j], epsilon);
+			if (polygon) { matrix[i][j] = polygon; }
+		}
+	}
 	const trios = [];
-	matrix.forEach((row, i) => row.forEach((poly, j) => {
-		if (j <= i || !matrix[i][j]) { return; }
-		matrix.forEach((_, k) => {
-			if (k <= i || k <= j) { return; }
-			const polygon = math.core.clipPolygonPolygon(poly, polygons[k], epsilon);
-			if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
-		});
-	}));
+	for (let i = 0; i < matrix.length - 1; i += 1) {
+		for (let j = i + 1; j < matrix.length; j += 1) {
+			if (!matrix[i][j]) { continue; }
+			for (let k = j + 1; k < matrix.length; k += 1) {
+				if (i === k || j === k) { continue; }
+				if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
+				const polygon = math.core.clipPolygonPolygon(matrix[i][j], polygons[k], epsilon);
+				if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
+			}
+		}
+	}
 	return trios;
 };
 
@@ -9311,10 +9404,20 @@ const make_conditions_flip_condition = { 0: 0, 1: 2, 2: 1 };
 const make_conditions_assignment_direction = {
 	M: 1, m: 1, V: 2, v: 2,
 };
+const makeFacePairs = (graph, overlap_matrix) => {
+	if (!overlap_matrix) {
+		overlap_matrix = getFacesFaces2DOverlap(graph);
+	}
+	return booleanMatrixToUniqueIndexPairs(overlap_matrix)
+		.map(pair => pair.join(" "));
+};
 const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
+	if (!faces_winding) {
+		faces_winding = makeFacesWinding(graph);
+	}
 	const facePairsHash = {};
 	facePairs.forEach(key => { facePairsHash[key] = true; });
-	const solution = {};
+	const soution = {};
 	graph.edges_faces.forEach((faces, edge) => {
 		const assignment = graph.edges_assignment[edge];
 		const local_order = make_conditions_assignment_direction[assignment];
@@ -9325,177 +9428,73 @@ const solveEdgeAdjacentFacePairs = (graph, facePairs, faces_winding) => {
 			: make_conditions_flip_condition[local_order];
 		const key1 = `${faces[0]} ${faces[1]}`;
 		const key2 = `${faces[1]} ${faces[0]}`;
-		if (key1 in facePairsHash) { solution[key1] = global_order; }
+		if (key1 in facePairsHash) { soution[key1] = global_order; }
 		if (key2 in facePairsHash) {
-			solution[key2] = make_conditions_flip_condition[global_order];
+			soution[key2] = make_conditions_flip_condition[global_order];
 		}
 	});
-	return solution;
+	return soution;
 };
 
-const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
-	const copies = overlapInfo.groups_transformXY.map(() => ({ ...graph }));
-	filterKeysWithPrefix(graph, "vertices")
-		.forEach(key => copies.forEach(obj => delete obj[key]));
-	copies.forEach(obj => delete obj.edges_edges);
-	copies.forEach(obj => delete obj.edges_faces);
-	const faceKeys = filterKeysWithPrefix(graph, "faces");
-	copies.forEach((obj, i) => faceKeys.forEach(key => {
-		obj[key] = [];
-		groups_faces[i].forEach(f => { obj[key][f] = graph[key][f]; });
-	}));
-	const vertices_coords_3d = graph.vertices_coords
-		.map(coord => math.core.resize(3, coord));
-	const groups_vertices_hash = groups_faces.map(() => ({}));
-	groups_faces
-		.forEach((faces, i) => faces
-			.forEach(face => graph.faces_vertices[face]
-				.forEach(v => { groups_vertices_hash[i][v] = true; })));
-	const groups_vertices = groups_vertices_hash
-		.map(obj => Object.keys(obj).map(n => parseInt(n, 10)));
-	copies.forEach(obj => { obj.vertices_coords = []; });
-	overlapInfo.groups_transformXY
-		.forEach((transform, i) => groups_vertices[i]
-			.forEach(v => {
-				const res = math.core.multiplyMatrix4Vector3(transform, vertices_coords_3d[v]);
-				copies[i].vertices_coords[v] = [res[0], res[1]];
-			}));
-	const groups_edges_hash = groups_faces.map(() => ({}));
-	groups_faces
-		.forEach((faces, i) => faces
-			.forEach(face => graph.faces_edges[face]
-				.forEach(e => { groups_edges_hash[i][e] = true; })));
-	const groups_edges = groups_edges_hash
-		.map(obj => Object.keys(obj).map(n => parseInt(n, 10)));
-	const edgeKeys = filterKeysWithPrefix(graph, "edges");
-	copies.forEach((obj, i) => edgeKeys.forEach(key => {
-		obj[key] = [];
-		groups_edges[i].forEach(e => { obj[key][e] = graph[key][e]; });
-	}));
-	copies.forEach(obj => { obj.edges_faces = makeEdgesFacesUnsorted(obj); });
-	return copies;
-};
-const prepare = (graphInput, epsilon = 1e-6) => {
-	const graph = { ...graphInput };
-	if (!graph.faces_edges) {
-		graph.faces_edges = makeFacesEdgesFromVertices(graph);
-	}
-	const overlapInfo = getOverlappingFacesGroups(graph, epsilon);
-	const groups_faces = invertMap(overlapInfo.faces_group)
-		.map(el => (el.constructor === Array ? el : [el]));
-	const graphCopies = graphGroupCopies(graph, overlapInfo, groups_faces);
-	const faces_polygon = [];
-	groups_faces
-		.map((faces, g) => faces
-			.map(face => graph.faces_vertices[face])
-			.map(vertices => vertices.map(v => graphCopies[g].vertices_coords[v]))
-			.forEach((polygon, f) => { faces_polygon[faces[f]] = polygon; }));
-	const faces_center = faces_polygon
-		.map(polygon => polygon
-			.reduce((a, b) => math.core.add(a, b), [0, 0])
-			.map(el => el / polygon.length));
-	graphCopies.forEach(el => {
-		el.faces_center = el.faces_vertices.map((_, i) => faces_center[i]);
-	});
-	const groups_tacos_tortillas = graphCopies
-		.map(el => makeTacosTortillas(el, epsilon));
-	const groups_unfiltered_trios = graphCopies
-		.map(el => makeTransitivityTrios(
-			el,
-			overlapInfo.faces_facesOverlap,
-			overlapInfo.faces_winding,
-			epsilon,
-		));
-	const groups_transitivity_trios = groups_unfiltered_trios
-		.map((trios, i) => filterTransitivity(trios, groups_tacos_tortillas[i]));
-	const groups_constraints = groups_tacos_tortillas
-		.map((tacos_tortillas, i) => makeConstraints(tacos_tortillas, groups_transitivity_trios[i]));
-	const groups_constraintsLookup = groups_constraints
-		.map(constraints => makeConstraintsLookup(constraints));
-	const facePairsInts = selfRelationalUniqueIndexPairs(overlapInfo.faces_facesOverlap);
-	const facePairs = facePairsInts.map(pair => pair.join(" "));
-	const groups_edgeAdjacentOrders = graphCopies
-		.map(el => solveEdgeAdjacentFacePairs(el, facePairs, overlapInfo.faces_winding));
-	const facePairsIndex_group = facePairsInts.map(pair => overlapInfo.faces_group[pair[0]]);
-	const groups_facePairsIndex = invertMap(facePairsIndex_group)
-		.map(el => (el.constructor === Array ? el : [el]));
-	const groups_facePairsWithHoles = groups_facePairsIndex
-		.map(indices => indices.map(i => facePairs[i]));
-	const groups_facePairs = groups_constraints
-		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
+const prepare = (graph, epsilon = 1e-6) => {
+	const overlap = getFacesFaces2DOverlap(graph, epsilon);
+	const facesWinding = makeFacesWinding(graph);
+	const tacos_tortillas = makeTacosTortillas(graph, epsilon);
+	const unfiltered_trios = makeTransitivityTrios(graph, overlap, facesWinding, epsilon);
+	const transitivity_trios = filterTransitivity(unfiltered_trios, tacos_tortillas);
+	const constraints = makeConstraints(tacos_tortillas, transitivity_trios);
+	const constraintsLookup = makeConstraintsLookup(constraints);
+	const facePairs = makeFacePairs(graph, overlap);
+	const edgeAdjacentOrders = solveEdgeAdjacentFacePairs(graph, facePairs, facesWinding);
 	return {
-		groups_constraints,
-		groups_constraintsLookup,
-		groups_facePairs,
-		groups_edgeAdjacentOrders,
-		faces_winding: overlapInfo.faces_winding,
+		constraints,
+		constraintsLookup,
+		facePairs,
+		edgeAdjacentOrders,
 	};
 };
 
-const matchHolistic = (arrayOfArrays) => {
-	const lengths = arrayOfArrays.map(part => part.length);
-	const compounding = lengths.slice();
-	for (let i = compounding.length - 2; i >= 0; i -= 1) {
-		compounding[i] *= compounding[i + 1];
+const match = (listA, listB) => {
+	const res = [];
+	for (let i = 0; i < listA.length; i += 1) {
+		for (let j = 0; j < listB.length; j += 1) {
+			res.push([listA[i], listB[j]]);
+		}
 	}
-	const scales = compounding.slice();
-	scales.push(1);
-	scales.shift();
-	return Array.from(Array(compounding[0]))
-		.map((_, i) => i)
-		.map(i => scales
-			.map((d, j) => Math.floor(i / d) % lengths[j]));
+	return res;
 };
-const allSolutions = (n, ...orders) => {
-	const ordersSoFar = n.orders ? [...orders, n.orders] : [...orders];
-	if (n.partitions) {
-		const parts = n.partitions.map(el => allSolutions(el));
-		const combinations = matchHolistic(parts);
-		return combinations
-			.map(indices => indices.flatMap((i, j) => parts[j][i]))
-			.map(solution => [...ordersSoFar, ...solution]);
-	}
-	const solutions = [];
-	if (n.leaves) {
-		n.leaves.forEach(order => solutions.push([...ordersSoFar, order]));
-	}
-	if (n.node) {
-		const branches = n.node
-			.flatMap(el => allSolutions(el, ...ordersSoFar));
-		solutions.push(...branches);
-	}
-	if (!n.leaves && !n.node) { solutions.push([...ordersSoFar]); }
-	return solutions;
+const linearizeSolutions = (solution) => {
+	const recurse = (node, stack = []) => {
+		if (node.faceOrders) { stack.push(node.faceOrders); }
+		const finished = node.finished
+			? node.finished.map(fin => [...stack, fin.faceOrders])
+			: undefined;
+		if (node.unfinished) {
+			const unf = node.unfinished.map(el => recurse(el, JSON.parse(JSON.stringify(stack))));
+			const unfinished = (unf.length > 1) ? match(...unf) : unf;
+			unfinished.forEach(el => { el.branch = true; });
+			finished.forEach(el => el.push(...unfinished));
+		}
+		finished.finished = true;
+		return finished;
+	};
+	return recurse(solution);
 };
 const LayerPrototype = {
 	allSolutions: function () {
-		if (!this.allSolutionsMemo) {
-			this.allSolutionsMemo = this.groups
-				.map(group => allSolutions(group));
-		}
-		return this.allSolutionsMemo;
-	},
-	count: function () {
-		return this.allSolutions().map(solution => solution.length);
-	},
-	solution: function (groupIndices = []) {
-		const solutions = this.allSolutions();
-		const indices = Array(solutions.length)
-			.fill(0)
-			.map((n, i) => (groupIndices[i] != null ? groupIndices[i] : n));
-		return solutions
-			.flatMap((solution, i) => solution[indices[i]].flat());
+		return linearizeSolutions(this);
 	},
 };
 
-const solveNonBranchingNode = (
+const solveBranch = (
 	constraints,
 	constraintsLookup,
+	constraintsNeighborsMemo,
 	unsolvedKeys,
-	solvedOrders,
+	solutionNode,
 	...orders
 ) => {
-	if (!unsolvedKeys.length) { return {}; }
+	if (!unsolvedKeys.length) { return []; }
 	const guessKey = unsolvedKeys[0];
 	const completedSolutions = [];
 	const unfinishedSolutions = [];
@@ -9504,71 +9503,53 @@ const solveNonBranchingNode = (
 			constraints,
 			constraintsLookup,
 			[guessKey],
-			...solvedOrders,
 			...orders,
 			{ [guessKey]: b },
 		);
 		if (result === false) { return; }
 		result[guessKey] = b;
-		const array = Object.keys(result).length === unsolvedKeys.length
-			? completedSolutions
-			: unfinishedSolutions;
-		array.push(result);
+		if (Object.keys(result).length === unsolvedKeys.length) {
+			completedSolutions.push(result);
+		} else {
+			unfinishedSolutions.push(result);
+		}
 	});
-	const solution = {
-		leaves: completedSolutions,
-		node: unfinishedSolutions.map(order => solveNode(
-			constraints,
-			constraintsLookup,
-			unsolvedKeys.filter(key => !(key in order)),
-			[...solvedOrders, ...orders],
-			order,
-		)),
-	};
-	if (solution.leaves.length === 0) { delete solution.leaves; }
-	if (solution.node.length === 0) { delete solution.node; }
-	return solution;
-};
-const solveNode = (
-	constraints,
-	constraintsLookup,
-	remainingKeys,
-	solvedOrders,
-	...orders
-) => {
-	if (!remainingKeys.length) { return { orders }; }
-	const disjointSets = getDisjointSets(remainingKeys, constraints, constraintsLookup);
-	if (disjointSets.length > 1) {
-		return {
-			orders,
-			partitions: disjointSets
-				.map(branchKeys => solveNonBranchingNode(
+	const childNodes = unfinishedSolutions.map(order => ({ faceOrders: order }));
+	const recursed = unfinishedSolutions
+		.map((order, i) => {
+			const remainingKeys = unsolvedKeys.filter(key => !(key in order));
+			return getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo)
+				.map(branchUnsolvedKeys => solveBranch(
 					constraints,
 					constraintsLookup,
-					branchKeys,
-					solvedOrders,
+					constraintsNeighborsMemo,
+					branchUnsolvedKeys,
+					childNodes[i],
 					...orders,
-				)),
-		};
+					order,
+				));
+		});
+	if (completedSolutions.length) {
+		solutionNode.finished = completedSolutions.map(order => ({ faceOrders: order }));
 	}
-	return {
-		orders,
-		...solveNonBranchingNode(
-			constraints,
-			constraintsLookup,
-			disjointSets[0],
-			solvedOrders,
-			...orders,
-		),
-	};
+	if (childNodes.length) {
+		solutionNode.unfinished = childNodes;
+	}
+	if (childNodes.length > 1 && completedSolutions.length) { console.log("HAPPENED"); }
+	return completedSolutions
+		.map(order => ([...orders, order]))
+		.concat(...recursed);
 };
-const groupLayerSolver = (
-	constraints,
-	constraintsLookup,
-	facePairs,
-	edgeAdjacentOrders,
-	faces_winding,
-) => {
+const globalLayerSolver = (graph, epsilon = 1e-6) => {
+	const prepareStartDate = new Date();
+	const {
+		constraints,
+		constraintsLookup,
+		facePairs,
+		edgeAdjacentOrders,
+	} = prepare(graph, epsilon);
+	const prepareDuration = Date.now() - prepareStartDate;
+	const startDate = new Date();
 	const initialResult = propagate(
 		constraints,
 		constraintsLookup,
@@ -9576,37 +9557,48 @@ const groupLayerSolver = (
 		edgeAdjacentOrders,
 	);
 	if (!initialResult) { return undefined; }
+	console.log("2D initialResult", JSON.parse(JSON.stringify(initialResult)));
+	const solution = {};
 	const remainingKeys = facePairs
 		.filter(key => !(key in edgeAdjacentOrders))
 		.filter(key => !(key in initialResult));
-	const solution = solveNode(
+	const constraintsNeighborsMemo = {};
+	const branches = getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo);
+	const nextLevel = branches.map(() => ({}));
+	const branchResults = branches.map((unsolvedKeys, i) => solveBranch(
 		constraints,
 		constraintsLookup,
-		remainingKeys,
-		[],
+		constraintsNeighborsMemo,
+		unsolvedKeys,
+		nextLevel[i],
 		edgeAdjacentOrders,
 		initialResult,
-	);
-	return reformatSolution(solution, faces_winding);
-};
-const globalLayerSolver = (graph, epsilon = 1e-6) => {
-	const {
-		groups_constraints,
-		groups_constraintsLookup,
-		groups_facePairs,
-		groups_edgeAdjacentOrders,
-		faces_winding,
-	} = prepare(graph, epsilon);
-	const solutions = groups_constraints.map((constraints, i) => groupLayerSolver(
-		constraints,
-		groups_constraintsLookup[i],
-		groups_facePairs[i],
-		groups_edgeAdjacentOrders[i],
-		faces_winding,
-	)).filter(solution => solution.orders.length);
+	));
+	if (nextLevel.length) {
+		solution.unfinished = nextLevel;
+	}
+	solution.faceOrders = { ...edgeAdjacentOrders, ...initialResult };
+	console.log("2D solution", JSON.parse(JSON.stringify(solution.faceOrders)));
+	const faces_normal = graph.faces_normal
+		? graph.faces_normal
+		: makeFacesNormal(graph);
+	const z_vector = [0, 0, 1];
+	const recurse = (node) => {
+		if (node.faceOrders) {
+			node.faceOrders = keysToFaceOrders(node.faceOrders, faces_normal, z_vector);
+		}
+		if (node.finished) { node.finished.forEach(child => recurse(child)); }
+		if (node.unfinished) { node.unfinished.forEach(child => recurse(child)); }
+	};
+	recurse(solution);
+	console.log("2D solution final", JSON.parse(JSON.stringify(solution.faceOrders)));
+	const duration = Date.now() - startDate;
+		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
+	console.log("solution", solution);
+	console.log("branches", branchResults);
 	return Object.assign(
 		Object.create(LayerPrototype),
-		{ groups: solutions },
+		solution,
 	);
 };
 
@@ -9614,11 +9606,8 @@ var layer = Object.assign(
 	Object.create(null),
 	{
 		solver: globalLayerSolver$1,
-		table: layerTable$1,
+		solver2d: globalLayerSolver,
 		topologicalOrder: topologicalOrder$1,
-		makeTacosTortillas: makeTacosTortillas$1,
-		makeFoldedStripTacos,
-		makeTransitivityTrios: makeTransitivityTrios$1,
 		singleVertexSolver,
 		singleVertexAssignmentSolver: assignmentSolver,
 		validateLayerSolver,
@@ -9627,11 +9616,6 @@ var layer = Object.assign(
 		foldStripWithAssignments,
 	},
 	general,
-	makeFacePairsOrder,
-	{
-		solver3d: globalLayerSolver,
-		prepare,
-	},
 );
 
 const odd_assignment = (assignments) => {

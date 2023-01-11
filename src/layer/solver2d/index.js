@@ -126,7 +126,7 @@ const solveBranch = (
 		.concat(...recursed);
 };
 /**
- * @name solver
+ * @name solver2d
  * @memberof layer
  * @description Recursively calculate all layer order solutions between faces
  * in a flat-folded FOLD graph.

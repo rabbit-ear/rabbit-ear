@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
+import math from "../../../math";
 
 export const makeEdgesFacesSide = (graph, faces_center) => {
 	const edges_origin = graph.edges_vertices

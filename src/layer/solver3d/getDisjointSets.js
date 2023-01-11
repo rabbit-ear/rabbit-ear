@@ -42,7 +42,7 @@ const getNeighborsArray = (key, constraints, constraintsLookup) => {
  * the value is an array of all other face-pairs which are
  * included in some condition (taco/tortilla/trans)
  * in which the face-pair key also appears.
- * @linkcode Origami ./src/layer/solver3d/getDisjointSets.js 14
+ * @linkcode Origami ./src/layer/solver3d/getDisjointSets.js 45
  */
 const getDisjointSets = (
 	remainingKeys,
