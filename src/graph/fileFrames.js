@@ -3,13 +3,25 @@
  */
 import clone from "../general/clone";
 import * as S from "../general/strings";
+import { filterKeysWithPrefix } from "../fold/spec";
 
+/**
+ * @description todo
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} frame which frame number to expose as the sole contents
+ * @returns {FOLD} the requested frame separated out from the rest of
+ * the graph, inheriting any necessary data if needed.
+ */
 export const flattenFrame = (graph, frame_num = 1) => {
 	if (!graph.file_frames || graph.file_frames.length < frame_num) {
 		return graph;
 	}
 	const dontCopy = [S._frame_parent, S._frame_inherit];
 	const memo = { visited_frames: [] };
+	const fileMetadata = {};
+	filterKeysWithPrefix(graph, "file_")
+		.filter(key => key !== "file_frames")
+		.forEach(key => { fileMetadata[key] = graph[key]; });
 
 	const recurse = (recurse_graph, frame, orderArray) => {
 		if (memo.visited_frames.indexOf(frame) !== -1) {
@@ -43,7 +55,7 @@ export const flattenFrame = (graph, frame_num = 1) => {
 		const outerCopy = clone(graph.file_frames[frame - 1]);
 		dontCopy.forEach(key => delete outerCopy[key]);
 		return outerCopy;
-	}).reduce((a, b) => Object.assign(a, b), {});
+	}).reduce((a, b) => Object.assign(a, b), fileMetadata);
 };
 
 export const mergeFrame = function (graph, frame) {

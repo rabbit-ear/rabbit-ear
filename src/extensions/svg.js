@@ -1863,11 +1863,7 @@ var lineDef = {
 /**
  * SVG (c) Kraft
  */
-
-const markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
-const digitRegEx = /-?[0-9]*\.?\d+/g;
-
-const pathCommands = {
+const pathCommandNames = {
 	m: "move",
 	l: "line",
 	v: "vertical",
@@ -1880,58 +1876,101 @@ const pathCommands = {
 	z: "close",
 };
 
-// const expectedArguments = {
-//   m: 2,
-//   l: 2,
-//   v: 1,
-//   h: 1,
-//   a: 7, // or 14
-//   c: 6,
-//   s: 4,
-//   q: 4,
-//   t: 2,
-//   z: 0,
-// };
+/**
+ * if the command is relative, it will build upon offset coordinate
+ */
+const add2 = (a, b) => [a[0] + (b[0] || 0), a[1] + (b[1] || 0)];
+const getEndpoint = (command, values, offset = [0, 0]) => {
+	const upper = command.toUpperCase();
+	const origin = command === upper ? [0, 0] : offset;
+	switch (upper) {
+	case "M":
+	case "L":
+	case "V":
+	case "H":
+	case "T": return add2(origin, values);
+	case "A": return add2(origin, [values[5], values[6]]);
+	case "C": return add2(origin, [values[4], values[5]]);
+	case "S":
+	case "Q": return add2(origin, [values[2], values[3]]);
+	case "Z": return undefined; // cannot be set locally.
+	default: return origin;
+	}
+};
 
 // make capitalized copies of each command
-Object.keys(pathCommands).forEach((key) => {
-	const s = pathCommands[key];
-	pathCommands[key.toUpperCase()] = s.charAt(0).toUpperCase() + s.slice(1);
+Object.keys(pathCommandNames).forEach((key) => {
+	const s = pathCommandNames[key];
+	pathCommandNames[key.toUpperCase()] = s.charAt(0).toUpperCase() + s.slice(1);
 	// expectedArguments[key.toUpperCase()] = expectedArguments[key];
 });
 
-// results in an array of objects [
-//  { command: "M", values: [50, 50], en: "Move" }
-//  { command: "l", values: [45, 95], en: "line" }
-// ]
-const parsePathCommands = function (str) {
-	// Ulric Wilfred
+// const expectedArguments = {
+// 	m: 2, l: 2, v: 1, h: 1, a: 7, c: 6, s: 4, q: 4, t: 2, z: 0,
+// 	// a can be 14 also
+// };
+
+const markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
+const digitRegEx = /-?[0-9]*\.?\d+/g;
+
+/**
+ * @description Parse a path "d" attribute into an array of objects,
+ * where each object contains a command, and the numerical values.
+ * @param {string} d the "d" attribute of a path.
+ */
+const parsePathCommands = (d) => {
 	const results = [];
 	let match;
-	while ((match = markerRegEx.exec(str)) !== null) {
+	while ((match = markerRegEx.exec(d)) !== null) {
 		results.push(match);
 	}
-	return results.map(m => ({
-		command: str[m.index],
-		index: m.index,
-	}))
-		.reduceRight((all, cur) => {
-			const chunk = str.substring(cur.index, all.length ? all[all.length - 1].index : str.length);
-			return all.concat([{
-				command: cur.command,
-				index: cur.index,
-				chunk: (chunk.length > 0) ? chunk.substr(1, chunk.length - 1) : chunk,
-			}]);
-		}, [])
-		.reverse()
-		.map((el) => {
-			const values = el.chunk.match(digitRegEx);
-			el.en = pathCommands[el.command];
-			el.values = values ? values.map(parseFloat) : [];
-			delete el.chunk;
-			return el;
+	return results
+		.map((result, i, arr) => [
+			result[0],
+			result.index,
+			i === arr.length - 1
+				? d.length - 1
+				: arr[(i + 1) % arr.length].index - 1,
+		])
+		.map(el => {
+			const command = el[0];
+			const valueString = d.substring(el[1] + 1, el[2]);
+			const strings = valueString.match(digitRegEx);
+			const values = strings ? strings.map(parseFloat) : [];
+			return { command, values };
 		});
 };
+
+const parsePathCommandsEndpoints = (d) => {
+	let pen = [0, 0];
+	const commands = parsePathCommands(d);
+	if (!commands.length) { return commands; }
+	commands.forEach((command, i) => {
+		commands[i].end = getEndpoint(command.command, command.values, pen);
+		commands[i].start = i === 0 ? pen : commands[i - 1].end;
+		pen = commands[i].end;
+	});
+	const last = commands[commands.length - 1];
+	const firstDrawCommand = commands
+		.filter(el => el.command.toUpperCase() !== "M"
+			&& el.command.toUpperCase() !== "Z")
+		.shift();
+	if (last.command.toUpperCase() === "Z") {
+		last.end = [...firstDrawCommand.start];
+	}
+	return commands;
+};
+
+var path_methods$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	pathCommandNames: pathCommandNames,
+	parsePathCommands: parsePathCommands,
+	parsePathCommandsEndpoints: parsePathCommandsEndpoints
+});
+
+/**
+ * SVG (c) Kraft
+ */
 
 /**
  * @param {SVGElement} one svg element, intended to be a <path> element
@@ -1996,8 +2035,8 @@ const path_methods = {
 	// add: noClearSet,
 };
 
-Object.keys(pathCommands).forEach((key) => {
-	path_methods[pathCommands[key]] = (el, ...args) => appendPathCommand(el, key, ...args);
+Object.keys(pathCommandNames).forEach((key) => {
+	path_methods[pathCommandNames[key]] = (el, ...args) => appendPathCommand(el, key, ...args);
 });
 
 var pathDef = {
@@ -2725,15 +2764,25 @@ SVG.NS = NS;
 SVG.linker = Linker.bind(SVG);
 // SVG.use = use.bind(SVG);
 Object.assign(SVG, elements);
-SVG.core = Object.assign(Object.create(null), {
-	load: Load,
-	save,
-	coordinates,
-	flatten: svg_flatten_arrays,
-	attributes,
-	children: nodesAndChildren,
-	cdata,
-}, Case, classMethods, dom, svg_algebra, TransformMethods, viewBox);
+SVG.core = Object.assign(
+	Object.create(null),
+	{
+		load: Load,
+		save,
+		coordinates,
+		flatten: svg_flatten_arrays,
+		attributes,
+		children: nodesAndChildren,
+		cdata,
+	},
+	Case,
+	classMethods,
+	dom,
+	svg_algebra,
+	path_methods$1,
+	TransformMethods,
+	viewBox,
+);
 
 // the window object, from which the document is used to createElement.
 // when using Node.js, this must be set to to the

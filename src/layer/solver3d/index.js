@@ -192,7 +192,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		groups_facePairs[i],
 		groups_edgeAdjacentOrders[i],
 		faces_winding,
-	)).filter(solution => solution.orders.length);
+	)).filter(solution => solution && solution.orders.length);
 	return Object.assign(
 		Object.create(LayerPrototype),
 		{ groups: solutions },

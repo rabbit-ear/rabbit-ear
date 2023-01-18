@@ -13,6 +13,9 @@ const matchHolistic = (arrayOfArrays) => {
 	for (let i = compounding.length - 2; i >= 0; i -= 1) {
 		compounding[i] *= compounding[i + 1];
 	}
+	if (compounding[0] > (2 ** 28)) {
+		console.warn("allSolutions() might fail: too many");
+	}
 	const scales = compounding.slice();
 	scales.push(1);
 	scales.shift();
@@ -47,7 +50,37 @@ const allSolutions = (n, ...orders) => {
 	return solutions;
 };
 
+const anySolution = (n) => {
+	const nodeOrders = n.orders ? n.orders : [];
+	// partition node
+	if (n.partitions) {
+		return [...nodeOrders, ...n.partitions.flatMap(el => anySolution(el))];
+	}
+	// not a partition node
+	// get all solutions from all combined recursive branching
+	if (n.leaves) { return [...nodeOrders, ...n.leaves[0]]; }
+	if (n.node) { return [...nodeOrders, ...anySolution(n.node[0])]; }
+	// no leaves or node (the root node / one solution only)
+	return nodeOrders;
+};
+// const anySolution = (n) => {
+// 	const nodeOrders = n.orders ? n.orders : [];
+// 	// partition node
+// 	if (n.partitions) {
+// 		return [...nodeOrders, ...n.partitions.map(el => anySolution(el))];
+// 	}
+// 	// not a partition node
+// 	// get all solutions from all combined recursive branching
+// 	if (n.leaves) { return [...nodeOrders, ...n.leaves[n.leaves.length - 1]]; }
+// 	if (n.node) { return [...nodeOrders, ...anySolution(n.node[n.node.length - 1])]; }
+// 	// no leaves or node (the root node / one solution only)
+// 	return nodeOrders;
+// };
+
 const LayerPrototype = {
+	anySolution: function () {
+		return this.groups.flatMap(group => anySolution(group));
+	},
 	allSolutions: function () {
 		if (!this.allSolutionsMemo) {
 			this.allSolutionsMemo = this.groups
