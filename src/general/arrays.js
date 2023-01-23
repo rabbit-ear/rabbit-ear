@@ -205,7 +205,7 @@ export const makeTrianglePairs = (array) => {
  * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
  * // will return
  * [ [8, 1], [3, 5] ]
- * @linkcode Origami ./src/general/arrays.js 213
+ * @linkcode Origami ./src/general/arrays.js 208
  */
 // export const circularArrayValidRanges = (array) => {
 // 	// if the array contains no undefineds, return the default state.

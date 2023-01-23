@@ -1,4 +1,10 @@
-const getStylesheetStyle = (key, attributes, sheets = []) => {
+/**
+ * @description Given one or many parsed stylesheets, hunt for a match based
+ * on nodeName selector, id selector, or class selector, and return the value
+ * for one attribute if it exists. So for example, you need "stroke" and this
+ * will search for a "stroke" property defined on line, .className, or #id.
+ */
+const getStylesheetStyle = (key, nodeName, attributes, sheets = []) => {
 	const classes = attributes.class
 		? attributes.class
 			.split(/\s/)
@@ -9,58 +15,27 @@ const getStylesheetStyle = (key, attributes, sheets = []) => {
 	const id = attributes.id
 		? `#${attributes.id}`
 		: null;
-};
-
-const parseStyle = (node, styleParam) => {
-	const style = { ...styleParam }; // clone style
-	let stylesheetStyles = {};
-	if (node.hasAttribute("class")) {
-		const classSelectors = node.getAttribute("class")
-			.split(/\s/)
-			.filter(Boolean)
-			.map(i => i.trim());
-		for (let i = 0; i < classSelectors.length; i += 1) {
-			stylesheetStyles = Object.assign(
-				stylesheetStyles,
-				stylesheets["." + classSelectors[i]],
-			);
+	// look for a matching id in the style sheets
+	if (id) {
+		for (let s = 0; s < sheets.length; s += 1) {
+			if (sheets[s][id] && sheets[s][id][key]) {
+				return sheets[s][id][key];
+			}
 		}
 	}
-	if (node.hasAttribute("id")) {
-		stylesheetStyles = Object.assign(
-			stylesheetStyles,
-			stylesheets["#" + node.getAttribute("id")],
-		);
+	// look for a matching class in the style sheets
+	for (let s = 0; s < sheets.length; s += 1) {
+		for (let c = 0; c < classes.length; c += 1) {
+			if (sheets[s][classes[c]] && sheets[s][classes[c]][key]) {
+				return sheets[s][classes[c]][key];
+			}
+		}
+		if (sheets[s][nodeName] && sheets[s][nodeName][key]) {
+			return sheets[s][nodeName][key];
+		}
 	}
-	function addStyle(svgName, jsName, adjustFunction) {
-		if (adjustFunction === undefined ) adjustFunction = function copy( v ) {
-			if (v.startsWith( 'url' ) ) console.warn( 'SVGLoader: url access in attributes is not implemented.' );
-			return v;
-		};
-		if (node.hasAttribute(svgName)) style[jsName] = adjustFunction(node.getAttribute(svgName));
-		if (stylesheetStyles[svgName]) style[jsName] = adjustFunction(stylesheetStyles[svgName]);
-		if (node.style && node.style[svgName] !== "") style[jsName] = adjustFunction(node.style[svgName]);
-	}
-	function clamp(v) {
-		return Math.max(0, Math.min(1, parseFloatWithUnits(v)));
-	}
-	function positive(v) {
-		return Math.max(0, parseFloatWithUnits(v));
-	}
-	addStyle("fill", "fill");
-	addStyle("fill-opacity", "fillOpacity", clamp);
-	addStyle("fill-rule", "fillRule");
-	addStyle("opacity", "opacity", clamp);
-	addStyle("stroke", "stroke");
-	addStyle("stroke-opacity", "strokeOpacity", clamp);
-	addStyle("stroke-width", "strokeWidth", positive);
-	addStyle("stroke-linejoin", "strokeLineJoin");
-	addStyle("stroke-linecap", "strokeLineCap");
-	addStyle("stroke-miterlimit", "strokeMiterLimit", positive);
-	addStyle("visibility", "visibility");
-	return style;
+	return undefined;
 };
-
 /**
  * @description Given a DOM object's attribute list and
  * a CSS stylesheet (if it exists), search for a requested
@@ -73,7 +48,7 @@ const parseStyle = (node, styleParam) => {
  * @param {CSSStylesheet[]} sheets an array of CSS stylesheets
  * @returns {string|null} the value of the attribute.
  */
-const getAttributeValue = (key, attributes, sheets = []) => {
+const getAttributeValue = (key, nodeName, attributes, sheets = []) => {
 	// 1. check inline style
 	const inlineStyle = attributes.style
 		? attributes.style.match(new RegExp(`${key}[\\s]*:[^;]*;`))
@@ -82,6 +57,8 @@ const getAttributeValue = (key, attributes, sheets = []) => {
 		return inlineStyle[0].split(":")[1].replace(";", "");
 	}
 	// 2. check stylesheet
+	const sheetResult = getStylesheetStyle(key, nodeName, attributes, sheets);
+	if (sheetResult !== undefined) { return sheetResult; }
 	// todo
 	// 3. check inline attribute
 	if (attributes[key]) { return attributes[key]; }

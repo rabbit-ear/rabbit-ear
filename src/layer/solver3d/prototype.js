@@ -98,7 +98,7 @@ const LayerPrototype = {
 	/**
 	 * @description For every branch, get the total number of states.
 	 * @returns {number[]} the total number of states in each branch.
-	 * @linkcode Origami ./src/layer/solver3d/prototype.js 61
+	 * @linkcode Origami ./src/layer/solver3d/prototype.js 101
 	 */
 	// count: function () {
 	// 	return this.allSolutions().map(solution => solution.length);
@@ -111,7 +111,7 @@ const LayerPrototype = {
 	 * each branch, otherwise this will return index 0 from each branch.
 	 * @returns {object} an object with space-separated face pair keys, with
 	 * a value of +1 or -1, indicating the stacking order between the pair.
-	 * @linkcode Origami ./src/layer/solver3d/prototype.js 73
+	 * @linkcode Origami ./src/layer/solver3d/prototype.js 114
 	 */
 	// solution: function (groupIndices = []) {
 	// 	const solutions = this.allSolutions();

@@ -1,13 +1,11 @@
-// import { invertMap } from "../../graph/maps";
 import { makeTrianglePairs } from "../../general/arrays";
 import math from "../../math";
-
 /**
  * @description a range is an array of two numbers [start, end]
  * not necessarily in sorted order.
  * Do the two spans overlap on the numberline?
  */
-const doSpansOverlapExclusive = (a, b, epsilon = 1e-6) => {
+const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
 	// make sure ranges are well formed (sorted low to high)
 	const r1 = a[0] < a[1] ? a : [a[1], a[0]];
 	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
@@ -23,7 +21,7 @@ const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
 	const pairCoordsDots = pairCoords
 		.map(edge => edge
 			.map(coord => math.core.dot(coord, vector)));
-	const result = doSpansOverlapExclusive(...pairCoordsDots, epsilon);
+	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
 	// console.log("pairCoords", pairCoords);
 	// console.log("pairCoordsDots", pairCoordsDots);
 	// console.log("result", result);
@@ -93,9 +91,7 @@ const make3DTacoEdges = (graph, overlapInfo, epsilon = 1e-6) => {
 		intersectingGroups_pairs[key] = intersectingGroups_pairsAll[key]
 			.filter((_, i) => intersectingGroups_pairsValid[key][i]);
 	});
-	// const groups_edges = invertMap(edges_groups);
 	// console.log("edges_groups", edges_groups);
-	// console.log("groups_edges", groups_edges);
 	// console.log("intersectingGroups_edges", intersectingGroups_edges);
 	// console.log("intersectingGroups_pairsAll", intersectingGroups_pairsAll);
 	// console.log("intersectingGroups_pairsValid", intersectingGroups_pairsValid);

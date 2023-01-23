@@ -116,7 +116,7 @@ export const invertMap = (map) => {
  * and values become indices. duplicate entries will be overwritten.
  * @param {number[]} map an array of integers
  * @returns {number[]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 112
+ * @linkcode Origami ./src/graph/maps.js 119
  */
 export const invertSimpleMap = (map) => {
 	const inv = [];

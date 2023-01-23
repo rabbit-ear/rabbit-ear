@@ -47,6 +47,7 @@ const segmentize = (elements) => elements
 	.filter(el => getSegments[el.tagName])
 	.flatMap(el => getSegments[el.tagName](el)
 		.map(segment => ({
+			nodeName: el.tagName,
 			segment,
 			attributes: objectifyAttributeList(attribute_list(el)),
 		})));
@@ -70,9 +71,11 @@ const svgToBasicGraph = (svg) => {
 		.map(parseStyleElement);
 	// console.log("stylesheets", stylesheets);
 	const result = segmentize(elements);
+	// console.log("segmentize", result);
 	const edges_assignment = result
 		.map(el => getAttributeValue(
 			"stroke",
+			el.nodeName,
 			el.attributes,
 			stylesheets,
 		) || "black")
@@ -80,6 +83,7 @@ const svgToBasicGraph = (svg) => {
 	const edges_foldAngle = result
 		.map(el => getAttributeValue(
 			"opacity",
+			el.nodeName,
 			el.attributes,
 			stylesheets,
 		) || "1")

@@ -8604,7 +8604,7 @@ const solveEdgeAdjacentFacePairs$1 = (graph, facePairs, faces_winding) => {
 	return solution;
 };
 
-const doSpansOverlapExclusive = (a, b, epsilon = 1e-6) => {
+const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
 	const r1 = a[0] < a[1] ? a : [a[1], a[0]];
 	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
 	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
@@ -8617,7 +8617,7 @@ const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
 	const pairCoordsDots = pairCoords
 		.map(edge => edge
 			.map(coord => math.core.dot(coord, vector)));
-	const result = doSpansOverlapExclusive(...pairCoordsDots, epsilon);
+	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
 	return result;
 };
 const make3DTacoEdges = (graph, overlapInfo, epsilon = 1e-6) => {
@@ -10230,13 +10230,45 @@ const getRootParent = (el) => {
 	return parent;
 };
 
-const getAttributeValue = (key, attributes, sheets = []) => {
+const getStylesheetStyle = (key, nodeName, attributes, sheets = []) => {
+	const classes = attributes.class
+		? attributes.class
+			.split(/\s/)
+			.filter(Boolean)
+			.map(i => i.trim())
+			.map(str => `.${str}`)
+		: [];
+	const id = attributes.id
+		? `#${attributes.id}`
+		: null;
+	if (id) {
+		for (let s = 0; s < sheets.length; s += 1) {
+			if (sheets[s][id] && sheets[s][id][key]) {
+				return sheets[s][id][key];
+			}
+		}
+	}
+	for (let s = 0; s < sheets.length; s += 1) {
+		for (let c = 0; c < classes.length; c += 1) {
+			if (sheets[s][classes[c]] && sheets[s][classes[c]][key]) {
+				return sheets[s][classes[c]][key];
+			}
+		}
+		if (sheets[s][nodeName] && sheets[s][nodeName][key]) {
+			return sheets[s][nodeName][key];
+		}
+	}
+	return undefined;
+};
+const getAttributeValue = (key, nodeName, attributes, sheets = []) => {
 	const inlineStyle = attributes.style
 		? attributes.style.match(new RegExp(`${key}[\\s]*:[^;]*;`))
 		: null;
 	if (inlineStyle) {
 		return inlineStyle[0].split(":")[1].replace(";", "");
 	}
+	const sheetResult = getStylesheetStyle(key, nodeName, attributes, sheets);
+	if (sheetResult !== undefined) { return sheetResult; }
 	if (attributes[key]) { return attributes[key]; }
 	return null;
 };
@@ -10768,6 +10800,7 @@ const segmentize = (elements) => elements
 	.filter(el => parsers[el.tagName])
 	.flatMap(el => parsers[el.tagName](el)
 		.map(segment => ({
+			nodeName: el.tagName,
 			segment,
 			attributes: objectifyAttributeList(attribute_list(el)),
 		})));
@@ -10782,6 +10815,7 @@ const svgToBasicGraph = (svg) => {
 	const edges_assignment = result
 		.map(el => getAttributeValue(
 			"stroke",
+			el.nodeName,
 			el.attributes,
 			stylesheets,
 		) || "black")
@@ -10789,6 +10823,7 @@ const svgToBasicGraph = (svg) => {
 	const edges_foldAngle = result
 		.map(el => getAttributeValue(
 			"opacity",
+			el.nodeName,
 			el.attributes,
 			stylesheets,
 		) || "1")
