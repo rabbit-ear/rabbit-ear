@@ -15,6 +15,15 @@ import {
 import { getPlanarBoundary } from "../../graph/boundary";
 import parseStyleElement from "./parseStyleElement";
 
+const opacityToFoldAngle = (opacity, assignment) => {
+	switch (assignment) {
+	case "M": case "m": return -180 * opacity;
+	case "V": case "v": return 180 * opacity;
+	// "F", "B", "U", "C", opacity value doesn't matter.
+	default: return 0;
+	}
+};
+
 const attribute_list = (element) => Array
 	.from(element.attributes)
 	.filter(a => !geometryAttributes[element.nodeName][a.nodeName]);
@@ -24,21 +33,16 @@ const objectifyAttributeList = function (list) {
 	list.forEach((a) => { obj[a.nodeName] = a.value; });
 	return obj;
 };
-
-const opacityToFoldAngle = (opacity, assignment) => {
-	switch (assignment) {
-	case "M": case "m": return -180 * opacity;
-	case "V": case "v": return 180 * opacity;
-	// opacity value doesn't matter here,
-	// these assignments should be foldAngle 0.
-	// case "F":
-	// case "B":
-	// case "U":
-	// case "C":
-	default: return 0;
-	}
-};
-
+/**
+ * @description Given a flat array of svg drawing elements,
+ * filter out all the straight line components and convert
+ * them into an array of line segments {number[][]}, each
+ * line segment is accompanied by its style attributes in
+ * dictionary form.
+ * @param {Element[]} elements a flat array of svg drawing elements
+ * @returns {object[]} an array of line segement objects, each with
+ * "segment" and "attributes" properties.
+ */
 const segmentize = (elements) => elements
 	.filter(el => getSegments[el.tagName])
 	.flatMap(el => getSegments[el.tagName](el)
@@ -46,7 +50,17 @@ const segmentize = (elements) => elements
 			segment,
 			attributes: objectifyAttributeList(attribute_list(el)),
 		})));
-
+/**
+ * @description This method will handle all of the SVG parsing
+ * and result in a very simple graph representation basically
+ * only containing line segments and their assignment/foldAngle.
+ * The graph will not be planar (edges will overlap), no faces
+ * will exist, and duplicate vertices will exist and need to
+ * be merged
+ * @param {Element|string} svg an SVG image as a DOM element
+ * or a string.
+ * @returns {FOLD} a FOLD representation of the SVG image.
+ */
 const svgToBasicGraph = (svg) => {
 	const typeString = typeof svg === "string";
 	const xml = typeString ? xmlStringToDOM(svg, "image/svg+xml") : svg;

@@ -4001,20 +4001,23 @@ const mergeBackmaps = (...maps) => {
 };
 const invertMap = (map) => {
 	const inv = [];
+	const setIndexValue = (index, value) => {
+		if (inv[index] !== undefined) {
+			if (typeof inv[index] === _number) {
+				inv[index] = [inv[index], value];
+			} else {
+				inv[index].push(value);
+			}
+		} else {
+			inv[index] = value;
+		}
+	};
 	map.forEach((n, i) => {
 		if (n == null) { return; }
-		if (typeof n === _number) {
-			if (inv[n] !== undefined) {
-				if (typeof inv[n] === _number) {
-					inv[n] = [inv[n], i];
-				} else {
-					inv[n].push(i);
-				}
-			} else {
-				inv[n] = i;
-			}
+		if (typeof n === _number) { setIndexValue(n, i); }
+		if (n.constructor === Array) {
+			n.forEach(m => setIndexValue(m, i));
 		}
-		if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }
 	});
 	return inv;
 };
@@ -7398,7 +7401,7 @@ var BoundaryAxioms = /*#__PURE__*/Object.freeze({
 	normalAxiomInBoundary: normalAxiomInBoundary
 });
 
-const axiom = (number, params = {}, boundary) => axiomInBoundary(number, params, boundary);
+const axiom = (number, params = {}, boundary = undefined) => axiomInBoundary(number, params, boundary);
 Object.keys(AxiomsVO).forEach(key => { axiom[key] = AxiomsVO[key]; });
 Object.keys(AxiomsND).forEach(key => { axiom[key] = AxiomsND[key]; });
 Object.keys(BoundaryAxioms).forEach(key => { axiom[key] = BoundaryAxioms[key]; });
@@ -10651,6 +10654,13 @@ const parseStyleElement = (style) => {
 	return {};
 };
 
+const opacityToFoldAngle = (opacity, assignment) => {
+	switch (assignment) {
+	case "M": case "m": return -180 * opacity;
+	case "V": case "v": return 180 * opacity;
+	default: return 0;
+	}
+};
 const attribute_list = (element) => Array
 	.from(element.attributes)
 	.filter(a => !geometryAttributes[element.nodeName][a.nodeName]);
@@ -10658,13 +10668,6 @@ const objectifyAttributeList = function (list) {
 	const obj = {};
 	list.forEach((a) => { obj[a.nodeName] = a.value; });
 	return obj;
-};
-const opacityToFoldAngle = (opacity, assignment) => {
-	switch (assignment) {
-	case "M": case "m": return -180 * opacity;
-	case "V": case "v": return 180 * opacity;
-	default: return 0;
-	}
 };
 const segmentize = (elements) => elements
 	.filter(el => parsers[el.tagName])
@@ -10677,15 +10680,23 @@ const svgToBasicGraph = (svg) => {
 	const typeString = typeof svg === "string";
 	const xml = typeString ? xmlStringToDOM(svg, "image/svg+xml") : svg;
 	const elements = flattenDomTree(xml);
-	elements
+	const stylesheets = elements
 		.filter(el => el.nodeName === "style")
 		.map(parseStyleElement);
 	const result = segmentize(elements);
 	const edges_assignment = result
-		.map(el => getAttributeValue("stroke", el.attributes) || "black")
+		.map(el => getAttributeValue(
+			"stroke",
+			el.attributes,
+			stylesheets,
+		) || "black")
 		.map(color => colorToAssignment(color));
 	const edges_foldAngle = result
-		.map(el => getAttributeValue("opacity", el.attributes) || "1")
+		.map(el => getAttributeValue(
+			"opacity",
+			el.attributes,
+			stylesheets,
+		) || "1")
 		.map((opacity, i) => opacityToFoldAngle(opacity, edges_assignment[i]));
 	const vertices_coords = result
 		.map(el => el.segment)

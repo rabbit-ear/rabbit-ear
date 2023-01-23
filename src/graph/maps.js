@@ -84,23 +84,30 @@ export const mergeBackmaps = (...maps) => {
  */
 export const invertMap = (map) => {
 	const inv = [];
+	// set inv[index] = value, but before we do, make sure that an array
+	// will be formed if there are multiple values at that index
+	const setIndexValue = (index, value) => {
+		// before we set the inverted map [i] spot, check if something is already there
+		if (inv[index] !== undefined) {
+			// if that thing is a number, turn it into an array
+			if (typeof inv[index] === S._number) {
+				inv[index] = [inv[index], value];
+			} else {
+				// already an array, add to it
+				inv[index].push(value);
+			}
+		} else {
+			inv[index] = value;
+		}
+	};
+	// iterate through the argument array and flip the index/value
+	// in the new array so that the index is the value and visa versa.
 	map.forEach((n, i) => {
 		if (n == null) { return; }
-		if (typeof n === S._number) {
-			// before we set the inverted map [i] spot, check if something is already there
-			if (inv[n] !== undefined) {
-				// if that thing is a number, turn it into an array
-				if (typeof inv[n] === S._number) {
-					inv[n] = [inv[n], i];
-				} else {
-					// already an array, add to it
-					inv[n].push(i);
-				}
-			} else {
-				inv[n] = i;
-			}
+		if (typeof n === S._number) { setIndexValue(n, i); }
+		if (n.constructor === Array) {
+			n.forEach(m => setIndexValue(m, i));
 		}
-		if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }
 	});
 	return inv;
 };

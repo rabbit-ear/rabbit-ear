@@ -16,7 +16,7 @@ import * as Validate from "./validate";
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
  * @linkcode Origami ./src/axioms/index.js 17
  */
-const axiom = (number, params = {}, boundary) => BoundaryAxioms
+const axiom = (number, params = {}, boundary = undefined) => BoundaryAxioms
 	.axiomInBoundary(number, params, boundary);
 
 Object.keys(AxiomsVO).forEach(key => { axiom[key] = AxiomsVO[key]; });
