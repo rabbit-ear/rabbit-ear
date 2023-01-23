@@ -3237,6 +3237,16 @@ const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
 	}
 	return groups;
 };
+const makeTrianglePairs = (array) => {
+	const pairs = Array((array.length * (array.length - 1)) / 2);
+	let index = 0;
+	for (let i = 0; i < array.length - 1; i += 1) {
+		for (let j = i + 1; j < array.length; j += 1, index += 1) {
+			pairs[index] = [array[i], array[j]];
+		}
+	}
+	return pairs;
+};
 
 var arrays = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -3248,7 +3258,8 @@ var arrays = /*#__PURE__*/Object.freeze({
 	booleanMatrixToIndexedArray: booleanMatrixToIndexedArray,
 	booleanMatrixToUniqueIndexPairs: booleanMatrixToUniqueIndexPairs,
 	selfRelationalUniqueIndexPairs: selfRelationalUniqueIndexPairs,
-	clusterArrayValues: clusterArrayValues
+	clusterArrayValues: clusterArrayValues,
+	makeTrianglePairs: makeTrianglePairs
 });
 
 const removeGeometryIndices = (graph, key, removeIndices) => {
@@ -8593,6 +8604,75 @@ const solveEdgeAdjacentFacePairs$1 = (graph, facePairs, faces_winding) => {
 	return solution;
 };
 
+const doSpansOverlapExclusive = (a, b, epsilon = 1e-6) => {
+	const r1 = a[0] < a[1] ? a : [a[1], a[0]];
+	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
+	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
+	return overlap > epsilon;
+};
+const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
+	const pairCoords = edgePair
+		.map(edge => graph.edges_vertices[edge]
+			.map(v => graph.vertices_coords[v]));
+	const pairCoordsDots = pairCoords
+		.map(edge => edge
+			.map(coord => math.core.dot(coord, vector)));
+	const result = doSpansOverlapExclusive(...pairCoordsDots, epsilon);
+	return result;
+};
+const make3DTacoEdges = (graph, overlapInfo, epsilon = 1e-6) => {
+	const edges_groups_lookup = graph.edges_vertices.map(() => ({}));
+	overlapInfo.faces_group
+		.forEach((group, face) => graph.faces_edges[face]
+			.forEach(edge => { edges_groups_lookup[edge][group] = true; }));
+	const edges_groups = edges_groups_lookup
+		.map(o => Object.keys(o)
+			.map(n => parseInt(n, 10)));
+	edges_groups.forEach((arr, i) => {
+		if (arr.length !== 2) { delete edges_groups[i]; }
+	});
+	edges_groups.forEach((arr, i) => {
+		if (arr[0] > arr[1]) { edges_groups[i].reverse(); }
+	});
+	const edges_groups_keys = edges_groups.map(arr => arr.join(" "));
+	const intersectingGroups_edges = {};
+	edges_groups_keys.forEach((key, i) => {
+		if (intersectingGroups_edges[key] === undefined) {
+			intersectingGroups_edges[key] = [];
+		}
+		intersectingGroups_edges[key].push(i);
+	});
+	Object.keys(intersectingGroups_edges)
+		.filter(key => intersectingGroups_edges[key].length < 2)
+		.forEach(key => delete intersectingGroups_edges[key]);
+	const intersectingGroups_pairsAll = {};
+	Object.keys(intersectingGroups_edges).forEach(key => {
+		intersectingGroups_pairsAll[key] = makeTrianglePairs(intersectingGroups_edges[key]);
+	});
+	const intersectingGroups_pairsValid = {};
+	Object.keys(intersectingGroups_pairsAll).forEach(key => {
+		const firstEdge = intersectingGroups_pairsAll[key][0][0];
+		const coords = graph.edges_vertices[firstEdge]
+			.map(v => graph.vertices_coords[v]);
+		const vector = math.core.normalize(math.core.subtract(coords[1], coords[0]));
+		intersectingGroups_pairsValid[key] = intersectingGroups_pairsAll[key]
+			.map(pair => doEdgesOverlap(graph, pair, vector, epsilon));
+	});
+	const intersectingGroups_pairs = {};
+	Object.keys(intersectingGroups_pairsAll).forEach(key => {
+		intersectingGroups_pairs[key] = intersectingGroups_pairsAll[key]
+			.filter((_, i) => intersectingGroups_pairsValid[key][i]);
+	});
+	console.log("edges_groups", edges_groups);
+	console.log("intersectingGroups_edges", intersectingGroups_edges);
+	console.log("intersectingGroups_pairsAll", intersectingGroups_pairsAll);
+	console.log("intersectingGroups_pairsValid", intersectingGroups_pairsValid);
+	console.log("intersectingGroups_pairs", intersectingGroups_pairs);
+	const result = Object.keys(intersectingGroups_pairs)
+		.flatMap(key => intersectingGroups_pairs[key]);
+	console.log("result", result);
+};
+
 const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
 	const copies = overlapInfo.groups_transformXY.map(() => ({ ...graph }));
 	filterKeysWithPrefix(graph, "vertices")
@@ -8683,6 +8763,9 @@ const prepare$1 = (graphInput, epsilon = 1e-6) => {
 		.map(indices => indices.map(i => facePairs[i]));
 	const groups_facePairs = groups_constraints
 		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
+	const tacoEdges3D = make3DTacoEdges(graph, overlapInfo, epsilon);
+	console.log("prepare", overlapInfo);
+	console.log("tacoEdges3D", tacoEdges3D);
 	return {
 		groups_constraints,
 		groups_constraintsLookup,

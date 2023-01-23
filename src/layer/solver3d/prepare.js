@@ -21,6 +21,7 @@ import {
 	makeConstraintsLookup,
 } from "./makeConstraints";
 import solveEdgeAdjacent from "./solveEdgeAdjacent";
+import make3DTacoEdges from "./make3DTacoEdges";
 
 const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
 	// make shallow copies of the graph, one for every group
@@ -77,19 +78,6 @@ const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
 	return copies;
 };
 
-const getJoiningEdges = (graph, overlapInfo, epsilon = 1e-6) => {
-	const edges_groups_lookup = graph.edges_vertices.map(() => ({}));
-	overlapInfo.faces_group
-		.forEach((group, face) => graph.faces_edges[face]
-			.forEach(edge => { edges_groups_lookup[edge][group] = true; }));
-	const edges_groups = edges_groups_lookup
-		.map(o => Object.keys(o)
-			.map(n => parseInt(n, 10)));
-	console.log("edges_groups", edges_groups);
-	const groups_edges = invertMap(edges_groups);
-	console.log("groups_edges", groups_edges);
-};
-
 const prepare = (graphInput, epsilon = 1e-6) => {
 	const graph = { ...graphInput };
 	if (!graph.faces_edges) {
@@ -144,7 +132,7 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		.map(indices => indices.map(i => facePairs[i]));
 	const groups_facePairs = groups_constraints
 		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
-	// const joiningEdges = getJoiningEdges(graph, overlapInfo, epsilon);
+	const tacoEdges3D = make3DTacoEdges(graph, overlapInfo, epsilon);
 	// console.log("prepare", overlapInfo);
 	// console.log("graphCopies", graphCopies);
 	// console.log("faces_polygon", faces_polygon);
@@ -159,7 +147,7 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	// console.log("facePairsIndex_group", facePairsIndex_group);
 	// console.log("groups_facePairsIndex", groups_facePairsIndex);
 	// console.log("groups_facePairs", groups_facePairsWithHoles);
-	// console.log("joiningEdges", joiningEdges);
+	// console.log("tacoEdges3D", tacoEdges3D);
 	return {
 		groups_constraints,
 		groups_constraintsLookup,
