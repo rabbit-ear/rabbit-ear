@@ -94,15 +94,27 @@ const make3DTacoEdges = (graph, overlapInfo, epsilon = 1e-6) => {
 			.filter((_, i) => intersectingGroups_pairsValid[key][i]);
 	});
 	// const groups_edges = invertMap(edges_groups);
-	console.log("edges_groups", edges_groups);
+	// console.log("edges_groups", edges_groups);
 	// console.log("groups_edges", groups_edges);
-	console.log("intersectingGroups_edges", intersectingGroups_edges);
-	console.log("intersectingGroups_pairsAll", intersectingGroups_pairsAll);
-	console.log("intersectingGroups_pairsValid", intersectingGroups_pairsValid);
-	console.log("intersectingGroups_pairs", intersectingGroups_pairs);
-	const result = Object.keys(intersectingGroups_pairs)
+	// console.log("intersectingGroups_edges", intersectingGroups_edges);
+	// console.log("intersectingGroups_pairsAll", intersectingGroups_pairsAll);
+	// console.log("intersectingGroups_pairsValid", intersectingGroups_pairsValid);
+	// console.log("intersectingGroups_pairs", intersectingGroups_pairs);
+	return Object.keys(intersectingGroups_pairs)
 		.flatMap(key => intersectingGroups_pairs[key]);
-	console.log("result", result);
 };
 
-export default make3DTacoEdges;
+const make3DTacoTacos = (graph, overlapInfo, epsilon = 1e-6) => {
+	const tacos_edges = make3DTacoEdges(graph, overlapInfo, epsilon);
+	const tacos_faces = tacos_edges
+		.map(pair => pair
+			.map(edge => graph.edges_faces[edge]));
+	tacos_faces.forEach((tacos, i) => {
+		if (overlapInfo.faces_group[tacos[0][0]] !== overlapInfo.faces_group[tacos[1][0]]) {
+			tacos_faces[i][1].reverse();
+		}
+	});
+	return tacos_faces;
+};
+
+export default make3DTacoTacos;

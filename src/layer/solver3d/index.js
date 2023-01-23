@@ -178,24 +178,50 @@ const groupLayerSolver = (
  * append the "root" to one selection from each array in "partitions".
  * @linkcode Origami ./src/layer/solver3d/index.js 179
  */
+// const globalLayerSolver = (graph, epsilon = 1e-6) => {
+// 	const {
+// 		groups_constraints,
+// 		groups_constraintsLookup,
+// 		groups_facePairs,
+// 		groups_edgeAdjacentOrders,
+// 		faces_winding,
+// 	} = prepare(graph, epsilon);
+// 	// console.log("groups_constraints", groups_constraints);
+// 	// console.log("groups_constraintsLookup", groups_constraintsLookup);
+// 	// console.log("groups_facePairs", groups_facePairs);
+// 	// console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
+// 	// console.log("faces_winding", faces_winding);
+// 	const solutions = groups_constraints.map((constraints, i) => groupLayerSolver(
+// 		constraints,
+// 		groups_constraintsLookup[i],
+// 		groups_facePairs[i],
+// 		groups_edgeAdjacentOrders[i],
+// 		faces_winding,
+// 	)).filter(solution => solution && solution.orders.length);
+// 	return Object.assign(
+// 		Object.create(LayerPrototype),
+// 		{ groups: solutions },
+// 	);
+// };
+
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const {
-		groups_constraints,
-		groups_constraintsLookup,
-		groups_facePairs,
-		groups_edgeAdjacentOrders,
+		constraints,
+		constraintsLookup,
+		facePairs,
+		edgeAdjacentOrders,
 		faces_winding,
 	} = prepare(graph, epsilon);
-	const solutions = groups_constraints.map((constraints, i) => groupLayerSolver(
+	const solution = groupLayerSolver(
 		constraints,
-		groups_constraintsLookup[i],
-		groups_facePairs[i],
-		groups_edgeAdjacentOrders[i],
+		constraintsLookup,
+		facePairs,
+		edgeAdjacentOrders,
 		faces_winding,
-	)).filter(solution => solution && solution.orders.length);
+	);
 	return Object.assign(
 		Object.create(LayerPrototype),
-		{ groups: solutions },
+		solution,
 	);
 };
 

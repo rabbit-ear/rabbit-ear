@@ -78,13 +78,20 @@ const anySolution = (n) => {
 // };
 
 const LayerPrototype = {
-	anySolution: function () {
-		return this.groups.flatMap(group => anySolution(group));
-	},
+	// anySolution: function () {
+	// 	return this.groups.flatMap(group => anySolution(group));
+	// },
+	anySolution: function () { return anySolution(this); },
+	// allSolutions: function () {
+	// 	if (!this.allSolutionsMemo) {
+	// 		this.allSolutionsMemo = this.groups
+	// 			.map(group => allSolutions(group));
+	// 	}
+	// 	return this.allSolutionsMemo;
+	// },
 	allSolutions: function () {
 		if (!this.allSolutionsMemo) {
-			this.allSolutionsMemo = this.groups
-				.map(group => allSolutions(group));
+			this.allSolutionsMemo = allSolutions(this);
 		}
 		return this.allSolutionsMemo;
 	},
@@ -93,9 +100,10 @@ const LayerPrototype = {
 	 * @returns {number[]} the total number of states in each branch.
 	 * @linkcode Origami ./src/layer/solver3d/prototype.js 61
 	 */
-	count: function () {
-		return this.allSolutions().map(solution => solution.length);
-	},
+	// count: function () {
+	// 	return this.allSolutions().map(solution => solution.length);
+	// },
+	count: function () { return this.allSolutions().length; },
 	/**
 	 * @description Get one complete layer solution by merging the
 	 * root solution with one state from each branch.
@@ -105,14 +113,14 @@ const LayerPrototype = {
 	 * a value of +1 or -1, indicating the stacking order between the pair.
 	 * @linkcode Origami ./src/layer/solver3d/prototype.js 73
 	 */
-	solution: function (groupIndices = []) {
-		const solutions = this.allSolutions();
-		const indices = Array(solutions.length)
-			.fill(0)
-			.map((n, i) => (groupIndices[i] != null ? groupIndices[i] : n));
-		return solutions
-			.flatMap((solution, i) => solution[indices[i]].flat());
-	},
+	// solution: function (groupIndices = []) {
+	// 	const solutions = this.allSolutions();
+	// 	const indices = Array(solutions.length)
+	// 		.fill(0)
+	// 		.map((n, i) => (groupIndices[i] != null ? groupIndices[i] : n));
+	// 	return solutions
+	// 		.flatMap((solution, i) => solution[indices[i]].flat());
+	// },
 };
 
 export default LayerPrototype;
