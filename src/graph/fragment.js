@@ -22,7 +22,6 @@ import {
 	mergeNextmaps,
 	invertMap,
 } from "./maps";
-
 /**
  * Fragment converts a graph into a planar graph. it flattens all the
  * coordinates onto the 2D plane.
@@ -71,7 +70,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	// exit early
 	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
 		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
-		return;
+		return undefined;
 	}
 	// remember, edges_intersections contains intersections [x,y] points
 	// each one appears twice (both edges that intersect) and is the same
@@ -153,10 +152,9 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 				.map((_, i) => counts.vertices + i),
 		},
 		edges: {
-			backmap: edge_map
+			backmap: edge_map,
 		},
 	};
-	// return graph;
 };
 
 const fragment_keep_keys = [
@@ -213,7 +211,6 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 			? edgemap
 			: mergeNextmaps(change.edges.map, edgemap));
 	}
-
 	if (i === 20) {
 		console.warn("fragment reached max iterations");
 	}

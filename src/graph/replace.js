@@ -34,7 +34,7 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	// make sure replace indices are well-formed. values cannot be larger than keys.
 	// if this is the case, flip the index/value, assuming the two geometry items
 	// are interchangeable and it doesn't matter which one we remove, but warn
-	// the user that this took place
+	// the user that this took place.
 	let didModify = false;
 	Object.entries(replaceIndices)
 		.filter(([index, value]) => index < value)
@@ -61,7 +61,6 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 		}
 		if (i < geometry_array_size) { index_map[i] = j; }
 	}
-	// console.log("replace index_map", index_map);
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
 	getGraphKeysWithSuffix(graph, key)

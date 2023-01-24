@@ -80,8 +80,8 @@ export const makeEdgesSegmentIntersection = ({
  * @param {FOLD} graph a FOLD graph. only requires { edges_vector, edges_origin }
  * if they don't exist this will build them from { vertices_coords, edges_vertices }
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][][]} NxN matrix comparing indices, undefined in the case of
- * no intersection, a point object in array form if yes, and this array is stored
+ * @returns {number[][][]} NxN matrix comparing indices, arrays will contain holes,
+ * a point object in array form if yes, and this array is stored
  * in 2 PLACES! both [i][j] and [j][i], however it is stored by reference,
  * it is the same js object.
  *     0  1  2  3
@@ -104,13 +104,8 @@ export const makeEdgesEdgesIntersection = function ({
 	const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
 	for (let i = 0; i < edges_vector.length - 1; i += 1) {
 		for (let j = i + 1; j < edges_vector.length; j += 1) {
-			if (span[i][j] !== true) {
-				// this setter is unnecessary but otherwise the result is filled with
-				// both undefined and holes. this makes it consistent
-				edges_intersections[i][j] = undefined;
-				continue;
-			}
-			edges_intersections[i][j] = math.core.intersectLineLine(
+			if (span[i][j] !== true) { continue; }
+			const intersection = math.core.intersectLineLine(
 				edges_vector[i],
 				edges_origin[i],
 				edges_vector[j],
@@ -119,7 +114,10 @@ export const makeEdgesEdgesIntersection = function ({
 				math.core.excludeS,
 				epsilon,
 			);
-			edges_intersections[j][i] = edges_intersections[i][j];
+			if (intersection !== undefined) {
+				edges_intersections[i][j] = intersection;
+				edges_intersections[j][i] = intersection;
+			}
 		}
 	}
 	return edges_intersections;

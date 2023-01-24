@@ -111,16 +111,9 @@ const svgToBasicGraph = (svg) => {
  * walk and discover the boundary.
  */
 const planarizeGraph = (graph) => {
-	// console.time("clusters");
-	// const clusters = getVerticesClusters(graph);
-	// console.timeEnd("clusters");
-	// console.log("clusters", clusters);
 	const planar = { ...graph };
-	// console.log("1");
 	removeDuplicateVertices(planar);
-	// console.log("2");
 	fragment(planar);
-	// console.log("3");
 	planar.vertices_vertices = makeVerticesVertices(planar);
 	const faces = makePlanarFaces(planar);
 	planar.faces_vertices = faces.map(el => el.vertices);

@@ -4334,11 +4334,8 @@ const makeEdgesEdgesIntersection = function ({
 	const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
 	for (let i = 0; i < edges_vector.length - 1; i += 1) {
 		for (let j = i + 1; j < edges_vector.length; j += 1) {
-			if (span[i][j] !== true) {
-				edges_intersections[i][j] = undefined;
-				continue;
-			}
-			edges_intersections[i][j] = math.core.intersectLineLine(
+			if (span[i][j] !== true) { continue; }
+			const intersection = math.core.intersectLineLine(
 				edges_vector[i],
 				edges_origin[i],
 				edges_vector[j],
@@ -4347,7 +4344,10 @@ const makeEdgesEdgesIntersection = function ({
 				math.core.excludeS,
 				epsilon,
 			);
-			edges_intersections[j][i] = edges_intersections[i][j];
+			if (intersection !== undefined) {
+				edges_intersections[i][j] = intersection;
+				edges_intersections[j][i] = intersection;
+			}
 		}
 	}
 	return edges_intersections;
@@ -4417,7 +4417,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	}, epsilon);
 	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
 		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
-		return;
+		return undefined;
 	}
 	const counts = { vertices: graph.vertices_coords.length };
 	edges_intersections
@@ -4475,7 +4475,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 				.map((_, i) => counts.vertices + i),
 		},
 		edges: {
-			backmap: edge_map
+			backmap: edge_map,
 		},
 	};
 };
