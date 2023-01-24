@@ -3,13 +3,17 @@
  */
 import math from "../math";
 /**
- * density-based spatial clustering of applications with noise (DBSCAN)
- * cluster vertices near each other with an epsilon
+ * @description
  */
+const sortPointsAlongFirstAxis = (points) => points
+	.map((point, i) => ({ i, d: point[0] }))
+	.sort((a, b) => a.d - b.d)
+	.map(a => a.i);
 /**
  * @description Find all clusters of vertices which lie within an epsilon of each other.
  * Each cluster is an array of vertex indices. If no clusters exist, the method returns
- * N-number of arrays, each with a single vertex entry.
+ * N-number of arrays, each with a single vertex entry. This is an implementation of a
+ * density-based spatial clustering of applications with noise (DBSCAN).
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of arrays of vertex indices.
@@ -18,39 +22,22 @@ import math from "../math";
  * clusters: [ [0, 5], [1], [3], [2, 4]]
  * @linkcode Origami ./src/graph/verticesClusters.js 31
  */
-export const sortPointsAlongFirstAxis = (points) => points
-	.map((point, i) => ({ i, d: point[0] }))
-	.sort((a, b) => a.d - b.d)
-	.map(a => a.i);
-
-export const getVerticesClusters2 = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
 	if (!vertices_coords) { return []; }
 	// the return value, the clusters
 	const clusters = [];
 	// add to this as we go. once length === vertices_coords.length, we are done.
 	const finished = [];
+	// as we add points to clusters, they will be removed from here.
 	const vertices = sortPointsAlongFirstAxis(vertices_coords);
-	// loop {
-	// 	to begin:
-	// 	take the first index in the sorted list, add it to a cluster,
-	// 	form a bounding box NOT by all points in the cluster, but all
-	// 	points that are within epsilon range of the most recently added point
-	// 	rangeStart is the index of the cluster which is still within epsilon
-	// 	range of the most recently added point, every update to cluster will
-	// 	refresh the bounding box as rect range of indices (rangeStart...length)
-	// 	then:
-	// 	start checking the next indices forward on the +X axis,
-	// 	if they are epsilon close to the current bounding box,
-	// 	add them to the cluster, and set their "finished" state.
-	// 	and if the rangeStart pointer is too far away, walk it forward
-	// 	until it is within epsilon range and update the new bounding box
-	// 	as we pass (and reject) any indices, add them to the missed array.
-	// 	once we reach a state where we can no longer
-	// }
 	let rangeStart = 0;
 	let yRange = [0, 0];
 	let xRange = [0, 0];
-	const isInside = (index) => (
+	/**
+	 * @description Test if a vertex is inside the current cluster's bounding box
+	 * @param {number} index an index in vertices_coords
+	 */
+	const isInsideCluster = (index) => (
 		vertices_coords[index][0] > xRange[0]
 		&& vertices_coords[index][0] < xRange[1]
 		&& vertices_coords[index][1] > yRange[0]
@@ -58,16 +45,17 @@ export const getVerticesClusters2 = ({ vertices_coords }, epsilon = math.core.EP
 	);
 	/**
 	 * @description Each time we add a point to the current cluster,
-	 * we need to expand the current cluster bounding box. since we are
-	 * only moving left to right, when we consider another point to be
-	 * added or not, we only need to consider it against the right most
-	 * side of the bounding box, this is the right most set of points
-	 * that are within the epsilon range of the furthest point to the right.
+	 * form a bounding box NOT by all points in the cluster, but all
+	 * points that are within epsilon range along the X-axis of the most
+	 * recently added point, as points are sorted left to right.
+	 * "rangeStart" is the index of the cluster which is still within epsilon
+	 * range of the most recently added point, every update to cluster will
+	 * refresh the bounding box as rect range of indices (rangeStart...length).
 	 */
 	const updateRange = (cluster) => {
 		const newVertex = cluster[cluster.length - 1];
 		// update rangeStart
-		// while (!isInside(cluster[rangeStart]) && rangeStart < cluster.length - 1) {
+		// while (!isInsideCluster(cluster[rangeStart]) && rangeStart < cluster.length - 1) {
 		// 	rangeStart += 1;
 		// }
 		while (vertices_coords[newVertex] - vertices_coords[cluster[rangeStart]] > epsilon) {
@@ -80,8 +68,9 @@ export const getVerticesClusters2 = ({ vertices_coords }, epsilon = math.core.EP
 		yRange = [Math.min(...ys) - epsilon, Math.max(...ys) + epsilon];
 		xRange = [points[0][0] - epsilon, points[points.length - 1][0] + epsilon];
 	};
-	const isNearInX = (index) => (vertices_coords[index][0] < xRange[1]);
+	// loop until all points have been added to "finished"
 	while (finished.length !== vertices_coords.length) {
+		// start a new cluster, add the first vertex furthest to the left
 		const cluster = [];
 		const startVertex = vertices.shift();
 		cluster.push(startVertex);
@@ -92,8 +81,15 @@ export const getVerticesClusters2 = ({ vertices_coords }, epsilon = math.core.EP
 		updateRange(cluster);
 		// walk is an index in the array "vertices"
 		let walk = 0;
-		while (walk < vertices.length && isNearInX(vertices[walk])) {
-			if (isInside(vertices[walk])) {
+		// this boolean check tests whether or not the vertex is still inside
+		// the bounding box ONLY according to the X axis. it's possible a
+		// vertex is too far away in the Y (and rejected from the cluster), but
+		// the next few vertices to its right are still within the cluster.
+		// however, if we move too far away in the X direction from the cluster,
+		// we know this cluster is finished and we can start a new one.
+		while (walk < vertices.length && vertices_coords[vertices[walk]][0] < xRange[1]) {
+			// if the point is inside the bounding box of the cluster, add it.
+			if (isInsideCluster(vertices[walk])) {
 				const newVertex = vertices.splice(walk, 1).shift();
 				cluster.push(newVertex);
 				finished.push(newVertex);
@@ -101,6 +97,9 @@ export const getVerticesClusters2 = ({ vertices_coords }, epsilon = math.core.EP
 				updateRange(cluster);
 				// don't increment walk. the vertices array got smaller instead
 			} else {
+				// skip over this vertex. even though our vertices are sorted
+				// left to right, it's possible that this one is too far away in the
+				// Y axis, but the next few points will still be inside the cluster
 				walk += 1;
 			}
 		}
@@ -109,4 +108,8 @@ export const getVerticesClusters2 = ({ vertices_coords }, epsilon = math.core.EP
 		clusters.push(cluster);
 	}
 	return clusters;
+	// .map(arr => arr.sort((a, b) => a - b))
+	// .sort((a, b) => a[0] - b[0]);
 };
+
+export default getVerticesClusters;

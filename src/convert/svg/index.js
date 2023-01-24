@@ -16,9 +16,9 @@ import { getPlanarBoundary } from "../../graph/boundary";
 import parseStyleElement from "./parseStyleElement";
 
 // for testing
-import {
-	getVerticesClusters2,
-} from "../../graph/verticesClusters";
+// import {
+// 	getVerticesClusters2,
+// } from "../../graph/verticesClusters";
 import getVerticesClusters from "../../graph/verticesClusters";
 
 const opacityToFoldAngle = (opacity, assignment) => {
@@ -111,19 +111,16 @@ const svgToBasicGraph = (svg) => {
  * walk and discover the boundary.
  */
 const planarizeGraph = (graph) => {
-	///
-	console.time("2D clusters");
-	const clusters2 = getVerticesClusters2(graph);
-	console.timeEnd("2D clusters");
-	console.time("old clusters");
-	const clusters = getVerticesClusters(graph);
-	console.timeEnd("old clusters");
-	console.log("clusters2", clusters2);
-	console.log("clusters", clusters);
-	///
+	// console.time("clusters");
+	// const clusters = getVerticesClusters(graph);
+	// console.timeEnd("clusters");
+	// console.log("clusters", clusters);
 	const planar = { ...graph };
+	// console.log("1");
 	removeDuplicateVertices(planar);
+	// console.log("2");
 	fragment(planar);
+	// console.log("3");
 	planar.vertices_vertices = makeVerticesVertices(planar);
 	const faces = makePlanarFaces(planar);
 	planar.faces_vertices = faces.map(el => el.vertices);

@@ -31,16 +31,30 @@ import {
 // replaceIndices: [4:3, 7:5, 8:3, 12:3, 14:9] where keys are indices to remove
 const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	const geometry_array_size = count(graph, key);
+	// make sure replace indices are well-formed. values cannot be larger than keys.
+	// if this is the case, flip the index/value, assuming the two geometry items
+	// are interchangeable and it doesn't matter which one we remove, but warn
+	// the user that this took place
+	let didModify = false;
+	Object.entries(replaceIndices)
+		.filter(([index, value]) => index < value)
+		.forEach(([index, value]) => {
+			didModify = true;
+			delete replaceIndices[index];
+			replaceIndices[value] = index;
+		});
+	if (didModify) {
+		console.warn("replace() found index < value. indices parameter was modified");
+	}
 	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
 	const replaces = uniqueSortedNumbers(removes);
 	const index_map = [];
-	let i, j, walk;
-	for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
+	for (let i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
 		while (i === replaces[walk]) {
 			// this prevents arrays with holes
 			index_map[i] = index_map[replaceIndices[replaces[walk]]];
 			if (index_map[i] === undefined) {
-				console.log("replace() found an undefined", index_map);
+				console.warn("replace() generated undefined", index_map);
 			}
 			i += 1;
 			walk += 1;
