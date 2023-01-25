@@ -3,9 +3,9 @@
  */
 import math from "../math";
 import {
-	clusterArrayValues,
+	clusterScalars,
 } from "../general/arrays";
-import { 	connectedComponentsArray } from "./connectedComponents";
+import connectedComponents from "./connectedComponents";
 import { invertMap } from "./maps";
 import {
 	makeEdgesVector,
@@ -30,7 +30,7 @@ const parallelNormalized = (v, u, epsilon = math.core.EPSILON) => 1 - Math
  * a normal vector, a list of face indices, and a matching list indicating
  * if the face shares the normal vector or the face is flipped 180 degrees.
  */
-export const getCoplanarFacesGroups = ({
+export const coplanarFacesGroups = ({
 	vertices_coords, faces_vertices,
 }, epsilon = math.core.EPSILON) => {
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
@@ -49,7 +49,7 @@ export const getCoplanarFacesGroups = ({
 		}
 	}
 	// create disjoint sets of faces which all share the same normal
-	const facesNormalMatchCluster = connectedComponentsArray(facesNormalMatch);
+	const facesNormalMatchCluster = connectedComponents(facesNormalMatch);
 	const normalClustersFaces = invertMap(facesNormalMatchCluster)
 		.map(el => (typeof el === "number" ? [el] : el));
 	// for each cluster, choose one normal, this normal is now associated with the cluster.
@@ -70,7 +70,7 @@ export const getCoplanarFacesGroups = ({
 	// for every cluster of a shared normal, further divide into clusters where
 	// each inner cluster contains faces which share the same plane
 	const clustersClusters = normalClustersFacesDot
-		.map((dots, i) => clusterArrayValues(dots)
+		.map((dots, i) => clusterScalars(dots)
 			.map(cluster => cluster.map(index => normalClustersFaces[i][index])));
 	// flatten the data one level, there is no need to return these as nested clusters.
 	// before flattening, create a matching array of normals.
@@ -102,10 +102,10 @@ export const getCoplanarFacesGroups = ({
  * @returns {number[][]} an array matching the length of faces, for every face,
  * the list of indices of faces which overlap this face.
  */
-export const getOverlappingFacesGroups = ({
+export const overlappingFacesGroups = ({
 	vertices_coords, faces_vertices,
 }, epsilon = math.core.EPSILON) => {
-	const coplanarFaces = getCoplanarFacesGroups({ vertices_coords, faces_vertices }, epsilon);
+	const coplanarFaces = coplanarFacesGroups({ vertices_coords, faces_vertices }, epsilon);
 	// before we go too far, make a reverse lookup for fast-access of the above data
 	const faces_coplanarIndex = [];
 	coplanarFaces.forEach((cluster, i) => cluster.faces
@@ -166,7 +166,7 @@ export const getOverlappingFacesGroups = ({
 			}
 		}
 	});
-	const faces_group = connectedComponentsArray(faces_facesOverlap);
+	const faces_group = connectedComponents(faces_facesOverlap);
 	const groups_faces = invertMap(faces_group)
 		.map(el => (typeof el === "number" ? [el] : el));
 	// console.log("coplanarFaces", coplanarFaces);

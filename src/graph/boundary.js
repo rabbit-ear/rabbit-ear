@@ -8,6 +8,7 @@ import {
 	makeVerticesVertices,
 	makeVerticesToEdgeBidirectional,
 } from "./make";
+import Messages from "../environment/messages.json";
 /**
  * @description Make an axis-aligned bounding box that encloses the vertices of
  * a FOLD object. the optional padding is used to make the bounding box
@@ -18,9 +19,9 @@ import {
  * to be included in the bounding box.
  * @returns {BoundingBox?} dimensions stored as "span" "min" and "max".
  * "undefined" if no vertices exist in the graph.
- * @linkcode Origami ./src/graph/boundary.js 21
+ * @linkcode Origami ./src/graph/boundary.js 22
  */
-export const getBoundingBox = ({ vertices_coords }, padding) => math.core
+export const boundingBox = ({ vertices_coords }, padding) => math.core
 	.boundingBox(vertices_coords, padding);
 /**
  * @description For every vertex return a true if the vertex lies along a boundary
@@ -28,13 +29,13 @@ export const getBoundingBox = ({ vertices_coords }, padding) => math.core
  * or does not contain boundary edges, this will return an empty array.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
- * @linkcode Origami ./src/graph/boundary.js 31
+ * @linkcode Origami ./src/graph/boundary.js 32
  */
-export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => (
+export const boundaryVertices = ({ edges_vertices, edges_assignment }) => (
 	uniqueElements(edges_vertices
 		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
 		.flat()));
-// export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
+// export const boundaryVertices = ({ edges_vertices, edges_assignment }) => {
 // 	// assign vertices to a hash table to make sure they are unique.
 // 	const vertices = {};
 // 	edges_vertices.forEach((v, i) => {
@@ -51,13 +52,13 @@ const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
  * @description Get the boundary of a FOLD graph in terms of both vertices and edges.
  * This works by walking the boundary edges as defined by edges_assignment ("B" or "b").
  * If edges_assignment doesn't exist, or contains errors, this will not work, and you
- * will need the more robust algorithm getPlanarBoundary() which walks the graph, but
+ * will need the more robust algorithm planarBoundary() which walks the graph, but
  * only works in 2D.
  * @param {FOLD} graph a FOLD graph
  * @returns {object} with "vertices" and "edges" with arrays of indices.
- * @linkcode Origami ./src/graph/boundary.js 58
+ * @linkcode Origami ./src/graph/boundary.js 59
  */
-export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
@@ -104,11 +105,11 @@ export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }
  * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
- * @linkcode Origami ./src/graph/boundary.js 107
+ * @linkcode Origami ./src/graph/boundary.js 108
  */
-export const getPlanarBoundary = ({
+export const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
-}) => {
+}, infiniteLoopProtection = true) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
@@ -158,8 +159,14 @@ export const getPlanarBoundary = ({
 	// prev_vertex, this_vertex, next_vertex
 	let prev_vertex_i = first_vertex_i;
 	let this_vertex_i = second_vertex_i;
-	let protection = 0;
-	while (protection < 10000) {
+	// because this is an infinite loop, and it relies on vertices_vertices
+	// being well formed (if it was user-made, we cannot guarantee),
+	// this loop protection will mod 1000 loops and check the duration.
+	const start = performance.now();
+	// 10 seconds. more than enough to verify something went wrong
+	const MAX_DURATION = 10000;
+	let count = 0;
+	while (true) {
 		const next_neighbors = vertices_vertices[this_vertex_i];
 		const from_neighbor_i = next_neighbors.indexOf(prev_vertex_i);
 		const next_neighbor_i = (from_neighbor_i + 1) % next_neighbors.length;
@@ -176,8 +183,13 @@ export const getPlanarBoundary = ({
 		edge_walk.push(next_edge_i);
 		prev_vertex_i = this_vertex_i;
 		this_vertex_i = next_vertex_i;
-		protection += 1;
+		count += 1;
+		// if loop protection is turned on, check elapsed time every 1000 loops
+		// so that we reduce number of calls to the performance API.
+		if (infiniteLoopProtection
+			&& count % 1000 === 0
+			&& performance.now() - start > MAX_DURATION) {
+			throw new Error(Messages.planarBoundary);
+		}
 	}
-	console.warn("calculate boundary potentially entered infinite loop");
-	return walk;
 };

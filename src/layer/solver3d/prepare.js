@@ -10,7 +10,7 @@ import {
 } from "../../graph/make";
 import { selfRelationalUniqueIndexPairs } from "../../general/arrays";
 import {
-	getOverlappingFacesGroups,
+	overlappingFacesGroups,
 } from "../../graph/overlap";
 import makeTacosTortillas from "./makeTacosTortillas";
 import makeTransitivityTrios from "./makeTransitivityTrios";
@@ -83,7 +83,7 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	if (!graph.faces_edges) {
 		graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	}
-	const overlapInfo = getOverlappingFacesGroups(graph, epsilon);
+	const overlapInfo = overlappingFacesGroups(graph, epsilon);
 	// these groups have more than 1 face in them.
 	// const groups = groups_faces
 	// 	.map((faces, i) => ({ faces, i }))

@@ -1,6 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import Messages from "../../environment/messages.json";
+
 const initializeWebGL = (canvasElement, preferredVersion) => {
 	const contextName = [null, "webgl", "webgl2"];
 	// set the size of the drawingBuffer to include retina display level pixels (if exist),
@@ -19,7 +21,7 @@ const initializeWebGL = (canvasElement, preferredVersion) => {
 	if (gl2) { return { gl: gl2, version: 2 }; }
 	const gl1 = canvasElement.getContext(contextName[1]);
 	if (gl1) { return { gl: gl1, version: 1 }; }
-	throw new Error("WebGl not Supported");
+	throw new Error(Messages.noWebGL);
 };
 
 export default initializeWebGL;

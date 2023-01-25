@@ -139,7 +139,7 @@ export const makeEdgesEdgesIntersection = function ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
- * @linkcode Origami ./src/graph/intersect.js 144
+ * @linkcode Origami ./src/graph/intersect.js 142
  */
 export const intersectConvexFaceLine = ({
 	vertices_coords, edges_vertices, faces_vertices, faces_edges,

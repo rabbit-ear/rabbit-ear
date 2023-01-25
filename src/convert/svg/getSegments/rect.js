@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import { getAttributesFloatValue } from "./attributes";
 
 const RectToSegments = function (rect) {

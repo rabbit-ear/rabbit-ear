@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import window from "../../environment/window";
 /**
  * @param {string} input an SVG as a string

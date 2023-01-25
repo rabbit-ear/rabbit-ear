@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../math";
-import { getBoundary } from "./boundary";
+import { boundary } from "./boundary";
 
 /**
  * @description Clip a line inside the boundaries of a graph, resulting in one segment
@@ -14,7 +14,7 @@ import { getBoundary } from "./boundary";
  * @linkcode Origami ./src/graph/clip.js 14
  */
 const clip = function (graph, line) {
-	const polygon = getBoundary(graph).vertices.map(v => graph.vertices_coords[v]);
+	const polygon = boundary(graph).vertices.map(v => graph.vertices_coords[v]);
 	const vector = line.vector ? line.vector : math.core.subtract2(line[1], line[0]);
 	const origin = line.origin ? line.origin : line[0];
 	const fn_line = (line.domain_function ? line.domain_function : math.core.includeL);

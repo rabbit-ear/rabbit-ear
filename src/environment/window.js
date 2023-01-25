@@ -11,7 +11,7 @@
  * cancelAnimationFrame, requestAnimationFrame, fetch, which are used by this library.
  */
 import { isBrowser } from "./detect";
-import errors from "./errors";
+import Messages from "./messages.json";
 
 const windowContainer = { window: undefined };
 
@@ -32,7 +32,7 @@ if (isBrowser) { windowContainer.window = window; }
  */
 const RabbitEarWindow = () => {
 	if (windowContainer.window === undefined) {
-		throw errors[10];
+		throw new Error(Messages.window);
 	}
 	return windowContainer.window;
 };

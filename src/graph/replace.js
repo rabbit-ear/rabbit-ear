@@ -7,6 +7,7 @@ import {
 	getGraphKeysWithSuffix,
 	getGraphKeysWithPrefix,
 } from "../fold/spec";
+import Messages from "../environment/messages.json";
 /**
  * @name replace
  * @memberof graph
@@ -26,7 +27,7 @@ import {
  *
  * this can handle removing multiple indices at once; and is faster than
  * otherwise calling this multiple times with only one or a few removals.
- * @linkcode Origami ./src/graph/replace.js 29
+ * @linkcode Origami ./src/graph/replace.js 30
  */
 // replaceIndices: [4:3, 7:5, 8:3, 12:3, 14:9] where keys are indices to remove
 const replaceGeometryIndices = (graph, key, replaceIndices) => {
@@ -44,7 +45,7 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 			replaceIndices[value] = index;
 		});
 	if (didModify) {
-		console.warn("replace() found index < value. indices parameter was modified");
+		console.warn(Messages.replaceModifyParam);
 	}
 	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
 	const replaces = uniqueSortedNumbers(removes);
@@ -54,7 +55,7 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 			// this prevents arrays with holes
 			index_map[i] = index_map[replaceIndices[replaces[walk]]];
 			if (index_map[i] === undefined) {
-				console.warn("replace() generated undefined", index_map);
+				throw new Error(Messages.replaceUndefined);
 			}
 			i += 1;
 			walk += 1;

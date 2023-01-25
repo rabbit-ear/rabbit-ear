@@ -4,7 +4,7 @@
 import clone from "../general/clone";
 import * as S from "../general/strings";
 import { filterKeysWithPrefix } from "../fold/spec";
-
+import Messages from "../environment/messages.json";
 /**
  * @description todo
  * @param {FOLD} graph a FOLD graph
@@ -25,7 +25,7 @@ export const flattenFrame = (graph, frame_num = 1) => {
 
 	const recurse = (recurse_graph, frame, orderArray) => {
 		if (memo.visited_frames.indexOf(frame) !== -1) {
-			throw new Error("flatten cycle detected");
+			throw new Error(Messages.graphCycle);
 		}
 		memo.visited_frames.push(frame);
 		orderArray = [frame].concat(orderArray);

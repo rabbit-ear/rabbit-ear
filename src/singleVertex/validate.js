@@ -7,7 +7,7 @@ import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVerticesVector,
 } from "../graph/make";
-import { getBoundaryVertices } from "../graph/boundary";
+import { boundaryVertices } from "../graph/boundary";
 import { alternatingSum } from "./kawasakiMath";
 
 const flat_assignment = {
@@ -50,7 +50,7 @@ export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignme
 			.reduce((a, b) => a + b, 0))
 		.map(sum => sum === 2 || sum === -2);
 	// overwrite any false values to true for all boundary vertices
-	getBoundaryVertices({ edges_vertices, edges_assignment })
+	boundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
@@ -89,7 +89,7 @@ export const validateKawasaki = ({
 		.map(pair => Math.abs(pair[0] - pair[1]) < epsilon);
 
 	// overwrite any false values to true for all boundary vertices
-	getBoundaryVertices({ edges_vertices, edges_assignment })
+	boundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });

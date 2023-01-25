@@ -1,7 +1,11 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVerticesUnsorted,
 } from "./make";
+// export const shuttup = 5;
 /**
  * @description Given a list of indices, and a list of pairwise combinations of
  * these indices, these pairs represent edges, separate the set of indices into
@@ -11,7 +15,7 @@ import {
  * @example to call with faceOrders create a copy of faceOrders and remove
  * the [2] third index for "pairs".
  */
-export const getDisjointedVertices = ({ edges_vertices, vertices_edges, vertices_vertices }) => {
+export const disjointVerticesSets = ({ edges_vertices, vertices_edges, vertices_vertices }) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}

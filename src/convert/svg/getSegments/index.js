@@ -1,4 +1,7 @@
 /**
+ * Rabbit Ear (c) Kraft
+ */
+/**
  * in SVG a list of points is a SPACE-separated string, where each point is
  * COMMA-separated. example: 0.5,0.5 2,3 10,1
  */

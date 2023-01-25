@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import { pointsStringToArray } from "./attributes";
 
 const PolygonToSegments = (poly) => (

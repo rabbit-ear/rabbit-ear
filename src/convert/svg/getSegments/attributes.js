@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 export const pointsStringToArray = str => {
 	const list = str
 		.split(/[\s,]+/)

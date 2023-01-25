@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
-import { getBoundingBox } from "../../graph/boundary";
+import { boundingBox } from "../../graph/boundary";
 /**
  * @description Initialize a viewport for a WebGL context
  * based on the dimensions of the canvas.
@@ -49,7 +49,7 @@ export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 
  */
 export const makeModelMatrix = (graph) => {
 	if (!graph) { return math.core.identity4x4; }
-	const bounds = getBoundingBox(graph);
+	const bounds = boundingBox(graph);
 	if (!bounds) { return math.core.identity4x4; }
 	const scale = Math.max(...bounds.span); // * Math.SQRT2;
 	const center = math.core.resize(3, math.core.midpoint(bounds.min, bounds.max));

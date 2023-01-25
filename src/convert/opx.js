@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../math";
 import window from "../environment/window";
 import {

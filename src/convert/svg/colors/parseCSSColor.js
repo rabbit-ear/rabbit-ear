@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import cssColors from "./cssColors.json";
 import hexToRGB from "./hexToRGB";
 

@@ -40,7 +40,7 @@ const edges_vertices_equivalent = function (a, b) {
 };
 
 const make_edges_collinearVertices = function ({
-	vertices_coords, edges_vertices
+	vertices_coords, edges_vertices,
 }, epsilon = math.core.EPSILON) {
 	const edges = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]));
@@ -60,7 +60,7 @@ const make_edges_alignment = function ({ vertices_coords, edges_vertices }) {
 };
 
 const make_edges_intersections = function ({
-	vertices_coords, edges_vertices
+	vertices_coords, edges_vertices,
 }, epsilon = math.core.EPSILON) {
 	const edge_count = edges_vertices.length;
 	const edges = edges_vertices
@@ -87,11 +87,13 @@ const make_edges_intersections = function ({
 			//   epsilon
 			// );
 			crossings[i][j] = math.core.intersect_line_line(
-				edges_vectors[i], edges[i][0],
-				edges_vectors[j], edges[j][0],
+				edges_vectors[i],
+				edges[i][0],
+				edges_vectors[j],
+				edges[j][0],
 				math.core.exclude_s,
 				math.core.exclude_s,
-				epsilon
+				epsilon,
 			);
 		}
 	}
@@ -112,7 +114,6 @@ const make_edges_intersections = function ({
 	// careful with the pairs in separate locations - these are shallow pointers
 	return edges_intersections;
 };
-
 
 const fragment = function (graph, epsilon = math.core.EPSILON) {
 	const horizSort = function (a, b) { return a[0] - b[0]; };

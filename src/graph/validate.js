@@ -2,12 +2,12 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	getDuplicateEdges,
-	getCircularEdges,
+	duplicateEdges,
+	circularEdges,
 } from "./edgesViolations";
 import {
-	getDuplicateVertices,
-	getIsolatedVertices,
+	duplicateVertices,
+	isolatedVertices,
 } from "./verticesViolations";
 import count from "./count";
 import countImplied from "./countImplied";
@@ -47,10 +47,10 @@ const validate_references = (graph) => {
  * @linkcode Origami ./src/graph/validate.js 47
  */
 const validate = (graph, epsilon) => {
-	const duplicate_edges = getDuplicateEdges(graph);
-	const circular_edges = getCircularEdges(graph);
-	const isolated_vertices = getIsolatedVertices(graph);
-	const duplicate_vertices = getDuplicateVertices(graph, epsilon);
+	const duplicate_edges = duplicateEdges(graph);
+	const circular_edges = circularEdges(graph);
+	const isolated_vertices = isolatedVertices(graph);
+	const duplicate_vertices = duplicateVertices(graph, epsilon);
 	const references = validate_references(graph);
 	const is_perfect = duplicate_edges.length === 0
 		&& circular_edges.length === 0

@@ -62,23 +62,24 @@ export const splitCircularArray = (array, indices) => {
  * @return {any[]} one of the arrays from the set
  * @linkcode Origami ./src/general/arrays.js 63
  */
-export const getLongestArray = (arrays) => {
-	if (arrays.length === 1) { return arrays[0]; }
-	const lengths = arrays.map(arr => arr.length);
-	let max = 0;
-	for (let i = 0; i < arrays.length; i += 1) {
-		if (lengths[i] > lengths[max]) {
-			max = i;
-		}
-	}
-	return arrays[max];
-};
+// this was used by some faces_layer method not included anymore
+// export const getLongestArray = (arrays) => {
+// 	if (arrays.length === 1) { return arrays[0]; }
+// 	const lengths = arrays.map(arr => arr.length);
+// 	let max = 0;
+// 	for (let i = 0; i < arrays.length; i += 1) {
+// 		if (lengths[i] > lengths[max]) {
+// 			max = i;
+// 		}
+// 	}
+// 	return arrays[max];
+// };
 /**
  * @description Convert a sparse or dense matrix containing true/false/undefined
  * into arrays containing the indices `[i,j]` of all true values.
  * @param {Array<Array<boolean|undefined>>} matrix a 2D matrix containing boolean or undefined
  * @returns {number[][]} array of arrays of numbers
- * @linkcode Origami ./src/general/arrays.js 81
+ * @linkcode Origami ./src/general/arrays.js 82
  */
 export const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
@@ -92,7 +93,7 @@ export const booleanMatrixToIndexedArray = matrix => matrix
  * @param {any[][]} matrix a matrix containing any type
  * @returns {number[][]} array of pairs of numbers, the pairs of indices
  * which are truthy in the matrix.
- * @linkcode Origami ./src/general/arrays.js 95
+ * @linkcode Origami ./src/general/arrays.js 96
  */
 // todo: i wrote this to replace the bit below. this works with
 // sparse arrays too. needs testing before it gets replaced.
@@ -119,12 +120,12 @@ export const booleanMatrixToUniqueIndexPairs = matrix => {
  * @description Given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
  * inner arrays relate to the indices of the outer array, create a list of
- * all pairwise combinations of related indices. This handles circular
- * references, and ensures that no duplicate pairs appear by maintaining
- * for [i, j] that i <= j.
+ * all pairwise combinations of related indices. This allows circular
+ * references (i === j) ensuring they only appear once, generally ensuring
+ * that no duplicate pairs appear by maintaining for [i, j] that i <= j.
  * @param {number[][]} array_array an array of arrays of integers
  * @returns {number[][]} array of two-dimensional array pairs of indices.
- * @linkcode Origami ./src/general/arrays.js 127
+ * @linkcode Origami ./src/general/arrays.js 128
  */
 export const selfRelationalUniqueIndexPairs = (array_array) => {
 	const circular = [];
@@ -138,30 +139,17 @@ export const selfRelationalUniqueIndexPairs = (array_array) => {
 	}));
 	return pairs;
 };
-// export const selfRelationalUniqueIndexPairs = (array_array) => {
-// 	const circular = [];
-// 	const pairs = [];
-// 	for (let i = 0; i < array_array.length; i += 1) {
-// 		for (let j = 0; j < array_array[i].length; j += 1) {
-// 			if (i < array_array[i][j]) { pairs.push([i, array_array[i][j]]); }
-// 			if (i === array_array[i][j] && !circular[i]) {
-// 				circular[i] = true;
-// 				pairs.push([i, array_array[i][j]]);
-// 			}
-// 		}
-// 	}
-// 	return pairs;
-// };
 /**
  * @description Given an array of floats, make a sorted copy of the array,
  * then walk through the array and group similar values into clusters.
- * Cluster epsilon is relative to the neighbor not the entire group,
- * so 1, 2, 3, 4, 5 will all be clustered together if the epsilon is 1.5.
+ * Cluster epsilon is relative to the nearest neighbor, not the start
+ * of the group or some other metric, so for example, the values
+ * [1, 2, 3, 4, 5] will all be in one cluster if the epsilon is 1.5.
  * @param {number[]} floats an array of numbers
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of array of indices to the input array.
  */
-export const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
+export const clusterScalars = (floats, epsilon = math.core.EPSILON) => {
 	const indices = floats
 		.map((v, i) => ({ v, i }))
 		.sort((a, b) => a.v - b.v)
@@ -182,10 +170,11 @@ export const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
 /**
  * @description convert a list of items {any} into a list of pairs
  * where each item is uniqely matched with another item (non-ordered)
- * the length is a triangle number, ie: 6 + 5 + 4 + 3 + 2 + 1
- * (length * (length-1)) / 2
+ * the number of pairs is (length * (length-1)) / 2
+ * @param {any[]} array an array containing any values
+ * @returns {any[][]} an array of arrays, the inner arrays are all length 2
  */
-export const makeTrianglePairs = (array) => {
+export const chooseTwoPairs = (array) => {
 	const pairs = Array((array.length * (array.length - 1)) / 2);
 	let index = 0;
 	for (let i = 0; i < array.length - 1; i += 1) {
@@ -205,7 +194,7 @@ export const makeTrianglePairs = (array) => {
  * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
  * // will return
  * [ [8, 1], [3, 5] ]
- * @linkcode Origami ./src/general/arrays.js 208
+ * @linkcode Origami ./src/general/arrays.js 197
  */
 // export const circularArrayValidRanges = (array) => {
 // 	// if the array contains no undefineds, return the default state.

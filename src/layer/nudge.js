@@ -4,7 +4,7 @@
 import { makeFacesNormal } from "../graph/normals";
 import { invertMap } from "../graph/maps";
 import topologicalOrder from "./topological";
-import { getDisjointedVertices } from "../graph/sets";
+import { disjointVerticesSets } from "../graph/sets";
 /**
  * @description Given a graph with a faces_layer, a topological sorting
  * of faces, for a flat-folded 2D graph, get an array where every face
@@ -37,7 +37,7 @@ export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
  */
 export const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
-	const sets_faces = getDisjointedVertices({
+	const sets_faces = disjointVerticesSets({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
 	});
 	const sets_layers_face = sets_faces

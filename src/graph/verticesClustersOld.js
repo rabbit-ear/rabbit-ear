@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../math";
 /**
  * density-based spatial clustering of applications with noise (DBSCAN)
@@ -25,7 +28,7 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
  * @example
  * no clusters: [ [0], [1], [2], [3], [4], ... ]
  * clusters: [ [0, 5], [1], [3], [2, 4]]
- * @linkcode Origami ./src/graph/verticesClusters.js 31
+ * @linkcode Origami ./src/graph/verticesClustersOld.js 31
  */
 const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
 	// equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices

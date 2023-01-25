@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../math";
 
 export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => faces_vertices

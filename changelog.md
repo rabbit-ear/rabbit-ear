@@ -1,6 +1,32 @@
 # 0.9.33 alpha
 
+Methods renamed:
+
+- `getBoundingBox` -> `boundingBox`
+- `getBoundaryVertices` -> `boundaryVertices`
+- `getBoundary` -> `boundary`
+- `getPlanarBoundary` -> `planarBoundary`
+- `makeFacesFacesOverlap` -> `getFacesFaces2DOverlap`
+- `makeFacesCenter` -> `makeFacesCenter2D`
+- `makeFacesCenterQuick` -> `makeFacesConvexCenter`
+- `getDuplicateEdges` -> `duplicateEdges`
+- `getCircularEdges` -> `circularEdges`
+- `getVerticesClusters` -> `verticesClusters`
+- `getDuplicateVertices` -> `duplicateVertices`
+- `getEdgeIsolatedVertices` -> `edgeIsolatedVertices`
+- `getFaceIsolatedVertices` -> `faceIsolatedVertices`
+- `getIsolatedVertices` -> `isolatedVertices`
+- `getCoplanarFacesGroups` -> `coplanarFacesGroups`
+- `getOverlappingFacesGroups` -> `overlappingFacesGroups`
+- `makeTrianglePairs` -> `chooseTwoPairs`
+- `clusterArrayValues` -> `clusterScalars`
+- `getDisjointedVertices` -> `disjointVerticesSets`
+
+`makeEdgesAssignment` has been renamed to `makeEdgesAssignmentSimple` and `makeEdgesAssignment` now also assigns "B" boundary edges by checking edges_faces for # of incident faces.
+
 new WebGL implementation. see: https://foldfile.com
+
+Various methods will now throw Errors instead of console.error or console.warn. Not all console.warn have been removed however. The distinction is that if the function is still able to generate a solution, it will console.warn. If the function generated something which contains errors or misleading information, it throws an error.
 
 New subcategory `ear.webgl` containing at least: `createProgram`, `initialize`, `foldedForm`, `creasePattern`, `rebuildViewport`, `makeProjectionMatrix`, `makeModelMatrix`, `drawProgram`, `deallocProgram`, with many more methods specific to drawing different styles with different shaders.
 
@@ -18,15 +44,13 @@ new `nudgeVerticesWithFacesLayer`, `nudgeVerticesWithFaceOrders` for nudging ver
 
 new `.convert` with the first (of many, hopefully) file conversions: `.obj` to `.fold`, which includes computing edges_foldAngle and giving them a "M" "V" assignment.
 
-`makeEdgesAssignment` has been renamed to `makeEdgesAssignmentSimple` and `makeEdgesAssignment` now also assigns "B" boundary edges by checking edges_faces for # of incident faces.
-
-`makeFacesCenter` and `makeFacesCenterQuick` become `makeFacesCenter2D` and `makeFacesConvexCenter` respectively.
-
 new methods `getCoplanarFacesGroups`,  `getOverlappingFacesGroups` which will find all groups of faces which share the same plane in 3D space (`getCoplanarFacesGroups`), and then in the case of `getOverlappingFacesGroups` actually compute whether or not they overlap.
 
-`makeFacesFacesOverlap` renamed to `getFacesFaces2DOverlap`
-
 new method `selfRelationalUniqueIndexPairs`, given any array of self-referential data (vertices_vertices, faces_faces, etc), create a list of unique pairwise combinations of related indices.
+
+rewrite of `getVerticesClusters`, implemented a line sweep and the runtime has been massively improved.
+
+refactor fold/keys and fold/spec, simplify methods that get exposed in the final build.
 
 # 0.9.32 alpha
 

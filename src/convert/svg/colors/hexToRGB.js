@@ -1,4 +1,7 @@
 /**
+ * Rabbit Ear (c) Kraft
+ */
+/**
  * @description Convert a hex string into an array of
  * three numbers, the rgb values (between 0 and 1).
  * This ignores any alpha values.

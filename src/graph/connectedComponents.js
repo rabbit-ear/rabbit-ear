@@ -1,19 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-
-// or should there be a function called
-// get_connected_components
-// that returns all connected components, provided no additional arguments
-
-/**
- * @description given a vertex, this will traverse adjacent edges and collect
- * all connected vertices.
- * The idea is that if there are two or more separated graphs, this is
- * meant to find them.
- */
-// export const getConnectedVertices = ({ vertices_vertices }) => {
-// };
 /**
  * @description given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
@@ -22,9 +9,9 @@
  * in that group.
  * @param {number[][]} matrix an array of arrays of numbers
  * @returns {number[][]} groups of the indices where each index appears only once
- * @linkcode Origami ./src/graph/connectedComponents.js 25
+ * @linkcode Origami ./src/graph/connectedComponents.js 12
  */
-export const connectedComponentsArray = (array_array) => {
+const connectedComponents = (array_array) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -38,3 +25,5 @@ export const connectedComponentsArray = (array_array) => {
 	}
 	return groups;
 };
+
+export default connectedComponents;

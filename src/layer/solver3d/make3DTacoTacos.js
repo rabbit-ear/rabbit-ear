@@ -1,4 +1,7 @@
-import { makeTrianglePairs } from "../../general/arrays";
+/**
+ * Rabbit Ear (c) Kraft
+ */
+import { chooseTwoPairs } from "../../general/arrays";
 import math from "../../math";
 /**
  * @description a range is an array of two numbers [start, end]
@@ -71,7 +74,7 @@ const make3DTacoEdges = (graph, overlapInfo, epsilon = 1e-6) => {
 	// but we will filter those in the next step.
 	const intersectingGroups_pairsAll = {};
 	Object.keys(intersectingGroups_edges).forEach(key => {
-		intersectingGroups_pairsAll[key] = makeTrianglePairs(intersectingGroups_edges[key]);
+		intersectingGroups_pairsAll[key] = chooseTwoPairs(intersectingGroups_edges[key]);
 	});
 	const intersectingGroups_pairsValid = {};
 	// now, true or false if the edge pairs overlap

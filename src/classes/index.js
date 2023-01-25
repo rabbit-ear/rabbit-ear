@@ -6,7 +6,7 @@ import CreasePatternProto from "./creasePattern";
 import OrigamiProto from "./origami";
 
 import graph_methods from "../graph/index";
-import { file_spec, file_creator } from "../fold/keys";
+import { file_spec, file_creator } from "../fold/rabbitear";
 import { isFoldObject } from "../fold/spec";
 import create from "../graph/create";
 import populate from "../graph/populate";
@@ -43,19 +43,19 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 	ObjectConstructors[name] = function () {
 		const argFolds = Array.from(arguments)
 			.filter(a => isFoldObject(a))
-			 // deep copy input graph
+			// deep copy input graph
 			.map(obj => JSON.parse(JSON.stringify(obj)));
 		return populate(Object.assign(
 			Object.create(ConstructorPrototypes[name]),
 			(argFolds.length ? {} : default_graph[name]()),
 			...argFolds,
-			CustomProperties[name]()
+			CustomProperties[name](),
 		));
 	};
 
-// const graph = function () { return create("graph", arguments); };
-// const cp = function () { return create("cp", arguments); };
-// const origami = function () { return create("origami", arguments); };
+	// const graph = function () { return create("graph", arguments); };
+	// const cp = function () { return create("cp", arguments); };
+	// const origami = function () { return create("origami", arguments); };
 
 	// tried to improve it. broke it.
 	// ObjectConstructors[name] = function () {

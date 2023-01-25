@@ -19,7 +19,7 @@ import populate from "../graph/populate";
 import fragment from "../graph/fragment";
 // import assign from "../graph/assign";
 // import subgraph from "../graph/subgraph";
-import { getBoundary } from "../graph/boundary";
+import { boundary } from "../graph/boundary";
 import transform from "../graph/affine";
 import {
 	makeVerticesCoordsFolded,
@@ -51,7 +51,7 @@ Graph.prototype.constructor = Graph;
  * methods where "graph" is the first parameter, followed by ...arguments
  * func(graph, ...args)
  */
-const graphMethods = Object.assign({
+const graphMethods = {
 	// count,
 	clean,
 	validate,
@@ -65,9 +65,8 @@ const graphMethods = Object.assign({
 	faceSpanningTree: makeFaceSpanningTree,
 	explodeFaces: explodeFaces,
 	explodeShrinkFaces: explodeShrinkFaces,
-},
-	transform,
-);
+	...transform,
+};
 Object.keys(graphMethods).forEach(key => {
 	Graph.prototype[key] = function () {
 		return graphMethods[key](this, ...arguments);
@@ -222,11 +221,11 @@ const getComponent = function (key) {
 Object.defineProperty(Graph.prototype, S._boundary, {
 	enumerable: true,
 	get: function () {
-		const boundary = getBoundary(this);
-		// const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
-		const poly = boundary.vertices.map(v => this.vertices_coords[v]);
-		Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
-		return Object.assign(poly, boundary);
+		const b = boundary(this);
+		// const poly = math.polygon(b.vertices.map(v => this.vertices_coords[v]));
+		const poly = b.vertices.map(v => this.vertices_coords[v]);
+		Object.keys(b).forEach(key => { poly[key] = b[key]; });
+		return Object.assign(poly, b);
 	},
 });
 /**

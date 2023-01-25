@@ -1,4 +1,7 @@
 /**
+ * Rabbit Ear (c) Kraft
+ */
+/**
  * @description Given one or many parsed stylesheets, hunt for a match based
  * on nodeName selector, id selector, or class selector, and return the value
  * for one attribute if it exists. So for example, you need "stroke" and this

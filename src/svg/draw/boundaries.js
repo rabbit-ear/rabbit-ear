@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import * as S from "../../general/strings";
-import { getBoundary } from "../../graph/boundary";
+import { boundary } from "../../graph/boundary";
 import { isFoldedForm } from "../../graph/query";
 import { addClassToClassList } from "../classes";
 // get the SVG library from its binding to the root of the library
@@ -29,12 +29,12 @@ export const boundariesPolygon = (graph, attributes = {}) => {
 		|| !graph.edges_assignment) {
 		return g;
 	}
-	const boundary = getBoundary(graph)
+	const b = boundary(graph)
 		.vertices
 		.map(v => [0, 1].map(i => graph.vertices_coords[v][i]));
-	if (boundary.length === 0) { return g; }
+	if (b.length === 0) { return g; }
 	// create polygon, append to group
-	const poly = root.svg.polygon(boundary);
+	const poly = root.svg.polygon(b);
 	addClassToClassList(poly, S._boundary);
 	// poly.setAttributeNS(null, S._class, S._boundary);
 	g.appendChild(poly);

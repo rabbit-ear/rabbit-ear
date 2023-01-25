@@ -2,8 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { sortVerticesCounterClockwise } from "../sort";
-
-const warning = "splitFace potentially given a non-convex face";
+import Messages from "../../environment/messages.json";
 /**
  * @description a newly-added edge needs to update its two endpoints'
  * vertices_vertices. each vertices_vertices gains one additional
@@ -73,8 +72,7 @@ export const update_vertices_faces = (graph, old_face, new_faces) => {
 		const index = graph.vertices_faces[v].indexOf(old_face);
 		const replacements = vertices_replacement_faces[v];
 		if (index === -1 || !replacements) {
-			console.warn(warning);
-			return;
+			throw new Error(Messages.convexFace);
 		}
 		graph.vertices_faces[v].splice(index, 1, ...replacements);
 	});
@@ -111,8 +109,7 @@ export const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
 			if (graph.edges_faces[e][i] === old_face) { indices.push(i); }
 		}
 		if (indices.length === 0 || !replacements) {
-			console.warn(warning);
-			return;
+			throw new Error(Messages.convexFace);
 		}
 		// "indices" will most often be length 1, except for the one edge which
 		// was added which splits the face in half. the previous methods which

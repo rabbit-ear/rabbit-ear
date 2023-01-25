@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import {
 	xmlStringToDOM,
 	flattenDomTree,
@@ -12,14 +15,8 @@ import {
 	makeVerticesVertices,
 	makePlanarFaces,
 } from "../../graph/make";
-import { getPlanarBoundary } from "../../graph/boundary";
+import { planarBoundary } from "../../graph/boundary";
 import parseStyleElement from "./parseStyleElement";
-
-// for testing
-// import {
-// 	getVerticesClusters2,
-// } from "../../graph/verticesClusters";
-import getVerticesClusters from "../../graph/verticesClusters";
 
 const opacityToFoldAngle = (opacity, assignment) => {
 	switch (assignment) {
@@ -118,7 +115,7 @@ const planarizeGraph = (graph) => {
 	const faces = makePlanarFaces(planar);
 	planar.faces_vertices = faces.map(el => el.vertices);
 	planar.faces_edges = faces.map(el => el.edges);
-	const { edges } = getPlanarBoundary(planar);
+	const { edges } = planarBoundary(planar);
 	edges.forEach(e => { planar.edges_assignment[e] = "B"; });
 	return planar;
 };

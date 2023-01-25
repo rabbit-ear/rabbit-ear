@@ -19,7 +19,7 @@ import * as verticesViolations from "./verticesViolations";
 import * as edgesViolations from "./edgesViolations";
 import * as vertices_collinear from "./verticesCollinear";
 // import * as facesLayer from "./facesLayer";
-import * as connectedComponents from "./connectedComponents";
+import connectedComponents from "./connectedComponents";
 import * as edgesEdges from "./edgesEdges";
 import * as verticesCoordsFolded from "./verticesCoordsFolded";
 import * as faceSpanningTree from "./faceSpanningTree";
@@ -46,19 +46,14 @@ import subgraph from "./subgraph";
 import clip from "./clip";
 import fragment from "./fragment";
 import { flattenFrame } from "./fileFrames";
-import getVerticesClusters from "./verticesClusters";
+import verticesClusters from "./verticesClusters";
 // import create from "./create";
 // todo: not sure about this organization
 import * as arrays from "../general/arrays";
 import clone from "../general/clone";
 // import addVertices_splitEdges from "./add/addVertices_splitEdges";
-import * as fold_spec from "../fold/spec";
-import {
-	keys as foldKeys,
-	file_classes as foldFileClasses,
-	frame_classes as foldFrameClasses,
-	frame_attributes as foldFrameAttributes,
-} from "../fold/keys";
+import * as foldKeys from "../fold/keys";
+import * as foldSpec from "../fold/spec";
 
 export default Object.assign(
 	Object.create(null),
@@ -82,21 +77,17 @@ export default Object.assign(
 		subgraph,
 		clip,
 		fragment,
-		getVerticesClusters,
+		verticesClusters,
+		connectedComponents,
 		clone,
-		// file_frames
 		flattenFrame,
-		// fold file keys
-		foldKeys,
-		foldFileClasses,
-		foldFrameClasses,
-		foldFrameAttributes,
 	},
+	foldKeys,
+	foldSpec,
 	make,
 	boundary,
 	walk,
 	nearest,
-	fold_spec,
 	sort,
 	span,
 	maps,
@@ -111,7 +102,6 @@ export default Object.assign(
 	edgesViolations,
 	vertices_collinear,
 	// facesLayer,
-	connectedComponents,
 	edgesEdges,
 	verticesCoordsFolded,
 	faceSpanningTree,

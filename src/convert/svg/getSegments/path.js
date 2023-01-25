@@ -1,5 +1,5 @@
 /**
- * @description todo
+ * Rabbit Ear (c) Kraft
  */
 import math from "../../../math";
 // get the SVG library from its binding to the root of the library

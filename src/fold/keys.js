@@ -5,11 +5,9 @@
  * lists of keys and values involved in the FOLD file format spec
  * https://github.com/edemaine/FOLD/
  */
-export const file_spec = 1.1;
-// specific to this software
-export const file_creator = "Rabbit Ear";
 /**
- * top-level keys in a FOLD object, sorted into usage categories.
+ * @description All FOLD keys described in the spec,
+ * sorted into descriptive categories.
  */
 export const foldKeys = {
 	file: [
@@ -55,45 +53,30 @@ export const foldKeys = {
 	],
 };
 /**
- * top-level keys from a FOLD object in one flat array
- */
-export const keys = Object.freeze([]
-	.concat(foldKeys.file)
-	.concat(foldKeys.frame)
-	.concat(foldKeys.graph)
-	.concat(foldKeys.orders));
-/**
- * top-level keys from a FOLD object used by this library,
- * not in the official spec. made when calling populate().
- */
-export const keysOutOfSpec = Object.freeze([
-	"edges_vector",
-	"vertices_sectors",
-	"faces_sectors",
-	"faces_matrix",
-]);
-// "faces_ear:matrix",
-// "faces_ear:layer",
-// "ear:sectors_vertices",
-// "ear:sectors_edges",
-// "ear:sectors_angles",
-// "vertices_ear:sectors_vertices",
-/**
  * values from the official spec, grouped by the key under which they appear.
  */
-export const file_classes = [
+/**
+ * @description All "file_classes" values according to the FOLD spec
+ */
+export const foldFileClasses = [
 	"singleModel",
 	"multiModel",
 	"animation",
 	"diagrams",
 ];
-export const frame_classes = [
+/**
+ * @description All "frame_classes" values according to the FOLD spec
+ */
+export const foldFrameClasses = [
 	"creasePattern",
 	"foldedForm",
 	"graph",
 	"linkage",
 ];
-export const frame_attributes = [
+/**
+ * @description All "frame_attributes" values according to the FOLD spec
+ */
+export const foldFrameAttributes = [
 	"2D",
 	"3D",
 	"abstract",
@@ -106,7 +89,3 @@ export const frame_attributes = [
 	"selfIntersecting",
 	"nonSelfIntersecting",
 ];
-/**
- * array of single characers, the values of an edge assignment
- */
-export const edgesAssignmentValues = Array.from("MmVvBbFfUu");

@@ -22,6 +22,7 @@ import {
 	mergeNextmaps,
 	invertMap,
 } from "./maps";
+import Messages from "../environment/messages.json";
 /**
  * Fragment converts a graph into a planar graph. it flattens all the
  * coordinates onto the 2D plane.
@@ -169,7 +170,7 @@ const fragment_keep_keys = [
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to the graph
- * @linkcode Origami ./src/graph/fragment.js 174
+ * @linkcode Origami ./src/graph/fragment.js 173
  */
 const fragment = (graph, epsilon = math.core.EPSILON) => {
 	// project all vertices onto the XY plane
@@ -186,12 +187,16 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 		edges: {},
 	};
 	let i;
+	// most of the time this will loop twice, but exit early during the second
+	// iteration due to all checks being passed. rarely, but still possible,
+	// the merging of two vertices will bring one of the vertices over another
+	// vertex junction, creating more edge-edge overlaps which requires another
+	// iteration through this loop. at most, this has only ever been
+	// observed to require one or two more loops, about 3 loops in total.
 	for (i = 0; i < 20; i += 1) {
 		const resVert = removeDuplicateVertices(graph, epsilon / 2);
 		const resEdgeDup = removeDuplicateEdges(graph);
-		// console.log("before", JSON.parse(JSON.stringify(graph)));
 		const resEdgeCirc = removeCircularEdges(graph);
-		// console.log("circular", resEdgeCirc);
 		const resFrag = fragment_graph(graph, epsilon);
 		if (resFrag === undefined) {
 			change.vertices.map = (change.vertices.map === undefined
@@ -212,7 +217,7 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 			: mergeNextmaps(change.edges.map, edgemap));
 	}
 	if (i === 20) {
-		console.warn("fragment reached max iterations");
+		throw new Error(Messages.fragment);
 	}
 	return change;
 };

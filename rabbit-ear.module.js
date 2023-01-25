@@ -34,8 +34,30 @@ const isWebWorker = typeof self === _object
 	&& self.constructor
 	&& self.constructor.name === "DedicatedWorkerGlobalScope";
 
-const errorMessages = [];
-errorMessages[10] = "\"error 010: window\" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )";
+var fragment$1 = "graph could not planarize";
+var manifold = "manifold required";
+var graphCycle = "cycle not allowed";
+var planarBoundary$1 = "planar boundary detection error, bad graph";
+var circularEdge = "circular edges not allowed";
+var replaceModifyParam = "replace() index < value. indices parameter modified";
+var replaceUndefined = "replace() generated undefined";
+var flatFoldAngles = "foldAngles cannot be determined from flat-folded faces without an assignment";
+var noWebGL = "WebGl not Supported";
+var convexFace = "only convex faces are supported";
+var window$1 = "window not set; if using node/deno include package @xmldom/xmldom and set ear.window = xmldom";
+var Messages = {
+	fragment: fragment$1,
+	manifold: manifold,
+	graphCycle: graphCycle,
+	planarBoundary: planarBoundary$1,
+	circularEdge: circularEdge,
+	replaceModifyParam: replaceModifyParam,
+	replaceUndefined: replaceUndefined,
+	flatFoldAngles: flatFoldAngles,
+	noWebGL: noWebGL,
+	convexFace: convexFace,
+	window: window$1
+};
 
 const windowContainer = { window: undefined };
 const buildDocument = (newWindow) => new newWindow.DOMParser()
@@ -48,7 +70,7 @@ const setWindow$1 = (newWindow) => {
 if (isBrowser$1) { windowContainer.window = window; }
 const RabbitEarWindow = () => {
 	if (windowContainer.window === undefined) {
-		throw errorMessages[10];
+		throw new Error(Messages.window);
 	}
 	return windowContainer.window;
 };
@@ -1450,7 +1472,7 @@ const centroid = (points) => {
 	}).reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
 		.map(c => c * sixthArea);
 };
-const boundingBox = (points, padding = 0) => {
+const boundingBox$1 = (points, padding = 0) => {
 	if (!points || !points.length) { return undefined; }
 	const min = Array(points[0].length).fill(Infinity);
 	const max = Array(points[0].length).fill(-Infinity);
@@ -1474,7 +1496,7 @@ var polygons = Object.freeze({
 	circumcircle: circumcircle,
 	signedArea: signedArea,
 	centroid: centroid,
-	boundingBox: boundingBox
+	boundingBox: boundingBox$1
 });
 const overlapLinePoint = (vector, origin, point, func = excludeL, epsilon = EPSILON) => {
 	const p2p = subtract(point, origin);
@@ -2469,7 +2491,7 @@ const PolygonMethods = {
 		return Constructors.vector(centroid(this));
 	},
 	boundingBox: function () {
-		return boundingBox(this);
+		return boundingBox$1(this);
 	},
 	straightSkeleton: function () {
 		return straightSkeleton(this);
@@ -2584,7 +2606,7 @@ var Rect = {
 		}),
 		S: {
 			fromPoints: function () {
-				const box = boundingBox(getVectorOfVectors(arguments));
+				const box = boundingBox$1(getVectorOfVectors(arguments));
 				return Constructors.rect(box.min[0], box.min[1], box.span[0], box.span[1]);
 			},
 		},
@@ -2912,8 +2934,6 @@ var setup = {
 	faces: setup_face,
 };
 
-const file_spec = 1.1;
-const file_creator = "Rabbit Ear";
 const foldKeys = {
 	file: [
 		"file_spec",
@@ -2954,30 +2974,19 @@ const foldKeys = {
 		"faceOrders",
 	],
 };
-const keys = Object.freeze([]
-	.concat(foldKeys.file)
-	.concat(foldKeys.frame)
-	.concat(foldKeys.graph)
-	.concat(foldKeys.orders));
-const keysOutOfSpec = Object.freeze([
-	"edges_vector",
-	"vertices_sectors",
-	"faces_sectors",
-	"faces_matrix",
-]);
-const file_classes = [
+const foldFileClasses = [
 	"singleModel",
 	"multiModel",
 	"animation",
 	"diagrams",
 ];
-const frame_classes = [
+const foldFrameClasses = [
 	"creasePattern",
 	"foldedForm",
 	"graph",
 	"linkage",
 ];
-const frame_attributes = [
+const foldFrameAttributes = [
 	"2D",
 	"3D",
 	"abstract",
@@ -2990,7 +2999,14 @@ const frame_attributes = [
 	"selfIntersecting",
 	"nonSelfIntersecting",
 ];
-const edgesAssignmentValues = Array.from("MmVvBbFfUu");
+
+var foldKeys$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	foldKeys: foldKeys,
+	foldFileClasses: foldFileClasses,
+	foldFrameClasses: foldFrameClasses,
+	foldFrameAttributes: foldFrameAttributes
+});
 
 const singularize = {
 	vertices: "vertex",
@@ -3002,14 +3018,16 @@ const pluralize = {
 	edge: "edges",
 	face: "faces",
 };
+const edgesAssignmentValues = Array.from("BbMmVvFfJjUu");
 const edgesAssignmentNames = {
 	b: "boundary",
 	m: "mountain",
 	v: "valley",
 	f: "flat",
+	j: "join",
 	u: "unassigned",
 };
-edgesAssignmentValues.forEach(key => {
+Object.keys(edgesAssignmentNames).forEach(key => {
 	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
 });
 const edgesAssignmentDegrees = {
@@ -3021,6 +3039,8 @@ const edgesAssignmentDegrees = {
 	b: 0,
 	F: 0,
 	f: 0,
+	J: 0,
+	j: 0,
 	U: 0,
 	u: 0,
 };
@@ -3069,29 +3089,34 @@ const transposeGraphArrays = (graph, geometry_key) => {
 			.forEach((o, i) => { geometry[i][key] = graph[key][i]; }));
 	return geometry;
 };
-const transposeGraphArrayAtIndex = function (
+const transposeGraphArrayAtIndex = (
 	graph,
 	geometry_key,
 	index,
-) {
+) => {
 	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return undefined; }
 	const geometry = {};
 	matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
 	return geometry;
 };
+const flatFoldKeys = Object.freeze([]
+	.concat(foldKeys.file)
+	.concat(foldKeys.frame)
+	.concat(foldKeys.graph)
+	.concat(foldKeys.orders));
 const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
 		? 0
-		: [].concat(keys, keysOutOfSpec)
+		: flatFoldKeys
 			.filter(key => object[key]).length / Object.keys(object).length);
 
-var fold_spec = /*#__PURE__*/Object.freeze({
+var foldSpec = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	singularize: singularize,
 	pluralize: pluralize,
+	edgesAssignmentValues: edgesAssignmentValues,
 	edgesAssignmentNames: edgesAssignmentNames,
-	edgesAssignmentDegrees: edgesAssignmentDegrees,
 	edgeAssignmentToFoldAngle: edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment: edgeFoldAngleToAssignment,
 	edgeFoldAngleIsFlat: edgeFoldAngleIsFlat,
@@ -3105,15 +3130,14 @@ var fold_spec = /*#__PURE__*/Object.freeze({
 	isFoldObject: isFoldObject
 });
 
-const sortPointsAlongFirstAxis = (points) => points
-	.map((point, i) => ({ i, d: point[0] }))
-	.sort((a, b) => a.d - b.d)
-	.map(a => a.i);
-const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+const verticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
 	if (!vertices_coords) { return []; }
 	const clusters = [];
 	const finished = [];
-	const vertices = sortPointsAlongFirstAxis(vertices_coords);
+	const vertices = vertices_coords
+		.map((point, i) => ({ i, d: point[0] }))
+		.sort((a, b) => a.d - b.d)
+		.map(a => a.i);
 	let rangeStart = 0;
 	let yRange = [0, 0];
 	let xRange = [0, 0];
@@ -3187,17 +3211,6 @@ const splitCircularArray = (array, indices) => {
 		array.slice(indices[0], indices[1] + 1),
 	];
 };
-const getLongestArray = (arrays) => {
-	if (arrays.length === 1) { return arrays[0]; }
-	const lengths = arrays.map(arr => arr.length);
-	let max = 0;
-	for (let i = 0; i < arrays.length; i += 1) {
-		if (lengths[i] > lengths[max]) {
-			max = i;
-		}
-	}
-	return arrays[max];
-};
 const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
 		.map((value, i) => (value === true ? i : undefined))
@@ -3225,7 +3238,7 @@ const selfRelationalUniqueIndexPairs = (array_array) => {
 	}));
 	return pairs;
 };
-const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
+const clusterScalars = (floats, epsilon = math.core.EPSILON) => {
 	const indices = floats
 		.map((v, i) => ({ v, i }))
 		.sort((a, b) => a.v - b.v)
@@ -3243,7 +3256,7 @@ const clusterArrayValues = (floats, epsilon = math.core.EPSILON) => {
 	}
 	return groups;
 };
-const makeTrianglePairs = (array) => {
+const chooseTwoPairs = (array) => {
 	const pairs = Array((array.length * (array.length - 1)) / 2);
 	let index = 0;
 	for (let i = 0; i < array.length - 1; i += 1) {
@@ -3260,12 +3273,11 @@ var arrays = /*#__PURE__*/Object.freeze({
 	nonUniqueElements: nonUniqueElements,
 	uniqueSortedNumbers: uniqueSortedNumbers,
 	splitCircularArray: splitCircularArray,
-	getLongestArray: getLongestArray,
 	booleanMatrixToIndexedArray: booleanMatrixToIndexedArray,
 	booleanMatrixToUniqueIndexPairs: booleanMatrixToUniqueIndexPairs,
 	selfRelationalUniqueIndexPairs: selfRelationalUniqueIndexPairs,
-	clusterArrayValues: clusterArrayValues,
-	makeTrianglePairs: makeTrianglePairs
+	clusterScalars: clusterScalars,
+	chooseTwoPairs: chooseTwoPairs
 });
 
 const removeGeometryIndices = (graph, key, removeIndices) => {
@@ -3303,7 +3315,7 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 			replaceIndices[value] = index;
 		});
 	if (didModify) {
-		console.warn("replace() found index < value. indices parameter was modified");
+		console.warn(Messages.replaceModifyParam);
 	}
 	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
 	const replaces = uniqueSortedNumbers(removes);
@@ -3312,7 +3324,7 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 		while (i === replaces[walk]) {
 			index_map[i] = index_map[replaceIndices[replaces[walk]]];
 			if (index_map[i] === undefined) {
-				console.warn("replace() generated undefined", index_map);
+				throw new Error(Messages.replaceUndefined);
 			}
 			i += 1;
 			walk += 1;
@@ -3331,11 +3343,11 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	return index_map;
 };
 
-const getDuplicateVertices = (graph, epsilon) => (
-	getVerticesClusters(graph, epsilon)
+const duplicateVertices = (graph, epsilon) => (
+	verticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1)
 );
-const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
+const edgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
 	let count = vertices_coords.length;
 	const seen = Array(count).fill(false);
@@ -3349,7 +3361,7 @@ const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 		.map((s, i) => (s ? undefined : i))
 		.filter(a => a !== undefined);
 };
-const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
+const faceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 	if (!vertices_coords || !faces_vertices) { return []; }
 	let count = vertices_coords.length;
 	const seen = Array(count).fill(false);
@@ -3363,7 +3375,7 @@ const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 		.map((s, i) => (s ? undefined : i))
 		.filter(a => a !== undefined);
 };
-const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
+const isolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
 	if (!vertices_coords) { return []; }
 	let count = vertices_coords.length;
 	const seen = Array(count).fill(false);
@@ -3389,7 +3401,7 @@ const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }
 };
 const removeIsolatedVertices = (graph, remove_indices) => {
 	if (!remove_indices) {
-		remove_indices = getIsolatedVertices(graph);
+		remove_indices = isolatedVertices(graph);
 	}
 	return {
 		map: removeGeometryIndices(graph, _vertices, remove_indices),
@@ -3399,7 +3411,7 @@ const removeIsolatedVertices = (graph, remove_indices) => {
 const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 	const replace_indices = [];
 	const remove_indices = [];
-	const clusters = getVerticesClusters(graph, epsilon)
+	const clusters = verticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1);
 	clusters.forEach(cluster => {
 		if (Math.min(...cluster) !== cluster[0]) {
@@ -3422,10 +3434,10 @@ const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 
 var verticesViolations = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	getDuplicateVertices: getDuplicateVertices,
-	getEdgeIsolatedVertices: getEdgeIsolatedVertices,
-	getFaceIsolatedVertices: getFaceIsolatedVertices,
-	getIsolatedVertices: getIsolatedVertices,
+	duplicateVertices: duplicateVertices,
+	edgeIsolatedVertices: edgeIsolatedVertices,
+	faceIsolatedVertices: faceIsolatedVertices,
+	isolatedVertices: isolatedVertices,
 	removeIsolatedVertices: removeIsolatedVertices,
 	removeDuplicateVertices: removeDuplicateVertices
 });
@@ -3754,7 +3766,14 @@ const makeEdgesAssignment = ({
 const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 	.map(a => assignment_angles[a] || 0);
 const makeEdgesFoldAngleFromFaces = ({
-	vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_normal, faces_center,
+	vertices_coords,
+	edges_vertices,
+	edges_faces,
+	edges_assignment,
+	faces_vertices,
+	faces_edges,
+	faces_normal,
+	faces_center,
 }) => {
 	if (!edges_faces) {
 		if (!faces_edges) {
@@ -3769,7 +3788,7 @@ const makeEdgesFoldAngleFromFaces = ({
 		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 	}
 	return edges_faces.map((faces, e) => {
-		if (faces.length > 2) { console.warn("makeEdgesFoldAngleFromFaces non manifold"); }
+		if (faces.length > 2) { throw new Error(Messages.manifold); }
 		if (faces.length < 2) { return 0; }
 		const a = faces_normal[faces[0]];
 		const b = faces_normal[faces[1]];
@@ -3784,7 +3803,7 @@ const makeEdgesFoldAngleFromFaces = ({
 				if (edges_assignment[e] === "M" || edges_assignment[e] === "m") { sign = -1; }
 				if (edges_assignment[e] === "V" || edges_assignment[e] === "v") { sign = 1; }
 			} else {
-				console.warn("makeEdgesFoldAngleFromFaces cannot determine flat folded faces");
+				throw new Error(Messages.flatFoldAngles);
 			}
 		}
 		return (Math.acos(math.core.dot(a, b)) * (180 / Math.PI)) * sign;
@@ -3908,7 +3927,7 @@ var make = /*#__PURE__*/Object.freeze({
 	makeFacesConvexCenter: makeFacesConvexCenter
 });
 
-const getCircularEdges = ({ edges_vertices }) => {
+const circularEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
 	const circular = [];
 	for (let i = 0; i < edges_vertices.length; i += 1) {
@@ -3918,7 +3937,7 @@ const getCircularEdges = ({ edges_vertices }) => {
 	}
 	return circular;
 };
-const getDuplicateEdges = ({ edges_vertices }) => {
+const duplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
 	const duplicates = [];
 	const map = {};
@@ -3978,8 +3997,8 @@ const removeDuplicateEdges = (graph, replace_indices) => {
 
 var edgesViolations = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	getCircularEdges: getCircularEdges,
-	getDuplicateEdges: getDuplicateEdges,
+	circularEdges: circularEdges,
+	duplicateEdges: duplicateEdges,
 	removeCircularEdges: removeCircularEdges,
 	removeDuplicateEdges: removeDuplicateEdges
 });
@@ -4105,10 +4124,10 @@ const validate_references = (graph) => {
 	};
 };
 const validate$1 = (graph, epsilon) => {
-	const duplicate_edges = getDuplicateEdges(graph);
-	const circular_edges = getCircularEdges(graph);
-	const isolated_vertices = getIsolatedVertices(graph);
-	const duplicate_vertices = getDuplicateVertices(graph, epsilon);
+	const duplicate_edges = duplicateEdges(graph);
+	const circular_edges = circularEdges(graph);
+	const isolated_vertices = isolatedVertices(graph);
+	const duplicate_vertices = duplicateVertices(graph, epsilon);
 	const references = validate_references(graph);
 	const is_perfect = duplicate_edges.length === 0
 		&& circular_edges.length === 0
@@ -4225,7 +4244,7 @@ const getOppositeVertices$1 = ({ edges_vertices }, vertex, edges) => {
 	edges.forEach(edge => {
 		if (edges_vertices[edge][0] === vertex
 			&& edges_vertices[edge][1] === vertex) {
-			console.warn("removePlanarVertex circular edge");
+			throw new Error(Messages.circularEdge);
 		}
 	});
 	return edges.map(edge => (edges_vertices[edge][0] === vertex
@@ -4521,19 +4540,19 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 			: mergeNextmaps(change.edges.map, edgemap));
 	}
 	if (i === 20) {
-		console.warn("fragment reached max iterations");
+		throw new Error(Messages.fragment);
 	}
 	return change;
 };
 
-const getBoundingBox = ({ vertices_coords }, padding) => math.core
+const boundingBox = ({ vertices_coords }, padding) => math.core
 	.boundingBox(vertices_coords, padding);
-const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => (
+const boundaryVertices = ({ edges_vertices, edges_assignment }) => (
 	uniqueElements(edges_vertices
 		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
 		.flat()));
 const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
-const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
@@ -4570,9 +4589,9 @@ const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 		edges: edge_walk,
 	};
 };
-const getPlanarBoundary = ({
+const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
-}) => {
+}, infiniteLoopProtection = true) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
@@ -4612,8 +4631,10 @@ const getPlanarBoundary = ({
 	edge_walk.push(first_edge);
 	let prev_vertex_i = first_vertex_i;
 	let this_vertex_i = second_vertex_i;
-	let protection = 0;
-	while (protection < 10000) {
+	const start = performance.now();
+	const MAX_DURATION = 10000;
+	let count = 0;
+	while (true) {
 		const next_neighbors = vertices_vertices[this_vertex_i];
 		const from_neighbor_i = next_neighbors.indexOf(prev_vertex_i);
 		const next_neighbor_i = (from_neighbor_i + 1) % next_neighbors.length;
@@ -4629,18 +4650,21 @@ const getPlanarBoundary = ({
 		edge_walk.push(next_edge_i);
 		prev_vertex_i = this_vertex_i;
 		this_vertex_i = next_vertex_i;
-		protection += 1;
+		count += 1;
+		if (infiniteLoopProtection
+			&& count % 1000 === 0
+			&& performance.now() - start > MAX_DURATION) {
+			throw new Error(Messages.planarBoundary);
+		}
 	}
-	console.warn("calculate boundary potentially entered infinite loop");
-	return walk;
 };
 
-var boundary = /*#__PURE__*/Object.freeze({
+var boundary$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	getBoundingBox: getBoundingBox,
-	getBoundaryVertices: getBoundaryVertices,
-	getBoundary: getBoundary,
-	getPlanarBoundary: getPlanarBoundary
+	boundingBox: boundingBox,
+	boundaryVertices: boundaryVertices,
+	boundary: boundary,
+	planarBoundary: planarBoundary
 });
 
 const apply_matrix_to_graph = function (graph, matrix) {
@@ -5390,7 +5414,6 @@ const split_at_intersections = (graph, { vertices, edges }) => {
 	};
 };
 
-const warning = "splitFace potentially given a non-convex face";
 const update_vertices_vertices$1 = ({
 	vertices_coords, vertices_vertices, edges_vertices,
 }, edge) => {
@@ -5433,8 +5456,7 @@ const update_vertices_faces = (graph, old_face, new_faces) => {
 		const index = graph.vertices_faces[v].indexOf(old_face);
 		const replacements = vertices_replacement_faces[v];
 		if (index === -1 || !replacements) {
-			console.warn(warning);
-			return;
+			throw new Error(Messages.convexFace);
 		}
 		graph.vertices_faces[v].splice(index, 1, ...replacements);
 	});
@@ -5455,8 +5477,7 @@ const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
 			if (graph.edges_faces[e][i] === old_face) { indices.push(i); }
 		}
 		if (indices.length === 0 || !replacements) {
-			console.warn(warning);
-			return;
+			throw new Error(Messages.convexFace);
 		}
 		indices.reverse().forEach(index => graph.edges_faces[e].splice(index, 1));
 		const index = indices[indices.length - 1];
@@ -5520,7 +5541,7 @@ const splitFace = (graph, face, vector, point, epsilon) => {
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);
 Graph.prototype.constructor = Graph;
-const graphMethods = Object.assign({
+const graphMethods = {
 	clean,
 	validate: validate$1,
 	populate,
@@ -5530,9 +5551,8 @@ const graphMethods = Object.assign({
 	faceSpanningTree: makeFaceSpanningTree,
 	explodeFaces: explodeFaces,
 	explodeShrinkFaces: explodeShrinkFaces,
-},
-	transform,
-);
+	...transform,
+};
 Object.keys(graphMethods).forEach(key => {
 	Graph.prototype[key] = function () {
 		return graphMethods[key](this, ...arguments);
@@ -5609,10 +5629,10 @@ const getComponent = function (key) {
 Object.defineProperty(Graph.prototype, _boundary, {
 	enumerable: true,
 	get: function () {
-		const boundary = getBoundary(this);
-		const poly = boundary.vertices.map(v => this.vertices_coords[v]);
-		Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
-		return Object.assign(poly, boundary);
+		const b = boundary(this);
+		const poly = b.vertices.map(v => this.vertices_coords[v]);
+		Object.keys(b).forEach(key => { poly[key] = b[key]; });
+		return Object.assign(poly, b);
 	},
 });
 const nearestMethods = {
@@ -5644,7 +5664,7 @@ Graph.prototype.nearest = function () {
 var GraphProto = Graph.prototype;
 
 const clip = function (graph, line) {
-	const polygon = getBoundary(graph).vertices.map(v => graph.vertices_coords[v]);
+	const polygon = boundary(graph).vertices.map(v => graph.vertices_coords[v]);
 	const vector = line.vector ? line.vector : math.core.subtract2(line[1], line[0]);
 	const origin = line.origin ? line.origin : line[0];
 	const fn_line = (line.domain_function ? line.domain_function : math.core.includeL);
@@ -6039,7 +6059,7 @@ const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) =
 			.filter(a => a !== undefined)
 			.reduce((a, b) => a + b, 0))
 		.map(sum => sum === 2 || sum === -2);
-	getBoundaryVertices({ edges_vertices, edges_assignment })
+	boundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
@@ -6068,7 +6088,7 @@ const validateKawasaki = ({
 			: [0, 0]))
 		.map(sectors => alternatingSum(sectors))
 		.map(pair => Math.abs(pair[0] - pair[1]) < epsilon);
-	getBoundaryVertices({ edges_vertices, edges_assignment })
+	boundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
@@ -6347,7 +6367,7 @@ var query = /*#__PURE__*/Object.freeze({
 	isFoldedForm: isFoldedForm
 });
 
-const getDisjointedVertices = ({ edges_vertices, vertices_edges, vertices_vertices }) => {
+const disjointVerticesSets = ({ edges_vertices, vertices_edges, vertices_vertices }) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
@@ -6385,10 +6405,10 @@ const getDisjointedVertices = ({ edges_vertices, vertices_edges, vertices_vertic
 
 var sets = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	getDisjointedVertices: getDisjointedVertices
+	disjointVerticesSets: disjointVerticesSets
 });
 
-const connectedComponentsArray = (array_array) => {
+const connectedComponents = (array_array) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -6403,14 +6423,9 @@ const connectedComponentsArray = (array_array) => {
 	return groups;
 };
 
-var connectedComponents = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	connectedComponentsArray: connectedComponentsArray
-});
-
 const parallelNormalized = (v, u, epsilon = math.core.EPSILON) => 1 - Math
 	.abs(math.core.dot(v, u)) < epsilon;
-const getCoplanarFacesGroups = ({
+const coplanarFacesGroups = ({
 	vertices_coords, faces_vertices,
 }, epsilon = math.core.EPSILON) => {
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
@@ -6424,7 +6439,7 @@ const getCoplanarFacesGroups = ({
 			}
 		}
 	}
-	const facesNormalMatchCluster = connectedComponentsArray(facesNormalMatch);
+	const facesNormalMatchCluster = connectedComponents(facesNormalMatch);
 	const normalClustersFaces = invertMap(facesNormalMatchCluster)
 		.map(el => (typeof el === "number" ? [el] : el));
 	const normalClustersNormal = normalClustersFaces
@@ -6439,7 +6454,7 @@ const getCoplanarFacesGroups = ({
 		.map((faces, i) => faces
 			.map(f => math.core.dot(facesOneVertex[f], normalClustersNormal[i])));
 	const clustersClusters = normalClustersFacesDot
-		.map((dots, i) => clusterArrayValues(dots)
+		.map((dots, i) => clusterScalars(dots)
 			.map(cluster => cluster.map(index => normalClustersFaces[i][index])));
 	const clustersNormal = clustersClusters
 		.flatMap((cluster, i) => cluster
@@ -6451,10 +6466,10 @@ const getCoplanarFacesGroups = ({
 		facesAligned: faces.map(f => faces_clusterAligned[f]),
 	}));
 };
-const getOverlappingFacesGroups = ({
+const overlappingFacesGroups = ({
 	vertices_coords, faces_vertices,
 }, epsilon = math.core.EPSILON) => {
-	const coplanarFaces = getCoplanarFacesGroups({ vertices_coords, faces_vertices }, epsilon);
+	const coplanarFaces = coplanarFacesGroups({ vertices_coords, faces_vertices }, epsilon);
 	const faces_coplanarIndex = [];
 	coplanarFaces.forEach((cluster, i) => cluster.faces
 		.forEach(f => { faces_coplanarIndex[f] = i; }));
@@ -6498,7 +6513,7 @@ const getOverlappingFacesGroups = ({
 			}
 		}
 	});
-	const faces_group = connectedComponentsArray(faces_facesOverlap);
+	const faces_group = connectedComponents(faces_facesOverlap);
 	const groups_faces = invertMap(faces_group)
 		.map(el => (typeof el === "number" ? [el] : el));
 	return {
@@ -6602,8 +6617,8 @@ const getFacesFaces2DOverlap = ({
 
 var overlap = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	getCoplanarFacesGroups: getCoplanarFacesGroups,
-	getOverlappingFacesGroups: getOverlappingFacesGroups,
+	coplanarFacesGroups: coplanarFacesGroups,
+	overlappingFacesGroups: overlappingFacesGroups,
 	makeEdgesFacesOverlap: makeEdgesFacesOverlap,
 	getFacesFaces2DOverlap: getFacesFaces2DOverlap
 });
@@ -6854,7 +6869,7 @@ const flattenFrame = (graph, frame_num = 1) => {
 		.forEach(key => { fileMetadata[key] = graph[key]; });
 	const recurse = (recurse_graph, frame, orderArray) => {
 		if (memo.visited_frames.indexOf(frame) !== -1) {
-			throw new Error("flatten cycle detected");
+			throw new Error(Messages.graphCycle);
 		}
 		memo.visited_frames.push(frame);
 		orderArray = [frame].concat(orderArray);
@@ -6906,19 +6921,17 @@ var graph_methods = Object.assign(
 		subgraph,
 		clip,
 		fragment,
-		getVerticesClusters,
+		verticesClusters,
+		connectedComponents,
 		clone,
 		flattenFrame,
-		foldKeys: keys,
-		foldFileClasses: file_classes,
-		foldFrameClasses: frame_classes,
-		foldFrameAttributes: frame_attributes,
 	},
+	foldKeys$1,
+	foldSpec,
 	make,
-	boundary,
+	boundary$1,
 	walk,
 	nearest$1,
-	fold_spec,
 	sort,
 	span,
 	maps,
@@ -6932,7 +6945,6 @@ var graph_methods = Object.assign(
 	verticesViolations,
 	edgesViolations,
 	vertices_collinear,
-	connectedComponents,
 	edgesEdges,
 	verticesCoordsFolded,
 	faceSpanningTree,
@@ -6941,6 +6953,9 @@ var graph_methods = Object.assign(
 	explodeFacesMethods,
 	arrays,
 );
+
+const file_spec = 1.1;
+const file_creator = "Rabbit Ear";
 
 const Create = {};
 const make_rect_vertices_coords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
@@ -6989,7 +7004,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 			Object.create(ConstructorPrototypes[name]),
 			(argFolds.length ? {} : default_graph[name]()),
 			...argFolds,
-			CustomProperties[name]()
+			CustomProperties[name](),
 		));
 	};
 	ObjectConstructors[name].prototype = ConstructorPrototypes[name];
@@ -7767,7 +7782,7 @@ const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
 };
 const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
-	const sets_faces = getDisjointedVertices({
+	const sets_faces = disjointVerticesSets({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
 	});
 	const sets_layers_face = sets_faces
@@ -8665,7 +8680,7 @@ const make3DTacoEdges = (graph, overlapInfo, epsilon = 1e-6) => {
 		.forEach(key => delete intersectingGroups_edges[key]);
 	const intersectingGroups_pairsAll = {};
 	Object.keys(intersectingGroups_edges).forEach(key => {
-		intersectingGroups_pairsAll[key] = makeTrianglePairs(intersectingGroups_edges[key]);
+		intersectingGroups_pairsAll[key] = chooseTwoPairs(intersectingGroups_edges[key]);
 	});
 	const intersectingGroups_pairsValid = {};
 	Object.keys(intersectingGroups_pairsAll).forEach(key => {
@@ -8744,7 +8759,7 @@ const prepare$1 = (graphInput, epsilon = 1e-6) => {
 	if (!graph.faces_edges) {
 		graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	}
-	const overlapInfo = getOverlappingFacesGroups(graph, epsilon);
+	const overlapInfo = overlappingFacesGroups(graph, epsilon);
 	const groups_faces = invertMap(overlapInfo.faces_group)
 		.map(el => (el.constructor === Array ? el : [el]));
 	const graphCopies = graphGroupCopies(graph, overlapInfo, groups_faces);
@@ -10866,7 +10881,7 @@ const planarizeGraph = (graph) => {
 	const faces = makePlanarFaces(planar);
 	planar.faces_vertices = faces.map(el => el.vertices);
 	planar.faces_edges = faces.map(el => el.edges);
-	const { edges } = getPlanarBoundary(planar);
+	const { edges } = planarBoundary(planar);
 	edges.forEach(e => { planar.edges_assignment[e] = "B"; });
 	return planar;
 };
@@ -11147,11 +11162,11 @@ const boundariesPolygon = (graph, attributes = {}) => {
 		|| !graph.edges_assignment) {
 		return g;
 	}
-	const boundary = getBoundary(graph)
+	const b = boundary(graph)
 		.vertices
 		.map(v => [0, 1].map(i => graph.vertices_coords[v][i]));
-	if (boundary.length === 0) { return g; }
-	const poly = root.svg.polygon(boundary);
+	if (b.length === 0) { return g; }
+	const poly = root.svg.polygon(b);
 	addClassToClassList(poly, _boundary);
 	g.appendChild(poly);
 	applyBoundariesStyle(g, isFoldedForm(graph) ? FOLDED : FLAT);
@@ -13323,7 +13338,7 @@ const initializeWebGL = (canvasElement, preferredVersion) => {
 	if (gl2) { return { gl: gl2, version: 2 }; }
 	const gl1 = canvasElement.getContext(contextName[1]);
 	if (gl1) { return { gl: gl1, version: 1 }; }
-	throw new Error("WebGl not Supported");
+	throw new Error(Messages.noWebGL);
 };
 
 const rebuildViewport = (gl, canvas) => {
@@ -13353,7 +13368,7 @@ const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 45) => 
 };
 const makeModelMatrix = (graph) => {
 	if (!graph) { return math.core.identity4x4; }
-	const bounds = getBoundingBox(graph);
+	const bounds = boundingBox(graph);
 	if (!bounds) { return math.core.identity4x4; }
 	const scale = Math.max(...bounds.span);
 	const center = math.core.resize(3, math.core.midpoint(bounds.min, bounds.max));

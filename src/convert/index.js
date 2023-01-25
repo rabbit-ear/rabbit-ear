@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import objToFold from "./obj";
 import opxToFold from "./opx";
 import svgToFold from "./svg/index";

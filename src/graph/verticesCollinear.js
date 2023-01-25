@@ -4,12 +4,13 @@
 import math from "../math";
 import { getEdgesVerticesOverlappingSpan } from "./span";
 import { makeVerticesEdgesUnsorted } from "./make";
+import Messages from "../environment/messages.json";
 
 const getOppositeVertices = ({ edges_vertices }, vertex, edges) => {
 	edges.forEach(edge => {
 		if (edges_vertices[edge][0] === vertex
 			&& edges_vertices[edge][1] === vertex) {
-			console.warn("removePlanarVertex circular edge");
+			throw new Error(Messages.circularEdge);
 		}
 	});
 	return edges.map(edge => (edges_vertices[edge][0] === vertex
@@ -23,7 +24,7 @@ const getOppositeVertices = ({ edges_vertices }, vertex, edges) => {
  * @param {FOLD} graph a FOLD object
  * @param {number} vertex an index of a vertex in the graph
  * @returns {boolean} true if the vertex is collinear and can be removed.
- * @linkcode Origami ./src/graph/verticesCollinear.js 26
+ * @linkcode Origami ./src/graph/verticesCollinear.js 27
  */
 export const isVertexCollinear = ({
 	vertices_coords, vertices_edges, edges_vertices,
@@ -63,7 +64,7 @@ export const isVertexCollinear = ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
- * @linkcode Origami ./src/graph/verticesCollinear.js 66
+ * @linkcode Origami ./src/graph/verticesCollinear.js 67
  */
 export const getVerticesEdgesOverlap = ({
 	vertices_coords, edges_vertices, edges_coords,

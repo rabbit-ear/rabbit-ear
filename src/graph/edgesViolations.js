@@ -33,7 +33,7 @@ import replace from "./replace";
  * @returns {number[]} array of indices of circular edges. empty if none.
  * @linkcode Origami ./src/graph/edgesViolations.js 34
  */
-export const getCircularEdges = ({ edges_vertices }) => {
+export const circularEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
 	const circular = [];
 	for (let i = 0; i < edges_vertices.length; i += 1) {
@@ -59,7 +59,7 @@ export const getCircularEdges = ({ edges_vertices }) => {
  * (3, 4, 8, 12) are all duplicates. (5,7), (9,14) are also duplicates.
  * @linkcode Origami ./src/graph/edgesViolations.js 60
  */
-export const getDuplicateEdges = ({ edges_vertices }) => {
+export const duplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
 	const duplicates = [];
 	const map = {};

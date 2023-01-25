@@ -3,13 +3,6 @@
  */
 import math from "../math";
 /**
- * @description
- */
-const sortPointsAlongFirstAxis = (points) => points
-	.map((point, i) => ({ i, d: point[0] }))
-	.sort((a, b) => a.d - b.d)
-	.map(a => a.i);
-/**
  * @description Find all clusters of vertices which lie within an epsilon of each other.
  * Each cluster is an array of vertex indices. If no clusters exist, the method returns
  * N-number of arrays, each with a single vertex entry. This is an implementation of a
@@ -20,16 +13,20 @@ const sortPointsAlongFirstAxis = (points) => points
  * @example
  * no clusters: [ [0], [1], [2], [3], [4], ... ]
  * clusters: [ [0, 5], [1], [3], [2, 4]]
- * @linkcode Origami ./src/graph/verticesClusters.js 31
+ * @linkcode Origami ./src/graph/verticesClusters.js 16
  */
-const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+const verticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
 	if (!vertices_coords) { return []; }
 	// the return value, the clusters
 	const clusters = [];
 	// add to this as we go. once length === vertices_coords.length, we are done.
 	const finished = [];
 	// as we add points to clusters, they will be removed from here.
-	const vertices = sortPointsAlongFirstAxis(vertices_coords);
+	// sort vertices (any dimension) along the X-axis. store their indices
+	const vertices = vertices_coords
+		.map((point, i) => ({ i, d: point[0] }))
+		.sort((a, b) => a.d - b.d)
+		.map(a => a.i);
 	let rangeStart = 0;
 	let yRange = [0, 0];
 	let xRange = [0, 0];
@@ -112,4 +109,4 @@ const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) =
 	// .sort((a, b) => a[0] - b[0]);
 };
 
-export default getVerticesClusters;
+export default verticesClusters;

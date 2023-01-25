@@ -33,7 +33,7 @@ const max_num_in_orders = (array) => {
 		if (el[1] > max) { max = el[1]; }
 	});
 	return max;
-}
+};
 const ordersArrayNames = {
 	edges: "edgeOrders",
 	faces: "faceOrders",

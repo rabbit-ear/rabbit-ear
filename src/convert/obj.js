@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import {
 	// makeEdgesFaces,
 	makeEdgesFacesUnsorted,
@@ -10,7 +13,7 @@ import { makeFacesNormal } from "../graph/normals";
 import {
 	file_spec,
 	file_creator,
-} from "../fold/keys";
+} from "../fold/rabbitear";
 
 const addMetadata = (graph) => {
 	graph.file_spec = file_spec;
@@ -58,7 +61,7 @@ const parseVertex = (vertex) => vertex
  * expected to contain at least vertices and faces. All groups or object
  * separations are currently ignored, the contents are treated as one object.
  * @returns {object} a FOLD representation of the OBJ file.
- * @linkcode Origami ./src/convert/obj.js 61
+ * @linkcode Origami ./src/convert/obj.js 64
  */
 const objToFold = (file) => {
 	const lines = file.split("\n").map(line => line.trim().split(/\s+/));
