@@ -29,6 +29,8 @@ test("triangulate", () => {
 	// all indices in the map will be 0. all came from face 0.
 	expect(JSON.stringify(result.faces.map))
 		.toBe(JSON.stringify([[0, 1, 2, 3]]));
+	expect(JSON.stringify(result.edges.new))
+		.toBe(JSON.stringify([6, 7, 8]));
 });
 
 test("triangulate with and without earcut 1", () => {
@@ -38,6 +40,10 @@ test("triangulate with and without earcut 1", () => {
 	const result2 = ear.graph.triangulate(fold2, earcut);
 	expect(JSON.stringify(result1.faces.map))
 		.toBe(JSON.stringify(result2.faces.map));
+	expect(result1.edges.new.length)
+		.toBe(1);
+	expect(JSON.stringify(result1.edges.new))
+		.toBe(JSON.stringify(result2.edges.new));
 });
 
 test("triangulate with and without earcut 2", () => {
@@ -48,8 +54,32 @@ test("triangulate with and without earcut 2", () => {
 	const result2 = ear.graph.triangulate(fold2, earcut);
 	expect(JSON.stringify(result1.faces.map))
 		.toBe(JSON.stringify(result2.faces.map));
+	expect(JSON.stringify(result1.edges.new))
+		.toBe(JSON.stringify(result2.edges.new));
 	expect(fold1.edges_assignment.filter(a => a === "J").length)
 		.toBe(112);
 	expect(fold1.edges_assignment.filter(a => a === "J").length)
 		.toBe(fold2.edges_assignment.filter(a => a === "J").length);
+});
+
+test("triangulate with only faces_vertices", () => {
+	const graph = {
+		faces_vertices: [[1, 3, 5, 7], [0, 1, 7], [2, 3, 1], [4, 5, 3], [6, 7, 5]],
+	};
+	ear.graph.triangulate(graph);
+	expect(graph.faces_edges.length).toBe(graph.faces_vertices.length);
+	expect(graph.edges_vertices.length).not.toBe(0);
+});
+
+test("triangulate with only faces_vertices, with earcut", () => {
+	const graph = {
+		faces_vertices: [[1, 3, 5, 7], [0, 1, 7], [2, 3, 1], [4, 5, 3], [6, 7, 5]],
+	};
+	let err;
+	try {
+		ear.graph.triangulate(graph, earcut);
+	} catch (error) {
+		err = error;
+	}
+	expect(err).not.toBe(undefined);
 });

@@ -45,6 +45,7 @@ var flatFoldAngles = "foldAngles cannot be determined from flat-folded faces wit
 var noWebGL = "WebGl not Supported";
 var convexFace = "only convex faces are supported";
 var window$1 = "window not set; if using node/deno include package @xmldom/xmldom and set ear.window = xmldom";
+var nonConvexTriangulation = "non-convex triangulation requires vertices_coords";
 var Messages = {
 	fragment: fragment$1,
 	manifold: manifold,
@@ -56,7 +57,8 @@ var Messages = {
 	flatFoldAngles: flatFoldAngles,
 	noWebGL: noWebGL,
 	convexFace: convexFace,
-	window: window$1
+	window: window$1,
+	nonConvexTriangulation: nonConvexTriangulation
 };
 
 const windowContainer = { window: undefined };
@@ -6634,6 +6636,9 @@ const groupByThree = (array) => (array.length === 3 ? [array] : Array
 	.map((_, i) => [i * 3 + 0, i * 3 + 1, i * 3 + 2]
 		.map(j => array[j])));
 const triangulateNonConvexFacesVertices = ({ vertices_coords, faces_vertices }, earcut) => {
+	if (!vertices_coords || !vertices_coords.length) {
+		throw new Error(Messages.nonConvexTriangulation);
+	}
 	const dimension = vertices_coords[0].length;
 	return faces_vertices
 		.map(fv => fv.flatMap(v => vertices_coords[v]))
@@ -6643,6 +6648,7 @@ const triangulateNonConvexFacesVertices = ({ vertices_coords, faces_vertices }, 
 		.flatMap(res => groupByThree(res));
 };
 const rebuildWithNewFaces = (graph) => {
+	if (!graph.edges_vertices) { graph.edges_vertices = []; }
 	const edgeLookup = makeVerticesToEdgeBidirectional(graph);
 	let e = graph.edges_vertices.length;
 	const newEdgesVertices = [];
@@ -6680,15 +6686,19 @@ const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
 		.map(length => Array.from(Array(length - 2)).map(() => count++));
 };
 const triangulate = (graph, earcut) => {
-	if (!graph.vertices_coords.length) { return {}; }
 	if (!graph.faces_vertices) { return {}; }
+	const edgeCount = graph.edges_vertices ? graph.edges_vertices.length : 0;
 	const nextMap = makeTriangulatedFacesNextMap(graph);
 	graph.faces_vertices = earcut
 		? triangulateNonConvexFacesVertices(graph, earcut)
 		: triangulateConvexFacesVertices(graph);
 	rebuildWithNewFaces(graph);
+	const newEdges = Array
+		.from(Array(graph.edges_vertices.length - edgeCount))
+		.map((_, i) => edgeCount + i);
 	return {
 		faces: { map: nextMap },
+		edges: { new: newEdges },
 	};
 };
 

@@ -1,20 +1,22 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import {
-	makeVerticesToEdgeBidirectional,
-} from "./make";
+import Messages from "../environment/messages.json";
+import { makeVerticesToEdgeBidirectional } from "./make";
 /**
  * @description Convert an array of indices into an array of array of
  * indices where each inner array forms a triangle fan: [0, 1, 2, 3, 4]
  * becomes [[0, 1, 2], [1, 2, 3], [1, 3, 4]].
+ * @param {number[]} indices an array of indices
+ * @returns {number[][]} an array of arrays where the inner arrays are
+ * all of length 3.
  */
 const makeTriangleFan = (indices) => Array.from(Array(indices.length - 2))
 	.map((_, i) => [indices[0], indices[i + 1], indices[i + 2]]);
 /**
  * @description Triangulate a faces_vertices with the capability to handle
  * only convex faces. This will increase the number of faces.
- * @param {FOLD} graph a FOLD graph.
+ * @param {FOLD} graph a FOLD object.
  * @returns {number[][]} faces_vertices where all faces have only 3 vertices
  */
 export const triangulateConvexFacesVertices = ({ faces_vertices }) => faces_vertices
@@ -39,10 +41,13 @@ const groupByThree = (array) => (array.length === 3 ? [array] : Array
  * You will need to link a reference to the package "Earcut" by Mapbox.
  * Earcut is a small and capable library with zero dependencies.
  * https://www.npmjs.com/package/earcut
- * @param {FOLD} graph a FOLD graph.
+ * @param {FOLD} graph a FOLD object.
  * @returns {number[][]} faces_vertices where all faces have only 3 vertices
  */
 export const triangulateNonConvexFacesVertices = ({ vertices_coords, faces_vertices }, earcut) => {
+	if (!vertices_coords || !vertices_coords.length) {
+		throw new Error(Messages.nonConvexTriangulation);
+	}
 	const dimension = vertices_coords[0].length;
 	return faces_vertices
 		.map(fv => fv.flatMap(v => vertices_coords[v]))
@@ -58,8 +63,11 @@ export const triangulateNonConvexFacesVertices = ({ vertices_coords, faces_verti
  * methods. This will run just after faces_vertices was modified to contain
  * only triangulated faces. This method rebuild faces_edges and
  * add new joined edges edges_vertices, assignment, and foldAngle.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @returns {FOLD} the same FOLD object as the parameter
  */
 const rebuildWithNewFaces = (graph) => {
+	if (!graph.edges_vertices) { graph.edges_vertices = []; }
 	const edgeLookup = makeVerticesToEdgeBidirectional(graph);
 	let e = graph.edges_vertices.length;
 	// as we traverse the new faces_edges, if we encounter a new edge, add
@@ -113,20 +121,27 @@ const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
  * can still triangulate your model, however, you will need to link
  * a reference to the package "Earcut" by Mapbox. Earcut is a small and
  * capable library with zero dependencies: https://www.npmjs.com/package/earcut
- * @param {FOLD} graph a FOLD graph, modified in place.
+ * @param {FOLD} graph a FOLD object, modified in place.
  * @param {object} earcut an optional reference to the Earcut library
  * by Mapbox, required to operate on a graph with non-convex faces.
  * @returns {object} a summary of changes to the input parameter.
+ * @todo preserve faceOrders, match preexisting faces against new ones,
+ * this may create too much unnecessary data but at least it will work.
  */
 export const triangulate = (graph, earcut) => {
-	if (!graph.vertices_coords.length) { return {}; }
 	if (!graph.faces_vertices) { return {}; }
+	const edgeCount = graph.edges_vertices ? graph.edges_vertices.length : 0;
 	const nextMap = makeTriangulatedFacesNextMap(graph);
 	graph.faces_vertices = earcut
 		? triangulateNonConvexFacesVertices(graph, earcut)
 		: triangulateConvexFacesVertices(graph);
+	// if the graph did not contain edges_vertices after this method, it will
 	rebuildWithNewFaces(graph);
+	const newEdges = Array
+		.from(Array(graph.edges_vertices.length - edgeCount))
+		.map((_, i) => edgeCount + i);
 	return {
 		faces: { map: nextMap },
+		edges: { new: newEdges },
 	};
 };
