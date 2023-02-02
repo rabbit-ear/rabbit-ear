@@ -107,14 +107,14 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
  * @description Find and remove all circular edges from a graph.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [remove_indices=undefined] Leave this empty. Otherwise, if
- * getCircularEdges() has already been called, provide the result here to speed
+ * circularEdges() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} a summary of changes
  * @linkcode Origami ./src/graph/edgesViolations.js 113
  */
 export const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {
-		remove_indices = getCircularEdges(graph);
+		remove_indices = circularEdges(graph);
 	}
 	if (remove_indices.length) {
 		// remove every instance of a circular edge in every _edge array.
@@ -136,7 +136,7 @@ export const removeCircularEdges = (graph, remove_indices) => {
  * removed a duplicate edge, the vertices arrays will be rebuilt as well.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [replace_indices=undefined] Leave this empty. Otherwise, if
- * getDuplicateEdges() has already been called, provide the result here to speed
+ * duplicateEdges() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} a summary of changes
  * @linkcode Origami ./src/graph/edgesViolations.js 142
@@ -144,7 +144,7 @@ export const removeCircularEdges = (graph, remove_indices) => {
 export const removeDuplicateEdges = (graph, replace_indices) => {
 	// index: edge to remove, value: the edge which should replace it.
 	if (!replace_indices) {
-		replace_indices = getDuplicateEdges(graph);
+		replace_indices = duplicateEdges(graph);
 	}
 	const remove = Object.keys(replace_indices).map(n => parseInt(n, 10));
 	const map = replace(graph, S._edges, replace_indices);

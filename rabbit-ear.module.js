@@ -3968,7 +3968,7 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
 };
 const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {
-		remove_indices = getCircularEdges(graph);
+		remove_indices = circularEdges(graph);
 	}
 	if (remove_indices.length) {
 		spliceRemoveValuesFromSuffixes(graph, _edges, remove_indices);
@@ -3980,7 +3980,7 @@ const removeCircularEdges = (graph, remove_indices) => {
 };
 const removeDuplicateEdges = (graph, replace_indices) => {
 	if (!replace_indices) {
-		replace_indices = getDuplicateEdges(graph);
+		replace_indices = duplicateEdges(graph);
 	}
 	const remove = Object.keys(replace_indices).map(n => parseInt(n, 10));
 	const map = replaceGeometryIndices(graph, _edges, replace_indices);
@@ -6623,26 +6623,27 @@ var overlap = /*#__PURE__*/Object.freeze({
 	getFacesFaces2DOverlap: getFacesFaces2DOverlap
 });
 
-const triangulateVertices = (indices) => Array.from(Array(indices.length - 2))
+const makeTriangleFan = (indices) => Array.from(Array(indices.length - 2))
 	.map((_, i) => [indices[0], indices[i + 1], indices[i + 2]]);
 const triangulateConvexFacesVertices = ({ faces_vertices }) => faces_vertices
 	.flatMap(vertices => (vertices.length < 4
 		? [vertices]
-		: triangulateVertices(vertices)));
-const makeTriangulatedConvexFacesMap = ({ faces_vertices }) => {
-	let i = 0;
-	return faces_vertices.flatMap(vertices => {
-		if (vertices.length < 4) { return [i++]; }
-		const face = Array.from(Array(vertices.length - 2)).map(() => i);
-		i += 1;
-		return face;
-	});
+		: makeTriangleFan(vertices)));
+const groupByThree = (array) => (array.length === 3 ? [array] : Array
+	.from(Array(Math.floor(array.length / 3)))
+	.map((_, i) => [i * 3 + 0, i * 3 + 1, i * 3 + 2]
+		.map(j => array[j])));
+const triangulateNonConvexFacesVertices = ({ vertices_coords, faces_vertices }, earcut) => {
+	const dimension = vertices_coords[0].length;
+	return faces_vertices
+		.map(fv => fv.flatMap(v => vertices_coords[v]))
+		.map(polygon => earcut(polygon, null, dimension))
+		.map((vertices, i) => vertices
+			.map(j => faces_vertices[i][j]))
+		.flatMap(res => groupByThree(res));
 };
-const triangulate = (graph, earcut) => {
-	if (!graph.faces_vertices) { return {}; }
+const rebuildWithNewFaces = (graph) => {
 	const edgeLookup = makeVerticesToEdgeBidirectional(graph);
-	const facesMap = makeTriangulatedConvexFacesMap(graph);
-	graph.faces_vertices = triangulateConvexFacesVertices(graph);
 	let e = graph.edges_vertices.length;
 	const newEdgesVertices = [];
 	graph.faces_edges = graph.faces_vertices
@@ -6652,6 +6653,8 @@ const triangulate = (graph, earcut) => {
 				const vertexPair = edge_vertices.join(" ");
 				if (vertexPair in edgeLookup) { return edgeLookup[vertexPair]; }
 				newEdgesVertices.push(edge_vertices);
+				edgeLookup[vertexPair] = e;
+				edgeLookup[edge_vertices.reverse().join(" ")] = e;
 				return e++;
 			}));
 	const newEdgeCount = newEdgesVertices.length;
@@ -6668,14 +6671,31 @@ const triangulate = (graph, earcut) => {
 	if (graph.edges_faces) { delete graph.edges_faces; }
 	if (graph.faces_faces) { delete graph.faces_faces; }
 	if (graph.faceOrders) { delete graph.faceOrders; }
+	return graph;
+};
+const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
+	let count = 0;
+	return faces_vertices
+		.map(verts => Math.max(3, verts.length))
+		.map(length => Array.from(Array(length - 2)).map(() => count++));
+};
+const triangulate = (graph, earcut) => {
+	if (!graph.vertices_coords.length) { return {}; }
+	if (!graph.faces_vertices) { return {}; }
+	const nextMap = makeTriangulatedFacesNextMap(graph);
+	graph.faces_vertices = earcut
+		? triangulateNonConvexFacesVertices(graph, earcut)
+		: triangulateConvexFacesVertices(graph);
+	rebuildWithNewFaces(graph);
 	return {
-		faces: { map: facesMap },
+		faces: { map: nextMap },
 	};
 };
 
 var triangulate$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	triangulateConvexFacesVertices: triangulateConvexFacesVertices,
+	triangulateNonConvexFacesVertices: triangulateNonConvexFacesVertices,
 	triangulate: triangulate
 });
 

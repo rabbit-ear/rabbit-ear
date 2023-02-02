@@ -1,0 +1,55 @@
+const fs = require("fs");
+const { test, expect } = require("@jest/globals");
+const earcut = require("earcut");
+const ear = require("../rabbit-ear");
+
+const convexHexagon = {
+	vertices_coords: [[0, 0], [1, 1], [1, 2], [0, 3], [-1, 2], [-1, 1]],
+	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0]],
+	edges_assignment: ["B", "B", "B", "B", "B", "B"],
+	faces_vertices: [[0, 1, 2, 3, 4, 5]],
+};
+
+const blintz = {
+	vertices_coords: [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]],
+	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 0], [1, 3], [3, 5], [5, 7], [7, 1]],
+	edges_assignment: ["B", "B", "B", "B", "B", "B", "B", "B", "V", "V", "V", "V"],
+	faces_vertices: [[1, 3, 5, 7], [0, 1, 7], [2, 3, 1], [4, 5, 3], [6, 7, 5]],
+};
+
+test("triangulate", () => {
+	const fold = JSON.parse(JSON.stringify(convexHexagon));
+	const result = ear.graph.triangulate(fold);
+	expect(fold.edges_assignment.length).toBe(9);
+	expect(fold.edges_assignment[6]).toBe("J");
+	expect(fold.edges_assignment[7]).toBe("J");
+	expect(fold.edges_assignment[8]).toBe("J");
+	expect(fold.faces_vertices.length).toBe(4);
+	expect(fold.faces_edges.length).toBe(4);
+	// all indices in the map will be 0. all came from face 0.
+	expect(JSON.stringify(result.faces.map))
+		.toBe(JSON.stringify([[0, 1, 2, 3]]));
+});
+
+test("triangulate with and without earcut 1", () => {
+	const fold1 = JSON.parse(JSON.stringify(blintz));
+	const fold2 = JSON.parse(JSON.stringify(blintz));
+	const result1 = ear.graph.triangulate(fold1);
+	const result2 = ear.graph.triangulate(fold2, earcut);
+	expect(JSON.stringify(result1.faces.map))
+		.toBe(JSON.stringify(result2.faces.map));
+});
+
+test("triangulate with and without earcut 2", () => {
+	const bird = JSON.parse(fs.readFileSync("./tests/files/kraft-bird-base.fold"));
+	const fold1 = JSON.parse(JSON.stringify(bird));
+	const fold2 = JSON.parse(JSON.stringify(bird));
+	const result1 = ear.graph.triangulate(fold1);
+	const result2 = ear.graph.triangulate(fold2, earcut);
+	expect(JSON.stringify(result1.faces.map))
+		.toBe(JSON.stringify(result2.faces.map));
+	expect(fold1.edges_assignment.filter(a => a === "J").length)
+		.toBe(112);
+	expect(fold1.edges_assignment.filter(a => a === "J").length)
+		.toBe(fold2.edges_assignment.filter(a => a === "J").length);
+});
