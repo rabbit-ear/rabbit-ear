@@ -1992,7 +1992,7 @@ const default_overlap_domain_function = {
 	segment: excludeS,
 	vector: excludeL,
 };
-const overlap$1 = function (a, b, epsilon) {
+const overlap = function (a, b, epsilon) {
 	const type_a = typeOf(a);
 	const type_b = typeOf(b);
 	const aT = similar_overlap_types[type_a];
@@ -2030,7 +2030,7 @@ const table = {
 			return parallel(...resizeUp(this, getVector(arguments)));
 		},
 		isCollinear: function (line) {
-			return overlap$1(this, line);
+			return overlap(this, line);
 		},
 		dot: function () {
 			return dot(...resizeUp(this, getVector(arguments)));
@@ -2039,7 +2039,7 @@ const table = {
 			return distance(...resizeUp(this, getVector(arguments)));
 		},
 		overlap: function (other) {
-			return overlap$1(this, other);
+			return overlap(this, other);
 		},
 	},
 	vector: {
@@ -2172,7 +2172,7 @@ const LinesMethods = {
 		return intersect$1(this, ...arguments);
 	},
 	overlap: function () {
-		return overlap$1(this, ...arguments);
+		return overlap(this, ...arguments);
 	},
 	bisect: function (lineType, epsilon) {
 		const line = getLine$1(lineType);
@@ -2367,7 +2367,7 @@ const CircleMethods = {
 		return intersect$1(this, object);
 	},
 	overlap: function (object) {
-		return overlap$1(this, object);
+		return overlap(this, object);
 	},
 	svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
 		const info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
@@ -2541,7 +2541,7 @@ const PolygonMethods = {
 			.map(poly => Constructors.polygon(poly));
 	},
 	overlap: function () {
-		return overlap$1(this, ...arguments);
+		return overlap(this, ...arguments);
 	},
 	intersect: function () {
 		return intersect$1(this, ...arguments);
@@ -2781,25 +2781,25 @@ const create = function (primitiveName, args) {
 	return a;
 };
 const vector = function () { return create("vector", arguments); };
-const line$1 = function () { return create("line", arguments); };
+const line = function () { return create("line", arguments); };
 const ray = function () { return create("ray", arguments); };
 const segment = function () { return create("segment", arguments); };
-const circle$1 = function () { return create("circle", arguments); };
-const ellipse$1 = function () { return create("ellipse", arguments); };
-const rect$1 = function () { return create("rect", arguments); };
-const polygon$1 = function () { return create("polygon", arguments); };
-const polyline$1 = function () { return create("polyline", arguments); };
+const circle = function () { return create("circle", arguments); };
+const ellipse = function () { return create("ellipse", arguments); };
+const rect = function () { return create("rect", arguments); };
+const polygon = function () { return create("polygon", arguments); };
+const polyline = function () { return create("polyline", arguments); };
 const matrix = function () { return create("matrix", arguments); };
 Object.assign(Constructors, {
 	vector,
-	line: line$1,
+	line,
 	ray,
 	segment,
-	circle: circle$1,
-	ellipse: ellipse$1,
-	rect: rect$1,
-	polygon: polygon$1,
-	polyline: polyline$1,
+	circle,
+	ellipse,
+	rect,
+	polygon,
+	polyline,
 	matrix,
 });
 Object.keys(Definitions).forEach(primitiveName => {
@@ -2865,7 +2865,7 @@ math.core = Object.assign(
 );
 math.typeof = typeOf;
 math.intersect = intersect$1;
-math.overlap = overlap$1;
+math.overlap = overlap;
 
 const vertex_degree = function (v, i) {
 	const graph = this;
@@ -4791,7 +4791,7 @@ const makeFacesMatrix = ({
 	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
 }, root_face = 0) => {
 	if (!edges_assignment && edges_foldAngle) {
-		edges_assignment = makeEdgesAssignment({ edges_foldAngle });
+		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
 	}
 	if (!edges_foldAngle) {
 		if (edges_assignment) {
@@ -6617,7 +6617,7 @@ const getFacesFaces2DOverlap = ({
 	return matrix;
 };
 
-var overlap = /*#__PURE__*/Object.freeze({
+var overlapGraph = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	coplanarFacesGroups: coplanarFacesGroups,
 	overlappingFacesGroups: overlappingFacesGroups,
@@ -6968,7 +6968,7 @@ var graph_methods = Object.assign(
 	query,
 	sets,
 	intersect,
-	overlap,
+	overlapGraph,
 	triangulate$1,
 	normals,
 	transform,
@@ -10336,46 +10336,42 @@ const getAttributeValue = (key, nodeName, attributes, sheets = []) => {
 	return null;
 };
 
-var line = {
-	x1: 1,
-	y1: 1,
-	x2: 1,
-	y2: 1
-};
-var rect = {
-	x: 1,
-	y: 1,
-	width: 1,
-	height: 1
-};
-var circle = {
-	cx: 1,
-	cy: 1,
-	r: 1
-};
-var ellipse = {
-	cx: 1,
-	cy: 1,
-	rx: 1,
-	ry: 1
-};
-var polygon = {
-	points: 1
-};
-var polyline = {
-	points: 1
-};
-var path = {
-	d: 1
+var attrs = {
+	line: {
+		x1: 1,
+		y1: 1,
+		x2: 1,
+		y2: 1
+	},
+	rect: {
+		x: 1,
+		y: 1,
+		width: 1,
+		height: 1
+	},
+	circle: {
+		cx: 1,
+		cy: 1,
+		r: 1
+	},
+	ellipse: {
+		cx: 1,
+		cy: 1,
+		rx: 1,
+		ry: 1
+	},
+	polygon: {
+		points: 1
+	},
+	polyline: {
+		points: 1
+	},
+	path: {
+		d: 1
+	}
 };
 var geometryAttributes = {
-	line: line,
-	rect: rect,
-	circle: circle,
-	ellipse: ellipse,
-	polygon: polygon,
-	polyline: polyline,
-	path: path
+	attrs: attrs
 };
 
 const pointsStringToArray = str => {
@@ -10853,7 +10849,7 @@ const opacityToFoldAngle = (opacity, assignment) => {
 };
 const attribute_list = (element) => Array
 	.from(element.attributes)
-	.filter(a => !geometryAttributes[element.nodeName][a.nodeName]);
+	.filter(a => !geometryAttributes.attrs[element.nodeName][a.nodeName]);
 const objectifyAttributeList = function (list) {
 	const obj = {};
 	list.forEach((a) => { obj[a.nodeName] = a.value; });

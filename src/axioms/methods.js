@@ -1,4 +1,7 @@
 /**
+ * Rabbit Ear (c) Kraft
+ */
+/**
  * @description The core axiom methods return arrays for *some* of the axioms.
  * Standardize the output so that all of them are inside arrays.
  * @param {number} the axiom number

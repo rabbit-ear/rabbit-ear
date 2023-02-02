@@ -2,7 +2,7 @@ const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear");
 
 test("clusters", () => {
-	const clusters = ear.graph.getVerticesClusters({
+	const clusters = ear.graph.verticesClusters({
 		vertices_coords: [
 			[0, 0],
 			[1, 1],
@@ -14,15 +14,15 @@ test("clusters", () => {
 	});
 	expect(clusters[0][0]).toBe(0);
 	expect(clusters[0][1]).toBe(2);
-	expect(clusters[1][0]).toBe(1);
-	expect(clusters[2][0]).toBe(3);
-	expect(clusters[2][1]).toBe(4);
-	expect(clusters[3][0]).toBe(5);
+	expect(clusters[1][0]).toBe(3);
+	expect(clusters[1][1]).toBe(4);
+	expect(clusters[2][0]).toBe(5);
+	expect(clusters[3][0]).toBe(1);
 });
 
 test("clusters, inside epsilon", () => {
 	const epsilon = ear.math.EPSILON * 0.9;
-	const clusters = ear.graph.getVerticesClusters({
+	const clusters = ear.graph.verticesClusters({
 		vertices_coords: [
 			[0.5, 0.5],
 			[0.5, 0.5 + epsilon],
@@ -39,7 +39,7 @@ test("clusters, inside epsilon", () => {
 
 test("clusters, outside epsilon", () => {
 	const epsilon = ear.math.EPSILON * 1.1;
-	const clusters = ear.graph.getVerticesClusters({
+	const clusters = ear.graph.verticesClusters({
 		vertices_coords: [
 			[0.5, 0.5],
 			[0.5, 0.5 + epsilon],

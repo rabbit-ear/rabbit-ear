@@ -29,7 +29,7 @@ const opacityToFoldAngle = (opacity, assignment) => {
 
 const attribute_list = (element) => Array
 	.from(element.attributes)
-	.filter(a => !geometryAttributes[element.nodeName][a.nodeName]);
+	.filter(a => !geometryAttributes.attrs[element.nodeName][a.nodeName]);
 
 const objectifyAttributeList = function (list) {
 	const obj = {};

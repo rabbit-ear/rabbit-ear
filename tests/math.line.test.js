@@ -175,7 +175,7 @@ test("length", () => {
 	expect(result.magnitude).toBeCloseTo(Math.sqrt(2) * 2);
 });
 test("transform", () => {
-	const result1 = ear.segment([1, 2], [3, 4]).transform(ear.matrix().scale(0.5));
+	const result1 = ear.segment([1, 2], [3, 4]).transform(ear.matrix().scale([0.5, 0.5, 0.5]));
 	expect(result1[0].x).toBe(0.5);
 	expect(result1[0].y).toBe(1);
 	expect(result1[1].x).toBe(1.5);

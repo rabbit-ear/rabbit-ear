@@ -16,14 +16,14 @@ test("make edges_foldAngle undefineds", () => {
 });
 
 test("make edges_assignment", () => {
-	const result = ear.graph.makeEdgesAssignment({
+	const result = ear.graph.makeEdgesAssignmentSimple({
 		edges_foldAngle: [-180, -180, 0, 0, 180, 180],
 	});
 	expect(result).toEqual(expect.arrayContaining(["M", "M", "F", "F", "V", "V"]));
 });
 
 test("make edges_assignment", () => {
-	const result = ear.graph.makeEdgesAssignment({
+	const result = ear.graph.makeEdgesAssignmentSimple({
 		edges_foldAngle: [-Infinity, -1, -0.5, -1e-10, 0, 1e-10, 0.5, 1, Infinity],
 	});
 	expect(result).toEqual(expect.arrayContaining(["M", "M", "M", "M", "F", "V", "V", "V", "V"]));

@@ -19,7 +19,7 @@ test("duplicate edges", () => {
 			[4, 0],
 		],
 	};
-	const result = ear.graph.getDuplicateEdges(graph);
+	const result = ear.graph.duplicateEdges(graph);
 	expect(result[4]).toBe(3);
 	expect(result[7]).toBe(5);
 	expect(result[12]).toBe(8);
@@ -33,7 +33,7 @@ test("invalid edges", () => {
 			[2, 1, 0],
 		],
 	};
-	const result1 = ear.graph.getDuplicateEdges(graph1);
+	const result1 = ear.graph.duplicateEdges(graph1);
 	expect(result1.length).toBe(0);
 
 	const graph2 = {
@@ -43,7 +43,7 @@ test("invalid edges", () => {
 			[0, 1, 2],
 		],
 	};
-	const result2 = ear.graph.getDuplicateEdges(graph2);
+	const result2 = ear.graph.duplicateEdges(graph2);
 	expect(result2[0]).toBe(undefined);
 	expect(result2[1]).toBe(undefined);
 	expect(result2[2]).toBe(0);
@@ -51,7 +51,7 @@ test("invalid edges", () => {
 
 test("duplicate edges, invalid input 1", (done) => {
 	try {
-		ear.graph.getDuplicateEdges();
+		ear.graph.duplicateEdges();
 	} catch (error) {
 		expect(error).not.toBe(undefined);
 		done();
@@ -59,13 +59,13 @@ test("duplicate edges, invalid input 1", (done) => {
 });
 
 test("duplicate edges, invalid input 2", () => {
-	const result = ear.graph.getDuplicateEdges({});
+	const result = ear.graph.duplicateEdges({});
 	expect(result.length).toBe(0);
 });
 
 test("duplicate edges, with undefined", (done) => {
 	try {
-		ear.graph.getDuplicateEdges({
+		ear.graph.duplicateEdges({
 			edges_vertices: [
 				[0, 1],
 				undefined,

@@ -6,7 +6,7 @@ import {
 	makeVerticesFaces,
 	makeVerticesToEdgeBidirectional,
 	makeEdgesFoldAngle,
-	makeEdgesAssignment,
+	makeEdgesAssignmentSimple,
 } from "./make";
 import {
 	makeFaceSpanningTree,
@@ -53,7 +53,7 @@ export const makeFacesMatrix = ({
 	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
 }, root_face = 0) => {
 	if (!edges_assignment && edges_foldAngle) {
-		edges_assignment = makeEdgesAssignment({ edges_foldAngle });
+		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
 	}
 	if (!edges_foldAngle) {
 		if (edges_assignment) {

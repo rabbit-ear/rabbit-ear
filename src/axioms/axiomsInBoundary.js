@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import math from "../math";
 import { arrayify } from "./methods";
 import * as AxiomsVO from "./axiomsVecOrigin";
@@ -27,7 +30,7 @@ const spreadParams = (params) => {
  * @param {number[][]} [boundary] the optional boundary,
  * including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/axiomsInBoundary.js 30
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 33
  */
 export const axiomInBoundary = (number, params = {}, boundary = undefined) => {
 	const solutions = arrayify(
@@ -51,7 +54,7 @@ export const axiomInBoundary = (number, params = {}, boundary = undefined) => {
  * @param {number[][]} [boundary] the optional boundary,
  * including this will exclude results that lie outside.
  * @returns {UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/axiomsInBoundary.js 54
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 57
  */
 export const normalAxiomInBoundary = (number, params = {}, boundary = undefined) => {
 	const solutions = arrayify(

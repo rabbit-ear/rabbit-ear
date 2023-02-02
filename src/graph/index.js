@@ -12,7 +12,7 @@ import * as query from "./query";
 import * as sets from "./sets";
 import * as intersect from "./intersect";
 import transform from "./affine";
-import * as overlap from "./overlap";
+import * as overlapGraph from "./overlap";
 import * as triangulate from "./triangulate";
 import * as normals from "./normals";
 import * as verticesViolations from "./verticesViolations";
@@ -94,7 +94,7 @@ export default Object.assign(
 	query,
 	sets,
 	intersect,
-	overlap,
+	overlapGraph,
 	triangulate,
 	normals,
 	transform,
