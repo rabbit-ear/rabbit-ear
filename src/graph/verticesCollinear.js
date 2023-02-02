@@ -4,19 +4,7 @@
 import math from "../math";
 import { getEdgesVerticesOverlappingSpan } from "./span";
 import { makeVerticesEdgesUnsorted } from "./make";
-import Messages from "../environment/messages.json";
-
-const getOppositeVertices = ({ edges_vertices }, vertex, edges) => {
-	edges.forEach(edge => {
-		if (edges_vertices[edge][0] === vertex
-			&& edges_vertices[edge][1] === vertex) {
-			throw new Error(Messages.circularEdge);
-		}
-	});
-	return edges.map(edge => (edges_vertices[edge][0] === vertex
-		? edges_vertices[edge][1]
-		: edges_vertices[edge][0]));
-};
+import { getOppositeVertices } from "./general";
 /**
  * @description determine if a vertex exists between two and only two edges, and
  * those edges are both parallel and on opposite ends of the vertex. In a lot of

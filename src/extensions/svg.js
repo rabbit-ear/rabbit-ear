@@ -1879,7 +1879,7 @@ const pathCommandNames = {
 /**
  * if the command is relative, it will build upon offset coordinate
  */
-const add2 = (a, b) => [a[0] + (b[0] || 0), a[1] + (b[1] || 0)];
+const add2path = (a, b) => [a[0] + (b[0] || 0), a[1] + (b[1] || 0)];
 const getEndpoint = (command, values, offset = [0, 0]) => {
 	const upper = command.toUpperCase();
 	const origin = command === upper ? [0, 0] : offset;
@@ -1888,11 +1888,11 @@ const getEndpoint = (command, values, offset = [0, 0]) => {
 	case "L":
 	case "V":
 	case "H":
-	case "T": return add2(origin, values);
-	case "A": return add2(origin, [values[5], values[6]]);
-	case "C": return add2(origin, [values[4], values[5]]);
+	case "T": return add2path(origin, values);
+	case "A": return add2path(origin, [values[5], values[6]]);
+	case "C": return add2path(origin, [values[4], values[5]]);
 	case "S":
-	case "Q": return add2(origin, [values[2], values[3]]);
+	case "Q": return add2path(origin, [values[2], values[3]]);
 	case "Z": return undefined; // cannot be set locally.
 	default: return origin;
 	}

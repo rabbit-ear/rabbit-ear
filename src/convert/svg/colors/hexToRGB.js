@@ -5,6 +5,9 @@
  * @description Convert a hex string into an array of
  * three numbers, the rgb values (between 0 and 1).
  * This ignores any alpha values.
+ * @param {string} value a hex color code as a string
+ * @returns {number[]} three values between 0 and 1
+ * @linkcode
  */
 const hexToRGB = (string) => {
 	const numbersOnly = string.replace(/#(?=\S)/g, "");

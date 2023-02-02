@@ -1510,7 +1510,7 @@ const radialSortPointIndices = (points = [], epsilon = EPSILON) => {
 				.map(el => el.i))));
 };
 
-var sort = /*#__PURE__*/Object.freeze({
+var sortMethods = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	sortPointsAlongVector2: sortPointsAlongVector2,
 	clusterIndicesOfSortedNumbers: clusterIndicesOfSortedNumbers,
@@ -2695,7 +2695,7 @@ const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) =>
 	convexHullIndices(points, includeCollinear, epsilon)
 		.map(i => points[i]));
 
-var convexHull$1 = /*#__PURE__*/Object.freeze({
+var convexHullMethods = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	convexHullIndices: convexHullIndices,
 	convexHull: convexHull
@@ -2779,7 +2779,7 @@ const pleat = (count, a, b) => {
 		: pleatAngle(count, lineA, lineB);
 };
 
-var pleat$1 = /*#__PURE__*/Object.freeze({
+var pleatMethods = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	pleat: pleat
 });
@@ -2976,7 +2976,7 @@ const boundingBox = (points, padding = 0) => {
 	return { min, max, span };
 };
 
-var polygons = /*#__PURE__*/Object.freeze({
+var polygonMethods = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	makePolygonCircumradius: makePolygonCircumradius,
 	makePolygonCircumradiusSide: makePolygonCircumradiusSide,
@@ -5230,12 +5230,12 @@ math.core = Object.assign(
 	getters,
 	functions,
 	algebra,
-	sort,
+	sortMethods,
 
 	radial,
-	convexHull$1,
-	pleat$1,
-	polygons,
+	convexHullMethods,
+	pleatMethods,
+	polygonMethods,
 	radial,
 
 	matrix2,

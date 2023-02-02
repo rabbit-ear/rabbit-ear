@@ -4,16 +4,16 @@
 import * as make from "./make";
 import * as boundary from "./boundary";
 import * as walk from "./walk";
-import * as nearest from "./nearest";
-import * as sort from "./sort";
+import * as nearestMethods from "./nearest";
+import * as sortMethods from "./sort";
 import * as span from "./span";
 import * as maps from "./maps";
 import * as query from "./query";
-import * as sets from "./sets";
-import * as intersect from "./intersect";
+import * as setsMethods from "./sets";
+import * as intersectMethods from "./intersect";
 import transform from "./affine";
 import * as overlapGraph from "./overlap";
-import * as triangulate from "./triangulate";
+import * as triangulateMethods from "./triangulate";
 import * as normals from "./normals";
 import * as verticesViolations from "./verticesViolations";
 import * as edgesViolations from "./edgesViolations";
@@ -52,8 +52,8 @@ import verticesClusters from "./verticesClusters";
 import * as arrays from "../general/arrays";
 import clone from "../general/clone";
 // import addVertices_splitEdges from "./add/addVertices_splitEdges";
-import * as foldKeys from "../fold/keys";
-import * as foldSpec from "../fold/spec";
+import * as foldKeyMethods from "../fold/keys";
+import * as foldSpecMethods from "../fold/spec";
 
 export default Object.assign(
 	Object.create(null),
@@ -82,20 +82,20 @@ export default Object.assign(
 		clone,
 		flattenFrame,
 	},
-	foldKeys,
-	foldSpec,
+	foldKeyMethods,
+	foldSpecMethods,
 	make,
 	boundary,
 	walk,
-	nearest,
-	sort,
+	nearestMethods,
+	sortMethods,
 	span,
 	maps,
 	query,
-	sets,
-	intersect,
+	setsMethods,
+	intersectMethods,
 	overlapGraph,
-	triangulate,
+	triangulateMethods,
 	normals,
 	transform,
 	verticesViolations,

@@ -4,7 +4,16 @@
 import * as AxiomsVO from "./axiomsVecOrigin";
 import * as AxiomsND from "./axiomsNormDist";
 import * as BoundaryAxioms from "./axiomsInBoundary";
-import * as Validate from "./validate";
+import {
+	validateAxiom1,
+	validateAxiom2,
+	validateAxiom3,
+	validateAxiom4,
+	validateAxiom5,
+	validateAxiom6,
+	validateAxiom7,
+	validateAxiom,
+} from "./validate";
 /**
  * @description Perform one of the seven origami axioms. Supply an optional boundary
  * so that only the results possible inside the boundary will be returned.
@@ -22,6 +31,14 @@ const axiom = (number, params = {}, boundary = undefined) => BoundaryAxioms
 Object.keys(AxiomsVO).forEach(key => { axiom[key] = AxiomsVO[key]; });
 Object.keys(AxiomsND).forEach(key => { axiom[key] = AxiomsND[key]; });
 Object.keys(BoundaryAxioms).forEach(key => { axiom[key] = BoundaryAxioms[key]; });
-Object.keys(Validate).forEach(key => { axiom[key] = Validate[key]; });
+
+axiom.validateAxiom1 = validateAxiom1;
+axiom.validateAxiom2 = validateAxiom2;
+axiom.validateAxiom3 = validateAxiom3;
+axiom.validateAxiom4 = validateAxiom4;
+axiom.validateAxiom5 = validateAxiom5;
+axiom.validateAxiom6 = validateAxiom6;
+axiom.validateAxiom7 = validateAxiom7;
+axiom.validate = validateAxiom; // different name
 
 export default axiom;

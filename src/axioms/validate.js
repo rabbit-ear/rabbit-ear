@@ -217,7 +217,7 @@ export const validateAxiom7 = (params, boundary, result) => {
  * return one boolean, 3, 5, 6 return arrays of booleans.
  * @linkcode Origami ./src/axioms/validate.js 218
  */
-export const validate = (number, params, boundary, results) => arrayify(number, [null,
+export const validateAxiom = (number, params, boundary, results) => arrayify(number, [null,
 	validateAxiom1,
 	validateAxiom2,
 	validateAxiom3,

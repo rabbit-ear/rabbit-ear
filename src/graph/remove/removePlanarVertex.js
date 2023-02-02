@@ -3,18 +3,7 @@
  */
 import remove from "../remove";
 import { uniqueSortedNumbers } from "../../general/arrays";
-
-const getOppositeVertices = (graph, vertex, edges) => {
-	edges.forEach(edge => {
-		if (graph.edges_vertices[edge][0] === vertex
-			&& graph.edges_vertices[edge][1] === vertex) {
-			console.warn("removePlanarVertex circular edge");
-		}
-	});
-	return edges.map(edge => (graph.edges_vertices[edge][0] === vertex
-		? graph.edges_vertices[edge][1]
-		: graph.edges_vertices[edge][0]));
-};
+import { getOppositeVertices } from "../general";
 /**
  * @description given a degree-2 vertex, remove this vertex, merge the adjacent
  * edges into one, and rebuild the faces on either side.

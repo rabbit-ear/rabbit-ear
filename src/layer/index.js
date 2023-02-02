@@ -15,7 +15,8 @@ import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignme
 import solver from "./solver3d/index";
 import topologicalOrder from "./solver3d/topologicalOrder";
 // old global layer solver in 2D
-import solver2d from "./solver2d/index";
+// import solver2d from "./solver2d/index";
+
 // import table from "./solver2d/table";
 // import * as makeConstraints from "./solver2d/makeConstraints";
 // import * as makeFacePairsOrder from "./solver2d/makeFacePairsOrder";
@@ -33,7 +34,7 @@ export default Object.assign(
 	Object.create(null),
 	{
 		solver,
-		solver2d,
+		// solver2d,
 		// table,
 		topologicalOrder,
 		// makeTacosTortillas,

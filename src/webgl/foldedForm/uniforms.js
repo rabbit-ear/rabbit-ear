@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math";
-import hexToRGB from "../general/hexToRGB";
+import hexToRGB from "../../convert/svg/colors/hexToRGB";
 
 const makeUniforms = (gl, {
 	projectionMatrix, viewMatrix, modelMatrix, canvas,

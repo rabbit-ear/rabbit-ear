@@ -4,7 +4,6 @@
 import createProgram from "./general/createProgram";
 import initialize from "./general/initialize";
 import * as view from "./general/view";
-import hexToRGB from "./general/hexToRGB";
 import * as program from "./program";
 //
 import foldedForm from "./foldedForm/index";
@@ -27,7 +26,6 @@ export default Object.assign(
 		initialize,
 		foldedForm,
 		creasePattern,
-		hexToRGB,
 		// webGLHelpers,
 	},
 	view,
