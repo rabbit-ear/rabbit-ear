@@ -3604,7 +3604,7 @@
 			.map((verts, i) => verts
 				.map(v => edge_map[`${i} ${v}`]));
 	};
-	const makeVerticesVertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
+	const makeVerticesVertices2D = ({ vertices_coords, vertices_edges, edges_vertices }) => {
 		if (!vertices_edges) {
 			vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 		}
@@ -3617,6 +3617,95 @@
 			? vertices_vertices
 			: vertices_vertices
 				.map((verts, i) => sortVerticesCounterClockwise({ vertices_coords }, verts, i));
+	};
+	const makeVerticesVerticesFromFaces = ({
+		vertices_coords, vertices_faces, faces_vertices,
+	}) => {
+		if (!vertices_faces) {
+			vertices_faces = makeVerticesFacesUnsorted({ vertices_coords, faces_vertices });
+		}
+		const vertices_faces_vertices = vertices_faces
+			.map(faces => faces.map(f => faces_vertices[f]));
+		const vertices_faces_indexOf = vertices_faces_vertices
+			.map((faces, vertex) => faces.map(verts => verts.indexOf(vertex)));
+		const vertices_faces_threeIndices = vertices_faces_vertices
+			.map((faces, vertex) => faces.map((verts, j) => [
+				(vertices_faces_indexOf[vertex][j] + verts.length - 1) % verts.length,
+				vertices_faces_indexOf[vertex][j],
+				(vertices_faces_indexOf[vertex][j] + 1) % verts.length,
+			]));
+		const vertices_faces_threeVerts = vertices_faces_threeIndices
+			.map((faces, vertex) => faces
+				.map((indices, j) => indices
+					.map(index => vertices_faces_vertices[vertex][j][index])));
+		const vertices_verticesLookup = vertices_faces_threeVerts.map(faces => {
+			const facesVerts = faces
+				.map(verts => [[0, 1], [1, 2]]
+					.map(p => p.map(x => verts[x]).join(" ")));
+			const from = {};
+			const to = {};
+			facesVerts.forEach((keys, i) => {
+				from[keys[0]] = i;
+				to[keys[1]] = i;
+			});
+			return { facesVerts, to, from };
+		});
+		return vertices_verticesLookup.map(lookup => {
+			const toKeys = Object.keys(lookup.to);
+			const toKeysInverse = toKeys
+				.map(key => key.split(" ").reverse().join(" "));
+			const holeKeys = toKeys
+				.filter((_, i) => !(toKeysInverse[i] in lookup.from));
+			if (holeKeys.length > 2) {
+				console.warn("vertices_vertices found an unsolvable vertex");
+				return [];
+			}
+			const startKeys = holeKeys.length
+				? holeKeys
+				: [toKeys[0]];
+			const vertex_vertices = [];
+			const visited = {};
+			for (let s = 0; s < startKeys.length; s += 1) {
+				const startKey = startKeys[s];
+				const walk = [startKey];
+				visited[startKey] = true;
+				let isDone = false;
+				do {
+					const prev = walk[walk.length - 1];
+					const faceIndex = lookup.to[prev];
+					if (!(faceIndex in lookup.facesVerts)) { break; }
+					let nextKey;
+					if (lookup.facesVerts[faceIndex][0] === prev) {
+						nextKey = lookup.facesVerts[faceIndex][1];
+					}
+					if (lookup.facesVerts[faceIndex][1] === prev) {
+						nextKey = lookup.facesVerts[faceIndex][0];
+					}
+					if (nextKey === undefined) { return "not found"; }
+					const nextKeyFlipped = nextKey.split(" ").reverse().join(" ");
+					walk.push(nextKey);
+					isDone = (nextKeyFlipped in visited);
+					if (!isDone) { walk.push(nextKeyFlipped); }
+					visited[nextKey] = true;
+					visited[nextKeyFlipped] = true;
+				} while (!isDone);
+				const vertexKeys = walk
+					.filter((_, i) => i % 2 === 0)
+					.map(key => key.split(" ")[1])
+					.map(str => parseInt(str, 10));
+				vertex_vertices.push(...vertexKeys);
+			}
+			return vertex_vertices;
+		});
+	};
+	const makeVerticesVertices = (graph) => {
+		if (!graph.vertices_coords || !graph.vertices_coords.length) { return []; }
+		switch (graph.vertices_coords[0].length) {
+		case 3:
+			return makeVerticesVerticesFromFaces(graph);
+		default:
+			return makeVerticesVertices2D(graph);
+		}
 	};
 	const makeVerticesVerticesUnsorted = ({ vertices_edges, edges_vertices }) => {
 		if (!vertices_edges) {
@@ -3870,8 +3959,8 @@
 		const faces_faces = faces_vertices.map(() => []);
 		const edgeMap = {};
 		faces_vertices
-			.map((face, f) => face
-				.map((v0, i, arr) => {
+			.forEach((face, f) => face
+				.forEach((v0, i, arr) => {
 					let v1 = arr[(i + 1) % face.length];
 					if (v1 < v0) { [v0, v1] = [v1, v0]; }
 					const key = `${v0} ${v1}`;
@@ -3905,6 +3994,8 @@
 		__proto__: null,
 		makeVerticesEdgesUnsorted: makeVerticesEdgesUnsorted,
 		makeVerticesEdges: makeVerticesEdges,
+		makeVerticesVertices2D: makeVerticesVertices2D,
+		makeVerticesVerticesFromFaces: makeVerticesVerticesFromFaces,
 		makeVerticesVertices: makeVerticesVertices,
 		makeVerticesVerticesUnsorted: makeVerticesVerticesUnsorted,
 		makeVerticesFacesUnsorted: makeVerticesFacesUnsorted,
@@ -3990,9 +4081,9 @@
 		if (!replace_indices) {
 			replace_indices = duplicateEdges(graph);
 		}
-		const remove = Object.keys(replace_indices).map(n => parseInt(n, 10));
+		const removeObject = Object.keys(replace_indices).map(n => parseInt(n, 10));
 		const map = replaceGeometryIndices(graph, _edges, replace_indices);
-		if (remove.length) {
+		if (removeObject.length) {
 			if (graph.vertices_edges || graph.vertices_vertices || graph.vertices_faces) {
 				graph.vertices_edges = makeVerticesEdgesUnsorted(graph);
 				graph.vertices_vertices = makeVerticesVertices(graph);
@@ -4000,7 +4091,7 @@
 				graph.vertices_faces = makeVerticesFaces(graph);
 			}
 		}
-		return { map, remove };
+		return { map, remove: removeObject };
 	};
 
 	var edgesViolations = /*#__PURE__*/Object.freeze({
@@ -9373,19 +9464,30 @@
 		instructions,
 	};
 
-	const addMetadata = (graph) => {
+	const newFoldFile = () => {
+		const graph = {};
 		graph.file_spec = file_spec;
 		graph.file_creator = file_creator;
-		let frameClass = "creasePattern";
+		graph.file_classes = ["singleModel"];
+		graph.frame_classes = [];
+		graph.frame_attributes = [];
+		graph.vertices_coords = [];
+		graph.faces_vertices = [];
+		return graph;
+	};
+	const updateMetadata = (graph) => {
+		if (!graph.edges_foldAngle || !graph.edges_foldAngle.length) { return; }
+		let is2D = true;
 		for (let i = 0; i < graph.edges_foldAngle.length; i += 1) {
 			if (graph.edges_foldAngle[i] !== 0
 				&& graph.edges_foldAngle[i] !== -180
 				&& graph.edges_foldAngle[i] !== 180) {
-				frameClass = "foldedForm";
+				is2D = false;
 				break;
 			}
 		}
-		graph.frame_classes = [frameClass];
+		graph.frame_classes.push(is2D ? "creasePattern" : "foldedForm");
+		graph.frame_attributes.push(is2D ? "2D" : "3D");
 	};
 	const pairify = (list) => list.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
 	const makeEdgesVertices = ({ faces_vertices }) => {
@@ -9409,10 +9511,7 @@
 		.map(str => parseFloat(str));
 	const objToFold = (file) => {
 		const lines = file.split("\n").map(line => line.trim().split(/\s+/));
-		const graph = {
-			vertices_coords: [],
-			faces_vertices: [],
-		};
+		const graph = newFoldFile();
 		for (let i = 0; i < lines.length; i += 1) {
 			switch (lines[i][0].toLowerCase()) {
 			case "f": graph.faces_vertices.push(parseFace(lines[i])); break;
@@ -9426,10 +9525,11 @@
 		graph.edges_faces = makeEdgesFacesUnsorted(graph);
 		graph.edges_foldAngle = makeEdgesFoldAngleFromFaces(graph);
 		graph.edges_assignment = makeEdgesAssignment(graph);
+		graph.vertices_vertices = makeVerticesVerticesFromFaces(graph);
 		delete graph.faces_normal;
 		delete graph.faces_center;
 		delete graph.edges_faces;
-		addMetadata(graph);
+		updateMetadata(graph);
 		return graph;
 	};
 
@@ -12735,6 +12835,8 @@
 		m: [0.75, 0.25, 0.15],
 		F: [0.2, 0.2, 0.2],
 		f: [0.2, 0.2, 0.2],
+		C: [1.0, 0.75, 0.25],
+		c: [1.0, 0.75, 0.25],
 		U: [0.2, 0.2, 0.2],
 		u: [0.2, 0.2, 0.2],
 	};

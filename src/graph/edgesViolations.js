@@ -13,25 +13,12 @@ import {
 } from "../fold/spec";
 import remove from "./remove";
 import replace from "./replace";
-
-// export const get_undefined_edges = ({ edges_vertices }) => {
-//   const bad = [];
-//   for (let i = 0; i < edges_vertices.length; i += 1) {
-//     if (edges_vertices[i][0] === undefined
-//       || edges_vertices[i][1] === undefined
-//       || edges_vertices[i][0] === null
-//       || edges_vertices[i][1] === null) {
-//       bad.push(i);
-//     }
-//   }
-//   return bad;
-// };
 /**
  * @description Get the indices of all circular edges. Circular edges are
  * edges where both of its edges_vertices is the same vertex.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} array of indices of circular edges. empty if none.
- * @linkcode Origami ./src/graph/edgesViolations.js 34
+ * @linkcode Origami ./src/graph/edgesViolations.js 21
  */
 export const circularEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
@@ -57,7 +44,7 @@ export const circularEdges = ({ edges_vertices }) => {
  * @example
  * {number[]} array, [4:3, 7:5, 8:3, 12:3, 14:9] where indices
  * (3, 4, 8, 12) are all duplicates. (5,7), (9,14) are also duplicates.
- * @linkcode Origami ./src/graph/edgesViolations.js 60
+ * @linkcode Origami ./src/graph/edgesViolations.js 47
  */
 export const duplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
@@ -110,7 +97,7 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
  * circularEdges() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} a summary of changes
- * @linkcode Origami ./src/graph/edgesViolations.js 113
+ * @linkcode Origami ./src/graph/edgesViolations.js 100
  */
 export const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {
@@ -139,22 +126,22 @@ export const removeCircularEdges = (graph, remove_indices) => {
  * duplicateEdges() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} a summary of changes
- * @linkcode Origami ./src/graph/edgesViolations.js 142
+ * @linkcode Origami ./src/graph/edgesViolations.js 129
  */
 export const removeDuplicateEdges = (graph, replace_indices) => {
 	// index: edge to remove, value: the edge which should replace it.
 	if (!replace_indices) {
 		replace_indices = duplicateEdges(graph);
 	}
-	const remove = Object.keys(replace_indices).map(n => parseInt(n, 10));
+	const removeObject = Object.keys(replace_indices).map(n => parseInt(n, 10));
 	const map = replace(graph, S._edges, replace_indices);
 	// if edges were removed, we need to rebuild vertices_edges and then
 	// vertices_vertices since that was built from vertices_edges, and then
 	// vertices_faces since that was built from vertices_vertices.
-	if (remove.length) {
+	if (removeObject.length) {
 		// currently we are rebuilding the entire arrays, if possible,
 		// update these specific vertices directly:
-		// const vertices = remove
+		// const vertices = removeObject
 		//   .map(edge => graph.edges_vertices[edge])
 		//   .reduce((a, b) => a.concat(b), []);
 		if (graph.vertices_edges || graph.vertices_vertices || graph.vertices_faces) {
@@ -164,5 +151,5 @@ export const removeDuplicateEdges = (graph, replace_indices) => {
 			graph.vertices_faces = makeVerticesFaces(graph);
 		}
 	}
-	return { map, remove };
+	return { map, remove: removeObject };
 };

@@ -11,7 +11,14 @@ import { sortVerticesCounterClockwise } from "./sort";
 import { makeFacesNormal } from "./normals";
 import Messages from "../environment/messages.json";
 /**
- * all of the graph methods follow a similar format.
+ * This is one big file (sorry) which contains methods to create all the
+ * geometry arrays in the FOLD spec, like "vertices_vertices", "faces_edges"..
+ *
+ * They are all named in camelCase (not snake), following the format:
+ * "make" + the FOLD array name + any clarifying comments such as
+ * "2D" or "from___" describing where the data is pulled from.
+ *
+ * all of the parameters required for each method follow a similar format:
  * the first argument is a FOLD graph. and the graph remains unmodified.
  * the method returns the data array.
  *
@@ -30,7 +37,7 @@ import Messages from "../environment/messages.json";
  * @param {FOLD} graph a FOLD object, containing edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are edge indices.
- * @linkcode Origami ./src/graph/make.js 33
+ * @linkcode Origami ./src/graph/make.js 40
  */
 export const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
 	const vertices_edges = [];
@@ -52,7 +59,7 @@ export const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
  * @param {FOLD} graph a FOLD object, containing edges_vertices, vertices_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are edge indices.
- * @linkcode Origami ./src/graph/make.js 55
+ * @linkcode Origami ./src/graph/make.js 62
  */
 export const makeVerticesEdges = ({ edges_vertices, vertices_vertices }) => {
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
@@ -61,30 +68,13 @@ export const makeVerticesEdges = ({ edges_vertices, vertices_vertices }) => {
 			.map(v => edge_map[`${i} ${v}`]));
 };
 /**
- * discover adjacent vertices by way of their edge relationships.
- *
- * required FOLD arrays:
- * - vertices_coords
- * - edges_vertices
- *
- * helpful FOLD arrays: (will be made anyway)
- * - vertices_edges
- *
- * editor note: i almost rewrote this by caching edges_vector, making it
- * resemble the make_faces_vertices but the elegance of this simpler solution
- * feels like it outweighed the added complexity. it's worth revisiting tho.
- *
- * note: it is possible to rewrite this method to use faces_vertices to
- * discover adjacent vertices, currently this is 
- */
-/**
  * @description Make `vertices_vertices` sorted radially counter-clockwise.
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_edges, edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are vertex indices.
- * @linkcode Origami ./src/graph/make.js 85
+ * @linkcode Origami ./src/graph/make.js 75
  */
-export const makeVerticesVertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
+export const makeVerticesVertices2D = ({ vertices_coords, vertices_edges, edges_vertices }) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
@@ -101,6 +91,155 @@ export const makeVerticesVertices = ({ vertices_coords, vertices_edges, edges_ve
 		: vertices_vertices
 			.map((verts, i) => sortVerticesCounterClockwise({ vertices_coords }, verts, i));
 };
+/**
+ * @description Make `vertices_vertices` sorted radially counter-clockwise.
+ * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_edges, edges_vertices
+ * @returns {number[][]} array of array of numbers, where each row corresponds to a
+ * vertex index and the values in the inner array are vertex indices.
+ * @linkcode Origami ./src/graph/make.js 99
+ */
+export const makeVerticesVerticesFromFaces = ({
+	vertices_coords, vertices_faces, faces_vertices,
+}) => {
+	if (!vertices_faces) {
+		vertices_faces = makeVerticesFacesUnsorted({ vertices_coords, faces_vertices });
+	}
+	// every iterate through every vertices_faces's faces_vertices
+	const vertices_faces_vertices = vertices_faces
+		.map(faces => faces.map(f => faces_vertices[f]));
+	// for every vertex, find its index in its faces_vertices array.
+	const vertices_faces_indexOf = vertices_faces_vertices
+		.map((faces, vertex) => faces.map(verts => verts.indexOf(vertex)));
+	// get the three vertices (before, this vertex, after) in this vertex's
+	// faces_vertices array maintaining the counter clockwise order.
+	const vertices_faces_threeIndices = vertices_faces_vertices
+		.map((faces, vertex) => faces.map((verts, j) => [
+			(vertices_faces_indexOf[vertex][j] + verts.length - 1) % verts.length,
+			vertices_faces_indexOf[vertex][j],
+			(vertices_faces_indexOf[vertex][j] + 1) % verts.length,
+		]));
+	// conver these three indices in face_vertices arrays into absolute
+	// indices to vertices, so that we have three consecutive vertex indices.
+	// for example, vertex #7's entry might be an array containing:
+	// [141, 7, 34]
+	// [34, 7, 120]
+	// [120, 7, 141]
+	const vertices_faces_threeVerts = vertices_faces_threeIndices
+		.map((faces, vertex) => faces
+			.map((indices, j) => indices
+				.map(index => vertices_faces_vertices[vertex][j][index])));
+	// convert the three neighbor vertices into two pairs, maintaining order,
+	// which include the vertex in the middle, these represent the pairs of
+	// vertices which make up the edge of the face, for all faces, in counter-
+	// clockwise order around this vertex.
+	const vertices_verticesLookup = vertices_faces_threeVerts.map(faces => {
+		// facesVerts matches the order in this vertex's faces_vertices array.
+		// it contains vertex pair keys ([141, 7, 34] becomes ["141 7", "7 34"])
+		// which represent this face's adjacent vertices to our vertex
+		// coming to and from this vertex.
+		const facesVerts = faces
+			.map(verts => [[0, 1], [1, 2]]
+				.map(p => p.map(x => verts[x]).join(" ")));
+		const from = {};
+		const to = {};
+		facesVerts.forEach((keys, i) => {
+			from[keys[0]] = i;
+			to[keys[1]] = i;
+		});
+		return { facesVerts, to, from };
+	});
+	// using the data from above, walk around the vertex by starting with an
+	// edge, an edge represented as a pair of vertices, and alternate:
+	// 1. using the vertex-pair's adjacent face to get the other pair in
+	//    the same face, and,
+	// 2. swapping the vertices in the string ("141 7" becomes "7 141") to
+	//    find jump to another face, this being the adjacent face in the walk.
+	// care needs to be taken because this vertex may be adjacent to holes.
+	// a solution is possible if there are up to two holes, but a vertex
+	// with more than two holes is technically unsolvable.
+	return vertices_verticesLookup.map(lookup => {
+		// locate any holes if they exist, holes are when the inverse of
+		// a "to" key does not exist in the "from" lookup, or visa versa.
+		const toKeys = Object.keys(lookup.to);
+		const toKeysInverse = toKeys
+			.map(key => key.split(" ").reverse().join(" "));
+		// hole keys are made from "from" indices, so each one can be
+		// the start of a counter clockwise walk path
+		const holeKeys = toKeys
+			.filter((_, i) => !(toKeysInverse[i] in lookup.from));
+		// console.log("holeKeys", holeKeys);
+		if (holeKeys.length > 2) {
+			console.warn("vertices_vertices found an unsolvable vertex");
+			return [];
+		}
+		// the start keys will be either each hole key, or just pick a key
+		// if no holes exist
+		const startKeys = holeKeys.length
+			? holeKeys
+			: [toKeys[0]];
+		// vertex_vertices is each vertex's vertices_vertices
+		const vertex_vertices = [];
+		// in the case of no holes, "visited" will indicate we finished.
+		const visited = {};
+		for (let s = 0; s < startKeys.length; s += 1) {
+			const startKey = startKeys[s];
+			const walk = [startKey];
+			visited[startKey] = true;
+			let isDone = false;
+			do {
+				const prev = walk[walk.length - 1];
+				const faceIndex = lookup.to[prev];
+				// this indicates the end of a walk which ended at a hole
+				if (!(faceIndex in lookup.facesVerts)) { break; }
+				let nextKey;
+				if (lookup.facesVerts[faceIndex][0] === prev) {
+					nextKey = lookup.facesVerts[faceIndex][1];
+				}
+				if (lookup.facesVerts[faceIndex][1] === prev) {
+					nextKey = lookup.facesVerts[faceIndex][0];
+				}
+				if (nextKey === undefined) { return "not found"; }
+				const nextKeyFlipped = nextKey.split(" ").reverse().join(" ");
+				walk.push(nextKey);
+				// this indicates the end of a walk which completed a cycle
+				isDone = (nextKeyFlipped in visited);
+				if (!isDone) { walk.push(nextKeyFlipped); }
+				// update the visited dictionary
+				visited[nextKey] = true;
+				visited[nextKeyFlipped] = true;
+			} while (!isDone);
+			// walk now contains keys like "4 0", "1 4", "4 1", "2 4", "4 2",
+			// mod 2 so that every edge is represented only once, which
+			// still works with odd numbers since we start at a hole, and get the
+			// one vertex which isn't our vertex. now we have our vertices_vertices
+			const vertexKeys = walk
+				.filter((_, i) => i % 2 === 0)
+				.map(key => key.split(" ")[1])
+				.map(str => parseInt(str, 10));
+			vertex_vertices.push(...vertexKeys);
+		}
+		return vertex_vertices;
+	});
+};
+/**
+ * @description Make `vertices_vertices` sorted radially counter-clockwise.
+ * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_edges, edges_vertices
+ * @returns {number[][]} array of array of numbers, where each row corresponds to a
+ * vertex index and the values in the inner array are vertex indices.
+ * @linkcode Origami ./src/graph/make.js 229
+ */
+export const makeVerticesVertices = (graph) => {
+	if (!graph.vertices_coords || !graph.vertices_coords.length) { return []; }
+	switch (graph.vertices_coords[0].length) {
+	case 3:
+		return makeVerticesVerticesFromFaces(graph);
+	default:
+		return makeVerticesVertices2D(graph);
+	}
+};
+/**
+ *
+ */
 export const makeVerticesVerticesUnsorted = ({ vertices_edges, edges_vertices }) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
@@ -118,7 +257,7 @@ export const makeVerticesVerticesUnsorted = ({ vertices_edges, edges_vertices })
  * @param {FOLD} graph a FOLD object, containing vertices_coords, faces_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are face indices.
- * @linkcode Origami ./src/graph/make.js 121
+ * @linkcode Origami ./src/graph/make.js 260
  */
 export const makeVerticesFacesUnsorted = ({ vertices_coords, faces_vertices }) => {
 	if (!faces_vertices) { return vertices_coords.map(() => []); }
@@ -143,7 +282,7 @@ export const makeVerticesFacesUnsorted = ({ vertices_coords, faces_vertices }) =
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, faces_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are face indices.
- * @linkcode Origami ./src/graph/make.js 146
+ * @linkcode Origami ./src/graph/make.js 285
  */
 export const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
 	if (!faces_vertices) { return vertices_coords.map(() => []); }
@@ -178,7 +317,7 @@ export const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_ve
  * This is bidirectional, so "7 15" and "15 7" are both keys that point to the same edge.
  * @param {FOLD} graph a FOLD object, containing edges_vertices
  * @returns {object} space-separated vertex pair keys, edge indices values
- * @linkcode Origami ./src/graph/make.js 181
+ * @linkcode Origami ./src/graph/make.js 320
  */
 export const makeVerticesToEdgeBidirectional = ({ edges_vertices }) => {
 	const map = {};
@@ -198,7 +337,7 @@ export const makeVerticesToEdgeBidirectional = ({ edges_vertices }) => {
  * for example for looking up the edge's vector, which is direction specific.
  * @param {FOLD} graph a FOLD object, containing edges_vertices
  * @returns {object} space-separated vertex pair keys, edge indices values
- * @linkcode Origami ./src/graph/make.js 201
+ * @linkcode Origami ./src/graph/make.js 340
  */
 export const makeVerticesToEdge = ({ edges_vertices }) => {
 	const map = {};
@@ -216,7 +355,7 @@ export const makeVerticesToEdge = ({ edges_vertices }) => {
  * bidirectional, and does not contain the opposite order of the same 3 vertices.
  * @param {FOLD} graph a FOLD object, containing faces_vertices
  * @returns {object} space-separated vertex trio keys, face indices values
- * @linkcode Origami ./src/graph/make.js 219
+ * @linkcode Origami ./src/graph/make.js 358
  */
 export const makeVerticesToFace = ({ faces_vertices }) => {
 	const map = {};
@@ -237,7 +376,7 @@ export const makeVerticesToFace = ({ faces_vertices }) => {
  * @returns {number[][][]} array of array of array of numbers, where each row corresponds
  * to a vertex index, inner arrays correspond to vertices_vertices, and inside is a 2D vector
  * @todo this can someday be rewritten without edges_vertices
- * @linkcode Origami ./src/graph/make.js 240
+ * @linkcode Origami ./src/graph/make.js 379
  */
 export const makeVerticesVerticesVector = ({
 	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
@@ -262,7 +401,7 @@ export const makeVerticesVerticesVector = ({
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds
  * to a vertex index, inner arrays contains angles in radians
- * @linkcode Origami ./src/graph/make.js 265
+ * @linkcode Origami ./src/graph/make.js 404
  */
 export const makeVerticesSectors = ({
 	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
@@ -283,7 +422,7 @@ export const makeVerticesSectors = ({
  * @param {FOLD} graph a FOLD object, with entries edges_vertices, vertices_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of other edges.
- * @linkcode Origami ./src/graph/make.js 286
+ * @linkcode Origami ./src/graph/make.js 425
  */
 export const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
 	edges_vertices.map((verts, i) => {
@@ -297,7 +436,7 @@ export const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
  * @param {FOLD} graph a FOLD object, with entries edges_vertices, faces_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of adjacent faces.
- * @linkcode Origami ./src/graph/make.js 300
+ * @linkcode Origami ./src/graph/make.js 439
  */
 export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 	// instead of initializing the array ahead of time (we would need to know
@@ -322,7 +461,7 @@ export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
  * edges_vertices, faces_vertices, faces_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of adjacent faces.
- * @linkcode Origami ./src/graph/make.js 325
+ * @linkcode Origami ./src/graph/make.js 464
  */
 export const makeEdgesFaces = ({
 	vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center,
@@ -366,7 +505,7 @@ const assignment_angles = {
  * "makeEdgesAssignment()" will also assign "B"
  * @param {FOLD} graph a FOLD object, with edges_foldAngle
  * @returns {string[]} array of fold assignments
- * @linkcode Origami ./src/graph/make.js 369
+ * @linkcode Origami ./src/graph/make.js 508
  */
 export const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngle
 	.map(a => {
@@ -378,7 +517,7 @@ export const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngl
  * will assign "M" "V" "F" and "B" for edges with only one incident face.
  * @param {FOLD} graph a FOLD object, with edges_foldAngle
  * @returns {string[]} array of fold assignments
- * @linkcode Origami ./src/graph/make.js 381
+ * @linkcode Origami ./src/graph/make.js 520
  */
 export const makeEdgesAssignment = ({
 	edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges,
@@ -399,7 +538,7 @@ export const makeEdgesAssignment = ({
  * @description Convert edges assignment into fold angle in degrees for every edge.
  * @param {FOLD} graph a FOLD object, with edges_assignment
  * @returns {number[]} array of fold angles in degrees
- * @linkcode Origami ./src/graph/make.js 402
+ * @linkcode Origami ./src/graph/make.js 541
  */
 export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 	.map(a => assignment_angles[a] || 0);
@@ -416,7 +555,7 @@ export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
  * will be consulted to differentiate between 180 degree M or V folds.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} for every edge, an angle in degrees.
- * @linkcode Origami ./src/graph/make.js 419
+ * @linkcode Origami ./src/graph/make.js 558
  */
 export const makeEdgesFoldAngleFromFaces = ({
 	vertices_coords,
@@ -474,7 +613,7 @@ export const makeEdgesFoldAngleFromFaces = ({
  * the 2D or 3D coordinate as an array of numbers.
  * @param {FOLD} graph a FOLD graph with vertices and edges
  * @returns {number[][][]} an array of array of points (which are arrays of numbers)
- * @linkcode Origami ./src/graph/make.js 477
+ * @linkcode Origami ./src/graph/make.js 616
  */
 export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => edges_vertices
 	.map(ev => ev.map(v => vertices_coords[v]));
@@ -483,7 +622,7 @@ export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => edges_ve
  * the pair of vertices in each edges_vertices entry.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
  * @returns {number[][]} each entry relates to an edge, each array contains a 2D vector
- * @linkcode Origami ./src/graph/make.js 486
+ * @linkcode Origami ./src/graph/make.js 625
  */
 export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdgesCoords({
 	vertices_coords, edges_vertices,
@@ -492,7 +631,7 @@ export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdge
  * @description For every edge, find the length between the edges pair of vertices.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
  * @returns {number[]} the distance between each edge's pair of vertices
- * @linkcode Origami ./src/graph/make.js 495
+ * @linkcode Origami ./src/graph/make.js 634
  */
 export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => makeEdgesVector({
 	vertices_coords, edges_vertices,
@@ -503,7 +642,7 @@ export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => makeEdge
  * fast line-sweep algorithms.
  * @param {FOLD} graph a FOLD graph with vertices and edges.
  * @returns {object[]} an array of boxes, length matching the number of edges
- * @linkcode Origami ./src/graph/make.js 506
+ * @linkcode Origami ./src/graph/make.js 645
  */
 export const makeEdgesBoundingBox = ({
 	vertices_coords, edges_vertices, edges_coords,
@@ -529,7 +668,7 @@ export const makeEdgesBoundingBox = ({
  * var faces = makePlanarFaces(graph);
  * faces_vertices = faces.map(el => el.vertices);
  * faces_edges = faces.map(el => el.edges);
- * @linkcode Origami ./src/graph/make.js 532
+ * @linkcode Origami ./src/graph/make.js 671
  */
 export const makePlanarFaces = ({
 	vertices_coords, vertices_vertices, vertices_edges,
@@ -570,7 +709,7 @@ export const makePlanarFaces = ({
  * @description Make `faces_vertices` from `faces_edges`.
  * @param {FOLD} graph a FOLD graph, with faces_edges, edges_vertices
  * @returns {number[][]} a `faces_vertices` array
- * @linkcode Origami ./src/graph/make.js 573
+ * @linkcode Origami ./src/graph/make.js 712
  */
 export const makeFacesVerticesFromEdges = (graph) => graph.faces_edges
 	.map(edges => edges
@@ -585,7 +724,7 @@ export const makeFacesVerticesFromEdges = (graph) => graph.faces_edges
  * @description Make `faces_edges` from `faces_vertices`.
  * @param {FOLD} graph a FOLD graph, with faces_vertices
  * @returns {number[][]} a `faces_edges` array
- * @linkcode Origami ./src/graph/make.js 588
+ * @linkcode Origami ./src/graph/make.js 727
  */
 export const makeFacesEdgesFromVertices = (graph) => {
 	const map = makeVerticesToEdgeBidirectional(graph);
@@ -599,14 +738,14 @@ export const makeFacesEdgesFromVertices = (graph) => {
  * @param {FOLD} graph a FOLD graph, with faces_vertices
  * @returns {number[][]} each index relates to a face, each entry is an array
  * of numbers, each number is an index of an edge-adjacent face to this face.
- * @linkcode Origami ./src/graph/make.js 602
+ * @linkcode Origami ./src/graph/make.js 741
  */
 export const makeFacesFaces = ({ faces_vertices }) => {
 	const faces_faces = faces_vertices.map(() => []);
 	const edgeMap = {};
 	faces_vertices
-		.map((face, f) => face
-			.map((v0, i, arr) => {
+		.forEach((face, f) => face
+			.forEach((v0, i, arr) => {
 				let v1 = arr[(i + 1) % face.length];
 				if (v1 < v0) { [v0, v1] = [v1, v0]; }
 				const key = `${v0} ${v1}`;
@@ -654,7 +793,7 @@ export const makeFacesFaces = ({ faces_vertices }) => {
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][][]} array of array of points, where each point is an array of numbers
- * @linkcode Origami ./src/graph/make.js 657
+ * @linkcode Origami ./src/graph/make.js 796
  */
 export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) => faces_vertices
 	.map(verts => verts.map(v => vertices_coords[v]))
@@ -665,7 +804,7 @@ export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) =
  * not removed, which in some cases, this will be the preferred method.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {number[][][]} array of array of points, where each point is an array of numbers
- * @linkcode Origami ./src/graph/make.js 668
+ * @linkcode Origami ./src/graph/make.js 807
  */
 export const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(verts => verts.map(v => vertices_coords[v]));
@@ -673,7 +812,7 @@ export const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => fa
  * @description For every face, get the face's centroid.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {number[][]} array of points, where each point is an array of numbers
- * @linkcode Origami ./src/graph/make.js 676
+ * @linkcode Origami ./src/graph/make.js 815
  */
 export const makeFacesCenter2D = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(fv => fv.map(v => vertices_coords[v]))
@@ -684,7 +823,7 @@ export const makeFacesCenter2D = ({ vertices_coords, faces_vertices }) => faces_
  * this is often more than sufficient.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {number[][]} array of points, where each point is an array of numbers
- * @linkcode Origami ./src/graph/make.js 687
+ * @linkcode Origami ./src/graph/make.js 826
  */
 export const makeFacesConvexCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(vertices => vertices

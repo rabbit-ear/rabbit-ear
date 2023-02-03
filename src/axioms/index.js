@@ -23,7 +23,7 @@ import {
  * @param {number[][]} [boundary] the optional boundary,
  * including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/index.js 17
+ * @linkcode Origami ./src/axioms/index.js 26
  */
 const axiom = (number, params = {}, boundary = undefined) => BoundaryAxioms
 	.axiomInBoundary(number, params, boundary);

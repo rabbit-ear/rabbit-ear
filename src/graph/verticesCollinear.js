@@ -12,7 +12,7 @@ import { getOppositeVertices } from "./general";
  * @param {FOLD} graph a FOLD object
  * @param {number} vertex an index of a vertex in the graph
  * @returns {boolean} true if the vertex is collinear and can be removed.
- * @linkcode Origami ./src/graph/verticesCollinear.js 27
+ * @linkcode Origami ./src/graph/verticesCollinear.js 15
  */
 export const isVertexCollinear = ({
 	vertices_coords, vertices_edges, edges_vertices,
@@ -52,7 +52,7 @@ export const isVertexCollinear = ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
- * @linkcode Origami ./src/graph/verticesCollinear.js 67
+ * @linkcode Origami ./src/graph/verticesCollinear.js 55
  */
 export const getVerticesEdgesOverlap = ({
 	vertices_coords, edges_vertices, edges_coords,

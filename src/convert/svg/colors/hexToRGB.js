@@ -7,7 +7,7 @@
  * This ignores any alpha values.
  * @param {string} value a hex color code as a string
  * @returns {number[]} three values between 0 and 1
- * @linkcode
+ * @linkcode Origami ./src/convert/svg/colors/hexToRGB.js 10
  */
 const hexToRGB = (string) => {
 	const numbersOnly = string.replace(/#(?=\S)/g, "");

@@ -3,6 +3,7 @@
  */
 import {
 	// makeEdgesFaces,
+	makeVerticesVerticesFromFaces,
 	makeEdgesFacesUnsorted,
 	makeEdgesFoldAngleFromFaces,
 	makeEdgesAssignment,
@@ -15,19 +16,31 @@ import {
 	file_creator,
 } from "../fold/rabbitear";
 
-const addMetadata = (graph) => {
+const newFoldFile = () => {
+	const graph = {};
 	graph.file_spec = file_spec;
 	graph.file_creator = file_creator;
-	let frameClass = "creasePattern";
+	graph.file_classes = ["singleModel"];
+	graph.frame_classes = [];
+	graph.frame_attributes = [];
+	graph.vertices_coords = [];
+	graph.faces_vertices = [];
+	return graph;
+};
+
+const updateMetadata = (graph) => {
+	if (!graph.edges_foldAngle || !graph.edges_foldAngle.length) { return; }
+	let is2D = true;
 	for (let i = 0; i < graph.edges_foldAngle.length; i += 1) {
 		if (graph.edges_foldAngle[i] !== 0
 			&& graph.edges_foldAngle[i] !== -180
 			&& graph.edges_foldAngle[i] !== 180) {
-			frameClass = "foldedForm";
+			is2D = false;
 			break;
 		}
 	}
-	graph.frame_classes = [frameClass];
+	graph.frame_classes.push(is2D ? "creasePattern" : "foldedForm");
+	graph.frame_attributes.push(is2D ? "2D" : "3D");
 };
 
 const pairify = (list) => list.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
@@ -61,14 +74,11 @@ const parseVertex = (vertex) => vertex
  * expected to contain at least vertices and faces. All groups or object
  * separations are currently ignored, the contents are treated as one object.
  * @returns {object} a FOLD representation of the OBJ file.
- * @linkcode Origami ./src/convert/obj.js 64
+ * @linkcode Origami ./src/convert/obj.js 77
  */
 const objToFold = (file) => {
 	const lines = file.split("\n").map(line => line.trim().split(/\s+/));
-	const graph = {
-		vertices_coords: [],
-		faces_vertices: [],
-	};
+	const graph = newFoldFile();
 	for (let i = 0; i < lines.length; i += 1) {
 		// groups and objects ("g", "o") separation is currently ignored
 		switch (lines[i][0].toLowerCase()) {
@@ -85,6 +95,7 @@ const objToFold = (file) => {
 	graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	graph.edges_foldAngle = makeEdgesFoldAngleFromFaces(graph);
 	graph.edges_assignment = makeEdgesAssignment(graph);
+	graph.vertices_vertices = makeVerticesVerticesFromFaces(graph);
 	// faces_normal and faces_center are not a part of the spec.
 	// edges_faces was built unsorted. the sorted method is slower to construct,
 	// and unnecessary for our purposes. the user can build this (and the
@@ -92,7 +103,7 @@ const objToFold = (file) => {
 	delete graph.faces_normal;
 	delete graph.faces_center;
 	delete graph.edges_faces;
-	addMetadata(graph);
+	updateMetadata(graph);
 	return graph;
 };
 
