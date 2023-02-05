@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../../math";
-import parseCSSColor from "./parseCSSColor";
+import math from "../../../math.js";
+import parseCSSColor from "./parseCSSColor.js";
 
 const assignmentColors = {
 	M: [1, 0, 0], // red

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings";
+import * as S from "../../general/strings.js";
 
 // in each of these style functions, options has already been shortcut to the
 // specific geometry entry of the global options object, like:

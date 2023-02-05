@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
+import * as S from "../general/strings.js";
 
 // compare to "undefined", the string
 const isBrowser = typeof window !== S._undefined

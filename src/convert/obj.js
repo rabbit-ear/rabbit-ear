@@ -9,12 +9,12 @@ import {
 	makeEdgesAssignment,
 	makeFacesEdgesFromVertices,
 	makeFacesConvexCenter,
-} from "../graph/make";
-import { makeFacesNormal } from "../graph/normals";
+} from "../graph/make.js";
+import { makeFacesNormal } from "../graph/normals.js";
 import {
 	file_spec,
 	file_creator,
-} from "../fold/rabbitear";
+} from "../fold/rabbitear.js";
 
 const newFoldFile = () => {
 	const graph = {};

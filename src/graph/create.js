@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import populate from "./populate";
+import math from "../math.js";
+import populate from "./populate.js";
 /**
  * @description a set of constructors which make a new simple FOLD graph,
  * like a single-face boundary-only polygon, or a traditional origami base.

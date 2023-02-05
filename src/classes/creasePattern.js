@@ -1,23 +1,23 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import GraphProto from "./graph";
-import clip from "../graph/clip";
-import addVertices from "../graph/add/addVertices";
-import addEdges from "../graph/add/addEdges";
-import fragment from "../graph/fragment";
-import populate from "../graph/populate";
-import addPlanarSegment from "../graph/add/addPlanarSegment";
-import removePlanarEdge from "../graph/remove/removePlanarEdge";
-import { isVertexCollinear } from "../graph/verticesCollinear";
-import { edgeFoldAngleIsFlat } from "../fold/spec";
-import removePlanarVertex from "../graph/remove/removePlanarVertex";
-import validate from "../graph/validate";
+import math from "../math.js";
+import GraphProto from "./graph.js";
+import clip from "../graph/clip.js";
+import addVertices from "../graph/add/addVertices.js";
+import addEdges from "../graph/add/addEdges.js";
+import fragment from "../graph/fragment.js";
+import populate from "../graph/populate.js";
+import addPlanarSegment from "../graph/add/addPlanarSegment.js";
+import removePlanarEdge from "../graph/remove/removePlanarEdge.js";
+import { isVertexCollinear } from "../graph/verticesCollinear.js";
+import { edgeFoldAngleIsFlat } from "../fold/spec.js";
+import removePlanarVertex from "../graph/remove/removePlanarVertex.js";
+import validate from "../graph/validate.js";
 import {
 	validateMaekawa,
 	validateKawasaki,
-} from "../singleVertex/validate";
+} from "../singleVertex/validate.js";
 /**
  * Crease Pattern - a flat-array, index-based graph with faces, edges, and vertices
  * that exist in 2D space, edges resolved so there are no edge crossings.

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { edgesAssignmentNames } from "../fold/spec";
+import { edgesAssignmentNames } from "../fold/spec.js";
 import axiom_instructions_data from "../text/axioms.json";
 
 // the diagram frame IS little fold files.

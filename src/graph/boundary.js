@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { uniqueElements } from "../general/arrays";
+import math from "../math.js";
+import { uniqueElements } from "../general/arrays.js";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices,
 	makeVerticesToEdgeBidirectional,
-} from "./make";
+} from "./make.js";
 import Messages from "../environment/messages.json";
 /**
  * @description Make an axis-aligned bounding box that encloses the vertices of

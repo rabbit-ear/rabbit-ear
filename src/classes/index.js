@@ -1,15 +1,15 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import GraphProto from "./graph";
-import CreasePatternProto from "./creasePattern";
-import OrigamiProto from "./origami";
+import GraphProto from "./graph.js";
+import CreasePatternProto from "./creasePattern.js";
+import OrigamiProto from "./origami.js";
 
-import graph_methods from "../graph/index";
-import { file_spec, file_creator } from "../fold/rabbitear";
-import { isFoldObject } from "../fold/spec";
-import create from "../graph/create";
-import populate from "../graph/populate";
+import graph_methods from "../graph/index.js";
+import { file_spec, file_creator } from "../fold/rabbitear.js";
+import { isFoldObject } from "../fold/spec.js";
+import create from "../graph/create.js";
+import populate from "../graph/populate.js";
 
 // if we ever need to call any of these constructors from somewhere
 // else inside the library (creating a circular dependency)

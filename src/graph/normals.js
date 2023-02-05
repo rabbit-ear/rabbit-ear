@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 
 export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(vertices => vertices

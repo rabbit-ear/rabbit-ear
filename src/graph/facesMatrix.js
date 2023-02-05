@@ -1,16 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 import {
 	makeVerticesFaces,
 	makeVerticesToEdgeBidirectional,
 	makeEdgesFoldAngle,
 	makeEdgesAssignmentSimple,
-} from "./make";
+} from "./make.js";
 import {
 	makeFaceSpanningTree,
-} from "./faceSpanningTree";
+} from "./faceSpanningTree.js";
 /**
  * @description Given a FOLD object and a set of 2x3 matrices, one per face,
  * "fold" the vertices by finding one matrix per vertex and multiplying them.

@@ -3,7 +3,7 @@
  */
 import {
 	constraintToFacePairsStrings,
-} from "./general";
+} from "./general.js";
 /**
  * @description Given a facePairKey (like "3 39") check the constraints
  * lookup for all taco/tortilla events which this key is involved in.
@@ -48,8 +48,45 @@ const getDisjointSets = (
 	remainingKeys,
 	constraints,
 	constraintsLookup,
+	// tortillaSets,
+	// tortillaSetsLookup,
 	constraintsNeighborsMemo = {},
 ) => {
+	// const prevLen = constraints.tortilla_tortilla.length;
+	// const tortillaSets = constraints.tortilla_tortilla
+	// 	.flatMap(t => [
+	// 		[t[2], t[0], t[1], t[3]],
+	// 		[t[0], t[2], t[3], t[1]],
+	// 		[t[2], t[0], t[3], t[1]],
+	// 	]);
+	// 	// .flatMap(t => [
+	// 	// 	[t[1], t[0], t[2], t[3]],
+	// 	// 	[t[0], t[1], t[3], t[2]],
+	// 	// 	[t[1], t[0], t[3], t[2]],
+	// 	// ]);
+	// const tortillaSetsLookup = {};
+	// tortillaSets.forEach((t, i) => {
+	// 	tortillaSetsLookup[[t[0], t[2]].sort((a, b) => a - b).join(" ")] = [prevLen + i];
+	// 	tortillaSetsLookup[[t[1], t[3]].sort((a, b) => a - b).join(" ")] = [prevLen + i];
+	// 	// tortillaSetsLookup[[t[0], t[1]].sort((a, b) => a - b).join(" ")] = [prevLen + i];
+	// 	// tortillaSetsLookup[[t[2], t[3]].sort((a, b) => a - b).join(" ")] = [prevLen + i];
+	// });
+	// const constraintsAll = { ...constraints };
+	// const constraintsLookupAll = { ...constraintsLookup };
+	// constraintsAll.tortilla_tortilla = JSON
+	// 	.parse(JSON.stringify(constraintsAll.tortilla_tortilla));
+	// constraintsLookupAll.tortilla_tortilla = JSON
+	// 	.parse(JSON.stringify(constraintsLookupAll.tortilla_tortilla));
+	// constraintsAll.tortilla_tortilla.push(...tortillaSets);
+	// constraintsLookupAll.tortilla_tortilla = {
+	// 	...constraintsLookup.tortilla_tortilla,
+	// 	...tortillaSetsLookup,
+	// };
+	// console.log("constraintsAll", constraintsAll);
+	// console.log("constraintsLookupAll", constraintsLookupAll);
+	// const constraintsAll = { ...constraints };
+	// const constraintsLookupAll = { ...constraintsLookup };
+
 	// move remainingKeys into a dictionary.
 	// we will delete keys from this dictionary as we visit them
 	const keys = {};
@@ -81,8 +118,10 @@ const getDisjointSets = (
 			const neighborsArray = constraintsNeighborsMemo[key]
 				? constraintsNeighborsMemo[key]
 				: getNeighborsArray(key, constraints, constraintsLookup);
+				// : getNeighborsArray(key, constraintsAll, constraintsLookupAll);
 			// in case there is new data, save it in the memo
 			constraintsNeighborsMemo[key] = neighborsArray;
+			// console.log("neighborsArray", neighborsArray);
 			// get all neighbors from the hash, filtering out facePairs
 			// which were already visited any time in this method ("keys"),
 			// and already visited and included inside this stack ("stackHash")

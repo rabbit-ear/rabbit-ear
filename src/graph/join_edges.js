@@ -1,11 +1,11 @@
 // /**
 //  * Rabbit Ear (c) Kraft
 //  */
-// import math from "../math";
+// import math from "../math.js";
 // import {
 // 	makeEdgesVector,
 // 	makeVerticesEdgesUnsorted
-// } from "./make";
+// } from "./make.js";
 
 // export const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.core.EPSILON) => {
 // 	if (!edges_vector) {

@@ -6,10 +6,10 @@
 
 // todo: this is still an early sketch. needs to be completed
 
-import * as S from "../general/strings";
-import remove from "./remove";
-import count from "./count";
-import { uniqueSortedNumbers } from "../general/arrays";
+import * as S from "../general/strings.js";
+import remove from "./remove.js";
+import count from "./count.js";
+import { uniqueSortedNumbers } from "../general/arrays.js";
 
 const subgraph = (graph, components) => {
 	const remove_indices = {};

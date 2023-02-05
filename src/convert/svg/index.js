@@ -4,19 +4,19 @@
 import {
 	xmlStringToDOM,
 	flattenDomTree,
-} from "./dom";
-import getAttributeValue from "./getAttributeValue";
+} from "./dom.js";
+import getAttributeValue from "./getAttributeValue.js";
 import geometryAttributes from "./geometryAttributes.json";
-import getSegments from "./getSegments/index";
-import colorToAssignment from "./colors/colorToAssignment";
-import { removeDuplicateVertices } from "../../graph/verticesViolations";
-import fragment from "../../graph/fragment";
+import getSegments from "./getSegments/index.js";
+import colorToAssignment from "./colors/colorToAssignment.js";
+import { removeDuplicateVertices } from "../../graph/verticesViolations.js";
+import fragment from "../../graph/fragment.js";
 import {
 	makeVerticesVertices,
 	makePlanarFaces,
-} from "../../graph/make";
-import { planarBoundary } from "../../graph/boundary";
-import parseStyleElement from "./parseStyleElement";
+} from "../../graph/make.js";
+import { planarBoundary } from "../../graph/boundary.js";
+import parseStyleElement from "./parseStyleElement.js";
 
 const opacityToFoldAngle = (opacity, assignment) => {
 	switch (assignment) {

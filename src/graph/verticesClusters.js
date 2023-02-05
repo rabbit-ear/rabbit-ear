@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 /**
  * @description Find all clusters of vertices which lie within an epsilon of each other.
  * Each cluster is an array of vertex indices. If no clusters exist, the method returns

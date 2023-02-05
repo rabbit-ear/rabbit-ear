@@ -4,7 +4,7 @@
 import {
 	makeFacesVertexData,
 	makeThickEdgesVertexData,
-} from "./data";
+} from "./data.js";
 
 export const makeFoldedVertexArrays = (gl, program, graph, options = {}) => {
 	if (!graph || !graph.vertices_coords || !graph.faces_vertices) {

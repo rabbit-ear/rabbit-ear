@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../../math";
-import { makeFacesPolygon } from "../../../graph/make";
-import { makeFacesWinding } from "../../../graph/facesWinding";
-import { makeEdgesEdgesCrossing } from "../../../graph/edgesEdges";
-import { booleanMatrixToIndexedArray } from "../../../general/arrays";
+import math from "../../../math.js";
+import { makeFacesPolygon } from "../../../graph/make.js";
+import { makeFacesWinding } from "../../../graph/facesWinding.js";
+import { makeEdgesEdgesCrossing } from "../../../graph/edgesEdges.js";
+import { booleanMatrixToIndexedArray } from "../../../general/arrays.js";
 /**
  * @description makeTortillaTortillaEdgesCrossing
  * @param {FOLD} graph a FOLD object graph

@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
-import { getGraphKeysWithSuffix } from "../fold/spec";
+import * as S from "../general/strings.js";
+import { getGraphKeysWithSuffix } from "../fold/spec.js";
 /**
  * @description Search inside arrays inside arrays and return
  * the largest number.

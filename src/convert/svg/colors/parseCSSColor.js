@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import cssColors from "./cssColors.json";
-import hexToRGB from "./hexToRGB";
+import hexToRGB from "./hexToRGB.js";
 
 const getParenNumbers = str => {
 	const match = str.match(/\(([^\)]+)\)/g);

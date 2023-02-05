@@ -1,27 +1,27 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import * as S from "../general/strings";
+import math from "../math.js";
+import * as S from "../general/strings.js";
 import {
 	edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment,
 	getGraphKeysWithPrefix,
-} from "../fold/spec";
+} from "../fold/spec.js";
 import {
 	removeDuplicateVertices,
-} from "./verticesViolations";
+} from "./verticesViolations.js";
 import {
 	removeDuplicateEdges,
 	removeCircularEdges,
-} from "./edgesViolations";
-import { getVerticesEdgesOverlap } from "./verticesCollinear";
-import { makeEdgesEdgesIntersection } from "./intersect";
-import { sortVerticesAlongVector } from "./sort";
+} from "./edgesViolations.js";
+import { getVerticesEdgesOverlap } from "./verticesCollinear.js";
+import { makeEdgesEdgesIntersection } from "./intersect.js";
+import { sortVerticesAlongVector } from "./sort.js";
 import {
 	mergeNextmaps,
 	invertMap,
-} from "./maps";
+} from "./maps.js";
 import Messages from "../environment/messages.json";
 /**
  * Fragment converts a graph into a planar graph. it flattens all the

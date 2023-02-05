@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { arrayify, unarrayify } from "./methods";
+import math from "../math.js";
+import { arrayify, unarrayify } from "./methods.js";
 
 const reflectPoint = (foldLine, point) => {
 	const matrix = math.core.makeMatrix2Reflect(foldLine.vector, foldLine.origin);

@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import clone from "../general/clone";
+import math from "../math.js";
+import clone from "../general/clone.js";
 import {
 	makeFacesConvexCenter,
 	makeFacesEdgesFromVertices,
-} from "./make";
-import { makeFacesWinding } from "./facesWinding";
+} from "./make.js";
+import { makeFacesWinding } from "./facesWinding.js";
 /**
  * @description Create a modified graph which separates all faces from each other.
  * This will add new vertices and new edges. Most adjacency arrays will be

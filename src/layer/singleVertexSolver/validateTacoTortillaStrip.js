@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import { invertMap } from "../../graph/maps";
+import math from "../../math.js";
+import { invertMap } from "../../graph/maps.js";
 /**
  * @description given two indices, return a copy of the array between them,
  * excluding the elements at the indices themselves.

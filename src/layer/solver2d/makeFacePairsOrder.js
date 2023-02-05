@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { booleanMatrixToUniqueIndexPairs } from "../../general/arrays";
-import { getFacesFaces2DOverlap } from "../../graph/overlap";
-import { makeFacesWinding } from "../../graph/facesWinding";
+import { booleanMatrixToUniqueIndexPairs } from "../../general/arrays.js";
+import { getFacesFaces2DOverlap } from "../../graph/overlap.js";
+import { makeFacesWinding } from "../../graph/facesWinding.js";
 // flip 1 and 2 to be the other, leaving 0 to be 0.
 const make_conditions_flip_condition = { 0: 0, 1: 2, 2: 1 };
 // neighbor faces determined by crease between them

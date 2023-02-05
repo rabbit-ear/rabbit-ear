@@ -4,16 +4,16 @@
 import {
 	removeIsolatedVertices,
 	removeDuplicateVertices,
-} from "./verticesViolations";
+} from "./verticesViolations.js";
 import {
 	removeCircularEdges,
 	removeDuplicateEdges,
 	// remove_undefined_edges,
-} from "./edgesViolations";
+} from "./edgesViolations.js";
 import {
 	mergeSimpleNextmaps,
 	invertSimpleMap,
-} from "./maps";
+} from "./maps.js";
 /**
  * @description clean will remove bad graph data. this includes:
  * - duplicate (Euclidean distance) and isolated vertices

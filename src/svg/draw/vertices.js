@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings";
+import * as S from "../../general/strings.js";
 // get the SVG library from its binding to the root of the library
-import root from "../../root";
+import root from "../../root.js";
 
 export const verticesCircle = (graph, attributes = {}) => {
 	const g = root.svg.g();

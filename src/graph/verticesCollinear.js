@@ -1,10 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { getEdgesVerticesOverlappingSpan } from "./span";
-import { makeVerticesEdgesUnsorted } from "./make";
-import { getOppositeVertices } from "./general";
+import math from "../math.js";
+import { getEdgesVerticesOverlappingSpan } from "./span.js";
+import { makeVerticesEdgesUnsorted } from "./make.js";
+import { getOppositeVertices } from "./general.js";
 /**
  * @description determine if a vertex exists between two and only two edges, and
  * those edges are both parallel and on opposite ends of the vertex. In a lot of

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 /**
  * @description This is a subroutine for building vertices_vertices. This will
  * take a set of vertices indices and a vertex index to be the center point, and

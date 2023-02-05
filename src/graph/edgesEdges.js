@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 import {
 	makeEdgesVector,
 	makeEdgesCoords,
 	makeEdgesBoundingBox,
-} from "./make";
-import { booleanMatrixToIndexedArray } from "../general/arrays";
+} from "./make.js";
+import { booleanMatrixToIndexedArray } from "../general/arrays.js";
 /**
  * @description Similar edges are defined by their coordinates, it doesn't matter
  * the order, so long as the two endpoints match

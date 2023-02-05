@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import globalLayerSolver from "./globalSolver/index";
-// import topologicalOrder from "./globalSolver/topologicalOrder";
-// import { invertMap } from "../graph/maps";
+// import globalLayerSolver from "./globalSolver/index.js";
+// import topologicalOrder from "./globalSolver/topologicalOrder.js";
+// import { invertMap } from "../graph/maps.js";
 /**
  * @description for a flat-foldable origami, this will return
  * all of the possible layer arrangements of the faces.

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { assignmentsToFacesFlip } from "./general";
+import { assignmentsToFacesFlip } from "./general.js";
 /**
  * @description Given an array of sectors (defined by length),
  * and a fenceposted-array of fold assignments, fold the sectors

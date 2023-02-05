@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { makeEdgesBoundingBox } from "./make";
+import math from "../math.js";
+import { makeEdgesBoundingBox } from "./make.js";
 /**
  * @description This returns a matrix relating every edge to every vertex,
  * answering the question "does the vertex sit inside the edge's bounding box?"

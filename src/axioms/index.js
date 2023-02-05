@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as AxiomsVO from "./axiomsVecOrigin";
-import * as AxiomsND from "./axiomsNormDist";
-import * as BoundaryAxioms from "./axiomsInBoundary";
+import * as AxiomsVO from "./axiomsVecOrigin.js";
+import * as AxiomsND from "./axiomsNormDist.js";
+import * as BoundaryAxioms from "./axiomsInBoundary.js";
 import {
 	validateAxiom1,
 	validateAxiom2,

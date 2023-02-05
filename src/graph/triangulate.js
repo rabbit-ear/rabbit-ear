@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import Messages from "../environment/messages.json";
-import { makeVerticesToEdgeBidirectional } from "./make";
+import { makeVerticesToEdgeBidirectional } from "./make.js";
 /**
  * @description Convert an array of indices into an array of array of
  * indices where each inner array forms a triangle fan: [0, 1, 2, 3, 4]

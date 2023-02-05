@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { foldKeys } from "./keys";
+import math from "../math.js";
+import { foldKeys } from "./keys.js";
 /**
  * this contains two types of methods.
  * 1. methods that are mostly references, including lists of keys

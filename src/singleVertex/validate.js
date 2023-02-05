@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 import {
 	makeVerticesVertices,
 	makeVerticesEdgesUnsorted,
 	makeVerticesVerticesVector,
-} from "../graph/make";
-import { boundaryVertices } from "../graph/boundary";
-import { alternatingSum } from "./kawasakiMath";
+} from "../graph/make.js";
+import { boundaryVertices } from "../graph/boundary.js";
+import { alternatingSum } from "./kawasakiMath.js";
 
 const flat_assignment = {
 	B: true, b: true, F: true, f: true, U: true, u: true,

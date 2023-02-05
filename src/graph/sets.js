@@ -4,8 +4,7 @@
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVerticesUnsorted,
-} from "./make";
-// export const shuttup = 5;
+} from "./make.js";
 /**
  * @description Given a list of indices, and a list of pairwise combinations of
  * these indices, these pairs represent edges, separate the set of indices into

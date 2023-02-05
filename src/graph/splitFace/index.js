@@ -1,19 +1,19 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import rebuild_edge from "./rebuild_edge";
-import build_faces from "./build_faces";
-import split_at_intersections from "./split_at_intersections";
+import rebuild_edge from "./rebuild_edge.js";
+import build_faces from "./build_faces.js";
+import split_at_intersections from "./split_at_intersections.js";
 import {
 	update_vertices_vertices,
 	update_vertices_edges,
 	update_vertices_faces,
 	update_edges_faces,
 	update_faces_faces,
-} from "./update";
-import { intersectConvexFaceLine } from "../intersect";
-import remove from "../remove";
-import * as S from "../../general/strings";
+} from "./update.js";
+import { intersectConvexFaceLine } from "../intersect.js";
+import remove from "../remove.js";
+import * as S from "../../general/strings.js";
 /**
  * @description divide a **convex** face into two polygons with a straight line cut.
  * if the line ends exactly along existing vertices, they will be

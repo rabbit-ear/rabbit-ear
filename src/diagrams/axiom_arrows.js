@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import axiom from "../axioms/index";
+import math from "../math.js";
+import axiom from "../axioms/index.js";
 
 const line_line_for_arrows = (a, b) => math.core.intersectLineLine(
 	a.vector,

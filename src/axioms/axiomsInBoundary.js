@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { arrayify } from "./methods";
-import * as AxiomsVO from "./axiomsVecOrigin";
-import * as AxiomsND from "./axiomsNormDist";
-import * as Validate from "./validate";
+import math from "../math.js";
+import { arrayify } from "./methods.js";
+import * as AxiomsVO from "./axiomsVecOrigin.js";
+import * as AxiomsND from "./axiomsNormDist.js";
+import * as Validate from "./validate.js";
 
 const paramsVecsToNorms = (params) => ({
 	points: params.points,

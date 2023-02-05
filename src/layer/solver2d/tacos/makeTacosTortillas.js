@@ -1,21 +1,21 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../../math";
-import { makeFacesConvexCenter } from "../../../graph/make";
+import math from "../../../math.js";
+import { makeFacesConvexCenter } from "../../../graph/make.js";
 import {
 	makeEdgesEdgesParallelOverlap,
-} from "../../../graph/edgesEdges";
+} from "../../../graph/edgesEdges.js";
 import {
 	booleanMatrixToUniqueIndexPairs,
 	booleanMatrixToIndexedArray,
-} from "../../../general/arrays";
-import { makeEdgesFacesOverlap } from "../../../graph/overlap";
-import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla";
+} from "../../../general/arrays.js";
+import { makeEdgesFacesOverlap } from "../../../graph/overlap.js";
+import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla.js";
 import {
 	makeEdgesFacesSide,
 	makeTacosFacesSide,
-} from "./facesSide";
+} from "./facesSide.js";
 /**
  * @description classify a pair of adjacent faces encoded as +1 or -1
  * depending on which side they are on into one of 3 types:

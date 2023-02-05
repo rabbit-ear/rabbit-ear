@@ -1,15 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
+import math from "../../math.js";
 import {
 	nudgeFacesWithFaceOrders,
 	nudgeFacesWithFacesLayer,
-} from "../../layer/nudge";
-import count from "../../graph/count";
-import countImplied from "../../graph/countImplied";
-import { triangulate } from "../../graph/triangulate";
-import { explode } from "../../graph/explodeFaces";
+} from "../../layer/nudge.js";
+import count from "../../graph/count.js";
+import countImplied from "../../graph/countImplied.js";
+import { invertMap } from "../../graph/maps.js";
+import { triangulate } from "../../graph/triangulate.js";
+import { explode } from "../../graph/explodeFaces.js";
 
 // const LAYER_NUDGE = 1e-4;
 const LAYER_NUDGE = 1e-5;
@@ -30,14 +31,17 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	} else if (exploded.faces_layer) {
 		faces_nudge = nudgeFacesWithFacesLayer(exploded);
 	}
-	// console.log("faces_nudge", faces_nudge);
+	// triangulate will modify faces and edges.
+	// use face information to match data.
 	const change = triangulate(exploded);
-	const change2 = explode(exploded);
-	Object.assign(change, change2);
-	// console.log("change", change);
+	// explode will modify edges and vertices.
+	// we don't need the return information for anything just yet.
+	explode(exploded);
+	// Object.assign(change, change2);
 
 	if (change.faces) {
-		change.faces.map.forEach((oldFace, face) => {
+		const backmap = invertMap(change.faces.map);
+		backmap.forEach((oldFace, face) => {
 			const nudge = faces_nudge[oldFace];
 			if (!nudge) { return; }
 			exploded.faces_vertices[face].forEach(v => {

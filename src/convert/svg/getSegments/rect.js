@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { getAttributesFloatValue } from "./attributes";
+import { getAttributesFloatValue } from "./attributes.js";
 
 const RectToSegments = function (rect) {
 	const [x, y, w, h] = getAttributesFloatValue(

@@ -6,7 +6,7 @@ import {
 	cpEdgesV1,
 	cpFacesV2,
 	cpEdgesV2,
-} from "./programs";
+} from "./programs.js";
 
 const WebGLCreasePattern = (gl, version = 1, graph = {}) => {
 	switch (version) {

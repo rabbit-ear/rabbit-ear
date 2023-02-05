@@ -1,14 +1,14 @@
 // /**
 //  * Rabbit Ear (c) Kraft
 //  */
-// import math from "../math";
-// import count from "./count";
-// import addVertices from "./add/addVertices";
-// import * as S from "../general/strings";
+// import math from "../math.js";
+// import count from "./count.js";
+// import addVertices from "./add/addVertices.js";
+// import * as S from "../general/strings.js";
 // import {
 // 	getGraphKeysWithPrefix,
 // 	getGraphKeysWithSuffix,
-// } from "../fold/spec";
+// } from "../fold/spec.js";
 
 // const vef = [S._vertices, S._edges, S._faces];
 

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
+import * as S from "../general/strings.js";
 /**
  * @description Provide two or more simple nextmaps in the order they were made
  * and this will merge them into one nextmap which reflects all changes to the graph.

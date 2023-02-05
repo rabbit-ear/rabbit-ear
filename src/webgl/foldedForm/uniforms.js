@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import hexToRGB from "../../convert/svg/colors/hexToRGB";
+import math from "../../math.js";
+import hexToRGB from "../../convert/svg/colors/hexToRGB.js";
 
 const makeUniforms = (gl, {
 	projectionMatrix, viewMatrix, modelMatrix, canvas,

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 
 const boundary_for_arrows = ({ vertices_coords }) => math.core
 	.convexHull(vertices_coords);

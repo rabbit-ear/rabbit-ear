@@ -1,12 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import count from "./count";
-import { uniqueSortedNumbers } from "../general/arrays";
+import count from "./count.js";
+import { uniqueSortedNumbers } from "../general/arrays.js";
 import {
 	getGraphKeysWithSuffix,
 	getGraphKeysWithPrefix,
-} from "../fold/spec";
+} from "../fold/spec.js";
 /**
  * @name remove
  * @memberof graph

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
+import math from "../../math.js";
 /**
  * @description add vertices to a graph by adding their vertices_coords only. This
  * will also compare against every existing vertex, only adding non-duplicate

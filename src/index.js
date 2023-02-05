@@ -13,23 +13,23 @@
 █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇█
 */
 // needed to check the environment
-import { isWebWorker } from "./environment/detect";
-import { setWindow } from "./environment/window";
+import { isWebWorker } from "./environment/detect.js";
+import { setWindow } from "./environment/window.js";
 // the library itself
-import root from "./root";
+import root from "./root.js";
 // object-oriented style object constructors
-import Constructors from "./classes/index";
+import Constructors from "./classes/index.js";
 // top level things
-import math from "./math";
-import diagram from "./diagrams/index";
-import layer from "./layer/index";
-import singleVertex from "./singleVertex/index";
-import axiom from "./axioms/index";
-import text from "./text/index";
-import convert from "./convert/index";
+import math from "./math.js";
+import diagram from "./diagrams/index.js";
+import layer from "./layer/index.js";
+import singleVertex from "./singleVertex/index.js";
+import axiom from "./axioms/index.js";
+import text from "./text/index.js";
+import convert from "./convert/index.js";
 // a minified substitute SVG library
-// import svg from "./svg/svg_mini";
-import use from "./use/index";
+// import svg from "./svg/svg_mini.js";
+import use from "./use/index.js";
 /**
  * extensions
  * all extensions are optional, the library does not depend on them.
@@ -39,12 +39,12 @@ import use from "./use/index";
  * as well as the .use() method calls at the bottom of this file.
  */
 /** convert a FOLD object into an SVG */
-import foldToSVG from "./svg/index";
+import foldToSVG from "./svg/index.js";
 /** SVG drawing library with a lot of functionality */
-import SVG from "./extensions/svg"; // replaces minified substitute
+import SVG from "./extensions/svg.js"; // replaces minified substitute
 /** WebGL extension, draw FOLD objects into WebGL canvas. */
-// import * as webgl from "./webgl/fold-to-three";
-import webgl from "./webgl/index";
+// import * as webgl from "./webgl/fold-to-three.js";
+import webgl from "./webgl/index.js";
 
 const ear = Object.assign(root, Constructors, {
 	math: math.core,

@@ -10,7 +10,7 @@
  * note: xmldom supports DOMParser, XMLSerializer, and document, but not
  * cancelAnimationFrame, requestAnimationFrame, fetch, which are used by this library.
  */
-import { isBrowser } from "./detect";
+import { isBrowser } from "./detect.js";
 import Messages from "./messages.json";
 
 const windowContainer = { window: undefined };

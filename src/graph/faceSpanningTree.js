@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeFacesFaces } from "./make";
+import { makeFacesFaces } from "./make.js";
 
 // const getFaceFaceSharedVertices = (graph, face0, face1) => graph
 //   .faces_vertices[face0]

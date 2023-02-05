@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import singleVertexSolver from "../layer/singleVertexSolver/index";
-// import { invertMap } from "./maps";
+// import singleVertexSolver from "../layer/singleVertexSolver/index.js";
+// import { invertMap } from "./maps.js";
 // import {
 // 	getLongestArray,
 // 	circularArrayValidRanges
-// } from "../general/arrays";
-// import { makeVerticesSectors } from "./make";
-// import { makeFacesWinding } from "./facesWinding";
+// } from "../general/arrays.js";
+// import { makeVerticesSectors } from "./make.js";
+// import { makeFacesWinding } from "./facesWinding.js";
 
 // // export const makeVertexFacesLayer = ({
 // const makeVertexFacesLayer = ({

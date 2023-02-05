@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import window from "../environment/window";
+import math from "../math.js";
+import window from "../environment/window.js";
 // if three doesn't exist, throw an error
 // const make_faces_geometry = (graph, material) => {
 export const make_faces_geometry = (graph) => {

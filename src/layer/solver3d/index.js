@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import propagate from "./propagate";
+import propagate from "./propagate.js";
 import {
 	reformatSolution,
-} from "./general";
-import getDisjointSets from "./getDisjointSets";
-import prepare from "./prepare";
-import LayerPrototype from "./prototype";
+} from "./general.js";
+import getDisjointSets from "./getDisjointSets.js";
+import prepare from "./prepare.js";
+import LayerPrototype from "./prototype.js";
 /**
  * @description Given an array of unsolved facePair keys, attempt to solve
  * the entire set by guessing both states (1, 2) for one key, propagate any
@@ -92,7 +92,14 @@ const solveNode = (
 	...orders
 ) => {
 	if (!remainingKeys.length) { return { orders }; }
-	const disjointSets = getDisjointSets(remainingKeys, constraints, constraintsLookup);
+	const disjointSets = getDisjointSets(
+		remainingKeys,
+		constraints,
+		constraintsLookup,
+		// tortillaSets,
+		// tortillaSetsLookup,
+	);
+	console.log("disjointSets", disjointSets);
 	if (disjointSets.length > 1) {
 		// console.log("FOUND disjointSets", disjointSets);
 		return {

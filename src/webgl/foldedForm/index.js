@@ -5,7 +5,7 @@ import {
 	foldedFormFaces,
 	foldedFormEdges,
 	foldedFormFacesOutlined,
-} from "./programs";
+} from "./programs.js";
 
 const WebGLFoldedForm = (gl, version = 1, graph = {}, options = {}) => {
 	const programs = [];

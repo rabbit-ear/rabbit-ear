@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 /**
  * @description Given a list of any type, remove all duplicates.
  * @param {number[]} array an array of integers

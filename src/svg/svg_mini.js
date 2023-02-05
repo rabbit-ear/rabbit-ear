@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
-import window from "../environment/window";
+import * as S from "../general/strings.js";
+import window from "../environment/window.js";
 /**
  * @description this is a stand-alone replacement for the SVG library
  * it contains all element constructors necessary for the

@@ -1,16 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings";
-import { verticesCircle } from "./vertices";
-import { edgesPaths, drawEdges } from "./edges";
+import * as S from "../../general/strings.js";
+import { verticesCircle } from "./vertices.js";
+import { edgesPaths, drawEdges } from "./edges.js";
 import {
 	facesVerticesPolygon,
 	facesEdgesPolygon,
-} from "./faces";
-import { boundariesPolygon } from "./boundaries";
-import { addClassToClassList } from "../classes";
-import root from "../../root";
+} from "./faces.js";
+import { boundariesPolygon } from "./boundaries.js";
+import { addClassToClassList } from "../classes.js";
+import root from "../../root.js";
 
 const facesDrawFunction = (graph, options) => {
 	if (graph && graph[S._faces_vertices]) {

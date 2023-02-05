@@ -1,12 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings";
-import { boundary } from "../../graph/boundary";
-import { isFoldedForm } from "../../graph/query";
-import { addClassToClassList } from "../classes";
+import * as S from "../../general/strings.js";
+import { boundary } from "../../graph/boundary.js";
+import { isFoldedForm } from "../../graph/query.js";
+import { addClassToClassList } from "../classes.js";
 // get the SVG library from its binding to the root of the library
-import root from "../../root";
+import root from "../../root.js";
 
 const FOLDED = {
 	// stroke: "none",

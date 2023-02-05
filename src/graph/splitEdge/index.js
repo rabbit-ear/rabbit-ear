@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import remove from "../remove";
-import { findAdjacentFacesToEdge } from "../find";
-import * as S from "../../general/strings";
-import splitEdgeIntoTwo from "./splitEdgeIntoTwo";
+import math from "../../math.js";
+import remove from "../remove.js";
+import { findAdjacentFacesToEdge } from "../find.js";
+import * as S from "../../general/strings.js";
+import splitEdgeIntoTwo from "./splitEdgeIntoTwo.js";
 import {
 	update_vertices_vertices,
 	update_vertices_edges,
@@ -15,7 +15,7 @@ import {
 	update_faces_vertices,
 	update_faces_edges_with_vertices,
 	// update_faces_edges,
-} from "./update";
+} from "./update.js";
 /**
  * @description split an edge with a new vertex, replacing the old
  * edge with two new edges sharing the common vertex. rebuilding:

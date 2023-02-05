@@ -1,12 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import splitEdge from "../splitEdge/index";
+import splitEdge from "../splitEdge/index.js";
 import {
 	mergeNextmaps,
 	mergeBackmaps,
 	invertSimpleMap,
-} from "../maps";
+} from "../maps.js";
 /**
  * @description this is a highly specific method, it takes in the output
  * from intersectConvexFaceLine and applies it to a graph by splitting

@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import { makeVerticesToEdgeBidirectional } from "../make";
+import math from "../../math.js";
+import { makeVerticesToEdgeBidirectional } from "../make.js";
 /**
  * @description an edge was just split into two by the addition of a vertex.
  * update new vertex's vertices_vertices, as well as the split edge's

@@ -1,17 +1,17 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import createProgram from "../general/createProgram";
+import createProgram from "../general/createProgram.js";
 import {
 	makeFoldedVertexArrays,
 	makeFoldedElementArrays,
 	makeThickEdgesVertexArrays,
 	makeThickEdgesElementArrays,
-} from "./arrays";
+} from "./arrays.js";
 import {
 	makeExplodedGraph,
-} from "./general";
-import makeUniforms from "./uniforms";
+} from "./general.js";
+import makeUniforms from "./uniforms.js";
 import vertexV1 from "./shaders/model-100.vert";
 import fragmentV1 from "./shaders/model-100.frag";
 import vertexV2 from "./shaders/model-300.vert";

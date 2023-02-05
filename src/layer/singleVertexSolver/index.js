@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import makeFoldedStripTacos from "./makeFoldedStripTacos";
-import validateLayerSolver from "./validateLayerSolver";
-import foldStripWithAssignments from "./foldStripWithAssignments";
-import { assignmentsToFacesVertical } from "./general";
-import { invertMap } from "../../graph/maps";
-import clone from "../../general/clone";
+import math from "../../math.js";
+import makeFoldedStripTacos from "./makeFoldedStripTacos.js";
+import validateLayerSolver from "./validateLayerSolver.js";
+import foldStripWithAssignments from "./foldStripWithAssignments.js";
+import { assignmentsToFacesVertical } from "./general.js";
+import { invertMap } from "../../graph/maps.js";
+import clone from "../../general/clone.js";
 
 const is_boundary = { B: true, b: true };
 /**

@@ -3,7 +3,7 @@
  */
 import {
 	constraintToFacePairsStrings,
-} from "./general";
+} from "./general.js";
 /**
  * @description Each taco/tortilla event involves the relationship between
  * 3 or 4 faces. The lookup table encodes the relationship between all

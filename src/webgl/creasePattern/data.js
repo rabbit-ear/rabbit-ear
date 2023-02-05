@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeEdgesVector } from "../../graph/make";
+import { makeEdgesVector } from "../../graph/make.js";
 
 const ASSIGNMENT_COLOR = {
 	B: [0.3, 0.3, 0.3],

@@ -1,28 +1,28 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
+import math from "../../math.js";
 import {
 	makeEdgesSegmentIntersection,
-} from "../intersect";
-import splitEdge from "../splitEdge/index";
-import remove from "../remove";
+} from "../intersect.js";
+import splitEdge from "../splitEdge/index.js";
+import remove from "../remove.js";
 import {
 	sortVerticesAlongVector,
 	sortVerticesCounterClockwise,
-} from "../sort";
+} from "../sort.js";
 import {
 	makeVerticesToEdgeBidirectional,
 	makeVerticesFaces,
 	makeVerticesSectors,
 	makeEdgesFacesUnsorted,
 	makeFacesFaces,
-} from "../make";
-import addVertices from "./addVertices";
+} from "../make.js";
+import addVertices from "./addVertices.js";
 import {
 	counterClockwiseWalk,
 	filterWalkedBoundaryFace,
-} from "../walk";
+} from "../walk.js";
 /**
  * @description given a list of vertices in a graph which:
  * - these vertices have alreaddy been added to the graph

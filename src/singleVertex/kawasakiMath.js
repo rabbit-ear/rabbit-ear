@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 /**
  * @description given a list of numbers this method will sort them by
  *  even and odd indices and sum the two categories, returning two sums.

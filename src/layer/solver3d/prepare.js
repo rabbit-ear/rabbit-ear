@@ -1,27 +1,27 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import { filterKeysWithPrefix } from "../../fold/spec";
-import { invertMap } from "../../graph/maps";
+import math from "../../math.js";
+import { filterKeysWithPrefix } from "../../fold/spec.js";
+import { invertMap } from "../../graph/maps.js";
 import {
 	makeEdgesFacesUnsorted,
 	makeFacesEdgesFromVertices,
-} from "../../graph/make";
-import { selfRelationalUniqueIndexPairs } from "../../general/arrays";
+} from "../../graph/make.js";
+import { selfRelationalUniqueIndexPairs } from "../../general/arrays.js";
 import {
 	overlappingFacesGroups,
-} from "../../graph/overlap";
-import makeTacosTortillas from "./makeTacosTortillas";
-import makeTransitivityTrios from "./makeTransitivityTrios";
-import filterTransitivity from "./filterTransitivity";
-// import { makeFacesWinding } from "../../graph/facesWinding";
+} from "../../graph/overlap.js";
+import makeTacosTortillas from "./makeTacosTortillas.js";
+import makeTransitivityTrios from "./makeTransitivityTrios.js";
+import filterTransitivity from "./filterTransitivity.js";
+// import { makeFacesWinding } from "../../graph/facesWinding.js";
 import {
 	makeConstraints,
 	makeConstraintsLookup,
-} from "./makeConstraints";
-import solveEdgeAdjacent from "./solveEdgeAdjacent";
-import make3DTacoTacos from "./make3DTacoTacos";
+} from "./makeConstraints.js";
+import solveEdgeAdjacent from "./solveEdgeAdjacent.js";
+import make3DTortillas from "./make3DTortillas.js";
 
 const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
 	// make shallow copies of the graph, one for every group
@@ -83,6 +83,18 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	if (!graph.faces_edges) {
 		graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	}
+	// START HERE
+	// todo
+	// problem: in the case of a strip of tortilla-tortillas exclusively,
+	// faces in the same plane will get separated into their own group,
+	// even when they are adjacent to other groups.
+	//
+	// goal: need to somehow include co-planar faces in the same group,
+	// and consider should we separate faces in the same plane if they
+	// are far away and have local overlaps with other plane groups?
+	// maybe walk adjacent faces until the normals are no longer similar
+	// (will need to accept a flipped normal as still within the same group)
+	//
 	const overlapInfo = overlappingFacesGroups(graph, epsilon);
 	// these groups have more than 1 face in them.
 	// const groups = groups_faces
@@ -133,21 +145,21 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		.map(indices => indices.map(i => facePairs[i]));
 	const groups_facePairs = groups_constraints
 		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
-	// console.log("prepare", overlapInfo);
-	// console.log("graphCopies", graphCopies);
-	// console.log("faces_polygon", faces_polygon);
-	// console.log("faces_center", faces_center);
-	// console.log("groups_tacos_tortillas", groups_tacos_tortillas);
-	// console.log("groups_unfiltered_trios", groups_unfiltered_trios);
-	// console.log("groups_transitivity_trios", groups_transitivity_trios);
-	// console.log("groups_constraints", groups_constraints);
+	console.log("overlapInfo", overlapInfo);
+	console.log("graphCopies", graphCopies);
+	console.log("faces_polygon", faces_polygon);
+	console.log("faces_center", faces_center);
+	console.log("groups_tacos_tortillas", groups_tacos_tortillas);
+	console.log("groups_unfiltered_trios", groups_unfiltered_trios);
+	console.log("groups_transitivity_trios", groups_transitivity_trios);
+	console.log("groups_constraints", groups_constraints);
 	// console.log("groups_constraintsLookup", groups_constraintsLookup);
-	// console.log("facePairsInts", facePairsInts);
-	// console.log("facePairs", facePairs);
+	console.log("facePairsInts", facePairsInts);
+	console.log("facePairs", facePairs);
 	// console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
-	// console.log("facePairsIndex_group", facePairsIndex_group);
-	// console.log("groups_facePairsIndex", groups_facePairsIndex);
-	// console.log("groups_facePairs", groups_facePairsWithHoles);
+	console.log("facePairsIndex_group", facePairsIndex_group);
+	console.log("groups_facePairsIndex", groups_facePairsIndex);
+	console.log("groups_facePairs", groups_facePairsWithHoles);
 
 	// now we join all the data from the separate groups together.
 	// make sure edges_faces is added here, not any sooner
@@ -166,18 +178,20 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		constraints.tortilla_tortilla.push(...group.tortilla_tortilla);
 		constraints.transitivity.push(...group.transitivity);
 	});
-	const taco_taco_3D = make3DTacoTacos(graph, overlapInfo, epsilon).map(el => [
-		el[0][0], el[1][0], el[0][1], el[1][1],
+	const tortillas3D = make3DTortillas(graph, overlapInfo, epsilon).map(el => [
+		// el[0][0], el[1][0], el[0][1], el[1][1],
+		...el[0], ...el[1],
 	]);
-	constraints.tortilla_tortilla.push(...taco_taco_3D);
+	constraints.tortilla_tortilla.push(...tortillas3D);
 	const constraintsLookup = makeConstraintsLookup(constraints);
 	const facePairsFlat = groups_facePairs.flat();
 	const edgeAdjacentOrders = solveEdgeAdjacent(graph, facePairs, overlapInfo.faces_winding);
-	// console.log("constraints", constraints);
-	// console.log("taco_taco_3D", taco_taco_3D);
-	// console.log("constraintsLookup", constraintsLookup);
-	// console.log("facePairsFlat", facePairsFlat);
-	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
+	// const edgeAdjacentOrders = {};
+	console.log("constraints", constraints);
+	console.log("tortillas3D", tortillas3D);
+	console.log("constraintsLookup", constraintsLookup);
+	console.log("facePairsFlat", facePairsFlat);
+	console.log("edgeAdjacentOrders", edgeAdjacentOrders);
 	return {
 		constraints,
 		constraintsLookup,

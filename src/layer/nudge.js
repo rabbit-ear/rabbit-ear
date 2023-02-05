@@ -1,10 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeFacesNormal } from "../graph/normals";
-import { invertMap } from "../graph/maps";
-import topologicalOrder from "./topological";
-import { disjointVerticesSets } from "../graph/sets";
+import { makeFacesNormal } from "../graph/normals.js";
+import { invertMap } from "../graph/maps.js";
+import topologicalOrder from "./topological.js";
+import { disjointVerticesSets } from "../graph/sets.js";
 /**
  * @description Given a graph with a faces_layer, a topological sorting
  * of faces, for a flat-folded 2D graph, get an array where every face

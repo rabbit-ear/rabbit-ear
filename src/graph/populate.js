@@ -15,11 +15,11 @@ import {
 	makeFacesEdgesFromVertices,
 	makeFacesVerticesFromEdges,
 	makePlanarFaces,
-} from "./make";
+} from "./make.js";
 import {
 	edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment,
-} from "../fold/spec";
+} from "../fold/spec.js";
 /**
  * @description populate() has been one of the hardest methods to
  * nail down, not to write, moreso in what it should do, and what

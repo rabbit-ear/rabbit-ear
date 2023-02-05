@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { normalAxiom6 } from "./axiomsNormDist";
+import math from "../math.js";
+import { normalAxiom6 } from "./axiomsNormDist.js";
 /*           _                       _              _
 						(_)                     (_)            (_)
 	 ___  _ __ _  __ _  __ _ _ __ ___  _    __ ___  ___  ___  _ __ ___  ___

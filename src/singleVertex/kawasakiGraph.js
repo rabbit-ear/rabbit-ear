@@ -1,12 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { kawasakiSolutionsVectors } from "./kawasakiMath";
+import math from "../math.js";
+import { kawasakiSolutionsVectors } from "./kawasakiMath.js";
 import {
 	makeEdgesVector,
 	makeVerticesEdgesUnsorted,
-} from "../graph/make";
+} from "../graph/make.js";
 
 // todo: this is doing too much work in preparation
 /**

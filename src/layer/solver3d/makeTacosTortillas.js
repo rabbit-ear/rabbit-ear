@@ -1,20 +1,20 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
+import math from "../../math.js";
 import {
 	makeEdgesEdgesParallelOverlap,
-} from "../../graph/edgesEdges";
+} from "../../graph/edgesEdges.js";
 import {
 	booleanMatrixToIndexedArray,
 	selfRelationalUniqueIndexPairs,
-} from "../../general/arrays";
-import { makeEdgesFacesOverlap } from "../../graph/overlap";
-import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla";
+} from "../../general/arrays.js";
+import { makeEdgesFacesOverlap } from "../../graph/overlap.js";
+import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla.js";
 import {
 	makeEdgesFacesSide,
 	makeTacosFacesSide,
-} from "./facesSide";
+} from "./facesSide.js";
 /**
  * @description classify a pair of adjacent faces encoded as +1 or -1
  * depending on which side they are on into one of 3 types:
@@ -130,7 +130,6 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 		.map((pair, i) => make_tortilla_tortilla(pair, tacos_faces_side[i]))
 		.filter(a => a !== undefined);
 	// 5ms:
-
 	// todo: faces_winding is used here. we need to pass in the new version.
 	//
 	const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(
@@ -165,6 +164,7 @@ const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	const taco_tortilla = taco_tortilla_aligned.concat(taco_tortilla_crossing);
 	// console.log("edges_faces_side", edges_faces_side);
 	// console.log("edges_edgesParallelOverlap", edges_edgesParallelOverlap);
+	// console.log("tacos_faces", tacos_faces);
 	// console.log("tacos_edges", tacos_edges);
 	// console.log("tortilla_tortilla_aligned", tortilla_tortilla_aligned);
 	// console.log("tortilla_tortilla_crossing", tortilla_tortilla_crossing);

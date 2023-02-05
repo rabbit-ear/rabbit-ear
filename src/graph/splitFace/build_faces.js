@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeVerticesToEdgeBidirectional } from "../make";
-import { splitCircularArray } from "../../general/arrays";
+import { makeVerticesToEdgeBidirectional } from "../make.js";
+import { splitCircularArray } from "../../general/arrays.js";
 /**
  * this must be done AFTER edges_vertices has been updated with the new edge.
  *

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
+import math from "../../math.js";
 /**
  * @description given two vertices and incident faces, create all new
  * "edges_" entries to describe a new edge that sits between the params.

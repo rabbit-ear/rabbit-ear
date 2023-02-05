@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import table from "./table";
-import { constraintToFacePairs } from "./general";
-import { uniqueElements } from "../../general/arrays";
+import table from "./table.js";
+import { constraintToFacePairs } from "./general.js";
+import { uniqueElements } from "../../general/arrays.js";
 /**
  * @typedef Constraint
  * @type {number[]}

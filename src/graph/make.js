@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import implied from "./countImplied";
+import math from "../math.js";
+import implied from "./countImplied.js";
 import {
 	planarVertexWalk,
 	filterWalkedBoundaryFace,
-} from "./walk";
-import { sortVerticesCounterClockwise } from "./sort";
-import { makeFacesNormal } from "./normals";
+} from "./walk.js";
+import { sortVerticesCounterClockwise } from "./sort.js";
+import { makeFacesNormal } from "./normals.js";
 import Messages from "../environment/messages.json";
 /**
  * This is one big file (sorry) which contains methods to create all the

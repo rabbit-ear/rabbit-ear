@@ -1,12 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 import {
 	singularize,
 	filterKeysWithPrefix,
-} from "../fold/spec";
-import { makeFacesConvexCenter } from "./make";
+} from "../fold/spec.js";
+import { makeFacesConvexCenter } from "./make.js";
 /**
  * @description Iterate through all vertices in a graph and find the one nearest to a
  * provided point. This is the only of the "nearest" graph operations that works in 3D.

@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeCPEdgesVertexData } from "./data";
-import { triangulateConvexFacesVertices } from "../../graph/triangulate";
+import { makeCPEdgesVertexData } from "./data.js";
+import { triangulateConvexFacesVertices } from "../../graph/triangulate.js";
 
 export const makeCPEdgesVertexArrays = (gl, program, graph) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) {

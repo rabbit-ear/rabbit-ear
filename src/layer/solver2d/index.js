@@ -1,12 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import propagate from "./propagate";
-import { keysToFaceOrders } from "./general";
-import getBranches from "./getBranches";
-import prepare from "./prepare";
-import LayerPrototype from "./prototype";
-import { makeFacesNormal } from "../../graph/normals";
+import propagate from "./propagate.js";
+import { keysToFaceOrders } from "./general.js";
+import getBranches from "./getBranches.js";
+import prepare from "./prepare.js";
+import LayerPrototype from "./prototype.js";
+import { makeFacesNormal } from "../../graph/normals.js";
 
 // const keysToFaceOrders = a => a;
 /**
@@ -168,7 +168,13 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
 	const constraintsNeighborsMemo = {};
-	const branches = getBranches(remainingKeys, constraints, constraintsLookup, constraintsNeighborsMemo);
+	const branches = getBranches(
+		remainingKeys,
+		constraints,
+		constraintsLookup,
+		constraintsNeighborsMemo,
+	);
+	console.log("branches", branches);
 	const nextLevel = branches.map(() => ({}));
 	const branchResults = branches.map((unsolvedKeys, i) => solveBranch(
 		constraints,

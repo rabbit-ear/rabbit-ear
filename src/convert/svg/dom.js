@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import window from "../../environment/window";
+import window from "../../environment/window.js";
 /**
  * @param {string} input an SVG as a string
  * @param {string} mimeType default to XML, for SVG use "image/svg+xml".

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { pointsStringToArray } from "./attributes";
+import { pointsStringToArray } from "./attributes.js";
 
 const PolygonToSegments = (poly) => (
 	pointsStringToArray(poly.getAttribute("points") || "")

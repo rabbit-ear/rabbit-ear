@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import verticesClusters from "./verticesClusters";
-import * as S from "../general/strings";
-import remove from "./remove";
-import replace from "./replace";
+import math from "../math.js";
+import verticesClusters from "./verticesClusters.js";
+import * as S from "../general/strings.js";
+import remove from "./remove.js";
+import replace from "./replace.js";
 /**
  * @description Get the indices of all vertices which lie close to other vertices.
  * @param {FOLD} graph a FOLD graph

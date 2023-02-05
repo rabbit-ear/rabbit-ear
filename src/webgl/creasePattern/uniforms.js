@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
+import math from "../../math.js";
 
 const makeUniforms = (gl, {
 	projectionMatrix, viewMatrix, modelMatrix, strokeWidth,

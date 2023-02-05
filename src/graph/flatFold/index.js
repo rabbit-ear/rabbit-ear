@@ -1,18 +1,18 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import populate from "../populate";
-import { mergeNextmaps } from "../maps";
+import math from "../../math.js";
+import populate from "../populate.js";
+import { mergeNextmaps } from "../maps.js";
 import {
 	makeFacesMatrix2,
 	multiplyVerticesFacesMatrix2,
-} from "../facesMatrix";
-import { makeEdgesLineParallelOverlap } from "../intersect";
-import { makeFacesWindingFromMatrix2 } from "../facesWinding";
-import splitConvexFace from "../splitFace/index";
-import { edgeAssignmentToFoldAngle } from "../../fold/spec";
-import { foldFacesLayer } from "./facesLayer";
+} from "../facesMatrix.js";
+import { makeEdgesLineParallelOverlap } from "../intersect.js";
+import { makeFacesWindingFromMatrix2 } from "../facesWinding.js";
+import splitConvexFace from "../splitFace/index.js";
+import { edgeAssignmentToFoldAngle } from "../../fold/spec.js";
+import { foldFacesLayer } from "./facesLayer.js";
 /**
  * @description this determines which side of a line (using cross product)
  * a face lies in a folded form, except, the face is the face in

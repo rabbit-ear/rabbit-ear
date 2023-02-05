@@ -1,10 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import window from "../../environment/window";
+import window from "../../environment/window.js";
 import {
 	getRootParent,
-} from "./dom";
+} from "./dom.js";
 /**
  * @description Convert a style element, CSSStyleSheet, into a nested
  * object with selectors as keys, then attributes as 2nd layer keys.

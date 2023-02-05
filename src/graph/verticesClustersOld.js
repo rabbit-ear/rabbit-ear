@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 /**
  * density-based spatial clustering of applications with noise (DBSCAN)
  * cluster vertices near each other with an epsilon

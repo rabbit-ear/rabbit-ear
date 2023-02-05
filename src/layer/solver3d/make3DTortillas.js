@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { chooseTwoPairs } from "../../general/arrays";
-import math from "../../math";
+import { chooseTwoPairs } from "../../general/arrays.js";
+import math from "../../math.js";
 /**
  * @description a range is an array of two numbers [start, end]
  * not necessarily in sorted order.
@@ -33,8 +33,10 @@ const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
 
 // this will only work with graphs which are manifolds, edges must
 // have only one or two adjacent faces, not three or more.
-
-const make3DTacoEdges = (graph, overlapInfo, epsilon = 1e-6) => {
+/**
+ *
+ */
+const make3DTortillaEdges = (graph, overlapInfo, epsilon = 1e-6) => {
 	const edges_groups_lookup = graph.edges_vertices.map(() => ({}));
 	overlapInfo.faces_group
 		.forEach((group, face) => graph.faces_edges[face]
@@ -102,18 +104,48 @@ const make3DTacoEdges = (graph, overlapInfo, epsilon = 1e-6) => {
 	return Object.keys(intersectingGroups_pairs)
 		.flatMap(key => intersectingGroups_pairs[key]);
 };
-
-const make3DTacoTacos = (graph, overlapInfo, epsilon = 1e-6) => {
-	const tacos_edges = make3DTacoEdges(graph, overlapInfo, epsilon);
-	const tacos_faces = tacos_edges
+/**
+ * @description For a 3D folded model, this will find the places
+ * where two planes meet along collinear edges, these joining of two
+ * planes creates a tortilla-tortilla relationship.
+ */
+const make3DTortillas = (graph, overlapInfo, epsilon = 1e-6) => {
+	const tortilla_edges = make3DTortillaEdges(graph, overlapInfo, epsilon);
+	const tortilla_faces = tortilla_edges
 		.map(pair => pair
 			.map(edge => graph.edges_faces[edge]));
-	tacos_faces.forEach((tacos, i) => {
+	// make sure to sort the faces of the tacos on the correct side so that
+	// the two faces in the same plane are on the same side of the edge.
+	// [[A,X], [B,Y]], A and B are connected faces, X and Y are connected
+	// and A and X are in the same plane, B and Y are in the same plane.
+	tortilla_faces.forEach((tacos, i) => {
 		if (overlapInfo.faces_group[tacos[0][0]] !== overlapInfo.faces_group[tacos[1][0]]) {
-			tacos_faces[i][1].reverse();
+			tortilla_faces[i][1].reverse();
 		}
 	});
-	return tacos_faces;
+	// finally, each face's shared planar group chose a normal to the plane
+	// according to only one of its faces, it could also have chosen the
+	// flip of this normal. this normal will be used at the end of the solver
+	// to re-orient all faces in their plane. we need to determine if the two
+	// plane normals involved here are consistent across the edge, across two
+	// neighbor faces, or is one flipped from the other, and if it's flipped,
+	// we need to...
+	// i think...
+	// flip one of the pairs so that it looks like A joins Y and B joins X.
+	// const normalsMatch = tortilla_faces
+	// 	// get two adjacent faces from the two distinct planar groups
+	// 	.map(tortillas => [tortillas[0][0], tortillas[1][0]])
+	// 	.map(faces => faces.map(face => overlapInfo.faces_winding[face]))
+	// 	.map(orients => orients[0] === orients[1]);
+	// normalsMatch
+	// 	.map((match, i) => (!match ? i : undefined))
+	// 	.filter(a => a !== undefined)
+	// 	.forEach(i => tortilla_faces[i][1].reverse());
+	// console.log("overlapInfo", overlapInfo);
+	// console.log("tortilla_edges", tortilla_edges);
+	// console.log("tortilla_faces", tortilla_faces);
+	// console.log("normalsMatch", normalsMatch);
+	return tortilla_faces;
 };
 
-export default make3DTacoTacos;
+export default make3DTortillas;

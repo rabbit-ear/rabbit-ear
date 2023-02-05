@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import clone from "../general/clone";
-import * as S from "../general/strings";
-import { filterKeysWithPrefix } from "../fold/spec";
+import clone from "../general/clone.js";
+import * as S from "../general/strings.js";
+import { filterKeysWithPrefix } from "../fold/spec.js";
 import Messages from "../environment/messages.json";
 /**
  * @description todo

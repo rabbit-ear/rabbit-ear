@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import { boundingBox } from "../../graph/boundary";
+import math from "../../math.js";
+import { boundingBox } from "../../graph/boundary.js";
 /**
  * @description Initialize a viewport for a WebGL context
  * based on the dimensions of the canvas.
@@ -30,7 +30,7 @@ export const rebuildViewport = (gl, canvas) => {
 export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 45) => {
 	if (!canvas) { return math.core.identity4x4; }
 	const Z_NEAR = 0.1;
-	const Z_FAR = 3;
+	const Z_FAR = 20;
 	const ORTHO_FAR = -100;
 	const ORTHO_NEAR = 100;
 	const bounds = [canvas.clientWidth, canvas.clientHeight];

@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import createProgram from "../general/createProgram";
+import createProgram from "../general/createProgram.js";
 import {
 	makeCPEdgesVertexArrays,
 	makeCPEdgesElementArrays,
 	makeCPFacesVertexArrays,
 	makeCPFacesElementArrays,
-} from "./arrays";
-import makeUniforms from "./uniforms";
+} from "./arrays.js";
+import makeUniforms from "./uniforms.js";
 import vertexSimpleV1 from "./shaders/simple-2d-100.vert";
 import vertexThickEdgesV1 from "./shaders/thick-edges-100.vert";
 import fragmentSimpleV1 from "./shaders/simple-2d-100.frag";

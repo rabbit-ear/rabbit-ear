@@ -2,29 +2,29 @@
  * Rabbit Ear (c) Kraft
  */
 // top level
-import * as general from "./general";
-import * as nudge from "./nudge";
+import * as general from "./general.js";
+import * as nudge from "./nudge.js";
 // single-vertex layer solver
-import singleVertexSolver from "./singleVertexSolver/index";
-import singleVertexAssignmentSolver from "./singleVertexSolver/assignmentSolver";
-// import validateLayerSolver from "./singleVertexSolver/validateLayerSolver";
-// import validateTacoTacoFacePairs from "./singleVertexSolver/validateTacoTacoFacePairs";
-// import validateTacoTortillaStrip from "./singleVertexSolver/validateTacoTortillaStrip";
-import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignments";
+import singleVertexSolver from "./singleVertexSolver/index.js";
+import singleVertexAssignmentSolver from "./singleVertexSolver/assignmentSolver.js";
+// import validateLayerSolver from "./singleVertexSolver/validateLayerSolver.js";
+// import validateTacoTacoFacePairs from "./singleVertexSolver/validateTacoTacoFacePairs.js";
+// import validateTacoTortillaStrip from "./singleVertexSolver/validateTacoTortillaStrip.js";
+import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignments.js";
 // global layer solver
-import solver from "./solver3d/index";
-import topologicalOrder from "./solver3d/topologicalOrder";
+import solver from "./solver3d/index.js";
+import topologicalOrder from "./solver3d/topologicalOrder.js";
 // old global layer solver in 2D
-// import solver2d from "./solver2d/index";
+import solver2d from "./solver2d/index.js";
 
-// import table from "./solver2d/table";
-// import * as makeConstraints from "./solver2d/makeConstraints";
-// import * as makeFacePairsOrder from "./solver2d/makeFacePairsOrder";
-// import * as globalSolverGeneral from "./solver2d/general";
-// import makeTacosTortillas from "./solver2d/tacos/makeTacosTortillas";
-// import makeFoldedStripTacos from "./solver2d/tacos/makeFoldedStripTacos";
-// import makeTransitivityTrios from "./solver2d/tacos/makeTransitivityTrios";
-// import * as tortillaTortilla from "./solver2d/tacos/tortillaTortilla";
+// import table from "./solver2d/table.js";
+// import * as makeConstraints from "./solver2d/makeConstraints.js";
+// import * as makeFacePairsOrder from "./solver2d/makeFacePairsOrder.js";
+// import * as globalSolverGeneral from "./solver2d/general.js";
+// import makeTacosTortillas from "./solver2d/tacos/makeTacosTortillas.js";
+// import makeFoldedStripTacos from "./solver2d/tacos/makeFoldedStripTacos.js";
+// import makeTransitivityTrios from "./solver2d/tacos/makeTransitivityTrios.js";
+// import * as tortillaTortilla from "./solver2d/tacos/tortillaTortilla.js";
 
 /**
  * @description A collection of methods for calculating the layer order
@@ -34,7 +34,7 @@ export default Object.assign(
 	Object.create(null),
 	{
 		solver,
-		// solver2d,
+		solver2d,
 		// table,
 		topologicalOrder,
 		// makeTacosTortillas,

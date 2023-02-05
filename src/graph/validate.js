@@ -4,13 +4,13 @@
 import {
 	duplicateEdges,
 	circularEdges,
-} from "./edgesViolations";
+} from "./edgesViolations.js";
 import {
 	duplicateVertices,
 	isolatedVertices,
-} from "./verticesViolations";
-import count from "./count";
-import countImplied from "./countImplied";
+} from "./verticesViolations.js";
+import count from "./count.js";
+import countImplied from "./countImplied.js";
 
 // import getVerticesEdgesOverlap from "./vertices_edges_overlap";
 

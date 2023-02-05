@@ -9,10 +9,10 @@
  * - vertices_coords
  * - edges_vertices, edges_assignment, edges_foldAngle
  */
-import math from "../math";
-import remove from "./remove";
-import { foldKeys } from "../fold/keys";
-import { edgeAssignmentToFoldAngle } from "../fold/spec";
+import math from "../math.js";
+import remove from "./remove.js";
+import { foldKeys } from "../fold/keys.js";
+import { edgeAssignmentToFoldAngle } from "../fold/spec.js";
 
 // permissively ignores anything above 2D
 const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {

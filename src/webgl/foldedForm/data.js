@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeVerticesNormal } from "../../graph/normals";
-import { makeEdgesVector } from "../../graph/make";
+import { makeVerticesNormal } from "../../graph/normals.js";
+import { makeEdgesVector } from "../../graph/make.js";
 
 export const makeFacesVertexData = (graph, options = {}) => {
 	const vertices_coords = graph.vertices_coords

@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { filterKeysWithSuffix } from "../fold/spec";
+import math from "../math.js";
+import { filterKeysWithSuffix } from "../fold/spec.js";
 /**
  * @name transform
  * @memberof graph

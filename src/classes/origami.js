@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import GraphProto from "./graph";
-import flatFold from "../graph/flatFold/index";
+import math from "../math.js";
+import GraphProto from "./graph.js";
+import flatFold from "../graph/flatFold/index.js";
 /**
  * @name Origami
  * @description A model of an origami paper. Empty parameter initialization will

@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings";
-import { isFoldedForm } from "../../graph/query";
-import { invertMap } from "../../graph/maps";
-import { makeFacesWinding } from "../../graph/facesWinding";
+import * as S from "../../general/strings.js";
+import { isFoldedForm } from "../../graph/query.js";
+import { invertMap } from "../../graph/maps.js";
+import { makeFacesWinding } from "../../graph/facesWinding.js";
 // get the SVG library from its binding to the root of the library
-import { addClassToClassList } from "../classes";
-import root from "../../root";
+import { addClassToClassList } from "../classes.js";
+import root from "../../root.js";
 
 const FACE_STYLE_FOLDED_ORDERED = {
 	back: { fill: S._white },

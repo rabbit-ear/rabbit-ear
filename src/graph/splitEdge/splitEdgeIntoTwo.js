@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import * as S from "../../general/strings";
+import math from "../../math.js";
+import * as S from "../../general/strings.js";
 /**
  * @description this does not modify the graph. it builds 2 objects with:
  * { edges_vertices, edges_assignment, edges_foldAngle }

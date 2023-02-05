@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { boundary } from "./boundary";
+import math from "../math.js";
+import { boundary } from "./boundary.js";
 /**
  * @description Clip a line inside the boundaries of a graph, resulting in one segment
  * or undefined. The line can be a line, ray, or segment.

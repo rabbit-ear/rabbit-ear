@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import window from "../environment/window";
+import math from "../math.js";
+import window from "../environment/window.js";
 import {
 	makeVerticesVertices,
 	makeEdgesFoldAngle,
 	makePlanarFaces,
-} from "../graph/make";
-import { removeDuplicateVertices } from "../graph/verticesViolations";
+} from "../graph/make.js";
+import { removeDuplicateVertices } from "../graph/verticesViolations.js";
 /**
  * @description given a parsed xml object, get the branch which
  * contains a node which has some node containing the value specified.

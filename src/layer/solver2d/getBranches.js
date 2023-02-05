@@ -3,7 +3,7 @@
  */
 import {
 	constraintToFacePairsStrings,
-} from "./general";
+} from "./general.js";
 /**
  * @param {string[]} remainingKeys array of facePair keys which are unsolved
  * @param {any} constraints

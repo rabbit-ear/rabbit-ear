@@ -1,16 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 import {
 	makeVerticesFaces,
 	makeVerticesToEdgeBidirectional,
-} from "./make";
+} from "./make.js";
 import {
 	makeFacesMatrix,
 	makeEdgesIsFolded,
-} from "./facesMatrix";
-import { makeFaceSpanningTree } from "./faceSpanningTree";
+} from "./facesMatrix.js";
+import { makeFaceSpanningTree } from "./faceSpanningTree.js";
 /**
  * @description Fold a graph along its edges and return the position
  * of the folded vertices. This method works in both 2D and 3D

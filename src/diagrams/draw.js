@@ -1,10 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { bounding_rect } from "../core/boundary";
-// import { line, arrow } from "../../include/svg";
-import root from "../root";
-// import SVG from "../../include/svg";
+import { bounding_rect } from "../core/boundary.js";
+// import { line, arrow } from "../../include/svg.js";
+import root from "../root.js";
+// import SVG from "../../include/svg.js";
 const SVG = root.svg;
 const { line, arrow } = SVG;
 

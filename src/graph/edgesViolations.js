@@ -1,18 +1,18 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
+import * as S from "../general/strings.js";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices,
 	makeVerticesEdges,
 	makeVerticesFaces,
-} from "./make";
+} from "./make.js";
 import {
 	getGraphKeysWithSuffix,
-} from "../fold/spec";
-import remove from "./remove";
-import replace from "./replace";
+} from "../fold/spec.js";
+import remove from "./remove.js";
+import replace from "./replace.js";
 /**
  * @description Get the indices of all circular edges. Circular edges are
  * edges where both of its edges_vertices is the same vertex.

@@ -1,16 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings";
-import { isFoldedForm } from "../../graph/query";
-import { makeEdgesAssignment } from "../../graph/make";
-import { addClassToClassList } from "../classes";
+import * as S from "../../general/strings.js";
+import { isFoldedForm } from "../../graph/query.js";
+import { makeEdgesAssignment } from "../../graph/make.js";
+import { addClassToClassList } from "../classes.js";
 import {
 	edgesFoldAngleAreAllFlat,
 	edgesAssignmentNames,
-} from "../../fold/spec";
+} from "../../fold/spec.js";
 // get the SVG library from its binding to the root of the library
-import root from "../../root";
+import root from "../../root.js";
 
 const GROUP_FOLDED = {};
 

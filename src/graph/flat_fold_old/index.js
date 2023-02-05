@@ -1,19 +1,19 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import splitConvexFace from "../splitFace/index";
-import { foldFacesLayer } from "./facesLayer";
-import clone from "../../general/clone";
-import Count from "../count";
-import { faceContainingPoint } from "../nearest";
-import { edgesAssignmentDegrees } from "../../fold/spec";
+import math from "../../math.js";
+import splitConvexFace from "../splitFace/index.js";
+import { foldFacesLayer } from "./facesLayer.js";
+import clone from "../../general/clone.js";
+import Count from "../count.js";
+import { faceContainingPoint } from "../nearest.js";
+import { edgesAssignmentDegrees } from "../../fold/spec.js";
 import {
 	makeFacesCenter,
-} from "../make";
-import { makeFacesMatrix } from "../facesMatrix";
-import { makeFacesWindingFromMatrix } from "../facesWinding";
-import { makeVerticesCoordsFlatFolded } from "../verticesCoordsFolded";
+} from "../make.js";
+import { makeFacesMatrix } from "../facesMatrix.js";
+import { makeFacesWindingFromMatrix } from "../facesWinding.js";
+import { makeVerticesCoordsFlatFolded } from "../verticesCoordsFolded.js";
 /**
  * FLAT FOLD THROUGH ALL LAYERS
  *

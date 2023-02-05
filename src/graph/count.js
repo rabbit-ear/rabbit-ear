@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { getGraphKeysWithPrefix } from "../fold/spec";
+import { getGraphKeysWithPrefix } from "../fold/spec.js";
 /**
  * @param {any[]} arrays any number of arrays
  * @returns {number} the length of the longest array

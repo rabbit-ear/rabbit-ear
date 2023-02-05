@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import validateTacoTortillaStrip from "./validateTacoTortillaStrip";
-import validateTacoTacoFacePairs from "./validateTacoTacoFacePairs";
+import math from "../../math.js";
+import validateTacoTortillaStrip from "./validateTacoTortillaStrip.js";
+import validateTacoTacoFacePairs from "./validateTacoTacoFacePairs.js";
 /**
  * @description given a layers_face (ensure that it is flat/only numbers)
  * convert a stack of taco_faces in the form of [[f1,f2], [f3,f4]]

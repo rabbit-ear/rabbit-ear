@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
-import DrawGroups from "./draw/index";
-// import fold_classes from "./classes";
-import linker from "./linker";
-import { addClassToClassList } from "./classes";
-import { makeEdgesLength } from "../graph/make";
+import * as S from "../general/strings.js";
+import DrawGroups from "./draw/index.js";
+// import fold_classes from "./classes.js";
+import linker from "./linker.js";
+import { addClassToClassList } from "./classes.js";
+import { makeEdgesLength } from "../graph/make.js";
 // get the SVG library from its binding to the root of the library
-import root from "../root";
+import root from "../root.js";
 
 const DEFAULT_STROKE_WIDTH = 1 / 100;
 const DEFAULT_CIRCLE_RADIUS = 1 / 50;

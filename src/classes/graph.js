@@ -1,42 +1,42 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import setup from "./components";
-import * as S from "../general/strings";
+import math from "../math.js";
+import setup from "./components.js";
+import * as S from "../general/strings.js";
 import {
 	foldKeys,
-} from "../fold/keys";
+} from "../fold/keys.js";
 import {
 	singularize,
 	filterKeysWithPrefix,
 	transposeGraphArrays,
-} from "../fold/spec";
-// import count from "../graph/count";
-import clean from "../graph/clean";
-import validate from "../graph/validate";
-import populate from "../graph/populate";
-import fragment from "../graph/fragment";
-// import assign from "../graph/assign";
-// import subgraph from "../graph/subgraph";
-import { boundary } from "../graph/boundary";
-import transform from "../graph/affine";
+} from "../fold/spec.js";
+// import count from "../graph/count.js";
+import clean from "../graph/clean.js";
+import validate from "../graph/validate.js";
+import populate from "../graph/populate.js";
+import fragment from "../graph/fragment.js";
+// import assign from "../graph/assign.js";
+// import subgraph from "../graph/subgraph.js";
+import { boundary } from "../graph/boundary.js";
+import transform from "../graph/affine.js";
 import {
 	makeVerticesCoordsFolded,
 	makeVerticesCoordsFlatFolded,
-} from "../graph/verticesCoordsFolded";
-import { makeFaceSpanningTree } from "../graph/faceSpanningTree";
-import { multiplyVerticesFacesMatrix2 } from "../graph/facesMatrix";
-import { explodeFaces, explodeShrinkFaces } from "../graph/explodeFaces";
+} from "../graph/verticesCoordsFolded.js";
+import { makeFaceSpanningTree } from "../graph/faceSpanningTree.js";
+import { multiplyVerticesFacesMatrix2 } from "../graph/facesMatrix.js";
+import { explodeFaces, explodeShrinkFaces } from "../graph/explodeFaces.js";
 import {
 	nearestVertex,
 	nearestEdge,
 	nearestFace,
-} from "../graph/nearest";
-import clone from "../general/clone";
-import addVertices from "../graph/add/addVertices";
-import splitEdge from "../graph/splitEdge/index";
-import splitFace from "../graph/splitFace/index";
+} from "../graph/nearest.js";
+import clone from "../general/clone.js";
+import addVertices from "../graph/add/addVertices.js";
+import splitEdge from "../graph/splitEdge/index.js";
+import splitFace from "../graph/splitFace/index.js";
 /**
  * @name Graph
  * @description a graph which includes faces, edges, and vertices, and additional

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import * as S from "../general/strings";
+// import * as S from "../general/strings.js";
 /**
  * @description given a FOLD object, gather all the class names and return
  * them in a single array

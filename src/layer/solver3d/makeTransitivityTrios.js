@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math";
-import { makeFacesPolygon } from "../../graph/make";
+import math from "../../math.js";
+import { makeFacesPolygon } from "../../graph/make.js";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the

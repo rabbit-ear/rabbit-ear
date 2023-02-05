@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
+import math from "../math.js";
 import {
 	makeEdgesVector,
 	makeEdgesCoords,
 	makeEdgesBoundingBox,
-} from "./make";
-import { getEdgesEdgesOverlapingSpans } from "./span";
+} from "./make.js";
+import { getEdgesEdgesOverlapingSpans } from "./span.js";
 
 /**
  * @description Find all edges in a graph which lie parallel along a line (infinite line).
