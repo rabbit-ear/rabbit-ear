@@ -124,13 +124,31 @@ test("counterClockwiseAngle2", () => {
 // });
 
 test("interior sector angles", () => {
-	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[0]).toBeCloseTo(Math.PI / 2);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[1]).toBeCloseTo(Math.PI / 2);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[2]).toBeCloseTo(Math.PI);
+	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[0])
+		.toBeCloseTo(Math.PI / 2);
+	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[1])
+		.toBeCloseTo(Math.PI / 2);
+	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[2])
+		.toBeCloseTo(Math.PI);
+	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[0])
+		.toBeCloseTo(Math.PI);
+	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[1])
+		.toBeCloseTo(Math.PI / 2);
+	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[2])
+		.toBeCloseTo(Math.PI / 2);
 
-	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[0]).toBeCloseTo(Math.PI);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[1]).toBeCloseTo(Math.PI / 2);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[2]).toBeCloseTo(Math.PI / 2);
+	expect(ear.math.counterClockwiseSectors2([[1, 0], [0, 1], [-1, 0]])[0])
+		.toBeCloseTo(Math.PI / 2);
+	expect(ear.math.counterClockwiseSectors2([[1, 0], [0, 1], [-1, 0]])[1])
+		.toBeCloseTo(Math.PI / 2);
+	expect(ear.math.counterClockwiseSectors2([[1, 0], [0, 1], [-1, 0]])[2])
+		.toBeCloseTo(Math.PI);
+	expect(ear.math.counterClockwiseSectors2([[1, 0], [-1, 0], [0, -1]])[0])
+		.toBeCloseTo(Math.PI);
+	expect(ear.math.counterClockwiseSectors2([[1, 0], [-1, 0], [0, -1]])[1])
+		.toBeCloseTo(Math.PI / 2);
+	expect(ear.math.counterClockwiseSectors2([[1, 0], [-1, 0], [0, -1]])[2])
+		.toBeCloseTo(Math.PI / 2);
 });
 
 test("clockwise bisect", () => {

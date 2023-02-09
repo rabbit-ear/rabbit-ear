@@ -38,9 +38,9 @@ const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
  */
 const make3DTortillaEdges = (graph, overlapInfo, epsilon = 1e-6) => {
 	const edges_groups_lookup = graph.edges_vertices.map(() => ({}));
-	overlapInfo.faces_group
-		.forEach((group, face) => graph.faces_edges[face]
-			.forEach(edge => { edges_groups_lookup[edge][group] = true; }));
+	overlapInfo.faces_set
+		.forEach((set, face) => graph.faces_edges[face]
+			.forEach(edge => { edges_groups_lookup[edge][set] = true; }));
 	// for every edge, which co-planar group does it appear in
 	const edges_groups = edges_groups_lookup
 		.map(o => Object.keys(o)
@@ -119,7 +119,7 @@ const make3DTortillas = (graph, overlapInfo, epsilon = 1e-6) => {
 	// [[A,X], [B,Y]], A and B are connected faces, X and Y are connected
 	// and A and X are in the same plane, B and Y are in the same plane.
 	tortilla_faces.forEach((tacos, i) => {
-		if (overlapInfo.faces_group[tacos[0][0]] !== overlapInfo.faces_group[tacos[1][0]]) {
+		if (overlapInfo.faces_set[tacos[0][0]] !== overlapInfo.faces_set[tacos[1][0]]) {
 			tortilla_faces[i][1].reverse();
 		}
 	});

@@ -2,9 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import { makeFacesNormal } from "../graph/normals.js";
+import { makeVerticesVerticesUnsorted } from "../graph/make.js";
 import { invertMap } from "../graph/maps.js";
 import topologicalOrder from "./topological.js";
-import { disjointVerticesSets } from "../graph/sets.js";
+import connectedComponents from "../graph/connectedComponents.js";
 /**
  * @description Given a graph with a faces_layer, a topological sorting
  * of faces, for a flat-folded 2D graph, get an array where every face
@@ -37,9 +38,15 @@ export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
  */
 export const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
-	const sets_faces = disjointVerticesSets({
+	// create a graph where the vertices are the faces, and edges
+	// are connections between faces according to faceOrders
+	// using this representation, find the disjoint sets of faces,
+	// those which are isolated from each other according to layer orders
+	const faces_sets = connectedComponents(makeVerticesVerticesUnsorted({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
-	});
+	}));
+	const sets_faces = invertMap(faces_sets)
+		.map(el => (el.constructor === Array ? el : [el]));
 	const sets_layers_face = sets_faces
 		.map(faces => topologicalOrder({ faceOrders, faces_normal }, faces));
 	const sets_normals = sets_faces.map(faces => faces_normal[faces[0]]);

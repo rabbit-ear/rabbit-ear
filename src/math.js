@@ -44,33 +44,45 @@ const typeOf = function (obj) {
  * Math (c) Kraft
  */
 /**
- * sort two vectors by their lengths, returning the shorter one first
- *
- */
-// export const lengthSort = (a, b) => [a, b].sort((m, n) => m.length - n.length);
-/**
- * force a vector into N-dimensions by adding 0s if they don't exist.
+ * @description Resize a vector to a particular length (duplicating it
+ * in memory in the process) by either lengthening or shortening it.
+ * In the case of lengthening, fill 0.
+ * @param {number} dimension the desired length
+ * @param {number[]} vector the vector to resize
+ * @returns {number[]} a copy of the vector resized to the desired length.
+ * @linkcode
  */
 const resize = (d, v) => (v.length === d
 	? v
 	: Array(d).fill(0).map((z, i) => (v[i] ? v[i] : z)));
 /**
- * this makes the two vectors match in dimension.
- * the smaller array will be filled with 0s to match the length of the larger
+ * @description Make the two vectors match in dimension by appending the
+ * smaller vector with 0s to match the dimension of the larger vector.
+ * @param {number[]} a a vector
+ * @param {number[]} b a vector
+ * @param {number[][]} an array containing two vectors, a copy of
+ * each of the input parameters.
+ * @linkcode
  */
-const resizeUp = (a, b) => {
-	const size = a.length > b.length ? a.length : b.length;
-	return [a, b].map(v => resize(size, v));
-};
+const resizeUp = (a, b) => [a, b]
+	.map(v => resize(Math.max(a.length, b.length), v));
 /**
- * this makes the two vectors match in dimension.
- * the larger array will be shrunk to match the length of the smaller
+ * @description Make the two vectors match in dimension by clamping the
+ * larger vector to match the dimension of the smaller vector.
+ * @param {number[]} a a vector
+ * @param {number[]} b a vector
+ * @param {number[][]} an array containing two vectors, a copy of
+ * each of the input parameters.
+ * @linkcode
  */
-const resizeDown = (a, b) => {
-	const size = a.length > b.length ? b.length : a.length;
-	return [a, b].map(v => resize(size, v));
-};
-
+// export const resizeDown = (a, b) => [a, b]
+// 	.map(v => resize(Math.min(a.length, b.length), v));
+/**
+ * @description Count the number of places deep past the decimal point.
+ * @param {number} num any number
+ * @returns {number} an integer, the number of decimal digits.
+ * @linkcode
+ */
 const countPlaces = function (num) {
 	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
 	if (!m) { return 0; }
@@ -99,6 +111,7 @@ const isIterable = (obj) => obj != null
  * @description flatten only until the point of comma separated entities. recursive
  * @param {Array} args any array, intended to contain arrays of arrays.
  * @returns always an array
+ * @linkcode
  */
 const semiFlattenArrays = function () {
 	switch (arguments.length) {
@@ -115,9 +128,10 @@ const semiFlattenArrays = function () {
 	}
 };
 /**
- * totally flatten, recursive
+ * @description totally flatten, recursive
  * @param {Array} args any array, intended to contain arrays of arrays.
  * @returns an array, always.
+ * @linkcode
  */
 const flattenArrays = function () {
 	switch (arguments.length) {
@@ -138,22 +152,10 @@ var resizers = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	resize: resize,
 	resizeUp: resizeUp,
-	resizeDown: resizeDown,
 	cleanNumber: cleanNumber,
 	semiFlattenArrays: semiFlattenArrays,
 	flattenArrays: flattenArrays
 });
-
-/**
- * Math (c) Kraft
- */
-// because an object may contain an operation that returns a copy of itself,
-// or any other primitive for that matter, all primitive
-// contructors will be assigned here to prevent circular dependencies
-//
-// this file should import no other file
-
-var Constructors = Object.create(null);
 
 /**
  * Math (c) Kraft
@@ -268,8 +270,8 @@ const fnEqual = (a, b) => a === b;
  */
 const fnEpsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsilon;
 /**
- * @description Sort two numbers within an epsilon of each other, so that "1": a < b,
- * "-1": a > b, and "0": a ~= b (epsilon equal).
+ * @description Sort two numbers within an epsilon of each other,
+ * so that "1": a < b, "-1": a > b, and "0": a ~= b (epsilon equal).
  * @param {number} a any number
  * @param {number} b any number
  * @param {number} [epsilon=1e-6] an optional epsilon
@@ -280,8 +282,11 @@ const fnEpsilonSort = (a, b, epsilon = EPSILON) => (
 	fnEpsilonEqual(a, b, epsilon) ? 0 : Math.sign(b - a)
 );
 /**
- * @description are two vectors equal to each other within an epsilon. This method
- * uses a fast rectangle-area around each vector.
+ * @description are two vectors equal to each other within an epsilon.
+ * This method uses a axis-aligned bounding box to check equality
+ * for speed. If the two vectors are of differing lengths, assume
+ * the remaining values are zero, compare until the end of the
+ * longest vector.
  * @param {number[]} a an array of numbers
  * @param {number[]} b an array of numbers
  * @returns {boolean} true if the vectors are similar within an epsilon
@@ -341,10 +346,10 @@ const excludeS = (t, e = EPSILON) => t > e && t < 1 - e;
  * @description These clamp functions process lines/rays/segments intersections.
  * The line method allows all values.
  * @param {number} t the length along the vector
- * @returns {number} the clamped input value
+ * @returns {number} the clamped input value (line does not clamp)
  * @linkcode Math ./src/algebra/functions.js 157
  */
-const lineLimiter = dist => dist;
+const clampLine = dist => dist;
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The ray method clamps values below -epsilon to be 0.
@@ -352,7 +357,7 @@ const lineLimiter = dist => dist;
  * @returns {number} the clamped input value
  * @linkcode Math ./src/algebra/functions.js 165
  */
-const rayLimiter = dist => (dist < -EPSILON ? 0 : dist);
+const clampRay = dist => (dist < -EPSILON ? 0 : dist);
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The segment method clamps values below -epsilon to be 0 and above 1+epsilon to 1.
@@ -360,7 +365,7 @@ const rayLimiter = dist => (dist < -EPSILON ? 0 : dist);
  * @returns {number} the clamped input value
  * @linkcode Math ./src/algebra/functions.js 173
  */
-const segmentLimiter = (dist) => {
+const clampSegment = (dist) => {
 	if (dist < -EPSILON) { return 0; }
 	if (dist > 1 + EPSILON) { return 1; }
 	return dist;
@@ -388,9 +393,9 @@ var functions = /*#__PURE__*/Object.freeze({
 	excludeR: excludeR,
 	includeS: includeS,
 	excludeS: excludeS,
-	lineLimiter: lineLimiter,
-	rayLimiter: rayLimiter,
-	segmentLimiter: segmentLimiter
+	clampLine: clampLine,
+	clampRay: clampRay,
+	clampSegment: clampSegment
 });
 
 /**
@@ -494,6 +499,14 @@ const scale = (v, s) => v.map(n => n * s);
  */
 const scale2 = (v, s) => [v[0] * s, v[1] * s];
 /**
+ * @description scale an input vector by one number, return a copy.
+ * @param {number[]} v one 3D vector
+ * @param {number} s one scalar
+ * @returns {number[]} one 3D vector
+ * @linkcode
+ */
+const scale3 = (v, s) => [v[0] * s, v[1] * s, v[2] * s];
+/**
  * @description add two vectors and return the sum as another vector,
  * do not modify the input vectors.
  * @param {number[]} v one vector, n-dimensions
@@ -563,6 +576,14 @@ const dot = (v, u) => v
  */
 const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
 /**
+ * @description compute the dot product of two 3D vectors.
+ * @param {number[]} v one 3D vector
+ * @param {number[]} u one 3D vector
+ * @returns {number} one scalar
+ * @linkcode Math ./src/algebra/vectors.js 172
+ */
+const dot3 = (v, u) => v[0] * u[0] + v[1] * u[1] + v[2] * u[2];
+/**
  * @description compute the midpoint of two vectors.
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
@@ -579,8 +600,16 @@ const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
  */
 const midpoint2 = (v, u) => scale2(add2(v, u), 0.5);
 /**
- * @description the average of N number of vectors, similar to midpoint,
- * but can accept more than 2 inputs
+ * @description compute the midpoint of two 2D vectors.
+ * @param {number[]} v one 2D vector
+ * @param {number[]} u one 2D vector
+ * @returns {number} one 2D vector
+ * @linkcode Math ./src/algebra/vectors.js 188
+ */
+const midpoint3 = (v, u) => scale3(add3(v, u), 0.5);
+/**
+ * @description the average of N number of vectors (not numbers),
+ * similar to midpoint but this can accept more than 2 inputs.
  * @param {number[]} ...args any number of input vectors
  * @returns {number[]} one vector, dimension matching first parameter
  * @linkcode Math ./src/algebra/vectors.js 196
@@ -693,15 +722,33 @@ const degenerate = (v, epsilon = EPSILON) => v
 	.map(n => Math.abs(n))
 	.reduce(fnAdd, 0) < epsilon;
 /**
- * @description check if two vectors are parallel to each other within an epsilon
+ * @description check if two already normalized vectors are parallel
+ * to each other, within an epsilon. Parallel includes the case where
+ * the vectors are exactly 180 degrees flipped from one another.
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
  * @linkcode Math ./src/algebra/vectors.js 311
  */
-const parallel = (v, u, epsilon = EPSILON) => 1 - Math
-	.abs(dot(normalize(v), normalize(u))) < epsilon;
+const parallelNormalized = (v, u, epsilon = EPSILON) => 1 - Math
+	.abs(dot(v, u)) < epsilon;
+/**
+ * @description check if two vectors are parallel to each other,
+ * within an epsilon. Parallel includes the case where the
+ * vectors are exactly 180 degrees flipped from one another.
+ * @param {number[]} v one vector, n-dimensions
+ * @param {number[]} u one vector, n-dimensions
+ * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
+ * @returns {boolean} are the two vectors parallel within an epsilon?
+ * @linkcode Math ./src/algebra/vectors.js 311
+ */
+const parallel = (v, u, epsilon = EPSILON) => parallelNormalized(
+	normalize(v),
+	normalize(u),
+	epsilon,
+);
+
 /**
  * @description check if two 2D vectors are parallel to each other within an epsilon
  * @param {number[]} v one 2D vector
@@ -724,6 +771,7 @@ var algebra = /*#__PURE__*/Object.freeze({
 	normalize3: normalize3,
 	scale: scale,
 	scale2: scale2,
+	scale3: scale3,
 	add: add,
 	add2: add2,
 	add3: add3,
@@ -732,8 +780,10 @@ var algebra = /*#__PURE__*/Object.freeze({
 	subtract3: subtract3,
 	dot: dot,
 	dot2: dot2,
+	dot3: dot3,
 	midpoint: midpoint,
 	midpoint2: midpoint2,
+	midpoint3: midpoint3,
 	average: average,
 	lerp: lerp,
 	cross2: cross2,
@@ -745,8 +795,464 @@ var algebra = /*#__PURE__*/Object.freeze({
 	rotate90: rotate90,
 	rotate270: rotate270,
 	degenerate: degenerate,
+	parallelNormalized: parallelNormalized,
 	parallel: parallel,
 	parallel2: parallel2
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @notes in Robert Lang's U-D parameterization definition, U is defined
+ * to be any vector made from an angle constrained between [0...180), meaning
+ * the y component will never be negative.
+ * The D component is allowed to be any number between -Infinity...Infinity
+ *
+ * The constraint on the normal-angle causes issues when converting back
+ * and forth between vector-origin and UD parameterization. Lang's intention
+ * is that lines do not have a directionality, whereas this library does,
+ * (see: Axiom folding, which face to fold is decided by the line's vector).
+ *
+ * Therefore, this library modifies the paramterization slightly to allow
+ * unconstrained normals, where the angle can be anywhere [0...360).
+ * The cost is when testing equality, the normal and its flip must be checked,
+ * or, U normals can be flipped (and the sign of D flipped) ahead of time.
+ *  return d < 0
+ *    ? { u: scale(u, -1/mag), d: -d }
+ *    : { u: scale(u, 1/mag), d };
+ */
+
+/**
+ * @description convert a line from one parameterization into another.
+ * convert vector-origin into u-d (normal, distance-to-origin)
+ * @linkcode Math ./src/types/parameterize.js 34
+ */
+// export const vectorOriginToUD = ({ vector, origin }) => {
+// export const makeNormalDistanceLine = ({ vector, origin }) => {
+const rayLineToUniqueLine = ({ vector, origin }) => {
+	const mag = magnitude(vector);
+	const normal = rotate90(vector);
+	const distance = dot(origin, normal) / mag;
+	return { normal: scale(normal, 1 / mag), distance };
+};
+/**
+ * @description convert a line from one parameterization into another.
+ * convert u-d (normal, distance-to-origin) into vector-origin
+ * @linkcode Math ./src/types/parameterize.js 47
+ */
+// export const UDToVectorOrigin = ({ u, d }) => ({
+// export const makeVectorOriginLine = ({ normal, distance }) => ({
+const uniqueLineToRayLine = ({ normal, distance }) => ({
+	vector: rotate270(normal),
+	origin: scale(normal, distance),
+});
+
+var parameterize = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	rayLineToUniqueLine: rayLineToUniqueLine,
+	uniqueLineToRayLine: uniqueLineToRayLine
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description Given a single object against which to compare,
+ * iterate through an array of the same type and run a custom
+ * comparison function which abides by this format:
+ * (a:any, b:any) => number. The element in the array which returns
+ * the smallest value, its index will be returned.
+ * @param {any} obj the single item to test against the set
+ * @param {any[]} array the set of items to test against
+ * @param {function} compare_func a function which takes two items (which match
+ * the type of the first parameter), execution of this function should return a scalar.
+ * @returns {number[]} the index from the set which minimizes the compare function
+ * @linkcode Math ./src/algebra/nearest.js 29
+ */
+const smallestComparisonSearch = (obj, array, compare_func) => {
+	const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
+	let index;
+	let smallest_value = Infinity;
+	for (let i = 0; i < objs.length; i += 1) {
+		if (objs[i].d < smallest_value) {
+			index = i;
+			smallest_value = objs[i].d;
+		}
+	}
+	return index;
+};
+/**
+ * @description Find the indices from an array of vectors which all have
+ * the smallest value within an epsilon.
+ * @param {number[][]} vectors array of vectors
+ * @returns {number[]} array of indices which all have the lowest X value.
+ * @linkcode Math ./src/algebra/nearest.js 48
+ */
+const minimumXIndices = (vectors, compFn = fnEpsilonSort, epsilon = EPSILON) => {
+	// find the set of all vectors that share the smallest X value within an epsilon
+	let smallSet = [0];
+	for (let i = 1; i < vectors.length; i += 1) {
+		switch (compFn(vectors[i][0], vectors[smallSet[0]][0], epsilon)) {
+		case 0: smallSet.push(i); break;
+		case 1: smallSet = [i]; break;
+		}
+	}
+	return smallSet;
+};
+/**
+ * @description Get the index of the point in an array considered the absolute minimum.
+ * First check the X values, and in the case of multiple minimums, check the Y values.
+ * @param {number[][]} points array of points
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number} the index of the point in the array with the smallest component values
+ * @linkcode Math ./src/algebra/nearest.js 68
+ */
+const minimum2DPointIndex = (points, epsilon = EPSILON) => {
+	// find the set of all points that share the smallest X value
+	const smallSet = minimumXIndices(points, fnEpsilonSort, epsilon);
+	// from this set, find the point with the smallest Y value
+	let sm = 0;
+	for (let i = 1; i < smallSet.length; i += 1) {
+		if (points[smallSet[i]][1] < points[smallSet[sm]][1]) { sm = i; }
+	}
+	return smallSet[sm];
+};
+
+/**
+ * @description find the one point in an array of 2D points closest to a 2D point.
+ * @param {number[]} point the 2D point to test nearness to
+ * @param {number[][]} array_of_points an array of 2D points to test against
+ * @returns {number[]} one point from the array of points
+ * @linkcode Math ./src/algebra/nearest.js 86
+ */
+const nearestPoint2 = (point, array_of_points) => {
+	// todo speed up with partitioning
+	const index = smallestComparisonSearch(point, array_of_points, distance2);
+	return index === undefined ? undefined : array_of_points[index];
+};
+/**
+ * @description find the one point in an array of points closest to a point.
+ * @param {number[]} point the point to test nearness to
+ * @param {number[][]} array_of_points an array of points to test against
+ * @returns {number[]} one point from the array of points
+ * @linkcode Math ./src/algebra/nearest.js 98
+ */
+const nearestPoint = (point, array_of_points) => {
+	// todo speed up with partitioning
+	const index = smallestComparisonSearch(point, array_of_points, distance);
+	return index === undefined ? undefined : array_of_points[index];
+};
+/**
+ * @description find the nearest point on a line, ray, or segment.
+ * @param {number[]} vector the vector of the line
+ * @param {number[]} origin a point that the line passes through
+ * @param {number[]} point the point to test nearness to
+ * @param {function} limiterFunc a clamp function to bound a calculation between 0 and 1
+ * for segments, greater than 0 for rays, or unbounded for lines.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[]} a point
+ * @linkcode Math ./src/algebra/nearest.js 114
+ */
+const nearestPointOnLine = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
+	origin = resize(vector.length, origin);
+	point = resize(vector.length, point);
+	const magSq = magSquared(vector);
+	const vectorToPoint = subtract(point, origin);
+	const dotProd = dot(vector, vectorToPoint);
+	const dist = dotProd / magSq;
+	// limit depending on line, ray, segment
+	const d = limiterFunc(dist, epsilon);
+	return add(origin, scale(vector, d));
+};
+/**
+ * @description given a polygon and a point, in 2D, find a point on the boundary of the polygon
+ * that is closest to the provided point.
+ * @param {number[][]} polygon an array of points (which are arrays of numbers)
+ * @param {number[]} point the point to test nearness to
+ * @returns {number[]} a point
+ * @linkcode Math ./src/algebra/nearest.js 133
+ */
+const nearestPointOnPolygon = (polygon, point) => {
+	const v = polygon
+		.map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
+	return polygon
+		.map((p, i) => nearestPointOnLine(v[i], p, point, clampSegment))
+		.map((p, i) => ({ point: p, i, distance: distance(p, point) }))
+		.sort((a, b) => a.distance - b.distance)
+		.shift();
+};
+/**
+ * @description find the nearest point on the boundary of a circle to another point
+ * that is closest to the provided point.
+ * @param {number} radius the radius of the circle
+ * @param {number[]} origin the origin of the circle as an array of numbers.
+ * @param {number[]} point the point to test nearness to
+ * @returns {number[]} a point
+ * @linkcode Math ./src/algebra/nearest.js 151
+ */
+const nearestPointOnCircle = (radius, origin, point) => (
+	add(origin, scale(normalize(subtract(point, origin)), radius)));
+
+// todo
+// const nearestPointOnEllipse = () => false;
+
+var nearest = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	smallestComparisonSearch: smallestComparisonSearch,
+	minimum2DPointIndex: minimum2DPointIndex,
+	nearestPoint2: nearestPoint2,
+	nearestPoint: nearestPoint,
+	nearestPointOnLine: nearestPointOnLine,
+	nearestPointOnPolygon: nearestPointOnPolygon,
+	nearestPointOnCircle: nearestPointOnCircle
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description sort an array of 2D points along a 2D vector.
+ * @param {number[][]} points array of points (which are arrays of numbers)
+ * @param {number[]} vector one 2D vector
+ * @returns {number[][]} the same points, sorted.
+ * @linkcode Math ./src/algebra/sort.js 18
+ */
+const sortPointsAlongVector2 = (points, vector) => points
+	.map(point => ({ point, d: point[0] * vector[0] + point[1] * vector[1] }))
+	.sort((a, b) => a.d - b.d)
+	.map(a => a.point);
+/**
+ * @description given an array of already-sorted values (so that comparisons only
+ * need to happen between neighboring items), cluster the numbers which are similar
+ * within an epsilon. isolated values still get put in length-1 arrays. (all values returned)
+ * and the clusters contain the indices from the param array, not the values.
+ * @param {numbers[]} an array of sorted numbers
+ * @param {numbers} [epsilon=1e-6] an optional epsilon
+ * @returns {numbers[][]} an array of arrays, each inner array containin indices.
+ * each inner array represents clusters of values which lie within an epsilon.
+ * @linkcode Math ./src/algebra/sort.js 33
+ */
+const clusterIndicesOfSortedNumbers = (numbers, epsilon = EPSILON) => {
+	const clusters = [[0]];
+	let clusterIndex = 0;
+	for (let i = 1; i < numbers.length; i += 1) {
+		// if this scalar fits inside the current cluster
+		if (fnEpsilonEqual(numbers[i], numbers[i - 1], epsilon)) {
+			clusters[clusterIndex].push(i);
+		} else {
+			clusterIndex = clusters.length;
+			clusters.push([i]);
+		}
+	}
+	return clusters;
+};
+/**
+ * @description radially sort point indices around the lowest-value point, clustering
+ * similarly-angled points within an epsilon. Within these clusters, the points are
+ * sorted by distance so the nearest point is listed first.
+ * @param {number[][]} points an array of points
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} this returns indices in clusters.
+ * @linkcode Math ./src/algebra/sort.js 56
+ */
+const radialSortPointIndices = (points = [], epsilon = EPSILON) => {
+	const first = minimum2DPointIndex(points, epsilon);
+	const angles = points
+		.map(p => subtract2(p, points[first]))
+		.map(v => normalize2(v))
+		.map(vec => dot2([0, 1], vec));
+		// .map((p, i) => Math.atan2(unitVecs[i][1], unitVecs[i][0]));
+	const rawOrder = angles
+		.map((a, i) => ({ a, i }))
+		.sort((a, b) => a.a - b.a)
+		.map(el => el.i)
+		.filter(i => i !== first);
+	return [[first]]
+		.concat(clusterIndicesOfSortedNumbers(rawOrder.map(i => angles[i]), epsilon)
+			.map(arr => arr.map(i => rawOrder[i]))
+			.map(cluster => (cluster.length === 1 ? cluster : cluster
+				.map(i => ({ i, len: distance2(points[i], points[first]) }))
+				.sort((a, b) => a.len - b.len)
+				.map(el => el.i))));
+};
+
+var sortMethods = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	sortPointsAlongVector2: sortPointsAlongVector2,
+	clusterIndicesOfSortedNumbers: clusterIndicesOfSortedNumbers,
+	radialSortPointIndices: radialSortPointIndices
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * 2x3 matrix methods for two dimensional transformations.
+ * the third column is a 2D translation vector
+ */
+/**
+ * @description the identity matrix for 2x2 matrices
+ * @linkcode Math ./src/algebra/matrix2.js 10
+ */
+const identity2x2 = [1, 0, 0, 1];
+/**
+ * @description the identity matrix for 2x3 matrices (zero translation)
+ * @linkcode Math ./src/algebra/matrix2.js 15
+ */
+const identity2x3 = identity2x2.concat(0, 0);
+/**
+ * @param {number[]} vector, in array form
+ * @param {number[]} matrix, in array form
+ * @returns {number[]} vector, the input vector transformed by the matrix
+ * @linkcode Math ./src/algebra/matrix2.js 22
+ */
+const multiplyMatrix2Vector2 = (matrix, vector) => [
+	matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
+	matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5],
+];
+/**
+ * @param {number[]} matrix, in array form
+ * @param {number[]} vector of the line
+ * @param {number[]} origin of the line
+ * @returns transformed line in point-vector form
+ * @linkcode Math ./src/algebra/matrix2.js 31
+ */
+const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
+	vector: [
+		matrix[0] * vector[0] + matrix[2] * vector[1],
+		matrix[1] * vector[0] + matrix[3] * vector[1],
+	],
+	origin: [
+		matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4],
+		matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5],
+	],
+});
+/**
+ * @param {number[]} matrix1, left/right order matches what you'd see on a page.
+ * @param {number[]} matrix2, left/right order matches what you'd see on a page.
+ * @returns {number[]} matrix
+ * @linkcode Math ./src/algebra/matrix2.js 46
+ */
+const multiplyMatrices2 = (m1, m2) => [
+	m1[0] * m2[0] + m1[2] * m2[1],
+	m1[1] * m2[0] + m1[3] * m2[1],
+	m1[0] * m2[2] + m1[2] * m2[3],
+	m1[1] * m2[2] + m1[3] * m2[3],
+	m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+	m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
+];
+/**
+ * @description calculate the determinant of a 2x3 or 2x2 matrix.
+ * in the case of 2x3, the translation component is ignored.
+ * @param {number[]} matrix one matrix in array form
+ * @returns {number} the determinant of the matrix
+ * @linkcode Math ./src/algebra/matrix2.js 61
+ */
+const determinant2 = m => m[0] * m[3] - m[1] * m[2];
+/**
+ * @description invert a 2x3 matrix
+ * @param {number[]} matrix one matrix in array form
+ * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
+ * @linkcode Math ./src/algebra/matrix2.js 68
+ */
+const invertMatrix2 = (m) => {
+	const det = determinant2(m);
+	if (Math.abs(det) < 1e-6
+		|| Number.isNaN(det)
+		|| !Number.isFinite(m[4])
+		|| !Number.isFinite(m[5])) {
+		return undefined;
+	}
+	return [
+		m[3] / det,
+		-m[1] / det,
+		-m[2] / det,
+		m[0] / det,
+		(m[2] * m[5] - m[3] * m[4]) / det,
+		(m[1] * m[4] - m[0] * m[5]) / det,
+	];
+};
+/**
+ * @param {number} x
+ * @param {number} y
+ * @returns {number[]} matrix
+ * @linkcode Math ./src/algebra/matrix2.js 90
+ */
+const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
+/**
+ * @param ratio of scale, optional origin homothetic center (0,0 default)
+ * @returns {number[]} matrix
+ * @linkcode Math ./src/algebra/matrix2.js 96
+ */
+const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
+	scale[0],
+	0,
+	0,
+	scale[1],
+	scale[0] * -origin[0] + origin[0],
+	scale[1] * -origin[1] + origin[1],
+];
+/**
+ * @param angle of rotation, origin of transformation
+ * @returns {number[]} matrix
+ * @linkcode Math ./src/algebra/matrix2.js 109
+ */
+const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+	return [
+		cos,
+		sin,
+		-sin,
+		cos,
+		origin[0],
+		origin[1],
+	];
+};
+/**
+ * remember vector comes before origin. origin comes last, so that it's easy
+ * to leave it empty and make a reflection through the origin.
+ * @param line in vector-origin form
+ * @returns matrix
+ * @linkcode Math ./src/algebra/matrix2.js 128
+ */
+const makeMatrix2Reflect = (vector, origin = [0, 0]) => {
+	// the line of reflection passes through origin, runs along vector
+	const angle = Math.atan2(vector[1], vector[0]);
+	const cosAngle = Math.cos(angle);
+	const sinAngle = Math.sin(angle);
+	const cos_Angle = Math.cos(-angle);
+	const sin_Angle = Math.sin(-angle);
+	const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+	const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+	const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+	const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+	const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+	const ty = origin[1] + b * -origin[0] + -origin[1] * d;
+	return [a, b, c, d, tx, ty];
+};
+
+//               __                                           _
+//   _________  / /_  ______ ___  ____     ____ ___  ____ _  (_)___  _____
+//  / ___/ __ \/ / / / / __ `__ \/ __ \   / __ `__ \/ __ `/ / / __ \/ ___/
+// / /__/ /_/ / / /_/ / / / / / / / / /  / / / / / / /_/ / / / /_/ / /
+// \___/\____/_/\__,_/_/ /_/ /_/_/ /_/  /_/ /_/ /_/\__,_/_/ /\____/_/
+//                                                     /___/
+
+var matrix2 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	identity2x2: identity2x2,
+	identity2x3: identity2x3,
+	multiplyMatrix2Vector2: multiplyMatrix2Vector2,
+	multiplyMatrix2Line2: multiplyMatrix2Line2,
+	multiplyMatrices2: multiplyMatrices2,
+	determinant2: determinant2,
+	invertMatrix2: invertMatrix2,
+	makeMatrix2Translate: makeMatrix2Translate,
+	makeMatrix2Scale: makeMatrix2Scale,
+	makeMatrix2Rotate: makeMatrix2Rotate,
+	makeMatrix2Reflect: makeMatrix2Reflect
 });
 
 /**
@@ -996,19 +1502,8 @@ const makeMatrix3Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
  * @linkcode Math ./src/algebra/matrix3.js 252
  */
 const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {
-	// the line of reflection passes through origin, runs along vector
-	const angle = Math.atan2(vector[1], vector[0]);
-	const cosAngle = Math.cos(angle);
-	const sinAngle = Math.sin(angle);
-	const cos_Angle = Math.cos(-angle);
-	const sin_Angle = Math.sin(-angle);
-	const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-	const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-	const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-	const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-	const tx = origin[0] + a * -origin[0] + -origin[1] * c;
-	const ty = origin[1] + b * -origin[0] + -origin[1] * d;
-	return [a, b, 0, c, d, 0, 0, 0, 1, tx, ty, 0];
+	const m = makeMatrix2Reflect(vector, origin);
+	return [m[0], m[1], 0, m[2], m[3], 0, 0, 0, 1, m[4], m[5], 0];
 };
 
 /**
@@ -1045,643 +1540,6 @@ var matrix3 = /*#__PURE__*/Object.freeze({
 	makeMatrix3Rotate: makeMatrix3Rotate,
 	makeMatrix3Scale: makeMatrix3Scale,
 	makeMatrix3ReflectZ: makeMatrix3ReflectZ
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * @returns {object} in form { point:[], vector:[] }
-*/
-const vectorOriginForm = (vector, origin) => ({
-	vector: vector || [],
-	origin: origin || [],
-});
-/**
- * search function arguments for a valid n-dimensional vector
- * can handle object-vector representation {x:, y:}
- *
- * @returns {number[]} vector in array form, or empty array for bad inputs
-*/
-const getVector = function () {
-	// todo, incorporate constructors.vector check to all indices. and below
-	if (arguments[0] instanceof Constructors.vector) { return arguments[0]; }
-	let list = flattenArrays(arguments); // .filter(fnNotUndefined);
-	if (list.length > 0
-		&& typeof list[0] === "object"
-		&& list[0] !== null
-		&& !Number.isNaN(list[0].x)) {
-		list = ["x", "y", "z"]
-			.map(c => list[0][c])
-			.filter(fnNotUndefined);
-	}
-	return list.filter(n => typeof n === "number");
-};
-
-/**
- * search function arguments for a an array of vectors. a vector of vectors
- * can handle object-vector representation {x:, y:}
- *
- * @returns {number[]} vector in array form, or empty array for bad inputs
-*/
-const getVectorOfVectors = function () {
-	return semiFlattenArrays(arguments)
-		.map(el => getVector(el));
-};
-
-/**
- * @returns {number[]} segment in array form [[a1, a2], [b1, b2]]
-*/
-const getSegment = function () {
-	if (arguments[0] instanceof Constructors.segment) {
-		return arguments[0];
-	}
-	const args = semiFlattenArrays(arguments);
-	if (args.length === 4) {
-		return [
-			[args[0], args[1]],
-			[args[2], args[3]],
-		];
-	}
-	return args.map(el => getVector(el));
-};
-
-// this works for rays to interchangably except for that it will not
-// typecast a line into a ray, it will stay a ray type.
-const getLine = function () {
-	const args = semiFlattenArrays(arguments);
-	if (args.length === 0) { return vectorOriginForm([], []); }
-	if (args[0] instanceof Constructors.line
-		|| args[0] instanceof Constructors.ray
-		|| args[0] instanceof Constructors.segment) { return args[0]; }
-	if (args[0].constructor === Object && args[0].vector !== undefined) {
-		return vectorOriginForm(args[0].vector || [], args[0].origin || []);
-	}
-	return typeof args[0] === "number"
-		? vectorOriginForm(getVector(args))
-		: vectorOriginForm(...args.map(a => getVector(a)));
-};
-
-const getRay = getLine;
-
-const getRectParams = (x = 0, y = 0, width = 0, height = 0) => ({
-	x, y, width, height,
-});
-
-const getRect = function () {
-	if (arguments[0] instanceof Constructors.rect) { return arguments[0]; }
-	const list = flattenArrays(arguments); // .filter(fnNotUndefined);
-	if (list.length > 0
-		&& typeof list[0] === "object"
-		&& list[0] !== null
-		&& !Number.isNaN(list[0].width)) {
-		return getRectParams(...["x", "y", "width", "height"]
-			.map(c => list[0][c])
-			.filter(fnNotUndefined));
-	}
-	const numbers = list.filter(n => typeof n === "number");
-	const rectParams = numbers.length < 4
-		? [, , ...numbers]
-		: numbers;
-	return getRectParams(...rectParams);
-};
-
-/**
- * radius is the first parameter so that the origin can be N-dimensional
- * ...args is a list of numbers that become the origin.
- */
-const getCircleParams = (radius = 1, ...args) => ({
-	radius,
-	origin: [...args],
-});
-
-const getCircle = function () {
-	if (arguments[0] instanceof Constructors.circle) { return arguments[0]; }
-	const vectors = getVectorOfVectors(arguments);
-	const numbers = flattenArrays(arguments).filter(a => typeof a === "number");
-	if (arguments.length === 2) {
-		if (vectors[1].length === 1) {
-			return getCircleParams(vectors[1][0], ...vectors[0]);
-		}
-		if (vectors[0].length === 1) {
-			return getCircleParams(vectors[0][0], ...vectors[1]);
-		}
-		if (vectors[0].length > 1 && vectors[1].length > 1) {
-			return getCircleParams(distance2(...vectors), ...vectors[0]);
-		}
-	} else {
-		switch (numbers.length) {
-		case 0: return getCircleParams(1, 0, 0, 0);
-		case 1: return getCircleParams(numbers[0], 0, 0, 0);
-		default: return getCircleParams(numbers.pop(), ...numbers);
-		}
-	}
-	return getCircleParams(1, 0, 0, 0);
-};
-
-const maps3x4 = [
-	[0, 1, 3, 4, 9, 10],
-	[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-	[0, 1, 2, undefined, 3, 4, 5, undefined, 6, 7, 8, undefined, 9, 10, 11],
-];
-[11, 7, 3].forEach(i => delete maps3x4[2][i]);
-
-const matrixMap3x4 = len => {
-	let i;
-	if (len < 8) i = 0;
-	else if (len < 13) i = 1;
-	else i = 2;
-	return maps3x4[i];
-};
-
-/**
- * a matrix3 is a 4x3 matrix, 3x3 orientation with a column for translation
- *
- * @returns {number[]} array of 12 numbers, or undefined if bad inputs
-*/
-const getMatrix3x4 = function () {
-	const mat = flattenArrays(arguments);
-	const matrix = [...identity3x4];
-	matrixMap3x4(mat.length)
-		// .filter((_, i) => mat[i] != null)
-		.forEach((n, i) => { if (mat[i] != null) { matrix[n] = mat[i]; } });
-	return matrix;
-};
-
-/**
- * a matrix2 is a 2x3 matrix, 2x2 with a column to represent translation
- *
- * @returns {number[]} array of 6 numbers, or undefined if bad inputs
-*/
-// export const get_matrix2 = function () {
-//   const m = getVector(arguments);
-//   if (m.length === 6) { return m; }
-//   if (m.length > 6) { return [m[0], m[1], m[2], m[3], m[4], m[5]]; }
-//   if (m.length < 6) {
-//     return identity2x3.map((n, i) => m[i] || n);
-//   }
-// };
-
-var getters = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	getVector: getVector,
-	getVectorOfVectors: getVectorOfVectors,
-	getSegment: getSegment,
-	getLine: getLine,
-	getRay: getRay,
-	getRectParams: getRectParams,
-	getRect: getRect,
-	getCircle: getCircle,
-	getMatrix3x4: getMatrix3x4
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * @notes in Robert Lang's U-D parameterization definition, U is defined
- * to be any vector made from an angle constrained between [0...180), meaning
- * the y component will never be negative.
- * The D component is allowed to be any number between -Infinity...Infinity
- *
- * The constraint on the normal-angle causes issues when converting back
- * and forth between vector-origin and UD parameterization. Lang's intention
- * is that lines do not have a directionality, whereas this library does,
- * (see: Axiom folding, which face to fold is decided by the line's vector).
- *
- * Therefore, this library modifies the paramterization slightly to allow
- * unconstrained normals, where the angle can be anywhere [0...360).
- * The cost is when testing equality, the normal and its flip must be checked,
- * or, U normals can be flipped (and the sign of D flipped) ahead of time.
- *  return d < 0
- *    ? { u: scale(u, -1/mag), d: -d }
- *    : { u: scale(u, 1/mag), d };
- */
-
-/**
- * @description convert a line from one parameterization into another.
- * convert vector-origin into u-d (normal, distance-to-origin)
- * @linkcode Math ./src/types/parameterize.js 34
- */
-// export const vectorOriginToUD = ({ vector, origin }) => {
-// export const makeNormalDistanceLine = ({ vector, origin }) => {
-const rayLineToUniqueLine = ({ vector, origin }) => {
-	const mag = magnitude(vector);
-	const normal = rotate90(vector);
-	const distance = dot(origin, normal) / mag;
-	return { normal: scale(normal, 1 / mag), distance };
-};
-/**
- * @description convert a line from one parameterization into another.
- * convert u-d (normal, distance-to-origin) into vector-origin
- * @linkcode Math ./src/types/parameterize.js 47
- */
-// export const UDToVectorOrigin = ({ u, d }) => ({
-// export const makeVectorOriginLine = ({ normal, distance }) => ({
-const uniqueLineToRayLine = ({ normal, distance }) => ({
-	vector: rotate270(normal),
-	origin: scale(normal, distance),
-});
-
-var parameterize = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	rayLineToUniqueLine: rayLineToUniqueLine,
-	uniqueLineToRayLine: uniqueLineToRayLine
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description find the one item in the set which minimizes the
- * function when compared against all other objects in the array.
- * For example, find the nearest point from an array to a reference.
- * @param {any} obj the single item to test against the set
- * @param {any[]} array the set of items to test against
- * @param {function} compare_func a function which takes two items (which match
- * the type of the first parameter), execution of this function should return a scalar.
- * @returns {number[]} the index from the set which minimizes the compare function
- * @linkcode Math ./src/algebra/nearest.js 29
- */
-const smallestComparisonSearch = (obj, array, compare_func) => {
-	const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
-	let index;
-	let smallest_value = Infinity;
-	for (let i = 0; i < objs.length; i += 1) {
-		if (objs[i].d < smallest_value) {
-			index = i;
-			smallest_value = objs[i].d;
-		}
-	}
-	return index;
-};
-/**
- * @description Find the indices from an array of vectors which all have
- * the smallest value within an epsilon.
- * @param {number[][]} vectors array of vectors
- * @returns {number[]} array of indices which all have the lowest X value.
- * @linkcode Math ./src/algebra/nearest.js 48
- */
-const minimumXIndices = (vectors, compFn = fnEpsilonSort, epsilon = EPSILON) => {
-	// find the set of all vectors that share the smallest X value within an epsilon
-	let smallSet = [0];
-	for (let i = 1; i < vectors.length; i += 1) {
-		switch (compFn(vectors[i][0], vectors[smallSet[0]][0], epsilon)) {
-		case 0: smallSet.push(i); break;
-		case 1: smallSet = [i]; break;
-		}
-	}
-	return smallSet;
-};
-/**
- * @description Get the index of the point in an array considered the absolute minimum.
- * First check the X values, and in the case of multiple minimums, check the Y values.
- * @param {number[][]} points array of points
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number} the index of the point in the array with the smallest component values
- * @linkcode Math ./src/algebra/nearest.js 68
- */
-const minimum2DPointIndex = (points, epsilon = EPSILON) => {
-	// find the set of all points that share the smallest X value
-	const smallSet = minimumXIndices(points, fnEpsilonSort, epsilon);
-	// from this set, find the point with the smallest Y value
-	let sm = 0;
-	for (let i = 1; i < smallSet.length; i += 1) {
-		if (points[smallSet[i]][1] < points[smallSet[sm]][1]) { sm = i; }
-	}
-	return smallSet[sm];
-};
-
-/**
- * @description find the one point in an array of 2D points closest to a 2D point.
- * @param {number[]} point the 2D point to test nearness to
- * @param {number[][]} array_of_points an array of 2D points to test against
- * @returns {number[]} one point from the array of points
- * @linkcode Math ./src/algebra/nearest.js 86
- */
-const nearestPoint2 = (point, array_of_points) => {
-	// todo speed up with partitioning
-	const index = smallestComparisonSearch(point, array_of_points, distance2);
-	return index === undefined ? undefined : array_of_points[index];
-};
-/**
- * @description find the one point in an array of points closest to a point.
- * @param {number[]} point the point to test nearness to
- * @param {number[][]} array_of_points an array of points to test against
- * @returns {number[]} one point from the array of points
- * @linkcode Math ./src/algebra/nearest.js 98
- */
-const nearestPoint = (point, array_of_points) => {
-	// todo speed up with partitioning
-	const index = smallestComparisonSearch(point, array_of_points, distance);
-	return index === undefined ? undefined : array_of_points[index];
-};
-/**
- * @description find the nearest point on a line, ray, or segment.
- * @param {number[]} vector the vector of the line
- * @param {number[]} origin a point that the line passes through
- * @param {number[]} point the point to test nearness to
- * @param {function} limiterFunc a clamp function to bound a calculation between 0 and 1
- * for segments, greater than 0 for rays, or unbounded for lines.
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[]} a point
- * @linkcode Math ./src/algebra/nearest.js 114
- */
-const nearestPointOnLine = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
-	origin = resize(vector.length, origin);
-	point = resize(vector.length, point);
-	const magSq = magSquared(vector);
-	const vectorToPoint = subtract(point, origin);
-	const dotProd = dot(vector, vectorToPoint);
-	const dist = dotProd / magSq;
-	// limit depending on line, ray, segment
-	const d = limiterFunc(dist, epsilon);
-	return add(origin, scale(vector, d));
-};
-/**
- * @description given a polygon and a point, in 2D, find a point on the boundary of the polygon
- * that is closest to the provided point.
- * @param {number[][]} polygon an array of points (which are arrays of numbers)
- * @param {number[]} point the point to test nearness to
- * @returns {number[]} a point
- * @linkcode Math ./src/algebra/nearest.js 133
- */
-const nearestPointOnPolygon = (polygon, point) => {
-	const v = polygon
-		.map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
-	return polygon
-		.map((p, i) => nearestPointOnLine(v[i], p, point, segmentLimiter))
-		.map((p, i) => ({ point: p, i, distance: distance(p, point) }))
-		.sort((a, b) => a.distance - b.distance)
-		.shift();
-};
-/**
- * @description find the nearest point on the boundary of a circle to another point
- * that is closest to the provided point.
- * @param {number} radius the radius of the circle
- * @param {number[]} origin the origin of the circle as an array of numbers.
- * @param {number[]} point the point to test nearness to
- * @returns {number[]} a point
- * @linkcode Math ./src/algebra/nearest.js 151
- */
-const nearestPointOnCircle = (radius, origin, point) => (
-	add(origin, scale(normalize(subtract(point, origin)), radius)));
-
-// todo
-// const nearestPointOnEllipse = () => false;
-
-var nearest = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	smallestComparisonSearch: smallestComparisonSearch,
-	minimum2DPointIndex: minimum2DPointIndex,
-	nearestPoint2: nearestPoint2,
-	nearestPoint: nearestPoint,
-	nearestPointOnLine: nearestPointOnLine,
-	nearestPointOnPolygon: nearestPointOnPolygon,
-	nearestPointOnCircle: nearestPointOnCircle
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description sort an array of 2D points along a 2D vector.
- * @param {number[][]} points array of points (which are arrays of numbers)
- * @param {number[]} vector one 2D vector
- * @returns {number[][]} the same points, sorted.
- * @linkcode Math ./src/algebra/sort.js 18
- */
-const sortPointsAlongVector2 = (points, vector) => points
-	.map(point => ({ point, d: point[0] * vector[0] + point[1] * vector[1] }))
-	.sort((a, b) => a.d - b.d)
-	.map(a => a.point);
-/**
- * @description given an array of already-sorted values (so that comparisons only
- * need to happen between neighboring items), cluster the numbers which are similar
- * within an epsilon. isolated values still get put in length-1 arrays. (all values returned)
- * and the clusters contain the indices from the param array, not the values.
- * @param {numbers[]} an array of sorted numbers
- * @param {numbers} [epsilon=1e-6] an optional epsilon
- * @returns {numbers[][]} an array of arrays, each inner array containin indices.
- * each inner array represents clusters of values which lie within an epsilon.
- * @linkcode Math ./src/algebra/sort.js 33
- */
-const clusterIndicesOfSortedNumbers = (numbers, epsilon = EPSILON) => {
-	const clusters = [[0]];
-	let clusterIndex = 0;
-	for (let i = 1; i < numbers.length; i += 1) {
-		// if this scalar fits inside the current cluster
-		if (fnEpsilonEqual(numbers[i], numbers[i - 1], epsilon)) {
-			clusters[clusterIndex].push(i);
-		} else {
-			clusterIndex = clusters.length;
-			clusters.push([i]);
-		}
-	}
-	return clusters;
-};
-/**
- * @description radially sort point indices around the lowest-value point, clustering
- * similarly-angled points within an epsilon. Within these clusters, the points are
- * sorted by distance so the nearest point is listed first.
- * @param {number[][]} points an array of points
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]} this returns indices in clusters.
- * @linkcode Math ./src/algebra/sort.js 56
- */
-const radialSortPointIndices = (points = [], epsilon = EPSILON) => {
-	const first = minimum2DPointIndex(points, epsilon);
-	const angles = points
-		.map(p => subtract2(p, points[first]))
-		.map(v => normalize2(v))
-		.map(vec => dot2([0, 1], vec));
-		// .map((p, i) => Math.atan2(unitVecs[i][1], unitVecs[i][0]));
-	const rawOrder = angles
-		.map((a, i) => ({ a, i }))
-		.sort((a, b) => a.a - b.a)
-		.map(el => el.i)
-		.filter(i => i !== first);
-	return [[first]]
-		.concat(clusterIndicesOfSortedNumbers(rawOrder.map(i => angles[i]), epsilon)
-			.map(arr => arr.map(i => rawOrder[i]))
-			.map(cluster => (cluster.length === 1 ? cluster : cluster
-				.map(i => ({ i, len: distance2(points[i], points[first]) }))
-				.sort((a, b) => a.len - b.len)
-				.map(el => el.i))));
-};
-
-var sortMethods = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	sortPointsAlongVector2: sortPointsAlongVector2,
-	clusterIndicesOfSortedNumbers: clusterIndicesOfSortedNumbers,
-	radialSortPointIndices: radialSortPointIndices
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * 2x3 matrix methods for two dimensional transformations.
- * the third column is a 2D translation vector
- */
-/**
- * @description the identity matrix for 2x2 matrices
- * @linkcode Math ./src/algebra/matrix2.js 10
- */
-const identity2x2 = [1, 0, 0, 1];
-/**
- * @description the identity matrix for 2x3 matrices (zero translation)
- * @linkcode Math ./src/algebra/matrix2.js 15
- */
-const identity2x3 = identity2x2.concat(0, 0);
-/**
- * @param {number[]} vector, in array form
- * @param {number[]} matrix, in array form
- * @returns {number[]} vector, the input vector transformed by the matrix
- * @linkcode Math ./src/algebra/matrix2.js 22
- */
-const multiplyMatrix2Vector2 = (matrix, vector) => [
-	matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
-	matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5],
-];
-/**
- * @param line in point-vector form, matrix
- * @returns transformed line in point-vector form
- * @linkcode Math ./src/algebra/matrix2.js 31
- */
-const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
-	vector: [
-		matrix[0] * vector[0] + matrix[2] * vector[1],
-		matrix[1] * vector[0] + matrix[3] * vector[1],
-	],
-	origin: [
-		matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4],
-		matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5],
-	],
-});
-/**
- * @param {number[]} matrix, matrix, left/right order matches what you'd see on a page.
- * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 46
- */
-const multiplyMatrices2 = (m1, m2) => [
-	m1[0] * m2[0] + m1[2] * m2[1],
-	m1[1] * m2[0] + m1[3] * m2[1],
-	m1[0] * m2[2] + m1[2] * m2[3],
-	m1[1] * m2[2] + m1[3] * m2[3],
-	m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
-	m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
-];
-/**
- * @description calculate the determinant of a 2x3 or 2x2 matrix.
- * in the case of 2x3, the translation component is ignored.
- * @param {number[]} matrix one matrix in array form
- * @returns {number} the determinant of the matrix
- * @linkcode Math ./src/algebra/matrix2.js 61
- */
-const determinant2 = m => m[0] * m[3] - m[1] * m[2];
-/**
- * @description invert a 2x3 matrix
- * @param {number[]} matrix one matrix in array form
- * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
- * @linkcode Math ./src/algebra/matrix2.js 68
- */
-const invertMatrix2 = (m) => {
-	const det = determinant2(m);
-	if (Math.abs(det) < 1e-6
-		|| Number.isNaN(det)
-		|| !Number.isFinite(m[4])
-		|| !Number.isFinite(m[5])) {
-		return undefined;
-	}
-	return [
-		m[3] / det,
-		-m[1] / det,
-		-m[2] / det,
-		m[0] / det,
-		(m[2] * m[5] - m[3] * m[4]) / det,
-		(m[1] * m[4] - m[0] * m[5]) / det,
-	];
-};
-/**
- * @param {number} x, y
- * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 90
- */
-const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
-/**
- * @param ratio of scale, optional origin homothetic center (0,0 default)
- * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 96
- */
-const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
-	scale[0],
-	0,
-	0,
-	scale[1],
-	scale[0] * -origin[0] + origin[0],
-	scale[1] * -origin[1] + origin[1],
-];
-/**
- * @param angle of rotation, origin of transformation
- * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 109
- */
-const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
-	const cos = Math.cos(angle);
-	const sin = Math.sin(angle);
-	return [
-		cos,
-		sin,
-		-sin,
-		cos,
-		origin[0],
-		origin[1],
-	];
-};
-/**
- * remember vector comes before origin. origin comes last, so that it's easy
- * to leave it empty and make a reflection through the origin.
- * @param line in vector-origin form
- * @returns matrix
- * @linkcode Math ./src/algebra/matrix2.js 128
- */
-const makeMatrix2Reflect = (vector, origin = [0, 0]) => {
-	// the line of reflection passes through origin, runs along vector
-	const angle = Math.atan2(vector[1], vector[0]);
-	const cosAngle = Math.cos(angle);
-	const sinAngle = Math.sin(angle);
-	const cos_Angle = Math.cos(-angle);
-	const sin_Angle = Math.sin(-angle);
-	const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-	const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-	const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-	const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-	const tx = origin[0] + a * -origin[0] + -origin[1] * c;
-	const ty = origin[1] + b * -origin[0] + -origin[1] * d;
-	return [a, b, c, d, tx, ty];
-};
-
-//               __                                           _
-//   _________  / /_  ______ ___  ____     ____ ___  ____ _  (_)___  _____
-//  / ___/ __ \/ / / / / __ `__ \/ __ \   / __ `__ \/ __ `/ / / __ \/ ___/
-// / /__/ /_/ / / /_/ / / / / / / / / /  / / / / / / /_/ / / / /_/ / /
-// \___/\____/_/\__,_/_/ /_/ /_/_/ /_/  /_/ /_/ /_/\__,_/_/ /\____/_/
-//                                                     /___/
-
-var matrix2 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	identity2x2: identity2x2,
-	identity2x3: identity2x3,
-	multiplyMatrix2Vector2: multiplyMatrix2Vector2,
-	multiplyMatrix2Line2: multiplyMatrix2Line2,
-	multiplyMatrices2: multiplyMatrices2,
-	determinant2: determinant2,
-	invertMatrix2: invertMatrix2,
-	makeMatrix2Translate: makeMatrix2Translate,
-	makeMatrix2Scale: makeMatrix2Scale,
-	makeMatrix2Rotate: makeMatrix2Rotate,
-	makeMatrix2Reflect: makeMatrix2Reflect
 });
 
 /**
@@ -1931,19 +1789,8 @@ const makeMatrix4Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
  * @linkcode Math ./src/algebra/matrix4.js 257
  */
 const makeMatrix4ReflectZ = (vector, origin = [0, 0]) => {
-	// the line of reflection passes through origin, runs along vector
-	const angle = Math.atan2(vector[1], vector[0]);
-	const cosAngle = Math.cos(angle);
-	const sinAngle = Math.sin(angle);
-	const cos_Angle = Math.cos(-angle);
-	const sin_Angle = Math.sin(-angle);
-	const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-	const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-	const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-	const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-	const tx = origin[0] + a * -origin[0] + -origin[1] * c;
-	const ty = origin[1] + b * -origin[0] + -origin[1] * d;
-	return [a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1];
+	const m = makeMatrix2Reflect(vector, origin);
+	return [m[0], m[1], 0, 0, m[2], m[3], 0, 0, 0, 0, 1, 0, m[4], m[5], 0, 1];
 };
 /**
  * @param {number} FOV field of view in radians
@@ -2555,7 +2402,7 @@ const counterClockwiseSectorsRadians = function () {
  */
 const counterClockwiseSectors2 = function () {
 	return counterClockwiseSectorsRadians(
-		getVectorOfVectors(arguments).map(fnVec2Angle),
+		semiFlattenArrays(arguments).map(fnVec2Angle),
 	);
 };
 /**
@@ -2700,6 +2547,190 @@ var convexHullMethods = /*#__PURE__*/Object.freeze({
 	convexHullIndices: convexHullIndices,
 	convexHull: convexHull
 });
+
+/**
+ * Math (c) Kraft
+ */
+// because an object may contain an operation that returns a copy of itself,
+// or any other primitive for that matter, all primitive
+// contructors will be assigned here to prevent circular dependencies
+//
+// this file should import no other file
+
+var Constructors = Object.create(null);
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @returns {object} in form { point:[], vector:[] }
+*/
+const vectorOriginForm = (vector, origin) => ({
+	vector: vector || [],
+	origin: origin || [],
+});
+/**
+ * search function arguments for a valid n-dimensional vector
+ * can handle object-vector representation {x:, y:}
+ *
+ * @returns {number[]} vector in array form, or empty array for bad inputs
+*/
+const getVector = function () {
+	// todo, incorporate constructors.vector check to all indices. and below
+	if (arguments[0] instanceof Constructors.vector) { return arguments[0]; }
+	let list = flattenArrays(arguments); // .filter(fnNotUndefined);
+	if (list.length > 0
+		&& typeof list[0] === "object"
+		&& list[0] !== null
+		&& !Number.isNaN(list[0].x)) {
+		list = ["x", "y", "z"]
+			.map(c => list[0][c])
+			.filter(fnNotUndefined);
+	}
+	return list.filter(n => typeof n === "number");
+};
+
+/**
+ * search function arguments for a an array of vectors. a vector of vectors
+ * can handle object-vector representation {x:, y:}
+ *
+ * @returns {number[]} vector in array form, or empty array for bad inputs
+*/
+const getVectorOfVectors = function () {
+	return semiFlattenArrays(arguments)
+		.map(el => getVector(el));
+};
+
+/**
+ * @returns {number[]} segment in array form [[a1, a2], [b1, b2]]
+*/
+const getSegment = function () {
+	if (arguments[0] instanceof Constructors.segment) {
+		return arguments[0];
+	}
+	const args = semiFlattenArrays(arguments);
+	if (args.length === 4) {
+		return [
+			[args[0], args[1]],
+			[args[2], args[3]],
+		];
+	}
+	return args.map(el => getVector(el));
+};
+
+// this works for rays to interchangably except for that it will not
+// typecast a line into a ray, it will stay a ray type.
+const getLine = function () {
+	const args = semiFlattenArrays(arguments);
+	if (args.length === 0) { return vectorOriginForm([], []); }
+	if (args[0] instanceof Constructors.line
+		|| args[0] instanceof Constructors.ray
+		|| args[0] instanceof Constructors.segment) { return args[0]; }
+	if (args[0].constructor === Object && args[0].vector !== undefined) {
+		return vectorOriginForm(args[0].vector || [], args[0].origin || []);
+	}
+	return typeof args[0] === "number"
+		? vectorOriginForm(getVector(args))
+		: vectorOriginForm(...args.map(a => getVector(a)));
+};
+
+const getRectParams = (x = 0, y = 0, width = 0, height = 0) => ({
+	x, y, width, height,
+});
+
+const getRect = function () {
+	if (arguments[0] instanceof Constructors.rect) { return arguments[0]; }
+	const list = flattenArrays(arguments); // .filter(fnNotUndefined);
+	if (list.length > 0
+		&& typeof list[0] === "object"
+		&& list[0] !== null
+		&& !Number.isNaN(list[0].width)) {
+		return getRectParams(...["x", "y", "width", "height"]
+			.map(c => list[0][c])
+			.filter(fnNotUndefined));
+	}
+	const numbers = list.filter(n => typeof n === "number");
+	const rectParams = numbers.length < 4
+		? [, , ...numbers]
+		: numbers;
+	return getRectParams(...rectParams);
+};
+
+/**
+ * radius is the first parameter so that the origin can be N-dimensional
+ * ...args is a list of numbers that become the origin.
+ */
+const getCircleParams = (radius = 1, ...args) => ({
+	radius,
+	origin: [...args],
+});
+
+const getCircle = function () {
+	if (arguments[0] instanceof Constructors.circle) { return arguments[0]; }
+	const vectors = getVectorOfVectors(arguments);
+	const numbers = flattenArrays(arguments).filter(a => typeof a === "number");
+	if (arguments.length === 2) {
+		if (vectors[1].length === 1) {
+			return getCircleParams(vectors[1][0], ...vectors[0]);
+		}
+		if (vectors[0].length === 1) {
+			return getCircleParams(vectors[0][0], ...vectors[1]);
+		}
+		if (vectors[0].length > 1 && vectors[1].length > 1) {
+			return getCircleParams(distance2(...vectors), ...vectors[0]);
+		}
+	} else {
+		switch (numbers.length) {
+		case 0: return getCircleParams(1, 0, 0, 0);
+		case 1: return getCircleParams(numbers[0], 0, 0, 0);
+		default: return getCircleParams(numbers.pop(), ...numbers);
+		}
+	}
+	return getCircleParams(1, 0, 0, 0);
+};
+
+const maps3x4 = [
+	[0, 1, 3, 4, 9, 10],
+	[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+	[0, 1, 2, undefined, 3, 4, 5, undefined, 6, 7, 8, undefined, 9, 10, 11],
+];
+[11, 7, 3].forEach(i => delete maps3x4[2][i]);
+
+const matrixMap3x4 = len => {
+	let i;
+	if (len < 8) i = 0;
+	else if (len < 13) i = 1;
+	else i = 2;
+	return maps3x4[i];
+};
+
+/**
+ * a matrix3 is a 4x3 matrix, 3x3 orientation with a column for translation
+ *
+ * @returns {number[]} array of 12 numbers, or undefined if bad inputs
+*/
+const getMatrix3x4 = function () {
+	const mat = flattenArrays(arguments);
+	const matrix = [...identity3x4];
+	matrixMap3x4(mat.length)
+		// .filter((_, i) => mat[i] != null)
+		.forEach((n, i) => { if (mat[i] != null) { matrix[n] = mat[i]; } });
+	return matrix;
+};
+
+/**
+ * a matrix2 is a 2x3 matrix, 2x2 with a column to represent translation
+ *
+ * @returns {number[]} array of 6 numbers, or undefined if bad inputs
+*/
+// export const get_matrix2 = function () {
+//   const m = getVector(arguments);
+//   if (m.length === 6) { return m; }
+//   if (m.length > 6) { return [m[0], m[1], m[2], m[3], m[4], m[5]]; }
+//   if (m.length < 6) {
+//     return identity2x3.map((n, i) => m[i] || n);
+//   }
+// };
 
 /**
  * Math (c) Kraft
@@ -4178,7 +4209,7 @@ var Ray = {
 				return Constructors.ray(this.vector.normalize(), this.origin);
 			},
 			// distance is between 0 and 1, representing the vector between start and end. cap accordingly
-			clip_function: rayLimiter,
+			clip_function: clampRay,
 			svgPath: function (length = 10000) {
 				const end = this.vector.scale(length);
 				return `M${this.origin[0]} ${this.origin[1]}l${end[0]} ${end[1]}`;
@@ -4223,7 +4254,7 @@ var Segment = {
 		M: Object.assign({}, LinesMethods, {
 			inclusive: function () { this.domain_function = includeS; return this; },
 			exclusive: function () { this.domain_function = excludeS; return this; },
-			clip_function: segmentLimiter,
+			clip_function: clampSegment,
 			transform: function (...innerArgs) {
 				const dim = this.points[0].length;
 				const mat = getMatrix3x4(innerArgs);
@@ -4921,11 +4952,11 @@ var Matrix = {
 /**
  * Math (c) Kraft
  */
-// import Junction from "./junction/index";
-// import Plane from "./plane/index";
-// import Matrix2 from "./matrix/matrix2";
+// import Junction from "./junction/index.js";
+// import Plane from "./plane/index.js";
+// import Matrix2 from "./matrix/matrix2.js";
 
-// import PolygonPrototype from "./prototypes/polygon";
+// import PolygonPrototype from "./prototypes/polygon.js";
 
 // Each primitive is defined by these key/values:
 // {
@@ -5224,10 +5255,11 @@ const math = Constructors;
  * the top level has properties like x, y, z.
  */
 math.core = Object.assign(
+// const math = Object.assign(
 	Object.create(null),
 	constants,
 	resizers,
-	getters,
+	// getters,
 	functions,
 	algebra,
 	sortMethods,
@@ -5247,6 +5279,13 @@ math.core = Object.assign(
 	generalIntersect,
 	encloses,
 	{
+		typeOf,
+		intersect,
+		overlap,
+		clipLineConvexPolygon,
+		clipPolygonPolygon,
+		splitConvexPolygon,
+		straightSkeleton,
 		intersectConvexPolygonLine,
 		intersectCircleCircle,
 		intersectCircleLine,
@@ -5256,15 +5295,7 @@ math.core = Object.assign(
 		overlapBoundingBoxes,
 		overlapLineLine,
 		overlapLinePoint,
-		clipLineConvexPolygon,
-		clipPolygonPolygon,
-		splitConvexPolygon,
-		straightSkeleton,
 	},
 );
-
-math.typeof = typeOf;
-math.intersect = intersect;
-math.overlap = overlap;
 
 export { math as default };

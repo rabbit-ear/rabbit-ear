@@ -19,7 +19,7 @@
     "no-continue": 0,
     "no-sparse-arrays": 0,
     "no-tabs": 0,
-    "import/extensions": ["error", "always"],
+    "import/extensions": ["error", "always", { "ignorePackages": true }],
     "import/no-relative-packages": 0,
     "object-shorthand": 0,
     "object-curly-newline": 0,

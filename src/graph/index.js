@@ -10,6 +10,7 @@ import * as span from "./span.js";
 import * as maps from "./maps.js";
 import * as query from "./query.js";
 import * as setsMethods from "./sets.js";
+import * as subgraphMethods from "./subgraph.js";
 import * as intersectMethods from "./intersect.js";
 import transform from "./affine.js";
 import * as overlapGraph from "./overlap.js";
@@ -42,7 +43,6 @@ import splitFace from "./splitFace/index.js";
 import flatFold from "./flatFold/index.js";
 import addPlanarSegment from "./add/addPlanarSegment.js";
 // import assign from "./assign.js";
-import subgraph from "./subgraph.js";
 import clip from "./clip.js";
 import fragment from "./fragment.js";
 import { flattenFrame } from "./fileFrames.js";
@@ -74,7 +74,6 @@ export default Object.assign(
 		flatFold,
 		addPlanarSegment,
 		// assign,
-		subgraph,
 		clip,
 		fragment,
 		verticesClusters,
@@ -93,6 +92,7 @@ export default Object.assign(
 	maps,
 	query,
 	setsMethods,
+	subgraphMethods,
 	intersectMethods,
 	overlapGraph,
 	triangulateMethods,
