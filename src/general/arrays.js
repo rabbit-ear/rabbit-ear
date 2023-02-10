@@ -149,7 +149,7 @@ export const selfRelationalUniqueIndexPairs = (array_array) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of array of indices to the input array.
  */
-export const clusterScalars = (floats, epsilon = math.core.EPSILON) => {
+export const clusterScalars = (floats, epsilon = math.EPSILON) => {
 	const indices = floats
 		.map((v, i) => ({ v, i }))
 		.sort((a, b) => a.v - b.v)

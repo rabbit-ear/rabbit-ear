@@ -23,8 +23,8 @@ const make_edge = ({ vertices_coords }, vertices, face) => {
 		edges_vertices: [...vertices],
 		edges_foldAngle: 0,
 		edges_assignment: "U",
-		edges_length: math.core.distance2(...new_edge_coords),
-		edges_vector: math.core.subtract(...new_edge_coords),
+		edges_length: math.distance2(...new_edge_coords),
+		edges_vector: math.subtract(...new_edge_coords),
 		edges_faces: [face, face],
 	};
 };

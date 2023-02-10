@@ -29,8 +29,8 @@ import { makeVerticesCoordsFlatFolded } from "../verticesCoordsFolded.js";
  * upright or flipped, the determinant calculation will be reversed.
  */
 const get_face_sidedness = (vector, origin, face_center, face_color) => {
-	const vec2 = math.core.subtract2(face_center, origin);
-	const det = math.core.cross2(vector, vec2);
+	const vec2 = math.subtract2(face_center, origin);
+	const det = math.cross2(vector, vec2);
 	return face_color ? det < 0 : det > 0;
 };
 /**
@@ -62,8 +62,8 @@ const prepare_graph_crease = (graph, vector, point, face_index) => {
 	graph.faces_coloring = makeFacesWindingFromMatrix(graph.faces_matrix)
 	// crease lines are calculated using each face's INVERSE matrix
 	graph["faces_re:creases"] = graph.faces_matrix
-		.map(mat => math.core.invert_matrix3(mat))
-		.map(mat => math.core.multiply_matrix3_line3(mat, vector, point));
+		.map(mat => math.invert_matrix3(mat))
+		.map(mat => math.multiply_matrix3_line3(mat, vector, point));
 	graph.faces_center = faceCountArray
 		.map((_, i) => make_face_center_fast(graph, i));
 	graph["faces_re:sidedness"] = faceCountArray
@@ -116,8 +116,8 @@ const flatFold = function (
 		face_index = (containing_point === undefined) ? 0 : containing_point;
 	}
 
-	vector = math.core.resize(3, vector);
-	point = math.core.resize(3, point);
+	vector = math.resize(3, vector);
+	point = math.resize(3, point);
 
 	prepare_graph_crease(graph, vector, point, face_index);
 	const folded = clone(graph);
@@ -197,9 +197,9 @@ const flatFold = function (
 		face_0_preMatrix = (faces_split[0] === undefined
 			&& !graph["faces_re:sidedness"][0]
 			? graph.faces_matrix[0]
-			: math.core.multiply_matrices3(
+			: math.multiply_matrices3(
 				graph.faces_matrix[0],
-				math.core.make_matrix3_reflectZ(
+				math.make_matrix3_reflectZ(
 					graph["faces_re:creases"][0].vector,
 					graph["faces_re:creases"][0].origin
 				)
@@ -210,7 +210,7 @@ const flatFold = function (
 	// setting face 0 as the identity matrix, then multiply every
 	// face's matrix by face 0's actual starting matrix
 	const folded_faces_matrix = makeFacesMatrix(folded, face_0_newIndex)
-		.map(m => math.core.multiply_matrices3(face_0_preMatrix, m));
+		.map(m => math.multiply_matrices3(face_0_preMatrix, m));
 	// faces coloring is useful for determining if a face is flipped or not
 	// i don't know why this is here. we delete it in a little bit.
 	// folded.faces_coloring = makeFacesWindingFromMatrix(
@@ -220,14 +220,14 @@ const flatFold = function (
 	// - what type of operation occurred: valley / mountain fold, flip over
 	// - the edge that draws the fold-line, useful for diagramming
 	// - the direction of the fold or flip
-	const crease_0 = math.core.multiply_matrix3_line3(
+	const crease_0 = math.multiply_matrix3_line3(
 		face_0_preMatrix,
 		graph["faces_re:creases"][0].vector,
 		graph["faces_re:creases"][0].origin,
 	);
-	// const fold_direction = math.core
+	// const fold_direction = math
 	//   .normalize([crease_0.vector[1], -crease_0.vector[0]]);
-	const fold_direction = math.core.normalize(math.core.rotate270(crease_0.vector));
+	const fold_direction = math.normalize(math.rotate270(crease_0.vector));
 	// faces_split contains the edges that clipped each of the original faces
 	// gather them all together, and reflect them using the original faces'
 	// matrices so the lines lie on top of one another
@@ -237,8 +237,8 @@ const flatFold = function (
 			? undefined
 			: folded.edges_vertices[change.edges.new]
 				.map(v => folded.vertices_coords[v])
-				.map(p => math.core.multiply_matrix3_vector3(graph.faces_matrix[i], p))))
-			//: edge.map(p => math.core
+				.map(p => math.multiply_matrix3_vector3(graph.faces_matrix[i], p))))
+			//: edge.map(p => math
 			//.multiply_matrix3_vector3(graph.faces_matrix[i], p))))
 		.filter(a => a !== undefined)
 		.reduce((a, b) => a.concat(b), []);

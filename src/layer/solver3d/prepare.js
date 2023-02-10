@@ -21,8 +21,11 @@ import {
 } from "./makeConstraints.js";
 import solveEdgeAdjacent from "./solveEdgeAdjacent.js";
 import make3DTortillas from "./make3DTortillas.js";
-
-const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
+import { subgraphWithFaces } from "../../graph/subgraph.js";
+/**
+ *
+ */
+const graphGroupCopies = (graph, overlapInfo, sets_faces) => {
 	// make shallow copies of the graph, one for every group
 	const copies = overlapInfo.sets_transformXY.map(() => ({ ...graph }));
 	// delete all vertices data. delete some edges data.
@@ -35,14 +38,14 @@ const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
 	const faceKeys = filterKeysWithPrefix(graph, "faces");
 	copies.forEach((obj, i) => faceKeys.forEach(key => {
 		obj[key] = [];
-		groups_faces[i].forEach(f => { obj[key][f] = graph[key][f]; });
+		sets_faces[i].forEach(f => { obj[key][f] = graph[key][f]; });
 	}));
 
 	// given each group's faces, only carry over the adjacent vertices for each group.
 	const vertices_coords_3d = graph.vertices_coords
-		.map(coord => math.core.resize(3, coord));
-	const groups_vertices_hash = groups_faces.map(() => ({}));
-	groups_faces
+		.map(coord => math.resize(3, coord));
+	const groups_vertices_hash = sets_faces.map(() => ({}));
+	sets_faces
 		.forEach((faces, i) => faces
 			.forEach(face => graph.faces_vertices[face]
 				.forEach(v => { groups_vertices_hash[i][v] = true; })));
@@ -52,13 +55,13 @@ const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
 	overlapInfo.sets_transformXY
 		.forEach((transform, i) => groups_vertices[i]
 			.forEach(v => {
-				const res = math.core.multiplyMatrix4Vector3(transform, vertices_coords_3d[v]);
+				const res = math.multiplyMatrix4Vector3(transform, vertices_coords_3d[v]);
 				copies[i].vertices_coords[v] = [res[0], res[1]];
 			}));
 
 	// given each group's faces, only carry over the adjacent edges for each group.
-	const groups_edges_hash = groups_faces.map(() => ({}));
-	groups_faces
+	const groups_edges_hash = sets_faces.map(() => ({}));
+	sets_faces
 		.forEach((faces, i) => faces
 			.forEach(face => graph.faces_edges[face]
 				.forEach(e => { groups_edges_hash[i][e] = true; })));
@@ -71,7 +74,6 @@ const graphGroupCopies = (graph, overlapInfo, groups_faces) => {
 	}));
 	copies.forEach(obj => { obj.edges_faces = makeEdgesFacesUnsorted(obj); });
 	// const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
-	// console.log("groups_faces", groups_faces);
 	// console.log("groups_vertices", groups_vertices);
 	// console.log("groups_edges", groups_edges);
 	return copies;
@@ -82,37 +84,25 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	if (!graph.faces_edges) {
 		graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	}
-	// START HERE
-	// todo
-	// problem: in the case of a strip of tortilla-tortillas exclusively,
-	// faces in the same plane will get separated into their own group,
-	// even when they are adjacent to other groups.
-	//
-	// goal: need to somehow include co-planar faces in the same group,
-	// and consider should we separate faces in the same plane if they
-	// are far away and have local overlaps with other plane groups?
-	// maybe walk adjacent faces until the normals are no longer similar
-	// (will need to accept a flipped normal as still within the same group)
-	//
 	const overlapInfo = coplanarOverlappingFacesGroups(graph, epsilon);
 	// const overlapInfo = disjointFacePlaneSets(graph, epsilon);
 	// these groups have more than 1 face in them.
-	// const groups = groups_faces
+	// const groups = sets_faces
 	// 	.map((faces, i) => ({ faces, i }))
 	// 	.filter(el => el.faces.length > 1)
 	// 	.map(el => el.i);
-	const groups_faces = invertMap(overlapInfo.faces_set)
+	const sets_faces = invertMap(overlapInfo.faces_set)
 		.map(el => (el.constructor === Array ? el : [el]));
-	const graphCopies = graphGroupCopies(graph, overlapInfo, groups_faces);
+	const graphCopies = graphGroupCopies(graph, overlapInfo, sets_faces);
 	const faces_polygon = [];
-	groups_faces
+	sets_faces
 		.map((faces, g) => faces
 			.map(face => graph.faces_vertices[face])
 			.map(vertices => vertices.map(v => graphCopies[g].vertices_coords[v]))
 			.forEach((polygon, f) => { faces_polygon[faces[f]] = polygon; }));
 	const faces_center = faces_polygon
 		.map(polygon => polygon
-			.reduce((a, b) => math.core.add(a, b), [0, 0])
+			.reduce((a, b) => math.add(a, b), [0, 0])
 			.map(el => el / polygon.length));
 	graphCopies.forEach(el => {
 		el.faces_center = el.faces_vertices.map((_, i) => faces_center[i]);
@@ -145,21 +135,22 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		.map(indices => indices.map(i => facePairs[i]));
 	const groups_facePairs = groups_constraints
 		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
-	// console.log("overlapInfo", overlapInfo);
-	// console.log("graphCopies", graphCopies);
-	// console.log("faces_polygon", faces_polygon);
-	// console.log("faces_center", faces_center);
-	// console.log("groups_tacos_tortillas", groups_tacos_tortillas);
-	// console.log("groups_unfiltered_trios", groups_unfiltered_trios);
-	// console.log("groups_transitivity_trios", groups_transitivity_trios);
-	// console.log("groups_constraints", groups_constraints);
-	// // console.log("groups_constraintsLookup", groups_constraintsLookup);
-	// console.log("facePairsInts", facePairsInts);
-	// console.log("facePairs", facePairs);
-	// // console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
-	// console.log("facePairsIndex_group", facePairsIndex_group);
-	// console.log("groups_facePairsIndex", groups_facePairsIndex);
-	// console.log("groups_facePairs", groups_facePairsWithHoles);
+	console.log("overlapInfo", overlapInfo);
+	console.log("graphCopies", graphCopies);
+	console.log("faces_polygon", faces_polygon);
+	console.log("faces_center", faces_center);
+	console.log("sets_faces", sets_faces);
+	console.log("groups_tacos_tortillas", groups_tacos_tortillas);
+	console.log("groups_unfiltered_trios", groups_unfiltered_trios);
+	console.log("groups_transitivity_trios", groups_transitivity_trios);
+	console.log("groups_constraints", groups_constraints);
+	// console.log("groups_constraintsLookup", groups_constraintsLookup);
+	console.log("facePairsInts", facePairsInts);
+	console.log("facePairs", facePairs);
+	// console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
+	console.log("facePairsIndex_group", facePairsIndex_group);
+	console.log("groups_facePairsIndex", groups_facePairsIndex);
+	console.log("groups_facePairs", groups_facePairsWithHoles);
 
 	// now we join all the data from the separate groups together.
 	// make sure edges_faces is added here, not any sooner
@@ -187,11 +178,11 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	const facePairsFlat = groups_facePairs.flat();
 	const edgeAdjacentOrders = solveEdgeAdjacent(graph, facePairs, overlapInfo.faces_winding);
 	// // const edgeAdjacentOrders = {};
-	// console.log("constraints", constraints);
-	// console.log("tortillas3D", tortillas3D);
-	// console.log("constraintsLookup", constraintsLookup);
-	// console.log("facePairsFlat", facePairsFlat);
-	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
+	console.log("constraints", constraints);
+	console.log("tortillas3D", tortillas3D);
+	console.log("constraintsLookup", constraintsLookup);
+	console.log("facePairsFlat", facePairsFlat);
+	console.log("edgeAdjacentOrders", edgeAdjacentOrders);
 	return {
 		constraints,
 		constraintsLookup,

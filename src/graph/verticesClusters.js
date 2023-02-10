@@ -15,7 +15,7 @@ import math from "../math.js";
  * clusters: [ [0, 5], [1], [3], [2, 4]]
  * @linkcode Origami ./src/graph/verticesClusters.js 16
  */
-const verticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+const verticesClusters = ({ vertices_coords }, epsilon = math.EPSILON) => {
 	if (!vertices_coords) { return []; }
 	// the return value, the clusters
 	const clusters = [];

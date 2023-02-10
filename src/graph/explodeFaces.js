@@ -99,29 +99,29 @@ export const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink =
 	const faces_winding = makeFacesWinding(graph);
 	const faces_vectors = graph.faces_vertices
 		.map(vertices => vertices.map(v => graph.vertices_coords[v]))
-		.map(points => points.map((p, i, arr) => math.core.subtract2(p, arr[(i+1) % arr.length])));
+		.map(points => points.map((p, i, arr) => math.subtract2(p, arr[(i + 1) % arr.length])));
 	const faces_centers = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 	const faces_point_distances = faces_vertices
 		.map(vertices => vertices.map(v => vertices_coords[v]))
 		.map((points, f) => points
-			.map(point => math.core.distance2(point, faces_centers[f])));
+			.map(point => math.distance2(point, faces_centers[f])));
 	// console.log("faces_point_distances", faces_point_distances);
 	const faces_bisectors = faces_vectors
 		.map((vectors, f) => vectors
 			.map((vector, i, arr) => [
 				vector,
-				math.core.flip(arr[(i - 1 + arr.length) % arr.length]),
+				math.flip(arr[(i - 1 + arr.length) % arr.length]),
 			]).map(pair => faces_winding[f]
-				? math.core.counterClockwiseBisect2(...pair)
-				: math.core.clockwiseBisect2(...pair)))
+				? math.counterClockwiseBisect2(...pair)
+				: math.clockwiseBisect2(...pair)))
 		.map((vectors, f) => vectors
-			.map((vector, i) => math.core.scale(vector, faces_point_distances[f][i])))
+			.map((vector, i) => math.scale(vector, faces_point_distances[f][i])))
 	graph.faces_vertices
 		.forEach((vertices, f) => vertices
 			.forEach((v, i) => {
-				graph.vertices_coords[v] = math.core.add2(
+				graph.vertices_coords[v] = math.add2(
 					graph.vertices_coords[v],
-					math.core.scale2(faces_bisectors[f][i], -shrink),
+					math.scale2(faces_bisectors[f][i], -shrink),
 				);
 			}));
 	return graph;

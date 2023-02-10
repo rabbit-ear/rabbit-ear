@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 const equalTest = (a, b) => expect(JSON.stringify(a))
 	.toBe(JSON.stringify(b));

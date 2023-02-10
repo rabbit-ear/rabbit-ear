@@ -14,7 +14,7 @@ import math from "../../math.js";
  * duplicate (non-added) vertices returns their pre-existing counterpart's index.
  * @linkcode Origami ./src/graph/add/addVertices.js 15
  */
-const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
+const addVertices = (graph, vertices_coords, epsilon = math.EPSILON) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }
 	// the user messed up the input and only provided one vertex
 	// it's easy to fix for them
@@ -24,7 +24,7 @@ const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
 	// - number, index of duplicate vertex in source graph, if duplicate exists
 	const vertices_equivalent_vertices = vertices_coords
 		.map(vertex => graph.vertices_coords
-			.map(v => math.core.distance(v, vertex) < epsilon)
+			.map(v => math.distance(v, vertex) < epsilon)
 			.map((on_vertex, i) => (on_vertex ? i : undefined))
 			.filter(a => a !== undefined)
 			.shift());

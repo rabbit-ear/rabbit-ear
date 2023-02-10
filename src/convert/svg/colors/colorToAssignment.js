@@ -23,12 +23,12 @@ const colorToAssignment = (string) => {
 	const gray = [grayscale, grayscale, grayscale];
 	const grayDistance = {
 		key: "F",
-		distance: math.core.distance3(color3, gray),
+		distance: math.distance3(color3, gray),
 	};
 	const colorDistance = Object.keys(assignmentColors)
 		.map(key => ({
 			key,
-			distance: math.core.distance3(color3, assignmentColors[key]),
+			distance: math.distance3(color3, assignmentColors[key]),
 		}))
 		.sort((a, b) => a.distance - b.distance)
 		.shift();

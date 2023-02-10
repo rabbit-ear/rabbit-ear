@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 const t = 0.38268343236509;
 const n = 0.92387953251129;
@@ -30,8 +30,8 @@ test("16 angles of lines, through the origin", () => {
 	const origins = angles.map(() => [0, 0]);
 	vectors
 		.map((vector, i) => ({ vector, origin: origins[i] }))
-		.map(vec_or => ear.math.rayLineToUniqueLine(vec_or))
-		.map(norm_dist => ear.math.uniqueLineToRayLine(norm_dist))
+		.map(vec_or => ear.rayLineToUniqueLine(vec_or))
+		.map(norm_dist => ear.uniqueLineToRayLine(norm_dist))
 		.forEach((el, i) => {
 			expect(el.vector[0]).toBeCloseTo(vectors[i][0]);
 			expect(el.vector[1]).toBeCloseTo(vectors[i][1]);
@@ -66,8 +66,8 @@ test("16 angles of lines, not through the origin, dir 1", () => {
 		.map(a => [Math.cos(a + Math.PI / 2), Math.sin(a + Math.PI / 2)]);
 	vectors
 		.map((vector, i) => ({ vector, origin: origins[i] }))
-		.map(vec_or => ear.math.rayLineToUniqueLine(vec_or))
-		.map(norm_dist => ear.math.uniqueLineToRayLine(norm_dist))
+		.map(vec_or => ear.rayLineToUniqueLine(vec_or))
+		.map(norm_dist => ear.uniqueLineToRayLine(norm_dist))
 		.forEach((el, i) => {
 			expect(el.vector[0]).toBeCloseTo(vectors[i][0]);
 			expect(el.vector[1]).toBeCloseTo(vectors[i][1]);
@@ -84,8 +84,8 @@ test("16 angles of lines, not through the origin, dir 2", () => {
 		.map(a => [Math.cos(a - Math.PI / 2), Math.sin(a - Math.PI / 2)]);
 	vectors
 		.map((vector, i) => ({ vector, origin: origins[i] }))
-		.map(vec_or => ear.math.rayLineToUniqueLine(vec_or))
-		.map(norm_dist => ear.math.uniqueLineToRayLine(norm_dist))
+		.map(vec_or => ear.rayLineToUniqueLine(vec_or))
+		.map(norm_dist => ear.uniqueLineToRayLine(norm_dist))
 		.forEach((el, i) => {
 			expect(el.vector[0]).toBeCloseTo(vectors[i][0]);
 			expect(el.vector[1]).toBeCloseTo(vectors[i][1]);

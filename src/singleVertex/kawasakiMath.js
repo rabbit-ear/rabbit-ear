@@ -44,7 +44,7 @@ export const alternatingSumDifference = (sectors) => {
 export const kawasakiSolutionsRadians = (radians) => radians
 	// counter clockwise angle between this index and the next
 	.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-	.map(pair => math.core.counterClockwiseAngleRadians(...pair))
+	.map(pair => math.counterClockwiseAngleRadians(...pair))
 	// for every sector, make an array of all the OTHER sectors
 	.map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
 	// for every sector, use the sector score from the OTHERS two to split it
@@ -52,7 +52,7 @@ export const kawasakiSolutionsRadians = (radians) => radians
 	// add the deviation to the edge to get the absolute position
 	.map((kawasakis, i) => radians[i] + kawasakis[0])
 	// sometimes this results in a solution OUTSIDE the sector. ignore these
-	.map((angle, i) => (math.core.isCounterClockwiseBetween(
+	.map((angle, i) => (math.isCounterClockwiseBetween(
 		angle,
 		radians[i],
 		radians[(i + 1) % radians.length],

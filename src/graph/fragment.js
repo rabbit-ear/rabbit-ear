@@ -43,12 +43,12 @@ import Messages from "../environment/messages.json";
  * 3. replace the edge with a new, rebuilt, sequence of edges, with
  *    new vertices.
  */
-const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
+const fragment_graph = (graph, epsilon = math.EPSILON) => {
 	const edges_coords = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 	// when we rebuild an edge we need the intersection points sorted
 	// so we can walk down it and rebuild one by one. sort along vector
-	const edges_vector = edges_coords.map(e => math.core.subtract(e[1], e[0]));
+	const edges_vector = edges_coords.map(e => math.subtract(e[1], e[0]));
 	const edges_origin = edges_coords.map(e => e[0]);
 	// for each edge, get all the intersection points
 	// this array will match edges_, each an array containing intersection
@@ -172,7 +172,7 @@ const fragment_keep_keys = [
  * @returns {object} a summary of changes to the graph
  * @linkcode Origami ./src/graph/fragment.js 173
  */
-const fragment = (graph, epsilon = math.core.EPSILON) => {
+const fragment = (graph, epsilon = math.EPSILON) => {
 	// project all vertices onto the XY plane
 	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 

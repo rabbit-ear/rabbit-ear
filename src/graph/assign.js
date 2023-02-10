@@ -12,7 +12,7 @@
 
 // const vef = [S._vertices, S._edges, S._faces];
 
-// const make_vertices_map_and_consider_duplicates = (target, source, epsilon = math.core.EPSILON) => {
+// const make_vertices_map_and_consider_duplicates = (target, source, epsilon = math.EPSILON) => {
 // 	let index = target.vertices_coords.length;
 // 	return source.vertices_coords
 // 		.map(vertex => target.vertices_coords
@@ -53,7 +53,7 @@
 // 				.forEach((el, j) => { source[key][i][j] = maps[geom][el]; }))));
 
 // // todo, make the second param ...sources
-// const assign = (target, source, epsilon = math.core.EPSILON) => {
+// const assign = (target, source, epsilon = math.EPSILON) => {
 // 	// these all relate to the source, not target
 // 	const prefixes = {};
 // 	const suffixes = {};

@@ -15,10 +15,10 @@ import math from "../math.js";
 export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) => (
 	vertices
 		.map(v => vertices_coords[v])
-		.map(coord => math.core.subtract(coord, vertices_coords[vertex]))
+		.map(coord => math.subtract(coord, vertices_coords[vertex]))
 		.map(vec => Math.atan2(vec[1], vec[0]))
 		// optional line, this makes the cycle loop start/end along the +X axis
-		.map(angle => (angle > -math.core.EPSILON ? angle : angle + Math.PI * 2))
+		.map(angle => (angle > -math.EPSILON ? angle : angle + Math.PI * 2))
 		.map((a, i) => ({ a, i }))
 		.sort((a, b) => a.a - b.a)
 		.map(el => el.i)
@@ -35,7 +35,7 @@ export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vert
  */
 export const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) => (
 	vertices
-		.map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
+		.map(i => ({ i, d: math.dot(vertices_coords[i], vector) }))
 		.sort((a, b) => a.d - b.d)
 		.map(a => a.i)
 );

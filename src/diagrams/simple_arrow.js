@@ -3,37 +3,37 @@
  */
 import math from "../math.js";
 
-const boundary_for_arrows = ({ vertices_coords }) => math.core
+const boundary_for_arrows = ({ vertices_coords }) => math
 	.convexHull(vertices_coords);
 
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineConvexPolygon(
+		const foldSegment = math.clipLineConvexPolygon(
 			polygon,
 			foldLine.vector,
 			foldLine.origin,
-			math.core.exclude,
-			math.core.includeL,
+			math.exclude,
+			math.includeL,
 		);
 		if (foldSegment === undefined) { return; }
-		point = math.core.midpoint(...foldSegment);
+		point = math.midpoint(...foldSegment);
 	}
-	const perpVector = math.core.rotate90(foldLine.vector);
-	const smallest = math.core
+	const perpVector = math.rotate90(foldLine.vector);
+	const smallest = math
 		.clipLineConvexPolygon(
 			polygon,
 			perpVector,
 			point,
-			math.core.exclude,
-			math.core.includeL,
+			math.exclude,
+			math.includeL,
 		)
-		.map(pt => math.core.distance(point, pt))
+		.map(pt => math.distance(point, pt))
 		.sort((a, b) => a - b)
 		.shift();
-	const scaled = math.core.scale(math.core.normalize(perpVector), smallest);
+	const scaled = math.scale(math.normalize(perpVector), smallest);
 	return math.segment(
-		math.core.add(point, math.core.flip(scaled)),
-		math.core.add(point, scaled)
+		math.add(point, math.flip(scaled)),
+		math.add(point, scaled)
 	);
 };
 /**
@@ -47,12 +47,12 @@ const widest_perpendicular = (polygon, foldLine, point) => {
  */
 const simpleArrow = (graph, line) => {
 	const hull = boundary_for_arrows(graph);
-	const box = math.core.boundingBox(hull);
+	const box = math.boundingBox(hull);
 	const segment = widest_perpendicular(hull, line);
 	if (segment === undefined) { return undefined; }
-	const vector = math.core.subtract(segment[1], segment[0]);
-	const length = math.core.magnitude(vector);
-	const direction = math.core.dot(vector, [1, 0]);
+	const vector = math.subtract(segment[1], segment[0]);
+	const length = math.magnitude(vector);
+	const direction = math.dot(vector, [1, 0]);
 	const vmin = box.span[0] < box.span[1] ? box.span[0] : box.span[1];
 
 	segment.head = {

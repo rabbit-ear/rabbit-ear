@@ -1,9 +1,15 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings.js";
-import remove from "./remove.js";
-import count from "./count.js";
+// import * as S from "../general/strings.js";
+// import remove from "./remove.js";
+// import count from "./count.js";
+// import { uniqueSortedNumbers } from "../general/arrays.js";
+import { foldKeys } from "../fold/keys.js";
+import {
+	filterKeysWithPrefix,
+	filterKeysWithSuffix,
+} from "../fold/spec.js";
 import { uniqueSortedNumbers } from "../general/arrays.js";
 /**
  * @description Given a self-relational array like faces_faces or
@@ -29,23 +35,88 @@ export const selfRelationalArraySubset = (array_array, indices) => {
 	});
 	return array_arraySubset;
 };
-
-// maybe we can do this without copying the entire graph first.
-// use the component arrays to bring over only what is necessary
-
-// todo: this is still an early sketch. needs to be completed
-export const subgraph = (graph, components) => {
-	const remove_indices = {};
-	const sorted_components = {};
-	[S._faces, S._edges, S._vertices].forEach(key => {
-		remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
-		sorted_components[key] = uniqueSortedNumbers(components[key] || []).reverse();
+/**
+ * @description subgraph
+ * @param {FOLD} graph a FOLD graph
+ * @param {object} indices an object containing:
+ * { vertices: [], edges: [], faces: [] }
+ * all of which contains a list of indices to keep in the copied graph.
+ * the values can be integers or integer-strings, doesn't matter.
+ */
+export const subgraph = (graph, indices) => {
+	const components = ["faces", "edges", "vertices"];
+	// create a lookup which will be used when a component is a suffix
+	// and we need to filter out elements which don't appear in other arrays
+	const lookup = {};
+	components.forEach(component => { lookup[component] = {}; });
+	components.forEach(component => indices[component].forEach(i => {
+		lookup[component][i] = true;
+	}));
+	// get all prefix arrays ("edges_") and suffix arrays ("_edges")
+	// for all geometry component type.
+	const keys = {};
+	components.forEach(c => {
+		filterKeysWithPrefix(graph, c).forEach(key => { keys[key] = {}; });
+		filterKeysWithSuffix(graph, c).forEach(key => { keys[key] = {}; });
 	});
-	Object.keys(sorted_components)
-		.forEach(key => sorted_components[key]
-			.forEach(i => remove_indices[key].splice(i, 1)));
-	const res = JSON.parse(JSON.stringify(graph));
-	Object.keys(remove_indices)
-		.forEach(key => remove(res, key, remove_indices[key]));
-	return res;
+	components.forEach(c => {
+		filterKeysWithPrefix(graph, c).forEach(key => { keys[key].prefix = c; });
+		filterKeysWithSuffix(graph, c).forEach(key => { keys[key].suffix = c; });
+	});
+	// shallow copy of the graph. excluding all geometry arrays.
+	// this allows all metadata, including that which is unknown to
+	// the spec to be carried over.
+	const copy = { ...graph };
+	// delete all graph data. only carry over metadata
+	foldKeys.graph.forEach(key => delete copy[key]);
+	delete copy.file_frames;
+	// use prefixes and suffixes to make sure we initialize all
+	// geometry array types. this supports out of spec arrays,
+	// like: faces_matrix, colors_edges...
+	Object.keys(keys).forEach(key => { copy[key] = []; });
+	Object.keys(keys).forEach(key => {
+		const { prefix, suffix } = keys[key];
+		// if prefix exists, filter outer array elements (creating holes)
+		// if suffix exists, filter inner elements using the quick lookup
+		if (prefix && suffix) {
+			indices[prefix].forEach(i => {
+				copy[key][i] = graph[key][i].filter(j => lookup[suffix][j]);
+			});
+		} else if (prefix) {
+			indices[prefix].forEach(i => { copy[key][i] = graph[key][i]; });
+		} else if (suffix) {
+			copy[key] = graph[key].map(arr => arr.filter(j => lookup[suffix][j]));
+		} else {
+			copy[key] = graph[key];
+		}
+	});
+	return copy;
+};
+/**
+ * @description the faces will determine which vertices and edges
+ * get carried over to each copy.
+ */
+export const subgraphWithFaces = (graph, faces) => {
+	const vertices = uniqueSortedNumbers(
+		faces.flatMap(f => graph.faces_vertices[f]),
+	);
+	let edges = [];
+	if (graph.faces_edges) {
+		edges = uniqueSortedNumbers(
+			faces.flatMap(f => graph.faces_edges[f]),
+		);
+	} else if (graph.edges_vertices) {
+		const vertices_lookup = {};
+		vertices.forEach(v => { vertices_lookup[v] = true; });
+		edges = graph.edges_vertices
+			.map((v, i) => (vertices_lookup[v[0]] && vertices_lookup[v[1]]
+				? i
+				: undefined))
+			.filter(a => a !== undefined);
+	}
+	return subgraph(graph, {
+		faces,
+		edges,
+		vertices,
+	});
 };

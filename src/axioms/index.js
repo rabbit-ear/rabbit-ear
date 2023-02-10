@@ -13,7 +13,7 @@ import {
 	validateAxiom6,
 	validateAxiom7,
 	validateAxiom,
-} from "./validate";
+} from "./validate.js";
 /**
  * @description Perform one of the seven origami axioms. Supply an optional boundary
  * so that only the results possible inside the boundary will be returned.

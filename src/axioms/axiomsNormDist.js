@@ -13,8 +13,8 @@ import math from "../math.js";
 							 |___/
 */
 const intersectionUD = (line1, line2) => {
-	const det = math.core.cross2(line1.normal, line2.normal);
-	if (Math.abs(det) < math.core.EPSILON) { return undefined; }
+	const det = math.cross2(line1.normal, line2.normal);
+	if (Math.abs(det) < math.EPSILON) { return undefined; }
 	const x = line1.distance * line2.normal[1] - line2.distance * line1.normal[1];
 	const y = line2.distance * line1.normal[0] - line1.distance * line2.normal[0];
 	return [x / det, y / det];
@@ -27,10 +27,10 @@ const intersectionUD = (line1, line2) => {
  * @linkcode Origami ./src/axioms/axiomsNormDist.js 27
  */
 export const normalAxiom1 = (point1, point2) => {
-	const normal = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
+	const normal = math.normalize2(math.rotate90(math.subtract2(point2, point1)));
 	return {
 		normal,
-		distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0,
+		distance: math.dot2(math.add2(point1, point2), normal) / 2.0,
 	};
 };
 /**
@@ -41,10 +41,10 @@ export const normalAxiom1 = (point1, point2) => {
  * @linkcode Origami ./src/axioms/axiomsNormDist.js 41
  */
 export const normalAxiom2 = (point1, point2) => {
-	const normal = math.core.normalize2(math.core.subtract2(point2, point1));
+	const normal = math.normalize2(math.subtract2(point2, point1));
 	return {
 		normal,
-		distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0,
+		distance: math.dot2(math.add2(point1, point2), normal) / 2.0,
 	};
 };
 /**
@@ -61,11 +61,11 @@ export const normalAxiom3 = (line1, line2) => {
 	return intersect === undefined
 		? [{
 			normal: line1.normal,
-			distance: (line1.distance + line2.distance * math.core.dot2(line1.normal, line2.normal)) / 2,
+			distance: (line1.distance + line2.distance * math.dot2(line1.normal, line2.normal)) / 2,
 		}]
-		: [math.core.add2, math.core.subtract2]
-			.map(f => math.core.normalize2(f(line1.normal, line2.normal)))
-			.map(normal => ({ normal, distance: math.core.dot2(intersect, normal) }));
+		: [math.add2, math.subtract2]
+			.map(f => math.normalize2(f(line1.normal, line2.normal)))
+			.map(normal => ({ normal, distance: math.dot2(intersect, normal) }));
 };
 /**
  * @description origami axiom 4: form a line perpendicular to a given line that
@@ -76,8 +76,8 @@ export const normalAxiom3 = (line1, line2) => {
  * @linkcode Origami ./src/axioms/axiomsNormDist.js 76
  */
 export const normalAxiom4 = (line, point) => {
-	const normal = math.core.rotate90(line.normal);
-	const distance = math.core.dot2(point, normal);
+	const normal = math.rotate90(line.normal);
+	const distance = math.dot2(point, normal);
 	return { normal, distance };
 };
 /**
@@ -90,21 +90,21 @@ export const normalAxiom4 = (line, point) => {
  * @linkcode Origami ./src/axioms/axiomsNormDist.js 90
  */
 export const normalAxiom5 = (line, point1, point2) => {
-	const p1base = math.core.dot2(point1, line.normal);
+	const p1base = math.dot2(point1, line.normal);
 	const a = line.distance - p1base;
-	const c = math.core.distance2(point1, point2);
+	const c = math.distance2(point1, point2);
 	if (a > c) { return []; }
 	const b = Math.sqrt(c * c - a * a);
-	const a_vec = math.core.scale2(line.normal, a);
-	const base_center = math.core.add2(point1, a_vec);
-	const base_vector = math.core.scale2(math.core.rotate90(line.normal), b);
+	const a_vec = math.scale2(line.normal, a);
+	const base_center = math.add2(point1, a_vec);
+	const base_vector = math.scale2(math.rotate90(line.normal), b);
 	// if b is near 0 we have one solution, otherwise two
-	const mirrors = b < math.core.EPSILON
+	const mirrors = b < math.EPSILON
 		? [base_center]
-		: [math.core.add2(base_center, base_vector), math.core.subtract2(base_center, base_vector)];
+		: [math.add2(base_center, base_vector), math.subtract2(base_center, base_vector)];
 	return mirrors
-		.map(pt => math.core.normalize2(math.core.subtract2(point2, pt)))
-		.map(normal => ({ normal, distance: math.core.dot2(point1, normal) }));
+		.map(pt => math.normalize2(math.subtract2(point2, pt)))
+		.map(normal => ({ normal, distance: math.dot2(point1, normal) }));
 };
 
 // cube root preserve sign
@@ -121,10 +121,10 @@ const polynomial = (degree, a, b, c, d) => {
 		// quadratic
 		const discriminant = Math.pow(c, 2.0) - (4.0 * b * d);
 		// no solution
-		if (discriminant < -math.core.EPSILON) { return []; }
+		if (discriminant < -math.EPSILON) { return []; }
 		// one solution
 		const q1 = -c / (2.0 * b);
-		if (discriminant < math.core.EPSILON) { return [q1]; }
+		if (discriminant < math.EPSILON) { return [q1]; }
 		// two solutions
 		const q2 = Math.sqrt(discriminant) / (2.0 * b);
 		return [q1 + q2, q1 - q2];
@@ -147,7 +147,7 @@ const polynomial = (degree, a, b, c, d) => {
 			return [u + s + t];
 		}
 		// two solutions
-		if (Math.abs(d0) < math.core.EPSILON) {
+		if (Math.abs(d0) < math.EPSILON) {
 			const s = Math.pow(r, 1.0 / 3.0);
 			// const S = cubrt(R);
 			// instead of checking if S is NaN, check if R was negative
@@ -183,21 +183,21 @@ const polynomial = (degree, a, b, c, d) => {
 export const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
 	// for some reason this epsilon is much higher than 1e-6
-	if (Math.abs(1.0 - (math.core.dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
+	if (Math.abs(1.0 - (math.dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
 	// line vec is the first line's vector, along the line, not the normal
-	const line_vec = math.core.rotate90(line1.normal);
-	const vec1 = math.core.subtract2(
-		math.core.add2(point1, math.core.scale2(line1.normal, line1.distance)),
-		math.core.scale2(point2, 2.0),
+	const line_vec = math.rotate90(line1.normal);
+	const vec1 = math.subtract2(
+		math.add2(point1, math.scale2(line1.normal, line1.distance)),
+		math.scale2(point2, 2.0),
 	);
-	const vec2 = math.core.subtract2(math.core.scale2(line1.normal, line1.distance), point1);
-	const c1 = math.core.dot2(point2, line2.normal) - line2.distance;
-	const c2 = 2.0 * math.core.dot2(vec2, line_vec);
-	const c3 = math.core.dot2(vec2, vec2);
-	const c4 = math.core.dot2(math.core.add2(vec1, vec2), line_vec);
-	const c5 = math.core.dot2(vec1, vec2);
-	const c6 = math.core.dot2(line_vec, line2.normal);
-	const c7 = math.core.dot2(vec2, line2.normal);
+	const vec2 = math.subtract2(math.scale2(line1.normal, line1.distance), point1);
+	const c1 = math.dot2(point2, line2.normal) - line2.distance;
+	const c2 = 2.0 * math.dot2(vec2, line_vec);
+	const c3 = math.dot2(vec2, vec2);
+	const c4 = math.dot2(math.add2(vec1, vec2), line_vec);
+	const c5 = math.dot2(vec1, vec2);
+	const c6 = math.dot2(line_vec, line2.normal);
+	const c7 = math.dot2(vec2, line2.normal);
 	const a = c6;
 	const b = c1 + c4 * c6 + c7;
 	const c = c1 * c2 + c5 * c6 + c4 * c7;
@@ -205,18 +205,18 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
 	// construct the solution from the root, the solution being the parameter
 	// point reflected across the fold line, lying on the parameter line
 	let polynomial_degree = 0;
-	if (Math.abs(c) > math.core.EPSILON) { polynomial_degree = 1; }
-	if (Math.abs(b) > math.core.EPSILON) { polynomial_degree = 2; }
-	if (Math.abs(a) > math.core.EPSILON) { polynomial_degree = 3; }
+	if (Math.abs(c) > math.EPSILON) { polynomial_degree = 1; }
+	if (Math.abs(b) > math.EPSILON) { polynomial_degree = 2; }
+	if (Math.abs(a) > math.EPSILON) { polynomial_degree = 3; }
 	return polynomial(polynomial_degree, a, b, c, d)
-		.map(n => math.core.add2(
-			math.core.scale2(line1.normal, line1.distance),
-			math.core.scale2(line_vec, n),
+		.map(n => math.add2(
+			math.scale2(line1.normal, line1.distance),
+			math.scale2(line_vec, n),
 		))
-		.map(p => ({ p, normal: math.core.normalize2(math.core.subtract2(p, point1)) }))
+		.map(p => ({ p, normal: math.normalize2(math.subtract2(p, point1)) }))
 		.map(el => ({
 			normal: el.normal,
-			distance: math.core.dot2(el.normal, math.core.midpoint2(el.p, point1)),
+			distance: math.dot2(el.normal, math.midpoint2(el.p, point1)),
 		}));
 };
 /**
@@ -232,12 +232,12 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
  * @linkcode Origami ./src/axioms/axiomsNormDist.js 232
  */
 export const normalAxiom7 = (line1, line2, point) => {
-	const normal = math.core.rotate90(line1.normal);
-	const norm_norm = math.core.dot2(normal, line2.normal);
+	const normal = math.rotate90(line1.normal);
+	const norm_norm = math.dot2(normal, line2.normal);
 	// if norm_norm is close to 0, the two input lines are parallel, no solution
-	if (Math.abs(norm_norm) < math.core.EPSILON) { return undefined; }
-	const a = math.core.dot2(point, normal);
-	const b = math.core.dot2(point, line2.normal);
+	if (Math.abs(norm_norm) < math.EPSILON) { return undefined; }
+	const a = math.dot2(point, normal);
+	const b = math.dot2(point, line2.normal);
 	const distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
 	return { normal, distance };
 };

@@ -45,9 +45,9 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 			const nudge = faces_nudge[oldFace];
 			if (!nudge) { return; }
 			exploded.faces_vertices[face].forEach(v => {
-				const vec = math.core.scale(nudge.vector, nudge.layer * layerNudge);
-				exploded.vertices_coords[v] = math.core.add(
-					math.core.resize(3, exploded.vertices_coords[v]),
+				const vec = math.scale(nudge.vector, nudge.layer * layerNudge);
+				exploded.vertices_coords[v] = math.add(
+					math.resize(3, exploded.vertices_coords[v]),
 					vec,
 				);
 			});

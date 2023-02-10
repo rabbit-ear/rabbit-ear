@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 test("x, y", () => {
 	const ellipse0 = ear.ellipse(2, 1);

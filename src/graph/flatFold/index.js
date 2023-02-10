@@ -24,8 +24,8 @@ import { foldFacesLayer } from "./facesLayer.js";
  * are the faces which will be folded over.
  */
 const make_face_side = (vector, origin, face_center, face_winding) => {
-	const center_vector = math.core.subtract2(face_center, origin);
-	const determinant = math.core.cross2(vector, center_vector);
+	const center_vector = math.subtract2(face_center, origin);
+	const determinant = math.cross2(vector, center_vector);
 	return face_winding ? determinant > 0 : determinant < 0;
 };
 /**
@@ -85,7 +85,7 @@ const face_snapshot = (graph, face) => ({
  * crease line onto the crease pattern, each in place
  * @linkcode Origami ./src/graph/flatFold/index.js 86
  */
-const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
+const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.EPSILON) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
 	// make sure the input graph contains the necessary data.
 	// this takes care of all standard FOLD-spec arrays.
@@ -110,8 +110,8 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	}
 	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);
 	graph.faces_crease = graph.faces_matrix2
-		.map(math.core.invertMatrix2)
-		.map(matrix => math.core.multiplyMatrix2Line2(matrix, vector, origin));
+		.map(math.invertMatrix2)
+		.map(matrix => math.multiplyMatrix2Line2(matrix, vector, origin));
 	graph.faces_side = graph.faces_vertices
 		.map((_, i) => make_face_side(
 			graph.faces_crease[i].vector,
@@ -228,9 +228,9 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	if (assignment !== opposite_assignment) {
 		face0_preMatrix = (!face0_was_split && !graph.faces_side[0]
 			? face0.matrix
-			: math.core.multiplyMatrices2(
+			: math.multiplyMatrices2(
 				face0.matrix,
-				math.core.makeMatrix2Reflect(
+				math.makeMatrix2Reflect(
 					face0.crease.vector,
 					face0.crease.origin,
 				),
@@ -241,7 +241,7 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	// setting face 0 as the identity matrix, then multiply every
 	// face's matrix by face 0's actual starting matrix
 	graph.faces_matrix2 = makeFacesMatrix2(graph, face0_newIndex)
-		.map(matrix => math.core.multiplyMatrices2(face0_preMatrix, matrix));
+		.map(matrix => math.multiplyMatrices2(face0_preMatrix, matrix));
 	// these are no longer needed. some of them haven't even been fully rebuilt.
 	delete graph.faces_center;
 	delete graph.faces_winding;

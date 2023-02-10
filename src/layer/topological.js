@@ -16,7 +16,7 @@ const topologicalOrder = ({ faceOrders, faces_normal }, faces) => {
 	const face0 = faces[0];
 	const faces_normal_match = [];
 	faces.map(face => {
-		faces_normal_match[face] = math.core
+		faces_normal_match[face] = math
 			.dot(faces_normal[face], faces_normal[faces[0]]) > 0;
 	});
 	// create an array where every face involved gets an index and an array as its value

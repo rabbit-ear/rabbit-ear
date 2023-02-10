@@ -47,7 +47,7 @@ import SVG from "./extensions/svg.js"; // replaces minified substitute
 import webgl from "./webgl/index.js";
 
 const ear = Object.assign(root, Constructors, {
-	math: math.core,
+	math,
 	axiom,
 	diagram,
 	layer,
@@ -62,9 +62,9 @@ const ear = Object.assign(root, Constructors, {
  * under ".math", and the top-level class-style objects will be attached
  * to this library's top level.
  */
-Object.keys(math)
-	.filter(key => key !== "core")
-	.forEach((key) => { ear[key] = math[key]; });
+// Object.keys(math)
+// 	.filter(key => key !== "core")
+// 	.forEach((key) => { ear[key] = math[key]; });
 /**
  * use() must bind this library to "this", as a way of making this library
  * mutable, so that the extension can bind itself throughout this library.

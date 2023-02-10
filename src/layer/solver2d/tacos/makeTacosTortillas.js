@@ -92,7 +92,7 @@ const indicesToBooleanMatrix = (array_array) => {
  * @notes due to the face_center calculation to determine face-edge sidedness, this
  * is currently hardcoded to only work with convex polygons.
  */
-const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
+const makeTacosTortillas = (graph, epsilon = math.EPSILON) => {
 	// given a graph which is already in its folded state,
 	// find which edges are tacos, or in other words, find out which
 	// edges overlap with another edge.

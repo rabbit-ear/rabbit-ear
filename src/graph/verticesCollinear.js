@@ -16,7 +16,7 @@ import { getOppositeVertices } from "./general.js";
  */
 export const isVertexCollinear = ({
 	vertices_coords, vertices_edges, edges_vertices,
-}, vertex, epsilon = math.core.EPSILON) => {
+}, vertex, epsilon = math.EPSILON) => {
 	if (!vertices_coords || !edges_vertices) { return false; }
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
@@ -30,7 +30,7 @@ export const isVertexCollinear = ({
 	const vertices = getOppositeVertices({ edges_vertices }, vertex, edges);
 	const points = [vertices[0], vertex, vertices[1]]
 		.map(v => vertices_coords[v]);
-	return math.core.collinearBetween(...points, false, epsilon);
+	return math.collinearBetween(...points, false, epsilon);
 };
 /**
  * check each vertex against each edge, we want to know if a vertex is
@@ -56,7 +56,7 @@ export const isVertexCollinear = ({
  */
 export const getVerticesEdgesOverlap = ({
 	vertices_coords, edges_vertices, edges_coords,
-}, epsilon = math.core.EPSILON) => {
+}, epsilon = math.EPSILON) => {
 	if (!edges_coords) {
 		edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 	}
@@ -68,11 +68,11 @@ export const getVerticesEdgesOverlap = ({
 	for (let e = 0; e < edges_coords.length; e += 1) {
 		for (let v = 0; v < vertices_coords.length; v += 1) {
 			if (!edges_span_vertices[e][v]) { continue; }
-			edges_span_vertices[e][v] = math.core.overlapLinePoint(
-				math.core.subtract(edges_coords[e][1], edges_coords[e][0]),
+			edges_span_vertices[e][v] = math.overlapLinePoint(
+				math.subtract(edges_coords[e][1], edges_coords[e][0]),
 				edges_coords[e][0],
 				vertices_coords[v],
-				math.core.excludeS,
+				math.excludeS,
 				epsilon,
 			);
 		}

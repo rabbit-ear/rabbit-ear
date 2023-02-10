@@ -9,7 +9,7 @@ import math from "../math.js";
 /**
  * because epsilons are usually very tiny, this uses a square bounding box
  */
-const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
+const are_vertices_equivalent = (a, b, epsilon = math.EPSILON) => {
 	const degree = a.length;
 	for (let i = 0; i < degree; i += 1) {
 		if (Math.abs(a[i] - b[i]) > epsilon) {
@@ -30,7 +30,7 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
  * clusters: [ [0, 5], [1], [3], [2, 4]]
  * @linkcode Origami ./src/graph/verticesClustersOld.js 31
  */
-const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+const getVerticesClusters = ({ vertices_coords }, epsilon = math.EPSILON) => {
 	// equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices
 	// only top triangle is used
 	//             j  j  j

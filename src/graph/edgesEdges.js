@@ -14,7 +14,7 @@ import { booleanMatrixToIndexedArray } from "../general/arrays.js";
  */
 export const makeEdgesEdgesSimilar = ({
 	vertices_coords, edges_vertices, edges_coords,
-}, epsilon = math.core.EPSILON) => {
+}, epsilon = math.EPSILON) => {
 	// ///////////////////////////////////////
 	// idk why this isn't working. it's leaving out some indices. something with
 	// the group building - indices.slice(), something there.
@@ -31,11 +31,11 @@ export const makeEdgesEdgesSimilar = ({
 		for (let j = i + 1; j < edges_coords.length; j += 1) {
 			let similar = true;
 			for (let d = 0; d < dimensions; d += 1) {
-				if (!math.core.fnEpsilonEqual(
+				if (!math.fnEpsilonEqual(
 					edges_boundingBox[i].min[d],
 					edges_boundingBox[j].min[d],
 					epsilon,
-				) || !math.core.fnEpsilonEqual(
+				) || !math.fnEpsilonEqual(
 					edges_boundingBox[i].max[d],
 					edges_boundingBox[j].max[d],
 					epsilon,
@@ -50,10 +50,10 @@ export const makeEdgesEdgesSimilar = ({
 	for (let i = 0; i < edges_coords.length - 1; i += 1) {
 		for (let j = i + 1; j < edges_coords.length; j += 1) {
 			if (!matrix[i][j]) { continue; }
-			const test0 = math.core.fnEpsilonEqualVectors(edges_coords[i][0], edges_coords[j][0], epsilon)
-				&& math.core.fnEpsilonEqualVectors(edges_coords[i][1], edges_coords[j][1], epsilon);
-			const test1 = math.core.fnEpsilonEqualVectors(edges_coords[i][0], edges_coords[j][1], epsilon)
-				&& math.core.fnEpsilonEqualVectors(edges_coords[i][1], edges_coords[j][0], epsilon);
+			const test0 = math.fnEpsilonEqualVectors(edges_coords[i][0], edges_coords[j][0], epsilon)
+				&& math.fnEpsilonEqualVectors(edges_coords[i][1], edges_coords[j][1], epsilon);
+			const test1 = math.fnEpsilonEqualVectors(edges_coords[i][0], edges_coords[j][1], epsilon)
+				&& math.fnEpsilonEqualVectors(edges_coords[i][1], edges_coords[j][0], epsilon);
 			const similar = test0 || test1;
 			matrix[i][j] = similar;
 			matrix[j][i] = similar;
@@ -73,16 +73,16 @@ export const makeEdgesEdgesSimilar = ({
  */
 export const makeEdgesEdgesParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
-}, epsilon = math.core.EPSILON) => {
+}, epsilon = math.EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
-	const normalized = edges_vector.map(vec => math.core.normalize(vec));
+	const normalized = edges_vector.map(vec => math.normalize(vec));
 	return normalized
 		.map((vec1, i) => normalized
 			.map((vec2, j) => (i === j
 				? undefined
-				: (1 - Math.abs(math.core.dot(normalized[i], normalized[j])) < epsilon)))
+				: (1 - Math.abs(math.dot(normalized[i], normalized[j])) < epsilon)))
 			.map((parallel, j) => (parallel ? j : undefined))
 			.filter(a => a !== undefined));
 };
@@ -91,16 +91,16 @@ export const makeEdgesEdgesParallel = ({
  */
 const makeEdgesEdgesNotParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
-}, epsilon = math.core.EPSILON) => {
+}, epsilon = math.EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
-	const normalized = edges_vector.map(vec => math.core.normalize(vec));
+	const normalized = edges_vector.map(vec => math.normalize(vec));
 	return normalized
 		.map((vec1, i) => normalized
 			.map((vec2, j) => (i === j
 				? undefined
-				: (1 - Math.abs(math.core.dot(normalized[i], normalized[j])) < epsilon)))
+				: (1 - Math.abs(math.dot(normalized[i], normalized[j])) < epsilon)))
 			.map((parallel, j) => (parallel ? undefined : j))
 			.filter(a => a !== undefined));
 };
@@ -109,7 +109,7 @@ const makeEdgesEdgesNotParallel = ({
  */
 export const makeEdgesEdges2DParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
-}, epsilon = math.core.EPSILON) => {
+}, epsilon = math.EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -135,12 +135,12 @@ export const makeEdgesEdges2DParallel = ({
 
 	// todo
 
-	// const normalized = edges_vector.map(vec => math.core.normalize(vec));
+	// const normalized = edges_vector.map(vec => math.normalize(vec));
 	// return normalized
 	// 	.map((vec1, i) => normalized
 	// 		.map((vec2, j) => (i === j
 	// 			? undefined
-	// 			: (1 - Math.abs(math.core.dot(normalized[i], normalized[j])) < epsilon)))
+	// 			: (1 - Math.abs(math.dot(normalized[i], normalized[j])) < epsilon)))
 	// 		.map((parallel, j) => (parallel ? j : undefined))
 	// 		.filter(a => a !== undefined));
 };
@@ -148,33 +148,33 @@ export const makeEdgesEdges2DParallel = ({
 /*
 export const makeEdgesEdgesParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
-}, epsilon) => { // = math.core.EPSILON) => {
+}, epsilon) => { // = math.EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	// let lastTime = new Date();
 	const edge_count = edges_vector.length;
 	const normalized = edges_vector
-		.map(vec => math.core.normalize(vec));
+		.map(vec => math.normalize(vec));
 	// ///////////////////////////////////////
 	// idk why this isn't working. it's leaving out some indices. something with
 	// the group building - indices.slice(), something there.
 	// const dots = normalized
-	// 	.map(vec => math.core.dot(vec, [1, 0]));
+	// 	.map(vec => math.dot(vec, [1, 0]));
 	// const indices = Array.from(Array(edge_count))
 	// 	.map((_, i) => i)
 	// 	.sort((a, b) => dots[a] - dots[b]);
 	// let start = 0;
 	// const groups = [];
 	// for (let i = 1; i < indices.length; i += 1) {
-	// 	if (!math.core.fnEpsilonEqual(dots[indices[start]], dots[indices[i]], epsilon)) {
+	// 	if (!math.fnEpsilonEqual(dots[indices[start]], dots[indices[i]], epsilon)) {
 	// 		groups.push(indices.slice(start, i));
 	// 		start = i;
 	// 	}
 	// }
 	// if (groups.length > 2) {
-	// 	if (math.core.fnEpsilonEqual(groups[0][0], -1, epsilon)
-	// 		&& math.core.fnEpsilonEqual(groups[groups.length - 1][0], 1, epsilon)) {
+	// 	if (math.fnEpsilonEqual(groups[0][0], -1, epsilon)
+	// 		&& math.fnEpsilonEqual(groups[groups.length - 1][0], 1, epsilon)) {
 	// 		const lastGroup = groups.pop();
 	// 		groups[0] = groups[0].concat(lastGroup);
 	// 	}
@@ -199,7 +199,7 @@ export const makeEdgesEdgesParallel = ({
 		.map(() => Array.from(Array(edge_count)));
 	for (let i = 0; i < edge_count - 1; i += 1) {
 		for (let j = i + 1; j < edge_count; j += 1) {
-			const p = (1 - Math.abs(math.core.dot(normalized[i], normalized[j])) < epsilon);
+			const p = (1 - Math.abs(math.dot(normalized[i], normalized[j])) < epsilon);
 			edges_edges_parallel[i][j] = p;
 			edges_edges_parallel[j][i] = p;
 		}
@@ -247,7 +247,7 @@ const overwriteEdgesOverlaps = (edges_edges, vectors, origins, func, epsilon) =>
 		.forEach((arr, i) => arr
 			.forEach(j => {
 				if (i >= j) { return; }
-				if (math.core.overlapLineLine(
+				if (math.overlapLineLine(
 					vectors[i],
 					origins[i],
 					vectors[j],
@@ -268,7 +268,7 @@ const overwriteEdgesOverlaps = (edges_edges, vectors, origins, func, epsilon) =>
 // 		for (let j = i + 1; j < matrix.length; j += 1) {
 // 			// if value is are already false, skip.
 // 			if (!matrix[i][j]) { continue; }
-// 			matrix[i][j] = math.core.overlapLineLine(
+// 			matrix[i][j] = math.overlapLineLine(
 // 				vectors[i],
 // 				origins[i],
 // 				vectors[j],
@@ -308,7 +308,7 @@ export const makeEdgesEdgesCrossing = ({
 		edge_edgesNotParallel,
 		edges_vector,
 		edges_origin,
-		math.core.excludeS,
+		math.excludeS,
 		epsilon,
 	);
 };
@@ -341,7 +341,7 @@ export const makeEdgesEdgesParallelOverlap = ({
 		edges_edgesParallel,
 		edges_vector,
 		edges_origin,
-		math.core.excludeS,
+		math.excludeS,
 		epsilon,
 	);
 };

@@ -73,7 +73,7 @@ export const validateKawasaki = ({
 	edges_vertices,
 	edges_assignment,
 	edges_vector,
-}, epsilon = math.core.EPSILON) => {
+}, epsilon = math.EPSILON) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
@@ -83,7 +83,7 @@ export const validateKawasaki = ({
 		.map((vectors, v) => vectors
 			.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
 		.map(vectors => (vectors.length > 1
-			? math.core.counterClockwiseSectors2(vectors)
+			? math.counterClockwiseSectors2(vectors)
 			: [0, 0]))
 		.map(sectors => alternatingSum(sectors))
 		.map(pair => Math.abs(pair[0] - pair[1]) < epsilon);

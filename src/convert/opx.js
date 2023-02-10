@@ -77,7 +77,7 @@ const makeFOLD = (lines, epsilon) => {
 	fold.edges_foldAngle = makeEdgesFoldAngle(fold);
 	// analysis on vertices_coords to find an appropriate epsilon
 	if (epsilon === undefined) {
-		const { span } = math.core.boundingBox(fold.vertices_coords);
+		const { span } = math.boundingBox(fold.vertices_coords);
 		epsilon = Math.min(...span) * 1e-6;
 	}
 	removeDuplicateVertices(fold, epsilon);

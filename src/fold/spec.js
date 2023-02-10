@@ -85,9 +85,9 @@ export const edgeAssignmentToFoldAngle = assignment => (
  * @linkcode Origami ./src/fold/spec.js 85
  */
 export const edgeFoldAngleToAssignment = (a) => {
-	if (a > math.core.EPSILON) { return "V"; }
-	if (a < -math.core.EPSILON) { return "M"; }
-	// if (math.core.fnEpsilonEqual(0, a)) { return "F"; }
+	if (a > math.EPSILON) { return "V"; }
+	if (a < -math.EPSILON) { return "M"; }
+	// if (math.fnEpsilonEqual(0, a)) { return "F"; }
 	return "U";
 };
 /**
@@ -97,9 +97,9 @@ export const edgeFoldAngleToAssignment = (a) => {
  * @returns {boolean} true if the fold angle is flat
  * @linkcode Origami ./src/fold/spec.js 98
  */
-export const edgeFoldAngleIsFlat = angle => math.core.fnEpsilonEqual(0, angle)
- || math.core.fnEpsilonEqual(-180, angle)
- || math.core.fnEpsilonEqual(180, angle);
+export const edgeFoldAngleIsFlat = angle => math.fnEpsilonEqual(0, angle)
+ || math.fnEpsilonEqual(-180, angle)
+ || math.fnEpsilonEqual(180, angle);
 /**
  * @description Provide a FOLD graph and determine if all edges_foldAngle
  * angles are flat, which includes -180, 0, 180, and the +/- epsilon
@@ -123,8 +123,8 @@ export const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
  * @returns {string[]} array of keys that end with the suffix
  * @linkcode Origami ./src/fold/spec.js 124
  */
-export const filterKeysWithSuffix = (graph, suffix) => Object
-	.keys(graph)
+export const filterKeysWithSuffix = (obj, suffix) => Object
+	.keys(obj)
 	.map(s => (s.substring(s.length - suffix.length, s.length) === suffix
 		? s : undefined))
 	.filter(str => str !== undefined);
@@ -235,3 +235,14 @@ export const isFoldObject = (object = {}) => (
 		? 0
 		: flatFoldKeys
 			.filter(key => object[key]).length / Object.keys(object).length);
+
+// export const getMetadata = (FOLD = {}) => {
+// 	// build a list of all metadata keys (do not include file_frames)
+// 	const metadataKeys = {}
+// 	[...foldKeys.file, ...foldKeys.frame]
+// 		.forEach(k => { metadataKeys[k] = true; });
+// 	delete metadataKeys.file_frames;
+// 	const copy = {};
+// 	Object.keys(FOLD)
+// 		.filter()
+// };

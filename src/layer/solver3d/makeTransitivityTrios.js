@@ -18,12 +18,12 @@ const makeTransitivityTrios = (
 	graph,
 	faces_facesOverlap,
 	faces_winding,
-	epsilon = math.core.EPSILON,
+	epsilon = math.EPSILON,
 ) => {
 	// prepare a list of all faces in the graph as lists of vertices
 	// also, make sure they all have the same winding (reverse if necessary)
 	// todo: i replaced this with makeFacesPolygon so that it runs
-	// math.core.makePolygonNonCollinear, which removes collinear vertices
+	// math.makePolygonNonCollinear, which removes collinear vertices
 	// which is necessary for the polygon polygon clip method.
 	const polygons = makeFacesPolygon(graph, epsilon);
 	// const polygons = graph.faces_vertices
@@ -39,7 +39,7 @@ const makeTransitivityTrios = (
 	const matrix = graph.faces_vertices.map(() => []);
 	polygons.forEach((_, f1) => faces_facesOverlap[f1].forEach(f2 => {
 		if (f2 <= f1) { return; }
-		const polygon = math.core
+		const polygon = math
 			.clipPolygonPolygon(polygons[f1], polygons[f2], epsilon);
 		if (polygon) { matrix[f1][f2] = polygon; }
 	}));
@@ -51,7 +51,7 @@ const makeTransitivityTrios = (
 			// todo: bring this back. but this would require we convert
 			// faces_facesOverlap into a quick lookup table.
 			// if (!faces_facesOverlap[i][k] || !faces_facesOverlap[j][k]) { return; }
-			const polygon = math.core.clipPolygonPolygon(poly, polygons[k], epsilon);
+			const polygon = math.clipPolygonPolygon(poly, polygons[k], epsilon);
 			if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
 		});
 	}));

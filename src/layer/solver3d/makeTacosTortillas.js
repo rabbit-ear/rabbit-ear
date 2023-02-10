@@ -68,17 +68,18 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
 /**
- * @description Given a FOLD object, find all instances of edges overlapping which
- * classify as taco/tortillas to determine layer order.
- * @param {FOLD} graph a FOLD graph. vertices_coords should already be folded and
- * faces_center should be pre-calculated.
- * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
- * @returns {object} an object containing keys: taco_taco, tortilla_tortilla, taco_tortilla
+ * @description Given a FOLD object, find all instances of edges
+ * overlapping which classify as taco/tortillas to determine layer order.
+ * @param {FOLD} graph a FOLD graph. vertices_coords should already be
+ * folded and faces_center should be pre-calculated.
+ * @param {number} [epsilon=1e-6] an optional epsilon, default 1e-6
+ * @returns {object} an object containing keys:
+ * taco_taco, tortilla_tortilla, taco_tortilla
  * @linkcode Origami ./src/layer/solver3d/makeTacosTortillas.js 77
- * @notes due to the face_center calculation to determine face-edge sidedness, this
- * is currently hardcoded to only work with convex polygons.
+ * @notes due to the face_center calculation to determine face-edge
+ * sidedness, this is currently hardcoded to only work with convex polygons.
  */
-const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
+const makeTacosTortillas = (graph, epsilon = math.EPSILON) => {
 	// given a graph which is already in its folded state,
 	// find which edges are tacos, or in other words, find out which
 	// edges overlap with another edge.

@@ -391,7 +391,7 @@ export const makeVerticesVerticesVector = ({
 				const edge_a = edge_map[`${a} ${b}`];
 				const edge_b = edge_map[`${b} ${a}`];
 				if (edge_a !== undefined) { return edges_vector[edge_a]; }
-				if (edge_b !== undefined) { return math.core.flip(edges_vector[edge_b]); }
+				if (edge_b !== undefined) { return math.flip(edges_vector[edge_b]); }
 			}));
 };
 /**
@@ -409,8 +409,8 @@ export const makeVerticesSectors = ({
 	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
 })
 	.map(vectors => (vectors.length === 1 // leaf node
-		? [math.core.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
-		: math.core.counterClockwiseSectors2(vectors)));
+		? [math.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
+		: math.counterClockwiseSectors2(vectors)));
 /**
  *
  *    EDGES
@@ -489,8 +489,8 @@ export const makeEdgesFaces = ({
 	edges_faces.forEach((faces, e) => {
 		const faces_cross = faces
 			.map(f => faces_center[f])
-			.map(center => math.core.subtract2(center, edges_origin[e]))
-			.map(vector => math.core.cross2(vector, edges_vector[e]));
+			.map(center => math.subtract2(center, edges_origin[e]))
+			.map(vector => math.cross2(vector, edges_vector[e]));
 		faces.sort((a, b) => faces_cross[a] - faces_cross[b]);
 	});
 	return edges_faces;
@@ -587,12 +587,12 @@ export const makeEdgesFoldAngleFromFaces = ({
 		if (faces.length < 2) { return 0; }
 		const a = faces_normal[faces[0]];
 		const b = faces_normal[faces[1]];
-		const a2b = math.core.normalize(math.core.subtract(
+		const a2b = math.normalize(math.subtract(
 			faces_center[faces[1]],
 			faces_center[faces[0]],
 		));
 		// for mountain creases (faces facing away from each other), set the sign to negative.
-		let sign = Math.sign(math.core.dot(a, a2b));
+		let sign = Math.sign(math.dot(a, a2b));
 		// if the sign is zero, the faces are coplanar, it's impossible to tell if
 		// this was because of a mountain or a valley fold.
 		if (sign === 0) {
@@ -604,7 +604,7 @@ export const makeEdgesFoldAngleFromFaces = ({
 				throw new Error(Messages.flatFoldAngles);
 			}
 		}
-		return (Math.acos(math.core.dot(a, b)) * (180 / Math.PI)) * sign;
+		return (Math.acos(math.dot(a, b)) * (180 / Math.PI)) * sign;
 	});
 };
 /**
@@ -626,7 +626,7 @@ export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => edges_ve
  */
 export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdgesCoords({
 	vertices_coords, edges_vertices,
-}).map(verts => math.core.subtract(verts[1], verts[0]));
+}).map(verts => math.subtract(verts[1], verts[0]));
 /**
  * @description For every edge, find the length between the edges pair of vertices.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
@@ -635,7 +635,7 @@ export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdge
  */
 export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => makeEdgesVector({
 	vertices_coords, edges_vertices,
-}).map(vec => math.core.magnitude(vec));
+}).map(vec => math.magnitude(vec));
 /**
  * @description Make an array of axis-aligned bounding boxes, one for each edge,
  * that encloses the edge, and will work in n-dimensions. Intended for
@@ -650,7 +650,7 @@ export const makeEdgesBoundingBox = ({
 	if (!edges_coords) {
 		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}
-	return edges_coords.map(coords => math.core.boundingBox(coords, epsilon));
+	return edges_coords.map(coords => math.boundingBox(coords, epsilon));
 };
 /**
  *
@@ -797,7 +797,7 @@ export const makeFacesFaces = ({ faces_vertices }) => {
  */
 export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) => faces_vertices
 	.map(verts => verts.map(v => vertices_coords[v]))
-	.map(polygon => math.core.makePolygonNonCollinear(polygon, epsilon));
+	.map(polygon => math.makePolygonNonCollinear(polygon, epsilon));
 /**
  * @description map vertices_coords onto each face's set of vertices,
  * turning each face into an array of points. "Quick" meaning collinear vertices are
@@ -816,7 +816,7 @@ export const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => fa
  */
 export const makeFacesCenter2D = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(fv => fv.map(v => vertices_coords[v]))
-	.map(coords => math.core.centroid(coords));
+	.map(coords => math.centroid(coords));
 /**
  * @description This uses point average, not centroid, faces must
  * be convex, and again it's not precise, but in many use cases
@@ -828,5 +828,5 @@ export const makeFacesCenter2D = ({ vertices_coords, faces_vertices }) => faces_
 export const makeFacesConvexCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(vertices => vertices
 		.map(v => vertices_coords[v])
-		.reduce((a, b) => math.core.add(a, b), Array(vertices_coords[0].length).fill(0))
+		.reduce((a, b) => math.add(a, b), Array(vertices_coords[0].length).fill(0))
 		.map(el => el / vertices.length));

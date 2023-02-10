@@ -21,7 +21,7 @@ import Messages from "../environment/messages.json";
  * "undefined" if no vertices exist in the graph.
  * @linkcode Origami ./src/graph/boundary.js 22
  */
-export const boundingBox = ({ vertices_coords }, padding) => math.core
+export const boundingBox = ({ vertices_coords }, padding) => math
 	.boundingBox(vertices_coords, padding);
 /**
  * @description For every vertex return a true if the vertex lies along a boundary

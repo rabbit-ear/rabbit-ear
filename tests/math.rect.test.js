@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 // static
 test("static fromPoints", () => {

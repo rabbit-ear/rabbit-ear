@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 test("vector", () => {
 	const v = JSON.stringify(ear.vector(1, 2, 3));

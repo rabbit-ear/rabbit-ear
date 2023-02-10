@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 test("intersections", () => {
 	const polygon = ear.polygon([0, 1.15], [-1, -0.577], [1, -0.577]);
@@ -44,12 +44,12 @@ test("intersections", () => {
 });
 
 test("intersectLineLine include exclude", () => {
-	const res0 = ear.math
+	const res0 = math
 		.intersectLineLine([0, 1], [1, 0], [1, 0], [0, 1]);
-	const res1 = ear.math
-		.intersectLineLine([0, 1], [1, 0], [1, 0], [0, 1], ear.math.includeS, ear.math.includeS);
-	const res2 = ear.math
-		.intersectLineLine([0, 1], [1, 0], [1, 0], [0, 1], ear.math.excludeS, ear.math.excludeS);
+	const res1 = math
+		.intersectLineLine([0, 1], [1, 0], [1, 0], [0, 1], ear.includeS, ear.includeS);
+	const res2 = math
+		.intersectLineLine([0, 1], [1, 0], [1, 0], [0, 1], ear.excludeS, ear.excludeS);
 	expect(res0).not.toBe(undefined);
 	expect(res1).not.toBe(undefined);
 	expect(res2).toBe(undefined);
@@ -58,48 +58,48 @@ test("intersectLineLine include exclude", () => {
 test("intersectConvexPolygonLine include exclude vertex aligned", () => {
 	const poly = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 	// two lines, vertex aligned
-	const res0 = ear.math.intersectConvexPolygonLine(
+	const res0 = ear.intersectConvexPolygonLine(
 		poly,
 		[0, 1],
 		[1, -5],
-		ear.math.includeS,
-		ear.math.includeL,
+		ear.includeS,
+		ear.includeL,
 	);
-	const res1 = ear.math.intersectConvexPolygonLine(
+	const res1 = ear.intersectConvexPolygonLine(
 		poly,
 		[0, 1],
 		[1, -5],
-		ear.math.excludeS,
-		ear.math.excludeL,
+		ear.excludeS,
+		ear.excludeL,
 	);
 	// two segements endpoint on vertex
-	const res2 = ear.math.intersectConvexPolygonLine(
+	const res2 = ear.intersectConvexPolygonLine(
 		poly,
 		[0, 1],
 		[1, -1],
-		ear.math.includeS,
-		ear.math.includeS,
+		ear.includeS,
+		ear.includeS,
 	);
-	const res3 = ear.math.intersectConvexPolygonLine(
+	const res3 = ear.intersectConvexPolygonLine(
 		poly,
 		[0, 1],
 		[1, -1],
-		ear.math.includeS,
-		ear.math.excludeS,
+		ear.includeS,
+		ear.excludeS,
 	);
-	const res4 = ear.math.intersectConvexPolygonLine(
+	const res4 = ear.intersectConvexPolygonLine(
 		poly,
 		[0, 1],
 		[1, -1],
-		ear.math.excludeS,
-		ear.math.includeS,
+		ear.excludeS,
+		ear.includeS,
 	);
-	const res5 = ear.math.intersectConvexPolygonLine(
+	const res5 = ear.intersectConvexPolygonLine(
 		poly,
 		[0, 1],
 		[1, -1],
-		ear.math.excludeS,
-		ear.math.excludeS,
+		ear.excludeS,
+		ear.excludeS,
 	);
 	// line works if polygon is inclusive
 	expect(res0).not.toBe(undefined);
@@ -114,70 +114,70 @@ test("intersectConvexPolygonLine include exclude vertex aligned", () => {
 
 test("intersectConvexPolygonLine include exclude edge aligned", () => {
 	const poly = [[0, 0], [1, 0], [1, 1], [0, 1]];
-	const res0 = ear.math.intersectConvexPolygonLine(
+	const res0 = ear.intersectConvexPolygonLine(
 		poly,
 		[0, 1],
 		[1, -5],
-		ear.math.includeS,
-		ear.math.excludeL,
+		ear.includeS,
+		ear.excludeL,
 	);
-	const res1 = ear.math.intersectConvexPolygonLine(
+	const res1 = ear.intersectConvexPolygonLine(
 		poly,
 		[0, 1],
 		[1, -5],
-		ear.math.excludeS,
-		ear.math.excludeL,
+		ear.excludeS,
+		ear.excludeL,
 	);
 	expect(res0).not.toBe(undefined);
 	expect(res1).toBe(undefined);
 });
 
-const convexPolyLineInclusive = (poly, vec, org, ep) => ear.math.intersectConvexPolygonLine(
+const convexPolyLineInclusive = (poly, vec, org, ep) => ear.intersectConvexPolygonLine(
 	poly,
 	vec,
 	org,
-	ear.math.includeS,
-	ear.math.includeL,
+	ear.includeS,
+	ear.includeL,
 	ep,
 );
-const convexPolyRayInclusive = (poly, vec, org, ep) => ear.math.intersectConvexPolygonLine(
+const convexPolyRayInclusive = (poly, vec, org, ep) => ear.intersectConvexPolygonLine(
 	poly,
 	vec,
 	org,
-	ear.math.includeS,
-	ear.math.includeR,
+	ear.includeS,
+	ear.includeR,
 	ep,
 );
-const convexPolySegmentInclusive = (poly, pt0, pt1, ep) => ear.math.intersectConvexPolygonLine(
+const convexPolySegmentInclusive = (poly, pt0, pt1, ep) => ear.intersectConvexPolygonLine(
 	poly,
-	ear.math.subtract(pt1, pt0),
+	ear.subtract(pt1, pt0),
 	pt0,
-	ear.math.includeS,
-	ear.math.includeS,
+	ear.includeS,
+	ear.includeS,
 	ep,
 );
-const convexPolyLineExclusive = (poly, vec, org, ep) => ear.math.intersectConvexPolygonLine(
+const convexPolyLineExclusive = (poly, vec, org, ep) => ear.intersectConvexPolygonLine(
 	poly,
 	vec,
 	org,
-	ear.math.excludeS,
-	ear.math.excludeL,
+	ear.excludeS,
+	ear.excludeL,
 	ep,
 );
-const convexPolyRayExclusive = (poly, vec, org, ep) => ear.math.intersectConvexPolygonLine(
+const convexPolyRayExclusive = (poly, vec, org, ep) => ear.intersectConvexPolygonLine(
 	poly,
 	vec,
 	org,
-	ear.math.excludeS,
-	ear.math.excludeR,
+	ear.excludeS,
+	ear.excludeR,
 	ep,
 );
-const convexPolySegmentExclusive = (poly, pt0, pt1, ep) => ear.math.intersectConvexPolygonLine(
+const convexPolySegmentExclusive = (poly, pt0, pt1, ep) => ear.intersectConvexPolygonLine(
 	poly,
-	ear.math.subtract(pt1, pt0),
+	ear.subtract(pt1, pt0),
 	pt0,
-	ear.math.excludeS,
-	ear.math.excludeS,
+	ear.excludeS,
+	ear.excludeS,
 	ep,
 );
 test("core polygon intersection lines", () => {
@@ -286,92 +286,92 @@ test("core polygon intersection lines, no intersections", () => {
 // });
 
 test("collinear line intersections", () => {
-	const intersect = ear.math.intersectLineLine;
+	const intersect = ear.intersectLineLine;
 	[
 		// INCLUDE horizontal
-		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeL, ear.math.includeL),
-		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.includeL, ear.math.includeL),
-		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeL, ear.math.includeL),
+		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.includeL, ear.includeL),
+		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.includeL, ear.includeL),
+		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.includeL, ear.includeL),
 		// INCLUDE vertical
-		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.includeL, ear.math.includeL),
-		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.includeL, ear.math.includeL),
-		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.includeL, ear.math.includeL),
+		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.includeL, ear.includeL),
+		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.includeL, ear.includeL),
+		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.includeL, ear.includeL),
 		// INCLUDE diagonal
-		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.includeL, ear.math.includeL),
-		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.includeL, ear.math.includeL),
-		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.includeL, ear.math.includeL),
+		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.includeL, ear.includeL),
+		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.includeL, ear.includeL),
+		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.includeL, ear.includeL),
 		// EXCLUDE horizontal
-		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.excludeL, ear.math.excludeL),
-		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.excludeL, ear.math.excludeL),
-		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.excludeL, ear.math.excludeL),
+		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.excludeL, ear.excludeL),
+		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.excludeL, ear.excludeL),
+		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.excludeL, ear.excludeL),
 		// EXCLUDE vertical
-		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.excludeL, ear.math.excludeL),
-		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.excludeL, ear.math.excludeL),
-		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.excludeL, ear.math.excludeL),
+		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.excludeL, ear.excludeL),
+		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.excludeL, ear.excludeL),
+		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.excludeL, ear.excludeL),
 		// EXCLUDE diagonal
-		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.excludeL, ear.math.excludeL),
-		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.excludeL, ear.math.excludeL),
-		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.excludeL, ear.math.excludeL),
+		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.excludeL, ear.excludeL),
+		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.excludeL, ear.excludeL),
+		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.excludeL, ear.excludeL),
 	].forEach(res => expect(res).toBe(undefined));
 });
 
 test("collinear ray intersections", () => {
-	const intersect = ear.math.intersectLineLine;
+	const intersect = ear.intersectLineLine;
 	[
 		// INCLUDE horizontal
-		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeR, ear.math.includeR),
-		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.includeR, ear.math.includeR),
-		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeR, ear.math.includeR),
+		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.includeR, ear.includeR),
+		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.includeR, ear.includeR),
+		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.includeR, ear.includeR),
 		// INCLUDE vertical
-		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.includeR, ear.math.includeR),
-		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.includeR, ear.math.includeR),
-		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.includeR, ear.math.includeR),
+		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.includeR, ear.includeR),
+		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.includeR, ear.includeR),
+		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.includeR, ear.includeR),
 		// INCLUDE diagonal
-		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.includeR, ear.math.includeR),
-		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.includeR, ear.math.includeR),
-		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.includeR, ear.math.includeR),
+		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.includeR, ear.includeR),
+		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.includeR, ear.includeR),
+		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.includeR, ear.includeR),
 		// EXCLUDE horizontal
-		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.excludeR, ear.math.excludeR),
-		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.excludeR, ear.math.excludeR),
-		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.excludeR, ear.math.excludeR),
+		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.excludeR, ear.excludeR),
+		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.excludeR, ear.excludeR),
+		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.excludeR, ear.excludeR),
 		// EXCLUDE vertical
-		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.excludeR, ear.math.excludeR),
-		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.excludeR, ear.math.excludeR),
-		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.excludeR, ear.math.excludeR),
+		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.excludeR, ear.excludeR),
+		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.excludeR, ear.excludeR),
+		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.excludeR, ear.excludeR),
 		// EXCLUDE diagonal
-		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.excludeR, ear.math.excludeR),
-		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.excludeR, ear.math.excludeR),
-		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.excludeR, ear.math.excludeR),
+		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.excludeR, ear.excludeR),
+		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.excludeR, ear.excludeR),
+		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.excludeR, ear.excludeR),
 	].forEach(res => expect(res).toBe(undefined));
 });
 
 test("collinear segment intersections", () => {
-	const intersect = ear.math.intersectLineLine;
+	const intersect = ear.intersectLineLine;
 	[
 		// INCLUDE horizontal
-		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeS, ear.math.includeS),
-		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.includeS, ear.math.includeS),
-		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeS, ear.math.includeS),
+		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.includeS, ear.includeS),
+		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.includeS, ear.includeS),
+		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.includeS, ear.includeS),
 		// INCLUDE vertical
-		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.includeS, ear.math.includeS),
-		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.includeS, ear.math.includeS),
-		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.includeS, ear.math.includeS),
+		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.includeS, ear.includeS),
+		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.includeS, ear.includeS),
+		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.includeS, ear.includeS),
 		// INCLUDE diagonal
-		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.includeS, ear.math.includeS),
-		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.includeS, ear.math.includeS),
-		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.includeS, ear.math.includeS),
+		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.includeS, ear.includeS),
+		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.includeS, ear.includeS),
+		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.includeS, ear.includeS),
 		// EXCLUDE horizontal
-		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.excludeS, ear.math.excludeS),
-		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.math.excludeS, ear.math.excludeS),
-		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.math.excludeS, ear.math.excludeS),
+		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.excludeS, ear.excludeS),
+		intersect([1, 0], [2, 2], [-1, 0], [-1, 2], ear.excludeS, ear.excludeS),
+		intersect([-1, 0], [2, 2], [1, 0], [-1, 2], ear.excludeS, ear.excludeS),
 		// EXCLUDE vertical
-		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.math.excludeS, ear.math.excludeS),
-		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.math.excludeS, ear.math.excludeS),
-		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.math.excludeS, ear.math.excludeS),
+		intersect([0, 1], [3, 0], [0, 1], [3, 3], ear.excludeS, ear.excludeS),
+		intersect([0, 1], [3, 0], [0, -1], [3, 3], ear.excludeS, ear.excludeS),
+		intersect([0, -1], [3, 0], [0, 1], [3, 3], ear.excludeS, ear.excludeS),
 		// EXCLUDE diagonal
-		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.math.excludeS, ear.math.excludeS),
-		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.math.excludeS, ear.math.excludeS),
-		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.math.excludeS, ear.math.excludeS),
+		intersect([1, 1], [2, 2], [1, 1], [-1, -1], ear.excludeS, ear.excludeS),
+		intersect([-1, -1], [2, 2], [1, 1], [-1, -1], ear.excludeS, ear.excludeS),
+		intersect([1, 1], [2, 2], [-1, -1], [-1, -1], ear.excludeS, ear.excludeS),
 	].forEach(res => expect(res).toBe(undefined));
 });
 
@@ -391,32 +391,32 @@ test("collinear segment intersections, types not core", () => {
 test("clip polygon polygon, same polygon", () => {
 	// all of the "b" cases are flipped clockwise and should return no solution
 	// same polygon
-	const res1 = ear.math.clipPolygonPolygon(
+	const res1 = ear.clipPolygonPolygon(
 		[[60, 10], [50, 50], [20, 20]],
 		[[50, 50], [20, 20], [60, 10]],
 	);
 	expect(res1.length).toBe(3);
 
-	const res2 = ear.math.clipPolygonPolygon(
+	const res2 = ear.clipPolygonPolygon(
 		[[50, 50], [25, 25], [50, 0]],
 		[[50, 50], [25, 25], [50, 0]],
 	);
 	expect(res2.length).toBe(3);
 
-	const res2b = ear.math.clipPolygonPolygon(
+	const res2b = ear.clipPolygonPolygon(
 		[[50, 0], [25, 25], [50, 50]],
 		[[50, 0], [25, 25], [50, 50]],
 	);
 	expect(res2b).toBe(undefined);
 
 	// same polygon, array rotated
-	const res3 = ear.math.clipPolygonPolygon(
+	const res3 = ear.clipPolygonPolygon(
 		[[50, 50], [25, 25], [50, 0]],
 		[[25, 25], [50, 0], [50, 50]],
 	);
 	expect(res3.length).toBe(3);
 
-	const res3b = ear.math.clipPolygonPolygon(
+	const res3b = ear.clipPolygonPolygon(
 		[[50, 0], [25, 25], [50, 50]],
 		[[50, 50], [50, 0], [25, 25]],
 	);
@@ -428,22 +428,22 @@ test("polygon polygon, edge aligned", () => {
 
 	const poly3 = [[40, 40], [100, 40], [80, 80]];
 	const poly4 = [[100, 40], [40, 40], [80, 0]];
-	const res2 = ear.math.clipPolygonPolygon(poly3, poly4);
+	const res2 = ear.clipPolygonPolygon(poly3, poly4);
 	expect(res2).toBe(undefined);
 
 	const poly5 = [[40, 40], [100, 40], [80, 80]];
 	const poly6 = [[90, 40], [50, 40], [80, 0]];
-	const res3 = ear.math.clipPolygonPolygon(poly5, poly6);
+	const res3 = ear.clipPolygonPolygon(poly5, poly6);
 	expect(res3).toBe(undefined);
 
 	const poly7 = [[40, 40], [100, 40], [80, 80]];
 	const poly8 = [[200, 40], [50, 40], [80, 0]];
-	const res4 = ear.math.clipPolygonPolygon(poly7, poly8);
+	const res4 = ear.clipPolygonPolygon(poly7, poly8);
 	expect(res4).toBe(undefined);
 
 	const poly9 = [[40, 40], [100, 40], [80, 80]];
 	const poly10 = [[200, 40], [20, 40], [80, 0]];
-	const res5 = ear.math.clipPolygonPolygon(poly9, poly10);
+	const res5 = ear.clipPolygonPolygon(poly9, poly10);
 	expect(res5).toBe(undefined);
 });
 
@@ -452,23 +452,23 @@ test("polygon polygon, epsilon", () => {
 	const ep = 1e-10;
 	const poly11 = [[40, 40 - ep], [100, 40 - ep], [80, 80]];
 	const poly12 = [[100, 40], [40, 40], [80, 0]];
-	const res6 = ear.math.clipPolygonPolygon(poly11, poly12);
+	const res6 = ear.clipPolygonPolygon(poly11, poly12);
 	expect(res6).toBe(undefined);
-	const res7 = ear.math.clipPolygonPolygon(poly12, poly11);
+	const res7 = ear.clipPolygonPolygon(poly12, poly11);
 	expect(res7).toBe(undefined);
 
 	const poly13 = [[60, 10], [50, 50], [20, 20]];
 	const poly14 = [[50 + ep, 50 + ep], [20, 20], [60, 10]];
-	const res8 = ear.math.clipPolygonPolygon(poly13, poly14);
+	const res8 = ear.clipPolygonPolygon(poly13, poly14);
 	expect(res8.length).toBe(3);
-	const res9 = ear.math.clipPolygonPolygon(poly14, poly13);
+	const res9 = ear.clipPolygonPolygon(poly14, poly13);
 	expect(res9.length).toBe(3);
 
 	const poly15 = [[60, 10], [50, 50], [20, 20]];
 	const poly16 = [[50 - ep, 50 - ep], [20, 20], [60, 10]];
-	const res10 = ear.math.clipPolygonPolygon(poly15, poly16);
+	const res10 = ear.clipPolygonPolygon(poly15, poly16);
 	expect(res10.length).toBe(3);
-	const res11 = ear.math.clipPolygonPolygon(poly16, poly15);
+	const res11 = ear.clipPolygonPolygon(poly16, poly15);
 	expect(res11.length).toBe(3);
 });
 
@@ -488,6 +488,6 @@ test("polygon polygon collinear edge", () => {
 		[-0.21213203435596423, 0.21213203435596426],
 		[-0.42426406871192857, -0.28284271247461895],
 	];
-	const res1 = ear.math.clipPolygonPolygon(polygon1, polygon2);
-	const res2 = ear.math.clipPolygonPolygon(polygon2, polygon1);
+	const res1 = ear.clipPolygonPolygon(polygon1, polygon2);
+	const res2 = ear.clipPolygonPolygon(polygon2, polygon1);
 });

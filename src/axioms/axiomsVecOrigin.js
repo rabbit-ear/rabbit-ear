@@ -28,7 +28,7 @@ import { normalAxiom6 } from "./axiomsNormDist.js";
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 28
  */
 export const axiom1 = (point1, point2) => ({
-	vector: math.core.normalize2(math.core.subtract2(...math.core.resizeUp(point2, point1))),
+	vector: math.normalize2(math.subtract2(...math.resizeUp(point2, point1))),
 	origin: point1,
 });
 /**
@@ -39,10 +39,10 @@ export const axiom1 = (point1, point2) => ({
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 39
  */
 export const axiom2 = (point1, point2) => ({
-	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(
-		...math.core.resizeUp(point2, point1),
+	vector: math.normalize2(math.rotate90(math.subtract2(
+		...math.resizeUp(point2, point1),
 	))),
-	origin: math.core.midpoint2(point1, point2),
+	origin: math.midpoint2(point1, point2),
 });
 // todo: make sure these all get a resizeUp or whatever is necessary
 /**
@@ -53,7 +53,7 @@ export const axiom2 = (point1, point2) => ({
  * @returns {RayLine[]} an array of lines in {vector, origin} form
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 54
  */
-export const axiom3 = (line1, line2) => math.core
+export const axiom3 = (line1, line2) => math
 	.bisectLines2(line1.vector, line1.origin, line2.vector, line2.origin);
 /**
  * @description origami axiom 4: form a line perpendicular to a given line that
@@ -64,7 +64,7 @@ export const axiom3 = (line1, line2) => math.core
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 64
  */
 export const axiom4 = (line, point) => ({
-	vector: math.core.rotate90(math.core.normalize2(line.vector)),
+	vector: math.rotate90(math.normalize2(line.vector)),
 	origin: point,
 });
 /**
@@ -77,17 +77,17 @@ export const axiom4 = (line, point) => ({
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 77
  */
 export const axiom5 = (line, point1, point2) => (
-	math.core.intersectCircleLine(
-		math.core.distance2(point1, point2),
+	math.intersectCircleLine(
+		math.distance2(point1, point2),
 		point1,
 		line.vector,
 		line.origin,
-		math.core.include_l,
+		math.include_l,
 	) || []).map(sect => ({
-	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(
-		...math.core.resizeUp(sect, point2),
+	vector: math.normalize2(math.rotate90(math.subtract2(
+		...math.resizeUp(sect, point2),
 	))),
-	origin: math.core.midpoint2(point2, sect),
+	origin: math.midpoint2(point2, sect),
 }));
 /**
  * @description origami axiom 6: form up to three lines that are made by bringing
@@ -100,11 +100,11 @@ export const axiom5 = (line, point1, point2) => (
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 100
  */
 export const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
-	math.core.rayLineToUniqueLine(line1),
-	math.core.rayLineToUniqueLine(line2),
+	math.rayLineToUniqueLine(line1),
+	math.rayLineToUniqueLine(line2),
 	point1,
 	point2,
-).map(math.core.uniqueLineToRayLine);
+).map(math.uniqueLineToRayLine);
 // .map(Constructors.line);
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
@@ -119,22 +119,22 @@ export const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 119
  */
 export const axiom7 = (line1, line2, point) => {
-	const intersect = math.core.intersectLineLine(
+	const intersect = math.intersectLineLine(
 		line1.vector,
 		line1.origin,
 		line2.vector,
 		point,
-		math.core.include_l,
-		math.core.include_l,
+		math.include_l,
+		math.include_l,
 	);
 	return intersect === undefined
 		? undefined
 		: ({
 		// todo: switch this out, but test it as you do
-			vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(
-				...math.core.resizeUp(intersect, point),
+			vector: math.normalize2(math.rotate90(math.subtract2(
+				...math.resizeUp(intersect, point),
 			))),
-			// vector: math.core.normalize2(math.core.rotate90(line2.vector)),
-			origin: math.core.midpoint2(point, intersect),
+			// vector: math.normalize2(math.rotate90(line2.vector)),
+			origin: math.midpoint2(point, intersect),
 		});
 };

@@ -1,8 +1,8 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 const testEqual = function (...args) {
-	expect(ear.math.equivalent(...args)).toBe(true);
+	expect(ear.equivalent(...args)).toBe(true);
 };
 
 test("arguments", () => {

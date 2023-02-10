@@ -30,30 +30,30 @@ export const make_faces_geometry = (graph) => {
 };
 
 const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
-	if (math.core.magSquared(edge_vector) < math.core.EPSILON) {
+	if (math.magSquared(edge_vector) < math.EPSILON) {
 		return [];
 	}
-	const normalized = math.core.normalize(edge_vector);
+	const normalized = math.normalize(edge_vector);
 	const perp = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-		.map(vec => math.core.cross3(vec, normalized))
-		.sort((a, b) => math.core.magnitude(b) - math.core.magnitude(a))
+		.map(vec => math.cross3(vec, normalized))
+		.sort((a, b) => math.magnitude(b) - math.magnitude(a))
 		.shift();
-	const rotated = [math.core.normalize(perp)];
-	// const mat = math.core.make_matrix3_rotate(Math.PI/9, normalized);
+	const rotated = [math.normalize(perp)];
+	// const mat = math.make_matrix3_rotate(Math.PI/9, normalized);
 	// for (let i = 1; i < 4; i += 1) {
-	// 	rotated.push(math.core.multiply_matrix3_vector3(mat, rotated[i - 1]));
+	// 	rotated.push(math.multiply_matrix3_vector3(mat, rotated[i - 1]));
 	// }
 	for (let i = 1; i < 4; i += 1) {
-		rotated.push(math.core.cross3(rotated[i - 1], normalized));
+		rotated.push(math.cross3(rotated[i - 1], normalized));
 	}
-	const dirs = rotated.map(v => math.core.scale(v, radius));
-	const nudge = [-end_pad, end_pad].map(n => math.core.scale(normalized, n));
+	const dirs = rotated.map(v => math.scale(v, radius));
+	const nudge = [-end_pad, end_pad].map(n => math.scale(normalized, n));
 	const coords = end_pad === 0
 		? edge_coords
-		: edge_coords.map((coord, i) => math.core.add(coord, nudge[i]));
+		: edge_coords.map((coord, i) => math.add(coord, nudge[i]));
 	// console.log(dirs);
 	return coords
-		.map(v => dirs.map(dir => math.core.add(v, dir)))
+		.map(v => dirs.map(dir => math.add(v, dir)))
 		.flat();
 };
 
@@ -65,14 +65,14 @@ export const make_edges_geometry = function ({
 		edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
 	}
 	if (!edges_vector) {
-		edges_vector = edges_coords.map(edge => math.core.subtract(edge[1], edge[0]));
+		edges_vector = edges_coords.map(edge => math.subtract(edge[1], edge[0]));
 	}
 	// make sure they all have a z component. when z is implied it's 0
 	edges_coords = edges_coords
 		.map(edge => edge
-			.map(coord => math.core.resize(3, coord)));
+			.map(coord => math.resize(3, coord)));
 	edges_vector = edges_vector
-		.map(vec => math.core.resize(3, vec));
+		.map(vec => math.resize(3, vec));
 	const colorAssignments = {
 		B: [0.0, 0.0, 0.0],
 		// M: [0.9, 0.31, 0.16],
@@ -91,15 +91,15 @@ export const make_edges_geometry = function ({
 		.flat(2);
 
 	const normals = edges_vector.map(vector => {
-		if (math.core.magSquared(vector) < math.core.EPSILON) {
+		if (math.magSquared(vector) < math.EPSILON) {
 			throw new Error("degenerate edge");
 		}
-		const normalized = math.core.normalize(vector);
+		const normalized = math.normalize(vector);
 		// scale to line width
-		// const scaled = math.core.scale(normalized, scale);
+		// const scaled = math.scale(normalized, scale);
 		// let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];
-		const c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0, 0, -1])), scale);
-		const c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0, 0, 1])), scale);
+		const c0 = math.scale(math.normalize(math.cross3(vector, [0, 0, -1])), scale);
+		const c1 = math.scale(math.normalize(math.cross3(vector, [0, 0, 1])), scale);
 		// let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
 		// let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
 		return [

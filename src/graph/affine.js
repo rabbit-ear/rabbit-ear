@@ -18,14 +18,14 @@ const apply_matrix_to_graph = function (graph, matrix) {
 	// apply to anything with a coordinate value
 	filterKeysWithSuffix(graph, "coords").forEach((key) => {
 		graph[key] = graph[key]
-			.map(v => math.core.resize(3, v))
-			.map(v => math.core.multiplyMatrix3Vector3(matrix, v));
+			.map(v => math.resize(3, v))
+			.map(v => math.multiplyMatrix3Vector3(matrix, v));
 	});
 	// update all matrix types
 	// todo, are these being multiplied in the right order?
 	filterKeysWithSuffix(graph, "matrix").forEach((key) => {
 		graph[key] = graph[key]
-			.map(m => math.core.multiplyMatrices3(m, matrix));
+			.map(m => math.multiplyMatrices3(m, matrix));
 	});
 	return graph;
 };
@@ -43,7 +43,7 @@ const transform_scale = (graph, ...args) => {
 	const scale = args.length === 1
 		? [args[0], args[0], args[0]]
 		: [1, 1, 1].map((n, i) => (args[i] === undefined ? n : args[i]));
-	const matrix = math.core.makeMatrix3Scale(scale);
+	const matrix = math.makeMatrix3Scale(scale);
 	return apply_matrix_to_graph(graph, matrix);
 };
 /**
@@ -56,9 +56,9 @@ const transform_scale = (graph, ...args) => {
  * @linkcode Origami ./src/graph/affine.js 56
  */
 const transform_translate = (graph, ...args) => {
-	const vector = math.core.getVector(...args);
-	const vector3 = math.core.resize(3, vector);
-	const matrix = math.core.makeMatrix3Translate(...vector3);
+	const vector = math.getVector(...args);
+	const vector3 = math.resize(3, vector);
+	const matrix = math.makeMatrix3Translate(...vector3);
 	return apply_matrix_to_graph(graph, matrix);
 };
 /**
@@ -72,9 +72,9 @@ const transform_translate = (graph, ...args) => {
  * @linkcode Origami ./src/graph/affine.js 72
  */
 const transform_rotateZ = (graph, angle, ...args) => {
-	const vector = math.core.getVector(...args);
-	const vector3 = math.core.resize(3, vector);
-	const matrix = math.core.makeMatrix3RotateZ(angle, ...vector3);
+	const vector = math.getVector(...args);
+	const vector3 = math.resize(3, vector);
+	const matrix = math.makeMatrix3RotateZ(angle, ...vector3);
 	return apply_matrix_to_graph(graph, matrix);
 };
 

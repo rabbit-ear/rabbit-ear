@@ -9,9 +9,9 @@ export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => faces_ve
 	.map(polygon => {
 		// cross product unit vectors from point 0 to point 1 and 2.
 		// as long as the face winding data is consistent, this gives consistent face normals
-		const a = math.core.resize(3, math.core.subtract(polygon[1], polygon[0]));
-		const b = math.core.resize(3, math.core.subtract(polygon[2], polygon[0]));
-		return math.core.normalize3(math.core.cross3(a, b));
+		const a = math.resize(3, math.subtract(polygon[1], polygon[0]));
+		const b = math.resize(3, math.subtract(polygon[2], polygon[0]));
+		return math.normalize3(math.cross3(a, b));
 	});
 
 export const makeVerticesNormal = ({ vertices_coords, faces_vertices, faces_normal }) => {
@@ -24,5 +24,5 @@ export const makeVerticesNormal = ({ vertices_coords, faces_vertices, faces_norm
 	faces_vertices
 		.forEach((vertices, f) => vertices
 			.forEach(v => add3(vertices_normals[v], faces_normal[f])));
-	return vertices_normals.map(v => math.core.normalize3(v));
+	return vertices_normals.map(v => math.normalize3(v));
 };

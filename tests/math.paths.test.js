@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 test("segment", () => {
 	expect(ear.segment(1, 2, 3, 4).svgPath()).toBe("M1 2L3 4");

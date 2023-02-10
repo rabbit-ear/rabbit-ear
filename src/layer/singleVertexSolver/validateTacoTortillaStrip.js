@@ -27,7 +27,7 @@ const validateTacoTortillaStrip = (
 	faces_folded,
 	layers_face,
 	is_circular = true,
-	epsilon = math.core.EPSILON,
+	epsilon = math.EPSILON,
 ) => {
 	// for every sector/face, the value is its index in the layers_face array
 	const faces_layer = invertMap(layers_face);

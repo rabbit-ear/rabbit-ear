@@ -15,7 +15,7 @@ import { foldKeys } from "../fold/keys.js";
 import { edgeAssignmentToFoldAngle } from "../fold/spec.js";
 
 // permissively ignores anything above 2D
-const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
+const are_vertices_equivalent = function (a, b, epsilon = math.EPSILON) {
 	const max = a.length < 2 ? a.length : 2;
 	for (let i = 0; i < max; i += 1) {
 		if (Math.abs(a[i] - b[i]) > epsilon) {
@@ -25,7 +25,7 @@ const are_vertices_equivalent = function (a, b, epsilon = math.core.EPSILON) {
 	return true;
 };
 
-const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = math.core.EPSILON) {
+const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = math.EPSILON) {
 	const edge0_1 = [edge0[0] - edge1[0], edge0[1] - edge1[1]];
 	const edge0_p = [edge0[0] - point[0], edge0[1] - point[1]];
 	const edge1_p = [edge1[0] - point[0], edge1[1] - point[1]];
@@ -41,7 +41,7 @@ const edges_vertices_equivalent = function (a, b) {
 
 const make_edges_collinearVertices = function ({
 	vertices_coords, edges_vertices,
-}, epsilon = math.core.EPSILON) {
+}, epsilon = math.EPSILON) {
 	const edges = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]));
 	return edges.map(e => vertices_coords
@@ -61,12 +61,12 @@ const make_edges_alignment = function ({ vertices_coords, edges_vertices }) {
 
 const make_edges_intersections = function ({
 	vertices_coords, edges_vertices,
-}, epsilon = math.core.EPSILON) {
+}, epsilon = math.EPSILON) {
 	const edge_count = edges_vertices.length;
 	const edges = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]));
 	const edges_vectors = edges
-		.map(edge => math.core.subtract2(edge[1], edge[0]));
+		.map(edge => math.subtract2(edge[1], edge[0]));
 	// build an NxN matrix of edge crossings
 	//     0  1  2  3
 	// 0 [  , x,  ,  ]
@@ -81,18 +81,18 @@ const make_edges_intersections = function ({
 	const crossings = Array.from(Array(edge_count - 1)).map(() => []);
 	for (let i = 0; i < edges.length - 1; i += 1) {
 		for (let j = i + 1; j < edges.length; j += 1) {
-			// crossings[i][j] = math.core.intersection.segment_segment_exclusive(
+			// crossings[i][j] = math.intersection.segment_segment_exclusive(
 			//   edges[i][0], edges[i][1],
 			//   edges[j][0], edges[j][1],
 			//   epsilon
 			// );
-			crossings[i][j] = math.core.intersect_line_line(
+			crossings[i][j] = math.intersect_line_line(
 				edges_vectors[i],
 				edges[i][0],
 				edges_vectors[j],
 				edges[j][0],
-				math.core.exclude_s,
-				math.core.exclude_s,
+				math.exclude_s,
+				math.exclude_s,
 				epsilon,
 			);
 		}
@@ -115,7 +115,7 @@ const make_edges_intersections = function ({
 	return edges_intersections;
 };
 
-const fragment = function (graph, epsilon = math.core.EPSILON) {
+const fragment = function (graph, epsilon = math.EPSILON) {
 	const horizSort = function (a, b) { return a[0] - b[0]; };
 	const vertSort = function (a, b) { return a[1] - b[1]; };
 	// when we rebuild an edge we need the intersection points sorted so we can

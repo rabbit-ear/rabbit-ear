@@ -4,8 +4,8 @@
 import math from "../math.js";
 import { boundary } from "./boundary.js";
 /**
- * @description Clip a line inside the boundaries of a graph, resulting in one segment
- * or undefined. The line can be a line, ray, or segment.
+ * @description Clip a line inside the boundaries of a graph, resulting in
+ * one segment or undefined. The line can be a line, ray, or segment.
  * @param {FOLD} graph a FOLD graph
  * @param {RayLine|number[][]} line a line or a segment
  * @returns {number[][]|undefined} a segment, a pair of two points,
@@ -14,14 +14,14 @@ import { boundary } from "./boundary.js";
  */
 const clip = function (graph, line) {
 	const polygon = boundary(graph).vertices.map(v => graph.vertices_coords[v]);
-	const vector = line.vector ? line.vector : math.core.subtract2(line[1], line[0]);
+	const vector = line.vector ? line.vector : math.subtract2(line[1], line[0]);
 	const origin = line.origin ? line.origin : line[0];
-	const fn_line = (line.domain_function ? line.domain_function : math.core.includeL);
-	return math.core.clipLineConvexPolygon(
+	const fn_line = (line.domain_function ? line.domain_function : math.includeL);
+	return math.clipLineConvexPolygon(
 		polygon,
 		vector,
 		origin,
-		math.core.include,
+		math.include,
 		fn_line,
 	);
 };

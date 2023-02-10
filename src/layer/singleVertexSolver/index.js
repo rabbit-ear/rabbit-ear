@@ -29,7 +29,7 @@ const is_boundary = { B: true, b: true };
  * face and each value is the layer the face occupies.
  * @linkcode Origami ./src/layer/singleVertexSolver/index.js 30
  */
-const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.EPSILON) => {
 	const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
 	const faces_updown = assignmentsToFacesVertical(assignments);
 	// todo: we only really need to check index [0] and [length-1]

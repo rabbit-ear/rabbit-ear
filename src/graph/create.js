@@ -55,7 +55,7 @@ const make_closed_polygon = (vertices_coords) => populate({
  * @returns {number[][]} 2D vertices_coords, vertices of the polygon
  */
 // polygon_names.forEach((name, i) => {
-// 	Create[name] = () => make_closed_polygon(math.core
+// 	Create[name] = () => make_closed_polygon(math
 // 		.makePolygonSideLength(i));
 // });
 /**
@@ -89,9 +89,9 @@ Create.rectangle = (width = 1, height = 1) => (
  * @returns {FOLD} a FOLD object
  */
 Create.polygon = (sides = 3, radius = 1) => (
-	make_closed_polygon(math.core.makePolygonCircumradius(sides, radius)));
+	make_closed_polygon(math.makePolygonCircumradius(sides, radius)));
 // Create.circle = (sides = 90) =>
-// 	make_closed_polygon(math.core.makePolygon(sides));
+// 	make_closed_polygon(math.makePolygon(sides));
 // origami bases. todo: more
 /**
  * @description Create a kite base FOLD object, in crease pattern form.

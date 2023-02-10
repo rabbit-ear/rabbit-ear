@@ -6,8 +6,8 @@ import GraphProto from "./graph.js";
 import flatFold from "../graph/flatFold/index.js";
 /**
  * @name Origami
- * @description A model of an origami paper. Empty parameter initialization will
- * create a single-face graph with a unit square boundary.
+ * @description A model of an origami paper. Empty parameter initialization
+ * will create a single-face graph with a unit square boundary.
  * @prototype Graph
  * @param {FOLD} [graph] an optional FOLD object
  * @linkcode Origami ./src/classes/origami.js 13

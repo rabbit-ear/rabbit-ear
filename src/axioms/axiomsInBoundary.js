@@ -9,7 +9,7 @@ import * as Validate from "./validate.js";
 
 const paramsVecsToNorms = (params) => ({
 	points: params.points,
-	lines: params.lines.map(math.core.uniqueLineToRayLine),
+	lines: params.lines.map(math.uniqueLineToRayLine),
 });
 /**
  * @description All axiom method arguments are ordered such that all lines are

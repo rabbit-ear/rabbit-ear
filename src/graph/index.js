@@ -9,7 +9,7 @@ import * as sortMethods from "./sort.js";
 import * as span from "./span.js";
 import * as maps from "./maps.js";
 import * as query from "./query.js";
-import * as setsMethods from "./sets.js";
+// import * as setsMethods from "./sets.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as intersectMethods from "./intersect.js";
 import transform from "./affine.js";
@@ -91,7 +91,7 @@ export default Object.assign(
 	span,
 	maps,
 	query,
-	setsMethods,
+	// setsMethods,
 	subgraphMethods,
 	intersectMethods,
 	overlapGraph,

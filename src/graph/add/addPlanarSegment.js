@@ -98,9 +98,9 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	// build vertices_sectors from vertices_vertices
 	segment_vertices
 		.map(center => (graph.vertices_vertices[center].length === 1
-			? [math.core.TWO_PI]
-			: math.core.counterClockwiseSectors2(graph.vertices_vertices[center]
-				.map(v => math.core
+			? [math.TWO_PI]
+			: math.counterClockwiseSectors2(graph.vertices_vertices[center]
+				.map(v => math
 					.subtract2(graph.vertices_coords[v], graph.vertices_coords[center])))))
 		.forEach((sectors, i) => {
 			graph.vertices_sectors[segment_vertices[i]] = sectors;
@@ -121,7 +121,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
  * @returns {number[]} the indices of the new edge(s) composing the segment.
  * @linkcode Origami ./src/graph/add/addPlanarSegment.js 122
  */
-const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) => {
+const addPlanarSegment = (graph, point1, point2, epsilon = math.EPSILON) => {
 	// vertices_sectors not a part of the spec, might not be included.
 	// this is needed for when we walk faces. we need to be able to
 	// identify the one face that winds around the outside enclosing Infinity.
@@ -130,7 +130,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 	}
 	// flatten input points to the Z=0 plane
 	const segment = [point1, point2].map(p => [p[0], p[1]]);
-	const segment_vector = math.core.subtract2(segment[1], segment[0]);
+	const segment_vector = math.subtract2(segment[1], segment[0]);
 	// not sure this is wanted. project all vertices onto the XY plane.
 	// graph.vertices_coords = graph.vertices_coords
 	//   .map(coord => coord.slice(0, 2));

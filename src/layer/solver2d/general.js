@@ -128,7 +128,7 @@ export const ordersToMatrix = (orders) => {
  */
 export const keysToFaceOrders = (facePairs, faces_normal, vector) => {
 	const faces_normal_match = faces_normal
-		.map(normal => math.core.dot(normal, vector) > 0);
+		.map(normal => math.dot(normal, vector) > 0);
 	const keys = Object.keys(facePairs);
 	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
 	faceOrders.forEach((faces, i) => {

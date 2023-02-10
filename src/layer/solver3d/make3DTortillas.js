@@ -23,7 +23,7 @@ const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
 			.map(v => graph.vertices_coords[v]));
 	const pairCoordsDots = pairCoords
 		.map(edge => edge
-			.map(coord => math.core.dot(coord, vector)));
+			.map(coord => math.dot(coord, vector)));
 	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
 	// console.log("pairCoords", pairCoords);
 	// console.log("pairCoordsDots", pairCoordsDots);
@@ -85,7 +85,7 @@ const make3DTortillaEdges = (graph, overlapInfo, epsilon = 1e-6) => {
 		const firstEdge = intersectingGroups_pairsAll[key][0][0];
 		const coords = graph.edges_vertices[firstEdge]
 			.map(v => graph.vertices_coords[v]);
-		const vector = math.core.normalize(math.core.subtract(coords[1], coords[0]));
+		const vector = math.normalize(math.subtract(coords[1], coords[0]));
 		// get one of the groups to get a plane/normal
 		// const group = parseInt(key.split(" ")[0], 10);
 		intersectingGroups_pairsValid[key] = intersectingGroups_pairsAll[key]

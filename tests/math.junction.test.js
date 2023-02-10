@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const math = require("../ear.js");
 
 test("empty", () => { expect(true).toBe(true); });
 
@@ -28,7 +28,7 @@ test("alternating angle 3", () => {
 
 test("static fromRadians 1", () => {
 	const junction = ear.junction.fromRadians(0, 1, 2);
-	expect(ear.math.equivalent_vectors(junction.radians, [0, 1, 2])).toBe(true);
+	expect(ear.equivalent_vectors(junction.radians, [0, 1, 2])).toBe(true);
 });
 
 test("static fromRadians 2", () => {

@@ -34,9 +34,9 @@ export const update_vertices_sectors = ({
 }, vertex) => {
 	if (!vertices_sectors) { return; }
 	vertices_sectors[vertex] = vertices_vertices[vertex].length === 1
-		? [math.core.TWO_PI]
-		: math.core.counterClockwiseSectors2(vertices_vertices[vertex]
-			.map(v => math.core
+		? [math.TWO_PI]
+		: math.counterClockwiseSectors2(vertices_vertices[vertex]
+			.map(v => math
 				.subtract2(vertices_coords[v], vertices_coords[vertex])));
 };
 /**

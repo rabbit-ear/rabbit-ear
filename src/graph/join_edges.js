@@ -7,7 +7,7 @@
 // 	makeVerticesEdgesUnsorted
 // } from "./make.js";
 
-// export const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.core.EPSILON) => {
+// export const join_collinear_edges = ({ vertices_coords, edges_vertices, vertices_edges, edges_vector }, epsilon = math.EPSILON) => {
 // 	if (!edges_vector) {
 // 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 // 	}

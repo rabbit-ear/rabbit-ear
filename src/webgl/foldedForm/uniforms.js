@@ -10,7 +10,7 @@ const makeUniforms = (gl, {
 }) => ({
 	u_matrix: {
 		func: "uniformMatrix4fv",
-		value: math.core.multiplyMatrices4(math.core
+		value: math.multiplyMatrices4(math
 			.multiplyMatrices4(projectionMatrix, viewMatrix), modelMatrix),
 	},
 	u_projection: {
@@ -19,7 +19,7 @@ const makeUniforms = (gl, {
 	},
 	u_modelView: {
 		func: "uniformMatrix4fv",
-		value: math.core.multiplyMatrices4(viewMatrix, modelMatrix),
+		value: math.multiplyMatrices4(viewMatrix, modelMatrix),
 	},
 	u_opacity: {
 		func: "uniform1f",
