@@ -15,6 +15,10 @@ import {
 	makeEdgesFacesSide,
 	makeTacosFacesSide,
 } from "./facesSide.js";
+import {
+	edgeFoldAngleIsFlat,
+	filterKeysWithPrefix,
+} from "../../fold/spec.js";
 /**
  * @description classify a pair of adjacent faces encoded as +1 or -1
  * depending on which side they are on into one of 3 types:
@@ -68,6 +72,29 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
 /**
+ *
+ */
+const makeCopyWithFlatEdges = (graph) => {
+	const copy = { ...graph };
+	// flat edges indices in a hash table
+	const lookup = {};
+	// these are the indices of all flat edges (edges to keep)
+	copy.edges_foldAngle
+		.map(edgeFoldAngleIsFlat)
+		.map((flat, i) => (flat ? i : undefined))
+		.filter(a => a !== undefined)
+		.forEach(e => { lookup[e] = true; });
+	filterKeysWithPrefix(graph, "edges_").forEach(key => {
+		copy[key] = [];
+		graph[key].forEach((el, e) => {
+			if (lookup[e]) {
+				copy[key][e] = JSON.parse(JSON.stringify(el));
+			}
+		});
+	});
+	return copy;
+};
+/**
  * @description Given a FOLD object, find all instances of edges
  * overlapping which classify as taco/tortillas to determine layer order.
  * @param {FOLD} graph a FOLD graph. vertices_coords should already be
@@ -79,11 +106,21 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
  * @notes due to the face_center calculation to determine face-edge
  * sidedness, this is currently hardcoded to only work with convex polygons.
  */
-const makeTacosTortillas = (graph, epsilon = math.EPSILON) => {
+const makeTacosTortillas = (graphInput, epsilon = math.EPSILON) => {
+	// console.log("BEFORE", graphInput);
+	const graph = makeCopyWithFlatEdges(graphInput);
+	// console.log("AFTER", graph);
+
+	// const nonFlatEdges = graph.edges_foldAngle
+	// 	.map(edgeFoldAngleIsFlat)
+	// 	.map((flat, i) => (flat ? undefined : i))
+	// 	.filter(a => a !== undefined);
+	// console.log("nonFlatEdges", nonFlatEdges);
 	// given a graph which is already in its folded state,
 	// find which edges are tacos, or in other words, find out which
 	// edges overlap with another edge.
 	const edges_faces_side = makeEdgesFacesSide(graph);
+	// nonFlatEdges.forEach(e => delete edges_faces_side[e]);
 	// const eep = makeEdgesEdgesParallel(graph);
 	// console.log("eep", eep);
 	// const edges_edges_parallel = makeEdgesEdges2DParallel(graph);

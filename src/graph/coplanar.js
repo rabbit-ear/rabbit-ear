@@ -281,15 +281,16 @@ export const coplanarOverlappingFacesGroups = ({
 	// console.log("planarSets_faces", planarSets_faces);
 	// console.log("coplanarOverlappingFaces", coplanarOverlappingFaces);
 	// console.log("newSets_originalSet", newSets_originalSet);
-	// return coplanarOverlappingFaces;
 	return {
+		sets_faces,
 		sets_plane,
 		sets_transformXY,
 		faces_set,
 		faces_winding,
-		faces_facesOverlap: faces_facesOverlap
-			.map(overlap => overlap
-				.map((_, i) => i)
-				.filter(a => a !== undefined)),
+		// faces_facesOverlap: faces_facesOverlapAll
+		// // faces_facesOverlap: faces_facesOverlap
+		// 	.map(overlap => overlap
+		// 		.map((_, i) => i)
+		// 		.filter(a => a !== undefined)),
 	};
 };

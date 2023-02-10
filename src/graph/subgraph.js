@@ -4,7 +4,6 @@
 // import * as S from "../general/strings.js";
 // import remove from "./remove.js";
 // import count from "./count.js";
-// import { uniqueSortedNumbers } from "../general/arrays.js";
 import { foldKeys } from "../fold/keys.js";
 import {
 	filterKeysWithPrefix,
@@ -36,12 +35,18 @@ export const selfRelationalArraySubset = (array_array, indices) => {
 	return array_arraySubset;
 };
 /**
- * @description subgraph
+ * @description Create a subgraph from a graph, with shallow pointers
+ * to arrays by providing a list of vertices, edges, and faces which
+ * will be carried over.
+ * The subgraph component arrays will contain holes, meaning the
+ * indices are preserved, making it useful for performing operations
+ * on a subgraph, then carrying that information back to the original.
  * @param {FOLD} graph a FOLD graph
  * @param {object} indices an object containing:
  * { vertices: [], edges: [], faces: [] }
  * all of which contains a list of indices to keep in the copied graph.
  * the values can be integers or integer-strings, doesn't matter.
+ * @returns {FOLD} a shallow copy of the graph parameter provided.
  */
 export const subgraph = (graph, indices) => {
 	const components = ["faces", "edges", "vertices"];
@@ -71,7 +76,7 @@ export const subgraph = (graph, indices) => {
 	foldKeys.graph.forEach(key => delete copy[key]);
 	delete copy.file_frames;
 	// use prefixes and suffixes to make sure we initialize all
-	// geometry array types. this supports out of spec arrays,
+	// geometry array types. this even supports out of spec arrays,
 	// like: faces_matrix, colors_edges...
 	Object.keys(keys).forEach(key => { copy[key] = []; });
 	Object.keys(keys).forEach(key => {
@@ -93,13 +98,33 @@ export const subgraph = (graph, indices) => {
 	return copy;
 };
 /**
- * @description the faces will determine which vertices and edges
- * get carried over to each copy.
+ * @description Create a subgraph from a graph, with shallow pointers
+ * to arrays by providing a list of faces which will be carried over,
+ * and this list of faces will determine which vertices and edges
+ * get carried over as well.
+ * The subgraph component arrays will contain holes, meaning the
+ * indices are preserved, making it useful for performing operations
+ * on a subgraph, then carrying that information back to the original.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} faces a list of face indices which will
+ * be carried over into the subgraph.
+ * @returns {FOLD} a shallow copy of the graph parameter provided.
  */
 export const subgraphWithFaces = (graph, faces) => {
-	const vertices = uniqueSortedNumbers(
-		faces.flatMap(f => graph.faces_vertices[f]),
-	);
+	// vertices will be take from one place:
+	// - faces_vertices, every vertex involved in the subset of faces
+	// there is no way to take it from edges_vertices, as edges_vertices
+	// itself needs to be determined by this "vertices" array.
+	let vertices = [];
+	if (graph.faces_vertices) {
+		vertices = uniqueSortedNumbers(
+			faces.flatMap(f => graph.faces_vertices[f]),
+		);
+	}
+	// edges will be taken from one of two places, either:
+	// - faces edges, the edges involved in the subset of faces
+	// - edges_vertices where BOTH vertices involved are in "vertices".
+	// otherwise, no edges will be carried over.
 	let edges = [];
 	if (graph.faces_edges) {
 		edges = uniqueSortedNumbers(

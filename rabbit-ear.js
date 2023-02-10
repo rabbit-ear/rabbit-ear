@@ -1091,6 +1091,23 @@
 		}
 		return list.filter(n => typeof n === "number");
 	};
+	const getVectorOfVectors = function () {
+		return semiFlattenArrays(arguments)
+			.map(el => getVector(el));
+	};
+	const getSegment = function () {
+		if (arguments[0] instanceof Constructors.segment) {
+			return arguments[0];
+		}
+		const args = semiFlattenArrays(arguments);
+		if (args.length === 4) {
+			return [
+				[args[0], args[1]],
+				[args[2], args[3]],
+			];
+		}
+		return args.map(el => getVector(el));
+	};
 	const getLine$1 = function () {
 		const args = semiFlattenArrays(arguments);
 		if (args.length === 0) { return vectorOriginForm([], []); }
@@ -1104,6 +1121,86 @@
 			? vectorOriginForm(getVector(args))
 			: vectorOriginForm(...args.map(a => getVector(a)));
 	};
+	const getRay = getLine$1;
+	const getRectParams = (x = 0, y = 0, width = 0, height = 0) => ({
+		x, y, width, height,
+	});
+	const getRect = function () {
+		if (arguments[0] instanceof Constructors.rect) { return arguments[0]; }
+		const list = flattenArrays(arguments);
+		if (list.length > 0
+			&& typeof list[0] === "object"
+			&& list[0] !== null
+			&& !Number.isNaN(list[0].width)) {
+			return getRectParams(...["x", "y", "width", "height"]
+				.map(c => list[0][c])
+				.filter(fnNotUndefined));
+		}
+		const numbers = list.filter(n => typeof n === "number");
+		const rectParams = numbers.length < 4
+			? [, , ...numbers]
+			: numbers;
+		return getRectParams(...rectParams);
+	};
+	const getCircleParams = (radius = 1, ...args) => ({
+		radius,
+		origin: [...args],
+	});
+	const getCircle = function () {
+		if (arguments[0] instanceof Constructors.circle) { return arguments[0]; }
+		const vectors = getVectorOfVectors(arguments);
+		const numbers = flattenArrays(arguments).filter(a => typeof a === "number");
+		if (arguments.length === 2) {
+			if (vectors[1].length === 1) {
+				return getCircleParams(vectors[1][0], ...vectors[0]);
+			}
+			if (vectors[0].length === 1) {
+				return getCircleParams(vectors[0][0], ...vectors[1]);
+			}
+			if (vectors[0].length > 1 && vectors[1].length > 1) {
+				return getCircleParams(distance2(...vectors), ...vectors[0]);
+			}
+		} else {
+			switch (numbers.length) {
+			case 0: return getCircleParams(1, 0, 0, 0);
+			case 1: return getCircleParams(numbers[0], 0, 0, 0);
+			default: return getCircleParams(numbers.pop(), ...numbers);
+			}
+		}
+		return getCircleParams(1, 0, 0, 0);
+	};
+	const maps3x4 = [
+		[0, 1, 3, 4, 9, 10],
+		[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+		[0, 1, 2, undefined, 3, 4, 5, undefined, 6, 7, 8, undefined, 9, 10, 11],
+	];
+	[11, 7, 3].forEach(i => delete maps3x4[2][i]);
+	const matrixMap3x4 = len => {
+		let i;
+		if (len < 8) i = 0;
+		else if (len < 13) i = 1;
+		else i = 2;
+		return maps3x4[i];
+	};
+	const getMatrix3x4 = function () {
+		const mat = flattenArrays(arguments);
+		const matrix = [...identity3x4];
+		matrixMap3x4(mat.length)
+			.forEach((n, i) => { if (mat[i] != null) { matrix[n] = mat[i]; } });
+		return matrix;
+	};
+	const getters = Object.freeze({
+		__proto__: null,
+		getVector,
+		getVectorOfVectors,
+		getSegment,
+		getLine: getLine$1,
+		getRay,
+		getRectParams,
+		getRect,
+		getCircle,
+		getMatrix3x4
+	});
 	const intersectLineLine = (
 		aVector,
 		aOrigin,
@@ -1945,14 +2042,829 @@
 	const types = {
 		...resizers,
 		...parameterize,
+		...getters,
 		typeOf,
 	};
-	const math = {
-		...algebra,
-		...geometry,
-		...intersection,
-		...types,
+	const VectorArgs = function () {
+		this.push(...getVector(arguments));
 	};
+	const VectorGetters = {
+		x: function () { return this[0]; },
+		y: function () { return this[1]; },
+		z: function () { return this[2]; },
+	};
+	const table = {
+		preserve: {
+			magnitude: function () { return magnitude(this); },
+			isEquivalent: function () {
+				return fnEpsilonEqualVectors(this, getVector(arguments));
+			},
+			isParallel: function () {
+				return parallel(...resizeUp(this, getVector(arguments)));
+			},
+			isCollinear: function (line) {
+				return overlap(this, line);
+			},
+			dot: function () {
+				return dot(...resizeUp(this, getVector(arguments)));
+			},
+			distanceTo: function () {
+				return distance(...resizeUp(this, getVector(arguments)));
+			},
+			overlap: function (other) {
+				return overlap(this, other);
+			},
+		},
+		vector: {
+			copy: function () { return [...this]; },
+			normalize: function () { return normalize(this); },
+			scale: function () { return scale(this, arguments[0]); },
+			flip: function () { return flip(this); },
+			rotate90: function () { return rotate90(this); },
+			rotate270: function () { return rotate270(this); },
+			cross: function () {
+				return cross3(
+					resize(3, this),
+					resize(3, getVector(arguments)),
+				);
+			},
+			transform: function () {
+				return multiplyMatrix3Vector3(
+					getMatrix3x4(arguments),
+					resize(3, this),
+				);
+			},
+			add: function () {
+				return add(this, resize(this.length, getVector(arguments)));
+			},
+			subtract: function () {
+				return subtract(this, resize(this.length, getVector(arguments)));
+			},
+			rotateZ: function (angle, origin) {
+				return multiplyMatrix3Vector3(
+					getMatrix3x4(makeMatrix2Rotate(angle, origin)),
+					resize(3, this),
+				);
+			},
+			lerp: function (vector, pct) {
+				return lerp(this, resize(this.length, getVector(vector)), pct);
+			},
+			midpoint: function () {
+				return midpoint(...resizeUp(this, getVector(arguments)));
+			},
+			bisect: function () {
+				return counterClockwiseBisect2(this, getVector(arguments));
+			},
+		},
+	};
+	const VectorMethods = {};
+	Object.keys(table.preserve).forEach(key => {
+		VectorMethods[key] = table.preserve[key];
+	});
+	Object.keys(table.vector).forEach(key => {
+		VectorMethods[key] = function () {
+			return Constructors.vector(...table.vector[key].apply(this, arguments));
+		};
+	});
+	const VectorStatic = {
+		fromAngle: function (angle) {
+			return Constructors.vector(Math.cos(angle), Math.sin(angle));
+		},
+		fromAngleDegrees: function (angle) {
+			return Constructors.vector.fromAngle(angle * D2R);
+		},
+	};
+	const Vector = {
+		vector: {
+			P: Array.prototype,
+			A: VectorArgs,
+			G: VectorGetters,
+			M: VectorMethods,
+			S: VectorStatic,
+		},
+	};
+	const Static = {
+		fromPoints: function () {
+			const points = getVectorOfVectors(arguments);
+			return this.constructor({
+				vector: subtract(points[1], points[0]),
+				origin: points[0],
+			});
+		},
+		fromAngle: function () {
+			const angle = arguments[0] || 0;
+			return this.constructor({
+				vector: [Math.cos(angle), Math.sin(angle)],
+				origin: [0, 0],
+			});
+		},
+		perpendicularBisector: function () {
+			const points = getVectorOfVectors(arguments);
+			return this.constructor({
+				vector: rotate90(subtract(points[1], points[0])),
+				origin: average(points[0], points[1]),
+			});
+		},
+	};
+	const LinesMethods = {
+		isParallel: function () {
+			const arr = resizeUp(this.vector, getLine$1(arguments).vector);
+			return parallel(...arr);
+		},
+		isCollinear: function () {
+			const line = getLine$1(arguments);
+			return overlapLinePoint(this.vector, this.origin, line.origin)
+				&& parallel(...resizeUp(this.vector, line.vector));
+		},
+		isDegenerate: function (epsilon = EPSILON) {
+			return degenerate(this.vector, epsilon);
+		},
+		reflectionMatrix: function () {
+			return Constructors.matrix(makeMatrix3ReflectZ(this.vector, this.origin));
+		},
+		nearestPoint: function () {
+			const point = getVector(arguments);
+			return Constructors.vector(
+				nearestPointOnLine(this.vector, this.origin, point, this.clip_function),
+			);
+		},
+		transform: function () {
+			const dim = this.dimension;
+			const r = multiplyMatrix3Line3(
+				getMatrix3x4(arguments),
+				resize(3, this.vector),
+				resize(3, this.origin),
+			);
+			return this.constructor(resize(dim, r.vector), resize(dim, r.origin));
+		},
+		translate: function () {
+			const origin = add(...resizeUp(this.origin, getVector(arguments)));
+			return this.constructor(this.vector, origin);
+		},
+		intersect: function () {
+			return intersect(this, ...arguments);
+		},
+		overlap: function () {
+			return overlap(this, ...arguments);
+		},
+		bisect: function (lineType, epsilon) {
+			const line = getLine$1(lineType);
+			return bisectLines2(this.vector, this.origin, line.vector, line.origin, epsilon)
+				.map(l => this.constructor(l));
+		},
+	};
+	const Line = {
+		line: {
+			P: Object.prototype,
+			A: function () {
+				const l = getLine$1(...arguments);
+				this.vector = Constructors.vector(l.vector);
+				this.origin = Constructors.vector(resize(this.vector.length, l.origin));
+				const alt = rayLineToUniqueLine({ vector: this.vector, origin: this.origin });
+				this.normal = alt.normal;
+				this.distance = alt.distance;
+				Object.defineProperty(this, "domain_function", { writable: true, value: includeL });
+			},
+			G: {
+				dimension: function () {
+					return [this.vector, this.origin]
+						.map(p => p.length)
+						.reduce((a, b) => Math.max(a, b), 0);
+				},
+			},
+			M: Object.assign({}, LinesMethods, {
+				inclusive: function () { this.domain_function = includeL; return this; },
+				exclusive: function () { this.domain_function = excludeL; return this; },
+				clip_function: dist => dist,
+				svgPath: function (length = 20000) {
+					const start = add(this.origin, scale(this.vector, -length / 2));
+					const end = scale(this.vector, length);
+					return `M${start[0]} ${start[1]}l${end[0]} ${end[1]}`;
+				},
+			}),
+			S: Object.assign({
+				fromNormalDistance: function () {
+					return this.constructor(uniqueLineToRayLine(arguments[0]));
+				},
+			}, Static),
+		},
+	};
+	const Ray = {
+		ray: {
+			P: Object.prototype,
+			A: function () {
+				const ray = getLine$1(...arguments);
+				this.vector = Constructors.vector(ray.vector);
+				this.origin = Constructors.vector(resize(this.vector.length, ray.origin));
+				Object.defineProperty(this, "domain_function", { writable: true, value: includeR });
+			},
+			G: {
+				dimension: function () {
+					return [this.vector, this.origin]
+						.map(p => p.length)
+						.reduce((a, b) => Math.max(a, b), 0);
+				},
+			},
+			M: Object.assign({}, LinesMethods, {
+				inclusive: function () { this.domain_function = includeR; return this; },
+				exclusive: function () { this.domain_function = excludeR; return this; },
+				flip: function () {
+					return Constructors.ray(flip(this.vector), this.origin);
+				},
+				scale: function (scale) {
+					return Constructors.ray(this.vector.scale(scale), this.origin);
+				},
+				normalize: function () {
+					return Constructors.ray(this.vector.normalize(), this.origin);
+				},
+				clip_function: clampRay,
+				svgPath: function (length = 10000) {
+					const end = this.vector.scale(length);
+					return `M${this.origin[0]} ${this.origin[1]}l${end[0]} ${end[1]}`;
+				},
+			}),
+			S: Static,
+		},
+	};
+	const Segment = {
+		segment: {
+			P: Array.prototype,
+			A: function () {
+				const a = getSegment(...arguments);
+				this.push(...[a[0], a[1]].map(v => Constructors.vector(v)));
+				this.vector = Constructors.vector(subtract(this[1], this[0]));
+				this.origin = this[0];
+				Object.defineProperty(this, "domain_function", { writable: true, value: includeS });
+			},
+			G: {
+				points: function () { return this; },
+				magnitude: function () { return magnitude(this.vector); },
+				dimension: function () {
+					return [this.vector, this.origin]
+						.map(p => p.length)
+						.reduce((a, b) => Math.max(a, b), 0);
+				},
+			},
+			M: Object.assign({}, LinesMethods, {
+				inclusive: function () { this.domain_function = includeS; return this; },
+				exclusive: function () { this.domain_function = excludeS; return this; },
+				clip_function: clampSegment,
+				transform: function (...innerArgs) {
+					const dim = this.points[0].length;
+					const mat = getMatrix3x4(innerArgs);
+					const transformed_points = this.points
+						.map(point => resize(3, point))
+						.map(point => multiplyMatrix3Vector3(mat, point))
+						.map(point => resize(dim, point));
+					return Constructors.segment(transformed_points);
+				},
+				translate: function () {
+					const translate = getVector(arguments);
+					const transformed_points = this.points
+						.map(point => add(...resizeUp(point, translate)));
+					return Constructors.segment(transformed_points);
+				},
+				midpoint: function () {
+					return Constructors.vector(average(this.points[0], this.points[1]));
+				},
+				svgPath: function () {
+					const pointStrings = this.points.map(p => `${p[0]} ${p[1]}`);
+					return ["M", "L"].map((cmd, i) => `${cmd}${pointStrings[i]}`)
+						.join("");
+				},
+			}),
+			S: {
+				fromPoints: function () {
+					return this.constructor(...arguments);
+				},
+			},
+		},
+	};
+	const CircleArgs = function () {
+		const circle = getCircle(...arguments);
+		this.radius = circle.radius;
+		this.origin = Constructors.vector(...circle.origin);
+	};
+	const CircleGetters = {
+		x: function () { return this.origin[0]; },
+		y: function () { return this.origin[1]; },
+		z: function () { return this.origin[2]; },
+	};
+	const pointOnEllipse = function (cx, cy, rx, ry, zRotation, arcAngle) {
+		const cos_rotate = Math.cos(zRotation);
+		const sin_rotate = Math.sin(zRotation);
+		const cos_arc = Math.cos(arcAngle);
+		const sin_arc = Math.sin(arcAngle);
+		return [
+			cx + cos_rotate * rx * cos_arc + -sin_rotate * ry * sin_arc,
+			cy + sin_rotate * rx * cos_arc + cos_rotate * ry * sin_arc,
+		];
+	};
+	const pathInfo = function (cx, cy, rx, ry, zRotation, arcStart_, deltaArc_) {
+		let arcStart = arcStart_;
+		if (arcStart < 0 && !Number.isNaN(arcStart)) {
+			while (arcStart < 0) {
+				arcStart += Math.PI * 2;
+			}
+		}
+		const deltaArc = deltaArc_ > Math.PI * 2 ? Math.PI * 2 : deltaArc_;
+		const start = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart);
+		const middle = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc / 2);
+		const end = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc);
+		const fa = ((deltaArc / 2) > Math.PI) ? 1 : 0;
+		const fs = ((deltaArc / 2) > 0) ? 1 : 0;
+		return {
+			x1: start[0],
+			y1: start[1],
+			x2: middle[0],
+			y2: middle[1],
+			x3: end[0],
+			y3: end[1],
+			fa,
+			fs,
+		};
+	};
+	const cln = n => cleanNumber(n, 4);
+	const ellipticalArcTo = (rx, ry, phi_degrees, fa, fs, endX, endY) => (
+		`A${cln(rx)} ${cln(ry)} ${cln(phi_degrees)} ${cln(fa)} ${cln(fs)} ${cln(endX)} ${cln(endY)}`
+	);
+	const CircleMethods = {
+		nearestPoint: function () {
+			return Constructors.vector(nearestPointOnCircle(
+				this.radius,
+				this.origin,
+				getVector(arguments),
+			));
+		},
+		intersect: function (object) {
+			return intersect(this, object);
+		},
+		overlap: function (object) {
+			return overlap(this, object);
+		},
+		svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+			const info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
+			const arc1 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x2, info.y2);
+			const arc2 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x3, info.y3);
+			return `M${info.x1} ${info.y1}${arc1}${arc2}`;
+		},
+		points: function (count = 128) {
+			return Array.from(Array(count))
+				.map((_, i) => ((2 * Math.PI) / count) * i)
+				.map(angle => [
+					this.origin[0] + this.radius * Math.cos(angle),
+					this.origin[1] + this.radius * Math.sin(angle),
+				]);
+		},
+		polygon: function () {
+			return Constructors.polygon(this.points(arguments[0]));
+		},
+		segments: function () {
+			const points = this.points(arguments[0]);
+			return points.map((point, i) => {
+				const nextI = (i + 1) % points.length;
+				return [point, points[nextI]];
+			});
+		},
+	};
+	const CircleStatic = {
+		fromPoints: function () {
+			if (arguments.length === 3) {
+				const result = circumcircle(...arguments);
+				return this.constructor(result.radius, result.origin);
+			}
+			return this.constructor(...arguments);
+		},
+		fromThreePoints: function () {
+			const result = circumcircle(...arguments);
+			return this.constructor(result.radius, result.origin);
+		},
+	};
+	const Circle = {
+		circle: {
+			A: CircleArgs,
+			G: CircleGetters,
+			M: CircleMethods,
+			S: CircleStatic,
+		},
+	};
+	const getFoci = function (center, rx, ry, spin) {
+		const order = rx > ry;
+		const lsq = order ? (rx ** 2) - (ry ** 2) : (ry ** 2) - (rx ** 2);
+		const l = Math.sqrt(lsq);
+		const trigX = order ? Math.cos(spin) : Math.sin(spin);
+		const trigY = order ? Math.sin(spin) : Math.cos(spin);
+		return [
+			Constructors.vector(center[0] + l * trigX, center[1] + l * trigY),
+			Constructors.vector(center[0] - l * trigX, center[1] - l * trigY),
+		];
+	};
+	const Ellipse = {
+		ellipse: {
+			A: function () {
+				const numbers = flattenArrays(arguments).filter(a => !Number.isNaN(a));
+				const params = resize(5, numbers);
+				this.rx = params[0];
+				this.ry = params[1];
+				this.origin = Constructors.vector(params[2], params[3]);
+				this.spin = params[4];
+				this.foci = getFoci(this.origin, this.rx, this.ry, this.spin);
+			},
+			G: {
+				x: function () { return this.origin[0]; },
+				y: function () { return this.origin[1]; },
+			},
+			M: {
+				svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+					const info = pathInfo(
+						this.origin[0],
+						this.origin[1],
+						this.rx,
+						this.ry,
+						this.spin,
+						arcStart,
+						deltaArc,
+					);
+					const arc1 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI)
+						* 180, info.fa, info.fs, info.x2, info.y2);
+					const arc2 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI)
+						* 180, info.fa, info.fs, info.x3, info.y3);
+					return `M${info.x1} ${info.y1}${arc1}${arc2}`;
+				},
+				points: function (count = 128) {
+					return Array.from(Array(count))
+						.map((_, i) => ((2 * Math.PI) / count) * i)
+						.map(angle => pointOnEllipse(
+							this.origin.x,
+							this.origin.y,
+							this.rx,
+							this.ry,
+							this.spin,
+							angle,
+						));
+				},
+				polygon: function () {
+					return Constructors.polygon(this.points(arguments[0]));
+				},
+				segments: function () {
+					const points = this.points(arguments[0]);
+					return points.map((point, i) => {
+						const nextI = (i + 1) % points.length;
+						return [point, points[nextI]];
+					});
+				},
+			},
+			S: {
+			},
+		},
+	};
+	const PolygonMethods = {
+		area: function () {
+			return signedArea(this);
+		},
+		centroid: function () {
+			return Constructors.vector(centroid(this));
+		},
+		boundingBox: function () {
+			return boundingBox$1(this);
+		},
+		straightSkeleton: function () {
+			return straightSkeleton(this);
+		},
+		scale: function (magnitude, center = centroid(this)) {
+			const newPoints = this
+				.map(p => [0, 1].map((_, i) => p[i] - center[i]))
+				.map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
+			return this.constructor.fromPoints(newPoints);
+		},
+		rotate: function (angle, centerPoint = centroid(this)) {
+			const newPoints = this.map((p) => {
+				const vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
+				const mag = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+				const a = Math.atan2(vec[1], vec[0]);
+				return [
+					centerPoint[0] + Math.cos(a + angle) * mag,
+					centerPoint[1] + Math.sin(a + angle) * mag,
+				];
+			});
+			return Constructors.polygon(newPoints);
+		},
+		translate: function () {
+			const vec = getVector(...arguments);
+			const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
+			return this.constructor.fromPoints(newPoints);
+		},
+		transform: function () {
+			const m = getMatrix3x4(...arguments);
+			const newPoints = this
+				.map(p => multiplyMatrix3Vector3(m, resize(3, p)));
+			return Constructors.polygon(newPoints);
+		},
+		nearest: function () {
+			const point = getVector(...arguments);
+			const result = nearestPointOnPolygon(this, point);
+			return result === undefined
+				? undefined
+				: Object.assign(result, { edge: this.sides[result.i] });
+		},
+		split: function () {
+			const line = getLine$1(...arguments);
+			const split_func = splitConvexPolygon;
+			return split_func(this, line.vector, line.origin)
+				.map(poly => Constructors.polygon(poly));
+		},
+		overlap: function () {
+			return overlap(this, ...arguments);
+		},
+		intersect: function () {
+			return intersect(this, ...arguments);
+		},
+		clip: function (line_type, epsilon) {
+			const fn_line = line_type.domain_function ? line_type.domain_function : includeL;
+			const segment = clipLineConvexPolygon(
+				this,
+				line_type.vector,
+				line_type.origin,
+				this.domain_function,
+				fn_line,
+				epsilon,
+			);
+			return segment ? Constructors.segment(segment) : undefined;
+		},
+		svgPath: function () {
+			const pre = Array(this.length).fill("L");
+			pre[0] = "M";
+			return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}z`;
+		},
+	};
+	const rectToPoints = r => [
+		[r.x, r.y],
+		[r.x + r.width, r.y],
+		[r.x + r.width, r.y + r.height],
+		[r.x, r.y + r.height],
+	];
+	const rectToSides = r => [
+		[[r.x, r.y], [r.x + r.width, r.y]],
+		[[r.x + r.width, r.y], [r.x + r.width, r.y + r.height]],
+		[[r.x + r.width, r.y + r.height], [r.x, r.y + r.height]],
+		[[r.x, r.y + r.height], [r.x, r.y]],
+	];
+	const Rect = {
+		rect: {
+			P: Array.prototype,
+			A: function () {
+				const r = getRect(...arguments);
+				this.width = r.width;
+				this.height = r.height;
+				this.origin = Constructors.vector(r.x, r.y);
+				this.push(...rectToPoints(this));
+				Object.defineProperty(this, "domain_function", { writable: true, value: include });
+			},
+			G: {
+				x: function () { return this.origin[0]; },
+				y: function () { return this.origin[1]; },
+				center: function () {
+					return Constructors.vector(
+						this.origin[0] + this.width / 2,
+						this.origin[1] + this.height / 2,
+					);
+				},
+			},
+			M: Object.assign({}, PolygonMethods, {
+				inclusive: function () { this.domain_function = include; return this; },
+				exclusive: function () { this.domain_function = exclude; return this; },
+				area: function () { return this.width * this.height; },
+				segments: function () { return rectToSides(this); },
+				svgPath: function () {
+					return `M${this.origin.join(" ")}h${this.width}v${this.height}h${-this.width}Z`;
+				},
+			}),
+			S: {
+				fromPoints: function () {
+					const box = boundingBox$1(getVectorOfVectors(arguments));
+					return Constructors.rect(box.min[0], box.min[1], box.span[0], box.span[1]);
+				},
+			},
+		},
+	};
+	const Polygon = {
+		polygon: {
+			P: Array.prototype,
+			A: function () {
+				this.push(...semiFlattenArrays(arguments));
+				this.sides = this
+					.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+				this.vectors = this.sides.map(side => subtract(side[1], side[0]));
+				Object.defineProperty(this, "domain_function", { writable: true, value: include });
+			},
+			G: {
+				isConvex: function () {
+					return undefined;
+				},
+				points: function () {
+					return this;
+				},
+			},
+			M: Object.assign({}, PolygonMethods, {
+				inclusive: function () { this.domain_function = include; return this; },
+				exclusive: function () { this.domain_function = exclude; return this; },
+				segments: function () {
+					return this.sides;
+				},
+			}),
+			S: {
+				fromPoints: function () {
+					return this.constructor(...arguments);
+				},
+				regularPolygon: function () {
+					return this.constructor(makePolygonCircumradius(...arguments));
+				},
+				convexHull: function () {
+					return this.constructor(convexHull(...arguments));
+				},
+			},
+		},
+	};
+	const Polyline = {
+		polyline: {
+			P: Array.prototype,
+			A: function () {
+				this.push(...semiFlattenArrays(arguments));
+			},
+			G: {
+				points: function () {
+					return this;
+				},
+			},
+			M: {
+				svgPath: function () {
+					const pre = Array(this.length).fill("L");
+					pre[0] = "M";
+					return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}`;
+				},
+			},
+			S: {
+				fromPoints: function () {
+					return this.constructor(...arguments);
+				},
+			},
+		},
+	};
+	const array_assign = (thisMat, mat) => {
+		for (let i = 0; i < 12; i += 1) {
+			thisMat[i] = mat[i];
+		}
+		return thisMat;
+	};
+	const Matrix = {
+		matrix: {
+			P: Array.prototype,
+			A: function () {
+				getMatrix3x4(arguments).forEach(m => this.push(m));
+			},
+			G: {
+			},
+			M: {
+				copy: function () { return Constructors.matrix(...Array.from(this)); },
+				set: function () {
+					return array_assign(this, getMatrix3x4(arguments));
+				},
+				isIdentity: function () { return isIdentity3x4(this); },
+				multiply: function (mat) {
+					return array_assign(this, multiplyMatrices3(this, mat));
+				},
+				determinant: function () {
+					return determinant3(this);
+				},
+				inverse: function () {
+					return array_assign(this, invertMatrix3(this));
+				},
+				translate: function (x, y, z) {
+					return array_assign(
+						this,
+						multiplyMatrices3(this, makeMatrix3Translate(x, y, z)),
+					);
+				},
+				rotateX: function (radians) {
+					return array_assign(
+						this,
+						multiplyMatrices3(this, makeMatrix3RotateX(radians)),
+					);
+				},
+				rotateY: function (radians) {
+					return array_assign(
+						this,
+						multiplyMatrices3(this, makeMatrix3RotateY(radians)),
+					);
+				},
+				rotateZ: function (radians) {
+					return array_assign(
+						this,
+						multiplyMatrices3(this, makeMatrix3RotateZ(radians)),
+					);
+				},
+				rotate: function (radians, vector, origin) {
+					const transform = makeMatrix3Rotate(radians, vector, origin);
+					return array_assign(this, multiplyMatrices3(this, transform));
+				},
+				scale: function (...args) {
+					return array_assign(
+						this,
+						multiplyMatrices3(this, makeMatrix3Scale(...args)),
+					);
+				},
+				reflectZ: function (vector, origin) {
+					const transform = makeMatrix3ReflectZ(vector, origin);
+					return array_assign(this, multiplyMatrices3(this, transform));
+				},
+				transform: function (...innerArgs) {
+					return Constructors.vector(
+						multiplyMatrix3Vector3(this, resize(3, getVector(innerArgs))),
+					);
+				},
+				transformVector: function (vector) {
+					return Constructors.vector(
+						multiplyMatrix3Vector3(this, resize(3, getVector(vector))),
+					);
+				},
+				transformLine: function (...innerArgs) {
+					const l = getLine$1(innerArgs);
+					return Constructors.line(multiplyMatrix3Line3(this, l.vector, l.origin));
+				},
+			},
+			S: {},
+		},
+	};
+	const Definitions = Object.assign(
+		{},
+		Vector,
+		Line,
+		Ray,
+		Segment,
+		Circle,
+		Ellipse,
+		Rect,
+		Polygon,
+		Polyline,
+		Matrix,
+	);
+	const create = function (primitiveName, args) {
+		const a = Object.create(Definitions[primitiveName].proto);
+		Definitions[primitiveName].A.apply(a, args);
+		return a;
+	};
+	const vector = function () { return create("vector", arguments); };
+	const line = function () { return create("line", arguments); };
+	const ray = function () { return create("ray", arguments); };
+	const segment = function () { return create("segment", arguments); };
+	const circle = function () { return create("circle", arguments); };
+	const ellipse = function () { return create("ellipse", arguments); };
+	const rect = function () { return create("rect", arguments); };
+	const polygon = function () { return create("polygon", arguments); };
+	const polyline = function () { return create("polyline", arguments); };
+	const matrix = function () { return create("matrix", arguments); };
+	Object.assign(Constructors, {
+		vector,
+		line,
+		ray,
+		segment,
+		circle,
+		ellipse,
+		rect,
+		polygon,
+		polyline,
+		matrix,
+	});
+	Object.keys(Definitions).forEach(primitiveName => {
+		const Proto = {};
+		Proto.prototype = Definitions[primitiveName].P != null
+			? Object.create(Definitions[primitiveName].P)
+			: Object.create(Object.prototype);
+		Proto.prototype.constructor = Proto;
+		Constructors[primitiveName].prototype = Proto.prototype;
+		Constructors[primitiveName].prototype.constructor = Constructors[primitiveName];
+		Object.keys(Definitions[primitiveName].G)
+			.forEach(key => Object.defineProperty(Proto.prototype, key, {
+				get: Definitions[primitiveName].G[key],
+			}));
+		Object.keys(Definitions[primitiveName].M)
+			.forEach(key => Object.defineProperty(Proto.prototype, key, {
+				value: Definitions[primitiveName].M[key],
+			}));
+		Object.keys(Definitions[primitiveName].S)
+			.forEach(key => Object.defineProperty(Constructors[primitiveName], key, {
+				value: Definitions[primitiveName].S[key]
+					.bind(Constructors[primitiveName].prototype),
+			}));
+		Definitions[primitiveName].proto = Proto.prototype;
+	});
+	const math = Constructors;
+	Object.assign(math, {
+	  ...algebra,
+	  ...geometry,
+	  ...intersection,
+	  ...types,
+	});
 
 	const vertex_degree = function (v, i) {
 		const graph = this;
@@ -5562,7 +6474,6 @@
 			filterKeysWithPrefix(graph, c).forEach(key => { keys[key].prefix = c; });
 			filterKeysWithSuffix(graph, c).forEach(key => { keys[key].suffix = c; });
 		});
-		console.log("keys", keys);
 		const copy = { ...graph };
 		foldKeys.graph.forEach(key => delete copy[key]);
 		delete copy.file_frames;
@@ -5584,9 +6495,12 @@
 		return copy;
 	};
 	const subgraphWithFaces = (graph, faces) => {
-		const vertices = uniqueSortedNumbers(
-			faces.flatMap(f => graph.faces_vertices[f]),
-		);
+		let vertices = [];
+		if (graph.faces_vertices) {
+			vertices = uniqueSortedNumbers(
+				faces.flatMap(f => graph.faces_vertices[f]),
+			);
+		}
 		let edges = [];
 		if (graph.faces_edges) {
 			edges = uniqueSortedNumbers(
@@ -5601,12 +6515,11 @@
 					: undefined))
 				.filter(a => a !== undefined);
 		}
-		const indices = {
+		return subgraph(graph, {
 			faces,
 			edges,
 			vertices,
-		};
-		return subgraph(graph, indices);
+		});
 	};
 
 	var subgraphMethods = /*#__PURE__*/Object.freeze({
@@ -7660,12 +8573,28 @@
 		const sets_transformXY = newSets_originalSet.map(i => transforms[i]);
 		const sets_faces = coplanarOverlappingFaces.map(sets => sets.faces);
 		const faces_set = invertMap(sets_faces);
+		const faces_facesOverlapAll = faces_vertices.map(() => []);
+		sets_faces.forEach(set_faces => {
+			for (let i = 0; i < set_faces.length - 1; i += 1) {
+				for (let j = i + 1; j < set_faces.length; j += 1) {
+					const faces = [set_faces[i], set_faces[j]];
+					const polygons = faces.map(f => faces_polygon[f]);
+					const overlap = math
+						.overlapConvexPolygons(...polygons, epsilon);
+					if (overlap) {
+						faces_facesOverlapAll[faces[0]][faces[1]] = true;
+						faces_facesOverlapAll[faces[1]][faces[0]] = true;
+					}
+				}
+			}
+		});
 		return {
+			sets_faces,
 			sets_plane,
 			sets_transformXY,
 			faces_set,
 			faces_winding,
-			faces_facesOverlap: faces_facesOverlap
+			faces_facesOverlap: faces_facesOverlapAll
 				.map(overlap => overlap
 					.map((_, i) => i)
 					.filter(a => a !== undefined)),
@@ -7793,7 +8722,26 @@
 			? face_pairs
 			: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 	};
-	const makeTacosTortillas$1 = (graph, epsilon = math.EPSILON) => {
+	const makeCopyWithFlatEdges = (graph) => {
+		const copy = { ...graph };
+		const lookup = {};
+		copy.edges_foldAngle
+			.map(edgeFoldAngleIsFlat)
+			.map((flat, i) => (flat ? i : undefined))
+			.filter(a => a !== undefined)
+			.forEach(e => { lookup[e] = true; });
+		filterKeysWithPrefix(graph, "edges_").forEach(key => {
+			copy[key] = [];
+			graph[key].forEach((el, e) => {
+				if (lookup[e]) {
+					copy[key][e] = JSON.parse(JSON.stringify(el));
+				}
+			});
+		});
+		return copy;
+	};
+	const makeTacosTortillas$1 = (graphInput, epsilon = math.EPSILON) => {
+		const graph = makeCopyWithFlatEdges(graphInput);
 		const edges_faces_side = makeEdgesFacesSide$1(graph);
 		const edges_edgesParallelOverlap = makeEdgesEdgesParallelOverlap(graph, epsilon);
 		const tacos_edges = selfRelationalUniqueIndexPairs(edges_edgesParallelOverlap)
@@ -7849,13 +8797,9 @@
 	const makeTransitivityTrios$1 = (
 		graph,
 		faces_facesOverlap,
-		faces_winding,
 		epsilon = math.EPSILON,
 	) => {
 		const polygons = makeFacesPolygon(graph, epsilon);
-		polygons.forEach((face, i) => {
-			if (!faces_winding[i]) { face.reverse(); }
-		});
 		const matrix = graph.faces_vertices.map(() => []);
 		polygons.forEach((_, f1) => faces_facesOverlap[f1].forEach(f2 => {
 			if (f2 <= f1) { return; }
@@ -7952,121 +8896,18 @@
 		return solution;
 	};
 
-	const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
-		const r1 = a[0] < a[1] ? a : [a[1], a[0]];
-		const r2 = b[0] < b[1] ? b : [b[1], b[0]];
-		const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
-		return overlap > epsilon;
-	};
-	const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
-		const pairCoords = edgePair
-			.map(edge => graph.edges_vertices[edge]
-				.map(v => graph.vertices_coords[v]));
-		const pairCoordsDots = pairCoords
-			.map(edge => edge
-				.map(coord => math.dot(coord, vector)));
-		const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
-		return result;
-	};
-	const make3DTortillaEdges = (graph, overlapInfo, epsilon = 1e-6) => {
-		const edges_groups_lookup = graph.edges_vertices.map(() => ({}));
-		overlapInfo.faces_set
-			.forEach((set, face) => graph.faces_edges[face]
-				.forEach(edge => { edges_groups_lookup[edge][set] = true; }));
-		const edges_groups = edges_groups_lookup
-			.map(o => Object.keys(o)
-				.map(n => parseInt(n, 10)));
-		edges_groups.forEach((arr, i) => {
-			if (arr.length !== 2) { delete edges_groups[i]; }
-		});
-		edges_groups.forEach((arr, i) => {
-			if (arr[0] > arr[1]) { edges_groups[i].reverse(); }
-		});
-		const edges_groups_keys = edges_groups.map(arr => arr.join(" "));
-		const intersectingGroups_edges = {};
-		edges_groups_keys.forEach((key, i) => {
-			if (intersectingGroups_edges[key] === undefined) {
-				intersectingGroups_edges[key] = [];
-			}
-			intersectingGroups_edges[key].push(i);
-		});
-		Object.keys(intersectingGroups_edges)
-			.filter(key => intersectingGroups_edges[key].length < 2)
-			.forEach(key => delete intersectingGroups_edges[key]);
-		const intersectingGroups_pairsAll = {};
-		Object.keys(intersectingGroups_edges).forEach(key => {
-			intersectingGroups_pairsAll[key] = chooseTwoPairs(intersectingGroups_edges[key]);
-		});
-		const intersectingGroups_pairsValid = {};
-		Object.keys(intersectingGroups_pairsAll).forEach(key => {
-			const firstEdge = intersectingGroups_pairsAll[key][0][0];
-			const coords = graph.edges_vertices[firstEdge]
-				.map(v => graph.vertices_coords[v]);
-			const vector = math.normalize(math.subtract(coords[1], coords[0]));
-			intersectingGroups_pairsValid[key] = intersectingGroups_pairsAll[key]
-				.map(pair => doEdgesOverlap(graph, pair, vector, epsilon));
-		});
-		const intersectingGroups_pairs = {};
-		Object.keys(intersectingGroups_pairsAll).forEach(key => {
-			intersectingGroups_pairs[key] = intersectingGroups_pairsAll[key]
-				.filter((_, i) => intersectingGroups_pairsValid[key][i]);
-		});
-		return Object.keys(intersectingGroups_pairs)
-			.flatMap(key => intersectingGroups_pairs[key]);
-	};
-	const make3DTortillas = (graph, overlapInfo, epsilon = 1e-6) => {
-		const tortilla_edges = make3DTortillaEdges(graph, overlapInfo, epsilon);
-		const tortilla_faces = tortilla_edges
-			.map(pair => pair
-				.map(edge => graph.edges_faces[edge]));
-		tortilla_faces.forEach((tacos, i) => {
-			if (overlapInfo.faces_set[tacos[0][0]] !== overlapInfo.faces_set[tacos[1][0]]) {
-				tortilla_faces[i][1].reverse();
-			}
-		});
-		return tortilla_faces;
-	};
-
-	const graphGroupCopies = (graph, overlapInfo, sets_faces) => {
-		const copies = overlapInfo.sets_transformXY.map(() => ({ ...graph }));
-		filterKeysWithPrefix(graph, "vertices")
-			.forEach(key => copies.forEach(obj => delete obj[key]));
-		copies.forEach(obj => delete obj.edges_edges);
-		copies.forEach(obj => delete obj.edges_faces);
-		const faceKeys = filterKeysWithPrefix(graph, "faces");
-		copies.forEach((obj, i) => faceKeys.forEach(key => {
-			obj[key] = [];
-			sets_faces[i].forEach(f => { obj[key][f] = graph[key][f]; });
-		}));
+	const graphGroupCopies = (graph, sets_faces, sets_transform) => {
+		const transformTo2D = (matrix, point) => {
+			const p = math.multiplyMatrix4Vector3(matrix, point);
+			return [p[0], p[1]];
+		};
 		const vertices_coords_3d = graph.vertices_coords
 			.map(coord => math.resize(3, coord));
-		const groups_vertices_hash = sets_faces.map(() => ({}));
-		sets_faces
-			.forEach((faces, i) => faces
-				.forEach(face => graph.faces_vertices[face]
-					.forEach(v => { groups_vertices_hash[i][v] = true; })));
-		const groups_vertices = groups_vertices_hash
-			.map(obj => Object.keys(obj).map(n => parseInt(n, 10)));
-		copies.forEach(obj => { obj.vertices_coords = []; });
-		overlapInfo.sets_transformXY
-			.forEach((transform, i) => groups_vertices[i]
-				.forEach(v => {
-					const res = math.multiplyMatrix4Vector3(transform, vertices_coords_3d[v]);
-					copies[i].vertices_coords[v] = [res[0], res[1]];
-				}));
-		const groups_edges_hash = sets_faces.map(() => ({}));
-		sets_faces
-			.forEach((faces, i) => faces
-				.forEach(face => graph.faces_edges[face]
-					.forEach(e => { groups_edges_hash[i][e] = true; })));
-		const groups_edges = groups_edges_hash
-			.map(obj => Object.keys(obj).map(n => parseInt(n, 10)));
-		const edgeKeys = filterKeysWithPrefix(graph, "edges");
-		copies.forEach((obj, i) => edgeKeys.forEach(key => {
-			obj[key] = [];
-			groups_edges[i].forEach(e => { obj[key][e] = graph[key][e]; });
-		}));
-		copies.forEach(obj => { obj.edges_faces = makeEdgesFacesUnsorted(obj); });
+		const copies = sets_faces.map(faces => subgraphWithFaces(graph, faces));
+		sets_transform.forEach((matrix, i) => {
+			copies[i].vertices_coords = copies[i].vertices_coords
+				.map((_, v) => transformTo2D(matrix, vertices_coords_3d[v]));
+		});
 		return copies;
 	};
 	const prepare$1 = (graphInput, epsilon = 1e-6) => {
@@ -8074,19 +8915,36 @@
 		if (!graph.faces_edges) {
 			graph.faces_edges = makeFacesEdgesFromVertices(graph);
 		}
-		const overlapInfo = coplanarOverlappingFacesGroups(graph, epsilon);
-		const sets_faces = invertMap(overlapInfo.faces_set)
-			.map(el => (el.constructor === Array ? el : [el]));
-		const graphCopies = graphGroupCopies(graph, overlapInfo, sets_faces);
+		if (!graph.edges_faces) {
+			graph.edges_faces = makeEdgesFacesUnsorted(graph);
+		}
+		if (!graph.edges_foldAngle && graph.edges_assignment) {
+			graph.edges_foldAngle = makeEdgesFoldAngle(graph);
+		}
+		const {
+			sets_faces,
+			sets_transformXY,
+			faces_set,
+			faces_winding,
+			faces_facesOverlap,
+		} = coplanarOverlappingFacesGroups(graph, epsilon);
+		const graphCopies = graphGroupCopies(
+			graph,
+			sets_faces,
+			sets_transformXY,
+		);
 		const faces_polygon = [];
-		sets_faces
-			.map((faces, g) => faces
-				.map(face => graph.faces_vertices[face])
-				.map(vertices => vertices.map(v => graphCopies[g].vertices_coords[v]))
-				.forEach((polygon, f) => { faces_polygon[faces[f]] = polygon; }));
+		graphCopies
+			.map(copy => makeFacesPolygon(copy, epsilon))
+			.forEach(faces => faces
+				.forEach((polygon, f) => { faces_polygon[f] = polygon; }));
+		faces_winding
+			.map((upright, i) => (upright ? undefined : i))
+			.filter(a => a !== undefined)
+			.forEach(f => faces_polygon[f].reverse());
 		const faces_center = faces_polygon
 			.map(polygon => polygon
-				.reduce((a, b) => math.add(a, b), [0, 0])
+				.reduce((a, b) => math.add2(a, b), [0, 0])
 				.map(el => el / polygon.length));
 		graphCopies.forEach(el => {
 			el.faces_center = el.faces_vertices.map((_, i) => faces_center[i]);
@@ -8094,12 +8952,7 @@
 		const groups_tacos_tortillas = graphCopies
 			.map(el => makeTacosTortillas$1(el, epsilon));
 		const groups_unfiltered_trios = graphCopies
-			.map(el => makeTransitivityTrios$1(
-				el,
-				overlapInfo.faces_facesOverlap,
-				overlapInfo.faces_winding,
-				epsilon,
-			));
+			.map(el => makeTransitivityTrios$1(el, faces_facesOverlap, epsilon));
 		const groups_transitivity_trios = groups_unfiltered_trios
 			.map((trios, i) => filterTransitivity$1(trios, groups_tacos_tortillas[i]));
 		const groups_constraints = groups_tacos_tortillas
@@ -8107,33 +8960,16 @@
 				tacos_tortillas,
 				groups_transitivity_trios[i],
 			));
-		const facePairsInts = selfRelationalUniqueIndexPairs(overlapInfo.faces_facesOverlap);
+		const facePairsInts = selfRelationalUniqueIndexPairs(faces_facesOverlap);
 		const facePairs = facePairsInts.map(pair => pair.join(" "));
 		const facePairsIndex_group = facePairsInts
-			.map(pair => overlapInfo.faces_set[pair[0]]);
+			.map(pair => faces_set[pair[0]]);
 		const groups_facePairsIndex = invertMap(facePairsIndex_group)
 			.map(el => (el.constructor === Array ? el : [el]));
 		const groups_facePairsWithHoles = groups_facePairsIndex
 			.map(indices => indices.map(i => facePairs[i]));
 		const groups_facePairs = groups_constraints
 			.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
-		console.log("overlapInfo", overlapInfo);
-		console.log("graphCopies", graphCopies);
-		console.log("faces_polygon", faces_polygon);
-		console.log("faces_center", faces_center);
-		console.log("sets_faces", sets_faces);
-		console.log("groups_tacos_tortillas", groups_tacos_tortillas);
-		console.log("groups_unfiltered_trios", groups_unfiltered_trios);
-		console.log("groups_transitivity_trios", groups_transitivity_trios);
-		console.log("groups_constraints", groups_constraints);
-		console.log("facePairsInts", facePairsInts);
-		console.log("facePairs", facePairs);
-		console.log("facePairsIndex_group", facePairsIndex_group);
-		console.log("groups_facePairsIndex", groups_facePairsIndex);
-		console.log("groups_facePairs", groups_facePairsWithHoles);
-		if (!graph.edges_faces) {
-			graph.edges_faces = makeEdgesFacesUnsorted(graph);
-		}
 		const constraints = {
 			taco_taco: [],
 			taco_tortilla: [],
@@ -8146,24 +8982,15 @@
 			constraints.tortilla_tortilla.push(...group.tortilla_tortilla);
 			constraints.transitivity.push(...group.transitivity);
 		});
-		const tortillas3D = make3DTortillas(graph, overlapInfo, epsilon).map(el => [
-			...el[0], ...el[1],
-		]);
-		constraints.tortilla_tortilla.push(...tortillas3D);
 		const constraintsLookup = makeConstraintsLookup$1(constraints);
 		const facePairsFlat = groups_facePairs.flat();
-		const edgeAdjacentOrders = solveEdgeAdjacentFacePairs$1(graph, facePairs, overlapInfo.faces_winding);
-		console.log("constraints", constraints);
-		console.log("tortillas3D", tortillas3D);
-		console.log("constraintsLookup", constraintsLookup);
-		console.log("facePairsFlat", facePairsFlat);
-		console.log("edgeAdjacentOrders", edgeAdjacentOrders);
+		const edgeAdjacentOrders = solveEdgeAdjacentFacePairs$1(graph, facePairs, faces_winding);
 		return {
 			constraints,
 			constraintsLookup,
 			facePairs: facePairsFlat,
 			edgeAdjacentOrders,
-			faces_winding: overlapInfo.faces_winding,
+			faces_winding,
 		};
 	};
 

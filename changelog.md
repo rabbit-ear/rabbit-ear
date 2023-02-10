@@ -1,5 +1,7 @@
 # 0.9.33 alpha
 
+new method: `subgraph` and `subgraphWithFaces`, where *subgraphWithEdges* and *subgraphWithVertices* could be written in similar form.
+
 Methods renamed:
 
 - `getBoundingBox` -> `boundingBox`

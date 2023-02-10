@@ -36,9 +36,9 @@ const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
 /**
  *
  */
-const make3DTortillaEdges = (graph, overlapInfo, epsilon = 1e-6) => {
+const make3DTortillaEdges = (graph, faces_set, epsilon = 1e-6) => {
 	const edges_groups_lookup = graph.edges_vertices.map(() => ({}));
-	overlapInfo.faces_set
+	faces_set
 		.forEach((set, face) => graph.faces_edges[face]
 			.forEach(edge => { edges_groups_lookup[edge][set] = true; }));
 	// for every edge, which co-planar group does it appear in
@@ -109,8 +109,8 @@ const make3DTortillaEdges = (graph, overlapInfo, epsilon = 1e-6) => {
  * where two planes meet along collinear edges, these joining of two
  * planes creates a tortilla-tortilla relationship.
  */
-const make3DTortillas = (graph, overlapInfo, epsilon = 1e-6) => {
-	const tortilla_edges = make3DTortillaEdges(graph, overlapInfo, epsilon);
+const make3DTortillas = (graph, faces_set, epsilon = 1e-6) => {
+	const tortilla_edges = make3DTortillaEdges(graph, faces_set, epsilon);
 	const tortilla_faces = tortilla_edges
 		.map(pair => pair
 			.map(edge => graph.edges_faces[edge]));
@@ -119,7 +119,7 @@ const make3DTortillas = (graph, overlapInfo, epsilon = 1e-6) => {
 	// [[A,X], [B,Y]], A and B are connected faces, X and Y are connected
 	// and A and X are in the same plane, B and Y are in the same plane.
 	tortilla_faces.forEach((tacos, i) => {
-		if (overlapInfo.faces_set[tacos[0][0]] !== overlapInfo.faces_set[tacos[1][0]]) {
+		if (faces_set[tacos[0][0]] !== faces_set[tacos[1][0]]) {
 			tortilla_faces[i][1].reverse();
 		}
 	});

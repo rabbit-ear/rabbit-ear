@@ -9,7 +9,6 @@ import { makeFacesPolygon } from "../../graph/make.js";
  * intersection of all three faces.
  * @param {FOLD} graph a FOLD graph
  * @param {boolean[][]} faces_facesOverlap an overlap-relationship between every face
- * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} list of arrays containing three face indices.
  * @linkcode Origami ./src/layer/solver3d/makeTransitivityTrios.js 15
@@ -17,7 +16,6 @@ import { makeFacesPolygon } from "../../graph/make.js";
 const makeTransitivityTrios = (
 	graph,
 	faces_facesOverlap,
-	faces_winding,
 	epsilon = math.EPSILON,
 ) => {
 	// prepare a list of all faces in the graph as lists of vertices
@@ -33,9 +31,10 @@ const makeTransitivityTrios = (
 	// makeFacesWinding(graph).forEach((winding, i) => {
 	// 	if (!winding) { polygons[i].reverse(); }
 	// });
-	polygons.forEach((face, i) => {
-		if (!faces_winding[i]) { face.reverse(); }
-	});
+	// this is now happening in the prepare() method before this is called
+	// polygons.forEach((face, i) => {
+	// 	if (!faces_winding[i]) { face.reverse(); }
+	// });
 	const matrix = graph.faces_vertices.map(() => []);
 	polygons.forEach((_, f1) => faces_facesOverlap[f1].forEach(f2 => {
 		if (f2 <= f1) { return; }
