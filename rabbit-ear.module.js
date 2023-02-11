@@ -9156,7 +9156,7 @@ const prepare$1 = (graphInput, epsilon = 1e-6) => {
 		edges_sets,
 		epsilon,
 	);
-	const tt3dWindings = tacoTortillas3D
+	tacoTortillas3D
 		.map(el => [el.face, el.otherFace].map(f => faces_winding[f]));
 	const tt3dKeysOrdered = tacoTortillas3D
 		.map(el => el.face < el.otherFace);
@@ -9170,10 +9170,6 @@ const prepare$1 = (graphInput, epsilon = 1e-6) => {
 		.map(el => Math.sign(graph.edges_foldAngle[el.edge]))
 		.map(sign => signOrder[sign]);
 	console.log("tacoTortillas3D", tacoTortillas3D);
-	console.log("tt3dWindings", tt3dWindings);
-	console.log("tt3dKeysOrdered", tt3dKeysOrdered);
-	console.log("tt3dKeys", tt3dKeys);
-	console.log("tt3dOrders", tt3dOrders);
 	const constraints = {
 		taco_taco: [],
 		taco_tortilla: [],
