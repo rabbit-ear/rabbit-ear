@@ -6,7 +6,7 @@ This is a Javascript library for modeling origami.
 
 # overview
 
-This library assists the user in encoding, modifying, and rendering origami models. Origami models are encoded as [FOLD](https://github.com/edemaine/FOLD/) objects, which is a graph data structure format. Rabbit Ear contains methods for modifying FOLD graphs, a small math library, an SVG and WebGL rendering library, and various origami-specific calculations.
+This library assists in encoding, modifying, and rendering origami models. Origami models are encoded in [FOLD](https://github.com/edemaine/FOLD/) format, which is a mesh based data structure. Rabbit Ear contains methods for modifying FOLD graphs, a math library, an SVG and WebGL rendering library, and various methods for making origami-related calculations.
 
 # learn
 
@@ -42,7 +42,7 @@ https://robbykraft.github.io/Origami/rabbit-ear.module.js
 
 ### NPM 
 
-The [package on npmjs.org](https://www.npmjs.com/package/rabbit-ear) contains both UMD and ES6
+The package on [npm](https://www.npmjs.com/package/rabbit-ear) contains both UMD and ES6-module formats.
 
 ```bash
 npm install rabbit-ear

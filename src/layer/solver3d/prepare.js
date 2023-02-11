@@ -22,7 +22,30 @@ import {
 } from "./makeConstraints.js";
 import solveEdgeAdjacent from "./solveEdgeAdjacent.js";
 import make3DTortillas from "./make3DTortillas.js";
+import make3DTacoTortillas from "./make3DTacoTortillas.js";
 import { subgraphWithFaces } from "../../graph/subgraph.js";
+
+const getEdgesSetsInTwoPlanes = (graph, faces_set) => {
+	// find edges which are in two sets
+	const edges_sets_lookup = graph.edges_vertices.map(() => ({}));
+	faces_set
+		.forEach((set, face) => graph.faces_edges[face]
+			.forEach(edge => { edges_sets_lookup[edge][set] = true; }));
+	// for every edge, which co-planar group does it appear in
+	const edges_sets = edges_sets_lookup
+		.map(o => Object.keys(o)
+			.map(n => parseInt(n, 10)));
+	// if an edge only appears in one group, delete the entry from the array
+	// this will create an array with holes, maintaining edge's indices.
+	edges_sets.forEach((arr, i) => {
+		if (arr.length !== 2) { delete edges_sets[i]; }
+	});
+	// ensure entries in edges_sets are sorted
+	edges_sets.forEach((arr, i) => {
+		if (arr[0] > arr[1]) { edges_sets[i].reverse(); }
+	});
+	return edges_sets;
+};
 
 /**
  * todo: bad code. n^2
@@ -80,6 +103,9 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	if (!graph.edges_faces) {
 		graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	}
+	// edges_foldAngle needs to be present so we can ignore foldAngles
+	// which are not flat when doing taco/tortilla things. if we need to
+	// build it here, all of them are flat, but we need the array to exist
 	if (!graph.edges_foldAngle && graph.edges_assignment) {
 		graph.edges_foldAngle = makeEdgesFoldAngle(graph);
 	}
@@ -132,30 +158,76 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		faces_polygon,
 		epsilon,
 	);
-	// the graphs are all prepared, now uncover taco/tortilla information
-	const groups_tacos_tortillas = graphCopies
+	// now that we have all faces separated into coplanar-overlapping sets,
+	// run the 2D taco/tortilla algorithms on each set individually,
+	// until we get to make3DTortillas, which will work across coplanar sets
+	const sets_tacos_tortillas = graphCopies
 		.map(el => makeTacosTortillas(el, epsilon));
-	const groups_unfiltered_trios = graphCopies
+	const sets_unfiltered_trios = graphCopies
 		.map(el => makeTransitivityTrios(el, faces_facesOverlap, epsilon));
-	const groups_transitivity_trios = groups_unfiltered_trios
-		.map((trios, i) => filterTransitivity(trios, groups_tacos_tortillas[i]));
-	const groups_constraints = groups_tacos_tortillas
+	const sets_transitivity_trios = sets_unfiltered_trios
+		.map((trios, i) => filterTransitivity(trios, sets_tacos_tortillas[i]));
+	const sets_constraints = sets_tacos_tortillas
 		.map((tacos_tortillas, i) => makeConstraints(
 			tacos_tortillas,
-			groups_transitivity_trios[i],
+			sets_transitivity_trios[i],
 		));
 	const facePairsInts = selfRelationalUniqueIndexPairs(faces_facesOverlap);
 	const facePairs = facePairsInts.map(pair => pair.join(" "));
-	// const groups_edgeAdjacentOrders = graphCopies
+	// const sets_edgeAdjacentOrders = graphCopies
 	// 	.map(el => solveEdgeAdjacent(el, facePairs, overlapInfo.faces_winding));
 	const facePairsIndex_group = facePairsInts
 		.map(pair => faces_set[pair[0]]);
-	const groups_facePairsIndex = invertMap(facePairsIndex_group)
+	const sets_facePairsIndex = invertMap(facePairsIndex_group)
 		.map(el => (el.constructor === Array ? el : [el]));
-	const groups_facePairsWithHoles = groups_facePairsIndex
+	const sets_facePairsWithHoles = sets_facePairsIndex
 		.map(indices => indices.map(i => facePairs[i]));
-	const groups_facePairs = groups_constraints
-		.map((_, i) => (groups_facePairsWithHoles[i] ? groups_facePairsWithHoles[i] : []));
+	const sets_facePairs = sets_constraints
+		.map((_, i) => (sets_facePairsWithHoles[i] ? sets_facePairsWithHoles[i] : []));
+	// for each edge, which set(s) is it a member of, this method
+	// only finds those which are in two sets, as the ones in one
+	// set only is not interesting to us
+	const edges_sets = getEdgesSetsInTwoPlanes(graph, faces_set);
+
+	const tortillas3D = make3DTortillas(graph, faces_set, edges_sets, epsilon)
+		.map(el => [
+			// el[0][0], el[1][0], el[0][1], el[1][1],
+			...el[0], ...el[1],
+		]);
+	const tacoTortillas3D = make3DTacoTortillas(
+		graph,
+		sets_facePairs,
+		sets_transformXY,
+		faces_set,
+		faces_polygon,
+		edges_sets,
+		epsilon,
+	);
+	const tt3dWindings = tacoTortillas3D
+		.map(el => [el.face, el.otherFace].map(f => faces_winding[f]));
+	const tt3dKeysOrdered = tacoTortillas3D
+		.map(el => el.face < el.otherFace);
+	const tt3dKeys = tacoTortillas3D
+		.map((el, i) => (tt3dKeysOrdered[i]
+			? [el.face, el.otherFace]
+			: [el.otherFace, el.face]))
+		.map(pair => pair.join(" "));
+	const signOrder = { "-1": 2, 1: 1, 0: 0 };
+	const tt3dOrders = tacoTortillas3D
+		.map(el => Math.sign(graph.edges_foldAngle[el.edge]))
+		// .map((sign, i) => {
+		// 	// needs some complicated thing here
+		// 	const flip = (tt3dKeysOrdered[i] ? tt3dWindings[i][0] : tt3dWindings[i][1]);
+		// 	return flip ? -1 * sign : sign;
+		// })
+		.map(sign => signOrder[sign]);
+
+	console.log("tacoTortillas3D", tacoTortillas3D);
+	// console.log("tt3dWindings", tt3dWindings);
+	// console.log("tt3dKeysOrdered", tt3dKeysOrdered);
+	// console.log("tt3dKeys", tt3dKeys);
+	// console.log("tt3dOrders", tt3dOrders);
+
 	// console.log("sets_transformXY", sets_transformXY);
 	// console.log("faces_set", faces_set);
 	// console.log("sets_faces", sets_faces);
@@ -164,49 +236,45 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	// console.log("graphCopies", graphCopies);
 	// console.log("faces_polygon", faces_polygon);
 	// console.log("faces_center", faces_center);
-	// console.log("groups_tacos_tortillas", groups_tacos_tortillas);
-	// console.log("groups_unfiltered_trios", groups_unfiltered_trios);
-	// console.log("groups_transitivity_trios", groups_transitivity_trios);
-	// console.log("groups_constraints", groups_constraints);
-	// // console.log("groups_constraintsLookup", groups_constraintsLookup);
+	// console.log("sets_tacos_tortillas", sets_tacos_tortillas);
+	// console.log("sets_unfiltered_trios", sets_unfiltered_trios);
+	// console.log("sets_transitivity_trios", sets_transitivity_trios);
+	// console.log("sets_constraints", sets_constraints);
+	// // console.log("sets_constraintsLookup", sets_constraintsLookup);
 	// console.log("facePairsInts", facePairsInts);
 	// console.log("facePairs", facePairs);
-	// // console.log("groups_edgeAdjacentOrders", groups_edgeAdjacentOrders);
+	// // console.log("sets_edgeAdjacentOrders", sets_edgeAdjacentOrders);
 	// console.log("facePairsIndex_group", facePairsIndex_group);
-	// console.log("groups_facePairsIndex", groups_facePairsIndex);
-	// console.log("groups_facePairs", groups_facePairsWithHoles);
+	// console.log("sets_facePairsIndex", sets_facePairsIndex);
+	// console.log("sets_facePairs", sets_facePairsWithHoles);
+	// console.log("edges_sets", edges_sets);
+	// console.log("tortillas3D", tortillas3D);
+	// console.log("tacoTortillas3D", tacoTortillas3D);
 	// now we join all the data from the separate groups together.
-	// make sure edges_faces is added here, not any sooner
-	// hmmmmm..... lets try to remove this and see what happens.
-	// if (!graph.edges_faces) {
-	// 	graph.edges_faces = makeEdgesFacesUnsorted(graph);
-	// }
 	const constraints = {
 		taco_taco: [],
 		taco_tortilla: [],
 		tortilla_tortilla: [],
 		transitivity: [],
 	};
-	groups_constraints.forEach(group => {
+	sets_constraints.forEach(group => {
 		constraints.taco_taco.push(...group.taco_taco);
 		constraints.taco_tortilla.push(...group.taco_tortilla);
 		constraints.tortilla_tortilla.push(...group.tortilla_tortilla);
 		constraints.transitivity.push(...group.transitivity);
 	});
-	// const tortillas3D = make3DTortillas(graph, faces_set, epsilon).map(el => [
-	// 	// el[0][0], el[1][0], el[0][1], el[1][1],
-	// 	...el[0], ...el[1],
-	// ]);
-	// constraints.tortilla_tortilla.push(...tortillas3D);
+	constraints.tortilla_tortilla.push(...tortillas3D);
 	const constraintsLookup = makeConstraintsLookup(constraints);
-	const facePairsFlat = groups_facePairs.flat();
+	const facePairsFlat = sets_facePairs.flat();
 	const edgeAdjacentOrders = solveEdgeAdjacent(graph, facePairs, faces_winding);
-	// // const edgeAdjacentOrders = {};
-	// console.log("constraints", constraints);
-	// console.log("tortillas3D", tortillas3D);
-	// console.log("constraintsLookup", constraintsLookup);
-	// console.log("facePairsFlat", facePairsFlat);
-	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
+	// const edgeAdjacentOrders = {};
+	console.log("constraints", constraints);
+	console.log("constraintsLookup", constraintsLookup);
+	console.log("facePairsFlat", facePairsFlat);
+	console.log("edgeAdjacentOrders", edgeAdjacentOrders);
+
+	tt3dKeys.forEach((key, i) => { edgeAdjacentOrders[key] = tt3dOrders[i]; });
+
 	return {
 		constraints,
 		constraintsLookup,
@@ -215,10 +283,10 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 		faces_winding,
 	};
 	// return {
-	// 	groups_constraints,
-	// 	groups_constraintsLookup,
-	// 	groups_facePairs,
-	// 	groups_edgeAdjacentOrders,
+	// 	sets_constraints,
+	// 	sets_constraintsLookup,
+	// 	sets_facePairs,
+	// 	sets_edgeAdjacentOrders,
 	// 	faces_winding,
 	// };
 };
