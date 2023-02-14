@@ -1,8 +1,10 @@
 #version 300 es
-precision mediump float;
-// precision highp float;
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+  precision highp float;
+#else
+  precision mediump float;
+#endif
 
-// flat in vec4 blend_color;
 in vec3 blend_color;
 out vec4 outColor;
  

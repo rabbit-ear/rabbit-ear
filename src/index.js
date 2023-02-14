@@ -20,7 +20,7 @@ import root from "./root.js";
 // object-oriented style object constructors
 import Constructors from "./classes/index.js";
 // top level things
-import math from "./math.js";
+import math from "./math/index.js";
 import diagram from "./diagrams/index.js";
 import layer from "./layer/index.js";
 import singleVertex from "./singleVertex/index.js";

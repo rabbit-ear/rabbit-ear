@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
+import { counterClockwiseSectors2 } from "../math/geometry/radial.js";
 import {
 	makeVerticesVertices,
 	makeVerticesEdgesUnsorted,
@@ -73,7 +74,7 @@ export const validateKawasaki = ({
 	edges_vertices,
 	edges_assignment,
 	edges_vector,
-}, epsilon = math.EPSILON) => {
+}, epsilon = EPSILON) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
@@ -83,7 +84,7 @@ export const validateKawasaki = ({
 		.map((vectors, v) => vectors
 			.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
 		.map(vectors => (vectors.length > 1
-			? math.counterClockwiseSectors2(vectors)
+			? counterClockwiseSectors2(vectors)
 			: [0, 0]))
 		.map(sectors => alternatingSum(sectors))
 		.map(pair => Math.abs(pair[0] - pair[1]) < epsilon);

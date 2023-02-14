@@ -1,36 +1,45 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import {
+	include,
+	includeS,
+	exclude,
+	excludeS,
+} from "../../math/general/functions.js";
+import { subtract2 } from "../../math/algebra/vectors.js";
+import { multiplyMatrix4Vector3 } from "../../math/algebra/matrix4.js";
+import overlapConvexPolygonPoint from "../../math/intersect/overlapPolygonPoint.js";
+import intersectConvexPolygonLine from "../../math/intersect/intersectPolygonLine.js";
+import clipLineConvexPolygon from "../../math/intersect/clipLinePolygon.js";
 import { edgeFoldAngleIsFlat } from "../../fold/spec.js";
 /**
  *
  */
-const segmentPolygonOverlap2Inclusive = (segment, polygon, epsilon) => math
-	.clipLineConvexPolygon(
+const segmentPolygonOverlap2Inclusive = (segment, polygon, epsilon) => (
+	clipLineConvexPolygon(
 		polygon,
-		math.subtract2(segment[1], segment[0]),
-		segment[0],
-		math.include, // fnPoly
-		math.includeS, // fnLine
+		{ vector: subtract2(segment[1], segment[0]), origin: segment[0] },
+		include, // fnPoly
+		includeS, // fnLine
 		epsilon,
-	) !== undefined;
+	) !== undefined
+);
 
 const segmentPolygonOverlap2Exclusive = (segment, polygon, epsilon) => {
 	const point_in_poly = segment
-		.map(point => math.overlapConvexPolygonPoint(
+		.map(point => overlapConvexPolygonPoint(
 			polygon,
 			point,
-			math.exclude,
+			exclude,
 			epsilon,
 		)).reduce((a, b) => a || b, false);
 	if (point_in_poly) { return true; }
-	const edge_intersect = math.intersectConvexPolygonLine(
+	const edge_intersect = intersectConvexPolygonLine(
 		polygon,
-		math.subtract2(segment[1], segment[0]),
-		segment[0],
-		math.excludeS,
-		math.excludeS,
+		{ vector: subtract2(segment[1], segment[0]), origin: segment[0] },
+		excludeS,
+		excludeS,
 		epsilon,
 	);
 	if (edge_intersect) { return true; }
@@ -54,10 +63,11 @@ const make3DTacoTortillas = (
 	const sets_face_pairs = sets_facePairs
 		.map(set => set
 			.map(pair => pair.split(" ").map(n => parseInt(n, 10))));
-	const sets_faces = sets_face_pairs
+	const sets_facesSet = sets_face_pairs
 		.map(pairs => pairs
 			.flat()
 			.sort((a, b) => a - b));
+	const sets_faces = sets_facesSet.map(faces => [...new Set(faces)]);
 	const edges_facesLookup = graph.edges_faces
 		.map(faces => {
 			const lookup = {};
@@ -85,19 +95,11 @@ const make3DTacoTortillas = (
 	const edges_segment3D = edges_possibleOverlapFaces
 		.map((_, e) => graph.edges_vertices[e]
 			.map(v => graph.vertices_coords[v]));
-	const edges_transform = edges_possibleOverlapFaces
-		.map((_, i) => sets_transformXY[edges_sets[i][0]]);
-	const edges_segment2D = edges_segment3D
-		.map((seg, e) => seg.map(point => math.multiplyMatrix4Vector3(
-			edges_transform[e],
-			point,
-		)))
-		.map(seg => seg.map(p => [p[0], p[1]]));
 	const edgeFaceOverlapBoolean = edges_possibleOverlapFaces
 		.map((faces, edge) => faces
 			.map(face => segmentPolygonOverlap2Exclusive(
 				edges_segment3D[edge]
-					.map(point => math.multiplyMatrix4Vector3(
+					.map(point => multiplyMatrix4Vector3(
 						sets_transformXY[faces_set[face]],
 						point,
 					)),
@@ -126,17 +128,17 @@ const make3DTacoTortillas = (
 				})
 				: undefined))
 			.filter(a => a !== undefined));
-	// console.log("make3DTacoTortillas");
-	// console.log("sets_facePairs", sets_facePairs);
-	// console.log("edges_sets", edges_sets);
-	// console.log("sets_face_pairs", sets_face_pairs);
-	// console.log("sets_faces", sets_faces);
-	// console.log("edges_possibleOverlapFaces", edges_possibleOverlapFaces);
-	// console.log("edges_possibleOverlapOtherFaces", edges_possibleOverlapOtherFaces);
-	// console.log("edges_segment3D", edges_segment3D);
+	console.log("make3DTacoTortillas");
+	console.log("sets_facePairs", sets_facePairs);
+	console.log("edges_sets", edges_sets);
+	console.log("sets_face_pairs", sets_face_pairs);
+	console.log("sets_faces", sets_faces);
+	console.log("edges_possibleOverlapFaces", edges_possibleOverlapFaces);
+	console.log("edges_possibleOverlapOtherFaces", edges_possibleOverlapOtherFaces);
+	console.log("edges_segment3D", edges_segment3D);
 	// console.log("edges_transform", edges_transform);
 	// console.log("edges_segment2D", edges_segment2D);
-	// console.log("results", results);
+	console.log("results", results);
 	return results;
 };
 

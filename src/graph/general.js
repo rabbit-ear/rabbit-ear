@@ -4,7 +4,7 @@
 /**
  * do not include these in the export of graph
  */
-import Messages from "../environment/messages.json";
+import Messages from "../environment/messages.js";
 
 export const getOppositeVertices = ({ edges_vertices }, vertex, edges) => {
 	edges.forEach(edge => {

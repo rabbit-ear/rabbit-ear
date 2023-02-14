@@ -1,20 +1,23 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../../math.js";
+import {
+	cross2,
+	subtract2,
+} from "../../../math/algebra/vectors.js";
 
 export const makeEdgesFacesSide = (graph, faces_center) => {
 	const edges_origin = graph.edges_vertices
 		.map(vertices => graph.vertices_coords[vertices[0]]);
 	const edges_vector = graph.edges_vertices
-		.map(vertices => math.subtract2(
+		.map(vertices => subtract2(
 			graph.vertices_coords[vertices[1]],
 			graph.vertices_coords[vertices[0]],
 		));
 	return graph.edges_faces
 		.map((faces, i) => faces
-			.map(face => math.cross2(
-				math.subtract2(
+			.map(face => cross2(
+				subtract2(
 					faces_center[face],
 					edges_origin[i],
 				),
@@ -39,7 +42,7 @@ export const makeTacosFacesSide = (graph, faces_center, tacos_edges, tacos_faces
 	const tacos_edge_origin = tacos_edge_coords
 		.map(coords => coords[0]);
 	const tacos_edge_vector = tacos_edge_coords
-		.map(coords => math.subtract2(coords[1], coords[0]));
+		.map(coords => subtract2(coords[1], coords[0]));
 
 	const tacos_faces_center = tacos_faces
 		.map(faces => faces
@@ -49,8 +52,8 @@ export const makeTacosFacesSide = (graph, faces_center, tacos_edges, tacos_faces
 	return tacos_faces_center
 		.map((faces, i) => faces
 			.map(pairs => pairs
-				.map(center => math.cross2(
-					math.subtract2(
+				.map(center => cross2(
+					subtract2(
 						center,
 						tacos_edge_origin[i],
 					),

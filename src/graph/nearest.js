@@ -1,7 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import {
+	subtract,
+	distance,
+	resize,
+} from "../math/algebra/vectors.js";
+import { nearestPointOnLine } from "../math/geometry/nearest.js";
+import { smallestComparisonSearch } from "../math/general/search.js";
+import { getVector } from "../math/general/types.js";
+import { clampSegment } from "../math/general/functions.js";
+import overlapConvexPolygonPoint from "../math/intersect/overlapPolygonPoint.js";
 import {
 	singularize,
 	filterKeysWithPrefix,
@@ -19,10 +28,10 @@ import { makeFacesConvexCenter } from "./make.js";
 export const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
 	// resize our point to be the same dimension as the first vertex
-	const p = math.resize(vertices_coords[0].length, point);
+	const p = resize(vertices_coords[0].length, point);
 	// sort by distance, hold onto the original index in vertices_coords
 	const nearest = vertices_coords
-		.map((v, i) => ({ d: math.distance(p, v), i }))
+		.map((v, i) => ({ d: distance(p, v), i }))
 		.sort((a, b) => a.d - b.d)
 		.shift();
 	// return index, not vertex
@@ -40,13 +49,12 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
 	const nearest_points = edges_vertices
 		.map(e => e.map(ev => vertices_coords[ev]))
-		.map(e => math.nearestPointOnLine(
-			math.subtract(e[1], e[0]),
-			e[0],
+		.map(e => nearestPointOnLine(
+			{ vector: subtract(e[1], e[0]), origin: e[0] },
 			point,
-			math.segmentLimiter,
+			clampSegment,
 		));
-	return math.smallestComparisonSearch(point, nearest_points, math.distance);
+	return smallestComparisonSearch(nearest_points, point, distance);
 };
 /**
  * @description Iterate through all faces in a graph and find one that encloses a point.
@@ -60,7 +68,7 @@ export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) 
 	if (!vertices_coords || !faces_vertices) { return undefined; }
 	const face = faces_vertices
 		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-		.filter(f => math.overlapConvexPolygonPoint(f.face, point))
+		.filter(f => overlapConvexPolygonPoint(f.face, point))
 		.shift();
 	return (face === undefined ? undefined : face.i);
 };
@@ -86,7 +94,7 @@ export const nearestFace = (graph, point) => {
 				faces_vertices: faces.map(f => graph.faces_vertices[f]),
 			});
 			const distances = faces_center
-				.map(center => math.distance(center, point));
+				.map(center => distance(center, point));
 			let shortest = 0;
 			for (let i = 0; i < distances.length; i += 1) {
 				if (distances[i] < distances[shortest]) { shortest = i; }
@@ -111,7 +119,7 @@ export const nearest = (graph, ...args) => {
 		edges: nearestEdge,
 		faces: nearestFace,
 	};
-	const point = math.getVector(...args);
+	const point = getVector(...args);
 	const nears = Object.create(null);
 	["vertices", "edges", "faces"].forEach(key => {
 		Object.defineProperty(nears, singularize[key], {
@@ -135,7 +143,7 @@ export const nearest = (graph, ...args) => {
 // 		edges: nearestEdge,
 // 		faces: nearestFace,
 // 	};
-// 	const point = math.getVector(...args);
+// 	const point = getVector(...args);
 // 	const nears = Object.create(null);
 // 	const cache = {};
 // 	["vertices", "edges", "faces"].forEach(key => {

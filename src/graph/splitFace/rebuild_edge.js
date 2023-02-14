@@ -1,7 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import {
+	distance,
+	subtract,
+} from "../../math/algebra/vectors.js";
 /**
  * @description given two vertices and incident faces, create all new
  * "edges_" entries to describe a new edge that sits between the params.
@@ -23,8 +26,8 @@ const make_edge = ({ vertices_coords }, vertices, face) => {
 		edges_vertices: [...vertices],
 		edges_foldAngle: 0,
 		edges_assignment: "U",
-		edges_length: math.distance2(...new_edge_coords),
-		edges_vector: math.subtract(...new_edge_coords),
+		edges_length: distance(...new_edge_coords),
+		edges_vector: subtract(...new_edge_coords),
 		edges_faces: [face, face],
 	};
 };

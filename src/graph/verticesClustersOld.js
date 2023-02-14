@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
 /**
  * density-based spatial clustering of applications with noise (DBSCAN)
  * cluster vertices near each other with an epsilon
@@ -9,7 +9,7 @@ import math from "../math.js";
 /**
  * because epsilons are usually very tiny, this uses a square bounding box
  */
-const are_vertices_equivalent = (a, b, epsilon = math.EPSILON) => {
+const are_vertices_equivalent = (a, b, epsilon = EPSILON) => {
 	const degree = a.length;
 	for (let i = 0; i < degree; i += 1) {
 		if (Math.abs(a[i] - b[i]) > epsilon) {
@@ -30,7 +30,7 @@ const are_vertices_equivalent = (a, b, epsilon = math.EPSILON) => {
  * clusters: [ [0, 5], [1], [3], [2, 4]]
  * @linkcode Origami ./src/graph/verticesClustersOld.js 31
  */
-const getVerticesClusters = ({ vertices_coords }, epsilon = math.EPSILON) => {
+const getVerticesClusters = ({ vertices_coords }, epsilon = EPSILON) => {
 	// equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices
 	// only top triangle is used
 	//             j  j  j

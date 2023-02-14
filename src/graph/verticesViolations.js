@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
+import { average } from "../math/algebra/vectors.js";
 import verticesClusters from "./verticesClusters.js";
 import * as S from "../general/strings.js";
 import remove from "./remove.js";
@@ -114,7 +115,7 @@ export const removeIsolatedVertices = (graph, remove_indices) => {
 };
 
 // todo
-// export const remove_collinear_vertices = (graph, epsilon = math.EPSILON) => {
+// export const remove_collinear_vertices = (graph, epsilon = EPSILON) => {
 // };
 
 /**
@@ -127,7 +128,7 @@ export const removeIsolatedVertices = (graph, remove_indices) => {
  * @returns {object} summary of changes
  * @linkcode Origami ./src/graph/verticesViolations.js 128
  */
-export const removeDuplicateVertices = (graph, epsilon = math.EPSILON) => {
+export const removeDuplicateVertices = (graph, epsilon = EPSILON) => {
 	// replaces array will be [index:value] index is the element to delete,
 	// value is the index this element will be replaced by.
 	const replace_indices = [];
@@ -152,7 +153,7 @@ export const removeDuplicateVertices = (graph, epsilon = math.EPSILON) => {
 	// set the vertex at the index[0] (the index to keep) to the new point.
 	clusters
 		.map(arr => arr.map(i => graph.vertices_coords[i]))
-		.map(arr => math.average(...arr))
+		.map(arr => average(...arr))
 		.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
 	return {
 		map: replace(graph, S._vertices, replace_indices),

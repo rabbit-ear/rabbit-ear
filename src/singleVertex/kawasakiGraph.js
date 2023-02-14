@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { counterClockwiseOrder2 } from "../math/geometry/radial.js";
 import { kawasakiSolutionsVectors } from "./kawasakiMath.js";
 import {
 	makeEdgesVector,
@@ -30,7 +30,7 @@ export const kawasakiSolutions = ({ vertices_coords, vertices_edges, edges_verti
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const vectors = vertices_edges[vertex].map(i => edges_vectors[i]);
-	const sortedVectors = math.counterClockwiseOrder2(vectors)
+	const sortedVectors = counterClockwiseOrder2(vectors)
 		.map(i => vectors[i]);
 	return kawasakiSolutionsVectors(sortedVectors);
 };

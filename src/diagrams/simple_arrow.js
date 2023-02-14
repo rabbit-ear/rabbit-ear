@@ -1,40 +1,56 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import {
+	exclude,
+	includeL,
+} from "../math/general/functions.js";
+import { boundingBox } from "../math/geometry/polygons.js";
+import {
+	dot,
+	magnitude,
+	scale,
+	normalize,
+	add,
+	subtract,
+	distance,
+	midpoint,
+	flip,
+	rotate90,
+} from "../math/algebra/vectors.js";
+import { convexHull } from "../math/geometry/convexHull.js";
+import clipLineConvexPolygon from "../math/intersect/clipLinePolygon.js";
 
-const boundary_for_arrows = ({ vertices_coords }) => math
-	.convexHull(vertices_coords);
+const boundary_for_arrows = ({ vertices_coords }) => (
+	convexHull(vertices_coords)
+);
 
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {
-		const foldSegment = math.clipLineConvexPolygon(
+		const foldSegment = clipLineConvexPolygon(
 			polygon,
-			foldLine.vector,
-			foldLine.origin,
-			math.exclude,
-			math.includeL,
+			foldLine,
+			exclude,
+			includeL,
 		);
-		if (foldSegment === undefined) { return; }
-		point = math.midpoint(...foldSegment);
+		if (foldSegment === undefined) { return undefined; }
+		point = midpoint(...foldSegment);
 	}
-	const perpVector = math.rotate90(foldLine.vector);
-	const smallest = math
-		.clipLineConvexPolygon(
-			polygon,
-			perpVector,
-			point,
-			math.exclude,
-			math.includeL,
-		)
-		.map(pt => math.distance(point, pt))
+	const perpVector = rotate90(foldLine.vector);
+	const smallest = clipLineConvexPolygon(
+		polygon,
+		{ vector: perpVector, origin: point },
+		exclude,
+		includeL,
+	)
+		.map(pt => distance(point, pt))
 		.sort((a, b) => a - b)
 		.shift();
-	const scaled = math.scale(math.normalize(perpVector), smallest);
-	return math.segment(
-		math.add(point, math.flip(scaled)),
-		math.add(point, scaled)
-	);
+	const scaled = scale(normalize(perpVector), smallest);
+	return [
+		add(point, flip(scaled)),
+		add(point, scaled),
+	];
 };
 /**
  * @description given an origami model and a fold line, without knowing
@@ -47,12 +63,12 @@ const widest_perpendicular = (polygon, foldLine, point) => {
  */
 const simpleArrow = (graph, line) => {
 	const hull = boundary_for_arrows(graph);
-	const box = math.boundingBox(hull);
+	const box = boundingBox(hull);
 	const segment = widest_perpendicular(hull, line);
 	if (segment === undefined) { return undefined; }
-	const vector = math.subtract(segment[1], segment[0]);
-	const length = math.magnitude(vector);
-	const direction = math.dot(vector, [1, 0]);
+	const vector = subtract(segment[1], segment[0]);
+	const length = magnitude(vector);
+	const direction = dot(vector, [1, 0]);
 	const vmin = box.span[0] < box.span[1] ? box.span[0] : box.span[1];
 
 	segment.head = {

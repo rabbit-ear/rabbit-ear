@@ -1,12 +1,12 @@
 const { test, expect } = require("@jest/globals");
 const xmldom = require("@xmldom/xmldom");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 ear.window = xmldom;
 
 test("graph svg extension", () => {
 	const cp = ear.cp();
-	cp.ray(0.25, 0.75).mountain();
+	cp.ray([0.25, 0.75], [0, 0]).mountain();
 	const element = cp.svg();
 	expect(element.childNodes.length).toBe(4);
 	// custom component getters
@@ -17,7 +17,7 @@ test("graph svg extension", () => {
 
 test("graph svg individual methods", () => {
 	const cp = ear.cp();
-	cp.ray(0.25, 0.75).mountain();
+	cp.ray([0.25, 0.75], [0, 0]).mountain();
 	// custom component getters
 	const vertices = ear.graph.svg.vertices(cp);
 	expect(vertices.childNodes.length).toBe(5);
@@ -26,4 +26,3 @@ test("graph svg individual methods", () => {
 	const faces = ear.graph.svg.faces(cp);
 	expect(faces.childNodes.length).toBe(2);
 });
-

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
 /**
  * @description Given a list of any type, remove all duplicates.
  * @param {number[]} array an array of integers
@@ -149,7 +149,7 @@ export const selfRelationalUniqueIndexPairs = (array_array) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of array of indices to the input array.
  */
-export const clusterScalars = (floats, epsilon = math.EPSILON) => {
+export const clusterScalars = (floats, epsilon = EPSILON) => {
 	const indices = floats
 		.map((v, i) => ({ v, i }))
 		.sort((a, b) => a.v - b.v)

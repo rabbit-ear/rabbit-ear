@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import { EPSILON } from "../../math/general/constants.js";
 import {
 	makeEdgesEdgesParallelOverlap,
 } from "../../graph/edgesEdges.js";
@@ -106,7 +106,7 @@ const makeCopyWithFlatEdges = (graph) => {
  * @notes due to the face_center calculation to determine face-edge
  * sidedness, this is currently hardcoded to only work with convex polygons.
  */
-const makeTacosTortillas = (graphInput, epsilon = math.EPSILON) => {
+const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
 	// console.log("BEFORE", graphInput);
 	const graph = makeCopyWithFlatEdges(graphInput);
 	// console.log("AFTER", graph);

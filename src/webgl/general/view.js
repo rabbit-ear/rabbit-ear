@@ -1,7 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import {
+	identity4x4,
+	makeOrthographicMatrix4,
+	makePerspectiveMatrix4,
+	invertMatrix4,
+} from "../../math/algebra/matrix4.js";
+import {
+	midpoint,
+	resize,
+} from "../../math/algebra/vectors.js";
 import { boundingBox } from "../../graph/boundary.js";
 /**
  * @description Initialize a viewport for a WebGL context
@@ -28,7 +37,7 @@ export const rebuildViewport = (gl, canvas) => {
  * @param {number} fov the field of view (perspective only)
  */
 export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 45) => {
-	if (!canvas) { return math.identity4x4; }
+	if (!canvas) { return identity4x4; }
 	const Z_NEAR = 0.1;
 	const Z_FAR = 20;
 	const ORTHO_FAR = -100;
@@ -38,8 +47,8 @@ export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 
 	const padding = [0, 1].map(i => ((bounds[i] - vmin) / vmin) / 2);
 	const side = padding.map(p => p + 0.5);
 	return perspective === "orthographic"
-		? math.makeOrthographicMatrix4(side[1], side[0], -side[1], -side[0], ORTHO_FAR, ORTHO_NEAR)
-		: math.makePerspectiveMatrix4(fov * (Math.PI / 180), bounds[0] / bounds[1], Z_NEAR, Z_FAR);
+		? makeOrthographicMatrix4(side[1], side[0], -side[1], -side[0], ORTHO_FAR, ORTHO_NEAR)
+		: makePerspectiveMatrix4(fov * (Math.PI / 180), bounds[0] / bounds[1], Z_NEAR, Z_FAR);
 };
 /**
  * @description build an aspect-fit model matrix
@@ -48,11 +57,11 @@ export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 
  * @param {FOLD} graph a FOLD graph
  */
 export const makeModelMatrix = (graph) => {
-	if (!graph) { return math.identity4x4; }
+	if (!graph) { return identity4x4; }
 	const bounds = boundingBox(graph);
-	if (!bounds) { return math.identity4x4; }
+	if (!bounds) { return identity4x4; }
 	const scale = Math.max(...bounds.span); // * Math.SQRT2;
-	const center = math.resize(3, math.midpoint(bounds.min, bounds.max));
+	const center = resize(3, midpoint(bounds.min, bounds.max));
 	const scalePositionMatrix = [scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, ...center, 1];
-	return math.invertMatrix4(scalePositionMatrix);
+	return invertMatrix4(scalePositionMatrix);
 };

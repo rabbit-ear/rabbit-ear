@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
 import { makeEdgesBoundingBox } from "./make.js";
 /**
  * @description This returns a matrix relating every edge to every vertex,
@@ -13,7 +13,7 @@ import { makeEdgesBoundingBox } from "./make.js";
  * an array matching vertices_ length, containing true/false.
  * @linkcode Origami ./src/graph/span.js 14
  */
-export const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.EPSILON) => (
+export const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
 	makeEdgesBoundingBox(graph, epsilon)
 		.map(min_max => graph.vertices_coords
 			.map(vert => (
@@ -42,7 +42,7 @@ export const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.EPSILON) =
  */
 export const getEdgesEdgesOverlapingSpans = ({
 	vertices_coords, edges_vertices, edges_coords,
-}, epsilon = math.EPSILON) => {
+}, epsilon = EPSILON) => {
 	const min_max = makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon);
 	const span_overlaps = edges_vertices.map(() => []);
 	// span_overlaps will be false if no overlap possible, true if overlap is possible.

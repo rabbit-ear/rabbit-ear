@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import { EPSILON } from "../../math/general/constants.js";
 import { invertMap } from "../../graph/maps.js";
 /**
  * @description given two indices, return a copy of the array between them,
@@ -27,7 +27,7 @@ const validateTacoTortillaStrip = (
 	faces_folded,
 	layers_face,
 	is_circular = true,
-	epsilon = math.EPSILON,
+	epsilon = EPSILON,
 ) => {
 	// for every sector/face, the value is its index in the layers_face array
 	const faces_layer = invertMap(layers_face);

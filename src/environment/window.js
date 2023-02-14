@@ -11,7 +11,7 @@
  * cancelAnimationFrame, requestAnimationFrame, fetch, which are used by this library.
  */
 import { isBrowser } from "./detect.js";
-import Messages from "./messages.json";
+import Messages from "./messages.js";
 
 const windowContainer = { window: undefined };
 

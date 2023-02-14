@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { dot } from "../math/algebra/vectors.js";
 /**
  * @description find a topological ordering from a set of faceOrders
  * @param {number[]} faces a subset of face indices where all faces have been
@@ -15,9 +15,8 @@ const topologicalOrder = ({ faceOrders, faces_normal }, faces) => {
 	faces.forEach(face => { facesHash[face] = true; });
 	const face0 = faces[0];
 	const faces_normal_match = [];
-	faces.map(face => {
-		faces_normal_match[face] = math
-			.dot(faces_normal[face], faces_normal[faces[0]]) > 0;
+	faces.forEach(face => {
+		faces_normal_match[face] = dot(faces_normal[face], faces_normal[faces[0]]) > 0;
 	});
 	// create an array where every face involved gets an index and an array as its value
 	// this array will contain every face that is "below" this face.

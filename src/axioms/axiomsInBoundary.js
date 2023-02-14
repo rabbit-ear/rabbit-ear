@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { uniqueLineToRayLine } from "../math/general/types.js";
 import { arrayify } from "./methods.js";
 import * as AxiomsVO from "./axiomsVecOrigin.js";
 import * as AxiomsND from "./axiomsNormDist.js";
@@ -9,7 +9,7 @@ import * as Validate from "./validate.js";
 
 const paramsVecsToNorms = (params) => ({
 	points: params.points,
-	lines: params.lines.map(math.uniqueLineToRayLine),
+	lines: params.lines.map(uniqueLineToRayLine),
 });
 /**
  * @description All axiom method arguments are ordered such that all lines are
@@ -36,7 +36,8 @@ export const axiomInBoundary = (number, params = {}, boundary = undefined) => {
 	const solutions = arrayify(
 		number,
 		AxiomsVO[`axiom${number}`](...spreadParams(params)),
-	).map(l => math.line(l));
+	);
+	// ).map(l => math.line(l));
 	if (boundary) {
 		arrayify(number, Validate[`validateAxiom${number}`](params, boundary, solutions))
 			.forEach((valid, i) => (valid ? i : undefined))
@@ -60,7 +61,7 @@ export const normalAxiomInBoundary = (number, params = {}, boundary = undefined)
 	const solutions = arrayify(
 		number,
 		AxiomsND[`normalAxiom${number}`](...spreadParams(params)),
-	).map(l => math.line.fromNormalDistance(l));
+	).map(l => uniqueLineToRayLine(l));
 	if (boundary) {
 		arrayify(number, Validate[`validateAxiom${number}`](paramsVecsToNorms(params), boundary, solutions))
 			.forEach((valid, i) => (valid ? i : undefined))

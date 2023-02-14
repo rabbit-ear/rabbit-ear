@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../../math.js";
+import { EPSILON } from "../../../math/general/constants.js";
+import clipPolygonPolygon from "../../../math/intersect/clipPolygonPolygon.js";
 import { makeFacesWinding } from "../../../graph/facesWinding.js";
 import { getFacesFaces2DOverlap } from "../../../graph/overlap.js";
 /**
@@ -19,7 +20,7 @@ const makeTransitivityTrios = (
 	graph,
 	overlap_matrix,
 	faces_winding,
-	epsilon = math.EPSILON,
+	epsilon = EPSILON,
 ) => {
 	if (!overlap_matrix) {
 		overlap_matrix = getFacesFaces2DOverlap(graph, epsilon);
@@ -41,7 +42,7 @@ const makeTransitivityTrios = (
 	for (let i = 0; i < matrix.length - 1; i += 1) {
 		for (let j = i + 1; j < matrix.length; j += 1) {
 			if (!overlap_matrix[i][j]) { continue; }
-			const polygon = math.clipPolygonPolygon(polygons[i], polygons[j], epsilon);
+			const polygon = clipPolygonPolygon(polygons[i], polygons[j], epsilon);
 			if (polygon) { matrix[i][j] = polygon; }
 		}
 	}
@@ -52,7 +53,7 @@ const makeTransitivityTrios = (
 			for (let k = j + 1; k < matrix.length; k += 1) {
 				if (i === k || j === k) { continue; }
 				if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
-				const polygon = math.clipPolygonPolygon(matrix[i][j], polygons[k], epsilon);
+				const polygon = clipPolygonPolygon(matrix[i][j], polygons[k], epsilon);
 				if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
 			}
 		}

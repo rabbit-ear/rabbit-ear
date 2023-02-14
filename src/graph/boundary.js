@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { boundingBox as _boundingBox } from "../math/geometry/polygons.js";
 import { uniqueElements } from "../general/arrays.js";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices,
 	makeVerticesToEdgeBidirectional,
 } from "./make.js";
-import Messages from "../environment/messages.json";
+import Messages from "../environment/messages.js";
 /**
  * @description Make an axis-aligned bounding box that encloses the vertices of
  * a FOLD object. the optional padding is used to make the bounding box
@@ -21,8 +21,9 @@ import Messages from "../environment/messages.json";
  * "undefined" if no vertices exist in the graph.
  * @linkcode Origami ./src/graph/boundary.js 22
  */
-export const boundingBox = ({ vertices_coords }, padding) => math
-	.boundingBox(vertices_coords, padding);
+export const boundingBox = ({ vertices_coords }, padding) => (
+	_boundingBox(vertices_coords, padding)
+);
 /**
  * @description For every vertex return a true if the vertex lies along a boundary
  * edge, as defined by edges_assignment. If edges_assignment is not present,

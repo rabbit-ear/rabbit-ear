@@ -1,7 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import { EPSILON } from "../../math/general/constants.js";
+import {
+	distance,
+	midpoint,
+} from "../../math/algebra/vectors.js";
 import remove from "../remove.js";
 import { findAdjacentFacesToEdge } from "../find.js";
 import * as S from "../../general/strings.js";
@@ -38,17 +42,17 @@ import {
  * "edge" is a summary of changes to edges, with "map" and "remove"
  * @linkcode Origami ./src/graph/splitEdge/index.js 39
  */
-const splitEdge = (graph, old_edge, coords, epsilon = math.EPSILON) => {
+const splitEdge = (graph, old_edge, coords, epsilon = EPSILON) => {
 	// make sure old_edge is a valid index
 	if (graph.edges_vertices.length < old_edge) { return {}; }
 	const incident_vertices = graph.edges_vertices[old_edge];
 	if (!coords) {
-		coords = math.midpoint(...incident_vertices);
+		coords = midpoint(...incident_vertices);
 	}
 	// test similarity with the incident vertices, if similar, return.
 	const similar = incident_vertices
 		.map(v => graph.vertices_coords[v])
-		.map(vert => math.distance(vert, coords) < epsilon);
+		.map(vert => distance(vert, coords) < epsilon);
 	if (similar[0]) { return { vertex: incident_vertices[0], edges: {} }; }
 	if (similar[1]) { return { vertex: incident_vertices[1], edges: {} }; }
 	// the new vertex will sit at the end of the array

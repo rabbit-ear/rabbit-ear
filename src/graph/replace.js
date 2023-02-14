@@ -7,7 +7,7 @@ import {
 	getGraphKeysWithSuffix,
 	getGraphKeysWithPrefix,
 } from "../fold/spec.js";
-import Messages from "../environment/messages.json";
+import Messages from "../environment/messages.js";
 /**
  * @name replace
  * @memberof graph

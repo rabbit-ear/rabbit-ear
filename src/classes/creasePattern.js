@@ -1,7 +1,15 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import {
+	includeL,
+	includeR,
+	includeS,
+} from "../math/general/functions.js";
+import {
+	getLine,
+	getVectorOfVectors,
+} from "../math/general/types.js";
 import GraphProto from "./graph.js";
 import clip from "../graph/clip.js";
 import addVertices from "../graph/add/addVertices.js";
@@ -57,31 +65,34 @@ const make_edges_array = function (array) {
 	return array;
 };
 
-// ["line", "ray", "segment"].forEach(type => {
-//   CreasePattern.prototype[type] = function () {
-//     const primitive = math[type](...arguments);
-//     if (!primitive) { return; }
-//     const segment = clip(this, primitive);
-//     if (!segment) { return; }
-//     const vertices = addVertices(this, segment);
-//     const edges = addEdges(this, vertices);
-//     const map = fragment(this).edges.map;
-//     populate(this);
-//     return make_edges_array.call(this, edges.map(e => map[e])
-//       .reduce((a, b) => a.concat(b), []));
-//   };
-// });
+const clipLineTypeToCP = (cp, primitive) => {
+	const segment = clip(cp, primitive);
+	if (!segment) { return undefined; }
+	const edges = addPlanarSegment(cp, segment[0], segment[1]);
+	// if (!edges) { return undefined; }
+	return make_edges_array.call(cp, edges);
+};
 
-["line", "ray", "segment"].forEach(type => {
-	CreasePattern.prototype[type] = function () {
-		const primitive = math[type](...arguments);
-		if (!primitive) { return; }
-		const segment = clip(this, primitive);
-		if (!segment) { return; }
-		const edges = addPlanarSegment(this, segment[0], segment[1]);
-		return make_edges_array.call(this, edges);
-	};
-});
+CreasePattern.prototype.line = function (...args) {
+	const primitive = getLine(...args);
+	if (!primitive) { return undefined; }
+	primitive.domain_function = includeL;
+	return clipLineTypeToCP(this, primitive);
+};
+
+CreasePattern.prototype.ray = function (...args) {
+	const primitive = getLine(...args);
+	if (!primitive) { return undefined; }
+	primitive.domain_function = includeR;
+	return clipLineTypeToCP(this, primitive);
+};
+
+CreasePattern.prototype.segment = function (...args) {
+	const primitive = getVectorOfVectors(...args);
+	if (!primitive) { return undefined; }
+	primitive.domain_function = includeS;
+	return clipLineTypeToCP(this, primitive);
+};
 
 ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
 	CreasePattern.prototype[fName] = function () {

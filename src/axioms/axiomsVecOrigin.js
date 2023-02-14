@@ -1,7 +1,22 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import {
+	normalize2,
+	subtract2,
+	resizeUp,
+	rotate90,
+	midpoint2,
+	distance2,
+} from "../math/algebra/vectors.js";
+import { bisectLines2 } from "../math/geometry/lines.js";
+import {
+	rayLineToUniqueLine,
+	uniqueLineToRayLine,
+} from "../math/general/types.js";
+import { includeL } from "../math/general/functions.js";
+import intersectCircleLine from "../math/intersect/intersectCircleLine.js";
+import intersectLineLine from "../math/intersect/intersectLineLine.js";
 import { normalAxiom6 } from "./axiomsNormDist.js";
 /*           _                       _              _
 						(_)                     (_)            (_)
@@ -28,7 +43,7 @@ import { normalAxiom6 } from "./axiomsNormDist.js";
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 28
  */
 export const axiom1 = (point1, point2) => ({
-	vector: math.normalize2(math.subtract2(...math.resizeUp(point2, point1))),
+	vector: normalize2(subtract2(...resizeUp(point2, point1))),
 	origin: point1,
 });
 /**
@@ -39,10 +54,10 @@ export const axiom1 = (point1, point2) => ({
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 39
  */
 export const axiom2 = (point1, point2) => ({
-	vector: math.normalize2(math.rotate90(math.subtract2(
-		...math.resizeUp(point2, point1),
+	vector: normalize2(rotate90(subtract2(
+		...resizeUp(point2, point1),
 	))),
-	origin: math.midpoint2(point1, point2),
+	origin: midpoint2(point1, point2),
 });
 // todo: make sure these all get a resizeUp or whatever is necessary
 /**
@@ -53,8 +68,7 @@ export const axiom2 = (point1, point2) => ({
  * @returns {RayLine[]} an array of lines in {vector, origin} form
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 54
  */
-export const axiom3 = (line1, line2) => math
-	.bisectLines2(line1.vector, line1.origin, line2.vector, line2.origin);
+export const axiom3 = (line1, line2) => bisectLines2(line1, line2);
 /**
  * @description origami axiom 4: form a line perpendicular to a given line that
  * passes through a point.
@@ -64,7 +78,7 @@ export const axiom3 = (line1, line2) => math
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 64
  */
 export const axiom4 = (line, point) => ({
-	vector: math.rotate90(math.normalize2(line.vector)),
+	vector: rotate90(normalize2(line.vector)),
 	origin: point,
 });
 /**
@@ -77,17 +91,15 @@ export const axiom4 = (line, point) => ({
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 77
  */
 export const axiom5 = (line, point1, point2) => (
-	math.intersectCircleLine(
-		math.distance2(point1, point2),
-		point1,
-		line.vector,
-		line.origin,
-		math.include_l,
+	intersectCircleLine(
+		{ radius: distance2(point1, point2), origin: point1 },
+		line,
+		includeL,
 	) || []).map(sect => ({
-	vector: math.normalize2(math.rotate90(math.subtract2(
-		...math.resizeUp(sect, point2),
+	vector: normalize2(rotate90(subtract2(
+		...resizeUp(sect, point2),
 	))),
-	origin: math.midpoint2(point2, sect),
+	origin: midpoint2(point2, sect),
 }));
 /**
  * @description origami axiom 6: form up to three lines that are made by bringing
@@ -100,11 +112,11 @@ export const axiom5 = (line, point1, point2) => (
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 100
  */
 export const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
-	math.rayLineToUniqueLine(line1),
-	math.rayLineToUniqueLine(line2),
+	rayLineToUniqueLine(line1),
+	rayLineToUniqueLine(line2),
 	point1,
 	point2,
-).map(math.uniqueLineToRayLine);
+).map(uniqueLineToRayLine);
 // .map(Constructors.line);
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
@@ -119,22 +131,20 @@ export const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 119
  */
 export const axiom7 = (line1, line2, point) => {
-	const intersect = math.intersectLineLine(
-		line1.vector,
-		line1.origin,
-		line2.vector,
-		point,
-		math.include_l,
-		math.include_l,
+	const intersect = intersectLineLine(
+		line1,
+		{ vector: line2.vector, origin: point },
+		includeL,
+		includeL,
 	);
 	return intersect === undefined
 		? undefined
 		: ({
 		// todo: switch this out, but test it as you do
-			vector: math.normalize2(math.rotate90(math.subtract2(
-				...math.resizeUp(intersect, point),
+			vector: normalize2(rotate90(subtract2(
+				...resizeUp(intersect, point),
 			))),
-			// vector: math.normalize2(math.rotate90(line2.vector)),
-			origin: math.midpoint2(point, intersect),
+			// vector: normalize2(rotate90(line2.vector)),
+			origin: midpoint2(point, intersect),
 		});
 };

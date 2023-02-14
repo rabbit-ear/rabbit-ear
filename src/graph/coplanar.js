@@ -1,4 +1,26 @@
-import math from "../math.js";
+/**
+ * Rabbit Ear (c) Kraft
+ */
+import { EPSILON } from "../math/general/constants.js";
+import {
+	dot,
+	dot3,
+	scale3,
+	resize,
+	parallelNormalized,
+} from "../math/algebra/vectors.js";
+import {
+	makePolygonNonCollinear,
+} from "../math/geometry/polygons.js";
+import {
+	makeMatrix4Rotate,
+	multiplyMatrix4Vector3,
+} from "../math/algebra/matrix4.js";
+import {
+	matrix4FromQuaternion,
+	quaternionFromTwoVectors,
+} from "../math/algebra/quaternion.js";
+import overlapConvexPolygons from "../math/intersect/overlapPolygons.js";
 import { makeFacesNormal } from "./normals.js";
 import { clusterScalars } from "../general/arrays.js";
 import connectedComponents from "./connectedComponents.js";
@@ -17,7 +39,7 @@ import { selfRelationalArraySubset } from "./subgraph.js";
  */
 export const coplanarFacesGroups = ({
 	vertices_coords, faces_vertices,
-}, epsilon = math.EPSILON) => {
+}, epsilon = EPSILON) => {
 	// face normals will be always 3D
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	// for every face, get the indices of all faces with matching normals
@@ -28,7 +50,7 @@ export const coplanarFacesGroups = ({
 	for (let a = 0; a < faces_vertices.length - 1; a += 1) {
 		for (let b = a + 1; b < faces_vertices.length; b += 1) {
 			if (a === b) { continue; }
-			if (math.parallelNormalized(faces_normal[a], faces_normal[b], epsilon)) {
+			if (parallelNormalized(faces_normal[a], faces_normal[b], epsilon)) {
 				facesNormalMatch[a].push(b);
 				facesNormalMatch[b].push(a);
 			}
@@ -45,17 +67,16 @@ export const coplanarFacesGroups = ({
 	// true: aligned. false: flipped
 	const faces_clusterAligned = [];
 	normalClustersFaces.forEach((faces, i) => faces.forEach(f => {
-		faces_clusterAligned[f] = math
-			.dot3(faces_normal[f], normalClustersNormal[i]) > 0;
+		faces_clusterAligned[f] = dot3(faces_normal[f], normalClustersNormal[i]) > 0;
 	}));
 	// using each cluster's shared normal, find the plane (dot prod)
 	// for each face. make facesOneVertex always 3D.
 	const facesOneVertex = faces_vertices
 		.map(fv => vertices_coords[fv[0]])
-		.map(point => math.resize(3, point));
+		.map(point => resize(3, point));
 	const normalClustersFacesDot = normalClustersFaces
 		.map((faces, i) => faces
-			.map(f => math.dot3(normalClustersNormal[i], facesOneVertex[f])));
+			.map(f => dot3(normalClustersNormal[i], facesOneVertex[f])));
 	// for every cluster of a shared normal, further divide into clusters where
 	// each inner cluster contains faces which share the same plane
 	const clustersClusters = normalClustersFacesDot
@@ -72,8 +93,8 @@ export const coplanarFacesGroups = ({
 	const clustersOrigin = clusters
 		.map(faces => faces[0])
 		.map(face => facesOneVertex[face])
-		.map((point, i) => math.dot3(clustersNormal[i], point))
-		.map((mag, i) => math.scale3(clustersNormal[i], mag));
+		.map((point, i) => dot3(clustersNormal[i], point))
+		.map((mag, i) => scale3(clustersNormal[i], mag));
 	// make a plane with the origin and normal
 	const clustersPlane = clusters.map((_, i) => ({
 		normal: clustersNormal[i],
@@ -91,7 +112,7 @@ export const coplanarFacesGroups = ({
 const makeFacesPolygon2D = (graph, coplanarFaces, transforms, epsilon) => {
 	// make sure we are using 3D points for this next part
 	const vertices_coords3D = graph.vertices_coords
-		.map(coord => math.resize(3, coord));
+		.map(coord => resize(3, coord));
 	// polygon-polygon intersection requires faces be the same winding.
 	// if the normal is flipped from the group normal, reverse the winding
 	const planarSets_polygons3D = coplanarFaces
@@ -100,14 +121,14 @@ const makeFacesPolygon2D = (graph, coplanarFaces, transforms, epsilon) => {
 				? graph.faces_vertices[f]
 				: graph.faces_vertices[f].slice().reverse()))
 			.map(verts => verts.map(v => vertices_coords3D[v]))
-			.map(polygon => math.makePolygonNonCollinear(polygon, epsilon)));
+			.map(polygon => makePolygonNonCollinear(polygon, epsilon)));
 	// rotate the polygon into the XY plane (though it will still be
 	// translated in the +/- Z axis), so we just remove the Z value.
 	const faces_polygon = [];
 	const planarSets_polygons2D = planarSets_polygons3D
 		.map((cluster, i) => cluster
 			.map(points => points
-				.map(point => math.multiplyMatrix4Vector3(transforms[i], point))
+				.map(point => multiplyMatrix4Vector3(transforms[i], point))
 				.map(point => [point[0], point[1]])));
 	coplanarFaces
 		.map(cluster => cluster.faces)
@@ -133,7 +154,7 @@ const makeFacesPolygon2D = (graph, coplanarFaces, transforms, epsilon) => {
  */
 export const coplanarOverlappingFacesGroups = ({
 	vertices_coords, faces_vertices, faces_faces,
-}, epsilon = math.EPSILON) => {
+}, epsilon = EPSILON) => {
 	if (!faces_faces) {
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
@@ -159,11 +180,10 @@ export const coplanarOverlappingFacesGroups = ({
 			// if dot is -1, the points are already in XY plane and the normal is inverted.
 			// the quaternion will be undefined, so we need a special case because
 			// we still need the points to undergo a 180 degree flip over
-			const dot = math.dot(normal, targetVector);
-			return (Math.abs(dot + 1) < 1e-2)
-				? math.makeMatrix4Rotate(Math.PI, [1, 0, 0])
-				: math.matrix4FromQuaternion(math
-					.quaternionFromTwoVectors(normal, targetVector));
+			const d = dot(normal, targetVector);
+			return (Math.abs(d + 1) < 1e-2)
+				? makeMatrix4Rotate(Math.PI, [1, 0, 0])
+				: matrix4FromQuaternion(quaternionFromTwoVectors(normal, targetVector));
 		});
 	const faces_polygon = makeFacesPolygon2D(
 		{ vertices_coords, faces_vertices },
@@ -199,8 +219,7 @@ export const coplanarOverlappingFacesGroups = ({
 				const otherFace = otherFaces[f];
 				const polygons = [face, otherFace]
 					.map(i => faces_polygon[i]);
-				const overlap = math
-					.overlapConvexPolygons(...polygons, epsilon);
+				const overlap = overlapConvexPolygons(...polygons, epsilon);
 				if (overlap) {
 					faces_facesOverlap[face][otherFace] = true;
 					faces_facesOverlap[otherFace][face] = true;

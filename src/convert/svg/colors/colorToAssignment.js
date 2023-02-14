@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../../math.js";
+import { distance3 } from "../../../math/algebra/vectors.js";
 import parseCSSColor from "./parseCSSColor.js";
 
 const assignmentColors = {
@@ -23,12 +23,12 @@ const colorToAssignment = (string) => {
 	const gray = [grayscale, grayscale, grayscale];
 	const grayDistance = {
 		key: "F",
-		distance: math.distance3(color3, gray),
+		distance: distance3(color3, gray),
 	};
 	const colorDistance = Object.keys(assignmentColors)
 		.map(key => ({
 			key,
-			distance: math.distance3(color3, assignmentColors[key]),
+			distance: distance3(color3, assignmentColors[key]),
 		}))
 		.sort((a, b) => a.distance - b.distance)
 		.shift();

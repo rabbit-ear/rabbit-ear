@@ -1,7 +1,18 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import {
+	distance2,
+	scale,
+	scale2,
+	add2,
+	subtract2,
+	flip,
+} from "../math/algebra/vectors.js";
+import {
+	counterClockwiseBisect2,
+	clockwiseBisect2,
+} from "../math/geometry/radial.js";
 import clone from "../general/clone.js";
 import {
 	makeFacesConvexCenter,
@@ -99,29 +110,29 @@ export const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink =
 	const faces_winding = makeFacesWinding(graph);
 	const faces_vectors = graph.faces_vertices
 		.map(vertices => vertices.map(v => graph.vertices_coords[v]))
-		.map(points => points.map((p, i, arr) => math.subtract2(p, arr[(i + 1) % arr.length])));
+		.map(points => points.map((p, i, arr) => subtract2(p, arr[(i + 1) % arr.length])));
 	const faces_centers = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 	const faces_point_distances = faces_vertices
 		.map(vertices => vertices.map(v => vertices_coords[v]))
 		.map((points, f) => points
-			.map(point => math.distance2(point, faces_centers[f])));
+			.map(point => distance2(point, faces_centers[f])));
 	// console.log("faces_point_distances", faces_point_distances);
 	const faces_bisectors = faces_vectors
 		.map((vectors, f) => vectors
 			.map((vector, i, arr) => [
 				vector,
-				math.flip(arr[(i - 1 + arr.length) % arr.length]),
+				flip(arr[(i - 1 + arr.length) % arr.length]),
 			]).map(pair => faces_winding[f]
-				? math.counterClockwiseBisect2(...pair)
-				: math.clockwiseBisect2(...pair)))
+				? counterClockwiseBisect2(...pair)
+				: clockwiseBisect2(...pair)))
 		.map((vectors, f) => vectors
-			.map((vector, i) => math.scale(vector, faces_point_distances[f][i])))
+			.map((vector, i) => scale(vector, faces_point_distances[f][i])))
 	graph.faces_vertices
 		.forEach((vertices, f) => vertices
 			.forEach((v, i) => {
-				graph.vertices_coords[v] = math.add2(
+				graph.vertices_coords[v] = add2(
 					graph.vertices_coords[v],
-					math.scale2(faces_bisectors[f][i], -shrink),
+					scale2(faces_bisectors[f][i], -shrink),
 				);
 			}));
 	return graph;

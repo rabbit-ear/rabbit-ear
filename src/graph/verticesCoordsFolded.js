@@ -1,7 +1,20 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import {
+	normalize2,
+	dot,
+	scale2,
+	add2,
+	subtract2,
+	rotate270,
+	rotate90,
+	resize,
+} from "../math/algebra/vectors.js";
+import {
+	identity3x4,
+	multiplyMatrix3Vector3,
+} from "../math/algebra/matrix3.js";
 import {
 	makeVerticesFaces,
 	makeVerticesToEdgeBidirectional,
@@ -38,11 +51,11 @@ export const makeVerticesCoordsFolded = ({
 			.filter(a => a != null) // must filter "undefined" and "null"
 			.shift()) // get any face from the list
 		.map(face => (face === undefined
-			? math.identity3x4
+			? identity3x4
 			: faces_matrix[face]));
 	return vertices_coords
-		.map(coord => math.resize(3, coord))
-		.map((coord, i) => math.multiplyMatrix3Vector3(vertices_matrix[i], coord));
+		.map(coord => resize(3, coord))
+		.map((coord, i) => multiplyMatrix3Vector3(vertices_matrix[i], coord));
 };
 /**
  * @description Fold a graph along its edges and return the position of the folded
@@ -78,28 +91,28 @@ export const makeVerticesCoordsFlatFolded = ({
 				const coords_cp = edges_vertices[edge].map(v => vertices_coords[v]);
 				// the basis axis origin, x-basis axis (vector) and y-basis (normal)
 				const origin_cp = coords_cp[0];
-				const vector_cp = math.normalize2(math.subtract2(coords_cp[1], coords_cp[0]));
-				const normal_cp = math.rotate90(vector_cp);
+				const vector_cp = normalize2(subtract2(coords_cp[1], coords_cp[0]));
+				const normal_cp = rotate90(vector_cp);
 				// if we are crossing a flipping edge (m/v), set this face to be
 				// flipped opposite of the parent face. otherwise keep it the same.
 				faces_flipped[entry.face] = edges_is_folded[edge]
 					? !faces_flipped[entry.parent]
 					: faces_flipped[entry.parent];
-				const vector_folded = math.normalize2(math.subtract2(coords[1], coords[0]));
+				const vector_folded = normalize2(subtract2(coords[1], coords[0]));
 				const origin_folded = coords[0];
 				const normal_folded = faces_flipped[entry.face]
-					? math.rotate270(vector_folded)
-					: math.rotate90(vector_folded);
+					? rotate270(vector_folded)
+					: rotate90(vector_folded);
 				// remaining_faces_vertices
 				faces_vertices[entry.face]
 					.filter(v => vertices_coords_folded[v] === undefined)
 					.forEach(v => {
-						const to_point = math.subtract2(vertices_coords[v], origin_cp);
-						const project_norm = math.dot(to_point, normal_cp);
-						const project_line = math.dot(to_point, vector_cp);
-						const walk_up = math.scale2(vector_folded, project_line);
-						const walk_perp = math.scale2(normal_folded, project_norm);
-						const folded_coords = math.add2(math.add2(origin_folded, walk_up), walk_perp);
+						const to_point = subtract2(vertices_coords[v], origin_cp);
+						const project_norm = dot(to_point, normal_cp);
+						const project_line = dot(to_point, vector_cp);
+						const walk_up = scale2(vector_folded, project_line);
+						const walk_perp = scale2(normal_folded, project_norm);
+						const folded_coords = add2(add2(origin_folded, walk_up), walk_perp);
 						vertices_coords_folded[v] = folded_coords;
 					});
 			}));

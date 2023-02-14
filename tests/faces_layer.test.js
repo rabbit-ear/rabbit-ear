@@ -1,17 +1,17 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 test("", () => {
 	let cp = ear.cp.rectangle(0.3);
 	cp.vertices_coords[2] = [0.5, 1];
 	cp.vertices_coords[3] = [0.2, 1];
-	cp.line(ear.line.fromPoints([0, 0.1], [1, 0.1])).valley();
-	cp.line(ear.line.fromPoints([0, 0.2], [1, 0.2])).mountain();
-	cp.line(ear.line.fromPoints([0, 0.3], [1, 0.3])).mountain();
-	cp.line(ear.line.fromPoints([0, 0.5], [1, 0.5])).mountain();
-	cp.line(ear.line.fromPoints([0, 0.7], [1, 0.7])).mountain();
-	cp.line(ear.line.fromPoints([0, 0.8], [1, 0.8])).mountain();
-	cp.line(ear.line.fromPoints([0, 0.9], [1, 0.9])).valley();
+	cp.line(ear.math.pointsToLine([0, 0.1], [1, 0.1])).valley();
+	cp.line(ear.math.pointsToLine([0, 0.2], [1, 0.2])).mountain();
+	cp.line(ear.math.pointsToLine([0, 0.3], [1, 0.3])).mountain();
+	cp.line(ear.math.pointsToLine([0, 0.5], [1, 0.5])).mountain();
+	cp.line(ear.math.pointsToLine([0, 0.7], [1, 0.7])).mountain();
+	cp.line(ear.math.pointsToLine([0, 0.8], [1, 0.8])).mountain();
+	cp.line(ear.math.pointsToLine([0, 0.9], [1, 0.9])).valley();
 	cp.fragment();
 	cp.populate();
 	// ideally, we want (layers_face)

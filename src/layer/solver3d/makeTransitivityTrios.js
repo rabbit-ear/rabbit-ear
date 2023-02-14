@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import { EPSILON } from "../../math/general/constants.js";
+import clipPolygonPolygon from "../../math/intersect/clipPolygonPolygon.js";
 import { makeFacesPolygon } from "../../graph/make.js";
 /**
  * @description given a folded graph, find all trios of faces which overlap
@@ -16,7 +17,7 @@ import { makeFacesPolygon } from "../../graph/make.js";
 const makeTransitivityTrios = (
 	graph,
 	faces_facesOverlap,
-	epsilon = math.EPSILON,
+	epsilon = EPSILON,
 ) => {
 	// prepare a list of all faces in the graph as lists of vertices
 	// also, make sure they all have the same winding (reverse if necessary)
@@ -38,8 +39,7 @@ const makeTransitivityTrios = (
 	const matrix = graph.faces_vertices.map(() => []);
 	polygons.forEach((_, f1) => faces_facesOverlap[f1].forEach(f2 => {
 		if (f2 <= f1) { return; }
-		const polygon = math
-			.clipPolygonPolygon(polygons[f1], polygons[f2], epsilon);
+		const polygon = clipPolygonPolygon(polygons[f1], polygons[f2], epsilon);
 		if (polygon) { matrix[f1][f2] = polygon; }
 	}));
 	const trios = [];
@@ -50,7 +50,7 @@ const makeTransitivityTrios = (
 			// todo: bring this back. but this would require we convert
 			// faces_facesOverlap into a quick lookup table.
 			// if (!faces_facesOverlap[i][k] || !faces_facesOverlap[j][k]) { return; }
-			const polygon = math.clipPolygonPolygon(poly, polygons[k], epsilon);
+			const polygon = clipPolygonPolygon(poly, polygons[k], epsilon);
 			if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
 		});
 	}));

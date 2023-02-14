@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
+import { fnEpsilonEqual } from "../math/general/functions.js";
 import { foldKeys } from "./keys.js";
 /**
  * this contains two types of methods.
@@ -85,9 +86,9 @@ export const edgeAssignmentToFoldAngle = assignment => (
  * @linkcode Origami ./src/fold/spec.js 85
  */
 export const edgeFoldAngleToAssignment = (a) => {
-	if (a > math.EPSILON) { return "V"; }
-	if (a < -math.EPSILON) { return "M"; }
-	// if (math.fnEpsilonEqual(0, a)) { return "F"; }
+	if (a > EPSILON) { return "V"; }
+	if (a < -EPSILON) { return "M"; }
+	// if (fnEpsilonEqual(0, a)) { return "F"; }
 	return "U";
 };
 /**
@@ -97,9 +98,9 @@ export const edgeFoldAngleToAssignment = (a) => {
  * @returns {boolean} true if the fold angle is flat
  * @linkcode Origami ./src/fold/spec.js 98
  */
-export const edgeFoldAngleIsFlat = angle => math.fnEpsilonEqual(0, angle)
- || math.fnEpsilonEqual(-180, angle)
- || math.fnEpsilonEqual(180, angle);
+export const edgeFoldAngleIsFlat = angle => fnEpsilonEqual(0, angle)
+ || fnEpsilonEqual(-180, angle)
+ || fnEpsilonEqual(180, angle);
 /**
  * @description Provide a FOLD graph and determine if all edges_foldAngle
  * angles are flat, which includes -180, 0, 180, and the +/- epsilon

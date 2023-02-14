@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import Messages from "../../environment/messages.json";
+import Messages from "../../environment/messages.js";
 
 const initializeWebGL = (canvasElement, preferredVersion) => {
 	const contextName = [null, "webgl", "webgl2"];

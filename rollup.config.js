@@ -20,6 +20,11 @@ export default [{
 		file: "rabbit-ear.js",
 		format: "umd",
 		banner,
+		compact: true,
+		generatedCode: {
+			constBindings: true,
+			objectShorthand: true,
+		},
 	},
 	plugins: [json(), cleanup(), pluginString],
 }, {
@@ -29,6 +34,11 @@ export default [{
 		file: "rabbit-ear.module.js",
 		format: "es",
 		banner,
+		compact: true,
+		generatedCode: {
+			constBindings: true,
+			objectShorthand: true,
+		},
 	},
 	plugins: [json(), cleanup(), pluginString],
 }, {
@@ -38,6 +48,10 @@ export default [{
 		file: "rabbit-ear.comments.js",
 		format: "es",
 		banner,
+		generatedCode: {
+			constBindings: true,
+			objectShorthand: true,
+		},
 	},
 	plugins: [json(), pluginString],
 }, {

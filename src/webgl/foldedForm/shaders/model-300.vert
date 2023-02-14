@@ -12,16 +12,8 @@ out vec3 back_color;
 
 void main () {
 	gl_Position = u_matrix * vec4(v_position, 1);
-	vec3 normal_color = vec3(
-		dot(v_normal, normalize(u_modelView * vec4(1, 0, 0, 0)).xyz),
-		dot(v_normal, normalize(u_modelView * vec4(0, 1, 0, 0)).xyz),
-		dot(v_normal, normalize(u_modelView * vec4(0, 0, 1, 0)).xyz)
-	);
-	float grayX = abs(normal_color.x);
-	float grayY = abs(normal_color.y);
-	float grayZ = abs(normal_color.z);
-	float gray = 0.25 + clamp(grayY, 1.0, 0.25) * 0.5 + grayX * 0.25 + grayZ * 0.25;
-	float c = clamp(gray, 0.0, 1.0);
-	front_color = u_frontColor * c;
-	back_color = u_backColor * c;
+	vec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));
+	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
+	front_color = u_frontColor * brightness;
+	back_color = u_backColor * brightness;
 }

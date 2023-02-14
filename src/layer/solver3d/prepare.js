@@ -1,7 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import {
+	add2,
+	resize,
+} from "../../math/algebra/vectors.js";
+import {
+	multiplyMatrix4Vector3,
+} from "../../math/algebra/matrix4.js";
+import overlapConvexPolygons from "../../math/intersect/overlapPolygons.js";
 import { invertMap } from "../../graph/maps.js";
 import {
 	makeEdgesFoldAngle,
@@ -57,7 +64,7 @@ const makeFacesFacesOverlap = (graph, sets_faces, faces_polygon, epsilon) => {
 			for (let j = i + 1; j < set_faces.length; j += 1) {
 				const faces = [set_faces[i], set_faces[j]];
 				const polygons = faces.map(f => faces_polygon[f]);
-				const overlap = math.overlapConvexPolygons(...polygons, epsilon);
+				const overlap = overlapConvexPolygons(...polygons, epsilon);
 				if (overlap) {
 					faces_facesOverlapMatrix[faces[0]][faces[1]] = true;
 					faces_facesOverlapMatrix[faces[1]][faces[0]] = true;
@@ -76,12 +83,12 @@ const makeFacesFacesOverlap = (graph, sets_faces, faces_polygon, epsilon) => {
 const graphGroupCopies = (graph, sets_faces, sets_transform) => {
 	// transform point by a matrix, return result as 2D
 	const transformTo2D = (matrix, point) => {
-		const p = math.multiplyMatrix4Vector3(matrix, point);
+		const p = multiplyMatrix4Vector3(matrix, point);
 		return [p[0], p[1]];
 	};
 	// coerce all vertices into 3D in case they are not already
 	const vertices_coords_3d = graph.vertices_coords
-		.map(coord => math.resize(3, coord));
+		.map(coord => resize(3, coord));
 	// make shallow copies of the graph, one for every group
 	const copies = sets_faces.map(faces => subgraphWithFaces(graph, faces));
 	// transform all vertices_coords by the inverse transform
@@ -146,7 +153,7 @@ const prepare = (graphInput, epsilon = 1e-6) => {
 	// simple faces center by averaging all the face's vertices
 	const faces_center = faces_polygon
 		.map(polygon => polygon
-			.reduce((a, b) => math.add2(a, b), [0, 0])
+			.reduce((a, b) => add2(a, b), [0, 0])
 			.map(el => el / polygon.length));
 	// populate faces_center into each of the graph copies
 	graphCopies.forEach(el => {

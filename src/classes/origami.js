@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { getLine } from "../math/general/types.js";
 import GraphProto from "./graph.js";
 import flatFold from "../graph/flatFold/index.js";
 /**
@@ -17,7 +17,7 @@ Origami.prototype = Object.create(GraphProto);
 Origami.prototype.constructor = Origami;
 
 Origami.prototype.flatFold = function () {
-	const line = math.core.getLine(arguments);
+	const line = getLine(arguments);
 	const changes = flatFold(this, line.vector, line.origin);
 	return this;
 };

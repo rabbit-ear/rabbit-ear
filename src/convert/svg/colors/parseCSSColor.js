@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import cssColors from "./cssColors.json";
+import cssColors from "./cssColors.js";
 import hexToRGB from "./hexToRGB.js";
 
 const getParenNumbers = str => {

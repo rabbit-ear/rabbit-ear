@@ -1,7 +1,19 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
+import {
+	exclude,
+	excludeS,
+} from "../math/general/functions.js";
+import {
+	boundingBox,
+	makePolygonNonCollinear,
+} from "../math/geometry/polygons.js";
+import overlapBoundingBoxes from "../math/intersect/overlapBoundingBoxes.js";
+import overlapConvexPolygons from "../math/intersect/overlapPolygons.js";
+import overlapConvexPolygonPoint from "../math/intersect/overlapPolygonPoint.js";
+import intersectConvexPolygonLine from "../math/intersect/intersectPolygonLine.js";
 import {
 	makeEdgesVector,
 	makeEdgesBoundingBox,
@@ -49,10 +61,10 @@ export const makeEdgesFacesOverlap = ({
 	// todo improve n^2
 	const edges_bounds = makeEdgesBoundingBox({ edges_coords });
 	const faces_bounds = faces_coords
-		.map(coords => math.boundingBox(coords));
+		.map(coords => boundingBox(coords));
 	edges_bounds.forEach((edge_bounds, e) => faces_bounds.forEach((face_bounds, f) => {
 		if (matrix[e][f] === false) { return; }
-		if (!math.overlapBoundingBoxes(face_bounds, edge_bounds)) {
+		if (!overlapBoundingBoxes(face_bounds, edge_bounds)) {
 			matrix[e][f] = false;
 		}
 	}));
@@ -60,19 +72,18 @@ export const makeEdgesFacesOverlap = ({
 	edges_coords.forEach((edge_coords, e) => faces_coords.forEach((face_coords, f) => {
 		if (matrix[e][f] !== undefined) { return; }
 		const point_in_poly = edges_coords[e]
-			.map(point => math.overlapConvexPolygonPoint(
+			.map(point => overlapConvexPolygonPoint(
 				faces_coords[f],
 				point,
-				math.exclude,
+				exclude,
 				epsilon,
 			)).reduce((a, b) => a || b, false);
 		if (point_in_poly) { matrix[e][f] = true; return; }
-		const edge_intersect = math.intersectConvexPolygonLine(
+		const edge_intersect = intersectConvexPolygonLine(
 			faces_coords[f],
-			edges_vector[e],
-			edges_origin[e],
-			math.excludeS,
-			math.excludeS,
+			{ vector: edges_vector[e], origin: edges_origin[e] },
+			excludeS,
+			excludeS,
 			epsilon,
 		);
 		if (edge_intersect) { matrix[e][f] = true; return; }
@@ -87,19 +98,18 @@ export const makeEdgesFacesOverlap = ({
 	// 	for (let f = 0; f < matrix[e].length; f += 1) {
 	// 		if (matrix[e][f] !== undefined) { continue; }
 	// 		const point_in_poly = edges_coords[e]
-	// 			.map(point => math.overlapConvexPolygonPoint(
+	// 			.map(point => overlapConvexPolygonPoint(
 	// 				faces_coords[f],
 	// 				point,
-	// 				math.exclude,
+	// 				exclude,
 	// 				epsilon,
 	// 			)).reduce((a, b) => a || b, false);
 	// 		if (point_in_poly) { matrix[e][f] = true; continue; }
-	// 		const edge_intersect = math.intersectConvexPolygonLine(
+	// 		const edge_intersect = intersectConvexPolygonLine(
 	// 			faces_coords[f],
-	// 			edges_vector[e],
-	// 			edges_origin[e],
-	// 			math.excludeS,
-	// 			math.excludeS,
+	// 			{ vector: edges_vector[e], origin: edges_origin[e] },
+	// 			excludeS,
+	// 			excludeS,
 	// 			epsilon,
 	// 		);
 	// 		if (edge_intersect) { matrix[e][f] = true; continue; }
@@ -116,19 +126,18 @@ export const makeEdgesFacesOverlap = ({
 	// 	if (val === false) { return; }
 	// 	// both segment endpoints, true if either one of them is inside the face.
 	// 	const point_in_poly = edges_coords[e]
-	// 		.map(point => math.overlapConvexPolygonPoint(
+	// 		.map(point => overlapConvexPolygonPoint(
 	// 			faces_coords[f],
 	// 			point,
-	// 			math.exclude,
+	// 			exclude,
 	// 			epsilon,
 	// 		)).reduce((a, b) => a || b, false);
 	// 	if (point_in_poly) { matrix[e][f] = true; return; }
-	// 	const edge_intersect = math.intersectConvexPolygonLine(
+	// 	const edge_intersect = intersectConvexPolygonLine(
 	// 		faces_coords[f],
-	// 		edges_vector[e],
-	// 		edges_origin[e],
-	// 		math.excludeS,
-	// 		math.excludeS,
+	// 		{ vector: edges_vector[e], origin: edges_origin[e] },
+	// 		excludeS,
+	// 		excludeS,
 	// 		epsilon,
 	// 	);
 	// 	if (edge_intersect) { matrix[e][f] = true; return; }
@@ -137,16 +146,16 @@ export const makeEdgesFacesOverlap = ({
 	return matrix;
 };
 
-// const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.EPSILON) => {
+// const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = EPSILON) => {
 //   const matrix = Array.from(Array(faces_vertices.length))
 //     .map(() => Array.from(Array(faces_vertices.length)));
 //   const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
 //   for (let i = 0; i < faces_vertices.length - 1; i++) {
 //     for (let j = i + 1; j < faces_vertices.length; j++) {
-//       const intersection = math.intersect_polygon_polygon(
+//       const intersection = intersect_polygon_polygon(
 //         faces_polygon[i],
 //         faces_polygon[j],
-//         // math.exclude,
+//         // exclude,
 //         epsilon);
 //       console.log("testing", faces_polygon[i], faces_polygon[j], intersection, epsilon);
 //       const overlap = intersection.length !== 0;
@@ -167,17 +176,17 @@ export const makeEdgesFacesOverlap = ({
  */
 export const getFacesFaces2DOverlap = ({
 	vertices_coords, faces_vertices,
-}, epsilon = math.EPSILON) => {
+}, epsilon = EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))
 		.map(() => Array.from(Array(faces_vertices.length)));
 	const faces_coords = faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
 	const faces_bounds = faces_coords
-		.map(polygon => math.boundingBox(polygon));
+		.map(polygon => boundingBox(polygon));
 
 	for (let i = 0; i < faces_bounds.length - 1; i += 1) {
 		for (let j = i + 1; j < faces_bounds.length; j += 1) {
-			if (!math.overlapBoundingBoxes(faces_bounds[i], faces_bounds[j])) {
+			if (!overlapBoundingBoxes(faces_bounds[i], faces_bounds[j])) {
 				matrix[i][j] = false;
 				matrix[j][i] = false;
 			}
@@ -185,11 +194,11 @@ export const getFacesFaces2DOverlap = ({
 	}
 
 	const faces_polygon = faces_coords
-		.map(polygon => math.makePolygonNonCollinear(polygon, epsilon));
+		.map(polygon => makePolygonNonCollinear(polygon, epsilon));
 	for (let i = 0; i < faces_vertices.length - 1; i += 1) {
 		for (let j = i + 1; j < faces_vertices.length; j += 1) {
 			if (matrix[i][j] === false) { continue; }
-			const overlap = math.overlapConvexPolygons(
+			const overlap = overlapConvexPolygons(
 				faces_polygon[i],
 				faces_polygon[j],
 				epsilon,

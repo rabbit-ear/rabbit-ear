@@ -1,7 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import { subtract2 } from "../../math/algebra/vectors.js";
+import {
+	exclude,
+	excludeS,
+} from "../../math/general/functions.js";
+import clipLineConvexPolygon from "../../math/intersect/clipLinePolygon.js";
 import { makeFacesPolygon } from "../../graph/make.js";
 import { makeFacesWinding } from "../../graph/facesWinding.js";
 import { makeEdgesEdgesCrossing } from "../../graph/edgesEdges.js";
@@ -56,37 +61,35 @@ export const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => 
 		.map(edge => edge
 			.map(vertex => graph.vertices_coords[vertex]));
 	const edges_vector = edges_coords
-		.map(coords => math.subtract2(coords[1], coords[0]));
+		.map(coords => subtract2(coords[1], coords[0]));
 	const matrix = [];
 	tortilla_edge_indices.forEach(e => { matrix[e] = []; });
 	// console.log("clip", tortilla_edge_indices
 	//	 .map((e, ei) => faces_polygon
-	//	 	.map((poly, f) => math.clipLineConvexPolygon(
+	//	 	.map((poly, f) => clipLineConvexPolygon(
 	//	 		poly,
 	//	 		edges_vector[ei],
 	//	 		edges_coords[ei][0],
-	//	 		math.exclude,
-	//	 		math.excludeS,
+	//	 		exclude,
+	//	 		excludeS,
 	//	 		epsilon))));
 	const result = tortilla_edge_indices
 		.map((e, ei) => faces_polygon
-			.map(poly => math.clipLineConvexPolygon(
+			.map(poly => clipLineConvexPolygon(
 				poly,
-				edges_vector[ei],
-				edges_coords[ei][0],
-				math.exclude,
-				math.excludeS,
+				{ vector: edges_vector[ei], origin: edges_coords[ei][0] },
+				exclude,
+				excludeS,
 				epsilon,
 			))
 			.map(res => res !== undefined));
 	// const result = tortilla_edge_indices
 	// 	.map((e, ei) => faces_polygon
-	// 		.map((poly, f) => math.intersectConvexPolygonLine(
+	// 		.map((poly, f) => intersectConvexPolygonLine(
 	// 			poly,
-	// 			edges_vector[ei],
-	// 			edges_coords[ei][0],
-	// 			math.excludeS,
-	// 			math.includeL ))
+	// 			{ vector: edges_vector[ei], origin: edges_coords[ei][0] },
+	// 			excludeS,
+	// 			includeL ))
 	// 			// epsilon))
 	// 		.map((result, f) => result !== undefined));
 	result.forEach((faces, ei) => faces

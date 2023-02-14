@@ -4,7 +4,7 @@
 import clone from "../general/clone.js";
 import * as S from "../general/strings.js";
 import { filterKeysWithPrefix } from "../fold/spec.js";
-import Messages from "../environment/messages.json";
+import Messages from "../environment/messages.js";
 /**
  * @description todo
  * @param {FOLD} graph a FOLD graph

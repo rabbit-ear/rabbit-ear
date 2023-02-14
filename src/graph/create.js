@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { makePolygonCircumradius } from "../math/geometry/polygons.js";
 import populate from "./populate.js";
 /**
  * @description a set of constructors which make a new simple FOLD graph,
@@ -89,7 +89,7 @@ Create.rectangle = (width = 1, height = 1) => (
  * @returns {FOLD} a FOLD object
  */
 Create.polygon = (sides = 3, radius = 1) => (
-	make_closed_polygon(math.makePolygonCircumradius(sides, radius)));
+	make_closed_polygon(makePolygonCircumradius(sides, radius)));
 // Create.circle = (sides = 90) =>
 // 	make_closed_polygon(math.makePolygon(sides));
 // origami bases. todo: more

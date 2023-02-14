@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
 /**
  * @description Find all clusters of vertices which lie within an epsilon of each other.
  * Each cluster is an array of vertex indices. If no clusters exist, the method returns
@@ -15,7 +15,7 @@ import math from "../math.js";
  * clusters: [ [0, 5], [1], [3], [2, 4]]
  * @linkcode Origami ./src/graph/verticesClusters.js 16
  */
-const verticesClusters = ({ vertices_coords }, epsilon = math.EPSILON) => {
+const verticesClusters = ({ vertices_coords }, epsilon = EPSILON) => {
 	if (!vertices_coords) { return []; }
 	// the return value, the clusters
 	const clusters = [];

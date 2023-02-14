@@ -1,7 +1,23 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
+import {
+	subtract,
+	subtract2,
+	resizeUp,
+} from "../math/algebra/vectors.js";
+import {
+	identity2x3,
+	multiplyMatrix2Vector2,
+	makeMatrix2Reflect,
+	multiplyMatrices2,
+} from "../math/algebra/matrix2.js";
+import {
+	identity3x4,
+	makeMatrix3Rotate,
+	multiplyMatrices3,
+} from "../math/algebra/matrix3.js";
 import {
 	makeVerticesFaces,
 	makeVerticesToEdgeBidirectional,
@@ -31,10 +47,10 @@ export const multiplyVerticesFacesMatrix2 = ({
 			.filter(a => a != null)
 			.shift())
 		.map(face => (face === undefined
-			? math.identity2x3
+			? identity2x3
 			: faces_matrix[face]));
 	return vertices_coords
-		.map((coord, i) => math.multiplyMatrix2Vector2(vertices_matrix[i], coord));
+		.map((coord, i) => multiplyMatrix2Vector2(vertices_matrix[i], coord));
 };
 const unassigned_angle = { U: true, u: true };
 /**
@@ -64,7 +80,7 @@ export const makeFacesMatrix = ({
 		}
 	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
-	const faces_matrix = faces_vertices.map(() => math.identity3x4);
+	const faces_matrix = faces_vertices.map(() => identity3x4);
 	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
 		.slice(1) // remove the first level, it has no parent face
 		.forEach(level => level
@@ -76,13 +92,12 @@ export const makeFacesMatrix = ({
 				const foldAngle = unassigned_angle[edges_assignment[edge]]
 					? Math.PI
 					: (edges_foldAngle[edge] * Math.PI) / 180;
-				const local_matrix = math.makeMatrix3Rotate(
+				const local_matrix = makeMatrix3Rotate(
 					foldAngle, // rotation angle
-					math.subtract(...math.resizeUp(coords[1], coords[0])), // line-vector
+					subtract(...resizeUp(coords[1], coords[0])), // line-vector
 					coords[0], // line-origin
 				);
-				faces_matrix[entry.face] = math
-					.multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
+				faces_matrix[entry.face] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
 				// to build the inverse matrix, switch these two parameters
 				// .multiplyMatrices3(local_matrix, faces_matrix[entry.parent]);
 			}));
@@ -112,7 +127,7 @@ export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assig
 	if (edges_assignment === undefined) {
 		return edges_foldAngle === undefined
 			? edges_vertices.map(() => true)
-			: edges_foldAngle.map(angle => angle < -math.EPSILON || angle > math.EPSILON);
+			: edges_foldAngle.map(angle => angle < -EPSILON || angle > EPSILON);
 	}
 	return edges_assignment.map(a => assignment_is_folded[a]);
 };
@@ -138,7 +153,7 @@ export const makeFacesMatrix2 = ({
 	}
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
-	const faces_matrix = faces_vertices.map(() => math.identity2x3);
+	const faces_matrix = faces_vertices.map(() => identity2x3);
 	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
 		.slice(1) // remove the first level, it has no parent face
 		.forEach(level => level
@@ -146,13 +161,12 @@ export const makeFacesMatrix2 = ({
 				const coords = entry.edge_vertices.map(v => vertices_coords[v]);
 				const edgeKey = entry.edge_vertices.join(" ");
 				const edge = edge_map[edgeKey];
-				const reflect_vector = math.subtract2(coords[1], coords[0]);
+				const reflect_vector = subtract2(coords[1], coords[0]);
 				const reflect_origin = coords[0];
 				const local_matrix = edges_is_folded[edge]
-					? math.makeMatrix2Reflect(reflect_vector, reflect_origin)
-					: math.identity2x3;
-				faces_matrix[entry.face] = math
-					.multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
+					? makeMatrix2Reflect(reflect_vector, reflect_origin)
+					: identity2x3;
+				faces_matrix[entry.face] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
 				// to build the inverse matrix, switch these two parameters
 				// .multiplyMatrices2(local_matrix, faces_matrix[entry.parent]);
 			}));

@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
+import { subtract } from "../math/algebra/vectors.js";
 import * as S from "../general/strings.js";
 import {
 	edgeAssignmentToFoldAngle,
@@ -22,7 +23,7 @@ import {
 	mergeNextmaps,
 	invertMap,
 } from "./maps.js";
-import Messages from "../environment/messages.json";
+import Messages from "../environment/messages.js";
 /**
  * Fragment converts a graph into a planar graph. it flattens all the
  * coordinates onto the 2D plane.
@@ -43,12 +44,12 @@ import Messages from "../environment/messages.json";
  * 3. replace the edge with a new, rebuilt, sequence of edges, with
  *    new vertices.
  */
-const fragment_graph = (graph, epsilon = math.EPSILON) => {
+const fragment_graph = (graph, epsilon = EPSILON) => {
 	const edges_coords = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 	// when we rebuild an edge we need the intersection points sorted
 	// so we can walk down it and rebuild one by one. sort along vector
-	const edges_vector = edges_coords.map(e => math.subtract(e[1], e[0]));
+	const edges_vector = edges_coords.map(e => subtract(e[1], e[0]));
 	const edges_origin = edges_coords.map(e => e[0]);
 	// for each edge, get all the intersection points
 	// this array will match edges_, each an array containing intersection
@@ -172,7 +173,7 @@ const fragment_keep_keys = [
  * @returns {object} a summary of changes to the graph
  * @linkcode Origami ./src/graph/fragment.js 173
  */
-const fragment = (graph, epsilon = math.EPSILON) => {
+const fragment = (graph, epsilon = EPSILON) => {
 	// project all vertices onto the XY plane
 	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 

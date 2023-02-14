@@ -1,9 +1,9 @@
 const { test, expect } = require("@jest/globals");
-const math = require("../ear.js");
+const ear = require("../rabbit-ear.js");
 
 test("constants", () => {
-	expect(typeof ear.EPSILON).toBe("number");
-	expect(typeof ear.TWO_PI).toBe("number");
-	expect(typeof ear.D2R).toBe("number");
-	expect(typeof ear.R2D).toBe("number");
+	expect(typeof ear.math.EPSILON).toBe("number");
+	expect(typeof ear.math.TWO_PI).toBe("number");
+	expect(typeof ear.math.D2R).toBe("number");
+	expect(typeof ear.math.R2D).toBe("number");
 });

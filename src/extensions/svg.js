@@ -1293,15 +1293,6 @@ var methods$1 = {
 /**
  * SVG (c) Kraft
  */
-const libraries = {
-	math: {
-		vector: (...args) => [...args],
-	},
-};
-
-/**
- * SVG (c) Kraft
- */
 
 const categories = {
 	move: ["mousemove", "touchmove"],
@@ -1328,7 +1319,8 @@ const assignPress = (e, startPoint) => {
 	["pressX", "pressY"].filter(prop => !Object.prototype.hasOwnProperty.call(e, prop))
 		.forEach((prop, i) => defineGetter(e, prop, startPoint[i]));
 	if (!Object.prototype.hasOwnProperty.call(e, "press")) {
-		defineGetter(e, "press", libraries.math.vector(...startPoint));
+		// defineGetter(e, "press", Libraries.math.vector(...startPoint));
+		defineGetter(e, "press", [...startPoint]);
 	}
 };
 
@@ -1389,7 +1381,8 @@ const TouchEvents = function (element) {
 								.filter(prop => !Object.prototype.hasOwnProperty.call(e, prop))
 								.forEach((prop, i) => defineGetter(e, prop, viewPoint[i]));
 							if (!Object.prototype.hasOwnProperty.call(e, "position")) {
-								defineGetter(e, "position", libraries.math.vector(...viewPoint));
+								// defineGetter(e, "position", Libraries.math.vector(...viewPoint));
+								defineGetter(e, "position", [...viewPoint]);
 							}
 							categoryUpdate[category](e, viewPoint);
 						}
@@ -2678,7 +2671,7 @@ const link_rabbitear_math = (svg, ear) => {
 
 	// bind the other way. allow SVG library to return vector() objects,
 	// as in the onMove function, the location of the pointer.
-	libraries.math.vector = ear.vector;
+	ear.vector;
 };
 
 // create a new svg element "origami", which is really a <svg>

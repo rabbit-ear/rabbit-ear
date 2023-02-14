@@ -29,7 +29,7 @@ import * as S from "../../general/strings.js";
  */
 const splitFace = (graph, face, vector, point, epsilon) => {
 	// survey face for any intersections which cross directly over a vertex
-	const intersect = intersectConvexFaceLine(graph, face, vector, point, epsilon);
+	const intersect = intersectConvexFaceLine(graph, face, { vector, origin: point }, epsilon);
 	// if no intersection exists, return undefined.
 	if (intersect === undefined) { return undefined; }
 	// this result will be appended to (vertices, edges) and returned by this method.

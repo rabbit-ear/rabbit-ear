@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { sortVerticesCounterClockwise } from "../sort.js";
-import Messages from "../../environment/messages.json";
+import Messages from "../../environment/messages.js";
 /**
  * @description a newly-added edge needs to update its two endpoints'
  * vertices_vertices. each vertices_vertices gains one additional
@@ -29,7 +29,7 @@ export const update_vertices_vertices = ({
 /**
  * vertices_vertices was just run before this method. use it.
  * vertices_edges should be up to date, except for the addition
- * of this one new edge at both ends of 
+ * of this one new edge at both ends of
  */
 export const update_vertices_edges = ({
 	edges_vertices, vertices_edges, vertices_vertices,

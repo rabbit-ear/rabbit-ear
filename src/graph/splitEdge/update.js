@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import { TWO_PI } from "../../math/general/constants.js";
+import { subtract2 } from "../../math/algebra/vectors.js";
+import { counterClockwiseSectors2 } from "../../math/geometry/radial.js";
 import { makeVerticesToEdgeBidirectional } from "../make.js";
 /**
  * @description an edge was just split into two by the addition of a vertex.
@@ -34,10 +36,9 @@ export const update_vertices_sectors = ({
 }, vertex) => {
 	if (!vertices_sectors) { return; }
 	vertices_sectors[vertex] = vertices_vertices[vertex].length === 1
-		? [math.TWO_PI]
-		: math.counterClockwiseSectors2(vertices_vertices[vertex]
-			.map(v => math
-				.subtract2(vertices_coords[v], vertices_coords[vertex])));
+		? [TWO_PI]
+		: counterClockwiseSectors2(vertices_vertices[vertex]
+			.map(v => subtract2(vertices_coords[v], vertices_coords[vertex])));
 };
 /**
  * @description an edge was just split into two by the addition of a vertex.

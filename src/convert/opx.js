@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { boundingBox } from "../math/geometry/polygons.js";
 import window from "../environment/window.js";
 import {
 	makeVerticesVertices,
@@ -77,7 +77,7 @@ const makeFOLD = (lines, epsilon) => {
 	fold.edges_foldAngle = makeEdgesFoldAngle(fold);
 	// analysis on vertices_coords to find an appropriate epsilon
 	if (epsilon === undefined) {
-		const { span } = math.boundingBox(fold.vertices_coords);
+		const { span } = boundingBox(fold.vertices_coords);
 		epsilon = Math.min(...span) * 1e-6;
 	}
 	removeDuplicateVertices(fold, epsilon);

@@ -1,7 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import {
+	distance,
+	subtract,
+} from "../../math/algebra/vectors.js";
 import * as S from "../../general/strings.js";
 /**
  * @description this does not modify the graph. it builds 2 objects with:
@@ -30,12 +33,12 @@ const splitEdgeIntoTwo = (graph, edge_index, new_vertex) => {
 				.map(v => graph.vertices_coords[v]));
 		if (graph.edges_vector) {
 			new_edges.forEach((edge, i) => {
-				edge.edges_vector = math.subtract(coords[i][1], coords[i][0]);
+				edge.edges_vector = subtract(coords[i][1], coords[i][0]);
 			});
 		}
 		if (graph.edges_length) {
 			new_edges.forEach((edge, i) => {
-				edge.edges_length = math.distance2(...coords[i]);
+				edge.edges_length = distance(...coords[i]);
 			});
 		}
 	}

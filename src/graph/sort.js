@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import { EPSILON } from "../math/general/constants.js";
+import { subtract } from "../math/algebra/vectors.js";
+import { sortPointsAlongVector } from "../math/general/sort.js";
 /**
  * @description This is a subroutine for building vertices_vertices. This will
  * take a set of vertices indices and a vertex index to be the center point, and
@@ -15,10 +17,10 @@ import math from "../math.js";
 export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) => (
 	vertices
 		.map(v => vertices_coords[v])
-		.map(coord => math.subtract(coord, vertices_coords[vertex]))
+		.map(coord => subtract(coord, vertices_coords[vertex]))
 		.map(vec => Math.atan2(vec[1], vec[0]))
 		// optional line, this makes the cycle loop start/end along the +X axis
-		.map(angle => (angle > -math.EPSILON ? angle : angle + Math.PI * 2))
+		.map(angle => (angle > -EPSILON ? angle : angle + Math.PI * 2))
 		.map((a, i) => ({ a, i }))
 		.sort((a, b) => a.a - b.a)
 		.map(el => el.i)
@@ -33,9 +35,15 @@ export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vert
  * @returns {number[]} indices of vertices, in sorted order
  * @linkcode Origami ./src/graph/sort.js 34
  */
+// export const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) => (
+// 	vertices
+// 		.map(i => ({ i, d: dot(vertices_coords[i], vector) }))
+// 		.sort((a, b) => a.d - b.d)
+// 		.map(a => a.i)
+// );
 export const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) => (
-	vertices
-		.map(i => ({ i, d: math.dot(vertices_coords[i], vector) }))
-		.sort((a, b) => a.d - b.d)
-		.map(a => a.i)
+	sortPointsAlongVector(
+		vertices.map(v => vertices_coords[v]),
+		vector,
+	).map(i => vertices[i])
 );

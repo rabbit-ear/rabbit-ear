@@ -1,7 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../../math.js";
+import {
+	scale,
+	add,
+	resize,
+} from "../../math/algebra/vectors.js";
 import {
 	nudgeFacesWithFaceOrders,
 	nudgeFacesWithFacesLayer,
@@ -45,9 +49,9 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 			const nudge = faces_nudge[oldFace];
 			if (!nudge) { return; }
 			exploded.faces_vertices[face].forEach(v => {
-				const vec = math.scale(nudge.vector, nudge.layer * layerNudge);
-				exploded.vertices_coords[v] = math.add(
-					math.resize(3, exploded.vertices_coords[v]),
+				const vec = scale(nudge.vector, nudge.layer * layerNudge);
+				exploded.vertices_coords[v] = add(
+					resize(3, exploded.vertices_coords[v]),
 					vec,
 				);
 			});

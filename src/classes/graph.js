@@ -1,7 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math.js";
+import {
+	getLine,
+	getVector,
+} from "../math/general/types.js";
+import { subtract } from "../math/algebra/vectors.js";
+import { boundingBox } from "../math/geometry/polygons.js";
 import setup from "./components.js";
 import * as S from "../general/strings.js";
 import {
@@ -76,7 +81,7 @@ Object.keys(graphMethods).forEach(key => {
  * methods below here need some kind of pre-processing of their arguments
  */
 Graph.prototype.splitFace = function (face, ...args) {
-	const line = math.core.getLine(...args);
+	const line = getLine(...args);
 	return splitFace(this, face, line.vector, line.origin);
 };
 /**
@@ -119,7 +124,7 @@ Graph.prototype.clear = function () {
  * all the vertices of the graph. not only the boundary vertices.
  */
 Graph.prototype.boundingBox = function () {
-	return math.rect.fromPoints(this.vertices_coords);
+	return boundingBox(this.vertices_coords);
 };
 /**
  * @description alter the vertices by moving the corner of the graph
@@ -128,12 +133,12 @@ Graph.prototype.boundingBox = function () {
  */
 Graph.prototype.unitize = function () {
 	if (!this.vertices_coords) { return this; }
-	const box = math.core.bounding_box(this.vertices_coords);
+	const box = boundingBox(this.vertices_coords);
 	const longest = Math.max(...box.span);
 	const scale = longest === 0 ? 1 : (1 / longest);
 	const origin = box.min;
 	this.vertices_coords = this.vertices_coords
-		.map(coord => math.core.subtract(coord, origin))
+		.map(coord => subtract(coord, origin))
 		.map(coord => coord.map(n => n * scale));
 	return this;
 };
@@ -242,7 +247,7 @@ const nearestMethods = {
  * "edges_", and "faces_" arrays.
  */
 Graph.prototype.nearest = function () {
-	const point = math.core.getVector(arguments);
+	const point = getVector(arguments);
 	const nears = Object.create(null);
 	const cache = {};
 	[S._vertices, S._edges, S._faces].forEach(key => {

@@ -2,7 +2,11 @@
  * Rabbit Ear (c) Kraft
  */
 import { chooseTwoPairs } from "../../general/arrays.js";
-import math from "../../math.js";
+import {
+	dot,
+	normalize,
+	subtract,
+} from "../../math/algebra/vectors.js";
 /**
  * @description a range is an array of two numbers [start, end]
  * not necessarily in sorted order.
@@ -23,7 +27,7 @@ const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
 			.map(v => graph.vertices_coords[v]));
 	const pairCoordsDots = pairCoords
 		.map(edge => edge
-			.map(coord => math.dot(coord, vector)));
+			.map(coord => dot(coord, vector)));
 	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
 	// console.log("pairCoords", pairCoords);
 	// console.log("pairCoordsDots", pairCoordsDots);
@@ -69,7 +73,7 @@ const make3DTortillaEdges = (graph, edges_sets, epsilon = 1e-6) => {
 		const firstEdge = intersectingSets_pairsAll[key][0][0];
 		const coords = graph.edges_vertices[firstEdge]
 			.map(v => graph.vertices_coords[v]);
-		const vector = math.normalize(math.subtract(coords[1], coords[0]));
+		const vector = normalize(subtract(coords[1], coords[0]));
 		// get one of the groups to get a plane/normal
 		// const group = parseInt(key.split(" ")[0], 10);
 		intersectingSets_pairsValid[key] = intersectingSets_pairsAll[key]

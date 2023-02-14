@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import Messages from "../environment/messages.json";
+import Messages from "../environment/messages.js";
 import { makeVerticesToEdgeBidirectional } from "./make.js";
 /**
  * @description Convert an array of indices into an array of array of
