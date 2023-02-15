@@ -39,6 +39,9 @@ test("inverse", () => {
 	const m = ear.math.invertMatrix4([0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 	[0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
 		.forEach((a, i) => expect(a).toBeCloseTo(m[i]));
+
+	const bad = ear.math.invertMatrix4([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, Infinity, 0, 1]);
+	expect(bad).toBe(undefined);
 });
 
 test("translate", () => {

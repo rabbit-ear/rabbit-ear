@@ -8,7 +8,7 @@ import {
 import {
 	subtract2,
 } from "../math/algebra/vectors.js";
-import clipLineConvexPolygon from "../math/intersect/clipLinePolygon.js";
+import { clipLineConvexPolygon } from "../math/intersect/clip.js";
 import { boundary } from "./boundary.js";
 /**
  * @description Clip a line inside the boundaries of a graph, resulting in

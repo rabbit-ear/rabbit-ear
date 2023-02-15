@@ -8,7 +8,7 @@ import {
 import {
 	multiplyMatrix4Vector3,
 } from "../../math/algebra/matrix4.js";
-import overlapConvexPolygons from "../../math/intersect/overlapPolygons.js";
+import { overlapConvexPolygons } from "../../math/intersect/overlap.js";
 import { invertMap } from "../../graph/maps.js";
 import {
 	makeEdgesFoldAngle,

@@ -556,6 +556,15 @@ test("intersect lines", () => {
 });
 
 test("circle circle intersect", () => {
+	// intersect
+	const result0 = ear.math.intersectCircleCircle(
+		{ radius: 2, origin: [0, 0] },
+		{ radius: 2, origin: [1, 0] },
+	);
+	expect(result0[0][0]).toBeCloseTo(0.5);
+	expect(result0[1][0]).toBeCloseTo(0.5);
+	expect(result0[0][1]).toBeCloseTo(-Math.sqrt(3.75));
+	expect(result0[1][1]).toBeCloseTo(Math.sqrt(3.75));
 	// same origin
 	expect(ear.math.intersectCircleCircle(
 		{ radius: 1, origin: [0, 0] },

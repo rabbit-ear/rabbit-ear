@@ -20,7 +20,7 @@ import {
 	matrix4FromQuaternion,
 	quaternionFromTwoVectors,
 } from "../math/algebra/quaternion.js";
-import overlapConvexPolygons from "../math/intersect/overlapPolygons.js";
+import { overlapConvexPolygons } from "../math/intersect/overlap.js";
 import { makeFacesNormal } from "./normals.js";
 import { clusterScalars } from "../general/arrays.js";
 import connectedComponents from "./connectedComponents.js";

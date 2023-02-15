@@ -3,7 +3,7 @@ import { excludeR } from '../general/functions.js';
 import { subtract, distance, flip } from '../algebra/vectors.js';
 import { clockwiseBisect2 } from './radial.js';
 import { nearestPointOnLine } from './nearest.js';
-import intersectLineLine from '../intersect/intersectLineLine.js';
+import { intersectLineLine } from '../intersect/intersect.js';
 
 const recurseSkeleton = (points, lines, bisectors) => {
 	const intersects = points

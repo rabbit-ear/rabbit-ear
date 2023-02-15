@@ -15,8 +15,10 @@ import {
 	uniqueLineToRayLine,
 } from "../math/general/types.js";
 import { includeL } from "../math/general/functions.js";
-import intersectCircleLine from "../math/intersect/intersectCircleLine.js";
-import intersectLineLine from "../math/intersect/intersectLineLine.js";
+import {
+	intersectLineLine,
+	intersectCircleLine,
+} from "../math/intersect/intersect.js";
 import { normalAxiom6 } from "./axiomsNormDist.js";
 /*           _                       _              _
 						(_)                     (_)            (_)

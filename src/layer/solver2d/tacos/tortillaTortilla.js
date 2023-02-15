@@ -6,7 +6,7 @@ import {
 	excludeS,
 } from "../../../math/general/functions.js";
 import { subtract2 } from "../../../math/algebra/vectors.js";
-import clipLineConvexPolygon from "../../../math/intersect/clipLinePolygon.js";
+import { clipLineConvexPolygon } from "../../../math/intersect/clip.js";
 import { makeFacesPolygon } from "../../../graph/make.js";
 import { makeFacesWinding } from "../../../graph/facesWinding.js";
 import { makeEdgesEdgesCrossing } from "../../../graph/edgesEdges.js";

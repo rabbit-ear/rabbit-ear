@@ -19,7 +19,7 @@ import {
 	rotate90,
 } from "../math/algebra/vectors.js";
 import { convexHull } from "../math/geometry/convexHull.js";
-import clipLineConvexPolygon from "../math/intersect/clipLinePolygon.js";
+import { clipLineConvexPolygon } from "../math/intersect/clip.js";
 
 const boundary_for_arrows = ({ vertices_coords }) => (
 	convexHull(vertices_coords)

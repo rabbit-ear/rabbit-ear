@@ -18,9 +18,11 @@ import {
 import {
 	boundingBox,
 } from "../math/geometry/polygons.js";
-import overlapBoundingBoxes from "../math/intersect/overlapBoundingBoxes.js";
-import intersectLineLine from "../math/intersect/intersectLineLine.js";
-import overlapLinePoint from "../math/intersect/overlapLinePoint.js";
+import {
+	overlapLinePoint,
+	overlapBoundingBoxes,
+} from "../math/intersect/overlap.js";
+import { intersectLineLine } from "../math/intersect/intersect.js";
 import {
 	makeEdgesVector,
 	makeEdgesCoords,

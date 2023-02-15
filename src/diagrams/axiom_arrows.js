@@ -31,10 +31,11 @@ import {
 import {
 	convexHull,
 } from "../math/geometry/convexHull.js";
-import intersectLineLine from "../math/intersect/intersectLineLine.js";
-import intersectConvexPolygonLine from "../math/intersect/intersectPolygonLine.js";
-
-import clipLineConvexPolygon from "../math/intersect/clipLinePolygon.js";
+import {
+	intersectLineLine,
+	intersectConvexPolygonLine,
+} from "../math/intersect/intersect.js";
+import { clipLineConvexPolygon } from "../math/intersect/clip.js";
 import axiom from "../axioms/index.js";
 
 const line_line_for_arrows = (a, b) => intersectLineLine(

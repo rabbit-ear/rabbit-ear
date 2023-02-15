@@ -64,11 +64,8 @@ const TWO_PI = Math.PI * 2;const constants=/*#__PURE__*/Object.freeze({__proto__
 const fnSquare = n => n * n;
 const fnAdd = (a, b) => a + (b || 0);
 const fnNotUndefined = a => a !== undefined;
-const fnAnd = (a, b) => a && b;
-const fnCat = (a, b) => a.concat(b);
-const fnVec2Angle = v => Math.atan2(v[1], v[0]);
-const fnToVec2 = a => [Math.cos(a), Math.sin(a)];
-const fnEqual = (a, b) => a === b;
+const fnVecToAngle = v => Math.atan2(v[1], v[0]);
+const fnAngleToVec = a => [Math.cos(a), Math.sin(a)];
 const fnEpsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsilon;
 const fnEpsilonCompare = (a, b, epsilon = EPSILON) => (
 	fnEpsilonEqual(a, b, epsilon) ? 0 : Math.sign(b - a)
@@ -93,7 +90,7 @@ const clampSegment = (dist) => {
 	if (dist < -EPSILON) { return 0; }
 	if (dist > 1 + EPSILON) { return 1; }
 	return dist;
-};const functions=/*#__PURE__*/Object.freeze({__proto__:null,clampLine,clampRay,clampSegment,exclude,excludeL,excludeR,excludeS,fnAdd,fnAnd,fnCat,fnEpsilonCompare,fnEpsilonEqual,fnEpsilonEqualVectors,fnEqual,fnNotUndefined,fnSquare,fnToVec2,fnTrue,fnVec2Angle,include,includeL,includeR,includeS});const magnitude = v => Math.sqrt(v
+};const functions=/*#__PURE__*/Object.freeze({__proto__:null,clampLine,clampRay,clampSegment,exclude,excludeL,excludeR,excludeS,fnAdd,fnAngleToVec,fnEpsilonCompare,fnEpsilonEqual,fnEpsilonEqualVectors,fnNotUndefined,fnSquare,fnTrue,fnVecToAngle,include,includeL,includeR,includeS});const magnitude = v => Math.sqrt(v
 	.map(fnSquare)
 	.reduce(fnAdd, 0));
 const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
@@ -1095,9 +1092,9 @@ const counterClockwiseAngle2 = (a, b) => {
 	if (angle < 0) { angle += TWO_PI; }
 	return angle;
 };
-const clockwiseBisect2 = (a, b) => fnToVec2(fnVec2Angle(a) - clockwiseAngle2(a, b) / 2);
+const clockwiseBisect2 = (a, b) => fnAngleToVec(fnVecToAngle(a) - clockwiseAngle2(a, b) / 2);
 const counterClockwiseBisect2 = (a, b) => (
-	fnToVec2(fnVec2Angle(a) + counterClockwiseAngle2(a, b) / 2)
+	fnAngleToVec(fnVecToAngle(a) + counterClockwiseAngle2(a, b) / 2)
 );
 const clockwiseSubsectRadians = (angleA, angleB, divisions) => {
 	const angle = clockwiseAngleRadians(angleA, angleB) / divisions;
@@ -1113,13 +1110,13 @@ const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	const angleA = Math.atan2(vectorA[1], vectorA[0]);
 	const angleB = Math.atan2(vectorB[1], vectorB[0]);
 	return clockwiseSubsectRadians(angleA, angleB, divisions)
-		.map(fnToVec2);
+		.map(fnAngleToVec);
 };
 const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	const angleA = Math.atan2(vectorA[1], vectorA[0]);
 	const angleB = Math.atan2(vectorB[1], vectorB[0]);
 	return counterClockwiseSubsectRadians(angleA, angleB, divisions)
-		.map(fnToVec2);
+		.map(fnAngleToVec);
 };
 const counterClockwiseOrderRadians = function () {
 	const radians = Array.from(arguments).flat();
@@ -1132,7 +1129,7 @@ const counterClockwiseOrderRadians = function () {
 };
 const counterClockwiseOrder2 = function () {
 	return counterClockwiseOrderRadians(
-		semiFlattenArrays(arguments).map(fnVec2Angle),
+		semiFlattenArrays(arguments).map(fnVecToAngle),
 	);
 };
 const counterClockwiseSectorsRadians = function () {
@@ -1144,7 +1141,7 @@ const counterClockwiseSectorsRadians = function () {
 };
 const counterClockwiseSectors2 = function () {
 	return counterClockwiseSectorsRadians(
-		semiFlattenArrays(arguments).map(fnVec2Angle),
+		semiFlattenArrays(arguments).map(fnVecToAngle),
 	);
 };
 const threePointTurnDirection = (p0, p1, p2, epsilon = EPSILON) => {
@@ -1996,44 +1993,124 @@ const populate = (graph, reface) => {
 		.map(vector => normalize(vector));
 	return fnEpsilonEqual(1.0, dot(...vectors), epsilon);
 };
-const bisectLines2 = (a, b, epsilon = EPSILON) => {
-	const determinant = cross2(a.vector, b.vector);
-	const dotProd = dot(a.vector, b.vector);
-	const bisects = determinant > -epsilon
-		? [counterClockwiseBisect2(a.vector, b.vector)]
-		: [clockwiseBisect2(a.vector, b.vector)];
-	bisects[1] = determinant > -epsilon
-		? rotate90(bisects[0])
-		: rotate270(bisects[0]);
-	const numerator = (b.origin[0] - a.origin[0])
-		* b.vector[1] - b.vector[0] * (b.origin[1] - a.origin[1]);
-	const t = numerator / determinant;
-	const normalized = [a.vector, b.vector].map(vec => normalize(vec));
-	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
-	const origin = isParallel
-		? midpoint(a.origin, b.origin)
-		: [a.origin[0] + a.vector[0] * t, a.origin[1] + a.vector[1] * t];
-	const solution = bisects.map(vector => ({ vector, origin }));
-	if (isParallel) { delete solution[(dotProd > -epsilon ? 1 : 0)]; }
-	return solution;
-};
 const lerpLines = (a, b, t) => {
 	const vector = lerp(a.vector, b.vector, t);
 	const origin = lerp(a.origin, b.origin, t);
 	return { vector, origin };
 };
-const pleat = (a, b, count) => Array
-	.from(Array(count - 1))
-	.map((_, i) => (i + 1) / count)
-	.map(t => lerpLines(a, b, t));const lines=/*#__PURE__*/Object.freeze({__proto__:null,bisectLines2,collinearBetween,lerpLines,pleat});const overlapLinePoint = ({ vector, origin }, point, func = excludeL, epsilon = EPSILON) => {
-	const p2p = subtract(point, origin);
+const pleat = (a, b, count, epsilon = EPSILON) => {
+	const dotProd = dot(a.vector, b.vector);
+	const determinant = cross2(a.vector, b.vector);
+	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
+	const t = numerator / determinant;
+	const normalized = [a.vector, b.vector].map(vec => normalize(vec));
+	const sides = determinant > -epsilon
+		? [[a.vector, b.vector], [flip(b.vector), a.vector]]
+		: [[b.vector, a.vector], [flip(a.vector), b.vector]];
+	const pleatVectors = sides
+		.map(pair => counterClockwiseSubsect2(pair[0], pair[1], count));
+	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
+	const intersection = isParallel
+		? undefined
+		: add2(a.origin, scale2(a.vector, t));
+	const iter = Array.from(Array(count - 1));
+	const origins = isParallel
+		? iter.map((_, i) => lerp(a.origin, b.origin, (i + 1) / count))
+		: iter.map(() => intersection);
+	const solution = pleatVectors
+		.map(side => side.map((vector, i) => ({
+			vector,
+			origin: [...origins[i]],
+		})));
+	if (isParallel) { solution[(dotProd > -epsilon ? 1 : 0)] = []; }
+	return solution;
+};
+const bisectLines2 = (a, b, epsilon = EPSILON) => {
+	const solution = pleat(a, b, 2, epsilon).map(arr => arr[0]);
+	solution.forEach((val, i) => {
+		if (val === undefined) { delete solution[i]; }
+	});
+	return solution;
+};const lines=/*#__PURE__*/Object.freeze({__proto__:null,bisectLines2,collinearBetween,lerpLines,pleat});const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
+	const dimensions = Math.min(box1.min.length, box2.min.length);
+	for (let d = 0; d < dimensions; d += 1) {
+		if (box1.min[d] > box2.max[d] + epsilon
+			|| box1.max[d] < box2.min[d] - epsilon) {
+			return false;
+		}
+	}
+	return true;
+};
+const overlapCirclePoint = ({ radius, origin }, point, fn = exclude, epsilon = EPSILON) => (
+	fn(radius - distance2(origin, point), epsilon)
+);
+const overlapLineLine = (
+	a,
+	b,
+	aFunction = excludeL,
+	bFunction = excludeL,
+	epsilon = EPSILON,
+) => {
+	const denominator0 = cross2(a.vector, b.vector);
+	const denominator1 = -denominator0;
+	const a2b = subtract2(b.origin, a.origin);
+	if (Math.abs(denominator0) < epsilon) {
+		if (Math.abs(cross2(a2b, a.vector)) > epsilon) { return false; }
+		const aPt1 = subtract2(a.origin, b.origin);
+		const aPt2 = add2(aPt1, a.vector);
+		const bPt1 = a2b;
+		const bPt2 = add2(bPt1, b.vector);
+		const aProjLen = dot2(a.vector, a.vector);
+		const bProjLen = dot2(a.vector, a.vector);
+		const aProj1 = dot2(aPt1, b.vector) / bProjLen;
+		const aProj2 = dot2(aPt2, b.vector) / bProjLen;
+		const bProj1 = dot2(bPt1, a.vector) / aProjLen;
+		const bProj2 = dot2(bPt2, a.vector) / aProjLen;
+		return aFunction(bProj1, epsilon) || aFunction(bProj2, epsilon)
+			|| bFunction(aProj1, epsilon) || bFunction(aProj2, epsilon);
+	}
+	const b2a = [-a2b[0], -a2b[1]];
+	const t0 = cross2(a2b, b.vector) / denominator0;
+	const t1 = cross2(b2a, a.vector) / denominator1;
+	return aFunction(t0, epsilon / magnitude2(a.vector))
+		&& bFunction(t1, epsilon / magnitude2(b.vector));
+};
+const overlapLinePoint = ({ vector, origin }, point, func = excludeL, epsilon = EPSILON) => {
+	const p2p = subtract2(point, origin);
 	const lineMagSq = magSquared(vector);
 	const lineMag = Math.sqrt(lineMagSq);
 	if (lineMag < epsilon) { return false; }
 	const cross = cross2(p2p, vector.map(n => n / lineMag));
-	const proj = dot(p2p, vector) / lineMagSq;
+	const proj = dot2(p2p, vector) / lineMagSq;
 	return Math.abs(cross) < epsilon && func(proj, epsilon / lineMag);
-};const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
+};
+const overlapConvexPolygonPoint = (poly, point, func = exclude, epsilon = EPSILON) => poly
+	.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+	.map(s => cross2(normalize2(subtract2(s[1], s[0])), subtract2(point, s[0])))
+	.map(side => func(side, epsilon))
+	.map((s, _, arr) => s === arr[0])
+	.reduce((prev, curr) => prev && curr, true);
+const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
+	for (let p = 0; p < 2; p += 1) {
+		const polyA = p === 0 ? poly1 : poly2;
+		const polyB = p === 0 ? poly2 : poly1;
+		for (let i = 0; i < polyA.length; i += 1) {
+			const origin = polyA[i];
+			const vector = rotate90(subtract2(polyA[(i + 1) % polyA.length], polyA[i]));
+			const projected = polyB
+				.map(point => subtract2(point, origin))
+				.map(v => dot2(vector, v));
+			const other_test_point = polyA[(i + 2) % polyA.length];
+			const side_a = dot2(vector, subtract2(other_test_point, origin));
+			const side = side_a > 0;
+			const one_sided = projected
+				.map(dotProd => (side ? dotProd < epsilon : dotProd > -epsilon))
+				.reduce((a, b) => a && b, true);
+			if (one_sided) { return false; }
+		}
+	}
+	return true;
+};const overlap=/*#__PURE__*/Object.freeze({__proto__:null,overlapBoundingBoxes,overlapCirclePoint,overlapConvexPolygonPoint,overlapConvexPolygons,overlapLineLine,overlapLinePoint});const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
 	makeEdgesBoundingBox(graph, epsilon)
 		.map(min_max => graph.vertices_coords
 			.map(vert => (
@@ -2111,15 +2188,7 @@ const getVerticesEdgesOverlap = ({
 		.map(verts => verts
 			.map((vert, i) => (vert ? i : undefined))
 			.filter(i => i !== undefined));
-};const vertices_collinear=/*#__PURE__*/Object.freeze({__proto__:null,isVertexCollinear,getVerticesEdgesOverlap});const overlapBoundingBoxes = (box1, box2) => {
-	const dimensions = Math.min(box1.min.length, box2.min.length);
-	for (let d = 0; d < dimensions; d += 1) {
-		if (box1.min[d] > box2.max[d] || box1.max[d] < box2.min[d]) {
-			return false;
-		}
-	}
-	return true;
-};const intersectLineLine = (
+};const vertices_collinear=/*#__PURE__*/Object.freeze({__proto__:null,isVertexCollinear,getVerticesEdgesOverlap});const intersectLineLine = (
 	a,
 	b,
 	aFunction = includeL,
@@ -2139,7 +2208,139 @@ const getVerticesEdgesOverlap = ({
 		return add2(a.origin, scale2(a.vector, t0));
 	}
 	return undefined;
-};const makeEdgesLineParallelOverlap = ({
+};
+const intersectCircleLine = (
+	circle,
+	line,
+	line_func = includeL,
+	epsilon = EPSILON,
+) => {
+	const magSq = line.vector[0] ** 2 + line.vector[1] ** 2;
+	const mag = Math.sqrt(magSq);
+	const norm = mag === 0 ? line.vector : line.vector.map(c => c / mag);
+	const rot90 = rotate90(norm);
+	const bvec = subtract2(line.origin, circle.origin);
+	const det = cross2(bvec, norm);
+	if (Math.abs(det) > circle.radius + epsilon) { return undefined; }
+	const side = Math.sqrt((circle.radius ** 2) - (det ** 2));
+	const f = (s, i) => circle.origin[i] - rot90[i] * det + norm[i] * s;
+	const results = Math.abs(circle.radius - Math.abs(det)) < epsilon
+		? [side].map((s) => [s, s].map(f))
+		: [-side, side].map((s) => [s, s].map(f));
+	const ts = results.map(res => res.map((n, i) => n - line.origin[i]))
+		.map(v => v[0] * line.vector[0] + line.vector[1] * v[1])
+		.map(d => d / magSq);
+	return results.filter((_, i) => line_func(ts[i], epsilon));
+};
+const acosSafe = (x) => {
+	if (x >= 1.0) return 0;
+	if (x <= -1.0) return Math.PI;
+	return Math.acos(x);
+};
+const rotateVector2 = (center, pt, a) => {
+	const x = pt[0] - center[0];
+	const y = pt[1] - center[1];
+	const xRot = x * Math.cos(a) + y * Math.sin(a);
+	const yRot = y * Math.cos(a) - x * Math.sin(a);
+	return [center[0] + xRot, center[1] + yRot];
+};
+const intersectCircleCircle = (c1, c2, epsilon = EPSILON) => {
+	const r = (c1.radius < c2.radius) ? c1.radius : c2.radius;
+	const R = (c1.radius < c2.radius) ? c2.radius : c1.radius;
+	const smCenter = (c1.radius < c2.radius) ? c1.origin : c2.origin;
+	const bgCenter = (c1.radius < c2.radius) ? c2.origin : c1.origin;
+	const vec = [smCenter[0] - bgCenter[0], smCenter[1] - bgCenter[1]];
+	const d = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+	if (d < epsilon) { return undefined; }
+	const point = vec.map((v, i) => (v / d) * R + bgCenter[i]);
+	if (Math.abs((R + r) - d) < epsilon
+		|| Math.abs(R - (r + d)) < epsilon) { return [point]; }
+	if ((d + r) < R || (R + r < d)) { return undefined; }
+	const angle = acosSafe((r * r - d * d - R * R) / (-2.0 * d * R));
+	const pt1 = rotateVector2(bgCenter, point, +angle);
+	const pt2 = rotateVector2(bgCenter, point, -angle);
+	return [pt1, pt2];
+};
+const getUniquePair = (intersections) => {
+	for (let i = 1; i < intersections.length; i += 1) {
+		if (!fnEpsilonEqualVectors(intersections[0], intersections[i])) {
+			return [intersections[0], intersections[i]];
+		}
+	}
+	return undefined;
+};
+const intersectConvexPolygonLineInclusive = (
+	poly,
+	{ vector, origin },
+	fn_poly = includeS,
+	fn_line = includeL,
+	epsilon = EPSILON,
+) => {
+	const intersections = poly
+		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+		.map(side => intersectLineLine(
+			{ vector: subtract2(side[1], side[0]), origin: side[0] },
+			{ vector, origin },
+			fn_poly,
+			fn_line,
+			epsilon,
+		))
+		.filter(a => a !== undefined);
+	switch (intersections.length) {
+	case 0: return undefined;
+	case 1: return [intersections];
+	default:
+		return getUniquePair(intersections) || [intersections[0]];
+	}
+};
+const intersectConvexPolygonLine = (
+	poly,
+	{ vector, origin },
+	fn_poly = includeS,
+	fn_line = excludeL,
+	epsilon = EPSILON,
+) => {
+	const sects = intersectConvexPolygonLineInclusive(
+		poly,
+		{ vector, origin },
+		fn_poly,
+		fn_line,
+		epsilon,
+	);
+	let altFunc;
+	switch (fn_line) {
+	case excludeR: altFunc = includeR; break;
+	case excludeS: altFunc = includeS; break;
+	default: return sects;
+	}
+	const includes = intersectConvexPolygonLineInclusive(
+		poly,
+		{ vector, origin },
+		includeS,
+		altFunc,
+		epsilon,
+	);
+	if (includes === undefined) { return undefined; }
+	const uniqueIncludes = getUniquePair(includes);
+	if (uniqueIncludes === undefined) {
+		switch (fn_line) {
+		case excludeR:
+			return overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
+				? includes
+				: undefined;
+		case excludeS:
+			return overlapConvexPolygonPoint(poly, add2(origin, vector), exclude, epsilon)
+				|| overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
+				? includes
+				: undefined;
+		case excludeL: return undefined;
+		default: return undefined;
+		}
+	}
+	return overlapConvexPolygonPoint(poly, midpoint2(...uniqueIncludes), exclude, epsilon)
+		? uniqueIncludes
+		: sects;
+};const intersect$1$1=/*#__PURE__*/Object.freeze({__proto__:null,intersectCircleCircle,intersectCircleLine,intersectConvexPolygonLine,intersectLineLine});const makeEdgesLineParallelOverlap = ({
 	vertices_coords, edges_vertices,
 }, vector, point, epsilon = EPSILON) => {
 	const normalized = normalize2(vector);
@@ -2877,12 +3078,7 @@ const nearestPointOnPolygon = (polygon, point) => polygon
 	.sort((a, b) => a.distance - b.distance)
 	.shift();
 const nearestPointOnCircle = ({ radius, origin }, point) => (
-	add(origin, scale(normalize(subtract(point, origin)), radius)));const nearest$1=/*#__PURE__*/Object.freeze({__proto__:null,nearestPoint,nearestPoint2,nearestPointOnCircle,nearestPointOnLine,nearestPointOnPolygon});const overlapConvexPolygonPoint = (poly, point, func = exclude, epsilon = EPSILON) => poly
-	.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-	.map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])))
-	.map(side => func(side, epsilon))
-	.map((s, _, arr) => s === arr[0])
-	.reduce((prev, curr) => prev && curr, true);const nearestVertex = ({ vertices_coords }, point) => {
+	add(origin, scale(normalize(subtract(point, origin)), radius)));const nearest$1=/*#__PURE__*/Object.freeze({__proto__:null,nearestPoint,nearestPoint2,nearestPointOnCircle,nearestPointOnLine,nearestPointOnPolygon});const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
 	const p = resize(vertices_coords[0].length, point);
 	const nearest = vertices_coords
@@ -3439,24 +3635,24 @@ const GraphProto = Graph.prototype;const lineLineParameter = (
 	polyLineFunc = includeS,
 	epsilon = EPSILON,
 ) => {
-	const det_norm = cross2(normalize(lineVector), normalize(polyVector));
+	const det_norm = cross2(normalize2(lineVector), normalize2(polyVector));
 	if (Math.abs(det_norm) < epsilon) { return undefined; }
 	const determinant0 = cross2(lineVector, polyVector);
 	const determinant1 = -determinant0;
-	const a2b = subtract(polyOrigin, lineOrigin);
+	const a2b = subtract2(polyOrigin, lineOrigin);
 	const b2a = flip(a2b);
 	const t0 = cross2(a2b, polyVector) / determinant0;
 	const t1 = cross2(b2a, lineVector) / determinant1;
-	if (polyLineFunc(t1, epsilon / magnitude(polyVector))) {
+	if (polyLineFunc(t1, epsilon / magnitude2(polyVector))) {
 		return t0;
 	}
 	return undefined;
 };
 const linePointFromParameter = (vector, origin, t) => (
-	add(origin, scale(vector, t))
+	add2(origin, scale2(vector, t))
 );
 const getIntersectParameters = (poly, vector, origin, polyLineFunc, epsilon) => poly
-	.map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p])
+	.map((p, i, arr) => [subtract2(arr[(i + 1) % arr.length], p), p])
 	.map(side => lineLineParameter(
 		vector,
 		origin,
@@ -3490,7 +3686,7 @@ const clipLineConvexPolygon = (
 ) => {
 	const numbers = getIntersectParameters(poly, vector, origin, includeS, epsilon);
 	if (numbers.length < 2) { return undefined; }
-	const scaled_epsilon = (epsilon * 2) / magnitude(vector);
+	const scaled_epsilon = (epsilon * 2) / magnitude2(vector);
 	const ends = getMinMax(numbers, fnPoly, scaled_epsilon);
 	if (ends === undefined) { return undefined; }
 	const clip_fn = (t) => {
@@ -3498,14 +3694,49 @@ const clipLineConvexPolygon = (
 		return t < 0.5 ? 0 : 1;
 	};
 	const ends_clip = ends.map(clip_fn);
-	if (Math.abs(ends_clip[0] - ends_clip[1]) < (epsilon * 2) / magnitude(vector)) {
+	if (Math.abs(ends_clip[0] - ends_clip[1]) < (epsilon * 2) / magnitude2(vector)) {
 		return undefined;
 	}
 	const mid = linePointFromParameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
 	return overlapConvexPolygonPoint(poly, mid, fnPoly, epsilon)
 		? ends_clip.map(t => linePointFromParameter(vector, origin, t))
 		: undefined;
-};const clip = function (graph, line) {
+};
+const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
+	const inside = (p, cp1, cp2) => (
+		(cp2[0] - cp1[0]) * (p[1] - cp1[1])) > ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon
+	);
+	const intersection = (cp1, cp2, e, s) => {
+		const dc = subtract2(cp1, cp2);
+		const dp = subtract2(s, e);
+		const n1 = cross2(cp1, cp2);
+		const n2 = cross2(s, e);
+		const n3 = 1.0 / cross2(dc, dp);
+		return scale2(subtract2(scale2(dp, n1), scale2(dc, n2)), n3);
+	};
+	let outputList = polygon1;
+	let cp1 = polygon2[polygon2.length - 1];
+	for (let j = 0; j < polygon2.length; j += 1) {
+		const cp2 = polygon2[j];
+		const inputList = outputList;
+		outputList = [];
+		let s = inputList[inputList.length - 1];
+		for (let i = 0; i < inputList.length; i += 1) {
+			const e = inputList[i];
+			if (inside(e, cp1, cp2)) {
+				if (!inside(s, cp1, cp2)) {
+					outputList.push(intersection(cp1, cp2, e, s));
+				}
+				outputList.push(e);
+			} else if (inside(s, cp1, cp2)) {
+				outputList.push(intersection(cp1, cp2, e, s));
+			}
+			s = e;
+		}
+		cp1 = cp2;
+	}
+	return outputList.length === 0 ? undefined : outputList;
+};const clip$1=/*#__PURE__*/Object.freeze({__proto__:null,clipLineConvexPolygon,clipPolygonPolygon});const clip = function (graph, line) {
 	const polygon = boundary(graph).vertices.map(v => graph.vertices_coords[v]);
 	const vector = line.vector ? line.vector : subtract2(line[1], line[0]);
 	const origin = line.origin ? line.origin : line[0];
@@ -4242,106 +4473,7 @@ const subgraphWithFaces = (graph, faces) => {
 		edges,
 		vertices,
 	});
-};const subgraphMethods=/*#__PURE__*/Object.freeze({__proto__:null,selfRelationalArraySubset,subgraph,subgraphWithFaces});const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
-	for (let p = 0; p < 2; p += 1) {
-		const polyA = p === 0 ? poly1 : poly2;
-		const polyB = p === 0 ? poly2 : poly1;
-		for (let i = 0; i < polyA.length; i += 1) {
-			const origin = polyA[i];
-			const vector = rotate90(subtract(polyA[(i + 1) % polyA.length], polyA[i]));
-			const projected = polyB
-				.map(point => subtract(point, origin))
-				.map(v => dot(vector, v));
-			const other_test_point = polyA[(i + 2) % polyA.length];
-			const side_a = dot(vector, subtract(other_test_point, origin));
-			const side = side_a > 0;
-			const one_sided = projected
-				.map(dotProd => (side ? dotProd < epsilon : dotProd > -epsilon))
-				.reduce((a, b) => a && b, true);
-			if (one_sided) { return false; }
-		}
-	}
-	return true;
-};const getUniquePair = (intersections) => {
-	for (let i = 1; i < intersections.length; i += 1) {
-		if (!fnEpsilonEqualVectors(intersections[0], intersections[i])) {
-			return [intersections[0], intersections[i]];
-		}
-	}
-	return undefined;
-};
-const intersectConvexPolygonLineInclusive = (
-	poly,
-	{ vector, origin },
-	fn_poly = includeS,
-	fn_line = includeL,
-	epsilon = EPSILON,
-) => {
-	const intersections = poly
-		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-		.map(side => intersectLineLine(
-			{ vector: subtract(side[1], side[0]), origin: side[0] },
-			{ vector, origin },
-			fn_poly,
-			fn_line,
-			epsilon,
-		))
-		.filter(a => a !== undefined);
-	switch (intersections.length) {
-	case 0: return undefined;
-	case 1: return [intersections];
-	default:
-		return getUniquePair(intersections) || [intersections[0]];
-	}
-};
-const intersectConvexPolygonLine = (
-	poly,
-	{ vector, origin },
-	fn_poly = includeS,
-	fn_line = excludeL,
-	epsilon = EPSILON,
-) => {
-	const sects = intersectConvexPolygonLineInclusive(
-		poly,
-		{ vector, origin },
-		fn_poly,
-		fn_line,
-		epsilon,
-	);
-	let altFunc;
-	switch (fn_line) {
-	case excludeR: altFunc = includeR; break;
-	case excludeS: altFunc = includeS; break;
-	default: return sects;
-	}
-	const includes = intersectConvexPolygonLineInclusive(
-		poly,
-		{ vector, origin },
-		includeS,
-		altFunc,
-		epsilon,
-	);
-	if (includes === undefined) { return undefined; }
-	const uniqueIncludes = getUniquePair(includes);
-	if (uniqueIncludes === undefined) {
-		switch (fn_line) {
-		case excludeR:
-			return overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
-				? includes
-				: undefined;
-		case excludeS:
-			return overlapConvexPolygonPoint(poly, add(origin, vector), exclude, epsilon)
-				|| overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
-				? includes
-				: undefined;
-		case excludeL: return undefined;
-		default: return undefined;
-		}
-	}
-	return overlapConvexPolygonPoint(poly, midpoint(...uniqueIncludes), exclude, epsilon)
-		? uniqueIncludes
-		: sects;
-};const makeEdgesFacesOverlap = ({
+};const subgraphMethods=/*#__PURE__*/Object.freeze({__proto__:null,selfRelationalArraySubset,subgraph,subgraphWithFaces});const makeEdgesFacesOverlap = ({
 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
 }, epsilon) => {
 	if (!edges_vector) {
@@ -4514,35 +4646,6 @@ const triangulate = (graph, earcut) => {
 		group += recurse(row, group);
 	}
 	return groups;
-};const overlapLineLine = (
-	a,
-	b,
-	aFunction = excludeL,
-	bFunction = excludeL,
-	epsilon = EPSILON,
-) => {
-	const denominator0 = cross2(a.vector, b.vector);
-	const denominator1 = -denominator0;
-	const a2b = subtract2(b.origin, a.origin);
-	if (Math.abs(denominator0) < epsilon) {
-		if (Math.abs(cross2(a2b, a.vector)) > epsilon) { return false; }
-		const bPt1 = a2b;
-		const bPt2 = add2(bPt1, b.vector);
-		const aProjLen = dot2(a.vector, a.vector);
-		const bProj1 = dot2(bPt1, a.vector) / aProjLen;
-		const bProj2 = dot2(bPt2, a.vector) / aProjLen;
-		const bProjSm = bProj1 < bProj2 ? bProj1 : bProj2;
-		const bProjLg = bProj1 < bProj2 ? bProj2 : bProj1;
-		const bOutside1 = bProjSm > 1 - epsilon;
-		const bOutside2 = bProjLg < epsilon;
-		if (bOutside1 || bOutside2) { return false; }
-		return true;
-	}
-	const b2a = [-a2b[0], -a2b[1]];
-	const t0 = cross2(a2b, b.vector) / denominator0;
-	const t1 = cross2(b2a, a.vector) / denominator1;
-	return aFunction(t0, epsilon / magnitude2(a.vector))
-		&& bFunction(t1, epsilon / magnitude2(b.vector));
 };const makeEdgesEdgesSimilar = ({
 	vertices_coords, edges_vertices, edges_coords,
 }, epsilon = EPSILON) => {
@@ -5152,10 +5255,11 @@ const straightSkeleton = (points) => {
 	...polygons,
 	...radial,
 	straightSkeleton,
-};const enclosingBoundingBoxes = (outer, inner) => {
+};const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
 	const dimensions = Math.min(outer.min.length, inner.min.length);
 	for (let d = 0; d < dimensions; d += 1) {
-		if (inner.min[d] < outer.min[d] || inner.max[d] > outer.max[d]) {
+		if (inner.min[d] < outer.min[d] - epsilon
+			|| inner.max[d] > outer.max[d] + epsilon) {
 			return false;
 		}
 	}
@@ -5169,91 +5273,7 @@ const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
 		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
 		.reduce((a, b) => a && b, true);
 	return (!outerGoesInside && innerGoesOutside);
-};const encloses=/*#__PURE__*/Object.freeze({__proto__:null,enclosingBoundingBoxes,enclosingPolygonPolygon});const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
-	const inside = (p, cp1, cp2) => (
-		(cp2[0] - cp1[0]) * (p[1] - cp1[1])) > ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon
-	);
-	const intersection = (cp1, cp2, e, s) => {
-		const dc = [cp1[0] - cp2[0], cp1[1] - cp2[1]];
-		const dp = [s[0] - e[0], s[1] - e[1]];
-		const n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0];
-		const n2 = s[0] * e[1] - s[1] * e[0];
-		const n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
-		return [(n1 * dp[0] - n2 * dc[0]) * n3, (n1 * dp[1] - n2 * dc[1]) * n3];
-	};
-	let outputList = polygon1;
-	let cp1 = polygon2[polygon2.length - 1];
-	for (let j = 0; j < polygon2.length; j += 1) {
-		const cp2 = polygon2[j];
-		const inputList = outputList;
-		outputList = [];
-		let s = inputList[inputList.length - 1];
-		for (let i = 0; i < inputList.length; i += 1) {
-			const e = inputList[i];
-			if (inside(e, cp1, cp2)) {
-				if (!inside(s, cp1, cp2)) {
-					outputList.push(intersection(cp1, cp2, e, s));
-				}
-				outputList.push(e);
-			} else if (inside(s, cp1, cp2)) {
-				outputList.push(intersection(cp1, cp2, e, s));
-			}
-			s = e;
-		}
-		cp1 = cp2;
-	}
-	return outputList.length === 0 ? undefined : outputList;
-};const acosSafe = (x) => {
-	if (x >= 1.0) return 0;
-	if (x <= -1.0) return Math.PI;
-	return Math.acos(x);
-};
-const rotateVector2 = (center, pt, a) => {
-	const x = pt[0] - center[0];
-	const y = pt[1] - center[1];
-	const xRot = x * Math.cos(a) + y * Math.sin(a);
-	const yRot = y * Math.cos(a) - x * Math.sin(a);
-	return [center[0] + xRot, center[1] + yRot];
-};
-const intersectCircleCircle = (c1, c2, epsilon = EPSILON) => {
-	const r = (c1.radius < c2.radius) ? c1.radius : c2.radius;
-	const R = (c1.radius < c2.radius) ? c2.radius : c1.radius;
-	const smCenter = (c1.radius < c2.radius) ? c1.origin : c2.origin;
-	const bgCenter = (c1.radius < c2.radius) ? c2.origin : c1.origin;
-	const vec = [smCenter[0] - bgCenter[0], smCenter[1] - bgCenter[1]];
-	const d = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
-	if (d < epsilon) { return undefined; }
-	const point = vec.map((v, i) => (v / d) * R + bgCenter[i]);
-	if (Math.abs((R + r) - d) < epsilon
-		|| Math.abs(R - (r + d)) < epsilon) { return [point]; }
-	if ((d + r) < R || (R + r < d)) { return undefined; }
-	const angle = acosSafe((r * r - d * d - R * R) / (-2.0 * d * R));
-	const pt1 = rotateVector2(bgCenter, point, +angle);
-	const pt2 = rotateVector2(bgCenter, point, -angle);
-	return [pt1, pt2];
-};const intersectCircleLine = (
-	circle,
-	line,
-	line_func = includeL,
-	epsilon = EPSILON,
-) => {
-	const magSq = line.vector[0] ** 2 + line.vector[1] ** 2;
-	const mag = Math.sqrt(magSq);
-	const norm = mag === 0 ? line.vector : line.vector.map(c => c / mag);
-	const rot90 = rotate90(norm);
-	const bvec = subtract(line.origin, circle.origin);
-	const det = cross2(bvec, norm);
-	if (Math.abs(det) > circle.radius + epsilon) { return undefined; }
-	const side = Math.sqrt((circle.radius ** 2) - (det ** 2));
-	const f = (s, i) => circle.origin[i] - rot90[i] * det + norm[i] * s;
-	const results = Math.abs(circle.radius - Math.abs(det)) < epsilon
-		? [side].map((s) => [s, s].map(f))
-		: [-side, side].map((s) => [s, s].map(f));
-	const ts = results.map(res => res.map((n, i) => n - line.origin[i]))
-		.map(v => v[0] * line.vector[0] + line.vector[1] * v[1])
-		.map(d => d / magSq);
-	return results.filter((_, i) => line_func(ts[i], epsilon));
-};const splitConvexPolygon = (poly, line) => {
+};const encloses=/*#__PURE__*/Object.freeze({__proto__:null,enclosingBoundingBoxes,enclosingPolygonPolygon});const splitConvexPolygon = (poly, line) => {
 	const vertices_intersections = poly.map((v, i) => {
 		const intersection = overlapLinePoint(line, v, includeL);
 		return { point: intersection ? v : null, at_index: i };
@@ -5308,20 +5328,12 @@ const intersectCircleCircle = (c1, c2, epsilon = EPSILON) => {
 		return [face_a, face_b];
 	}
 	return [poly.slice()];
-};const intersect$1 = {
+};const split=/*#__PURE__*/Object.freeze({__proto__:null,splitConvexPolygon});const intersect$1 = {
 	...encloses,
-	clipLineConvexPolygon,
-	clipPolygonPolygon,
-	intersectConvexPolygonLine,
-	intersectCircleCircle,
-	intersectCircleLine,
-	intersectLineLine,
-	overlapConvexPolygons,
-	overlapConvexPolygonPoint,
-	overlapBoundingBoxes,
-	overlapLineLine,
-	overlapLinePoint,
-	splitConvexPolygon,
+	...overlap,
+	...intersect$1$1,
+	...clip$1,
+	...split,
 };const math$1 = {
 	...general$1,
 	...algebra,

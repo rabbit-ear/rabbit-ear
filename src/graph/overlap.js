@@ -10,10 +10,12 @@ import {
 	boundingBox,
 	makePolygonNonCollinear,
 } from "../math/geometry/polygons.js";
-import overlapBoundingBoxes from "../math/intersect/overlapBoundingBoxes.js";
-import overlapConvexPolygons from "../math/intersect/overlapPolygons.js";
-import overlapConvexPolygonPoint from "../math/intersect/overlapPolygonPoint.js";
-import intersectConvexPolygonLine from "../math/intersect/intersectPolygonLine.js";
+import {
+	overlapBoundingBoxes,
+	overlapConvexPolygons,
+	overlapConvexPolygonPoint,
+} from "../math/intersect/overlap.js";
+import { intersectConvexPolygonLine } from "../math/intersect/intersect.js";
 import {
 	makeEdgesVector,
 	makeEdgesBoundingBox,

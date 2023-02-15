@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../../../math/general/constants.js";
-import clipPolygonPolygon from "../../../math/intersect/clipPolygonPolygon.js";
+import { clipPolygonPolygon } from "../../../math/intersect/clip.js";
 import { makeFacesWinding } from "../../../graph/facesWinding.js";
 import { getFacesFaces2DOverlap } from "../../../graph/overlap.js";
 /**

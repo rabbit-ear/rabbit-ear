@@ -1,7 +1,7 @@
 /* Math (c) Kraft, MIT License */
 import { subtract } from '../algebra/vectors.js';
-import overlapLinePoint from './overlapLinePoint.js';
-import intersectLineLine from './intersectLineLine.js';
+import { overlapLinePoint } from './overlap.js';
+import { intersectLineLine } from './intersect.js';
 import { includeL, excludeS, excludeL } from '../general/functions.js';
 
 const splitConvexPolygon = (poly, line) => {
@@ -61,4 +61,4 @@ const splitConvexPolygon = (poly, line) => {
 	return [poly.slice()];
 };
 
-export { splitConvexPolygon as default };
+export { splitConvexPolygon };

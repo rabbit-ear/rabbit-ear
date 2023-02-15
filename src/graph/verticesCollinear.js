@@ -5,7 +5,7 @@ import { EPSILON } from "../math/general/constants.js";
 import { excludeS } from "../math/general/functions.js";
 import { subtract } from "../math/algebra/vectors.js";
 import { collinearBetween } from "../math/geometry/lines.js";
-import overlapLinePoint from "../math/intersect/overlapLinePoint.js";
+import { overlapLinePoint } from "../math/intersect/overlap.js";
 import { getEdgesVerticesOverlappingSpan } from "./span.js";
 import { makeVerticesEdgesUnsorted } from "./make.js";
 import { getOppositeVertices } from "./general.js";

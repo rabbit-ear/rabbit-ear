@@ -15,11 +15,17 @@ import {
 	includeL,
 	includeS,
 } from "../math/general/functions.js";
-import overlapConvexPolygonPoint from "../math/intersect/overlapPolygonPoint.js";
-import clipLineConvexPolygon from "../math/intersect/clipLinePolygon.js";
-import overlapLinePoint from "../math/intersect/overlapLinePoint.js";
-import intersectLineLine from "../math/intersect/intersectLineLine.js";
-import intersectConvexPolygonLine from "../math/intersect/intersectPolygonLine.js";
+import {
+	overlapLinePoint,
+	overlapConvexPolygonPoint,
+} from "../math/intersect/overlap.js";
+import {
+	intersectLineLine,
+	intersectConvexPolygonLine,
+} from "../math/intersect/intersect.js";
+import {
+	clipLineConvexPolygon,
+} from "../math/intersect/clip.js";
 
 const reflectPoint = (foldLine, point) => {
 	const matrix = makeMatrix2Reflect(foldLine.vector, foldLine.origin);

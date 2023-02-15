@@ -9,9 +9,9 @@ import {
 } from "../../math/general/functions.js";
 import { subtract2 } from "../../math/algebra/vectors.js";
 import { multiplyMatrix4Vector3 } from "../../math/algebra/matrix4.js";
-import overlapConvexPolygonPoint from "../../math/intersect/overlapPolygonPoint.js";
-import intersectConvexPolygonLine from "../../math/intersect/intersectPolygonLine.js";
-import clipLineConvexPolygon from "../../math/intersect/clipLinePolygon.js";
+import { overlapConvexPolygonPoint } from "../../math/intersect/overlap.js";
+import { intersectConvexPolygonLine } from "../../math/intersect/intersect.js";
+import { clipLineConvexPolygon } from "../../math/intersect/clip.js";
 import { edgeFoldAngleIsFlat } from "../../fold/spec.js";
 /**
  *

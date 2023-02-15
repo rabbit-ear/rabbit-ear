@@ -10,7 +10,7 @@ import { nearestPointOnLine } from "../math/geometry/nearest.js";
 import { smallestComparisonSearch } from "../math/general/search.js";
 import { getVector } from "../math/general/types.js";
 import { clampSegment } from "../math/general/functions.js";
-import overlapConvexPolygonPoint from "../math/intersect/overlapPolygonPoint.js";
+import { overlapConvexPolygonPoint } from "../math/intersect/overlap.js";
 import {
 	singularize,
 	filterKeysWithPrefix,

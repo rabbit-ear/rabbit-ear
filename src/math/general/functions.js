@@ -5,11 +5,8 @@ const fnTrue = () => true;
 const fnSquare = n => n * n;
 const fnAdd = (a, b) => a + (b || 0);
 const fnNotUndefined = a => a !== undefined;
-const fnAnd = (a, b) => a && b;
-const fnCat = (a, b) => a.concat(b);
-const fnVec2Angle = v => Math.atan2(v[1], v[0]);
-const fnToVec2 = a => [Math.cos(a), Math.sin(a)];
-const fnEqual = (a, b) => a === b;
+const fnVecToAngle = v => Math.atan2(v[1], v[0]);
+const fnAngleToVec = a => [Math.cos(a), Math.sin(a)];
 const fnEpsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsilon;
 const fnEpsilonCompare = (a, b, epsilon = EPSILON) => (
 	fnEpsilonEqual(a, b, epsilon) ? 0 : Math.sign(b - a)
@@ -36,4 +33,4 @@ const clampSegment = (dist) => {
 	return dist;
 };
 
-export { clampLine, clampRay, clampSegment, exclude, excludeL, excludeR, excludeS, fnAdd, fnAnd, fnCat, fnEpsilonCompare, fnEpsilonEqual, fnEpsilonEqualVectors, fnEqual, fnNotUndefined, fnSquare, fnToVec2, fnTrue, fnVec2Angle, include, includeL, includeR, includeS };
+export { clampLine, clampRay, clampSegment, exclude, excludeL, excludeR, excludeS, fnAdd, fnAngleToVec, fnEpsilonCompare, fnEpsilonEqual, fnEpsilonEqualVectors, fnNotUndefined, fnSquare, fnTrue, fnVecToAngle, include, includeL, includeR, includeS };

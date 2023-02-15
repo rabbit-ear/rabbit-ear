@@ -11,7 +11,7 @@ import {
 	normalize,
 	dot,
 } from "../math/algebra/vectors.js";
-import overlapLineLine from "../math/intersect/overlapLineLine.js";
+import { overlapLineLine } from "../math/intersect/overlap.js";
 import {
 	makeEdgesVector,
 	makeEdgesCoords,

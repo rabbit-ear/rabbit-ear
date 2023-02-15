@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../../math/general/constants.js";
-import clipPolygonPolygon from "../../math/intersect/clipPolygonPolygon.js";
+import { clipPolygonPolygon } from "../../math/intersect/clip.js";
 import { makeFacesPolygon } from "../../graph/make.js";
 /**
  * @description given a folded graph, find all trios of faces which overlap

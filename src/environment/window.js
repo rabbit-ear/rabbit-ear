@@ -2,13 +2,19 @@
  * Rabbit Ear (c) Kraft
  */
 /**
- * maintain one "window" object for both browser and nodejs. if a browser window
- * object exists, it will set to this, including inside a node/react website for example
- * in backend-specific nodejs you will need to assign this window object yourself to a
- * XML DOM library, (listed below), by running: ear.window = xmldom (the default export)
+ * maintain one "window" object for both browser and nodejs.
+ * if a browser window object exists, it will set to this,
+ * including inside a node/react website for example in
+ * backend-specific nodejs you will need to assign this
+ * window object yourself to a XML DOM library, (url below),
+ * by running: ear.window = xmldom (the default export)
+ *
  * - @xmldom/xmldom: https://www.npmjs.com/package/@xmldom/xmldom
- * note: xmldom supports DOMParser, XMLSerializer, and document, but not
- * cancelAnimationFrame, requestAnimationFrame, fetch, which are used by this library.
+ *
+ * note: xmldom supports DOMParser, XMLSerializer, and document,
+ * but not cancelAnimationFrame, requestAnimationFrame, fetch,
+ * which are used by this library. These parts of the library
+ * will not work in Node.
  */
 import { isBrowser } from "./detect.js";
 import Messages from "./messages.js";
