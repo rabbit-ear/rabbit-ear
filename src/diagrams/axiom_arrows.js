@@ -10,8 +10,8 @@ import {
 import {
 	getVector,
 	getLine,
-	pointsToLine,
-} from "../math/general/types.js";
+} from "../math/general/get.js";
+import { pointsToLine } from "../math/general/convert.js";
 import {
 	dot,
 	cross2,
@@ -50,7 +50,9 @@ const diagram_reflect_point = (foldLine, point) => {
 	return multiplyMatrix2Vector2(matrix, point);
 };
 
-const boundary_for_arrows = ({ vertices_coords }) => convexHull(vertices_coords);
+const boundary_for_arrows = ({ vertices_coords }) => (
+	convexHull(vertices_coords).map(v => vertices_coords[v])
+);
 
 const widest_perp = (graph, foldLine, point) => {
 	const boundary = boundary_for_arrows(graph);

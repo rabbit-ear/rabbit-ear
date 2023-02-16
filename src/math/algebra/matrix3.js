@@ -3,16 +3,48 @@ import { EPSILON } from '../general/constants.js';
 import { resize, normalize } from './vectors.js';
 import { makeMatrix2Reflect } from './matrix2.js';
 
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description the identity matrix for 3x3 matrices
+ * @linkcode Math ./src/algebra/matrix3.js 13
+ */
 const identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+/**
+ * @description the identity matrix for 3x4 matrices (zero translation)
+ * @linkcode Math ./src/algebra/matrix3.js 18
+ */
 const identity3x4 = Object.freeze(identity3x3.concat(0, 0, 0));
+/**
+ * @description test if a 3x4 matrix is the identity matrix within an epsilon
+ * @param {number[]} matrix a 3x4 matrix
+ * @returns {boolean} true if the matrix is the identity matrix
+ * @linkcode Math ./src/algebra/matrix3.js 25
+ */
 const isIdentity3x4 = m => identity3x4
 	.map((n, i) => Math.abs(n - m[i]) < EPSILON)
 	.reduce((a, b) => a && b, true);
+/**
+ * @description multiply one 3D vector by a 3x4 matrix
+ * @param {number[]} matrix one matrix in array form
+ * @param {number[]} vector in array form
+ * @returns {number[]} the transformed vector
+ * @linkcode Math ./src/algebra/matrix3.js 35
+ */
 const multiplyMatrix3Vector3 = (m, vector) => [
 	m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
 	m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10],
 	m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11],
 ];
+/**
+ * @description multiply one 3D line by a 3x4 matrix
+ * @param {number[]} matrix one matrix in array form
+ * @param {number[]} vector the vector of the line
+ * @param {number[]} origin the origin of the line
+ * @returns {object} transformed line in point-vector form
+ * @linkcode Math ./src/algebra/matrix3.js 48
+ */
 const multiplyMatrix3Line3 = (m, vector, origin) => ({
 	vector: [
 		m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2],
@@ -25,6 +57,13 @@ const multiplyMatrix3Line3 = (m, vector, origin) => ({
 		m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11],
 	],
 });
+/**
+ * @description multiply two 3x4 matrices together
+ * @param {number[]} matrix the first matrix
+ * @param {number[]} matrix the second matrix
+ * @returns {number[]} one matrix, the product of the two
+ * @linkcode Math ./src/algebra/matrix3.js 67
+ */
 const multiplyMatrices3 = (m1, m2) => [
 	m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
 	m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2],
@@ -39,6 +78,13 @@ const multiplyMatrices3 = (m1, m2) => [
 	m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10],
 	m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11],
 ];
+/**
+ * @description calculate the determinant of a 3x4 or 3x3 matrix.
+ * in the case of 3x4, the translation component is ignored.
+ * @param {number[]} matrix one matrix in array form
+ * @returns {number} the determinant of the matrix
+ * @linkcode Math ./src/algebra/matrix3.js 88
+ */
 const determinant3 = m => (
 	m[0] * m[4] * m[8]
 	- m[0] * m[7] * m[5]
@@ -47,6 +93,12 @@ const determinant3 = m => (
 	+ m[6] * m[1] * m[5]
 	- m[6] * m[4] * m[2]
 );
+/**
+ * @description invert a 3x4 matrix
+ * @param {number[]} matrix one matrix in array form
+ * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
+ * @linkcode Math ./src/algebra/matrix3.js 102
+ */
 const invertMatrix3 = (m) => {
 	const det = determinant3(m);
 	if (Math.abs(det) < 1e-6 || Number.isNaN(det)
@@ -73,7 +125,18 @@ const invertMatrix3 = (m) => {
 	const invDet = 1.0 / det;
 	return inv.map(n => n * invDet);
 };
+/**
+ * @description make a 3x4 matrix representing a translation in 3D
+ * @param {number} [x=0] the x component of the translation
+ * @param {number} [y=0] the y component of the translation
+ * @param {number} [z=0] the z component of the translation
+ * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 136
+ */
 const makeMatrix3Translate = (x = 0, y = 0, z = 0) => identity3x3.concat(x, y, z);
+
+// i0 and i1 direct which columns and rows are filled
+// sgn manages right hand rule
 const singleAxisRotate = (angle, origin, i0, i1, sgn) => {
 	const mat = identity3x3.concat([0, 1, 2].map(i => origin[i] || 0));
 	const cos = Math.cos(angle);
@@ -84,12 +147,46 @@ const singleAxisRotate = (angle, origin, i0, i1, sgn) => {
 	mat[i1 * 3 + i1] = cos;
 	return mat;
 };
+
+/**
+ * @description make a 3x4 matrix representing a rotation in 3D around the x-axis
+ * (allowing you to specify the center of rotation if needed).
+ * @param {number} angle the angle of rotation in radians
+ * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 159
+ */
 const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate(angle, origin, 1, 2, true));
+/**
+ * @description make a 3x4 matrix representing a rotation in 3D around the y-axis
+ * (allowing you to specify the center of rotation if needed).
+ * @param {number} angle the angle of rotation in radians
+ * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 169
+ */
 const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate(angle, origin, 0, 2, false));
+/**
+ * @description make a 3x4 matrix representing a rotation in 3D around the z-axis
+ * (allowing you to specify the center of rotation if needed).
+ * @param {number} angle the angle of rotation in radians
+ * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 179
+ */
 const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate(angle, origin, 0, 1, true));
+/**
+ * @description make a 3x4 matrix representing a rotation in 3D
+ * around a given vector and around a given center of rotation.
+ * @param {number} angle the angle of rotation in radians
+ * @param {number[]} [vector=[0,0,1]] the axis of rotation
+ * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 190
+ */
 const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
 	const pos = [0, 1, 2].map(i => origin[i] || 0);
 	const [x, y, z] = resize(3, normalize(vector));
@@ -104,6 +201,38 @@ const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
 		t * x * z + y * s, t * y * z - x * s, t * z * z + c,
 		0, 0, 0], trans));
 };
+// leave this in for legacy, testing. eventually this can be removed.
+// const makeMatrix3RotateOld = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
+// 	// normalize inputs
+// 	const vec = resize(3, normalize(vector));
+// 	const pos = [0, 1, 2].map(i => origin[i] || 0);
+// 	const [a, b, c] = vec;
+// 	const cos = Math.cos(angle);
+// 	const sin = Math.sin(angle);
+// 	const d = Math.sqrt((vec[1] * vec[1]) + (vec[2] * vec[2]));
+// 	const b_d = Math.abs(d) < 1e-6 ? 0 : b / d;
+// 	const c_d = Math.abs(d) < 1e-6 ? 1 : c / d;
+// 	const t     = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
+// 	const t_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
+// 	const rx     = [1, 0, 0, 0, c_d, b_d, 0, -b_d, c_d, 0, 0, 0];
+// 	const rx_inv = [1, 0, 0, 0, c_d, -b_d, 0, b_d, c_d, 0, 0, 0];
+// 	const ry     = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
+// 	const ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
+// 	const rz     = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
+// 	return multiplyMatrices3(t_inv,
+// 		multiplyMatrices3(rx_inv,
+// 			multiplyMatrices3(ry_inv,
+// 				multiplyMatrices3(rz,
+// 					multiplyMatrices3(ry,
+// 						multiplyMatrices3(rx, t))))));
+// };
+/**
+ * @description make a 3x4 matrix representing a uniform scale.
+ * @param {number} [scale=1] the uniform scale value
+ * @param {number[]} [origin=[0,0,0]] the center of transformation
+ * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 236
+ */
 const makeMatrix3Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
 	scale[0], 0, 0,
 	0, scale[1], 0,
@@ -112,9 +241,34 @@ const makeMatrix3Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
 	scale[1] * -origin[1] + origin[1],
 	scale[2] * -origin[2] + origin[2],
 ];
+/**
+ * @description make a 3x4 representing a reflection across a line in the XY plane
+ * This is a 2D operation, assumes everything is in the XY plane.
+ * @param {number[]} vector one 2D vector specifying the reflection axis
+ * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
+ * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/algebra/matrix3.js 252
+ */
 const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {
 	const m = makeMatrix2Reflect(vector, origin);
 	return [m[0], m[1], 0, m[2], m[3], 0, 0, 0, 1, m[4], m[5], 0];
 };
+
+/**
+ * 2D operation, assuming everything is 0 in the z plane
+ * @param line in vector-origin form
+ * @returns matrix3
+ */
+// export const make_matrix3_reflect = (vector, origin = [0, 0, 0]) => {
+//   // the line of reflection passes through origin, runs along vector
+//   return [];
+// };
+
+//               __                                           _
+//   _________  / /_  ______ ___  ____     ____ ___  ____ _  (_)___  _____
+//  / ___/ __ \/ / / / / __ `__ \/ __ \   / __ `__ \/ __ `/ / / __ \/ ___/
+// / /__/ /_/ / / /_/ / / / / / / / / /  / / / / / / /_/ / / / /_/ / /
+// \___/\____/_/\__,_/_/ /_/ /_/_/ /_/  /_/ /_/ /_/\__,_/_/ /\____/_/
+//                                                     /___/
 
 export { determinant3, identity3x3, identity3x4, invertMatrix3, isIdentity3x4, makeMatrix3ReflectZ, makeMatrix3Rotate, makeMatrix3RotateX, makeMatrix3RotateY, makeMatrix3RotateZ, makeMatrix3Scale, makeMatrix3Translate, multiplyMatrices3, multiplyMatrix3Line3, multiplyMatrix3Vector3 };

@@ -6,7 +6,7 @@ import {
 	includeL,
 	includeS,
 	excludeS,
-	fnEpsilonEqualVectors,
+	epsilonEqualVectors,
 } from "../math/general/functions.js";
 import {
 	normalize2,
@@ -52,7 +52,7 @@ export const makeEdgesLineParallelOverlap = ({
 	// second, filter out edges which do not lie on top of the line
 	for (let e = 0; e < edges_vertices.length; e += 1) {
 		if (!overlap[e]) { continue; }
-		if (fnEpsilonEqualVectors(edges_origin[e], point)) {
+		if (epsilonEqualVectors(edges_origin[e], point)) {
 			overlap[e] = true;
 			continue;
 		}

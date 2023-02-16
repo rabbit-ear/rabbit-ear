@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { getLine } from "../math/general/types.js";
+import { getLine } from "../math/general/get.js";
 import GraphProto from "./graph.js";
 import flatFold from "../graph/flatFold/index.js";
 /**

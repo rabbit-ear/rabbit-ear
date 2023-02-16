@@ -9,7 +9,7 @@ import {
 	makeVerticesFaces,
 } from "./make.js";
 import {
-	getGraphKeysWithSuffix,
+	filterKeysWithSuffix,
 } from "../fold/spec.js";
 import remove from "./remove.js";
 import replace from "./replace.js";
@@ -79,7 +79,7 @@ export const duplicateEdges = ({ edges_vertices }) => {
 const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
 	const remove_map = {};
 	remove_indices.forEach(n => { remove_map[n] = true; });
-	getGraphKeysWithSuffix(graph, suffix)
+	filterKeysWithSuffix(graph, suffix)
 		.forEach(sKey => graph[sKey] // faces_edges or vertices_edges...
 			.forEach((elem, i) => { // faces_edges[0], faces_edges[1], ...
 				// reverse iterate through array, remove elements with splice

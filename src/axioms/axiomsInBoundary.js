@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { uniqueLineToRayLine } from "../math/general/types.js";
+import { uniqueLineToRayLine } from "../math/general/convert.js";
 import { arrayify } from "./methods.js";
 import * as AxiomsVO from "./axiomsVecOrigin.js";
 import * as AxiomsND from "./axiomsNormDist.js";

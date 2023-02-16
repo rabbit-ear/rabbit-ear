@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 // these test parameter input handling
 // more axiom tests in math.axiom.test.js

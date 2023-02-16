@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 const isEqual = (...args) => args
 	.map(el => JSON.stringify(el))
@@ -14,10 +14,10 @@ test("axiom 1", () => {
 		origin: [2 / 3, 1 / 3],
 		vector: [-Math.SQRT1_2, Math.SQRT1_2],
 	};
-	expect(ear.math.fnEpsilonEqualVectors(res0.vector, expected.vector)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res0.origin, expected.origin)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res1.vector, expected.vector)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res1.origin, expected.origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res0.vector, expected.vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res0.origin, expected.origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res1.vector, expected.vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res1.origin, expected.origin)).toBe(true);
 });
 
 test("axiom 2", () => {
@@ -27,10 +27,10 @@ test("axiom 2", () => {
 		origin: [0.5, 0.5],
 		vector: [-Math.SQRT1_2, -Math.SQRT1_2],
 	};
-	expect(ear.math.fnEpsilonEqualVectors(res0.vector, expected.vector)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res0.origin, expected.origin)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res1.vector, expected.vector)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res1.origin, expected.origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res0.vector, expected.vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res0.origin, expected.origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res1.vector, expected.vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res1.origin, expected.origin)).toBe(true);
 });
 
 test("axiom 3", () => {
@@ -42,10 +42,10 @@ test("axiom 3", () => {
 		{ origin: [0.5, 0.5], vector: [Math.SQRT1_2, Math.SQRT1_2] },
 		{ origin: [0.5, 0.5], vector: [Math.SQRT1_2, -Math.SQRT1_2] },
 	];
-	expect(ear.math.fnEpsilonEqualVectors(res[0].vector, expected[0].vector)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res[0].origin, expected[0].origin)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res[1].vector, expected[1].vector)).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors(res[1].origin, expected[1].origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res[0].vector, expected[0].vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res[0].origin, expected[0].origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res[1].vector, expected[1].vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res[1].origin, expected[1].origin)).toBe(true);
 });
 
 test("axiom 4", () => {

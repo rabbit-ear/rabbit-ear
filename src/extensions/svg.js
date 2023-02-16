@@ -81,7 +81,7 @@ const svgWindowContainer = { window: undefined };
 const buildHTMLDocument = (newWindow) => new newWindow.DOMParser()
 	.parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
 
-const setWindow = (newWindow) => {
+const setSVGWindow = (newWindow) => {
 	// make sure window has a document. xmldom does not, and requires it be built.
 	if (!newWindow.document) { newWindow.document = buildHTMLDocument(newWindow); }
 	svgWindowContainer.window = newWindow;
@@ -2782,7 +2782,7 @@ SVG.core = Object.assign(
 // default export of the library @xmldom/xmldom
 Object.defineProperty(SVG, "window", {
 	enumerable: false,
-	set: value => { setWindow(value); },
+	set: value => { setSVGWindow(value); },
 });
 
 export { SVG as default };

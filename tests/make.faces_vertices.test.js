@@ -1,6 +1,6 @@
 const fs = require("fs");
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 // we do want this method. bring this back (idk when it was even here)
 test("faces_vertices", () => {

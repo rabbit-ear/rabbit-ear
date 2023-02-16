@@ -8,12 +8,8 @@ import {
 	multiplyMatrix3Vector3,
 	multiplyMatrices3,
 } from "../math/algebra/matrix3.js";
-import {
-	resize,
-} from "../math/algebra/vectors.js";
-import {
-	getVector,
-} from "../math/general/types.js";
+import { resize } from "../math/algebra/vectors.js";
+import { getVector } from "../math/general/get.js";
 import { filterKeysWithSuffix } from "../fold/spec.js";
 /**
  * @name transform

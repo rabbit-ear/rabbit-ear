@@ -1,6 +1,6 @@
 const { test, expect } = require("@jest/globals");
 const fs = require("fs");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 test("keys", () => {
 	// expect(ear.graph.file_spec).toBe(1.1)
@@ -35,23 +35,23 @@ const key_test = {
 	_test_test_test_: 0,
 };
 
-test("filterKeysWithSuffix", () => {
-	const result = ear.graph.filterKeysWithSuffix(key_test, "test");
-	expect(result.length).toBe(6);
-});
+// test("filterKeysWithSuffix", () => {
+// 	const result = ear.graph.filterKeysWithSuffix(key_test, "test");
+// 	expect(result.length).toBe(6);
+// });
+
+// test("filterKeysWithPrefix", () => {
+// 	const result = ear.graph.filterKeysWithPrefix(key_test, "test");
+// 	expect(result.length).toBe(6);
+// });
 
 test("filterKeysWithPrefix", () => {
 	const result = ear.graph.filterKeysWithPrefix(key_test, "test");
-	expect(result.length).toBe(6);
-});
-
-test("getGraphKeysWithPrefix", () => {
-	const result = ear.graph.getGraphKeysWithPrefix(key_test, "test");
 	expect(result.length).toBe(3);
 });
 
-test("getGraphKeysWithSuffix", () => {
-	const result = ear.graph.getGraphKeysWithSuffix(key_test, "test");
+test("filterKeysWithSuffix", () => {
+	const result = ear.graph.filterKeysWithSuffix(key_test, "test");
 	expect(result.length).toBe(3);
 });
 

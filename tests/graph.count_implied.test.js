@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 test("implied count, empty, invalid", (done) => {
 	try {

@@ -98,8 +98,8 @@ test("excluding primitives", () => expect(true).toBe(true));
 // test("intersect lines", () => {
 // 	const clipLine = ear.math.circle(1).intersect(ear.math.line([0, 1], [0.5, 0]));
 // 	const shouldBeLine = [[0.5, -Math.sqrt(3) / 2], [0.5, Math.sqrt(3) / 2]];
-// 	ear.math.fnEpsilonEqualVectors(clipLine[0], shouldBeLine[0]);
-// 	ear.math.fnEpsilonEqualVectors(clipLine[1], shouldBeLine[1]);
+// 	ear.math.epsilonEqualVectors(clipLine[0], shouldBeLine[0]);
+// 	ear.math.epsilonEqualVectors(clipLine[1], shouldBeLine[1]);
 // 	// no intersect
 // 	expect(ear.math.circle(1, [2, 2]).intersect(ear.math.line([0, 1], [10, 0]))).toBe(undefined);
 // 	// tangent
@@ -109,11 +109,11 @@ test("excluding primitives", () => expect(true).toBe(true));
 
 // 	const shouldBeRay = [Math.sqrt(2) / 2, Math.sqrt(2) / 2];
 // 	const clipRay = ear.math.circle(1).intersect(ear.math.ray(0.1, 0.1));
-// 	ear.math.fnEpsilonEqualVectors(shouldBeRay, clipRay[0]);
+// 	ear.math.epsilonEqualVectors(shouldBeRay, clipRay[0]);
 
 // 	const shouldBeSeg = [Math.sqrt(2) / 2, Math.sqrt(2) / 2];
 // 	const clipSeg = ear.math.circle(1).intersect(ear.math.segment(0, 0, 10, 10));
-// 	ear.math.fnEpsilonEqualVectors(shouldBeSeg, clipSeg[0]);
+// 	ear.math.epsilonEqualVectors(shouldBeSeg, clipSeg[0]);
 // });
 
 // test("circle circle intersect", () => {

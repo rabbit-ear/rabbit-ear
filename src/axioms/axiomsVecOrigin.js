@@ -13,7 +13,7 @@ import { bisectLines2 } from "../math/geometry/lines.js";
 import {
 	rayLineToUniqueLine,
 	uniqueLineToRayLine,
-} from "../math/general/types.js";
+} from "../math/general/convert.js";
 import { includeL } from "../math/general/functions.js";
 import {
 	intersectLineLine,
@@ -96,7 +96,6 @@ export const axiom5 = (line, point1, point2) => (
 	intersectCircleLine(
 		{ radius: distance2(point1, point2), origin: point1 },
 		line,
-		includeL,
 	) || []).map(sect => ({
 	vector: normalize2(rotate90(subtract2(
 		...resizeUp(sect, point2),

@@ -210,7 +210,12 @@ const groupLayerSolver = (
 // 		{ groups: solutions },
 // 	);
 // };
-
+/**
+ * @description This layer solver extends the taco/tortilla method by Jason Ku
+ * into 3D by largely sorting faces into groups of coplanar-overlapping faces
+ * and adding a few new types of constraints which join faces between groups.
+ * This algorithm still requires faces be convex, and faces must be planar.
+ */
 const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const {
 		constraints,

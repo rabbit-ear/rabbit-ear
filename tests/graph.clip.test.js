@@ -73,7 +73,7 @@ test("clip line exclusive, edges collinear", () => {
 test("clip ray", () => {
 	const square = ear.graph.square();
 	const ray0 = { vector: [0.1, -0.5], origin: [0.5, 0.5] };
-	ray0.domain_function = ear.math.includeR;
+	ray0.domain = ear.math.includeR;
 	const seg = ear.graph.clip(square, ray0);
 	expect(seg[0][0]).toBe(0.5);
 	expect(seg[0][1]).toBe(0.5);

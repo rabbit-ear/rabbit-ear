@@ -12,7 +12,7 @@ test("resize", () => {
 
 test("resize empty", () => {
 	const res = ear.math.resize(3, []);
-	expect(ear.math.fnEpsilonEqualVectors([0, 0, 0], res)).toBe(true);
+	expect(ear.math.epsilonEqualVectors([0, 0, 0], res)).toBe(true);
 });
 
 test("resize undefined", () => {

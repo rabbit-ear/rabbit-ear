@@ -4,7 +4,7 @@
 import {
 	getLine,
 	getVector,
-} from "../math/general/types.js";
+} from "../math/general/get.js";
 import { subtract } from "../math/algebra/vectors.js";
 import { boundingBox } from "../math/geometry/polygons.js";
 import setup from "./components.js";

@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 const arraysTest = (a, b) => a
 	.forEach((_, i) => expect(a[i]).toBeCloseTo(b[i]));

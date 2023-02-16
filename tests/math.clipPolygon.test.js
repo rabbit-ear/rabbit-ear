@@ -3,7 +3,7 @@ const ear = require("../rabbit-ear.js");
 
 const testEqualVectorVectors = function (a, b) {
 	expect(a.length).toBe(b.length);
-	a.forEach((_, i) => expect(ear.math.fnEpsilonEqualVectors(a[i], b[i]))
+	a.forEach((_, i) => expect(ear.math.epsilonEqualVectors(a[i], b[i]))
 		.toBe(true));
 };
 

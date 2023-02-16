@@ -19,7 +19,7 @@ export const flattenFrame = (graph, frame_num = 1) => {
 	const dontCopy = [S._frame_parent, S._frame_inherit];
 	const memo = { visited_frames: [] };
 	const fileMetadata = {};
-	filterKeysWithPrefix(graph, "file_")
+	filterKeysWithPrefix(graph, "file")
 		.filter(key => key !== "file_frames")
 		.forEach(key => { fileMetadata[key] = graph[key]; });
 

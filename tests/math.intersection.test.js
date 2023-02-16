@@ -523,8 +523,8 @@ test("intersect lines", () => {
 		{ vector: [0, 1], origin: [0.5, 0] },
 	);
 	const shouldBeLine = [[0.5, -Math.sqrt(3) / 2], [0.5, Math.sqrt(3) / 2]];
-	ear.math.fnEpsilonEqualVectors(clipLine[0], shouldBeLine[0]);
-	ear.math.fnEpsilonEqualVectors(clipLine[1], shouldBeLine[1]);
+	ear.math.epsilonEqualVectors(clipLine[0], shouldBeLine[0]);
+	ear.math.epsilonEqualVectors(clipLine[1], shouldBeLine[1]);
 	// no intersect
 	expect(ear.math.intersectCircleLine(
 		{ radius: 1, origin: [2, 2] },
@@ -542,17 +542,19 @@ test("intersect lines", () => {
 	const clipRay = ear.math.intersectCircleLine(
 		{ radius: 1, origin: [0, 0] },
 		{ vector: [0.1, 0.1], origin: [0, 0] },
+		ear.math.include,
 		ear.math.includeR,
 	);
-	ear.math.fnEpsilonEqualVectors(shouldBeRay, clipRay[0]);
+	ear.math.epsilonEqualVectors(shouldBeRay, clipRay[0]);
 
 	const shouldBeSeg = [Math.SQRT1_2, Math.SQRT1_2];
 	const clipSeg = ear.math.intersectCircleLine(
 		{ radius: 1, origin: [0, 0] },
 		{ vector: [10, 10], origin: [0, 0] },
+		ear.math.include,
 		ear.math.includeS,
 	);
-	ear.math.fnEpsilonEqualVectors(shouldBeSeg, clipSeg[0]);
+	ear.math.epsilonEqualVectors(shouldBeSeg, clipSeg[0]);
 });
 
 test("circle circle intersect", () => {

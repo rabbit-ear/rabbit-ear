@@ -8,7 +8,7 @@ import {
 } from "../math/algebra/vectors.js";
 import { nearestPointOnLine } from "../math/geometry/nearest.js";
 import { smallestComparisonSearch } from "../math/general/search.js";
-import { getVector } from "../math/general/types.js";
+import { getVector } from "../math/general/get.js";
 import { clampSegment } from "../math/general/functions.js";
 import { overlapConvexPolygonPoint } from "../math/intersect/overlap.js";
 import {

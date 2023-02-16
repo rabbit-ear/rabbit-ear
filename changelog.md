@@ -1,5 +1,7 @@
 # 0.9.33 alpha
 
+replace `getGraphKeysWithPrefix` with `filterKeysWithPrefix`, maintaining the functionality of `getGraphKeysWithPrefix` where it will add the `_` character to match against. same with Suffix methods.
+
 new method: `subgraph` and `subgraphWithFaces`, where *subgraphWithEdges* and *subgraphWithVertices* could be written in similar form.
 
 Methods renamed:

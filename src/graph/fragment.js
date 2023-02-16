@@ -7,7 +7,7 @@ import * as S from "../general/strings.js";
 import {
 	edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment,
-	getGraphKeysWithPrefix,
+	filterKeysWithPrefix,
 } from "../fold/spec.js";
 import {
 	removeDuplicateVertices,
@@ -178,7 +178,7 @@ const fragment = (graph, epsilon = EPSILON) => {
 	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 
 	[S._vertices, S._edges, S._faces]
-		.map(key => getGraphKeysWithPrefix(graph, key))
+		.map(key => filterKeysWithPrefix(graph, key))
 		.flat()
 		.filter(key => !(fragment_keep_keys.includes(key)))
 		.forEach(key => delete graph[key]);

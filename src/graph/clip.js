@@ -23,7 +23,7 @@ const clip = function (graph, line) {
 	const polygon = boundary(graph).vertices.map(v => graph.vertices_coords[v]);
 	const vector = line.vector ? line.vector : subtract2(line[1], line[0]);
 	const origin = line.origin ? line.origin : line[0];
-	const fn_line = (line.domain_function ? line.domain_function : includeL);
+	const fn_line = (line.domain ? line.domain : includeL);
 	return clipLineConvexPolygon(
 		polygon,
 		{ vector, origin },

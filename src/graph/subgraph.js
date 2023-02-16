@@ -48,7 +48,12 @@ export const selfRelationalArraySubset = (array_array, indices) => {
  * the values can be integers or integer-strings, doesn't matter.
  * @returns {FOLD} a shallow copy of the graph parameter provided.
  */
-export const subgraph = (graph, indices) => {
+export const subgraph = (graph, indices = {}) => {
+	// allow user to only specify one or two; fill in the empty arrays.
+	if (!indices.vertices) { indices.vertices = []; }
+	if (!indices.edges) { indices.edges = []; }
+	if (!indices.faces) { indices.faces = []; }
+
 	const components = ["faces", "edges", "vertices"];
 	// create a lookup which will be used when a component is a suffix
 	// and we need to filter out elements which don't appear in other arrays

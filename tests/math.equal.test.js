@@ -29,7 +29,7 @@ const ear = require("../rabbit-ear.js");
 // });
 
 // // equivalency has not yet been made to work with other types.
-// // inside the equivalent function, it calls fnEpsilonEqualVectors which calls
+// // inside the equivalent function, it calls epsilonEqualVectors which calls
 // // get_vector_of_vectors, which is forcing the removal of data that isn't a number
 // test("equivalent with strings", () => {
 //   expect(ear.math.equivalent("hi", "hi", "hi")).toBe(true);
@@ -56,13 +56,13 @@ const ear = require("../rabbit-ear.js");
 test("equivalent vectors", () => {
 	const smEp = ear.math.EPSILON / 10; // smaller than epsilon
 	const bgEp = ear.math.EPSILON * 10; // larger than epsilon
-	expect(ear.math.fnEpsilonEqualVectors([1, 2, 3], [1, 2, 3])).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors([1, 2 + smEp], [1, 2 - smEp])).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors([1, 2 + bgEp], [1, 2 - bgEp])).toBe(false);
-	expect(ear.math.fnEpsilonEqualVectors([1, 2], [1, 2.0000000001])).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors([1, 2, 3, 4], [1, 2])).toBe(false);
-	expect(ear.math.fnEpsilonEqualVectors([], [])).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors([1.000000001, -1], [1, -1])).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors([1.000000001, 0], [1])).toBe(true);
-	expect(ear.math.fnEpsilonEqualVectors([1.000000001, 0], [1, 0])).toBe(true);
+	expect(ear.math.epsilonEqualVectors([1, 2, 3], [1, 2, 3])).toBe(true);
+	expect(ear.math.epsilonEqualVectors([1, 2 + smEp], [1, 2 - smEp])).toBe(true);
+	expect(ear.math.epsilonEqualVectors([1, 2 + bgEp], [1, 2 - bgEp])).toBe(false);
+	expect(ear.math.epsilonEqualVectors([1, 2], [1, 2.0000000001])).toBe(true);
+	expect(ear.math.epsilonEqualVectors([1, 2, 3, 4], [1, 2])).toBe(false);
+	expect(ear.math.epsilonEqualVectors([], [])).toBe(true);
+	expect(ear.math.epsilonEqualVectors([1.000000001, -1], [1, -1])).toBe(true);
+	expect(ear.math.epsilonEqualVectors([1.000000001, 0], [1])).toBe(true);
+	expect(ear.math.epsilonEqualVectors([1.000000001, 0], [1, 0])).toBe(true);
 });

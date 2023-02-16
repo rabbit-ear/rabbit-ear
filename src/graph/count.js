@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { getGraphKeysWithPrefix } from "../fold/spec.js";
+import { filterKeysWithPrefix } from "../fold/spec.js";
 /**
  * @param {any[]} arrays any number of arrays
  * @returns {number} the length of the longest array
@@ -25,7 +25,7 @@ const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
  * @linkcode Origami ./src/graph/count.js 25
  */
 const count = (graph, key) => (
-	max_arrays_length(...getGraphKeysWithPrefix(graph, key).map(k => graph[k])));
+	max_arrays_length(...filterKeysWithPrefix(graph, key).map(k => graph[k])));
 
 // standard graph components names
 /**

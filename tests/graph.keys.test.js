@@ -1,11 +1,11 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 test("edge angle assinments", () => {
 	const assignments = ["B", "b", "M", "m", "V", "v", "F", "f", "U", "u"];
 	const angles = [0, 0, -180, -180, 180, 180, 0, 0, 0, 0];
 	const calculated = assignments.map(a => ear.graph.edgeAssignmentToFoldAngle(a));
-	expect(ear.math.fnEpsilonEqualVectors(calculated, angles)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(calculated, angles)).toBe(true);
 });
 
 test("prefix key search test", () => {
@@ -33,7 +33,7 @@ test("prefix key search test", () => {
 		"vertices_vertices_vertices",
 		"vertices_vertices_vertices_coords",
 	];
-	const calculated = ear.graph.getGraphKeysWithPrefix(graph, "vertices");
+	const calculated = ear.graph.filterKeysWithPrefix(graph, "vertices");
 
 	expect(expected).toEqual(
 		expect.arrayContaining(calculated),
@@ -65,7 +65,7 @@ test("suffix key search test", () => {
 		"_vertices_vertices",
 	];
 
-	const calculated = ear.graph.getGraphKeysWithSuffix(graph, "vertices");
+	const calculated = ear.graph.filterKeysWithSuffix(graph, "vertices");
 
 	expect(expected).toEqual(
 		expect.arrayContaining(calculated),
@@ -116,7 +116,7 @@ test("prefix key with extensions search test", () => {
 		"vertices_vertices_vertices_re:coords",
 	];
 
-	const calculated = ear.graph.getGraphKeysWithPrefix(graph, "vertices");
+	const calculated = ear.graph.filterKeysWithPrefix(graph, "vertices");
 
 	expect(expected).toEqual(
 		expect.arrayContaining(calculated),

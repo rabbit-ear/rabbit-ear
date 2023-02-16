@@ -8,8 +8,8 @@ import {
 } from "../math/general/functions.js";
 import {
 	getLine,
-	getVectorOfVectors,
-} from "../math/general/types.js";
+	getArrayOfVectors,
+} from "../math/general/get.js";
 import GraphProto from "./graph.js";
 import clip from "../graph/clip.js";
 import addVertices from "../graph/add/addVertices.js";
@@ -76,21 +76,21 @@ const clipLineTypeToCP = (cp, primitive) => {
 CreasePattern.prototype.line = function (...args) {
 	const primitive = getLine(...args);
 	if (!primitive) { return undefined; }
-	primitive.domain_function = includeL;
+	primitive.domain = includeL;
 	return clipLineTypeToCP(this, primitive);
 };
 
 CreasePattern.prototype.ray = function (...args) {
 	const primitive = getLine(...args);
 	if (!primitive) { return undefined; }
-	primitive.domain_function = includeR;
+	primitive.domain = includeR;
 	return clipLineTypeToCP(this, primitive);
 };
 
 CreasePattern.prototype.segment = function (...args) {
-	const primitive = getVectorOfVectors(...args);
+	const primitive = getArrayOfVectors(...args);
 	if (!primitive) { return undefined; }
-	primitive.domain_function = includeS;
+	primitive.domain = includeS;
 	return clipLineTypeToCP(this, primitive);
 };
 

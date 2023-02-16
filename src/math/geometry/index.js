@@ -6,6 +6,10 @@ import * as polygons from './polygons.js';
 import * as radial from './radial.js';
 import straightSkeleton from './straightSkeleton.js';
 
+/**
+ * Math (c) Kraft
+ */
+
 const geometry = {
 	...convexHull,
 	...lines,

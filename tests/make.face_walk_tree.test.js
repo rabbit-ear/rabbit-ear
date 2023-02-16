@@ -1,6 +1,6 @@
 const { test, expect } = require("@jest/globals");
 const fs = require("fs");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 // tree object is an array inside an array, looks like:
 // [

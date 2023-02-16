@@ -6,8 +6,8 @@
 // import addVertices from "./add/addVertices.js";
 // import * as S from "../general/strings.js";
 // import {
-// 	getGraphKeysWithPrefix,
-// 	getGraphKeysWithSuffix,
+// 	filterKeysWithPrefix,
+// 	filterKeysWithSuffix,
 // } from "../fold/spec.js";
 
 // const vef = [S._vertices, S._edges, S._faces];
@@ -60,8 +60,8 @@
 // 	const maps = {};
 // 	// gather info
 // 	vef.forEach(key => {
-// 		prefixes[key] = getGraphKeysWithPrefix(source, key);
-// 		suffixes[key] = getGraphKeysWithSuffix(source, key);
+// 		prefixes[key] = filterKeysWithPrefix(source, key);
+// 		suffixes[key] = filterKeysWithSuffix(source, key);
 // 	});
 // 	// if source keys don't exist in the target, create empty arrays
 // 	vef.forEach(geom => prefixes[geom].filter(key => !target[key]).forEach(key => {

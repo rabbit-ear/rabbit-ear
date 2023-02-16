@@ -102,7 +102,7 @@ test("excluding primitives", () => expect(true).toBe(true));
 // // });
 
 // const testEqualVectors = function (...args) {
-// 	expect(ear.math.fnEpsilonEqualVectors(...args)).toBe(true);
+// 	expect(ear.math.epsilonEqualVectors(...args)).toBe(true);
 // };
 
 // const sqrt05 = Math.sqrt(0.5);

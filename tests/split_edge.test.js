@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 test("split edge similar endpoint", () => {
 	// kite graph has 6 boundary edges, indices 0-5

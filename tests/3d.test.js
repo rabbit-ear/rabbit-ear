@@ -1,6 +1,6 @@
 const fs = require("fs");
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 test("fold in 3d", () => {
 	const file = "bird-base-3d.fold";

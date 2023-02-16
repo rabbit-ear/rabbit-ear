@@ -83,42 +83,42 @@ test("getLine", () => {
 	);
 });
 
-test("getVectorOfVectors", () => {
+test("getArrayOfVectors", () => {
 	equalTest(
 		[[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors({ x: 1, y: 2 }, { x: 3, y: 4 }),
+		ear.math.getArrayOfVectors({ x: 1, y: 2 }, { x: 3, y: 4 }),
 	);
 	equalTest(
 		[[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors([[[{ x: 1, y: 2 }, { x: 3, y: 4 }]]]),
+		ear.math.getArrayOfVectors([[[{ x: 1, y: 2 }, { x: 3, y: 4 }]]]),
 	);
 	equalTest(
 		[[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors([[[1, 2], [3, 4]]]),
+		ear.math.getArrayOfVectors([[[1, 2], [3, 4]]]),
 	);
 	equalTest(
 		[[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors([[[1, 2]], [[3, 4]]]),
+		ear.math.getArrayOfVectors([[[1, 2]], [[3, 4]]]),
 	);
 	equalTest(
 		[[1, 2], [3, 4]],
-		ear.math.getVectorOfVectors([[[1, 2]]], [[[3, 4]]]),
+		ear.math.getArrayOfVectors([[[1, 2]]], [[[3, 4]]]),
 	);
 	equalTest(
 		[[1], [2], [3], [4]],
-		ear.math.getVectorOfVectors([[[1], [2], [3], [4]]]),
+		ear.math.getArrayOfVectors([[[1], [2], [3], [4]]]),
 	);
 	equalTest(
 		[[1], [2], [3], [4]],
-		ear.math.getVectorOfVectors([[[1]], [[2]], [[3]], [[4]]]),
+		ear.math.getArrayOfVectors([[[1]], [[2]], [[3]], [[4]]]),
 	);
 	equalTest(
 		[[1], [2], [3], [4]],
-		ear.math.getVectorOfVectors([[[1]]], 2, 3, 4),
+		ear.math.getArrayOfVectors([[[1]]], 2, 3, 4),
 	);
 	equalTest(
 		[[1], [2], [3], [4]],
-		ear.math.getVectorOfVectors([[[1, 2, 3, 4]]]),
+		ear.math.getArrayOfVectors([[[1, 2, 3, 4]]]),
 	);
 });
 
@@ -148,21 +148,21 @@ test("getSegment", () => {
 //   );
 // });
 
-test("getMatrix3x4", () => {
-	equalTest(
-		[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-		ear.math.getMatrix3x4([[[]]]),
-	);
-	equalTest(
-		[1, 2, 0, 3, 4, 0, 0, 0, 1, 0, 0, 0],
-		ear.math.getMatrix3x4([[[1, 2, 3, 4]]]),
-	);
-	equalTest(
-		[1, 2, 0, 3, 4, 0, 0, 0, 1, 5, 6, 0],
-		ear.math.getMatrix3x4([[[1, 2, 3, 4, 5, 6]]]),
-	);
-	equalTest(
-		[1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0],
-		ear.math.getMatrix3x4([[[1, 2, 3, 4, 5, 6, 7, 8, 9]]]),
-	);
-});
+// test("getMatrix3x4", () => {
+// 	equalTest(
+// 		[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+// 		ear.math.getMatrix3x4([[[]]]),
+// 	);
+// 	equalTest(
+// 		[1, 2, 0, 3, 4, 0, 0, 0, 1, 0, 0, 0],
+// 		ear.math.getMatrix3x4([[[1, 2, 3, 4]]]),
+// 	);
+// 	equalTest(
+// 		[1, 2, 0, 3, 4, 0, 0, 0, 1, 5, 6, 0],
+// 		ear.math.getMatrix3x4([[[1, 2, 3, 4, 5, 6]]]),
+// 	);
+// 	equalTest(
+// 		[1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0],
+// 		ear.math.getMatrix3x4([[[1, 2, 3, 4, 5, 6, 7, 8, 9]]]),
+// 	);
+// });

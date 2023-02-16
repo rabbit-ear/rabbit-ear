@@ -22,7 +22,7 @@ import { convexHull } from "../math/geometry/convexHull.js";
 import { clipLineConvexPolygon } from "../math/intersect/clip.js";
 
 const boundary_for_arrows = ({ vertices_coords }) => (
-	convexHull(vertices_coords)
+	convexHull(vertices_coords).map(v => vertices_coords[v])
 );
 
 const widest_perpendicular = (polygon, foldLine, point) => {

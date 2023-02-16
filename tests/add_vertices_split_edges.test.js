@@ -4,7 +4,7 @@ test("empty", () => expect(true).toBe(true));
 
 /*
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 test("addVertices_splitEdges", () => {
 	const graph = {

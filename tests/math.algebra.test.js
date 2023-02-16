@@ -2,7 +2,7 @@ const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear.js");
 
 const testEqual = function (...args) {
-	expect(ear.math.fnEpsilonEqualVectors(...args)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(...args)).toBe(true);
 };
 /**
  * algebra core

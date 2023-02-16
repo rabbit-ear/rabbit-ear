@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import * as S from "../general/strings.js";
-import { getGraphKeysWithSuffix } from "../fold/spec.js";
+import { filterKeysWithSuffix } from "../fold/spec.js";
 /**
  * @description Search inside arrays inside arrays and return
  * the largest number.
@@ -51,7 +51,7 @@ const countImplied = (graph, key) => Math.max(
 	// return the maximum value between (1/2):
 	// 1. a found geometry in another geometry's array ("vertex" in "faces_vertices")
 	array_in_array_max_number(
-		getGraphKeysWithSuffix(graph, key).map(str => graph[str]),
+		filterKeysWithSuffix(graph, key).map(str => graph[str]),
 	),
 	// 2. a found geometry in a faceOrders or edgeOrders type of array (special case)
 	graph[ordersArrayNames[key]]

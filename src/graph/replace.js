@@ -4,8 +4,8 @@
 import count from "./count.js";
 import { uniqueSortedNumbers } from "../general/arrays.js";
 import {
-	getGraphKeysWithSuffix,
-	getGraphKeysWithPrefix,
+	filterKeysWithSuffix,
+	filterKeysWithPrefix,
 } from "../fold/spec.js";
 import Messages from "../environment/messages.js";
 /**
@@ -64,14 +64,14 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	}
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
-	getGraphKeysWithSuffix(graph, key)
+	filterKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
 			.forEach((_, ii) => graph[sKey][ii]
 				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
 	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays do change their size, their contents are untouched
 	replaces.reverse();
-	getGraphKeysWithPrefix(graph, key)
+	filterKeysWithPrefix(graph, key)
 		.forEach((prefix_key) => replaces
 			.forEach(index => graph[prefix_key]
 				.splice(index, 1)));

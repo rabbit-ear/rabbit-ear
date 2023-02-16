@@ -5,6 +5,10 @@ import * as matrix3 from './matrix3.js';
 import * as matrix4 from './matrix4.js';
 import * as quaternion from './quaternion.js';
 
+/**
+ * Math (c) Kraft
+ */
+
 const algebra = {
 	...vectors,
 	...matrix2,

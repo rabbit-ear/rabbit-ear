@@ -1,5 +1,5 @@
 const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+const ear = require("../rabbit-ear.js");
 
 test("edges_edges square", () => {
 	const graph = { edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]] };

@@ -84,7 +84,7 @@ const makeCopyWithFlatEdges = (graph) => {
 		.map((flat, i) => (flat ? i : undefined))
 		.filter(a => a !== undefined)
 		.forEach(e => { lookup[e] = true; });
-	filterKeysWithPrefix(graph, "edges_").forEach(key => {
+	filterKeysWithPrefix(graph, "edges").forEach(key => {
 		copy[key] = [];
 		graph[key].forEach((el, e) => {
 			if (lookup[e]) {

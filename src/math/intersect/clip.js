@@ -1,8 +1,12 @@
 /* Math (c) Kraft, MIT License */
 import { EPSILON } from '../general/constants.js';
-import { fnNotUndefined, include, includeL, includeS } from '../general/functions.js';
+import { include, includeL, includeS } from '../general/functions.js';
 import { subtract2, magnitude2, add2, scale2, cross2, normalize2, flip } from '../algebra/vectors.js';
 import { overlapConvexPolygonPoint } from './overlap.js';
+
+/**
+ * Math (c) Kraft
+ */
 
 const lineLineParameter = (
 	lineVector,
@@ -12,7 +16,9 @@ const lineLineParameter = (
 	polyLineFunc = includeS,
 	epsilon = EPSILON,
 ) => {
+	// a normalized determinant gives consistent values across all epsilon ranges
 	const det_norm = cross2(normalize2(lineVector), normalize2(polyVector));
+	// lines are parallel
 	if (Math.abs(det_norm) < epsilon) { return undefined; }
 	const determinant0 = cross2(lineVector, polyVector);
 	const determinant1 = -determinant0;
@@ -25,10 +31,16 @@ const lineLineParameter = (
 	}
 	return undefined;
 };
+
 const linePointFromParameter = (vector, origin, t) => (
 	add2(origin, scale2(vector, t))
 );
+
+// get all intersections with polgyon faces using the polyLineFunc:
+// - includeS or excludeS
+// sort them so we can grab the two most opposite intersections
 const getIntersectParameters = (poly, vector, origin, polyLineFunc, epsilon) => poly
+	// polygon into array of arrays [vector, origin]
 	.map((p, i, arr) => [subtract2(arr[(i + 1) % arr.length], p), p])
 	.map(side => lineLineParameter(
 		vector,
@@ -38,8 +50,11 @@ const getIntersectParameters = (poly, vector, origin, polyLineFunc, epsilon) => 
 		polyLineFunc,
 		epsilon,
 	))
-	.filter(fnNotUndefined)
+	.filter(a => a !== undefined)
 	.sort((a, b) => a - b);
+
+// we have already done the test that numbers is a valid array
+// and the length is >= 2
 const getMinMax = (numbers, func, scaled_epsilon) => {
 	let a = 0;
 	let b = numbers.length - 1;
@@ -54,6 +69,19 @@ const getMinMax = (numbers, func, scaled_epsilon) => {
 	if (a >= b) { return undefined; }
 	return [numbers[a], numbers[b]];
 };
+/**
+ * @description find the overlap between one line and one convex polygon and
+ * clip the line into a segment (two endpoints) or return undefined if no overlap.
+ * The input line can be a line, ray, or segment, as determined by "fnLine".
+ * @param {number[][]} poly array of points (which are arrays of numbers)
+ * @param {number[]} vector the vector of the line
+ * @param {number[]} origin the origin of the line
+ * @param {function} [fnPoly=include] include or exclude polygon boundary in clip
+ * @param {function} [fnLine=includeL] function to determine line/ray/segment,
+ * and inclusive or exclusive.
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @linkcode Math ./src/geometry/clip-line-polygon.js 92
+ */
 const clipLineConvexPolygon = (
 	poly,
 	{ vector, origin },
@@ -64,21 +92,46 @@ const clipLineConvexPolygon = (
 	const numbers = getIntersectParameters(poly, vector, origin, includeS, epsilon);
 	if (numbers.length < 2) { return undefined; }
 	const scaled_epsilon = (epsilon * 2) / magnitude2(vector);
+	// ends is now an array, length 2, of the min and max parameter on the line
+	// this also verifies the two intersections are not the same point
 	const ends = getMinMax(numbers, fnPoly, scaled_epsilon);
 	if (ends === undefined) { return undefined; }
+	// ends_clip is the intersection between 2 domains, the result
+	// and the valid inclusive/exclusive function
+	// todo: this line hardcodes the parameterization that segments and rays are cropping
+	// their lowest point at 0 and highest (if segment) at 1
 	const clip_fn = (t) => {
 		if (fnLine(t)) { return t; }
 		return t < 0.5 ? 0 : 1;
 	};
 	const ends_clip = ends.map(clip_fn);
+	// if endpoints are the same, exit
 	if (Math.abs(ends_clip[0] - ends_clip[1]) < (epsilon * 2) / magnitude2(vector)) {
 		return undefined;
 	}
+	// test if the solution is collinear to an edge by getting the segment midpoint
+	// then test inclusive or exclusive depending on user parameter
 	const mid = linePointFromParameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
 	return overlapConvexPolygonPoint(poly, mid, fnPoly, epsilon)
 		? ends_clip.map(t => linePointFromParameter(vector, origin, t))
 		: undefined;
 };
+/**
+ * @description clip two polygons and return their union. this works
+ * for non-convex poylgons, but both polygons must have counter-clockwise
+ * winding; will not work even if both are similarly-clockwise.
+ * Sutherland-Hodgman algorithm.
+ * Implementation is from Rosetta Code, refactored to incorporate an epsilon
+ * to specify inclusivity around the edges.
+ * @attribution https://rosettacode.org/wiki/Sutherland-Hodgman_polygon_clipping#JavaScript
+ * @param {number[][]} polygon1 an array of points, where each point
+ * is an array of numbers.
+ * @param {number[][]} polygon2 an array of points, where each point
+ * is an array of numbers.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} a polygon as an array of points.
+ * @linkcode Math ./src/geometry/clip-polygon-polygon.js 15
+ */
 const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
 	const inside = (p, cp1, cp2) => (
 		(cp2[0] - cp1[0]) * (p[1] - cp1[1])) > ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon
@@ -89,6 +142,10 @@ const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
 		const n1 = cross2(cp1, cp2);
 		const n2 = cross2(s, e);
 		const n3 = 1.0 / cross2(dc, dp);
+		// return [
+		// 	(n1 * dp[0] - n2 * dc[0]) * n3,
+		// 	(n1 * dp[1] - n2 * dc[1]) * n3,
+		// ];
 		return scale2(subtract2(scale2(dp, n1), scale2(dc, n2)), n3);
 	};
 	let outputList = polygon1;

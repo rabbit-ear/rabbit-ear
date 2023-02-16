@@ -4,8 +4,8 @@
 import { EPSILON } from "../math/general/constants.js";
 import {
 	excludeS,
-	fnEpsilonEqual,
-	fnEpsilonEqualVectors,
+	epsilonEqual,
+	epsilonEqualVectors,
 } from "../math/general/functions.js";
 import {
 	normalize,
@@ -41,11 +41,11 @@ export const makeEdgesEdgesSimilar = ({
 		for (let j = i + 1; j < edges_coords.length; j += 1) {
 			let similar = true;
 			for (let d = 0; d < dimensions; d += 1) {
-				if (!fnEpsilonEqual(
+				if (!epsilonEqual(
 					edges_boundingBox[i].min[d],
 					edges_boundingBox[j].min[d],
 					epsilon,
-				) || !fnEpsilonEqual(
+				) || !epsilonEqual(
 					edges_boundingBox[i].max[d],
 					edges_boundingBox[j].max[d],
 					epsilon,
@@ -60,10 +60,10 @@ export const makeEdgesEdgesSimilar = ({
 	for (let i = 0; i < edges_coords.length - 1; i += 1) {
 		for (let j = i + 1; j < edges_coords.length; j += 1) {
 			if (!matrix[i][j]) { continue; }
-			const test0 = fnEpsilonEqualVectors(edges_coords[i][0], edges_coords[j][0], epsilon)
-				&& fnEpsilonEqualVectors(edges_coords[i][1], edges_coords[j][1], epsilon);
-			const test1 = fnEpsilonEqualVectors(edges_coords[i][0], edges_coords[j][1], epsilon)
-				&& fnEpsilonEqualVectors(edges_coords[i][1], edges_coords[j][0], epsilon);
+			const test0 = epsilonEqualVectors(edges_coords[i][0], edges_coords[j][0], epsilon)
+				&& epsilonEqualVectors(edges_coords[i][1], edges_coords[j][1], epsilon);
+			const test1 = epsilonEqualVectors(edges_coords[i][0], edges_coords[j][1], epsilon)
+				&& epsilonEqualVectors(edges_coords[i][1], edges_coords[j][0], epsilon);
 			const similar = test0 || test1;
 			matrix[i][j] = similar;
 			matrix[j][i] = similar;
@@ -177,14 +177,14 @@ export const makeEdgesEdgesParallel = ({
 	// let start = 0;
 	// const groups = [];
 	// for (let i = 1; i < indices.length; i += 1) {
-	// 	if (!fnEpsilonEqual(dots[indices[start]], dots[indices[i]], epsilon)) {
+	// 	if (!epsilonEqual(dots[indices[start]], dots[indices[i]], epsilon)) {
 	// 		groups.push(indices.slice(start, i));
 	// 		start = i;
 	// 	}
 	// }
 	// if (groups.length > 2) {
-	// 	if (fnEpsilonEqual(groups[0][0], -1, epsilon)
-	// 		&& fnEpsilonEqual(groups[groups.length - 1][0], 1, epsilon)) {
+	// 	if (epsilonEqual(groups[0][0], -1, epsilon)
+	// 		&& epsilonEqual(groups[groups.length - 1][0], 1, epsilon)) {
 	// 		const lastGroup = groups.pop();
 	// 		groups[0] = groups[0].concat(lastGroup);
 	// 	}
