@@ -482,8 +482,15 @@ export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 export const makeEdgesFaces = ({
 	vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center,
 }) => {
-	if (!edges_vertices) {
+	if (!edges_vertices || (!faces_vertices && !faces_edges)) {
+		// alert, we just made UNSORTED edges faces
 		return makeEdgesFacesUnsorted({ faces_edges });
+	}
+	if (!faces_vertices) {
+		faces_vertices = makeFacesVerticesFromEdges({ edges_vertices, faces_edges });
+	}
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -727,9 +734,9 @@ export const makePlanarFaces = ({
  * @returns {number[][]} a `faces_vertices` array
  * @linkcode Origami ./src/graph/make.js 712
  */
-export const makeFacesVerticesFromEdges = (graph) => graph.faces_edges
+export const makeFacesVerticesFromEdges = ({ edges_vertices, faces_edges }) => faces_edges
 	.map(edges => edges
-		.map(edge => graph.edges_vertices[edge])
+		.map(edge => edges_vertices[edge])
 		.map((pairs, i, arr) => {
 			const next = arr[(i + 1) % arr.length];
 			return (pairs[0] === next[0] || pairs[0] === next[1])
@@ -738,13 +745,14 @@ export const makeFacesVerticesFromEdges = (graph) => graph.faces_edges
 		}));
 /**
  * @description Make `faces_edges` from `faces_vertices`.
- * @param {FOLD} graph a FOLD graph, with faces_vertices
+ * @param {FOLD} graph a FOLD graph, with
+ * edges_vertices and faces_vertices
  * @returns {number[][]} a `faces_edges` array
  * @linkcode Origami ./src/graph/make.js 727
  */
-export const makeFacesEdgesFromVertices = (graph) => {
-	const map = makeVerticesToEdgeBidirectional(graph);
-	return graph.faces_vertices
+export const makeFacesEdgesFromVertices = ({ edges_vertices, faces_vertices }) => {
+	const map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	return faces_vertices
 		.map(face => face
 			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]].join(" ")))
 		.map(face => face.map(pair => map[pair]));

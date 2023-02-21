@@ -1,6 +1,7 @@
 *.DS_Store
 node_modules/
 coverage/
+module/
 package-lock.json
 # the compiled library with all JSDoc comments,
 # for building the documentation. exclude from repo

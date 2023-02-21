@@ -9,15 +9,17 @@ import {
 	makeCPFacesElementArrays,
 } from "./arrays.js";
 import makeUniforms from "./uniforms.js";
-import vertexSimpleV1 from "./shaders/simple-2d-100.vert";
-import vertexThickEdgesV1 from "./shaders/thick-edges-100.vert";
-import fragmentSimpleV1 from "./shaders/simple-2d-100.frag";
-import vertexSimpleV2 from "./shaders/simple-2d-300.vert";
-import vertexThickEdgesV2 from "./shaders/thick-edges-300.vert";
-import fragmentSimpleV2 from "./shaders/simple-2d-300.frag";
+import {
+	simple_2d_100_vert,
+	thick_edges_100_vert,
+	simple_2d_100_frag,
+	simple_2d_300_vert,
+	thick_edges_300_vert,
+	simple_2d_300_frag,
+} from "./shaders.js";
 
 export const cpFacesV1 = (gl, version = 1, graph = {}) => {
-	const program = createProgram(gl, vertexSimpleV1, fragmentSimpleV1);
+	const program = createProgram(gl, simple_2d_100_vert, simple_2d_100_frag);
 	return {
 		program,
 		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
@@ -28,7 +30,7 @@ export const cpFacesV1 = (gl, version = 1, graph = {}) => {
 };
 
 export const cpEdgesV1 = (gl, version = 1, graph = {}) => {
-	const program = createProgram(gl, vertexThickEdgesV1, fragmentSimpleV1);
+	const program = createProgram(gl, thick_edges_100_vert, simple_2d_100_frag);
 	return {
 		program,
 		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph),
@@ -39,7 +41,7 @@ export const cpEdgesV1 = (gl, version = 1, graph = {}) => {
 };
 
 export const cpFacesV2 = (gl, version = 2, graph = {}) => {
-	const program = createProgram(gl, vertexSimpleV2, fragmentSimpleV2);
+	const program = createProgram(gl, simple_2d_300_vert, simple_2d_300_frag);
 	return {
 		program,
 		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
@@ -50,7 +52,7 @@ export const cpFacesV2 = (gl, version = 2, graph = {}) => {
 };
 
 export const cpEdgesV2 = (gl, version = 2, graph = {}) => {
-	const program = createProgram(gl, vertexThickEdgesV2, fragmentSimpleV2);
+	const program = createProgram(gl, thick_edges_300_vert, simple_2d_300_frag);
 	return {
 		program,
 		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph),

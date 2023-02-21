@@ -6,7 +6,7 @@ import {
 	flattenDomTree,
 } from "./dom.js";
 import getAttributeValue from "./getAttributeValue.js";
-import geometryAttributes from "./geometryAttributes.json";
+import geometryAttributes from "./geometryAttributes.js";
 import getSegments from "./getSegments/index.js";
 import colorToAssignment from "./colors/colorToAssignment.js";
 import { removeDuplicateVertices } from "../../graph/verticesViolations.js";

@@ -1335,8 +1335,14 @@ const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 const makeEdgesFaces = ({
 	vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center,
 }) => {
-	if (!edges_vertices) {
+	if (!edges_vertices || (!faces_vertices && !faces_edges)) {
 		return makeEdgesFacesUnsorted({ faces_edges });
+	}
+	if (!faces_vertices) {
+		faces_vertices = makeFacesVerticesFromEdges({ edges_vertices, faces_edges });
+	}
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -1462,18 +1468,18 @@ const makePlanarFaces = ({
 		vertices_vertices, vertices_sectors,
 	})).map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
 };
-const makeFacesVerticesFromEdges = (graph) => graph.faces_edges
+const makeFacesVerticesFromEdges = ({ edges_vertices, faces_edges }) => faces_edges
 	.map(edges => edges
-		.map(edge => graph.edges_vertices[edge])
+		.map(edge => edges_vertices[edge])
 		.map((pairs, i, arr) => {
 			const next = arr[(i + 1) % arr.length];
 			return (pairs[0] === next[0] || pairs[0] === next[1])
 				? pairs[1]
 				: pairs[0];
 		}));
-const makeFacesEdgesFromVertices = (graph) => {
-	const map = makeVerticesToEdgeBidirectional(graph);
-	return graph.faces_vertices
+const makeFacesEdgesFromVertices = ({ edges_vertices, faces_vertices }) => {
+	const map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	return faces_vertices
 		.map(face => face
 			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]].join(" ")))
 		.map(face => face.map(pair => map[pair]));
@@ -7136,213 +7142,7 @@ const foldAngles4 = (sectors, assignments, t = 0) => {
 	kawasakiMath,
 	kawasakiGraph,
 	validateSingleVertex,
-);var ar = [
-	null,
-	"اصنع خطاً يمر بنقطتين",
-	"اصنع خطاً عن طريق طي نقطة واحدة إلى أخرى",
-	"اصنع خطاً عن طريق طي خط واحد على آخر",
-	"اصنع خطاً يمر عبر نقطة واحدة ويجعل خطاً واحداً فوق نفسه",
-	"اصنع خطاً يمر بالنقطة الأولى ويجعل النقطة الثانية على الخط",
-	"اصنع خطاً يجلب النقطة الأولى إلى الخط الأول والنقطة الثانية إلى الخط الثاني",
-	"اصنع خطاً يجلب نقطة إلى خط ويجعل خط ثاني فوق نفسه"
-];
-var de = [
-	null,
-	"Falte eine Linie durch zwei Punkte",
-	"Falte zwei Punkte aufeinander",
-	"Falte zwei Linien aufeinander",
-	"Falte eine Linie auf sich selbst, falte dabei durch einen Punkt",
-	"Falte einen Punkt auf eine Linie, falte dabei durch einen anderen Punkt",
-	"Falte einen Punkt auf eine Linie und einen weiteren Punkt auf eine weitere Linie",
-	"Falte einen Punkt auf eine Linie und eine weitere Linie in sich selbst zusammen"
-];
-var en = [
-	null,
-	"fold a line through two points",
-	"fold two points together",
-	"fold two lines together",
-	"fold a line on top of itself, creasing through a point",
-	"fold a point to a line, creasing through another point",
-	"fold a point to a line and another point to another line",
-	"fold a point to a line and another line onto itself"
-];
-var es = [
-	null,
-	"dobla una línea entre dos puntos",
-	"dobla dos puntos juntos",
-	"dobla y une dos líneas",
-	"dobla una línea sobre sí misma, doblándola hacia un punto",
-	"dobla un punto hasta una línea, doblándola a través de otro punto",
-	"dobla un punto hacia una línea y otro punto hacia otra línea",
-	"dobla un punto hacia una línea y otra línea sobre sí misma"
-];
-var fr = [
-	null,
-	"créez un pli passant par deux points",
-	"pliez pour superposer deux points",
-	"pliez pour superposer deux lignes",
-	"rabattez une ligne sur elle-même à l'aide d'un pli qui passe par un point",
-	"rabattez un point sur une ligne à l'aide d'un pli qui passe par un autre point",
-	"rabattez un point sur une ligne et un autre point sur une autre ligne",
-	"rabattez un point sur une ligne et une autre ligne sur elle-même"
-];
-var hi = [
-	null,
-	"एक क्रीज़ बनाएँ जो दो स्थानों से गुजरता है",
-	"एक स्थान को दूसरे स्थान पर मोड़कर एक क्रीज़ बनाएँ",
-	"एक रेखा पर दूसरी रेखा को मोड़कर क्रीज़ बनाएँ",
-	"एक क्रीज़ बनाएँ जो एक स्थान से गुजरता है और एक रेखा को स्वयं के ऊपर ले आता है",
-	"एक क्रीज़ बनाएँ जो पहले स्थान से गुजरता है और दूसरे स्थान को रेखा पर ले आता है",
-	"एक क्रीज़ बनाएँ जो पहले स्थान को पहली रेखा पर और दूसरे स्थान को दूसरी रेखा पर ले आता है",
-	"एक क्रीज़ बनाएँ जो एक स्थान को एक रेखा पर ले आता है और दूसरी रेखा को स्वयं के ऊपर ले आता है"
-];
-var jp = [
-	null,
-	"2点に沿って折り目を付けます",
-	"2点を合わせて折ります",
-	"2つの線を合わせて折ります",
-	"点を通過させ、既にある線に沿って折ります",
-	"点を線沿いに合わせ別の点を通過させ折ります",
-	"線に向かって点を折り、同時にもう一方の線に向かってもう一方の点を折ります",
-	"線に向かって点を折り、同時に別の線をその上に折ります"
-];
-var ko = [
-	null,
-	"두 점을 통과하는 선으로 접으세요",
-	"두 점을 함께 접으세요",
-	"두 선을 함께 접으세요",
-	"그 위에 선을 접으면서 점을 통과하게 접으세요",
-	"점을 선으로 접으면서, 다른 점을 지나게 접으세요",
-	"점을 선으로 접고 다른 점을 다른 선으로 접으세요",
-	"점을 선으로 접고 다른 선을 그 위에 접으세요"
-];
-var ms = [
-	null,
-	"lipat garisan melalui dua titik",
-	"lipat dua titik bersama",
-	"lipat dua garisan bersama",
-	"lipat satu garisan di atasnya sendiri, melipat melalui satu titik",
-	"lipat satu titik ke garisan, melipat melalui titik lain",
-	"lipat satu titik ke garisan dan satu lagi titik ke garisan lain",
-	"lipat satu titik ke garisan dan satu lagi garisan di atasnya sendiri"
-];
-var pt = [
-	null,
-	"dobre uma linha entre dois pontos",
-	"dobre os dois pontos para uni-los",
-	"dobre as duas linhas para uni-las",
-	"dobre uma linha sobre si mesma, criando uma dobra ao longo de um ponto",
-	"dobre um ponto até uma linha, criando uma dobra ao longo de outro ponto",
-	"dobre um ponto até uma linha e outro ponto até outra linha",
-	"dobre um ponto até uma linha e outra linha sobre si mesma"
-];
-var ru = [
-	null,
-	"сложите линию через две точки",
-	"сложите две точки вместе",
-	"сложите две линии вместе",
-	"сверните линию сверху себя, сгибая через точку",
-	"сложите точку в линию, сгибая через другую точку",
-	"сложите точку в линию и другую точку в другую линию",
-	"сложите точку в линию и другую линию на себя"
-];
-var tr = [
-	null,
-	"iki noktadan geçen bir çizgi boyunca katla",
-	"iki noktayı birbirine katla",
-	"iki çizgiyi birbirine katla",
-	"bir noktadan kıvırarak kendi üzerindeki bir çizgi boyunca katla",
-	"başka bir noktadan kıvırarak bir noktayı bir çizgiye katla",
-	"bir noktayı bir çizgiye ve başka bir noktayı başka bir çizgiye katla",
-	"bir noktayı bir çizgiye ve başka bir çizgiyi kendi üzerine katla"
-];
-var vi = [
-	null,
-	"tạo một nếp gấp đi qua hai điểm",
-	"tạo nếp gấp bằng cách gấp một điểm này sang điểm khác",
-	"tạo nếp gấp bằng cách gấp một đường lên một đường khác",
-	"tạo một nếp gấp đi qua một điểm và đưa một đường lên trên chính nó",
-	"tạo một nếp gấp đi qua điểm đầu tiên và đưa điểm thứ hai lên đường thẳng",
-	"tạo một nếp gấp mang điểm đầu tiên đến đường đầu tiên và điểm thứ hai cho đường thứ hai",
-	"tạo một nếp gấp mang lại một điểm cho một đường và đưa một đường thứ hai lên trên chính nó"
-];
-var zh = [
-	null,
-	"通過兩點折一條線",
-	"將兩點折疊起來",
-	"將兩條線折疊在一起",
-	"通過一個點折疊一條線在自身上面",
-	"將一個點，通過另一個點折疊成一條線，",
-	"將一個點折疊為一條線，再將另一個點折疊到另一條線",
-	"將一個點折疊成一條線，另一條線折疊到它自身上"
-];
-const axioms = {
-	ar: ar,
-	de: de,
-	en: en,
-	es: es,
-	fr: fr,
-	hi: hi,
-	jp: jp,
-	ko: ko,
-	ms: ms,
-	pt: pt,
-	ru: ru,
-	tr: tr,
-	vi: vi,
-	zh: zh
-};var fold = {
-	es: "doblez"
-};
-var sink = {
-};
-var blintz = {
-	zh: "坐墊基"
-};
-var squash = {
-	zh: "壓摺"
-};
-const instructions = {
-	fold: fold,
-	"valley fold": {
-	es: "doblez de valle",
-	zh: "谷摺"
-},
-	"mountain fold": {
-	es: "doblez de montaña",
-	zh: "山摺"
-},
-	"inside reverse fold": {
-	zh: "內中割摺"
-},
-	"outside reverse fold": {
-	zh: "外中割摺"
-},
-	sink: sink,
-	"open sink": {
-	zh: "開放式沉壓摺"
-},
-	"closed sink": {
-	zh: "封閉式沉壓摺"
-},
-	"rabbit ear": {
-	zh: "兔耳摺"
-},
-	"double rabbit ear": {
-	zh: "雙兔耳摺"
-},
-	"petal fold": {
-	zh: "花瓣摺"
-},
-	blintz: blintz,
-	squash: squash,
-	"flip over": {
-	es: "dale la vuelta a tu papel"
-}
-};const text = {
-	axioms,
-	instructions,
-};const newFoldFile = () => {
+);const newFoldFile = () => {
 	const graph = {};
 	graph.file_spec = file_spec;
 	graph.file_creator = file_creator;
@@ -7544,42 +7344,16 @@ const getAttributeValue = (key, nodeName, attributes, sheets = []) => {
 	if (sheetResult !== undefined) { return sheetResult; }
 	if (attributes[key]) { return attributes[key]; }
 	return null;
-};var attrs = {
-	line: {
-		x1: 1,
-		y1: 1,
-		x2: 1,
-		y2: 1
+};const geometryAttributes = {
+	attrs: {
+		line: { x1: 1, y1: 1, x2: 1, y2: 1 },
+		rect: { x: 1, y: 1, width: 1, height: 1 },
+		circle: { cx: 1, cy: 1, r: 1 },
+		ellipse: { cx: 1, cy: 1, rx: 1, ry: 1 },
+		polygon: { points: 1 },
+		polyline: { points: 1 },
+		path: { d: 1 },
 	},
-	rect: {
-		x: 1,
-		y: 1,
-		width: 1,
-		height: 1
-	},
-	circle: {
-		cx: 1,
-		cy: 1,
-		r: 1
-	},
-	ellipse: {
-		cx: 1,
-		cy: 1,
-		rx: 1,
-		ry: 1
-	},
-	polygon: {
-		points: 1
-	},
-	polyline: {
-		points: 1
-	},
-	path: {
-		d: 1
-	}
-};
-const geometryAttributes = {
-	attrs: attrs
 };const pointsStringToArray = str => {
 	const list = str
 		.split(/[\s,]+/)
@@ -10691,15 +10465,230 @@ const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 		func: "uniform1f",
 		value: strokeWidth,
 	},
-});const vertexV1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_normal;\n\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nvarying vec3 normal_color;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tvec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));\n\tfloat brightness = 0.5 + light.x * 0.15 + light.z * 0.35;\n\tfront_color = u_frontColor * brightness;\n\tback_color = u_backColor * brightness;\n}\n";const fragmentV1 = "#version 100\nprecision mediump float;\n\nuniform float u_opacity;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\tgl_FragColor = vec4(color, u_opacity);\n}\n";const vertexV2 = "#version 300 es\n\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\n\nin vec3 v_position;\nin vec3 v_normal;\nout vec3 front_color;\nout vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tvec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));\n\tfloat brightness = 0.5 + light.x * 0.15 + light.z * 0.35;\n\tfront_color = u_frontColor * brightness;\n\tback_color = u_backColor * brightness;\n}\n";const fragmentV2 = "#version 300 es\n#ifdef GL_FRAGMENT_PRECISION_HIGH\n  precision highp float;\n#else\n  precision mediump float;\n#endif\n\nuniform float u_opacity;\nin vec3 front_color;\nin vec3 back_color;\nout vec4 outColor;\n\nvoid main () {\n\tgl_FragDepth = gl_FragCoord.z;\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\toutColor = vec4(color, u_opacity);\n}\n";const vertexOutlinedV1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_normal;\nattribute vec3 v_barycentric;\n\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nvarying vec3 normal_color;\nvarying vec3 barycentric;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tbarycentric = v_barycentric;\n\tvec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));\n\tfloat brightness = 0.5 + light.x * 0.15 + light.z * 0.35;\n\tfront_color = u_frontColor * brightness;\n\tback_color = u_backColor * brightness;\n}\n";const fragmentOutlinedV1 = "#version 100\nprecision mediump float;\n\nuniform float u_opacity;\nvarying vec3 barycentric;\nvarying vec3 front_color;\nvarying vec3 back_color;\n\nvoid main () {\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\tvec3 boundary = vec3(0.0, 0.0, 0.0)\n\t// gl_FragDepth = 0.5;\n\tgl_FragColor = any(lessThan(barycentric, vec3(0.02)))\n\t\t? vec4(boundary, u_opacity)\n\t\t: vec4(color, u_opacity);\n}\n";
-const vertexOutlinedV2 = "#version 300 es\n\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\n\nin vec3 v_position;\nin vec3 v_normal;\nin vec3 v_barycentric;\nin float v_rawEdge;\n\nout vec3 front_color;\nout vec3 back_color;\nout vec3 barycentric;\n// flat out int rawEdge;\nflat out int provokedVertex;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tprovokedVertex = gl_VertexID;\n\tbarycentric = v_barycentric;\n\t// rawEdge = int(v_rawEdge);\n\tvec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));\n\tfloat brightness = 0.5 + light.x * 0.15 + light.z * 0.35;\n\tfront_color = u_frontColor * brightness;\n\tback_color = u_backColor * brightness;\n}\n";
-const fragmentOutlinedV2 = "#version 300 es\n#ifdef GL_FRAGMENT_PRECISION_HIGH\n  precision highp float;\n#else\n  precision mediump float;\n#endif\n\nuniform float u_opacity;\n\nin vec3 front_color;\nin vec3 back_color;\nin vec3 barycentric;\nout vec4 outColor;\n\nfloat edgeFactor(vec3 barycenter) {\n\tvec3 d = fwidth(barycenter);\n\tvec3 a3 = smoothstep(vec3(0.0), d*3.5, barycenter);\n\treturn min(min(a3.x, a3.y), a3.z);\n}\n\nvoid main () {\n\tgl_FragDepth = gl_FragCoord.z;\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\toutColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);\n}\n";const vertexThickEdgesV1$1 = "#version 100\n\nattribute vec3 v_position;\nattribute vec3 v_color;\nattribute vec3 edge_vector;\nattribute vec2 vertex_vector;\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\nvarying vec3 blend_color;\n\nvoid main () {\n\tvec3 edge_norm = normalize(edge_vector);\n\t// axis most dissimilar to edge_vector\n\tvec3 absNorm = abs(edge_norm);\n\tvec3 xory = absNorm.x < absNorm.y ? vec3(1,0,0) : vec3(0,1,0);\n\tvec3 axis = absNorm.x > absNorm.z && absNorm.y > absNorm.z ? vec3(0,0,1) : xory;\n\t// two perpendiculars. with edge_vector these make basis vectors\n\tvec3 one = cross(axis, edge_norm);\n\tvec3 two = cross(one, edge_norm);\n\tvec3 displaceNormal = normalize(\n\t\tone * vertex_vector.x + two * vertex_vector.y\n\t);\n\tvec3 displace = displaceNormal * u_strokeWidth;\n\tgl_Position = u_matrix * vec4(v_position + displace, 1);\n\tblend_color = v_color;\n}\n";
-const vertexThickEdgesV2$1 = "#version 300 es\n\nuniform mat4 u_matrix;\nuniform mat4 u_projection;\nuniform mat4 u_modelView;\nuniform float u_strokeWidth;\n\nin vec3 v_position;\nin vec3 v_color;\nin vec3 edge_vector;\nin vec2 vertex_vector;\nout vec3 blend_color;\n\nvoid main () {\n\tvec3 edge_norm = normalize(edge_vector);\n\t// axis most dissimilar to edge_vector\n\tvec3 absNorm = abs(edge_norm);\n\tvec3 xory = absNorm.x < absNorm.y ? vec3(1,0,0) : vec3(0,1,0);\n\tvec3 axis = absNorm.x > absNorm.z && absNorm.y > absNorm.z ? vec3(0,0,1) : xory;\n\t// two perpendiculars. with edge_vector these make basis vectors\n\tvec3 one = cross(axis, edge_norm);\n\tvec3 two = cross(one, edge_norm);\n\tvec3 displaceNormal = normalize(\n\t\tone * vertex_vector.x + two * vertex_vector.y\n\t);\n\tvec3 displace = displaceNormal * u_strokeWidth;\n\tgl_Position = u_matrix * vec4(v_position + displace, 1);\n\tblend_color = v_color;\n}\n";
-const fragmentSimpleV1$1 = "#version 100\nprecision mediump float;\n\nvarying vec3 blend_color;\n\nvoid main () {\n\tgl_FragColor = vec4(blend_color.rgb, 1);\n}\n";const fragmentSimpleV2$1 = "#version 300 es\n#ifdef GL_FRAGMENT_PRECISION_HIGH\n  precision highp float;\n#else\n  precision mediump float;\n#endif\n\nin vec3 blend_color;\nout vec4 outColor;\n \nvoid main() {\n\toutColor = vec4(blend_color.rgb, 1);\n}\n";const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
+});const model_300_vert = `#version 300 es
+uniform mat4 u_modelView;
+uniform mat4 u_matrix;
+uniform vec3 u_frontColor;
+uniform vec3 u_backColor;
+in vec3 v_position;
+in vec3 v_normal;
+out vec3 front_color;
+out vec3 back_color;
+void main () {
+	gl_Position = u_matrix * vec4(v_position, 1);
+	vec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));
+	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
+	front_color = u_frontColor * brightness;
+	back_color = u_backColor * brightness;
+}
+`;
+const thick_edges_300_vert$1 = `#version 300 es
+uniform mat4 u_matrix;
+uniform mat4 u_projection;
+uniform mat4 u_modelView;
+uniform float u_strokeWidth;
+in vec3 v_position;
+in vec3 v_color;
+in vec3 edge_vector;
+in vec2 vertex_vector;
+out vec3 blend_color;
+void main () {
+	vec3 edge_norm = normalize(edge_vector);
+	// axis most dissimilar to edge_vector
+	vec3 absNorm = abs(edge_norm);
+	vec3 xory = absNorm.x < absNorm.y ? vec3(1,0,0) : vec3(0,1,0);
+	vec3 axis = absNorm.x > absNorm.z && absNorm.y > absNorm.z ? vec3(0,0,1) : xory;
+	// two perpendiculars. with edge_vector these make basis vectors
+	vec3 one = cross(axis, edge_norm);
+	vec3 two = cross(one, edge_norm);
+	vec3 displaceNormal = normalize(
+		one * vertex_vector.x + two * vertex_vector.y
+	);
+	vec3 displace = displaceNormal * u_strokeWidth;
+	gl_Position = u_matrix * vec4(v_position + displace, 1);
+	blend_color = v_color;
+}
+`;
+const outlined_model_300_frag = `#version 300 es
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+  precision highp float;
+#else
+  precision mediump float;
+#endif
+uniform float u_opacity;
+in vec3 front_color;
+in vec3 back_color;
+in vec3 barycentric;
+out vec4 outColor;
+float edgeFactor(vec3 barycenter) {
+	vec3 d = fwidth(barycenter);
+	vec3 a3 = smoothstep(vec3(0.0), d*3.5, barycenter);
+	return min(min(a3.x, a3.y), a3.z);
+}
+void main () {
+	gl_FragDepth = gl_FragCoord.z;
+	vec3 color = gl_FrontFacing ? front_color : back_color;
+	outColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);
+}
+`;
+const outlined_model_100_frag = `#version 100
+precision mediump float;
+uniform float u_opacity;
+varying vec3 barycentric;
+varying vec3 front_color;
+varying vec3 back_color;
+void main () {
+	vec3 color = gl_FrontFacing ? front_color : back_color;
+	vec3 boundary = vec3(0.0, 0.0, 0.0)
+	// gl_FragDepth = 0.5;
+	gl_FragColor = any(lessThan(barycentric, vec3(0.02)))
+		? vec4(boundary, u_opacity)
+		: vec4(color, u_opacity);
+}
+`;
+const model_100_vert = `#version 100
+attribute vec3 v_position;
+attribute vec3 v_normal;
+uniform mat4 u_projection;
+uniform mat4 u_modelView;
+uniform mat4 u_matrix;
+uniform vec3 u_frontColor;
+uniform vec3 u_backColor;
+varying vec3 normal_color;
+varying vec3 front_color;
+varying vec3 back_color;
+void main () {
+	gl_Position = u_matrix * vec4(v_position, 1);
+	vec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));
+	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
+	front_color = u_frontColor * brightness;
+	back_color = u_backColor * brightness;
+}
+`;
+const thick_edges_100_vert$1 = `#version 100
+attribute vec3 v_position;
+attribute vec3 v_color;
+attribute vec3 edge_vector;
+attribute vec2 vertex_vector;
+uniform mat4 u_matrix;
+uniform mat4 u_projection;
+uniform mat4 u_modelView;
+uniform float u_strokeWidth;
+varying vec3 blend_color;
+void main () {
+	vec3 edge_norm = normalize(edge_vector);
+	// axis most dissimilar to edge_vector
+	vec3 absNorm = abs(edge_norm);
+	vec3 xory = absNorm.x < absNorm.y ? vec3(1,0,0) : vec3(0,1,0);
+	vec3 axis = absNorm.x > absNorm.z && absNorm.y > absNorm.z ? vec3(0,0,1) : xory;
+	// two perpendiculars. with edge_vector these make basis vectors
+	vec3 one = cross(axis, edge_norm);
+	vec3 two = cross(one, edge_norm);
+	vec3 displaceNormal = normalize(
+		one * vertex_vector.x + two * vertex_vector.y
+	);
+	vec3 displace = displaceNormal * u_strokeWidth;
+	gl_Position = u_matrix * vec4(v_position + displace, 1);
+	blend_color = v_color;
+}
+`;
+const model_100_frag = `#version 100
+precision mediump float;
+uniform float u_opacity;
+varying vec3 front_color;
+varying vec3 back_color;
+void main () {
+	vec3 color = gl_FrontFacing ? front_color : back_color;
+	gl_FragColor = vec4(color, u_opacity);
+}
+`;
+const simple_300_frag = `#version 300 es
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+  precision highp float;
+#else
+  precision mediump float;
+#endif
+in vec3 blend_color;
+out vec4 outColor;
+ 
+void main() {
+	outColor = vec4(blend_color.rgb, 1);
+}
+`;
+const outlined_model_100_vert = `#version 100
+attribute vec3 v_position;
+attribute vec3 v_normal;
+attribute vec3 v_barycentric;
+uniform mat4 u_projection;
+uniform mat4 u_modelView;
+uniform mat4 u_matrix;
+uniform vec3 u_frontColor;
+uniform vec3 u_backColor;
+varying vec3 normal_color;
+varying vec3 barycentric;
+varying vec3 front_color;
+varying vec3 back_color;
+void main () {
+	gl_Position = u_matrix * vec4(v_position, 1);
+	barycentric = v_barycentric;
+	vec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));
+	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
+	front_color = u_frontColor * brightness;
+	back_color = u_backColor * brightness;
+}
+`;
+const outlined_model_300_vert = `#version 300 es
+uniform mat4 u_modelView;
+uniform mat4 u_matrix;
+uniform vec3 u_frontColor;
+uniform vec3 u_backColor;
+in vec3 v_position;
+in vec3 v_normal;
+in vec3 v_barycentric;
+in float v_rawEdge;
+out vec3 front_color;
+out vec3 back_color;
+out vec3 barycentric;
+// flat out int rawEdge;
+flat out int provokedVertex;
+void main () {
+	gl_Position = u_matrix * vec4(v_position, 1);
+	provokedVertex = gl_VertexID;
+	barycentric = v_barycentric;
+	// rawEdge = int(v_rawEdge);
+	vec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));
+	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
+	front_color = u_frontColor * brightness;
+	back_color = u_backColor * brightness;
+}
+`;
+const model_300_frag = `#version 300 es
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+  precision highp float;
+#else
+  precision mediump float;
+#endif
+uniform float u_opacity;
+in vec3 front_color;
+in vec3 back_color;
+out vec4 outColor;
+void main () {
+	gl_FragDepth = gl_FragCoord.z;
+	vec3 color = gl_FrontFacing ? front_color : back_color;
+	outColor = vec4(color, u_opacity);
+}
+`;
+const simple_100_frag = `#version 100
+precision mediump float;
+varying vec3 blend_color;
+void main () {
+	gl_FragColor = vec4(blend_color.rgb, 1);
+}
+`;const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
 	const exploded = makeExplodedGraph(graph, options.layerNudge);
 	const program = version === 1
-		? createProgram(gl, vertexV1, fragmentV1)
-		: createProgram(gl, vertexV2, fragmentV2);
+		? createProgram(gl, model_100_vert, model_100_frag)
+		: createProgram(gl, model_300_vert, model_300_frag);
 	return {
 		program,
 		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
@@ -10710,8 +10699,8 @@ const fragmentSimpleV1$1 = "#version 100\nprecision mediump float;\n\nvarying ve
 };
 const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
 	const program = version === 1
-		? createProgram(gl, vertexThickEdgesV1$1, fragmentSimpleV1$1)
-		: createProgram(gl, vertexThickEdgesV2$1, fragmentSimpleV2$1);
+		? createProgram(gl, thick_edges_100_vert$1, simple_100_frag)
+		: createProgram(gl, thick_edges_300_vert$1, simple_300_frag);
 	return {
 		program,
 		vertexArrays: makeThickEdgesVertexArrays(gl, program, graph, options),
@@ -10723,8 +10712,8 @@ const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
 const foldedFormFacesOutlined = (gl, version = 1, graph = {}, options = {}) => {
 	const exploded = makeExplodedGraph(graph, options.layerNudge);
 	const program = version === 1
-		? createProgram(gl, vertexOutlinedV1, fragmentOutlinedV1)
-		: createProgram(gl, vertexOutlinedV2, fragmentOutlinedV2);
+		? createProgram(gl, outlined_model_100_vert, outlined_model_100_frag)
+		: createProgram(gl, outlined_model_300_vert, outlined_model_300_frag);
 	return {
 		program,
 		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
@@ -10890,8 +10879,76 @@ const makeCPFacesElementArrays = (gl, version = 1, graph = {}) => {
 		func: "uniform1f",
 		value: strokeWidth / 2,
 	},
-});const vertexSimpleV1 = "#version 100\n\nuniform mat4 u_matrix;\n\nattribute vec2 v_position;\nattribute vec3 v_color;\nvarying vec3 blend_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 0, 1);\n\tblend_color = v_color;\n}\n";const vertexThickEdgesV1 = "#version 100\n\nuniform mat4 u_matrix;\nuniform float u_strokeWidth;\n\nattribute vec2 v_position;\nattribute vec3 v_color;\nattribute vec2 edge_vector;\nattribute vec2 vertex_vector;\nvarying vec3 blend_color;\n\nvoid main () {\n\tfloat sign = vertex_vector[0];\n\tvec2 side = normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign)) * u_strokeWidth;\n\tgl_Position = u_matrix * vec4(side + v_position, 0, 1);\n\tblend_color = v_color;\n}\n";const fragmentSimpleV1 = "#version 100\nprecision mediump float;\n\nvarying vec3 blend_color;\n\nvoid main () {\n\tgl_FragColor = vec4(blend_color.rgb, 1);\n}\n";const vertexSimpleV2 = "#version 300 es\n\nuniform mat4 u_matrix;\n\nin vec2 v_position;\nin vec3 v_color;\nout vec3 blend_color;\n\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 0, 1);\n\tblend_color = v_color;\n}\n";const vertexThickEdgesV2 = "#version 300 es\n\nuniform mat4 u_matrix;\nuniform float u_strokeWidth;\n\nin vec2 v_position;\nin vec3 v_color;\nin vec2 edge_vector;\nin vec2 vertex_vector;\nout vec3 blend_color;\n\nvoid main () {\n\tfloat sign = vertex_vector[0];\n\tvec2 side = normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign)) * u_strokeWidth;\n\tgl_Position = u_matrix * vec4(side + v_position, 0, 1);\n\tblend_color = v_color;\n}\n";const fragmentSimpleV2 = "#version 300 es\n#ifdef GL_FRAGMENT_PRECISION_HIGH\n  precision highp float;\n#else\n  precision mediump float;\n#endif\n\nin vec3 blend_color;\nout vec4 outColor;\n \nvoid main() {\n\toutColor = vec4(blend_color.rgb, 1);\n}\n";const cpFacesV1 = (gl, version = 1, graph = {}) => {
-	const program = createProgram(gl, vertexSimpleV1, fragmentSimpleV1);
+});const simple_2d_100_vert = `#version 100
+uniform mat4 u_matrix;
+attribute vec2 v_position;
+attribute vec3 v_color;
+varying vec3 blend_color;
+void main () {
+	gl_Position = u_matrix * vec4(v_position, 0, 1);
+	blend_color = v_color;
+}
+`;
+const thick_edges_300_vert = `#version 300 es
+uniform mat4 u_matrix;
+uniform float u_strokeWidth;
+in vec2 v_position;
+in vec3 v_color;
+in vec2 edge_vector;
+in vec2 vertex_vector;
+out vec3 blend_color;
+void main () {
+	float sign = vertex_vector[0];
+	vec2 side = normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign)) * u_strokeWidth;
+	gl_Position = u_matrix * vec4(side + v_position, 0, 1);
+	blend_color = v_color;
+}
+`;
+const simple_2d_300_vert = `#version 300 es
+uniform mat4 u_matrix;
+in vec2 v_position;
+in vec3 v_color;
+out vec3 blend_color;
+void main () {
+	gl_Position = u_matrix * vec4(v_position, 0, 1);
+	blend_color = v_color;
+}
+`;
+const thick_edges_100_vert = `#version 100
+uniform mat4 u_matrix;
+uniform float u_strokeWidth;
+attribute vec2 v_position;
+attribute vec3 v_color;
+attribute vec2 edge_vector;
+attribute vec2 vertex_vector;
+varying vec3 blend_color;
+void main () {
+	float sign = vertex_vector[0];
+	vec2 side = normalize(vec2(edge_vector.y * sign, -edge_vector.x * sign)) * u_strokeWidth;
+	gl_Position = u_matrix * vec4(side + v_position, 0, 1);
+	blend_color = v_color;
+}
+`;
+const simple_2d_300_frag = `#version 300 es
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+  precision highp float;
+#else
+  precision mediump float;
+#endif
+in vec3 blend_color;
+out vec4 outColor;
+void main() {
+	outColor = vec4(blend_color.rgb, 1);
+}
+`;
+const simple_2d_100_frag = `#version 100
+precision mediump float;
+varying vec3 blend_color;
+void main () {
+	gl_FragColor = vec4(blend_color.rgb, 1);
+}
+`;const cpFacesV1 = (gl, version = 1, graph = {}) => {
+	const program = createProgram(gl, simple_2d_100_vert, simple_2d_100_frag);
 	return {
 		program,
 		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
@@ -10901,7 +10958,7 @@ const makeCPFacesElementArrays = (gl, version = 1, graph = {}) => {
 	};
 };
 const cpEdgesV1 = (gl, version = 1, graph = {}) => {
-	const program = createProgram(gl, vertexThickEdgesV1, fragmentSimpleV1);
+	const program = createProgram(gl, thick_edges_100_vert, simple_2d_100_frag);
 	return {
 		program,
 		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph),
@@ -10911,7 +10968,7 @@ const cpEdgesV1 = (gl, version = 1, graph = {}) => {
 	};
 };
 const cpFacesV2 = (gl, version = 2, graph = {}) => {
-	const program = createProgram(gl, vertexSimpleV2, fragmentSimpleV2);
+	const program = createProgram(gl, simple_2d_300_vert, simple_2d_300_frag);
 	return {
 		program,
 		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
@@ -10921,7 +10978,7 @@ const cpFacesV2 = (gl, version = 2, graph = {}) => {
 	};
 };
 const cpEdgesV2 = (gl, version = 2, graph = {}) => {
-	const program = createProgram(gl, vertexThickEdgesV2, fragmentSimpleV2);
+	const program = createProgram(gl, thick_edges_300_vert, simple_2d_300_frag);
 	return {
 		program,
 		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph),
@@ -10959,7 +11016,6 @@ const cpEdgesV2 = (gl, version = 2, graph = {}) => {
 	diagram,
 	layer,
 	singleVertex,
-	text,
 	convert,
 	webgl,
 });

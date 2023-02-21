@@ -12,25 +12,26 @@ import {
 	makeExplodedGraph,
 } from "./general.js";
 import makeUniforms from "./uniforms.js";
-import vertexV1 from "./shaders/model-100.vert";
-import fragmentV1 from "./shaders/model-100.frag";
-import vertexV2 from "./shaders/model-300.vert";
-import fragmentV2 from "./shaders/model-300.frag";
-import vertexOutlinedV1 from "./shaders/outlined-model-100.vert";
-import fragmentOutlinedV1 from "./shaders/outlined-model-100.frag";
-import vertexOutlinedV2 from "./shaders/outlined-model-300.vert";
-import fragmentOutlinedV2 from "./shaders/outlined-model-300.frag";
-// thick edges
-import vertexThickEdgesV1 from "./shaders/thick-edges-100.vert";
-import vertexThickEdgesV2 from "./shaders/thick-edges-300.vert";
-import fragmentSimpleV1 from "./shaders/simple-100.frag";
-import fragmentSimpleV2 from "./shaders/simple-300.frag";
+import {
+	model_100_vert,
+	model_100_frag,
+	model_300_vert,
+	model_300_frag,
+	outlined_model_100_vert,
+	outlined_model_100_frag,
+	outlined_model_300_vert,
+	outlined_model_300_frag,
+	thick_edges_100_vert,
+	thick_edges_300_vert,
+	simple_100_frag,
+	simple_300_frag,
+} from "./shaders.js";
 
 export const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
 	const exploded = makeExplodedGraph(graph, options.layerNudge);
 	const program = version === 1
-		? createProgram(gl, vertexV1, fragmentV1)
-		: createProgram(gl, vertexV2, fragmentV2);
+		? createProgram(gl, model_100_vert, model_100_frag)
+		: createProgram(gl, model_300_vert, model_300_frag);
 	return {
 		program,
 		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
@@ -42,8 +43,8 @@ export const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
 
 export const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
 	const program = version === 1
-		? createProgram(gl, vertexThickEdgesV1, fragmentSimpleV1)
-		: createProgram(gl, vertexThickEdgesV2, fragmentSimpleV2);
+		? createProgram(gl, thick_edges_100_vert, simple_100_frag)
+		: createProgram(gl, thick_edges_300_vert, simple_300_frag);
 	return {
 		program,
 		vertexArrays: makeThickEdgesVertexArrays(gl, program, graph, options),
@@ -56,8 +57,8 @@ export const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
 export const foldedFormFacesOutlined = (gl, version = 1, graph = {}, options = {}) => {
 	const exploded = makeExplodedGraph(graph, options.layerNudge);
 	const program = version === 1
-		? createProgram(gl, vertexOutlinedV1, fragmentOutlinedV1)
-		: createProgram(gl, vertexOutlinedV2, fragmentOutlinedV2);
+		? createProgram(gl, outlined_model_100_vert, outlined_model_100_frag)
+		: createProgram(gl, outlined_model_300_vert, outlined_model_300_frag);
 	return {
 		program,
 		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
