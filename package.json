@@ -3,11 +3,22 @@
 	"version": "0.9.33",
 	"description": "origami design library",
 	"main": "./rabbit-ear.js",
-	"module": "./rabbit-ear.module.js",
+	"module": "./module/index.js",
 	"exports": {
-		"import": "./rabbit-ear.module.js",
-		"require": "./rabbit-ear.js"
+    ".": {
+      "import": "./module/index.js",
+      "require": "./rabbit-ear.js"
+    },
+    "./*": "./module/*"
 	},
+  "files": [
+		"./rabbit-ear.js",
+		"./rabbit-ear.module.js",
+    "./license",
+    "./package.json",
+    "./readme.md",
+    "./module/"
+  ],
 	"scripts": {
 		"test": "jest",
 		"clean": "node tests/clean.js",
