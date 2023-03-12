@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { subtract2 } from "../../math/algebra/vectors.js";
+import { subtract2 } from "../../math/algebra/vector.js";
 import {
 	exclude,
 	excludeS,
-} from "../../math/general/functions.js";
+} from "../../math/general/function.js";
 import { clipLineConvexPolygon } from "../../math/intersect/clip.js";
 import { makeFacesPolygon } from "../../graph/make.js";
 import { makeFacesWinding } from "../../graph/facesWinding.js";
@@ -17,7 +17,7 @@ import { booleanMatrixToIndexedArray } from "../../general/arrays.js";
  * @param {todo} todo todo
  * @param {number} [epsilon=1e-6] optional epsilon value
  * @returns todo
- * @linkcode Origami ./src/layer/solver3d/tortillaTortilla.js 15
+ * @linkcode Origami ./src/layer/solver3d/tortillaTortilla.js 20
  */
 export const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsilon) => {
 	// get all tortilla edges. could also be done by searching

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constants.js";
+import { EPSILON } from "../../math/general/constant.js";
 import {
 	makeEdgesEdgesParallelOverlap,
 } from "../../graph/edgesEdges.js";
@@ -102,7 +102,7 @@ const makeCopyWithFlatEdges = (graph) => {
  * @param {number} [epsilon=1e-6] an optional epsilon, default 1e-6
  * @returns {object} an object containing keys:
  * taco_taco, tortilla_tortilla, taco_tortilla
- * @linkcode Origami ./src/layer/solver3d/makeTacosTortillas.js 77
+ * @linkcode Origami ./src/layer/solver3d/makeTacosTortillas.js 105
  * @notes due to the face_center calculation to determine face-edge
  * sidedness, this is currently hardcoded to only work with convex polygons.
  */

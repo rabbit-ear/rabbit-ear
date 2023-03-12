@@ -3,7 +3,7 @@
  */
 import remove from "../remove.js";
 import { uniqueSortedNumbers } from "../../general/arrays.js";
-import { getOppositeVertices } from "../general.js";
+import { getOtherVerticesInEdges } from "../find.js";
 /**
  * @description given a degree-2 vertex, remove this vertex, merge the adjacent
  * edges into one, and rebuild the faces on either side.
@@ -20,7 +20,7 @@ const removePlanarVertex = (graph, vertex) => {
 		console.warn("cannot remove non 2-degree vertex yet (e,f)", edges, faces);
 		return;
 	}
-	const vertices = getOppositeVertices(graph, vertex, edges);
+	const vertices = getOtherVerticesInEdges(graph, vertex, edges);
 	const vertices_reverse = vertices.slice().reverse();
 	// sort edges so the smallest index is first
 	// edges[0] is the keep edge. edges[1] will be the removed edge.

@@ -1,15 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constants.js";
+import { EPSILON } from "../../math/general/constant.js";
 import {
 	distance,
 	midpoint,
-} from "../../math/algebra/vectors.js";
+} from "../../math/algebra/vector.js";
 import remove from "../remove.js";
 import { findAdjacentFacesToEdge } from "../find.js";
 import * as S from "../../general/strings.js";
-import splitEdgeIntoTwo from "./splitEdgeIntoTwo.js";
 import {
 	update_vertices_vertices,
 	update_vertices_edges,
@@ -20,6 +19,27 @@ import {
 	update_faces_edges_with_vertices,
 	// update_faces_edges,
 } from "./update.js";
+/**
+ * @description this does not modify the graph. it builds 2 objects with:
+ * { edges_vertices, edges_assignment, edges_foldAngle }
+ * including external to the spec: { edges_length, edges_vector }
+ * this does not rebuild edges_edges.
+ * @param {object} graph a FOLD object, modified in place
+ * @param {number} edge_index the index of the edge that will be split by the new vertex
+ * @param {number} new_vertex the index of the new vertex
+ * @returns {object[]} array of two edge objects, containing edge data as FOLD keys
+ */
+const splitEdgeIntoTwo = (graph, edge_index, new_vertex) => {
+	const edge_vertices = graph.edges_vertices[edge_index];
+	const new_edges = [
+		{ edges_vertices: [edge_vertices[0], new_vertex] },
+		{ edges_vertices: [new_vertex, edge_vertices[1]] },
+	];
+	new_edges.forEach(edge => [S._edges_assignment, S._edges_foldAngle]
+		.filter(key => graph[key] && graph[key][edge_index] !== undefined)
+		.forEach(key => { edge[key] = graph[key][edge_index]; }));
+	return new_edges;
+};
 /**
  * @description split an edge with a new vertex, replacing the old
  * edge with two new edges sharing the common vertex. rebuilding:
@@ -40,7 +60,7 @@ import {
  * @returns {object} a summary of the changes with keys "vertex", "edges"
  * "vertex" is the index of the new vertex (or old index, if similar)
  * "edge" is a summary of changes to edges, with "map" and "remove"
- * @linkcode Origami ./src/graph/splitEdge/index.js 39
+ * @linkcode Origami ./src/graph/splitEdge/index.js 63
  */
 const splitEdge = (graph, old_edge, coords, epsilon = EPSILON) => {
 	// make sure old_edge is a valid index

@@ -1,5 +1,5 @@
 /* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constants.js';
+import { EPSILON } from '../general/constant.js';
 import { radialSortPointIndices2 } from '../general/sort.js';
 import { threePointTurnDirection } from './radial.js';
 
@@ -21,7 +21,7 @@ const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
  * @param {number} [epsilon=1e-6] undefined behavior when larger than 0.01
  * @returns {number[]} not the points, but the indices
  * of points in your "points" array
- * @linkcode Math ./src/geometry/convex-hull.js 19
+ * @linkcode Math ./src/geometry/convexHull.js 22
  */
 const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) => {
 	if (points.length < 2) { return []; }
@@ -70,7 +70,7 @@ const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) =>
  * @param {number} [epsilon=1e-6] undefined behavior when larger than 0.01
  * @returns {number[][]} the convex hull as a list of points,
  * where each point is an array of numbers
- * @linkcode Math ./src/geometry/convex-hull.js 66
+ * @linkcode Math ./src/geometry/convexHull.js 71
  */
 // export const convexHullAsPoints = (points = [], includeCollinear = false, epsilon = EPSILON) => (
 // 	convexHull(points, includeCollinear, epsilon)

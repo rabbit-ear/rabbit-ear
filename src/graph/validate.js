@@ -3,12 +3,12 @@
  */
 import {
 	duplicateEdges,
-	circularEdges,
-} from "./edgesViolations.js";
+} from "./edges/duplicate.js";
 import {
-	duplicateVertices,
-	isolatedVertices,
-} from "./verticesViolations.js";
+	circularEdges,
+} from "./edges/circular.js";
+import { duplicateVertices } from "./vertices/duplicate.js";
+import { isolatedVertices } from "./vertices/isolated.js";
 import count from "./count.js";
 import countImplied from "./countImplied.js";
 
@@ -38,12 +38,26 @@ const validate_references = (graph) => {
 		faces: counts.faces >= implied.faces,
 	};
 };
+
+const isFlatFoldable = (graph, epsilon) => {
+	const sectors = counterClockwiseSectors2(points);
+	const kawasaki = ear.singleVertex.alternatingSum(sectors)
+		.map(n => 0.5 + 0.5 * (Math.PI - n) / (Math.PI) );
+	const isFlatFoldable = Math.abs(kawasaki[0] - kawasaki[1]) < 0.02;
+};
+
 /**
  * @description Validate a graph, get back a report on its duplicate/circular components.
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a report on the validity state of the graph. a "summary" string,
  * and "vertices" "edges" and "faces" information
+ * 
+ * todo: if creasePattern test if faces are counterclockwise
+ * 
+ * also, do that operation after an affine scale transform,
+ * since it's possible that that gets messed up.
+ * 
  * @linkcode Origami ./src/graph/validate.js 47
  */
 const validate = (graph, epsilon) => {

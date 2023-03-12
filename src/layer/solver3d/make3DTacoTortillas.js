@@ -6,8 +6,8 @@ import {
 	includeS,
 	exclude,
 	excludeS,
-} from "../../math/general/functions.js";
-import { subtract2 } from "../../math/algebra/vectors.js";
+} from "../../math/general/function.js";
+import { subtract2 } from "../../math/algebra/vector.js";
 import { multiplyMatrix4Vector3 } from "../../math/algebra/matrix4.js";
 import { overlapConvexPolygonPoint } from "../../math/intersect/overlap.js";
 import { intersectConvexPolygonLine } from "../../math/intersect/intersect.js";

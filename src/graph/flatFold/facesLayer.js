@@ -22,7 +22,7 @@ export const foldFacesLayer = (faces_layer, faces_folding) => {
 	// compress whatever current layer numbers down into [0...n]
 	not_folding
 		.sort((a, b) => faces_layer[a] - faces_layer[b])
-		.forEach((face, i) => { new_faces_layer[face] = i; })
+		.forEach((face, i) => { new_faces_layer[face] = i; });
 	// sort the folding faces in reverse order (flip them), compress their
 	// layers down into [0...n] and and set each face to this layer index
 	folding

@@ -8,7 +8,7 @@ import {
 	multiplyMatrix3Vector3,
 	multiplyMatrices3,
 } from "../math/algebra/matrix3.js";
-import { resize } from "../math/algebra/vectors.js";
+import { resize } from "../math/algebra/vector.js";
 import { getVector } from "../math/general/get.js";
 import { filterKeysWithSuffix } from "../fold/spec.js";
 /**
@@ -20,7 +20,7 @@ import { filterKeysWithSuffix } from "../fold/spec.js";
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} matrix a 3x4 matrix as a 12 number array
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 15
+ * @linkcode Origami ./src/graph/affine.js 23
  */
 const apply_matrix_to_graph = function (graph, matrix) {
 	// apply to anything with a coordinate value
@@ -45,7 +45,7 @@ const apply_matrix_to_graph = function (graph, matrix) {
  * @param {number} scale the scale amount
  * @param {number[]} optional. an array or series of numbers, the center of scale.
  * @returns {FOLD} the same input graph, modified.
- * @linkcode Origami ./src/graph/affine.js 40
+ * @linkcode Origami ./src/graph/affine.js 48
  */
 const transform_scale = (graph, ...args) => {
 	const scale = args.length === 1
@@ -61,7 +61,7 @@ const transform_scale = (graph, ...args) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} optional. an array or series of numbers, the translation vector
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 56
+ * @linkcode Origami ./src/graph/affine.js 64
  */
 const transform_translate = (graph, ...args) => {
 	const vector = getVector(...args);
@@ -77,7 +77,7 @@ const transform_translate = (graph, ...args) => {
  * @param {number} the rotation amount in radians
  * @param {number[]} optional. an array or series of numbers, the center of rotation
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 72
+ * @linkcode Origami ./src/graph/affine.js 80
  */
 const transform_rotateZ = (graph, angle, ...args) => {
 	const vector = getVector(...args);

@@ -1,17 +1,17 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constants.js";
+import { EPSILON } from "../math/general/constant.js";
 import {
 	dot,
 	dot3,
 	scale3,
 	resize,
 	parallelNormalized,
-} from "../math/algebra/vectors.js";
+} from "../math/algebra/vector.js";
 import {
 	makePolygonNonCollinear,
-} from "../math/geometry/polygons.js";
+} from "../math/geometry/polygon.js";
 import {
 	makeMatrix4Rotate,
 	multiplyMatrix4Vector3,

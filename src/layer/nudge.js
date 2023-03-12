@@ -13,7 +13,7 @@ import connectedComponents from "../graph/connectedComponents.js";
  * @param {FOLD} graph a FOLD graph with the parameter faces_layer.
  * @returns {object[]} an array of objects, one for every face, each
  * with properties "vector" and "layer".
- * @linkcode Origami ./src/layer/nudge.js 15
+ * @linkcode Origami ./src/layer/nudge.js 16
  */
 export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
 	const faces_nudge = [];
@@ -34,7 +34,7 @@ export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
  * @param {FOLD} graph a FOLD graph with faceOrders.
  * @returns {object[]} an array of objects, one for every face, each
  * with properties "vector" and "layer".
- * @linkcode Origami ./src/layer/nudge.js 36
+ * @linkcode Origami ./src/layer/nudge.js 37
  */
 export const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });

@@ -5,7 +5,7 @@ import {
 	scale,
 	add,
 	resize,
-} from "../../math/algebra/vectors.js";
+} from "../../math/algebra/vector.js";
 import {
 	nudgeFacesWithFaceOrders,
 	nudgeFacesWithFacesLayer,
@@ -14,7 +14,7 @@ import count from "../../graph/count.js";
 import countImplied from "../../graph/countImplied.js";
 import { invertMap } from "../../graph/maps.js";
 import { triangulate } from "../../graph/triangulate.js";
-import { explode } from "../../graph/explodeFaces.js";
+import { explode } from "../../graph/explode.js";
 
 // const LAYER_NUDGE = 1e-4;
 const LAYER_NUDGE = 1e-5;

@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { dot } from "../math/algebra/vectors.js";
+import { dot } from "../math/algebra/vector.js";
 /**
  * @description find a topological ordering from a set of faceOrders
  * @param {number[]} faces a subset of face indices where all faces have been

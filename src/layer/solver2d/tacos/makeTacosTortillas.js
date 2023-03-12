@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../../math/general/constants.js";
+import { EPSILON } from "../../../math/general/constant.js";
 import { makeFacesConvexCenter } from "../../../graph/make.js";
 import {
 	makeEdgesEdgesParallelOverlap,

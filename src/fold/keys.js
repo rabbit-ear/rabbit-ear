@@ -5,6 +5,7 @@
  * lists of keys and values involved in the FOLD file format spec
  * https://github.com/edemaine/FOLD/
  */
+
 /**
  * @description All FOLD keys described in the spec,
  * sorted into descriptive categories.

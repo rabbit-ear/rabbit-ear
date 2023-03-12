@@ -1,7 +1,7 @@
 /* Math (c) Kraft, MIT License */
-import { EPSILON } from './constants.js';
-import { epsilonEqual } from './functions.js';
-import { dot, subtract2, normalize2, dot2, distance2 } from '../algebra/vectors.js';
+import { EPSILON } from './constant.js';
+import { epsilonEqual } from './function.js';
+import { dot, subtract2, normalize2, dot2, distance2 } from '../algebra/vector.js';
 import { minimum2DPointIndex } from './search.js';
 
 /**
@@ -17,7 +17,7 @@ import { minimum2DPointIndex } from './search.js';
  * every element in the array with the input item parameter, placing
  * the array element first, the input item second: fn(arrayElem, paramItem)
  * @returns {number[]} the indices of the original array, in sorted order
- * @linkcode
+ * @linkcode Math ./src/general/sort.js 24
  */
 const sortAgainstItem = (array, item, compareFn) => array
 	.map((el, i) => ({ i, n: compareFn(el, item) }))
@@ -29,7 +29,7 @@ const sortAgainstItem = (array, item, compareFn) => array
  * @param {number[][]} points array of points (which are arrays of numbers)
  * @param {number[]} vector one vector
  * @returns {number[]} a list of sorted indices to the points array.
- * @linkcode Math ./src/algebra/sort.js 18
+ * @linkcode Math ./src/general/sort.js 36
  */
 const sortPointsAlongVector = (points, vector) => (
 	sortAgainstItem(points, vector, dot)
@@ -40,11 +40,11 @@ const sortPointsAlongVector = (points, vector) => (
  * cluster the numbers which are similar within an epsilon.
  * Isolated values still get put in length-1 arrays. (all values returned)
  * and the clusters contain the indices from the param array, not the values.
- * @param {numbers[]} an array of sorted numbers
- * @param {numbers} [epsilon=1e-6] an optional epsilon
- * @returns {numbers[][]} an array of arrays, each inner array containin indices.
+ * @param {number[]} numbers an array of sorted numbers
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} an array of arrays, each inner array containin indices.
  * each inner array represents clusters of values which lie within an epsilon.
- * @linkcode Math ./src/algebra/sort.js 33
+ * @linkcode Math ./src/general/sort.js 51
  */
 const clusterIndicesOfSortedNumbers = (numbers, epsilon = EPSILON) => {
 	const clusters = [[0]];
@@ -68,10 +68,13 @@ const clusterIndicesOfSortedNumbers = (numbers, epsilon = EPSILON) => {
  * @param {number[][]} points an array of points
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} this returns indices in clusters.
- * @linkcode Math ./src/algebra/sort.js 56
+ * @todo there is a wrap-around point where the cycle will not cluster
+ * values which otherwise should be clustered.
+ * @linkcode Math ./src/general/sort.js 75
  */
-const radialSortPointIndices2 = (points = [], epsilon = EPSILON) => {
+const radialSortPointIndices2 = (points, epsilon = EPSILON) => {
 	const first = minimum2DPointIndex(points, epsilon);
+	if (first === undefined) { return []; }
 	const angles = points
 		.map(p => subtract2(p, points[first]))
 		.map(v => normalize2(v))

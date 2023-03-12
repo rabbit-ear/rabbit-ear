@@ -1,6 +1,6 @@
 /* Math (c) Kraft, MIT License */
-import { EPSILON } from './constants.js';
-import { epsilonCompare } from './functions.js';
+import { EPSILON } from './constant.js';
+import { epsilonCompare } from './function.js';
 
 /**
  * Math (c) Kraft
@@ -16,7 +16,7 @@ import { epsilonCompare } from './functions.js';
  * @param {function} compare_func a function which takes two items (which match
  * the type of the first parameter), execution of this function should return a scalar.
  * @returns {number[]} the index from the set which minimizes the compare function
- * @linkcode Math ./src/algebra/nearest.js 29
+ * @linkcode Math ./src/general/search.js 17
  */
 const smallestComparisonSearch = (array, obj, compare_func) => {
 	const objs = array.map((o, i) => ({ i, d: compare_func(obj, o) }));
@@ -35,9 +35,10 @@ const smallestComparisonSearch = (array, obj, compare_func) => {
  * the smallest value within an epsilon.
  * @param {number[][]} vectors array of vectors
  * @returns {number[]} array of indices which all have the lowest X value.
- * @linkcode Math ./src/algebra/nearest.js 48
+ * @linkcode Math ./src/general/search.js 36
  */
-const smallestVectorSearch = (vectors, axis = 0, compFn = epsilonCompare, epsilon = EPSILON) => {
+// const smallestVectorSearch = (vectors, axis = 0, compFn = epsilonCompare, epsilon = EPSILON) => {
+const smallestVectorSearch = (vectors, axis, compFn, epsilon) => {
 	// find the set of all vectors that share the smallest X value within an epsilon
 	let smallSet = [0];
 	for (let i = 1; i < vectors.length; i += 1) {
@@ -58,13 +59,13 @@ const smallestVectorSearch = (vectors, axis = 0, compFn = epsilonCompare, epsilo
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number|undefined} the index of the point in the array with
  * the smallest component values, or undefined if points is empty.
- * @linkcode Math ./src/algebra/nearest.js 68
+ * @linkcode Math ./src/general/search.js 60
  */
 const minimum2DPointIndex = (points, epsilon = EPSILON) => {
 // export const minimumPointIndex = (points, epsilon = EPSILON) => {
-	if (!points.length) { return undefined; }
+	if (!points || !points.length) { return undefined; }
 	// find the set of all points that share the smallest X value
-	// const smallSet = minimumXIndices(points, epsilonCompare, epsilon);
+	// const smallSet = smallestVectorSearch(points, 0, epsilonCompare, epsilon);
 	const smallSet = smallestVectorSearch(points, 0, epsilonCompare, epsilon);
 	// from this set, find the point with the smallest Y value
 	let sm = 0;

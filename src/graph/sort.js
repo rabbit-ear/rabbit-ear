@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constants.js";
-import { subtract } from "../math/algebra/vectors.js";
+import { EPSILON } from "../math/general/constant.js";
+import { subtract } from "../math/algebra/vector.js";
 import { sortPointsAlongVector } from "../math/general/sort.js";
 /**
  * @description This is a subroutine for building vertices_vertices. This will
@@ -12,7 +12,7 @@ import { sortPointsAlongVector } from "../math/general/sort.js";
  * @param {number[]} vertices an array of vertex indices to be sorted
  * @param {number} vertex the origin vertex, around which the vertices will be sorted
  * @returns {number[]} indices of vertices, in sorted order
- * @linkcode Origami ./src/graph/sort.js 13
+ * @linkcode Origami ./src/graph/sort.js 15
  */
 export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) => (
 	vertices
@@ -33,7 +33,7 @@ export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vert
  * @param {number[]} vertices the indices of vertices to be sorted
  * @param {number[]} vector a vector along which to sort vertices
  * @returns {number[]} indices of vertices, in sorted order
- * @linkcode Origami ./src/graph/sort.js 34
+ * @linkcode Origami ./src/graph/sort.js 36
  */
 // export const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) => (
 // 	vertices

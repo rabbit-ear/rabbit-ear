@@ -7,6 +7,9 @@
 // 1c$, 1c%, 1c&
 // 2a$, 2a%, 2a&
 // ... (27 total)
+/**
+ * @param {any[][]} arrayOfArrays two-level nested array containing any type
+ */
 const matchHolistic = (arrayOfArrays) => {
 	const lengths = arrayOfArrays.map(part => part.length);
 	const compounding = lengths.slice();
@@ -24,7 +27,9 @@ const matchHolistic = (arrayOfArrays) => {
 		.map(i => scales
 			.map((d, j) => Math.floor(i / d) % lengths[j]));
 };
-
+/**
+ *
+ */
 const allSolutions = (n, ...orders) => {
 	const ordersSoFar = n.orders ? [...orders, n.orders] : [...orders];
 	// partition node
@@ -49,7 +54,9 @@ const allSolutions = (n, ...orders) => {
 	if (!n.leaves && !n.node) { solutions.push([...ordersSoFar]); }
 	return solutions;
 };
-
+/**
+ *
+ */
 const anySolution = (n) => {
 	const nodeOrders = n.orders ? n.orders : [];
 	// partition node
@@ -76,7 +83,9 @@ const anySolution = (n) => {
 // 	// no leaves or node (the root node / one solution only)
 // 	return nodeOrders;
 // };
-
+/**
+ *
+ */
 const LayerPrototype = {
 	// anySolution: function () {
 	// 	return this.groups.flatMap(group => anySolution(group));

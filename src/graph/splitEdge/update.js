@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { TWO_PI } from "../../math/general/constants.js";
-import { subtract2 } from "../../math/algebra/vectors.js";
+import { TWO_PI } from "../../math/general/constant.js";
+import { subtract2 } from "../../math/algebra/vector.js";
 import { counterClockwiseSectors2 } from "../../math/geometry/radial.js";
 import { makeVerticesToEdgeBidirectional } from "../make.js";
 /**

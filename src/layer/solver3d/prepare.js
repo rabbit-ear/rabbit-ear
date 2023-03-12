@@ -4,7 +4,7 @@
 import {
 	add2,
 	resize,
-} from "../../math/algebra/vectors.js";
+} from "../../math/algebra/vector.js";
 import {
 	multiplyMatrix4Vector3,
 } from "../../math/algebra/matrix4.js";

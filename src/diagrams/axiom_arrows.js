@@ -6,7 +6,7 @@ import {
 	excludeS,
 	excludeR,
 	includeL,
-} from "../math/general/functions.js";
+} from "../math/general/function.js";
 import {
 	getVector,
 	getLine,
@@ -23,7 +23,7 @@ import {
 	midpoint,
 	rotate270,
 	flip,
-} from "../math/algebra/vectors.js";
+} from "../math/algebra/vector.js";
 import {
 	makeMatrix2Reflect,
 	multiplyMatrix2Vector2,

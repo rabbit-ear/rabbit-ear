@@ -1,6 +1,6 @@
 /* Math (c) Kraft, MIT License */
 import { getArrayOfVectors } from './get.js';
-import { subtract, magnitude, rotate90, dot, scale, rotate270 } from '../algebra/vectors.js';
+import { subtract, magnitude, rotate90, dot, scale, rotate270 } from '../algebra/vector.js';
 
 /**
  * Math (c) Kraft
@@ -9,14 +9,14 @@ import { subtract, magnitude, rotate90, dot, scale, rotate270 } from '../algebra
  * @description Convert a 2D vector to an angle in radians.
  * @param {number[]} v an input vector
  * @returns {number} the angle in radians
- * @linkcode Math ./src/algebra/functions.js 56
+ * @linkcode Math ./src/general/convert.js 17
  */
 const vectorToAngle = v => Math.atan2(v[1], v[0]);
 /**
  * @description Convert an angle in radians to a 2D vector.
  * @param {number} a the angle in radians
  * @returns {number[]} a 2D vector
- * @linkcode Math ./src/algebra/functions.js 63
+ * @linkcode Math ./src/general/convert.js 24
  */
 const angleToVector = a => [Math.cos(a), Math.sin(a)];
 /**
@@ -24,7 +24,7 @@ const angleToVector = a => [Math.cos(a), Math.sin(a)];
  * of a line that passes through both points. This will work in n-dimensions.
  * If there are more than two points, the rest will be ignored.
  * @param {number[][]} points two points, each point being an array of numbers.
- * @returns {RayLine} an object with "vector" and "origin".
+ * @returns {VecLine} an object with "vector" and "origin".
  */
 const pointsToLine = (...args) => {
 	const points = getArrayOfVectors(...args);
@@ -38,9 +38,11 @@ const pointsToLine = (...args) => {
  * Convert vector-origin where origin is a point on the line into
  * normal-distance form where distance the shortest length from the
  * origin to a point on the line.
- * @linkcode Math ./src/types/parameterize.js 34
+ * @param {VecLine} line a line in vector origin form
+ * @param {UniqueLine} line a line in normal distance form
+ * @linkcode Math ./src/general/convert.js 46
  */
-const rayLineToUniqueLine = ({ vector, origin }) => {
+const vecLineToUniqueLine = ({ vector, origin }) => {
 	const mag = magnitude(vector);
 	const normal = rotate90(vector);
 	const distance = dot(origin, normal) / mag;
@@ -51,11 +53,13 @@ const rayLineToUniqueLine = ({ vector, origin }) => {
  * Convert from normal-distance form where distance the shortest length
  * from the origin to a point on the line, to vector-origin where origin
  * is a point on the line.
- * @linkcode Math ./src/types/parameterize.js 47
+ * @param {UniqueLine} line a line in normal distance form
+ * @param {VecLine} line a line in vector origin form
+ * @linkcode Math ./src/general/convert.js 59
  */
-const uniqueLineToRayLine = ({ normal, distance }) => ({
+const uniqueLineToVecLine = ({ normal, distance }) => ({
 	vector: rotate270(normal),
 	origin: scale(normal, distance),
 });
 
-export { angleToVector, pointsToLine, rayLineToUniqueLine, uniqueLineToRayLine, vectorToAngle };
+export { angleToVector, pointsToLine, uniqueLineToVecLine, vecLineToUniqueLine, vectorToAngle };

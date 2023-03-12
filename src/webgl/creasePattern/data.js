@@ -2,19 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { makeEdgesVector } from "../../graph/make.js";
-
-const ASSIGNMENT_COLOR = {
-	B: [0.3, 0.3, 0.3],
-	b: [0.3, 0.3, 0.3],
-	V: [0.2, 0.4, 0.6],
-	v: [0.2, 0.4, 0.6],
-	M: [0.75, 0.25, 0.15],
-	m: [0.75, 0.25, 0.15],
-	F: [0.2, 0.2, 0.2],
-	f: [0.2, 0.2, 0.2],
-	U: [0.2, 0.2, 0.2],
-	u: [0.2, 0.2, 0.2],
-};
+import { ASSIGNMENT_COLOR } from "../general/colors.js";
 
 const make2D = (coords) => coords
 	.map(coord => [0, 1]

@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import GraphProto from "./graph.js";
-import CreasePatternProto from "./creasePattern.js";
+import CPProto from "./cp.js";
 import OrigamiProto from "./origami.js";
 
 import graph_methods from "../graph/index.js";
@@ -20,7 +20,7 @@ const ObjectConstructors = Object.create(null);
 
 const ConstructorPrototypes = {
 	graph: GraphProto,
-	cp: CreasePatternProto,
+	cp: CPProto,
 	origami: OrigamiProto,
 };
 

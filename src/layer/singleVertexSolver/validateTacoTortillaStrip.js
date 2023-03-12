@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constants.js";
+import { EPSILON } from "../../math/general/constant.js";
 import { invertMap } from "../../graph/maps.js";
 /**
  * @description given two indices, return a copy of the array between them,

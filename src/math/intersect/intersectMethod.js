@@ -1,8 +1,8 @@
 /* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constants.js';
+import { EPSILON } from '../general/constant.js';
 import * as intersect$1 from './intersect.js';
 import typeOf from '../general/typeOf.js';
-import { includeS, include, includeL, includeR } from '../general/functions.js';
+import { includeS, include, includeL, includeR } from '../general/function.js';
 
 /**
  * Math (c) Kraft

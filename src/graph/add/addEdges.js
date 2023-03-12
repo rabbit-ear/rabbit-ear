@@ -9,7 +9,7 @@
  * 
  * 
  */
-import { removeDuplicateEdges } from "../edgesViolations";
+import { removeDuplicateEdges } from "../edges/duplicate.js";
 
 const addEdges = (graph, edges_vertices) => {
 	if (!graph.edges_vertices) { graph.edges_vertices = []; }

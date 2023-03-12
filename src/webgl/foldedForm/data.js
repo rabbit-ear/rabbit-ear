@@ -3,6 +3,7 @@
  */
 import { makeVerticesNormal } from "../../graph/normals.js";
 import { makeEdgesVector } from "../../graph/make.js";
+import { ASSIGNMENT_COLOR } from "../general/colors.js";
 
 export const makeFacesVertexData = (graph, options = {}) => {
 	const vertices_coords = graph.vertices_coords
@@ -37,22 +38,6 @@ export const makeFacesVertexData = (graph, options = {}) => {
 };
 
 // thick edges
-
-const ASSIGNMENT_COLOR = {
-	B: [0.3, 0.3, 0.3],
-	b: [0.3, 0.3, 0.3],
-	V: [0.2, 0.4, 0.6],
-	v: [0.2, 0.4, 0.6],
-	M: [0.75, 0.25, 0.15],
-	m: [0.75, 0.25, 0.15],
-	F: [0.2, 0.2, 0.2],
-	f: [0.2, 0.2, 0.2],
-	C: [1.0, 0.75, 0.25],
-	c: [1.0, 0.75, 0.25],
-	U: [0.2, 0.2, 0.2],
-	u: [0.2, 0.2, 0.2],
-};
-
 export const makeThickEdgesVertexData = (graph, assignment_color = ASSIGNMENT_COLOR) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
 	const vertices_coords3D = graph.vertices_coords

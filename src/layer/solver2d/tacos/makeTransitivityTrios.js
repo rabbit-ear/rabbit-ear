@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../../math/general/constants.js";
+import { EPSILON } from "../../../math/general/constant.js";
 import { clipPolygonPolygon } from "../../../math/intersect/clip.js";
 import { makeFacesWinding } from "../../../graph/facesWinding.js";
 import { getFacesFaces2DOverlap } from "../../../graph/overlap.js";
@@ -14,7 +14,7 @@ import { getFacesFaces2DOverlap } from "../../../graph/overlap.js";
  * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} list of arrays containing three face indices.
- * @linkcode Origami ./src/layer/solver2d/tacos/makeTransitivityTrios.js 16
+ * @linkcode Origami ./src/layer/solver2d/tacos/makeTransitivityTrios.js 17
  */
 const makeTransitivityTrios = (
 	graph,

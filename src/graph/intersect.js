@@ -1,23 +1,23 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constants.js";
+import { EPSILON } from "../math/general/constant.js";
 import {
 	includeL,
 	includeS,
 	excludeS,
 	epsilonEqualVectors,
-} from "../math/general/functions.js";
+} from "../math/general/function.js";
 import {
 	normalize2,
 	subtract2,
 	parallel2,
 	dot2,
 	subtract,
-} from "../math/algebra/vectors.js";
+} from "../math/algebra/vector.js";
 import {
 	boundingBox,
-} from "../math/geometry/polygons.js";
+} from "../math/geometry/polygon.js";
 import {
 	overlapLinePoint,
 	overlapBoundingBoxes,
@@ -36,7 +36,7 @@ import { getEdgesEdgesOverlapingSpans } from "./span.js";
  * @param {number[]} vector a line defined by a vector crossing a point
  * @param {number[]} point a line defined by a vector crossing a point
  * @returns {boolean[]} length matching number of edges, true if parallel and overlapping
- * @linkcode Origami ./src/graph/intersect.js 18
+ * @linkcode Origami ./src/graph/intersect.js 39
  */
 export const makeEdgesLineParallelOverlap = ({
 	vertices_coords, edges_vertices,
@@ -70,7 +70,7 @@ export const makeEdgesLineParallelOverlap = ({
  * @param {number[]} point2, the second point of the segment
  * @returns {number[]} array length matching number of edges containing a point
  * if there is an intersection, and undefined if no intersection.
- * @linkcode Origami ./src/graph/intersect.js 52
+ * @linkcode Origami ./src/graph/intersect.js 73
  */
 export const makeEdgesSegmentIntersection = ({
 	vertices_coords, edges_vertices, edges_coords,
@@ -111,7 +111,7 @@ export const makeEdgesSegmentIntersection = ({
  * 1 [ x,  ,  , x]
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
- * @linkcode Origami ./src/graph/intersect.js 92
+ * @linkcode Origami ./src/graph/intersect.js 114
  */
 export const makeEdgesEdgesIntersection = function ({
 	vertices_coords, edges_vertices, edges_vector, edges_origin,
@@ -159,7 +159,7 @@ export const makeEdgesEdgesIntersection = function ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
- * @linkcode Origami ./src/graph/intersect.js 142
+ * @linkcode Origami ./src/graph/intersect.js 162
  */
 export const intersectConvexFaceLine = ({
 	vertices_coords, edges_vertices, faces_vertices, faces_edges,

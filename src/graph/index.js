@@ -8,27 +8,28 @@ import * as nearestMethods from "./nearest.js";
 import * as sortMethods from "./sort.js";
 import * as span from "./span.js";
 import * as maps from "./maps.js";
-import * as query from "./query.js";
-// import * as setsMethods from "./sets.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as intersectMethods from "./intersect.js";
-import transform from "./affine.js";
-import * as overlapGraph from "./overlap.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as normals from "./normals.js";
-import * as verticesViolations from "./verticesViolations.js";
-import * as edgesViolations from "./edgesViolations.js";
-import * as vertices_collinear from "./verticesCollinear.js";
-// import * as facesLayer from "./facesLayer.js";
-import connectedComponents from "./connectedComponents.js";
-import * as edgesEdges from "./edgesEdges.js";
-import * as verticesCoordsFolded from "./verticesCoordsFolded.js";
-import * as faceSpanningTree from "./faceSpanningTree.js";
-import * as facesMatrix from "./facesMatrix.js";
-import * as facesWinding from "./facesWinding.js";
-import * as explodeFacesMethods from "./explodeFaces.js";
+import * as explodeMethods from "./explode.js";
+import * as verticesClusters from "./vertices/clusters.js";
+import * as verticesCollinear from "./vertices/collinear.js";
+import * as verticesDuplicate from "./vertices/duplicate.js";
+import * as verticesFolded from "./vertices/folded.js";
+import * as verticesIsolated from "./vertices/isolated.js";
+import * as edgesCircular from "./edges/circular.js";
+import * as edgesDuplicate from "./edges/duplicate.js";
+import * as edgesEdges from "./edges/edgesEdges.js";
+import * as edgesOverlap from "./edges/overlap.js";
+import * as facesMatrix from "./faces/matrix.js";
+import * as facesOverlap from "./faces/overlap.js";
+import * as facesSpanningTree from "./faces/spanningTree.js";
+import * as facesWinding from "./faces/winding.js";
+import transform from "./affine.js";
 import count from "./count.js";
 import countImplied from "./countImplied.js";
+import connectedComponents from "./connectedComponents.js";
 import validate from "./validate.js";
 import clean from "./clean.js";
 import populate from "./populate.js";
@@ -44,69 +45,67 @@ import flatFold from "./flatFold/index.js";
 import addPlanarSegment from "./add/addPlanarSegment.js";
 // import assign from "./assign.js";
 import clip from "./clip.js";
-import fragment from "./fragment.js";
-import { flattenFrame } from "./fileFrames.js";
-import verticesClusters from "./verticesClusters.js";
-// import create from "./create.js";
+import planarize from "./planarize.js";
 // todo: not sure about this organization
 import * as arrays from "../general/arrays.js";
 import clone from "../general/clone.js";
 // import addVertices_splitEdges from "./add/addVertices_splitEdges.js";
 import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
+import * as foldFileFrames from "../fold/fileFrames.js";
+import * as foldBases from "../fold/bases.js";
 
-export default Object.assign(
-	Object.create(null),
-	{
-		count,
-		countImplied,
-		validate,
-		clean,
-		populate,
-		remove,
-		replace,
-		removePlanarVertex,
-		removePlanarEdge,
-		addVertices,
-		addEdges,
-		splitEdge,
-		splitFace,
-		flatFold,
-		addPlanarSegment,
-		// assign,
-		clip,
-		fragment,
-		verticesClusters,
-		connectedComponents,
-		clone,
-		flattenFrame,
-	},
-	foldKeyMethods,
-	foldSpecMethods,
-	make,
-	boundary,
-	walk,
-	nearestMethods,
-	sortMethods,
-	span,
-	maps,
-	query,
-	// setsMethods,
-	subgraphMethods,
-	intersectMethods,
-	overlapGraph,
-	triangulateMethods,
-	normals,
-	transform,
-	verticesViolations,
-	edgesViolations,
-	vertices_collinear,
-	// facesLayer,
-	edgesEdges,
-	verticesCoordsFolded,
-	faceSpanningTree,
-	facesMatrix,
-	facesWinding,
-	explodeFacesMethods,
-	arrays,
-);
+export default {
+	count,
+	countImplied,
+	validate,
+	clean,
+	populate,
+	remove,
+	replace,
+	removePlanarVertex,
+	removePlanarEdge,
+	addVertices,
+	addEdges,
+	splitEdge,
+	splitFace,
+	flatFold,
+	addPlanarSegment,
+	// assign,
+	clip,
+	planarize,
+	connectedComponents,
+	clone,
+	...foldKeyMethods,
+	...foldSpecMethods,
+	...foldFileFrames,
+	...foldBases,
+	...make,
+	...boundary,
+	...walk,
+	...nearestMethods,
+	...sortMethods,
+	...span,
+	...maps,
+	...subgraphMethods,
+	...intersectMethods,
+	...triangulateMethods,
+	...normals,
+	...transform,
+	...edgesEdges,
+	...explodeMethods,
+	...arrays,
+	...verticesClusters,
+	...verticesCollinear,
+	...verticesDuplicate,
+	...verticesFolded,
+	...verticesIsolated,
+	...edgesCircular,
+	...edgesDuplicate,
+	...edgesEdges,
+	...edgesOverlap,
+	...facesMatrix,
+	...facesOverlap,
+	...facesSpanningTree,
+	...facesWinding,
+};

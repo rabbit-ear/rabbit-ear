@@ -4,8 +4,8 @@
 import {
 	exclude,
 	includeL,
-} from "../math/general/functions.js";
-import { boundingBox } from "../math/geometry/polygons.js";
+} from "../math/general/function.js";
+import { boundingBox } from "../math/geometry/polygon.js";
 import {
 	dot,
 	magnitude,
@@ -17,7 +17,7 @@ import {
 	midpoint,
 	flip,
 	rotate90,
-} from "../math/algebra/vectors.js";
+} from "../math/algebra/vector.js";
 import { convexHull } from "../math/geometry/convexHull.js";
 import { clipLineConvexPolygon } from "../math/intersect/clip.js";
 

@@ -21,7 +21,6 @@ export default [{
 	},
 	plugins: [
 		cleanup(),
-		// terser({ compress: false, format: { comments: false } }),
 	],
 }, {
 	input,
@@ -35,6 +34,7 @@ export default [{
 			constBindings: true,
 			objectShorthand: true,
 		},
+		// sourcemap: true,
 	},
 	plugins: [
 		cleanup(),
@@ -61,11 +61,10 @@ export default [{
 		banner,
 	},
 	plugins: [
-		// cleanup(),
 		terser({
 			keep_fnames: true,
 			format: {
-				comments: "all",
+				comments: false,
 			},
 		}),
 	],
@@ -81,6 +80,7 @@ export default [{
 			constBindings: true,
 			objectShorthand: true,
 		},
+		// sourcemap: true,
 	},
 	plugins: [
 		cleanup(),

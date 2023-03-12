@@ -4,7 +4,7 @@
 import {
 	distance,
 	subtract,
-} from "../../math/algebra/vectors.js";
+} from "../../math/algebra/vector.js";
 /**
  * @description given two vertices and incident faces, create all new
  * "edges_" entries to describe a new edge that sits between the params.

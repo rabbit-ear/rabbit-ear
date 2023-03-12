@@ -6,12 +6,13 @@
  * @description Infer the type of an object.
  * @param {any} any object
  * @returns {string} the type name
- * @linkcode Math ./src/types/typeof.js 17
+ * @linkcode Math ./src/general/typeOf.js 8
  */
 const typeOf = (obj) => {
 	if (typeof obj !== "object") { return typeof obj; }
 	if (obj.radius !== undefined) { return "circle"; }
-	if (obj.width !== undefined) { return "rect"; }
+	if (obj.min && obj.max && obj.span) { return "box"; }
+	// if (obj.width !== undefined) { return "rect"; }
 	if (typeof obj[0] === "number") { return "vector"; }
 	if (obj.vector !== undefined && obj.origin !== undefined) { return "line"; }
 	if (obj[0] !== undefined && obj[0].length && typeof obj[0][0] === "number") {

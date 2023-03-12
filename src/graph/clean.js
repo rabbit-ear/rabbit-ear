@@ -1,15 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import {
-	removeIsolatedVertices,
-	removeDuplicateVertices,
-} from "./verticesViolations.js";
-import {
-	removeCircularEdges,
-	removeDuplicateEdges,
-	// remove_undefined_edges,
-} from "./edgesViolations.js";
+import { removeDuplicateVertices } from "./vertices/duplicate.js";
+import { removeIsolatedVertices } from "./vertices/isolated.js";
+import { removeDuplicateEdges } from "./edges/duplicate.js";
+import { removeCircularEdges } from "./edges/circular.js";
 import {
 	mergeSimpleNextmaps,
 	invertSimpleMap,

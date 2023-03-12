@@ -10,7 +10,7 @@ import {
 import {
 	midpoint,
 	resize,
-} from "../../math/algebra/vectors.js";
+} from "../../math/algebra/vector.js";
 import { boundingBox } from "../../graph/boundary.js";
 /**
  * @description Initialize a viewport for a WebGL context

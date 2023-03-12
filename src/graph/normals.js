@@ -6,7 +6,7 @@ import {
 	cross3,
 	subtract,
 	resize,
-} from "../math/algebra/vectors.js";
+} from "../math/algebra/vector.js";
 /**
  *
  */

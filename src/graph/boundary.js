@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { boundingBox as _boundingBox } from "../math/geometry/polygons.js";
+import { boundingBox as _boundingBox } from "../math/geometry/polygon.js";
 import { uniqueElements } from "../general/arrays.js";
 import {
 	makeVerticesEdgesUnsorted,
@@ -30,7 +30,7 @@ export const boundingBox = ({ vertices_coords }, padding) => (
  * or does not contain boundary edges, this will return an empty array.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
- * @linkcode Origami ./src/graph/boundary.js 32
+ * @linkcode Origami ./src/graph/boundary.js 33
  */
 export const boundaryVertices = ({ edges_vertices, edges_assignment }) => (
 	uniqueElements(edges_vertices
@@ -57,7 +57,7 @@ const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
  * only works in 2D.
  * @param {FOLD} graph a FOLD graph
  * @returns {object} with "vertices" and "edges" with arrays of indices.
- * @linkcode Origami ./src/graph/boundary.js 59
+ * @linkcode Origami ./src/graph/boundary.js 60
  */
 export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
@@ -106,7 +106,7 @@ export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) =
  * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
- * @linkcode Origami ./src/graph/boundary.js 108
+ * @linkcode Origami ./src/graph/boundary.js 109
  */
 export const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,

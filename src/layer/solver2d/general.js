@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { dot } from "../../math/algebra/vectors.js";
+import { dot } from "../../math/algebra/vector.js";
 /**
  * @description Convert an array of faces which are involved in one
  * taco/tortilla/transitivity condition into an array of arrays where

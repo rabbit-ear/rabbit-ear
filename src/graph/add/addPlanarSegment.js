@@ -4,8 +4,8 @@
 import {
 	TWO_PI,
 	EPSILON,
-} from "../../math/general/constants.js";
-import { subtract2 } from "../../math/algebra/vectors.js";
+} from "../../math/general/constant.js";
+import { subtract2 } from "../../math/algebra/vector.js";
 import { counterClockwiseSectors2 } from "../../math/geometry/radial.js";
 import {
 	makeEdgesSegmentIntersection,
@@ -126,7 +126,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
  * @param {number[]} point2 a 2D point as an array of numbers
  * @param {number} [epsilon=1e-6] optional epsilon for merging vertices
  * @returns {number[]} the indices of the new edge(s) composing the segment.
- * @linkcode Origami ./src/graph/add/addPlanarSegment.js 122
+ * @linkcode Origami ./src/graph/add/addPlanarSegment.js 129
  */
 const addPlanarSegment = (graph, point1, point2, epsilon = EPSILON) => {
 	// vertices_sectors not a part of the spec, might not be included.

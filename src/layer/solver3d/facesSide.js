@@ -4,7 +4,7 @@
 import {
 	cross2,
 	subtract2,
-} from "../../math/algebra/vectors.js";
+} from "../../math/algebra/vector.js";
 
 export const makeEdgesFacesSide = (graph) => {
 	const edges_origin = graph.edges_vertices
@@ -30,7 +30,7 @@ export const makeEdgesFacesSide = (graph) => {
  * edges and the edges' adjacent faces, give each face a +1 or -1 based
  * on which side of the edge it is on. "side" determined by the cross-
  * product against the edge's vector.
- * @linkcode Origami ./src/layer/solver3d/facesSide.js 30
+ * @linkcode Origami ./src/layer/solver3d/facesSide.js 33
  */
 export const makeTacosFacesSide = (graph, tacos_edges, tacos_faces) => {
 	// there are two edges involved in a taco, grab the first one.

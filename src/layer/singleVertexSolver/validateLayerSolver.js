@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { flattenArrays } from "../../math/general/arrays.js";
+import { flattenArrays } from "../../math/general/array.js";
 import validateTacoTortillaStrip from "./validateTacoTortillaStrip.js";
 import validateTacoTacoFacePairs from "./validateTacoTacoFacePairs.js";
 /**

@@ -6,7 +6,7 @@ import {
 	dot,
 	normalize,
 	subtract,
-} from "../../math/algebra/vectors.js";
+} from "../../math/algebra/vector.js";
 /**
  * @description a range is an array of two numbers [start, end]
  * not necessarily in sorted order.

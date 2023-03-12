@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { multiplyMatrices4 } from "../../math/algebra/matrix4.js";
-import hexToRGB from "../../convert/svg/colors/hexToRGB.js";
+import hexToRGB from "../../convert/svgToFold/svgParsers/colors/hexToRGB.js";
 
 const makeUniforms = (gl, {
 	projectionMatrix, viewMatrix, modelMatrix, canvas,

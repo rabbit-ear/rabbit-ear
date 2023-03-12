@@ -1,5 +1,5 @@
 /* Math (c) Kraft, MIT License */
-import { flattenArrays, semiFlattenArrays } from './arrays.js';
+import { flattenArrays, semiFlattenArrays } from './array.js';
 
 /**
  * Math (c) Kraft
@@ -8,6 +8,8 @@ import { flattenArrays, semiFlattenArrays } from './arrays.js';
  * @description Coerce the function arguments into a vector.
  * This will object notation {x:, y:}, or array [number, number, ...]
  * and work for n-dimensions.
+ * @param {any[]} ...args an argument list that contains at least one
+ * object with {x: y:} or a list of numbers to become the vector.
  * @returns {number[]} vector in array form, or empty array for bad inputs
 */
 const getVector = function () {
@@ -15,12 +17,14 @@ const getVector = function () {
 	// if the arguments's first element is an object with an "x" property
 	const a = list[0];
 	if (typeof a === "object" && a !== null && !Number.isNaN(a.x)) {
-		list = ["x", "y", "z"].map(c => a[c]).filter(a => a !== undefined);
+		list = ["x", "y", "z"].map(c => a[c]).filter(b => b !== undefined);
 	}
 	return list.filter(n => typeof n === "number");
 };
 /**
  * @description Coerce the function arguments into an array of vectors.
+ * @param {any[][]} ...args an argument list that contains any number of
+ * objects with {x: y:} or a list of list of numbers to become vectors.
  * @returns {number[][]} vectors in array form, or empty array.
 */
 const getArrayOfVectors = function () {
@@ -28,7 +32,9 @@ const getArrayOfVectors = function () {
 };
 /**
  * @description Coerce the function arguments into a segment (a pair of points)
- * @returns {number[]} segment in array form [[a1, a2], [b1, b2]]
+ * @param {any[]} ...args an argument list that contains a pair of
+ * objects with {x: y:} or a list of list of numbers to become endpoints.
+ * @returns {number[][]} segment in array form [[a1, a2], [b1, b2]]
 */
 const getSegment = function () {
 	const args = semiFlattenArrays(arguments);
@@ -37,17 +43,19 @@ const getSegment = function () {
 		: args.map(el => getVector(el));
 };
 // store two parameters in an object under the keys "vector" and "object"
-const vectorOriginForm = (vector = [], origin = []) => ({ vector, origin });
+const vectorOriginForm = (vector, origin = []) => ({ vector, origin });
 // 	{ vector: vector || [], origin: origin || [] });
 /**
  * @description Coerce the function arguments into a line.
- * @returns {object} a line in "vector" "origin" form.
+ * @param {any[]} ...args an argument list that contains an object with
+ * {vector: origin:} or a list of list of numbers.
+ * @returns {VecLine} a line in "vector" "origin" form.
  */
 const getLine = function () {
 	const args = semiFlattenArrays(arguments);
-	if (args.length === 0) { return vectorOriginForm([], []); }
+	if (args.length === 0 || args[0] == null) { return vectorOriginForm([], []); }
 	if (args[0].constructor === Object && args[0].vector !== undefined) {
-		return vectorOriginForm(args[0].vector || [], args[0].origin || []);
+		return vectorOriginForm(args[0].vector, args[0].origin || []);
 	}
 	return typeof args[0] === "number"
 		? vectorOriginForm(getVector(args))

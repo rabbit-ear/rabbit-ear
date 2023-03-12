@@ -5,11 +5,11 @@ import {
 	subtract,
 	distance,
 	resize,
-} from "../math/algebra/vectors.js";
+} from "../math/algebra/vector.js";
 import { nearestPointOnLine } from "../math/geometry/nearest.js";
 import { smallestComparisonSearch } from "../math/general/search.js";
 import { getVector } from "../math/general/get.js";
-import { clampSegment } from "../math/general/functions.js";
+import { clampSegment } from "../math/general/function.js";
 import { overlapConvexPolygonPoint } from "../math/intersect/overlap.js";
 import {
 	singularize,
@@ -23,7 +23,7 @@ import { makeFacesConvexCenter } from "./make.js";
  * @param {number[]} point the point to find the nearest vertex
  * @returns {number} the index of the nearest vertex
  * @todo improve with space partitioning
- * @linkcode Origami ./src/graph/nearest.js 17
+ * @linkcode Origami ./src/graph/nearest.js 26
  */
 export const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
@@ -43,7 +43,7 @@ export const nearestVertex = ({ vertices_coords }, point) => {
  * @param {number[]} point the point to find the nearest edge
  * @returns {number|undefined} the index of the nearest edge, or undefined
  * if there are no vertices_coords or edges_vertices
- * @linkcode Origami ./src/graph/nearest.js 37
+ * @linkcode Origami ./src/graph/nearest.js 46
  */
 export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
@@ -62,7 +62,7 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} point the point to find the enclosing face
  * @returns {number|undefined} the index of the face, or undefined if no face encloses a point
- * @linkcode Origami ./src/graph/nearest.js 57
+ * @linkcode Origami ./src/graph/nearest.js 65
  */
 export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
 	if (!vertices_coords || !faces_vertices) { return undefined; }
@@ -79,7 +79,7 @@ export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) 
  * @param {number[]} point the point to find the nearest face
  * @returns {number|undefined} the index of the face, or undefined if edges_faces is not defined.
  * @todo make this work if edges_faces is not defined (not hard)
- * @linkcode Origami ./src/graph/nearest.js 74
+ * @linkcode Origami ./src/graph/nearest.js 82
  */
 export const nearestFace = (graph, point) => {
 	const face = faceContainingPoint(graph, point);
@@ -111,7 +111,7 @@ export const nearestFace = (graph, point) => {
  * @param {number[]} point the point to find the nearest face
  * @returns {object} object which contains information about the nearest components,
  * some of which is stored in a getter, which delays the computation until called.
- * @linkcode Origami ./src/graph/nearest.js 106
+ * @linkcode Origami ./src/graph/nearest.js 114
  */
 export const nearest = (graph, ...args) => {
 	const nearestMethods = {

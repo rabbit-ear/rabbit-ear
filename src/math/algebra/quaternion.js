@@ -1,5 +1,5 @@
 /* Math (c) Kraft, MIT License */
-import { cross3, dot, magnitude, normalize } from './vectors.js';
+import { cross3, dot, magnitude, normalize } from './vector.js';
 import { multiplyMatrices4 } from './matrix4.js';
 
 /**

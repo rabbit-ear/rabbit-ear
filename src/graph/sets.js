@@ -12,7 +12,7 @@
 //  * @param {number} [epsilon=1e-6] an optional epsilon
 //  * @returns {number[][]} an array matching the length of faces, for every face,
 //  * the list of indices of faces which overlap this face.
-//  * @linkcode
+//  * @linkcode Origami ./src/graph/sets.js 15
 //  */
 // export const disjointFacePlaneSets = ({
 // 	vertices_coords, faces_vertices,

@@ -137,7 +137,7 @@ const solveNode = (
  * and values are +1 or -1 describing the relationship of the two faces.
  * Results are stored in "root" and "partitions", to compile a complete solution,
  * append the "root" to one selection from each array in "partitions".
- * @linkcode Origami ./src/layer/solver3d/index.js 133
+ * @linkcode Origami ./src/layer/solver3d/index.js 140
  */
 const groupLayerSolver = (
 	constraints,
@@ -183,7 +183,7 @@ const groupLayerSolver = (
  * and values are +1 or -1 describing the relationship of the two faces.
  * Results are stored in "root" and "partitions", to compile a complete solution,
  * append the "root" to one selection from each array in "partitions".
- * @linkcode Origami ./src/layer/solver3d/index.js 179
+ * @linkcode Origami ./src/layer/solver3d/index.js 186
  */
 // const globalLayerSolver = (graph, epsilon = 1e-6) => {
 // 	const {

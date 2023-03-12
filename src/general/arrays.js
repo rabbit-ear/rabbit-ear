@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constants.js";
+import { EPSILON } from "../math/general/constant.js";
 /**
  * @description Given a list of any type, remove all duplicates.
  * @param {number[]} array an array of integers

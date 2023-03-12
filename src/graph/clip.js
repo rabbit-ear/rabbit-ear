@@ -4,10 +4,10 @@
 import {
 	include,
 	includeL,
-} from "../math/general/functions.js";
+} from "../math/general/function.js";
 import {
 	subtract2,
-} from "../math/algebra/vectors.js";
+} from "../math/algebra/vector.js";
 import { clipLineConvexPolygon } from "../math/intersect/clip.js";
 import { boundary } from "./boundary.js";
 /**
@@ -17,7 +17,7 @@ import { boundary } from "./boundary.js";
  * @param {RayLine|number[][]} line a line or a segment
  * @returns {number[][]|undefined} a segment, a pair of two points,
  * or undefined if no intersection
- * @linkcode Origami ./src/graph/clip.js 13
+ * @linkcode Origami ./src/graph/clip.js 20
  */
 const clip = function (graph, line) {
 	const polygon = boundary(graph).vertices.map(v => graph.vertices_coords[v]);

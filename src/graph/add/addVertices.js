@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constants.js";
-import { distance } from "../../math/algebra/vectors.js";
+import { EPSILON } from "../../math/general/constant.js";
+import { distance } from "../../math/algebra/vector.js";
 /**
  * @description add vertices to a graph by adding their vertices_coords only. This
  * will also compare against every existing vertex, only adding non-duplicate
@@ -13,7 +13,7 @@ import { distance } from "../../math/algebra/vectors.js";
  * @returns {number[]} index of vertex in new vertices_coords array.
  * the size of this array matches array size of source vertices.
  * duplicate (non-added) vertices returns their pre-existing counterpart's index.
- * @linkcode Origami ./src/graph/add/addVertices.js 15
+ * @linkcode Origami ./src/graph/add/addVertices.js 16
  */
 const addVertices = (graph, vertices_coords, epsilon = EPSILON) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }

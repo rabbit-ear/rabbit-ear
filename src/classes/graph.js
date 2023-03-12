@@ -5,13 +5,11 @@ import {
 	getLine,
 	getVector,
 } from "../math/general/get.js";
-import { subtract } from "../math/algebra/vectors.js";
-import { boundingBox } from "../math/geometry/polygons.js";
+import { subtract } from "../math/algebra/vector.js";
+import { boundingBox } from "../math/geometry/polygon.js";
 import setup from "./components.js";
 import * as S from "../general/strings.js";
-import {
-	foldKeys,
-} from "../fold/keys.js";
+import { foldKeys } from "../fold/keys.js";
 import {
 	singularize,
 	filterKeysWithPrefix,
@@ -23,16 +21,18 @@ import validate from "../graph/validate.js";
 import populate from "../graph/populate.js";
 import fragment from "../graph/fragment.js";
 // import assign from "../graph/assign.js";
-// import subgraph from "../graph/subgraph.js";
+import { subgraph } from "../graph/subgraph.js";
 import { boundary } from "../graph/boundary.js";
 import transform from "../graph/affine.js";
 import {
 	makeVerticesCoordsFolded,
 	makeVerticesCoordsFlatFolded,
 } from "../graph/verticesCoordsFolded.js";
-import { makeFaceSpanningTree } from "../graph/faceSpanningTree.js";
+import {
+	makeFaceSpanningTree as faceSpanningTree,
+} from "../graph/faceSpanningTree.js";
 import { multiplyVerticesFacesMatrix2 } from "../graph/facesMatrix.js";
-import { explodeFaces, explodeShrinkFaces } from "../graph/explodeFaces.js";
+import * as explode from "../graph/explode.js";
 import {
 	nearestVertex,
 	nearestEdge,
@@ -47,7 +47,7 @@ import splitFace from "../graph/splitFace/index.js";
  * @description a graph which includes faces, edges, and vertices, and additional
  * origami-specific information like fold angles of edges and layer order of faces.
  * @param {FOLD} [graph] an optional FOLD object, otherwise the graph will initialize empty
- * @linkcode Origami ./src/classes/graph.js 45
+ * @linkcode Origami ./src/classes/graph.js 50
  */
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);
@@ -57,19 +57,17 @@ Graph.prototype.constructor = Graph;
  * func(graph, ...args)
  */
 const graphMethods = {
+	// assign,
 	// count,
 	clean,
 	validate,
 	populate,
 	fragment,
-	// subgraph,
-	// assign,
-	// convert snake_case to camelCase
-	addVertices: addVertices,
-	splitEdge: splitEdge,
-	faceSpanningTree: makeFaceSpanningTree,
-	explodeFaces: explodeFaces,
-	explodeShrinkFaces: explodeShrinkFaces,
+	subgraph,
+	addVertices,
+	splitEdge,
+	faceSpanningTree,
+	...explode,
 	...transform,
 };
 Object.keys(graphMethods).forEach(key => {
