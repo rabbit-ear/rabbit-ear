@@ -59,7 +59,7 @@ const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
  * @returns {object} with "vertices" and "edges" with arrays of indices.
  * @linkcode Origami ./src/graph/boundary.js 60
  */
-export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+export const boundary = ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment }) => {
 	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
@@ -91,10 +91,15 @@ export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) =
 		edges_vertices_b[edgeIndex] = false;
 		edge_walk.push(edgeIndex);
 	}
-	return {
+	// if vertices_coords exist, create a "polygon" entry
+	const result = {
 		vertices: vertex_walk,
 		edges: edge_walk,
 	};
+	if (vertices_coords) {
+		result.polygon = vertex_walk.map(v => vertices_coords[v]);
+	}
+	return result;
 };
 /**
  * @description Get the boundary as two arrays of vertices and edges

@@ -173,13 +173,7 @@ const flatFold = (graph, { vector, origin }, assignment = "V", epsilon = EPSILON
 			// values from it to complete the 2 new faces which replace it.
 			const face = face_snapshot(graph, i);
 			// split the polygon (if possible), get back a summary of changes.
-			const change = splitConvexFace(
-				graph,
-				i,
-				face.crease.vector,
-				face.crease.origin,
-				epsilon,
-			);
+			const change = splitConvexFace(graph, i, face.crease, epsilon);
 			// console.log("split convex polygon change", change);
 			if (change === undefined) { return undefined; }
 			// const face_winding = folded.faces_winding[i];

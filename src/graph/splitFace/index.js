@@ -20,16 +20,15 @@ import * as S from "../../general/strings.js";
  * used, otherwise, new vertices will be added (splitting edges).
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} face index of face to split
- * @param {number[]} vector the vector component of the cutting line
- * @param {number[]} point the point component of the cutting line
+ * @param {VecLine} line with a "vector" and an "origin" component
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} a summary of changes to the FOLD object,
  *  or undefined if no change (no intersection).
  * @linkcode Origami ./src/graph/splitFace/index.js 28
  */
-const splitFace = (graph, face, vector, point, epsilon) => {
+const splitFace = (graph, face, line, epsilon) => {
 	// survey face for any intersections which cross directly over a vertex
-	const intersect = intersectConvexFaceLine(graph, face, { vector, origin: point }, epsilon);
+	const intersect = intersectConvexFaceLine(graph, face, line, epsilon);
 	// if no intersection exists, return undefined.
 	if (intersect === undefined) { return undefined; }
 	// this result will be appended to (vertices, edges) and returned by this method.

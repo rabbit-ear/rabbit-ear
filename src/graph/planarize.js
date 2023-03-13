@@ -14,7 +14,7 @@ import { removeDuplicateEdges } from "./edges/duplicate.js";
 import { removeCircularEdges } from "./edges/circular.js";
 import { getVerticesEdgesOverlap } from "./vertices/collinear.js";
 import { makeEdgesEdgesIntersection } from "./intersect.js";
-import { sortVerticesAlongVector } from "./sort.js";
+import { sortVerticesAlongVector } from "./vertices/sort.js";
 import {
 	mergeNextmaps,
 	invertMap,
@@ -169,7 +169,7 @@ const fragment_keep_keys = [
  * @returns {object} a summary of changes to the graph
  * @linkcode Origami ./src/graph/fragment.js 174
  */
-const fragment = (graph, epsilon = EPSILON) => {
+const planarize = (graph, epsilon = EPSILON) => {
 	// project all vertices onto the XY plane
 	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 
@@ -214,9 +214,9 @@ const fragment = (graph, epsilon = EPSILON) => {
 			: mergeNextmaps(change.edges.map, edgemap));
 	}
 	if (i === 20) {
-		throw new Error(Messages.fragment);
+		throw new Error(Messages.planarize);
 	}
 	return change;
 };
 
-export default fragment;
+export default planarize;

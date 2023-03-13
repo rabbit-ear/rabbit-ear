@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { sortVerticesCounterClockwise } from "../sort.js";
+import { sortVerticesCounterClockwise } from "../vertices/sort.js";
 import Messages from "../../environment/messages.js";
 /**
  * @description a newly-added edge needs to update its two endpoints'

@@ -179,6 +179,9 @@ export const drawInto = (element, graph, options = {}) => {
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
  * @linkcode Origami ./src/svg/index.js 185
  */
+// todo
+// need this to add "viewBox" and "stroke-width"
+//
 const FOLDtoSVG = (graph, options) => drawInto(SVG.svg(), graph, options);
 /**
  * @description adding static-like methods to the main function, four for

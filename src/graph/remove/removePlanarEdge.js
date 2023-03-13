@@ -165,7 +165,7 @@ const removePlanarEdge = (graph, edge) => {
 		const face = faces[0]; // the non-convex face which needs correcting.
 		graph.faces_vertices[face] = graph.faces_vertices[face]
 			.filter(v => !remove_vertices.includes(v))
-			.filter((v, i, arr) => v !== arr[(i+1)%arr.length]);
+			.filter((v, i, arr) => v !== arr[(i + 1) % arr.length]);
 		graph.faces_edges[face] = graph.faces_edges[face]
 			.filter(e => e !== edge);
 	}

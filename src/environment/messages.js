@@ -1,6 +1,6 @@
 export default {
-	fragment: "graph could not planarize",
-	manifold: "manifold required",
+	planarize: "graph could not planarize",
+	manifold: "valid manifold required",
 	graphCycle: "cycle not allowed",
 	planarBoundary: "planar boundary detection error, bad graph",
 	circularEdge: "circular edges not allowed",

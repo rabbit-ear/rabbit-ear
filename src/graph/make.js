@@ -23,7 +23,7 @@ import {
 	planarVertexWalk,
 	filterWalkedBoundaryFace,
 } from "./walk.js";
-import { sortVerticesCounterClockwise } from "./sort.js";
+import { sortVerticesCounterClockwise } from "./vertices/sort.js";
 import { makeFacesNormal } from "./normals.js";
 import Messages from "../environment/messages.js";
 /**

@@ -8,6 +8,7 @@ new method: `subgraph` and `subgraphWithFaces`, where *subgraphWithEdges* and *s
 
 Methods renamed:
 
+- `{graph/cp/origami}.copy` -> `{graph/cp/origami}.clone`
 - `fragment` -> `planarize`
 - `getBoundingBox` -> `boundingBox`
 - `getBoundaryVertices` -> `boundaryVertices`

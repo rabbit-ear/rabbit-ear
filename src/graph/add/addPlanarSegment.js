@@ -15,7 +15,7 @@ import remove from "../remove.js";
 import {
 	sortVerticesAlongVector,
 	sortVerticesCounterClockwise,
-} from "../sort.js";
+} from "../vertices/sort.js";
 import {
 	makeVerticesToEdgeBidirectional,
 	makeVerticesFaces,

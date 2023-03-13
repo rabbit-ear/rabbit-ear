@@ -3,10 +3,10 @@
  */
 import { setWindow } from "./environment/window.js";
 import root from "./root.js";
-// import Constructors from "./classes/index.js";
+import constructors from "./prototypes/constructors.js";
 import axiom from "./axioms/index.js";
 import convert from "./convert/index.js";
-import graph from "./graph/index.js";
+// import graph from "./graph/index.js";
 import math from "./math/index.js";
 import singleVertex from "./singleVertex/index.js";
 import svg from "./svg/index.js";
@@ -19,11 +19,11 @@ import svgLib from "./svg/environment/lib.js";
 /**
  * Rabbit Ear
  */
-// const ear = Object.assign(root, Constructors, {
 const ear = Object.assign(root, {
+	...constructors,
 	axiom,
 	convert,
-	graph,
+	// graph,
 	math,
 	singleVertex,
 	svg,
