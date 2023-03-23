@@ -1,5 +1,7 @@
 # 0.9.33 alpha
 
+ear.graph.makePlanarFaces now returns an object already in FOLD form, instead of the data being inverted into an array of objects
+
 All axiom methods return an *array* of lines. Before, some would and others would not. The system is now consistent.
 
 replace `getGraphKeysWithPrefix` with `filterKeysWithPrefix`, maintaining the functionality of `getGraphKeysWithPrefix` where it will add the `_` character to match against. same with Suffix methods.

@@ -709,15 +709,20 @@ export const makePlanarFaces = ({
 	// removes the one face that outlines the piece with opposite winding.
 	// planarVertexWalk stores edges as vertex pair strings, "4 9",
 	// convert these into edge indices
-	return filterWalkedBoundaryFace(planarVertexWalk({
+	const res = filterWalkedBoundaryFace(planarVertexWalk({
 		vertices_vertices, vertices_sectors,
 	})).map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
+	return {
+		faces_vertices: res.map(el => el.vertices),
+		faces_edges: res.map(el => el.edges),
+		faces_sectors: res.map(el => el.angles),
+	};
 };
 // export const makePlanarFacesVertices = graph => makePlanarFaces(graph)
-// 	.map(face => face.vertices);
+// 	.faces_vertices;
 
 // export const makePlanarFacesEdges = graph => makePlanarFaces(graph)
-// 	.map(face => face.edges);
+// 	.faces_edges;
 
 // const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
 // 	if (!edges_vertices) { return {}; }

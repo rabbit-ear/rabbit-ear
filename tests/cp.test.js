@@ -30,3 +30,11 @@ test("cp draw methods", () => {
 	l.flat();
 	expect(cp.edges_assignment[cp.edges_assignment.length - 1]).toBe("F");
 });
+
+test("cp.polygon", () => {
+	const cp = ear.cp.fish();
+	const res = cp.polygon([[0, 0], [4, 1], [1, 4]]);
+	res.cut();
+	expect(cp.edges_assignment.reduce((a, b) => a + (b === "C" ? 1 : 0), 0))
+		.toBe(6);
+});

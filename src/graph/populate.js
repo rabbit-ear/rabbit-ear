@@ -72,9 +72,9 @@ const build_faces_if_needed = (graph, reface) => {
 	// to begin with.
 	if (reface && graph.vertices_coords) {
 		const faces = makePlanarFaces(graph);
-		graph.faces_vertices = faces.map(face => face.vertices);
-		graph.faces_edges = faces.map(face => face.edges);
-		// graph.faces_sectors = faces.map(face => face.angles);
+		graph.faces_vertices = faces.faces_vertices;
+		graph.faces_edges = faces.faces_edges;
+		// graph.faces_sectors = faces.faces_sectors;
 		return;
 	}
 	// if both faces exist, and no request to be rebuilt, exit.

@@ -4,43 +4,33 @@ import makeUUID from '../../../methods/makeUUID.js';
 
 const Animation = function (element) {
 	let start;
-	const handlers = {};
 	let frame = 0;
 	let requestId;
-	const removeHandlers = () => {
+	const handlers = {};
+	const stop = () => {
 		if (SVGWindow().cancelAnimationFrame) {
 			SVGWindow().cancelAnimationFrame(requestId);
 		}
-		Object.keys(handlers)
-			.forEach(uuid => delete handlers[uuid]);
-		start = undefined;
-		frame = 0;
+		Object.keys(handlers).forEach(uuid => delete handlers[uuid]);
 	};
-	Object.defineProperty(element, "play", {
-		set: (handler) => {
-			removeHandlers();
-			if (handler == null) { return; }
-			const uuid = makeUUID();
-			const handlerFunc = (e) => {
-				if (!start) {
-					start = e;
-					frame = 0;
-				}
-				const progress = (e - start) * 0.001;
-				handler({ time: progress, frame });
-				frame += 1;
-				if (handlers[uuid]) {
-					requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
-				}
-			};
-			handlers[uuid] = handlerFunc;
-			if (SVGWindow().requestAnimationFrame) {
+	const play = (handler) => {
+		stop();
+		if (!handler || !(SVGWindow().requestAnimationFrame)) { return; }
+		start = performance.now();
+		frame = 0;
+		const uuid = makeUUID();
+		handlers[uuid] = (now) => {
+			const time = (now - start) * 1e-3;
+			handler({ time, frame });
+			frame += 1;
+			if (handlers[uuid]) {
 				requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
 			}
-		},
-		enumerable: true,
-	});
-	Object.defineProperty(element, "stop", { value: removeHandlers, enumerable: true });
+		};
+		requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
+	};
+	Object.defineProperty(element, "play", { set: play, enumerable: true });
+	Object.defineProperty(element, "stop", { value: stop, enumerable: true });
 };
 
 export { Animation as default };

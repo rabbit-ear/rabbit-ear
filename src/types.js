@@ -1,23 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-export default Object.create(null);
-
-/**
- * @typedef AxiomParams
- * @type {object}
- * @description The input to one of the seven axiom calculations. Depending on which axiom,
- * this will include up to two points and up to two lines, each inside their
- * respectively named arrays, where the order matters.
- * @property {RayLine[]} [lines] an array of lines
- * @property {number[][]} [points] an array of points
- * @example
- * {
- *   points: [[0.8, 0.5], [0.1, 0.15]],
- *   lines: [{vector: [0,1], origin: [0.5, 0.5]}]
- * }
- */
-
 /**
  * @typedef FOLD
  * @type {{

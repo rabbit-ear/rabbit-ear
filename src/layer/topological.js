@@ -4,13 +4,16 @@
 import { dot } from "../math/algebra/vector.js";
 /**
  * @description find a topological ordering from a set of faceOrders
- * @param {number[]} faces a subset of face indices where all faces have been
- * @param {FOLD} graph an optional FOLD graph
+ * @param {FOLD} graph a FOLD graph with the keys faceOrders, faces_normal
+ * @param {number[]} faces an optional subset of face indices,
+ * if provided, the order will only be calculated for these faces,
+ * if left out, face orders for all faces will be computed.
  * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
  * @linkcode Origami ./src/layer/topological.js 10
  */
 const topologicalOrder = ({ faceOrders, faces_normal }, faces) => {
 	if (!faceOrders) { return []; }
+	if (!faces) { faces = faces_normal.map((_, i) => i); }
 	const facesHash = {};
 	faces.forEach(face => { facesHash[face] = true; });
 	const face0 = faces[0];

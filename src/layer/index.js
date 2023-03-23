@@ -4,6 +4,7 @@
 // top level
 import * as general from "./general.js";
 import * as nudge from "./nudge.js";
+import * as facesLayer from "./facesLayer.js";
 // single-vertex layer solver
 import singleVertexSolver from "./singleVertexSolver/index.js";
 import singleVertexAssignmentSolver from "./singleVertexSolver/assignmentSolver.js";
@@ -13,10 +14,11 @@ import singleVertexAssignmentSolver from "./singleVertexSolver/assignmentSolver.
 import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignments.js";
 // global layer solver
 // import solver from "./solver3d/index.js";
-import topologicalOrder from "./solver3d/topologicalOrder.js";
+// import topologicalOrder from "./solver3d/topologicalOrder.js";
+import topologicalOrder from "./topological.js";
 // old global layer solver in 2D
-// import solver2d from "./solver2d/index.js";
-import solver from "./solver2d/index.js";
+// import solver from "./solver2d/index.js";
+import solver from "./solver3d/index.js";
 
 // import table from "./solver2d/table.js";
 // import * as makeConstraints from "./solver2d/makeConstraints.js";
@@ -31,28 +33,26 @@ import solver from "./solver2d/index.js";
  * @description A collection of methods for calculating the layer order
  * of the faces of an origami in its folded state.
  */
-export default Object.assign(
-	Object.create(null),
-	{
-		solver,
-		// solver2d,
-		// table,
-		topologicalOrder,
-		// makeTacosTortillas,
-		// makeFoldedStripTacos,
-		// makeTransitivityTrios,
+export default {
+	solver,
+	// solver2d,
+	// table,
+	topologicalOrder,
+	// makeTacosTortillas,
+	// makeFoldedStripTacos,
+	// makeTransitivityTrios,
 
-		singleVertexSolver,
-		singleVertexAssignmentSolver,
-		// validateLayerSolver,
-		// validateTacoTacoFacePairs,
-		// validateTacoTortillaStrip,
-		foldStripWithAssignments,
-	},
-	general,
-	nudge,
+	singleVertexSolver,
+	singleVertexAssignmentSolver,
+	// validateLayerSolver,
+	// validateTacoTacoFacePairs,
+	// validateTacoTortillaStrip,
+	foldStripWithAssignments,
+	...general,
+	...nudge,
+	...facesLayer,
 	// makeConstraints,
 	// makeFacePairsOrder,
 	// globalSolverGeneral,
 	// tortillaTortilla,
-);
+};

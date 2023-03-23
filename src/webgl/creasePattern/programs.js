@@ -18,45 +18,45 @@ import {
 	simple_2d_300_frag,
 } from "./shaders.js";
 
-export const cpFacesV1 = (gl, version = 1, graph = {}) => {
+export const cpFacesV1 = (gl, graph = {}) => {
 	const program = createProgram(gl, simple_2d_100_vert, simple_2d_100_frag);
 	return {
 		program,
 		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
-		elementArrays: makeCPFacesElementArrays(gl, version, graph),
+		elementArrays: makeCPFacesElementArrays(gl, 1, graph),
 		flags: [],
 		makeUniforms,
 	};
 };
 
-export const cpEdgesV1 = (gl, version = 1, graph = {}) => {
+export const cpEdgesV1 = (gl, graph = {}, options) => {
 	const program = createProgram(gl, thick_edges_100_vert, simple_2d_100_frag);
 	return {
 		program,
-		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph),
-		elementArrays: makeCPEdgesElementArrays(gl, version, graph),
+		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph, options),
+		elementArrays: makeCPEdgesElementArrays(gl, 1, graph),
 		flags: [],
 		makeUniforms,
 	};
 };
 
-export const cpFacesV2 = (gl, version = 2, graph = {}) => {
+export const cpFacesV2 = (gl, graph = {}) => {
 	const program = createProgram(gl, simple_2d_300_vert, simple_2d_300_frag);
 	return {
 		program,
 		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
-		elementArrays: makeCPFacesElementArrays(gl, version, graph),
+		elementArrays: makeCPFacesElementArrays(gl, 2, graph),
 		flags: [],
 		makeUniforms,
 	};
 };
 
-export const cpEdgesV2 = (gl, version = 2, graph = {}) => {
+export const cpEdgesV2 = (gl, graph = {}, options) => {
 	const program = createProgram(gl, thick_edges_300_vert, simple_2d_300_frag);
 	return {
 		program,
-		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph),
-		elementArrays: makeCPEdgesElementArrays(gl, version, graph),
+		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph, options),
+		elementArrays: makeCPEdgesElementArrays(gl, 2, graph),
 		flags: [],
 		makeUniforms,
 	};

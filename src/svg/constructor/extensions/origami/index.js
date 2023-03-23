@@ -6,6 +6,7 @@ const origamiDef = {
 	origami: {
 		nodeName: "g",
 		init,
+		args: () => [],
 		methods,
 	},
 };

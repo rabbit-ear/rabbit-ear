@@ -159,7 +159,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	);
 	// graph does not have a valid layer order. no solution
 	if (!initialResult) { return undefined; }
-	console.log("2D initialResult", JSON.parse(JSON.stringify(initialResult)));
+	// console.log("2D initialResult", JSON.parse(JSON.stringify(initialResult)));
 	const solution = {};
 	// get all keys unsolved after the first round of propagate
 	const remainingKeys = facePairs
@@ -174,7 +174,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		constraintsLookup,
 		constraintsNeighborsMemo,
 	);
-	console.log("branches", branches);
+	// console.log("branches", branches);
 	const nextLevel = branches.map(() => ({}));
 	const branchResults = branches.map((unsolvedKeys, i) => solveBranch(
 		constraints,
@@ -202,7 +202,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// const root = { ...edgeAdjacentOrders, ...initialResult };
 	// solution.branches[0].faceOrders = { ...edgeAdjacentOrders, ...initialResult };
 
-	console.log("2D solution", JSON.parse(JSON.stringify(solution.faceOrders)));
+	// console.log("2D solution", JSON.parse(JSON.stringify(solution.faceOrders)));
 
 	const faces_normal = graph.faces_normal
 		? graph.faces_normal
@@ -219,7 +219,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	};
 	recurse(solution);
 
-	console.log("2D solution final", JSON.parse(JSON.stringify(solution.faceOrders)));
+	// console.log("2D solution final", JSON.parse(JSON.stringify(solution.faceOrders)));
 
 	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
 	// unsignedToSignedOrders(root);
@@ -229,10 +229,10 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const duration = Date.now() - startDate;
 	// console.log(`variables (${facePairs.length} total): ${Object.keys(edgeAdjacentOrders).length} neighbor faces, ${Object.keys(initialResult).length} propagate, ${remainingKeys.length} in branches`);
 	// if (duration > 50) {
-		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
+		// console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
 	// }
-	console.log("solution", solution);
-	console.log("branches", branchResults);
+	// console.log("solution", solution);
+	// console.log("branches", branchResults);
 	// console.log("branchResults", branchResults);
 	return Object.assign(
 		Object.create(LayerPrototype),

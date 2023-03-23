@@ -4,7 +4,7 @@
 import { makeCPEdgesVertexData } from "./data.js";
 import { triangulateConvexFacesVertices } from "../../graph/triangulate.js";
 
-export const makeCPEdgesVertexArrays = (gl, program, graph) => {
+export const makeCPEdgesVertexArrays = (gl, program, graph, options) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) {
 		return [];
 	}
@@ -13,7 +13,7 @@ export const makeCPEdgesVertexArrays = (gl, program, graph) => {
 		vertices_color,
 		verticesEdgesVector,
 		vertices_vector,
-	} = makeCPEdgesVertexData(graph);
+	} = makeCPEdgesVertexData(graph, options);
 	return [{
 		location: gl.getAttribLocation(program, "v_position"),
 		buffer: gl.createBuffer(),
@@ -24,19 +24,19 @@ export const makeCPEdgesVertexArrays = (gl, program, graph) => {
 		location: gl.getAttribLocation(program, "v_color"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_color[0].length,
+		length: vertices_color.length ? vertices_color[0].length : 2,
 		data: new Float32Array(vertices_color.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "edge_vector"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: verticesEdgesVector[0].length,
+		length: verticesEdgesVector.length ? verticesEdgesVector[0].length : 2,
 		data: new Float32Array(verticesEdgesVector.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "vertex_vector"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_vector[0].length,
+		length: vertices_vector.length ? vertices_vector[0].length : 2,
 		data: new Float32Array(vertices_vector.flat()),
 	}].filter(el => el.location !== -1);
 };
@@ -72,7 +72,7 @@ export const makeCPFacesVertexArrays = (gl, program, graph) => {
 		location: gl.getAttribLocation(program, "v_color"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_color[0].length,
+		length: vertices_color.length ? vertices_color[0].length : 2,
 		data: new Float32Array(vertices_color.flat()),
 	}].filter(el => el.location !== -1);
 };

@@ -48,7 +48,7 @@ export const boundaryVertices = ({ edges_vertices, edges_assignment }) => (
 // 	return Object.keys(vertices).map(str => parseInt(str));
 // };
 
-const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
+const emptyBoundaryObject = () => ({ vertices: [], edges: [], polygon: [] });
 /**
  * @description Get the boundary of a FOLD graph in terms of both vertices and edges.
  * This works by walking the boundary edges as defined by edges_assignment ("B" or "b").
@@ -60,7 +60,7 @@ const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
  * @linkcode Origami ./src/graph/boundary.js 60
  */
 export const boundary = ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment }) => {
-	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
+	if (!edges_assignment || !edges_vertices) { return emptyBoundaryObject(); }
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
@@ -92,14 +92,11 @@ export const boundary = ({ vertices_coords, vertices_edges, edges_vertices, edge
 		edge_walk.push(edgeIndex);
 	}
 	// if vertices_coords exist, create a "polygon" entry
-	const result = {
+	return {
 		vertices: vertex_walk,
 		edges: edge_walk,
+		polygon: vertices_coords ? vertex_walk.map(v => vertices_coords[v]) : [],
 	};
-	if (vertices_coords) {
-		result.polygon = vertex_walk.map(v => vertices_coords[v]);
-	}
-	return result;
 };
 /**
  * @description Get the boundary as two arrays of vertices and edges
@@ -140,6 +137,7 @@ export const planarBoundary = ({
 	vertex_walk.push(first_vertex_i);
 	const first_vc = vertices_coords[first_vertex_i];
 	const first_neighbors = vertices_vertices[first_vertex_i];
+	if (!first_neighbors) { return walk; }
 	// sort adjacent vertices by next most clockwise vertex;
 	const counter_clock_first_i = first_neighbors
 		.map(i => vertices_coords[i])

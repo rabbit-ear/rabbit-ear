@@ -19,13 +19,13 @@ export const makeFoldedVertexArrays = (gl, program, graph, options = {}) => {
 		location: gl.getAttribLocation(program, "v_position"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_coords[0].length,
+		length: vertices_coords.length ? vertices_coords[0].length : 3,
 		data: new Float32Array(vertices_coords.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "v_normal"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_normal[0].length,
+		length: vertices_normal.length ? vertices_normal[0].length : 3,
 		data: new Float32Array(vertices_normal.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "v_barycentric"),
@@ -73,25 +73,25 @@ export const makeThickEdgesVertexArrays = (gl, program, graph, options = {}) => 
 		location: gl.getAttribLocation(program, "v_position"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_coords[0].length,
+		length: vertices_coords.length ? vertices_coords[0].length : 3,
 		data: new Float32Array(vertices_coords.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "v_color"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_color[0].length,
+		length: vertices_color.length ? vertices_color[0].length : 3,
 		data: new Float32Array(vertices_color.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "edge_vector"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: verticesEdgesVector[0].length,
+		length: verticesEdgesVector.length ? verticesEdgesVector[0].length : 3,
 		data: new Float32Array(verticesEdgesVector.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "vertex_vector"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_vector[0].length,
+		length: vertices_vector.length ? vertices_vector[0].length : 3,
 		data: new Float32Array(vertices_vector.flat()),
 	}].filter(el => el.location !== -1);
 };

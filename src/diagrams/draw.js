@@ -2,11 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { bounding_rect } from "../core/boundary.js";
-// import { line, arrow } from "../../include/svg.js";
-import root from "../root.js";
-// import SVG from "../../include/svg.js";
-const SVG = root.svg;
-const { line, arrow } = SVG;
+import SVG from "../svg/index.js";
 
 const DIAGRAMS = "re:diagrams";
 const DIAGRAM_LINES = "re:diagram_lines";
@@ -28,7 +24,7 @@ export const lines = function (graph, options) {
 					const classes = (DIAGRAM_LINE_CLASSES in crease)
 						? crease[DIAGRAM_LINE_CLASSES].join(" ")
 						: "valley"; // unspecified should throw error really
-					const l = line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
+					const l = SVG.line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
 					l.setAttribute("class", classes);
 					return l;
 				}
@@ -77,7 +73,7 @@ export const arrows = function (graph, options) {
 					&& typeof options.attributes.diagrams.arrows.padding === "number")
 					? options.attributes.diagrams.arrows.padding : 0;
 
-				const a = arrow(p[0], p[1])
+				const a = SVG.arrow(p[0], p[1])
 					.stroke(arrowStroke)
 					.fill(arrowFill)
 					// .padding(arrowPadding)

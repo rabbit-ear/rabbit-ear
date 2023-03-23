@@ -4,7 +4,7 @@
 import * as S from "../general/strings.js";
 // import count from "../graph/count.js";
 import addVertices from "../graph/add/addVertices.js";
-import transform from "../graph/affine.js";
+import * as transform from "../graph/affine.js";
 import clean from "../graph/clean.js";
 import * as explode from "../graph/explode.js";
 import { nearest } from "../graph/nearest.js";

@@ -17,6 +17,7 @@ import {
 	makeEdgesVector,
 	makeEdgesBoundingBox,
 } from "../make.js";
+import { makeFacesWinding } from "../faces/winding.js";
 // import { makeEdgesEdgesSimilar } from "./edgesEdges";
 /**
  * @description Return an ExF matrix (number of: E=edges, F=faces), relating every edge

@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import topologicalOrder from "./topologicalOrder";
+import topologicalOrder from "./topologicalOrder.js";
+// import topologicalOrder from "../topological.js";
 
 const match = (listA, listB) => {
 	const res = [];
@@ -126,6 +127,9 @@ const linearizeSolutions = (solution) => {
 };
 
 const LayerPrototype = {
+	facesLayer: function () {
+		return topologicalOrder(this.faceOrders);
+	},
 	allSolutions: function () {
 		return linearizeSolutions(this);
 	},

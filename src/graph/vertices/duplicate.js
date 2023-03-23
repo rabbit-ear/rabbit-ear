@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import * as S from "../../general/strings.js";
 import { EPSILON } from "../../math/general/constant.js";
 import { average } from "../../math/algebra/vector.js";
 import { verticesClusters } from "./clusters.js";

@@ -61,7 +61,8 @@ export const makeModelMatrix = (graph) => {
 	const bounds = boundingBox(graph);
 	if (!bounds) { return identity4x4; }
 	const scale = Math.max(...bounds.span); // * Math.SQRT2;
+	if (scale === 0) { return identity4x4; }
 	const center = resize(3, midpoint(bounds.min, bounds.max));
 	const scalePositionMatrix = [scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, ...center, 1];
-	return invertMatrix4(scalePositionMatrix);
+	return invertMatrix4(scalePositionMatrix) || identity4x4;
 };

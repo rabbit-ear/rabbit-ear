@@ -3,7 +3,7 @@
  */
 import * as S from "../../../general/strings.js";
 import { makeEdgesAssignment } from "../../../graph/make.js";
-import { addClass } from "../classes.js";
+import { addClass } from "../../../general/dom.js";
 import {
 	edgesFoldAngleAreAllFlat,
 	edgesAssignmentNames,
@@ -20,12 +20,20 @@ const GROUP_FLAT = {
 const STYLE_FOLDED = {};
 
 const STYLE_FLAT = {
+	B: { stroke: "black" },
+	b: { stroke: "black" },
 	M: { stroke: "red" },
 	m: { stroke: "red" },
 	V: { stroke: "blue" },
 	v: { stroke: "blue" },
 	F: { stroke: "lightgray" },
 	f: { stroke: "lightgray" },
+	J: { stroke: "gold" },
+	j: { stroke: "gold" },
+	C: { stroke: "limegreen" },
+	c: { stroke: "limegreen" },
+	U: { stroke: "orchid" },
+	u: { stroke: "orchid" },
 };
 
 /**
@@ -35,7 +43,7 @@ const STYLE_FLAT = {
  */
 const edgesAssignmentIndices = (graph) => {
 	const assignment_indices = {
-		u: [], f: [], v: [], m: [], b: [],
+		u: [], c: [], j: [], f: [], v: [], m: [], b: [],
 	};
 	const lowercase_assignment = graph[S._edges_assignment]
 		.map(a => a.toLowerCase());
@@ -132,7 +140,7 @@ export const edgesLines = (graph, attributes = {}) => {
 		: makeEdgesAssignment(graph))
 		.map(assign => assign.toLowerCase());
 	const groups_by_key = {};
-	["b", "m", "v", "f", "u"].forEach(k => {
+	["b", "m", "v", "f", "j", "c", "u"].forEach(k => {
 		const child_group = SVG.g();
 		group.appendChild(child_group);
 		addClass(child_group, edgesAssignmentNames[k]);
@@ -164,11 +172,13 @@ export const edgesLines = (graph, attributes = {}) => {
 	return group;
 };
 
-export const drawEdges = (graph, attributes) => (
+const drawEdges = (graph, attributes) => (
 	edgesFoldAngleAreAllFlat(graph)
 		? edgesPaths(graph, attributes)
 		: edgesLines(graph, attributes)
 );
+
+export default drawEdges;
 
 // const make_edgesAssignmentNames = ({ edges_vertices, edges_assignment }) => {
 // 	if (!edges_vertices) { return []; }

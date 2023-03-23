@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { invertMap } from "../graph/maps.js";
-import { makeFacesWinding } from "../graph/facesWinding.js";
+import { makeFacesWinding } from "../graph/faces/winding.js";
 import { makeEdgesFaces } from "../graph/make.js";
 /**
  * @description Flip a model over by reversing the order of the faces

@@ -38,8 +38,12 @@ export const makeFacesVertexData = (graph, options = {}) => {
 };
 
 // thick edges
-export const makeThickEdgesVertexData = (graph, assignment_color = ASSIGNMENT_COLOR) => {
+export const makeThickEdgesVertexData = (graph, options) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
+	const assignment_color = {
+		...ASSIGNMENT_COLOR,
+		...options,
+	};
 	const vertices_coords3D = graph.vertices_coords
 		.map(coord => [...coord].concat(Array(3 - coord.length).fill(0)));
 	const vertices_coords = graph.edges_vertices

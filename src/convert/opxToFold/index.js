@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { boundingBox } from "../../math/geometry/polygon.js";
+import makeEpsilon from "../general/makeEpsilon.js";
 import window from "../../environment/window.js";
 import {
 	makeVerticesVertices,
@@ -9,6 +9,7 @@ import {
 	makePlanarFaces,
 } from "../../graph/make.js";
 import { removeDuplicateVertices } from "../../graph/vertices/duplicate.js";
+import planarize from "../../graph/planarize.js";
 /**
  * @description given a parsed xml object, get the branch which
  * contains a node which has some node containing the value specified.
@@ -76,18 +77,37 @@ const makeFOLD = (lines, epsilon) => {
 	fold.edges_assignment = lines.map(line => opxAssignment[line[0]]);
 	fold.edges_foldAngle = makeEdgesFoldAngle(fold);
 	// analysis on vertices_coords to find an appropriate epsilon
-	if (epsilon === undefined) {
-		const { span } = boundingBox(fold.vertices_coords);
-		epsilon = Math.min(...span) * 1e-6;
-	}
-	removeDuplicateVertices(fold, epsilon);
+	const eps = typeof epsilon === "number"
+		? epsilon
+		: makeEpsilon(fold);
+	removeDuplicateVertices(fold, eps);
+	planarize(fold, eps);
 	fold.vertices_vertices = makeVerticesVertices(fold);
 	const faces = makePlanarFaces(fold);
-	fold.faces_vertices = faces.map(el => el.vertices);
-	fold.faces_edges = faces.map(el => el.edges);
+	fold.faces_vertices = faces.faces_vertices;
+	fold.faces_edges = faces.faces_edges;
 	// replace these values with their entry inside the OPX file (if exists)
 	return fold;
 };
+/**
+ * @param {string} file an ORIPA file as a string
+ */
+const opxEdgeGraph = (file) => {
+	const parsed = (new (window().DOMParser)())
+		.parseFromString(file, "text/xml");
+	const oripa = Array.from(parsed.documentElement.children)
+		.filter(el => Array.from(el.classList).includes("oripa.DataSet"))
+		.shift();
+	const lines = parseLines(getLines(oripa));
+	const fold = {};
+	fold.vertices_coords = lines
+		.flatMap(line => [[line[1], line[3]], [line[2], line[4]]]);
+	fold.edges_vertices = lines.map((_, i) => [i * 2, i * 2 + 1]);
+	fold.edges_assignment = lines.map(line => opxAssignment[line[0]]);
+	fold.edges_foldAngle = makeEdgesFoldAngle(fold);
+	return fold;
+};
+
 const setMetadata = (oripa, fold) => {
 	const metadata = {
 		file_description: "memo",
@@ -112,7 +132,8 @@ const setMetadata = (oripa, fold) => {
  */
 const opxToFold = (file, epsilon) => {
 	try {
-		const parsed = (new (window().DOMParser)()).parseFromString(file, "text/xml");
+		const parsed = (new (window().DOMParser)())
+			.parseFromString(file, "text/xml");
 		const oripa = Array.from(parsed.documentElement.children)
 			.filter(el => Array.from(el.classList).includes("oripa.DataSet"))
 			.shift();
@@ -124,5 +145,7 @@ const opxToFold = (file, epsilon) => {
 	}
 	return undefined;
 };
+
+opxToFold.opxEdgeGraph = opxEdgeGraph;
 
 export default opxToFold;

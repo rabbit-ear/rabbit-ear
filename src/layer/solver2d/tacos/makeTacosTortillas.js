@@ -5,12 +5,12 @@ import { EPSILON } from "../../../math/general/constant.js";
 import { makeFacesConvexCenter } from "../../../graph/make.js";
 import {
 	makeEdgesEdgesParallelOverlap,
-} from "../../../graph/edgesEdges.js";
+} from "../../../graph/edges/edgesEdges.js";
 import {
 	booleanMatrixToUniqueIndexPairs,
 	booleanMatrixToIndexedArray,
 } from "../../../general/arrays.js";
-import { makeEdgesFacesOverlap } from "../../../graph/overlap.js";
+import { makeEdgesFacesOverlap } from "../../../graph/edges/overlap.js";
 import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla.js";
 import {
 	makeEdgesFacesSide,

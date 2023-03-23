@@ -2,39 +2,44 @@
  * Rabbit Ear (c) Kraft
  */
 import { setWindow } from "./environment/window.js";
-import root from "./root.js";
-import constructors from "./prototypes/constructors.js";
+import { graph, cp, origami } from "./prototypes/index.js";
 import axiom from "./axioms/index.js";
 import convert from "./convert/index.js";
-// import graph from "./graph/index.js";
+import graphMethods from "./graph/index.js";
 import math from "./math/index.js";
 import singleVertex from "./singleVertex/index.js";
 import svg from "./svg/index.js";
 import webgl from "./webgl/index.js";
+import layer from "./layer/index.js";
 // import diagram from "./diagrams/index.js";
-// import layer from "./layer/index.js";
 // import text from "./text/index.js";
-// to be incorporated, svg needs a pointer to rabbit-ear
-import svgLib from "./svg/environment/lib.js";
+import svgLink from "./svg/environment/lib.js";
+
+// append graph methods as children of the graph constructor
+Object.assign(graph, graphMethods);
 /**
  * Rabbit Ear
  */
-const ear = Object.assign(root, {
-	...constructors,
+const ear = {
+	graph,
+	cp,
+	origami,
 	axiom,
 	convert,
-	// graph,
 	math,
 	singleVertex,
 	svg,
 	webgl,
 	// diagram,
-	// layer,
+	layer,
 	// text,
-});
+};
 
-svgLib.ear = ear;
+// svg library needs a pointer to rabbit-ear
+svgLink.ear = ear;
 
+// give the user the ability to set the window
+// this allows DOM operations (svg) inside node or deno
 Object.defineProperty(ear, "window", {
 	enumerable: false,
 	set: value => { svg.window = setWindow(value); },

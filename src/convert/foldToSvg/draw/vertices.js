@@ -4,11 +4,12 @@
 import * as S from "../../../general/strings.js";
 import SVG from "../../../svg/index.js";
 
-export const verticesCircle = (graph, attributes = {}) => {
+const drawVertices = (graph, attributes = {}) => {
 	const g = SVG.g();
 	if (!graph || !graph.vertices_coords) { return g; }
+	// radius will be overwritten in "applyTopLevelOptions"
 	graph.vertices_coords
-		.map(v => SVG.circle(v[0], v[1], 0.01)) // radius overwritten in "style"
+		.map(v => SVG.circle(v[0], v[1], 0.01))
 		.forEach(v => g.appendChild(v));
 	// default style
 	g.setAttributeNS(null, "fill", S._none);
@@ -17,3 +18,5 @@ export const verticesCircle = (graph, attributes = {}) => {
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
 	return g;
 };
+
+export default drawVertices;

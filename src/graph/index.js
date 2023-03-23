@@ -4,9 +4,11 @@
 import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
 import * as foldFileFrames from "../fold/fileFrames.js";
+import * as affine from "./affine.js";
 import * as boundary from "./boundary.js";
 import * as explodeMethods from "./explode.js";
 import * as intersectMethods from "./intersect.js";
+import * as join from "./join.js";
 import * as make from "./make.js";
 import * as maps from "./maps.js";
 import * as nearestMethods from "./nearest.js";
@@ -34,7 +36,6 @@ import * as arrays from "../general/arrays.js";
 import addVertices from "./add/addVertices.js";
 import addEdges from "./add/addEdges.js";
 import addPlanarSegment from "./add/addPlanarSegment.js";
-import affine from "./affine.js";
 import clean from "./clean.js";
 import clip from "./clip.js";
 import clone from "../general/clone.js";
@@ -78,19 +79,20 @@ export default {
 	...foldKeyMethods,
 	...foldSpecMethods,
 	...foldFileFrames,
-	...make,
-	...boundary,
-	...walk,
-	...nearestMethods,
-	...span,
-	...maps,
-	...subgraphMethods,
-	...intersectMethods,
-	...triangulateMethods,
-	...normals,
 	...affine,
+	...boundary,
 	...edgesEdges,
 	...explodeMethods,
+	...intersectMethods,
+	...join,
+	...make,
+	...maps,
+	...nearestMethods,
+	...normals,
+	...span,
+	...subgraphMethods,
+	...triangulateMethods,
+	...walk,
 	...arrays,
 	...verticesClusters,
 	...verticesCollinear,

@@ -79,3 +79,25 @@ export const explodeFaces = (graph) => {
 		faces_vertices,
 	};
 };
+/**
+ * @description Create a modified graph which contains vertices_coords and edges_vertices
+ * but that for every edge, vertices_coords has been duplicated so that edges
+ * do not share vertices.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {FOLD} a new FOLD graph with exploded edges
+ * @linkcode Origami ./src/graph/explodeFaces.js 82
+ */
+export const explodeEdges = (graph) => {
+	const vertices_coords = graph.edges_vertices
+		.flatMap(edge => edge
+			.map(v => graph.vertices_coords[v]));
+	let i = 0;
+	const edges_vertices = graph.edges_vertices
+		.map(edge => edge.map(() => i++));
+	// duplicate vertices are simply duplicate references, changing
+	// one will still change the others. we need to deep copy the array
+	return {
+		vertices_coords: JSON.parse(JSON.stringify(vertices_coords)),
+		edges_vertices,
+	};
+};

@@ -17,6 +17,7 @@ import {
 	makePlanarFaces,
 } from "../../graph/make.js";
 import { planarBoundary } from "../../graph/boundary.js";
+import makeEpsilon from "../general/makeEpsilon.js";
 
 const opacityToFoldAngle = (opacity, assignment) => {
 	switch (assignment) {
@@ -65,7 +66,7 @@ const segmentize = (elements) => elements
  * or a string.
  * @returns {FOLD} a FOLD representation of the SVG image.
  */
-const svgToBasicGraph = (svg) => {
+const svgEdgeGraph = (svg) => {
 	const typeString = typeof svg === "string";
 	const xml = typeString ? xmlStringToDOM(svg, "image/svg+xml") : svg;
 	const elements = flattenDomTree(xml);
@@ -107,14 +108,14 @@ const svgToBasicGraph = (svg) => {
  * @description Resolve all crossing edges, build faces,
  * walk and discover the boundary.
  */
-const planarizeGraph = (graph) => {
+const planarizeGraph = (graph, epsilon) => {
 	const planar = { ...graph };
-	removeDuplicateVertices(planar);
-	planarize(planar);
+	removeDuplicateVertices(planar, epsilon);
+	planarize(planar, epsilon);
 	planar.vertices_vertices = makeVerticesVertices(planar);
 	const faces = makePlanarFaces(planar);
-	planar.faces_vertices = faces.map(el => el.vertices);
-	planar.faces_edges = faces.map(el => el.edges);
+	planar.faces_vertices = faces.faces_vertices;
+	planar.faces_edges = faces.faces_edges;
 	const { edges } = planarBoundary(planar);
 	edges.forEach(e => { planar.edges_assignment[e] = "B"; });
 	return planar;
@@ -127,9 +128,12 @@ const planarizeGraph = (graph) => {
  * document element node, or as a string
  * @returns {FOLD} a FOLD representation of the SVG
  */
-const svgToFold = (svg) => {
-	const graph = svgToBasicGraph(svg);
-	const planarGraph = planarizeGraph(graph);
+const svgToFold = (svg, epsilon) => {
+	const graph = svgEdgeGraph(svg);
+	const eps = typeof epsilon === "number"
+		? epsilon
+		: makeEpsilon(graph);
+	const planarGraph = planarizeGraph(graph, eps);
 	return {
 		file_spec: 1.1,
 		file_creator: "Rabbit Ear",
@@ -137,5 +141,8 @@ const svgToFold = (svg) => {
 		...planarGraph,
 	};
 };
+
+svgToFold.svgEdgeGraph = svgEdgeGraph;
+svgToFold.segmentize = segmentize;
 
 export default svgToFold;
