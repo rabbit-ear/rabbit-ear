@@ -1,5 +1,5 @@
 /* svg (c) Kraft, MIT License */
-import { pathCommandNames, parsePathCommands } from '../../methods/path.js';
+import { pathCommandNames, parsePathCommands } from '../../general/path.js';
 import TransformMethods from './shared/transforms.js';
 import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';

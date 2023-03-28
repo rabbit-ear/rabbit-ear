@@ -3,13 +3,16 @@
  */
 import * as S from "../../../general/strings.js";
 import { makeEdgesAssignment } from "../../../graph/make.js";
-import { addClass } from "../../../general/dom.js";
+import { addClass } from "../../../svg/general/dom.js";
 import {
 	edgesFoldAngleAreAllFlat,
 	edgesAssignmentNames,
 	isFoldedForm,
 } from "../../../fold/spec.js";
 import SVG from "../../../svg/index.js";
+import {
+	setMetadata,
+} from "./metadata.js";
 
 const GROUP_FOLDED = {};
 
@@ -122,6 +125,13 @@ export const edgesPaths = (graph, attributes = {}) => {
 		group.appendChild(paths[key]);
 		Object.defineProperty(group, edgesAssignmentNames[key], { get: () => paths[key] });
 	});
+	// todo:
+	// if (graph.edges_foldAngle) {
+	// 	Object.keys(paths).forEach(key => setMetadata(paths[key], "foldAngle", a));
+	// }
+	// if (graph.edges_assignment) {
+	// 	Object.keys(paths).forEach(key => setMetadata(paths[key], "assignment", a));
+	// }
 	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
 	// todo: everything else that isn't a class name. filter out classes
 	// const no_class_attributes = Object.keys(attributes).filter(
@@ -156,6 +166,14 @@ export const edgesLines = (graph, attributes = {}) => {
 	const lines = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]))
 		.map(l => SVG.line(l[0][0], l[0][1], l[1][0], l[1][1]));
+	if (graph.edges_foldAngle) {
+		graph.edges_foldAngle
+			.forEach((a, i) => setMetadata(lines[i], "foldAngle", a));
+	}
+	if (graph.edges_assignment) {
+		graph.edges_assignment
+			.forEach((a, i) => setMetadata(lines[i], "assignment", a));
+	}
 	if (graph.edges_foldAngle) {
 		lines.forEach((line, i) => {
 			const angle = graph.edges_foldAngle[i];

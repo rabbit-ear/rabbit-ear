@@ -1,4 +1,5 @@
-export default {
+/* svg (c) Kraft, MIT License */
+const cssColors = {
 	black: "#000000",
 	silver: "#c0c0c0",
 	gray: "#808080",
@@ -147,3 +148,5 @@ export default {
 	whitesmoke: "#f5f5f5",
 	yellowgreen: "#9acd32",
 };
+
+export { cssColors as default };

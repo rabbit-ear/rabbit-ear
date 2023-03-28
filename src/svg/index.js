@@ -5,7 +5,8 @@ import NS from './spec/namespace.js';
 import nodes_attributes from './spec/nodes_attributes.js';
 import nodes_children from './spec/nodes_children.js';
 import nodeNames from './spec/nodes.js';
-import methods from './methods/index.js';
+import colors from './colors/index.js';
+import general from './general/index.js';
 import extensions from './constructor/extensions/index.js';
 import Constructor from './constructor/index.js';
 
@@ -26,7 +27,8 @@ Object.assign(SVG, {
 	nodes_attributes,
 	nodes_children,
 	extensions,
-	...methods,
+	...colors,
+	...general,
 });
 nodeNames.forEach(nodeName => {
 	SVG[nodeName] = (...args) => Constructor(nodeName, null, ...args);

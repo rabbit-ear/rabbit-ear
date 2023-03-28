@@ -2,16 +2,14 @@
  * Rabbit Ear (c) Kraft
  */
 import window from "../../../environment/window.js";
-import {
-	getRootParent,
-} from "./dom.js";
+import { getRootParent } from "../../../svg/general/dom.js";
 /**
  * @description Convert a style element, CSSStyleSheet, into a nested
  * object with selectors as keys, then attributes as 2nd layer keys.
  * @param {CSSStyleSheet} sheet the "sheet" property on a style element
  * @returns {object} dictionary representation of a style element
  */
-const parseCSSStyleSheet = (sheet) => {
+export const parseCSSStyleSheet = (sheet) => {
 	if (!sheet.cssRules) { return {}; }
 	const stylesheets = {};
 	// convert the array of type {CSSRule[]} to an object
@@ -44,7 +42,7 @@ const parseCSSStyleSheet = (sheet) => {
  * @returns {object[]} style sheets as objects, with CSS selectors as
  * keys, for example: { ".redline": { "stroke-width": "0.5" } }.
  */
-const parseStyleElement = (style) => {
+export const parseStyleElement = (style) => {
 	if (style.sheet) { return parseCSSStyleSheet(style.sheet); }
 	const rootParent = getRootParent(style);
 	const isHTMLBound = rootParent.constructor === window().HTMLDocument;
@@ -69,5 +67,41 @@ const parseStyleElement = (style) => {
 	}
 	return {};
 };
-
-export default parseStyleElement;
+/**
+ * @description Given one or many parsed stylesheets, hunt for a match based
+ * on nodeName selector, id selector, or class selector, and return the value
+ * for one attribute if it exists. So for example, you need "stroke" and this
+ * will search for a "stroke" property defined on line, .className, or #id.
+ */
+export const getStylesheetStyle = (key, nodeName, attributes, sheets = []) => {
+	const classes = attributes.class
+		? attributes.class
+			.split(/\s/)
+			.filter(Boolean)
+			.map(i => i.trim())
+			.map(str => `.${str}`)
+		: [];
+	const id = attributes.id
+		? `#${attributes.id}`
+		: null;
+	// look for a matching id in the style sheets
+	if (id) {
+		for (let s = 0; s < sheets.length; s += 1) {
+			if (sheets[s][id] && sheets[s][id][key]) {
+				return sheets[s][id][key];
+			}
+		}
+	}
+	// look for a matching class in the style sheets
+	for (let s = 0; s < sheets.length; s += 1) {
+		for (let c = 0; c < classes.length; c += 1) {
+			if (sheets[s][classes[c]] && sheets[s][classes[c]][key]) {
+				return sheets[s][classes[c]][key];
+			}
+		}
+		if (sheets[s][nodeName] && sheets[s][nodeName][key]) {
+			return sheets[s][nodeName][key];
+		}
+	}
+	return undefined;
+};

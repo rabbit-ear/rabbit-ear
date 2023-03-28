@@ -1,6 +1,6 @@
 /* svg (c) Kraft, MIT License */
-import { capitalized } from '../../../methods/transformCase.js';
-import { convertToViewBox } from '../../../methods/viewBox.js';
+import { capitalized } from '../../../general/transformCase.js';
+import { convertToViewBox } from '../../../general/viewBox.js';
 
 const eventNameCategories = {
 	move: ["mousemove", "touchmove"],

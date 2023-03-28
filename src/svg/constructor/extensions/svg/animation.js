@@ -1,6 +1,6 @@
 /* svg (c) Kraft, MIT License */
 import SVGWindow from '../../../environment/window.js';
-import makeUUID from '../../../methods/makeUUID.js';
+import makeUUID from '../../../general/makeUUID.js';
 
 const Animation = function (element) {
 	let start;

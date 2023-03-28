@@ -1,6 +1,6 @@
 /* svg (c) Kraft, MIT License */
 import { str_string, str_id } from '../../../environment/strings.js';
-import { toCamel } from '../../../methods/transformCase.js';
+import { toCamel } from '../../../general/transformCase.js';
 
 const findIdURL = function (arg) {
 	if (arg == null) { return ""; }

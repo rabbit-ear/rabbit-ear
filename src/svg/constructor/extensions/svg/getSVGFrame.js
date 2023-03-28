@@ -1,6 +1,6 @@
 /* svg (c) Kraft, MIT License */
 import { str_function } from '../../../environment/strings.js';
-import { getViewBox } from '../../../methods/viewBox.js';
+import { getViewBox } from '../../../general/viewBox.js';
 
 const getSVGFrame = function (element) {
 	const viewBox = getViewBox(element);

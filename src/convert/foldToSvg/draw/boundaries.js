@@ -4,7 +4,7 @@
 import * as S from "../../../general/strings.js";
 import { boundary } from "../../../graph/boundary.js";
 import { isFoldedForm } from "../../../fold/spec.js";
-import { addClass } from "../../../general/dom.js";
+import { addClass } from "../../../svg/general/dom.js";
 import SVG from "../../../svg/index.js";
 
 const FOLDED = {

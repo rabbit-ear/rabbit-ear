@@ -1,7 +1,7 @@
 /* svg (c) Kraft, MIT License */
 import makeCoordinates from '../../arguments/makeCoordinates.js';
 import nodes_attributes from '../../spec/nodes_attributes.js';
-import { svg_distance2 } from '../../methods/algebra.js';
+import { svg_distance2 } from '../../general/algebra.js';
 import TransformMethods from './shared/transforms.js';
 import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';

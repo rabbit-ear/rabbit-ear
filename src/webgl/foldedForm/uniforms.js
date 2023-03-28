@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { multiplyMatrices4 } from "../../math/algebra/matrix4.js";
-import hexToRGB from "../../convert/svgToFold/svgParsers/colors/hexToRGB.js";
+import { hexToRgb } from "../../svg/colors/convert.js";
 
 const makeUniforms = (gl, {
 	projectionMatrix, viewMatrix, modelMatrix, canvas,
@@ -38,11 +38,11 @@ const makeUniforms = (gl, {
 	},
 	u_frontColor: {
 		func: "uniform3fv",
-		value: hexToRGB(frontColor),
+		value: hexToRgb(frontColor),
 	},
 	u_backColor: {
 		func: "uniform3fv",
-		value: hexToRGB(backColor),
+		value: hexToRgb(backColor),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",

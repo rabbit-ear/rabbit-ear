@@ -1,9 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import * as foldColors from "../fold/colors.js";
+import * as foldFileFrames from "../fold/fileFrames.js";
 import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
-import * as foldFileFrames from "../fold/fileFrames.js";
 import * as affine from "./affine.js";
 import * as boundary from "./boundary.js";
 import * as explodeMethods from "./explode.js";
@@ -76,9 +77,10 @@ export default {
 	planarize,
 	connectedComponents,
 	clone,
+	...foldColors,
+	...foldFileFrames,
 	...foldKeyMethods,
 	...foldSpecMethods,
-	...foldFileFrames,
 	...affine,
 	...boundary,
 	...edgesEdges,

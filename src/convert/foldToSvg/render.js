@@ -6,7 +6,7 @@ import * as S from "../../general/strings.js";
 import {
 	findElementTypeInParents,
 	addClass,
-} from "../../general/dom.js";
+} from "../../svg/general/dom.js";
 import { boundingBox } from "../../graph/boundary.js";
 import {
 	boundingBoxToViewBox,

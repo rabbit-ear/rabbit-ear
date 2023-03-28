@@ -1,5 +1,5 @@
 /* svg (c) Kraft, MIT License */
-import { toKebab } from '../../../methods/transformCase.js';
+import { toKebab } from '../../../general/transformCase.js';
 
 const removeChildren = (element) => {
 	while (element.lastChild) {

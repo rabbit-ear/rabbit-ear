@@ -1,7 +1,7 @@
 /* svg (c) Kraft, MIT License */
 import NS from '../../spec/namespace.js';
 import SVGWindow from '../../environment/window.js';
-import makeCDATASection from '../../methods/makeCDATASection.js';
+import makeCDATASection from '../../general/makeCDATASection.js';
 
 const styleDef = {
 	style: {

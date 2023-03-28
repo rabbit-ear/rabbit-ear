@@ -5,7 +5,7 @@ import * as S from "../../../general/strings.js";
 import { isFoldedForm } from "../../../fold/spec.js";
 import { invertMap } from "../../../graph/maps.js";
 import { makeFacesWinding } from "../../../graph/faces/winding.js";
-import { addClass } from "../../../general/dom.js";
+import { addClass } from "../../../svg/general/dom.js";
 import SVG from "../../../svg/index.js";
 
 const FACE_STYLE_FOLDED_ORDERED = {

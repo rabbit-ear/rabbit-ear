@@ -1,10 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { epsilonEqualVectors } from "../../../../math/general/function.js";
+import {
+	epsilonEqualVectors,
+} from "../../../math/general/function.js";
 import {
 	parsePathCommandsWithEndpoints,
-} from "../../../../svg/methods/path.js";
+} from "../../../svg/general/path.js";
 
 const straightPathLines = {
 	L: true, V: true, H: true, Z: true,

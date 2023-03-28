@@ -30,7 +30,7 @@ Origami.prototype.constructor = Origami;
 
 Origami.prototype.flatFold = function () {
 	const line = getLine(arguments);
-	const changes = flatFold(this, line.vector, line.origin);
+	const changes = flatFold(this, line);
 	return this;
 };
 

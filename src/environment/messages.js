@@ -11,4 +11,5 @@ export default {
 	convexFace: "only convex faces are supported",
 	window: "window not set; if using node/deno include package @xmldom/xmldom and set ear.window = xmldom",
 	nonConvexTriangulation: "non-convex triangulation requires vertices_coords",
+	backendStylesheet: "svgToFold found <style> in <svg>. rendering will be incomplete unless run in a major browser.",
 };

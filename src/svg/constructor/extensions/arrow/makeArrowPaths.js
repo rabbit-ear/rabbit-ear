@@ -1,6 +1,6 @@
 /* svg (c) Kraft, MIT License */
 import { str_tail, str_head } from '../../../environment/strings.js';
-import { svg_sub2, svg_add2, svg_scale2, svg_magnitude2 } from '../../../methods/algebra.js';
+import { svg_sub2, svg_add2, svg_scale2, svg_magnitude2 } from '../../../general/algebra.js';
 
 const ends = [str_tail, str_head];
 const stringifyPoint = p => p.join(",");

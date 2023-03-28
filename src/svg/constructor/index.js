@@ -3,7 +3,7 @@ import SVGWindow from '../environment/window.js';
 import NS from '../spec/namespace.js';
 import nodes_children from '../spec/nodes_children.js';
 import nodes_attributes from '../spec/nodes_attributes.js';
-import { toCamel } from '../methods/transformCase.js';
+import { toCamel } from '../general/transformCase.js';
 import extensions from './extensions/index.js';
 
 const passthroughArgs = (...args) => args;

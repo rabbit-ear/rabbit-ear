@@ -1,7 +1,7 @@
 /* svg (c) Kraft, MIT License */
 import { str_string } from '../../environment/strings.js';
-import makeUUID from '../../methods/makeUUID.js';
-import { setViewBox } from '../../methods/viewBox.js';
+import makeUUID from '../../general/makeUUID.js';
+import { setViewBox } from '../../general/viewBox.js';
 import TransformMethods from './shared/transforms.js';
 import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';

@@ -1,7 +1,7 @@
 /* svg (c) Kraft, MIT License */
 import { str_function, str_svg } from '../../../environment/strings.js';
 import makeCoordinates from '../../../arguments/makeCoordinates.js';
-import { svg_distanceSq2 } from '../../../methods/algebra.js';
+import { svg_distanceSq2 } from '../../../general/algebra.js';
 
 const removeFromParent = svg => (svg && svg.parentNode
 	? svg.parentNode.removeChild(svg)

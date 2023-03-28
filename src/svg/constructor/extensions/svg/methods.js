@@ -2,8 +2,8 @@
 import SVGWindow from '../../../environment/window.js';
 import { str_style } from '../../../environment/strings.js';
 import NS from '../../../spec/namespace.js';
-import makeCDATASection from '../../../methods/makeCDATASection.js';
-import { setViewBox, getViewBox } from '../../../methods/viewBox.js';
+import makeCDATASection from '../../../general/makeCDATASection.js';
+import { setViewBox, getViewBox } from '../../../general/viewBox.js';
 import makeBackground from './makeBackground.js';
 import getSVGFrame from './getSVGFrame.js';
 import TransformMethods from '../shared/transforms.js';

@@ -25,7 +25,7 @@ const _black = "black";
 const _white = "white";
 const _none = "none";const isBrowser$1 = typeof window !== _undefined
 	&& typeof window.document !== _undefined;
-typeof process !== _undefined
+const isNode = typeof process !== _undefined
 	&& process.versions != null
 	&& process.versions.node != null;const Messages$1 = {
 	planarize: "graph could not planarize",
@@ -40,6 +40,7 @@ typeof process !== _undefined
 	convexFace: "only convex faces are supported",
 	window: "window not set; if using node/deno include package @xmldom/xmldom and set ear.window = xmldom",
 	nonConvexTriangulation: "non-convex triangulation requires vertices_coords",
+	backendStylesheet: "svgToFold found <style> in <svg>. rendering will be incomplete unless run in a major browser.",
 };const windowContainer = { window: undefined };
 const buildDocument = (newWindow) => new newWindow.DOMParser()
 	.parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
@@ -1053,7 +1054,7 @@ const vecLineToUniqueLine = ({ vector, origin }) => {
 const uniqueLineToVecLine = ({ normal, distance }) => ({
 	vector: rotate270(normal),
 	origin: scale$1(normal, distance),
-});const convert$1=/*#__PURE__*/Object.freeze({__proto__:null,angleToVector,pointsToLine,uniqueLineToVecLine,vecLineToUniqueLine,vectorToAngle});const isCounterClockwiseBetween = (angle, floor, ceiling) => {
+});const convert$2=/*#__PURE__*/Object.freeze({__proto__:null,angleToVector,pointsToLine,uniqueLineToVecLine,vecLineToUniqueLine,vectorToAngle});const isCounterClockwiseBetween = (angle, floor, ceiling) => {
 	while (ceiling < floor) { ceiling += TWO_PI; }
 	while (angle > floor) { angle -= TWO_PI; }
 	while (angle < floor) { angle += TWO_PI; }
@@ -3837,14 +3838,353 @@ const nodes_children = {
 	mask: drawingShapes,
 	linearGradient: classes_nodes.gradients,
 	radialGradient: classes_nodes.gradients,
-};const nodeNames = Object.values(classes_nodes).flat();const svg_add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
+};const nodeNames = Object.values(classes_nodes).flat();const hslToRgb = (hue, saturation, lightness) => {
+	const s = saturation / 100;
+	const l = lightness / 100;
+	const k = n => (n + hue / 30) % 12;
+	const a = s * Math.min(l, 1 - l);
+	const f = n => (
+		l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
+	);
+	return [f(0), f(8), f(4)];
+};
+const hexToRgb = (string) => {
+	const numbersOnly = string.replace(/#(?=\S)/g, "");
+	const chars = Array.from(Array(6))
+		.map((_, i) => numbersOnly[i] || "0");
+	const hexString = numbersOnly.length <= 4
+		? [0, 0, 1, 1, 2, 2].map(i => chars[i]).join("")
+		: chars.join("");
+	const c = parseInt(hexString, 16);
+	return [(c >> 16) & 255, (c >> 8) & 255, c & 255]
+		.map(n => n / 255);
+};const convert$1=/*#__PURE__*/Object.freeze({__proto__:null,hexToRgb,hslToRgb});const cssColors = {
+	black: "#000000",
+	silver: "#c0c0c0",
+	gray: "#808080",
+	white: "#ffffff",
+	maroon: "#800000",
+	red: "#ff0000",
+	purple: "#800080",
+	fuchsia: "#ff00ff",
+	green: "#008000",
+	lime: "#00ff00",
+	olive: "#808000",
+	yellow: "#ffff00",
+	navy: "#000080",
+	blue: "#0000ff",
+	teal: "#008080",
+	aqua: "#00ffff",
+	orange: "#ffa500",
+	aliceblue: "#f0f8ff",
+	antiquewhite: "#faebd7",
+	aquamarine: "#7fffd4",
+	azure: "#f0ffff",
+	beige: "#f5f5dc",
+	bisque: "#ffe4c4",
+	blanchedalmond: "#ffebcd",
+	blueviolet: "#8a2be2",
+	brown: "#a52a2a",
+	burlywood: "#deb887",
+	cadetblue: "#5f9ea0",
+	chartreuse: "#7fff00",
+	chocolate: "#d2691e",
+	coral: "#ff7f50",
+	cornflowerblue: "#6495ed",
+	cornsilk: "#fff8dc",
+	crimson: "#dc143c",
+	cyan: "#00ffff",
+	darkblue: "#00008b",
+	darkcyan: "#008b8b",
+	darkgoldenrod: "#b8860b",
+	darkgray: "#a9a9a9",
+	darkgreen: "#006400",
+	darkgrey: "#a9a9a9",
+	darkkhaki: "#bdb76b",
+	darkmagenta: "#8b008b",
+	darkolivegreen: "#556b2f",
+	darkorange: "#ff8c00",
+	darkorchid: "#9932cc",
+	darkred: "#8b0000",
+	darksalmon: "#e9967a",
+	darkseagreen: "#8fbc8f",
+	darkslateblue: "#483d8b",
+	darkslategray: "#2f4f4f",
+	darkslategrey: "#2f4f4f",
+	darkturquoise: "#00ced1",
+	darkviolet: "#9400d3",
+	deeppink: "#ff1493",
+	deepskyblue: "#00bfff",
+	dimgray: "#696969",
+	dimgrey: "#696969",
+	dodgerblue: "#1e90ff",
+	firebrick: "#b22222",
+	floralwhite: "#fffaf0",
+	forestgreen: "#228b22",
+	gainsboro: "#dcdcdc",
+	ghostwhite: "#f8f8ff",
+	gold: "#ffd700",
+	goldenrod: "#daa520",
+	greenyellow: "#adff2f",
+	grey: "#808080",
+	honeydew: "#f0fff0",
+	hotpink: "#ff69b4",
+	indianred: "#cd5c5c",
+	indigo: "#4b0082",
+	ivory: "#fffff0",
+	khaki: "#f0e68c",
+	lavender: "#e6e6fa",
+	lavenderblush: "#fff0f5",
+	lawngreen: "#7cfc00",
+	lemonchiffon: "#fffacd",
+	lightblue: "#add8e6",
+	lightcoral: "#f08080",
+	lightcyan: "#e0ffff",
+	lightgoldenrodyellow: "#fafad2",
+	lightgray: "#d3d3d3",
+	lightgreen: "#90ee90",
+	lightgrey: "#d3d3d3",
+	lightpink: "#ffb6c1",
+	lightsalmon: "#ffa07a",
+	lightseagreen: "#20b2aa",
+	lightskyblue: "#87cefa",
+	lightslategray: "#778899",
+	lightslategrey: "#778899",
+	lightsteelblue: "#b0c4de",
+	lightyellow: "#ffffe0",
+	limegreen: "#32cd32",
+	linen: "#faf0e6",
+	magenta: "#ff00ff",
+	mediumaquamarine: "#66cdaa",
+	mediumblue: "#0000cd",
+	mediumorchid: "#ba55d3",
+	mediumpurple: "#9370db",
+	mediumseagreen: "#3cb371",
+	mediumslateblue: "#7b68ee",
+	mediumspringgreen: "#00fa9a",
+	mediumturquoise: "#48d1cc",
+	mediumvioletred: "#c71585",
+	midnightblue: "#191970",
+	mintcream: "#f5fffa",
+	mistyrose: "#ffe4e1",
+	moccasin: "#ffe4b5",
+	navajowhite: "#ffdead",
+	oldlace: "#fdf5e6",
+	olivedrab: "#6b8e23",
+	orangered: "#ff4500",
+	orchid: "#da70d6",
+	palegoldenrod: "#eee8aa",
+	palegreen: "#98fb98",
+	paleturquoise: "#afeeee",
+	palevioletred: "#db7093",
+	papayawhip: "#ffefd5",
+	peachpuff: "#ffdab9",
+	peru: "#cd853f",
+	pink: "#ffc0cb",
+	plum: "#dda0dd",
+	powderblue: "#b0e0e6",
+	rosybrown: "#bc8f8f",
+	royalblue: "#4169e1",
+	saddlebrown: "#8b4513",
+	salmon: "#fa8072",
+	sandybrown: "#f4a460",
+	seagreen: "#2e8b57",
+	seashell: "#fff5ee",
+	sienna: "#a0522d",
+	skyblue: "#87ceeb",
+	slateblue: "#6a5acd",
+	slategray: "#708090",
+	slategrey: "#708090",
+	snow: "#fffafa",
+	springgreen: "#00ff7f",
+	steelblue: "#4682b4",
+	tan: "#d2b48c",
+	thistle: "#d8bfd8",
+	tomato: "#ff6347",
+	turquoise: "#40e0d0",
+	violet: "#ee82ee",
+	wheat: "#f5deb3",
+	whitesmoke: "#f5f5f5",
+	yellowgreen: "#9acd32",
+};const getParenNumbers = str => {
+	const match = str.match(/\(([^\)]+)\)/g);
+	if (match == null || !match.length) { return undefined; }
+	return match[0]
+		.substring(1, match[0].length - 1)
+		.split(/[\s,]+/)
+		.map(parseFloat);
+};
+const parseColor = (string) => {
+	if (cssColors[string]) { return hexToRgb(cssColors[string]); }
+	if (string[0] === "#") { return hexToRgb(string); }
+	if (string.substring(0, 4) === "rgba"
+		|| string.substring(0, 3) === "rgb") {
+		const colors = getParenNumbers(string);
+		[0, 1, 2].forEach((_, i) => { colors[i] /= 255; });
+		return colors;
+	}
+	if (string.substring(0, 4) === "hsla"
+		|| string.substring(0, 3) === "hsl") {
+		return hslToRgb(...getParenNumbers(string));
+	}
+	return [0, 0, 0];
+};const colors = {
+	...convert$1,
+	cssColors,
+	parseColor,
+};const svg_add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
 const svg_sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
 const svg_scale2 = (a, s) => [a[0] * s, a[1] * s];
 const svg_magnitudeSq2 = (a) => (a[0] ** 2) + (a[1] ** 2);
 const svg_magnitude2 = (a) => Math.sqrt(svg_magnitudeSq2(a));
 const svg_distanceSq2 = (a, b) => svg_magnitudeSq2(svg_sub2(a, b));
 const svg_distance2 = (a, b) => Math.sqrt(svg_distanceSq2(a, b));
-const svg_polar_to_cart = (a, d) => [Math.cos(a) * d, Math.sin(a) * d];const algebra$1=/*#__PURE__*/Object.freeze({__proto__:null,svg_add2,svg_distance2,svg_distanceSq2,svg_magnitude2,svg_magnitudeSq2,svg_polar_to_cart,svg_scale2,svg_sub2});const makeCDATASection = (text) => (new (SVGWindow()).DOMParser())
+const svg_polar_to_cart = (a, d) => [Math.cos(a) * d, Math.sin(a) * d];
+const svg_multiplyMatrices2 = (m1, m2) => [
+	m1[0] * m2[0] + m1[2] * m2[1],
+	m1[1] * m2[0] + m1[3] * m2[1],
+	m1[0] * m2[2] + m1[2] * m2[3],
+	m1[1] * m2[2] + m1[3] * m2[3],
+	m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+	m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
+];const algebra$1=/*#__PURE__*/Object.freeze({__proto__:null,svg_add2,svg_distance2,svg_distanceSq2,svg_magnitude2,svg_magnitudeSq2,svg_multiplyMatrices2,svg_polar_to_cart,svg_scale2,svg_sub2});const parseTransform = function (transform) {
+	const parsed = transform.match(/(\w+\((\-?\d+\.?\d*e?\-?\d*,?\s*)+\))+/g);
+	if (!parsed) { return []; }
+	const listForm = parsed.map(a => a.match(/[\w\.\-]+/g));
+	return listForm.map(a => ({
+		transform: a.shift(),
+		parameters: a.map(p => parseFloat(p)),
+	}));
+};
+const matrixFormTranslate = function (params) {
+	switch (params.length) {
+	case 1: return [1, 0, 0, 1, params[0], 0];
+	case 2: return [1, 0, 0, 1, params[0], params[1]];
+	default: console.warn(`improper translate, ${params}`);
+	}
+	return undefined;
+};
+const matrixFormRotate = function (params) {
+	const cos_p = Math.cos(params[0] / (180 * Math.PI));
+	const sin_p = Math.sin(params[0] / (180 * Math.PI));
+	switch (params.length) {
+	case 1: return [cos_p, sin_p, -sin_p, cos_p, 0, 0];
+	case 3: return [cos_p, sin_p, -sin_p, cos_p,
+		-params[1] * cos_p + params[2] * sin_p + params[1],
+		-params[1] * sin_p - params[2] * cos_p + params[2]];
+	default: console.warn(`improper rotate, ${params}`);
+	}
+	return undefined;
+};
+const matrixFormScale = function (params) {
+	switch (params.length) {
+	case 1: return [params[0], 0, 0, params[0], 0, 0];
+	case 2: return [params[0], 0, 0, params[1], 0, 0];
+	default: console.warn(`improper scale, ${params}`);
+	}
+	return undefined;
+};
+const matrixFormSkewX = function (params) {
+	return [1, 0, Math.tan(params[0] / (180 * Math.PI)), 1, 0, 0];
+};
+const matrixFormSkewY = function (params) {
+	return [1, Math.tan(params[0] / (180 * Math.PI)), 0, 1, 0, 0];
+};
+const matrixForm = function (transformType, params) {
+	switch (transformType) {
+	case "translate": return matrixFormTranslate(params);
+	case "rotate": return matrixFormRotate(params);
+	case "scale": return matrixFormScale(params);
+	case "skewX": return matrixFormSkewX(params);
+	case "skewY": return matrixFormSkewY(params);
+	case "matrix": return params;
+	default: console.warn(`unknown transform type ${transformType}`);
+	}
+	return undefined;
+};
+const transformStringToMatrix = function (string) {
+	return parseTransform(string)
+		.map(el => matrixForm(el.transform, el.parameters))
+		.filter(a => a !== undefined)
+		.reduce((a, b) => svg_multiplyMatrices2(a, b), [1, 0, 0, 1, 0, 0]);
+};const transforms=/*#__PURE__*/Object.freeze({__proto__:null,transformStringToMatrix});const xmlStringToDOM = (input, mimeType = "text/xml") => (
+	new (SVGWindow().DOMParser)()
+).parseFromString(input, mimeType).documentElement;
+const getRootParent = (el) => {
+	let parent = el;
+	while (parent.parentNode != null) {
+		parent = parent.parentNode;
+	}
+	return parent;
+};
+const findElementTypeInParents = (element, nodeName) => {
+	if ((element.nodeName || "") === nodeName) {
+		return element;
+	}
+	return element.parentNode
+		? findElementTypeInParents(element.parentNode, nodeName)
+		: undefined;
+};
+const polyfillClassListAdd = (el, ...classes) => {
+	const hash = {};
+	const getClass = el.getAttribute("class");
+	const classArray = getClass ? getClass.split(" ") : [];
+	classArray.push(...classes);
+	classArray.forEach(str => { hash[str] = true; });
+	const classString = Object.keys(hash).join(" ");
+	el.setAttribute("class", classString);
+};
+const addClass = (el, ...classes) => {
+	if (!el || !classes.length) { return undefined; }
+	return el.classList
+		? el.classList.add(...classes)
+		: polyfillClassListAdd(el, ...classes);
+};
+const flattenDomTree = (el) => (el.children == null || !el.children.length
+	? [el]
+	: Array.from(el.children)
+		.flatMap(child => flattenDomTree(child)));
+const nodeSpecificAttrs = {
+	svg: ["viewBox", "xmlns", "version"],
+	line: ["x1", "y1", "x2", "y2"],
+	rect: ["x", "y", "width", "height"],
+	circle: ["cx", "cy", "r"],
+	ellipse: ["cx", "cy", "rx", "ry"],
+	polygon: ["points"],
+	polyline: ["points"],
+	path: ["d"],
+};
+const getAttributes = element => {
+	const attributes = Array.from(element.attributes);
+	return nodeSpecificAttrs[element.nodeName]
+		? attributes
+			.filter(a => !nodeSpecificAttrs[element.nodeName].includes(a.name))
+		: attributes;
+};
+const objectifyAttributes = (list) => {
+	const obj = {};
+	list.forEach((a) => { obj[a.nodeName] = a.value; });
+	return obj;
+};
+const attrAssign = (parentAttrs, element) => {
+	const attrs = objectifyAttributes(getAttributes(element));
+	if (!attrs.transform && !parentAttrs.transform) {
+		return { ...parentAttrs, ...attrs };
+	}
+	const elemTransform = attrs.transform || "";
+	const parentTransform = parentAttrs.transform || "";
+	const elemMatrix = transformStringToMatrix(elemTransform);
+	const parentMatrix = transformStringToMatrix(parentTransform);
+	const matrix = svg_multiplyMatrices2(parentMatrix, elemMatrix);
+	const transform = `matrix(${matrix.join(", ")})`;
+	return { ...parentAttrs, ...attrs, transform };
+};
+const flattenDomTreeWithStyle = (element, attributes = {}) => (
+	element.children == null || !element.children.length
+		? [{ element, attributes }]
+		: Array.from(element.children)
+			.flatMap(child => flattenDomTreeWithStyle(child, attrAssign(attributes, child)))
+);const dom$1=/*#__PURE__*/Object.freeze({__proto__:null,addClass,findElementTypeInParents,flattenDomTree,flattenDomTreeWithStyle,getRootParent,xmlStringToDOM});const makeCDATASection = (text) => (new (SVGWindow()).DOMParser())
 	.parseFromString("<root></root>", "text/xml")
 	.createCDATASection(text);const markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
 const digitRegEx = /-?[0-9]*\.?\d+/g;
@@ -3967,10 +4307,12 @@ const convertToViewBox = function (svg, x, y) {
 	pt.y = y;
 	const svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
 	return [svgPoint.x, svgPoint.y];
-};const viewBox=/*#__PURE__*/Object.freeze({__proto__:null,convertToViewBox,getViewBox:getViewBox$1,setViewBox});const methods$3 = {
+};const viewBox=/*#__PURE__*/Object.freeze({__proto__:null,convertToViewBox,getViewBox:getViewBox$1,setViewBox});const general$2 = {
 	...algebra$1,
+	...dom$1,
 	makeCDATASection,
 	...path,
+	...transforms,
 	...viewBox,
 };const getSVGFrame = function (element) {
 	const viewBox = getViewBox$1(element);
@@ -5049,7 +5391,8 @@ Object.assign(SVG, {
 	nodes_attributes,
 	nodes_children,
 	extensions,
-	...methods$3,
+	...colors,
+	...general$2,
 });
 nodeNames.forEach(nodeName => {
 	SVG[nodeName] = (...args) => Constructor(nodeName, null, ...args);
@@ -5107,29 +5450,9 @@ const getStrokeWidth = (graph, { vmax } = {}) => {
 	Object.keys(attributes)
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
 	return g;
-};const findElementTypeInParents = (element, nodeName) => {
-	if ((element.nodeName || "") === nodeName) {
-		return element;
-	}
-	return element.parentNode
-		? findElementTypeInParents(element.parentNode, nodeName)
-		: undefined;
-};
-const classListPolyfill = (el, ...classes) => {
-	const hash = {};
-	const getClass = el.getAttribute("class");
-	const classArray = getClass ? getClass.split(" ") : [];
-	classArray.push(...classes);
-	classArray.forEach(str => { hash[str] = true; });
-	const classString = Object.keys(hash).join(" ");
-	el.setAttribute("class", classString);
-};
-const addClass = (el, ...classes) => {
-	if (!el || !classes.length) { return undefined; }
-	return el.classList
-		? el.classList.add(...classes)
-		: classListPolyfill(el, ...classes);
-};const GROUP_FOLDED = {};
+};const setMetadata$1 = (element, key, value) => (
+	element.setAttribute(`data-${key}`, value)
+);const GROUP_FOLDED = {};
 const GROUP_FLAT = {
 	stroke: _black,
 };
@@ -5237,6 +5560,14 @@ const edgesLines = (graph, attributes = {}) => {
 	const lines = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]))
 		.map(l => SVG.line(l[0][0], l[0][1], l[1][0], l[1][1]));
+	if (graph.edges_foldAngle) {
+		graph.edges_foldAngle
+			.forEach((a, i) => setMetadata$1(lines[i], "foldAngle", a));
+	}
+	if (graph.edges_assignment) {
+		graph.edges_assignment
+			.forEach((a, i) => setMetadata$1(lines[i], "assignment", a));
+	}
 	if (graph.edges_foldAngle) {
 		lines.forEach((line, i) => {
 			const angle = graph.edges_foldAngle[i];
@@ -6352,7 +6683,7 @@ Origami.prototype = Object.create(graphProto);
 Origami.prototype.constructor = Origami;
 Origami.prototype.flatFold = function () {
 	const line = getLine$1(arguments);
-	flatFold(this, line.vector, line.origin);
+	flatFold(this, line);
 	return this;
 };
 const origamiProto = Origami.prototype;const file_spec = 1.1;
@@ -6849,11 +7180,30 @@ const objToFold = (file) => {
 	delete graph.edges_faces;
 	updateMetadata(graph);
 	return graph;
-};const makeEpsilon = (graph) => {
+};const shortestEdgeLength = (graph) => {
+	const lengths = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v]))
+		.map(segment => distance(...segment));
+	const minLen = lengths
+		.reduce((a, b) => Math.min(a, b), Infinity);
+	return minLen === Infinity ? undefined : minLen;
+};
+const makeEpsilon = (graph) => {
+	const shortest = shortestEdgeLength(graph);
+	if (shortest) { return shortest / 4; }
 	const bounds = boundingBox(graph);
 	return bounds && bounds.span
-		? 1e-3 * Math.min(...bounds.span)
+		? 1e-3 * Math.max(...bounds.span)
 		: 1e-3;
+};const planarizeGraph = (graph, epsilon) => {
+	const planar = { ...graph };
+	removeDuplicateVertices(planar, epsilon);
+	planarize(planar, epsilon);
+	planar.vertices_vertices = makeVerticesVertices(planar);
+	const faces = makePlanarFaces(planar);
+	planar.faces_vertices = faces.faces_vertices;
+	planar.faces_edges = faces.faces_edges;
+	return planar;
 };const getContainingValue = (oripa, value) => Array
 	.from(oripa.children)
 	.filter(el => el.attributes.length && Array.from(el.attributes)
@@ -6889,22 +7239,13 @@ const parseLines = (lines) => lines.map(line => {
 			.textContent));
 });
 const opxAssignment = ["F", "B", "M", "V", "U"];
-const makeFOLD = (lines, epsilon) => {
+const makeFOLD = (lines) => {
 	const fold = {};
 	fold.vertices_coords = lines
 		.flatMap(line => [[line[1], line[3]], [line[2], line[4]]]);
 	fold.edges_vertices = lines.map((_, i) => [i * 2, i * 2 + 1]);
 	fold.edges_assignment = lines.map(line => opxAssignment[line[0]]);
 	fold.edges_foldAngle = makeEdgesFoldAngle(fold);
-	const eps = typeof epsilon === "number"
-		? epsilon
-		: makeEpsilon(fold);
-	removeDuplicateVertices(fold, eps);
-	planarize(fold, eps);
-	fold.vertices_vertices = makeVerticesVertices(fold);
-	const faces = makePlanarFaces(fold);
-	fold.faces_vertices = faces.faces_vertices;
-	fold.faces_edges = faces.faces_edges;
 	return fold;
 };
 const opxEdgeGraph = (file) => {
@@ -6913,14 +7254,7 @@ const opxEdgeGraph = (file) => {
 	const oripa = Array.from(parsed.documentElement.children)
 		.filter(el => Array.from(el.classList).includes("oripa.DataSet"))
 		.shift();
-	const lines = parseLines(getLines(oripa));
-	const fold = {};
-	fold.vertices_coords = lines
-		.flatMap(line => [[line[1], line[3]], [line[2], line[4]]]);
-	fold.edges_vertices = lines.map((_, i) => [i * 2, i * 2 + 1]);
-	fold.edges_assignment = lines.map(line => opxAssignment[line[0]]);
-	fold.edges_foldAngle = makeEdgesFoldAngle(fold);
-	return fold;
+	return makeFOLD(parseLines(getLines(oripa)));
 };
 const setMetadata = (oripa, fold) => {
 	const metadata = {
@@ -6944,89 +7278,32 @@ const opxToFold = (file, epsilon) => {
 		const oripa = Array.from(parsed.documentElement.children)
 			.filter(el => Array.from(el.classList).includes("oripa.DataSet"))
 			.shift();
-		const fold = makeFOLD(parseLines(getLines(oripa)), epsilon);
-		setMetadata(oripa, fold);
-		return fold;
+		const fold = makeFOLD(parseLines(getLines(oripa)));
+		const eps = typeof epsilon === "number"
+			? epsilon
+			: makeEpsilon(fold);
+		const planarGraph = planarizeGraph(fold, eps);
+		setMetadata(oripa, planarGraph);
+		return planarGraph;
 	} catch (error) {
 		console.error(error);
 	}
 	return undefined;
 };
-opxToFold.opxEdgeGraph = opxEdgeGraph;const xmlStringToDOM = (input, mimeType = "text/xml") => (
-	new (RabbitEarWindow().DOMParser)()
-).parseFromString(input, mimeType).documentElement;
-const flattenDomTree = (el) => (el.children == null || !el.children.length
-	? [el]
-	: Array.from(el.children)
-		.flatMap(child => flattenDomTree(child)));
-const getRootParent = (el) => {
-	let parent = el;
-	while (parent.parentNode != null) {
-		parent = parent.parentNode;
-	}
-	return parent;
-};const getStylesheetStyle = (key, nodeName, attributes, sheets = []) => {
-	const classes = attributes.class
-		? attributes.class
-			.split(/\s/)
-			.filter(Boolean)
-			.map(i => i.trim())
-			.map(str => `.${str}`)
-		: [];
-	const id = attributes.id
-		? `#${attributes.id}`
-		: null;
-	if (id) {
-		for (let s = 0; s < sheets.length; s += 1) {
-			if (sheets[s][id] && sheets[s][id][key]) {
-				return sheets[s][id][key];
-			}
-		}
-	}
-	for (let s = 0; s < sheets.length; s += 1) {
-		for (let c = 0; c < classes.length; c += 1) {
-			if (sheets[s][classes[c]] && sheets[s][classes[c]][key]) {
-				return sheets[s][classes[c]][key];
-			}
-		}
-		if (sheets[s][nodeName] && sheets[s][nodeName][key]) {
-			return sheets[s][nodeName][key];
-		}
-	}
-	return undefined;
+opxToFold.opxEdgeGraph = opxEdgeGraph;const countPlaces = function (num) {
+	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+	return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
 };
-const getAttributeValue = (key, nodeName, attributes, sheets = []) => {
-	const inlineStyle = attributes.style
-		? attributes.style.match(new RegExp(`${key}[\\s]*:[^;]*;`))
-		: null;
-	if (inlineStyle) {
-		return inlineStyle[0].split(":")[1].replace(";", "");
+const cleanNumber = function (num, places = 15) {
+	if (typeof num !== "number") { return num; }
+	const crop = parseFloat(num.toFixed(places));
+	if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
+		return num;
 	}
-	const sheetResult = getStylesheetStyle(key, nodeName, attributes, sheets);
-	if (sheetResult !== undefined) { return sheetResult; }
-	if (attributes[key]) { return attributes[key]; }
-	return null;
-};const geometryAttributes = {
-	attrs: {
-		line: { x1: 1, y1: 1, x2: 1, y2: 1 },
-		rect: { x: 1, y: 1, width: 1, height: 1 },
-		circle: { cx: 1, cy: 1, r: 1 },
-		ellipse: { cx: 1, cy: 1, rx: 1, ry: 1 },
-		polygon: { points: 1 },
-		polyline: { points: 1 },
-		path: { d: 1 },
-	},
-};const pointsStringToArray = str => {
-	const list = str
-		.split(/[\s,]+/)
-		.map(n => parseFloat(n));
-	return Array
-		.from(Array(Math.floor(list.length / 2)))
-		.map((_, i) => [list[i * 2 + 0], list[i * 2 + 1]]);
-};
-const getAttributesFloatValue = (element, attributes) => attributes
+	return crop;
+};const number=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const getAttributesFloatValue = (element, attributes) => attributes
 	.map(attr => element.getAttribute(attr))
-	.map(str => (str == null ? "0" : str))
+	.map(str => (str == null ? 0 : str))
 	.map(parseFloat);const LineToSegments = (line) => [
 	getAttributesFloatValue(line, ["x1", "y1", "x2", "y2"]),
 ];const RectToSegments = function (rect) {
@@ -7040,7 +7317,13 @@ const getAttributesFloatValue = (element, attributes) => attributes
 		[x + w, y + h, x, y + h],
 		[x, y + h, x, y],
 	];
-};const PolygonToSegments = (poly) => (
+};const pointsStringToArray = str => {
+	const list = str.split(/[\s,]+/).map(parseFloat);
+	return Array
+		.from(Array(Math.floor(list.length / 2)))
+		.map((_, i) => [list[i * 2 + 0], list[i * 2 + 1]]);
+};
+const PolygonToSegments = (poly) => (
 	pointsStringToArray(poly.getAttribute("points") || "")
 		.map((_, i, arr) => [
 			arr[i][0],
@@ -7067,340 +7350,117 @@ const PathToSegments = (path) => (
 	polygon: PolygonToSegments,
 	polyline: PolylineToSegments,
 	path: PathToSegments,
-};const cssColors = {
-	black: "#000000",
-	silver: "#c0c0c0",
-	gray: "#808080",
-	white: "#ffffff",
-	maroon: "#800000",
-	red: "#ff0000",
-	purple: "#800080",
-	fuchsia: "#ff00ff",
-	green: "#008000",
-	lime: "#00ff00",
-	olive: "#808000",
-	yellow: "#ffff00",
-	navy: "#000080",
-	blue: "#0000ff",
-	teal: "#008080",
-	aqua: "#00ffff",
-	orange: "#ffa500",
-	aliceblue: "#f0f8ff",
-	antiquewhite: "#faebd7",
-	aquamarine: "#7fffd4",
-	azure: "#f0ffff",
-	beige: "#f5f5dc",
-	bisque: "#ffe4c4",
-	blanchedalmond: "#ffebcd",
-	blueviolet: "#8a2be2",
-	brown: "#a52a2a",
-	burlywood: "#deb887",
-	cadetblue: "#5f9ea0",
-	chartreuse: "#7fff00",
-	chocolate: "#d2691e",
-	coral: "#ff7f50",
-	cornflowerblue: "#6495ed",
-	cornsilk: "#fff8dc",
-	crimson: "#dc143c",
-	cyan: "#00ffff",
-	darkblue: "#00008b",
-	darkcyan: "#008b8b",
-	darkgoldenrod: "#b8860b",
-	darkgray: "#a9a9a9",
-	darkgreen: "#006400",
-	darkgrey: "#a9a9a9",
-	darkkhaki: "#bdb76b",
-	darkmagenta: "#8b008b",
-	darkolivegreen: "#556b2f",
-	darkorange: "#ff8c00",
-	darkorchid: "#9932cc",
-	darkred: "#8b0000",
-	darksalmon: "#e9967a",
-	darkseagreen: "#8fbc8f",
-	darkslateblue: "#483d8b",
-	darkslategray: "#2f4f4f",
-	darkslategrey: "#2f4f4f",
-	darkturquoise: "#00ced1",
-	darkviolet: "#9400d3",
-	deeppink: "#ff1493",
-	deepskyblue: "#00bfff",
-	dimgray: "#696969",
-	dimgrey: "#696969",
-	dodgerblue: "#1e90ff",
-	firebrick: "#b22222",
-	floralwhite: "#fffaf0",
-	forestgreen: "#228b22",
-	gainsboro: "#dcdcdc",
-	ghostwhite: "#f8f8ff",
-	gold: "#ffd700",
-	goldenrod: "#daa520",
-	greenyellow: "#adff2f",
-	grey: "#808080",
-	honeydew: "#f0fff0",
-	hotpink: "#ff69b4",
-	indianred: "#cd5c5c",
-	indigo: "#4b0082",
-	ivory: "#fffff0",
-	khaki: "#f0e68c",
-	lavender: "#e6e6fa",
-	lavenderblush: "#fff0f5",
-	lawngreen: "#7cfc00",
-	lemonchiffon: "#fffacd",
-	lightblue: "#add8e6",
-	lightcoral: "#f08080",
-	lightcyan: "#e0ffff",
-	lightgoldenrodyellow: "#fafad2",
-	lightgray: "#d3d3d3",
-	lightgreen: "#90ee90",
-	lightgrey: "#d3d3d3",
-	lightpink: "#ffb6c1",
-	lightsalmon: "#ffa07a",
-	lightseagreen: "#20b2aa",
-	lightskyblue: "#87cefa",
-	lightslategray: "#778899",
-	lightslategrey: "#778899",
-	lightsteelblue: "#b0c4de",
-	lightyellow: "#ffffe0",
-	limegreen: "#32cd32",
-	linen: "#faf0e6",
-	magenta: "#ff00ff",
-	mediumaquamarine: "#66cdaa",
-	mediumblue: "#0000cd",
-	mediumorchid: "#ba55d3",
-	mediumpurple: "#9370db",
-	mediumseagreen: "#3cb371",
-	mediumslateblue: "#7b68ee",
-	mediumspringgreen: "#00fa9a",
-	mediumturquoise: "#48d1cc",
-	mediumvioletred: "#c71585",
-	midnightblue: "#191970",
-	mintcream: "#f5fffa",
-	mistyrose: "#ffe4e1",
-	moccasin: "#ffe4b5",
-	navajowhite: "#ffdead",
-	oldlace: "#fdf5e6",
-	olivedrab: "#6b8e23",
-	orangered: "#ff4500",
-	orchid: "#da70d6",
-	palegoldenrod: "#eee8aa",
-	palegreen: "#98fb98",
-	paleturquoise: "#afeeee",
-	palevioletred: "#db7093",
-	papayawhip: "#ffefd5",
-	peachpuff: "#ffdab9",
-	peru: "#cd853f",
-	pink: "#ffc0cb",
-	plum: "#dda0dd",
-	powderblue: "#b0e0e6",
-	rosybrown: "#bc8f8f",
-	royalblue: "#4169e1",
-	saddlebrown: "#8b4513",
-	salmon: "#fa8072",
-	sandybrown: "#f4a460",
-	seagreen: "#2e8b57",
-	seashell: "#fff5ee",
-	sienna: "#a0522d",
-	skyblue: "#87ceeb",
-	slateblue: "#6a5acd",
-	slategray: "#708090",
-	slategrey: "#708090",
-	snow: "#fffafa",
-	springgreen: "#00ff7f",
-	steelblue: "#4682b4",
-	tan: "#d2b48c",
-	thistle: "#d8bfd8",
-	tomato: "#ff6347",
-	turquoise: "#40e0d0",
-	violet: "#ee82ee",
-	wheat: "#f5deb3",
-	whitesmoke: "#f5f5f5",
-	yellowgreen: "#9acd32",
-};const hexToRGB = (string) => {
-	const numbersOnly = string.replace(/#(?=\S)/g, "");
-	const chars = Array.from(Array(6))
-		.map((_, i) => numbersOnly[i] || "0");
-	const hexString = numbersOnly.length <= 4
-		? [0, 0, 1, 1, 2, 2].map(i => chars[i]).join("")
-		: chars.join("");
-	const c = parseInt(hexString, 16);
-	return [(c >> 16) & 255, (c >> 8) & 255, c & 255]
-		.map(n => n / 255);
-};const HSLToRGB = (h, s, l) => {
-	s /= 100;
-	l /= 100;
-	const k = n => (n + h / 30) % 12;
-	const a = s * Math.min(l, 1 - l);
-	const f = n =>
-		l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-	return [f(0), f(8), f(4)];
-};
-const getParenNumbers = str => {
-	const match = str.match(/\(([^\)]+)\)/g);
-	if (match == null || !match.length) { return undefined; }
-	return match[0]
-		.substring(1, match[0].length - 1)
-		.split(/[\s,]+/)
-		.map(parseFloat);
-};
-const parseCSSColor = (string) => {
-	if (cssColors[string]) { return hexToRGB(cssColors[string]); }
-	if (string[0] === "#") { return hexToRGB(string); }
-	if (string.substring(0, 4) === "rgba"
-		|| string.substring(0, 3) === "rgb") {
-		const colors = getParenNumbers(string);
-		[0, 1, 2].forEach((_, i) => { colors[i] /= 255; });
-		return colors;
-	}
-	if (string.substring(0, 4) === "hsla"
-		|| string.substring(0, 3) === "hsl") {
-		return HSLToRGB(...getParenNumbers(string));
-	}
-	return [0, 0, 0];
-};const assignmentColors = {
+};const DESATURATION_RATIO = 4;
+const assignmentsColor = {
 	M: [1, 0, 0],
 	V: [0, 0, 1],
 	J: [1, 1, 0],
 	U: [1, 0, 1],
 	C: [0, 1, 0],
 };
-const colorToAssignment = (string) => {
-	if (string == null || typeof string !== "string") {
-		return "U";
-	}
-	const color = parseCSSColor(string);
-	const color3 = color.slice(0, 3);
-	const grayscale = color3.reduce((a, b) => a + b, 0) / 3;
-	const grayDistance = {
-		key: "F",
-		distance: distance3(color3, [grayscale, grayscale, grayscale]),
-	};
-	const colorDistance = Object.keys(assignmentColors)
-		.map(key => ({
-			key,
-			distance: distance3(color3, assignmentColors[key]),
-		}))
-		.sort((a, b) => a.distance - b.distance)
+const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
+	const color = [red, green, blue];
+	const blackDistance = magnitude3(color);
+	if (blackDistance < 0.05) { return "B"; }
+	const grayscale = color.reduce((a, b) => a + b, 0) / 3;
+	const grayDistance = distance3(color, [grayscale, grayscale, grayscale]);
+	const nearestColor = Object.keys(assignmentsColor)
+		.map(key => ({ key, dist: distance3(color, assignmentsColor[key]) }))
+		.sort((a, b) => a.dist - b.dist)
 		.shift();
-	return grayDistance.distance < colorDistance.distance
-		? grayDistance.key
-		: colorDistance.key;
-};const parseCSSStyleSheet = (sheet) => {
-	if (!sheet.cssRules) { return {}; }
-	const stylesheets = {};
-	for (let i = 0; i < sheet.cssRules.length; i += 1) {
-		const cssRules = sheet.cssRules[i];
-		if (cssRules.type !== 1) { continue; }
-		const selectorList = cssRules.selectorText
-			.split(/,/gm)
-			.filter(Boolean)
-			.map(str => str.trim());
-		const style = {};
-		Object.values(cssRules.style)
-			.forEach(key => { style[key] = cssRules.style[key]; });
-		selectorList.forEach(selector => {
-			stylesheets[selector] = style;
-		});
+	if (nearestColor.dist < grayDistance * DESATURATION_RATIO) {
+		return nearestColor.key;
 	}
-	return stylesheets;
-};
-const parseStyleElement = (style) => {
-	if (style.sheet) { return parseCSSStyleSheet(style.sheet); }
-	const rootParent = getRootParent(style);
-	const isHTMLBound = rootParent.constructor === RabbitEarWindow().HTMLDocument;
-	if (!isHTMLBound) {
-		const prevParent = style.parentNode;
-		if (prevParent != null) {
-			prevParent.removeChild(style);
-		}
-		const body = RabbitEarWindow().document.body != null
-			? RabbitEarWindow().document.body
-			: RabbitEarWindow().document.createElement("body");
-		body.appendChild(style);
-		const parsedStyle = parseCSSStyleSheet(style.sheet);
-		body.removeChild(style);
-		if (prevParent != null) {
-			prevParent.appendChild(style);
-		}
-		return parsedStyle;
-	}
-	return {};
-};const opacityToFoldAngle = (opacity, assignment) => {
+	return blackDistance < 0.1 ? "B" : "F";
+};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentsColor,rgbToAssignment});const opacityToFoldAngle = (opacity, assignment) => {
 	switch (assignment) {
 	case "M": case "m": return -180 * opacity;
 	case "V": case "v": return 180 * opacity;
 	default: return 0;
 	}
 };
-const attribute_list = (element) => Array
-	.from(element.attributes)
-	.filter(a => !geometryAttributes.attrs[element.nodeName][a.nodeName]);
-const objectifyAttributeList = function (list) {
-	const obj = {};
-	list.forEach((a) => { obj[a.nodeName] = a.value; });
-	return obj;
+const getOpacity = (element, attributes) => {
+	const computedOpacity = RabbitEarWindow().getComputedStyle(element).opacity;
+	if (computedOpacity !== "") {
+		const floatOpacity = parseFloat(computedOpacity);
+		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }
+	}
+	if (attributes.opacity !== undefined) {
+		const floatOpacity = parseFloat(attributes.opacity);
+		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }
+	}
+	return undefined;
 };
-const segmentize = (elements) => elements
-	.filter(el => parsers[el.tagName])
-	.flatMap(el => parsers[el.tagName](el)
-		.map(segment => ({
-			nodeName: el.tagName,
-			segment,
-			attributes: objectifyAttributeList(attribute_list(el)),
-		})));
+const getEdgeAssignment = (element, attributes) => {
+	if (attributes["data-assignment"] !== undefined) {
+		return attributes["data-assignment"];
+	}
+	const computedStroke = RabbitEarWindow().getComputedStyle(element).stroke;
+	if (computedStroke !== "" && computedStroke !== "none") {
+		return rgbToAssignment(...parseColor(computedStroke));
+	}
+	if (attributes.stroke !== undefined) { return attributes.stroke; }
+	return "U";
+};
+const getEdgeFoldAngle = (element, attributes, assignment) => {
+	if (attributes["data-foldAngle"] !== undefined) {
+		const floatFoldAngle = parseFloat(attributes["data-foldAngle"]);
+		if (!Number.isNaN(floatFoldAngle)) { return floatFoldAngle; }
+	}
+	if (!assignment) { return 0; }
+	const opacity = getOpacity(element, attributes) || 0;
+	return opacityToFoldAngle(opacity, assignment);
+};const transformSegment = (segment, transform) => {
+	const seg = [[segment[0], segment[1]], [segment[2], segment[3]]];
+	if (!transform) { return seg; }
+	const matrix = transformStringToMatrix(transform);
+	return matrix
+		? seg.map(p => multiplyMatrix2Vector2(matrix, p))
+		: seg;
+};
 const svgEdgeGraph = (svg) => {
 	const typeString = typeof svg === "string";
 	const xml = typeString ? xmlStringToDOM(svg, "image/svg+xml") : svg;
-	const elements = flattenDomTree(xml);
-	const stylesheets = elements
-		.filter(el => el.nodeName === "style")
-		.map(parseStyleElement);
-	const result = segmentize(elements);
-	const edges_assignment = result
-		.map(el => getAttributeValue(
-			"stroke",
-			el.nodeName,
-			el.attributes,
-			stylesheets,
-		) || "black")
-		.map(color => colorToAssignment(color));
-	const edges_foldAngle = result
-		.map(el => getAttributeValue(
-			"opacity",
-			el.nodeName,
-			el.attributes,
-			stylesheets,
-		) || "1")
-		.map((opacity, i) => opacityToFoldAngle(opacity, edges_assignment[i]));
-	const vertices_coords = result
-		.map(el => el.segment)
-		.flatMap(s => [[s[0], s[1]], [s[2], s[3]]]);
-	const edges_vertices = result
-		.map((_, i) => [i * 2, i * 2 + 1]);
+	const elements = flattenDomTreeWithStyle(xml);
+	const segments = elements
+		.filter(el => parsers[el.element.nodeName])
+		.flatMap(el => parsers[el.element.nodeName](el.element)
+			.map(segment => transformSegment(segment, el.attributes.transform))
+			.map(segment => ({ ...el, segment })));
+	const invisible = RabbitEarWindow().document.createElementNS(NS, "svg");
+	invisible.setAttribute("display", "none");
+	RabbitEarWindow().document.body.appendChild(invisible);
+	invisible.appendChild(xml);
+	const stylesheets = elements.filter(el => el.element.nodeName === "style");
+	if (stylesheets.length && isNode) {
+		console.warn(Messages$1.backendStylesheet);
+	}
+	const edges_assignment = segments
+		.map(el => getEdgeAssignment(el.element, el.attributes));
+	const edges_foldAngle = segments.map((el, i) => getEdgeFoldAngle(
+		el.element,
+		el.attributes,
+		edges_assignment[i],
+	));
+	invisible.parentNode.removeChild(invisible);
+	const vertices_coords = segments
+		.flatMap(el => el.segment)
+		.map(coord => coord.map(n => cleanNumber(n, 14)));
+	const edges_vertices = segments.map((_, i) => [i * 2, i * 2 + 1]);
 	return {
 		vertices_coords,
 		edges_vertices,
 		edges_assignment,
 		edges_foldAngle,
 	};
-};
-const planarizeGraph = (graph, epsilon) => {
-	const planar = { ...graph };
-	removeDuplicateVertices(planar, epsilon);
-	planarize(planar, epsilon);
-	planar.vertices_vertices = makeVerticesVertices(planar);
-	const faces = makePlanarFaces(planar);
-	planar.faces_vertices = faces.faces_vertices;
-	planar.faces_edges = faces.faces_edges;
-	const { edges } = planarBoundary(planar);
-	edges.forEach(e => { planar.edges_assignment[e] = "B"; });
-	return planar;
-};
-const svgToFold = (svg, epsilon) => {
+};const svgToFold = (svg, epsilon) => {
 	const graph = svgEdgeGraph(svg);
 	const eps = typeof epsilon === "number"
 		? epsilon
 		: makeEpsilon(graph);
 	const planarGraph = planarizeGraph(graph, eps);
+	const { edges } = planarBoundary(planarGraph);
+	edges.forEach(e => { planarGraph.edges_assignment[e] = "B"; });
 	return {
 		file_spec: 1.1,
 		file_creator: "Rabbit Ear",
@@ -7409,7 +7469,8 @@ const svgToFold = (svg, epsilon) => {
 	};
 };
 svgToFold.svgEdgeGraph = svgEdgeGraph;
-svgToFold.segmentize = segmentize;const convert = {
+svgToFold.makeEpsilon = makeEpsilon;
+svgToFold.planarizeGraph = planarizeGraph;const convert = {
 	objToFold,
 	opxToFold,
 	svgToFold,
@@ -7827,9 +7888,10 @@ const makeEdgesEdgesParallelOverlap = ({
 	planarize,
 	connectedComponents,
 	clone,
+	...foldColors,
+	...foldFileFrames,
 	...foldKeyMethods,
 	...foldSpecMethods,
-	...foldFileFrames,
 	...affine,
 	...boundary$1,
 	...edgesEdges,
@@ -7859,18 +7921,7 @@ const makeEdgesEdgesParallelOverlap = ({
 	...facesOverlap,
 	...facesSpanningTree,
 	...facesWinding,
-};const countPlaces = function (num) {
-	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-	return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
-};
-const cleanNumber = function (num, places = 15) {
-	if (typeof num !== "number") { return num; }
-	const crop = parseFloat(num.toFixed(places));
-	if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
-		return num;
-	}
-	return crop;
-};const number=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const typeOf = (obj) => {
+};const typeOf = (obj) => {
 	if (typeof obj !== "object") { return typeof obj; }
 	if (obj.radius !== undefined) { return "circle"; }
 	if (obj.min && obj.max && obj.span) { return "box"; }
@@ -7884,7 +7935,7 @@ const cleanNumber = function (num, places = 15) {
 	...constant,
 	..._function,
 	...get,
-	...convert$1,
+	...convert$2,
 	...array,
 	...number,
 	...search,
@@ -8778,11 +8829,11 @@ const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	},
 	u_frontColor: {
 		func: "uniform3fv",
-		value: hexToRGB(frontColor),
+		value: hexToRgb(frontColor),
 	},
 	u_backColor: {
 		func: "uniform3fv",
-		value: hexToRGB(backColor),
+		value: hexToRgb(backColor),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",

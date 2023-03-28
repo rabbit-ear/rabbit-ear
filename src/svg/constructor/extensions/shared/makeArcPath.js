@@ -1,5 +1,5 @@
 /* svg (c) Kraft, MIT License */
-import { svg_polar_to_cart } from '../../../methods/algebra.js';
+import { svg_polar_to_cart } from '../../../general/algebra.js';
 
 const arcPath = (x, y, radius, startAngle, endAngle, includeCenter = false) => {
 	if (endAngle == null) { return ""; }

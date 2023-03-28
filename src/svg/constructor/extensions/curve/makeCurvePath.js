@@ -1,5 +1,5 @@
 /* svg (c) Kraft, MIT License */
-import { svg_sub2, svg_add2, svg_scale2 } from '../../../methods/algebra.js';
+import { svg_sub2, svg_add2, svg_scale2 } from '../../../general/algebra.js';
 
 const makeCurvePath = (endpoints = [], bend = 0, pinch = 0.5) => {
 	const tailPt = [endpoints[0] || 0, endpoints[1] || 0];
