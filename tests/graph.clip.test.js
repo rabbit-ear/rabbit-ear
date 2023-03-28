@@ -36,7 +36,7 @@ test("clip line exclusive, edges collinear", () => {
 	// expect(boundary.clip({ vector: [0, 1], origin: [0, 0] })).toBe(undefined);
 	// expect(boundary.clip({ vector: [0, -1], origin: [0, 0] })).toBe(undefined);
 	// expect(boundary.clip({ vector: [1, 0], origin: [0, 0] })).toBe(undefined);
-	const boundary = cp.boundary.vertices.map(v => cp.vertices_coords[v]);
+	const boundary = cp.boundary().vertices.map(v => cp.vertices_coords[v]);
 
 	expect(ear.math.clipLineConvexPolygon(
 		boundary,

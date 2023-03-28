@@ -23,10 +23,8 @@ test("edges faces direction", () => {
 	};
 	// prepare
 	const planar_faces = ear.graph.makePlanarFaces(graph);
-	graph.faces_vertices = planar_faces
-		.map(face => face.vertices);
-	graph.faces_edges = planar_faces
-		.map(face => face.edges);
+	graph.faces_vertices = planar_faces.faces_vertices;
+	graph.faces_edges = planar_faces.faces_edges;
 
 	const edges_faces1 = ear.graph.makeEdgesFaces(graph);
 	expect(edges_faces1[4][0]).toBe(0);

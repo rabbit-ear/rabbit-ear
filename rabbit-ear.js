@@ -600,7 +600,7 @@ const edgesAssignmentNames = {
 Object.keys(edgesAssignmentNames).forEach(key => {
 	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
 });
-const assignmentFlatDegrees = {
+const assignmentFlatFoldAngle = {
 	B: 0,
 	b: 0,
 	M: -180,
@@ -633,7 +633,7 @@ const assignmentCanBeFolded = {
 	u: true,
 };
 const edgeAssignmentToFoldAngle = assignment => (
-	assignmentFlatDegrees[assignment] || 0
+	assignmentFlatFoldAngle[assignment] || 0
 );
 const edgeFoldAngleToAssignment = (angle) => {
 	if (angle > EPSILON) { return "V"; }
@@ -715,7 +715,7 @@ const invertAssignments = (graph) => {
 		graph.edges_foldAngle = graph.edges_foldAngle.map(n => -n);
 	}
 	return graph;
-};const foldSpecMethods=/*#__PURE__*/Object.freeze({__proto__:null,edgeAssignmentToFoldAngle,edgeFoldAngleIsFlat,edgeFoldAngleToAssignment,edgesAssignmentNames,edgesAssignmentValues,edgesFoldAngleAreAllFlat,filterKeysWithPrefix,filterKeysWithSuffix,invertAssignments,isFoldObject,isFoldedForm,makeEdgesIsFolded,pluralize,singularize,transposeGraphArrayAtIndex,transposeGraphArrays});const transform = function (graph, matrix) {
+};const foldSpecMethods=/*#__PURE__*/Object.freeze({__proto__:null,assignmentCanBeFolded,assignmentFlatFoldAngle,edgeAssignmentToFoldAngle,edgeFoldAngleIsFlat,edgeFoldAngleToAssignment,edgesAssignmentNames,edgesAssignmentValues,edgesFoldAngleAreAllFlat,filterKeysWithPrefix,filterKeysWithSuffix,invertAssignments,isFoldObject,isFoldedForm,makeEdgesIsFolded,pluralize,singularize,transposeGraphArrayAtIndex,transposeGraphArrays});const transform = function (graph, matrix) {
 	filterKeysWithSuffix(graph, "coords").forEach((key) => {
 		graph[key] = graph[key]
 			.map(v => resize(3, v))
@@ -4107,9 +4107,10 @@ const transformStringToMatrix = function (string) {
 		.map(el => matrixForm(el.transform, el.parameters))
 		.filter(a => a !== undefined)
 		.reduce((a, b) => svg_multiplyMatrices2(a, b), [1, 0, 0, 1, 0, 0]);
-};const transforms=/*#__PURE__*/Object.freeze({__proto__:null,transformStringToMatrix});const xmlStringToDOM = (input, mimeType = "text/xml") => (
-	new (SVGWindow().DOMParser)()
-).parseFromString(input, mimeType).documentElement;
+};const transforms=/*#__PURE__*/Object.freeze({__proto__:null,transformStringToMatrix});const xmlStringToElement = (input, mimeType = "text/xml") => {
+	const result = (new (SVGWindow().DOMParser)()).parseFromString(input, mimeType);
+	return result ? result.documentElement : null;
+};
 const getRootParent = (el) => {
 	let parent = el;
 	while (parent.parentNode != null) {
@@ -4184,7 +4185,7 @@ const flattenDomTreeWithStyle = (element, attributes = {}) => (
 		? [{ element, attributes }]
 		: Array.from(element.children)
 			.flatMap(child => flattenDomTreeWithStyle(child, attrAssign(attributes, child)))
-);const dom$1=/*#__PURE__*/Object.freeze({__proto__:null,addClass,findElementTypeInParents,flattenDomTree,flattenDomTreeWithStyle,getRootParent,xmlStringToDOM});const makeCDATASection = (text) => (new (SVGWindow()).DOMParser())
+);const dom$1=/*#__PURE__*/Object.freeze({__proto__:null,addClass,findElementTypeInParents,flattenDomTree,flattenDomTreeWithStyle,getRootParent,xmlStringToElement});const makeCDATASection = (text) => (new (SVGWindow()).DOMParser())
 	.parseFromString("<root></root>", "text/xml")
 	.createCDATASection(text);const markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
 const digitRegEx = /-?[0-9]*\.?\d+/g;
@@ -5450,9 +5451,7 @@ const getStrokeWidth = (graph, { vmax } = {}) => {
 	Object.keys(attributes)
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
 	return g;
-};const setMetadata$1 = (element, key, value) => (
-	element.setAttribute(`data-${key}`, value)
-);const GROUP_FOLDED = {};
+};const GROUP_FOLDED = {};
 const GROUP_FLAT = {
 	stroke: _black,
 };
@@ -5460,10 +5459,10 @@ const STYLE_FOLDED = {};
 const STYLE_FLAT = {
 	B: { stroke: "black" },
 	b: { stroke: "black" },
-	M: { stroke: "red" },
-	m: { stroke: "red" },
-	V: { stroke: "blue" },
-	v: { stroke: "blue" },
+	M: { stroke: "crimson" },
+	m: { stroke: "crimson" },
+	V: { stroke: "royalblue" },
+	v: { stroke: "royalblue" },
 	F: { stroke: "lightgray" },
 	f: { stroke: "lightgray" },
 	J: { stroke: "gold" },
@@ -5473,6 +5472,7 @@ const STYLE_FLAT = {
 	U: { stroke: "orchid" },
 	u: { stroke: "orchid" },
 };
+const setDataValue$1 = (el, key, value) => el.setAttribute(`data-${key}`, value);
 const edgesAssignmentIndices = (graph) => {
 	const assignment_indices = {
 		u: [], c: [], j: [], f: [], v: [], m: [], b: [],
@@ -5532,6 +5532,10 @@ const edgesPaths = (graph, attributes = {}) => {
 		group.appendChild(paths[key]);
 		Object.defineProperty(group, edgesAssignmentNames[key], { get: () => paths[key] });
 	});
+	Object.keys(paths)
+		.forEach(assign => setDataValue$1(paths[assign], "assignment", assign));
+	Object.keys(paths)
+		.forEach(assign => setDataValue$1(paths[assign], "foldAngle", assignmentFlatFoldAngle[assign]));
 	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
 	applyEdgesStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 	return group;
@@ -5562,11 +5566,11 @@ const edgesLines = (graph, attributes = {}) => {
 		.map(l => SVG.line(l[0][0], l[0][1], l[1][0], l[1][1]));
 	if (graph.edges_foldAngle) {
 		graph.edges_foldAngle
-			.forEach((a, i) => setMetadata$1(lines[i], "foldAngle", a));
+			.forEach((angle, i) => setDataValue$1(lines[i], "foldAngle", angle));
 	}
 	if (graph.edges_assignment) {
 		graph.edges_assignment
-			.forEach((a, i) => setMetadata$1(lines[i], "assignment", a));
+			.forEach((assign, i) => setDataValue$1(lines[i], "assignment", assign));
 	}
 	if (graph.edges_foldAngle) {
 		lines.forEach((line, i) => {
@@ -5619,6 +5623,7 @@ const GROUP_STYLE_FOLDED_UNORDERED = {
 const GROUP_STYLE_FLAT = {
 	fill: _none,
 };
+const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
 const faces_sorted_by_layer = function (faces_layer, graph) {
 	const faceCount = graph.faces_vertices.length || graph.faces_edges.length;
 	const missingFaces = Array.from(Array(faceCount))
@@ -5636,6 +5641,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 	faces_winding.map(w => (w ? classNames[0] : classNames[1]))
 		.forEach((className, i) => {
 			addClass(svg_faces[i], className);
+			setDataValue(svg_faces[i], "side", className);
 			applyFacesStyle(svg_faces[i], (isFolded
 				? (orderIsCertain
 					? FACE_STYLE_FOLDED_ORDERED[className]
@@ -5710,9 +5716,11 @@ const applyBoundariesStyle = (el, attributes = {}) => Object.keys(attributes)
 const drawBoundaries = (graph, attributes = {}) => {
 	const g = SVG.g();
 	if (!graph) { return g; }
-	const polygon = SVG.polygon(boundary(graph).polygon);
-	addClass(polygon, _boundary);
-	g.appendChild(polygon);
+	const polygon = boundary(graph).polygon;
+	if (!polygon.length) { return g; }
+	const svgPolygon = SVG.polygon(polygon);
+	addClass(svgPolygon, _boundary);
+	g.appendChild(svgPolygon);
 	applyBoundariesStyle(g, isFoldedForm(graph) ? FOLDED : FLAT);
 	Object.keys(attributes)
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
@@ -5791,11 +5799,15 @@ const render = (graph, element, options = {}) => {
 		...[graph.file_classes || [], graph.frame_classes || []].flat(),
 	);
 	return element;
-};const foldToSvg = (graph, options) => render(graph, SVG.svg(), {
-	viewBox: true,
-	strokeWidth: true,
-	...options,
-});
+};const foldToSvg = (foldFile, options) => render(
+	typeof foldFile === "string" ? JSON.parse(foldFile) : foldFile,
+	SVG.svg(),
+	{
+		viewBox: true,
+		strokeWidth: true,
+		...options,
+	},
+);
 Object.assign(foldToSvg, {
 	...draw,
 	render,
@@ -5869,7 +5881,8 @@ const mergeFrame = function (graph, frame) {
 		.map(key => `# ${key.split("_")[1]}: ${graph[key]}`)
 		.join("\n");
 };
-const foldToObj = (graph, frame_num = 0) => {
+const foldToObj = (foldFile, frame_num = 0) => {
+	const graph = typeof foldFile === "string" ? JSON.parse(foldFile) : foldFile;
 	const frame = flattenFrame(graph, frame_num);
 	const metadata = getMetadata(frame);
 	const vertices = (frame.vertices_coords || [])
@@ -6682,8 +6695,7 @@ const flatFold = (graph, { vector, origin }, assignment = "V", epsilon = EPSILON
 Origami.prototype = Object.create(graphProto);
 Origami.prototype.constructor = Origami;
 Origami.prototype.flatFold = function () {
-	const line = getLine$1(arguments);
-	flatFold(this, line);
+	flatFold(this, getLine$1(arguments));
 	return this;
 };
 const origamiProto = Origami.prototype;const file_spec = 1.1;
@@ -7204,16 +7216,18 @@ const makeEpsilon = (graph) => {
 	planar.faces_vertices = faces.faces_vertices;
 	planar.faces_edges = faces.faces_edges;
 	return planar;
-};const getContainingValue = (oripa, value) => Array
-	.from(oripa.children)
-	.filter(el => el.attributes.length && Array.from(el.attributes)
-		.filter(attr => attr.nodeValue === value)
-		.shift() !== undefined)
-	.shift();
+};const getContainingValue = (oripa, value) => (oripa == null
+	? null
+	: Array.from(oripa.childNodes)
+		.filter(el => el.attributes && el.attributes.length)
+		.filter(el => Array.from(el.attributes)
+			.filter(attr => attr.nodeValue === value)
+			.shift() !== undefined)
+		.shift());
 const getMetadataValue = (oripa, value) => {
 	const parentNode = getContainingValue(oripa, value);
 	const node = parentNode
-		? Array.from(parentNode.children).shift()
+		? Array.from(parentNode.childNodes).shift()
 		: null;
 	return node
 		? node.textContent
@@ -7222,22 +7236,26 @@ const getMetadataValue = (oripa, value) => {
 const getLines = (oripa) => {
 	const linesParent = getContainingValue(oripa, "lines");
 	const linesNode = linesParent
-		? Array.from(linesParent.children)
-			.filter(el => el.className === "oripa.OriLineProxy")
+		? Array.from(linesParent.childNodes)
+			.filter(el => el.getAttribute)
+			.filter(el => el.getAttribute("class").split(" ").includes("oripa.OriLineProxy"))
 			.shift()
 		: undefined;
-	return linesNode ? Array.from(linesNode.children) : [];
+	return linesNode ? Array.from(linesNode.childNodes) : [];
 };
-const nullXMLValue = { children: [{ textContent: "0" }] };
-const parseLines = (lines) => lines.map(line => {
-	const attributes = Array.from(line.children[0].children);
-	return ["type", "x0", "x1", "y0", "y1"]
-		.map(key => parseFloat((attributes
-			.filter(el => el.attributes[0].nodeValue === key)
-			.shift() || nullXMLValue)
-			.children[0]
-			.textContent));
-});
+const parseLines = (lines) => lines
+	.filter(line => line.nodeName === "void")
+	.filter(line => line.childNodes)
+	.map(line => getContainingValue(line, "oripa.OriLineProxy"))
+	.filter(lineData => lineData)
+	.map(lineData => ["type", "x0", "x1", "y0", "y1"]
+		.map(key => getContainingValue(lineData, key))
+		.map(el => (el ? Array.from(el.childNodes) : []))
+		.map(children => children
+			.filter(child => child.nodeName === "double" || child.nodeName === "int")
+			.shift())
+		.map(node => (node && node.childNodes[0] ? node.childNodes[0].data : "0"))
+		.map(parseFloat));
 const opxAssignment = ["F", "B", "M", "V", "U"];
 const makeFOLD = (lines) => {
 	const fold = {};
@@ -7249,10 +7267,10 @@ const makeFOLD = (lines) => {
 	return fold;
 };
 const opxEdgeGraph = (file) => {
-	const parsed = (new (RabbitEarWindow().DOMParser)())
-		.parseFromString(file, "text/xml");
-	const oripa = Array.from(parsed.documentElement.children)
-		.filter(el => Array.from(el.classList).includes("oripa.DataSet"))
+	const parsed = xmlStringToElement(file, "text/xml");
+	const oripa = Array.from(parsed.childNodes)
+		.filter(el => el.getAttribute)
+		.filter(el => el.getAttribute("class").split(" ").includes("oripa.DataSet"))
 		.shift();
 	return makeFOLD(parseLines(getLines(oripa)));
 };
@@ -7272,25 +7290,25 @@ const setMetadata = (oripa, fold) => {
 	fold.frame_classes = ["creasePattern"];
 };
 const opxToFold = (file, epsilon) => {
-	try {
-		const parsed = (new (RabbitEarWindow().DOMParser)())
-			.parseFromString(file, "text/xml");
-		const oripa = Array.from(parsed.documentElement.children)
-			.filter(el => Array.from(el.classList).includes("oripa.DataSet"))
-			.shift();
-		const fold = makeFOLD(parseLines(getLines(oripa)));
-		const eps = typeof epsilon === "number"
-			? epsilon
-			: makeEpsilon(fold);
-		const planarGraph = planarizeGraph(fold, eps);
-		setMetadata(oripa, planarGraph);
-		return planarGraph;
-	} catch (error) {
-		console.error(error);
-	}
-	return undefined;
+	const parsed = xmlStringToElement(file, "text/xml");
+	const children = parsed && parsed.childNodes
+		? Array.from(parsed.childNodes)
+		: [];
+	const oripa = children
+		.filter(el => el.getAttribute)
+		.filter(el => el.getAttribute("class").split(" ").includes("oripa.DataSet"))
+		.shift();
+	const fold = makeFOLD(parseLines(getLines(oripa)));
+	const eps = typeof epsilon === "number"
+		? epsilon
+		: makeEpsilon(fold);
+	const planarGraph = planarizeGraph(fold, eps);
+	setMetadata(oripa, planarGraph);
+	return planarGraph;
 };
-opxToFold.opxEdgeGraph = opxEdgeGraph;const countPlaces = function (num) {
+Object.assign(opxToFold, {
+	opxEdgeGraph,
+});const countPlaces = function (num) {
 	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
 	return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
 };
@@ -7410,6 +7428,14 @@ const getEdgeFoldAngle = (element, attributes, assignment) => {
 	if (!assignment) { return 0; }
 	const opacity = getOpacity(element, attributes) || 0;
 	return opacityToFoldAngle(opacity, assignment);
+};const invisibleParent = (child) => {
+	const invisible = RabbitEarWindow().document.createElementNS(NS, "svg");
+	invisible.setAttribute("display", "none");
+	if (RabbitEarWindow().document.body) {
+		RabbitEarWindow().document.body.appendChild(invisible);
+	}
+	invisible.appendChild(child);
+	return invisible;
 };const transformSegment = (segment, transform) => {
 	const seg = [[segment[0], segment[1]], [segment[2], segment[3]]];
 	if (!transform) { return seg; }
@@ -7420,17 +7446,14 @@ const getEdgeFoldAngle = (element, attributes, assignment) => {
 };
 const svgEdgeGraph = (svg) => {
 	const typeString = typeof svg === "string";
-	const xml = typeString ? xmlStringToDOM(svg, "image/svg+xml") : svg;
+	const xml = typeString ? xmlStringToElement(svg, "image/svg+xml") : svg;
 	const elements = flattenDomTreeWithStyle(xml);
 	const segments = elements
 		.filter(el => parsers[el.element.nodeName])
 		.flatMap(el => parsers[el.element.nodeName](el.element)
 			.map(segment => transformSegment(segment, el.attributes.transform))
 			.map(segment => ({ ...el, segment })));
-	const invisible = RabbitEarWindow().document.createElementNS(NS, "svg");
-	invisible.setAttribute("display", "none");
-	RabbitEarWindow().document.body.appendChild(invisible);
-	invisible.appendChild(xml);
+	const invisible = invisibleParent(xml);
 	const stylesheets = elements.filter(el => el.element.nodeName === "style");
 	if (stylesheets.length && isNode) {
 		console.warn(Messages$1.backendStylesheet);
@@ -7442,7 +7465,9 @@ const svgEdgeGraph = (svg) => {
 		el.attributes,
 		edges_assignment[i],
 	));
-	invisible.parentNode.removeChild(invisible);
+	if (invisible.parentNode) {
+		invisible.parentNode.removeChild(invisible);
+	}
 	const vertices_coords = segments
 		.flatMap(el => el.segment)
 		.map(coord => coord.map(n => cleanNumber(n, 14)));
@@ -7468,9 +7493,11 @@ const svgEdgeGraph = (svg) => {
 		...planarGraph,
 	};
 };
-svgToFold.svgEdgeGraph = svgEdgeGraph;
-svgToFold.makeEpsilon = makeEpsilon;
-svgToFold.planarizeGraph = planarizeGraph;const convert = {
+Object.assign(svgToFold, {
+	svgEdgeGraph,
+	makeEpsilon,
+	planarizeGraph,
+});const convert = {
 	objToFold,
 	opxToFold,
 	svgToFold,

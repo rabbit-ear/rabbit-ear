@@ -57,7 +57,7 @@ Object.keys(edgesAssignmentNames).forEach(key => {
  * character (like "M", or "b"). **this assumes the creases are flat folded.**
  * @linkcode Origami ./src/fold/spec.js 57
  */
-const assignmentFlatDegrees = {
+export const assignmentFlatFoldAngle = {
 	B: 0,
 	b: 0,
 	M: -180,
@@ -79,7 +79,7 @@ const assignmentFlatDegrees = {
  * @description for every edges_assignment type, can this edge be
  * a folded edge?
  */
-const assignmentCanBeFolded = {
+export const assignmentCanBeFolded = {
 	B: false,
 	b: false,
 	M: true,
@@ -103,7 +103,7 @@ const assignmentCanBeFolded = {
  * @linkcode Origami ./src/fold/spec.js 78
  */
 export const edgeAssignmentToFoldAngle = assignment => (
-	assignmentFlatDegrees[assignment] || 0
+	assignmentFlatFoldAngle[assignment] || 0
 );
 /**
  * @description Convert a foldAngle to an edge assignment character.

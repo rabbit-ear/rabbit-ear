@@ -3,9 +3,10 @@ import SVGWindow from '../environment/window.js';
 import { transformStringToMatrix } from './transforms.js';
 import { svg_multiplyMatrices2 } from './algebra.js';
 
-const xmlStringToDOM = (input, mimeType = "text/xml") => (
-	new (SVGWindow().DOMParser)()
-).parseFromString(input, mimeType).documentElement;
+const xmlStringToElement = (input, mimeType = "text/xml") => {
+	const result = (new (SVGWindow().DOMParser)()).parseFromString(input, mimeType);
+	return result ? result.documentElement : null;
+};
 const getRootParent = (el) => {
 	let parent = el;
 	while (parent.parentNode != null) {
@@ -82,4 +83,4 @@ const flattenDomTreeWithStyle = (element, attributes = {}) => (
 			.flatMap(child => flattenDomTreeWithStyle(child, attrAssign(attributes, child)))
 );
 
-export { addClass, findElementTypeInParents, flattenDomTree, flattenDomTreeWithStyle, getRootParent, xmlStringToDOM };
+export { addClass, findElementTypeInParents, flattenDomTree, flattenDomTreeWithStyle, getRootParent, xmlStringToElement };

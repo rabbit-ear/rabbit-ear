@@ -5,14 +5,12 @@ import * as S from "../../../general/strings.js";
 import { makeEdgesAssignment } from "../../../graph/make.js";
 import { addClass } from "../../../svg/general/dom.js";
 import {
+	assignmentFlatFoldAngle,
 	edgesFoldAngleAreAllFlat,
 	edgesAssignmentNames,
 	isFoldedForm,
 } from "../../../fold/spec.js";
 import SVG from "../../../svg/index.js";
-import {
-	setMetadata,
-} from "./metadata.js";
 
 const GROUP_FOLDED = {};
 
@@ -25,10 +23,10 @@ const STYLE_FOLDED = {};
 const STYLE_FLAT = {
 	B: { stroke: "black" },
 	b: { stroke: "black" },
-	M: { stroke: "red" },
-	m: { stroke: "red" },
-	V: { stroke: "blue" },
-	v: { stroke: "blue" },
+	M: { stroke: "crimson" },
+	m: { stroke: "crimson" },
+	V: { stroke: "royalblue" },
+	v: { stroke: "royalblue" },
 	F: { stroke: "lightgray" },
 	f: { stroke: "lightgray" },
 	J: { stroke: "gold" },
@@ -38,6 +36,8 @@ const STYLE_FLAT = {
 	U: { stroke: "orchid" },
 	u: { stroke: "orchid" },
 };
+
+const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
 
 /**
  * @returns {object} an object with 5 keys, each value is an array
@@ -125,13 +125,10 @@ export const edgesPaths = (graph, attributes = {}) => {
 		group.appendChild(paths[key]);
 		Object.defineProperty(group, edgesAssignmentNames[key], { get: () => paths[key] });
 	});
-	// todo:
-	// if (graph.edges_foldAngle) {
-	// 	Object.keys(paths).forEach(key => setMetadata(paths[key], "foldAngle", a));
-	// }
-	// if (graph.edges_assignment) {
-	// 	Object.keys(paths).forEach(key => setMetadata(paths[key], "assignment", a));
-	// }
+	Object.keys(paths)
+		.forEach(assign => setDataValue(paths[assign], "assignment", assign));
+	Object.keys(paths)
+		.forEach(assign => setDataValue(paths[assign], "foldAngle", assignmentFlatFoldAngle[assign]));
 	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
 	// todo: everything else that isn't a class name. filter out classes
 	// const no_class_attributes = Object.keys(attributes).filter(
@@ -168,11 +165,11 @@ export const edgesLines = (graph, attributes = {}) => {
 		.map(l => SVG.line(l[0][0], l[0][1], l[1][0], l[1][1]));
 	if (graph.edges_foldAngle) {
 		graph.edges_foldAngle
-			.forEach((a, i) => setMetadata(lines[i], "foldAngle", a));
+			.forEach((angle, i) => setDataValue(lines[i], "foldAngle", angle));
 	}
 	if (graph.edges_assignment) {
 		graph.edges_assignment
-			.forEach((a, i) => setMetadata(lines[i], "assignment", a));
+			.forEach((assign, i) => setDataValue(lines[i], "assignment", assign));
 	}
 	if (graph.edges_foldAngle) {
 		lines.forEach((line, i) => {

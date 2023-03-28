@@ -30,8 +30,10 @@ const svgToFold = (svg, epsilon) => {
 	};
 };
 
-svgToFold.svgEdgeGraph = svgEdgeGraph;
-svgToFold.makeEpsilon = makeEpsilon;
-svgToFold.planarizeGraph = planarizeGraph;
+Object.assign(svgToFold, {
+	svgEdgeGraph,
+	makeEpsilon,
+	planarizeGraph,
+});
 
 export default svgToFold;

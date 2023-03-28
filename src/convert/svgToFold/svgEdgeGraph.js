@@ -1,12 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import window from "../../environment/window.js";
 import { isNode } from "../../environment/detect.js";
 import Messages from "../../environment/messages.js";
-import svgNS from "../../svg/spec/namespace.js";
 import {
-	xmlStringToDOM,
+	xmlStringToElement,
 	flattenDomTreeWithStyle,
 } from "../../svg/general/dom.js";
 import { transformStringToMatrix } from "../../svg/general/transforms.js";
@@ -17,6 +15,7 @@ import {
 	getEdgeAssignment,
 	getEdgeFoldAngle,
 } from "./edges.js";
+import invisibleParent from "./invisibleParent.js";
 
 const transformSegment = (segment, transform) => {
 	const seg = [[segment[0], segment[1]], [segment[2], segment[3]]];
@@ -39,7 +38,7 @@ const transformSegment = (segment, transform) => {
  */
 const svgEdgeGraph = (svg) => {
 	const typeString = typeof svg === "string";
-	const xml = typeString ? xmlStringToDOM(svg, "image/svg+xml") : svg;
+	const xml = typeString ? xmlStringToElement(svg, "image/svg+xml") : svg;
 	// get a flat array of all elements in the tree, with all
 	// styles also flattened (nested transformed computed, for example)
 	const elements = flattenDomTreeWithStyle(xml);
@@ -51,13 +50,7 @@ const svgEdgeGraph = (svg) => {
 			.map(segment => transformSegment(segment, el.attributes.transform))
 			.map(segment => ({ ...el, segment })));
 
-	// create an invisible SVG element, add the edges, then getComputedStyle
-	const invisible = window().document.createElementNS(svgNS, "svg");
-	// visibility: hidden causes the DOM window layout to resize
-	invisible.setAttribute("display", "none");
-	// invisible.setAttribute("visibility", "hidden");
-	window().document.body.appendChild(invisible);
-	invisible.appendChild(xml);
+	const invisible = invisibleParent(xml);
 
 	const stylesheets = elements.filter(el => el.element.nodeName === "style");
 	if (stylesheets.length && isNode) {
@@ -79,7 +72,9 @@ const svgEdgeGraph = (svg) => {
 		edges_assignment[i],
 	));
 	// we no longer need computed style, remove invisible svg from DOM.
-	invisible.parentNode.removeChild(invisible);
+	if (invisible.parentNode) {
+		invisible.parentNode.removeChild(invisible);
+	}
 	const vertices_coords = segments
 		.flatMap(el => el.segment)
 		.map(coord => coord.map(n => cleanNumber(n, 14)));

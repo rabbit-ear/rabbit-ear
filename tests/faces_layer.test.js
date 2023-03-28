@@ -12,7 +12,7 @@ test("", () => {
 	cp.line(ear.math.pointsToLine([0, 0.7], [1, 0.7])).mountain();
 	cp.line(ear.math.pointsToLine([0, 0.8], [1, 0.8])).mountain();
 	cp.line(ear.math.pointsToLine([0, 0.9], [1, 0.9])).valley();
-	cp.fragment();
+	cp.planarize();
 	cp.populate();
 	// ideally, we want (layers_face)
 	// 0, 2, 3, 4, 5, 6, 7, 1

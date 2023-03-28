@@ -7,7 +7,7 @@ test("fragment 2 lines, x formation", () => {
 		edges_vertices: [[0, 3], [1, 2]],
 		edges_assignment: ["M", "V"],
 	};
-	const res = ear.graph.fragment(graph);
+	const res = ear.graph.planarize(graph);
 	expect(graph.vertices_coords.length).toBe(5);
 });
 
@@ -17,7 +17,7 @@ test("fragment two loops 'x-' x with a horizontal dash from its center", () => {
 		edges_vertices: [[0, 3], [1, 2], [4, 5]],
 		edges_assignment: ["M", "V", "F"],
 	};
-	const res = ear.graph.fragment(graph);
+	const res = ear.graph.planarize(graph);
 	expect(JSON.stringify(res.edges.map)).toBe(JSON.stringify([[0, 1], [2, 3], [4]]));
 	expect(JSON.stringify(graph.edges_assignment)).toBe(JSON.stringify(["M", "M", "V", "V", "F"]));
 	expect(graph.vertices_coords.length).toBe(6);
@@ -29,7 +29,7 @@ test("fragment dup verts", () => {
 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
 		edges_assignment: ["M", "V", "F", "B"],
 	};
-	const res = ear.graph.fragment(graph);
+	const res = ear.graph.planarize(graph);
 	expect(JSON.stringify(res.vertices.map)).toBe(JSON.stringify([0, 1, 0, 2, 0, 3, 0, 4]));
 	expect(JSON.stringify(res.edges.map)).toBe(JSON.stringify([[0], [1], [2], [3]]));
 	expect(graph.vertices_coords.length).toBe(5);
@@ -41,7 +41,7 @@ test("fragment, one edges crossing boundary, more assignments than fold angles",
 	graph.edges_vertices.push([4, 5]);
 	graph.edges_assignment.push("V");
 
-	const res = ear.graph.fragment(graph);
+	const res = ear.graph.planarize(graph);
 
 	expect(graph.vertices_coords.length).toBe(8);
 	expect(graph.edges_vertices.length).toBe(9);
@@ -60,7 +60,7 @@ test("fragment, two crossing edges, more assignments than fold angles", () => {
 	graph.edges_assignment.push("V");
 	graph.edges_assignment.push("M");
 
-	const res = ear.graph.fragment(graph);
+	const res = ear.graph.planarize(graph);
 
 	expect(graph.vertices_coords.length).toBe(13);
 	expect(graph.edges_vertices.length).toBe(16);
@@ -78,7 +78,7 @@ test("fragment 2 lines, collinear", () => {
 		edges_vertices: [[0, 3], [1, 2]],
 		edges_assignment: ["M", "V"],
 	};
-	const res = ear.graph.fragment(graph);
+	const res = ear.graph.planarize(graph);
 	expect(graph.vertices_coords.length).toBe(4);
 	expect(graph.edges_vertices.length).toBe(3);
 });

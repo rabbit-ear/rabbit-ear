@@ -4,7 +4,7 @@ const ear = require("../rabbit-ear.js");
 test("methods", () => {
 	const cp = ear.cp();
 	cp.ray([Math.random(), Math.random()]);
-	const two = cp.copy();
+	const two = cp.clone();
 	expect(two.edges_vertices.length).toBe(cp.edges_vertices.length);
 	cp.segment([Math.random(), Math.random()], [Math.random(), Math.random()]);
 	expect(two.edges_vertices.length).not.toBe(cp.edges_vertices.length);

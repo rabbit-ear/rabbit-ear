@@ -23,9 +23,11 @@ const applyBoundariesStyle = (el, attributes = {}) => Object.keys(attributes)
 const drawBoundaries = (graph, attributes = {}) => {
 	const g = SVG.g();
 	if (!graph) { return g; }
-	const polygon = SVG.polygon(boundary(graph).polygon);
-	addClass(polygon, S._boundary);
-	g.appendChild(polygon);
+	const polygon = boundary(graph).polygon;
+	if (!polygon.length) { return g; }
+	const svgPolygon = SVG.polygon(polygon);
+	addClass(svgPolygon, S._boundary);
+	g.appendChild(svgPolygon);
 	// style attributes on group container
 	applyBoundariesStyle(g, isFoldedForm(graph) ? FOLDED : FLAT);
 	Object.keys(attributes)

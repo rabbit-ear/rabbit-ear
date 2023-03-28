@@ -29,8 +29,7 @@ Origami.prototype = Object.create(GraphProto);
 Origami.prototype.constructor = Origami;
 
 Origami.prototype.flatFold = function () {
-	const line = getLine(arguments);
-	const changes = flatFold(this, line);
+	const changes = flatFold(this, getLine(arguments));
 	return this;
 };
 

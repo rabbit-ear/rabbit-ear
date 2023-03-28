@@ -14,10 +14,10 @@ test("axiom 1", () => {
 		origin: [2 / 3, 1 / 3],
 		vector: [-Math.SQRT1_2, Math.SQRT1_2],
 	};
-	expect(ear.math.epsilonEqualVectors(res0.vector, expected.vector)).toBe(true);
-	expect(ear.math.epsilonEqualVectors(res0.origin, expected.origin)).toBe(true);
-	expect(ear.math.epsilonEqualVectors(res1.vector, expected.vector)).toBe(true);
-	expect(ear.math.epsilonEqualVectors(res1.origin, expected.origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res0[0].vector, expected.vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res0[0].origin, expected.origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res1[0].vector, expected.vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res1[0].origin, expected.origin)).toBe(true);
 });
 
 test("axiom 2", () => {
@@ -27,10 +27,10 @@ test("axiom 2", () => {
 		origin: [0.5, 0.5],
 		vector: [-Math.SQRT1_2, -Math.SQRT1_2],
 	};
-	expect(ear.math.epsilonEqualVectors(res0.vector, expected.vector)).toBe(true);
-	expect(ear.math.epsilonEqualVectors(res0.origin, expected.origin)).toBe(true);
-	expect(ear.math.epsilonEqualVectors(res1.vector, expected.vector)).toBe(true);
-	expect(ear.math.epsilonEqualVectors(res1.origin, expected.origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res0[0].vector, expected.vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res0[0].origin, expected.origin)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res1[0].vector, expected.vector)).toBe(true);
+	expect(ear.math.epsilonEqualVectors(res1[0].origin, expected.origin)).toBe(true);
 });
 
 test("axiom 3", () => {
@@ -52,20 +52,10 @@ test("axiom 4", () => {
 	const line = { vector: [1, 1] }; // no origin needed for axiom 4
 	const pointB = [3, 1];
 	const res = ear.axiom.axiom4(line, pointB);
-	expect(res.vector[0]).toBeCloseTo(-Math.SQRT1_2);
-	expect(res.vector[1]).toBeCloseTo(Math.SQRT1_2);
-	expect(res.origin[0]).toBe(3);
-	expect(res.origin[1]).toBe(1);
-});
-
-test("axiom 7", () => {
-	const line1 = { vector: [1, 1], origin: [-1, 0] };
-	const line2 = { vector: [1, -1] }; // no origin needed
-	const res = ear.axiom.axiom7(line1, line2, [1, 0]);
-	expect(res.vector[0]).toBeCloseTo(-Math.SQRT1_2);
-	expect(res.vector[1]).toBeCloseTo(-Math.SQRT1_2);
-	expect(res.origin[0]).toBe(0.5);
-	expect(res.origin[1]).toBe(0.5);
+	expect(res[0].vector[0]).toBeCloseTo(-Math.SQRT1_2);
+	expect(res[0].vector[1]).toBeCloseTo(Math.SQRT1_2);
+	expect(res[0].origin[0]).toBe(3);
+	expect(res[0].origin[1]).toBe(1);
 });
 
 test("axiom 5", () => {
@@ -163,4 +153,14 @@ test("axiom 6 with 2 results", () => {
 		expect(res[i].origin[0]).toBeCloseTo(lines[i].origin[0]);
 		expect(res[i].origin[1]).toBeCloseTo(lines[i].origin[1]);
 	}
+});
+
+test("axiom 7", () => {
+	const line1 = { vector: [1, 1], origin: [-1, 0] };
+	const line2 = { vector: [1, -1] }; // no origin needed
+	const res = ear.axiom.axiom7(line1, line2, [1, 0]);
+	expect(res[0].vector[0]).toBeCloseTo(-Math.SQRT1_2);
+	expect(res[0].vector[1]).toBeCloseTo(-Math.SQRT1_2);
+	expect(res[0].origin[0]).toBe(0.5);
+	expect(res[0].origin[1]).toBe(0.5);
 });

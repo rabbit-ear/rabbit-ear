@@ -32,6 +32,9 @@ const GROUP_STYLE_FOLDED_UNORDERED = {
 const GROUP_STYLE_FLAT = {
 	fill: S._none,
 };
+
+const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
+
 /**
  * this ended up being a nice function. i got some things for free.
  */
@@ -64,6 +67,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 	faces_winding.map(w => (w ? classNames[0] : classNames[1]))
 		.forEach((className, i) => {
 			addClass(svg_faces[i], className);
+			setDataValue(svg_faces[i], "side", className);
 			// svg_faces[i].classList.add(className);
 			// svg_faces[i].setAttributeNS(null, S._class, className);
 			applyFacesStyle(svg_faces[i], (isFolded

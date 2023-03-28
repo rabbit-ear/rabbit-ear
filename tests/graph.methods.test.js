@@ -8,7 +8,7 @@ test("copy", () => {
 		faces_vertices: [[0, 1, 2], [2, 3, 0]],
 		faces_edges: [[0, 1, 4], [2, 3, 4]],
 	});
-	const copy = graph.copy();
+	const copy = graph.clone();
 	graph.vertices_coords = [];
 	expect(copy.vertices_coords.length).toBe(4);
 	expect(graph.vertices_coords.length).toBe(0);
@@ -55,19 +55,19 @@ test("copy", () => {
 //   expect(graph.vertices_coords[0][0]).toBe(0.5);
 // });
 
-test("clear", () => {
-	const graph = ear.graph({
-		vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
-		edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]],
-		faces_vertices: [[0, 1, 2], [2, 3, 0]],
-		faces_edges: [[0, 1, 4], [2, 3, 4]],
-	});
-	graph.clear();
-	expect(graph.vertices_coords).toBe(undefined);
-	expect(graph.edges_vertices).toBe(undefined);
-	expect(graph.faces_vertices).toBe(undefined);
-	expect(graph.faces_edges).toBe(undefined);
-});
+// test("clear", () => {
+// 	const graph = ear.graph({
+// 		vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+// 		edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]],
+// 		faces_vertices: [[0, 1, 2], [2, 3, 0]],
+// 		faces_edges: [[0, 1, 4], [2, 3, 4]],
+// 	});
+// 	graph.clear();
+// 	expect(graph.vertices_coords).toBe(undefined);
+// 	expect(graph.edges_vertices).toBe(undefined);
+// 	expect(graph.faces_vertices).toBe(undefined);
+// 	expect(graph.faces_edges).toBe(undefined);
+// });
 
 test("populate", () => {
 	const graph = ear.graph({

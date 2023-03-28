@@ -20,13 +20,14 @@ const getMetadata = (graph) => {
 /**
  * @description Convert an FOLD object into an OBJ file. For FOLD objects
  * with many frames, this will only work on one frame at a time.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD|string} foldFile a FOLD object
  * @param {number} frame_num the frame number inside the FOLD object to be
  * converted, if frames exist, if not this is ignored.
  * @returns {string} an OBJ representation of the FOLD object
  * @linkcode Origami ./src/convert/obj.js 77
  */
-const foldToObj = (graph, frame_num = 0) => {
+const foldToObj = (foldFile, frame_num = 0) => {
+	const graph = typeof foldFile === "string" ? JSON.parse(foldFile) : foldFile;
 	const frame = flattenFrame(graph, frame_num);
 	const metadata = getMetadata(frame);
 	const vertices = (frame.vertices_coords || [])
