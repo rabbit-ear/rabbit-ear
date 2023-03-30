@@ -2,8 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import { isNode } from "../../environment/detect.js";
+import window from "../../environment/window.js";
 import Messages from "../../environment/messages.js";
 import {
+	getRootParent,
 	xmlStringToElement,
 	flattenDomTreeWithStyle,
 } from "../../svg/general/dom.js";
@@ -36,7 +38,7 @@ const transformSegment = (segment, transform) => {
  * or a string.
  * @returns {FOLD} a FOLD representation of the SVG image.
  */
-const svgEdgeGraph = (svg) => {
+const svgEdgeGraph = (svg, options) => {
 	const typeString = typeof svg === "string";
 	const xml = typeString ? xmlStringToElement(svg, "image/svg+xml") : svg;
 	// get a flat array of all elements in the tree, with all
@@ -50,29 +52,27 @@ const svgEdgeGraph = (svg) => {
 			.map(segment => transformSegment(segment, el.attributes.transform))
 			.map(segment => ({ ...el, segment })));
 
-	const invisible = invisibleParent(xml);
+	// if the SVG is an SVGElement and already on the DOM, we can call
+	// getComputedStyle, if not we need to append it to the document.
+	const invisible = getRootParent(xml) === window().document
+		? undefined
+		: invisibleParent(xml);
 
 	const stylesheets = elements.filter(el => el.element.nodeName === "style");
 	if (stylesheets.length && isNode) {
 		console.warn(Messages.backendStylesheet);
 	}
 
-	// console.log("segments", segments);
-	// const computedStyles = segments
-	// 	.map(el => window().getComputedStyle(el.element));
-	// const computedOpacities = computedStyles.map(style => style.opacity);
-	// console.log("computedStyles", computedStyles);
-	// console.log("computedOpacities", computedOpacities);
-	// console.log("xml.parentNode", xml.parentNode);
 	const edges_assignment = segments
-		.map(el => getEdgeAssignment(el.element, el.attributes));
+		.map(el => getEdgeAssignment(el.element, el.attributes, options));
 	const edges_foldAngle = segments.map((el, i) => getEdgeFoldAngle(
 		el.element,
 		el.attributes,
 		edges_assignment[i],
 	));
+
 	// we no longer need computed style, remove invisible svg from DOM.
-	if (invisible.parentNode) {
+	if (invisible && invisible.parentNode) {
 		invisible.parentNode.removeChild(invisible);
 	}
 	const vertices_coords = segments

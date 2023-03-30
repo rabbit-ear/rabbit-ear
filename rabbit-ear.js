@@ -5790,6 +5790,11 @@ const DrawGroups = (graph, options = {}) => groupNames
 		return group;
 	});
 const render = (graph, element, options = {}) => {
+	if (!isFoldedForm(graph)) {
+		if (options.faces === undefined) {
+			options.faces = false;
+		}
+	}
 	const groups = DrawGroups(graph, options);
 	groups.filter(group => group.childNodes.length > 0)
 		.forEach(group => element.appendChild(group));
@@ -7409,15 +7414,22 @@ const getOpacity = (element, attributes) => {
 	}
 	return undefined;
 };
-const getEdgeAssignment = (element, attributes) => {
+const colorToAssignment = (color, options) => (
+	options && options.assignments && options.assignments[color]
+		? options.assignments[color]
+		: rgbToAssignment(...parseColor(color))
+);
+const getEdgeAssignment = (element, attributes, options) => {
 	if (attributes["data-assignment"] !== undefined) {
 		return attributes["data-assignment"];
 	}
 	const computedStroke = RabbitEarWindow().getComputedStyle(element).stroke;
 	if (computedStroke !== "" && computedStroke !== "none") {
-		return rgbToAssignment(...parseColor(computedStroke));
+		return colorToAssignment(computedStroke, options);
 	}
-	if (attributes.stroke !== undefined) { return attributes.stroke; }
+	if (attributes.stroke !== undefined) {
+		return colorToAssignment(attributes.stroke, options);
+	}
 	return "U";
 };
 const getEdgeFoldAngle = (element, attributes, assignment) => {
@@ -7444,7 +7456,7 @@ const getEdgeFoldAngle = (element, attributes, assignment) => {
 		? seg.map(p => multiplyMatrix2Vector2(matrix, p))
 		: seg;
 };
-const svgEdgeGraph = (svg) => {
+const svgEdgeGraph = (svg, options) => {
 	const typeString = typeof svg === "string";
 	const xml = typeString ? xmlStringToElement(svg, "image/svg+xml") : svg;
 	const elements = flattenDomTreeWithStyle(xml);
@@ -7453,19 +7465,21 @@ const svgEdgeGraph = (svg) => {
 		.flatMap(el => parsers[el.element.nodeName](el.element)
 			.map(segment => transformSegment(segment, el.attributes.transform))
 			.map(segment => ({ ...el, segment })));
-	const invisible = invisibleParent(xml);
+	const invisible = getRootParent(xml) === RabbitEarWindow().document
+		? undefined
+		: invisibleParent(xml);
 	const stylesheets = elements.filter(el => el.element.nodeName === "style");
 	if (stylesheets.length && isNode) {
 		console.warn(Messages$1.backendStylesheet);
 	}
 	const edges_assignment = segments
-		.map(el => getEdgeAssignment(el.element, el.attributes));
+		.map(el => getEdgeAssignment(el.element, el.attributes, options));
 	const edges_foldAngle = segments.map((el, i) => getEdgeFoldAngle(
 		el.element,
 		el.attributes,
 		edges_assignment[i],
 	));
-	if (invisible.parentNode) {
+	if (invisible && invisible.parentNode) {
 		invisible.parentNode.removeChild(invisible);
 	}
 	const vertices_coords = segments
@@ -7478,14 +7492,21 @@ const svgEdgeGraph = (svg) => {
 		edges_assignment,
 		edges_foldAngle,
 	};
-};const svgToFold = (svg, epsilon) => {
-	const graph = svgEdgeGraph(svg);
-	const eps = typeof epsilon === "number"
-		? epsilon
+};const findEpsilonInObject = (graph, object, key = "epsilon") => {
+	if (typeof object === "object" && typeof object[key] === "number") {
+		return object[key];
+	}
+	return typeof object === "number"
+		? object
 		: makeEpsilon(graph);
-	const planarGraph = planarizeGraph(graph, eps);
-	const { edges } = planarBoundary(planarGraph);
-	edges.forEach(e => { planarGraph.edges_assignment[e] = "B"; });
+};const svgToFold = (svg, options) => {
+	const graph = svgEdgeGraph(svg, options);
+	const epsilon = findEpsilonInObject(graph, options);
+	const planarGraph = planarizeGraph(graph, epsilon);
+	if (typeof options !== "object" || options.boundary !== false) {
+		const { edges } = planarBoundary(planarGraph);
+		edges.forEach(e => { planarGraph.edges_assignment[e] = "B"; });
+	}
 	return {
 		file_spec: 1.1,
 		file_creator: "Rabbit Ear",

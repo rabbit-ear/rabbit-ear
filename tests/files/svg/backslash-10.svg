@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1" width="100%" height="100%" stroke="black" fill="none" stroke-width="0.01">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1">
 	<rect x="0" y="0" width="1" height="1" data-assignment="B"></rect>
 	<line x1="0" y1="1" x2="1" y2="0" data-assignment="F"></line>
 	<line x1="0.7071067811865476" y1="0" x2="0.2928932188134524" y2="1" data-assignment="V"></line>

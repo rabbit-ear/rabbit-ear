@@ -13,6 +13,7 @@ import {
 	getStrokeWidth,
 } from "./general.js";
 import draw from "./draw/index.js";
+import { isFoldedForm } from "../../fold/spec.js";
 /**
  *
  */
@@ -104,6 +105,14 @@ const DrawGroups = (graph, options = {}) => groupNames
  * @linkcode Origami ./src/svg/index.js 161
  */
 const render = (graph, element, options = {}) => {
+	// if the FOLD graph is a creasePattern, don't draw the faces.
+	// todo: this needs to be better mixed in with the DrawGroups.faces which
+	// does unnecessary work in the case of creasePattern.
+	if (!isFoldedForm(graph)) {
+		if (options.faces === undefined) {
+			options.faces = false;
+		}
+	}
 	const groups = DrawGroups(graph, options);
 	groups.filter(group => group.childNodes.length > 0)
 		.forEach(group => element.appendChild(group));

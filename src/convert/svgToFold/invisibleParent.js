@@ -9,9 +9,6 @@ const invisibleParent = (child) => {
 	invisible.setAttribute("display", "none");
 	// invisible.setAttribute("visibility", "hidden");
 
-	// if (window().document.body) {
-	// 	window().document.body = window().document.createElement("body");
-	// }
 	if (window().document.body) {
 		window().document.body.appendChild(invisible);
 	}

@@ -13,7 +13,9 @@ import { rgbToAssignment } from "../../fold/colors.js";
 // 		return inlineStyle[0].split(":")[1].replace(";", "");
 // 	}
 // };
-
+/**
+ *
+ */
 const opacityToFoldAngle = (opacity, assignment) => {
 	switch (assignment) {
 	case "M": case "m": return -180 * opacity;
@@ -41,15 +43,28 @@ const getOpacity = (element, attributes) => {
 /**
  *
  */
-export const getEdgeAssignment = (element, attributes) => {
+const colorToAssignment = (color, options) => (
+	options && options.assignments && options.assignments[color]
+		? options.assignments[color]
+		: rgbToAssignment(...parseColor(color))
+);
+/**
+ *
+ */
+export const getEdgeAssignment = (element, attributes, options) => {
 	if (attributes["data-assignment"] !== undefined) {
+		// console.log("attributes[data-assignment]", attributes["data-assignment"]);
 		return attributes["data-assignment"];
 	}
 	const computedStroke = window().getComputedStyle(element).stroke;
 	if (computedStroke !== "" && computedStroke !== "none") {
-		return rgbToAssignment(...parseColor(computedStroke));
+		// console.log("computedStroke", computedStroke);
+		return colorToAssignment(computedStroke, options);
 	}
-	if (attributes.stroke !== undefined) { return attributes.stroke; }
+	if (attributes.stroke !== undefined) {
+		// console.log("attributes.stroke", attributes.stroke);
+		return colorToAssignment(attributes.stroke, options);
+	}
 	return "U";
 };
 /**
