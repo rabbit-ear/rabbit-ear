@@ -4,7 +4,7 @@ import { hexToRgb, hslToRgb } from './convert.js';
 
 const getParenNumbers = str => {
 	const match = str.match(/\(([^\)]+)\)/g);
-	if (match == null || !match.length) { return undefined; }
+	if (match == null || !match.length) { return []; }
 	return match[0]
 		.substring(1, match[0].length - 1)
 		.split(/[\s,]+/)
@@ -15,13 +15,22 @@ const parseColor = (string) => {
 	if (string[0] === "#") { return hexToRgb(string); }
 	if (string.substring(0, 4) === "rgba"
 		|| string.substring(0, 3) === "rgb") {
-		const colors = getParenNumbers(string);
-		[0, 1, 2].forEach((_, i) => { colors[i] /= 255; });
-		return colors;
+		const values = getParenNumbers(string);
+		[0, 1, 2]
+			.filter(i => values[i] === undefined)
+			.forEach(i => { values[i] = 0; });
+		[0, 1, 2].forEach(i => { values[i] /= 255; });
+		return values;
 	}
 	if (string.substring(0, 4) === "hsla"
 		|| string.substring(0, 3) === "hsl") {
-		return hslToRgb(...getParenNumbers(string));
+		const values = getParenNumbers(string);
+		[0, 1, 2]
+			.filter(i => values[i] === undefined)
+			.forEach(i => { values[i] = 0; });
+		const rgb = hslToRgb(...values);
+		if (values.length === 4) { rgb.push(values[3]); }
+		return rgb;
 	}
 	return [0, 0, 0];
 };

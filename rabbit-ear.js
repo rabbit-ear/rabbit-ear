@@ -4008,7 +4008,7 @@ const hexToRgb = (string) => {
 	yellowgreen: "#9acd32",
 };const getParenNumbers = str => {
 	const match = str.match(/\(([^\)]+)\)/g);
-	if (match == null || !match.length) { return undefined; }
+	if (match == null || !match.length) { return []; }
 	return match[0]
 		.substring(1, match[0].length - 1)
 		.split(/[\s,]+/)
@@ -4019,13 +4019,22 @@ const parseColor = (string) => {
 	if (string[0] === "#") { return hexToRgb(string); }
 	if (string.substring(0, 4) === "rgba"
 		|| string.substring(0, 3) === "rgb") {
-		const colors = getParenNumbers(string);
-		[0, 1, 2].forEach((_, i) => { colors[i] /= 255; });
-		return colors;
+		const values = getParenNumbers(string);
+		[0, 1, 2]
+			.filter(i => values[i] === undefined)
+			.forEach(i => { values[i] = 0; });
+		[0, 1, 2].forEach(i => { values[i] /= 255; });
+		return values;
 	}
 	if (string.substring(0, 4) === "hsla"
 		|| string.substring(0, 3) === "hsl") {
-		return hslToRgb(...getParenNumbers(string));
+		const values = getParenNumbers(string);
+		[0, 1, 2]
+			.filter(i => values[i] === undefined)
+			.forEach(i => { values[i] = 0; });
+		const rgb = hslToRgb(...values);
+		if (values.length === 4) { rgb.push(values[3]); }
+		return rgb;
 	}
 	return [0, 0, 0];
 };const colors = {
@@ -5255,41 +5264,6 @@ const curve_methods = {
 		args: curveArguments,
 		methods: curve_methods,
 	},
-};const COUNT = 128;
-const parabolaArguments = (x = -1, y = 0, width = 2, height = 1) => Array
-	.from(Array(COUNT + 1))
-	.map((_, i) => ((i - (COUNT)) / COUNT) * 2 + 1)
-	.map(i => [
-		x + (i + 1) * width * 0.5,
-		y + (i ** 2) * height,
-	]);
-const parabolaPathString = (a, b, c, d) => [
-	parabolaArguments(a, b, c, d).map(n => `${n[0]},${n[1]}`).join(" "),
-];const parabolaDef = {
-	parabola: {
-		nodeName: "polyline",
-		attributes: [str_points],
-		args: parabolaPathString,
-		methods: {
-			...TransformMethods,
-		},
-	},
-};const roundRectArguments = (x, y, width, height, cornerRadius = 0) => {
-	if (cornerRadius > width / 2) { cornerRadius = width / 2; }
-	if (cornerRadius > height / 2) { cornerRadius = height / 2; }
-	const w = width - cornerRadius * 2;
-	const h = height - cornerRadius * 2;
-	const s = `A${cornerRadius} ${cornerRadius} 0 0 1`;
-	return [[`M${x + (width - w) / 2},${y}`, `h${w}`, s, `${x + width},${y + (height - h) / 2}`, `v${h}`, s, `${x + width - cornerRadius},${y + height}`, `h${-w}`, s, `${x},${y + height - cornerRadius}`, `v${-h}`, s, `${x + cornerRadius},${y}`].join(" ")];
-};const roundRectDef = {
-	roundRect: {
-		nodeName: str_path,
-		attributes: ["d"],
-		args: roundRectArguments,
-		methods: {
-			...TransformMethods,
-		},
-	},
 };const wedgeArguments = (a, b, c, d, e) => [arcPath(a, b, c, d, e, true)];
 const wedgeDef = {
 	wedge: {
@@ -5331,8 +5305,6 @@ const wedgeDef = {
 	...arcDef,
 	...arrowDef,
 	...curveDef,
-	...parabolaDef,
-	...roundRectDef,
 	...wedgeDef,
 	...origamiDef,
 };const passthroughArgs = (...args) => args;
@@ -7221,6 +7193,13 @@ const makeEpsilon = (graph) => {
 	planar.faces_vertices = faces.faces_vertices;
 	planar.faces_edges = faces.faces_edges;
 	return planar;
+};const findEpsilonInObject = (graph, object, key = "epsilon") => {
+	if (typeof object === "object" && typeof object[key] === "number") {
+		return object[key];
+	}
+	return typeof object === "number"
+		? object
+		: makeEpsilon(graph);
 };const getContainingValue = (oripa, value) => (oripa == null
 	? null
 	: Array.from(oripa.childNodes)
@@ -7294,7 +7273,7 @@ const setMetadata = (oripa, fold) => {
 	fold.file_classes = ["singleModel"];
 	fold.frame_classes = ["creasePattern"];
 };
-const opxToFold = (file, epsilon) => {
+const opxToFold = (file, options) => {
 	const parsed = xmlStringToElement(file, "text/xml");
 	const children = parsed && parsed.childNodes
 		? Array.from(parsed.childNodes)
@@ -7303,11 +7282,9 @@ const opxToFold = (file, epsilon) => {
 		.filter(el => el.getAttribute)
 		.filter(el => el.getAttribute("class").split(" ").includes("oripa.DataSet"))
 		.shift();
-	const fold = makeFOLD(parseLines(getLines(oripa)));
-	const eps = typeof epsilon === "number"
-		? epsilon
-		: makeEpsilon(fold);
-	const planarGraph = planarizeGraph(fold, eps);
+	const graph = makeFOLD(parseLines(getLines(oripa)));
+	const epsilon = findEpsilonInObject(graph, options);
+	const planarGraph = planarizeGraph(graph, epsilon);
 	setMetadata(oripa, planarGraph);
 	return planarGraph;
 };
@@ -7324,7 +7301,100 @@ const cleanNumber = function (num, places = 15) {
 		return num;
 	}
 	return crop;
-};const number=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const getAttributesFloatValue = (element, attributes) => attributes
+};const number=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const DESATURATION_RATIO = 4;
+const assignmentsColor = {
+	M: [1, 0, 0],
+	V: [0, 0, 1],
+	J: [1, 1, 0],
+	U: [1, 0, 1],
+	C: [0, 1, 0],
+};
+const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
+	const color = [red, green, blue];
+	const blackDistance = magnitude3(color);
+	if (blackDistance < 0.05) { return "B"; }
+	const grayscale = color.reduce((a, b) => a + b, 0) / 3;
+	const grayDistance = distance3(color, [grayscale, grayscale, grayscale]);
+	const nearestColor = Object.keys(assignmentsColor)
+		.map(key => ({ key, dist: distance3(color, assignmentsColor[key]) }))
+		.sort((a, b) => a.dist - b.dist)
+		.shift();
+	if (nearestColor.dist < grayDistance * DESATURATION_RATIO) {
+		return nearestColor.key;
+	}
+	return blackDistance < 0.1 ? "B" : "F";
+};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentsColor,rgbToAssignment});const colorToAssignment = (color, options) => (
+	options && options.assignments && options.assignments[color]
+		? options.assignments[color]
+		: rgbToAssignment(...parseColor(color))
+);
+const opacityToFoldAngle = (opacity, assignment) => {
+	switch (assignment) {
+	case "M": case "m": return -180 * opacity;
+	case "V": case "v": return 180 * opacity;
+	default: return 0;
+	}
+};
+const getEdgesAttribute = (segments, key) => segments
+	.map(el => el.attributes)
+	.map(attributes => attributes[key]);
+const getEdgeStroke = (element, attributes) => {
+	const computedStroke = RabbitEarWindow().getComputedStyle(element).stroke;
+	if (computedStroke !== "" && computedStroke !== "none") {
+		return computedStroke;
+	}
+	if (attributes.stroke !== undefined) {
+		return attributes.stroke;
+	}
+	return undefined;
+};
+const getEdgeOpacity = (element, attributes) => {
+	const computedOpacity = RabbitEarWindow().getComputedStyle(element).opacity;
+	if (computedOpacity !== "") {
+		const floatOpacity = parseFloat(computedOpacity);
+		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }
+	}
+	if (attributes.opacity !== undefined) {
+		const floatOpacity = parseFloat(attributes.opacity);
+		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }
+	}
+	return undefined;
+};
+const getEdgesStroke = (segments) => segments
+	.map(el => getEdgeStroke(el.element, el.attributes));
+const getEdgesOpacity = (segments) => segments
+	.map(el => getEdgeOpacity(el.element, el.attributes));
+const getEdgeAssignment = (dataAssignment, stroke = "#f0f", options = undefined) => {
+	if (dataAssignment) { return dataAssignment; }
+	return colorToAssignment(stroke, options);
+};
+const getEdgeFoldAngle = (dataFoldAngle, opacity = 1, assignment = undefined) => {
+	if (dataFoldAngle) { return parseFloat(dataFoldAngle); }
+	return opacityToFoldAngle(opacity, assignment);
+};
+const getEdgesAttributes = (segments, options) => {
+	const edgesDataAssignment = getEdgesAttribute(segments, "data-assignment");
+	const edgesDataFoldAngle = getEdgesAttribute(segments, "data-foldAngle");
+	const edgesStroke = getEdgesStroke(segments);
+	const edgesOpacity = getEdgesOpacity(segments);
+	const edges_assignment = segments.map((_, i) => getEdgeAssignment(
+		edgesDataAssignment[i],
+		edgesStroke[i],
+		options,
+	));
+	const edges_foldAngle = segments.map((_, i) => getEdgeFoldAngle(
+		edgesDataFoldAngle[i],
+		edgesOpacity[i],
+		edges_assignment[i]));
+	return { edges_assignment, edges_foldAngle };
+};const edgeParsers=/*#__PURE__*/Object.freeze({__proto__:null,colorToAssignment,getEdgesAttributes,getEdgesOpacity,getEdgesStroke,opacityToFoldAngle});const invisibleParent = (child) => {
+	if (!RabbitEarWindow().document.body) { return undefined; }
+	const parent = RabbitEarWindow().document.createElement("div");
+	parent.setAttribute("display", "none");
+	RabbitEarWindow().document.body.appendChild(parent);
+	parent.appendChild(child);
+	return parent;
+};const getAttributesFloatValue = (element, attributes) => attributes
 	.map(attr => element.getAttribute(attr))
 	.map(str => (str == null ? 0 : str))
 	.map(parseFloat);const LineToSegments = (line) => [
@@ -7373,81 +7443,6 @@ const PathToSegments = (path) => (
 	polygon: PolygonToSegments,
 	polyline: PolylineToSegments,
 	path: PathToSegments,
-};const DESATURATION_RATIO = 4;
-const assignmentsColor = {
-	M: [1, 0, 0],
-	V: [0, 0, 1],
-	J: [1, 1, 0],
-	U: [1, 0, 1],
-	C: [0, 1, 0],
-};
-const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
-	const color = [red, green, blue];
-	const blackDistance = magnitude3(color);
-	if (blackDistance < 0.05) { return "B"; }
-	const grayscale = color.reduce((a, b) => a + b, 0) / 3;
-	const grayDistance = distance3(color, [grayscale, grayscale, grayscale]);
-	const nearestColor = Object.keys(assignmentsColor)
-		.map(key => ({ key, dist: distance3(color, assignmentsColor[key]) }))
-		.sort((a, b) => a.dist - b.dist)
-		.shift();
-	if (nearestColor.dist < grayDistance * DESATURATION_RATIO) {
-		return nearestColor.key;
-	}
-	return blackDistance < 0.1 ? "B" : "F";
-};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentsColor,rgbToAssignment});const opacityToFoldAngle = (opacity, assignment) => {
-	switch (assignment) {
-	case "M": case "m": return -180 * opacity;
-	case "V": case "v": return 180 * opacity;
-	default: return 0;
-	}
-};
-const getOpacity = (element, attributes) => {
-	const computedOpacity = RabbitEarWindow().getComputedStyle(element).opacity;
-	if (computedOpacity !== "") {
-		const floatOpacity = parseFloat(computedOpacity);
-		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }
-	}
-	if (attributes.opacity !== undefined) {
-		const floatOpacity = parseFloat(attributes.opacity);
-		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }
-	}
-	return undefined;
-};
-const colorToAssignment = (color, options) => (
-	options && options.assignments && options.assignments[color]
-		? options.assignments[color]
-		: rgbToAssignment(...parseColor(color))
-);
-const getEdgeAssignment = (element, attributes, options) => {
-	if (attributes["data-assignment"] !== undefined) {
-		return attributes["data-assignment"];
-	}
-	const computedStroke = RabbitEarWindow().getComputedStyle(element).stroke;
-	if (computedStroke !== "" && computedStroke !== "none") {
-		return colorToAssignment(computedStroke, options);
-	}
-	if (attributes.stroke !== undefined) {
-		return colorToAssignment(attributes.stroke, options);
-	}
-	return "U";
-};
-const getEdgeFoldAngle = (element, attributes, assignment) => {
-	if (attributes["data-foldAngle"] !== undefined) {
-		const floatFoldAngle = parseFloat(attributes["data-foldAngle"]);
-		if (!Number.isNaN(floatFoldAngle)) { return floatFoldAngle; }
-	}
-	if (!assignment) { return 0; }
-	const opacity = getOpacity(element, attributes) || 0;
-	return opacityToFoldAngle(opacity, assignment);
-};const invisibleParent = (child) => {
-	const invisible = RabbitEarWindow().document.createElementNS(NS, "svg");
-	invisible.setAttribute("display", "none");
-	if (RabbitEarWindow().document.body) {
-		RabbitEarWindow().document.body.appendChild(invisible);
-	}
-	invisible.appendChild(child);
-	return invisible;
 };const transformSegment = (segment, transform) => {
 	const seg = [[segment[0], segment[1]], [segment[2], segment[3]]];
 	if (!transform) { return seg; }
@@ -7456,35 +7451,41 @@ const getEdgeFoldAngle = (element, attributes, assignment) => {
 		? seg.map(p => multiplyMatrix2Vector2(matrix, p))
 		: seg;
 };
-const svgEdgeGraph = (svg, options) => {
-	const typeString = typeof svg === "string";
-	const xml = typeString ? xmlStringToElement(svg, "image/svg+xml") : svg;
-	const elements = flattenDomTreeWithStyle(xml);
-	const segments = elements
+const flatSegments = (svgElement) => {
+	const elements = flattenDomTreeWithStyle(svgElement);
+	return elements
 		.filter(el => parsers[el.element.nodeName])
 		.flatMap(el => parsers[el.element.nodeName](el.element)
 			.map(segment => transformSegment(segment, el.attributes.transform))
 			.map(segment => ({ ...el, segment })));
-	const invisible = getRootParent(xml) === RabbitEarWindow().document
+};const containsStylesheet = (svgElement) => flattenDomTree(svgElement)
+	.map(el => el.nodeName === "style")
+	.reduce((a, b) => a || b, false);
+const appendToDocumentIfNeeded = (element) => (
+	getRootParent(element) === RabbitEarWindow().document
 		? undefined
-		: invisibleParent(xml);
-	const stylesheets = elements.filter(el => el.element.nodeName === "style");
-	if (stylesheets.length && isNode) {
+		: invisibleParent(element)
+);
+const svgEdgeGraph = (svg, options) => {
+	const svgElement = typeof svg === "string"
+		? xmlStringToElement(svg, "image/svg+xml")
+		: svg;
+	if (containsStylesheet(svgElement) && isNode) {
 		console.warn(Messages$1.backendStylesheet);
 	}
-	const edges_assignment = segments
-		.map(el => getEdgeAssignment(el.element, el.attributes, options));
-	const edges_foldAngle = segments.map((el, i) => getEdgeFoldAngle(
-		el.element,
-		el.attributes,
-		edges_assignment[i],
-	));
-	if (invisible && invisible.parentNode) {
-		invisible.parentNode.removeChild(invisible);
+	const segments = flatSegments(svgElement);
+	const parent = appendToDocumentIfNeeded(svgElement);
+	const {
+		edges_assignment,
+		edges_foldAngle,
+	} = getEdgesAttributes(segments, options);
+	if (parent && parent.parentNode) {
+		parent.parentNode.removeChild(parent);
 	}
+	const fixNumber = options && options.fast ? n => n : cleanNumber;
 	const vertices_coords = segments
 		.flatMap(el => el.segment)
-		.map(coord => coord.map(n => cleanNumber(n, 14)));
+		.map(coord => coord.map(n => fixNumber(n, 12)));
 	const edges_vertices = segments.map((_, i) => [i * 2, i * 2 + 1]);
 	return {
 		vertices_coords,
@@ -7492,13 +7493,6 @@ const svgEdgeGraph = (svg, options) => {
 		edges_assignment,
 		edges_foldAngle,
 	};
-};const findEpsilonInObject = (graph, object, key = "epsilon") => {
-	if (typeof object === "object" && typeof object[key] === "number") {
-		return object[key];
-	}
-	return typeof object === "number"
-		? object
-		: makeEpsilon(graph);
 };const svgToFold = (svg, options) => {
 	const graph = svgEdgeGraph(svg, options);
 	const epsilon = findEpsilonInObject(graph, options);
@@ -7515,6 +7509,7 @@ const svgEdgeGraph = (svg, options) => {
 	};
 };
 Object.assign(svgToFold, {
+	...edgeParsers,
 	svgEdgeGraph,
 	makeEpsilon,
 	planarizeGraph,

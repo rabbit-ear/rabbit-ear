@@ -13,8 +13,6 @@ import polyDefs from './polys.js';
 import arcDef from './arc/index.js';
 import arrowDef from './arrow/index.js';
 import curveDef from './curve/index.js';
-import parabolaDef from './parabola/index.js';
-import roundRectDef from './roundRect/index.js';
 import wedgeDef from './wedge/index.js';
 import origamiDef from './origami/index.js';
 
@@ -33,8 +31,6 @@ const extensions = {
 	...arcDef,
 	...arrowDef,
 	...curveDef,
-	...parabolaDef,
-	...roundRectDef,
 	...wedgeDef,
 	...origamiDef,
 };

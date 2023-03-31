@@ -1,19 +1,20 @@
 import window from "../../environment/window.js";
-import svgNS from "../../svg/spec/namespace.js";
+// import svgNS from "../../svg/spec/namespace.js";
 
 const invisibleParent = (child) => {
+	if (!window().document.body) { return undefined; }
 	// create an invisible SVG element, add the edges, then getComputedStyle
-	const invisible = window().document.createElementNS(svgNS, "svg");
+	// const parent = window().document.createElementNS(svgNS, "svg");
+	const parent = window().document.createElement("div");
 
 	// visibility:hidden causes the DOM window layout to resize
-	invisible.setAttribute("display", "none");
-	// invisible.setAttribute("visibility", "hidden");
+	parent.setAttribute("display", "none");
+	// parent.setAttribute("visibility", "hidden");
 
-	if (window().document.body) {
-		window().document.body.appendChild(invisible);
-	}
-	invisible.appendChild(child);
-	return invisible;
+	window().document.body.appendChild(parent);
+
+	parent.appendChild(child);
+	return parent;
 };
 
 export default invisibleParent;

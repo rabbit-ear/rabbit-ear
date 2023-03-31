@@ -4,19 +4,18 @@
 import window from "../../environment/window.js";
 import parseColor from "../../svg/colors/parseColor.js";
 import { rgbToAssignment } from "../../fold/colors.js";
-
-// const getInlineStyle = (attributes, attributeKey) => {
-// 	const inlineStyle = attributes.style
-// 		? attributes.style.match(new RegExp(`${attributeKey}[\\s]*:[^;]*;`))
-// 		: null;
-// 	if (inlineStyle) {
-// 		return inlineStyle[0].split(":")[1].replace(";", "");
-// 	}
-// };
 /**
  *
  */
-const opacityToFoldAngle = (opacity, assignment) => {
+export const colorToAssignment = (color, options) => (
+	options && options.assignments && options.assignments[color]
+		? options.assignments[color]
+		: rgbToAssignment(...parseColor(color))
+);
+/**
+ *
+ */
+export const opacityToFoldAngle = (opacity, assignment) => {
 	switch (assignment) {
 	case "M": case "m": return -180 * opacity;
 	case "V": case "v": return 180 * opacity;
@@ -25,10 +24,28 @@ const opacityToFoldAngle = (opacity, assignment) => {
 	}
 };
 /**
- * @description get the value of the opacity as a parsed number,
- * or undefined if it does not exist.
+ *
  */
-const getOpacity = (element, attributes) => {
+const getEdgesAttribute = (segments, key) => segments
+	.map(el => el.attributes)
+	.map(attributes => attributes[key]);
+/**
+ *
+ */
+const getEdgeStroke = (element, attributes) => {
+	const computedStroke = window().getComputedStyle(element).stroke;
+	if (computedStroke !== "" && computedStroke !== "none") {
+		return computedStroke;
+	}
+	if (attributes.stroke !== undefined) {
+		return attributes.stroke;
+	}
+	return undefined;
+};
+/**
+ *
+ */
+const getEdgeOpacity = (element, attributes) => {
 	const computedOpacity = window().getComputedStyle(element).opacity;
 	if (computedOpacity !== "") {
 		const floatOpacity = parseFloat(computedOpacity);
@@ -43,41 +60,45 @@ const getOpacity = (element, attributes) => {
 /**
  *
  */
-const colorToAssignment = (color, options) => (
-	options && options.assignments && options.assignments[color]
-		? options.assignments[color]
-		: rgbToAssignment(...parseColor(color))
-);
+export const getEdgesStroke = (segments) => segments
+	.map(el => getEdgeStroke(el.element, el.attributes));
 /**
  *
  */
-export const getEdgeAssignment = (element, attributes, options) => {
-	if (attributes["data-assignment"] !== undefined) {
-		// console.log("attributes[data-assignment]", attributes["data-assignment"]);
-		return attributes["data-assignment"];
-	}
-	const computedStroke = window().getComputedStyle(element).stroke;
-	if (computedStroke !== "" && computedStroke !== "none") {
-		// console.log("computedStroke", computedStroke);
-		return colorToAssignment(computedStroke, options);
-	}
-	if (attributes.stroke !== undefined) {
-		// console.log("attributes.stroke", attributes.stroke);
-		return colorToAssignment(attributes.stroke, options);
-	}
-	return "U";
+export const getEdgesOpacity = (segments) => segments
+	.map(el => getEdgeOpacity(el.element, el.attributes));
+/**
+ *
+ */
+const getEdgeAssignment = (dataAssignment, stroke = "#f0f", options = undefined) => {
+	if (dataAssignment) { return dataAssignment; }
+	return colorToAssignment(stroke, options);
 };
 /**
  *
  */
-export const getEdgeFoldAngle = (element, attributes, assignment) => {
-	if (attributes["data-foldAngle"] !== undefined) {
-		const floatFoldAngle = parseFloat(attributes["data-foldAngle"]);
-		if (!Number.isNaN(floatFoldAngle)) { return floatFoldAngle; }
-	}
-	// from this point on, we are using opacity to tell foldAngle,
-	// we also need the assignment to determine if it's + or -
-	if (!assignment) { return 0; }
-	const opacity = getOpacity(element, attributes) || 0;
+const getEdgeFoldAngle = (dataFoldAngle, opacity = 1, assignment = undefined) => {
+	if (dataFoldAngle) { return parseFloat(dataFoldAngle); }
 	return opacityToFoldAngle(opacity, assignment);
+};
+/**
+ *
+ */
+export const getEdgesAttributes = (segments, options) => {
+	const edgesDataAssignment = getEdgesAttribute(segments, "data-assignment");
+	const edgesDataFoldAngle = getEdgesAttribute(segments, "data-foldAngle");
+	const edgesStroke = getEdgesStroke(segments);
+	const edgesOpacity = getEdgesOpacity(segments);
+	const edges_assignment = segments.map((_, i) => getEdgeAssignment(
+		edgesDataAssignment[i],
+		edgesStroke[i],
+		options,
+	));
+	const edges_foldAngle = segments.map((_, i) => getEdgeFoldAngle(
+		edgesDataFoldAngle[i],
+		edgesOpacity[i],
+		edges_assignment[i],
+		options,
+	));
+	return { edges_assignment, edges_foldAngle };
 };

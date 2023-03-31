@@ -6,6 +6,7 @@ import planarizeGraph from "../general/planarizeGraph.js";
 import svgEdgeGraph from "./svgEdgeGraph.js";
 import { planarBoundary } from "../../graph/boundary.js";
 import { findEpsilonInObject } from "../general/options.js";
+import * as edgeParsers from "./edges.js";
 /**
  * @description Convert an SVG to a FOLD object. This only works
  * with SVGs of crease patterns, this will not work
@@ -33,6 +34,7 @@ const svgToFold = (svg, options) => {
 };
 
 Object.assign(svgToFold, {
+	...edgeParsers,
 	svgEdgeGraph,
 	makeEpsilon,
 	planarizeGraph,

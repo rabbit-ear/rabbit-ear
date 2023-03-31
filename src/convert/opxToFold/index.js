@@ -5,6 +5,7 @@ import makeEpsilon from "../general/makeEpsilon.js";
 import { makeEdgesFoldAngle } from "../../graph/make.js";
 import planarizeGraph from "../general/planarizeGraph.js";
 import { xmlStringToElement } from "../../svg/general/dom.js";
+import { findEpsilonInObject } from "../general/options.js";
 /**
  * @description given a parsed xml object, get the branch which
  * contains a node which has some node containing the value specified.
@@ -109,11 +110,11 @@ const setMetadata = (oripa, fold) => {
 /**
  * @description Convert an ORIPA file into a FOLD object
  * @param {string} file an ORIPA file as a string
- * @param {number} [epsilon=1e-6] an optional epsilon
+ * @param {number | object} options an epsilon or an options object
  * used to merge nearby vertices
  * @returns {FOLD} a FOLD representation of the ORIPA file
  */
-const opxToFold = (file, epsilon) => {
+const opxToFold = (file, options) => {
 	const parsed = xmlStringToElement(file, "text/xml");
 	const children = parsed && parsed.childNodes
 		? Array.from(parsed.childNodes)
@@ -122,12 +123,10 @@ const opxToFold = (file, epsilon) => {
 		.filter(el => el.getAttribute)
 		.filter(el => el.getAttribute("class").split(" ").includes("oripa.DataSet"))
 		.shift();
-	const fold = makeFOLD(parseLines(getLines(oripa)));
+	const graph = makeFOLD(parseLines(getLines(oripa)));
 	// analysis on vertices_coords to find an appropriate epsilon
-	const eps = typeof epsilon === "number"
-		? epsilon
-		: makeEpsilon(fold);
-	const planarGraph = planarizeGraph(fold, eps);
+	const epsilon = findEpsilonInObject(graph, options);
+	const planarGraph = planarizeGraph(graph, epsilon);
 	setMetadata(oripa, planarGraph);
 	return planarGraph;
 };
