@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import makeEpsilon from "../general/makeEpsilon.js";
 import { makeEdgesFoldAngle } from "../../graph/make.js";
 import planarizeGraph from "../general/planarizeGraph.js";
 import { xmlStringToElement } from "../../svg/general/dom.js";

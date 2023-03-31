@@ -38,11 +38,11 @@ const makeUniforms = (gl, {
 	},
 	u_frontColor: {
 		func: "uniform3fv",
-		value: hexToRgb(frontColor),
+		value: hexToRgb(frontColor).map(n => n / 255),
 	},
 	u_backColor: {
 		func: "uniform3fv",
-		value: hexToRgb(backColor),
+		value: hexToRgb(backColor).map(n => n / 255),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",

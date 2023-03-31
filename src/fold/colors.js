@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { magnitude3, distance3 } from "../math/algebra/vector.js";
+import { magnitude3, distance3, scale3 } from "../math/algebra/vector.js";
 /**
  * How desaturated can a color be but still be considered
  * a color instead of a grayscale value? please be: 0 < n < Inf.
@@ -20,12 +20,12 @@ export const assignmentsColor = {
 };
 /**
  * @description The color scheme that was established in Origami Simulator.
- * @param {number} red the red channel from 0.0 to 1.0
- * @param {number} green the green channel from 0.0 to 1.0
- * @param {number} blue the blue channel from 0.0 to 1.0
+ * @param {number} red the red channel from 0 to 255
+ * @param {number} green the green channel from 0 to 255
+ * @param {number} blue the blue channel from 0 to 255
  */
 export const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
-	const color = [red, green, blue];
+	const color = scale3([red, green, blue], 1 / 255);
 	// the distance to black (0, 0, 0)
 	const blackDistance = magnitude3(color);
 	// if the distance to black is too small, it's difficult

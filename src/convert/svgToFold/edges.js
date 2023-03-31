@@ -2,16 +2,20 @@
  * Rabbit Ear (c) Kraft
  */
 import window from "../../environment/window.js";
-import parseColor from "../../svg/colors/parseColor.js";
+import {
+	parseColorToHex,
+	parseColorToRgb,
+} from "../../svg/colors/parseColor.js";
 import { rgbToAssignment } from "../../fold/colors.js";
 /**
  *
  */
-export const colorToAssignment = (color, options) => (
-	options && options.assignments && options.assignments[color]
-		? options.assignments[color]
-		: rgbToAssignment(...parseColor(color))
-);
+export const colorToAssignment = (color, userAssignments) => {
+	const hex = parseColorToHex(color).toUpperCase();
+	return userAssignments && userAssignments[hex]
+		? userAssignments[hex]
+		: rgbToAssignment(...parseColorToRgb(color));
+};
 /**
  *
  */
@@ -70,9 +74,9 @@ export const getEdgesOpacity = (segments) => segments
 /**
  *
  */
-const getEdgeAssignment = (dataAssignment, stroke = "#f0f", options = undefined) => {
+const getEdgeAssignment = (dataAssignment, stroke = "#f0f", userAssignments = undefined) => {
 	if (dataAssignment) { return dataAssignment; }
-	return colorToAssignment(stroke, options);
+	return colorToAssignment(stroke, userAssignments);
 };
 /**
  *
@@ -84,21 +88,40 @@ const getEdgeFoldAngle = (dataFoldAngle, opacity = 1, assignment = undefined) =>
 /**
  *
  */
+const getUserAssignmentOptions = (options) => {
+	if (!options || !options.assignments) { return undefined; }
+	const assignments = {};
+	Object.keys(options.assignments).forEach(key => {
+		const hex = parseColorToHex(key).toUpperCase();
+		assignments[hex] = options.assignments[key];
+	});
+	return assignments;
+};
+/**
+ *
+ */
 export const getEdgesAttributes = (segments, options) => {
-	const edgesDataAssignment = getEdgesAttribute(segments, "data-assignment");
-	const edgesDataFoldAngle = getEdgesAttribute(segments, "data-foldAngle");
+	// if the user provides a dictionary of custom stroke-assignment
+	// matches, this takes precidence over the "data-" attribute
+	// todo: this can be improved
+	const userAssignments = getUserAssignmentOptions(options);
+	const edgesDataAssignment = userAssignments === undefined
+		? getEdgesAttribute(segments, "data-assignment")
+		: [];
+	const edgesDataFoldAngle = userAssignments === undefined
+		? getEdgesAttribute(segments, "data-foldAngle")
+		: [];
 	const edgesStroke = getEdgesStroke(segments);
 	const edgesOpacity = getEdgesOpacity(segments);
 	const edges_assignment = segments.map((_, i) => getEdgeAssignment(
 		edgesDataAssignment[i],
 		edgesStroke[i],
-		options,
+		userAssignments,
 	));
 	const edges_foldAngle = segments.map((_, i) => getEdgeFoldAngle(
 		edgesDataFoldAngle[i],
 		edgesOpacity[i],
 		edges_assignment[i],
-		options,
 	));
 	return { edges_assignment, edges_foldAngle };
 };

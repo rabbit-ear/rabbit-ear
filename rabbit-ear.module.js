@@ -3838,27 +3838,7 @@ const nodes_children = {
 	mask: drawingShapes,
 	linearGradient: classes_nodes.gradients,
 	radialGradient: classes_nodes.gradients,
-};const nodeNames = Object.values(classes_nodes).flat();const hslToRgb = (hue, saturation, lightness) => {
-	const s = saturation / 100;
-	const l = lightness / 100;
-	const k = n => (n + hue / 30) % 12;
-	const a = s * Math.min(l, 1 - l);
-	const f = n => (
-		l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
-	);
-	return [f(0), f(8), f(4)];
-};
-const hexToRgb = (string) => {
-	const numbersOnly = string.replace(/#(?=\S)/g, "");
-	const chars = Array.from(Array(6))
-		.map((_, i) => numbersOnly[i] || "0");
-	const hexString = numbersOnly.length <= 4
-		? [0, 0, 1, 1, 2, 2].map(i => chars[i]).join("")
-		: chars.join("");
-	const c = parseInt(hexString, 16);
-	return [(c >> 16) & 255, (c >> 8) & 255, c & 255]
-		.map(n => n / 255);
-};const convert$1=/*#__PURE__*/Object.freeze({__proto__:null,hexToRgb,hslToRgb});const cssColors = {
+};const nodeNames = Object.values(classes_nodes).flat();const cssColors = {
 	black: "#000000",
 	silver: "#c0c0c0",
 	gray: "#808080",
@@ -4006,7 +3986,42 @@ const hexToRgb = (string) => {
 	wheat: "#f5deb3",
 	whitesmoke: "#f5f5f5",
 	yellowgreen: "#9acd32",
-};const getParenNumbers = str => {
+};const hslToRgb = (hue, saturation, lightness) => {
+	const s = saturation / 100;
+	const l = lightness / 100;
+	const k = n => (n + hue / 30) % 12;
+	const a = s * Math.min(l, 1 - l);
+	const f = n => (
+		l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
+	);
+	return [f(0) * 255, f(8) * 255, f(4) * 255];
+};
+const mapHexNumbers = (numbers, map) => {
+	const chars = Array.from(Array(map.length))
+		.map((_, i) => numbers[i] || "0");
+	return numbers.length <= 4
+		? map.map(i => chars[i]).join("")
+		: chars.join("");
+};
+const hexToRgb = (string) => {
+	const numbers = string.replace(/#(?=\S)/g, "");
+	const hasAlpha = numbers.length === 4 || numbers.length === 8;
+	const hexString = hasAlpha
+		? mapHexNumbers(numbers, [0, 0, 1, 1, 2, 2, 3, 3])
+		: mapHexNumbers(numbers, [0, 0, 1, 1, 2, 2]);
+	const c = parseInt(hexString, 16);
+	return hasAlpha
+		? [(c >> 24) & 255, (c >> 16) & 255, (c >> 8) & 255, c & 255]
+		: [(c >> 16) & 255, (c >> 8) & 255, c & 255];
+};
+const rgbToHex = (red, green, blue, alpha) => {
+	const to16 = n => `00${Math.max(0, Math.min(Math.round(n), 255)).toString(16)}`
+		.slice(-2);
+	const hex = `#${[red, green, blue].map(to16).join("")}`;
+	return alpha === undefined
+		? hex
+		: `${hex}${to16(alpha * 255)}`;
+};const convert$1=/*#__PURE__*/Object.freeze({__proto__:null,hexToRgb,hslToRgb,rgbToHex});const getParenNumbers = str => {
 	const match = str.match(/\(([^\)]+)\)/g);
 	if (match == null || !match.length) { return []; }
 	return match[0]
@@ -4014,7 +4029,7 @@ const hexToRgb = (string) => {
 		.split(/[\s,]+/)
 		.map(parseFloat);
 };
-const parseColor = (string) => {
+const parseColorToRgb = (string) => {
 	if (cssColors[string]) { return hexToRgb(cssColors[string]); }
 	if (string[0] === "#") { return hexToRgb(string); }
 	if (string.substring(0, 4) === "rgba"
@@ -4023,7 +4038,6 @@ const parseColor = (string) => {
 		[0, 1, 2]
 			.filter(i => values[i] === undefined)
 			.forEach(i => { values[i] = 0; });
-		[0, 1, 2].forEach(i => { values[i] /= 255; });
 		return values;
 	}
 	if (string.substring(0, 4) === "hsla"
@@ -4036,11 +4050,31 @@ const parseColor = (string) => {
 		if (values.length === 4) { rgb.push(values[3]); }
 		return rgb;
 	}
-	return [0, 0, 0];
-};const colors = {
-	...convert$1,
+	return undefined;
+};
+const parseColorToHex = (string) => {
+	if (cssColors[string]) { return cssColors[string].toUpperCase(); }
+	if (string[0] === "#") { return rgbToHex(...hexToRgb(string)); }
+	if (string.substring(0, 4) === "rgba"
+		|| string.substring(0, 3) === "rgb") {
+		return rgbToHex(...getParenNumbers(string));
+	}
+	if (string.substring(0, 4) === "hsla"
+		|| string.substring(0, 3) === "hsl") {
+		const values = getParenNumbers(string);
+		[0, 1, 2]
+			.filter(i => values[i] === undefined)
+			.forEach(i => { values[i] = 0; });
+		const rgb = hslToRgb(...values);
+		if (values.length === 4) { rgb.push(values[3]); }
+		[0, 1, 2].forEach(i => { rgb[i] *= 255; });
+		rgbToHex(...rgb);
+	}
+	return undefined;
+};const parseColor=/*#__PURE__*/Object.freeze({__proto__:null,parseColorToHex,parseColorToRgb});const colors = {
 	cssColors,
-	parseColor,
+	...convert$1,
+	...parseColor,
 };const svg_add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
 const svg_sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
 const svg_scale2 = (a, s) => [a[0] * s, a[1] * s];
@@ -7169,6 +7203,15 @@ const objToFold = (file) => {
 	delete graph.edges_faces;
 	updateMetadata(graph);
 	return graph;
+};const planarizeGraph = (graph, epsilon) => {
+	const planar = { ...graph };
+	removeDuplicateVertices(planar, epsilon);
+	planarize(planar, epsilon);
+	planar.vertices_vertices = makeVerticesVertices(planar);
+	const faces = makePlanarFaces(planar);
+	planar.faces_vertices = faces.faces_vertices;
+	planar.faces_edges = faces.faces_edges;
+	return planar;
 };const shortestEdgeLength = (graph) => {
 	const lengths = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]))
@@ -7184,15 +7227,6 @@ const makeEpsilon = (graph) => {
 	return bounds && bounds.span
 		? 1e-3 * Math.max(...bounds.span)
 		: 1e-3;
-};const planarizeGraph = (graph, epsilon) => {
-	const planar = { ...graph };
-	removeDuplicateVertices(planar, epsilon);
-	planarize(planar, epsilon);
-	planar.vertices_vertices = makeVerticesVertices(planar);
-	const faces = makePlanarFaces(planar);
-	planar.faces_vertices = faces.faces_vertices;
-	planar.faces_edges = faces.faces_edges;
-	return planar;
 };const findEpsilonInObject = (graph, object, key = "epsilon") => {
 	if (typeof object === "object" && typeof object[key] === "number") {
 		return object[key];
@@ -7310,7 +7344,7 @@ const assignmentsColor = {
 	C: [0, 1, 0],
 };
 const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
-	const color = [red, green, blue];
+	const color = scale3([red, green, blue], 1 / 255);
 	const blackDistance = magnitude3(color);
 	if (blackDistance < 0.05) { return "B"; }
 	const grayscale = color.reduce((a, b) => a + b, 0) / 3;
@@ -7323,11 +7357,12 @@ const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
 		return nearestColor.key;
 	}
 	return blackDistance < 0.1 ? "B" : "F";
-};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentsColor,rgbToAssignment});const colorToAssignment = (color, options) => (
-	options && options.assignments && options.assignments[color]
-		? options.assignments[color]
-		: rgbToAssignment(...parseColor(color))
-);
+};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentsColor,rgbToAssignment});const colorToAssignment = (color, userAssignments) => {
+	const hex = parseColorToHex(color).toUpperCase();
+	return userAssignments && userAssignments[hex]
+		? userAssignments[hex]
+		: rgbToAssignment(...parseColorToRgb(color));
+};
 const opacityToFoldAngle = (opacity, assignment) => {
 	switch (assignment) {
 	case "M": case "m": return -180 * opacity;
@@ -7364,28 +7399,43 @@ const getEdgesStroke = (segments) => segments
 	.map(el => getEdgeStroke(el.element, el.attributes));
 const getEdgesOpacity = (segments) => segments
 	.map(el => getEdgeOpacity(el.element, el.attributes));
-const getEdgeAssignment = (dataAssignment, stroke = "#f0f", options = undefined) => {
+const getEdgeAssignment = (dataAssignment, stroke = "#f0f", userAssignments = undefined) => {
 	if (dataAssignment) { return dataAssignment; }
-	return colorToAssignment(stroke, options);
+	return colorToAssignment(stroke, userAssignments);
 };
 const getEdgeFoldAngle = (dataFoldAngle, opacity = 1, assignment = undefined) => {
 	if (dataFoldAngle) { return parseFloat(dataFoldAngle); }
 	return opacityToFoldAngle(opacity, assignment);
 };
+const getUserAssignmentOptions = (options) => {
+	if (!options || !options.assignments) { return undefined; }
+	const assignments = {};
+	Object.keys(options.assignments).forEach(key => {
+		const hex = parseColorToHex(key).toUpperCase();
+		assignments[hex] = options.assignments[key];
+	});
+	return assignments;
+};
 const getEdgesAttributes = (segments, options) => {
-	const edgesDataAssignment = getEdgesAttribute(segments, "data-assignment");
-	const edgesDataFoldAngle = getEdgesAttribute(segments, "data-foldAngle");
+	const userAssignments = getUserAssignmentOptions(options);
+	const edgesDataAssignment = userAssignments === undefined
+		? getEdgesAttribute(segments, "data-assignment")
+		: [];
+	const edgesDataFoldAngle = userAssignments === undefined
+		? getEdgesAttribute(segments, "data-foldAngle")
+		: [];
 	const edgesStroke = getEdgesStroke(segments);
 	const edgesOpacity = getEdgesOpacity(segments);
 	const edges_assignment = segments.map((_, i) => getEdgeAssignment(
 		edgesDataAssignment[i],
 		edgesStroke[i],
-		options,
+		userAssignments,
 	));
 	const edges_foldAngle = segments.map((_, i) => getEdgeFoldAngle(
 		edgesDataFoldAngle[i],
 		edgesOpacity[i],
-		edges_assignment[i]));
+		edges_assignment[i],
+	));
 	return { edges_assignment, edges_foldAngle };
 };const edgeParsers=/*#__PURE__*/Object.freeze({__proto__:null,colorToAssignment,getEdgesAttributes,getEdgesOpacity,getEdgesStroke,opacityToFoldAngle});const invisibleParent = (child) => {
 	if (!RabbitEarWindow().document.body) { return undefined; }
@@ -7498,6 +7548,11 @@ const svgEdgeGraph = (svg, options) => {
 	const epsilon = findEpsilonInObject(graph, options);
 	const planarGraph = planarizeGraph(graph, epsilon);
 	if (typeof options !== "object" || options.boundary !== false) {
+		planarGraph.edges_assignment
+			.map((_, i) => i)
+			.filter(i => planarGraph.edges_assignment[i] === "B"
+				|| planarGraph.edges_assignment[i] === "b")
+			.forEach(i => { planarGraph.edges_assignment[i] = "F"; });
 		const { edges } = planarBoundary(planarGraph);
 		edges.forEach(e => { planarGraph.edges_assignment[e] = "B"; });
 	}
@@ -8872,11 +8927,11 @@ const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	},
 	u_frontColor: {
 		func: "uniform3fv",
-		value: hexToRgb(frontColor),
+		value: hexToRgb(frontColor).map(n => n / 255),
 	},
 	u_backColor: {
 		func: "uniform3fv",
-		value: hexToRgb(backColor),
+		value: hexToRgb(backColor).map(n => n / 255),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",

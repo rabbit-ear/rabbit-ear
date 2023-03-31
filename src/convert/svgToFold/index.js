@@ -22,6 +22,14 @@ const svgToFold = (svg, options) => {
 	const planarGraph = planarizeGraph(graph, epsilon);
 	// optionally, discover the boundary by walking.
 	if (typeof options !== "object" || options.boundary !== false) {
+		// clear all previous boundary assignments and set them to flat.
+		// this is because both flat and boundary were imported as black
+		// colors (grayscale), so the assignment should go to the next in line.
+		planarGraph.edges_assignment
+			.map((_, i) => i)
+			.filter(i => planarGraph.edges_assignment[i] === "B"
+				|| planarGraph.edges_assignment[i] === "b")
+			.forEach(i => { planarGraph.edges_assignment[i] = "F"; });
 		const { edges } = planarBoundary(planarGraph);
 		edges.forEach(e => { planarGraph.edges_assignment[e] = "B"; });
 	}
