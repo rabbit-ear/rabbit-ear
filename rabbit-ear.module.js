@@ -7324,18 +7324,7 @@ const opxToFold = (file, options) => {
 };
 Object.assign(opxToFold, {
 	opxEdgeGraph,
-});const countPlaces = function (num) {
-	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-	return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
-};
-const cleanNumber = function (num, places = 15) {
-	if (typeof num !== "number") { return num; }
-	const crop = parseFloat(num.toFixed(places));
-	if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
-		return num;
-	}
-	return crop;
-};const number=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const DESATURATION_RATIO = 4;
+});const DESATURATION_RATIO = 4;
 const assignmentsColor = {
 	M: [1, 0, 0],
 	V: [0, 0, 1],
@@ -7357,10 +7346,10 @@ const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
 		return nearestColor.key;
 	}
 	return blackDistance < 0.1 ? "B" : "F";
-};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentsColor,rgbToAssignment});const colorToAssignment = (color, userAssignments) => {
+};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentsColor,rgbToAssignment});const colorToAssignment = (color, customAssignments) => {
 	const hex = parseColorToHex(color).toUpperCase();
-	return userAssignments && userAssignments[hex]
-		? userAssignments[hex]
+	return customAssignments && customAssignments[hex]
+		? customAssignments[hex]
 		: rgbToAssignment(...parseColorToRgb(color));
 };
 const opacityToFoldAngle = (opacity, assignment) => {
@@ -7370,9 +7359,6 @@ const opacityToFoldAngle = (opacity, assignment) => {
 	default: return 0;
 	}
 };
-const getEdgesAttribute = (segments, key) => segments
-	.map(el => el.attributes)
-	.map(attributes => attributes[key]);
 const getEdgeStroke = (element, attributes) => {
 	const computedStroke = RabbitEarWindow().getComputedStyle(element).stroke;
 	if (computedStroke !== "" && computedStroke !== "none") {
@@ -7394,57 +7380,7 @@ const getEdgeOpacity = (element, attributes) => {
 		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }
 	}
 	return undefined;
-};
-const getEdgesStroke = (segments) => segments
-	.map(el => getEdgeStroke(el.element, el.attributes));
-const getEdgesOpacity = (segments) => segments
-	.map(el => getEdgeOpacity(el.element, el.attributes));
-const getEdgeAssignment = (dataAssignment, stroke = "#f0f", userAssignments = undefined) => {
-	if (dataAssignment) { return dataAssignment; }
-	return colorToAssignment(stroke, userAssignments);
-};
-const getEdgeFoldAngle = (dataFoldAngle, opacity = 1, assignment = undefined) => {
-	if (dataFoldAngle) { return parseFloat(dataFoldAngle); }
-	return opacityToFoldAngle(opacity, assignment);
-};
-const getUserAssignmentOptions = (options) => {
-	if (!options || !options.assignments) { return undefined; }
-	const assignments = {};
-	Object.keys(options.assignments).forEach(key => {
-		const hex = parseColorToHex(key).toUpperCase();
-		assignments[hex] = options.assignments[key];
-	});
-	return assignments;
-};
-const getEdgesAttributes = (segments, options) => {
-	const userAssignments = getUserAssignmentOptions(options);
-	const edgesDataAssignment = userAssignments === undefined
-		? getEdgesAttribute(segments, "data-assignment")
-		: [];
-	const edgesDataFoldAngle = userAssignments === undefined
-		? getEdgesAttribute(segments, "data-foldAngle")
-		: [];
-	const edgesStroke = getEdgesStroke(segments);
-	const edgesOpacity = getEdgesOpacity(segments);
-	const edges_assignment = segments.map((_, i) => getEdgeAssignment(
-		edgesDataAssignment[i],
-		edgesStroke[i],
-		userAssignments,
-	));
-	const edges_foldAngle = segments.map((_, i) => getEdgeFoldAngle(
-		edgesDataFoldAngle[i],
-		edgesOpacity[i],
-		edges_assignment[i],
-	));
-	return { edges_assignment, edges_foldAngle };
-};const edgeParsers=/*#__PURE__*/Object.freeze({__proto__:null,colorToAssignment,getEdgesAttributes,getEdgesOpacity,getEdgesStroke,opacityToFoldAngle});const invisibleParent = (child) => {
-	if (!RabbitEarWindow().document.body) { return undefined; }
-	const parent = RabbitEarWindow().document.createElement("div");
-	parent.setAttribute("display", "none");
-	RabbitEarWindow().document.body.appendChild(parent);
-	parent.appendChild(child);
-	return parent;
-};const getAttributesFloatValue = (element, attributes) => attributes
+};const edgeParsers=/*#__PURE__*/Object.freeze({__proto__:null,colorToAssignment,getEdgeOpacity,getEdgeStroke,opacityToFoldAngle});const getAttributesFloatValue = (element, attributes) => attributes
 	.map(attr => element.getAttribute(attr))
 	.map(str => (str == null ? 0 : str))
 	.map(parseFloat);const LineToSegments = (line) => [
@@ -7501,37 +7437,105 @@ const PathToSegments = (path) => (
 		? seg.map(p => multiplyMatrix2Vector2(matrix, p))
 		: seg;
 };
-const flatSegments = (svgElement) => {
-	const elements = flattenDomTreeWithStyle(svgElement);
-	return elements
-		.filter(el => parsers[el.element.nodeName])
-		.flatMap(el => parsers[el.element.nodeName](el.element)
-			.map(segment => transformSegment(segment, el.attributes.transform))
-			.map(segment => ({ ...el, segment })));
+const flatSegments = (svgElement) => flattenDomTreeWithStyle(svgElement)
+	.filter(el => parsers[el.element.nodeName])
+	.flatMap(el => parsers[el.element.nodeName](el.element)
+		.map(segment => transformSegment(segment, el.attributes.transform))
+		.map(segment => ({ ...el, segment })));const invisibleParent = (child) => {
+	if (!RabbitEarWindow().document.body) { return undefined; }
+	const parent = RabbitEarWindow().document.createElement("div");
+	parent.setAttribute("display", "none");
+	RabbitEarWindow().document.body.appendChild(parent);
+	parent.appendChild(child);
+	return parent;
 };const containsStylesheet = (svgElement) => flattenDomTree(svgElement)
 	.map(el => el.nodeName === "style")
 	.reduce((a, b) => a || b, false);
-const appendToDocumentIfNeeded = (element) => (
-	getRootParent(element) === RabbitEarWindow().document
-		? undefined
-		: invisibleParent(element)
-);
-const svgEdgeGraph = (svg, options) => {
+const svgSegments = (svg) => {
 	const svgElement = typeof svg === "string"
 		? xmlStringToElement(svg, "image/svg+xml")
 		: svg;
 	if (containsStylesheet(svgElement) && isNode) {
 		console.warn(Messages$1.backendStylesheet);
 	}
+	const parent = getRootParent(svgElement) === RabbitEarWindow().document
+		? undefined
+		: invisibleParent(svgElement);
 	const segments = flatSegments(svgElement);
-	const parent = appendToDocumentIfNeeded(svgElement);
-	const {
-		edges_assignment,
-		edges_foldAngle,
-	} = getEdgesAttributes(segments, options);
+	segments.map(el => ({
+		data: {
+			assignment: el.attributes["data-assignment"],
+			foldAngle: el.attributes["data-foldAngle"],
+		},
+		stroke: getEdgeStroke(el.element, el.attributes),
+		opacity: getEdgeOpacity(el.element, el.attributes),
+	})).forEach((addition, i) => {
+		segments[i] = {
+			...segments[i],
+			...addition,
+		};
+	});
 	if (parent && parent.parentNode) {
 		parent.parentNode.removeChild(parent);
 	}
+	return segments;
+};const countPlaces = function (num) {
+	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+	return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
+};
+const cleanNumber = function (num, places = 15) {
+	if (typeof num !== "number") { return num; }
+	const crop = parseFloat(num.toFixed(places));
+	if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
+		return num;
+	}
+	return crop;
+};const number=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const getUserAssignmentOptions = (options) => {
+	if (!options || !options.assignments) { return undefined; }
+	const assignments = {};
+	Object.keys(options.assignments).forEach(key => {
+		const hex = parseColorToHex(key).toUpperCase();
+		assignments[hex] = options.assignments[key];
+	});
+	return assignments;
+};
+const getEdgeAssignment = (dataAssignment, stroke = "#f0f", customAssignments = undefined) => {
+	if (dataAssignment) { return dataAssignment; }
+	return colorToAssignment(stroke, customAssignments);
+};
+const getEdgeFoldAngle = (dataFoldAngle, opacity = 1, assignment = undefined) => {
+	if (dataFoldAngle) { return parseFloat(dataFoldAngle); }
+	return opacityToFoldAngle(opacity, assignment);
+};
+const makeAssignmentFoldAngle = (segments, options) => {
+	const customAssignments = getUserAssignmentOptions(options);
+	if (customAssignments) {
+		segments.forEach(seg => {
+			delete seg.data.assignment;
+			delete seg.data.foldAngle;
+		});
+	}
+	const edges_assignment = segments.map(segment => getEdgeAssignment(
+		segment.data.assignment,
+		segment.stroke,
+		customAssignments,
+	));
+	const edges_foldAngle = segments.map((segment, i) => getEdgeFoldAngle(
+		segment.data.foldAngle,
+		segment.opacity,
+		edges_assignment[i],
+	));
+	return {
+		edges_assignment,
+		edges_foldAngle,
+	};
+};
+const svgEdgeGraph = (svg, options) => {
+	const segments = svgSegments(svg);
+	const {
+		edges_assignment,
+		edges_foldAngle,
+	} = makeAssignmentFoldAngle(segments, options);
 	const fixNumber = options && options.fast ? n => n : cleanNumber;
 	const vertices_coords = segments
 		.flatMap(el => el.segment)
@@ -7565,9 +7569,10 @@ const svgEdgeGraph = (svg, options) => {
 };
 Object.assign(svgToFold, {
 	...edgeParsers,
+	svgSegments,
 	svgEdgeGraph,
-	makeEpsilon,
 	planarizeGraph,
+	makeEpsilon,
 });const convert = {
 	objToFold,
 	opxToFold,

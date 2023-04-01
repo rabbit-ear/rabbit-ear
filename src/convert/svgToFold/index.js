@@ -1,11 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import makeEpsilon from "../general/makeEpsilon.js";
-import planarizeGraph from "../general/planarizeGraph.js";
-import svgEdgeGraph from "./svgEdgeGraph.js";
 import { planarBoundary } from "../../graph/boundary.js";
 import { findEpsilonInObject } from "../general/options.js";
+import planarizeGraph from "../general/planarizeGraph.js";
+import makeEpsilon from "../general/makeEpsilon.js";
+import svgSegments from "./svgSegments.js";
+import svgEdgeGraph from "./svgEdgeGraph.js";
 import * as edgeParsers from "./edges.js";
 /**
  * @description Convert an SVG to a FOLD object. This only works
@@ -43,9 +44,10 @@ const svgToFold = (svg, options) => {
 
 Object.assign(svgToFold, {
 	...edgeParsers,
+	svgSegments,
 	svgEdgeGraph,
-	makeEpsilon,
 	planarizeGraph,
+	makeEpsilon,
 });
 
 export default svgToFold;

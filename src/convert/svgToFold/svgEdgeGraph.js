@@ -1,36 +1,73 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { isNode } from "../../environment/detect.js";
-import window from "../../environment/window.js";
-import Messages from "../../environment/messages.js";
-import {
-	getRootParent,
-	xmlStringToElement,
-	flattenDomTree,
-} from "../../svg/general/dom.js";
 import { cleanNumber } from "../../math/general/number.js";
-import { getEdgesAttributes } from "./edges.js";
-import invisibleParent from "./invisibleParent.js";
-import flatSegments from "./flatSegments.js";
+import svgSegments from "./svgSegments.js";
+import {
+	parseColorToHex,
+} from "../../svg/colors/parseColor.js";
+import {
+	colorToAssignment,
+	opacityToFoldAngle,
+} from "./edges.js";
 /**
  *
  */
-const containsStylesheet = (svgElement) => flattenDomTree(svgElement)
-	.map(el => el.nodeName === "style")
-	.reduce((a, b) => a || b, false);
+const getUserAssignmentOptions = (options) => {
+	if (!options || !options.assignments) { return undefined; }
+	const assignments = {};
+	Object.keys(options.assignments).forEach(key => {
+		const hex = parseColorToHex(key).toUpperCase();
+		assignments[hex] = options.assignments[key];
+	});
+	return assignments;
+};
 /**
- * @description ensure the element is a child of the HTML document by
- * creating an invisible parent element and append this element.
- * If the element is already a child of the HTML document, do nothing.
- * @returns {Element | undefined} the parent element in the case
- * of a parent being created, or nothing if not.
+ *
  */
-const appendToDocumentIfNeeded = (element) => (
-	getRootParent(element) === window().document
-		? undefined
-		: invisibleParent(element)
-);
+const getEdgeAssignment = (dataAssignment, stroke = "#f0f", customAssignments = undefined) => {
+	if (dataAssignment) { return dataAssignment; }
+	return colorToAssignment(stroke, customAssignments);
+};
+/**
+ *
+ */
+const getEdgeFoldAngle = (dataFoldAngle, opacity = 1, assignment = undefined) => {
+	if (dataFoldAngle) { return parseFloat(dataFoldAngle); }
+	return opacityToFoldAngle(opacity, assignment);
+};
+/**
+ *
+ */
+const makeAssignmentFoldAngle = (segments, options) => {
+	// if the user provides a dictionary of custom stroke-assignment
+	// matches, this takes precidence over the "data-" attribute
+	// todo: this can be improved
+	const customAssignments = getUserAssignmentOptions(options);
+	// if user specified customAssignments, ignore the data- attributes
+	// otherwise the user's assignments would be ignored.
+	if (customAssignments) {
+		segments.forEach(seg => {
+			delete seg.data.assignment;
+			delete seg.data.foldAngle;
+		});
+	}
+	// convert SVG data into FOLD arrays
+	const edges_assignment = segments.map(segment => getEdgeAssignment(
+		segment.data.assignment,
+		segment.stroke,
+		customAssignments,
+	));
+	const edges_foldAngle = segments.map((segment, i) => getEdgeFoldAngle(
+		segment.data.foldAngle,
+		segment.opacity,
+		edges_assignment[i],
+	));
+	return {
+		edges_assignment,
+		edges_foldAngle,
+	};
+};
 /**
  * @description This method will handle all of the SVG parsing
  * and result in a very simple graph representation basically
@@ -40,32 +77,15 @@ const appendToDocumentIfNeeded = (element) => (
  * be merged
  * @param {Element | string} svg an SVG image as a DOM element
  * or a string.
- * @returns {FOLD} a FOLD representation of the SVG image.
+ * @returns {FOLD} a FOLD representation of the SVG image, not
+ * yet a planar graph, no faces, and possible edge overlaps.
  */
 const svgEdgeGraph = (svg, options) => {
-	const svgElement = typeof svg === "string"
-		? xmlStringToElement(svg, "image/svg+xml")
-		: svg;
-
-	if (containsStylesheet(svgElement) && isNode) {
-		console.warn(Messages.backendStylesheet);
-	}
-
-	const segments = flatSegments(svgElement);
-
-	// ensure the svg is a child of the DOM so we can call getComputedStyle
-	// if this was unnecessary, "parent" will be undefined
-	const parent = appendToDocumentIfNeeded(svgElement);
-
+	const segments = svgSegments(svg, options);
 	const {
 		edges_assignment,
 		edges_foldAngle,
-	} = getEdgesAttributes(segments, options);
-
-	// we no longer need computed style, remove invisible svg from DOM.
-	if (parent && parent.parentNode) {
-		parent.parentNode.removeChild(parent);
-	}
+	} = makeAssignmentFoldAngle(segments, options);
 	// by default the parser will change numbers 15.000000000001 into 15.
 	// to turn this off, options.fast = true
 	const fixNumber = options && options.fast ? n => n : cleanNumber;

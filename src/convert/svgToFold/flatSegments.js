@@ -2,11 +2,9 @@
  * Rabbit Ear (c) Kraft
  */
 import { multiplyMatrix2Vector2 } from "../../math/algebra/matrix2.js";
-import parsers from "./parsers/index.js";
-import {
-	flattenDomTreeWithStyle,
-} from "../../svg/general/dom.js";
+import { flattenDomTreeWithStyle } from "../../svg/general/dom.js";
 import { transformStringToMatrix } from "../../svg/general/transforms.js";
+import parsers from "./parsers/index.js";
 /**
  *
  */
@@ -19,19 +17,14 @@ const transformSegment = (segment, transform) => {
 		: seg;
 };
 /**
- *
+ * @description Get a flat array of all elements in the tree, with all
+ * styles also flattened (nested transformed computed, for example)
+ * convert all elements <path> <rect> etc into arrays of line segments
  */
-const flatSegments = (svgElement) => {
-	// get a flat array of all elements in the tree, with all
-	// styles also flattened (nested transformed computed, for example)
-	const elements = flattenDomTreeWithStyle(svgElement);
-
-	// convert all elements <path> <rect> etc into arrays of line segments
-	return elements
-		.filter(el => parsers[el.element.nodeName])
-		.flatMap(el => parsers[el.element.nodeName](el.element)
-			.map(segment => transformSegment(segment, el.attributes.transform))
-			.map(segment => ({ ...el, segment })));
-};
+const flatSegments = (svgElement) => flattenDomTreeWithStyle(svgElement)
+	.filter(el => parsers[el.element.nodeName])
+	.flatMap(el => parsers[el.element.nodeName](el.element)
+		.map(segment => transformSegment(segment, el.attributes.transform))
+		.map(segment => ({ ...el, segment })));
 
 export default flatSegments;
