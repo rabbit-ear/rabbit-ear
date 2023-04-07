@@ -2,11 +2,27 @@ const fs = require("fs");
 const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear.js");
 
+test("fold a 3D model", () => {
+	const file = "bird-base-3d.fold";
+	// const file = "panels.fold";
+	const FOLD = JSON.parse(fs.readFileSync(`./tests/files/fold/${file}`));
+	const cp = ear.graph.getFramesByClassName(FOLD, "creasePattern")[0];
+	const vertices_coords = ear.graph.makeVerticesCoordsFolded(cp);
+	const folded = {
+		...cp,
+		vertices_coords,
+	};
+	// console.log("folded", folded);
+
+	expect(true).toBe(true);
+});
+
 test("fold in 3d", () => {
 	const file = "bird-base-3d.fold";
 	// const file = "panels.fold";
 
-	const cp = JSON.parse(fs.readFileSync(`./tests/files/${file}`));
+	const FOLD = JSON.parse(fs.readFileSync(`./tests/files/fold/${file}`));
+	const cp = ear.graph.getFramesByClassName(FOLD, "creasePattern")[0];
 
 	// make edge-adjacent faces for every face
 	// cp.faces_faces = ear.graph.makeFacesFaces(cp);
@@ -36,6 +52,6 @@ test("fold in 3d", () => {
 	// modify the original graph, replace the vertices_coords with the new set.
 	cp.vertices_coords = new_vertices_coords;
 
-	fs.writeFileSync(`./tests/files/folded-${file}`, JSON.stringify(cp));
+	// fs.writeFileSync(`./tests/files/folded-${file}`, JSON.stringify(cp));
 	expect(true).toBe(true);
 });

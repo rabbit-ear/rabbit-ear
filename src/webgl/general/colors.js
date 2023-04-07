@@ -1,8 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// cut is green, join is dark brown
-export const ASSIGNMENT_COLOR = {
+import { parseColorToRgb } from "../../svg/colors/parseColor.js";
+
+export const dark = {
 	B: [0.5, 0.5, 0.5],
 	b: [0.5, 0.5, 0.5],
 	V: [0.2, 0.4, 0.6],
@@ -19,20 +20,28 @@ export const ASSIGNMENT_COLOR = {
 	u: [0.6, 0.25, 0.9],
 };
 
-// cut is yellow, join is dark gray
-// export const ASSIGNMENT_COLOR = {
-// 	B: [0.5, 0.5, 0.5],
-// 	b: [0.5, 0.5, 0.5],
-// 	V: [0.2, 0.4, 0.6],
-// 	v: [0.2, 0.4, 0.6],
-// 	M: [0.75, 0.25, 0.15],
-// 	m: [0.75, 0.25, 0.15],
-// 	F: [0.4, 0.4, 0.4],
-// 	f: [0.4, 0.4, 0.4],
-// 	J: [0.2, 0.2, 0.2],
-// 	j: [0.2, 0.2, 0.2],
-// 	C: [1.0, 0.75, 0.25],
-// 	c: [1.0, 0.75, 0.25],
-// 	U: [0.6, 0.25, 0.9],
-// 	u: [0.6, 0.25, 0.9],
-// };
+export const light = {
+	B: [0.0, 0.0, 0.0],
+	b: [0.0, 0.0, 0.0],
+	V: [0.2, 0.5, 0.8],
+	v: [0.2, 0.5, 0.8],
+	M: [0.75, 0.25, 0.15],
+	m: [0.75, 0.25, 0.15],
+	F: [0.75, 0.75, 0.75],
+	f: [0.75, 0.75, 0.75],
+	J: [1.0, 0.75, 0.25],
+	j: [1.0, 0.75, 0.25],
+	C: [0.5, 0.8, 0.1],
+	c: [0.5, 0.8, 0.1],
+	U: [0.6, 0.25, 0.9],
+	u: [0.6, 0.25, 0.9],
+};
+/**
+ * @description Convert a color into a WebGL RGB with three
+ * float values between 0 and 1
+ */
+export const parseColorToWebGLRgb = (color) => (
+	color !== undefined && color.constructor === Array
+		? color.slice(0, 3)
+		: parseColorToRgb(color).slice(0, 3).map(n => n / 255)
+);

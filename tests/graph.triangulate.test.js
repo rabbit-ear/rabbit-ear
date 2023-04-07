@@ -47,7 +47,7 @@ test("triangulate with and without earcut 1", () => {
 });
 
 test("triangulate with and without earcut 2", () => {
-	const bird = JSON.parse(fs.readFileSync("./tests/files/kraft-bird-base.fold"));
+	const bird = JSON.parse(fs.readFileSync("./tests/files/fold/kraft-bird-base.fold"));
 	const fold1 = JSON.parse(JSON.stringify(bird));
 	const fold2 = JSON.parse(JSON.stringify(bird));
 	const result1 = ear.graph.triangulate(fold1);

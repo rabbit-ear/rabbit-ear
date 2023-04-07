@@ -5,6 +5,16 @@ const ear = require("../rabbit-ear.js");
 
 ear.window = xmldom;
 
+test("convert objToFold no param", () => {
+	let error;
+	try {
+		ear.convert.objToFold();
+	} catch (err) {
+		error = err;
+	}
+	expect(error).not.toBe(undefined);
+});
+
 test("convert objToFold empty", () => {
 	ear.convert.objToFold("");
 	expect(true).toBe(true);

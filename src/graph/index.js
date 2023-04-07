@@ -5,8 +5,8 @@ import * as foldColors from "../fold/colors.js";
 import * as foldFileFrames from "../fold/fileFrames.js";
 import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
-import * as affine from "./affine.js";
 import * as boundary from "./boundary.js";
+import * as clip from "./clip.js";
 import * as explodeMethods from "./explode.js";
 import * as intersectMethods from "./intersect.js";
 import * as join from "./join.js";
@@ -16,6 +16,7 @@ import * as nearestMethods from "./nearest.js";
 import * as normals from "./normals.js";
 import * as span from "./span.js";
 import * as subgraphMethods from "./subgraph.js";
+import * as transform from "./transform.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
 import * as verticesClusters from "./vertices/clusters.js";
@@ -27,6 +28,7 @@ import * as verticesSort from "./vertices/sort.js";
 import * as edgesCircular from "./edges/circular.js";
 import * as edgesDuplicate from "./edges/duplicate.js";
 import * as edgesEdges from "./edges/edgesEdges.js";
+import * as edgesGeneral from "./edges/general.js";
 import * as edgesOverlap from "./edges/overlap.js";
 import * as facesMatrix from "./faces/matrix.js";
 import * as facesOverlap from "./faces/overlap.js";
@@ -34,11 +36,10 @@ import * as facesSpanningTree from "./faces/spanningTree.js";
 import * as facesWinding from "./faces/winding.js";
 // not sure about including this
 import * as arrays from "../general/arrays.js";
-import addVertices from "./add/addVertices.js";
-import addEdges from "./add/addEdges.js";
+// import addVertices from "./add/addVertices.js";
+// import addEdges from "./add/addEdges.js";
 import addPlanarSegment from "./add/addPlanarSegment.js";
 import clean from "./clean.js";
-import clip from "./clip.js";
 import clone from "../general/clone.js";
 import count from "./count.js";
 import countImplied from "./countImplied.js";
@@ -67,13 +68,12 @@ export default {
 	replace,
 	removePlanarVertex,
 	removePlanarEdge,
-	addVertices,
-	addEdges,
+	// addVertices,
+	// addEdges,
 	splitEdge,
 	splitFace,
 	flatFold,
 	addPlanarSegment,
-	clip,
 	planarize,
 	connectedComponents,
 	clone,
@@ -81,8 +81,8 @@ export default {
 	...foldFileFrames,
 	...foldKeyMethods,
 	...foldSpecMethods,
-	...affine,
 	...boundary,
+	...clip,
 	...edgesEdges,
 	...explodeMethods,
 	...intersectMethods,
@@ -93,6 +93,7 @@ export default {
 	...normals,
 	...span,
 	...subgraphMethods,
+	...transform,
 	...triangulateMethods,
 	...walk,
 	...arrays,
@@ -105,6 +106,7 @@ export default {
 	...edgesCircular,
 	...edgesDuplicate,
 	...edgesEdges,
+	...edgesGeneral,
 	...edgesOverlap,
 	...facesMatrix,
 	...facesOverlap,

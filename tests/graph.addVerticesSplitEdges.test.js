@@ -1,6 +1,6 @@
 const { test, expect } = require("@jest/globals");
 
-test("empty", () => expect(true).toBe(true));
+test("deprecated", () => expect(true).toBe(true));
 
 /*
 const { test, expect } = require("@jest/globals");

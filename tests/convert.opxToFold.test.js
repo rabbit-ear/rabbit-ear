@@ -5,9 +5,27 @@ const ear = require("../rabbit-ear.js");
 
 ear.window = xmldom;
 
-// this fails
+// these fail, and I can't seem to setup a try catch that
+// won't break the testing environment.
+
+// test("convert opxToFold no param", () => {
+// 	let error;
+// 	try {
+// 		ear.convert.opxToFold();
+// 	} catch (err) {
+// 		error = err;
+// 	}
+// 	expect(error).not.toBe(undefined);
+// });
+
 // test("convert opxToFold empty", () => {
-// 	ear.convert.opxToFold("");
+// 	let error;
+// 	try {
+// 		ear.convert.opxToFold("");
+// 	} catch (err) {
+// 		error = err;
+// 	}
+// 	expect(error).not.toBe(undefined);
 // });
 
 test("convert opxToFold almost empty", () => {

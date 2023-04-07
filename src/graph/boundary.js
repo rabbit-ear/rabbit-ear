@@ -99,7 +99,9 @@ export const boundary = ({ vertices_coords, vertices_edges, edges_vertices, edge
 	};
 };
 /**
- * @description Get the boundary as two arrays of vertices and edges
+ * @description When a graph does not have boundary assignment information,
+ * this method is used to uncover the boundary, so long as the graph is planar.
+ * Get the boundary as two arrays of vertices and edges
  * by walking the boundary edges in 2D and uncovering the concave hull.
  * Does not consult edges_assignment, but does require vertices_coords.
  * For repairing crease patterns, this will uncover boundary edges_assignments.

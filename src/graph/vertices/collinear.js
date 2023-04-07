@@ -8,7 +8,7 @@ import { collinearBetween } from "../../math/geometry/line.js";
 import { overlapLinePoint } from "../../math/intersect/overlap.js";
 import { getEdgesVerticesOverlappingSpan } from "../span.js";
 import { makeVerticesEdgesUnsorted } from "../make.js";
-import { getOtherVerticesInEdges } from "../find.js";
+import { getOtherVerticesInEdges } from "../edges/general.js";
 /**
  * @description determine if a vertex exists between two and only two edges, and
  * those edges are both parallel and on opposite ends of the vertex. In a lot of

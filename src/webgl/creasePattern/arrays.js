@@ -61,19 +61,12 @@ const make2D = (coords) => coords
 
 export const makeCPFacesVertexArrays = (gl, program, graph) => {
 	if (!graph || !graph.vertices_coords) { return []; }
-	const vertices_color = graph.vertices_coords.map(() => [0.11, 0.11, 0.11]);
 	return [{
 		location: gl.getAttribLocation(program, "v_position"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
 		length: 2,
 		data: new Float32Array(make2D(graph.vertices_coords).flat()),
-	}, {
-		location: gl.getAttribLocation(program, "v_color"),
-		buffer: gl.createBuffer(),
-		type: gl.FLOAT,
-		length: vertices_color.length ? vertices_color[0].length : 2,
-		data: new Float32Array(vertices_color.flat()),
 	}].filter(el => el.location !== -1);
 };
 

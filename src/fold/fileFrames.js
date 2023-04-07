@@ -72,3 +72,39 @@ export const mergeFrame = function (graph, frame) {
 	Object.assign(fold, frame);
 	return fold;
 };
+/**
+ * @description Get a shallow copy of the top level frame without "file_frames"
+ */
+const getTopLevelFrame = (graph) => {
+	const copy = { ...graph };
+	delete copy.file_frames;
+	return copy;
+};
+/**
+ * @description Get a flat array of all file_frames, where the top-level
+ * is index 0, and the file_frames follow in sequence.
+ */
+const getFramesAsFlatArray = (graph) => {
+	if (!graph.file_frames || !graph.file_frames.length) {
+		return [graph];
+	}
+	return [
+		getTopLevelFrame(graph),
+		...graph.file_frames,
+	];
+};
+/**
+ * @description Get all frames inside a FOLD object which contain a
+ * frame_classes class matching the provided className string
+ * @param {FOLD} graph a FOLD object
+ * @param {string} className the name of the class inside frame_classes
+ * @returns {FOLD[]} an array of FOLD object frames.
+ */
+export const getFramesByClassName = (graph, className) => (
+	getFramesAsFlatArray(graph)
+		.map((f, i) => (f.frame_classes && f.frame_classes.includes(className)
+			? i
+			: undefined))
+		.filter(a => a !== undefined)
+		.map(i => flattenFrame(graph, i))
+);

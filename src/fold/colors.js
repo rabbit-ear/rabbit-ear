@@ -10,7 +10,7 @@ import { magnitude3, distance3, scale3 } from "../math/algebra/vector.js";
  */
 const DESATURATION_RATIO = 4;
 
-export const assignmentsColor = {
+export const assignmentColor = {
 	M: [1, 0, 0], // red
 	V: [0, 0, 1], // blue
 	J: [1, 1, 0], // yellow
@@ -35,9 +35,9 @@ export const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
 	const grayscale = color.reduce((a, b) => a + b, 0) / 3;
 	// the distance from the color to the nearest grayscale value
 	const grayDistance = distance3(color, [grayscale, grayscale, grayscale]);
-	// the nearest color from "assignmentsColor" to this color
-	const nearestColor = Object.keys(assignmentsColor)
-		.map(key => ({ key, dist: distance3(color, assignmentsColor[key]) }))
+	// the nearest color from "assignmentColor" to this color
+	const nearestColor = Object.keys(assignmentColor)
+		.map(key => ({ key, dist: distance3(color, assignmentColor[key]) }))
 		.sort((a, b) => a.dist - b.dist)
 		.shift();
 	// the color is allowed to be heavily desaturated, closer to the gray

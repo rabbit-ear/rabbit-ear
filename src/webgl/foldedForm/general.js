@@ -16,9 +16,7 @@ import { invertMap } from "../../graph/maps.js";
 import { triangulate } from "../../graph/triangulate.js";
 import { explode } from "../../graph/explode.js";
 
-// const LAYER_NUDGE = 1e-4;
-const LAYER_NUDGE = 1e-5;
-// const LAYER_NUDGE = 12e-6;
+const LAYER_NUDGE = 5e-6;
 
 export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	const exploded = JSON.parse(JSON.stringify(graph));

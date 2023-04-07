@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { makeEdgesVector } from "../../graph/make.js";
-import { ASSIGNMENT_COLOR } from "../general/colors.js";
+import { light, dark } from "../general/colors.js";
 
 const make2D = (coords) => coords
 	.map(coord => [0, 1]
@@ -10,8 +10,9 @@ const make2D = (coords) => coords
 
 export const makeCPEdgesVertexData = (graph, options) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
+	const assignmentColors = options && options.dark ? dark : light;
 	const assignment_color = {
-		...ASSIGNMENT_COLOR,
+		...assignmentColors,
 		...options,
 	};
 	const vertices_coords = make2D(graph.edges_vertices

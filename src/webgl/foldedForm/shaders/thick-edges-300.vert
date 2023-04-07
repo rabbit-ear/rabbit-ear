@@ -23,7 +23,7 @@ void main () {
 	vec3 displaceNormal = normalize(
 		one * vertex_vector.x + two * vertex_vector.y
 	);
-	vec3 displace = displaceNormal * u_strokeWidth;
+	vec3 displace = displaceNormal * (u_strokeWidth * 0.5);
 	gl_Position = u_matrix * vec4(v_position + displace, 1);
 	blend_color = v_color;
 }

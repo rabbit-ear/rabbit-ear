@@ -13,7 +13,7 @@ import {
 } from "../math/general/get.js";
 import { pointsToLine } from "../math/general/convert.js";
 import GraphProto from "./graph.js";
-import clip from "../graph/clip.js";
+import { clip } from "../graph/clip.js";
 import addPlanarSegment from "../graph/add/addPlanarSegment.js";
 import removePlanarEdge from "../graph/remove/removePlanarEdge.js";
 import { isVertexCollinear } from "../graph/vertices/collinear.js";
@@ -141,5 +141,7 @@ CP.prototype.validate = function (epsilon) {
 	}
 	return valid;
 };
+
+CP.prototype.defer = false;
 
 export default CP.prototype;

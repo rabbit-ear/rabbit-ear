@@ -4,7 +4,7 @@
 import makeTacosTortillas from "./tacos/makeTacosTortillas.js";
 import makeTransitivityTrios from "./tacos/makeTransitivityTrios.js";
 import filterTransitivity from "./tacos/filterTransitivity.js";
-import { getFacesFaces2DOverlap } from "../../graph/faces/overlap.js";
+import { getFacesFacesOverlap } from "../../graph/faces/overlap.js";
 import { makeFacesWinding } from "../../graph/faces/winding.js";
 import {
 	makeConstraints,
@@ -18,7 +18,7 @@ import {
 const prepare = (graph, epsilon = 1e-6) => {
 	// let lastTime = new Date();
 	// 200ms: {boolean[][]} face-face matrix answering: do they overlap?
-	const overlap = getFacesFaces2DOverlap(graph, epsilon);
+	const overlap = getFacesFacesOverlap(graph, epsilon);
 	// console.log(Date.now() - lastTime, "overlap"); lastTime = new Date();
 	// 0ms: {boolean[]} for every face, true:counter-clockwise, false:flipped
 	const facesWinding = makeFacesWinding(graph);

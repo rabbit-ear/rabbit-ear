@@ -3,7 +3,7 @@
  */
 import { makeVerticesNormal } from "../../graph/normals.js";
 import { makeEdgesVector } from "../../graph/make.js";
-import { ASSIGNMENT_COLOR } from "../general/colors.js";
+import { light, dark } from "../general/colors.js";
 
 export const makeFacesVertexData = (graph, options = {}) => {
 	const vertices_coords = graph.vertices_coords
@@ -12,7 +12,7 @@ export const makeFacesVertexData = (graph, options = {}) => {
 	const vertices_barycentric = vertices_coords
 		.map((_, i) => i % 3)
 		.map(n => [n === 0 ? 1 : 0, n === 1 ? 1 : 0, n === 2 ? 1 : 0]);
-	// // const rawEdges = graph.faces_rawEdge.flatMap(n => [n, n, n]);
+	// const rawEdges = graph.faces_rawEdge.flatMap(n => [n, n, n]);
 	const facesEdgesIsJoined = graph.faces_edges
 		.map(edges => edges
 			.map(e => graph.edges_assignment[e])
@@ -40,8 +40,9 @@ export const makeFacesVertexData = (graph, options = {}) => {
 // thick edges
 export const makeThickEdgesVertexData = (graph, options) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
+	const assignmentColors = options && options.dark ? dark : light;
 	const assignment_color = {
-		...ASSIGNMENT_COLOR,
+		...assignmentColors,
 		...options,
 	};
 	const vertices_coords3D = graph.vertices_coords

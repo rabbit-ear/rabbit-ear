@@ -3,7 +3,7 @@
  */
 import remove from "../remove.js";
 import { uniqueSortedNumbers } from "../../general/arrays.js";
-import { getOtherVerticesInEdges } from "../find.js";
+import { getOtherVerticesInEdges } from "../edges/general.js";
 /**
  * @description given a degree-2 vertex, remove this vertex, merge the adjacent
  * edges into one, and rebuild the faces on either side.

@@ -10,27 +10,27 @@ import {
 } from "./arrays.js";
 import makeUniforms from "./uniforms.js";
 import {
-	simple_2d_100_vert,
+	cp_100_vert,
+	cp_100_frag,
+	cp_300_vert,
+	cp_300_frag,
 	thick_edges_100_vert,
-	simple_2d_100_frag,
-	simple_2d_300_vert,
 	thick_edges_300_vert,
-	simple_2d_300_frag,
 } from "./shaders.js";
 
-export const cpFacesV1 = (gl, graph = {}) => {
-	const program = createProgram(gl, simple_2d_100_vert, simple_2d_100_frag);
+export const cpFacesV1 = (gl, graph = {}, options = undefined) => {
+	const program = createProgram(gl, cp_100_vert, cp_100_frag);
 	return {
 		program,
-		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
+		vertexArrays: makeCPFacesVertexArrays(gl, program, graph, options),
 		elementArrays: makeCPFacesElementArrays(gl, 1, graph),
 		flags: [],
 		makeUniforms,
 	};
 };
 
-export const cpEdgesV1 = (gl, graph = {}, options) => {
-	const program = createProgram(gl, thick_edges_100_vert, simple_2d_100_frag);
+export const cpEdgesV1 = (gl, graph = {}, options = undefined) => {
+	const program = createProgram(gl, thick_edges_100_vert, cp_100_frag);
 	return {
 		program,
 		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph, options),
@@ -40,19 +40,19 @@ export const cpEdgesV1 = (gl, graph = {}, options) => {
 	};
 };
 
-export const cpFacesV2 = (gl, graph = {}) => {
-	const program = createProgram(gl, simple_2d_300_vert, simple_2d_300_frag);
+export const cpFacesV2 = (gl, graph = {}, options = undefined) => {
+	const program = createProgram(gl, cp_300_vert, cp_300_frag);
 	return {
 		program,
-		vertexArrays: makeCPFacesVertexArrays(gl, program, graph),
+		vertexArrays: makeCPFacesVertexArrays(gl, program, graph, options),
 		elementArrays: makeCPFacesElementArrays(gl, 2, graph),
 		flags: [],
 		makeUniforms,
 	};
 };
 
-export const cpEdgesV2 = (gl, graph = {}, options) => {
-	const program = createProgram(gl, thick_edges_300_vert, simple_2d_300_frag);
+export const cpEdgesV2 = (gl, graph = {}, options = undefined) => {
+	const program = createProgram(gl, thick_edges_300_vert, cp_300_frag);
 	return {
 		program,
 		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph, options),

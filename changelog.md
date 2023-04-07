@@ -1,5 +1,17 @@
 # 0.9.33 alpha
 
+new overlap methods:
+
+```javascript
+ear.graph.getFacesLineOverlap()
+ear.graph.getFacesRayOverlap()
+ear.graph.getFacesSegmentOverlap()
+```
+
+new method `ear.graph.getFramesByClassName()`
+
+new method `ear.graph.getEdgeBetweenVertices()`
+
 ear.graph.makePlanarFaces now returns an object already in FOLD form, instead of the data being inverted into an array of objects
 
 All axiom methods return an *array* of lines. Before, some would and others would not. The system is now consistent.
@@ -34,7 +46,7 @@ Methods renamed:
 
 `makeEdgesAssignment` has been renamed to `makeEdgesAssignmentSimple` and `makeEdgesAssignment` now also assigns "B" boundary edges by checking edges_faces for # of incident faces.
 
-new WebGL implementation. see: https://foldfile.com
+new WebGL implementation. see: [readme.md](https://github.com/robbykraft/Origami/tree/master/src/webgl) and [foldfile.com](https://foldfile.com)
 
 Various methods will now throw Errors instead of console.error or console.warn. Not all console.warn have been removed however. The distinction is that if the function is still able to generate a solution, it will console.warn. If the function generated something which contains errors or misleading information, it throws an error.
 

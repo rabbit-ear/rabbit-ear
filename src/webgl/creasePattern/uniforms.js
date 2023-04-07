@@ -2,16 +2,17 @@
  * Rabbit Ear (c) Kraft
  */
 import { multiplyMatrices4 } from "../../math/algebra/matrix4.js";
+import { parseColorToWebGLRgb } from "../general/colors.js";
 
 const makeUniforms = (gl, {
-	projectionMatrix, viewMatrix, modelMatrix, strokeWidth,
+	projectionMatrix,
+	modelViewMatrix,
+	cpColor,
+	strokeWidth,
 }) => ({
 	u_matrix: {
 		func: "uniformMatrix4fv",
-		value: multiplyMatrices4(multiplyMatrices4(
-			projectionMatrix,
-			viewMatrix,
-		), modelMatrix),
+		value: multiplyMatrices4(projectionMatrix, modelViewMatrix),
 	},
 	u_projection: {
 		func: "uniformMatrix4fv",
@@ -19,11 +20,15 @@ const makeUniforms = (gl, {
 	},
 	u_modelView: {
 		func: "uniformMatrix4fv",
-		value: multiplyMatrices4(viewMatrix, modelMatrix),
+		value: modelViewMatrix,
+	},
+	u_cpColor: {
+		func: "uniform3fv",
+		value: parseColorToWebGLRgb(cpColor),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",
-		value: strokeWidth / 2,
+		value: strokeWidth,
 	},
 });
 
