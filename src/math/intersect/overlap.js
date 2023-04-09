@@ -1,6 +1,6 @@
 /* Math (c) Kraft, MIT License */
 import { EPSILON } from '../general/constant.js';
-import { excludeL, exclude } from '../general/function.js';
+import { includeL, exclude } from '../general/function.js';
 import { subtract2, magSquared, cross2, dot2, add2, magnitude2, distance2, normalize2, rotate90 } from '../algebra/vector.js';
 
 /**
@@ -12,7 +12,7 @@ import { subtract2, magSquared, cross2, dot2, add2, magnitude2, distance2, norma
  * the point lies within endpoint(s).
  * @param {VecLine} line a line in "vector" "origin" form
  * @param {number[]} point one 2D point
- * @parma {function} [lineDomain=excludeL] the domain of the line
+ * @parma {function} [lineDomain=includeL] the domain of the line
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean} is the point collinear to the line,
  * and in the case of ray/segment,
@@ -22,7 +22,7 @@ import { subtract2, magSquared, cross2, dot2, add2, magnitude2, distance2, norma
 const overlapLinePoint = (
 	{ vector, origin },
 	point,
-	lineDomain = excludeL,
+	lineDomain = includeL,
 	epsilon = EPSILON,
 ) => {
 	const p2p = subtract2(point, origin);
@@ -47,8 +47,8 @@ const overlapLinePoint = (
 const overlapLineLine = (
 	a,
 	b,
-	aDomain = excludeL,
-	bDomain = excludeL,
+	aDomain = includeL,
+	bDomain = includeL,
 	epsilon = EPSILON,
 ) => {
 	const denominator0 = cross2(a.vector, b.vector);

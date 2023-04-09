@@ -142,6 +142,31 @@ export const makeEdgesEdgesIntersection = function ({
 	}
 	return edges_intersections;
 };
+export const getEdgesEdgesIntersectionNew = (graph, epsilon = EPSILON) => {
+	// const vIndices = graph.vertices_coords.map((_, i) => i);
+	// const verticesSort = sortVerticesAlongVector(graph, vIndices, [1, 0]);
+	// get the range of the edge (along the X axis),
+	// sort the vertex with the smaller X coordinate first.
+	// then, sort the entire array of edges by their smaller X value.
+	const edgesYRange = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v][1]))
+		.map(ys => [Math.min(...ys), Math.max(...ys)]);
+	const edgesXRange = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v][0]))
+		.map((xs, i) => ({ i, range: [Math.min(...xs), Math.max(...xs)] }))
+		.sort((a, b) => a.range[0] - b.range[0]);
+	const overlaps = [];
+	// let back = 0;
+	// let front = 0;
+	// while (back < graph.edges_vertices.length) {
+	// 	if () {
+	// 		front += 1;
+	// 	}
+	// 	else {
+	// 		back += 1;
+	// 	}
+	// }
+};
 /**
  * @description intersect a convex face with a line and return the location
  * of the intersections as components of the graph. this is an EXCLUSIVE

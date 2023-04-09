@@ -1,5 +1,9 @@
 # 0.9.33 alpha
 
+new method: `findSymmetryLines()` and `findSymmetryLine()` using the lines in the graph to uncover a line of symmetry.
+
+new method: `getEdgesLine()` and its subroutine `clusterParallelVectors()` which performs a similar function as `clusterScalars()`.
+
 new overlap methods:
 
 ```javascript

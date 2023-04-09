@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../math/general/constant.js";
+import { parallel } from "../math/algebra/vector.js";
 /**
  * @description Given a list of any type, remove all duplicates.
  * @param {number[]} array an array of integers
@@ -163,6 +164,34 @@ export const clusterScalars = (floats, epsilon = EPSILON) => {
 			groups[g].push(index);
 		} else {
 			groups.push([index]);
+		}
+	}
+	return groups;
+};
+/**
+ * @description Given an array of vectors, group the vectors into clusters
+ * that all contain vectors which are parallel to one another.
+ * This works for any N-dimensional vectors (including 3D or 2D).
+ * Note, this is an n^2 algorithm. Currently it's used by the method
+ * getEdgesLine to find all unique lines in a graph, which initially clusters
+ * lines by distance-to-origin, then INSIDE each cluster this method is called.
+ * Similar optimization should be performed when using this, if possible.
+ */
+export const clusterParallelVectors = (vectors, epsilon = EPSILON) => {
+	const groups = [[0]];
+	for (let i = 1; i < vectors.length; i += 1) {
+		let found = false;
+		for (let g = 0; g < groups.length; g += 1) {
+			const groupFirstIndex = groups[g][0];
+			if (parallel(vectors[i], vectors[groupFirstIndex], epsilon)) {
+				groups[g].push(i);
+				found = true;
+				break;
+			}
+		}
+		// make a new group, with this vector inside
+		if (!found) {
+			groups.push([i]);
 		}
 	}
 	return groups;

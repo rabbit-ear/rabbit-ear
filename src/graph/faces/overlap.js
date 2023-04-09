@@ -46,7 +46,7 @@ const signSegment = (n, epsilon) => (n < -epsilon ? -1 : (n > 1 + epsilon ? 1 : 
  * --------------------------------------------------
  *                |                 |
  */
-const facesLineOverlap = (
+export const facesLineTypeOverlap = (
 	{ vertices_coords, faces_vertices },
 	{ vector, origin },
 	signFunc = signLine,
@@ -93,49 +93,60 @@ const facesLineOverlap = (
 		.map(b => !b)
 		// invert: are some vertices on different sides, OR, are all of them 0?
 		.map((b, i) => b || verticesDotSide[faces_vertices[i][0]] === 0);
-	// faces that overlap are those that have an overlap in both axes.
-	return faces_vertices.map((_, i) => crossSideOverlap[i] && dotSideOverlap[i]);
+	// faces that might overlap are those that have an overlap in both axes.
+	return faces_vertices
+		.map((_, i) => i)
+		.filter(i => crossSideOverlap[i] && dotSideOverlap[i]);
 };
 /**
  * @description Given a line, does each face inclusively overlap the line?
+ * Note, this works by overlapping bounding boxes (line-aligned, not axis),
+ * so it will turn up some false positives, however the faces which are
+ * determined to not overlap definitely do not overlap.
  * This includes faces that only touch the line with a collinear vertex.
  * This assumes that the faces of the graph are convex.
  * @param {FOLD} graph a FOLD graph
  * @param {VecLine} line a line with a "vector" and "origin"
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {boolean[]} for every face, true if the face overlaps
+ * @returns {number[]} indices of the overlapping faces
  * @linkcode
  */
 export const getFacesLineOverlap = (graph, { vector, origin }, epsilon = EPSILON) => (
-	facesLineOverlap(graph, { vector, origin }, signLine, epsilon)
+	facesLineTypeOverlap(graph, { vector, origin }, signLine, epsilon)
 );
 /**
  * @description Given a ray, does each face inclusively overlap the ray?
+ * Note, this works by overlapping bounding boxes (line-aligned, not axis),
+ * so it will turn up some false positives, however the faces which are
+ * determined to not overlap definitely do not overlap.
  * This includes faces that only touch the line with a collinear vertex.
  * This assumes that the faces of the graph are convex.
  * @param {FOLD} graph a FOLD graph
  * @param {VecLine} line a line with a "vector" and "origin"
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {boolean[]} for every face, true if the face overlaps
+ * @returns {number[]} indices of the overlapping faces
  * @linkcode
  */
 export const getFacesRayOverlap = (graph, { vector, origin }, epsilon = EPSILON) => (
-	facesLineOverlap(graph, { vector, origin }, signRay, epsilon)
+	facesLineTypeOverlap(graph, { vector, origin }, signRay, epsilon)
 );
 /**
  * @description Given a segment, does each face inclusively overlap the segment?
+ * Note, this works by overlapping bounding boxes (line-aligned, not axis),
+ * so it will turn up some false positives, however the faces which are
+ * determined to not overlap definitely do not overlap.
  * This includes faces that only touch the line with a collinear vertex.
  * This assumes that the faces of the graph are convex.
  * @param {FOLD} graph a FOLD graph
  * @param {VecLine} line a line with a "vector" and "origin"
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {boolean[]} for every face, true if the face overlaps
+ * @returns {number[]} indices of the overlapping faces
  * @linkcode
  */
 export const getFacesSegmentOverlap = (graph, segment, epsilon = EPSILON) => {
 	const vector = subtract2(segment[1], segment[0]);
 	const origin = segment[0];
-	return facesLineOverlap(graph, { vector, origin }, signSegment, epsilon);
+	return facesLineTypeOverlap(graph, { vector, origin }, signSegment, epsilon);
 };
 /**
  * @description Compare every face to every face to answer: do the two faces overlap?

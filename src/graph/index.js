@@ -10,12 +10,14 @@ import * as clip from "./clip.js";
 import * as explodeMethods from "./explode.js";
 import * as intersectMethods from "./intersect.js";
 import * as join from "./join.js";
+import * as lines from "./lines.js";
 import * as make from "./make.js";
 import * as maps from "./maps.js";
 import * as nearestMethods from "./nearest.js";
 import * as normals from "./normals.js";
 import * as span from "./span.js";
 import * as subgraphMethods from "./subgraph.js";
+import * as symmetry from "./symmetry.js";
 import * as transform from "./transform.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
@@ -39,6 +41,7 @@ import * as arrays from "../general/arrays.js";
 // import addVertices from "./add/addVertices.js";
 // import addEdges from "./add/addEdges.js";
 import addPlanarSegment from "./add/addPlanarSegment.js";
+import addPlanarSegmentNew from "./add/addPlanarSegmentNew.js";
 import clean from "./clean.js";
 import clone from "../general/clone.js";
 import count from "./count.js";
@@ -74,6 +77,7 @@ export default {
 	splitFace,
 	flatFold,
 	addPlanarSegment,
+	addPlanarSegmentNew,
 	planarize,
 	connectedComponents,
 	clone,
@@ -87,12 +91,14 @@ export default {
 	...explodeMethods,
 	...intersectMethods,
 	...join,
+	...lines,
 	...make,
 	...maps,
 	...nearestMethods,
 	...normals,
 	...span,
 	...subgraphMethods,
+	...symmetry,
 	...transform,
 	...triangulateMethods,
 	...walk,
