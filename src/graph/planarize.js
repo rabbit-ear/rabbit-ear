@@ -13,13 +13,14 @@ import { removeDuplicateVertices } from "./vertices/duplicate.js";
 import { removeDuplicateEdges } from "./edges/duplicate.js";
 import { removeCircularEdges } from "./edges/circular.js";
 import { getVerticesEdgesOverlap } from "./vertices/collinear.js";
-import { makeEdgesEdgesIntersection } from "./intersect.js";
+import { getEdgesEdgesIntersection } from "./intersect.js";
 import { sortVerticesAlongVector } from "./vertices/sort.js";
 import {
 	mergeNextmaps,
 	invertMap,
 } from "./maps.js";
 import Messages from "../environment/messages.js";
+import { makeVerticesEdgesUnsorted } from "./make.js";
 /**
  * Fragment converts a graph into a planar graph. it flattens all the
  * coordinates onto the 2D plane.
@@ -41,39 +42,46 @@ import Messages from "../environment/messages.js";
  *    new vertices.
  */
 const fragment_graph = (graph, epsilon = EPSILON) => {
-	console.time("fragment");
 	const edges_coords = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 	// when we rebuild an edge we need the intersection points sorted
 	// so we can walk down it and rebuild one by one. sort along vector
 	const edges_vector = edges_coords.map(e => subtract(e[1], e[0]));
 	const edges_origin = edges_coords.map(e => e[0]);
+	// both edge-edge and edge-vertex methods use this. precalculate it.
+	const vertices_edges = makeVerticesEdgesUnsorted(graph);
 	// for each edge, get all the intersection points
 	// this array will match edges_, each an array containing intersection
 	// points (an [x,y] array), with an important detail, because each edge
 	// intersects with another edge, this [x,y] point is a shallow pointer
 	// to the same one in the other edge's intersection array.
-	console.time("edge-edge");
-	const edges_intersections = makeEdgesEdgesIntersection({
+	const edges_intersections = getEdgesEdgesIntersection({
 		vertices_coords: graph.vertices_coords,
+		vertices_edges,
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
 		edges_origin,
 	}, 1e-6);
-	console.timeEnd("edge-edge");
+
+	// todo:
+	// this is the slowest subroutine in the entire planarize() method.
+	// see if it can be sped up...
 	// check the new edges' vertices against every edge, in case
 	// one of the endpoints lies along an edge.
-	console.time("edge-vertex");
+	// const edges_collinear_vertices_old = getVerticesEdgesOverlap({
+	// 	vertices_coords: graph.vertices_coords,
+	// 	edges_vertices: graph.edges_vertices,
+	// 	edges_coords,
+	// }, epsilon);
 	const edges_collinear_vertices = getVerticesEdgesOverlap({
 		vertices_coords: graph.vertices_coords,
+		vertices_edges,
 		edges_vertices: graph.edges_vertices,
-		edges_coords,
+		edges_vector,
 	}, epsilon);
-	console.timeEnd("edge-vertex");
 	// exit early
 	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
 		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
-		console.timeEnd("fragment");
 		return undefined;
 	}
 	// remember, edges_intersections contains intersections [x,y] points
@@ -111,9 +119,17 @@ const fragment_graph = (graph, epsilon = EPSILON) => {
 	// add lists of vertices into each element in edges_vertices
 	// edges verts now contains an illegal arrangement of more than 2 verts
 	// to be resolved below
-	graph.edges_vertices.forEach((verts, i) => verts
-		.push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
-	// .push(...edges_intersections_flat[i]));
+	// graph.edges_vertices.forEach((verts, i) => verts
+	// 	.push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
+	// // .push(...edges_intersections_flat[i]));
+	graph.edges_vertices.forEach((verts, i) => {
+		if (edges_intersections_flat[i]) {
+			verts.push(...edges_intersections_flat[i]);
+		}
+		if (edges_collinear_vertices[i]) {
+			verts.push(...edges_collinear_vertices[i]);
+		}
+	});
 
 	graph.edges_vertices.forEach((edge, i) => {
 		graph.edges_vertices[i] = sortVerticesAlongVector({
@@ -150,7 +166,6 @@ const fragment_graph = (graph, epsilon = EPSILON) => {
 				? edgeAssignmentToFoldAngle(graph.edges_assignment[i])
 				: a));
 	}
-	console.timeEnd("fragment");
 	return {
 		vertices: {
 			new: Array.from(Array(graph.vertices_coords.length - counts.vertices))

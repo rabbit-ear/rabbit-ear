@@ -48,14 +48,6 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 					.map(index => groupsClusters[g][c][index]))));
 	const groupsError = groupsClusterClusters
 		.map(group => (group.length - lines.length) / lines.length);
-	// console.log("uniqueLines", uniqueLines);
-	// console.log("linesMatrices", linesMatrices);
-	// console.log("reflectionsLines", reflectionsLines);
-	// console.log("reflectionsUniqueLines", reflectionsUniqueLines);
-	// console.log("groupsClusters", groupsClusters);
-	// console.log("groupsClusterClustersUnindexed", groupsClusterClustersUnindexed);
-	// console.log("groupsClusterClusters", groupsClusterClusters);
-	// console.log("groupsError", groupsError);
 	return groupsError
 		.map((error, i) => ({ error, i }))
 		.map(el => ({ line: lines[el.i], error: el.error }))

@@ -28,6 +28,7 @@ import {
 	makeEdgesCoords,
 	makeEdgesBoundingBox,
 } from "./make.js";
+import { sweepEdges } from "./sweep.js";
 import { getEdgesEdgesOverlapingSpans } from "./span.js";
 
 /**
@@ -113,59 +114,76 @@ export const makeEdgesSegmentIntersection = ({
  * 3 [  , x,  ,  ]
  * @linkcode Origami ./src/graph/intersect.js 114
  */
-export const makeEdgesEdgesIntersection = function ({
-	vertices_coords, edges_vertices, edges_vector, edges_origin,
-}, epsilon = EPSILON) {
+// export const makeEdgesEdgesIntersection = function ({
+// 	vertices_coords, edges_vertices, edges_vector, edges_origin,
+// }, epsilon = EPSILON) {
+// 	if (!edges_vector) {
+// 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+// 	}
+// 	if (!edges_origin) {
+// 		edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
+// 	}
+// 	const edges_intersections = edges_vector.map(() => []);
+// 	const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
+// 	for (let i = 0; i < edges_vector.length - 1; i += 1) {
+// 		for (let j = i + 1; j < edges_vector.length; j += 1) {
+// 			if (span[i][j] !== true) { continue; }
+// 			const intersection = intersectLineLine(
+// 				{ vector: edges_vector[i], origin: edges_origin[i] },
+// 				{ vector: edges_vector[j], origin: edges_origin[j] },
+// 				excludeS,
+// 				excludeS,
+// 				epsilon,
+// 			);
+// 			if (intersection !== undefined) {
+// 				edges_intersections[i][j] = intersection;
+// 				edges_intersections[j][i] = intersection;
+// 			}
+// 		}
+// 	}
+// 	return edges_intersections;
+// };
+
+export const getEdgesEdgesIntersection = ({
+	vertices_coords, edges_vertices, vertices_edges, edges_vector, edges_origin,
+}, epsilon = EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	if (!edges_origin) {
 		edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	}
-	const edges_intersections = edges_vector.map(() => []);
-	const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
-	for (let i = 0; i < edges_vector.length - 1; i += 1) {
-		for (let j = i + 1; j < edges_vector.length; j += 1) {
-			if (span[i][j] !== true) { continue; }
-			const intersection = intersectLineLine(
-				{ vector: edges_vector[i], origin: edges_origin[i] },
-				{ vector: edges_vector[j], origin: edges_origin[j] },
-				excludeS,
-				excludeS,
-				epsilon,
-			);
-			if (intersection !== undefined) {
-				edges_intersections[i][j] = intersection;
-				edges_intersections[j][i] = intersection;
-			}
-		}
-	}
-	return edges_intersections;
-};
-export const getEdgesEdgesIntersectionNew = (graph, epsilon = EPSILON) => {
-	// const vIndices = graph.vertices_coords.map((_, i) => i);
-	// const verticesSort = sortVerticesAlongVector(graph, vIndices, [1, 0]);
-	// get the range of the edge (along the X axis),
-	// sort the vertex with the smaller X coordinate first.
-	// then, sort the entire array of edges by their smaller X value.
-	const edgesYRange = graph.edges_vertices
-		.map(ev => ev.map(v => graph.vertices_coords[v][1]))
-		.map(ys => [Math.min(...ys), Math.max(...ys)]);
-	const edgesXRange = graph.edges_vertices
-		.map(ev => ev.map(v => graph.vertices_coords[v][0]))
-		.map((xs, i) => ({ i, range: [Math.min(...xs), Math.max(...xs)] }))
-		.sort((a, b) => a.range[0] - b.range[0]);
-	const overlaps = [];
-	// let back = 0;
-	// let front = 0;
-	// while (back < graph.edges_vertices.length) {
-	// 	if () {
-	// 		front += 1;
-	// 	}
-	// 	else {
-	// 		back += 1;
-	// 	}
-	// }
+	const intersections = [];
+	const setOfEdges = {};
+	sweepEdges({ vertices_coords, edges_vertices, vertices_edges }, epsilon)
+		.forEach(event => {
+			Object.keys(setOfEdges)
+				.map(n => parseInt(n, 10))
+				.forEach(e1 => event.add
+					.forEach(e2 => {
+						const intersection = intersectLineLine(
+							{ vector: edges_vector[e1], origin: edges_origin[e1] },
+							{ vector: edges_vector[e2], origin: edges_origin[e2] },
+							excludeS,
+							excludeS,
+							epsilon,
+						);
+						if (intersection) {
+							if (!intersections[e1]) { intersections[e1] = []; }
+							if (!intersections[e2]) { intersections[e2] = []; }
+							intersections[e1][e2] = intersection;
+							intersections[e2][e1] = intersection;
+						}
+					}));
+			event.add.forEach(e => { setOfEdges[e] = true; });
+			event.remove.forEach(e => delete setOfEdges[e]);
+		});
+	return intersections;
+	// current set of edges
+	// loop
+	// for every new edge, perform intersection with it against every edge in the set
+	// add new edges to the set
+	// remove remove edges from the set.
 };
 /**
  * @description intersect a convex face with a line and return the location
