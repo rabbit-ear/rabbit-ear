@@ -17,6 +17,7 @@ import { getOtherVerticesInEdges } from "../edges/general.js";
  * @param {number} vertex an index of a vertex in the graph
  * @returns {boolean} true if the vertex is collinear and can be removed.
  * @linkcode Origami ./src/graph/verticesCollinear.js 19
+ * @bigO O(1) if vertices_edges exists, if not, O(n) where n=edges
  */
 export const isVertexCollinear = ({
 	vertices_coords, vertices_edges, edges_vertices,
@@ -57,6 +58,7 @@ export const isVertexCollinear = ({
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
  * @linkcode Origami ./src/graph/verticesCollinear.js 59
+ * @bigO O(e*v) where e=edges, v=vertices.
  */
 export const getVerticesEdgesOverlap = ({
 	vertices_coords, edges_vertices, edges_coords,

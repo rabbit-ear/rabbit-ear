@@ -41,6 +41,7 @@ import Messages from "../environment/messages.js";
  *    new vertices.
  */
 const fragment_graph = (graph, epsilon = EPSILON) => {
+	console.time("fragment");
 	const edges_coords = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 	// when we rebuild an edge we need the intersection points sorted
@@ -52,22 +53,27 @@ const fragment_graph = (graph, epsilon = EPSILON) => {
 	// points (an [x,y] array), with an important detail, because each edge
 	// intersects with another edge, this [x,y] point is a shallow pointer
 	// to the same one in the other edge's intersection array.
+	console.time("edge-edge");
 	const edges_intersections = makeEdgesEdgesIntersection({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
 		edges_origin,
 	}, 1e-6);
+	console.timeEnd("edge-edge");
 	// check the new edges' vertices against every edge, in case
 	// one of the endpoints lies along an edge.
+	console.time("edge-vertex");
 	const edges_collinear_vertices = getVerticesEdgesOverlap({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_coords,
 	}, epsilon);
+	console.timeEnd("edge-vertex");
 	// exit early
 	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
 		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
+		console.timeEnd("fragment");
 		return undefined;
 	}
 	// remember, edges_intersections contains intersections [x,y] points
@@ -144,6 +150,7 @@ const fragment_graph = (graph, epsilon = EPSILON) => {
 				? edgeAssignmentToFoldAngle(graph.edges_assignment[i])
 				: a));
 	}
+	console.timeEnd("fragment");
 	return {
 		vertices: {
 			new: Array.from(Array(graph.vertices_coords.length - counts.vertices))

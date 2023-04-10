@@ -46,7 +46,7 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 			.flatMap((clusters, c) => clusters
 				.map(cluster => cluster
 					.map(index => groupsClusters[g][c][index]))));
-	const groupsRating = groupsClusterClusters
+	const groupsError = groupsClusterClusters
 		.map(group => (group.length - lines.length) / lines.length);
 	// console.log("uniqueLines", uniqueLines);
 	// console.log("linesMatrices", linesMatrices);
@@ -55,11 +55,11 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 	// console.log("groupsClusters", groupsClusters);
 	// console.log("groupsClusterClustersUnindexed", groupsClusterClustersUnindexed);
 	// console.log("groupsClusterClusters", groupsClusterClusters);
-	// console.log("groupsRating", groupsRating);
-	return groupsRating
-		.map((rating, i) => ({ rating, i }))
-		.map(el => ({ line: lines[el.i], rating: el.rating }))
-		.sort((a, b) => a.rating - b.rating);
+	// console.log("groupsError", groupsError);
+	return groupsError
+		.map((error, i) => ({ error, i }))
+		.map(el => ({ line: lines[el.i], error: el.error }))
+		.sort((a, b) => a.error - b.error);
 };
 
 export const findSymmetryLine = (graph, epsilon = EPSILON) => (

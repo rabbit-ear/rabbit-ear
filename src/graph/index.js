@@ -17,6 +17,7 @@ import * as nearestMethods from "./nearest.js";
 import * as normals from "./normals.js";
 import * as span from "./span.js";
 import * as subgraphMethods from "./subgraph.js";
+import * as sweep from "./sweep.js";
 import * as symmetry from "./symmetry.js";
 import * as transform from "./transform.js";
 import * as triangulateMethods from "./triangulate.js";
@@ -98,6 +99,7 @@ export default {
 	...normals,
 	...span,
 	...subgraphMethods,
+	...sweep,
 	...symmetry,
 	...transform,
 	...triangulateMethods,

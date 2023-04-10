@@ -2588,23 +2588,29 @@ const intersectConvexFaceLine = ({
 		? { vertices, edges }
 		: undefined);
 };const intersectMethods$1=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesIntersectionNew,intersectConvexFaceLine,makeEdgesEdgesIntersection,makeEdgesLineParallelOverlap,makeEdgesSegmentIntersection});const fragment_graph = (graph, epsilon = EPSILON) => {
+	console.time("fragment");
 	const edges_coords = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 	const edges_vector = edges_coords.map(e => subtract(e[1], e[0]));
 	const edges_origin = edges_coords.map(e => e[0]);
+	console.time("edge-edge");
 	const edges_intersections = makeEdgesEdgesIntersection({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
 		edges_origin,
 	}, 1e-6);
+	console.timeEnd("edge-edge");
+	console.time("edge-vertex");
 	const edges_collinear_vertices = getVerticesEdgesOverlap({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_coords,
 	}, epsilon);
+	console.timeEnd("edge-vertex");
 	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
 		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
+		console.timeEnd("fragment");
 		return undefined;
 	}
 	const counts = { vertices: graph.vertices_coords.length };
@@ -2657,6 +2663,7 @@ const intersectConvexFaceLine = ({
 				? edgeAssignmentToFoldAngle(graph.edges_assignment[i])
 				: a));
 	}
+	console.timeEnd("fragment");
 	return {
 		vertices: {
 			new: Array.from(Array(graph.vertices_coords.length - counts.vertices))
@@ -7861,7 +7868,45 @@ const joinGraphs = (target, source, epsilon = EPSILON) => {
 		lines,
 		edges_line,
 	};
-};const lines=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesLine});const fixLineDirection = ({ normal, distance }) => (distance < 0
+};const lines=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesLine});const sweepVertices = ({ vertices_coords }, epsilon = EPSILON) => (
+	clusterScalars(vertices_coords.map(p => p[0]), epsilon)
+		.map(vertices => ({
+			vertices,
+			x: vertices.reduce((p, c) => p + vertices_coords[c][0], 0) / vertices.length,
+		}))
+);
+const sweepEdges = (
+	{ vertices_coords, edges_vertices, vertices_edges },
+	epsilon = EPSILON,
+) => {
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
+	const edgesSimilarX = edges_vertices.map(([v1, v2]) => epsilonEqual(
+		vertices_coords[v1][0],
+		vertices_coords[v2][0],
+		epsilon,
+	));
+	const edgesDirection = edges_vertices
+		.map(([v1, v2]) => Math.sign(vertices_coords[v1][0] - vertices_coords[v2][0]));
+	const edgesVertexSide = edges_vertices
+		.map(([v1, v2], i) => (edgesSimilarX[i]
+			? { [v1]: 0, [v2]: 0 }
+			: { [v1]: edgesDirection[i], [v2]: -edgesDirection[i] }));
+	const sweep = sweepVertices({ vertices_coords }, epsilon);
+	sweep.forEach(event => {
+		const edgeTable = {};
+		event.vertices
+			.map(v => vertices_edges[v])
+			.forEach((edges, i) => edges.forEach(edge => {
+				edgeTable[edge] = edgesVertexSide[edge][event.vertices[i]];
+			}));
+		const edgeIndices = Object.keys(edgeTable).map(n => parseInt(n, 10));
+		event.add = edgeIndices.filter(i => edgeTable[i] <= 0);
+		event.remove = edgeIndices.filter(i => edgeTable[i] >= 0);
+	});
+	return sweep;
+};const sweep=/*#__PURE__*/Object.freeze({__proto__:null,sweepEdges,sweepVertices});const fixLineDirection = ({ normal, distance }) => (distance < 0
 	? ({ normal: flip(normal), distance: -distance })
 	: ({ normal, distance }));
 const findSymmetryLines = (graph, epsilon = EPSILON) => {
@@ -7889,12 +7934,12 @@ const findSymmetryLines = (graph, epsilon = EPSILON) => {
 			.flatMap((clusters, c) => clusters
 				.map(cluster => cluster
 					.map(index => groupsClusters[g][c][index]))));
-	const groupsRating = groupsClusterClusters
+	const groupsError = groupsClusterClusters
 		.map(group => (group.length - lines.length) / lines.length);
-	return groupsRating
-		.map((rating, i) => ({ rating, i }))
-		.map(el => ({ line: lines[el.i], rating: el.rating }))
-		.sort((a, b) => a.rating - b.rating);
+	return groupsError
+		.map((error, i) => ({ error, i }))
+		.map(el => ({ line: lines[el.i], error: el.error }))
+		.sort((a, b) => a.error - b.error);
 };
 const findSymmetryLine = (graph, epsilon = EPSILON) => (
 	findSymmetryLines(graph, epsilon)[0]
@@ -8254,6 +8299,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...normals,
 	...span,
 	...subgraphMethods,
+	...sweep,
 	...symmetry,
 	...transform$1,
 	...triangulateMethods,
