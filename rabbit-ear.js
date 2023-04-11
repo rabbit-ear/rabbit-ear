@@ -6177,49 +6177,54 @@ const clip = function (graph, line) {
 		include,
 		fn_line,
 	);
-};const clip$1=/*#__PURE__*/Object.freeze({__proto__:null,clip,clipLine,clipRay,clipSegment});const makeEdgesLineParallelOverlap = ({
-	vertices_coords, edges_vertices,
-}, vector, point, epsilon = EPSILON) => {
-	const normalized = normalize2(vector);
-	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
-	const edges_vector = edges_vertices
-		.map(ev => ev.map(v => vertices_coords[v]))
-		.map(edge => subtract2(edge[1], edge[0]));
-	const overlap = edges_vector
-		.map(vec => parallel2(vec, vector, epsilon));
-	for (let e = 0; e < edges_vertices.length; e += 1) {
-		if (!overlap[e]) { continue; }
-		if (epsilonEqualVectors(edges_origin[e], point)) {
-			overlap[e] = true;
-			continue;
-		}
-		const vec = normalize2(subtract2(edges_origin[e], point));
-		const dot = Math.abs(dot2(vec, normalized));
-		overlap[e] = Math.abs(1.0 - dot) < epsilon;
-	}
-	return overlap;
+};const clip$1=/*#__PURE__*/Object.freeze({__proto__:null,clip,clipLine,clipRay,clipSegment});const getEdgesCollinearToLine = (
+	{ vertices_coords, edges_vertices },
+	{ vector, origin },
+	epsilon = EPSILON,
+) => {
+	const normalized = normalize(vector);
+	const pointIsCollinear = (point) => {
+		const vec = normalize(subtract(point, origin));
+		const dotprod = Math.abs(dot(vec, normalized));
+		return Math.abs(1.0 - dotprod) < epsilon;
+	};
+	const edgesVector = makeEdgesVector({ vertices_coords, edges_vertices });
+	return edges_vertices
+		.map((_, i) => i)
+		.filter(i => parallel(vector, edgesVector[i], epsilon))
+		.filter(i => pointIsCollinear(vertices_coords[edges_vertices[i][0]]));
 };
-const makeEdgesSegmentIntersection = ({
-	vertices_coords, edges_vertices, edges_coords,
-}, point1, point2, epsilon = EPSILON) => {
-	if (!edges_coords) {
-		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
-	}
-	const segment_box = boundingBox$1([point1, point2], epsilon);
-	const segment_vector = subtract2(point2, point1);
-	return makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon)
-		.map(box => overlapBoundingBoxes(segment_box, box))
-		.map((overlap, i) => (overlap ? (intersectLineLine(
-			{ vector: segment_vector, origin: point1 },
-			{
-				vector: subtract2(edges_coords[i][1], edges_coords[i][0]),
-				origin: edges_coords[i][0],
-			},
-			includeS,
-			includeS,
-			epsilon,
-		)) : undefined));
-};const intersectEdges=/*#__PURE__*/Object.freeze({__proto__:null,makeEdgesLineParallelOverlap,makeEdgesSegmentIntersection});const addVertices = (graph, vertices_coords, epsilon = EPSILON) => {
+const getEdgesRectOverlap = (
+	{ vertices_coords, edges_vertices },
+	{ min, max },
+	epsilon = EPSILON,
+) => {
+	const coords = makeEdgesCoords({ vertices_coords, edges_vertices });
+	const boxMin = min.map(n => n - epsilon);
+	const boxMax = max.map(n => n + epsilon);
+	return edges_vertices
+		.map((_, i) => i)
+		.filter(e => !(coords[e][0][0] < boxMin[0] && coords[e][1][0] < boxMin[0]))
+		.filter(e => !(coords[e][0][0] > boxMax[0] && coords[e][1][0] > boxMax[0]))
+		.filter(e => !(coords[e][0][1] < boxMin[1] && coords[e][1][1] < boxMin[1]))
+		.filter(e => !(coords[e][0][1] > boxMax[1] && coords[e][1][1] > boxMax[1]));
+};
+const getEdgesSegmentIntersection = (graph, point1, point2, epsilon = EPSILON) => {
+	const segmentBox = boundingBox$1([point1, point2]);
+	const segmentVector = subtract2(point2, point1);
+	const segmentLine = { vector: segmentVector, origin: point1 };
+	const edges = getEdgesRectOverlap(graph, segmentBox, epsilon);
+	const intersections = [];
+	edges.forEach(e => {
+		const edgeCoords = graph.edges_vertices[e].map(v => graph.vertices_coords[v]);
+		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
+		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
+		const intersect = intersectLineLine(segmentLine, edgeLine, includeS, includeS, epsilon);
+		if (!intersect) { return; }
+		intersections[e] = intersect;
+	});
+	return intersections;
+};const intersectEdges=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesCollinearToLine,getEdgesRectOverlap,getEdgesSegmentIntersection});const addVertices = (graph, vertices_coords, epsilon = EPSILON) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }
 	if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
 	const vertices_equivalent_vertices = vertices_coords
@@ -6295,7 +6300,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = EPSILON) => {
 	}
 	const segment = [point1, point2].map(p => [p[0], p[1]]);
 	const segment_vector = subtract2(segment[1], segment[0]);
-	const intersections = makeEdgesSegmentIntersection(
+	const intersections = getEdgesSegmentIntersection(
 		graph,
 		segment[0],
 		segment[1],
@@ -6829,12 +6834,10 @@ const flatFold = (graph, { vector, origin }, assignment = "V", epsilon = EPSILON
 		graph,
 		graph.faces_matrix2,
 	);
-	const collinear_edges = makeEdgesLineParallelOverlap({
+	const collinear_edges = getEdgesCollinearToLine({
 		vertices_coords: vertices_coords_folded,
 		edges_vertices: graph.edges_vertices,
-	}, vector, origin, epsilon)
-		.map((is_collinear, e) => (is_collinear ? e : undefined))
-		.filter(e => e !== undefined)
+	}, { vector, origin }, epsilon)
 		.filter(e => unfolded_assignment[graph.edges_assignment[e]]);
 	collinear_edges
 		.map(e => graph.edges_faces[e].find(f => f != null))

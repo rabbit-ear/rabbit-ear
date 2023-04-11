@@ -18,7 +18,7 @@ import {
 	makeFacesMatrix2,
 	multiplyVerticesFacesMatrix2,
 } from "../faces/matrix.js";
-import { makeEdgesLineParallelOverlap } from "../intersect/edges.js";
+import { getEdgesCollinearToLine } from "../intersect/edges.js";
 import { makeFacesWindingFromMatrix2 } from "../faces/winding.js";
 import splitConvexFace from "../splitFace/index.js";
 import { edgeAssignmentToFoldAngle } from "../../fold/spec.js";
@@ -140,12 +140,10 @@ const flatFold = (graph, { vector, origin }, assignment = "V", epsilon = EPSILON
 		graph.faces_matrix2,
 	);
 	// get all (folded) edges which lie parallel and overlap the crease line
-	const collinear_edges = makeEdgesLineParallelOverlap({
+	const collinear_edges = getEdgesCollinearToLine({
 		vertices_coords: vertices_coords_folded,
 		edges_vertices: graph.edges_vertices,
-	}, vector, origin, epsilon)
-		.map((is_collinear, e) => (is_collinear ? e : undefined))
-		.filter(e => e !== undefined)
+	}, { vector, origin }, epsilon)
 		.filter(e => unfolded_assignment[graph.edges_assignment[e]]);
 	// get the first valid adjacent face for each edge, get that face's winding,
 	// which determines the crease assignment, and assign it to the edge

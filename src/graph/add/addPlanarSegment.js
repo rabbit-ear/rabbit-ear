@@ -5,11 +5,10 @@ import {
 	TWO_PI,
 	EPSILON,
 } from "../../math/general/constant.js";
+import { includeL } from "../../math/general/function.js";
 import { subtract2 } from "../../math/algebra/vector.js";
 import { counterClockwiseSectors2 } from "../../math/geometry/radial.js";
-import {
-	makeEdgesSegmentIntersection,
-} from "../intersect/edges.js";
+import { getEdgesSegmentIntersection } from "../intersect/edges.js";
 import splitEdge from "../splitEdge/index.js";
 import remove from "../remove.js";
 import {
@@ -142,17 +141,15 @@ const addPlanarSegment = (graph, point1, point2, epsilon = EPSILON) => {
 	// graph.vertices_coords = graph.vertices_coords
 	//   .map(coord => coord.slice(0, 2));
 	// get all edges which intersect the segment.
-	const intersections = makeEdgesSegmentIntersection(
+	const intersections = getEdgesSegmentIntersection(
 		graph,
 		segment[0],
 		segment[1],
 		epsilon,
 	);
 	// get the indices of the edges, sorted.
-	const intersected_edges = intersections
-		.map((pt, e) => (pt === undefined ? undefined : e))
-		.filter(a => a !== undefined)
-		.sort((a, b) => a - b);
+	// (they are already sorted in getEdgesSegmentIntersection)
+	const intersected_edges = intersections.map((_, e) => e).filter(includeL);
 	// using edges_faces, get all faces which have an edge intersected.
 	const faces_map = {};
 	intersected_edges
