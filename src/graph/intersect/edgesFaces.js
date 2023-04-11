@@ -18,7 +18,6 @@ import {
 	makeEdgesBoundingBox,
 } from "../make.js";
 import { makeFacesWinding } from "../faces/winding.js";
-// import { makeEdgesEdgesSimilar } from "./edgesEdges";
 /**
  * @description Return an ExF matrix (number of: E=edges, F=faces), relating every edge
  * to every face. Value will contain true if the edge and face overlap each other, excluding
@@ -28,7 +27,7 @@ import { makeFacesWinding } from "../faces/winding.js";
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
  * @linkcode Origami ./src/graph/overlap.js 32
  */
-export const makeEdgesFacesOverlap = ({
+export const getEdgesFacesOverlap = ({
 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
 }, epsilon) => {
 	if (!edges_vector) {

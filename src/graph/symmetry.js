@@ -9,13 +9,15 @@ import {
 	clusterScalars,
 	clusterParallelVectors,
 } from "../general/arrays.js";
-import { getEdgesLine } from "./lines.js";
+import { getEdgesLine } from "./edges/lines.js";
 
 const fixLineDirection = ({ normal, distance }) => (distance < 0
 	? ({ normal: flip(normal), distance: -distance })
 	: ({ normal, distance }));
 /**
- * @description Discover a line of symmetry in a FOLD graph.
+ * @description Discover the lines of symmetry in a 2D FOLD graph.
+ * All possible lines will be returned and sorted to put the best candidate
+ * for a symmtry line first, with an error value, where 0 is perfect symmetry.
  * This uses edges in the graph to find a line, if an edge doesn't exist
  * along the line of symmetry, the line will not be found.
  * @param {FOLD} graph a FOLD object with 2D vertices
@@ -53,7 +55,14 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 		.map(el => ({ line: lines[el.i], error: el.error }))
 		.sort((a, b) => a.error - b.error);
 };
-
+/**
+ * @description This method calls findSymmetryLines() and returns the
+ * first value only. Use this if you are confident in your expectations.
+ * This uses edges in the graph to find a line, if an edge doesn't exist
+ * along the line of symmetry, the line will not be found.
+ * @param {FOLD} graph a FOLD object with 2D vertices
+ * @returns {VecLine[]} array of symmetry lines
+ */
 export const findSymmetryLine = (graph, epsilon = EPSILON) => (
 	findSymmetryLines(graph, epsilon)[0]
 );

@@ -4,7 +4,7 @@
 import { EPSILON } from "../../../math/general/constant.js";
 import { clipPolygonPolygon } from "../../../math/intersect/clip.js";
 import { makeFacesWinding } from "../../../graph/faces/winding.js";
-import { getFacesFacesOverlap } from "../../../graph/faces/overlap.js";
+import { getFacesFacesOverlap } from "../../../graph/intersect/facesFaces.js";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the

@@ -9,7 +9,7 @@ import {
 import { clipLineConvexPolygon } from "../../math/intersect/clip.js";
 import { makeFacesPolygon } from "../../graph/make.js";
 import { makeFacesWinding } from "../../graph/faces/winding.js";
-import { makeEdgesEdgesCrossing } from "../../graph/edges/edgesEdges.js";
+import { makeEdgesEdgesCrossing } from "../../graph/intersect/edgesEdges.js";
 import { booleanMatrixToIndexedArray } from "../../general/arrays.js";
 /**
  * @description makeTortillaTortillaEdgesCrossing

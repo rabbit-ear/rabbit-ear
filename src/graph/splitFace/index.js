@@ -11,7 +11,7 @@ import {
 	update_edges_faces,
 	update_faces_faces,
 } from "./update.js";
-import { intersectConvexFaceLine } from "../intersect.js";
+import { intersectConvexFaceLine } from "../intersect/faces.js";
 import remove from "../remove.js";
 import * as S from "../../general/strings.js";
 /**

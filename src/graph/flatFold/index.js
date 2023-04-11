@@ -18,7 +18,7 @@ import {
 	makeFacesMatrix2,
 	multiplyVerticesFacesMatrix2,
 } from "../faces/matrix.js";
-import { makeEdgesLineParallelOverlap } from "../intersect.js";
+import { makeEdgesLineParallelOverlap } from "../intersect/edges.js";
 import { makeFacesWindingFromMatrix2 } from "../faces/winding.js";
 import splitConvexFace from "../splitFace/index.js";
 import { edgeAssignmentToFoldAngle } from "../../fold/spec.js";

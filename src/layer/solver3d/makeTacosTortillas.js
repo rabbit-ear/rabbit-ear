@@ -4,12 +4,12 @@
 import { EPSILON } from "../../math/general/constant.js";
 import {
 	makeEdgesEdgesParallelOverlap,
-} from "../../graph/edges/edgesEdges.js";
+} from "../../graph/intersect/edgesEdges.js";
 import {
 	booleanMatrixToIndexedArray,
 	selfRelationalUniqueIndexPairs,
 } from "../../general/arrays.js";
-import { makeEdgesFacesOverlap } from "../../graph/edges/overlap.js";
+import { getEdgesFacesOverlap } from "../../graph/intersect/edgesFaces.js";
 import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla.js";
 import {
 	makeEdgesFacesSide,
@@ -185,7 +185,7 @@ const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
 		.filter(a => a !== undefined);
 	// taco-tortilla (2), the second of two cases, when a taco overlaps a face.
 	// 750ms:
-	const edges_faces_overlap = makeEdgesFacesOverlap(graph, epsilon);
+	const edges_faces_overlap = getEdgesFacesOverlap(graph, epsilon);
 	// 10ms:
 	const edges_overlap_faces = booleanMatrixToIndexedArray(edges_faces_overlap)
 		.map((faces, e) => (edges_faces_side[e].length > 1

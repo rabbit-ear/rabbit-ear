@@ -15,7 +15,7 @@ import { EPSILON } from "../../math/general/constant.js";
  * clusters: [ [0, 5], [1], [3], [2, 4]]
  * @linkcode Origami ./src/graph/verticesClusters.js 16
  */
-export const verticesClusters = ({ vertices_coords }, epsilon = EPSILON) => {
+export const getVerticesClusters = ({ vertices_coords }, epsilon = EPSILON) => {
 	if (!vertices_coords) { return []; }
 	// the return value, the clusters
 	const clusters = [];

@@ -16,11 +16,11 @@ export const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
  * @description For every face, return a boolean indicating if the face has
  * been flipped over or not (false=flipped), by using a faces_matrix containing
  * 2D matrices.
- * @param {number[][]} faces_matrix for every face, a 2x3 transform matrix
+ * @param {number[][]} faces_matrix2 for every face, a 2x3 transform matrix
  * @returns {boolean[]} true if a face is counter-clockwise.
  * @linkcode Origami ./src/graph/facesWinding.js 21
  */
-export const makeFacesWindingFromMatrix2 = faces_matrix => faces_matrix
+export const makeFacesWindingFromMatrix2 = faces_matrix2 => faces_matrix2
 	.map(m => m[0] * m[3] - m[1] * m[2])
 	.map(c => c >= 0);
 /**

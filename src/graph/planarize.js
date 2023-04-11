@@ -12,8 +12,8 @@ import {
 import { removeDuplicateVertices } from "./vertices/duplicate.js";
 import { removeDuplicateEdges } from "./edges/duplicate.js";
 import { removeCircularEdges } from "./edges/circular.js";
-import { getVerticesEdgesOverlap } from "./vertices/collinear.js";
-import { getEdgesEdgesIntersection } from "./intersect.js";
+import { getVerticesEdgesOverlap } from "./intersect/verticesEdges.js";
+import { getEdgesEdgesIntersection } from "./intersect/edgesEdges.js";
 import { sortVerticesAlongVector } from "./vertices/sort.js";
 import {
 	mergeNextmaps,
@@ -41,7 +41,7 @@ import { makeVerticesEdgesUnsorted } from "./make.js";
  * 3. replace the edge with a new, rebuilt, sequence of edges, with
  *    new vertices.
  */
-const fragment_graph = (graph, epsilon = EPSILON) => {
+const fragmentGraph = (graph, epsilon = EPSILON) => {
 	const edges_coords = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 	// when we rebuild an edge we need the intersection points sorted
@@ -176,8 +176,12 @@ const fragment_graph = (graph, epsilon = EPSILON) => {
 		},
 	};
 };
-
-const fragment_keep_keys = [
+/**
+ * @description During the planarize process, faces will be entirely
+ * re-constructed, edges will be chopped; we can remove most arrays from
+ * the graph in preparation, except for these arrays, these need to stay.
+ */
+const planarKeepKeys = [
 	S._vertices_coords,
 	S._edges_vertices,
 	S._edges_assignment,
@@ -198,7 +202,7 @@ const planarize = (graph, epsilon = EPSILON) => {
 	[S._vertices, S._edges, S._faces]
 		.map(key => filterKeysWithPrefix(graph, key))
 		.flat()
-		.filter(key => !(fragment_keep_keys.includes(key)))
+		.filter(key => !(planarKeepKeys.includes(key)))
 		.forEach(key => delete graph[key]);
 
 	const change = {
@@ -216,7 +220,7 @@ const planarize = (graph, epsilon = EPSILON) => {
 		const resVert = removeDuplicateVertices(graph, epsilon / 2);
 		const resEdgeDup = removeDuplicateEdges(graph);
 		const resEdgeCirc = removeCircularEdges(graph);
-		const resFrag = fragment_graph(graph, epsilon);
+		const resFrag = fragmentGraph(graph, epsilon);
 		if (resFrag === undefined) {
 			change.vertices.map = (change.vertices.map === undefined
 				? resVert.map

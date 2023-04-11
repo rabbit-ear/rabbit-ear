@@ -4,7 +4,7 @@
 import * as S from "../../general/strings.js";
 import { EPSILON } from "../../math/general/constant.js";
 import { average } from "../../math/algebra/vector.js";
-import { verticesClusters } from "./clusters.js";
+import { getVerticesClusters } from "./clusters.js";
 import replace from "../replace.js";
 /**
  * @description Get the indices of all vertices which lie close to other vertices.
@@ -14,7 +14,7 @@ import replace from "../replace.js";
  * @linkcode Origami ./src/graph/verticesViolations.js 15
  */
 export const duplicateVertices = (graph, epsilon) => (
-	verticesClusters(graph, epsilon)
+	getVerticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1)
 );
 /**
@@ -34,7 +34,7 @@ export const removeDuplicateVertices = (graph, epsilon = EPSILON) => {
 	// "remove" is only needed for the return value summary.
 	const remove_indices = [];
 	// clusters is array of indices, for example: [ [4, 13, 7], [0, 9] ]
-	const clusters = verticesClusters(graph, epsilon)
+	const clusters = getVerticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1);
 	// for each cluster of n, all indices from [1...n] will be replaced with [0]
 	clusters.forEach(cluster => {

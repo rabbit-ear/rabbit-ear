@@ -18,7 +18,7 @@ import {
 } from "../../graph/make.js";
 import { selfRelationalUniqueIndexPairs } from "../../general/arrays.js";
 // import { disjointFacePlaneSets } from "../../graph/sets.js";
-import { coplanarOverlappingFacesGroups } from "../../graph/coplanar.js";
+import { coplanarOverlappingFacesGroups } from "../../graph/faces/coplanar.js";
 import makeTacosTortillas from "./makeTacosTortillas.js";
 import makeTransitivityTrios from "./makeTransitivityTrios.js";
 import filterTransitivity from "./filterTransitivity.js";

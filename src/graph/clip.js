@@ -21,7 +21,7 @@ import {
 	getFacesLineOverlap,
 	getFacesRayOverlap,
 	getFacesSegmentOverlap,
-} from "./faces/overlap.js";
+} from "./intersect/faces.js";
 /**
  * @description Given a set of collinear segments which came from a line,
  * reduce the total number of segments by joining segments that share a

@@ -8,9 +8,7 @@ import * as foldSpecMethods from "../fold/spec.js";
 import * as boundary from "./boundary.js";
 import * as clip from "./clip.js";
 import * as explodeMethods from "./explode.js";
-import * as intersectMethods from "./intersect.js";
 import * as join from "./join.js";
-import * as lines from "./lines.js";
 import * as make from "./make.js";
 import * as maps from "./maps.js";
 import * as nearestMethods from "./nearest.js";
@@ -30,13 +28,18 @@ import * as verticesIsolated from "./vertices/isolated.js";
 import * as verticesSort from "./vertices/sort.js";
 import * as edgesCircular from "./edges/circular.js";
 import * as edgesDuplicate from "./edges/duplicate.js";
-import * as edgesEdges from "./edges/edgesEdges.js";
 import * as edgesGeneral from "./edges/general.js";
-import * as edgesOverlap from "./edges/overlap.js";
+import * as edgesLines from "./edges/lines.js";
+import * as facesCoplanar from "./faces/coplanar.js";
 import * as facesMatrix from "./faces/matrix.js";
-import * as facesOverlap from "./faces/overlap.js";
 import * as facesSpanningTree from "./faces/spanningTree.js";
 import * as facesWinding from "./faces/winding.js";
+import * as intersectEdges from "./intersect/edges.js";
+import * as intersectEdgesEdges from "./intersect/edgesEdges.js";
+import * as intersectEdgesFaces from "./intersect/edgesFaces.js";
+import * as intersectFaces from "./intersect/faces.js";
+import * as intersectFacesFaces from "./intersect/facesFaces.js";
+import * as intersectVerticesEdges from "./intersect/verticesEdges.js";
 // not sure about including this
 import * as arrays from "../general/arrays.js";
 // import addVertices from "./add/addVertices.js";
@@ -88,11 +91,8 @@ export default {
 	...foldSpecMethods,
 	...boundary,
 	...clip,
-	...edgesEdges,
 	...explodeMethods,
-	...intersectMethods,
 	...join,
-	...lines,
 	...make,
 	...maps,
 	...nearestMethods,
@@ -113,11 +113,16 @@ export default {
 	...verticesSort,
 	...edgesCircular,
 	...edgesDuplicate,
-	...edgesEdges,
 	...edgesGeneral,
-	...edgesOverlap,
+	...edgesLines,
+	...facesCoplanar,
 	...facesMatrix,
-	...facesOverlap,
 	...facesSpanningTree,
 	...facesWinding,
+	...intersectEdges,
+	...intersectEdgesEdges,
+	...intersectEdgesFaces,
+	...intersectFaces,
+	...intersectFacesFaces,
+	...intersectVerticesEdges,
 };

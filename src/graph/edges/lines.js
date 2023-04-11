@@ -1,24 +1,26 @@
-import { EPSILON } from "../math/general/constant.js";
-import { clampLine } from "../math/general/function.js";
+import { EPSILON } from "../../math/general/constant.js";
+import { clampLine } from "../../math/general/function.js";
 import {
 	magnitude,
 	normalize,
-} from "../math/algebra/vector.js";
-import { nearestPointOnLine } from "../math/geometry/nearest.js";
+} from "../../math/algebra/vector.js";
+import { nearestPointOnLine } from "../../math/geometry/nearest.js";
 import {
 	makeEdgesCoords,
 	makeEdgesVector,
-} from "./make.js";
+} from "../make.js";
 import {
 	clusterScalars,
 	clusterParallelVectors,
-} from "../general/arrays.js";
+} from "../../general/arrays.js";
 /**
- * @description Get an array of lines that describe all the edges
- * in a graph. Many edges will be segments along the same line, so
- * the return value includes a list of "lines" containing no duplicates,
- * and a list of "edges_line" that maps each edge (index) to the index
- * of the line in the "lines" array (value).
+ * @description Convert the edges of a graph into (infinite) lines, and
+ * prevent duplicate lines, only generate one line for all collinear edges.
+ * "lines" is an array of lines, in no particular order, and "edges_line"
+ * maps each edge (index) to the index in the "lines" array (value).
+ * @param {FOLD} graph a FOLD graph, can be 2D or 3D.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{ lines: VecLine[], edges_line: number[] }}
  */
 export const getEdgesLine = (graph, epsilon = EPSILON) => {
 	if (!graph.vertices_coords

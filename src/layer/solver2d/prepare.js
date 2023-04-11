@@ -4,7 +4,7 @@
 import makeTacosTortillas from "./tacos/makeTacosTortillas.js";
 import makeTransitivityTrios from "./tacos/makeTransitivityTrios.js";
 import filterTransitivity from "./tacos/filterTransitivity.js";
-import { getFacesFacesOverlap } from "../../graph/faces/overlap.js";
+import { getFacesFacesOverlap } from "../../graph/intersect/facesFaces.js";
 import { makeFacesWinding } from "../../graph/faces/winding.js";
 import {
 	makeConstraints,

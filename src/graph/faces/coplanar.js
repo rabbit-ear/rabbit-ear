@@ -1,32 +1,32 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constant.js";
+import { EPSILON } from "../../math/general/constant.js";
 import {
 	dot,
 	dot3,
 	scale3,
 	resize,
 	parallelNormalized,
-} from "../math/algebra/vector.js";
+} from "../../math/algebra/vector.js";
 import {
 	makePolygonNonCollinear,
-} from "../math/geometry/polygon.js";
+} from "../../math/geometry/polygon.js";
 import {
 	makeMatrix4Rotate,
 	multiplyMatrix4Vector3,
-} from "../math/algebra/matrix4.js";
+} from "../../math/algebra/matrix4.js";
 import {
 	matrix4FromQuaternion,
 	quaternionFromTwoVectors,
-} from "../math/algebra/quaternion.js";
-import { overlapConvexPolygons } from "../math/intersect/overlap.js";
-import { makeFacesNormal } from "./normals.js";
-import { clusterScalars } from "../general/arrays.js";
-import connectedComponents from "./connectedComponents.js";
-import { invertMap } from "./maps.js";
-import { makeFacesFaces } from "./make.js";
-import { selfRelationalArraySubset } from "./subgraph.js";
+} from "../../math/algebra/quaternion.js";
+import { overlapConvexPolygons } from "../../math/intersect/overlap.js";
+import { makeFacesNormal } from "../normals.js";
+import { clusterScalars } from "../../general/arrays.js";
+import connectedComponents from "../connectedComponents.js";
+import { invertMap } from "../maps.js";
+import { makeFacesFaces } from "../make.js";
+import { selfRelationalArraySubset } from "../subgraph.js";
 /**
  * @description Cluster the faces of a graph into groups of face indices where
  * all faces in the same group lie in the same plane in 3D (but are not

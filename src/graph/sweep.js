@@ -4,7 +4,7 @@ import { clusterScalars } from "../general/arrays.js";
 import { makeVerticesEdgesUnsorted } from "./make.js";
 /**
  * @description Perform a line sweep through the vertices of a graph,
- * the line is hard-coded to sweep along the +X axis.
+ * the direction is hard-coded to sweep along the +X axis.
  * This method will sort the vertices along the sweep direction and
  * group those which have a similar value within an epsilon.
  * @param {FOLD} graph a FOLD graph
@@ -23,10 +23,11 @@ export const sweepVertices = ({ vertices_coords }, epsilon = EPSILON) => (
 );
 /**
  * @description Perform a line sweep through the edges of a graph,
- * the line is hard-coded to sweep along the +X axis.
+ * the direction is hard-coded to sweep along the +X axis.
  * This method will create an array of events, each event will either
- * "add" edges or "remove" edges, and for those edges which are vertical
- * they will be present inside both "add" and "remove" inside of one event.
+ * "start" edges or "end" edges, and for those edges which are orthogonal
+ * to the sweep axis within an epsilon, they will only exist inside one
+ * event and be present in both the "start" and the "end" arrays.
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object[]} an array of event objects, each event contains the
@@ -70,8 +71,8 @@ export const sweepEdges = (
 			}));
 		const edgeIndices = Object.keys(edgeTable).map(n => parseInt(n, 10));
 		// zero (vertical edges) will be included in both "add" and "remove"
-		event.add = edgeIndices.filter(i => edgeTable[i] <= 0);
-		event.remove = edgeIndices.filter(i => edgeTable[i] >= 0);
+		event.edgesStart = edgeIndices.filter(i => edgeTable[i] <= 0);
+		event.edgesEnd = edgeIndices.filter(i => edgeTable[i] >= 0);
 	});
 	return sweep;
 };

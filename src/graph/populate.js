@@ -8,9 +8,6 @@ import {
 	makeVerticesFaces,
 	// makeEdgesEdges,
 	makeEdgesFacesUnsorted,
-	// makeEdgesFoldAngle,
-	// makeEdgesAssignment,
-	// makeEdgesVector,
 	makeFacesFaces,
 	makeFacesEdgesFromVertices,
 	makeFacesVerticesFromEdges,
@@ -33,7 +30,7 @@ import {
 //
 
 // try best not to lose information
-const build_assignments_if_needed = (graph) => {
+const buildAssignmentsIfNeeded = (graph) => {
 	const len = graph.edges_vertices.length;
 	// we know that edges_vertices exists
 	if (!graph.edges_assignment) { graph.edges_assignment = []; }
@@ -60,7 +57,7 @@ const build_assignments_if_needed = (graph) => {
  * @param {boolean} reface should be set to "true" to force the algorithm into
  * rebuilding the faces from scratch (walking edge to edge in the plane).
  */
-const build_faces_if_needed = (graph, reface) => {
+const buildFacesIfNeeded = (graph, reface) => {
 	// if faces_vertices does not exist, we need to build it.
 	// todo: if faces_edges exists but not vertices (unusual but possible),
 	// then build faces_vertices from faces_edges and call it done.
@@ -119,16 +116,10 @@ const populate = (graph, reface) => {
 	graph.vertices_edges = makeVerticesEdgesUnsorted(graph);
 	graph.vertices_vertices = makeVerticesVertices(graph);
 	graph.vertices_edges = makeVerticesEdges(graph);
-	// todo consider adding vertices_sectors, these are used for
-	// planar graphs (crease patterns) for walking faces
-	// todo, what is the reason to have edges_vector?
-	// if (graph.vertices_coords) {
-	//   graph.edges_vector = makeEdgesVector(graph);
-	// }
-	// make sure "edges_foldAngle" and "edges_assignment" are done.
-	build_assignments_if_needed(graph);
-	// make sure "faces_vertices" and "faces_edges" are built.
-	build_faces_if_needed(graph, reface);
+	// make sure "edges_foldAngle" and "edges_assignment" are built
+	buildAssignmentsIfNeeded(graph);
+	// make sure "faces_vertices" and "faces_edges" are built
+	buildFacesIfNeeded(graph, reface);
 	// depending on the presence of vertices_vertices, this will
 	// run the simple algorithm (no radial sorting) or the proper one.
 	graph.vertices_faces = makeVerticesFaces(graph);
@@ -136,90 +127,5 @@ const populate = (graph, reface) => {
 	graph.faces_faces = makeFacesFaces(graph);
 	return graph;
 };
-
-/**
- * old description:
- * populate() will assess each graph component that is missing and
- * attempt to create as many as possible.
- *
- * this WILL NOT rewrite components, if a key exists, it will leave it alone
- *
- * example: to make populate() rebuild faces_vertices, run ahead of time:
- *  - delete graph.faces_vertices
- * so that the query evalutes to == null (undefined)
- */
-
-// const populate = function (graph) {
-//   if (typeof graph !== "object") { return; }
-//   if (graph.vertices_vertices == null) {
-//     if (graph.vertices_coords && graph.edges_vertices) {
-//       FOLDConvert.edges_vertices_to_vertices_vertices_sorted(graph);
-//     } else if (graph.edges_vertices) {
-//       FOLDConvert.edges_vertices_to_vertices_vertices_unsorted(graph);
-//     }
-//   }
-//   if (graph.faces_vertices == null) {
-//     if (graph.vertices_coords && graph.vertices_vertices) {
-//       // todo, this can be rebuilt to remove vertices_coords dependency
-//       FOLDConvert.vertices_vertices_to_faces_vertices(graph);
-//     }
-//   }
-//   if (graph.faces_edges == null) {
-//     if (graph.faces_vertices) {
-//       FOLDConvert.faces_vertices_to_faces_edges(graph);
-//     }
-//   }
-//   if (graph.edges_faces == null) {
-//     const edges_faces = makeEdgesFaces(graph);
-//     if (edges_faces !== undefined) {
-//       graph.edges_faces = edges_faces;
-//     }
-//   }
-//   if (graph.vertices_faces == null) {
-//     const vertices_faces = makeVerticesFaces(graph);
-//     if (vertices_faces !== undefined) {
-//       graph.vertices_faces = vertices_faces;
-//     }
-//   }
-//   if (graph.edges_length == null) {
-//     const edges_length = makeEdgesLength(graph);
-//     if (edges_length !== undefined) {
-//       graph.edges_length = edges_length;
-//     }
-//   }
-//   if (graph.edges_foldAngle == null
-//     && graph.edges_assignment != null) {
-//     graph.edges_foldAngle = graph.edges_assignment
-//       .map(a => edgeAssignmentToFoldAngle(a));
-//   }
-//   if (graph.edges_assignment == null
-//     && graph.edges_foldAngle != null) {
-//     graph.edges_assignment = graph.edges_foldAngle.map((a) => {
-//       if (a === 0) { return "F"; }
-//       if (a < 0) { return "M"; }
-//       if (a > 0) { return "V"; }
-//       return "U";
-//     });
-//     // todo, this does not find borders, we need an algorithm to walk around
-//   }
-//   if (graph.faces_faces == null) {
-//     const faces_faces = makeFacesFaces(graph);
-//     if (faces_faces !== undefined) {
-//       graph.faces_faces = faces_faces;
-//     }
-//   }
-//   if (graph.vertices_edges == null) {
-//     const vertices_edges = makeVerticesEdgesUnsorted(graph);
-//     if (vertices_edges !== undefined) {
-//       graph.vertices_edges = vertices_edges;
-//     }
-//   }
-//   if (graph.edges_edges == null) {
-//     const edges_edges = makeEdgesEdges(graph);
-//     if (edges_edges !== undefined) {
-//       graph.edges_edges = edges_edges;
-//     }
-//   }
-// };
 
 export default populate;

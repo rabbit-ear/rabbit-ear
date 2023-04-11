@@ -9,7 +9,7 @@ import { subtract2 } from "../../math/algebra/vector.js";
 import { counterClockwiseSectors2 } from "../../math/geometry/radial.js";
 import {
 	makeEdgesSegmentIntersection,
-} from "../intersect.js";
+} from "../intersect/edges.js";
 import splitEdge from "../splitEdge/index.js";
 import remove from "../remove.js";
 import {
