@@ -2189,45 +2189,55 @@ const nearest = (graph, ...args) => {
 			}));
 	});
 	return nears;
-};const nearestMethods=/*#__PURE__*/Object.freeze({__proto__:null,faceContainingPoint,nearest,nearestEdge,nearestFace,nearestVertex});const sweepVertices = ({ vertices_coords }, epsilon = EPSILON) => (
-	clusterScalars(vertices_coords.map(p => p[0]), epsilon)
+};const nearestMethods=/*#__PURE__*/Object.freeze({__proto__:null,faceContainingPoint,nearest,nearestEdge,nearestFace,nearestVertex});const sweepVertices = ({ vertices_coords }, axis = 0, epsilon = EPSILON) => (
+	clusterScalars(vertices_coords.map(p => p[axis]), epsilon)
 		.map(vertices => ({
 			vertices,
-			x: vertices.reduce((p, c) => p + vertices_coords[c][0], 0) / vertices.length,
+			t: vertices.reduce((p, c) => p + vertices_coords[c][axis], 0) / vertices.length,
 		}))
 );
-const sweepEdges = (
-	{ vertices_coords, edges_vertices, vertices_edges },
-	epsilon = EPSILON,
-) => {
+const sweep = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
-	const edgesSimilarX = edges_vertices.map(([v1, v2]) => epsilonEqual(
-		vertices_coords[v1][0],
-		vertices_coords[v2][0],
-		epsilon,
-	));
+	const edgesValues = edges_vertices.map(edge => edge.map(e => values[e]));
+	const isDegenerate = edgesValues.map(pair => epsilonEqual(...pair, epsilon));
 	const edgesDirection = edges_vertices
-		.map(([v1, v2]) => Math.sign(vertices_coords[v1][0] - vertices_coords[v2][0]));
+		.map(edge => edge.map(e => values[e]))
+		.map(([a, b]) => Math.sign(a - b));
 	const edgesVertexSide = edges_vertices
-		.map(([v1, v2], i) => (edgesSimilarX[i]
+		.map(([v1, v2], i) => (isDegenerate[i]
 			? { [v1]: 0, [v2]: 0 }
 			: { [v1]: edgesDirection[i], [v2]: -edgesDirection[i] }));
-	const sweep = sweepVertices({ vertices_coords }, epsilon);
-	sweep.forEach(event => {
-		const edgeTable = {};
-		event.vertices
-			.map(v => vertices_edges[v])
-			.forEach((edges, i) => edges.forEach(edge => {
-				edgeTable[edge] = edgesVertexSide[edge][event.vertices[i]];
-			}));
-		const edgeIndices = Object.keys(edgeTable).map(n => parseInt(n, 10));
-		event.edgesStart = edgeIndices.filter(i => edgeTable[i] <= 0);
-		event.edgesEnd = edgeIndices.filter(i => edgeTable[i] >= 0);
-	});
-	return sweep;
-};const sweep=/*#__PURE__*/Object.freeze({__proto__:null,sweepEdges,sweepVertices});const getVerticesEdgesOverlap = ({
+	return clusterScalars(values, epsilon)
+		.map(vertices => vertices.filter(v => vertices_edges[v]))
+		.filter(vertices => vertices.length)
+		.map(vertices => ({
+			vertices,
+			t: vertices.reduce((p, c) => p + values[c], 0) / vertices.length,
+			start: uniqueElements(vertices.flatMap(v => vertices_edges[v]
+				.filter(edge => edgesVertexSide[edge][v] <= 0))),
+			end: uniqueElements(vertices.flatMap(v => vertices_edges[v]
+				.filter(edge => edgesVertexSide[edge][v] >= 0))),
+		}));
+};
+const sweepEdges = ({
+	vertices_coords, edges_vertices, vertices_edges,
+}, axis = 0, epsilon = EPSILON) => (
+	sweep(vertices_coords.map(p => p[axis]), { edges_vertices, vertices_edges }, epsilon)
+);
+const sweepFaces = ({
+	vertices_coords, faces_vertices,
+}, axis = 0, epsilon = EPSILON) => sweep(
+	vertices_coords.map(p => p[axis]),
+	{ edges_vertices: faces_vertices.map(vertices => [
+		vertices
+			.reduce((a, b) => (vertices_coords[a][axis] < vertices_coords[b][axis] ? a : b)),
+		vertices
+			.reduce((a, b) => (vertices_coords[a][axis] > vertices_coords[b][axis] ? a : b)),
+	]) },
+	epsilon,
+);const sweep$1=/*#__PURE__*/Object.freeze({__proto__:null,sweepEdges,sweepFaces,sweepVertices});const getVerticesEdgesOverlap = ({
 	vertices_coords, edges_vertices, vertices_edges, edges_vector,
 }, epsilon = EPSILON) => {
 	if (!edges_vector) {
@@ -2245,7 +2255,7 @@ const sweepEdges = (
 	const setOfEdges = [];
 	sweepEdges({ vertices_coords, edges_vertices, vertices_edges }, epsilon)
 		.forEach(event => {
-			event.edgesStart.forEach(e => { setOfEdges[e] = true; });
+			event.start.forEach(e => { setOfEdges[e] = true; });
 			setOfEdges
 				.forEach((_, e) => event.vertices
 					.forEach(v => {
@@ -2260,7 +2270,7 @@ const sweepEdges = (
 							epsilon,
 						);
 					}));
-			event.edgesEnd.forEach(e => delete setOfEdges[e]);
+			event.end.forEach(e => delete setOfEdges[e]);
 		});
 	return overlaps
 		.map(verts => verts
@@ -2435,13 +2445,14 @@ const intersectConvexPolygonLine = (
 		edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	}
 	const intersections = [];
-	const setOfEdges = {};
+	const setOfEdges = [];
 	sweepEdges({ vertices_coords, edges_vertices, vertices_edges }, epsilon)
 		.forEach(event => {
-			Object.keys(setOfEdges)
-				.map(n => parseInt(n, 10))
-				.forEach(e1 => event.edgesStart
+			event.start.forEach(e => { setOfEdges[e] = true; });
+			setOfEdges
+				.forEach((_, e1) => event.start
 					.forEach(e2 => {
+						if (e1 === e2) { return; }
 						const intersection = intersectLineLine(
 							{ vector: edges_vector[e1], origin: edges_origin[e1] },
 							{ vector: edges_vector[e2], origin: edges_origin[e2] },
@@ -2456,12 +2467,11 @@ const intersectConvexPolygonLine = (
 							intersections[e2][e1] = intersection;
 						}
 					}));
-			event.edgesStart.forEach(e => { setOfEdges[e] = true; });
-			event.edgesEnd.forEach(e => delete setOfEdges[e]);
+			event.end.forEach(e => delete setOfEdges[e]);
 		});
 	return intersections;
 };
-const makeEdgesEdgesNotParallel = ({
+const makeEdgesEdgesParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
 }, epsilon = EPSILON) => {
 	if (!edges_vector) {
@@ -2473,7 +2483,7 @@ const makeEdgesEdgesNotParallel = ({
 			.map((vec2, j) => (i === j
 				? undefined
 				: (1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon)))
-			.map((parallel, j) => (parallel ? undefined : j))
+			.map((parallel, j) => (parallel ? j : undefined))
 			.filter(a => a !== undefined));
 };
 const overwriteEdgesOverlaps = (edges_edges, vectors, origins, func, epsilon) => {
@@ -2495,59 +2505,6 @@ const overwriteEdgesOverlaps = (edges_edges, vectors, origins, func, epsilon) =>
 			}));
 	return edges_edgesOverlap;
 };
-const makeEdgesEdgesCrossing = ({
-	vertices_coords, edges_vertices, edges_vector,
-}, epsilon) => {
-	if (!edges_vector) {
-		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	}
-	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-	const edge_edgesNotParallel = makeEdgesEdgesNotParallel({
-		vertices_coords, edges_vertices, edges_vector,
-	}, epsilon);
-	return overwriteEdgesOverlaps(
-		edge_edgesNotParallel,
-		edges_vector,
-		edges_origin,
-		excludeS,
-		epsilon,
-	);
-};
-const makeEdgesEdgesParallel = ({
-	vertices_coords, edges_vertices, edges_vector,
-}, epsilon = EPSILON) => {
-	if (!edges_vector) {
-		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	}
-	const normalized = edges_vector.map(vec => normalize(vec));
-	return normalized
-		.map((vec1, i) => normalized
-			.map((vec2, j) => (i === j
-				? undefined
-				: (1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon)))
-			.map((parallel, j) => (parallel ? j : undefined))
-			.filter(a => a !== undefined));
-};
-const makeEdgesEdges2DParallel = ({
-	vertices_coords, edges_vertices, edges_vector,
-}, epsilon = EPSILON) => {
-	if (!edges_vector) {
-		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	}
-	const sorted = edges_vector
-		.map(vec => Math.atan2(vec[1], vec[0]))
-		.map((a, i) => ({ a, i }))
-		.sort((a, b) => a.a - b.a);
-	let found = -1;
-	sorted.forEach((el, i) => {
-		{ return; }
-	});
-	const shifted = sorted
-		.slice(found)
-		.concat(sorted.slice(0, found))
-		.filter(a => a);
-	console.log("shifted", shifted);
-};
 const makeEdgesEdgesParallelOverlap = ({
 	vertices_coords, edges_vertices, edges_vector,
 }, epsilon) => {
@@ -2565,7 +2522,7 @@ const makeEdgesEdgesParallelOverlap = ({
 		excludeS,
 		epsilon,
 	);
-};const intersectEdgesEdges=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesIntersection,makeEdgesEdges2DParallel,makeEdgesEdgesCrossing,makeEdgesEdgesParallel,makeEdgesEdgesParallelOverlap});const fragmentGraph = (graph, epsilon = EPSILON) => {
+};const intersectEdgesEdges=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesIntersection,makeEdgesEdgesParallelOverlap});const fragmentGraph = (graph, epsilon = EPSILON) => {
 	const edges_coords = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 	const edges_vector = edges_coords.map(e => subtract(e[1], e[0]));
@@ -6306,10 +6263,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = EPSILON) => {
 		segment[1],
 		epsilon,
 	);
-	const intersected_edges = intersections
-		.map((pt, e) => (pt === undefined ? undefined : e))
-		.filter(a => a !== undefined)
-		.sort((a, b) => a - b);
+	const intersected_edges = intersections.map((_, e) => e).filter(includeL);
 	const faces_map = {};
 	intersected_edges
 		.forEach(e => graph.edges_faces[e]
@@ -8640,7 +8594,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...normals,
 	...span,
 	...subgraphMethods,
-	...sweep,
+	...sweep$1,
 	...symmetry,
 	...transform$1,
 	...triangulateMethods,

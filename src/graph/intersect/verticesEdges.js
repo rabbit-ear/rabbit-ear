@@ -81,7 +81,7 @@ export const getVerticesEdgesOverlap = ({
 	const setOfEdges = [];
 	sweepEdges({ vertices_coords, edges_vertices, vertices_edges }, epsilon)
 		.forEach(event => {
-			event.edgesStart.forEach(e => { setOfEdges[e] = true; });
+			event.start.forEach(e => { setOfEdges[e] = true; });
 			setOfEdges
 				.forEach((_, e) => event.vertices
 					.forEach(v => {
@@ -96,7 +96,7 @@ export const getVerticesEdgesOverlap = ({
 							epsilon,
 						);
 					}));
-			event.edgesEnd.forEach(e => delete setOfEdges[e]);
+			event.end.forEach(e => delete setOfEdges[e]);
 		});
 
 	return overlaps

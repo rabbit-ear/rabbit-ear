@@ -9,8 +9,8 @@ import { subtract2 } from "../../../math/algebra/vector.js";
 import { clipLineConvexPolygon } from "../../../math/intersect/clip.js";
 import { makeFacesPolygon } from "../../../graph/make.js";
 import { makeFacesWinding } from "../../../graph/faces/winding.js";
-import { makeEdgesEdgesCrossing } from "../../../graph/intersect/edgesEdges.js";
-import { booleanMatrixToIndexedArray } from "../../../general/arrays.js";
+// import { makeEdgesEdgesCrossing } from "../../../graph/intersect/edgesEdges.js";
+// import { booleanMatrixToIndexedArray } from "../../../general/arrays.js";
 /**
  * @description makeTortillaTortillaEdgesCrossing
  * @param {FOLD} graph a FOLD object graph
@@ -19,28 +19,28 @@ import { booleanMatrixToIndexedArray } from "../../../general/arrays.js";
  * @returns todo
  * @linkcode Origami ./src/layer/solver2d/tacos/tortillaTortilla.js 20
  */
-export const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsilon) => {
-	// get all tortilla edges. could also be done by searching
-	// "edges_assignment" for all instances of F/f. perhaps this way is better.
-	const tortilla_edge_indices = edges_faces_side
-		.map(side => side.length === 2 && side[0] !== side[1])
-		.map((bool, i) => (bool ? i : undefined))
-		.filter(a => a !== undefined);
-	// get all edges which cross these tortilla edges. these edges can even be
-	// boundary edges, it doesn't matter how many adjacent faces they have.
-	const edges_crossing_matrix = makeEdgesEdgesCrossing(graph, epsilon);
-	const edges_crossing = booleanMatrixToIndexedArray(edges_crossing_matrix);
-	// parallel arrays. tortilla_edge_indices contains the edge index.
-	// tortilla_edges_crossing contains an array of the crossing edge indices.
-	const tortilla_edges_crossing = tortilla_edge_indices
-		.map(i => edges_crossing[i]);
-	// combine parallel arrays into one object.
-	// tortilla_edge is a number. crossing_edges is an array of numbers.
-	return tortilla_edges_crossing.map((edges, i) => ({
-		tortilla_edge: tortilla_edge_indices[i],
-		crossing_edges: edges,
-	})).filter(el => el.crossing_edges.length);
-};
+// export const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsilon) => {
+// 	// get all tortilla edges. could also be done by searching
+// 	// "edges_assignment" for all instances of F/f. perhaps this way is better.
+// 	const tortilla_edge_indices = edges_faces_side
+// 		.map(side => side.length === 2 && side[0] !== side[1])
+// 		.map((bool, i) => (bool ? i : undefined))
+// 		.filter(a => a !== undefined);
+// 	// get all edges which cross these tortilla edges. these edges can even be
+// 	// boundary edges, it doesn't matter how many adjacent faces they have.
+// 	const edges_crossing_matrix = makeEdgesEdgesCrossing(graph, epsilon);
+// 	const edges_crossing = booleanMatrixToIndexedArray(edges_crossing_matrix);
+// 	// parallel arrays. tortilla_edge_indices contains the edge index.
+// 	// tortilla_edges_crossing contains an array of the crossing edge indices.
+// 	const tortilla_edges_crossing = tortilla_edge_indices
+// 		.map(i => edges_crossing[i]);
+// 	// combine parallel arrays into one object.
+// 	// tortilla_edge is a number. crossing_edges is an array of numbers.
+// 	return tortilla_edges_crossing.map((edges, i) => ({
+// 		tortilla_edge: tortilla_edge_indices[i],
+// 		crossing_edges: edges,
+// 	})).filter(el => el.crossing_edges.length);
+// };
 
 export const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
 	const faces_winding = makeFacesWinding(graph);
