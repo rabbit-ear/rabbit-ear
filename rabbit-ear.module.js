@@ -2189,22 +2189,27 @@ const nearest = (graph, ...args) => {
 			}));
 	});
 	return nears;
-};const nearestMethods=/*#__PURE__*/Object.freeze({__proto__:null,faceContainingPoint,nearest,nearestEdge,nearestFace,nearestVertex});const sweepVertices = ({ vertices_coords }, axis = 0, epsilon = EPSILON) => (
+};const nearestMethods=/*#__PURE__*/Object.freeze({__proto__:null,faceContainingPoint,nearest,nearestEdge,nearestFace,nearestVertex});const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => faces_vertices
+	.map(vertices => [
+		vertices
+			.reduce((a, b) => (vertices_coords[a][axis] < vertices_coords[b][axis] ? a : b)),
+		vertices
+			.reduce((a, b) => (vertices_coords[a][axis] > vertices_coords[b][axis] ? a : b)),
+	]);
+const sweepVertices = ({ vertices_coords }, axis = 0, epsilon = EPSILON) => (
 	clusterScalars(vertices_coords.map(p => p[axis]), epsilon)
 		.map(vertices => ({
 			vertices,
 			t: vertices.reduce((p, c) => p + vertices_coords[c][axis], 0) / vertices.length,
 		}))
 );
-const sweep = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) => {
+const sweepComponent = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const edgesValues = edges_vertices.map(edge => edge.map(e => values[e]));
 	const isDegenerate = edgesValues.map(pair => epsilonEqual(...pair, epsilon));
-	const edgesDirection = edges_vertices
-		.map(edge => edge.map(e => values[e]))
-		.map(([a, b]) => Math.sign(a - b));
+	const edgesDirection = edgesValues.map(([a, b]) => Math.sign(a - b));
 	const edgesVertexSide = edges_vertices
 		.map(([v1, v2], i) => (isDegenerate[i]
 			? { [v1]: 0, [v2]: 0 }
@@ -2224,20 +2229,61 @@ const sweep = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) =>
 const sweepEdges = ({
 	vertices_coords, edges_vertices, vertices_edges,
 }, axis = 0, epsilon = EPSILON) => (
-	sweep(vertices_coords.map(p => p[axis]), { edges_vertices, vertices_edges }, epsilon)
+	sweepComponent(vertices_coords.map(p => p[axis]), { edges_vertices, vertices_edges }, epsilon)
 );
 const sweepFaces = ({
 	vertices_coords, faces_vertices,
-}, axis = 0, epsilon = EPSILON) => sweep(
+}, axis = 0, epsilon = EPSILON) => sweepComponent(
 	vertices_coords.map(p => p[axis]),
-	{ edges_vertices: faces_vertices.map(vertices => [
-		vertices
-			.reduce((a, b) => (vertices_coords[a][axis] < vertices_coords[b][axis] ? a : b)),
-		vertices
-			.reduce((a, b) => (vertices_coords[a][axis] > vertices_coords[b][axis] ? a : b)),
-	]) },
+	{ edges_vertices: edgeifyFaces({ vertices_coords, faces_vertices }, axis) },
 	epsilon,
-);const sweep$1=/*#__PURE__*/Object.freeze({__proto__:null,sweepEdges,sweepFaces,sweepVertices});const getVerticesEdgesOverlap = ({
+);
+const sweep = (graph, axis = 0, epsilon = EPSILON) => {
+	const values = graph.vertices_coords.map(p => p[axis]);
+	const edges_vertices = graph.edges_vertices;
+	const faces_vertices = edgeifyFaces(graph, axis);
+	const vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	const vertices_faces = makeVerticesEdgesUnsorted({ edges_vertices: faces_vertices });
+	const edgesValues = edges_vertices.map(edge => edge.map(e => values[e]));
+	const facesValues = faces_vertices.map(face => face.map(e => values[e]));
+	const edgesDegenerate = edgesValues.map(pair => epsilonEqual(...pair, epsilon));
+	const facesDegenerate = facesValues.map(pair => epsilonEqual(...pair, epsilon));
+	const edgesDirection = edgesValues.map(([a, b]) => Math.sign(a - b));
+	const facesDirection = facesValues.map(([a, b]) => Math.sign(a - b));
+	const edgesVertexSide = edges_vertices
+		.map(([v1, v2], i) => (edgesDegenerate[i]
+			? { [v1]: 0, [v2]: 0 }
+			: { [v1]: edgesDirection[i], [v2]: -edgesDirection[i] }));
+	const facesVertexSide = faces_vertices
+		.map(([v1, v2], i) => (facesDegenerate[i]
+			? { [v1]: 0, [v2]: 0 }
+			: { [v1]: facesDirection[i], [v2]: -facesDirection[i] }));
+	return clusterScalars(values, epsilon)
+		.map(vertices => ({
+			vertices,
+			t: vertices.reduce((p, c) => p + values[c], 0) / vertices.length,
+			edges: {
+				start: uniqueElements(vertices
+					.filter(v => vertices_edges[v] !== undefined)
+					.flatMap(v => vertices_edges[v]
+						.filter(edge => edgesVertexSide[edge][v] <= 0))),
+				end: uniqueElements(vertices
+					.filter(v => vertices_edges[v] !== undefined)
+					.flatMap(v => vertices_edges[v]
+						.filter(edge => edgesVertexSide[edge][v] >= 0))),
+			},
+			faces: {
+				start: uniqueElements(vertices
+					.filter(v => vertices_faces[v] !== undefined)
+					.flatMap(v => vertices_faces[v]
+						.filter(face => facesVertexSide[face][v] <= 0))),
+				end: uniqueElements(vertices
+					.filter(v => vertices_faces[v] !== undefined)
+					.flatMap(v => vertices_faces[v]
+						.filter(face => facesVertexSide[face][v] >= 0))),
+			},
+		}));
+};const sweep$1=/*#__PURE__*/Object.freeze({__proto__:null,sweep,sweepEdges,sweepFaces,sweepVertices});const getVerticesEdgesOverlap = ({
 	vertices_coords, edges_vertices, vertices_edges, edges_vector,
 }, epsilon = EPSILON) => {
 	if (!edges_vector) {
