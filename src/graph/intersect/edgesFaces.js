@@ -5,14 +5,12 @@ import {
 	exclude,
 	excludeS,
 } from "../../math/general/function.js";
-import {
-	boundingBox,
-} from "../../math/geometry/polygon.js";
+import { boundingBox } from "../../math/geometry/polygon.js";
+import { intersectConvexPolygonLine } from "../../math/intersect/intersect.js";
 import {
 	overlapBoundingBoxes,
 	overlapConvexPolygonPoint,
 } from "../../math/intersect/overlap.js";
-import { intersectConvexPolygonLine } from "../../math/intersect/intersect.js";
 import {
 	makeEdgesVector,
 	makeEdgesBoundingBox,

@@ -1,5 +1,5 @@
 import cleanup from "rollup-plugin-cleanup";
-import terser from "@rollup/plugin-terser";
+// import terser from "@rollup/plugin-terser";
 
 const version = "0.9.33 alpha 2023-02-21";
 const input = "src/index.js";
@@ -61,28 +61,28 @@ export default [{
 		banner,
 	},
 	plugins: [
-		terser({
-			keep_fnames: true,
-			format: {
-				comments: false,
-			},
-		}),
+		// terser({
+		// 	keep_fnames: true,
+		// 	format: {
+		// 		comments: false,
+		// 	},
+		// }),
 	],
-}, {
-	input,
-	output: {
-		name,
-		dir: "module/",
-		format: "es",
-		banner,
-		preserveModules: true,
-		generatedCode: {
-			constBindings: true,
-			objectShorthand: true,
-		},
-		// sourcemap: true,
-	},
-	plugins: [
-		cleanup(),
-	],
+// }, {
+// 	input,
+// 	output: {
+// 		name,
+// 		dir: "module/",
+// 		format: "es",
+// 		banner,
+// 		preserveModules: true,
+// 		generatedCode: {
+// 			constBindings: true,
+// 			objectShorthand: true,
+// 		},
+// 		// sourcemap: true,
+// 	},
+// 	plugins: [
+// 		cleanup(),
+// 	],
 }];

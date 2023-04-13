@@ -8501,35 +8501,29 @@ const coplanarOverlappingFacesGroups = ({
 };const intersectEdgesFaces=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesFacesOverlap});const getFacesFacesOverlap = ({
 	vertices_coords, faces_vertices,
 }, epsilon = EPSILON) => {
-	const matrix = Array.from(Array(faces_vertices.length))
-		.map(() => Array.from(Array(faces_vertices.length)));
-	const faces_coords = faces_vertices
-		.map(verts => verts.map(v => vertices_coords[v]));
-	const faces_bounds = faces_coords
-		.map(polygon => boundingBox$1(polygon));
-	for (let i = 0; i < faces_bounds.length - 1; i += 1) {
-		for (let j = i + 1; j < faces_bounds.length; j += 1) {
-			if (!overlapBoundingBoxes(faces_bounds[i], faces_bounds[j])) {
-				matrix[i][j] = false;
-				matrix[j][i] = false;
-			}
-		}
-	}
-	const faces_polygon = faces_coords
-		.map(polygon => makePolygonNonCollinear(polygon, epsilon));
-	for (let i = 0; i < faces_vertices.length - 1; i += 1) {
-		for (let j = i + 1; j < faces_vertices.length; j += 1) {
-			if (matrix[i][j] === false) { continue; }
-			const overlap = overlapConvexPolygons(
-				faces_polygon[i],
-				faces_polygon[j],
-				epsilon,
-			);
-			matrix[i][j] = overlap;
-			matrix[j][i] = overlap;
-		}
-	}
-	return matrix;
+	const facesPolygon = makeFacesPolygon({ vertices_coords, faces_vertices });
+	const facesBounds = facesPolygon.map(polygon => boundingBox$1(polygon));
+	const intersections = [];
+	const setOfFaces = [];
+	sweepFaces({ vertices_coords, faces_vertices }, 0, epsilon)
+		.forEach(event => {
+			event.start.forEach(e => { setOfFaces[e] = true; });
+			setOfFaces
+				.forEach((_, f1) => event.start
+					.forEach(f2 => {
+						if (f1 === f2) { return; }
+						if (!overlapBoundingBoxes(facesBounds[f1], facesBounds[f2])
+							|| !overlapConvexPolygons(facesPolygon[f1], facesPolygon[f2], epsilon)) {
+							return;
+						}
+						if (!intersections[f1]) { intersections[f1] = []; }
+						if (!intersections[f2]) { intersections[f2] = []; }
+						intersections[f1][f2] = true;
+						intersections[f2][f1] = true;
+					}));
+			event.end.forEach(e => delete setOfFaces[e]);
+		});
+	return intersections.map(faces => Object.keys(faces).map(n => parseInt(n, 10)));
 };const intersectFacesFaces=/*#__PURE__*/Object.freeze({__proto__:null,getFacesFacesOverlap});const addSegmentInsideFace = (graph, face, segment, epsilon = EPSILON) => {
 	graph.faces_vertices[face]
 		.map(v => graph.vertices_coords[v])

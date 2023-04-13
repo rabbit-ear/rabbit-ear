@@ -33,6 +33,7 @@ export const sweepVertices = ({ vertices_coords }, axis = 0, epsilon = EPSILON) 
  * face, so this has no relation to the graph's original edges_vertices.
  * @param {number} [epsilon=1e-6] an optional epsilon
  */
+// const sweep = (values, { edges_vertices, faces_vertices }, epsilon = EPSILON) => {
 const sweep = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
@@ -52,6 +53,10 @@ const sweep = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) =>
 		.map(([v1, v2], i) => (isDegenerate[i]
 			? { [v1]: 0, [v2]: 0 }
 			: { [v1]: edgesDirection[i], [v2]: -edgesDirection[i] }));
+	// within each cluster, if there are a lot of consecutive lines orthogonal
+	// to the sweep axis, there will be repeats of edges when converting these
+	// vertices into their adjacent edges by looking at vertices_edges.
+	// we have to pile these into a Set and extract an array of unique values.
 	return clusterScalars(values, epsilon)
 		// ensure that every vertex is used in the graph, filter out any vertices
 		// which aren't found in vertices_edges, and if this creates empty clusters

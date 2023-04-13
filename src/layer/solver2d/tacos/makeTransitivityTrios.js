@@ -10,7 +10,7 @@ import { getFacesFacesOverlap } from "../../../graph/intersect/facesFaces.js";
  * each other, meaning there exists at least one point that lies at the
  * intersection of all three faces.
  * @param {FOLD} graph a FOLD graph
- * @param {boolean[][]} overlap_matrix an overlap-relationship between every face
+ * @param {number[][]} facesFacesOverlap an overlap-relationship between every face
  * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} list of arrays containing three face indices.
@@ -18,17 +18,21 @@ import { getFacesFacesOverlap } from "../../../graph/intersect/facesFaces.js";
  */
 const makeTransitivityTrios = (
 	graph,
-	overlap_matrix,
+	facesFacesOverlap,
 	faces_winding,
 	epsilon = EPSILON,
 ) => {
-	if (!overlap_matrix) {
-		overlap_matrix = getFacesFacesOverlap(graph, epsilon);
+	if (!facesFacesOverlap) {
+		facesFacesOverlap = getFacesFacesOverlap(graph, epsilon);
 	}
 	if (!faces_winding) {
 		faces_winding = makeFacesWinding(graph);
 	}
-	// console.log("overlap_matrix", overlap_matrix);
+	const overlap_matrix = facesFacesOverlap.map(() => []);
+	facesFacesOverlap
+		.forEach((faces, i) => faces
+			.forEach(j => { overlap_matrix[i][j] = true; }));
+	// console.log("facesFacesOverlap", facesFacesOverlap);
 	// console.log("faces_winding", faces_winding);
 	// prepare a list of all faces in the graph as lists of vertices
 	// also, make sure they all have the same winding (reverse if necessary)

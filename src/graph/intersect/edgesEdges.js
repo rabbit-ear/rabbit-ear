@@ -4,13 +4,13 @@
 import { EPSILON } from "../../math/general/constant.js";
 import { excludeS } from "../../math/general/function.js";
 import { overlapLineLine } from "../../math/intersect/overlap.js";
-import { makeEdgesVector } from "../make.js";
 import {
 	normalize,
 	dot,
 } from "../../math/algebra/vector.js";
-import { sweepEdges } from "../sweep.js";
 import { intersectLineLine } from "../../math/intersect/intersect.js";
+import { makeEdgesVector } from "../make.js";
+import { sweepEdges } from "../sweep.js";
 /**
  * @description get all intersections between edges in a 2D graph.
  * Edge endpoints are excluded.

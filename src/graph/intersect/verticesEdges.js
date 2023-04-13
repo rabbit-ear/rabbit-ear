@@ -27,39 +27,7 @@ import { sweepEdges } from "../sweep.js";
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
  * @linkcode Origami ./src/graph/verticesCollinear.js 59
- * @bigO O(e*v) where e=edges, v=vertices.
  */
-// export const getVerticesEdgesOverlap = ({
-// 	vertices_coords, edges_vertices, edges_coords,
-// }, epsilon = EPSILON) => {
-// 	if (!edges_coords) {
-// 		edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
-// 	}
-// 	const edges_span_vertices = getEdgesVerticesOverlappingSpan({
-// 		vertices_coords, edges_vertices, edges_coords,
-// 	}, epsilon);
-// 	// todo, consider pushing values into a results array instead of modifying,
-// 	// then filtering the existing one
-// 	for (let e = 0; e < edges_coords.length; e += 1) {
-// 		for (let v = 0; v < vertices_coords.length; v += 1) {
-// 			if (!edges_span_vertices[e][v]) { continue; }
-// 			edges_span_vertices[e][v] = overlapLinePoint(
-// 				{
-// 					vector: subtract(edges_coords[e][1], edges_coords[e][0]),
-// 					origin: edges_coords[e][0],
-// 				},
-// 				vertices_coords[v],
-// 				excludeS,
-// 				epsilon,
-// 			);
-// 		}
-// 	}
-// 	return edges_span_vertices
-// 		.map(verts => verts
-// 			.map((vert, i) => (vert ? i : undefined))
-// 			.filter(i => i !== undefined));
-// };
-
 export const getVerticesEdgesOverlap = ({
 	vertices_coords, edges_vertices, vertices_edges, edges_vector,
 }, epsilon = EPSILON) => {
@@ -98,7 +66,6 @@ export const getVerticesEdgesOverlap = ({
 					}));
 			event.end.forEach(e => delete setOfEdges[e]);
 		});
-
 	return overlaps
 		.map(verts => verts
 			.map((vert, i) => (vert ? i : undefined))

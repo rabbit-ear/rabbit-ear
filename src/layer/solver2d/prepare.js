@@ -18,7 +18,7 @@ import {
 const prepare = (graph, epsilon = 1e-6) => {
 	// let lastTime = new Date();
 	// 200ms: {boolean[][]} face-face matrix answering: do they overlap?
-	const overlap = getFacesFacesOverlap(graph, epsilon);
+	const facesFacesOverlap = getFacesFacesOverlap(graph, epsilon);
 	// console.log(Date.now() - lastTime, "overlap"); lastTime = new Date();
 	// 0ms: {boolean[]} for every face, true:counter-clockwise, false:flipped
 	const facesWinding = makeFacesWinding(graph);
@@ -26,7 +26,7 @@ const prepare = (graph, epsilon = 1e-6) => {
 	const tacos_tortillas = makeTacosTortillas(graph, epsilon);
 	// console.log(Date.now() - lastTime, "tacos"); lastTime = new Date();
 	// 2,200ms: get all transitivity events
-	const unfiltered_trios = makeTransitivityTrios(graph, overlap, facesWinding, epsilon);
+	const unfiltered_trios = makeTransitivityTrios(graph, facesFacesOverlap, facesWinding, epsilon);
 	// console.log(Date.now() - lastTime, "transitivity"); lastTime = new Date();
 	// 500ms:
 	const transitivity_trios = filterTransitivity(unfiltered_trios, tacos_tortillas);
@@ -41,7 +41,7 @@ const prepare = (graph, epsilon = 1e-6) => {
 	// these are all the variables we need to solve- all overlapping faces in
 	// pairwise combinations, as a space-separated string, smallest index first
 	// 5ms:
-	const facePairs = makeFacePairs(graph, overlap);
+	const facePairs = makeFacePairs(graph, facesFacesOverlap);
 	// 15ms:
 	const edgeAdjacentOrders = solveEdgeAdjacentFacePairs(graph, facePairs, facesWinding);
 	// console.log("overlap", overlap);
