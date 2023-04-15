@@ -1,9 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import {
-	constraintToFacePairsStrings,
-} from "./general.js";
+import { constraintToFacePairsStrings } from "./general.js";
 /**
  * @param {string[]} remainingKeys array of facePair keys which are unsolved
  * @param {any} constraints

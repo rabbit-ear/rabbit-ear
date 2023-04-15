@@ -9,7 +9,7 @@ import {
 import {
 	nudgeFacesWithFaceOrders,
 	nudgeFacesWithFacesLayer,
-} from "../../layer/nudge.js";
+} from "../../graph/orders.js";
 import count from "../../graph/count.js";
 import countImplied from "../../graph/countImplied.js";
 import { invertMap } from "../../graph/maps.js";

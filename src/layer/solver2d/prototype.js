@@ -1,137 +1,95 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import { invertMap } from "../../graph/maps.js";
 import topologicalOrder from "./topologicalOrder.js";
-// import topologicalOrder from "../topological.js";
 
-const match = (listA, listB) => {
-	const res = [];
-	for (let i = 0; i < listA.length; i += 1) {
-		for (let j = 0; j < listB.length; j += 1) {
-			res.push([listA[i], listB[j]]);
-		}
-	}
-	return res;
+const keysToFaceOrders = (facePairs) => {
+	const keys = Object.keys(facePairs);
+	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
+	faceOrders.map((faces, i) => faces.push(facePairs[keys[i]]));
+	return faceOrders;
 };
 
-// const linearizeSolutions = (solution) => {
-// 	const solutions = [];
-// 	const recurse = (node, list = []) => {
-// 		if (node.faceOrders) {
-// 			list.push(node.faceOrders);
-// 		}
-// 		if (node.branches) {
-// 			node.branches.forEach(child => recurse(child, [...list]));
-// 		} else {
-// 			solutions.push(list);
-// 		}
-// 	};
-// 	recurse(solution);
-// 	return solutions.map(arr => arr.flat());
-// 	// return solutions;
-// };
-
-// const mergeUnfinished = (...items) => {
-// 	const itemCount = items.length;
-// 	const eachTotal = items.map(arr => arr.length);
-// 	const total = eachTotal.reduce((a, b) => a + b, 0);
-// 	Array.from(Array(total))
-// 		.map((_, i) => )
-// 	if (items.length === 1) {
-// 		return items[0];
-// 	}
-// };
-
-// const linearizeSolutions = (solution) => {
-// 	const recurse = (node) => {
-// 		const solutions = [];
-// 		const finished = node.finished
-// 			? node.finished.map(el => [el])
-// 			: [];
-// 		solutions.push(...finished);
-// 		if (node.unfinished) {
-// 			const unf = node.unfinished.map(el => recurse(el));
-// 			const unfinished = (unf.length > 1) ? match(...unf) : unf;
-// 			solutions.push(unfinished);
-// 		}
-// 		// if (node.faceOrders) {
-// 		// 	solutions.forEach(orders => orders.push(...node.faceOrders));
-// 		// }
-// 		return solutions;
-// 	};
-// 	return recurse(solution);
-// };
-
-// const linearizeSolutions = (solution) => {
-// 	const recurse = (node) => {
-// 		const solutions = node.finished
-// 			? node.finished.map(fin => fin.faceOrders)
-// 			: [node.faceOrders];
-// 		if (node.unfinished) {
-// 			const un = node.unfinished.map(el => recurse(el));
-// 			return match(un, solutions);
-// 		}
-// 		return solutions;
-// 	};
-// 	return recurse(solution);
-// };
-
-// const mergePair = (a, b) => {
-// 	const solutions = [];
-// 	for (let i = 0; i < a.length; i += 1) {
-// 		for (let j = 0; j < b.length; j += 1) {
-// 			solutions.push([a[i], b[j]]);
-// 		}
-// 	}
-// 	console.log("merging", a.length, b.length, solutions.length);
-// 	return solutions;
-// };
-
-// const linearizeSolutions = (solution) => {
-// 	const recurse = (node) => {
-// 		if (node.faceOrders) { return node.faceOrders; }
-// 		const solutions = node.finished
-// 			.map(fin => (node.faceOrders
-// 				? node.faceOrders, recurse(fin)]
-// 				: recurse(fin)]));
-// 		if (node.unfinished) {
-// 			const res = node.unfinished.map(unf => recurse(unf));
-// 			return mergePair(res, solutions);
-// 		}
-// 		return solutions;
-// 	};
-// 	const solutions = recurse(solution);
-// 	return solutions;
-// };
-
-const linearizeSolutions = (solution) => {
-	const recurse = (node, stack = []) => {
-		if (node.faceOrders) { stack.push(node.faceOrders); }
-		const finished = node.finished
-			? node.finished.map(fin => [...stack, fin.faceOrders])
-			: undefined;
-		if (node.unfinished) {
-			const unf = node.unfinished.map(el => recurse(el, JSON.parse(JSON.stringify(stack))));
-			const unfinished = (unf.length > 1) ? match(...unf) : unf;
-			unfinished.forEach(el => { el.branch = true; });
-			// finished.push(...unfinished);
-			finished.forEach(el => el.push(...unfinished));
-		}
-		// if (node.faceOrders) {
-		// 	solutions.forEach(orders => orders.push(...node.faceOrders));
-		// }
-		finished.finished = true;
-		return finished;
-	};
-	return recurse(solution);
+const makePermutations = (counts) => {
+	const totalLength = counts.reduce((a, b) => a * b, 1);
+	const maxPlace = counts.slice();
+	for (let i = maxPlace.length - 2; i >= 0; i -= 1) {
+		maxPlace[i] *= maxPlace[i + 1];
+	}
+	maxPlace.push(1);
+	maxPlace.shift();
+	return Array.from(Array(totalLength))
+		.map((_, i) => counts
+			.map((c, j) => Math.floor(i / maxPlace[j]) % c));
 };
 
 const LayerPrototype = {
-	facesLayer: function () {
-		return topologicalOrder(this.faceOrders);
+	/**
+	 * @description For every branch, get the total number of states.
+	 * @returns {number[]} the total number of states in each branch.
+	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 31
+	 */
+	count: function () {
+		return this.branches.map(arr => arr.length);
+	},
+	/**
+	 * @description Get one complete layer solution by merging the
+	 * root solution with one state from each branch.
+	 * @param {number[]} ...indices optionally specify which state from
+	 * each branch, otherwise this will return index 0 from each branch.
+	 * @returns {object} an object with space-separated face pair keys, with
+	 * a value of +1 or -1, indicating the stacking order between the pair.
+	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 43
+	 */
+	solution: function (...indices) {
+		// create an array of numbers the length of this.branches
+		// if "indices" is provided, use these, otherwise fill it with 0.
+		const option = Array(this.branches.length)
+			.fill(0)
+			.map((n, i) => (indices[i] != null ? indices[i] : n));
+		// for each branch, get one state
+		const branchesSolution = this.branches
+			? this.branches.map((options, i) => options[option[i]])
+			: [];
+		// merge the root with all branches (one state from each branch)
+		return Object.assign({}, this.root, ...branchesSolution);
 	},
 	allSolutions: function () {
-		return linearizeSolutions(this);
+		return makePermutations(this.count())
+			.map(count => this.solution(...count));
+	},
+	/**
+	 * @description Get one complete layer solution by merging the
+	 * root solution with one state from each branch.
+	 * @param {number[]} ...indices optionally specify which state from
+	 * each branch, otherwise this will return index 0 from each branch.
+	 * @returns {number[]} a faces_layer ordering, where, for each face (index),
+	 * the value is that face's layer in the +Z order stack.
+	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 69
+	 */
+	facesLayer: function (...indices) {
+		return invertMap(topologicalOrder(this.solution(...indices)));
+	},
+	allFacesLayers: function () {
+		return makePermutations(this.count())
+			.map(count => this.facesLayer(...count));
+	},
+	/**
+	 * @description Get one complete layer solution by merging the
+	 * root solution with one state from each branch.
+	 * @param {number[]} ...indices optionally specify which state from
+	 * each branch, otherwise this will return index 0 from each branch.
+	 * @returns {number[]} a faces_layer ordering, where, for each face (index),
+	 * the value is that face's layer in the +Z order stack.
+	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 85
+	 */
+	faceOrders: function (...indices) {
+		return keysToFaceOrders(this.solution(...indices));
+	},
+	allFaceOrders: function () {
+		return makePermutations(this.count())
+			.map(count => this.faceOrders(...count));
 	},
 };
 

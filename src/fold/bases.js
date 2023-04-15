@@ -113,8 +113,4 @@ export const fish = () => populate({
 		[0, 9], [9, 1], [6, 9], [3, 10], [10, 0], [5, 10],
 	],
 	edges_assignment: Array.from("FFFVVVFVVVBBFBBFBBMBBM"),
-	faces_vertices: [
-		[7, 6, 1], [6, 7, 2], [6, 2, 4], [6, 4, 0], [6, 0, 9], [6, 9, 1],
-		[2, 5, 4], [5, 2, 8], [5, 8, 3], [5, 3, 10], [5, 10, 0], [5, 0, 4],
-	],
 });

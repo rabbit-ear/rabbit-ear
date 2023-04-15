@@ -13,10 +13,12 @@ import * as make from "./make.js";
 import * as maps from "./maps.js";
 import * as nearestMethods from "./nearest.js";
 import * as normals from "./normals.js";
+import * as orders from "./orders.js";
 import * as span from "./span.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
 import * as symmetry from "./symmetry.js";
+import * as topological from "./topological.js";
 import * as transform from "./transform.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
@@ -97,10 +99,12 @@ export default {
 	...maps,
 	...nearestMethods,
 	...normals,
+	...orders,
 	...span,
 	...subgraphMethods,
 	...sweep,
 	...symmetry,
+	...topological,
 	...transform,
 	...triangulateMethods,
 	...walk,

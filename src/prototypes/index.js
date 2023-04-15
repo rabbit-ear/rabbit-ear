@@ -5,7 +5,7 @@ import graphProto from "./graph.js";
 import cpProto from "./cp.js";
 import origamiProto from "./origami.js";
 import { file_spec, file_creator } from "../fold/rabbitear.js";
-import * as bases from "../fold/primitives.js";
+import * as bases from "../fold/bases.js";
 import populate from "../graph/populate.js";
 
 const graph = (...args) => populate(

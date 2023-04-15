@@ -9,14 +9,17 @@
  * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
  * @linkcode Origami ./src/layer/solver2d/topologicalOrder.js 10
  */
-const topologicalOrder = (facePairOrders, graph) => {
-	if (!facePairOrders) { return []; }
+const topologicalOrder = (faceOrders, graph) => {
+	if (!faceOrders) { return []; }
 	const faces_children = [];
 	// use the facePairOrders face pair relationships to fill an array where
 	// index: face, value: array of the face's children (faces below the face)
-	Object.keys(facePairOrders).forEach(key => {
-		const pair = key.split(" ").map(n => parseInt(n, 10));
-		if (facePairOrders[key] === -1) { pair.reverse(); }
+	faceOrders.forEach(trio => {
+		const pair = trio[2] === 1
+			? [trio[0], trio[1]]
+			: [trio[1], trio[0]];
+		// const pair = key.split(" ").map(n => parseInt(n, 10));
+		// if (trio[2] === -1) { pair.reverse(); }
 		if (faces_children[pair[0]] === undefined) {
 			faces_children[pair[0]] = [];
 		}

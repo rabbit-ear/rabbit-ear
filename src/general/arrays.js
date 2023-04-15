@@ -38,8 +38,13 @@ export const nonUniqueElements = (array) => {
  * @example [3,2,1,2,3] will result in [1,2,3]
  * @linkcode Origami ./src/general/arrays.js 38
  */
-export const uniqueSortedNumbers = (array) => uniqueElements(array)
-	.sort((a, b) => a - b);
+// export const uniqueSortedNumbers = (array) => uniqueElements(array)
+//   .sort((a, b) => a - b);
+export const uniqueSortedNumbers = (array) => {
+	const hash = {};
+	array.forEach(n => { hash[n] = true; });
+	return Object.keys(hash).map(parseFloat);
+};
 /**
  * @description A circular array (data wraps around) requires 2 indices
  * if you intend to split it into two arrays. The pair of indices can be

@@ -3,8 +3,7 @@
  */
 // top level
 import * as general from "./general.js";
-import * as nudge from "./nudge.js";
-import * as facesLayer from "./facesLayer.js";
+import * as general2d from "./solver2d/general.js";
 // single-vertex layer solver
 import singleVertexSolver from "./singleVertexSolver/index.js";
 import singleVertexAssignmentSolver from "./singleVertexSolver/assignmentSolver.js";
@@ -15,7 +14,6 @@ import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignme
 // global layer solver
 // import solver from "./solver3d/index.js";
 // import topologicalOrder from "./solver3d/topologicalOrder.js";
-import topologicalOrder from "./topological.js";
 // old global layer solver in 2D
 import solver from "./solver2d/index.js";
 // import solver from "./solver3d/index.js";
@@ -37,7 +35,6 @@ export default {
 	solver,
 	// solver2d,
 	// table,
-	topologicalOrder,
 	// makeTacosTortillas,
 	// makeFoldedStripTacos,
 	// makeTransitivityTrios,
@@ -49,8 +46,7 @@ export default {
 	// validateTacoTortillaStrip,
 	foldStripWithAssignments,
 	...general,
-	...nudge,
-	...facesLayer,
+	...general2d,
 	// makeConstraints,
 	// makeFacePairsOrder,
 	// globalSolverGeneral,
