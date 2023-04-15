@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings.js";
 import { EPSILON } from "../../math/general/constant.js";
 import { average } from "../../math/algebra/vector.js";
 import { getVerticesClusters } from "./clusters.js";
@@ -55,7 +54,7 @@ export const removeDuplicateVertices = (graph, epsilon = EPSILON) => {
 		.map(arr => average(...arr))
 		.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
 	return {
-		map: replace(graph, S._vertices, replace_indices),
+		map: replace(graph, "vertices", replace_indices),
 		remove: remove_indices,
 	};
 };

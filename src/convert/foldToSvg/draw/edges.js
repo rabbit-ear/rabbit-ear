@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../../general/strings.js";
 import { makeEdgesAssignment } from "../../../graph/make.js";
 import { addClass } from "../../../svg/general/dom.js";
 import {
@@ -15,7 +14,7 @@ import SVG from "../../../svg/index.js";
 const GROUP_FOLDED = {};
 
 const GROUP_FLAT = {
-	stroke: S._black,
+	stroke: "black",
 };
 
 const STYLE_FOLDED = {};
@@ -48,9 +47,9 @@ const edgesAssignmentIndices = (graph) => {
 	const assignment_indices = {
 		u: [], c: [], j: [], f: [], v: [], m: [], b: [],
 	};
-	const lowercase_assignment = graph[S._edges_assignment]
+	const lowercase_assignment = graph["edges_assignment"]
 		.map(a => a.toLowerCase());
-	graph[S._edges_vertices]
+	graph["edges_vertices"]
 		.map((_, i) => lowercase_assignment[i] || "u")
 		.forEach((a, i) => assignment_indices[a].push(i));
 	return assignment_indices;

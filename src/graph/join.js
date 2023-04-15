@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import * as S from "../general/strings.js";
 import { EPSILON } from "../math/general/constant.js";
 import {
 	distance,

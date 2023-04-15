@@ -2,10 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 // single vertex
-import maekawaAssignments from "./maekawaAssignments.js";
 import foldAngles4 from "./foldAngles4.js";
 import * as kawasakiMath from "./kawasakiMath.js";
 import * as kawasakiGraph from "./kawasakiGraph.js";
+import * as maekawa from "./maekawa.js";
 import * as validateSingleVertex from "./validate.js";
 /**
  * @description A collection of operations done on single vertices
@@ -14,10 +14,10 @@ import * as validateSingleVertex from "./validate.js";
 export default Object.assign(
 	Object.create(null),
 	{
-		maekawaAssignments,
 		foldAngles4,
 	},
 	kawasakiMath,
 	kawasakiGraph,
+	maekawa,
 	validateSingleVertex,
 );

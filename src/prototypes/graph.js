@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings.js";
 // import count from "../graph/count.js";
 // import addVertices from "../graph/add/addVertices.js";
 import * as transform from "../graph/transform.js";
@@ -95,7 +94,7 @@ Graph.prototype.clone = function () {
  *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
  */
 // Graph.prototype.load = function (object, options = {}) {
-//   if (typeof object !== S._object) { return; }
+//   if (typeof object !== "object") { return; }
 //   if (options.append !== true) {
 //     keys.forEach(key => delete this[key]);
 //   }
@@ -119,7 +118,7 @@ Graph.prototype.folded = function () {
 	return {
 		...this,
 		vertices_coords,
-		frame_classes: [S._foldedForm],
+		frame_classes: ["foldedForm"],
 	};
 };
 /**
@@ -137,7 +136,7 @@ Graph.prototype.flatFolded = function () {
 	return {
 		...this,
 		vertices_coords,
-		frame_classes: [S._foldedForm],
+		frame_classes: ["foldedForm"],
 	};
 };
 

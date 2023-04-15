@@ -58,6 +58,7 @@ const allSolutions = (n, ...orders) => {
  *
  */
 const anySolution = (n) => {
+	return n.orders ? n.orders : [];
 	const nodeOrders = n.orders ? n.orders : [];
 	// partition node
 	if (n.partitions) {

@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings.js";
 import { filterKeysWithSuffix } from "../../fold/spec.js";
 import remove from "../remove.js";
 /**
@@ -62,12 +61,12 @@ export const removeCircularEdges = (graph, remove_indices) => {
 		// remove every instance of a circular edge in every _edge array.
 		// assumption is we can simply remove them because a face that includes
 		// a circular edge is still the same face when you just remove the edge
-		spliceRemoveValuesFromSuffixes(graph, S._edges, remove_indices);
+		spliceRemoveValuesFromSuffixes(graph, "edges", remove_indices);
 		// console.warn("circular edge found. please rebuild");
 		// todo: figure out which arrays need to be rebuilt, if it exists.
 	}
 	return {
-		map: remove(graph, S._edges, remove_indices),
+		map: remove(graph, "edges", remove_indices),
 		remove: remove_indices,
 	};
 };

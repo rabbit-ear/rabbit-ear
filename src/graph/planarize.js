@@ -3,7 +3,6 @@
  */
 import { EPSILON } from "../math/general/constant.js";
 import { subtract } from "../math/algebra/vector.js";
-import * as S from "../general/strings.js";
 import {
 	edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment,
@@ -182,10 +181,10 @@ const fragmentGraph = (graph, epsilon = EPSILON) => {
  * the graph in preparation, except for these arrays, these need to stay.
  */
 const planarKeepKeys = [
-	S._vertices_coords,
-	S._edges_vertices,
-	S._edges_assignment,
-	S._edges_foldAngle,
+	"vertices_coords",
+	"edges_vertices",
+	"edges_assignment",
+	"edges_foldAngle",
 ];
 /**
  * @description Planarize a graph into the 2D XY plane, split edges, rebuild faces.
@@ -199,7 +198,7 @@ const planarize = (graph, epsilon = EPSILON) => {
 	// project all vertices onto the XY plane
 	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 
-	[S._vertices, S._edges, S._faces]
+	["vertices", "edges", "faces"]
 		.map(key => filterKeysWithPrefix(graph, key))
 		.flat()
 		.filter(key => !(planarKeepKeys.includes(key)))

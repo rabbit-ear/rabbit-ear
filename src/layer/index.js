@@ -17,8 +17,8 @@ import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignme
 // import topologicalOrder from "./solver3d/topologicalOrder.js";
 import topologicalOrder from "./topological.js";
 // old global layer solver in 2D
-// import solver from "./solver2d/index.js";
-import solver from "./solver3d/index.js";
+import solver from "./solver2d/index.js";
+// import solver from "./solver3d/index.js";
 
 // import table from "./solver2d/table.js";
 // import * as makeConstraints from "./solver2d/makeConstraints.js";

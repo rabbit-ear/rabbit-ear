@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import * as S from "../general/strings.js";
 // import remove from "./remove.js";
 // import count from "./count.js";
 import { foldKeys } from "../fold/keys.js";

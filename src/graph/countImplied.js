@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings.js";
 import { filterKeysWithSuffix } from "../fold/spec.js";
 /**
  * @description Search inside arrays inside arrays and return
@@ -60,8 +59,8 @@ const countImplied = (graph, key) => Math.max(
 ) + 1;
 
 // standard graph components names
-countImplied.vertices = graph => countImplied(graph, S._vertices);
-countImplied.edges = graph => countImplied(graph, S._edges);
-countImplied.faces = graph => countImplied(graph, S._faces);
+countImplied.vertices = graph => countImplied(graph, "vertices");
+countImplied.edges = graph => countImplied(graph, "edges");
+countImplied.faces = graph => countImplied(graph, "faces");
 
 export default countImplied;

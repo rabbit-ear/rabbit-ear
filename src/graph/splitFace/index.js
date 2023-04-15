@@ -13,7 +13,6 @@ import {
 } from "./update.js";
 import { intersectConvexFaceLine } from "../intersect/faces.js";
 import remove from "../remove.js";
-import * as S from "../../general/strings.js";
 /**
  * @description divide a **convex** face into two polygons with a straight line cut.
  * if the line ends exactly along existing vertices, they will be
@@ -48,7 +47,7 @@ const splitFace = (graph, face, line, epsilon) => {
 	update_edges_faces(graph, face, result.edges.new, faces);
 	update_faces_faces(graph, face, faces);
 	// remove old data
-	const faces_map = remove(graph, S._faces, [face]);
+	const faces_map = remove(graph, "faces", [face]);
 	// the graph is now complete, however our return object needs updating.
 	// shift our new face indices since these relate to the graph before remove().
 	faces.forEach((_, i) => { faces[i] = faces_map[faces[i]]; });

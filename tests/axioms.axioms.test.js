@@ -70,7 +70,7 @@ test("axiom 5", () => {
 	expect(res[1].origin[1]).toBeCloseTo(0.4330127);
 });
 
-test("axiom 6 rewrite", () => {
+test("axiom 6", () => {
 	const params = {
 		points: [
 			[0.30, 0.86],

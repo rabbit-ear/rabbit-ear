@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings.js";
 import remove from "../remove.js";
 /**
  * @description Get the indices of all vertices which make no appearance in any edge.
@@ -94,7 +93,7 @@ export const removeIsolatedVertices = (graph, remove_indices) => {
 		remove_indices = isolatedVertices(graph);
 	}
 	return {
-		map: remove(graph, S._vertices, remove_indices),
+		map: remove(graph, "vertices", remove_indices),
 		remove: remove_indices,
 	};
 };

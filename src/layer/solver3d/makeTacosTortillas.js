@@ -187,7 +187,7 @@ const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
 	// 750ms:
 	const edges_faces_overlap = getEdgesFacesOverlap(graph, epsilon);
 	// 10ms:
-	const edges_overlap_faces = booleanMatrixToIndexedArray(edges_faces_overlap)
+	const edges_overlap_faces = edges_faces_overlap
 		.map((faces, e) => (edges_faces_side[e].length > 1
 			&& edges_faces_side[e][0] === edges_faces_side[e][1]
 			? faces

@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../../general/strings.js";
 import { isFoldedForm } from "../../../fold/spec.js";
 import { invertMap } from "../../../graph/maps.js";
 import { makeFacesWinding } from "../../../graph/faces/winding.js";
@@ -9,7 +8,7 @@ import { addClass } from "../../../svg/general/dom.js";
 import SVG from "../../../svg/index.js";
 
 const FACE_STYLE_FOLDED_ORDERED = {
-	back: { fill: S._white },
+	back: { fill: "white" },
 	front: { fill: "#ddd" },
 };
 const FACE_STYLE_FOLDED_UNORDERED = {
@@ -21,16 +20,16 @@ const FACE_STYLE_FLAT = {
 	// front: { fill: "#ddd", stroke: "none" }
 };
 const GROUP_STYLE_FOLDED_ORDERED = {
-	stroke: S._black,
+	stroke: "black",
 	"stroke-linejoin": "bevel",
 };
 const GROUP_STYLE_FOLDED_UNORDERED = {
-	stroke: S._none,
-	fill: S._black,
+	stroke: "none",
+	fill: "black",
 	"stroke-linejoin": "bevel",
 };
 const GROUP_STYLE_FLAT = {
-	fill: S._none,
+	fill: "none",
 };
 
 const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
@@ -58,8 +57,8 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 	const isFolded = isFoldedForm(graph);
 	// currently, layer order is determined by "faces_layer" key, and
 	// ensuring that the length matches the number of faces in the graph.
-	const orderIsCertain = graph[S._faces_layer] != null;
-	const classNames = [[S._front], [S._back]];
+	const orderIsCertain = graph["faces_layer"] != null;
+	const classNames = [["front"], ["back"]];
 	const faces_winding = makeFacesWinding(graph);
 	// counter-clockwise faces are "face up", their front facing the camera
 	// clockwise faces means "flipped", their back is facing the camera.
@@ -69,7 +68,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 			addClass(svg_faces[i], className);
 			setDataValue(svg_faces[i], "side", className);
 			// svg_faces[i].classList.add(className);
-			// svg_faces[i].setAttributeNS(null, S._class, className);
+			// svg_faces[i].setAttributeNS(null, "class", className);
 			applyFacesStyle(svg_faces[i], (isFolded
 				? (orderIsCertain
 					? FACE_STYLE_FOLDED_ORDERED[className]
@@ -79,14 +78,14 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 		});
 	// if the layer-order exists, sort the faces in order of faces_layer
 	const facesInOrder = (orderIsCertain
-		? faces_sorted_by_layer(graph[S._faces_layer], graph).map(i => svg_faces[i])
+		? faces_sorted_by_layer(graph["faces_layer"], graph).map(i => svg_faces[i])
 		: svg_faces);
 	facesInOrder.forEach(face => group.appendChild(face));
 	// these custom getters allows you to grab all "front" or "back" faces only.
-	Object.defineProperty(group, S._front, {
+	Object.defineProperty(group, "front", {
 		get: () => svg_faces.filter((_, i) => faces_winding[i]),
 	});
-	Object.defineProperty(group, S._back, {
+	Object.defineProperty(group, "back", {
 		get: () => svg_faces.filter((_, i) => !faces_winding[i]),
 	});
 	// set style attributes to the group itself which contains the faces.
@@ -109,8 +108,8 @@ export const facesVerticesPolygon = (graph, attributes = {}) => {
 	const svg_faces = graph.faces_vertices
 		.map(fv => fv.map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
 		.map(face => SVG.polygon(face));
-	svg_faces.forEach((face, i) => face.setAttributeNS(null, S._index, i)); // `${i}`));
-	g.setAttributeNS(null, "fill", S._white);
+	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i)); // `${i}`));
+	g.setAttributeNS(null, "fill", "white");
 	return finalize_faces(graph, svg_faces, g, attributes);
 };
 /**
@@ -122,30 +121,30 @@ export const facesVerticesPolygon = (graph, attributes = {}) => {
 export const facesEdgesPolygon = function (graph, attributes = {}) {
 	const g = SVG.g();
 	if (!graph
-		|| S._faces_edges in graph === false
-		|| S._edges_vertices in graph === false
-		|| S._vertices_coords in graph === false) {
+		|| "faces_edges" in graph === false
+		|| "edges_vertices" in graph === false
+		|| "vertices_coords" in graph === false) {
 		return g;
 	}
-	const svg_faces = graph[S._faces_edges]
+	const svg_faces = graph["faces_edges"]
 		.map(face_edges => face_edges
-			.map(edge => graph[S._edges_vertices][edge])
+			.map(edge => graph["edges_vertices"][edge])
 			.map((vi, i, arr) => {
 				const next = arr[(i + 1) % arr.length];
 				return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
-			// }).map(v => graph[S._vertices_coords][v]))
-			}).map(v => [0, 1].map(i => graph[S._vertices_coords][v][i])))
+			// }).map(v => graph["vertices_coords"][v]))
+			}).map(v => [0, 1].map(i => graph["vertices_coords"][v][i])))
 		.map(face => SVG.polygon(face));
-	svg_faces.forEach((face, i) => face.setAttributeNS(null, S._index, i)); // `${i}`));
+	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i)); // `${i}`));
 	g.setAttributeNS(null, "fill", "white");
 	return finalize_faces(graph, svg_faces, g, attributes);
 };
 
 const drawFaces = (graph, options) => {
-	if (graph && graph[S._faces_vertices]) {
+	if (graph && graph["faces_vertices"]) {
 		return facesVerticesPolygon(graph, options);
 	}
-	if (graph && graph[S._faces_edges]) {
+	if (graph && graph["faces_edges"]) {
 		return facesEdgesPolygon(graph, options);
 	}
 	return SVG.g();

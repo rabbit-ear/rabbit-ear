@@ -2,7 +2,6 @@
  * Rabbit Ear (c) Kraft
  */
 import SVG from "../../svg/index.js";
-import * as S from "../../general/strings.js";
 import {
 	findElementTypeInParents,
 	addClass,
@@ -19,7 +18,7 @@ import { isFoldedForm } from "../../fold/spec.js";
  */
 const DEFAULT_CIRCLE_RADIUS = 1 / 50;
 const unitBounds = { min: [0, 0], span: [1, 1] };
-const groupNames = [S._boundaries, S._faces, S._edges, S._vertices];
+const groupNames = ["boundaries", "faces", "edges", "vertices"];
 /**
  * @description given a group assumed to contain only circle elements,
  * set the "r" attribute on all circles.

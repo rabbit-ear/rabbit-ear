@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings.js";
 /**
  * @description Provide two or more simple nextmaps in the order they were made
  * and this will merge them into one nextmap which reflects all changes to the graph.
@@ -64,7 +63,7 @@ export const mergeBackmaps = (...maps) => {
 	maps.forEach(map => {
 		const next = [];
 		map.forEach((el, j) => {
-			if (typeof el === S._number) {
+			if (typeof el === "number") {
 				next[j] = solution[el];
 			} else {
 				next[j] = el.map(n => solution[n]).reduce((a, b) => a.concat(b), []);
@@ -90,7 +89,7 @@ export const invertMap = (map) => {
 		// before we set the inverted map [i] spot, check if something is already there
 		if (inv[index] !== undefined) {
 			// if that thing is a number, turn it into an array
-			if (typeof inv[index] === S._number) {
+			if (typeof inv[index] === "number") {
 				inv[index] = [inv[index], value];
 			} else {
 				// already an array, add to it
@@ -104,7 +103,7 @@ export const invertMap = (map) => {
 	// in the new array so that the index is the value and visa versa.
 	map.forEach((n, i) => {
 		if (n == null) { return; }
-		if (typeof n === S._number) { setIndexValue(n, i); }
+		if (typeof n === "number") { setIndexValue(n, i); }
 		if (n.constructor === Array) {
 			n.forEach(m => setIndexValue(m, i));
 		}

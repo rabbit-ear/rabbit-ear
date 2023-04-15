@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../../general/strings.js";
 import { boundary } from "../../../graph/boundary.js";
 import { isFoldedForm } from "../../../fold/spec.js";
 import { addClass } from "../../../svg/general/dom.js";
@@ -9,11 +8,11 @@ import SVG from "../../../svg/index.js";
 
 const FOLDED = {
 	// stroke: "none",
-	fill: S._none,
+	fill: "none",
 };
 const FLAT = {
-	stroke: S._black,
-	fill: S._white,
+	stroke: "black",
+	fill: "white",
 };
 
 const applyBoundariesStyle = (el, attributes = {}) => Object.keys(attributes)
@@ -26,7 +25,7 @@ const drawBoundaries = (graph, attributes = {}) => {
 	const polygon = boundary(graph).polygon;
 	if (!polygon.length) { return g; }
 	const svgPolygon = SVG.polygon(polygon);
-	addClass(svgPolygon, S._boundary);
+	addClass(svgPolygon, "boundary");
 	g.appendChild(svgPolygon);
 	// style attributes on group container
 	applyBoundariesStyle(g, isFoldedForm(graph) ? FOLDED : FLAT);

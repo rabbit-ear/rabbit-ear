@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import layer_solver from "./index.js";
-import maekawaAssignments from "../../singleVertex/maekawaAssignments.js";
+import { maekawaAssignments } from "../../singleVertex/maekawa.js";
 /**
  * @name singleVertexAssignmentSolver
  * @description This extends the singleVertexSolver to also solve unassigned

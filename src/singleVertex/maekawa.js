@@ -18,7 +18,7 @@ const get_unassigned_indices = (edges_assignment) => edges_assignment
  * assignments have been replaced with "V" or "M".
  * @linkcode Origami ./src/singleVertex/maekawaAssignments.js 19
  */
-const maekawaAssignments = (vertices_edges_assignments) => {
+export const maekawaAssignments = (vertices_edges_assignments) => {
 	const unassigneds = get_unassigned_indices(vertices_edges_assignments);
 	const permuts = Array.from(Array(2 ** unassigneds.length))
 		.map((_, i) => i.toString(2))
@@ -37,5 +37,3 @@ const maekawaAssignments = (vertices_edges_assignments) => {
 	const count_v = all.map(a => a.filter(l => l === "V" || l === "v").length);
 	return all.filter((_, i) => Math.abs(count_m[i] - count_v[i]) === 2);
 };
-
-export default maekawaAssignments;

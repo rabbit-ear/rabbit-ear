@@ -3,7 +3,6 @@
  */
 import { filterKeysWithPrefix } from "./spec.js";
 import clone from "../general/clone.js";
-import * as S from "../general/strings.js";
 import Messages from "../environment/messages.js";
 /**
  * @description todo
@@ -16,7 +15,7 @@ export const flattenFrame = (graph, frame_num = 1) => {
 	if (!graph.file_frames || graph.file_frames.length < frame_num) {
 		return graph;
 	}
-	const dontCopy = [S._frame_parent, S._frame_inherit];
+	const dontCopy = ["frame_parent", "frame_inherit"];
 	const memo = { visited_frames: [] };
 	const fileMetadata = {};
 	filterKeysWithPrefix(graph, "file")
@@ -59,7 +58,7 @@ export const flattenFrame = (graph, frame_num = 1) => {
 };
 
 export const mergeFrame = function (graph, frame) {
-	const dontCopy = [S._frame_parent, S._frame_inherit];
+	const dontCopy = ["frame_parent", "frame_inherit"];
 	const copy = clone(frame);
 	dontCopy.forEach(key => delete copy[key]);
 	// don't deep copy file_frames. stash. bring them back.

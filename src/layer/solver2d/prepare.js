@@ -44,7 +44,7 @@ const prepare = (graph, epsilon = 1e-6) => {
 	const facePairs = makeFacePairs(graph, facesFacesOverlap);
 	// 15ms:
 	const edgeAdjacentOrders = solveEdgeAdjacentFacePairs(graph, facePairs, facesWinding);
-	// console.log("overlap", overlap);
+	// console.log("facesFacesOverlap", facesFacesOverlap);
 	// console.log("graph", graph);
 	// console.log("facesWinding", facesWinding);
 	// console.log("tacos_tortillas", tacos_tortillas);

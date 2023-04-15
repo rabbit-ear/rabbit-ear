@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../general/strings.js";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices,
@@ -63,7 +62,7 @@ export const removeDuplicateEdges = (graph, replace_indices) => {
 		replace_indices = duplicateEdges(graph);
 	}
 	const removeObject = Object.keys(replace_indices).map(n => parseInt(n, 10));
-	const map = replace(graph, S._edges, replace_indices);
+	const map = replace(graph, "edges", replace_indices);
 	// if edges were removed, we need to rebuild vertices_edges and then
 	// vertices_vertices since that was built from vertices_edges, and then
 	// vertices_faces since that was built from vertices_vertices.

@@ -8,7 +8,6 @@ import {
 } from "../../math/algebra/vector.js";
 import remove from "../remove.js";
 import { findAdjacentFacesToEdge } from "../find.js";
-import * as S from "../../general/strings.js";
 import {
 	update_vertices_vertices,
 	update_vertices_edges,
@@ -35,7 +34,7 @@ const splitEdgeIntoTwo = (graph, edge_index, new_vertex) => {
 		{ edges_vertices: [edge_vertices[0], new_vertex] },
 		{ edges_vertices: [new_vertex, edge_vertices[1]] },
 	];
-	new_edges.forEach(edge => [S._edges_assignment, S._edges_foldAngle]
+	new_edges.forEach(edge => ["edges_assignment", "edges_foldAngle"]
 		.filter(key => graph[key] && graph[key][edge_index] !== undefined)
 		.forEach(key => { edge[key] = graph[key][edge_index]; }));
 	return new_edges;
@@ -102,7 +101,7 @@ const splitEdge = (graph, old_edge, coords, epsilon = EPSILON) => {
 	// and we don't need to bother with faces_faces and faceOrders.
 	// todo: edgeOrders. the only spec key remaining.
 	// remove old data
-	const edge_map = remove(graph, S._edges, [old_edge]);
+	const edge_map = remove(graph, "edges", [old_edge]);
 	// shift our new edge indices since these relate to the graph before remove().
 	new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
 	// we had to run "remove" with the new edges added. to return the change info,

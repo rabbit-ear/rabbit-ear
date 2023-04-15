@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../../../general/strings.js";
 import SVG from "../../../svg/index.js";
 
 const drawVertices = (graph, attributes = {}) => {
@@ -12,7 +11,7 @@ const drawVertices = (graph, attributes = {}) => {
 		.map(v => SVG.circle(v[0], v[1], 0.01))
 		.forEach(v => g.appendChild(v));
 	// default style
-	g.setAttributeNS(null, "fill", S._none);
+	g.setAttributeNS(null, "fill", "none");
 	// style attributes on group container
 	Object.keys(attributes)
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));

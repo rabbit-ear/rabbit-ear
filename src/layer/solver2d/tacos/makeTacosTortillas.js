@@ -159,7 +159,8 @@ const makeTacosTortillas = (graph, epsilon = EPSILON) => {
 	// 750ms:
 	const edges_faces_overlap = getEdgesFacesOverlap(graph, epsilon);
 	// 10ms:
-	const edges_overlap_faces = booleanMatrixToIndexedArray(edges_faces_overlap)
+	// const edges_overlap_faces = booleanMatrixToIndexedArray(edges_faces_overlap)
+	const edges_overlap_faces = edges_faces_overlap
 		.map((faces, e) => (edges_faces_side[e].length > 1
 			&& edges_faces_side[e][0] === edges_faces_side[e][1]
 			? faces
@@ -172,11 +173,12 @@ const makeTacosTortillas = (graph, epsilon = EPSILON) => {
 			.map(tortilla => ({ taco: [...el.taco], tortilla })));
 	// finally, join both taco-tortilla cases together into one.
 	const taco_tortilla = taco_tortilla_aligned.concat(taco_tortilla_crossing);
-	// console.log("edges_faces_side", edges_faces_side);
-	// console.log("edge_edge_overlap_matrix", edge_edge_overlap_matrix);
-	// console.log("tacos_edges", tacos_edges);
-	// console.log("tortilla_tortilla_aligned", tortilla_tortilla_aligned);
-	// console.log("tortilla_tortilla_crossing", tortilla_tortilla_crossing);
+	// console.log("tac-tor: edges_faces_side", edges_faces_side);
+	// console.log("tac-tor: edge_edge_overlap_matrix", edge_edge_overlap_matrix);
+	// console.log("tac-tor: boolean_edge_edge_overlap", boolean_edge_edge_overlap);
+	// console.log("tac-tor: tacos_edges", tacos_edges);
+	// console.log("tac-tor: tortilla_tortilla_aligned", tortilla_tortilla_aligned);
+	// console.log("tac-tor: tortilla_tortilla_crossing", tortilla_tortilla_crossing);
 	return {
 		taco_taco,
 		tortilla_tortilla,
