@@ -36,7 +36,7 @@ export const getFacesFacesOverlap = ({
 					.forEach(f2 => {
 						if (f1 === f2) { return; }
 						// first, faster bounding box overlap. then actual overlap function
-						if (!overlapBoundingBoxes(facesBounds[f1], facesBounds[f2])
+						if (!overlapBoundingBoxes(facesBounds[f1], facesBounds[f2], epsilon)
 							|| !overlapConvexPolygons(facesPolygon[f1], facesPolygon[f2], epsilon)) {
 							return;
 						}
@@ -49,3 +49,37 @@ export const getFacesFacesOverlap = ({
 		});
 	return intersections.map(faces => Object.keys(faces).map(n => parseInt(n, 10)));
 };
+
+// export const getFacesFacesOverlapOld = ({ vertices_coords, faces_vertices }, epsilon = EPSILON) => {
+// 	const matrix = Array.from(Array(faces_vertices.length))
+// 		.map(() => Array.from(Array(faces_vertices.length)));
+// 	const faces_coords = faces_vertices
+// 		.map(verts => verts.map(v => vertices_coords[v]));
+// 	const faces_bounds = faces_coords
+// 		.map(polygon => boundingBox(polygon));
+// 	for (let i = 0; i < faces_bounds.length - 1; i += 1) {
+// 		for (let j = i + 1; j < faces_bounds.length; j += 1) {
+// 			if (!overlapBoundingBoxes(faces_bounds[i], faces_bounds[j], epsilon)) {
+// 				matrix[i][j] = false;
+// 				matrix[j][i] = false;
+// 			}
+// 		}
+// 	}
+// 	const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices });
+// 	for (let i = 0; i < faces_vertices.length - 1; i += 1) {
+// 		for (let j = i + 1; j < faces_vertices.length; j += 1) {
+// 			if (matrix[i][j] === false) { continue; }
+// 			const overlap = overlapConvexPolygons(
+// 				faces_polygon[i],
+// 				faces_polygon[j],
+// 				epsilon,
+// 			);
+// 			matrix[i][j] = overlap;
+// 			matrix[j][i] = overlap;
+// 		}
+// 	}
+// 	return matrix
+// 		.map(faces => faces
+// 			.map((overlap, i) => (overlap ? i : undefined))
+// 			.filter(i => i !== undefined));
+// };

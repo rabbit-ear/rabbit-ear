@@ -96,6 +96,10 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		facePairs,
 		edgeAdjacentOrders,
 	} = prepare(graph, epsilon);
+	// console.log("constraints", constraints);
+	// console.log("constraintsLookup", constraintsLookup);
+	// console.log("facePairs", facePairs);
+	// console.log("edgeAdjacentOrders", edgeAdjacentOrders);
 	// algorithm running time info
 	const prepareDuration = Date.now() - prepareStartDate;
 	const startDate = new Date();
@@ -106,12 +110,14 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		Object.keys(edgeAdjacentOrders),
 		edgeAdjacentOrders,
 	);
+	// console.log("initialResult", initialResult);
 	// graph does not have a valid layer order. no solution
 	if (!initialResult) { return undefined; }
 	// get all keys unsolved after the first round of propagate
 	const remainingKeys = facePairs
 		.filter(key => !(key in edgeAdjacentOrders))
 		.filter(key => !(key in initialResult));
+	// console.log("remainingKeys", remainingKeys);
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
 	const branchResults = getBranches(remainingKeys, constraints, constraintsLookup)
@@ -122,12 +128,14 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 			edgeAdjacentOrders,
 			initialResult,
 		));
+	// console.log("branchResults", branchResults);
 	// solver is finished. each branch result is spread across multiple objects
 	// containing a solution for a subset of the entire set of faces, one for
 	// each recursion depth. for each branch solution, merge its objects into one.
 	const branches = branchResults
 		.map(branch => branch
 			.map(solution => Object.assign({}, ...solution)));
+	// console.log("branches", branches);
 	// the set of face-pair solutions which are true for all branches
 	const root = { ...edgeAdjacentOrders, ...initialResult };
 	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
@@ -140,8 +148,6 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	if (duration > 50) {
 		console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
 	}
-	// console.log("branches", branches);
-	// console.log("branchResults", branchResults);
 	return Object.assign(
 		Object.create(LayerPrototype),
 		{ root, branches },

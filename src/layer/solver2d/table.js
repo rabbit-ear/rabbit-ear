@@ -157,16 +157,6 @@ const make_lookup = (valid_states) => {
 				let out = states[t][key];
 				// multiple modifications are possible, get the first one.
 				if (out.constructor === Array) { out = out[0]; }
-				// if (out.constructor === Array) {
-				//   const key_correct = Array.from(key);
-				//   const key_flipped = Array.from(key);
-				//   key_correct[out[0][0]] = out[0][1];
-				//   key_flipped[out[0][0]] = flip[out[0][1]];
-				//   out = {
-				//     true: key_correct.join(""),
-				//     false: key_flipped.join(""),
-				//   };
-				// }
 				A.push([key, out]);
 			});
 			outs = outs.concat(A);
@@ -201,24 +191,3 @@ const layerTable = {
 };
 
 export default layerTable;
-
-// const done_result = { 0: false, 1: true };
-// const make_number = (key, value) => {
-//   const arr = Array.from(key);
-//   arr[value[0]] = value[1];
-//   const base_three = arr.join("");
-//   return parseInt(base_three, 3);
-// };
-// const quick_lookup = {};
-// Object.keys(layerTable).forEach(type => {
-//   quick_lookup[type] = [];
-//   Object.keys(layerTable[type]).forEach(key => {
-//     const base_ten = parseInt(key, 3);
-//     const value = layerTable[type][key];
-//     const done = value === 0 || value === 1;
-//     const new_value = done ? done_result[value] : make_number(key, value);
-//     quick_lookup[type][base_ten] = new_value;
-//   });
-// });
-
-// export default quick_lookup;

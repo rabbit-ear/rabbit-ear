@@ -4,6 +4,7 @@
 import { EPSILON } from "../../../math/general/constant.js";
 import { clipPolygonPolygon } from "../../../math/intersect/clip.js";
 import { makeFacesWinding } from "../../../graph/faces/winding.js";
+import { makeFacesPolygon } from "../../../graph/make.js";
 import { getFacesFacesOverlap } from "../../../graph/intersect/facesFaces.js";
 /**
  * @description given a folded graph, find all trios of faces which overlap
@@ -28,17 +29,17 @@ const makeTransitivityTrios = (
 	if (!faces_winding) {
 		faces_winding = makeFacesWinding(graph);
 	}
+	// const overlap_matrix = facesFacesOverlap;
 	const overlap_matrix = facesFacesOverlap.map(() => []);
 	facesFacesOverlap
 		.forEach((faces, i) => faces
-			.forEach(j => { overlap_matrix[i][j] = true; }));
-	// console.log("facesFacesOverlap", facesFacesOverlap);
-	// console.log("faces_winding", faces_winding);
+			.forEach(j => {
+				overlap_matrix[i][j] = true;
+				overlap_matrix[j][i] = true;
+			}));
 	// prepare a list of all faces in the graph as lists of vertices
 	// also, make sure they all have the same winding (reverse if necessary)
-	const polygons = graph.faces_vertices
-		.map(face => face
-			.map(v => graph.vertices_coords[v]));
+	const polygons = makeFacesPolygon(graph);
 	polygons.forEach((face, i) => {
 		if (!faces_winding[i]) { face.reverse(); }
 	});
@@ -62,8 +63,6 @@ const makeTransitivityTrios = (
 			}
 		}
 	}
-	// console.log("matrix", matrix);
-	// console.log("trios", trios);
 	return trios;
 };
 

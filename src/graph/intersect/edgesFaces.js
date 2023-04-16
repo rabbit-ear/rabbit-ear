@@ -4,7 +4,10 @@
 import {
 	exclude,
 	excludeS,
+	epsilonEqual,
+	epsilonEqualVectors,
 } from "../../math/general/function.js";
+import { EPSILON } from "../../math/general/constant.js";
 import { boundingBox } from "../../math/geometry/polygon.js";
 import { intersectConvexPolygonLine } from "../../math/intersect/intersect.js";
 import {
@@ -12,19 +15,21 @@ import {
 	overlapConvexPolygonPoint,
 } from "../../math/intersect/overlap.js";
 import {
+	makeEdgesCoords,
 	makeEdgesFaces,
 	makeEdgesVector,
 	makeEdgesBoundingBox,
 } from "../make.js";
 import { makeFacesWinding } from "../faces/winding.js";
 import { sweep } from "../sweep.js";
+import { booleanMatrixToIndexedArray } from "../../general/arrays.js";
 /**
  * @description well, this was supposed to be an improvement. try checking
  * these lines: setOfFaces.forEach((_, f) => setOfEdges.forEach((__, e) => {
  * it might have something to do with doing too many comparisons and not
  * only comparing against the new ones (not the entire current stack)
  */
-export const getEdgesFacesOverlap = (graph, epsilon) => {
+export const getEdgesFacesOverlap = (graph, epsilon = EPSILON) => {
 	const faces_winding = makeFacesWinding(graph);
 	const edges_vector = makeEdgesVector(graph);
 	// use graph vertices_coords for edges vertices
@@ -55,7 +60,7 @@ export const getEdgesFacesOverlap = (graph, epsilon) => {
 	const computeEdgeFace = (e, f) => {
 		if (edgesFacesLookup[e][f]) { return; }
 		if (intersections[e][f]) { return; }
-		if (!overlapBoundingBoxes(faces_bounds[f], edges_bounds[e])) { return; }
+		if (!overlapBoundingBoxes(faces_bounds[f], edges_bounds[e], epsilon)) { return; }
 		// todo: memo the vertex-in-face result
 		const point_in_poly = edges_coords[e]
 			.map(point => overlapConvexPolygonPoint(
@@ -95,119 +100,117 @@ export const getEdgesFacesOverlap = (graph, epsilon) => {
 			.filter(i => i !== undefined));
 };
 
-export const getEdgesFacesOverlapOld = ({
-	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
-}, epsilon) => {
-	if (!edges_vector) {
-		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	}
-	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
-	// use graph vertices_coords for edges vertices
-	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-	// const edges_similar = makeEdgesEdgesSimilar({ vertices_coords, edges_vertices });
-	const edges_coords = edges_vertices
-		.map(verts => verts.map(v => vertices_coords[v]));
-	const faces_coords = faces_vertices
-		.map(verts => verts.map(v => vertices_coords[v]));
-	faces_winding.forEach((winding, i) => {
-		if (!winding) {
-			faces_coords[i].reverse();
-		}
-	});
+// const makeEdgesEdgesSimilar = ({
+// 	vertices_coords, edges_vertices, edges_coords,
+// }, epsilon = EPSILON) => {
+// 	if (!edges_coords) {
+// 		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
+// 	}
+// 	const edges_boundingBox = makeEdgesBoundingBox({
+// 		vertices_coords, edges_vertices, edges_coords,
+// 	});
+// 	const matrix = Array.from(Array(edges_coords.length)).map(() => []);
+// 	const dimensions = edges_boundingBox.length ? edges_boundingBox[0].min.length : 0;
+// 	for (let i = 0; i < edges_coords.length - 1; i += 1) {
+// 		for (let j = i + 1; j < edges_coords.length; j += 1) {
+// 			let similar = true;
+// 			for (let d = 0; d < dimensions; d += 1) {
+// 				if (!epsilonEqual(
+// 					edges_boundingBox[i].min[d],
+// 					edges_boundingBox[j].min[d],
+// 					epsilon,
+// 				) || !epsilonEqual(
+// 					edges_boundingBox[i].max[d],
+// 					edges_boundingBox[j].max[d],
+// 					epsilon,
+// 				)) {
+// 					similar = false;
+// 				}
+// 			}
+// 			matrix[i][j] = similar;
+// 			matrix[j][i] = similar;
+// 		}
+// 	}
+// 	for (let i = 0; i < edges_coords.length - 1; i += 1) {
+// 		for (let j = i + 1; j < edges_coords.length; j += 1) {
+// 			if (!matrix[i][j]) { continue; }
+// 			const test0 = epsilonEqualVectors(edges_coords[i][0], edges_coords[j][0], epsilon)
+// 				&& epsilonEqualVectors(edges_coords[i][1], edges_coords[j][1], epsilon);
+// 			const test1 = epsilonEqualVectors(edges_coords[i][0], edges_coords[j][1], epsilon)
+// 				&& epsilonEqualVectors(edges_coords[i][1], edges_coords[j][0], epsilon);
+// 			const similar = test0 || test1;
+// 			matrix[i][j] = similar;
+// 			matrix[j][i] = similar;
+// 		}
+// 	}
+// 	return booleanMatrixToIndexedArray(matrix);
+// };
 
-	// the result object
-	const matrix = edges_vertices
-		.map(() => faces_vertices
-			.map(() => undefined));
-	// edges which define a face are already known to not-overlap
-	edges_faces.forEach((faces, e) => faces
-		.forEach(f => { matrix[e][f] = false; }));
-
-	// quick bounding box test to eliminate non-overlapping axis-aligned areas
-	// todo bad n^2
-	const edges_bounds = makeEdgesBoundingBox({ edges_coords });
-	const faces_bounds = faces_coords
-		.map(coords => boundingBox(coords));
-	edges_bounds.forEach((edge_bounds, e) => faces_bounds.forEach((face_bounds, f) => {
-		if (matrix[e][f] === false) { return; }
-		if (!overlapBoundingBoxes(face_bounds, edge_bounds)) {
-			matrix[e][f] = false;
-		}
-	}));
-
-	edges_coords.forEach((edge_coords, e) => faces_coords.forEach((face_coords, f) => {
-		if (matrix[e][f] !== undefined) { return; }
-		const point_in_poly = edges_coords[e]
-			.map(point => overlapConvexPolygonPoint(
-				faces_coords[f],
-				point,
-				exclude,
-				epsilon,
-			)).reduce((a, b) => a || b, false);
-		if (point_in_poly) { matrix[e][f] = true; return; }
-		const edge_intersect = intersectConvexPolygonLine(
-			faces_coords[f],
-			{ vector: edges_vector[e], origin: edges_origin[e] },
-			excludeS,
-			excludeS,
-			epsilon,
-		);
-		if (edge_intersect) { matrix[e][f] = true; return; }
-		matrix[e][f] = false;
-	}));
-
-	// faster code. todo: switch this out for the block just above here
-	// but refactor so that we use forEach instead of for()
-	// const finished_edges = {};
-	// for (let e = 0; e < matrix.length; e += 1) {
-	// 	if (finished_edges[e]) { continue; }
-	// 	for (let f = 0; f < matrix[e].length; f += 1) {
-	// 		if (matrix[e][f] !== undefined) { continue; }
-	// 		const point_in_poly = edges_coords[e]
-	// 			.map(point => overlapConvexPolygonPoint(
-	// 				faces_coords[f],
-	// 				point,
-	// 				exclude,
-	// 				epsilon,
-	// 			)).reduce((a, b) => a || b, false);
-	// 		if (point_in_poly) { matrix[e][f] = true; continue; }
-	// 		const edge_intersect = intersectConvexPolygonLine(
-	// 			faces_coords[f],
-	// 			{ vector: edges_vector[e], origin: edges_origin[e] },
-	// 			excludeS,
-	// 			excludeS,
-	// 			epsilon,
-	// 		);
-	// 		if (edge_intersect) { matrix[e][f] = true; continue; }
-	// 		matrix[e][f] = false;
-	// 	}
-	// 	edges_similar[e].forEach(adjacent_edge => {
-	// 		matrix[adjacent_edge] = matrix[e].slice();
-	// 		finished_edges[adjacent_edge] = true;
-	// 	});
-	// }
-
-	// old code
-	// matrix.forEach((row, e) => row.forEach((val, f) => {
-	// 	if (val === false) { return; }
-	// 	// both segment endpoints, true if either one of them is inside the face.
-	// 	const point_in_poly = edges_coords[e]
-	// 		.map(point => overlapConvexPolygonPoint(
-	// 			faces_coords[f],
-	// 			point,
-	// 			exclude,
-	// 			epsilon,
-	// 		)).reduce((a, b) => a || b, false);
-	// 	if (point_in_poly) { matrix[e][f] = true; return; }
-	// 	const edge_intersect = intersectConvexPolygonLine(
-	// 		faces_coords[f],
-	// 		{ vector: edges_vector[e], origin: edges_origin[e] },
-	// 		excludeS,
-	// 		excludeS,
-	// 		epsilon,
-	// 	);
-	// 	if (edge_intersect) { matrix[e][f] = true; return; }
-	// 	matrix[e][f] = false;
-	// }));
-	return matrix;
-};
+// export const getEdgesFacesOverlapOld = ({
+// 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
+// }, epsilon = EPSILON) => {
+// 	if (!edges_vector) {
+// 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+// 	}
+// 	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
+// 	// use graph vertices_coords for edges vertices
+// 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+// 	const matrix = edges_vertices
+// 		.map(() => Array.from(Array(faces_vertices.length)));
+// 	edges_faces.forEach((faces, e) => faces
+// 		.forEach(f => { matrix[e][f] = false; }));
+// 	const edges_similar = makeEdgesEdgesSimilar({ vertices_coords, edges_vertices });
+// 	const edges_coords = edges_vertices
+// 		.map(verts => verts.map(v => vertices_coords[v]));
+// 	const faces_coords = faces_vertices
+// 		.map(verts => verts.map(v => vertices_coords[v]));
+// 	for (let f = 0; f < faces_winding.length; f += 1) {
+// 		if (!faces_winding[f]) { faces_coords[f].reverse(); }
+// 	}
+// 	const edges_bounds = makeEdgesBoundingBox({ edges_coords });
+// 	const faces_bounds = faces_coords
+// 		.map(coords => boundingBox(coords));
+// 	// should be inclusive, positive epsilon, we are filtering out
+// 	// edge face pairs which DEFINITELY don't overlap.
+// 	for (let e = 0; e < matrix.length; e += 1) {
+// 		for (let f = 0; f < matrix[e].length; f += 1) {
+// 			if (matrix[e][f] === false) { continue; }
+// 			if (!overlapBoundingBoxes(faces_bounds[f], edges_bounds[e], epsilon)) {
+// 				matrix[e][f] = false;
+// 				continue;
+// 			}
+// 		}
+// 	}
+// 	const finished_edges = {};
+// 	for (let e = 0; e < matrix.length; e += 1) {
+// 		if (finished_edges[e]) { continue; }
+// 		for (let f = 0; f < matrix[e].length; f += 1) {
+// 			if (matrix[e][f] !== undefined) { continue; }
+// 			const point_in_poly = edges_coords[e]
+// 				.map(point => overlapConvexPolygonPoint(
+// 					faces_coords[f],
+// 					point,
+// 					exclude,
+// 					epsilon,
+// 				)).reduce((a, b) => a || b, false);
+// 			if (point_in_poly) { matrix[e][f] = true; continue; }
+// 			const edge_intersect = intersectConvexPolygonLine(
+// 				faces_coords[f],
+// 				{ vector: edges_vector[e], origin: edges_origin[e] },
+// 				excludeS,
+// 				excludeS,
+// 				epsilon,
+// 			);
+// 			if (edge_intersect) { matrix[e][f] = true; continue; }
+// 			matrix[e][f] = false;
+// 		}
+// 		edges_similar[e].forEach(adjacent_edge => {
+// 			matrix[adjacent_edge] = matrix[e].slice();
+// 			finished_edges[adjacent_edge] = true;
+// 		});
+// 	}
+// 	return matrix
+// 		.map(faces => faces
+// 			.map((overlap, i) => (overlap ? i : undefined))
+// 			.filter(i => i !== undefined));
+// };

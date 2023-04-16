@@ -73,38 +73,17 @@ const makeEdgesEdgesParallel = ({
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const normalized = edges_vector.map(vec => normalize(vec));
-	return normalized
-		.map((vec1, i) => normalized
-			.map((vec2, j) => (i === j
-				? undefined
-				: (1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon)))
-			.map((parallel, j) => (parallel ? j : undefined))
-			.filter(a => a !== undefined));
-};
-/**
- * @description A subroutine for the two methods below.
- * given a matrix which was already worked on, consider only the true values,
- * compute the overlapLineLine method for each edge-pairs.
- * provide a comparison function (func) to specify inclusive/exclusivity.
- */
-const overwriteEdgesOverlaps = (edges_edges, vectors, origins, func, epsilon) => {
-	const edges_edgesOverlap = edges_edges.map(() => []);
-	edges_edges
-		.forEach((arr, i) => arr
-			.forEach(j => {
-				if (i >= j) { return; }
-				if (overlapLineLine(
-					{ vector: vectors[i], origin: origins[i] },
-					{ vector: vectors[j], origin: origins[j] },
-					func,
-					func,
-					epsilon,
-				)) {
-					edges_edgesOverlap[i].push(j);
-					edges_edgesOverlap[j].push(i);
-				}
-			}));
-	return edges_edgesOverlap;
+	const edgesEdgesParallel = edges_vertices.map(() => []);
+	normalized.forEach((_, i) => {
+		normalized.forEach((__, j) => {
+			if (j >= i) { return; }
+			if ((1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon)) {
+				edgesEdgesParallel[i].push(j);
+				edgesEdgesParallel[j].push(i);
+			}
+		});
+	});
+	return edgesEdgesParallel;
 };
 /**
  * @description Find all edges which are parallel to each other AND they overlap.
@@ -121,35 +100,20 @@ export const makeEdgesEdgesParallelOverlap = ({
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+	const edges_line = edges_vector
+		.map((vector, i) => ({ vector, origin: edges_origin[i] }));
 	// start with edges-edges parallel matrix
-	const edges_edgesParallel = makeEdgesEdgesParallel({
-		vertices_coords, edges_vertices, edges_vector,
-	}, epsilon);
 	// only if lines are parallel, then run the more expensive overlap method
-	return overwriteEdgesOverlaps(
-		edges_edgesParallel,
-		edges_vector,
-		edges_origin,
+	return makeEdgesEdgesParallel({
+		vertices_coords, edges_vertices, edges_vector,
+	}, epsilon).map((arr, i) => arr.filter(j => overlapLineLine(
+		edges_line[i],
+		edges_line[j],
+		excludeS,
 		excludeS,
 		epsilon,
-	);
+	)));
 };
-
-// todo, improvement suggestion:
-// first grouping edges into categories with edges which share parallel-ness.
-// then, express every edge's endpoints in terms of the length along
-// the vector. converting it into 2 numbers, and now all you have to do is
-// test if these two numbers overlap other edges' two numbers.
-
-/**
- * we want to include this case, where one edge may not overlap another
- * but it still gets included because both are overlapped by a common edge.
- *
- *  |----a-----|    |-------c------|
- *          |-----b----|
- *
- * "a" and "c" are included together because b causes them to be so.
- */
 
 // export const makeEdgesEdgesParallel = ({
 // 	vertices_coords, edges_vertices, edges_vector,
@@ -159,8 +123,7 @@ export const makeEdgesEdgesParallelOverlap = ({
 // 	}
 // 	// let lastTime = new Date();
 // 	const edge_count = edges_vector.length;
-// 	const normalized = edges_vector
-// 		.map(vec => math.normalize(vec));
+// 	const normalized = edges_vector.map(vec => normalize(vec));
 // 	// ///////////////////////////////////////
 // 	// idk why this isn't working. it's leaving out some indices. something with
 // 	// the group building - indices.slice(), something there.
@@ -204,7 +167,7 @@ export const makeEdgesEdgesParallelOverlap = ({
 // 		.map(() => Array.from(Array(edge_count)));
 // 	for (let i = 0; i < edge_count - 1; i += 1) {
 // 		for (let j = i + 1; j < edge_count; j += 1) {
-// 			const p = (1 - Math.abs(math.dot(normalized[i], normalized[j])) < epsilon);
+// 			const p = (1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon);
 // 			edges_edges_parallel[i][j] = p;
 // 			edges_edges_parallel[j][i] = p;
 // 		}
@@ -212,6 +175,47 @@ export const makeEdgesEdgesParallelOverlap = ({
 // 	return edges_edges_parallel;
 // };
 
+/**
+ * @description A subroutine for the two methods below.
+ * given a matrix which was already worked on, consider only the true values,
+ * compute the overlapLineLine method for each edge-pairs.
+ * provide a comparison function (func) to specify inclusive/exclusivity.
+ */
+// const overwriteEdgesOverlaps = (edges_edges, vectors, origins, func, epsilon) => {
+// 	const edges_edgesOverlap = edges_edges.map(() => []);
+// 	edges_edges
+// 		.forEach((arr, i) => arr
+// 			.forEach(j => {
+// 				if (i >= j) { return; }
+// 				if (overlapLineLine(
+// 					{ vector: vectors[i], origin: origins[i] },
+// 					{ vector: vectors[j], origin: origins[j] },
+// 					func,
+// 					func,
+// 					epsilon,
+// 				)) {
+// 					edges_edgesOverlap[i].push(j);
+// 					edges_edgesOverlap[j].push(i);
+// 				}
+// 			}));
+// 	return edges_edgesOverlap;
+// };
+
+// todo, improvement suggestion:
+// first grouping edges into categories with edges which share parallel-ness.
+// then, express every edge's endpoints in terms of the length along
+// the vector. converting it into 2 numbers, and now all you have to do is
+// test if these two numbers overlap other edges' two numbers.
+
+/**
+ * we want to include this case, where one edge may not overlap another
+ * but it still gets included because both are overlapped by a common edge.
+ *
+ *  |----a-----|    |-------c------|
+ *          |-----b----|
+ *
+ * "a" and "c" are included together because b causes them to be so.
+ */
 // const edges_radians = edges_vector
 //   .map(v => Math.atan2(v[1], v[0]));
 // const sorted = edges_radians

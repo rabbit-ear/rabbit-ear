@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { selfRelationalUniqueIndexPairs } from "../../general/arrays.js";
+import { selfRelationalUniqueIndexPairs, booleanMatrixToUniqueIndexPairs } from "../../general/arrays.js";
 import { getFacesFacesOverlap } from "../../graph/intersect/facesFaces.js";
 import { makeFacesWinding } from "../../graph/faces/winding.js";
 /**
@@ -18,6 +18,8 @@ export const makeFacePairs = (graph, facesFacesOverlap) => {
 	if (!facesFacesOverlap) {
 		facesFacesOverlap = getFacesFacesOverlap(graph);
 	}
+	// return booleanMatrixToUniqueIndexPairs(facesFacesOverlap)
+	// 	.map(pair => pair.join(" "));
 	return selfRelationalUniqueIndexPairs(facesFacesOverlap)
 		.map(pair => pair.join(" "));
 };

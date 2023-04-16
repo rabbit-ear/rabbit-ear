@@ -10,10 +10,9 @@ import { invertMap } from "./maps.js";
 import connectedComponents from "./connectedComponents.js";
 // import { allLayerConditions } from "./globalSolver/index.js";
 /**
- * @description given a list of faces, intended to be a subset of
- * the total number of faces in a graph, filter the list of faceOrders
- * so that it only contains orders between faces where both faces
- * are contained in the argument subset faces array.
+ * @description given faceOrders and a list of faces, filter the list
+ * of faceOrders so that it only contains orders between faces where
+ * both faces are contained in the argument subset faces array.
  * @param {number[][]} faceOrders faceOrders array, as in the FOLD spec
  * @param {number[]} faces a list of face indices
  * @returns {number[][]} a subset of faceOrders

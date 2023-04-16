@@ -1,7 +1,7 @@
 /* Math (c) Kraft, MIT License */
 import { EPSILON } from '../general/constant.js';
 import { includeL, exclude } from '../general/function.js';
-import { subtract2, magSquared, cross2, dot2, add2, magnitude2, distance2, normalize2, rotate90 } from '../algebra/vector.js';
+import { subtract2, magSquared, cross2, dot2, add2, midpoint2, magnitude2, distance2, normalize2, rotate90 } from '../algebra/vector.js';
 
 /**
  * Math (c) Kraft
@@ -58,22 +58,28 @@ const overlapLineLine = (
 	if (Math.abs(denominator0) < epsilon) { // parallel
 		if (Math.abs(cross2(a2b, a.vector)) > epsilon) { return false; }
 		// project each line's two endpoints onto the vector of the other line.
+		// todo: project all these points onto one range, see if the ranges overlap
 		const aPt1 = b2a;
 		const aPt2 = add2(aPt1, a.vector);
+		const aPt3 = midpoint2(aPt1, aPt2); // midpoint
 		const bPt1 = a2b;
 		const bPt2 = add2(bPt1, b.vector);
+		const bPt3 = midpoint2(bPt1, bPt2); // midpoint
 		const aProjLen = dot2(a.vector, a.vector);
-		const bProjLen = dot2(a.vector, a.vector);
+		const bProjLen = dot2(b.vector, b.vector);
 		// these will be between 0 and 1 if the two segments overlap
 		const aProj1 = dot2(aPt1, b.vector) / bProjLen;
 		const aProj2 = dot2(aPt2, b.vector) / bProjLen;
+		const aProj3 = dot2(aPt3, b.vector) / bProjLen;
 		const bProj1 = dot2(bPt1, a.vector) / aProjLen;
 		const bProj2 = dot2(bPt2, a.vector) / aProjLen;
+		const bProj3 = dot2(bPt3, a.vector) / aProjLen;
 		// use the supplied function parameters to allow line/ray/segment
 		// clamping and check if either point from either line is inside
 		// the other line's vector, and if the function (l/r/s) allows it
 		return aDomain(bProj1, epsilon) || aDomain(bProj2, epsilon)
-			|| bDomain(aProj1, epsilon) || bDomain(aProj2, epsilon);
+			|| bDomain(aProj1, epsilon) || bDomain(aProj2, epsilon)
+			|| aDomain(bProj3, epsilon) || bDomain(aProj3, epsilon);
 	}
 	const t0 = cross2(a2b, b.vector) / denominator0;
 	const t1 = cross2(b2a, a.vector) / denominator1;
@@ -160,9 +166,11 @@ const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
 };
 /**
  * @description Test if two axis-aligned bounding boxes overlap each other.
+ * By default, the boundaries are treated as inclusive.
  * @param {Box} box1 an axis-aligned bounding box
  * @param {Box} box2 an axis-aligned bounding box
- * @param {number} [epsilon=1e-6] an optional epsilon
+ * @param {number} [epsilon=1e-6] an optional epsilon,
+ * positive value (default) is inclusive, negative is exclusive.
  * @returns {boolean} true if the bounding boxes overlap each other
  * @linkcode Math ./src/intersect/overlap.js 176
  */

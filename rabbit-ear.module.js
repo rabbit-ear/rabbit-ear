@@ -2033,16 +2033,21 @@ const overlapLineLine = (
 		if (Math.abs(cross2(a2b, a.vector)) > epsilon) { return false; }
 		const aPt1 = b2a;
 		const aPt2 = add2(aPt1, a.vector);
+		const aPt3 = midpoint2(aPt1, aPt2);
 		const bPt1 = a2b;
 		const bPt2 = add2(bPt1, b.vector);
+		const bPt3 = midpoint2(bPt1, bPt2);
 		const aProjLen = dot2(a.vector, a.vector);
-		const bProjLen = dot2(a.vector, a.vector);
+		const bProjLen = dot2(b.vector, b.vector);
 		const aProj1 = dot2(aPt1, b.vector) / bProjLen;
 		const aProj2 = dot2(aPt2, b.vector) / bProjLen;
+		const aProj3 = dot2(aPt3, b.vector) / bProjLen;
 		const bProj1 = dot2(bPt1, a.vector) / aProjLen;
 		const bProj2 = dot2(bPt2, a.vector) / aProjLen;
+		const bProj3 = dot2(bPt3, a.vector) / aProjLen;
 		return aDomain(bProj1, epsilon) || aDomain(bProj2, epsilon)
-			|| bDomain(aProj1, epsilon) || bDomain(aProj2, epsilon);
+			|| bDomain(aProj1, epsilon) || bDomain(aProj2, epsilon)
+			|| aDomain(bProj3, epsilon) || bDomain(aProj3, epsilon);
 	}
 	const t0 = cross2(a2b, b.vector) / denominator0;
 	const t1 = cross2(b2a, a.vector) / denominator1;
@@ -2504,32 +2509,17 @@ const makeEdgesEdgesParallel = ({
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const normalized = edges_vector.map(vec => normalize(vec));
-	return normalized
-		.map((vec1, i) => normalized
-			.map((vec2, j) => (i === j
-				? undefined
-				: (1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon)))
-			.map((parallel, j) => (parallel ? j : undefined))
-			.filter(a => a !== undefined));
-};
-const overwriteEdgesOverlaps = (edges_edges, vectors, origins, func, epsilon) => {
-	const edges_edgesOverlap = edges_edges.map(() => []);
-	edges_edges
-		.forEach((arr, i) => arr
-			.forEach(j => {
-				if (i >= j) { return; }
-				if (overlapLineLine(
-					{ vector: vectors[i], origin: origins[i] },
-					{ vector: vectors[j], origin: origins[j] },
-					func,
-					func,
-					epsilon,
-				)) {
-					edges_edgesOverlap[i].push(j);
-					edges_edgesOverlap[j].push(i);
-				}
-			}));
-	return edges_edgesOverlap;
+	const edgesEdgesParallel = edges_vertices.map(() => []);
+	normalized.forEach((_, i) => {
+		normalized.forEach((__, j) => {
+			if (j >= i) { return; }
+			if ((1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon)) {
+				edgesEdgesParallel[i].push(j);
+				edgesEdgesParallel[j].push(i);
+			}
+		});
+	});
+	return edgesEdgesParallel;
 };
 const makeEdgesEdgesParallelOverlap = ({
 	vertices_coords, edges_vertices, edges_vector,
@@ -2538,16 +2528,17 @@ const makeEdgesEdgesParallelOverlap = ({
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-	const edges_edgesParallel = makeEdgesEdgesParallel({
+	const edges_line = edges_vector
+		.map((vector, i) => ({ vector, origin: edges_origin[i] }));
+	return makeEdgesEdgesParallel({
 		vertices_coords, edges_vertices, edges_vector,
-	}, epsilon);
-	return overwriteEdgesOverlaps(
-		edges_edgesParallel,
-		edges_vector,
-		edges_origin,
+	}, epsilon).map((arr, i) => arr.filter(j => overlapLineLine(
+		edges_line[i],
+		edges_line[j],
+		excludeS,
 		excludeS,
 		epsilon,
-	);
+	)));
 };const intersectEdgesEdges=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesIntersection,makeEdgesEdgesParallelOverlap});const fragmentGraph = (graph, epsilon = EPSILON) => {
 	const edges_coords = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
@@ -8544,7 +8535,7 @@ const coplanarOverlappingFacesGroups = ({
 		faces_set,
 		faces_winding,
 	};
-};const facesCoplanar=/*#__PURE__*/Object.freeze({__proto__:null,coplanarFacesGroups,coplanarOverlappingFacesGroups});const getEdgesFacesOverlap = (graph, epsilon) => {
+};const facesCoplanar=/*#__PURE__*/Object.freeze({__proto__:null,coplanarFacesGroups,coplanarOverlappingFacesGroups});const getEdgesFacesOverlap = (graph, epsilon = EPSILON) => {
 	const faces_winding = makeFacesWinding(graph);
 	const edges_vector = makeEdgesVector(graph);
 	const edges_origin = graph.edges_vertices
@@ -8571,7 +8562,7 @@ const coplanarOverlappingFacesGroups = ({
 	const computeEdgeFace = (e, f) => {
 		if (edgesFacesLookup[e][f]) { return; }
 		if (intersections[e][f]) { return; }
-		if (!overlapBoundingBoxes(faces_bounds[f], edges_bounds[e])) { return; }
+		if (!overlapBoundingBoxes(faces_bounds[f], edges_bounds[e], epsilon)) { return; }
 		const point_in_poly = edges_coords[e]
 			.map(point => overlapConvexPolygonPoint(
 				faces_coords[f],
@@ -8608,60 +8599,7 @@ const coplanarOverlappingFacesGroups = ({
 		.map(faces => faces
 			.map((overlap, i) => (overlap ? i : undefined))
 			.filter(i => i !== undefined));
-};
-const getEdgesFacesOverlapOld = ({
-	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
-}, epsilon) => {
-	if (!edges_vector) {
-		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	}
-	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
-	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-	const edges_coords = edges_vertices
-		.map(verts => verts.map(v => vertices_coords[v]));
-	const faces_coords = faces_vertices
-		.map(verts => verts.map(v => vertices_coords[v]));
-	faces_winding.forEach((winding, i) => {
-		if (!winding) {
-			faces_coords[i].reverse();
-		}
-	});
-	const matrix = edges_vertices
-		.map(() => faces_vertices
-			.map(() => undefined));
-	edges_faces.forEach((faces, e) => faces
-		.forEach(f => { matrix[e][f] = false; }));
-	const edges_bounds = makeEdgesBoundingBox({ edges_coords });
-	const faces_bounds = faces_coords
-		.map(coords => boundingBox$1(coords));
-	edges_bounds.forEach((edge_bounds, e) => faces_bounds.forEach((face_bounds, f) => {
-		if (matrix[e][f] === false) { return; }
-		if (!overlapBoundingBoxes(face_bounds, edge_bounds)) {
-			matrix[e][f] = false;
-		}
-	}));
-	edges_coords.forEach((edge_coords, e) => faces_coords.forEach((face_coords, f) => {
-		if (matrix[e][f] !== undefined) { return; }
-		const point_in_poly = edges_coords[e]
-			.map(point => overlapConvexPolygonPoint(
-				faces_coords[f],
-				point,
-				exclude,
-				epsilon,
-			)).reduce((a, b) => a || b, false);
-		if (point_in_poly) { matrix[e][f] = true; return; }
-		const edge_intersect = intersectConvexPolygonLine(
-			faces_coords[f],
-			{ vector: edges_vector[e], origin: edges_origin[e] },
-			excludeS,
-			excludeS,
-			epsilon,
-		);
-		if (edge_intersect) { matrix[e][f] = true; return; }
-		matrix[e][f] = false;
-	}));
-	return matrix;
-};const intersectEdgesFaces=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesFacesOverlap,getEdgesFacesOverlapOld});const getFacesFacesOverlap = ({
+};const intersectEdgesFaces=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesFacesOverlap});const getFacesFacesOverlap = ({
 	vertices_coords, faces_vertices,
 }, epsilon = EPSILON) => {
 	const facesPolygon = makeFacesPolygon({ vertices_coords, faces_vertices });
@@ -8675,7 +8613,7 @@ const getEdgesFacesOverlapOld = ({
 				.forEach((_, f1) => event.start
 					.forEach(f2 => {
 						if (f1 === f2) { return; }
-						if (!overlapBoundingBoxes(facesBounds[f1], facesBounds[f2])
+						if (!overlapBoundingBoxes(facesBounds[f1], facesBounds[f2], epsilon)
 							|| !overlapConvexPolygons(facesPolygon[f1], facesPolygon[f2], epsilon)) {
 							return;
 						}
@@ -9994,339 +9932,7 @@ const cpEdgesV2 = (gl, graph = {}, options = undefined) => {
 	cpArrays,
 	cpData,
 	cpPrograms,
-);const flipFacesLayer = faces_layer => invertMap(
-	invertMap(faces_layer).reverse(),
-);
-const facesLayerToEdgesAssignments = (graph, faces_layer) => {
-	const edges_assignment = [];
-	const faces_winding = makeFacesWinding(graph);
-	const edges_faces = graph.edges_faces
-		? graph.edges_faces
-		: makeEdgesFaces(graph);
-	edges_faces.forEach((faces, e) => {
-		if (faces.length === 1) { edges_assignment[e] = "B"; }
-		if (faces.length === 2) {
-			const windings = faces.map(f => faces_winding[f]);
-			if (windings[0] === windings[1]) {
-				edges_assignment[e] = "F";
-				return;
-			}
-			const layers = faces.map(f => faces_layer[f]);
-			const local_dir = layers[0] < layers[1];
-			const global_dir = windings[0] ? local_dir : !local_dir;
-			edges_assignment[e] = global_dir ? "V" : "M";
-		}
-	});
-	return edges_assignment;
-};
-const faceOrdersToMatrix = (faceOrders) => {
-	const faces = [];
-	faceOrders.forEach(order => {
-		faces[order[0]] = undefined;
-		faces[order[1]] = undefined;
-	});
-	const matrix = faces.map(() => []);
-	faceOrders
-		.forEach(([a, b, c]) => {
-			matrix[a][b] = c;
-			matrix[b][a] = -c;
-		});
-	return matrix;
-};const general=/*#__PURE__*/Object.freeze({__proto__:null,faceOrdersToMatrix,facesLayerToEdgesAssignments,flipFacesLayer});const constraintToFacePairs = ({
-	taco_taco: f => [
-		[f[0], f[2]],
-		[f[1], f[3]],
-		[f[1], f[2]],
-		[f[0], f[3]],
-		[f[0], f[1]],
-		[f[2], f[3]],
-	],
-	taco_tortilla: f => [[f[0], f[2]], [f[0], f[1]], [f[1], f[2]]],
-	tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
-	transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
-});
-const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
-	? `${pair[0]} ${pair[1]}`
-	: `${pair[1]} ${pair[0]}`);
-const constraintToFacePairsStrings = ({
-	taco_taco: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[1], f[3]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-		pairArrayToSortedPairString([f[0], f[3]]),
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[2], f[3]]),
-	],
-	taco_tortilla: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-	],
-	tortilla_tortilla: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[1], f[3]]),
-	],
-	transitivity: f => [
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-		pairArrayToSortedPairString([f[2], f[0]]),
-	],
-});
-const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
-const unsignedToSignedOrders = (orders) => {
-	Object.keys(orders).forEach(key => {
-		orders[key] = to_signed_layer_convert[orders[key]];
-	});
-	return orders;
-};
-const signedToUnsignedOrders = (orders) => {
-	Object.keys(orders).forEach(key => {
-		orders[key] = to_unsigned_layer_convert[orders[key]];
-	});
-	return orders;
-};
-const ordersToMatrix = (orders) => {
-	const condition_keys = Object.keys(orders);
-	const face_pairs = condition_keys
-		.map(key => key.split(" ").map(n => parseInt(n, 10)));
-	const faces = [];
-	face_pairs
-		.reduce((a, b) => a.concat(b), [])
-		.forEach(f => { faces[f] = undefined; });
-	const matrix = faces.map(() => []);
-	face_pairs
-		.forEach(([a, b]) => {
-			matrix[a][b] = orders[`${a} ${b}`];
-			matrix[b][a] = -orders[`${a} ${b}`];
-		});
-	return matrix;
-};
-const keysToFaceOrders$1 = (facePairs, faces_normal, vector) => {
-	const faces_normal_match = faces_normal
-		.map(normal => dot(normal, vector) > 0);
-	const keys = Object.keys(facePairs);
-	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
-	faceOrders.forEach((faces, i) => {
-		const value = to_signed_layer_convert[facePairs[keys[i]]];
-		const side = (!faces_normal_match[faces[1]])
-			? -value
-			: value;
-		faces.push(side);
-	});
-	return faceOrders;
-};const general2d=/*#__PURE__*/Object.freeze({__proto__:null,constraintToFacePairs,constraintToFacePairsStrings,keysToFaceOrders:keysToFaceOrders$1,ordersToMatrix,pairArrayToSortedPairString,signedToUnsignedOrders,unsignedToSignedOrders});const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
-	const faces_center = folded_faces
-		.map((ends) => (ends ? (ends[0] + ends[1]) / 2 : undefined));
-	const locations = [];
-	folded_faces.forEach((ends, i) => {
-		if (!ends) { return; }
-		if (!is_circular && i === folded_faces.length - 1) { return; }
-		const fold_end = ends[1];
-		const min = fold_end - (epsilon * 2);
-		const max = fold_end + (epsilon * 2);
-		const faces = [i, (i + 1) % folded_faces.length];
-		const sides = faces
-			.map(f => faces_center[f])
-			.map(center => center > fold_end);
-		const taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
-		const match = locations
-			.filter(el => el.min < fold_end && el.max > fold_end)
-			.shift();
-		const entry = { faces, taco_type };
-		if (match) {
-			match.pairs.push(entry);
-		} else {
-			locations.push({ min, max, pairs: [entry] });
-		}
-	});
-	return locations
-		.map(el => el.pairs)
-		.filter(pairs => pairs.length > 1)
-		.map(pairs => ({
-			both: pairs.filter(el => el.taco_type === 0).map(el => el.faces),
-			left: pairs.filter(el => el.taco_type === 1).map(el => el.faces),
-			right: pairs.filter(el => el.taco_type === 2).map(el => el.faces),
-		}));
-};const between = (arr, i, j) => (i < j
-	? arr.slice(i + 1, j)
-	: arr.slice(j + 1, i));
-const validateTacoTortillaStrip = (
-	faces_folded,
-	layers_face,
-	is_circular = true,
-	epsilon = EPSILON,
-) => {
-	const faces_layer = invertMap(layers_face);
-	const fold_location = faces_folded
-		.map(ends => (ends ? ends[1] : undefined));
-	const faces_mins = faces_folded
-		.map(ends => (ends ? Math.min(...ends) : undefined))
-		.map(n => n + epsilon);
-	const faces_maxs = faces_folded
-		.map(ends => (ends ? Math.max(...ends) : undefined))
-		.map(n => n - epsilon);
-	const max = faces_layer.length + (is_circular ? 0 : -1);
-	for (let i = 0; i < max; i += 1) {
-		const j = (i + 1) % faces_layer.length;
-		if (faces_layer[i] === faces_layer[j]) { continue; }
-		const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
-			.flat();
-		const all_below_min = layers_between
-			.map(index => fold_location[i] < faces_mins[index])
-			.reduce((a, b) => a && b, true);
-		const all_above_max = layers_between
-			.map(index => fold_location[i] > faces_maxs[index])
-			.reduce((a, b) => a && b, true);
-		if (!all_below_min && !all_above_max) { return false; }
-	}
-	return true;
-};const validateTacoTacoFacePairs = (face_pair_stack) => {
-	const pair_stack = nonUniqueElements(face_pair_stack);
-	const pairs = {};
-	let count = 0;
-	for (let i = 0; i < pair_stack.length; i += 1) {
-		if (pairs[pair_stack[i]] === undefined) {
-			count += 1;
-			pairs[pair_stack[i]] = count;
-		} else if (pairs[pair_stack[i]] !== undefined) {
-			if (pairs[pair_stack[i]] !== count) { return false; }
-			count -= 1;
-			pairs[pair_stack[i]] = undefined;
-		}
-	}
-	return true;
-};const build_layers = (layers_face, faces_pair) => layers_face
-	.map(f => faces_pair[f])
-	.filter(a => a !== undefined);
-const validateLayerSolver = (
-	faces_folded,
-	layers_face,
-	taco_face_pairs,
-	circ_and_done,
-	epsilon,
-) => {
-	const flat_layers_face = flattenArrays(layers_face);
-	if (!validateTacoTortillaStrip(
-		faces_folded,
-		layers_face,
-		circ_and_done,
-		epsilon,
-	)) { return false; }
-	for (let i = 0; i < taco_face_pairs.length; i += 1) {
-		const pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
-		if (!validateTacoTacoFacePairs(pair_stack)) { return false; }
-	}
-	return true;
-};const change_map = {
-	V: true, v: true, M: true, m: true,
-};
-const assignmentsToFacesFlip = (assignments) => {
-	let counter = 0;
-	const shifted_assignments = assignments.slice(1);
-	return [false].concat(shifted_assignments
-		.map(a => (change_map[a] ? ++counter : counter))
-		.map(count => count % 2 === 1));
-};
-const up_down = {
-	V: 1, v: 1, M: -1, m: -1,
-};
-const upOrDown = (mv, i) => (i % 2 === 0
-	? (up_down[mv] || 0)
-	: -(up_down[mv] || 0));
-const assignmentsToFacesVertical = (assignments) => {
-	let iterator = 0;
-	return assignments
-		.slice(1)
-		.concat([assignments[0]])
-		.map(a => {
-			const updown = upOrDown(a, iterator);
-			iterator += up_down[a] === undefined ? 0 : 1;
-			return updown;
-		});
-};const foldStripWithAssignments = (faces, assignments) => {
-	const faces_end = assignmentsToFacesFlip(assignments)
-		.map((flip, i) => faces[i] * (flip ? -1 : 1));
-	const cumulative = faces.map(() => undefined);
-	cumulative[0] = [0, faces_end[0]];
-	for (let i = 1; i < faces.length; i += 1) {
-		if (assignments[i] === "B" || assignments[i] === "b") { break; }
-		const prev = (i - 1 + faces.length) % faces.length;
-		const prev_end = cumulative[prev][1];
-		cumulative[i] = [prev_end, prev_end + faces_end[i]];
-	}
-	return cumulative;
-};const is_boundary = { B: true, b: true };
-const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => {
-	const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
-	const faces_updown = assignmentsToFacesVertical(assignments);
-	const is_circular = assignments
-		.map(a => !(is_boundary[a]))
-		.reduce((a, b) => a && b, true);
-	if (is_circular) {
-		const start = faces_folded[0][0];
-		const end = faces_folded[faces_folded.length - 1][1];
-		if (Math.abs(start - end) > epsilon) { return []; }
-	}
-	const taco_face_pairs = makeFoldedStripTacos(faces_folded, is_circular, epsilon)
-		.map(taco => [taco.left, taco.right]
-			.map(invertMap)
-			.filter(arr => arr.length > 1))
-		.reduce((a, b) => a.concat(b), []);
-	const recurse = (layers_face = [0], face = 0, layer = 0) => {
-		const next_face = face + 1;
-		const next_dir = faces_updown[face];
-		const is_done = face >= ordered_scalars.length - 1;
-		const circ_and_done = is_circular && is_done;
-		if (!validateLayerSolver(
-			faces_folded,
-			layers_face,
-			taco_face_pairs,
-			circ_and_done,
-			epsilon,
-		)) {
-			return [];
-		}
-		if (circ_and_done) {
-			const faces_layer = invertMap(layers_face);
-			const first_face_layer = faces_layer[0];
-			const last_face_layer = faces_layer[face];
-			if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
-			if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
-		}
-		if (is_done) { return [layers_face]; }
-		if (next_dir === 0) {
-			layers_face[layer] = [next_face].concat(layers_face[layer]);
-			return recurse(layers_face, next_face, layer);
-		}
-		const splice_layers = next_dir === 1
-			? Array.from(Array(layers_face.length - layer))
-				.map((_, i) => layer + i + 1)
-			: Array.from(Array(layer + 1))
-				.map((_, i) => i);
-		const next_layers_faces = splice_layers.map(() => clone(layers_face));
-		next_layers_faces
-			.forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
-		return next_layers_faces
-			.map((layers, i) => recurse(layers, next_face, splice_layers[i]))
-			.reduce((a, b) => a.concat(b), []);
-	};
-	return recurse().map(invertMap);
-};const assignmentSolver = (orderedScalars, assignments, epsilon) => {
-	if (assignments == null) {
-		assignments = orderedScalars.map(() => "U");
-	}
-	const all_assignments = maekawaAssignments(assignments);
-	const layers = all_assignments
-		.map(assigns => singleVertexSolver(orderedScalars, assigns, epsilon));
-	return all_assignments
-		.map((_, i) => i)
-		.filter(i => layers[i].length > 0)
-		.map(i => ({
-			assignment: all_assignments[i],
-			layer: layers[i],
-		}));
-};const taco_taco_valid_states = [
+);const taco_taco_valid_states = [
 	"111112",
 	"111121",
 	"111222",
@@ -10420,7 +10026,90 @@ const layerTable = {
 	taco_tortilla: make_lookup(taco_tortilla_valid_states),
 	tortilla_tortilla: make_lookup(tortilla_tortilla_valid_states),
 	transitivity: make_lookup(transitivity_valid_states),
-};const taco_types = Object.freeze(Object.keys(layerTable));
+};const constraintToFacePairs = ({
+	taco_taco: f => [
+		[f[0], f[2]],
+		[f[1], f[3]],
+		[f[1], f[2]],
+		[f[0], f[3]],
+		[f[0], f[1]],
+		[f[2], f[3]],
+	],
+	taco_tortilla: f => [[f[0], f[2]], [f[0], f[1]], [f[1], f[2]]],
+	tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
+	transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
+});
+const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
+	? `${pair[0]} ${pair[1]}`
+	: `${pair[1]} ${pair[0]}`);
+const constraintToFacePairsStrings = ({
+	taco_taco: f => [
+		pairArrayToSortedPairString([f[0], f[2]]),
+		pairArrayToSortedPairString([f[1], f[3]]),
+		pairArrayToSortedPairString([f[1], f[2]]),
+		pairArrayToSortedPairString([f[0], f[3]]),
+		pairArrayToSortedPairString([f[0], f[1]]),
+		pairArrayToSortedPairString([f[2], f[3]]),
+	],
+	taco_tortilla: f => [
+		pairArrayToSortedPairString([f[0], f[2]]),
+		pairArrayToSortedPairString([f[0], f[1]]),
+		pairArrayToSortedPairString([f[1], f[2]]),
+	],
+	tortilla_tortilla: f => [
+		pairArrayToSortedPairString([f[0], f[2]]),
+		pairArrayToSortedPairString([f[1], f[3]]),
+	],
+	transitivity: f => [
+		pairArrayToSortedPairString([f[0], f[1]]),
+		pairArrayToSortedPairString([f[1], f[2]]),
+		pairArrayToSortedPairString([f[2], f[0]]),
+	],
+});
+const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
+const to_unsigned_layer_convert = { 0: 0, 1: 1, "-1": 2 };
+const unsignedToSignedOrders = (orders) => {
+	Object.keys(orders).forEach(key => {
+		orders[key] = to_signed_layer_convert[orders[key]];
+	});
+	return orders;
+};
+const signedToUnsignedOrders = (orders) => {
+	Object.keys(orders).forEach(key => {
+		orders[key] = to_unsigned_layer_convert[orders[key]];
+	});
+	return orders;
+};
+const ordersToMatrix = (orders) => {
+	const condition_keys = Object.keys(orders);
+	const face_pairs = condition_keys
+		.map(key => key.split(" ").map(n => parseInt(n, 10)));
+	const faces = [];
+	face_pairs
+		.reduce((a, b) => a.concat(b), [])
+		.forEach(f => { faces[f] = undefined; });
+	const matrix = faces.map(() => []);
+	face_pairs
+		.forEach(([a, b]) => {
+			matrix[a][b] = orders[`${a} ${b}`];
+			matrix[b][a] = -orders[`${a} ${b}`];
+		});
+	return matrix;
+};
+const keysToFaceOrders$1 = (facePairs, faces_normal, vector) => {
+	const faces_normal_match = faces_normal
+		.map(normal => dot(normal, vector) > 0);
+	const keys = Object.keys(facePairs);
+	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
+	faceOrders.forEach((faces, i) => {
+		const value = to_signed_layer_convert[facePairs[keys[i]]];
+		const side = (!faces_normal_match[faces[1]])
+			? -value
+			: value;
+		faces.push(side);
+	});
+	return faceOrders;
+};const general2d=/*#__PURE__*/Object.freeze({__proto__:null,constraintToFacePairs,constraintToFacePairsStrings,keysToFaceOrders:keysToFaceOrders$1,ordersToMatrix,pairArrayToSortedPairString,signedToUnsignedOrders,unsignedToSignedOrders});const taco_types = Object.freeze(Object.keys(layerTable));
 const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
 const buildRuleAndLookup = (type, constraint, ...orders) => {
 	const facePairsArray = constraintToFacePairs[type](constraint);
@@ -10742,10 +10431,11 @@ const makeTacosTortillas = (graph, epsilon = EPSILON) => {
 	const overlap_matrix = facesFacesOverlap.map(() => []);
 	facesFacesOverlap
 		.forEach((faces, i) => faces
-			.forEach(j => { overlap_matrix[i][j] = true; }));
-	const polygons = graph.faces_vertices
-		.map(face => face
-			.map(v => graph.vertices_coords[v]));
+			.forEach(j => {
+				overlap_matrix[i][j] = true;
+				overlap_matrix[j][i] = true;
+			}));
+	const polygons = makeFacesPolygon(graph);
 	polygons.forEach((face, i) => {
 		if (!faces_winding[i]) { face.reverse(); }
 	});
@@ -11040,14 +10730,262 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 		Object.create(LayerPrototype),
 		{ root, branches },
 	);
-};const layer = {
-	solver: globalLayerSolver,
+};const flipFacesLayer = faces_layer => invertMap(
+	invertMap(faces_layer).reverse(),
+);
+const facesLayerToEdgesAssignments = (graph, faces_layer) => {
+	const edges_assignment = [];
+	const faces_winding = makeFacesWinding(graph);
+	const edges_faces = graph.edges_faces
+		? graph.edges_faces
+		: makeEdgesFaces(graph);
+	edges_faces.forEach((faces, e) => {
+		if (faces.length === 1) { edges_assignment[e] = "B"; }
+		if (faces.length === 2) {
+			const windings = faces.map(f => faces_winding[f]);
+			if (windings[0] === windings[1]) {
+				edges_assignment[e] = "F";
+				return;
+			}
+			const layers = faces.map(f => faces_layer[f]);
+			const local_dir = layers[0] < layers[1];
+			const global_dir = windings[0] ? local_dir : !local_dir;
+			edges_assignment[e] = global_dir ? "V" : "M";
+		}
+	});
+	return edges_assignment;
+};
+const faceOrdersToMatrix = (faceOrders) => {
+	const faces = [];
+	faceOrders.forEach(order => {
+		faces[order[0]] = undefined;
+		faces[order[1]] = undefined;
+	});
+	const matrix = faces.map(() => []);
+	faceOrders
+		.forEach(([a, b, c]) => {
+			matrix[a][b] = c;
+			matrix[b][a] = -c;
+		});
+	return matrix;
+};const general=/*#__PURE__*/Object.freeze({__proto__:null,faceOrdersToMatrix,facesLayerToEdgesAssignments,flipFacesLayer});const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
+	const faces_center = folded_faces
+		.map((ends) => (ends ? (ends[0] + ends[1]) / 2 : undefined));
+	const locations = [];
+	folded_faces.forEach((ends, i) => {
+		if (!ends) { return; }
+		if (!is_circular && i === folded_faces.length - 1) { return; }
+		const fold_end = ends[1];
+		const min = fold_end - (epsilon * 2);
+		const max = fold_end + (epsilon * 2);
+		const faces = [i, (i + 1) % folded_faces.length];
+		const sides = faces
+			.map(f => faces_center[f])
+			.map(center => center > fold_end);
+		const taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
+		const match = locations
+			.filter(el => el.min < fold_end && el.max > fold_end)
+			.shift();
+		const entry = { faces, taco_type };
+		if (match) {
+			match.pairs.push(entry);
+		} else {
+			locations.push({ min, max, pairs: [entry] });
+		}
+	});
+	return locations
+		.map(el => el.pairs)
+		.filter(pairs => pairs.length > 1)
+		.map(pairs => ({
+			both: pairs.filter(el => el.taco_type === 0).map(el => el.faces),
+			left: pairs.filter(el => el.taco_type === 1).map(el => el.faces),
+			right: pairs.filter(el => el.taco_type === 2).map(el => el.faces),
+		}));
+};const between = (arr, i, j) => (i < j
+	? arr.slice(i + 1, j)
+	: arr.slice(j + 1, i));
+const validateTacoTortillaStrip = (
+	faces_folded,
+	layers_face,
+	is_circular = true,
+	epsilon = EPSILON,
+) => {
+	const faces_layer = invertMap(layers_face);
+	const fold_location = faces_folded
+		.map(ends => (ends ? ends[1] : undefined));
+	const faces_mins = faces_folded
+		.map(ends => (ends ? Math.min(...ends) : undefined))
+		.map(n => n + epsilon);
+	const faces_maxs = faces_folded
+		.map(ends => (ends ? Math.max(...ends) : undefined))
+		.map(n => n - epsilon);
+	const max = faces_layer.length + (is_circular ? 0 : -1);
+	for (let i = 0; i < max; i += 1) {
+		const j = (i + 1) % faces_layer.length;
+		if (faces_layer[i] === faces_layer[j]) { continue; }
+		const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
+			.flat();
+		const all_below_min = layers_between
+			.map(index => fold_location[i] < faces_mins[index])
+			.reduce((a, b) => a && b, true);
+		const all_above_max = layers_between
+			.map(index => fold_location[i] > faces_maxs[index])
+			.reduce((a, b) => a && b, true);
+		if (!all_below_min && !all_above_max) { return false; }
+	}
+	return true;
+};const validateTacoTacoFacePairs = (face_pair_stack) => {
+	const pair_stack = nonUniqueElements(face_pair_stack);
+	const pairs = {};
+	let count = 0;
+	for (let i = 0; i < pair_stack.length; i += 1) {
+		if (pairs[pair_stack[i]] === undefined) {
+			count += 1;
+			pairs[pair_stack[i]] = count;
+		} else if (pairs[pair_stack[i]] !== undefined) {
+			if (pairs[pair_stack[i]] !== count) { return false; }
+			count -= 1;
+			pairs[pair_stack[i]] = undefined;
+		}
+	}
+	return true;
+};const build_layers = (layers_face, faces_pair) => layers_face
+	.map(f => faces_pair[f])
+	.filter(a => a !== undefined);
+const validateLayerSolver = (
+	faces_folded,
+	layers_face,
+	taco_face_pairs,
+	circ_and_done,
+	epsilon,
+) => {
+	const flat_layers_face = flattenArrays(layers_face);
+	if (!validateTacoTortillaStrip(
+		faces_folded,
+		layers_face,
+		circ_and_done,
+		epsilon,
+	)) { return false; }
+	for (let i = 0; i < taco_face_pairs.length; i += 1) {
+		const pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
+		if (!validateTacoTacoFacePairs(pair_stack)) { return false; }
+	}
+	return true;
+};const change_map = {
+	V: true, v: true, M: true, m: true,
+};
+const assignmentsToFacesFlip = (assignments) => {
+	let counter = 0;
+	const shifted_assignments = assignments.slice(1);
+	return [false].concat(shifted_assignments
+		.map(a => (change_map[a] ? ++counter : counter))
+		.map(count => count % 2 === 1));
+};
+const up_down = {
+	V: 1, v: 1, M: -1, m: -1,
+};
+const upOrDown = (mv, i) => (i % 2 === 0
+	? (up_down[mv] || 0)
+	: -(up_down[mv] || 0));
+const assignmentsToFacesVertical = (assignments) => {
+	let iterator = 0;
+	return assignments
+		.slice(1)
+		.concat([assignments[0]])
+		.map(a => {
+			const updown = upOrDown(a, iterator);
+			iterator += up_down[a] === undefined ? 0 : 1;
+			return updown;
+		});
+};const foldStripWithAssignments = (faces, assignments) => {
+	const faces_end = assignmentsToFacesFlip(assignments)
+		.map((flip, i) => faces[i] * (flip ? -1 : 1));
+	const cumulative = faces.map(() => undefined);
+	cumulative[0] = [0, faces_end[0]];
+	for (let i = 1; i < faces.length; i += 1) {
+		if (assignments[i] === "B" || assignments[i] === "b") { break; }
+		const prev = (i - 1 + faces.length) % faces.length;
+		const prev_end = cumulative[prev][1];
+		cumulative[i] = [prev_end, prev_end + faces_end[i]];
+	}
+	return cumulative;
+};const is_boundary = { B: true, b: true };
+const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => {
+	const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
+	const faces_updown = assignmentsToFacesVertical(assignments);
+	const is_circular = assignments
+		.map(a => !(is_boundary[a]))
+		.reduce((a, b) => a && b, true);
+	if (is_circular) {
+		const start = faces_folded[0][0];
+		const end = faces_folded[faces_folded.length - 1][1];
+		if (Math.abs(start - end) > epsilon) { return []; }
+	}
+	const taco_face_pairs = makeFoldedStripTacos(faces_folded, is_circular, epsilon)
+		.map(taco => [taco.left, taco.right]
+			.map(invertMap)
+			.filter(arr => arr.length > 1))
+		.reduce((a, b) => a.concat(b), []);
+	const recurse = (layers_face = [0], face = 0, layer = 0) => {
+		const next_face = face + 1;
+		const next_dir = faces_updown[face];
+		const is_done = face >= ordered_scalars.length - 1;
+		const circ_and_done = is_circular && is_done;
+		if (!validateLayerSolver(
+			faces_folded,
+			layers_face,
+			taco_face_pairs,
+			circ_and_done,
+			epsilon,
+		)) {
+			return [];
+		}
+		if (circ_and_done) {
+			const faces_layer = invertMap(layers_face);
+			const first_face_layer = faces_layer[0];
+			const last_face_layer = faces_layer[face];
+			if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
+			if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
+		}
+		if (is_done) { return [layers_face]; }
+		if (next_dir === 0) {
+			layers_face[layer] = [next_face].concat(layers_face[layer]);
+			return recurse(layers_face, next_face, layer);
+		}
+		const splice_layers = next_dir === 1
+			? Array.from(Array(layers_face.length - layer))
+				.map((_, i) => layer + i + 1)
+			: Array.from(Array(layer + 1))
+				.map((_, i) => i);
+		const next_layers_faces = splice_layers.map(() => clone(layers_face));
+		next_layers_faces
+			.forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
+		return next_layers_faces
+			.map((layers, i) => recurse(layers, next_face, splice_layers[i]))
+			.reduce((a, b) => a.concat(b), []);
+	};
+	return recurse().map(invertMap);
+};const assignmentSolver = (orderedScalars, assignments, epsilon) => {
+	if (assignments == null) {
+		assignments = orderedScalars.map(() => "U");
+	}
+	const all_assignments = maekawaAssignments(assignments);
+	const layers = all_assignments
+		.map(assigns => singleVertexSolver(orderedScalars, assigns, epsilon));
+	return all_assignments
+		.map((_, i) => i)
+		.filter(i => layers[i].length > 0)
+		.map(i => ({
+			assignment: all_assignments[i],
+			layer: layers[i],
+		}));
+};Object.assign(globalLayerSolver, {
+	...general,
+	...general2d,
 	singleVertexSolver,
 	singleVertexAssignmentSolver: assignmentSolver,
 	foldStripWithAssignments,
-	...general,
-	...general2d,
-};Object.assign(graph, graphMethods);
+});Object.assign(graph, graphMethods);
 const ear = {
 	graph,
 	cp,
@@ -11058,7 +10996,7 @@ const ear = {
 	singleVertex,
 	svg: SVG,
 	webgl,
-	layer,
+	layer: globalLayerSolver,
 };
 lib.ear = ear;
 Object.defineProperty(ear, "window", {

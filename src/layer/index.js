@@ -1,24 +1,23 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// top level
+
+// todo: this top level export (src/layer/index.js) should be a function
+// ear.layer() where this is now the solver (instead of ear.layer.solver())
+
+import solver from "./solver2d/index.js";
 import * as general from "./general.js";
 import * as general2d from "./solver2d/general.js";
-// single-vertex layer solver
 import singleVertexSolver from "./singleVertexSolver/index.js";
 import singleVertexAssignmentSolver from "./singleVertexSolver/assignmentSolver.js";
+import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignments.js";
+
 // import validateLayerSolver from "./singleVertexSolver/validateLayerSolver.js";
 // import validateTacoTacoFacePairs from "./singleVertexSolver/validateTacoTacoFacePairs.js";
 // import validateTacoTortillaStrip from "./singleVertexSolver/validateTacoTortillaStrip.js";
-import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignments.js";
-// global layer solver
-// import solver from "./solver3d/index.js";
-// import topologicalOrder from "./solver3d/topologicalOrder.js";
-// old global layer solver in 2D
-import solver from "./solver2d/index.js";
-// import solver from "./solver3d/index.js";
 
 // import table from "./solver2d/table.js";
+
 // import * as makeConstraints from "./solver2d/makeConstraints.js";
 // import * as makeFacePairsOrder from "./solver2d/makeFacePairsOrder.js";
 // import * as globalSolverGeneral from "./solver2d/general.js";
@@ -31,9 +30,9 @@ import solver from "./solver2d/index.js";
  * @description A collection of methods for calculating the layer order
  * of the faces of an origami in its folded state.
  */
-export default {
-	solver,
-	// solver2d,
+Object.assign(solver, {
+	...general,
+	...general2d,
 	// table,
 	// makeTacosTortillas,
 	// makeFoldedStripTacos,
@@ -41,14 +40,14 @@ export default {
 
 	singleVertexSolver,
 	singleVertexAssignmentSolver,
+	foldStripWithAssignments,
 	// validateLayerSolver,
 	// validateTacoTacoFacePairs,
 	// validateTacoTortillaStrip,
-	foldStripWithAssignments,
-	...general,
-	...general2d,
 	// makeConstraints,
 	// makeFacePairsOrder,
 	// globalSolverGeneral,
 	// tortillaTortilla,
-};
+});
+
+export default solver;
