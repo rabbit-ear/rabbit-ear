@@ -20,22 +20,18 @@ export const makeTransitivity = (
 	epsilon = EPSILON,
 ) => {
 	const overlap_matrix = facesFacesOverlap.map(() => []);
-	facesFacesOverlap
-		.forEach((faces, i) => faces
-			.forEach(j => {
-				overlap_matrix[i][j] = true;
-				overlap_matrix[j][i] = true;
-			}));
+	facesFacesOverlap.forEach((faces, i) => faces.forEach(j => {
+		overlap_matrix[i][j] = true;
+		overlap_matrix[j][i] = true;
+	}));
 	const matrix = faces_polygon.map(() => []);
-	for (let i = 0; i < matrix.length - 1; i += 1) {
-		for (let j = i + 1; j < matrix.length; j += 1) {
-			if (!overlap_matrix[i][j]) { continue; }
-			const polygon = clipPolygonPolygon(faces_polygon[i], faces_polygon[j], epsilon);
-			if (polygon) { matrix[i][j] = polygon; }
-		}
-	}
+	facesFacesOverlap.forEach((faces, i) => faces.forEach(j => {
+		const polygon = clipPolygonPolygon(faces_polygon[i], faces_polygon[j], epsilon);
+		if (polygon) { matrix[i][j] = polygon; }
+	}));
 	const trios = [];
 	for (let i = 0; i < matrix.length - 1; i += 1) {
+		if (!matrix[i]) { continue; }
 		for (let j = i + 1; j < matrix.length; j += 1) {
 			if (!matrix[i][j]) { continue; }
 			for (let k = j + 1; k < matrix.length; k += 1) {

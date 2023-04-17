@@ -39,16 +39,19 @@ export const layer = ({
 		edges_assignment,
 	}, facePairs, faces_winding);
 	// the result of the solver, or undefined if no solution is possible
-	const result = solver({ constraints, lookup, facePairs, orders });
-	if (!result) { return undefined; }
+	const { root, branches } = solver({ constraints, lookup, facePairs, orders });
 	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
 	// modify the objects in place.
-	unsignedToSignedOrders(result.root);
-	result.branches
+	unsignedToSignedOrders(root);
+	branches
 		.forEach(branch => branch
 			.forEach(solutions => unsignedToSignedOrders(solutions)));
 	// wrap the result in the layer solution prototype
-	return Object.assign(Object.create(LayerPrototype), result);
+	return Object.assign(Object.create(LayerPrototype), {
+		root,
+		branches,
+		faces_winding,
+	});
 };
 
 // export const layerSync = (graph, epsilon) => {

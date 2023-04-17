@@ -1,9 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import topologicalOrder from "./topologicalOrder.js";
-// import topologicalOrder from "../topological.js";
-
 const match = (listA, listB) => {
 	const res = [];
 	for (let i = 0; i < listA.length; i += 1) {
