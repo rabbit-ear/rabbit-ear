@@ -1,9 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import {
-	constraintToFacePairsStrings,
-} from "./general.js";
+import { constraintToFacePairsStrings } from "./general.js";
 /**
  * @description Each taco/tortilla event involves the relationship between
  * 3 or 4 faces. The lookup table encodes the relationship between all
@@ -39,6 +37,7 @@ export const makeConstraints = (tacos_tortillas, transitivity_trios) => {
 
 export const makeConstraintsLookup = (constraints) => {
 	const lookup = {};
+	// fill the top layer with "taco / tortilla" category names
 	Object.keys(constraints).forEach(key => { lookup[key] = {}; });
 	Object.keys(constraints).forEach(type => {
 		constraints[type]

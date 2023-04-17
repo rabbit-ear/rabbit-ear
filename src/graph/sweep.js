@@ -145,16 +145,17 @@ export const sweepFaces = ({
  *   - start: the index which begin at this event in the sweep
  *   - end: the index which end at this event in the sweep
  */
-export const sweep = (graph, axis = 0, epsilon = EPSILON) => {
-	const values = graph.vertices_coords.map(p => p[axis]);
-	const edges_vertices = graph.edges_vertices;
+export const sweep = ({
+	vertices_coords, edges_vertices, faces_vertices,
+}, axis = 0, epsilon = EPSILON) => {
+	const values = vertices_coords.map(p => p[axis]);
 	// "faces_vertices" contains only two vertices for each face,
 	// and can be treated just like edges_vertices.
-	const faces_vertices = edgeifyFaces(graph, axis);
+	const faces_edgeVertices = edgeifyFaces({ vertices_coords, faces_vertices }, axis);
 	const vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
-	const vertices_faces = makeVerticesEdgesUnsorted({ edges_vertices: faces_vertices });
+	const vertices_faces = makeVerticesEdgesUnsorted({ edges_vertices: faces_edgeVertices });
 	const edgesValues = edges_vertices.map(edge => edge.map(e => values[e]));
-	const facesValues = faces_vertices.map(face => face.map(e => values[e]));
+	const facesValues = faces_edgeVertices.map(face => face.map(e => values[e]));
 	// is the span degenerate? (both values are an epsilon away from each other)
 	const edgesDegenerate = edgesValues.map(pair => epsilonEqual(...pair, epsilon));
 	const facesDegenerate = facesValues.map(pair => epsilonEqual(...pair, epsilon));

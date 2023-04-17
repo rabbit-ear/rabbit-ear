@@ -6,15 +6,17 @@ import {
 	subtract2,
 } from "../../../math/algebra/vector.js";
 
-export const makeEdgesFacesSide = (graph, faces_center) => {
-	const edges_origin = graph.edges_vertices
-		.map(vertices => graph.vertices_coords[vertices[0]]);
-	const edges_vector = graph.edges_vertices
+export const makeEdgesFacesSide = ({
+	vertices_coords, edges_vertices, edges_faces,
+}, faces_center) => {
+	const edges_origin = edges_vertices
+		.map(vertices => vertices_coords[vertices[0]]);
+	const edges_vector = edges_vertices
 		.map(vertices => subtract2(
-			graph.vertices_coords[vertices[1]],
-			graph.vertices_coords[vertices[0]],
+			vertices_coords[vertices[1]],
+			vertices_coords[vertices[0]],
 		));
-	return graph.edges_faces
+	return edges_faces
 		.map((faces, i) => faces
 			.map(face => cross2(
 				subtract2(
@@ -32,13 +34,15 @@ export const makeEdgesFacesSide = (graph, faces_center) => {
  * product against the edge's vector.
  * @linkcode Origami ./src/layer/solver2d/tacos/facesSide.js 33
  */
-export const makeTacosFacesSide = (graph, faces_center, tacos_edges, tacos_faces) => {
+export const makeTacosFacesSide = ({
+	vertices_coords, edges_vertices,
+}, faces_center, tacos_edges, tacos_faces) => {
 	// there are two edges involved in a taco, grab the first one.
 	// we have to use the same origin/vector so that the face-sidedness is
 	// consistent globally, not local to its edge.
 	const tacos_edge_coords = tacos_edges
-		.map(edges => graph.edges_vertices[edges[0]]
-			.map(vertex => graph.vertices_coords[vertex]));
+		.map(edges => edges_vertices[edges[0]]
+			.map(vertex => vertices_coords[vertex]));
 	const tacos_edge_origin = tacos_edge_coords
 		.map(coords => coords[0]);
 	const tacos_edge_vector = tacos_edge_coords

@@ -6,7 +6,6 @@ import {
 	makeEdgesEdgesParallelOverlap,
 } from "../../graph/intersect/edgesEdges.js";
 import {
-	booleanMatrixToIndexedArray,
 	selfRelationalUniqueIndexPairs,
 } from "../../general/arrays.js";
 import { getEdgesFacesOverlap } from "../../graph/intersect/edgesFaces.js";

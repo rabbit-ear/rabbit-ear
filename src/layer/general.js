@@ -4,6 +4,27 @@
 import { invertMap } from "../graph/maps.js";
 import { makeFacesWinding } from "../graph/faces/winding.js";
 import { makeEdgesFaces } from "../graph/make.js";
+import { boundingBox } from "../graph/boundary.js";
+import { distance } from "../math/algebra/vector.js";
+
+const shortestEdgeLength = ({ vertices_coords, edges_vertices }) => {
+	const lengths = edges_vertices
+		.map(ev => ev.map(v => vertices_coords[v]))
+		.map(segment => distance(...segment));
+	const minLen = lengths
+		.reduce((a, b) => Math.min(a, b), Infinity);
+	return minLen === Infinity ? undefined : minLen;
+};
+
+export const makeEpsilon = ({ vertices_coords, edges_vertices }) => {
+	const shortest = shortestEdgeLength({ vertices_coords, edges_vertices });
+	if (shortest) { return Math.max(shortest * 1e-4, 1e-10); }
+	const bounds = boundingBox({ vertices_coords });
+	return bounds && bounds.span
+		? Math.max(1e-6 * Math.max(...bounds.span), 1e-10)
+		: 1e-6;
+};
+
 /**
  * @description Flip a model over by reversing the order of the faces
  * in a faces_layer encoding.

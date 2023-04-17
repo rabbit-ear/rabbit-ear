@@ -65,10 +65,10 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 		}
 		return 0;
 	}).join("");
-	// now, consult the lookup table. if the result is a boolean,
-	// return that boolean.
-	if (table[type][key] === true) { return true; }
-	if (table[type][key] === false) { return false; }
+	// now, consult the lookup table. if the result is a boolean, return it.
+	if (table[type][key] === true || table[type][key] === false) {
+		return table[type][key];
+	}
 	// the table is giving us an implied state. return the implication's
 	// facePair and order as an array. make sure to flip the order if necessary.
 	const implication = table[type][key];
@@ -207,16 +207,12 @@ const propagate = (
 				);
 				if (lookupResult === true) { continue; }
 				if (lookupResult === false) {
-					// consider throwing an error, we can convey descriptive information
-					// about which faces are causing a problem
-					console.warn("invalid state found", type, constraints[type][indices[i]]);
-					return false;
+					throw new Error(`invalid ${type} ${indices[i]}:${constraints[type][indices[i]]}`);
 				}
 				if (newOrders[lookupResult[0]]) {
 					// rule already exists. make sure the results match
 					if (newOrders[lookupResult[0]] !== lookupResult[1]) {
-						console.warn("order conflict", type, constraints[type][indices[i]]);
-						return false;
+						throw new Error(`conflict ${type} ${indices[i]}:${constraints[type][indices[i]]}`);
 					}
 				} else {
 					const [key, value] = lookupResult;

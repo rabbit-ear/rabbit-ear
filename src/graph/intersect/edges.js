@@ -79,17 +79,19 @@ export const getEdgesRectOverlap = (
  * index is the edge number and the value is the intersection point
  * @linkcode Origami ./src/graph/intersect.js 73
  */
-export const getEdgesSegmentIntersection = (graph, point1, point2, epsilon = EPSILON) => {
+export const getEdgesSegmentIntersection = ({
+	vertices_coords, edges_vertices,
+}, point1, point2, epsilon = EPSILON) => {
 	const segmentBox = boundingBox([point1, point2]);
 	const segmentVector = subtract2(point2, point1);
 	const segmentLine = { vector: segmentVector, origin: point1 };
 	// possible edges which overlap (based on axis aligned bounding box overlap)
-	const edges = getEdgesRectOverlap(graph, segmentBox, epsilon);
+	const edges = getEdgesRectOverlap({ vertices_coords, edges_vertices }, segmentBox, epsilon);
 	const intersections = [];
 	// for the remaining edges, convert each into line parameterization,
 	// run the intersection method and in the case of a result, set the array.
 	edges.forEach(e => {
-		const edgeCoords = graph.edges_vertices[e].map(v => graph.vertices_coords[v]);
+		const edgeCoords = edges_vertices[e].map(v => vertices_coords[v]);
 		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
 		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
 		const intersect = intersectLineLine(segmentLine, edgeLine, includeS, includeS, epsilon);

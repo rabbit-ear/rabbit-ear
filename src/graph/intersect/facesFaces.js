@@ -21,7 +21,7 @@ import { sweepFaces } from "../sweep.js";
 export const getFacesFacesOverlap = ({
 	vertices_coords, faces_vertices,
 }, epsilon = EPSILON) => {
-	// faces have no collinear vertices
+	// these polygons have no collinear vertices
 	const facesPolygon = makeFacesPolygon({ vertices_coords, faces_vertices });
 	const facesBounds = facesPolygon.map(polygon => boundingBox(polygon));
 	const intersections = [];

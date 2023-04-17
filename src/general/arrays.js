@@ -81,48 +81,6 @@ export const splitCircularArray = (array, indices) => {
 // 	return arrays[max];
 // };
 /**
- * @description Convert a sparse or dense matrix containing true/false/undefined
- * into arrays containing the indices `[i,j]` of all true values.
- * @param {Array<Array<boolean|undefined>>} matrix a 2D matrix containing boolean or undefined
- * @returns {number[][]} array of arrays of numbers
- * @linkcode Origami ./src/general/arrays.js 82
- */
-export const booleanMatrixToIndexedArray = matrix => matrix
-	.map(row => row
-		.map((value, i) => (value === true ? i : undefined))
-		.filter(a => a !== undefined));
-/**
- * @description consult the upper right half triangle of the matrix,
- * find all truthy values, gather the row/column index pairs,
- * return them as pairs of indices in a single array.
- * Triangle number, only visit half the indices. make unique pairs
- * @param {any[][]} matrix a matrix containing any type
- * @returns {number[][]} array of pairs of numbers, the pairs of indices
- * which are truthy in the matrix.
- * @linkcode Origami ./src/general/arrays.js 96
- */
-// todo: i wrote this to replace the bit below. this works with
-// sparse arrays too. needs testing before it gets replaced.
-// export const booleanMatrixToUniqueIndexPairs = matrix => {
-// 	const pairs = [];
-// 	matrix.forEach((row, i) => row.forEach((value, j) => {
-// 		if (i >= j) { return; }
-// 		if (value) { pairs.push([i, j]); }
-// 	}));
-// 	return pairs;
-// };
-export const booleanMatrixToUniqueIndexPairs = matrix => {
-	const pairs = [];
-	for (let i = 0; i < matrix.length - 1; i += 1) {
-		for (let j = i + 1; j < matrix.length; j += 1) {
-			if (matrix[i][j]) {
-				pairs.push([i, j]);
-			}
-		}
-	}
-	return pairs;
-};
-/**
  * @description Given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
  * inner arrays relate to the indices of the outer array, create a list of
