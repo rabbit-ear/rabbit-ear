@@ -6,6 +6,7 @@ import { invertMap } from "../../../graph/maps.js";
 import { makeFacesWinding } from "../../../graph/faces/winding.js";
 import { addClass } from "../../../svg/general/dom.js";
 import SVG from "../../../svg/index.js";
+import { linearizeFaceOrders } from "../../../graph/orders.js";
 
 const FACE_STYLE_FOLDED_ORDERED = {
 	back: { fill: "white" },
@@ -32,18 +33,30 @@ const GROUP_STYLE_FLAT = {
 	fill: "none",
 };
 
-const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
-
 /**
- * this ended up being a nice function. i got some things for free.
+ * todo: assuming faces_vertices instead of faces_edges
+ * @returns {number[]} layers_face
  */
-const faces_sorted_by_layer = function (faces_layer, graph) {
-	const faceCount = graph.faces_vertices.length || graph.faces_edges.length;
-	const missingFaces = Array.from(Array(faceCount))
+const fillInMissingFaces = (graph, faces_layer) => {
+	const missingFaces = graph.faces_vertices
 		.map((_, i) => i)
 		.filter(i => faces_layer[i] == null);
 	return missingFaces.concat(invertMap(faces_layer));
 };
+/**
+ * @returns {number[]} layers_face
+ */
+const orderFaceIndices = (graph) => {
+	if (graph.faceOrders) {
+		return fillInMissingFaces(graph, invertMap(linearizeFaceOrders(graph)));
+	}
+	if (graph.faces_layer) {
+		return fillInMissingFaces(graph, graph.faces_layer);
+	}
+	return graph.faces_vertices.map((_, i) => i).filter(() => true);
+};
+
+const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
 
 const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
@@ -57,7 +70,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 	const isFolded = isFoldedForm(graph);
 	// currently, layer order is determined by "faces_layer" key, and
 	// ensuring that the length matches the number of faces in the graph.
-	const orderIsCertain = graph["faces_layer"] != null;
+	const orderIsCertain = !!(graph.faceOrders || graph.faces_layer);
 	const classNames = [["front"], ["back"]];
 	const faces_winding = makeFacesWinding(graph);
 	// counter-clockwise faces are "face up", their front facing the camera
@@ -77,10 +90,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 			applyFacesStyle(svg_faces[i], attributes[className]);
 		});
 	// if the layer-order exists, sort the faces in order of faces_layer
-	const facesInOrder = (orderIsCertain
-		? faces_sorted_by_layer(graph["faces_layer"], graph).map(i => svg_faces[i])
-		: svg_faces);
-	facesInOrder.forEach(face => group.appendChild(face));
+	orderFaceIndices(graph).forEach(f => group.appendChild(svg_faces[f]));
 	// these custom getters allows you to grab all "front" or "back" faces only.
 	Object.defineProperty(group, "front", {
 		get: () => svg_faces.filter((_, i) => faces_winding[i]),
