@@ -1,13 +1,17 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import Messages from "../../environment/messages.js";
-import LayerPrototype from "./prototype.js";
-import solver from "./solver.js";
-import setup from "./setup.js";
-import solveEdgeAdjacent from "./edgeAdjacent.js";
-import { unsignedToSignedOrders } from "./general.js";
+import {
+	makeFacesEdgesFromVertices,
+	makeEdgesFacesUnsorted,
+} from "../../graph/make.js";
 import { makeEpsilon } from "../general.js";
+import { setup } from "./setup.js";
+import solveEdgeAdjacent from "./edgeAdjacent.js";
+import solver from "./solver.js";
+import LayerPrototype from "./prototype.js";
+//
+const emptyLayerSolution = () => ({ root: {}, branches: [], faces_winding: [] });
 /**
  * @description Find a layer ordering of the faces in a flat-folded
  * origami model.
@@ -20,6 +24,15 @@ export const layer = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
 	faces_vertices, faces_edges, edges_vector,
 }, epsilon) => {
+	if (!vertices_coords || !edges_vertices || !faces_vertices) {
+		return Object.assign(Object.create(LayerPrototype), emptyLayerSolution());
+	}
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
+	if (!edges_faces) {
+		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+	}
 	// find an appropriate epsilon, if it is not specified
 	if (epsilon === undefined) {
 		epsilon = makeEpsilon({ vertices_coords, edges_vertices });
@@ -40,12 +53,6 @@ export const layer = ({
 	}, facePairs, faces_winding);
 	// the result of the solver, or undefined if no solution is possible
 	const { root, branches } = solver({ constraints, lookup, facePairs, orders });
-	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
-	// modify the objects in place.
-	unsignedToSignedOrders(root);
-	branches
-		.forEach(branch => branch
-			.forEach(solutions => unsignedToSignedOrders(solutions)));
 	// wrap the result in the layer solution prototype
 	return Object.assign(Object.create(LayerPrototype), {
 		root,

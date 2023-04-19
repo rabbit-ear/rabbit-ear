@@ -38,16 +38,22 @@ const solveBranch = (
 	const unfinishedSolutions = [];
 	// given the same guessKey with both 1 and 2 as the guess, run propagate.
 	[1, 2].forEach(b => {
-		const result = propagate(
-			constraints,
-			lookup,
-			[guessKey],
-			...orders,
-			{ [guessKey]: b },
-		);
-		// bad results will be false. skip these. if the result is valid,
+		let result;
+		try {
+			result = propagate(
+				constraints,
+				lookup,
+				[guessKey],
+				...orders,
+				{ [guessKey]: b },
+			);
+		} catch (error) {
+			// propagate made a guess and it turned out to cause a conflict.
+			// throw away this guess.
+			return;
+		}
+		// for valid results:
 		// check if all variables are solved or more work is required.
-		if (result === false) { return; }
 		// currently, the one guess itself is left out of the result object.
 		// we could either combine the objects, or add this guess directly in.
 		result[guessKey] = b;

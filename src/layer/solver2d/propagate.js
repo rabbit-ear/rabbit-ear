@@ -222,10 +222,6 @@ const propagate = (
 			}
 		}
 		modifiedFacePairs = Object.keys(roundModificationsFacePairs);
-		// console.log("modifiedConstraintIndices", modifiedConstraintIndices);
-		// console.log("roundModificationsFacePairs", roundModificationsFacePairs);
-		// console.log("newOrders", newOrders);
-		// console.log("modifiedFacePairs", modifiedFacePairs.length, modifiedFacePairs);
 	} while (modifiedFacePairs.length);
 	return newOrders;
 };

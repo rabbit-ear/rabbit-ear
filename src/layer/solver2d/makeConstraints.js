@@ -9,27 +9,29 @@ import { constraintToFacePairsStrings } from "./general.js";
  * 6: taco-taco, 3: taco-tortilla, 2: tortilla-tortilla, 3: transitivity.
  * @linkcode Origami ./src/layer/solver2d/makeConstraints.js 12
  */
-export const makeConstraints = (tacos_tortillas, transitivity_trios) => {
+export const makeConstraints = ({
+	taco_taco, taco_tortilla, tortilla_tortilla, transitivity,
+}) => {
 	const constraints = {};
 	// A-C and B-D are connected. A:[0][0] C:[0][1] B:[1][0] D:[1][1]
 	// "(A,C) (B,D) (B,C) (A,D) (A,B) (C,D)"
-	constraints.taco_taco = tacos_tortillas.taco_taco.map(el => [
+	constraints.taco_taco = taco_taco.map(el => [
 		el[0][0], el[1][0], el[0][1], el[1][1],
 	]);
 	// A-C is the taco, B is the tortilla. A:taco[0] C:taco[1] B:tortilla
 	// (A,C) (A,B) (B,C)
-	constraints.taco_tortilla = tacos_tortillas.taco_tortilla.map(el => [
+	constraints.taco_tortilla = taco_tortilla.map(el => [
 		el.taco[0], el.tortilla, el.taco[1],
 	]);
 	// A-B and C-D are connected, where A is above/below C and B is above/below D
 	// A:[0][0] B:[0][1] C:[1][0] D:[1][1]
 	// (A,C) (B,D)
-	constraints.tortilla_tortilla = tacos_tortillas.tortilla_tortilla.map(el => [
+	constraints.tortilla_tortilla = tortilla_tortilla.map(el => [
 		el[0][0], el[0][1], el[1][0], el[1][1],
 	]);
 	// transitivity. no relation between faces in the graph.
 	// (A,B) (B,C) (C,A)
-	constraints.transitivity = transitivity_trios.map(el => [
+	constraints.transitivity = transitivity.map(el => [
 		el[0], el[1], el[2],
 	]);
 	return constraints;

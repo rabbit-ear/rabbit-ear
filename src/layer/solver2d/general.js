@@ -31,7 +31,7 @@ export const constraintToFacePairs = ({
  * to be first, and format them into a space-separated string.
  * @linkcode Origami ./src/layer/solver2d/general.js 33
  */
-export const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
+const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
 	? `${pair[0]} ${pair[1]}`
 	: `${pair[1]} ${pair[0]}`);
 /**
@@ -71,19 +71,7 @@ export const constraintToFacePairsStrings = ({
 	],
 });
 
-const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-/**
- * @description convert a layer-encoding 1,2 into 1,-1. modified in place!
- * @param {object} facePairOrders object with face-pair keys and values either 0, 1, 2.
- * @returns {object} the same object with values either 0, 1, -1.
- * @linkcode Origami ./src/layer/solver2d/general.js 81
- */
-export const unsignedToSignedOrders = (orders) => {
-	Object.keys(orders).forEach(key => {
-		orders[key] = to_signed_layer_convert[orders[key]];
-	});
-	return orders;
-};
+const signedLayerSolverValue = { 0: 0, 1: 1, 2: -1 };
 /**
  * @description Convert a solution of facePairOrders with face-pair strings
  * as keys, and +1 or -1 as values, into a list of FOLD spec faceOrders,
@@ -99,7 +87,7 @@ export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
 	const keys = Object.keys(facePairOrders);
 	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
 	faceOrders.forEach((faces, i) => {
-		const value = facePairOrders[keys[i]];
+		const value = signedLayerSolverValue[facePairOrders[keys[i]]];
 		const side = (!faces_winding[faces[1]]) ? -value : value;
 		faces.push(side);
 	});

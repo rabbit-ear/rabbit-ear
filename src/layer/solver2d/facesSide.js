@@ -4,8 +4,14 @@
 import {
 	cross2,
 	subtract2,
-} from "../../../math/algebra/vector.js";
-
+} from "../../math/algebra/vector.js";
+/**
+ * @description An edge is adjacent to one or two faces,
+ * this is stored in its edges_faces entry. for each of these
+ * faces, which side of the edge (using the edge's vector)
+ * is each face on. each result is an array of length
+ * matching the number of adjacent edges.
+ */
 export const makeEdgesFacesSide = ({
 	vertices_coords, edges_vertices, edges_faces,
 }, faces_center) => {

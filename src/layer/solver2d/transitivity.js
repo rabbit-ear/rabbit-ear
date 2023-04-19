@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../../math/general/constant.js";
-import { clipPolygonPolygon } from "../../../math/intersect/clip.js";
+import { EPSILON } from "../../math/general/constant.js";
+import { clipPolygonPolygon } from "../../math/intersect/clip.js";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
@@ -15,7 +15,7 @@ import { clipPolygonPolygon } from "../../../math/intersect/clip.js";
  * @linkcode Origami ./src/layer/solver2d/tacos/makeTransitivityTrios.js 17
  */
 export const makeTransitivity = (
-	faces_polygon,
+	{ faces_polygon },
 	facesFacesOverlap,
 	epsilon = EPSILON,
 ) => {
@@ -27,7 +27,10 @@ export const makeTransitivity = (
 	const matrix = faces_polygon.map(() => []);
 	facesFacesOverlap.forEach((faces, i) => faces.forEach(j => {
 		const polygon = clipPolygonPolygon(faces_polygon[i], faces_polygon[j], epsilon);
-		if (polygon) { matrix[i][j] = polygon; }
+		if (polygon) {
+			matrix[i][j] = polygon;
+			matrix[j][i] = polygon;
+		}
 	}));
 	const trios = [];
 	for (let i = 0; i < matrix.length - 1; i += 1) {
@@ -51,14 +54,14 @@ export const makeTransitivity = (
  * faces are already covered in a taco-taco case.
  * @linkcode Origami ./src/layer/solver2d/tacos/filterTransitivity.js 9
  */
-export const filterTransitivity = (transitivity_trios, tacos_tortillas) => {
+export const filterTransitivity = (transitivity_trios, { taco_taco, taco_tortilla }) => {
 	// will contain taco-taco and taco-tortilla events encoded as all
 	// permutations of 3 faces involved in each event.
 	const tacos_trios = {};
 	// using the list of all taco-taco conditions, store all permutations of
 	// the three faces (sorted low to high) into a dictionary for quick lookup.
 	// store them as space-separated strings.
-	tacos_tortillas.taco_taco
+	taco_taco
 		.map(tacos => [tacos[0][0], tacos[0][1], tacos[1][0], tacos[1][1]]
 			.sort((a, b) => a - b))
 		.forEach(taco => [
@@ -69,7 +72,7 @@ export const filterTransitivity = (transitivity_trios, tacos_tortillas) => {
 		].forEach(key => { tacos_trios[key] = true; }));
 	// convert all taco-tortilla cases into similarly-formatted,
 	// space-separated strings.
-	tacos_tortillas.taco_tortilla
+	taco_tortilla
 		.map(el => [el.taco[0], el.taco[1], el.tortilla]
 			.sort((a, b) => a - b).join(" "))
 		.forEach(key => { tacos_trios[key] = true; });

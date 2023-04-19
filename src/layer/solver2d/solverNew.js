@@ -2,13 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import propagate from "./propagate.js";
-import { keysToFaceOrders } from "./general.js";
 import getBranches from "./getBranches.js";
-import prepare from "./prepare.js";
-import LayerPrototype from "./prototype.js";
-import { makeFacesNormal } from "../../graph/normals.js";
-
-// const keysToFaceOrders = a => a;
 /**
  * @description Given an array of unsolved facePair keys, attempt to solve
  * the entire set by guessing both states (1, 2) for one key, propagate any
@@ -126,36 +120,32 @@ const solveBranch = (
 		.concat(...recursed);
 };
 /**
- * @name solver2d
- * @memberof layer
  * @description Recursively calculate all layer order solutions between faces
  * in a flat-folded FOLD graph.
- * @param {FOLD} graph a flat-folded FOLD graph, where the vertices
- * have already been folded.
- * @param {number} [epsilon=1e-6] an optional epsilon
+ * @param {object} solverParams the parameters for the solver which include:
+ * - {object} constraints for each taco/tortilla type, an array of each
+ *   condition, each condition being an array of all faces involved.
+ * - {object} lookup for each taco/tortilla type, a reverse lookup table
+ *   where each face-pair contains an array of all constraints its involved in
+ * - {string[]} facePairs an array of space-separated face pair strings
+ * - {object} orders a prelimiary solution to some of the facePairs
+ *   with solutions in 1,2 value encoding. Useful for any pre-calculations,
+ *   for example, pre-calculating edge-adjacent face pairs with known assignments.
  * @returns {object} a set of solutions where keys are face pairs
  * and values are +1 or -1 describing the relationship of the two faces.
  * Results are stored in "root" and "branches", to compile a complete solution,
  * append the "root" to one selection from each array in "branches".
  * @linkcode Origami ./src/layer/solver2d/index.js 140
  */
-const globalLayerSolver = (graph, epsilon = 1e-6) => {
-	const prepareStartDate = new Date();
-	const {
-		constraints,
-		constraintsLookup,
-		facePairs,
-		edgeAdjacentOrders,
-	} = prepare(graph, epsilon);
+const solver2d = ({ constraints, lookup, facePairs, orders }) => {
 	// algorithm running time info
-	const prepareDuration = Date.now() - prepareStartDate;
-	const startDate = new Date();
+	// const startDate = new Date();
 	// propagate layer order starting with only the edge-adjacent face orders
 	const initialResult = propagate(
 		constraints,
-		constraintsLookup,
-		Object.keys(edgeAdjacentOrders),
-		edgeAdjacentOrders,
+		lookup,
+		Object.keys(orders),
+		orders,
 	);
 	// graph does not have a valid layer order. no solution
 	if (!initialResult) { return undefined; }
@@ -163,7 +153,7 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const solution = {};
 	// get all keys unsolved after the first round of propagate
 	const remainingKeys = facePairs
-		.filter(key => !(key in edgeAdjacentOrders))
+		.filter(key => !(key in orders))
 		.filter(key => !(key in initialResult));
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
@@ -171,25 +161,25 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	const branches = getBranches(
 		remainingKeys,
 		constraints,
-		constraintsLookup,
+		lookup,
 		constraintsNeighborsMemo,
 	);
 	// console.log("branches", branches);
 	const nextLevel = branches.map(() => ({}));
 	const branchResults = branches.map((unsolvedKeys, i) => solveBranch(
 		constraints,
-		constraintsLookup,
+		lookup,
 		constraintsNeighborsMemo,
 		unsolvedKeys,
 		nextLevel[i],
-		edgeAdjacentOrders,
+		orders,
 		initialResult,
 	));
 
 	if (nextLevel.length) {
 		solution.unfinished = nextLevel;
 	}
-	solution.faceOrders = { ...edgeAdjacentOrders, ...initialResult };
+	solution.faceOrders = { ...orders, ...initialResult };
 
 	// solver is finished. each branch result is spread across multiple objects
 	// containing a solution for a subset of the entire set of faces, one for
@@ -203,22 +193,6 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// solution.branches[0].faceOrders = { ...edgeAdjacentOrders, ...initialResult };
 
 	// console.log("2D solution", JSON.parse(JSON.stringify(solution.faceOrders)));
-
-	const faces_normal = graph.faces_normal
-		? graph.faces_normal
-		: makeFacesNormal(graph);
-	// this is hardcoded to flat foldings along the +Z. wait this is not needed
-	const z_vector = [0, 0, 1];
-
-	const recurse = (node) => {
-		if (node.faceOrders) {
-			node.faceOrders = keysToFaceOrders(node.faceOrders, faces_normal, z_vector);
-		}
-		if (node.finished) { node.finished.forEach(child => recurse(child)); }
-		if (node.unfinished) { node.unfinished.forEach(child => recurse(child)); }
-	};
-	recurse(solution);
-
 	// console.log("2D solution final", JSON.parse(JSON.stringify(solution.faceOrders)));
 
 	// convert solutions from (1,2) to (+1,-1), both the root and each branch.
@@ -226,19 +200,15 @@ const globalLayerSolver = (graph, epsilon = 1e-6) => {
 	// branches
 	// 	.forEach(branch => branch
 	// 		.forEach(solutions => unsignedToSignedOrders(solutions)));
-	const duration = Date.now() - startDate;
+	// const duration = Date.now() - startDate;
 	// console.log(`variables (${facePairs.length} total): ${Object.keys(edgeAdjacentOrders).length} neighbor faces, ${Object.keys(initialResult).length} propagate, ${remainingKeys.length} in branches`);
 	// if (duration > 50) {
-		// console.log(`prep ${prepareDuration}ms solver ${duration}ms`);
+	//	console.log(`prep ${setupDuration}ms solver ${duration}ms`);
 	// }
-	// console.log("solution", solution);
-	// console.log("branches", branchResults);
-	// console.log("branchResults", branchResults);
-	return Object.assign(
-		Object.create(LayerPrototype),
-		// { root, branches: branchResults },
-		solution,
-	);
+	console.log("solution", solution);
+	console.log("branches", branchResults);
+	console.log("branchResults", branchResults);
+	return solution;
 };
 
-export default globalLayerSolver;
+export default solver2d;

@@ -18,8 +18,8 @@ const fixLineDirection = ({ normal, distance }) => (distance < 0
  * @description Discover the lines of symmetry in a 2D FOLD graph.
  * All possible lines will be returned and sorted to put the best candidate
  * for a symmtry line first, with an error value, where 0 is perfect symmetry.
- * This uses edges in the graph to find a line, if an edge doesn't exist
- * along the line of symmetry, the line will not be found.
+ * This searches by checking the edges in the graph to find a line,
+ * if an edge doesn't exist along the line of symmetry, this will fail.
  * @param {FOLD} graph a FOLD object with 2D vertices
  * @returns {VecLine[]} array of symmetry lines
  */
@@ -57,9 +57,9 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 };
 /**
  * @description This method calls findSymmetryLines() and returns the
- * first value only. Use this if you are confident in your expectations.
- * This uses edges in the graph to find a line, if an edge doesn't exist
- * along the line of symmetry, the line will not be found.
+ * first value only. Use this if you are confident.
+ * This searches by checking the edges in the graph to find a line,
+ * if an edge doesn't exist along the line of symmetry, this will fail.
  * @param {FOLD} graph a FOLD object with 2D vertices
  * @returns {VecLine[]} array of symmetry lines
  */

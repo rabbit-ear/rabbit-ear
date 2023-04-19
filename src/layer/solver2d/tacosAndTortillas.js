@@ -1,12 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../../math/general/constant.js";
-import { makeFacesConvexCenter } from "../../../graph/make.js";
-import { makeEdgesEdgesParallelOverlap } from "../../../graph/intersect/edgesEdges.js";
-import { selfRelationalUniqueIndexPairs } from "../../../general/arrays.js";
-import { getEdgesFacesOverlap } from "../../../graph/intersect/edgesFaces.js";
-import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla.js";
+import { EPSILON } from "../../math/general/constant.js";
+import { makeFacesConvexCenter } from "../../graph/make.js";
+import { makeEdgesEdgesParallelOverlap } from "../../graph/intersect/edgesEdges.js";
+import { selfRelationalUniqueIndexPairs } from "../../general/arrays.js";
+import { getEdgesFacesOverlap } from "../../graph/intersect/edgesFaces.js";
 import {
 	makeEdgesFacesSide,
 	makeTacosFacesSide,
@@ -64,6 +63,33 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
 /**
+ * @description Tortilla-tortillas can be generated in two ways:
+ * 1. two tortillas (4 faces) where the two dividing edges are collinear
+ * 2. two tortillas (4 faces) where the dividing edges lie on top of
+ * each other, crossing each other, but are not collinear.
+ * This method generates all tortillas from the second set.
+ */
+export const makeTortillaTortillaFacesCrossing = (
+	edges_faces,
+	edges_faces_side,
+	edges_faces_overlap,
+) => {
+	// a tortilla-edge is defined by an edge having two adjacent faces,
+	// and both of those faces are on either side of the edge
+	const tortilla_edge_indices = edges_faces_side
+		.map(side => side.length === 2 && side[0] !== side[1])
+		.map((isTortilla, i) => (isTortilla ? i : undefined))
+		.filter(a => a !== undefined);
+	const tortillas_faces_crossing = [];
+	tortilla_edge_indices.forEach(edge => {
+		tortillas_faces_crossing[edge] = edges_faces_overlap[edge];
+	});
+	const tortilla_faces_results = tortillas_faces_crossing
+		.map((faces, e) => faces.map(face => [edges_faces[e], [face, face]]))
+		.reduce((a, b) => a.concat(b), []);
+	return tortilla_faces_results;
+};
+/**
  * @description Given a FOLD object, find all instances of edges overlapping which
  * classify as taco/tortillas to determine layer order.
  * @param {FOLD} graph a FOLD graph. vertices_coords should already be folded.
@@ -73,14 +99,16 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
  * @notes due to the face_center calculation to determine face-edge sidedness, this
  * is currently hardcoded to only work with convex polygons.
  */
-const makeTacosTortillas = ({
+const makeTacosAndTortillas = ({
 	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
-	edges_vector, faces_polygon,
+	edges_vector,
 }, epsilon = EPSILON) => {
 	// given a graph which is already in its folded state,
 	// find which edges are tacos, or in other words, find out which
 	// edges overlap with another edge.
 	const faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
+	// for each edge, for its adjacent faces (1 or 2), which side of the edge
+	// (using the edge's vector) is each face on?
 	const edges_faces_side = makeEdgesFacesSide({
 		vertices_coords, edges_vertices, edges_faces,
 	}, faces_center);
@@ -89,6 +117,10 @@ const makeTacosTortillas = ({
 	// 130ms:
 	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap({
 		vertices_coords, edges_vertices, edges_vector,
+	}, epsilon);
+	// 750ms:
+	const edges_faces_overlap = getEdgesFacesOverlap({
+		vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
 	}, epsilon);
 	// convert this matrix into unique pairs ([4, 9] but not [9, 4])
 	// thse pairs are also sorted such that the smaller index is first.
@@ -131,8 +163,9 @@ const makeTacosTortillas = ({
 		.filter(a => a !== undefined);
 	// 5ms:
 	const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(
-		{ vertices_coords, edges_vertices, edges_faces, faces_polygon },
+		edges_faces,
 		edges_faces_side,
+		edges_faces_overlap,
 		epsilon,
 	);
 	const tortilla_tortilla = tortilla_tortilla_aligned
@@ -144,10 +177,6 @@ const makeTacosTortillas = ({
 			: undefined))
 		.filter(a => a !== undefined);
 	// taco-tortilla (2), the second of two cases, when a taco overlaps a face.
-	// 750ms:
-	const edges_faces_overlap = getEdgesFacesOverlap({
-		vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
-	}, epsilon);
 	// 10ms:
 	const edges_overlap_faces = edges_faces_overlap
 		.map((faces, e) => (edges_faces_side[e].length > 1
@@ -169,4 +198,4 @@ const makeTacosTortillas = ({
 	};
 };
 
-export default makeTacosTortillas;
+export default makeTacosAndTortillas;
