@@ -109,18 +109,24 @@ const booleanMatrixToIndexedArray = matrix => matrix
 		.filter(a => a !== undefined));
 
 const makeEdgesEdgesSimilar = ({
-	vertices_coords, edges_vertices, edges_coords,
+	vertices_coords, edges_vertices, edges_coords, edges_boundingBox,
 }, epsilon = EPSILON) => {
 	if (!edges_coords) {
 		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}
-	const edges_boundingBox = makeEdgesBoundingBox({
-		vertices_coords, edges_vertices, edges_coords,
-	});
+	if (!edges_boundingBox) {
+		edges_boundingBox = makeEdgesBoundingBox({
+			vertices_coords, edges_vertices, edges_coords,
+		});
+	}
+	const indexFirst = edges_vertices.map((_, i) => i).shift();
 	const matrix = Array.from(Array(edges_coords.length)).map(() => []);
-	const dimensions = edges_boundingBox.length ? edges_boundingBox[0].min.length : 0;
+	if (indexFirst === undefined) { return booleanMatrixToIndexedArray(matrix); }
+	const dimensions = edges_boundingBox[indexFirst].min.length;
 	for (let i = 0; i < edges_coords.length - 1; i += 1) {
+		if (!edges_boundingBox[i]) { continue; }
 		for (let j = i + 1; j < edges_coords.length; j += 1) {
+			if (!edges_boundingBox[j]) { continue; }
 			let similar = true;
 			for (let d = 0; d < dimensions; d += 1) {
 				if (!epsilonEqual(
@@ -160,40 +166,48 @@ export const getEdgesFacesOverlap = ({
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
-	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
 	// use graph vertices_coords for edges vertices
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	const matrix = edges_vertices
 		.map(() => Array.from(Array(faces_vertices.length)));
 	edges_faces.forEach((faces, e) => faces
 		.forEach(f => { matrix[e][f] = false; }));
-	const edges_similar = makeEdgesEdgesSimilar({ vertices_coords, edges_vertices });
 	const edges_coords = edges_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
+	// todo: is this okay if it contains adjacent collinear edges?
 	const faces_coords = faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
-	for (let f = 0; f < faces_winding.length; f += 1) {
-		if (!faces_winding[f]) { faces_coords[f].reverse(); }
-	}
-	const edges_bounds = makeEdgesBoundingBox({ edges_coords });
-	const faces_bounds = faces_coords
-		.map(coords => boundingBox(coords));
+	makeFacesWinding({ vertices_coords, faces_vertices })
+		.map((winding, i) => (!winding ? i : undefined))
+		.filter(f => f !== undefined)
+		.forEach(f => faces_coords[f].reverse());
+	const edges_boundingBox = makeEdgesBoundingBox({ edges_coords });
+	const faces_bounds = faces_coords.map(coords => boundingBox(coords));
 	// should be inclusive, positive epsilon, we are filtering out
 	// edge face pairs which DEFINITELY don't overlap.
 	for (let e = 0; e < matrix.length; e += 1) {
+		if (!edges_boundingBox[e]) { continue; }
 		for (let f = 0; f < matrix[e].length; f += 1) {
 			if (matrix[e][f] === false) { continue; }
-			if (!overlapBoundingBoxes(faces_bounds[f], edges_bounds[e], epsilon)) {
+			if (!faces_bounds[f]) { continue; }
+			if (!overlapBoundingBoxes(faces_bounds[f], edges_boundingBox[e], epsilon)) {
 				matrix[e][f] = false;
 				continue;
 			}
 		}
 	}
+	// edges similar. able to duplicate solutions to other edges if they exist.
+	const edges_similar = makeEdgesEdgesSimilar({
+		vertices_coords, edges_vertices, edges_coords, edges_boundingBox,
+	});
+	// compute overlap
 	const finished_edges = {};
 	for (let e = 0; e < matrix.length; e += 1) {
 		if (finished_edges[e]) { continue; }
+		if (!edges_coords[e]) { continue; }
 		for (let f = 0; f < matrix[e].length; f += 1) {
 			if (matrix[e][f] !== undefined) { continue; }
+			if (!faces_coords[f]) { continue; }
 			const point_in_poly = edges_coords[e]
 				.map(point => overlapConvexPolygonPoint(
 					faces_coords[f],

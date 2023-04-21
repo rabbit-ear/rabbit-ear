@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import { EPSILON } from "../../math/general/constant.js";
 import {
 	include,
 	includeS,
@@ -51,13 +52,13 @@ const segmentPolygonOverlap2Exclusive = (segment, polygon, epsilon) => {
  * planes creates a tortilla-tortilla relationship.
  */
 const make3DTacoTortillas = (
-	graph,
+	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 	sets_facePairs,
 	sets_transformXY,
 	faces_set,
 	faces_polygon,
 	edges_sets,
-	epsilon = 1e-6,
+	epsilon = EPSILON,
 ) => {
 	if (sets_facePairs.length < 2) { return []; }
 	const sets_face_pairs = sets_facePairs
@@ -68,7 +69,7 @@ const make3DTacoTortillas = (
 			.flat()
 			.sort((a, b) => a - b));
 	const sets_faces = sets_facesSet.map(faces => [...new Set(faces)]);
-	const edges_facesLookup = graph.edges_faces
+	const edges_facesLookup = edges_faces
 		.map(faces => {
 			const lookup = {};
 			faces.forEach(face => { lookup[face] = {}; });
@@ -85,7 +86,7 @@ const make3DTacoTortillas = (
 	// we only want to be dealing with edges which are 3D.
 	// these are the flat angles. delete them
 	edges_possibleOverlapFaces
-		.map((_, e) => (edgeFoldAngleIsFlat(graph.edges_foldAngle[e])
+		.map((_, e) => (edgeFoldAngleIsFlat(edges_foldAngle[e])
 			? e : undefined))
 		.filter(a => a !== undefined)
 		.forEach(e => {
@@ -93,8 +94,8 @@ const make3DTacoTortillas = (
 			delete edges_possibleOverlapOtherFaces[e];
 		});
 	const edges_segment3D = edges_possibleOverlapFaces
-		.map((_, e) => graph.edges_vertices[e]
-			.map(v => graph.vertices_coords[v]));
+		.map((_, e) => edges_vertices[e]
+			.map(v => vertices_coords[v]));
 	const edgeFaceOverlapBoolean = edges_possibleOverlapFaces
 		.map((faces, edge) => faces
 			.map(face => segmentPolygonOverlap2Exclusive(
@@ -128,7 +129,7 @@ const make3DTacoTortillas = (
 				})
 				: undefined))
 			.filter(a => a !== undefined));
-	console.log("make3DTacoTortillas");
+	console.log("~~~~~~~~~~~ make3DTacoTortillas ~~~~~~~~~~~");
 	console.log("sets_facePairs", sets_facePairs);
 	console.log("edges_sets", edges_sets);
 	console.log("sets_face_pairs", sets_face_pairs);

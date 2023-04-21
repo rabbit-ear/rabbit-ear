@@ -46,6 +46,21 @@ export const uniqueSortedNumbers = (array) => {
 	return Object.keys(hash).map(parseFloat);
 };
 /**
+ * @description Flatten a set of arrays into one array such that
+ * all indices are preserved. This is intended to be used with arrays
+ * with holes, to re-combine arrays back together. If two indices
+ * exist in both arrays, they will be overwritten by the last array.
+ * @param {...any[]} ...arrays arrays containing any type.
+ * @returns {any[]} one array
+ */
+export const flatSort = (...arrays) => {
+	const flattened = [];
+	arrays.forEach(array => array.forEach((value, i) => {
+		flattened[i] = value;
+	}));
+	return flattened;
+};
+/**
  * @description A circular array (data wraps around) requires 2 indices
  * if you intend to split it into two arrays. The pair of indices can be
  * provided in any order, they will be sorted, smaller index first.

@@ -2,29 +2,23 @@
  * Rabbit Ear (c) Kraft
  */
 import { chooseTwoPairs } from "../../general/arrays.js";
+import { EPSILON } from "../../math/general/constant.js";
 import {
 	dot,
 	normalize,
 	subtract,
 } from "../../math/algebra/vector.js";
+import { rangesOverlapExclusive } from "./general.js";
 /**
- * @description a range is an array of two numbers [start, end]
- * not necessarily in sorted order.
- * Do the two spans overlap on the numberline?
+ *
  */
-const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
-	// make sure ranges are well formed (sorted low to high)
-	const r1 = a[0] < a[1] ? a : [a[1], a[0]];
-	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
-	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
-	return overlap > epsilon;
-};
-
-const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
+const doEdgesOverlap = ({
+	vertices_coords, edges_vertices,
+}, edgePair, vector, epsilon = EPSILON) => {
 	// console.log("doEdgesOverlap", graph, edgePair, vector, epsilon);
 	const pairCoords = edgePair
-		.map(edge => graph.edges_vertices[edge]
-			.map(v => graph.vertices_coords[v]));
+		.map(edge => edges_vertices[edge]
+			.map(v => vertices_coords[v]));
 	const pairCoordsDots = pairCoords
 		.map(edge => edge
 			.map(coord => dot(coord, vector)));
@@ -41,7 +35,9 @@ const doEdgesOverlap = (graph, edgePair, vector, epsilon = 1e-6) => {
 /**
  *
  */
-const make3DTortillaEdges = (graph, edges_sets, epsilon = 1e-6) => {
+const make3DTortillaEdges = ({
+	vertices_coords, edges_vertices,
+}, edges_sets, epsilon = EPSILON) => {
 	const edges_sets_keys = edges_sets.map(arr => arr.join(" "));
 	// intersectingSets_edges will be a dictionary of pairs of groups: "3 15"
 	// indicating that there is an intersection between these two planes,
@@ -71,13 +67,13 @@ const make3DTortillaEdges = (graph, edges_sets, epsilon = 1e-6) => {
 	Object.keys(intersectingSets_pairsAll).forEach(key => {
 		// get a unit vector in the direction of the edges
 		const firstEdge = intersectingSets_pairsAll[key][0][0];
-		const coords = graph.edges_vertices[firstEdge]
-			.map(v => graph.vertices_coords[v]);
+		const coords = edges_vertices[firstEdge]
+			.map(v => vertices_coords[v]);
 		const vector = normalize(subtract(coords[1], coords[0]));
 		// get one of the groups to get a plane/normal
 		// const group = parseInt(key.split(" ")[0], 10);
 		intersectingSets_pairsValid[key] = intersectingSets_pairsAll[key]
-			.map(pair => doEdgesOverlap(graph, pair, vector, epsilon));
+			.map(pair => doEdgesOverlap({ vertices_coords, edges_vertices }, pair, vector, epsilon));
 	});
 	const intersectingSets_pairs = {};
 	Object.keys(intersectingSets_pairsAll).forEach(key => {
@@ -96,11 +92,15 @@ const make3DTortillaEdges = (graph, edges_sets, epsilon = 1e-6) => {
  * where two planes meet along collinear edges, these joining of two
  * planes creates a tortilla-tortilla relationship.
  */
-const make3DTortillas = (graph, faces_set, edges_set, epsilon = 1e-6) => {
-	const tortilla_edges = make3DTortillaEdges(graph, edges_set, epsilon);
+const make3DTortillas = ({
+	vertices_coords, edges_vertices, edges_faces,
+}, faces_set, edges_set, epsilon = 1e-6) => {
+	const tortilla_edges = make3DTortillaEdges({
+		vertices_coords, edges_vertices,
+	}, edges_set, epsilon);
 	const tortilla_faces = tortilla_edges
 		.map(pair => pair
-			.map(edge => graph.edges_faces[edge]));
+			.map(edge => edges_faces[edge]));
 	// make sure to sort the faces of the tacos on the correct side so that
 	// the two faces in the same plane are on the same side of the edge.
 	// [[A,X], [B,Y]], A and B are connected faces, X and Y are connected

@@ -206,6 +206,13 @@ test("average function", () => {
 	);
 });
 
+test("average2", () => {
+	// ear.math.average2()
+	// todo: should we return an array or undefined?
+	// same goes for ear.math.average()
+	expect(true).toBe(false);
+});
+
 test("lerp", () => {
 	expect(ear.math.lerp([0, 1], [2, 0], 0)[0]).toBe(0);
 	expect(ear.math.lerp([0, 1], [2, 0], 0)[1]).toBe(1);

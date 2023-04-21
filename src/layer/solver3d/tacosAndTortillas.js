@@ -2,22 +2,15 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../../math/general/constant.js";
-import {
-	makeEdgesEdgesParallelOverlap,
-} from "../../graph/intersect/edgesEdges.js";
-import {
-	selfRelationalUniqueIndexPairs,
-} from "../../general/arrays.js";
+import { makeEdgesEdgesParallelOverlap } from "../../graph/intersect/edgesEdges.js";
+import { selfRelationalUniqueIndexPairs } from "../../general/arrays.js";
 import { getEdgesFacesOverlap } from "../../graph/intersect/edgesFaces.js";
-import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla.js";
+// import { makeTortillaTortillaFacesCrossing } from "./tortillaTortilla.js";
+import { edgeFoldAngleIsFlat } from "../../fold/spec.js";
 import {
 	makeEdgesFacesSide,
 	makeTacosFacesSide,
-} from "./facesSide.js";
-import {
-	edgeFoldAngleIsFlat,
-	filterKeysWithPrefix,
-} from "../../fold/spec.js";
+} from "../solver2d/facesSide.js";
 /**
  * @description classify a pair of adjacent faces encoded as +1 or -1
  * depending on which side they are on into one of 3 types:
@@ -73,25 +66,37 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 /**
  *
  */
-const makeCopyWithFlatEdges = (graph) => {
-	const copy = { ...graph };
-	// flat edges indices in a hash table
-	const lookup = {};
-	// these are the indices of all flat edges (edges to keep)
-	copy.edges_foldAngle
-		.map(edgeFoldAngleIsFlat)
-		.map((flat, i) => (flat ? i : undefined))
-		.filter(a => a !== undefined)
-		.forEach(e => { lookup[e] = true; });
-	filterKeysWithPrefix(graph, "edges").forEach(key => {
-		copy[key] = [];
-		graph[key].forEach((el, e) => {
-			if (lookup[e]) {
-				copy[key][e] = JSON.parse(JSON.stringify(el));
-			}
-		});
+// export const getFlatEdges = ({ edges_foldAngle }) => edges_foldAngle
+// 	.map(edgeFoldAngleIsFlat)
+// 	.map((flat, i) => (flat ? i : undefined))
+// 	.filter(a => a !== undefined);
+
+/**
+ * @description Tortilla-tortillas can be generated in two ways:
+ * 1. two tortillas (4 faces) where the two dividing edges are collinear
+ * 2. two tortillas (4 faces) where the dividing edges lie on top of
+ * each other, crossing each other, but are not collinear.
+ * This method generates all tortillas from the second set.
+ */
+export const makeTortillaTortillaFacesCrossing = (
+	edges_faces,
+	edges_faces_side,
+	edges_faces_overlap,
+) => {
+	// a tortilla-edge is defined by an edge having two adjacent faces,
+	// and both of those faces are on either side of the edge
+	const tortilla_edge_indices = edges_faces_side
+		.map(side => side.length === 2 && side[0] !== side[1])
+		.map((isTortilla, i) => (isTortilla ? i : undefined))
+		.filter(a => a !== undefined);
+	const tortillas_faces_crossing = [];
+	tortilla_edge_indices.forEach(edge => {
+		tortillas_faces_crossing[edge] = edges_faces_overlap[edge];
 	});
-	return copy;
+	const tortilla_faces_results = tortillas_faces_crossing
+		.map((faces, e) => faces.map(face => [edges_faces[e], [face, face]]))
+		.reduce((a, b) => a.concat(b), []);
+	return tortilla_faces_results;
 };
 /**
  * @description Given a FOLD object, find all instances of edges
@@ -105,21 +110,34 @@ const makeCopyWithFlatEdges = (graph) => {
  * @notes due to the face_center calculation to determine face-edge
  * sidedness, this is currently hardcoded to only work with convex polygons.
  */
-const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
-	// console.log("BEFORE", graphInput);
-	const graph = makeCopyWithFlatEdges(graphInput);
-	// console.log("AFTER", graph);
-
-	// const nonFlatEdges = graph.edges_foldAngle
-	// 	.map(edgeFoldAngleIsFlat)
-	// 	.map((flat, i) => (flat ? undefined : i))
-	// 	.filter(a => a !== undefined);
-	// console.log("nonFlatEdges", nonFlatEdges);
+const makeTacosTortillas = ({
+	vertices_coords, edges_vertices, edges_faces, edges_foldAngle,
+	faces_vertices, faces_edges, faces_center,
+}, epsilon = EPSILON) => {
+	// console.log("~~~~~~~~~~~~~~ makeTacosTortillas ~~~~~~~~~~~~~~");
+	// flat edges have 0, -180, or +180 fold angles.
+	const flatEdges_vertices = edges_vertices.slice();
+	const flatEdges_faces = edges_faces.slice();
+	edges_foldAngle
+		.map(edgeFoldAngleIsFlat)
+		.map((flat, i) => (!flat ? i : undefined))
+		.filter(a => a !== undefined)
+		.forEach(e => {
+			delete flatEdges_vertices[e];
+			delete flatEdges_faces[e];
+		});
+	// console.log("flatEdges", edges_foldAngle.map(edgeFoldAngleIsFlat));
+	// console.log("flatEdges_vertices", flatEdges_vertices);
+	// console.log("flatEdges_faces", flatEdges_faces);
 	// given a graph which is already in its folded state,
 	// find which edges are tacos, or in other words, find out which
 	// edges overlap with another edge.
-	const edges_faces_side = makeEdgesFacesSide(graph);
-	// nonFlatEdges.forEach(e => delete edges_faces_side[e]);
+	const edges_faces_side = makeEdgesFacesSide({
+		vertices_coords: vertices_coords,
+		edges_vertices: flatEdges_vertices,
+		edges_faces: flatEdges_faces,
+	}, faces_center);
+	// console.log("edges_faces_side", edges_faces_side);
 	// const eep = makeEdgesEdgesParallel(graph);
 	// console.log("eep", eep);
 	// const edges_edges_parallel = makeEdgesEdges2DParallel(graph);
@@ -127,21 +145,27 @@ const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
 	// for every edge, find all other edges which are parallel to this edge and
 	// overlap the edge, excluding the epsilon space around the endpoints.
 	// 130ms:
-	const edges_edgesParallelOverlap = makeEdgesEdgesParallelOverlap(graph, epsilon);
+	const edges_edgesParallelOverlap = makeEdgesEdgesParallelOverlap({
+		vertices_coords: vertices_coords,
+		edges_vertices: flatEdges_vertices,
+	}, epsilon);
 	// convert this matrix into unique pairs ([4, 9] but not [9, 4])
 	// thse pairs are also sorted such that the smaller index is first.
 	const tacos_edges = selfRelationalUniqueIndexPairs(edges_edgesParallelOverlap)
 	// const tacos_edges = booleanMatrixToUniqueIndexPairs(edge_edge_overlap_matrix)
 		.filter(pair => pair
-			.map(edge => graph.edges_faces[edge].length > 1)
+			.map(edge => flatEdges_faces[edge].length > 1)
 			.reduce((a, b) => a && b, true));
 	const tacos_faces = tacos_edges
 		.map(pair => pair
-			.map(edge => graph.edges_faces[edge]));
+			.map(edge => flatEdges_faces[edge]));
 	// convert every face into a +1 or -1 based on which side of the edge is it on.
 	// ie: tacos will have similar numbers, tortillas will have one of either.
 	// the +1/-1 is determined by the cross product to the vector of the edge.
-	const tacos_faces_side = makeTacosFacesSide(graph, tacos_edges, tacos_faces);
+	const tacos_faces_side = makeTacosFacesSide({
+		vertices_coords: vertices_coords,
+		edges_vertices: flatEdges_vertices,
+	}, faces_center, tacos_edges, tacos_faces);
 	// each pair of faces is either a "left" or "right" (taco) or "both" (tortilla).
 	const tacos_types = tacos_faces_side
 		.map(faces => faces
@@ -169,10 +193,24 @@ const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
 	// 5ms:
 	// todo: faces_winding is used here. we need to pass in the new version.
 	//
+	// const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(
+	// 	graph,
+	// 	edges_faces_side,
+	// 	epsilon,
+	// );
+	// 750ms:
+	// edges-faces overlap will be unique to each planar-group. edges are
+	// not unique to one group only, so the data would overlap otherwise.
+	const edges_faces_overlap = getEdgesFacesOverlap({
+		vertices_coords: vertices_coords,
+		edges_vertices: flatEdges_vertices,
+		edges_faces: flatEdges_faces,
+		faces_vertices: faces_vertices,
+	}, epsilon);
 	const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(
-		graph,
+		flatEdges_faces,
 		edges_faces_side,
-		epsilon,
+		edges_faces_overlap,
 	);
 	const tortilla_tortilla = tortilla_tortilla_aligned
 		.concat(tortilla_tortilla_crossing);
@@ -183,8 +221,6 @@ const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
 			: undefined))
 		.filter(a => a !== undefined);
 	// taco-tortilla (2), the second of two cases, when a taco overlaps a face.
-	// 750ms:
-	const edges_faces_overlap = getEdgesFacesOverlap(graph, epsilon);
 	// 10ms:
 	const edges_overlap_faces = edges_faces_overlap
 		.map((faces, e) => (edges_faces_side[e].length > 1
@@ -192,7 +228,7 @@ const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
 			? faces
 			: []));
 	const taco_tortillas_crossing = edges_overlap_faces
-		.map((tortillas, edge) => ({ taco: graph.edges_faces[edge], tortillas }))
+		.map((tortillas, edge) => ({ taco: flatEdges_faces[edge], tortillas }))
 		.filter(el => el.tortillas.length);
 	const taco_tortilla_crossing = taco_tortillas_crossing
 		.flatMap(el => el.tortillas
@@ -200,7 +236,9 @@ const makeTacosTortillas = (graphInput, epsilon = EPSILON) => {
 	// finally, join both taco-tortilla cases together into one.
 	const taco_tortilla = taco_tortilla_aligned.concat(taco_tortilla_crossing);
 	// console.log("edges_faces_side", edges_faces_side);
+	// console.log("edges_faces_overlap", edges_faces_overlap);
 	// console.log("edges_edgesParallelOverlap", edges_edgesParallelOverlap);
+	// console.log("uniqueIndexPairs", selfRelationalUniqueIndexPairs(edges_edgesParallelOverlap));
 	// console.log("tacos_faces", tacos_faces);
 	// console.log("tacos_edges", tacos_edges);
 	// console.log("tortilla_tortilla_aligned", tortilla_tortilla_aligned);

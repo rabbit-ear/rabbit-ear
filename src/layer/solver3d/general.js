@@ -2,6 +2,18 @@
  * Rabbit Ear (c) Kraft
  */
 /**
+ * @description a range is an array of two numbers [start, end]
+ * not necessarily in sorted order.
+ * Do the two spans overlap on the numberline?
+ */
+export const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
+	// make sure ranges are well formed (sorted low to high)
+	const r1 = a[0] < a[1] ? a : [a[1], a[0]];
+	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
+	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
+	return overlap > epsilon;
+};
+/**
  * @description Convert an array of faces which are involved in one
  * taco/tortilla/transitivity condition into an array of arrays where
  * each face is paired with the others in the precise combination that

@@ -39,6 +39,7 @@ export const makeConstraints = (tacos_tortillas, transitivity_trios) => {
 
 export const makeConstraintsLookup = (constraints) => {
 	const lookup = {};
+	// fill the top layer with "taco / tortilla" category names
 	Object.keys(constraints).forEach(key => { lookup[key] = {}; });
 	Object.keys(constraints).forEach(type => {
 		constraints[type]

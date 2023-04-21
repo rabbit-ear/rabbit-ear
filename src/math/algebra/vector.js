@@ -231,6 +231,20 @@ const average = function () {
 	return sum.map(n => n / arguments.length);
 };
 /**
+ * @description the average of N number of vectors (not numbers),
+ * similar to midpoint but this can accept more than 2 inputs.
+ * @param {number[]} ...args any number of input vectors
+ * @returns {number[]} one vector, dimension matching first parameter
+ * @linkcode Math ./src/algebra/vectors.js 220
+ */
+const average2 = (...vectors) => {
+	if (!vectors.length) { return undefined; }
+	const inverseLength = 1 / vectors.length;
+	return vectors
+		.reduce((a, b) => add2(a, b), [0, 0])
+		.map(c => c * inverseLength);
+};
+/**
  * @description linear interpolate between two vectors
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
@@ -401,4 +415,4 @@ const resizeUp = (a, b) => [a, b]
 // export const resizeDown = (a, b) => [a, b]
 //   .map(v => resize(Math.min(a.length, b.length), v));
 
-export { add, add2, add3, average, cross2, cross3, degenerate, distance, distance2, distance3, dot, dot2, dot3, flip, lerp, magSquared, magnitude, magnitude2, magnitude3, midpoint, midpoint2, midpoint3, normalize, normalize2, normalize3, parallel, parallel2, parallelNormalized, resize, resizeUp, rotate270, rotate90, scale, scale2, scale3, subtract, subtract2, subtract3 };
+export { add, add2, add3, average, average2, cross2, cross3, degenerate, distance, distance2, distance3, dot, dot2, dot3, flip, lerp, magSquared, magnitude, magnitude2, magnitude3, midpoint, midpoint2, midpoint3, normalize, normalize2, normalize3, parallel, parallel2, parallelNormalized, resize, resizeUp, rotate270, rotate90, scale, scale2, scale3, subtract, subtract2, subtract3 };

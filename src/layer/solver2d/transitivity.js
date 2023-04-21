@@ -24,10 +24,12 @@ export const makeTransitivity = (
 		overlap_matrix[i][j] = true;
 		overlap_matrix[j][i] = true;
 	}));
-	const matrix = faces_polygon.map(() => []);
+	const matrix = [];
 	facesFacesOverlap.forEach((faces, i) => faces.forEach(j => {
 		const polygon = clipPolygonPolygon(faces_polygon[i], faces_polygon[j], epsilon);
 		if (polygon) {
+			if (!matrix[i]) { matrix[i] = []; }
+			if (!matrix[j]) { matrix[j] = []; }
 			matrix[i][j] = polygon;
 			matrix[j][i] = polygon;
 		}

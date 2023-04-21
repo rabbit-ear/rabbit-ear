@@ -23,7 +23,7 @@ const solveEdgeAdjacent = ({
 }, facePairs, faces_winding) => {
 	const facePairsHash = {};
 	facePairs.forEach(key => { facePairsHash[key] = true; });
-	const soution = {};
+	const solution = {};
 	edges_faces.forEach((faces, edge) => {
 		// the crease assignment determines the order between pairs of faces.
 		const assignment = edges_assignment[edge];
@@ -39,12 +39,12 @@ const solveEdgeAdjacent = ({
 			: make_conditions_flip_condition[local_order];
 		const key1 = `${faces[0]} ${faces[1]}`;
 		const key2 = `${faces[1]} ${faces[0]}`;
-		if (key1 in facePairsHash) { soution[key1] = global_order; }
+		if (key1 in facePairsHash) { solution[key1] = global_order; }
 		if (key2 in facePairsHash) {
-			soution[key2] = make_conditions_flip_condition[global_order];
+			solution[key2] = make_conditions_flip_condition[global_order];
 		}
 	});
-	return soution;
+	return solution;
 };
 
 export default solveEdgeAdjacent;
