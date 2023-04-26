@@ -142,12 +142,7 @@ const solveNode = (
  * append the "root" to one selection from each array in "partitions".
  * @linkcode Origami ./src/layer/solver3d/index.js 140
  */
-const solver3d = (
-	constraints,
-	lookup,
-	facePairs,
-	orders,
-) => {
+const solver3d = ({ constraints, lookup, facePairs, orders }) => {
 	// propagate layer order starting with only the edge-adjacent face orders
 	let initialResult;
 	try {

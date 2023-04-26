@@ -97,8 +97,6 @@ const solveBranch = (
  * @linkcode Origami ./src/layer/globalSolver/index.js 89
  */
 const solver2d = ({ constraints, lookup, facePairs, orders }) => {
-	// algorithm running time info
-	// const startDate = new Date();
 	// propagate layer order starting with only the edge-adjacent face orders
 	let initialResult;
 	try {
@@ -134,8 +132,6 @@ const solver2d = ({ constraints, lookup, facePairs, orders }) => {
 	const branches = branchResults
 		.map(branch => branch
 			.map(solution => Object.assign({}, ...solution)));
-	// const duration = Date.now() - startDate;
-	// if (duration > 50) { console.log(`solver ${duration}ms`); }
 	return { root, branches };
 };
 

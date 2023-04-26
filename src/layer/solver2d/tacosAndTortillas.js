@@ -100,27 +100,26 @@ export const makeTortillaTortillaFacesCrossing = (
  * is currently hardcoded to only work with convex polygons.
  */
 const makeTacosAndTortillas = ({
-	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
-	edges_vector,
+	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_center,
+	edges_vector, // faces_edges,
 }, epsilon = EPSILON) => {
-	// given a graph which is already in its folded state,
-	// find which edges are tacos, or in other words, find out which
-	// edges overlap with another edge.
-	const faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
+	if (!faces_center) {
+		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
+	}
 	// for each edge, for its adjacent faces (1 or 2), which side of the edge
 	// (using the edge's vector) is each face on?
 	const edges_faces_side = makeEdgesFacesSide({
-		vertices_coords, edges_vertices, edges_faces,
-	}, faces_center);
+		vertices_coords, edges_vertices, edges_faces, faces_center,
+	});
 	// for every edge, find all other edges which are parallel to this edge and
 	// overlap the edge, excluding the epsilon space around the endpoints.
-	// 130ms:
 	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap({
 		vertices_coords, edges_vertices, edges_vector,
 	}, epsilon);
-	// 750ms:
+	// faces_edges is not needed with the current "getEdgesFacesOverlap" method.
+	// there is one in the works which does use faces_edges.
 	const edges_faces_overlap = getEdgesFacesOverlap({
-		vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
+		vertices_coords, edges_vertices, edges_faces, faces_vertices, // faces_edges,
 	}, epsilon);
 	// convert this matrix into unique pairs ([4, 9] but not [9, 4])
 	// thse pairs are also sorted such that the smaller index is first.
@@ -135,8 +134,8 @@ const makeTacosAndTortillas = ({
 	// ie: tacos will have similar numbers, tortillas will have one of either.
 	// the +1/-1 is determined by the cross product to the vector of the edge.
 	const tacos_faces_side = makeTacosFacesSide({
-		vertices_coords, edges_vertices,
-	}, faces_center, tacos_edges, tacos_faces);
+		vertices_coords, edges_vertices, faces_center,
+	}, tacos_edges, tacos_faces);
 	// each pair of faces is either a "left" or "right" (taco) or "both" (tortilla).
 	const tacos_types = tacos_faces_side
 		.map(faces => faces
@@ -177,7 +176,6 @@ const makeTacosAndTortillas = ({
 			: undefined))
 		.filter(a => a !== undefined);
 	// taco-tortilla (2), the second of two cases, when a taco overlaps a face.
-	// 10ms:
 	const edges_overlap_faces = edges_faces_overlap
 		.map((faces, e) => (edges_faces_side[e].length > 1
 			&& edges_faces_side[e][0] === edges_faces_side[e][1]

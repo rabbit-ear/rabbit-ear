@@ -21,12 +21,6 @@ import { uniqueElements } from "../../general/arrays.js";
 // "taco_taco", "taco_tortilla", "tortilla_tortilla", "transitivity"
 const taco_types = Object.freeze(Object.keys(table));
 /**
- * @description a layer orientation between two faces is encoded as:
- * 0: unknown, 1: face A is above B, 2: face B is above A.
- * this map will flip 1 and 2, leaving 0 to be 0.
- */
-const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
-/**
  * @description Given one particular taco/tortilla/transitivity constraint,
  * arrange its faces in all combinations of facePairs and check if any of
  * these orders are known (1 or 2), arrange this into a string (eg. 010021),
@@ -44,9 +38,13 @@ const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
  * @linkcode Origami ./src/layer/solver2d/propagate.js 44
  */
 const buildRuleAndLookup = (type, constraint, ...orders) => {
+	// flip face order
+	const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
 	// regroup the N faces into an array of pairs, giving us the
 	// facePair ("3 5") and booleans stating if the order was flipped.
 	const facePairsArray = constraintToFacePairs[type](constraint);
+	// are the two faces in each pair out of order (not sorted),
+	// meaning taht when we apply the order, we need to flip it first.
 	const flipped = facePairsArray.map(pair => pair[1] < pair[0]);
 	const facePairs = facePairsArray.map((pair, i) => (flipped[i]
 		? `${pair[1]} ${pair[0]}`
@@ -94,7 +92,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
  */
 // const getConstraintIndicesFromFacePairs = (
 // 	constraints,
-// 	constraintsLookup,
+// 	lookup,
 // 	facePairsSubsetArray,
 // 	...orders
 // ) => {
@@ -107,7 +105,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 // 		// given the array of modified facePairs since last round, get all
 // 		// the indices in the constraints array in which these facePairs exist.
 // 		const duplicates = facePairsSubsetArray
-// 			.flatMap(facePair => constraintsLookup[type][facePair]);
+// 			.flatMap(facePair => lookup[type][facePair]);
 // 		// filter these constraint indices so that (1) no duplicates and
 // 		// (2) only faces which appear in an unknown order (0) are included,
 // 		// which is done by consulting constraints[i] and checking all faces
@@ -135,7 +133,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
  */
 const getConstraintIndicesFromFacePairs = (
 	constraints,
-	constraintsLookup,
+	lookup,
 	facePairsSubsetArray,
 ) => {
 	const constraintIndices = {};
@@ -144,7 +142,7 @@ const getConstraintIndicesFromFacePairs = (
 		// the indices in the constraints array in which these facePairs exist.
 		// this array will contain duplicates
 		const constraintIndicesWithDups = facePairsSubsetArray
-			.flatMap(facePair => constraintsLookup[type][facePair]);
+			.flatMap(facePair => lookup[type][facePair]);
 		// filter these constraint indices to remove duplicates
 		constraintIndices[type] = uniqueElements(constraintIndicesWithDups)
 			.filter(i => constraints[type][i]);

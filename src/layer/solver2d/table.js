@@ -113,31 +113,31 @@ const check_state = (states, t, key) => {
 const make_lookup = (valid_states) => {
 	// the choose count can be inferred by the length of the valid states
 	// (assuming they are all the same length)
-	const choose_count = valid_states[0].length;
+	const chooseCount = valid_states[0].length;
 	// array of empty objects
 	const states = Array
-		.from(Array(choose_count + 1))
+		.from(Array(chooseCount + 1))
 		.map(() => ({}));
-	// all permutations of 1s and 2s (no zeros), length of choose_count.
+	// all permutations of 1s and 2s (no zeros), length of chooseCount.
 	// examples for (6): 111112, 212221
 	// set the value of these to "false" (solution is impossible)
 	// with the valid cases to be overwritten in the next step.
-	Array.from(Array(Math.pow(2, choose_count)))
+	Array.from(Array(2 ** chooseCount))
 		.map((_, i) => i.toString(2))
 		.map(str => Array.from(str).map(n => parseInt(n, 10) + 1).join(""))
-		.map(str => (`11111${str}`).slice(-choose_count))
+		.map(str => (`11111${str}`).slice(-chooseCount))
 		.forEach(key => { states[0][key] = false; });
 	// set the valid cases to "true" (solution is possible)
 	valid_states.forEach(s => { states[0][s] = true; });
 	// "t" relates to the number of unknowns (# zeros). layer 0 is complete,
-	// start at layer 1 and count up to choose_count.
-	Array.from(Array(choose_count))
+	// start at layer 1 and count up to chooseCount.
+	Array.from(Array(chooseCount))
 		.map((_, i) => i + 1)
-		// make all permuations of 0s, 1s, and 2s now, length of choose_count.
+		// make all permuations of 0s, 1s, and 2s now, length of chooseCount.
 		// (all possibile permuations of layer orders)
-		.map(t => Array.from(Array(Math.pow(3, choose_count)))
+		.map(t => Array.from(Array(3 ** chooseCount))
 			.map((_, i) => i.toString(3))
-			.map(str => (`000000${str}`).slice(-choose_count))
+			.map(str => (`000000${str}`).slice(-chooseCount))
 			.forEach(key => check_state(states, t, key)));
 	// todo: the filter at the beginning of check_state is throwing away
 	// a lot of solutions, duplicating work, in the first array here, instead
@@ -146,9 +146,9 @@ const make_lookup = (valid_states) => {
 	// gather solutions together into one object. if a layer order has
 	// multiple suggested modifications, grab the first one
 	let outs = [];
-	// array decrementing integers from [choose_count...0]
-	Array.from(Array(choose_count + 1))
-		.map((_, i) => choose_count - i)
+	// array decrementing integers from [chooseCount...0]
+	Array.from(Array(chooseCount + 1))
+		.map((_, i) => chooseCount - i)
 		.forEach(t => {
 			const A = [];
 			// currently, each value is either a number (0 or 1), or

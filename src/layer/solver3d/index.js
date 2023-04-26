@@ -4,15 +4,15 @@
 import {
 	makeFacesEdgesFromVertices,
 	makeEdgesFacesUnsorted,
+	makeEdgesAssignmentSimple,
 	makeEdgesFoldAngle,
 	makeFacesFaces,
 } from "../../graph/make.js";
 import { makeEpsilon } from "../general.js";
 import { setup } from "./setup.js";
-import solveEdgeAdjacent from "../solver2d/edgeAdjacent.js";
-import solver3d from "./solver.js";
-import LayerPrototype from "./prototype.js";
-import { reformatSolution } from "./general.js";
+// import solver3d from "./solver.js";
+import solver2d from "../solver2d/solver.js";
+import LayerPrototype from "../solver2d/prototype.js";
 //
 const emptyLayerSolution = () => ({ root: {}, branches: [], faces_winding: [] });
 /**
@@ -47,32 +47,34 @@ export const layer3d = ({
 	if (!edges_foldAngle && edges_assignment) {
 		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
 	}
+	if (!edges_assignment) {
+		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
+	}
 	// find an appropriate epsilon, if it is not specified
 	if (epsilon === undefined) {
 		epsilon = makeEpsilon({ vertices_coords, edges_vertices });
 	}
 	// convert the graph into conditions for the solver
 	const {
-		constraints, lookup, facePairs, faces_winding,
+		constraints, lookup, facePairs, faces_winding, orders,
 	} = setup({
 		vertices_coords,
 		edges_vertices,
 		edges_faces,
+		edges_assignment,
 		edges_foldAngle,
 		faces_vertices,
 		faces_edges,
 		faces_faces,
 		// edges_vector,
 	}, epsilon);
-	// solve all edge-adjacent face pairs where the assignment between them is known
-	const orders = solveEdgeAdjacent({
-		edges_faces,
-		edges_assignment,
-	}, facePairs, faces_winding);
-	// tt3dKeys.forEach((key, i) => { orders[key] = tt3dOrders[i]; });
-	const { root, branches } = solver3d({ constraints, lookup, facePairs, orders });
-	const solution = reformatSolution({ root, branches }, faces_winding);
 
+	const { root, branches } = solver2d({ constraints, lookup, facePairs, orders });
+	// console.log("constraints", constraints);
+	// console.log("lookup", lookup);
+	// console.log("facePairs", facePairs);
+	// console.log("faces_winding", faces_winding);
+	// console.log("orders", orders);
 	return Object.assign(Object.create(LayerPrototype), {
 		root,
 		branches,

@@ -11,10 +11,11 @@ import {
  * faces, which side of the edge (using the edge's vector)
  * is each face on. each result is an array of length
  * matching the number of adjacent edges.
+ * @param {FOLD} graph the fold graph with faces_center
  */
 export const makeEdgesFacesSide = ({
-	vertices_coords, edges_vertices, edges_faces,
-}, faces_center) => {
+	vertices_coords, edges_vertices, edges_faces, faces_center,
+}) => {
 	const edges_origin = edges_vertices
 		.map(vertices => vertices_coords[vertices[0]]);
 	const edges_vector = edges_vertices
@@ -25,10 +26,7 @@ export const makeEdgesFacesSide = ({
 	return edges_faces
 		.map((faces, i) => faces
 			.map(face => cross2(
-				subtract2(
-					faces_center[face],
-					edges_origin[i],
-				),
+				subtract2(faces_center[face], edges_origin[i]),
 				edges_vector[i],
 			))
 			.map(cross => Math.sign(cross)));
@@ -38,11 +36,14 @@ export const makeEdgesFacesSide = ({
  * edges and the edges' adjacent faces, give each face a +1 or -1 based
  * on which side of the edge it is on. "side" determined by the cross-
  * product against the edge's vector.
+ * @param {FOLD} graph the fold graph with faces_center
+ * @param {any} tacos_edges
+ * @param {any} tacos_faces
  * @linkcode Origami ./src/layer/solver2d/tacos/facesSide.js 33
  */
 export const makeTacosFacesSide = ({
-	vertices_coords, edges_vertices,
-}, faces_center, tacos_edges, tacos_faces) => {
+	vertices_coords, edges_vertices, faces_center,
+}, tacos_edges, tacos_faces) => {
 	// there are two edges involved in a taco, grab the first one.
 	// we have to use the same origin/vector so that the face-sidedness is
 	// consistent globally, not local to its edge.

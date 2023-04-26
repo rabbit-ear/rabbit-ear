@@ -4,10 +4,10 @@
 import { resize } from "../../math/algebra/vector.js";
 import { multiplyMatrix4Vector3 } from "../../math/algebra/matrix4.js";
 import { subgraphWithFaces } from "../../graph/subgraph.js";
-// import {
-// 	edgeFoldAngleIsFlat,
-// 	filterKeysWithPrefix,
-// } from "../../fold/spec.js";
+import {
+	filterKeysWithPrefix,
+	edgeFoldAngleIsFlat,
+} from "../../fold/spec.js";
 /**
  * @description make copies of 
  */
@@ -28,29 +28,19 @@ export const graphGroupCopies = (graph, sets_faces, sets_transform) => {
 		copies[i].vertices_coords = copies[i].vertices_coords
 			.map((_, v) => transformTo2D(matrix, vertices_coords_3d[v]));
 	});
+	// non-flat edges are anything other than 0, -180, or +180 fold angles.
+	const nonFlatEdges = graph.edges_foldAngle
+		.map(edgeFoldAngleIsFlat)
+		.map((flat, i) => (!flat ? i : undefined))
+		.filter(a => a !== undefined);
+	// all keys in the graph that start with "edges_"
+	const edgesKeys = filterKeysWithPrefix(graph, "edges");
+	// delete all non-flat edge information
+	copies.forEach(copy => nonFlatEdges
+		.forEach(e => edgesKeys
+			.forEach(key => { delete copy[key][e]; })));
+	// now, any arrays referencing edges (_edges) are out of sync with
+	// the edge arrays themselves (edges_). Therefore this method really
+	// isn't intended to be used outside of this higly specific context.
 	return copies;
 };
-
-// /**
-//  * @description what
-//  */
-// export const makeCopyWithFlatEdges = (graph) => {
-// 	const copy = { ...graph };
-// 	// flat edges indices in a hash table
-// 	const lookup = {};
-// 	// these are the indices of all flat edges (edges to keep)
-// 	copy.edges_foldAngle
-// 		.map(edgeFoldAngleIsFlat)
-// 		.map((flat, i) => (flat ? i : undefined))
-// 		.filter(a => a !== undefined)
-// 		.forEach(e => { lookup[e] = true; });
-// 	filterKeysWithPrefix(graph, "edges").forEach(key => {
-// 		copy[key] = [];
-// 		graph[key].forEach((el, e) => {
-// 			if (lookup[e]) {
-// 				copy[key][e] = JSON.parse(JSON.stringify(el));
-// 			}
-// 		});
-// 	});
-// 	return copy;
-// };

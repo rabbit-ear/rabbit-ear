@@ -24,9 +24,11 @@ export const layer = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
 	faces_vertices, faces_edges, edges_vector,
 }, epsilon) => {
+	// the graph must have these 3 arrays for a solution to be possible.
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
 		return Object.assign(Object.create(LayerPrototype), emptyLayerSolution());
 	}
+	// these are needed, make them if they don't exist
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
@@ -46,7 +48,8 @@ export const layer = ({
 		faces_edges,
 		edges_vector,
 	}, epsilon);
-	// solve all edge-adjacent face pairs where the assignment between them is known
+	// before we run the solver, solve all of the conditions that we can.
+	// at this point, this means adjacent faces with an M or V edge between them.
 	const orders = solveEdgeAdjacent({
 		edges_faces,
 		edges_assignment,

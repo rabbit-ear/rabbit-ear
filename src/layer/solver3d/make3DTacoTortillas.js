@@ -47,9 +47,7 @@ const segmentPolygonOverlap2Exclusive = (segment, polygon, epsilon) => {
 	return false;
 };
 /**
- * @description For a 3D folded model, this will find the places
- * where two planes meet along collinear edges, these joining of two
- * planes creates a tortilla-tortilla relationship.
+ * @description 
  */
 const make3DTacoTortillas = (
 	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
@@ -96,6 +94,16 @@ const make3DTacoTortillas = (
 	const edges_segment3D = edges_possibleOverlapFaces
 		.map((_, e) => edges_vertices[e]
 			.map(v => vertices_coords[v]));
+	// console.log("~~~~~~~~~~~ make3DTacoTortillas ~~~~~~~~~~~");
+	// console.log("sets_facePairs", sets_facePairs);
+	// console.log("sets_transformXY", sets_transformXY);
+	// console.log("sets_face_pairs", sets_face_pairs);
+	// console.log("sets_faces", sets_faces);
+	// console.log("faces_set", faces_set);
+	// console.log("edges_sets", edges_sets);
+	// console.log("edges_possibleOverlapFaces", edges_possibleOverlapFaces);
+	// console.log("edges_possibleOverlapOtherFaces", edges_possibleOverlapOtherFaces);
+	// console.log("edges_segment3D", edges_segment3D);
 	const edgeFaceOverlapBoolean = edges_possibleOverlapFaces
 		.map((faces, edge) => faces
 			.map(face => segmentPolygonOverlap2Exclusive(
@@ -129,17 +137,7 @@ const make3DTacoTortillas = (
 				})
 				: undefined))
 			.filter(a => a !== undefined));
-	console.log("~~~~~~~~~~~ make3DTacoTortillas ~~~~~~~~~~~");
-	console.log("sets_facePairs", sets_facePairs);
-	console.log("edges_sets", edges_sets);
-	console.log("sets_face_pairs", sets_face_pairs);
-	console.log("sets_faces", sets_faces);
-	console.log("edges_possibleOverlapFaces", edges_possibleOverlapFaces);
-	console.log("edges_possibleOverlapOtherFaces", edges_possibleOverlapOtherFaces);
-	console.log("edges_segment3D", edges_segment3D);
-	// console.log("edges_transform", edges_transform);
-	// console.log("edges_segment2D", edges_segment2D);
-	console.log("results", results);
+	// console.log("results", results);
 	return results;
 };
 
