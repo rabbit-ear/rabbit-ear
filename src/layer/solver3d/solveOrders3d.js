@@ -49,12 +49,13 @@ const segmentPolygonOverlap2Exclusive = (segment, polygon, epsilon) => {
 /**
  * @description 
  */
-const make3DTacoTortillas = (
+const solve3DOrders = (
 	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 	sets_facePairs,
 	sets_transformXY,
 	faces_set,
 	faces_polygon,
+	faces_winding,
 	edges_sets,
 	epsilon = EPSILON,
 ) => {
@@ -70,15 +71,17 @@ const make3DTacoTortillas = (
 	const edges_facesLookup = edges_faces
 		.map(faces => {
 			const lookup = {};
-			faces.forEach(face => { lookup[face] = {}; });
+			faces.forEach(face => { lookup[face] = true; });
 			return lookup;
 		});
 	const edges_possibleOverlapFaces = edges_sets
 		.map((sets, edge) => sets
+			.filter(set => sets_faces[set] !== undefined)
 			.flatMap(set => sets_faces[set])
 			.filter(face => !edges_facesLookup[edge][face]));
 	const edges_possibleOverlapOtherFaces = edges_sets
 		.map((sets, edge) => sets
+			.filter(set => sets_faces[set] !== undefined)
 			.flatMap(set => sets_faces[set])
 			.filter(face => edges_facesLookup[edge][face]));
 	// we only want to be dealing with edges which are 3D.
@@ -94,7 +97,7 @@ const make3DTacoTortillas = (
 	const edges_segment3D = edges_possibleOverlapFaces
 		.map((_, e) => edges_vertices[e]
 			.map(v => vertices_coords[v]));
-	// console.log("~~~~~~~~~~~ make3DTacoTortillas ~~~~~~~~~~~");
+	// console.log("~~~~~~~~~~~ 3d orders ~~~~~~~~~~~");
 	// console.log("sets_facePairs", sets_facePairs);
 	// console.log("sets_transformXY", sets_transformXY);
 	// console.log("sets_face_pairs", sets_face_pairs);
@@ -127,7 +130,7 @@ const make3DTacoTortillas = (
 	// 			? edges_possibleOverlapOtherFaces[i][j]
 	// 			: undefined))
 	// 		.filter(a => a !== undefined));
-	const results = edgeFaceOverlapBoolean
+	const tacoTortillas3D = edgeFaceOverlapBoolean
 		.flatMap((faces, i) => faces
 			.map((overlap, j) => (overlap
 				? ({
@@ -136,9 +139,31 @@ const make3DTacoTortillas = (
 					otherFace: edges_possibleOverlapOtherFaces[i][j],
 				})
 				: undefined))
-			.filter(a => a !== undefined));
-	// console.log("results", results);
-	return results;
+			.filter(a => a !== undefined)
+			.filter(el => el.otherFace !== undefined));
+	// console.log("tacoTortillas3D", tacoTortillas3D);
+
+	const tt3dWindings = tacoTortillas3D
+		.map(el => [el.face, el.otherFace].map(f => faces_winding[f]));
+	const tt3dKeysOrdered = tacoTortillas3D
+		.map(el => el.face < el.otherFace);
+	const tt3dKeys = tacoTortillas3D
+		.map((el, i) => (tt3dKeysOrdered[i]
+			? [el.face, el.otherFace]
+			: [el.otherFace, el.face]))
+		.map(pair => pair.join(" "));
+	const signOrder = { "-1": 2, 1: 1, 0: 0 };
+	const tt3dOrders = tacoTortillas3D
+		.map(el => Math.sign(edges_foldAngle[el.edge]))
+		// .map((sign, i) => {
+		// 	// needs some complicated thing here
+		// 	const flip = (tt3dKeysOrdered[i] ? tt3dWindings[i][0] : tt3dWindings[i][1]);
+		// 	return flip ? -1 * sign : sign;
+		// })
+		.map(sign => signOrder[sign]);
+	const orders = {};
+	// tt3dKeys.forEach((key, i) => { orders[key] = tt3dOrders[i]; });
+	return orders;
 };
 
 // the 2D tacoTortilla method generates an array of objects in the form:
@@ -151,4 +176,4 @@ const make3DTacoTortillas = (
 // instead of returning taco tortilla data, we can just return solutions
 // to face-pair constraints.
 
-export default make3DTacoTortillas;
+export default solve3DOrders;

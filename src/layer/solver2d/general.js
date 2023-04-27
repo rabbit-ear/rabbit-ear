@@ -89,6 +89,7 @@ export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
 	faceOrders.forEach((faces, i) => {
 		const value = signedLayerSolverValue[facePairOrders[keys[i]]];
 		const side = (!faces_winding[faces[1]]) ? -value : value;
+		// const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;
 		faces.push(side);
 	});
 	return faceOrders;

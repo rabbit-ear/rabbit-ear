@@ -10054,7 +10054,7 @@ const faceOrdersToMatrix = (faceOrders) => {
 			matrix[b][a] = -c;
 		});
 	return matrix;
-};const general=/*#__PURE__*/Object.freeze({__proto__:null,faceOrdersToMatrix,facesLayerToEdgesAssignments,flipFacesLayer,makeEpsilon});const constraintToFacePairs$1 = ({
+};const general=/*#__PURE__*/Object.freeze({__proto__:null,faceOrdersToMatrix,facesLayerToEdgesAssignments,flipFacesLayer,makeEpsilon});const constraintToFacePairs = ({
 	taco_taco: f => [
 		[f[0], f[2]],
 		[f[1], f[3]],
@@ -10067,31 +10067,31 @@ const faceOrdersToMatrix = (faceOrders) => {
 	tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
 	transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
 });
-const pairArrayToSortedPairString$1 = pair => (pair[0] < pair[1]
+const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
 	? `${pair[0]} ${pair[1]}`
 	: `${pair[1]} ${pair[0]}`);
-const constraintToFacePairsStrings$1 = ({
+const constraintToFacePairsStrings = ({
 	taco_taco: f => [
-		pairArrayToSortedPairString$1([f[0], f[2]]),
-		pairArrayToSortedPairString$1([f[1], f[3]]),
-		pairArrayToSortedPairString$1([f[1], f[2]]),
-		pairArrayToSortedPairString$1([f[0], f[3]]),
-		pairArrayToSortedPairString$1([f[0], f[1]]),
-		pairArrayToSortedPairString$1([f[2], f[3]]),
+		pairArrayToSortedPairString([f[0], f[2]]),
+		pairArrayToSortedPairString([f[1], f[3]]),
+		pairArrayToSortedPairString([f[1], f[2]]),
+		pairArrayToSortedPairString([f[0], f[3]]),
+		pairArrayToSortedPairString([f[0], f[1]]),
+		pairArrayToSortedPairString([f[2], f[3]]),
 	],
 	taco_tortilla: f => [
-		pairArrayToSortedPairString$1([f[0], f[2]]),
-		pairArrayToSortedPairString$1([f[0], f[1]]),
-		pairArrayToSortedPairString$1([f[1], f[2]]),
+		pairArrayToSortedPairString([f[0], f[2]]),
+		pairArrayToSortedPairString([f[0], f[1]]),
+		pairArrayToSortedPairString([f[1], f[2]]),
 	],
 	tortilla_tortilla: f => [
-		pairArrayToSortedPairString$1([f[0], f[2]]),
-		pairArrayToSortedPairString$1([f[1], f[3]]),
+		pairArrayToSortedPairString([f[0], f[2]]),
+		pairArrayToSortedPairString([f[1], f[3]]),
 	],
 	transitivity: f => [
-		pairArrayToSortedPairString$1([f[0], f[1]]),
-		pairArrayToSortedPairString$1([f[1], f[2]]),
-		pairArrayToSortedPairString$1([f[2], f[0]]),
+		pairArrayToSortedPairString([f[0], f[1]]),
+		pairArrayToSortedPairString([f[1], f[2]]),
+		pairArrayToSortedPairString([f[2], f[0]]),
 	],
 });
 const signedLayerSolverValue = { 0: 0, 1: 1, 2: -1 };
@@ -10104,7 +10104,7 @@ const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
 		faces.push(side);
 	});
 	return faceOrders;
-};const general2d=/*#__PURE__*/Object.freeze({__proto__:null,constraintToFacePairs:constraintToFacePairs$1,constraintToFacePairsStrings:constraintToFacePairsStrings$1,solverSolutionToFaceOrders});const makeConstraints = ({
+};const general2d=/*#__PURE__*/Object.freeze({__proto__:null,constraintToFacePairs,constraintToFacePairsStrings,solverSolutionToFaceOrders});const makeConstraints = ({
 	taco_taco, taco_tortilla, tortilla_tortilla, transitivity,
 }) => {
 	const constraints = {};
@@ -10127,7 +10127,7 @@ const makeConstraintsLookup = (constraints) => {
 	Object.keys(constraints).forEach(key => { lookup[key] = {}; });
 	Object.keys(constraints).forEach(type => {
 		constraints[type]
-			.forEach((constraint, i) => constraintToFacePairsStrings$1[type](constraint)
+			.forEach((constraint, i) => constraintToFacePairsStrings[type](constraint)
 				.forEach(key => {
 					if (lookup[type][key] === undefined) {
 						lookup[type][key] = [];
@@ -10505,7 +10505,7 @@ const layerTable = {
 };const taco_types = Object.freeze(Object.keys(layerTable));
 const buildRuleAndLookup = (type, constraint, ...orders) => {
 	const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
-	const facePairsArray = constraintToFacePairs$1[type](constraint);
+	const facePairsArray = constraintToFacePairs[type](constraint);
 	const flipped = facePairsArray.map(pair => pair[1] < pair[0]);
 	const facePairs = facePairsArray.map((pair, i) => (flipped[i]
 		? `${pair[1]} ${pair[0]}`
@@ -10612,7 +10612,7 @@ const propagate = (
 				if (!indices) { return; }
 				indices
 					.map(c => constraints[type][c])
-					.map(faces => constraintToFacePairsStrings$1[type](faces)
+					.map(faces => constraintToFacePairsStrings[type](faces)
 						.forEach(facePair => { neighborsHash[facePair] = true; }));
 			});
 			const neighbors = Object.keys(neighborsHash)
@@ -10789,67 +10789,14 @@ const layer = ({
 	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
 	return overlap > epsilon;
 };
-const constraintToFacePairs = ({
-	taco_taco: f => [
-		[f[0], f[2]],
-		[f[1], f[3]],
-		[f[1], f[2]],
-		[f[0], f[3]],
-		[f[0], f[1]],
-		[f[2], f[3]],
-	],
-	taco_tortilla: f => [[f[0], f[2]], [f[0], f[1]], [f[1], f[2]]],
-	tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
-	transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
-});
-const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
-	? `${pair[0]} ${pair[1]}`
-	: `${pair[1]} ${pair[0]}`);
-const constraintToFacePairsStrings = ({
-	taco_taco: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[1], f[3]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-		pairArrayToSortedPairString([f[0], f[3]]),
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[2], f[3]]),
-	],
-	taco_tortilla: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-	],
-	tortilla_tortilla: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[1], f[3]]),
-	],
-	transitivity: f => [
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-		pairArrayToSortedPairString([f[2], f[0]]),
-	],
-});
-const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-const keysToFaceOrders = (facePairs, faces_aligned) => {
-	const keys = Object.keys(facePairs);
-	const faceOrders = keys.map(string => string
-		.split(" ")
-		.map(n => parseInt(n, 10)));
-	faceOrders.forEach((faces, i) => {
-		const value = to_signed_layer_convert[facePairs[keys[i]]];
-		const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;
-		faces.push(side);
-	});
-	return faceOrders;
-};
 const reformatSolution = (solution, faces_winding) => {
 	if (solution.orders) {
 		solution.orders = solution.orders
-			.flatMap(order => keysToFaceOrders(order, faces_winding));
+			.flatMap(order => solverSolutionToFaceOrders(order, faces_winding));
 	}
 	if (solution.leaves) {
 		solution.leaves = solution.leaves
-			.map(order => keysToFaceOrders(order, faces_winding));
+			.map(order => solverSolutionToFaceOrders(order, faces_winding));
 	}
 	if (solution.partitions) {
 		solution.partitions
@@ -10860,7 +10807,7 @@ const reformatSolution = (solution, faces_winding) => {
 			.forEach(child => reformatSolution(child, faces_winding));
 	}
 	return solution;
-};const general3d=/*#__PURE__*/Object.freeze({__proto__:null,constraintToFacePairs,constraintToFacePairsStrings,pairArrayToSortedPairString,rangesOverlapExclusive,reformatSolution});const doEdgesOverlap = ({
+};const general3d=/*#__PURE__*/Object.freeze({__proto__:null,rangesOverlapExclusive,reformatSolution});const doEdgesOverlap = ({
 	vertices_coords, edges_vertices,
 }, edgePair, vector, epsilon = EPSILON) => {
 	const pairCoords = edgePair
@@ -10872,55 +10819,53 @@ const reformatSolution = (solution, faces_winding) => {
 	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
 	return result;
 };
-const make3DTortillaEdges = ({
+const get3DTortillaEdges = ({
 	vertices_coords, edges_vertices,
 }, edges_sets, epsilon = EPSILON) => {
-	const edges_sets_keys = edges_sets.map(arr => arr.join(" "));
-	const intersectingSets_edges = {};
-	edges_sets_keys.forEach((key, i) => {
-		if (intersectingSets_edges[key] === undefined) {
-			intersectingSets_edges[key] = [];
+	const crossingSets_edges = {};
+	edges_sets.map(arr => arr.join(" ")).forEach((key, i) => {
+		if (crossingSets_edges[key] === undefined) {
+			crossingSets_edges[key] = [];
 		}
-		intersectingSets_edges[key].push(i);
+		crossingSets_edges[key].push(i);
 	});
-	Object.keys(intersectingSets_edges)
-		.filter(key => intersectingSets_edges[key].length < 2)
-		.forEach(key => delete intersectingSets_edges[key]);
-	const intersectingSets_pairsAll = {};
-	Object.keys(intersectingSets_edges).forEach(key => {
-		intersectingSets_pairsAll[key] = chooseTwoPairs(intersectingSets_edges[key]);
-	});
-	const intersectingSets_pairsValid = {};
-	Object.keys(intersectingSets_pairsAll).forEach(key => {
-		const firstEdge = intersectingSets_pairsAll[key][0][0];
-		const coords = edges_vertices[firstEdge]
-			.map(v => vertices_coords[v]);
+	Object.keys(crossingSets_edges)
+		.filter(key => crossingSets_edges[key].length < 2)
+		.forEach(key => delete crossingSets_edges[key]);
+	return Object.keys(crossingSets_edges).flatMap(key => {
+		const edgesPairs = chooseTwoPairs(crossingSets_edges[key]);
+		const firstEdge = edgesPairs[0][0];
+		const coords = edges_vertices[firstEdge].map(v => vertices_coords[v]);
 		const vector = normalize(subtract(coords[1], coords[0]));
-		intersectingSets_pairsValid[key] = intersectingSets_pairsAll[key]
-			.map(pair => doEdgesOverlap({ vertices_coords, edges_vertices }, pair, vector, epsilon));
+		return edgesPairs.filter(pair => (
+			doEdgesOverlap({ vertices_coords, edges_vertices }, pair, vector, epsilon)
+		));
 	});
-	const intersectingSets_pairs = {};
-	Object.keys(intersectingSets_pairsAll).forEach(key => {
-		intersectingSets_pairs[key] = intersectingSets_pairsAll[key]
-			.filter((_, i) => intersectingSets_pairsValid[key][i]);
-	});
-	return Object.keys(intersectingSets_pairs)
-		.flatMap(key => intersectingSets_pairs[key]);
 };
-const make3DTortillas = ({
+const makeBentTortillas = ({
 	vertices_coords, edges_vertices, edges_faces,
-}, faces_set, edges_set, epsilon = 1e-6) => {
-	const tortilla_edges = make3DTortillaEdges({
+}, faces_set, edges_set, faces_winding, epsilon = 1e-6) => {
+	const tortilla_edges = get3DTortillaEdges({
 		vertices_coords, edges_vertices,
 	}, edges_set, epsilon);
 	const tortilla_faces = tortilla_edges
 		.map(pair => pair
 			.map(edge => edges_faces[edge]));
-	tortilla_faces.forEach((tacos, i) => {
-		if (faces_set[tacos[0][0]] !== faces_set[tacos[1][0]]) {
+	tortilla_faces.forEach((tortillas, i) => {
+		if (faces_set[tortillas[0][0]] !== faces_set[tortillas[1][0]]) {
 			tortilla_faces[i][1].reverse();
 		}
 	});
+	tortilla_faces
+		.map(tortillas => [tortillas[0][0], tortillas[0][1]])
+		.map(faces => faces.map(face => faces_winding[face]))
+		.map((orients, i) => (orients[0] !== orients[1] ? i : undefined))
+		.filter(a => a !== undefined)
+		.forEach(i => {
+			const temp = tortilla_faces[i][0][1];
+			tortilla_faces[i][0][1] = tortilla_faces[i][1][1];
+			tortilla_faces[i][1][1] = temp;
+		});
 	return tortilla_faces;
 };const segmentPolygonOverlap2Exclusive = (segment, polygon, epsilon) => {
 	const point_in_poly = segment
@@ -10941,12 +10886,13 @@ const make3DTortillas = ({
 	if (edge_intersect) { return true; }
 	return false;
 };
-const make3DTacoTortillas = (
+const solve3DOrders = (
 	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 	sets_facePairs,
 	sets_transformXY,
 	faces_set,
 	faces_polygon,
+	faces_winding,
 	edges_sets,
 	epsilon = EPSILON,
 ) => {
@@ -10962,15 +10908,17 @@ const make3DTacoTortillas = (
 	const edges_facesLookup = edges_faces
 		.map(faces => {
 			const lookup = {};
-			faces.forEach(face => { lookup[face] = {}; });
+			faces.forEach(face => { lookup[face] = true; });
 			return lookup;
 		});
 	const edges_possibleOverlapFaces = edges_sets
 		.map((sets, edge) => sets
+			.filter(set => sets_faces[set] !== undefined)
 			.flatMap(set => sets_faces[set])
 			.filter(face => !edges_facesLookup[edge][face]));
 	const edges_possibleOverlapOtherFaces = edges_sets
 		.map((sets, edge) => sets
+			.filter(set => sets_faces[set] !== undefined)
 			.flatMap(set => sets_faces[set])
 			.filter(face => edges_facesLookup[edge][face]));
 	edges_possibleOverlapFaces
@@ -10995,7 +10943,7 @@ const make3DTacoTortillas = (
 				faces_polygon[face],
 				epsilon,
 			)));
-	const results = edgeFaceOverlapBoolean
+	const tacoTortillas3D = edgeFaceOverlapBoolean
 		.flatMap((faces, i) => faces
 			.map((overlap, j) => (overlap
 				? ({
@@ -11004,8 +10952,23 @@ const make3DTacoTortillas = (
 					otherFace: edges_possibleOverlapOtherFaces[i][j],
 				})
 				: undefined))
-			.filter(a => a !== undefined));
-	return results;
+			.filter(a => a !== undefined)
+			.filter(el => el.otherFace !== undefined));
+	tacoTortillas3D
+		.map(el => [el.face, el.otherFace].map(f => faces_winding[f]));
+	const tt3dKeysOrdered = tacoTortillas3D
+		.map(el => el.face < el.otherFace);
+	tacoTortillas3D
+		.map((el, i) => (tt3dKeysOrdered[i]
+			? [el.face, el.otherFace]
+			: [el.otherFace, el.face]))
+		.map(pair => pair.join(" "));
+	const signOrder = { "-1": 2, 1: 1, 0: 0 };
+	tacoTortillas3D
+		.map(el => Math.sign(edges_foldAngle[el.edge]))
+		.map(sign => signOrder[sign]);
+	const orders = {};
+	return orders;
 };const graphGroupCopies = (graph, sets_faces, sets_transform) => {
 	const transformTo2D = (matrix, point) => {
 		const p = multiplyMatrix4Vector3(matrix, point);
@@ -11053,36 +11016,23 @@ const setup3d = ({
 		.map((arr, i) => (arr.length !== 2 ? i : undefined))
 		.filter(e => e !== undefined)
 		.forEach(e => delete edges_sets[e]);
-	const tortillas3D = make3DTortillas({
+	const tortillas3D = makeBentTortillas({
 		vertices_coords, edges_vertices, edges_faces,
-	}, faces_set, edges_sets, epsilon)
+	}, faces_set, edges_sets, faces_winding, epsilon)
 		.map(el => [
 			...el[0], ...el[1],
 		]);
-	const tacoTortillas3D = make3DTacoTortillas(
+	const orders = solve3DOrders(
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 		sets_facePairs,
 		sets_transformXY,
 		faces_set,
 		faces_polygon,
+		faces_winding,
 		edges_sets,
 		epsilon,
 	);
-	tacoTortillas3D
-		.map(el => [el.face, el.otherFace].map(f => faces_winding[f]));
-	const tt3dKeysOrdered = tacoTortillas3D
-		.map(el => el.face < el.otherFace);
-	const tt3dKeys = tacoTortillas3D
-		.map((el, i) => (tt3dKeysOrdered[i]
-			? [el.face, el.otherFace]
-			: [el.otherFace, el.face]))
-		.map(pair => pair.join(" "));
-	const signOrder = { "-1": 2, 1: 1, 0: 0 };
-	const tt3dOrders = tacoTortillas3D
-		.map(el => Math.sign(edges_foldAngle[el.edge]))
-		.map(sign => signOrder[sign]);
-	const orders = {};
-	tt3dKeys.forEach((key, i) => { orders[key] = tt3dOrders[i]; });
+	console.log("orders 3D", orders);
 	return {
 		tortillas3D,
 		orders,

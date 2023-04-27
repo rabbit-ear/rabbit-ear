@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import { solverSolutionToFaceOrders } from "../solver2d/general.js";
 /**
  * @description a range is an array of two numbers [start, end]
  * not necessarily in sorted order.
@@ -12,93 +13,6 @@ export const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
 	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
 	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
 	return overlap > epsilon;
-};
-/**
- * @description Convert an array of faces which are involved in one
- * taco/tortilla/transitivity condition into an array of arrays where
- * each face is paired with the others in the precise combination that
- * the solver is expecting for this particular condition.
- * @param {number[]} an array of the faces involved in this particular condition.
- * @linkcode Origami ./src/layer/solver3d/general.js 10
- */
-export const constraintToFacePairs = ({
-	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
-	taco_taco: f => [
-		[f[0], f[2]],
-		[f[1], f[3]],
-		[f[1], f[2]],
-		[f[0], f[3]],
-		[f[0], f[1]],
-		[f[2], f[3]],
-	],
-	// taco_tortilla (A,C) (A,B) (B,C)
-	taco_tortilla: f => [[f[0], f[2]], [f[0], f[1]], [f[1], f[2]]],
-	// tortilla_tortilla (A,C) (B,D)
-	tortilla_tortilla: f => [[f[0], f[2]], [f[1], f[3]]],
-	// transitivity (A,B) (B,C) (C,A)
-	transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
-});
-/**
- * @description Given an array of a pair of integers, sort the smallest
- * to be first, and format them into a space-separated string.
- * @linkcode Origami ./src/layer/solver3d/general.js 32
- */
-export const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
-	? `${pair[0]} ${pair[1]}`
-	: `${pair[1]} ${pair[0]}`);
-/**
- * @description Convert an array of faces which are involved in one
- * taco/tortilla/transitivity condition into an array of arrays where
- * each face is paired with the others in the precise combination that
- * the solver is expecting for this particular condition.
- * @param {number[]} an array of the faces involved in this particular condition.
- * @linkcode Origami ./src/layer/solver3d/general.js 43
- */
-export const constraintToFacePairsStrings = ({
-	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
-	taco_taco: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[1], f[3]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-		pairArrayToSortedPairString([f[0], f[3]]),
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[2], f[3]]),
-	],
-	// taco_tortilla (A,C) (A,B) (B,C)
-	taco_tortilla: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-	],
-	// tortilla_tortilla (A,C) (B,D)
-	tortilla_tortilla: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[1], f[3]]),
-	],
-	// transitivity (A,B) (B,C) (C,A)
-	transitivity: f => [
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-		pairArrayToSortedPairString([f[2], f[0]]),
-	],
-});
-
-const to_signed_layer_convert = { 0: 0, 1: 1, 2: -1 };
-/**
- * face pairs: "# #" space separated integer indices. values: 1 or 2.
- */
-const keysToFaceOrders = (facePairs, faces_aligned) => {
-	const keys = Object.keys(facePairs);
-	const faceOrders = keys.map(string => string
-		.split(" ")
-		.map(n => parseInt(n, 10)));
-	faceOrders.forEach((faces, i) => {
-		const value = to_signed_layer_convert[facePairs[keys[i]]];
-		// equivalent to: side = (!faces_aligned[faces[1]]) ? -value : value
-		const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;
-		faces.push(side);
-	});
-	return faceOrders;
 };
 /**
  * @description traverse the solution tree, convert any orders
@@ -115,11 +29,11 @@ const keysToFaceOrders = (facePairs, faces_aligned) => {
 export const reformatSolution = (solution, faces_winding) => {
 	if (solution.orders) {
 		solution.orders = solution.orders
-			.flatMap(order => keysToFaceOrders(order, faces_winding));
+			.flatMap(order => solverSolutionToFaceOrders(order, faces_winding));
 	}
 	if (solution.leaves) {
 		solution.leaves = solution.leaves
-			.map(order => keysToFaceOrders(order, faces_winding));
+			.map(order => solverSolutionToFaceOrders(order, faces_winding));
 	}
 	if (solution.partitions) {
 		solution.partitions

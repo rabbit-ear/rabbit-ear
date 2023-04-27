@@ -20,8 +20,8 @@ import {
 	makeConstraints,
 	makeConstraintsLookup,
 } from "../solver2d/makeConstraints.js";
-import make3DTortillas from "./make3DTortillas.js";
-import make3DTacoTortillas from "./make3DTacoTortillas.js";
+import makeBentTortillas from "./bentTortillas.js";
+import solveOrders3d from "./solveOrders3d.js";
 import { graphGroupCopies } from "./copyGraph.js";
 import solveEdgeAdjacent from "../solver2d/edgeAdjacent.js";
 /**
@@ -70,42 +70,23 @@ const setup3d = ({
 		.filter(e => e !== undefined)
 		.forEach(e => delete edges_sets[e]);
 	// tacos tortillas
-	const tortillas3D = make3DTortillas({
+	const tortillas3D = makeBentTortillas({
 		vertices_coords, edges_vertices, edges_faces,
-	}, faces_set, edges_sets, epsilon)
+	}, faces_set, edges_sets, faces_winding, epsilon)
 		.map(el => [
 			// el[0][0], el[1][0], el[0][1], el[1][1],
 			...el[0], ...el[1],
 		]);
-	const tacoTortillas3D = make3DTacoTortillas(
+	const orders = solveOrders3d(
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 		sets_facePairs,
 		sets_transformXY,
 		faces_set,
 		faces_polygon,
+		faces_winding,
 		edges_sets,
 		epsilon,
 	);
-	const tt3dWindings = tacoTortillas3D
-		.map(el => [el.face, el.otherFace].map(f => faces_winding[f]));
-	const tt3dKeysOrdered = tacoTortillas3D
-		.map(el => el.face < el.otherFace);
-	const tt3dKeys = tacoTortillas3D
-		.map((el, i) => (tt3dKeysOrdered[i]
-			? [el.face, el.otherFace]
-			: [el.otherFace, el.face]))
-		.map(pair => pair.join(" "));
-	const signOrder = { "-1": 2, 1: 1, 0: 0 };
-	const tt3dOrders = tacoTortillas3D
-		.map(el => Math.sign(edges_foldAngle[el.edge]))
-		// .map((sign, i) => {
-		// 	// needs some complicated thing here
-		// 	const flip = (tt3dKeysOrdered[i] ? tt3dWindings[i][0] : tt3dWindings[i][1]);
-		// 	return flip ? -1 * sign : sign;
-		// })
-		.map(sign => signOrder[sign]);
-	const orders = {};
-	tt3dKeys.forEach((key, i) => { orders[key] = tt3dOrders[i]; });
 	// console.log("facePairsIndex_set", facePairsIndex_set);
 	// console.log("sets_facePairsIndex", sets_facePairsIndex);
 	// console.log("sets_facePairs", sets_facePairs);
@@ -119,7 +100,7 @@ const setup3d = ({
 	// console.log("tt3dWindings", tt3dWindings);
 	// console.log("tt3dKeysOrdered", tt3dKeysOrdered);
 	// console.log("tt3dKeys", tt3dKeys);
-	// console.log("tt3dOrders", tt3dOrders);
+	console.log("orders 3D", orders);
 	return {
 		tortillas3D,
 		orders,
