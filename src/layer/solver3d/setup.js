@@ -47,7 +47,7 @@ const getEdgesSets = ({ edges_vertices, faces_edges }, faces_set) => {
 const setup3d = ({
 	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_edges,
 	faces_winding,
-}, faces_set, faces_polygon, sets_transformXY, facePairs, facePairsInts, epsilon) => {
+}, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon) => {
 	// prep
 	const facePairsIndex_set = facePairsInts
 		.map(pair => faces_set[pair[0]]);
@@ -81,6 +81,7 @@ const setup3d = ({
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 		sets_facePairs,
 		sets_transformXY,
+		sets_faces,
 		faces_set,
 		faces_polygon,
 		faces_winding,
@@ -100,7 +101,7 @@ const setup3d = ({
 	// console.log("tt3dWindings", tt3dWindings);
 	// console.log("tt3dKeysOrdered", tt3dKeysOrdered);
 	// console.log("tt3dKeys", tt3dKeys);
-	console.log("orders 3D", orders);
+	// console.log("orders 3D", orders);
 	return {
 		tortillas3D,
 		orders,
@@ -185,10 +186,12 @@ export const setup = ({
 		edges_foldAngle,
 		faces_edges,
 		faces_winding,
-	}, faces_set, faces_polygon, sets_transformXY, facePairs, facePairsInts, epsilon);
+	}, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon);
 	// 3d "tortilla-tortilla" are additional constraints that simply get
 	// added to the 2D tortilla-tortilla constraints.
+
 	tortilla_tortilla.push(...tortillas3D);
+
 	// now, make all taco/tortilla/transitivity constraints for the solver
 	const constraints = makeConstraints({
 		taco_taco, taco_tortilla, tortilla_tortilla, transitivity,

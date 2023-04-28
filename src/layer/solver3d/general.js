@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import { EPSILON } from "../../math/general/constant.js";
 import { solverSolutionToFaceOrders } from "../solver2d/general.js";
+import { dot } from "../../math/algebra/vector.js";
 /**
  * @description a range is an array of two numbers [start, end]
  * not necessarily in sorted order.
@@ -13,6 +15,21 @@ export const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
 	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
 	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
 	return overlap > epsilon;
+};
+/**
+ *
+ */
+export const doEdgesOverlap = ({
+	vertices_coords, edges_vertices,
+}, edgePair, vector, epsilon = EPSILON) => {
+	const pairCoords = edgePair
+		.map(edge => edges_vertices[edge]
+			.map(v => vertices_coords[v]));
+	const pairCoordsDots = pairCoords
+		.map(edge => edge
+			.map(coord => dot(coord, vector)));
+	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
+	return result;
 };
 /**
  * @description traverse the solution tree, convert any orders

@@ -4,26 +4,10 @@
 import { chooseTwoPairs } from "../../general/arrays.js";
 import { EPSILON } from "../../math/general/constant.js";
 import {
-	dot,
 	normalize,
 	subtract,
 } from "../../math/algebra/vector.js";
-import { rangesOverlapExclusive } from "./general.js";
-/**
- *
- */
-const doEdgesOverlap = ({
-	vertices_coords, edges_vertices,
-}, edgePair, vector, epsilon = EPSILON) => {
-	const pairCoords = edgePair
-		.map(edge => edges_vertices[edge]
-			.map(v => vertices_coords[v]));
-	const pairCoordsDots = pairCoords
-		.map(edge => edge
-			.map(coord => dot(coord, vector)));
-	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
-	return result;
-};
+import { doEdgesOverlap } from "./general.js";
 /**
  * @description Not all planar sets will intersect but when they do,
  * they intersect along a line, and this line will have one or more edges.
@@ -86,7 +70,7 @@ const makeBentTortillas = ({
 	// for each tortilla-tortilla edge, get the four adjacent faces involved
 	const tortilla_faces = tortilla_edges
 		.map(pair => pair
-			.map(edge => edges_faces[edge]));
+			.map(edge => edges_faces[edge].slice()));
 	// sort the faces of the tortillas on the correct side so that
 	// the two faces in the same plane have the same index in their arrays.
 	// [[A,B], [X,Y]], A and B are edge-connected faces, X and Y are connected,
@@ -102,6 +86,10 @@ const makeBentTortillas = ({
 	// the act of the solver placing a face "above" or "below" the other means
 	// two different things for either side. we need to normalize this behavior.
 	// determine a mismatch by checking two adjacent faces (two different sets)
+	// console.log("3d tortilla normal match", tortilla_faces
+	// 	.map(tortillas => [tortillas[0][0], tortillas[0][1]])
+	// 	.map(faces => faces.map(face => faces_winding[face]))
+	// 	.map(orients => (orients[0] !== orients[1])));
 	tortilla_faces
 		.map(tortillas => [tortillas[0][0], tortillas[0][1]])
 		.map(faces => faces.map(face => faces_winding[face]))
@@ -113,8 +101,6 @@ const makeBentTortillas = ({
 			tortilla_faces[i][0][1] = tortilla_faces[i][1][1];
 			tortilla_faces[i][1][1] = temp;
 		});
-	// console.log("tortilla_edges", tortilla_edges);
-	// console.log("tortilla_faces", tortilla_faces);
 	return tortilla_faces;
 };
 

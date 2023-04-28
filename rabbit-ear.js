@@ -10789,6 +10789,18 @@ const layer = ({
 	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
 	return overlap > epsilon;
 };
+const doEdgesOverlap = ({
+	vertices_coords, edges_vertices,
+}, edgePair, vector, epsilon = EPSILON) => {
+	const pairCoords = edgePair
+		.map(edge => edges_vertices[edge]
+			.map(v => vertices_coords[v]));
+	const pairCoordsDots = pairCoords
+		.map(edge => edge
+			.map(coord => dot(coord, vector)));
+	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
+	return result;
+};
 const reformatSolution = (solution, faces_winding) => {
 	if (solution.orders) {
 		solution.orders = solution.orders
@@ -10807,19 +10819,7 @@ const reformatSolution = (solution, faces_winding) => {
 			.forEach(child => reformatSolution(child, faces_winding));
 	}
 	return solution;
-};const general3d=/*#__PURE__*/Object.freeze({__proto__:null,rangesOverlapExclusive,reformatSolution});const doEdgesOverlap = ({
-	vertices_coords, edges_vertices,
-}, edgePair, vector, epsilon = EPSILON) => {
-	const pairCoords = edgePair
-		.map(edge => edges_vertices[edge]
-			.map(v => vertices_coords[v]));
-	const pairCoordsDots = pairCoords
-		.map(edge => edge
-			.map(coord => dot(coord, vector)));
-	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
-	return result;
-};
-const get3DTortillaEdges = ({
+};const general3d=/*#__PURE__*/Object.freeze({__proto__:null,doEdgesOverlap,rangesOverlapExclusive,reformatSolution});const get3DTortillaEdges = ({
 	vertices_coords, edges_vertices,
 }, edges_sets, epsilon = EPSILON) => {
 	const crossingSets_edges = {};
@@ -10850,7 +10850,7 @@ const makeBentTortillas = ({
 	}, edges_set, epsilon);
 	const tortilla_faces = tortilla_edges
 		.map(pair => pair
-			.map(edge => edges_faces[edge]));
+			.map(edge => edges_faces[edge].slice()));
 	tortilla_faces.forEach((tortillas, i) => {
 		if (faces_set[tortillas[0][0]] !== faces_set[tortillas[1][0]]) {
 			tortilla_faces[i][1].reverse();
@@ -10867,107 +10867,112 @@ const makeBentTortillas = ({
 			tortilla_faces[i][1][1] = temp;
 		});
 	return tortilla_faces;
-};const segmentPolygonOverlap2Exclusive = (segment, polygon, epsilon) => {
-	const point_in_poly = segment
+};const polygonSegmentOverlap = (polygon, segment, epsilon = EPSILON) => {
+	const pointInPolygon = segment
 		.map(point => overlapConvexPolygonPoint(
 			polygon,
 			point,
 			exclude,
 			epsilon,
 		)).reduce((a, b) => a || b, false);
-	if (point_in_poly) { return true; }
-	const edge_intersect = intersectConvexPolygonLine(
+	if (pointInPolygon) { return true; }
+	const edgeClip = clipLineConvexPolygon(
 		polygon,
 		{ vector: subtract2(segment[1], segment[0]), origin: segment[0] },
-		excludeS,
+		exclude,
 		excludeS,
 		epsilon,
 	);
-	if (edge_intersect) { return true; }
-	return false;
+	return edgeClip !== undefined;
 };
 const solve3DOrders = (
 	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 	sets_facePairs,
 	sets_transformXY,
+	sets_faces,
 	faces_set,
 	faces_polygon,
 	faces_winding,
 	edges_sets,
 	epsilon = EPSILON,
 ) => {
-	if (sets_facePairs.length < 2) { return []; }
-	const sets_face_pairs = sets_facePairs
-		.map(set => set
-			.map(pair => pair.split(" ").map(n => parseInt(n, 10))));
-	const sets_facesSet = sets_face_pairs
-		.map(pairs => pairs
-			.flat()
-			.sort((a, b) => a - b));
-	const sets_faces = sets_facesSet.map(faces => [...new Set(faces)]);
-	const edges_facesLookup = edges_faces
-		.map(faces => {
-			const lookup = {};
-			faces.forEach(face => { lookup[face] = true; });
-			return lookup;
-		});
-	const edges_possibleOverlapFaces = edges_sets
+	const sets_facesBunch = sets_faces.slice();
+	sets_facesBunch.forEach((arr, i) => {
+		if (arr.length < 2) { delete sets_facesBunch[i]; }
+	});
+	const edges_facesLookup = edges_faces.map(faces => {
+		const lookup = {};
+		faces.forEach(face => { lookup[face] = true; });
+		return lookup;
+	});
+	const edgesSetsFaces = edges_sets
+		.map(sets => sets
+			.filter(set => sets_facesBunch[set] !== undefined)
+			.map(set => sets_facesBunch[set]));
+	edges_sets
+		.map((_, i) => i)
+		.filter(e => edgesSetsFaces[e].length < 2)
+		.forEach(e => delete edgesSetsFaces[e]);
+	const edgesSetsFacesAdjacent = edgesSetsFaces
 		.map((sets, edge) => sets
-			.filter(set => sets_faces[set] !== undefined)
-			.flatMap(set => sets_faces[set])
-			.filter(face => !edges_facesLookup[edge][face]));
-	const edges_possibleOverlapOtherFaces = edges_sets
+			.map(faces => faces
+				.filter(face => edges_facesLookup[edge][face])));
+	const edgesSetsFacesAllNonAdjacent = edgesSetsFaces
 		.map((sets, edge) => sets
-			.filter(set => sets_faces[set] !== undefined)
-			.flatMap(set => sets_faces[set])
-			.filter(face => edges_facesLookup[edge][face]));
-	edges_possibleOverlapFaces
-		.map((_, e) => (edgeFoldAngleIsFlat(edges_foldAngle[e])
-			? e : undefined))
-		.filter(a => a !== undefined)
-		.forEach(e => {
-			delete edges_possibleOverlapFaces[e];
-			delete edges_possibleOverlapOtherFaces[e];
-		});
-	const edges_segment3D = edges_possibleOverlapFaces
+			.map(faces => faces
+				.filter(face => !edges_facesLookup[edge][face])));
+	const edgesSegment3D = edgesSetsFaces
 		.map((_, e) => edges_vertices[e]
 			.map(v => vertices_coords[v]));
-	const edgeFaceOverlapBoolean = edges_possibleOverlapFaces
-		.map((faces, edge) => faces
-			.map(face => segmentPolygonOverlap2Exclusive(
-				edges_segment3D[edge]
-					.map(point => multiplyMatrix4Vector3(
-						sets_transformXY[faces_set[face]],
-						point,
-					)),
-				faces_polygon[face],
-				epsilon,
-			)));
-	const tacoTortillas3D = edgeFaceOverlapBoolean
-		.flatMap((faces, i) => faces
-			.map((overlap, j) => (overlap
-				? ({
-					edge: i,
-					face: edges_possibleOverlapFaces[i][j],
-					otherFace: edges_possibleOverlapOtherFaces[i][j],
+	const edgesSetsFacesNonAdjacent = edgesSetsFacesAllNonAdjacent
+		.map((sets, edge) => sets
+			.map(faces => faces
+				.map(face => {
+					const segmentTransform = edgesSegment3D[edge]
+						.map(point => multiplyMatrix4Vector3(
+							sets_transformXY[faces_set[face]],
+							point,
+						));
+					const segment2D = segmentTransform.map(p => [p[0], p[1]]);
+					return polygonSegmentOverlap(faces_polygon[face], segment2D, epsilon)
+						? face
+						: undefined;
 				})
-				: undefined))
-			.filter(a => a !== undefined)
-			.filter(el => el.otherFace !== undefined));
-	tacoTortillas3D
-		.map(el => [el.face, el.otherFace].map(f => faces_winding[f]));
-	const tt3dKeysOrdered = tacoTortillas3D
-		.map(el => el.face < el.otherFace);
-	tacoTortillas3D
-		.map((el, i) => (tt3dKeysOrdered[i]
-			? [el.face, el.otherFace]
-			: [el.otherFace, el.face]))
-		.map(pair => pair.join(" "));
-	const signOrder = { "-1": 2, 1: 1, 0: 0 };
-	tacoTortillas3D
-		.map(el => Math.sign(edges_foldAngle[el.edge]))
-		.map(sign => signOrder[sign]);
+				.filter(a => a !== undefined)));
+	const tacoTortillas3D = edgesSetsFaces
+		.flatMap((_, edge) => edgesSetsFacesNonAdjacent[edge]
+			.flatMap((faces, setIndex) => {
+				const otherSetIndex = 1 - setIndex;
+				const adjacent = edgesSetsFacesAdjacent[edge];
+				return faces.map(face => ({
+					edge,
+					faces: [adjacent[setIndex][0], adjacent[otherSetIndex][0]],
+					overlap: face,
+					set: faces_set[face],
+				}));
+			}));
+	const tacoTortillas3DFacePairs = tacoTortillas3D
+		.map(el => [el.faces[0], el.overlap]);
+	const tacoTortillas3DFacePairsCorrect = tacoTortillas3DFacePairs
+		.map(pair => pair[0] < pair[1]);
+	tacoTortillas3DFacePairsCorrect.forEach((correct, i) => {
+		if (!correct) { tacoTortillas3DFacePairs[i].reverse(); }
+	});
+	const tacoTortillas3DAligned = tacoTortillas3D
+		.map(el => faces_winding[el.faces[0]]);
+	const tacoTortillas3DBendDir = tacoTortillas3D
+		.map(el => edges_foldAngle[el.edge])
+		.map(Math.sign)
+		.map(n => n === 1);
+	const tacoTortillas3DXOR = tacoTortillas3D
+		.map((_, i) => tacoTortillas3DAligned[i] ^ tacoTortillas3DBendDir[i]);
+	const tacoTortillas3DSolution = tacoTortillas3DXOR
+		.map((xor, i) => (tacoTortillas3DFacePairsCorrect[i] ? xor : 1 - xor))
+		.map(xor => xor + 1);
 	const orders = {};
+	tacoTortillas3DFacePairs.forEach((pair, i) => {
+		orders[pair.join(" ")] = tacoTortillas3DSolution[i];
+	});
 	return orders;
 };const graphGroupCopies = (graph, sets_faces, sets_transform) => {
 	const transformTo2D = (matrix, point) => {
@@ -11004,7 +11009,7 @@ const solve3DOrders = (
 const setup3d = ({
 	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_edges,
 	faces_winding,
-}, faces_set, faces_polygon, sets_transformXY, facePairs, facePairsInts, epsilon) => {
+}, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon) => {
 	const facePairsIndex_set = facePairsInts
 		.map(pair => faces_set[pair[0]]);
 	const sets_facePairsIndex = invertMap(facePairsIndex_set)
@@ -11026,13 +11031,13 @@ const setup3d = ({
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 		sets_facePairs,
 		sets_transformXY,
+		sets_faces,
 		faces_set,
 		faces_polygon,
 		faces_winding,
 		edges_sets,
 		epsilon,
 	);
-	console.log("orders 3D", orders);
 	return {
 		tortillas3D,
 		orders,
@@ -11091,7 +11096,7 @@ const setup = ({
 		edges_foldAngle,
 		faces_edges,
 		faces_winding,
-	}, faces_set, faces_polygon, sets_transformXY, facePairs, facePairsInts, epsilon);
+	}, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon);
 	tortilla_tortilla.push(...tortillas3D);
 	const constraints = makeConstraints({
 		taco_taco, taco_tortilla, tortilla_tortilla, transitivity,
