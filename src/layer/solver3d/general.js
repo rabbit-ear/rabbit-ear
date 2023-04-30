@@ -8,8 +8,12 @@ import { dot } from "../../math/algebra/vector.js";
  * @description a range is an array of two numbers [start, end]
  * not necessarily in sorted order.
  * Do the two spans overlap on the numberline?
+ * @param {number[]} a range with two numbers
+ * @param {number[]} b range with two numbers
+ * @param {number} [epsilon=1e-6] a positive value makes the range
+ * endpoints exclusive, a negative value makes range endpoints inclusive.
  */
-export const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
+export const doRangesOverlap = (a, b, epsilon = EPSILON) => {
 	// make sure ranges are well formed (sorted low to high)
 	const r1 = a[0] < a[1] ? a : [a[1], a[0]];
 	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
@@ -28,7 +32,7 @@ export const doEdgesOverlap = ({
 	const pairCoordsDots = pairCoords
 		.map(edge => edge
 			.map(coord => dot(coord, vector)));
-	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
+	const result = doRangesOverlap(...pairCoordsDots, epsilon);
 	return result;
 };
 /**

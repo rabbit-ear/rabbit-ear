@@ -116,3 +116,12 @@ export const makeVerticesCoordsFlatFolded = ({
 			}));
 	return vertices_coords_folded;
 };
+/**
+ *
+ */
+const makeVerticesCoordsUnfolded = ({
+	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
+	edges_assignment, faces_vertices, faces_faces, faces_matrix,
+}) => {
+
+};

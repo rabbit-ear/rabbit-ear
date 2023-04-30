@@ -8019,14 +8019,16 @@ const getEdgesEdgesOverlapingSpans = ({
 		span_overlaps[i][i] = true;
 	}
 	return span_overlaps;
-};const span=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesOverlapingSpans,getEdgesVerticesOverlappingSpan});const getEdgesLine = (graph, epsilon = EPSILON) => {
-	if (!graph.vertices_coords
-		|| !graph.edges_vertices
-		|| !graph.edges_vertices.length) {
+};const span=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesOverlapingSpans,getEdgesVerticesOverlappingSpan});const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) => {
+	if (!vertices_coords
+		|| !edges_vertices
+		|| !edges_vertices.length) {
 		return { edges_line: [], lines: [] };
 	}
-	const edgesCoords = makeEdgesCoords(graph);
-	const edgesVector = makeEdgesVector(graph).map(normalize);
+	const edgesCoords = makeEdgesCoords({ vertices_coords, edges_vertices });
+	const edgesVector = edgesCoords
+		.map(verts => subtract(verts[1], verts[0]))
+		.map(normalize);
 	const edgesLine = edgesVector
 		.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
 	const edgesNearestToOrigin = edgesLine
@@ -10783,7 +10785,7 @@ const layer = ({
 		branches,
 		faces_winding,
 	});
-};const rangesOverlapExclusive = (a, b, epsilon = 1e-6) => {
+};const doRangesOverlap = (a, b, epsilon = EPSILON) => {
 	const r1 = a[0] < a[1] ? a : [a[1], a[0]];
 	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
 	const overlap = Math.min(r1[1], r2[1]) - Math.max(r1[0], r2[0]);
@@ -10798,7 +10800,7 @@ const doEdgesOverlap = ({
 	const pairCoordsDots = pairCoords
 		.map(edge => edge
 			.map(coord => dot(coord, vector)));
-	const result = rangesOverlapExclusive(...pairCoordsDots, epsilon);
+	const result = doRangesOverlap(...pairCoordsDots, epsilon);
 	return result;
 };
 const reformatSolution = (solution, faces_winding) => {
@@ -10819,9 +10821,28 @@ const reformatSolution = (solution, faces_winding) => {
 			.forEach(child => reformatSolution(child, faces_winding));
 	}
 	return solution;
-};const general3d=/*#__PURE__*/Object.freeze({__proto__:null,doEdgesOverlap,rangesOverlapExclusive,reformatSolution});const get3DTortillaEdges = ({
+};const general3d=/*#__PURE__*/Object.freeze({__proto__:null,doEdgesOverlap,doRangesOverlap,reformatSolution});const getOverlappingCollinearEdges = ({
+	vertices_coords, edges_vertices,
+}, epsilon = EPSILON) => {
+	const {
+		lines,
+		edges_line,
+	} = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
+	const edges_vector = edges_line.map(line => lines[line].vector);
+	const edges_dots = makeEdgesCoords({ vertices_coords, edges_vertices })
+		.map((points, e) => points
+			.map(point => dot(edges_vector[e], point)));
+	return invertMap(edges_line)
+		.map(el => (el.constructor === Array ? el : [el]))
+		.flatMap(edges => chooseTwoPairs(edges)
+			.filter(pair => (doRangesOverlap(...pair.map(n => edges_dots[n])))));
+};
+const getOverlappingCollinearEdgePairs = ({
 	vertices_coords, edges_vertices,
 }, edges_sets, epsilon = EPSILON) => {
+	const allOverlappingEdges = getOverlappingCollinearEdges({
+		vertices_coords, edges_vertices,
+	}, epsilon).map(pair => (pair[0] < pair[1] ? pair : pair.slice().reverse()));
 	const crossingSets_edges = {};
 	edges_sets.map(arr => arr.join(" ")).forEach((key, i) => {
 		if (crossingSets_edges[key] === undefined) {
@@ -10832,7 +10853,7 @@ const reformatSolution = (solution, faces_winding) => {
 	Object.keys(crossingSets_edges)
 		.filter(key => crossingSets_edges[key].length < 2)
 		.forEach(key => delete crossingSets_edges[key]);
-	return Object.keys(crossingSets_edges).flatMap(key => {
+	const lEdges = Object.keys(crossingSets_edges).flatMap(key => {
 		const edgesPairs = chooseTwoPairs(crossingSets_edges[key]);
 		const firstEdge = edgesPairs[0][0];
 		const coords = edges_vertices[firstEdge].map(v => vertices_coords[v]);
@@ -10840,15 +10861,20 @@ const reformatSolution = (solution, faces_winding) => {
 		return edgesPairs.filter(pair => (
 			doEdgesOverlap({ vertices_coords, edges_vertices }, pair, vector, epsilon)
 		));
-	});
-};
-const makeBentTortillas = ({
-	vertices_coords, edges_vertices, edges_faces,
-}, faces_set, edges_set, faces_winding, epsilon = 1e-6) => {
-	const tortilla_edges = get3DTortillaEdges({
-		vertices_coords, edges_vertices,
-	}, edges_set, epsilon);
-	const tortilla_faces = tortilla_edges
+	}).map(pair => (pair[0] < pair[1] ? pair : pair.slice().reverse()));
+	const allOverlapKeys = {};
+	allOverlappingEdges.forEach((pair, i) => { allOverlapKeys[pair.join(" ")] = i; });
+	lEdges.forEach(pair => delete allOverlapKeys[pair.join(" ")]);
+	const tEdges = Object.values(allOverlapKeys)
+		.map(i => allOverlappingEdges[i]);
+	return {
+		lEdges,
+		tEdges,
+	};
+};const makeBentTortillas = ({
+	edges_faces,
+}, lEdges, faces_set, faces_winding) => {
+	const tortilla_faces = lEdges
 		.map(pair => pair
 			.map(edge => edges_faces[edge].slice()));
 	tortilla_faces.forEach((tortillas, i) => {
@@ -11021,12 +11047,20 @@ const setup3d = ({
 		.map((arr, i) => (arr.length !== 2 ? i : undefined))
 		.filter(e => e !== undefined)
 		.forEach(e => delete edges_sets[e]);
-	const tortillas3D = makeBentTortillas({
-		vertices_coords, edges_vertices, edges_faces,
-	}, faces_set, edges_sets, faces_winding, epsilon)
-		.map(el => [
-			...el[0], ...el[1],
-		]);
+	const {
+		lEdges,
+		tEdges,
+	} = getOverlappingCollinearEdgePairs({
+		vertices_coords, edges_vertices,
+	}, edges_sets, epsilon);
+	console.log("lEdges", lEdges);
+	console.log("tEdges", tEdges);
+	const tortillas3D = makeBentTortillas(
+		{ edges_faces },
+		lEdges,
+		faces_set,
+		faces_winding,
+	);
 	const orders = solve3DOrders(
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 		sets_facePairs,
@@ -11038,6 +11072,7 @@ const setup3d = ({
 		edges_sets,
 		epsilon,
 	);
+	console.log("tortillas3D", tortillas3D);
 	return {
 		tortillas3D,
 		orders,
@@ -11105,6 +11140,9 @@ const setup = ({
 	sets_graphs
 		.map(el => solveEdgeAdjacent(el, facePairs, faces_winding))
 		.forEach(el => Object.assign(orders, el));
+	console.log("taco_taco", taco_taco);
+	console.log("taco_tortilla", taco_tortilla);
+	console.log("tortilla_tortilla", tortilla_tortilla);
 	return {
 		constraints,
 		lookup,

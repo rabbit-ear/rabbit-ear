@@ -20,6 +20,7 @@ import {
 	makeConstraints,
 	makeConstraintsLookup,
 } from "../solver2d/makeConstraints.js";
+import { getOverlappingCollinearEdgePairs } from "./edges3D.js";
 import makeBentTortillas from "./bentTortillas.js";
 import solveOrders3d from "./solveOrders3d.js";
 import { graphGroupCopies } from "./copyGraph.js";
@@ -69,14 +70,21 @@ const setup3d = ({
 		.map((arr, i) => (arr.length !== 2 ? i : undefined))
 		.filter(e => e !== undefined)
 		.forEach(e => delete edges_sets[e]);
+	const {
+		lEdges,
+		tEdges,
+	} = getOverlappingCollinearEdgePairs({
+		vertices_coords, edges_vertices,
+	}, edges_sets, epsilon);
+	console.log("lEdges", lEdges);
+	console.log("tEdges", tEdges);
 	// tacos tortillas
-	const tortillas3D = makeBentTortillas({
-		vertices_coords, edges_vertices, edges_faces,
-	}, faces_set, edges_sets, faces_winding, epsilon)
-		.map(el => [
-			// el[0][0], el[1][0], el[0][1], el[1][1],
-			...el[0], ...el[1],
-		]);
+	const tortillas3D = makeBentTortillas(
+		{ edges_faces },
+		lEdges,
+		faces_set,
+		faces_winding,
+	);
 	const orders = solveOrders3d(
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 		sets_facePairs,
@@ -209,6 +217,9 @@ export const setup = ({
 	// console.log("faces_center", faces_center);
 	// console.log("facesFacesOverlap", facesFacesOverlap);
 	// console.log("setsTacosAndTortillas", setsTacosAndTortillas);
+	console.log("taco_taco", taco_taco);
+	console.log("taco_tortilla", taco_tortilla);
+	console.log("tortilla_tortilla", tortilla_tortilla);
 	// console.log("unfilteredTrans", unfilteredTrans);
 	// console.log("transitivity", transitivity);
 	// console.log("constraints", constraints);

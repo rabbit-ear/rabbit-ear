@@ -204,3 +204,10 @@ export const sweep = ({
 			},
 		}));
 };
+/**
+ *
+ */
+// export const sweepRanges = (ranges, epsilon = EPSILON) => {
+// 	const values = vertices_coords.map(p => p[axis]);
+
+// };

@@ -3,6 +3,7 @@ import { clampLine } from "../../math/general/function.js";
 import {
 	magnitude,
 	normalize,
+	subtract,
 } from "../../math/algebra/vector.js";
 import { nearestPointOnLine } from "../../math/geometry/nearest.js";
 import {
@@ -22,14 +23,16 @@ import {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{ lines: VecLine[], edges_line: number[] }}
  */
-export const getEdgesLine = (graph, epsilon = EPSILON) => {
-	if (!graph.vertices_coords
-		|| !graph.edges_vertices
-		|| !graph.edges_vertices.length) {
+export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) => {
+	if (!vertices_coords
+		|| !edges_vertices
+		|| !edges_vertices.length) {
 		return { edges_line: [], lines: [] };
 	}
-	const edgesCoords = makeEdgesCoords(graph);
-	const edgesVector = makeEdgesVector(graph).map(normalize);
+	const edgesCoords = makeEdgesCoords({ vertices_coords, edges_vertices });
+	const edgesVector = edgesCoords
+		.map(verts => subtract(verts[1], verts[0]))
+		.map(normalize);
 	const edgesLine = edgesVector
 		.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
 	// the point on the line that is nearest to the origin.
