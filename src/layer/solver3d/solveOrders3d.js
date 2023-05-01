@@ -3,29 +3,16 @@
  */
 import { EPSILON } from "../../math/general/constant.js";
 import {
-	include,
-	includeS,
 	exclude,
 	excludeS,
 } from "../../math/general/function.js";
 import { subtract2 } from "../../math/algebra/vector.js";
 import { multiplyMatrix4Vector3 } from "../../math/algebra/matrix4.js";
 import { overlapConvexPolygonPoint } from "../../math/intersect/overlap.js";
-import { intersectConvexPolygonLine } from "../../math/intersect/intersect.js";
 import { clipLineConvexPolygon } from "../../math/intersect/clip.js";
 /**
  *
  */
-const segmentPolygonOverlap2Inclusive = (polygon, segment, epsilon) => (
-	clipLineConvexPolygon(
-		polygon,
-		{ vector: subtract2(segment[1], segment[0]), origin: segment[0] },
-		include, // fnPoly
-		includeS, // fnLine
-		epsilon,
-	) !== undefined
-);
-
 const polygonSegmentOverlap = (polygon, segment, epsilon = EPSILON) => {
 	const pointInPolygon = segment
 		.map(point => overlapConvexPolygonPoint(
@@ -44,26 +31,6 @@ const polygonSegmentOverlap = (polygon, segment, epsilon = EPSILON) => {
 	);
 	return edgeClip !== undefined;
 };
-
-const segmentPolygonOverlap2Exclusive = (polygon, segment, epsilon = EPSILON) => {
-	const point_in_poly = segment
-		.map(point => overlapConvexPolygonPoint(
-			polygon,
-			point,
-			exclude,
-			epsilon,
-		)).reduce((a, b) => a || b, false);
-	if (point_in_poly) { return true; }
-	const edge_intersect = intersectConvexPolygonLine(
-		polygon,
-		{ vector: subtract2(segment[1], segment[0]), origin: segment[0] },
-		excludeS,
-		excludeS,
-		epsilon,
-	);
-	if (edge_intersect) { return true; }
-	return false;
-};
 /**
  * @description There are two kinds of arrangements of edges/faces that
  * don't generate solver conditions, instead, they solve relationships
@@ -72,7 +39,7 @@ const segmentPolygonOverlap2Exclusive = (polygon, segment, epsilon = EPSILON) =>
  * for edges which are members of 2 sets. anything made from this will
  * automatically have a non-flat edges_foldAngle.
  */
-const solve3DOrders = (
+export const solveEdgeFaceOverlapOrders = (
 	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 	sets_facePairs,
 	sets_transformXY,
@@ -215,4 +182,8 @@ const solve3DOrders = (
 	return orders;
 };
 
-export default solve3DOrders;
+export const solveEdgeEdgeOverlapOrders = (solvable1, solvable2) => {
+	// console.log("solvable1", solvable1);
+	// console.log("solvable2", solvable2);
+	return {};
+};

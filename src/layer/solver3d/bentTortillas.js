@@ -6,9 +6,9 @@
  * where two planes meet along collinear edges, these joining of two
  * planes creates a tortilla-tortilla relationship.
  * @param {FOLD} graph a FOLD graph
+ * @param {number[][]} tortillaTortillaEdges each tortilla event is
+ * a pair of edge indices.
  * @param {number[]} faces_set for every face, which set is it a member of.
- * @param {number[][]} edges_sets which planar set is this edge a member of,
- * we have removed all edges which only inhabit one. all will contain two now.
  * @param {boolean[]} faces_winding for every face, is it aligned in its plane?
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][][]} an array of tortilla-tortilla events
@@ -17,10 +17,10 @@
  */
 const makeBentTortillas = ({
 	edges_faces,
-}, lEdges, faces_set, faces_winding) => {
+}, tortillaTortillaEdges, faces_set, faces_winding) => {
 	// all pairwise combinations of edges that create a 3D tortilla-tortilla
 	// for each tortilla-tortilla edge, get the four adjacent faces involved
-	const tortilla_faces = lEdges
+	const tortilla_faces = tortillaTortillaEdges
 		.map(pair => pair
 			.map(edge => edges_faces[edge].slice()));
 	// sort the faces of the tortillas on the correct side so that

@@ -20,9 +20,12 @@ import {
 	makeConstraints,
 	makeConstraintsLookup,
 } from "../solver2d/makeConstraints.js";
-import { getOverlappingCollinearEdgePairs } from "./edges3D.js";
+import { getOverlappingParallelEdgePairs } from "./edges3D.js";
 import makeBentTortillas from "./bentTortillas.js";
-import solveOrders3d from "./solveOrders3d.js";
+import {
+	solveEdgeFaceOverlapOrders,
+	solveEdgeEdgeOverlapOrders,
+} from "./solveOrders3d.js";
 import { graphGroupCopies } from "./copyGraph.js";
 import solveEdgeAdjacent from "../solver2d/edgeAdjacent.js";
 /**
@@ -47,7 +50,7 @@ const getEdgesSets = ({ edges_vertices, faces_edges }, faces_set) => {
  */
 const setup3d = ({
 	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_edges,
-	faces_winding,
+	faces_winding, faces_center,
 }, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon) => {
 	// prep
 	const facePairsIndex_set = facePairsInts
@@ -70,22 +73,22 @@ const setup3d = ({
 		.map((arr, i) => (arr.length !== 2 ? i : undefined))
 		.filter(e => e !== undefined)
 		.forEach(e => delete edges_sets[e]);
+	// new stuff
 	const {
-		lEdges,
-		tEdges,
-	} = getOverlappingCollinearEdgePairs({
-		vertices_coords, edges_vertices,
-	}, edges_sets, epsilon);
-	console.log("lEdges", lEdges);
-	console.log("tEdges", tEdges);
+		tortillaTortillaEdges,
+		solvable1,
+		solvable2,
+	} = getOverlappingParallelEdgePairs({
+		vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
+	}, edges_sets, faces_set, sets_transformXY, epsilon);
 	// tacos tortillas
 	const tortillas3D = makeBentTortillas(
 		{ edges_faces },
-		lEdges,
+		tortillaTortillaEdges,
 		faces_set,
 		faces_winding,
 	);
-	const orders = solveOrders3d(
+	const ordersEdgeFace = solveEdgeFaceOverlapOrders(
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 		sets_facePairs,
 		sets_transformXY,
@@ -96,6 +99,11 @@ const setup3d = ({
 		edges_sets,
 		epsilon,
 	);
+	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders(solvable1, solvable2);
+	const orders = {
+		...ordersEdgeFace,
+		...ordersEdgeEdge,
+	};
 	// console.log("facePairsIndex_set", facePairsIndex_set);
 	// console.log("sets_facePairsIndex", sets_facePairsIndex);
 	// console.log("sets_facePairs", sets_facePairs);
@@ -104,11 +112,8 @@ const setup3d = ({
 	// console.log("sets_facePairsIndex", sets_facePairsIndex);
 	// // console.log("sets_facePairs", sets_facePairsWithHoles);
 	// console.log("edges_sets", edges_sets);
+	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
 	// console.log("tortillas3D", tortillas3D);
-	// console.log("tacoTortillas3D", tacoTortillas3D);
-	// console.log("tt3dWindings", tt3dWindings);
-	// console.log("tt3dKeysOrdered", tt3dKeysOrdered);
-	// console.log("tt3dKeys", tt3dKeys);
 	// console.log("orders 3D", orders);
 	return {
 		tortillas3D,
@@ -194,6 +199,7 @@ export const setup = ({
 		edges_foldAngle,
 		faces_edges,
 		faces_winding,
+		faces_center,
 	}, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon);
 	// 3d "tortilla-tortilla" are additional constraints that simply get
 	// added to the 2D tortilla-tortilla constraints.
@@ -217,9 +223,9 @@ export const setup = ({
 	// console.log("faces_center", faces_center);
 	// console.log("facesFacesOverlap", facesFacesOverlap);
 	// console.log("setsTacosAndTortillas", setsTacosAndTortillas);
-	console.log("taco_taco", taco_taco);
-	console.log("taco_tortilla", taco_tortilla);
-	console.log("tortilla_tortilla", tortilla_tortilla);
+	// console.log("taco_taco", taco_taco);
+	// console.log("taco_tortilla", taco_tortilla);
+	// console.log("tortilla_tortilla", tortilla_tortilla);
 	// console.log("unfilteredTrans", unfilteredTrans);
 	// console.log("transitivity", transitivity);
 	// console.log("constraints", constraints);
