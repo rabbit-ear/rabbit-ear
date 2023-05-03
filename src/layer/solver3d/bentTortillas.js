@@ -21,8 +21,13 @@ const makeBentTortillas = ({
 	// all pairwise combinations of edges that create a 3D tortilla-tortilla
 	// for each tortilla-tortilla edge, get the four adjacent faces involved
 	const tortilla_faces = tortillaTortillaEdges
+		// todo: instead of mapping this here, and running the method with
+		// the old input data, see about using the additional data that comes in
+		.map(el => el.edges)
 		.map(pair => pair
 			.map(edge => edges_faces[edge].slice()));
+	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
+	// console.log("tortilla_faces", tortilla_faces);
 	// sort the faces of the tortillas on the correct side so that
 	// the two faces in the same plane have the same index in their arrays.
 	// [[A,B], [X,Y]], A and B are edge-connected faces, X and Y are connected,

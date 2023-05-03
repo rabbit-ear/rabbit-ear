@@ -39,7 +39,12 @@ const getOverlappingCollinearEdges = ({
 			.filter(pair => (doRangesOverlap(...pair.map(n => edges_dots[n])))));
 };
 /**
- *
+ * @description This method finds all overlapping parallel edges and
+ * classifies them into one of a few groups. This classification is
+ * a important part of the algorithm and hopefully will be described
+ * at length some place else, a bit too involved to describe here.
+ * One class is the bent-tortilla-tortillas, for example, which are
+ * returned as "tortillaTortillaEdges".
  */
 export const getOverlappingParallelEdgePairs = ({
 	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
@@ -127,27 +132,43 @@ export const getOverlappingParallelEdgePairs = ({
 			return hash;
 		});
 	// console.log("pairs_sets_facesSidesSameSide", pairs_sets_facesSidesSameSide);
-	const tortillaTortillaEdges = pairs_edges.filter((_, i) => {
-		const testA = Object.values(pairs_sets_edges[i])
-			.map(arr => arr.length)
-			.reduce((a, b) => a && (b === 2), true);
-		const testB = Object.values(pairs_sets_facesSidesSameSide[i])
+	const pairs_data = pairs_edges.map((edges, i) => {
+		const sets = {};
+		Object.keys(pairs_sets_edges[i]).forEach(set => {
+			sets[set] = {
+				edges: pairs_sets_edges[i][set],
+				faces: pairs_sets_faces[i][set],
+				facesSides: pairs_sets_facesSides[i][set],
+				facesSameSide: pairs_sets_facesSidesSameSide[i][set],
+			};
+		});
+		return { edges, sets };
+	});
+	// console.log("pairs_data", pairs_data);
+	const tortillaTortillaEdges = pairs_data.filter(data => {
+		const testA = Object.values(data.sets)
+			.map(el => el.faces.length === 2)
+			.reduce((a, b) => a && b, true);
+		const testB = Object.values(data.sets)
+			.map(el => el.facesSameSide)
 			.reduce((a, b) => a && b, true);
 		return testA && testB;
 	});
 	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
-	const solvable1 = pairs_edges.filter((_, i) => {
-		const testA = Object.values(pairs_sets_edges[i]).length === 3;
-		const testB = Object.values(pairs_sets_facesSidesSameSide[i])
+	const solvable1 = pairs_data.filter(data => {
+		const testA = Object.values(data.sets).length === 3;
+		const testB = Object.values(data.sets)
+			.map(el => el.facesSameSide)
 			.reduce((a, b) => a && b, true);
 		return testA && testB;
 	});
 	// console.log("solvable1", solvable1);
-	const solvable2 = pairs_edges.filter((_, i) => {
-		const testA = Object.values(pairs_sets_edges[i])
-			.map(arr => arr.length)
-			.reduce((a, b) => a && (b === 2), true);
-		const sameSide = Object.values(pairs_sets_facesSidesSameSide[i]);
+	const solvable2 = pairs_data.filter(data => {
+		const testA = Object.values(data.sets)
+			.map(el => el.faces.length === 2)
+			.reduce((a, b) => a && b, true);
+		const sameSide = Object.values(data.sets)
+			.map(el => el.facesSameSide);
 		const testB = sameSide[0] !== sameSide[1];
 		return testA && testB;
 	});

@@ -10904,25 +10904,40 @@ const getOverlappingParallelEdgePairs = ({
 			});
 			return hash;
 		});
-	const tortillaTortillaEdges = pairs_edges.filter((_, i) => {
-		const testA = Object.values(pairs_sets_edges[i])
-			.map(arr => arr.length)
-			.reduce((a, b) => a && (b === 2), true);
-		const testB = Object.values(pairs_sets_facesSidesSameSide[i])
+	const pairs_data = pairs_edges.map((edges, i) => {
+		const sets = {};
+		Object.keys(pairs_sets_edges[i]).forEach(set => {
+			sets[set] = {
+				edges: pairs_sets_edges[i][set],
+				faces: pairs_sets_faces[i][set],
+				facesSides: pairs_sets_facesSides[i][set],
+				facesSameSide: pairs_sets_facesSidesSameSide[i][set],
+			};
+		});
+		return { edges, sets };
+	});
+	const tortillaTortillaEdges = pairs_data.filter(data => {
+		const testA = Object.values(data.sets)
+			.map(el => el.faces.length === 2)
+			.reduce((a, b) => a && b, true);
+		const testB = Object.values(data.sets)
+			.map(el => el.facesSameSide)
 			.reduce((a, b) => a && b, true);
 		return testA && testB;
 	});
-	const solvable1 = pairs_edges.filter((_, i) => {
-		const testA = Object.values(pairs_sets_edges[i]).length === 3;
-		const testB = Object.values(pairs_sets_facesSidesSameSide[i])
+	const solvable1 = pairs_data.filter(data => {
+		const testA = Object.values(data.sets).length === 3;
+		const testB = Object.values(data.sets)
+			.map(el => el.facesSameSide)
 			.reduce((a, b) => a && b, true);
 		return testA && testB;
 	});
-	const solvable2 = pairs_edges.filter((_, i) => {
-		const testA = Object.values(pairs_sets_edges[i])
-			.map(arr => arr.length)
-			.reduce((a, b) => a && (b === 2), true);
-		const sameSide = Object.values(pairs_sets_facesSidesSameSide[i]);
+	const solvable2 = pairs_data.filter(data => {
+		const testA = Object.values(data.sets)
+			.map(el => el.faces.length === 2)
+			.reduce((a, b) => a && b, true);
+		const sameSide = Object.values(data.sets)
+			.map(el => el.facesSameSide);
 		const testB = sameSide[0] !== sameSide[1];
 		return testA && testB;
 	});
@@ -10935,6 +10950,7 @@ const getOverlappingParallelEdgePairs = ({
 	edges_faces,
 }, tortillaTortillaEdges, faces_set, faces_winding) => {
 	const tortilla_faces = tortillaTortillaEdges
+		.map(el => el.edges)
 		.map(pair => pair
 			.map(edge => edges_faces[edge].slice()));
 	tortilla_faces.forEach((tortillas, i) => {
@@ -11061,8 +11077,45 @@ const solveEdgeFaceOverlapOrders = (
 	});
 	return orders;
 };
-const solveEdgeEdgeOverlapOrders = (solvable1, solvable2) => {
-	return {};
+const solveType1 = ({ edges_faces, edges_foldAngle, faces_winding }, edgePairData) => {
+	const tortilla = edgePairData
+		.map(el => Object.values(el.sets)
+			.sort((a, b) => b.faces.length - a.faces.length)
+			.shift());
+	const tortillaEdges = tortilla.map(el => el.edges);
+	const tortillaEdgesFoldAngle = tortillaEdges
+		.map(edges => edges
+			.map(edge => edges_foldAngle[edge]));
+	const tortillaFaces = tortilla.map(el => el.faces);
+	const tortillaFacesAligned = tortillaFaces
+		.map(faces => faces
+			.map(f => faces_winding[f]));
+	const tortillaEdgesFoldAngleAligned = tortillaEdgesFoldAngle
+		.map((angles, i) => angles
+			.map((angle, j) => (tortillaFacesAligned[i][j] ? angle : -angle)));
+	const indicesInOrder = tortillaEdgesFoldAngleAligned
+		.map(angles => angles[0] > angles[1]);
+	const facesInOrder = tortillaFaces.map(faces => faces[0] < faces[1]);
+	const switchNeeded = tortillaFaces
+		.map((faces, i) => indicesInOrder[i] ^ facesInOrder[i]);
+	const result = {};
+	const faceKeys = tortillaFaces
+		.map((pair, i) => (facesInOrder[i] ? pair : pair.slice().reverse()))
+		.map(pair => pair.join(" "));
+	switchNeeded
+		.map(n => n + 1)
+		.forEach((order, i) => { result[faceKeys[i]] = order; });
+	return result;
+};
+const solveEdgeEdgeOverlapOrders = ({
+	edges_faces, edges_foldAngle, faces_winding,
+}, solvable1, solvable2) => {
+	console.log("solvable1", solvable1);
+	console.log("solvable2", solvable2);
+	const result1 = solveType1({ edges_faces, edges_foldAngle, faces_winding }, solvable1);
+	return {
+		...result1,
+	};
 };const graphGroupCopies = (graph, sets_faces, sets_transform) => {
 	const transformTo2D = (matrix, point) => {
 		const p = multiplyMatrix4Vector3(matrix, point);
@@ -11134,7 +11187,9 @@ const setup3d = ({
 		edges_sets,
 		epsilon,
 	);
-	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders();
+	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders({
+		edges_faces, edges_foldAngle, faces_winding,
+	}, solvable1, solvable2);
 	const orders = {
 		...ordersEdgeFace,
 		...ordersEdgeEdge,

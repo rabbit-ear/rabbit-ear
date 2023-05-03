@@ -99,7 +99,9 @@ const setup3d = ({
 		edges_sets,
 		epsilon,
 	);
-	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders(solvable1, solvable2);
+	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders({
+		edges_faces, edges_foldAngle, faces_winding,
+	}, solvable1, solvable2);
 	const orders = {
 		...ordersEdgeFace,
 		...ordersEdgeEdge,
