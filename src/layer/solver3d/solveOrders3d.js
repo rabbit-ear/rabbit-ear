@@ -182,48 +182,21 @@ export const solveEdgeFaceOverlapOrders = (
 	return orders;
 };
 
-const solveType1 = ({ edges_faces, edges_foldAngle, faces_winding }, edgePairData) => {
-	const tortilla = edgePairData
-		.map(el => Object.values(el.sets)
-			.sort((a, b) => b.faces.length - a.faces.length)
-			.shift());
-	const tortillaEdges = tortilla.map(el => el.edges);
+const solveFacePair3D = ({
+	edges_foldAngle, faces_winding,
+}, tortillaEdges, tortillaFaces) => {
 	const tortillaEdgesFoldAngle = tortillaEdges
 		.map(edges => edges
 			.map(edge => edges_foldAngle[edge]));
-	const tortillaFaces = tortilla.map(el => el.faces);
-	// const tortillaOtherFaces = tortillaEdges
-	// 	.map((edges, i) => edges
-	// 		.map((edge, j) => {
-	// 			const faces = edges_faces[edge];
-	// 			if (faces[0] === tortillaFaces[i][j]) { return faces[1]; }
-	// 			if (faces[1] === tortillaFaces[i][j]) { return faces[0]; }
-	// 			throw new Error("bad");
-	// 		}));
 	const tortillaFacesAligned = tortillaFaces
 		.map(faces => faces
 			.map(f => faces_winding[f]));
 	const tortillaEdgesFoldAngleAligned = tortillaEdgesFoldAngle
 		.map((angles, i) => angles
 			.map((angle, j) => (tortillaFacesAligned[i][j] ? angle : -angle)));
-	// console.log("tortilla", tortilla);
-	// console.log("tortillaEdges", tortillaEdges);
-	// console.log("tortillaEdgesFoldAngle", tortillaEdgesFoldAngle);
-	// console.log("tortillaFaces", tortillaFaces);
-	// console.log("tortillaOtherFaces", tortillaOtherFaces);
-	// console.log("tortillaFacesAligned", tortillaFacesAligned);
-	// console.log("tortillaEdgesFoldAngleAligned", tortillaEdgesFoldAngleAligned);
 	const indicesInOrder = tortillaEdgesFoldAngleAligned
 		.map(angles => angles[0] > angles[1]);
-	// const indicesOrder = tortillaEdgesFoldAngleAligned
-	// 	.map(angles => angles
-	// 		.map((a, i) => ({ a, i }))
-	// 		.sort((a, b) => b.a - a.a)
-	// 		.map(el => el.i));
 	const facesInOrder = tortillaFaces.map(faces => faces[0] < faces[1]);
-	// console.log("indicesOrder", indicesOrder);
-	// console.log("indicesInOrder", indicesInOrder);
-	// console.log("facesInOrder", facesInOrder);
 	const switchNeeded = tortillaFaces
 		.map((faces, i) => indicesInOrder[i] ^ facesInOrder[i]);
 	const result = {};
@@ -233,9 +206,41 @@ const solveType1 = ({ edges_faces, edges_foldAngle, faces_winding }, edgePairDat
 	switchNeeded
 		.map(n => n + 1) // 0 becomes 1, 1 becomes 2.
 		.forEach((order, i) => { result[faceKeys[i]] = order; });
+	// console.log("tortilla", tortilla);
+	// console.log("tortillaEdges", tortillaEdges);
+	// console.log("tortillaEdgesFoldAngle", tortillaEdgesFoldAngle);
+	// console.log("tortillaFaces", tortillaFaces);
+	// console.log("tortillaOtherFaces", tortillaOtherFaces);
+	// console.log("tortillaFacesAligned", tortillaFacesAligned);
+	// console.log("tortillaEdgesFoldAngleAligned", tortillaEdgesFoldAngleAligned);
+	// console.log("indicesOrder", indicesOrder);
+	// console.log("indicesInOrder", indicesInOrder);
+	// console.log("facesInOrder", facesInOrder);
 	// console.log("switchNeeded", switchNeeded);
 	// console.log("result", result);
 	return result;
+};
+
+const solveType1 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+	const tortilla = edgePairData
+		.map(el => Object.values(el.sets)
+			.sort((a, b) => b.faces.length - a.faces.length)
+			.shift());
+	const tortillaEdges = tortilla.map(el => el.edges);
+	const tortillaFaces = tortilla.map(el => el.faces);
+	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
+};
+
+const solveType2 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+	const tortilla = edgePairData
+		.map(el => Object.values(el.sets)
+			.filter(row => row.facesSameSide));
+	const tortillaEdges = tortilla.map(el => el.edges);
+	const tortillaFaces = tortilla.map(el => el.faces);
+	console.log("2 tortilla", tortilla);
+	console.log("2 tortillaEdges", tortillaEdges);
+	console.log("2 tortillaFaces", tortillaFaces);
+	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
 };
 
 export const solveEdgeEdgeOverlapOrders = ({
@@ -243,8 +248,10 @@ export const solveEdgeEdgeOverlapOrders = ({
 }, solvable1, solvable2) => {
 	console.log("solvable1", solvable1);
 	console.log("solvable2", solvable2);
-	const result1 = solveType1({ edges_faces, edges_foldAngle, faces_winding }, solvable1);
+	const result1 = solveType1({ edges_foldAngle, faces_winding }, solvable1);
+	const result2 = solveType2({ edges_foldAngle, faces_winding }, solvable2);
 	return {
 		...result1,
+		...result2,
 	};
 };
