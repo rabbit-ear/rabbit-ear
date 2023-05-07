@@ -55,6 +55,7 @@ import countImplied from "./countImplied.js";
 import connectedComponents from "./connectedComponents.js";
 import flatFold from "./flatFold/index.js";
 import planarize from "./planarize.js";
+import planarizeNew from "./planarize.new.js";
 import populate from "./populate.js";
 import remove from "./remove.js";
 import replace from "./replace.js";
@@ -85,6 +86,7 @@ export default {
 	addPlanarSegment,
 	addPlanarSegmentNew,
 	planarize,
+	planarizeNew,
 	connectedComponents,
 	clone,
 	...foldColors,

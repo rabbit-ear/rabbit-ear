@@ -45,8 +45,8 @@ export const sweepVertices = ({ vertices_coords }, axis = 0, epsilon = EPSILON) 
  * face, so this has no relation to the graph's original edges_vertices.
  * @param {number} [epsilon=1e-6] an optional epsilon
  */
-// const sweepComponent = (values, { edges_vertices, faces_vertices }, epsilon = EPSILON) => {
-const sweepComponent = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) => {
+// const sweepValues = (values, { edges_vertices, faces_vertices }, epsilon = EPSILON) => {
+export const sweepValues = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
@@ -100,7 +100,7 @@ const sweepComponent = (values, { edges_vertices, vertices_edges }, epsilon = EP
 export const sweepEdges = ({
 	vertices_coords, edges_vertices, vertices_edges,
 }, axis = 0, epsilon = EPSILON) => (
-	sweepComponent(vertices_coords.map(p => p[axis]), { edges_vertices, vertices_edges }, epsilon)
+	sweepValues(vertices_coords.map(p => p[axis]), { edges_vertices, vertices_edges }, epsilon)
 );
 /**
  * @description Perform a line sweep through the faces of a graph,
@@ -120,7 +120,7 @@ export const sweepEdges = ({
  */
 export const sweepFaces = ({
 	vertices_coords, faces_vertices,
-}, axis = 0, epsilon = EPSILON) => sweepComponent(
+}, axis = 0, epsilon = EPSILON) => sweepValues(
 	vertices_coords.map(p => p[axis]),
 	// get the min/max vertex for each face along the sweep axis.
 	// this will serve as the "edge" that spans the breadth of the face

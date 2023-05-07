@@ -181,10 +181,22 @@ export const solveEdgeFaceOverlapOrders = (
 	// console.log("orders", orders);
 	return orders;
 };
-
+/**
+ * @description Given a situation where two non-boundary edges are
+ * parallel overlapping, and two of the faces lie in the same plane,
+ * and need to be layer-solved. Consult the fold-angles, which imply the
+ * position of the two other faces, this will determine the layer order
+ * between the two faces. (given that the special case where both edges
+ * are flat 0 angles which would be the tortilla-tortilla 2D case).
+ */
 const solveFacePair3D = ({
 	edges_foldAngle, faces_winding,
 }, tortillaEdges, tortillaFaces) => {
+	// so the idea is, if we align the faces within the plane, meaning that if
+	// a face is flipped, we "flip" it by negating the foldAngle, then we can
+	// say that the face (edge) with the larger fold angle should be on top.
+	// then we have to work backwards-if we flipped a face, we need to flip
+	// the order, or if the faces are not ordered where A < B, also flip the order.
 	const tortillaEdgesFoldAngle = tortillaEdges
 		.map(edges => edges
 			.map(edge => edges_foldAngle[edge]));
@@ -234,24 +246,38 @@ const solveType1 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
 const solveType2 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
 	const tortilla = edgePairData
 		.map(el => Object.values(el.sets)
-			.filter(row => row.facesSameSide));
+			.filter(row => row.facesSameSide)
+			.shift());
 	const tortillaEdges = tortilla.map(el => el.edges);
 	const tortillaFaces = tortilla.map(el => el.faces);
-	console.log("2 tortilla", tortilla);
-	console.log("2 tortillaEdges", tortillaEdges);
-	console.log("2 tortillaFaces", tortillaFaces);
 	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
 };
 
+const solveType3 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+	// const tortilla = edgePairData
+	// 	.map(el => Object.values(el.sets)
+	// 		.filter(row => row.facesSameSide)
+	// 		.shift());
+	// console.log("solvable3", edgePairData);
+	// console.log("tortilla", tortilla);
+	return {};
+};
+
 export const solveEdgeEdgeOverlapOrders = ({
-	edges_faces, edges_foldAngle, faces_winding,
-}, solvable1, solvable2) => {
-	console.log("solvable1", solvable1);
-	console.log("solvable2", solvable2);
+	edges_foldAngle, faces_winding,
+}, solvable1, solvable2, solvable3) => {
+	// console.log("solvable1", solvable1);
+	// console.log("solvable2", solvable2);
+	// console.log("solvable3", solvable3);
 	const result1 = solveType1({ edges_foldAngle, faces_winding }, solvable1);
 	const result2 = solveType2({ edges_foldAngle, faces_winding }, solvable2);
+	const result3 = solveType3({ edges_foldAngle, faces_winding }, solvable3);
+	// console.log("result1", result1);
+	// console.log("result2", result2);
+	// console.log("result3", result3);
 	return {
 		...result1,
 		...result2,
+		...result3,
 	};
 };

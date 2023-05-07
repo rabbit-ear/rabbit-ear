@@ -7,6 +7,25 @@ import { overlapConvexPolygonPoint } from './overlap.js';
  * Math (c) Kraft
  */
 /**
+ * @description Is a point fully contained inside of a bounding box?
+ * @param {number[]} point the point
+ * @param {Box} box the bounding box
+ * @param {number} [epsilon=1e-6] an optional epsilon to pad the area
+ * around the outer bounding box; a negative number will make
+ * the boundary exclusive.
+ * @returns {boolean} is the "inner" polygon completely inside the "outer"
+ * @linkcode Math ./src/intersect/encloses.js 16
+ */
+const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
+	for (let d = 0; d < point.length; d += 1) {
+		if (point[d] < box.min[d] - epsilon
+			|| point[d] > box.max[d] + epsilon) {
+			return false;
+		}
+	}
+	return true;
+};
+/**
  * @description does one bounding box (outer) completely enclose
  * another bounding box (inner)?
  * @param {Box} outer an n-dimensional bounding box
@@ -51,4 +70,4 @@ const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
 	return (!outerGoesInside && innerGoesOutside);
 };
 
-export { enclosingBoundingBoxes, enclosingPolygonPolygon };
+export { enclosingBoundingBoxes, enclosingPolygonPolygon, pointInBoundingBox };

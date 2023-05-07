@@ -6,10 +6,7 @@ import {
 	subtract,
 } from "../../math/algebra/vector.js";
 import { nearestPointOnLine } from "../../math/geometry/nearest.js";
-import {
-	makeEdgesCoords,
-	makeEdgesVector,
-} from "../make.js";
+import { makeEdgesCoords } from "../make.js";
 import {
 	clusterScalars,
 	clusterParallelVectors,

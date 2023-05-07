@@ -78,6 +78,7 @@ const setup3d = ({
 		tortillaTortillaEdges,
 		solvable1,
 		solvable2,
+		solvable3,
 	} = getOverlappingParallelEdgePairs({
 		vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
 	}, edges_sets, faces_set, sets_transformXY, epsilon);
@@ -100,8 +101,8 @@ const setup3d = ({
 		epsilon,
 	);
 	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders({
-		edges_faces, edges_foldAngle, faces_winding,
-	}, solvable1, solvable2);
+		edges_foldAngle, faces_winding,
+	}, solvable1, solvable2, solvable3);
 	const orders = {
 		...ordersEdgeFace,
 		...ordersEdgeEdge,

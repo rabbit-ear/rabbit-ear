@@ -173,10 +173,44 @@ export const getOverlappingParallelEdgePairs = ({
 		return testA && testB;
 	});
 	// console.log("solvable2", solvable2);
+	// todo: need a good example where we can test this special case.
+	const solvable3 = pairs_data.filter(data => {
+		const threeInPlane = Object.values(data.sets)
+			.filter(el => el.faces.length === 3)
+			.shift();
+		const testA = threeInPlane !== undefined;
+		if (!testA) { return false; }
+		// valid facesSides will be either [1, 1, -1] or [-1, -1, 1] (in any order)
+		// removing the cases [1, 1, 1] or [-1, -1, -1]
+		// valid cases sums will be +1 or -1.
+		const sum = threeInPlane.facesSides.reduce((a, b) => a + b, 0);
+		const testB = Math.abs(sum) === 1;
+		if (!testB) { return false; }
+		const sameSideFaces = threeInPlane.faces
+			.filter((_, i) => threeInPlane.facesSides[i] === sum);
+		// are same side faces adjacent or not? (we don't have faces_faces)
+		// non-adjacent faces are the valid case we are looking for.
+		// for each of the two edges, check its edges_faces, if each face is
+		// included inside of our sameSideFaces, and if all are (AND), this edge
+		// registers as a joining edge between the two adjacent faces. if either
+		// of the edges satisfy this, the pair of faces are adjacent.
+		const isAdjacent = threeInPlane.edges
+			.map(e => edges_faces[e]
+				.map(f => sameSideFaces.includes(f))
+				.reduce((a, b) => a && b, true))
+			.reduce((a, b) => a || b, false);
+		// we want the case where the faces are non-adjacent.
+		const testC = !isAdjacent;
+		return testA && testB && testC;
+	});
+	if (solvable3.length) {
+		console.log("This model contains the third case", solvable3);
+	}
 	return {
 		tortillaTortillaEdges,
 		solvable1,
 		solvable2,
+		solvable3: [],
 	};
 };
 /**

@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../math/general/constant.js";
+import { includeS } from "../math/general/function.js";
 import { subtract } from "../math/algebra/vector.js";
 import {
 	edgeAssignmentToFoldAngle,
@@ -60,8 +61,7 @@ const fragmentGraph = (graph, epsilon = EPSILON) => {
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
 		edges_origin,
-	}, 1e-6);
-
+	}, 1e-6, includeS);
 	// todo:
 	// this is the slowest subroutine in the entire planarize() method.
 	// see if it can be sped up...
@@ -77,7 +77,7 @@ const fragmentGraph = (graph, epsilon = EPSILON) => {
 		vertices_edges,
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
-	}, epsilon);
+	}, epsilon, includeS);
 	// exit early
 	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
 		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {

@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../math/general/constant.js";
+import { epsilonEqual } from "../math/general/function.js";
 import { parallel } from "../math/algebra/vector.js";
 /**
  * @description Given a list of any type, remove all duplicates.
@@ -44,6 +45,18 @@ export const uniqueSortedNumbers = (array) => {
 	const hash = {};
 	array.forEach(n => { hash[n] = true; });
 	return Object.keys(hash).map(parseFloat);
+};
+/**
+ *
+ */
+export const epsilonUniqueSortedNumbers = (array, epsilon = EPSILON) => {
+	const numbers = array.slice().sort((a, b) => a - b);
+	if (numbers.length < 2) { return numbers; }
+	const keep = [true];
+	for (let i = 1; i < numbers.length; i += 1) {
+		keep[i] = !epsilonEqual(numbers[i], numbers[i - 1], epsilon);
+	}
+	return numbers.filter((_, i) => keep[i]);
 };
 /**
  * @description Flatten a set of arrays into one array such that

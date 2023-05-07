@@ -30,7 +30,7 @@ import { sweepEdges } from "../sweep.js";
  */
 export const getVerticesEdgesOverlap = ({
 	vertices_coords, edges_vertices, vertices_edges, edges_vector,
-}, epsilon = EPSILON) => {
+}, epsilon = EPSILON, segmentFunc = excludeS) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -60,7 +60,7 @@ export const getVerticesEdgesOverlap = ({
 						overlaps[e][v] = overlapLinePoint(
 							edgesLine[e],
 							vertices_coords[v],
-							excludeS,
+							segmentFunc,
 							epsilon,
 						);
 					}));

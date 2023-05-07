@@ -20,7 +20,7 @@ import { sweepEdges } from "../sweep.js";
  */
 export const getEdgesEdgesIntersection = ({
 	vertices_coords, edges_vertices, vertices_edges, edges_vector, edges_origin,
-}, epsilon = EPSILON) => {
+}, epsilon = EPSILON, segmentFunc = excludeS) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -41,8 +41,8 @@ export const getEdgesEdgesIntersection = ({
 						const intersection = intersectLineLine(
 							{ vector: edges_vector[e1], origin: edges_origin[e1] },
 							{ vector: edges_vector[e2], origin: edges_origin[e2] },
-							excludeS,
-							excludeS,
+							segmentFunc,
+							segmentFunc,
 							epsilon,
 						);
 						if (intersection) {

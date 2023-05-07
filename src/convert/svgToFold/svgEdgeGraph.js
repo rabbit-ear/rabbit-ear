@@ -86,7 +86,7 @@ const svgEdgeGraph = (svg, options) => {
 		edges_assignment,
 		edges_foldAngle,
 	} = makeAssignmentFoldAngle(segments, options);
-	// by default the parser will change numbers 15.000000000001 into 15.
+	// by default the parser will change numbers like 15.000000000001 into 15.
 	// to turn this off, options.fast = true
 	const fixNumber = options && options.fast ? n => n : cleanNumber;
 	const vertices_coords = segments
