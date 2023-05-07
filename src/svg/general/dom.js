@@ -37,10 +37,11 @@ const addClass = (el, ...classes) => {
 		? el.classList.add(...classes)
 		: polyfillClassListAdd(el, ...classes);
 };
-const flattenDomTree = (el) => (el.children == null || !el.children.length
-	? [el]
-	: Array.from(el.children)
-		.flatMap(child => flattenDomTree(child)));
+const flattenDomTree = (el) => (
+	el.childNodes == null || !el.childNodes.length
+		? [el]
+		: Array.from(el.childNodes).flatMap(child => flattenDomTree(child))
+);
 const nodeSpecificAttrs = {
 	svg: ["viewBox", "xmlns", "version"],
 	line: ["x1", "y1", "x2", "y2"],
@@ -52,7 +53,9 @@ const nodeSpecificAttrs = {
 	path: ["d"],
 };
 const getAttributes = element => {
-	const attributes = Array.from(element.attributes);
+	const attributeValue = element.attributes;
+	if (attributeValue == null) { return []; }
+	const attributes = Array.from(attributeValue);
 	return nodeSpecificAttrs[element.nodeName]
 		? attributes
 			.filter(a => !nodeSpecificAttrs[element.nodeName].includes(a.name))
@@ -77,9 +80,9 @@ const attrAssign = (parentAttrs, element) => {
 	return { ...parentAttrs, ...attrs, transform };
 };
 const flattenDomTreeWithStyle = (element, attributes = {}) => (
-	element.children == null || !element.children.length
+	element.childNodes == null || !element.childNodes.length
 		? [{ element, attributes }]
-		: Array.from(element.children)
+		: Array.from(element.childNodes)
 			.flatMap(child => flattenDomTreeWithStyle(child, attrAssign(attributes, child)))
 );
 

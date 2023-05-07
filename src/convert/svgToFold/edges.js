@@ -31,7 +31,9 @@ export const opacityToFoldAngle = (opacity, assignment) => {
  *
  */
 export const getEdgeStroke = (element, attributes) => {
-	const computedStroke = window().getComputedStyle(element).stroke;
+	const computedStroke = window().getComputedStyle != null
+		? window().getComputedStyle(element).stroke
+		: "";
 	if (computedStroke !== "" && computedStroke !== "none") {
 		return computedStroke;
 	}
@@ -44,7 +46,9 @@ export const getEdgeStroke = (element, attributes) => {
  *
  */
 export const getEdgeOpacity = (element, attributes) => {
-	const computedOpacity = window().getComputedStyle(element).opacity;
+	const computedOpacity = window().getComputedStyle != null
+		? window().getComputedStyle(element).opacity
+		: "";
 	if (computedOpacity !== "") {
 		const floatOpacity = parseFloat(computedOpacity);
 		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }

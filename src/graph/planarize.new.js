@@ -184,7 +184,7 @@ const planarize = ({
 	// the first vertex comes first along the line's vector (is smaller than)
 	edges_scalars.forEach((pair, i) => {
 		if (pair[0] < pair[1]) {
-			edges_vertices[i].reverse();
+			edges_vertices[i] = edges_vertices[i].slice().reverse();
 			edges_scalars[i].reverse();
 		}
 	});

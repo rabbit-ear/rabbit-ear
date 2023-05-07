@@ -4254,10 +4254,11 @@ const addClass = (el, ...classes) => {
 		? el.classList.add(...classes)
 		: polyfillClassListAdd(el, ...classes);
 };
-const flattenDomTree = (el) => (el.children == null || !el.children.length
-	? [el]
-	: Array.from(el.children)
-		.flatMap(child => flattenDomTree(child)));
+const flattenDomTree = (el) => (
+	el.childNodes == null || !el.childNodes.length
+		? [el]
+		: Array.from(el.childNodes).flatMap(child => flattenDomTree(child))
+);
 const nodeSpecificAttrs = {
 	svg: ["viewBox", "xmlns", "version"],
 	line: ["x1", "y1", "x2", "y2"],
@@ -4269,7 +4270,9 @@ const nodeSpecificAttrs = {
 	path: ["d"],
 };
 const getAttributes = element => {
-	const attributes = Array.from(element.attributes);
+	const attributeValue = element.attributes;
+	if (attributeValue == null) { return []; }
+	const attributes = Array.from(attributeValue);
 	return nodeSpecificAttrs[element.nodeName]
 		? attributes
 			.filter(a => !nodeSpecificAttrs[element.nodeName].includes(a.name))
@@ -4294,9 +4297,9 @@ const attrAssign = (parentAttrs, element) => {
 	return { ...parentAttrs, ...attrs, transform };
 };
 const flattenDomTreeWithStyle = (element, attributes = {}) => (
-	element.children == null || !element.children.length
+	element.childNodes == null || !element.childNodes.length
 		? [{ element, attributes }]
-		: Array.from(element.children)
+		: Array.from(element.childNodes)
 			.flatMap(child => flattenDomTreeWithStyle(child, attrAssign(attributes, child)))
 );const dom$1=/*#__PURE__*/Object.freeze({__proto__:null,addClass,findElementTypeInParents,flattenDomTree,flattenDomTreeWithStyle,getRootParent,xmlStringToElement});const makeCDATASection = (text) => (new (SVGWindow()).DOMParser())
 	.parseFromString("<root></root>", "text/xml")
@@ -7643,7 +7646,9 @@ const opacityToFoldAngle = (opacity, assignment) => {
 	}
 };
 const getEdgeStroke = (element, attributes) => {
-	const computedStroke = RabbitEarWindow().getComputedStyle(element).stroke;
+	const computedStroke = RabbitEarWindow().getComputedStyle != null
+		? RabbitEarWindow().getComputedStyle(element).stroke
+		: "";
 	if (computedStroke !== "" && computedStroke !== "none") {
 		return computedStroke;
 	}
@@ -7653,7 +7658,9 @@ const getEdgeStroke = (element, attributes) => {
 	return undefined;
 };
 const getEdgeOpacity = (element, attributes) => {
-	const computedOpacity = RabbitEarWindow().getComputedStyle(element).opacity;
+	const computedOpacity = RabbitEarWindow().getComputedStyle != null
+		? RabbitEarWindow().getComputedStyle(element).opacity
+		: "";
 	if (computedOpacity !== "") {
 		const floatOpacity = parseFloat(computedOpacity);
 		if (!Number.isNaN(floatOpacity)) { return floatOpacity; }
@@ -8836,7 +8843,7 @@ const planarize = ({
 		)));
 	edges_scalars.forEach((pair, i) => {
 		if (pair[0] < pair[1]) {
-			edges_vertices[i].reverse();
+			edges_vertices[i] = edges_vertices[i].slice().reverse();
 			edges_scalars[i].reverse();
 		}
 	});
