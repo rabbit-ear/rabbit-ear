@@ -6,14 +6,20 @@ const ear = require("../rabbit-ear.js");
 ear.window = xmldom;
 
 test("planarize, svg import", () => {
-	const svg = fs.readFileSync("./tests/files/svg/fish.svg", "utf-8");
-	// const svg = fs.readFileSync("./tests/files/svg/maze.svg", "utf-8");
+	// const svg = fs.readFileSync("./tests/files/svg/fish.svg", "utf-8");
+	const svg = fs.readFileSync("./tests/files/svg/maze.svg", "utf-8");
 	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);
 	const result = ear.graph.planarizeNew(graph);
-	console.log(graph);
-	// fs.writeFileSync("./tests/tmp/maze.fold", JSON.stringify(result, null, 2), "utf8");
+	// console.log(graph);
+	fs.writeFileSync("./tests/tmp/maze.fold", JSON.stringify(result, null, 2), "utf8");
+	fs.writeFileSync(
+		"./tests/tmp/maze.svg",
+		ear.convert.foldToSvg(result, { string: true }),
+		"utf8",
+	);
 	expect(true).toBe(true);
 });
+
 /*
 test("planarize 2 lines, x formation", () => {
 	const graph = {

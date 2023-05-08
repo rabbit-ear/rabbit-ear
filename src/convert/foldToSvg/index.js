@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import window from "../../environment/window.js";
 import SVG from "../../svg/index.js";
 import {
 	getViewBox,
@@ -18,15 +19,21 @@ import render from "./render.js";
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
  * @linkcode Origami ./src/svg/index.js 185
  */
-const foldToSvg = (file, options) => render(
-	typeof file === "string" ? JSON.parse(file) : file,
-	SVG.svg(),
-	{
-		viewBox: true,
-		strokeWidth: true,
-		...options,
-	},
-);
+const foldToSvg = (file, options = {}) => {
+	const element = render(
+		typeof file === "string" ? JSON.parse(file) : file,
+		SVG.svg(),
+		{
+			viewBox: true,
+			strokeWidth: true,
+			...options,
+		},
+	);
+	// if options: { string: true } return the result as a string.
+	return options && options.string
+		? (new (window().XMLSerializer)()).serializeToString(element)
+		: element;
+};
 /**
  * @description subroutines
  */

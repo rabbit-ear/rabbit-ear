@@ -246,7 +246,8 @@ export const makeVerticesVerticesFromFaces = ({
  */
 export const makeVerticesVertices = (graph) => {
 	if (!graph.vertices_coords || !graph.vertices_coords.length) { return []; }
-	switch (graph.vertices_coords[0].length) {
+	const dimensions = graph.vertices_coords.filter(() => true).shift().length;
+	switch (dimensions) {
 	case 3:
 		return makeVerticesVerticesFromFaces(graph);
 	default:
@@ -854,8 +855,12 @@ export const makeFacesCenter2D = ({ vertices_coords, faces_vertices }) => faces_
  * @returns {number[][]} array of points, where each point is an array of numbers
  * @linkcode Origami ./src/graph/make.js 850
  */
-export const makeFacesConvexCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
-	.map(vertices => vertices
+export const makeFacesConvexCenter = ({ vertices_coords, faces_vertices }) => {
+	const oneVertex = vertices_coords.filter(() => true).shift();
+	if (!oneVertex) { return faces_vertices.map(() => []); }
+	const dimensions = oneVertex.length;
+	return faces_vertices.map(vertices => vertices
 		.map(v => vertices_coords[v])
-		.reduce((a, b) => add(a, b), Array(vertices_coords[0].length).fill(0))
+		.reduce((a, b) => add(a, b), Array(dimensions).fill(0))
 		.map(el => el / vertices.length));
+};

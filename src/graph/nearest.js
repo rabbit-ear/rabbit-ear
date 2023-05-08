@@ -27,8 +27,9 @@ import { makeFacesConvexCenter } from "./make.js";
  */
 export const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
+	const dimensions = vertices_coords.filter(() => true).shift().length;
 	// resize our point to be the same dimension as the first vertex
-	const p = resize(vertices_coords[0].length, point);
+	const p = resize(dimensions, point);
 	// sort by distance, hold onto the original index in vertices_coords
 	const nearest = vertices_coords
 		.map((v, i) => ({ d: distance(p, v), i }))

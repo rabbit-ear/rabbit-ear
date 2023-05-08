@@ -48,10 +48,10 @@ export const triangulateNonConvexFacesVertices = ({ vertices_coords, faces_verti
 	if (!vertices_coords || !vertices_coords.length) {
 		throw new Error(Messages.nonConvexTriangulation);
 	}
-	const dimension = vertices_coords[0].length;
+	const dimensions = vertices_coords.filter(() => true).shift().length;
 	return faces_vertices
 		.map(fv => fv.flatMap(v => vertices_coords[v]))
-		.map(polygon => earcut(polygon, null, dimension))
+		.map(polygon => earcut(polygon, null, dimensions))
 		// earcut returns vertices [0...n] local to this one polygon
 		// convert these indices back to the face's faces_vertices.
 		.map((vertices, i) => vertices
