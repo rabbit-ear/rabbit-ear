@@ -1,7 +1,8 @@
 /* Math (c) Kraft, MIT License */
 import { EPSILON } from './constant.js';
 import { epsilonEqual } from './function.js';
-import { dot, subtract2, normalize2, dot2, distance2 } from '../algebra/vector.js';
+import { dot, subtract2, normalize2, dot2, distance2, basisVectors3, cross2 } from '../algebra/vector.js';
+import { projectPointOnPlane } from '../geometry/plane.js';
 import { minimum2DPointIndex } from './search.js';
 
 /**
@@ -93,5 +94,50 @@ const radialSortPointIndices2 = (points, epsilon = EPSILON) => {
 				.sort((a, b) => a.len - b.len)
 				.map(el => el.i))));
 };
+/**
+ *
+ */
+const radialSortPointIndices3 = (
+	points,
+	vector = [1, 0, 0],
+	origin = [0, 0, 0],
+	epsilon = EPSILON,
+) => {
+	basisVectors3(vector);
+	const projections = points
+		.map(point => projectPointOnPlane(point, vector, origin));
+	//       (+y)
+	//        |
+	//  -d +c |  +d +c
+	//        |
+	// -------|------- (+x, [1, 0])
+	//        |
+	//  -d -c |  +d -c
+	//        |
+	//
+	// 1 | 0
+	// -----
+	// 2 | 3
+	// sort by: decreasing, decreasing, increasing, increasing dot products
+	const dots = projections.map(vec => dot2([1, 0], vec));
+	const crosses = projections.map(vec => cross2([1, 0], vec));
+	projections.map((_, i) => {
+		if (dots[i] >= 0 && crosses[i] >= 0) { return 0; }
+		if (dots[i] < 0 && crosses[i] >= 0) { return 1; }
+		if (dots[i] < 0 && crosses[i] < 0) { return 2; }
+		if (dots[i] >= 0 && crosses[i] < 0) { return 3; }
+		return 0;
+	});
+	// const quadrants_vectors = invertMap(vectors_quadrant)
+	// 	.map(el => (el.constructor === Array ? el : [el]));
+	// const funcs = [
+	// 	(a, b) => dots[b] - dots[a],
+	// 	(a, b) => dots[b] - dots[a],
+	// 	(a, b) => dots[a] - dots[b],
+	// 	(a, b) => dots[a] - dots[b],
+	// ];
+	// const sortedQuadrantsVectors = quadrants_vectors
+	// 	.map((indices, i) => indices.sort(funcs[i]));
+};
 
-export { clusterIndicesOfSortedNumbers, radialSortPointIndices2, sortAgainstItem, sortPointsAlongVector };
+export { clusterIndicesOfSortedNumbers, radialSortPointIndices2, radialSortPointIndices3, sortAgainstItem, sortPointsAlongVector };

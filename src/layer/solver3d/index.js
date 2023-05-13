@@ -10,7 +10,6 @@ import {
 } from "../../graph/make.js";
 import { makeEpsilon } from "../general.js";
 import { setup } from "./setup.js";
-// import solver3d from "./solver.js";
 import solver2d from "../solver2d/solver.js";
 import LayerPrototype from "../solver2d/prototype.js";
 //

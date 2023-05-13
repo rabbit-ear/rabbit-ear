@@ -43,6 +43,8 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 	// shortest distance from each edge's line to the origin.
 	const edgesOriginDistances = edgesNearestToOrigin
 		.map(point => magnitude(point));
+	const edgesOriginUnitVectors = edgesNearestToOrigin
+		.map(point => normalize(point));
 	// begin clustering, we will cluster into 3 parts:
 	// 1. cluster lines with similar distance-to-origin scalars
 	// 2. sub-cluster those with parallel-vectors
@@ -62,6 +64,39 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 	// measured the distance to the origin, and the vector, we could be on
 	// equal but opposite sides of the origin.
 	// (unless it passes through the origin)
+
+	//       (+y)
+	//        |
+	//  -d +c |  +d +c
+	//        |
+	// -------|------- (+x, [1, 0])
+	//        |
+	//  -d -c |  +d -c
+	//        |
+	//
+	// 1 | 0
+	// -----
+	// 2 | 3
+	// sort by: decreasing, decreasing, increasing, increasing dot products
+	// const dots = vectors.map(vec => dot2([1, 0], vec));
+	// const crosses = vectors.map(vec => cross2([1, 0], vec));
+	// const vectors_quadrant = vectors.map((_, i) => {
+	// 	if (dots[i] >= 0 && crosses[i] >= 0) { return 0; }
+	// 	if (dots[i] < 0 && crosses[i] >= 0) { return 1; }
+	// 	if (dots[i] < 0 && crosses[i] < 0) { return 2; }
+	// 	if (dots[i] >= 0 && crosses[i] < 0) { return 3; }
+	// 	return 0;
+	// });
+	// const quadrants_vectors = invertMap(vectors_quadrant)
+	// 	.map(el => (el.constructor === Array ? el : [el]));
+	// const funcs = [
+	// 	(a, b) => dots[b] - dots[a],
+	// 	(a, b) => dots[b] - dots[a],
+	// 	(a, b) => dots[a] - dots[b],
+	// 	(a, b) => dots[a] - dots[b],
+	// ];
+	// const sortedQuadrantsVectors = quadrants_vectors
+	// 	.map((indices, i) => indices.sort(funcs[i]));
 
 	// todo: oh no. this isn't sufficient for 3D. now it only works in 2D.
 	const clusterClusterClusters = clusterClusters

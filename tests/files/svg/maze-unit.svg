@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100%" height="100%" viewBox="0 0 12.3 6.3" version="1.1" xmlns="http://www.w3.org/2000/svg" stroke-width="0.15px">
+	<rect x="0.15" y="0.15" width="12" height="6" style="fill:none;stroke:#000;stroke-width:0.22px;"/>
+	<path d="M0.15,1.15L1.15,1.15" style="fill:none;stroke:#f00;"/>
+	<path d="M1.15,0.15L1.15,1.15" style="fill:none;stroke:#f00;"/>
+	<path d="M1.15,1.15L2.15,0.15" style="fill:none;stroke:#00f;"/>
+	<path d="M1.15,1.15L3.15,3.15" style="fill:none;stroke:#f00;"/>
+	<path d="M2.15,0.15L4.15,2.15" style="fill:none;stroke:#f00;"/>
+	<path d="M4.15,2.15L5.15,3.15" style="fill:none;stroke:#00f;"/>
+	<path d="M0.15,2.15L4.15,2.15" style="fill:none;stroke:#00f;"/>
+	<path d="M4.15,0.15L4.15,2.15" style="fill:none;stroke:#00f;"/>
+	<path d="M0.15,5.15L1.15,5.15" style="fill:none;stroke:#f00;"/>
+	<path d="M1.15,6.15L1.15,5.15" style="fill:none;stroke:#f00;"/>
+	<path d="M1.15,5.15L2.15,6.15" style="fill:none;stroke:#00f;"/>
+	<path d="M1.15,5.15L3.15,3.15" style="fill:none;stroke:#f00;"/>
+	<path d="M2.15,6.15L4.15,4.15" style="fill:none;stroke:#f00;"/>
+	<path d="M4.15,4.15L5.15,3.15" style="fill:none;stroke:#00f;"/>
+	<path d="M0.15,4.15L4.15,4.15" style="fill:none;stroke:#00f;"/>
+	<path d="M4.15,6.15L4.15,4.15" style="fill:none;stroke:#00f;"/>
+	<path d="M2.15,0.15L2.15,6.15" style="fill:none;stroke:#00f;"/>
+	<path d="M5.15,0.15L5.15,6.15" style="fill:none;stroke:#f00;"/>
+	<path d="M3.15,3.15L6.15,3.15" style="fill:none;stroke:#f00;"/>
+	<path d="M12.15,5.15L11.15,5.15" style="fill:none;stroke:#f00;"/>
+	<path d="M11.15,6.15L11.15,5.15" style="fill:none;stroke:#f00;"/>
+	<path d="M11.15,5.15L10.15,6.15" style="fill:none;stroke:#00f;"/>
+	<path d="M11.15,5.15L9.15,3.15" style="fill:none;stroke:#f00;"/>
+	<path d="M10.15,6.15L8.15,4.15" style="fill:none;stroke:#f00;"/>
+	<path d="M8.15,4.15L7.15,3.15" style="fill:none;stroke:#00f;"/>
+	<path d="M12.15,4.15L8.15,4.15" style="fill:none;stroke:#00f;"/>
+	<path d="M8.15,6.15L8.15,4.15" style="fill:none;stroke:#00f;"/>
+	<path d="M12.15,1.15L11.15,1.15" style="fill:none;stroke:#f00;"/>
+	<path d="M11.15,0.15L11.15,1.15" style="fill:none;stroke:#f00;"/>
+	<path d="M11.15,1.15L10.15,0.15" style="fill:none;stroke:#00f;"/>
+	<path d="M11.15,1.15L9.15,3.15" style="fill:none;stroke:#f00;"/>
+	<path d="M10.15,0.15L8.15,2.15" style="fill:none;stroke:#f00;"/>
+	<path d="M8.15,2.15L7.15,3.15" style="fill:none;stroke:#00f;"/>
+	<path d="M12.15,2.15L8.15,2.15" style="fill:none;stroke:#00f;"/>
+	<path d="M8.15,0.15L8.15,2.15" style="fill:none;stroke:#00f;"/>
+	<path d="M10.15,6.15L10.15,0.15" style="fill:none;stroke:#00f;"/>
+	<path d="M7.15,6.15L7.15,0.15" style="fill:none;stroke:#f00;"/>
+	<path d="M9.15,3.15L6.15,3.15" style="fill:none;stroke:#f00;"/>
+</svg>

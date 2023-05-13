@@ -15,6 +15,9 @@ import {
 	edgeIsolatedVertices,
 	removeIsolatedVertices,
 } from "./vertices/isolated.js";
+import remove from "./remove.js";
+import replace from "./replace.js";
+import { isVertexCollinear } from "./vertices/collinear.js";
 import { intersectLineLine } from "../math/intersect/intersect.js";
 import { pointInBoundingBox } from "../math/intersect/encloses.js";
 import { epsilonUniqueSortedNumbers } from "../general/arrays.js";
@@ -28,7 +31,7 @@ import {
 	filterKeysWithPrefix,
 } from "../fold/spec.js";
 import { removeDuplicateVertices } from "./vertices/duplicate.js";
-import { removeDuplicateEdges } from "./edges/duplicate.js";
+import { duplicateEdges, removeDuplicateEdges } from "./edges/duplicate.js";
 import { removeCircularEdges } from "./edges/circular.js";
 import { getVerticesEdgesOverlap } from "./intersect/verticesEdges.js";
 import { getEdgesEdgesIntersection } from "./intersect/edgesEdges.js";
@@ -128,6 +131,17 @@ const sortedNumberSetDifference = (a, b, epsilon = EPSILON) => {
 	}
 	return result;
 };
+
+export const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
+	const edges = vertices_edges[vertex].sort((a, b) => a - b);
+	const edge_vertices = edges
+		.flatMap(e => edges_vertices[e])
+		.filter(v => v !== vertex);
+	edges.forEach(e => {
+		edges_vertices[e] = edge_vertices.slice(0, 2);
+	});
+};
+
 /**
  * @description Planarize a graph into the 2D XY plane, split edges, rebuild faces.
  * The graph provided as a method argument will be modified in place.
@@ -269,7 +283,18 @@ const planarize = ({
 	removeIsolatedVertices(result, edgeIsolatedVertices(result));
 	removeDuplicateVertices(result, epsilon);
 	// remove collinear vertices
-	// const vertices_edges = makeVerticesEdgesUnsorted(result);
+	result.vertices_edges = makeVerticesEdgesUnsorted(result);
+	const collinearVertices = result.vertices_edges
+		.map((edges, i) => (edges.length === 2 ? i : undefined))
+		.filter(a => a !== undefined)
+		.filter(v => isVertexCollinear(result, v, epsilon));
+	console.log("collinearVertices", collinearVertices);
+	collinearVertices.forEach(v => removeCollinearVertex(result, v));
+	remove(result, "vertices", collinearVertices);
+	// removeDuplicateEdges(result);
+	const dupEdges = duplicateEdges(result);
+	console.log("dupEdges", dupEdges);
+	replace(result, "edges", dupEdges);
 
 	// console.log("lines", lines);
 	// console.log("edges_line", edges_line);

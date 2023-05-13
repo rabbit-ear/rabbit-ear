@@ -7,7 +7,9 @@ import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
 import * as boundary from "./boundary.js";
 import * as clip from "./clip.js";
+import * as directedGraph from "./directedGraph.js";
 import * as explodeMethods from "./explode.js";
+import * as flaps from "./flaps.js";
 import * as join from "./join.js";
 import * as make from "./make.js";
 import * as maps from "./maps.js";
@@ -18,7 +20,6 @@ import * as span from "./span.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
 import * as symmetry from "./symmetry.js";
-import * as topological from "./topological.js";
 import * as transform from "./transform.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
@@ -36,12 +37,13 @@ import * as facesCoplanar from "./faces/coplanar.js";
 import * as facesMatrix from "./faces/matrix.js";
 import * as facesSpanningTree from "./faces/spanningTree.js";
 import * as facesWinding from "./faces/winding.js";
+import * as intersectVertices from "./intersect/vertices.js";
+import * as intersectVerticesEdges from "./intersect/verticesEdges.js";
 import * as intersectEdges from "./intersect/edges.js";
 import * as intersectEdgesEdges from "./intersect/edgesEdges.js";
 import * as intersectEdgesFaces from "./intersect/edgesFaces.js";
 import * as intersectFaces from "./intersect/faces.js";
 import * as intersectFacesFaces from "./intersect/facesFaces.js";
-import * as intersectVerticesEdges from "./intersect/verticesEdges.js";
 // not sure about including this
 import * as arrays from "../general/arrays.js";
 // import addVertices from "./add/addVertices.js";
@@ -96,6 +98,7 @@ export default {
 	...boundary,
 	...clip,
 	...explodeMethods,
+	...flaps,
 	...join,
 	...make,
 	...maps,
@@ -106,7 +109,7 @@ export default {
 	...subgraphMethods,
 	...sweep,
 	...symmetry,
-	...topological,
+	...directedGraph,
 	...transform,
 	...triangulateMethods,
 	...walk,
@@ -125,10 +128,11 @@ export default {
 	...facesMatrix,
 	...facesSpanningTree,
 	...facesWinding,
+	...intersectVertices,
+	...intersectVerticesEdges,
 	...intersectEdges,
 	...intersectEdgesEdges,
 	...intersectEdgesFaces,
 	...intersectFaces,
 	...intersectFacesFaces,
-	...intersectVerticesEdges,
 };

@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import { removeDuplicateVertices } from "../../graph/vertices/duplicate.js";
-// import planarize from "../../graph/planarize.js";
-import planarize from "../../graph/planarize.new.js";
+import { removeDuplicateVertices } from "../../graph/vertices/duplicate.js";
+import planarize from "../../graph/planarize.js";
+// import planarizeNew from "../../graph/planarize.new.js";
 import {
 	makeVerticesVertices,
 	makePlanarFaces,
@@ -13,10 +13,10 @@ import {
  * walk and discover the boundary.
  */
 const planarizeGraph = (graph, epsilon) => {
-	// const planar = { ...graph };
-	// removeDuplicateVertices(planar, epsilon);
-	// planarize(planar, epsilon);
-	const planar = planarize(graph, epsilon);
+	const planar = { ...graph };
+	removeDuplicateVertices(planar, epsilon);
+	planarize(planar, epsilon);
+	// const planar = planarizeNew(graph, epsilon);
 	planar.vertices_vertices = makeVerticesVertices(planar);
 	const faces = makePlanarFaces(planar);
 	planar.faces_vertices = faces.faces_vertices;

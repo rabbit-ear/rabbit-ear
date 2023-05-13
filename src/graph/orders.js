@@ -4,7 +4,7 @@
 import { dot } from "../math/algebra/vector.js";
 import { uniqueSortedNumbers } from "../general/arrays.js";
 import { makeFacesNormal } from "./normals.js";
-import { topologicalSort } from "./topological.js";
+import { topologicalSort } from "./directedGraph.js";
 import { makeVerticesVerticesUnsorted } from "./make.js";
 import { invertMap } from "./maps.js";
 import connectedComponents from "./connectedComponents.js";

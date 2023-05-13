@@ -81,6 +81,39 @@ test("overlapBoundingBoxes, edge overlap", () => {
 // 	].forEach(overlap => expect(overlap).toBe(true));
 // });
 
+test("point on line, point at line origin", () => {
+	expect(ear.math.overlapLinePoint(
+		{ vector: [5, 5], origin: [0, 0] },
+		[0, 0],
+		ear.math.includeS,
+	)).toBe(true);
+	expect(ear.math.overlapLinePoint(
+		{ vector: [5, 5], origin: [0, 0] },
+		[5, 5],
+		ear.math.includeS,
+	)).toBe(true);
+	expect(ear.math.overlapLinePoint(
+		{ vector: [5, 5], origin: [0, 0] },
+		[Math.SQRT1_2, Math.SQRT1_2],
+		ear.math.includeS,
+	)).toBe(true);
+	expect(ear.math.overlapLinePoint(
+		{ vector: [5, 5], origin: [0, 0] },
+		[0, 0],
+		ear.math.excludeS,
+	)).toBe(false);
+	expect(ear.math.overlapLinePoint(
+		{ vector: [5, 5], origin: [0, 0] },
+		[5, 5],
+		ear.math.excludeS,
+	)).toBe(false);
+	expect(ear.math.overlapLinePoint(
+		{ vector: [5, 5], origin: [0, 0] },
+		[Math.SQRT1_2, Math.SQRT1_2],
+		ear.math.excludeS,
+	)).toBe(true);
+});
+
 test("point on line", () => {
 	expect(ear.math.overlapLinePoint({ vector: [5, 5], origin: [0, 0] }, [2, 2])).toBe(true);
 	expect(ear.math.overlapLinePoint({ vector: [1, 1], origin: [0, 0] }, [2, 2])).toBe(true);

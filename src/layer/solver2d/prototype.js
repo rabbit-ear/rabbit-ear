@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { invertMap } from "../../graph/maps.js";
-import { topologicalSort } from "../../graph/topological.js";
+import { topologicalSort } from "../../graph/directedGraph.js";
 import { solverSolutionToFaceOrders } from "./general.js";
 
 const makePermutations = (counts) => {

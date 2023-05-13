@@ -2,20 +2,18 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../../math/general/constant.js";
-import { includeS } from "../../math/general/function.js";
 import {
-	normalize,
-	subtract,
-	subtract2,
-	parallel,
-	dot,
-} from "../../math/algebra/vector.js";
+	includeL,
+	includeS,
+} from "../../math/general/function.js";
+import { subtract2 } from "../../math/algebra/vector.js";
 import { boundingBox } from "../../math/geometry/polygon.js";
 import { intersectLineLine } from "../../math/intersect/intersect.js";
 import {
+	makeVerticesEdgesUnsorted,
 	makeEdgesCoords,
-	makeEdgesVector,
 } from "../make.js";
+import { getVerticesCollinearToLine } from "./vertices.js";
 /**
  * @description Find all edges in a graph which lie parallel
  * and on top of a line (infinite line). Can be 2D or 3D.
@@ -27,26 +25,26 @@ import {
  * @bigO O(n) where n=edges
  */
 export const getEdgesCollinearToLine = (
-	{ vertices_coords, edges_vertices },
+	{ vertices_coords, edges_vertices, vertices_edges },
 	{ vector, origin },
 	epsilon = EPSILON,
 ) => {
-	const normalized = normalize(vector);
-	// this method compares the *normalized* line vector against
-	// an in-function normalization between the two points.
-	const pointIsCollinear = (point) => {
-		const vec = normalize(subtract(point, origin));
-		const dotprod = Math.abs(dot(vec, normalized));
-		return Math.abs(1.0 - dotprod) < epsilon;
-	};
-	// filter edges by:
-	// 1. must be parallel with the line
-	// 2. one edge point lies on the line
-	const edgesVector = makeEdgesVector({ vertices_coords, edges_vertices });
-	return edges_vertices
-		.map((_, i) => i)
-		.filter(i => parallel(vector, edgesVector[i], epsilon))
-		.filter(i => pointIsCollinear(vertices_coords[edges_vertices[i][0]]));
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
+	const verticesCollinear = getVerticesCollinearToLine(
+		{ vertices_coords },
+		{ vector, origin },
+		epsilon,
+	);
+	const edgesCollinearCount = edges_vertices.map(() => 0);
+	verticesCollinear
+		.forEach(vertex => vertices_edges[vertex]
+			.forEach(edge => { edgesCollinearCount[edge] += 1; }));
+	return edgesCollinearCount
+		.map((count, i) => ({ count, i }))
+		.filter(el => el.count === 2)
+		.map(el => el.i);
 };
 /**
  * @description Given an axis-aligned bounding box, get a list of all
@@ -100,3 +98,23 @@ export const getEdgesSegmentIntersection = ({
 	});
 	return intersections;
 };
+/**
+ * @description Find all intersections between a segment and all edges
+ * of a 2D graph. The method is hard-coded to be inclusive, include both
+ * the endpoints of the segment, and the endpoints of each edge.
+ * @param {object} a FOLD graph
+ * @param {number[]} point1, the first point of the segment
+ * @param {number[]} point2, the second point of the segment
+ * @returns {number[]} array with holes where the
+ * index is the edge number and the value is the intersection point
+ * @linkcode Origami ./src/graph/intersect.js 73
+ */
+export const getEdgesLineIntersection = ({
+	vertices_coords, edges_vertices,
+}, { vector, origin }, epsilon = EPSILON, segmentFunc = includeS) => edges_vertices
+	.map(vertices => {
+		const edgeCoords = vertices.map(v => vertices_coords[v]);
+		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
+		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
+		return intersectLineLine({ vector, origin }, edgeLine, includeL, segmentFunc, epsilon);
+	});
