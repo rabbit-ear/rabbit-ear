@@ -859,6 +859,31 @@ const selfRelationalUniqueIndexPairs = (array_array) => {
 	}));
 	return pairs;
 };
+const clusterSortedGeneric = (elements, comparison) => {
+	const indices = elements.map((_, i) => i);
+	const groups = [[indices[0]]];
+	for (let i = 1; i < indices.length; i += 1) {
+		const index = indices[i];
+		const g = groups.length - 1;
+		const prev = groups[g][groups[g].length - 1];
+		if (comparison(elements[prev], elements[index])) {
+			groups[g].push(index);
+		} else {
+			groups.push([index]);
+		}
+	}
+	return groups;
+};
+const clusterScalarsNew = (numbers, epsilon = EPSILON) => {
+	const indices = numbers
+		.map((v, i) => ({ v, i }))
+		.sort((a, b) => a.v - b.v)
+		.map(el => el.i);
+	const sortedNumbers = indices.map(i => numbers[i]);
+	const compFn = (a, b) => Math.abs(a - b) < epsilon;
+	return clusterSortedGeneric(sortedNumbers, compFn)
+		.map(i => indices[i]);
+};
 const clusterScalars = (floats, epsilon = EPSILON) => {
 	const indices = floats
 		.map((v, i) => ({ v, i }))
@@ -904,7 +929,7 @@ const chooseTwoPairs = (array) => {
 		}
 	}
 	return pairs;
-};const arrays=/*#__PURE__*/Object.freeze({__proto__:null,chooseTwoPairs,clusterParallelVectors,clusterScalars,epsilonUniqueSortedNumbers,flatSort,nonUniqueElements,selfRelationalUniqueIndexPairs,splitCircularArray,uniqueElements,uniqueSortedNumbers});const replaceGeometryIndices = (graph, key, replaceIndices) => {
+};const arrays=/*#__PURE__*/Object.freeze({__proto__:null,chooseTwoPairs,clusterParallelVectors,clusterScalars,clusterScalarsNew,clusterSortedGeneric,epsilonUniqueSortedNumbers,flatSort,nonUniqueElements,selfRelationalUniqueIndexPairs,splitCircularArray,uniqueElements,uniqueSortedNumbers});const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	const geometry_array_size = count(graph, key);
 	let didModify = false;
 	Object.entries(replaceIndices)
@@ -1323,25 +1348,45 @@ const radialSortPointIndices2 = (points, epsilon = EPSILON) => {
 				.sort((a, b) => a.len - b.len)
 				.map(el => el.i))));
 };
+const radialSortUnitVectors2 = (vectors) => {
+	const quadrantConditions = [
+		v => v[0] >= 0 && v[1] >= 0,
+		v => v[0] < 0 && v[1] >= 0,
+		v => v[0] < 0 && v[1] < 0,
+		v => v[0] >= 0 && v[1] < 0,
+	];
+	const quadrantSorts = [
+		(a, b) => vectors[b][0] - vectors[a][0],
+		(a, b) => vectors[b][0] - vectors[a][0],
+		(a, b) => vectors[a][0] - vectors[b][0],
+		(a, b) => vectors[a][0] - vectors[b][0],
+	];
+	const vectorsQuadrant = vectors
+		.map(vec => quadrantConditions
+			.map((fn, i) => (fn(vec) ? i : undefined))
+			.filter(a => a !== undefined)
+			.shift());
+	const quadrantsVectors = [[], [], [], []];
+	vectorsQuadrant.forEach((q, v) => { quadrantsVectors[q].push(v); });
+	return quadrantsVectors
+		.flatMap((indices, i) => indices.sort(quadrantSorts[i]));
+};
 const radialSortPointIndices3 = (
 	points,
 	vector = [1, 0, 0],
 	origin = [0, 0, 0],
-	epsilon = EPSILON,
 ) => {
-	basisVectors3(vector);
-	const projections = points
+	const threeVectors = basisVectors3(vector);
+	const basis = [threeVectors[1], threeVectors[2], threeVectors[0]];
+	const projectedPoints = points
 		.map(point => projectPointOnPlane(point, vector, origin));
-	const dots = projections.map(vec => dot2([1, 0], vec));
-	const crosses = projections.map(vec => cross2([1, 0], vec));
-	projections.map((_, i) => {
-		if (dots[i] >= 0 && crosses[i] >= 0) { return 0; }
-		if (dots[i] < 0 && crosses[i] >= 0) { return 1; }
-		if (dots[i] < 0 && crosses[i] < 0) { return 2; }
-		if (dots[i] >= 0 && crosses[i] < 0) { return 3; }
-		return 0;
-	});
-};const sort=/*#__PURE__*/Object.freeze({__proto__:null,clusterIndicesOfSortedNumbers,radialSortPointIndices2,radialSortPointIndices3,sortAgainstItem,sortPointsAlongVector});const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) => (
+	const projectedVectors = projectedPoints
+		.map(point => subtract(point, origin));
+	const pointsUV = projectedVectors
+		.map(vec => [dot(vec, basis[0]), dot(vec, basis[1])]);
+	const vectorsUV = pointsUV.map(normalize2);
+	return radialSortUnitVectors2(vectorsUV);
+};const sort=/*#__PURE__*/Object.freeze({__proto__:null,clusterIndicesOfSortedNumbers,radialSortPointIndices2,radialSortPointIndices3,radialSortUnitVectors2,sortAgainstItem,sortPointsAlongVector});const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) => (
 	vertices
 		.map(v => vertices_coords[v])
 		.map(coord => subtract(coord, vertices_coords[vertex]))
@@ -8078,10 +8123,30 @@ const getFacesSide = ({
 			? false
 			: sides.reduce((a, b) => a && (b === sides[0]), true)));
 	return facesEdgesSameSide
-		.map((sameSide, f) => (sameSide ? edgesSide[faces_edges[f][0]] : 0));
+		.map((sameSide, f) => (sameSide ? facesEdgesSide[f][0] : 0));
 };
-const getFlapsThroughLine = (graph, line, epsilon = EPSILON) => {
-	getFacesSide(graph, line, epsilon);
+const getFlapsThroughLine = ({
+	vertices_coords, edges_vertices, faces_vertices, faces_edges, faceOrders,
+}, line, epsilon = EPSILON) => {
+	if (!faceOrders) { throw new Error("faceOrders required"); }
+	const facesSide = getFacesSide({
+		vertices_coords, edges_vertices, faces_vertices, faces_edges,
+	}, line, epsilon);
+	const sidesFaces = [-1, 1]
+		.map(side => facesSide
+			.map((s, f) => ({ s, f }))
+			.filter(el => el.s === side || el.s === 0)
+			.map(el => el.f));
+	const sidesFaceOrders = sidesFaces
+		.map(faces => faceOrdersSubset(faceOrders, faces));
+	console.log("facesSide", facesSide);
+	console.log("sidesFaces", sidesFaces);
+	console.log("sidesFaceOrders", sidesFaceOrders);
+	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	const sidesLayersFace = sidesFaceOrders.map(orders => linearizeFaceOrders({
+		vertices_coords, faces_vertices, faceOrders: orders, faces_normal,
+	}));
+	console.log("sidesLayersFace", sidesLayersFace);
 };const flaps=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesSide,getFacesSide,getFlapsThroughLine});const VEF = Object.keys(singularize);
 const makeVerticesMapAndConsiderDuplicates = (target, source, epsilon = EPSILON) => {
 	let index = target.vertices_coords.length;
@@ -8189,8 +8254,6 @@ const getEdgesEdgesOverlapingSpans = ({
 		.map(line => nearestPointOnLine(line, [0, 0, 0], clampLine, epsilon));
 	const edgesOriginDistances = edgesNearestToOrigin
 		.map(point => magnitude(point));
-	edgesNearestToOrigin
-		.map(point => normalize(point));
 	const distanceClusters = clusterScalars(edgesOriginDistances, epsilon);
 	const clusterClusters = distanceClusters
 		.map(cluster => cluster.map(i => edgesVector[i]))
@@ -8198,19 +8261,30 @@ const getEdgesEdgesOverlapingSpans = ({
 		.map((clusters, i) => clusters
 			.map(cluster => cluster
 				.map(index => distanceClusters[i][index])));
+	const compareFn = (i, j) => (
+		epsilonEqualVectors(vertices_coords[i], vertices_coords[j], epsilon)
+	);
 	const clusterClusterClusters = clusterClusters
 		.map(clusters => clusters.map(cluster => {
 			if (Math.abs(edgesOriginDistances[cluster[0]]) < epsilon) {
 				return [cluster];
 			}
 			const clusterVector = edgesLine[cluster[0]].vector;
-			const clusterCrosses = cluster.map(e => cross2(
-				edgesLine[e].origin,
+			const sortedIndices = radialSortPointIndices3(
+				cluster.map(v => vertices_coords[v]),
 				clusterVector,
-			));
-			const clusterCrossSigns = clusterCrosses.map(cross => Math.sign(cross));
-			return clusterScalars(clusterCrossSigns, epsilon)
-				.map(cl => cl.map(j => cluster[j]));
+			).map(i => cluster[i]);
+			const clusterResult = clusterSortedGeneric(sortedIndices, compareFn)
+				.map(cl => cl.map(j => sortedIndices[j]));
+			if (clusterResult.length === 1) { return clusterResult; }
+			const firstFirst = clusterResult[0][0];
+			const last = clusterResult[clusterResult.length - 1];
+			const lastLast = last[last.length - 1];
+			if (compareFn(firstFirst, lastLast)) {
+				const lastCluster = clusterResult.pop();
+				clusterResult[0] = lastCluster.concat(clusterResult[0]);
+			}
+			return clusterResult;
 		}));
 	const lines = clusterClusterClusters
 		.flatMap(clusterOfClusters => clusterOfClusters

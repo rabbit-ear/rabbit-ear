@@ -8,9 +8,12 @@ import {
 	getEdgesLineIntersection,
 	getEdgesCollinearToLine,
 } from "./intersect/edges.js";
+import { makeFacesEdgesFromVertices } from "./make.js";
+import { makeFacesNormal } from "./normals.js";
 import {
-	makeFacesEdgesFromVertices,
-} from "./make.js";
+	faceOrdersSubset,
+	linearizeFaceOrders,
+} from "./orders.js";
 /**
  *
  */
@@ -57,12 +60,32 @@ export const getFacesSide = ({
 			? false
 			: sides.reduce((a, b) => a && (b === sides[0]), true)));
 	return facesEdgesSameSide
-		.map((sameSide, f) => (sameSide ? edgesSide[faces_edges[f][0]] : 0));
+		.map((sameSide, f) => (sameSide ? facesEdgesSide[f][0] : 0));
 };
 /**
  * @description flat folded crease patterns only (2D)
  */
-export const getFlapsThroughLine = (graph, line, epsilon = EPSILON) => {
+export const getFlapsThroughLine = ({
+	vertices_coords, edges_vertices, faces_vertices, faces_edges, faceOrders,
+}, line, epsilon = EPSILON) => {
+	if (!faceOrders) { throw new Error("faceOrders required"); }
 	// for every face, get the intersection
-	const facesSide = getFacesSide(graph, line, epsilon);
+	const facesSide = getFacesSide({
+		vertices_coords, edges_vertices, faces_vertices, faces_edges,
+	}, line, epsilon);
+	const sidesFaces = [-1, 1]
+		.map(side => facesSide
+			.map((s, f) => ({ s, f }))
+			.filter(el => el.s === side || el.s === 0)
+			.map(el => el.f));
+	const sidesFaceOrders = sidesFaces
+		.map(faces => faceOrdersSubset(faceOrders, faces));
+	console.log("facesSide", facesSide);
+	console.log("sidesFaces", sidesFaces);
+	console.log("sidesFaceOrders", sidesFaceOrders);
+	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	const sidesLayersFace = sidesFaceOrders.map(orders => linearizeFaceOrders({
+		vertices_coords, faces_vertices, faceOrders: orders, faces_normal,
+	}));
+	console.log("sidesLayersFace", sidesLayersFace);
 };

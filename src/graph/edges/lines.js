@@ -1,15 +1,19 @@
 import { EPSILON } from "../../math/general/constant.js";
-import { clampLine } from "../../math/general/function.js";
+import {
+	clampLine,
+	epsilonEqualVectors,
+} from "../../math/general/function.js";
 import {
 	magnitude,
 	normalize,
 	subtract,
-	cross2,
 } from "../../math/algebra/vector.js";
+import { radialSortPointIndices3 } from "../../math/general/sort.js";
 import { nearestPointOnLine } from "../../math/geometry/nearest.js";
 import { makeEdgesCoords } from "../make.js";
 import {
 	clusterScalars,
+	clusterSortedGeneric,
 	clusterParallelVectors,
 } from "../../general/arrays.js";
 /**
@@ -43,8 +47,6 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 	// shortest distance from each edge's line to the origin.
 	const edgesOriginDistances = edgesNearestToOrigin
 		.map(point => magnitude(point));
-	const edgesOriginUnitVectors = edgesNearestToOrigin
-		.map(point => normalize(point));
 	// begin clustering, we will cluster into 3 parts:
 	// 1. cluster lines with similar distance-to-origin scalars
 	// 2. sub-cluster those with parallel-vectors
@@ -60,45 +62,15 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 		.map((clusters, i) => clusters
 			.map(cluster => cluster
 				.map(index => distanceClusters[i][index])));
+	// this comparison function will be used if two or more points satisfy
+	// both #1 and #2 conditions, and need to be radially sorted in their plane.
+	const compareFn = (i, j) => (
+		epsilonEqualVectors(vertices_coords[i], vertices_coords[j], epsilon)
+	);
 	// one final time, cluster each subcluster once more. because we only
 	// measured the distance to the origin, and the vector, we could be on
 	// equal but opposite sides of the origin.
 	// (unless it passes through the origin)
-
-	//       (+y)
-	//        |
-	//  -d +c |  +d +c
-	//        |
-	// -------|------- (+x, [1, 0])
-	//        |
-	//  -d -c |  +d -c
-	//        |
-	//
-	// 1 | 0
-	// -----
-	// 2 | 3
-	// sort by: decreasing, decreasing, increasing, increasing dot products
-	// const dots = vectors.map(vec => dot2([1, 0], vec));
-	// const crosses = vectors.map(vec => cross2([1, 0], vec));
-	// const vectors_quadrant = vectors.map((_, i) => {
-	// 	if (dots[i] >= 0 && crosses[i] >= 0) { return 0; }
-	// 	if (dots[i] < 0 && crosses[i] >= 0) { return 1; }
-	// 	if (dots[i] < 0 && crosses[i] < 0) { return 2; }
-	// 	if (dots[i] >= 0 && crosses[i] < 0) { return 3; }
-	// 	return 0;
-	// });
-	// const quadrants_vectors = invertMap(vectors_quadrant)
-	// 	.map(el => (el.constructor === Array ? el : [el]));
-	// const funcs = [
-	// 	(a, b) => dots[b] - dots[a],
-	// 	(a, b) => dots[b] - dots[a],
-	// 	(a, b) => dots[a] - dots[b],
-	// 	(a, b) => dots[a] - dots[b],
-	// ];
-	// const sortedQuadrantsVectors = quadrants_vectors
-	// 	.map((indices, i) => indices.sort(funcs[i]));
-
-	// todo: oh no. this isn't sufficient for 3D. now it only works in 2D.
 	const clusterClusterClusters = clusterClusters
 		.map(clusters => clusters.map(cluster => {
 			// if the cluster passes through the origin, return one sub-cluster.
@@ -107,16 +79,31 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 			}
 			// establish a shared vector for all lines in the cluster
 			const clusterVector = edgesLine[cluster[0]].vector;
-			// which side of the vector is each edge's line's origin?
-			const clusterCrosses = cluster.map(e => cross2(
-				edgesLine[e].origin,
+			// these points are all the same distance away from the origin,
+			// radially sort them around the origin, using the line's vector
+			// as the plane's normal.
+			const sortedIndices = radialSortPointIndices3(
+				cluster.map(v => vertices_coords[v]),
 				clusterVector,
-			));
-			// convert the previous sidedness result into -1 or +1.
-			const clusterCrossSigns = clusterCrosses.map(cross => Math.sign(cross));
-			// cluster and map indices back to their original edge index.
-			return clusterScalars(clusterCrossSigns, epsilon)
-				.map(cl => cl.map(j => cluster[j]));
+			).map(i => cluster[i]);
+			// now that the list is sorted, cluster any neighboring points
+			// that are within an epsilon distance away from each other.
+			const clusterResult = clusterSortedGeneric(sortedIndices, compareFn)
+				.map(cl => cl.map(j => sortedIndices[j]));
+			// one special case, since these are radially sorted, if the
+			// first and last cluster are equivalent, merge them together
+			if (clusterResult.length === 1) { return clusterResult; }
+			// get the first from cluster[0] and the last from cluster[n - 1]
+			const firstFirst = clusterResult[0][0];
+			const last = clusterResult[clusterResult.length - 1];
+			const lastLast = last[last.length - 1];
+			// if two points from either end clusters are similar,
+			// merge the 0 and n-1 clusters into the 0 index.
+			if (compareFn(firstFirst, lastLast)) {
+				const lastCluster = clusterResult.pop();
+				clusterResult[0] = lastCluster.concat(clusterResult[0]);
+			}
+			return clusterResult;
 		}));
 	// get a flat array of all unique lines (one per cluster) found.
 	const lines = clusterClusterClusters

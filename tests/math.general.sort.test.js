@@ -38,3 +38,32 @@ test("radialSortPointIndices2", () => {
 	const result5 = ear.math.radialSortPointIndices2([[-1, 0], [1, 0], [0, 1]], 2);
 	equalTest(result5, [[0], [2, 1]]);
 });
+
+test("radialSortPointIndices3", () => {
+	const points = Array.from(Array(24))
+		.map(() => [Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1]);
+	points.push([0, 0, 0]);
+	const result = ear.math.radialSortPointIndices3(points, [1, 0, 0]);
+	expect(result.length).toBe(25);
+});
+
+test("radialSortPointIndices3", () => {
+	const points = [
+		[1, 1, 1],
+		[-1, -1, -1],
+		[-1, -1, 1],
+		[1, 1, -1],
+	];
+	const resultX = ear.math.radialSortPointIndices3(points, [1, 0, 0]);
+	const resultY = ear.math.radialSortPointIndices3(points, [0, 1, 0]);
+	const resultZ = ear.math.radialSortPointIndices3(points, [0, 0, 1]);
+	const resultXn = ear.math.radialSortPointIndices3(points, [-1, 0, 0]);
+	const resultYn = ear.math.radialSortPointIndices3(points, [0, -1, 0]);
+	const resultZn = ear.math.radialSortPointIndices3(points, [0, 0, -1]);
+	expect(JSON.stringify(resultX)).toBe(JSON.stringify([3, 0, 2, 1]));
+	expect(JSON.stringify(resultY)).toBe(JSON.stringify([0, 3, 1, 2]));
+	expect(JSON.stringify(resultZ)).toBe(JSON.stringify([0, 3, 1, 2]));
+	expect(JSON.stringify(resultXn)).toBe(JSON.stringify([0, 3, 1, 2]));
+	expect(JSON.stringify(resultYn)).toBe(JSON.stringify([3, 0, 2, 1]));
+	expect(JSON.stringify(resultZn)).toBe(JSON.stringify([0, 3, 1, 2]));
+});

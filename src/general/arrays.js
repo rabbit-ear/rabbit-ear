@@ -132,6 +132,31 @@ export const selfRelationalUniqueIndexPairs = (array_array) => {
 	return pairs;
 };
 /**
+ * @description Given a list of sorted generic type elements, cluster
+ * similar values where similarity is determined by a comparison function,
+ * and comparisons only need to happen to neighbors due to the array
+ * already being sorted.
+ * For example, if the elements are 3D points all along a line, they should
+ * be pre-sorted, then the comparison function should take two point
+ * parameters and compares them and returns true if they are similar. This
+ * will cluster the point indices into groups of points with similar locations.
+ */
+export const clusterSortedGeneric = (elements, comparison) => {
+	const indices = elements.map((_, i) => i);
+	const groups = [[indices[0]]];
+	for (let i = 1; i < indices.length; i += 1) {
+		const index = indices[i];
+		const g = groups.length - 1;
+		const prev = groups[g][groups[g].length - 1];
+		if (comparison(elements[prev], elements[index])) {
+			groups[g].push(index);
+		} else {
+			groups.push([index]);
+		}
+	}
+	return groups;
+};
+/**
  * @description Given an array of floats, make a sorted copy of the array,
  * then walk through the array and group similar values into clusters.
  * Cluster epsilon is relative to the nearest neighbor, not the start
@@ -141,6 +166,17 @@ export const selfRelationalUniqueIndexPairs = (array_array) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of array of indices to the input array.
  */
+export const clusterScalarsNew = (numbers, epsilon = EPSILON) => {
+	const indices = numbers
+		.map((v, i) => ({ v, i }))
+		.sort((a, b) => a.v - b.v)
+		.map(el => el.i);
+	const sortedNumbers = indices.map(i => numbers[i]);
+	const compFn = (a, b) => Math.abs(a - b) < epsilon;
+	return clusterSortedGeneric(sortedNumbers, compFn)
+		.map(i => indices[i]);
+};
+
 export const clusterScalars = (floats, epsilon = EPSILON) => {
 	const indices = floats
 		.map((v, i) => ({ v, i }))

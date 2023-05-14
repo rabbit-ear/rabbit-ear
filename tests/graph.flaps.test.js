@@ -43,10 +43,14 @@ test("getFacesSide", () => {
 	expect(intersectCount1).toBe(0);
 });
 
-test("planarize, svg import", () => {
-	const FOLD = fs.readFileSync("./tests/files/fold/crane-cp.fold", "utf-8");
+test("crane flaps", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
-	const result = ear.graph.getFlapsThroughLine(graph, { vector: [1, 1], origin: [0, 0] });
+	const origin = graph.vertices_coords[39];
+	const vector = ear.math.subtract2(...graph.edges_vertices[59].map(v => graph.vertices_coords[v]));
+	// const vector = [1, -1];
+	console.log(origin, vector);
+	const result = ear.graph.getFlapsThroughLine(graph, { vector, origin });
 	// console.log(graph);
 	expect(true).toBe(true);
 });
