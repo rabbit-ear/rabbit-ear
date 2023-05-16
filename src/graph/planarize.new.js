@@ -4,7 +4,6 @@
 import { EPSILON } from "../math/general/constant.js";
 import { epsilonEqual } from "../math/general/function.js";
 import {
-	normalize2,
 	dot2,
 	cross2,
 	scale2,
@@ -16,43 +15,29 @@ import {
 	removeIsolatedVertices,
 } from "./vertices/isolated.js";
 import remove from "./remove.js";
-import replace from "./replace.js";
 import { isVertexCollinear } from "./vertices/collinear.js";
-import { intersectLineLine } from "../math/intersect/intersect.js";
-import { pointInBoundingBox } from "../math/intersect/encloses.js";
 import { epsilonUniqueSortedNumbers } from "../general/arrays.js";
 import { getEdgesLine } from "./edges/lines.js";
-import { boundingBox } from "./boundary.js";
 import { sweepValues } from "./sweep.js";
-
-import {
-	edgeAssignmentToFoldAngle,
-	edgeFoldAngleToAssignment,
-	filterKeysWithPrefix,
-} from "../fold/spec.js";
+import { filterKeysWithPrefix } from "../fold/spec.js";
 import { removeDuplicateVertices } from "./vertices/duplicate.js";
-import { duplicateEdges, removeDuplicateEdges } from "./edges/duplicate.js";
-import { removeCircularEdges } from "./edges/circular.js";
-import { getVerticesEdgesOverlap } from "./intersect/verticesEdges.js";
-import { getEdgesEdgesIntersection } from "./intersect/edgesEdges.js";
-import { sortVerticesAlongVector } from "./vertices/sort.js";
-import {
-	mergeNextmaps,
-	invertMap,
-} from "./maps.js";
+import { duplicateEdges } from "./edges/duplicate.js";
+import { invertMap } from "./maps.js";
 import Messages from "../environment/messages.js";
-import { makeVerticesEdgesUnsorted } from "./make.js";
+import {
+	makeVerticesEdgesUnsorted,
+	makeVerticesVertices2D,
+	makePlanarFaces,
+} from "./make.js";
 /**
  *
  */
 export const lineLine = (a, b, epsilon = EPSILON) => {
-	// a normalized determinant gives consistent values across all epsilon ranges
-	const det_norm = cross2(normalize2(a.vector), normalize2(b.vector));
-	// lines are parallel
-	if (Math.abs(det_norm) < epsilon) { return undefined; }
 	const determinant0 = cross2(a.vector, b.vector);
+	// lines are parallel
+	if (Math.abs(determinant0) < epsilon) { return undefined; }
 	const determinant1 = -determinant0;
-	const a2b = [b.origin[0] - a.origin[0], b.origin[1] - a.origin[1]];
+	const a2b = subtract2(b.origin, a.origin);
 	const b2a = [-a2b[0], -a2b[1]];
 	return [
 		cross2(a2b, b.vector) / determinant0,
@@ -133,13 +118,21 @@ const sortedNumberSetDifference = (a, b, epsilon = EPSILON) => {
 };
 
 export const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
+	// edges[0] will remain. edges[1] will be removed
 	const edges = vertices_edges[vertex].sort((a, b) => a - b);
-	const edge_vertices = edges
+	const newEdgeVertices = edges
 		.flatMap(e => edges_vertices[e])
-		.filter(v => v !== vertex);
-	edges.forEach(e => {
-		edges_vertices[e] = edge_vertices.slice(0, 2);
+		.filter(v => v !== vertex)
+		.slice(0, 2);
+	edges_vertices[edges[0]] = newEdgeVertices;
+	edges_vertices[edges[1]] = undefined;
+	// edges.forEach(e => { edges_vertices[e] = newEdgeVertices; });
+	newEdgeVertices.forEach(v => {
+		const oldEdgeIndex = vertices_edges[v].indexOf(edges[1]);
+		if (oldEdgeIndex === -1) { return; }
+		vertices_edges[v][oldEdgeIndex] = edges[0];
 	});
+	return edges[1];
 };
 
 /**
@@ -283,18 +276,30 @@ const planarize = ({
 	removeIsolatedVertices(result, edgeIsolatedVertices(result));
 	removeDuplicateVertices(result, epsilon);
 	// remove collinear vertices
+	// these vertices_edges are unsorted and will be removed at the end.
 	result.vertices_edges = makeVerticesEdgesUnsorted(result);
 	const collinearVertices = result.vertices_edges
 		.map((edges, i) => (edges.length === 2 ? i : undefined))
 		.filter(a => a !== undefined)
-		.filter(v => isVertexCollinear(result, v, epsilon));
-	console.log("collinearVertices", collinearVertices);
-	collinearVertices.forEach(v => removeCollinearVertex(result, v));
+		.filter(v => isVertexCollinear(result, v, epsilon))
+		.reverse();
+	// console.log("collinearVertices", collinearVertices);
+	const edgesToRemove = collinearVertices
+		.map(v => removeCollinearVertex(result, v));
+	// console.log("edgesToRemove", edgesToRemove);
+	remove(result, "edges", edgesToRemove);
 	remove(result, "vertices", collinearVertices);
 	// removeDuplicateEdges(result);
-	const dupEdges = duplicateEdges(result);
-	console.log("dupEdges", dupEdges);
-	replace(result, "edges", dupEdges);
+	if (duplicateEdges(result).length) {
+		console.warn("planarize: duplicate edges found", duplicateEdges(result));
+	}
+	// replace(result, "edges", dupEdges);
+
+	// result.vertices_vertices = makeVerticesVertices2D(result);
+	// const planarFaces = makePlanarFaces(result);
+	// result.faces_vertices = planarFaces.faces_vertices;
+	// result.faces_edges = planarFaces.faces_edges;
+	delete result.vertices_edges;
 
 	// console.log("lines", lines);
 	// console.log("edges_line", edges_line);

@@ -9,6 +9,7 @@ import * as general2d from "./solver2d/general.js";
 import { layer3d } from "./solver3d/index.js";
 import * as setup3d from "./solver3d/setup.js";
 import * as general3d from "./solver3d/general.js";
+import * as copyGraph from "./solver3d/copyGraph.js";
 
 import * as general from "./general.js";
 // single-vertex solver
@@ -30,6 +31,7 @@ Object.assign(layer, {
 	layer3d,
 	...setup3d,
 	...general3d,
+	...copyGraph,
 	// single-vertex solver
 	singleVertexSolver,
 	singleVertexAssignmentSolver,

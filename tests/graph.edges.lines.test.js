@@ -1,5 +1,36 @@
+const fs = require("fs");
+const xmldom = require("@xmldom/xmldom");
 const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear.js");
+
+ear.window = xmldom;
+
+test("maze folding", () => {
+	const svg = fs.readFileSync("./tests/files/svg/maze-8x8.svg", "utf-8");
+	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);
+	fs.writeFileSync(
+		"./tests/tmp/planarizeEdgeGraph.fold",
+		JSON.stringify(graph),
+		"utf8",
+	);
+	const { lines, edges_line } = ear.graph.getEdgesLine(graph);
+	const edgesValid = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v]))
+		.map((coords, i) => coords
+			.map(coord => ear.math.overlapLinePoint(lines[edges_line[i]], coord)))
+		.map(pair => pair[0] && pair[1])
+		.map((valid, i) => (!valid ? i : undefined))
+		.filter(a => a !== undefined);
+	expect(edgesValid.length).toBe(0);
+});
+
+test("Mooser's train 3d edges_line", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/moosers-train.fold", "utf-8");
+	const graph = JSON.parse(FOLD);
+	const edgesLine = ear.graph.getEdgesLine(graph);
+	expect(edgesLine.lines.length).toBe(301);
+	expect(true).toBe(true);
+});
 
 test("parallel same distance 3d", () => {
 	const graph = {

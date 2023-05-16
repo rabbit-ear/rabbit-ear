@@ -6,18 +6,34 @@ const ear = require("../rabbit-ear.js");
 ear.window = xmldom;
 
 test("planarize, svg import", () => {
-	// const svg = fs.readFileSync("./tests/files/svg/fish.svg", "utf-8");
-	const svg = fs.readFileSync("./tests/files/svg/maze.svg", "utf-8");
+	const svg = fs.readFileSync("./tests/files/svg/maze-8x8.svg", "utf-8");
 	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);
 	const result = ear.graph.planarizeNew(graph);
-	// console.log(graph);
-	fs.writeFileSync("./tests/tmp/maze.fold", JSON.stringify(result, null, 2), "utf8");
+	fs.writeFileSync("./tests/tmp/svg-to-fold-maze.fold", JSON.stringify(result, null, 2), "utf8");
 	fs.writeFileSync(
-		"./tests/tmp/maze.svg",
+		"./tests/tmp/svg-to-fold-to-svg-maze-8x8.svg",
 		ear.convert.foldToSvg(result, { string: true }),
 		"utf8",
 	);
 	expect(true).toBe(true);
+});
+
+test("overlapping edge assignments", () => {
+	const svg = `<svg>
+		<line x1="0" y1="9" x2="0" y2="7.5" stroke="black" />
+		<rect x="0" y="0" width="8" height="8" stroke="purple" />
+		<rect x="0" y="1" width="6" height="6" stroke="red" />
+		<rect x="0" y="2" width="4" height="4" stroke="green" />
+		<rect x="0" y="3" width="2" height="2" stroke="blue" />
+		<line x1="0" y1="-1" x2="0" y2="2.5" stroke="black" />
+	</svg>`;
+	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);
+	const result = ear.graph.planarizeNew(graph);
+	fs.writeFileSync(
+		"./tests/tmp/planarize-overlapping-edges.fold",
+		JSON.stringify(result, null, 2),
+		"utf8",
+	);
 });
 
 /*

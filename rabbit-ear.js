@@ -1273,8 +1273,9 @@ const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles
 		.map(a => Math.PI - a)
 		.reduce((a, b) => a + b, 0) > 0);const walk=/*#__PURE__*/Object.freeze({__proto__:null,counterClockwiseWalk,filterWalkedBoundaryFace,planarVertexWalk});const projectPointOnPlane = (point, vector = [1, 0, 0], origin = [0, 0, 0]) => {
-	const originToPoint = subtract3(point, origin);
-	const normalized = normalize3(vector);
+	point = resize(3, point);
+	const originToPoint = subtract3(point, resize(3, origin));
+	const normalized = normalize3(resize(3, vector));
 	const magnitude = dot3(normalized, originToPoint);
 	const planeToPoint = scale3(normalized, magnitude);
 	return subtract3(point, planeToPoint);
@@ -7630,14 +7631,252 @@ const objToFold = (file) => {
 	delete graph.edges_faces;
 	updateMetadata(graph);
 	return graph;
+};const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) => {
+	if (!vertices_coords
+		|| !edges_vertices
+		|| !edges_vertices.length) {
+		return { edges_line: [], lines: [] };
+	}
+	const edgesCoords = makeEdgesCoords({ vertices_coords, edges_vertices });
+	const edgesVector = edgesCoords
+		.map(verts => subtract(verts[1], verts[0]))
+		.map(normalize);
+	const edgesLine = edgesVector
+		.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
+	const edgesNearestToOrigin = edgesLine
+		.map(line => nearestPointOnLine(line, [0, 0, 0], clampLine, epsilon));
+	const edgesOriginDistances = edgesNearestToOrigin
+		.map(point => magnitude(point));
+	const distanceClusters = clusterScalars(edgesOriginDistances, epsilon);
+	const parallelDistanceClusters = distanceClusters
+		.map(cluster => cluster.map(i => edgesVector[i]))
+		.map(cluster => clusterParallelVectors(cluster, epsilon))
+		.map((clusters, i) => clusters
+			.map(cluster => cluster
+				.map(index => distanceClusters[i][index])));
+	const collinearParallelDistanceClusters = parallelDistanceClusters
+		.map(clusters => clusters.map(cluster => {
+			if (Math.abs(edgesOriginDistances[cluster[0]]) < epsilon) {
+				return [cluster];
+			}
+			const clusterVector = edgesLine[cluster[0]].vector;
+			const clusterPoints = cluster
+				.map(e => vertices_coords[edges_vertices[e][0]])
+				.map(point => projectPointOnPlane(point, clusterVector));
+			const sortedIndices = radialSortPointIndices3(clusterPoints, clusterVector);
+			const compareFn = (i, j) => (
+				epsilonEqualVectors(clusterPoints[i], clusterPoints[j], epsilon)
+			);
+			const remap = cl => cl.map(i => sortedIndices[i]).map(i => cluster[i]);
+			const clusterResult = clusterSortedGeneric(sortedIndices, compareFn);
+			if (clusterResult.length === 1) { return clusterResult.map(remap); }
+			const firstFirst = clusterResult[0][0];
+			const last = clusterResult[clusterResult.length - 1];
+			const lastLast = last[last.length - 1];
+			const endIndices = [firstFirst, lastLast].map(i => sortedIndices[i]);
+			if (compareFn(...endIndices)) {
+				const lastCluster = clusterResult.pop();
+				clusterResult[0] = lastCluster.concat(clusterResult[0]);
+			}
+			return clusterResult.map(remap);
+		}));
+	const lines = collinearParallelDistanceClusters
+		.flatMap(clusterOfClusters => clusterOfClusters
+			.flatMap(clusters => clusters
+				.map(cluster => cluster[0])
+				.map(i => ({ vector: edgesVector[i], origin: edgesNearestToOrigin[i] }))));
+	const edges_line = [];
+	let lineIndex = 0;
+	collinearParallelDistanceClusters
+		.forEach(clusterOfClusters => clusterOfClusters
+			.forEach(clusters => clusters
+				.forEach(cluster => {
+					cluster.forEach(i => { edges_line[i] = lineIndex; });
+					lineIndex += 1;
+				})));
+	return {
+		lines,
+		edges_line,
+	};
+};const edgesLines=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesLine});const lineLine = (a, b, epsilon = EPSILON) => {
+	const determinant0 = cross2(a.vector, b.vector);
+	if (Math.abs(determinant0) < epsilon) { return undefined; }
+	const determinant1 = -determinant0;
+	const a2b = subtract2(b.origin, a.origin);
+	const b2a = [-a2b[0], -a2b[1]];
+	return [
+		cross2(a2b, b.vector) / determinant0,
+		cross2(b2a, a.vector) / determinant1,
+	];
+};
+const getLinesIntersections = (lines, lines_range, epsilon = EPSILON) => {
+	const isInside = (number, range) => (
+		number > range[0] - epsilon && number < range[1] + epsilon
+	);
+	const linesIntersect = lines.map(() => []);
+	for (let a = 0; a < lines.length - 1; a += 1) {
+		for (let b = a + 1; b < lines.length; b += 1) {
+			const intersection = lineLine(lines[a], lines[b], epsilon);
+			if (intersection === undefined) { continue; }
+			const [t0, t1] = intersection;
+			if (!isInside(t0, lines_range[a]) || !isInside(t1, lines_range[b])) {
+				continue;
+			}
+			linesIntersect[a].push(t0);
+			linesIntersect[b].push(t1);
+		}
+	}
+	return linesIntersect;
+};
+const sortedNumberSetDifference = (a, b, epsilon = EPSILON) => {
+	const result = [];
+	let ai = 0;
+	let bi = 0;
+	while (ai < a.length && bi < b.length) {
+		if (epsilonEqual(a[ai], b[bi], epsilon)) {
+			ai += 1;
+			continue;
+		}
+		if (a[ai] > b[bi]) {
+			bi += 1;
+			continue;
+		}
+		if (b[bi] > a[ai]) {
+			result.push(a[ai]);
+			ai += 1;
+			continue;
+		}
+	}
+	return result;
+};
+const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
+	const edges = vertices_edges[vertex].sort((a, b) => a - b);
+	const newEdgeVertices = edges
+		.flatMap(e => edges_vertices[e])
+		.filter(v => v !== vertex)
+		.slice(0, 2);
+	edges_vertices[edges[0]] = newEdgeVertices;
+	edges_vertices[edges[1]] = undefined;
+	newEdgeVertices.forEach(v => {
+		const oldEdgeIndex = vertices_edges[v].indexOf(edges[1]);
+		if (oldEdgeIndex === -1) { return; }
+		vertices_edges[v][oldEdgeIndex] = edges[0];
+	});
+	return edges[1];
+};
+const planarize = ({
+	vertices_coords,
+	edges_vertices,
+	edges_assignment,
+	edges_foldAngle,
+}, epsilon = EPSILON) => {
+	if (!vertices_coords || !vertices_coords.length || !edges_vertices) {
+		return undefined;
+	}
+	const { lines, edges_line } = getEdgesLine({
+		vertices_coords, edges_vertices,
+	}, epsilon);
+	const lines_edges = invertMap(edges_line)
+		.map(arr => (arr.constructor === Array ? arr : [arr]));
+	const edges_scalars = edges_vertices
+		.map(ev => ev.map(v => vertices_coords[v]))
+		.map((coords, i) => coords.map(point => dot2(
+			subtract2(point, lines[edges_line[i]].origin),
+			lines[edges_line[i]].vector,
+		)));
+	const lines_flatEdgeScalars = lines_edges
+		.map(edges => edges.flatMap(edge => edges_scalars[edge]))
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon));
+	const lines_range = lines_flatEdgeScalars
+		.map(scalars => [scalars[0], scalars[scalars.length - 1]]);
+	const lines_intersections = getLinesIntersections(lines, lines_range, epsilon)
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon))
+		.map((sects, i) => (
+			sortedNumberSetDifference(sects, lines_flatEdgeScalars[i], epsilon)
+		));
+	const sweepScalars = lines_edges
+		.map(edges => edges.flatMap(edge => edges_scalars[edge]));
+	const sweepEdgesVertices = lines_edges.map(edges => {
+		const lineEdges = [];
+		edges.forEach((e, i) => { lineEdges[e] = [i * 2, i * 2 + 1]; });
+		return lineEdges;
+	});
+	const lineSweeps = lines_edges.map((_, i) => sweepValues(sweepScalars[i], {
+		edges_vertices: sweepEdgesVertices[i],
+	}, epsilon));
+	const lineSweeps_vertices = lineSweeps.map(sweep => sweep.map(el => el.t));
+	const lineSweeps_edges = lineSweeps.map(sweep => {
+		const current = {};
+		const edges = sweep.map(el => {
+			el.start.forEach(n => { current[n] = true; });
+			el.end.forEach(n => { delete current[n]; });
+			return Object.keys(current).map(n => parseInt(n, 10));
+		});
+		edges.pop();
+		return edges;
+	});
+	lines_intersections.forEach((points, i) => {
+		const vertices = lineSweeps_vertices[i];
+		const edges = lineSweeps_edges[i];
+		let pi = 0;
+		let vi = 0;
+		while (pi < points.length && vi < vertices.length - 1) {
+			if (epsilonEqual(vertices[vi], points[pi], epsilon)) {
+				throw new Error("bad algorithm");
+			}
+			if (points[pi] > vertices[vi + 1]) {
+				vi += 1;
+				continue;
+			}
+			vertices.splice(vi + 1, 0, points[pi]);
+			edges.splice(vi + 1, 0, edges[vi]);
+			pi += 1;
+		}
+	});
+	const new_vertices_coords = lineSweeps_vertices
+		.flatMap((scalars, i) => scalars
+			.map(s => add2(lines[i].origin, scale2(lines[i].vector, s))));
+	let e = 0;
+	const new_edges_vertices = lineSweeps_edges
+		.map(edges => {
+			const vertices = edges.map(() => [e, ++e]);
+			e += 1;
+			return vertices;
+		})
+		.flatMap((edges, i) => edges
+			.filter((_, j) => lineSweeps_edges[i][j].length));
+	const edges_prevEdge = lineSweeps_edges
+		.flatMap(edges => edges.filter(arr => arr.length));
+	const result = {
+		vertices_coords: new_vertices_coords,
+		edges_vertices: new_edges_vertices,
+		edges_assignment: edges_prevEdge.map(prev => edges_assignment[prev[0]]),
+		edges_foldAngle: edges_prevEdge.map(prev => edges_foldAngle[prev[0]]),
+	};
+	removeIsolatedVertices(result, edgeIsolatedVertices(result));
+	removeDuplicateVertices(result, epsilon);
+	result.vertices_edges = makeVerticesEdgesUnsorted(result);
+	const collinearVertices = result.vertices_edges
+		.map((edges, i) => (edges.length === 2 ? i : undefined))
+		.filter(a => a !== undefined)
+		.filter(v => isVertexCollinear(result, v, epsilon))
+		.reverse();
+	const edgesToRemove = collinearVertices
+		.map(v => removeCollinearVertex(result, v));
+	removeGeometryIndices(result, "edges", edgesToRemove);
+	removeGeometryIndices(result, "vertices", collinearVertices);
+	if (duplicateEdges(result).length) {
+		console.warn("planarize: duplicate edges found", duplicateEdges(result));
+	}
+	delete result.vertices_edges;
+	return result;
 };const planarizeGraph = (graph, epsilon) => {
-	const planar = { ...graph };
-	removeDuplicateVertices(planar, epsilon);
-	planarize$1(planar, epsilon);
+	const planar = planarize(graph, epsilon);
 	planar.vertices_vertices = makeVerticesVertices(planar);
 	const faces = makePlanarFaces(planar);
 	planar.faces_vertices = faces.faces_vertices;
 	planar.faces_edges = faces.faces_edges;
+	delete planar.vertices_edges;
 	return planar;
 };const shortestEdgeLength$1 = ({ vertices_coords, edges_vertices }) => {
 	const lengths = edges_vertices
@@ -7751,7 +7990,18 @@ const opxToFold = (file, options) => {
 };
 Object.assign(opxToFold, {
 	opxEdgeGraph,
-});const DESATURATION_RATIO = 4;
+});const countPlaces = function (num) {
+	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+	return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
+};
+const cleanNumber = function (num, places = 15) {
+	if (typeof num !== "number") { return num; }
+	const crop = parseFloat(num.toFixed(places));
+	if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
+		return num;
+	}
+	return crop;
+};const number=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const DESATURATION_RATIO = 4;
 const assignmentColor = {
 	M: [1, 0, 0],
 	V: [0, 0, 1],
@@ -7910,18 +8160,7 @@ const svgSegments = (svg) => {
 		parent.parentNode.removeChild(parent);
 	}
 	return segments;
-};const countPlaces = function (num) {
-	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-	return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
-};
-const cleanNumber = function (num, places = 15) {
-	if (typeof num !== "number") { return num; }
-	const crop = parseFloat(num.toFixed(places));
-	if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
-		return num;
-	}
-	return crop;
-};const number=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const getUserAssignmentOptions = (options) => {
+};const getUserAssignmentOptions = (options) => {
 	if (!options || !options.assignments) { return undefined; }
 	const assignments = {};
 	Object.keys(options.assignments).forEach(key => {
@@ -7982,6 +8221,9 @@ const svgEdgeGraph = (svg, options) => {
 	const graph = svgEdgeGraph(file, options);
 	const epsilon = findEpsilonInObject(graph, options);
 	const planarGraph = planarizeGraph(graph, epsilon);
+	const fixNumber = options && options.fast ? n => n : cleanNumber;
+	planarGraph.vertices_coords = planarGraph.vertices_coords
+		.map(coord => coord.map(n => fixNumber(n, 12)));
 	if (typeof options !== "object" || options.boundary !== false) {
 		planarGraph.edges_assignment
 			.map((_, i) => i)
@@ -8238,73 +8480,7 @@ const getEdgesEdgesOverlapingSpans = ({
 		span_overlaps[i][i] = true;
 	}
 	return span_overlaps;
-};const span=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesOverlapingSpans,getEdgesVerticesOverlappingSpan});const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) => {
-	if (!vertices_coords
-		|| !edges_vertices
-		|| !edges_vertices.length) {
-		return { edges_line: [], lines: [] };
-	}
-	const edgesCoords = makeEdgesCoords({ vertices_coords, edges_vertices });
-	const edgesVector = edgesCoords
-		.map(verts => subtract(verts[1], verts[0]))
-		.map(normalize);
-	const edgesLine = edgesVector
-		.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
-	const edgesNearestToOrigin = edgesLine
-		.map(line => nearestPointOnLine(line, [0, 0, 0], clampLine, epsilon));
-	const edgesOriginDistances = edgesNearestToOrigin
-		.map(point => magnitude(point));
-	const distanceClusters = clusterScalars(edgesOriginDistances, epsilon);
-	const clusterClusters = distanceClusters
-		.map(cluster => cluster.map(i => edgesVector[i]))
-		.map(cluster => clusterParallelVectors(cluster, epsilon))
-		.map((clusters, i) => clusters
-			.map(cluster => cluster
-				.map(index => distanceClusters[i][index])));
-	const compareFn = (i, j) => (
-		epsilonEqualVectors(vertices_coords[i], vertices_coords[j], epsilon)
-	);
-	const clusterClusterClusters = clusterClusters
-		.map(clusters => clusters.map(cluster => {
-			if (Math.abs(edgesOriginDistances[cluster[0]]) < epsilon) {
-				return [cluster];
-			}
-			const clusterVector = edgesLine[cluster[0]].vector;
-			const sortedIndices = radialSortPointIndices3(
-				cluster.map(v => vertices_coords[v]),
-				clusterVector,
-			).map(i => cluster[i]);
-			const clusterResult = clusterSortedGeneric(sortedIndices, compareFn)
-				.map(cl => cl.map(j => sortedIndices[j]));
-			if (clusterResult.length === 1) { return clusterResult; }
-			const firstFirst = clusterResult[0][0];
-			const last = clusterResult[clusterResult.length - 1];
-			const lastLast = last[last.length - 1];
-			if (compareFn(firstFirst, lastLast)) {
-				const lastCluster = clusterResult.pop();
-				clusterResult[0] = lastCluster.concat(clusterResult[0]);
-			}
-			return clusterResult;
-		}));
-	const lines = clusterClusterClusters
-		.flatMap(clusterOfClusters => clusterOfClusters
-			.flatMap(clusters => clusters
-				.map(cluster => cluster[0])
-				.map(i => ({ vector: edgesVector[i], origin: edgesNearestToOrigin[i] }))));
-	const edges_line = [];
-	let lineIndex = 0;
-	clusterClusterClusters
-		.forEach(clusterOfClusters => clusterOfClusters
-			.forEach(clusters => clusters
-				.forEach(cluster => {
-					cluster.forEach(i => { edges_line[i] = lineIndex; });
-					lineIndex += 1;
-				})));
-	return {
-		lines,
-		edges_line,
-	};
-};const edgesLines=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesLine});const fixLineDirection = ({ normal, distance }) => (distance < 0
+};const span=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesOverlapingSpans,getEdgesVerticesOverlappingSpan});const fixLineDirection = ({ normal, distance }) => (distance < 0
 	? ({ normal: flip(normal), distance: -distance })
 	: ({ normal, distance }));
 const findSymmetryLines = (graph, epsilon = EPSILON) => {
@@ -8974,197 +9150,6 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	const result = facesSegment
 		.map((seg, face) => addSegmentInsideFace(graph, face, seg, epsilon));
 	return result;
-};const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
-	for (let d = 0; d < point.length; d += 1) {
-		if (point[d] < box.min[d] - epsilon
-			|| point[d] > box.max[d] + epsilon) {
-			return false;
-		}
-	}
-	return true;
-};
-const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
-	const dimensions = Math.min(outer.min.length, inner.min.length);
-	for (let d = 0; d < dimensions; d += 1) {
-		if (inner.min[d] < outer.min[d] - epsilon
-			|| inner.max[d] > outer.max[d] + epsilon) {
-			return false;
-		}
-	}
-	return true;
-};
-const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
-	const outerGoesInside = outer
-		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
-		.reduce((a, b) => a || b, false);
-	const innerGoesOutside = inner
-		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
-		.reduce((a, b) => a && b, true);
-	return (!outerGoesInside && innerGoesOutside);
-};const encloses=/*#__PURE__*/Object.freeze({__proto__:null,enclosingBoundingBoxes,enclosingPolygonPolygon,pointInBoundingBox});const lineLine = (a, b, epsilon = EPSILON) => {
-	const det_norm = cross2(normalize2(a.vector), normalize2(b.vector));
-	if (Math.abs(det_norm) < epsilon) { return undefined; }
-	const determinant0 = cross2(a.vector, b.vector);
-	const determinant1 = -determinant0;
-	const a2b = [b.origin[0] - a.origin[0], b.origin[1] - a.origin[1]];
-	const b2a = [-a2b[0], -a2b[1]];
-	return [
-		cross2(a2b, b.vector) / determinant0,
-		cross2(b2a, a.vector) / determinant1,
-	];
-};
-const getLinesIntersections = (lines, lines_range, epsilon = EPSILON) => {
-	const isInside = (number, range) => (
-		number > range[0] - epsilon && number < range[1] + epsilon
-	);
-	const linesIntersect = lines.map(() => []);
-	for (let a = 0; a < lines.length - 1; a += 1) {
-		for (let b = a + 1; b < lines.length; b += 1) {
-			const intersection = lineLine(lines[a], lines[b], epsilon);
-			if (intersection === undefined) { continue; }
-			const [t0, t1] = intersection;
-			if (!isInside(t0, lines_range[a]) || !isInside(t1, lines_range[b])) {
-				continue;
-			}
-			linesIntersect[a].push(t0);
-			linesIntersect[b].push(t1);
-		}
-	}
-	return linesIntersect;
-};
-const sortedNumberSetDifference = (a, b, epsilon = EPSILON) => {
-	const result = [];
-	let ai = 0;
-	let bi = 0;
-	while (ai < a.length && bi < b.length) {
-		if (epsilonEqual(a[ai], b[bi], epsilon)) {
-			ai += 1;
-			continue;
-		}
-		if (a[ai] > b[bi]) {
-			bi += 1;
-			continue;
-		}
-		if (b[bi] > a[ai]) {
-			result.push(a[ai]);
-			ai += 1;
-			continue;
-		}
-	}
-	return result;
-};
-const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
-	const edges = vertices_edges[vertex].sort((a, b) => a - b);
-	const edge_vertices = edges
-		.flatMap(e => edges_vertices[e])
-		.filter(v => v !== vertex);
-	edges.forEach(e => {
-		edges_vertices[e] = edge_vertices.slice(0, 2);
-	});
-};
-const planarize = ({
-	vertices_coords,
-	edges_vertices,
-	edges_assignment,
-	edges_foldAngle,
-}, epsilon = EPSILON) => {
-	if (!vertices_coords || !vertices_coords.length || !edges_vertices) {
-		return undefined;
-	}
-	const { lines, edges_line } = getEdgesLine({
-		vertices_coords, edges_vertices,
-	}, epsilon);
-	const lines_edges = invertMap(edges_line)
-		.map(arr => (arr.constructor === Array ? arr : [arr]));
-	const edges_scalars = edges_vertices
-		.map(ev => ev.map(v => vertices_coords[v]))
-		.map((coords, i) => coords.map(point => dot2(
-			subtract2(point, lines[edges_line[i]].origin),
-			lines[edges_line[i]].vector,
-		)));
-	const lines_flatEdgeScalars = lines_edges
-		.map(edges => edges.flatMap(edge => edges_scalars[edge]))
-		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon));
-	const lines_range = lines_flatEdgeScalars
-		.map(scalars => [scalars[0], scalars[scalars.length - 1]]);
-	const lines_intersections = getLinesIntersections(lines, lines_range, epsilon)
-		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon))
-		.map((sects, i) => (
-			sortedNumberSetDifference(sects, lines_flatEdgeScalars[i], epsilon)
-		));
-	const sweepScalars = lines_edges
-		.map(edges => edges.flatMap(edge => edges_scalars[edge]));
-	const sweepEdgesVertices = lines_edges.map(edges => {
-		const lineEdges = [];
-		edges.forEach((e, i) => { lineEdges[e] = [i * 2, i * 2 + 1]; });
-		return lineEdges;
-	});
-	const lineSweeps = lines_edges.map((_, i) => sweepValues(sweepScalars[i], {
-		edges_vertices: sweepEdgesVertices[i],
-	}, epsilon));
-	const lineSweeps_vertices = lineSweeps.map(sweep => sweep.map(el => el.t));
-	const lineSweeps_edges = lineSweeps.map(sweep => {
-		const current = {};
-		const edges = sweep.map(el => {
-			el.start.forEach(n => { current[n] = true; });
-			el.end.forEach(n => { delete current[n]; });
-			return Object.keys(current).map(n => parseInt(n, 10));
-		});
-		edges.pop();
-		return edges;
-	});
-	lines_intersections.forEach((points, i) => {
-		const vertices = lineSweeps_vertices[i];
-		const edges = lineSweeps_edges[i];
-		let pi = 0;
-		let vi = 0;
-		while (pi < points.length && vi < vertices.length - 1) {
-			if (epsilonEqual(vertices[vi], points[pi], epsilon)) {
-				throw new Error("bad algorithm");
-			}
-			if (points[pi] > vertices[vi + 1]) {
-				vi += 1;
-				continue;
-			}
-			vertices.splice(vi + 1, 0, points[pi]);
-			edges.splice(vi + 1, 0, edges[vi]);
-			pi += 1;
-		}
-	});
-	const new_vertices_coords = lineSweeps_vertices
-		.flatMap((scalars, i) => scalars
-			.map(s => add2(lines[i].origin, scale2(lines[i].vector, s))));
-	let e = 0;
-	const new_edges_vertices = lineSweeps_edges
-		.map(edges => {
-			const vertices = edges.map(() => [e, ++e]);
-			e += 1;
-			return vertices;
-		})
-		.flatMap((edges, i) => edges
-			.filter((_, j) => lineSweeps_edges[i][j].length));
-	const edges_prevEdge = lineSweeps_edges
-		.flatMap(edges => edges.filter(arr => arr.length));
-	const result = {
-		vertices_coords: new_vertices_coords,
-		edges_vertices: new_edges_vertices,
-		edges_assignment: edges_prevEdge.map(prev => edges_assignment[prev[0]]),
-		edges_foldAngle: edges_prevEdge.map(prev => edges_foldAngle[prev[0]]),
-	};
-	removeIsolatedVertices(result, edgeIsolatedVertices(result));
-	removeDuplicateVertices(result, epsilon);
-	result.vertices_edges = makeVerticesEdgesUnsorted(result);
-	const collinearVertices = result.vertices_edges
-		.map((edges, i) => (edges.length === 2 ? i : undefined))
-		.filter(a => a !== undefined)
-		.filter(v => isVertexCollinear(result, v, epsilon));
-	console.log("collinearVertices", collinearVertices);
-	collinearVertices.forEach(v => removeCollinearVertex(result, v));
-	removeGeometryIndices(result, "vertices", collinearVertices);
-	const dupEdges = duplicateEdges(result);
-	console.log("dupEdges", dupEdges);
-	replaceGeometryIndices(result, "edges", dupEdges);
-	return result;
 };const graphMethods = {
 	count,
 	countImplied,
@@ -9349,7 +9334,34 @@ const straightSkeleton = (points) => {
 	...polygon$1,
 	...radial,
 	straightSkeleton,
-};const splitConvexPolygon = (poly, line) => {
+};const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
+	for (let d = 0; d < point.length; d += 1) {
+		if (point[d] < box.min[d] - epsilon
+			|| point[d] > box.max[d] + epsilon) {
+			return false;
+		}
+	}
+	return true;
+};
+const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
+	const dimensions = Math.min(outer.min.length, inner.min.length);
+	for (let d = 0; d < dimensions; d += 1) {
+		if (inner.min[d] < outer.min[d] - epsilon
+			|| inner.max[d] > outer.max[d] + epsilon) {
+			return false;
+		}
+	}
+	return true;
+};
+const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
+	const outerGoesInside = outer
+		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
+		.reduce((a, b) => a || b, false);
+	const innerGoesOutside = inner
+		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
+		.reduce((a, b) => a && b, true);
+	return (!outerGoesInside && innerGoesOutside);
+};const encloses=/*#__PURE__*/Object.freeze({__proto__:null,enclosingBoundingBoxes,enclosingPolygonPolygon,pointInBoundingBox});const splitConvexPolygon = (poly, line) => {
 	const vertices_intersections = poly.map((v, i) => {
 		const intersection = overlapLinePoint(line, v, includeL);
 		return { point: intersection ? v : null, at_index: i };
@@ -11603,7 +11615,7 @@ const solveEdgeEdgeOverlapOrders = ({
 		.forEach(e => edgesKeys
 			.forEach(key => { delete copy[key][e]; })));
 	return copies;
-};const getEdgesSets = ({ edges_vertices, faces_edges }, faces_set) => {
+};const copyGraph=/*#__PURE__*/Object.freeze({__proto__:null,graphGroupCopies});const getEdgesSets = ({ edges_vertices, faces_edges }, faces_set) => {
 	const edges_sets_lookup = edges_vertices.map(() => ({}));
 	faces_set
 		.forEach((set, face) => faces_edges[face]
@@ -11999,6 +12011,7 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => 
 	layer3d,
 	...setup3d$1,
 	...general3d,
+	...copyGraph,
 	singleVertexSolver,
 	singleVertexAssignmentSolver: assignmentSolver,
 	foldStripWithAssignments,

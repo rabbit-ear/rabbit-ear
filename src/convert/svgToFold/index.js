@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import { cleanNumber } from "../../math/general/number.js";
 import { planarBoundary } from "../../graph/boundary.js";
 import { findEpsilonInObject } from "../general/options.js";
 import planarizeGraph from "../general/planarizeGraph.js";
@@ -21,6 +22,11 @@ const svgToFold = (file, options) => {
 	const graph = svgEdgeGraph(file, options);
 	const epsilon = findEpsilonInObject(graph, options);
 	const planarGraph = planarizeGraph(graph, epsilon);
+	// by default the parser will change numbers like 15.000000000001 into 15.
+	// to turn this off, options.fast = true
+	const fixNumber = options && options.fast ? n => n : cleanNumber;
+	planarGraph.vertices_coords = planarGraph.vertices_coords
+		.map(coord => coord.map(n => fixNumber(n, 12)));
 	// optionally, discover the boundary by walking.
 	if (typeof options !== "object" || options.boundary !== false) {
 		// clear all previous boundary assignments and set them to flat.
