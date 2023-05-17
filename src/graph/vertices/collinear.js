@@ -33,3 +33,8 @@ export const isVertexCollinear = ({
 		.map(v => vertices_coords[v]);
 	return collinearBetween(...points, false, epsilon);
 };
+/**
+ * @description this is located in planarize.js. see if we can generalize
+ * it and bring it out here.
+ */
+// export const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {};

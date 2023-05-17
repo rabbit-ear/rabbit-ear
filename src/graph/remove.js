@@ -13,6 +13,8 @@ import {
  * @description Removes vertices, edges, or faces (or anything really)
  * remove elements from inside arrays, shift up remaining components,
  * and updates all relevant references across other arrays due to shifting.
+ * For outer arrays, this will remove the entire element, for inner arrays,
+ * this will replace an occurrence with "undefined".
  * @param {FOLD} graph a FOLD object
  * @param {string} key like "vertices", the prefix of the arrays
  * @param {number[]} removeIndices an array of vertex indices, like [1,9,25]
@@ -27,9 +29,9 @@ import {
  * this can handle removing multiple indices at once; and is faster than
  * otherwise calling this multiple times with only one or a few removals.
  * @example
- * given removeIndices: [4, 6, 7];
- * given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
- * map becomes (_=undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6];
+ * given removeIndices: [4, 6, 7]
+ * given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+ * map becomes (where _ is undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6]
  * @linkcode Origami ./src/graph/remove.js 33
  */
 const removeGeometryIndices = (graph, key, removeIndices) => {

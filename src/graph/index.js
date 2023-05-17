@@ -38,7 +38,6 @@ import * as facesMatrix from "./faces/matrix.js";
 import * as facesSpanningTree from "./faces/spanningTree.js";
 import * as facesWinding from "./faces/winding.js";
 import * as intersectVertices from "./intersect/vertices.js";
-import * as intersectVerticesEdges from "./intersect/verticesEdges.js";
 import * as intersectEdges from "./intersect/edges.js";
 import * as intersectEdgesEdges from "./intersect/edgesEdges.js";
 import * as intersectEdgesFaces from "./intersect/edgesFaces.js";
@@ -57,7 +56,6 @@ import countImplied from "./countImplied.js";
 import connectedComponents from "./connectedComponents.js";
 import flatFold from "./flatFold/index.js";
 import planarize from "./planarize.js";
-import planarizeNew from "./planarize.new.js";
 import populate from "./populate.js";
 import remove from "./remove.js";
 import replace from "./replace.js";
@@ -88,7 +86,6 @@ export default {
 	addPlanarSegment,
 	addPlanarSegmentNew,
 	planarize,
-	planarizeNew,
 	connectedComponents,
 	clone,
 	...foldColors,
@@ -129,7 +126,6 @@ export default {
 	...facesSpanningTree,
 	...facesWinding,
 	...intersectVertices,
-	...intersectVerticesEdges,
 	...intersectEdges,
 	...intersectEdgesEdges,
 	...intersectEdgesFaces,

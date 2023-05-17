@@ -34,10 +34,10 @@ test("convert opxToFold almost empty", () => {
 });
 
 test("convert opxToFold invalid", () => {
-	ear.convert.opxToFold(`<?xml version="1.0" encoding="UTF-8"?> 
-<java version="1.5.0_13" class="java.beans.XMLDecoder"> 
- <object class="oripa.DataSet"></object> 
-</java> 
+	ear.convert.opxToFold(`<?xml version="1.0" encoding="UTF-8"?>
+<java version="1.5.0_13" class="java.beans.XMLDecoder">
+ <object class="oripa.DataSet"></object>
+</java>
 `);
 	expect(true).toBe(true);
 });

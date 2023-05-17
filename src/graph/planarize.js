@@ -2,246 +2,333 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../math/general/constant.js";
-import { includeS } from "../math/general/function.js";
-import { subtract } from "../math/algebra/vector.js";
+import { epsilonEqual } from "../math/general/function.js";
 import {
-	edgeAssignmentToFoldAngle,
-	edgeFoldAngleToAssignment,
-	filterKeysWithPrefix,
-} from "../fold/spec.js";
+	dot2,
+	cross2,
+	scale2,
+	add2,
+	subtract2,
+} from "../math/algebra/vector.js";
+import { epsilonUniqueSortedNumbers } from "../general/arrays.js";
+import { filterKeysWithPrefix } from "../fold/spec.js";
+import { sweepValues } from "./sweep.js";
+import { invertMap } from "./maps.js";
+import remove from "./remove.js";
+import {
+	edgeIsolatedVertices,
+	removeIsolatedVertices,
+} from "./vertices/isolated.js";
+import {
+	isVertexCollinear,
+	// removeCollinearVertex,
+} from "./vertices/collinear.js";
 import { removeDuplicateVertices } from "./vertices/duplicate.js";
-import { removeDuplicateEdges } from "./edges/duplicate.js";
-import { removeCircularEdges } from "./edges/circular.js";
-import { getVerticesEdgesOverlap } from "./intersect/verticesEdges.js";
-import { getEdgesEdgesIntersection } from "./intersect/edgesEdges.js";
-import { sortVerticesAlongVector } from "./vertices/sort.js";
+import { getEdgesLine } from "./edges/lines.js";
 import {
-	mergeNextmaps,
-	invertMap,
-} from "./maps.js";
+	duplicateEdges,
+	removeDuplicateEdges,
+} from "./edges/duplicate.js";
 import Messages from "../environment/messages.js";
-import { makeVerticesEdgesUnsorted } from "./make.js";
+import {
+	makeVerticesEdgesUnsorted,
+	makeVerticesVertices2D,
+	makePlanarFaces,
+} from "./make.js";
 /**
- * Fragment converts a graph into a planar graph. it flattens all the
- * coordinates onto the 2D plane.
  *
- * it modifies edges and vertices. splitting overlapping edges
- * at their intersections, merging vertices that lie too near to one another.
- * # of edges may increase. # of vertices may decrease. (is that for sure?)
- *
- * This function requires an epsilon (1e-6), for example a busy
- * edge crossing should be able to resolve to one point
- *
- * 1. merge vertices that are within the epsilon.
- *
- * 2. gather all intersections, for every line.
- *    for example, the first line in the list gets compared to other lines
- *    resulting in a list of intersection points,
- *
- * 3. replace the edge with a new, rebuilt, sequence of edges, with
- *    new vertices.
  */
-const fragmentGraph = (graph, epsilon = EPSILON) => {
-	const edges_coords = graph.edges_vertices
-		.map(ev => ev.map(v => graph.vertices_coords[v]));
-	// when we rebuild an edge we need the intersection points sorted
-	// so we can walk down it and rebuild one by one. sort along vector
-	const edges_vector = edges_coords.map(e => subtract(e[1], e[0]));
-	const edges_origin = edges_coords.map(e => e[0]);
-	// both edge-edge and edge-vertex methods use this. precalculate it.
-	const vertices_edges = makeVerticesEdgesUnsorted(graph);
-	// for each edge, get all the intersection points
-	// this array will match edges_, each an array containing intersection
-	// points (an [x,y] array), with an important detail, because each edge
-	// intersects with another edge, this [x,y] point is a shallow pointer
-	// to the same one in the other edge's intersection array.
-	const edges_intersections = getEdgesEdgesIntersection({
-		vertices_coords: graph.vertices_coords,
-		vertices_edges,
-		edges_vertices: graph.edges_vertices,
-		edges_vector,
-		edges_origin,
-	}, 1e-6, includeS);
-	// todo:
-	// this is the slowest subroutine in the entire planarize() method.
-	// see if it can be sped up...
-	// check the new edges' vertices against every edge, in case
-	// one of the endpoints lies along an edge.
-	// const edges_collinear_vertices_old = getVerticesEdgesOverlap({
-	// 	vertices_coords: graph.vertices_coords,
-	// 	edges_vertices: graph.edges_vertices,
-	// 	edges_coords,
-	// }, epsilon);
-	const edges_collinear_vertices = getVerticesEdgesOverlap({
-		vertices_coords: graph.vertices_coords,
-		vertices_edges,
-		edges_vertices: graph.edges_vertices,
-		edges_vector,
-	}, epsilon, includeS);
-	// exit early
-	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
-		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
-		return undefined;
-	}
-	// remember, edges_intersections contains intersections [x,y] points
-	// each one appears twice (both edges that intersect) and is the same
-	// object, shallow pointer.
-	//
-	// iterate over this list and move each vertex into new_vertices_coords.
-	// in their place put the index of this new vertex in the new array.
-	// when we get to the second appearance of the same point, it will have
-	// been replaced with the index, so we can skip it. (check length of
-	// item, 2=point, 1=index)
-	const counts = { vertices: graph.vertices_coords.length };
-	// add new vertices (intersection points) to the graph
-	edges_intersections
-		.forEach(edge => edge
-			.filter(a => a !== undefined)
-			.filter(a => a.length === 2)
-			.forEach((intersect) => {
-				const newIndex = graph.vertices_coords.length;
-				graph.vertices_coords.push([...intersect]);
-				intersect.splice(0, 2);
-				intersect.push(newIndex);
-			}));
-	// replace arrays with indices
-	edges_intersections.forEach((edge, i) => {
-		edge.forEach((intersect, j) => {
-			if (intersect) {
-				edges_intersections[i][j] = intersect[0];
-			}
-		});
-	});
-
-	const edges_intersections_flat = edges_intersections
-		.map(arr => arr.filter(a => a !== undefined));
-	// add lists of vertices into each element in edges_vertices
-	// edges verts now contains an illegal arrangement of more than 2 verts
-	// to be resolved below
-	// graph.edges_vertices.forEach((verts, i) => verts
-	// 	.push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
-	// // .push(...edges_intersections_flat[i]));
-	graph.edges_vertices.forEach((verts, i) => {
-		if (edges_intersections_flat[i]) {
-			verts.push(...edges_intersections_flat[i]);
-		}
-		if (edges_collinear_vertices[i]) {
-			verts.push(...edges_collinear_vertices[i]);
-		}
-	});
-
-	graph.edges_vertices.forEach((edge, i) => {
-		graph.edges_vertices[i] = sortVerticesAlongVector({
-			vertices_coords: graph.vertices_coords,
-		}, edge, edges_vector[i]);
-	});
-
-	// edge_map is length edges_vertices in the new, fragmented graph.
-	// the value at each index is the edge that this edge was formed from.
-	const edge_map = graph.edges_vertices
-		.map((edge, i) => Array(edge.length - 1).fill(i))
-		.flat();
-
-	graph.edges_vertices = graph.edges_vertices
-		.map(edge => Array.from(Array(edge.length - 1))
-			.map((_, i, arr) => [edge[i], edge[i + 1]])) // todo, is this supposed to be % arr.length
-		.flat();
-	// copy over edge metadata if it exists
-	// make foldAngles and assignments match if foldAngle is longer
-	if (graph.edges_assignment && graph.edges_foldAngle
-		&& graph.edges_foldAngle.length > graph.edges_assignment.length) {
-		for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
-			graph.edges_assignment[i] = edgeFoldAngleToAssignment(graph.edges_foldAngle[i]);
-		}
-	}
-	// copy over assignments and fold angle and base fold angle off assigments if it's shorter
-	if (graph.edges_assignment) {
-		graph.edges_assignment = edge_map.map(i => graph.edges_assignment[i] || "U");
-	}
-	if (graph.edges_foldAngle) {
-		graph.edges_foldAngle = edge_map
-			.map(i => graph.edges_foldAngle[i])
-			.map((a, i) => (a === undefined
-				? edgeAssignmentToFoldAngle(graph.edges_assignment[i])
-				: a));
-	}
-	return {
-		vertices: {
-			new: Array.from(Array(graph.vertices_coords.length - counts.vertices))
-				.map((_, i) => counts.vertices + i),
-		},
-		edges: {
-			backmap: edge_map,
-		},
-	};
+export const lineLine = (a, b, epsilon = EPSILON) => {
+	const determinant0 = cross2(a.vector, b.vector);
+	// lines are parallel
+	if (Math.abs(determinant0) < epsilon) { return undefined; }
+	const determinant1 = -determinant0;
+	const a2b = subtract2(b.origin, a.origin);
+	const b2a = [-a2b[0], -a2b[1]];
+	return [
+		cross2(a2b, b.vector) / determinant0,
+		cross2(b2a, a.vector) / determinant1,
+	];
 };
+/**
+ *
+ */
+const getLinesIntersections = (lines, lines_range, epsilon = EPSILON) => {
+	const isInside = (number, range) => (
+		number > range[0] - epsilon && number < range[1] + epsilon
+	);
+	const linesIntersect = lines.map(() => []);
+	for (let a = 0; a < lines.length - 1; a += 1) {
+		for (let b = a + 1; b < lines.length; b += 1) {
+			const intersection = lineLine(lines[a], lines[b], epsilon);
+			// lines are parallel
+			if (intersection === undefined) { continue; }
+			const [t0, t1] = intersection;
+			if (!isInside(t0, lines_range[a]) || !isInside(t1, lines_range[b])) {
+				continue;
+			}
+			linesIntersect[a].push(t0);
+			linesIntersect[b].push(t1);
+		}
+	}
+	return linesIntersect;
+};
+
 /**
  * @description During the planarize process, faces will be entirely
  * re-constructed, edges will be chopped; we can remove most arrays from
- * the graph in preparation, except for these arrays, these need to stay.
+ * the graph in preparation.
+ * @param {FOLD} graph a FOLD graph. modified in place.
  */
-const planarKeepKeys = [
-	"vertices_coords",
-	"edges_vertices",
-	"edges_assignment",
-	"edges_foldAngle",
-];
+const planarizePrepare = (graph) => {
+	// project all vertices onto the XY plane
+	graph.vertices_coords = graph.vertices_coords
+		.map(coord => coord.slice(0, 2));
+	// these arrays will stay in the graph.
+	const planarKeepKeys = [
+		"vertices_coords",
+		"edges_vertices",
+		"edges_assignment",
+		"edges_foldAngle",
+	];
+	// remove arrays from graph
+	["vertices", "edges", "faces"]
+		.flatMap(key => filterKeysWithPrefix(graph, key))
+		.filter(key => !(planarKeepKeys.includes(key)))
+		.forEach(key => delete graph[key]);
+};
+/**
+ * @description Return a modified version of set "a" that filters
+ * out any number that exists in set "b".
+ */
+const sortedNumberSetDifference = (a, b, epsilon = EPSILON) => {
+	const result = [];
+	let ai = 0;
+	let bi = 0;
+	while (ai < a.length && bi < b.length) {
+		if (epsilonEqual(a[ai], b[bi], epsilon)) {
+			ai += 1;
+			continue;
+		}
+		if (a[ai] > b[bi]) {
+			bi += 1;
+			continue;
+		}
+		if (b[bi] > a[ai]) {
+			result.push(a[ai]);
+			ai += 1;
+			continue;
+		}
+	}
+	return result;
+};
+/**
+ * @description NOTICE this method is used internally and not yet ready for
+ * general use. It only works on graphs with no faces and requires cleanup later.
+ */
+const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
+	// edges[0] will remain. edges[1] will be removed
+	const edges = vertices_edges[vertex].sort((a, b) => a - b);
+	const newEdgeVertices = edges
+		.flatMap(e => edges_vertices[e])
+		.filter(v => v !== vertex)
+		.slice(0, 2);
+	edges_vertices[edges[0]] = newEdgeVertices;
+	edges_vertices[edges[1]] = undefined;
+	newEdgeVertices.forEach(v => {
+		const oldEdgeIndex = vertices_edges[v].indexOf(edges[1]);
+		if (oldEdgeIndex === -1) { return; }
+		vertices_edges[v][oldEdgeIndex] = edges[0];
+	});
+	return edges[1];
+};
 /**
  * @description Planarize a graph into the 2D XY plane, split edges, rebuild faces.
  * The graph provided as a method argument will be modified in place.
+ * @algorithm
+ * - create an axis-aligned bounding box of all the vertices.
+ * - create unique lines that represent all edges, with a mapping of
+ * edges to lines and visa-versa (one line to many edges. one edge to one line).
+ * - intersect all lines against each other, reject those which lie outside
+ * of the bounding box enclosing the entire graph.
+ * - for each line, gather all edges, project each endpoint down to the line,
+ * each edge is now two numbers (sort these).
+ * - add the set of intersection points to this set, for each line.
+ * - also, sort the larger array of values by their start points.
+ * - walk down the line and group edges into connected edge groups.
+ * groups join connected edges and separate them from the empty spaces between.
+ * as we walk, if an intersection point is in the empty space, ignore it.
+ * - build each group into a connected set of segments (optional challenge:
+ * do this by re-using the vertices in place).
+ * do this for every line.
+ * - somehow we need to apply the edge-assignment/fold angle/possibly
+ * other attributes.
+ * - if lines overlap, competing assignments will need to be resolved:
+ * M/V above all, then perhaps Cut/Join, then unassigned, then boundary/flat.
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to the graph
  * @linkcode Origami ./src/graph/fragment.js 174
  */
-const planarize = (graph, epsilon = EPSILON) => {
-	// project all vertices onto the XY plane
-	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
-
-	["vertices", "edges", "faces"]
-		.map(key => filterKeysWithPrefix(graph, key))
-		.flat()
-		.filter(key => !(planarKeepKeys.includes(key)))
-		.forEach(key => delete graph[key]);
-
-	const change = {
-		vertices: {},
-		edges: {},
-	};
-	let i;
-	// most of the time this will loop twice, but exit early during the second
-	// iteration due to all checks being passed. rarely, but still possible,
-	// the merging of two vertices will bring one of the vertices over another
-	// vertex junction, creating more edge-edge overlaps which requires another
-	// iteration through this loop. at most, this has only ever been
-	// observed to require one or two more loops, about 3 loops in total.
-	for (i = 0; i < 20; i += 1) {
-		const resVert = removeDuplicateVertices(graph, epsilon / 2);
-		const resEdgeDup = removeDuplicateEdges(graph);
-		const resEdgeCirc = removeCircularEdges(graph);
-		const resFrag = fragmentGraph(graph, epsilon);
-		if (resFrag === undefined) {
-			change.vertices.map = (change.vertices.map === undefined
-				? resVert.map
-				: mergeNextmaps(change.vertices.map, resVert.map));
-			change.edges.map = (change.edges.map === undefined
-				? mergeNextmaps(resEdgeDup.map, resEdgeCirc.map)
-				: mergeNextmaps(change.edges.map, resEdgeDup.map, resEdgeCirc.map));
-			break;
+const planarize = ({
+	vertices_coords,
+	edges_vertices,
+	edges_assignment,
+	edges_foldAngle,
+}, epsilon = EPSILON) => {
+	// "compress" all edges down into a smaller set of infinite lines,
+	const { lines, edges_line } = getEdgesLine({
+		vertices_coords, edges_vertices,
+	});
+	// one to many mapping of a line and the edges along it.
+	const lines_edges = invertMap(edges_line)
+		.map(arr => (arr.constructor === Array ? arr : [arr]));
+	// for each edge and its corresponding line, project the edge's endpoints
+	// down onto the line as a scalar of the line's vector from its origin.
+	const edges_scalars = edges_vertices
+		.map(ev => ev.map(v => vertices_coords[v]))
+		.map((coords, i) => coords.map(point => dot2(
+			subtract2(point, lines[edges_line[i]].origin),
+			lines[edges_line[i]].vector,
+		)));
+	// for each line, a flat sorted list of all scalars along that line
+	// coming from all of the edges' endpoints.
+	const lines_flatEdgeScalars = lines_edges
+		.map(edges => edges.flatMap(edge => edges_scalars[edge]))
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon));
+	const lines_range = lines_flatEdgeScalars
+		.map(scalars => [scalars[0], scalars[scalars.length - 1]]);
+	// "intersections" contains some intersections that are outside the
+	// relevant areas. more filtering will happen when we start to apply them.
+	// for every line, an array of sorted scalars of the line's vector
+	// at the location of an intersection with another line.
+	const lines_intersections = getLinesIntersections(lines, lines_range, epsilon)
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon))
+		// for every line, the subset of all intersections along the line
+		// that are not duplicates of endpoints of collinear edges to the line.
+		.map((sects, i) => (
+			sortedNumberSetDifference(sects, lines_flatEdgeScalars[i], epsilon)
+		));
+	// walk the line
+	// create an alternative form of the graph for the sweep method.
+	const sweepScalars = lines_edges
+		.map(edges => edges.flatMap(edge => edges_scalars[edge]));
+	const sweepEdgesVertices = lines_edges.map(edges => {
+		const lineEdges = [];
+		edges.forEach((e, i) => { lineEdges[e] = [i * 2, i * 2 + 1]; });
+		return lineEdges;
+	});
+	const lineSweeps = lines_edges.map((_, i) => sweepValues(sweepScalars[i], {
+		edges_vertices: sweepEdgesVertices[i],
+	}, epsilon));
+	const lineSweeps_vertices = lineSweeps.map(sweep => sweep.map(el => el.t));
+	const lineSweeps_edges = lineSweeps.map(sweep => {
+		const current = {};
+		const edges = sweep.map(el => {
+			el.start.forEach(n => { current[n] = true; });
+			el.end.forEach(n => { delete current[n]; });
+			return Object.keys(current).map(n => parseInt(n, 10));
+		});
+		edges.pop();
+		return edges;
+	});
+	//
+	lines_intersections.forEach((points, i) => {
+		const vertices = lineSweeps_vertices[i];
+		const edges = lineSweeps_edges[i];
+		// insert points into vertices (and make corresponding duplicate in edges)
+		let pi = 0;
+		let vi = 0;
+		while (pi < points.length && vi < vertices.length - 1) {
+			if (epsilonEqual(vertices[vi], points[pi], epsilon)) {
+				throw new Error("bad algorithm");
+			}
+			if (points[pi] > vertices[vi + 1]) {
+				vi += 1;
+				continue;
+			}
+			vertices.splice(vi + 1, 0, points[pi]);
+			edges.splice(vi + 1, 0, edges[vi]);
+			pi += 1;
 		}
-		const invert_frag = invertMap(resFrag.edges.backmap);
-		const edgemap = mergeNextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
-		change.vertices.map = (change.vertices.map === undefined
-			? resVert.map
-			: mergeNextmaps(change.vertices.map, resVert.map));
-		change.edges.map = (change.edges.map === undefined
-			? edgemap
-			: mergeNextmaps(change.edges.map, edgemap));
+	});
+	// walk lineSweeps_vertices, lineSweeps_edges, remove edges which span
+	// across the empty space in a line where no previous edges existed.
+	const new_vertices_coords = lineSweeps_vertices
+		.flatMap((scalars, i) => scalars
+			.map(s => add2(lines[i].origin, scale2(lines[i].vector, s))));
+	// create a connected list of vertices, for every line, until the new line.
+	// [0,1] [1,2], [2,3] [3,4] then a new line [5, 6]... (don't connect 4-5)
+	let e = 0;
+	const new_edges_vertices = lineSweeps_edges
+		.map(edges => {
+			const vertices = edges.map(() => [e, ++e]);
+			e += 1;
+			return vertices;
+		})
+		.flatMap((edges, i) => edges
+			.filter((_, j) => lineSweeps_edges[i][j].length));
+	const result = {
+		vertices_coords: new_vertices_coords,
+		edges_vertices: new_edges_vertices,
+	};
+	if (edges_assignment || edges_foldAngle) {
+		const edges_prevEdge = lineSweeps_edges
+			.flatMap(edges => edges.filter(arr => arr.length));
+		if (edges_assignment) {
+			result.edges_assignment = edges_prevEdge
+				.map(prev => edges_assignment[prev[0]]);
+		}
+		if (edges_foldAngle) {
+			result.edges_foldAngle = edges_prevEdge
+				.map(prev => edges_foldAngle[prev[0]]);
+		}
 	}
-	if (i === 20) {
-		throw new Error(Messages.planarize);
+	removeIsolatedVertices(result, edgeIsolatedVertices(result));
+	// this single method call takes up the majority of the time of this method.
+	removeDuplicateVertices(result, epsilon);
+	// remove collinear vertices
+	// these vertices_edges are unsorted and will be removed at the end.
+	result.vertices_edges = makeVerticesEdgesUnsorted(result);
+	const collinearVertices = result.vertices_edges
+		.map((edges, i) => (edges.length === 2 ? i : undefined))
+		.filter(a => a !== undefined)
+		.filter(v => isVertexCollinear(result, v, epsilon))
+		.reverse();
+	const edgesToRemove = collinearVertices
+		.map(v => removeCollinearVertex(result, v));
+	remove(result, "edges", edgesToRemove);
+	remove(result, "vertices", collinearVertices);
+	const dupEdges = duplicateEdges(result);
+	if (dupEdges.length) {
+		removeDuplicateEdges(result, dupEdges);
 	}
-	return change;
+
+	// result.vertices_vertices = makeVerticesVertices2D(result);
+	// const planarFaces = makePlanarFaces(result);
+	// result.faces_vertices = planarFaces.faces_vertices;
+	// result.faces_edges = planarFaces.faces_edges;
+	delete result.vertices_edges;
+
+	// console.log("lines", lines);
+	// console.log("edges_line", edges_line);
+	// console.log("lines_edges", lines_edges);
+	// console.log("edges_scalars", edges_scalars);
+	// console.log("lines_flatEdgeScalars", lines_flatEdgeScalars);
+	// console.log("lines_range", lines_range);
+	// console.log("lines_intersections", lines_intersections);
+	// console.log("sweepScalars", sweepScalars);
+	// console.log("sweepEdgesVertices", sweepEdgesVertices);
+	// console.log("lineSweeps", lineSweeps);
+	// console.log("lineSweeps_vertices", lineSweeps_vertices);
+	// console.log("lineSweeps_edges", lineSweeps_edges);
+	// console.log("lines_vertices_coords", lines_vertices_coords);
+	// console.log("lines_vertices", lines_vertices);
+	// console.log("lines_edges_verticesPrefilter", lines_edges_verticesPrefilter);
+	// console.log("lines_edges_vertices", lines_edges_vertices);
+	// console.log("lines_edges_prevEdge", lines_edges_prevEdge);
+	// console.log("result", result);
+	return result;
 };
 
 export default planarize;

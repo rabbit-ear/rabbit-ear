@@ -3,6 +3,8 @@
  */
 import { layer } from "./solver2d/index.js";
 import table from "./solver2d/table.js";
+import makeTacosAndTortillas from "./solver2d/tacosAndTortillas.js";
+import * as transitivity from "./solver2d/transitivity.js";
 import * as setup from "./solver2d/setup.js";
 import * as general2d from "./solver2d/general.js";
 
@@ -25,6 +27,8 @@ import foldStripWithAssignments from "./singleVertexSolver/foldStripWithAssignme
  */
 Object.assign(layer, {
 	table,
+	makeTacosAndTortillas,
+	...transitivity,
 	...general,
 	...general2d,
 	...setup,

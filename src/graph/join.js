@@ -82,8 +82,8 @@ export const joinGraphs = (target, source, epsilon = EPSILON) => {
 		.map(coord => resize(dimensions, coord));
 	// gather info
 	VEF.forEach(key => {
-		prefixes[key] = filterKeysWithPrefix(source, `${key}_`);
-		suffixes[key] = filterKeysWithSuffix(source, `_${key}`);
+		prefixes[key] = filterKeysWithPrefix(source, key);
+		suffixes[key] = filterKeysWithSuffix(source, key);
 	});
 	// if source keys don't exist in the target, create empty arrays
 	VEF.forEach(geom => prefixes[geom].filter(key => !target[key]).forEach(key => {

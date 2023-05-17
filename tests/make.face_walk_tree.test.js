@@ -22,7 +22,7 @@ const ear = require("../rabbit-ear.js");
 // ]
 
 test("face walk tree, crane", () => {
-	const craneJSON = fs.readFileSync("./tests/files/crane.fold");
+	const craneJSON = fs.readFileSync("./tests/files/fold/crane-cp.fold");
 	const crane = JSON.parse(craneJSON);
 
 	const startingFace = 0;

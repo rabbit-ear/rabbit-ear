@@ -5,10 +5,64 @@ const ear = require("../rabbit-ear.js");
 
 ear.window = xmldom;
 
+test("planarize empty graph", () => {
+	const graph = {
+		vertices_coords: [],
+		edges_vertices: [],
+		edges_assignment: [],
+		edges_foldAngle: [],
+	};
+	const result = ear.graph.planarize(graph);
+	expect(JSON.stringify(graph)).toBe(JSON.stringify(result));
+});
+
+test("planarize random lines", () => {
+	const EDGES = 400;
+	const graph = {
+		vertices_coords: Array.from(Array(EDGES * 2))
+			.map(() => [Math.random(), Math.random()]),
+		edges_vertices: Array.from(Array(EDGES))
+			.map((_, i) => [i * 2, i * 2 + 1]),
+	};
+	ear.graph.planarize(JSON.parse(JSON.stringify(graph)));
+});
+
+test("planarize, random lines with collinear end points", () => {
+	const graph = ear.graph.square();
+	for (let i = 0; i < 4; i += 1) {
+		graph.vertices_coords.push([Math.random(), 0], [Math.random(), 1]);
+		graph.edges_vertices.push([
+			graph.vertices_coords.length - 2,
+			graph.vertices_coords.length - 1,
+		]);
+		graph.edges_assignment.push("V");
+		graph.edges_foldAngle.push(90);
+	}
+	for (let i = 0; i < 4; i += 1) {
+		graph.vertices_coords.push([0, Math.random()], [1, Math.random()]);
+		graph.edges_vertices.push([
+			graph.vertices_coords.length - 2,
+			graph.vertices_coords.length - 1,
+		]);
+		graph.edges_assignment.push("M");
+		graph.edges_foldAngle.push(-90);
+	}
+	const planar = ear.graph.planarize(graph);
+	fs.writeFileSync("./tests/tmp/planar-square.fold", JSON.stringify(planar, null, 2), "utf8");
+});
+
+test("planarize, bird base with duplicate vertices", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/bird-base-not-planar.fold", "utf-8");
+	const graph = JSON.parse(FOLD);
+	const result = ear.graph.planarize(graph);
+	fs.writeFileSync("./tests/tmp/bird-base-planarized.fold", JSON.stringify(result, null, 2), "utf8");
+	expect(true).toBe(true);
+});
+
 test("planarize, svg import", () => {
 	const svg = fs.readFileSync("./tests/files/svg/maze-8x8.svg", "utf-8");
 	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);
-	const result = ear.graph.planarizeNew(graph);
+	const result = ear.graph.planarize(graph);
 	fs.writeFileSync("./tests/tmp/svg-to-fold-maze.fold", JSON.stringify(result, null, 2), "utf8");
 	fs.writeFileSync(
 		"./tests/tmp/svg-to-fold-to-svg-maze-8x8.svg",
@@ -28,7 +82,7 @@ test("overlapping edge assignments", () => {
 		<line x1="0" y1="-1" x2="0" y2="2.5" stroke="black" />
 	</svg>`;
 	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);
-	const result = ear.graph.planarizeNew(graph);
+	const result = ear.graph.planarize(graph);
 	fs.writeFileSync(
 		"./tests/tmp/planarize-overlapping-edges.fold",
 		JSON.stringify(result, null, 2),
@@ -36,15 +90,14 @@ test("overlapping edge assignments", () => {
 	);
 });
 
-/*
 test("planarize 2 lines, x formation", () => {
 	const graph = {
 		vertices_coords: [[1, 1], [9, 2], [2, 9], [11, 10]],
 		edges_vertices: [[0, 3], [1, 2]],
 		edges_assignment: ["M", "V"],
 	};
-	const res = ear.graph.planarize(graph);
-	expect(graph.vertices_coords.length).toBe(5);
+	const planar = ear.graph.planarize(graph);
+	expect(planar.vertices_coords.length).toBe(5);
 });
 
 test("planarize two loops 'x-' x with a horizontal dash from its center", () => {
@@ -53,10 +106,10 @@ test("planarize two loops 'x-' x with a horizontal dash from its center", () => 
 		edges_vertices: [[0, 3], [1, 2], [4, 5]],
 		edges_assignment: ["M", "V", "F"],
 	};
-	const res = ear.graph.planarize(graph);
-	expect(JSON.stringify(res.edges.map)).toBe(JSON.stringify([[0, 1], [2, 3], [4]]));
-	expect(JSON.stringify(graph.edges_assignment)).toBe(JSON.stringify(["M", "M", "V", "V", "F"]));
-	expect(graph.vertices_coords.length).toBe(6);
+	const planar = ear.graph.planarize(graph);
+	expect(JSON.stringify(planar.edges_assignment))
+		.toBe(JSON.stringify(["M", "M", "F", "V", "V"]));
+	expect(planar.vertices_coords.length).toBe(6);
 });
 
 test("planarize dup verts", () => {
@@ -65,10 +118,8 @@ test("planarize dup verts", () => {
 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
 		edges_assignment: ["M", "V", "F", "B"],
 	};
-	const res = ear.graph.planarize(graph);
-	expect(JSON.stringify(res.vertices.map)).toBe(JSON.stringify([0, 1, 0, 2, 0, 3, 0, 4]));
-	expect(JSON.stringify(res.edges.map)).toBe(JSON.stringify([[0], [1], [2], [3]]));
-	expect(graph.vertices_coords.length).toBe(5);
+	const planar = ear.graph.planarize(graph);
+	expect(planar.vertices_coords.length).toBe(5);
 });
 
 test("planarize, one edges crossing boundary, more assignments than fold angles", () => {
@@ -77,14 +128,15 @@ test("planarize, one edges crossing boundary, more assignments than fold angles"
 	graph.edges_vertices.push([4, 5]);
 	graph.edges_assignment.push("V");
 
-	const res = ear.graph.planarize(graph);
+	const planar = ear.graph.planarize(graph);
 
-	expect(graph.vertices_coords.length).toBe(8);
-	expect(graph.edges_vertices.length).toBe(9);
-	expect(graph.edges_assignment.filter(a => a === "B" || a === "b").length).toBe(6);
-	expect(graph.edges_assignment.filter(a => a === "V" || a === "v").length).toBe(3);
-	expect(graph.edges_foldAngle.filter(a => a === 0).length).toBe(6);
-	expect(graph.edges_foldAngle.filter(a => a === 180).length).toBe(3);
+	expect(planar.vertices_coords.length).toBe(8);
+	expect(planar.edges_vertices.length).toBe(9);
+	expect(planar.edges_assignment.filter(a => a === "B" || a === "b").length).toBe(6);
+	expect(planar.edges_assignment.filter(a => a === "V" || a === "v").length).toBe(3);
+	expect(planar.edges_foldAngle.filter(a => a === 0).length).toBe(6);
+	expect(planar.edges_foldAngle.filter(a => a === 180).length).toBe(0);
+	expect(planar.edges_foldAngle.filter(a => a === undefined).length).toBe(3);
 });
 
 test("planarize, two crossing edges, more assignments than fold angles", () => {
@@ -96,16 +148,17 @@ test("planarize, two crossing edges, more assignments than fold angles", () => {
 	graph.edges_assignment.push("V");
 	graph.edges_assignment.push("M");
 
-	const res = ear.graph.planarize(graph);
+	const planar = ear.graph.planarize(graph);
 
-	expect(graph.vertices_coords.length).toBe(13);
-	expect(graph.edges_vertices.length).toBe(16);
-	expect(graph.edges_assignment.filter(a => a === "B" || a === "b").length).toBe(8);
-	expect(graph.edges_assignment.filter(a => a === "V" || a === "v").length).toBe(4);
-	expect(graph.edges_assignment.filter(a => a === "M" || a === "m").length).toBe(4);
-	expect(graph.edges_foldAngle.filter(a => a === 0).length).toBe(8);
-	expect(graph.edges_foldAngle.filter(a => a === 180).length).toBe(4);
-	expect(graph.edges_foldAngle.filter(a => a === -180).length).toBe(4);
+	expect(planar.vertices_coords.length).toBe(13);
+	expect(planar.edges_vertices.length).toBe(16);
+	expect(planar.edges_assignment.filter(a => a === "B" || a === "b").length).toBe(8);
+	expect(planar.edges_assignment.filter(a => a === "V" || a === "v").length).toBe(4);
+	expect(planar.edges_assignment.filter(a => a === "M" || a === "m").length).toBe(4);
+	expect(planar.edges_foldAngle.filter(a => a === 0).length).toBe(8);
+	expect(planar.edges_foldAngle.filter(a => a === 180).length).toBe(0);
+	expect(planar.edges_foldAngle.filter(a => a === -180).length).toBe(0);
+	expect(planar.edges_foldAngle.filter(a => a === undefined).length).toBe(8);
 });
 
 test("planarize 2 lines, collinear", () => {
@@ -114,8 +167,11 @@ test("planarize 2 lines, collinear", () => {
 		edges_vertices: [[0, 3], [1, 2]],
 		edges_assignment: ["M", "V"],
 	};
-	const res = ear.graph.planarize(graph);
-	expect(graph.vertices_coords.length).toBe(4);
-	expect(graph.edges_vertices.length).toBe(3);
+	const planar = ear.graph.planarize(graph);
+	expect(planar.vertices_coords.length).toBe(2);
+	expect(planar.edges_vertices.length).toBe(1);
+	expect(planar.vertices_coords[0][0]).toBeCloseTo(1);
+	expect(planar.vertices_coords[0][1]).toBeCloseTo(1);
+	expect(planar.vertices_coords[1][0]).toBeCloseTo(7);
+	expect(planar.vertices_coords[1][1]).toBeCloseTo(7);
 });
-*/

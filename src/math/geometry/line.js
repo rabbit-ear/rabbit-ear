@@ -19,13 +19,13 @@ import { counterClockwiseSubsect2 } from './radial.js';
  */
 const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
 	const similar = [p0, p2]
-		.map(p => epsilonEqualVectors(p1, p))
+		.map(p => epsilonEqualVectors(p1, p, epsilon))
 		.reduce((a, b) => a || b, false);
 	if (similar) { return inclusive; }
 	const vectors = [[p0, p1], [p1, p2]]
 		.map(segment => subtract(segment[1], segment[0]))
 		.map(vector => normalize(vector));
-	return epsilonEqual(1.0, dot(...vectors), epsilon);
+	return epsilonEqual(1.0, dot(...vectors), EPSILON);
 };
 /**
  * @description linear interpolate between two lines

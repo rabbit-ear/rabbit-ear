@@ -50,7 +50,8 @@ Object.entries({
 	clean,
 	validate,
 	populate,
-	planarize,
+	// planarize, // not sure if this should be here now that it returns
+	// a new planar graph instead of modifying itself
 	subgraph,
 	// todo: get boundaries, plural
 	boundary,

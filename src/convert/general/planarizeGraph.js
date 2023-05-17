@@ -1,8 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import planarize from "../../graph/planarize.js";
-import planarizeNew from "../../graph/planarize.new.js";
+import planarize from "../../graph/planarize.js";
 import {
 	makeVerticesVertices,
 	makePlanarFaces,
@@ -12,9 +11,7 @@ import {
  * walk and discover the boundary.
  */
 const planarizeGraph = (graph, epsilon) => {
-	// const planar = { ...graph };
-	// planarize(planar, epsilon);
-	const planar = planarizeNew(graph, epsilon);
+	const planar = planarize(graph, epsilon);
 	planar.vertices_vertices = makeVerticesVertices(planar);
 	const faces = makePlanarFaces(planar);
 	planar.faces_vertices = faces.faces_vertices;

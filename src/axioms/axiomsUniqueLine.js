@@ -119,9 +119,7 @@ export const normalAxiom5 = (line, point1, point2) => {
 };
 
 // cube root preserve sign
-const cubrt = n => (n < 0
-	? -Math.pow(-n, 1 / 3)
-	: Math.pow(n, 1 / 3));
+const cubrt = n => (n < 0 ? -((-n) ** (1 / 3)) : (n ** (1 / 3)));
 
 // Robert Lang's cubic solver from Reference Finder
 // https://langorigami.com/article/referencefinder/
@@ -130,14 +128,14 @@ const polynomial = (degree, a, b, c, d) => {
 	case 1: return [-d / c];
 	case 2: {
 		// quadratic
-		const discriminant = Math.pow(c, 2.0) - (4.0 * b * d);
+		const discriminant = (c ** 2) - (4 * b * d);
 		// no solution
 		if (discriminant < -EPSILON) { return []; }
 		// one solution
-		const q1 = -c / (2.0 * b);
+		const q1 = -c / (2 * b);
 		if (discriminant < EPSILON) { return [q1]; }
 		// two solutions
-		const q2 = Math.sqrt(discriminant) / (2.0 * b);
+		const q2 = Math.sqrt(discriminant) / (2 * b);
 		return [q1 + q2, q1 - q2];
 	}
 	case 3: {
@@ -146,12 +144,12 @@ const polynomial = (degree, a, b, c, d) => {
 		const a2 = b / a;
 		const a1 = c / a;
 		const a0 = d / a;
-		const q = (3.0 * a1 - Math.pow(a2, 2.0)) / 9.0;
-		const r = (9.0 * a2 * a1 - 27.0 * a0 - 2.0 * Math.pow(a2, 3.0)) / 54.0;
-		const d0 = Math.pow(q, 3.0) + Math.pow(r, 2.0);
-		const u = -a2 / 3.0;
+		const q = (3 * a1 - (a2 ** 2)) / 9;
+		const r = (9 * a2 * a1 - 27 * a0 - 2 * (a2 ** 3)) / 54;
+		const d0 = (q ** 3) + (r ** 2);
+		const u = -a2 / 3;
 		// one solution
-		if (d0 > 0.0) {
+		if (d0 > 0) {
 			const sqrt_d0 = Math.sqrt(d0);
 			const s = cubrt(r + sqrt_d0);
 			const t = cubrt(r - sqrt_d0);
@@ -159,23 +157,23 @@ const polynomial = (degree, a, b, c, d) => {
 		}
 		// two solutions
 		if (Math.abs(d0) < EPSILON) {
-			const s = Math.pow(r, 1.0 / 3.0);
+			const s = (r ** (1 / 3));
 			// const S = cubrt(R);
 			// instead of checking if S is NaN, check if R was negative
 			// if (isNaN(S)) { break; }
-			if (r < 0.0) { return []; }
-			return [u + 2.0 * s, u - s];
+			if (r < 0) { return []; }
+			return [u + 2 * s, u - s];
 		}
 		// three solutions
 		const sqrt_d0 = Math.sqrt(-d0);
-		const phi = Math.atan2(sqrt_d0, r) / 3.0;
-		const r_s = Math.pow((Math.pow(r, 2.0) - d0), 1.0 / 6.0);
+		const phi = Math.atan2(sqrt_d0, r) / 3;
+		const r_s = ((r ** 2) - d0) ** (1 / 6);
 		const s_r = r_s * Math.cos(phi);
 		const s_i = r_s * Math.sin(phi);
 		return [
-			u + 2.0 * s_r,
-			u - s_r - Math.sqrt(3.0) * s_i,
-			u - s_r + Math.sqrt(3.0) * s_i,
+			u + 2 * s_r,
+			u - s_r - Math.sqrt(3) * s_i,
+			u - s_r + Math.sqrt(3) * s_i,
 		];
 	}
 	default: return [];
@@ -195,16 +193,16 @@ const polynomial = (degree, a, b, c, d) => {
 export const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
 	// for some reason this epsilon is much higher than 1e-6
-	if (Math.abs(1.0 - (dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
+	if (Math.abs(1 - (dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
 	// line vec is the first line's vector, along the line, not the normal
 	const line_vec = rotate90(line1.normal);
 	const vec1 = subtract2(
 		add2(point1, scale2(line1.normal, line1.distance)),
-		scale2(point2, 2.0),
+		scale2(point2, 2),
 	);
 	const vec2 = subtract2(scale2(line1.normal, line1.distance), point1);
 	const c1 = dot2(point2, line2.normal) - line2.distance;
-	const c2 = 2.0 * dot2(vec2, line_vec);
+	const c2 = 2 * dot2(vec2, line_vec);
 	const c3 = dot2(vec2, vec2);
 	const c4 = dot2(add2(vec1, vec2), line_vec);
 	const c5 = dot2(vec1, vec2);

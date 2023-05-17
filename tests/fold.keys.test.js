@@ -56,7 +56,7 @@ test("filterKeysWithSuffix", () => {
 });
 
 test("transposeGraphArrays", () => {
-	const craneString = fs.readFileSync("./tests/files/crane.fold", "utf-8");
+	const craneString = fs.readFileSync("./tests/files/fold/crane-cp.fold", "utf-8");
 	const crane = JSON.parse(craneString);
 	const result = ear.graph.transposeGraphArrays(crane, "edges");
 	expect(result.length).toBe(crane.edges_vertices.length);
@@ -68,7 +68,7 @@ test("transposeGraphArrays", () => {
 });
 
 test("transposeGraphArrayAtIndex", () => {
-	const craneString = fs.readFileSync("./tests/files/crane.fold", "utf-8");
+	const craneString = fs.readFileSync("./tests/files/fold/crane-cp.fold", "utf-8");
 	const crane = JSON.parse(craneString);
 	const result = ear.graph.transposeGraphArrayAtIndex(crane, "edges", 10);
 	expect(result.edges_vertices.length).toBe(2);
