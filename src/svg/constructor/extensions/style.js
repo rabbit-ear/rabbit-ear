@@ -3,6 +3,10 @@ import NS from '../../spec/namespace.js';
 import SVGWindow from '../../environment/window.js';
 import makeCDATASection from '../../general/makeCDATASection.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const styleDef = {
 	style: {
 		init: (text) => {

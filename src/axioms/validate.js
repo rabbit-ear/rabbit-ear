@@ -40,9 +40,11 @@ const reflectPoint = (foldLine, point) => {
  * @returns {boolean} true if the solution is valid
  * @linkcode Origami ./src/axioms/validate.js 40
  */
-export const validateAxiom1 = (boundary, solutions, point1, point2) => [point1, point2]
-	.map(p => overlapConvexPolygonPoint(boundary, p, include))
-	.reduce((a, b) => a && b, true);
+export const validateAxiom1 = (boundary, solutions, point1, point2) => [
+	[point1, point2]
+		.map(p => overlapConvexPolygonPoint(boundary, p, include))
+		.reduce((a, b) => a && b, true),
+];
 /**
  * @description To validate axiom 2 check if the input points are inside the
  * boundary polygon, if so, the solution is valid.
@@ -147,10 +149,12 @@ export const validateAxiom4 = (boundary, solutions, line, point) => {
 		includeL,
 		includeL,
 	);
-	return [point, intersect]
-		.filter(a => a !== undefined)
-		.map(p => overlapConvexPolygonPoint(boundary, p, include))
-		.reduce((a, b) => a && b, true);
+	return [
+		[point, intersect]
+			.filter(a => a !== undefined)
+			.map(p => overlapConvexPolygonPoint(boundary, p, include))
+			.reduce((a, b) => a && b, true),
+	];
 };
 /**
  * @description Validate axiom 5.
@@ -235,7 +239,7 @@ export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
 	const intersectInsideTest = intersect
 		? overlapConvexPolygonPoint(boundary, intersect, include)
 		: false;
-	return paramPointTest && reflectTest && paramLineTest && intersectInsideTest;
+	return [paramPointTest && reflectTest && paramLineTest && intersectInsideTest];
 };
 /**
  * @description Validate an axiom, this will run one of

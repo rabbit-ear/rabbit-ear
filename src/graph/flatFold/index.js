@@ -13,6 +13,7 @@ import {
 	makeMatrix2Reflect,
 } from "../../math/algebra/matrix2.js";
 import populate from "../populate.js";
+import { facesContainingPoint } from "../nearest.js";
 import { mergeNextmaps } from "../maps.js";
 import {
 	makeFacesMatrix2,
@@ -23,6 +24,16 @@ import { makeFacesWindingFromMatrix2 } from "../faces/winding.js";
 import splitConvexFace from "../splitFace/index.js";
 import { edgeAssignmentToFoldAngle } from "../../fold/spec.js";
 import { foldFacesLayer } from "./facesLayer.js";
+/**
+ *
+ */
+const getContainingFace = (graph, point, vector, epsilon = EPSILON) => {
+	const faces = facesContainingPoint(graph, point);
+	if (faces.length === 0) { return undefined; }
+	if (faces.length === 1) { return faces[0]; }
+	// const remainingPolygons =
+	return faces[0];
+};
 /**
  * @description this determines which side of a line (using cross product)
  * a face lies in a folded form, except, the face is the face in
@@ -116,7 +127,13 @@ const flatFold = (graph, { vector, origin }, assignment = "V", epsilon = EPSILON
 	// faces_matrix is built from the crease pattern, but reflects
 	// the faces in their folded state.
 	if (!graph.faces_matrix2) {
-		graph.faces_matrix2 = makeFacesMatrix2(graph, 0);
+		// todo: consider making this face the face that contains "origin".
+		// additionally, if the origin is on the boundary between two faces,
+		// pick the one that "vector" points to.
+		graph.faces_matrix2 = makeFacesMatrix2(
+			graph,
+			getContainingFace(graph, origin, vector, epsilon),
+		);
 	}
 	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);
 	graph.faces_crease = graph.faces_matrix2

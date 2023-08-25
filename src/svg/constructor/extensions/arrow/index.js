@@ -2,12 +2,16 @@
 import ArrowMethods from './methods.js';
 import init from './init.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const arrowDef = {
 	arrow: {
 		nodeName: "g",
 		attributes: [],
-		args: () => [],
-		methods: ArrowMethods,
+		args: () => [], // one function
+		methods: ArrowMethods, // object of functions
 		init,
 	},
 };

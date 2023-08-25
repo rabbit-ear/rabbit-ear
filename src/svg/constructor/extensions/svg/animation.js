@@ -2,17 +2,23 @@
 import SVGWindow from '../../../environment/window.js';
 import makeUUID from '../../../general/makeUUID.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const Animation = function (element) {
 	let start;
 	let frame = 0;
 	let requestId;
 	const handlers = {};
+
 	const stop = () => {
 		if (SVGWindow().cancelAnimationFrame) {
 			SVGWindow().cancelAnimationFrame(requestId);
 		}
 		Object.keys(handlers).forEach(uuid => delete handlers[uuid]);
 	};
+
 	const play = (handler) => {
 		stop();
 		if (!handler || !(SVGWindow().requestAnimationFrame)) { return; }
@@ -29,6 +35,7 @@ const Animation = function (element) {
 		};
 		requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
 	};
+
 	Object.defineProperty(element, "play", { set: play, enumerable: true });
 	Object.defineProperty(element, "stop", { value: stop, enumerable: true });
 };

@@ -2,13 +2,20 @@
 import { str_tail, str_head } from '../../../environment/strings.js';
 import { svg_sub2, svg_add2, svg_scale2, svg_magnitude2 } from '../../../general/algebra.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const ends = [str_tail, str_head];
 const stringifyPoint = p => p.join(",");
 const pointsToPath = (points) => "M" + points.map(pt => pt.join(",")).join("L") + "Z";
+
 const makeArrowPaths = function (options) {
+	// throughout, tail is 0, head is 1
 	let pts = [[0,1], [2,3]].map(pt => pt.map(i => options.points[i] || 0));
 	let vector = svg_sub2(pts[1], pts[0]);
 	let midpoint = svg_add2(pts[0], svg_scale2(vector, 0.5));
+	// make sure arrow isn't too small
 	const len = svg_magnitude2(vector);
 	const minLength = ends
 		.map(s => (options[s].visible
@@ -16,6 +23,7 @@ const makeArrowPaths = function (options) {
 			: 0))
 		.reduce((a, b) => a + b, 0);
 	if (len < minLength) {
+		// check len === exactly 0. don't compare to epsilon here
 		const minVec = len === 0 ? [minLength, 0] : svg_scale2(vector, minLength / len);
 		pts = [svg_sub2, svg_add2].map(f => f(midpoint, svg_scale2(minVec, 0.5)));
 		vector = svg_sub2(pts[1], pts[0]);
@@ -29,17 +37,21 @@ const makeArrowPaths = function (options) {
 		: svg_scale2(bez, 1 / bezsLen[i]));
 	const vectors = bezsNorm.map(norm => svg_scale2(norm, -1));
 	const normals = vectors.map(vec => [vec[1], -vec[0]]);
+	// get padding from either head/tail options or root of options
 	const pad = ends.map((s, i) => options[s].padding
 		? options[s].padding
 		: (options.padding ? options.padding : 0.0));
 	const scales = ends
 		.map((s, i) => options[s].height * (options[s].visible ? 1 : 0))
 		.map((n, i) => n + pad[i]);
+		// .map((s, i) => options[s].height * ((options[s].visible ? 1 : 0) + pad[i]));
 	const arcs = pts.map((pt, i) => svg_add2(pt, svg_scale2(bezsNorm[i], scales[i])));
+	// readjust bezier curve now that the arrow heads push inwards
 	vector = svg_sub2(arcs[1], arcs[0]);
 	perpendicular = [vector[1], -vector[0]];
 	midpoint = svg_add2(arcs[0], svg_scale2(vector, 0.5));
 	bezPoint = svg_add2(midpoint, svg_scale2(perpendicular, options.bend));
+	// done adjust
 	const controls = arcs
 		.map((arc, i) => svg_add2(arc, svg_scale2(svg_sub2(bezPoint, arc), options.pinch)));
 	const polyPoints = ends.map((s, i) => [

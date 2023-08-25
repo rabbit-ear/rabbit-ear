@@ -78,6 +78,11 @@ export const validateKawasaki = ({
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
+	// console.log("HERE", makeVerticesVerticesVector({
+	// 	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+	// })
+	// 	.map((vectors, v) => vectors
+	// 		.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]])));
 	const is_valid = makeVerticesVerticesVector({
 		vertices_coords, vertices_vertices, edges_vertices, edges_vector,
 	})

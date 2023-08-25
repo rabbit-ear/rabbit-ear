@@ -2,6 +2,11 @@
 import { str_string, str_id } from '../../../environment/strings.js';
 import { toCamel } from '../../../general/transformCase.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
+// for the clip-path and mask values. looks for the ID as a "url(#id-name)" string
 const findIdURL = function (arg) {
 	if (arg == null) { return ""; }
 	if (typeof arg === str_string) {
@@ -15,7 +20,11 @@ const findIdURL = function (arg) {
 	}
 	return "";
 };
+
 const methods = {};
+
+// these do not represent the nodes that these methods are applied to
+// every node gets these attribute-setting method (pointing to a mask)
 ["clip-path",
 	"mask",
 	"symbol",

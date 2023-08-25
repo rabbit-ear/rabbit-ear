@@ -29,6 +29,10 @@ import {
 	duplicateEdges,
 	removeDuplicateEdges,
 } from "./edges/duplicate.js";
+import {
+	circularEdges,
+	removeCircularEdges,
+} from "./edges/circular.js";
 import Messages from "../environment/messages.js";
 import {
 	makeVerticesEdgesUnsorted,
@@ -184,7 +188,7 @@ const planarize = ({
 	const lines_edges = invertMap(edges_line)
 		.map(arr => (arr.constructor === Array ? arr : [arr]));
 	// for each edge and its corresponding line, project the edge's endpoints
-	// down onto the line as a scalar of the line's vector from its origin.
+	// onto the line as a scalar of the line's vector from its origin.
 	const edges_scalars = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]))
 		.map((coords, i) => coords.map(point => dot2(
@@ -196,8 +200,10 @@ const planarize = ({
 	const lines_flatEdgeScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]))
 		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon));
+	// for each line, get the smallest and largest value (defining the range)
 	const lines_range = lines_flatEdgeScalars
 		.map(scalars => [scalars[0], scalars[scalars.length - 1]]);
+	// compare every line against every other, gather all intersections.
 	// "intersections" contains some intersections that are outside the
 	// relevant areas. more filtering will happen when we start to apply them.
 	// for every line, an array of sorted scalars of the line's vector
@@ -286,7 +292,16 @@ const planarize = ({
 	}
 	removeIsolatedVertices(result, edgeIsolatedVertices(result));
 	// this single method call takes up the majority of the time of this method.
-	removeDuplicateVertices(result, epsilon);
+	// removeDuplicateVertices(result, epsilon);
+	// if (circularEdges(result).length) {
+	// 	console.error("planarize: found circular edges. place 1.");
+	// }
+	// removeDuplicateVertices(result, epsilon * 10);
+	removeDuplicateVertices(result, epsilon * 2);
+	removeCircularEdges(result);
+	// if (circularEdges(result).length) {
+	// 	console.error("planarize: found circular edges. place 2.");
+	// }
 	// remove collinear vertices
 	// these vertices_edges are unsorted and will be removed at the end.
 	result.vertices_edges = makeVerticesEdgesUnsorted(result);
@@ -302,6 +317,9 @@ const planarize = ({
 	const dupEdges = duplicateEdges(result);
 	if (dupEdges.length) {
 		removeDuplicateEdges(result, dupEdges);
+	}
+	if (circularEdges(result).length) {
+		console.error("planarize: found circular edges. place 3.");
 	}
 
 	// result.vertices_vertices = makeVerticesVertices2D(result);

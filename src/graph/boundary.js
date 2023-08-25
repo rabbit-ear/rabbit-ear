@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { boundingBox as _boundingBox } from "../math/geometry/polygon.js";
+import { assignmentIsBoundary } from "../fold/spec.js";
 import { uniqueElements } from "../general/arrays.js";
 import {
 	makeVerticesEdgesUnsorted,
@@ -32,9 +33,9 @@ export const boundingBox = ({ vertices_coords }, padding) => (
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
  * @linkcode Origami ./src/graph/boundary.js 33
  */
-export const boundaryVertices = ({ edges_vertices, edges_assignment }) => (
+export const boundaryVertices = ({ edges_vertices, edges_assignment = [] }) => (
 	uniqueElements(edges_vertices
-		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
+		.filter((_, i) => assignmentIsBoundary[edges_assignment[i]])
 		.flat()));
 // export const boundaryVertices = ({ edges_vertices, edges_assignment }) => {
 // 	// assign vertices to a hash table to make sure they are unique.
@@ -114,7 +115,7 @@ export const boundary = ({ vertices_coords, vertices_edges, edges_vertices, edge
  */
 export const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
-}, infiniteLoopProtection = true) => {
+}) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
@@ -166,12 +167,9 @@ export const planarBoundary = ({
 	let prev_vertex_i = first_vertex_i;
 	let this_vertex_i = second_vertex_i;
 	// because this is an infinite loop, and it relies on vertices_vertices
-	// being well formed (if it was user-made, we cannot guarantee),
-	// this loop protection will mod 1000 loops and check the duration.
-	const start = performance.now();
-	// 10 seconds. more than enough to verify something went wrong
-	const MAX_DURATION = 10000;
-	let count = 0;
+	// being well formed (if it was user-made, we cannot guarantee), we will
+	// break the loop if we walk past the same pair of vertices (in the same dir)
+	const visitedVertexPairs = { [`${prev_vertex_i} ${this_vertex_i}`]: true };
 	while (true) {
 		const next_neighbors = vertices_vertices[this_vertex_i];
 		const from_neighbor_i = next_neighbors.indexOf(prev_vertex_i);
@@ -182,20 +180,18 @@ export const planarBoundary = ({
 			: `${next_vertex_i} ${this_vertex_i}`;
 		const next_edge_i = edge_map[next_edge_lookup];
 		// exit loop condition
-		if (next_edge_i === edge_walk[0]) {
+		if (visitedVertexPairs[`${this_vertex_i} ${next_vertex_i}`]) {
+			// if the first and upcoming edge do not match, this means we somehow
+			// walked around the boundary and ended up somewhere in the middle,
+			// which would put us in a never ending cycle, so we need to break
+			// out anyway, but at least warn the user the result is poorly formed.
+			if (next_edge_i !== edge_walk[0]) { console.warn("bad boundary"); }
 			return walk;
 		}
+		visitedVertexPairs[`${this_vertex_i} ${next_vertex_i}`] = true;
 		vertex_walk.push(this_vertex_i);
 		edge_walk.push(next_edge_i);
 		prev_vertex_i = this_vertex_i;
 		this_vertex_i = next_vertex_i;
-		count += 1;
-		// if loop protection is turned on, check elapsed time every 1000 loops
-		// so that we reduce number of calls to the performance API.
-		if (infiniteLoopProtection
-			&& count % 1000 === 0
-			&& performance.now() - start > MAX_DURATION) {
-			throw new Error(Messages.planarBoundary);
-		}
 	}
 };

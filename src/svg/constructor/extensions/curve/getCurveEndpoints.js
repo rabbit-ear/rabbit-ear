@@ -1,15 +1,23 @@
 /* svg (c) Kraft, MIT License */
+/**
+ * SVG (c) Kraft
+ */
 const getNumbersFromPathCommand = str => str
 	.slice(1)
 	.split(/[, ]+/)
 	.map(s => parseFloat(s));
+
+// this gets the parameter numbers, in an array
 const getCurveTos = d => d
 	.match(/[Cc][(0-9), .-]+/)
 	.map(curve => getNumbersFromPathCommand(curve));
+
 const getMoveTos = d => d
 	.match(/[Mm][(0-9), .-]+/)
 	.map(curve => getNumbersFromPathCommand(curve));
+
 const getCurveEndpoints = (d) => {
+	// get only the first Move and Curve commands
 	const move = getMoveTos(d).shift();
 	const curve = getCurveTos(d).shift();
 	const start = move

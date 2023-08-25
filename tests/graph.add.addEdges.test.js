@@ -1,7 +1,7 @@
 const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear.js");
 
-test("empty", () => expect(true).toBe(true));
+test("deprecated", () => expect(true).toBe(true));
 
 // test("add edges", () => {
 //   const graph = {};

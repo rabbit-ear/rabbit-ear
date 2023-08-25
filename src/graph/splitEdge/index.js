@@ -66,7 +66,7 @@ const splitEdge = (graph, old_edge, coords, epsilon = EPSILON) => {
 	if (graph.edges_vertices.length < old_edge) { return {}; }
 	const incident_vertices = graph.edges_vertices[old_edge];
 	if (!coords) {
-		coords = midpoint(...incident_vertices);
+		coords = midpoint(...incident_vertices.map(v => graph.vertices_coords[v]));
 	}
 	// test similarity with the incident vertices, if similar, return.
 	const similar = incident_vertices

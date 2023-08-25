@@ -60,6 +60,13 @@ const removeGeometryIndices = (graph, key, removeIndices) => {
 		.forEach((prefix_key) => removes
 			.forEach(index => graph[prefix_key]
 				.splice(index, 1)));
+	// filter any undefined from inside the inner arrays
+	filterKeysWithSuffix(graph, key)
+		.forEach(sKey => graph[sKey]
+			.forEach((_, ii) => {
+				graph[sKey][ii] = graph[sKey][ii]
+					.filter(a => a !== undefined);
+			}));
 	return index_map;
 };
 

@@ -222,7 +222,7 @@ const midpoint3 = (v, u) => scale3(add3(v, u), 0.5);
  * @linkcode Math ./src/algebra/vectors.js 220
  */
 const average = function () {
-	if (arguments.length === 0) { return []; }
+	if (arguments.length === 0) { return undefined; }
 	const dimension = (arguments[0].length > 0) ? arguments[0].length : 0;
 	const sum = Array(dimension).fill(0);
 	Array.from(arguments)
@@ -238,7 +238,7 @@ const average = function () {
  * @linkcode Math ./src/algebra/vectors.js 220
  */
 const average2 = (...vectors) => {
-	if (!vectors.length) { return undefined; }
+	if (!vectors || !vectors.length) { return undefined; }
 	const inverseLength = 1 / vectors.length;
 	return vectors
 		.reduce((a, b) => add2(a, b), [0, 0])

@@ -185,6 +185,16 @@ const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
 	}
 	return true;
 };
+/**
+ * @param {Segment} segment a segment, an array of two points
+ * @param {Box} box an axis-aligned bounding box
+ * @param {number} [epsilon=1e-6] an optional epsilon,
+ * positive value (default) is inclusive, negative is exclusive.
+ * @returns {boolean} true if the bounding boxes overlap each other
+ * @linkcode Math ./src/intersect/overlap.js 176
+ */
+// export const overlapSegmentBox = (segment, box, epsilon = EPSILON) => {};
+
 // really great function and it works for non-convex polygons
 // but it has inconsistencies around inclusive and exclusive points
 // when the lie along the polygon edge.

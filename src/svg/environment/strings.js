@@ -1,4 +1,8 @@
 /* svg (c) Kraft, MIT License */
+/**
+ * SVG (c) Kraft
+ */
+// frequently-used strings
 const str_class = "class";
 const str_function = "function";
 const str_undefined = "undefined";
@@ -6,8 +10,10 @@ const str_boolean = "boolean";
 const str_number = "number";
 const str_string = "string";
 const str_object = "object";
+
 const str_svg = "svg";
 const str_path = "path";
+
 const str_id = "id";
 const str_style = "style";
 const str_viewBox = "viewBox";
@@ -16,6 +22,7 @@ const str_points = "points";
 const str_stroke = "stroke";
 const str_fill = "fill";
 const str_none = "none";
+
 const str_arrow = "arrow";
 const str_head = "head";
 const str_tail = "tail";

@@ -5,15 +5,23 @@ import TransformMethods from './shared/transforms.js';
 import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
+// const setRadii = (el, rx, ry) => [,,rx,ry]
+//   .forEach((value, i) => el.setAttribute(nodes_attributes.ellipse[i], value));
 const setRadii = (el, rx, ry) => {
 	[, , rx, ry].forEach((value, i) => el.setAttribute(nodes_attributes.ellipse[i], value));
 	return el;
 };
+
 const setOrigin = (el, a, b) => {
 	[...makeCoordinates(...[a, b].flat()).slice(0, 2)]
 		.forEach((value, i) => el.setAttribute(nodes_attributes.ellipse[i], value));
 	return el;
 };
+
 const ellipseDef = {
 	ellipse: {
 		args: (a, b, c, d) => {

@@ -1,7 +1,6 @@
 /* Math (c) Kraft, MIT License */
 import { TWO_PI, EPSILON } from '../general/constant.js';
 import { angleToVector, vectorToAngle } from '../general/convert.js';
-import { semiFlattenArrays } from '../general/array.js';
 import { epsilonEqual } from '../general/function.js';
 import { normalize2, subtract2, cross2, distance2 } from '../algebra/vector.js';
 
@@ -184,13 +183,12 @@ const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
  * @todo maybe there is such thing as an absolute radial origin (x axis?)
  * but this chooses the first element as the first element
  * and sort everything else counter-clockwise around it.
- * @param {number[]} ...args array or sequence of angles in radians
+ * @param {number[]} radians array of angles in radians
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
  * @linkcode Math ./src/geometry/radial.js 201
  */
-const counterClockwiseOrderRadians = (...args) => {
-	const radians = args.flat();
+const counterClockwiseOrderRadians = (radians) => {
 	const counter_clockwise = radians
 		.map((_, i) => i)
 		.sort((a, b) => radians[a] - radians[b]);
@@ -206,11 +204,9 @@ const counterClockwiseOrderRadians = (...args) => {
  * the counter-clockwise sorted arrangement.
  * @linkcode Math ./src/geometry/radial.js 218
  */
-const counterClockwiseOrder2 = function () {
-	return counterClockwiseOrderRadians(
-		semiFlattenArrays(arguments).map(vectorToAngle),
-	);
-};
+const counterClockwiseOrder2 = (vectors) => (
+	counterClockwiseOrderRadians(vectors.map(vectorToAngle))
+);
 /**
  * @description given an array of angles, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
@@ -218,13 +214,12 @@ const counterClockwiseOrder2 = function () {
  * @returns {number[]} array of sector angles in radians
  * @linkcode Math ./src/geometry/radial.js 230
  */
-const counterClockwiseSectorsRadians = function () {
-	const radians = Array.from(arguments).flat();
-	const ordered = counterClockwiseOrderRadians(radians)
-		.map(i => radians[i]);
-	return ordered.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
-		.map(pair => counterClockwiseAngleRadians(pair[0], pair[1]));
-};
+const counterClockwiseSectorsRadians = (radians) => (
+	counterClockwiseOrderRadians(radians)
+		.map(i => radians[i])
+		.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
+		.map(pair => counterClockwiseAngleRadians(pair[0], pair[1]))
+);
 /**
  * @description given an array of vectors, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
@@ -232,11 +227,9 @@ const counterClockwiseSectorsRadians = function () {
  * @returns {number[]} array of sector angles in radians
  * @linkcode Math ./src/geometry/radial.js 244
  */
-const counterClockwiseSectors2 = function () {
-	return counterClockwiseSectorsRadians(
-		semiFlattenArrays(arguments).map(vectorToAngle),
-	);
-};
+const counterClockwiseSectors2 = (vectors) => (
+	counterClockwiseSectorsRadians(vectors.map(vectorToAngle))
+);
 /**
  * subsect the angle between two lines, can handle parallel lines
  */

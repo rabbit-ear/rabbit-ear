@@ -1,6 +1,11 @@
 /* svg (c) Kraft, MIT License */
 import { svg_sub2, svg_add2, svg_scale2 } from '../../../general/algebra.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
+// endpoints is an array of 4 numbers
 const makeCurvePath = (endpoints = [], bend = 0, pinch = 0.5) => {
 	const tailPt = [endpoints[0] || 0, endpoints[1] || 0];
 	const headPt = [endpoints[2] || 0, endpoints[3] || 0];

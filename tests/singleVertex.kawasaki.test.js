@@ -28,7 +28,7 @@ test("alternating deviation, equal pairs", () => {
 	testArrays(
 		[0, 0],
 		ear.singleVertex.alternatingSumDifference(
-			ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0], [0, -1]),
+			ear.math.counterClockwiseSectors2([[1, 0], [0, 1], [-1, 0], [0, -1]]),
 		),
 	);
 });

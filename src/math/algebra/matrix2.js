@@ -79,7 +79,7 @@ const determinant2 = m => m[0] * m[3] - m[1] * m[2];
  */
 const invertMatrix2 = (m) => {
 	const det = determinant2(m);
-	if (Math.abs(det) < 1e-6
+	if (Math.abs(det) < 1e-12
 		|| Number.isNaN(det)
 		|| !Number.isFinite(m[4])
 		|| !Number.isFinite(m[5])) {

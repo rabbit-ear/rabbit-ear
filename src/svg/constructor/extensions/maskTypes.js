@@ -6,12 +6,18 @@ import TransformMethods from './shared/transforms.js';
 import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const makeIDString = function () {
 	return Array.from(arguments)
 		.filter(a => typeof a === str_string || a instanceof String)
 		.shift() || makeUUID();
 };
+
 const maskArgs = (...args) => [makeIDString(...args)];
+
 const maskTypes = {
 	mask: {
 		args: maskArgs,

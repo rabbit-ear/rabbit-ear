@@ -74,6 +74,8 @@ const setup3d = ({
 		.filter(e => e !== undefined)
 		.forEach(e => delete edges_sets[e]);
 	// new stuff
+	// 117ms
+	// console.time("setup.js setup3d() getOverlappingParallelEdgePairs()");
 	const {
 		tortillaTortillaEdges,
 		solvable1,
@@ -82,6 +84,7 @@ const setup3d = ({
 	} = getOverlappingParallelEdgePairs({
 		vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
 	}, edges_sets, faces_set, sets_transformXY, epsilon);
+	// console.timeEnd("setup.js setup3d() getOverlappingParallelEdgePairs()");
 	// tacos tortillas
 	const tortillas3D = makeBentTortillas(
 		{ edges_faces },
@@ -131,6 +134,8 @@ export const setup = ({
 	faces_vertices, faces_edges, faces_faces,
 }, epsilon = EPSILON) => {
 	// separate the list of faces into coplanar overlapping sets
+	// 444ms
+	// console.time("setup.js coplanarOverlappingFacesGroups()");
 	const {
 		sets_faces,
 		// sets_plane,
@@ -141,6 +146,8 @@ export const setup = ({
 	} = coplanarOverlappingFacesGroups({
 		vertices_coords, faces_vertices, faces_faces,
 	}, epsilon);
+	// console.timeEnd("setup.js coplanarOverlappingFacesGroups()");
+	// console.time("setup.js graphGroupCopies()");
 	// all vertices_coords will become 2D
 	const sets_graphs = graphGroupCopies({
 		vertices_coords,
@@ -161,11 +168,14 @@ export const setup = ({
 		.map((upright, i) => (upright ? undefined : i))
 		.filter(a => a !== undefined)
 		.forEach(f => faces_polygon[f].reverse());
+	// console.timeEnd("setup.js graphGroupCopies()");
+	// console.time("setup.js getFacesFacesOverlap()");
 	// faces-faces overlap will be a single flat array.
 	// each face is only a part of one planar-group anyway.
 	// as opposed to edges-faces overlap which is computed for each planar-group.
 	const facesFacesOverlap = flatSort(...sets_graphs
 		.map(graph => getFacesFacesOverlap(graph, epsilon)));
+	// console.timeEnd("setup.js getFacesFacesOverlap()");
 	// simple faces center by averaging all the face's vertices
 	const faces_center = faces_polygon.map(coords => average2(...coords));
 	// populate individual graph copies with data only relevant to it.
@@ -175,6 +185,8 @@ export const setup = ({
 	// now that we have all faces separated into coplanar-overlapping sets,
 	// run the 2D taco/tortilla algorithms on each set individually,
 	// until we get to make3DTortillas, which will work across coplanar sets
+	// 1,873ms
+	// console.time("setup.js ...make tacos/tortillas/transitivity");
 	const setsTacosAndTortillas = sets_graphs
 		.map(el => makeTacosTortillas(el, epsilon));
 	const taco_taco = setsTacosAndTortillas.flatMap(set => set.taco_taco);
@@ -185,6 +197,7 @@ export const setup = ({
 	// the fact that no two faces in different sets overlap one another.
 	const unfilteredTrans = makeTransitivity({ faces_polygon }, facesFacesOverlap, epsilon);
 	const transitivity = filterTransitivity(unfilteredTrans, { taco_taco, taco_tortilla });
+	// console.timeEnd("setup.js ...make tacos/tortillas/transitivity");
 	// these are all the variables we need to solve- all overlapping faces in
 	// pairwise combinations, as a space-separated string, smallest index first
 	const facePairsInts = selfRelationalUniqueIndexPairs(facesFacesOverlap);
@@ -206,9 +219,8 @@ export const setup = ({
 	}, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon);
 	// 3d "tortilla-tortilla" are additional constraints that simply get
 	// added to the 2D tortilla-tortilla constraints.
-
+	// console.time("setup.js ...makeConstraints, solveEdgeAdjacent");
 	tortilla_tortilla.push(...tortillas3D);
-
 	// now, make all taco/tortilla/transitivity constraints for the solver
 	const constraints = makeConstraints({
 		taco_taco, taco_tortilla, tortilla_tortilla, transitivity,
@@ -221,6 +233,7 @@ export const setup = ({
 	sets_graphs
 		.map(el => solveEdgeAdjacent(el, facePairs, faces_winding))
 		.forEach(el => Object.assign(orders, el));
+	// console.timeEnd("setup.js ...makeConstraints, solveEdgeAdjacent");
 	// console.log("sets_graphs", sets_graphs);
 	// console.log("faces_polygon", faces_polygon);
 	// console.log("faces_center", faces_center);

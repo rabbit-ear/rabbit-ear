@@ -108,7 +108,7 @@ const determinant4 = (m) => {
  */
 const invertMatrix4 = (m) => {
 	const det = determinant4(m);
-	if (Math.abs(det) < 1e-6 || Number.isNaN(det)
+	if (Math.abs(det) < 1e-12 || Number.isNaN(det)
 		|| !Number.isFinite(m[12]) || !Number.isFinite(m[13]) || !Number.isFinite(m[14])) {
 		return undefined;
 	}

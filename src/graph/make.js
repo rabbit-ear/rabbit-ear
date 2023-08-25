@@ -276,12 +276,13 @@ export const makeVerticesVerticesUnsorted = ({ vertices_edges, edges_vertices })
  * vertex index and the values in the inner array are face indices.
  * @linkcode Origami ./src/graph/make.js 276
  */
-export const makeVerticesFacesUnsorted = ({ vertices_coords, faces_vertices }) => {
-	if (!faces_vertices) { return vertices_coords.map(() => []); }
+export const makeVerticesFacesUnsorted = ({ vertices_coords, vertices_edges, faces_vertices }) => {
+	const vertArray = vertices_coords || vertices_edges;
+	if (!faces_vertices) { return (vertArray || []).map(() => []); }
 	// instead of initializing the array ahead of time (we would need to know
-	// the length of something like vertices_coords)
-	const vertices_faces = vertices_coords !== undefined
-		? vertices_coords.map(() => [])
+	// the length of something like vertices_coords or vertices_edges)
+	const vertices_faces = vertArray !== undefined
+		? vertArray.map(() => [])
 		: Array.from(Array(implied.vertices({ faces_vertices }))).map(() => []);
 	// iterate over every face, then iterate over each of the face's vertices
 	faces_vertices.forEach((face, f) => {

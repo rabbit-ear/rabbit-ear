@@ -1,6 +1,10 @@
 /* svg (c) Kraft, MIT License */
 import { svg_polar_to_cart } from '../../../general/algebra.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const arcPath = (x, y, radius, startAngle, endAngle, includeCenter = false) => {
 	if (endAngle == null) { return ""; }
 	const start = svg_polar_to_cart(startAngle, radius);

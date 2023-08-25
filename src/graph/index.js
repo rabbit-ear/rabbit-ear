@@ -2,9 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import * as foldColors from "../fold/colors.js";
-import * as foldFileFrames from "../fold/fileFrames.js";
+import * as foldFileFrames from "../fold/frames.js";
 import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
+import * as axioms from "./axioms.js";
 import * as boundary from "./boundary.js";
 import * as clip from "./clip.js";
 import * as directedGraph from "./directedGraph.js";
@@ -16,6 +17,7 @@ import * as maps from "./maps.js";
 import * as nearestMethods from "./nearest.js";
 import * as normals from "./normals.js";
 import * as orders from "./orders.js";
+import * as pleat from "./pleat.js";
 import * as span from "./span.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
@@ -47,6 +49,9 @@ import * as intersectFacesFaces from "./intersect/facesFaces.js";
 import * as arrays from "../general/arrays.js";
 // import addVertices from "./add/addVertices.js";
 // import addEdges from "./add/addEdges.js";
+import addVertex from "./add/addVertex.js";
+import addNonPlanarEdge from "./add/addNonPlanarEdge.js";
+import addPlanarLine from "./add/addPlanarLine.js";
 import addPlanarSegment from "./add/addPlanarSegment.js";
 import addPlanarSegmentNew from "./add/addPlanarSegmentNew.js";
 import clean from "./clean.js";
@@ -83,6 +88,9 @@ export default {
 	splitEdge,
 	splitFace,
 	flatFold,
+	addVertex,
+	addNonPlanarEdge,
+	addPlanarLine,
 	addPlanarSegment,
 	addPlanarSegmentNew,
 	planarize,
@@ -92,6 +100,7 @@ export default {
 	...foldFileFrames,
 	...foldKeyMethods,
 	...foldSpecMethods,
+	...axioms,
 	...boundary,
 	...clip,
 	...explodeMethods,
@@ -102,6 +111,7 @@ export default {
 	...nearestMethods,
 	...normals,
 	...orders,
+	...pleat,
 	...span,
 	...subgraphMethods,
 	...sweep,

@@ -1,6 +1,10 @@
 /* svg (c) Kraft, MIT License */
+/**
+ * SVG (c) Kraft
+ */
 const markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
 const digitRegEx = /-?[0-9]*\.?\d+/g;
+
 const pathCommandNames = {
 	m: "move",
 	l: "line",
@@ -13,14 +17,20 @@ const pathCommandNames = {
 	t: "smoothQuadCurve",
 	z: "close",
 };
+// make capitalized copies of each command
 Object.keys(pathCommandNames).forEach((key) => {
 	const s = pathCommandNames[key];
 	pathCommandNames[key.toUpperCase()] = s.charAt(0).toUpperCase() + s.slice(1);
 });
+/**
+ * if the command is relative, it will build upon offset coordinate
+ */
 const add2path = (a, b) => [a[0] + (b[0] || 0), a[1] + (b[1] || 0)];
 const getEndpoint = (command, values, offset = [0, 0]) => {
 	const upper = command.toUpperCase();
 	let origin = command === upper ? [0, 0] : offset;
+	// H and V (uppercase) absolutely position themselves along their
+	// horiz or vert axis, but they should carry over the other component
 	if (command === "V") { origin = [offset[0], 0]; }
 	if (command === "H") { origin = [0, offset[1]]; }
 	switch (upper) {
@@ -33,10 +43,16 @@ const getEndpoint = (command, values, offset = [0, 0]) => {
 	case "C": return add2path(origin, [values[4], values[5]]);
 	case "S":
 	case "Q": return add2path(origin, [values[2], values[3]]);
-	case "Z": return undefined;
+	case "Z": return undefined; // cannot be set locally.
 	default: return origin;
 	}
 };
+
+/**
+ * @description Parse a path "d" attribute into an array of objects,
+ * where each object contains a command, and the numerical values.
+ * @param {string} d the "d" attribute of a path.
+ */
 const parsePathCommands = (d) => {
 	const results = [];
 	let match;
@@ -59,6 +75,7 @@ const parsePathCommands = (d) => {
 			return { command, values };
 		});
 };
+
 const parsePathCommandsWithEndpoints = (d) => {
 	let pen = [0, 0];
 	const commands = parsePathCommands(d);

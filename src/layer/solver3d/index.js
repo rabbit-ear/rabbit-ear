@@ -67,8 +67,9 @@ export const layer3d = ({
 		faces_faces,
 		// edges_vector,
 	}, epsilon);
-
+	// console.time("index.js solver2d()");
 	const { root, branches } = solver2d({ constraints, lookup, facePairs, orders });
+	// console.timeEnd("index.js solver2d()");
 	// console.log("constraints", constraints);
 	// console.log("lookup", lookup);
 	// console.log("facePairs", facePairs);

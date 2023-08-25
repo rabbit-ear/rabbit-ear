@@ -1,4 +1,7 @@
 /* svg (c) Kraft, MIT License */
+/**
+ * SVG (c) Kraft
+ */
 const svg_add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
 const svg_sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
 const svg_scale2 = (a, s) => [a[0] * s, a[1] * s];

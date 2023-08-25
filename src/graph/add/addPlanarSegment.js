@@ -29,7 +29,7 @@ import {
 } from "../walk.js";
 /**
  * @description given a list of vertices in a graph which:
- * - these vertices have alreaddy been added to the graph
+ * - these vertices have already been added to the graph
  * - this list of vertices has already been sorted along the vector
  * create a set of edges in the graph that connect these vertices, with
  * one important detail: don't add edges which already exist in the graph.

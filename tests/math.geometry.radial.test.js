@@ -38,11 +38,11 @@ test("interior angles", () => {
 test("counter-clockwise vector sorting", () => {
 	testEqualVectors(
 		[0, 1, 2, 3],
-		ear.math.counterClockwiseOrder2([1, 1], [-1, 1], [-1, -1], [1, -1]),
+		ear.math.counterClockwiseOrder2([[1, 1], [-1, 1], [-1, -1], [1, -1]]),
 	);
 	testEqualVectors(
 		[0, 3, 2, 1],
-		ear.math.counterClockwiseOrder2([1, -1], [-1, -1], [-1, 1], [1, 1]),
+		ear.math.counterClockwiseOrder2([[1, -1], [-1, -1], [-1, 1], [1, 1]]),
 	);
 });
 
@@ -124,19 +124,6 @@ test("counterClockwiseAngle2", () => {
 // });
 
 test("interior sector angles", () => {
-	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[0])
-		.toBeCloseTo(Math.PI / 2);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[1])
-		.toBeCloseTo(Math.PI / 2);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0])[2])
-		.toBeCloseTo(Math.PI);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[0])
-		.toBeCloseTo(Math.PI);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[1])
-		.toBeCloseTo(Math.PI / 2);
-	expect(ear.math.counterClockwiseSectors2([1, 0], [-1, 0], [0, -1])[2])
-		.toBeCloseTo(Math.PI / 2);
-
 	expect(ear.math.counterClockwiseSectors2([[1, 0], [0, 1], [-1, 0]])[0])
 		.toBeCloseTo(Math.PI / 2);
 	expect(ear.math.counterClockwiseSectors2([[1, 0], [0, 1], [-1, 0]])[1])

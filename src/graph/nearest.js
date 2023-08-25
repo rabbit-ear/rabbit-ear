@@ -14,6 +14,7 @@ import { overlapConvexPolygonPoint } from "../math/intersect/overlap.js";
 import {
 	singularize,
 	filterKeysWithPrefix,
+	getDimension,
 } from "../fold/spec.js";
 import { makeFacesConvexCenter } from "./make.js";
 /**
@@ -27,9 +28,10 @@ import { makeFacesConvexCenter } from "./make.js";
  */
 export const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
-	const dimensions = vertices_coords.filter(() => true).shift().length;
+	const dimension = getDimension({ vertices_coords });
+	if (dimension === undefined) { return undefined; }
 	// resize our point to be the same dimension as the first vertex
-	const p = resize(dimensions, point);
+	const p = resize(dimension, point);
 	// sort by distance, hold onto the original index in vertices_coords
 	const nearest = vertices_coords
 		.map((v, i) => ({ d: distance(p, v), i }))
@@ -58,6 +60,19 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	return smallestComparisonSearch(nearest_points, point, distance);
 };
 /**
+ *
+ */
+export const facesContainingPoint = (
+	{ vertices_coords, faces_vertices },
+	point,
+) => (!vertices_coords || !faces_vertices
+	? []
+	: faces_vertices
+		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
+		.filter(f => overlapConvexPolygonPoint(f.face, point))
+		.map(el => el.i)
+);
+/**
  * @description Iterate through all faces in a graph and find one that encloses a point.
  * This method assumes the graph is in 2D, it ignores any z components.
  * @param {FOLD} graph a FOLD graph
@@ -66,12 +81,8 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
  * @linkcode Origami ./src/graph/nearest.js 65
  */
 export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
-	if (!vertices_coords || !faces_vertices) { return undefined; }
-	const face = faces_vertices
-		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-		.filter(f => overlapConvexPolygonPoint(f.face, point))
-		.shift();
-	return (face === undefined ? undefined : face.i);
+	const faces = facesContainingPoint({ vertices_coords, faces_vertices }, point);
+	return faces.length ? faces.shift() : undefined;
 };
 /**
  * @description Iterate through all faces in a graph and find one nearest to a point.
@@ -87,6 +98,7 @@ export const nearestFace = (graph, point) => {
 	if (face !== undefined) { return face; }
 	if (graph.edges_faces) {
 		const edge = nearestEdge(graph, point);
+		if (edge === undefined) { return undefined; }
 		const faces = graph.edges_faces[edge];
 		if (faces.length === 1) { return faces[0]; }
 		if (faces.length > 1) {

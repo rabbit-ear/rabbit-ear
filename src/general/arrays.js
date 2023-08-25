@@ -47,7 +47,12 @@ export const uniqueSortedNumbers = (array) => {
 	return Object.keys(hash).map(parseFloat);
 };
 /**
- *
+ * @description Given an array of numbers, sort the list and
+ * filter out any two numbers which are close to each other within
+ * an epsilon. The result list may be smaller than the input list.
+ * @param {number[]} array an array of numbers.
+ * @param {number} [epsilon=1e-6] an optional epsilon.
+ * @returns {number[]} a sorted and filtered array of the input array.
  */
 export const epsilonUniqueSortedNumbers = (array, epsilon = EPSILON) => {
 	const numbers = array.slice().sort((a, b) => a - b);

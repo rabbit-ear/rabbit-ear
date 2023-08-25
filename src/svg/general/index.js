@@ -6,6 +6,10 @@ import * as path from './path.js';
 import * as transforms from './transforms.js';
 import * as viewBox from './viewBox.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const general = {
 	...algebra,
 	...dom,

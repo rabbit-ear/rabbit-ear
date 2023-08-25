@@ -7,8 +7,17 @@ import TransformMethods from './shared/transforms.js';
 import methods from './shared/urls.js';
 import { appendTo, setAttributes } from './shared/dom.js';
 
+/**
+ * SVG (c) Kraft
+ */
+/**
+ * @description SVG text element
+ * @memberof SVG
+ * @linkcode SVG ./src/nodes/spec/text.js 11
+ */
 const textDef = {
 	text: {
+		// assuming people will at most supply coordinate (x,y,z) and text
 		args: (a, b, c) => makeCoordinates(...[a, b, c].flat()).slice(0, 2),
 		init: (a, b, c, d) => {
 			const element = SVGWindow().document.createElementNS(NS, "text");

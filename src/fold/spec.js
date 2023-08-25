@@ -96,6 +96,25 @@ export const assignmentCanBeFolded = {
 	u: true,
 };
 /**
+ * @description 
+ */
+export const assignmentIsBoundary = {
+	B: true,
+	b: true,
+	M: false,
+	m: false,
+	V: false,
+	v: false,
+	F: false,
+	f: false,
+	J: false,
+	j: false,
+	C: true,
+	c: true,
+	U: false,
+	u: false,
+};
+/**
  * @description Convert an assignment character to a foldAngle in degrees.
  * This assumes that all assignments are flat folds.
  * @param {string} assignment one edge assignment letter: M V B F U
@@ -228,7 +247,8 @@ const flatFoldKeys = Object.freeze([]
 	.concat(foldKeys.graph)
 	.concat(foldKeys.orders));
 /**
- * @description Using heuristics, try to determine if an object is a FOLD object.
+ * @description Using heuristics by checking the names of the keys
+ * of an object, determine if an object is a FOLD object.
  * @param {FOLD} object a Javascript object, find out if it is a FOLD object
  * @returns {number} value between 0 and 1, zero meaning no chance, one meaning 100% chance
  * @linkcode Origami ./src/fold/spec.js 209
@@ -248,6 +268,24 @@ export const isFoldedForm = ({ frame_classes, file_classes }) => (
 	(frame_classes && frame_classes.includes("foldedForm"))
 		|| (file_classes && file_classes.includes("foldedForm"))
 );
+/**
+ * @description Infer the dimensions of (the vertices of) a graph
+ * by querying the first point in vertices_coords. This also works
+ * when the vertices_coords array has holes (ie: index 0 is not set).
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number | undefined} the dimension of the vertices, or
+ * undefined if no vertices exist. number should be 2 or 3 in most cases.
+ */
+export const getDimension = ({ vertices_coords }) => {
+	// return length of first vertex, if it exists
+	if (vertices_coords[0] !== undefined) {
+		return vertices_coords[0].length;
+	}
+	// in case of an array with holes, get the first vertex.
+	const vertex = vertices_coords.filter(() => true).shift();
+	if (!vertex) { return undefined; }
+	return vertex.length;
+};
 /**
  * @description For every edge, give us a boolean:
  * - "true" if the edge is folded, valley or mountain, or unassigned.
@@ -283,13 +321,12 @@ export const invertAssignments = (graph) => {
 	return graph;
 };
 
-// export const getMetadata = (FOLD = {}) => {
-// 	// build a list of all metadata keys (do not include file_frames)
-// 	const metadataKeys = {}
-// 	[...foldKeys.file, ...foldKeys.frame]
-// 		.forEach(k => { metadataKeys[k] = true; });
-// 	delete metadataKeys.file_frames;
-// 	const copy = {};
-// 	Object.keys(FOLD)
-// 		.filter()
-// };
+export const getFileMetadata = (FOLD = {}) => {
+	// return all "file_" metadata keys (do not include file_frames)
+	const metadata = {};
+	foldKeys.file
+		.filter(key => key !== "file_frames")
+		.filter(key => FOLD[key] !== undefined)
+		.forEach(key => { metadata[key] = FOLD[key]; });
+	return metadata;
+};

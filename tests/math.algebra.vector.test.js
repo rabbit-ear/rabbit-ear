@@ -188,7 +188,7 @@ test("midpoint", () => {
 
 test("average function", () => {
 	// improper use
-	expect(ear.math.average().length).toBe(0);
+	expect(ear.math.average()).toBe(undefined);
 	expect(ear.math.average(0, 1, 2).length).toBe(0);
 	expect(ear.math.average([], [], []).length).toBe(0);
 	// correct
@@ -207,10 +207,12 @@ test("average function", () => {
 });
 
 test("average2", () => {
-	// ear.math.average2()
-	// todo: should we return an array or undefined?
-	// same goes for ear.math.average()
-	expect(true).toBe(false);
+	expect(ear.math.average2()).toBe(undefined);
+	expect(ear.math.average2([0, 1], [2, 3])[0]).toBe(1);
+	expect(ear.math.average2([0, 1], [2, 3])[1]).toBe(2);
+	expect(ear.math.average2([], [], []).length).toBe(2);
+	expect(ear.math.average2([], [], [])[0]).toBe(NaN);
+	expect(ear.math.average2([], [], [])[1]).toBe(NaN);
 });
 
 test("lerp", () => {

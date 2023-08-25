@@ -2,12 +2,17 @@
 import { capitalized } from '../../../general/transformCase.js';
 import { convertToViewBox } from '../../../general/viewBox.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const eventNameCategories = {
 	move: ["mousemove", "touchmove"],
-	press: ["mousedown", "touchstart"],
+	press: ["mousedown", "touchstart"], // "mouseover",
 	release: ["mouseup", "touchend"],
 	leave: ["mouseleave", "touchcancel"],
 };
+
 const off = (el, handlers) => Object.values(eventNameCategories)
 	.flat()
 	.forEach((handlerName) => {
@@ -15,22 +20,29 @@ const off = (el, handlers) => Object.values(eventNameCategories)
 			.removeEventListener(handlerName, func));
 		handlers[handlerName] = [];
 	});
+
 const defineGetter = (obj, prop, value) => Object
 	.defineProperty(obj, prop, {
 		get: () => value,
 		enumerable: true,
 		configurable: true,
 	});
+
+// todo, more pointers for multiple screen touches
 const TouchEvents = function (element) {
+	// hold onto all handlers to be able to turn them off
 	const handlers = [];
 	Object.keys(eventNameCategories).forEach((key) => {
 		eventNameCategories[key].forEach((handler) => {
 			handlers[handler] = [];
 		});
 	});
+
 	const removeHandler = category => eventNameCategories[category]
 		.forEach(handlerName => handlers[handlerName]
 			.forEach(func => element.removeEventListener(handlerName, func)));
+
+	// assign handlers for onMove, onPress, onRelease, onLeave
 	Object.keys(eventNameCategories).forEach((category) => {
 		Object.defineProperty(element, `on${capitalized(category)}`, {
 			set: (handler) => {
@@ -42,6 +54,7 @@ const TouchEvents = function (element) {
 				eventNameCategories[category].forEach((handlerName) => {
 					const handlerFunc = (e) => {
 						const pointer = (e.touches != null ? e.touches[0] : e);
+						// for onRelease, pointer will be undefined
 						if (pointer !== undefined) {
 							const { clientX, clientY } = pointer;
 							const [x, y] = convertToViewBox(element, clientX, clientY);
@@ -57,6 +70,7 @@ const TouchEvents = function (element) {
 			enumerable: true,
 		});
 	});
+
 	Object.defineProperty(element, "off", { value: () => off(element, handlers) });
 };
 

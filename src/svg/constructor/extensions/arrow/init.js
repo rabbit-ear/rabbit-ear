@@ -5,7 +5,13 @@ import SVGWindow from '../../../environment/window.js';
 import ArrowMethods from './methods.js';
 import { makeArrowOptions } from './options.js';
 
+/**
+ * SVG (c) Kraft
+ */
+// import Library from "../../../library.js";
+
 const arrowKeys = Object.keys(makeArrowOptions());
+
 const matchingOptions = (...args) => {
 	for (let a = 0; a < args.length; a += 1) {
 		if (typeof args[a] !== str_object) { continue; }
@@ -18,14 +24,17 @@ const matchingOptions = (...args) => {
 	}
 	return undefined;
 };
+
 const init = function (element, ...args) {
 	element.classList.add(str_arrow);
+	// element.setAttribute(str_class, str_arrow);
 	const paths = ["line", str_tail, str_head].map(key => {
 		const path = SVGWindow().document.createElementNS(NS, str_path);
 		path.className = `${str_arrow}-${key}`;
 		element.appendChild(path);
 		return path;
 	});
+		// .map(key => Library.path().addClass(`${str_arrow}-${key}`).appendTo(element));
 	paths[0].setAttribute(str_style, "fill:none;");
 	paths[1].setAttribute(str_stroke, str_none);
 	paths[2].setAttribute(str_stroke, str_none);

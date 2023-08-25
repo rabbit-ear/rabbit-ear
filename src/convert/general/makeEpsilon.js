@@ -15,7 +15,7 @@ const shortestEdgeLength = ({ vertices_coords, edges_vertices }) => {
 
 const makeEpsilon = ({ vertices_coords, edges_vertices }) => {
 	const shortest = shortestEdgeLength({ vertices_coords, edges_vertices });
-	if (shortest) { return shortest / 4; }
+	if (shortest) { return shortest / 20; }
 	const bounds = boundingBox({ vertices_coords });
 	return bounds && bounds.span
 		? 1e-3 * Math.max(...bounds.span)

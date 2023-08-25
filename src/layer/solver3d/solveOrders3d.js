@@ -94,6 +94,14 @@ export const solveEdgeFaceOverlapOrders = (
 	const edgesSegment3D = edgesSetsFaces
 		.map((_, e) => edges_vertices[e]
 			.map(v => vertices_coords[v]));
+	// console.log(
+	// 	"edges",
+	// 	edgesSegment3D.length,
+	// 	"faces",
+	// 	edgesSetsFacesAllNonAdjacent.map(sets => sets.map(faces => faces.length)),
+	// );
+	// 3,386ms
+	// console.time("solveOrders3d.js polygon-segment-overlap");
 	// now, iterate through the non-adjacent faces for every edge and
 	// check if they overlap with the edge. this requires applying the same
 	// transform to the edge which was applied to the face, remove the Z
@@ -115,6 +123,7 @@ export const solveEdgeFaceOverlapOrders = (
 						: undefined;
 				})
 				.filter(a => a !== undefined)));
+	// console.timeEnd("solveOrders3d.js polygon-segment-overlap");
 	// create a set of objects where each "edge" has two adjacent "faces",
 	// and the first faces index [0] is coplanar with the face in "overlap".
 	// faces index [1] deviates from the plane by the edge's edges_foldAngle.

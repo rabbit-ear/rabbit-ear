@@ -22,7 +22,7 @@ const paramsToUniqueLine = (args) => args
 export const axiomWithBoundary = (number, boundary, ...args) => {
 	const solutions = axiom(number, ...args);
 	validateAxiom(number, boundary, solutions, ...args)
-		.forEach((valid, i) => (valid ? i : undefined))
+		.map((valid, i) => (!valid ? i : undefined))
 		.filter(a => a !== undefined)
 		.forEach(i => delete solutions[i]);
 	return solutions;
@@ -39,7 +39,7 @@ export const axiomWithBoundary = (number, boundary, ...args) => {
 export const normalAxiomWithBoundary = (number, boundary, ...args) => {
 	const solutions = normalAxiom(number, ...args).map(uniqueLineToVecLine);
 	validateAxiom(number, boundary, solutions, ...paramsToUniqueLine(args))
-		.forEach((valid, i) => (valid ? i : undefined))
+		.map((valid, i) => (!valid ? i : undefined))
 		.filter(a => a !== undefined)
 		.forEach(i => delete solutions[i]);
 	return solutions;

@@ -3,7 +3,12 @@ import arcPath from '../shared/makeArcPath.js';
 import { str_path } from '../../../environment/strings.js';
 import TransformMethods from '../shared/transforms.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const wedgeArguments = (a, b, c, d, e) => [arcPath(a, b, c, d, e, true)];
+
 const wedgeDef = {
 	wedge: {
 		nodeName: str_path,

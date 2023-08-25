@@ -65,12 +65,3 @@ test("Maze-folding 8x8 maze", () => {
 	fs.writeFileSync(`./tests/tmp/maze-8x8-layer-solved.fold`, JSON.stringify(foldedFrame));
 	expect(true).toBe(true);
 });
-
-test("Maze-folding layer solution", () => {
-	const FOLD = fs.readFileSync("./tests/files/fold/maze-plus-minus.fold", "utf-8");
-	const graph = JSON.parse(FOLD);
-	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
-	foldedFrame.faceOrders = ear.layer.layer3d(foldedFrame).faceOrders();
-	fs.writeFileSync(`./tests/tmp/maze-plus-minus-layer-solved.fold`, JSON.stringify(foldedFrame));
-	expect(true).toBe(true);
-});

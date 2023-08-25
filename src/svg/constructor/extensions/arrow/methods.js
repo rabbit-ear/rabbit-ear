@@ -6,6 +6,11 @@ import makeCoordinates from '../../../arguments/makeCoordinates.js';
 import makeArrowPaths from './makeArrowPaths.js';
 import TransformMethods from '../shared/transforms.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
+// end is "head" or "tail"
 const setArrowheadOptions = (element, options, which) => {
 	if (typeof options === str_boolean) {
 		element.options[which].visible = options;
@@ -18,16 +23,26 @@ const setArrowheadOptions = (element, options, which) => {
 		element.options[which].visible = true;
 	}
 };
+
 const setArrowStyle = (element, options = {}, which = str_head) => {
 	const path = element.getElementsByClassName(`${str_arrow}-${which}`)[0];
+	// find options which translate to object methods (el.stroke("red"))
 	Object.keys(options)
 		.map(key => ({ key, fn: path[toCamel(key)] }))
 		.filter(el => typeof el.fn === str_function && el.key !== "class")
 		.forEach(el => el.fn(options[el.key]));
+	// find options which don't work as methods, set as attributes
+	// Object.keys(options)
+	// 	.map(key => ({ key, fn: path[toCamel(key)] }))
+	// 	.filter(el => typeof el.fn !== S.str_function && el.key !== "class")
+	// 	.forEach(el => path.setAttribute(el.key, options[el.key]));
+	//
+	// apply a class attribute (add, don't overwrite existing classes)
 	Object.keys(options)
 		.filter(key => key === "class")
 		.forEach(key => path.classList.add(options[key]));
 };
+
 const redraw = (element) => {
 	const paths = makeArrowPaths(element.options);
 	Object.keys(paths)
@@ -46,35 +61,43 @@ const redraw = (element) => {
 		));
 	return element;
 };
+
 const setPoints = (element, ...args) => {
 	element.options.points = makeCoordinates(...svgSemiFlattenArrays(...args)).slice(0, 4);
 	return redraw(element);
 };
+
 const bend = (element, amount) => {
 	element.options.bend = amount;
 	return redraw(element);
 };
+
 const pinch = (element, amount) => {
 	element.options.pinch = amount;
 	return redraw(element);
 };
+
 const padding = (element, amount) => {
 	element.options.padding = amount;
 	return redraw(element);
 };
+
 const head = (element, options) => {
 	setArrowheadOptions(element, options, str_head);
 	setArrowStyle(element, options, str_head);
 	return redraw(element);
 };
+
 const tail = (element, options) => {
 	setArrowheadOptions(element, options, str_tail);
 	setArrowStyle(element, options, str_tail);
 	return redraw(element);
 };
+
 const getLine = element => element.getElementsByClassName(`${str_arrow}-line`)[0];
 const getHead = element => element.getElementsByClassName(`${str_arrow}-${str_head}`)[0];
 const getTail = element => element.getElementsByClassName(`${str_arrow}-${str_tail}`)[0];
+
 const ArrowMethods = {
 	setPoints,
 	points: setPoints,

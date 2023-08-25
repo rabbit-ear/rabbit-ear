@@ -5,7 +5,10 @@ import { filterKeysWithPrefix } from "./spec.js";
 import clone from "../general/clone.js";
 import Messages from "../environment/messages.js";
 /**
- * @description todo
+ * @description Frames can be children of other frames via. the
+ * frame_parent and frame_inherit properties. This method will render
+ * a frame into its intended state by collapsing all parents and then
+ * this frame itself into a single object.
  * @param {FOLD} graph a FOLD graph
  * @param {number} frame which frame number to expose as the sole contents
  * @returns {FOLD} the requested frame separated out from the rest of
@@ -82,8 +85,10 @@ const getTopLevelFrame = (graph) => {
 /**
  * @description Get a flat array of all file_frames, where the top-level
  * is index 0, and the file_frames follow in sequence.
+ * This does not perform any frame-collapsing if a frame inherits from
+ * a parent, the frames are maintained in their original form.
  */
-const getFramesAsFlatArray = (graph) => {
+export const getFramesAsFlatArray = (graph) => {
 	if (!graph.file_frames || !graph.file_frames.length) {
 		return [graph];
 	}

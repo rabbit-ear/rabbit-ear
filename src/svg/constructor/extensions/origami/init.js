@@ -3,6 +3,10 @@ import NS from '../../../spec/namespace.js';
 import SVGWindow from '../../../environment/window.js';
 import lib from '../../../environment/lib.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const init = (graph, ...args) => {
 	const g = SVGWindow().document.createElementNS(NS, "g");
 	lib.ear.convert.foldToSvg.render(graph, g, ...args);

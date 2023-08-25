@@ -3,7 +3,12 @@ import arcPath from '../shared/makeArcPath.js';
 import { str_path } from '../../../environment/strings.js';
 import TransformMethods from '../shared/transforms.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const arcArguments = (a, b, c, d, e) => [arcPath(a, b, c, d, e, false)];
+
 const arcDef = {
 	arc: {
 		nodeName: str_path,

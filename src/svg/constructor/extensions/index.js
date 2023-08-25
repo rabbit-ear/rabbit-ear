@@ -16,6 +16,18 @@ import curveDef from './curve/index.js';
 import wedgeDef from './wedge/index.js';
 import origamiDef from './origami/index.js';
 
+/**
+ * SVG (c) Kraft
+ */
+/**
+ * in each of these instances, arguments maps the arguments to attributes
+ * as the attributes are listed in the "attributes" folder.
+ *
+ * arguments: function. this should convert the array of arguments into
+ * an array of (processed) arguments. 1:1. arguments into arguments.
+ * make sure it is returning an array.
+ *
+ */
 const extensions = {
 	...svgDef,
 	...gDef,
@@ -26,8 +38,10 @@ const extensions = {
 	...rectDef,
 	...styleDef,
 	...textDef,
+	// multiple
 	...maskTypes,
 	...polyDefs,
+	// extensions
 	...arcDef,
 	...arrowDef,
 	...curveDef,

@@ -1,11 +1,15 @@
 /* svg (c) Kraft, MIT License */
+/**
+ * SVG (c) Kraft
+ */
 const classes_nodes = {
 	svg: [
 		"svg",
 	],
 	defs: [
-		"defs",
+		"defs", // can only be inside svg
 	],
+	// anywhere, usually top level SVG, or <defs>
 	header: [
 		"desc",
 		"filter",
@@ -29,6 +33,8 @@ const classes_nodes = {
 		"polygon",
 		"polyline",
 		"rect",
+
+		// extensions to the SVG spec
 		"arc",
 		"arrow",
 		"curve",
@@ -40,12 +46,15 @@ const classes_nodes = {
 	text: [
 		"text",
 	],
+	// can contain drawings
+	// anywhere, usually top level SVG, or <defs>
 	invisible: [
 		"marker",
 		"symbol",
 		"clipPath",
 		"mask",
 	],
+	// inside <defs>
 	patterns: [
 		"linearGradient",
 		"radialGradient",
@@ -55,10 +64,10 @@ const classes_nodes = {
 		"textPath",
 		"tspan",
 	],
-	gradients: [
+	gradients: [ // children of gradients (<linearGradient> <radialGrandient>)
 		"stop",
 	],
-	filter: [
+	filter: [ // children of filter
 		"feBlend",
 		"feColorMatrix",
 		"feComponentTransfer",

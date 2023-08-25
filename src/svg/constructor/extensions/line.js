@@ -6,11 +6,22 @@ import TransformMethods from './shared/transforms.js';
 import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';
 
+/**
+ * SVG (c) Kraft
+ */
+
 const Args = (...args) => makeCoordinates(...svgSemiFlattenArrays(...args)).slice(0, 4);
+
 const setPoints = (element, ...args) => {
 	Args(...args).forEach((value, i) => element.setAttribute(nodes_attributes.line[i], value));
 	return element;
 };
+/**
+ * @name line
+ * @description SVG Line element
+ * @memberof SVG
+ * @linkcode SVG ./src/nodes/spec/line.js 18
+ */
 const lineDef = {
 	line: {
 		args: Args,
