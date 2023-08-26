@@ -305,14 +305,17 @@ const invertMatrix3 = (m) => {
 };
 const makeMatrix3Translate = (x = 0, y = 0, z = 0) => identity3x3.concat(x, y, z);
 const singleAxisRotate = (angle, origin, i0, i1, sgn) => {
-	const mat = identity3x3.concat([0, 1, 2].map(i => origin[i] || 0));
 	const cos = Math.cos(angle);
 	const sin = Math.sin(angle);
-	mat[i0 * 3 + i0] = cos;
-	mat[i0 * 3 + i1] = (sgn ? +1 : -1) * sin;
-	mat[i1 * 3 + i0] = (sgn ? -1 : +1) * sin;
-	mat[i1 * 3 + i1] = cos;
-	return mat;
+	const rotate = identity3x3.concat([0, 0, 0]);
+	rotate[i0 * 3 + i0] = cos;
+	rotate[i0 * 3 + i1] = (sgn ? +1 : -1) * sin;
+	rotate[i1 * 3 + i0] = (sgn ? -1 : +1) * sin;
+	rotate[i1 * 3 + i1] = cos;
+	const origin3 = [0, 1, 2].map(i => origin[i] || 0);
+	const trans = identity3x3.concat(flip(origin3));
+	const trans_inv = identity3x3.concat(origin3);
+	return multiplyMatrices3(trans_inv, multiplyMatrices3(rotate, trans));
 };
 const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate(angle, origin, 1, 2, true));
@@ -751,10 +754,11 @@ const getFileMetadata = (FOLD = {}) => {
 	return graph;
 };
 const scale = (graph, ...args) => {
-	const sc = args.length === 1
-		? [args[0], args[0], args[0]]
-		: [1, 1, 1].map((n, i) => (args[i] === undefined ? n : args[i]));
-	const matrix = makeMatrix3Scale(sc);
+	const values = args.flat();
+	const vec3 = values.length === 1
+		? [values[0], values[0], values[0]]
+		: [1, 1, 1].map((n, i) => (values[i] === undefined ? n : values[i]));
+	const matrix = makeMatrix3Scale(vec3);
 	return transform(graph, matrix);
 };
 const translate = (graph, ...args) => {
@@ -768,9 +772,9 @@ const rotate = (graph, angle, vector, origin) => transform(
 	makeMatrix3Rotate(angle, vector, origin),
 );
 const rotateZ = (graph, angle, ...args) => {
-	const vector = getVector(...args);
-	const vector3 = resize(3, vector);
-	const matrix = makeMatrix3RotateZ(angle, ...vector3);
+	const origin = getVector(...args);
+	const origin3 = resize(3, origin);
+	const matrix = makeMatrix3RotateZ(angle, origin3);
 	return transform(graph, matrix);
 };
 const unitize = function (graph) {
@@ -9416,26 +9420,22 @@ const intersect = (a, b, epsilon = EPSILON) => {
 	...algebra,
 	...geometry,
 	...intersectMethods,
-};const odd_assignment = (assignments) => {
-	let ms = 0;
-	let vs = 0;
-	for (let i = 0; i < assignments.length; i += 1) {
-		if (assignments[i] === "M" || assignments[i] === "m") { ms += 1; }
-		if (assignments[i] === "V" || assignments[i] === "v") { vs += 1; }
-	}
-	for (let i = 0; i < assignments.length; i += 1) {
-		if (ms > vs && (assignments[i] === "V" || assignments[i] === "v")) { return i; }
-		if (vs > ms && (assignments[i] === "M" || assignments[i] === "m")) { return i; }
-	}
-	return undefined;
+};const oddAssignmentIndex = (assignments) => {
+	const assigns = assignments.map(a => a.toUpperCase());
+	const mountainCount = assigns.filter(a => a === "M").length;
+	const valleyCount = assigns.filter(a => a === "V").length;
+	return mountainCount > valleyCount
+		? assigns.indexOf("V")
+		: assigns.indexOf("M");
 };
-const foldAngles4 = (sectors, assignments, t = 0) => {
-	const odd = odd_assignment(assignments);
-	if (odd === undefined) { return; }
+const foldAngles4 = (sectors, assignments, foldAngle = 0) => {
+	const odd = oddAssignmentIndex(assignments);
+	if (odd === -1) { return undefined; }
 	const a = sectors[(odd + 1) % sectors.length];
 	const b = sectors[(odd + 2) % sectors.length];
-	const pbc = Math.PI * t;
-	const cosE = -Math.cos(a) * Math.cos(b) + Math.sin(a) * Math.sin(b) * Math.cos(Math.PI - pbc);
+	const pbc = Math.max(-Math.PI, Math.min(Math.PI, foldAngle));
+	const cosE = -Math.cos(a) * Math.cos(b)
+		+ Math.sin(a) * Math.sin(b) * Math.cos(Math.PI - pbc);
 	const res = Math.cos(Math.PI - pbc)
 		- ((Math.sin(Math.PI - pbc) ** 2) * Math.sin(a) * Math.sin(b))
 		/ (1 - cosE);

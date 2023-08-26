@@ -1,6 +1,6 @@
 /* Math (c) Kraft, MIT License */
 import { EPSILON } from '../general/constant.js';
-import { resize, normalize } from './vector.js';
+import { resize, normalize, flip } from './vector.js';
 import { makeMatrix2Reflect } from './matrix2.js';
 
 /**
@@ -142,14 +142,17 @@ const makeMatrix3Translate = (x = 0, y = 0, z = 0) => identity3x3.concat(x, y, z
 // i0 and i1 direct which columns and rows are filled
 // sgn manages right hand rule
 const singleAxisRotate = (angle, origin, i0, i1, sgn) => {
-	const mat = identity3x3.concat([0, 1, 2].map(i => origin[i] || 0));
 	const cos = Math.cos(angle);
 	const sin = Math.sin(angle);
-	mat[i0 * 3 + i0] = cos;
-	mat[i0 * 3 + i1] = (sgn ? +1 : -1) * sin;
-	mat[i1 * 3 + i0] = (sgn ? -1 : +1) * sin;
-	mat[i1 * 3 + i1] = cos;
-	return mat;
+	const rotate = identity3x3.concat([0, 0, 0]);
+	rotate[i0 * 3 + i0] = cos;
+	rotate[i0 * 3 + i1] = (sgn ? +1 : -1) * sin;
+	rotate[i1 * 3 + i0] = (sgn ? -1 : +1) * sin;
+	rotate[i1 * 3 + i1] = cos;
+	const origin3 = [0, 1, 2].map(i => origin[i] || 0);
+	const trans = identity3x3.concat(flip(origin3));
+	const trans_inv = identity3x3.concat(origin3);
+	return multiplyMatrices3(trans_inv, multiplyMatrices3(rotate, trans));
 };
 
 /**

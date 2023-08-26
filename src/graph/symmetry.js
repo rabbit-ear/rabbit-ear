@@ -20,6 +20,10 @@ const fixLineDirection = ({ normal, distance }) => (distance < 0
  * for a symmtry line first, with an error value, where 0 is perfect symmetry.
  * This searches by checking the edges in the graph to find a line,
  * if an edge doesn't exist along the line of symmetry, this will fail.
+ * @todo we need a way to detect a symmetry line where no edge lies collinear.
+ * One approach might be to run Axiom 3 between all pairs of boundary lines
+ * (not boundary edges, lines which have an edge that is boundary to cut down),
+ * This would solve the issue in all cases that I can imagine.
  * @param {FOLD} graph a FOLD object with 2D vertices
  * @returns {VecLine[]} array of symmetry lines
  */

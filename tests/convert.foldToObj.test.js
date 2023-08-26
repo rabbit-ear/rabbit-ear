@@ -1,3 +1,4 @@
+const fs = require("fs");
 const { test, expect } = require("@jest/globals");
 const xmldom = require("@xmldom/xmldom");
 const ear = require("../rabbit-ear.js");
@@ -29,6 +30,13 @@ test("convert foldToObj FOLD object", () => {
 test("convert foldToObj FOLD string", () => {
 	const cp = ear.cp.fish();
 	const FOLD = JSON.stringify(cp);
+	ear.convert.foldToObj(FOLD);
+	expect(true).toBe(true);
+});
+
+test("convert FOLD file", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/crane-cp.fold", "utf-8");
+	const FOLD = JSON.parse(foldfile);
 	ear.convert.foldToObj(FOLD);
 	expect(true).toBe(true);
 });

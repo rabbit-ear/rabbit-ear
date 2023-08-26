@@ -47,16 +47,18 @@ export const transform = function (graph, matrix) {
  * @memberof graph
  * @description apply a uniform affine scale to a graph.
  * @param {FOLD} graph a FOLD object, modified in place
- * @param {number} scale the scale amount
- * @param {number[]} optional. an array or series of numbers, the center of scale.
+ * @param {number|number[]} scale the scale amount as a single (uniform)
+ * value, or a vector for a non-uniform scale.
  * @returns {FOLD} the same input graph, modified.
  * @linkcode Origami ./src/graph/affine.js 48
  */
 export const scale = (graph, ...args) => {
-	const sc = args.length === 1
-		? [args[0], args[0], args[0]]
-		: [1, 1, 1].map((n, i) => (args[i] === undefined ? n : args[i]));
-	const matrix = makeMatrix3Scale(sc);
+	const values = args.flat();
+	// no matter 2D or 3D, give us a 3D vector with any missing values as 1.
+	const vec3 = values.length === 1
+		? [values[0], values[0], values[0]]
+		: [1, 1, 1].map((n, i) => (values[i] === undefined ? n : values[i]));
+	const matrix = makeMatrix3Scale(vec3);
 	return transform(graph, matrix);
 };
 /**
@@ -99,9 +101,9 @@ export const rotate = (graph, angle, vector, origin) => transform(
  * @linkcode Origami ./src/graph/affine.js 80
  */
 export const rotateZ = (graph, angle, ...args) => {
-	const vector = getVector(...args);
-	const vector3 = resize(3, vector);
-	const matrix = makeMatrix3RotateZ(angle, ...vector3);
+	const origin = getVector(...args);
+	const origin3 = resize(3, origin);
+	const matrix = makeMatrix3RotateZ(angle, origin3);
 	return transform(graph, matrix);
 };
 /**
