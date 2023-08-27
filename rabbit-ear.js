@@ -2019,11 +2019,26 @@ const invertMap = (map) => {
 	});
 	return inv;
 };
+const invertMapArray = (map) => {
+	const inv = [];
+	const setIndexValue = (index, value) => {
+		if (inv[index] === undefined) { inv[index] = []; }
+		inv[index].push(value);
+	};
+	map.forEach((n, i) => {
+		if (n == null) { return; }
+		if (typeof n === "number") { setIndexValue(n, i); }
+		if (n.constructor === Array) {
+			n.forEach(m => setIndexValue(m, i));
+		}
+	});
+	return inv;
+};
 const invertSimpleMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => { inv[n] = i; });
 	return inv;
-};const maps=/*#__PURE__*/Object.freeze({__proto__:null,invertMap,invertSimpleMap,mergeBackmaps,mergeNextmaps,mergeSimpleBackmaps,mergeSimpleNextmaps});const clean = (graph, epsilon) => {
+};const maps=/*#__PURE__*/Object.freeze({__proto__:null,invertMap,invertMapArray,invertSimpleMap,mergeBackmaps,mergeNextmaps,mergeSimpleBackmaps,mergeSimpleNextmaps});const clean = (graph, epsilon) => {
 	const change_v1 = removeDuplicateVertices(graph, epsilon);
 	const change_e1 = removeCircularEdges(graph);
 	const change_e2 = removeDuplicateEdges(graph);
@@ -8194,7 +8209,53 @@ const axiom7 = ({ vertices_coords, edges_vertices }, edgeA, edgeB, vertex) => (
 );
 const axiom = (number, ...args) => [
 	null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
-][number](...args);const axioms=/*#__PURE__*/Object.freeze({__proto__:null,axiom,axiom1,axiom2,axiom3,axiom4,axiom5,axiom6,axiom7});const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon = EPSILON) => {
+][number](...args);const axioms=/*#__PURE__*/Object.freeze({__proto__:null,axiom,axiom1,axiom2,axiom3,axiom4,axiom5,axiom6,axiom7});const disjointGraphsIndices = (graph) => {
+	const edges_vertices = graph.edges_vertices || [];
+	const faces_vertices = graph.faces_vertices || [];
+	const vertices_edges = graph.vertices_edges
+		? graph.vertices_edges
+		: makeVerticesEdgesUnsorted({ edges_vertices });
+	const vertices_vertices = graph.vertices_vertices
+		? graph.vertices_vertices
+		: makeVerticesVerticesUnsorted({ vertices_edges, edges_vertices });
+	const vertices_faces = graph.vertices_faces
+		? graph.vertices_faces
+		: makeVerticesFacesUnsorted({ vertices_edges, faces_vertices });
+	const vertices = invertMapArray(connectedComponents(vertices_vertices));
+	const edges = vertices
+		.map(verts => verts.flatMap(v => vertices_edges[v]))
+		.map(uniqueElements);
+	const faces = vertices
+		.map(verts => verts.flatMap(v => vertices_faces[v]))
+		.map(uniqueElements);
+	return Array.from(Array(vertices.length)).map((_, i) => ({
+		vertices: vertices[i] || [],
+		edges: edges[i] || [],
+		faces: faces[i] || [],
+	}));
+};
+const disjointGraphs = (graph) => {
+	const graphs = disjointGraphsIndices(graph);
+	const verticesKeys = filterKeysWithPrefix(graph, "vertices");
+	const edgesKeys = filterKeysWithPrefix(graph, "edges");
+	const facesKeys = filterKeysWithPrefix(graph, "faces");
+	return graphs.map(({ vertices, edges, faces }) => {
+		const subgraph = {};
+		verticesKeys.forEach(key => {
+			subgraph[key] = [];
+			vertices.forEach(v => { subgraph[key][v] = graph[key][v]; });
+		});
+		edgesKeys.forEach(key => {
+			subgraph[key] = [];
+			edges.forEach(v => { subgraph[key][v] = graph[key][v]; });
+		});
+		facesKeys.forEach(key => {
+			subgraph[key] = [];
+			faces.forEach(v => { subgraph[key][v] = graph[key][v]; });
+		});
+		return subgraph;
+	});
+};const disjoint=/*#__PURE__*/Object.freeze({__proto__:null,disjointGraphs,disjointGraphsIndices});const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon = EPSILON) => {
 	const edgeSide = (edge_vertices) => edge_vertices
 		.map(v => vertices_coords[v])
 		.map(coord => subtract2(coord, line.origin))
@@ -9159,6 +9220,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...sweep$1,
 	...symmetry,
 	...directedGraph,
+	...disjoint,
 	...transform$1,
 	...triangulateMethods,
 	...walk,

@@ -9,6 +9,7 @@ import * as axioms from "./axioms.js";
 import * as boundary from "./boundary.js";
 import * as clip from "./clip.js";
 import * as directedGraph from "./directedGraph.js";
+import * as disjoint from "./disjoint.js";
 import * as explodeMethods from "./explode.js";
 import * as flaps from "./flaps.js";
 import * as join from "./join.js";
@@ -117,6 +118,7 @@ export default {
 	...sweep,
 	...symmetry,
 	...directedGraph,
+	...disjoint,
 	...transform,
 	...triangulateMethods,
 	...walk,

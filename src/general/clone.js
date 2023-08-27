@@ -3,6 +3,8 @@
  */
 /**
  * @description deep copy an object, like JSON.parse(JSON.stringify())
+ * Update: We no longer need this. structuredClone is fully supported in
+ * all browsers since 2022. Let's leave this in for now and wait a few years.
  *
  * this clone function is decent, except for:
  *  - it doesn't detect recursive cycles

@@ -15,3 +15,16 @@ test("connectedComponents", () => {
 		JSON.stringify(faces_sets, null, 2),
 	);
 });
+
+test("connectedComponents on disjoint graphs", () => {
+	const foldFile = fs.readFileSync("./tests/files/fold/disjoint-triangles-3d.fold", "utf-8");
+	const foldObject = JSON.parse(foldFile);
+	const graph = ear.graph.getFramesByClassName(foldObject, "foldedForm")[0];
+	const faces_sets = ear.graph.connectedComponents(ear.graph.makeVerticesVerticesUnsorted({
+		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
+	}));
+	fs.writeFileSync(
+		`./tests/tmp/connectedFaces.json`,
+		JSON.stringify(faces_sets, null, 2),
+	);
+});
