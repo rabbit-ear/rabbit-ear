@@ -5,6 +5,16 @@ import { filterKeysWithPrefix } from "./spec.js";
 import clone from "../general/clone.js";
 import Messages from "../environment/messages.js";
 /**
+ * @description Get the number of file frames in a FOLD object.
+ * The top level is the first frame, then every entry inside of
+ * "file_frames" increments the count by 1.
+ * @param {FOLD} graph a FOLD graph.
+ * @returns {number} the number of frames in the FOLD object.
+ */
+export const countFrames = (graph) => (!graph.file_frames
+	? 1
+	: graph.file_frames.length + 1);
+/**
  * @description Frames can be children of other frames via. the
  * frame_parent and frame_inherit properties. This method will render
  * a frame into its intended state by collapsing all parents and then
@@ -59,21 +69,20 @@ export const flattenFrame = (graph, frame_num = 1) => {
 		return outerCopy;
 	}).reduce((a, b) => Object.assign(a, b), fileMetadata);
 };
-
-export const mergeFrame = function (graph, frame) {
-	const dontCopy = ["frame_parent", "frame_inherit"];
-	const copy = clone(frame);
-	dontCopy.forEach(key => delete copy[key]);
-	// don't deep copy file_frames. stash. bring them back.
-	const swap = graph.file_frames;
-	graph.file_frames = null;
-	const fold = clone(graph);
-	graph.file_frames = swap;
-	delete fold.file_frames;
-	// merge 2
-	Object.assign(fold, frame);
-	return fold;
-};
+// export const mergeFrame = function (graph, frame) {
+// 	const dontCopy = ["frame_parent", "frame_inherit"];
+// 	const copy = clone(frame);
+// 	dontCopy.forEach(key => delete copy[key]);
+// 	// don't deep copy file_frames. stash. bring them back.
+// 	const swap = graph.file_frames;
+// 	graph.file_frames = null;
+// 	const fold = clone(graph);
+// 	graph.file_frames = swap;
+// 	delete fold.file_frames;
+// 	// merge 2
+// 	Object.assign(fold, frame);
+// 	return fold;
+// };
 /**
  * @description Get a shallow copy of the top level frame without "file_frames"
  */
@@ -87,6 +96,10 @@ const getTopLevelFrame = (graph) => {
  * is index 0, and the file_frames follow in sequence.
  * This does not perform any frame-collapsing if a frame inherits from
  * a parent, the frames are maintained in their original form.
+ * The objects in the result are a shallow copy so they still hold
+ * references to the original FOLD object provided in the input.
+ * @param {FOLD} graph a FOLD object
+ * @returns {FOLD[]} an array of FOLD objects, single frames in a flat array.
  */
 export const getFramesAsFlatArray = (graph) => {
 	if (!graph.file_frames || !graph.file_frames.length) {
@@ -104,11 +117,8 @@ export const getFramesAsFlatArray = (graph) => {
  * @param {string} className the name of the class inside frame_classes
  * @returns {FOLD[]} an array of FOLD object frames.
  */
-export const getFramesByClassName = (graph, className) => (
-	getFramesAsFlatArray(graph)
-		.map((f, i) => (f.frame_classes && f.frame_classes.includes(className)
-			? i
-			: undefined))
-		.filter(a => a !== undefined)
-		.map(i => flattenFrame(graph, i))
-);
+export const getFramesByClassName = (graph, className) => Array
+	.from(Array(countFrames(graph)))
+	.map((_, i) => flattenFrame(graph, i))
+	.filter(frame => frame.frame_classes
+		&& frame.frame_classes.includes(className));

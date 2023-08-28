@@ -27,7 +27,7 @@ import {
 } from "../make.js";
 import { getFaceFaceSharedVertices } from "../find.js";
 // import { makeFaceSpanningTree } from "./spanningTree.js";
-import { minimumSpanningTree } from "../trees.js";
+import { minimumSpanningTrees } from "../trees.js";
 /**
  * @description Given a FOLD object and a set of 2x3 matrices, one per face,
  * "fold" the vertices by finding one matrix per vertex and multiplying them.
@@ -55,11 +55,12 @@ export const multiplyVerticesFacesMatrix2 = ({
 };
 const unassigned_angle = { U: true, u: true };
 /**
- * @description Create a transformation matrix for every face by virtually folding
- * the graph along all of the creases (this works in 3D too). This traverses
- * a face-adjacency tree (edge-adjacent faces) and recursively applies the
- * affine transform that represents a fold across the edge between the faces.
- * "flat" creases are ignored.
+ * @description Create one transformation matrix for every face which
+ * represents the transformation of the face AFTER the graph has been folded
+ * along all of the creases (this works in 3D too).
+ * This traverses a face-adjacency tree (edge-adjacent faces) and
+ * recursively applies the affine transform that represents a fold
+ * across the edge between the faces. "flat" creases are ignored.
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 3x4 matrix (an array of 12 numbers).
@@ -86,34 +87,38 @@ export const makeFacesMatrix = ({
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity3x4);
 	// makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
-	minimumSpanningTree(faces_faces, root_face)
-		.slice(1) // remove the first level, it has no parent face
-		.forEach(level => level
-			.forEach((entry) => {
-				const edge_vertices = getFaceFaceSharedVertices(
-					faces_vertices[entry.index],
-					faces_vertices[entry.parent],
-				).slice(0, 2);
-				const coords = edge_vertices.map(v => vertices_coords[v]);
-				const edgeKey = edge_vertices.join(" ");
-				const edge = edge_map[edgeKey];
-				// if the assignment is unassigned, assume it is a flat fold.
-				const foldAngle = unassigned_angle[edges_assignment[edge]]
-					? Math.PI
-					: (edges_foldAngle[edge] * Math.PI) / 180;
-				const local_matrix = makeMatrix3Rotate(
-					foldAngle, // rotation angle
-					subtract(...resizeUp(coords[1], coords[0])), // line-vector
-					coords[0], // line-origin
-				);
-				faces_matrix[entry.index] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
-				// to build the inverse matrix, switch these two parameters
-				// .multiplyMatrices3(local_matrix, faces_matrix[entry.parent]);
-			}));
+	minimumSpanningTrees(faces_faces, root_face)
+		.forEach(tree => tree
+			.slice(1) // remove the first level, it has no parent face
+			.forEach(level => level
+				.forEach((entry) => {
+					const edge_vertices = getFaceFaceSharedVertices(
+						faces_vertices[entry.index],
+						faces_vertices[entry.parent],
+					).slice(0, 2);
+					const coords = edge_vertices.map(v => vertices_coords[v]);
+					const edgeKey = edge_vertices.join(" ");
+					const edge = edge_map[edgeKey];
+					// if the assignment is unassigned, assume it is a flat fold.
+					const foldAngle = unassigned_angle[edges_assignment[edge]]
+						? Math.PI
+						: (edges_foldAngle[edge] * Math.PI) / 180;
+					const local_matrix = makeMatrix3Rotate(
+						foldAngle, // rotation angle
+						subtract(...resizeUp(coords[1], coords[0])), // line-vector
+						coords[0], // line-origin
+					);
+					faces_matrix[entry.index] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
+					// to build the inverse matrix, switch these two parameters
+					// .multiplyMatrices3(local_matrix, faces_matrix[entry.parent]);
+				})));
 	return faces_matrix;
 };
 /**
- * @description This ignores any 3D data, and treats all creases as flat-folded.
+ * @description Create one transformation matrix for every face which
+ * represents the transformation of the face AFTER the graph has been folded
+ * along all of the creases.
+ * This ignores any 3D data, and treats all creases as flat-folded.
  * This will generate a 2D matrix for every face by virtually folding the graph
  * at every edge according to the assignment or foldAngle.
  * @param {FOLD} graph a FOLD graph
@@ -144,25 +149,26 @@ export const makeFacesMatrix2 = ({
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity2x3);
-	minimumSpanningTree(faces_faces, root_face)
-		.slice(1) // remove the first level, it has no parent face
-		.forEach(level => level
-			.forEach((entry) => {
-				const edge_vertices = getFaceFaceSharedVertices(
-					faces_vertices[entry.index],
-					faces_vertices[entry.parent],
-				).slice(0, 2);
-				const coords = edge_vertices.map(v => vertices_coords[v]);
-				const edgeKey = edge_vertices.join(" ");
-				const edge = edge_map[edgeKey];
-				const reflect_vector = subtract2(coords[1], coords[0]);
-				const reflect_origin = coords[0];
-				const local_matrix = edges_is_folded[edge]
-					? makeMatrix2Reflect(reflect_vector, reflect_origin)
-					: identity2x3;
-				faces_matrix[entry.index] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
-				// to build the inverse matrix, switch these two parameters
-				// .multiplyMatrices2(local_matrix, faces_matrix[entry.parent]);
-			}));
+	minimumSpanningTrees(faces_faces, root_face)
+		.forEach(tree => tree
+			.slice(1) // remove the first level, it has no parent face
+			.forEach(level => level
+				.forEach((entry) => {
+					const edge_vertices = getFaceFaceSharedVertices(
+						faces_vertices[entry.index],
+						faces_vertices[entry.parent],
+					).slice(0, 2);
+					const coords = edge_vertices.map(v => vertices_coords[v]);
+					const edgeKey = edge_vertices.join(" ");
+					const edge = edge_map[edgeKey];
+					const reflect_vector = subtract2(coords[1], coords[0]);
+					const reflect_origin = coords[0];
+					const local_matrix = edges_is_folded[edge]
+						? makeMatrix2Reflect(reflect_vector, reflect_origin)
+						: identity2x3;
+					faces_matrix[entry.index] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
+					// to build the inverse matrix, switch these two parameters
+					// .multiplyMatrices2(local_matrix, faces_matrix[entry.parent]);
+				})));
 	return faces_matrix;
 };

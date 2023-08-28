@@ -3704,27 +3704,28 @@ const makeFacesMatrix = ({
 	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity3x4);
-	minimumSpanningTree(faces_faces, root_face)
-		.slice(1)
-		.forEach(level => level
-			.forEach((entry) => {
-				const edge_vertices = getFaceFaceSharedVertices(
-					faces_vertices[entry.index],
-					faces_vertices[entry.parent],
-				).slice(0, 2);
-				const coords = edge_vertices.map(v => vertices_coords[v]);
-				const edgeKey = edge_vertices.join(" ");
-				const edge = edge_map[edgeKey];
-				const foldAngle = unassigned_angle[edges_assignment[edge]]
-					? Math.PI
-					: (edges_foldAngle[edge] * Math.PI) / 180;
-				const local_matrix = makeMatrix3Rotate(
-					foldAngle,
-					subtract(...resizeUp(coords[1], coords[0])),
-					coords[0],
-				);
-				faces_matrix[entry.index] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
-			}));
+	minimumSpanningTrees(faces_faces, root_face)
+		.forEach(tree => tree
+			.slice(1)
+			.forEach(level => level
+				.forEach((entry) => {
+					const edge_vertices = getFaceFaceSharedVertices(
+						faces_vertices[entry.index],
+						faces_vertices[entry.parent],
+					).slice(0, 2);
+					const coords = edge_vertices.map(v => vertices_coords[v]);
+					const edgeKey = edge_vertices.join(" ");
+					const edge = edge_map[edgeKey];
+					const foldAngle = unassigned_angle[edges_assignment[edge]]
+						? Math.PI
+						: (edges_foldAngle[edge] * Math.PI) / 180;
+					const local_matrix = makeMatrix3Rotate(
+						foldAngle,
+						subtract(...resizeUp(coords[1], coords[0])),
+						coords[0],
+					);
+					faces_matrix[entry.index] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
+				})));
 	return faces_matrix;
 };
 const makeFacesMatrix2 = ({
@@ -3743,24 +3744,25 @@ const makeFacesMatrix2 = ({
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity2x3);
-	minimumSpanningTree(faces_faces, root_face)
-		.slice(1)
-		.forEach(level => level
-			.forEach((entry) => {
-				const edge_vertices = getFaceFaceSharedVertices(
-					faces_vertices[entry.index],
-					faces_vertices[entry.parent],
-				).slice(0, 2);
-				const coords = edge_vertices.map(v => vertices_coords[v]);
-				const edgeKey = edge_vertices.join(" ");
-				const edge = edge_map[edgeKey];
-				const reflect_vector = subtract2(coords[1], coords[0]);
-				const reflect_origin = coords[0];
-				const local_matrix = edges_is_folded[edge]
-					? makeMatrix2Reflect(reflect_vector, reflect_origin)
-					: identity2x3;
-				faces_matrix[entry.index] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
-			}));
+	minimumSpanningTrees(faces_faces, root_face)
+		.forEach(tree => tree
+			.slice(1)
+			.forEach(level => level
+				.forEach((entry) => {
+					const edge_vertices = getFaceFaceSharedVertices(
+						faces_vertices[entry.index],
+						faces_vertices[entry.parent],
+					).slice(0, 2);
+					const coords = edge_vertices.map(v => vertices_coords[v]);
+					const edgeKey = edge_vertices.join(" ");
+					const edge = edge_map[edgeKey];
+					const reflect_vector = subtract2(coords[1], coords[0]);
+					const reflect_origin = coords[0];
+					const local_matrix = edges_is_folded[edge]
+						? makeMatrix2Reflect(reflect_vector, reflect_origin)
+						: identity2x3;
+					faces_matrix[entry.index] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
+				})));
 	return faces_matrix;
 };const facesMatrix=/*#__PURE__*/Object.freeze({__proto__:null,makeFacesMatrix,makeFacesMatrix2,multiplyVerticesFacesMatrix2});const makeVerticesCoordsFolded = ({
 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
@@ -6939,34 +6941,55 @@ const kawasakiSolutionsVectors = (vectors) => {
 		.map(a => (a === undefined
 			? undefined
 			: [Math.cos(a), Math.sin(a)]));
-};const kawasakiMath=/*#__PURE__*/Object.freeze({__proto__:null,alternatingSum,alternatingSumDifference,kawasakiSolutionsRadians,kawasakiSolutionsVectors});const flat_assignment = {
-	B: true, b: true, F: true, f: true, U: true, u: true,
 };
-const vertices_flat = ({ vertices_edges, edges_assignment }) => vertices_edges
+const kawasakiSolutions = ({ vertices_coords, vertices_edges, edges_assignment, edges_vertices }, vertex) => {
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
+	const edges = edges_assignment
+		? vertices_edges[vertex]
+			.filter(e => assignmentCanBeFolded[edges_assignment[e]])
+		: vertices_edges[vertex];
+	if (edges.length % 2 === 0) { return []; }
+	const vert_edges_vertices = edges
+		.map(edge => (edges_vertices[edge][0] === vertex
+			? edges_vertices[edge]
+			: [edges_vertices[edge][1], edges_vertices[edge][0]]));
+	const vert_edges_coords = vert_edges_vertices
+		.map(ev => ev.map(v => vertices_coords[v]));
+	const vert_edges_vector = vert_edges_coords
+		.map(coords => subtract2(coords[1], coords[0]));
+	const sortedVectors = counterClockwiseOrder2(vert_edges_vector)
+		.map(i => vert_edges_vector[i]);
+	const result = kawasakiSolutionsVectors(sortedVectors);
+	const normals = sortedVectors.map(normalize2);
+	const filteredResults = result
+		.filter(a => a !== undefined)
+		.filter(vector => !normals
+			.map(v => dot2(vector, v))
+			.map(d => Math.abs(1 - d) < 1e-3)
+			.reduce((a, b) => a || b, false));
+	return filteredResults;
+};const kawasaki=/*#__PURE__*/Object.freeze({__proto__:null,alternatingSum,alternatingSumDifference,kawasakiSolutions,kawasakiSolutionsRadians,kawasakiSolutionsVectors});const getAllFlatVertices = ({ vertices_edges, edges_assignment }) => vertices_edges
 	.map(edges => edges
-		.map(e => flat_assignment[edges_assignment[e]])
+		.map(e => !assignmentCanBeFolded[edges_assignment[e]])
 		.reduce((a, b) => a && b, true))
 	.map((valid, i) => (valid ? i : undefined))
 	.filter(a => a !== undefined);
-const folded_assignments = {
-	M: true, m: true, V: true, v: true,
-};
-const maekawa_signs = {
-	M: -1, m: -1, V: 1, v: 1,
-};
 const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const is_valid = vertices_edges
 		.map(edges => edges
-			.map(e => maekawa_signs[edges_assignment[e]])
-			.filter(a => a !== undefined)
+			.map(e => assignmentFlatFoldAngle[edges_assignment[e]])
+			.filter(a => a !== 0)
+			.map(Math.sign)
 			.reduce((a, b) => a + b, 0))
 		.map(sum => sum === 2 || sum === -2);
 	boundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
-	vertices_flat({ vertices_edges, edges_assignment })
+	getAllFlatVertices({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	return is_valid
 		.map((valid, v) => (!valid ? v : undefined))
@@ -6978,16 +7001,18 @@ const validateKawasaki = ({
 	vertices_edges,
 	edges_vertices,
 	edges_assignment,
-	edges_vector,
 }, epsilon = EPSILON) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
 	const is_valid = makeVerticesVerticesVector({
-		vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+		vertices_coords, vertices_vertices, edges_vertices,
 	})
 		.map((vectors, v) => vectors
-			.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
+			.filter((_, i) => assignmentCanBeFolded[edges_assignment[vertices_edges[v][i]]]))
 		.map(vectors => (vectors.length > 1
 			? counterClockwiseSectors2(vectors)
 			: [0, 0]))
@@ -6995,7 +7020,7 @@ const validateKawasaki = ({
 		.map(pair => Math.abs(pair[0] - pair[1]) < epsilon);
 	boundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
-	vertices_flat({ vertices_edges, edges_assignment })
+	getAllFlatVertices({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	return is_valid
 		.map((valid, v) => (!valid ? v : undefined))
@@ -7270,7 +7295,24 @@ const fish = () => populate({
 		[0, 9], [9, 1], [6, 9], [3, 10], [10, 0], [5, 10],
 	],
 	edges_assignment: Array.from("FFFVVVFVVVBBFBBFBBMBBM"),
-});const bases=/*#__PURE__*/Object.freeze({__proto__:null,fish,kite,polygon,rectangle,square});const graph = (...args) => populate(
+});
+const bird = () => populate({
+	vertices_coords: [
+		[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5],
+		[0.5, 0.5],
+		[0.5, (Math.sqrt(2) - 1) / 2],
+		[(3 - Math.sqrt(2)) / 2, 0.5],
+		[0.5, (3 - Math.sqrt(2)) / 2],
+		[(Math.sqrt(2) - 1) / 2, 0.5],
+	],
+	edges_vertices: [
+		[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 0],
+		[0, 8], [2, 8], [4, 8], [6, 8],
+		[1, 9], [9, 8], [3, 10], [10, 8], [5, 11], [11, 8], [7, 12], [12, 8],
+		[0, 9], [9, 2], [2, 10], [10, 4], [4, 11], [11, 6], [6, 12], [12, 0],
+	],
+	edges_assignment: Array.from("BBBBBBBBFMFMMVMVMVMVVVVVVVVV"),
+});const bases=/*#__PURE__*/Object.freeze({__proto__:null,bird,fish,kite,polygon,rectangle,square});const graph = (...args) => populate(
 	Object.assign(Object.create(graphProto), {
 		...args.reduce((a, b) => ({ ...a, ...b }), ({})),
 		file_spec,
@@ -8111,7 +8153,10 @@ Object.assign(svgToFold, {
 	svgToFold,
 	foldToSvg,
 	foldToObj,
-};const flattenFrame = (graph, frame_num = 1) => {
+};const countFrames = (graph) => (!graph.file_frames
+	? 1
+	: graph.file_frames.length + 1);
+const flattenFrame = (graph, frame_num = 1) => {
 	if (!graph.file_frames || graph.file_frames.length < frame_num) {
 		return graph;
 	}
@@ -8153,18 +8198,6 @@ Object.assign(svgToFold, {
 		return outerCopy;
 	}).reduce((a, b) => Object.assign(a, b), fileMetadata);
 };
-const mergeFrame = function (graph, frame) {
-	const dontCopy = ["frame_parent", "frame_inherit"];
-	const copy = clone(frame);
-	dontCopy.forEach(key => delete copy[key]);
-	const swap = graph.file_frames;
-	graph.file_frames = null;
-	const fold = clone(graph);
-	graph.file_frames = swap;
-	delete fold.file_frames;
-	Object.assign(fold, frame);
-	return fold;
-};
 const getTopLevelFrame = (graph) => {
 	const copy = { ...graph };
 	delete copy.file_frames;
@@ -8179,14 +8212,11 @@ const getFramesAsFlatArray = (graph) => {
 		...graph.file_frames,
 	];
 };
-const getFramesByClassName = (graph, className) => (
-	getFramesAsFlatArray(graph)
-		.map((f, i) => (f.frame_classes && f.frame_classes.includes(className)
-			? i
-			: undefined))
-		.filter(a => a !== undefined)
-		.map(i => flattenFrame(graph, i))
-);const foldFileFrames=/*#__PURE__*/Object.freeze({__proto__:null,flattenFrame,getFramesAsFlatArray,getFramesByClassName,mergeFrame});const edgeToLine$1 = ({ vertices_coords, edges_vertices }, edge) => (
+const getFramesByClassName = (graph, className) => Array
+	.from(Array(countFrames(graph)))
+	.map((_, i) => flattenFrame(graph, i))
+	.filter(frame => frame.frame_classes
+		&& frame.frame_classes.includes(className));const foldFileFrames=/*#__PURE__*/Object.freeze({__proto__:null,countFrames,flattenFrame,getFramesAsFlatArray,getFramesByClassName});const edgeToLine$1 = ({ vertices_coords, edges_vertices }, edge) => (
 	pointsToLine(edges_vertices[edge].map(v => vertices_coords[v]))
 );
 const axiom1 = ({ vertices_coords }, vertexA, vertexB) => (
@@ -9511,7 +9541,7 @@ const intersect = (a, b, epsilon = EPSILON) => {
 		? assigns.indexOf("V")
 		: assigns.indexOf("M");
 };
-const foldAngles4 = (sectors, assignments, foldAngle = 0) => {
+const foldDegree4 = (sectors, assignments, foldAngle = 0) => {
 	const odd = oddAssignmentIndex(assignments);
 	if (odd === -1) { return undefined; }
 	const a = sectors[(odd + 1) % sectors.length];
@@ -9526,65 +9556,34 @@ const foldAngles4 = (sectors, assignments, foldAngle = 0) => {
 	return (odd % 2 === 0
 		? [pab, pbc, pab, pbc].map((n, i) => (odd === i ? -n : n))
 		: [pbc, pab, pbc, pab].map((n, i) => (odd === i ? -n : n)));
-};const kawasakiSolutions = ({ vertices_coords, vertices_edges, edges_assignment, edges_vertices }, vertex) => {
-	if (!vertices_edges) {
-		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
-	}
-	const edges = edges_assignment
-		? vertices_edges[vertex]
-			.filter(e => assignmentCanBeFolded[edges_assignment[e]])
-		: vertices_edges[vertex];
-	if (edges.length % 2 === 0) { return []; }
-	const vert_edges_vertices = edges
-		.map(edge => (edges_vertices[edge][0] === vertex
-			? edges_vertices[edge]
-			: [edges_vertices[edge][1], edges_vertices[edge][0]]));
-	const vert_edges_coords = vert_edges_vertices
-		.map(ev => ev.map(v => vertices_coords[v]));
-	const vert_edges_vector = vert_edges_coords
-		.map(coords => subtract2(coords[1], coords[0]));
-	const sortedVectors = counterClockwiseOrder2(vert_edges_vector)
-		.map(i => vert_edges_vector[i]);
-	const result = kawasakiSolutionsVectors(sortedVectors);
-	const normals = sortedVectors.map(normalize2);
-	const filteredResults = result
-		.filter(a => a !== undefined)
-		.filter(vector => !normals
-			.map(v => dot2(vector, v))
-			.map(d => Math.abs(1 - d) < 1e-3)
-			.reduce((a, b) => a || b, false));
-	return filteredResults;
-};const kawasakiGraph=/*#__PURE__*/Object.freeze({__proto__:null,kawasakiSolutions});const get_unassigned_indices = (edges_assignment) => edges_assignment
+};const degree4=/*#__PURE__*/Object.freeze({__proto__:null,foldDegree4});const unassignedAssignment = { U: true, u: true };
+const getUnassignedIndices = (edges_assignment) => edges_assignment
 	.map((_, i) => i)
-	.filter(i => edges_assignment[i] === "U" || edges_assignment[i] === "u");
-const maekawaAssignments = (vertices_edges_assignments) => {
-	const unassigneds = get_unassigned_indices(vertices_edges_assignments);
+	.filter(i => unassignedAssignment[edges_assignment[i]]);
+const maekawaSolver = (vertices_edgesAssignments) => {
+	const unassigneds = getUnassignedIndices(vertices_edgesAssignments);
 	const permuts = Array.from(Array(2 ** unassigneds.length))
 		.map((_, i) => i.toString(2))
 		.map(l => Array(unassigneds.length - l.length + 1).join("0") + l)
 		.map(str => Array.from(str).map(l => (l === "0" ? "V" : "M")));
 	const all = permuts.map(perm => {
-		const array = vertices_edges_assignments.slice();
+		const array = vertices_edgesAssignments.slice();
 		unassigneds.forEach((index, i) => { array[index] = perm[i]; });
 		return array;
 	});
-	if (vertices_edges_assignments.includes("B")
-		|| vertices_edges_assignments.includes("b")) {
-		return all;
-	}
+	const boundaryCount = vertices_edgesAssignments
+		.filter(a => assignmentIsBoundary[a])
+		.length;
+	if (boundaryCount > 0) { return all; }
 	const count_m = all.map(a => a.filter(l => l === "M" || l === "m").length);
 	const count_v = all.map(a => a.filter(l => l === "V" || l === "v").length);
 	return all.filter((_, i) => Math.abs(count_m[i] - count_v[i]) === 2);
-};const maekawa=/*#__PURE__*/Object.freeze({__proto__:null,maekawaAssignments});const singleVertex = Object.assign(
-	Object.create(null),
-	{
-		foldAngles4,
-	},
-	kawasakiMath,
-	kawasakiGraph,
-	maekawa,
-	validateSingleVertex,
-);const compileShader = (gl, shaderSource, shaderType) => {
+};const maekawa=/*#__PURE__*/Object.freeze({__proto__:null,maekawaSolver});const singleVertex = {
+	...degree4,
+	...kawasaki,
+	...maekawa,
+	...validateSingleVertex,
+};const compileShader = (gl, shaderSource, shaderType) => {
 	const shader = gl.createShader(shaderType);
 	gl.shaderSource(shader, shaderSource);
 	gl.compileShader(shader);
@@ -12059,7 +12058,7 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => 
 	if (assignments == null) {
 		assignments = orderedScalars.map(() => "U");
 	}
-	const all_assignments = maekawaAssignments(assignments);
+	const all_assignments = maekawaSolver(assignments);
 	const layers = all_assignments
 		.map(assigns => singleVertexSolver(orderedScalars, assigns, epsilon));
 	return all_assignments

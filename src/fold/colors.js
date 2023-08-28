@@ -10,6 +10,7 @@ import { magnitude3, distance3, scale3 } from "../math/algebra/vector.js";
  */
 const DESATURATION_RATIO = 4;
 
+// note: colors used by rgbToAssignment are for values between 0 and 255
 export const assignmentColor = {
 	M: [1, 0, 0], // red
 	V: [0, 0, 1], // blue
@@ -19,7 +20,17 @@ export const assignmentColor = {
 	// and "boundary" and "flat" are black and gray
 };
 /**
- * @description The color scheme that was established in Origami Simulator.
+ * @description Map a color to an edge_assignment value, of course, this uses
+ * one of many color schemes, hopefully this is one of the more widely-accepted
+ * schemes, however. The benefit of using this method is that it will,
+ * for example, match a red color to "mountain", accepting any red color,
+ * so long as this red color is not too close to yellow or gray, it counts.
+ * "Mountain" and "valley" are red and blue respectively,
+ * "unassigned" is purple (being blue + red), and then, following the standard
+ * put forth by Origami Simulator, yellow is "join" and green is "cut".
+ * This leaves "boundary" and "flat", which both take a grayscale value, and
+ * should be detected geometrically (boundary edges), but this method
+ * will still differentiate, "boundary" is black and "flat" is gray.
  * @param {number} red the red channel from 0 to 255
  * @param {number} green the green channel from 0 to 255
  * @param {number} blue the blue channel from 0 to 255

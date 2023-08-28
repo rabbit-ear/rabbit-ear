@@ -4,34 +4,27 @@
 import { EPSILON } from "../math/general/constant.js";
 import { counterClockwiseSectors2 } from "../math/geometry/radial.js";
 import {
+	assignmentCanBeFolded,
+	assignmentFlatFoldAngle,
+} from "../fold/spec.js";
+import {
 	makeVerticesVertices,
 	makeVerticesEdgesUnsorted,
 	makeVerticesVerticesVector,
 } from "../graph/make.js";
 import { boundaryVertices } from "../graph/boundary.js";
-import { alternatingSum } from "./kawasakiMath.js";
-
-const flat_assignment = {
-	B: true, b: true, F: true, f: true, U: true, u: true,
-};
+import { alternatingSum } from "./kawasaki.js";
 /**
- * @description get all vertices indices which are adjacent to edges
- * with no mountain/valleys, only containing either flat, unassigned,
- * or boundary.
+ * @description A "flat" vertex is one which all edges that surround it
+ * have an assignment of either flat, cut, join, or boundary.
+ * No mountain, valley, or unassigned.
  */
-const vertices_flat = ({ vertices_edges, edges_assignment }) => vertices_edges
+const getAllFlatVertices = ({ vertices_edges, edges_assignment }) => vertices_edges
 	.map(edges => edges
-		.map(e => flat_assignment[edges_assignment[e]])
+		.map(e => !assignmentCanBeFolded[edges_assignment[e]])
 		.reduce((a, b) => a && b, true))
 	.map((valid, i) => (valid ? i : undefined))
 	.filter(a => a !== undefined);
-
-const folded_assignments = {
-	M: true, m: true, V: true, v: true,
-};
-const maekawa_signs = {
-	M: -1, m: -1, V: 1, v: 1,
-};
 /**
  * @description using edges_assignment, check if Maekawa's theorem is satisfied
  * for all vertices, and if not, return the vertices which violate the theorem.
@@ -46,14 +39,15 @@ export const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignme
 	}
 	const is_valid = vertices_edges
 		.map(edges => edges
-			.map(e => maekawa_signs[edges_assignment[e]])
-			.filter(a => a !== undefined)
+			.map(e => assignmentFlatFoldAngle[edges_assignment[e]])
+			.filter(a => a !== 0)
+			.map(Math.sign)
 			.reduce((a, b) => a + b, 0))
 		.map(sum => sum === 2 || sum === -2);
 	// overwrite any false values to true for all boundary vertices
 	boundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
-	vertices_flat({ vertices_edges, edges_assignment })
+	getAllFlatVertices({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	return is_valid
 		.map((valid, v) => (!valid ? v : undefined))
@@ -73,31 +67,29 @@ export const validateKawasaki = ({
 	vertices_edges,
 	edges_vertices,
 	edges_assignment,
-	edges_vector,
 }, epsilon = EPSILON) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
-	// console.log("HERE", makeVerticesVerticesVector({
-	// 	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
-	// })
-	// 	.map((vectors, v) => vectors
-	// 		.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]])));
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
 	const is_valid = makeVerticesVerticesVector({
-		vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+		vertices_coords, vertices_vertices, edges_vertices,
 	})
 		.map((vectors, v) => vectors
-			.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
+			.filter((_, i) => assignmentCanBeFolded[edges_assignment[vertices_edges[v][i]]]))
 		.map(vectors => (vectors.length > 1
 			? counterClockwiseSectors2(vectors)
 			: [0, 0]))
 		.map(sectors => alternatingSum(sectors))
 		.map(pair => Math.abs(pair[0] - pair[1]) < epsilon);
-
-	// overwrite any false values to true for all boundary vertices
+	// these vertices will always be valid no matter what.
+	// vertices that lie along a boundary edge, even if others are M/V.
 	boundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
-	vertices_flat({ vertices_edges, edges_assignment })
+	// vertices which every adjacent edge is flat/boundary/cut/join.
+	getAllFlatVertices({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	return is_valid
 		.map((valid, v) => (!valid ? v : undefined))

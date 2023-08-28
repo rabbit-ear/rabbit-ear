@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import layer_solver from "./index.js";
-import { maekawaAssignments } from "../../singleVertex/maekawa.js";
+import { maekawaSolver } from "../../singleVertex/maekawa.js";
 /**
  * @name singleVertexAssignmentSolver
  * @description This extends the singleVertexSolver to also solve unassigned
@@ -24,7 +24,7 @@ const assignmentSolver = (orderedScalars, assignments, epsilon) => {
 		assignments = orderedScalars.map(() => "U");
 	}
 	// enumerate all possible assignments by replacing "U" with both "M" and "V"
-	const all_assignments = maekawaAssignments(assignments);
+	const all_assignments = maekawaSolver(assignments);
 	const layers = all_assignments
 		.map(assigns => layer_solver(orderedScalars, assigns, epsilon));
 	return all_assignments

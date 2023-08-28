@@ -114,3 +114,24 @@ export const fish = () => populate({
 	],
 	edges_assignment: Array.from("FFFVVVFVVVBBFBBFBBMBBM"),
 });
+/**
+ * @description Create a bird base FOLD object in crease pattern form.
+ * @returns {FOLD} a FOLD object
+ */
+export const bird = () => populate({
+	vertices_coords: [
+		[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5],
+		[0.5, 0.5],
+		[0.5, (Math.sqrt(2) - 1) / 2],
+		[(3 - Math.sqrt(2)) / 2, 0.5],
+		[0.5, (3 - Math.sqrt(2)) / 2],
+		[(Math.sqrt(2) - 1) / 2, 0.5],
+	],
+	edges_vertices: [
+		[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 0],
+		[0, 8], [2, 8], [4, 8], [6, 8],
+		[1, 9], [9, 8], [3, 10], [10, 8], [5, 11], [11, 8], [7, 12], [12, 8],
+		[0, 9], [9, 2], [2, 10], [10, 4], [4, 11], [11, 6], [6, 12], [12, 0],
+	],
+	edges_assignment: Array.from("BBBBBBBBFMFMMVMVMVMVVVVVVVVV"),
+});

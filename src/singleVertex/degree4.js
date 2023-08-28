@@ -26,9 +26,9 @@ const oddAssignmentIndex = (assignments) => {
  * the folding), if you simply check the assignments around the smallest angle?
  * @returns {number[]|undefined} four fold angles as numbers in an array,
  * or "undefined" if the operation could not be completed.
- * @linkcode Origami ./src/singleVertex/foldAngles4.js 24
+ * @linkcode Origami ./src/singleVertex/degree4.js 24
  */
-const foldAngles4 = (sectors, assignments, foldAngle = 0) => {
+export const foldDegree4 = (sectors, assignments, foldAngle = 0) => {
 	const odd = oddAssignmentIndex(assignments);
 	if (odd === -1) { return undefined; }
 	const a = sectors[(odd + 1) % sectors.length];
@@ -50,5 +50,3 @@ const foldAngles4 = (sectors, assignments, foldAngle = 0) => {
 		? [pab, pbc, pab, pbc].map((n, i) => (odd === i ? -n : n))
 		: [pbc, pab, pbc, pab].map((n, i) => (odd === i ? -n : n)));
 };
-
-export default foldAngles4;

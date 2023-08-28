@@ -55,3 +55,41 @@ test("fold in 3d", () => {
 	// fs.writeFileSync(`./tests/files/folded-${file}`, JSON.stringify(cp));
 	expect(true).toBe(true);
 });
+
+test("fold a disjoint graph", () => {
+	const file = "disjoint-triangles-3d.fold";
+	const FOLD = JSON.parse(fs.readFileSync(`./tests/files/fold/${file}`));
+	const cp = ear.graph.getFramesByClassName(FOLD, "creasePattern")[0];
+	const vertices_coords = ear.graph.makeVerticesCoordsFolded(cp);
+	const expected = [
+		[0, 0, 0],
+		[1, 0, 1],
+		[1, 1, 0],
+		[1, 0, 0],
+		[0.5, 0, 0],
+		[0.5, 0.5, 0],
+		[0.5, 0, 0.5],
+		[-0.5, 0, 0],
+		[-1.5, 1, 0],
+		[-1.5, 0, 1],
+		[-1.5, 0, 0],
+		[-1, 0, 0],
+		[-1, 0, 0.5],
+		[-1, 0.5, 0],
+		[1.5, 0, 0],
+		[2.5, 0, 1],
+		[2.5, 1, 0],
+		[2.5, 0, 0],
+		[3, 0, 0],
+		[4, 0, 1],
+		[4, 1, 0],
+		[4, 0, 0],
+		[4.5, 0, 0],
+		[5, 0, 0.5],
+		[5, 0.5, 0],
+		[5, 0, 0],
+	];
+	vertices_coords
+		.forEach((coords, i) => coords
+			.forEach((n, j) => expect(n).toBeCloseTo(expected[i][j])));
+});
