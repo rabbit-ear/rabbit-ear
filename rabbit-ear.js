@@ -2817,37 +2817,6 @@ const populate = (graph, reface) => {
 	graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	graph.faces_faces = makeFacesFaces(graph);
 	return graph;
-};const findAdjacentFacesToEdge = ({
-	vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices,
-}, edge) => {
-	if (edges_faces && edges_faces[edge]) {
-		return edges_faces[edge];
-	}
-	const vertices = edges_vertices[edge];
-	if (vertices_faces !== undefined) {
-		const faces = [];
-		for (let i = 0; i < vertices_faces[vertices[0]].length; i += 1) {
-			for (let j = 0; j < vertices_faces[vertices[1]].length; j += 1) {
-				if (vertices_faces[vertices[0]][i] === vertices_faces[vertices[1]][j]) {
-					if (vertices_faces[vertices[0]][i] === undefined) { continue; }
-					faces.push(vertices_faces[vertices[0]][i]);
-				}
-			}
-		}
-		return faces;
-	}
-	if (faces_edges) {
-		const faces = [];
-		for (let i = 0; i < faces_edges.length; i += 1) {
-			for (let e = 0; e < faces_edges[i].length; e += 1) {
-				if (faces_edges[i][e] === edge) { faces.push(i); }
-			}
-		}
-		return faces;
-	}
-	if (faces_vertices) {
-		console.warn("todo: findAdjacentFacesToEdge");
-	}
 };const update_vertices_vertices$2 = ({ vertices_vertices }, vertex, incident_vertices) => {
 	if (!vertices_vertices) { return; }
 	vertices_vertices[vertex] = [...incident_vertices];
@@ -2910,7 +2879,39 @@ const update_faces_edges_with_vertices = ({
 			.map((vertex, i, arr) => [vertex, arr[(i + 1) % arr.length]])
 			.map(pair => edge_map[pair.join(" ")]))
 		.forEach((edges, i) => { faces_edges[faces[i]] = edges; });
-};const splitEdgeIntoTwo = (graph, edge_index, new_vertex) => {
+};const findAdjacentFacesToEdge = ({
+	vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices,
+}, edge) => {
+	if (edges_faces && edges_faces[edge]) {
+		return edges_faces[edge];
+	}
+	const vertices = edges_vertices[edge];
+	if (vertices_faces !== undefined) {
+		const faces = [];
+		for (let i = 0; i < vertices_faces[vertices[0]].length; i += 1) {
+			for (let j = 0; j < vertices_faces[vertices[1]].length; j += 1) {
+				if (vertices_faces[vertices[0]][i] === vertices_faces[vertices[1]][j]) {
+					if (vertices_faces[vertices[0]][i] === undefined) { continue; }
+					faces.push(vertices_faces[vertices[0]][i]);
+				}
+			}
+		}
+		return faces;
+	}
+	if (faces_edges) {
+		const faces = [];
+		for (let i = 0; i < faces_edges.length; i += 1) {
+			for (let e = 0; e < faces_edges[i].length; e += 1) {
+				if (faces_edges[i][e] === edge) { faces.push(i); }
+			}
+		}
+		return faces;
+	}
+	if (faces_vertices) {
+		console.warn("todo: findAdjacentFacesToEdge");
+	}
+};
+const splitEdgeIntoTwo = (graph, edge_index, new_vertex) => {
 	const edge_vertices = graph.edges_vertices[edge_index];
 	const new_edges = [
 		{ edges_vertices: [edge_vertices[0], new_vertex] },
@@ -3395,11 +3396,17 @@ const intersectConvexFaceLine = ({
 	});
 	return array_arraySubset;
 };
-const subgraph = (graph, indices = {}) => {
-	if (!indices.vertices) { indices.vertices = []; }
-	if (!indices.edges) { indices.edges = []; }
-	if (!indices.faces) { indices.faces = []; }
-	const components = ["faces", "edges", "vertices"];
+const subgraph = (graph, indicesToKeep = {}) => {
+	const indices = {
+		vertices: [],
+		edges: [],
+		faces: [],
+		...indicesToKeep,
+	};
+	const components = Object.keys(indices);
+	const copy = { ...graph };
+	foldKeys.graph.forEach(key => delete copy[key]);
+	delete copy.file_frames;
 	const lookup = {};
 	components.forEach(component => { lookup[component] = {}; });
 	components.forEach(component => indices[component].forEach(i => {
@@ -3414,9 +3421,6 @@ const subgraph = (graph, indices = {}) => {
 		filterKeysWithPrefix(graph, c).forEach(key => { keys[key].prefix = c; });
 		filterKeysWithSuffix(graph, c).forEach(key => { keys[key].suffix = c; });
 	});
-	const copy = { ...graph };
-	foldKeys.graph.forEach(key => delete copy[key]);
-	delete copy.file_frames;
 	Object.keys(keys).forEach(key => { copy[key] = []; });
 	Object.keys(keys).forEach(key => {
 		const { prefix, suffix } = keys[key];
@@ -3456,9 +3460,9 @@ const subgraphWithFaces = (graph, faces) => {
 			.filter(a => a !== undefined);
 	}
 	return subgraph(graph, {
-		faces,
-		edges,
 		vertices,
+		edges,
+		faces,
 	});
 };const subgraphMethods=/*#__PURE__*/Object.freeze({__proto__:null,selfRelationalArraySubset,subgraph,subgraphWithFaces});const validate_references = (graph) => {
 	const counts = {
@@ -3633,42 +3637,39 @@ const planarBoundary = ({
 		}
 	}
 	return shared_vertices;
-};
-const makeFaceSpanningTree = ({ faces_vertices, faces_faces }, root_face = 0) => {
-	if (!faces_faces) {
-		faces_faces = makeFacesFaces({ faces_vertices });
-	}
-	if (faces_faces.length === 0) { return []; }
-	const tree = [[{ face: root_face }]];
-	const visited_faces = {};
-	visited_faces[root_face] = true;
+};const find=/*#__PURE__*/Object.freeze({__proto__:null,getFaceFaceSharedVertices});const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
+	if (array_array.length === 0) { return []; }
+	const trees = [];
+	const unvisited = {};
+	array_array.forEach((_, i) => { unvisited[i] = true; });
 	do {
-		const next_level_with_duplicates = tree[tree.length - 1]
-			.map(current => faces_faces[current.face]
-				.map(face => ({ face, parent: current.face })))
-			.reduce((a, b) => a.concat(b), []);
-		const dup_indices = {};
-		next_level_with_duplicates.forEach((el, i) => {
-			if (visited_faces[el.face]) { dup_indices[i] = true; }
-			visited_faces[el.face] = true;
-		});
-		const next_level = next_level_with_duplicates
-			.filter((_, i) => !dup_indices[i]);
-		next_level
-			.map(el => getFaceFaceSharedVertices(
-				faces_vertices[el.face],
-				faces_vertices[el.parent],
-			)).forEach((ev, i) => {
-				const edge_vertices = ev.slice(0, 2);
-				next_level[i].edge_vertices = edge_vertices;
+		const startIndex = rootIndex !== undefined
+			? rootIndex
+			: parseInt(Object.keys(unvisited).shift(), 10);
+		rootIndex = undefined;
+		const tree = [];
+		delete unvisited[startIndex];
+		let previousLevel = [{ index: startIndex }];
+		do {
+			tree.push(previousLevel);
+			const currentLevel = previousLevel
+				.flatMap(current => array_array[current.index]
+					.filter(i => unvisited[i])
+					.map(index => ({ index, parent: current.index })));
+			const duplicates = {};
+			currentLevel.forEach((el, i) => {
+				if (!unvisited[el.index]) { duplicates[i] = true; }
+				delete unvisited[el.index];
 			});
-		tree[tree.length] = next_level;
-	} while (tree[tree.length - 1].length > 0);
-	if (tree.length > 0 && tree[tree.length - 1].length === 0) {
-		tree.pop();
-	}
-	return tree;
-};const facesSpanningTree=/*#__PURE__*/Object.freeze({__proto__:null,getFaceFaceSharedVertices,makeFaceSpanningTree});const multiplyVerticesFacesMatrix2 = ({
+			previousLevel = currentLevel.filter((_, i) => !duplicates[i]);
+		} while (previousLevel.length);
+		trees.push(tree);
+	} while (Object.keys(unvisited).length);
+	return trees;
+};
+const minimumSpanningTree = (array_array, rootIndex) => (
+	minimumSpanningTrees(array_array, rootIndex).shift()
+);const trees=/*#__PURE__*/Object.freeze({__proto__:null,minimumSpanningTree,minimumSpanningTrees});const multiplyVerticesFacesMatrix2 = ({
 	vertices_coords, vertices_faces, faces_vertices,
 }, faces_matrix) => {
 	if (!vertices_faces) {
@@ -3698,14 +3699,21 @@ const makeFacesMatrix = ({
 			edges_foldAngle = Array(edges_vertices.length).fill(0);
 		}
 	}
+	if (!faces_faces) {
+		faces_faces = makeFacesFaces({ faces_vertices });
+	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity3x4);
-	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
+	minimumSpanningTree(faces_faces, root_face)
 		.slice(1)
 		.forEach(level => level
 			.forEach((entry) => {
-				const coords = entry.edge_vertices.map(v => vertices_coords[v]);
-				const edgeKey = entry.edge_vertices.join(" ");
+				const edge_vertices = getFaceFaceSharedVertices(
+					faces_vertices[entry.index],
+					faces_vertices[entry.parent],
+				).slice(0, 2);
+				const coords = edge_vertices.map(v => vertices_coords[v]);
+				const edgeKey = edge_vertices.join(" ");
 				const edge = edge_map[edgeKey];
 				const foldAngle = unassigned_angle[edges_assignment[edge]]
 					? Math.PI
@@ -3715,7 +3723,7 @@ const makeFacesMatrix = ({
 					subtract(...resizeUp(coords[1], coords[0])),
 					coords[0],
 				);
-				faces_matrix[entry.face] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
+				faces_matrix[entry.index] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
 			}));
 	return faces_matrix;
 };
@@ -3729,22 +3737,29 @@ const makeFacesMatrix2 = ({
 			edges_foldAngle = Array(edges_vertices.length).fill(0);
 		}
 	}
+	if (!faces_faces) {
+		faces_faces = makeFacesFaces({ faces_vertices });
+	}
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity2x3);
-	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
+	minimumSpanningTree(faces_faces, root_face)
 		.slice(1)
 		.forEach(level => level
 			.forEach((entry) => {
-				const coords = entry.edge_vertices.map(v => vertices_coords[v]);
-				const edgeKey = entry.edge_vertices.join(" ");
+				const edge_vertices = getFaceFaceSharedVertices(
+					faces_vertices[entry.index],
+					faces_vertices[entry.parent],
+				).slice(0, 2);
+				const coords = edge_vertices.map(v => vertices_coords[v]);
+				const edgeKey = edge_vertices.join(" ");
 				const edge = edge_map[edgeKey];
 				const reflect_vector = subtract2(coords[1], coords[0]);
 				const reflect_origin = coords[0];
 				const local_matrix = edges_is_folded[edge]
 					? makeMatrix2Reflect(reflect_vector, reflect_origin)
 					: identity2x3;
-				faces_matrix[entry.face] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
+				faces_matrix[entry.index] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
 			}));
 	return faces_matrix;
 };const facesMatrix=/*#__PURE__*/Object.freeze({__proto__:null,makeFacesMatrix,makeFacesMatrix2,multiplyVerticesFacesMatrix2});const makeVerticesCoordsFolded = ({
@@ -3771,6 +3786,9 @@ const makeFacesMatrix2 = ({
 const makeVerticesCoordsFlatFolded = ({
 	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
 }, root_face = 0) => {
+	if (!faces_faces) {
+		faces_faces = makeFacesFaces({ faces_vertices });
+	}
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const vertices_coords_folded = [];
 	faces_vertices[root_face]
@@ -3778,11 +3796,14 @@ const makeVerticesCoordsFlatFolded = ({
 	const faces_flipped = [];
 	faces_flipped[root_face] = false;
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
-	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
+	minimumSpanningTree(faces_faces, root_face)
 		.slice(1)
 		.forEach(level => level
 			.forEach(entry => {
-				const edge_key = entry.edge_vertices.join(" ");
+				const edge_key = getFaceFaceSharedVertices(
+					faces_vertices[entry.index],
+					faces_vertices[entry.parent],
+				).slice(0, 2).join(" ");
 				const edge = edge_map[edge_key];
 				const coords = edges_vertices[edge].map(v => vertices_coords_folded[v]);
 				if (coords[0] === undefined || coords[1] === undefined) { return; }
@@ -3790,15 +3811,15 @@ const makeVerticesCoordsFlatFolded = ({
 				const origin_cp = coords_cp[0];
 				const vector_cp = normalize2(subtract2(coords_cp[1], coords_cp[0]));
 				const normal_cp = rotate90(vector_cp);
-				faces_flipped[entry.face] = edges_is_folded[edge]
+				faces_flipped[entry.index] = edges_is_folded[edge]
 					? !faces_flipped[entry.parent]
 					: faces_flipped[entry.parent];
 				const vector_folded = normalize2(subtract2(coords[1], coords[0]));
 				const origin_folded = coords[0];
-				const normal_folded = faces_flipped[entry.face]
+				const normal_folded = faces_flipped[entry.index]
 					? rotate270(vector_folded)
 					: rotate90(vector_folded);
-				faces_vertices[entry.face]
+				faces_vertices[entry.index]
 					.filter(v => vertices_coords_folded[v] === undefined)
 					.forEach(v => {
 						const to_point = subtract2(vertices_coords[v], origin_cp);
@@ -6276,7 +6297,6 @@ Object.entries({
 	nearest,
 	splitEdge,
 	splitFace,
-	faceSpanningTree: makeFaceSpanningTree,
 	invertAssignments,
 	svg: foldToSvg,
 	obj: foldToObj,
@@ -9207,6 +9227,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...boundary$1,
 	...clip$1,
 	...explodeMethods,
+	...find,
 	...flaps,
 	...join,
 	...make,
@@ -9222,6 +9243,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...directedGraph,
 	...disjoint,
 	...transform$1,
+	...trees,
 	...triangulateMethods,
 	...walk,
 	...arrays,
@@ -9237,7 +9259,6 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...edgesLines$1,
 	...facesCoplanar,
 	...facesMatrix,
-	...facesSpanningTree,
 	...facesWinding,
 	...intersectVertices,
 	...intersectEdges,

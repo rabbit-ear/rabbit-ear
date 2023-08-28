@@ -11,6 +11,7 @@ import * as clip from "./clip.js";
 import * as directedGraph from "./directedGraph.js";
 import * as disjoint from "./disjoint.js";
 import * as explodeMethods from "./explode.js";
+import * as find from "./find.js";
 import * as flaps from "./flaps.js";
 import * as join from "./join.js";
 import * as make from "./make.js";
@@ -24,6 +25,7 @@ import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
 import * as symmetry from "./symmetry.js";
 import * as transform from "./transform.js";
+import * as trees from "./trees.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
 import * as verticesClusters from "./vertices/clusters.js";
@@ -38,7 +40,7 @@ import * as edgesGeneral from "./edges/general.js";
 import * as edgesLines from "./edges/lines.js";
 import * as facesCoplanar from "./faces/coplanar.js";
 import * as facesMatrix from "./faces/matrix.js";
-import * as facesSpanningTree from "./faces/spanningTree.js";
+// import * as facesSpanningTree from "./faces/spanningTree.js";
 import * as facesWinding from "./faces/winding.js";
 import * as intersectVertices from "./intersect/vertices.js";
 import * as intersectEdges from "./intersect/edges.js";
@@ -105,6 +107,7 @@ export default {
 	...boundary,
 	...clip,
 	...explodeMethods,
+	...find,
 	...flaps,
 	...join,
 	...make,
@@ -120,6 +123,7 @@ export default {
 	...directedGraph,
 	...disjoint,
 	...transform,
+	...trees,
 	...triangulateMethods,
 	...walk,
 	...arrays,
@@ -135,7 +139,7 @@ export default {
 	...edgesLines,
 	...facesCoplanar,
 	...facesMatrix,
-	...facesSpanningTree,
+	// ...facesSpanningTree,
 	...facesWinding,
 	...intersectVertices,
 	...intersectEdges,

@@ -21,9 +21,9 @@ import {
 	makeVerticesCoordsFolded,
 	makeVerticesCoordsFlatFolded,
 } from "../graph/vertices/folded.js";
-import {
-	makeFaceSpanningTree as faceSpanningTree,
-} from "../graph/faces/spanningTree.js";
+// import {
+// 	makeFaceSpanningTree as faceSpanningTree,
+// } from "../graph/faces/spanningTree.js";
 import {
 	multiplyVerticesFacesMatrix2,
 } from "../graph/faces/matrix.js";
@@ -60,7 +60,7 @@ Object.entries({
 	nearest,
 	splitEdge,
 	splitFace,
-	faceSpanningTree,
+	// faceSpanningTree,
 	invertAssignments,
 	svg: foldToSvg,
 	obj: foldToObj,

@@ -1,8 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import remove from "./remove.js";
-// import count from "./count.js";
 import { foldKeys } from "../fold/keys.js";
 import {
 	filterKeysWithPrefix,
@@ -47,13 +45,18 @@ export const selfRelationalArraySubset = (array_array, indices) => {
  * the values can be integers or integer-strings, doesn't matter.
  * @returns {FOLD} a shallow copy of the graph parameter provided.
  */
-export const subgraph = (graph, indices = {}) => {
-	// allow user to only specify one or two; fill in the empty arrays.
-	if (!indices.vertices) { indices.vertices = []; }
-	if (!indices.edges) { indices.edges = []; }
-	if (!indices.faces) { indices.faces = []; }
-
-	const components = ["faces", "edges", "vertices"];
+export const subgraph = (graph, indicesToKeep = {}) => {
+	const indices = {
+		vertices: [],
+		edges: [],
+		faces: [],
+		...indicesToKeep,
+	};
+	const components = Object.keys(indices);
+	// shallow copy, excluding all geometry arrays, to preserve metadata.
+	const copy = { ...graph };
+	foldKeys.graph.forEach(key => delete copy[key]);
+	delete copy.file_frames;
 	// create a lookup which will be used when a component is a suffix
 	// and we need to filter out elements which don't appear in other arrays
 	const lookup = {};
@@ -72,13 +75,6 @@ export const subgraph = (graph, indices = {}) => {
 		filterKeysWithPrefix(graph, c).forEach(key => { keys[key].prefix = c; });
 		filterKeysWithSuffix(graph, c).forEach(key => { keys[key].suffix = c; });
 	});
-	// shallow copy of the graph. excluding all geometry arrays.
-	// this allows all metadata, including that which is unknown to
-	// the spec to be carried over.
-	const copy = { ...graph };
-	// delete all graph data. only carry over metadata
-	foldKeys.graph.forEach(key => delete copy[key]);
-	delete copy.file_frames;
 	// use prefixes and suffixes to make sure we initialize all
 	// geometry array types. this even supports out of spec arrays,
 	// like: faces_matrix, colors_edges...
@@ -144,8 +140,8 @@ export const subgraphWithFaces = (graph, faces) => {
 			.filter(a => a !== undefined);
 	}
 	return subgraph(graph, {
-		faces,
-		edges,
 		vertices,
+		edges,
+		faces,
 	});
 };
