@@ -109,7 +109,7 @@ const overlapCirclePoint = (
  * @param {number[]} point a point in array form
  * @param {function} polyDomain determines if the polygon boundary
  * is inclusive or exclusive
- * @param {number} [epsilon=1e-6] an optional epsilon
+ * @param {number} [normalizedEpsilon=1e-6] an optional epsilon
  * @returns {boolean} is the point inside the polygon?
  * @linkcode Math ./src/intersect/overlap.js 117
  */
@@ -117,11 +117,11 @@ const overlapConvexPolygonPoint = (
 	polygon,
 	point,
 	polyDomain = exclude,
-	epsilon = EPSILON,
+	normalizedEpsilon = EPSILON,
 ) => polygon
 	.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
 	.map(s => cross2(normalize2(subtract2(s[1], s[0])), subtract2(point, s[0])))
-	.map(side => polyDomain(side, epsilon))
+	.map(side => polyDomain(side, normalizedEpsilon))
 	.map((s, _, arr) => s === arr[0])
 	.reduce((prev, curr) => prev && curr, true);
 /**

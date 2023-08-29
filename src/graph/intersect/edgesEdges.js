@@ -14,14 +14,15 @@ import { makeEdgesVector } from "../make.js";
  * inside each entry is true/false, true if the two edges are parallel within an epsilon.
  * Both sides of the matrix are filled, the diagonal is left undefined.
  * @param {FOLD} graph a FOLD object
- * @param {number} [epsilon=1e-6] an optional epsilon
+ * @param {number} [normalizedEpsilon=1e-6] an optional epsilon used in dot()
+ * for normalized vectors. this epsilon should be small.
  * @returns {boolean[][]} a boolean matrix, are two edges parallel?
  * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
  * @linkcode Origami ./src/graph/edgesEdges.js 82
  */
 const makeEdgesEdgesParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
-}, epsilon = EPSILON) => {
+}, normalizedEpsilon = EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -30,7 +31,7 @@ const makeEdgesEdgesParallel = ({
 	normalized.forEach((_, i) => {
 		normalized.forEach((__, j) => {
 			if (j >= i) { return; }
-			if ((1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon)) {
+			if ((1 - Math.abs(dot(normalized[i], normalized[j])) < normalizedEpsilon)) {
 				edgesEdgesParallel[i].push(j);
 				edgesEdgesParallel[j].push(i);
 			}
@@ -59,7 +60,7 @@ export const makeEdgesEdgesParallelOverlap = ({
 	// only if lines are parallel, then run the more expensive overlap method
 	return makeEdgesEdgesParallel({
 		vertices_coords, edges_vertices, edges_vector,
-	}, epsilon).map((arr, i) => arr.filter(j => overlapLineLine(
+	}, 1e-3).map((arr, i) => arr.filter(j => overlapLineLine(
 		edges_line[i],
 		edges_line[j],
 		excludeS,

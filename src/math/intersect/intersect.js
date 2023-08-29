@@ -239,15 +239,15 @@ const intersectConvexPolygonLine = (
 		// 2. if the origin is outside, same as the line case above. no intersection.
 		case excludeR:
 			// is the ray origin inside?
-			return overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
+			return overlapConvexPolygonPoint(poly, origin, exclude, 1e-3)
 				? includes
 				: undefined;
 		// if there is one intersection, check if either of a segment's points are
 		// inside the polygon, same as the ray above. if neither are, consider
 		// the intersection invalid for the exclusive case.
 		case excludeS:
-			return overlapConvexPolygonPoint(poly, add2(origin, vector), exclude, epsilon)
-				|| overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
+			return overlapConvexPolygonPoint(poly, add2(origin, vector), exclude, 1e-3)
+				|| overlapConvexPolygonPoint(poly, origin, exclude, 1e-3)
 				? includes
 				: undefined;
 		// if there is one intersection, an infinite line is intersecting the
@@ -263,7 +263,7 @@ const intersectConvexPolygonLine = (
 	// to test this, get the midpoint of the two intersects and do an exclusive
 	// check if the midpoint is inside the polygon. if it is, the line is crossing
 	// the polygon and the intersection is valid.
-	return overlapConvexPolygonPoint(poly, midpoint2(...uniqueIncludes), exclude, epsilon)
+	return overlapConvexPolygonPoint(poly, midpoint2(...uniqueIncludes), exclude, 1e-3)
 		? uniqueIncludes
 		: sects;
 };

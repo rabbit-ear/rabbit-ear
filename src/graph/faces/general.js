@@ -1,11 +1,4 @@
 /**
- * Rabbit Ear (c) Kraft
- */
-/**
- * Referenced by various functions, but these methods won't be
- * accessible through the API.
- */
-/**
  * @description given two faces, get the vertices which are
  * shared between the two faces.
  * @param {number[]} face_a_vertices the faces_vertices entry for face A

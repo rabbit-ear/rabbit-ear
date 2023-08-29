@@ -23,3 +23,4 @@ test("symmetry lines, book-symmetry, no collinear edge", () => {
 	// why do some lines have error with negative values?
 	expect(true).toBe(false);
 });
+

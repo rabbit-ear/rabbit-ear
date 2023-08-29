@@ -1,5 +1,17 @@
+const fs = require("fs");
 const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear.js");
+
+test("duplicateVertices", () => {
+	const graph = JSON.parse(fs.readFileSync(
+		"./tests/files/fold/bird-disjoint-edges.fold",
+		"utf-8",
+	));
+	const duplicates = ear.graph.duplicateVertices(graph);
+	// every point in this graph should be duplicate.
+	expect(duplicates.length).toBe(ear.graph.bird().vertices_coords.length);
+	expect(duplicates.flat().length).toBe(graph.vertices_coords.length);
+});
 
 test("clusters", () => {
 	const clusters = ear.graph.getVerticesClusters({

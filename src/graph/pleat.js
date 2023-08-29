@@ -16,3 +16,14 @@ export const pleat = ({ vertices_coords, edges_vertices }, edgeA, edgeB, count, 
 		epsilon,
 	)
 );
+
+// export const pleat = ({ vertices_coords, edges_vertices }, edgeA, edgeB, count, epsilon) => {
+// 	console.log("pleat", edgeA, edgeB, [edgeA, edgeB]
+// 		.map(e => edgeToLine({ vertices_coords, edges_vertices }, e)));
+// 	return fnPleat(
+// 		...[edgeA, edgeB]
+// 			.map(e => edgeToLine({ vertices_coords, edges_vertices }, e)),
+// 		count,
+// 		epsilon,
+// 	);
+// };

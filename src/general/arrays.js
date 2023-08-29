@@ -151,6 +151,7 @@ export const clusterSortedGeneric = (elements, comparison) => {
 	const groups = [[indices[0]]];
 	for (let i = 1; i < indices.length; i += 1) {
 		const index = indices[i];
+		if (index === undefined) { continue; }
 		const g = groups.length - 1;
 		const prev = groups[g][groups[g].length - 1];
 		if (comparison(elements[prev], elements[index])) {
@@ -171,7 +172,7 @@ export const clusterSortedGeneric = (elements, comparison) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of array of indices to the input array.
  */
-export const clusterScalarsNew = (numbers, epsilon = EPSILON) => {
+export const clusterScalars = (numbers, epsilon = EPSILON) => {
 	const indices = numbers
 		.map((v, i) => ({ v, i }))
 		.sort((a, b) => a.v - b.v)
@@ -179,27 +180,26 @@ export const clusterScalarsNew = (numbers, epsilon = EPSILON) => {
 	const sortedNumbers = indices.map(i => numbers[i]);
 	const compFn = (a, b) => Math.abs(a - b) < epsilon;
 	return clusterSortedGeneric(sortedNumbers, compFn)
-		.map(i => indices[i]);
+		.map(arr => arr.map(i => indices[i]));
 };
-
-export const clusterScalars = (floats, epsilon = EPSILON) => {
-	const indices = floats
-		.map((v, i) => ({ v, i }))
-		.sort((a, b) => a.v - b.v)
-		.map(el => el.i);
-	const groups = [[indices[0]]];
-	for (let i = 1; i < indices.length; i += 1) {
-		const index = indices[i];
-		const g = groups.length - 1;
-		const prev = groups[g][groups[g].length - 1];
-		if (Math.abs(floats[prev] - floats[index]) < epsilon) {
-			groups[g].push(index);
-		} else {
-			groups.push([index]);
-		}
-	}
-	return groups;
-};
+// export const clusterScalars = (floats, epsilon = EPSILON) => {
+// 	const indices = floats
+// 		.map((v, i) => ({ v, i }))
+// 		.sort((a, b) => a.v - b.v)
+// 		.map(el => el.i);
+// 	const groups = [[indices[0]]];
+// 	for (let i = 1; i < indices.length; i += 1) {
+// 		const index = indices[i];
+// 		const g = groups.length - 1;
+// 		const prev = groups[g][groups[g].length - 1];
+// 		if (Math.abs(floats[prev] - floats[index]) < epsilon) {
+// 			groups[g].push(index);
+// 		} else {
+// 			groups.push([index]);
+// 		}
+// 	}
+// 	return groups;
+// };
 /**
  * @description Given an array of vectors, group the vectors into clusters
  * that all contain vectors which are parallel to one another.

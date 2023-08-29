@@ -5,22 +5,31 @@ import {
 	makeFacesVertexData,
 	makeThickEdgesVertexData,
 } from "./data.js";
+import { makeFacesEdgesFromVertices } from "../../graph/make.js";
 
-export const makeFoldedVertexArrays = (gl, program, graph, options = {}) => {
-	if (!graph || !graph.vertices_coords || !graph.faces_vertices) {
+export const makeFoldedVertexArrays = (gl, program, {
+	vertices_coords, edges_vertices, edges_assignment,
+	faces_vertices, faces_edges, faces_normal,
+} = {}, options = {}) => {
+	if (!vertices_coords || !faces_vertices) {
 		return [];
 	}
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
 	const {
-		vertices_coords,
+		vertices_coords: vertices_coords3,
 		vertices_normal,
 		vertices_barycentric,
-	} = makeFacesVertexData(graph, options);
+	} = makeFacesVertexData({
+		vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal,
+	}, options);
 	return [{
 		location: gl.getAttribLocation(program, "v_position"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_coords.length ? vertices_coords[0].length : 3,
-		data: new Float32Array(vertices_coords.flat()),
+		length: vertices_coords3.length ? vertices_coords3[0].length : 3,
+		data: new Float32Array(vertices_coords3.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "v_normal"),
 		buffer: gl.createBuffer(),

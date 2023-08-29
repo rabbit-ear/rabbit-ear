@@ -1,3 +1,4 @@
+const fs = require("fs");
 const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear.js");
 
@@ -169,4 +170,33 @@ test("transpose geometry arrays", () => {
 test("get keys with ending", () => {
 	// ear.graph.get_keys_with_ending();
 	expect(true).toBe(true);
+});
+
+test("invertAssignments assignments", () => {
+	expect(ear.graph.invertAssignments({ edges_assignment: Array.from("MBVUFJC") })
+		.edges_assignment
+		.join("")).toBe("VBMUFJC");
+	expect(ear.graph
+		.invertAssignments({ edges_foldAngle: [0, -180, 180] })
+		.edges_foldAngle[0])
+		.toBe(-0);
+	expect(ear.graph
+		.invertAssignments({ edges_foldAngle: [0, -180, 180] })
+		.edges_foldAngle[1])
+		.toBe(180);
+	expect(ear.graph
+		.invertAssignments({ edges_foldAngle: [0, -180, 180] })
+		.edges_foldAngle[2])
+		.toBe(-180);
+});
+
+test("getFileMetadata", () => {
+	const graph = JSON.parse(fs.readFileSync("./tests/files/fold/crane-cp-bmvfcj.fold", "utf-8"));
+	const metadata = ear.graph.getFileMetadata(graph);
+	expect(Object.keys(metadata).length).toBe(5);
+	expect(metadata.file_author).toBe("Kraft");
+	expect(metadata.file_creator).toBe("Rabbit Ear");
+	expect(metadata.file_spec).toBe(1.1);
+	expect(metadata.file_title).toBe("crane");
+	expect(metadata.file_classes[0]).toBe("singleModel");
 });

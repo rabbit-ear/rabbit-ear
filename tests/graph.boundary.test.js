@@ -27,11 +27,11 @@ test("bounding box", () => {
 });
 
 test("bounding vertices", () => {
-	const fold = fs.readFileSync("./tests/files/fold/bird-base-disjoint.fold", "utf-8");
+	const fold = fs.readFileSync("./tests/files/fold/bird-disjoint-edges.fold", "utf-8");
 	const graph = JSON.parse(fold);
 	const boundaryVertices = ear.graph.boundaryVertices(graph);
 	expect(JSON.stringify(boundaryVertices))
-		.toBe(JSON.stringify([0, 1, 4, 5, 8, 9, 10, 11]));
+		.toBe(JSON.stringify([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
 	graph.edges_assignment = graph.edges_assignment.map(() => "U");
 	const boundaryVertices2 = ear.graph.boundaryVertices(graph);
 	expect(JSON.stringify(boundaryVertices2)).toBe(JSON.stringify([]));

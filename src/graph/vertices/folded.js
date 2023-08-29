@@ -21,7 +21,7 @@ import {
 	makeVerticesToEdgeBidirectional,
 	makeFacesFaces,
 } from "../make.js";
-import { getFaceFaceSharedVertices } from "../find.js";
+import { getFaceFaceSharedVertices } from "../faces/general.js";
 import { minimumSpanningTree } from "../trees.js";
 import { makeFacesMatrix } from "../faces/matrix.js";
 // import { makeFaceSpanningTree } from "../faces/spanningTree.js";

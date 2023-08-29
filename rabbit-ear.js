@@ -907,6 +907,7 @@ const clusterSortedGeneric = (elements, comparison) => {
 	const groups = [[indices[0]]];
 	for (let i = 1; i < indices.length; i += 1) {
 		const index = indices[i];
+		if (index === undefined) { continue; }
 		const g = groups.length - 1;
 		const prev = groups[g][groups[g].length - 1];
 		if (comparison(elements[prev], elements[index])) {
@@ -917,7 +918,7 @@ const clusterSortedGeneric = (elements, comparison) => {
 	}
 	return groups;
 };
-const clusterScalarsNew = (numbers, epsilon = EPSILON) => {
+const clusterScalars = (numbers, epsilon = EPSILON) => {
 	const indices = numbers
 		.map((v, i) => ({ v, i }))
 		.sort((a, b) => a.v - b.v)
@@ -925,25 +926,7 @@ const clusterScalarsNew = (numbers, epsilon = EPSILON) => {
 	const sortedNumbers = indices.map(i => numbers[i]);
 	const compFn = (a, b) => Math.abs(a - b) < epsilon;
 	return clusterSortedGeneric(sortedNumbers, compFn)
-		.map(i => indices[i]);
-};
-const clusterScalars = (floats, epsilon = EPSILON) => {
-	const indices = floats
-		.map((v, i) => ({ v, i }))
-		.sort((a, b) => a.v - b.v)
-		.map(el => el.i);
-	const groups = [[indices[0]]];
-	for (let i = 1; i < indices.length; i += 1) {
-		const index = indices[i];
-		const g = groups.length - 1;
-		const prev = groups[g][groups[g].length - 1];
-		if (Math.abs(floats[prev] - floats[index]) < epsilon) {
-			groups[g].push(index);
-		} else {
-			groups.push([index]);
-		}
-	}
-	return groups;
+		.map(arr => arr.map(i => indices[i]));
 };
 const clusterParallelVectors = (vectors, epsilon = EPSILON) => {
 	const groups = [[0]];
@@ -972,7 +955,7 @@ const chooseTwoPairs = (array) => {
 		}
 	}
 	return pairs;
-};const arrays=/*#__PURE__*/Object.freeze({__proto__:null,chooseTwoPairs,clusterParallelVectors,clusterScalars,clusterScalarsNew,clusterSortedGeneric,epsilonUniqueSortedNumbers,flatSort,nonUniqueElements,selfRelationalUniqueIndexPairs,splitCircularArray,uniqueElements,uniqueSortedNumbers});const replaceGeometryIndices = (graph, key, replaceIndices) => {
+};const arrays=/*#__PURE__*/Object.freeze({__proto__:null,chooseTwoPairs,clusterParallelVectors,clusterScalars,clusterSortedGeneric,epsilonUniqueSortedNumbers,flatSort,nonUniqueElements,selfRelationalUniqueIndexPairs,splitCircularArray,uniqueElements,uniqueSortedNumbers});const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	const geometry_array_size = count(graph, key);
 	let didModify = false;
 	Object.entries(replaceIndices)
@@ -2057,93 +2040,55 @@ const invertSimpleMap = (map) => {
 			remove: change_e1.remove.concat(change_e2_remove),
 		},
 	};
-};const clone = function (o) {
-	let newO;
-	let i;
-	if (typeof o !== "object") {
-		return o;
+};const explodeFaces = ({
+	vertices_coords, edges_vertices, edges_assignment, edges_foldAngle,
+	faces_vertices, faces_edges,
+}) => {
+	if (!faces_vertices) { return undefined; }
+	let e = 0;
+	let f = 0;
+	const result = {
+		faces_vertices: faces_vertices
+			.map(face => face.map(() => f++)),
+	};
+	if (!vertices_coords) { return result; }
+	result.vertices_coords = structuredClone(faces_vertices
+		.flatMap(face => face.map(v => vertices_coords[v])));
+	if (!edges_vertices) { return result; }
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
-	if (!o) {
-		return o;
-	}
-	if (Object.prototype.toString.apply(o) === "[object Array]") {
-		newO = [];
-		for (i = 0; i < o.length; i += 1) {
-			newO[i] = clone(o[i]);
-		}
-		return newO;
-	}
-	newO = {};
-	for (i in o) {
-		if (o.hasOwnProperty(i)) {
-			newO[i] = clone(o[i]);
-		}
-	}
-	return newO;
-};const explode = (graph) => {
-	if (!graph.faces_vertices) { return {}; }
-	const faces_edges = graph.faces_edges
-		? graph.faces_edges
-		: makeFacesEdgesFromVertices(graph);
-	const verticesMap = graph.faces_vertices.flatMap(vertices => vertices);
+	result.edges_vertices = faces_edges.flatMap(face => face
+		.map((_, i, arr) => (i === arr.length - 1
+			? [e, (++e - arr.length)]
+			: [e, (++e)])));
 	const edgesMap = faces_edges.flatMap(edges => edges);
-	let fv = 0;
-	let fe = 0;
-	let ev = 0;
-	graph.faces_vertices = graph.faces_vertices.map(face => face.map(() => fv++));
-	graph.faces_edges = graph.faces_edges.map(face => face.map(() => fe++));
-	graph.edges_vertices = graph.faces_edges
-		.flatMap(face => face.map((_, i, arr) => {
-			const edge_vertices = i === arr.length - 1
-				? [ev, (ev + 1 - arr.length)]
-				: [ev, (ev + 1)];
-			ev += 1;
-			return edge_vertices;
-		}));
-	if (graph.vertices_coords) {
-		graph.vertices_coords = clone(verticesMap.map(i => graph.vertices_coords[i]));
+	if (edges_assignment) {
+		result.edges_assignment = structuredClone(edgesMap
+			.map(i => edges_assignment[i]));
 	}
-	if (graph.edges_assignment) {
-		graph.edges_assignment = clone(edgesMap.map(i => graph.edges_assignment[i]));
+	if (edges_foldAngle) {
+		result.edges_foldAngle = structuredClone(edgesMap
+			.map(i => edges_foldAngle[i]));
 	}
-	if (graph.edges_foldAngle) {
-		graph.edges_foldAngle = clone(edgesMap.map(i => graph.edges_foldAngle[i]));
-	}
-	if (graph.vertices_vertices) { delete graph.vertices_vertices; }
-	if (graph.vertices_edges) { delete graph.vertices_edges; }
-	if (graph.vertices_faces) { delete graph.vertices_faces; }
-	if (graph.edges_edges) { delete graph.edges_edges; }
-	if (graph.edges_faces) { delete graph.edges_faces; }
-	if (graph.faces_faces) { delete graph.faces_faces; }
-	return {
-		vertices: { map: verticesMap },
-		edges: { map: edgesMap },
-	};
+	return result;
 };
-const explodeFaces = (graph) => {
-	const vertices_coords = graph.faces_vertices
-		.flatMap(face => face
-			.map(v => graph.vertices_coords[v]));
-	let i = 0;
-	const faces_vertices = graph.faces_vertices
-		.map(face => face.map(() => i++));
-	return {
-		vertices_coords: JSON.parse(JSON.stringify(vertices_coords)),
-		faces_vertices,
+const explodeEdges = ({
+	vertices_coords, edges_vertices, edges_assignment, edges_foldAngle,
+}) => {
+	if (!edges_vertices) { return undefined; }
+	let e = 0;
+	const result = {
+		edges_vertices: edges_vertices.map(edge => edge.map(() => e++)),
 	};
-};
-const explodeEdges = (graph) => {
-	const vertices_coords = graph.edges_vertices
-		.flatMap(edge => edge
-			.map(v => graph.vertices_coords[v]));
-	let i = 0;
-	const edges_vertices = graph.edges_vertices
-		.map(edge => edge.map(() => i++));
-	return {
-		vertices_coords: JSON.parse(JSON.stringify(vertices_coords)),
-		edges_vertices,
-	};
-};const explodeMethods=/*#__PURE__*/Object.freeze({__proto__:null,explode,explodeEdges,explodeFaces});const nearestPoint2 = (array_of_points, point) => {
+	if (edges_assignment) { result.edges_assignment = edges_assignment; }
+	if (edges_foldAngle) { result.edges_foldAngle = edges_foldAngle; }
+	if (vertices_coords) {
+		result.vertices_coords = structuredClone(edges_vertices
+			.flatMap(edge => edge.map(v => vertices_coords[v])));
+	}
+	return result;
+};const explodeMethods=/*#__PURE__*/Object.freeze({__proto__:null,explodeEdges,explodeFaces});const nearestPoint2 = (array_of_points, point) => {
 	const index = smallestComparisonSearch(array_of_points, point, distance2);
 	return index === undefined ? undefined : array_of_points[index];
 };
@@ -2237,11 +2182,11 @@ const overlapConvexPolygonPoint = (
 	polygon,
 	point,
 	polyDomain = exclude,
-	epsilon = EPSILON,
+	normalizedEpsilon = EPSILON,
 ) => polygon
 	.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
 	.map(s => cross2(normalize2(subtract2(s[1], s[0])), subtract2(point, s[0])))
-	.map(side => polyDomain(side, epsilon))
+	.map(side => polyDomain(side, normalizedEpsilon))
 	.map((s, _, arr) => s === arr[0])
 	.reduce((prev, curr) => prev && curr, true);
 const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
@@ -2497,14 +2442,10 @@ const bisectLines2 = (a, b, epsilon = EPSILON) => {
 		if (val === undefined) { delete solution[i]; }
 	});
 	return solution;
-};const line=/*#__PURE__*/Object.freeze({__proto__:null,bisectLines2,collinearBetween,lerpLines,pleat:pleat$2});const getEdgeBetweenVertices = ({ vertices_edges }, a, b) => {
-	const set = new Set(vertices_edges[a]);
-	return vertices_edges[b].filter(edge => set.has(edge)).shift();
-};
-const getOtherVerticesInEdges = ({ edges_vertices }, vertex, edges) => edges
+};const line=/*#__PURE__*/Object.freeze({__proto__:null,bisectLines2,collinearBetween,lerpLines,pleat:pleat$2});const getOtherVerticesInEdges = ({ edges_vertices }, vertex, edges) => edges
 	.map(edge => (edges_vertices[edge][0] === vertex
 		? edges_vertices[edge][1]
-		: edges_vertices[edge][0]));const edgesGeneral=/*#__PURE__*/Object.freeze({__proto__:null,getEdgeBetweenVertices,getOtherVerticesInEdges});const isVertexCollinear = ({
+		: edges_vertices[edge][0]));const edgesGeneral=/*#__PURE__*/Object.freeze({__proto__:null,getOtherVerticesInEdges});const isVertexCollinear = ({
 	vertices_coords, vertices_edges, edges_vertices,
 }, vertex, epsilon = EPSILON) => {
 	if (!vertices_coords || !edges_vertices) { return false; }
@@ -3267,19 +3208,19 @@ const intersectConvexPolygonLine = (
 	if (uniqueIncludes === undefined) {
 		switch (fn_line) {
 		case excludeR:
-			return overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
+			return overlapConvexPolygonPoint(poly, origin, exclude, 1e-3)
 				? includes
 				: undefined;
 		case excludeS:
-			return overlapConvexPolygonPoint(poly, add2(origin, vector), exclude, epsilon)
-				|| overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
+			return overlapConvexPolygonPoint(poly, add2(origin, vector), exclude, 1e-3)
+				|| overlapConvexPolygonPoint(poly, origin, exclude, 1e-3)
 				? includes
 				: undefined;
 		case excludeL: return undefined;
 		default: return undefined;
 		}
 	}
-	return overlapConvexPolygonPoint(poly, midpoint2(...uniqueIncludes), exclude, epsilon)
+	return overlapConvexPolygonPoint(poly, midpoint2(...uniqueIncludes), exclude, 1e-3)
 		? uniqueIncludes
 		: sects;
 };const intersect$1=/*#__PURE__*/Object.freeze({__proto__:null,intersectCircleCircle,intersectCircleLine,intersectConvexPolygonLine,intersectLineLine});const signLine = () => 0;
@@ -3637,7 +3578,7 @@ const planarBoundary = ({
 		}
 	}
 	return shared_vertices;
-};const find=/*#__PURE__*/Object.freeze({__proto__:null,getFaceFaceSharedVertices});const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
+};const facesGeneral=/*#__PURE__*/Object.freeze({__proto__:null,getFaceFaceSharedVertices});const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
 	if (array_array.length === 0) { return []; }
 	const trees = [];
 	const unvisited = {};
@@ -3834,7 +3775,30 @@ const makeVerticesCoordsFlatFolded = ({
 					});
 			}));
 	return vertices_coords_folded;
-};const verticesFolded=/*#__PURE__*/Object.freeze({__proto__:null,makeVerticesCoordsFlatFolded,makeVerticesCoordsFolded});const str_class = "class";
+};const verticesFolded=/*#__PURE__*/Object.freeze({__proto__:null,makeVerticesCoordsFlatFolded,makeVerticesCoordsFolded});const clone = function (o) {
+	let newO;
+	let i;
+	if (typeof o !== "object") {
+		return o;
+	}
+	if (!o) {
+		return o;
+	}
+	if (Object.prototype.toString.apply(o) === "[object Array]") {
+		newO = [];
+		for (i = 0; i < o.length; i += 1) {
+			newO[i] = clone(o[i]);
+		}
+		return newO;
+	}
+	newO = {};
+	for (i in o) {
+		if (o.hasOwnProperty(i)) {
+			newO[i] = clone(o[i]);
+		}
+	}
+	return newO;
+};const str_class = "class";
 const str_function = "function";
 const str_undefined = "undefined";
 const str_boolean = "boolean";
@@ -8434,14 +8398,16 @@ const joinGraphs = (target, source, epsilon = EPSILON) => {
 };const join=/*#__PURE__*/Object.freeze({__proto__:null,joinGraphs});const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
 	pointsToLine(edges_vertices[edge].map(v => vertices_coords[v]))
 );
-const pleat = ({ vertices_coords, edges_vertices }, edgeA, edgeB, count, epsilon) => (
-	pleat$2(
+const pleat = ({ vertices_coords, edges_vertices }, edgeA, edgeB, count, epsilon) => {
+	console.log("pleat", edgeA, edgeB, [edgeA, edgeB]
+		.map(e => edgeToLine({ vertices_coords, edges_vertices }, e)));
+	return pleat$2(
 		...[edgeA, edgeB]
 			.map(e => edgeToLine({ vertices_coords, edges_vertices }, e)),
 		count,
 		epsilon,
-	)
-);const pleat$1=/*#__PURE__*/Object.freeze({__proto__:null,pleat});const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
+	);
+};const pleat$1=/*#__PURE__*/Object.freeze({__proto__:null,pleat});const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
 	makeEdgesBoundingBox(graph, epsilon)
 		.map(min_max => graph.vertices_coords
 			.map(vert => (
@@ -8958,7 +8924,7 @@ const coplanarOverlappingFacesGroups = ({
 	};
 };const facesCoplanar=/*#__PURE__*/Object.freeze({__proto__:null,coplanarFacesGroups,coplanarOverlappingFacesGroups});const makeEdgesEdgesParallel = ({
 	vertices_coords, edges_vertices, edges_vector,
-}, epsilon = EPSILON) => {
+}, normalizedEpsilon = EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -8967,7 +8933,7 @@ const coplanarOverlappingFacesGroups = ({
 	normalized.forEach((_, i) => {
 		normalized.forEach((__, j) => {
 			if (j >= i) { return; }
-			if ((1 - Math.abs(dot(normalized[i], normalized[j])) < epsilon)) {
+			if ((1 - Math.abs(dot(normalized[i], normalized[j])) < normalizedEpsilon)) {
 				edgesEdgesParallel[i].push(j);
 				edgesEdgesParallel[j].push(i);
 			}
@@ -8986,7 +8952,7 @@ const makeEdgesEdgesParallelOverlap = ({
 		.map((vector, i) => ({ vector, origin: edges_origin[i] }));
 	return makeEdgesEdgesParallel({
 		vertices_coords, edges_vertices, edges_vector,
-	}, epsilon).map((arr, i) => arr.filter(j => overlapLineLine(
+	}, 1e-3).map((arr, i) => arr.filter(j => overlapLineLine(
 		edges_line[i],
 		edges_line[j],
 		excludeS,
@@ -9095,7 +9061,7 @@ const getEdgesFacesOverlap = ({
 					faces_coords[f],
 					point,
 					exclude,
-					epsilon,
+					1e-3,
 				)).reduce((a, b) => a || b, false);
 			if (point_in_poly) { matrix[e][f] = true; continue; }
 			const edge_intersect = intersectConvexPolygonLine(
@@ -9257,7 +9223,6 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...boundary$1,
 	...clip$1,
 	...explodeMethods,
-	...find,
 	...flaps,
 	...join,
 	...make,
@@ -9288,6 +9253,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...edgesGeneral,
 	...edgesLines$1,
 	...facesCoplanar,
+	...facesGeneral,
 	...facesMatrix,
 	...facesWinding,
 	...intersectVertices,
@@ -9735,16 +9701,20 @@ const parseColorToWebGLRgb = (color) => (
 	color !== undefined && color.constructor === Array
 		? color.slice(0, 3)
 		: parseColorToRgb(color).slice(0, 3).map(n => n / 255)
-);const makeFacesVertexData = (graph, options = {}) => {
-	const vertices_coords = graph.vertices_coords
+);const makeFacesVertexData = ({
+	vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal,
+}, options = {}) => {
+	const vertices_coords3 = vertices_coords
 		.map(coord => [...coord].concat(Array(3 - coord.length).fill(0)));
-	const vertices_normal = makeVerticesNormal(graph);
-	const vertices_barycentric = vertices_coords
+	const vertices_normal = makeVerticesNormal({
+		vertices_coords: vertices_coords3, faces_vertices, faces_normal,
+	});
+	const vertices_barycentric = vertices_coords3
 		.map((_, i) => i % 3)
 		.map(n => [n === 0 ? 1 : 0, n === 1 ? 1 : 0, n === 2 ? 1 : 0]);
-	const facesEdgesIsJoined = graph.faces_edges
+	const facesEdgesIsJoined = faces_edges
 		.map(edges => edges
-			.map(e => graph.edges_assignment[e])
+			.map(e => edges_assignment[e])
 			.map(a => a === "J" || a === "j"));
 	if (!options.showTrianglulation) {
 		for (let i = 0; i < facesEdgesIsJoined.length; i += 1) {
@@ -9803,21 +9773,29 @@ const makeThickEdgesVertexData = (graph, options) => {
 		verticesEdgesVector,
 		vertices_vector,
 	};
-};const foldedData=/*#__PURE__*/Object.freeze({__proto__:null,makeFacesVertexData,makeThickEdgesVertexData});const makeFoldedVertexArrays = (gl, program, graph, options = {}) => {
-	if (!graph || !graph.vertices_coords || !graph.faces_vertices) {
+};const foldedData=/*#__PURE__*/Object.freeze({__proto__:null,makeFacesVertexData,makeThickEdgesVertexData});const makeFoldedVertexArrays = (gl, program, {
+	vertices_coords, edges_vertices, edges_assignment,
+	faces_vertices, faces_edges, faces_normal,
+} = {}, options = {}) => {
+	if (!vertices_coords || !faces_vertices) {
 		return [];
 	}
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
 	const {
-		vertices_coords,
+		vertices_coords: vertices_coords3,
 		vertices_normal,
 		vertices_barycentric,
-	} = makeFacesVertexData(graph, options);
+	} = makeFacesVertexData({
+		vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal,
+	}, options);
 	return [{
 		location: gl.getAttribLocation(program, "v_position"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_coords.length ? vertices_coords[0].length : 3,
-		data: new Float32Array(vertices_coords.flat()),
+		length: vertices_coords3.length ? vertices_coords3[0].length : 3,
+		data: new Float32Array(vertices_coords3.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "v_normal"),
 		buffer: gl.createBuffer(),
@@ -9902,19 +9880,19 @@ const makeThickEdgesElementArrays = (gl, version = 1, graph = {}) => {
 	}];
 };const foldedArrays=/*#__PURE__*/Object.freeze({__proto__:null,makeFoldedElementArrays,makeFoldedVertexArrays,makeThickEdgesElementArrays,makeThickEdgesVertexArrays});const LAYER_NUDGE = 5e-6;
 const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
-	const exploded = JSON.parse(JSON.stringify(graph));
-	if (!exploded.edges_assignment) {
+	const copy = { ...graph };
+	if (!copy.edges_assignment) {
 		const edgeCount = count.edges(graph) || countImplied.edges(graph);
-		exploded.edges_assignment = Array(edgeCount).fill("U");
+		copy.edges_assignment = Array(edgeCount).fill("U");
 	}
 	let faces_nudge = [];
-	if (exploded.faceOrders) {
-		faces_nudge = nudgeFacesWithFaceOrders(exploded);
-	} else if (exploded.faces_layer) {
-		faces_nudge = nudgeFacesWithFacesLayer(exploded);
+	if (copy.faceOrders) {
+		faces_nudge = nudgeFacesWithFaceOrders(copy);
+	} else if (copy.faces_layer) {
+		faces_nudge = nudgeFacesWithFacesLayer(copy);
 	}
-	const change = triangulate(exploded);
-	explode(exploded);
+	const change = triangulate(copy);
+	const exploded = explodeFaces(copy);
 	if (change.faces) {
 		const backmap = invertMap(change.faces.map);
 		backmap.forEach((oldFace, face) => {

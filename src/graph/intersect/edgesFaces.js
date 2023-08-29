@@ -213,7 +213,7 @@ export const getEdgesFacesOverlap = ({
 					faces_coords[f],
 					point,
 					exclude,
-					epsilon,
+					1e-3,
 				)).reduce((a, b) => a || b, false);
 			if (point_in_poly) { matrix[e][f] = true; continue; }
 			const edge_intersect = intersectConvexPolygonLine(

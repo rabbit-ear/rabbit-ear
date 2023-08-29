@@ -25,7 +25,7 @@ import {
 	makeEdgesAssignmentSimple,
 	makeFacesFaces,
 } from "../make.js";
-import { getFaceFaceSharedVertices } from "../find.js";
+import { getFaceFaceSharedVertices } from "./general.js";
 // import { makeFaceSpanningTree } from "./spanningTree.js";
 import { minimumSpanningTrees } from "../trees.js";
 /**

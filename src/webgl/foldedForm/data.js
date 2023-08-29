@@ -1,21 +1,26 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+// import { resize } from "../../math/algebra/vector.js";
 import { makeVerticesNormal } from "../../graph/normals.js";
 import { makeEdgesVector } from "../../graph/make.js";
 import { light, dark } from "../general/colors.js";
 
-export const makeFacesVertexData = (graph, options = {}) => {
-	const vertices_coords = graph.vertices_coords
+export const makeFacesVertexData = ({
+	vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal,
+}, options = {}) => {
+	const vertices_coords3 = vertices_coords
 		.map(coord => [...coord].concat(Array(3 - coord.length).fill(0)));
-	const vertices_normal = makeVerticesNormal(graph);
-	const vertices_barycentric = vertices_coords
+	const vertices_normal = makeVerticesNormal({
+		vertices_coords: vertices_coords3, faces_vertices, faces_normal,
+	});
+	const vertices_barycentric = vertices_coords3
 		.map((_, i) => i % 3)
 		.map(n => [n === 0 ? 1 : 0, n === 1 ? 1 : 0, n === 2 ? 1 : 0]);
-	// const rawEdges = graph.faces_rawEdge.flatMap(n => [n, n, n]);
-	const facesEdgesIsJoined = graph.faces_edges
+	// const rawEdges = faces_rawEdge.flatMap(n => [n, n, n]);
+	const facesEdgesIsJoined = faces_edges
 		.map(edges => edges
-			.map(e => graph.edges_assignment[e])
+			.map(e => edges_assignment[e])
 			.map(a => a === "J" || a === "j"));
 	if (!options.showTrianglulation) {
 		for (let i = 0; i < facesEdgesIsJoined.length; i += 1) {

@@ -14,31 +14,33 @@ import count from "../../graph/count.js";
 import countImplied from "../../graph/countImplied.js";
 import { invertMap } from "../../graph/maps.js";
 import { triangulate } from "../../graph/triangulate.js";
-import { explode } from "../../graph/explode.js";
+import { explodeFaces } from "../../graph/explode.js";
 
 const LAYER_NUDGE = 5e-6;
 
 export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
-	const exploded = JSON.parse(JSON.stringify(graph));
+	// todo: remove the structured clone as long as everything is working.
+	// const copy = structuredClone(graph);
+	const copy = { ...graph };
 	// we render "J" joined edges differently from all others. if edges_assignment
 	// doesn't exist, make it with all assignments set to "U".
 	// the user will never see this data, it's just for visualization.
-	if (!exploded.edges_assignment) {
+	if (!copy.edges_assignment) {
 		const edgeCount = count.edges(graph) || countImplied.edges(graph);
-		exploded.edges_assignment = Array(edgeCount).fill("U");
+		copy.edges_assignment = Array(edgeCount).fill("U");
 	}
 	let faces_nudge = [];
-	if (exploded.faceOrders) {
-		faces_nudge = nudgeFacesWithFaceOrders(exploded);
-	} else if (exploded.faces_layer) {
-		faces_nudge = nudgeFacesWithFacesLayer(exploded);
+	if (copy.faceOrders) {
+		faces_nudge = nudgeFacesWithFaceOrders(copy);
+	} else if (copy.faces_layer) {
+		faces_nudge = nudgeFacesWithFacesLayer(copy);
 	}
 	// triangulate will modify faces and edges.
 	// use face information to match data.
-	const change = triangulate(exploded);
+	const change = triangulate(copy);
 	// explode will modify edges and vertices.
 	// we don't need the return information for anything just yet.
-	explode(exploded);
+	const exploded = explodeFaces(copy);
 	// Object.assign(change, change2);
 
 	if (change.faces) {

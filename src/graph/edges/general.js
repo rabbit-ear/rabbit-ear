@@ -4,10 +4,10 @@
 /**
  *
  */
-export const getEdgeBetweenVertices = ({ vertices_edges }, a, b) => {
-	const set = new Set(vertices_edges[a]);
-	return vertices_edges[b].filter(edge => set.has(edge)).shift();
-};
+// export const getEdgeBetweenVertices = ({ vertices_edges }, a, b) => {
+// 	const set = new Set(vertices_edges[a]);
+// 	return vertices_edges[b].filter(edge => set.has(edge)).shift();
+// };
 /**
  * @description Given one vertex, and a list of edges which contain this vertex,
  * get one vertex for every edge which is not the input parameter vertex.

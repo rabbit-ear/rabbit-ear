@@ -52,7 +52,7 @@ test("planarize, random lines with collinear end points", () => {
 });
 
 test("planarize, bird base with duplicate vertices", () => {
-	const FOLD = fs.readFileSync("./tests/files/fold/bird-base-disjoint.fold", "utf-8");
+	const FOLD = fs.readFileSync("./tests/files/fold/bird-disjoint-edges.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const result = ear.graph.planarize(graph);
 	fs.writeFileSync("./tests/tmp/bird-base-planarized.fold", JSON.stringify(result, null, 2), "utf8");

@@ -11,7 +11,6 @@ import * as clip from "./clip.js";
 import * as directedGraph from "./directedGraph.js";
 import * as disjoint from "./disjoint.js";
 import * as explodeMethods from "./explode.js";
-import * as find from "./find.js";
 import * as flaps from "./flaps.js";
 import * as join from "./join.js";
 import * as make from "./make.js";
@@ -39,6 +38,7 @@ import * as edgesDuplicate from "./edges/duplicate.js";
 import * as edgesGeneral from "./edges/general.js";
 import * as edgesLines from "./edges/lines.js";
 import * as facesCoplanar from "./faces/coplanar.js";
+import * as facesGeneral from "./faces/general.js";
 import * as facesMatrix from "./faces/matrix.js";
 // import * as facesSpanningTree from "./faces/spanningTree.js";
 import * as facesWinding from "./faces/winding.js";
@@ -107,7 +107,6 @@ export default {
 	...boundary,
 	...clip,
 	...explodeMethods,
-	...find,
 	...flaps,
 	...join,
 	...make,
@@ -138,6 +137,7 @@ export default {
 	...edgesGeneral,
 	...edgesLines,
 	...facesCoplanar,
+	...facesGeneral,
 	...facesMatrix,
 	// ...facesSpanningTree,
 	...facesWinding,

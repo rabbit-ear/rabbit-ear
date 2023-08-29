@@ -1,4 +1,26 @@
 const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear.js");
 
-test("todo", () => expect(true).toBe(false));
+test("facesContainingPoint", () => {
+
+});
+
+test("faceContainingPoint", () => {
+
+});
+
+test("nearestVertex", () => {
+
+});
+
+test("nearestEdge", () => {
+
+});
+
+test("nearestFace", () => {
+
+});
+
+test("nearest", () => {
+
+});

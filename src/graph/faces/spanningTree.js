@@ -2,7 +2,7 @@
 //  * Rabbit Ear (c) Kraft
 //  */
 // import { makeFacesFaces } from "../make.js";
-// import { getFaceFaceSharedVertices } from "../find.js";
+// import { getFaceFaceSharedVertices } from "./general.js";
 // /**
 //  * @typedef FaceTreeNode
 //  * @type {{ face: number, parent: number, edge_vertices: number[] }}
