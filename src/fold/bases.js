@@ -103,16 +103,25 @@ export const kite = () => populate({
  */
 export const fish = () => populate({
 	vertices_coords: [
-		[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [1 - Math.SQRT1_2, Math.SQRT1_2],
-		[Math.SQRT1_2, 1 - Math.SQRT1_2], [1, 1 - Math.SQRT1_2],
-		[1 - Math.SQRT1_2, 1], [Math.SQRT1_2, 0], [0, Math.SQRT1_2],
+		[0, 0],
+		[Math.SQRT1_2, 0],
+		[1, 0],
+		[1, 1 - Math.SQRT1_2],
+		[1, 1],
+		[1 - Math.SQRT1_2, 1],
+		[0, 1],
+		[0, Math.SQRT1_2],
+		[0.5, 0.5],
+		[Math.SQRT1_2, 1 - Math.SQRT1_2],
+		[1 - Math.SQRT1_2, Math.SQRT1_2],
 	],
 	edges_vertices: [
-		[0, 4], [4, 2], [4, 5], [5, 3], [0, 5], [1, 6], [6, 4], [0, 6],
-		[2, 5], [2, 6], [1, 7], [7, 2], [6, 7], [2, 8], [8, 3], [5, 8],
-		[0, 9], [9, 1], [6, 9], [3, 10], [10, 0], [5, 10],
+		[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 0],
+		[9, 0], [9, 2], [9, 4], [10, 0], [10, 6], [10, 4],
+		[9, 1], [10, 7], [9, 3], [10, 5],
+		[8, 0], [8, 2], [8, 4], [8, 6],
 	],
-	edges_assignment: Array.from("FFFVVVFVVVBBFBBFBBMBBM"),
+	edges_assignment: Array.from("BBBBBBBBVVVVVVMMFFFFFF"),
 });
 /**
  * @description Create a bird base FOLD object in crease pattern form.

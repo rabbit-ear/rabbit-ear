@@ -147,6 +147,7 @@ export const selfRelationalUniqueIndexPairs = (array_array) => {
  * will cluster the point indices into groups of points with similar locations.
  */
 export const clusterSortedGeneric = (elements, comparison) => {
+	if (!elements.length) { return []; }
 	const indices = elements.map((_, i) => i);
 	const groups = [[indices[0]]];
 	for (let i = 1; i < indices.length; i += 1) {

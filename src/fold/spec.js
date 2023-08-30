@@ -305,15 +305,22 @@ export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assig
 	}
 	return edges_assignment.map(a => assignmentCanBeFolded[a]);
 };
+const flipAssignmentLookup = { M: "V", m: "v", V: "M", v: "m" };
+/**
+ * @description for a mountain or valley, return the opposite.
+ * in the case of any other crease (boundary, flat, ...) return itself.
+ */
+export const invertAssignment = (assign) => (
+	flipAssignmentLookup[assign] || assign
+);
 /**
  * @description Given a fold graph, make all mountains into valleys
  * and visa versa. This includes reversing the fold_angles.
  */
 export const invertAssignments = (graph) => {
-	const flipAssignment = { M: "V", m: "v", V: "M", v: "m" };
 	if (graph.edges_assignment) {
 		graph.edges_assignment = graph.edges_assignment
-			.map(a => (flipAssignment[a] ? flipAssignment[a] : a));
+			.map(a => (flipAssignmentLookup[a] ? flipAssignmentLookup[a] : a));
 	}
 	if (graph.edges_foldAngle) {
 		graph.edges_foldAngle = graph.edges_foldAngle.map(n => -n);
