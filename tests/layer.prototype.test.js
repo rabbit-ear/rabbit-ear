@@ -29,7 +29,7 @@ test("fish base. no branches", () => {
 test("fish base, linearize", () => {
 	const solution = ear.layer(ear.graph.fish().flatFolded());
 	expect(JSON.stringify(solution.linearize()))
-		.toBe(JSON.stringify([1, 0, 2, 3, 5, 4, 7, 6, 8, 9, 10, 11]));
+		.toBe(JSON.stringify([1, 0, 2, 3, 4, 5, 9, 6, 8, 7, 11, 10]));
 });
 
 test("fish base, faces layer", () => {
@@ -37,7 +37,7 @@ test("fish base, faces layer", () => {
 	const facesLayer = ear.graph.invertMap(solution.linearize().reverse());
 	expect(JSON.stringify(solution.facesLayer())).toBe(JSON.stringify(facesLayer));
 	expect(JSON.stringify(solution.facesLayer()))
-		.toBe(JSON.stringify([10, 11, 9, 8, 6, 7, 4, 5, 3, 2, 1, 0]));
+		.toBe(JSON.stringify([10, 11, 9, 8, 7, 6, 4, 2, 3, 5, 0, 1]));
 });
 
 test("crane-step, 2 sets of branches", () => {

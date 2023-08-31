@@ -1,12 +1,23 @@
-/* Math (c) Kraft, MIT License */
-import { TWO_PI, EPSILON } from '../general/constant.js';
-import { angleToVector, vectorToAngle } from '../general/convert.js';
-import { epsilonEqual } from '../general/function.js';
-import { normalize2, subtract2, cross2, distance2 } from '../algebra/vector.js';
-
 /**
  * Math (c) Kraft
  */
+import {
+	EPSILON,
+	TWO_PI,
+} from "../general/constant.js";
+import {
+	vectorToAngle,
+	angleToVector,
+} from "../general/convert.js";
+import {
+	epsilonEqual,
+} from "../general/function.js";
+import {
+	cross2,
+	normalize2,
+	subtract2,
+	distance2,
+} from "../algebra/vector.js";
 /**
  * measurements involving vectors and radians
  */
@@ -19,7 +30,7 @@ import { normalize2, subtract2, cross2, distance2 } from '../algebra/vector.js';
  * @returns {boolean} is the angle between floor and ceiling
  * @linkcode Math ./src/geometry/radial.js 32
  */
-const isCounterClockwiseBetween = (angle, floor, ceiling) => {
+export const isCounterClockwiseBetween = (angle, floor, ceiling) => {
 	while (ceiling < floor) { ceiling += TWO_PI; }
 	while (angle > floor) { angle -= TWO_PI; }
 	while (angle < floor) { angle += TWO_PI; }
@@ -33,7 +44,7 @@ const isCounterClockwiseBetween = (angle, floor, ceiling) => {
  * @returns {number} interior angle in radians
  * @linkcode Math ./src/geometry/radial.js 46
  */
-const clockwiseAngleRadians = (a, b) => {
+export const clockwiseAngleRadians = (a, b) => {
 	// this is on average 50 to 100 times faster than clockwiseAngle2
 	while (a < 0) { a += TWO_PI; }
 	while (b < 0) { b += TWO_PI; }
@@ -52,7 +63,7 @@ const clockwiseAngleRadians = (a, b) => {
  * @returns {number} interior angle in radians, counter-clockwise from a to b
  * @linkcode Math ./src/geometry/radial.js 65
  */
-const counterClockwiseAngleRadians = (a, b) => {
+export const counterClockwiseAngleRadians = (a, b) => {
 	// this is on average 50 to 100 times faster than counterClockwiseAngle2
 	while (a < 0) { a += TWO_PI; }
 	while (b < 0) { b += TWO_PI; }
@@ -71,7 +82,7 @@ const counterClockwiseAngleRadians = (a, b) => {
  * @returns {number} interior angle in radians, clockwise from a to b
  * @linkcode Math ./src/geometry/radial.js 84
  */
-const clockwiseAngle2 = (a, b) => {
+export const clockwiseAngle2 = (a, b) => {
 	const dotProduct = b[0] * a[0] + b[1] * a[1];
 	const determinant = b[0] * a[1] - b[1] * a[0];
 	let angle = Math.atan2(determinant, dotProduct);
@@ -86,7 +97,7 @@ const clockwiseAngle2 = (a, b) => {
  * @returns {number} interior angle in radians, counter-clockwise from a to b
  * @linkcode Math ./src/geometry/radial.js 99
  */
-const counterClockwiseAngle2 = (a, b) => {
+export const counterClockwiseAngle2 = (a, b) => {
 	const dotProduct = a[0] * b[0] + a[1] * b[1];
 	const determinant = a[0] * b[1] - a[1] * b[0];
 	let angle = Math.atan2(determinant, dotProduct);
@@ -110,7 +121,7 @@ const counterClockwiseAngle2 = (a, b) => {
  * @returns {number[]} one 2D vector
  * @linkcode Math ./src/geometry/radial.js 123
  */
-const clockwiseBisect2 = (a, b) => (
+export const clockwiseBisect2 = (a, b) => (
 	angleToVector(vectorToAngle(a) - clockwiseAngle2(a, b) / 2)
 );
 /**
@@ -120,7 +131,7 @@ const clockwiseBisect2 = (a, b) => (
  * @returns {number[]} one 2D vector
  * @linkcode Math ./src/geometry/radial.js 131
  */
-const counterClockwiseBisect2 = (a, b) => (
+export const counterClockwiseBisect2 = (a, b) => (
 	angleToVector(vectorToAngle(a) + counterClockwiseAngle2(a, b) / 2)
 );
 /**
@@ -131,7 +142,7 @@ const counterClockwiseBisect2 = (a, b) => (
  * @returns {number[]} array of angles in radians
  * @linkcode Math ./src/geometry/radial.js 142
  */
-const clockwiseSubsectRadians = (angleA, angleB, divisions) => {
+export const clockwiseSubsectRadians = (angleA, angleB, divisions) => {
 	const angle = clockwiseAngleRadians(angleA, angleB) / divisions;
 	return Array.from(Array(divisions - 1))
 		.map((_, i) => angleA + angle * (i + 1));
@@ -144,7 +155,7 @@ const clockwiseSubsectRadians = (angleA, angleB, divisions) => {
  * @returns {number[]} array of angles in radians
  * @linkcode Math ./src/geometry/radial.js 155
  */
-const counterClockwiseSubsectRadians = (angleA, angleB, divisions) => {
+export const counterClockwiseSubsectRadians = (angleA, angleB, divisions) => {
 	const angle = counterClockwiseAngleRadians(angleA, angleB) / divisions;
 	return Array.from(Array(divisions - 1))
 		.map((_, i) => angleA + angle * (i + 1));
@@ -157,7 +168,7 @@ const counterClockwiseSubsectRadians = (angleA, angleB, divisions) => {
  * @returns {number[][]} array of vectors (which are arrays of numbers)
  * @linkcode Math ./src/geometry/radial.js 168
  */
-const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
+export const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	const angleA = Math.atan2(vectorA[1], vectorA[0]);
 	const angleB = Math.atan2(vectorB[1], vectorB[0]);
 	return clockwiseSubsectRadians(angleA, angleB, divisions)
@@ -171,7 +182,7 @@ const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
  * @returns {number[][]} array of vectors (which are arrays of numbers)
  * @linkcode Math ./src/geometry/radial.js 182
  */
-const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
+export const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	const angleA = Math.atan2(vectorA[1], vectorA[0]);
 	const angleB = Math.atan2(vectorB[1], vectorB[0]);
 	return counterClockwiseSubsectRadians(angleA, angleB, divisions)
@@ -188,7 +199,7 @@ const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
  * the counter-clockwise sorted arrangement.
  * @linkcode Math ./src/geometry/radial.js 201
  */
-const counterClockwiseOrderRadians = (radians) => {
+export const counterClockwiseOrderRadians = (radians) => {
 	const counter_clockwise = radians
 		.map((_, i) => i)
 		.sort((a, b) => radians[a] - radians[b]);
@@ -204,7 +215,7 @@ const counterClockwiseOrderRadians = (radians) => {
  * the counter-clockwise sorted arrangement.
  * @linkcode Math ./src/geometry/radial.js 218
  */
-const counterClockwiseOrder2 = (vectors) => (
+export const counterClockwiseOrder2 = (vectors) => (
 	counterClockwiseOrderRadians(vectors.map(vectorToAngle))
 );
 /**
@@ -214,7 +225,7 @@ const counterClockwiseOrder2 = (vectors) => (
  * @returns {number[]} array of sector angles in radians
  * @linkcode Math ./src/geometry/radial.js 230
  */
-const counterClockwiseSectorsRadians = (radians) => (
+export const counterClockwiseSectorsRadians = (radians) => (
 	counterClockwiseOrderRadians(radians)
 		.map(i => radians[i])
 		.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
@@ -227,7 +238,7 @@ const counterClockwiseSectorsRadians = (radians) => (
  * @returns {number[]} array of sector angles in radians
  * @linkcode Math ./src/geometry/radial.js 244
  */
-const counterClockwiseSectors2 = (vectors) => (
+export const counterClockwiseSectors2 = (vectors) => (
 	counterClockwiseSectorsRadians(vectors.map(vectorToAngle))
 );
 /**
@@ -251,7 +262,8 @@ const counterClockwiseSectors2 = (vectors) => (
 //   return bisects.map(el => [[x, y], el]);
 // };
 /**
- * @description which turn direction do 3 points make? clockwise or couter-clockwise
+ * @description which turn direction do 3 points make?
+ * clockwise or counter-clockwise?
  * @param {number[]} p0 the start point
  * @param {number[]} p1 the middle point
  * @param {number[]} p2 the end point
@@ -263,7 +275,7 @@ const counterClockwiseSectors2 = (vectors) => (
  * - "undefined": collinear but with a 180 degree turn.
  * @linkcode Math ./src/geometry/radial.js 282
  */
-const threePointTurnDirection = (p0, p1, p2, epsilon = EPSILON) => {
+export const threePointTurnDirection = (p0, p1, p2, epsilon = EPSILON) => {
 	const v = normalize2(subtract2(p1, p0));
 	const u = normalize2(subtract2(p2, p0));
 	// not collinear
@@ -277,5 +289,3 @@ const threePointTurnDirection = (p0, p1, p2, epsilon = EPSILON) => {
 		? 0
 		: undefined;
 };
-
-export { clockwiseAngle2, clockwiseAngleRadians, clockwiseBisect2, clockwiseSubsect2, clockwiseSubsectRadians, counterClockwiseAngle2, counterClockwiseAngleRadians, counterClockwiseBisect2, counterClockwiseOrder2, counterClockwiseOrderRadians, counterClockwiseSectors2, counterClockwiseSectorsRadians, counterClockwiseSubsect2, counterClockwiseSubsectRadians, isCounterClockwiseBetween, threePointTurnDirection };

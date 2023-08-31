@@ -1,24 +1,20 @@
-/* Math (c) Kraft, MIT License */
-import * as convexHull from './convexHull.js';
-import * as line from './line.js';
-import * as nearest from './nearest.js';
-import * as plane from './plane.js';
-import * as polygon from './polygon.js';
-import * as radial from './radial.js';
-import straightSkeleton from './straightSkeleton.js';
-
 /**
  * Math (c) Kraft
  */
+import * as convexHullMethods from "./convexHull.js";
+import * as lineMethods from "./line.js";
+import * as nearestMethods from "./nearest.js";
+import * as planeMethods from "./plane.js";
+import * as polygonMethods from "./polygon.js";
+import * as radialMethods from "./radial.js";
+import straightSkeleton from "./straightSkeleton.js";
 
-const geometry = {
-	...convexHull,
-	...line,
-	...nearest,
-	...plane,
-	...polygon,
-	...radial,
+export default {
+	...convexHullMethods,
+	...lineMethods,
+	...nearestMethods,
+	...planeMethods,
+	...polygonMethods,
+	...radialMethods,
 	straightSkeleton,
 };
-
-export { geometry as default };

@@ -9,9 +9,9 @@ test("taco tortilla transitivity", () => {
 		tortilla_tortilla,
 	} = ear.layer.makeTacosAndTortillas({ ...graph });
 	expect(JSON.stringify(tortilla_tortilla[0]))
-		.toBe(JSON.stringify([[2, 7], [11, 6]]));
+		.toBe(JSON.stringify([[5, 6], [1, 9]]));
 	expect(JSON.stringify(tortilla_tortilla[1]))
-		.toBe(JSON.stringify([[1, 8], [4, 9]]));
+		.toBe(JSON.stringify([[7, 10], [8, 2]]));
 });
 
 test("taco tortilla transitivity", () => {

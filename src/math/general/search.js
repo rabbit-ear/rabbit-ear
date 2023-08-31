@@ -1,10 +1,8 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from './constant.js';
-import { epsilonCompare } from './function.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "./constant.js";
+import { epsilonCompare } from "./function.js";
 /**
  * @description Given a single object against which to compare,
  * iterate through an array of the same type and run a custom
@@ -18,7 +16,7 @@ import { epsilonCompare } from './function.js';
  * @returns {number[]} the index from the set which minimizes the compare function
  * @linkcode Math ./src/general/search.js 17
  */
-const smallestComparisonSearch = (array, obj, compare_func) => {
+export const smallestComparisonSearch = (array, obj, compare_func) => {
 	const objs = array.map((o, i) => ({ i, d: compare_func(obj, o) }));
 	let index;
 	let smallest_value = Infinity;
@@ -42,9 +40,10 @@ const smallestVectorSearch = (vectors, axis, compFn, epsilon) => {
 	// find the set of all vectors that share the smallest X value within an epsilon
 	let smallSet = [0];
 	for (let i = 1; i < vectors.length; i += 1) {
-		switch (compFn(vectors[i][axis], vectors[smallSet[0]][axis], epsilon)) {
+		switch (compFn(vectors[smallSet[0]][axis], vectors[i][axis], epsilon)) {
 		case 0: smallSet.push(i); break;
 		case 1: smallSet = [i]; break;
+		default: break;
 		}
 	}
 	return smallSet;
@@ -61,7 +60,7 @@ const smallestVectorSearch = (vectors, axis, compFn, epsilon) => {
  * the smallest component values, or undefined if points is empty.
  * @linkcode Math ./src/general/search.js 60
  */
-const minimum2DPointIndex = (points, epsilon = EPSILON) => {
+export const minimum2DPointIndex = (points, epsilon = EPSILON) => {
 // export const minimumPointIndex = (points, epsilon = EPSILON) => {
 	if (!points || !points.length) { return undefined; }
 	// find the set of all points that share the smallest X value
@@ -88,5 +87,3 @@ const minimum2DPointIndex = (points, epsilon = EPSILON) => {
 	// oh no. the indices don't carry over each round
 	// we have to back map the indices from levelMap.
 };
-
-export { minimum2DPointIndex, smallestComparisonSearch };

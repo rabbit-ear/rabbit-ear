@@ -54,8 +54,7 @@ const hexToRgb = (string) => {
 		: mapHexNumbers(numbers, [0, 0, 1, 1, 2, 2]);
 	const c = parseInt(hexString, 16);
 	return hasAlpha
-		? [
-			(c >> 24) & 255, (c >> 16) & 255, (c >> 8) & 255, roundF((c & 255) / 256)]
+		? [(c >> 24) & 255, (c >> 16) & 255, (c >> 8) & 255, roundF((c & 255) / 256)]
 		: [(c >> 16) & 255, (c >> 8) & 255, c & 255];
 };
 /**

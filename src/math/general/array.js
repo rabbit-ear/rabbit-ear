@@ -1,4 +1,3 @@
-/* Math (c) Kraft, MIT License */
 /**
  * Math (c) Kraft
  */
@@ -12,7 +11,7 @@ const isIterable = (obj) => obj != null
  * combining arrays of elements.
  * @linkcode Math ./src/general/arrays.js 10
  */
-const semiFlattenArrays = function () {
+export const semiFlattenArrays = function () {
 	switch (arguments.length) {
 	case 0: return Array.from(arguments);
 	// only if its an array (is iterable) and NOT a string
@@ -31,7 +30,7 @@ const semiFlattenArrays = function () {
  * @returns {array[]} fully, recursively flattened array
  * @linkcode Math ./src/general/arrays.js 30
  */
-const flattenArrays = function () {
+export const flattenArrays = function () {
 	switch (arguments.length) {
 	case 0: return Array.from(arguments);
 	// only if its an array (is iterable) and NOT a string
@@ -44,5 +43,3 @@ const flattenArrays = function () {
 			: a)).flat();
 	}
 };
-
-export { flattenArrays, semiFlattenArrays };

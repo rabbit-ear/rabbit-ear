@@ -1,11 +1,23 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constant.js';
-import { includeL, exclude } from '../general/function.js';
-import { subtract2, magSquared, cross2, dot2, add2, midpoint2, magnitude2, distance2, normalize2, rotate90 } from '../algebra/vector.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "../general/constant.js";
+import {
+	exclude,
+	includeL,
+} from "../general/function.js";
+import {
+	normalize2,
+	dot2,
+	magSquared,
+	magnitude2,
+	distance2,
+	cross2,
+	add2,
+	midpoint2,
+	subtract2,
+	rotate90,
+} from "../algebra/vector.js";
 /**
  * @description check if a point lies collinear along a line,
  * and specify if the line is a line/ray/segment and test whether
@@ -19,7 +31,7 @@ import { subtract2, magSquared, cross2, dot2, add2, midpoint2, magnitude2, dista
  * does the point lie within the bounds of the ray/segment?
  * @linkcode Math ./src/intersect/overlap.js 30
  */
-const overlapLinePoint = (
+export const overlapLinePoint = (
 	{ vector, origin },
 	point,
 	lineDomain = includeL,
@@ -44,7 +56,7 @@ const overlapLinePoint = (
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @linkcode Math ./src/intersect/overlap.js 55
 */
-const overlapLineLine = (
+export const overlapLineLine = (
 	a,
 	b,
 	aDomain = includeL,
@@ -94,7 +106,7 @@ const overlapLineLine = (
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @linkcode Math ./src/intersect/overlap.js 99
 */
-const overlapCirclePoint = (
+export const overlapCirclePoint = (
 	{ radius, origin },
 	point,
 	circleDomain = exclude,
@@ -113,7 +125,7 @@ const overlapCirclePoint = (
  * @returns {boolean} is the point inside the polygon?
  * @linkcode Math ./src/intersect/overlap.js 117
  */
-const overlapConvexPolygonPoint = (
+export const overlapConvexPolygonPoint = (
 	polygon,
 	point,
 	polyDomain = exclude,
@@ -132,7 +144,7 @@ const overlapConvexPolygonPoint = (
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @linkcode Math ./src/intersect/overlap.js 136
  */
-const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
+export const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
 	for (let p = 0; p < 2; p += 1) {
 		// for non-overlapping convex polygons, it's possible that only only
 		// one edge on one polygon holds the property of being a dividing axis.
@@ -174,7 +186,7 @@ const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
  * @returns {boolean} true if the bounding boxes overlap each other
  * @linkcode Math ./src/intersect/overlap.js 176
  */
-const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
+export const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
 	const dimensions = Math.min(box1.min.length, box2.min.length);
 	for (let d = 0; d < dimensions; d += 1) {
 		// if one minimum is above the other's maximum, or visa versa
@@ -215,5 +227,3 @@ const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
 //   }
 //   return isInside;
 // };
-
-export { overlapBoundingBoxes, overlapCirclePoint, overlapConvexPolygonPoint, overlapConvexPolygons, overlapLineLine, overlapLinePoint };

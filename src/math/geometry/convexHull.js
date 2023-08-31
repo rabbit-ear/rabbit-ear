@@ -1,11 +1,9 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constant.js';
-import { radialSortPointIndices2 } from '../general/sort.js';
-import { threePointTurnDirection } from './radial.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "../general/constant.js";
+import { radialSortPointIndices2 } from "../general/sort.js";
+import { threePointTurnDirection } from "./radial.js";
 /**
  * @description mirror an array and join it at the end, except
  * do not duplicate the final element, it should only appear once.
@@ -23,7 +21,7 @@ const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
  * of points in your "points" array
  * @linkcode Math ./src/geometry/convexHull.js 22
  */
-const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) => {
+export const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) => {
 	if (points.length < 2) { return []; }
 	// if includeCollinear is true, we need to walk collinear points,
 	// problem is we don't know if we should be going towards or away from
@@ -75,5 +73,3 @@ const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) =>
 // export const convexHullAsPoints = (points = [], includeCollinear = false, epsilon = EPSILON) => (
 // 	convexHull(points, includeCollinear, epsilon)
 // 		.map(i => points[i]));
-
-export { convexHull };

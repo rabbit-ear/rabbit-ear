@@ -46,7 +46,7 @@ test("planar boundary", () => {
 	delete fish.edges_foldAngle;
 	const result = ear.graph.planarBoundary(fish);
 	expect(JSON.stringify(result.vertices))
-		.toBe(JSON.stringify([1, 7, 2, 8, 3, 10, 0, 9]));
+		.toBe(JSON.stringify([2, 3, 4, 5, 6, 7, 0, 1]));
 	expect(JSON.stringify(result.edges))
-		.toBe(JSON.stringify([10, 11, 13, 14, 19, 20, 16, 17]));
+		.toBe(JSON.stringify([2, 3, 4, 5, 6, 7, 0, 1]));
 });

@@ -1,12 +1,15 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constant.js';
-import * as intersect$1 from './intersect.js';
-import typeOf from '../general/typeOf.js';
-import { includeS, include, includeL, includeR } from '../general/function.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "../general/constant.js";
+import * as Intersect from "./intersect.js";
+import typeOf from "../general/typeOf.js";
+import {
+	include,
+	includeL,
+	includeR,
+	includeS,
+} from "../general/function.js";
 
 const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -29,7 +32,7 @@ const intersect = (a, b, epsilon = EPSILON) => {
 	// valid method, but intersectLineCircle does not exist.
 	const methods = [types, types.slice().reverse()]
 		.map(pair => pair.map(nameType).join(""))
-		.map(str => intersect$1[`intersect${str}`]);
+		.map(str => Intersect[`intersect${str}`]);
 	// build the corresponding list of parameters
 	const doms = [a.domain, b.domain]
 		.map((d, i) => d || defaultDomain[types[i]]);
@@ -42,4 +45,4 @@ const intersect = (a, b, epsilon = EPSILON) => {
 	return match ? match.fn(...match.params, epsilon) : undefined;
 };
 
-export { intersect as default };
+export default intersect;

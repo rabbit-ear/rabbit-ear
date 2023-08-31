@@ -24,14 +24,16 @@ test("enclosingBoundingBoxes edge collinear epsilon", () => {
 	expect(ear.math.enclosingBoundingBoxes(box1, box3, 1e-2)).toBe(true);
 });
 
-test("enclosingPolygonPolygon", () => {
-	const poly1 = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-	const poly2 = [[10, 0], [0, 10], [-10, 0], [0, -10]];
-	const poly3 = [[8, 8], [-8, 8], [-8, -8], [8, -8]];
-	expect(ear.math.enclosingPolygonPolygon(poly2, poly1)).toBe(true);
-	expect(ear.math.enclosingPolygonPolygon(poly3, poly1)).toBe(true);
-	// todo, this should be false i think
-	// expect(ear.math.enclosingPolygonPolygon(poly2, poly3)).toBe(false);
-	expect(ear.math.enclosingPolygonPolygon(poly1, poly2)).toBe(false);
-	expect(ear.math.enclosingPolygonPolygon(poly1, poly3)).toBe(false);
-});
+// enclosing polygon polygon is never used anywhere here or in
+// Rabbit Ear so it's no longer included in the build.
+// test("enclosingPolygonPolygon", () => {
+// 	const poly1 = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+// 	const poly2 = [[10, 0], [0, 10], [-10, 0], [0, -10]];
+// 	const poly3 = [[8, 8], [-8, 8], [-8, -8], [8, -8]];
+// 	expect(ear.math.enclosingPolygonPolygon(poly2, poly1)).toBe(true);
+// 	expect(ear.math.enclosingPolygonPolygon(poly3, poly1)).toBe(true);
+// 	// todo, this should be false i think
+// 	// expect(ear.math.enclosingPolygonPolygon(poly2, poly3)).toBe(false);
+// 	expect(ear.math.enclosingPolygonPolygon(poly1, poly2)).toBe(false);
+// 	expect(ear.math.enclosingPolygonPolygon(poly1, poly3)).toBe(false);
+// });

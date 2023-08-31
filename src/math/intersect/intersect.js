@@ -1,12 +1,29 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constant.js';
-import { cross2, normalize2, magnitude2, add2, scale2, rotate90, subtract2, midpoint2 } from '../algebra/vector.js';
-import { includeL, include, excludeS, excludeR, excludeL, exclude, includeS, epsilonEqualVectors, includeR } from '../general/function.js';
-import { overlapConvexPolygonPoint } from './overlap.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "../general/constant.js";
+import {
+	magnitude2,
+	normalize2,
+	cross2,
+	scale2,
+	add2,
+	subtract2,
+	midpoint2,
+	rotate90,
+} from "../algebra/vector.js";
+import {
+	include,
+	exclude,
+	includeL,
+	includeR,
+	includeS,
+	excludeL,
+	excludeR,
+	excludeS,
+	epsilonEqualVectors,
+} from "../general/function.js";
+import { overlapConvexPolygonPoint } from "./overlap.js";
 /**
  * @description Find the intersection of two lines. Lines can be
  * lines/rays/segments, and can be inclusive or exclusive in terms
@@ -19,7 +36,7 @@ import { overlapConvexPolygonPoint } from './overlap.js';
  * @returns {number[]|undefined} one 2D point or undefined
  * @linkcode Math ./src/intersect/intersect.js 39
 */
-const intersectLineLine = (
+export const intersectLineLine = (
 	a,
 	b,
 	aDomain = includeL,
@@ -54,7 +71,7 @@ const intersectLineLine = (
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @linkcode Math ./src/intersect/intersect.js 74
  */
-const intersectCircleLine = (
+export const intersectCircleLine = (
 	circle,
 	line,
 	circleDomain = include,
@@ -105,7 +122,7 @@ const rotateVector2 = (center, pt, a) => {
  * @returns {number[][]|undefined} an array of one or two points, or undefined if no intersection
  * @linkcode Math ./src/intersect/intersect.js 121
  */
-const intersectCircleCircle = (
+export const intersectCircleCircle = (
 	c1,
 	c2,
 	c1Domain = include,
@@ -193,7 +210,7 @@ const intersectConvexPolygonLineInclusive = (
  * since it checks for exclusive/inclusive and can early-return
  * @linkcode Math ./src/intersect/intersect.js 204
  */
-const intersectConvexPolygonLine = (
+export const intersectConvexPolygonLine = (
 	poly,
 	{ vector, origin },
 	fn_poly = includeS,
@@ -267,5 +284,3 @@ const intersectConvexPolygonLine = (
 		? uniqueIncludes
 		: sects;
 };
-
-export { intersectCircleCircle, intersectCircleLine, intersectConvexPolygonLine, intersectLineLine };

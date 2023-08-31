@@ -1,13 +1,17 @@
-/* Math (c) Kraft, MIT License */
-import { excludeR } from '../general/function.js';
-import { subtract, distance, flip } from '../algebra/vector.js';
-import { clockwiseBisect2 } from './radial.js';
-import { nearestPointOnLine } from './nearest.js';
-import { intersectLineLine } from '../intersect/intersect.js';
-
 /**
  * Math (c) Kraft
  */
+import { excludeR } from "../general/function.js";
+import {
+	subtract,
+	distance,
+	flip,
+} from "../algebra/vector.js";
+import {
+	clockwiseBisect2,
+} from "./radial.js";
+import { nearestPointOnLine } from "./nearest.js";
+import { intersectLineLine } from "../intersect/intersect.js";
 /**
  * @description this recursive algorithm works outwards-to-inwards, each repeat
  * decreases the size of the polygon by one point/side. (removes 2, adds 1)
@@ -139,4 +143,4 @@ const straightSkeleton = (points) => {
 	return recurseSkeleton([...points], lines, bisectors);
 };
 
-export { straightSkeleton as default };
+export default straightSkeleton;

@@ -1,9 +1,7 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from './constant.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "./constant.js";
 /**
  * common functions that get reused, especially inside of map/reduce etc...
  */
@@ -14,18 +12,19 @@ import { EPSILON } from './constant.js';
  * @returns {boolean} true if the numbers are near each other
  * @linkcode Math ./src/general/functions.js 13
  */
-const epsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsilon;
+export const epsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsilon;
 /**
  * @description Compare two numbers within an epsilon of each other,
- * so that "1": a < b, "-1": a > b, and "0": a ~= b (epsilon equal).
+ * so that "-1": a < b, "+1": a > b, and "0": a ~= b (epsilon equal).
+ * This can be used inside Javascript's Array.sort() to sort increasing.
  * @param {number} a any number
  * @param {number} b any number
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number} -1, 0, +1
  * @linkcode Math ./src/general/functions.js 23
  */
-const epsilonCompare = (a, b, epsilon = EPSILON) => (
-	epsilonEqual(a, b, epsilon) ? 0 : Math.sign(b - a)
+export const epsilonCompare = (a, b, epsilon = EPSILON) => (
+	epsilonEqual(a, b, epsilon) ? 0 : Math.sign(a - b)
 );
 /**
  * @description are two vectors equal to each other within an epsilon.
@@ -39,7 +38,7 @@ const epsilonCompare = (a, b, epsilon = EPSILON) => (
  * @returns {boolean} true if the vectors are similar within an epsilon
  * @linkcode Math ./src/general/functions.js 37
  */
-const epsilonEqualVectors = (a, b, epsilon = EPSILON) => {
+export const epsilonEqualVectors = (a, b, epsilon = EPSILON) => {
 	for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
 		if (!epsilonEqual(a[i] || 0, b[i] || 0, epsilon)) { return false; }
 	}
@@ -53,7 +52,7 @@ const epsilonEqualVectors = (a, b, epsilon = EPSILON) => {
  * @returns {boolean} -Infinity...{false}...-epsilon...{true}...+Infinity
  * @linkcode Math ./src/general/functions.js 49
  */
-const include = (n, epsilon = EPSILON) => n > -epsilon;
+export const include = (n, epsilon = EPSILON) => n > -epsilon;
 /**
  * @description the exclusive test used in intersection algorithms, returns
  * true if the number is positive, excluding the epsilon between 0 and +epsilon.
@@ -62,43 +61,43 @@ const include = (n, epsilon = EPSILON) => n > -epsilon;
  * @returns {boolean} -Infinity...{false}...+epsilon...{true}...+Infinity
  * @linkcode Math ./src/general/functions.js 56
  */
-const exclude = (n, epsilon = EPSILON) => n > epsilon;
+export const exclude = (n, epsilon = EPSILON) => n > epsilon;
 /**
  * @description the function parameter for an inclusive line
  * @returns {boolean} true
  * @linkcode Math ./src/general/functions.js 61
  */
-const includeL = () => true;
+export const includeL = () => true;
 /**
  * @description the function parameter for an exclusive line
  * @returns {boolean} true
  * @linkcode Math ./src/general/functions.js 66
  */
-const excludeL = () => true;
+export const excludeL = () => true;
 /**
  * @description the function parameter for an inclusive ray
  * @linkcode Math ./src/general/functions.js 71
  */
-const includeR = include;
+export const includeR = include;
 /**
  * @description the function parameter for an exclusive ray
  * @linkcode Math ./src/general/functions.js 76
  */
-const excludeR = exclude;
+export const excludeR = exclude;
 /**
  * @description the function parameter for an inclusive segment
  * @param {number} n the number to test against
  * @param {number} [e=1e-6] an optional epsilon
  * @linkcode Math ./src/general/functions.js 81
  */
-const includeS = (n, e = EPSILON) => n > -e && n < 1 + e;
+export const includeS = (n, e = EPSILON) => n > -e && n < 1 + e;
 /**
  * @description the function parameter for an exclusive segment
  * @param {number} n the number to test against
  * @param {number} [e=1e-6] an optional epsilon
  * @linkcode Math ./src/general/functions.js 86
  */
-const excludeS = (n, e = EPSILON) => n > e && n < 1 - e;
+export const excludeS = (n, e = EPSILON) => n > e && n < 1 - e;
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The line method allows all values.
@@ -106,7 +105,7 @@ const excludeS = (n, e = EPSILON) => n > e && n < 1 - e;
  * @returns {number} the clamped input value (line does not clamp)
  * @linkcode Math ./src/general/functions.js 94
  */
-const clampLine = dist => dist;
+export const clampLine = dist => dist;
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The ray method clamps values below -epsilon to be 0.
@@ -114,7 +113,7 @@ const clampLine = dist => dist;
  * @returns {number} the clamped input value
  * @linkcode Math ./src/general/functions.js 102
  */
-const clampRay = dist => (dist < -EPSILON ? 0 : dist);
+export const clampRay = dist => (dist < -EPSILON ? 0 : dist);
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The segment method clamps values below -epsilon to be 0 and above 1+epsilon to 1.
@@ -122,10 +121,8 @@ const clampRay = dist => (dist < -EPSILON ? 0 : dist);
  * @returns {number} the clamped input value
  * @linkcode Math ./src/general/functions.js 110
  */
-const clampSegment = (dist) => {
+export const clampSegment = (dist) => {
 	if (dist < -EPSILON) { return 0; }
 	if (dist > 1 + EPSILON) { return 1; }
 	return dist;
 };
-
-export { clampLine, clampRay, clampSegment, epsilonCompare, epsilonEqual, epsilonEqualVectors, exclude, excludeL, excludeR, excludeS, include, includeL, includeR, includeS };

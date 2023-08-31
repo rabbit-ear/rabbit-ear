@@ -1,10 +1,14 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON, TWO_PI } from '../general/constant.js';
-import { subtract, parallel, cross2, scale2, add2 } from '../algebra/vector.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON, TWO_PI } from "../general/constant.js";
+import {
+	cross2,
+	scale2,
+	add2,
+	subtract,
+	parallel,
+} from "../algebra/vector.js";
 /**
  * the radius parameter measures from the center to the midpoint of the edge
  * vertex-axis aligned
@@ -26,7 +30,7 @@ const anglesToVecs = (angles, radius) => angles
  * @returns {number[][]} an array of points, each point as an arrays of numbers
  * @linkcode Math ./src/geometry/polygons.js 31
  */
-const makePolygonCircumradius = (sides = 3, circumradius = 1) => (
+export const makePolygonCircumradius = (sides = 3, circumradius = 1) => (
 	anglesToVecs(angleArray(sides), circumradius)
 );
 /**
@@ -37,7 +41,7 @@ const makePolygonCircumradius = (sides = 3, circumradius = 1) => (
  * @returns {number[][]} an array of points, each point as an arrays of numbers
  * @linkcode Math ./src/geometry/polygons.js 42
  */
-const makePolygonCircumradiusSide = (sides = 3, circumradius = 1) => {
+export const makePolygonCircumradiusSide = (sides = 3, circumradius = 1) => {
 	const halfwedge = Math.PI / sides;
 	const angles = angleArray(sides).map(a => a + halfwedge);
 	return anglesToVecs(angles, circumradius);
@@ -50,7 +54,7 @@ const makePolygonCircumradiusSide = (sides = 3, circumradius = 1) => {
  * @returns {number[][]} an array of points, each point as an arrays of numbers
  * @linkcode Math ./src/geometry/polygons.js 55
  */
-const makePolygonInradius = (sides = 3, inradius = 1) => (
+export const makePolygonInradius = (sides = 3, inradius = 1) => (
 	makePolygonCircumradius(sides, inradius / Math.cos(Math.PI / sides)));
 /**
  * @description Make a regular polygon from a inradius,
@@ -60,7 +64,7 @@ const makePolygonInradius = (sides = 3, inradius = 1) => (
  * @returns {number[][]} an array of points, each point as an arrays of numbers
  * @linkcode Math ./src/geometry/polygons.js 65
  */
-const makePolygonInradiusSide = (sides = 3, inradius = 1) => (
+export const makePolygonInradiusSide = (sides = 3, inradius = 1) => (
 	makePolygonCircumradiusSide(sides, inradius / Math.cos(Math.PI / sides)));
 /**
  * @description Make a regular polygon from a side length,
@@ -70,7 +74,7 @@ const makePolygonInradiusSide = (sides = 3, inradius = 1) => (
  * @returns {number[][]} an array of points, each point as an arrays of numbers
  * @linkcode Math ./src/geometry/polygons.js 75
  */
-const makePolygonSideLength = (sides = 3, length = 1) => (
+export const makePolygonSideLength = (sides = 3, length = 1) => (
 	makePolygonCircumradius(sides, (length / 2) / Math.sin(Math.PI / sides)));
 /**
  * @description Make a regular polygon from a side length,
@@ -80,7 +84,7 @@ const makePolygonSideLength = (sides = 3, length = 1) => (
  * @returns {number[][]} an array of points, each point as an arrays of numbers
  * @linkcode Math ./src/geometry/polygons.js 85
  */
-const makePolygonSideLengthSide = (sides = 3, length = 1) => (
+export const makePolygonSideLengthSide = (sides = 3, length = 1) => (
 	makePolygonCircumradiusSide(sides, (length / 2) / Math.sin(Math.PI / sides)));
 /**
  * @description Remove any collinear vertices from a n-dimensional polygon.
@@ -89,7 +93,7 @@ const makePolygonSideLengthSide = (sides = 3, length = 1) => (
  * @returns {number[][]} a copy of the polygon with collinear points removed
  * @linkcode Math ./src/geometry/polygons.js 94
  */
-const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
+export const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
 	// index map [i] to [i, i+1]
 	const edges_vector = polygon
 		.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
@@ -112,7 +116,7 @@ const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
  * @returns {Circle} a circle in "radius" (number) "origin" (number[]) form
  * @linkcode Math ./src/geometry/polygons.js 117
  */
-const circumcircle = (a, b, c) => {
+export const circumcircle = (a, b, c) => {
 	const A = b[0] - a[0];
 	const B = b[1] - a[1];
 	const C = c[0] - a[0];
@@ -148,7 +152,7 @@ const circumcircle = (a, b, c) => {
  * var area = polygon.signedArea([ [1,2], [5,6], [7,0] ])
  * @linkcode Math ./src/geometry/polygons.js 152
  */
-const signedArea = points => 0.5 * points
+export const signedArea = points => 0.5 * points
 	.map((el, i, arr) => [el, arr[(i + 1) % arr.length]])
 	.map(pair => cross2(...pair))
 	.reduce((a, b) => a + b, 0);
@@ -160,7 +164,7 @@ const signedArea = points => 0.5 * points
  * var centroid = polygon.centroid([ [1,2], [8,9], [8,0] ])
  * @linkcode Math ./src/geometry/polygons.js 164
  */
-const centroid = (points) => {
+export const centroid = (points) => {
 	const sixthArea = 1 / (6 * signedArea(points));
 	return points
 		.map((el, i, arr) => [el, arr[(i + 1) % arr.length]])
@@ -179,7 +183,7 @@ const centroid = (points) => {
  * "span" is the lengths. returns "undefined" if no points were provided.
  * @linkcode Math ./src/geometry/polygons.js 183
  */
-const boundingBox = (points, padding = 0) => {
+export const boundingBox = (points, padding = 0) => {
 	if (!points || !points.length) { return undefined; }
 	const min = Array(points[0].length).fill(Infinity);
 	const max = Array(points[0].length).fill(-Infinity);
@@ -191,5 +195,3 @@ const boundingBox = (points, padding = 0) => {
 	const span = max.map((m, i) => m - min[i]);
 	return { min, max, span };
 };
-
-export { boundingBox, centroid, circumcircle, makePolygonCircumradius, makePolygonCircumradiusSide, makePolygonInradius, makePolygonInradiusSide, makePolygonNonCollinear, makePolygonSideLength, makePolygonSideLengthSide, signedArea };

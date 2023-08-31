@@ -1,12 +1,23 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constant.js';
-import { clampLine, clampSegment } from '../general/function.js';
-import { smallestComparisonSearch } from '../general/search.js';
-import { distance2, distance, resize, magSquared, subtract, dot, add, scale, normalize } from '../algebra/vector.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "../general/constant.js";
+import {
+	clampLine,
+	clampSegment,
+} from "../general/function.js";
+import { smallestComparisonSearch } from "../general/search.js";
+import {
+	magSquared,
+	distance,
+	distance2,
+	add,
+	subtract,
+	normalize,
+	dot,
+	scale,
+	resize,
+} from "../algebra/vector.js";
 /**
  * @description find the one point in an array of 2D points closest to a 2D point.
  * @param {number[][]} array_of_points an array of 2D points to test against
@@ -14,7 +25,7 @@ import { distance2, distance, resize, magSquared, subtract, dot, add, scale, nor
  * @returns {number[]} one point from the array of points
  * @linkcode Math ./src/geometry/nearest.js 26
  */
-const nearestPoint2 = (array_of_points, point) => {
+export const nearestPoint2 = (array_of_points, point) => {
 	// todo speed up with partitioning
 	const index = smallestComparisonSearch(array_of_points, point, distance2);
 	return index === undefined ? undefined : array_of_points[index];
@@ -26,7 +37,7 @@ const nearestPoint2 = (array_of_points, point) => {
  * @returns {number[]} one point from the array of points
  * @linkcode Math ./src/geometry/nearest.js 38
  */
-const nearestPoint = (array_of_points, point) => {
+export const nearestPoint = (array_of_points, point) => {
 	// todo speed up with partitioning
 	const index = smallestComparisonSearch(array_of_points, point, distance);
 	return index === undefined ? undefined : array_of_points[index];
@@ -42,7 +53,7 @@ const nearestPoint = (array_of_points, point) => {
  * @returns {number[]} a point
  * @linkcode Math ./src/geometry/nearest.js 54
  */
-const nearestPointOnLine = (
+export const nearestPointOnLine = (
 	{ vector, origin },
 	point,
 	clampFunc = clampLine,
@@ -67,7 +78,7 @@ const nearestPointOnLine = (
  * edge index matches vertices such that edge(N) = [vert(N), vert(N + 1)]
  * @linkcode Math ./src/geometry/nearest.js 79
  */
-const nearestPointOnPolygon = (polygon, point) => polygon
+export const nearestPointOnPolygon = (polygon, point) => polygon
 	.map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p))
 	.map((vector, i) => ({ vector, origin: polygon[i] }))
 	.map(line => nearestPointOnLine(line, point, clampSegment))
@@ -83,11 +94,9 @@ const nearestPointOnPolygon = (polygon, point) => polygon
  * @returns {number[]} a point
  * @linkcode Math ./src/geometry/nearest.js 95
  */
-const nearestPointOnCircle = ({ radius, origin }, point) => (
+export const nearestPointOnCircle = ({ radius, origin }, point) => (
 	add(origin, scale(normalize(subtract(point, origin)), radius))
 );
 
 // todo
 // const nearestPointOnEllipse = () => false;
-
-export { nearestPoint, nearestPoint2, nearestPointOnCircle, nearestPointOnLine, nearestPointOnPolygon };

@@ -1,12 +1,19 @@
-/* Math (c) Kraft, MIT License */
-import general from './general/index.js';
-import algebra from './algebra/index.js';
-import geometry from './geometry/index.js';
-import intersectMethods from './intersect/index.js';
-
 /**
  * Math (c) Kraft
  */
+/**         _                       _                     _   _
+           (_)                     (_)                   | | | |
+  ___  _ __ _  __ _  __ _ _ __ ___  _     _ __ ___   __ _| |_| |__
+ / _ \| '__| |/ _` |/ _` | '_ ` _ \| |   | '_ ` _ \ / _` | __| '_ \
+| (_) | |  | | (_| | (_| | | | | | | |   | | | | | | (_| | |_| | | |
+ \___/|_|  |_|\__, |\__,_|_| |_| |_|_|   |_| |_| |_|\__,_|\__|_| |_|
+               __/ |
+              |___/
+ */
+import general from "./general/index.js";
+import algebra from "./algebra/index.js";
+import geometry from "./geometry/index.js";
+import intersectMethods from "./intersect/index.js";
 // import primitives from "./primitives/index.js";
 
 /**
@@ -56,5 +63,12 @@ const math = {
 	...geometry,
 	...intersectMethods,
 };
-
-export { math as default };
+// const math = primitives;
+// Object.assign(math, {
+// 	...general,
+// 	...algebra,
+// 	...geometry,
+// 	...intersectMethods,
+// 	// ...types,
+// });
+export default math;

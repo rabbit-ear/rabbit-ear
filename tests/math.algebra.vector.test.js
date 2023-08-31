@@ -288,16 +288,83 @@ test("parallelNormalized", () => {
 	expect(ear.math.parallelNormalized([1, 0], [-2, 0])).toBe(true);
 });
 
-/*
-test("alternating sum", () => {
-	const r1 = ear.math.alternating_sum([1, 2, 3, 4, 5, 6]);
-	expect(r1[0]).toBe(9);
-	expect(r1[1]).toBe(12);
-	const r2 = ear.math.alternating_sum([1, undefined, 3, 4, 5, 6]);
-	expect(r2[0]).toBe(9);
-	expect(r2[1]).toBe(10);
-	const r3 = ear.math.alternating_sum([]);
-	expect(r3[0]).toBe(0);
-	expect(r3[1]).toBe(0);
+test("basisVectors2", () => {
+	expect(ear.math.basisVectors2().length).toBe(2);
+	const basis1 = ear.math.basisVectors2([1, 0]);
+	// [-v[1], v[0]]
+	expect(basis1[0][0]).toBeCloseTo(1);
+	expect(basis1[0][1]).toBeCloseTo(0);
+	expect(basis1[1][0]).toBeCloseTo(0);
+	expect(basis1[1][1]).toBeCloseTo(1);
+
+	const basis2 = ear.math.basisVectors2([500, 0]);
+	expect(basis2[0][0]).toBeCloseTo(1);
+	expect(basis2[0][1]).toBeCloseTo(0);
+	expect(basis2[1][0]).toBeCloseTo(0);
+	expect(basis2[1][1]).toBeCloseTo(1);
+
+	const basis3 = ear.math.basisVectors2([0, 500]);
+	expect(basis3[0][0]).toBeCloseTo(0);
+	expect(basis3[0][1]).toBeCloseTo(1);
+	expect(basis3[1][0]).toBeCloseTo(-1);
+	expect(basis3[1][1]).toBeCloseTo(0);
+
+	const basis4 = ear.math.basisVectors2([20, 20]);
+	expect(basis4[0][0]).toBeCloseTo(Math.SQRT1_2);
+	expect(basis4[0][1]).toBeCloseTo(Math.SQRT1_2);
+	expect(basis4[1][0]).toBeCloseTo(-Math.SQRT1_2);
+	expect(basis4[1][1]).toBeCloseTo(Math.SQRT1_2);
+
+	const basis5 = ear.math.basisVectors2([0, 0]);
+	expect(basis5[0][0]).toBeCloseTo(0);
+	expect(basis5[0][1]).toBeCloseTo(0);
+	expect(basis5[1][0]).toBeCloseTo(0);
+	expect(basis5[1][1]).toBeCloseTo(0);
 });
-*/
+
+test("basisVectors3", () => {
+	expect(ear.math.basisVectors3().length).toBe(3);
+	const basis1 = ear.math.basisVectors3([1, 0, 0]);
+	expect(basis1[0][0]).toBeCloseTo(1);
+	expect(basis1[0][1]).toBeCloseTo(0);
+	expect(basis1[0][2]).toBeCloseTo(0);
+	expect(basis1[1][0]).toBeCloseTo(0);
+	expect(basis1[1][1]).toBeCloseTo(0);
+	expect(basis1[1][2]).toBeCloseTo(-1);
+	expect(basis1[2][0]).toBeCloseTo(0);
+	expect(basis1[2][1]).toBeCloseTo(1);
+	expect(basis1[2][2]).toBeCloseTo(0);
+
+	const basis2 = ear.math.basisVectors3([0, 0, 500]);
+	expect(basis2[0][0]).toBeCloseTo(0);
+	expect(basis2[0][1]).toBeCloseTo(0);
+	expect(basis2[0][2]).toBeCloseTo(1);
+	expect(basis2[1][0]).toBeCloseTo(0);
+	expect(basis2[1][1]).toBeCloseTo(-1);
+	expect(basis2[1][2]).toBeCloseTo(0);
+	expect(basis2[2][0]).toBeCloseTo(1);
+	expect(basis2[2][1]).toBeCloseTo(0);
+	expect(basis2[2][2]).toBeCloseTo(0);
+
+	const basis3 = ear.math.basisVectors3([1, 1, 1]);
+	expect(basis3[0][0]).toBeCloseTo(Math.sqrt(3) / 3);
+	expect(basis3[0][1]).toBeCloseTo(Math.sqrt(3) / 3);
+	expect(basis3[0][2]).toBeCloseTo(Math.sqrt(3) / 3);
+	expect(basis3[1][0]).toBeCloseTo(0);
+	expect(basis3[1][1]).toBeCloseTo(-Math.SQRT1_2);
+	expect(basis3[1][2]).toBeCloseTo(Math.SQRT1_2);
+	expect(basis3[2][0]).toBeCloseTo((Math.sqrt(3) / 3) * Math.SQRT2);
+	expect(basis3[2][1]).toBeCloseTo(-((Math.sqrt(3) / 3) * Math.SQRT2) / 2);
+	expect(basis3[2][2]).toBeCloseTo(-((Math.sqrt(3) / 3) * Math.SQRT2) / 2);
+
+	const basis4 = ear.math.basisVectors3([0, 0, 0]);
+	expect(basis4[0][0]).toBeCloseTo(0);
+	expect(basis4[0][1]).toBeCloseTo(0);
+	expect(basis4[0][2]).toBeCloseTo(0);
+	expect(basis4[1][0]).toBeCloseTo(0);
+	expect(basis4[1][1]).toBeCloseTo(0);
+	expect(basis4[1][2]).toBeCloseTo(0);
+	expect(basis4[2][0]).toBeCloseTo(0);
+	expect(basis4[2][1]).toBeCloseTo(0);
+	expect(basis4[2][2]).toBeCloseTo(0);
+});

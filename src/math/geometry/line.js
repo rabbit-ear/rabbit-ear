@@ -1,12 +1,23 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constant.js';
-import { epsilonEqualVectors, epsilonEqual } from '../general/function.js';
-import { subtract, normalize, dot, lerp, cross2, subtract2, flip, add2, scale2 } from '../algebra/vector.js';
-import { counterClockwiseSubsect2 } from './radial.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "../general/constant.js";
+import {
+	epsilonEqual,
+	epsilonEqualVectors,
+} from "../general/function.js";
+import {
+	dot,
+	cross2,
+	normalize,
+	subtract,
+	add2,
+	subtract2,
+	scale2,
+	lerp,
+	flip,
+} from "../algebra/vector.js";
+import { counterClockwiseSubsect2 } from "./radial.js";
 /**
  * @description Check if a point is collinear and between two other points.
  * @param {number[]} p0 a segment point
@@ -17,7 +28,7 @@ import { counterClockwiseSubsect2 } from './radial.js';
  * @returns {boolean} true if the point lies collinear and between the other two points.
  * @linkcode Math ./src/geometry/lines.js 29
  */
-const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
+export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
 	const similar = [p0, p2]
 		.map(p => epsilonEqualVectors(p1, p, epsilon))
 		.reduce((a, b) => a || b, false);
@@ -35,7 +46,7 @@ const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
  * @returns {number[]} one vector, dimensions matching first parameter
  * @linkcode Math ./src/geometry/lines.js 47
  */
-const lerpLines = (a, b, t) => {
+export const lerpLines = (a, b, t) => {
 	const vector = lerp(a.vector, b.vector, t);
 	const origin = lerp(a.origin, b.origin, t);
 	return { vector, origin };
@@ -54,7 +65,7 @@ const lerpLines = (a, b, t) => {
  * @returns {VecLine[]} an array of lines, objects with "vector" and "origin"
  * @linkcode Math ./src/geometry/lines.js 65
  */
-const pleat = (a, b, count, epsilon = EPSILON) => {
+export const pleat = (a, b, count, epsilon = EPSILON) => {
 	const dotProd = dot(a.vector, b.vector);
 	const determinant = cross2(a.vector, b.vector);
 	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
@@ -96,7 +107,7 @@ const pleat = (a, b, count, epsilon = EPSILON) => {
  * @returns {VecLine[]} an array of lines, objects with "vector" and "origin"
  * @linkcode Math ./src/geometry/lines.js 107
  */
-const bisectLines2 = (a, b, epsilon = EPSILON) => {
+export const bisectLines2 = (a, b, epsilon = EPSILON) => {
 	const solution = pleat(a, b, 2, epsilon).map(arr => arr[0]);
 	solution.forEach((val, i) => {
 		if (val === undefined) { delete solution[i]; }
@@ -125,5 +136,3 @@ const bisectLines2 = (a, b, epsilon = EPSILON) => {
 // 	if (isParallel) { delete solution[(dotProd > -epsilon ? 1 : 0)]; }
 // 	return solution;
 // };
-
-export { bisectLines2, collinearBetween, lerpLines, pleat };

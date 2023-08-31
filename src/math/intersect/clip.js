@@ -1,12 +1,22 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constant.js';
-import { include, includeL, includeS } from '../general/function.js';
-import { magnitude2, add2, scale2, subtract2, cross2, normalize2, flip } from '../algebra/vector.js';
-import { overlapConvexPolygonPoint } from './overlap.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "../general/constant.js";
+import {
+	include,
+	includeL,
+	includeS,
+} from "../general/function.js";
+import {
+	normalize2,
+	magnitude2,
+	cross2,
+	add2,
+	subtract2,
+	scale2,
+	flip,
+} from "../algebra/vector.js";
+import { overlapConvexPolygonPoint } from "./overlap.js";
 /**
  * @description Clip an infinite line inside a bounding box
  * and return either:
@@ -17,7 +27,7 @@ import { overlapConvexPolygonPoint } from './overlap.js';
  * @param {BoundingBox} box an AABB bounding box
  * @returns {number[] | undefined} the result.
  */
-const clipLineInBoundingBox = ({ vector, origin }, { min, max, span }) => {
+export const clipLineInBoundingBox = ({ vector, origin }, { min, max, span }) => {
 	return clipLineConvexPolygon()
 };
 
@@ -94,7 +104,7 @@ const getMinMax = (numbers, func, scaled_epsilon) => {
  * @param {number} [epsilon=1e-6] optional epsilon
  * @linkcode Math ./src/intersect/clip.js 93
  */
-const clipLineConvexPolygon = (
+export const clipLineConvexPolygon = (
 	poly,
 	{ vector, origin },
 	fnPoly = include,
@@ -144,7 +154,7 @@ const clipLineConvexPolygon = (
  * @returns {number[][]} a polygon as an array of points.
  * @linkcode Math ./src/intersect/clip.js 143
  */
-const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
+export const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
 	const inside = (p, cp1, cp2) => (
 		(cp2[0] - cp1[0]) * (p[1] - cp1[1])) > ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon
 	);
@@ -183,5 +193,3 @@ const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
 	}
 	return outputList.length === 0 ? undefined : outputList;
 };
-
-export { clipLineConvexPolygon, clipLineInBoundingBox, clipPolygonPolygon };

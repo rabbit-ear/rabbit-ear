@@ -1,4 +1,3 @@
-/* Math (c) Kraft, MIT License */
 /**
  * Math (c) Kraft
  */
@@ -21,4 +20,4 @@ const typeOf = (obj) => {
 	return "object";
 };
 
-export { typeOf as default };
+export default typeOf;

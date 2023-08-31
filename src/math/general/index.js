@@ -1,28 +1,24 @@
-/* Math (c) Kraft, MIT License */
-import * as constant from './constant.js';
-import * as _function from './function.js';
-import * as get from './get.js';
-import * as convert from './convert.js';
-import * as array from './array.js';
-import * as number from './number.js';
-import * as search from './search.js';
-import * as sort from './sort.js';
-import typeOf from './typeOf.js';
-
 /**
  * Math (c) Kraft
  */
+import * as constants from "./constant.js";
+import * as mathFunctions from "./function.js";
+import * as getMethods from "./get.js";
+import * as convertMethods from "./convert.js";
+import * as arrayMethods from "./array.js";
+import * as numberMethods from "./number.js";
+import * as searchMethods from "./search.js";
+import * as sortMethods from "./sort.js";
+import typeOf from "./typeOf.js";
 
-const general = {
-	...constant,
-	..._function,
-	...get,
-	...convert,
-	...array,
-	...number,
-	...search,
-	...sort,
+export default {
+	...constants,
+	...mathFunctions,
+	...getMethods,
+	...convertMethods,
+	...arrayMethods,
+	...numberMethods,
+	...searchMethods,
+	...sortMethods,
 	typeof: typeOf,
 };
-
-export { general as default };

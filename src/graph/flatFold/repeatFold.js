@@ -19,7 +19,6 @@ import { facesContainingPoint } from "../nearest.js";
 import {
 	makeEdgesVector,
 	makeFacesEdgesFromVertices,
-	makeEdgesFacesUnsorted,
 } from "../make.js";
 import { makeVerticesCoordsFlatFolded } from "../vertices/folded.js";
 import { makeFacesWinding } from "../faces/winding.js";
@@ -94,27 +93,12 @@ const getEdgesLineIntersection = ({
  *
  */
 const repeatFoldLine = ({
-	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, edges_assignment,
+	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment,
 	faces_vertices, faces_edges, faces_faces,
 }, { vector, origin }, assignment = "V", epsilon = EPSILON) => {
-	if (!edges_faces) {
-		if (!faces_edges) {
-			faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-		}
-		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
-	/**
-	 *
-	 */
-	const edgePairSharedFace = (a, b) => {
-		const hash = {};
-		edges_faces[a].forEach(f => { hash[f] = true; });
-		for (let i = 0; i < edges_faces[b].length; i += 1) {
-			if (hash[edges_faces[b][i]]) { return edges_faces[b][i]; }
-		}
-		return undefined;
-	};
-
 	const startFace = getContainingFace({ vertices_coords, faces_vertices }, origin);
 	const oppositeAssignment = invertAssignment(assignment);
 	const vertices_coordsFolded = makeVerticesCoordsFlatFolded({
@@ -133,19 +117,23 @@ const repeatFoldLine = ({
 	if (!faces_winding[startFace]) {
 		faces_winding.forEach((w, i) => { faces_winding[i] = !w; });
 	}
+	// intersect the line with every edge. the intersection should be inclusive
+	// with respect to the segment endpoints. this will cause duplicate points
+	// for every face when a line crosses exactly at its vertex, but this is
+	// necessary because we need to know this point, so we will filter later.
 	const edgesIntersections = getEdgesLineIntersection(
 		{ vertices_coords: vertices_coordsFolded, edges_vertices },
 		{ vector, origin },
 		epsilon,
-	);
-	edgesIntersections.forEach((el, edge) => {
-		if (el === undefined) { return; }
-		el.edge = edge;
-	});
-
-	// restarting here. big commenting out.
-	const faces_solution = [];
-	const faces_complex = [];
+	).map((el, edge) => (el === undefined ? undefined : { ...el, edge }));
+	// edge line data for the crease pattern state, needed to remap the edge
+	// intersections, which were calculated in the folded state, into points
+	// in the crease pattern state.
+	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
+	const edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+	// for every face, using its faces_edges, gather a list of all of the
+	// face's edge intersections. faces with fewer than 2 will be thrown out.
+	const facesPreCluster = [];
 	faces_edges
 		.map(edges => edges
 			.map(edge => edgesIntersections[edge])
@@ -154,92 +142,48 @@ const repeatFoldLine = ({
 			switch (solutions.length) {
 			case 0:
 			case 1: break;
-			case 2: faces_solution[f] = solutions; break;
-			default: faces_complex[f] = solutions; break;
+			default: facesPreCluster[f] = solutions; break;
 			}
 		});
-	// process complex faces
-	faces_complex.forEach((solutions, f) => {
-		solutions.sort((a, b) => a.b - b.b);
-		const clusters = clusterSortedGeneric(
-			solutions,
-			(a, b) => Math.abs(a.b - b.b) < epsilon * 2,
-		).map(cluster => cluster.map(index => solutions[index]));
-		// face is convex
-		if (clusters.length === 2) {
-			faces_solution[f] = [clusters[0][0], clusters[clusters.length - 1][0]];
-		}
-	});
-	// process complex faces. done
-	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
-	const edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-
+	// this epsilon function will compare the object's "b" property
+	// which is the intersections's "b" paramter (line parameter).
+	const epsilonEqual = (a, b) => Math.abs(a.b - b.b) < epsilon * 2;
+	// every face now has two or more intersections events. we need to
+	// filter out the invalid cases, which include:
+	// - line outside face, but face intersected at a vertex, which
+	//   registers as two intersections because it touches two edges.
+	// - line overlaps face, but face is non-convex, so there are more than
+	//   two clusters of points (sorted geometrically)
+	// clustering vertices (along the line's parameter) and only accepting
+	// two hopefully solves all the issues that I haven't considered as well.
+	const faces_solution = [];
+	facesPreCluster
+		// sort the solutions along the line's intersection parameter
+		.map(solutions => solutions.sort((a, b) => a.b - b.b))
+		// cluster the solutions along the line's intersection parameter.
+		.map(solutions => clusterSortedGeneric(solutions, epsilonEqual)
+			.map(cluster => cluster.map(index => solutions[index])))
+		.forEach((clusters, f) => {
+			// length === 1 is ignored because the solution is degenerate,
+			// length > 2 is ignored because the polygon is non convex, however,
+			// todo: we could add this feature by %2 including area between events.
+			if (clusters.length === 2) {
+				faces_solution[f] = [clusters[0][0], clusters[clusters.length - 1][0]];
+			}
+			if (clusters.length > 2) {
+				console.log("repeatFoldLine feature request, non-convex polygons.");
+			}
+		});
+	// remap the face's solution points back onto their crease pattern points,
+	// (we have the points from the folded vertex graph).
 	return faces_solution.map((solutions, f) => ({
 		edges: solutions.map(el => el.edge),
 		assignment: faces_winding[f] ? assignment : oppositeAssignment,
-		points: solutions
-			.map(solution => add2(
-				scale2(edges_vector[solution.edge], solution.a),
-				edges_origin[solution.edge],
-			)),
+		points: solutions.map(solution => add2(
+			scale2(edges_vector[solution.edge], solution.a),
+			edges_origin[solution.edge],
+		)),
 	}));
-
-	/*
-	// sort these intersections using the line's (not edges') parameter (el.b)
-	const intersectionsSorted = edgesIntersections
-		.filter(a => a !== undefined)
-		.sort((a, b) => a.b - b.b);
-	// clusters of edge indices, where each cluster's edges contain
-	// an intersection in "edgesIntersections" that is at a similar position
-	// to all the other edge's intersections in the same cluster.
-	const edgesClustered = clusterSortedGeneric(
-		intersectionsSorted,
-		(a, b) => Math.abs(a.b - b.b) < epsilon * 2,
-	).map(cluster => cluster.map(index => intersectionsSorted[index].edge));
-	// intersection events are now sorted in the direction of the line.
-	// walk down the line and pair each event with the next one. each
-	// event may be a cluster of events, so we will be making pairs of
-	// every permutation of an edge from the first cluster to an edge
-	// from the second.
-	// however, many of the cluster-to-cluster pairing will be filtered out,
-	// we only want to keep pairings which join two edges that are members
-	// of the same face, as it's possible to join two edges which may look
-	// neighborly in the folded state, but in the crease pattern actually have
-	// nothing to do with each other.
-	// additionally, for every cluster-to-cluster pairing, there should
-	// never be two pairs that cross the same face (this happens when a
-	// line crosses a vertex shared by two edges), so when we make a cluster-
-	// to-cluster pairing and assign it to a face, we can skip any other
-	// pairings which relate to the same face.
-
-	const facesCrossings = [];
-
-	for (let i = 0; i < edgesClustered.length; i += 1) {
-		const aCluster = edgesClustered[i];
-		const bCluster = edgesClustered[(i + 1) % edgesClustered.length];
-		for (let a = 0; a < aCluster.length; a += 1) {
-			for (let b = 0; b < bCluster.length; b += 1) {
-				const sharedFace = edgePairSharedFace(aCluster[a], bCluster[b]);
-				if (sharedFace === undefined) { continue; }
-				if (facesCrossings[sharedFace]) { continue; }
-				facesCrossings[sharedFace] = [aCluster[a], bCluster[b]];
-			}
-		}
-	}
-	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
-	const edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	const faces_segments = facesCrossings.map((edges, f) => ({
-		edges,
-		assignment: faces_winding[f] ? assignment : oppositeAssignment,
-		points: edges
-			.map(edge => add2(
-				scale2(edges_vector[edge], edgesIntersections[edge].a),
-				edges_origin[edge],
-			)),
-	}));
-
-	return faces_segments;
-	*/
 };
 
 export default repeatFoldLine;

@@ -1,12 +1,14 @@
-/* Math (c) Kraft, MIT License */
-import { subtract } from '../algebra/vector.js';
-import { overlapLinePoint } from './overlap.js';
-import { intersectLineLine } from './intersect.js';
-import { includeL, excludeS, excludeL } from '../general/function.js';
-
 /**
  * Math (c) Kraft
  */
+import { subtract } from "../algebra/vector.js";
+import { overlapLinePoint } from "./overlap.js";
+import { intersectLineLine } from "./intersect.js";
+import {
+	includeL,
+	excludeL,
+	excludeS,
+} from "../general/function.js";
 /**
  * @description Split a convex polygon by a line and rebuild each
  * half into two convex polygons.
@@ -17,7 +19,7 @@ import { includeL, excludeS, excludeL } from '../general/function.js';
  * each point is an array of numbers.
  * @linkcode Math ./src/intersect/split.js 20
  */
-const splitConvexPolygon = (poly, line) => {
+export const splitConvexPolygon = (poly, line) => {
 	// todo: should this return undefined if no intersection?
 	//       or the original poly?
 
@@ -83,5 +85,3 @@ const splitConvexPolygon = (poly, line) => {
 	}
 	return [poly.slice()];
 };
-
-export { splitConvexPolygon };

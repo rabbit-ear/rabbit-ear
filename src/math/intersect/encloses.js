@@ -1,11 +1,9 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from '../general/constant.js';
-import { include } from '../general/function.js';
-import { overlapConvexPolygonPoint } from './overlap.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "../general/constant.js";
+// import { include } from "../general/function.js";
+// import { overlapConvexPolygonPoint } from "./overlap.js";
 /**
  * @description Is a point fully contained inside of a bounding box?
  * @param {number[]} point the point
@@ -16,7 +14,7 @@ import { overlapConvexPolygonPoint } from './overlap.js';
  * @returns {boolean} is the "inner" polygon completely inside the "outer"
  * @linkcode Math ./src/intersect/encloses.js 16
  */
-const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
+export const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
 	for (let d = 0; d < point.length; d += 1) {
 		if (point[d] < box.min[d] - epsilon
 			|| point[d] > box.max[d] + epsilon) {
@@ -36,7 +34,7 @@ const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
  * @returns {boolean} is the "inner" polygon completely inside the "outer"
  * @linkcode Math ./src/intersect/encloses.js 16
  */
-const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
+export const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
 	const dimensions = Math.min(outer.min.length, inner.min.length);
 	for (let d = 0; d < dimensions; d += 1) {
 		// if one minimum is above the other's maximum, or visa versa
@@ -58,16 +56,14 @@ const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
  * @todo: should one function be include and the other exclude?
  * @linkcode Math ./src/intersect/encloses.js 38
  */
-const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
-	// these points should be *not inside* (false)
-	const outerGoesInside = outer
-		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
-		.reduce((a, b) => a || b, false);
-	// these points should be *inside* (true)
-	const innerGoesOutside = inner
-		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
-		.reduce((a, b) => a && b, true);
-	return (!outerGoesInside && innerGoesOutside);
-};
-
-export { enclosingBoundingBoxes, enclosingPolygonPolygon, pointInBoundingBox };
+// export const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
+// 	// these points should be *not inside* (false)
+// 	const outerGoesInside = outer
+// 		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
+// 		.reduce((a, b) => a || b, false);
+// 	// these points should be *inside* (true)
+// 	const innerGoesOutside = inner
+// 		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
+// 		.reduce((a, b) => a && b, true);
+// 	return (!outerGoesInside && innerGoesOutside);
+// };

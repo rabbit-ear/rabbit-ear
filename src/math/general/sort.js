@@ -1,13 +1,19 @@
-/* Math (c) Kraft, MIT License */
-import { EPSILON } from './constant.js';
-import { epsilonEqual } from './function.js';
-import { dot, subtract2, normalize2, dot2, distance2, basisVectors3, subtract } from '../algebra/vector.js';
-import { projectPointOnPlane } from '../geometry/plane.js';
-import { minimum2DPointIndex } from './search.js';
-
 /**
  * Math (c) Kraft
  */
+import { EPSILON } from "./constant.js";
+import { epsilonEqual } from "./function.js";
+import {
+	normalize2,
+	distance2,
+	dot,
+	dot2,
+	subtract,
+	subtract2,
+	basisVectors3,
+} from "../algebra/vector.js";
+import { projectPointOnPlane } from "../geometry/plane.js";
+import { minimum2DPointIndex } from "./search.js";
 /**
  * @description Provide a comparison function and use it to sort an array
  * of any type of object against a single item. The returned array will be
@@ -20,7 +26,7 @@ import { minimum2DPointIndex } from './search.js';
  * @returns {number[]} the indices of the original array, in sorted order
  * @linkcode Math ./src/general/sort.js 24
  */
-const sortAgainstItem = (array, item, compareFn) => array
+export const sortAgainstItem = (array, item, compareFn) => array
 	.map((el, i) => ({ i, n: compareFn(el, item) }))
 	.sort((a, b) => a.n - b.n)
 	.map(a => a.i);
@@ -32,7 +38,7 @@ const sortAgainstItem = (array, item, compareFn) => array
  * @returns {number[]} a list of sorted indices to the points array.
  * @linkcode Math ./src/general/sort.js 36
  */
-const sortPointsAlongVector = (points, vector) => (
+export const sortPointsAlongVector = (points, vector) => (
 	sortAgainstItem(points, vector, dot)
 );
 /**
@@ -47,7 +53,7 @@ const sortPointsAlongVector = (points, vector) => (
  * each inner array represents clusters of values which lie within an epsilon.
  * @linkcode Math ./src/general/sort.js 51
  */
-const clusterIndicesOfSortedNumbers = (numbers, epsilon = EPSILON) => {
+export const clusterIndicesOfSortedNumbers = (numbers, epsilon = EPSILON) => {
 	const clusters = [[0]];
 	let clusterIndex = 0;
 	for (let i = 1; i < numbers.length; i += 1) {
@@ -73,7 +79,7 @@ const clusterIndicesOfSortedNumbers = (numbers, epsilon = EPSILON) => {
  * values which otherwise should be clustered.
  * @linkcode Math ./src/general/sort.js 75
  */
-const radialSortPointIndices2 = (points, epsilon = EPSILON) => {
+export const radialSortPointIndices2 = (points, epsilon = EPSILON) => {
 	const first = minimum2DPointIndex(points, epsilon);
 	if (first === undefined) { return []; }
 	const angles = points
@@ -108,7 +114,7 @@ const radialSortPointIndices2 = (points, epsilon = EPSILON) => {
  * -----
  * 2 | 3
  */
-const radialSortUnitVectors2 = (vectors) => {
+export const radialSortUnitVectors2 = (vectors) => {
 	const quadrantConditions = [
 		v => v[0] >= 0 && v[1] >= 0,
 		v => v[0] < 0 && v[1] >= 0,
@@ -135,7 +141,7 @@ const radialSortUnitVectors2 = (vectors) => {
 /**
  *
  */
-const radialSortPointIndices3 = (
+export const radialSortPointIndices3 = (
 	points,
 	vector = [1, 0, 0],
 	origin = [0, 0, 0],
@@ -153,5 +159,3 @@ const radialSortPointIndices3 = (
 	const vectorsUV = pointsUV.map(normalize2);
 	return radialSortUnitVectors2(vectorsUV);
 };
-
-export { clusterIndicesOfSortedNumbers, radialSortPointIndices2, radialSortPointIndices3, radialSortUnitVectors2, sortAgainstItem, sortPointsAlongVector };
