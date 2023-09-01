@@ -1,4 +1,4 @@
-import connectedComponents from "./connectedComponents.js";
+import { connectedComponents } from "./connectedComponents.js";
 import {
 	makeVerticesVerticesUnsorted,
 	makeVerticesEdgesUnsorted,
@@ -6,7 +6,7 @@ import {
 } from "./make.js";
 import { invertMapArray } from "./maps.js";
 import { filterKeysWithPrefix } from "../fold/spec.js";
-import { uniqueElements } from "../general/arrays.js";
+import { uniqueElements } from "../general/array.js";
 /**
  * @description In the case that your graph is a disjoint union
  * of graphs, return an array of all graphs separated, where each

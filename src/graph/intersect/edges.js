@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import {
 	includeL,
 	includeS,
-} from "../../math/general/function.js";
-import { subtract2 } from "../../math/algebra/vector.js";
-import { boundingBox } from "../../math/geometry/polygon.js";
-import { intersectLineLine } from "../../math/intersect/intersect.js";
+} from "../../math/compare.js";
+import { subtract2 } from "../../math/vector.js";
+import { boundingBox } from "../../math/polygon.js";
+import { intersectLineLine } from "../../math/intersect.js";
 import {
 	makeVerticesEdgesUnsorted,
 	makeEdgesCoords,

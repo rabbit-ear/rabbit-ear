@@ -6,11 +6,11 @@ import {
 	makeOrthographicMatrix4,
 	makePerspectiveMatrix4,
 	invertMatrix4,
-} from "../../math/algebra/matrix4.js";
+} from "../../math/matrix4.js";
 import {
 	midpoint,
 	resize,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 import { boundingBox } from "../../graph/boundary.js";
 /**
  * @description Initialize a viewport for a WebGL context

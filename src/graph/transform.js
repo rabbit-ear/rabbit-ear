@@ -8,13 +8,13 @@ import {
 	makeMatrix3RotateZ,
 	multiplyMatrix3Vector3,
 	multiplyMatrices3,
-} from "../math/algebra/matrix3.js";
+} from "../math/matrix3.js";
 import {
 	subtract,
 	resize,
-} from "../math/algebra/vector.js";
-import { getVector } from "../math/general/get.js";
-import { boundingBox } from "../math/geometry/polygon.js";
+} from "../math/vector.js";
+import { getVector } from "../general/get.js";
+import { boundingBox } from "../math/polygon.js";
 import { filterKeysWithSuffix } from "../fold/spec.js";
 /**
  * @name transform

@@ -5,12 +5,12 @@ import {
 	subtract,
 	distance,
 	resize,
-} from "../math/algebra/vector.js";
-import { nearestPointOnLine } from "../math/geometry/nearest.js";
-import { smallestComparisonSearch } from "../math/general/search.js";
-import { getVector } from "../math/general/get.js";
-import { clampSegment } from "../math/general/function.js";
-import { overlapConvexPolygonPoint } from "../math/intersect/overlap.js";
+} from "../math/vector.js";
+import { nearestPointOnLine } from "../math/nearest.js";
+import { arrayMinimum } from "../general/array.js";
+import { getVector } from "../general/get.js";
+import { clampSegment } from "../math/line.js";
+import { overlapConvexPolygonPoint } from "../math/overlap.js";
 import {
 	singularize,
 	filterKeysWithPrefix,
@@ -57,7 +57,7 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 			point,
 			clampSegment,
 		));
-	return smallestComparisonSearch(nearest_points, point, distance);
+	return arrayMinimum(nearest_points, p => distance(p, point));
 };
 /**
  *

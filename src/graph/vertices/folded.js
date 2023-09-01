@@ -11,11 +11,11 @@ import {
 	rotate270,
 	rotate90,
 	resize,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 import {
 	identity3x4,
 	multiplyMatrix3Vector3,
-} from "../../math/algebra/matrix3.js";
+} from "../../math/matrix3.js";
 import {
 	makeVerticesFaces,
 	makeVerticesToEdgeBidirectional,

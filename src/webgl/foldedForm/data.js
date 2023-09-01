@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import { resize } from "../../math/algebra/vector.js";
+// import { resize } from "../../math/vector.js";
 import { makeVerticesNormal } from "../../graph/normals.js";
 import { makeEdgesVector } from "../../graph/make.js";
 import { light, dark } from "../general/colors.js";

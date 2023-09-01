@@ -1,21 +1,21 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constant.js";
+import { EPSILON } from "../math/constant.js";
 import {
 	include,
 	includeL,
 	includeR,
 	includeS,
-} from "../math/general/function.js";
+} from "../math/compare.js";
 import {
 	normalize2,
 	dot2,
 	scale2,
 	add2,
 	subtract2,
-} from "../math/algebra/vector.js";
-import { clipLineConvexPolygon } from "../math/intersect/clip.js";
+} from "../math/vector.js";
+import { clipLineConvexPolygon } from "../math/clip.js";
 import { boundary } from "./boundary.js";
 import {
 	getFacesLineOverlap,

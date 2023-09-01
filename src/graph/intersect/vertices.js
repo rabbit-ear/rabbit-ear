@@ -1,10 +1,13 @@
-import { EPSILON } from "../../math/general/constant.js";
+/**
+ * Rabbit Ear (c) Kraft
+ */
+import { EPSILON } from "../../math/constant.js";
 import {
 	magnitude,
 	normalize,
 	subtract,
 	dot,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 /**
  *
  */

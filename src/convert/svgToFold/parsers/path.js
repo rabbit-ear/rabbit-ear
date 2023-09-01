@@ -3,7 +3,7 @@
  */
 import {
 	epsilonEqualVectors,
-} from "../../../math/general/function.js";
+} from "../../../math/compare.js";
 import {
 	parsePathCommandsWithEndpoints,
 } from "../../../svg/general/path.js";

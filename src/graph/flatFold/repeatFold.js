@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import {
 	includeL,
 	includeS,
-} from "../../math/general/function.js";
+} from "../../math/compare.js";
 import {
 	magnitude2,
 	normalize2,
@@ -13,8 +13,8 @@ import {
 	add2,
 	subtract2,
 	scale2,
-} from "../../math/algebra/vector.js";
-import { clusterSortedGeneric } from "../../general/arrays.js";
+} from "../../math/vector.js";
+import { clusterSortedGeneric } from "../../general/cluster.js";
 import { facesContainingPoint } from "../nearest.js";
 import {
 	makeEdgesVector,

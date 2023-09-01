@@ -1,16 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constant.js";
-import { epsilonEqual } from "../math/general/function.js";
+import { EPSILON } from "../math/constant.js";
+import { epsilonEqual } from "../math/compare.js";
 import {
 	dot2,
 	cross2,
 	scale2,
 	add2,
 	subtract2,
-} from "../math/algebra/vector.js";
-import { epsilonUniqueSortedNumbers } from "../general/arrays.js";
+} from "../math/vector.js";
+import { epsilonUniqueSortedNumbers } from "../general/array.js";
 import { filterKeysWithPrefix } from "../fold/spec.js";
 import { sweepValues } from "./sweep.js";
 import { invertMap } from "./maps.js";

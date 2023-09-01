@@ -6,7 +6,7 @@ import {
 	filterKeysWithPrefix,
 	filterKeysWithSuffix,
 } from "../fold/spec.js";
-import { uniqueSortedNumbers } from "../general/arrays.js";
+import { uniqueSortedNumbers } from "../general/array.js";
 /**
  * @description Given a self-relational array like faces_faces or
  * vertices_vertices, and a list of indices with which to keep,

@@ -15,7 +15,7 @@
  * @returns {number[][]} groups of the indices where each index appears only once
  * @linkcode Origami ./src/graph/connectedComponents.js 12
  */
-const connectedComponents = (array_array) => {
+export const connectedComponents = (array_array) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		// do not increment groups if this
@@ -31,5 +31,25 @@ const connectedComponents = (array_array) => {
 	}
 	return groups;
 };
-
-export default connectedComponents;
+/**
+ * @description Given a self-relational array of arrays, for example,
+ * vertices_vertices, edges_edges, faces_faces, where the values in the
+ * inner arrays relate to the indices of the outer array, create a list of
+ * all pairwise combinations of connected indices. All pairs are sorted
+ * so that for [i, j], i <= j. This allows circular references (i === j).
+ * @param {number[][]} array_array an array of arrays of integers
+ * @returns {number[][]} array of two-dimensional array pairs of indices.
+ * @linkcode Origami ./src/general/arrays.js 128
+ */
+export const connectedComponentsPairs = (array_array) => {
+	const circular = [];
+	const pairs = [];
+	array_array.forEach((arr, i) => arr.forEach(j => {
+		if (i < j) { pairs.push([i, j]); }
+		if (i === j && !circular[i]) {
+			circular[i] = true;
+			pairs.push([i, j]);
+		}
+	}));
+	return pairs;
+};

@@ -1,29 +1,29 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import {
 	dot,
 	dot3,
 	scale3,
 	resize,
 	parallelNormalized,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 import {
 	makePolygonNonCollinear,
-} from "../../math/geometry/polygon.js";
+} from "../../math/polygon.js";
 import {
 	makeMatrix4Rotate,
 	multiplyMatrix4Vector3,
-} from "../../math/algebra/matrix4.js";
+} from "../../math/matrix4.js";
 import {
 	matrix4FromQuaternion,
 	quaternionFromTwoVectors,
-} from "../../math/algebra/quaternion.js";
-import { overlapConvexPolygons } from "../../math/intersect/overlap.js";
+} from "../../math/quaternion.js";
+import { overlapConvexPolygons } from "../../math/overlap.js";
 import { makeFacesNormal } from "../normals.js";
-import { clusterScalars } from "../../general/arrays.js";
-import connectedComponents from "../connectedComponents.js";
+import { clusterScalars } from "../../general/cluster.js";
+import { connectedComponents } from "../connectedComponents.js";
 import { invertMap } from "../maps.js";
 import { makeFacesFaces } from "../make.js";
 import { selfRelationalArraySubset } from "../subgraph.js";

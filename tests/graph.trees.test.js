@@ -13,7 +13,7 @@ test("minimumSpanningTrees, faces", () => {
 	expect(trees.flat(2).length).toBe(faces_faces.length);
 	expect(trees.length).toBe(5);
 	trees.forEach(tree => expect(tree[0].length).toBe(1));
-	expect(ear.graph.uniqueElements(trees.flat(2).map(el => el.index)).length)
+	expect(ear.general.uniqueElements(trees.flat(2).map(el => el.index)).length)
 		.toBe(faces_faces.length);
 });
 
@@ -28,7 +28,7 @@ test("minimumSpanningTrees, vertices", () => {
 	expect(trees.flat(2).length).toBe(vertices_vertices.length);
 	expect(trees.length).toBe(5);
 	trees.forEach(tree => expect(tree[0].length).toBe(1));
-	expect(ear.graph.uniqueElements(trees.flat(2).map(el => el.index)).length)
+	expect(ear.general.uniqueElements(trees.flat(2).map(el => el.index)).length)
 		.toBe(vertices_vertices.length);
 });
 

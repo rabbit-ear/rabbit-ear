@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import { getDimension } from "../../fold/spec.js";
 /**
  * @description Find all clusters of vertices which lie within an epsilon of each other.

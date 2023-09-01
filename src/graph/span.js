@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constant.js";
+import { EPSILON } from "../math/constant.js";
 import { makeEdgesBoundingBox } from "./make.js";
 /**
  * @description This returns a matrix relating every edge to every vertex,

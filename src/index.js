@@ -5,6 +5,7 @@ import { setWindow } from "./environment/window.js";
 import { graph, cp, origami } from "./prototypes/index.js";
 import axiom from "./axioms/index.js";
 import convert from "./convert/index.js";
+import general from "./general/index.js";
 import graphMethods from "./graph/index.js";
 import math from "./math/index.js";
 import singleVertex from "./singleVertex/index.js";
@@ -26,6 +27,7 @@ const ear = {
 	origami,
 	axiom,
 	convert,
+	general,
 	math,
 	singleVertex,
 	svg,

@@ -5,7 +5,7 @@ import { invertMap } from "../graph/maps.js";
 import { makeFacesWinding } from "../graph/faces/winding.js";
 import { makeEdgesFaces } from "../graph/make.js";
 import { boundingBox } from "../graph/boundary.js";
-import { distance } from "../math/algebra/vector.js";
+import { distance } from "../math/vector.js";
 
 const shortestEdgeLength = ({ vertices_coords, edges_vertices }) => {
 	const lengths = edges_vertices

@@ -10,11 +10,51 @@
                __/ |
               |___/
  */
-import general from "./general/index.js";
-import algebra from "./algebra/index.js";
-import geometry from "./geometry/index.js";
-import intersectMethods from "./intersect/index.js";
-// import primitives from "./primitives/index.js";
+import * as constant from "./constant.js";
+import * as convert from "./convert.js";
+import * as compare from "./compare.js";
+import * as vector from "./vector.js";
+import * as matrix2 from "./matrix2.js";
+import * as matrix3 from "./matrix3.js";
+import * as matrix4 from "./matrix4.js";
+import * as quaternion from "./quaternion.js";
+import * as convexHullMethods from "./convexHull.js";
+import * as lineMethods from "./line.js";
+import * as nearestMethods from "./nearest.js";
+import * as planeMethods from "./plane.js";
+import * as polygonMethods from "./polygon.js";
+import * as radialMethods from "./radial.js";
+import straightSkeleton from "./straightSkeleton.js";
+import * as encloses from "./encloses.js";
+import * as overlapMethods from "./overlap.js";
+import * as intersectMethods from "./intersect.js";
+import * as clip from "./clip.js";
+import * as split from "./split.js";
+import intersect from "./intersectMethod.js";
+
+export default {
+	...constant,
+	...convert,
+	...compare,
+	...vector,
+	...matrix2,
+	...matrix3,
+	...matrix4,
+	...quaternion,
+	...convexHullMethods,
+	...lineMethods,
+	...nearestMethods,
+	...planeMethods,
+	...polygonMethods,
+	...radialMethods,
+	straightSkeleton,
+	...encloses,
+	...overlapMethods,
+	...intersectMethods,
+	...clip,
+	...split,
+	intersect,
+};
 
 /**
  * @typedef VecLine
@@ -57,12 +97,12 @@ import intersectMethods from "./intersect/index.js";
  * @description A small math library with a focus on linear algebra,
  * computational geometry, and computing the intersection of shapes.
  */
-const math = {
-	...general,
-	...algebra,
-	...geometry,
-	...intersectMethods,
-};
+// const math = {
+// 	...general,
+// 	...algebra,
+// 	...geometry,
+// 	...intersectMethods,
+// };
 // const math = primitives;
 // Object.assign(math, {
 // 	...general,
@@ -71,4 +111,4 @@ const math = {
 // 	...intersectMethods,
 // 	// ...types,
 // });
-export default math;
+// export default math;

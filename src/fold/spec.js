@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constant.js";
-import { epsilonEqual } from "../math/general/function.js";
+import { EPSILON } from "../math/constant.js";
+import { epsilonEqual } from "../math/compare.js";
 import { foldKeys } from "./keys.js";
 /**
  * this contains two types of methods.

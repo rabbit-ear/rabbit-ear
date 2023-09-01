@@ -1,9 +1,7 @@
-import { EPSILON } from "../math/general/constant.js";
-import { epsilonEqual } from "../math/general/function.js";
-import {
-	uniqueElements,
-	clusterScalars,
-} from "../general/arrays.js";
+import { EPSILON } from "../math/constant.js";
+import { epsilonEqual } from "../math/compare.js";
+import { uniqueElements } from "../general/array.js";
+import { clusterScalars } from "../general/cluster.js";
 import { makeVerticesEdgesUnsorted } from "./make.js";
 /**
  * @description convert a faces_vertices into an edge-style list, where

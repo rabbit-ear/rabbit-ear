@@ -4,10 +4,10 @@
 import {
 	TWO_PI,
 	EPSILON,
-} from "../../math/general/constant.js";
-import { includeL } from "../../math/general/function.js";
-import { subtract2 } from "../../math/algebra/vector.js";
-import { counterClockwiseSectors2 } from "../../math/geometry/radial.js";
+} from "../../math/constant.js";
+import { includeL } from "../../math/compare.js";
+import { subtract2 } from "../../math/vector.js";
+import { counterClockwiseSectors2 } from "../../math/radial.js";
 import { getEdgesSegmentIntersection } from "../intersect/edges.js";
 import splitEdge from "../splitEdge/index.js";
 import remove from "../remove.js";

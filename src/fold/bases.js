@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makePolygonCircumradius } from "../math/geometry/polygon.js";
+import { makePolygonCircumradius } from "../math/polygon.js";
 import populate from "../graph/populate.js";
 
 const make_rect_vertices_coords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];

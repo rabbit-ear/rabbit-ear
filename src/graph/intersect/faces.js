@@ -1,19 +1,19 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import {
 	includeL,
 	excludeS,
-} from "../../math/general/function.js";
-import { overlapLinePoint } from "../../math/intersect/overlap.js";
-import { intersectLineLine } from "../../math/intersect/intersect.js";
+} from "../../math/compare.js";
+import { overlapLinePoint } from "../../math/overlap.js";
+import { intersectLineLine } from "../../math/intersect.js";
 import {
 	normalize2,
 	dot2,
 	cross2,
 	subtract2,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 /**
  *
  */

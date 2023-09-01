@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constant.js";
-import { counterClockwiseSectors2 } from "../math/geometry/radial.js";
+import { EPSILON } from "../math/constant.js";
+import { counterClockwiseSectors2 } from "../math/radial.js";
 import {
 	assignmentCanBeFolded,
 	assignmentFlatFoldAngle,

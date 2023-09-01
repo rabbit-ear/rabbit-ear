@@ -4,7 +4,7 @@
 import {
 	cross2,
 	subtract2,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 /**
  * @description An edge is adjacent to one or two faces,
  * this is stored in its edges_faces entry. for each of these

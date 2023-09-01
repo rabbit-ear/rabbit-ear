@@ -1,11 +1,14 @@
-import { EPSILON } from "../../math/general/constant.js";
+/**
+ * Rabbit Ear (c) Kraft
+ */
+import { EPSILON } from "../../math/constant.js";
 import {
 	dot,
 	scale,
 	add,
 	subtract,
-} from "../../math/algebra/vector.js";
-import { epsilonUniqueSortedNumbers } from "../../general/arrays.js";
+} from "../../math/vector.js";
+import { epsilonUniqueSortedNumbers } from "../../general/array.js";
 import addPlanarSegment from "./addPlanarSegment.js";
 import { getEdgesLineIntersection } from "../intersect/edges.js";
 

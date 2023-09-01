@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { multiplyMatrices4 } from "../../math/algebra/matrix4.js";
+import { multiplyMatrices4 } from "../../math/matrix4.js";
 import { parseColorToWebGLRgb } from "../general/colors.js";
 
 const makeUniforms = (gl, {

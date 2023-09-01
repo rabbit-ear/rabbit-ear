@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 /**
  * density-based spatial clustering of applications with noise (DBSCAN)
  * cluster vertices near each other with an epsilon

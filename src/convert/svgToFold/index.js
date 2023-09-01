@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { cleanNumber } from "../../math/general/number.js";
+import { cleanNumber } from "../../general/number.js";
 import { planarBoundary } from "../../graph/boundary.js";
 import { findEpsilonInObject } from "../general/options.js";
 import planarizeGraph from "../general/planarizeGraph.js";

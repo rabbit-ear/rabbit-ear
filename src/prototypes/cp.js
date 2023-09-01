@@ -5,13 +5,13 @@ import {
 	includeL,
 	includeR,
 	includeS,
-} from "../math/general/function.js";
+} from "../math/compare.js";
 import {
 	getLine,
 	getSegment,
 	getArrayOfVectors,
-} from "../math/general/get.js";
-import { pointsToLine } from "../math/general/convert.js";
+} from "../general/get.js";
+import { pointsToLine } from "../math/convert.js";
 import GraphProto from "./graph.js";
 import { clip } from "../graph/clip.js";
 import addPlanarSegment from "../graph/add/addPlanarSegment.js";

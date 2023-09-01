@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { magnitude3, distance3, scale3 } from "../math/algebra/vector.js";
+import { magnitude3, distance3, scale3 } from "../math/vector.js";
 /**
  * How desaturated can a color be but still be considered
  * a color instead of a grayscale value? please be: 0 < n < Inf.

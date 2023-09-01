@@ -4,8 +4,8 @@
 import {
 	exclude,
 	includeL,
-} from "../math/general/function.js";
-import { boundingBox } from "../math/geometry/polygon.js";
+} from "../math/compare.js";
+import { boundingBox } from "../math/polygon.js";
 import {
 	dot,
 	magnitude,
@@ -17,9 +17,9 @@ import {
 	midpoint,
 	flip,
 	rotate90,
-} from "../math/algebra/vector.js";
-import { convexHull } from "../math/geometry/convexHull.js";
-import { clipLineConvexPolygon } from "../math/intersect/clip.js";
+} from "../math/vector.js";
+import { convexHull } from "../math/convexHull.js";
+import { clipLineConvexPolygon } from "../math/clip.js";
 
 const boundary_for_arrows = ({ vertices_coords }) => (
 	convexHull(vertices_coords).map(v => vertices_coords[v])

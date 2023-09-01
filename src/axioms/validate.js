@@ -4,27 +4,27 @@
 import {
 	subtract,
 	rotate90,
-} from "../math/algebra/vector.js";
+} from "../math/vector.js";
 import {
 	makeMatrix2Reflect,
 	multiplyMatrix2Vector2,
-} from "../math/algebra/matrix2.js";
+} from "../math/matrix2.js";
 import {
 	include,
 	includeL,
 	includeS,
-} from "../math/general/function.js";
+} from "../math/compare.js";
 import {
 	overlapLinePoint,
 	overlapConvexPolygonPoint,
-} from "../math/intersect/overlap.js";
+} from "../math/overlap.js";
 import {
 	intersectLineLine,
 	intersectConvexPolygonLine,
-} from "../math/intersect/intersect.js";
+} from "../math/intersect.js";
 import {
 	clipLineConvexPolygon,
-} from "../math/intersect/clip.js";
+} from "../math/clip.js";
 
 const reflectPoint = (foldLine, point) => {
 	const matrix = makeMatrix2Reflect(foldLine.vector, foldLine.origin);

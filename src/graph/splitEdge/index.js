@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import {
 	distance,
 	midpoint,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 import remove from "../remove.js";
 import {
 	update_vertices_vertices,

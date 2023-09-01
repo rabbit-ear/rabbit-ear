@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { flattenArrays } from "../../math/general/array.js";
 import validateTacoTortillaStrip from "./validateTacoTortillaStrip.js";
 import validateTacoTacoFacePairs from "./validateTacoTacoFacePairs.js";
 /**
@@ -31,7 +30,7 @@ const validateLayerSolver = (
 	// but in this specific use case we can be guaranteed that only one of those
 	// will be used in the build_layers, as only one of a set of flat-
 	// strip faces can exist in one taco stack location.
-	const flat_layers_face = flattenArrays(layers_face);
+	const flat_layers_face = layers_face.flat();
 	// taco-tortilla intersections
 	if (!validateTacoTortillaStrip(
 		faces_folded,

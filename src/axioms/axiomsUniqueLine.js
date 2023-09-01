@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  * this section contains code from Robert Lang's Reference Finder
  */
-import { EPSILON } from "../math/general/constant.js";
+import { EPSILON } from "../math/constant.js";
 import {
 	cross2,
 	normalize2,
@@ -13,7 +13,7 @@ import {
 	distance2,
 	scale2,
 	midpoint2,
-} from "../math/algebra/vector.js";
+} from "../math/vector.js";
 /*           _                       _              _
 						(_)                     (_)            (_)
 	 ___  _ __ _  __ _  __ _ _ __ ___  _    __ ___  ___  ___  _ __ ___  ___

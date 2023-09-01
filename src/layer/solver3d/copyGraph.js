@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { resize } from "../../math/algebra/vector.js";
-import { multiplyMatrix4Vector3 } from "../../math/algebra/matrix4.js";
+import { resize } from "../../math/vector.js";
+import { multiplyMatrix4Vector3 } from "../../math/matrix4.js";
 import { subgraphWithFaces } from "../../graph/subgraph.js";
 import {
 	filterKeysWithPrefix,

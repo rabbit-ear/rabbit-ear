@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { cleanNumber } from "../../math/general/number.js";
+import { cleanNumber } from "../../general/number.js";
 import svgSegments from "./svgSegments.js";
 import {
 	parseColorToHex,

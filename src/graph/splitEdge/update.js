@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { TWO_PI } from "../../math/general/constant.js";
-import { subtract2 } from "../../math/algebra/vector.js";
-import { counterClockwiseSectors2 } from "../../math/geometry/radial.js";
+import { TWO_PI } from "../../math/constant.js";
+import { subtract2 } from "../../math/vector.js";
+import { counterClockwiseSectors2 } from "../../math/radial.js";
 import { makeVerticesToEdgeBidirectional } from "../make.js";
 /**
  * @description an edge was just split into two by the addition of a vertex.

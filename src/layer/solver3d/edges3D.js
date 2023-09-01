@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { chooseTwoPairs } from "../../general/arrays.js";
-import { EPSILON } from "../../math/general/constant.js";
+import { chooseTwoPairs } from "../../general/array.js";
+import { EPSILON } from "../../math/constant.js";
 import {
 	dot,
 	cross2,
 	subtract2,
-} from "../../math/algebra/vector.js";
-import { multiplyMatrix4Vector3 } from "../../math/algebra/matrix4.js";
+} from "../../math/vector.js";
+import { multiplyMatrix4Vector3 } from "../../math/matrix4.js";
 import { doRangesOverlap } from "./general.js";
 import { edgeFoldAngleIsFlat } from "../../fold/spec.js";
 import { getEdgesLine } from "../../graph/edges/lines.js";

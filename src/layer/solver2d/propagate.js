@@ -3,7 +3,7 @@
  */
 import table from "./table.js";
 import { constraintToFacePairs } from "./general.js";
-import { uniqueElements } from "../../general/arrays.js";
+import { uniqueElements } from "../../general/array.js";
 /**
  * @typedef Constraint
  * @type {number[]}

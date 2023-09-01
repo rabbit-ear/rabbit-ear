@@ -5,7 +5,7 @@ import {
 	scale,
 	add,
 	resize,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 import {
 	nudgeFacesWithFaceOrders,
 	nudgeFacesWithFacesLayer,

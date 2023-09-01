@@ -5,14 +5,14 @@ import {
 	dot2,
 	normalize2,
 	subtract2,
-} from "../math/algebra/vector.js";
+} from "../math/vector.js";
 import { assignmentCanBeFolded } from "../fold/spec.js";
 import { makeVerticesEdgesUnsorted } from "../graph/make.js";
 import {
 	counterClockwiseOrder2,
 	counterClockwiseAngleRadians,
 	isCounterClockwiseBetween,
-} from "../math/geometry/radial.js";
+} from "../math/radial.js";
 /**
  * @description given a list of numbers this method will sort them by
  *  even and odd indices and sum the two categories, returning two sums.

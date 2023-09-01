@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
-import { distance } from "../../math/algebra/vector.js";
+import { EPSILON } from "../../math/constant.js";
+import { distance } from "../../math/vector.js";
 /**
  * @description add vertices to a graph by adding their vertices_coords only. This
  * will also compare against every existing vertex, only adding non-duplicate

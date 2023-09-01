@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { boundingBox as _boundingBox } from "../math/geometry/polygon.js";
+import { boundingBox as _boundingBox } from "../math/polygon.js";
 import { assignmentIsBoundary } from "../fold/spec.js";
-import { uniqueElements } from "../general/arrays.js";
+import { uniqueElements } from "../general/array.js";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices,

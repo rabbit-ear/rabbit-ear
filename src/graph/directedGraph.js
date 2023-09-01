@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { uniqueSortedNumbers } from "../general/arrays.js";
+import { uniqueSortedNumbers } from "../general/array.js";
 /**
  * @description Perform a topological sort on a directed acyclic graph.
  * This method assumes your graph is acyclic and will *not* do any testing.

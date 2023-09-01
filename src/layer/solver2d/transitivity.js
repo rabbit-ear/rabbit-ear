@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
-import { clipPolygonPolygon } from "../../math/intersect/clip.js";
+import { EPSILON } from "../../math/constant.js";
+import { clipPolygonPolygon } from "../../math/clip.js";
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the

@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import { solverSolutionToFaceOrders } from "../solver2d/general.js";
-import { dot } from "../../math/algebra/vector.js";
+import { dot } from "../../math/vector.js";
 /**
  * @description a range is an array of two numbers [start, end]
  * not necessarily in sorted order.

@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
-import { collinearBetween } from "../../math/geometry/line.js";
+import { EPSILON } from "../../math/constant.js";
+import { collinearBetween } from "../../math/line.js";
 import { makeVerticesEdgesUnsorted } from "../make.js";
 import { getOtherVerticesInEdges } from "../edges/general.js";
 /**

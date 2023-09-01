@@ -6,18 +6,18 @@ import {
 	subtract,
 	subtract2,
 	resizeUp,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 import {
 	identity2x3,
 	multiplyMatrix2Vector2,
 	makeMatrix2Reflect,
 	multiplyMatrices2,
-} from "../../math/algebra/matrix2.js";
+} from "../../math/matrix2.js";
 import {
 	identity3x4,
 	makeMatrix3Rotate,
 	multiplyMatrices3,
-} from "../../math/algebra/matrix3.js";
+} from "../../math/matrix3.js";
 import {
 	makeVerticesFaces,
 	makeVerticesToEdgeBidirectional,

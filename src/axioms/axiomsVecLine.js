@@ -8,17 +8,17 @@ import {
 	rotate90,
 	midpoint2,
 	distance2,
-} from "../math/algebra/vector.js";
-import { bisectLines2 } from "../math/geometry/line.js";
+} from "../math/vector.js";
+import { bisectLines2 } from "../math/line.js";
 import {
 	vecLineToUniqueLine,
 	uniqueLineToVecLine,
-} from "../math/general/convert.js";
-import { includeL } from "../math/general/function.js";
+} from "../math/convert.js";
+import { includeL } from "../math/compare.js";
 import {
 	intersectLineLine,
 	intersectCircleLine,
-} from "../math/intersect/intersect.js";
+} from "../math/intersect.js";
 import { normalAxiom6 } from "./axiomsUniqueLine.js";
 /*           _                       _              _
 						(_)                     (_)            (_)

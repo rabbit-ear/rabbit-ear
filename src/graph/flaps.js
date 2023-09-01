@@ -1,9 +1,12 @@
-import { EPSILON } from "../math/general/constant.js";
-import { excludeS } from "../math/general/function.js";
+/**
+ * Rabbit Ear (c) Kraft
+ */
+import { EPSILON } from "../math/constant.js";
+import { excludeS } from "../math/compare.js";
 import {
 	cross2,
 	subtract2,
-} from "../math/algebra/vector.js";
+} from "../math/vector.js";
 import {
 	getEdgesLineIntersection,
 	getEdgesCollinearToLine,

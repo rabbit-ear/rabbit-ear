@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { multiplyMatrix2Vector2 } from "../../math/algebra/matrix2.js";
+import { multiplyMatrix2Vector2 } from "../../math/matrix2.js";
 import { flattenDomTreeWithStyle } from "../../svg/general/dom.js";
 import { transformStringToMatrix } from "../../svg/general/transforms.js";
 import parsers from "./parsers/index.js";

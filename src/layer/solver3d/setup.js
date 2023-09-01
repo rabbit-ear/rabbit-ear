@@ -1,14 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
-import { average2 } from "../../math/algebra/vector.js";
+import { EPSILON } from "../../math/constant.js";
+import { average2 } from "../../math/vector.js";
 import { invertMap } from "../../graph/maps.js";
 import { makeFacesPolygon } from "../../graph/make.js";
 import {
-	flatSort,
-	selfRelationalUniqueIndexPairs,
-} from "../../general/arrays.js";
+	zipperArrays,
+} from "../../general/array.js";
+import { 	connectedComponentsPairs } from "../../graph/connectedComponents.js";
 import { coplanarOverlappingFacesGroups } from "../../graph/faces/coplanar.js";
 import { getFacesFacesOverlap } from "../../graph/intersect/facesFaces.js";
 import makeTacosTortillas from "../solver2d/tacosAndTortillas.js";
@@ -162,7 +162,7 @@ export const setup = ({
 	// faces_polygon is a flat array of polygons in 2D, where every face
 	// is re-oriented into 2D via each set's transformation.
 	// additionally, flip windings if necessary, all are counter-clockwise.
-	const faces_polygon = flatSort(...sets_graphs
+	const faces_polygon = zipperArrays(...sets_graphs
 		.map(copy => makeFacesPolygon(copy, epsilon)));
 	faces_winding
 		.map((upright, i) => (upright ? undefined : i))
@@ -173,7 +173,7 @@ export const setup = ({
 	// faces-faces overlap will be a single flat array.
 	// each face is only a part of one planar-group anyway.
 	// as opposed to edges-faces overlap which is computed for each planar-group.
-	const facesFacesOverlap = flatSort(...sets_graphs
+	const facesFacesOverlap = zipperArrays(...sets_graphs
 		.map(graph => getFacesFacesOverlap(graph, epsilon)));
 	// console.timeEnd("setup.js getFacesFacesOverlap()");
 	// simple faces center by averaging all the face's vertices
@@ -200,9 +200,9 @@ export const setup = ({
 	// console.timeEnd("setup.js ...make tacos/tortillas/transitivity");
 	// these are all the variables we need to solve- all overlapping faces in
 	// pairwise combinations, as a space-separated string, smallest index first
-	const facePairsInts = selfRelationalUniqueIndexPairs(facesFacesOverlap);
+	const facePairsInts = connectedComponentsPairs(facesFacesOverlap);
 	const facePairs = facePairsInts.map(pair => pair.join(" "));
-	// const facePairs = selfRelationalUniqueIndexPairs(facesFacesOverlap)
+	// const facePairs = connectedComponentsPairs(facesFacesOverlap)
 	// 	.map(pair => pair.join(" "));
 	// the additional 3d tacos/tortillas data
 	const {

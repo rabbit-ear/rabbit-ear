@@ -18,7 +18,7 @@ test("Graph group copies", () => {
 	} = ear.graph.coplanarOverlappingFacesGroups(graph);
 	// all vertices_coords will become 2D
 	const sets_graphs = ear.layer.graphGroupCopies(graph, sets_faces, sets_transformXY);
-	const faces_polygon = ear.graph.flatSort(...sets_graphs
+	const faces_polygon = ear.general.zipperArrays(...sets_graphs
 		.map(copy => ear.graph.makeFacesPolygon(copy)));
 	fs.writeFileSync(`./tests/tmp/sets_graphs.json`, JSON.stringify(sets_graphs, null, 2));
 	fs.writeFileSync(`./tests/tmp/faces_polygon.json`, JSON.stringify(faces_polygon, null, 2));

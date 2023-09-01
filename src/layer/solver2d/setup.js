@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
-import { selfRelationalUniqueIndexPairs } from "../../general/arrays.js";
+import { EPSILON } from "../../math/constant.js";
+import { connectedComponentsPairs } from "../../graph/connectedComponents.js";
 import { getFacesFacesOverlap } from "../../graph/intersect/facesFaces.js";
 import { makeFacesWinding } from "../../graph/faces/winding.js";
 import { makeFacesPolygon } from "../../graph/make.js";
@@ -57,7 +57,7 @@ export const setup = ({
 	const transitivity = filterTransitivity(unfilteredTrans, { taco_taco, taco_tortilla });
 	// these are all the variables we need to solve- all overlapping faces in
 	// pairwise combinations, as a space-separated string, smallest index first
-	const facePairs = selfRelationalUniqueIndexPairs(facesFacesOverlap)
+	const facePairs = connectedComponentsPairs(facesFacesOverlap)
 		.map(pair => pair.join(" "));
 	// format the tacos and transitivity data into maps that relate to the
 	// lookup table at the heart of the algorithm, located at "table.js"

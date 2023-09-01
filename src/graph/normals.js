@@ -7,7 +7,7 @@ import {
 	subtract,
 	parallel,
 	resize,
-} from "../math/algebra/vector.js";
+} from "../math/vector.js";
 /**
  * @description Make one vector for every face that represents the
  * face's normal direction. This assumes that the faces are planar

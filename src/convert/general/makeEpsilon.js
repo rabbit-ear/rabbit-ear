@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { boundingBox } from "../../graph/boundary.js";
-import { distance } from "../../math/algebra/vector.js";
+import { distance } from "../../math/vector.js";
 
 const shortestEdgeLength = ({ vertices_coords, edges_vertices }) => {
 	const lengths = edges_vertices

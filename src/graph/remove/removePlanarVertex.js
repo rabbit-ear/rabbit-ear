@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import remove from "../remove.js";
-import { uniqueSortedNumbers } from "../../general/arrays.js";
+import { uniqueSortedNumbers } from "../../general/array.js";
 import { getOtherVerticesInEdges } from "../edges/general.js";
 /**
  * @description given a degree-2 vertex, remove this vertex, merge the adjacent

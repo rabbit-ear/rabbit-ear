@@ -1,11 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/general/constant.js";
+import { EPSILON } from "../math/constant.js";
 import {
 	distance,
 	resize,
-} from "../math/algebra/vector.js";
+} from "../math/vector.js";
 import count from "./count.js";
 import {
 	singularize,

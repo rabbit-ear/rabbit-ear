@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { dot } from "../math/algebra/vector.js";
-import { uniqueSortedNumbers } from "../general/arrays.js";
+import { dot } from "../math/vector.js";
+import { uniqueSortedNumbers } from "../general/array.js";
 import { makeFacesNormal } from "./normals.js";
 import { topologicalSort } from "./directedGraph.js";
 import { makeVerticesVerticesUnsorted } from "./make.js";
 import { invertMap } from "./maps.js";
-import connectedComponents from "./connectedComponents.js";
+import { connectedComponents } from "./connectedComponents.js";
 // import { allLayerConditions } from "./globalSolver/index.js";
 /**
  * @description given faceOrders and a list of faces, filter the list

@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
-import { subtract } from "../../math/algebra/vector.js";
-import { sortPointsAlongVector } from "../../math/general/sort.js";
+import { EPSILON } from "../../math/constant.js";
+import { subtract } from "../../math/vector.js";
+import { sortPointsAlongVector } from "../../general/sort.js";
 /**
  * @description This is a subroutine for building vertices_vertices. This will
  * take a set of vertices indices and a vertex index to be the center point, and

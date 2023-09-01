@@ -1,10 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import { makeFacesConvexCenter } from "../../graph/make.js";
 import { makeEdgesEdgesParallelOverlap } from "../../graph/intersect/edgesEdges.js";
-import { selfRelationalUniqueIndexPairs } from "../../general/arrays.js";
+import { connectedComponentsPairs } from "../../graph/connectedComponents.js";
 import { getEdgesFacesOverlap } from "../../graph/intersect/edgesFaces.js";
 import {
 	makeEdgesFacesSide,
@@ -123,7 +123,7 @@ const makeTacosAndTortillas = ({
 	}, epsilon);
 	// convert this matrix into unique pairs ([4, 9] but not [9, 4])
 	// thse pairs are also sorted such that the smaller index is first.
-	const tacos_edges = selfRelationalUniqueIndexPairs(edge_edge_overlap_matrix)
+	const tacos_edges = connectedComponentsPairs(edge_edge_overlap_matrix)
 		.filter(pair => pair
 			.map(edge => edges_faces[edge].length > 1)
 			.reduce((a, b) => a && b, true));

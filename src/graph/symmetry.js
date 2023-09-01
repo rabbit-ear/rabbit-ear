@@ -1,14 +1,17 @@
-import { EPSILON } from "../math/general/constant.js";
-import { vecLineToUniqueLine } from "../math/general/convert.js";
-import { flip } from "../math/algebra/vector.js";
+/**
+ * Rabbit Ear (c) Kraft
+ */
+import { EPSILON } from "../math/constant.js";
+import { vecLineToUniqueLine } from "../math/convert.js";
+import { flip } from "../math/vector.js";
 import {
 	multiplyMatrix2Line2,
 	makeMatrix2Reflect,
-} from "../math/algebra/matrix2.js";
+} from "../math/matrix2.js";
 import {
 	clusterScalars,
 	clusterParallelVectors,
-} from "../general/arrays.js";
+} from "../general/cluster.js";
 import { getEdgesLine } from "./edges/lines.js";
 
 const fixLineDirection = ({ normal, distance }) => (distance < 0

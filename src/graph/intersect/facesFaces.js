@@ -1,12 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
-import { boundingBox } from "../../math/geometry/polygon.js";
+import { EPSILON } from "../../math/constant.js";
+import { boundingBox } from "../../math/polygon.js";
 import {
 	overlapBoundingBoxes,
 	overlapConvexPolygons,
-} from "../../math/intersect/overlap.js";
+} from "../../math/overlap.js";
 import { makeFacesPolygon } from "../make.js";
 import { sweepFaces } from "../sweep.js";
 /**

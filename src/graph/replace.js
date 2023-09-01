@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import count from "./count.js";
-import { uniqueSortedNumbers } from "../general/arrays.js";
+import { uniqueSortedNumbers } from "../general/array.js";
 import {
 	filterKeysWithSuffix,
 	filterKeysWithPrefix,

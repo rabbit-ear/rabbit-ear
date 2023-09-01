@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
-import { excludeS } from "../../math/general/function.js";
-import { overlapLineLine } from "../../math/intersect/overlap.js";
+import { EPSILON } from "../../math/constant.js";
+import { excludeS } from "../../math/compare.js";
+import { overlapLineLine } from "../../math/overlap.js";
 import {
 	normalize,
 	dot,
-} from "../../math/algebra/vector.js";
+} from "../../math/vector.js";
 import { makeEdgesVector } from "../make.js";
 /**
  * @description Create an NxN matrix (N number of edges) that relates edges to each other,

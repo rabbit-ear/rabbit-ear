@@ -48,8 +48,6 @@ import * as intersectEdgesEdges from "./intersect/edgesEdges.js";
 import * as intersectEdgesFaces from "./intersect/edgesFaces.js";
 import * as intersectFaces from "./intersect/faces.js";
 import * as intersectFacesFaces from "./intersect/facesFaces.js";
-// not sure about including this
-import * as arrays from "../general/arrays.js";
 // import addVertices from "./add/addVertices.js";
 // import addEdges from "./add/addEdges.js";
 import addVertex from "./add/addVertex.js";
@@ -58,10 +56,9 @@ import addPlanarLine from "./add/addPlanarLine.js";
 import addPlanarSegment from "./add/addPlanarSegment.js";
 import addPlanarSegmentNew from "./add/addPlanarSegmentNew.js";
 import clean from "./clean.js";
-import clone from "../general/clone.js";
 import count from "./count.js";
 import countImplied from "./countImplied.js";
-import connectedComponents from "./connectedComponents.js";
+import * as connectedComponents from "./connectedComponents.js";
 import flatFold from "./flatFold/index.js";
 import repeatFold from "./flatFold/repeatFold.js";
 import planarize from "./planarize.js";
@@ -99,8 +96,7 @@ export default {
 	addPlanarSegment,
 	addPlanarSegmentNew,
 	planarize,
-	connectedComponents,
-	clone,
+	...connectedComponents,
 	...foldColors,
 	...foldFileFrames,
 	...foldKeyMethods,
@@ -127,7 +123,6 @@ export default {
 	...trees,
 	...triangulateMethods,
 	...walk,
-	...arrays,
 	...verticesClusters,
 	...verticesCollinear,
 	...verticesDuplicate,

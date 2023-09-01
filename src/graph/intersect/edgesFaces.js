@@ -6,14 +6,14 @@ import {
 	excludeS,
 	epsilonEqual,
 	epsilonEqualVectors,
-} from "../../math/general/function.js";
-import { EPSILON } from "../../math/general/constant.js";
-import { boundingBox } from "../../math/geometry/polygon.js";
-import { intersectConvexPolygonLine } from "../../math/intersect/intersect.js";
+} from "../../math/compare.js";
+import { EPSILON } from "../../math/constant.js";
+import { boundingBox } from "../../math/polygon.js";
+import { intersectConvexPolygonLine } from "../../math/intersect.js";
 import {
 	overlapBoundingBoxes,
 	overlapConvexPolygonPoint,
-} from "../../math/intersect/overlap.js";
+} from "../../math/overlap.js";
 import {
 	makeEdgesFacesUnsorted,
 	makeEdgesVector,

@@ -4,7 +4,7 @@
 import { axiom } from "./axiomsVecLine.js";
 import { normalAxiom } from "./axiomsUniqueLine.js";
 import { validateAxiom } from "./validate.js";
-import { uniqueLineToVecLine } from "../math/general/convert.js";
+import { uniqueLineToVecLine } from "../math/convert.js";
 
 const paramsToUniqueLine = (args) => args
 	.map(arg => (typeof arg === "object" && arg.vector

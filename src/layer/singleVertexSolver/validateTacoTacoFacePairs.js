@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { nonUniqueElements } from "../../general/arrays.js";
+import { nonUniqueElements } from "../../general/array.js";
 /**
  * @description test a stack of tacos (all left or right) for self-intersection.
  * for a collection of tacos which all point in the same direction,

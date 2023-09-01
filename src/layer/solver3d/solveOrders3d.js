@@ -1,15 +1,15 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import {
 	exclude,
 	excludeS,
-} from "../../math/general/function.js";
-import { subtract2 } from "../../math/algebra/vector.js";
-import { multiplyMatrix4Vector3 } from "../../math/algebra/matrix4.js";
-import { overlapConvexPolygonPoint } from "../../math/intersect/overlap.js";
-import { clipLineConvexPolygon } from "../../math/intersect/clip.js";
+} from "../../math/compare.js";
+import { subtract2 } from "../../math/vector.js";
+import { multiplyMatrix4Vector3 } from "../../math/matrix4.js";
+import { overlapConvexPolygonPoint } from "../../math/overlap.js";
+import { clipLineConvexPolygon } from "../../math/clip.js";
 /**
  *
  */

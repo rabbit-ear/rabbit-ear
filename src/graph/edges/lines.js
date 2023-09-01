@@ -1,22 +1,21 @@
-import { EPSILON } from "../../math/general/constant.js";
+import { EPSILON } from "../../math/constant.js";
 import {
-	clampLine,
 	epsilonEqualVectors,
-} from "../../math/general/function.js";
+} from "../../math/compare.js";
 import {
 	magnitude,
 	normalize,
 	subtract,
-} from "../../math/algebra/vector.js";
-import { radialSortPointIndices3 } from "../../math/general/sort.js";
-import { nearestPointOnLine } from "../../math/geometry/nearest.js";
-import { projectPointOnPlane } from "../../math/geometry/plane.js";
+} from "../../math/vector.js";
+import { radialSortPointIndices3 } from "../../general/sort.js";
+import { nearestPointOnLine } from "../../math/nearest.js";
+import { projectPointOnPlane } from "../../math/plane.js";
 import { makeEdgesCoords } from "../make.js";
 import {
 	clusterScalars,
 	clusterSortedGeneric,
 	clusterParallelVectors,
-} from "../../general/arrays.js";
+} from "../../general/cluster.js";
 /**
  * @description Convert the edges of a graph into (infinite) lines, and
  * prevent duplicate lines, only generate one line for all collinear edges.
@@ -44,7 +43,7 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 	// the point on the line that is nearest to the origin.
 	// when we return the list of lines, these will be used for the origins.
 	const edgesNearestToOrigin = edgesLine
-		.map(line => nearestPointOnLine(line, [0, 0, 0], clampLine, epsilon));
+		.map(line => nearestPointOnLine(line, [0, 0, 0], a => a, epsilon));
 	// shortest distance from each edge's line to the origin.
 	const edgesOriginDistances = edgesNearestToOrigin
 		.map(point => magnitude(point));

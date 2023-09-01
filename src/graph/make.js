@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { TWO_PI } from "../math/general/constant.js";
+import { TWO_PI } from "../math/constant.js";
 import {
 	flip,
 	subtract2,
@@ -11,13 +11,13 @@ import {
 	subtract,
 	dot,
 	magnitude,
-} from "../math/algebra/vector.js";
-import { counterClockwiseSectors2 } from "../math/geometry/radial.js";
+} from "../math/vector.js";
+import { counterClockwiseSectors2 } from "../math/radial.js";
 import {
 	boundingBox,
 	makePolygonNonCollinear,
 	centroid,
-} from "../math/geometry/polygon.js";
+} from "../math/polygon.js";
 import implied from "./countImplied.js";
 import {
 	planarVertexWalk,

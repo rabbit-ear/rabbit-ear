@@ -6,12 +6,12 @@ import {
 	excludeS,
 	excludeR,
 	includeL,
-} from "../math/general/function.js";
+} from "../math/compare.js";
 import {
 	getVector,
 	getLine,
-} from "../math/general/get.js";
-import { pointsToLine } from "../math/general/convert.js";
+} from "../general/get.js";
+import { pointsToLine } from "../math/convert.js";
 import {
 	dot,
 	cross2,
@@ -23,19 +23,19 @@ import {
 	midpoint,
 	rotate270,
 	flip,
-} from "../math/algebra/vector.js";
+} from "../math/vector.js";
 import {
 	makeMatrix2Reflect,
 	multiplyMatrix2Vector2,
-} from "../math/algebra/matrix2.js";
+} from "../math/matrix2.js";
 import {
 	convexHull,
-} from "../math/geometry/convexHull.js";
+} from "../math/convexHull.js";
 import {
 	intersectLineLine,
 	intersectConvexPolygonLine,
-} from "../math/intersect/intersect.js";
-import { clipLineConvexPolygon } from "../math/intersect/clip.js";
+} from "../math/intersect.js";
+import { clipLineConvexPolygon } from "../math/clip.js";
 import axiom from "../axioms/index.js";
 
 const line_line_for_arrows = (a, b) => intersectLineLine(

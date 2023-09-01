@@ -7,12 +7,12 @@ import {
 	axiom6 as fnAxiom6,
 	axiom7 as fnAxiom7,
 } from "../axioms/axiomsVecLine.js";
-import { pointsToLine } from "../math/general/convert.js";
+import { pointsToLine } from "../math/convert.js";
 /**
  *
  */
 const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
-	pointsToLine(edges_vertices[edge].map(v => vertices_coords[v]))
+	pointsToLine(...edges_vertices[edge].map(v => vertices_coords[v]))
 );
 /**
  *
