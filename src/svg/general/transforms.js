@@ -82,4 +82,4 @@ const transformStringToMatrix = function (string) {
 		.reduce((a, b) => svg_multiplyMatrices2(a, b), [1, 0, 0, 1, 0, 0]);
 };
 
-export { transformStringToMatrix };
+export { parseTransform, transformStringToMatrix };

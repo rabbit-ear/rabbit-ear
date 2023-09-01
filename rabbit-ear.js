@@ -4394,7 +4394,7 @@ const transformStringToMatrix = function (string) {
 		.map(el => matrixForm(el.transform, el.parameters))
 		.filter(a => a !== undefined)
 		.reduce((a, b) => svg_multiplyMatrices2(a, b), [1, 0, 0, 1, 0, 0]);
-};const transforms=/*#__PURE__*/Object.freeze({__proto__:null,transformStringToMatrix});const xmlStringToElement = (input, mimeType = "text/xml") => {
+};const transforms=/*#__PURE__*/Object.freeze({__proto__:null,parseTransform,transformStringToMatrix});const xmlStringToElement = (input, mimeType = "text/xml") => {
 	const result = (new (SVGWindow().DOMParser)()).parseFromString(input, mimeType);
 	return result ? result.documentElement : null;
 };
