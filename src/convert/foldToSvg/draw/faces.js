@@ -66,7 +66,8 @@ const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
  * and apply a style to each face accordingly, adds them to the group,
  * and applies style attributes to the group itself too.
  */
-const finalize_faces = (graph, svg_faces, group, attributes) => {
+const finalize_faces = (graph, svg_faces, group, options = {}) => {
+	const attributes = options && options.faces ? options.faces : {};
 	const isFolded = isFoldedForm(graph);
 	// currently, layer order is determined by "faces_layer" key, and
 	// ensuring that the length matches the number of faces in the graph.
@@ -112,7 +113,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
  * @returns {SVGElement[]} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
-export const facesVerticesPolygon = (graph, attributes = {}) => {
+export const facesVerticesPolygon = (graph, options) => {
 	const g = SVG.g();
 	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
 	const svg_faces = graph.faces_vertices
@@ -120,7 +121,7 @@ export const facesVerticesPolygon = (graph, attributes = {}) => {
 		.map(face => SVG.polygon(face));
 	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i)); // `${i}`));
 	g.setAttributeNS(null, "fill", "white");
-	return finalize_faces(graph, svg_faces, g, attributes);
+	return finalize_faces(graph, svg_faces, g, options);
 };
 /**
  * @description build SVG faces using faces_edges data. this is
@@ -128,7 +129,7 @@ export const facesVerticesPolygon = (graph, attributes = {}) => {
  * @returns {SVGElement[]} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
-export const facesEdgesPolygon = function (graph, attributes = {}) {
+export const facesEdgesPolygon = function (graph, options) {
 	const g = SVG.g();
 	if (!graph
 		|| "faces_edges" in graph === false
@@ -147,7 +148,7 @@ export const facesEdgesPolygon = function (graph, attributes = {}) {
 		.map(face => SVG.polygon(face));
 	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i)); // `${i}`));
 	g.setAttributeNS(null, "fill", "white");
-	return finalize_faces(graph, svg_faces, g, attributes);
+	return finalize_faces(graph, svg_faces, g, options);
 };
 
 const drawFaces = (graph, options) => {

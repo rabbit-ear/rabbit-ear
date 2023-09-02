@@ -19,7 +19,8 @@ const applyBoundariesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 // todo this needs to be able to handle multiple boundaries
-const drawBoundaries = (graph, attributes = {}) => {
+const drawBoundaries = (graph, options = {}) => {
+	const attributes = options && options.boundaries ? options.boundaries : {};
 	const g = SVG.g();
 	if (!graph) { return g; }
 	const polygon = boundary(graph).polygon;

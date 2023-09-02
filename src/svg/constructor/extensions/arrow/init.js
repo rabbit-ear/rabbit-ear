@@ -1,5 +1,5 @@
 /* svg (c) Kraft, MIT License */
-import { str_arrow, str_tail, str_head, str_path, str_style, str_stroke, str_none, str_object } from '../../../environment/strings.js';
+import { str_class, str_arrow, str_tail, str_head, str_path, str_style, str_stroke, str_none, str_object } from '../../../environment/strings.js';
 import NS from '../../../spec/namespace.js';
 import SVGWindow from '../../../environment/window.js';
 import ArrowMethods from './methods.js';
@@ -25,16 +25,15 @@ const matchingOptions = (...args) => {
 	return undefined;
 };
 
-const init = function (element, ...args) {
-	element.classList.add(str_arrow);
-	// element.setAttribute(str_class, str_arrow);
+const init = function (...args) {
+	const element = SVGWindow().document.createElementNS(NS, "g");
+	element.setAttribute(str_class, str_arrow);
 	const paths = ["line", str_tail, str_head].map(key => {
 		const path = SVGWindow().document.createElementNS(NS, str_path);
-		path.className = `${str_arrow}-${key}`;
+		path.setAttribute(str_class, `${str_arrow}-${key}`);
 		element.appendChild(path);
 		return path;
 	});
-		// .map(key => Library.path().addClass(`${str_arrow}-${key}`).appendTo(element));
 	paths[0].setAttribute(str_style, "fill:none;");
 	paths[1].setAttribute(str_stroke, str_none);
 	paths[2].setAttribute(str_stroke, str_none);

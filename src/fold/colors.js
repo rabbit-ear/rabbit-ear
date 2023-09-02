@@ -3,6 +3,22 @@
  */
 import { magnitude3, distance3, scale3 } from "../math/vector.js";
 /**
+ * @description CSS named colors for a standard stroke color, intended
+ * for light-background renders.
+ */
+export const assignmentColor = {
+	B: "black",
+	M: "crimson",
+	V: "royalblue",
+	F: "lightgray",
+	J: "gold",
+	C: "limegreen",
+	U: "orchid",
+};
+Object.keys(assignmentColor).forEach(key => {
+	assignmentColor[key.toLowerCase()] = assignmentColor[key];
+});
+/**
  * How desaturated can a color be but still be considered
  * a color instead of a grayscale value? please be: 0 < n < Inf.
  * 1 means nothing is changed. >1 is permissive
@@ -11,11 +27,11 @@ import { magnitude3, distance3, scale3 } from "../math/vector.js";
 const DESATURATION_RATIO = 4;
 
 // note: colors used by rgbToAssignment are for values between 0 and 255
-export const assignmentColor = {
+const colorMatchNormalized = {
 	M: [1, 0, 0], // red
 	V: [0, 0, 1], // blue
-	J: [1, 1, 0], // yellow
-	U: [1, 0, 1], // magenta
+	J: [Math.SQRT1_2, Math.SQRT1_2, 0], // yellow
+	U: [Math.SQRT1_2, 0, Math.SQRT1_2], // magenta
 	C: [0, 1, 0], // green
 	// and "boundary" and "flat" are black and gray
 };
@@ -46,9 +62,9 @@ export const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
 	const grayscale = color.reduce((a, b) => a + b, 0) / 3;
 	// the distance from the color to the nearest grayscale value
 	const grayDistance = distance3(color, [grayscale, grayscale, grayscale]);
-	// the nearest color from "assignmentColor" to this color
-	const nearestColor = Object.keys(assignmentColor)
-		.map(key => ({ key, dist: distance3(color, assignmentColor[key]) }))
+	// the nearest color from "colorMatchNormalized" to this color
+	const nearestColor = Object.keys(colorMatchNormalized)
+		.map(key => ({ key, dist: distance3(color, colorMatchNormalized[key]) }))
 		.sort((a, b) => a.dist - b.dist)
 		.shift();
 	// the color is allowed to be heavily desaturated, closer to the gray

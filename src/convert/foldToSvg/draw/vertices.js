@@ -3,7 +3,8 @@
  */
 import SVG from "../../../svg/index.js";
 
-const drawVertices = (graph, attributes = {}) => {
+const drawVertices = (graph, options = {}) => {
+	const attributes = options && options.vertices ? options.vertices : {};
 	const g = SVG.g();
 	if (!graph || !graph.vertices_coords) { return g; }
 	// radius will be overwritten in "applyTopLevelOptions"

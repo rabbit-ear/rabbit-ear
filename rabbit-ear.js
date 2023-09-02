@@ -577,16 +577,16 @@ const pluralize = {
 };
 const edgesAssignmentValues = Array.from("BbMmVvFfJjCcUu");
 const edgesAssignmentNames = {
-	b: "boundary",
-	m: "mountain",
-	v: "valley",
-	f: "flat",
-	j: "join",
-	c: "cut",
-	u: "unassigned",
+	B: "boundary",
+	M: "mountain",
+	V: "valley",
+	F: "flat",
+	J: "join",
+	C: "cut",
+	U: "unassigned",
 };
 Object.keys(edgesAssignmentNames).forEach(key => {
-	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
+	edgesAssignmentNames[key.toLowerCase()] = edgesAssignmentNames[key];
 });
 const assignmentFlatFoldAngle = {
 	B: 0,
@@ -1612,17 +1612,24 @@ const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngle
 const makeEdgesAssignment = ({
 	edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges,
 }) => {
-	if (!edges_faces) {
-		if (!faces_edges) {
+	if (edges_vertices && !edges_faces) {
+		if (!faces_edges && faces_vertices) {
 			faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 		}
-		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+		if (faces_edges) {
+			edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+		}
 	}
-	return edges_foldAngle.map((a, i) => {
-		if (edges_faces[i].length < 2) { return "B"; }
-		if (a === 0) { return "F"; }
-		return a < 0 ? "M" : "V";
-	});
+	if (edges_foldAngle) {
+		return edges_faces
+			? edges_foldAngle.map((a, i) => {
+				if (edges_faces[i].length < 2) { return "B"; }
+				if (a === 0) { return "F"; }
+				return a < 0 ? "M" : "V";
+			})
+			: makeEdgesAssignmentSimple({ edges_foldAngle });
+	}
+	return edges_vertices.map(() => "U");
 };
 const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 	.map(a => assignment_angles[a] || 0);
@@ -5460,11 +5467,12 @@ const matchingOptions = (...args) => {
 	}
 	return undefined;
 };
-const init$1 = function (element, ...args) {
-	element.classList.add(str_arrow);
+const init$1 = function (...args) {
+	const element = SVGWindow().document.createElementNS(NS, "g");
+	element.setAttribute(str_class, str_arrow);
 	const paths = ["line", str_tail, str_head].map(key => {
 		const path = SVGWindow().document.createElementNS(NS, str_path);
-		path.className = `${str_arrow}-${key}`;
+		path.setAttribute(str_class, `${str_arrow}-${key}`);
 		element.appendChild(path);
 		return path;
 	});
@@ -5694,7 +5702,8 @@ const getStrokeWidth = (graph, { vmax } = {}) => {
 	return edgeTenthPercent
 		? edgeTenthPercent * DEFAULT_STROKE_WIDTH * 10
 		: vmax * DEFAULT_STROKE_WIDTH;
-};const drawVertices = (graph, attributes = {}) => {
+};const drawVertices = (graph, options = {}) => {
+	const attributes = options && options.vertices ? options.vertices : {};
 	const g = SVG.g();
 	if (!graph || !graph.vertices_coords) { return g; }
 	graph.vertices_coords
@@ -5704,35 +5713,55 @@ const getStrokeWidth = (graph, { vmax } = {}) => {
 	Object.keys(attributes)
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
 	return g;
-};const GROUP_FOLDED = {};
-const GROUP_FLAT = {
-	stroke: "black",
+};const assignmentColor = {
+	B: "black",
+	M: "crimson",
+	V: "royalblue",
+	F: "lightgray",
+	J: "gold",
+	C: "limegreen",
+	U: "orchid",
 };
+Object.keys(assignmentColor).forEach(key => {
+	assignmentColor[key.toLowerCase()] = assignmentColor[key];
+});
+const DESATURATION_RATIO = 4;
+const colorMatchNormalized = {
+	M: [1, 0, 0],
+	V: [0, 0, 1],
+	J: [Math.SQRT1_2, Math.SQRT1_2, 0],
+	U: [Math.SQRT1_2, 0, Math.SQRT1_2],
+	C: [0, 1, 0],
+};
+const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
+	const color = scale3([red, green, blue], 1 / 255);
+	const blackDistance = magnitude3(color);
+	if (blackDistance < 0.05) { return "B"; }
+	const grayscale = color.reduce((a, b) => a + b, 0) / 3;
+	const grayDistance = distance3(color, [grayscale, grayscale, grayscale]);
+	const nearestColor = Object.keys(colorMatchNormalized)
+		.map(key => ({ key, dist: distance3(color, colorMatchNormalized[key]) }))
+		.sort((a, b) => a.dist - b.dist)
+		.shift();
+	if (nearestColor.dist < grayDistance * DESATURATION_RATIO) {
+		return nearestColor.key;
+	}
+	return blackDistance < 0.1 ? "B" : "F";
+};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentColor,rgbToAssignment});const GROUP_FOLDED = {};
+const GROUP_FLAT = { stroke: "black" };
 const STYLE_FOLDED = {};
-const STYLE_FLAT = {
-	B: { stroke: "black" },
-	b: { stroke: "black" },
-	M: { stroke: "crimson" },
-	m: { stroke: "crimson" },
-	V: { stroke: "royalblue" },
-	v: { stroke: "royalblue" },
-	F: { stroke: "lightgray" },
-	f: { stroke: "lightgray" },
-	J: { stroke: "gold" },
-	j: { stroke: "gold" },
-	C: { stroke: "limegreen" },
-	c: { stroke: "limegreen" },
-	U: { stroke: "orchid" },
-	u: { stroke: "orchid" },
-};
+const STYLE_FLAT = {};
+Object.keys(assignmentColor).forEach(key => {
+	STYLE_FLAT[key] = { stroke: assignmentColor[key] };
+});
 const setDataValue$1 = (el, key, value) => el.setAttribute(`data-${key}`, value);
 const edgesAssignmentIndices = (graph) => {
 	const assignment_indices = {
 		u: [], c: [], j: [], f: [], v: [], m: [], b: [],
 	};
-	const lowercase_assignment = graph["edges_assignment"]
+	const lowercase_assignment = graph.edges_assignment
 		.map(a => a.toLowerCase());
-	graph["edges_vertices"]
+	graph.edges_vertices
 		.map((_, i) => lowercase_assignment[i] || "u")
 		.forEach((a, i) => assignment_indices[a].push(i));
 	return assignment_indices;
@@ -5772,48 +5801,71 @@ const edgesPathsAssign = ({ vertices_coords, edges_vertices, edges_assignment })
 };
 const applyEdgesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
-const edgesPaths = (graph, attributes = {}) => {
+const edgesPaths = (graph, options = {}) => {
+	const attributes = options && options.edges ? options.edges : {};
 	const group = SVG.g();
 	if (!graph) { return group; }
 	const isFolded = isFoldedForm(graph);
+	const groupStyle = JSON.parse(JSON.stringify(isFolded
+		? GROUP_FOLDED
+		: GROUP_FLAT));
+	const pathStyle = JSON.parse(JSON.stringify(isFolded
+		? STYLE_FOLDED
+		: STYLE_FLAT));
+	const override = {};
+	if (attributes.stroke) { override.stroke = attributes.stroke; }
+	Object.assign(groupStyle, override);
+	Object.keys(pathStyle).forEach(key => {
+		pathStyle[key] = { ...pathStyle[key], ...override };
+	});
 	const paths = edgesPathsAssign(graph);
 	Object.keys(paths).forEach(key => {
 		addClass(paths[key], edgesAssignmentNames[key]);
-		applyEdgesStyle(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
+		applyEdgesStyle(paths[key], pathStyle[key]);
 		applyEdgesStyle(paths[key], attributes[key]);
 		applyEdgesStyle(paths[key], attributes[edgesAssignmentNames[key]]);
 		group.appendChild(paths[key]);
 		Object.defineProperty(group, edgesAssignmentNames[key], { get: () => paths[key] });
 	});
+	applyEdgesStyle(group, groupStyle);
 	Object.keys(paths)
 		.forEach(assign => setDataValue$1(paths[assign], "assignment", assign));
 	Object.keys(paths)
 		.forEach(assign => setDataValue$1(paths[assign], "foldAngle", assignmentFlatFoldAngle[assign]));
-	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
-	applyEdgesStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 	return group;
 };
 const angleToOpacity = (foldAngle) => (Math.abs(foldAngle) / 180);
-const edgesLines = (graph, attributes = {}) => {
+const edgesLines = (graph, options = {}) => {
+	const attributes = options && options.edges ? options.edges : {};
 	const group = SVG.g();
 	if (!graph) { return group; }
 	const isFolded = isFoldedForm(graph);
-	const edges_assignment = (graph.edges_assignment
-		? graph.edges_assignment
-		: makeEdgesAssignment(graph))
-		.map(assign => assign.toLowerCase());
-	const groups_by_key = {};
-	["b", "m", "v", "f", "j", "c", "u"].forEach(k => {
-		const child_group = SVG.g();
-		group.appendChild(child_group);
-		addClass(child_group, edgesAssignmentNames[k]);
-		applyEdgesStyle(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
-		applyEdgesStyle(child_group, attributes[edgesAssignmentNames[k]]);
-		Object.defineProperty(group, edgesAssignmentNames[k], {
-			get: () => child_group,
-		});
-		groups_by_key[k] = child_group;
+	const groupStyle = JSON.parse(JSON.stringify(isFolded
+		? GROUP_FOLDED
+		: GROUP_FLAT));
+	const lineStyle = JSON.parse(JSON.stringify(isFolded
+		? STYLE_FOLDED
+		: STYLE_FLAT));
+	const override = {};
+	if (attributes.stroke) { override.stroke = attributes.stroke; }
+	Object.assign(groupStyle, override);
+	edgesAssignmentValues.forEach(key => {
+		if (lineStyle[key] === undefined) { lineStyle[key] = {}; }
+		lineStyle[key] = { ...lineStyle[key], ...override };
 	});
+	const groups_by_key = {};
+	Array.from(new Set(edgesAssignmentValues.map(s => s.toLowerCase())))
+		.forEach(k => {
+			const child_group = SVG.g();
+			group.appendChild(child_group);
+			addClass(child_group, edgesAssignmentNames[k]);
+			applyEdgesStyle(child_group, lineStyle[k]);
+			applyEdgesStyle(child_group, attributes[edgesAssignmentNames[k]]);
+			Object.defineProperty(group, edgesAssignmentNames[k], {
+				get: () => child_group,
+			});
+			groups_by_key[k] = child_group;
+		});
 	const lines = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]))
 		.map(l => SVG.line(l[0][0], l[0][1], l[1][0], l[1][1]));
@@ -5832,16 +5884,19 @@ const edgesLines = (graph, attributes = {}) => {
 			line.setAttributeNS(null, "opacity", angleToOpacity(angle));
 		});
 	}
+	const edges_assignment = (graph.edges_assignment
+		? graph.edges_assignment
+		: makeEdgesAssignment(graph))
+		.map(assign => assign.toLowerCase());
 	lines.forEach((line, i) => groups_by_key[edges_assignment[i]]
 		.appendChild(line));
-	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
-	applyEdgesStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+	applyEdgesStyle(group, groupStyle);
 	return group;
 };
-const drawEdges = (graph, attributes) => (
+const drawEdges = (graph, options) => (
 	edgesFoldAngleAreAllFlat(graph)
-		? edgesPaths(graph, attributes)
-		: edgesLines(graph, attributes)
+		? edgesPaths(graph, options)
+		: edgesLines(graph, options)
 );const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
 	.map(m => m[0] * m[4] - m[1] * m[3])
 	.map(c => c >= 0);
@@ -5995,7 +6050,8 @@ const orderFaceIndices = (graph) => {
 const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
 const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
-const finalize_faces = (graph, svg_faces, group, attributes) => {
+const finalize_faces = (graph, svg_faces, group, options = {}) => {
+	const attributes = options && options.faces ? options.faces : {};
 	const isFolded = isFoldedForm(graph);
 	const orderIsCertain = !!(graph.faceOrders || graph.faces_layer);
 	const classNames = [["front"], ["back"]];
@@ -6025,7 +6081,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 		: GROUP_STYLE_FLAT));
 	return group;
 };
-const facesVerticesPolygon = (graph, attributes = {}) => {
+const facesVerticesPolygon = (graph, options) => {
 	const g = SVG.g();
 	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
 	const svg_faces = graph.faces_vertices
@@ -6033,9 +6089,9 @@ const facesVerticesPolygon = (graph, attributes = {}) => {
 		.map(face => SVG.polygon(face));
 	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i));
 	g.setAttributeNS(null, "fill", "white");
-	return finalize_faces(graph, svg_faces, g, attributes);
+	return finalize_faces(graph, svg_faces, g, options);
 };
-const facesEdgesPolygon = function (graph, attributes = {}) {
+const facesEdgesPolygon = function (graph, options) {
 	const g = SVG.g();
 	if (!graph
 		|| "faces_edges" in graph === false
@@ -6053,7 +6109,7 @@ const facesEdgesPolygon = function (graph, attributes = {}) {
 		.map(face => SVG.polygon(face));
 	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i));
 	g.setAttributeNS(null, "fill", "white");
-	return finalize_faces(graph, svg_faces, g, attributes);
+	return finalize_faces(graph, svg_faces, g, options);
 };
 const drawFaces = (graph, options) => {
 	if (graph && graph["faces_vertices"]) {
@@ -6072,7 +6128,8 @@ const FLAT = {
 };
 const applyBoundariesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
-const drawBoundaries = (graph, attributes = {}) => {
+const drawBoundaries = (graph, options = {}) => {
+	const attributes = options && options.boundaries ? options.boundaries : {};
 	const g = SVG.g();
 	if (!graph) { return g; }
 	const polygon = boundary(graph).polygon;
@@ -7838,29 +7895,7 @@ const cleanNumber = function (number, places = 15) {
 		return num;
 	}
 	return crop;
-};const numberMethods=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const DESATURATION_RATIO = 4;
-const assignmentColor = {
-	M: [1, 0, 0],
-	V: [0, 0, 1],
-	J: [1, 1, 0],
-	U: [1, 0, 1],
-	C: [0, 1, 0],
-};
-const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
-	const color = scale3([red, green, blue], 1 / 255);
-	const blackDistance = magnitude3(color);
-	if (blackDistance < 0.05) { return "B"; }
-	const grayscale = color.reduce((a, b) => a + b, 0) / 3;
-	const grayDistance = distance3(color, [grayscale, grayscale, grayscale]);
-	const nearestColor = Object.keys(assignmentColor)
-		.map(key => ({ key, dist: distance3(color, assignmentColor[key]) }))
-		.sort((a, b) => a.dist - b.dist)
-		.shift();
-	if (nearestColor.dist < grayDistance * DESATURATION_RATIO) {
-		return nearestColor.key;
-	}
-	return blackDistance < 0.1 ? "B" : "F";
-};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentColor,rgbToAssignment});const colorToAssignment = (color, customAssignments) => {
+};const numberMethods=/*#__PURE__*/Object.freeze({__proto__:null,cleanNumber});const colorToAssignment = (color, customAssignments) => {
 	const hex = parseColorToHex(color).toUpperCase();
 	return customAssignments && customAssignments[hex]
 		? customAssignments[hex]

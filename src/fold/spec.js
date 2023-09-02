@@ -41,16 +41,16 @@ export const edgesAssignmentValues = Array.from("BbMmVvFfJjCcUu");
  * @linkcode Origami ./src/fold/spec.js 41
  */
 export const edgesAssignmentNames = {
-	b: "boundary",
-	m: "mountain",
-	v: "valley",
-	f: "flat",
-	j: "join",
-	c: "cut",
-	u: "unassigned",
+	B: "boundary",
+	M: "mountain",
+	V: "valley",
+	F: "flat",
+	J: "join",
+	C: "cut",
+	U: "unassigned",
 };
 Object.keys(edgesAssignmentNames).forEach(key => {
-	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
+	edgesAssignmentNames[key.toLowerCase()] = edgesAssignmentNames[key];
 });
 /**
  * @description get the foldAngle in degrees for every FOLD assignment spec

@@ -547,17 +547,26 @@ export const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngl
 export const makeEdgesAssignment = ({
 	edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges,
 }) => {
-	if (!edges_faces) {
-		if (!faces_edges) {
+	if (edges_vertices && !edges_faces) {
+		if (!faces_edges && faces_vertices) {
 			faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 		}
-		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+		if (faces_edges) {
+			edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+		}
 	}
-	return edges_foldAngle.map((a, i) => {
-		if (edges_faces[i].length < 2) { return "B"; }
-		if (a === 0) { return "F"; }
-		return a < 0 ? "M" : "V";
-	});
+	if (edges_foldAngle) {
+		// if edges_faces exists, assign boundaries. otherwise skip it.
+		return edges_faces
+			? edges_foldAngle.map((a, i) => {
+				if (edges_faces[i].length < 2) { return "B"; }
+				if (a === 0) { return "F"; }
+				return a < 0 ? "M" : "V";
+			})
+			: makeEdgesAssignmentSimple({ edges_foldAngle });
+	}
+	// no data to use, everything gets "unassigned"
+	return edges_vertices.map(() => "U");
 };
 /**
  * @description Convert edges assignment into fold angle in degrees for every edge.
