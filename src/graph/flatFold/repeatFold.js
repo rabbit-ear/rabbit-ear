@@ -3,8 +3,10 @@
  */
 import { EPSILON } from "../../math/constant.js";
 import {
+	include,
 	includeL,
 	includeS,
+	exclude,
 } from "../../math/compare.js";
 import {
 	magnitude2,
@@ -14,6 +16,7 @@ import {
 	subtract2,
 	scale2,
 } from "../../math/vector.js";
+import { overlapConvexPolygonPoint } from "../../math/overlap.js";
 import { clusterSortedGeneric } from "../../general/cluster.js";
 import { facesContainingPoint } from "../nearest.js";
 import {
@@ -56,12 +59,32 @@ export const intersectParameterLineLine = (
 /**
  *
  */
-const getContainingFace = ({ vertices_coords, faces_vertices }, point) => {
-	const faces = facesContainingPoint({ vertices_coords, faces_vertices }, point);
-	if (faces.length === 0) { return undefined; }
-	if (faces.length === 1) { return faces[0]; }
-	// const remainingPolygons =
-	return faces[0];
+const getContainingFace = ({ vertices_coords, faces_vertices }, point, vector) => {
+	const facesInclusive = facesContainingPoint(
+		{ vertices_coords, faces_vertices },
+		point,
+		include,
+	);
+	switch (facesInclusive.length) {
+	case 0: return undefined;
+	case 1: return facesInclusive[0];
+	default: break; // continue search by nudging point
+	}
+	const nudgePoint = add2(point, scale2(vector, 1e-2));
+	const polygons = facesInclusive
+		.map(face => faces_vertices[face]
+			.map(v => vertices_coords[v]));
+	const facesExclusive = facesInclusive
+		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, exclude));
+	switch (facesExclusive.length) {
+	// backtrack and try inclusive using nudge point and facesInclusive
+	case 0: return facesInclusive
+		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, include))
+		.shift();
+	case 1: return facesExclusive[0];
+		// all faces lie on the point so it shouldn't matter
+	default: return facesExclusive[0];
+	}
 };
 /**
  * @description Find all intersections between a segment and all edges
@@ -99,7 +122,11 @@ const repeatFoldLine = ({
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
-	const startFace = getContainingFace({ vertices_coords, faces_vertices }, origin);
+	const startFace = getContainingFace(
+		{ vertices_coords, faces_vertices },
+		origin,
+		vector,
+	);
 	const oppositeAssignment = invertAssignment(assignment);
 	const vertices_coordsFolded = makeVerticesCoordsFlatFolded({
 		vertices_coords,
@@ -171,7 +198,7 @@ const repeatFoldLine = ({
 				faces_solution[f] = [clusters[0][0], clusters[clusters.length - 1][0]];
 			}
 			if (clusters.length > 2) {
-				console.log("repeatFoldLine feature request, non-convex polygons.");
+				console.log("repeatFoldLine, non-convex polygons.");
 			}
 		});
 	// remap the face's solution points back onto their crease pattern points,

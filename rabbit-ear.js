@@ -45,7 +45,7 @@ const magnitude3 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 const magSquared = v => v
 	.map(n => n * n)
 	.reduce(safeAdd, 0);
-const normalize = (v) => {
+const normalize$1 = (v) => {
 	const m = magnitude(v);
 	return m === 0 ? v : v.map(c => c / m);
 };
@@ -123,8 +123,8 @@ const degenerate = (v, epsilon = EPSILON) => v
 const parallelNormalized = (v, u, epsilon = EPSILON) => 1 - Math
 	.abs(dot(v, u)) < epsilon;
 const parallel = (v, u, epsilon = EPSILON) => parallelNormalized(
-	normalize(v),
-	normalize(u),
+	normalize$1(v),
+	normalize$1(u),
 	epsilon,
 );
 const parallel2 = (v, u, epsilon = EPSILON) => Math
@@ -154,7 +154,7 @@ const basisVectors3 = (vector = [1, 0, 0]) => {
 const basisVectors = (vector) => (vector.length === 2
 	? basisVectors2(vector)
 	: basisVectors3(vector)
-);const vector=/*#__PURE__*/Object.freeze({__proto__:null,add,add2,add3,average,average2,basisVectors,basisVectors2,basisVectors3,cross2,cross3,degenerate,distance,distance2,distance3,dot,dot2,dot3,flip,lerp,magSquared,magnitude,magnitude2,magnitude3,midpoint,midpoint2,midpoint3,normalize,normalize2,normalize3,parallel,parallel2,parallelNormalized,resize,resizeUp,rotate270,rotate90,scale:scale$1,scale2,scale3,subtract,subtract2,subtract3});const identity2x2 = [1, 0, 0, 1];
+);const vector=/*#__PURE__*/Object.freeze({__proto__:null,add,add2,add3,average,average2,basisVectors,basisVectors2,basisVectors3,cross2,cross3,degenerate,distance,distance2,distance3,dot,dot2,dot3,flip,lerp,magSquared,magnitude,magnitude2,magnitude3,midpoint,midpoint2,midpoint3,normalize:normalize$1,normalize2,normalize3,parallel,parallel2,parallelNormalized,resize,resizeUp,rotate270,rotate90,scale:scale$1,scale2,scale3,subtract,subtract2,subtract3});const identity2x2 = [1, 0, 0, 1];
 const identity2x3 = identity2x2.concat(0, 0);
 const multiplyMatrix2Vector2 = (matrix, vector) => [
 	matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
@@ -325,7 +325,7 @@ const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate(angle, origin, 0, 1, true));
 const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
 	const pos = [0, 1, 2].map(i => origin[i] || 0);
-	const [x, y, z] = resize(3, normalize(vector));
+	const [x, y, z] = resize(3, normalize$1(vector));
 	const c = Math.cos(angle);
 	const s = Math.sin(angle);
 	const t = 1 - c;
@@ -1660,7 +1660,7 @@ const makeEdgesFoldAngleFromFaces = ({
 		if (faces.length < 2) { return 0; }
 		const a = faces_normal[faces[0]];
 		const b = faces_normal[faces[1]];
-		const a2b = normalize(subtract(
+		const a2b = normalize$1(subtract(
 			faces_center[faces[1]],
 			faces_center[faces[0]],
 		));
@@ -1999,7 +1999,7 @@ const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
 	if (similar) { return inclusive; }
 	const vectors = [[p0, p1], [p1, p2]]
 		.map(segment => subtract(segment[1], segment[0]))
-		.map(vector => normalize(vector));
+		.map(vector => normalize$1(vector));
 	return epsilonEqual(1.0, dot(...vectors), EPSILON);
 };
 const lerpLines = (a, b, t) => {
@@ -2012,7 +2012,7 @@ const pleat$2 = (a, b, count, epsilon = EPSILON) => {
 	const determinant = cross2(a.vector, b.vector);
 	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
 	const t = numerator / determinant;
-	const normalized = [a.vector, b.vector].map(vec => normalize(vec));
+	const normalized = [a.vector, b.vector].map(vec => normalize$1(vec));
 	const sides = determinant > -epsilon
 		? [[a.vector, b.vector], [flip(b.vector), a.vector]]
 		: [[b.vector, a.vector], [flip(a.vector), b.vector]];
@@ -2071,7 +2071,7 @@ const nearestPointOnPolygon = (polygon, point) => polygon
 	.sort((a, b) => a.distance - b.distance)
 	.shift();
 const nearestPointOnCircle = ({ radius, origin }, point) => (
-	add(origin, scale$1(normalize(subtract(point, origin)), radius))
+	add(origin, scale$1(normalize$1(subtract(point, origin)), radius))
 );const nearestMethods$1=/*#__PURE__*/Object.freeze({__proto__:null,nearestPoint,nearestPoint2,nearestPointOnCircle,nearestPointOnLine,nearestPointOnPolygon});const overlapLinePoint = (
 	{ vector, origin },
 	point,
@@ -2196,11 +2196,12 @@ const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 const facesContainingPoint = (
 	{ vertices_coords, faces_vertices },
 	point,
+	polyFunc = exclude,
 ) => (!vertices_coords || !faces_vertices
 	? []
 	: faces_vertices
 		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-		.filter(f => overlapConvexPolygonPoint(f.face, point))
+		.filter(f => overlapConvexPolygonPoint(f.face, point, polyFunc))
 		.map(el => el.i)
 );
 const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
@@ -2425,7 +2426,7 @@ const sweep = ({
 	const edgesCoords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	const edgesVector = edgesCoords
 		.map(verts => subtract(verts[1], verts[0]))
-		.map(normalize);
+		.map(normalize$1);
 	const edgesLine = edgesVector
 		.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
 	const edgesNearestToOrigin = edgesLine
@@ -3295,7 +3296,7 @@ const intersectConvexFaceLine = ({
 	});
 	return array_arraySubset;
 };
-const subgraph = (graph, indicesToKeep = {}) => {
+const subgraphExclusive = (graph, indicesToKeep = {}) => {
 	const indices = {
 		vertices: [],
 		edges: [],
@@ -3337,6 +3338,41 @@ const subgraph = (graph, indicesToKeep = {}) => {
 	});
 	return copy;
 };
+const subgraph = (graph, indicesToKeep = {}) => {
+	const indices = {
+		vertices: [],
+		edges: [],
+		faces: [],
+		...indicesToKeep,
+	};
+	const lookup = { vertices: {}, edges: {}, faces: {} };
+	indices.vertices.forEach(v => { lookup.vertices[v] = true; });
+	indices.edges.forEach(e => { lookup.edges[e] = true; });
+	indices.edges
+		.forEach(edge => graph.edges_vertices[edge]
+			.forEach(v => { lookup.vertices[v] = true; }));
+	indices.faces.forEach(f => { lookup.faces[f] = true; });
+	indices.faces
+		.forEach(face => graph.faces_vertices[face]
+			.forEach(v => { lookup.vertices[v] = true; }));
+	graph.faces_vertices
+		.map((_, f) => f)
+		.filter(f => graph.faces_vertices[f]
+			.map(v => lookup.vertices[v])
+			.reduce((a, b) => a && b, true))
+		.forEach(f => { lookup.faces[f] = true; });
+	graph.edges_vertices
+		.map((_, e) => e)
+		.filter(e => graph.edges_vertices[e]
+			.map(v => lookup.vertices[v])
+			.reduce((a, b) => a && b, true))
+		.forEach(e => { lookup.edges[e] = true; });
+	return subgraphExclusive(graph, {
+		vertices: Object.keys(lookup.vertices),
+		edges: Object.keys(lookup.edges),
+		faces: Object.keys(lookup.faces),
+	});
+};
 const subgraphWithFaces = (graph, faces) => {
 	let vertices = [];
 	if (graph.faces_vertices) {
@@ -3358,12 +3394,34 @@ const subgraphWithFaces = (graph, faces) => {
 				: undefined))
 			.filter(a => a !== undefined);
 	}
-	return subgraph(graph, {
+	return subgraphExclusive(graph, {
 		vertices,
 		edges,
 		faces,
 	});
-};const subgraphMethods=/*#__PURE__*/Object.freeze({__proto__:null,selfRelationalArraySubset,subgraph,subgraphWithFaces});const validate_references = (graph) => {
+};
+const subgraphWithVertices = (graph, vertices = []) => {
+	const components = { vertices: [], edges: [] };
+	vertices.forEach(v => { components.vertices[v] = true; });
+	if (graph.vertices_edges) {
+		components.vertices
+			.forEach((_, v) => graph.vertices_edges[v]
+				.forEach(e => { components.edges[e] = true; }));
+	}
+	if (graph.edges_vertices) {
+		components.edges
+			.forEach((_, e) => graph.edges_vertices[e]
+				.forEach(v => { components.vertices[v] = true; }));
+	}
+	return subgraphExclusive(graph, {
+		vertices: components.vertices
+			.map((v, i) => (v ? i : undefined))
+			.filter(a => a !== undefined),
+		edges: components.edges
+			.map((e, i) => (e ? i : undefined))
+			.filter(a => a !== undefined),
+	});
+};const subgraphMethods=/*#__PURE__*/Object.freeze({__proto__:null,selfRelationalArraySubset,subgraph,subgraphExclusive,subgraphWithFaces,subgraphWithVertices});const validate_references = (graph) => {
 	const counts = {
 		vertices: count.vertices(graph),
 		edges: count.edges(graph),
@@ -5729,8 +5787,8 @@ const DESATURATION_RATIO = 4;
 const colorMatchNormalized = {
 	M: [1, 0, 0],
 	V: [0, 0, 1],
-	J: [Math.SQRT1_2, Math.SQRT1_2, 0],
-	U: [Math.SQRT1_2, 0, Math.SQRT1_2],
+	J: [1, 1, 0],
+	U: [1, 0, 1],
 	C: [0, 1, 0],
 };
 const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
@@ -6512,7 +6570,7 @@ const clip = function (graph, line) {
 	{ vector, origin },
 	epsilon = EPSILON,
 ) => {
-	const normalizedLineVec = normalize(vector);
+	const normalizedLineVec = normalize$1(vector);
 	const pointIsCollinear = (point) => {
 		const originToPoint = subtract(point, origin);
 		const mag = magnitude(originToPoint);
@@ -7131,7 +7189,12 @@ const face_snapshot = (graph, face) => ({
 	side: graph.faces_side[face],
 	layer: graph.faces_layer[face],
 });
-const flatFold = (graph, { vector, origin }, assignment = "V", epsilon = EPSILON) => {
+const flatFold = (
+	graph,
+	{ vector, origin },
+	assignment = "V",
+	epsilon = EPSILON,
+) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
 	populate(graph);
 	if (!graph.faces_layer) {
@@ -7304,7 +7367,32 @@ const bird = () => populate({
 		[0, 9], [9, 2], [2, 10], [10, 4], [4, 11], [11, 6], [6, 12], [12, 0],
 	],
 	edges_assignment: Array.from("BBBBBBBBFMFMMVMVMVMVVVVVVVVV"),
-});const bases=/*#__PURE__*/Object.freeze({__proto__:null,bird,fish,kite,polygon,rectangle,square});const graph = (...args) => populate(
+});
+const base1 = () => populate({
+	vertices_coords: [
+		[0, 0],
+		[1 - (Math.SQRT2 - 1), 0],
+		[1, 0],
+		[0, 1],
+		[0, 1 - (Math.SQRT2 - 1)],
+		[0.5, 0.5],
+		[Math.SQRT1_2, Math.SQRT1_2],
+		[1, 1],
+		[Math.SQRT1_2, 1 - Math.SQRT1_2],
+		[1, (Math.sqrt(2) - 1)],
+		[1 - Math.SQRT1_2, Math.SQRT1_2],
+		[(Math.sqrt(2) - 1), 1],
+		[Math.SQRT1_2, 1],
+		[1, Math.SQRT1_2],
+	],
+	edges_vertices: [
+		[0, 1], [1, 2], [3, 4], [4, 0], [0, 5], [5, 6], [6, 7], [0, 8], [8, 9],
+		[0, 10], [10, 11], [8, 1], [10, 4], [8, 6], [6, 12], [3, 10], [10, 5],
+		[5, 8], [8, 2], [10, 6], [6, 13], [7, 12], [12, 11], [11, 3], [11, 6],
+		[6, 9], [2, 9], [9, 13], [13, 7],
+	],
+	edges_assignment: Array.from("BBBBFFFVFVFMMVVVFFVVVBBBMMBBB"),
+});const bases=/*#__PURE__*/Object.freeze({__proto__:null,base1,bird,fish,kite,polygon,rectangle,square});const graph = (...args) => populate(
 	Object.assign(Object.create(graphProto), {
 		...args.reduce((a, b) => ({ ...a, ...b }), ({})),
 		file_spec,
@@ -8693,7 +8781,7 @@ const makeMatrix4RotateZ = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate4(angle, origin, 0, 1, true));
 const makeMatrix4Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
 	const pos = [0, 1, 2].map(i => origin[i] || 0);
-	const [x, y, z] = resize(3, normalize(vector));
+	const [x, y, z] = resize(3, normalize$1(vector));
 	const c = Math.cos(angle);
 	const s = Math.sin(angle);
 	const t = 1 - c;
@@ -8754,7 +8842,7 @@ const makeLookAtMatrix4 = (position, target, up) => {
 	const w = cross3(u, v);
 	const q = [w[0], w[1], w[2], dot(u, v)];
 	q[3] += magnitude(q);
-	return normalize(q);
+	return normalize$1(q);
 };
 const matrix4FromQuaternion = (quaternion) => multiplyMatrices4([
 	quaternion[3], quaternion[2], -quaternion[1], quaternion[0],
@@ -8957,7 +9045,7 @@ const coplanarOverlappingFacesGroups = ({
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
-	const normalized = edges_vector.map(vec => normalize(vec));
+	const normalized = edges_vector.map(vec => normalize$1(vec));
 	const edgesEdgesParallel = edges_vertices.map(() => []);
 	normalized.forEach((_, i) => {
 		normalized.forEach((__, j) => {
@@ -9223,6 +9311,33 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	const result = facesSegment
 		.map((seg, face) => addSegmentInsideFace(graph, face, seg, epsilon));
 	return result;
+};const remapKey = (graph, key, indexMap) => {
+	const invertedMap = invertMap(indexMap);
+	filterKeysWithSuffix(graph, key)
+		.forEach(sKey => graph[sKey]
+			.forEach((_, ii) => graph[sKey][ii]
+				.forEach((v, jj) => { graph[sKey][ii][jj] = indexMap[v]; })));
+	filterKeysWithSuffix(graph, key)
+		.forEach(sKey => graph[sKey]
+			.forEach((_, ii) => {
+				graph[sKey][ii] = graph[sKey][ii].filter(a => a !== undefined);
+			}));
+	filterKeysWithPrefix(graph, key).forEach(prefix => {
+		graph[prefix] = invertedMap.map(old => graph[prefix][old]);
+	});
+};
+const normalize = (graph) => {
+	const maps = { vertices: [], edges: [], faces: [] };
+	let v = 0;
+	let e = 0;
+	let f = 0;
+	graph.vertices_coords.forEach((_, i) => { maps.vertices[i] = v++; });
+	graph.edges_vertices.forEach((_, i) => { maps.edges[i] = e++; });
+	graph.faces_vertices.forEach((_, i) => { maps.faces[i] = f++; });
+	remapKey(graph, "vertices", maps.vertices);
+	remapKey(graph, "edges", maps.edges);
+	remapKey(graph, "faces", maps.faces);
+	return graph;
 };const intersectParameterLineLine = (
 	a,
 	b,
@@ -9248,11 +9363,29 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	}
 	return undefined;
 };
-const getContainingFace = ({ vertices_coords, faces_vertices }, point) => {
-	const faces = facesContainingPoint({ vertices_coords, faces_vertices }, point);
-	if (faces.length === 0) { return undefined; }
-	if (faces.length === 1) { return faces[0]; }
-	return faces[0];
+const getContainingFace = ({ vertices_coords, faces_vertices }, point, vector) => {
+	const facesInclusive = facesContainingPoint(
+		{ vertices_coords, faces_vertices },
+		point,
+		include,
+	);
+	switch (facesInclusive.length) {
+	case 0: return undefined;
+	case 1: return facesInclusive[0];
+	}
+	const nudgePoint = add2(point, scale2(vector, 1e-2));
+	const polygons = facesInclusive
+		.map(face => faces_vertices[face]
+			.map(v => vertices_coords[v]));
+	const facesExclusive = facesInclusive
+		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, exclude));
+	switch (facesExclusive.length) {
+	case 0: return facesInclusive
+		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, include))
+		.shift();
+	case 1: return facesExclusive[0];
+	default: return facesExclusive[0];
+	}
 };
 const getEdgesLineIntersection = ({
 	vertices_coords, edges_vertices,
@@ -9276,7 +9409,11 @@ const repeatFoldLine = ({
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
-	const startFace = getContainingFace({ vertices_coords, faces_vertices }, origin);
+	const startFace = getContainingFace(
+		{ vertices_coords, faces_vertices },
+		origin,
+		vector,
+	);
 	const oppositeAssignment = invertAssignment(assignment);
 	const vertices_coordsFolded = makeVerticesCoordsFlatFolded({
 		vertices_coords,
@@ -9323,7 +9460,7 @@ const repeatFoldLine = ({
 				faces_solution[f] = [clusters[0][0], clusters[clusters.length - 1][0]];
 			}
 			if (clusters.length > 2) {
-				console.log("repeatFoldLine feature request, non-convex polygons.");
+				console.log("repeatFoldLine, non-convex polygons.");
 			}
 		});
 	return faces_solution.map((solutions, f) => ({
@@ -9347,6 +9484,7 @@ const repeatFoldLine = ({
 	splitEdge,
 	splitFace,
 	flatFold,
+	normalize,
 	repeatFold: repeatFoldLine,
 	addVertex,
 	addNonPlanarEdge,

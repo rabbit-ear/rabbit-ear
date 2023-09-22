@@ -60,6 +60,7 @@ import count from "./count.js";
 import countImplied from "./countImplied.js";
 import * as connectedComponents from "./connectedComponents.js";
 import flatFold from "./flatFold/index.js";
+import normalize from "./normalize.js";
 import repeatFold from "./flatFold/repeatFold.js";
 import planarize from "./planarize.js";
 import populate from "./populate.js";
@@ -89,6 +90,7 @@ export default {
 	splitEdge,
 	splitFace,
 	flatFold,
+	normalize,
 	repeatFold,
 	addVertex,
 	addNonPlanarEdge,

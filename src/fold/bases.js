@@ -144,3 +144,29 @@ export const bird = () => populate({
 	],
 	edges_assignment: Array.from("BBBBBBBBFMFMMVMVMVMVVVVVVVVV"),
 });
+
+export const base1 = () => populate({
+	vertices_coords: [
+		[0, 0],
+		[1 - (Math.SQRT2 - 1), 0],
+		[1, 0],
+		[0, 1],
+		[0, 1 - (Math.SQRT2 - 1)],
+		[0.5, 0.5],
+		[Math.SQRT1_2, Math.SQRT1_2],
+		[1, 1],
+		[Math.SQRT1_2, 1 - Math.SQRT1_2],
+		[1, (Math.sqrt(2) - 1)],
+		[1 - Math.SQRT1_2, Math.SQRT1_2],
+		[(Math.sqrt(2) - 1), 1],
+		[Math.SQRT1_2, 1],
+		[1, Math.SQRT1_2],
+	],
+	edges_vertices: [
+		[0, 1], [1, 2], [3, 4], [4, 0], [0, 5], [5, 6], [6, 7], [0, 8], [8, 9],
+		[0, 10], [10, 11], [8, 1], [10, 4], [8, 6], [6, 12], [3, 10], [10, 5],
+		[5, 8], [8, 2], [10, 6], [6, 13], [7, 12], [12, 11], [11, 3], [11, 6],
+		[6, 9], [2, 9], [9, 13], [13, 7],
+	],
+	edges_assignment: Array.from("BBBBFFFVFVFMMVVVFFVVVBBBMMBBB"),
+});

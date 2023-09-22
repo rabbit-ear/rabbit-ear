@@ -6,6 +6,7 @@ import {
 	distance,
 	resize,
 } from "../math/vector.js";
+import { exclude } from "../math/compare.js";
 import { nearestPointOnLine } from "../math/nearest.js";
 import { arrayMinimum } from "../general/array.js";
 import { getVector } from "../general/get.js";
@@ -65,11 +66,12 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 export const facesContainingPoint = (
 	{ vertices_coords, faces_vertices },
 	point,
+	polyFunc = exclude,
 ) => (!vertices_coords || !faces_vertices
 	? []
 	: faces_vertices
 		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-		.filter(f => overlapConvexPolygonPoint(f.face, point))
+		.filter(f => overlapConvexPolygonPoint(f.face, point, polyFunc))
 		.map(el => el.i)
 );
 /**

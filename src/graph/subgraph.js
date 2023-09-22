@@ -35,9 +35,13 @@ export const selfRelationalArraySubset = (array_array, indices) => {
  * @description Create a subgraph from a graph, with shallow pointers
  * to arrays by providing a list of vertices, edges, and faces which
  * will be carried over.
+ * This subgraph method is exclusive, meaning, if an edge is carried
+ * over but its vertices are not explicitly included, those vertices
+ * will not exist, and the edge's edges_vertices entry will be empty.
  * The subgraph component arrays will contain holes, meaning the
  * indices are preserved, making it useful for performing operations
  * on a subgraph, then carrying that information back to the original.
+ * If you want to close all holes and remap indices, call normalize().
  * @param {FOLD} graph a FOLD graph
  * @param {object} indices an object containing:
  * { vertices: [], edges: [], faces: [] }
@@ -45,7 +49,7 @@ export const selfRelationalArraySubset = (array_array, indices) => {
  * the values can be integers or integer-strings, doesn't matter.
  * @returns {FOLD} a shallow copy of the graph parameter provided.
  */
-export const subgraph = (graph, indicesToKeep = {}) => {
+export const subgraphExclusive = (graph, indicesToKeep = {}) => {
 	const indices = {
 		vertices: [],
 		edges: [],
@@ -99,6 +103,64 @@ export const subgraph = (graph, indicesToKeep = {}) => {
 };
 /**
  * @description Create a subgraph from a graph, with shallow pointers
+ * to arrays by providing a list of vertices, edges, and faces which
+ * will be carried over.
+ * This subgraph method is inclusive, meaning, if an edge or a face
+ * is included, even if the user didn't explicitly include its vertices,
+ * they will be included anyway.
+ * The subgraph component arrays will contain holes, meaning the
+ * indices are preserved, making it useful for performing operations
+ * on a subgraph, then carrying that information back to the original.
+ * If you want to close all holes and remap indices, call normalize().
+ * @param {FOLD} graph a FOLD graph
+ * @param {object} indices an object containing:
+ * { vertices: [], edges: [], faces: [] }
+ * all of which contains a list of indices to keep in the copied graph.
+ * the values can be integers or integer-strings, doesn't matter.
+ * @returns {FOLD} a shallow copy of the graph parameter provided.
+ */
+export const subgraph = (graph, indicesToKeep = {}) => {
+	const indices = {
+		vertices: [],
+		edges: [],
+		faces: [],
+		...indicesToKeep,
+	};
+	const lookup = { vertices: {}, edges: {}, faces: {} };
+	// add vertices to the lookup table, all vertices from
+	// vertices, edges' edges_vertices, and faces' faces_vertices.
+	indices.vertices.forEach(v => { lookup.vertices[v] = true; });
+	indices.edges.forEach(e => { lookup.edges[e] = true; });
+	indices.edges
+		.forEach(edge => graph.edges_vertices[edge]
+			.forEach(v => { lookup.vertices[v] = true; }));
+	indices.faces.forEach(f => { lookup.faces[f] = true; });
+	indices.faces
+		.forEach(face => graph.faces_vertices[face]
+			.forEach(v => { lookup.vertices[v] = true; }));
+	// now, our selection of vertices is complete.
+	// use this to check all edges and faces, and if the full set of
+	// the element's vertices are included, include it as well.
+	graph.faces_vertices
+		.map((_, f) => f)
+		.filter(f => graph.faces_vertices[f]
+			.map(v => lookup.vertices[v])
+			.reduce((a, b) => a && b, true))
+		.forEach(f => { lookup.faces[f] = true; });
+	graph.edges_vertices
+		.map((_, e) => e)
+		.filter(e => graph.edges_vertices[e]
+			.map(v => lookup.vertices[v])
+			.reduce((a, b) => a && b, true))
+		.forEach(e => { lookup.edges[e] = true; });
+	return subgraphExclusive(graph, {
+		vertices: Object.keys(lookup.vertices),
+		edges: Object.keys(lookup.edges),
+		faces: Object.keys(lookup.faces),
+	});
+};
+/**
+ * @description Create a subgraph from a graph, with shallow pointers
  * to arrays by providing a list of faces which will be carried over,
  * and this list of faces will determine which vertices and edges
  * get carried over as well.
@@ -139,9 +201,36 @@ export const subgraphWithFaces = (graph, faces) => {
 				: undefined))
 			.filter(a => a !== undefined);
 	}
-	return subgraph(graph, {
+	return subgraphExclusive(graph, {
 		vertices,
 		edges,
 		faces,
+	});
+};
+
+export const subgraphWithVertices = (graph, vertices = []) => {
+	// console.log("graph", graph);
+	// console.log("vertices", vertices);
+	// these will be in the form of index:value number:boolean.
+	// later to be converted into a list of indices.
+	const components = { vertices: [], edges: [] };
+	vertices.forEach(v => { components.vertices[v] = true; });
+	if (graph.vertices_edges) {
+		components.vertices
+			.forEach((_, v) => graph.vertices_edges[v]
+				.forEach(e => { components.edges[e] = true; }));
+	}
+	if (graph.edges_vertices) {
+		components.edges
+			.forEach((_, e) => graph.edges_vertices[e]
+				.forEach(v => { components.vertices[v] = true; }));
+	}
+	return subgraphExclusive(graph, {
+		vertices: components.vertices
+			.map((v, i) => (v ? i : undefined))
+			.filter(a => a !== undefined),
+		edges: components.edges
+			.map((e, i) => (e ? i : undefined))
+			.filter(a => a !== undefined),
 	});
 };

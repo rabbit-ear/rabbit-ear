@@ -27,11 +27,15 @@ Object.keys(assignmentColor).forEach(key => {
 const DESATURATION_RATIO = 4;
 
 // note: colors used by rgbToAssignment are for values between 0 and 255
+// "normalized" here means each scalar value is normalized 0 to 1. The color
+// as a vector in 3D is not normalized, ie: yellow is [1, 1, 0].
 const colorMatchNormalized = {
 	M: [1, 0, 0], // red
 	V: [0, 0, 1], // blue
-	J: [Math.SQRT1_2, Math.SQRT1_2, 0], // yellow
-	U: [Math.SQRT1_2, 0, Math.SQRT1_2], // magenta
+	// J: [Math.SQRT1_2, Math.SQRT1_2, 0], // yellow
+	// U: [Math.SQRT1_2, 0, Math.SQRT1_2], // magenta
+	J: [1, 1, 0], // yellow
+	U: [1, 0, 1], // magenta
 	C: [0, 1, 0], // green
 	// and "boundary" and "flat" are black and gray
 };

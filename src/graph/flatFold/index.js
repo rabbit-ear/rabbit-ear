@@ -106,7 +106,12 @@ const face_snapshot = (graph, face) => ({
  * crease line onto the crease pattern, each in place
  * @linkcode Origami ./src/graph/flatFold/index.js 96
  */
-const flatFold = (graph, { vector, origin }, assignment = "V", epsilon = EPSILON) => {
+const flatFold = (
+	graph,
+	{ vector, origin },
+	assignment = "V",
+	epsilon = EPSILON,
+) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
 	// make sure the input graph contains the necessary data.
 	// this takes care of all standard FOLD-spec arrays.
