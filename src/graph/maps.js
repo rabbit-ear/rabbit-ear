@@ -1,6 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import {
+	filterKeysWithSuffix,
+	filterKeysWithPrefix,
+} from "../fold/spec.js";
 /**
  * @description Provide two or more simple nextmaps in the order they were made
  * and this will merge them into one nextmap which reflects all changes to the graph.
@@ -147,4 +151,28 @@ export const invertSimpleMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => { inv[n] = i; });
 	return inv;
+};
+/**
+ * @description Remap the indices of a component in the graph.
+ * This will update all references to this component too. For example,
+ * modifying "vertices" indices will move around "vertices_coords" but
+ * also update "faces_vertices" to match the new indices.
+ * @param {FOLD} graph a FOLD graph, will be modified in place.
+ * @param {string} component the name of a component, most likely either:
+ * "vertices", "edges", or "faces".
+ * @param {number[]} an index map, indicating where the old
+ * indices should be.
+ */
+export const remapComponent = (graph, component, indexMap = []) => {
+	// replace the references inside of each component, where the
+	// component is the suffix. for example, update the new vertex indices
+	// inside of edges_vertices.
+	filterKeysWithSuffix(graph, component)
+		.forEach(key => graph[key]
+			.forEach((_, ii) => graph[key][ii]
+				.forEach((v, jj) => { graph[key][ii][jj] = indexMap[v]; })));
+	// shift the arrays themselves to the new location in the index map.
+	const inverted = invertSimpleMap(indexMap);
+	filterKeysWithPrefix(graph, component)
+		.forEach(key => { graph[key] = inverted.map(i => graph[key][i]); });
 };

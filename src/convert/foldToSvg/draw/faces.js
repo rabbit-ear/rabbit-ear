@@ -2,11 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import { isFoldedForm } from "../../../fold/spec.js";
-import { invertMap } from "../../../graph/maps.js";
 import { makeFacesWinding } from "../../../graph/faces/winding.js";
 import { addClass } from "../../../svg/general/dom.js";
 import SVG from "../../../svg/index.js";
-import { linearizeFaceOrders } from "../../../graph/orders.js";
+import { linearize2DFaces } from "../../../graph/orders.js";
 
 const FACE_STYLE_FOLDED_ORDERED = {
 	back: { fill: "white" },
@@ -31,29 +30,6 @@ const GROUP_STYLE_FOLDED_UNORDERED = {
 };
 const GROUP_STYLE_FLAT = {
 	fill: "none",
-};
-
-/**
- * todo: assuming faces_vertices instead of faces_edges
- * @returns {number[]} layers_face
- */
-const fillInMissingFaces = (graph, faces_layer) => {
-	const missingFaces = graph.faces_vertices
-		.map((_, i) => i)
-		.filter(i => faces_layer[i] == null);
-	return missingFaces.concat(invertMap(faces_layer));
-};
-/**
- * @returns {number[]} layers_face
- */
-const orderFaceIndices = (graph) => {
-	if (graph.faceOrders) {
-		return fillInMissingFaces(graph, invertMap(linearizeFaceOrders(graph)));
-	}
-	if (graph.faces_layer) {
-		return fillInMissingFaces(graph, graph.faces_layer);
-	}
-	return graph.faces_vertices.map((_, i) => i).filter(() => true);
 };
 
 const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
@@ -91,7 +67,7 @@ const finalize_faces = (graph, svg_faces, group, options = {}) => {
 			applyFacesStyle(svg_faces[i], attributes[className]);
 		});
 	// if the layer-order exists, sort the faces in order of faces_layer
-	orderFaceIndices(graph).forEach(f => group.appendChild(svg_faces[f]));
+	linearize2DFaces(graph).forEach(f => group.appendChild(svg_faces[f]));
 	// these custom getters allows you to grab all "front" or "back" faces only.
 	Object.defineProperty(group, "front", {
 		get: () => svg_faces.filter((_, i) => faces_winding[i]),

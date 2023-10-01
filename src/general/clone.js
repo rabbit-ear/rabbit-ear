@@ -15,7 +15,7 @@
  * @returns {object} a deep copy of the input
  * @linkcode Origami ./src/general/clone.js 14
  */
-const clone = function (o) {
+const clonePolyfill = function (o) {
 	let newO;
 	let i;
 	if (typeof o !== "object") {
@@ -27,7 +27,7 @@ const clone = function (o) {
 	if (Object.prototype.toString.apply(o) === "[object Array]") {
 		newO = [];
 		for (i = 0; i < o.length; i += 1) {
-			newO[i] = clone(o[i]);
+			newO[i] = clonePolyfill(o[i]);
 		}
 		return newO;
 	}
@@ -35,10 +35,14 @@ const clone = function (o) {
 	for (i in o) {
 		if (o.hasOwnProperty(i)) {
 			// this is where a self-similar reference causes an infinite loop
-			newO[i] = clone(o[i]);
+			newO[i] = clonePolyfill(o[i]);
 		}
 	}
 	return newO;
 };
+
+const clone = (typeof structuredClone === "function"
+	? structuredClone
+	: clonePolyfill);
 
 export default clone;

@@ -6,7 +6,7 @@ import { uniqueSortedNumbers } from "../general/array.js";
 import { makeFacesNormal } from "./normals.js";
 import { topologicalSort } from "./directedGraph.js";
 import { makeVerticesVerticesUnsorted } from "./make.js";
-import { invertMap } from "./maps.js";
+import { invertMap, invertMapArray } from "./maps.js";
 import { connectedComponents } from "./connectedComponents.js";
 // import { allLayerConditions } from "./globalSolver/index.js";
 /**
@@ -24,25 +24,39 @@ export const faceOrdersSubset = (faceOrders, faces) => {
 		.filter(order => facesHash[order[0]] && facesHash[order[1]]);
 };
 /**
- * @description find a topological ordering from a set of faceOrders
+ * @description Find a topological ordering from a set of faceOrders.
+ * The user can supply the face for which the normal will set the
+ * direction of the linearization, if none is selected the face with
+ * the lowest index number is chosen.
+ * The faceOrders should contain faces which all lie in a plane, otherwise
+ * this will attempt to linearize faces along a direction that is
+ * meaningless (a vector inside of the plane of the faces).
+ * So, for 3D models, this method should be run multiple times, each time
+ * on a subset of faceOrders, containing only those faces which are coplanar
+ * (and ideally, connected and overlapping).
+ * This will not return a linearization including all faces in a graph,
+ * it only includes faces found in faceOrders.
  * @param {FOLD} graph a FOLD graph with faceOrders, and either faces_normal
  * pre-calculated, or faces_vertices and vertices_coords to get the normals.
- * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
+ * @returns {number[]} layers_face, for every layer (key) which face (value)
+ * inhabits it. This only includes faces which are found in faceOrders.
  * @linkcode Origami ./src/layer/topological.js 10
  */
-export const linearizeFaceOrders = ({
-	vertices_coords, faces_vertices, faceOrders, faces_normal,
-}) => {
+export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 	if (!faceOrders || !faceOrders.length) { return []; }
-	if (!faces_normal) {
-		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
-	}
-	// remove the third element from these arrays. only contains face indices.
-	const ordersFacesOnly = faceOrders.flatMap(order => [order[0], order[1]]);
-	const faces = uniqueSortedNumbers(ordersFacesOnly);
+	// get a flat, unique, array of all faces present in faceOrders
+	const faces = uniqueSortedNumbers(faceOrders
+		.flatMap(order => [order[0], order[1]]));
+	// we need to pick one face which determines the linearization direction.
+	// if the user supplied rootFace is not in "faces", ignore it.
+	const normal = rootFace !== undefined && faces.includes(rootFace)
+		? faces_normal[rootFace]
+		: faces_normal[faces[0]];
+	// create a lookup. for every face, does its normal match the normal
+	// we just chose to represent the linearization direction?
 	const facesNormalMatch = [];
-	faces.forEach(face => {
-		facesNormalMatch[face] = dot(faces_normal[face], faces_normal[faces[0]]) > 0;
+	faces.forEach(f => {
+		facesNormalMatch[f] = dot(faces_normal[f], normal) > 0;
 	});
 	// this pair states face [0] is above face [1]. according to the +1 -1 order,
 	// and whether or not the reference face [1] normal is flipped. (xor either)
@@ -51,6 +65,51 @@ export const linearizeFaceOrders = ({
 			? [order[0], order[1]]
 			: [order[1], order[0]]));
 	return topologicalSort(directedEdges);
+};
+/**
+ * todo: assuming faces_vertices instead of faces_edges
+ * @returns {number[]} layers_face
+ */
+const fillInMissingFaces = ({ faces_vertices }, faces_layer) => {
+	if (!faces_vertices) { return faces_layer; }
+	const missingFaces = faces_vertices
+		.map((_, i) => i)
+		.filter(i => faces_layer[i] == null);
+	return missingFaces.concat(invertMap(faces_layer));
+};
+/**
+ * @description Find a topological ordering of all faces in a graph.
+ * This method is intended for 2D flat foldings. This requires
+ * the graph with folded vertices_coords, a crease pattern will not work.
+ * This method is inclusive and will include all faces from the graph
+ * in the result, even those which have no ordering. The method will first
+ * sort all faces which do have an ordering, then find any remaining faces,
+ * and add these faces in no particular order onto the beginning of the list,
+ * so that the faces with an order will be at the end (on top, painters algorithm).
+ * @param {FOLD} graph a FOLD graph with either faceOrders or faces_layer.
+ * @returns {number[]} layers_face, for every layer (key),
+ * which face (value) inhabits it.
+ * @linkcode Origami ./src/layer/topological.js 10
+ */
+export const linearize2DFaces = ({
+	vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal,
+}, rootFace) => {
+	if (!faces_normal) {
+		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	}
+	console.log("linearize2DFaces", rootFace, faceOrders, faces_normal);
+	if (faceOrders) {
+		return fillInMissingFaces(
+			{ faces_vertices },
+			invertMap(linearizeFaceOrders({ faceOrders, faces_normal }, rootFace)),
+		);
+	}
+	if (faces_layer) {
+		return fillInMissingFaces({ faces_vertices }, faces_layer);
+	}
+	// no face order exists, just return all face indices.
+	// if the array has any holes filter these out
+	return faces_vertices.map((_, i) => i).filter(() => true);
 };
 /**
  * @description Given a graph which contains a faceOrders, get an array
@@ -62,8 +121,12 @@ export const linearizeFaceOrders = ({
  * each object with properties "vector" and "layer".
  * @linkcode Origami ./src/layer/nudge.js 37
  */
-export const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
-	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+export const nudgeFacesWithFaceOrders = ({
+	vertices_coords, faces_vertices, faceOrders, faces_normal,
+}) => {
+	if (!faces_normal) {
+		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	}
 	// create a graph where the vertices are the faces, and edges
 	// are connections between faces according to faceOrders
 	// using this representation, find the disjoint sets of faces,
@@ -71,8 +134,9 @@ export const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, face
 	const faces_sets = connectedComponents(makeVerticesVerticesUnsorted({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
 	}));
-	const sets_faces = invertMap(faces_sets)
-		.map(el => (el.constructor === Array ? el : [el]));
+	// const sets_faces = invertMap(faces_sets)
+	// 	.map(el => (el.constructor === Array ? el : [el]));
+	const sets_faces = invertMapArray(faces_sets);
 	const sets_layers_face = sets_faces
 		.map(faces => faceOrdersSubset(faceOrders, faces))
 		.map(orders => linearizeFaceOrders({ faceOrders: orders, faces_normal }));
@@ -107,8 +171,9 @@ export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
 	return faces_nudge;
 };
 /**
- * @description for a flat-foldable origami, this will return
- * ONLY ONE of the possible layer arrangements of the faces.
+ * @description for a flat-foldable origami, one in which all
+ * of its folded state vertices are in 2D, this will return
+ * one valid layer arrangement of the faces.
  * first it finds all pairwise face layer conditions, then
  * finds a topological ordering of each condition.
  * @param {object} graph a FOLD object, make sure the vertices

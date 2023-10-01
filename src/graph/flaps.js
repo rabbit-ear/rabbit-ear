@@ -88,7 +88,7 @@ export const getFlapsThroughLine = ({
 	console.log("sidesFaceOrders", sidesFaceOrders);
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	const sidesLayersFace = sidesFaceOrders.map(orders => linearizeFaceOrders({
-		vertices_coords, faces_vertices, faceOrders: orders, faces_normal,
+		faceOrders: orders, faces_normal,
 	}));
 	console.log("sidesLayersFace", sidesLayersFace);
 };

@@ -6,6 +6,7 @@ import {
 	add,
 	resize,
 } from "../../math/vector.js";
+import clone from "../../general/clone.js";
 import {
 	nudgeFacesWithFaceOrders,
 	nudgeFacesWithFacesLayer,
@@ -20,13 +21,14 @@ const LAYER_NUDGE = 5e-6;
 
 export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	// todo: remove the structured clone as long as everything is working.
-	// const copy = structuredClone(graph);
-	const copy = { ...graph };
+	// update: shallow copy is not working. the input parameter is still modified.
+	const copy = clone(graph);
+	// const copy = { ...graph };
 	// we render "J" joined edges differently from all others. if edges_assignment
 	// doesn't exist, make it with all assignments set to "U".
 	// the user will never see this data, it's just for visualization.
 	if (!copy.edges_assignment) {
-		const edgeCount = count.edges(graph) || countImplied.edges(graph);
+		const edgeCount = count.edges(copy) || countImplied.edges(copy);
 		copy.edges_assignment = Array(edgeCount).fill("U");
 	}
 	let faces_nudge = [];

@@ -1918,7 +1918,16 @@ const invertSimpleMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => { inv[n] = i; });
 	return inv;
-};const maps=/*#__PURE__*/Object.freeze({__proto__:null,invertMap,invertMapArray,invertSimpleMap,mergeBackmaps,mergeNextmaps,mergeSimpleBackmaps,mergeSimpleNextmaps});const clean = (graph, epsilon) => {
+};
+const remapComponent = (graph, component, indexMap = []) => {
+	filterKeysWithSuffix(graph, component)
+		.forEach(key => graph[key]
+			.forEach((_, ii) => graph[key][ii]
+				.forEach((v, jj) => { graph[key][ii][jj] = indexMap[v]; })));
+	const inverted = invertSimpleMap(indexMap);
+	filterKeysWithPrefix(graph, component)
+		.forEach(key => { graph[key] = inverted.map(i => graph[key][i]); });
+};const maps=/*#__PURE__*/Object.freeze({__proto__:null,invertMap,invertMapArray,invertSimpleMap,mergeBackmaps,mergeNextmaps,mergeSimpleBackmaps,mergeSimpleNextmaps,remapComponent});const clean = (graph, epsilon) => {
 	const change_v1 = removeDuplicateVertices(graph, epsilon);
 	const change_e1 = removeCircularEdges(graph);
 	const change_e2 = removeDuplicateEdges(graph);
@@ -3791,7 +3800,7 @@ const makeVerticesCoordsFlatFolded = ({
 					});
 			}));
 	return vertices_coords_folded;
-};const verticesFolded=/*#__PURE__*/Object.freeze({__proto__:null,makeVerticesCoordsFlatFolded,makeVerticesCoordsFolded});const clone = function (o) {
+};const verticesFolded=/*#__PURE__*/Object.freeze({__proto__:null,makeVerticesCoordsFlatFolded,makeVerticesCoordsFolded});const clonePolyfill = function (o) {
 	let newO;
 	let i;
 	if (typeof o !== "object") {
@@ -3803,18 +3812,21 @@ const makeVerticesCoordsFlatFolded = ({
 	if (Object.prototype.toString.apply(o) === "[object Array]") {
 		newO = [];
 		for (i = 0; i < o.length; i += 1) {
-			newO[i] = clone(o[i]);
+			newO[i] = clonePolyfill(o[i]);
 		}
 		return newO;
 	}
 	newO = {};
 	for (i in o) {
 		if (o.hasOwnProperty(i)) {
-			newO[i] = clone(o[i]);
+			newO[i] = clonePolyfill(o[i]);
 		}
 	}
 	return newO;
-};const str_class = "class";
+};
+const clone = (typeof structuredClone === "function"
+	? structuredClone
+	: clonePolyfill);const str_class = "class";
 const str_function = "function";
 const str_undefined = "undefined";
 const str_boolean = "boolean";
@@ -6013,18 +6025,16 @@ const connectedComponentsPairs = (array_array) => {
 	return faceOrders
 		.filter(order => facesHash[order[0]] && facesHash[order[1]]);
 };
-const linearizeFaceOrders = ({
-	vertices_coords, faces_vertices, faceOrders, faces_normal,
-}) => {
+const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 	if (!faceOrders || !faceOrders.length) { return []; }
-	if (!faces_normal) {
-		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
-	}
-	const ordersFacesOnly = faceOrders.flatMap(order => [order[0], order[1]]);
-	const faces = uniqueSortedNumbers(ordersFacesOnly);
+	const faces = uniqueSortedNumbers(faceOrders
+		.flatMap(order => [order[0], order[1]]));
+	const normal = rootFace !== undefined && faces.includes(rootFace)
+		? faces_normal[rootFace]
+		: faces_normal[faces[0]];
 	const facesNormalMatch = [];
-	faces.forEach(face => {
-		facesNormalMatch[face] = dot(faces_normal[face], faces_normal[faces[0]]) > 0;
+	faces.forEach(f => {
+		facesNormalMatch[f] = dot(faces_normal[f], normal) > 0;
 	});
 	const directedEdges = faceOrders
 		.map(order => ((order[2] === -1) ^ (!facesNormalMatch[order[1]])
@@ -6032,13 +6042,41 @@ const linearizeFaceOrders = ({
 			: [order[1], order[0]]));
 	return topologicalSort(directedEdges);
 };
-const nudgeFacesWithFaceOrders = ({ vertices_coords, faces_vertices, faceOrders }) => {
-	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+const fillInMissingFaces = ({ faces_vertices }, faces_layer) => {
+	if (!faces_vertices) { return faces_layer; }
+	const missingFaces = faces_vertices
+		.map((_, i) => i)
+		.filter(i => faces_layer[i] == null);
+	return missingFaces.concat(invertMap(faces_layer));
+};
+const linearize2DFaces = ({
+	vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal,
+}, rootFace) => {
+	if (!faces_normal) {
+		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	}
+	console.log("linearize2DFaces", rootFace, faceOrders, faces_normal);
+	if (faceOrders) {
+		return fillInMissingFaces(
+			{ faces_vertices },
+			invertMap(linearizeFaceOrders({ faceOrders, faces_normal }, rootFace)),
+		);
+	}
+	if (faces_layer) {
+		return fillInMissingFaces({ faces_vertices }, faces_layer);
+	}
+	return faces_vertices.map((_, i) => i).filter(() => true);
+};
+const nudgeFacesWithFaceOrders = ({
+	vertices_coords, faces_vertices, faceOrders, faces_normal,
+}) => {
+	if (!faces_normal) {
+		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	}
 	const faces_sets = connectedComponents(makeVerticesVerticesUnsorted({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
 	}));
-	const sets_faces = invertMap(faces_sets)
-		.map(el => (el.constructor === Array ? el : [el]));
+	const sets_faces = invertMapArray(faces_sets);
 	const sets_layers_face = sets_faces
 		.map(faces => faceOrdersSubset(faceOrders, faces))
 		.map(orders => linearizeFaceOrders({ faceOrders: orders, faces_normal }));
@@ -6068,7 +6106,7 @@ const makeFacesLayer = ({ vertices_coords, faces_vertices, faceOrders, faces_nor
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 	return invertMap(linearizeFaceOrders({ faceOrders, faces_normal }));
-};const orders=/*#__PURE__*/Object.freeze({__proto__:null,faceOrdersSubset,linearizeFaceOrders,makeFacesLayer,nudgeFacesWithFaceOrders,nudgeFacesWithFacesLayer});const FACE_STYLE_FOLDED_ORDERED = {
+};const orders=/*#__PURE__*/Object.freeze({__proto__:null,faceOrdersSubset,linearize2DFaces,linearizeFaceOrders,makeFacesLayer,nudgeFacesWithFaceOrders,nudgeFacesWithFacesLayer});const FACE_STYLE_FOLDED_ORDERED = {
 	back: { fill: "white" },
 	front: { fill: "#ddd" },
 };
@@ -6090,21 +6128,6 @@ const GROUP_STYLE_FOLDED_UNORDERED = {
 const GROUP_STYLE_FLAT = {
 	fill: "none",
 };
-const fillInMissingFaces = (graph, faces_layer) => {
-	const missingFaces = graph.faces_vertices
-		.map((_, i) => i)
-		.filter(i => faces_layer[i] == null);
-	return missingFaces.concat(invertMap(faces_layer));
-};
-const orderFaceIndices = (graph) => {
-	if (graph.faceOrders) {
-		return fillInMissingFaces(graph, invertMap(linearizeFaceOrders(graph)));
-	}
-	if (graph.faces_layer) {
-		return fillInMissingFaces(graph, graph.faces_layer);
-	}
-	return graph.faces_vertices.map((_, i) => i).filter(() => true);
-};
 const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
 const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
@@ -6125,7 +6148,7 @@ const finalize_faces = (graph, svg_faces, group, options = {}) => {
 				: FACE_STYLE_FLAT[className]));
 			applyFacesStyle(svg_faces[i], attributes[className]);
 		});
-	orderFaceIndices(graph).forEach(f => group.appendChild(svg_faces[f]));
+	linearize2DFaces(graph).forEach(f => group.appendChild(svg_faces[f]));
 	Object.defineProperty(group, "front", {
 		get: () => svg_faces.filter((_, i) => faces_winding[i]),
 	});
@@ -8440,74 +8463,42 @@ const getFlapsThroughLine = ({
 	console.log("sidesFaceOrders", sidesFaceOrders);
 	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	const sidesLayersFace = sidesFaceOrders.map(orders => linearizeFaceOrders({
-		vertices_coords, faces_vertices, faceOrders: orders, faces_normal,
+		faceOrders: orders, faces_normal,
 	}));
 	console.log("sidesLayersFace", sidesLayersFace);
 };const flaps=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesSide,getFacesSide,getFlapsThroughLine});const VEF = Object.keys(singularize);
-const makeVerticesMapAndConsiderDuplicates = (target, source, epsilon = EPSILON) => {
-	let index = target.vertices_coords.length;
-	return source.vertices_coords
-		.map(vertex => target.vertices_coords
-			.map(v => distance(v, vertex) < epsilon)
-			.map((onVertex, i) => (onVertex ? i : undefined))
-			.filter(a => a !== undefined)
-			.shift())
-		.map(el => (el === undefined ? index++ : el));
-};
-const getEdgesDuplicateFromSourceInTarget = (target, source) => {
-	const source_duplicates = {};
-	const target_map = {};
-	for (let i = 0; i < target.edges_vertices.length; i += 1) {
-		target_map[`${target.edges_vertices[i][0]} ${target.edges_vertices[i][1]}`] = i;
-		target_map[`${target.edges_vertices[i][1]} ${target.edges_vertices[i][0]}`] = i;
-	}
-	for (let i = 0; i < source.edges_vertices.length; i += 1) {
-		const index = target_map[`${source.edges_vertices[i][0]} ${source.edges_vertices[i][1]}`];
-		if (index !== undefined) {
-			source_duplicates[i] = index;
-		}
-	}
-	return source_duplicates;
-};
-const updateSuffixes = (source, suffixes, keys, maps) => keys
-	.forEach(geom => suffixes[geom]
-		.forEach(key => source[key]
-			.forEach((arr, i) => arr
-				.forEach((el, j) => { source[key][i][j] = maps[geom][el]; }))));
-const joinGraphs = (target, source, epsilon = EPSILON) => {
-	const prefixes = {};
-	const suffixes = {};
-	const maps = {};
-	const dimensions = [target, source]
-		.map(g => g.vertices_coords)
-		.map(coords => (coords && coords.length ? coords[0].length : 0))
-		.reduce((a, b) => Math.max(a, b));
-	target.vertices_coords = target.vertices_coords
-		.map(coord => resize(dimensions, coord));
+const join = (target, source) => {
+	const sourceKeyArrays = {};
 	VEF.forEach(key => {
-		prefixes[key] = filterKeysWithPrefix(source, key);
-		suffixes[key] = filterKeysWithSuffix(source, key);
+		const arrayName = filterKeysWithPrefix(source, key).shift();
+		sourceKeyArrays[key] = (arrayName !== undefined ? source[arrayName] : []);
 	});
-	VEF.forEach(geom => prefixes[geom].filter(key => !target[key]).forEach(key => {
-		target[key] = [];
-	}));
-	maps.vertices = makeVerticesMapAndConsiderDuplicates(target, source, epsilon);
-	updateSuffixes(source, suffixes, ["vertices"], maps);
-	const target_edges_count = count.edges(target);
-	maps.edges = Array.from(Array(count.edges(source)))
-		.map((_, i) => target_edges_count + i);
-	const edge_dups = getEdgesDuplicateFromSourceInTarget(target, source);
-	Object.keys(edge_dups).forEach(i => { maps.edges[i] = edge_dups[i]; });
-	const target_faces_count = count.faces(target);
-	maps.faces = Array.from(Array(count.faces(source)))
-		.map((_, i) => target_faces_count + i);
-	updateSuffixes(source, suffixes, ["edges", "faces"], maps);
-	VEF.forEach(geom => prefixes[geom].forEach(key => source[key].forEach((el, i) => {
-		const new_index = maps[geom][i];
-		target[key][new_index] = el;
-	})));
-	return maps;
-};const join=/*#__PURE__*/Object.freeze({__proto__:null,joinGraphs});const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
+	const keyCount = {};
+	VEF.forEach(key => { keyCount[key] = count(target, key); });
+	const indexMaps = { vertices: [], edges: [], faces: [] };
+	VEF.forEach(key => sourceKeyArrays[key]
+		.forEach((_, i) => { indexMaps[key][i] = keyCount[key]++; }));
+	const sourceClone = clone(source);
+	VEF.forEach(key => remapComponent(sourceClone, key, indexMaps[key]));
+	Object.keys(sourceClone)
+		.filter(key => !(key in target))
+		.forEach(key => { target[key] = []; });
+	Object.keys(sourceClone)
+		.forEach(key => sourceClone[key]
+			.forEach((v, i) => { target[key][i] = v; }));
+	const summary = {};
+	const targetKeyArrays = {};
+	VEF.forEach(key => {
+		const arrayName = filterKeysWithPrefix(target, key).shift();
+		targetKeyArrays[key] = (arrayName !== undefined ? target[arrayName] : []);
+	});
+	VEF.forEach(key => {
+		const map = targetKeyArrays[key].map(() => 0);
+		indexMaps[key].forEach(v => { map[v] = 1; });
+		summary[key] = invertMapArray(map);
+	});
+	return summary;
+};const join$1=/*#__PURE__*/Object.freeze({__proto__:null,join});const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
 	pointsToLine(...edges_vertices[edge].map(v => vertices_coords[v]))
 );
 const pleat = ({ vertices_coords, edges_vertices }, edgeA, edgeB, count, epsilon) => (
@@ -9502,7 +9493,7 @@ const repeatFoldLine = ({
 	...clip$1,
 	...explodeMethods,
 	...flaps,
-	...join,
+	...join$1,
 	...make,
 	...maps,
 	...nearestMethods,
@@ -10163,9 +10154,9 @@ const makeThickEdgesElementArrays = (gl, version = 1, graph = {}) => {
 	}];
 };const foldedArrays=/*#__PURE__*/Object.freeze({__proto__:null,makeFoldedElementArrays,makeFoldedVertexArrays,makeThickEdgesElementArrays,makeThickEdgesVertexArrays});const LAYER_NUDGE = 5e-6;
 const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
-	const copy = { ...graph };
+	const copy = clone(graph);
 	if (!copy.edges_assignment) {
-		const edgeCount = count.edges(graph) || countImplied.edges(graph);
+		const edgeCount = count.edges(copy) || countImplied.edges(copy);
 		copy.edges_assignment = Array(edgeCount).fill("U");
 	}
 	let faces_nudge = [];

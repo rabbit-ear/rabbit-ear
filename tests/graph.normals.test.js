@@ -20,6 +20,20 @@ test("makeVerticesNormal crease pattern", () => {
 		.forEach(dot => expect(dot).toBeCloseTo(1));
 });
 
+test("makeFacesNormal flat folded form", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/preliminary-offset-cp.fold", "utf-8");
+	const graph = JSON.parse(foldfile);
+	const vertices_coords = ear.graph.makeVerticesCoordsFlatFolded(graph);
+	const folded = { ...graph, vertices_coords };
+	const faceNormals = ear.graph.makeFacesNormal(folded);
+	expect(ear.math.dot(faceNormals[0], [0, 0, 1])).toBeCloseTo(1);
+	expect(ear.math.dot(faceNormals[1], [0, 0, -1])).toBeCloseTo(1);
+	expect(ear.math.dot(faceNormals[2], [0, 0, -1])).toBeCloseTo(1);
+	expect(ear.math.dot(faceNormals[3], [0, 0, 1])).toBeCloseTo(1);
+	expect(ear.math.dot(faceNormals[4], [0, 0, 1])).toBeCloseTo(1);
+	expect(ear.math.dot(faceNormals[5], [0, 0, -1])).toBeCloseTo(1);
+});
+
 test("makeFacesNormal 3d form", () => {
 	const sphere = fs.readFileSync("./tests/files/obj/sphere-with-holes.obj", "utf-8");
 	const FOLD = ear.convert.objToFold(sphere);
@@ -49,4 +63,33 @@ test("makeVerticesNormal 3d form", () => {
 	expect(m1.length).toBe(1);
 	expect(m2.length).toBe(1);
 	expect(m3.length).toBe(1);
+});
+
+test("normals 3D many planes", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/animal-base-cp-3d.fold", "utf-8");
+	const graph = JSON.parse(FOLD);
+	const vertices_coords = ear.graph.makeVerticesCoordsFolded(graph);
+	const folded = { ...graph, vertices_coords };
+	const faces_normal = ear.graph.makeFacesNormal(folded);
+	const normals = [
+		[0, 0, 1],
+		[0, 0, -1],
+		[0, 0, -1],
+		[0, 0, 1],
+		[0.9238795325112866, -0.38268343236509034, 0],
+		[-0.9238795325112866, 0.38268343236509034, 0],
+		[0.9238795325112863, 0.3826834323650909, 0],
+		[-0.923879532511287, -0.38268343236508917, 0],
+		[0, 0, -1],
+		[0, 0, -1],
+		[0, -1, 0],
+		[0, 1, 0],
+		[0, 1, 0],
+		[0, 0, 1],
+		[0, 0, 1],
+		[0, -1, 0],
+	];
+	normals
+		.forEach((normal, i) => normal
+			.forEach((n, j) => expect(faces_normal[i][j]).toBeCloseTo(n)));
 });
