@@ -93,3 +93,39 @@ test("fold a disjoint graph", () => {
 		.forEach((coords, i) => coords
 			.forEach((n, j) => expect(n).toBeCloseTo(expected[i][j])));
 });
+
+test("two graphs joined at a single vertex, folded", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/kissing-squares.fold", "utf-8");
+	const graph = JSON.parse(foldfile);
+	const vertices_coords = ear.graph.makeVerticesCoordsFolded(graph);
+	const expected = [
+		[0, 0, 0],
+		[1, 0, 0],
+		[0, 2, 0],
+		[0, 1, 0],
+		[-1, 2, 0],
+		[0, 0, 0],
+		[0, 2, 0],
+	];
+	expected
+		.forEach((coords, i) => coords
+			.forEach((_, j) => expect(vertices_coords[i][j]).toBeCloseTo(expected[i][j])));
+});
+
+test("two graphs joined at a single vertex, flat-folded", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/kissing-squares.fold", "utf-8");
+	const graph = JSON.parse(foldfile);
+	const vertices_coords = ear.graph.makeVerticesCoordsFlatFolded(graph);
+	const expected = [
+		[0, 0],
+		[1, 0],
+		[0, 2],
+		[0, 1],
+		[-1, 2],
+		[0, 0],
+		[0, 2],
+	];
+	expected
+		.forEach((coords, i) => coords
+			.forEach((_, j) => expect(vertices_coords[i][j]).toBeCloseTo(expected[i][j])));
+});

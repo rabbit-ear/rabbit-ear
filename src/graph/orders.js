@@ -97,7 +97,6 @@ export const linearize2DFaces = ({
 	if (!faces_normal) {
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
-	console.log("linearize2DFaces", rootFace, faceOrders, faces_normal);
 	if (faceOrders) {
 		return fillInMissingFaces(
 			{ faces_vertices },

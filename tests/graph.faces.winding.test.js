@@ -41,3 +41,20 @@ test("makeFacesWindingFromMatrix and makeFacesWindingFromMatrix2", () => {
 	foldedWinding.forEach((side, i) => expect(side).toBe(foldedMatrixWinding[i]));
 	foldedWinding.forEach((side, i) => expect(side).toBe(foldedMatrix2Winding[i]));
 });
+
+test("makeFacesWinding", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/kissing-squares.fold", "utf-8");
+	const graph = JSON.parse(foldfile);
+	const vertices_coords = ear.graph.makeVerticesCoordsFlatFolded(graph);
+	const folded = {
+		...graph,
+		vertices_coords,
+	};
+	ear.graph.makeFacesWinding(graph)
+		.forEach(side => expect(side).toBe(true));
+	const foldedWinding = ear.graph.makeFacesWinding(folded);
+	expect(foldedWinding[0]).toBe(true);
+	expect(foldedWinding[1]).toBe(false);
+	expect(foldedWinding[2]).toBe(true);
+	expect(foldedWinding[3]).toBe(false);
+});

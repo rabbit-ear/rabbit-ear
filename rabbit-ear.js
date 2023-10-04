@@ -3734,6 +3734,8 @@ const makeFacesMatrix2 = ({
 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
 	edges_assignment, faces_vertices, faces_faces, faces_matrix,
 }, root_face) => {
+	if (!vertices_coords || !vertices_coords.length) { return []; }
+	if (!faces_vertices || !faces_vertices.length) { return vertices_coords; }
 	faces_matrix = makeFacesMatrix({
 		vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
 	}, root_face);
@@ -3754,19 +3756,23 @@ const makeFacesMatrix2 = ({
 const makeVerticesCoordsFlatFolded = ({
 	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
 }, root_face = 0) => {
+	if (!vertices_coords || !vertices_coords.length) { return []; }
+	if (!faces_vertices || !faces_vertices.length) { return vertices_coords; }
 	if (!faces_faces) {
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const vertices_coords_folded = [];
-	faces_vertices[root_face]
-		.forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
 	const faces_flipped = [];
-	faces_flipped[root_face] = false;
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
-	minimumSpanningTree(faces_faces, root_face)
-		.slice(1)
-		.forEach(level => level
+	minimumSpanningTrees(faces_faces, root_face).forEach(tree => {
+		const rootRow = tree.shift();
+		if (!rootRow || !rootRow.length) { return; }
+		const root = rootRow[0];
+		faces_flipped[root.index] = false;
+		faces_vertices[root.index]
+			.forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
+		tree.forEach(level => level
 			.forEach(entry => {
 				const edge_key = getFaceFaceSharedVertices(
 					faces_vertices[entry.index],
@@ -3799,6 +3805,7 @@ const makeVerticesCoordsFlatFolded = ({
 						vertices_coords_folded[v] = folded_coords;
 					});
 			}));
+	});
 	return vertices_coords_folded;
 };const verticesFolded=/*#__PURE__*/Object.freeze({__proto__:null,makeVerticesCoordsFlatFolded,makeVerticesCoordsFolded});const clonePolyfill = function (o) {
 	let newO;
@@ -6055,7 +6062,6 @@ const linearize2DFaces = ({
 	if (!faces_normal) {
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
-	console.log("linearize2DFaces", rootFace, faceOrders, faces_normal);
 	if (faceOrders) {
 		return fillInMissingFaces(
 			{ faces_vertices },

@@ -164,3 +164,31 @@ test("face walk tree, finding an edge match. bad edge formations", () => {
 	// expect(result2[1][0].edge_vertices[0]).toBe(3);
 	// expect(result2[1][0].edge_vertices[1]).toBe(1);
 });
+
+test("face walk tree, two graphs, joined at a single vertex", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/kissing-squares.fold", "utf-8");
+	const graph = JSON.parse(foldfile);
+	const faces_faces = ear.graph.makeFacesFaces(graph);
+	const trees1 = ear.graph.minimumSpanningTrees(faces_faces, 0);
+	fs.writeFileSync(
+		"./tests/tmp/disjoint-spanning-trees.fold",
+		JSON.stringify(trees1),
+		"utf8",
+	);
+	// all 4 face indices are covered, even if the faces are (edge-) disjoint.
+	expect(trees1[0][0][0].index).toBe(0);
+	expect(trees1[0][1][0].index).toBe(1);
+	expect(trees1[0][1][0].parent).toBe(0);
+	expect(trees1[1][0][0].index).toBe(2);
+	expect(trees1[1][1][0].index).toBe(3);
+	expect(trees1[1][1][0].parent).toBe(2);
+
+	const trees2 = ear.graph.minimumSpanningTrees(faces_faces, 3);
+	// all 4 face indices are covered, even if the faces are (edge-) disjoint.
+	expect(trees2[0][0][0].index).toBe(3);
+	expect(trees2[0][1][0].index).toBe(2);
+	expect(trees2[0][1][0].parent).toBe(3);
+	expect(trees2[1][0][0].index).toBe(0);
+	expect(trees2[1][1][0].index).toBe(1);
+	expect(trees2[1][1][0].parent).toBe(0);
+});
