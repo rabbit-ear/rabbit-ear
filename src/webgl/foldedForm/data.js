@@ -36,7 +36,7 @@ export const makeFacesVertexData = ({
 		}
 	}
 	return {
-		vertices_coords,
+		vertices_coords: vertices_coords3,
 		vertices_normal,
 		vertices_barycentric,
 	};

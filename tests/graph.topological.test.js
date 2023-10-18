@@ -17,6 +17,7 @@ test("topological sort with cycle", () => {
 test("topological sort crane", () => {
 	const testfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const graph = JSON.parse(testfile);
+	graph.faces_normal = ear.graph.makeFacesNormal(graph);
 	const ordering = ear.graph.linearizeFaceOrders(graph);
 	const expected = [
 		37, 46, 36, 30, 2, 39, 43, 35, 29, 3, 0, 4, 28, 15, 9, 27, 22, 16, 12, 20,
@@ -56,6 +57,7 @@ test("topological sort subset of crane faces", () => {
 			[13, 11, 1],
 		],
 	};
+	graph.faces_normal = ear.graph.makeFacesNormal(graph);
 	const ordering = ear.graph.linearizeFaceOrders(graph);
 	const expected = [15, 12, 11, 13, 14, 16, 20, 19, 18, 17];
 	expect(JSON.stringify(ordering)).toBe(JSON.stringify(expected));
@@ -92,6 +94,7 @@ test("topological sort subset of crane faces. again", () => {
 			[38, 33, -1],
 		],
 	};
+	graph.faces_normal = ear.graph.makeFacesNormal(graph);
 	const ordering = ear.graph.linearizeFaceOrders(graph);
 	const expected = [37, 36, 30, 39, 35, 31, 32, 33, 34, 38];
 	expect(JSON.stringify(ordering)).toBe(JSON.stringify(expected));

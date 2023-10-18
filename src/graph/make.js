@@ -397,10 +397,16 @@ export const makeVerticesToFace = ({ faces_vertices }) => {
  * @linkcode Origami ./src/graph/make.js 395
  */
 export const makeVerticesVerticesVector = ({
-	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+	vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
+	edges_vertices, edges_vector, faces_vertices,
 }) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+	}
+	if (!vertices_vertices) {
+		vertices_vertices = makeVerticesVertices({
+			vertices_coords, vertices_edges, vertices_faces, edges_vertices, faces_vertices,
+		});
 	}
 	const edge_map = makeVerticesToEdge({ edges_vertices });
 	return vertices_vertices

@@ -3,6 +3,7 @@
  */
 // single vertex
 import * as degree4 from "./degree4.js";
+import * as foldable from "./foldable.js";
 import * as kawasaki from "./kawasaki.js";
 import * as maekawa from "./maekawa.js";
 import * as validateSingleVertex from "./validate.js";
@@ -12,6 +13,7 @@ import * as validateSingleVertex from "./validate.js";
  */
 export default {
 	...degree4,
+	...foldable,
 	...kawasaki,
 	...maekawa,
 	...validateSingleVertex,

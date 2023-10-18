@@ -44,6 +44,9 @@ export const faceOrdersSubset = (faceOrders, faces) => {
  */
 export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 	if (!faceOrders || !faceOrders.length) { return []; }
+	if (!faces_normal) {
+		throw new Error("linearizeFaceOrders: faces_normal required");
+	}
 	// get a flat, unique, array of all faces present in faceOrders
 	const faces = uniqueSortedNumbers(faceOrders
 		.flatMap(order => [order[0], order[1]]));

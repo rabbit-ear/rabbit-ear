@@ -102,6 +102,7 @@ const getTopLevelFrame = (graph) => {
  * @returns {FOLD[]} an array of FOLD objects, single frames in a flat array.
  */
 export const getFramesAsFlatArray = (graph) => {
+	if (!graph) { return []; }
 	if (!graph.file_frames || !graph.file_frames.length) {
 		return [graph];
 	}

@@ -50,3 +50,13 @@ test("planar boundary", () => {
 	expect(JSON.stringify(result.edges))
 		.toBe(JSON.stringify([2, 3, 4, 5, 6, 7, 0, 1]));
 });
+
+test("planar boundaries", () => {
+	const foldString = fs.readFileSync("./tests/files/fold/disjoint-triangles-3d.fold", "utf-8");
+	const fold = JSON.parse(foldString);
+	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	const singleBoundary = ear.graph.planarBoundary(graph);
+	const boundaries = ear.graph.planarBoundaries(graph);
+	// console.log("singleBoundary", singleBoundary);
+	// console.log("boundaries", boundaries);
+});

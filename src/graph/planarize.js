@@ -296,8 +296,8 @@ const planarize = ({
 	// if (circularEdges(result).length) {
 	// 	console.error("planarize: found circular edges. place 1.");
 	// }
-	// removeDuplicateVertices(result, epsilon * 10);
-	removeDuplicateVertices(result, epsilon * 2);
+	removeDuplicateVertices(result, epsilon * 1e1);
+	// removeDuplicateVertices(result, epsilon * 2);
 	removeCircularEdges(result);
 	// if (circularEdges(result).length) {
 	// 	console.error("planarize: found circular edges. place 2.");

@@ -1527,10 +1527,16 @@ const makeVerticesToFace = ({ faces_vertices }) => {
 	return map;
 };
 const makeVerticesVerticesVector = ({
-	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+	vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
+	edges_vertices, edges_vector, faces_vertices,
 }) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+	}
+	if (!vertices_vertices) {
+		vertices_vertices = makeVerticesVertices({
+			vertices_coords, vertices_edges, vertices_faces, edges_vertices, faces_vertices,
+		});
 	}
 	const edge_map = makeVerticesToEdge({ edges_vertices });
 	return vertices_vertices
@@ -2654,7 +2660,7 @@ const planarize = ({
 		}
 	}
 	removeIsolatedVertices(result, edgeIsolatedVertices(result));
-	removeDuplicateVertices(result, epsilon * 2);
+	removeDuplicateVertices(result, epsilon * 1e1);
 	removeCircularEdges(result);
 	result.vertices_edges = makeVerticesEdgesUnsorted(result);
 	const collinearVertices = result.vertices_edges
@@ -3474,7 +3480,78 @@ const validate = (graph, epsilon) => {
 			references: references.faces,
 		},
 	};
-};const boundingBox = ({ vertices_coords }, padding) => (
+};const connectedComponents = (array_array) => {
+	const groups = [];
+	const recurse = (index, current_group) => {
+		if (groups[index] !== undefined) { return 0; }
+		groups[index] = current_group;
+		array_array[index].forEach(i => recurse(i, current_group));
+		return 1;
+	};
+	for (let row = 0, group = 0; row < array_array.length; row += 1) {
+		if (!(row in array_array)) { continue; }
+		group += recurse(row, group);
+	}
+	return groups;
+};
+const connectedComponentsPairs = (array_array) => {
+	const circular = [];
+	const pairs = [];
+	array_array.forEach((arr, i) => arr.forEach(j => {
+		if (i < j) { pairs.push([i, j]); }
+		if (i === j && !circular[i]) {
+			circular[i] = true;
+			pairs.push([i, j]);
+		}
+	}));
+	return pairs;
+};const connectedComponents$1=/*#__PURE__*/Object.freeze({__proto__:null,connectedComponents,connectedComponentsPairs});const disjointGraphsIndices = (graph) => {
+	const edges_vertices = graph.edges_vertices || [];
+	const faces_vertices = graph.faces_vertices || [];
+	const vertices_edges = graph.vertices_edges
+		? graph.vertices_edges
+		: makeVerticesEdgesUnsorted({ edges_vertices });
+	const vertices_vertices = graph.vertices_vertices
+		? graph.vertices_vertices
+		: makeVerticesVerticesUnsorted({ vertices_edges, edges_vertices });
+	const vertices_faces = graph.vertices_faces
+		? graph.vertices_faces
+		: makeVerticesFacesUnsorted({ vertices_edges, faces_vertices });
+	const vertices = invertMapArray(connectedComponents(vertices_vertices));
+	const edges = vertices
+		.map(verts => verts.flatMap(v => vertices_edges[v]))
+		.map(uniqueElements);
+	const faces = vertices
+		.map(verts => verts.flatMap(v => vertices_faces[v]))
+		.map(uniqueElements);
+	return Array.from(Array(vertices.length)).map((_, i) => ({
+		vertices: vertices[i] || [],
+		edges: edges[i] || [],
+		faces: faces[i] || [],
+	}));
+};
+const disjointGraphs = (graph) => {
+	const graphs = disjointGraphsIndices(graph);
+	const verticesKeys = filterKeysWithPrefix(graph, "vertices");
+	const edgesKeys = filterKeysWithPrefix(graph, "edges");
+	const facesKeys = filterKeysWithPrefix(graph, "faces");
+	return graphs.map(({ vertices, edges, faces }) => {
+		const subgraph = {};
+		verticesKeys.forEach(key => {
+			subgraph[key] = [];
+			vertices.forEach(v => { subgraph[key][v] = graph[key][v]; });
+		});
+		edgesKeys.forEach(key => {
+			subgraph[key] = [];
+			edges.forEach(v => { subgraph[key][v] = graph[key][v]; });
+		});
+		facesKeys.forEach(key => {
+			subgraph[key] = [];
+			faces.forEach(v => { subgraph[key][v] = graph[key][v]; });
+		});
+		return subgraph;
+	});
+};const disjoint=/*#__PURE__*/Object.freeze({__proto__:null,disjointGraphs,disjointGraphsIndices});const boundingBox = ({ vertices_coords }, padding) => (
 	boundingBox$1(vertices_coords, padding)
 );
 const boundaryVertices = ({ edges_vertices, edges_assignment = [] }) => (
@@ -3524,7 +3601,9 @@ const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
 }) => {
 	if (!vertices_vertices) {
-		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
+		vertices_vertices = makeVerticesVertices2D({
+			vertices_coords, vertices_edges, edges_vertices,
+		});
 	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const edge_walk = [];
@@ -3583,7 +3662,19 @@ const planarBoundary = ({
 		prev_vertex_i = this_vertex_i;
 		this_vertex_i = next_vertex_i;
 	}
-};const boundary$1=/*#__PURE__*/Object.freeze({__proto__:null,boundary,boundaryVertices,boundingBox,planarBoundary});const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
+};
+const planarBoundaries = ({
+	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
+}) => {
+	if (!vertices_vertices) {
+		vertices_vertices = makeVerticesVertices2D({
+			vertices_coords, vertices_edges, edges_vertices,
+		});
+	}
+	return disjointGraphs({
+		vertices_coords, vertices_vertices, edges_vertices,
+	}).map(planarBoundary);
+};const boundary$1=/*#__PURE__*/Object.freeze({__proto__:null,boundary,boundaryVertices,boundingBox,planarBoundaries,planarBoundary});const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
 	const hash = {};
 	face_b_vertices.forEach((v) => { hash[v] = true; });
 	const match = face_a_vertices.map(v => !!hash[v]);
@@ -4682,7 +4773,17 @@ const convertToViewBox = function (svg, x, y) {
 	pt.y = y;
 	const svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
 	return [svgPoint.x, svgPoint.y];
-};const viewBox=/*#__PURE__*/Object.freeze({__proto__:null,convertToViewBox,getViewBox:getViewBox$1,setViewBox});const general$2 = {
+};
+const foldToViewBox = ({ vertices_coords }) => {
+	if (!vertices_coords) { return undefined; }
+	const min = [Infinity, Infinity];
+	const max = [-Infinity, -Infinity];
+	vertices_coords.forEach(coord => [0, 1].forEach(i => {
+		min[i] = Math.min(coord[i], min[i]);
+		max[i] = Math.max(coord[i], max[i]);
+	}));
+	return [min[0], min[1], max[0] - min[0], max[1] - min[1]].join(" ");
+};const viewBox=/*#__PURE__*/Object.freeze({__proto__:null,convertToViewBox,foldToViewBox,getViewBox:getViewBox$1,setViewBox});const general$2 = {
 	...algebra,
 	...dom$1,
 	makeCDATASection,
@@ -6001,32 +6102,7 @@ const makeFacesWinding = ({ vertices_coords, faces_vertices }) => faces_vertices
 	};
 	vertices.forEach(recurse);
 	return ordering;
-};const directedGraph=/*#__PURE__*/Object.freeze({__proto__:null,topologicalSort});const connectedComponents = (array_array) => {
-	const groups = [];
-	const recurse = (index, current_group) => {
-		if (groups[index] !== undefined) { return 0; }
-		groups[index] = current_group;
-		array_array[index].forEach(i => recurse(i, current_group));
-		return 1;
-	};
-	for (let row = 0, group = 0; row < array_array.length; row += 1) {
-		if (!(row in array_array)) { continue; }
-		group += recurse(row, group);
-	}
-	return groups;
-};
-const connectedComponentsPairs = (array_array) => {
-	const circular = [];
-	const pairs = [];
-	array_array.forEach((arr, i) => arr.forEach(j => {
-		if (i < j) { pairs.push([i, j]); }
-		if (i === j && !circular[i]) {
-			circular[i] = true;
-			pairs.push([i, j]);
-		}
-	}));
-	return pairs;
-};const connectedComponents$1=/*#__PURE__*/Object.freeze({__proto__:null,connectedComponents,connectedComponentsPairs});const faceOrdersSubset = (faceOrders, faces) => {
+};const directedGraph=/*#__PURE__*/Object.freeze({__proto__:null,topologicalSort});const faceOrdersSubset = (faceOrders, faces) => {
 	const facesHash = {};
 	faces.forEach(f => { facesHash[f] = true; });
 	return faceOrders
@@ -6034,6 +6110,9 @@ const connectedComponentsPairs = (array_array) => {
 };
 const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 	if (!faceOrders || !faceOrders.length) { return []; }
+	if (!faces_normal) {
+		throw new Error("linearizeFaceOrders: faces_normal required");
+	}
 	const faces = uniqueSortedNumbers(faceOrders
 		.flatMap(order => [order[0], order[1]]));
 	const normal = rootFace !== undefined && faces.includes(rootFace)
@@ -7891,18 +7970,19 @@ const objToFold = (file) => {
 };const shortestEdgeLength$1 = ({ vertices_coords, edges_vertices }) => {
 	const lengths = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]))
-		.map(segment => distance(...segment));
+		.map(segment => distance(...segment))
+		.filter(len => len > 1e-4);
 	const minLen = lengths
 		.reduce((a, b) => Math.min(a, b), Infinity);
 	return minLen === Infinity ? undefined : minLen;
 };
 const makeEpsilon$1 = ({ vertices_coords, edges_vertices }) => {
 	const shortest = shortestEdgeLength$1({ vertices_coords, edges_vertices });
-	if (shortest) { return shortest / 20; }
 	const bounds = boundingBox({ vertices_coords });
-	return bounds && bounds.span
-		? 1e-3 * Math.max(...bounds.span)
-		: 1e-3;
+	const graphSpan = bounds && bounds.span ? Math.max(...bounds.span) : 1;
+	const spanScale = graphSpan * 1e-2;
+	const edgeScale = shortest / 20;
+	return shortest === undefined ? spanScale : Math.min(spanScale, edgeScale);
 };const findEpsilonInObject = (graph, object, key = "epsilon") => {
 	if (typeof object === "object" && typeof object[key] === "number") {
 		return object[key];
@@ -8309,6 +8389,7 @@ const getTopLevelFrame = (graph) => {
 	return copy;
 };
 const getFramesAsFlatArray = (graph) => {
+	if (!graph) { return []; }
 	if (!graph.file_frames || !graph.file_frames.length) {
 		return [graph];
 	}
@@ -8364,53 +8445,7 @@ const axiom7 = ({ vertices_coords, edges_vertices }, edgeA, edgeB, vertex) => (
 );
 const axiom = (number, ...args) => [
 	null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
-][number](...args);const axioms=/*#__PURE__*/Object.freeze({__proto__:null,axiom,axiom1,axiom2,axiom3,axiom4,axiom5,axiom6,axiom7});const disjointGraphsIndices = (graph) => {
-	const edges_vertices = graph.edges_vertices || [];
-	const faces_vertices = graph.faces_vertices || [];
-	const vertices_edges = graph.vertices_edges
-		? graph.vertices_edges
-		: makeVerticesEdgesUnsorted({ edges_vertices });
-	const vertices_vertices = graph.vertices_vertices
-		? graph.vertices_vertices
-		: makeVerticesVerticesUnsorted({ vertices_edges, edges_vertices });
-	const vertices_faces = graph.vertices_faces
-		? graph.vertices_faces
-		: makeVerticesFacesUnsorted({ vertices_edges, faces_vertices });
-	const vertices = invertMapArray(connectedComponents(vertices_vertices));
-	const edges = vertices
-		.map(verts => verts.flatMap(v => vertices_edges[v]))
-		.map(uniqueElements);
-	const faces = vertices
-		.map(verts => verts.flatMap(v => vertices_faces[v]))
-		.map(uniqueElements);
-	return Array.from(Array(vertices.length)).map((_, i) => ({
-		vertices: vertices[i] || [],
-		edges: edges[i] || [],
-		faces: faces[i] || [],
-	}));
-};
-const disjointGraphs = (graph) => {
-	const graphs = disjointGraphsIndices(graph);
-	const verticesKeys = filterKeysWithPrefix(graph, "vertices");
-	const edgesKeys = filterKeysWithPrefix(graph, "edges");
-	const facesKeys = filterKeysWithPrefix(graph, "faces");
-	return graphs.map(({ vertices, edges, faces }) => {
-		const subgraph = {};
-		verticesKeys.forEach(key => {
-			subgraph[key] = [];
-			vertices.forEach(v => { subgraph[key][v] = graph[key][v]; });
-		});
-		edgesKeys.forEach(key => {
-			subgraph[key] = [];
-			edges.forEach(v => { subgraph[key][v] = graph[key][v]; });
-		});
-		facesKeys.forEach(key => {
-			subgraph[key] = [];
-			faces.forEach(v => { subgraph[key][v] = graph[key][v]; });
-		});
-		return subgraph;
-	});
-};const disjoint=/*#__PURE__*/Object.freeze({__proto__:null,disjointGraphs,disjointGraphsIndices});const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon = EPSILON) => {
+][number](...args);const axioms=/*#__PURE__*/Object.freeze({__proto__:null,axiom,axiom1,axiom2,axiom3,axiom4,axiom5,axiom6,axiom7});const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon = EPSILON) => {
 	const edgeSide = (edge_vertices) => edge_vertices
 		.map(v => vertices_coords[v])
 		.map(coord => subtract2(coord, line.origin))
@@ -8487,9 +8522,11 @@ const join = (target, source) => {
 	const sourceClone = clone(source);
 	VEF.forEach(key => remapComponent(sourceClone, key, indexMaps[key]));
 	Object.keys(sourceClone)
+		.filter(key => sourceClone[key].constructor === Array)
 		.filter(key => !(key in target))
 		.forEach(key => { target[key] = []; });
 	Object.keys(sourceClone)
+		.filter(key => sourceClone[key].constructor === Array)
 		.forEach(key => sourceClone[key]
 			.forEach((v, i) => { target[key][i] = v; }));
 	const summary = {};
@@ -9802,7 +9839,52 @@ const foldDegree4 = (sectors, assignments, foldAngle = 0) => {
 	return (odd % 2 === 0
 		? [pab, pbc, pab, pbc].map((n, i) => (odd === i ? -n : n))
 		: [pbc, pab, pbc, pab].map((n, i) => (odd === i ? -n : n)));
-};const degree4=/*#__PURE__*/Object.freeze({__proto__:null,foldDegree4});const unassignedAssignment = { U: true, u: true };
+};const degree4=/*#__PURE__*/Object.freeze({__proto__:null,foldDegree4});const verticesFoldable = ({
+	vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
+	edges_vertices, edges_foldAngle, edges_vector, faces_vertices,
+}, epsilon = EPSILON) => {
+	if (!vertices_vertices) {
+		vertices_vertices = makeVerticesVertices({
+			vertices_coords, vertices_edges, vertices_faces, edges_vertices, faces_vertices,
+		});
+	}
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdges({ edges_vertices, vertices_vertices });
+	}
+	if (!vertices_faces) {
+		vertices_faces = makeVerticesFaces({ vertices_coords, vertices_vertices, faces_vertices });
+	}
+	const vertices_vectors = makeVerticesVerticesVector({
+		vertices_coords,
+		vertices_vertices,
+		vertices_edges,
+		vertices_faces,
+		edges_vertices,
+		edges_vector,
+		faces_vertices,
+	});
+	return vertices_coords.map((_, v) => {
+		if (vertices_faces[v].includes(undefined)
+			|| vertices_faces[v].includes(null)) { return true; }
+		const edgesAngles = vertices_vectors[v]
+			.map(vec => Math.atan2(vec[1], vec[0]));
+		const edgesFoldAngle = vertices_edges[v]
+			.map(e => edges_foldAngle[e])
+			.map(angle => angle * D2R);
+		const aM = edgesAngles.map(a => makeMatrix3RotateZ(a));
+		const aiM = aM.map(m => invertMatrix3(m));
+		const fM = edgesFoldAngle.map(a => makeMatrix3RotateX(a));
+		const localMatrices = vertices_vectors[v].map((__, i) => multiplyMatrices3(
+			aM[i],
+			multiplyMatrices3(fM[i], aiM[i]),
+		));
+		let matrix = identity3x4;
+		localMatrices.forEach(m => { matrix = multiplyMatrices3(matrix, m); });
+		return Array.from(Array(9))
+			.map((__, i) => Math.abs(matrix[i] - identity3x4[i]) < epsilon)
+			.reduce((a, b) => a && b, true);
+	});
+};const foldable=/*#__PURE__*/Object.freeze({__proto__:null,verticesFoldable});const unassignedAssignment = { U: true, u: true };
 const getUnassignedIndices = (edges_assignment) => edges_assignment
 	.map((_, i) => i)
 	.filter(i => unassignedAssignment[edges_assignment[i]]);
@@ -9826,6 +9908,7 @@ const maekawaSolver = (vertices_edgesAssignments) => {
 	return all.filter((_, i) => Math.abs(count_m[i] - count_v[i]) === 2);
 };const maekawa=/*#__PURE__*/Object.freeze({__proto__:null,maekawaSolver});const singleVertex = {
 	...degree4,
+	...foldable,
 	...kawasaki,
 	...maekawa,
 	...validateSingleVertex,
@@ -10010,7 +10093,7 @@ const parseColorToWebGLRgb = (color) => (
 		}
 	}
 	return {
-		vertices_coords,
+		vertices_coords: vertices_coords3,
 		vertices_normal,
 		vertices_barycentric,
 	};
@@ -12005,6 +12088,21 @@ const setup = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
 	faces_vertices, faces_edges, faces_faces,
 }, epsilon = EPSILON) => {
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
+	if (!edges_faces) {
+		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+	}
+	if (!faces_faces) {
+		faces_faces = makeFacesFaces({ faces_vertices });
+	}
+	if (!edges_foldAngle && edges_assignment) {
+		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
+	}
+	if (!edges_assignment) {
+		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
+	}
 	const {
 		sets_faces,
 		sets_transformXY,
@@ -12078,21 +12176,6 @@ const layer3d = ({
 }, epsilon) => {
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
 		return Object.assign(Object.create(LayerPrototype), emptyLayerSolution());
-	}
-	if (!faces_edges) {
-		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	}
-	if (!edges_faces) {
-		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
-	}
-	if (!faces_faces) {
-		faces_faces = makeFacesFaces({ faces_vertices });
-	}
-	if (!edges_foldAngle && edges_assignment) {
-		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
-	}
-	if (!edges_assignment) {
-		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
 	}
 	if (epsilon === undefined) {
 		epsilon = makeEpsilon({ vertices_coords, edges_vertices });

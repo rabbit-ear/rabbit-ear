@@ -1,3 +1,4 @@
+const fs = require("fs");
 const { test, expect } = require("@jest/globals");
 const ear = require("../rabbit-ear.js");
 
@@ -39,3 +40,17 @@ test("vertices vertices, circle, starting at -X", () => {
 	});
 	result[12].forEach((n, i) => expect(n).toBe((i + 6) % 12));
 });
+
+// test("vertices vertices, disjoint", () => {
+// 	const foldString = fs.readFileSync("./tests/files/fold/disjoint-triangles-3d.fold", "utf-8");
+// 	const fold = JSON.parse(foldString);
+// 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+// 	const verticesVertices1 = ear.graph.makeVerticesVertices(graph);
+// 	const verticesVertices2 = ear.graph.makeVerticesVerticesUnsorted(graph);
+// 	const testt = ear.graph.makeVerticesEdgesUnsorted(graph);
+// 	console.log("EV", graph.edges_vertices);
+// 	console.log("verticesVertices1", verticesVertices1);
+// 	console.log("verticesVertices2", verticesVertices2);
+// 	console.log("testt", testt);
+// 	// console.log("boundaries", boundaries);
+// });

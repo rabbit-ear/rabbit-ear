@@ -6,9 +6,17 @@ import { assignmentIsBoundary } from "../fold/spec.js";
 import { uniqueElements } from "../general/array.js";
 import {
 	makeVerticesEdgesUnsorted,
-	makeVerticesVertices,
+	makeVerticesVertices2D,
 	makeVerticesToEdgeBidirectional,
 } from "./make.js";
+import {
+	connectedComponents,
+} from "./connectedComponents.js";
+import { invertMapArray } from "./maps.js";
+import {
+	disjointGraphs,
+	disjointGraphsIndices,
+} from "./disjoint.js";
 import Messages from "../environment/messages.js";
 /**
  * @description Make an axis-aligned bounding box that encloses the vertices of
@@ -117,7 +125,9 @@ export const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
 }) => {
 	if (!vertices_vertices) {
-		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
+		vertices_vertices = makeVerticesVertices2D({
+			vertices_coords, vertices_edges, edges_vertices,
+		});
 	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const edge_walk = [];
@@ -194,4 +204,30 @@ export const planarBoundary = ({
 		prev_vertex_i = this_vertex_i;
 		this_vertex_i = next_vertex_i;
 	}
+};
+/**
+ * @description When a graph does not have boundary assignment information,
+ * this method is used to uncover the boundaries, so long as the graph is planar.
+ * This works for disjoint graphs, the return value is an array of results.
+ * Each boundary result is two arrays of vertices and edges, discovered
+ * by walking the boundary edges in 2D and uncovering the concave hull.
+ * Does not consult edges_assignment, but does require vertices_coords.
+ * @param {FOLD} graph a FOLD graph
+ * (vertices_coords, vertices_vertices, edges_vertices)
+ * (vertices edges only required in case vertices_vertices needs to be built)
+ * @returns {object} "vertices" and "edges" with arrays of indices.
+ * @usage call populate() before to ensure this works.
+ * @linkcode Origami ./src/graph/boundary.js 109
+ */
+export const planarBoundaries = ({
+	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
+}) => {
+	if (!vertices_vertices) {
+		vertices_vertices = makeVerticesVertices2D({
+			vertices_coords, vertices_edges, edges_vertices,
+		});
+	}
+	return disjointGraphs({
+		vertices_coords, vertices_vertices, edges_vertices,
+	}).map(planarBoundary);
 };

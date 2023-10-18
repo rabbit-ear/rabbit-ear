@@ -142,9 +142,11 @@ export const join = (target, source) => {
 	const sourceClone = clone(source);
 	VEF.forEach(key => remapComponent(sourceClone, key, indexMaps[key]));
 	Object.keys(sourceClone)
+		.filter(key => sourceClone[key].constructor === Array)
 		.filter(key => !(key in target))
 		.forEach(key => { target[key] = []; });
 	Object.keys(sourceClone)
+		.filter(key => sourceClone[key].constructor === Array)
 		.forEach(key => sourceClone[key]
 			.forEach((v, i) => { target[key][i] = v; }));
 	const summary = {};
