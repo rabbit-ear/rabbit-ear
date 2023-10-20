@@ -203,7 +203,7 @@ export const intersectConvexFaceLine = ({
 			includeL,
 			excludeS,
 			epsilon,
-		)).map((coords, face_edge_index) => ({
+		).point).map((coords, face_edge_index) => ({
 			coords,
 			edge: faces_edges[face][face_edge_index],
 		}))

@@ -1,6 +1,6 @@
-const fs = require("fs");
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import fs from "fs";
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("preliminary fold layers 2D", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/preliminary-offset-cp.fold", "utf-8");

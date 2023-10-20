@@ -1,23 +1,23 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("intersectLineLine include exclude", () => {
 	const res0 = ear.math.intersectLineLine(
 		{ vector: [0, 1], origin: [1, 0] },
 		{ vector: [1, 0], origin: [0, 1] },
-	);
+	).point;
 	const res1 = ear.math.intersectLineLine(
 		{ vector: [0, 1], origin: [1, 0] },
 		{ vector: [1, 0], origin: [0, 1] },
 		ear.math.includeS,
 		ear.math.includeS,
-	);
+	).point;
 	const res2 = ear.math.intersectLineLine(
 		{ vector: [0, 1], origin: [1, 0] },
 		{ vector: [1, 0], origin: [0, 1] },
 		ear.math.excludeS,
 		ear.math.excludeS,
-	);
+	).point;
 	expect(res0).not.toBe(undefined);
 	expect(res1).not.toBe(undefined);
 	expect(res2).toBe(undefined);
@@ -245,7 +245,7 @@ test("collinear line intersections", () => {
 		{ vector: a, origin: b },
 		{ vector: c, origin: d },
 		...args,
-	);
+	).point;
 	[
 		// INCLUDE horizontal
 		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeL, ear.math.includeL),
@@ -279,7 +279,7 @@ test("collinear ray intersections", () => {
 		{ vector: a, origin: b },
 		{ vector: c, origin: d },
 		...args,
-	);
+	).point;
 	[
 		// INCLUDE horizontal
 		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeR, ear.math.includeR),
@@ -313,7 +313,7 @@ test("collinear segment intersections", () => {
 		{ vector: a, origin: b },
 		{ vector: c, origin: d },
 		...args,
-	);
+	).point;
 	[
 		// INCLUDE horizontal
 		intersect([1, 0], [2, 2], [1, 0], [-1, 2], ear.math.includeS, ear.math.includeS),
@@ -343,7 +343,7 @@ test("collinear segment intersections", () => {
 });
 
 test("collinear segment intersections, types not core", () => {
-	const intersect = (a, b) => ear.math.intersectLineLine(a, b);
+	const intersect = (a, b) => ear.math.intersectLineLine(a, b).point;
 	[
 		// horizontal
 		intersect(

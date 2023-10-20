@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 const build_layers = (layers_face, faces_pair) => layers_face
 	.map(f => faces_pair[f])

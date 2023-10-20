@@ -46,7 +46,9 @@ export const intersectLineLine = (
 	// a normalized determinant gives consistent values across all epsilon ranges
 	const det_norm = cross2(normalize2(a.vector), normalize2(b.vector));
 	// lines are parallel
-	if (Math.abs(det_norm) < epsilon) { return undefined; }
+	if (Math.abs(det_norm) < epsilon) {
+		return { a: undefined, b: undefined, point: undefined };
+	}
 	const determinant0 = cross2(a.vector, b.vector);
 	const determinant1 = -determinant0;
 	const a2b = [b.origin[0] - a.origin[0], b.origin[1] - a.origin[1]];
@@ -55,9 +57,9 @@ export const intersectLineLine = (
 	const t1 = cross2(b2a, a.vector) / determinant1;
 	if (aDomain(t0, epsilon / magnitude2(a.vector))
 		&& bDomain(t1, epsilon / magnitude2(b.vector))) {
-		return add2(a.origin, scale2(a.vector, t0));
+		return { a: t0, b: t1, point: add2(a.origin, scale2(a.vector, t0)) };
 	}
-	return undefined;
+	return { a: undefined, b: undefined, point: undefined };
 };
 /**
  * @description Calculate the intersection of a circle and a line;
@@ -182,7 +184,7 @@ const intersectConvexPolygonLineInclusive = (
 			fn_poly,
 			fn_line,
 			epsilon,
-		))
+		).point)
 		.filter(a => a !== undefined);
 	switch (intersections.length) {
 	case 0: return undefined;

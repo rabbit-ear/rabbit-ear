@@ -1,6 +1,6 @@
-const { test, expect } = require("@jest/globals");
-const xmldom = require("@xmldom/xmldom");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import xmldom from "@xmldom/xmldom";
+import ear from "../rabbit-ear.js";
 
 ear.window = xmldom;
 /**
@@ -8,7 +8,7 @@ ear.window = xmldom;
  * and it uses svgMini instead.
  */
 test("nodejs window, svg mini library", () => {
-	const svg = ear.svg();
+	// const svg = ear.svg();
 	const p = ear.svg.path("M1 2L3 4L-5 6z");
 	p.setAttribute("stroke", "red");
 	expect(p.getAttribute("d")).toBe("M1 2L3 4L-5 6z");

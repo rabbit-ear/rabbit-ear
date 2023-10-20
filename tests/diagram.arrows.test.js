@@ -1,6 +1,8 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
+// this is currently deprecated. maybe will be reintroduced
+// in a future update.
 test("empty", () => expect(true).toBe(true));
 
 // test("make arrow coords", () => {

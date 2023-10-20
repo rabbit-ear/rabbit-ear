@@ -1,7 +1,9 @@
-const { test, expect } = require("@jest/globals");
+import { expect, test } from "vitest";
+import xmldom from "@xmldom/xmldom";
+import ear from "../rabbit-ear.js";
+
+ear.svg.window = xmldom;
 // const ear = require("./ear");
-const ear = require("../rabbit-ear.js");
-ear.svg.window = require("@xmldom/xmldom");
 
 test("", () => expect(true).toBe(true));
 

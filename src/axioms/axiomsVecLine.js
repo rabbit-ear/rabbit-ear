@@ -137,7 +137,7 @@ export const axiom7 = (line1, line2, point) => {
 		{ vector: line2.vector, origin: point },
 		includeL,
 		includeL,
-	);
+	).point;
 	return intersect === undefined
 		? []
 		: [{

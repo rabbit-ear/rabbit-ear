@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("excluding primitives", () => expect(true).toBe(true));
 
@@ -23,7 +23,7 @@ test("excluding primitives", () => expect(true).toBe(true));
 // });
 // test("intersect", () => {
 // 	const polygon = ear.math.makePolygonCircumradius(4);
-// 	const segment = ear.math.intersectLineLine(polygon, [1, 1], [0, 0]);
+// 	const segment = ear.math.intersectLineLine(polygon, [1, 1], [0, 0]).point;
 // 	expect(Math.abs(segment[0][0])).toBe(0.5);
 // 	expect(Math.abs(segment[0][1])).toBe(0.5);
 // 	expect(Math.abs(segment[1][0])).toBe(0.5);

@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("clamp functions", () => {
 	expect(ear.math.clampLine(0)).toBe(0);

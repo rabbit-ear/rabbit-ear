@@ -41,7 +41,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
 			arr[(i + 1) % arr.length],
 			excludeR,
 			excludeR,
-		));
+		).point);
 	// project each intersection point down perpendicular to the edge of the polygon
 	// const projections = lines.map((line, i) => line.nearestPoint(intersects[i]));
 	const projections = lines.map((line, i) => (

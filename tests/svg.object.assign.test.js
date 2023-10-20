@@ -1,4 +1,4 @@
-const { test, expect } = require("@jest/globals");
+import { expect, test } from "vitest";
 
 const test1 = {
 	a: {

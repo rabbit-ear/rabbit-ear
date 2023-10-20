@@ -1,6 +1,6 @@
-const fs = require("fs");
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import fs from "fs";
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 /*
 test("", () => {
 	const res = ear.graph.getEdgesSegmentIntersection(ear.cp.fish(), [0.7, 0.9], [1, 1]);

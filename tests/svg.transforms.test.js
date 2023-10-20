@@ -1,6 +1,8 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
-ear.svg.window = require("@xmldom/xmldom");
+import { expect, test } from "vitest";
+import xmldom from "@xmldom/xmldom";
+import ear from "../rabbit-ear.js";
+
+ear.svg.window = xmldom;
 
 test("parseTransform", () => {
 	const transformString = "translate(20 100) rotate(45) scale(2 1) matrix(0 -1 1 0 0 0)";

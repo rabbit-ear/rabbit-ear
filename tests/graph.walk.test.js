@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("counterClockwiseWalk", () => {
 	const vertices_vertices = [
@@ -21,7 +21,7 @@ test("counterClockwiseWalk", () => {
 		.vertices.forEach((v, i) => expect(v).toBe([0, 3, 2, 1][i]));
 });
 
-test("counterClockwiseWalk incomplete vertices_vertices", (done) => {
+test("counterClockwiseWalk incomplete vertices_vertices", () => new Promise(done => {
 	const vertices_vertices = [
 		[1, 4, 3],
 		[2, 4, 0],
@@ -34,7 +34,7 @@ test("counterClockwiseWalk incomplete vertices_vertices", (done) => {
 		expect(error).not.toBe(undefined);
 		done();
 	}
-});
+}));
 
 test("counterClockwiseWalk with weird circular paths", () => {
 	const vertices_vertices = [

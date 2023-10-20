@@ -92,7 +92,7 @@ export const getEdgesSegmentIntersection = ({
 		const edgeCoords = edges_vertices[e].map(v => vertices_coords[v]);
 		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
 		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
-		const intersect = intersectLineLine(segmentLine, edgeLine, includeS, includeS, epsilon);
+		const intersect = intersectLineLine(segmentLine, edgeLine, includeS, includeS, epsilon).point;
 		if (!intersect) { return; }
 		intersections[e] = intersect;
 	});
@@ -116,5 +116,5 @@ export const getEdgesLineIntersection = ({
 		const edgeCoords = vertices.map(v => vertices_coords[v]);
 		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
 		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
-		return intersectLineLine({ vector, origin }, edgeLine, includeL, segmentFunc, epsilon);
+		return intersectLineLine({ vector, origin }, edgeLine, includeL, segmentFunc, epsilon).point;
 	});

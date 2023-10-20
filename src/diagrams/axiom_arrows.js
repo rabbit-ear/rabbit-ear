@@ -43,7 +43,7 @@ const line_line_for_arrows = (a, b) => intersectLineLine(
 	b,
 	includeL,
 	includeL,
-);
+).point;
 
 const diagram_reflect_point = (foldLine, point) => {
 	const matrix = makeMatrix2Reflect(foldLine.vector, foldLine.origin);
@@ -161,7 +161,7 @@ const axiom_3_arrows = (params, graph) => {
 		{ vector: segVecs[1], origin: segs[1][0] },
 		excludeS,
 		excludeS,
-	);
+	).point;
 	return !intersect
 		? [between_2_segments(params, segs, axiom(3, params)
 			.filter(a => a !== undefined).shift())]

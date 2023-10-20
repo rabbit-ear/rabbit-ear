@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("validate, valid results", () => {
 	const boundary = [[0, 0], [1, 0], [1, 1], [0, 1]];

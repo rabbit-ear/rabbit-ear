@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("layer solver, simple staircase", () => {
 	const res = ear.layer.singleVertexSolver([3, 2, 3, 2, 3], Array.from("BVMVMB"));

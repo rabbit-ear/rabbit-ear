@@ -1,6 +1,6 @@
-const { test, expect } = require("@jest/globals");
-const xmldom = require("@xmldom/xmldom");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import xmldom from "@xmldom/xmldom";
+import ear from "../rabbit-ear.js";
 
 ear.svg.window = xmldom;
 const { DOMParser } = xmldom;

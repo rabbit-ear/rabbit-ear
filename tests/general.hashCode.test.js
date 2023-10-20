@@ -1,3 +1,3 @@
-const { test, expect } = require("@jest/globals");
+import { expect, test } from "vitest";
 
 test("hashCode is not exposed in API", () => expect(true).toBe(true));

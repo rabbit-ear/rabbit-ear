@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("isIdentity", () => {
 	expect(ear.math.isIdentity4x4([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]))

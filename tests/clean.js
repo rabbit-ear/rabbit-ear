@@ -1,5 +1,5 @@
 import fs from "fs";
-// const fs = require("fs");
+// import fs from "fs";
 
 // fs.existsSync(path)
 fs.readdirSync("./")

@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("makeVerticesFacesUnsorted, with vertices, isolated", () => {
 	const result = ear.graph.makeVerticesFacesUnsorted({

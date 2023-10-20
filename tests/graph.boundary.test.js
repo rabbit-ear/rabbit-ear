@@ -1,6 +1,6 @@
-const fs = require("fs");
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import fs from "fs";
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("bounding box", () => {
 	const graph = ear.graph.square();
@@ -51,12 +51,14 @@ test("planar boundary", () => {
 		.toBe(JSON.stringify([2, 3, 4, 5, 6, 7, 0, 1]));
 });
 
-test("planar boundaries", () => {
+test("planar boundaries, multiple boundaries", () => {
 	const foldString = fs.readFileSync("./tests/files/fold/disjoint-triangles-3d.fold", "utf-8");
 	const fold = JSON.parse(foldString);
 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
 	const singleBoundary = ear.graph.planarBoundary(graph);
 	const boundaries = ear.graph.planarBoundaries(graph);
-	// console.log("singleBoundary", singleBoundary);
-	// console.log("boundaries", boundaries);
+	const allEdges = boundaries.flatMap(el => el.edges);
+	expect(singleBoundary.edges.length < allEdges.length)
+		.toBe(true);
+	expect(allEdges.length).toBe(24);
 });

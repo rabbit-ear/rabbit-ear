@@ -1,6 +1,8 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
-ear.svg.window = require("@xmldom/xmldom");
+import { expect, test } from "vitest";
+import xmldom from "@xmldom/xmldom";
+import ear from "../rabbit-ear.js";
+
+ear.svg.window = xmldom;
 
 const primitives = [
 	"line",

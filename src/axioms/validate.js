@@ -148,7 +148,7 @@ export const validateAxiom4 = (boundary, solutions, line, point) => {
 		{ vector: rotate90(line.vector), origin: point },
 		includeL,
 		includeL,
-	);
+	).point;
 	return [
 		[point, intersect]
 			.filter(a => a !== undefined)
@@ -235,7 +235,7 @@ export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
 		solutions[0],
 		includeL,
 		includeL,
-	);
+	).point;
 	const intersectInsideTest = intersect
 		? overlapConvexPolygonPoint(boundary, intersect, include)
 		: false;

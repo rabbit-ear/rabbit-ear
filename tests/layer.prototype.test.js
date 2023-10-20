@@ -1,6 +1,6 @@
-const fs = require("fs");
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import fs from "fs";
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 // ear.layer.faceOrdersToMatrix()
 // ear.layer.facesLayerToEdgesAssignments()

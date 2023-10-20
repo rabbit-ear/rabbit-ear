@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("make faces_faces, square", () => {
 	const result = ear.graph.makeFacesFaces({
@@ -35,7 +35,7 @@ test("make faces_faces, degenerate", () => {
 	expect(res0[0].length).toBe(0);
 });
 
-test("make faces_faces 4", (done) => {
+test("make faces_faces 4", () => new Promise(done => {
 	try {
 		const result = ear.graph.makeFacesFaces({
 			faces_vertices: [[0], [1], undefined, [2]],
@@ -44,25 +44,25 @@ test("make faces_faces 4", (done) => {
 		expect(error).not.toBe(undefined);
 		done();
 	}
-});
+}));
 
-test("make faces_faces 5", (done) => {
+test("make faces_faces 5", () => new Promise(done => {
 	try {
 		const result = ear.graph.makeFacesFaces();
 	} catch (error) {
 		expect(error).not.toBe(undefined);
 		done();
 	}
-});
+}));
 
-test("make faces_faces 6", (done) => {
+test("make faces_faces 6", () => new Promise(done => {
 	try {
 		const result = ear.graph.makeFacesFaces({});
 	} catch (error) {
 		expect(error).not.toBe(undefined);
 		done();
 	}
-});
+}));
 
 test("make faces_faces 7", () => {
 	const result = ear.graph.makeFacesFaces({ faces_vertices: [] });

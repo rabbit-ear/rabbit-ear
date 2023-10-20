@@ -1,11 +1,11 @@
-const { test, expect } = require("@jest/globals");
-const fs = require("fs");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import fs from "fs";
+import ear from "../rabbit-ear.js";
 
 test("keys", () => {
-	// expect(ear.graph.file_spec).toBe(1.1)
-	// expect(ear.graph.keys.length).toBe(30);
-	// expect(ear.graph.file_creator).toBe("Rabbit Ear");
+	const graph = ear.graph();
+	expect(graph.file_spec).toBe(1.1);
+	expect(graph.file_creator).toBe("Rabbit Ear");
 });
 
 test("edgeAssignmentToFoldAngle", () => {

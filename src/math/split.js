@@ -35,7 +35,7 @@ export const splitConvexPolygon = (poly, line) => {
 			origin: arr[(i + 1) % arr.length],
 		}))
 		.map((polyLine, i) => ({
-			point: intersectLineLine(line, polyLine, excludeL, excludeS),
+			point: intersectLineLine(line, polyLine, excludeL, excludeS).point,
 			at_index: i,
 		}))
 		.filter(el => el.point != null);

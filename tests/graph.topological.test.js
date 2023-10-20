@@ -1,6 +1,6 @@
-const fs = require("fs");
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import fs from "fs";
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("topological sort", () => {
 	const ordering = ear.graph.topologicalSort([[5, 2], [2, 1], [5, 1], [1, 0], [1, 3]]);

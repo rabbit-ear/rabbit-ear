@@ -1,14 +1,14 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
-test("count, empty, invalid", (done) => {
+test("count, empty, invalid", () => new Promise(done => {
 	try {
 		ear.graph.count.vertices();
 	} catch (error) {
 		expect(error).not.toBe(undefined);
 		done();
 	}
-});
+}));
 
 test("general function", () => {
 	expect(ear.graph.count({ robby_vertices: ["a", "b", "c", "d"] }, "robby"))

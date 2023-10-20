@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("duplicate edges", () => {
 	const graph = {
@@ -70,21 +70,21 @@ test("invalid edges", () => {
 	expect(result2[2]).toBe(0);
 });
 
-test("duplicate edges, invalid input 1", (done) => {
+test("duplicate edges, invalid input 1", () => new Promise(done => {
 	try {
 		ear.graph.duplicateEdges();
 	} catch (error) {
 		expect(error).not.toBe(undefined);
 		done();
 	}
-});
+}));
 
 test("duplicate edges, invalid input 2", () => {
 	const result = ear.graph.duplicateEdges({});
 	expect(result.length).toBe(0);
 });
 
-test("duplicate edges, with undefined", (done) => {
+test("duplicate edges, with undefined", () => new Promise(done => {
 	try {
 		ear.graph.duplicateEdges({
 			edges_vertices: [
@@ -97,7 +97,7 @@ test("duplicate edges, with undefined", (done) => {
 		expect(error).not.toBe(undefined);
 		done();
 	}
-});
+}));
 
 test("duplicate edges", () => {
 	const graph = {

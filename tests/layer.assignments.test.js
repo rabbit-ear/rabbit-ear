@@ -1,7 +1,7 @@
 // this is not included and accessible from the main rabbit-ear export anymore
 
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("skip", () => expect(true).toBe(true));
 

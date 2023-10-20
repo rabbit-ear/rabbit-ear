@@ -1,6 +1,8 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
-ear.svg.window = require("@xmldom/xmldom");
+import { expect, test } from "vitest";
+import xmldom from "@xmldom/xmldom";
+import ear from "../rabbit-ear.js";
+
+ear.svg.window = xmldom;
 
 test("argument parsing, polygon", () => {
 	let poly = ear.svg.polygon([0, 0, 0, 1, 1, 1, 1, 0]);

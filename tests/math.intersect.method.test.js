@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("intersections", () => {
 	const polygon = [[0, 1.15], [-1, -0.577], [1, -0.577]];
@@ -37,14 +37,14 @@ test("intersections", () => {
 		ear.math.intersect(segment, line),
 		ear.math.intersect(segment, ray),
 		ear.math.intersect(segment, segment2),
-	].forEach(intersect => expect(intersect).not.toBe(undefined));
+	].forEach(intersect => expect(intersect).not.toBeUndefined());
 
 	// intersection between these types is not yet implemented
 	[
 		ear.math.intersect(polygon, polygon2),
 		ear.math.intersect(polygon, circle),
 		ear.math.intersect(circle, polygon),
-	].forEach(intersect => expect(intersect).toBe(undefined));
+	].forEach(intersect => expect(intersect).toBeUndefined());
 });
 
 test("collinear segment intersections, types not core", () => {
@@ -72,5 +72,5 @@ test("collinear segment intersections, types not core", () => {
 		[seg09, seg10],
 		[seg11, seg12],
 	].map(pair => ear.math.intersect(...pair))
-		.forEach(res => expect(res).toBe(undefined));
+		.forEach(res => expect(res.point).toBeUndefined());
 });

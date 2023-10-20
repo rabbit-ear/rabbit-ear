@@ -1,10 +1,10 @@
-const { test, expect } = require("@jest/globals");
+import { expect, test } from "vitest";
 
 test("deprecated", () => expect(true).toBe(true));
 
 /*
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear.js");
+import { expect, test } from "vitest";
+import ear from "../rabbit-ear.js";
 
 test("addVertices_splitEdges", () => {
 	const graph = {

@@ -1,4 +1,4 @@
-const { test, expect } = require("@jest/globals");
+import { expect, test } from "vitest";
 
 test("environment", () => {
 	expect(true).toBe(true);
