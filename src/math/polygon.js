@@ -190,11 +190,13 @@ export const boundingBox = (points, padding = 0) => {
 	if (!points || !points.length) { return undefined; }
 	const min = Array(points[0].length).fill(Infinity);
 	const max = Array(points[0].length).fill(-Infinity);
-	points.forEach(point => point
-		.forEach((c, i) => {
-			if (c < min[i]) { min[i] = c - padding; }
-			if (c > max[i]) { max[i] = c + padding; }
-		}));
+	points
+		.filter(p => p !== undefined)
+		.forEach(point => point
+			.forEach((c, i) => {
+				if (c < min[i]) { min[i] = c - padding; }
+				if (c > max[i]) { max[i] = c + padding; }
+			}));
 	const span = max.map((m, i) => m - min[i]);
 	return { min, max, span };
 };

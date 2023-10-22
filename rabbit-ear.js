@@ -477,11 +477,13 @@ const boundingBox$1 = (points, padding = 0) => {
 	if (!points || !points.length) { return undefined; }
 	const min = Array(points[0].length).fill(Infinity);
 	const max = Array(points[0].length).fill(-Infinity);
-	points.forEach(point => point
-		.forEach((c, i) => {
-			if (c < min[i]) { min[i] = c - padding; }
-			if (c > max[i]) { max[i] = c + padding; }
-		}));
+	points
+		.filter(p => p !== undefined)
+		.forEach(point => point
+			.forEach((c, i) => {
+				if (c < min[i]) { min[i] = c - padding; }
+				if (c > max[i]) { max[i] = c + padding; }
+			}));
 	const span = max.map((m, i) => m - min[i]);
 	return { min, max, span };
 };const polygonMethods=/*#__PURE__*/Object.freeze({__proto__:null,boundingBox:boundingBox$1,centroid,circumcircle,makePolygonCircumradius,makePolygonCircumradiusSide,makePolygonInradius,makePolygonInradiusSide,makePolygonNonCollinear,makePolygonSideLength,makePolygonSideLengthSide,signedArea});const epsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsilon;
@@ -2156,6 +2158,24 @@ const overlapConvexPolygonPoint = (
 	.map(side => polyDomain(side, normalizedEpsilon))
 	.map((s, _, arr) => s === arr[0])
 	.reduce((prev, curr) => prev && curr, true);
+const overlapConvexPolygonPointNew = (
+	polygon,
+	point,
+	polyDomain = exclude,
+	normalizedEpsilon = EPSILON,
+) => {
+	const t = polygon
+		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+		.map(([a, b]) => [subtract2(b, a), subtract2(point, a)])
+		.map(([a, b]) => cross2(a, b));
+	const sign = Math.sign(t.reduce((a, b) => a + b, 0));
+	const overlap = t
+		.map(n => n * sign)
+		.map(side => polyDomain(side, normalizedEpsilon))
+		.map((s, _, arr) => s === arr[0])
+		.reduce((prev, curr) => prev && curr, true);
+	return { overlap, t };
+};
 const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
 	for (let p = 0; p < 2; p += 1) {
 		const polyA = p === 0 ? poly1 : poly2;
@@ -2186,7 +2206,7 @@ const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
 		}
 	}
 	return true;
-};const overlapMethods=/*#__PURE__*/Object.freeze({__proto__:null,overlapBoundingBoxes,overlapCirclePoint,overlapConvexPolygonPoint,overlapConvexPolygons,overlapLineLine,overlapLinePoint});const nearestVertex = ({ vertices_coords }, point) => {
+};const overlapMethods=/*#__PURE__*/Object.freeze({__proto__:null,overlapBoundingBoxes,overlapCirclePoint,overlapConvexPolygonPoint,overlapConvexPolygonPointNew,overlapConvexPolygons,overlapLineLine,overlapLinePoint});const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
 	const dimension = getDimension({ vertices_coords });
 	if (dimension === undefined) { return undefined; }
@@ -8511,7 +8531,7 @@ const getFlapsThroughLine = ({
 	console.log("sidesLayersFace", sidesLayersFace);
 };const flaps=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesSide,getFacesSide,getFlapsThroughLine});const intersectGraphLineFunc = ({
 	vertices_coords, edges_vertices, faces_vertices, faces_edges,
-}, userLine, lineFunc = includeL) => {
+}, userLine, userPoints = [], lineFunc = includeL) => {
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
 		return { vertices: [], edges: [] };
 	}
@@ -8520,6 +8540,9 @@ const getFlapsThroughLine = ({
 	}
 	const edgesSegment = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]));
+	edgesSegment.forEach((seg, e) => {
+		if (seg.includes(undefined)) { delete edgesSegment[e]; }
+	});
 	const edgesIntersections = edgesSegment
 		.map(seg => pointsToLine(...seg))
 		.map(edgeLine => intersectLineLine(edgeLine, userLine, includeS, lineFunc));
@@ -8542,12 +8565,21 @@ const getFlapsThroughLine = ({
 		.map(fe => fe.filter(e => crossEdges[e]));
 	const facesWithVertices = faces_vertices
 		.map(fv => fv.filter(v => crossVertices[v]));
+	const facesContainPoint = userPoints.length
+		? makeFacesPolygonQuick({
+			vertices_coords, faces_vertices,
+		}).map(poly => userPoints.map(point => ({
+			...overlapConvexPolygonPointNew(poly, point),
+			point,
+		}))).map(results => results.filter(el => el.overlap))
+		: undefined;
 	const facesSplitInfo = faces_vertices.map((_, f) => {
 		if (facesWithOverlappedEdges[f].length) { return undefined; }
 		const edges = facesWithCrossedEdges[f];
 		const vertices = facesWithVertices[f];
-		return edges.length + vertices.length === 2
-			? { edges, vertices }
+		const points = facesContainPoint ? facesContainPoint[f] : [];
+		return edges.length + vertices.length + points.length === 2
+			? { edges, vertices, points }
 			: undefined;
 	});
 	Object.keys(facesSplitInfo)
@@ -8560,17 +8592,28 @@ const getFlapsThroughLine = ({
 	Object.keys(edgesIntersections)
 		.filter(e => !includedEdges[e])
 		.forEach(e => delete edgesIntersections[e]);
+	const edges_overlapped = overlappedEdges
+		.map((over, e) => (over ? e : undefined))
+		.filter(a => a !== undefined);
 	return {
 		faces: facesSplitInfo,
 		edges: edgesIntersections,
+		edges_overlapped,
 	};
 };
-const intersectGraphLine = intersectGraphLineFunc;
+const intersectGraphLine = (graph, line) => (
+	intersectGraphLineFunc(graph, line, [], includeL)
+);
 const intersectGraphRay = (graph, ray) => (
-	intersectGraphLineFunc(graph, ray, includeR)
+	intersectGraphLineFunc(graph, ray, [ray.origin], includeR)
 );
 const intersectGraphSegment = (graph, segment) => (
-	intersectGraphLineFunc(graph, pointsToLine(...segment), includeS)
+	intersectGraphLineFunc(
+		graph,
+		pointsToLine(...segment),
+		segment,
+		includeS,
+	)
 );const intersect$1=/*#__PURE__*/Object.freeze({__proto__:null,intersectGraphLine,intersectGraphRay,intersectGraphSegment});const VEF = Object.keys(singularize);
 const join = (target, source) => {
 	const sourceKeyArrays = {};

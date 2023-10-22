@@ -136,6 +136,26 @@ export const overlapConvexPolygonPoint = (
 	.map(side => polyDomain(side, normalizedEpsilon))
 	.map((s, _, arr) => s === arr[0])
 	.reduce((prev, curr) => prev && curr, true);
+
+export const overlapConvexPolygonPointNew = (
+	polygon,
+	point,
+	polyDomain = exclude,
+	normalizedEpsilon = EPSILON,
+) => {
+	const t = polygon
+		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+		// .map(([a, b]) => [normalize2(subtract2(b, a)), subtract2(point, a)])
+		.map(([a, b]) => [subtract2(b, a), subtract2(point, a)])
+		.map(([a, b]) => cross2(a, b));
+	const sign = Math.sign(t.reduce((a, b) => a + b, 0));
+	const overlap = t
+		.map(n => n * sign)
+		.map(side => polyDomain(side, normalizedEpsilon))
+		.map((s, _, arr) => s === arr[0])
+		.reduce((prev, curr) => prev && curr, true);
+	return { overlap, t };
+};
 /**
  * @description Find out if two convex polygons are overlapping by searching
  * for a dividing axis, which should be one side from one of the polygons.

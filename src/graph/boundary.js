@@ -4,20 +4,12 @@
 import { boundingBox as _boundingBox } from "../math/polygon.js";
 import { assignmentIsBoundary } from "../fold/spec.js";
 import { uniqueElements } from "../general/array.js";
+import { disjointGraphs } from "./disjoint.js";
 import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesVertices2D,
 	makeVerticesToEdgeBidirectional,
 } from "./make.js";
-import {
-	connectedComponents,
-} from "./connectedComponents.js";
-import { invertMapArray } from "./maps.js";
-import {
-	disjointGraphs,
-	disjointGraphsIndices,
-} from "./disjoint.js";
-import Messages from "../environment/messages.js";
 /**
  * @description Make an axis-aligned bounding box that encloses the vertices of
  * a FOLD object. the optional padding is used to make the bounding box
