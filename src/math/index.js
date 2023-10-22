@@ -25,6 +25,7 @@ import * as planeMethods from "./plane.js";
 import * as polygonMethods from "./polygon.js";
 import * as radialMethods from "./radial.js";
 import straightSkeleton from "./straightSkeleton.js";
+import * as triangle from "./triangle.js";
 import * as encloses from "./encloses.js";
 import * as overlapMethods from "./overlap.js";
 import * as intersectMethods from "./intersect.js";
@@ -48,6 +49,7 @@ export default {
 	...polygonMethods,
 	...radialMethods,
 	straightSkeleton,
+	...triangle,
 	...encloses,
 	...overlapMethods,
 	...intersectMethods,

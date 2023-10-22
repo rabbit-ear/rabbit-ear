@@ -50,12 +50,12 @@ const intersectGraphLineFunc = ({
 		}
 	});
 	// if a face has an overlapped edge, don't consider it as overlapped.
-	const overlappedEdges = edges_vertices
+	const collinearEdges = edges_vertices
 		.map(ev => !!(crossVertices[ev[0]] && crossVertices[ev[1]]));
 	// if a face has one or more crossed edges/vertices, we can place
 	// a segment between the two intersection events.
 	const facesWithOverlappedEdges = faces_edges
-		.map(fe => fe.filter(e => overlappedEdges[e]));
+		.map(fe => fe.filter(e => collinearEdges[e]));
 	const facesWithCrossedEdges = faces_edges
 		.map(fe => fe.filter(e => crossEdges[e]));
 	// for a vertex to count as being "inside" a face, we want to remove from
@@ -66,7 +66,7 @@ const intersectGraphLineFunc = ({
 	const facesWithVertices = faces_vertices
 		.map(fv => fv.filter(v => crossVertices[v]));
 
-	// /////////////////////////
+	//
 	const facesContainPoint = userPoints.length
 		? makeFacesPolygonQuick({
 			vertices_coords, faces_vertices,
@@ -75,7 +75,6 @@ const intersectGraphLineFunc = ({
 			point,
 		}))).map(results => results.filter(el => el.overlap))
 		: undefined;
-	// /////////////////////////
 
 	// if a face has a crossed edge or vertex,
 	const facesSplitInfo = faces_vertices.map((_, f) => {
@@ -100,13 +99,13 @@ const intersectGraphLineFunc = ({
 	Object.keys(edgesIntersections)
 		.filter(e => !includedEdges[e])
 		.forEach(e => delete edgesIntersections[e]);
-	const edges_overlapped = overlappedEdges
+	const edges_collinear = collinearEdges
 		.map((over, e) => (over ? e : undefined))
 		.filter(a => a !== undefined);
 	return {
 		faces: facesSplitInfo,
 		edges: edgesIntersections,
-		edges_overlapped,
+		edges_collinear,
 	};
 };
 /**
