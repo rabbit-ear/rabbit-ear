@@ -10,6 +10,7 @@ import {
 import {
 	singularize,
 	filterKeysWithPrefix,
+	getDimensionQuick,
 } from "../fold/spec.js";
 /**
  * @description Join two planar graphs, creating new vertices, edges, faces.
@@ -129,6 +130,10 @@ const VEF = Object.keys(singularize);
  * in the final union graph.
  */
 export const join = (target, source) => {
+	// if vertices are 2D and 3D (mismatch), we have to resize
+	// all vertices up to 3D.
+	const sourceDimension = getDimensionQuick(source);
+	const targetDimension = getDimensionQuick(target);
 	const sourceKeyArrays = {};
 	VEF.forEach(key => {
 		const arrayName = filterKeysWithPrefix(source, key).shift();
@@ -160,5 +165,11 @@ export const join = (target, source) => {
 		indexMaps[key].forEach(v => { map[v] = 1; });
 		summary[key] = invertMapArray(map);
 	});
+	const target2DVertices = sourceDimension !== targetDimension
+		? (target.vertices_coords || [])
+			.map((coords, i) => (coords.length === 2 ? i : undefined))
+			.filter(a => a !== undefined)
+		: [];
+	target2DVertices.forEach(v => { target.vertices_coords[v][2] = 0; });
 	return summary;
 };

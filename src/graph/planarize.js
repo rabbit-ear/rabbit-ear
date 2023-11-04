@@ -2,16 +2,22 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../math/constant.js";
-import { epsilonEqual } from "../math/compare.js";
+import {
+	epsilonEqual,
+	includeL,
+} from "../math/compare.js";
 import {
 	dot2,
-	cross2,
 	scale2,
 	add2,
 	subtract2,
+	normalize2,
 } from "../math/vector.js";
-import { epsilonUniqueSortedNumbers } from "../general/array.js";
-import { filterKeysWithPrefix } from "../fold/spec.js";
+import { intersectLineLine } from "../math/intersect.js";
+import {
+	epsilonUniqueSortedNumbers,
+	setDifferenceSortedNumbers,
+} from "../general/array.js";
 import { sweepValues } from "./sweep.js";
 import { invertMap } from "./maps.js";
 import remove from "./remove.js";
@@ -42,18 +48,18 @@ import {
 /**
  *
  */
-export const lineLine = (a, b, epsilon = EPSILON) => {
-	const determinant0 = cross2(a.vector, b.vector);
-	// lines are parallel
-	if (Math.abs(determinant0) < epsilon) { return undefined; }
-	const determinant1 = -determinant0;
-	const a2b = subtract2(b.origin, a.origin);
-	const b2a = [-a2b[0], -a2b[1]];
-	return [
-		cross2(a2b, b.vector) / determinant0,
-		cross2(b2a, a.vector) / determinant1,
-	];
-};
+// const lineLine = (a, b, epsilon = EPSILON) => {
+// 	const determinant0 = cross2(a.vector, b.vector);
+// 	// lines are parallel
+// 	if (Math.abs(determinant0) < epsilon) { return undefined; }
+// 	const determinant1 = -determinant0;
+// 	const a2b = subtract2(b.origin, a.origin);
+// 	const b2a = [-a2b[0], -a2b[1]];
+// 	return [
+// 		cross2(a2b, b.vector) / determinant0,
+// 		cross2(b2a, a.vector) / determinant1,
+// 	];
+// };
 /**
  *
  */
@@ -62,69 +68,19 @@ const getLinesIntersections = (lines, lines_range, epsilon = EPSILON) => {
 		number > range[0] - epsilon && number < range[1] + epsilon
 	);
 	const linesIntersect = lines.map(() => []);
-	for (let a = 0; a < lines.length - 1; a += 1) {
-		for (let b = a + 1; b < lines.length; b += 1) {
-			const intersection = lineLine(lines[a], lines[b], epsilon);
+	for (let i = 0; i < lines.length - 1; i += 1) {
+		for (let j = i + 1; j < lines.length; j += 1) {
+			const { a, b, point } = intersectLineLine(lines[i], lines[j], includeL, includeL, epsilon);
 			// lines are parallel
-			if (intersection === undefined) { continue; }
-			const [t0, t1] = intersection;
-			if (!isInside(t0, lines_range[a]) || !isInside(t1, lines_range[b])) {
+			if (point === undefined) { continue; }
+			if (!isInside(a, lines_range[i]) || !isInside(b, lines_range[j])) {
 				continue;
 			}
-			linesIntersect[a].push(t0);
-			linesIntersect[b].push(t1);
+			linesIntersect[i].push(a);
+			linesIntersect[j].push(b);
 		}
 	}
 	return linesIntersect;
-};
-
-/**
- * @description During the planarize process, faces will be entirely
- * re-constructed, edges will be chopped; we can remove most arrays from
- * the graph in preparation.
- * @param {FOLD} graph a FOLD graph. modified in place.
- */
-const planarizePrepare = (graph) => {
-	// project all vertices onto the XY plane
-	graph.vertices_coords = graph.vertices_coords
-		.map(coord => coord.slice(0, 2));
-	// these arrays will stay in the graph.
-	const planarKeepKeys = [
-		"vertices_coords",
-		"edges_vertices",
-		"edges_assignment",
-		"edges_foldAngle",
-	];
-	// remove arrays from graph
-	["vertices", "edges", "faces"]
-		.flatMap(key => filterKeysWithPrefix(graph, key))
-		.filter(key => !(planarKeepKeys.includes(key)))
-		.forEach(key => delete graph[key]);
-};
-/**
- * @description Return a modified version of set "a" that filters
- * out any number that exists in set "b".
- */
-const sortedNumberSetDifference = (a, b, epsilon = EPSILON) => {
-	const result = [];
-	let ai = 0;
-	let bi = 0;
-	while (ai < a.length && bi < b.length) {
-		if (epsilonEqual(a[ai], b[bi], epsilon)) {
-			ai += 1;
-			continue;
-		}
-		if (a[ai] > b[bi]) {
-			bi += 1;
-			continue;
-		}
-		if (b[bi] > a[ai]) {
-			result.push(a[ai]);
-			ai += 1;
-			continue;
-		}
-	}
-	return result;
 };
 /**
  * @description NOTICE this method is used internally and not yet ready for
@@ -180,10 +136,13 @@ const planarize = ({
 	edges_assignment,
 	edges_foldAngle,
 }, epsilon = EPSILON) => {
+	const smEpsilon = epsilon / 1e1;
 	// "compress" all edges down into a smaller set of infinite lines,
-	const { lines, edges_line } = getEdgesLine({
+	const { lines: linesRaw, edges_line } = getEdgesLine({
 		vertices_coords, edges_vertices,
 	});
+	const lines = linesRaw
+		.map(({ vector, origin }) => ({ origin, vector: normalize2(vector) }));
 	// one to many mapping of a line and the edges along it.
 	const lines_edges = invertMap(edges_line)
 		.map(arr => (arr.constructor === Array ? arr : [arr]));
@@ -199,7 +158,7 @@ const planarize = ({
 	// coming from all of the edges' endpoints.
 	const lines_flatEdgeScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]))
-		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon));
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, smEpsilon));
 	// for each line, get the smallest and largest value (defining the range)
 	const lines_range = lines_flatEdgeScalars
 		.map(scalars => [scalars[0], scalars[scalars.length - 1]]);
@@ -208,12 +167,12 @@ const planarize = ({
 	// relevant areas. more filtering will happen when we start to apply them.
 	// for every line, an array of sorted scalars of the line's vector
 	// at the location of an intersection with another line.
-	const lines_intersections = getLinesIntersections(lines, lines_range, epsilon)
-		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon))
+	const lines_intersections = getLinesIntersections(lines, lines_range, smEpsilon)
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, smEpsilon))
 		// for every line, the subset of all intersections along the line
 		// that are not duplicates of endpoints of collinear edges to the line.
 		.map((sects, i) => (
-			sortedNumberSetDifference(sects, lines_flatEdgeScalars[i], epsilon)
+			setDifferenceSortedNumbers(sects, lines_flatEdgeScalars[i], smEpsilon)
 		));
 	// walk the line
 	// create an alternative form of the graph for the sweep method.
@@ -226,7 +185,7 @@ const planarize = ({
 	});
 	const lineSweeps = lines_edges.map((_, i) => sweepValues(sweepScalars[i], {
 		edges_vertices: sweepEdgesVertices[i],
-	}, epsilon));
+	}, smEpsilon));
 	const lineSweeps_vertices = lineSweeps.map(sweep => sweep.map(el => el.t));
 	const lineSweeps_edges = lineSweeps.map(sweep => {
 		const current = {};
@@ -246,7 +205,7 @@ const planarize = ({
 		let pi = 0;
 		let vi = 0;
 		while (pi < points.length && vi < vertices.length - 1) {
-			if (epsilonEqual(vertices[vi], points[pi], epsilon)) {
+			if (epsilonEqual(vertices[vi], points[pi], smEpsilon)) {
 				throw new Error("bad algorithm");
 			}
 			if (points[pi] > vertices[vi + 1]) {
@@ -296,8 +255,7 @@ const planarize = ({
 	// if (circularEdges(result).length) {
 	// 	console.error("planarize: found circular edges. place 1.");
 	// }
-	removeDuplicateVertices(result, epsilon * 1e1);
-	// removeDuplicateVertices(result, epsilon * 2);
+	removeDuplicateVertices(result, epsilon);
 	removeCircularEdges(result);
 	// if (circularEdges(result).length) {
 	// 	console.error("planarize: found circular edges. place 2.");
@@ -308,7 +266,7 @@ const planarize = ({
 	const collinearVertices = result.vertices_edges
 		.map((edges, i) => (edges.length === 2 ? i : undefined))
 		.filter(a => a !== undefined)
-		.filter(v => isVertexCollinear(result, v, epsilon))
+		.filter(v => isVertexCollinear(result, v, smEpsilon))
 		.reverse();
 	const edgesToRemove = collinearVertices
 		.map(v => removeCollinearVertex(result, v));

@@ -14,11 +14,16 @@ import {
 	makePlanarFaces,
 } from "./make.js";
 import {
+	getDimension,
 	edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment,
 } from "../fold/spec.js";
 /**
- * @description populate() has been one of the hardest methods to
+ * @description The purpose of populate() is to take a FOLD graph in any state
+ * and modify it to contain as many graph component fields as possible.
+ * What constitutes as "populated" is subjective, if a graph only contains
+ * vertices and edges,
+ * has been one of the hardest methods to
  * nail down, not to write, moreso in what it should do, and what
  * function it serves in the greater library.
  * Currently, it is run once when a user imports their crease pattern
@@ -61,12 +66,15 @@ const buildFacesIfNeeded = (graph, reface) => {
 	// if faces_vertices does not exist, we need to build it.
 	// todo: if faces_edges exists but not vertices (unusual but possible),
 	// then build faces_vertices from faces_edges and call it done.
-	if (reface === undefined && !graph.faces_vertices && !graph.faces_edges) {
+	if (reface === undefined
+		&& !graph.faces_vertices
+		&& !graph.faces_edges
+		&& graph.vertices_coords
+		&& getDimension(graph) === 2) {
 		reface = true;
 	}
-	// build planar faces (no Z) if the user asks for it or if faces do not exist.
-	// todo: this is making a big assumption that the faces are even planar
-	// to begin with.
+	// build planar faces (no Z) if the user asks for it, OR if faces do not exist
+	// and the graph is determined to be in 2D.
 	if (reface && graph.vertices_coords) {
 		const faces = makePlanarFaces(graph);
 		graph.faces_vertices = faces.faces_vertices;

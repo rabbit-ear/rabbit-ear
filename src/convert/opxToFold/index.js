@@ -4,7 +4,10 @@
 import { makeEdgesFoldAngle } from "../../graph/make.js";
 import planarizeGraph from "../general/planarizeGraph.js";
 import { xmlStringToElement } from "../../svg/general/dom.js";
-import { findEpsilonInObject } from "../general/options.js";
+import {
+	findEpsilonInObject,
+	invertVertical,
+} from "../general/options.js";
 /**
  * @description given a parsed xml object, get the branch which
  * contains a node which has some node containing the value specified.
@@ -123,6 +126,9 @@ const opxToFold = (file, options) => {
 		.filter(el => el.getAttribute("class").split(" ").includes("oripa.DataSet"))
 		.shift();
 	const graph = makeFOLD(parseLines(getLines(oripa)));
+	if (options && options.invertVertical && graph.vertices_coords) {
+		invertVertical(graph.vertices_coords);
+	}
 	// analysis on vertices_coords to find an appropriate epsilon
 	const epsilon = findEpsilonInObject(graph, options);
 	const planarGraph = planarizeGraph(graph, epsilon);

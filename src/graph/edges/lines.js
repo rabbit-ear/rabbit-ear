@@ -1,27 +1,32 @@
 import { EPSILON } from "../../math/constant.js";
-import {
-	epsilonEqualVectors,
-} from "../../math/compare.js";
+import { epsilonEqualVectors } from "../../math/compare.js";
+import { nearestPointOnLine } from "../../math/nearest.js";
+import { projectPointOnPlane } from "../../math/plane.js";
 import {
 	magnitude,
 	normalize,
 	subtract,
+	dot,
 } from "../../math/vector.js";
-import { radialSortPointIndices3 } from "../../general/sort.js";
-import { nearestPointOnLine } from "../../math/nearest.js";
-import { projectPointOnPlane } from "../../math/plane.js";
-import { makeEdgesCoords } from "../make.js";
+import {
+	uniqueElements,
+	arrayMinIndex,
+	arrayMaxIndex,
+} from "../../general/array.js";
 import {
 	clusterScalars,
 	clusterSortedGeneric,
 	clusterParallelVectors,
 } from "../../general/cluster.js";
+import { radialSortPointIndices3 } from "../../general/sort.js";
+import { makeEdgesCoords } from "../make.js";
+import { invertMap } from "../maps.js";
 /**
- * @description Convert the edges of a graph into (infinite) lines, and
- * prevent duplicate lines, only generate one line for all collinear edges.
- * "lines" is an array of lines, in no particular order, and "edges_line"
- * maps each edge (index) to the index in the "lines" array (value).
- * todo: a bugfix has now rendered this method 2D only. we need to substitute
+ * @description Most origami models have many edges which lie along
+ * the same line. This method finds all lines which cover all edges,
+ * returning a list of lines, and a mapping of each edge to each line.
+ *
+ * @todo a bugfix has now rendered this method 2D only. we need to substitute
  * the 2d-cross product which determines sidedness for a 3d version
  * that uses a splitting-plane.
  * @param {FOLD} graph a FOLD graph, can be 2D or 3D.
@@ -114,21 +119,40 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 			}
 			return clusterResult.map(remap);
 		}));
-	// get a flat array of all unique lines (one per cluster) found.
-	const lines = collinearParallelDistanceClusters
+	// now we have all edges clustered according to which line they lie along.
+	// here are the clusters, all edges inside of each cluster.
+	const lines_edges = collinearParallelDistanceClusters
 		.flatMap(clusterOfClusters => clusterOfClusters
-			.flatMap(clusters => clusters
-				.map(cluster => cluster[0])
-				.map(i => ({ vector: edgesVector[i], origin: edgesNearestToOrigin[i] }))));
-	const edges_line = [];
-	let lineIndex = 0;
-	collinearParallelDistanceClusters
-		.forEach(clusterOfClusters => clusterOfClusters
-			.forEach(clusters => clusters
-				.forEach(cluster => {
-					cluster.forEach(i => { edges_line[i] = lineIndex; });
-					lineIndex += 1;
-				})));
+			.flatMap(clusters => clusters));
+	const edges_line = invertMap(lines_edges);
+	// get the most precise form of a line possible, this means,
+	// for all segments which lie on this line, build a vector
+	// from the furthest two points possible.
+	// for each line/cluster, get a list of all vertices involved
+	const lines_vertices = lines_edges
+		.map(edges => edges.flatMap(e => edges_vertices[e]))
+		.map(uniqueElements);
+	// for each line/cluster, find the two vertices furthest on either end.
+	// use one vector from the line, it doesn't matter which one.
+	const lines_firstVector = lines_edges.map(edges => edgesVector[edges[0]]);
+	// project each vertex onto the line, get the dot product
+	// find the minimum and maximum vertices along the line's vector.
+	const lines_vertProjects = lines_vertices
+		.map((vertices, i) => vertices
+			.map(v => dot(lines_firstVector[i], vertices_coords[v])));
+	const lines_vertProjectsMin = lines_vertProjects
+		.map((projections, i) => lines_vertices[i][arrayMinIndex(projections)]);
+	const lines_vertProjectsMax = lines_vertProjects
+		.map((projections, i) => lines_vertices[i][arrayMaxIndex(projections)]);
+	// for each line/cluster, create a vector from the furthest two vertices
+	const lines_vector = lines_vertices.map((_, i) => subtract(
+		vertices_coords[lines_vertProjectsMax[i]],
+		vertices_coords[lines_vertProjectsMin[i]],
+	));
+	// for each line's origin, we want to use an existing vertex.
+	const lines_origin = lines_vertProjectsMin.map(v => vertices_coords[v]);
+	const lines = lines_vector
+		.map((vector, i) => ({ vector, origin: lines_origin[i] }));
 	return {
 		lines,
 		edges_line,

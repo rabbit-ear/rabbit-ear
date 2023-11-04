@@ -33,7 +33,10 @@ import { overlapConvexPolygonPoint } from "./overlap.js";
  * @param {function} [aDomain=includeL] the domain of the first line
  * @param {function} [bDomain=includeL] the domain of the second line
  * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {number[]|undefined} one 2D point or undefined
+ * @returns {object} object with properties:
+ * - point: {number[]|undefined} one 2D point or undefined
+ * - a: {number|undefined} the intersection parameter along the first line
+ * - b: {number|undefined} the intersection parameter along the second line
  * @linkcode Math ./src/intersect/intersect.js 39
 */
 export const intersectLineLine = (

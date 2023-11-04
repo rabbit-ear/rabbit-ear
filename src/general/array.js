@@ -102,6 +102,37 @@ export const epsilonUniqueSortedNumbers = (array, epsilon = EPSILON) => {
 	return numbers.filter((_, i) => keep[i]);
 };
 /**
+ * @description Return a modified copy of set "a" that filters
+ * out any number that exists in set "b". This method assumes that
+ * both input arrays are sorted, so this method will run in O(n) time.
+ * Numbers are compared within an epsilon range of each other.
+ * If arrays are not sorted, sort them before using this method.
+ * @param {number[]} a an array of numbers, in sorted order
+ * @param {number[]} b an array of numbers, in sorted order
+ * @returns {number[]} a copy of "a" with no values found in "b".
+ */
+export const setDifferenceSortedNumbers = (a, b, epsilon = EPSILON) => {
+	const result = [];
+	let ai = 0;
+	let bi = 0;
+	while (ai < a.length && bi < b.length) {
+		if (epsilonEqual(a[ai], b[bi], epsilon)) {
+			ai += 1;
+			continue;
+		}
+		if (a[ai] > b[bi]) {
+			bi += 1;
+			continue;
+		}
+		if (b[bi] > a[ai]) {
+			result.push(a[ai]);
+			ai += 1;
+			continue;
+		}
+	}
+	return result;
+};
+/**
  * @description This will iterate over the array of arrays and returning
  * the first array in the list with the longest length.
  * @param {any[][]} arrays an array of arrays of any type
@@ -161,6 +192,21 @@ export const arrayMinimum = (array, conversion) => {
 			index = i;
 			smallest_value = objs[i].value;
 		}
+	}
+	return index;
+};
+
+export const arrayMinIndex = (array) => {
+	let index = 0;
+	for (let i = 1; i < array.length; i += 1) {
+		if (array[i] < array[index]) { index = i; }
+	}
+	return index;
+};
+export const arrayMaxIndex = (array) => {
+	let index = 0;
+	for (let i = 1; i < array.length; i += 1) {
+		if (array[i] > array[index]) { index = i; }
 	}
 	return index;
 };

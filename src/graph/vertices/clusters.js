@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../../math/constant.js";
-import { getDimension } from "../../fold/spec.js";
+import { getDimensionQuick } from "../../fold/spec.js";
 /**
  * @description Find all clusters of vertices which lie within an epsilon of each other.
  * Each cluster is an array of vertex indices. If no clusters exist, the method returns
@@ -18,7 +18,7 @@ import { getDimension } from "../../fold/spec.js";
  */
 export const getVerticesClusters = ({ vertices_coords }, epsilon = EPSILON) => {
 	if (!vertices_coords) { return []; }
-	const dimensions = getDimension({ vertices_coords });
+	const dimensions = getDimensionQuick({ vertices_coords });
 	const dimensionArray = Array.from(Array(dimensions));
 	// the return value, the clusters
 	const clusters = [];

@@ -19,7 +19,12 @@ import {
 	makeVerticesVerticesVector,
 } from "../graph/make.js";
 /**
+ * @description This performs an analysis on every vertex to determine if
+ * it is able to be folded; this works with valid 3D or 2D foldings, however
+ * it is limited to a crease patterns's vertices which lie in the XY plane.
  * @param {FOLD} graph a FOLD graph with vertices in creasePattern layout
+ * @returns {boolean[]} for every vertex, true if the vertex has
+ * a valid folded state.
  */
 export const verticesFoldable = ({
 	vertices_coords, vertices_vertices, vertices_edges, vertices_faces,

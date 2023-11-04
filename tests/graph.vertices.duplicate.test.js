@@ -117,3 +117,20 @@ test("merge duplicate vertices, outside epsilon", () => {
 	ear.graph.removeDuplicateVertices(graph);
 	expect(graph.vertices_coords.length).toBe(7);
 });
+
+// merge duplicate vertices, graph with both 2D and 3D vertices
+// where the first vertex is a 2D vertex.
+// this graph is considered poorly formed.
+// all vertices will be treated as 2D. and this will remove vertices
+// that aren't actually duplicate. not good but technically correct.
+test("removeDuplicateVertices with 2D and 3D vertices", () => {
+	const graph = {
+		vertices_coords: [[0, 0], [1, 0], [2, 0], [1, 0, 1], [2, 0, -2], [0, 0, 3]],
+		edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]],
+	};
+	expect(graph.vertices_coords.length).toBe(6);
+	expect(graph.edges_vertices.length).toBe(5);
+	ear.graph.removeDuplicateVertices(graph);
+	expect(graph.vertices_coords.length).toBe(3);
+	expect(graph.edges_vertices.length).toBe(5);
+});

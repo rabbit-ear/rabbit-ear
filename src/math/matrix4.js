@@ -290,9 +290,11 @@ export const makeMatrix4ReflectZ = (vector, origin = [0, 0]) => {
 export const makePerspectiveMatrix4 = (FOV, aspect, near, far) => {
 	const f = Math.tan(Math.PI * 0.5 - 0.5 * FOV);
 	const rangeInv = 1.0 / (near - far);
+	const x = aspect < 1 ? f : f / aspect;
+	const y = aspect < 1 ? f * aspect : f;
 	return [
-		f / aspect, 0, 0, 0,
-		0, f, 0, 0,
+		x, 0, 0, 0,
+		0, y, 0, 0,
 		0, 0, (near + far) * rangeInv, -1,
 		0, 0, near * far * rangeInv * 2, 0,
 	];

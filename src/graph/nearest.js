@@ -15,7 +15,7 @@ import { overlapConvexPolygonPoint } from "../math/overlap.js";
 import {
 	singularize,
 	filterKeysWithPrefix,
-	getDimension,
+	getDimensionQuick,
 } from "../fold/spec.js";
 import { makeFacesConvexCenter } from "./make.js";
 /**
@@ -29,7 +29,7 @@ import { makeFacesConvexCenter } from "./make.js";
  */
 export const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
-	const dimension = getDimension({ vertices_coords });
+	const dimension = getDimensionQuick({ vertices_coords });
 	if (dimension === undefined) { return undefined; }
 	// resize our point to be the same dimension as the first vertex
 	const p = resize(dimension, point);

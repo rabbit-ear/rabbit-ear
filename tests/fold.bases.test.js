@@ -46,22 +46,45 @@ test("polygon", () => {
 });
 
 test("kite", () => {
-	expect(ear.graph.kite().edges_assignment[5]).toBe("B");
-	expect(ear.graph.kite().edges_assignment.includes("M")).toBe(false);
-	expect(ear.graph.kite().edges_assignment.includes("V")).toBe(true);
-	expect(ear.graph.kite().edges_assignment.includes("F")).toBe(true);
+	const kite = ear.graph.kite();
+	Array.from(Array(6))
+		.forEach((_, i) => expect(kite.edges_assignment[i]).toBe("B"));
+	expect(kite.edges_assignment.includes("M")).toBe(false);
+	expect(kite.edges_assignment.includes("V")).toBe(true);
+	expect(kite.edges_assignment.includes("F")).toBe(true);
 });
 
 test("fish", () => {
-	expect(ear.graph.fish().vertices_coords.length).toBe(11);
-	expect(ear.graph.fish().edges_assignment.includes("M")).toBe(true);
-	expect(ear.graph.fish().edges_assignment.includes("V")).toBe(true);
-	expect(ear.graph.fish().edges_assignment.includes("F")).toBe(true);
+	const fish = ear.graph.fish();
+	expect(fish.vertices_coords.length).toBe(11);
+	Array.from(Array(8))
+		.forEach((_, i) => expect(fish.edges_assignment[i]).toBe("B"));
+	expect(fish.edges_assignment.includes("M")).toBe(true);
+	expect(fish.edges_assignment.includes("V")).toBe(true);
+	expect(fish.edges_assignment.includes("F")).toBe(true);
 });
 
 test("bird", () => {
-	expect(ear.graph.bird().edges_assignment[7]).toBe("B");
-	expect(ear.graph.bird().edges_assignment.includes("M")).toBe(true);
-	expect(ear.graph.bird().edges_assignment.includes("V")).toBe(true);
-	expect(ear.graph.bird().edges_assignment.includes("F")).toBe(true);
+	const bird = ear.graph.bird();
+	Array.from(Array(8))
+		.forEach((_, i) => expect(bird.edges_assignment[i]).toBe("B"));
+	expect(bird.edges_assignment.includes("M")).toBe(true);
+	expect(bird.edges_assignment.includes("V")).toBe(true);
+	expect(bird.edges_assignment.includes("F")).toBe(true);
+});
+
+test("frog", () => {
+	const frog = ear.graph.frog();
+	expect(frog.edges_assignment.includes("B")).toBe(true);
+	expect(frog.edges_assignment.includes("M")).toBe(true);
+	expect(frog.edges_assignment.includes("V")).toBe(true);
+	expect(frog.edges_assignment.includes("F")).toBe(true);
+});
+
+test("windmill", () => {
+	const windmill = ear.graph.windmill();
+	expect(windmill.edges_assignment.includes("B")).toBe(true);
+	expect(windmill.edges_assignment.includes("M")).toBe(true);
+	expect(windmill.edges_assignment.includes("V")).toBe(true);
+	expect(windmill.edges_assignment.includes("F")).toBe(true);
 });

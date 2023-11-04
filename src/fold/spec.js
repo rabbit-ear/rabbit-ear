@@ -269,14 +269,32 @@ export const isFoldedForm = ({ frame_classes, file_classes }) => (
 		|| (file_classes && file_classes.includes("foldedForm"))
 );
 /**
+ * @description Check the coordinates of each vertex and if any of them
+ * contain a third dimension AND that number is not 0, then the graph
+ * is in 3D, otherwise the graph is considered 2D.
+ * This method is O(n).
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number} the dimension of the vertices, either 2 or 3.
+ */
+export const getDimension = ({ vertices_coords }, epsilon = EPSILON) => {
+	for (let i = 0; i < vertices_coords.length; i += 1) {
+		if (vertices_coords[i] && vertices_coords[i].length === 3
+			&& !epsilonEqual(0, vertices_coords[i][2], epsilon)) {
+			return 3;
+		}
+	}
+	return 2;
+};
+/**
  * @description Infer the dimensions of (the vertices of) a graph
  * by querying the first point in vertices_coords. This also works
  * when the vertices_coords array has holes (ie: index 0 is not set).
+ * This method is O(1).
  * @param {FOLD} graph a FOLD graph
  * @returns {number | undefined} the dimension of the vertices, or
  * undefined if no vertices exist. number should be 2 or 3 in most cases.
  */
-export const getDimension = ({ vertices_coords }) => {
+export const getDimensionQuick = ({ vertices_coords }) => {
 	// return length of first vertex, if it exists
 	if (vertices_coords[0] !== undefined) {
 		return vertices_coords[0].length;

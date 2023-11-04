@@ -2,18 +2,16 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	includeL,
-	includeR,
-	includeS,
-} from "../math/compare.js";
-import {
 	getLine,
 	getSegment,
 	getArrayOfVectors,
 } from "../general/get.js";
-import { pointsToLine } from "../math/convert.js";
 import GraphProto from "./graph.js";
-import { clip } from "../graph/clip.js";
+import {
+	clipLine,
+	clipRay,
+	clipSegment,
+} from "../graph/clip.js";
 import addPlanarSegment from "../graph/add/addPlanarSegment.js";
 import removePlanarEdge from "../graph/remove/removePlanarEdge.js";
 import { isVertexCollinear } from "../graph/vertices/collinear.js";
@@ -42,45 +40,40 @@ const makeEdgesReturnObject = function (edges) {
 	return edges;
 };
 
-const clipLineTypeToCP = (cp, primitive) => {
-	const segment = clip(cp, primitive);
-	if (!segment) { return undefined; }
-	const edges = addPlanarSegment(cp, segment[0], segment[1]);
-	// if (!edges) { return undefined; }
-	return makeEdgesReturnObject.call(cp, edges);
-};
-
 CP.prototype.line = function (...args) {
 	const primitive = getLine(...args);
 	if (!primitive) { return undefined; }
-	primitive.domain = includeL;
-	return clipLineTypeToCP(this, primitive);
+	const segments = clipLine(this, primitive);
+	const edges = segments
+		.flatMap(segment => addPlanarSegment(this, segment[0], segment[1]));
+	return makeEdgesReturnObject.call(this, edges);
 };
 
 CP.prototype.ray = function (...args) {
 	const primitive = getLine(...args);
 	if (!primitive) { return undefined; }
-	primitive.domain = includeR;
-	return clipLineTypeToCP(this, primitive);
+	const segments = clipRay(this, primitive);
+	const edges = segments
+		.flatMap(segment => addPlanarSegment(this, segment[0], segment[1]));
+	return makeEdgesReturnObject.call(this, edges);
 };
 
 CP.prototype.segment = function (...args) {
-	const primitive = pointsToLine(...getSegment(...args));
+	const primitive = getSegment(...args);
 	if (!primitive) { return undefined; }
-	primitive.domain = includeS;
-	return clipLineTypeToCP(this, primitive);
+	const segments = clipSegment(this, primitive);
+	const edges = segments
+		.flatMap(segment => addPlanarSegment(this, segment[0], segment[1]));
+	return makeEdgesReturnObject.call(this, edges);
 };
 
 CP.prototype.polygon = function (...args) {
 	const points = getArrayOfVectors(...args);
 	if (!points) { return undefined; }
-	const segments = points
-		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-		.map(seg => pointsToLine(...seg))
-		.map(line => ({ ...line, domain: includeS }))
-		.map(line => clip(this, line))
-		.filter(a => a !== undefined);
-	if (!segments) { return undefined; }
+	const polygonSegments = points
+		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+	const segments = polygonSegments
+		.flatMap(segment => clipSegment(this, segment));
 	const edges = segments
 		.flatMap(segment => addPlanarSegment(this, segment[0], segment[1]));
 	return makeEdgesReturnObject.call(this, edges);

@@ -2,10 +2,13 @@
  * Rabbit Ear (c) Kraft
  */
 import { cleanNumber } from "../../general/number.js";
-import { planarBoundary } from "../../graph/boundary.js";
-import { findEpsilonInObject } from "../general/options.js";
+import {
+	findEpsilonInObject,
+	invertVertical,
+} from "../general/options.js";
 import planarizeGraph from "../general/planarizeGraph.js";
 import makeEpsilon from "../general/makeEpsilon.js";
+import { planarBoundary } from "../../graph/boundary.js";
 import svgSegments from "./svgSegments.js";
 import svgEdgeGraph from "./svgEdgeGraph.js";
 import * as edgeParsers from "./edges.js";
@@ -21,6 +24,10 @@ import * as edgeParsers from "./edges.js";
 const svgToFold = (file, options) => {
 	const graph = svgEdgeGraph(file, options);
 	const epsilon = findEpsilonInObject(graph, options);
+	// if the user chooses, we can flip the y axis numbers.
+	if (options && options.invertVertical && graph.vertices_coords) {
+		invertVertical(graph.vertices_coords);
+	}
 	const planarGraph = planarizeGraph(graph, epsilon);
 	// by default the parser will change numbers like 15.000000000001 into 15.
 	// to turn this off, options.fast = true

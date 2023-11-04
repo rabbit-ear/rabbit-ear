@@ -14,11 +14,17 @@ test("join graphs", () => {
 	ear.graph.join(cp1, cp2);
 });
 
-test("join graphs 2", () => {
+test("join graphs with 2D and 3D vertices", () => {
+	// all vertices will be converted into 3D, duplicate vertices
+	// check will be correct and as expected.
+	// see: "removeDuplicateVertices with 2D and 3D vertices"
+	// in vertices.duplicate.test for more context.
 	const cp1 = graph.clone();
 	const cp2 = graph.clone().rotate(Math.PI / 2, [0, 1, 0], [0.5, 0, 0]);
 	ear.graph.join(cp1, cp2);
+	expect(cp1.vertices_coords.length).toBe(12);
+	ear.graph.removeDuplicateVertices(cp1);
 	expect(cp1.vertices_coords.length).toBe(10);
-	expect(cp1.edges_vertices.length).toBe(13);
+	expect(cp1.edges_vertices.length).toBe(14);
 	expect(cp1.faces_vertices.length).toBe(4);
 });

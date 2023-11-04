@@ -21,6 +21,10 @@ export const duplicateVertices = (graph, epsilon) => (
  * if vertices are close within an epsilon, it will keep the first one,
  * find the average of close points, and assign it to the remaining vertex.
  * **this has the potential to create circular and duplicate edges**.
+ * Important note: if vertices are mismatched in dimension (2D and 3D),
+ * this might treat all vertices as 2D and duplicate vertices will be declared
+ * when they are actually not the same. Just make sure your graph's
+ * vertices are all of the same dimension.
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} summary of changes
