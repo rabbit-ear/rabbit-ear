@@ -49,6 +49,13 @@ export const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
  */
 export const magnitude3 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 /**
+ * @description compute the square-magnitude a 2D vector.
+ * @param {number[]} v one 2D vector
+ * @returns {number} one scalar
+ * @linkcode Math ./src/algebra/vectors.js 55
+ */
+export const magSquared2 = v => v[0] * v[0] + v[1] * v[1];
+/**
  * @description compute the square-magnitude an n-dimensional vector.
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar

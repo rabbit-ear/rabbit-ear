@@ -3,15 +3,14 @@
  */
 import { EPSILON } from "../math/constant.js";
 import {
-	epsilonEqual,
-	includeL,
+	includeS,
 } from "../math/compare.js";
 import {
 	dot2,
 	scale2,
 	add2,
 	subtract2,
-	normalize2,
+	magSquared2,
 } from "../math/vector.js";
 import { intersectLineLine } from "../math/intersect.js";
 import {
@@ -19,7 +18,10 @@ import {
 	setDifferenceSortedNumbers,
 } from "../general/array.js";
 import { sweepValues } from "./sweep.js";
-import { invertMap } from "./maps.js";
+import {
+	invertArrayMap,
+	invertSimpleMap,
+} from "./maps.js";
 import remove from "./remove.js";
 import {
 	edgeIsolatedVertices,
@@ -48,34 +50,19 @@ import {
 /**
  *
  */
-// const lineLine = (a, b, epsilon = EPSILON) => {
-// 	const determinant0 = cross2(a.vector, b.vector);
-// 	// lines are parallel
-// 	if (Math.abs(determinant0) < epsilon) { return undefined; }
-// 	const determinant1 = -determinant0;
-// 	const a2b = subtract2(b.origin, a.origin);
-// 	const b2a = [-a2b[0], -a2b[1]];
-// 	return [
-// 		cross2(a2b, b.vector) / determinant0,
-// 		cross2(b2a, a.vector) / determinant1,
-// 	];
-// };
-/**
- *
- */
-const getLinesIntersections = (lines, lines_range, epsilon = EPSILON) => {
-	const isInside = (number, range) => (
-		number > range[0] - epsilon && number < range[1] + epsilon
-	);
+const getLinesIntersections = (lines, epsilon = EPSILON) => {
 	const linesIntersect = lines.map(() => []);
 	for (let i = 0; i < lines.length - 1; i += 1) {
 		for (let j = i + 1; j < lines.length; j += 1) {
-			const { a, b, point } = intersectLineLine(lines[i], lines[j], includeL, includeL, epsilon);
+			const { a, b, point } = intersectLineLine(
+				lines[i],
+				lines[j],
+				includeS,
+				includeS,
+				epsilon,
+			);
 			// lines are parallel
 			if (point === undefined) { continue; }
-			if (!isInside(a, lines_range[i]) || !isInside(b, lines_range[j])) {
-				continue;
-			}
 			linesIntersect[i].push(a);
 			linesIntersect[j].push(b);
 		}
@@ -136,56 +123,54 @@ const planarize = ({
 	edges_assignment,
 	edges_foldAngle,
 }, epsilon = EPSILON) => {
-	const smEpsilon = epsilon / 1e1;
 	// "compress" all edges down into a smaller set of infinite lines,
-	const { lines: linesRaw, edges_line } = getEdgesLine({
+	const { lines, edges_line } = getEdgesLine({
 		vertices_coords, edges_vertices,
-	});
-	const lines = linesRaw
-		.map(({ vector, origin }) => ({ origin, vector: normalize2(vector) }));
+	}, epsilon);
+	// we will be projecting points down onto non-normalized vectors,
+	// the dot products will be scaled by this much, we need to divide
+	// by this to convert the parameters back into coordinate space.
+	const linesSquareLength = lines.map(({ vector }) => magSquared2(vector));
 	// one to many mapping of a line and the edges along it.
-	const lines_edges = invertMap(edges_line)
-		.map(arr => (arr.constructor === Array ? arr : [arr]));
+	const lines_edges = invertArrayMap(edges_line);
 	// for each edge and its corresponding line, project the edge's endpoints
 	// onto the line as a scalar of the line's vector from its origin.
 	const edges_scalars = edges_vertices
-		.map(ev => ev.map(v => vertices_coords[v]))
-		.map((coords, i) => coords.map(point => dot2(
-			subtract2(point, lines[edges_line[i]].origin),
-			lines[edges_line[i]].vector,
-		)));
+		.map((verts, e) => verts
+			.map(v => vertices_coords[v])
+			.map(point => dot2(
+				subtract2(point, lines[edges_line[e]].origin),
+				lines[edges_line[e]].vector,
+			)));
 	// for each line, a flat sorted list of all scalars along that line
 	// coming from all of the edges' endpoints.
 	const lines_flatEdgeScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]))
-		.map(numbers => epsilonUniqueSortedNumbers(numbers, smEpsilon));
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon));
 	// for each line, get the smallest and largest value (defining the range)
-	const lines_range = lines_flatEdgeScalars
-		.map(scalars => [scalars[0], scalars[scalars.length - 1]]);
 	// compare every line against every other, gather all intersections.
 	// "intersections" contains some intersections that are outside the
 	// relevant areas. more filtering will happen when we start to apply them.
 	// for every line, an array of sorted scalars of the line's vector
 	// at the location of an intersection with another line.
-	const lines_intersections = getLinesIntersections(lines, lines_range, smEpsilon)
-		.map(numbers => epsilonUniqueSortedNumbers(numbers, smEpsilon))
+	const lines_intersections = getLinesIntersections(lines, epsilon)
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon))
+		.map((numbers, i) => numbers.map(n => n * linesSquareLength[i]))
 		// for every line, the subset of all intersections along the line
 		// that are not duplicates of endpoints of collinear edges to the line.
 		.map((sects, i) => (
-			setDifferenceSortedNumbers(sects, lines_flatEdgeScalars[i], smEpsilon)
+			setDifferenceSortedNumbers(sects, lines_flatEdgeScalars[i], epsilon)
 		));
 	// walk the line
 	// create an alternative form of the graph for the sweep method.
 	const sweepScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]));
-	const sweepEdgesVertices = lines_edges.map(edges => {
-		const lineEdges = [];
-		edges.forEach((e, i) => { lineEdges[e] = [i * 2, i * 2 + 1]; });
-		return lineEdges;
-	});
+	const sweepEdgesVertices = lines_edges
+		.map(edges => invertSimpleMap(edges)
+			.map(e => [e * 2, e * 2 + 1]));
 	const lineSweeps = lines_edges.map((_, i) => sweepValues(sweepScalars[i], {
 		edges_vertices: sweepEdgesVertices[i],
-	}, smEpsilon));
+	}, epsilon));
 	const lineSweeps_vertices = lineSweeps.map(sweep => sweep.map(el => el.t));
 	const lineSweeps_edges = lineSweeps.map(sweep => {
 		const current = {};
@@ -197,7 +182,6 @@ const planarize = ({
 		edges.pop();
 		return edges;
 	});
-	//
 	lines_intersections.forEach((points, i) => {
 		const vertices = lineSweeps_vertices[i];
 		const edges = lineSweeps_edges[i];
@@ -205,13 +189,8 @@ const planarize = ({
 		let pi = 0;
 		let vi = 0;
 		while (pi < points.length && vi < vertices.length - 1) {
-			if (epsilonEqual(vertices[vi], points[pi], smEpsilon)) {
-				throw new Error("bad algorithm");
-			}
-			if (points[pi] > vertices[vi + 1]) {
-				vi += 1;
-				continue;
-			}
+			if (points[pi] <= vertices[vi]) { throw new Error("bad algorithm"); }
+			if (points[pi] > vertices[vi + 1]) { vi += 1; continue; }
 			vertices.splice(vi + 1, 0, points[pi]);
 			edges.splice(vi + 1, 0, edges[vi]);
 			pi += 1;
@@ -221,9 +200,12 @@ const planarize = ({
 	// across the empty space in a line where no previous edges existed.
 	const new_vertices_coords = lineSweeps_vertices
 		.flatMap((scalars, i) => scalars
+			.map(s => s / linesSquareLength[i])
 			.map(s => add2(lines[i].origin, scale2(lines[i].vector, s))));
 	// create a connected list of vertices, for every line, until the new line.
 	// [0,1] [1,2], [2,3] [3,4] then a new line [5, 6]... (don't connect 4-5)
+	// console.log("new_vertices_coords", new_vertices_coords);
+	// console.log("new_vertices_coords2", new_vertices_coords2);
 	let e = 0;
 	const new_edges_vertices = lineSweeps_edges
 		.map(edges => {
@@ -257,6 +239,7 @@ const planarize = ({
 	// }
 	removeDuplicateVertices(result, epsilon);
 	removeCircularEdges(result);
+
 	// if (circularEdges(result).length) {
 	// 	console.error("planarize: found circular edges. place 2.");
 	// }
@@ -266,7 +249,7 @@ const planarize = ({
 	const collinearVertices = result.vertices_edges
 		.map((edges, i) => (edges.length === 2 ? i : undefined))
 		.filter(a => a !== undefined)
-		.filter(v => isVertexCollinear(result, v, smEpsilon))
+		.filter(v => isVertexCollinear(result, v, epsilon))
 		.reverse();
 	const edgesToRemove = collinearVertices
 		.map(v => removeCollinearVertex(result, v));
@@ -285,25 +268,6 @@ const planarize = ({
 	// result.faces_vertices = planarFaces.faces_vertices;
 	// result.faces_edges = planarFaces.faces_edges;
 	delete result.vertices_edges;
-
-	// console.log("lines", lines);
-	// console.log("edges_line", edges_line);
-	// console.log("lines_edges", lines_edges);
-	// console.log("edges_scalars", edges_scalars);
-	// console.log("lines_flatEdgeScalars", lines_flatEdgeScalars);
-	// console.log("lines_range", lines_range);
-	// console.log("lines_intersections", lines_intersections);
-	// console.log("sweepScalars", sweepScalars);
-	// console.log("sweepEdgesVertices", sweepEdgesVertices);
-	// console.log("lineSweeps", lineSweeps);
-	// console.log("lineSweeps_vertices", lineSweeps_vertices);
-	// console.log("lineSweeps_edges", lineSweeps_edges);
-	// console.log("lines_vertices_coords", lines_vertices_coords);
-	// console.log("lines_vertices", lines_vertices);
-	// console.log("lines_edges_verticesPrefilter", lines_edges_verticesPrefilter);
-	// console.log("lines_edges_vertices", lines_edges_vertices);
-	// console.log("lines_edges_prevEdge", lines_edges_prevEdge);
-	// console.log("result", result);
 	return result;
 };
 

@@ -5,6 +5,30 @@ import ear from "../rabbit-ear.js";
 
 ear.window = xmldom;
 
+test("fish base", () => {
+	const graph = ear.graph.fish();
+	const { lines, edges_line } = ear.graph.getEdgesLine(graph);
+	console.log(lines);
+	const n029 = 1 - Math.SQRT1_2;
+	const n070 = Math.SQRT1_2;
+	const expectedLines = [
+		{ vector: [1, 0], origin: [0, 0] }, // bottom
+		{ vector: [0, -1], origin: [0, 1] }, // left
+		{ vector: [-n070, -n029], origin: [n070, n029] },
+		{ vector: [-n029, -n070], origin: [n029, n070] },
+		{ vector: [-1, -1], origin: [1, 1] }, // diagonal
+		{ vector: [n029, 0], origin: [n070, n029] },
+		{ vector: [0, n029], origin: [n029, n070] },
+		{ vector: [n029, n070], origin: [n070, n029] },
+		{ vector: [n070, n029], origin: [n029, n070] },
+		{ vector: [1, -1], origin: [0, 1] }, // diagonal
+		{ vector: [0, -n029], origin: [n070, n029] },
+		{ vector: [-n029, 0], origin: [n029, n070] },
+		{ vector: [0, 1], origin: [1, 0] }, // right
+		{ vector: [-1, 0], origin: [1, 1] }, // top
+	];
+});
+
 test("maze folding", () => {
 	const svg = fs.readFileSync("./tests/files/svg/maze-8x8.svg", "utf-8");
 	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);

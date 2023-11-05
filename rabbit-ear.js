@@ -42,6 +42,7 @@ const magnitude = v => Math.sqrt(v
 	.reduce(safeAdd, 0));
 const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
 const magnitude3 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+const magSquared2 = v => v[0] * v[0] + v[1] * v[1];
 const magSquared = v => v
 	.map(n => n * n)
 	.reduce(safeAdd, 0);
@@ -154,7 +155,7 @@ const basisVectors3 = (vector = [1, 0, 0]) => {
 const basisVectors = (vector) => (vector.length === 2
 	? basisVectors2(vector)
 	: basisVectors3(vector)
-);const vector=/*#__PURE__*/Object.freeze({__proto__:null,add,add2,add3,average,average2,basisVectors,basisVectors2,basisVectors3,cross2,cross3,degenerate,distance,distance2,distance3,dot,dot2,dot3,flip,lerp,magSquared,magnitude,magnitude2,magnitude3,midpoint,midpoint2,midpoint3,normalize:normalize$1,normalize2,normalize3,parallel,parallel2,parallelNormalized,resize,resizeUp,rotate270,rotate90,scale:scale$1,scale2,scale3,subtract,subtract2,subtract3});const identity2x2 = [1, 0, 0, 1];
+);const vector=/*#__PURE__*/Object.freeze({__proto__:null,add,add2,add3,average,average2,basisVectors,basisVectors2,basisVectors3,cross2,cross3,degenerate,distance,distance2,distance3,dot,dot2,dot3,flip,lerp,magSquared,magSquared2,magnitude,magnitude2,magnitude3,midpoint,midpoint2,midpoint3,normalize:normalize$1,normalize2,normalize3,parallel,parallel2,parallelNormalized,resize,resizeUp,rotate270,rotate90,scale:scale$1,scale2,scale3,subtract,subtract2,subtract3});const identity2x2 = [1, 0, 0, 1];
 const identity2x3 = identity2x2.concat(0, 0);
 const multiplyMatrix2Vector2 = (matrix, vector) => [
 	matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
@@ -1903,6 +1904,26 @@ const mergeBackmaps = (...maps) => {
 	});
 	return solution;
 };
+const invertSimpleMap = (map) => {
+	const inv = [];
+	map.forEach((n, i) => { inv[n] = i; });
+	return inv;
+};
+const invertArrayMap = (map) => {
+	const inv = [];
+	const setIndexValue = (index, value) => {
+		if (inv[index] === undefined) { inv[index] = []; }
+		inv[index].push(value);
+	};
+	map.forEach((n, i) => {
+		if (n == null) { return; }
+		if (typeof n === "number") { setIndexValue(n, i); }
+		if (n.constructor === Array) {
+			n.forEach(m => setIndexValue(m, i));
+		}
+	});
+	return inv;
+};
 const invertMap = (map) => {
 	const inv = [];
 	const setIndexValue = (index, value) => {
@@ -1925,26 +1946,6 @@ const invertMap = (map) => {
 	});
 	return inv;
 };
-const invertMapArray = (map) => {
-	const inv = [];
-	const setIndexValue = (index, value) => {
-		if (inv[index] === undefined) { inv[index] = []; }
-		inv[index].push(value);
-	};
-	map.forEach((n, i) => {
-		if (n == null) { return; }
-		if (typeof n === "number") { setIndexValue(n, i); }
-		if (n.constructor === Array) {
-			n.forEach(m => setIndexValue(m, i));
-		}
-	});
-	return inv;
-};
-const invertSimpleMap = (map) => {
-	const inv = [];
-	map.forEach((n, i) => { inv[n] = i; });
-	return inv;
-};
 const remapComponent = (graph, component, indexMap = []) => {
 	filterKeysWithSuffix(graph, component)
 		.forEach(key => graph[key]
@@ -1953,7 +1954,7 @@ const remapComponent = (graph, component, indexMap = []) => {
 	const inverted = invertSimpleMap(indexMap);
 	filterKeysWithPrefix(graph, component)
 		.forEach(key => { graph[key] = inverted.map(i => graph[key][i]); });
-};const maps=/*#__PURE__*/Object.freeze({__proto__:null,invertMap,invertMapArray,invertSimpleMap,mergeBackmaps,mergeNextmaps,mergeSimpleBackmaps,mergeSimpleNextmaps,remapComponent});const clean = (graph, epsilon) => {
+};const maps=/*#__PURE__*/Object.freeze({__proto__:null,invertArrayMap,invertMap,invertSimpleMap,mergeBackmaps,mergeNextmaps,mergeSimpleBackmaps,mergeSimpleNextmaps,remapComponent});const clean = (graph, epsilon) => {
 	const change_v1 = removeDuplicateVertices(graph, epsilon);
 	const change_e1 = removeCircularEdges(graph);
 	const change_e2 = removeDuplicateEdges(graph);
@@ -2643,14 +2644,13 @@ const sweep = ({
 		.map(normalize$1);
 	const edgesLine = edgesVector
 		.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
-	const edgesNearestToOrigin = edgesLine
-		.map(line => nearestPointOnLine(line, [0, 0, 0], a => a, epsilon));
-	const edgesOriginDistances = edgesNearestToOrigin
+	const edgesOriginDistances = edgesLine
+		.map(line => nearestPointOnLine(line, [0, 0, 0], clampLine))
 		.map(point => magnitude(point));
 	const distanceClusters = clusterScalars(edgesOriginDistances, epsilon);
 	const parallelDistanceClusters = distanceClusters
 		.map(cluster => cluster.map(i => edgesVector[i]))
-		.map(cluster => clusterParallelVectors(cluster, epsilon))
+		.map(cluster => clusterParallelVectors(cluster, 1e-3))
 		.map((clusters, i) => clusters
 			.map(cluster => cluster
 				.map(index => distanceClusters[i][index])));
@@ -2706,18 +2706,18 @@ const sweep = ({
 		lines,
 		edges_line,
 	};
-};const edgesLines$1=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesLine});const getLinesIntersections = (lines, lines_range, epsilon = EPSILON) => {
-	const isInside = (number, range) => (
-		number > range[0] - epsilon && number < range[1] + epsilon
-	);
+};const edgesLines$1=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesLine});const getLinesIntersections = (lines, epsilon = EPSILON) => {
 	const linesIntersect = lines.map(() => []);
 	for (let i = 0; i < lines.length - 1; i += 1) {
 		for (let j = i + 1; j < lines.length; j += 1) {
-			const { a, b, point } = intersectLineLine(lines[i], lines[j], includeL, includeL, epsilon);
+			const { a, b, point } = intersectLineLine(
+				lines[i],
+				lines[j],
+				includeS,
+				includeS,
+				epsilon,
+			);
 			if (point === undefined) { continue; }
-			if (!isInside(a, lines_range[i]) || !isInside(b, lines_range[j])) {
-				continue;
-			}
 			linesIntersect[i].push(a);
 			linesIntersect[j].push(b);
 		}
@@ -2745,40 +2745,35 @@ const planarize = ({
 	edges_assignment,
 	edges_foldAngle,
 }, epsilon = EPSILON) => {
-	const smEpsilon = epsilon / 1e1;
-	const { lines: linesRaw, edges_line } = getEdgesLine({
+	const { lines, edges_line } = getEdgesLine({
 		vertices_coords, edges_vertices,
-	});
-	const lines = linesRaw
-		.map(({ vector, origin }) => ({ origin, vector: normalize2(vector) }));
-	const lines_edges = invertMap(edges_line)
-		.map(arr => (arr.constructor === Array ? arr : [arr]));
+	}, epsilon);
+	const linesSquareLength = lines.map(({ vector }) => magSquared2(vector));
+	const lines_edges = invertArrayMap(edges_line);
 	const edges_scalars = edges_vertices
-		.map(ev => ev.map(v => vertices_coords[v]))
-		.map((coords, i) => coords.map(point => dot2(
-			subtract2(point, lines[edges_line[i]].origin),
-			lines[edges_line[i]].vector,
-		)));
+		.map((verts, e) => verts
+			.map(v => vertices_coords[v])
+			.map(point => dot2(
+				subtract2(point, lines[edges_line[e]].origin),
+				lines[edges_line[e]].vector,
+			)));
 	const lines_flatEdgeScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]))
-		.map(numbers => epsilonUniqueSortedNumbers(numbers, smEpsilon));
-	const lines_range = lines_flatEdgeScalars
-		.map(scalars => [scalars[0], scalars[scalars.length - 1]]);
-	const lines_intersections = getLinesIntersections(lines, lines_range, smEpsilon)
-		.map(numbers => epsilonUniqueSortedNumbers(numbers, smEpsilon))
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon));
+	const lines_intersections = getLinesIntersections(lines, epsilon)
+		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon))
+		.map((numbers, i) => numbers.map(n => n * linesSquareLength[i]))
 		.map((sects, i) => (
-			setDifferenceSortedNumbers(sects, lines_flatEdgeScalars[i], smEpsilon)
+			setDifferenceSortedNumbers(sects, lines_flatEdgeScalars[i], epsilon)
 		));
 	const sweepScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]));
-	const sweepEdgesVertices = lines_edges.map(edges => {
-		const lineEdges = [];
-		edges.forEach((e, i) => { lineEdges[e] = [i * 2, i * 2 + 1]; });
-		return lineEdges;
-	});
+	const sweepEdgesVertices = lines_edges
+		.map(edges => invertSimpleMap(edges)
+			.map(e => [e * 2, e * 2 + 1]));
 	const lineSweeps = lines_edges.map((_, i) => sweepValues(sweepScalars[i], {
 		edges_vertices: sweepEdgesVertices[i],
-	}, smEpsilon));
+	}, epsilon));
 	const lineSweeps_vertices = lineSweeps.map(sweep => sweep.map(el => el.t));
 	const lineSweeps_edges = lineSweeps.map(sweep => {
 		const current = {};
@@ -2796,13 +2791,8 @@ const planarize = ({
 		let pi = 0;
 		let vi = 0;
 		while (pi < points.length && vi < vertices.length - 1) {
-			if (epsilonEqual(vertices[vi], points[pi], smEpsilon)) {
-				throw new Error("bad algorithm");
-			}
-			if (points[pi] > vertices[vi + 1]) {
-				vi += 1;
-				continue;
-			}
+			if (points[pi] <= vertices[vi]) { throw new Error("bad algorithm"); }
+			if (points[pi] > vertices[vi + 1]) { vi += 1; continue; }
 			vertices.splice(vi + 1, 0, points[pi]);
 			edges.splice(vi + 1, 0, edges[vi]);
 			pi += 1;
@@ -2810,6 +2800,7 @@ const planarize = ({
 	});
 	const new_vertices_coords = lineSweeps_vertices
 		.flatMap((scalars, i) => scalars
+			.map(s => s / linesSquareLength[i])
 			.map(s => add2(lines[i].origin, scale2(lines[i].vector, s))));
 	let e = 0;
 	const new_edges_vertices = lineSweeps_edges
@@ -2843,7 +2834,7 @@ const planarize = ({
 	const collinearVertices = result.vertices_edges
 		.map((edges, i) => (edges.length === 2 ? i : undefined))
 		.filter(a => a !== undefined)
-		.filter(v => isVertexCollinear(result, v, smEpsilon))
+		.filter(v => isVertexCollinear(result, v, epsilon))
 		.reverse();
 	const edgesToRemove = collinearVertices
 		.map(v => removeCollinearVertex(result, v));
@@ -3539,7 +3530,7 @@ const connectedComponentsPairs = (array_array) => {
 	const vertices_faces = graph.vertices_faces
 		? graph.vertices_faces
 		: makeVerticesFacesUnsorted({ vertices_edges, faces_vertices });
-	const vertices = invertMapArray(connectedComponents(vertices_vertices));
+	const vertices = invertArrayMap(connectedComponents(vertices_vertices));
 	const edges = vertices
 		.map(verts => verts.flatMap(v => vertices_edges[v]))
 		.map(uniqueElements);
@@ -6183,7 +6174,7 @@ const nudgeFacesWithFaceOrders = ({
 	const faces_sets = connectedComponents(makeVerticesVerticesUnsorted({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
 	}));
-	const sets_faces = invertMapArray(faces_sets);
+	const sets_faces = invertArrayMap(faces_sets);
 	const sets_layers_face = sets_faces
 		.map(faces => faceOrdersSubset(faceOrders, faces))
 		.map(orders => linearizeFaceOrders({ faceOrders: orders, faces_normal }));
@@ -8654,7 +8645,7 @@ const join = (target, source) => {
 	VEF.forEach(key => {
 		const map = targetKeyArrays[key].map(() => 0);
 		indexMaps[key].forEach(v => { map[v] = 1; });
-		summary[key] = invertMapArray(map);
+		summary[key] = invertArrayMap(map);
 	});
 	const target2DVertices = sourceDimension !== targetDimension
 		? (target.vertices_coords || [])

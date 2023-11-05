@@ -6,7 +6,7 @@ import { uniqueSortedNumbers } from "../general/array.js";
 import { makeFacesNormal } from "./normals.js";
 import { topologicalSort } from "./directedGraph.js";
 import { makeVerticesVerticesUnsorted } from "./make.js";
-import { invertMap, invertMapArray } from "./maps.js";
+import { invertMap, invertArrayMap } from "./maps.js";
 import { connectedComponents } from "./connectedComponents.js";
 // import { allLayerConditions } from "./globalSolver/index.js";
 /**
@@ -138,7 +138,7 @@ export const nudgeFacesWithFaceOrders = ({
 	}));
 	// const sets_faces = invertMap(faces_sets)
 	// 	.map(el => (el.constructor === Array ? el : [el]));
-	const sets_faces = invertMapArray(faces_sets);
+	const sets_faces = invertArrayMap(faces_sets);
 	const sets_layers_face = sets_faces
 		.map(faces => faceOrdersSubset(faceOrders, faces))
 		.map(orders => linearizeFaceOrders({ faceOrders: orders, faces_normal }));

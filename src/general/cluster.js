@@ -124,7 +124,8 @@ export const clusterScalars = (numbers, epsilon = EPSILON) => {
  * This works for any N-dimensional vectors (including 3D or 2D).
  * Note, this is an n^2 algorithm. Currently it's used by the method
  * getEdgesLine to find all unique lines in a graph, which initially clusters
- * lines by distance-to-origin, then INSIDE each cluster this method is called.
+ * lines by distance-to-origin, then INSIDE each cluster this method is called,
+ * reducing the total number of comparisons to below n^2.
  * Similar optimization should be performed when using this, if possible.
  */
 export const clusterParallelVectors = (vectors, epsilon = EPSILON) => {

@@ -78,8 +78,48 @@ export const mergeBackmaps = (...maps) => {
 	return solution;
 };
 /**
- * @description invert an array of integers so that indices become values and
- * values become indices. in the case of multiple values trying to insert
+ * @description Invert an array of integers so that indices become values
+ * and values become indices. In the case of duplicate indices
+ * (duplicate input values), the duplicates will be overwritten.
+ * @param {number[]} map an array of integers
+ * @returns {number[]} the inverted map
+ * @linkcode Origami ./src/graph/maps.js 119
+ */
+export const invertSimpleMap = (map) => {
+	const inv = [];
+	map.forEach((n, i) => { inv[n] = i; });
+	return inv;
+};
+/**
+ * @description Invert an array of integers so that indices become values and
+ * values become indices. The values of the result will be an array.
+ * In the case of duplicate indices (duplicate input values), they will all
+ * end up in the value array. No data will be lost.
+ * @param {number[]|number[][]} map an array of integers
+ * @returns {number[][]} the inverted map
+ * @linkcode Origami ./src/graph/maps.js 83
+ */
+export const invertArrayMap = (map) => {
+	const inv = [];
+	// set inv[index] = value, but before we do, make sure an array exists
+	const setIndexValue = (index, value) => {
+		if (inv[index] === undefined) { inv[index] = []; }
+		inv[index].push(value);
+	};
+	// iterate through the argument array and flip the index/value
+	// in the new array so that the index is the value and visa versa.
+	map.forEach((n, i) => {
+		if (n == null) { return; }
+		if (typeof n === "number") { setIndexValue(n, i); }
+		if (n.constructor === Array) {
+			n.forEach(m => setIndexValue(m, i));
+		}
+	});
+	return inv;
+};
+/**
+ * @description Invert an array of integers so that indices become values and
+ * values become indices. In the case of multiple values trying to insert
  * into the same index, a child array is made to house both (or more) numbers.
  * @param {number[]|number[][]} map an array of integers
  * @returns {number[]|number[][]} the inverted map
@@ -112,44 +152,6 @@ export const invertMap = (map) => {
 			n.forEach(m => setIndexValue(m, i));
 		}
 	});
-	return inv;
-};
-/**
- * @description invert an array of integers so that indices become values and
- * values become indices. The resulting values will be arrays of indices,
- * even if the array only contains one index.
- * @param {number[]|number[][]} map an array of integers
- * @returns {number[][]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 83
- */
-export const invertMapArray = (map) => {
-	const inv = [];
-	// set inv[index] = value, but before we do, make sure an array exists
-	const setIndexValue = (index, value) => {
-		if (inv[index] === undefined) { inv[index] = []; }
-		inv[index].push(value);
-	};
-	// iterate through the argument array and flip the index/value
-	// in the new array so that the index is the value and visa versa.
-	map.forEach((n, i) => {
-		if (n == null) { return; }
-		if (typeof n === "number") { setIndexValue(n, i); }
-		if (n.constructor === Array) {
-			n.forEach(m => setIndexValue(m, i));
-		}
-	});
-	return inv;
-};
-/**
- * @description invert an array of integers so that indices become values
- * and values become indices. duplicate entries will be overwritten.
- * @param {number[]} map an array of integers
- * @returns {number[]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 119
- */
-export const invertSimpleMap = (map) => {
-	const inv = [];
-	map.forEach((n, i) => { inv[n] = i; });
 	return inv;
 };
 /**

@@ -2,6 +2,7 @@ import { EPSILON } from "../../math/constant.js";
 import { epsilonEqualVectors } from "../../math/compare.js";
 import { nearestPointOnLine } from "../../math/nearest.js";
 import { projectPointOnPlane } from "../../math/plane.js";
+import { clampLine } from "../../math/line.js";
 import {
 	magnitude,
 	normalize,
@@ -45,12 +46,10 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 		.map(normalize);
 	const edgesLine = edgesVector
 		.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
-	// the point on the line that is nearest to the origin.
-	// when we return the list of lines, these will be used for the origins.
-	const edgesNearestToOrigin = edgesLine
-		.map(line => nearestPointOnLine(line, [0, 0, 0], a => a, epsilon));
-	// shortest distance from each edge's line to the origin.
-	const edgesOriginDistances = edgesNearestToOrigin
+	// this is the distance from the origin to the nearest point along the line
+	// no epsilon is needed in nearestPointOnLine, because there is no clamp.
+	const edgesOriginDistances = edgesLine
+		.map(line => nearestPointOnLine(line, [0, 0, 0], clampLine))
 		.map(point => magnitude(point));
 	// begin clustering, we will cluster into 3 parts:
 	// 1. cluster lines with similar distance-to-origin scalars.
@@ -62,9 +61,13 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 	const distanceClusters = clusterScalars(edgesOriginDistances, epsilon);
 	// further subcluster the previous clusters based on whether the
 	// line's vectors are parallel (these inner clusters share the same line)
+	// we use a fixed epsilon here, the comparison is testing parallel-ness
+	// with dot(v, u) with normalized vectors. so anything similar within
+	// 1e-3 should suffice. We can't feed in the user epsilon, because an
+	// epsilon of something like 5 would be meaningless here.
 	const parallelDistanceClusters = distanceClusters
 		.map(cluster => cluster.map(i => edgesVector[i]))
-		.map(cluster => clusterParallelVectors(cluster, epsilon))
+		.map(cluster => clusterParallelVectors(cluster, 1e-3))
 		.map((clusters, i) => clusters
 			.map(cluster => cluster
 				.map(index => distanceClusters[i][index])));
