@@ -17,7 +17,10 @@ import {
 	getFacesSegmentOverlap,
 } from "./intersect/faces.js";
 /**
- *
+ * @todo test the clip method on foldedForm, not just crease pattern
+ */
+/**
+ * @description the internal method for clipLine, clipRay, and clipSegment
  */
 const clipAndJoin = (graph, faces, line, func = includeL, epsilon = EPSILON) => {
 	const clippings = faces

@@ -123,10 +123,11 @@ const planarize = ({
 	edges_assignment,
 	edges_foldAngle,
 }, epsilon = EPSILON) => {
+	const {
+		lines,
+		edges_line,
+	} = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
 	// "compress" all edges down into a smaller set of infinite lines,
-	const { lines, edges_line } = getEdgesLine({
-		vertices_coords, edges_vertices,
-	}, epsilon);
 	// we will be projecting points down onto non-normalized vectors,
 	// the dot products will be scaled by this much, we need to divide
 	// by this to convert the parameters back into coordinate space.
@@ -233,16 +234,8 @@ const planarize = ({
 	}
 	removeIsolatedVertices(result, edgeIsolatedVertices(result));
 	// this single method call takes up the majority of the time of this method.
-	// removeDuplicateVertices(result, epsilon);
-	// if (circularEdges(result).length) {
-	// 	console.error("planarize: found circular edges. place 1.");
-	// }
 	removeDuplicateVertices(result, epsilon);
 	removeCircularEdges(result);
-
-	// if (circularEdges(result).length) {
-	// 	console.error("planarize: found circular edges. place 2.");
-	// }
 	// remove collinear vertices
 	// these vertices_edges are unsorted and will be removed at the end.
 	result.vertices_edges = makeVerticesEdgesUnsorted(result);
@@ -260,13 +253,8 @@ const planarize = ({
 		removeDuplicateEdges(result, dupEdges);
 	}
 	if (circularEdges(result).length) {
-		console.error("planarize: found circular edges. place 3.");
+		console.error("planarize: found circular edges");
 	}
-
-	// result.vertices_vertices = makeVerticesVertices2D(result);
-	// const planarFaces = makePlanarFaces(result);
-	// result.faces_vertices = planarFaces.faces_vertices;
-	// result.faces_edges = planarFaces.faces_edges;
 	delete result.vertices_edges;
 	return result;
 };

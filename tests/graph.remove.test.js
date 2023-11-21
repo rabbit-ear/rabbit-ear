@@ -166,7 +166,7 @@ test("populated graph", () => {
 	});
 });
 
-const testGraph = () => Object.assign({}, {
+const testGraph = () => ({
 	vertices_coords: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7]],
 	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 0]],
 	edges_string: ["a", "b", "c", "d", "e", "f", "g"],

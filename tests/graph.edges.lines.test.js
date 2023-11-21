@@ -8,10 +8,9 @@ ear.window = xmldom;
 test("fish base", () => {
 	const graph = ear.graph.fish();
 	const { lines, edges_line } = ear.graph.getEdgesLine(graph);
-	console.log(lines);
 	const n029 = 1 - Math.SQRT1_2;
 	const n070 = Math.SQRT1_2;
-	const expectedLines = [
+	const expected = [
 		{ vector: [1, 0], origin: [0, 0] }, // bottom
 		{ vector: [0, -1], origin: [0, 1] }, // left
 		{ vector: [-n070, -n029], origin: [n070, n029] },
@@ -27,6 +26,12 @@ test("fish base", () => {
 		{ vector: [0, 1], origin: [1, 0] }, // right
 		{ vector: [-1, 0], origin: [1, 1] }, // top
 	];
+	lines.forEach((line, i) => expect(
+		ear.math.epsilonEqualVectors(line.vector, expected[i].vector),
+	).toBe(true));
+	lines.forEach((line, i) => expect(
+		ear.math.epsilonEqualVectors(line.origin, expected[i].origin),
+	).toBe(true));
 });
 
 test("maze folding", () => {

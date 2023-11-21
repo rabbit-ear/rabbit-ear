@@ -141,6 +141,15 @@ export const centroid = (points) => {
 		.map(c => c * sixthArea);
 };
 /**
+ *
+ */
+const getDimension = (points) => {
+	for (let i = 0; i < points.length; i += 1) {
+		if (points[i] && points[i].length) { return points[i].length; }
+	}
+	return 0;
+};
+/**
  * @description Make an axis-aligned bounding box that encloses a set of points.
  * the optional padding is used to make the bounding box inclusive / exclusive
  * by adding padding on all sides, or inset in the case of negative number.
@@ -153,8 +162,9 @@ export const centroid = (points) => {
  */
 export const boundingBox = (points, padding = 0) => {
 	if (!points || !points.length) { return undefined; }
-	const min = Array(points[0].length).fill(Infinity);
-	const max = Array(points[0].length).fill(-Infinity);
+	const dimension = getDimension(points);
+	const min = Array(dimension).fill(Infinity);
+	const max = Array(dimension).fill(-Infinity);
 	points
 		.filter(p => p !== undefined)
 		.forEach(point => point

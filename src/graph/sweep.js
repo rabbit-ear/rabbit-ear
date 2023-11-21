@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import { EPSILON } from "../math/constant.js";
 import { epsilonEqual } from "../math/compare.js";
 import { uniqueElements } from "../general/array.js";

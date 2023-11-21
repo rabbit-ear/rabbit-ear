@@ -448,10 +448,17 @@ const centroid = (points) => {
 		.reduce((a, b) => add2(a, b), [0, 0])
 		.map(c => c * sixthArea);
 };
+const getDimension$1 = (points) => {
+	for (let i = 0; i < points.length; i += 1) {
+		if (points[i] && points[i].length) { return points[i].length; }
+	}
+	return 0;
+};
 const boundingBox$1 = (points, padding = 0) => {
 	if (!points || !points.length) { return undefined; }
-	const min = Array(points[0].length).fill(Infinity);
-	const max = Array(points[0].length).fill(-Infinity);
+	const dimension = getDimension$1(points);
+	const min = Array(dimension).fill(Infinity);
+	const max = Array(dimension).fill(-Infinity);
 	points
 		.filter(p => p !== undefined)
 		.forEach(point => point
@@ -932,21 +939,122 @@ const arrayMaxIndex = (array) => {
 		if (array[i] > array[index]) { index = i; }
 	}
 	return index;
-};const arrayMethods=/*#__PURE__*/Object.freeze({__proto__:null,arrayMaxIndex,arrayMinIndex,arrayMinimum,chooseTwoPairs,epsilonUniqueSortedNumbers,mirrorArray,nonUniqueElements,setDifferenceSortedNumbers,splitCircularArray,uniqueElements,uniqueSortedNumbers,zipperArrays});const replaceGeometryIndices = (graph, key, replaceIndices) => {
-	const geometry_array_size = count(graph, key);
-	let didModify = false;
-	Object.entries(replaceIndices)
-		.filter(([index, value]) => index < value)
-		.forEach(([index, value]) => {
-			didModify = true;
-			delete replaceIndices[index];
-			replaceIndices[value] = index;
+};const arrayMethods=/*#__PURE__*/Object.freeze({__proto__:null,arrayMaxIndex,arrayMinIndex,arrayMinimum,chooseTwoPairs,epsilonUniqueSortedNumbers,mirrorArray,nonUniqueElements,setDifferenceSortedNumbers,splitCircularArray,uniqueElements,uniqueSortedNumbers,zipperArrays});const mergeSimpleNextmaps = (...maps) => {
+	if (maps.length === 0) { return []; }
+	const solution = maps[0].map((_, i) => i);
+	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
+	return solution;
+};
+const mergeNextmaps = (...maps) => {
+	if (maps.length === 0) { return []; }
+	const solution = maps[0].map((_, i) => [i]);
+	maps.forEach(map => {
+		solution.forEach((s, i) => s.forEach((indx, j) => { solution[i][j] = map[indx]; }));
+		solution.forEach((arr, i) => {
+			solution[i] = arr
+				.reduce((a, b) => a.concat(b), [])
+				.filter(a => a !== undefined);
 		});
-	if (didModify) {
-		console.warn(Messages$1.replaceModifyParam);
-	}
-	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
-	const replaces = uniqueSortedNumbers(removes);
+	});
+	return solution;
+};
+const mergeSimpleBackmaps = (...maps) => {
+	if (maps.length === 0) { return []; }
+	let solution = maps[0].map((_, i) => i);
+	maps.forEach(map => {
+		const next = map.map(n => solution[n]);
+		solution = next;
+	});
+	return solution;
+};
+const mergeBackmaps = (...maps) => {
+	if (maps.length === 0) { return []; }
+	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
+	maps.forEach(map => {
+		const next = [];
+		map.forEach((el, j) => {
+			if (typeof el === "number") {
+				next[j] = solution[el];
+			} else {
+				next[j] = el.map(n => solution[n]).reduce((a, b) => a.concat(b), []);
+			}
+		});
+		solution = next;
+	});
+	return solution;
+};
+const invertSimpleMap = (map) => {
+	const inv = [];
+	map.forEach((n, i) => { inv[n] = i; });
+	return inv;
+};
+const invertSimpleMapNoReplace = (map) => {
+	const inv = [];
+	map.forEach((n, i) => { inv[n] = inv[n] === undefined ? i : inv[n]; });
+	return inv;
+};
+const invertArrayMap = (map) => {
+	const inv = [];
+	const setIndexValue = (index, value) => {
+		if (inv[index] === undefined) { inv[index] = []; }
+		inv[index].push(value);
+	};
+	map.forEach((n, i) => {
+		if (n == null) { return; }
+		if (typeof n === "number") { setIndexValue(n, i); }
+		if (n.constructor === Array) {
+			n.forEach(m => setIndexValue(m, i));
+		}
+	});
+	return inv;
+};
+const invertMap = (map) => {
+	const inv = [];
+	const setIndexValue = (index, value) => {
+		if (inv[index] !== undefined) {
+			if (typeof inv[index] === "number") {
+				inv[index] = [inv[index], value];
+			} else {
+				inv[index].push(value);
+			}
+		} else {
+			inv[index] = value;
+		}
+	};
+	map.forEach((n, i) => {
+		if (n == null) { return; }
+		if (typeof n === "number") { setIndexValue(n, i); }
+		if (n.constructor === Array) {
+			n.forEach(m => setIndexValue(m, i));
+		}
+	});
+	return inv;
+};
+const remapComponent = (graph, component, indexMap = []) => {
+	filterKeysWithSuffix(graph, component)
+		.forEach(key => graph[key]
+			.forEach((_, ii) => graph[key][ii]
+				.forEach((v, jj) => { graph[key][ii][jj] = indexMap[v]; })));
+	const inverted = invertSimpleMap(indexMap);
+	filterKeysWithPrefix(graph, component)
+		.forEach(key => { graph[key] = inverted.map(i => graph[key][i]); });
+};
+const remapKey = (graph, key, indexMap) => {
+	const invertedMap = invertSimpleMapNoReplace(indexMap);
+	filterKeysWithSuffix(graph, key)
+		.forEach(sKey => graph[sKey]
+			.forEach((_, ii) => graph[sKey][ii]
+				.forEach((v, jj) => { graph[sKey][ii][jj] = indexMap[v]; })));
+	filterKeysWithSuffix(graph, key)
+		.forEach(sKey => graph[sKey]
+			.forEach((_, ii) => {
+				graph[sKey][ii] = graph[sKey][ii].filter(a => a !== undefined);
+			}));
+	filterKeysWithPrefix(graph, key).forEach(prefix => {
+		graph[prefix] = invertedMap.map(old => graph[prefix][old]);
+	});
+};const maps=/*#__PURE__*/Object.freeze({__proto__:null,invertArrayMap,invertMap,invertSimpleMap,invertSimpleMapNoReplace,mergeBackmaps,mergeNextmaps,mergeSimpleBackmaps,mergeSimpleNextmaps,remapComponent,remapKey});const makeIndexMap$1 = (graph, key, replaceIndices, replaces) => {
+	const geometry_array_size = count(graph, key);
 	const index_map = [];
 	for (let i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
 		while (i === replaces[walk]) {
@@ -959,21 +1067,25 @@ const arrayMaxIndex = (array) => {
 		}
 		if (i < geometry_array_size) { index_map[i] = j; }
 	}
-	filterKeysWithSuffix(graph, key)
-		.forEach(sKey => graph[sKey]
-			.forEach((_, ii) => graph[sKey][ii]
-				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
-	replaces.reverse();
-	filterKeysWithPrefix(graph, key)
-		.forEach((prefix_key) => replaces
-			.forEach(index => graph[prefix_key]
-				.splice(index, 1)));
 	return index_map;
+};
+const replaceGeometryIndices = (graph, key, replaceIndices) => {
+	Object.entries(replaceIndices)
+		.filter(([index, value]) => index < value)
+		.forEach(([index, value]) => {
+			delete replaceIndices[index];
+			replaceIndices[value] = index;
+		});
+	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
+	const replaces = uniqueSortedNumbers(removes);
+	const indexMap = makeIndexMap$1(graph, key, replaceIndices, replaces);
+	remapKey(graph, key, indexMap);
+	return indexMap;
 };const duplicateVertices = (graph, epsilon) => (
 	getVerticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1)
 );
-const removeDuplicateVertices = (graph, epsilon = EPSILON) => {
+const removeDuplicateVertices = (graph, epsilon = EPSILON, makeAverage = true) => {
 	const replace_indices = [];
 	const remove_indices = [];
 	const clusters = getVerticesClusters(graph, epsilon)
@@ -987,42 +1099,34 @@ const removeDuplicateVertices = (graph, epsilon = EPSILON) => {
 			remove_indices.push(cluster[i]);
 		}
 	});
-	clusters
-		.map(arr => arr.map(i => graph.vertices_coords[i]))
-		.map(arr => average(...arr))
-		.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
+	if (makeAverage) {
+		clusters
+			.map(arr => arr.map(i => graph.vertices_coords[i]))
+			.map(arr => average(...arr))
+			.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
+	}
 	return {
 		map: replaceGeometryIndices(graph, "vertices", replace_indices),
 		remove: remove_indices,
 	};
-};const verticesDuplicate=/*#__PURE__*/Object.freeze({__proto__:null,duplicateVertices,removeDuplicateVertices});const removeGeometryIndices = (graph, key, removeIndices) => {
-	const geometry_array_size = count(graph, key);
-	const removes = uniqueSortedNumbers(removeIndices);
-	const index_map = [];
-	for (let i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
-		while (i === removes[walk]) {
-			index_map[i] = undefined;
+};const verticesDuplicate=/*#__PURE__*/Object.freeze({__proto__:null,duplicateVertices,removeDuplicateVertices});const makeIndexMap = (graph, key, removeIndices) => {
+	const sortedIndices = uniqueSortedNumbers(removeIndices);
+	const arrayLength = count(graph, key);
+	const indexMap = [];
+	for (let i = 0, j = 0, walk = 0; i < arrayLength; i += 1, j += 1) {
+		while (i === sortedIndices[walk]) {
+			indexMap[i] = undefined;
 			i += 1;
 			walk += 1;
 		}
-		if (i < geometry_array_size) { index_map[i] = j; }
+		if (i < arrayLength) { indexMap[i] = j; }
 	}
-	filterKeysWithSuffix(graph, key)
-		.forEach(sKey => graph[sKey]
-			.forEach((_, ii) => graph[sKey][ii]
-				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
-	removes.reverse();
-	filterKeysWithPrefix(graph, key)
-		.forEach((prefix_key) => removes
-			.forEach(index => graph[prefix_key]
-				.splice(index, 1)));
-	filterKeysWithSuffix(graph, key)
-		.forEach(sKey => graph[sKey]
-			.forEach((_, ii) => {
-				graph[sKey][ii] = graph[sKey][ii]
-					.filter(a => a !== undefined);
-			}));
-	return index_map;
+	return indexMap;
+};
+const removeGeometryIndices = (graph, key, removeIndices) => {
+	const indexMap = makeIndexMap(graph, key, removeIndices);
+	remapKey(graph, key, indexMap);
+	return indexMap;
 };const edgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
 	let count = vertices_coords.length;
@@ -1860,101 +1964,7 @@ const removeCircularEdges = (graph, remove_indices) => {
 		map: removeGeometryIndices(graph, "edges", remove_indices),
 		remove: remove_indices,
 	};
-};const edgesCircular=/*#__PURE__*/Object.freeze({__proto__:null,circularEdges,removeCircularEdges});const mergeSimpleNextmaps = (...maps) => {
-	if (maps.length === 0) { return []; }
-	const solution = maps[0].map((_, i) => i);
-	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
-	return solution;
-};
-const mergeNextmaps = (...maps) => {
-	if (maps.length === 0) { return []; }
-	const solution = maps[0].map((_, i) => [i]);
-	maps.forEach(map => {
-		solution.forEach((s, i) => s.forEach((indx, j) => { solution[i][j] = map[indx]; }));
-		solution.forEach((arr, i) => {
-			solution[i] = arr
-				.reduce((a, b) => a.concat(b), [])
-				.filter(a => a !== undefined);
-		});
-	});
-	return solution;
-};
-const mergeSimpleBackmaps = (...maps) => {
-	if (maps.length === 0) { return []; }
-	let solution = maps[0].map((_, i) => i);
-	maps.forEach(map => {
-		const next = map.map(n => solution[n]);
-		solution = next;
-	});
-	return solution;
-};
-const mergeBackmaps = (...maps) => {
-	if (maps.length === 0) { return []; }
-	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
-	maps.forEach(map => {
-		const next = [];
-		map.forEach((el, j) => {
-			if (typeof el === "number") {
-				next[j] = solution[el];
-			} else {
-				next[j] = el.map(n => solution[n]).reduce((a, b) => a.concat(b), []);
-			}
-		});
-		solution = next;
-	});
-	return solution;
-};
-const invertSimpleMap = (map) => {
-	const inv = [];
-	map.forEach((n, i) => { inv[n] = i; });
-	return inv;
-};
-const invertArrayMap = (map) => {
-	const inv = [];
-	const setIndexValue = (index, value) => {
-		if (inv[index] === undefined) { inv[index] = []; }
-		inv[index].push(value);
-	};
-	map.forEach((n, i) => {
-		if (n == null) { return; }
-		if (typeof n === "number") { setIndexValue(n, i); }
-		if (n.constructor === Array) {
-			n.forEach(m => setIndexValue(m, i));
-		}
-	});
-	return inv;
-};
-const invertMap = (map) => {
-	const inv = [];
-	const setIndexValue = (index, value) => {
-		if (inv[index] !== undefined) {
-			if (typeof inv[index] === "number") {
-				inv[index] = [inv[index], value];
-			} else {
-				inv[index].push(value);
-			}
-		} else {
-			inv[index] = value;
-		}
-	};
-	map.forEach((n, i) => {
-		if (n == null) { return; }
-		if (typeof n === "number") { setIndexValue(n, i); }
-		if (n.constructor === Array) {
-			n.forEach(m => setIndexValue(m, i));
-		}
-	});
-	return inv;
-};
-const remapComponent = (graph, component, indexMap = []) => {
-	filterKeysWithSuffix(graph, component)
-		.forEach(key => graph[key]
-			.forEach((_, ii) => graph[key][ii]
-				.forEach((v, jj) => { graph[key][ii][jj] = indexMap[v]; })));
-	const inverted = invertSimpleMap(indexMap);
-	filterKeysWithPrefix(graph, component)
-		.forEach(key => { graph[key] = inverted.map(i => graph[key][i]); });
-};const maps=/*#__PURE__*/Object.freeze({__proto__:null,invertArrayMap,invertMap,invertSimpleMap,mergeBackmaps,mergeNextmaps,mergeSimpleBackmaps,mergeSimpleNextmaps,remapComponent});const clean = (graph, epsilon) => {
+};const edgesCircular=/*#__PURE__*/Object.freeze({__proto__:null,circularEdges,removeCircularEdges});const clean = (graph, epsilon) => {
 	const change_v1 = removeDuplicateVertices(graph, epsilon);
 	const change_e1 = removeCircularEdges(graph);
 	const change_e2 = removeDuplicateEdges(graph);
@@ -2632,7 +2642,12 @@ const sweep = ({
 	const points = [vertices[0], vertex, vertices[1]]
 		.map(v => vertices_coords[v]);
 	return collinearBetween(...points, false, epsilon);
-};const verticesCollinear=/*#__PURE__*/Object.freeze({__proto__:null,isVertexCollinear});const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) => {
+};const verticesCollinear=/*#__PURE__*/Object.freeze({__proto__:null,isVertexCollinear});const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
+	pointsToLine(
+		vertices_coords[edges_vertices[edge][0]],
+		vertices_coords[edges_vertices[edge][1]],
+	));
+const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) => {
 	if (!vertices_coords
 		|| !edges_vertices
 		|| !edges_vertices.length) {
@@ -2706,7 +2721,7 @@ const sweep = ({
 		lines,
 		edges_line,
 	};
-};const edgesLines$1=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesLine});const getLinesIntersections = (lines, epsilon = EPSILON) => {
+};const edgesLines$1=/*#__PURE__*/Object.freeze({__proto__:null,edgeToLine,getEdgesLine});const getLinesIntersections = (lines, epsilon = EPSILON) => {
 	const linesIntersect = lines.map(() => []);
 	for (let i = 0; i < lines.length - 1; i += 1) {
 		for (let j = i + 1; j < lines.length; j += 1) {
@@ -2745,9 +2760,10 @@ const planarize = ({
 	edges_assignment,
 	edges_foldAngle,
 }, epsilon = EPSILON) => {
-	const { lines, edges_line } = getEdgesLine({
-		vertices_coords, edges_vertices,
-	}, epsilon);
+	const {
+		lines,
+		edges_line,
+	} = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
 	const linesSquareLength = lines.map(({ vector }) => magSquared2(vector));
 	const lines_edges = invertArrayMap(edges_line);
 	const edges_scalars = edges_vertices
@@ -2845,7 +2861,7 @@ const planarize = ({
 		removeDuplicateEdges(result, dupEdges);
 	}
 	if (circularEdges(result).length) {
-		console.error("planarize: found circular edges. place 3.");
+		console.error("planarize: found circular edges");
 	}
 	delete result.vertices_edges;
 	return result;
@@ -3610,6 +3626,7 @@ const boundary = ({ vertices_coords, vertices_edges, edges_vertices, edges_assig
 		polygon: vertices_coords ? vertex_walk.map(v => vertices_coords[v]) : [],
 	};
 };
+const boundaries = () => console.error("todo");
 const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
 }) => {
@@ -3687,7 +3704,7 @@ const planarBoundaries = ({
 	return disjointGraphs({
 		vertices_coords, vertices_vertices, edges_vertices,
 	}).map(planarBoundary);
-};const boundary$1=/*#__PURE__*/Object.freeze({__proto__:null,boundary,boundaryVertices,boundingBox,planarBoundaries,planarBoundary});const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
+};const boundary$1=/*#__PURE__*/Object.freeze({__proto__:null,boundaries,boundary,boundaryVertices,boundingBox,planarBoundaries,planarBoundary});const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
 	const hash = {};
 	face_b_vertices.forEach((v) => { hash[v] = true; });
 	const match = face_a_vertices.map(v => !!hash[v]);
@@ -3713,7 +3730,7 @@ const planarBoundaries = ({
 	const unvisited = {};
 	array_array.forEach((_, i) => { unvisited[i] = true; });
 	do {
-		const startIndex = rootIndex !== undefined
+		const startIndex = rootIndex !== undefined && unvisited[rootIndex]
 			? rootIndex
 			: parseInt(Object.keys(unvisited).shift(), 10);
 		rootIndex = undefined;
@@ -6516,10 +6533,7 @@ Graph.prototype.setUnassigned = function (edges = []) {
 Graph.prototype.setCut = function (edges = []) {
 	return setAssignment(this, edges, "C", 0);
 };
-const graphProto = Graph.prototype;const clipLineInBoundingBox = ({ vector, origin }, { min, max, span }) => {
-	return clipLineConvexPolygon()
-};
-const lineLineParameter = (
+const graphProto = Graph.prototype;const lineLineParameter = (
 	lineVector,
 	lineOrigin,
 	polyVector,
@@ -6628,7 +6642,7 @@ const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
 		cp1 = cp2;
 	}
 	return outputList.length === 0 ? undefined : outputList;
-};const clip$1=/*#__PURE__*/Object.freeze({__proto__:null,clipLineConvexPolygon,clipLineInBoundingBox,clipPolygonPolygon});const joinCollinearSegments = (segments, { vector, origin }, epsilon) => {
+};const clip$1=/*#__PURE__*/Object.freeze({__proto__:null,clipLineConvexPolygon,clipPolygonPolygon});const joinCollinearSegments = (segments, { vector, origin }, epsilon) => {
 	if (segments.length < 2) { return segments; }
 	const segmentIsFlipped = segments
 		.map(pts => subtract2(pts[1], pts[0]))
@@ -8612,8 +8626,8 @@ const intersectGraphSegment = (graph, segment) => (
 		segment,
 		includeS,
 	)
-);const intersect$1=/*#__PURE__*/Object.freeze({__proto__:null,intersectGraphLine,intersectGraphRay,intersectGraphSegment});const VEF = Object.keys(singularize);
-const join = (target, source) => {
+);const intersect$1=/*#__PURE__*/Object.freeze({__proto__:null,intersectGraphLine,intersectGraphRay,intersectGraphSegment});const join = (target, source) => {
+	const VEF = Object.keys(singularize);
 	const sourceDimension = getDimensionQuick(source);
 	const targetDimension = getDimensionQuick(target);
 	const sourceKeyArrays = {};
@@ -9450,22 +9464,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	const result = facesSegment
 		.map((seg, face) => addSegmentInsideFace(graph, face, seg, epsilon));
 	return result;
-};const remapKey = (graph, key, indexMap) => {
-	const invertedMap = invertMap(indexMap);
-	filterKeysWithSuffix(graph, key)
-		.forEach(sKey => graph[sKey]
-			.forEach((_, ii) => graph[sKey][ii]
-				.forEach((v, jj) => { graph[sKey][ii][jj] = indexMap[v]; })));
-	filterKeysWithSuffix(graph, key)
-		.forEach(sKey => graph[sKey]
-			.forEach((_, ii) => {
-				graph[sKey][ii] = graph[sKey][ii].filter(a => a !== undefined);
-			}));
-	filterKeysWithPrefix(graph, key).forEach(prefix => {
-		graph[prefix] = invertedMap.map(old => graph[prefix][old]);
-	});
-};
-const normalize = (graph) => {
+};const normalize = (graph) => {
 	const maps = { vertices: [], edges: [], faces: [] };
 	let v = 0;
 	let e = 0;
@@ -10422,36 +10421,44 @@ const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	modelViewMatrix,
 	frontColor,
 	backColor,
+	outlineColor,
 	strokeWidth,
 	opacity,
 }) => ({
 	u_matrix: {
 		func: "uniformMatrix4fv",
-		value: multiplyMatrices4(projectionMatrix, modelViewMatrix),
+		value: multiplyMatrices4(
+			projectionMatrix || identity4x4,
+			modelViewMatrix || identity4x4,
+		),
 	},
 	u_projection: {
 		func: "uniformMatrix4fv",
-		value: projectionMatrix,
+		value: projectionMatrix || identity4x4,
 	},
 	u_modelView: {
 		func: "uniformMatrix4fv",
-		value: modelViewMatrix,
+		value: modelViewMatrix || identity4x4,
 	},
 	u_frontColor: {
 		func: "uniform3fv",
-		value: parseColorToWebGLRgb(frontColor),
+		value: parseColorToWebGLRgb(frontColor || "gray"),
 	},
 	u_backColor: {
 		func: "uniform3fv",
-		value: parseColorToWebGLRgb(backColor),
+		value: parseColorToWebGLRgb(backColor || "white"),
+	},
+	u_outlineColor: {
+		func: "uniform3fv",
+		value: parseColorToWebGLRgb(outlineColor || "black"),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",
-		value: strokeWidth,
+		value: strokeWidth !== undefined ? strokeWidth : 0.05,
 	},
 	u_opacity: {
 		func: "uniform1f",
-		value: opacity,
+		value: opacity !== undefined ? opacity : 1,
 	},
 });const model_300_vert = `#version 300 es
 uniform mat4 u_modelView;
@@ -10506,6 +10513,7 @@ const outlined_model_300_frag = `#version 300 es
 uniform float u_opacity;
 in vec3 front_color;
 in vec3 back_color;
+in vec3 outline_color;
 in vec3 barycentric;
 out vec4 outColor;
 float edgeFactor(vec3 barycenter) {
@@ -10516,7 +10524,13 @@ float edgeFactor(vec3 barycenter) {
 void main () {
 	gl_FragDepth = gl_FragCoord.z;
 	vec3 color = gl_FrontFacing ? front_color : back_color;
-	outColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);
+	// vec4 color4 = gl_FrontFacing
+	// 	? vec4(front_color, u_opacity)
+	// 	: vec4(back_color, u_opacity);
+	// vec4 outline4 = vec4(outline_color, 1);
+	// outColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);
+	outColor = vec4(mix(outline_color, color, edgeFactor(barycentric)), u_opacity);
+	// outColor = mix(outline4, color4, edgeFactor(barycentric));
 }
 `;
 const outlined_model_100_frag = `#version 100
@@ -10525,9 +10539,11 @@ uniform float u_opacity;
 varying vec3 barycentric;
 varying vec3 front_color;
 varying vec3 back_color;
+varying vec3 outline_color;
 void main () {
 	vec3 color = gl_FrontFacing ? front_color : back_color;
-	vec3 boundary = vec3(0.0, 0.0, 0.0)
+	// vec3 boundary = vec3(0.0, 0.0, 0.0);
+	vec3 boundary = outline_color;
 	// gl_FragDepth = 0.5;
 	gl_FragColor = any(lessThan(barycentric, vec3(0.02)))
 		? vec4(boundary, u_opacity)
@@ -10612,10 +10628,12 @@ uniform mat4 u_modelView;
 uniform mat4 u_matrix;
 uniform vec3 u_frontColor;
 uniform vec3 u_backColor;
+uniform vec3 u_outlineColor;
 varying vec3 normal_color;
 varying vec3 barycentric;
 varying vec3 front_color;
 varying vec3 back_color;
+varying vec3 outline_color;
 void main () {
 	gl_Position = u_matrix * vec4(v_position, 1);
 	barycentric = v_barycentric;
@@ -10623,6 +10641,7 @@ void main () {
 	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
 	front_color = u_frontColor * brightness;
 	back_color = u_backColor * brightness;
+	outline_color = u_outlineColor;
 }
 `;
 const outlined_model_300_vert = `#version 300 es
@@ -10630,12 +10649,14 @@ uniform mat4 u_modelView;
 uniform mat4 u_matrix;
 uniform vec3 u_frontColor;
 uniform vec3 u_backColor;
+uniform vec3 u_outlineColor;
 in vec3 v_position;
 in vec3 v_normal;
 in vec3 v_barycentric;
 in float v_rawEdge;
 out vec3 front_color;
 out vec3 back_color;
+out vec3 outline_color;
 out vec3 barycentric;
 // flat out int rawEdge;
 flat out int provokedVertex;
@@ -10648,6 +10669,7 @@ void main () {
 	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
 	front_color = u_frontColor * brightness;
 	back_color = u_backColor * brightness;
+	outline_color = u_outlineColor;
 }
 `;
 const model_300_frag = `#version 300 es
@@ -10839,23 +10861,26 @@ const makeCPFacesElementArrays = (gl, version = 1, graph = {}) => {
 }) => ({
 	u_matrix: {
 		func: "uniformMatrix4fv",
-		value: multiplyMatrices4(projectionMatrix, modelViewMatrix),
+		value: multiplyMatrices4(
+			projectionMatrix || identity4x4,
+			modelViewMatrix || identity4x4,
+		),
 	},
 	u_projection: {
 		func: "uniformMatrix4fv",
-		value: projectionMatrix,
+		value: projectionMatrix || identity4x4,
 	},
 	u_modelView: {
 		func: "uniformMatrix4fv",
-		value: modelViewMatrix,
+		value: modelViewMatrix || identity4x4,
 	},
 	u_cpColor: {
 		func: "uniform3fv",
-		value: parseColorToWebGLRgb(cpColor),
+		value: parseColorToWebGLRgb(cpColor || "white"),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",
-		value: strokeWidth,
+		value: strokeWidth || 0.05,
 	},
 });const cp_300_frag = `#version 300 es
 #ifdef GL_FRAGMENT_PRECISION_HIGH

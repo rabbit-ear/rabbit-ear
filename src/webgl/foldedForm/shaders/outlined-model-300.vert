@@ -4,6 +4,7 @@ uniform mat4 u_modelView;
 uniform mat4 u_matrix;
 uniform vec3 u_frontColor;
 uniform vec3 u_backColor;
+uniform vec3 u_outlineColor;
 
 in vec3 v_position;
 in vec3 v_normal;
@@ -12,6 +13,7 @@ in float v_rawEdge;
 
 out vec3 front_color;
 out vec3 back_color;
+out vec3 outline_color;
 out vec3 barycentric;
 // flat out int rawEdge;
 flat out int provokedVertex;
@@ -25,4 +27,5 @@ void main () {
 	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
 	front_color = u_frontColor * brightness;
 	back_color = u_backColor * brightness;
+	outline_color = u_outlineColor;
 }

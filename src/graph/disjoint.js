@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import { connectedComponents } from "./connectedComponents.js";
 import {
 	makeVerticesVerticesUnsorted,

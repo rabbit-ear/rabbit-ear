@@ -37,21 +37,14 @@ export const boundaryVertices = ({ edges_vertices, edges_assignment = [] }) => (
 	uniqueElements(edges_vertices
 		.filter((_, i) => assignmentIsBoundary[edges_assignment[i]])
 		.flat()));
-// export const boundaryVertices = ({ edges_vertices, edges_assignment }) => {
-// 	// assign vertices to a hash table to make sure they are unique.
-// 	const vertices = {};
-// 	edges_vertices.forEach((v, i) => {
-// 		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
-// 		if (!boundary) { return; }
-// 		vertices[v[0]] = true;
-// 		vertices[v[1]] = true;
-// 	});
-// 	return Object.keys(vertices).map(str => parseInt(str));
-// };
-
+/**
+ * @description return value for "boundary" method.
+ */
 const emptyBoundaryObject = () => ({ vertices: [], edges: [], polygon: [] });
 /**
- * @description Get the boundary of a FOLD graph in terms of both vertices and edges.
+ * @description Use this method when you know there is only one connected
+ * boundary in the graph. If there are more than one, use "boundaries".
+ * Get the boundary of a FOLD graph in terms of both vertices and edges.
  * This works by walking the boundary edges as defined by edges_assignment ("B" or "b").
  * If edges_assignment doesn't exist, or contains errors, this will not work, and you
  * will need the more robust algorithm planarBoundary() which walks the graph, but
@@ -100,7 +93,13 @@ export const boundary = ({ vertices_coords, vertices_edges, edges_vertices, edge
 	};
 };
 /**
- * @description When a graph does not have boundary assignment information,
+ * @todo implementation
+ */
+export const boundaries = () => console.error("todo");
+/**
+ * @description Use this method when you know there is only one connected
+ * boundary in the graph. If there are more than one, use "planarBoundaries".
+ * When a graph does not have boundary assignment information,
  * this method is used to uncover the boundary, so long as the graph is planar.
  * Get the boundary as two arrays of vertices and edges
  * by walking the boundary edges in 2D and uncovering the concave hull.
@@ -187,6 +186,9 @@ export const planarBoundary = ({
 			// walked around the boundary and ended up somewhere in the middle,
 			// which would put us in a never ending cycle, so we need to break
 			// out anyway, but at least warn the user the result is poorly formed.
+			// todo: we can get rid of this message if we modify the structure
+			// of the return object so that it traverses the circular part only,
+			// or, includes a there-and-back traversal of the branch(es).
 			if (next_edge_i !== edge_walk[0]) { console.warn("bad boundary"); }
 			return walk;
 		}

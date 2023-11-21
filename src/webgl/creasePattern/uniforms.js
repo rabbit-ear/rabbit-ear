@@ -1,9 +1,15 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { multiplyMatrices4 } from "../../math/matrix4.js";
+import {
+	identity4x4,
+	multiplyMatrices4,
+} from "../../math/matrix4.js";
 import { parseColorToWebGLRgb } from "../general/colors.js";
-
+/**
+ * @description Uniforms must exist so there are protections to ensure
+ * that at least some value gets passed.
+ */
 const makeUniforms = (gl, {
 	projectionMatrix,
 	modelViewMatrix,
@@ -12,23 +18,26 @@ const makeUniforms = (gl, {
 }) => ({
 	u_matrix: {
 		func: "uniformMatrix4fv",
-		value: multiplyMatrices4(projectionMatrix, modelViewMatrix),
+		value: multiplyMatrices4(
+			projectionMatrix || identity4x4,
+			modelViewMatrix || identity4x4,
+		),
 	},
 	u_projection: {
 		func: "uniformMatrix4fv",
-		value: projectionMatrix,
+		value: projectionMatrix || identity4x4,
 	},
 	u_modelView: {
 		func: "uniformMatrix4fv",
-		value: modelViewMatrix,
+		value: modelViewMatrix || identity4x4,
 	},
 	u_cpColor: {
 		func: "uniform3fv",
-		value: parseColorToWebGLRgb(cpColor),
+		value: parseColorToWebGLRgb(cpColor || "white"),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",
-		value: strokeWidth,
+		value: strokeWidth || 0.05,
 	},
 });
 

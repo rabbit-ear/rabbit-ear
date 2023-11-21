@@ -2,7 +2,8 @@
  * Math (c) Kraft
  */
 /**
- * Quaternions represented as an array of numbers with indices x=0, y=1, z=2, w=3
+ * Quaternions encoded as an array of numbers
+ * with indices 0-3 as x, y, z, w in that order.
  */
 import {
 	dot,

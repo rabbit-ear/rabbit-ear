@@ -5,7 +5,6 @@ import * as foldColors from "../fold/colors.js";
 import * as foldFileFrames from "../fold/frames.js";
 import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
-// import * as axioms from "./axioms.js";
 import * as boundary from "./boundary.js";
 import * as clip from "./clip.js";
 import * as directedGraph from "./directedGraph.js";
@@ -104,7 +103,6 @@ export default {
 	...foldFileFrames,
 	...foldKeyMethods,
 	...foldSpecMethods,
-	// ...axioms,
 	...boundary,
 	...clip,
 	...explodeMethods,

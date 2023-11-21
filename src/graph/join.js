@@ -20,7 +20,6 @@ import {
 
 // };
 
-const VEF = Object.keys(singularize);
 /**
  *
  */
@@ -130,6 +129,7 @@ const VEF = Object.keys(singularize);
  * in the final union graph.
  */
 export const join = (target, source) => {
+	const VEF = Object.keys(singularize);
 	// if vertices are 2D and 3D (mismatch), we have to resize
 	// all vertices up to 3D.
 	const sourceDimension = getDimensionQuick(source);

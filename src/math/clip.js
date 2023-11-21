@@ -27,9 +27,9 @@ import { overlapConvexPolygonPoint } from "./overlap.js";
  * @param {BoundingBox} box an AABB bounding box
  * @returns {number[] | undefined} the result.
  */
-export const clipLineInBoundingBox = ({ vector, origin }, { min, max, span }) => {
-	return clipLineConvexPolygon()
-};
+// export const clipLineInBoundingBox = ({ vector, origin }, { min, max, span }) => {
+// 	return clipLineConvexPolygon()
+// };
 
 const lineLineParameter = (
 	lineVector,

@@ -30,7 +30,7 @@ export const duplicateVertices = (graph, epsilon) => (
  * @returns {object} summary of changes
  * @linkcode Origami ./src/graph/verticesViolations.js 129
  */
-export const removeDuplicateVertices = (graph, epsilon = EPSILON) => {
+export const removeDuplicateVertices = (graph, epsilon = EPSILON, makeAverage = true) => {
 	// replaces array will be [index:value] index is the element to delete,
 	// value is the index this element will be replaced by.
 	const replace_indices = [];
@@ -53,10 +53,13 @@ export const removeDuplicateVertices = (graph, epsilon = EPSILON) => {
 	});
 	// for each cluster, average all vertices-to-merge to get their new point.
 	// set the vertex at the index[0] (the index to keep) to the new point.
-	clusters
-		.map(arr => arr.map(i => graph.vertices_coords[i]))
-		.map(arr => average(...arr))
-		.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
+	// otherwise, this will use the value of the lowest index vertex.
+	if (makeAverage) {
+		clusters
+			.map(arr => arr.map(i => graph.vertices_coords[i]))
+			.map(arr => average(...arr))
+			.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
+	}
 	return {
 		map: replace(graph, "vertices", replace_indices),
 		remove: remove_indices,

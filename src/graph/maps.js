@@ -90,6 +90,11 @@ export const invertSimpleMap = (map) => {
 	map.forEach((n, i) => { inv[n] = i; });
 	return inv;
 };
+export const invertSimpleMapNoReplace = (map) => {
+	const inv = [];
+	map.forEach((n, i) => { inv[n] = inv[n] === undefined ? i : inv[n]; });
+	return inv;
+};
 /**
  * @description Invert an array of integers so that indices become values and
  * values become indices. The values of the result will be an array.
@@ -177,4 +182,28 @@ export const remapComponent = (graph, component, indexMap = []) => {
 	const inverted = invertSimpleMap(indexMap);
 	filterKeysWithPrefix(graph, component)
 		.forEach(key => { graph[key] = inverted.map(i => graph[key][i]); });
+};
+/**
+ *
+ */
+export const remapKey = (graph, key, indexMap) => {
+	const invertedMap = invertSimpleMapNoReplace(indexMap);
+	// update every component that points to vertices_coords
+	// these arrays do not change their size, only their contents
+	filterKeysWithSuffix(graph, key)
+		.forEach(sKey => graph[sKey]
+			.forEach((_, ii) => graph[sKey][ii]
+				.forEach((v, jj) => { graph[sKey][ii][jj] = indexMap[v]; })));
+	// if a key was not included in indexMap for whatever reason,
+	// it will be registered as "undefined". remove these.
+	// the upcoming "prefix" step will automatically do this as well.
+	filterKeysWithSuffix(graph, key)
+		.forEach(sKey => graph[sKey]
+			.forEach((_, ii) => {
+				graph[sKey][ii] = graph[sKey][ii].filter(a => a !== undefined);
+			}));
+	// set the top-level arrays
+	filterKeysWithPrefix(graph, key).forEach(prefix => {
+		graph[prefix] = invertedMap.map(old => graph[prefix][old]);
+	});
 };

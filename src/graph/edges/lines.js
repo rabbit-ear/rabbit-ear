@@ -22,6 +22,15 @@ import {
 import { radialSortPointIndices3 } from "../../general/sort.js";
 import { makeEdgesCoords } from "../make.js";
 import { invertMap } from "../maps.js";
+import { pointsToLine } from "../../math/convert.js";
+/**
+ *
+ */
+export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
+	pointsToLine(
+		vertices_coords[edges_vertices[edge][0]],
+		vertices_coords[edges_vertices[edge][1]],
+	));
 /**
  * @description Most origami models have many edges which lie along
  * the same line. This method finds all lines which cover all edges,

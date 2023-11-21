@@ -53,6 +53,7 @@ export const outlined_model_300_frag = `#version 300 es
 uniform float u_opacity;
 in vec3 front_color;
 in vec3 back_color;
+in vec3 outline_color;
 in vec3 barycentric;
 out vec4 outColor;
 float edgeFactor(vec3 barycenter) {
@@ -63,7 +64,13 @@ float edgeFactor(vec3 barycenter) {
 void main () {
 	gl_FragDepth = gl_FragCoord.z;
 	vec3 color = gl_FrontFacing ? front_color : back_color;
-	outColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);
+	// vec4 color4 = gl_FrontFacing
+	// 	? vec4(front_color, u_opacity)
+	// 	: vec4(back_color, u_opacity);
+	// vec4 outline4 = vec4(outline_color, 1);
+	// outColor = vec4(mix(vec3(0.0), color, edgeFactor(barycentric)), u_opacity);
+	outColor = vec4(mix(outline_color, color, edgeFactor(barycentric)), u_opacity);
+	// outColor = mix(outline4, color4, edgeFactor(barycentric));
 }
 `;
 
@@ -73,9 +80,11 @@ uniform float u_opacity;
 varying vec3 barycentric;
 varying vec3 front_color;
 varying vec3 back_color;
+varying vec3 outline_color;
 void main () {
 	vec3 color = gl_FrontFacing ? front_color : back_color;
-	vec3 boundary = vec3(0.0, 0.0, 0.0)
+	// vec3 boundary = vec3(0.0, 0.0, 0.0);
+	vec3 boundary = outline_color;
 	// gl_FragDepth = 0.5;
 	gl_FragColor = any(lessThan(barycentric, vec3(0.02)))
 		? vec4(boundary, u_opacity)
@@ -165,10 +174,12 @@ uniform mat4 u_modelView;
 uniform mat4 u_matrix;
 uniform vec3 u_frontColor;
 uniform vec3 u_backColor;
+uniform vec3 u_outlineColor;
 varying vec3 normal_color;
 varying vec3 barycentric;
 varying vec3 front_color;
 varying vec3 back_color;
+varying vec3 outline_color;
 void main () {
 	gl_Position = u_matrix * vec4(v_position, 1);
 	barycentric = v_barycentric;
@@ -176,6 +187,7 @@ void main () {
 	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
 	front_color = u_frontColor * brightness;
 	back_color = u_backColor * brightness;
+	outline_color = u_outlineColor;
 }
 `;
 
@@ -184,12 +196,14 @@ uniform mat4 u_modelView;
 uniform mat4 u_matrix;
 uniform vec3 u_frontColor;
 uniform vec3 u_backColor;
+uniform vec3 u_outlineColor;
 in vec3 v_position;
 in vec3 v_normal;
 in vec3 v_barycentric;
 in float v_rawEdge;
 out vec3 front_color;
 out vec3 back_color;
+out vec3 outline_color;
 out vec3 barycentric;
 // flat out int rawEdge;
 flat out int provokedVertex;
@@ -202,6 +216,7 @@ void main () {
 	float brightness = 0.5 + light.x * 0.15 + light.z * 0.35;
 	front_color = u_frontColor * brightness;
 	back_color = u_backColor * brightness;
+	outline_color = u_outlineColor;
 }
 `;
 

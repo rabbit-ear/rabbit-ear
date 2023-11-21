@@ -36,7 +36,7 @@ export const connectedComponents = (array_array) => {
  * vertices_vertices, edges_edges, faces_faces, where the values in the
  * inner arrays relate to the indices of the outer array, create a list of
  * all pairwise combinations of connected indices. All pairs are sorted
- * so that for [i, j], i <= j. This allows circular references (i === j).
+ * so that for [i, j], i <= j. This allows for circular references (i === j).
  * @param {number[][]} array_array an array of arrays of integers
  * @returns {number[][]} array of two-dimensional array pairs of indices.
  * @linkcode Origami ./src/general/arrays.js 128
