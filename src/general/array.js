@@ -19,7 +19,7 @@ export const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
  * @param {...any[]} ...arrays arrays containing any type.
  * @returns {any[]} one array
  */
-export const zipperArrays = (...arrays) => {
+export const mergeArraysWithHoles = (...arrays) => {
 	const flattened = [];
 	arrays.forEach(array => array.forEach((value, i) => {
 		flattened[i] = value;
@@ -43,7 +43,8 @@ export const splitCircularArray = (array, indices) => {
 	];
 };
 /**
- * @description Given a list of any type, remove all duplicates.
+ * @description Given a list of any type, return a copy of the array
+ * with all duplicates removed.
  * @param {number[]} array an array of integers
  * @returns {number[]} set of unique integers
  * @example [1,2,3,2,1] will result in [1,2,3]
@@ -51,8 +52,9 @@ export const splitCircularArray = (array, indices) => {
  */
 export const uniqueElements = (array) => Array.from(new Set(array));
 /**
- * @description Given an array of any type, return the same array but filter
- * out any items which only appear once. The comparison uses conversion-to-string,
+ * @description Given an array of any type, return a copy of
+ * the same array but filter out any items which only appear once.
+ * The comparison uses conversion-to-string,
  * then matching to compare, so this works for primitives
  * (bool, number, string), not objects or arrays.
  * @param {any[]} array an array of any type.
@@ -100,6 +102,37 @@ export const epsilonUniqueSortedNumbers = (array, epsilon = EPSILON) => {
 		keep[i] = !epsilonEqual(numbers[i], numbers[i - 1], epsilon);
 	}
 	return numbers.filter((_, i) => keep[i]);
+};
+/**
+ * @description Return a modified copy of set "a" that filters
+ * out any number that exists in set "b". This method assumes that
+ * both input arrays are sorted, so this method will run in O(n) time.
+ * Numbers are compared within an epsilon range of each other.
+ * If arrays are not sorted, sort them before using this method.
+ * @param {number[]} a an array of numbers, in sorted order
+ * @param {number[]} b an array of numbers, in sorted order
+ * @returns {number[]} a copy of "a" with no values found in "b".
+ */
+export const setDifferenceSortedIntegers = (a, b) => {
+	const result = [];
+	let ai = 0;
+	let bi = 0;
+	while (ai < a.length && bi < b.length) {
+		if (a[ai] === b[bi]) {
+			ai += 1;
+			continue;
+		}
+		if (a[ai] > b[bi]) {
+			bi += 1;
+			continue;
+		}
+		if (b[bi] > a[ai]) {
+			result.push(a[ai]);
+			ai += 1;
+			continue;
+		}
+	}
+	return result;
 };
 /**
  * @description Return a modified copy of set "a" that filters
@@ -195,7 +228,13 @@ export const arrayMinimum = (array, conversion) => {
 	}
 	return index;
 };
-
+/**
+ * @description Given an array, find the index of the minimum value
+ * when values are compared using the "<" operator.
+ * @param {any[]} array an array of any type which can be compared
+ * using the "<" operator, generally this is numbers, or characters.
+ * @returns {number} the index of the minimum index.
+ */
 export const arrayMinIndex = (array) => {
 	let index = 0;
 	for (let i = 1; i < array.length; i += 1) {
@@ -203,6 +242,13 @@ export const arrayMinIndex = (array) => {
 	}
 	return index;
 };
+/**
+ * @description Given an array, find the index of the maximum value
+ * when values are compared using the ">" operator.
+ * @param {any[]} array an array of any type which can be compared
+ * using the ">" operator, generally this is numbers, or characters.
+ * @returns {number} the index of the maximum index.
+ */
 export const arrayMaxIndex = (array) => {
 	let index = 0;
 	for (let i = 1; i < array.length; i += 1) {

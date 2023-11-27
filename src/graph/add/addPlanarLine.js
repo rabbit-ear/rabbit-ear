@@ -15,6 +15,7 @@ import { getEdgesLineIntersection } from "../intersect/edges.js";
 const addPlanarLine = (graph, { vector, origin }, epsilon = EPSILON) => {
 	// console.log("addPlanarLine", vector, origin, epsilon);
 	const points = getEdgesLineIntersection(graph, { vector, origin }, epsilon)
+		.map(el => el.point)
 		.filter(Boolean);
 	// console.log("points", points);
 	const dots = points

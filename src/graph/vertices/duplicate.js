@@ -27,6 +27,10 @@ export const duplicateVertices = (graph, epsilon) => (
  * vertices are all of the same dimension.
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
+ * @param {boolean} [makeAverage=true] an optional request, should the
+ * merged vertex be a geometric average of all vertices which went into it?
+ * - if "true", average will be calculated
+ * - if "false", the smallest vertex index in the cluster is used
  * @returns {object} summary of changes
  * @linkcode Origami ./src/graph/verticesViolations.js 129
  */

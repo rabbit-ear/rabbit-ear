@@ -20,6 +20,7 @@ import * as normals from "./normals.js";
 import * as orders from "./orders.js";
 import * as pleat from "./pleat.js";
 import * as span from "./span.js";
+import * as split from "./split.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
 import * as symmetry from "./symmetry.js";
@@ -116,6 +117,7 @@ export default {
 	...orders,
 	...pleat,
 	...span,
+	...split,
 	...subgraphMethods,
 	...sweep,
 	...symmetry,

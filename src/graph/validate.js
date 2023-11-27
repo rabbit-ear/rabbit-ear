@@ -2,6 +2,13 @@
  * Rabbit Ear (c) Kraft
  */
 import {
+	filterKeysWithPrefix,
+	filterKeysWithSuffix,
+} from "../fold/spec.js";
+import {
+	setDifferenceSortedIntegers,
+} from "../general/array.js";
+import {
 	duplicateEdges,
 } from "./edges/duplicate.js";
 import {
@@ -11,6 +18,54 @@ import { duplicateVertices } from "./vertices/duplicate.js";
 import { isolatedVertices } from "./vertices/isolated.js";
 import count from "./count.js";
 import countImplied from "./countImplied.js";
+/**
+ *
+ */
+export const validateGraph = (graph) => {
+	const failures = [];
+	const VEF = ["vertices", "edges", "faces"];
+	const prefixes = {};
+	const suffixes = {};
+	VEF.forEach(vef => { prefixes[vef] = filterKeysWithPrefix(graph, vef); });
+	VEF.forEach(vef => { suffixes[vef] = filterKeysWithSuffix(graph, vef); });
+	// test 1: for every suffix, check that a prefix exists.
+	VEF.filter(vef => suffixes[vef].length).forEach(vef => {
+
+	});
+	// test 2: for every prefix (vertices_), get a list of the indices
+	// and compare prefixes among themselves to ensure that their vertices match.
+	const keyIndices = {};
+	VEF.forEach(vef => prefixes[vef].forEach(key => {
+		keyIndices[key] = graph[key].map((_, i) => i);
+	}));
+	VEF.filter(vef => prefixes[vef].length).forEach(vef => {
+		const key1 = prefixes[vef][0];
+		for (let k = 1; k < prefixes[vef].length; k += 1) {
+			const key2 = prefixes[vef][k];
+			const diff = setDifferenceSortedIntegers(keyIndices[key1], keyIndices[key2]);
+			if (diff.length) {
+				failures.push(`mismatch ${key1} and ${key2}: ${diff.join(", ")}`);
+			}
+		}
+	});
+	// check the suffixes references to the prefixes to make sure they exist.
+	// VEF
+	// 	.filter(vef => prefixes[vef].length)
+	// 	.forEach(vef => suffixes[vef].forEach(suffix => {
+	// 	const indices = keyIndices[prefixes[vef][0]];
+	// 	graph[suffix].forEach(arr => );
+	// 	const key1 = prefixes[vef][0];
+	// 	for (let k = 1; k < prefixes[vef].length; k += 1) {
+	// 		const key2 = prefixes[vef][k];
+	// 		const diff = setDifferenceSortedIntegers(indices[key1], indices[key2]);
+	// 		if (diff.length) {
+	// 			failures.push(`mismatch ${key1} and ${key2}: ${diff.join(", ")}`);
+	// 		}
+	// 	}
+	// }));
+	console.log("indices", indices);
+	return failures;
+};
 
 // import getVerticesEdgesOverlap from "./vertices_edges_overlap";
 

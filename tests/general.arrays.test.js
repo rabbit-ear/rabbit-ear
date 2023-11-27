@@ -26,7 +26,7 @@ test("flatSort", () => {
 	const b = [undefined, undefined, 3, undefined, 5, undefined, undefined, 8];
 	a.forEach((v, i, arr) => { if (v === undefined) delete arr[i]; });
 	b.forEach((v, i, arr) => { if (v === undefined) delete arr[i]; });
-	const result = ear.general.zipperArrays(a, b);
+	const result = ear.general.mergeArraysWithHoles(a, b);
 	const expected = JSON.stringify([null, "b", 3, null, 5, "f", "g", 8, "i"]);
 	expect(JSON.stringify(result)).toBe(expected);
 });

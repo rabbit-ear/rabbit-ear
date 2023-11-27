@@ -37,7 +37,7 @@ export const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon 
 	// -1: left, +1: right (todo check these), 0: both, 2: collinear (neither side)
 	return edges_vertices.map((edge_vertices, e) => {
 		if (edgesCollinear[e] === true) { return 2; }
-		if (edgesIntersection[e] !== undefined) { return 0; }
+		if (edgesIntersection[e].point !== undefined) { return 0; }
 		return edgeSide(edge_vertices);
 	});
 };

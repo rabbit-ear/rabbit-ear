@@ -68,52 +68,5 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	remapKey(graph, key, indexMap);
 	return indexMap;
 };
-// const replaceGeometryIndices = (graph, key, replaceIndices) => {
-// 	const geometry_array_size = count(graph, key);
-// 	// make sure replace indices are well-formed. values cannot be larger than keys.
-// 	// if this is the case, flip the index/value, assuming the two geometry items
-// 	// are interchangeable and it doesn't matter which one we remove, but warn
-// 	// the user that this took place.
-// 	let didModify = false;
-// 	Object.entries(replaceIndices)
-// 		.filter(([index, value]) => index < value)
-// 		.forEach(([index, value]) => {
-// 			didModify = true;
-// 			delete replaceIndices[index];
-// 			replaceIndices[value] = index;
-// 		});
-// 	if (didModify) {
-// 		console.warn(Messages.replaceModifyParam);
-// 	}
-// 	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
-// 	const replaces = uniqueSortedNumbers(removes);
-// 	const index_map = [];
-// 	for (let i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
-// 		while (i === replaces[walk]) {
-// 			// this prevents arrays with holes
-// 			index_map[i] = index_map[replaceIndices[replaces[walk]]];
-// 			if (index_map[i] === undefined) {
-// 				throw new Error(Messages.replaceUndefined);
-// 			}
-// 			i += 1;
-// 			walk += 1;
-// 		}
-// 		if (i < geometry_array_size) { index_map[i] = j; }
-// 	}
-// 	// update every component that points to vertices_coords
-// 	// these arrays do not change their size, only their contents
-// 	filterKeysWithSuffix(graph, key)
-// 		.forEach(sKey => graph[sKey]
-// 			.forEach((_, ii) => graph[sKey][ii]
-// 				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
-// 	// update every array with a 1:1 relationship to vertices_ arrays
-// 	// these arrays do change their size, their contents are untouched
-// 	replaces.reverse();
-// 	filterKeysWithPrefix(graph, key)
-// 		.forEach((prefix_key) => replaces
-// 			.forEach(index => graph[prefix_key]
-// 				.splice(index, 1)));
-// 	return index_map;
-// };
 
 export default replaceGeometryIndices;

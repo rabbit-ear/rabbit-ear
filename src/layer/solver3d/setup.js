@@ -13,7 +13,7 @@ import {
 	makeFacesPolygon,
 } from "../../graph/make.js";
 import {
-	zipperArrays,
+	mergeArraysWithHoles,
 } from "../../general/array.js";
 import { 	connectedComponentsPairs } from "../../graph/connectedComponents.js";
 import { coplanarOverlappingFacesGroups } from "../../graph/faces/coplanar.js";
@@ -187,7 +187,7 @@ export const setup = ({
 	// faces_polygon is a flat array of polygons in 2D, where every face
 	// is re-oriented into 2D via each set's transformation.
 	// additionally, flip windings if necessary, all are counter-clockwise.
-	const faces_polygon = zipperArrays(...sets_graphs
+	const faces_polygon = mergeArraysWithHoles(...sets_graphs
 		.map(copy => makeFacesPolygon(copy, epsilon)));
 	faces_winding
 		.map((upright, i) => (upright ? undefined : i))
@@ -198,7 +198,7 @@ export const setup = ({
 	// faces-faces overlap will be a single flat array.
 	// each face is only a part of one planar-group anyway.
 	// as opposed to edges-faces overlap which is computed for each planar-group.
-	const facesFacesOverlap = zipperArrays(...sets_graphs
+	const facesFacesOverlap = mergeArraysWithHoles(...sets_graphs
 		.map(graph => getFacesFacesOverlap(graph, epsilon)));
 	// console.timeEnd("setup.js getFacesFacesOverlap()");
 	// simple faces center by averaging all the face's vertices

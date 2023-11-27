@@ -3,22 +3,11 @@
  */
 import { EPSILON } from "../../math/constant.js";
 import {
-	include,
-	includeL,
-	includeS,
-	exclude,
-} from "../../math/compare.js";
-import {
-	magnitude2,
-	normalize2,
-	cross2,
 	add2,
-	subtract2,
 	scale2,
 } from "../../math/vector.js";
-import { overlapConvexPolygonPoint } from "../../math/overlap.js";
+import { getEdgesLineIntersection } from "../intersect/edges.js";
 import { clusterSortedGeneric } from "../../general/cluster.js";
-import { facesContainingPoint } from "../nearest.js";
 import {
 	makeEdgesVector,
 	makeFacesEdgesFromVertices,
@@ -26,92 +15,7 @@ import {
 import { makeVerticesCoordsFlatFolded } from "../vertices/folded.js";
 import { makeFacesWinding } from "../faces/winding.js";
 import { invertAssignment } from "../../fold/spec.js";
-/**
- *
- */
-export const intersectParameterLineLine = (
-	a,
-	b,
-	aDomain = includeL,
-	bDomain = includeL,
-	epsilon = EPSILON,
-) => {
-	// a normalized determinant gives consistent values across all epsilon ranges
-	const det_norm = cross2(normalize2(a.vector), normalize2(b.vector));
-	// lines are parallel
-	if (Math.abs(det_norm) < epsilon) { return undefined; }
-	const determinant0 = cross2(a.vector, b.vector);
-	const determinant1 = -determinant0;
-	const a2b = [b.origin[0] - a.origin[0], b.origin[1] - a.origin[1]];
-	const b2a = [-a2b[0], -a2b[1]];
-	const t0 = cross2(a2b, b.vector) / determinant0;
-	const t1 = cross2(b2a, a.vector) / determinant1;
-	if (aDomain(t0, epsilon / magnitude2(a.vector))
-		&& bDomain(t1, epsilon / magnitude2(b.vector))) {
-		return {
-			point: add2(a.origin, scale2(a.vector, t0)),
-			a: t0,
-			b: t1,
-		};
-	}
-	return undefined;
-};
-/**
- *
- */
-const getContainingFace = ({ vertices_coords, faces_vertices }, point, vector) => {
-	const facesInclusive = facesContainingPoint(
-		{ vertices_coords, faces_vertices },
-		point,
-		include,
-	);
-	switch (facesInclusive.length) {
-	case 0: return undefined;
-	case 1: return facesInclusive[0];
-	default: break; // continue search by nudging point
-	}
-	const nudgePoint = add2(point, scale2(vector, 1e-2));
-	const polygons = facesInclusive
-		.map(face => faces_vertices[face]
-			.map(v => vertices_coords[v]));
-	const facesExclusive = facesInclusive
-		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, exclude));
-	switch (facesExclusive.length) {
-	// backtrack and try inclusive using nudge point and facesInclusive
-	case 0: return facesInclusive
-		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, include))
-		.shift();
-	case 1: return facesExclusive[0];
-		// all faces lie on the point so it shouldn't matter
-	default: return facesExclusive[0];
-	}
-};
-/**
- * @description Find all intersections between a segment and all edges
- * of a 2D graph. The method is hard-coded to be inclusive, include both
- * the endpoints of the segment, and the endpoints of each edge.
- * @param {object} a FOLD graph
- * @param {number[]} point1, the first point of the segment
- * @param {number[]} point2, the second point of the segment
- * @returns {number[]} array with holes where the
- * index is the edge number and the value is the intersection point
- * @linkcode Origami ./src/graph/intersect.js 73
- */
-const getEdgesLineIntersection = ({
-	vertices_coords, edges_vertices,
-}, { vector, origin }, epsilon = EPSILON, segmentFunc = includeS) => edges_vertices
-	.map(vertices => {
-		const edgeCoords = vertices.map(v => vertices_coords[v]);
-		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
-		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
-		return intersectParameterLineLine(
-			edgeLine,
-			{ vector, origin },
-			segmentFunc,
-			includeL,
-			epsilon,
-		);
-	});
+import { getFaceContainingPoint } from "../faces/facePoint.js";
 /**
  *
  */
@@ -122,7 +26,7 @@ const repeatFoldLine = ({
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
-	const startFace = getContainingFace(
+	const startFace = getFaceContainingPoint(
 		{ vertices_coords, faces_vertices },
 		origin,
 		vector,
@@ -152,7 +56,7 @@ const repeatFoldLine = ({
 		{ vertices_coords: vertices_coordsFolded, edges_vertices },
 		{ vector, origin },
 		epsilon,
-	).map((el, edge) => (el === undefined ? undefined : { ...el, edge }));
+	).map((el, edge) => (el.point === undefined ? undefined : { ...el, edge }));
 	// edge line data for the crease pattern state, needed to remap the edge
 	// intersections, which were calculated in the folded state, into points
 	// in the crease pattern state.

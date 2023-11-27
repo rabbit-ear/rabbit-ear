@@ -54,39 +54,5 @@ const removeGeometryIndices = (graph, key, removeIndices) => {
 	remapKey(graph, key, indexMap);
 	return indexMap;
 };
-// const removeGeometryIndices = (graph, key, removeIndices) => {
-// 	const geometry_array_size = count(graph, key);
-// 	const removes = uniqueSortedNumbers(removeIndices);
-// 	const index_map = [];
-// 	for (let i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
-// 		while (i === removes[walk]) {
-// 			// this prevents arrays with holes
-// 			index_map[i] = undefined;
-// 			i += 1;
-// 			walk += 1;
-// 		}
-// 		if (i < geometry_array_size) { index_map[i] = j; }
-// 	}
-// 	// update every component that points to vertices_coords
-// 	// these arrays do not change their size, only their contents
-// 	filterKeysWithSuffix(graph, key)
-// 		.forEach(sKey => graph[sKey]
-// 			.forEach((_, ii) => graph[sKey][ii]
-// 				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
-// 	// update every array with a 1:1 relationship to vertices_ arrays
-// 	// these arrays do change their size, their contents are untouched
-// 	removes.reverse();
-// 	filterKeysWithPrefix(graph, key)
-// 		.forEach((prefix_key) => removes
-// 			.forEach(index => graph[prefix_key]
-// 				.splice(index, 1)));
-// 	// filter any undefined from inside the inner arrays
-// 	filterKeysWithSuffix(graph, key)
-// 		.forEach(sKey => graph[sKey]
-// 			.forEach((_, ii) => {
-// 				graph[sKey][ii] = graph[sKey][ii]
-// 					.filter(a => a !== undefined);
-// 			}));
-// 	return index_map;
-// };
+
 export default removeGeometryIndices;

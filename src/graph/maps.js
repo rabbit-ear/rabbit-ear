@@ -90,6 +90,14 @@ export const invertSimpleMap = (map) => {
 	map.forEach((n, i) => { inv[n] = i; });
 	return inv;
 };
+/**
+ * @description Invert an array of integers so that indices become values
+ * and values become indices. In the case of duplicate indices
+ * (duplicate input values), the duplicates will be skipped.
+ * @param {number[]} map an array of integers
+ * @returns {number[]} the inverted map
+ * @linkcode Origami ./src/graph/maps.js 119
+ */
 export const invertSimpleMapNoReplace = (map) => {
 	const inv = [];
 	map.forEach((n, i) => { inv[n] = inv[n] === undefined ? i : inv[n]; });
