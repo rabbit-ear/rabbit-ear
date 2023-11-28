@@ -18,7 +18,15 @@ import { intersectLineLine } from "../math/intersect.js";
 import { makeFacesEdgesFromVertices } from "./make.js";
 
 /**
- *
+ * @description Method for performing line/ray/segment intersection with
+ * a FOLD graph and returning intersection information with just its vertices.
+ * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {VecLine} line a line/ray/segment in vector origin form
+ * @param {function} lineFunc the function which characterizes "line"
+ * parameter into a line, ray, or segment.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[]} an array matching the length of vertices,
+ * where each entry is a boolean, true if the line overlaps the vertex.
  */
 export const intersectVerticesLineFunc = (
 	{ vertices_coords },
@@ -38,7 +46,19 @@ export const intersectVerticesLineFunc = (
 };
 
 /**
- *
+ * @description Method for performing line/ray/segment intersection with
+ * a FOLD graph and returning intersection information with edges and vertices.
+ * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {VecLine} line a line/ray/segment in vector origin form
+ * @param {function} lineFunc the function which characterizes "line"
+ * parameter into a line, ray, or segment.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a summary of intersections with edges, and vertices
+ * - "edges" contains "collinear" and "intersected" where "collinear" is a list
+ *   of booleans, and "intersected" is a map between an existing edge
+ *   index (key) to an intersection result with "a", "b" and "point" as the value.
+ * - "vertices" contains a list of booleans, true if the vertex
+ *   is overlapped by th eline.
  */
 export const intersectEdgesLineFunc = (
 	{ vertices_coords, edges_vertices },
@@ -47,7 +67,7 @@ export const intersectEdgesLineFunc = (
 	epsilon = EPSILON,
 ) => {
 	if (!vertices_coords || !edges_vertices) {
-		return { vertices: [], edges: [] };
+		return { vertices: [], edges: { collinear: [], intersected: [] } };
 	}
 
 	// for every vertex, does that vertex lie along the line.
@@ -81,7 +101,6 @@ export const intersectEdgesLineFunc = (
 		.filter(i => !intersected[i].point)
 		.forEach(i => delete intersected[i]);
 
-	// if a face has an overlapped edge, don't consider it as overlapped.
 	const collinear = overlapVertexCount.map(count => count === 2);
 
 	return {
@@ -94,14 +113,22 @@ export const intersectEdgesLineFunc = (
 };
 
 /**
- * @description Internal function for performing line/ray/segment
- * intersection with a graph.
+ * @description Method for performing line/ray/segment intersection with
+ * a FOLD graph and returning intersection information with faces,
+ * edges, and vertices.
  * @param {FOLD} graph a fold graph in creasePattern or foldedForm
  * @param {VecLine} line a line/ray/segment in vector origin form
- * @param {number[][]} in the case of a ray or segment, place in here
- * the endpoint(s), and they will be included in the result.
  * @param {function} lineFunc the function which characterizes "line"
  * parameter into a line, ray, or segment.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a summary of intersections with faces, edges, and vertices
+ * - "faces" contains keys: "edges", "vertices" where each contains existing
+ *   component indices which are overlapped by the line.
+ * - "edges" contains "collinear" and "intersected" where collinear is simply
+ *   a list of edge indices, and intersected is a map between an existing edge
+ *   index (key) to an intersection result with "a", "b" and "point" as the value.
+ * - "vertices" contains a list of existing vertex indices which
+ *   are overlapped by the line.
  */
 export const intersectGraphLineFunc = (
 	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
@@ -109,10 +136,7 @@ export const intersectGraphLineFunc = (
 	lineFunc = includeL,
 	epsilon = EPSILON,
 ) => {
-	if (!faces_vertices) { return { vertices: [], edges: [] }; }
-	if (!faces_edges) {
-		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	}
+	// calculate intersections with vertices and edges
 	const {
 		vertices,
 		edges: {
@@ -125,6 +149,18 @@ export const intersectGraphLineFunc = (
 		lineFunc,
 		epsilon,
 	);
+	// if faces don't exist, we can still return intersection information
+	// regarding the vertices and edges.
+	if (!faces_vertices) {
+		return {
+			vertices,
+			edges: { collinear, intersected },
+			faces: { edges: [], vertices: [] },
+		};
+	}
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
 
 	// if a face has one or more crossed edges/vertices, we can place
 	// a segment between the two intersection events.
@@ -173,6 +209,15 @@ export const intersectGraphLineFunc = (
  * @description Intersect a line with a graph.
  * @param {FOLD} graph a fold graph, creasePattern or foldedForm
  * @param {VecLine} line a line in "vector" "origin" form
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a summary of intersections with faces, edges, and vertices
+ * - "faces" contains keys: "edges", "vertices" where each contains existing
+ *   component indices which are overlapped by the line.
+ * - "edges" contains "collinear" and "intersected" where collinear is simply
+ *   a list of edge indices, and intersected is a map between an existing edge
+ *   index (key) to an intersection result with "a", "b" and "point" as the value.
+ * - "vertices" contains a list of existing vertex indices which
+ *   are overlapped by the line.
  */
 export const intersectGraphLine = (graph, line, epsilon = EPSILON) => (
 	intersectGraphLineFunc(graph, line, includeL, epsilon)
@@ -182,6 +227,15 @@ export const intersectGraphLine = (graph, line, epsilon = EPSILON) => (
  * @description Intersect a ray with a graph.
  * @param {FOLD} graph a fold graph, creasePattern or foldedForm
  * @param {VecLine} ray a ray in "vector" "origin" form
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a summary of intersections with faces, edges, and vertices
+ * - "faces" contains keys: "edges", "vertices" where each contains existing
+ *   component indices which are overlapped by the line.
+ * - "edges" contains "collinear" and "intersected" where collinear is simply
+ *   a list of edge indices, and intersected is a map between an existing edge
+ *   index (key) to an intersection result with "a", "b" and "point" as the value.
+ * - "vertices" contains a list of existing vertex indices which
+ *   are overlapped by the line.
  */
 export const intersectGraphRay = (graph, ray, epsilon = EPSILON) => (
 	intersectGraphLineFunc(graph, ray, includeR, epsilon)
@@ -191,6 +245,15 @@ export const intersectGraphRay = (graph, ray, epsilon = EPSILON) => (
  * @description Intersect a segment with a graph.
  * @param {FOLD} graph a fold graph, creasePattern or foldedForm
  * @param {number[][]} segment a pair of two points forming a segment
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a summary of intersections with faces, edges, and vertices
+ * - "faces" contains keys: "edges", "vertices" where each contains existing
+ *   component indices which are overlapped by the line.
+ * - "edges" contains "collinear" and "intersected" where collinear is simply
+ *   a list of edge indices, and intersected is a map between an existing edge
+ *   index (key) to an intersection result with "a", "b" and "point" as the value.
+ * - "vertices" contains a list of existing vertex indices which
+ *   are overlapped by the line.
  */
 export const intersectGraphSegment = (graph, segment, epsilon = EPSILON) => (
 	intersectGraphLineFunc(

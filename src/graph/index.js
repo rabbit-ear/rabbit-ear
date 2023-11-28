@@ -24,6 +24,7 @@ import * as split from "./split.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
 import * as symmetry from "./symmetry.js";
+import * as transfer from "./transfer.js";
 import * as transform from "./transform.js";
 import * as trees from "./trees.js";
 import * as triangulateMethods from "./triangulate.js";
@@ -123,6 +124,7 @@ export default {
 	...symmetry,
 	...directedGraph,
 	...disjoint,
+	...transfer,
 	...transform,
 	...trees,
 	...triangulateMethods,

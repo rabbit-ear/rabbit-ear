@@ -32,8 +32,8 @@ export const validateGraph = (graph) => {
 	VEF.filter(vef => suffixes[vef].length).forEach(vef => {
 
 	});
-	// test 2: for every prefix (vertices_), get a list of the indices
-	// and compare prefixes among themselves to ensure that their vertices match.
+	// test 2: for every similar prefix array (vertices_), ensure that each
+	// of them are the same length (all of their indices match).
 	const keyIndices = {};
 	VEF.forEach(vef => prefixes[vef].forEach(key => {
 		keyIndices[key] = graph[key].map((_, i) => i);
@@ -63,7 +63,7 @@ export const validateGraph = (graph) => {
 	// 		}
 	// 	}
 	// }));
-	console.log("indices", indices);
+	// console.log("indices", indices);
 	return failures;
 };
 

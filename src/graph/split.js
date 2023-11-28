@@ -7,67 +7,40 @@ import {
 	includeR,
 	includeS,
 } from "../math/compare.js";
-// import {
-// 	add2,
-// 	scale2,
-// } from "../math/vector.js";
+import {
+	invertSimpleMap,
+	invertArrayMap,
+} from "./maps.js";
 import { pointsToLine } from "../math/convert.js";
 import { overlapConvexPolygonPointNew } from "../math/overlap.js";
 import { intersectGraphLineFunc } from "./intersect.js";
-/**
- *
- */
-// const addToGraph = ({ faces, edges, vertices }, graph) => {
-// 	// if there are any points that lie inside of faces, convert
-// 	// them into their position in the crease pattern
-// 	// faces.forEach((faceInfo, f) => faceInfo.points.forEach(el => {
-// 	// 	el.cpPoint = transferPointBetweenGraphs(folded, graph, f, el.point);
-// 	// }));
-// 	// add new vertices to the graph: middle of edge intersections,
-// 	// and points that lie somewhere inside of a face.
-// 	let vCount = graph.vertices_coords.length;
-// 	let eCount = graph.edges_vertices.length;
-// 	const newEdgesNewVertex = edges.intersected.map(() => vCount++);
-// 	faces.forEach((el, f) => el.points.forEach((_, i) => {
-// 		faces[f].points[i].newIndex = vCount++;
-// 	}));
-// 	// append these vertices_coords to our crease pattern
-// 	const vertices_coords = {};
-// 	edges.intersected.forEach((el, e) => {
-// 		const edgeSegment = graph.edges_vertices[e].map(v => graph.vertices_coords[v]);
-// 		const edgeLine = pointsToLine(...edgeSegment);
-// 		return add2(edgeLine.origin, scale2(edgeLine.vector, el.a));
-// 	}).filter(a => a !== undefined);
-// 	faces
-// 		.forEach(info => info.points
-// 			.forEach(el => { vertices_coords.push(el.cpPoint); }));
-// 	// append these edges_vertices to our crease pattern
-// 	const edges_vertices = faces.map((face) => {
-// 		const newVerticesEdgesMap = face.edges.map(e => newEdgesNewVertex[e]);
-// 		const newVerticesPointsMap = face.points.map(el => el.newIndex);
-// 		// guaranteed to be length 2.
-// 		// console.log("length 2", newVerticesEdgesMap.concat(newVerticesPointsMap).concat(vertices));
-// 		return newVerticesEdgesMap.concat(newVerticesPointsMap).concat(face.vertices);
-// 	}).filter(a => a !== undefined);
 
-// 	return {
-// 		vertices_coords,
-// 		edges_vertices,
-// 		edges_assignment: edges_vertices.map(() => "F"),
-// 		edges_foldAngle: edges_vertices.map(() => 0),
-// 	};
-// };
 /**
- * @description Internal function for performing line/ray/segment
- * intersection with a graph.
+ * @description Given a 2D line and a graph with vertices in 2D, split
+ * the line at every vertex/edge, resulting in a graph containing only
+ * the new line, prepared as a list of vertices and edges. The indices
+ * of the resulting graph are made into arrays with a large hole
+ * at the start making sure there is no overlap with the existing graph's
+ * indices. This allows the two graphs to very simply be able to be merged.
+ * The edge indices will make use of existing vertices when possible, so,
+ * edges_vertices may reference vertex indices from the source graph.
  * @param {FOLD} graph a fold graph in creasePattern or foldedForm
  * @param {VecLine} line a line/ray/segment in vector origin form
  * @param {number[][]} in the case of a ray or segment, place in here
  * the endpoint(s), and they will be included in the result.
  * @param {function} lineFunc the function which characterizes "line"
  * parameter into a line, ray, or segment.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FOLD} graph a FOLD graph containing only the line's
+ * geometry, as a list of vertices and edges, but with some additional data:
+ * - vertices_overlapInfo: for each vertex, this is the result of the
+ *   intersection algorithm which made the vertex. useful for re-calculating
+ *   the coordinate in another graph's space (transfer foldedForm to CP)
+ * - collinear_edges: a list of edge indices from the original graph that
+ *   lie collinear to this line. You may want to use this to change the
+ *   edge assignment of these edges.
  */
-const splitGraphLineFunc = (
+export const splitGraphLineFunction = (
 	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
 	line,
 	userPoints = [],
@@ -75,10 +48,11 @@ const splitGraphLineFunc = (
 	epsilon = EPSILON,
 ) => {
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
-		return { vertices: [], edges: [] };
+		return undefined;
 	}
 
-	const { faces, edges, vertices } = intersectGraphLineFunc(
+	// we aren't using the "vertices" data returned by this method.
+	const { faces, edges } = intersectGraphLineFunc(
 		{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
 		line,
 		lineFunc,
@@ -96,38 +70,152 @@ const splitGraphLineFunc = (
 		});
 	}
 
+	// non-convex faces, faces which have more than 2 intersection points
+	const nonConvexFaces = {};
+
+	// filter to contain only faces which have 2 vertices inside.
 	faces.forEach((face, f) => {
 		const count = (faces[f].points
 			? faces[f].vertices.length + faces[f].edges.length + faces[f].points.length
 			: faces[f].vertices.length + faces[f].edges.length);
-		if (count < 2) { delete faces[f]; }
+		// todo: here is part 1 of hard-coding to only work with convex faces
+		// if (count < 2) { delete faces[f]; }
+		if (count > 2) { nonConvexFaces[f] = true; }
+		if (count !== 2) { delete faces[f]; }
 	});
 
-	return { faces, edges, vertices };
+	// new vertices come from one of two places:
+	// - overlap with an edge
+	// - overlap with a face, inside, not touching any of its edges
+	let vCount = vertices_coords.length;
+
+	// the vertices coords for the new vertices
+	const new_vertices_coords = [];
+
+	// the result of the intersection algorithm which calculated the new coords.
+	const new_vertices_overlapInfo = [];
+
+	// the edge or face which this new vertex overlaps, where it comes from.
+	const new_vertices_onEdge = [];
+	const new_vertices_inFace = [];
+
+	// loop through the intersected edge vertices, and overlapped face vertices,
+	// add each new vertex data into the arrays.
+	edges.intersected.forEach(({ a, b, point }, edge) => {
+		new_vertices_onEdge[vCount] = edge;
+		new_vertices_overlapInfo[vCount] = { a, b, point, edge };
+		new_vertices_coords[vCount++] = point;
+	});
+	faces.forEach(({ points }, face) => points.forEach((overlap) => {
+		new_vertices_inFace[vCount] = face;
+		new_vertices_overlapInfo[vCount] = { ...overlap, face };
+		new_vertices_coords[vCount++] = overlap.point;
+	}));
+
+	// for each edge/face involved, what are its new vertices indices
+	// edges will only contain one, faces can contain multiple
+	const newEdgesVertex = invertSimpleMap(new_vertices_onEdge);
+	const newFacesVertices = invertArrayMap(new_vertices_inFace);
+
+	// loop through the faces and consulting the face's edges, vertices,
+	// and new interior points (whichever of these three exist),
+	// create a new edge which connects the pair of new vertices.
+	// todo: convex face hard coded part 2
+	// currently this is hard coded to work with convex faces only,
+	// and if we were to expand it, we need to gather all new vertices,
+	// order them geometrically, and build a consecutive list of them.
+	let eCount = edges_vertices.length;
+	const new_edges_vertices = [];
+	faces.forEach((face, f) => {
+		const edgesVertices = face.edges.map(e => newEdgesVertex[e]);
+		const interiorVertices = newFacesVertices[f];
+		new_edges_vertices[eCount++] = edgesVertices
+			.concat(interiorVertices)
+			.concat(face.vertices)
+			.filter(a => a !== undefined);
+	});
+
+	return {
+		vertices_coords: new_vertices_coords,
+		vertices_overlapInfo: new_vertices_overlapInfo,
+		edges_vertices: new_edges_vertices,
+		collinear_edges: edges.collinear,
+	};
 };
+
 /**
- * @description Intersect a line with a graph.
- * @param {FOLD} graph a fold graph, creasePattern or foldedForm
- * @param {VecLine} line a line in "vector" "origin" form
+ * @description Given a 2D line and a graph with vertices in 2D, split
+ * the line at every vertex/edge, resulting in a graph containing only
+ * the new line, prepared as a list of vertices and edges. The indices
+ * of the resulting graph are made into arrays with a large hole
+ * at the start making sure there is no overlap with the existing graph's
+ * indices. This allows the two graphs to very simply be able to be merged.
+ * The edge indices will make use of existing vertices when possible, so,
+ * edges_vertices may reference vertex indices from the source graph.
+ * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {VecLine} line a line in vector origin form
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FOLD} graph a FOLD graph containing only the line's
+ * geometry, as a list of vertices and edges, but with some additional data:
+ * - vertices_overlapInfo: for each vertex, this is the result of the
+ *   intersection algorithm which made the vertex. useful for re-calculating
+ *   the coordinate in another graph's space (transfer foldedForm to CP)
+ * - collinear_edges: a list of edge indices from the original graph that
+ *   lie collinear to this line. You may want to use this to change the
+ *   edge assignment of these edges.
  */
 export const splitLineWithGraph = (graph, line, epsilon = EPSILON) => (
-	splitGraphLineFunc(graph, line, [], includeL, epsilon)
+	splitGraphLineFunction(graph, line, [], includeL, epsilon)
 );
+
 /**
- * @description Intersect a ray with a graph.
- * @param {FOLD} graph a fold graph, creasePattern or foldedForm
- * @param {VecLine} ray a ray in "vector" "origin" form
+ * @description Given a 2D ray and a graph with vertices in 2D, split
+ * the ray at every vertex/edge, resulting in a graph containing only
+ * the new ray, prepared as a list of vertices and edges. The indices
+ * of the resulting graph are made into arrays with a large hole
+ * at the start making sure there is no overlap with the existing graph's
+ * indices. This allows the two graphs to very simply be able to be merged.
+ * The edge indices will make use of existing vertices when possible, so,
+ * edges_vertices may reference vertex indices from the source graph.
+ * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {VecLine} ray a ray in vector origin form
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FOLD} graph a FOLD graph containing only the ray's
+ * geometry, as a list of vertices and edges, but with some additional data:
+ * - vertices_overlapInfo: for each vertex, this is the result of the
+ *   intersection algorithm which made the vertex. useful for re-calculating
+ *   the coordinate in another graph's space (transfer foldedForm to CP)
+ * - collinear_edges: a list of edge indices from the original graph that
+ *   lie collinear to this ray. You may want to use this to change the
+ *   edge assignment of these edges.
  */
 export const splitRayWithGraph = (graph, ray, epsilon = EPSILON) => (
-	splitGraphLineFunc(graph, ray, [ray.origin], includeR, epsilon)
+	splitGraphLineFunction(graph, ray, [ray.origin], includeR, epsilon)
 );
+
 /**
- * @description Intersect a segment with a graph.
- * @param {FOLD} graph a fold graph, creasePattern or foldedForm
- * @param {number[][]} segment a pair of two points forming a segment
+ * @description Given a 2D segment and a graph with vertices in 2D, split
+ * the segment at every vertex/edge, resulting in a graph containing only
+ * the new segment, prepared as a list of vertices and edges. The indices
+ * of the resulting graph are made into arrays with a large hole
+ * at the start making sure there is no overlap with the existing graph's
+ * indices. This allows the two graphs to very simply be able to be merged.
+ * The edge indices will make use of existing vertices when possible, so,
+ * edges_vertices may reference vertex indices from the source graph.
+ * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {number[][]} segment a segment in vector origin form
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FOLD} graph a FOLD graph containing only the segment's
+ * geometry, as a list of vertices and edges, but with some additional data:
+ * - vertices_overlapInfo: for each vertex, this is the result of the
+ *   intersection algorithm which made the vertex. useful for re-calculating
+ *   the coordinate in another graph's space (transfer foldedForm to CP)
+ * - collinear_edges: a list of edge indices from the original graph that
+ *   lie collinear to this segment. You may want to use this to change the
+ *   edge assignment of these edges.
  */
 export const splitSegmentWithGraph = (graph, segment, epsilon = EPSILON) => (
-	splitGraphLineFunc(
+	splitGraphLineFunction(
 		graph,
 		pointsToLine(...segment),
 		segment,

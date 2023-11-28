@@ -47,10 +47,25 @@ export const clampSegment = (dist) => {
 	return dist;
 };
 /**
+ * @description Do three points lie collinear to each other?
+ * @param {number[]} p0 a point
+ * @param {number[]} p1 a point
+ * @param {number[]} p2 a point
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean} true if the points lies collinear.
+ * @linkcode Math ./src/geometry/lines.js 29
+ */
+export const isCollinear = (p0, p1, p2, epsilon = EPSILON) => {
+	const vectors = [[p0, p1], [p1, p2]]
+		.map(pts => subtract(pts[1], pts[0]))
+		.map(vector => normalize(vector));
+	return epsilonEqual(1.0, Math.abs(dot(...vectors)), epsilon);
+};
+/**
  * @description Check if a point is collinear and between two other points.
- * @param {number[]} p0 a segment point
- * @param {number[]} p1 the point to test collinearity
- * @param {number[]} p2 a segment point
+ * @param {number[]} p0 a point
+ * @param {number[]} p1 the point to test collinearity and between-ness
+ * @param {number[]} p2 a point
  * @param {boolean} [inclusive=false] if the point is the same as the endpoints
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean} true if the point lies collinear and between the other two points.

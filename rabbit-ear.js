@@ -8591,7 +8591,7 @@ const intersectEdgesLineFunc = (
 	epsilon = EPSILON,
 ) => {
 	if (!vertices_coords || !edges_vertices) {
-		return { vertices: [], edges: [] };
+		return { vertices: [], edges: { collinear: [], intersected: [] } };
 	}
 	const vertices = intersectVerticesLineFunc(
 		{ vertices_coords },
@@ -8625,10 +8625,6 @@ const intersectGraphLineFunc = (
 	lineFunc = includeL,
 	epsilon = EPSILON,
 ) => {
-	if (!faces_vertices) { return { vertices: [], edges: [] }; }
-	if (!faces_edges) {
-		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	}
 	const {
 		vertices,
 		edges: {
@@ -8641,6 +8637,16 @@ const intersectGraphLineFunc = (
 		lineFunc,
 		epsilon,
 	);
+	if (!faces_vertices) {
+		return {
+			vertices,
+			edges: { collinear, intersected },
+			faces: { edges: [], vertices: [] },
+		};
+	}
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
 	const facesWithOverlappedEdges = faces_edges
 		.map(fe => fe.filter(e => collinear[e]));
 	const facesWithCrossedEdges = faces_edges
@@ -8753,7 +8759,7 @@ const getEdgesEdgesOverlapingSpans = ({
 		span_overlaps[i][i] = true;
 	}
 	return span_overlaps;
-};const span=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesOverlapingSpans,getEdgesVerticesOverlappingSpan});const splitGraphLineFunc = (
+};const span=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesEdgesOverlapingSpans,getEdgesVerticesOverlappingSpan});const splitGraphLineFunction = (
 	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
 	line,
 	userPoints = [],
@@ -8761,9 +8767,9 @@ const getEdgesEdgesOverlapingSpans = ({
 	epsilon = EPSILON,
 ) => {
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
-		return { vertices: [], edges: [] };
+		return undefined;
 	}
-	const { faces, edges, vertices } = intersectGraphLineFunc(
+	const { faces, edges } = intersectGraphLineFunc(
 		{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
 		line,
 		lineFunc,
@@ -8783,25 +8789,57 @@ const getEdgesEdgesOverlapingSpans = ({
 		const count = (faces[f].points
 			? faces[f].vertices.length + faces[f].edges.length + faces[f].points.length
 			: faces[f].vertices.length + faces[f].edges.length);
-		if (count < 2) { delete faces[f]; }
+		if (count !== 2) { delete faces[f]; }
 	});
-	return { faces, edges, vertices };
+	let vCount = vertices_coords.length;
+	const new_vertices_coords = [];
+	const new_vertices_overlapInfo = [];
+	const new_vertices_onEdge = [];
+	const new_vertices_inFace = [];
+	edges.intersected.forEach(({ a, b, point }, edge) => {
+		new_vertices_onEdge[vCount] = edge;
+		new_vertices_overlapInfo[vCount] = { a, b, point, edge };
+		new_vertices_coords[vCount++] = point;
+	});
+	faces.forEach(({ points }, face) => points.forEach((overlap) => {
+		new_vertices_inFace[vCount] = face;
+		new_vertices_overlapInfo[vCount] = { ...overlap, face };
+		new_vertices_coords[vCount++] = overlap.point;
+	}));
+	const newEdgesVertex = invertSimpleMap(new_vertices_onEdge);
+	const newFacesVertices = invertArrayMap(new_vertices_inFace);
+	let eCount = edges_vertices.length;
+	const new_edges_vertices = [];
+	faces.forEach((face, f) => {
+		const edgesVertices = face.edges.map(e => newEdgesVertex[e]);
+		const interiorVertices = newFacesVertices[f];
+		new_edges_vertices[eCount++] = edgesVertices
+			.concat(interiorVertices)
+			.concat(face.vertices)
+			.filter(a => a !== undefined);
+	});
+	return {
+		vertices_coords: new_vertices_coords,
+		vertices_overlapInfo: new_vertices_overlapInfo,
+		edges_vertices: new_edges_vertices,
+		collinear_edges: edges.collinear,
+	};
 };
 const splitLineWithGraph = (graph, line, epsilon = EPSILON) => (
-	splitGraphLineFunc(graph, line, [], includeL, epsilon)
+	splitGraphLineFunction(graph, line, [], includeL, epsilon)
 );
 const splitRayWithGraph = (graph, ray, epsilon = EPSILON) => (
-	splitGraphLineFunc(graph, ray, [ray.origin], includeR, epsilon)
+	splitGraphLineFunction(graph, ray, [ray.origin], includeR, epsilon)
 );
 const splitSegmentWithGraph = (graph, segment, epsilon = EPSILON) => (
-	splitGraphLineFunc(
+	splitGraphLineFunction(
 		graph,
 		pointsToLine(...segment),
 		segment,
 		includeS,
 		epsilon,
 	)
-);const split$1=/*#__PURE__*/Object.freeze({__proto__:null,splitLineWithGraph,splitRayWithGraph,splitSegmentWithGraph});const fixLineDirection = ({ normal, distance }) => (distance < 0
+);const split$1=/*#__PURE__*/Object.freeze({__proto__:null,splitGraphLineFunction,splitLineWithGraph,splitRayWithGraph,splitSegmentWithGraph});const fixLineDirection = ({ normal, distance }) => (distance < 0
 	? ({ normal: flip(normal), distance: -distance })
 	: ({ normal, distance }));
 const findSymmetryLines = (graph, epsilon = EPSILON) => {
@@ -8838,7 +8876,59 @@ const findSymmetryLines = (graph, epsilon = EPSILON) => {
 };
 const findSymmetryLine = (graph, epsilon = EPSILON) => (
 	findSymmetryLines(graph, epsilon)[0]
-);const symmetry=/*#__PURE__*/Object.freeze({__proto__:null,findSymmetryLine,findSymmetryLines});const makeTriangleFan = (indices) => Array.from(Array(indices.length - 2))
+);const symmetry=/*#__PURE__*/Object.freeze({__proto__:null,findSymmetryLine,findSymmetryLines});const trilateration = (pts, radii) => {
+	if (pts[0] === undefined || pts[1] === undefined || pts[2] === undefined) {
+		return undefined;
+	}
+	const ex = scale2(subtract2(pts[1], pts[0]), 1 / distance2(pts[1], pts[0]));
+	const i = dot2(ex, subtract2(pts[2], pts[0]));
+	const exi = scale2(ex, i);
+	const p2p0exi = subtract2(subtract2(pts[2], pts[0]), exi);
+	const ey = scale2(p2p0exi, (1 / magnitude2(p2p0exi)));
+	const d = distance2(pts[1], pts[0]);
+	const j = dot2(ey, subtract2(pts[2], pts[0]));
+	const x = ((radii[0] ** 2) - (radii[1] ** 2) + (d ** 2)) / (2 * d);
+	const y = ((radii[0] ** 2) - (radii[2] ** 2) + (i ** 2) + (j ** 2)) / (2 * j) - ((i * x) / j);
+	return add2(add2(pts[0], scale2(ex, x)), scale2(ey, y));
+};
+const circumcircle = (a, b, c) => {
+	const A = b[0] - a[0];
+	const B = b[1] - a[1];
+	const C = c[0] - a[0];
+	const D = c[1] - a[1];
+	const E = A * (a[0] + b[0]) + B * (a[1] + b[1]);
+	const F = C * (a[0] + c[0]) + D * (a[1] + c[1]);
+	const G = 2 * (A * (c[1] - b[1]) - B * (c[0] - b[0]));
+	if (Math.abs(G) < EPSILON) {
+		const minx = Math.min(a[0], b[0], c[0]);
+		const miny = Math.min(a[1], b[1], c[1]);
+		const dx = (Math.max(a[0], b[0], c[0]) - minx) * 0.5;
+		const dy = (Math.max(a[1], b[1], c[1]) - miny) * 0.5;
+		return {
+			origin: [minx + dx, miny + dy],
+			radius: Math.sqrt(dx * dx + dy * dy),
+		};
+	}
+	const origin = [(D * E - B * F) / G, (A * F - C * E) / G];
+	const dx = origin[0] - a[0];
+	const dy = origin[1] - a[1];
+	return {
+		origin,
+		radius: Math.sqrt(dx * dx + dy * dy),
+	};
+};const triangle=/*#__PURE__*/Object.freeze({__proto__:null,circumcircle,trilateration});const transferPointBetweenGraphs = (from, to, face, point) => {
+	const faceVertices = from.faces_vertices[face];
+	const fromPoly = faceVertices.map(v => from.vertices_coords[v]);
+	const toPoly = faceVertices.map(v => to.vertices_coords[v]);
+	const distances = fromPoly.map(p => distance2(p, point));
+	return trilateration(toPoly, distances);
+};
+const transferPointOnEdgeBetweenGraphs = (from, to, edge, parameter) => {
+	const edgeSegment = to.edges_vertices[edge]
+		.map(v => to.vertices_coords[v]);
+	const edgeLine = pointsToLine(...edgeSegment);
+	return add2(edgeLine.origin, scale2(edgeLine.vector, parameter));
+};const transfer=/*#__PURE__*/Object.freeze({__proto__:null,transferPointBetweenGraphs,transferPointOnEdgeBetweenGraphs});const makeTriangleFan = (indices) => Array.from(Array(indices.length - 2))
 	.map((_, i) => [indices[0], indices[i + 1], indices[i + 2]]);
 const triangulateConvexFacesVertices = ({ faces_vertices }) => faces_vertices
 	.flatMap(vertices => (vertices.length < 4
@@ -9725,6 +9815,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...symmetry,
 	...directedGraph,
 	...disjoint,
+	...transfer,
 	...transform$1,
 	...trees,
 	...triangulateMethods,
@@ -9865,47 +9956,7 @@ const straightSkeleton = (points) => {
 		.map(p => [subtract(p[0], p[1]), subtract(p[2], p[1])])
 		.map(v => clockwiseBisect2(...v));
 	return recurseSkeleton([...points], lines, bisectors);
-};const trilateration = (pts, radii) => {
-	if (pts[0] === undefined || pts[1] === undefined || pts[2] === undefined) {
-		return undefined;
-	}
-	const ex = scale2(subtract2(pts[1], pts[0]), 1 / distance2(pts[1], pts[0]));
-	const i = dot2(ex, subtract2(pts[2], pts[0]));
-	const exi = scale2(ex, i);
-	const p2p0exi = subtract2(subtract2(pts[2], pts[0]), exi);
-	const ey = scale2(p2p0exi, (1 / magnitude2(p2p0exi)));
-	const d = distance2(pts[1], pts[0]);
-	const j = dot2(ey, subtract2(pts[2], pts[0]));
-	const x = ((radii[0] ** 2) - (radii[1] ** 2) + (d ** 2)) / (2 * d);
-	const y = ((radii[0] ** 2) - (radii[2] ** 2) + (i ** 2) + (j ** 2)) / (2 * j) - ((i * x) / j);
-	return add2(add2(pts[0], scale2(ex, x)), scale2(ey, y));
-};
-const circumcircle = (a, b, c) => {
-	const A = b[0] - a[0];
-	const B = b[1] - a[1];
-	const C = c[0] - a[0];
-	const D = c[1] - a[1];
-	const E = A * (a[0] + b[0]) + B * (a[1] + b[1]);
-	const F = C * (a[0] + c[0]) + D * (a[1] + c[1]);
-	const G = 2 * (A * (c[1] - b[1]) - B * (c[0] - b[0]));
-	if (Math.abs(G) < EPSILON) {
-		const minx = Math.min(a[0], b[0], c[0]);
-		const miny = Math.min(a[1], b[1], c[1]);
-		const dx = (Math.max(a[0], b[0], c[0]) - minx) * 0.5;
-		const dy = (Math.max(a[1], b[1], c[1]) - miny) * 0.5;
-		return {
-			origin: [minx + dx, miny + dy],
-			radius: Math.sqrt(dx * dx + dy * dy),
-		};
-	}
-	const origin = [(D * E - B * F) / G, (A * F - C * E) / G];
-	const dx = origin[0] - a[0];
-	const dy = origin[1] - a[1];
-	return {
-		origin,
-		radius: Math.sqrt(dx * dx + dy * dy),
-	};
-};const triangle=/*#__PURE__*/Object.freeze({__proto__:null,circumcircle,trilateration});const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
+};const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
 	for (let d = 0; d < point.length; d += 1) {
 		if (point[d] < box.min[d] - epsilon
 			|| point[d] > box.max[d] + epsilon) {
