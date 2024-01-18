@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
  * @description Convert an array of faces which are involved in one
  * taco/tortilla/transitivity condition into an array of arrays where
@@ -26,6 +27,7 @@ export const constraintToFacePairs = ({
 	// transitivity (A,B) (B,C) (C,A)
 	transitivity: f => [[f[0], f[1]], [f[1], f[2]], [f[2], f[0]]],
 });
+
 /**
  * @description Given an array of a pair of integers, sort the smallest
  * to be first, and format them into a space-separated string.
@@ -34,6 +36,7 @@ export const constraintToFacePairs = ({
 const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
 	? `${pair[0]} ${pair[1]}`
 	: `${pair[1]} ${pair[0]}`);
+
 /**
  * @description Convert an array of faces which are involved in one
  * taco/tortilla/transitivity condition into an array of arrays where

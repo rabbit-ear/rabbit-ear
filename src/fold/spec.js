@@ -4,6 +4,7 @@
 import { EPSILON } from "../math/constant.js";
 import { epsilonEqual } from "../math/compare.js";
 import { foldKeys } from "./keys.js";
+
 /**
  * this contains two types of methods.
  * 1. references to named string keys that are a part of the FOLD spec
@@ -11,6 +12,7 @@ import { foldKeys } from "./keys.js";
  * 2. methods that take a FOLD object as a parameter, and perform some
  *    searching and gathering of information contained inside.
  */
+
 /**
  * @description English conversion of the names of graph components
  * from plural to singular.
@@ -21,6 +23,7 @@ export const singularize = {
 	edges: "edge",
 	faces: "face",
 };
+
 /**
  * @description English conversion of the names of graph components
  * from singular to plural.
@@ -31,10 +34,12 @@ export const pluralize = {
 	edge: "edges",
 	face: "faces",
 };
+
 /**
  * array of single characers, the values of an edge assignment
  */
 export const edgesAssignmentValues = Array.from("BbMmVvFfJjCcUu");
+
 /**
  * @description get the English word for every FOLD spec
  * assignment character (like "M", or "b")
@@ -52,6 +57,7 @@ export const edgesAssignmentNames = {
 Object.keys(edgesAssignmentNames).forEach(key => {
 	edgesAssignmentNames[key.toLowerCase()] = edgesAssignmentNames[key];
 });
+
 /**
  * @description get the foldAngle in degrees for every FOLD assignment spec
  * character (like "M", or "b"). **this assumes the creases are flat folded.**
@@ -73,6 +79,7 @@ export const assignmentFlatFoldAngle = {
 	U: 0,
 	u: 0,
 };
+
 /**
  * @constant {object}
  * @default
@@ -95,6 +102,7 @@ export const assignmentCanBeFolded = {
 	U: true,
 	u: true,
 };
+
 /**
  * @description 
  */
@@ -114,6 +122,7 @@ export const assignmentIsBoundary = {
 	U: false,
 	u: false,
 };
+
 /**
  * @description Convert an assignment character to a foldAngle in degrees.
  * This assumes that all assignments are flat folds.
@@ -124,6 +133,7 @@ export const assignmentIsBoundary = {
 export const edgeAssignmentToFoldAngle = assignment => (
 	assignmentFlatFoldAngle[assignment] || 0
 );
+
 /**
  * @description Convert a foldAngle to an edge assignment character.
  * No boundary detection is performed so an edge which is otherwise
@@ -139,6 +149,7 @@ export const edgeFoldAngleToAssignment = (angle) => {
 	// return "F";
 	return "U";
 };
+
 /**
  * @description Test if a fold angle is a flat fold, which includes -180, 0, 180,
  * and the +/- epsilon around each number.
@@ -149,6 +160,7 @@ export const edgeFoldAngleToAssignment = (angle) => {
 export const edgeFoldAngleIsFlat = angle => epsilonEqual(0, angle)
  || epsilonEqual(-180, angle)
  || epsilonEqual(180, angle);
+
 /**
  * @description Provide a FOLD graph and determine if all edges_foldAngle
  * angles are flat, which includes -180, 0, 180, and the +/- epsilon
@@ -165,10 +177,12 @@ export const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	}
 	return true;
 };
+
 // subroutine for filterKeysWithPrefix and filterKeysWithSuffix
 const filterKeys = (obj, matchFunction) => Object
 	.keys(obj)
 	.filter(key => matchFunction(key));
+
 /**
  * @description Get all keys in an object which begin with a string and are
  * immediately followed by "_". For example, provide "vertices" and this will
@@ -182,6 +196,7 @@ export const filterKeysWithPrefix = (obj, prefix) => filterKeys(
 	obj,
 	s => s.substring(0, prefix.length + 1) === `${prefix}_`,
 );
+
 /**
  * @description Get all keys in an object which end with a string and are
  * immediately preceded by "_". For example, provide "vertices" and this will
@@ -195,6 +210,31 @@ export const filterKeysWithSuffix = (obj, suffix) => filterKeys(
 	obj,
 	s => s.substring(s.length - suffix.length - 1, s.length) === `_${suffix}`,
 );
+
+/**
+ *
+ */
+export const getAllPrefixes = (obj) => {
+	const hash = {};
+	Object.keys(obj)
+		.filter(s => s.includes("_"))
+		.map(k => k.substring(0, k.indexOf("_")))
+		.forEach(k => { hash[k] = true; });
+	return Object.keys(hash);
+};
+
+/**
+ *
+ */
+export const getAllSuffixes = (obj) => {
+	const hash = {};
+	Object.keys(obj)
+		.filter(s => s.includes("_"))
+		.map(k => k.substring(k.lastIndexOf("_") + 1, k.length))
+		.forEach(k => { hash[k] = true; });
+	return Object.keys(hash);
+};
+
 /**
  * @description This takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating one object with the keys for every index.
@@ -215,6 +255,7 @@ export const transposeGraphArrays = (graph, geometry_key) => {
 			.forEach((o, i) => { geometry[i][key] = graph[key][i]; }));
 	return geometry;
 };
+
 /**
  * @description This takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating one object with the keys.
@@ -238,6 +279,7 @@ export const transposeGraphArrayAtIndex = (
 	matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
 	return geometry;
 };
+
 /**
  * top-level keys from a FOLD object in one flat array
  */
@@ -246,6 +288,7 @@ const flatFoldKeys = Object.freeze([]
 	.concat(foldKeys.frame)
 	.concat(foldKeys.graph)
 	.concat(foldKeys.orders));
+
 /**
  * @description Using heuristics by checking the names of the keys
  * of an object, determine if an object is a FOLD object.
@@ -258,6 +301,7 @@ export const isFoldObject = (object = {}) => (
 		? 0
 		: flatFoldKeys
 			.filter(key => object[key]).length / Object.keys(object).length);
+
 /**
  * @description Check a FOLD object's frame_classes for the presence of "foldedForm".
  * @param {FOLD} graph a FOLD object
@@ -268,6 +312,7 @@ export const isFoldedForm = ({ frame_classes, file_classes }) => (
 	(frame_classes && frame_classes.includes("foldedForm"))
 		|| (file_classes && file_classes.includes("foldedForm"))
 );
+
 /**
  * @description Check the coordinates of each vertex and if any of them
  * contain a third dimension AND that number is not 0, then the graph
@@ -285,6 +330,7 @@ export const getDimension = ({ vertices_coords }, epsilon = EPSILON) => {
 	}
 	return 2;
 };
+
 /**
  * @description Infer the dimensions of (the vertices of) a graph
  * by querying the first point in vertices_coords. This also works
@@ -304,6 +350,7 @@ export const getDimensionQuick = ({ vertices_coords }) => {
 	if (!vertex) { return undefined; }
 	return vertex.length;
 };
+
 /**
  * @description For every edge, give us a boolean:
  * - "true" if the edge is folded, valley or mountain, or unassigned.
@@ -324,6 +371,7 @@ export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assig
 	return edges_assignment.map(a => assignmentCanBeFolded[a]);
 };
 const flipAssignmentLookup = { M: "V", m: "v", V: "M", v: "m" };
+
 /**
  * @description for a mountain or valley, return the opposite.
  * in the case of any other crease (boundary, flat, ...) return itself.
@@ -331,6 +379,7 @@ const flipAssignmentLookup = { M: "V", m: "v", V: "M", v: "m" };
 export const invertAssignment = (assign) => (
 	flipAssignmentLookup[assign] || assign
 );
+
 /**
  * @description Given a fold graph, make all mountains into valleys
  * and visa versa. This includes reversing the fold_angles.

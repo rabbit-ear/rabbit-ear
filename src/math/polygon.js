@@ -12,6 +12,7 @@ import {
 	subtract,
 	parallel,
 } from "./vector.js";
+
 /**
  * the radius parameter measures from the center to the midpoint of the edge
  * vertex-axis aligned
@@ -24,7 +25,9 @@ const angleArray = count => Array
 
 const anglesToVecs = (angles, radius) => angles
 	.map(a => [radius * Math.cos(a), radius * Math.sin(a)]);
+
 // a = 2r tan(π/n)
+
 /**
  * @description Make a regular polygon from a circumradius,
  * the first point is +X aligned.
@@ -36,6 +39,7 @@ const anglesToVecs = (angles, radius) => angles
 export const makePolygonCircumradius = (sides = 3, circumradius = 1) => (
 	anglesToVecs(angleArray(sides), circumradius)
 );
+
 /**
  * @description Make a regular polygon from a circumradius,
  * the middle of the first side is +X aligned.
@@ -49,6 +53,7 @@ export const makePolygonCircumradiusSide = (sides = 3, circumradius = 1) => {
 	const angles = angleArray(sides).map(a => a + halfwedge);
 	return anglesToVecs(angles, circumradius);
 };
+
 /**
  * @description Make a regular polygon from a inradius,
  * the first point is +X aligned.
@@ -59,6 +64,7 @@ export const makePolygonCircumradiusSide = (sides = 3, circumradius = 1) => {
  */
 export const makePolygonInradius = (sides = 3, inradius = 1) => (
 	makePolygonCircumradius(sides, inradius / Math.cos(Math.PI / sides)));
+
 /**
  * @description Make a regular polygon from a inradius,
  * the middle of the first side is +X aligned.
@@ -69,6 +75,7 @@ export const makePolygonInradius = (sides = 3, inradius = 1) => (
  */
 export const makePolygonInradiusSide = (sides = 3, inradius = 1) => (
 	makePolygonCircumradiusSide(sides, inradius / Math.cos(Math.PI / sides)));
+
 /**
  * @description Make a regular polygon from a side length,
  * the first point is +X aligned.
@@ -79,6 +86,7 @@ export const makePolygonInradiusSide = (sides = 3, inradius = 1) => (
  */
 export const makePolygonSideLength = (sides = 3, length = 1) => (
 	makePolygonCircumradius(sides, (length / 2) / Math.sin(Math.PI / sides)));
+
 /**
  * @description Make a regular polygon from a side length,
  * the middle of the first side is +X aligned.
@@ -89,6 +97,7 @@ export const makePolygonSideLength = (sides = 3, length = 1) => (
  */
 export const makePolygonSideLengthSide = (sides = 3, length = 1) => (
 	makePolygonCircumradiusSide(sides, (length / 2) / Math.sin(Math.PI / sides)));
+
 /**
  * @description Remove any collinear vertices from a n-dimensional polygon.
  * @param {number[][]} polygon a polygon as an array of ordered points in array form
@@ -110,6 +119,7 @@ export const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
 	return polygon
 		.filter((vertex, v) => vertex_collinear[v]);
 };
+
 /**
  * @description Calculates the signed area of a polygon.
  * This requires the polygon be non-self-intersecting.
@@ -124,6 +134,7 @@ export const signedArea = points => 0.5 * points
 	.map((el, i, arr) => [el, arr[(i + 1) % arr.length]])
 	.map(pair => cross2(...pair))
 	.reduce((a, b) => a + b, 0);
+
 /**
  * @description Calculates the centroid or the center of mass of the polygon.
  * @param {number[][]} points an array of 2D points, which are arrays of numbers
@@ -140,6 +151,7 @@ export const centroid = (points) => {
 		.reduce((a, b) => add2(a, b), [0, 0])
 		.map(c => c * sixthArea);
 };
+
 /**
  *
  */
@@ -149,6 +161,7 @@ const getDimension = (points) => {
 	}
 	return 0;
 };
+
 /**
  * @description Make an axis-aligned bounding box that encloses a set of points.
  * the optional padding is used to make the bounding box inclusive / exclusive

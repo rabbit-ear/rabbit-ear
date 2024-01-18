@@ -9,6 +9,7 @@ import { makeVerticesVerticesUnsorted } from "./make.js";
 import { invertMap, invertArrayMap } from "./maps.js";
 import { connectedComponents } from "./connectedComponents.js";
 // import { allLayerConditions } from "./globalSolver/index.js";
+
 /**
  * @description given faceOrders and a list of faces, filter the list
  * of faceOrders so that it only contains orders between faces where
@@ -23,6 +24,7 @@ export const faceOrdersSubset = (faceOrders, faces) => {
 	return faceOrders
 		.filter(order => facesHash[order[0]] && facesHash[order[1]]);
 };
+
 /**
  * @description Find a topological ordering from a set of faceOrders.
  * The user can supply the face for which the normal will set the
@@ -69,6 +71,7 @@ export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 			: [order[1], order[0]]));
 	return topologicalSort(directedEdges);
 };
+
 /**
  * todo: assuming faces_vertices instead of faces_edges
  * @returns {number[]} layers_face
@@ -80,6 +83,7 @@ const fillInMissingFaces = ({ faces_vertices }, faces_layer) => {
 		.filter(i => faces_layer[i] == null);
 	return missingFaces.concat(invertMap(faces_layer));
 };
+
 /**
  * @description Find a topological ordering of all faces in a graph.
  * This method is intended for 2D flat foldings. This requires
@@ -113,6 +117,7 @@ export const linearize2DFaces = ({
 	// if the array has any holes filter these out
 	return faces_vertices.map((_, i) => i).filter(() => true);
 };
+
 /**
  * @description Given a graph which contains a faceOrders, get an array
  * of information for each face, what is its displacement vector, and
@@ -152,6 +157,7 @@ export const nudgeFacesWithFaceOrders = ({
 	}));
 	return faces_nudge;
 };
+
 /**
  * @description Given a graph with a faces_layer, a topological sorting
  * of faces, for a flat-folded 2D graph, get an array where every face
@@ -172,6 +178,7 @@ export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
 	});
 	return faces_nudge;
 };
+
 /**
  * @description for a flat-foldable origami, one in which all
  * of its folded state vertices are in 2D, this will return

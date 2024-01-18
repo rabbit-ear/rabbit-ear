@@ -17,7 +17,7 @@ import removePlanarEdge from "../graph/remove/removePlanarEdge.js";
 import { isVertexCollinear } from "../graph/vertices/collinear.js";
 import { edgeFoldAngleIsFlat } from "../fold/spec.js";
 import removePlanarVertex from "../graph/remove/removePlanarVertex.js";
-import validate from "../graph/validate.js";
+import { validate } from "../graph/validate.js";
 import {
 	validateMaekawa,
 	validateKawasaki,

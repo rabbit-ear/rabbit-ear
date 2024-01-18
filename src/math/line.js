@@ -18,6 +18,7 @@ import {
 	flip,
 } from "./vector.js";
 import { counterClockwiseSubsect2 } from "./radial.js";
+
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The line method allows all values.
@@ -26,6 +27,7 @@ import { counterClockwiseSubsect2 } from "./radial.js";
  * @linkcode Math ./src/general/functions.js 94
  */
 export const clampLine = dist => dist;
+
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The ray method clamps values below -epsilon to be 0.
@@ -34,6 +36,7 @@ export const clampLine = dist => dist;
  * @linkcode Math ./src/general/functions.js 102
  */
 export const clampRay = dist => (dist < -EPSILON ? 0 : dist);
+
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The segment method clamps values below -epsilon to be 0 and above 1+epsilon to 1.
@@ -46,6 +49,7 @@ export const clampSegment = (dist) => {
 	if (dist > 1 + EPSILON) { return 1; }
 	return dist;
 };
+
 /**
  * @description Do three points lie collinear to each other?
  * @param {number[]} p0 a point
@@ -61,6 +65,7 @@ export const isCollinear = (p0, p1, p2, epsilon = EPSILON) => {
 		.map(vector => normalize(vector));
 	return epsilonEqual(1.0, Math.abs(dot(...vectors)), epsilon);
 };
+
 /**
  * @description Check if a point is collinear and between two other points.
  * @param {number[]} p0 a point
@@ -81,6 +86,7 @@ export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILO
 		.map(vector => normalize(vector));
 	return epsilonEqual(1.0, dot(...vectors), EPSILON);
 };
+
 /**
  * @description linear interpolate between two lines
  * @param {VecLine} a a line with a "vector" and "origin" component
@@ -94,10 +100,34 @@ export const lerpLines = (a, b, t) => {
 	const origin = lerp(a.origin, b.origin, t);
 	return { vector, origin };
 };
+
 // export const pleat = (a, b, count) => Array
 // 	.from(Array(count - 1))
 // 	.map((_, i) => (i + 1) / count)
 // 	.map(t => lerpLines(a, b, t));
+
+/**
+ *
+ */
+const parallelPleat = (a, b, count) => {
+	const isOpposite = dot(a.vector, b.vector) < 0;
+	// if the vectors are parallel but opposite, we need to
+	// orient the vectors in the same direction.
+	const aVector = a.vector; // isParallel && dotProd < 0 ? a.vector : a.vector;
+	const bVector = isOpposite ? flip(b.vector) : b.vector;
+	const origins = Array
+		.from(Array(count - 1))
+		.map((_, i) => lerp(a.origin, b.origin, (i + 1) / count));
+	const pleatVectors = counterClockwiseSubsect2(aVector, bVector, count);
+	const lines = pleatVectors.map((vector, i) => ({
+		vector,
+		origin: [...origins[i]],
+	}));
+	const solution = [lines, lines];
+	solution[(isOpposite ? 0 : 1)] = [];
+	return solution;
+};
+
 /**
  * @description Between two lines, make a repeating sequence of
  * evenly-spaced lines to simulate a series of pleats.
@@ -109,11 +139,14 @@ export const lerpLines = (a, b, t) => {
  * @linkcode Math ./src/geometry/lines.js 65
  */
 export const pleat = (a, b, count, epsilon = EPSILON) => {
-	const dotProd = dot(a.vector, b.vector);
 	const determinant = cross2(a.vector, b.vector);
 	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
 	const t = numerator / determinant;
 	const normalized = [a.vector, b.vector].map(vec => normalize(vec));
+	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
+	if (isParallel) {
+		return parallelPleat(a, b, count);
+	}
 	// two sets of pleats will be generated, between either pairs
 	// of interior angles, unless the lines are parallel.
 	const sides = determinant > -epsilon
@@ -121,25 +154,18 @@ export const pleat = (a, b, count, epsilon = EPSILON) => {
 		: [[b.vector, a.vector], [flip(a.vector), b.vector]];
 	const pleatVectors = sides
 		.map(pair => counterClockwiseSubsect2(pair[0], pair[1], count));
-	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
 	// there is an intersection as long as the lines are not parallel
-	const intersection = isParallel
-		? undefined
-		: add2(a.origin, scale2(a.vector, t));
+	const intersection = add2(a.origin, scale2(a.vector, t));
 	// the origin of the lines will be either the intersection,
 	// or in the case of parallel, a lerp between the two line origins.
-	const iter = Array.from(Array(count - 1));
-	const origins = isParallel
-		? iter.map((_, i) => lerp(a.origin, b.origin, (i + 1) / count))
-		: iter.map(() => intersection);
-	const solution = pleatVectors
+	const origins = Array.from(Array(count - 1)).map(() => intersection);
+	return pleatVectors
 		.map(side => side.map((vector, i) => ({
 			vector,
 			origin: [...origins[i]],
 		})));
-	if (isParallel) { solution[(dotProd > -epsilon ? 1 : 0)] = []; }
-	return solution;
 };
+
 /**
  * @description given two lines, find two lines which bisect the given lines,
  * if the given lines have an intersection, or return one
@@ -157,6 +183,7 @@ export const bisectLines2 = (a, b, epsilon = EPSILON) => {
 	});
 	return solution;
 };
+
 // export const bisectLines2 = (a, b, epsilon = EPSILON) => {
 // 	const determinant = cross2(a.vector, b.vector);
 // 	const dotProd = dot(a.vector, b.vector);

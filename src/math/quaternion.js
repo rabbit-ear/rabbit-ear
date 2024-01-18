@@ -12,6 +12,7 @@ import {
 	normalize,
 } from "./vector.js";
 import { multiplyMatrices4 } from "./matrix4.js";
+
 /**
  * @description Create a quaternion which represents a rotation from
  * one 3D vector to another. Quaternion encoded as 0:x, 1:y, 2:z, 3:w.
@@ -25,20 +26,21 @@ export const quaternionFromTwoVectors = (u, v) => {
 	q[3] += magnitude(q);
 	return normalize(q);
 };
+
 /**
  * @description Create a 4x4 matrix from a quaternion,
  * the quaternion encoded as 0:x, 1:y, 2:z, 3:w.
  * @param {number[]} quaternion a quaternion
  * @returns {number[]} a 4x4 matrix (array of 16 numbers)
  */
-export const matrix4FromQuaternion = (quaternion) => multiplyMatrices4([
-	quaternion[3], quaternion[2], -quaternion[1], quaternion[0],
-	-quaternion[2], quaternion[3], quaternion[0], quaternion[1],
-	quaternion[1], -quaternion[0], quaternion[3], quaternion[2],
-	-quaternion[0], -quaternion[1], -quaternion[2], quaternion[3],
+export const matrix4FromQuaternion = (q) => multiplyMatrices4([
+	+q[3], +q[2], -q[1], +q[0],
+	-q[2], +q[3], +q[0], +q[1],
+	+q[1], -q[0], +q[3], +q[2],
+	-q[0], -q[1], -q[2], +q[3],
 ], [
-	quaternion[3], quaternion[2], -quaternion[1], -quaternion[0],
-	-quaternion[2], quaternion[3], quaternion[0], -quaternion[1],
-	quaternion[1], -quaternion[0], quaternion[3], -quaternion[2],
-	quaternion[0], quaternion[1], quaternion[2], quaternion[3],
+	+q[3], +q[2], -q[1], -q[0],
+	-q[2], +q[3], +q[0], -q[1],
+	+q[1], -q[0], +q[3], -q[2],
+	+q[0], +q[1], +q[2], +q[3],
 ]);

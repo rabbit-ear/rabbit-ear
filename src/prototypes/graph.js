@@ -12,7 +12,7 @@ import populate from "../graph/populate.js";
 import splitEdge from "../graph/splitEdge/index.js";
 import splitFace from "../graph/splitFace/index.js";
 import { subgraph } from "../graph/subgraph.js";
-import validate from "../graph/validate.js";
+import * as validate from "../graph/validate.js";
 import {
 	boundary,
 	boundingBox,
@@ -48,7 +48,6 @@ Graph.prototype.constructor = Graph;
 Object.entries({
 	// count,
 	clean,
-	validate,
 	populate,
 	// planarize, // not sure if this should be here now that it returns
 	// a new planar graph instead of modifying itself
@@ -66,6 +65,7 @@ Object.entries({
 	obj: foldToObj,
 	...explode,
 	...transform,
+	...validate,
 }).forEach(([key, value]) => {
 	Graph.prototype[key] = function () {
 		return value(this, ...arguments);

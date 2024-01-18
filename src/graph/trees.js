@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
  * @typedef TreeNode
  * @type {{ index: number, parent: number }}
@@ -9,6 +10,7 @@
  * @property {number} index - the index of this index
  * @property {number} parent - this node's parent node's index
  */
+
 /**
  * @description Create an array of minimum spanning trees which fully
  * cover a graph, the input being a self-referencing array, such as
@@ -62,6 +64,7 @@ export const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
 	} while (Object.keys(unvisited).length);
 	return trees;
 };
+
 /**
  * @description Create a single minimum spanning tree. If you are
  * confident that your graph is connected, and there are no disjoint

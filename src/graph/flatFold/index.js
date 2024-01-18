@@ -24,6 +24,7 @@ import { makeFacesWindingFromMatrix2 } from "../faces/winding.js";
 import splitConvexFace from "../splitFace/index.js";
 import { edgeAssignmentToFoldAngle } from "../../fold/spec.js";
 import { foldFacesLayer } from "./facesLayer.js";
+
 /**
  *
  */
@@ -34,6 +35,7 @@ const getContainingFace = (graph, point, vector, epsilon = EPSILON) => {
 	// const remainingPolygons =
 	return faces[0];
 };
+
 /**
  * @description this determines which side of a line (using cross product)
  * a face lies in a folded form, except, the face is the face in
@@ -49,6 +51,7 @@ const make_face_side = (vector, origin, face_center, face_winding) => {
 	const determinant = cross2(vector, center_vector);
 	return face_winding ? determinant > 0 : determinant < 0;
 };
+
 /**
  * for quickly determining which side of a crease a face lies
  * this uses point average, not centroid, faces must be convex
@@ -70,11 +73,13 @@ const unfolded_assignment = {
 const opposite_lookup = {
 	M: "V", m: "V", V: "M", v: "M",
 };
+
 /**
  * @description for a mountain or valley, return the opposite.
  * in the case of any other crease (boundary, flat, ...) return the input.
  */
 const get_opposite_assignment = assign => opposite_lookup[assign] || assign;
+
 /**
  * @description shallow copy these entries for one face in the graph.
  * this is intended to capture the values, in the case of the face
@@ -88,6 +93,7 @@ const face_snapshot = (graph, face) => ({
 	side: graph.faces_side[face],
 	layer: graph.faces_layer[face],
 });
+
 /**
  * @description make a crease that passes through the entire origami and modify the
  * faces order to simulate one side of the faces flipped over and set on top.

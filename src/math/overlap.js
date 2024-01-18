@@ -18,6 +18,7 @@ import {
 	subtract2,
 	rotate90,
 } from "./vector.js";
+
 /**
  * @description check if a point lies collinear along a line,
  * and specify if the line is a line/ray/segment and test whether
@@ -46,6 +47,7 @@ export const overlapLinePoint = (
 	const proj = dot2(p2p, vector) / lineMagSq;
 	return Math.abs(cross) < epsilon && lineDomain(proj, epsilon / lineMag);
 };
+
 /**
  * @description Test if two lines overlap each other, generalized
  * and works for lines, rays, and segments.
@@ -98,6 +100,7 @@ export const overlapLineLine = (
 	return aDomain(t0, epsilon / magnitude2(a.vector))
 		&& bDomain(t1, epsilon / magnitude2(b.vector));
 };
+
 /**
  * @description Test if a point lies inside of a circle.
  * @param {Circle} circle a circle in radius origin form
@@ -114,6 +117,7 @@ export const overlapCirclePoint = (
 ) => (
 	circleDomain(radius - distance2(origin, point), epsilon)
 );
+
 /**
  * @description tests if a point is inside a convex polygon. Polygon is
  * expected to be counter-clockwise winding.
@@ -156,6 +160,7 @@ export const overlapConvexPolygonPointNew = (
 		.reduce((prev, curr) => prev && curr, true);
 	return { overlap, t };
 };
+
 /**
  * @description Find out if two convex polygons are overlapping by searching
  * for a dividing axis, which should be one side from one of the polygons.
@@ -196,6 +201,7 @@ export const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
 	}
 	return true;
 };
+
 /**
  * @description Test if two axis-aligned bounding boxes overlap each other.
  * By default, the boundaries are treated as inclusive.
@@ -217,6 +223,7 @@ export const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
 	}
 	return true;
 };
+
 /**
  * @param {Segment} segment a segment, an array of two points
  * @param {Box} box an axis-aligned bounding box

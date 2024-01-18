@@ -18,6 +18,7 @@ import {
 	getDimensionQuick,
 } from "../fold/spec.js";
 import { makeFacesConvexCenter } from "./make.js";
+
 /**
  * @description Iterate through all vertices in a graph and find the one nearest to a
  * provided point. This is the only of the "nearest" graph operations that works in 3D.
@@ -41,6 +42,7 @@ export const nearestVertex = ({ vertices_coords }, point) => {
 	// return index, not vertex
 	return nearest ? nearest.i : undefined;
 };
+
 /**
  * @description Iterate through all edges in a graph and find the one nearest to a provided point.
  * @param {FOLD} graph a FOLD graph
@@ -60,6 +62,7 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 		));
 	return arrayMinimum(nearest_points, p => distance(p, point));
 };
+
 /**
  *
  */
@@ -74,6 +77,7 @@ export const facesContainingPoint = (
 		.filter(f => overlapConvexPolygonPoint(f.face, point, polyFunc))
 		.map(el => el.i)
 );
+
 /**
  * @description Iterate through all faces in a graph and find one that encloses a point.
  * This method assumes the graph is in 2D, it ignores any z components.
@@ -86,6 +90,7 @@ export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) 
 	const faces = facesContainingPoint({ vertices_coords, faces_vertices }, point);
 	return faces.length ? faces.shift() : undefined;
 };
+
 /**
  * @description Iterate through all faces in a graph and find one nearest to a point.
  * This method assumes the graph is in 2D, it ignores any z components.
@@ -119,6 +124,7 @@ export const nearestFace = (graph, point) => {
 	}
 	return undefined;
 };
+
 /**
  * @description Return an object which contains information regarding
  * vertices, edges, and faces, which indices are closest to the provided point.
@@ -149,6 +155,7 @@ export const nearest = (graph, ...args) => {
 	});
 	return nears;
 };
+
 /**
  * @todo this needs testing: does the cache cause a memory leak after many repeated calls?
  */

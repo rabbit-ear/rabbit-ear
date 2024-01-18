@@ -27,6 +27,7 @@ const LayerPrototype = {
 	count: function () {
 		return this.branches.map(arr => arr.length);
 	},
+
 	/**
 	 * @description Generate a FOLD-spec faceOrders array, which
 	 * is an array of relationships between pairs of faces, [A, B],
@@ -43,6 +44,7 @@ const LayerPrototype = {
 			this.faces_winding,
 		);
 	},
+
 	/**
 	 * @description Get one complete layer solution by merging the
 	 * root solution with one state from each branch.
@@ -55,6 +57,7 @@ const LayerPrototype = {
 	facesLayer: function (...indices) {
 		return invertMap(this.linearize(...indices).reverse());
 	},
+
 	/**
 	 * @description The solution is not yet compiled, there are branches,
 	 * one of which needs to be selected and merged to create a final solution.
@@ -78,6 +81,7 @@ const LayerPrototype = {
 		// merge the root with all branches (one state from each branch)
 		return Object.assign({}, this.root, ...branchesSolution);
 	},
+
 	/**
 	 * @description create an array of face pairs where, for every pair,
 	 * the first face is above the second.
@@ -93,6 +97,7 @@ const LayerPrototype = {
 				: pair.split(" ").reverse()))
 			.map(pair => pair.map(n => parseInt(n, 10)));
 	},
+
 	/**
 	 * @description Create a topological sorting of all faces involved
 	 * in the solution. The first face in the array is "above" all others.
@@ -103,6 +108,7 @@ const LayerPrototype = {
 	linearize: function (...indices) {
 		return topologicalSort(this.directedPairs(...indices));
 	},
+
 	/**
 	 *
 	 */
@@ -110,6 +116,7 @@ const LayerPrototype = {
 		return makePermutations(this.count())
 			.map(count => this.compile(...count));
 	},
+
 	allFacesLayers: function () {
 		return makePermutations(this.count())
 			.map(count => this.facesLayer(...count));

@@ -12,6 +12,7 @@ import {
 	filterKeysWithPrefix,
 	getDimensionQuick,
 } from "../fold/spec.js";
+
 /**
  * @description Join two planar graphs, creating new vertices, edges, faces.
  */
@@ -52,6 +53,7 @@ import {
 // 	}
 // 	return source_duplicates;
 // };
+
 /**
  * @description updateSuffixes
  * @param {object} FOLD graph
@@ -64,6 +66,7 @@ import {
 // 		.forEach(key => source[key]
 // 			.forEach((arr, i) => arr
 // 				.forEach((el, j) => { source[key][i][j] = maps[geom][el]; }))));
+
 /**
  * @description join graphs
  */
@@ -111,6 +114,7 @@ import {
 // 	})));
 // 	return maps;
 // };
+
 /**
  * @description Join two graphs into one. The result will be written into
  * the first parameter, the "target". All source components will be

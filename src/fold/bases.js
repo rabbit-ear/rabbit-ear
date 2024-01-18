@@ -174,7 +174,7 @@ export const windmill = () => populate({
  * @description todo: I don't know what the name of this base is.
  * @returns {FOLD} a FOLD object
  */
-export const base1 = () => populate({
+export const squareFish = () => populate({
 	vertices_coords: [
 		[0, 0], [2 - Math.SQRT2, 0], [1, 0], [0, 1], [0, 2 - Math.SQRT2],
 		[0.5, 0.5], [Math.SQRT1_2, Math.SQRT1_2], [1, 1],

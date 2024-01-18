@@ -17,6 +17,7 @@ import {
 	flip,
 } from "./vector.js";
 import { overlapConvexPolygonPoint } from "./overlap.js";
+
 /**
  * @description Clip an infinite line inside a bounding box
  * and return either:
@@ -92,6 +93,7 @@ const getMinMax = (numbers, func, scaled_epsilon) => {
 	if (a >= b) { return undefined; }
 	return [numbers[a], numbers[b]];
 };
+
 /**
  * @description find the overlap between one line and one convex polygon and
  * clip the line into a segment (two endpoints) or return undefined if no overlap.
@@ -138,6 +140,7 @@ export const clipLineConvexPolygon = (
 		? ends_clip.map(t => linePointFromParameter(vector, origin, t))
 		: undefined;
 };
+
 /**
  * @description Clip two 2D polygons and return their union. This works
  * for non-convex poylgons, but both polygons must have counter-clockwise

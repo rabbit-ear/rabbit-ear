@@ -24,6 +24,7 @@ import {
 import { getFaceFaceSharedVertices } from "../faces/general.js";
 import { minimumSpanningTrees } from "../trees.js";
 import { makeFacesMatrix } from "../faces/matrix.js";
+
 /**
  * @description Fold a graph along its edges and return the position
  * of the folded vertices. This method works in both 2D and 3D
@@ -59,6 +60,7 @@ export const makeVerticesCoordsFolded = ({
 		.map(coord => resize(3, coord))
 		.map((coord, i) => multiplyMatrix3Vector3(vertices_matrix[i], coord));
 };
+
 /**
  * @description Fold a graph along its edges and return the position of the folded
  * vertices. this method works for 2D only (no z value).
@@ -136,6 +138,7 @@ export const makeVerticesCoordsFlatFolded = ({
 	});
 	return vertices_coords_folded;
 };
+
 /**
  *
  */

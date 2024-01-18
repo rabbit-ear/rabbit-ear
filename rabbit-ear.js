@@ -649,6 +649,22 @@ const filterKeysWithSuffix = (obj, suffix) => filterKeys(
 	obj,
 	s => s.substring(s.length - suffix.length - 1, s.length) === `_${suffix}`,
 );
+const getAllPrefixes = (obj) => {
+	const hash = {};
+	Object.keys(obj)
+		.filter(s => s.includes("_"))
+		.map(k => k.substring(0, k.indexOf("_")))
+		.forEach(k => { hash[k] = true; });
+	return Object.keys(hash);
+};
+const getAllSuffixes = (obj) => {
+	const hash = {};
+	Object.keys(obj)
+		.filter(s => s.includes("_"))
+		.map(k => k.substring(k.lastIndexOf("_") + 1, k.length))
+		.forEach(k => { hash[k] = true; });
+	return Object.keys(hash);
+};
 const transposeGraphArrays = (graph, geometry_key) => {
 	const matching_keys = filterKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return []; }
@@ -731,7 +747,7 @@ const getFileMetadata = (FOLD = {}) => {
 		.filter(key => FOLD[key] !== undefined)
 		.forEach(key => { metadata[key] = FOLD[key]; });
 	return metadata;
-};const foldSpecMethods=/*#__PURE__*/Object.freeze({__proto__:null,assignmentCanBeFolded,assignmentFlatFoldAngle,assignmentIsBoundary,edgeAssignmentToFoldAngle,edgeFoldAngleIsFlat,edgeFoldAngleToAssignment,edgesAssignmentNames,edgesAssignmentValues,edgesFoldAngleAreAllFlat,filterKeysWithPrefix,filterKeysWithSuffix,getDimension,getDimensionQuick,getFileMetadata,invertAssignment,invertAssignments,isFoldObject,isFoldedForm,makeEdgesIsFolded,pluralize,singularize,transposeGraphArrayAtIndex,transposeGraphArrays});const transform = function (graph, matrix) {
+};const foldSpecMethods=/*#__PURE__*/Object.freeze({__proto__:null,assignmentCanBeFolded,assignmentFlatFoldAngle,assignmentIsBoundary,edgeAssignmentToFoldAngle,edgeFoldAngleIsFlat,edgeFoldAngleToAssignment,edgesAssignmentNames,edgesAssignmentValues,edgesFoldAngleAreAllFlat,filterKeysWithPrefix,filterKeysWithSuffix,getAllPrefixes,getAllSuffixes,getDimension,getDimensionQuick,getFileMetadata,invertAssignment,invertAssignments,isFoldObject,isFoldedForm,makeEdgesIsFolded,pluralize,singularize,transposeGraphArrayAtIndex,transposeGraphArrays});const transform = function (graph, matrix) {
 	filterKeysWithSuffix(graph, "coords").forEach((key) => {
 		graph[key] = graph[key]
 			.map(v => resize(3, v))
@@ -2059,6 +2075,12 @@ const clampSegment = (dist) => {
 	if (dist > 1 + EPSILON) { return 1; }
 	return dist;
 };
+const isCollinear = (p0, p1, p2, epsilon = EPSILON) => {
+	const vectors = [[p0, p1], [p1, p2]]
+		.map(pts => subtract(pts[1], pts[0]))
+		.map(vector => normalize$1(vector));
+	return epsilonEqual(1.0, Math.abs(dot(...vectors)), epsilon);
+};
 const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
 	const similar = [p0, p2]
 		.map(p => epsilonEqualVectors(p1, p, epsilon))
@@ -2074,40 +2096,52 @@ const lerpLines = (a, b, t) => {
 	const origin = lerp(a.origin, b.origin, t);
 	return { vector, origin };
 };
-const pleat$1 = (a, b, count, epsilon = EPSILON) => {
-	const dotProd = dot(a.vector, b.vector);
+const parallelPleat = (a, b, count) => {
+	const isOpposite = dot(a.vector, b.vector) < 0;
+	const aVector = a.vector;
+	const bVector = isOpposite ? flip(b.vector) : b.vector;
+	const origins = Array
+		.from(Array(count - 1))
+		.map((_, i) => lerp(a.origin, b.origin, (i + 1) / count));
+	const pleatVectors = counterClockwiseSubsect2(aVector, bVector, count);
+	const lines = pleatVectors.map((vector, i) => ({
+		vector,
+		origin: [...origins[i]],
+	}));
+	const solution = [lines, lines];
+	solution[(isOpposite ? 0 : 1)] = [];
+	return solution;
+};
+const pleat$2 = (a, b, count, epsilon = EPSILON) => {
+	dot(a.vector, b.vector);
 	const determinant = cross2(a.vector, b.vector);
 	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
 	const t = numerator / determinant;
 	const normalized = [a.vector, b.vector].map(vec => normalize$1(vec));
+	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
+	if (isParallel) {
+		return parallelPleat(a, b, count);
+	}
 	const sides = determinant > -epsilon
 		? [[a.vector, b.vector], [flip(b.vector), a.vector]]
 		: [[b.vector, a.vector], [flip(a.vector), b.vector]];
 	const pleatVectors = sides
 		.map(pair => counterClockwiseSubsect2(pair[0], pair[1], count));
-	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
-	const intersection = isParallel
-		? undefined
-		: add2(a.origin, scale2(a.vector, t));
-	const iter = Array.from(Array(count - 1));
-	const origins = isParallel
-		? iter.map((_, i) => lerp(a.origin, b.origin, (i + 1) / count))
-		: iter.map(() => intersection);
-	const solution = pleatVectors
+	const intersection = add2(a.origin, scale2(a.vector, t));
+	const origins = Array.from(Array(count - 1)).map(() => intersection);
+	return pleatVectors
 		.map(side => side.map((vector, i) => ({
 			vector,
 			origin: [...origins[i]],
 		})));
-	if (isParallel) { solution[(dotProd > -epsilon ? 1 : 0)] = []; }
-	return solution;
 };
 const bisectLines2 = (a, b, epsilon = EPSILON) => {
-	const solution = pleat$1(a, b, 2, epsilon).map(arr => arr[0]);
+	const solution = pleat$2(a, b, 2, epsilon).map(arr => arr[0]);
 	solution.forEach((val, i) => {
 		if (val === undefined) { delete solution[i]; }
 	});
 	return solution;
-};const lineMethods=/*#__PURE__*/Object.freeze({__proto__:null,bisectLines2,clampLine,clampRay,clampSegment,collinearBetween,lerpLines,pleat:pleat$1});const nearestPoint2 = (points, point) => {
+};const lineMethods=/*#__PURE__*/Object.freeze({__proto__:null,bisectLines2,clampLine,clampRay,clampSegment,collinearBetween,isCollinear,lerpLines,pleat:pleat$2});const nearestPoint2 = (points, point) => {
 	const index = arrayMinimum(points, el => distance2(el, point));
 	return index === undefined ? undefined : points[index];
 };
@@ -2663,7 +2697,7 @@ const sweep = ({
 	const points = [vertices[0], vertex, vertices[1]]
 		.map(v => vertices_coords[v]);
 	return collinearBetween(...points, false, epsilon);
-};const verticesCollinear=/*#__PURE__*/Object.freeze({__proto__:null,isVertexCollinear});const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
+};const verticesCollinear=/*#__PURE__*/Object.freeze({__proto__:null,isVertexCollinear});const edgeToLine$1 = ({ vertices_coords, edges_vertices }, edge) => (
 	pointsToLine(
 		vertices_coords[edges_vertices[edge][0]],
 		vertices_coords[edges_vertices[edge][1]],
@@ -2742,7 +2776,7 @@ const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) =>
 		lines,
 		edges_line,
 	};
-};const edgesLines$1=/*#__PURE__*/Object.freeze({__proto__:null,edgeToLine,getEdgesLine});const getLinesIntersections = (lines, epsilon = EPSILON) => {
+};const edgesLines$1=/*#__PURE__*/Object.freeze({__proto__:null,edgeToLine:edgeToLine$1,getEdgesLine});const getLinesIntersections = (lines, epsilon = EPSILON) => {
 	const linesIntersect = lines.map(() => []);
 	for (let i = 0; i < lines.length - 1; i += 1) {
 		for (let j = i + 1; j < lines.length; j += 1) {
@@ -3486,51 +3520,74 @@ const subgraphWithVertices = (graph, vertices = []) => {
 			.map((e, i) => (e ? i : undefined))
 			.filter(a => a !== undefined),
 	});
-};const subgraphMethods=/*#__PURE__*/Object.freeze({__proto__:null,selfRelationalArraySubset,subgraph,subgraphExclusive,subgraphWithFaces,subgraphWithVertices});const validate_references = (graph) => {
-	const counts = {
-		vertices: count.vertices(graph),
-		edges: count.edges(graph),
-		faces: count.faces(graph),
-	};
-	const implied = {
-		vertices: countImplied.vertices(graph),
-		edges: countImplied.edges(graph),
-		faces: countImplied.faces(graph),
-	};
-	return {
-		vertices: counts.vertices >= implied.vertices,
-		edges: counts.edges >= implied.edges,
-		faces: counts.faces >= implied.faces,
-	};
+};const subgraphMethods=/*#__PURE__*/Object.freeze({__proto__:null,selfRelationalArraySubset,subgraph,subgraphExclusive,subgraphWithFaces,subgraphWithVertices});const intersectionOfStrings = (array1, array2) => {
+	const counts = {};
+	array1.forEach(key => { counts[key] = 1; });
+	array2.forEach(key => {
+		counts[key] = counts[key] === 1 ? 2 : 1;
+	});
+	return Object.keys(counts).filter(key => counts[key] === 2);
 };
-const validate = (graph, epsilon) => {
+const arraysHaveSameIndices = (arrays = []) => {
+	if (arrays.length < 2) { return []; }
+	const indices = {};
+	arrays[0].forEach((_, i) => { indices[i] = true; });
+	return Array.from(Array(arrays.length - 1))
+		.map((_, i) => arrays[i + 1])
+		.flatMap((arr, p) => arr
+			.map((_, i) => (indices[i] ? undefined : [0, p + 1, i]))
+			.filter(a => a !== undefined));
+};
+const validate = (graph) => {
+	const allPrefixes = getAllPrefixes(graph)
+		.filter(key => key !== "file" && key !== "frame");
+	const allSuffixes = getAllSuffixes(graph);
+	const prefixKeys = allPrefixes
+		.map(prefix => filterKeysWithPrefix(graph, prefix));
+	const prefixTestErrors = prefixKeys
+		.map(keys => keys
+			.map(key => graph[key])
+			.filter(arr => arr.constructor === Array))
+		.map(arraysHaveSameIndices)
+		.flatMap((prefixErrors, p) => prefixErrors
+			.map(err => [prefixKeys[p][err[0]], prefixKeys[p][err[1]], err[2]]))
+		.map(([a, b, i]) => `array indices differ ${a}, ${b} at index ${i}`);
+	const referenceErrors = intersectionOfStrings(allPrefixes, allSuffixes)
+		.flatMap(match => {
+			const prefixArrayKeys = prefixKeys[allPrefixes.indexOf(match)];
+			const prefixArray = graph[prefixArrayKeys[0]];
+			return filterKeysWithSuffix(graph, match)
+				.flatMap(key => graph[key]
+					.flatMap((arr, i) => arr
+						.map((index, j) => (index === null
+							|| index === undefined
+							|| prefixArray[index] !== undefined
+							? undefined
+							: `${key}[${i}][${j}] references ${match} ${index}, missing in ${prefixArrayKeys[0]}`))
+						.filter(a => a !== undefined)));
+		});
+	return prefixTestErrors.concat(referenceErrors);
+};
+const validateComprehensive = (graph, epsilon) => {
+	const errors = validate(graph);
 	const duplicate_edges = duplicateEdges(graph);
 	const circular_edges = circularEdges(graph);
 	const isolated_vertices = isolatedVertices(graph);
 	const duplicate_vertices = duplicateVertices(graph, epsilon);
-	const references = validate_references(graph);
-	const is_perfect = duplicate_edges.length === 0
-		&& circular_edges.length === 0
-		&& isolated_vertices.length === 0
-		&& references.vertices && references.edges && references.faces;
-	const summary = is_perfect ? "valid" : "problematic";
-	return {
-		summary,
-		vertices: {
-			isolated: isolated_vertices,
-			duplicate: duplicate_vertices,
-			references: references.vertices,
-		},
-		edges: {
-			circular: circular_edges,
-			duplicate: duplicate_edges,
-			references: references.edges,
-		},
-		faces: {
-			references: references.faces,
-		},
-	};
-};const connectedComponents = (array_array) => {
+	if (circular_edges.length !== 0) {
+		errors.push(`contains circular edges: ${circular_edges.join(", ")}`);
+	}
+	if (isolated_vertices.length !== 0) {
+		errors.push(`contains isolated vertices: ${isolated_vertices.join(", ")}`);
+	}
+	if (duplicate_edges.length !== 0) {
+		errors.push("contains duplicate edges");
+	}
+	if (duplicate_vertices.length !== 0) {
+		errors.push(`contains duplicate vertices`);
+	}
+	return errors;
+};const validate$1=/*#__PURE__*/Object.freeze({__proto__:null,validate,validateComprehensive});const connectedComponents = (array_array) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -6491,7 +6548,6 @@ Graph.prototype = Object.create(Object.prototype);
 Graph.prototype.constructor = Graph;
 Object.entries({
 	clean,
-	validate,
 	populate,
 	subgraph,
 	boundary,
@@ -6504,6 +6560,7 @@ Object.entries({
 	obj: foldToObj,
 	...explodeMethods,
 	...transform$1,
+	...validate$1,
 }).forEach(([key, value]) => {
 	Graph.prototype[key] = function () {
 		return value(this, ...arguments);
@@ -6796,7 +6853,7 @@ const getEdgesLineIntersection = ({
 			includeL,
 			epsilon,
 		);
-	});const intersectEdges=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesCollinearToLine,getEdgesLineIntersection,getEdgesRectOverlap,getEdgesSegmentIntersection});const addVertices = (graph, vertices_coords, epsilon = EPSILON) => {
+	});const intersectEdges=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesCollinearToLine,getEdgesLineIntersection,getEdgesRectOverlap,getEdgesSegmentIntersection});const addVertices$1 = (graph, vertices_coords, epsilon = EPSILON) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }
 	if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
 	const vertices_equivalent_vertices = vertices_coords
@@ -6811,7 +6868,8 @@ const getEdgesLineIntersection = ({
 	graph.vertices_coords.push(...unique_vertices);
 	return vertices_equivalent_vertices
 		.map(el => (el === undefined ? index++ : el));
-};const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
+};
+const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	const unfiltered_segment_edges_vertices = Array
 		.from(Array(segment_vertices.length - 1))
 		.map((_, i) => [segment_vertices[i], segment_vertices[i + 1]]);
@@ -6890,7 +6948,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = EPSILON) => {
 		.reverse()
 		.map(edge => splitEdge(graph, edge, intersections[edge], epsilon));
 	const splitEdge_vertices = splitEdge_results.map(el => el.vertex);
-	const endpoint_vertices = addVertices(graph, segment, epsilon);
+	const endpoint_vertices = addVertices$1(graph, segment, epsilon);
 	const new_vertex_hash = {};
 	splitEdge_vertices.forEach(v => { new_vertex_hash[v] = true; });
 	endpoint_vertices.forEach(v => { new_vertex_hash[v] = true; });
@@ -7273,7 +7331,7 @@ CP.prototype.removeEdge = function (edge) {
 	return true;
 };
 CP.prototype.validate = function (epsilon) {
-	const valid = validate(this, epsilon);
+	const valid = validate(this);
 	valid.vertices.kawasaki = validateKawasaki(this, epsilon);
 	valid.vertices.maekawa = validateMaekawa(this);
 	if (this.edges_foldAngle) {
@@ -7570,7 +7628,7 @@ const windmill = () => populate({
 	edges_assignment: Array
 		.from("BBBBBBBBVFFVFVVFFVVFMFMFMFFFFFFFFFVFFVFVVFFVVFBBBBBBBBMF"),
 });
-const base1 = () => populate({
+const squareFish = () => populate({
 	vertices_coords: [
 		[0, 0], [2 - Math.SQRT2, 0], [1, 0], [0, 1], [0, 2 - Math.SQRT2],
 		[0.5, 0.5], [Math.SQRT1_2, Math.SQRT1_2], [1, 1],
@@ -7585,7 +7643,7 @@ const base1 = () => populate({
 		[6, 9], [2, 9], [9, 13], [13, 7],
 	],
 	edges_assignment: Array.from("BBBBFFFVFVFMMVVVFFVVVBBBMMBBB"),
-});const bases=/*#__PURE__*/Object.freeze({__proto__:null,base1,bird,fish,frog,kite,polygon,rectangle,square,windmill});const graph = (...args) => populate(
+});const bases=/*#__PURE__*/Object.freeze({__proto__:null,bird,fish,frog,kite,polygon,rectangle,square,squareFish,windmill});const graph = (...args) => populate(
 	Object.assign(Object.create(graphProto), {
 		...args.reduce((a, b) => ({ ...a, ...b }), ({})),
 		file_spec,
@@ -8732,7 +8790,43 @@ const intersectGraphSegment = (graph, segment, epsilon = EPSILON) => (
 		: [];
 	target2DVertices.forEach(v => { target.vertices_coords[v][2] = 0; });
 	return summary;
-};const join$1=/*#__PURE__*/Object.freeze({__proto__:null,join});const pleat=/*#__PURE__*/Object.freeze({__proto__:null});const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
+};const join$1=/*#__PURE__*/Object.freeze({__proto__:null,join});const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
+	pointsToLine(...edges_vertices[edge].map(v => vertices_coords[v]))
+);
+const pleat = (
+	{ vertices_coords, edges_vertices },
+	edgeA,
+	edgeB,
+	count,
+	epsilon = EPSILON,
+) => {
+	const lineA = edgeToLine({ vertices_coords, edges_vertices }, edgeA);
+	const lineB = edgeToLine({ vertices_coords, edges_vertices }, edgeB);
+	const lineGroups = pleat$2(lineA, lineB, count, epsilon);
+	const edges_lines = makeEdgesVector({ vertices_coords, edges_vertices })
+		.map((vector, i) => ({
+			vector,
+			origin: vertices_coords[edges_vertices[i][0]],
+		}));
+	const segments = lineGroups.map(lines => lines.map(line => {
+		const dots = edges_lines.map(edgeLine => intersectLineLine(
+			line,
+			edgeLine,
+			includeL,
+			includeS,
+			epsilon,
+		).a).filter(a => a !== undefined);
+		const min = Math.min(...dots);
+		const max = Math.max(...dots);
+		return Math.abs(max - min) < epsilon
+			? undefined
+			: [
+				add2(line.origin, scale2(line.vector, min)),
+				add2(line.origin, scale2(line.vector, max)),
+			];
+	}).filter(a => a !== undefined));
+	return segments;
+};const pleat$1=/*#__PURE__*/Object.freeze({__proto__:null,pleat});const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
 	makeEdgesBoundingBox(graph, epsilon)
 		.map(min_max => graph.vertices_coords
 			.map(vert => (
@@ -8918,8 +9012,15 @@ const circumcircle = (a, b, c) => {
 	};
 };const triangle=/*#__PURE__*/Object.freeze({__proto__:null,circumcircle,trilateration});const transferPointBetweenGraphs = (from, to, face, point) => {
 	const faceVertices = from.faces_vertices[face];
-	const fromPoly = faceVertices.map(v => from.vertices_coords[v]);
-	const toPoly = faceVertices.map(v => to.vertices_coords[v]);
+	if (faceVertices.length < 3) { return point; }
+	let fromPoly = faceVertices.map(v => from.vertices_coords[v]);
+	let toPoly = faceVertices.map(v => to.vertices_coords[v]);
+	if (isCollinear(fromPoly[0], fromPoly[1], fromPoly[2])) {
+		fromPoly = makePolygonNonCollinear(fromPoly);
+	}
+	if (isCollinear(toPoly[0], toPoly[1], toPoly[2])) {
+		toPoly = makePolygonNonCollinear(toPoly);
+	}
 	const distances = fromPoly.map(p => distance2(p, point));
 	return trilateration(toPoly, distances);
 };
@@ -9193,16 +9294,16 @@ const makeLookAtMatrix4 = (position, target, up) => {
 	q[3] += magnitude(q);
 	return normalize$1(q);
 };
-const matrix4FromQuaternion = (quaternion) => multiplyMatrices4([
-	quaternion[3], quaternion[2], -quaternion[1], quaternion[0],
-	-quaternion[2], quaternion[3], quaternion[0], quaternion[1],
-	quaternion[1], -quaternion[0], quaternion[3], quaternion[2],
-	-quaternion[0], -quaternion[1], -quaternion[2], quaternion[3],
+const matrix4FromQuaternion = (q) => multiplyMatrices4([
+	+q[3], +q[2], -q[1], +q[0],
+	-q[2], +q[3], +q[0], +q[1],
+	+q[1], -q[0], +q[3], +q[2],
+	-q[0], -q[1], -q[2], +q[3],
 ], [
-	quaternion[3], quaternion[2], -quaternion[1], -quaternion[0],
-	-quaternion[2], quaternion[3], quaternion[0], -quaternion[1],
-	quaternion[1], -quaternion[0], quaternion[3], -quaternion[2],
-	quaternion[0], quaternion[1], quaternion[2], quaternion[3],
+	+q[3], +q[2], -q[1], -q[0],
+	-q[2], +q[3], +q[0], -q[1],
+	+q[1], -q[0], +q[3], -q[2],
+	+q[0], +q[1], +q[2], +q[3],
 ]);const quaternion=/*#__PURE__*/Object.freeze({__proto__:null,matrix4FromQuaternion,quaternionFromTwoVectors});const coplanarFacesGroups = ({
 	vertices_coords, faces_vertices,
 }, epsilon = EPSILON) => {
@@ -9584,6 +9685,18 @@ const getEdgesFacesOverlap = ({
 		.forEach(key => { graph[key][index] = []; });
 	graph.vertices_coords[index] = coords;
 	return index;
+};const addVertices = (graph, vertices_coords = []) => {
+	if (!graph.vertices_coords) {
+		graph.vertices_coords = [];
+	}
+	const index = graph.vertices_coords.length;
+	filterKeysWithPrefix(graph, "vertices").forEach(key => {
+		vertices_coords.forEach((_, i) => { graph[key][index + i] = []; });
+	});
+	vertices_coords.forEach((coords, i) => {
+		graph.vertices_coords[index + i] = coords;
+	});
+	return vertices_coords.map((_, i) => index + i);
 };const addNonPlanarEdge = (graph, vertices) => {
 	if (vertices.length !== 2) { return undefined; }
 	if (!graph.edges_vertices) {
@@ -9773,7 +9886,6 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 };const graphMethods = {
 	count,
 	countImplied,
-	validate,
 	clean,
 	populate,
 	remove: removeGeometryIndices,
@@ -9786,6 +9898,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	normalize,
 	repeatFold: repeatFoldLine,
 	addVertex,
+	addVertices,
 	addNonPlanarEdge,
 	addPlanarLine,
 	addPlanarSegment,
@@ -9807,7 +9920,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...nearestMethods,
 	...normals,
 	...orders,
-	...pleat,
+	...pleat$1,
 	...span,
 	...split$1,
 	...subgraphMethods,
@@ -9820,6 +9933,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...trees,
 	...triangulateMethods,
 	...walk,
+	...validate$1,
 	...verticesClusters,
 	...verticesCollinear,
 	...verticesDuplicate,

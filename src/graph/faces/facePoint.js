@@ -11,6 +11,45 @@ import {
 } from "../../math/vector.js";
 import { overlapConvexPolygonPoint } from "../../math/overlap.js";
 import { facesContainingPoint } from "../nearest.js";
+
+/**
+ *
+ */
+export const getFacesContainingPoint = (
+	{ vertices_coords, faces_vertices },
+	point,
+	vector,
+) => {
+	const facesInclusive = facesContainingPoint(
+		{ vertices_coords, faces_vertices },
+		point,
+		include,
+	);
+	switch (facesInclusive.length) {
+	case 0: return undefined;
+	case 1: return facesInclusive[0];
+	default: break;
+	}
+	// if user did not supply a vector, return the list of faces.
+	if (!vector) { return facesInclusive; }
+	// continue search by nudging point.
+	const nudgePoint = add2(point, scale2(vector, 1e-2));
+	const polygons = facesInclusive
+		.map(face => faces_vertices[face]
+			.map(v => vertices_coords[v]));
+	const facesExclusive = facesInclusive
+		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, exclude));
+	if (facesExclusive.length === facesInclusive.length) {
+		return facesInclusive;
+	}
+	if (facesExclusive.length) {
+		return facesExclusive;
+	}
+	const facesInclusiveNudge = facesInclusive
+		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, include));
+	return facesInclusiveNudge.length ? facesInclusiveNudge : facesInclusive;
+};
+
 /**
  * @description Given a point, get the index of a face that this point
  * exists within. In the case when the point lies along an edge or

@@ -313,8 +313,8 @@ export const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_ve
 			.map((vert, i, arr) => [arr[(i + 1) % arr.length], v, vert]
 				.join(" ")))
 		.map(keys => keys
+			// .filter(key => face_map[key] !== undefined) // removed. read below.
 			.map(key => face_map[key]));
-	// .filter(a => a !== undefined) // removed. read below.
 };
 // the old version of this method contained a filter to remove "undefined".
 // because in the case of a boundary vertex of a closed polygon shape, there

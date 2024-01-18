@@ -29,6 +29,7 @@ import * as transform from "./transform.js";
 import * as trees from "./trees.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
+import * as validate from "./validate.js";
 import * as verticesClusters from "./vertices/clusters.js";
 import * as verticesCollinear from "./vertices/collinear.js";
 import * as verticesDuplicate from "./vertices/duplicate.js";
@@ -50,9 +51,9 @@ import * as intersectEdgesEdges from "./intersect/edgesEdges.js";
 import * as intersectEdgesFaces from "./intersect/edgesFaces.js";
 import * as intersectFaces from "./intersect/faces.js";
 import * as intersectFacesFaces from "./intersect/facesFaces.js";
-// import addVertices from "./add/addVertices.js";
 // import addEdges from "./add/addEdges.js";
 import addVertex from "./add/addVertex.js";
+import addVertices from "./add/addVertices.js";
 import addNonPlanarEdge from "./add/addNonPlanarEdge.js";
 import addPlanarLine from "./add/addPlanarLine.js";
 import addPlanarSegment from "./add/addPlanarSegment.js";
@@ -72,7 +73,6 @@ import removePlanarVertex from "./remove/removePlanarVertex.js";
 import removePlanarEdge from "./remove/removePlanarEdge.js";
 import splitEdge from "./splitEdge/index.js";
 import splitFace from "./splitFace/index.js";
-import validate from "./validate.js";
 // import addVertices_splitEdges from "./add/addVertices_splitEdges.js";
 // not included because the Graph object places them in the same location
 // import * as foldBases from "../fold/bases.js";
@@ -80,7 +80,6 @@ import validate from "./validate.js";
 export default {
 	count,
 	countImplied,
-	validate,
 	clean,
 	populate,
 	remove,
@@ -95,6 +94,7 @@ export default {
 	normalize,
 	repeatFold,
 	addVertex,
+	addVertices,
 	addNonPlanarEdge,
 	addPlanarLine,
 	addPlanarSegment,
@@ -129,6 +129,7 @@ export default {
 	...trees,
 	...triangulateMethods,
 	...walk,
+	...validate,
 	...verticesClusters,
 	...verticesCollinear,
 	...verticesDuplicate,
