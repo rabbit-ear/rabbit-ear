@@ -17,7 +17,7 @@ test("faces winding, flat cp", () => {
 });
 
 test("faces winding, folded", () => {
-	const folded = ear.origami(crane).folded();
+	const folded = ear.graph(crane).folded();
 	const windings = ear.graph.makeFacesWinding(folded);
 	const up = windings.filter(a => a === true).length;
 	const down = windings.filter(a => a === false).length;

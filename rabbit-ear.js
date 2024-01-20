@@ -33,7 +33,124 @@ const RabbitEarWindow = () => {
 		throw new Error(Messages$1.window);
 	}
 	return windowContainer.window;
-};const EPSILON = 1e-6;
+};const isIterable = (obj) => obj != null
+	&& typeof obj[Symbol.iterator] === "function";
+const semiFlattenArrays = function () {
+	switch (arguments.length) {
+	case 0: return Array.from(arguments);
+	case 1: return isIterable(arguments[0]) && typeof arguments[0] !== "string"
+		? semiFlattenArrays(...arguments[0])
+		: [arguments[0]];
+	default:
+		return Array.from(arguments).map(a => (isIterable(a)
+			? [...semiFlattenArrays(a)]
+			: a));
+	}
+};
+const flattenArrays = function () {
+	switch (arguments.length) {
+	case 0: return Array.from(arguments);
+	case 1: return isIterable(arguments[0]) && typeof arguments[0] !== "string"
+		? flattenArrays(...arguments[0])
+		: [arguments[0]];
+	default:
+		return Array.from(arguments).map(a => (isIterable(a)
+			? [...flattenArrays(a)]
+			: a)).flat();
+	}
+};
+const getVector = function () {
+	let list = flattenArrays(arguments);
+	const a = list[0];
+	if (typeof a === "object" && a !== null && !Number.isNaN(a.x)) {
+		list = ["x", "y", "z"].map(c => a[c]).filter(b => b !== undefined);
+	}
+	return list.filter(n => typeof n === "number");
+};
+const getArrayOfVectors = function () {
+	return semiFlattenArrays(arguments).map(el => getVector(el));
+};
+const getSegment = function () {
+	const args = semiFlattenArrays(arguments);
+	return args.length === 4
+		? [[0, 1], [2, 3]].map(s => s.map(i => args[i]))
+		: args.map(el => getVector(el));
+};
+const vectorOriginForm = (vector, origin = []) => ({ vector, origin });
+const getLine$1 = function () {
+	const args = semiFlattenArrays(arguments);
+	if (args.length === 0 || args[0] == null) { return vectorOriginForm([], []); }
+	if (args[0].constructor === Object && args[0].vector !== undefined) {
+		return vectorOriginForm(args[0].vector, args[0].origin || []);
+	}
+	return typeof args[0] === "number"
+		? vectorOriginForm(getVector(args))
+		: vectorOriginForm(...args.map(a => getVector(a)));
+};const getMethods=/*#__PURE__*/Object.freeze({__proto__:null,getArrayOfVectors,getLine:getLine$1,getSegment,getVector});const foldKeys = {
+	file: [
+		"file_spec",
+		"file_creator",
+		"file_author",
+		"file_title",
+		"file_description",
+		"file_classes",
+		"file_frames",
+	],
+	frame: [
+		"frame_author",
+		"frame_title",
+		"frame_description",
+		"frame_attributes",
+		"frame_classes",
+		"frame_unit",
+		"frame_parent",
+		"frame_inherit",
+	],
+	graph: [
+		"vertices_coords",
+		"vertices_vertices",
+		"vertices_faces",
+		"edges_vertices",
+		"edges_faces",
+		"edges_assignment",
+		"edges_foldAngle",
+		"edges_length",
+		"faces_vertices",
+		"faces_edges",
+		"vertices_edges",
+		"edges_edges",
+		"faces_faces",
+	],
+	orders: [
+		"edgeOrders",
+		"faceOrders",
+	],
+};
+const foldFileClasses = [
+	"singleModel",
+	"multiModel",
+	"animation",
+	"diagrams",
+];
+const foldFrameClasses = [
+	"creasePattern",
+	"foldedForm",
+	"graph",
+	"linkage",
+];
+const foldFrameAttributes = [
+	"2D",
+	"3D",
+	"abstract",
+	"manifold",
+	"nonManifold",
+	"orientable",
+	"nonOrientable",
+	"selfTouching",
+	"nonSelfTouching",
+	"selfIntersecting",
+	"nonSelfIntersecting",
+];const foldKeyMethods=/*#__PURE__*/Object.freeze({__proto__:null,foldFileClasses,foldFrameAttributes,foldFrameClasses,foldKeys});const EPSILON = 1e-6;
 const R2D = 180 / Math.PI;
 const D2R = Math.PI / 180;
 const TWO_PI = Math.PI * 2;const constant=/*#__PURE__*/Object.freeze({__proto__:null,D2R,EPSILON,R2D,TWO_PI});const safeAdd = (a, b) => a + (b || 0);
@@ -352,60 +469,7 @@ const makeMatrix3UniformScale = (scale = 1, origin = [0, 0, 0]) => (
 const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {
 	const m = makeMatrix2Reflect(vector, origin);
 	return [m[0], m[1], 0, m[2], m[3], 0, 0, 0, 1, m[4], m[5], 0];
-};const matrix3=/*#__PURE__*/Object.freeze({__proto__:null,determinant3,identity3x3,identity3x4,invertMatrix3,isIdentity3x4,makeMatrix3ReflectZ,makeMatrix3Rotate,makeMatrix3RotateX,makeMatrix3RotateY,makeMatrix3RotateZ,makeMatrix3Scale,makeMatrix3Translate,makeMatrix3UniformScale,multiplyMatrices3,multiplyMatrix3Line3,multiplyMatrix3Vector3});const isIterable = (obj) => obj != null
-	&& typeof obj[Symbol.iterator] === "function";
-const semiFlattenArrays = function () {
-	switch (arguments.length) {
-	case 0: return Array.from(arguments);
-	case 1: return isIterable(arguments[0]) && typeof arguments[0] !== "string"
-		? semiFlattenArrays(...arguments[0])
-		: [arguments[0]];
-	default:
-		return Array.from(arguments).map(a => (isIterable(a)
-			? [...semiFlattenArrays(a)]
-			: a));
-	}
-};
-const flattenArrays = function () {
-	switch (arguments.length) {
-	case 0: return Array.from(arguments);
-	case 1: return isIterable(arguments[0]) && typeof arguments[0] !== "string"
-		? flattenArrays(...arguments[0])
-		: [arguments[0]];
-	default:
-		return Array.from(arguments).map(a => (isIterable(a)
-			? [...flattenArrays(a)]
-			: a)).flat();
-	}
-};
-const getVector = function () {
-	let list = flattenArrays(arguments);
-	const a = list[0];
-	if (typeof a === "object" && a !== null && !Number.isNaN(a.x)) {
-		list = ["x", "y", "z"].map(c => a[c]).filter(b => b !== undefined);
-	}
-	return list.filter(n => typeof n === "number");
-};
-const getArrayOfVectors = function () {
-	return semiFlattenArrays(arguments).map(el => getVector(el));
-};
-const getSegment = function () {
-	const args = semiFlattenArrays(arguments);
-	return args.length === 4
-		? [[0, 1], [2, 3]].map(s => s.map(i => args[i]))
-		: args.map(el => getVector(el));
-};
-const vectorOriginForm = (vector, origin = []) => ({ vector, origin });
-const getLine$1 = function () {
-	const args = semiFlattenArrays(arguments);
-	if (args.length === 0 || args[0] == null) { return vectorOriginForm([], []); }
-	if (args[0].constructor === Object && args[0].vector !== undefined) {
-		return vectorOriginForm(args[0].vector, args[0].origin || []);
-	}
-	return typeof args[0] === "number"
-		? vectorOriginForm(getVector(args))
-		: vectorOriginForm(...args.map(a => getVector(a)));
-};const getMethods=/*#__PURE__*/Object.freeze({__proto__:null,getArrayOfVectors,getLine:getLine$1,getSegment,getVector});const angleArray = count => Array
+};const matrix3=/*#__PURE__*/Object.freeze({__proto__:null,determinant3,identity3x3,identity3x4,invertMatrix3,isIdentity3x4,makeMatrix3ReflectZ,makeMatrix3Rotate,makeMatrix3RotateX,makeMatrix3RotateY,makeMatrix3RotateZ,makeMatrix3Scale,makeMatrix3Translate,makeMatrix3UniformScale,multiplyMatrices3,multiplyMatrix3Line3,multiplyMatrix3Vector3});const angleArray = count => Array
 	.from(Array(Math.floor(count)))
 	.map((_, i) => TWO_PI * (i / count));
 const anglesToVecs = (angles, radius) => angles
@@ -485,71 +549,7 @@ const excludeL = () => true;
 const includeR = include;
 const excludeR = exclude;
 const includeS = (n, e = EPSILON) => n > -e && n < 1 + e;
-const excludeS = (n, e = EPSILON) => n > e && n < 1 - e;const compare=/*#__PURE__*/Object.freeze({__proto__:null,epsilonCompare,epsilonEqual,epsilonEqualVectors,exclude,excludeL,excludeR,excludeS,include,includeL,includeR,includeS});const foldKeys = {
-	file: [
-		"file_spec",
-		"file_creator",
-		"file_author",
-		"file_title",
-		"file_description",
-		"file_classes",
-		"file_frames",
-	],
-	frame: [
-		"frame_author",
-		"frame_title",
-		"frame_description",
-		"frame_attributes",
-		"frame_classes",
-		"frame_unit",
-		"frame_parent",
-		"frame_inherit",
-	],
-	graph: [
-		"vertices_coords",
-		"vertices_vertices",
-		"vertices_faces",
-		"edges_vertices",
-		"edges_faces",
-		"edges_assignment",
-		"edges_foldAngle",
-		"edges_length",
-		"faces_vertices",
-		"faces_edges",
-		"vertices_edges",
-		"edges_edges",
-		"faces_faces",
-	],
-	orders: [
-		"edgeOrders",
-		"faceOrders",
-	],
-};
-const foldFileClasses = [
-	"singleModel",
-	"multiModel",
-	"animation",
-	"diagrams",
-];
-const foldFrameClasses = [
-	"creasePattern",
-	"foldedForm",
-	"graph",
-	"linkage",
-];
-const foldFrameAttributes = [
-	"2D",
-	"3D",
-	"abstract",
-	"manifold",
-	"nonManifold",
-	"orientable",
-	"nonOrientable",
-	"selfTouching",
-	"nonSelfTouching",
-	"selfIntersecting",
-	"nonSelfIntersecting",
-];const foldKeyMethods=/*#__PURE__*/Object.freeze({__proto__:null,foldFileClasses,foldFrameAttributes,foldFrameClasses,foldKeys});const singularize = {
+const excludeS = (n, e = EPSILON) => n > e && n < 1 - e;const compare=/*#__PURE__*/Object.freeze({__proto__:null,epsilonCompare,epsilonEqual,epsilonEqualVectors,exclude,excludeL,excludeR,excludeS,include,includeL,includeR,includeS});const singularize = {
 	vertices: "vertex",
 	edges: "edge",
 	faces: "face",
@@ -2103,8 +2103,10 @@ const parallelPleat = (a, b, count) => {
 	const origins = Array
 		.from(Array(count - 1))
 		.map((_, i) => lerp(a.origin, b.origin, (i + 1) / count));
-	const pleatVectors = counterClockwiseSubsect2(aVector, bVector, count);
-	const lines = pleatVectors.map((vector, i) => ({
+	const vectors = Array
+		.from(Array(count - 1))
+		.map((_, i) => lerp(aVector, bVector, (i + 1) / count));
+	const lines = vectors.map((vector, i) => ({
 		vector,
 		origin: [...origins[i]],
 	}));
@@ -2113,7 +2115,6 @@ const parallelPleat = (a, b, count) => {
 	return solution;
 };
 const pleat$2 = (a, b, count, epsilon = EPSILON) => {
-	dot(a.vector, b.vector);
 	const determinant = cross2(a.vector, b.vector);
 	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
 	const t = numerator / determinant;
@@ -3587,7 +3588,410 @@ const validateComprehensive = (graph, epsilon) => {
 		errors.push(`contains duplicate vertices`);
 	}
 	return errors;
-};const validate$1=/*#__PURE__*/Object.freeze({__proto__:null,validate,validateComprehensive});const connectedComponents = (array_array) => {
+};const validate$1=/*#__PURE__*/Object.freeze({__proto__:null,validate,validateComprehensive});const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
+	const hash = {};
+	face_b_vertices.forEach((v) => { hash[v] = true; });
+	const match = face_a_vertices.map(v => !!hash[v]);
+	const shared_vertices = [];
+	const notShared = match.indexOf(false);
+	const already_added = {};
+	for (let i = notShared + 1; i < match.length; i += 1) {
+		if (match[i] && !already_added[face_a_vertices[i]]) {
+			shared_vertices.push(face_a_vertices[i]);
+			already_added[face_a_vertices[i]] = true;
+		}
+	}
+	for (let i = 0; i < notShared; i += 1) {
+		if (match[i] && !already_added[face_a_vertices[i]]) {
+			shared_vertices.push(face_a_vertices[i]);
+			already_added[face_a_vertices[i]] = true;
+		}
+	}
+	return shared_vertices;
+};const facesGeneral=/*#__PURE__*/Object.freeze({__proto__:null,getFaceFaceSharedVertices});const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
+	if (array_array.length === 0) { return []; }
+	const trees = [];
+	const unvisited = {};
+	array_array.forEach((_, i) => { unvisited[i] = true; });
+	do {
+		const startIndex = rootIndex !== undefined && unvisited[rootIndex]
+			? rootIndex
+			: parseInt(Object.keys(unvisited).shift(), 10);
+		rootIndex = undefined;
+		const tree = [];
+		delete unvisited[startIndex];
+		let previousLevel = [{ index: startIndex }];
+		do {
+			tree.push(previousLevel);
+			const currentLevel = previousLevel
+				.flatMap(current => array_array[current.index]
+					.filter(i => unvisited[i])
+					.map(index => ({ index, parent: current.index })));
+			const duplicates = {};
+			currentLevel.forEach((el, i) => {
+				if (!unvisited[el.index]) { duplicates[i] = true; }
+				delete unvisited[el.index];
+			});
+			previousLevel = currentLevel.filter((_, i) => !duplicates[i]);
+		} while (previousLevel.length);
+		trees.push(tree);
+	} while (Object.keys(unvisited).length);
+	return trees;
+};
+const minimumSpanningTree = (array_array, rootIndex) => (
+	minimumSpanningTrees(array_array, rootIndex).shift()
+);const trees=/*#__PURE__*/Object.freeze({__proto__:null,minimumSpanningTree,minimumSpanningTrees});const multiplyVerticesFacesMatrix2 = ({
+	vertices_coords, vertices_faces, faces_vertices,
+}, faces_matrix) => {
+	if (!vertices_faces) {
+		vertices_faces = makeVerticesFaces({ faces_vertices });
+	}
+	const vertices_matrix = vertices_faces
+		.map(faces => faces
+			.filter(a => a != null)
+			.shift())
+		.map(face => (face === undefined
+			? identity2x3
+			: faces_matrix[face]));
+	return vertices_coords
+		.map((coord, i) => multiplyMatrix2Vector2(vertices_matrix[i], coord));
+};
+const unassigned_angle = { U: true, u: true };
+const makeFacesMatrix = ({
+	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
+}, root_face = 0) => {
+	if (!edges_assignment && edges_foldAngle) {
+		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
+	}
+	if (!edges_foldAngle) {
+		if (edges_assignment) {
+			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
+		} else {
+			edges_foldAngle = Array(edges_vertices.length).fill(0);
+		}
+	}
+	if (!faces_faces) {
+		faces_faces = makeFacesFaces({ faces_vertices });
+	}
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const faces_matrix = faces_vertices.map(() => identity3x4);
+	minimumSpanningTrees(faces_faces, root_face)
+		.forEach(tree => tree
+			.slice(1)
+			.forEach(level => level
+				.forEach((entry) => {
+					const edge_vertices = getFaceFaceSharedVertices(
+						faces_vertices[entry.index],
+						faces_vertices[entry.parent],
+					).slice(0, 2);
+					const coords = edge_vertices.map(v => vertices_coords[v]);
+					const edgeKey = edge_vertices.join(" ");
+					const edge = edge_map[edgeKey];
+					const foldAngle = unassigned_angle[edges_assignment[edge]]
+						? Math.PI
+						: (edges_foldAngle[edge] * Math.PI) / 180;
+					const local_matrix = makeMatrix3Rotate(
+						foldAngle,
+						subtract(...resizeUp(coords[1], coords[0])),
+						coords[0],
+					);
+					faces_matrix[entry.index] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
+				})));
+	return faces_matrix;
+};
+const makeFacesMatrix2 = ({
+	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
+}, root_face = 0) => {
+	if (!edges_foldAngle) {
+		if (edges_assignment) {
+			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
+		} else {
+			edges_foldAngle = Array(edges_vertices.length).fill(0);
+		}
+	}
+	if (!faces_faces) {
+		faces_faces = makeFacesFaces({ faces_vertices });
+	}
+	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const faces_matrix = faces_vertices.map(() => identity2x3);
+	minimumSpanningTrees(faces_faces, root_face)
+		.forEach(tree => tree
+			.slice(1)
+			.forEach(level => level
+				.forEach((entry) => {
+					const edge_vertices = getFaceFaceSharedVertices(
+						faces_vertices[entry.index],
+						faces_vertices[entry.parent],
+					).slice(0, 2);
+					const coords = edge_vertices.map(v => vertices_coords[v]);
+					const edgeKey = edge_vertices.join(" ");
+					const edge = edge_map[edgeKey];
+					const reflect_vector = subtract2(coords[1], coords[0]);
+					const reflect_origin = coords[0];
+					const local_matrix = edges_is_folded[edge]
+						? makeMatrix2Reflect(reflect_vector, reflect_origin)
+						: identity2x3;
+					faces_matrix[entry.index] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
+				})));
+	return faces_matrix;
+};const facesMatrix=/*#__PURE__*/Object.freeze({__proto__:null,makeFacesMatrix,makeFacesMatrix2,multiplyVerticesFacesMatrix2});const getVerticesCollinearToLine = (
+	{ vertices_coords },
+	{ vector, origin },
+	epsilon = EPSILON,
+) => {
+	const normalizedLineVec = normalize$1(vector);
+	const pointIsCollinear = (point) => {
+		const originToPoint = subtract(point, origin);
+		const mag = magnitude(originToPoint);
+		if (Math.abs(mag) < epsilon) { return true; }
+		const originToPointUnit = originToPoint.map(n => n / mag);
+		const dotprod = Math.abs(dot(originToPointUnit, normalizedLineVec));
+		return Math.abs(1.0 - dotprod) < epsilon;
+	};
+	return vertices_coords
+		.map(pointIsCollinear)
+		.map((a, i) => ({ a, i }))
+		.filter(el => el.a)
+		.map(el => el.i);
+};const intersectVertices=/*#__PURE__*/Object.freeze({__proto__:null,getVerticesCollinearToLine});const getEdgesCollinearToLine = (
+	{ vertices_coords, edges_vertices, vertices_edges },
+	{ vector, origin },
+	epsilon = EPSILON,
+) => {
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
+	const verticesCollinear = getVerticesCollinearToLine(
+		{ vertices_coords },
+		{ vector, origin },
+		epsilon,
+	);
+	const edgesCollinearCount = edges_vertices.map(() => 0);
+	verticesCollinear
+		.forEach(vertex => vertices_edges[vertex]
+			.forEach(edge => { edgesCollinearCount[edge] += 1; }));
+	return edgesCollinearCount
+		.map((count, i) => ({ count, i }))
+		.filter(el => el.count === 2)
+		.map(el => el.i);
+};
+const getEdgesRectOverlap = (
+	{ vertices_coords, edges_vertices },
+	{ min, max },
+	epsilon = EPSILON,
+) => {
+	const coords = makeEdgesCoords({ vertices_coords, edges_vertices });
+	const boxMin = min.map(n => n - epsilon);
+	const boxMax = max.map(n => n + epsilon);
+	return edges_vertices
+		.map((_, i) => i)
+		.filter(e => !(coords[e][0][0] < boxMin[0] && coords[e][1][0] < boxMin[0]))
+		.filter(e => !(coords[e][0][0] > boxMax[0] && coords[e][1][0] > boxMax[0]))
+		.filter(e => !(coords[e][0][1] < boxMin[1] && coords[e][1][1] < boxMin[1]))
+		.filter(e => !(coords[e][0][1] > boxMax[1] && coords[e][1][1] > boxMax[1]));
+};
+const getEdgesSegmentIntersection = ({
+	vertices_coords, edges_vertices,
+}, point1, point2, epsilon = EPSILON) => {
+	const segmentBox = boundingBox$1([point1, point2]);
+	const segmentVector = subtract2(point2, point1);
+	const segmentLine = { vector: segmentVector, origin: point1 };
+	const edges = getEdgesRectOverlap({ vertices_coords, edges_vertices }, segmentBox, epsilon);
+	const intersections = [];
+	edges.forEach(e => {
+		const edgeCoords = edges_vertices[e].map(v => vertices_coords[v]);
+		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
+		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
+		const intersect = intersectLineLine(segmentLine, edgeLine, includeS, includeS, epsilon).point;
+		if (!intersect) { return; }
+		intersections[e] = intersect;
+	});
+	return intersections;
+};
+const getEdgesLineIntersection = ({
+	vertices_coords, edges_vertices,
+}, { vector, origin }, epsilon = EPSILON, segmentFunc = includeS) => edges_vertices
+	.map(vertices => {
+		const edgeCoords = vertices.map(v => vertices_coords[v]);
+		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
+		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
+		return intersectLineLine(
+			edgeLine,
+			{ vector, origin },
+			segmentFunc,
+			includeL,
+			epsilon,
+		);
+	});const intersectEdges=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesCollinearToLine,getEdgesLineIntersection,getEdgesRectOverlap,getEdgesSegmentIntersection});const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
+	.map(m => m[0] * m[4] - m[1] * m[3])
+	.map(c => c >= 0);
+const makeFacesWindingFromMatrix2 = faces_matrix2 => faces_matrix2
+	.map(m => m[0] * m[3] - m[1] * m[2])
+	.map(c => c >= 0);
+const makeFacesWinding = ({ vertices_coords, faces_vertices }) => faces_vertices
+	.map(vertices => vertices
+		.map(v => vertices_coords[v])
+		.map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
+		.map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]))
+		.reduce((a, b) => a + b, 0))
+	.map(face => face < 0);const facesWinding=/*#__PURE__*/Object.freeze({__proto__:null,makeFacesWinding,makeFacesWindingFromMatrix,makeFacesWindingFromMatrix2});const foldFacesLayer = (faces_layer, faces_folding) => {
+	const new_faces_layer = [];
+	const arr = faces_layer.map((_, i) => i);
+	const folding = arr.filter(i => faces_folding[i]);
+	const not_folding = arr.filter(i => !faces_folding[i]);
+	not_folding
+		.sort((a, b) => faces_layer[a] - faces_layer[b])
+		.forEach((face, i) => { new_faces_layer[face] = i; });
+	folding
+		.sort((a, b) => faces_layer[b] - faces_layer[a])
+		.forEach((face, i) => { new_faces_layer[face] = not_folding.length + i; });
+	return new_faces_layer;
+};const getContainingFace = (graph, point, vector, epsilon = EPSILON) => {
+	const faces = facesContainingPoint(graph, point);
+	if (faces.length === 0) { return undefined; }
+	if (faces.length === 1) { return faces[0]; }
+	return faces[0];
+};
+const make_face_side = (vector, origin, face_center, face_winding) => {
+	const center_vector = subtract2(face_center, origin);
+	const determinant = cross2(vector, center_vector);
+	return face_winding ? determinant > 0 : determinant < 0;
+};
+const make_face_center = (graph, face) => (!graph.faces_vertices[face]
+	? [0, 0]
+	: graph.faces_vertices[face]
+		.map(v => graph.vertices_coords[v])
+		.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+		.map(el => el / graph.faces_vertices[face].length));
+const unfolded_assignment = {
+	F: true, f: true, U: true, u: true,
+};
+const opposite_lookup = {
+	M: "V", m: "V", V: "M", v: "M",
+};
+const get_opposite_assignment = assign => opposite_lookup[assign] || assign;
+const face_snapshot = (graph, face) => ({
+	center: graph.faces_center[face],
+	matrix: graph.faces_matrix2[face],
+	winding: graph.faces_winding[face],
+	crease: graph.faces_crease[face],
+	side: graph.faces_side[face],
+	layer: graph.faces_layer[face],
+});
+const flatFold = (
+	graph,
+	{ vector, origin },
+	assignment = "V",
+	epsilon = EPSILON,
+) => {
+	const opposite_assignment = get_opposite_assignment(assignment);
+	populate(graph);
+	if (!graph.faces_layer) {
+		graph.faces_layer = Array(graph.faces_vertices.length).fill(0);
+	}
+	graph.faces_center = graph.faces_vertices
+		.map((_, i) => make_face_center(graph, i));
+	if (!graph.faces_matrix2) {
+		graph.faces_matrix2 = makeFacesMatrix2(
+			graph,
+			getContainingFace(graph, origin, vector, epsilon),
+		);
+	}
+	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);
+	graph.faces_crease = graph.faces_matrix2
+		.map(invertMatrix2)
+		.map(matrix => multiplyMatrix2Line2(matrix, vector, origin));
+	graph.faces_side = graph.faces_vertices
+		.map((_, i) => make_face_side(
+			graph.faces_crease[i].vector,
+			graph.faces_crease[i].origin,
+			graph.faces_center[i],
+			graph.faces_winding[i],
+		));
+	const vertices_coords_folded = multiplyVerticesFacesMatrix2(
+		graph,
+		graph.faces_matrix2,
+	);
+	const collinear_edges = getEdgesCollinearToLine({
+		vertices_coords: vertices_coords_folded,
+		edges_vertices: graph.edges_vertices,
+	}, { vector, origin }, epsilon)
+		.filter(e => unfolded_assignment[graph.edges_assignment[e]]);
+	collinear_edges
+		.map(e => graph.edges_faces[e].find(f => f != null))
+		.map(f => graph.faces_winding[f])
+		.map(winding => (winding ? assignment : opposite_assignment))
+		.forEach((assign, e) => {
+			graph.edges_assignment[collinear_edges[e]] = assign;
+			graph.edges_foldAngle[collinear_edges[e]] = edgeAssignmentToFoldAngle(
+				assign,
+			);
+		});
+	const face0 = face_snapshot(graph, 0);
+	const split_changes = graph.faces_vertices
+		.map((_, i) => i)
+		.reverse()
+		.map((i) => {
+			const face = face_snapshot(graph, i);
+			const change = splitFace(graph, i, face.crease, epsilon);
+			if (change === undefined) { return undefined; }
+			graph.edges_assignment[change.edges.new] = face.winding
+				? assignment
+				: opposite_assignment;
+			graph.edges_foldAngle[change.edges.new] = edgeAssignmentToFoldAngle(
+				graph.edges_assignment[change.edges.new],
+			);
+			const new_faces = change.faces.map[change.faces.remove];
+			new_faces.forEach(f => {
+				graph.faces_center[f] = make_face_center(graph, f);
+				graph.faces_side[f] = make_face_side(
+					face.crease.vector,
+					face.crease.origin,
+					graph.faces_center[f],
+					face.winding,
+				);
+				graph.faces_layer[f] = face.layer;
+			});
+			return change;
+		})
+		.filter(a => a !== undefined);
+	const faces_map = mergeNextmaps(...split_changes.map(el => el.faces.map));
+	const edges_map = mergeNextmaps(...split_changes.map(el => el.edges.map)
+		.filter(a => a !== undefined));
+	const faces_remove = split_changes.map(el => el.faces.remove).reverse();
+	graph.faces_layer = foldFacesLayer(
+		graph.faces_layer,
+		graph.faces_side,
+	);
+	const face0_was_split = faces_map && faces_map[0] && faces_map[0].length === 2;
+	const face0_newIndex = (face0_was_split
+		? faces_map[0].filter(f => graph.faces_side[f]).shift()
+		: 0);
+	let face0_preMatrix = face0.matrix;
+	if (assignment !== opposite_assignment) {
+		face0_preMatrix = (!face0_was_split && !graph.faces_side[0]
+			? face0.matrix
+			: multiplyMatrices2(
+				face0.matrix,
+				makeMatrix2Reflect(
+					face0.crease.vector,
+					face0.crease.origin,
+				),
+			)
+		);
+	}
+	graph.faces_matrix2 = makeFacesMatrix2(graph, face0_newIndex)
+		.map(matrix => multiplyMatrices2(face0_preMatrix, matrix));
+	delete graph.faces_center;
+	delete graph.faces_winding;
+	delete graph.faces_crease;
+	delete graph.faces_side;
+	return {
+		faces: { map: faces_map, remove: faces_remove },
+		edges: { map: edges_map },
+	};
+};const connectedComponents = (array_array) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -3782,154 +4186,7 @@ const planarBoundaries = ({
 	return disjointGraphs({
 		vertices_coords, vertices_vertices, edges_vertices,
 	}).map(planarBoundary);
-};const boundary$1=/*#__PURE__*/Object.freeze({__proto__:null,boundaries,boundary,boundaryVertices,boundingBox,planarBoundaries,planarBoundary});const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
-	const hash = {};
-	face_b_vertices.forEach((v) => { hash[v] = true; });
-	const match = face_a_vertices.map(v => !!hash[v]);
-	const shared_vertices = [];
-	const notShared = match.indexOf(false);
-	const already_added = {};
-	for (let i = notShared + 1; i < match.length; i += 1) {
-		if (match[i] && !already_added[face_a_vertices[i]]) {
-			shared_vertices.push(face_a_vertices[i]);
-			already_added[face_a_vertices[i]] = true;
-		}
-	}
-	for (let i = 0; i < notShared; i += 1) {
-		if (match[i] && !already_added[face_a_vertices[i]]) {
-			shared_vertices.push(face_a_vertices[i]);
-			already_added[face_a_vertices[i]] = true;
-		}
-	}
-	return shared_vertices;
-};const facesGeneral=/*#__PURE__*/Object.freeze({__proto__:null,getFaceFaceSharedVertices});const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
-	if (array_array.length === 0) { return []; }
-	const trees = [];
-	const unvisited = {};
-	array_array.forEach((_, i) => { unvisited[i] = true; });
-	do {
-		const startIndex = rootIndex !== undefined && unvisited[rootIndex]
-			? rootIndex
-			: parseInt(Object.keys(unvisited).shift(), 10);
-		rootIndex = undefined;
-		const tree = [];
-		delete unvisited[startIndex];
-		let previousLevel = [{ index: startIndex }];
-		do {
-			tree.push(previousLevel);
-			const currentLevel = previousLevel
-				.flatMap(current => array_array[current.index]
-					.filter(i => unvisited[i])
-					.map(index => ({ index, parent: current.index })));
-			const duplicates = {};
-			currentLevel.forEach((el, i) => {
-				if (!unvisited[el.index]) { duplicates[i] = true; }
-				delete unvisited[el.index];
-			});
-			previousLevel = currentLevel.filter((_, i) => !duplicates[i]);
-		} while (previousLevel.length);
-		trees.push(tree);
-	} while (Object.keys(unvisited).length);
-	return trees;
-};
-const minimumSpanningTree = (array_array, rootIndex) => (
-	minimumSpanningTrees(array_array, rootIndex).shift()
-);const trees=/*#__PURE__*/Object.freeze({__proto__:null,minimumSpanningTree,minimumSpanningTrees});const multiplyVerticesFacesMatrix2 = ({
-	vertices_coords, vertices_faces, faces_vertices,
-}, faces_matrix) => {
-	if (!vertices_faces) {
-		vertices_faces = makeVerticesFaces({ faces_vertices });
-	}
-	const vertices_matrix = vertices_faces
-		.map(faces => faces
-			.filter(a => a != null)
-			.shift())
-		.map(face => (face === undefined
-			? identity2x3
-			: faces_matrix[face]));
-	return vertices_coords
-		.map((coord, i) => multiplyMatrix2Vector2(vertices_matrix[i], coord));
-};
-const unassigned_angle = { U: true, u: true };
-const makeFacesMatrix = ({
-	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
-}, root_face = 0) => {
-	if (!edges_assignment && edges_foldAngle) {
-		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
-	}
-	if (!edges_foldAngle) {
-		if (edges_assignment) {
-			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
-		} else {
-			edges_foldAngle = Array(edges_vertices.length).fill(0);
-		}
-	}
-	if (!faces_faces) {
-		faces_faces = makeFacesFaces({ faces_vertices });
-	}
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
-	const faces_matrix = faces_vertices.map(() => identity3x4);
-	minimumSpanningTrees(faces_faces, root_face)
-		.forEach(tree => tree
-			.slice(1)
-			.forEach(level => level
-				.forEach((entry) => {
-					const edge_vertices = getFaceFaceSharedVertices(
-						faces_vertices[entry.index],
-						faces_vertices[entry.parent],
-					).slice(0, 2);
-					const coords = edge_vertices.map(v => vertices_coords[v]);
-					const edgeKey = edge_vertices.join(" ");
-					const edge = edge_map[edgeKey];
-					const foldAngle = unassigned_angle[edges_assignment[edge]]
-						? Math.PI
-						: (edges_foldAngle[edge] * Math.PI) / 180;
-					const local_matrix = makeMatrix3Rotate(
-						foldAngle,
-						subtract(...resizeUp(coords[1], coords[0])),
-						coords[0],
-					);
-					faces_matrix[entry.index] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
-				})));
-	return faces_matrix;
-};
-const makeFacesMatrix2 = ({
-	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
-}, root_face = 0) => {
-	if (!edges_foldAngle) {
-		if (edges_assignment) {
-			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
-		} else {
-			edges_foldAngle = Array(edges_vertices.length).fill(0);
-		}
-	}
-	if (!faces_faces) {
-		faces_faces = makeFacesFaces({ faces_vertices });
-	}
-	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
-	const faces_matrix = faces_vertices.map(() => identity2x3);
-	minimumSpanningTrees(faces_faces, root_face)
-		.forEach(tree => tree
-			.slice(1)
-			.forEach(level => level
-				.forEach((entry) => {
-					const edge_vertices = getFaceFaceSharedVertices(
-						faces_vertices[entry.index],
-						faces_vertices[entry.parent],
-					).slice(0, 2);
-					const coords = edge_vertices.map(v => vertices_coords[v]);
-					const edgeKey = edge_vertices.join(" ");
-					const edge = edge_map[edgeKey];
-					const reflect_vector = subtract2(coords[1], coords[0]);
-					const reflect_origin = coords[0];
-					const local_matrix = edges_is_folded[edge]
-						? makeMatrix2Reflect(reflect_vector, reflect_origin)
-						: identity2x3;
-					faces_matrix[entry.index] = multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
-				})));
-	return faces_matrix;
-};const facesMatrix=/*#__PURE__*/Object.freeze({__proto__:null,makeFacesMatrix,makeFacesMatrix2,multiplyVerticesFacesMatrix2});const makeVerticesCoordsFolded = ({
+};const boundary$1=/*#__PURE__*/Object.freeze({__proto__:null,boundaries,boundary,boundaryVertices,boundingBox,planarBoundaries,planarBoundary});const makeVerticesCoordsFolded = ({
 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
 	edges_assignment, faces_vertices, faces_faces, faces_matrix,
 }, root_face) => {
@@ -6183,19 +6440,7 @@ const drawEdges = (graph, options) => (
 	edgesFoldAngleAreAllFlat(graph)
 		? edgesPaths(graph, options)
 		: edgesLines(graph, options)
-);const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
-	.map(m => m[0] * m[4] - m[1] * m[3])
-	.map(c => c >= 0);
-const makeFacesWindingFromMatrix2 = faces_matrix2 => faces_matrix2
-	.map(m => m[0] * m[3] - m[1] * m[2])
-	.map(c => c >= 0);
-const makeFacesWinding = ({ vertices_coords, faces_vertices }) => faces_vertices
-	.map(vertices => vertices
-		.map(v => vertices_coords[v])
-		.map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
-		.map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]))
-		.reduce((a, b) => a + b, 0))
-	.map(face => face < 0);const facesWinding=/*#__PURE__*/Object.freeze({__proto__:null,makeFacesWinding,makeFacesWindingFromMatrix,makeFacesWindingFromMatrix2});const topologicalSort = (directedEdges) => {
+);const topologicalSort = (directedEdges) => {
 	const vertices = uniqueSortedNumbers(directedEdges.flat());
 	const verticesParents = [];
 	vertices.forEach(v => { verticesParents[v] = []; });
@@ -6551,6 +6796,9 @@ Object.entries({
 	populate,
 	subgraph,
 	boundary,
+	boundaries,
+	planarBoundary,
+	planarBoundaries,
 	boundingBox,
 	nearest,
 	splitEdge,
@@ -6569,47 +6817,41 @@ Object.entries({
 Graph.prototype.clone = function () {
 	return Object.assign(Object.create(Object.getPrototypeOf(this)), clone(this));
 };
+Graph.prototype.planarize = function () {
+	const result = planarize(this);
+	this.clear();
+	Object.assign(this, result);
+	return this;
+};
+Graph.prototype.clear = function () {
+	foldKeys.graph.forEach(key => delete this[key]);
+	foldKeys.orders.forEach(key => delete this[key]);
+	delete this.file_frames;
+	return this;
+};
 Graph.prototype.folded = function () {
 	const vertices_coords = this.faces_matrix2
 		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
 		: makeVerticesCoordsFolded(this, ...arguments);
-	return {
-		...this,
+	Object.assign(this, {
 		vertices_coords,
 		frame_classes: ["foldedForm"],
-	};
+	});
+	return this;
 };
 Graph.prototype.flatFolded = function () {
 	const vertices_coords = this.faces_matrix2
 		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
 		: makeVerticesCoordsFlatFolded(this, ...arguments);
-	return {
-		...this,
+	Object.assign(this, {
 		vertices_coords,
 		frame_classes: ["foldedForm"],
-	};
-};
-const setAssignment = (graph, edges, assignment, foldAngle) => {
-	edges.forEach(edge => {
-		graph.edges_assignment[edge] = assignment;
-		graph.edges_foldAngle[edge] = foldAngle;
 	});
-	return edges;
+	return this;
 };
-Graph.prototype.setValley = function (edges = [], degrees = 180) {
-	return setAssignment(this, edges, "V", Math.abs(degrees));
-};
-Graph.prototype.setMountain = function (edges = [], degrees = -180) {
-	return setAssignment(this, edges, "M", -Math.abs(degrees));
-};
-Graph.prototype.setFlat = function (edges = []) {
-	return setAssignment(this, edges, "F", 0);
-};
-Graph.prototype.setUnassigned = function (edges = []) {
-	return setAssignment(this, edges, "U", 0);
-};
-Graph.prototype.setCut = function (edges = []) {
-	return setAssignment(this, edges, "C", 0);
+Graph.prototype.flatFold = function () {
+	flatFold(this, getLine$1(arguments));
+	return this;
 };
 const graphProto = Graph.prototype;const lineLineParameter = (
 	lineVector,
@@ -6765,95 +7007,7 @@ const clipSegment = (graph, segment, epsilon = EPSILON) => {
 	const origin = segment[0];
 	const faces = getFacesSegmentOverlap(graph, segment, epsilon);
 	return clipAndJoin(graph, faces, { vector, origin }, includeS, epsilon);
-};const clip=/*#__PURE__*/Object.freeze({__proto__:null,clipLine,clipRay,clipSegment});const getVerticesCollinearToLine = (
-	{ vertices_coords },
-	{ vector, origin },
-	epsilon = EPSILON,
-) => {
-	const normalizedLineVec = normalize$1(vector);
-	const pointIsCollinear = (point) => {
-		const originToPoint = subtract(point, origin);
-		const mag = magnitude(originToPoint);
-		if (Math.abs(mag) < epsilon) { return true; }
-		const originToPointUnit = originToPoint.map(n => n / mag);
-		const dotprod = Math.abs(dot(originToPointUnit, normalizedLineVec));
-		return Math.abs(1.0 - dotprod) < epsilon;
-	};
-	return vertices_coords
-		.map(pointIsCollinear)
-		.map((a, i) => ({ a, i }))
-		.filter(el => el.a)
-		.map(el => el.i);
-};const intersectVertices=/*#__PURE__*/Object.freeze({__proto__:null,getVerticesCollinearToLine});const getEdgesCollinearToLine = (
-	{ vertices_coords, edges_vertices, vertices_edges },
-	{ vector, origin },
-	epsilon = EPSILON,
-) => {
-	if (!vertices_edges) {
-		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
-	}
-	const verticesCollinear = getVerticesCollinearToLine(
-		{ vertices_coords },
-		{ vector, origin },
-		epsilon,
-	);
-	const edgesCollinearCount = edges_vertices.map(() => 0);
-	verticesCollinear
-		.forEach(vertex => vertices_edges[vertex]
-			.forEach(edge => { edgesCollinearCount[edge] += 1; }));
-	return edgesCollinearCount
-		.map((count, i) => ({ count, i }))
-		.filter(el => el.count === 2)
-		.map(el => el.i);
-};
-const getEdgesRectOverlap = (
-	{ vertices_coords, edges_vertices },
-	{ min, max },
-	epsilon = EPSILON,
-) => {
-	const coords = makeEdgesCoords({ vertices_coords, edges_vertices });
-	const boxMin = min.map(n => n - epsilon);
-	const boxMax = max.map(n => n + epsilon);
-	return edges_vertices
-		.map((_, i) => i)
-		.filter(e => !(coords[e][0][0] < boxMin[0] && coords[e][1][0] < boxMin[0]))
-		.filter(e => !(coords[e][0][0] > boxMax[0] && coords[e][1][0] > boxMax[0]))
-		.filter(e => !(coords[e][0][1] < boxMin[1] && coords[e][1][1] < boxMin[1]))
-		.filter(e => !(coords[e][0][1] > boxMax[1] && coords[e][1][1] > boxMax[1]));
-};
-const getEdgesSegmentIntersection = ({
-	vertices_coords, edges_vertices,
-}, point1, point2, epsilon = EPSILON) => {
-	const segmentBox = boundingBox$1([point1, point2]);
-	const segmentVector = subtract2(point2, point1);
-	const segmentLine = { vector: segmentVector, origin: point1 };
-	const edges = getEdgesRectOverlap({ vertices_coords, edges_vertices }, segmentBox, epsilon);
-	const intersections = [];
-	edges.forEach(e => {
-		const edgeCoords = edges_vertices[e].map(v => vertices_coords[v]);
-		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
-		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
-		const intersect = intersectLineLine(segmentLine, edgeLine, includeS, includeS, epsilon).point;
-		if (!intersect) { return; }
-		intersections[e] = intersect;
-	});
-	return intersections;
-};
-const getEdgesLineIntersection = ({
-	vertices_coords, edges_vertices,
-}, { vector, origin }, epsilon = EPSILON, segmentFunc = includeS) => edges_vertices
-	.map(vertices => {
-		const edgeCoords = vertices.map(v => vertices_coords[v]);
-		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
-		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
-		return intersectLineLine(
-			edgeLine,
-			{ vector, origin },
-			segmentFunc,
-			includeL,
-			epsilon,
-		);
-	});const intersectEdges=/*#__PURE__*/Object.freeze({__proto__:null,getEdgesCollinearToLine,getEdgesLineIntersection,getEdgesRectOverlap,getEdgesSegmentIntersection});const addVertices$1 = (graph, vertices_coords, epsilon = EPSILON) => {
+};const clip=/*#__PURE__*/Object.freeze({__proto__:null,clipLine,clipRay,clipSegment});const addVertices$1 = (graph, vertices_coords, epsilon = EPSILON) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }
 	if (typeof vertices_coords[0] === "number") { vertices_coords = [vertices_coords]; }
 	const vertices_equivalent_vertices = vertices_coords
@@ -7348,171 +7502,30 @@ CP.prototype.validate = function (epsilon) {
 	}
 	return valid;
 };
+const setAssignment = (graph, edges, assignment, foldAngle) => {
+	edges.forEach(edge => {
+		graph.edges_assignment[edge] = assignment;
+		graph.edges_foldAngle[edge] = foldAngle;
+	});
+	return edges;
+};
+CP.prototype.setValley = function (edges = [], degrees = 180) {
+	return setAssignment(this, edges, "V", Math.abs(degrees));
+};
+CP.prototype.setMountain = function (edges = [], degrees = -180) {
+	return setAssignment(this, edges, "M", -Math.abs(degrees));
+};
+CP.prototype.setFlat = function (edges = []) {
+	return setAssignment(this, edges, "F", 0);
+};
+CP.prototype.setUnassigned = function (edges = []) {
+	return setAssignment(this, edges, "U", 0);
+};
+CP.prototype.setCut = function (edges = []) {
+	return setAssignment(this, edges, "C", 0);
+};
 CP.prototype.defer = false;
-const cpProto = CP.prototype;const foldFacesLayer = (faces_layer, faces_folding) => {
-	const new_faces_layer = [];
-	const arr = faces_layer.map((_, i) => i);
-	const folding = arr.filter(i => faces_folding[i]);
-	const not_folding = arr.filter(i => !faces_folding[i]);
-	not_folding
-		.sort((a, b) => faces_layer[a] - faces_layer[b])
-		.forEach((face, i) => { new_faces_layer[face] = i; });
-	folding
-		.sort((a, b) => faces_layer[b] - faces_layer[a])
-		.forEach((face, i) => { new_faces_layer[face] = not_folding.length + i; });
-	return new_faces_layer;
-};const getContainingFace = (graph, point, vector, epsilon = EPSILON) => {
-	const faces = facesContainingPoint(graph, point);
-	if (faces.length === 0) { return undefined; }
-	if (faces.length === 1) { return faces[0]; }
-	return faces[0];
-};
-const make_face_side = (vector, origin, face_center, face_winding) => {
-	const center_vector = subtract2(face_center, origin);
-	const determinant = cross2(vector, center_vector);
-	return face_winding ? determinant > 0 : determinant < 0;
-};
-const make_face_center = (graph, face) => (!graph.faces_vertices[face]
-	? [0, 0]
-	: graph.faces_vertices[face]
-		.map(v => graph.vertices_coords[v])
-		.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
-		.map(el => el / graph.faces_vertices[face].length));
-const unfolded_assignment = {
-	F: true, f: true, U: true, u: true,
-};
-const opposite_lookup = {
-	M: "V", m: "V", V: "M", v: "M",
-};
-const get_opposite_assignment = assign => opposite_lookup[assign] || assign;
-const face_snapshot = (graph, face) => ({
-	center: graph.faces_center[face],
-	matrix: graph.faces_matrix2[face],
-	winding: graph.faces_winding[face],
-	crease: graph.faces_crease[face],
-	side: graph.faces_side[face],
-	layer: graph.faces_layer[face],
-});
-const flatFold = (
-	graph,
-	{ vector, origin },
-	assignment = "V",
-	epsilon = EPSILON,
-) => {
-	const opposite_assignment = get_opposite_assignment(assignment);
-	populate(graph);
-	if (!graph.faces_layer) {
-		graph.faces_layer = Array(graph.faces_vertices.length).fill(0);
-	}
-	graph.faces_center = graph.faces_vertices
-		.map((_, i) => make_face_center(graph, i));
-	if (!graph.faces_matrix2) {
-		graph.faces_matrix2 = makeFacesMatrix2(
-			graph,
-			getContainingFace(graph, origin, vector, epsilon),
-		);
-	}
-	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);
-	graph.faces_crease = graph.faces_matrix2
-		.map(invertMatrix2)
-		.map(matrix => multiplyMatrix2Line2(matrix, vector, origin));
-	graph.faces_side = graph.faces_vertices
-		.map((_, i) => make_face_side(
-			graph.faces_crease[i].vector,
-			graph.faces_crease[i].origin,
-			graph.faces_center[i],
-			graph.faces_winding[i],
-		));
-	const vertices_coords_folded = multiplyVerticesFacesMatrix2(
-		graph,
-		graph.faces_matrix2,
-	);
-	const collinear_edges = getEdgesCollinearToLine({
-		vertices_coords: vertices_coords_folded,
-		edges_vertices: graph.edges_vertices,
-	}, { vector, origin }, epsilon)
-		.filter(e => unfolded_assignment[graph.edges_assignment[e]]);
-	collinear_edges
-		.map(e => graph.edges_faces[e].find(f => f != null))
-		.map(f => graph.faces_winding[f])
-		.map(winding => (winding ? assignment : opposite_assignment))
-		.forEach((assign, e) => {
-			graph.edges_assignment[collinear_edges[e]] = assign;
-			graph.edges_foldAngle[collinear_edges[e]] = edgeAssignmentToFoldAngle(
-				assign,
-			);
-		});
-	const face0 = face_snapshot(graph, 0);
-	const split_changes = graph.faces_vertices
-		.map((_, i) => i)
-		.reverse()
-		.map((i) => {
-			const face = face_snapshot(graph, i);
-			const change = splitFace(graph, i, face.crease, epsilon);
-			if (change === undefined) { return undefined; }
-			graph.edges_assignment[change.edges.new] = face.winding
-				? assignment
-				: opposite_assignment;
-			graph.edges_foldAngle[change.edges.new] = edgeAssignmentToFoldAngle(
-				graph.edges_assignment[change.edges.new],
-			);
-			const new_faces = change.faces.map[change.faces.remove];
-			new_faces.forEach(f => {
-				graph.faces_center[f] = make_face_center(graph, f);
-				graph.faces_side[f] = make_face_side(
-					face.crease.vector,
-					face.crease.origin,
-					graph.faces_center[f],
-					face.winding,
-				);
-				graph.faces_layer[f] = face.layer;
-			});
-			return change;
-		})
-		.filter(a => a !== undefined);
-	const faces_map = mergeNextmaps(...split_changes.map(el => el.faces.map));
-	const edges_map = mergeNextmaps(...split_changes.map(el => el.edges.map)
-		.filter(a => a !== undefined));
-	const faces_remove = split_changes.map(el => el.faces.remove).reverse();
-	graph.faces_layer = foldFacesLayer(
-		graph.faces_layer,
-		graph.faces_side,
-	);
-	const face0_was_split = faces_map && faces_map[0] && faces_map[0].length === 2;
-	const face0_newIndex = (face0_was_split
-		? faces_map[0].filter(f => graph.faces_side[f]).shift()
-		: 0);
-	let face0_preMatrix = face0.matrix;
-	if (assignment !== opposite_assignment) {
-		face0_preMatrix = (!face0_was_split && !graph.faces_side[0]
-			? face0.matrix
-			: multiplyMatrices2(
-				face0.matrix,
-				makeMatrix2Reflect(
-					face0.crease.vector,
-					face0.crease.origin,
-				),
-			)
-		);
-	}
-	graph.faces_matrix2 = makeFacesMatrix2(graph, face0_newIndex)
-		.map(matrix => multiplyMatrices2(face0_preMatrix, matrix));
-	delete graph.faces_center;
-	delete graph.faces_winding;
-	delete graph.faces_crease;
-	delete graph.faces_side;
-	return {
-		faces: { map: faces_map, remove: faces_remove },
-		edges: { map: edges_map },
-	};
-};const Origami = {};
-Origami.prototype = Object.create(graphProto);
-Origami.prototype.constructor = Origami;
-Origami.prototype.flatFold = function () {
-	flatFold(this, getLine$1(arguments));
-	return this;
-};
-const origamiProto = Origami.prototype;const file_spec = 1.1;
+const cpProto = CP.prototype;const file_spec = 1.1;
 const file_creator = "Rabbit Ear";const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
 const makeGraphWithBoundaryCoords = (vertices_coords) => populate({
 	vertices_coords,
@@ -7660,26 +7673,13 @@ const cp = (...args) => populate(
 		frame_classes: ["creasePattern"],
 	}),
 );
-const origami = (...args) => populate(
-	Object.assign(Object.create(origamiProto), {
-		...(args.length
-			? args.reduce((a, b) => ({ ...a, ...b }), ({}))
-			: square()),
-		file_spec,
-		file_creator,
-		frame_classes: ["foldedForm"],
-	}),
-);
 graph.prototype = graphProto;
 graph.prototype.constructor = graph;
 cp.prototype = cpProto;
 cp.prototype.constructor = cp;
-origami.prototype = origamiProto;
-origami.prototype.constructor = origami;
 Object.keys(bases).forEach(fnName => {
 	graph[fnName] = (...args) => graph(bases[fnName](...args));
 	cp[fnName] = (...args) => cp(bases[fnName](...args));
-	origami[fnName] = (...args) => origami(bases[fnName](...args));
 });const intersectionUD = (line1, line2) => {
 	const det = cross2(line1.normal, line2.normal);
 	if (Math.abs(det) < EPSILON) { return undefined; }
@@ -8802,30 +8802,32 @@ const pleat = (
 ) => {
 	const lineA = edgeToLine({ vertices_coords, edges_vertices }, edgeA);
 	const lineB = edgeToLine({ vertices_coords, edges_vertices }, edgeB);
-	const lineGroups = pleat$2(lineA, lineB, count, epsilon);
 	const edges_lines = makeEdgesVector({ vertices_coords, edges_vertices })
 		.map((vector, i) => ({
 			vector,
 			origin: vertices_coords[edges_vertices[i][0]],
 		}));
-	const segments = lineGroups.map(lines => lines.map(line => {
-		const dots = edges_lines.map(edgeLine => intersectLineLine(
-			line,
-			edgeLine,
-			includeL,
-			includeS,
-			epsilon,
-		).a).filter(a => a !== undefined);
-		const min = Math.min(...dots);
-		const max = Math.max(...dots);
-		return Math.abs(max - min) < epsilon
-			? undefined
-			: [
-				add2(line.origin, scale2(line.vector, min)),
-				add2(line.origin, scale2(line.vector, max)),
-			];
-	}).filter(a => a !== undefined));
-	return segments;
+	return pleat$2(lineA, lineB, count, epsilon)
+		.map(lines => lines.map(line => {
+			const dots = edges_lines
+				.map(edgeLine => intersectLineLine(
+					line,
+					edgeLine,
+					includeL,
+					includeS,
+					epsilon,
+				).a)
+				.filter(a => a !== undefined);
+			if (dots.length < 2) { return undefined; }
+			const min = Math.min(...dots);
+			const max = Math.max(...dots);
+			return Math.abs(max - min) < epsilon
+				? undefined
+				: [
+					add2(line.origin, scale2(line.vector, min)),
+					add2(line.origin, scale2(line.vector, max)),
+				];
+		}).filter(a => a !== undefined));
 };const pleat$1=/*#__PURE__*/Object.freeze({__proto__:null,pleat});const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
 	makeEdgesBoundingBox(graph, epsilon)
 		.map(min_max => graph.vertices_coords
@@ -12835,7 +12837,6 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => 
 const ear = {
 	graph,
 	cp,
-	origami,
 	axiom,
 	convert,
 	general: general$1,

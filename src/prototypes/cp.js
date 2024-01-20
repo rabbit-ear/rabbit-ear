@@ -135,6 +135,34 @@ CP.prototype.validate = function (epsilon) {
 	return valid;
 };
 
+const setAssignment = (graph, edges, assignment, foldAngle) => {
+	edges.forEach(edge => {
+		graph.edges_assignment[edge] = assignment;
+		graph.edges_foldAngle[edge] = foldAngle;
+	});
+	return edges;
+};
+
+CP.prototype.setValley = function (edges = [], degrees = 180) {
+	return setAssignment(this, edges, "V", Math.abs(degrees));
+};
+
+CP.prototype.setMountain = function (edges = [], degrees = -180) {
+	return setAssignment(this, edges, "M", -Math.abs(degrees));
+};
+
+CP.prototype.setFlat = function (edges = []) {
+	return setAssignment(this, edges, "F", 0);
+};
+
+CP.prototype.setUnassigned = function (edges = []) {
+	return setAssignment(this, edges, "U", 0);
+};
+
+CP.prototype.setCut = function (edges = []) {
+	return setAssignment(this, edges, "C", 0);
+};
+
 CP.prototype.defer = false;
 
 export default CP.prototype;

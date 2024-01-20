@@ -2,7 +2,8 @@
  * Rabbit Ear (c) Kraft
  */
 // import count from "../graph/count.js";
-// import addVertices from "../graph/add/addVertices.js";
+import { getLine } from "../general/get.js";
+import { foldKeys } from "../fold/keys.js";
 import * as transform from "../graph/transform.js";
 import clean from "../graph/clean.js";
 import * as explode from "../graph/explode.js";
@@ -13,17 +14,18 @@ import splitEdge from "../graph/splitEdge/index.js";
 import splitFace from "../graph/splitFace/index.js";
 import { subgraph } from "../graph/subgraph.js";
 import * as validate from "../graph/validate.js";
+import flatFold from "../graph/flatFold/index.js";
 import {
 	boundary,
+	boundaries,
+	planarBoundary,
+	planarBoundaries,
 	boundingBox,
 } from "../graph/boundary.js";
 import {
 	makeVerticesCoordsFolded,
 	makeVerticesCoordsFlatFolded,
 } from "../graph/vertices/folded.js";
-// import {
-// 	makeFaceSpanningTree as faceSpanningTree,
-// } from "../graph/faces/spanningTree.js";
 import {
 	multiplyVerticesFacesMatrix2,
 } from "../graph/faces/matrix.js";
@@ -31,6 +33,7 @@ import clone from "../general/clone.js";
 import { invertAssignments } from "../fold/spec.js";
 import foldToSvg from "../convert/foldToSvg/index.js";
 import foldToObj from "../convert/foldToObj/index.js";
+
 /**
  * @name Graph
  * @description a graph which includes faces, edges, and vertices, and additional
@@ -41,6 +44,7 @@ import foldToObj from "../convert/foldToObj/index.js";
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);
 Graph.prototype.constructor = Graph;
+
 /**
  * methods where "graph" is the first parameter, followed by ...arguments
  * func(graph, ...args)
@@ -49,17 +53,15 @@ Object.entries({
 	// count,
 	clean,
 	populate,
-	// planarize, // not sure if this should be here now that it returns
-	// a new planar graph instead of modifying itself
 	subgraph,
-	// todo: get boundaries, plural
 	boundary,
+	boundaries,
+	planarBoundary,
+	planarBoundaries,
 	boundingBox,
-	// addVertices,
 	nearest,
 	splitEdge,
 	splitFace,
-	// faceSpanningTree,
 	invertAssignments,
 	svg: foldToSvg,
 	obj: foldToObj,
@@ -71,24 +73,39 @@ Object.entries({
 		return value(this, ...arguments);
 	};
 });
+
 /**
  * @returns {this} a deep copy of this object
  */
 Graph.prototype.clone = function () {
 	return Object.assign(Object.create(Object.getPrototypeOf(this)), clone(this));
 };
+
 /**
- * this clears all components from the graph, leaving metadata and other
- * keys untouched.
+ * @description convert a graph into a planar graph.
+ * the core "planarize" method normally does not modify the input object,
+ * in this case, the object itself is modified in place.
  */
-// Graph.prototype.clear = function () {
-// 	foldKeys.graph.forEach(key => delete this[key]);
-// 	foldKeys.orders.forEach(key => delete this[key]);
-// 	// the code above just avoided deleting all "file_" keys,
-// 	// however, file_frames needs to be removed as it contains geometry.
-// 	delete this.file_frames;
-// 	return this;
-// };
+Graph.prototype.planarize = function () {
+	const result = planarize(this);
+	this.clear();
+	Object.assign(this, result);
+	return this;
+};
+
+/**
+ * @description this clears all components from the graph,
+ * leaving metadata and other keys untouched.
+ */
+Graph.prototype.clear = function () {
+	foldKeys.graph.forEach(key => delete this[key]);
+	foldKeys.orders.forEach(key => delete this[key]);
+	// the code above just avoided deleting all "file_" keys,
+	// however, file_frames needs to be removed as it contains geometry.
+	delete this.file_frames;
+	return this;
+};
+
 /**
  * @param {object} is a FOLD object.
  * @param {options}
@@ -102,6 +119,7 @@ Graph.prototype.clone = function () {
 //   // allow overwriting of file_spec and file_creator if included in import
 //   Object.assign(this, { file_spec, file_creator }, clone(object));
 // };
+
 /**
  * @description return a shallow copy of this graph with the vertices folded.
  * This method works for both 2D and 3D origami.
@@ -116,12 +134,13 @@ Graph.prototype.folded = function () {
 	const vertices_coords = this.faces_matrix2
 		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
 		: makeVerticesCoordsFolded(this, ...arguments);
-	return {
-		...this,
+	Object.assign(this, {
 		vertices_coords,
 		frame_classes: ["foldedForm"],
-	};
+	});
+	return this;
 };
+
 /**
  * @description return a copy of this graph with the vertices folded.
  * This method will work for 2D only.
@@ -134,39 +153,16 @@ Graph.prototype.flatFolded = function () {
 	const vertices_coords = this.faces_matrix2
 		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
 		: makeVerticesCoordsFlatFolded(this, ...arguments);
-	return {
-		...this,
+	Object.assign(this, {
 		vertices_coords,
 		frame_classes: ["foldedForm"],
-	};
-};
-
-const setAssignment = (graph, edges, assignment, foldAngle) => {
-	edges.forEach(edge => {
-		graph.edges_assignment[edge] = assignment;
-		graph.edges_foldAngle[edge] = foldAngle;
 	});
-	return edges;
+	return this;
 };
 
-Graph.prototype.setValley = function (edges = [], degrees = 180) {
-	return setAssignment(this, edges, "V", Math.abs(degrees));
-};
-
-Graph.prototype.setMountain = function (edges = [], degrees = -180) {
-	return setAssignment(this, edges, "M", -Math.abs(degrees));
-};
-
-Graph.prototype.setFlat = function (edges = []) {
-	return setAssignment(this, edges, "F", 0);
-};
-
-Graph.prototype.setUnassigned = function (edges = []) {
-	return setAssignment(this, edges, "U", 0);
-};
-
-Graph.prototype.setCut = function (edges = []) {
-	return setAssignment(this, edges, "C", 0);
+Graph.prototype.flatFold = function () {
+	flatFold(this, getLine(arguments));
+	return this;
 };
 
 export default Graph.prototype;

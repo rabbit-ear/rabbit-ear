@@ -1,5 +1,7 @@
 # 0.9.33 alpha
 
+`pleat()` when given parallel lines will now correct for the case when the lines' vectors point in the opposite directions.
+
 many of the intersection methods have been refactored and have small or dramatic speedups.
 
 new method: `getEdgesRectOverlap()`

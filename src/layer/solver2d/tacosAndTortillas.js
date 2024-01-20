@@ -3,13 +3,14 @@
  */
 import { EPSILON } from "../../math/constant.js";
 import { makeFacesConvexCenter } from "../../graph/make.js";
-import { makeEdgesEdgesParallelOverlap } from "../../graph/intersect/edgesEdges.js";
 import { connectedComponentsPairs } from "../../graph/connectedComponents.js";
+import { makeEdgesEdgesParallelOverlap } from "../../graph/intersect/edgesEdges.js";
 import { getEdgesFacesOverlap } from "../../graph/intersect/edgesFaces.js";
 import {
 	makeEdgesFacesSide,
 	makeTacosFacesSide,
 } from "./facesSide.js";
+
 /**
  * @description classify a pair of adjacent faces encoded as +1 or -1
  * depending on which side they are on into one of 3 types:
@@ -39,6 +40,7 @@ const is_tortilla_tortilla = (classes) => classes[0] === classes[1]
 // and the other is either a "left" or "right" taco.
 const is_taco_tortilla = (classes) => classes[0] !== classes[1]
 	&& (classes[0] === "both" || classes[1] === "both");
+
 /**
  * @description this kind of taco-tortilla is edge-aligned with a tortilla
  * that is made of two faces. there are 4 faces involved, we only need 3.
@@ -62,6 +64,7 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
 		? face_pairs
 		: [face_pairs[0], [face_pairs[1][1], face_pairs[1][0]]];
 };
+
 /**
  * @description Tortilla-tortillas can be generated in two ways:
  * 1. two tortillas (4 faces) where the two dividing edges are collinear
@@ -89,6 +92,7 @@ export const makeTortillaTortillaFacesCrossing = (
 		.reduce((a, b) => a.concat(b), []);
 	return tortilla_faces_results;
 };
+
 /**
  * @description Given a FOLD object, find all instances of edges overlapping which
  * classify as taco/tortillas to determine layer order.

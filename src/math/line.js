@@ -118,8 +118,10 @@ const parallelPleat = (a, b, count) => {
 	const origins = Array
 		.from(Array(count - 1))
 		.map((_, i) => lerp(a.origin, b.origin, (i + 1) / count));
-	const pleatVectors = counterClockwiseSubsect2(aVector, bVector, count);
-	const lines = pleatVectors.map((vector, i) => ({
+	const vectors = Array
+		.from(Array(count - 1))
+		.map((_, i) => lerp(aVector, bVector, (i + 1) / count));
+	const lines = vectors.map((vector, i) => ({
 		vector,
 		origin: [...origins[i]],
 	}));

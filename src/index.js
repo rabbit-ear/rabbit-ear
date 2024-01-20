@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { setWindow } from "./environment/window.js";
-import { graph, cp, origami } from "./prototypes/index.js";
+import { graph, cp } from "./prototypes/index.js";
 import axiom from "./axioms/index.js";
 import convert from "./convert/index.js";
 import general from "./general/index.js";
@@ -24,7 +24,7 @@ Object.assign(graph, graphMethods);
 const ear = {
 	graph,
 	cp,
-	origami,
+	// origami,
 	axiom,
 	convert,
 	general,

@@ -18,9 +18,11 @@ import {
 	subtract2,
 	distance2,
 } from "./vector.js";
+
 /**
  * measurements involving vectors and radians
  */
+
 /**
  * @description check if the first parameter is counter-clockwise between A and B.
  * floor and ceiling can be unbounded, this method takes care of 0-2pi wrap around.
@@ -36,6 +38,7 @@ export const isCounterClockwiseBetween = (angle, floor, ceiling) => {
 	while (angle < floor) { angle += TWO_PI; }
 	return angle < ceiling;
 };
+
 /**
  * @description There are 2 interior angles between 2 vectors (as an angle in radians),
  * A-to-B clockwise, and A-to-B counter-clockwise. Get the clockwise one from A to B.
@@ -55,6 +58,7 @@ export const clockwiseAngleRadians = (a, b) => {
 		? a_b
 		: TWO_PI - (b - a);
 };
+
 /**
  * @description There are 2 interior angles between 2 vectors (as an angle in radians),
  * A-to-B clockwise, and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
@@ -74,6 +78,7 @@ export const counterClockwiseAngleRadians = (a, b) => {
 		? b_a
 		: TWO_PI - (a - b);
 };
+
 /**
  * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
  * and A-to-B counter-clockwise. Get the clockwise one from A to B.
@@ -89,6 +94,7 @@ export const clockwiseAngle2 = (a, b) => {
 	if (angle < 0) { angle += TWO_PI; }
 	return angle;
 };
+
 /**
  * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
  * and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
@@ -104,6 +110,7 @@ export const counterClockwiseAngle2 = (a, b) => {
 	if (angle < 0) { angle += TWO_PI; }
 	return angle;
 };
+
 /**
  * this calculates an angle bisection between the pair of vectors
  * clockwise from the first vector to the second
@@ -114,6 +121,7 @@ export const counterClockwiseAngle2 = (a, b) => {
  *     / .
  *     --------x  b
  */
+
 /**
  * @description calculate the angle bisection clockwise from the first vector to the second.
  * @param {number[]} a one 2D vector
@@ -124,6 +132,7 @@ export const counterClockwiseAngle2 = (a, b) => {
 export const clockwiseBisect2 = (a, b) => (
 	angleToVector(vectorToAngle(a) - clockwiseAngle2(a, b) / 2)
 );
+
 /**
  * @description calculate the angle bisection counter-clockwise from the first vector to the second.
  * @param {number[]} a one 2D vector
@@ -134,6 +143,7 @@ export const clockwiseBisect2 = (a, b) => (
 export const counterClockwiseBisect2 = (a, b) => (
 	angleToVector(vectorToAngle(a) + counterClockwiseAngle2(a, b) / 2)
 );
+
 /**
  * @description subsect into n-divisions the angle clockwise from one angle to the next
  * @param {number} divisions number of angles minus 1
@@ -147,6 +157,7 @@ export const clockwiseSubsectRadians = (angleA, angleB, divisions) => {
 	return Array.from(Array(divisions - 1))
 		.map((_, i) => angleA + angle * (i + 1));
 };
+
 /**
  * @description subsect into n-divisions the angle counter-clockwise from one angle to the next
  * @param {number} divisions number of angles minus 1
@@ -160,6 +171,7 @@ export const counterClockwiseSubsectRadians = (angleA, angleB, divisions) => {
 	return Array.from(Array(divisions - 1))
 		.map((_, i) => angleA + angle * (i + 1));
 };
+
 /**
  * @description subsect into n-divisions the angle clockwise from one vector to the next
  * @param {number} divisions number of angles minus 1
@@ -174,6 +186,7 @@ export const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	return clockwiseSubsectRadians(angleA, angleB, divisions)
 		.map(angleToVector);
 };
+
 /**
  * @description subsect into n-divisions the angle counter-clockwise from one vector to the next
  * @param {number} divisions number of angles minus 1
@@ -188,6 +201,7 @@ export const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	return counterClockwiseSubsectRadians(angleA, angleB, divisions)
 		.map(angleToVector);
 };
+
 /**
  * @description sort an array of angles in radians by getting an array of
  * reference indices to the input array, instead of an array of angles.
@@ -207,6 +221,7 @@ export const counterClockwiseOrderRadians = (radians) => {
 		.slice(counter_clockwise.indexOf(0), counter_clockwise.length)
 		.concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
 };
+
 /**
  * @description sort an array of vectors by getting an array of
  * reference indices to the input array, instead of a sorted array of vectors.
@@ -218,6 +233,7 @@ export const counterClockwiseOrderRadians = (radians) => {
 export const counterClockwiseOrder2 = (vectors) => (
 	counterClockwiseOrderRadians(vectors.map(vectorToAngle))
 );
+
 /**
  * @description given an array of angles, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
@@ -231,6 +247,7 @@ export const counterClockwiseSectorsRadians = (radians) => (
 		.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
 		.map(pair => counterClockwiseAngleRadians(pair[0], pair[1]))
 );
+
 /**
  * @description given an array of vectors, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
@@ -241,6 +258,7 @@ export const counterClockwiseSectorsRadians = (radians) => (
 export const counterClockwiseSectors2 = (vectors) => (
 	counterClockwiseSectorsRadians(vectors.map(vectorToAngle))
 );
+
 /**
  * subsect the angle between two lines, can handle parallel lines
  */
@@ -261,6 +279,7 @@ export const counterClockwiseSectors2 = (vectors) => (
 //   bisects[1] = [-bisects[0][1], bisects[0][0]];
 //   return bisects.map(el => [[x, y], el]);
 // };
+
 /**
  * @description which turn direction do 3 points make?
  * clockwise or counter-clockwise?

@@ -12,10 +12,8 @@ import {
 	makeFacesFaces,
 	makeFacesPolygon,
 } from "../../graph/make.js";
-import {
-	mergeArraysWithHoles,
-} from "../../general/array.js";
-import { 	connectedComponentsPairs } from "../../graph/connectedComponents.js";
+import { mergeArraysWithHoles } from "../../general/array.js";
+import { connectedComponentsPairs } from "../../graph/connectedComponents.js";
 import { coplanarOverlappingFacesGroups } from "../../graph/faces/coplanar.js";
 import { getFacesFacesOverlap } from "../../graph/intersect/facesFaces.js";
 import makeTacosTortillas from "../solver2d/tacosAndTortillas.js";
