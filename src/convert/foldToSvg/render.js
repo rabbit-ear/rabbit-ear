@@ -6,28 +6,46 @@ import {
 	findElementTypeInParents,
 	addClass,
 } from "../../svg/general/dom.js";
-import { boundingBox } from "../../graph/boundary.js";
+import {
+	isFoldedForm,
+} from "../../fold/spec.js";
+import {
+	boundingBox,
+} from "../../graph/boundary.js";
 import {
 	boundingBoxToViewBox,
 	getStrokeWidth,
 } from "./general.js";
 import draw from "./draw/index.js";
-import { isFoldedForm } from "../../fold/spec.js";
+
 /**
- *
+ * some default values for rendering
  */
 const DEFAULT_CIRCLE_RADIUS = 1 / 50;
 const unitBounds = { min: [0, 0], span: [1, 1] };
 const groupNames = ["boundaries", "faces", "edges", "vertices"];
+
 /**
- * @description given a group assumed to contain only circle elements,
- * set the "r" attribute on all circles.
+ * @description The options object will be modified in place,
+ * if the user customizes something, it will be left alone,
+ * otherwise, some default styles will be applied here.
+ * Elsewhere as well, default styles are applied inside each
+ * component draw method.
  */
-const setR = (group, radius) => {
-	for (let i = 0; i < group.childNodes.length; i += 1) {
-		group.childNodes[i].setAttributeNS(null, "r", radius);
+const setDefaultOptions = (graph, options) => {
+	// do not render the vertices unless the user explicitly wants them
+	if (options.vertices === undefined) {
+		options.vertices = false;
+	}
+
+	// in the case of a creasePattern, do not render the faces
+	if (!isFoldedForm(graph)) {
+		if (options.faces === undefined) {
+			options.faces = false;
+		}
 	}
 };
+
 /**
  * @description a subroutine of render(). there are style properties which
  * are impossible to set universally, because they are dependent upon the input
@@ -40,17 +58,38 @@ const setR = (group, radius) => {
  */
 const applyTopLevelOptions = (element, groups, graph, options) => {
 	const hasVertices = groups[3] && groups[3].childNodes.length;
-	if (!(options.strokeWidth || options.viewBox || hasVertices)) { return; }
+
+	// we can skip this method if all of these are true:
+	// - there are no vertices
+	// - "strokeWidth" and "viewBox" are both false or undefined
+	if (!hasVertices
+		&& (options.strokeWidth === undefined || options.strokeWidth === false)
+		&& (options.viewBox === undefined || options.viewBox === false)) { return; }
+
+	// get the bounding box of all vertices, and the maximum of each dimension.
+	// these are needed for both strokeWidth and viewBox.
 	const box = boundingBox(graph) || unitBounds;
 	const vmax = Math.max(...box.span);
+
+	// because the function argument "element" is able to be any SVGElement type
+	// including a <g> group element, and some attributes must be set on the
+	// SVG element itself, we have to find the SVG element in the chain of parents
 	const svgElement = findElementTypeInParents(element, "svg");
+
+	// set the SVG element viewBox
 	if (svgElement && options.viewBox) {
 		const viewBoxValue = boundingBoxToViewBox(box);
 		svgElement.setAttributeNS(null, "viewBox", viewBoxValue);
 	}
+
+	// the "padding" option is incredibly useful despite "padding" as a CSS style
+	// property to be problematic (possibly conflicts with global style).
+	// padding the viewBox itself is much more reliable.
+	// parse the viewbox, modify the numbers, join back into a string.
 	if (svgElement && options.padding) {
 		const viewBoxString = svgElement.getAttribute("viewBox");
 		if (viewBoxString != null) {
+			// options.padding will be applied as a scale of vmax
 			const pad = options.padding * vmax;
 			const viewBox = viewBoxString.split(" ").map(n => parseFloat(n));
 			const newViewBox = [-pad, -pad, pad * 2, pad * 2]
@@ -59,39 +98,58 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 			svgElement.setAttributeNS(null, "viewBox", newViewBox);
 		}
 	}
+
+	// set the stroke-width attribute, which does not require to be set
+	// on an SVG element, whatever element was provided works (such as <g>).
 	if (options.strokeWidth || options["stroke-width"]) {
 		const strokeWidth = options.strokeWidth
 			? options.strokeWidth
 			: options["stroke-width"];
+
+		// options.strokeWidth will be applied as a scale of vmax
 		const strokeWidthValue = typeof strokeWidth === "number"
 			? vmax * strokeWidth
 			: getStrokeWidth(graph);
 		element.setAttributeNS(null, "stroke-width", strokeWidthValue);
 	}
+
+	// if vertices exist, set their radius, even if no options are supplied.
 	if (hasVertices) {
 		const userRadius = options.vertices && options.vertices.radius != null
 			? options.vertices.radius
 			: options.radius;
-		const radius = typeof userRadius === "string" ? parseFloat(userRadius) : userRadius;
+		const radius = typeof userRadius === "string"
+			? parseFloat(userRadius)
+			: userRadius;
 		const r = typeof radius === "number" && !Number.isNaN(radius)
 			? vmax * radius
 			: vmax * DEFAULT_CIRCLE_RADIUS;
-		setR(groups[3], r);
+
+		// iterate and set all circles "r" attribute
+		for (let i = 0; i < groups[3].childNodes.length; i += 1) {
+			groups[3].childNodes[i].setAttributeNS(null, "r", r);
+		}
 	}
 };
+
 /**
- * @description renders a FOLD object into SVG elements, sorted into groups.
+ * @description renders a FOLD object into SVG elements, all elements
+ * are sorted into 4 groups (boundaries, faces, edges, vertices) and
+ * each group is given a descriptive class name.
+ * If the options objects specifies an element to be not drawn, this will
+ * still return an empty <g> group element in its place.
  * @param {object} FOLD object
  * @param {object} options (optional)
  * @returns {SVGElement[]} An array of four <g> elements: boundaries, faces,
- *  edges, vertices, each of the graph components drawn into an SVG group.
+ * edges, vertices, each of the graph components drawn into an SVG group.
  */
-const DrawGroups = (graph, options = {}) => groupNames
-	.map(key => (options[key] === false ? (SVG.g()) : draw[key](graph, options)))
+const drawGroups = (graph, options = {}) => groupNames
+	.map(key => (options[key] === false ? (SVG.g()) : draw[key](graph, options[key])))
 	.map((group, i) => {
 		addClass(group, groupNames[i]);
 		return group;
 	});
+
 /**
  * @name render
  * @memberof graph
@@ -104,20 +162,22 @@ const DrawGroups = (graph, options = {}) => groupNames
  * @linkcode Origami ./src/svg/index.js 161
  */
 const render = (graph, element, options = {}) => {
-	// if the FOLD graph is a creasePattern, don't draw the faces.
-	// todo: this needs to be better mixed in with the DrawGroups.faces which
-	// does unnecessary work in the case of creasePattern.
-	if (!isFoldedForm(graph)) {
-		if (options.faces === undefined) {
-			options.faces = false;
-		}
-	}
-	const groups = DrawGroups(graph, options);
+	// this will modify the options object and set some default
+	// rendering settings, as long as the user has not already specified
+	setDefaultOptions(graph, options);
+
+	// groups will be an array of four <g> elements, even if some are empty
+	const groups = drawGroups(graph, options);
+
+	// for those which contain children, append them to the top-level element
 	groups.filter(group => group.childNodes.length > 0)
 		.forEach(group => element.appendChild(group));
+
 	// apply top level options to the SVG (or group) itself
 	applyTopLevelOptions(element, groups, graph, options);
-	// add classes from the FOLD graph to the top level element
+
+	// classes in the FOLD object, if they exist, can be carried over
+	// and added to the svg elements too.
 	addClass(
 		element,
 		...[graph.file_classes || [], graph.frame_classes || []].flat(),

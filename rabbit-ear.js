@@ -20,6 +20,7 @@ const isNode = typeof process !== "undefined"
 	backendStylesheet: "svgToFold found <style> in <svg>. rendering will be incomplete unless run in a major browser.",
 	noLayerSolution: "LayerSolver bad input. no solution possible",
 };const windowContainer = { window: undefined };
+if (isBrowser$1) { windowContainer.window = window; }
 const buildDocument = (newWindow) => new newWindow.DOMParser()
 	.parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
 const setWindow = (newWindow) => {
@@ -27,7 +28,6 @@ const setWindow = (newWindow) => {
 	windowContainer.window = newWindow;
 	return windowContainer.window;
 };
-if (isBrowser$1) { windowContainer.window = window; }
 const RabbitEarWindow = () => {
 	if (windowContainer.window === undefined) {
 		throw new Error(Messages$1.window);
@@ -740,6 +740,17 @@ const invertAssignments = (graph) => {
 	}
 	return graph;
 };
+const sortEdgesByAssignment = ({ edges_vertices, edges_assignment = [] }) => {
+	const allAssignments = Array
+		.from(new Set(edgesAssignmentValues.map(s => s.toUpperCase())));
+	const edges_upperAssignment = edges_vertices
+		.map((_, i) => edges_assignment[i] || "U")
+		.map(a => a.toUpperCase());
+	const assignmentIndices = {};
+	allAssignments.forEach(a => { assignmentIndices[a] = []; });
+	edges_upperAssignment.forEach((a, i) => assignmentIndices[a].push(i));
+	return assignmentIndices;
+};
 const getFileMetadata = (FOLD = {}) => {
 	const metadata = {};
 	foldKeys.file
@@ -747,7 +758,7 @@ const getFileMetadata = (FOLD = {}) => {
 		.filter(key => FOLD[key] !== undefined)
 		.forEach(key => { metadata[key] = FOLD[key]; });
 	return metadata;
-};const foldSpecMethods=/*#__PURE__*/Object.freeze({__proto__:null,assignmentCanBeFolded,assignmentFlatFoldAngle,assignmentIsBoundary,edgeAssignmentToFoldAngle,edgeFoldAngleIsFlat,edgeFoldAngleToAssignment,edgesAssignmentNames,edgesAssignmentValues,edgesFoldAngleAreAllFlat,filterKeysWithPrefix,filterKeysWithSuffix,getAllPrefixes,getAllSuffixes,getDimension,getDimensionQuick,getFileMetadata,invertAssignment,invertAssignments,isFoldObject,isFoldedForm,makeEdgesIsFolded,pluralize,singularize,transposeGraphArrayAtIndex,transposeGraphArrays});const transform = function (graph, matrix) {
+};const foldSpecMethods=/*#__PURE__*/Object.freeze({__proto__:null,assignmentCanBeFolded,assignmentFlatFoldAngle,assignmentIsBoundary,edgeAssignmentToFoldAngle,edgeFoldAngleIsFlat,edgeFoldAngleToAssignment,edgesAssignmentNames,edgesAssignmentValues,edgesFoldAngleAreAllFlat,filterKeysWithPrefix,filterKeysWithSuffix,getAllPrefixes,getAllSuffixes,getDimension,getDimensionQuick,getFileMetadata,invertAssignment,invertAssignments,isFoldObject,isFoldedForm,makeEdgesIsFolded,pluralize,singularize,sortEdgesByAssignment,transposeGraphArrayAtIndex,transposeGraphArrays});const transform = function (graph, matrix) {
 	filterKeysWithSuffix(graph, "coords").forEach((key) => {
 		graph[key] = graph[key]
 			.map(v => resize(3, v))
@@ -1769,9 +1780,7 @@ const makeEdgesFaces = ({
 	});
 	return edges_faces;
 };
-const assignment_angles = {
-	M: -180, m: -180, V: 180, v: 180,
-};
+const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
 const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngle
 	.map(a => {
 		if (a === 0) { return "F"; }
@@ -6205,7 +6214,10 @@ nodeNames.forEach(nodeName => {
 Object.defineProperty(SVG, "window", {
 	enumerable: false,
 	set: setSVGWindow,
-});const boundingBoxToViewBox = (box) => [box.min, box.span]
+});const setKeysAndValues = (el, attributes = {}) => Object
+	.keys(attributes)
+	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
+const boundingBoxToViewBox = (box) => [box.min, box.span]
 	.flatMap(p => [p[0], p[1]])
 	.join(" ");
 const getViewBox = (graph) => {
@@ -6246,15 +6258,12 @@ const getStrokeWidth = (graph, { vmax } = {}) => {
 		? edgeTenthPercent * DEFAULT_STROKE_WIDTH * 10
 		: vmax * DEFAULT_STROKE_WIDTH;
 };const drawVertices = (graph, options = {}) => {
-	const attributes = options && options.vertices ? options.vertices : {};
 	const g = SVG.g();
 	if (!graph || !graph.vertices_coords) { return g; }
 	graph.vertices_coords
 		.map(v => SVG.circle(v[0], v[1], 0.01))
 		.forEach(v => g.appendChild(v));
-	g.setAttributeNS(null, "fill", "none");
-	Object.keys(attributes)
-		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
+	setKeysAndValues(g, options);
 	return g;
 };const assignmentColor = {
 	B: "black",
@@ -6290,150 +6299,149 @@ const rgbToAssignment = (red = 0, green = 0, blue = 0) => {
 		return nearestColor.key;
 	}
 	return blackDistance < 0.1 ? "B" : "F";
-};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentColor,rgbToAssignment});const GROUP_FOLDED = {};
-const GROUP_FLAT = { stroke: "black" };
-const STYLE_FOLDED = {};
-const STYLE_FLAT = {};
+};const foldColors=/*#__PURE__*/Object.freeze({__proto__:null,assignmentColor,rgbToAssignment});const GROUP_STYLE$1 = {
+	foldedForm: {},
+	creasePattern: { stroke: "black" },
+};
+const EDGE_STYLE = {
+	foldedForm: {},
+	creasePattern: {},
+};
 Object.keys(assignmentColor).forEach(key => {
-	STYLE_FLAT[key] = { stroke: assignmentColor[key] };
+	EDGE_STYLE.creasePattern[key] = { stroke: assignmentColor[key] };
 });
-const setDataValue$1 = (el, key, value) => el.setAttribute(`data-${key}`, value);
-const edgesAssignmentIndices = (graph) => {
-	const assignment_indices = {
-		u: [], c: [], j: [], f: [], v: [], m: [], b: [],
-	};
-	const lowercase_assignment = graph.edges_assignment
-		.map(a => a.toLowerCase());
-	graph.edges_vertices
-		.map((_, i) => lowercase_assignment[i] || "u")
-		.forEach((a, i) => assignment_indices[a].push(i));
-	return assignment_indices;
-};
-const edgesCoords = ({ vertices_coords, edges_vertices }) => {
-	if (!vertices_coords || !edges_vertices) { return []; }
-	return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
-};
+const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
 const segmentToPath = s => `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
-const edgesPathData = (graph) => edgesCoords(graph)
-	.map(segment => segmentToPath(segment)).join("");
-const edgesPathDataAssign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
+const edgesPathData = (graph) => (
+	graph.vertices_coords && graph.edges_vertices
+		? makeEdgesCoords(graph).map(segment => segmentToPath(segment)).join("")
+		: []
+);
+const edgesPathsByAssignment = ({
+	vertices_coords, edges_vertices, edges_assignment,
+}) => {
 	if (!vertices_coords || !edges_vertices) { return {}; }
 	if (!edges_assignment) {
-		return ({ u: edgesPathData({ vertices_coords, edges_vertices }) });
+		return { U: edgesPathData({ vertices_coords, edges_vertices }) };
 	}
-	const data = edgesAssignmentIndices({ vertices_coords, edges_vertices, edges_assignment });
-	Object.keys(data).forEach(key => {
-		data[key] = edgesPathData({
+	const assignmentEdges = sortEdgesByAssignment({
+		vertices_coords, edges_vertices, edges_assignment,
+	});
+	Object.keys(assignmentEdges).forEach(key => {
+		if (!assignmentEdges[key].length) { delete assignmentEdges[key]; }
+	});
+	const assignmentPaths = {};
+	Object.keys(assignmentEdges).forEach(assignment => {
+		const pathString = edgesPathData({
 			vertices_coords,
-			edges_vertices: data[key].map(i => edges_vertices[i]),
+			edges_vertices: assignmentEdges[assignment].map(i => edges_vertices[i]),
 		});
+		assignmentPaths[assignment] = SVG.path(pathString);
 	});
-	Object.keys(data).forEach(key => {
-		if (data[key] === "") { delete data[key]; }
-	});
-	return data;
+	return assignmentPaths;
 };
-const edgesPathsAssign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
-	const data = edgesPathDataAssign({ vertices_coords, edges_vertices, edges_assignment });
-	Object.keys(data).forEach(assignment => {
-		const path = SVG.path(data[assignment]);
-		addClass(path, edgesAssignmentNames[assignment]);
-		data[assignment] = path;
-	});
-	return data;
+const nonAssignmentObject = (object) => {
+	const copy = clone(object);
+	Object.keys(copy)
+		.filter(key => edgesAssignmentNames[key] !== undefined)
+		.forEach(key => delete copy[key]);
+	return copy;
 };
-const applyEdgesStyle = (el, attributes = {}) => Object.keys(attributes)
-	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
+const objectWithPrimitiveValues = (object) => {
+	const valid = { boolean: true, number: true, string: true };
+	const copy = clone(object);
+	Object.keys(copy)
+		.filter(key => !valid[typeof copy[key]])
+		.forEach(key => delete copy[key]);
+	return copy;
+};
+const getStyles = (graph, options) => {
+	const foldedClass = isFoldedForm(graph) ? "foldedForm" : "creasePattern";
+	const groupStyle = clone(GROUP_STYLE$1[foldedClass]);
+	const edgeStyle = clone(EDGE_STYLE[foldedClass]);
+	const override = objectWithPrimitiveValues(nonAssignmentObject(options));
+	Object.assign(groupStyle, override);
+	edgesAssignmentValues.forEach(key => {
+		edgeStyle[key] = { ...edgeStyle[key], ...override };
+	});
+	return {
+		groupStyle,
+		edgeStyle,
+	};
+};
 const edgesPaths = (graph, options = {}) => {
-	const attributes = options && options.edges ? options.edges : {};
 	const group = SVG.g();
 	if (!graph) { return group; }
-	const isFolded = isFoldedForm(graph);
-	const groupStyle = JSON.parse(JSON.stringify(isFolded
-		? GROUP_FOLDED
-		: GROUP_FLAT));
-	const pathStyle = JSON.parse(JSON.stringify(isFolded
-		? STYLE_FOLDED
-		: STYLE_FLAT));
-	const override = {};
-	if (attributes.stroke) { override.stroke = attributes.stroke; }
-	Object.assign(groupStyle, override);
-	Object.keys(pathStyle).forEach(key => {
-		pathStyle[key] = { ...pathStyle[key], ...override };
-	});
-	const paths = edgesPathsAssign(graph);
+	const {
+		groupStyle,
+		edgeStyle,
+	} = getStyles(graph, options);
+	const paths = edgesPathsByAssignment(graph);
 	Object.keys(paths).forEach(key => {
 		addClass(paths[key], edgesAssignmentNames[key]);
-		applyEdgesStyle(paths[key], pathStyle[key]);
-		applyEdgesStyle(paths[key], attributes[key]);
-		applyEdgesStyle(paths[key], attributes[edgesAssignmentNames[key]]);
-		group.appendChild(paths[key]);
-		Object.defineProperty(group, edgesAssignmentNames[key], { get: () => paths[key] });
+		setKeysAndValues(paths[key], edgeStyle[key]);
+		setKeysAndValues(paths[key], options[key]);
+		setKeysAndValues(paths[key], options[edgesAssignmentNames[key]]);
 	});
-	applyEdgesStyle(group, groupStyle);
+	setKeysAndValues(group, groupStyle);
+	Object.keys(paths).forEach(key => group.appendChild(paths[key]));
 	Object.keys(paths)
-		.forEach(assign => setDataValue$1(paths[assign], "assignment", assign));
+		.forEach(assign => setDataValue(paths[assign], "assignment", assign));
 	Object.keys(paths)
-		.forEach(assign => setDataValue$1(paths[assign], "foldAngle", assignmentFlatFoldAngle[assign]));
+		.forEach(assign => setDataValue(paths[assign], "foldAngle", assignmentFlatFoldAngle[assign]));
 	return group;
 };
 const angleToOpacity = (foldAngle) => (Math.abs(foldAngle) / 180);
 const edgesLines = (graph, options = {}) => {
-	const attributes = options && options.edges ? options.edges : {};
 	const group = SVG.g();
 	if (!graph) { return group; }
-	const isFolded = isFoldedForm(graph);
-	const groupStyle = JSON.parse(JSON.stringify(isFolded
-		? GROUP_FOLDED
-		: GROUP_FLAT));
-	const lineStyle = JSON.parse(JSON.stringify(isFolded
-		? STYLE_FOLDED
-		: STYLE_FLAT));
-	const override = {};
-	if (attributes.stroke) { override.stroke = attributes.stroke; }
-	Object.assign(groupStyle, override);
-	edgesAssignmentValues.forEach(key => {
-		if (lineStyle[key] === undefined) { lineStyle[key] = {}; }
-		lineStyle[key] = { ...lineStyle[key], ...override };
-	});
-	const groups_by_key = {};
-	Array.from(new Set(edgesAssignmentValues.map(s => s.toLowerCase())))
-		.forEach(k => {
+	const {
+		groupStyle,
+		edgeStyle,
+	} = getStyles(graph, options);
+	const groupsByAssignment = {};
+	Array.from(new Set(edgesAssignmentValues.map(s => s.toUpperCase())))
+		.forEach(assign => {
 			const child_group = SVG.g();
-			group.appendChild(child_group);
-			addClass(child_group, edgesAssignmentNames[k]);
-			applyEdgesStyle(child_group, lineStyle[k]);
-			applyEdgesStyle(child_group, attributes[edgesAssignmentNames[k]]);
-			Object.defineProperty(group, edgesAssignmentNames[k], {
-				get: () => child_group,
-			});
-			groups_by_key[k] = child_group;
+			addClass(child_group, edgesAssignmentNames[assign]);
+			setKeysAndValues(child_group, edgeStyle[assign]);
+			setKeysAndValues(child_group, options[assign]);
+			setKeysAndValues(child_group, options[edgesAssignmentNames[assign]]);
+			groupsByAssignment[assign] = child_group;
 		});
-	const lines = graph.edges_vertices
-		.map(ev => ev.map(v => graph.vertices_coords[v]))
-		.map(l => SVG.line(l[0][0], l[0][1], l[1][0], l[1][1]));
+	const lines = makeEdgesCoords(graph)
+		.map(s => SVG.line(s[0][0], s[0][1], s[1][0], s[1][1]));
 	if (graph.edges_foldAngle) {
 		graph.edges_foldAngle
-			.forEach((angle, i) => setDataValue$1(lines[i], "foldAngle", angle));
+			.forEach((angle, i) => setDataValue(lines[i], "foldAngle", angle));
 	}
 	if (graph.edges_assignment) {
 		graph.edges_assignment
-			.forEach((assign, i) => setDataValue$1(lines[i], "assignment", assign));
+			.forEach((assign, i) => setDataValue(lines[i], "assignment", assign));
 	}
 	if (graph.edges_foldAngle) {
 		lines.forEach((line, i) => {
 			const angle = graph.edges_foldAngle[i];
-			if (angle === 0 || angle === 180 || angle === -180) { return; }
+			if (angle === undefined
+				|| angle === null
+				|| angle === 0
+				|| angle === 180
+				|| angle === -180) { return; }
 			line.setAttributeNS(null, "opacity", angleToOpacity(angle));
 		});
 	}
-	const edges_assignment = (graph.edges_assignment
-		? graph.edges_assignment
-		: makeEdgesAssignment(graph))
-		.map(assign => assign.toLowerCase());
-	lines.forEach((line, i) => groups_by_key[edges_assignment[i]]
-		.appendChild(line));
-	applyEdgesStyle(group, groupStyle);
+	if (graph.edges_assignment) {
+		lines.forEach((line, i) => {
+			const assignment = graph.edges_assignment[i] || "U";
+			groupsByAssignment[assignment].appendChild(line);
+		});
+	} else {
+		lines.forEach(line => groupsByAssignment.U.appendChild(line));
+	}
+	Object.keys(groupsByAssignment)
+		.filter(key => groupsByAssignment[key].childNodes.length)
+		.forEach(key => group.appendChild(groupsByAssignment[key]));
+	setKeysAndValues(group, groupStyle);
 	return group;
 };
 const drawEdges = (graph, options) => (
@@ -6544,121 +6552,107 @@ const makeFacesLayer = ({ vertices_coords, faces_vertices, faceOrders, faces_nor
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 	return invertMap(linearizeFaceOrders({ faceOrders, faces_normal }));
-};const orders=/*#__PURE__*/Object.freeze({__proto__:null,faceOrdersSubset,linearize2DFaces,linearizeFaceOrders,makeFacesLayer,nudgeFacesWithFaceOrders,nudgeFacesWithFacesLayer});const FACE_STYLE_FOLDED_ORDERED = {
-	back: { fill: "white" },
-	front: { fill: "#ddd" },
+};const orders=/*#__PURE__*/Object.freeze({__proto__:null,faceOrdersSubset,linearize2DFaces,linearizeFaceOrders,makeFacesLayer,nudgeFacesWithFaceOrders,nudgeFacesWithFacesLayer});const facesSideNames = ["front", "back"];
+const FACE_STYLE = {
+	foldedForm: {
+		ordered: {
+			back: { fill: "white" },
+			front: { fill: "#ddd" },
+		},
+		unordered: {
+			back: { opacity: 0.1 },
+			front: { opacity: 0.1 },
+		},
+	},
+	creasePattern: {},
 };
-const FACE_STYLE_FOLDED_UNORDERED = {
-	back: { opacity: 0.1 },
-	front: { opacity: 0.1 },
+const GROUP_STYLE = {
+	foldedForm: {
+		ordered: {
+			stroke: "black",
+			"stroke-linejoin": "bevel",
+		},
+		unordered: {
+			stroke: "none",
+			fill: "black",
+			"stroke-linejoin": "bevel",
+		},
+	},
+	creasePattern: {
+		fill: "none",
+	},
 };
-const FACE_STYLE_FLAT = {
-};
-const GROUP_STYLE_FOLDED_ORDERED = {
-	stroke: "black",
-	"stroke-linejoin": "bevel",
-};
-const GROUP_STYLE_FOLDED_UNORDERED = {
-	stroke: "none",
-	fill: "black",
-	"stroke-linejoin": "bevel",
-};
-const GROUP_STYLE_FLAT = {
-	fill: "none",
-};
-const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
-const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
-	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 const finalize_faces = (graph, svg_faces, group, options = {}) => {
-	const attributes = options && options.faces ? options.faces : {};
 	const isFolded = isFoldedForm(graph);
 	const orderIsCertain = !!(graph.faceOrders || graph.faces_layer);
-	const classNames = [["front"], ["back"]];
 	const faces_winding = makeFacesWinding(graph);
-	faces_winding.map(w => (w ? classNames[0] : classNames[1]))
+	faces_winding
+		.map(w => (w ? facesSideNames[0] : facesSideNames[1]))
 		.forEach((className, i) => {
 			addClass(svg_faces[i], className);
-			setDataValue(svg_faces[i], "side", className);
-			applyFacesStyle(svg_faces[i], (isFolded
-				? (orderIsCertain
-					? FACE_STYLE_FOLDED_ORDERED[className]
-					: FACE_STYLE_FOLDED_UNORDERED[className])
-				: FACE_STYLE_FLAT[className]));
-			applyFacesStyle(svg_faces[i], attributes[className]);
+			svg_faces[i].setAttribute("data-side", className);
+			const foldedFaceStyle = orderIsCertain
+				? FACE_STYLE.foldedForm.ordered[className]
+				: FACE_STYLE.foldedForm.unordered[className];
+			const faceStyle = isFolded
+				? foldedFaceStyle
+				: FACE_STYLE.creasePattern[className];
+			setKeysAndValues(svg_faces[i], faceStyle);
+			setKeysAndValues(svg_faces[i], options[className]);
 		});
 	linearize2DFaces(graph).forEach(f => group.appendChild(svg_faces[f]));
-	Object.defineProperty(group, "front", {
-		get: () => svg_faces.filter((_, i) => faces_winding[i]),
-	});
-	Object.defineProperty(group, "back", {
-		get: () => svg_faces.filter((_, i) => !faces_winding[i]),
-	});
-	applyFacesStyle(group, (isFolded
-		? (orderIsCertain
-			? GROUP_STYLE_FOLDED_ORDERED
-			: GROUP_STYLE_FOLDED_UNORDERED)
-		: GROUP_STYLE_FLAT));
+	const groupStyleFolded = orderIsCertain
+		? GROUP_STYLE.foldedForm.ordered
+		: GROUP_STYLE.foldedForm.unordered;
+	setKeysAndValues(group, isFolded ? groupStyleFolded : GROUP_STYLE.creasePattern);
 	return group;
 };
 const facesVerticesPolygon = (graph, options) => {
-	const g = SVG.g();
-	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
 	const svg_faces = graph.faces_vertices
 		.map(fv => fv.map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
 		.map(face => SVG.polygon(face));
 	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i));
-	g.setAttributeNS(null, "fill", "white");
-	return finalize_faces(graph, svg_faces, g, options);
+	return finalize_faces(graph, svg_faces, SVG.g(), options);
 };
 const facesEdgesPolygon = function (graph, options) {
-	const g = SVG.g();
-	if (!graph
-		|| "faces_edges" in graph === false
-		|| "edges_vertices" in graph === false
-		|| "vertices_coords" in graph === false) {
-		return g;
-	}
-	const svg_faces = graph["faces_edges"]
+	const svg_faces = graph.faces_edges
 		.map(face_edges => face_edges
-			.map(edge => graph["edges_vertices"][edge])
+			.map(edge => graph.edges_vertices[edge])
 			.map((vi, i, arr) => {
 				const next = arr[(i + 1) % arr.length];
 				return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
-			}).map(v => [0, 1].map(i => graph["vertices_coords"][v][i])))
+			}).map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
 		.map(face => SVG.polygon(face));
 	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i));
-	g.setAttributeNS(null, "fill", "white");
-	return finalize_faces(graph, svg_faces, g, options);
+	return finalize_faces(graph, svg_faces, SVG.g(), options);
 };
 const drawFaces = (graph, options) => {
-	if (graph && graph["faces_vertices"]) {
+	if (graph && graph.vertices_coords && graph.faces_vertices) {
 		return facesVerticesPolygon(graph, options);
 	}
-	if (graph && graph["faces_edges"]) {
+	if (graph && graph.vertices_coords && graph.edges_vertices && graph.faces_edges) {
 		return facesEdgesPolygon(graph, options);
 	}
 	return SVG.g();
-};const FOLDED = {
+};const BOUNDARY_FOLDED = {
 	fill: "none",
 };
-const FLAT = {
+const BOUNDARY_CP = {
 	stroke: "black",
 	fill: "white",
 };
-const applyBoundariesStyle = (el, attributes = {}) => Object.keys(attributes)
-	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 const drawBoundaries = (graph, options = {}) => {
-	const attributes = options && options.boundaries ? options.boundaries : {};
 	const g = SVG.g();
 	if (!graph) { return g; }
-	const polygon = boundary(graph).polygon;
-	if (!polygon.length) { return g; }
-	const svgPolygon = SVG.polygon(polygon);
-	addClass(svgPolygon, "boundary");
-	g.appendChild(svgPolygon);
-	applyBoundariesStyle(g, isFoldedForm(graph) ? FOLDED : FLAT);
-	Object.keys(attributes)
-		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
+	const polygons = [boundary(graph).polygon]
+		.filter(polygon => polygon.length);
+	polygons.forEach(polygon => {
+		const svgPolygon = SVG.polygon(polygon);
+		addClass(svgPolygon, "boundary");
+		g.appendChild(svgPolygon);
+	});
+	setKeysAndValues(g, isFoldedForm(graph) ? BOUNDARY_FOLDED : BOUNDARY_CP);
+	setKeysAndValues(g, options);
 	return g;
 };const draw = {
 	vertices: drawVertices,
@@ -6672,14 +6666,21 @@ const drawBoundaries = (graph, options = {}) => {
 };const DEFAULT_CIRCLE_RADIUS = 1 / 50;
 const unitBounds = { min: [0, 0], span: [1, 1] };
 const groupNames = ["boundaries", "faces", "edges", "vertices"];
-const setR = (group, radius) => {
-	for (let i = 0; i < group.childNodes.length; i += 1) {
-		group.childNodes[i].setAttributeNS(null, "r", radius);
+const setDefaultOptions = (graph, options) => {
+	if (options.vertices === undefined) {
+		options.vertices = false;
+	}
+	if (!isFoldedForm(graph)) {
+		if (options.faces === undefined) {
+			options.faces = false;
+		}
 	}
 };
 const applyTopLevelOptions = (element, groups, graph, options) => {
 	const hasVertices = groups[3] && groups[3].childNodes.length;
-	if (!(options.strokeWidth || options.viewBox || hasVertices)) { return; }
+	if (!hasVertices
+		&& (options.strokeWidth === undefined || options.strokeWidth === false)
+		&& (options.viewBox === undefined || options.viewBox === false)) { return; }
 	const box = boundingBox(graph) || unitBounds;
 	const vmax = Math.max(...box.span);
 	const svgElement = findElementTypeInParents(element, "svg");
@@ -6711,26 +6712,26 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 		const userRadius = options.vertices && options.vertices.radius != null
 			? options.vertices.radius
 			: options.radius;
-		const radius = typeof userRadius === "string" ? parseFloat(userRadius) : userRadius;
+		const radius = typeof userRadius === "string"
+			? parseFloat(userRadius)
+			: userRadius;
 		const r = typeof radius === "number" && !Number.isNaN(radius)
 			? vmax * radius
 			: vmax * DEFAULT_CIRCLE_RADIUS;
-		setR(groups[3], r);
+		for (let i = 0; i < groups[3].childNodes.length; i += 1) {
+			groups[3].childNodes[i].setAttributeNS(null, "r", r);
+		}
 	}
 };
-const DrawGroups = (graph, options = {}) => groupNames
-	.map(key => (options[key] === false ? (SVG.g()) : draw[key](graph, options)))
+const drawGroups = (graph, options = {}) => groupNames
+	.map(key => (options[key] === false ? (SVG.g()) : draw[key](graph, options[key])))
 	.map((group, i) => {
 		addClass(group, groupNames[i]);
 		return group;
 	});
 const render = (graph, element, options = {}) => {
-	if (!isFoldedForm(graph)) {
-		if (options.faces === undefined) {
-			options.faces = false;
-		}
-	}
-	const groups = DrawGroups(graph, options);
+	setDefaultOptions(graph, options);
+	const groups = drawGroups(graph, options);
 	groups.filter(group => group.childNodes.length > 0)
 		.forEach(group => element.appendChild(group));
 	applyTopLevelOptions(element, groups, graph, options);
@@ -6759,23 +6760,19 @@ Object.assign(foldToSvg, {
 	getViewBox,
 	getStrokeWidth,
 	boundingBoxToViewBox,
-});const getMetadata = (graph) => {
-	const metadata = [
-		"file_title",
-		"file_author",
-		"file_description",
-		"frame_title",
-		"frame_author",
-		"frame_description",
-	];
-	return metadata
-		.filter(key => graph[key])
-		.map(key => `# ${key.split("_")[1]}: ${graph[key]}`)
-		.join("\n");
-};
+});const getTitleAuthorDescription = (graph) => [
+	"file_title",
+	"file_author",
+	"file_description",
+	"frame_title",
+	"frame_author",
+	"frame_description",
+].filter(key => graph[key])
+	.map(key => `# ${key.split("_")[1]}: ${graph[key]}`)
+	.join("\n");
 const foldToObj = (file) => {
 	const graph = typeof file === "string" ? JSON.parse(file) : file;
-	const metadata = getMetadata(graph);
+	const metadata = getTitleAuthorDescription(graph);
 	const vertices = (graph.vertices_coords || [])
 		.map(coords => coords.join(" "))
 		.map(str => `v ${str}`)
@@ -7680,61 +7677,8 @@ cp.prototype.constructor = cp;
 Object.keys(bases).forEach(fnName => {
 	graph[fnName] = (...args) => graph(bases[fnName](...args));
 	cp[fnName] = (...args) => cp(bases[fnName](...args));
-});const intersectionUD = (line1, line2) => {
-	const det = cross2(line1.normal, line2.normal);
-	if (Math.abs(det) < EPSILON) { return undefined; }
-	const x = line1.distance * line2.normal[1] - line2.distance * line1.normal[1];
-	const y = line2.distance * line1.normal[0] - line1.distance * line2.normal[0];
-	return [x / det, y / det];
-};
-const normalAxiom1 = (point1, point2) => {
-	const normal = normalize2(rotate90(subtract2(point2, point1)));
-	return [{
-		normal,
-		distance: dot2(add2(point1, point2), normal) / 2.0,
-	}];
-};
-const normalAxiom2 = (point1, point2) => {
-	const normal = normalize2(subtract2(point2, point1));
-	return [{
-		normal,
-		distance: dot2(add2(point1, point2), normal) / 2.0,
-	}];
-};
-const normalAxiom3 = (line1, line2) => {
-	const intersect = intersectionUD(line1, line2);
-	return intersect === undefined
-		? [{
-			normal: line1.normal,
-			distance: (line1.distance + line2.distance * dot2(line1.normal, line2.normal)) / 2,
-		}]
-		: [add2, subtract2]
-			.map(f => normalize2(f(line1.normal, line2.normal)))
-			.map(normal => ({ normal, distance: dot2(intersect, normal) }));
-};
-const normalAxiom4 = (line, point) => {
-	const normal = rotate90(line.normal);
-	const distance = dot2(point, normal);
-	return [{ normal, distance }];
-};
-const normalAxiom5 = (line, point1, point2) => {
-	const p1base = dot2(point1, line.normal);
-	const a = line.distance - p1base;
-	const c = distance2(point1, point2);
-	if (a > c) { return []; }
-	const b = Math.sqrt(c * c - a * a);
-	const a_vec = scale2(line.normal, a);
-	const base_center = add2(point1, a_vec);
-	const base_vector = scale2(rotate90(line.normal), b);
-	const mirrors = b < EPSILON
-		? [base_center]
-		: [add2(base_center, base_vector), subtract2(base_center, base_vector)];
-	return mirrors
-		.map(pt => normalize2(subtract2(point2, pt)))
-		.map(normal => ({ normal, distance: dot2(point1, normal) }));
-};
-const cubrt = n => (n < 0 ? -((-n) ** (1 / 3)) : (n ** (1 / 3)));
-const polynomial = (degree, a, b, c, d) => {
+});const cubrt = n => (n < 0 ? -((-n) ** (1 / 3)) : (n ** (1 / 3)));
+const cubicSolver = (degree, a, b, c, d) => {
 	switch (degree) {
 	case 1: return [-d / c];
 	case 2: {
@@ -7777,7 +7721,90 @@ const polynomial = (degree, a, b, c, d) => {
 	}
 	default: return [];
 	}
+};const intersectionUD = (line1, line2) => {
+	const det = cross2(line1.normal, line2.normal);
+	if (Math.abs(det) < EPSILON) { return undefined; }
+	const x = line1.distance * line2.normal[1] - line2.distance * line1.normal[1];
+	const y = line2.distance * line1.normal[0] - line1.distance * line2.normal[0];
+	return [x / det, y / det];
 };
+const axiom1 = (point1, point2) => [{
+	vector: normalize2(subtract2(...resizeUp(point2, point1))),
+	origin: point1,
+}];
+const normalAxiom1 = (point1, point2) => {
+	const normal = normalize2(rotate90(subtract2(point2, point1)));
+	return [{
+		normal,
+		distance: dot2(add2(point1, point2), normal) / 2.0,
+	}];
+};
+const axiom2 = (point1, point2) => [{
+	vector: normalize2(rotate90(subtract2(
+		...resizeUp(point2, point1),
+	))),
+	origin: midpoint2(point1, point2),
+}];
+const normalAxiom2 = (point1, point2) => {
+	const normal = normalize2(subtract2(point2, point1));
+	return [{
+		normal,
+		distance: dot2(add2(point1, point2), normal) / 2.0,
+	}];
+};
+const axiom3 = (line1, line2) => bisectLines2(line1, line2);
+const normalAxiom3 = (line1, line2) => {
+	const intersect = intersectionUD(line1, line2);
+	return intersect === undefined
+		? [{
+			normal: line1.normal,
+			distance: (line1.distance + line2.distance * dot2(line1.normal, line2.normal)) / 2,
+		}]
+		: [add2, subtract2]
+			.map(f => normalize2(f(line1.normal, line2.normal)))
+			.map(normal => ({ normal, distance: dot2(intersect, normal) }));
+};
+const axiom4 = (line, point) => [{
+	vector: rotate90(normalize2(line.vector)),
+	origin: point,
+}];
+const normalAxiom4 = (line, point) => {
+	const normal = rotate90(line.normal);
+	const distance = dot2(point, normal);
+	return [{ normal, distance }];
+};
+const axiom5 = (line, point1, point2) => (
+	intersectCircleLine(
+		{ radius: distance2(point1, point2), origin: point1 },
+		line,
+	) || []).map(sect => ({
+	vector: normalize2(rotate90(subtract2(
+		...resizeUp(sect, point2),
+	))),
+	origin: midpoint2(point2, sect),
+}));
+const normalAxiom5 = (line, point1, point2) => {
+	const p1base = dot2(point1, line.normal);
+	const a = line.distance - p1base;
+	const c = distance2(point1, point2);
+	if (a > c) { return []; }
+	const b = Math.sqrt(c * c - a * a);
+	const a_vec = scale2(line.normal, a);
+	const base_center = add2(point1, a_vec);
+	const base_vector = scale2(rotate90(line.normal), b);
+	const mirrors = b < EPSILON
+		? [base_center]
+		: [add2(base_center, base_vector), subtract2(base_center, base_vector)];
+	return mirrors
+		.map(pt => normalize2(subtract2(point2, pt)))
+		.map(normal => ({ normal, distance: dot2(point1, normal) }));
+};
+const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
+	vecLineToUniqueLine(line1),
+	vecLineToUniqueLine(line2),
+	point1,
+	point2,
+).map(uniqueLineToVecLine);
 const normalAxiom6 = (line1, line2, point1, point2) => {
 	if (Math.abs(1 - (dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
 	const line_vec = rotate90(line1.normal);
@@ -7801,7 +7828,7 @@ const normalAxiom6 = (line1, line2, point1, point2) => {
 	if (Math.abs(c) > EPSILON) { polynomial_degree = 1; }
 	if (Math.abs(b) > EPSILON) { polynomial_degree = 2; }
 	if (Math.abs(a) > EPSILON) { polynomial_degree = 3; }
-	return polynomial(polynomial_degree, a, b, c, d)
+	return cubicSolver(polynomial_degree, a, b, c, d)
 		.map(n => add2(
 			scale2(line1.normal, line1.distance),
 			scale2(line_vec, n),
@@ -7812,55 +7839,6 @@ const normalAxiom6 = (line1, line2, point1, point2) => {
 			distance: dot2(el.normal, midpoint2(el.p, point1)),
 		}));
 };
-const normalAxiom7 = (line1, line2, point) => {
-	const normal = rotate90(line1.normal);
-	const norm_norm = dot2(normal, line2.normal);
-	if (Math.abs(norm_norm) < EPSILON) { return undefined; }
-	const a = dot2(point, normal);
-	const b = dot2(point, line2.normal);
-	const distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
-	return [{ normal, distance }];
-};
-const normalAxiom = (number, ...args) => [
-	null,
-	normalAxiom1,
-	normalAxiom2,
-	normalAxiom3,
-	normalAxiom4,
-	normalAxiom5,
-	normalAxiom6,
-	normalAxiom7,
-][number](...args);const AxiomsUniqueLine=/*#__PURE__*/Object.freeze({__proto__:null,normalAxiom,normalAxiom1,normalAxiom2,normalAxiom3,normalAxiom4,normalAxiom5,normalAxiom6,normalAxiom7});const axiom1 = (point1, point2) => [{
-	vector: normalize2(subtract2(...resizeUp(point2, point1))),
-	origin: point1,
-}];
-const axiom2 = (point1, point2) => [{
-	vector: normalize2(rotate90(subtract2(
-		...resizeUp(point2, point1),
-	))),
-	origin: midpoint2(point1, point2),
-}];
-const axiom3 = (line1, line2) => bisectLines2(line1, line2);
-const axiom4 = (line, point) => [{
-	vector: rotate90(normalize2(line.vector)),
-	origin: point,
-}];
-const axiom5 = (line, point1, point2) => (
-	intersectCircleLine(
-		{ radius: distance2(point1, point2), origin: point1 },
-		line,
-	) || []).map(sect => ({
-	vector: normalize2(rotate90(subtract2(
-		...resizeUp(sect, point2),
-	))),
-	origin: midpoint2(point2, sect),
-}));
-const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
-	vecLineToUniqueLine(line1),
-	vecLineToUniqueLine(line2),
-	point1,
-	point2,
-).map(uniqueLineToVecLine);
 const axiom7 = (line1, line2, point) => {
 	const intersect = intersectLineLine(
 		line1,
@@ -7877,9 +7855,28 @@ const axiom7 = (line1, line2, point) => {
 			origin: midpoint2(point, intersect),
 		}];
 };
+const normalAxiom7 = (line1, line2, point) => {
+	const normal = rotate90(line1.normal);
+	const norm_norm = dot2(normal, line2.normal);
+	if (Math.abs(norm_norm) < EPSILON) { return undefined; }
+	const a = dot2(point, normal);
+	const b = dot2(point, line2.normal);
+	const distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
+	return [{ normal, distance }];
+};
 const axiom$1 = (number, ...args) => [
 	null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
-][number](...args);const AxiomsVecLine=/*#__PURE__*/Object.freeze({__proto__:null,axiom:axiom$1,axiom1,axiom2,axiom3,axiom4,axiom5,axiom6,axiom7});const reflectPoint = (foldLine, point) => {
+][number](...args);
+const normalAxiom = (number, ...args) => [
+	null,
+	normalAxiom1,
+	normalAxiom2,
+	normalAxiom3,
+	normalAxiom4,
+	normalAxiom5,
+	normalAxiom6,
+	normalAxiom7,
+][number](...args);const Axioms=/*#__PURE__*/Object.freeze({__proto__:null,axiom:axiom$1,axiom1,axiom2,axiom3,axiom4,axiom5,axiom6,axiom7,normalAxiom,normalAxiom1,normalAxiom2,normalAxiom3,normalAxiom4,normalAxiom5,normalAxiom6,normalAxiom7});const reflectPoint = (foldLine, point) => {
 	const matrix = makeMatrix2Reflect(foldLine.vector, foldLine.origin);
 	return multiplyMatrix2Vector2(matrix, point);
 };
@@ -8031,8 +8028,7 @@ const normalAxiomWithBoundary = (number, boundary, ...args) => {
 		.forEach(i => delete solutions[i]);
 	return solutions;
 };const AxiomsBoundary=/*#__PURE__*/Object.freeze({__proto__:null,axiomWithBoundary,normalAxiomWithBoundary});const axiom = {
-	...AxiomsVecLine,
-	...AxiomsUniqueLine,
+	...Axioms,
 	...AxiomsBoundary,
 	...ValidateAxioms,
 };const newFoldFile = () => {

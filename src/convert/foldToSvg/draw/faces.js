@@ -3,39 +3,53 @@
  */
 import { isFoldedForm } from "../../../fold/spec.js";
 import { makeFacesWinding } from "../../../graph/faces/winding.js";
+import { linearize2DFaces } from "../../../graph/orders.js";
 import { addClass } from "../../../svg/general/dom.js";
 import SVG from "../../../svg/index.js";
-import { linearize2DFaces } from "../../../graph/orders.js";
+import { setKeysAndValues } from "../general.js";
 
-const FACE_STYLE_FOLDED_ORDERED = {
-	back: { fill: "white" },
-	front: { fill: "#ddd" },
-};
-const FACE_STYLE_FOLDED_UNORDERED = {
-	back: { opacity: 0.1 },
-	front: { opacity: 0.1 },
-};
-const FACE_STYLE_FLAT = {
-	// back: { fill: "white", stroke: "none" },
-	// front: { fill: "#ddd", stroke: "none" }
-};
-const GROUP_STYLE_FOLDED_ORDERED = {
-	stroke: "black",
-	"stroke-linejoin": "bevel",
-};
-const GROUP_STYLE_FOLDED_UNORDERED = {
-	stroke: "none",
-	fill: "black",
-	"stroke-linejoin": "bevel",
-};
-const GROUP_STYLE_FLAT = {
-	fill: "none",
+/**
+ * @description each face is given a name depending on the winding order
+ * front: counter-clockwise, back: clockwise.
+ */
+const facesSideNames = ["front", "back"];
+
+/**
+ * @description default style to be applied to individual face polygons
+ */
+const FACE_STYLE = {
+	foldedForm: {
+		ordered: {
+			back: { fill: "white" },
+			front: { fill: "#ddd" },
+		},
+		unordered: {
+			back: { opacity: 0.1 },
+			front: { opacity: 0.1 },
+		},
+	},
+	creasePattern: {},
 };
 
-const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
-
-const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
-	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
+/**
+ * @description default style to be applied to the group <g> element
+ */
+const GROUP_STYLE = {
+	foldedForm: {
+		ordered: {
+			stroke: "black",
+			"stroke-linejoin": "bevel",
+		},
+		unordered: {
+			stroke: "none",
+			fill: "black",
+			"stroke-linejoin": "bevel",
+		},
+	},
+	creasePattern: {
+		fill: "none",
+	},
+};
 
 /**
  * @description this method will check for layer order, face windings,
@@ -43,46 +57,64 @@ const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
  * and applies style attributes to the group itself too.
  */
 const finalize_faces = (graph, svg_faces, group, options = {}) => {
-	const attributes = options && options.faces ? options.faces : {};
 	const isFolded = isFoldedForm(graph);
-	// currently, layer order is determined by "faces_layer" key, and
-	// ensuring that the length matches the number of faces in the graph.
+
+	// capable of determining order from faceOrders (spec) or faces_layer
 	const orderIsCertain = !!(graph.faceOrders || graph.faces_layer);
-	const classNames = [["front"], ["back"]];
 	const faces_winding = makeFacesWinding(graph);
-	// counter-clockwise faces are "face up", their front facing the camera
-	// clockwise faces means "flipped", their back is facing the camera.
-	// set these class names, and apply the style as attributes on each face.
-	faces_winding.map(w => (w ? classNames[0] : classNames[1]))
+
+	// set the style of each individual face, depending on the
+	// face's visible side (front/back) and foldedForm vs. crease pattern
+	faces_winding
+		.map(w => (w ? facesSideNames[0] : facesSideNames[1]))
 		.forEach((className, i) => {
+			// counter-clockwise faces are "face up", their front facing the camera
+			// clockwise faces means "flipped", their back is facing the camera.
+			// set these class names, and apply the style as attributes on each face.
 			addClass(svg_faces[i], className);
-			setDataValue(svg_faces[i], "side", className);
-			// svg_faces[i].classList.add(className);
-			// svg_faces[i].setAttributeNS(null, "class", className);
-			applyFacesStyle(svg_faces[i], (isFolded
-				? (orderIsCertain
-					? FACE_STYLE_FOLDED_ORDERED[className]
-					: FACE_STYLE_FOLDED_UNORDERED[className])
-				: FACE_STYLE_FLAT[className]));
-			applyFacesStyle(svg_faces[i], attributes[className]);
+
+			// Apply a data attribute ("data-") to an element, enabling the user
+			// to be able to get this data using the .dataset selector.
+			// https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes
+			svg_faces[i].setAttribute("data-side", className);
+
+			// cp / folded style, which is based on known or unknown face order
+			const foldedFaceStyle = orderIsCertain
+				? FACE_STYLE.foldedForm.ordered[className]
+				: FACE_STYLE.foldedForm.unordered[className];
+			const faceStyle = isFolded
+				? foldedFaceStyle
+				: FACE_STYLE.creasePattern[className];
+
+			// set the face style (front/back in the context of CP or foldedForm)
+			setKeysAndValues(svg_faces[i], faceStyle);
+
+			// set any custom user style that was provided in the options object
+			setKeysAndValues(svg_faces[i], options[className]);
 		});
-	// if the layer-order exists, sort the faces in order of faces_layer
+
+	// get a list of face indices, 0...N-1, or in the case of a layer order
+	// existing, give us these indices in layer-sorted order.
+	// using this order, append the faces to the parent group.
 	linearize2DFaces(graph).forEach(f => group.appendChild(svg_faces[f]));
+
+	// set style attributes of the group
+	const groupStyleFolded = orderIsCertain
+		? GROUP_STYLE.foldedForm.ordered
+		: GROUP_STYLE.foldedForm.unordered;
+	setKeysAndValues(group, isFolded ? groupStyleFolded : GROUP_STYLE.creasePattern);
+
 	// these custom getters allows you to grab all "front" or "back" faces only.
-	Object.defineProperty(group, "front", {
-		get: () => svg_faces.filter((_, i) => faces_winding[i]),
-	});
-	Object.defineProperty(group, "back", {
-		get: () => svg_faces.filter((_, i) => !faces_winding[i]),
-	});
-	// set style attributes to the group itself which contains the faces.
-	applyFacesStyle(group, (isFolded
-		? (orderIsCertain
-			? GROUP_STYLE_FOLDED_ORDERED
-			: GROUP_STYLE_FOLDED_UNORDERED)
-		: GROUP_STYLE_FLAT));
+	// Object.defineProperty(group, "front", {
+	// 	get: () => svg_faces.filter((_, i) => faces_winding[i]),
+	// });
+	// Object.defineProperty(group, "back", {
+	// 	get: () => svg_faces.filter((_, i) => !faces_winding[i]),
+	// });
+
 	return group;
 };
+
 /**
  * @description build SVG faces using faces_vertices data. this is
  * slightly faster than the other method which uses faces_edges.
@@ -90,15 +122,13 @@ const finalize_faces = (graph, svg_faces, group, options = {}) => {
  * of the <polygon> faces as children.
  */
 export const facesVerticesPolygon = (graph, options) => {
-	const g = SVG.g();
-	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
 	const svg_faces = graph.faces_vertices
 		.map(fv => fv.map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
 		.map(face => SVG.polygon(face));
-	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i)); // `${i}`));
-	g.setAttributeNS(null, "fill", "white");
-	return finalize_faces(graph, svg_faces, g, options);
+	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i));
+	return finalize_faces(graph, svg_faces, SVG.g(), options);
 };
+
 /**
  * @description build SVG faces using faces_edges data. this is
  * slightly slower than the other method which uses faces_vertices.
@@ -106,32 +136,28 @@ export const facesVerticesPolygon = (graph, options) => {
  * of the <polygon> faces as children.
  */
 export const facesEdgesPolygon = function (graph, options) {
-	const g = SVG.g();
-	if (!graph
-		|| "faces_edges" in graph === false
-		|| "edges_vertices" in graph === false
-		|| "vertices_coords" in graph === false) {
-		return g;
-	}
-	const svg_faces = graph["faces_edges"]
+	const svg_faces = graph.faces_edges
 		.map(face_edges => face_edges
-			.map(edge => graph["edges_vertices"][edge])
+			.map(edge => graph.edges_vertices[edge])
 			.map((vi, i, arr) => {
 				const next = arr[(i + 1) % arr.length];
 				return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
-			// }).map(v => graph["vertices_coords"][v]))
-			}).map(v => [0, 1].map(i => graph["vertices_coords"][v][i])))
+			}).map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
 		.map(face => SVG.polygon(face));
-	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i)); // `${i}`));
-	g.setAttributeNS(null, "fill", "white");
-	return finalize_faces(graph, svg_faces, g, options);
+	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i));
+	return finalize_faces(graph, svg_faces, SVG.g(), options);
 };
 
+/**
+ * @description Convert the faces of a FOLD graph into SVG polygon elements.
+ * Return the result as a group element <g> with all faces (if they exist)
+ * as childNodes in the group.
+ */
 const drawFaces = (graph, options) => {
-	if (graph && graph["faces_vertices"]) {
+	if (graph && graph.vertices_coords && graph.faces_vertices) {
 		return facesVerticesPolygon(graph, options);
 	}
-	if (graph && graph["faces_edges"]) {
+	if (graph && graph.vertices_coords && graph.edges_vertices && graph.faces_edges) {
 		return facesEdgesPolygon(graph, options);
 	}
 	return SVG.g();

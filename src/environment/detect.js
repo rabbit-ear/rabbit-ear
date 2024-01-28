@@ -1,7 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// compare to "undefined", the string
+
+// this is not a typo, we need to compare to "undefined" as a string.
 const isBrowser = typeof window !== "undefined"
 	&& typeof window.document !== "undefined";
 
@@ -18,11 +19,3 @@ export {
 	isNode,
 	isWebWorker,
 };
-
-// // for debugging, uncomment to log system on boot
-// const operating_systems = [
-//   isBrowser ? "browser" : undefined,
-//   isWebWorker ? "web-worker" : undefined,
-//   isNode ? "node" : undefined,
-// ].filter(a => a !== undefined).join(" ");
-// console.log(`RabbitEar [${operating_systems}]`);

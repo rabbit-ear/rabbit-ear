@@ -1,37 +1,46 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import SVG from "../../../svg/index.js";
+import { addClass } from "../../../svg/general/dom.js";
 import { boundary } from "../../../graph/boundary.js";
 import { isFoldedForm } from "../../../fold/spec.js";
-import { addClass } from "../../../svg/general/dom.js";
-import SVG from "../../../svg/index.js";
+import { setKeysAndValues } from "../general.js";
 
-const FOLDED = {
-	// stroke: "none",
+/**
+ * @description the default styles of the boundary polygon,
+ * depending on if it is a folded model or crease pattern
+ */
+const BOUNDARY_FOLDED = {
 	fill: "none",
 };
-const FLAT = {
+const BOUNDARY_CP = {
 	stroke: "black",
 	fill: "white",
 };
 
-const applyBoundariesStyle = (el, attributes = {}) => Object.keys(attributes)
-	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
-
-// todo this needs to be able to handle multiple boundaries
 const drawBoundaries = (graph, options = {}) => {
-	const attributes = options && options.boundaries ? options.boundaries : {};
 	const g = SVG.g();
 	if (!graph) { return g; }
-	const polygon = boundary(graph).polygon;
-	if (!polygon.length) { return g; }
-	const svgPolygon = SVG.polygon(polygon);
-	addClass(svgPolygon, "boundary");
-	g.appendChild(svgPolygon);
-	// style attributes on group container
-	applyBoundariesStyle(g, isFoldedForm(graph) ? FOLDED : FLAT);
-	Object.keys(attributes)
-		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
+
+	// get the boundary of the graph as a list of points
+	// todo: multiple boundaries
+	// const polygons = boundaries(graph)
+	// 	.polygons
+	// 	.filter(polygon => polygon.length);
+	const polygons = [boundary(graph).polygon]
+		.filter(polygon => polygon.length);
+
+	// give the boundary polygons a class and add them to the group
+	polygons.forEach(polygon => {
+		const svgPolygon = SVG.polygon(polygon);
+		addClass(svgPolygon, "boundary");
+		g.appendChild(svgPolygon);
+	});
+
+	// default and user styles will be applied to the group, not the polygon
+	setKeysAndValues(g, isFoldedForm(graph) ? BOUNDARY_FOLDED : BOUNDARY_CP);
+	setKeysAndValues(g, options);
 	return g;
 };
 

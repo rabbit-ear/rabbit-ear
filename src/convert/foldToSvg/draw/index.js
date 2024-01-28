@@ -12,7 +12,8 @@ export default {
 	edges,
 	faces,
 	boundaries,
-	// subroutines, multiple paths for each component type
+
+	// the subroutines which are called inside the draw graph component methods
 	edgesPaths,
 	edgesLines,
 	facesVerticesPolygon,

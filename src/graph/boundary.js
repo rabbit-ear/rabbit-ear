@@ -10,6 +10,7 @@ import {
 	makeVerticesVertices2D,
 	makeVerticesToEdgeBidirectional,
 } from "./make.js";
+
 /**
  * @description Make an axis-aligned bounding box that encloses the vertices of
  * a FOLD object. the optional padding is used to make the bounding box
@@ -25,6 +26,7 @@ import {
 export const boundingBox = ({ vertices_coords }, padding) => (
 	_boundingBox(vertices_coords, padding)
 );
+
 /**
  * @description A vertex is a boundary vertex if it is a member of a boundary
  * edge, as defined by edges_assignment. If edges_assignment is not present,
@@ -37,10 +39,12 @@ export const boundaryVertices = ({ edges_vertices, edges_assignment = [] }) => (
 	uniqueElements(edges_vertices
 		.filter((_, i) => assignmentIsBoundary[edges_assignment[i]])
 		.flat()));
+
 /**
  * @description return value for "boundary" method.
  */
 const emptyBoundaryObject = () => ({ vertices: [], edges: [], polygon: [] });
+
 /**
  * @description Use this method when you know there is only one connected
  * boundary in the graph. If there are more than one, use "boundaries".
@@ -92,10 +96,12 @@ export const boundary = ({ vertices_coords, vertices_edges, edges_vertices, edge
 		polygon: vertices_coords ? vertex_walk.map(v => vertices_coords[v]) : [],
 	};
 };
+
 /**
  * @todo implementation
  */
 export const boundaries = () => console.error("todo");
+
 /**
  * @description Use this method when you know there is only one connected
  * boundary in the graph. If there are more than one, use "planarBoundaries".
@@ -199,6 +205,7 @@ export const planarBoundary = ({
 		this_vertex_i = next_vertex_i;
 	}
 };
+
 /**
  * @description When a graph does not have boundary assignment information,
  * this method is used to uncover the boundaries, so long as the graph is planar.

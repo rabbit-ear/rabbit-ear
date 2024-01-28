@@ -395,6 +395,33 @@ export const invertAssignments = (graph) => {
 	return graph;
 };
 
+/**
+ * @description This method sorts edges by their assignment.
+ * Given a graph with edges_vertices, return a dictionary with
+ * all assignments as keys, and the values are an array of edge indices
+ * from this graph matching those assignments under the key.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {object} keys: assignment characters, values: array of edge indices
+ */
+export const sortEdgesByAssignment = ({ edges_vertices, edges_assignment = [] }) => {
+	// get an array of all uppercase assignments as strings (B, M, V, F...)
+	const allAssignments = Array
+		.from(new Set(edgesAssignmentValues.map(s => s.toUpperCase())));
+
+	// for every edge, return that edge's assignment (uppercase), ensuring
+	// that this array matches in length to edges_vertices, and if any
+	// edge assignment is unknown, it is given a "U" (unassigned).
+	const edges_upperAssignment = edges_vertices
+		.map((_, i) => edges_assignment[i] || "U")
+		.map(a => a.toUpperCase());
+
+	// dictionary with assignments as keys and arrays of edge indices as values
+	const assignmentIndices = {};
+	allAssignments.forEach(a => { assignmentIndices[a] = []; });
+	edges_upperAssignment.forEach((a, i) => assignmentIndices[a].push(i));
+	return assignmentIndices;
+};
+
 export const getFileMetadata = (FOLD = {}) => {
 	// return all "file_" metadata keys (do not include file_frames)
 	const metadata = {};

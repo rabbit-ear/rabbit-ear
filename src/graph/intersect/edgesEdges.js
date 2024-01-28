@@ -9,6 +9,7 @@ import {
 	dot,
 } from "../../math/vector.js";
 import { makeEdgesVector } from "../make.js";
+
 /**
  * @description Create an NxN matrix (N number of edges) that relates edges to each other,
  * inside each entry is true/false, true if the two edges are parallel within an epsilon.
@@ -39,6 +40,7 @@ const makeEdgesEdgesParallel = ({
 	});
 	return edgesEdgesParallel;
 };
+
 /**
  * @description Find all edges which are parallel to each other AND they overlap.
  * The epsilon space around vertices is not considered, so, edges must be
