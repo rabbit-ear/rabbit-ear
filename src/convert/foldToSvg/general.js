@@ -10,11 +10,6 @@ import { makeEdgesLength } from "../../graph/make.js";
 const unitBounds = { min: [0, 0], span: [1, 1] };
 
 /**
- * @description default stroke width, intended to be
- */
-const DEFAULT_STROKE_WIDTH = 1 / 100;
-
-/**
  * @description Given an attribute dictionary with keys and values,
  * Set each key/value as an attribute on the SVG element.
  * @param {Element} any SVG / DOM element
@@ -46,20 +41,24 @@ export const getViewBox = (graph) => {
 };
 
 /**
+ * @todo this method is O(n log n) but could be improved to O(n)
+ * possibly with a kind of bucket sort, but then the nth selection
+ * would be much less precise and this method should be no longer
+ * exported but rather hard coded as a subroutine for getStrokeWidth.
  * @description Get the Nth percentile edge length of edges from a graph.
  * This is useful to get a sense for how thick the strokeWidth should be
  * to make a reasonable rendering.
  * @param {FOLD} graph a FOLD graph
  * @param {number} a scale between 0.0 and 1.0, looking for the
  * nth smallest or largest edge length.
+ * @returns {number} the length of the edge at the nth percent of edges
+ * sorted by length.
  */
 export const getNthPercentileEdgeLength = (
 	{ vertices_coords, edges_vertices, edges_length },
 	n = 0.1,
 ) => {
-	if (!vertices_coords || !edges_vertices) {
-		return undefined;
-	}
+	if (!vertices_coords || !edges_vertices) { return undefined; }
 	if (!edges_length) {
 		edges_length = makeEdgesLength({ vertices_coords, edges_vertices });
 	}
@@ -90,6 +89,6 @@ export const getStrokeWidth = (graph, vmax) => {
 		: vmax);
 	const edgeTenthPercent = getNthPercentileEdgeLength(graph, 0.1);
 	return edgeTenthPercent
-		? edgeTenthPercent * DEFAULT_STROKE_WIDTH * 10
-		: v_max * DEFAULT_STROKE_WIDTH;
+		? edgeTenthPercent * 0.1
+		: v_max * 0.01;
 };

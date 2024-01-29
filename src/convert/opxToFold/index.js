@@ -8,6 +8,7 @@ import {
 	findEpsilonInObject,
 	invertVertical,
 } from "../general/options.js";
+
 /**
  * @description given a parsed xml object, get the branch which
  * contains a node which has some node containing the value specified.
@@ -20,6 +21,7 @@ const getContainingValue = (oripa, value) => (oripa == null
 			.filter(attr => attr.nodeValue === value)
 			.shift() !== undefined)
 		.shift());
+
 /**
  * @description There are top level nodes which contain metadata,
  * I'm not sure how many there are, but at least I've seen:
@@ -34,6 +36,7 @@ const getMetadataValue = (oripa, value) => {
 		? node.textContent
 		: undefined;
 };
+
 /**
  * @description Get all line elements from the OPX file.
  */
@@ -47,6 +50,7 @@ const getLines = (oripa) => {
 		: undefined;
 	return linesNode ? Array.from(linesNode.childNodes) : [];
 };
+
 /**
  * @description For each ORIPA line, extract the coordinates
  * and the assignment type. Return each line as a simple
@@ -68,6 +72,7 @@ const parseLines = (lines) => lines
 			.shift())
 		.map(node => (node && node.childNodes[0] ? node.childNodes[0].data : "0"))
 		.map(parseFloat));
+
 /**
  * @description ORIPA line assignments are numbered.
  */
@@ -82,6 +87,7 @@ const makeFOLD = (lines) => {
 	fold.edges_foldAngle = makeEdgesFoldAngle(fold);
 	return fold;
 };
+
 /**
  * @param {string} file an ORIPA file as a string
  */
@@ -109,6 +115,7 @@ const setMetadata = (oripa, fold) => {
 	fold.file_classes = ["singleModel"];
 	fold.frame_classes = ["creasePattern"];
 };
+
 /**
  * @description Convert an ORIPA file into a FOLD object
  * @param {string} file an ORIPA file as a string

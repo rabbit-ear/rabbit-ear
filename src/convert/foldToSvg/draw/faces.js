@@ -104,14 +104,6 @@ const finalize_faces = (graph, svg_faces, group, options = {}) => {
 		: GROUP_STYLE.foldedForm.unordered;
 	setKeysAndValues(group, isFolded ? groupStyleFolded : GROUP_STYLE.creasePattern);
 
-	// these custom getters allows you to grab all "front" or "back" faces only.
-	// Object.defineProperty(group, "front", {
-	// 	get: () => svg_faces.filter((_, i) => faces_winding[i]),
-	// });
-	// Object.defineProperty(group, "back", {
-	// 	get: () => svg_faces.filter((_, i) => !faces_winding[i]),
-	// });
-
 	return group;
 };
 

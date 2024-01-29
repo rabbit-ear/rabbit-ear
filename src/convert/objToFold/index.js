@@ -2,7 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	// makeEdgesFaces,
+	file_spec,
+	file_creator,
+} from "../../fold/rabbitear.js";
+import {
 	makeVerticesVerticesFromFaces,
 	makeEdgesFacesUnsorted,
 	makeEdgesFoldAngleFromFaces,
@@ -10,11 +13,9 @@ import {
 	makeFacesEdgesFromVertices,
 	makeFacesConvexCenter,
 } from "../../graph/make.js";
-import { makeFacesNormal } from "../../graph/normals.js";
 import {
-	file_spec,
-	file_creator,
-} from "../../fold/rabbitear.js";
+	makeFacesNormal,
+} from "../../graph/normals.js";
 
 const newFoldFile = () => {
 	const graph = {};
@@ -43,7 +44,8 @@ const updateMetadata = (graph) => {
 	graph.frame_attributes.push(is2D ? "2D" : "3D");
 };
 
-const pairify = (list) => list.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
+const pairify = (list) => list
+	.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
 
 const makeEdgesVertices = ({ faces_vertices }) => {
 	const edgeExists = {};
@@ -66,10 +68,12 @@ const parseFace = (face) => face
 const parseVertex = (vertex) => vertex
 	.slice(1)
 	.map(str => parseFloat(str));
+
 /**
  * @description Convert an OBJ mesh file into a FOLD object. The conversion
  * will create edge definitions and give them assignments and fold angles
- * depending on the dihedral angles, or boundary edges if only one face is adjacent.
+ * depending on the dihedral angles, or boundary edges
+ * if only one face is adjacent.
  * @param {string} file a string containing the contents of an OBJ file,
  * expected to contain at least vertices and faces. All groups or object
  * separations are currently ignored, the contents are treated as one object.
@@ -91,7 +95,6 @@ const objToFold = (file) => {
 	graph.faces_center = makeFacesConvexCenter(graph);
 	graph.edges_vertices = makeEdgesVertices(graph);
 	graph.faces_edges = makeFacesEdgesFromVertices(graph);
-	// graph.edges_faces = makeEdgesFaces(graph);
 	graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	graph.edges_foldAngle = makeEdgesFoldAngleFromFaces(graph);
 	graph.edges_assignment = makeEdgesAssignment(graph);

@@ -24,10 +24,17 @@ import {
 	setKeysAndValues,
 } from "../general.js";
 
+/**
+ * @description default style to be applied to the group <g> element
+ */
 const GROUP_STYLE = {
 	foldedForm: {},
 	creasePattern: { stroke: "black" },
 };
+
+/**
+ * @description default style to be applied to individual edges
+ */
 const EDGE_STYLE = {
 	foldedForm: {},
 	creasePattern: {}, // this will be filled below
@@ -37,6 +44,11 @@ Object.keys(assignmentColor).forEach(key => {
 	EDGE_STYLE.creasePattern[key] = { stroke: assignmentColor[key] };
 });
 
+/**
+ * @description Apply a data attribute ("data-") to an element, enabling
+ * the user to be able to get this data using the .dataset selector.
+ * https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes
+ */
 const setDataValue = (el, key, value) => el.setAttribute(`data-${key}`, value);
 
 /**
@@ -211,13 +223,6 @@ export const edgesPaths = (graph, options = {}) => {
 	Object.keys(paths)
 		.forEach(assign => setDataValue(paths[assign], "foldAngle", assignmentFlatFoldAngle[assign]));
 
-	// // unsure if we should keep this.
-	// Object.keys(paths).forEach(key => Object.defineProperty(
-	// 	group,
-	// 	edgesAssignmentNames[key],
-	// 	{ get: () => paths[key] },
-	// ));
-
 	return group;
 };
 
@@ -256,10 +261,6 @@ export const edgesLines = (graph, options = {}) => {
 			// the user to specify letters or words ("M" or "mountain") as the key
 			setKeysAndValues(assignmentGroup, options[assign]);
 			setKeysAndValues(assignmentGroup, options[edgesAssignmentNames[assign]]);
-
-			// Object.defineProperty(group, edgesAssignmentNames[assign], {
-			// 	get: () => assignmentGroup,
-			// });
 
 			groupsByAssignment[assign] = assignmentGroup;
 		});

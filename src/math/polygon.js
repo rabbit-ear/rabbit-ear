@@ -188,4 +188,3 @@ export const boundingBox = (points, padding = 0) => {
 	const span = max.map((m, i) => m - min[i]);
 	return { min, max, span };
 };
-

@@ -181,14 +181,8 @@ const render = (graph, element, options = {}) => {
 	addClass(
 		element,
 		...[graph.file_classes || [], graph.frame_classes || []].flat(),
-		// ...["FOLD", graph.file_classes || [], graph.frame_classes || []].flat(),
 	);
-	// set custom getters on the element to grab the component groups
-	// groupNames.filter(key => !element[key]).forEach(key => {
-	// 	Object.defineProperty(element, key, {
-	// 		get: () => element.getElementsByClassName(key)[0],
-	// 	});
-	// });
+
 	return element;
 };
 export default render;

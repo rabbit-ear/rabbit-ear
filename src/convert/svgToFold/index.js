@@ -12,6 +12,7 @@ import { planarBoundary } from "../../graph/boundary.js";
 import svgSegments from "./svgSegments.js";
 import svgEdgeGraph from "./svgEdgeGraph.js";
 import * as edgeParsers from "./edges.js";
+
 /**
  * @description Convert an SVG to a FOLD object. This only works
  * with SVGs of crease patterns, this will not work
