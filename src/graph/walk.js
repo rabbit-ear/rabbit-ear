@@ -20,12 +20,12 @@ export const counterClockwiseWalk = ({
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
 	// this gives us a quick lookup to see if we've visited this edge before.
 	const this_walked_edges = {};
-	// return the face: { vertices, edges, angles }
-	const face = { vertices: [v0], edges: [], angles: [] };
 	// walking the graph, we look at 3 vertices at a time. in sequence:
 	// prev_vertex, this_vertex, next_vertex
 	let prev_vertex = v0;
 	let this_vertex = v1;
+	// return the face: { vertices, edges, angles }
+	const face = { vertices: [v0], edges: [`${v0} ${v1}`], angles: [] };
 	while (true) {
 		// even though vertices_vertices are sorted counter-clockwise,
 		// to make a counter-clockwise wound face, when we visit a vertex's
@@ -41,6 +41,7 @@ export const counterClockwiseWalk = ({
 		if (this_walked_edges[next_edge_vertices]) {
 			Object.assign(walked_edges, this_walked_edges);
 			face.vertices.pop();
+			face.edges.pop();
 			return face;
 		}
 		this_walked_edges[next_edge_vertices] = true;

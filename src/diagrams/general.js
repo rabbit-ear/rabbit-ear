@@ -40,7 +40,7 @@ import {
  * @param {number[][]} polygon an array of points, each an array of numbers
  * @returns {object} an arrow definition including: segment, head, bend
  */
-export const segmentToArrow = (segment, polygon) => {
+export const segmentToArrow = (segment, polygon, options = {}) => {
 	if (segment === undefined) { return undefined; }
 
 	// a good arrow should not be exactly on top of its target,

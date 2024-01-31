@@ -48,10 +48,10 @@ cp.prototype.constructor = cp;
 // origami.prototype.constructor = origami;
 
 // static constructors for all the origami bases
-Object.keys(bases).forEach(fnName => {
-	graph[fnName] = (...args) => graph(bases[fnName](...args));
-	cp[fnName] = (...args) => cp(bases[fnName](...args));
-	// origami[fnName] = (...args) => origami(bases[fnName](...args));
+Object.keys(bases).forEach(baseName => {
+	graph[baseName] = (...args) => graph(bases[baseName](...args));
+	cp[baseName] = (...args) => cp(bases[baseName](...args));
+	// origami[baseName] = (...args) => origami(bases[baseName](...args));
 });
 
 export {

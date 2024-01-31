@@ -3,11 +3,13 @@
  */
 import { EPSILON } from "../math/constant.js";
 import { epsilonEqual } from "../math/compare.js";
+
 /**
  * @description mirror an array and join it at the end, except
  * do not duplicate the final element, it should only appear once.
  */
 export const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
+
 /**
  * @description Given a list of arrays which contain holes, this method
  * will splice all arrays together into one, maintaining indices,
@@ -26,6 +28,7 @@ export const mergeArraysWithHoles = (...arrays) => {
 	}));
 	return flattened;
 };
+
 /**
  * @description A circular array (data wraps around) requires 2 indices
  * if you intend to split it into two arrays. The pair of indices can be
@@ -42,6 +45,7 @@ export const splitCircularArray = (array, indices) => {
 		array.slice(indices[0], indices[1] + 1),
 	];
 };
+
 /**
  * @description Given a list of any type, return a copy of the array
  * with all duplicates removed.
@@ -51,6 +55,7 @@ export const splitCircularArray = (array, indices) => {
  * @linkcode Origami ./src/general/arrays.js 10
  */
 export const uniqueElements = (array) => Array.from(new Set(array));
+
 /**
  * @description Given an array of any type, return a copy of
  * the same array but filter out any items which only appear once.
@@ -71,6 +76,7 @@ export const nonUniqueElements = (array) => {
 	});
 	return array.filter(n => count[n] > 1);
 };
+
 /**
  * @description Given a list of integers (can contain duplicates),
  * this will return a sorted set of unique integers (removing duplicates).
@@ -86,6 +92,7 @@ export const uniqueSortedNumbers = (array) => {
 	array.forEach(n => { hash[n] = true; });
 	return Object.keys(hash).map(parseFloat);
 };
+
 /**
  * @description Given an array of numbers, sort the list and
  * filter out any two numbers which are close to each other within
@@ -103,6 +110,7 @@ export const epsilonUniqueSortedNumbers = (array, epsilon = EPSILON) => {
 	}
 	return numbers.filter((_, i) => keep[i]);
 };
+
 /**
  * @description Return a modified copy of set "a" that filters
  * out any number that exists in set "b". This method assumes that
@@ -134,6 +142,7 @@ export const setDifferenceSortedIntegers = (a, b) => {
 	}
 	return result;
 };
+
 /**
  * @description Return a modified copy of set "a" that filters
  * out any number that exists in set "b". This method assumes that
@@ -165,6 +174,7 @@ export const setDifferenceSortedNumbers = (a, b, epsilon = EPSILON) => {
 	}
 	return result;
 };
+
 /**
  * @description This will iterate over the array of arrays and returning
  * the first array in the list with the longest length.
@@ -184,6 +194,7 @@ export const setDifferenceSortedNumbers = (a, b, epsilon = EPSILON) => {
 // 	}
 // 	return arrays[max];
 // };
+
 /**
  * @description convert a list of items {any} into a list of pairs
  * where each item is uniqely matched with another item (non-ordered)
@@ -201,6 +212,7 @@ export const chooseTwoPairs = (array) => {
 	}
 	return pairs;
 };
+
 /**
  * @description Return the index of the smallest value in the array.
  * An optional conversion function paramter, if provided, will be run
@@ -228,6 +240,7 @@ export const arrayMinimum = (array, conversion) => {
 	}
 	return index;
 };
+
 /**
  * @description Given an array, find the index of the minimum value
  * when values are compared using the "<" operator.
@@ -242,6 +255,7 @@ export const arrayMinIndex = (array) => {
 	}
 	return index;
 };
+
 /**
  * @description Given an array, find the index of the maximum value
  * when values are compared using the ">" operator.
@@ -256,6 +270,7 @@ export const arrayMaxIndex = (array) => {
 	}
 	return index;
 };
+
 /**
  * @description given an array containing undefineds, gather all contiguous
  * series of valid entries, and return the list of their indices in the form
@@ -295,6 +310,7 @@ export const arrayMaxIndex = (array) => {
 // 	});
 // 	return starts.map((s, i) => [s, (s + counts[i] - 1) % array.length]);
 // };
+
 /**
  * @description given an array containing undefineds, starting at index 0,
  * walk backwards (circularly around) to find the first index that isn't

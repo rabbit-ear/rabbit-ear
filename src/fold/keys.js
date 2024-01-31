@@ -53,9 +53,11 @@ export const foldKeys = {
 		"faceOrders",
 	],
 };
+
 /**
  * values from the official spec, grouped by the key under which they appear.
  */
+
 /**
  * @description All "file_classes" values according to the FOLD spec
  */
@@ -65,6 +67,7 @@ export const foldFileClasses = [
 	"animation",
 	"diagrams",
 ];
+
 /**
  * @description All "frame_classes" values according to the FOLD spec
  */
@@ -74,6 +77,7 @@ export const foldFrameClasses = [
 	"graph",
 	"linkage",
 ];
+
 /**
  * @description All "frame_attributes" values according to the FOLD spec
  */

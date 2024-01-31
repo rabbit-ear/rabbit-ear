@@ -12,7 +12,7 @@ import singleVertex from "./singleVertex/index.js";
 import svg from "./svg/index.js";
 import webgl from "./webgl/index.js";
 import layer from "./layer/index.js";
-// import diagram from "./diagrams/index.js";
+import diagram from "./diagrams/index.js";
 // import text from "./text/index.js";
 import svgLink from "./svg/environment/lib.js";
 
@@ -32,7 +32,7 @@ const ear = {
 	singleVertex,
 	svg,
 	webgl,
-	// diagram,
+	diagram,
 	layer,
 	// text,
 };

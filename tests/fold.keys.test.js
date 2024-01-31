@@ -4,7 +4,7 @@ import ear from "../rabbit-ear.js";
 
 test("keys", () => {
 	const graph = ear.graph();
-	expect(graph.file_spec).toBe(1.1);
+	expect(graph.file_spec).toBe(1.2);
 	expect(graph.file_creator).toBe("Rabbit Ear");
 });
 

@@ -1,6 +1,64 @@
 import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
+test("simple polygon", () => {
+	const graph = {
+		vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+		edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]],
+		vertices_vertices: [[1, 3], [2, 0], [3, 1], [2, 0]],
+		vertices_sectors: [
+			[1.5707963267948966, 4.71238898038469],
+			[1.5707963267948966, 4.71238898038469],
+			[1.5707963267948966, 4.71238898038469],
+			[4.71238898038469, 1.5707963267948966],
+		],
+	};
+
+	const result = ear.graph.planarVertexWalk(graph);
+
+	// {
+	// 	vertices: [0, 1, 2, 3],
+	// 	edges: ["0 1", "1 2", "2 3", "3 0"],
+	// 	angles: [
+	// 		1.5707963267948966,
+	// 		1.5707963267948966,
+	// 		1.5707963267948966,
+	// 		1.5707963267948966
+	// 	]
+	// }
+	expect(result.length).toBe(2);
+	expect(JSON.stringify(result[0].vertices)).toBe(JSON.stringify([0, 1, 2, 3]));
+	expect(JSON.stringify(result[0].edges))
+		.toBe(JSON.stringify(["0 1", "1 2", "2 3", "3 0"]));
+});
+
+test("populate building faces (by walking)", () => {
+	const vertices_coords = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+
+	// graph 1, manually build faces
+	const graph1 = {
+		vertices_coords,
+		edges_vertices: vertices_coords
+			.map((_, i, arr) => [i, (i + 1) % arr.length]),
+		edges_assignment: Array(vertices_coords.length).fill("B"),
+		faces_vertices: [vertices_coords.map((_, i) => i)],
+		faces_edges: [vertices_coords.map((_, i) => i)],
+	};
+
+	// graph 2, build faces using populate() which uses planarVertexWalk
+	const graph2 = ear.graph.populate({
+		vertices_coords,
+		edges_vertices: vertices_coords
+			.map((_, i, arr) => [i, (i + 1) % arr.length]),
+		edges_assignment: Array(vertices_coords.length).fill("B"),
+	});
+
+	expect(JSON.stringify(graph1.faces_vertices))
+		.toBe(JSON.stringify(graph2.faces_vertices));
+	expect(JSON.stringify(graph1.faces_edges))
+		.toBe(JSON.stringify(graph2.faces_edges));
+});
+
 test("counterClockwiseWalk", () => {
 	const vertices_vertices = [
 		[1, 4, 3],

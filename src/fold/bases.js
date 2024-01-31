@@ -2,12 +2,13 @@
  * Rabbit Ear (c) Kraft
  */
 import { makePolygonCircumradius } from "../math/polygon.js";
-import populate from "../graph/populate.js";
+
 /**
  * @description Create a square or rectangle vertices_coords,
  * counter-clockwise order.
  */
 const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
+
 /**
  * @description Given an already initialized vertices_coords array,
  * create a fully-populated graph that sets these vertices to be
@@ -16,12 +17,15 @@ const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
  * @returns {FOLD} graph a FOLD graph with the vertices_coords
  * as counter-clockwise consecutive points in the boundary forming one face.
  */
-const makeGraphWithBoundaryCoords = (vertices_coords) => populate({
+const makeGraphWithBoundaryCoords = (vertices_coords) => ({
 	vertices_coords,
 	edges_vertices: vertices_coords
 		.map((_, i, arr) => [i, (i + 1) % arr.length]),
 	edges_assignment: Array(vertices_coords.length).fill("B"),
+	faces_vertices: [vertices_coords.map((_, i) => i)],
+	faces_edges: [vertices_coords.map((_, i) => i)],
 });
+
 /**
  * @description Create a new FOLD object which contains one square face,
  * including vertices and boundary edges.
@@ -29,7 +33,9 @@ const makeGraphWithBoundaryCoords = (vertices_coords) => populate({
  * @returns {FOLD} a FOLD object
  */
 export const square = (scale = 1) => (
-	makeGraphWithBoundaryCoords(makeRectCoords(scale, scale)));
+	makeGraphWithBoundaryCoords(makeRectCoords(scale, scale))
+);
+
 /**
  * @description Create a new FOLD object which contains one rectangular face,
  * including vertices and boundary edges.
@@ -38,7 +44,9 @@ export const square = (scale = 1) => (
  * @returns {FOLD} a FOLD object
  */
 export const rectangle = (width = 1, height = 1) => (
-	makeGraphWithBoundaryCoords(makeRectCoords(width, height)));
+	makeGraphWithBoundaryCoords(makeRectCoords(width, height))
+);
+
 /**
  * @description Create a new FOLD object with a regular-polygon shaped boundary.
  * @param {number} [sides=3] the number of sides to the polygon
@@ -47,23 +55,26 @@ export const rectangle = (width = 1, height = 1) => (
  * @returns {FOLD} a FOLD object
  */
 export const polygon = (sides = 3, circumradius = 1) => (
-	makeGraphWithBoundaryCoords(makePolygonCircumradius(sides, circumradius)));
+	makeGraphWithBoundaryCoords(makePolygonCircumradius(sides, circumradius))
+);
+
 /**
  * @description Create a kite base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const kite = () => populate({
+export const kite = () => ({
 	vertices_coords: [
 		[0, 0], [1, 0], [1, Math.SQRT2 - 1], [1, 1], [Math.SQRT2 - 1, 1], [0, 1],
 	],
 	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 2], [0, 4], [0, 3]],
 	edges_assignment: Array.from("BBBBBBVVF"),
 });
+
 /**
  * @description Create a fish base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const fish = () => populate({
+export const fish = () => ({
 	vertices_coords: [
 		[0, 0],
 		[Math.SQRT1_2, 0],
@@ -85,11 +96,12 @@ export const fish = () => populate({
 	],
 	edges_assignment: Array.from("BBBBBBBBVVVVVVMMFFFFFF"),
 });
+
 /**
  * @description Create a bird base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const bird = () => populate({
+export const bird = () => ({
 	vertices_coords: [
 		[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5],
 		[0.5, 0.5],
@@ -111,11 +123,12 @@ export const bird = () => populate({
 	edges_assignment: Array
 		.from("BBBBBBBBVVVVVVVVMVMVMVMVMMFFFFFFFF"),
 });
+
 /**
  * @description Create a frog base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const frog = () => populate({
+export const frog = () => ({
 	vertices_coords: [
 		[0, 1], [0, Math.SQRT1_2], [0, 0.5], [0, 1 - Math.SQRT1_2], [0, 0],
 		[0.5, 0.5], [1, 1], [(1 - Math.SQRT1_2) / 2, Math.SQRT1_2 / 2],
@@ -146,11 +159,12 @@ export const frog = () => populate({
 	edges_assignment: Array
 		.from("BBBBFFVVBBBBMMMMFVVFFVVFVVVVVVVVVMMVVMMVVVFVVFFVVFMMMMMMVVBBBBBBBBVV"),
 });
+
 /**
  * @description Create a windmill base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const windmill = () => populate({
+export const windmill = () => ({
 	vertices_coords: [
 		[0, 0], [0.25, 0], [0.5, 0], [0.75, 0], [1, 0], [0, 1], [0, 0.75],
 		[0, 0.5], [0, 0.25], [0.25, 0.25], [0.5, 0.5], [0.75, 0.75], [1, 1],
@@ -170,11 +184,12 @@ export const windmill = () => populate({
 	edges_assignment: Array
 		.from("BBBBBBBBVFFVFVVFFVVFMFMFMFFFFFFFFFVFFVFVVFFVVFBBBBBBBBMF"),
 });
+
 /**
  * @description todo: I don't know what the name of this base is.
  * @returns {FOLD} a FOLD object
  */
-export const squareFish = () => populate({
+export const squareFish = () => ({
 	vertices_coords: [
 		[0, 0], [2 - Math.SQRT2, 0], [1, 0], [0, 1], [0, 2 - Math.SQRT2],
 		[0.5, 0.5], [Math.SQRT1_2, Math.SQRT1_2], [1, 1],

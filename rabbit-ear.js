@@ -1385,9 +1385,9 @@ countImplied.faces = graph => countImplied(graph, "faces");const counterClockwis
 	vertices_vertices, vertices_sectors,
 }, v0, v1, walked_edges = {}) => {
 	const this_walked_edges = {};
-	const face = { vertices: [v0], edges: [], angles: [] };
 	let prev_vertex = v0;
 	let this_vertex = v1;
+	const face = { vertices: [v0], edges: [`${v0} ${v1}`], angles: [] };
 	while (true) {
 		const v_v = vertices_vertices[this_vertex];
 		const from_neighbor_i = v_v.indexOf(prev_vertex);
@@ -1397,6 +1397,7 @@ countImplied.faces = graph => countImplied(graph, "faces");const counterClockwis
 		if (this_walked_edges[next_edge_vertices]) {
 			Object.assign(walked_edges, this_walked_edges);
 			face.vertices.pop();
+			face.edges.pop();
 			return face;
 		}
 		this_walked_edges[next_edge_vertices] = true;
@@ -6214,7 +6215,8 @@ nodeNames.forEach(nodeName => {
 Object.defineProperty(SVG, "window", {
 	enumerable: false,
 	set: setSVGWindow,
-});const setKeysAndValues = (el, attributes = {}) => Object
+});const unitBounds$1 = { min: [0, 0], span: [1, 1] };
+const setKeysAndValues = (el, attributes = {}) => Object
 	.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 const boundingBoxToViewBox = (box) => [box.min, box.span]
@@ -6228,9 +6230,7 @@ const getNthPercentileEdgeLength = (
 	{ vertices_coords, edges_vertices, edges_length },
 	n = 0.1,
 ) => {
-	if (!vertices_coords || !edges_vertices) {
-		return undefined;
-	}
+	if (!vertices_coords || !edges_vertices) { return undefined; }
 	if (!edges_length) {
 		edges_length = makeEdgesLength({ vertices_coords, edges_vertices });
 	}
@@ -6246,17 +6246,14 @@ const getNthPercentileEdgeLength = (
 	);
 	return sortedLengths[index_tenth_percent];
 };
-const unitBounds$1 = { min: [0, 0], span: [1, 1] };
-const DEFAULT_STROKE_WIDTH = 1 / 100;
-const getStrokeWidth = (graph, { vmax } = {}) => {
-	if (!vmax) {
-		const box = boundingBox(graph) || unitBounds$1;
-		vmax = Math.max(...box.span);
-	}
+const getStrokeWidth = (graph, vmax) => {
+	const v_max = (vmax === undefined
+		? Math.max(...(boundingBox(graph) || unitBounds$1).span)
+		: vmax);
 	const edgeTenthPercent = getNthPercentileEdgeLength(graph, 0.1);
 	return edgeTenthPercent
-		? edgeTenthPercent * DEFAULT_STROKE_WIDTH * 10
-		: vmax * DEFAULT_STROKE_WIDTH;
+		? edgeTenthPercent * 0.1
+		: v_max * 0.01;
 };const drawVertices = (graph, options = {}) => {
 	const g = SVG.g();
 	if (!graph || !graph.vertices_coords) { return g; }
@@ -6402,12 +6399,12 @@ const edgesLines = (graph, options = {}) => {
 	const groupsByAssignment = {};
 	Array.from(new Set(edgesAssignmentValues.map(s => s.toUpperCase())))
 		.forEach(assign => {
-			const child_group = SVG.g();
-			addClass(child_group, edgesAssignmentNames[assign]);
-			setKeysAndValues(child_group, edgeStyle[assign]);
-			setKeysAndValues(child_group, options[assign]);
-			setKeysAndValues(child_group, options[edgesAssignmentNames[assign]]);
-			groupsByAssignment[assign] = child_group;
+			const assignmentGroup = SVG.g();
+			addClass(assignmentGroup, edgesAssignmentNames[assign]);
+			setKeysAndValues(assignmentGroup, edgeStyle[assign]);
+			setKeysAndValues(assignmentGroup, options[assign]);
+			setKeysAndValues(assignmentGroup, options[edgesAssignmentNames[assign]]);
+			groupsByAssignment[assign] = assignmentGroup;
 		});
 	const lines = makeEdgesCoords(graph)
 		.map(s => SVG.line(s[0][0], s[0][1], s[1][0], s[1][1]));
@@ -7522,28 +7519,33 @@ CP.prototype.setCut = function (edges = []) {
 	return setAssignment(this, edges, "C", 0);
 };
 CP.prototype.defer = false;
-const cpProto = CP.prototype;const file_spec = 1.1;
+const cpProto = CP.prototype;const file_spec = 1.2;
 const file_creator = "Rabbit Ear";const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
-const makeGraphWithBoundaryCoords = (vertices_coords) => populate({
+const makeGraphWithBoundaryCoords = (vertices_coords) => ({
 	vertices_coords,
 	edges_vertices: vertices_coords
 		.map((_, i, arr) => [i, (i + 1) % arr.length]),
 	edges_assignment: Array(vertices_coords.length).fill("B"),
+	faces_vertices: [vertices_coords.map((_, i) => i)],
+	faces_edges: [vertices_coords.map((_, i) => i)],
 });
 const square = (scale = 1) => (
-	makeGraphWithBoundaryCoords(makeRectCoords(scale, scale)));
+	makeGraphWithBoundaryCoords(makeRectCoords(scale, scale))
+);
 const rectangle = (width = 1, height = 1) => (
-	makeGraphWithBoundaryCoords(makeRectCoords(width, height)));
+	makeGraphWithBoundaryCoords(makeRectCoords(width, height))
+);
 const polygon = (sides = 3, circumradius = 1) => (
-	makeGraphWithBoundaryCoords(makePolygonCircumradius(sides, circumradius)));
-const kite = () => populate({
+	makeGraphWithBoundaryCoords(makePolygonCircumradius(sides, circumradius))
+);
+const kite = () => ({
 	vertices_coords: [
 		[0, 0], [1, 0], [1, Math.SQRT2 - 1], [1, 1], [Math.SQRT2 - 1, 1], [0, 1],
 	],
 	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 2], [0, 4], [0, 3]],
 	edges_assignment: Array.from("BBBBBBVVF"),
 });
-const fish = () => populate({
+const fish = () => ({
 	vertices_coords: [
 		[0, 0],
 		[Math.SQRT1_2, 0],
@@ -7565,7 +7567,7 @@ const fish = () => populate({
 	],
 	edges_assignment: Array.from("BBBBBBBBVVVVVVMMFFFFFF"),
 });
-const bird = () => populate({
+const bird = () => ({
 	vertices_coords: [
 		[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5],
 		[0.5, 0.5],
@@ -7587,7 +7589,7 @@ const bird = () => populate({
 	edges_assignment: Array
 		.from("BBBBBBBBVVVVVVVVMVMVMVMVMMFFFFFFFF"),
 });
-const frog = () => populate({
+const frog = () => ({
 	vertices_coords: [
 		[0, 1], [0, Math.SQRT1_2], [0, 0.5], [0, 1 - Math.SQRT1_2], [0, 0],
 		[0.5, 0.5], [1, 1], [(1 - Math.SQRT1_2) / 2, Math.SQRT1_2 / 2],
@@ -7618,7 +7620,7 @@ const frog = () => populate({
 	edges_assignment: Array
 		.from("BBBBFFVVBBBBMMMMFVVFFVVFVVVVVVVVVMMVVMMVVVFVVFFVVFMMMMMMVVBBBBBBBBVV"),
 });
-const windmill = () => populate({
+const windmill = () => ({
 	vertices_coords: [
 		[0, 0], [0.25, 0], [0.5, 0], [0.75, 0], [1, 0], [0, 1], [0, 0.75],
 		[0, 0.5], [0, 0.25], [0.25, 0.25], [0.5, 0.5], [0.75, 0.75], [1, 1],
@@ -7638,7 +7640,7 @@ const windmill = () => populate({
 	edges_assignment: Array
 		.from("BBBBBBBBVFFVFVVFFVVFMFMFMFFFFFFFFFVFFVFVVFFVVFBBBBBBBBMF"),
 });
-const squareFish = () => populate({
+const squareFish = () => ({
 	vertices_coords: [
 		[0, 0], [2 - Math.SQRT2, 0], [1, 0], [0, 1], [0, 2 - Math.SQRT2],
 		[0.5, 0.5], [Math.SQRT1_2, Math.SQRT1_2], [1, 1],
@@ -7674,9 +7676,9 @@ graph.prototype = graphProto;
 graph.prototype.constructor = graph;
 cp.prototype = cpProto;
 cp.prototype.constructor = cp;
-Object.keys(bases).forEach(fnName => {
-	graph[fnName] = (...args) => graph(bases[fnName](...args));
-	cp[fnName] = (...args) => cp(bases[fnName](...args));
+Object.keys(bases).forEach(baseName => {
+	graph[baseName] = (...args) => graph(bases[baseName](...args));
+	cp[baseName] = (...args) => cp(bases[baseName](...args));
 });const cubrt = n => (n < 0 ? -((-n) ** (1 / 3)) : (n ** (1 / 3)));
 const cubicSolver = (degree, a, b, c, d) => {
 	switch (degree) {
@@ -8056,7 +8058,8 @@ const updateMetadata = (graph) => {
 	graph.frame_classes.push(is2D ? "creasePattern" : "foldedForm");
 	graph.frame_attributes.push(is2D ? "2D" : "3D");
 };
-const pairify = (list) => list.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
+const pairify = (list) => list
+	.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
 const makeEdgesVertices = ({ faces_vertices }) => {
 	const edgeExists = {};
 	const edges_vertices = [];
@@ -12829,7 +12832,172 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => 
 	singleVertexSolver,
 	singleVertexAssignmentSolver: assignmentSolver,
 	foldStripWithAssignments,
-});Object.assign(graph, graphMethods);
+});const segmentToArrow = (segment, polygon, options = {}) => {
+	if (segment === undefined) { return undefined; }
+	const vector = subtract2(segment[1], segment[0]);
+	const length = magnitude2(vector);
+	const direction = dot2(vector, [1, 0]);
+	const span2D = (boundingBox$1(polygon)?.span || [1, 1]).slice(0, 2);
+	const vmin = Math.min(...span2D);
+	return {
+		segment,
+		head: {
+			width: vmin * 0.1,
+			height: vmin * 0.15,
+		},
+		bend: direction > 0 ? 0.3 : -0.3,
+		padding: length * 0.05,
+	};
+};
+const getLineMidpointInPolygon = (polygon, line) => {
+	const segment = clipLineConvexPolygon(polygon, line);
+	return segment === undefined
+		? undefined
+		: midpoint2(...segment);
+};
+const diagramReflectPoint = ({ vector, origin }, point) => (
+	multiplyMatrix2Vector2(makeMatrix2Reflect(vector, origin), point)
+);
+const perpendicularBalancedSegment = (polygon, line, point) => {
+	const origin = point === undefined
+		? getLineMidpointInPolygon(polygon, line)
+		: point;
+	const vector = rotate90(line.vector);
+	const shortest = clipLineConvexPolygon(polygon, { vector, origin })
+		.map(pt => distance2(origin, pt))
+		.sort((a, b) => a - b)
+		.shift();
+	const scaled = scale2(normalize2(vector), shortest);
+	return [
+		add2(origin, flip(scaled)),
+		add2(origin, scaled),
+	];
+};
+const betweenTwoSegments = (foldLine, lines, segments) => {
+	const midpoints = segments.map(seg => midpoint2(seg[0], seg[1]));
+	const origin = midpoint2(...midpoints);
+	const perpendicular = { vector: foldLine.vector.rotate90(), origin };
+	return lines.map(line => intersectLineLine(line, perpendicular).point);
+};
+const betweenTwoIntersectingSegments = (lines, intersect, foldLine, boundary) => {
+	const paramVectors = lines.map(l => l.vector);
+	const flippedVectors = paramVectors.map(flip);
+	const paramRays = paramVectors
+		.concat(flippedVectors)
+		.map(vector => ({ vector, origin: intersect }));
+	const dots = paramRays.map(ray => dot2(ray.vector, foldLine.vector));
+	const crosses = paramRays.map(ray => cross2(ray.vector, foldLine.vector));
+	const a1 = paramRays
+		.filter((ray, i) => dots[i] > 0 && crosses[i] > 0)
+		.shift();
+	const a2 = paramRays
+		.filter((ray, i) => dots[i] > 0 && crosses[i] < 0)
+		.shift();
+	const b1 = paramRays
+		.filter((ray, i) => dots[i] < 0 && crosses[i] > 0)
+		.shift();
+	const b2 = paramRays
+		.filter((ray, i) => dots[i] < 0 && crosses[i] < 0)
+		.shift();
+	const rayEndpoints = [a1, a2, b1, b2].map(ray => intersectConvexPolygonLine(
+		boundary,
+		ray,
+		includeS,
+		includeR,
+	).shift().shift());
+	const rayLengths = rayEndpoints.map(pt => distance2(pt, intersect));
+	const arrow1Start = (rayLengths[0] < rayLengths[1]
+		? rayEndpoints[0]
+		: rayEndpoints[1]);
+	const arrow1End = (rayLengths[0] < rayLengths[1]
+		? add2(a2.origin, scale2(normalize2(a2.vector), rayLengths[0]))
+		: add2(a1.origin, scale2(normalize2(a1.vector), rayLengths[1])));
+	const arrow2Start = (rayLengths[2] < rayLengths[3]
+		? rayEndpoints[2]
+		: rayEndpoints[3]);
+	const arrow2End = (rayLengths[2] < rayLengths[3]
+		? add2(b2.origin, scale2(normalize2(b2.vector), rayLengths[2]))
+		: add2(b1.origin, scale2(normalize2(b1.vector), rayLengths[3])));
+	return [
+		[arrow1Start, arrow1End],
+		[arrow2Start, arrow2End],
+	];
+};const simpleArrow = ({ vertices_coords }, foldLine, options) => {
+	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
+	const segment = perpendicularBalancedSegment(hull, foldLine);
+	if (segment === undefined) { return undefined; }
+	return segmentToArrow(segment, hull, options);
+};
+const axiom1Arrows = ({ vertices_coords }, point1, point2, options) => {
+	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
+	return axiom1(point1, point2)
+		.map(line => perpendicularBalancedSegment(hull, line))
+		.map(segment => segmentToArrow(segment, hull, options));
+};
+const axiom2Arrows = ({ vertices_coords }, point1, point2, options) => {
+	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
+	return [segmentToArrow([point1, point2], hull, options)];
+};
+const axiom3Arrows = ({ vertices_coords }, line1, line2, options) => {
+	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
+	const foldLines = axiom3(line1, line2);
+	const segments = [line1, line2]
+		.map(line => clipLineConvexPolygon(hull, line))
+		.filter(a => a !== undefined);
+	if (segments.length !== 2) {
+		return foldLines
+			.map(foldLine => simpleArrow({ vertices_coords }, foldLine, options));
+	}
+	const segmentLines = segments.map(segment => pointsToLine(...segment));
+	const intersect = intersectLineLine(...segmentLines, includeS, includeS).point;
+	return !intersect
+		? [betweenTwoSegments(
+			foldLines.filter(a => a !== undefined).shift(),
+			[line1, line2],
+			segments,
+		)]
+		: foldLines.map(foldLine => betweenTwoIntersectingSegments(
+			[line1, line2],
+			intersect,
+			foldLine,
+			hull,
+		));
+};
+const axiom4Arrows = ({ vertices_coords }, line, point, options) => {
+	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
+	const foldLine = axiom4(line, point).shift();
+	const origin = intersectLineLine(foldLine, line).point;
+	const segment = perpendicularBalancedSegment(hull, foldLine, origin);
+	return [segmentToArrow(segment, hull, options)];
+};
+const axiom5Arrows = ({ vertices_coords }, line, point1, point2, options) => {
+	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
+	return axiom5(line, point1, point2)
+		.map(foldLine => [point2, diagramReflectPoint(foldLine, point2)])
+		.map(segment => segmentToArrow(segment, hull, options));
+};
+const axiom6Arrows = ({ vertices_coords }, line1, line2, point1, point2, options) => {
+	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
+	return axiom6(line1, line2, point1, point2)
+		.flatMap(foldLine => [point1, point2]
+			.map(point => [point, diagramReflectPoint(foldLine, point)]))
+		.map(segment => segmentToArrow(segment, hull, options));
+};
+const axiom7Arrows = ({ vertices_coords }, line1, line2, point, options) => {
+	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
+	return axiom7(line1, line2, point)
+		.flatMap(foldLine => [
+			[point, diagramReflectPoint(foldLine, point)],
+			perpendicularBalancedSegment(
+				hull,
+				foldLine,
+				intersectLineLine(foldLine, line2).point,
+			),
+		]).map(segment => segmentToArrow(segment, hull, options));
+};const arrows=/*#__PURE__*/Object.freeze({__proto__:null,axiom1Arrows,axiom2Arrows,axiom3Arrows,axiom4Arrows,axiom5Arrows,axiom6Arrows,axiom7Arrows,simpleArrow});const diagram = {
+	...arrows,
+	segmentToArrow,
+};Object.assign(graph, graphMethods);
 const ear = {
 	graph,
 	cp,
@@ -12840,6 +13008,7 @@ const ear = {
 	singleVertex,
 	svg: SVG,
 	webgl,
+	diagram,
 	layer,
 };
 lib.ear = ear;

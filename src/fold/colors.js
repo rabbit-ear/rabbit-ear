@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { magnitude3, distance3, scale3 } from "../math/vector.js";
+
 /**
  * @description CSS named colors for a standard stroke color, intended
  * for light-background renders.
@@ -18,6 +19,7 @@ export const assignmentColor = {
 Object.keys(assignmentColor).forEach(key => {
 	assignmentColor[key.toLowerCase()] = assignmentColor[key];
 });
+
 /**
  * How desaturated can a color be but still be considered
  * a color instead of a grayscale value? please be: 0 < n < Inf.
@@ -39,6 +41,7 @@ const colorMatchNormalized = {
 	C: [0, 1, 0], // green
 	// and "boundary" and "flat" are black and gray
 };
+
 /**
  * @description Map a color to an edge_assignment value, of course, this uses
  * one of many color schemes, hopefully this is one of the more widely-accepted

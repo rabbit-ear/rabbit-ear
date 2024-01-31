@@ -4,6 +4,7 @@
 import { filterKeysWithPrefix } from "./spec.js";
 import clone from "../general/clone.js";
 import Messages from "../environment/messages.js";
+
 /**
  * @description Get the number of file frames in a FOLD object.
  * The top level is the first frame, then every entry inside of
@@ -14,6 +15,7 @@ import Messages from "../environment/messages.js";
 export const countFrames = (graph) => (!graph.file_frames
 	? 1
 	: graph.file_frames.length + 1);
+
 /**
  * @description Frames can be children of other frames via. the
  * frame_parent and frame_inherit properties. This method will render
@@ -83,6 +85,7 @@ export const flattenFrame = (graph, frame_num = 1) => {
 // 	Object.assign(fold, frame);
 // 	return fold;
 // };
+
 /**
  * @description Get a shallow copy of the top level frame without "file_frames"
  */
@@ -91,6 +94,7 @@ const getTopLevelFrame = (graph) => {
 	delete copy.file_frames;
 	return copy;
 };
+
 /**
  * @description Get a flat array of all file_frames, where the top-level
  * is index 0, and the file_frames follow in sequence.
@@ -111,6 +115,7 @@ export const getFramesAsFlatArray = (graph) => {
 		...graph.file_frames,
 	];
 };
+
 /**
  * @description Get all frames inside a FOLD object which contain a
  * frame_classes class matching the provided className string

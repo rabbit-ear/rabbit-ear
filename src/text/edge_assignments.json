@@ -4,6 +4,8 @@
 		"M": "mountain",
 		"V": "valley",
 		"F": "flat",
+		"J": "join",
+		"C": "cut",
 		"U": "unassigned",
 	}
 }

@@ -30,8 +30,8 @@ test("intersect face test, 2 edges", () => {
 	expect(res.edges.length).toBe(2);
 	expect(res.edges[0].coords[1]).toBeCloseTo(0.01);
 	expect(res.edges[1].coords[1]).toBeCloseTo(0.01);
-	expect(res.edges[0].edge).toBe(4);
-	expect(res.edges[1].edge).toBe(0);
+	expect(res.edges[0].edge).toBe(0);
+	expect(res.edges[1].edge).toBe(4);
 	// i feel like reversing the direction of the vector should reverse the results
 	const reverse = ear.graph
 		.intersectConvexFaceLine(graph, 0, { vector: ear.math.flip(vector), origin }, 1e-6);

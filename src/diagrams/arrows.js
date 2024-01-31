@@ -2,7 +2,6 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	includeL,
 	includeS,
 } from "../math/compare.js";
 import {
@@ -59,13 +58,14 @@ export const simpleArrow = ({ vertices_coords }, foldLine, options) => {
  * @param {FOLD} graph a FOLD object
  * @param {number[]} point1 the first axiom 1 input point
  * @param {number[]} point2 the second axiom 1 input point
- * @returns {object} a definition for an arrow
+ * @returns {object[]} an array of definitions for arrows.
+ * This will result in always one arrow.
  */
 export const axiom1Arrows = ({ vertices_coords }, point1, point2, options) => {
 	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
-	const line = axiom1(point1, point2);
-	const segment = perpendicularBalancedSegment(hull, line);
-	return [segmentToArrow(segment, hull, options)];
+	return axiom1(point1, point2)
+		.map(line => perpendicularBalancedSegment(hull, line))
+		.map(segment => segmentToArrow(segment, hull, options));
 };
 
 /**
@@ -74,7 +74,8 @@ export const axiom1Arrows = ({ vertices_coords }, point1, point2, options) => {
  * @param {FOLD} graph a FOLD object
  * @param {number[]} point1 the first axiom 2 input point
  * @param {number[]} point2 the second axiom 2 input point
- * @returns {object} a definition for an arrow
+ * @returns {object[]} an array of definitions for arrows.
+ * This will result in always one arrow.
  */
 export const axiom2Arrows = ({ vertices_coords }, point1, point2, options) => {
 	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
@@ -87,7 +88,8 @@ export const axiom2Arrows = ({ vertices_coords }, point1, point2, options) => {
  * @param {FOLD} graph a FOLD object
  * @param {number[]} line1 the first axiom 3 input line
  * @param {number[]} line2 the second axiom 3 input line
- * @returns {object[]} an array of arrow objects
+ * @returns {object[]} an array of definitions for arrows.
+ * This will result in one or two arrows. (one arrow per solution)
  */
 export const axiom3Arrows = ({ vertices_coords }, line1, line2, options) => {
 	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
@@ -134,14 +136,15 @@ export const axiom3Arrows = ({ vertices_coords }, line1, line2, options) => {
  * @param {FOLD} graph a FOLD object
  * @param {VecLine} line the line needed for axiom 4
  * @param {number[]} point the point needed for axiom 4
- * @returns {object} a definition for an arrow
+ * @returns {object[]} an array of definitions for arrows.
+ * This will result in always one arrow.
  */
-export const axiom4Arrow = ({ vertices_coords }, line, point, options) => {
+export const axiom4Arrows = ({ vertices_coords }, line, point, options) => {
 	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
-	const foldLine = axiom4(line, point);
-	const origin = intersectLineLine(foldLine, line, includeL, includeL).point;
+	const foldLine = axiom4(line, point).shift();
+	const origin = intersectLineLine(foldLine, line).point;
 	const segment = perpendicularBalancedSegment(hull, foldLine, origin);
-	return segmentToArrow(segment, hull, options);
+	return [segmentToArrow(segment, hull, options)];
 };
 
 /**
@@ -151,7 +154,8 @@ export const axiom4Arrow = ({ vertices_coords }, line, point, options) => {
  * @param {VecLine} line the line needed for axiom 5
  * @param {number[]} point1 the first point needed for axiom 5
  * @param {number[]} point2 the second point needed for axiom 5
- * @returns {object[]} an array of definitions for arrows
+ * @returns {object[]} an array of definitions for arrows.
+ * This will result in one or two arrows (one per solution).
  */
 export const axiom5Arrows = ({ vertices_coords }, line, point1, point2, options) => {
 	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
@@ -168,12 +172,13 @@ export const axiom5Arrows = ({ vertices_coords }, line, point1, point2, options)
  * @param {VecLine} line2 the second line needed for axiom 6
  * @param {number[]} point1 the first point needed for axiom 6
  * @param {number[]} point2 the second point needed for axiom 6
- * @returns {object[]} an array of definitions for arrows
+ * @returns {object[]} an array of definitions for arrows.
+ * This will result in zero, two, four, or six arrows (two per solution).
  */
 export const axiom6Arrows = ({ vertices_coords }, line1, line2, point1, point2, options) => {
 	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
 	return axiom6(line1, line2, point1, point2)
-		.map(foldLine => [point1, point2]
+		.flatMap(foldLine => [point1, point2]
 			.map(point => [point, diagramReflectPoint(foldLine, point)]))
 		.map(segment => segmentToArrow(segment, hull, options));
 };
@@ -185,17 +190,18 @@ export const axiom6Arrows = ({ vertices_coords }, line1, line2, point1, point2, 
  * @param {VecLine} line1 the first line needed for axiom 7
  * @param {VecLine} line2 the second line needed for axiom 7
  * @param {number[]} point the point needed for axiom 7
- * @returns {object[]} an array of definitions for arrows
+ * @returns {object[]} an array of definitions for arrows.
+ * This will result in always two arrows (two per solution).
  */
 export const axiom7Arrows = ({ vertices_coords }, line1, line2, point, options) => {
 	const hull = convexHull(vertices_coords).map(v => vertices_coords[v]);
 	return axiom7(line1, line2, point)
-		.map(foldLine => [
+		.flatMap(foldLine => [
 			[point, diagramReflectPoint(foldLine, point)],
 			perpendicularBalancedSegment(
 				hull,
 				foldLine,
-				intersectLineLine(foldLine, line2, includeL, includeL).point,
+				intersectLineLine(foldLine, line2).point,
 			),
 		]).map(segment => segmentToArrow(segment, hull, options));
 };
