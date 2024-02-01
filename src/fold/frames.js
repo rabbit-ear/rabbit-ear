@@ -6,93 +6,74 @@ import clone from "../general/clone.js";
 import Messages from "../environment/messages.js";
 
 /**
- * @description Get the number of file frames in a FOLD object.
- * The top level is the first frame, then every entry inside of
- * "file_frames" increments the count by 1.
- * @param {FOLD} graph a FOLD graph.
- * @returns {number} the number of frames in the FOLD object.
- */
-export const countFrames = (graph) => (!graph.file_frames
-	? 1
-	: graph.file_frames.length + 1);
-
-/**
  * @description Frames can be children of other frames via. the
- * frame_parent and frame_inherit properties. This method will render
- * a frame into its intended state by collapsing all parents and then
- * this frame itself into a single object.
- * @param {FOLD} graph a FOLD graph
- * @param {number} frame which frame number to expose as the sole contents
- * @returns {FOLD} the requested frame separated out from the rest of
- * the graph, inheriting any necessary data if needed.
+ * frame_parent and frame_inherit properties potentially creating a
+ * recursive inheritance. This method will "flatten" a frame by
+ * gathering all of its inherited parent frames and collapsing the
+ * stack into one single frame. The input graph itself will not be modified.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} frame which frame number to flatten (0 is the top level)
+ * @returns {FOLD} one single, flattened FOLD frame (with no file_frames)
  */
-export const flattenFrame = (graph, frame_num = 1) => {
-	if (!graph.file_frames || graph.file_frames.length < frame_num) {
+export const flattenFrame = (graph, frameNumber = 0) => {
+	if (!graph.file_frames || graph.file_frames.length < frameNumber) {
 		return graph;
 	}
-	const dontCopy = ["frame_parent", "frame_inherit"];
-	const memo = { visited_frames: [] };
+
+	// prevent cycles. never visit a frame twice
+	const visited = {};
+
+	// this is entirely optional, for the final result,
+	// we can copy over all the file_ metadata into the frame.
 	const fileMetadata = {};
 	filterKeysWithPrefix(graph, "file")
 		.filter(key => key !== "file_frames")
 		.forEach(key => { fileMetadata[key] = graph[key]; });
 
-	const recurse = (recurse_graph, frame, orderArray) => {
-		if (memo.visited_frames.indexOf(frame) !== -1) {
-			throw new Error(Messages.graphCycle);
-		}
-		memo.visited_frames.push(frame);
-		orderArray = [frame].concat(orderArray);
-		if (frame === 0) { return orderArray; }
-		if (recurse_graph.file_frames[frame - 1].frame_inherit
-			&& recurse_graph.file_frames[frame - 1].frame_parent != null) {
-			return recurse(
-				recurse_graph,
-				recurse_graph.file_frames[frame - 1].frame_parent,
-				orderArray,
-			);
-		}
-		return orderArray;
+	/**
+	 * @description recurse from the desired frame up through its parent
+	 * frames until we reach frame index 0, or a frame with no parent.
+	 * @returns {number[]} a list of frame indices, from parent to child.
+	 */
+	const recurse = (currentIndex, previousOrders) => {
+		// prevent cycles
+		if (visited[currentIndex]) { throw new Error(Messages.graphCycle); }
+		visited[currentIndex] = true;
+
+		// add currentIndex to the start of the list of previous frame indices
+		const thisOrders = [currentIndex].concat(previousOrders);
+
+		// get a reference to the current frame
+		const frame = currentIndex > 0
+			? { ...graph.file_frames[currentIndex - 1] }
+			: { ...graph };
+
+		// if the frame inherits and contains a parent, recurse
+		// if not, we are done, return the list of orders.
+		return frame.frame_inherit && frame.frame_parent != null
+			? recurse(frame.frame_parent, thisOrders)
+			: thisOrders;
 	};
 
-	return recurse(graph, frame_num, []).map((frame) => {
-		if (frame === 0) {
-			// for frame 0 (the key frame) don't copy over file_frames array
-			const swap = graph.file_frames;
-			graph.file_frames = null;
-			const copy = clone(graph);
-			graph.file_frames = swap;
-			delete copy.file_frames;
-			dontCopy.forEach(key => delete copy[key]);
-			return copy;
-		}
-		const outerCopy = clone(graph.file_frames[frame - 1]);
-		dontCopy.forEach(key => delete outerCopy[key]);
-		return outerCopy;
-	}).reduce((a, b) => Object.assign(a, b), fileMetadata);
-};
-// export const mergeFrame = function (graph, frame) {
-// 	const dontCopy = ["frame_parent", "frame_inherit"];
-// 	const copy = clone(frame);
-// 	dontCopy.forEach(key => delete copy[key]);
-// 	// don't deep copy file_frames. stash. bring them back.
-// 	const swap = graph.file_frames;
-// 	graph.file_frames = null;
-// 	const fold = clone(graph);
-// 	graph.file_frames = swap;
-// 	delete fold.file_frames;
-// 	// merge 2
-// 	Object.assign(fold, frame);
-// 	return fold;
-// };
+	// recurse, get a list of frame indices from parent to child,
+	// convert the indices into shallow copies of the frames, and
+	// sequentially reduce all frames into a single frame object.
+	const flattened = recurse(frameNumber, []).map((frameNum) => {
+		// shallow copy reference to the frame. this allows us to be able to
+		// delete any key/values we need to and not affect the input graph.
+		const frame = frameNum > 0
+			? { ...graph.file_frames[frameNum - 1] }
+			: { ...graph };
 
-/**
- * @description Get a shallow copy of the top level frame without "file_frames"
- */
-const getTopLevelFrame = (graph) => {
-	const copy = { ...graph };
-	delete copy.file_frames;
-	return copy;
+		// remove any reference of these keys from the frame
+		["file_frames", "frame_parent", "frame_inherit"]
+			.forEach(key => delete frame[key]);
+		return frame;
+	}).reduce((a, b) => ({ ...a, ...b }), fileMetadata);
+
+	// this is optional, but this ensures that this method can be treated
+	// "functionally" and using this method will not cause any side effects
+	return clone(flattened);
 };
 
 /**
@@ -105,16 +86,26 @@ const getTopLevelFrame = (graph) => {
  * @param {FOLD} graph a FOLD object
  * @returns {FOLD[]} an array of FOLD objects, single frames in a flat array.
  */
-export const getFramesAsFlatArray = (graph) => {
+export const getFileFramesAsArray = (graph) => {
 	if (!graph) { return []; }
 	if (!graph.file_frames || !graph.file_frames.length) {
 		return [graph];
 	}
-	return [
-		getTopLevelFrame(graph),
-		...graph.file_frames,
-	];
+	const frame0 = { ...graph };
+	delete frame0.file_frames;
+	return [frame0, ...graph.file_frames];
 };
+
+/**
+ * @description Get the number of file frames in a FOLD object.
+ * The top level is the first frame, then every entry inside of
+ * "file_frames" increments the count by 1.
+ * @param {FOLD} graph a FOLD object.
+ * @returns {number} the number of frames in the FOLD object.
+ */
+export const countFrames = ({ file_frames }) => (!file_frames
+	? 1
+	: file_frames.length + 1);
 
 /**
  * @description Get all frames inside a FOLD object which contain a

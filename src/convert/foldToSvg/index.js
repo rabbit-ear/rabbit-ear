@@ -43,7 +43,8 @@ const foldToSvg = (file, options = {}) => {
 };
 
 /**
- * @description Include subroutines in the default export
+ * @description The default export. This default export is the conversion
+ * function itself, with some various useful methods bound as static functions.
  */
 Object.assign(foldToSvg, {
 	...draw,

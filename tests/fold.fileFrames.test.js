@@ -36,18 +36,18 @@ test("flattenFrame, frame 0", () => {
 	expect(flat.frame_classes[0]).toBe("creasePattern");
 });
 
-test("getFramesAsFlatArray", () => {
+test("getFileFramesAsArray", () => {
 	const graph1 = JSON.parse(fs.readFileSync(
 		"./tests/files/fold/blintz-frames.fold",
 		"utf-8",
 	));
-	expect(ear.graph.getFramesAsFlatArray(graph1).length).toBe(33);
+	expect(ear.graph.getFileFramesAsArray(graph1).length).toBe(33);
 
 	const graph2 = JSON.parse(fs.readFileSync(
 		"./tests/files/fold/nested-frames.fold",
 		"utf-8",
 	));
-	expect(ear.graph.getFramesAsFlatArray(graph2).length).toBe(6);
+	expect(ear.graph.getFileFramesAsArray(graph2).length).toBe(6);
 });
 
 test("getFramesByClassName", () => {

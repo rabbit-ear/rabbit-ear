@@ -7,8 +7,7 @@
  */
 
 /**
- * @description All FOLD keys described in the spec,
- * sorted into descriptive categories.
+ * @description All FOLD format keys as described in the spec.
  */
 export const foldKeys = {
 	file: [
@@ -33,6 +32,7 @@ export const foldKeys = {
 	graph: [
 		"vertices_coords",
 		"vertices_vertices",
+		"vertices_edges",
 		"vertices_faces",
 		"edges_vertices",
 		"edges_faces",
@@ -41,11 +41,6 @@ export const foldKeys = {
 		"edges_length",
 		"faces_vertices",
 		"faces_edges",
-		// as of now, these are not described in the spec, but their behavior
-		// can be inferred, except faces_faces which could be edge-adjacent or
-		// face-adjacent. this library uses as EDGE-ADJACENT.
-		"vertices_edges",
-		"edges_edges",
 		"faces_faces",
 	],
 	orders: [

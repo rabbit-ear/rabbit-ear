@@ -2,10 +2,14 @@
  * Rabbit Ear (c) Kraft
  */
 import { makePolygonCircumradius } from "../math/polygon.js";
+import populate from "../graph/populate.js";
 
 /**
  * @description Create a square or rectangle vertices_coords,
  * counter-clockwise order.
+ * @param {number} w the width of the rectangle
+ * @param {number} h the height of the rectangle
+ * @returns {number[][]} a list of points
  */
 const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
 
@@ -32,8 +36,8 @@ const makeGraphWithBoundaryCoords = (vertices_coords) => ({
  * @param {number} [scale=1] the length of the sides.
  * @returns {FOLD} a FOLD object
  */
-export const square = (scale = 1) => (
-	makeGraphWithBoundaryCoords(makeRectCoords(scale, scale))
+export const square = (scale = 1) => populate(
+	makeGraphWithBoundaryCoords(makeRectCoords(scale, scale)),
 );
 
 /**
@@ -43,8 +47,8 @@ export const square = (scale = 1) => (
  * @param {number} [height=1] the height of the rectangle
  * @returns {FOLD} a FOLD object
  */
-export const rectangle = (width = 1, height = 1) => (
-	makeGraphWithBoundaryCoords(makeRectCoords(width, height))
+export const rectangle = (width = 1, height = 1) => populate(
+	makeGraphWithBoundaryCoords(makeRectCoords(width, height)),
 );
 
 /**
@@ -54,15 +58,15 @@ export const rectangle = (width = 1, height = 1) => (
  * distance from the center to any vertex)
  * @returns {FOLD} a FOLD object
  */
-export const polygon = (sides = 3, circumradius = 1) => (
-	makeGraphWithBoundaryCoords(makePolygonCircumradius(sides, circumradius))
+export const polygon = (sides = 3, circumradius = 1) => populate(
+	makeGraphWithBoundaryCoords(makePolygonCircumradius(sides, circumradius)),
 );
 
 /**
  * @description Create a kite base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const kite = () => ({
+export const kite = () => populate({
 	vertices_coords: [
 		[0, 0], [1, 0], [1, Math.SQRT2 - 1], [1, 1], [Math.SQRT2 - 1, 1], [0, 1],
 	],
@@ -74,7 +78,7 @@ export const kite = () => ({
  * @description Create a fish base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const fish = () => ({
+export const fish = () => populate({
 	vertices_coords: [
 		[0, 0],
 		[Math.SQRT1_2, 0],
@@ -101,7 +105,7 @@ export const fish = () => ({
  * @description Create a bird base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const bird = () => ({
+export const bird = () => populate({
 	vertices_coords: [
 		[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5],
 		[0.5, 0.5],
@@ -128,7 +132,7 @@ export const bird = () => ({
  * @description Create a frog base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const frog = () => ({
+export const frog = () => populate({
 	vertices_coords: [
 		[0, 1], [0, Math.SQRT1_2], [0, 0.5], [0, 1 - Math.SQRT1_2], [0, 0],
 		[0.5, 0.5], [1, 1], [(1 - Math.SQRT1_2) / 2, Math.SQRT1_2 / 2],
@@ -164,7 +168,7 @@ export const frog = () => ({
  * @description Create a windmill base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */
-export const windmill = () => ({
+export const windmill = () => populate({
 	vertices_coords: [
 		[0, 0], [0.25, 0], [0.5, 0], [0.75, 0], [1, 0], [0, 1], [0, 0.75],
 		[0, 0.5], [0, 0.25], [0.25, 0.25], [0.5, 0.5], [0.75, 0.75], [1, 1],
@@ -189,7 +193,7 @@ export const windmill = () => ({
  * @description todo: I don't know what the name of this base is.
  * @returns {FOLD} a FOLD object
  */
-export const squareFish = () => ({
+export const squareFish = () => populate({
 	vertices_coords: [
 		[0, 0], [2 - Math.SQRT2, 0], [1, 0], [0, 1], [0, 2 - Math.SQRT2],
 		[0.5, 0.5], [Math.SQRT1_2, Math.SQRT1_2], [1, 1],

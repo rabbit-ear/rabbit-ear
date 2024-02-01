@@ -109,6 +109,7 @@ const getLine$1 = function () {
 	graph: [
 		"vertices_coords",
 		"vertices_vertices",
+		"vertices_edges",
 		"vertices_faces",
 		"edges_vertices",
 		"edges_faces",
@@ -117,8 +118,6 @@ const getLine$1 = function () {
 		"edges_length",
 		"faces_vertices",
 		"faces_edges",
-		"vertices_edges",
-		"edges_edges",
 		"faces_faces",
 	],
 	orders: [
@@ -6847,7 +6846,7 @@ Graph.prototype.flatFold = function () {
 	flatFold(this, getLine$1(arguments));
 	return this;
 };
-const graphProto = Graph.prototype;const lineLineParameter = (
+const graphPrototype = Graph.prototype;const lineLineParameter = (
 	lineVector,
 	lineOrigin,
 	polyVector,
@@ -7422,7 +7421,7 @@ const validateKawasaki = ({
 		.map((valid, v) => (!valid ? v : undefined))
 		.filter(a => a !== undefined);
 };const validateSingleVertex=/*#__PURE__*/Object.freeze({__proto__:null,validateKawasaki,validateMaekawa});const CP = {};
-CP.prototype = Object.create(graphProto);
+CP.prototype = Object.create(graphPrototype);
 CP.prototype.constructor = CP;
 const makeEdgesReturnObject = function (edges) {
 	edges.valley = (degrees) => this.setValley(edges, degrees);
@@ -7519,7 +7518,7 @@ CP.prototype.setCut = function (edges = []) {
 	return setAssignment(this, edges, "C", 0);
 };
 CP.prototype.defer = false;
-const cpProto = CP.prototype;const file_spec = 1.2;
+const cpPrototype = CP.prototype;const file_spec = 1.2;
 const file_creator = "Rabbit Ear";const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
 const makeGraphWithBoundaryCoords = (vertices_coords) => ({
 	vertices_coords,
@@ -7529,23 +7528,23 @@ const makeGraphWithBoundaryCoords = (vertices_coords) => ({
 	faces_vertices: [vertices_coords.map((_, i) => i)],
 	faces_edges: [vertices_coords.map((_, i) => i)],
 });
-const square = (scale = 1) => (
-	makeGraphWithBoundaryCoords(makeRectCoords(scale, scale))
+const square = (scale = 1) => populate(
+	makeGraphWithBoundaryCoords(makeRectCoords(scale, scale)),
 );
-const rectangle = (width = 1, height = 1) => (
-	makeGraphWithBoundaryCoords(makeRectCoords(width, height))
+const rectangle = (width = 1, height = 1) => populate(
+	makeGraphWithBoundaryCoords(makeRectCoords(width, height)),
 );
-const polygon = (sides = 3, circumradius = 1) => (
-	makeGraphWithBoundaryCoords(makePolygonCircumradius(sides, circumradius))
+const polygon = (sides = 3, circumradius = 1) => populate(
+	makeGraphWithBoundaryCoords(makePolygonCircumradius(sides, circumradius)),
 );
-const kite = () => ({
+const kite = () => populate({
 	vertices_coords: [
 		[0, 0], [1, 0], [1, Math.SQRT2 - 1], [1, 1], [Math.SQRT2 - 1, 1], [0, 1],
 	],
 	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 2], [0, 4], [0, 3]],
 	edges_assignment: Array.from("BBBBBBVVF"),
 });
-const fish = () => ({
+const fish = () => populate({
 	vertices_coords: [
 		[0, 0],
 		[Math.SQRT1_2, 0],
@@ -7567,7 +7566,7 @@ const fish = () => ({
 	],
 	edges_assignment: Array.from("BBBBBBBBVVVVVVMMFFFFFF"),
 });
-const bird = () => ({
+const bird = () => populate({
 	vertices_coords: [
 		[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5],
 		[0.5, 0.5],
@@ -7589,7 +7588,7 @@ const bird = () => ({
 	edges_assignment: Array
 		.from("BBBBBBBBVVVVVVVVMVMVMVMVMMFFFFFFFF"),
 });
-const frog = () => ({
+const frog = () => populate({
 	vertices_coords: [
 		[0, 1], [0, Math.SQRT1_2], [0, 0.5], [0, 1 - Math.SQRT1_2], [0, 0],
 		[0.5, 0.5], [1, 1], [(1 - Math.SQRT1_2) / 2, Math.SQRT1_2 / 2],
@@ -7620,7 +7619,7 @@ const frog = () => ({
 	edges_assignment: Array
 		.from("BBBBFFVVBBBBMMMMFVVFFVVFVVVVVVVVVMMVVMMVVVFVVFFVVFMMMMMMVVBBBBBBBBVV"),
 });
-const windmill = () => ({
+const windmill = () => populate({
 	vertices_coords: [
 		[0, 0], [0.25, 0], [0.5, 0], [0.75, 0], [1, 0], [0, 1], [0, 0.75],
 		[0, 0.5], [0, 0.25], [0.25, 0.25], [0.5, 0.5], [0.75, 0.75], [1, 1],
@@ -7640,7 +7639,7 @@ const windmill = () => ({
 	edges_assignment: Array
 		.from("BBBBBBBBVFFVFVVFFVVFMFMFMFFFFFFFFFVFFVFVVFFVVFBBBBBBBBMF"),
 });
-const squareFish = () => ({
+const squareFish = () => populate({
 	vertices_coords: [
 		[0, 0], [2 - Math.SQRT2, 0], [1, 0], [0, 1], [0, 2 - Math.SQRT2],
 		[0.5, 0.5], [Math.SQRT1_2, Math.SQRT1_2], [1, 1],
@@ -7655,30 +7654,30 @@ const squareFish = () => ({
 		[6, 9], [2, 9], [9, 13], [13, 7],
 	],
 	edges_assignment: Array.from("BBBBFFFVFVFMMVVVFFVVVBBBMMBBB"),
-});const bases=/*#__PURE__*/Object.freeze({__proto__:null,bird,fish,frog,kite,polygon,rectangle,square,squareFish,windmill});const graph = (...args) => populate(
-	Object.assign(Object.create(graphProto), {
+});const bases=/*#__PURE__*/Object.freeze({__proto__:null,bird,fish,frog,kite,polygon,rectangle,square,squareFish,windmill});const makeGraphInstance = (...args) => Object
+	.assign(Object.create(graphPrototype), {
 		...args.reduce((a, b) => ({ ...a, ...b }), ({})),
 		file_spec,
 		file_creator,
-	}),
-);
-const cp = (...args) => populate(
-	Object.assign(Object.create(cpProto), {
+	});
+const makeCPInstance = (...args) => Object
+	.assign(Object.create(cpPrototype), {
 		...(args.length
 			? args.reduce((a, b) => ({ ...a, ...b }), ({}))
 			: square()),
 		file_spec,
 		file_creator,
 		frame_classes: ["creasePattern"],
-	}),
-);
-graph.prototype = graphProto;
+	});
+const graph = (...args) => populate(makeGraphInstance(...args));
+graph.prototype = graphPrototype;
 graph.prototype.constructor = graph;
-cp.prototype = cpProto;
+const cp = (...args) => populate(makeCPInstance(...args));
+cp.prototype = cpPrototype;
 cp.prototype.constructor = cp;
 Object.keys(bases).forEach(baseName => {
-	graph[baseName] = (...args) => graph(bases[baseName](...args));
-	cp[baseName] = (...args) => cp(bases[baseName](...args));
+	graph[baseName] = (...args) => makeGraphInstance(bases[baseName](...args));
+	cp[baseName] = (...args) => makeCPInstance(bases[baseName](...args));
 });const cubrt = n => (n < 0 ? -((-n) ** (1 / 3)) : (n ** (1 / 3)));
 const cubicSolver = (degree, a, b, c, d) => {
 	switch (degree) {
@@ -8499,71 +8498,53 @@ const capitalized = (s) => s
 	...numberMethods,
 	...sortMethods,
 	...stringMethods,
-};const countFrames = (graph) => (!graph.file_frames
-	? 1
-	: graph.file_frames.length + 1);
-const flattenFrame = (graph, frame_num = 1) => {
-	if (!graph.file_frames || graph.file_frames.length < frame_num) {
+};const flattenFrame = (graph, frameNumber = 0) => {
+	if (!graph.file_frames || graph.file_frames.length < frameNumber) {
 		return graph;
 	}
-	const dontCopy = ["frame_parent", "frame_inherit"];
-	const memo = { visited_frames: [] };
+	const visited = {};
 	const fileMetadata = {};
 	filterKeysWithPrefix(graph, "file")
 		.filter(key => key !== "file_frames")
 		.forEach(key => { fileMetadata[key] = graph[key]; });
-	const recurse = (recurse_graph, frame, orderArray) => {
-		if (memo.visited_frames.indexOf(frame) !== -1) {
-			throw new Error(Messages$1.graphCycle);
-		}
-		memo.visited_frames.push(frame);
-		orderArray = [frame].concat(orderArray);
-		if (frame === 0) { return orderArray; }
-		if (recurse_graph.file_frames[frame - 1].frame_inherit
-			&& recurse_graph.file_frames[frame - 1].frame_parent != null) {
-			return recurse(
-				recurse_graph,
-				recurse_graph.file_frames[frame - 1].frame_parent,
-				orderArray,
-			);
-		}
-		return orderArray;
+	const recurse = (currentIndex, previousOrders) => {
+		if (visited[currentIndex]) { throw new Error(Messages$1.graphCycle); }
+		visited[currentIndex] = true;
+		const thisOrders = [currentIndex].concat(previousOrders);
+		const frame = currentIndex > 0
+			? { ...graph.file_frames[currentIndex - 1] }
+			: { ...graph };
+		return frame.frame_inherit && frame.frame_parent != null
+			? recurse(frame.frame_parent, thisOrders)
+			: thisOrders;
 	};
-	return recurse(graph, frame_num, []).map((frame) => {
-		if (frame === 0) {
-			const swap = graph.file_frames;
-			graph.file_frames = null;
-			const copy = clone(graph);
-			graph.file_frames = swap;
-			delete copy.file_frames;
-			dontCopy.forEach(key => delete copy[key]);
-			return copy;
-		}
-		const outerCopy = clone(graph.file_frames[frame - 1]);
-		dontCopy.forEach(key => delete outerCopy[key]);
-		return outerCopy;
-	}).reduce((a, b) => Object.assign(a, b), fileMetadata);
+	const flattened = recurse(frameNumber, []).map((frameNum) => {
+		const frame = frameNum > 0
+			? { ...graph.file_frames[frameNum - 1] }
+			: { ...graph };
+		["file_frames", "frame_parent", "frame_inherit"]
+			.forEach(key => delete frame[key]);
+		return frame;
+	}).reduce((a, b) => ({ ...a, ...b }), fileMetadata);
+	return clone(flattened);
 };
-const getTopLevelFrame = (graph) => {
-	const copy = { ...graph };
-	delete copy.file_frames;
-	return copy;
-};
-const getFramesAsFlatArray = (graph) => {
+const getFileFramesAsArray = (graph) => {
 	if (!graph) { return []; }
 	if (!graph.file_frames || !graph.file_frames.length) {
 		return [graph];
 	}
-	return [
-		getTopLevelFrame(graph),
-		...graph.file_frames,
-	];
+	const frame0 = { ...graph };
+	delete frame0.file_frames;
+	return [frame0, ...graph.file_frames];
 };
+const countFrames = ({ file_frames }) => (!file_frames
+	? 1
+	: file_frames.length + 1);
 const getFramesByClassName = (graph, className) => Array
 	.from(Array(countFrames(graph)))
 	.map((_, i) => flattenFrame(graph, i))
 	.filter(frame => frame.frame_classes
-		&& frame.frame_classes.includes(className));const foldFileFrames=/*#__PURE__*/Object.freeze({__proto__:null,countFrames,flattenFrame,getFramesAsFlatArray,getFramesByClassName});const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon = EPSILON) => {
+		&& frame.frame_classes.includes(className));const foldFileFrames=/*#__PURE__*/Object.freeze({__proto__:null,countFrames,flattenFrame,getFileFramesAsArray,getFramesByClassName});const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon = EPSILON) => {
 	const edgeSide = (edge_vertices) => edge_vertices
 		.map(v => vertices_coords[v])
 		.map(coord => subtract2(coord, line.origin))

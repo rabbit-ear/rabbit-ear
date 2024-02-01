@@ -185,4 +185,5 @@ const render = (graph, element, options = {}) => {
 
 	return element;
 };
+
 export default render;
