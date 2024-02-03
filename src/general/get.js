@@ -4,8 +4,10 @@
 // import { distance2 } from "../algebra/vector.js";
 // import { identity2x3 } from "../algebra/matrix2.js";
 // import { identity3x4 } from "../algebra/matrix3.js";
+
 const isIterable = (obj) => obj != null
 	&& typeof obj[Symbol.iterator] === "function";
+
 /**
  * @description flatten only until the point of comma separated entities.
  * This will preserve vectors (number[]) in an array of array of vectors.
@@ -27,6 +29,7 @@ const semiFlattenArrays = function () {
 			: a));
 	}
 };
+
 /**
  * @description Totally flatten, recursive
  * @param {array[][]} args any array, intended to contain arrays of arrays.
@@ -46,6 +49,7 @@ const flattenArrays = function () {
 			: a)).flat();
 	}
 };
+
 /**
  * @description Coerce the function arguments into a vector.
  * This will object notation {x:, y:}, or array [number, number, ...]
@@ -63,6 +67,7 @@ export const getVector = function () {
 	}
 	return list.filter(n => typeof n === "number");
 };
+
 /**
  * @description Coerce the function arguments into an array of vectors.
  * @param {any[][]} ...args an argument list that contains any number of
@@ -72,6 +77,7 @@ export const getVector = function () {
 export const getArrayOfVectors = function () {
 	return semiFlattenArrays(arguments).map(el => getVector(el));
 };
+
 /**
  * @description Coerce the function arguments into a segment (a pair of points)
  * @param {any[]} ...args an argument list that contains a pair of
@@ -84,9 +90,11 @@ export const getSegment = function () {
 		? [[0, 1], [2, 3]].map(s => s.map(i => args[i]))
 		: args.map(el => getVector(el));
 };
+
 // store two parameters in an object under the keys "vector" and "object"
 const vectorOriginForm = (vector, origin = []) => ({ vector, origin });
 // 	{ vector: vector || [], origin: origin || [] });
+
 /**
  * @description Coerce the function arguments into a line.
  * @param {any[]} ...args an argument list that contains an object with
@@ -103,6 +111,7 @@ export const getLine = function () {
 		? vectorOriginForm(getVector(args))
 		: vectorOriginForm(...args.map(a => getVector(a)));
 };
+
 // /**
 //  * a matrix2 is a 2x3 matrix, 2x2 with a column to represent translation
 //  *

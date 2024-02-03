@@ -15,7 +15,7 @@ import {
 import { intersectLineLine } from "../math/intersect.js";
 import {
 	epsilonUniqueSortedNumbers,
-	setDifferenceSortedNumbers,
+	setDifferenceSortedEpsilonNumbers,
 } from "../general/array.js";
 import { sweepValues } from "./sweep.js";
 import {
@@ -160,7 +160,7 @@ const planarize = ({
 		// for every line, the subset of all intersections along the line
 		// that are not duplicates of endpoints of collinear edges to the line.
 		.map((sects, i) => (
-			setDifferenceSortedNumbers(sects, lines_flatEdgeScalars[i], epsilon)
+			setDifferenceSortedEpsilonNumbers(sects, lines_flatEdgeScalars[i], epsilon)
 		));
 	// walk the line
 	// create an alternative form of the graph for the sweep method.

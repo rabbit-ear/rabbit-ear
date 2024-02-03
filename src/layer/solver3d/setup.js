@@ -1,9 +1,18 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/constant.js";
-import { average2 } from "../../math/vector.js";
-import { invertMap } from "../../graph/maps.js";
+import {
+	EPSILON,
+} from "../../math/constant.js";
+import {
+	average2,
+} from "../../math/vector.js";
+import {
+	mergeArraysWithHoles,
+} from "../../general/array.js";
+import {
+	invertMap,
+} from "../../graph/maps.js";
 import {
 	makeFacesEdgesFromVertices,
 	makeEdgesFacesUnsorted,
@@ -12,10 +21,15 @@ import {
 	makeFacesFaces,
 	makeFacesPolygon,
 } from "../../graph/make.js";
-import { mergeArraysWithHoles } from "../../general/array.js";
-import { connectedComponentsPairs } from "../../graph/connectedComponents.js";
-import { coplanarOverlappingFacesGroups } from "../../graph/faces/coplanar.js";
-import { getFacesFacesOverlap } from "../../graph/intersect/facesFaces.js";
+import {
+	connectedComponentsPairs,
+} from "../../graph/connectedComponents.js";
+import {
+	coplanarOverlappingFacesGroups,
+} from "../../graph/faces/coplanar.js";
+import {
+	getFacesFacesOverlap,
+} from "../../graph/intersect/facesFaces.js";
 import makeTacosTortillas from "../solver2d/tacosAndTortillas.js";
 import {
 	makeTransitivity,
@@ -25,14 +39,19 @@ import {
 	makeConstraints,
 	makeConstraintsLookup,
 } from "../solver2d/makeConstraints.js";
-import { getOverlappingParallelEdgePairs } from "./edges3D.js";
+import {
+	getOverlappingParallelEdgePairs,
+} from "./edges3D.js";
 import makeBentTortillas from "./bentTortillas.js";
 import {
 	solveEdgeFaceOverlapOrders,
 	solveEdgeEdgeOverlapOrders,
 } from "./solveOrders3d.js";
-import { graphGroupCopies } from "./copyGraph.js";
+import {
+	graphGroupCopies,
+} from "./copyGraph.js";
 import solveEdgeAdjacent from "../solver2d/edgeAdjacent.js";
+
 /**
  * @description Get a list of
  */
@@ -50,6 +69,7 @@ const getEdgesSets = ({ edges_vertices, faces_edges }, faces_set) => {
 			.sort((a, b) => a - b));
 	return edges_sets;
 };
+
 /**
  *
  */

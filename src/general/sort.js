@@ -7,7 +7,10 @@ import {
 	subtract,
 	basisVectors3,
 } from "../math/vector.js";
-import { projectPointOnPlane } from "../math/plane.js";
+import {
+	projectPointOnPlane,
+} from "../math/plane.js";
+
 /**
  * @description Provide a comparison function and use it to sort an array
  * of any type of object against a single item. The returned array will be
@@ -20,10 +23,11 @@ import { projectPointOnPlane } from "../math/plane.js";
  * @returns {number[]} the indices of the original array, in sorted order
  * @linkcode Math ./src/general/sort.js 24
  */
-export const sortAgainstItem = (array, item, compareFn) => array
+const sortAgainstItem = (array, item, compareFn) => array
 	.map((el, i) => ({ i, n: compareFn(el, item) }))
 	.sort((a, b) => a.n - b.n)
 	.map(a => a.i);
+
 /**
  * @description Sort an array of n-dimensional points along an
  * n-dimensional vector, get the indices in sorted order.
@@ -35,7 +39,15 @@ export const sortAgainstItem = (array, item, compareFn) => array
 export const sortPointsAlongVector = (points, vector) => (
 	sortAgainstItem(points, vector, dot)
 );
+
 /**
+ * @description Radially sort a list of 2D unit vectors
+ * counter-clockwise, starting from the +X axis, [1, 0].
+ * Vectors must be normalized within the 2nd dimension.
+ * @param {number[][]} vectors a list of 2D unit vectors
+ * @returns {number[]} a list of indices that reference the input list.
+ * @notes
+ * Quadrant indexing goes like this:
  *       (+y)
  *        |
  *  -d +c |  +d +c
@@ -45,52 +57,86 @@ export const sortPointsAlongVector = (points, vector) => (
  *  -d -c |  +d -c
  *        |
  *
+ * mapping to these indices:
+ *
  * 1 | 0
  * -----
  * 2 | 3
  */
 export const radialSortUnitVectors2 = (vectors) => {
+	// this method works by using the dot and cross product with the
+	// x axis basis vector to determine which of the four quadrants
+	// the vectors are in. quadrantConditions does this filtering.
 	const quadrantConditions = [
 		v => v[0] >= 0 && v[1] >= 0,
 		v => v[0] < 0 && v[1] >= 0,
 		v => v[0] < 0 && v[1] < 0,
 		v => v[0] >= 0 && v[1] < 0,
 	];
+
+	// once vectors are categorized, each quadrant can be sorted
+	// by simply comparing the x value (these are normalized vectors).
 	const quadrantSorts = [
 		(a, b) => vectors[b][0] - vectors[a][0],
 		(a, b) => vectors[b][0] - vectors[a][0],
 		(a, b) => vectors[a][0] - vectors[b][0],
 		(a, b) => vectors[a][0] - vectors[b][0],
 	];
+
+	// for each vector, find that vector's quadrant.
 	const vectorsQuadrant = vectors
 		.map(vec => quadrantConditions
 			.map((fn, i) => (fn(vec) ? i : undefined))
 			.filter(a => a !== undefined)
 			.shift());
+
+	// invert the list above, for each quadrant, a list of its vector indices
 	const quadrantsVectors = [[], [], [], []];
 	vectorsQuadrant.forEach((q, v) => { quadrantsVectors[q].push(v); });
-	// sort by: decreasing, decreasing, increasing, increasing x values
+
+	// now we can sort each quadrant, and since the quadrants themselves are
+	// already sorted counter-clockwise, the flattened list will be sorted.
+	// By X value: decreasing, decreasing, increasing, increasing
 	return quadrantsVectors
 		.flatMap((indices, i) => indices.sort(quadrantSorts[i]));
 };
+
 /**
- *
+ * @description Radially sort a list of points in 3D space around a line.
+ * Imagine the line as a plane's normal, project the points down into the
+ * plane, normalized, and use them as input to the related method which
+ * radially sorts 2D normalized vectors, using our projected plane.
+ * @param {number[][]} points a list of 3D points
+ * @param {number[]} vector a 3D vector describing the line's vector
+ * @param {number[]} origin a point which this line passes through,
+ * by default this is set to be the origin.
+ * @returns {number[]} a list of indices that reference the input list.
  */
 export const radialSortPointIndices3 = (
 	points,
 	vector = [1, 0, 0],
 	origin = [0, 0, 0],
 ) => {
-	// using the plane's normal, generate three orthogonal vectors
+	// the line's vector is the plane's normal, using the plane's normal,
+	// generate three orthogonal vectors to be our basis vectors in 3D.
 	const threeVectors = basisVectors3(vector);
-	// set the plane's normal to the final axis (z-axis)
+
+	// order the basis vectors such that the plane's normal is the Z vector
 	const basis = [threeVectors[1], threeVectors[2], threeVectors[0]];
+
+	// project the input points down into the 3D plane.
 	const projectedPoints = points
 		.map(point => projectPointOnPlane(point, vector, origin));
+
+	// convert the projected points into vectors
 	const projectedVectors = projectedPoints
 		.map(point => subtract(point, origin));
+
+	// convert the 2D vectors into our new basis frame (UV space)
 	const pointsUV = projectedVectors
 		.map(vec => [dot(vec, basis[0]), dot(vec, basis[1])]);
+
+	// normalize the 2D vectors and send them to the sorting method
 	const vectorsUV = pointsUV.map(normalize2);
 	return radialSortUnitVectors2(vectorsUV);
 };

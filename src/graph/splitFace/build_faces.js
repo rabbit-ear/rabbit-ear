@@ -2,7 +2,24 @@
  * Rabbit Ear (c) Kraft
  */
 import { makeVerticesToEdgeBidirectional } from "../make.js";
-import { splitCircularArray } from "../../general/array.js";
+
+/**
+ * @description A circular array (data wraps around) requires 2 indices
+ * if you intend to split it into two arrays. The pair of indices can be
+ * provided in any order, they will be sorted, smaller index first.
+ * @param {any[]} array an array that is meant to be thought of as circular
+ * @param {number[]} indices two numbers, indices that divide the array into 2 parts
+ * @returns {any[][]} the same array split into two arrays
+ * @linkcode Origami ./src/general/arrays.js 49
+ */
+const splitCircularArray = (array, indices) => {
+	indices.sort((a, b) => a - b);
+	return [
+		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+		array.slice(indices[0], indices[1] + 1),
+	];
+};
+
 /**
  * this must be done AFTER edges_vertices has been updated with the new edge.
  *
@@ -29,6 +46,7 @@ const make_faces = ({
 	}
 	return faces;
 };
+
 /**
  *
  */

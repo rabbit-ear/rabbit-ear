@@ -1,21 +1,56 @@
 /**
  * Math (c) Kraft
  */
-import { EPSILON } from "./constant.js";
-import { epsilonCompare } from "./compare.js";
-import { threePointTurnDirection } from "./radial.js";
-import { mirrorArray } from "../general/array.js";
-// import { smallestVector2 } from "../general/search.js";
 import {
-	clusterScalars,
-	minimumCluster,
-} from "../general/cluster.js";
+	EPSILON,
+} from "./constant.js";
+import {
+	epsilonCompare,
+} from "./compare.js";
+import {
+	threePointTurnDirection,
+} from "./radial.js";
 import {
 	normalize2,
 	distance2,
 	dot2,
 	subtract2,
 } from "./vector.js";
+import {
+	clusterScalars,
+} from "../general/cluster.js";
+
+/**
+ * @description mirror an array and join it at the end, except
+ * do not duplicate the final element, it should only appear once.
+ */
+const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
+
+/**
+ * @description Sort and cluster a list of elements and return the first
+ * cluster only. Because we are only getting the first, no other clusters
+ * are constructed during the operation of this method. The sorting uses
+ * a comparison function which returns -1,0,+1 for comparisons, and the first
+ * cluster is the first group which among each other return 0, but compared
+ * to every other item returns -1. The input array can be unsorted.
+ * @param {any[]} elements an array of any objects
+ * @param {function} comparison a function which accepts two paramters, type
+ * matching the any[] parameter, which returns -1, 0, or +1.
+ * @returns {array[]} an array of indices, indices of the "elements" array
+ */
+const minimumCluster = (elements, comparison) => {
+	// find the set of all vectors that share the smallest X value within an epsilon
+	let smallSet = [0];
+	for (let i = 1; i < elements.length; i += 1) {
+		switch (comparison(elements[smallSet[0]], elements[i])) {
+		case 0: smallSet.push(i); break;
+		case 1: smallSet = [i]; break;
+		default: break;
+		}
+	}
+	return smallSet;
+};
+
 /**
  * @description Get the index of the point in an array
  * considered the absolute minimum. First check the X values,
@@ -28,7 +63,7 @@ import {
  * the smallest component values, or undefined if points is empty.
  * @linkcode Math ./src/general/search.js 60
  */
-export const smallestVector2 = (points, epsilon = EPSILON) => {
+const smallestVector2 = (points, epsilon = EPSILON) => {
 // export const minimumPointIndex = (points, epsilon = EPSILON) => {
 	if (!points || !points.length) { return undefined; }
 	// find the set of all points that share the smallest X value
@@ -43,6 +78,7 @@ export const smallestVector2 = (points, epsilon = EPSILON) => {
 	}
 	return smallSet[sm];
 };
+
 /**
  * @description Locate the point with the lowest value in both axes,
  * making this the bottom-left-most point of the set, use this point
@@ -80,6 +116,7 @@ export const convexHullRadialSortPoints = (points, epsilon = EPSILON) => {
 				.sort((a, b) => a.len - b.len)
 				.map(el => el.i))));
 };
+
 /**
  * @description Convex hull from a set of 2D points, choose whether
  * to include or exclude points which lie collinear inside one of
@@ -129,6 +166,7 @@ export const convexHull = (points = [], includeCollinear = false, epsilon = EPSI
 	stack.pop();
 	return stack;
 };
+
 /**
  * @description Convex hull from a set of 2D points, choose whether
  * to include or exclude points which lie collinear inside one of

@@ -1,12 +1,16 @@
 /**
  * Math (c) Kraft
  */
-import { EPSILON } from "./constant.js";
+import {
+	EPSILON,
+} from "./constant.js";
 import {
 	clampLine,
 	clampSegment,
 } from "./line.js";
-import { arrayMinimum } from "../general/array.js";
+import {
+	arrayMinimumIndex,
+} from "../general/array.js";
 import {
 	magSquared,
 	distance,
@@ -27,7 +31,7 @@ import {
  */
 export const nearestPoint2 = (points, point) => {
 	// todo speed up with partitioning
-	const index = arrayMinimum(points, el => distance2(el, point));
+	const index = arrayMinimumIndex(points, el => distance2(el, point));
 	return index === undefined ? undefined : points[index];
 };
 /**
@@ -39,8 +43,8 @@ export const nearestPoint2 = (points, point) => {
  */
 export const nearestPoint = (points, point) => {
 	// todo speed up with partitioning
-	// const index = arrayMinimum(points, point, distance);
-	const index = arrayMinimum(points, el => distance(el, point));
+	// const index = arrayMinimumIndex(points, point, distance);
+	const index = arrayMinimumIndex(points, el => distance(el, point));
 	return index === undefined ? undefined : points[index];
 };
 /**

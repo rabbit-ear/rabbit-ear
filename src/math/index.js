@@ -24,14 +24,13 @@ import * as nearestMethods from "./nearest.js";
 import * as planeMethods from "./plane.js";
 import * as polygonMethods from "./polygon.js";
 import * as radialMethods from "./radial.js";
-import straightSkeleton from "./straightSkeleton.js";
+import * as straightSkeleton from "./straightSkeleton.js";
 import * as triangle from "./triangle.js";
 import * as encloses from "./encloses.js";
 import * as overlapMethods from "./overlap.js";
 import * as intersectMethods from "./intersect.js";
 import * as clip from "./clip.js";
 import * as split from "./split.js";
-import intersect from "./intersectMethod.js";
 
 export default {
 	...constant,
@@ -48,14 +47,13 @@ export default {
 	...planeMethods,
 	...polygonMethods,
 	...radialMethods,
-	straightSkeleton,
+	...straightSkeleton,
 	...triangle,
 	...encloses,
 	...overlapMethods,
 	...intersectMethods,
 	...clip,
 	...split,
-	intersect,
 };
 
 /**

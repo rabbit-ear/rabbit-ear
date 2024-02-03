@@ -7,7 +7,6 @@ import * as getMethods from "./get.js";
 import * as numberMethods from "./number.js";
 import * as sortMethods from "./sort.js";
 import * as stringMethods from "./string.js";
-// import typeOf from "./typeOf.js";
 
 export default {
 	...arrayMethods,
@@ -16,5 +15,4 @@ export default {
 	...numberMethods,
 	...sortMethods,
 	...stringMethods,
-	// typeof: typeOf,
 };

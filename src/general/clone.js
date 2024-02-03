@@ -1,13 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
- * @description deep copy an object, like JSON.parse(JSON.stringify())
- *
- * Update: We no longer need this. structuredClone is fully supported in
- * all browsers since 2022. Let's leave this in for now and wait a few years.
- *
- * this clone function is decent, except for:
+ * @description This is a polyfill for "structuredClone"
+ * equivalent to running JSON.parse(JSON.stringify()).
+ * This method will deep copy an object, with a few caveats:
  *  - it doesn't detect recursive cycles
  *  - weird behavior around Proxys
  * @author https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
@@ -41,6 +39,13 @@ const clonePolyfill = function (o) {
 	return newO;
 };
 
+/**
+ * @description Export "structuredClone" if it exists,
+ * otherwise export the polyfill method.
+ * @param {object} object
+ * @returns {object} a deep copy of the input object
+ * @linkcode
+ */
 const clone = (typeof structuredClone === "function"
 	? structuredClone
 	: clonePolyfill);

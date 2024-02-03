@@ -12,6 +12,7 @@ import {
 } from "./radial.js";
 import { nearestPointOnLine } from "./nearest.js";
 import { intersectLineLine } from "./intersect.js";
+
 /**
  * @description this recursive algorithm works outwards-to-inwards, each repeat
  * decreases the size of the polygon by one point/side. (removes 2, adds 1)
@@ -106,6 +107,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
 	}
 	return solutions.concat(recurseSkeleton(points, lines, bisectors));
 };
+
 /**
  * @description create a straight skeleton inside of a convex polygon
  * @param {number[][]} points counter-clockwise polygon as an array of points
@@ -118,7 +120,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
  *  - your polygon points are sorted counter-clockwise
  * @linkcode Math ./src/geometry/straightSkeleton.js 119
  */
-const straightSkeleton = (points) => {
+export const straightSkeleton = (points) => {
 	// first time running this function, create the 2nd and 3rd parameters
 	// convert the edges of the polygons into lines
 	const lines = points
@@ -142,5 +144,3 @@ const straightSkeleton = (points) => {
 	// console.log("ss points", points_clone, points);
 	return recurseSkeleton([...points], lines, bisectors);
 };
-
-export default straightSkeleton;

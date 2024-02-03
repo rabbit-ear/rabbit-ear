@@ -619,7 +619,7 @@ const assignmentIsBoundary = {
 	U: false,
 	u: false,
 };
-const edgeAssignmentToFoldAngle = assignment => (
+const edgeAssignmentToFoldAngle = (assignment) => (
 	assignmentFlatFoldAngle[assignment] || 0
 );
 const edgeFoldAngleToAssignment = (angle) => {
@@ -627,9 +627,9 @@ const edgeFoldAngleToAssignment = (angle) => {
 	if (angle < -EPSILON) { return "M"; }
 	return "U";
 };
-const edgeFoldAngleIsFlat = angle => epsilonEqual(0, angle)
+const edgeFoldAngleIsFlat = (angle) => (epsilonEqual(0, angle)
  || epsilonEqual(-180, angle)
- || epsilonEqual(180, angle);
+ || epsilonEqual(180, angle));
 const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	if (!edges_foldAngle) { return true; }
 	for (let i = 0; i < edges_foldAngle.length; i += 1) {
@@ -686,7 +686,7 @@ const transposeGraphArrayAtIndex = (
 	matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
 	return geometry;
 };
-const flatFoldKeys = Object.freeze([]
+const allFOLDKeys = Object.freeze([]
 	.concat(foldKeys.file)
 	.concat(foldKeys.frame)
 	.concat(foldKeys.graph)
@@ -694,7 +694,7 @@ const flatFoldKeys = Object.freeze([]
 const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
 		? 0
-		: flatFoldKeys
+		: allFOLDKeys
 			.filter(key => object[key]).length / Object.keys(object).length);
 const isFoldedForm = ({ frame_classes, file_classes }) => (
 	(frame_classes && frame_classes.includes("foldedForm"))
@@ -869,29 +869,14 @@ count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) => (
 count.edges = ({ edges_vertices, edges_edges, edges_faces }) => (
 	max_arrays_length(edges_vertices, edges_edges, edges_faces));
 count.faces = ({ faces_vertices, faces_edges, faces_faces }) => (
-	max_arrays_length(faces_vertices, faces_edges, faces_faces));const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
-const mergeArraysWithHoles = (...arrays) => {
-	const flattened = [];
-	arrays.forEach(array => array.forEach((value, i) => {
-		flattened[i] = value;
-	}));
-	return flattened;
-};
-const splitCircularArray = (array, indices) => {
-	indices.sort((a, b) => a - b);
-	return [
-		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
-		array.slice(indices[0], indices[1] + 1),
-	];
-};
-const uniqueElements = (array) => Array.from(new Set(array));
+	max_arrays_length(faces_vertices, faces_edges, faces_faces));const uniqueElements = (array) => Array.from(new Set(array));
 const nonUniqueElements = (array) => {
 	const count = {};
-	array.forEach(n => {
-		if (count[n] === undefined) { count[n] = 0; }
-		count[n] += 1;
+	array.forEach(el => {
+		if (count[el] === undefined) { count[el] = 0; }
+		count[el] += 1;
 	});
-	return array.filter(n => count[n] > 1);
+	return array.filter(el => count[el] > 1);
 };
 const uniqueSortedNumbers = (array) => {
 	const hash = {};
@@ -907,48 +892,6 @@ const epsilonUniqueSortedNumbers = (array, epsilon = EPSILON) => {
 	}
 	return numbers.filter((_, i) => keep[i]);
 };
-const setDifferenceSortedIntegers = (a, b) => {
-	const result = [];
-	let ai = 0;
-	let bi = 0;
-	while (ai < a.length && bi < b.length) {
-		if (a[ai] === b[bi]) {
-			ai += 1;
-			continue;
-		}
-		if (a[ai] > b[bi]) {
-			bi += 1;
-			continue;
-		}
-		if (b[bi] > a[ai]) {
-			result.push(a[ai]);
-			ai += 1;
-			continue;
-		}
-	}
-	return result;
-};
-const setDifferenceSortedNumbers = (a, b, epsilon = EPSILON) => {
-	const result = [];
-	let ai = 0;
-	let bi = 0;
-	while (ai < a.length && bi < b.length) {
-		if (epsilonEqual(a[ai], b[bi], epsilon)) {
-			ai += 1;
-			continue;
-		}
-		if (a[ai] > b[bi]) {
-			bi += 1;
-			continue;
-		}
-		if (b[bi] > a[ai]) {
-			result.push(a[ai]);
-			ai += 1;
-			continue;
-		}
-	}
-	return result;
-};
 const chooseTwoPairs = (array) => {
 	const pairs = Array((array.length * (array.length - 1)) / 2);
 	let index = 0;
@@ -959,34 +902,67 @@ const chooseTwoPairs = (array) => {
 	}
 	return pairs;
 };
-const arrayMinimum = (array, conversion) => {
-	const objs = conversion === undefined
-		? array.map((value, i) => ({ i, value }))
-		: array.map((value, i) => ({ i, value: conversion(value) }));
-	let index;
-	let smallest_value = Infinity;
-	for (let i = 0; i < objs.length; i += 1) {
-		if (objs[i].value < smallest_value) {
+const setDifferenceSortedNumbers = (a, b) => {
+	const result = [];
+	let ai = 0;
+	let bi = 0;
+	while (ai < a.length && bi < b.length) {
+		if (a[ai] === b[bi]) { ai += 1; }
+		else if (a[ai] > b[bi]) { bi += 1; }
+		else if (b[bi] > a[ai]) {
+			result.push(a[ai]);
+			ai += 1;
+		}
+	}
+	return result;
+};
+const setDifferenceSortedEpsilonNumbers = (a, b, epsilon = EPSILON) => {
+	const result = [];
+	let ai = 0;
+	let bi = 0;
+	while (ai < a.length && bi < b.length) {
+		if (epsilonEqual(a[ai], b[bi], epsilon)) { ai += 1; }
+		else if (a[ai] > b[bi]) { bi += 1; }
+		else if (b[bi] > a[ai]) {
+			result.push(a[ai]);
+			ai += 1;
+		}
+	}
+	return result;
+};
+const arrayMinimumIndex = (array, map) => {
+	if (!array.length) { return undefined; }
+	const arrayValues = typeof map === "function"
+		? array.map(value => map(value))
+		: array;
+	let index = 0;
+	for (let i = 1; i < arrayValues.length; i += 1) {
+		if (arrayValues[i] < arrayValues[index]) {
 			index = i;
-			smallest_value = objs[i].value;
 		}
 	}
 	return index;
 };
-const arrayMinIndex = (array) => {
+const arrayMaximumIndex = (array, map) => {
+	if (!array.length) { return undefined; }
+	const arrayValues = typeof map === "function"
+		? array.map(value => map(value))
+		: array;
 	let index = 0;
-	for (let i = 1; i < array.length; i += 1) {
-		if (array[i] < array[index]) { index = i; }
+	for (let i = 1; i < arrayValues.length; i += 1) {
+		if (arrayValues[i] > arrayValues[index]) {
+			index = i;
+		}
 	}
 	return index;
 };
-const arrayMaxIndex = (array) => {
-	let index = 0;
-	for (let i = 1; i < array.length; i += 1) {
-		if (array[i] > array[index]) { index = i; }
-	}
-	return index;
-};const arrayMethods=/*#__PURE__*/Object.freeze({__proto__:null,arrayMaxIndex,arrayMinIndex,arrayMinimum,chooseTwoPairs,epsilonUniqueSortedNumbers,mergeArraysWithHoles,mirrorArray,nonUniqueElements,setDifferenceSortedIntegers,setDifferenceSortedNumbers,splitCircularArray,uniqueElements,uniqueSortedNumbers});const mergeSimpleNextmaps = (...maps) => {
+const mergeArraysWithHoles = (...arrays) => {
+	const flattened = [];
+	arrays.forEach(array => array.forEach((value, i) => {
+		flattened[i] = value;
+	}));
+	return flattened;
+};const arrayMethods=/*#__PURE__*/Object.freeze({__proto__:null,arrayMaximumIndex,arrayMinimumIndex,chooseTwoPairs,epsilonUniqueSortedNumbers,mergeArraysWithHoles,nonUniqueElements,setDifferenceSortedEpsilonNumbers,setDifferenceSortedNumbers,uniqueElements,uniqueSortedNumbers});const mergeSimpleNextmaps = (...maps) => {
 	if (maps.length === 0) { return []; }
 	const solution = maps[0].map((_, i) => i);
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
@@ -1476,7 +1452,7 @@ const radialSortPointIndices3 = (
 		.map(vec => [dot(vec, basis[0]), dot(vec, basis[1])]);
 	const vectorsUV = pointsUV.map(normalize2);
 	return radialSortUnitVectors2(vectorsUV);
-};const sortMethods=/*#__PURE__*/Object.freeze({__proto__:null,radialSortPointIndices3,radialSortUnitVectors2,sortAgainstItem,sortPointsAlongVector});const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) => (
+};const sortMethods=/*#__PURE__*/Object.freeze({__proto__:null,radialSortPointIndices3,radialSortUnitVectors2,sortPointsAlongVector});const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) => (
 	vertices
 		.map(v => vertices_coords[v])
 		.map(coord => subtract(coord, vertices_coords[vertex]))
@@ -2152,11 +2128,11 @@ const bisectLines2 = (a, b, epsilon = EPSILON) => {
 	});
 	return solution;
 };const lineMethods=/*#__PURE__*/Object.freeze({__proto__:null,bisectLines2,clampLine,clampRay,clampSegment,collinearBetween,isCollinear,lerpLines,pleat:pleat$2});const nearestPoint2 = (points, point) => {
-	const index = arrayMinimum(points, el => distance2(el, point));
+	const index = arrayMinimumIndex(points, el => distance2(el, point));
 	return index === undefined ? undefined : points[index];
 };
 const nearestPoint = (points, point) => {
-	const index = arrayMinimum(points, el => distance(el, point));
+	const index = arrayMinimumIndex(points, el => distance(el, point));
 	return index === undefined ? undefined : points[index];
 };
 const nearestPointOnLine = (
@@ -2320,7 +2296,7 @@ const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 			point,
 			clampSegment,
 		));
-	return arrayMinimum(nearest_points, p => distance(p, point));
+	return arrayMinimumIndex(nearest_points, p => distance(p, point));
 };
 const facesContainingPoint = (
 	{ vertices_coords, faces_vertices },
@@ -2542,31 +2518,19 @@ const intersectConvexPolygonLine = (
 	return overlapConvexPolygonPoint(poly, midpoint2(...uniqueIncludes), exclude, 1e-3)
 		? uniqueIncludes
 		: sects;
-};const intersectMethods=/*#__PURE__*/Object.freeze({__proto__:null,intersectCircleCircle,intersectCircleLine,intersectConvexPolygonLine,intersectLineLine});const minimumCluster = (elements, comparison) => {
-	let smallSet = [0];
-	for (let i = 1; i < elements.length; i += 1) {
-		switch (comparison(elements[smallSet[0]], elements[i])) {
-		case 0: smallSet.push(i); break;
-		case 1: smallSet = [i]; break;
-		}
-	}
-	return smallSet;
-};
-const clusterSortedGeneric = (elements, comparison) => {
+};const intersectMethods=/*#__PURE__*/Object.freeze({__proto__:null,intersectCircleCircle,intersectCircleLine,intersectConvexPolygonLine,intersectLineLine});const clusterSortedGeneric = (elements, comparison) => {
 	if (!elements.length) { return []; }
 	const indices = elements.map((_, i) => i);
-	const groups = [[indices[0]]];
-	for (let i = 1; i < indices.length; i += 1) {
-		const index = indices[i];
-		if (index === undefined) { continue; }
-		const g = groups.length - 1;
-		const prev = groups[g][groups[g].length - 1];
-		if (comparison(elements[prev], elements[index])) {
-			groups[g].push(index);
+	const groups = [[indices.shift()]];
+	indices.forEach((index) => {
+		const group = groups[groups.length - 1];
+		const prevElement = group[group.length - 1];
+		if (comparison(elements[prevElement], elements[index])) {
+			group.push(index);
 		} else {
 			groups.push([index]);
 		}
-	}
+	});
 	return groups;
 };
 const clusterScalars = (numbers, epsilon = EPSILON) => {
@@ -2580,23 +2544,19 @@ const clusterScalars = (numbers, epsilon = EPSILON) => {
 		.map(arr => arr.map(i => indices[i]));
 };
 const clusterParallelVectors = (vectors, epsilon = EPSILON) => {
+	const normalized = vectors.map(normalize$1);
 	const groups = [[0]];
-	for (let i = 1; i < vectors.length; i += 1) {
-		let found = false;
+	loop1: for (let i = 1; i < normalized.length; i += 1) {
 		for (let g = 0; g < groups.length; g += 1) {
-			const groupFirstIndex = groups[g][0];
-			if (parallel(vectors[i], vectors[groupFirstIndex], epsilon)) {
+			if (parallelNormalized(normalized[i], normalized[groups[g][0]], epsilon)) {
 				groups[g].push(i);
-				found = true;
-				break;
+				continue loop1;
 			}
 		}
-		if (!found) {
-			groups.push([i]);
-		}
+		groups.push([i]);
 	}
 	return groups;
-};const clusterMethods=/*#__PURE__*/Object.freeze({__proto__:null,clusterParallelVectors,clusterScalars,clusterSortedGeneric,minimumCluster});const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => faces_vertices
+};const clusterMethods=/*#__PURE__*/Object.freeze({__proto__:null,clusterParallelVectors,clusterScalars,clusterSortedGeneric});const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => faces_vertices
 	.map(vertices => [
 		vertices
 			.reduce((a, b) => (vertices_coords[a][axis] < vertices_coords[b][axis] ? a : b)),
@@ -2772,9 +2732,9 @@ const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) =>
 		.map((vertices, i) => vertices
 			.map(v => dot(lines_firstVector[i], vertices_coords[v])));
 	const lines_vertProjectsMin = lines_vertProjects
-		.map((projections, i) => lines_vertices[i][arrayMinIndex(projections)]);
+		.map((projections, i) => lines_vertices[i][arrayMinimumIndex(projections)]);
 	const lines_vertProjectsMax = lines_vertProjects
-		.map((projections, i) => lines_vertices[i][arrayMaxIndex(projections)]);
+		.map((projections, i) => lines_vertices[i][arrayMaximumIndex(projections)]);
 	const lines_vector = lines_vertices.map((_, i) => subtract(
 		vertices_coords[lines_vertProjectsMax[i]],
 		vertices_coords[lines_vertProjectsMin[i]],
@@ -2845,7 +2805,7 @@ const planarize = ({
 		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon))
 		.map((numbers, i) => numbers.map(n => n * linesSquareLength[i]))
 		.map((sects, i) => (
-			setDifferenceSortedNumbers(sects, lines_flatEdgeScalars[i], epsilon)
+			setDifferenceSortedEpsilonNumbers(sects, lines_flatEdgeScalars[i], epsilon)
 		));
 	const sweepScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]));
@@ -3149,7 +3109,14 @@ const rebuild_edge = (graph, face, vertices) => {
 		.filter(key => graph[key] !== undefined)
 		.forEach((key) => { graph[key][edge] = new_edge[key]; });
 	return edge;
-};const make_faces = ({
+};const splitCircularArray = (array, indices) => {
+	indices.sort((a, b) => a - b);
+	return [
+		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+		array.slice(indices[0], indices[1] + 1),
+	];
+};
+const make_faces = ({
 	edges_vertices, faces_vertices, faces_edges,
 }, face, vertices) => {
 	const indices = vertices.map(el => faces_vertices[face].indexOf(el));
@@ -8728,7 +8695,7 @@ const intersectGraphSegment = (graph, segment, epsilon = EPSILON) => (
 		includeS,
 		epsilon,
 	)
-);const intersect$1=/*#__PURE__*/Object.freeze({__proto__:null,intersectEdgesLineFunc,intersectGraphLine,intersectGraphLineFunc,intersectGraphRay,intersectGraphSegment,intersectVerticesLineFunc});const join = (target, source) => {
+);const intersect=/*#__PURE__*/Object.freeze({__proto__:null,intersectEdgesLineFunc,intersectGraphLine,intersectGraphLineFunc,intersectGraphRay,intersectGraphSegment,intersectVerticesLineFunc});const join = (target, source) => {
 	const VEF = Object.keys(singularize);
 	const sourceDimension = getDimensionQuick(source);
 	const targetDimension = getDimensionQuick(target);
@@ -9895,7 +9862,7 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...clip,
 	...explodeMethods,
 	...flaps,
-	...intersect$1,
+	...intersect,
 	...join$1,
 	...make,
 	...maps,
@@ -9936,7 +9903,18 @@ const addPlanarSegmentNew = (graph, segment, epsilon = EPSILON) => {
 	...intersectEdgesFaces,
 	...intersectFaces,
 	...intersectFacesFaces,
-};const smallestVector2 = (points, epsilon = EPSILON) => {
+};const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
+const minimumCluster = (elements, comparison) => {
+	let smallSet = [0];
+	for (let i = 1; i < elements.length; i += 1) {
+		switch (comparison(elements[smallSet[0]], elements[i])) {
+		case 0: smallSet.push(i); break;
+		case 1: smallSet = [i]; break;
+		}
+	}
+	return smallSet;
+};
+const smallestVector2 = (points, epsilon = EPSILON) => {
 	if (!points || !points.length) { return undefined; }
 	const comparison = (a, b) => epsilonCompare(a[0], b[0], epsilon);
 	const smallSet = minimumCluster(points, comparison);
@@ -9994,7 +9972,7 @@ const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) =>
 	}
 	stack.pop();
 	return stack;
-};const convexHullMethods=/*#__PURE__*/Object.freeze({__proto__:null,convexHull,convexHullRadialSortPoints,smallestVector2});const recurseSkeleton = (points, lines, bisectors) => {
+};const convexHullMethods=/*#__PURE__*/Object.freeze({__proto__:null,convexHull,convexHullRadialSortPoints});const recurseSkeleton = (points, lines, bisectors) => {
 	const intersects = points
 		.map((origin, i) => ({ vector: bisectors[i], origin }))
 		.map((ray, i, arr) => intersectLineLine(
@@ -10052,7 +10030,7 @@ const straightSkeleton = (points) => {
 		.map(p => [subtract(p[0], p[1]), subtract(p[2], p[1])])
 		.map(v => clockwiseBisect2(...v));
 	return recurseSkeleton([...points], lines, bisectors);
-};const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
+};const straightSkeleton$1=/*#__PURE__*/Object.freeze({__proto__:null,straightSkeleton});const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
 	for (let d = 0; d < point.length; d += 1) {
 		if (point[d] < box.min[d] - epsilon
 			|| point[d] > box.max[d] + epsilon) {
@@ -10125,39 +10103,7 @@ const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
 		return [face_a, face_b];
 	}
 	return [poly.slice()];
-};const split=/*#__PURE__*/Object.freeze({__proto__:null,splitConvexPolygon});const typeOf = (obj) => {
-	if (typeof obj !== "object") { return typeof obj; }
-	if (obj.radius !== undefined) { return "circle"; }
-	if (obj.min && obj.max && obj.span) { return "box"; }
-	if (typeof obj[0] === "number") { return "vector"; }
-	if (obj.vector !== undefined && obj.origin !== undefined) { return "line"; }
-	if (obj[0] !== undefined && obj[0].length && typeof obj[0][0] === "number") {
-		return obj.length === 2 ? "segment" : "polygon";
-	}
-	return "object";
-};const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
-const defaultDomain = {
-	polygon: includeS,
-	circle: include,
-	line: includeL,
-	ray: includeR,
-	segment: includeS,
-};
-const intersect = (a, b, epsilon = EPSILON) => {
-	const nameType = s => (s === "polygon" ? "ConvexPolygon" : capitalize(s));
-	const types = [a, b].map(typeOf);
-	const methods = [types, types.slice().reverse()]
-		.map(pair => pair.map(nameType).join(""))
-		.map(str => intersectMethods[`intersect${str}`]);
-	const doms = [a.domain, b.domain]
-		.map((d, i) => d || defaultDomain[types[i]]);
-	const parameters = [[a, b, ...doms], [b, a, ...doms.slice().reverse()]];
-	const match = methods
-		.map((fn, i) => ({ fn, params: parameters[i] }))
-		.filter(el => el.fn)
-		.shift();
-	return match ? match.fn(...match.params, epsilon) : undefined;
-};const math = {
+};const split=/*#__PURE__*/Object.freeze({__proto__:null,splitConvexPolygon});const math = {
 	...constant,
 	...convert$2,
 	...compare,
@@ -10172,14 +10118,13 @@ const intersect = (a, b, epsilon = EPSILON) => {
 	...planeMethods,
 	...polygonMethods,
 	...radialMethods,
-	straightSkeleton,
+	...straightSkeleton$1,
 	...triangle,
 	...encloses,
 	...overlapMethods,
 	...intersectMethods,
 	...clip$1,
 	...split,
-	intersect,
 };const oddAssignmentIndex = (assignments) => {
 	const assigns = assignments.map(a => a.toUpperCase());
 	const mountainCount = assigns.filter(a => a === "M").length;

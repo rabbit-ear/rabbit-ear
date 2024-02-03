@@ -11,8 +11,8 @@ import {
 } from "../../math/vector.js";
 import {
 	uniqueElements,
-	arrayMinIndex,
-	arrayMaxIndex,
+	arrayMinimumIndex,
+	arrayMaximumIndex,
 } from "../../general/array.js";
 import {
 	clusterScalars,
@@ -153,9 +153,9 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 		.map((vertices, i) => vertices
 			.map(v => dot(lines_firstVector[i], vertices_coords[v])));
 	const lines_vertProjectsMin = lines_vertProjects
-		.map((projections, i) => lines_vertices[i][arrayMinIndex(projections)]);
+		.map((projections, i) => lines_vertices[i][arrayMinimumIndex(projections)]);
 	const lines_vertProjectsMax = lines_vertProjects
-		.map((projections, i) => lines_vertices[i][arrayMaxIndex(projections)]);
+		.map((projections, i) => lines_vertices[i][arrayMaximumIndex(projections)]);
 	// for each line/cluster, create a vector from the furthest two vertices
 	const lines_vector = lines_vertices.map((_, i) => subtract(
 		vertices_coords[lines_vertProjectsMax[i]],

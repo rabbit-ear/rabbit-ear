@@ -17,7 +17,7 @@ test("epsilonUniqueSortedNumbers", () => {
 
 });
 
-test("setDifferenceSortedNumbers", () => {
+test("setDifferenceSortedEpsilonNumbers", () => {
 
 });
 

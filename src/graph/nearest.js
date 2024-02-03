@@ -8,7 +8,7 @@ import {
 } from "../math/vector.js";
 import { exclude } from "../math/compare.js";
 import { nearestPointOnLine } from "../math/nearest.js";
-import { arrayMinimum } from "../general/array.js";
+import { arrayMinimumIndex } from "../general/array.js";
 import { getVector } from "../general/get.js";
 import { clampSegment } from "../math/line.js";
 import { overlapConvexPolygonPoint } from "../math/overlap.js";
@@ -60,7 +60,7 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 			point,
 			clampSegment,
 		));
-	return arrayMinimum(nearest_points, p => distance(p, point));
+	return arrayMinimumIndex(nearest_points, p => distance(p, point));
 };
 
 /**

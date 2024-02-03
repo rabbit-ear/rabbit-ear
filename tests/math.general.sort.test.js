@@ -18,7 +18,8 @@ test("sortPointsAlongVector", () => {
 // 	equalTest(result, [[0], [1], [2], [3], [4], [5]]);
 // 	const result1 = ear.general.clusterIndicesOfSortedNumbers([0, 1, 2, 3, 4, 5], 1);
 // 	equalTest(result1, [[0], [1], [2], [3], [4], [5]]);
-// 	const result2 = ear.general.clusterIndicesOfSortedNumbers([0, 1, 2, 3, 4, 5], 1 + ear.math.EPSILON * 2);
+//	const result2 = ear.general
+//	.clusterIndicesOfSortedNumbers([0, 1, 2, 3, 4, 5], 1 + ear.math.EPSILON * 2);
 // 	equalTest(result2, [[0, 1, 2, 3, 4, 5]]);
 // });
 
@@ -68,3 +69,18 @@ test("radialSortPointIndices3", () => {
 	expect(JSON.stringify(resultYn)).toBe(JSON.stringify([3, 0, 2, 1]));
 	expect(JSON.stringify(resultZn)).toBe(JSON.stringify([0, 3, 1, 2]));
 });
+
+// test("smallestVector2 easy", () => {
+// 	expect(ear.math.smallestVector2()).toBe(undefined);
+// 	expect(ear.math.smallestVector2([])).toBe(undefined);
+// 	expect(ear.math.smallestVector2([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]])).toBe(0);
+// 	expect(ear.math.smallestVector2([[4, 0], [3, 0], [2, 0], [1, 0], [0, 0]])).toBe(4);
+// 	expect(ear.math.smallestVector2([[2, 0], [1, 0], [0, 0], [4, 0], [3, 0]])).toBe(2);
+// });
+
+// test("smallestVector2 vertically aligned", () => {
+// 	expect(ear.math.smallestVector2([[3, 0], [3, 1], [3, 2], [3, 3], [3, 4]])).toBe(0);
+// 	expect(ear.math.smallestVector2([[3, 1], [3, 2], [3, 3], [3, 4], [3, 0]])).toBe(4);
+// 	expect(ear.math.smallestVector2([[3, 2], [3, 3], [3, 4], [3, 0], [3, 1]])).toBe(3);
+// 	expect(ear.math.smallestVector2([[3, 3], [3, 4], [3, 0], [3, 1], [3, 2]])).toBe(2);
+// });
