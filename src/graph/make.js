@@ -20,7 +20,7 @@ import {
 } from "../math/polygon.js";
 import implied from "./countImplied.js";
 import {
-	planarVertexWalk,
+	walkPlanarFaces,
 	filterWalkedBoundaryFace,
 } from "./walk.js";
 import { sortVerticesCounterClockwise } from "./vertices/sort.js";
@@ -612,7 +612,7 @@ export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
  * mountain creases, and positive for valley. This works well for 3D models,
  * but will fail for flat-folded models, in which case, edges_assignment
  * will be consulted to differentiate between 180 degree M or V folds.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} for every edge, an angle in degrees.
  * @linkcode Origami ./src/graph/make.js 581
  */
@@ -722,7 +722,7 @@ export const makeEdgesBoundingBox = ({
  * @description Rebuild all faces in a 2D planar graph by walking counter-clockwise
  * down every edge (both ways). This does not include the outside face which winds
  * around the boundary backwards enclosing the outside space.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {object[]} array of faces as objects containing "vertices" "edges" and "angles"
  * @example
  * // to convert the return object into faces_vertices and faces_edges
@@ -745,9 +745,9 @@ export const makePlanarFaces = ({
 	}
 	const vertices_edges_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	// removes the one face that outlines the piece with opposite winding.
-	// planarVertexWalk stores edges as vertex pair strings, "4 9",
+	// walkPlanarFaces stores edges as vertex pair strings, "4 9",
 	// convert these into edge indices
-	const res = filterWalkedBoundaryFace(planarVertexWalk({
+	const res = filterWalkedBoundaryFace(walkPlanarFaces({
 		vertices_vertices, vertices_sectors,
 	})).map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
 	return {

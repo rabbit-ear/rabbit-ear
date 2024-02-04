@@ -22,7 +22,7 @@ import { makeFacesConvexCenter } from "./make.js";
 /**
  * @description Iterate through all vertices in a graph and find the one nearest to a
  * provided point. This is the only of the "nearest" graph operations that works in 3D.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} point the point to find the nearest vertex
  * @returns {number} the index of the nearest vertex
  * @todo improve with space partitioning
@@ -45,7 +45,7 @@ export const nearestVertex = ({ vertices_coords }, point) => {
 
 /**
  * @description Iterate through all edges in a graph and find the one nearest to a provided point.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} point the point to find the nearest edge
  * @returns {number|undefined} the index of the nearest edge, or undefined
  * if there are no vertices_coords or edges_vertices
@@ -81,7 +81,7 @@ export const facesContainingPoint = (
 /**
  * @description Iterate through all faces in a graph and find one that encloses a point.
  * This method assumes the graph is in 2D, it ignores any z components.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} point the point to find the enclosing face
  * @returns {number|undefined} the index of the face, or undefined if no face encloses a point
  * @linkcode Origami ./src/graph/nearest.js 65
@@ -94,7 +94,7 @@ export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) 
 /**
  * @description Iterate through all faces in a graph and find one nearest to a point.
  * This method assumes the graph is in 2D, it ignores any z components.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} point the point to find the nearest face
  * @returns {number|undefined} the index of the face, or undefined if edges_faces is not defined.
  * @todo make this work if edges_faces is not defined (not hard)
@@ -128,7 +128,7 @@ export const nearestFace = (graph, point) => {
 /**
  * @description Return an object which contains information regarding
  * vertices, edges, and faces, which indices are closest to the provided point.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} point the point to find the nearest face
  * @returns {object} object which contains information about the nearest components,
  * some of which is stored in a getter, which delays the computation until called.

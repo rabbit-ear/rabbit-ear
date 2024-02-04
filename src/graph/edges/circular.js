@@ -6,7 +6,7 @@ import remove from "../remove.js";
 /**
  * @description Get the indices of all circular edges. Circular edges are
  * edges where both of its edges_vertices is the same vertex.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} array of indices of circular edges. empty if none.
  * @linkcode Origami ./src/graph/edgesViolations.js 21
  */

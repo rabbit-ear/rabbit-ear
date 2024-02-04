@@ -19,7 +19,7 @@ import {
 } from "./update.js";
 /**
  * @description Given an edge, uncover the adjacent faces.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} edge index of the edge in the graph
  * {number[]} indices of the two vertices making up the edge
  * @returns {number[]} array of 0, 1, or 2 numbers, the edge's adjacent faces
@@ -70,7 +70,7 @@ const findAdjacentFacesToEdge = ({
 };
 /**
  * @description Given a face, uncover the adjacent faces.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} face index of the face in the graph
  * @returns {number[]} array the face's adjacent faces
  * @linkcode Origami ./src/graph/find.js 60

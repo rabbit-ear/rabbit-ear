@@ -61,7 +61,7 @@ const unassigned_angle = { U: true, u: true };
  * This traverses a face-adjacency tree (edge-adjacent faces) and
  * recursively applies the affine transform that represents a fold
  * across the edge between the faces. "flat" creases are ignored.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 3x4 matrix (an array of 12 numbers).
  * @linkcode Origami ./src/graph/facesMatrix.js 65
@@ -121,7 +121,7 @@ export const makeFacesMatrix = ({
  * This ignores any 3D data, and treats all creases as flat-folded.
  * This will generate a 2D matrix for every face by virtually folding the graph
  * at every edge according to the assignment or foldAngle.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 2x3 matrix (an array of 6 numbers).
  * @linkcode Origami ./src/graph/facesMatrix.js 141

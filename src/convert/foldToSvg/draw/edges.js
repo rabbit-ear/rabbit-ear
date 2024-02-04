@@ -62,7 +62,7 @@ const segmentToPath = s => `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
 /**
  * @description convert a line segment (array of two points) into an
  * SVG path command.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {string} an SVG path definition for all of the edges
  */
 const edgesPathData = (graph) => (
@@ -75,7 +75,7 @@ const edgesPathData = (graph) => (
  * @description Group edges by similar assignments and create a single
  * SVG path for every group, each path contains all edges of the same
  * assignment.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {object} keys are assignments, and values are a single
  * SVG path which renders all edges that are this assignment.
  */
@@ -145,7 +145,7 @@ const objectWithPrimitiveValues = (object) => {
  * @description Create a style object for group element and individual edges
  * (by assignment). Determine if the graph is folded or cp, and process
  * any style options that were provided by the user.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {object} options optional custom edge styles
  * @returns {object} groupStyle and edgeStyle as objects.
  */
@@ -183,7 +183,7 @@ const getStyles = (graph, options) => {
  * @description Convert the edges of a FOLD graph into SVG path elements,
  * where all edges of similar assignments are included in the same path.
  * Also, allow the user to supply an options object for custom styles.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {object} options an options object for styling edges.
  * @returns {SVGElement} an SVG group containing SVG paths.
  */
@@ -231,7 +231,7 @@ const angleToOpacity = (foldAngle) => (Math.abs(foldAngle) / 180);
 /**
  * @description Convert the edges of a FOLD graph into SVG line elements.
  * Allow the user to supply an options object for custom styles.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {object} options an options object for styling edges.
  * @returns {SVGElement} an SVG group containing SVG lines.
  */

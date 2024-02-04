@@ -7,7 +7,7 @@ import { filterKeysWithPrefix } from "../../fold/spec.js";
  * This method will maintain that all other arrays in the graph are valid,
  * any "vertices_" arrays that exist in the graph will be filled with
  * empty arrays. This vertex will be initialized as isolated.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} coords the position of the new vertex
  * @returns {number} the index of the newly created vertex
  */

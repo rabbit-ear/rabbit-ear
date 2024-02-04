@@ -165,7 +165,7 @@ export const edgeFoldAngleIsFlat = (angle) => (epsilonEqual(0, angle)
  * edges are all flat-folded, meaning all edges are either:
  * -180, 0, 180, or any of those three within an epsilon.
  * If a graph contains no edges_foldAngle the edges are assumed to be flat.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {boolean} are the edges of the graph flat folded?
  * @linkcode
  */
@@ -322,7 +322,7 @@ export const isFoldedForm = ({ frame_classes, file_classes }) => (
  * contain a third dimension AND that number is not 0, then the graph
  * is in 3D, otherwise the graph is considered 2D.
  * This method is O(n).
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {number} the dimension of the vertices, either 2 or 3.
  */
 export const getDimension = ({ vertices_coords }, epsilon = EPSILON) => {
@@ -340,7 +340,7 @@ export const getDimension = ({ vertices_coords }, epsilon = EPSILON) => {
  * by querying the first point in vertices_coords. This also works
  * when the vertices_coords array has holes (ie: index 0 is not set).
  * This method is O(1).
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {number | undefined} the dimension of the vertices, or
  * undefined if no vertices exist. number should be 2 or 3 in most cases.
  */

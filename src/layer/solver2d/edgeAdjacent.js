@@ -5,7 +5,7 @@
  * @description Given a FOLD graph, already folded, find the layer arrangement
  * between neighboring faces (using edges_faces), and assign this facePair
  * a 1 or 2, checking whether faces have been flipped or not.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {string[]} facePairs an array of space-separated face-pair strings
  * @returns {object} an object describing all the solved facePairs (keys) and
  * their layer order 1 or 2 (value), the object only includes those facePairs

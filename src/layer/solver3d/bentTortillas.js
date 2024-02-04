@@ -5,7 +5,7 @@
  * @description For a 3D folded model, this will find the places
  * where two planes meet along collinear edges, these joining of two
  * planes creates a tortilla-tortilla relationship.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[][]} tortillaTortillaEdges each tortilla event is
  * a pair of edge indices.
  * @param {number[]} faces_set for every face, which set is it a member of.

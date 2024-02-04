@@ -4,7 +4,7 @@
 import remove from "../remove.js";
 /**
  * @description Get the indices of all vertices which make no appearance in any edge.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} the indices of the isolated vertices
  * @linkcode Origami ./src/graph/verticesViolations.js 25
  */
@@ -24,7 +24,7 @@ export const edgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 };
 /**
  * @description Get the indices of all vertices which make no appearance in any face.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} the indices of the isolated vertices
  * @linkcode Origami ./src/graph/verticesViolations.js 45
  */
@@ -47,7 +47,7 @@ export const faceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 // break the loop early.
 /**
  * @description Get the indices of all vertices which make no appearance in any edge or face.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} the indices of the isolated vertices
  * @linkcode Origami ./src/graph/verticesViolations.js 68
  */
@@ -81,7 +81,7 @@ export const isolatedVertices = ({ vertices_coords, edges_vertices, faces_vertic
  * vertices arrays will not have any holes, and, additionally it searches
  * through all _vertices reference arrays and updates the index
  * references for the shifted vertices.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} [remove_indices] Leave this empty. Otherwise, if
  * isolatedVertices() has already been called, provide the result here to speed
  * up the algorithm.

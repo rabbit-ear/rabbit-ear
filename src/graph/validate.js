@@ -61,7 +61,7 @@ const arraysHaveSameIndices = (arrays = []) => {
  * Ensure that every suffix array (all "_edges" arrays) with a matching
  * prefix array (all "edges_" arrays) contain only indices which match
  * with some value in the prefix array.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {string[]} array of error messages. an empty array means no errors.
  */
 export const validate = (graph) => {
@@ -114,7 +114,7 @@ export const validate = (graph) => {
  * @description Validate a graph. Test everything inside of "validate",
  * as well as duplicate vertices/edges, isolated vertices, and
  * circular edges.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} array of error messages. an empty array means no errors.
  * and "vertices" "edges" and "faces" information

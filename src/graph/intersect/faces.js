@@ -103,7 +103,7 @@ export const facesLineTypeOverlap = (
  * determined to not overlap definitely do not overlap.
  * This includes faces that only touch the line with a collinear vertex.
  * This assumes that the faces of the graph are convex.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {VecLine} line a line with a "vector" and "origin"
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} indices of the overlapping faces
@@ -119,7 +119,7 @@ export const getFacesLineOverlap = (graph, { vector, origin }, epsilon = EPSILON
  * determined to not overlap definitely do not overlap.
  * This includes faces that only touch the line with a collinear vertex.
  * This assumes that the faces of the graph are convex.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {VecLine} line a line with a "vector" and "origin"
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} indices of the overlapping faces
@@ -135,7 +135,7 @@ export const getFacesRayOverlap = (graph, { vector, origin }, epsilon = EPSILON)
  * determined to not overlap definitely do not overlap.
  * This includes faces that only touch the line with a collinear vertex.
  * This assumes that the faces of the graph are convex.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {VecLine} line a line with a "vector" and "origin"
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} indices of the overlapping faces

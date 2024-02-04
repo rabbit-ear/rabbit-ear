@@ -26,7 +26,7 @@ import {
 	makeFacesFaces,
 } from "../make.js";
 import {
-	counterClockwiseWalk,
+	walkSingleFace,
 	filterWalkedBoundaryFace,
 } from "../walk.js";
 /**
@@ -267,7 +267,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = EPSILON) => {
 	// build faces by begin walking from the set of vertex pairs.
 	// this includes the one boundary face in the wrong winding direction
 	const all_walked_faces = face_walk_start_pairs
-		.map(pair => counterClockwiseWalk(graph, pair[0], pair[1], walked_edges))
+		.map(pair => walkSingleFace(graph, pair[0], pair[1], walked_edges))
 		.filter(a => a !== undefined);
 	// filter out the one boundary face with wrong winding (if it exists)
 	const walked_faces = filterWalkedBoundaryFace(all_walked_faces);

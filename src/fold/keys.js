@@ -1,9 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
- * lists of keys and values involved in the FOLD file format spec
- * https://github.com/edemaine/FOLD/
+ * FOLD spec: https://github.com/edemaine/FOLD/
  */
 
 /**

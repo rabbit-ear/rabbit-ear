@@ -42,7 +42,7 @@ export const selfRelationalArraySubset = (array_array, indices) => {
  * indices are preserved, making it useful for performing operations
  * on a subgraph, then carrying that information back to the original.
  * If you want to close all holes and remap indices, call normalize().
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {object} indices an object containing:
  * { vertices: [], edges: [], faces: [] }
  * all of which contains a list of indices to keep in the copied graph.
@@ -112,7 +112,7 @@ export const subgraphExclusive = (graph, indicesToKeep = {}) => {
  * indices are preserved, making it useful for performing operations
  * on a subgraph, then carrying that information back to the original.
  * If you want to close all holes and remap indices, call normalize().
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {object} indices an object containing:
  * { vertices: [], edges: [], faces: [] }
  * all of which contains a list of indices to keep in the copied graph.
@@ -167,7 +167,7 @@ export const subgraph = (graph, indicesToKeep = {}) => {
  * The subgraph component arrays will contain holes, meaning the
  * indices are preserved, making it useful for performing operations
  * on a subgraph, then carrying that information back to the original.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} faces a list of face indices which will
  * be carried over into the subgraph.
  * @returns {FOLD} a shallow copy of the graph parameter provided.

@@ -23,7 +23,7 @@ const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => faces_ve
  * the default direction is to sweep along the +X axis.
  * This method will sort the vertices along the sweep direction and
  * group those which have a similar value within an epsilon.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object[]} an array of event objects, each event contains:
@@ -89,7 +89,7 @@ export const sweepValues = (values, { edges_vertices, vertices_edges }, epsilon 
  * "start" edges or "end" edges, and for those edges which are orthogonal
  * to the sweep axis within an epsilon, they will only exist inside one
  * event and be present in both the "start" and the "end" arrays.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object[]} an array of event objects, each event contains:
@@ -110,7 +110,7 @@ export const sweepEdges = ({
  * vertices all lie on a line and that line is orthogonal to the sweep
  * axis, within an epsilon, these faces will only exist inside one
  * event and be present in both the "start" and the "end" arrays.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object[]} an array of event objects, each event contains:
@@ -136,7 +136,7 @@ export const sweepFaces = ({
  * vertices all lie on a line orthogonal to the sweep axis within an epsilon,
  * These components will only exist inside one event and be present in both
  * "start" and "end" arrays.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object[]} an array of event objects, each event contains:

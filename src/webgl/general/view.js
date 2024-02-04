@@ -54,7 +54,7 @@ export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 
  * @description build an aspect-fit model matrix
  * (possibly an inverse-model matrix)
  * which brings the vertices inside of a 2x2x2 origin-centered bounding box.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  */
 export const makeModelMatrix = (graph) => {
 	if (!graph) { return identity4x4; }

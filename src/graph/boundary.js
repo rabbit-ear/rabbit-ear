@@ -16,7 +16,7 @@ import {
  * a FOLD object. the optional padding is used to make the bounding box
  * inclusive / exclusive by adding padding on all sides, or inset in the case
  * of negative number. (positive=inclusive boundary, negative=exclusive boundary)
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number?} padding an optional padding around the vertices
  * to be included in the bounding box.
  * @returns {BoundingBox?} dimensions stored as "span" "min" and "max".
@@ -31,7 +31,7 @@ export const boundingBox = ({ vertices_coords }, padding) => (
  * @description A vertex is a boundary vertex if it is a member of a boundary
  * edge, as defined by edges_assignment. If edges_assignment is not present,
  * or does not contain boundary edges, this will return an empty array.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
  * @linkcode Origami ./src/graph/boundary.js 33
  */
@@ -53,7 +53,7 @@ const emptyBoundaryObject = () => ({ vertices: [], edges: [], polygon: [] });
  * If edges_assignment doesn't exist, or contains errors, this will not work, and you
  * will need the more robust algorithm planarBoundary() which walks the graph, but
  * only works in 2D.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {object} with "vertices" and "edges" with arrays of indices.
  * @linkcode Origami ./src/graph/boundary.js 60
  */
@@ -111,7 +111,7 @@ export const boundaries = () => console.error("todo");
  * by walking the boundary edges in 2D and uncovering the concave hull.
  * Does not consult edges_assignment, but does require vertices_coords.
  * For repairing crease patterns, this will uncover boundary edges_assignments.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * (vertices_coords, vertices_vertices, edges_vertices)
  * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
@@ -213,7 +213,7 @@ export const planarBoundary = ({
  * Each boundary result is two arrays of vertices and edges, discovered
  * by walking the boundary edges in 2D and uncovering the concave hull.
  * Does not consult edges_assignment, but does require vertices_coords.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * (vertices_coords, vertices_vertices, edges_vertices)
  * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.

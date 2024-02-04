@@ -27,7 +27,7 @@ export const makeFacesWindingFromMatrix2 = faces_matrix2 => faces_matrix2
  * @description For every face, return a boolean if the face's vertices are
  * in counter-clockwise winding. For origami models, this translates to
  * true meaning the face is upright, false meaning the face is flipped over.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {boolean[]} boolean for every face, true if face is counter-clockwise.
  * @attribution cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
  * @linkcode Origami ./src/graph/facesWinding.js 33

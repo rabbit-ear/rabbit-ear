@@ -112,7 +112,7 @@ const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
  * other attributes.
  * - if lines overlap, competing assignments will need to be resolved:
  * M/V above all, then perhaps Cut/Join, then unassigned, then boundary/flat.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to the graph
  * @linkcode Origami ./src/graph/fragment.js 174

@@ -56,7 +56,7 @@ export const getFacesContainingPoint = (
  * vertex, supply a vector indicating the direction to nudge the point
  * a very tiny amount, then there will be a preference to return the
  * index of the face which encloses the nudged point.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} point the point to test
  * @param {number[]} vector an optional vector, used in the case that
  * the point exists along an edge or a vertex.

@@ -33,7 +33,7 @@ const clipAndJoin = (graph, faces, line, func = includeL, epsilon = EPSILON) => 
  * @description Clip a line in a graph. This will result in a list of
  * segments, and contain more than one in the case when a line enters and
  * exists multiple times in a graph which is non-convex.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[][]} segment an array of two 2D points
  * @returns {number[][][]} an array of segments, each an array of 2D points
  */
@@ -45,7 +45,7 @@ export const clipLine = (graph, line, epsilon = EPSILON) => {
  * @description Clip a ray in a graph. This will result in a list of
  * segments, and contain more than one in the case when a line enters and
  * exists multiple times in a graph which is non-convex.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[][]} segment an array of two 2D points
  * @returns {number[][][]} an array of segments, each an array of 2D points
  */
@@ -57,7 +57,7 @@ export const clipRay = (graph, ray, epsilon = EPSILON) => {
  * @description Clip a segment in a graph. This will result in a list of
  * segments, and contain more than one in the case when a line enters and
  * exists multiple times in a graph which is non-convex.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[][]} segment an array of two 2D points
  * @returns {number[][][]} an array of segments, each an array of 2D points
  */

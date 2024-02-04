@@ -41,7 +41,7 @@ const ordersArrayNames = {
  * @description Get the number of vertices, edges, or faces in the graph, as
  * evidenced by their appearance in other arrays; ie: searching faces_vertices
  * for the largest vertex index, and inferring number of vertices is that long.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {string} key the prefix for a key, eg: "vertices"
  * @returns {number} the number of vertices, edges, or faces in the graph.
  * @linkcode Origami ./src/graph/countImplied.js 48

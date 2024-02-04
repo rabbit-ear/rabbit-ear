@@ -32,7 +32,7 @@ export const boundingBoxToViewBox = (box) => [box.min, box.span]
 /**
  * @description Given a FOLD graph, get the 2D viewbox that
  * encloses all vertices.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {string} an SVG viewBox string
  */
 export const getViewBox = (graph) => {
@@ -48,7 +48,7 @@ export const getViewBox = (graph) => {
  * @description Get the Nth percentile edge length of edges from a graph.
  * This is useful to get a sense for how thick the strokeWidth should be
  * to make a reasonable rendering.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} a scale between 0.0 and 1.0, looking for the
  * nth smallest or largest edge length.
  * @returns {number} the length of the edge at the nth percent of edges
@@ -78,7 +78,7 @@ export const getNthPercentileEdgeLength = (
 /**
  * @description Given a FOLD graph, find a suitable stroke-width for
  * the purposes of rendering the edges.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} vmax if the dimensions of the graph are already
  * calculated, provide the longest length along one axis here.
  * @returns {number} a suitable value for a stroke-width

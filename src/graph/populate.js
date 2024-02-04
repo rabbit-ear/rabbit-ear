@@ -113,7 +113,7 @@ const buildFacesIfNeeded = (graph, reface) => {
  * @description Populate all arrays in a FOLD graph. This includes building adjacency
  * components like vertices_vertices, making edges_assignments from foldAngles or
  * visa-versa, and building faces if they don't exist.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {boolean} [reface=false] optional boolean, request to rebuild all faces
  * @return {FOLD} graph the same input graph object
  * @linkcode Origami ./src/graph/populate.js 114

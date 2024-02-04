@@ -29,7 +29,7 @@ const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
  * @description Create a series of pleat lines as segments, using two
  * of a graph's edges as inputs. This is akin to origami axiom 3, but
  * that the result is not one bisector, but a fan of sectors.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} edgeA one of two input edges
  * @param {number} edgeB one of two input edges
  * @param {number} count the number of pleats

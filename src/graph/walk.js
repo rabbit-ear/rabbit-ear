@@ -1,95 +1,130 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
- * @description discover a face by walking neighboring vertices
- * until returning to the start.
- * @param {FOLD} graph a FOLD graph
- * @param {number} v0 starting vertex
- * @param {number} v1 second vertex, this sets the direction of the walk
- * @param {object} [walked_edges={}] memo object, to prevent walking down
+ * @description Discover a single face by walking counter-clockwise
+ * from vertex to vertex until returning from which we began. A second vertex
+ * as an input is required to tell the algorithm which direction to begin
+ * the walk from the starting vertex. An optional hash table of walked edges
+ * exists as an input in case you are trying to build more than one face,
+ * initialize an empty object and pass it in every time you call this method.
+ * If you use a global "walkedEdges" and this method is trying to build a
+ * face that was already previously built, the method will return undefined.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} vertex0 starting vertex
+ * @param {number} vertex1 second vertex, this sets the direction of the walk
+ * @param {object} [walkedEdges={}] memo object, to prevent walking down
  * duplicate paths, or finding duplicate faces, this dictionary will
  * store and check against vertex pairs "i j".
- * @returns {object} the walked face, an object arrays of numbers
- * under "vertices", "edges", and "angles"
+ * @returns {object|undefined} the walked face, an object arrays of numbers
+ * under "vertices", "edges", and "angles", or if you are using a global
+ * "walkedEdges" hash, if the faces was previously built, returns undefined.
  * @linkcode Origami ./src/graph/walk.js 14
  */
-export const counterClockwiseWalk = ({
-	vertices_vertices, vertices_sectors,
-}, v0, v1, walked_edges = {}) => {
+export const walkSingleFace = (
+	{ vertices_vertices, vertices_sectors },
+	vertex0,
+	vertex1,
+	walkedEdges = {},
+) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
 	// this gives us a quick lookup to see if we've visited this edge before.
-	const this_walked_edges = {};
+	const thisWalkedEdges = {};
+
 	// walking the graph, we look at 3 vertices at a time. in sequence:
-	// prev_vertex, this_vertex, next_vertex
-	let prev_vertex = v0;
-	let this_vertex = v1;
-	// return the face: { vertices, edges, angles }
-	const face = { vertices: [v0], edges: [`${v0} ${v1}`], angles: [] };
+	// prevVertex, currVertex, nextVertex
+	let prevVertex = vertex0;
+	let currVertex = vertex1;
+
+	const face = {
+		vertices: [vertex0],
+		edges: [`${vertex0} ${vertex1}`],
+		angles: [],
+	};
 	while (true) {
 		// even though vertices_vertices are sorted counter-clockwise,
 		// to make a counter-clockwise wound face, when we visit a vertex's
 		// vertices_vertices array we have to select the [n-1] vertex, not [n+1],
 		// it's a little counter-intuitive.
-		const v_v = vertices_vertices[this_vertex];
-		const from_neighbor_i = v_v.indexOf(prev_vertex);
-		const next_neighbor_i = (from_neighbor_i + v_v.length - 1) % v_v.length;
-		const next_vertex = v_v[next_neighbor_i];
-		const next_edge_vertices = `${this_vertex} ${next_vertex}`;
+
+		// within the list of the current vertex's adjacent vertices,
+		// find the location in the array of the previous vertex. Once found,
+		// the vertex at the [-1] index location from it, this vertex is the
+		// next neighbor vertex.
+		const v_v = vertices_vertices[currVertex];
+
+		// both of these are indices inside the current vertex's vertices_vertices
+		const fromIndex = v_v.indexOf(prevVertex);
+		const nextIndex = (fromIndex + v_v.length - 1) % v_v.length;
+
+		// the vertex which we will travel to next, and we can use this to
+		// build the edge key "v0 v1" for the next edge we are walking across.
+		const nextVertex = v_v[nextIndex];
+		const nextEdgeVertices = `${currVertex} ${nextVertex}`;
+
 		// check if this edge was already walked 2 ways:
-		// 1. if we visited this edge while making this face, we are done.
-		if (this_walked_edges[next_edge_vertices]) {
-			Object.assign(walked_edges, this_walked_edges);
+
+		// 1. if the user supplied a non-empty "walkedEdges" parameter, make sure
+		// we have not encountered one of these edges. If so, the face we are
+		// trying to build was already previously built, exit and return undefined.
+		if (walkedEdges[nextEdgeVertices]) { return undefined; }
+
+		// 2. if we are seeing an edge that we have previously seen during
+		// the construction of this face, then we are done, return this face.
+		if (thisWalkedEdges[nextEdgeVertices]) {
+			// store this face's edges into our global hash
+			Object.assign(walkedEdges, thisWalkedEdges);
 			face.vertices.pop();
 			face.edges.pop();
 			return face;
 		}
-		this_walked_edges[next_edge_vertices] = true;
-		// 2. if we visited this edge (with vertices in the same sequence),
-		// because of the counterclockwise winding, we are looking at a face
-		// that has already been built.
-		if (walked_edges[next_edge_vertices]) {
-			return undefined;
-		}
-		face.vertices.push(this_vertex);
-		face.edges.push(next_edge_vertices);
+		thisWalkedEdges[nextEdgeVertices] = true;
+
+		// we are not yet done, add the current data, increment the
+		// previous and current vertices, and loop again.
+		face.vertices.push(currVertex);
+		face.edges.push(nextEdgeVertices);
 		if (vertices_sectors) {
-			face.angles.push(vertices_sectors[this_vertex][next_neighbor_i]);
+			face.angles.push(vertices_sectors[currVertex][nextIndex]);
 		}
-		prev_vertex = this_vertex;
-		this_vertex = next_vertex;
+		prevVertex = currVertex;
+		currVertex = nextVertex;
 	}
 };
+
 /**
- * @description Given a planar graph, discover all faces by counter-clockwise walking
- * by starting at every edge.
- * @param {FOLD} graph a FOLD graph
- * @returns {object[]} an array of face objects, where each face has number arrays,
- * "vertices", "edges", and "angles". vertices and edges are indices, angles are radians.
+ * @description Given a planar graph, discover all faces by counter-clockwise
+ * walking by starting at every edge.
+ * @param {FOLD} graph a FOLD object
+ * @returns {object[]} an array of face objects, where each face
+ * has number arrays, "vertices", "edges", and "angles".
+ * vertices and edges are indices, angles are radians.
  * @linkcode Origami ./src/graph/walk.js 67
  */
-export const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
+export const walkPlanarFaces = ({ vertices_vertices, vertices_sectors }) => {
+	// walked edges is maintained globally, no walking down the same edge twice
+	const walkedEdges = {};
 	const graph = { vertices_vertices, vertices_sectors };
-	const walked_edges = {};
 	return vertices_vertices
-		.map((adj_verts, v) => adj_verts
-			.map(adj_vert => counterClockwiseWalk(graph, v, adj_vert, walked_edges))
-			.filter(a => a !== undefined))
-		.flat();
+		.flatMap((adj_verts, v) => adj_verts
+			.map(adj_vert => walkSingleFace(graph, v, adj_vert, walkedEdges))
+			.filter(a => a !== undefined));
 };
+
 /**
- * @description This should be used in conjuction with planarVertexWalk() and
- * counterClockwiseWalk(). There will be one face in the which winds around the
+ * @description This should be used in conjuction with walkPlanarFaces() and
+ * walkSingleFace(). There will be one face in the which winds around the
  * outside of the boundary and encloses the space outside around. This method will
  * find that face and remove it from the set.
  * @algorithm 180 - sector angle = the turn angle. counter clockwise
  * turns are +, clockwise will be -, this removes the one face that
  * outlines the piece with opposite winding enclosing Infinity.
- * @param {object[]} walked_faces the result from calling "planarVertexWalk()"
- * @returns {object[]} the same input array with one fewer element
+ * @param {object[]} walkedFaces the result from calling "walkPlanarFaces()"
+ * @returns {object[]} a copy of the same input array with one fewer element
  * @linkcode Origami ./src/graph/walk.js 88
  */
-export const filterWalkedBoundaryFace = walked_faces => walked_faces
+export const filterWalkedBoundaryFace = (walkedFaces) => walkedFaces
 	.filter(face => face.angles
 		.map(a => Math.PI - a)
 		.reduce((a, b) => a + b, 0) > 0);

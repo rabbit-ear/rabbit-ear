@@ -31,7 +31,7 @@ import { makeFacesMatrix } from "../faces/matrix.js";
  * unassigned edges are treated as flat fold (mountain/valley 180deg)
  * as a way of (assuming the user is giving a flat folded origami), help
  * solve things about an origami that is currently being figured out.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  * @linkcode Origami ./src/graph/verticesCoordsFolded.js 36
@@ -67,7 +67,7 @@ export const makeVerticesCoordsFolded = ({
  * if a edges_assignment is "U", assumed to be folded ("V" or "M").
  * Finally, if no edge foldAngle or assignments exist, this method will
  * assume all edges are flat-folded (except boundary) and will fold everything.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  * @linkcode Origami ./src/graph/verticesCoordsFolded.js 69

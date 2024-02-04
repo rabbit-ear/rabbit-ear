@@ -7,7 +7,7 @@ import { getVerticesClusters } from "./clusters.js";
 import replace from "../replace.js";
 /**
  * @description Get the indices of all vertices which lie close to other vertices.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} arrays of clusters of similar vertices. todo check this
  * @linkcode Origami ./src/graph/verticesViolations.js 15
@@ -25,7 +25,7 @@ export const duplicateVertices = (graph, epsilon) => (
  * this might treat all vertices as 2D and duplicate vertices will be declared
  * when they are actually not the same. Just make sure your graph's
  * vertices are all of the same dimension.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @param {boolean} [makeAverage=true] an optional request, should the
  * merged vertex be a geometric average of all vertices which went into it?

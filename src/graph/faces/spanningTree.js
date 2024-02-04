@@ -24,7 +24,7 @@
 // // root_face will become the root node
 // /**
 //  * @description Make a minimum spanning tree of a graph of edge-adjacent faces.
-//  * @param {FOLD} graph a FOLD graph
+//  * @param {FOLD} graph a FOLD object
 //  * @param {number} [root_face=0] the face index to be the root node
 //  * @returns {FaceTreeNode[][]} a tree arranged as an array containing
 //  * arrays of FaceTreeNode. Each inner array contains all nodes at that

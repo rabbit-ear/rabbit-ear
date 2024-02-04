@@ -8,7 +8,7 @@ import { remapKey } from "./maps.js";
  * purpose of being able to re-merge subgraphs. This method will take
  * those graphs and close up all holes in the arrays by re-numbering
  * components to be from 0...N, ensuring wider compatibility for the graph.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @returns {FOLD} a copy of the input FOLD graph, with no array holes.
  */
 const normalize = (graph) => {
