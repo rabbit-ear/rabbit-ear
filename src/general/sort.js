@@ -46,8 +46,9 @@ export const sortPointsAlongVector = (points, vector) => (
  * Vectors must be normalized within the 2nd dimension.
  * @param {number[][]} vectors a list of 2D unit vectors
  * @returns {number[]} a list of indices that reference the input list.
+ * @linkcode
  * @notes
- * Quadrant indexing goes like this:
+ *
  *       (+y)
  *        |
  *  -d +c |  +d +c
@@ -57,48 +58,29 @@ export const sortPointsAlongVector = (points, vector) => (
  *  -d -c |  +d -c
  *        |
  *
- * mapping to these indices:
+ * which maps to these indices:
  *
- * 1 | 0
+ * 0 | 0
  * -----
- * 2 | 3
+ * 1 | 1
  */
 export const radialSortUnitVectors2 = (vectors) => {
-	// this method works by using the dot and cross product with the
-	// x axis basis vector to determine which of the four quadrants
-	// the vectors are in. quadrantConditions does this filtering.
-	const quadrantConditions = [
-		v => v[0] >= 0 && v[1] >= 0,
-		v => v[0] < 0 && v[1] >= 0,
-		v => v[0] < 0 && v[1] < 0,
-		v => v[0] >= 0 && v[1] < 0,
-	];
+	// we filter each vector into two categories based on the sign of the Y value
+	// and later will sort the vectors within each category based on the X value.
+	const sidesVectors = [[], []];
+	vectors.map(vec => (vec[1] >= 0 ? 0 : 1))
+		.forEach((s, v) => sidesVectors[s].push(v));
 
-	// once vectors are categorized, each quadrant can be sorted
-	// by simply comparing the x value (these are normalized vectors).
-	const quadrantSorts = [
+	// each side can be sorted by simply comparing the x value since these
+	// vectors are normalized. decreasing or increasing, for +Y and -Y.
+	const sorts = [
 		(a, b) => vectors[b][0] - vectors[a][0],
-		(a, b) => vectors[b][0] - vectors[a][0],
-		(a, b) => vectors[a][0] - vectors[b][0],
 		(a, b) => vectors[a][0] - vectors[b][0],
 	];
 
-	// for each vector, find that vector's quadrant.
-	const vectorsQuadrant = vectors
-		.map(vec => quadrantConditions
-			.map((fn, i) => (fn(vec) ? i : undefined))
-			.filter(a => a !== undefined)
-			.shift());
-
-	// invert the list above, for each quadrant, a list of its vector indices
-	const quadrantsVectors = [[], [], [], []];
-	vectorsQuadrant.forEach((q, v) => { quadrantsVectors[q].push(v); });
-
-	// now we can sort each quadrant, and since the quadrants themselves are
+	// now we can sort each side, and since the sides themselves are
 	// already sorted counter-clockwise, the flattened list will be sorted.
-	// By X value: decreasing, decreasing, increasing, increasing
-	return quadrantsVectors
-		.flatMap((indices, i) => indices.sort(quadrantSorts[i]));
+	return sidesVectors.flatMap((indices, i) => indices.sort(sorts[i]));
 };
 
 /**
@@ -111,6 +93,7 @@ export const radialSortUnitVectors2 = (vectors) => {
  * @param {number[]} origin a point which this line passes through,
  * by default this is set to be the origin.
  * @returns {number[]} a list of indices that reference the input list.
+ * @linkcode
  */
 export const radialSortPointIndices3 = (
 	points,

@@ -21,6 +21,7 @@ import {
  * (from elements) and returns true if they are similar, false otherwise.
  * @returns {number[][]} a list of lists of indices referencing the input list,
  * where each inner list is a cluster of similar element indices.
+ * @linkcode
  */
 export const clusterSortedGeneric = (elements, comparison) => {
 	if (!elements.length) { return []; }
@@ -62,6 +63,7 @@ export const clusterSortedGeneric = (elements, comparison) => {
  * @param {number[]} floats an array of numbers
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of array of indices to the input array.
+ * @linkcode
  */
 export const clusterScalars = (numbers, epsilon = EPSILON) => {
 	// sort the numbers list but save it as a list of indices
@@ -96,6 +98,7 @@ export const clusterScalars = (numbers, epsilon = EPSILON) => {
  * @param {number[][]} vectors an array of vectors
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of array of indices to the input array.
+ * @linkcode
  */
 export const clusterParallelVectors = (vectors, epsilon = EPSILON) => {
 	// for the parallel test, we will test against normalized vectors.

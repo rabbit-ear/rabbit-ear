@@ -21,6 +21,7 @@ const countPlaces = function (num) {
  * @param {number} [places=15] an integer, the number of decimal places
  * to keep, beyond this point can be considered to be noise.
  * @returns {number} the cleaned floating point number
+ * @linkcode
  */
 export const cleanNumber = function (number, places = 15) {
 	const num = typeof number === "number" ? number : parseFloat(number);

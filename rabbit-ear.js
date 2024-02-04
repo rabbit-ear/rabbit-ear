@@ -1415,27 +1415,14 @@ const sortPointsAlongVector = (points, vector) => (
 	sortAgainstItem(points, vector, dot)
 );
 const radialSortUnitVectors2 = (vectors) => {
-	const quadrantConditions = [
-		v => v[0] >= 0 && v[1] >= 0,
-		v => v[0] < 0 && v[1] >= 0,
-		v => v[0] < 0 && v[1] < 0,
-		v => v[0] >= 0 && v[1] < 0,
-	];
-	const quadrantSorts = [
-		(a, b) => vectors[b][0] - vectors[a][0],
+	const sidesVectors = [[], []];
+	vectors.map(vec => (vec[1] >= 0 ? 0 : 1))
+		.forEach((s, v) => sidesVectors[s].push(v));
+	const sorts = [
 		(a, b) => vectors[b][0] - vectors[a][0],
 		(a, b) => vectors[a][0] - vectors[b][0],
-		(a, b) => vectors[a][0] - vectors[b][0],
 	];
-	const vectorsQuadrant = vectors
-		.map(vec => quadrantConditions
-			.map((fn, i) => (fn(vec) ? i : undefined))
-			.filter(a => a !== undefined)
-			.shift());
-	const quadrantsVectors = [[], [], [], []];
-	vectorsQuadrant.forEach((q, v) => { quadrantsVectors[q].push(v); });
-	return quadrantsVectors
-		.flatMap((indices, i) => indices.sort(quadrantSorts[i]));
+	return sidesVectors.flatMap((indices, i) => indices.sort(sorts[i]));
 };
 const radialSortPointIndices3 = (
 	points,
