@@ -6,6 +6,7 @@ import { epsilonEqual } from "../math/compare.js";
 import { uniqueElements } from "../general/array.js";
 import { clusterScalars } from "../general/cluster.js";
 import { makeVerticesEdgesUnsorted } from "./make.js";
+
 /**
  * @description convert a faces_vertices into an edge-style list, where
  * each face only has two vertices, the min and max vertex along the
@@ -18,6 +19,7 @@ const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => faces_ve
 		vertices
 			.reduce((a, b) => (vertices_coords[a][axis] > vertices_coords[b][axis] ? a : b)),
 	]);
+
 /**
  * @description Perform a line sweep through the vertices of a graph,
  * the default direction is to sweep along the +X axis.
@@ -37,6 +39,7 @@ export const sweepVertices = ({ vertices_coords }, axis = 0, epsilon = EPSILON) 
 			t: vertices.reduce((p, c) => p + vertices_coords[c][axis], 0) / vertices.length,
 		}))
 );
+
 /**
  * @description This is the sweep method used by sweepEdges and sweepFaces.
  * @param {number[]} values an array of scalars constructed from the
@@ -83,6 +86,7 @@ export const sweepValues = (values, { edges_vertices, vertices_edges }, epsilon 
 				.filter(edge => edgesVertexSide[edge][v] >= 0))),
 		}));
 };
+
 /**
  * @description Perform a line sweep through the edges of a graph,
  * This method will create an array of events, each event will either
@@ -103,6 +107,7 @@ export const sweepEdges = ({
 }, axis = 0, epsilon = EPSILON) => (
 	sweepValues(vertices_coords.map(p => p[axis]), { edges_vertices, vertices_edges }, epsilon)
 );
+
 /**
  * @description Perform a line sweep through the faces of a graph,
  * This method will create an array of events, each event will either
@@ -128,6 +133,7 @@ export const sweepFaces = ({
 	{ edges_vertices: edgeifyFaces({ vertices_coords, faces_vertices }, axis) },
 	epsilon,
 );
+
 /**
  * @description Perform a line sweep through all components of a graph,
  * This method will create an array of events, each event occurs at
@@ -205,6 +211,7 @@ export const sweep = ({
 			},
 		}));
 };
+
 /**
  *
  */

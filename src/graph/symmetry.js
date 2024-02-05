@@ -1,9 +1,15 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
-import { vecLineToUniqueLine } from "../math/convert.js";
-import { flip } from "../math/vector.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
+import {
+	vecLineToUniqueLine,
+} from "../math/convert.js";
+import {
+	flip,
+} from "../math/vector.js";
 import {
 	multiplyMatrix2Line2,
 	makeMatrix2Reflect,
@@ -12,11 +18,20 @@ import {
 	clusterScalars,
 	clusterParallelVectors,
 } from "../general/cluster.js";
-import { getEdgesLine } from "./edges/lines.js";
+import {
+	getEdgesLine,
+} from "./edges/lines.js";
 
+/**
+ * @description Convert a normal-distance line so that the distance
+ * is always positive, and the normal is now possible to point anywhere.
+ * @param {UniqueLine} line a line in normal-distance parameterization
+ * @returns {UniqueLine} a line in normal-distance parameterization
+ */
 const fixLineDirection = ({ normal, distance }) => (distance < 0
 	? ({ normal: flip(normal), distance: -distance })
 	: ({ normal, distance }));
+
 /**
  * @description Discover the lines of symmetry in a 2D FOLD graph.
  * All possible lines will be returned and sorted to put the best candidate
@@ -31,37 +46,70 @@ const fixLineDirection = ({ normal, distance }) => (distance < 0
  * @returns {VecLine[]} array of symmetry lines
  */
 export const findSymmetryLines = (graph, epsilon = EPSILON) => {
+	// get a list of lines that cover all edges of the graph
 	const { lines } = getEdgesLine(graph, epsilon);
+
+	// convert the lines into normal-distance parameterization,
+	// where the distance value is always positive. this will be used when
+	// we create reflections and need to compare and cluster similar lines
 	const uniqueLines = lines.map(vecLineToUniqueLine).map(fixLineDirection);
+
+	// using reflection matrices, for every line, perform a reflection across
+	// this line for every other line in the list. every line will get reflected
+	// N-1 times. this is quite an expensive operation.
 	const linesMatrices = lines
 		.map(({ vector, origin }) => makeMatrix2Reflect(vector, origin));
 	const reflectionsLines = linesMatrices
 		.map(matrix => lines
 			.map(({ vector, origin }) => multiplyMatrix2Line2(matrix, vector, origin)));
+
+	// convert the reflected lines into normal-distance parameterization, and
+	// for every reflection group, superimpose (concat) our original list of
+	// lines that cover the non-transformed set of edges.
 	const reflectionsUniqueLines = reflectionsLines
 		.map(group => group.map(line => (line.vector[0] < 0
 			? ({ vector: flip(line.vector), origin: line.origin })
 			: line)))
 		.map(group => group.map(vecLineToUniqueLine).map(fixLineDirection))
 		.map(group => group.concat(uniqueLines));
+
+	// for every reflection set, we now also have in the set the original lines.
+	// being as resourceful as possible, compare all lines with each other and
+	// group similar lines together, resulting in clusters of 1 (no match) or 2. (i think)
+	// First, cluster lines by similar distance from origin.
 	const groupsClusters = reflectionsUniqueLines
 		.map(group => clusterScalars(group.map(el => el.distance)));
+
+	// Second, within each cluster, cluster again by similar (parallel) vectors.
+	// this creates a cluster where the indices are the indices of elements
+	// according to the first cluster variable's arrays, not the original data.
 	const groupsClusterClustersUnindexed = groupsClusters
 		.map((clusters, g) => clusters
 			.map(cluster => cluster.map(i => reflectionsUniqueLines[g][i].normal))
 			.map(cluster => clusterParallelVectors(cluster, epsilon)));
+
+	// fix the mismatch between indices. for every cluster cluster, pass in
+	// the index from the cluster cluster into the first cluster variable
+	// to get out the index which now relates to the original input set.
 	const groupsClusterClusters = groupsClusterClustersUnindexed
 		.map((group, g) => group
 			.flatMap((clusters, c) => clusters
 				.map(cluster => cluster
 					.map(index => groupsClusters[g][c][index]))));
+
+	// create some kind of error heuristic, for each reflection group,
+	// how many lines lie on top of a corresponding line from the original set?
 	const groupsError = groupsClusterClusters
 		.map(group => (group.length - lines.length) / lines.length);
+
+	// return the data in sorted order, with the best matches for a
+	// reflection line in the beginning of the list.
 	return groupsError
 		.map((error, i) => ({ error, i }))
 		.map(el => ({ line: lines[el.i], error: el.error }))
 		.sort((a, b) => a.error - b.error);
 };
+
 /**
  * @description This method calls findSymmetryLines() and returns the
  * first value only. Use this if you are confident.

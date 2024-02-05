@@ -5,7 +5,7 @@ import splitEdge from "../splitEdge/index.js";
 import {
 	mergeNextmaps,
 	mergeBackmaps,
-	invertSimpleMap,
+	invertFlatMap,
 } from "../maps.js";
 /**
  * @description this is a highly specific method, it takes in the output
@@ -44,7 +44,7 @@ const split_at_intersections = (graph, { vertices, edges }) => {
 	// more than 2 intersections
 	split_results.forEach(res => {
 		res.edges.remove = bkmap ? bkmap[res.edges.remove] : res.edges.remove;
-		const inverted = invertSimpleMap(res.edges.map);
+		const inverted = invertFlatMap(res.edges.map);
 		bkmap = bkmap ? mergeBackmaps(bkmap, inverted) : inverted;
 	});
 	return {

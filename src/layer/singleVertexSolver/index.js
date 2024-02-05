@@ -6,8 +6,11 @@ import makeFoldedStripTacos from "./makeFoldedStripTacos.js";
 import validateLayerSolver from "./validateLayerSolver.js";
 import foldStripWithAssignments from "./foldStripWithAssignments.js";
 import { assignmentsToFacesVertical } from "./general.js";
-import { invertMap } from "../../graph/maps.js";
 import clone from "../../general/clone.js";
+import {
+	invertFlatMap,
+	invertArrayToFlatMap,
+} from "../../graph/maps.js";
 
 const is_boundary = { B: true, b: true };
 /**
@@ -49,7 +52,7 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => 
 	// taco-tortilla testing will happen using a different data structure.
 	const taco_face_pairs = makeFoldedStripTacos(faces_folded, is_circular, epsilon)
 		.map(taco => [taco.left, taco.right]
-			.map(invertMap)
+			.map(invertArrayToFlatMap)
 			.filter(arr => arr.length > 1))
 		.reduce((a, b) => a.concat(b), []);
 	/**
@@ -89,7 +92,7 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => 
 		if (circ_and_done) {
 			// next_dir is now indicating the direction from the final face to the
 			// first face, test if this also matches the orientation of the faces.
-			const faces_layer = invertMap(layers_face);
+			const faces_layer = invertFlatMap(layers_face);
 			const first_face_layer = faces_layer[0];
 			const last_face_layer = faces_layer[face];
 			if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
@@ -136,7 +139,11 @@ const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => 
 			.reduce((a, b) => a.concat(b), []);
 	};
 	// after collecting all layers_face solutions, convert them into faces_layer
-	return recurse().map(invertMap);
+	// return recurse().map(invertMap);
+	const res = recurse()
+		.map(group => group.map(n => (typeof n === "number" ? [n] : n)))
+		.map(invertArrayToFlatMap);
+	return res;
 };
 
 export default singleVertexSolver;

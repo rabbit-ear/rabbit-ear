@@ -5,7 +5,7 @@ import count from "./count.js";
 import clone from "../general/clone.js";
 import {
 	remapComponent,
-	invertArrayMap,
+	invertFlatToArrayMap,
 } from "./maps.js";
 import {
 	singularize,
@@ -167,7 +167,7 @@ export const join = (target, source) => {
 	VEF.forEach(key => {
 		const map = targetKeyArrays[key].map(() => 0);
 		indexMaps[key].forEach(v => { map[v] = 1; });
-		summary[key] = invertArrayMap(map);
+		summary[key] = invertFlatToArrayMap(map);
 	});
 	const target2DVertices = sourceDimension !== targetDimension
 		? (target.vertices_coords || [])

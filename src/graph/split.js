@@ -8,8 +8,8 @@ import {
 	includeS,
 } from "../math/compare.js";
 import {
-	invertSimpleMap,
-	invertArrayMap,
+	invertFlatMap,
+	invertFlatToArrayMap,
 } from "./maps.js";
 import { pointsToLine } from "../math/convert.js";
 import { overlapConvexPolygonPointNew } from "../math/overlap.js";
@@ -114,8 +114,8 @@ export const splitGraphLineFunction = (
 
 	// for each edge/face involved, what are its new vertices indices
 	// edges will only contain one, faces can contain multiple
-	const newEdgesVertex = invertSimpleMap(new_vertices_onEdge);
-	const newFacesVertices = invertArrayMap(new_vertices_inFace);
+	const newEdgesVertex = invertFlatMap(new_vertices_onEdge);
+	const newFacesVertices = invertFlatToArrayMap(new_vertices_inFace);
 
 	// loop through the faces and consulting the face's edges, vertices,
 	// and new interior points (whichever of these three exist),

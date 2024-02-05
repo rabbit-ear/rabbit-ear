@@ -2,6 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import {
+	subtract,
+	resize,
+} from "../math/vector.js";
+import {
 	makeMatrix3Translate,
 	makeMatrix3Scale,
 	makeMatrix3Rotate,
@@ -10,12 +14,15 @@ import {
 	multiplyMatrices3,
 } from "../math/matrix3.js";
 import {
-	subtract,
-	resize,
-} from "../math/vector.js";
-import { getVector } from "../general/get.js";
-import { boundingBox } from "../math/polygon.js";
-import { filterKeysWithSuffix } from "../fold/spec.js";
+	boundingBox,
+} from "../math/polygon.js";
+import {
+	filterKeysWithSuffix,
+} from "../fold/spec.js";
+import {
+	getVector,
+} from "../general/get.js";
+
 /**
  * @name transform
  * @memberof graph
@@ -42,6 +49,7 @@ export const transform = function (graph, matrix) {
 	});
 	return graph;
 };
+
 /**
  * @name scale
  * @memberof graph
@@ -61,6 +69,7 @@ export const scale = (graph, ...args) => {
 	const matrix = makeMatrix3Scale(vec3);
 	return transform(graph, matrix);
 };
+
 /**
  * @name translate
  * @memberof graph
@@ -76,6 +85,7 @@ export const translate = (graph, ...args) => {
 	const matrix = makeMatrix3Translate(...vector3);
 	return transform(graph, matrix);
 };
+
 /**
  * @name rotateZ
  * @memberof graph
@@ -90,6 +100,7 @@ export const rotate = (graph, angle, vector, origin) => transform(
 	graph,
 	makeMatrix3Rotate(angle, vector, origin),
 );
+
 /**
  * @name rotateZ
  * @memberof graph
@@ -106,6 +117,7 @@ export const rotateZ = (graph, angle, ...args) => {
 	const matrix = makeMatrix3RotateZ(angle, origin3);
 	return transform(graph, matrix);
 };
+
 /**
  * @description alter the vertices by moving the corner of the graph
  * to the origin and shrink or expand the vertices until they

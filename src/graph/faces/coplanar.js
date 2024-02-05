@@ -24,7 +24,10 @@ import { overlapConvexPolygons } from "../../math/overlap.js";
 import { makeFacesNormal } from "../normals.js";
 import { clusterScalars } from "../../general/cluster.js";
 import { connectedComponents } from "../connectedComponents.js";
-import { invertMap } from "../maps.js";
+import {
+	invertArrayToFlatMap,
+	invertFlatToArrayMap,
+} from "../maps.js";
 import { makeFacesFaces } from "../make.js";
 import { selfRelationalArraySubset } from "../subgraph.js";
 /**
@@ -58,8 +61,7 @@ export const coplanarFacesGroups = ({
 	}
 	// create disjoint sets of faces which all share the same normal
 	const facesNormalMatchCluster = connectedComponents(facesNormalMatch);
-	const normalClustersFaces = invertMap(facesNormalMatchCluster)
-		.map(el => (typeof el === "number" ? [el] : el));
+	const normalClustersFaces = invertFlatToArrayMap(facesNormalMatchCluster);
 	// for each cluster, choose one normal, this normal is now associated with the cluster.
 	const normalClustersNormal = normalClustersFaces
 		.map(faces => faces_normal[faces[0]]);
@@ -202,8 +204,7 @@ export const coplanarOverlappingFacesGroups = ({
 	// merge groups (within a common plane) if an overlap exists
 	// between any two faces in either group.
 	const planarSets_sets_faces = planarSets_faces_set
-		.map(faces => invertMap(faces)
-			.map(res => (res.constructor === Array ? res : [res])));
+		.map(faces => invertFlatToArrayMap(faces));
 	// merge groups if they are overlapping
 	const planarSets_disjointSetsOtherFaces = planarSets_faces_set
 		.map(faces_group => {
@@ -259,8 +260,7 @@ export const coplanarOverlappingFacesGroups = ({
 			}));
 	//
 	const planarSets_disjointSetsSets = planarSets_overlapping_sets_sets
-		.map(set_set => invertMap(connectedComponents(set_set))
-			.map(sets => (sets.constructor === Array ? sets : [sets])));
+		.map(set_set => invertFlatToArrayMap(connectedComponents(set_set)));
 	// originalSet refers to "coplanarFaces", the result from
 	// coplanarFacesGroups(). this relates a new set (index) to the
 	// coplanarFaces set that it came from (value).
@@ -282,7 +282,7 @@ export const coplanarOverlappingFacesGroups = ({
 	const sets_plane = newSets_originalSet.map(i => coplanarFaces[i].plane);
 	const sets_transformXY = newSets_originalSet.map(i => transforms[i]);
 	const sets_faces = coplanarOverlappingFaces.map(sets => sets.faces);
-	const faces_set = invertMap(sets_faces);
+	const faces_set = invertArrayToFlatMap(sets_faces);
 	// console.log("planarSets_polygons3D", planarSets_polygons3D);
 	// console.log("planarSets_polygons2D", planarSets_polygons2D);
 	// console.log("faces_polygon", faces_polygon);

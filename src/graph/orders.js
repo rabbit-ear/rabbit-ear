@@ -6,8 +6,11 @@ import { uniqueSortedNumbers } from "../general/array.js";
 import { makeFacesNormal } from "./normals.js";
 import { topologicalSort } from "./directedGraph.js";
 import { makeVerticesVerticesUnsorted } from "./make.js";
-import { invertMap, invertArrayMap } from "./maps.js";
 import { connectedComponents } from "./connectedComponents.js";
+import {
+	invertFlatMap,
+	invertFlatToArrayMap,
+} from "./maps.js";
 // import { allLayerConditions } from "./globalSolver/index.js";
 
 /**
@@ -81,7 +84,7 @@ const fillInMissingFaces = ({ faces_vertices }, faces_layer) => {
 	const missingFaces = faces_vertices
 		.map((_, i) => i)
 		.filter(i => faces_layer[i] == null);
-	return missingFaces.concat(invertMap(faces_layer));
+	return missingFaces.concat(invertFlatMap(faces_layer));
 };
 
 /**
@@ -107,7 +110,7 @@ export const linearize2DFaces = ({
 	if (faceOrders) {
 		return fillInMissingFaces(
 			{ faces_vertices },
-			invertMap(linearizeFaceOrders({ faceOrders, faces_normal }, rootFace)),
+			invertFlatMap(linearizeFaceOrders({ faceOrders, faces_normal }, rootFace)),
 		);
 	}
 	if (faces_layer) {
@@ -138,12 +141,10 @@ export const nudgeFacesWithFaceOrders = ({
 	// are connections between faces according to faceOrders
 	// using this representation, find the disjoint sets of faces,
 	// those which are isolated from each other according to layer orders
-	const faces_sets = connectedComponents(makeVerticesVerticesUnsorted({
+	const faces_set = connectedComponents(makeVerticesVerticesUnsorted({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
 	}));
-	// const sets_faces = invertMap(faces_sets)
-	// 	.map(el => (el.constructor === Array ? el : [el]));
-	const sets_faces = invertArrayMap(faces_sets);
+	const sets_faces = invertFlatToArrayMap(faces_set);
 	const sets_layers_face = sets_faces
 		.map(faces => faceOrdersSubset(faceOrders, faces))
 		.map(orders => linearizeFaceOrders({ faceOrders: orders, faces_normal }));
@@ -169,7 +170,7 @@ export const nudgeFacesWithFaceOrders = ({
  */
 export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
 	const faces_nudge = [];
-	const layers_face = invertMap(faces_layer);
+	const layers_face = invertFlatMap(faces_layer);
 	layers_face.forEach((face, layer) => {
 		faces_nudge[face] = {
 			vector: [0, 0, 1],
@@ -194,7 +195,7 @@ export const makeFacesLayer = ({ vertices_coords, faces_vertices, faceOrders, fa
 	if (!faces_normal) {
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
-	return invertMap(linearizeFaceOrders({ faceOrders, faces_normal }));
+	return invertFlatMap(linearizeFaceOrders({ faceOrders, faces_normal }));
 };
 
 // export const faceOrdersToFacesLayer = (graph) => {

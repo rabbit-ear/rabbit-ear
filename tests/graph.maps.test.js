@@ -50,7 +50,7 @@ test("inverse map", () => {
 	// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 	const map1 = [0, 1, 2, null, 3, 4, null, null, 5, 6];
 	const map2 = [0, null, 1, 2, 3, 4, null];
-	const res = ear.graph.invertMap(ear.graph.mergeSimpleNextmaps(map1, map2));
+	const res = ear.graph.invertFlatMap(ear.graph.mergeSimpleNextmaps(map1, map2));
 	const expected = [0, 2, 4, 5, 8];
 	arrMatch(res, expected);
 });

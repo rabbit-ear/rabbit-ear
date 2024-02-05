@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../../math/constant.js";
-import { invertMap } from "../../graph/maps.js";
+import { invertFlatMap } from "../../graph/maps.js";
 /**
  * @description given two indices, return a copy of the array between them,
  * excluding the elements at the indices themselves.
@@ -30,7 +30,7 @@ const validateTacoTortillaStrip = (
 	epsilon = EPSILON,
 ) => {
 	// for every sector/face, the value is its index in the layers_face array
-	const faces_layer = invertMap(layers_face);
+	const faces_layer = invertFlatMap(layers_face);
 	// for every sector, the location of the end of the sector after folding
 	// (the far end, the second end visited by the walk)
 	const fold_location = faces_folded

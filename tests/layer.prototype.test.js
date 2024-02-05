@@ -34,7 +34,7 @@ test("fish base, linearize", () => {
 
 test("fish base, faces layer", () => {
 	const solution = ear.layer(ear.graph.fish().flatFolded());
-	const facesLayer = ear.graph.invertMap(solution.linearize().reverse());
+	const facesLayer = ear.graph.invertFlatMap(solution.linearize().reverse());
 	expect(JSON.stringify(solution.facesLayer())).toBe(JSON.stringify(facesLayer));
 	expect(JSON.stringify(solution.facesLayer()))
 		.toBe(JSON.stringify([10, 11, 9, 8, 7, 6, 4, 2, 3, 5, 0, 1]));

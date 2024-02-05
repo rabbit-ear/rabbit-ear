@@ -12,7 +12,7 @@ import { multiplyMatrix4Vector3 } from "../../math/matrix4.js";
 import { doRangesOverlap } from "./general.js";
 import { edgeFoldAngleIsFlat } from "../../fold/spec.js";
 import { getEdgesLine } from "../../graph/edges/lines.js";
-import { invertMap } from "../../graph/maps.js";
+import { invertFlatToArrayMap } from "../../graph/maps.js";
 import { makeEdgesCoords } from "../../graph/make.js";
 /**
  *
@@ -33,8 +33,7 @@ const getOverlappingCollinearEdges = ({
 	// todo: n^2. line sweep can improve. could be only in rare cases though
 	// that this is really an issue. inside each lines_edges group is typically
 	// only a small number of edges anyway. this is what is being n^2 compared.
-	return invertMap(edges_line)
-		.map(el => (el.constructor === Array ? el : [el]))
+	return invertFlatToArrayMap(edges_line)
 		.flatMap(edges => chooseTwoPairs(edges)
 			.filter(pair => (doRangesOverlap(...pair.map(n => edges_dots[n])))));
 };

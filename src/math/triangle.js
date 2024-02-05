@@ -1,3 +1,6 @@
+/**
+ * Math (c) Kraft
+ */
 import {
 	EPSILON,
 } from "./constant.js";
@@ -14,8 +17,8 @@ import {
  * and given the location of that triangle's points in space, find the
  * location of the point in space.
  * https://stackoverflow.com/questions/9747227/2d-trilateration
- * @param {number[][]} three 2D triangle points
- * @param {number[]} three distances to each of the triangle points
+ * @param {number[][]} pts three 2D triangle points
+ * @param {number[]} radii three distances to each of the triangle points
  * @returns {number[] | undefined} the 2D location of the point
  * inside the triangle, undefined if bad inputs.
  */
@@ -34,6 +37,7 @@ export const trilateration = (pts, radii) => {
 	const y = ((radii[0] ** 2) - (radii[2] ** 2) + (i ** 2) + (j ** 2)) / (2 * j) - ((i * x) / j);
 	return add2(add2(pts[0], scale2(ex, x)), scale2(ey, y));
 };
+
 /**
  * @description Calculates the circumcircle with a boundary that
  * lies on three points provided by the user.

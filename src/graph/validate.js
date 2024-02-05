@@ -13,8 +13,12 @@ import {
 import {
 	circularEdges,
 } from "./edges/circular.js";
-import { duplicateVertices } from "./vertices/duplicate.js";
-import { isolatedVertices } from "./vertices/isolated.js";
+import {
+	duplicateVertices,
+} from "./vertices/duplicate.js";
+import {
+	isolatedVertices,
+} from "./vertices/isolated.js";
 
 /**
  *
@@ -51,6 +55,7 @@ const arraysHaveSameIndices = (arrays = []) => {
 			.map((_, i) => (indices[i] ? undefined : [0, p + 1, i]))
 			.filter(a => a !== undefined));
 };
+
 /**
  * @description Validate a graph, ensuring that all references across
  * different arrays point to valid data, there are no mismatching

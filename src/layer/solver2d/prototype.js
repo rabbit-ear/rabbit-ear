@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { invertMap } from "../../graph/maps.js";
+import { invertFlatMap } from "../../graph/maps.js";
 import { topologicalSort } from "../../graph/directedGraph.js";
 import { solverSolutionToFaceOrders } from "./general.js";
 
@@ -55,7 +55,7 @@ const LayerPrototype = {
 	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 69
 	 */
 	facesLayer: function (...indices) {
-		return invertMap(this.linearize(...indices).reverse());
+		return invertFlatMap(this.linearize(...indices).reverse());
 	},
 
 	/**

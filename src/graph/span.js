@@ -3,6 +3,7 @@
  */
 import { EPSILON } from "../math/constant.js";
 import { makeEdgesBoundingBox } from "./make.js";
+
 /**
  * @description This returns a matrix relating every edge to every vertex,
  * answering the question "does the vertex sit inside the edge's bounding box?"
@@ -22,6 +23,7 @@ export const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
 				&& vert[0] < min_max.max[0]
 				&& vert[1] < min_max.max[1])))
 );
+
 /**
  * @description Calculate every edge's rectangular bounding box and compare every box to
  * every box to determine if boxes overlap. This doesn't claim edges overlap, only that

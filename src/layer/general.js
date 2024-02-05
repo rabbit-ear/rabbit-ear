@@ -1,11 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { invertMap } from "../graph/maps.js";
+import { distance } from "../math/vector.js";
 import { makeFacesWinding } from "../graph/faces/winding.js";
 import { makeEdgesFaces } from "../graph/make.js";
 import { boundingBox } from "../graph/boundary.js";
-import { distance } from "../math/vector.js";
+import {
+	invertArrayToFlatMap,
+	invertFlatToArrayMap,
+} from "../graph/maps.js";
 
 const shortestEdgeLength = ({ vertices_coords, edges_vertices }) => {
 	const lengths = edges_vertices
@@ -32,8 +35,8 @@ export const makeEpsilon = ({ vertices_coords, edges_vertices }) => {
  * @returns {number[]} a new faces_layer array
  * @linkcode Origami ./src/layer/general.js 12
  */
-export const flipFacesLayer = faces_layer => invertMap(
-	invertMap(faces_layer).reverse(),
+export const flipFacesLayer = faces_layer => invertArrayToFlatMap(
+	invertFlatToArrayMap(faces_layer).reverse(),
 );
 /**
  * @description Given a faces_layer ordering of faces in a graph,

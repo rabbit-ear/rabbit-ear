@@ -7,7 +7,7 @@ import { removeDuplicateEdges } from "./edges/duplicate.js";
 import { removeCircularEdges } from "./edges/circular.js";
 import {
 	mergeSimpleNextmaps,
-	invertSimpleMap,
+	invertFlatMap,
 } from "./maps.js";
 /**
  * @description This method will remove bad graph data. this includes:
@@ -32,9 +32,9 @@ const clean = (graph, epsilon) => {
 	// return a summary of changes.
 	// use the maps to update the removed indices from the second step
 	// to their previous index before change 1 occurred.
-	const change_v1_backmap = invertSimpleMap(change_v1.map);
+	const change_v1_backmap = invertFlatMap(change_v1.map);
 	const change_v2_remove = change_v2.remove.map(e => change_v1_backmap[e]);
-	const change_e1_backmap = invertSimpleMap(change_e1.map);
+	const change_e1_backmap = invertFlatMap(change_e1.map);
 	const change_e2_remove = change_e2.remove.map(e => change_e1_backmap[e]);
 	return {
 		vertices: {

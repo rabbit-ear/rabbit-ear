@@ -19,8 +19,8 @@ import {
 } from "../general/array.js";
 import { sweepValues } from "./sweep.js";
 import {
-	invertArrayMap,
-	invertSimpleMap,
+	invertFlatToArrayMap,
+	invertFlatMap,
 } from "./maps.js";
 import remove from "./remove.js";
 import {
@@ -133,7 +133,7 @@ const planarize = ({
 	// by this to convert the parameters back into coordinate space.
 	const linesSquareLength = lines.map(({ vector }) => magSquared2(vector));
 	// one to many mapping of a line and the edges along it.
-	const lines_edges = invertArrayMap(edges_line);
+	const lines_edges = invertFlatToArrayMap(edges_line);
 	// for each edge and its corresponding line, project the edge's endpoints
 	// onto the line as a scalar of the line's vector from its origin.
 	const edges_scalars = edges_vertices
@@ -167,7 +167,7 @@ const planarize = ({
 	const sweepScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]));
 	const sweepEdgesVertices = lines_edges
-		.map(edges => invertSimpleMap(edges)
+		.map(edges => invertFlatMap(edges)
 			.map(e => [e * 2, e * 2 + 1]));
 	const lineSweeps = lines_edges.map((_, i) => sweepValues(sweepScalars[i], {
 		edges_vertices: sweepEdgesVertices[i],

@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
  * @description given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
@@ -12,7 +13,7 @@
  * where N is the number of disjoint groups. so, all values will be 0
  * in the case of a connected graph.
  * @param {number[][]} array_array an array of arrays of numbers
- * @returns {number[][]} groups of the indices where each index appears only once
+ * @returns {number[]} groups of the indices where each index appears only once
  * @linkcode Origami ./src/graph/connectedComponents.js 12
  */
 export const connectedComponents = (array_array) => {
@@ -31,6 +32,7 @@ export const connectedComponents = (array_array) => {
 	}
 	return groups;
 };
+
 /**
  * @description Given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the

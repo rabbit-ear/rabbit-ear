@@ -2,14 +2,22 @@
  * Rabbit Ear (c) Kraft
  */
 import {
+	pointsToLine,
+} from "../math/convert.js";
+import {
 	add2,
 	scale2,
 	distance2,
 } from "../math/vector.js";
-import { isCollinear } from "../math/line.js";
-import { makePolygonNonCollinear } from "../math/polygon.js";
-import { trilateration } from "../math/triangle.js";
-import { pointsToLine } from "../math/convert.js";
+import {
+	isCollinear,
+} from "../math/line.js";
+import {
+	makePolygonNonCollinear,
+} from "../math/polygon.js";
+import {
+	trilateration,
+} from "../math/triangle.js";
 
 /**
  * @description Transfer a point from one graph to another, given the
@@ -28,14 +36,21 @@ export const transferPointBetweenGraphs = (from, to, face, point) => {
 	let fromPoly = faceVertices.map(v => from.vertices_coords[v]);
 	let toPoly = faceVertices.map(v => to.vertices_coords[v]);
 
-	// trilateration will fail if the first three points are collinear.
+	// trilateration will fail if the first three points are collinear. assuming
+	// the polygon is valid and we just happened to pick three collinear points,
+	// this method will modify the polygon to remove any collinear vertices,
+	// shrinking the total number but preserving the shape.
 	if (isCollinear(fromPoly[0], fromPoly[1], fromPoly[2])) {
 		fromPoly = makePolygonNonCollinear(fromPoly);
 	}
 	if (isCollinear(toPoly[0], toPoly[1], toPoly[2])) {
 		toPoly = makePolygonNonCollinear(toPoly);
 	}
-	const distances = fromPoly.map(p => distance2(p, point));
+
+	// compute the distances from the input point to the first 3 polygon points.
+	// the trilateration method only looks at the first 3 points.
+	const distances = Array.from(Array(3))
+		.map((_, i) => distance2(fromPoly[i], point));
 	return trilateration(toPoly, distances);
 };
 
@@ -46,8 +61,8 @@ export const transferPointBetweenGraphs = (from, to, face, point) => {
  * edge parameter (along the edge's vector) to very precisely calculate
  * the position of the point in the new graph.
  * This method is more precise than transferPointBetweenGraphs.
- * @param {FOLD} from a fold graph which the point now lies inside
- * @param {FOLD} to a fold graph we want to move the point into
+ * @param {FOLD} from a FOLD object which the point now lies inside
+ * @param {FOLD} to a FOLD object we want to move the point into
  * @param {number} edge the index of the edge which this point lies on
  * @param {number} parameter the parameter along the edge's vector where
  * this point lies. If using splitGraphLineFunction this is the "a" component.

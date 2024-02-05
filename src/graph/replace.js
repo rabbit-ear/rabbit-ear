@@ -9,21 +9,21 @@ import { remapKey } from "./maps.js";
  *
  */
 const makeIndexMap = (graph, key, replaceIndices, replaces) => {
-	const geometry_array_size = count(graph, key);
-	const index_map = [];
-	for (let i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
+	const arrayLength = count(graph, key);
+	const indexMap = [];
+	for (let i = 0, j = 0, walk = 0; i < arrayLength; i += 1, j += 1) {
 		while (i === replaces[walk]) {
 			// this prevents arrays with holes
-			index_map[i] = index_map[replaceIndices[replaces[walk]]];
-			if (index_map[i] === undefined) {
+			indexMap[i] = indexMap[replaceIndices[replaces[walk]]];
+			if (indexMap[i] === undefined) {
 				throw new Error(Messages.replaceUndefined);
 			}
 			i += 1;
 			walk += 1;
 		}
-		if (i < geometry_array_size) { index_map[i] = j; }
+		if (i < arrayLength) { indexMap[i] = j; }
 	}
-	return index_map;
+	return indexMap;
 };
 /**
  * @name replace

@@ -7,12 +7,12 @@ test("connectedComponents", () => {
 	const foldObject = JSON.parse(foldFile);
 	const graph = ear.graph.getFramesByClassName(foldObject, "foldedForm")[0];
 	const faceOrders = ear.layer.layer3d(graph).faceOrders();
-	const faces_sets = ear.graph.connectedComponents(ear.graph.makeVerticesVerticesUnsorted({
+	const faces_set = ear.graph.connectedComponents(ear.graph.makeVerticesVerticesUnsorted({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
 	}));
 	fs.writeFileSync(
 		`./tests/tmp/connectedFaces.json`,
-		JSON.stringify(faces_sets, null, 2),
+		JSON.stringify(faces_set, null, 2),
 	);
 });
 

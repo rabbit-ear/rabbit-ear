@@ -5,9 +5,73 @@ import {
 	filterKeysWithSuffix,
 	filterKeysWithPrefix,
 } from "../fold/spec.js";
+
 /**
- * @description Provide two or more simple nextmaps in the order they were made
- * and this will merge them into one nextmap which reflects all changes to the graph.
+ * @description Invert an array of integer values where
+ * values become indices and the top level indices become values.
+ * If indices and values are not bijective, values will be overwritten.
+ * @param {number[]} map an array of integers
+ * @returns {number[]} the inverted array
+ * @linkcode
+ */
+export const invertFlatMap = (map) => {
+	const inv = [];
+	map.forEach((n, i) => { inv[n] = i; });
+	return inv;
+};
+
+/**
+ * @description Invert an array of arrays of integer values where
+ * values become indices and the top level indices become values.
+ * If indices and values are not bijective, values will be overwritten.
+ * @param {number[][]} map an array of arrays of integers
+ * @returns {number[]} the inverted flat array
+ * @linkcode
+ */
+export const invertArrayToFlatMap = (map) => {
+	const inv = [];
+	map.forEach((arr, i) => arr.forEach(n => { inv[n] = i; }));
+	return inv;
+};
+
+/**
+ * @description Invert an array of integer values where values become indices
+ * and the indices are stored inside array values.
+ * This ensures that for non-bijective maps, no data is lost.
+ * @param {number[]} map an array of integers
+ * @returns {number[][]} the inverted array of arrays of integers
+ * @linkcode
+ */
+export const invertFlatToArrayMap = (map) => {
+	const inv = [];
+	map.forEach((n, i) => {
+		if (inv[n] === undefined) { inv[n] = []; }
+		inv[n].push(i);
+	});
+	return inv;
+};
+
+/**
+ * @description Invert an array of arrays of integer values where
+ * values become indices and indices are stored inside array values.
+ * This ensures that for non-bijective maps, no data is lost.
+ * @param {number[][]} map an array of arrays of integers
+ * @returns {number[][]} the inverted array of arrays of integers
+ * @linkcode
+ */
+export const invertArrayMap = (map) => {
+	const inv = [];
+	map.forEach((arr, i) => arr.forEach(m => {
+		if (inv[m] === undefined) { inv[m] = []; }
+		inv[m].push(i);
+	}));
+	return inv;
+};
+
+/**
+ * @description Provide two or more simple nextmaps in the order
+ * they were made and this will merge them into one nextmap which
+ * reflects all changes to the graph.
  * @param {...number[]} ...maps a sequence of simple nextmaps
  * @returns {number[]} one nextmap reflecting the sum of changes
  * @linkcode Origami ./src/graph/maps.js 10
@@ -18,9 +82,11 @@ export const mergeSimpleNextmaps = (...maps) => {
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
 	return solution;
 };
+
 /**
- * @description Provide two or more nextmaps in the order they were made
- * and this will merge them into one nextmap which reflects all changes to the graph.
+ * @description Provide two or more nextmaps in the order
+ * they were made and this will merge them into one nextmap which
+ * reflects all changes to the graph.
  * @param {...number[][]} ...maps a sequence of nextmaps
  * @returns {number[][]} one nextmap reflecting the sum of changes
  * @linkcode Origami ./src/graph/maps.js 23
@@ -29,7 +95,8 @@ export const mergeNextmaps = (...maps) => {
 	if (maps.length === 0) { return []; }
 	const solution = maps[0].map((_, i) => [i]);
 	maps.forEach(map => {
-		solution.forEach((s, i) => s.forEach((indx, j) => { solution[i][j] = map[indx]; }));
+		solution.forEach((s, i) => s
+			.forEach((indx, j) => { solution[i][j] = map[indx]; }));
 		solution.forEach((arr, i) => {
 			solution[i] = arr
 				.reduce((a, b) => a.concat(b), [])
@@ -38,9 +105,11 @@ export const mergeNextmaps = (...maps) => {
 	});
 	return solution;
 };
+
 /**
- * @description Provide two or more simple backmaps in the order they were made
- * and this will merge them into one backmap which reflects all changes to the graph.
+ * @description Provide two or more simple backmaps in the order
+ * they were made and this will merge them into one backmap which
+ * reflects all changes to the graph.
  * @param {...number[]} ...maps a sequence of simplebackmaps
  * @returns {number[]} one backmap reflecting the sum of changes
  * @linkcode Origami ./src/graph/maps.js 43
@@ -54,9 +123,11 @@ export const mergeSimpleBackmaps = (...maps) => {
 	});
 	return solution;
 };
+
 /**
- * @description Provide two or more  backmaps in the order they were made
- * and this will merge them into one backmap which reflects all changes to the graph.
+ * @description Provide two or more  backmaps in the order
+ * they were made and this will merge them into one backmap which
+ * reflects all changes to the graph.
  * @param {...number[][]} ...maps a sequence of backmaps
  * @returns {number[][]} one backmap reflecting the sum of changes
  * @linkcode Origami ./src/graph/maps.js 59
@@ -77,96 +148,7 @@ export const mergeBackmaps = (...maps) => {
 	});
 	return solution;
 };
-/**
- * @description Invert an array of integers so that indices become values
- * and values become indices. In the case of duplicate indices
- * (duplicate input values), the duplicates will be overwritten.
- * @param {number[]} map an array of integers
- * @returns {number[]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 119
- */
-export const invertSimpleMap = (map) => {
-	const inv = [];
-	map.forEach((n, i) => { inv[n] = i; });
-	return inv;
-};
-/**
- * @description Invert an array of integers so that indices become values
- * and values become indices. In the case of duplicate indices
- * (duplicate input values), the duplicates will be skipped.
- * @param {number[]} map an array of integers
- * @returns {number[]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 119
- */
-export const invertSimpleMapNoReplace = (map) => {
-	const inv = [];
-	map.forEach((n, i) => { inv[n] = inv[n] === undefined ? i : inv[n]; });
-	return inv;
-};
-/**
- * @description Invert an array of integers so that indices become values and
- * values become indices. The values of the result will be an array.
- * In the case of duplicate indices (duplicate input values), they will all
- * end up in the value array. No data will be lost.
- * @param {number[]|number[][]} map an array of integers
- * @returns {number[][]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 83
- */
-export const invertArrayMap = (map) => {
-	const inv = [];
-	// set inv[index] = value, but before we do, make sure an array exists
-	const setIndexValue = (index, value) => {
-		if (inv[index] === undefined) { inv[index] = []; }
-		inv[index].push(value);
-	};
-	// iterate through the argument array and flip the index/value
-	// in the new array so that the index is the value and visa versa.
-	map.forEach((n, i) => {
-		if (n == null) { return; }
-		if (typeof n === "number") { setIndexValue(n, i); }
-		if (n.constructor === Array) {
-			n.forEach(m => setIndexValue(m, i));
-		}
-	});
-	return inv;
-};
-/**
- * @description Invert an array of integers so that indices become values and
- * values become indices. In the case of multiple values trying to insert
- * into the same index, a child array is made to house both (or more) numbers.
- * @param {number[]|number[][]} map an array of integers
- * @returns {number[]|number[][]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 83
- */
-export const invertMap = (map) => {
-	const inv = [];
-	// set inv[index] = value, but before we do, make sure that an array
-	// will be formed if there are multiple values at that index
-	const setIndexValue = (index, value) => {
-		// before we set the inverted map [i] spot, check if something is already there
-		if (inv[index] !== undefined) {
-			// if that thing is a number, turn it into an array
-			if (typeof inv[index] === "number") {
-				inv[index] = [inv[index], value];
-			} else {
-				// already an array, add to it
-				inv[index].push(value);
-			}
-		} else {
-			inv[index] = value;
-		}
-	};
-	// iterate through the argument array and flip the index/value
-	// in the new array so that the index is the value and visa versa.
-	map.forEach((n, i) => {
-		if (n == null) { return; }
-		if (typeof n === "number") { setIndexValue(n, i); }
-		if (n.constructor === Array) {
-			n.forEach(m => setIndexValue(m, i));
-		}
-	});
-	return inv;
-};
+
 /**
  * @description Remap the indices of a component in the graph.
  * This will update all references to this component too. For example,
@@ -187,21 +169,29 @@ export const remapComponent = (graph, component, indexMap = []) => {
 			.forEach((_, ii) => graph[key][ii]
 				.forEach((v, jj) => { graph[key][ii][jj] = indexMap[v]; })));
 	// shift the arrays themselves to the new location in the index map.
-	const inverted = invertSimpleMap(indexMap);
+	const inverted = invertFlatMap(indexMap);
 	filterKeysWithPrefix(graph, component)
 		.forEach(key => { graph[key] = inverted.map(i => graph[key][i]); });
 };
+
 /**
  *
  */
 export const remapKey = (graph, key, indexMap) => {
-	const invertedMap = invertSimpleMapNoReplace(indexMap);
+	// Perform a simple invertFlatMap, indices/values swap, but in the case of
+	// non-bijective maps, the first encounter will be kept, skipping duplicates.
+	const invertedMap = [];
+	indexMap.forEach((n, i) => {
+		invertedMap[n] = (invertedMap[n] === undefined ? i : invertedMap[n]);
+	});
+
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
 	filterKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
 			.forEach((_, ii) => graph[sKey][ii]
 				.forEach((v, jj) => { graph[sKey][ii][jj] = indexMap[v]; })));
+
 	// if a key was not included in indexMap for whatever reason,
 	// it will be registered as "undefined". remove these.
 	// the upcoming "prefix" step will automatically do this as well.
@@ -210,6 +200,7 @@ export const remapKey = (graph, key, indexMap) => {
 			.forEach((_, ii) => {
 				graph[sKey][ii] = graph[sKey][ii].filter(a => a !== undefined);
 			}));
+
 	// set the top-level arrays
 	filterKeysWithPrefix(graph, key).forEach(prefix => {
 		graph[prefix] = invertedMap.map(old => graph[prefix][old]);

@@ -21,7 +21,7 @@ import {
 } from "../../general/cluster.js";
 import { radialSortPointIndices3 } from "../../general/sort.js";
 import { makeEdgesCoords } from "../make.js";
-import { invertMap } from "../maps.js";
+import { invertArrayToFlatMap } from "../maps.js";
 import { pointsToLine } from "../../math/convert.js";
 /**
  *
@@ -136,7 +136,7 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 	const lines_edges = collinearParallelDistanceClusters
 		.flatMap(clusterOfClusters => clusterOfClusters
 			.flatMap(clusters => clusters));
-	const edges_line = invertMap(lines_edges);
+	const edges_line = invertArrayToFlatMap(lines_edges);
 	// get the most precise form of a line possible, this means,
 	// for all segments which lie on this line, build a vector
 	// from the furthest two points possible.

@@ -85,16 +85,16 @@ test("inside of nudgeFacesWithFaceOrders", () => {
 		[0, 1, 1], [2, 3, 1], [4, 5, 1], [6, 7, 1], [10, 11, 1],
 		[2, 13, 1], [8, 13, 1], [9, 14, 1], [1, 14, 1], [12, 15, 1],
 	];
-	const faces_sets = ear.graph.connectedComponents(ear.graph.makeVerticesVerticesUnsorted({
+	const faces_set = ear.graph.connectedComponents(ear.graph.makeVerticesVerticesUnsorted({
 		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
 	}));
-	const sets_faces = ear.graph.invertArrayMap(faces_sets);
+	const sets_faces = ear.graph.invertFlatToArrayMap(faces_set);
 	const faces_normal = ear.graph.makeFacesNormal(folded);
 	const sets_layers_face = sets_faces
 		.map(faces => ear.graph.faceOrdersSubset(faceOrders, faces))
 		.map(orders => ear.graph.linearizeFaceOrders({ faceOrders: orders, faces_normal }));
 
-	expect(JSON.stringify(faces_sets)).toBe(JSON.stringify([
+	expect(JSON.stringify(faces_set)).toBe(JSON.stringify([
 		0, 0, 1, 1, 2, 2,
 		3, 3, 1, 0, 4, 4,
 		5, 1, 0, 5,

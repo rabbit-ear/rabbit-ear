@@ -7,7 +7,7 @@ import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesFacesUnsorted,
 } from "./make.js";
-import { invertArrayMap } from "./maps.js";
+import { invertFlatToArrayMap } from "./maps.js";
 import { filterKeysWithPrefix } from "../fold/spec.js";
 import { uniqueElements } from "../general/array.js";
 /**
@@ -31,7 +31,7 @@ export const disjointGraphsIndices = (graph) => {
 	// oh yeah this won't work. everything needs to come from just the one array,
 	// whether it's vertices_vertices or faces_faces or whatever, we need to pick
 	// just one.
-	const vertices = invertArrayMap(connectedComponents(vertices_vertices));
+	const vertices = invertFlatToArrayMap(connectedComponents(vertices_vertices));
 	const edges = vertices
 		.map(verts => verts.flatMap(v => vertices_edges[v]))
 		.map(uniqueElements);

@@ -11,7 +11,7 @@ import {
 	mergeArraysWithHoles,
 } from "../../general/array.js";
 import {
-	invertMap,
+	invertFlatToArrayMap,
 } from "../../graph/maps.js";
 import {
 	makeFacesEdgesFromVertices,
@@ -80,8 +80,7 @@ const setup3d = ({
 	// prep
 	const facePairsIndex_set = facePairsInts
 		.map(pair => faces_set[pair[0]]);
-	const sets_facePairsIndex = invertMap(facePairsIndex_set)
-		.map(el => (el.constructor === Array ? el : [el]));
+	const sets_facePairsIndex = invertFlatToArrayMap(facePairsIndex_set);
 	// const sets_facePairsWithHoles = sets_facePairsIndex
 	// 	.map(indices => indices.map(i => facePairs[i]));
 	// const sets_facePairs = sets_constraints

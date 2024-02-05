@@ -1,18 +1,24 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { foldKeys } from "../fold/keys.js";
+import {
+	foldKeys,
+} from "../fold/keys.js";
 import {
 	filterKeysWithPrefix,
 	filterKeysWithSuffix,
 } from "../fold/spec.js";
-import { uniqueSortedNumbers } from "../general/array.js";
+import {
+	uniqueSortedNumbers,
+} from "../general/array.js";
+
 /**
  * @description Given a self-relational array like faces_faces or
  * vertices_vertices, and a list of indices with which to keep,
  * copy the array so that only those elements found in "indices"
  * are copied over, including the data in the inner most arrays.
- * This will produce an array with holes.
+ * This will produce an array with holes, but the inner arrays
+ * will have no holes.
  * @param {number[][]} array_array a self-relational index array,
  * such as "faces_faces".
  * @param {number[]} indices a list of indices to keep.
@@ -23,14 +29,16 @@ export const selfRelationalArraySubset = (array_array, indices) => {
 	// quick lookup, is an index to be included?
 	const hash = {};
 	indices.forEach(f => { hash[f] = true; });
+
 	// only include those faces which are in the group, both at
 	// the top level and inside the inside reference arrays.
-	const array_arraySubset = [];
+	const result = [];
 	indices.forEach(i => {
-		array_arraySubset[i] = array_array[i].filter(j => hash[j]);
+		result[i] = array_array[i].filter(j => hash[j]);
 	});
-	return array_arraySubset;
+	return result;
 };
+
 /**
  * @description Create a subgraph from a graph, with shallow pointers
  * to arrays by providing a list of vertices, edges, and faces which
@@ -101,6 +109,7 @@ export const subgraphExclusive = (graph, indicesToKeep = {}) => {
 	});
 	return copy;
 };
+
 /**
  * @description Create a subgraph from a graph, with shallow pointers
  * to arrays by providing a list of vertices, edges, and faces which
@@ -159,6 +168,7 @@ export const subgraph = (graph, indicesToKeep = {}) => {
 		faces: Object.keys(lookup.faces),
 	});
 };
+
 /**
  * @description Create a subgraph from a graph, with shallow pointers
  * to arrays by providing a list of faces which will be carried over,

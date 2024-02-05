@@ -13,7 +13,7 @@ import {
 } from "../../graph/orders.js";
 import count from "../../graph/count.js";
 import countImplied from "../../graph/countImplied.js";
-import { invertMap } from "../../graph/maps.js";
+import { invertFlatMap } from "../../graph/maps.js";
 import { triangulate } from "../../graph/triangulate.js";
 import { explodeFaces } from "../../graph/explode.js";
 
@@ -46,7 +46,7 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	// Object.assign(change, change2);
 
 	if (change.faces) {
-		const backmap = invertMap(change.faces.map);
+		const backmap = invertFlatMap(change.faces.map);
 		backmap.forEach((oldFace, face) => {
 			const nudge = faces_nudge[oldFace];
 			if (!nudge) { return; }
