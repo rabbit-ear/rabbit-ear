@@ -22,7 +22,7 @@ The [REPL](https://terminal.rabbitear.org/) is a terminal interface to the libra
 
 # usage
 
-Rabbit Ear is bundled into one Javascript file, available in a few formats. Use these urls as a cdn.
+Rabbit Ear source code is distributed as an ES6 module as well as bundled into a single Javascript file, available in a few different formats. These URLs link to the bundled files:
 
 ### UMD module
 
@@ -50,4 +50,4 @@ npm install rabbit-ear
 
 # license
 
-MIT open source software license
+GNU GPLv3

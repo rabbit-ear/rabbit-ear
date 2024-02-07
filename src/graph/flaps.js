@@ -1,8 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
-import { excludeS } from "../math/compare.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
+import {
+	excludeS,
+} from "../math/compare.js";
 import {
 	cross2,
 	subtract2,
@@ -11,8 +15,12 @@ import {
 	getEdgesLineIntersection,
 	getEdgesCollinearToLine,
 } from "./intersect/edges.js";
-import { makeFacesEdgesFromVertices } from "./make.js";
-import { makeFacesNormal } from "./normals.js";
+import {
+	makeFacesEdgesFromVertices,
+} from "./make.js";
+import {
+	makeFacesNormal,
+} from "./normals.js";
 import {
 	faceOrdersSubset,
 	linearizeFaceOrders,

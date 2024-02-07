@@ -1,7 +1,16 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
+import {
+	vecLineToUniqueLine,
+	uniqueLineToVecLine,
+} from "../math/convert.js";
+import {
+	includeL,
+} from "../math/compare.js";
 import {
 	normalize2,
 	cross2,
@@ -14,25 +23,16 @@ import {
 	midpoint2,
 	resizeUp,
 } from "../math/vector.js";
-import { bisectLines2 } from "../math/line.js";
 import {
-	vecLineToUniqueLine,
-	uniqueLineToVecLine,
-} from "../math/convert.js";
-import { includeL } from "../math/compare.js";
+	bisectLines2,
+} from "../math/line.js";
 import {
 	intersectLineLine,
 	intersectCircleLine,
 } from "../math/intersect.js";
-import { cubicSolver } from "../math/cubic.js";
-
-const intersectionUD = (line1, line2) => {
-	const det = cross2(line1.normal, line2.normal);
-	if (Math.abs(det) < EPSILON) { return undefined; }
-	const x = line1.distance * line2.normal[1] - line2.distance * line1.normal[1];
-	const y = line2.distance * line1.normal[0] - line1.distance * line2.normal[0];
-	return [x / det, y / det];
-};
+import {
+	cubicSolver,
+} from "../math/cubic.js";
 
 /*           _                       _              _
 						(_)                     (_)            (_)
@@ -127,16 +127,22 @@ export const axiom3 = (line1, line2) => bisectLines2(line1, line2);
  * @linkcode Origami ./src/axioms/axiomsNormDist.js 67
  */
 export const normalAxiom3 = (line1, line2) => {
-	// if no intersect, lines are parallel, only one solution exists
-	const intersect = intersectionUD(line1, line2);
-	return intersect === undefined
-		? [{
+	const determ = cross2(line1.normal, line2.normal);
+
+	// lines are parallel, only one solution exists
+	if (Math.abs(determ) < EPSILON) {
+		return [{
 			normal: line1.normal,
 			distance: (line1.distance + line2.distance * dot2(line1.normal, line2.normal)) / 2,
-		}]
-		: [add2, subtract2]
-			.map(f => normalize2(f(line1.normal, line2.normal)))
-			.map(normal => ({ normal, distance: dot2(intersect, normal) }));
+		}];
+	}
+	const x = line1.distance * line2.normal[1] - line2.distance * line1.normal[1];
+	const y = line2.distance * line1.normal[0] - line1.distance * line2.normal[0];
+	const intersect = [x / determ, y / determ];
+
+	return [add2, subtract2]
+		.map(f => normalize2(f(line1.normal, line2.normal)))
+		.map(normal => ({ normal, distance: dot2(intersect, normal) }));
 };
 
 /**

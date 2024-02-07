@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/constant.js";
+import {
+	EPSILON,
+} from "../../math/constant.js";
 import {
 	cross2,
 	subtract2,
@@ -12,29 +14,30 @@ import {
 	multiplyMatrices2,
 	makeMatrix2Reflect,
 } from "../../math/matrix2.js";
-import populate from "../populate.js";
-import { facesContainingPoint } from "../nearest.js";
-import { mergeNextmaps } from "../maps.js";
+import {
+	edgeAssignmentToFoldAngle,
+} from "../../fold/spec.js";
+import {
+	mergeNextmaps,
+} from "../maps.js";
 import {
 	makeFacesMatrix2,
 	multiplyVerticesFacesMatrix2,
 } from "../faces/matrix.js";
-import { getEdgesCollinearToLine } from "../intersect/edges.js";
-import { makeFacesWindingFromMatrix2 } from "../faces/winding.js";
+import {
+	faceContainingPoint,
+} from "../faces/facePoint.js";
+import {
+	getEdgesCollinearToLine,
+} from "../intersect/edges.js";
+import {
+	makeFacesWindingFromMatrix2,
+} from "../faces/winding.js";
+import {
+	foldFacesLayer,
+} from "./facesLayer.js";
 import splitConvexFace from "../splitFace/index.js";
-import { edgeAssignmentToFoldAngle } from "../../fold/spec.js";
-import { foldFacesLayer } from "./facesLayer.js";
-
-/**
- *
- */
-const getContainingFace = (graph, point, vector, epsilon = EPSILON) => {
-	const faces = facesContainingPoint(graph, point);
-	if (faces.length === 0) { return undefined; }
-	if (faces.length === 1) { return faces[0]; }
-	// const remainingPolygons =
-	return faces[0];
-};
+import populate from "../populate.js";
 
 /**
  * @description this determines which side of a line (using cross product)
@@ -138,12 +141,9 @@ const flatFold = (
 	// faces_matrix is built from the crease pattern, but reflects
 	// the faces in their folded state.
 	if (!graph.faces_matrix2) {
-		// todo: consider making this face the face that contains "origin".
-		// additionally, if the origin is on the boundary between two faces,
-		// pick the one that "vector" points to.
 		graph.faces_matrix2 = makeFacesMatrix2(
 			graph,
-			getContainingFace(graph, origin, vector, epsilon),
+			faceContainingPoint(graph, origin, vector),
 		);
 	}
 	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);

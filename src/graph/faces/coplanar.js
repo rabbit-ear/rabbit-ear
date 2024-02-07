@@ -30,6 +30,7 @@ import {
 } from "../maps.js";
 import { makeFacesFaces } from "../make.js";
 import { selfRelationalArraySubset } from "../subgraph.js";
+
 /**
  * @description Cluster the faces of a graph into groups of face indices where
  * all faces in the same group lie in the same plane in 3D (but are not

@@ -6,18 +6,29 @@ import {
 	distance,
 	resize,
 } from "../math/vector.js";
-import { exclude } from "../math/compare.js";
-import { nearestPointOnLine } from "../math/nearest.js";
-import { arrayMinimumIndex } from "../general/array.js";
-import { getVector } from "../general/get.js";
-import { clampSegment } from "../math/line.js";
-import { overlapConvexPolygonPoint } from "../math/overlap.js";
+import {
+	nearestPointOnLine,
+} from "../math/nearest.js";
+import {
+	arrayMinimumIndex,
+} from "../general/array.js";
+import {
+	getVector,
+} from "../general/get.js";
+import {
+	clampSegment,
+} from "../math/line.js";
 import {
 	singularize,
 	filterKeysWithPrefix,
 	getDimensionQuick,
 } from "../fold/spec.js";
-import { makeFacesConvexCenter } from "./make.js";
+import {
+	makeFacesConvexCenter,
+} from "./make.js";
+import {
+	faceContainingPoint,
+} from "./faces/facePoint.js";
 
 /**
  * @description Iterate through all vertices in a graph and find the one nearest to a
@@ -61,34 +72,6 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 			clampSegment,
 		));
 	return arrayMinimumIndex(nearest_points, p => distance(p, point));
-};
-
-/**
- *
- */
-export const facesContainingPoint = (
-	{ vertices_coords, faces_vertices },
-	point,
-	polyFunc = exclude,
-) => (!vertices_coords || !faces_vertices
-	? []
-	: faces_vertices
-		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-		.filter(f => overlapConvexPolygonPoint(f.face, point, polyFunc))
-		.map(el => el.i)
-);
-
-/**
- * @description Iterate through all faces in a graph and find one that encloses a point.
- * This method assumes the graph is in 2D, it ignores any z components.
- * @param {FOLD} graph a FOLD object
- * @param {number[]} point the point to find the enclosing face
- * @returns {number|undefined} the index of the face, or undefined if no face encloses a point
- * @linkcode Origami ./src/graph/nearest.js 65
- */
-export const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
-	const faces = facesContainingPoint({ vertices_coords, faces_vertices }, point);
-	return faces.length ? faces.shift() : undefined;
 };
 
 /**

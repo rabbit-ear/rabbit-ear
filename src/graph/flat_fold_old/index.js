@@ -6,7 +6,7 @@ import splitConvexFace from "../splitFace/index.js";
 import { foldFacesLayer } from "./facesLayer.js";
 import clone from "../../general/clone.js";
 import Count from "../count.js";
-import { faceContainingPoint } from "../nearest.js";
+import { faceContainingPoint } from "../faces/facePoint.js";
 import { edgesAssignmentDegrees } from "../../fold/spec.js";
 import {
 	makeFacesCenter,

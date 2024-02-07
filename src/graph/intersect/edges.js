@@ -1,19 +1,32 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/constant.js";
+import {
+	EPSILON,
+} from "../../math/constant.js";
 import {
 	includeL,
 	includeS,
 } from "../../math/compare.js";
-import { subtract2 } from "../../math/vector.js";
-import { boundingBox } from "../../math/polygon.js";
-import { intersectLineLine } from "../../math/intersect.js";
+import {
+	pointsToLine,
+} from "../../math/convert.js";
+import {
+	subtract2,
+} from "../../math/vector.js";
+import {
+	boundingBox,
+} from "../../math/polygon.js";
+import {
+	intersectLineLine,
+} from "../../math/intersect.js";
 import {
 	makeVerticesEdgesUnsorted,
 	makeEdgesCoords,
 } from "../make.js";
-import { getVerticesCollinearToLine } from "./vertices.js";
+import {
+	getVerticesCollinearToLine,
+} from "./vertices.js";
 /**
  * @description Find all edges in a graph which lie parallel
  * and on top of a line (infinite line). Can be 2D or 3D.
@@ -112,15 +125,10 @@ export const getEdgesSegmentIntersection = ({
 export const getEdgesLineIntersection = ({
 	vertices_coords, edges_vertices,
 }, { vector, origin }, epsilon = EPSILON, segmentFunc = includeS) => edges_vertices
-	.map(vertices => {
-		const edgeCoords = vertices.map(v => vertices_coords[v]);
-		const edgeVector = subtract2(edgeCoords[1], edgeCoords[0]);
-		const edgeLine = { vector: edgeVector, origin: edgeCoords[0] };
-		return intersectLineLine(
-			edgeLine,
-			{ vector, origin },
-			segmentFunc,
-			includeL,
-			epsilon,
-		);
-	});
+	.map(vertices => intersectLineLine(
+		pointsToLine(...vertices.map(v => vertices_coords[v])),
+		{ vector, origin },
+		segmentFunc,
+		includeL,
+		epsilon,
+	));

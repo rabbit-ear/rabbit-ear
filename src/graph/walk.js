@@ -11,7 +11,7 @@
  * initialize an empty object and pass it in every time you call this method.
  * If you use a global "walkedEdges" and this method is trying to build a
  * face that was already previously built, the method will return undefined.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLD} graph a FOLD object with the additional vertices_sectors data
  * @param {number} vertex0 starting vertex
  * @param {number} vertex1 second vertex, this sets the direction of the walk
  * @param {object} [walkedEdges={}] memo object, to prevent walking down
@@ -77,6 +77,7 @@ export const walkSingleFace = (
 			Object.assign(walkedEdges, thisWalkedEdges);
 			face.vertices.pop();
 			face.edges.pop();
+			if (!face.angles.length) { delete face.angles; }
 			return face;
 		}
 		thisWalkedEdges[nextEdgeVertices] = true;
@@ -96,7 +97,7 @@ export const walkSingleFace = (
 /**
  * @description Given a planar graph, discover all faces by counter-clockwise
  * walking by starting at every edge.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLD} graph a FOLD object with the additional vertices_sectors data
  * @returns {object[]} an array of face objects, where each face
  * has number arrays, "vertices", "edges", and "angles".
  * vertices and edges are indices, angles are radians.
@@ -117,6 +118,9 @@ export const walkPlanarFaces = ({ vertices_vertices, vertices_sectors }) => {
  * walkSingleFace(). There will be one face in the which winds around the
  * outside of the boundary and encloses the space outside around. This method will
  * find that face and remove it from the set.
+ * Important usage note, the graph provided to walkPlanarFaces should have
+ * vertices_sectors computed, otherwise angles will not exist and the
+ * boundary face will not be found.
  * @algorithm 180 - sector angle = the turn angle. counter clockwise
  * turns are +, clockwise will be -, this removes the one face that
  * outlines the piece with opposite winding enclosing Infinity.

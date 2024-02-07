@@ -44,7 +44,6 @@ import * as edgesLines from "./edges/lines.js";
 import * as facesCoplanar from "./faces/coplanar.js";
 import * as facesGeneral from "./faces/general.js";
 import * as facesMatrix from "./faces/matrix.js";
-// import * as facesSpanningTree from "./faces/spanningTree.js";
 import * as facesWinding from "./faces/winding.js";
 import * as intersectVertices from "./intersect/vertices.js";
 import * as intersectEdges from "./intersect/edges.js";
@@ -100,13 +99,15 @@ export default {
 	addPlanarSegment,
 	addPlanarSegmentNew,
 	planarize,
-	...connectedComponents,
 	...foldColors,
 	...foldFileFrames,
 	...foldKeyMethods,
 	...foldSpecMethods,
 	...boundary,
 	...clip,
+	...connectedComponents,
+	...directedGraph,
+	...disjoint,
 	...explodeMethods,
 	...flaps,
 	...intersect,
@@ -122,8 +123,6 @@ export default {
 	...subgraphMethods,
 	...sweep,
 	...symmetry,
-	...directedGraph,
-	...disjoint,
 	...transfer,
 	...transform,
 	...trees,
@@ -143,7 +142,6 @@ export default {
 	...facesCoplanar,
 	...facesGeneral,
 	...facesMatrix,
-	// ...facesSpanningTree,
 	...facesWinding,
 	...intersectVertices,
 	...intersectEdges,

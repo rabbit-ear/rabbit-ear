@@ -33,7 +33,7 @@ export const getEdgesVerticesOverlappingSpan = (graph, epsilon = EPSILON) => (
  * @returns {boolean[][]} NxN 2D array filled with true/false answering
  * "do edges's bounding boxes overlap?"
  * Both triangles of the matrix are filled and the main diagonal contains true.
- * ```text
+ * ```
  *     0  1  2  3
  * 0 [ t,  ,  ,  ]
  * 1 [  , t,  ,  ]

@@ -9,46 +9,32 @@ import {
 	add2,
 	scale2,
 } from "../../math/vector.js";
-import { overlapConvexPolygonPoint } from "../../math/overlap.js";
-import { facesContainingPoint } from "../nearest.js";
+import {
+	overlapConvexPolygonPoint,
+} from "../../math/overlap.js";
 
 /**
- *
+ * @description Given a point, get the indices of all faces which this point
+ * lies inside. An optional domain function allows you to specify
+ * inclusive or exclusive. This method is 2D only.
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} point the point to test
+ * @param {function} [domainFunction=include], an optional domain function
+ * to specificy inclusive or exclusive.
+ * @returns {number[]} an array of face indices
+ * @linkcode
  */
-export const getFacesContainingPoint = (
+export const facesContainingPoint = (
 	{ vertices_coords, faces_vertices },
 	point,
-	vector,
-) => {
-	const facesInclusive = facesContainingPoint(
-		{ vertices_coords, faces_vertices },
-		point,
-		include,
-	);
-	switch (facesInclusive.length) {
-	case 0: return undefined;
-	case 1: return facesInclusive[0];
-	default: break;
-	}
-	// if user did not supply a vector, return the list of faces.
-	if (!vector) { return facesInclusive; }
-	// continue search by nudging point.
-	const nudgePoint = add2(point, scale2(vector, 1e-2));
-	const polygons = facesInclusive
-		.map(face => faces_vertices[face]
-			.map(v => vertices_coords[v]));
-	const facesExclusive = facesInclusive
-		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, exclude));
-	if (facesExclusive.length === facesInclusive.length) {
-		return facesInclusive;
-	}
-	if (facesExclusive.length) {
-		return facesExclusive;
-	}
-	const facesInclusiveNudge = facesInclusive
-		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, include));
-	return facesInclusiveNudge.length ? facesInclusiveNudge : facesInclusive;
-};
+	domainFunction = include,
+) => (!vertices_coords || !faces_vertices
+	? []
+	: faces_vertices
+		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
+		.filter(f => overlapConvexPolygonPoint(f.face, point, domainFunction))
+		.map(el => el.i)
+);
 
 /**
  * @description Given a point, get the index of a face that this point
@@ -56,13 +42,16 @@ export const getFacesContainingPoint = (
  * vertex, supply a vector indicating the direction to nudge the point
  * a very tiny amount, then there will be a preference to return the
  * index of the face which encloses the nudged point.
+ * This is a 2D-only method, any z-axis data will be ignored.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} point the point to test
  * @param {number[]} vector an optional vector, used in the case that
  * the point exists along an edge or a vertex.
- * @returns {number} the index of a face
+ * @returns {number|undefined} the index of a face, or undefined
+ * if the point does not lie inside any face.
+ * @linkcode
  */
-export const getFaceContainingPoint = (
+export const faceContainingPoint = (
 	{ vertices_coords, faces_vertices },
 	point,
 	vector,
@@ -77,8 +66,10 @@ export const getFaceContainingPoint = (
 	case 1: return facesInclusive[0];
 	default: break;
 	}
+
 	// if user did not supply a vector, stop. return the first face in the list.
 	if (!vector) { return facesInclusive[0]; }
+
 	// continue search by nudging point.
 	const nudgePoint = add2(point, scale2(vector, 1e-2));
 	const polygons = facesInclusive

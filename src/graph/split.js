@@ -1,19 +1,27 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
 import {
 	includeL,
 	includeR,
 	includeS,
 } from "../math/compare.js";
 import {
+	pointsToLine,
+} from "../math/convert.js";
+import {
+	overlapConvexPolygonPointNew,
+} from "../math/overlap.js";
+import {
 	invertFlatMap,
 	invertFlatToArrayMap,
 } from "./maps.js";
-import { pointsToLine } from "../math/convert.js";
-import { overlapConvexPolygonPointNew } from "../math/overlap.js";
-import { intersectGraphLineFunc } from "./intersect.js";
+import {
+	intersectGraphLineFunc,
+} from "./intersect.js";
 
 /**
  * @description Given a 2D line and a graph with vertices in 2D, split
@@ -26,8 +34,8 @@ import { intersectGraphLineFunc } from "./intersect.js";
  * edges_vertices may reference vertex indices from the source graph.
  * @param {FOLD} graph a fold graph in creasePattern or foldedForm
  * @param {VecLine} line a line/ray/segment in vector origin form
- * @param {number[][]} in the case of a ray or segment, place in here
- * the endpoint(s), and they will be included in the result.
+ * @param {number[][]} userPoints in the case of a ray or segment, place
+ * in here the endpoint(s), and they will be included in the result.
  * @param {function} lineFunc the function which characterizes "line"
  * parameter into a line, ray, or segment.
  * @param {number} [epsilon=1e-6] an optional epsilon
