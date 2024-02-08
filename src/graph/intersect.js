@@ -82,8 +82,8 @@ export const intersectWithLineVertices = (
  *   vector, if there is no intersection the value is undefined.
  * - edges: a list of intersections, undefined if no intersection or collinear,
  *   or an intersection object which describes:
- *   - a: {number} the edge's parameter of the intersection
- *   - b: {number} the line's parameter of the intersection
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number} the edge's parameter of the intersection
  *   - point: {number[]} the intersection point
  *   - vertex: {number|undefined} in the case of an intersection which crosses
  *     a vertex, indicate which vertex, otherwise, mark it as undefined.
@@ -124,10 +124,10 @@ export const intersectWithLineVerticesEdges = (
 		.map(ev => ev.map(v => vertices_coords[v]))
 		.map((seg, e) => (edgesVerticesOverlap[e].length === 0
 			? ({ ...intersectLineLine(
-				pointsToLine(...seg),
 				{ vector, origin },
-				includeS,
+				pointsToLine(...seg),
 				lineDomain,
+				includeS,
 			),
 			vertex: undefined })
 			: undefined))
@@ -139,9 +139,9 @@ export const intersectWithLineVerticesEdges = (
 	const edges = edgesVerticesOverlap
 		.map((verts, e) => (verts.length === 1
 			? ({
-				a: edges_vertices[e][0] === verts[0] ? 0 : 1,
-				b: (dot2(vector, subtract2(vertices_coords[verts[0]], origin))
+				a: (dot2(vector, subtract2(vertices_coords[verts[0]], origin))
 					/ magSquared(vector)),
+				b: edges_vertices[e][0] === verts[0] ? 0 : 1,
 				point: [...vertices_coords[verts[0]]],
 				vertex: verts[0],
 			})
@@ -162,13 +162,15 @@ export const intersectWithLineVerticesEdges = (
  * - vertices: for every vertex, true or false, does the vertex overlap the line
  * - edges: a list of intersections, undefined if no intersection or collinear,
  *   or an intersection object which describes:
- *   - a: {number} the edge's parameter of the intersection
- *   - b: {number} the line's parameter of the intersection
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number} the edge's parameter of the intersection
  *   - point: {number[]} the intersection point
  *   - vertex: {number|undefined} in the case of an intersection which crosses
  *     a vertex, indicate which vertex, otherwise, mark it as undefined.
- * - faces: for every intersected face, an array of two intersection objects
- *   as detailed under the "edges" section of this description.
+ * - faces: for every intersected face, an array of intersection objects,
+ *   copies from the "edges" section, where all intersection events are
+ *   guaranteed to be unique with no duplicate data (ie: a line crossing at
+ *   a vertex registers 2 edge-intersections, only 1 is chosen).
  */
 export const intersectWithLine = (
 	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
@@ -176,10 +178,6 @@ export const intersectWithLine = (
 	lineDomain = includeL,
 	epsilon = EPSILON,
 ) => {
-	if (!faces_edges) {
-		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	}
-
 	// intersect the line with every edge. the intersection should be inclusive
 	// with respect to the segment endpoints. this will cause duplicate points
 	// for every face when a line crosses exactly at its vertex, but this is
@@ -191,59 +189,32 @@ export const intersectWithLine = (
 		epsilon,
 	);
 
+	if (!faces_vertices) { return { vertices, edges, faces: [] }; }
+
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
+
 	// for every face, get every edge of that face's intersection with our line,
-	// however, filter out any edges which had no intersection.
+	// filter out any edges which had no intersection.
 	// it's possible for faces to have 0, 1, 2, 3... any number of intersections.
 	const facesIntersections = faces_edges
 		.map(fe => fe
 			.map(edge => (edges[edge] ? { ...edges[edge], edge } : undefined))
 			.filter(a => a !== undefined));
 
-	// delete faces which have fewer than 2 intersections. using this list,
-	// we will perform all kinds of filtering to remove duplicate points.
-	facesIntersections
-		.map((arr, f) => (arr.length < 2 ? f : undefined))
-		.filter(f => f !== undefined)
-		.forEach(f => delete facesIntersections[f]);
-
-	// this epsilon function will compare the object's "b" property
-	// which is the intersections's "b" parameter (line parameter).
-	const epsilonEqual = (a, b) => Math.abs(a.b - b.b) < epsilon * 2;
-
-	// Every face now has two or more intersections events.
-	// We need to filter out the invalid cases, which include:
-	// - line outside face but touches only at one point, which still
-	//   registers as two intersections because it touches two edges.
-	// - line overlaps face, but face is non-convex, so there are more than
-	//   two clusters of points (sorted geometrically)
+	// this epsilon function will compare the object's "a" property
+	// which is the intersections's "a" parameter (line parameter).
+	const epsilonEqual = (p, q) => Math.abs(p.a - q.a) < epsilon * 2;
 
 	// For every face, sort and cluster the face's intersection events using
 	// our input line's parameter. This results in, for every face,
 	// its intersection events are clustered inside of sub arrays.
-	// A simple, valid face will contain two clusters.
-	const faces = [];
-	facesIntersections
-		.map(intersections => intersections.sort((a, b) => a.b - b.b))
+	const faces = facesIntersections
+		.map(intersections => intersections.sort((p, q) => p.a - q.a))
 		.map(intersections => clusterSortedGeneric(intersections, epsilonEqual)
 			.map(cluster => cluster.map(index => intersections[index])))
-		.forEach((clusters, f) => {
-			switch (clusters.length) {
-			case 0:
-			case 1:
-				// the line intersects the face outside of the face, at a single point
-				break;
-			case 2:
-				// take one intersection event from each cluster (doesn't matter which)
-				faces[f] = [clusters[0][0], clusters[clusters.length - 1][0]];
-				break;
-			default:
-				// todo: non-convex faces which have an even number of clusters > 2,
-				// we could take every other pair and create a segment.
-				// we would have to refactor to be working with segments plural,
-				// and we are no longer returning one new edge per face.
-				break;
-			}
-		});
+		.map(clusters => clusters.map(cluster => cluster[0]));
 
 	return { vertices, edges, faces };
 };

@@ -16,118 +16,12 @@ import {
 	overlapConvexPolygonPointNew,
 } from "../math/overlap.js";
 import {
-	makeFacesEdgesFromVertices,
-} from "./make.js";
-import {
 	invertFlatMap,
 	invertFlatToArrayMap,
 } from "./maps.js";
 import {
 	intersectWithLine,
-	intersectWithLineVerticesEdges,
 } from "./intersect.js";
-
-/**
- * @description Method for performing line/ray/segment intersection with
- * a FOLD graph and returning intersection information with faces,
- * edges, and vertices.
- * @param {FOLD} graph a fold graph in creasePattern or foldedForm
- * @param {VecLine} line a line/ray/segment in vector origin form
- * @param {function} lineDomain the function which characterizes "line"
- * parameter into a line, ray, or segment.
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} a summary of intersections with faces, edges, and vertices
- * - "faces" contains keys: "edges", "vertices" where each contains existing
- *   component indices which are overlapped by the line.
- * - "edges" contains "collinear" and "intersected" where collinear is simply
- *   a list of edge indices, and intersected is a map between an existing edge
- *   index (key) to an intersection result with "a", "b" and "point" as the value.
- * - "vertices" contains a list of existing vertex indices which
- *   are overlapped by the line.
- */
-const prepareSplitGraph = (
-	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
-	line,
-	lineDomain = includeL,
-	epsilon = EPSILON,
-) => {
-	// calculate intersections with vertices and edges
-	const { vertices, edges } = intersectWithLineVerticesEdges(
-		{ vertices_coords, edges_vertices },
-		line,
-		lineDomain,
-		epsilon,
-	);
-	const verticesOverlap = vertices.map(v => v !== undefined);
-	const collinear = edges_vertices
-		.map(ev => verticesOverlap[ev[0]] && verticesOverlap[ev[1]]);
-	const intersected = edges;
-
-	intersected.forEach((el, e) => { if (el === undefined) { delete intersected[e]; } });
-
-	edges_vertices
-		.map((verts, e) => (verticesOverlap[verts[0]] || verticesOverlap[verts[1]]
-			? e
-			: undefined))
-		.filter(a => a !== undefined)
-		.forEach(e => delete intersected[e]);
-
-	// if faces don't exist, we can still return intersection information
-	// regarding the vertices and edges.
-	if (!faces_vertices) {
-		return {
-			vertices,
-			edges: { collinear, intersected },
-			faces: { edges: [], vertices: [] },
-		};
-	}
-	if (!faces_edges) {
-		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	}
-
-	// if a face has one or more crossed edges/vertices, we can place
-	// a segment between the two intersection events.
-	const facesWithOverlappedEdges = faces_edges
-		.map(fe => fe.filter(e => collinear[e]));
-	const facesWithCrossedEdges = faces_edges
-		.map(fe => fe.filter(e => intersected[e]));
-
-	// for a vertex to count as being "inside" a face, we want to remove from
-	// the list any vertices which are a part of an overlapped edge, not ANY
-	// overlapped edge, but an overlapped edge included in this face. However,
-	// if we are already filtering out faces that contain an overlapped edge,
-	// we don't have to worry about it in this moment.
-	const facesWithVertices = faces_vertices
-		.map(fv => fv.filter(v => verticesOverlap[v]));
-
-	// if a face has a crossed edge or vertex,
-	const faces = faces_vertices.map((_, f) => {
-		if (facesWithOverlappedEdges[f].length) { return undefined; }
-		const faceEdges = facesWithCrossedEdges[f];
-		const faceVertices = facesWithVertices[f];
-		return faceEdges.length + faceVertices.length
-			? { edges: faceEdges, vertices: faceVertices }
-			: undefined;
-	});
-
-	// remove faces that aren't crossed by our line.
-	Object.keys(faces)
-		.filter(f => faces[f] === undefined)
-		.forEach(f => delete faces[f]);
-
-	return {
-		faces,
-		edges: {
-			intersected,
-			collinear: collinear
-				.map((overlap, e) => (overlap ? e : undefined))
-				.filter(a => a !== undefined),
-		},
-		vertices: verticesOverlap
-			.map((overlap, v) => (overlap ? v : undefined))
-			.filter(a => a !== undefined),
-	};
-};
 
 /**
  * @description Given a 2D line and a graph with vertices in 2D, split
@@ -166,21 +60,36 @@ export const splitGraphLineFunction = (
 	}
 
 	// we aren't using the "vertices" data returned by this method.
-	const { edges, faces } = prepareSplitGraph(
+	const { vertices, edges, faces } = intersectWithLine(
 		{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
 		line,
 		lineDomain,
 		epsilon,
 	);
 
+	const verticesCollinear = vertices.map(v => v !== undefined);
+	const collinear_edges = edges_vertices
+		.map(verts => verticesCollinear[verts[0]] && verticesCollinear[verts[1]])
+		.map((collinear, e) => (collinear ? e : undefined))
+		.filter(a => a !== undefined);
+
+	const newFaces = faces.map(intersections => ({
+		edges: intersections
+			.map(el => (el.vertex === undefined ? el.edge : undefined))
+			.filter(a => a !== undefined),
+		vertices: intersections
+			.map(el => (el.vertex !== undefined ? el.vertex : undefined))
+			.filter(a => a !== undefined),
+	}));
+
 	if (userPoints.length) {
-		faces.forEach((_, f) => {
+		newFaces.forEach((_, f) => {
 			const poly = faces_vertices[f].map(v => vertices_coords[v]);
 			const points = userPoints.map(point => ({
 				...overlapConvexPolygonPointNew(poly, point),
 				point,
 			})).filter(el => el.overlap);
-			faces[f].points = points;
+			newFaces[f].points = points;
 		});
 	}
 
@@ -188,14 +97,14 @@ export const splitGraphLineFunction = (
 	const nonConvexFaces = {};
 
 	// filter to contain only faces which have 2 vertices inside.
-	faces.forEach((face, f) => {
-		const count = (faces[f].points
-			? faces[f].vertices.length + faces[f].edges.length + faces[f].points.length
-			: faces[f].vertices.length + faces[f].edges.length);
+	newFaces.forEach((face, f) => {
+		const count = (newFaces[f].points
+			? newFaces[f].vertices.length + newFaces[f].edges.length + newFaces[f].points.length
+			: newFaces[f].vertices.length + newFaces[f].edges.length);
 		// todo: here is part 1 of hard-coding to only work with convex faces
 		// if (count < 2) { delete faces[f]; }
 		if (count > 2) { nonConvexFaces[f] = true; }
-		if (count !== 2) { delete faces[f]; }
+		if (count !== 2) { delete newFaces[f]; }
 	});
 
 	// new vertices come from one of two places:
@@ -213,26 +122,24 @@ export const splitGraphLineFunction = (
 	const new_vertices_onEdge = [];
 	const new_vertices_inFace = [];
 
-	// // these edges intersected with the line but at one of its endpoints.
-	// // we will use this in the upcoming section to filter out edges.
-	// const edgesEndpointOverlap = edges_vertices
-	// 	.map(verts => vertices[verts[0]] || vertices[verts[1]]);
+	edges.forEach((intersection, e) => {
+		if (intersection === undefined) { delete edges[e]; }
+	});
+
+	edges.forEach((intersection, e) => {
+		if (intersection.vertex !== undefined) { delete edges[e]; }
+	});
 
 	// loop through the intersected edge vertices, and overlapped face vertices,
 	// add each new vertex data into the arrays.
 	// only include edges which intersect somewhere in the interior of the edge.
-	edges.intersected
-		// .map((intersection, edge) => (intersection ? edge : undefined))
-		// .filter(a => a !== undefined)
-		// .filter(edge => !edgesEndpointOverlap[edge])
-		// .map(edge => ({ ...edges.intersected[edge], edge }))
-		// .forEach(({ a, b, point, edge }) => {
-		.forEach(({ a, b, point }, edge) => {
-			new_vertices_onEdge[vCount] = edge;
-			new_vertices_overlapInfo[vCount] = { a, b, point, edge };
-			new_vertices_coords[vCount++] = point;
-		});
-	faces.forEach(({ points }, face) => points.forEach((overlap) => {
+	// edges.intersected
+	edges.forEach(({ a, b, point }, edge) => {
+		new_vertices_onEdge[vCount] = edge;
+		new_vertices_overlapInfo[vCount] = { a, b, point, edge };
+		new_vertices_coords[vCount++] = point;
+	});
+	newFaces.forEach(({ points }, face) => points.forEach((overlap) => {
 		new_vertices_inFace[vCount] = face;
 		new_vertices_overlapInfo[vCount] = { ...overlap, face };
 		new_vertices_coords[vCount++] = overlap.point;
@@ -252,7 +159,7 @@ export const splitGraphLineFunction = (
 	// order them geometrically, and build a consecutive list of them.
 	let eCount = edges_vertices.length;
 	const new_edges_vertices = [];
-	faces.forEach((face, f) => {
+	newFaces.forEach((face, f) => {
 		const edgesVertices = face.edges.map(e => newEdgesVertex[e]);
 		const interiorVertices = newFacesVertices[f];
 		new_edges_vertices[eCount++] = edgesVertices
@@ -265,7 +172,7 @@ export const splitGraphLineFunction = (
 		vertices_coords: new_vertices_coords,
 		vertices_overlapInfo: new_vertices_overlapInfo,
 		edges_vertices: new_edges_vertices,
-		collinear_edges: edges.collinear,
+		collinear_edges,
 	};
 };
 
