@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/constant.js";
+import {
+	EPSILON,
+} from "../../math/constant.js";
 import {
 	dot,
 	dot3,
@@ -20,16 +22,28 @@ import {
 	matrix4FromQuaternion,
 	quaternionFromTwoVectors,
 } from "../../math/quaternion.js";
-import { overlapConvexPolygons } from "../../math/overlap.js";
-import { makeFacesNormal } from "../normals.js";
-import { clusterScalars } from "../../general/cluster.js";
-import { connectedComponents } from "../connectedComponents.js";
+import {
+	overlapConvexPolygons,
+} from "../../math/overlap.js";
+import {
+	makeFacesNormal,
+} from "../normals.js";
+import {
+	clusterScalars,
+} from "../../general/cluster.js";
+import {
+	connectedComponents,
+} from "../connectedComponents.js";
 import {
 	invertArrayToFlatMap,
 	invertFlatToArrayMap,
 } from "../maps.js";
-import { makeFacesFaces } from "../make.js";
-import { selfRelationalArraySubset } from "../subgraph.js";
+import {
+	makeFacesFaces,
+} from "../make.js";
+import {
+	selfRelationalArraySubset,
+} from "../subgraph.js";
 
 /**
  * @description Cluster the faces of a graph into groups of face indices where

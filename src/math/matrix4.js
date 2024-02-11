@@ -1,10 +1,6 @@
 /**
  * Math (c) Kraft
  */
-/**
- * 4x4 matrix methods. the fourth column is a translation vector
- * these methods depend on arrays of 16 items.
- */
 import { EPSILON } from "./constant.js";
 import {
 	normalize,
@@ -14,6 +10,12 @@ import {
 	resize,
 } from "./vector.js";
 import { makeMatrix2Reflect } from "./matrix2.js";
+
+/**
+ * 4x4 matrix methods. the fourth column is a translation vector
+ * these methods depend on arrays of 16 items.
+ */
+
 /**
  * @description the identity matrix for 3x3 matrices
  * @constant {number[]}
@@ -21,6 +23,7 @@ import { makeMatrix2Reflect } from "./matrix2.js";
  * @linkcode Math ./src/algebra/matrix4.js 19
  */
 export const identity4x4 = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+
 /**
  * @description test if a 4x4 matrix is the identity matrix within an epsilon
  * @param {number[]} m a 4x4 matrix
@@ -30,6 +33,7 @@ export const identity4x4 = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0,
 export const isIdentity4x4 = m => identity4x4
 	.map((n, i) => Math.abs(n - m[i]) < EPSILON)
 	.reduce((a, b) => a && b, true);
+
 /**
  * @description multiply one 3D vector by a 4x4 matrix
  * @param {number[]} m one matrix in array form
@@ -42,6 +46,7 @@ export const multiplyMatrix4Vector3 = (m, vector) => [
 	m[1] * vector[0] + m[5] * vector[1] + m[9] * vector[2] + m[13],
 	m[2] * vector[0] + m[6] * vector[1] + m[10] * vector[2] + m[14],
 ];
+
 /**
  * @description multiply one 3D line by a 4x4 matrix
  * @param {number[]} m one matrix in array form
@@ -62,6 +67,7 @@ export const multiplyMatrix4Line3 = (m, vector, origin) => ({
 		m[2] * origin[0] + m[6] * origin[1] + m[10] * origin[2] + m[14],
 	],
 });
+
 /**
  * @description multiply two 4x4 matrices together
  * @param {number[]} m1 the first matrix
@@ -87,6 +93,7 @@ export const multiplyMatrices4 = (m1, m2) => [
 	m1[2] * m2[12] + m1[6] * m2[13] + m1[10] * m2[14] + m1[14] * m2[15],
 	m1[3] * m2[12] + m1[7] * m2[13] + m1[11] * m2[14] + m1[15] * m2[15],
 ];
+
 /**
  * @description calculate the determinant of a 4x4 or 3x3 matrix.
  * in the case of 4x4, the translation component is ignored.
@@ -108,6 +115,7 @@ export const determinant4 = (m) => {
 		- m[3] * (m[4] * A1223 - m[5] * A0223 + m[6] * A0123)
 	);
 };
+
 /**
  * @description invert a 4x4 matrix
  * @param {number[]} m one matrix in array form
@@ -160,6 +168,7 @@ export const invertMatrix4 = (m) => {
 	return inv.map(n => n * invDet);
 };
 const identity4x3 = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]);
+
 /**
  * @description make a 4x4 matrix representing a translation in 3D
  * @param {number} [x=0] the x component of the translation
@@ -199,6 +208,7 @@ const singleAxisRotate4 = (angle, origin, i0, i1, sgn) => {
  */
 export const makeMatrix4RotateX = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate4(angle, origin, 1, 2, true));
+
 /**
  * @description make a 4x4 matrix representing a rotation in 3D around the y-axis
  * (allowing you to specify the center of rotation if needed).
@@ -209,6 +219,7 @@ export const makeMatrix4RotateX = (angle, origin = [0, 0, 0]) => (
  */
 export const makeMatrix4RotateY = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate4(angle, origin, 0, 2, false));
+
 /**
  * @description make a 4x4 matrix representing a rotation in 3D around the z-axis
  * (allowing you to specify the center of rotation if needed).
@@ -219,6 +230,7 @@ export const makeMatrix4RotateY = (angle, origin = [0, 0, 0]) => (
  */
 export const makeMatrix4RotateZ = (angle, origin = [0, 0, 0]) => (
 	singleAxisRotate4(angle, origin, 0, 1, true));
+
 /**
  * @description make a 4x4 matrix representing a rotation in 3D
  * around a given vector and around a given center of rotation.
@@ -242,6 +254,7 @@ export const makeMatrix4Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0])
 		t * x * z + y * s, t * y * z - x * s, t * z * z + c, 0,
 		0, 0, 0, 1], trans));
 };
+
 /**
  * @description make a 4x4 matrix representing a non-uniform scale.
  * @param {number[]} [scale=[1,1,1]] non-uniform scaling vector
@@ -258,6 +271,7 @@ export const makeMatrix4Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
 	scale[2] * -origin[2] + origin[2],
 	1,
 ];
+
 /**
  * @description make a 4x4 matrix representing a uniform scale.
  * @param {number} [scale=1] the uniform scale factor
@@ -268,6 +282,7 @@ export const makeMatrix4Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
 export const makeMatrix4UniformScale = (scale = 1, origin = [0, 0, 0]) => (
 	makeMatrix4Scale([scale, scale, scale], origin)
 );
+
 /**
  * @description make a 4x4 representing a reflection across a line in the XY plane
  * This is a 2D operation, assumes everything is in the XY plane.
@@ -280,6 +295,7 @@ export const makeMatrix4ReflectZ = (vector, origin = [0, 0]) => {
 	const m = makeMatrix2Reflect(vector, origin);
 	return [m[0], m[1], 0, 0, m[2], m[3], 0, 0, 0, 0, 1, 0, m[4], m[5], 0, 1];
 };
+
 /**
  * @param {number} FOV field of view in radians
  * @param {number} aspect aspect ratio
@@ -299,6 +315,7 @@ export const makePerspectiveMatrix4 = (FOV, aspect, near, far) => {
 		0, 0, near * far * rangeInv * 2, 0,
 	];
 };
+
 /**
  * @param {number} top
  * @param {number} right
@@ -317,6 +334,7 @@ export const makeOrthographicMatrix4 = (top, right, bottom, left, near, far) => 
 	(near + far) / (near - far),
 	1,
 ];
+
 /**
  * @param {number[]} position the location of the camera in 3D space
  * @param {number[]} target the point in space the camera is looking towards
@@ -334,6 +352,7 @@ export const makeLookAtMatrix4 = (position, target, up) => {
 		position[0], position[1], position[2], 1,
 	];
 };
+
 /**
  * 2D operation, assuming everything is 0 in the z plane
  * @param line in vector-origin form

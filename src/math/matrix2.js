@@ -1,10 +1,12 @@
 /**
  * Math (c) Kraft
  */
+
 /**
  * 2x3 matrix methods for two dimensional transformations.
  * the third column is a 2D translation vector
  */
+
 /**
  * @description the identity matrix for 2x2 matrices
  * @constant {number[]}
@@ -12,6 +14,7 @@
  * @linkcode Math ./src/algebra/matrix2.js 10
  */
 export const identity2x2 = [1, 0, 0, 1];
+
 /**
  * @description the identity matrix for 2x3 matrices (zero translation)
  * @constant {number[]}
@@ -19,6 +22,7 @@ export const identity2x2 = [1, 0, 0, 1];
  * @linkcode Math ./src/algebra/matrix2.js 15
  */
 export const identity2x3 = identity2x2.concat(0, 0);
+
 /**
  * @param {number[]} vector, in array form
  * @param {number[]} matrix, in array form
@@ -29,6 +33,7 @@ export const multiplyMatrix2Vector2 = (matrix, vector) => [
 	matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
 	matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5],
 ];
+
 /**
  * @param {number[]} matrix, in array form
  * @param {number[]} vector of the line
@@ -46,6 +51,7 @@ export const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
 		matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5],
 	],
 });
+
 /**
  * @description Multiply two matrices where the left/right order
  * matches what you would see on a page
@@ -62,6 +68,7 @@ export const multiplyMatrices2 = (m1, m2) => [
 	m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
 	m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
 ];
+
 /**
  * @description calculate the determinant of a 2x3 or 2x2 matrix.
  * in the case of 2x3, the translation component is ignored.
@@ -70,6 +77,7 @@ export const multiplyMatrices2 = (m1, m2) => [
  * @linkcode Math ./src/algebra/matrix2.js 64
  */
 export const determinant2 = m => m[0] * m[3] - m[1] * m[2];
+
 /**
  * @description invert a 2x3 matrix
  * @param {number[]} m a matrix as an array of numbers
@@ -93,6 +101,7 @@ export const invertMatrix2 = (m) => {
 		(m[1] * m[4] - m[0] * m[5]) / det,
 	];
 };
+
 /**
  * @param {number} x
  * @param {number} y
@@ -100,6 +109,7 @@ export const invertMatrix2 = (m) => {
  * @linkcode Math ./src/algebra/matrix2.js 94
  */
 export const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
+
 /**
  * @param {number[]} non-uniform scaling vector for each axis
  * @param {number[]} origin homothetic center of the scale, default [0, 0]
@@ -114,6 +124,7 @@ export const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
 	scale[0] * -origin[0] + origin[0],
 	scale[1] * -origin[1] + origin[1],
 ];
+
 /**
  * @param {number} scale scale factor
  * @param {number[]} origin homothetic center of the scale, default [0, 0]
@@ -123,6 +134,7 @@ export const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
 export const makeMatrix2UniformScale = (scale = 1, origin = [0, 0]) => (
 	makeMatrix2Scale([scale, scale], origin)
 );
+
 /**
  * @param {number} angle the angle of rotation, origin of transformation
  * @returns {number[]} matrix
@@ -140,6 +152,7 @@ export const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
 		origin[1],
 	];
 };
+
 /**
  * remember vector comes before origin. origin comes last, so that it's easy
  * to leave it empty and make a reflection through the origin.

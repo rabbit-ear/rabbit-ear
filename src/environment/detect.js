@@ -2,13 +2,17 @@
  * Rabbit Ear (c) Kraft
  */
 
-// this is not a typo, we need to compare to "undefined" as a string.
-const isBrowser = typeof window !== "undefined"
-	&& typeof window.document !== "undefined";
+const isBrowser = typeof window === "object"
+	&& typeof window.document === "object";
 
-const isNode = typeof process !== "undefined"
-	&& process.versions != null
-	&& process.versions.node != null;
+const isNodeOrBun = typeof process === "object"
+	&& typeof process.versions === "object"
+	&& (process.versions.node != null || process.versions.bun != null);
+
+const isDeno = typeof window === "object"
+	&& typeof window.Deno === "object";
+
+const isBackend = isNodeOrBun || isDeno;
 
 const isWebWorker = typeof self === "object"
 	&& self.constructor
@@ -16,6 +20,6 @@ const isWebWorker = typeof self === "object"
 
 export {
 	isBrowser,
-	isNode,
+	isBackend,
 	isWebWorker,
 };

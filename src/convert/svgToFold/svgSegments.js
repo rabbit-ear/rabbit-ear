@@ -3,7 +3,7 @@
  */
 import window from "../../environment/window.js";
 import Messages from "../../environment/messages.js";
-import { isNode } from "../../environment/detect.js";
+import { isBackend } from "../../environment/detect.js";
 import {
 	getRootParent,
 	xmlStringToElement,
@@ -44,7 +44,7 @@ const svgSegments = (svg) => {
 		? xmlStringToElement(svg, "image/svg+xml")
 		: svg;
 
-	if (containsStylesheet(svgElement) && isNode) {
+	if (containsStylesheet(svgElement) && isBackend) {
 		console.warn(Messages.backendStylesheet);
 	}
 	// ensure the svg is a child of the DOM so we can call getComputedStyle.

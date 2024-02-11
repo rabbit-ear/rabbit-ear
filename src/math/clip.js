@@ -1,7 +1,9 @@
 /**
  * Math (c) Kraft
  */
-import { EPSILON } from "./constant.js";
+import {
+	EPSILON,
+} from "./constant.js";
 import {
 	include,
 	includeL,
@@ -16,7 +18,9 @@ import {
 	scale2,
 	flip,
 } from "./vector.js";
-import { overlapConvexPolygonPoint } from "./overlap.js";
+import {
+	overlapConvexPolygonPoint,
+} from "./overlap.js";
 
 /**
  * @description Clip an infinite line inside a bounding box

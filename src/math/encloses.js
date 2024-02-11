@@ -4,6 +4,7 @@
 import { EPSILON } from "./constant.js";
 // import { include } from "../math/compare.js";
 // import { overlapConvexPolygonPoint } from "./overlap.js";
+
 /**
  * @description Is a point fully contained inside of a bounding box?
  * @param {number[]} point the point
@@ -23,6 +24,7 @@ export const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
 	}
 	return true;
 };
+
 /**
  * @description does one bounding box (outer) completely enclose
  * another bounding box (inner)?
@@ -45,6 +47,7 @@ export const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
 	}
 	return true;
 };
+
 /**
  * @description does one polygon (outer) completely enclose another polygon (inner),
  * currently, this only works for convex polygons.

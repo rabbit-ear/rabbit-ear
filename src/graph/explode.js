@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { makeFacesEdgesFromVertices } from "./make.js";
+
 /**
  * @description Create a modified graph which only contains
  * vertices_coords and faces_vertices, but that for every face,
@@ -47,6 +48,7 @@ export const explodeFaces = ({
 	}
 	return result;
 };
+
 /**
  * @description Create a modified graph which only contains
  * vertices_coords and faces_vertices, but that for every face,
@@ -65,6 +67,7 @@ export const explodeFaces = ({
 // 			.map(face => face.map(() => f++)),
 // 	};
 // };
+
 /**
  * @description Create a modified graph which contains
  * vertices_coords and edges_vertices but that for every edge,
@@ -93,6 +96,7 @@ export const explodeEdges = ({
 	}
 	return result;
 };
+
 /**
  * @description Create a modified graph which separates all faces from each other.
  * This will add new vertices and new edges. Most adjacency arrays will be

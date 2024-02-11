@@ -22,13 +22,13 @@ test("convert foldToObj empty", () => {
 });
 
 test("convert foldToObj FOLD object", () => {
-	const cp = ear.cp.fish();
+	const cp = ear.graph.fish();
 	ear.convert.foldToObj(cp);
 	expect(true).toBe(true);
 });
 
 test("convert foldToObj FOLD string", () => {
-	const cp = ear.cp.fish();
+	const cp = ear.graph.fish();
 	const FOLD = JSON.stringify(cp);
 	ear.convert.foldToObj(FOLD);
 	expect(true).toBe(true);

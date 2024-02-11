@@ -64,7 +64,6 @@ const minimumCluster = (elements, comparison) => {
  * @linkcode Math ./src/general/search.js 60
  */
 const smallestVector2 = (points, epsilon = EPSILON) => {
-// export const minimumPointIndex = (points, epsilon = EPSILON) => {
 	if (!points || !points.length) { return undefined; }
 	// find the set of all points that share the smallest X value
 	// const smallSet = smallestVectorSearch(points, 0, epsilonCompare, epsilon);
@@ -107,8 +106,9 @@ export const convexHullRadialSortPoints = (points, epsilon = EPSILON) => {
 		.sort((a, b) => a.a - b.a)
 		.map(el => el.i)
 		.filter(i => i !== first);
+
+	// todo: can we use a cluster method that takes as input a pre-sorted list?
 	return [[first]]
-		// .concat(clusterIndicesOfSortedNumbers(rawOrder.map(i => angles[i]), epsilon)
 		.concat(clusterScalars(rawOrder.map(i => angles[i]), epsilon)
 			.map(arr => arr.map(i => rawOrder[i]))
 			.map(cluster => (cluster.length === 1 ? cluster : cluster

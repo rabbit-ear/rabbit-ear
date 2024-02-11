@@ -1,14 +1,21 @@
 /**
  * Math (c) Kraft
  */
-import { subtract } from "./vector.js";
-import { overlapLinePoint } from "./overlap.js";
-import { intersectLineLine } from "./intersect.js";
+import {
+	subtract,
+} from "./vector.js";
+import {
+	overlapLinePoint,
+} from "./overlap.js";
+import {
+	intersectLineLine,
+} from "./intersect.js";
 import {
 	includeL,
 	excludeL,
 	excludeS,
 } from "./compare.js";
+
 /**
  * @description Split a convex polygon by a line and rebuild each
  * half into two convex polygons.

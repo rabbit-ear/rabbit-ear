@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
 test("explodeFaces and explodeEdges", () => {
-	const bird = ear.cp.bird();
+	const bird = ear.graph.bird();
 	const explodeEdges = ear.graph.explodeEdges(bird);
 	const explodeFaces = ear.graph.explodeFaces(bird);
 	expect(explodeEdges.edges_vertices.length).toBe(bird.edges_vertices.length);

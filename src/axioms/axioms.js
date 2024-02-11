@@ -42,14 +42,6 @@ import {
 	\___/|_|  |_|\__, |\__,_|_| |_| |_|_|  \__,_/_/\_\_|\___/|_| |_| |_|___/
 								__/ |
 							 |___/
-/**
- * these origami axioms assume 2D geometry in the 2D plane,
- * where points are parameterized as vectors (Javascript arrays of numbers)
- * and lines are in vector-origin form (Javascript objects with "origin" and "vector")
- *   (themselves are Javascript Arrays, same as "points")
- * where the direction of the vector is along the line, and
- * is not necessarily normalized.
- */
 
 /**
  * @description origami axiom 1: form a line that passes between the given points

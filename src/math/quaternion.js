@@ -1,17 +1,20 @@
 /**
  * Math (c) Kraft
  */
-/**
- * Quaternions encoded as an array of numbers
- * with indices 0-3 as x, y, z, w in that order.
- */
 import {
 	dot,
 	cross3,
 	magnitude,
 	normalize,
 } from "./vector.js";
-import { multiplyMatrices4 } from "./matrix4.js";
+import {
+	multiplyMatrices4,
+} from "./matrix4.js";
+
+/**
+ * Quaternions encoded as an array of numbers
+ * with indices 0-3 as x, y, z, w in that order.
+ */
 
 /**
  * @description Create a quaternion which represents a rotation from

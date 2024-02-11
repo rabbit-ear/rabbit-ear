@@ -5,18 +5,24 @@ import {
 	axiom,
 	normalAxiom,
 } from "./axioms.js";
-import { validateAxiom } from "./validate.js";
-import { uniqueLineToVecLine } from "../math/convert.js";
+import {
+	validateAxiom,
+} from "./validate.js";
+import {
+	uniqueLineToVecLine,
+} from "../math/convert.js";
 
 const paramsToUniqueLine = (args) => args
 	.map(arg => (typeof arg === "object" && arg.vector
 		? uniqueLineToVecLine(arg)
 		: arg));
+
 /**
- * @description Perform one of the seven origami axioms, and provide a boundary so that
- * only the results possible inside the boundary will be returned.
+ * @description Perform one of the seven origami axioms, and provide
+ * a boundary so that only the results possible inside the boundary
+ * will be returned.
  * @param {number} number the axiom number, 1-7. **note, 0 is not an option**
- * @param {number[][]} boundary the bounding polygon representing the folding material
+ * @param {number[][]} boundary the polygon outline of the folding material
  * @param {any[][]} ...args the input parameters to the axiom number, points or lines
  * @returns {VecLine[]} an array of solutions as lines, or an empty array if no solutions.
  * @linkcode Origami ./src/axioms/axiomsInBoundary.js 33
@@ -29,6 +35,7 @@ export const axiomWithBoundary = (number, boundary, ...args) => {
 		.forEach(i => delete solutions[i]);
 	return solutions;
 };
+
 /**
  * @description Perform one of the seven origami axioms, and provide a boundary so that
  * only the results possible inside the boundary will be returned.

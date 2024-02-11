@@ -22,6 +22,7 @@ import {
 	scale,
 	resize,
 } from "./vector.js";
+
 /**
  * @description find the one point in an array of 2D points closest to a 2D point.
  * @param {number[][]} points an array of 2D points to test against
@@ -34,6 +35,7 @@ export const nearestPoint2 = (points, point) => {
 	const index = arrayMinimumIndex(points, el => distance2(el, point));
 	return index === undefined ? undefined : points[index];
 };
+
 /**
  * @description find the one point in an array of points closest to a point.
  * @param {number[][]} points an array of points to test against
@@ -47,6 +49,7 @@ export const nearestPoint = (points, point) => {
 	const index = arrayMinimumIndex(points, el => distance(el, point));
 	return index === undefined ? undefined : points[index];
 };
+
 /**
  * @description find the nearest point on a line, ray, or segment.
  * @param {number[]} vector the vector of the line
@@ -74,6 +77,7 @@ export const nearestPointOnLine = (
 	const d = clampFunc(dist, epsilon);
 	return add(origin, scale(vector, d));
 };
+
 /**
  * @description given a polygon and a point, in 2D,
  * find a point on the boundary of the polygon
@@ -91,6 +95,7 @@ export const nearestPointOnPolygon = (polygon, point) => polygon
 	.map((p, edge) => ({ point: p, edge, distance: distance(p, point) }))
 	.sort((a, b) => a.distance - b.distance)
 	.shift();
+
 /**
  * @description find the nearest point on the boundary of a circle to another point
  * that is closest to the provided point.

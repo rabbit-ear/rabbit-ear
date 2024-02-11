@@ -2,8 +2,13 @@
  * Rabbit Ear (c) Kraft
  */
 import count from "./count.js";
-import { uniqueSortedNumbers } from "../general/array.js";
-import { remapKey } from "./maps.js";
+import {
+	uniqueSortedNumbers,
+} from "../general/array.js";
+import {
+	remapKey,
+} from "./maps.js";
+
 /**
  *
  */
@@ -22,6 +27,7 @@ const makeIndexMap = (graph, key, removeIndices) => {
 	}
 	return indexMap;
 };
+
 /**
  * @name remove
  * @memberof graph

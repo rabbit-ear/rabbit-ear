@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
  * maintain one "window" object for both browser and nodejs.
  * if a browser window object exists, it will set to this,

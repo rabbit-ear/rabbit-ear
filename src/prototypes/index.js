@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import graphPrototype from "./graph.js";
-import cpPrototype from "./cp.js";
+// import cpPrototype from "./cp.js";
 // import origamiPrototype from "./origami.js";
 import { file_spec, file_creator } from "../fold/rabbitear.js";
 import * as bases from "../fold/bases.js";
@@ -26,15 +26,15 @@ const makeGraphInstance = (...args) => Object
  * FOLD metadata including the file spec, creator, and "creasePattern" class.
  * @returns {FOLD} a FOLD object
  */
-const makeCPInstance = (...args) => Object
-	.assign(Object.create(cpPrototype), {
-		...(args.length
-			? args.reduce((a, b) => ({ ...a, ...b }), ({}))
-			: bases.square()),
-		file_spec,
-		file_creator,
-		frame_classes: ["creasePattern"],
-	});
+// const makeCPInstance = (...args) => Object
+// 	.assign(Object.create(cpPrototype), {
+// 		...(args.length
+// 			? args.reduce((a, b) => ({ ...a, ...b }), ({}))
+// 			: bases.square()),
+// 		file_spec,
+// 		file_creator,
+// 		frame_classes: ["creasePattern"],
+// 	});
 
 /**
  * @description Create a FOLD object that inherits from the Origami prototype.
@@ -72,9 +72,9 @@ graph.prototype.constructor = graph;
  * file spec and creator, and a frame class of "creasePattern".
  * @returns {FOLD} a FOLD object
  */
-const cp = (...args) => populate(makeCPInstance(...args));
-cp.prototype = cpPrototype;
-cp.prototype.constructor = cp;
+// const cp = (...args) => populate(makeCPInstance(...args));
+// cp.prototype = cpPrototype;
+// cp.prototype.constructor = cp;
 
 // const origami = (...args) => populate(makeOrigamiInstance(...args));
 // origami.prototype = origamiPrototype;
@@ -83,12 +83,12 @@ cp.prototype.constructor = cp;
 // static constructors for all the origami bases
 Object.keys(bases).forEach(baseName => {
 	graph[baseName] = (...args) => makeGraphInstance(bases[baseName](...args));
-	cp[baseName] = (...args) => makeCPInstance(bases[baseName](...args));
+	// cp[baseName] = (...args) => makeCPInstance(bases[baseName](...args));
 	// origami[baseName] = (...args) => origami(bases[baseName](...args));
 });
 
 export {
 	graph,
-	cp,
+	// cp,
 	// origami,
 };

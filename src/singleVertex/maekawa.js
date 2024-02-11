@@ -3,14 +3,16 @@
  */
 import { assignmentIsBoundary } from "../fold/spec.js";
 
-const unassignedAssignment = { U: true, u: true };
-
+/**
+ *
+ */
 const getUnassignedIndices = (edges_assignment) => edges_assignment
 	.map((_, i) => i)
-	.filter(i => unassignedAssignment[edges_assignment[i]]);
+	.filter(i => edges_assignment[i] === "U" || edges_assignment[i] === "u");
 
 // sectors and assignments are fenceposted.
 // sectors[i] is bounded by assignment[i] assignment[i + 1]
+
 /**
  * @description given a set of assignments (M/V/F/B/U characters),
  * which contains some U (unassigned), find all permutations

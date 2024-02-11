@@ -1,24 +1,28 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
- * @description In a valid, flat-foldable degree-4 single vertex,
- * three assignments should be similar, with a single odd one out.
- * This method will find the index of the odd one out.
+ * @description Given an array of assignments, mountain and valley,
+ * identify which assignment occurs less than the other, and return
+ * the index of the first occurence of that assignment.
+ * In a valid flat-foldable degree-4 single vertex, 3 assignments will be
+ * one kind, with 1 as the other. This identifies the location of the other.
+ * @param {string[]} assignments an array of FOLD assignments, in uppercase.
+ * @returns {number} the index of the odd-one-out assignment.
  */
-const oddAssignmentIndex = (assignments) => {
-	const assigns = assignments.map(a => a.toUpperCase());
-	const mountainCount = assigns.filter(a => a === "M").length;
-	const valleyCount = assigns.filter(a => a === "V").length;
-	return mountainCount > valleyCount
-		? assigns.indexOf("V")
-		: assigns.indexOf("M");
-};
+const oddAssignmentIndex = (assignments) => (
+	assignments.filter(a => a === "M").length
+	> assignments.filter(a => a === "V").length
+		? assignments.indexOf("V")
+		: assignments.indexOf("M")
+);
+
 /**
- * @description fold a degree-4 single vertex in 3D.
+ * @description Fold a degree-4 single vertex in 3D.
  * @usage this only works for degree-4 vertices
- * @param {number[]} sectors an array of sector angles,
- * in a sorted-order around the central vertex.
+ * @param {number[]} sectors an array of sector angles in sorted order
+ * around the central vertex.
  * @param {string[]} assignments an array of FOLD spec characters, "M" or "V".
  * @param {number} foldAngle the fold amount in radians, between 0 and PI.
  * This value will be internally clamped between -PI and +PI.
@@ -29,7 +33,7 @@ const oddAssignmentIndex = (assignments) => {
  * @linkcode Origami ./src/singleVertex/degree4.js 24
  */
 export const foldDegree4 = (sectors, assignments, foldAngle = 0) => {
-	const odd = oddAssignmentIndex(assignments);
+	const odd = oddAssignmentIndex(assignments.map(a => a.toUpperCase()));
 	if (odd === -1) { return undefined; }
 	const a = sectors[(odd + 1) % sectors.length];
 	const b = sectors[(odd + 2) % sectors.length];

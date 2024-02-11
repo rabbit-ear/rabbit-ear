@@ -1,15 +1,24 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { connectedComponents } from "./connectedComponents.js";
+import {
+	filterKeysWithPrefix,
+} from "../fold/spec.js";
+import {
+	uniqueElements,
+} from "../general/array.js";
+import {
+	connectedComponents,
+} from "./connectedComponents.js";
 import {
 	makeVerticesVerticesUnsorted,
 	makeVerticesEdgesUnsorted,
 	makeVerticesFacesUnsorted,
 } from "./make.js";
-import { invertFlatToArrayMap } from "./maps.js";
-import { filterKeysWithPrefix } from "../fold/spec.js";
-import { uniqueElements } from "../general/array.js";
+import {
+	invertFlatToArrayMap,
+} from "./maps.js";
+
 /**
  * @description In the case that your graph is a disjoint union
  * of graphs, return an array of all graphs separated, where each
@@ -28,9 +37,8 @@ export const disjointGraphsIndices = (graph) => {
 	const vertices_faces = graph.vertices_faces
 		? graph.vertices_faces
 		: makeVerticesFacesUnsorted({ vertices_edges, faces_vertices });
-	// oh yeah this won't work. everything needs to come from just the one array,
-	// whether it's vertices_vertices or faces_faces or whatever, we need to pick
-	// just one.
+	// everything needs to come from just the one array, whether it's
+	// vertices_vertices or faces_faces or whatever, we need to pick just one.
 	const vertices = invertFlatToArrayMap(connectedComponents(vertices_vertices));
 	const edges = vertices
 		.map(verts => verts.flatMap(v => vertices_edges[v]))
@@ -44,6 +52,7 @@ export const disjointGraphsIndices = (graph) => {
 		faces: faces[i] || [],
 	}));
 };
+
 /**
  * @description In the case that your graph is a disjoint union
  * of graphs, return an array of all graphs separated, where each

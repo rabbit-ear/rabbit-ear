@@ -9,20 +9,23 @@ import {
 	rotate90,
 	rotate270,
 } from "./vector.js";
+
 /**
  * @description Convert a 2D vector to an angle in radians.
  * @param {[number, number]} v a 2D vector
  * @returns {number} the angle in radians
  * @linkcode Math ./src/general/convert.js 17
  */
-export const vectorToAngle = v => Math.atan2(v[1], v[0]);
+export const vectorToAngle = (v) => Math.atan2(v[1], v[0]);
+
 /**
  * @description Convert an angle in radians to a 2D vector.
  * @param {number} a the angle in radians
  * @returns {[number, number]} a 2D vector
  * @linkcode Math ./src/general/convert.js 24
  */
-export const angleToVector = a => [Math.cos(a), Math.sin(a)];
+export const angleToVector = (a) => [Math.cos(a), Math.sin(a)];
+
 /**
  * @description Given two points, create a vector-origin line representation
  * of a line that passes through both points. This will work in n-dimensions.
@@ -36,6 +39,7 @@ export const pointsToLine = (origin, point2) => ({
 	vector: subtract(point2, origin),
 	origin,
 });
+
 /**
  * @description Convert a line from one parameterization into another.
  * Convert vector-origin where origin is a point on the line into
@@ -51,6 +55,7 @@ export const vecLineToUniqueLine = ({ vector, origin }) => {
 	const distance = dot(origin, normal) / mag;
 	return { normal: scale(normal, 1 / mag), distance };
 };
+
 /**
  * @description Convert a line from one parameterization into another.
  * Convert from normal-distance form where distance the shortest length

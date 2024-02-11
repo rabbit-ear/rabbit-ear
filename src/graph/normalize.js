@@ -2,12 +2,13 @@
  * Rabbit Ear (c) Kraft
  */
 import { remapKey } from "./maps.js";
+
 /**
- * @description This works on graphs with component arrays with holes.
- * Arrays with holes are a result of some methods, like subgraph, for the
- * purpose of being able to re-merge subgraphs. This method will take
- * those graphs and close up all holes in the arrays by re-numbering
- * components to be from 0...N, ensuring wider compatibility for the graph.
+ * @description This method will re-index all component arrays so that
+ * there are no arrays with holes (if vertices_ contains vertex 4 but not 3).
+ * Arrays with holes are a result of some methods, like subgraph which is
+ * designed so that the user can re-merge the graphs. Alternatively, you can
+ * run this method to make a subgraph a valid FOLD object with no holes.
  * @param {FOLD} graph a FOLD object
  * @returns {FOLD} a copy of the input FOLD graph, with no array holes.
  */

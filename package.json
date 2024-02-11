@@ -22,7 +22,7 @@
 		"./module/"
 	],
 	"scripts": {
-    "test": "vitest",
+		"test": "vitest",
 		"clean": "node tests/clean.js",
 		"lineno": "node tests/lineno.js"
 	},

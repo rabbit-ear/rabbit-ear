@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeEdgesIsFolded } from "../../fold/spec.js";
+import {
+	makeEdgesIsFolded,
+} from "../../fold/spec.js";
 import {
 	subtract,
 	subtract2,
@@ -25,9 +27,15 @@ import {
 	makeEdgesAssignmentSimple,
 	makeFacesFaces,
 } from "../make.js";
-import { getFaceFaceSharedVertices } from "./general.js";
-// import { makeFaceSpanningTree } from "./spanningTree.js";
-import { minimumSpanningTrees } from "../trees.js";
+import {
+	getFaceFaceSharedVertices,
+} from "./general.js";
+// import {
+// 	makeFaceSpanningTree,
+// } from "./spanningTree.js";
+import {
+	minimumSpanningTrees,
+} from "../trees.js";
 /**
  * @description Given a FOLD object and a set of 2x3 matrices, one per face,
  * "fold" the vertices by finding one matrix per vertex and multiplying them.

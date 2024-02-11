@@ -1,7 +1,9 @@
 /**
  * Math (c) Kraft
  */
-import { EPSILON } from "./constant.js";
+import {
+	EPSILON,
+} from "./constant.js";
 import {
 	epsilonEqual,
 	epsilonEqualVectors,
@@ -17,7 +19,9 @@ import {
 	lerp,
 	flip,
 } from "./vector.js";
-import { counterClockwiseSubsect2 } from "./radial.js";
+import {
+	counterClockwiseSubsect2,
+} from "./radial.js";
 
 /**
  * @description These clamp functions process lines/rays/segments intersections.
@@ -101,11 +105,6 @@ export const lerpLines = (a, b, t) => {
 	return { vector, origin };
 };
 
-// export const pleat = (a, b, count) => Array
-// 	.from(Array(count - 1))
-// 	.map((_, i) => (i + 1) / count)
-// 	.map(t => lerpLines(a, b, t));
-
 /**
  *
  */
@@ -185,26 +184,3 @@ export const bisectLines2 = (a, b, epsilon = EPSILON) => {
 	});
 	return solution;
 };
-
-// export const bisectLines2 = (a, b, epsilon = EPSILON) => {
-// 	const determinant = cross2(a.vector, b.vector);
-// 	const dotProd = dot(a.vector, b.vector);
-// 	const bisects = determinant > -epsilon
-// 		? [counterClockwiseBisect2(a.vector, b.vector)]
-// 		: [clockwiseBisect2(a.vector, b.vector)];
-// 	bisects[1] = determinant > -epsilon
-// 		? rotate90(bisects[0])
-// 		: rotate270(bisects[0]);
-// 	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
-// 	// const numerator = (b.origin[0] - a.origin[0])
-// 	// 	* b.vector[1] - b.vector[0] * (b.origin[1] - a.origin[1]);
-// 	const t = numerator / determinant;
-// 	const normalized = [a.vector, b.vector].map(vec => normalize(vec));
-// 	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
-// 	const origin = isParallel
-// 		? midpoint(a.origin, b.origin)
-// 		: [a.origin[0] + a.vector[0] * t, a.origin[1] + a.vector[1] * t];
-// 	const solution = bisects.map(vector => ({ vector, origin }));
-// 	if (isParallel) { delete solution[(dotProd > -epsilon ? 1 : 0)]; }
-// 	return solution;
-// };

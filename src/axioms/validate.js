@@ -2,6 +2,11 @@
  * Rabbit Ear (c) Kraft
  */
 import {
+	include,
+	includeL,
+	includeS,
+} from "../math/compare.js";
+import {
 	subtract,
 	rotate90,
 } from "../math/vector.js";
@@ -9,11 +14,6 @@ import {
 	makeMatrix2Reflect,
 	multiplyMatrix2Vector2,
 } from "../math/matrix2.js";
-import {
-	include,
-	includeL,
-	includeS,
-} from "../math/compare.js";
 import {
 	overlapLinePoint,
 	overlapConvexPolygonPoint,
@@ -26,18 +26,25 @@ import {
 	clipLineConvexPolygon,
 } from "../math/clip.js";
 
+/**
+ *
+ */
 const reflectPoint = (foldLine, point) => {
 	const matrix = makeMatrix2Reflect(foldLine.vector, foldLine.origin);
 	return multiplyMatrix2Vector2(matrix, point);
 };
+
 /**
- * @description To validate axiom 1 check if the input points are inside the
+ * @description Validate the input parameters to origami axiom 1 with
+ * respect to a boundary polygon that represents the folding surface.
+ * To validate axiom 1 check if the input points are inside the
  * boundary polygon, if so, the solution is valid.
- * @param {number[][]} boundary an array of points, each point is an array of numbers
+ * @param {number[][]} boundary an array of 2D points,
+ * each point is an array of numbers
  * @param {VecLine[]} solutions an array of solutions in vector-origin form
  * @param {number[]} point1 the point parameter for axiom 1
  * @param {number[]} point2 the point parameter for axiom 1
- * @returns {boolean} true if the solution is valid
+ * @returns {boolean[]} true if the parameters/solutions are valid
  * @linkcode Origami ./src/axioms/validate.js 40
  */
 export const validateAxiom1 = (boundary, solutions, point1, point2) => [
@@ -45,20 +52,27 @@ export const validateAxiom1 = (boundary, solutions, point1, point2) => [
 		.map(p => overlapConvexPolygonPoint(boundary, p, include))
 		.reduce((a, b) => a && b, true),
 ];
+
 /**
- * @description To validate axiom 2 check if the input points are inside the
+ * @description Validate the input parameters to origami axiom 2 with
+ * respect to a boundary polygon that represents the folding surface.
+ * To validate axiom 2 check if the input points are inside the
  * boundary polygon, if so, the solution is valid.
- * @param {number[][]} boundary an array of points, each point is an array of numbers
+ * @param {number[][]} boundary an array of 2D points,
+ * each point is an array of numbers
  * @param {VecLine[]} solutions an array of solutions in vector-origin form
  * @param {number[]} point1 the point parameter for axiom 2
  * @param {number[]} point2 the point parameter for axiom 2
- * @returns {boolean} true if the solution is valid
+ * @returns {boolean[]} true if the parameters/solutions are valid
  * @linkcode Origami ./src/axioms/validate.js 51
  */
 export const validateAxiom2 = validateAxiom1;
+
 /**
- * @description Validate axiom 3.
- * @param {number[][]} boundary an array of points, each point is an array of numbers
+ * @description Validate the input parameters to origami axiom 3 with
+ * respect to a boundary polygon that represents the folding surface.
+ * @param {number[][]} boundary an array of 2D points,
+ * each point is an array of numbers
  * @param {VecLine[]} solutions an array of solutions in vector-origin form
  * @param {VecLine} line1 the line parameter for axiom 3
  * @param {VecLine} line2 the line parameter for axiom 3
@@ -73,10 +87,12 @@ export const validateAxiom3 = (boundary, solutions, line1, line2) => {
 			include,
 			includeL,
 		));
+
 	// if line parameters lie outside polygon, no solution possible
 	if (segments[0] === undefined || segments[1] === undefined) {
 		return [false, false];
 	}
+
 	// test A:
 	// make sure the results themselves lie in the polygon
 	// exclusive! an exterior line collinear to polygon's point is excluded
@@ -131,34 +147,39 @@ export const validateAxiom3 = (boundary, solutions, line1, line2) => {
 	// valid if A and B
 	return [0, 1].map(i => reflectMatch[i] === true && results_inside[i] === true);
 };
+
 /**
- * @description To validate axiom 4 check if the input point lies within
+ * @description Validate the input parameters to origami axiom 4 with
+ * respect to a boundary polygon that represents the folding surface.
+ * To validate axiom 4 check if the input point lies within
  * the boundary and the intersection between the solution line and the
  * input line lies within the boundary.
- * @param {number[][]} boundary an array of points, each point is an array of numbers
+ * @param {number[][]} boundary an array of 2D points,
+ * each point is an array of numbers
  * @param {VecLine[]} solutions an array of solutions in vector-origin form
  * @param {VecLine} line the line parameter for axiom 4
  * @param {number[]} point the point parameter for axiom 4
- * @returns {boolean} true if the solution is valid
+ * @returns {boolean[]} true if the parameters/solutions are valid
  * @linkcode Origami ./src/axioms/validate.js 135
  */
 export const validateAxiom4 = (boundary, solutions, line, point) => {
-	const intersect = intersectLineLine(
-		line,
-		{ vector: rotate90(line.vector), origin: point },
-		includeL,
-		includeL,
-	).point;
+	const perpendicular = { vector: rotate90(line.vector), origin: point };
+	const intersect = intersectLineLine(line, perpendicular).point;
+
+	// todo: false or...?
+	if (!intersect) { return [false]; }
 	return [
 		[point, intersect]
-			.filter(a => a !== undefined)
 			.map(p => overlapConvexPolygonPoint(boundary, p, include))
 			.reduce((a, b) => a && b, true),
 	];
 };
+
 /**
- * @description Validate axiom 5.
- * @param {number[][]} boundary an array of points, each point is an array of numbers
+ * @description Validate the input parameters to origami axiom 5 with
+ * respect to a boundary polygon that represents the folding surface.
+ * @param {number[][]} boundary an array of 2D points,
+ * each point is an array of numbers
  * @param {VecLine[]} solutions an array of solutions in vector-origin form
  * @param {VecLine} line the line parameter for axiom 5
  * @param {number[]} point1 the point parameter for axiom 5
@@ -176,9 +197,12 @@ export const validateAxiom5 = (boundary, solutions, line, point1, point2) => {
 		.map(point => overlapConvexPolygonPoint(boundary, point, include));
 	return testReflections.map(ref => ref && testParamPoints);
 };
+
 /**
- * @description Validate axiom 6.
- * @param {number[][]} boundary an array of points, each point is an array of numbers
+ * @description Validate the input parameters to origami axiom 6 with
+ * respect to a boundary polygon that represents the folding surface.
+ * @param {number[][]} boundary an array of 2D points,
+ * each point is an array of numbers
  * @param {VecLine[]} solutions an array of solutions in vector-origin form
  * @param {VecLine} line1 the line parameter for axiom 6
  * @param {VecLine} line2 the line parameter for axiom 6
@@ -201,14 +225,17 @@ export const validateAxiom6 = function (boundary, solutions, line1, line2, point
 		.map(point => overlapConvexPolygonPoint(boundary, point, include));
 	return solutions.map((_, i) => testReflect0[i] && testReflect1[i]);
 };
+
 /**
- * @description Validate axiom 7.
- * @param {number[][]} boundary an array of points, each point is an array of numbers
+ * @description Validate the input parameters to origami axiom 7 with
+ * respect to a boundary polygon that represents the folding surface.
+ * @param {number[][]} boundary an array of 2D points,
+ * each point is an array of numbers
  * @param {VecLine[]} solutions an array of solutions in vector-origin form
  * @param {VecLine} line1 the line parameter for axiom 7
  * @param {VecLine} line2 the line parameter for axiom 7
  * @param {number[]} point the point parameter for axiom 7
- * @returns {boolean} true if the solution is valid
+ * @returns {boolean[]} true if the parameters/solutions are valid
  * @linkcode Origami ./src/axioms/validate.js 194
  */
 export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
@@ -241,6 +268,7 @@ export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
 		: false;
 	return [paramPointTest && reflectTest && paramLineTest && intersectInsideTest];
 };
+
 /**
  * @description Validate an axiom, this will run one of
  * the submethods ("validateAxiom1", "validateAxiom2", ...).

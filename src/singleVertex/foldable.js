@@ -18,10 +18,13 @@ import {
 	makeVerticesFaces,
 	makeVerticesVerticesVector,
 } from "../graph/make.js";
+
 /**
  * @description This performs an analysis on every vertex to determine if
  * it is able to be folded; this works with valid 3D or 2D foldings, however
  * it is limited to a crease patterns's vertices which lie in the XY plane.
+ * @attribution Implementation of the algorithm described in
+ * the origami foldability paper by belcastro-Hull.
  * @param {FOLD} graph a FOLD graph with vertices in creasePattern layout
  * @returns {boolean[]} for every vertex, true if the vertex has
  * a valid folded state.
@@ -50,35 +53,51 @@ export const verticesFoldable = ({
 		edges_vector,
 		faces_vertices,
 	});
+
+	// for each vertex, create a sequence of matrices which represent the
+	// 3D transformations involved in walking around the vertex along the
+	// folded faces. If the product of the matrices becomes the identity
+	// matrix (we return from where we started), the folding is valid.
 	return vertices_coords.map((_, v) => {
 		// if the vertex lies along a boundary (missing a face), it's foldable
 		if (vertices_faces[v].includes(undefined)
 			|| vertices_faces[v].includes(null)) { return true; }
-		// this vertex's edges as (sorted) radians (not the fold angle)
+
+		// this vertex's edges as a sorted list of radians of the angle
+		// of the edge's vector (not the sector angle or fold angle).
 		const edgesAngles = vertices_vectors[v]
 			.map(vec => Math.atan2(vec[1], vec[0]));
+
 		// the vertex's edges' fold angles. in radians
 		const edgesFoldAngle = vertices_edges[v]
 			.map(e => edges_foldAngle[e])
 			.map(angle => angle * D2R);
-		// two matrices, one rotation through XY plane (and it's inverse matrix),
-		// another a fold-angle matrix through the YZ plane.
+
+		// for each edge, create two (three) 3D rotation matrices:
+		// aM: a rotation around the Z axis which rotates the edge to lie along
+		//     the (1, 0, 0) X axis (and it's inverse matrix).
+		// fM: a rotation around the X axis which rotates the YZ plane
+		//     by the amount of the fold-angle.
 		const aM = edgesAngles.map(a => makeMatrix3RotateZ(a));
 		const aiM = aM.map(m => invertMatrix3(m));
 		const fM = edgesFoldAngle.map(a => makeMatrix3RotateX(a));
+
 		// for each edge, create a single transform that represents the motion
 		// from face[i] to face[i+1]. Use the inverse of the XY-plane angle to
 		// bring the edge along the X axis, apply the fold angle matrix, then
 		// apply the XY-plane transformation to move the X-axis to the edge.
-		const localMatrices = vertices_vectors[v].map((__, i) => multiplyMatrices3(
-			aM[i],
-			multiplyMatrices3(fM[i], aiM[i]),
-		));
+		const localMatrices = vertices_vectors[v]
+			.map((__, i) => multiplyMatrices3(
+				aM[i],
+				multiplyMatrices3(fM[i], aiM[i]),
+			));
+
 		// walk around the vertex and cumulatively apply each edge's transform,
 		// if the vertex is foldable, the matrix will end up back as the identity.
 		let matrix = identity3x4;
 		localMatrices.forEach(m => { matrix = multiplyMatrices3(matrix, m); });
-		// only check the first 9 items we don't care about the translate part.
+
+		// only check the first 9 elements, we don't care about the translate part.
 		return Array.from(Array(9))
 			.map((__, i) => Math.abs(matrix[i] - identity3x4[i]) < epsilon)
 			.reduce((a, b) => a && b, true);

@@ -2,9 +2,7 @@
  * Math (c) Kraft
  */
 import { EPSILON } from "./constant.js";
-/**
- * common functions that get reused, especially inside of map/reduce etc...
- */
+
 /**
  * @description Are two inputs equal within an epsilon of each other?
  * @param {number} a any number input
@@ -13,6 +11,7 @@ import { EPSILON } from "./constant.js";
  * @linkcode Math ./src/general/functions.js 13
  */
 export const epsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsilon;
+
 /**
  * @description Compare two numbers within an epsilon of each other,
  * so that "-1": a < b, "+1": a > b, and "0": a ~= b (epsilon equal).
@@ -26,6 +25,7 @@ export const epsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsil
 export const epsilonCompare = (a, b, epsilon = EPSILON) => (
 	epsilonEqual(a, b, epsilon) ? 0 : Math.sign(a - b)
 );
+
 /**
  * @description are two vectors equal to each other within an epsilon.
  * This method uses a axis-aligned bounding box to check equality
@@ -44,6 +44,7 @@ export const epsilonEqualVectors = (a, b, epsilon = EPSILON) => {
 	}
 	return true;
 };
+
 /**
  * @description the inclusive test used in intersection algorithms, returns
  * true if the number is positive, including the epsilon between -epsilon and 0.
@@ -53,6 +54,7 @@ export const epsilonEqualVectors = (a, b, epsilon = EPSILON) => {
  * @linkcode Math ./src/general/functions.js 49
  */
 export const include = (n, epsilon = EPSILON) => n > -epsilon;
+
 /**
  * @description the exclusive test used in intersection algorithms, returns
  * true if the number is positive, excluding the epsilon between 0 and +epsilon.
@@ -62,37 +64,43 @@ export const include = (n, epsilon = EPSILON) => n > -epsilon;
  * @linkcode Math ./src/general/functions.js 56
  */
 export const exclude = (n, epsilon = EPSILON) => n > epsilon;
+
 /**
- * @description the function parameter for an inclusive line
+ * @description the domain function for an inclusive line
  * @returns {boolean} true
  * @linkcode Math ./src/general/functions.js 61
  */
 export const includeL = () => true;
+
 /**
- * @description the function parameter for an exclusive line
+ * @description the domain function for an exclusive line
  * @returns {boolean} true
  * @linkcode Math ./src/general/functions.js 66
  */
 export const excludeL = () => true;
+
 /**
- * @description the function parameter for an inclusive ray
+ * @description the domain function for an inclusive ray
  * @linkcode Math ./src/general/functions.js 71
  */
 export const includeR = include;
+
 /**
- * @description the function parameter for an exclusive ray
+ * @description the domain function for an exclusive ray
  * @linkcode Math ./src/general/functions.js 76
  */
 export const excludeR = exclude;
+
 /**
- * @description the function parameter for an inclusive segment
+ * @description the domain function for an inclusive segment
  * @param {number} n the number to test against
  * @param {number} [e=1e-6] an optional epsilon
  * @linkcode Math ./src/general/functions.js 81
  */
 export const includeS = (n, e = EPSILON) => n > -e && n < 1 + e;
+
 /**
- * @description the function parameter for an exclusive segment
+ * @description the domain function for an exclusive segment
  * @param {number} n the number to test against
  * @param {number} [e=1e-6] an optional epsilon
  * @linkcode Math ./src/general/functions.js 86

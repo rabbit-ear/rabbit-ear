@@ -2,6 +2,21 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
+test("boundaries", () => {
+	const foldString = fs.readFileSync("./tests/files/fold/disjoint-triangles-3d.fold", "utf-8");
+	const fold = JSON.parse(foldString);
+	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	const result = ear.graph.boundaries(graph);
+	expect(result[0].vertices.length).toBe(6);
+	expect(result[1].vertices.length).toBe(6);
+	expect(result[2].vertices.length).toBe(4);
+	expect(result[3].vertices.length).toBe(4);
+	expect(result[4].vertices.length).toBe(4);
+	result.forEach(({ vertices, edges }) => {
+		expect(vertices.length).toBe(edges.length);
+	});
+});
+
 test("bounding box", () => {
 	const graph = ear.graph.square();
 	const box2d = ear.graph.boundingBox(graph);

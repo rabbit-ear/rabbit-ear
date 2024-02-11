@@ -25,6 +25,7 @@ import {
 	faceOrdersSubset,
 	linearizeFaceOrders,
 } from "./orders.js";
+
 /**
  *
  */
@@ -49,6 +50,7 @@ export const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon 
 		return edgeSide(edge_vertices);
 	});
 };
+
 /**
  *
  */
@@ -73,6 +75,7 @@ export const getFacesSide = ({
 	return facesEdgesSameSide
 		.map((sameSide, f) => (sameSide ? facesEdgesSide[f][0] : 0));
 };
+
 /**
  * @description flat folded crease patterns only (2D)
  */

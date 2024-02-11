@@ -1,10 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import count from "./count.js";
 import { uniqueSortedNumbers } from "../general/array.js";
 import Messages from "../environment/messages.js";
+import count from "./count.js";
 import { remapKey } from "./maps.js";
+
 /**
  *
  */
@@ -25,6 +26,7 @@ const makeIndexMap = (graph, key, replaceIndices, replaces) => {
 	}
 	return indexMap;
 };
+
 /**
  * @name replace
  * @memberof graph

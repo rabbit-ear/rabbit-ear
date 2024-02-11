@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { filterKeysWithSuffix } from "../fold/spec.js";
+
 /**
  * @description Search inside arrays inside arrays and return
  * the largest number.
@@ -18,6 +19,7 @@ const array_in_array_max_number = (arrays) => {
 				})));
 	return max;
 };
+
 /**
  * @description Search inside arrays inside arrays and return
  * the largest number by only checking indices 0 and 1 in the
@@ -33,10 +35,12 @@ const max_num_in_orders = (array) => {
 	});
 	return max;
 };
+
 const ordersArrayNames = {
 	edges: "edgeOrders",
 	faces: "faceOrders",
 };
+
 /**
  * @description Get the number of vertices, edges, or faces in the graph, as
  * evidenced by their appearance in other arrays; ie: searching faces_vertices

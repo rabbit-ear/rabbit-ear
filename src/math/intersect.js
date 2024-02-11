@@ -1,7 +1,9 @@
 /**
  * Math (c) Kraft
  */
-import { EPSILON } from "./constant.js";
+import {
+	EPSILON,
+} from "./constant.js";
 import {
 	magnitude2,
 	normalize2,
@@ -23,7 +25,10 @@ import {
 	excludeS,
 	epsilonEqualVectors,
 } from "./compare.js";
-import { overlapConvexPolygonPoint } from "./overlap.js";
+import {
+	overlapConvexPolygonPoint,
+} from "./overlap.js";
+
 /**
  * @description Find the intersection of two lines. Lines can be
  * lines/rays/segments, and can be inclusive or exclusive in terms
@@ -64,6 +69,7 @@ export const intersectLineLine = (
 	}
 	return { a: undefined, b: undefined, point: undefined };
 };
+
 /**
  * @description Calculate the intersection of a circle and a line;
  * the line can be a line, ray, or segment.
@@ -114,6 +120,7 @@ const rotateVector2 = (center, pt, a) => {
 	const yRot = y * Math.cos(a) - x * Math.sin(a);
 	return [center[0] + xRot, center[1] + yRot];
 };
+
 /**
  * @description calculate the intersection of two circles, resulting
  * in either no intersection, or one or two points.
@@ -167,6 +174,7 @@ const getUniquePair = (intersections) => {
 	}
 	return undefined;
 };
+
 /**
  * generalized line-ray-segment intersection with convex polygon function
  * for lines and rays, line1 and line2 are the vector, origin in that order.
@@ -201,6 +209,7 @@ const intersectConvexPolygonLineInclusive = (
 		return getUniquePair(intersections) || [intersections[0]];
 	}
 };
+
 /**
  * @description Generalized line-ray-segment intersection with convex
  * polygons.

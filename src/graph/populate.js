@@ -18,6 +18,7 @@ import {
 	edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment,
 } from "../fold/spec.js";
+
 /**
  * @description The purpose of populate() is to take a FOLD graph in any state
  * and modify it to contain as many graph component fields as possible.
@@ -57,6 +58,7 @@ const buildAssignmentsIfNeeded = (graph) => {
 		graph.edges_foldAngle[i] = 0;
 	}
 };
+
 /**
  * @param {object} a FOLD object
  * @param {boolean} reface should be set to "true" to force the algorithm into
@@ -96,6 +98,7 @@ const buildFacesIfNeeded = (graph, reface) => {
 		graph.faces_edges = [];
 	}
 };
+
 /**
  * this function attempts to rebuild useful geometries in your graph.
  * right now let's say it's important to have:
@@ -109,6 +112,7 @@ const buildFacesIfNeeded = (graph, reface) => {
  * if you do have edges_assignment instead of edges_foldAngle the origami
  * will be limited to flat-foldable.
  */
+
 /**
  * @description Populate all arrays in a FOLD graph. This includes building adjacency
  * components like vertices_vertices, making edges_assignments from foldAngles or

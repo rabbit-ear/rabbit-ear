@@ -6,16 +6,21 @@ import {
 	normalize2,
 	subtract2,
 } from "../math/vector.js";
-import { assignmentCanBeFolded } from "../fold/spec.js";
-import { makeVerticesEdgesUnsorted } from "../graph/make.js";
+import {
+	assignmentCanBeFolded,
+} from "../fold/spec.js";
+import {
+	makeVerticesEdgesUnsorted,
+} from "../graph/make.js";
 import {
 	counterClockwiseOrder2,
 	counterClockwiseAngleRadians,
 	isCounterClockwiseBetween,
 } from "../math/radial.js";
+
 /**
- * @description given a list of numbers this method will sort them by
- *  even and odd indices and sum the two categories, returning two sums.
+ * @description Given a list of numbers, this method will sort them by
+ * even and odd indices and sum the two categories, returning two sums.
  * @param {number[]} numbers one list of numbers
  * @returns {number[]} one array of two sums, even and odd indices
  * @linkcode Origami ./src/singleVertex/kawasakiMath.js 13
@@ -24,13 +29,15 @@ export const alternatingSum = (numbers) => [0, 1]
 	.map(even_odd => numbers
 		.filter((_, i) => i % 2 === even_odd)
 		.reduce((a, b) => a + b, 0));
+
 /**
- * @description alternatingSum, filter odd and even into two categories, then
- *  then set them to be the deviation from the average of the sum.
+ * @description Separate out a list of numbers by their indices,
+ * odd and even, sum the numbers in each of the two lists, and
+ * return for each list, the deviation from the average of the sum.
  * @param {number[]} sectors one list of numbers
  * @returns {number[]} one array of two numbers. if both alternating sets sum
- *  to the same, the result will be [0, 0]. if the first set is 2 more than the
- *  second, the result will be [1, -1]. (not [2, 0] or something with a 2 in it)
+ * to the same, the result will be [0, 0]. if the first set is 2 more than the
+ * second, the result will be [1, -1]. (not [2, 0] or something with a 2 in it)
  * @linkcode Origami ./src/singleVertex/kawasakiMath.js 26
  */
 export const alternatingSumDifference = (sectors) => {
@@ -38,9 +45,6 @@ export const alternatingSumDifference = (sectors) => {
 	return alternatingSum(sectors).map(s => s - halfsum);
 };
 
-// export const kawasaki_from_even_vectors = function (...vectors) {
-//   return alternating_deviation(...interior_angles(...vectors));
-// };
 /**
  * @description given a set of edges around a single vertex (expressed as an array
  * of radian angles), find all possible single-ray additions which
@@ -56,12 +60,16 @@ export const kawasakiSolutionsRadians = (radians) => radians
 	// counter clockwise angle between this index and the next
 	.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
 	.map(pair => counterClockwiseAngleRadians(...pair))
+
 	// for every sector, make an array of all the OTHER sectors
 	.map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+
 	// for every sector, use the sector score from the OTHERS two to split it
 	.map(opposite_sectors => alternatingSum(opposite_sectors).map(s => Math.PI - s))
+
 	// add the deviation to the edge to get the absolute position
 	.map((kawasakis, i) => radians[i] + kawasakis[0])
+
 	// sometimes this results in a solution OUTSIDE the sector. ignore these
 	.map((angle, i) => (isCounterClockwiseBetween(
 		angle,
@@ -70,6 +78,7 @@ export const kawasakiSolutionsRadians = (radians) => radians
 	)
 		? angle
 		: undefined));
+
 // or should we remove the indices so the array reports [ empty x2, ...]
 /**
  * @description given a set of edges around a single vertex (expressed as an array
@@ -81,13 +90,12 @@ export const kawasakiSolutionsRadians = (radians) => radians
  * or undefined if that sector contains no solution.
  * @linkcode Origami ./src/singleVertex/kawasakiMath.js 74
  */
-export const kawasakiSolutionsVectors = (vectors) => {
-	const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
-	return kawasakiSolutionsRadians(vectors_radians)
+export const kawasakiSolutionsVectors = (vectors) => (
+	kawasakiSolutionsRadians(vectors.map(v => Math.atan2(v[1], v[0])))
 		.map(a => (a === undefined
 			? undefined
-			: [Math.cos(a), Math.sin(a)]));
-};
+			: [Math.cos(a), Math.sin(a)]))
+);
 
 // todo: this is doing too much work in preparation
 /**
@@ -101,7 +109,10 @@ export const kawasakiSolutionsVectors = (vectors) => {
  * undefined if that sector contains no solution.
  * @linkcode Origami ./src/singleVertex/kawasakiGraph.js 21
  */
-export const kawasakiSolutions = ({ vertices_coords, vertices_edges, edges_assignment, edges_vertices }, vertex) => {
+export const kawasakiSolutions = (
+	{ vertices_coords, vertices_edges, edges_assignment, edges_vertices },
+	vertex,
+) => {
 	// to calculate Kawasaki's theorem, we need the 3 edges
 	// as vectors, and we need them sorted radially.
 	if (!vertices_edges) {

@@ -22,13 +22,13 @@ test("convert foldToSvg empty", () => {
 });
 
 test("convert foldToSvg FOLD object", () => {
-	const cp = ear.cp.fish();
+	const cp = ear.graph.fish();
 	ear.convert.foldToSvg(cp);
 	expect(true).toBe(true);
 });
 
 test("convert foldToSvg FOLD string", () => {
-	const cp = ear.cp.fish();
+	const cp = ear.graph.fish();
 	const FOLD = JSON.stringify(cp);
 	ear.convert.foldToSvg(FOLD);
 	expect(true).toBe(true);

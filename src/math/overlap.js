@@ -1,7 +1,9 @@
 /**
  * Math (c) Kraft
  */
-import { EPSILON } from "./constant.js";
+import {
+	EPSILON,
+} from "./constant.js";
 import {
 	exclude,
 	includeL,

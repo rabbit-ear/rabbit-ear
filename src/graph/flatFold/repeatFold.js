@@ -101,6 +101,10 @@ const repeatFoldLine = ({
 	// only keep simple, convex faces
 	faces.forEach((arr, f) => { if (arr.length !== 2) { delete faces[f]; } });
 
+	const remapPoint = ({ vertex, edge, b }) => (vertex !== undefined
+		? vertices_coords[vertex]
+		: add2(scale2(edges_vector[edge], b), edges_origin[edge]));
+
 	// the return object will be, for every intersected face,
 	// an object which describes a new segment, including:
 	// - edges: which two edges were intersected
@@ -111,10 +115,7 @@ const repeatFoldLine = ({
 	return faces.map((intersections, f) => ({
 		intersections,
 		assignment: faces_winding[f] ? assignment : oppositeAssignment,
-		points: intersections.map(({ edge, b }) => add2(
-			scale2(edges_vector[edge], b),
-			edges_origin[edge],
-		)),
+		points: intersections.map(remapPoint),
 	}));
 };
 

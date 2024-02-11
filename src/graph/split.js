@@ -73,7 +73,7 @@ export const splitGraphLineFunction = (
 		.map((collinear, e) => (collinear ? e : undefined))
 		.filter(a => a !== undefined);
 
-	const newFaces = faces.map(intersections => ({
+	const facesSegments = faces.map(intersections => ({
 		edges: intersections
 			.map(el => (el.vertex === undefined ? el.edge : undefined))
 			.filter(a => a !== undefined),
@@ -83,13 +83,13 @@ export const splitGraphLineFunction = (
 	}));
 
 	if (userPoints.length) {
-		newFaces.forEach((_, f) => {
+		facesSegments.forEach((_, f) => {
 			const poly = faces_vertices[f].map(v => vertices_coords[v]);
 			const points = userPoints.map(point => ({
 				...overlapConvexPolygonPointNew(poly, point),
 				point,
 			})).filter(el => el.overlap);
-			newFaces[f].points = points;
+			facesSegments[f].points = points;
 		});
 	}
 
@@ -97,14 +97,17 @@ export const splitGraphLineFunction = (
 	const nonConvexFaces = {};
 
 	// filter to contain only faces which have 2 vertices inside.
-	newFaces.forEach((face, f) => {
-		const count = (newFaces[f].points
-			? newFaces[f].vertices.length + newFaces[f].edges.length + newFaces[f].points.length
-			: newFaces[f].vertices.length + newFaces[f].edges.length);
+	facesSegments.forEach((face, f) => {
+		const count = (facesSegments[f].points
+			? facesSegments[f].vertices.length
+				+ facesSegments[f].edges.length
+				+ facesSegments[f].points.length
+			: facesSegments[f].vertices.length
+				+ facesSegments[f].edges.length);
 		// todo: here is part 1 of hard-coding to only work with convex faces
 		// if (count < 2) { delete faces[f]; }
 		if (count > 2) { nonConvexFaces[f] = true; }
-		if (count !== 2) { delete newFaces[f]; }
+		if (count !== 2) { delete facesSegments[f]; }
 	});
 
 	// new vertices come from one of two places:
@@ -139,7 +142,7 @@ export const splitGraphLineFunction = (
 		new_vertices_overlapInfo[vCount] = { a, b, point, edge };
 		new_vertices_coords[vCount++] = point;
 	});
-	newFaces.forEach(({ points }, face) => points.forEach((overlap) => {
+	facesSegments.forEach(({ points }, face) => points.forEach((overlap) => {
 		new_vertices_inFace[vCount] = face;
 		new_vertices_overlapInfo[vCount] = { ...overlap, face };
 		new_vertices_coords[vCount++] = overlap.point;
@@ -159,7 +162,7 @@ export const splitGraphLineFunction = (
 	// order them geometrically, and build a consecutive list of them.
 	let eCount = edges_vertices.length;
 	const new_edges_vertices = [];
-	newFaces.forEach((face, f) => {
+	facesSegments.forEach((face, f) => {
 		const edgesVertices = face.edges.map(e => newEdgesVertex[e]);
 		const interiorVertices = newFacesVertices[f];
 		new_edges_vertices[eCount++] = edgesVertices

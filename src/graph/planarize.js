@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
 import {
 	includeS,
 } from "../math/compare.js";
@@ -12,12 +14,16 @@ import {
 	subtract2,
 	magSquared2,
 } from "../math/vector.js";
-import { intersectLineLine } from "../math/intersect.js";
+import {
+	intersectLineLine,
+} from "../math/intersect.js";
 import {
 	epsilonUniqueSortedNumbers,
 	setDifferenceSortedEpsilonNumbers,
 } from "../general/array.js";
-import { sweepValues } from "./sweep.js";
+import {
+	sweepValues,
+} from "./sweep.js";
 import {
 	invertFlatToArrayMap,
 	invertFlatMap,
@@ -31,8 +37,12 @@ import {
 	isVertexCollinear,
 	// removeCollinearVertex,
 } from "./vertices/collinear.js";
-import { removeDuplicateVertices } from "./vertices/duplicate.js";
-import { getEdgesLine } from "./edges/lines.js";
+import {
+	removeDuplicateVertices,
+} from "./vertices/duplicate.js";
+import {
+	getEdgesLine,
+} from "./edges/lines.js";
 import {
 	duplicateEdges,
 	removeDuplicateEdges,
@@ -47,6 +57,7 @@ import {
 	makeVerticesVertices2D,
 	makePlanarFaces,
 } from "./make.js";
+
 /**
  *
  */
@@ -69,6 +80,7 @@ const getLinesIntersections = (lines, epsilon = EPSILON) => {
 	}
 	return linesIntersect;
 };
+
 /**
  * @description NOTICE this method is used internally and not yet ready for
  * general use. It only works on graphs with no faces and requires cleanup later.
@@ -89,6 +101,7 @@ const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
 	});
 	return edges[1];
 };
+
 /**
  * @description Planarize a graph into the 2D XY plane, split edges, rebuild faces.
  * The graph provided as a method argument will be modified in place.
@@ -127,13 +140,16 @@ const planarize = ({
 		lines,
 		edges_line,
 	} = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
+
 	// "compress" all edges down into a smaller set of infinite lines,
 	// we will be projecting points down onto non-normalized vectors,
 	// the dot products will be scaled by this much, we need to divide
 	// by this to convert the parameters back into coordinate space.
 	const linesSquareLength = lines.map(({ vector }) => magSquared2(vector));
+
 	// one to many mapping of a line and the edges along it.
 	const lines_edges = invertFlatToArrayMap(edges_line);
+
 	// for each edge and its corresponding line, project the edge's endpoints
 	// onto the line as a scalar of the line's vector from its origin.
 	const edges_scalars = edges_vertices
@@ -143,11 +159,13 @@ const planarize = ({
 				subtract2(point, lines[edges_line[e]].origin),
 				lines[edges_line[e]].vector,
 			)));
+
 	// for each line, a flat sorted list of all scalars along that line
 	// coming from all of the edges' endpoints.
 	const lines_flatEdgeScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]))
 		.map(numbers => epsilonUniqueSortedNumbers(numbers, epsilon));
+
 	// for each line, get the smallest and largest value (defining the range)
 	// compare every line against every other, gather all intersections.
 	// "intersections" contains some intersections that are outside the
@@ -162,6 +180,7 @@ const planarize = ({
 		.map((sects, i) => (
 			setDifferenceSortedEpsilonNumbers(sects, lines_flatEdgeScalars[i], epsilon)
 		));
+
 	// walk the line
 	// create an alternative form of the graph for the sweep method.
 	const sweepScalars = lines_edges
@@ -197,12 +216,14 @@ const planarize = ({
 			pi += 1;
 		}
 	});
+
 	// walk lineSweeps_vertices, lineSweeps_edges, remove edges which span
 	// across the empty space in a line where no previous edges existed.
 	const new_vertices_coords = lineSweeps_vertices
 		.flatMap((scalars, i) => scalars
 			.map(s => s / linesSquareLength[i])
 			.map(s => add2(lines[i].origin, scale2(lines[i].vector, s))));
+
 	// create a connected list of vertices, for every line, until the new line.
 	// [0,1] [1,2], [2,3] [3,4] then a new line [5, 6]... (don't connect 4-5)
 	// console.log("new_vertices_coords", new_vertices_coords);
@@ -233,9 +254,11 @@ const planarize = ({
 		}
 	}
 	removeIsolatedVertices(result, edgeIsolatedVertices(result));
+
 	// this single method call takes up the majority of the time of this method.
 	removeDuplicateVertices(result, epsilon);
 	removeCircularEdges(result);
+
 	// remove collinear vertices
 	// these vertices_edges are unsorted and will be removed at the end.
 	result.vertices_edges = makeVerticesEdgesUnsorted(result);

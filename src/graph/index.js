@@ -6,7 +6,6 @@ import * as foldFileFrames from "../fold/frames.js";
 import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
 import * as boundary from "./boundary.js";
-import * as clip from "./clip.js";
 import * as connectedComponents from "./connectedComponents.js";
 import * as directedGraph from "./directedGraph.js";
 import * as disjoint from "./disjoint.js";
@@ -68,8 +67,6 @@ import planarize from "./planarize.js";
 import populate from "./populate.js";
 import remove from "./remove.js";
 import replace from "./replace.js";
-import removePlanarVertex from "./remove/removePlanarVertex.js";
-import removePlanarEdge from "./remove/removePlanarEdge.js";
 import splitEdge from "./splitEdge/index.js";
 import splitFace from "./splitFace/index.js";
 // import addVertices_splitEdges from "./add/addVertices_splitEdges.js";
@@ -83,8 +80,6 @@ export default {
 	populate,
 	remove,
 	replace,
-	removePlanarVertex,
-	removePlanarEdge,
 	// addVertices,
 	// addEdges,
 	splitEdge,
@@ -104,7 +99,6 @@ export default {
 	...foldKeyMethods,
 	...foldSpecMethods,
 	...boundary,
-	...clip,
 	...connectedComponents,
 	...directedGraph,
 	...disjoint,

@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
 test("transform, matrix translate", () => {
-	const graph1 = ear.cp.fish();
+	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.transform(
 		structuredClone(graph1),
 		[1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 10, 0],
@@ -14,7 +14,7 @@ test("transform, matrix translate", () => {
 });
 
 test("transform, matrix scale and translate", () => {
-	const graph1 = ear.cp.fish();
+	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.transform(
 		structuredClone(graph1),
 		[2, 0, 0, 0, 2, 0, 0, 0, 1, 10, 10, 0],
@@ -26,7 +26,7 @@ test("transform, matrix scale and translate", () => {
 });
 
 test("transform, uniform scale", () => {
-	const graph1 = ear.cp.fish();
+	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.scale(
 		structuredClone(graph1),
 		2,
@@ -38,7 +38,7 @@ test("transform, uniform scale", () => {
 });
 
 test("transform, non-uniform scale", () => {
-	const graph1 = ear.cp.fish();
+	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.scale(
 		structuredClone(graph1),
 		[2, 1],
@@ -50,7 +50,7 @@ test("transform, non-uniform scale", () => {
 });
 
 test("transform, translate", () => {
-	const graph1 = ear.cp.fish();
+	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.translate(
 		structuredClone(graph1),
 		[1, 2],
@@ -63,7 +63,7 @@ test("transform, translate", () => {
 });
 
 test("transform, translate 3D", () => {
-	const graph1 = ear.cp.fish();
+	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.translate(
 		structuredClone(graph1),
 		[1, 2, 3],
@@ -76,7 +76,7 @@ test("transform, translate 3D", () => {
 });
 
 test("transform, rotate z", () => {
-	const graph1 = ear.cp.fish();
+	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.rotateZ(
 		structuredClone(graph1),
 		Math.PI,
@@ -90,7 +90,7 @@ test("transform, rotate z", () => {
 });
 
 test("transform, rotate 3D", () => {
-	const graph1 = ear.cp.fish();
+	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.rotate(
 		structuredClone(graph1),
 		Math.PI,

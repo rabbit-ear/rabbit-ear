@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { TWO_PI } from "../math/constant.js";
+import {
+	TWO_PI,
+} from "../math/constant.js";
 import {
 	flip,
 	subtract2,
@@ -12,7 +14,9 @@ import {
 	dot,
 	magnitude,
 } from "../math/vector.js";
-import { counterClockwiseSectors2 } from "../math/radial.js";
+import {
+	counterClockwiseSectors2,
+} from "../math/radial.js";
 import {
 	boundingBox,
 	makePolygonNonCollinear,
@@ -23,8 +27,12 @@ import {
 	walkPlanarFaces,
 	filterWalkedBoundaryFace,
 } from "./walk.js";
-import { sortVerticesCounterClockwise } from "./vertices/sort.js";
-import { makeFacesNormal } from "./normals.js";
+import {
+	sortVerticesCounterClockwise,
+} from "./vertices/sort.js";
+import {
+	makeFacesNormal,
+} from "./normals.js";
 import Messages from "../environment/messages.js";
 
 /**
@@ -333,6 +341,7 @@ export const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_ve
 // is no face that winds backwards around the piece and encloses infinity.
 // unfortunately, this disconnects the index match with vertices_vertices.
 //
+
 /**
  * *not a geometry array*
  *
@@ -453,11 +462,13 @@ export const makeVerticesSectors = ({
 	.map(vectors => (vectors.length === 1 // leaf node
 		? [TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
 		: counterClockwiseSectors2(vectors)));
+
 /**
  *
  *    EDGES
  *
  */
+
 /**
  * @description Make `edges_edges` containing all vertex-adjacent edges.
  * This will be radially sorted if you call makeVerticesEdges before calling this.
@@ -472,6 +483,7 @@ export const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
 		const side1 = vertices_edges[verts[1]].filter(e => e !== i);
 		return side0.concat(side1);
 	});
+
 /**
  * @description Make `edges_faces` where each edge is paired with its incident faces.
  * This is unsorted, prefer makeEdgesFaces()
@@ -561,6 +573,7 @@ export const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngl
 		if (a === 0) { return "F"; }
 		return a < 0 ? "M" : "V";
 	});
+
 /**
  * @description Convert edges fold angle into assignment for every edge. This method
  * will assign "M" "V" "F" and "B" for edges with only one incident face.
@@ -606,6 +619,7 @@ export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 // α = arccos[(xa * xb + ya * yb + za * zb) / (√(xa2 + ya2 + za2) * √(xb2 + yb2 + zb2))]
 // angle between two 2D vectors
 // α = arccos[(xa * xb + ya * yb) / (√(xa2 + ya2) * √(xb2 + yb2))]
+
 /**
  * @description Inspecting adjacent faces, and referencing their normals, infer
  * the foldAngle for every edge. This will result in a negative number for
@@ -677,6 +691,7 @@ export const makeEdgesFoldAngleFromFaces = ({
  */
 export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => edges_vertices
 	.map(ev => ev.map(v => vertices_coords[v]));
+
 /**
  * @description Turn every edge into a vector, basing the direction on the order of
  * the pair of vertices in each edges_vertices entry.
@@ -687,6 +702,7 @@ export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => edges_ve
 export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdgesCoords({
 	vertices_coords, edges_vertices,
 }).map(verts => subtract(verts[1], verts[0]));
+
 /**
  * @description For every edge, find the length between the edges pair of vertices.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
@@ -696,6 +712,7 @@ export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdge
 export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => makeEdgesVector({
 	vertices_coords, edges_vertices,
 }).map(vec => magnitude(vec));
+
 /**
  * @description Make an array of axis-aligned bounding boxes, one for each edge,
  * that encloses the edge, and will work in n-dimensions. Intended for
@@ -718,6 +735,7 @@ export const makeEdgesBoundingBox = ({
  *    FACES
  *
  */
+
 /**
  * @description Rebuild all faces in a 2D planar graph by walking counter-clockwise
  * down every edge (both ways). This does not include the outside face which winds
@@ -771,6 +789,7 @@ export const makePlanarFaces = ({
 // 	return map;
 // };
 // todo: this needs to be tested
+
 /**
  * @description Make `faces_vertices` from `faces_edges`.
  * @param {FOLD} graph a FOLD graph, with faces_edges, edges_vertices
@@ -786,6 +805,7 @@ export const makeFacesVerticesFromEdges = ({ edges_vertices, faces_edges }) => f
 				? pairs[1]
 				: pairs[0];
 		}));
+
 /**
  * @description Make `faces_edges` from `faces_vertices`.
  * @param {FOLD} graph a FOLD graph, with

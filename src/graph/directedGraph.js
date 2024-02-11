@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { uniqueSortedNumbers } from "../general/array.js";
+
 /**
  * @description Perform a topological sort on a directed acyclic graph.
  * This method assumes your graph is acyclic and will *not* do any testing.
@@ -13,6 +14,7 @@ import { uniqueSortedNumbers } from "../general/array.js";
 export const topologicalSort = (directedEdges) => {
 	// flat list of all vertices involved (can contain holes)
 	const vertices = uniqueSortedNumbers(directedEdges.flat());
+
 	// array where indices are vertices and values are arrays of vertices
 	// which are "parents" of this vertex (other vertices point to this one).
 	const verticesParents = [];

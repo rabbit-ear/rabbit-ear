@@ -2,19 +2,30 @@
  * Rabbit Ear (c) Kraft
  */
 // import count from "../graph/count.js";
-import { getLine } from "../general/get.js";
-import { foldKeys } from "../fold/keys.js";
-import * as transform from "../graph/transform.js";
+import clone from "../general/clone.js";
+import foldToSvg from "../convert/foldToSvg/index.js";
+import foldToObj from "../convert/foldToObj/index.js";
 import clean from "../graph/clean.js";
-import * as explode from "../graph/explode.js";
-import { nearest } from "../graph/nearest.js";
 import planarize from "../graph/planarize.js";
 import populate from "../graph/populate.js";
 import splitEdge from "../graph/splitEdge/index.js";
 import splitFace from "../graph/splitFace/index.js";
-import { subgraph } from "../graph/subgraph.js";
-import * as validate from "../graph/validate.js";
 import flatFold from "../graph/flatFold/index.js";
+import * as transform from "../graph/transform.js";
+import * as explode from "../graph/explode.js";
+import * as validate from "../graph/validate.js";
+import {
+	getLine,
+} from "../general/get.js";
+import {
+	foldKeys,
+} from "../fold/keys.js";
+import {
+	nearest,
+} from "../graph/nearest.js";
+import {
+	subgraph,
+} from "../graph/subgraph.js";
 import {
 	boundary,
 	boundaries,
@@ -29,16 +40,17 @@ import {
 import {
 	multiplyVerticesFacesMatrix2,
 } from "../graph/faces/matrix.js";
-import clone from "../general/clone.js";
-import { invertAssignments } from "../fold/spec.js";
-import foldToSvg from "../convert/foldToSvg/index.js";
-import foldToObj from "../convert/foldToObj/index.js";
+import {
+	invertAssignments,
+} from "../fold/spec.js";
 
 /**
  * @name Graph
- * @description a graph which includes faces, edges, and vertices, and additional
- * origami-specific information like fold angles of edges and layer order of faces.
- * @param {FOLD} [graph] an optional FOLD object, otherwise the graph will initialize empty
+ * @description a graph which includes faces, edges, and vertices, and
+ * additional origami-specific information like fold angles of edges
+ * and layer order of faces.
+ * @param {FOLD} [graph] an optional FOLD object,
+ * otherwise the graph will initialize empty
  * @linkcode Origami ./src/classes/graph.js 50
  */
 const Graph = {};
@@ -75,7 +87,7 @@ Object.entries({
 });
 
 /**
- * @returns {this} a deep copy of this object
+ * @returns {FOLD} a deep copy of this object
  */
 Graph.prototype.clone = function () {
 	return Object.assign(Object.create(Object.getPrototypeOf(this)), clone(this));
@@ -105,20 +117,6 @@ Graph.prototype.clear = function () {
 	delete this.file_frames;
 	return this;
 };
-
-/**
- * @param {object} is a FOLD object.
- * @param {options}
- *   "append" import will first, clear FOLD keys. "append":true prevents this clearing
- */
-// Graph.prototype.load = function (object, options = {}) {
-//   if (typeof object !== "object") { return; }
-//   if (options.append !== true) {
-//     keys.forEach(key => delete this[key]);
-//   }
-//   // allow overwriting of file_spec and file_creator if included in import
-//   Object.assign(this, { file_spec, file_creator }, clone(object));
-// };
 
 /**
  * @description return a shallow copy of this graph with the vertices folded.

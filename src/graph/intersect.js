@@ -135,7 +135,7 @@ export const intersectWithLineVerticesEdges = (
 
 	// if our line crosses the edge at one vertex, we still want to include the
 	// intersection information, but we can construct it ourselves without
-	// running the intersection algorithm. this should save us some time.
+	// running the intersection algorithm. this should save us a little time.
 	const edges = edgesVerticesOverlap
 		.map((verts, e) => (verts.length === 1
 			? ({
@@ -168,9 +168,14 @@ export const intersectWithLineVerticesEdges = (
  *   - vertex: {number|undefined} in the case of an intersection which crosses
  *     a vertex, indicate which vertex, otherwise, mark it as undefined.
  * - faces: for every intersected face, an array of intersection objects,
- *   copies from the "edges" section, where all intersection events are
- *   guaranteed to be unique with no duplicate data (ie: a line crossing at
- *   a vertex registers 2 edge-intersections, only 1 is chosen).
+ *   objects similar to but slightly different from those in the "edges" array.
+ *   Basically there are two types of intersection: "vertex" and "edge":
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number|undefined} the edge's parameter of the intersection, or
+ *     undefined if intersected with a vertex
+ *   - point: {number[]} the intersection point
+ *   - vertex: {number|undefined} if the intersection crosses a vertex
+ *   - edge: {number|undefined} if the intersection crosses an edge
  */
 export const intersectWithLine = (
 	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
@@ -214,7 +219,13 @@ export const intersectWithLine = (
 		.map(intersections => intersections.sort((p, q) => p.a - q.a))
 		.map(intersections => clusterSortedGeneric(intersections, epsilonEqual)
 			.map(cluster => cluster.map(index => intersections[index])))
-		.map(clusters => clusters.map(cluster => cluster[0]));
+		.map(clusters => clusters
+			.map(cluster => cluster[0])
+			.map(intersection => ({
+				...intersection,
+				edge: intersection.vertex === undefined ? intersection.edge : undefined,
+				b: intersection.vertex === undefined ? intersection.b : undefined,
+			})));
 
 	return { vertices, edges, faces };
 };

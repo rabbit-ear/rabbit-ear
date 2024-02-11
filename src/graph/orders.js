@@ -1,17 +1,31 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { dot } from "../math/vector.js";
-import { uniqueSortedNumbers } from "../general/array.js";
-import { makeFacesNormal } from "./normals.js";
-import { topologicalSort } from "./directedGraph.js";
-import { makeVerticesVerticesUnsorted } from "./make.js";
-import { connectedComponents } from "./connectedComponents.js";
+import {
+	dot,
+} from "../math/vector.js";
+import {
+	uniqueSortedNumbers,
+} from "../general/array.js";
+import {
+	makeFacesNormal,
+} from "./normals.js";
+import {
+	topologicalSort,
+} from "./directedGraph.js";
+import {
+	makeVerticesVerticesUnsorted,
+} from "./make.js";
+import {
+	connectedComponents,
+} from "./connectedComponents.js";
 import {
 	invertFlatMap,
 	invertFlatToArrayMap,
 } from "./maps.js";
-// import { allLayerConditions } from "./globalSolver/index.js";
+// import {
+// 	allLayerConditions,
+// } from "./globalSolver/index.js";
 
 /**
  * @description given faceOrders and a list of faces, filter the list
@@ -52,20 +66,24 @@ export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 	if (!faces_normal) {
 		throw new Error("linearizeFaceOrders: faces_normal required");
 	}
+
 	// get a flat, unique, array of all faces present in faceOrders
 	const faces = uniqueSortedNumbers(faceOrders
 		.flatMap(order => [order[0], order[1]]));
+
 	// we need to pick one face which determines the linearization direction.
 	// if the user supplied rootFace is not in "faces", ignore it.
 	const normal = rootFace !== undefined && faces.includes(rootFace)
 		? faces_normal[rootFace]
 		: faces_normal[faces[0]];
+
 	// create a lookup. for every face, does its normal match the normal
 	// we just chose to represent the linearization direction?
 	const facesNormalMatch = [];
 	faces.forEach(f => {
 		facesNormalMatch[f] = dot(faces_normal[f], normal) > 0;
 	});
+
 	// this pair states face [0] is above face [1]. according to the +1 -1 order,
 	// and whether or not the reference face [1] normal is flipped. (xor either)
 	const directedEdges = faceOrders

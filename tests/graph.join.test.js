@@ -9,8 +9,8 @@ const graph = ear.graph({
 });
 
 test("join graphs", () => {
-	const cp1 = ear.cp.fish();
-	const cp2 = ear.cp.fish().translate([0.5, 0]);
+	const cp1 = ear.graph.fish();
+	const cp2 = ear.graph.fish().translate([0.5, 0]);
 	ear.graph.join(cp1, cp2);
 });
 
