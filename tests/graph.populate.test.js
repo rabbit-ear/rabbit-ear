@@ -1,6 +1,14 @@
 import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
+// export const makeEmptyGraph = () => populate({
+// 	vertices_coords: [],
+// 	edges_vertices: [],
+// 	edges_assignment: [],
+// 	edges_foldAngle: [],
+// 	faces_vertices: [],
+// });
+
 test("populate with isolated vertex", () => {
 	const graph = ear.graph({
 		vertices_coords: [[0, 0], [1, 0], [2, 0], [3, 0]],
@@ -63,7 +71,7 @@ test("component edges with no vertex data", () => {
 	}
 });
 
-test("one-fold populate", () => {
+test("one-fold populate, no faces rebuilt", () => {
 	const graph = ear.graph({
 		vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
 		edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [1, 3]],
@@ -79,18 +87,39 @@ test("one-fold populate", () => {
 	expect(graph.edges_length).toBe(undefined);
 	expect(graph.edges_assignment.length).toBe(5);
 	expect(graph.edges_foldAngle.length).toBe(5);
+	expect(graph.faces_faces.length).toBe(0);
+	expect(graph.faces_vertices.length).toBe(0);
+	expect(graph.faces_edges.length).toBe(0);
+});
+
+test("one-fold populate, rebuild faces", () => {
+	const graph = ear.graph({
+		vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+		edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [1, 3]],
+	});
+	graph.populate({ faces: true });
+	expect(graph.vertices_coords.length).toBe(4);
+	expect(graph.vertices_vertices.length).toBe(4);
+	expect(graph.vertices_faces.length).toBe(4);
+	expect(graph.vertices_edges.length).toBe(4);
+	expect(graph.edges_vertices.length).toBe(5);
+	expect(graph.edges_edges).toBe(undefined);
+	expect(graph.edges_faces.length).toBe(5);
+	expect(graph.edges_length).toBe(undefined);
+	expect(graph.edges_assignment.length).toBe(5);
+	expect(graph.edges_foldAngle.length).toBe(5);
 	expect(graph.faces_faces.length).toBe(2);
 	expect(graph.faces_vertices.length).toBe(2);
 	expect(graph.faces_edges.length).toBe(2);
 });
 
-test("one-fold populate", () => {
+test("one-fold populate, with assignments", () => {
 	const graph = ear.graph({
 		vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
 		edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [1, 3]],
 		edges_assignment: ["B", "B", "B", "B", "V"],
 	});
-	graph.populate();
+	graph.populate({ faces: true });
 	expect(graph.vertices_coords.length).toBe(4);
 	expect(graph.vertices_vertices.length).toBe(4);
 	expect(graph.vertices_faces.length).toBe(4);

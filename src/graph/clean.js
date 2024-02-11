@@ -14,7 +14,7 @@ import {
 	removeCircularEdges,
 } from "./edges/circular.js";
 import {
-	mergeSimpleNextmaps,
+	mergeFlatNextmaps,
 	invertFlatMap,
 } from "./maps.js";
 
@@ -46,11 +46,11 @@ const clean = (graph, epsilon) => {
 	const change_e2_remove = change_e2.remove.map(e => change_e1_backmap[e]);
 	return {
 		vertices: {
-			map: mergeSimpleNextmaps(change_v1.map, change_v2.map),
+			map: mergeFlatNextmaps(change_v1.map, change_v2.map),
 			remove: change_v1.remove.concat(change_v2_remove),
 		},
 		edges: {
-			map: mergeSimpleNextmaps(change_e1.map, change_e2.map),
+			map: mergeFlatNextmaps(change_e1.map, change_e2.map),
 			remove: change_e1.remove.concat(change_e2_remove),
 		},
 	};

@@ -12,6 +12,7 @@ import {
 	magnitude2,
 	add2,
 } from "./vector.js";
+
 /**
  * @description Given a point has known distances to three triangle points,
  * and given the location of that triangle's points in space, find the

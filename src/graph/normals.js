@@ -28,7 +28,7 @@ export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => {
 		.map(vertices => vertices
 			.map(vertex => vertices_coords3D[vertex]))
 		.map(polygon => {
-			// we have to verify that the two edges are not parallel
+			// we have to ensure that the two edges we choose are not parallel
 			let a;
 			let b;
 			let i = 0;

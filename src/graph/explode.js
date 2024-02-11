@@ -4,10 +4,13 @@
 import { makeFacesEdgesFromVertices } from "./make.js";
 
 /**
- * @description Create a modified graph which only contains
- * vertices_coords and faces_vertices, but that for every face,
- * vertices_coords has been duplicated so that faces
- * do not share vertices.
+ * @description Create a modified graph which contains vertices, edges,
+ * and faces, but that for every face, all of its vertices and edges
+ * have been duplicated so that faces do not share vertices or edges.
+ * Edges are also duplicated so that they do not share vertices.
+ * Edge assignments and foldAngles will remain and be correctly re-indexed.
+ * Additionally, if you only provide a graph with only vertices_coords and
+ * faces_vertices, then a simple face-vertex only graph will be calculated.
  * @param {FOLD} graph a FOLD graph. not modified.
  * @returns {FOLD|undefined} a new FOLD graph with exploded faces,
  * or undefined if no faces_vertices entry exists.
@@ -25,10 +28,14 @@ export const explodeFaces = ({
 			.map(face => face.map(() => f++)),
 	};
 	if (!vertices_coords) { return result; }
+
 	// if vertices exist, add vertices
 	result.vertices_coords = structuredClone(faces_vertices
 		.flatMap(face => face.map(v => vertices_coords[v])));
+
+	// if no edges exist, return the vertex-face graph.
 	if (!edges_vertices) { return result; }
+
 	// if edges exist, add edges
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
@@ -48,25 +55,6 @@ export const explodeFaces = ({
 	}
 	return result;
 };
-
-/**
- * @description Create a modified graph which only contains
- * vertices_coords and faces_vertices, but that for every face,
- * vertices_coords has been duplicated so that faces
- * do not share vertices.
- * @param {FOLD} graph a FOLD graph. not modified.
- * @returns {FOLD} a new FOLD graph with exploded faces
- * @linkcode Origami ./src/graph/explodeFaces.js 82
- */
-// export const explodeFacesSimple = ({ vertices_coords, faces_vertices }) => {
-// 	let f = 0;
-// 	return {
-// 		vertices_coords: structuredClone(faces_vertices
-// 			.flatMap(face => face.map(v => vertices_coords[v]))),
-// 		faces_vertices: faces_vertices
-// 			.map(face => face.map(() => f++)),
-// 	};
-// };
 
 /**
  * @description Create a modified graph which contains
@@ -96,58 +84,3 @@ export const explodeEdges = ({
 	}
 	return result;
 };
-
-/**
- * @description Create a modified graph which separates all faces from each other.
- * This will add new vertices and new edges. Most adjacency arrays will be
- * deleted as a lot of it becomes trivial. However, edges_assignment and foldAngle
- * will remain and be correctly updated to match the new edge indices.
- * @param {FOLD} graph a FOLD graph, will be modified in place
- * @returns {object} a summary of changes to the vertices and edges
- * @linkcode Origami ./src/graph/explodeFaces.js 29
- */
-// export const explode = (graph) => {
-// 	// make sure we have faces_vertices (required) and faces_edges (can be built)
-// 	if (!graph.faces_vertices) { return {}; }
-// 	const faces_edges = graph.faces_edges
-// 		? graph.faces_edges
-// 		: makeFacesEdgesFromVertices(graph);
-// 	// arrays mapping index (new element index) to value (old element index)
-// 	const verticesMap = graph.faces_vertices.flatMap(vertices => vertices);
-// 	const edgesMap = faces_edges.flatMap(edges => edges);
-// 	// build new data
-// 	let fv = 0;
-// 	graph.faces_vertices = graph.faces_vertices.map(face => face.map(() => fv++));
-// 	let fe = 0;
-// 	graph.faces_edges = faces_edges.map(face => face.map(() => fe++));
-// 	// use faces_edges (or vertices) to build a loop, where new edges are made to
-// 	// connect new vertices, but when a face is done connect back to its first vertex.
-// 	let ev = 0;
-// 	graph.edges_vertices = faces_edges
-// 		.flatMap(face => face
-// 			.map((_, i, arr) => (i === arr.length - 1
-// 				? [ev, (++ev - arr.length)]
-// 				: [ev, (++ev)])));
-// 	if (graph.vertices_coords) {
-// 		graph.vertices_coords = structuredClone(verticesMap
-// 			.map(i => graph.vertices_coords[i]));
-// 	}
-// 	if (graph.edges_assignment) {
-// 		graph.edges_assignment = structuredClone(edgesMap
-// 			.map(i => graph.edges_assignment[i]));
-// 	}
-// 	if (graph.edges_foldAngle) {
-// 		graph.edges_foldAngle = structuredClone(edgesMap
-// 			.map(i => graph.edges_foldAngle[i]));
-// 	}
-// 	if (graph.vertices_vertices) { delete graph.vertices_vertices; }
-// 	if (graph.vertices_edges) { delete graph.vertices_edges; }
-// 	if (graph.vertices_faces) { delete graph.vertices_faces; }
-// 	if (graph.edges_edges) { delete graph.edges_edges; }
-// 	if (graph.edges_faces) { delete graph.edges_faces; }
-// 	if (graph.faces_faces) { delete graph.faces_faces; }
-// 	return {
-// 		vertices: { map: verticesMap },
-// 		edges: { map: edgesMap },
-// 	};
-// };

@@ -153,7 +153,9 @@ export const centroid = (points) => {
 };
 
 /**
- *
+ * @description Given a list of points, get the dimension of the first
+ * point in the list, return the dimension. Expecting either 2 or 3.
+ * @returns {number} the dimension of the first point in the list
  */
 const getDimension = (points) => {
 	for (let i = 0; i < points.length; i += 1) {

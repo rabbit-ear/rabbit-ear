@@ -13,6 +13,9 @@ test("isolated vertex", () => {
 	expect(graph.vertices_edges.length).toBe(5);
 	expect(graph.vertices_faces.length).toBe(5);
 	expect(graph.vertices_vertices.length).toBe(5);
+	expect(graph.faces_vertices.length).toBe(1);
+	expect(graph.faces_edges.length).toBe(1);
+	expect(graph.faces_faces.length).toBe(1);
 	expect(JSON.stringify(graph.faces_vertices[0]))
 		.toBe(JSON.stringify([0, 2, 3, 4]));
 

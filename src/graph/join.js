@@ -4,7 +4,7 @@
 import count from "./count.js";
 import clone from "../general/clone.js";
 import {
-	remapComponent,
+	remapKey,
 	invertFlatToArrayMap,
 } from "./maps.js";
 import {
@@ -12,6 +12,69 @@ import {
 	filterKeysWithPrefix,
 	getDimensionQuick,
 } from "../fold/spec.js";
+
+/**
+ * @description Join two graphs into one. The result will be written into
+ * the first parameter, the "target". All source components will be
+ * re-indexed and pushed to the end of the component arrays in the target.
+ * No geometric operations will occur, no testing for duplicate vertices,
+ * The source components inside of the result will be disjoint from
+ * the original contents in the target.
+ * @param {FOLD} target a fold graph, will be modified in place
+ * to become the union of the two graphs.
+ * @param {FOLD} source the graph to be merged into the target.
+ * @return {object} an object which describes which indices came
+ * from which graph. The object has keys "vertices", "edges", and "faces",
+ * each with a value of type {number[][]}, with only two top level
+ * arrays, 0 and 1, where 0 is the "target" graph and 1 is the "source",
+ * and the contents of the inner array are the indices of the component
+ * in the final union graph.
+ */
+export const join = (target, source) => {
+	const VEF = Object.keys(singularize);
+	// if vertices are 2D and 3D (mismatch), we have to resize
+	// all vertices up to 3D.
+	const sourceDimension = getDimensionQuick(source);
+	const targetDimension = getDimensionQuick(target);
+	const sourceKeyArrays = {};
+	VEF.forEach(key => {
+		const arrayName = filterKeysWithPrefix(source, key).shift();
+		sourceKeyArrays[key] = (arrayName !== undefined ? source[arrayName] : []);
+	});
+	const keyCount = {};
+	VEF.forEach(key => { keyCount[key] = count(target, key); });
+	const indexMaps = { vertices: [], edges: [], faces: [] };
+	VEF.forEach(key => sourceKeyArrays[key]
+		.forEach((_, i) => { indexMaps[key][i] = keyCount[key]++; }));
+	const sourceClone = clone(source);
+	VEF.forEach(key => remapKey(sourceClone, key, indexMaps[key]));
+	Object.keys(sourceClone)
+		.filter(key => sourceClone[key].constructor === Array)
+		.filter(key => !(key in target))
+		.forEach(key => { target[key] = []; });
+	Object.keys(sourceClone)
+		.filter(key => sourceClone[key].constructor === Array)
+		.forEach(key => sourceClone[key]
+			.forEach((v, i) => { target[key][i] = v; }));
+	const summary = {};
+	const targetKeyArrays = {};
+	VEF.forEach(key => {
+		const arrayName = filterKeysWithPrefix(target, key).shift();
+		targetKeyArrays[key] = (arrayName !== undefined ? target[arrayName] : []);
+	});
+	VEF.forEach(key => {
+		const map = targetKeyArrays[key].map(() => 0);
+		indexMaps[key].forEach(v => { map[v] = 1; });
+		summary[key] = invertFlatToArrayMap(map);
+	});
+	const target2DVertices = sourceDimension !== targetDimension
+		? (target.vertices_coords || [])
+			.map((coords, i) => (coords.length === 2 ? i : undefined))
+			.filter(a => a !== undefined)
+		: [];
+	target2DVertices.forEach(v => { target.vertices_coords[v][2] = 0; });
+	return summary;
+};
 
 /**
  * @description Join two planar graphs, creating new vertices, edges, faces.
@@ -114,66 +177,3 @@ import {
 // 	})));
 // 	return maps;
 // };
-
-/**
- * @description Join two graphs into one. The result will be written into
- * the first parameter, the "target". All source components will be
- * re-indexed and pushed to the end of the component arrays in the target.
- * No geometric operations will occur, no testing for duplicate vertices,
- * The source components inside of the result will be disjoint from
- * the original contents in the target.
- * @param {FOLD} target a fold graph, will be modified in place
- * to become the union of the two graphs.
- * @param {FOLD} source the graph to be merged into the target.
- * @return {object} an object which describes which indices came
- * from which graph. The object has keys "vertices", "edges", and "faces",
- * each with a value of type {number[][]}, with only two top level
- * arrays, 0 and 1, where 0 is the "target" graph and 1 is the "source",
- * and the contents of the inner array are the indices of the component
- * in the final union graph.
- */
-export const join = (target, source) => {
-	const VEF = Object.keys(singularize);
-	// if vertices are 2D and 3D (mismatch), we have to resize
-	// all vertices up to 3D.
-	const sourceDimension = getDimensionQuick(source);
-	const targetDimension = getDimensionQuick(target);
-	const sourceKeyArrays = {};
-	VEF.forEach(key => {
-		const arrayName = filterKeysWithPrefix(source, key).shift();
-		sourceKeyArrays[key] = (arrayName !== undefined ? source[arrayName] : []);
-	});
-	const keyCount = {};
-	VEF.forEach(key => { keyCount[key] = count(target, key); });
-	const indexMaps = { vertices: [], edges: [], faces: [] };
-	VEF.forEach(key => sourceKeyArrays[key]
-		.forEach((_, i) => { indexMaps[key][i] = keyCount[key]++; }));
-	const sourceClone = clone(source);
-	VEF.forEach(key => remapComponent(sourceClone, key, indexMaps[key]));
-	Object.keys(sourceClone)
-		.filter(key => sourceClone[key].constructor === Array)
-		.filter(key => !(key in target))
-		.forEach(key => { target[key] = []; });
-	Object.keys(sourceClone)
-		.filter(key => sourceClone[key].constructor === Array)
-		.forEach(key => sourceClone[key]
-			.forEach((v, i) => { target[key][i] = v; }));
-	const summary = {};
-	const targetKeyArrays = {};
-	VEF.forEach(key => {
-		const arrayName = filterKeysWithPrefix(target, key).shift();
-		targetKeyArrays[key] = (arrayName !== undefined ? target[arrayName] : []);
-	});
-	VEF.forEach(key => {
-		const map = targetKeyArrays[key].map(() => 0);
-		indexMaps[key].forEach(v => { map[v] = 1; });
-		summary[key] = invertFlatToArrayMap(map);
-	});
-	const target2DVertices = sourceDimension !== targetDimension
-		? (target.vertices_coords || [])
-			.map((coords, i) => (coords.length === 2 ? i : undefined))
-			.filter(a => a !== undefined)
-		: [];
-	target2DVertices.forEach(v => { target.vertices_coords[v][2] = 0; });
-	return summary;
-};

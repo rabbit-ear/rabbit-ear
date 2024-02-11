@@ -76,7 +76,7 @@ export const invertArrayMap = (map) => {
  * @returns {number[]} one nextmap reflecting the sum of changes
  * @linkcode Origami ./src/graph/maps.js 10
  */
-export const mergeSimpleNextmaps = (...maps) => {
+export const mergeFlatNextmaps = (...maps) => {
 	if (maps.length === 0) { return []; }
 	const solution = maps[0].map((_, i) => i);
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
@@ -114,7 +114,7 @@ export const mergeNextmaps = (...maps) => {
  * @returns {number[]} one backmap reflecting the sum of changes
  * @linkcode Origami ./src/graph/maps.js 43
  */
-export const mergeSimpleBackmaps = (...maps) => {
+export const mergeFlatBackmaps = (...maps) => {
 	if (maps.length === 0) { return []; }
 	let solution = maps[0].map((_, i) => i);
 	maps.forEach(map => {
@@ -150,32 +150,14 @@ export const mergeBackmaps = (...maps) => {
 };
 
 /**
- * @description Remap the indices of a component in the graph.
- * This will update all references to this component too. For example,
- * modifying "vertices" indices will move around "vertices_coords" but
- * also update "faces_vertices" to match the new indices.
- * @param {FOLD} graph a FOLD graph, will be modified in place.
- * @param {string} component the name of a component, most likely either:
- * "vertices", "edges", or "faces".
- * @param {number[]} an index map, indicating where the old
- * indices should be.
- */
-export const remapComponent = (graph, component, indexMap = []) => {
-	// replace the references inside of each component, where the
-	// component is the suffix. for example, update the new vertex indices
-	// inside of edges_vertices.
-	filterKeysWithSuffix(graph, component)
-		.forEach(key => graph[key]
-			.forEach((_, ii) => graph[key][ii]
-				.forEach((v, jj) => { graph[key][ii][jj] = indexMap[v]; })));
-	// shift the arrays themselves to the new location in the index map.
-	const inverted = invertFlatMap(indexMap);
-	filterKeysWithPrefix(graph, component)
-		.forEach(key => { graph[key] = inverted.map(i => graph[key][i]); });
-};
-
-/**
- *
+ * @description Move indices of a particular component in a graph to a
+ * new set of indices. This will update all references to this component too.
+ * This is accomplished by providing an index map parameter which describes,
+ * for every current index (index), what should the new index be (value).
+ * @param {FOLD} graph a FOLD object, will be modified in place.
+ * @param {string} key a component like "vertices", "edges", "faces"
+ * @param {number[]} indexMap an array which maps a current index (index)
+ * to a destination index (value).
  */
 export const remapKey = (graph, key, indexMap) => {
 	// Perform a simple invertFlatMap, indices/values swap, but in the case of

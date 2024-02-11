@@ -11,7 +11,7 @@ const arrMatch = (a, b) => {
 test("merge simple next map", () => {
 	const map1 = [0, 1, 2, 2, 3, 1, 4, 5];
 	const map2 = [0, 1, 1, 2, 0, 3];
-	const res = ear.graph.mergeSimpleNextmaps(map1, map2);
+	const res = ear.graph.mergeFlatNextmaps(map1, map2);
 	objMatch(res, [0, 1, 1, 1, 2, 1, 0, 3]);
 });
 
@@ -25,7 +25,7 @@ test("merge nextmap", () => {
 test("merge simple backmap", () => {
 	const map1 = [0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3];
 	const map2 = [0, 1, 2, 3, 4, 4, 4, 4, 5, 6, 7, 8, 9, 10];
-	const res = ear.graph.mergeSimpleBackmaps(map1, map2);
+	const res = ear.graph.mergeFlatBackmaps(map1, map2);
 	objMatch(res, [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3]);
 });
 
@@ -42,7 +42,7 @@ test("merge with undefineds", () => {
 	const map2 = [0, null, 1, 2, 3, 4, null];
 	// const expected = [0, null, 1, null, 2, 3, null, null, 4, null];
 	const expected = [0, null, 1, undefined, 2, 3, undefined, undefined, 4, null];
-	const res = ear.graph.mergeSimpleNextmaps(map1, map2);
+	const res = ear.graph.mergeFlatNextmaps(map1, map2);
 	arrMatch(res, expected);
 });
 
@@ -50,7 +50,7 @@ test("inverse map", () => {
 	// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 	const map1 = [0, 1, 2, null, 3, 4, null, null, 5, 6];
 	const map2 = [0, null, 1, 2, 3, 4, null];
-	const res = ear.graph.invertFlatMap(ear.graph.mergeSimpleNextmaps(map1, map2));
+	const res = ear.graph.invertFlatMap(ear.graph.mergeFlatNextmaps(map1, map2));
 	const expected = [0, 2, 4, 5, 8];
 	arrMatch(res, expected);
 });

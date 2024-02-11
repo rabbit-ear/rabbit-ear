@@ -1,7 +1,9 @@
 /**
  * Math (c) Kraft
  */
-import { excludeR } from "./compare.js";
+import {
+	excludeR,
+} from "./compare.js";
 import {
 	subtract,
 	distance,
@@ -10,22 +12,24 @@ import {
 import {
 	clockwiseBisect2,
 } from "./radial.js";
-import { nearestPointOnLine } from "./nearest.js";
-import { intersectLineLine } from "./intersect.js";
+import {
+	nearestPointOnLine,
+} from "./nearest.js";
+import {
+	intersectLineLine,
+} from "./intersect.js";
 
 /**
  * @description this recursive algorithm works outwards-to-inwards, each repeat
  * decreases the size of the polygon by one point/side. (removes 2, adds 1)
  * and repeating the algorithm on the smaller polygon.
- *
- * @param {number[][]} array of point objects (arrays of numbers, [x, y]). the
- *   counter-clockwise sorted points of the polygon. as we recurse this list shrinks
- *   by removing the points that are "finished".
- *
+ * @param {number[][]} array of point objects (arrays of numbers, [x, y]).
+ * the counter-clockwise sorted points of the polygon. as we recurse this
+ * list shrinks by removing the points that are "finished".
  * @returns {object[]} array of line segments as objects with keys:
- *   "points": array of 2 points in array form [ [x, y], [x, y] ]
- *   "type": "skeleton" or "kawasaki", the latter being the projected perpendicular
- *   dropped edges down to the sides of the polygon.
+ * "points": array of 2 points in array form [ [x, y], [x, y] ]
+ * "type": "skeleton" or "kawasaki", the latter being the projected
+ * perpendicular dropped edges down to the sides of the polygon.
  */
 const recurseSkeleton = (points, lines, bisectors) => {
 	// every point has an interior angle bisector vector, this ray is

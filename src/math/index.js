@@ -21,7 +21,6 @@ import * as encloses from "./encloses.js";
 import * as overlapMethods from "./overlap.js";
 import * as intersectMethods from "./intersect.js";
 import * as clip from "./clip.js";
-import * as split from "./split.js";
 
 export default {
 	...constant,
@@ -44,7 +43,6 @@ export default {
 	...overlapMethods,
 	...intersectMethods,
 	...clip,
-	...split,
 };
 
 /**

@@ -106,7 +106,8 @@ export const lerpLines = (a, b, t) => {
 };
 
 /**
- *
+ * @description a subroutine of pleat(), if we identify that
+ * the two lines are parallel.
  */
 const parallelPleat = (a, b, count) => {
 	const isOpposite = dot(a.vector, b.vector) < 0;

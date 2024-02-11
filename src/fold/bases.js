@@ -72,7 +72,7 @@ export const kite = () => populate({
 	],
 	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 2], [0, 4], [0, 3]],
 	edges_assignment: Array.from("BBBBBBVVF"),
-});
+}, { faces: true });
 
 /**
  * @description Create a fish base FOLD object in crease pattern form.
@@ -99,7 +99,7 @@ export const fish = () => populate({
 		[8, 0], [8, 9], [8, 4], [8, 10],
 	],
 	edges_assignment: Array.from("BBBBBBBBVVVVVVMMFFFFFF"),
-});
+}, { faces: true });
 
 /**
  * @description Create a bird base FOLD object in crease pattern form.
@@ -126,7 +126,7 @@ export const bird = () => populate({
 	],
 	edges_assignment: Array
 		.from("BBBBBBBBVVVVVVVVMVMVMVMVMMFFFFFFFF"),
-});
+}, { faces: true });
 
 /**
  * @description Create a frog base FOLD object in crease pattern form.
@@ -162,7 +162,7 @@ export const frog = () => populate({
 	],
 	edges_assignment: Array
 		.from("BBBBFFVVBBBBMMMMFVVFFVVFVVVVVVVVVMMVVMMVVVFVVFFVVFMMMMMMVVBBBBBBBBVV"),
-});
+}, { faces: true });
 
 /**
  * @description Create a windmill base FOLD object in crease pattern form.
@@ -187,7 +187,7 @@ export const windmill = () => populate({
 	],
 	edges_assignment: Array
 		.from("BBBBBBBBVFFVFVVFFVVFMFMFMFFFFFFFFFVFFVFVVFFVVFBBBBBBBBMF"),
-});
+}, { faces: true });
 
 /**
  * @description todo: I don't know what the name of this base is.
@@ -208,4 +208,4 @@ export const squareFish = () => populate({
 		[6, 9], [2, 9], [9, 13], [13, 7],
 	],
 	edges_assignment: Array.from("BBBBFFFVFVFMMVVVFFVVVBBBMMBBB"),
-});
+}, { faces: true });

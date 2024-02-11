@@ -51,7 +51,7 @@ test("populate building faces (by walking)", () => {
 		edges_vertices: vertices_coords
 			.map((_, i, arr) => [i, (i + 1) % arr.length]),
 		edges_assignment: Array(vertices_coords.length).fill("B"),
-	});
+	}, { faces: true });
 
 	expect(JSON.stringify(graph1.faces_vertices))
 		.toBe(JSON.stringify(graph2.faces_vertices));
