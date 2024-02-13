@@ -30,12 +30,10 @@ import {
 import {
 	getFaceFaceSharedVertices,
 } from "./general.js";
-// import {
-// 	makeFaceSpanningTree,
-// } from "./spanningTree.js";
 import {
 	minimumSpanningTrees,
 } from "../trees.js";
+
 /**
  * @description Given a FOLD object and a set of 2x3 matrices, one per face,
  * "fold" the vertices by finding one matrix per vertex and multiplying them.
@@ -61,7 +59,9 @@ export const multiplyVerticesFacesMatrix2 = ({
 	return vertices_coords
 		.map((coord, i) => multiplyMatrix2Vector2(vertices_matrix[i], coord));
 };
+
 const unassigned_angle = { U: true, u: true };
+
 /**
  * @description Create one transformation matrix for every face which
  * represents the transformation of the face AFTER the graph has been folded
@@ -94,7 +94,6 @@ export const makeFacesMatrix = ({
 	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity3x4);
-	// makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
 	minimumSpanningTrees(faces_faces, root_face)
 		.forEach(tree => tree
 			.slice(1) // remove the first level, it has no parent face
@@ -122,6 +121,7 @@ export const makeFacesMatrix = ({
 				})));
 	return faces_matrix;
 };
+
 /**
  * @description Create one transformation matrix for every face which
  * represents the transformation of the face AFTER the graph has been folded
@@ -148,6 +148,7 @@ export const makeFacesMatrix2 = ({
 	if (!faces_faces) {
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
+
 	// However, if there is no edges_assignments, and we have to use edges_foldAngle,
 	// the "unassigned" trick will no longer work, only +/- non zero numbers get
 	// counted as folded edges (true).

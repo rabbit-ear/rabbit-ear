@@ -8,6 +8,7 @@ import {
 	makeVerticesFaces,
 } from "../make.js";
 import replace from "../replace.js";
+
 /**
  * @description Get the indices of all duplicate edges by marking the
  * second/third/... as duplicate (not the first of the duplicates).
@@ -27,23 +28,27 @@ import replace from "../replace.js";
 export const duplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
 	const duplicates = [];
-	const map = {};
+
+	// iterate through the edges, for each edge, store both permutations of
+	// vertices "a b" "b a" as space-separated strings in this hash table.
+	const hash = {};
 	for (let i = 0; i < edges_vertices.length; i += 1) {
 		// we need to store both, but only need to test one
 		const a = `${edges_vertices[i][0]} ${edges_vertices[i][1]}`;
 		const b = `${edges_vertices[i][1]} ${edges_vertices[i][0]}`;
-		if (map[a] !== undefined) { // instead of (map[a] || map[b])
-			duplicates[i] = map[a];
+		if (hash[a] !== undefined) {
+			duplicates[i] = hash[a];
 		} else {
-			// only update the map. if an edge exists as two vertices, it will only
+			// only update the hash. if an edge exists as two vertices, it will only
 			// be set once, this prevents chains of duplicate relationships where
 			// A points to B points to C points to D...
-			map[a] = i;
-			map[b] = i;
+			hash[a] = i;
+			hash[b] = i;
 		}
 	}
 	return duplicates;
 };
+
 /**
  * @description Find and remove all duplicate edges from a graph.
  * If an edge is removed, it will mess up the vertices data (vertices_vertices,

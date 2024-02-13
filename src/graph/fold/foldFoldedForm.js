@@ -15,8 +15,8 @@ import {
 	transferPointOnEdgeBetweenGraphs,
 } from "../transfer.js";
 import {
-	intersectLineMakeEdges,
-} from "../intersect.js";
+	splitLineToEdges,
+} from "../split/splitLine.js";
 
 /**
  *
@@ -32,7 +32,7 @@ export const foldFoldedForm = (cp, folded, segment, epsilon) => {
 		edges_vertices,
 		edges_collinear,
 		edges_face,
-	} = intersectLineMakeEdges(
+	} = splitLineToEdges(
 		folded,
 		pointsToLine(...segment),
 		includeS,

@@ -26,7 +26,7 @@ import remove from "../remove.js";
  * @param {number[]} incident_vertices vertices that make up the split edge.
  * the new vertex lies between.
  */
-export const updateVerticesVertices = (
+const updateVerticesVertices = (
 	{ vertices_vertices },
 	vertex,
 	incidentVertices,
@@ -58,7 +58,7 @@ export const updateVerticesVertices = (
  * must be aligned with "newEdges"
  * @param {number[]} newEdges the two new edges, must be aligned with "vertices"
  */
-export const updateVerticesEdges = ({
+const updateVerticesEdges = ({
 	vertices_edges,
 }, oldEdge, newVertex, vertices, newEdges) => {
 	if (!vertices_edges) { return; }
@@ -80,7 +80,7 @@ export const updateVerticesEdges = ({
  * @param {number} vertex the index of the new vertex
  * @param {number[]} faces array of 0, 1, or 2 incident faces.
  */
-export const updateVerticesFaces = ({ vertices_faces }, vertex, faces) => {
+const updateVerticesFaces = ({ vertices_faces }, vertex, faces) => {
 	if (!vertices_faces) { return; }
 	vertices_faces[vertex] = [...faces];
 };
@@ -92,7 +92,7 @@ export const updateVerticesFaces = ({ vertices_faces }, vertex, faces) => {
  * @param {number[]} new_edges array of 2 new edges
  * @param {number[]} faces array of 0, 1, or 2 incident faces.
  */
-export const updateEdgesFaces = ({ edges_faces }, new_edges, faces) => {
+const updateEdgesFaces = ({ edges_faces }, new_edges, faces) => {
 	if (!edges_faces) { return; }
 	new_edges.forEach(edge => { edges_faces[edge] = [...faces]; });
 };
@@ -105,7 +105,7 @@ export const updateEdgesFaces = ({ edges_faces }, new_edges, faces) => {
  * @param {number} incident_vertices new vertex index
  * @param {number[]} faces the two vertices of the old edge
  */
-export const updateFacesVertices = ({ faces_vertices }, new_vertex, incident_vertices, faces) => {
+const updateFacesVertices = ({ faces_vertices }, new_vertex, incident_vertices, faces) => {
 	// exit if we don't even have faces_vertices
 	if (!faces_vertices) { return; }
 	faces
@@ -126,7 +126,7 @@ export const updateFacesVertices = ({ faces_vertices }, new_vertex, incident_ver
 /**
  * @description 
  */
-export const updateFacesEdgesWithVertices = ({
+const updateFacesEdgesWithVertices = ({
 	edges_vertices, faces_vertices, faces_edges,
 }, faces) => {
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
@@ -140,8 +140,6 @@ export const updateFacesEdgesWithVertices = ({
 /**
  * @description this does not modify the graph. it builds 2 objects with:
  * { edges_vertices, edges_assignment, edges_foldAngle }
- * including external to the spec: { edges_length, edges_vector }
- * this does not rebuild edges_edges.
  * @param {object} graph a FOLD object, modified in place
  * @param {number} edgeIndex the index of the edge that will be split by the new vertex
  * @param {number} newVertex the index of the new vertex
@@ -163,8 +161,7 @@ const makeNewEdgesFields = (graph, edgeIndex, newVertex) => {
  * @description Split an edge with a new vertex, replacing the old
  * edge with two new edges sharing the common vertex, rebuilding:
  * - vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
- * - edges_vertices, edges_faces, edges_assignment,
- * - edges_foldAngle, edges_vector
+ * - edges_vertices, edges_faces, edges_assignment, edges_foldAngle
  * - faces_vertices, faces_edges,
  * without needing to rebuild:
  * - faces_faces, faceOrders
@@ -231,7 +228,10 @@ export const splitEdge = (graph, oldEdge, coords, epsilon = EPSILON) => {
 	updateFacesEdgesWithVertices(graph, incident_faces);
 	// update_faces_edges(graph, oldEdge, vertex, newEdges, incident_faces);
 
-	// remove old data
+	// this method never removed the old edge, this way, when we call this
+	// method, no matter where the edge was inside the edges_ arrays, all
+	// the indices after it will shift up to fill in the hole and this
+	// method handles all re-indexing, including inside the _edges arrays.
 	const edgeMap = remove(graph, "edges", [oldEdge]);
 
 	// at this point our graph is complete. prepare the changelog info to return

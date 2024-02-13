@@ -21,6 +21,9 @@ import * as orders from "./orders.js";
 import * as pleat from "./pleat.js";
 import * as span from "./span.js";
 import * as split from "./split.js";
+import * as splitEdge from "./split/splitEdge.js";
+import * as splitFace from "./split/splitFace.js";
+import * as splitLine from "./split/splitLine.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
 import * as symmetry from "./symmetry.js";
@@ -68,8 +71,6 @@ import planarize from "./planarize.js";
 import populate from "./populate.js";
 import remove from "./remove.js";
 import replace from "./replace.js";
-import { splitEdge } from "./split/splitEdge.js";
-import { splitFace } from "./split/splitFace.js";
 // import addVertices_splitEdges from "./add/addVertices_splitEdges.js";
 // not included because the Graph object places them in the same location
 // import * as foldBases from "../fold/bases.js";
@@ -83,8 +84,6 @@ export default {
 	replace,
 	// addVertices,
 	// addEdges,
-	splitEdge,
-	splitFace,
 	flatFold,
 	normalize,
 	addVertex,
@@ -114,6 +113,9 @@ export default {
 	...pleat,
 	...span,
 	...split,
+	...splitEdge,
+	...splitFace,
+	...splitLine,
 	...subgraphMethods,
 	...sweep,
 	...symmetry,

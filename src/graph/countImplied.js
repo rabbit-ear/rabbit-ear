@@ -4,11 +4,12 @@
 import { filterKeysWithSuffix } from "../fold/spec.js";
 
 /**
- * @description Search inside arrays inside arrays and return
- * the largest number.
+ * @description Search inside arrays inside arrays inside arrays
+ * and return the largest number.
+ * @param {number[][]} an array of arrays of numbers
  * @returns {number} largest number in array in arrays.
  */
-const array_in_array_max_number = (arrays) => {
+const maxValueInArrayInArray = (arrays) => {
 	let max = -1; // will become 0 if nothing is found
 	arrays
 		.filter(a => a !== undefined)
@@ -23,10 +24,10 @@ const array_in_array_max_number = (arrays) => {
 /**
  * @description Search inside arrays inside arrays and return
  * the largest number by only checking indices 0 and 1 in the
- * inner arrays.
+ * inner arrays; meant for faceOrders or edgeOrders.
  * @returns {number} largest number in indices 0 or 1 of array in arrays.
  */
-const max_num_in_orders = (array) => {
+const maxValueInOrders = (array) => {
 	let max = -1; // will become 0 if nothing is found
 	array.forEach(el => {
 		// exception. index 2 is orientation, not index. check only 0, 1
@@ -53,12 +54,12 @@ const ordersArrayNames = {
 const countImplied = (graph, key) => Math.max(
 	// return the maximum value between (1/2):
 	// 1. a found geometry in another geometry's array ("vertex" in "faces_vertices")
-	array_in_array_max_number(
+	maxValueInArrayInArray(
 		filterKeysWithSuffix(graph, key).map(str => graph[str]),
 	),
 	// 2. a found geometry in a faceOrders or edgeOrders type of array (special case)
 	graph[ordersArrayNames[key]]
-		? max_num_in_orders(graph[ordersArrayNames[key]])
+		? maxValueInOrders(graph[ordersArrayNames[key]])
 		: -1,
 ) + 1;
 

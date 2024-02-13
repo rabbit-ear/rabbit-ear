@@ -3,6 +3,7 @@
  */
 import { filterKeysWithSuffix } from "../../fold/spec.js";
 import remove from "../remove.js";
+
 /**
  * @description Get the indices of all circular edges. Circular edges are
  * edges where both of its edges_vertices is the same vertex.
@@ -20,6 +21,7 @@ export const circularEdges = ({ edges_vertices }) => {
 	}
 	return circular;
 };
+
 /**
  * @description Given a set of graph geometry (vertices/edges/faces) indices,
  * get all the arrays which reference these geometries, (eg: end in _edges),
@@ -44,6 +46,7 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
 				}
 			}));
 };
+
 /**
  * @description Find and remove all circular edges from a graph.
  * @param {FOLD} graph a FOLD object

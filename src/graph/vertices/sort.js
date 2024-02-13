@@ -4,13 +4,15 @@
 import { EPSILON } from "../../math/constant.js";
 import { subtract } from "../../math/vector.js";
 import { sortPointsAlongVector } from "../../general/sort.js";
+
 /**
  * @description This is a subroutine for building vertices_vertices. This will
- * take a set of vertices indices and a vertex index to be the center point, and
- * sort the indices radially counter-clockwise.
+ * take a set of vertices indices and a vertex index to be the center point,
+ * and sort the indices radially counter-clockwise.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} vertices an array of vertex indices to be sorted
- * @param {number} vertex the origin vertex, around which the vertices will be sorted
+ * @param {number} vertex the origin vertex, around which
+ * the vertices will be sorted
  * @returns {number[]} indices of vertices, in sorted order
  * @linkcode Origami ./src/graph/sort.js 15
  */
@@ -26,6 +28,7 @@ export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vert
 		.map(el => el.i)
 		.map(i => vertices[i])
 );
+
 /**
  * @description sort a subset of vertices from a graph along a vector.
  * eg: given the vector [1,0], points according to their X value.
@@ -35,12 +38,6 @@ export const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vert
  * @returns {number[]} indices of vertices, in sorted order
  * @linkcode Origami ./src/graph/sort.js 36
  */
-// export const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) => (
-// 	vertices
-// 		.map(i => ({ i, d: dot(vertices_coords[i], vector) }))
-// 		.sort((a, b) => a.d - b.d)
-// 		.map(a => a.i)
-// );
 export const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) => (
 	sortPointsAlongVector(
 		vertices.map(v => vertices_coords[v]),

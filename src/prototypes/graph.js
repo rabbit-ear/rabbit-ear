@@ -8,9 +8,9 @@ import foldToObj from "../convert/foldToObj/index.js";
 import clean from "../graph/clean.js";
 import planarize from "../graph/planarize.js";
 import populate from "../graph/populate.js";
-import { splitEdge } from "../graph/split/splitEdge.js";
-import { splitFace } from "../graph/split/splitFace.js";
 import { flatFold } from "../graph/fold/flatFold.js";
+import * as splitEdge from "../graph/split/splitEdge.js";
+import * as splitFace from "../graph/split/splitFace.js";
 import * as transform from "../graph/transform.js";
 import * as explode from "../graph/explode.js";
 import * as validate from "../graph/validate.js";
@@ -72,11 +72,11 @@ Object.entries({
 	planarBoundaries,
 	boundingBox,
 	nearest,
-	splitEdge,
-	splitFace,
 	invertAssignments,
 	svg: foldToSvg,
 	obj: foldToObj,
+	...splitEdge,
+	...splitFace,
 	...explode,
 	...transform,
 	...validate,

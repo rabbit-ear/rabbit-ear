@@ -30,12 +30,12 @@ import {
 /**
  * @description Find all edges in a graph which lie parallel
  * and on top of a line (infinite line). Can be 2D or 3D.
+ * O(n) where n=edges
  * @param {FOLD} graph a FOLD object
  * @param {VecLine} line a line with a vector and origin component
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} array of edge indices which are collinear to the line
  * @linkcode Origami ./src/graph/intersect.js 39
- * @bigO O(n) where n=edges
  */
 export const getEdgesCollinearToLine = (
 	{ vertices_coords, edges_vertices, vertices_edges },

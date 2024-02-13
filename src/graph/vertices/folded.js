@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeEdgesIsFolded } from "../../fold/spec.js";
+import {
+	makeEdgesIsFolded,
+} from "../../fold/spec.js";
 import {
 	normalize2,
 	dot,
@@ -21,9 +23,15 @@ import {
 	makeVerticesToEdgeBidirectional,
 	makeFacesFaces,
 } from "../make.js";
-import { getFaceFaceSharedVertices } from "../faces/general.js";
-import { minimumSpanningTrees } from "../trees.js";
-import { makeFacesMatrix } from "../faces/matrix.js";
+import {
+	minimumSpanningTrees,
+} from "../trees.js";
+import {
+	makeFacesMatrix,
+} from "../faces/matrix.js";
+import {
+	getFaceFaceSharedVertices,
+} from "../faces/general.js";
 
 /**
  * @description Fold a graph along its edges and return the position
@@ -48,6 +56,7 @@ export const makeVerticesCoordsFolded = ({
 	if (!vertices_faces) {
 		vertices_faces = makeVerticesFaces({ faces_vertices });
 	}
+
 	// assign one matrix to every vertex from faces, identity matrix if none exist
 	const vertices_matrix = vertices_faces
 		.map(faces => faces
@@ -80,10 +89,13 @@ export const makeVerticesCoordsFlatFolded = ({
 	if (!faces_faces) {
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
-	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
-	const vertices_coords_folded = [];
+	const edges_isFolded = makeEdgesIsFolded({
+		edges_vertices, edges_foldAngle, edges_assignment,
+	});
+	const vertices_coordsFolded = [];
 	const faces_flipped = [];
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const edgesMap = makeVerticesToEdgeBidirectional({ edges_vertices });
+
 	// if the graph is disjoint, make sure we fold all disjoint sets,
 	// each set chooses a starting face (first set is decided by root_face),
 	// ensure this exists, then set all of its vertices to "no change".
@@ -95,7 +107,7 @@ export const makeVerticesCoordsFlatFolded = ({
 		// set this root face's initial conditions.
 		faces_flipped[root.index] = false;
 		faces_vertices[root.index]
-			.forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
+			.forEach(v => { vertices_coordsFolded[v] = [...vertices_coords[v]]; });
 		tree.forEach(level => level
 			.forEach(entry => {
 				// coordinates and vectors of the reflecting edge
@@ -103,9 +115,9 @@ export const makeVerticesCoordsFlatFolded = ({
 					faces_vertices[entry.index],
 					faces_vertices[entry.parent],
 				).slice(0, 2).join(" ");
-				const edge = edge_map[edge_key];
+				const edge = edgesMap[edge_key];
 				// build a basis axis using the folding edge, normalized.
-				const coords = edges_vertices[edge].map(v => vertices_coords_folded[v]);
+				const coords = edges_vertices[edge].map(v => vertices_coordsFolded[v]);
 				if (coords[0] === undefined || coords[1] === undefined) { return; }
 				const coords_cp = edges_vertices[edge].map(v => vertices_coords[v]);
 				// the basis axis origin, x-basis axis (vector) and y-basis (normal)
@@ -114,7 +126,7 @@ export const makeVerticesCoordsFlatFolded = ({
 				const normal_cp = rotate90(vector_cp);
 				// if we are crossing a flipping edge (m/v), set this face to be
 				// flipped opposite of the parent face. otherwise keep it the same.
-				faces_flipped[entry.index] = edges_is_folded[edge]
+				faces_flipped[entry.index] = edges_isFolded[edge]
 					? !faces_flipped[entry.parent]
 					: faces_flipped[entry.parent];
 				const vector_folded = normalize2(subtract2(coords[1], coords[0]));
@@ -124,7 +136,7 @@ export const makeVerticesCoordsFlatFolded = ({
 					: rotate90(vector_folded);
 				// remaining_faces_vertices
 				faces_vertices[entry.index]
-					.filter(v => vertices_coords_folded[v] === undefined)
+					.filter(v => vertices_coordsFolded[v] === undefined)
 					.forEach(v => {
 						const to_point = subtract2(vertices_coords[v], origin_cp);
 						const project_norm = dot(to_point, normal_cp);
@@ -132,19 +144,17 @@ export const makeVerticesCoordsFlatFolded = ({
 						const walk_up = scale2(vector_folded, project_line);
 						const walk_perp = scale2(normal_folded, project_norm);
 						const folded_coords = add2(add2(origin_folded, walk_up), walk_perp);
-						vertices_coords_folded[v] = folded_coords;
+						vertices_coordsFolded[v] = folded_coords;
 					});
 			}));
 	});
-	return vertices_coords_folded;
+	return vertices_coordsFolded;
 };
 
 /**
  *
  */
-const makeVerticesCoordsUnfolded = ({
-	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
-	edges_assignment, faces_vertices, faces_faces, faces_matrix,
-}) => {
-
-};
+// const makeVerticesCoordsUnfolded = ({
+// 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
+// 	edges_assignment, faces_vertices, faces_faces, faces_matrix,
+// }) => {};

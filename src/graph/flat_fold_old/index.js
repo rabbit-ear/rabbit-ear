@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math.js";
-import { splitConvexFace } from "../split/splitFace.js";
+import { splitFace } from "../split/splitFace.js";
 import { foldFacesLayer } from "./facesLayer.js";
 import clone from "../../general/clone.js";
 import Count from "../count.js";
@@ -125,7 +125,7 @@ const flatFold = function (
 	// one by one, pair up each face with each (reflected) crease line,
 	// if they intersect, chop the face into 2,
 	// becoming an array of {} or undefined, whether the face was split or not
-	// because splitConvexFace() calls remove() on faces we need to
+	// because splitFace() calls remove() on faces we need to
 	// iterate through the faces in reverse order.
 	const faces_split = Array.from(Array(Count.faces(graph)))
 		.map((_, i) => i)
@@ -135,7 +135,7 @@ const flatFold = function (
 			// differently from before. are other properties needing similar treatment?
 			// faces_center?
 			const face_color = folded.faces_coloring[i];
-			const change = splitConvexFace(
+			const change = splitFace(
 				folded,
 				i,
 				folded["faces_re:creases"][i].vector,

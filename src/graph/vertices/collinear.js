@@ -5,15 +5,17 @@ import { EPSILON } from "../../math/constant.js";
 import { collinearBetween } from "../../math/line.js";
 import { makeVerticesEdgesUnsorted } from "../make.js";
 import { getOtherVerticesInEdges } from "../edges/general.js";
+
 /**
- * @description determine if a vertex exists between two and only two edges, and
- * those edges are both parallel and on opposite ends of the vertex. In a lot of
- * cases, this vertex can be removed and the graph would function the same.
+ * @description determine if a vertex exists between two and only two edges,
+ * and those edges are both parallel and on opposite ends of the vertex.
+ * In a lot of cases, this vertex can be removed and the graph would
+ * function the same.
+ * O(1) if vertices_edges exists, if not, O(n) where n=edges
  * @param {FOLD} graph a FOLD object
  * @param {number} vertex an index of a vertex in the graph
  * @returns {boolean} true if the vertex is collinear and can be removed.
  * @linkcode Origami ./src/graph/verticesCollinear.js 19
- * @bigO O(1) if vertices_edges exists, if not, O(n) where n=edges
  */
 export const isVertexCollinear = ({
 	vertices_coords, vertices_edges, edges_vertices,
@@ -33,8 +35,10 @@ export const isVertexCollinear = ({
 		.map(v => vertices_coords[v]);
 	return collinearBetween(...points, false, epsilon);
 };
+
 /**
  * @description this is located in planarize.js. see if we can generalize
  * it and bring it out here.
+ * Also, there is a method makeFacesNonCollinear inside make.js.
  */
 // export const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {};

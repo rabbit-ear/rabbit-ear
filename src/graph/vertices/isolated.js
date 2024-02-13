@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import remove from "../remove.js";
+
 /**
  * @description Get the indices of all vertices which make no appearance in any edge.
  * @param {FOLD} graph a FOLD object
@@ -22,6 +23,7 @@ export const edgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 		.map((s, i) => (s ? undefined : i))
 		.filter(a => a !== undefined);
 };
+
 /**
  * @description Get the indices of all vertices which make no appearance in any face.
  * @param {FOLD} graph a FOLD object
@@ -75,6 +77,7 @@ export const isolatedVertices = ({ vertices_coords, edges_vertices, faces_vertic
 		.map((s, i) => (s ? undefined : i))
 		.filter(a => a !== undefined);
 };
+
 /**
  * @description Remove any vertices which are not a part of any edge or
  * face. This will shift up the remaining vertices indices so that the
@@ -97,7 +100,3 @@ export const removeIsolatedVertices = (graph, remove_indices) => {
 		remove: remove_indices,
 	};
 };
-
-// todo
-// export const remove_collinear_vertices = (graph, epsilon = EPSILON) => {
-// };
