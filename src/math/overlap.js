@@ -9,7 +9,6 @@ import {
 	includeL,
 } from "./compare.js";
 import {
-	normalize2,
 	dot2,
 	magSquared,
 	magnitude2,
@@ -121,43 +120,33 @@ export const overlapCirclePoint = (
 );
 
 /**
- * @description tests if a point is inside a convex polygon. Polygon is
- * expected to be counter-clockwise winding.
+ * @description Test if a point is inside a convex polygon.
  * @param {number[][]} polygon a polygon in array of array form
  * @param {number[]} point a point in array form
  * @param {function} polyDomain determines if the polygon boundary
  * is inclusive or exclusive
- * @param {number} [normalizedEpsilon=1e-6] an optional epsilon
- * @returns {boolean} is the point inside the polygon?
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} an object with
+ * - "overlap" {boolean}: true or false if the point is inside the polygon
+ * - "t" {number[]}: the array of cross-product parameters of the point against
+ *   every polygon's edge's vector. Can be used to trilaterate the point back
+ *   into position.
  * @linkcode Math ./src/intersect/overlap.js 117
  */
 export const overlapConvexPolygonPoint = (
 	polygon,
 	point,
 	polyDomain = exclude,
-	normalizedEpsilon = EPSILON,
-) => polygon
-	.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-	.map(s => cross2(normalize2(subtract2(s[1], s[0])), subtract2(point, s[0])))
-	.map(side => polyDomain(side, normalizedEpsilon))
-	.map((s, _, arr) => s === arr[0])
-	.reduce((prev, curr) => prev && curr, true);
-
-export const overlapConvexPolygonPointNew = (
-	polygon,
-	point,
-	polyDomain = exclude,
-	normalizedEpsilon = EPSILON,
+	epsilon = EPSILON,
 ) => {
 	const t = polygon
 		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-		// .map(([a, b]) => [normalize2(subtract2(b, a)), subtract2(point, a)])
 		.map(([a, b]) => [subtract2(b, a), subtract2(point, a)])
 		.map(([a, b]) => cross2(a, b));
 	const sign = Math.sign(t.reduce((a, b) => a + b, 0));
 	const overlap = t
 		.map(n => n * sign)
-		.map(side => polyDomain(side, normalizedEpsilon))
+		.map(side => polyDomain(side, epsilon))
 		.map((s, _, arr) => s === arr[0])
 		.reduce((prev, curr) => prev && curr, true);
 	return { overlap, t };

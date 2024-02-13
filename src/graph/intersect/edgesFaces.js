@@ -71,7 +71,7 @@ import { sweep } from "../sweep.js";
 // 				point,
 // 				exclude,
 // 				epsilon,
-// 			)).reduce((a, b) => a || b, false);
+// 			).overlap).reduce((a, b) => a || b, false);
 // 		if (point_in_poly) { intersections[e][f] = true; return; }
 // 		const edge_intersect = intersectConvexPolygonLine(
 // 			faces_coords[f],
@@ -214,7 +214,7 @@ export const getEdgesFacesOverlap = ({
 					point,
 					exclude,
 					1e-3,
-				)).reduce((a, b) => a || b, false);
+				).overlap).reduce((a, b) => a || b, false);
 			if (point_in_poly) { matrix[e][f] = true; continue; }
 			const edge_intersect = intersectConvexPolygonLine(
 				faces_coords[f],

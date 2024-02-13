@@ -28,7 +28,7 @@ import {
 	faceContainingPoint,
 } from "../faces/facePoint.js";
 import {
-	intersectWithLine,
+	intersectLine,
 } from "../intersect.js";
 
 /**
@@ -44,7 +44,7 @@ import {
  * - assignment: the assignment of the new segment
  * - points: the new segment's two endpoints
  */
-const repeatFoldLine = ({
+export const foldCreasePattern = ({
 	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment,
 	faces_vertices, faces_edges, faces_faces,
 }, { vector, origin }, assignment = "V", epsilon = EPSILON) => {
@@ -91,7 +91,7 @@ const repeatFoldLine = ({
 		faces_winding.forEach((w, i) => { faces_winding[i] = !w; });
 	}
 
-	const { faces } = intersectWithLine(
+	const { faces } = intersectLine(
 		{ vertices_coords: vertices_coordsFolded, edges_vertices, faces_vertices, faces_edges },
 		{ vector, origin },
 		includeL,
@@ -118,5 +118,3 @@ const repeatFoldLine = ({
 		points: intersections.map(remapPoint),
 	}));
 };
-
-export default repeatFoldLine;

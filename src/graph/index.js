@@ -50,6 +50,9 @@ import * as intersectEdgesEdges from "./intersect/edgesEdges.js";
 import * as intersectEdgesFaces from "./intersect/edgesFaces.js";
 import * as intersectFaces from "./intersect/faces.js";
 import * as intersectFacesFaces from "./intersect/facesFaces.js";
+import * as foldCreasePattern from "./fold/foldCreasePattern.js";
+import * as foldFoldedForm from "./fold/foldFoldedForm.js";
+import * as flatFold from "./fold/flatFold.js";
 // import addEdges from "./add/addEdges.js";
 import addVertex from "./add/addVertex.js";
 import addVertices from "./add/addVertices.js";
@@ -60,15 +63,13 @@ import addPlanarSegmentNew from "./add/addPlanarSegmentNew.js";
 import clean from "./clean.js";
 import count from "./count.js";
 import countImplied from "./countImplied.js";
-import flatFold from "./flatFold/index.js";
 import normalize from "./normalize.js";
-import repeatFold from "./flatFold/repeatFold.js";
 import planarize from "./planarize.js";
 import populate from "./populate.js";
 import remove from "./remove.js";
 import replace from "./replace.js";
-import splitEdge from "./splitEdge/index.js";
-import splitFace from "./splitFace/index.js";
+import { splitEdge } from "./split/splitEdge.js";
+import { splitFace } from "./split/splitFace.js";
 // import addVertices_splitEdges from "./add/addVertices_splitEdges.js";
 // not included because the Graph object places them in the same location
 // import * as foldBases from "../fold/bases.js";
@@ -86,7 +87,6 @@ export default {
 	splitFace,
 	flatFold,
 	normalize,
-	repeatFold,
 	addVertex,
 	addVertices,
 	addNonPlanarEdge,
@@ -143,4 +143,7 @@ export default {
 	...intersectEdgesFaces,
 	...intersectFaces,
 	...intersectFacesFaces,
+	...foldCreasePattern,
+	...foldFoldedForm,
+	...flatFold,
 };

@@ -36,7 +36,9 @@ import {
 import {
 	foldFacesLayer,
 } from "./facesLayer.js";
-import splitConvexFace from "../splitFace/index.js";
+import {
+	splitFace,
+} from "../split/splitFace.js";
 import populate from "../populate.js";
 
 /**
@@ -115,7 +117,7 @@ const face_snapshot = (graph, face) => ({
  * crease line onto the crease pattern, each in place
  * @linkcode Origami ./src/graph/flatFold/index.js 96
  */
-const flatFold = (
+export const flatFold = (
 	graph,
 	{ vector, origin },
 	assignment = "V",
@@ -199,7 +201,7 @@ const flatFold = (
 			// values from it to complete the 2 new faces which replace it.
 			const face = face_snapshot(graph, i);
 			// split the polygon (if possible), get back a summary of changes.
-			const change = splitConvexFace(graph, i, face.crease, epsilon);
+			const change = splitFace(graph, i, face.crease, epsilon);
 			// console.log("split convex polygon change", change);
 			if (change === undefined) { return undefined; }
 			// const face_winding = folded.faces_winding[i];
@@ -285,5 +287,3 @@ const flatFold = (
 		// vertices: { new: new_vertices },
 	};
 };
-
-export default flatFold;

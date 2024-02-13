@@ -20,7 +20,7 @@ const polygonSegmentOverlap = (polygon, segment, epsilon = EPSILON) => {
 			point,
 			exclude,
 			epsilon,
-		)).reduce((a, b) => a || b, false);
+		).overlap).reduce((a, b) => a || b, false);
 	if (pointInPolygon) { return true; }
 	const edgeClip = clipLineConvexPolygon(
 		polygon,

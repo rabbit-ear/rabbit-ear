@@ -1,20 +1,20 @@
 import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
-test("intersectWithLineVertices through vertices", () => {
+test("intersectLineVertices through vertices", () => {
 	const graph = ear.graph.square();
 	const line = { vector: [0.5, 0.5], origin: [0.1, 0.1] };
-	const result = ear.graph.intersectWithLineVertices(graph, line);
+	const result = ear.graph.intersectLineVertices(graph, line);
 
 	expect(result.length).toBe(4);
 	expect(result[0]).toBe(-0.2);
 	expect(result[2]).toBe(1.8);
 });
 
-test("intersectWithLineVerticesEdges through vertices", () => {
+test("intersectLineVerticesEdges through vertices", () => {
 	const graph = ear.graph.square();
 	const line = { vector: [0.5, 0.5], origin: [0.1, 0.1] };
-	const result = ear.graph.intersectWithLineVerticesEdges(graph, line);
+	const result = ear.graph.intersectLineVerticesEdges(graph, line);
 
 	expect(result.vertices.length).toBe(4);
 	expect(result.vertices[0]).toBeCloseTo(-0.2);
@@ -37,10 +37,10 @@ test("intersectWithLineVerticesEdges through vertices", () => {
 	expect(result.edges[3].vertex).toBeCloseTo(0);
 });
 
-test("intersectWithLine through vertices", () => {
+test("intersectLine through vertices", () => {
 	const graph = ear.graph.square();
 	const line = { vector: [0.5, 0.5], origin: [0.1, 0.1] };
-	const result = ear.graph.intersectWithLine(graph, line);
+	const result = ear.graph.intersectLine(graph, line);
 
 	expect(result.vertices.length).toBe(4);
 	expect(result.vertices[0]).toBe(-0.2);
@@ -75,10 +75,10 @@ test("intersectWithLine through vertices", () => {
 	expect(result.faces[0][1].edge).toBe(undefined);
 });
 
-test("intersectWithLineVertices through vertex and edge", () => {
+test("intersectLineVertices through vertex and edge", () => {
 	const graph = ear.graph.square();
 	const line = { vector: [0.5, 1], origin: [0.1, 0.2] };
-	const result = ear.graph.intersectWithLineVertices(graph, line);
+	const result = ear.graph.intersectLineVertices(graph, line);
 
 	expect(result.length).toBe(4);
 
@@ -88,10 +88,10 @@ test("intersectWithLineVertices through vertex and edge", () => {
 	expect(result[3]).toBe(undefined);
 });
 
-test("intersectWithLineVerticesEdges through vertex and edge", () => {
+test("intersectLineVerticesEdges through vertex and edge", () => {
 	const graph = ear.graph.square();
 	const line = { vector: [0.5, 1], origin: [0.1, 0.2] };
-	const result = ear.graph.intersectWithLineVerticesEdges(graph, line);
+	const result = ear.graph.intersectLineVerticesEdges(graph, line);
 
 	expect(result.vertices.length).toBe(4);
 	expect(result.edges.length).toBe(4);
@@ -110,10 +110,10 @@ test("intersectWithLineVerticesEdges through vertex and edge", () => {
 	expect(result.edges[3].vertex).toBeCloseTo(0);
 });
 
-test("intersectWithLine through vertex and edge", () => {
+test("intersectLine through vertex and edge", () => {
 	const graph = ear.graph.square();
 	const line = { vector: [0.5, 1], origin: [0.1, 0.2] };
-	const result = ear.graph.intersectWithLine(graph, line);
+	const result = ear.graph.intersectLine(graph, line);
 
 	expect(result.vertices.length).toBe(4);
 	expect(result.edges.length).toBe(4);

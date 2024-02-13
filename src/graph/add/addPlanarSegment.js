@@ -12,7 +12,7 @@ import {
 } from "../../math/vector.js";
 import { counterClockwiseSectors2 } from "../../math/radial.js";
 import { getEdgesSegmentIntersection } from "../intersect/edges.js";
-import splitEdge from "../splitEdge/index.js";
+import { splitEdge } from "../split/splitEdge.js";
 import remove from "../remove.js";
 import {
 	sortVerticesAlongVector,

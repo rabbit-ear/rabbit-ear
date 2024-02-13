@@ -31,8 +31,8 @@ import {
 	intersectCircleLine,
 } from "../math/intersect.js";
 import {
-	cubicSolver,
-} from "../math/cubic.js";
+	polynomialSolver,
+} from "../math/polynomial.js";
 
 /*           _                       _              _
 						(_)                     (_)            (_)
@@ -231,6 +231,8 @@ export const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
 /**
  * @description origami axiom 6: form up to three lines that are made by bringing
  * a point to a line and a second point to a second line.
+ * @attribution a refactoring from C++ of Robert Lang's cubic solver from
+ * Reference Finder: https://langorigami.com/article/referencefinder/
  * @param {UniqueLine} line1 one 2D line in {normal, distance} form
  * @param {UniqueLine} line2 one 2D line in {normal, distance} form
  * @param {number[]} point1 the point to bring to the first line
@@ -243,6 +245,7 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
 	// for some reason this epsilon is much higher than 1e-6
 	if (Math.abs(1 - (dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
+
 	// line vec is the first line's vector, along the line, not the normal
 	const line_vec = rotate90(line1.normal);
 	const vec1 = subtract2(
@@ -257,17 +260,22 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
 	const c5 = dot2(vec1, vec2);
 	const c6 = dot2(line_vec, line2.normal);
 	const c7 = dot2(vec2, line2.normal);
-	const a = c6;
-	const b = c1 + c4 * c6 + c7;
-	const c = c1 * c2 + c5 * c6 + c4 * c7;
-	const d = c1 * c3 + c5 * c7;
+	const d = c6;
+	const c = c1 + c4 * c6 + c7;
+	const b = c1 * c2 + c5 * c6 + c4 * c7;
+	const a = c1 * c3 + c5 * c7;
+
 	// construct the solution from the root, the solution being the parameter
 	// point reflected across the fold line, lying on the parameter line
-	let polynomial_degree = 0;
-	if (Math.abs(c) > EPSILON) { polynomial_degree = 1; }
-	if (Math.abs(b) > EPSILON) { polynomial_degree = 2; }
-	if (Math.abs(a) > EPSILON) { polynomial_degree = 3; }
-	return cubicSolver(polynomial_degree, a, b, c, d)
+	let coefficients = [];
+	if (Math.abs(d) > EPSILON) {
+		coefficients = [a, b, c, d];
+	} else if (Math.abs(c) > EPSILON) {
+		coefficients = [a, b, c];
+	} else if (Math.abs(b) > EPSILON) {
+		coefficients = [a, b];
+	}
+	return polynomialSolver(coefficients)
 		.map(n => add2(
 			scale2(line1.normal, line1.distance),
 			scale2(line_vec, n),

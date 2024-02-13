@@ -32,7 +32,7 @@ export const facesContainingPoint = (
 	? []
 	: faces_vertices
 		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
-		.filter(f => overlapConvexPolygonPoint(f.face, point, domainFunction))
+		.filter(f => overlapConvexPolygonPoint(f.face, point, domainFunction).overlap)
 		.map(el => el.i)
 );
 
@@ -76,11 +76,11 @@ export const faceContainingPoint = (
 		.map(face => faces_vertices[face]
 			.map(v => vertices_coords[v]));
 	const facesExclusive = facesInclusive
-		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, exclude));
+		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, exclude).overlap);
 	switch (facesExclusive.length) {
 	// backtrack and try inclusive using nudge point and facesInclusive
 	case 0: return facesInclusive
-		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, include))
+		.filter((face, i) => overlapConvexPolygonPoint(polygons[i], nudgePoint, include).overlap)
 		.shift();
 	case 1: return facesExclusive[0];
 		// all faces lie on the point so it shouldn't matter

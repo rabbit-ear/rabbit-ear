@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import math from "../../math.js";
-import splitConvexFace from "../splitFace/index.js";
+import { splitConvexFace } from "../split/splitFace.js";
 import { foldFacesLayer } from "./facesLayer.js";
 import clone from "../../general/clone.js";
 import Count from "../count.js";

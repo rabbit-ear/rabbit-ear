@@ -219,8 +219,6 @@ export const subgraphWithFaces = (graph, faces) => {
 };
 
 export const subgraphWithVertices = (graph, vertices = []) => {
-	// console.log("graph", graph);
-	// console.log("vertices", vertices);
 	// these will be in the form of index:value number:boolean.
 	// later to be converted into a list of indices.
 	const components = { vertices: [], edges: [] };

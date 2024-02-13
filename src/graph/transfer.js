@@ -65,7 +65,7 @@ export const transferPointBetweenGraphs = (from, to, face, point) => {
  * @param {FOLD} to a FOLD object we want to move the point into
  * @param {number} edge the index of the edge which this point lies on
  * @param {number} parameter the parameter along the edge's vector where
- * this point lies. If using splitGraphLineFunction this is the "a" component.
+ * this point lies.
  * @returns {number[]} a new point
  */
 export const transferPointOnEdgeBetweenGraphs = (from, to, edge, parameter) => {

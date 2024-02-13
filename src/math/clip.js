@@ -140,7 +140,7 @@ export const clipLineConvexPolygon = (
 	// test if the solution is collinear to an edge by getting the segment midpoint
 	// then test inclusive or exclusive depending on user parameter
 	const mid = linePointFromParameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
-	return overlapConvexPolygonPoint(poly, mid, fnPoly, epsilon)
+	return overlapConvexPolygonPoint(poly, mid, fnPoly, epsilon).overlap
 		? ends_clip.map(t => linePointFromParameter(vector, origin, t))
 		: undefined;
 };
@@ -171,10 +171,6 @@ export const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
 		const n1 = cross2(cp1, cp2);
 		const n2 = cross2(s, e);
 		const n3 = 1.0 / cross2(dc, dp);
-		// return [
-		// 	(n1 * dp[0] - n2 * dc[0]) * n3,
-		// 	(n1 * dp[1] - n2 * dc[1]) * n3,
-		// ];
 		return scale2(subtract2(scale2(dp, n1), scale2(dc, n2)), n3);
 	};
 	let outputList = polygon1;

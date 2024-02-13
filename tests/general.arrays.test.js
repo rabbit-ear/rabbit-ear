@@ -10,7 +10,9 @@ test("nonUniqueElements", () => {
 });
 
 test("uniqueSortedNumbers", () => {
-
+	const array = Array.from(Array(10000)).map(() => Math.floor(Math.random() * 1000));
+	const result = ear.general.uniqueSortedNumbers(array);
+	expect(result.length).toBeLessThan(array.length);
 });
 
 test("epsilonUniqueSortedNumbers", () => {

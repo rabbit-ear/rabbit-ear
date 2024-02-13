@@ -49,7 +49,7 @@ const reflectPoint = (foldLine, point) => {
  */
 export const validateAxiom1 = (boundary, solutions, point1, point2) => [
 	[point1, point2]
-		.map(p => overlapConvexPolygonPoint(boundary, p, include))
+		.map(p => overlapConvexPolygonPoint(boundary, p, include).overlap)
 		.reduce((a, b) => a && b, true),
 ];
 
@@ -170,7 +170,7 @@ export const validateAxiom4 = (boundary, solutions, line, point) => {
 	if (!intersect) { return [false]; }
 	return [
 		[point, intersect]
-			.map(p => overlapConvexPolygonPoint(boundary, p, include))
+			.map(p => overlapConvexPolygonPoint(boundary, p, include).overlap)
 			.reduce((a, b) => a && b, true),
 	];
 };
@@ -190,11 +190,11 @@ export const validateAxiom4 = (boundary, solutions, line, point) => {
 export const validateAxiom5 = (boundary, solutions, line, point1, point2) => {
 	if (solutions.length === 0) { return []; }
 	const testParamPoints = [point1, point2]
-		.map(point => overlapConvexPolygonPoint(boundary, point, include))
+		.map(point => overlapConvexPolygonPoint(boundary, point, include).overlap)
 		.reduce((a, b) => a && b, true);
 	const testReflections = solutions
 		.map(foldLine => reflectPoint(foldLine, point2))
-		.map(point => overlapConvexPolygonPoint(boundary, point, include));
+		.map(point => overlapConvexPolygonPoint(boundary, point, include).overlap);
 	return testReflections.map(ref => ref && testParamPoints);
 };
 
@@ -214,15 +214,15 @@ export const validateAxiom5 = (boundary, solutions, line, point1, point2) => {
 export const validateAxiom6 = function (boundary, solutions, line1, line2, point1, point2) {
 	if (solutions.length === 0) { return []; }
 	const testParamPoints = [point1, point2]
-		.map(point => overlapConvexPolygonPoint(boundary, point, include))
+		.map(point => overlapConvexPolygonPoint(boundary, point, include).overlap)
 		.reduce((a, b) => a && b, true);
 	if (!testParamPoints) { return solutions.map(() => false); }
 	const testReflect0 = solutions
 		.map(foldLine => reflectPoint(foldLine, point1))
-		.map(point => overlapConvexPolygonPoint(boundary, point, include));
+		.map(point => overlapConvexPolygonPoint(boundary, point, include).overlap);
 	const testReflect1 = solutions
 		.map(foldLine => reflectPoint(foldLine, point2))
-		.map(point => overlapConvexPolygonPoint(boundary, point, include));
+		.map(point => overlapConvexPolygonPoint(boundary, point, include).overlap);
 	return solutions.map((_, i) => testReflect0[i] && testReflect1[i]);
 };
 
@@ -244,11 +244,11 @@ export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
 		boundary,
 		point,
 		include,
-	);
+	).overlap;
 	// check if the reflected point on the fold line is inside the polygon
 	if (!solutions.length) { return [false]; }
 	const reflected = reflectPoint(solutions[0], point);
-	const reflectTest = overlapConvexPolygonPoint(boundary, reflected, include);
+	const reflectTest = overlapConvexPolygonPoint(boundary, reflected, include).overlap;
 	// check if the line to fold onto itself is somewhere inside the polygon
 	const paramLineTest = (intersectConvexPolygonLine(
 		boundary,
@@ -264,7 +264,7 @@ export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
 		includeL,
 	).point;
 	const intersectInsideTest = intersect
-		? overlapConvexPolygonPoint(boundary, intersect, include)
+		? overlapConvexPolygonPoint(boundary, intersect, include).overlap
 		: false;
 	return [paramPointTest && reflectTest && paramLineTest && intersectInsideTest];
 };

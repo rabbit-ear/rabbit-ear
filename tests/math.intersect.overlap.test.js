@@ -264,97 +264,101 @@ test("point on line epsilon", () => {
 
 });
 
+const overlapMethod = (...args) => (
+	ear.math.overlapConvexPolygonPoint(...args).overlap
+);
+
 test("point in poly", () => {
 	const poly = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 0.0])).toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.999, 0.0])).toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.9999999999, 0.0])).toBe(false);
+	expect(overlapMethod(poly, [0.0, 0.0])).toBe(true);
+	expect(overlapMethod(poly, [0.999, 0.0])).toBe(true);
+	expect(overlapMethod(poly, [0.9999999999, 0.0])).toBe(false);
 	// edge collinear
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.5, 0.5])).toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.49, 0.49])).toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.51, 0.51])).toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.500000001, 0.500000001])).toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.5, -0.5])).toBe(false);
-	// expect(ear.math.overlapConvexPolygonPoint(poly, [-0.5, 0.5])).toBe(false);
-	// expect(ear.math.overlapConvexPolygonPoint(poly, [-0.5, -0.5])).toBe(false);
+	expect(overlapMethod(poly, [0.5, 0.5])).toBe(false);
+	expect(overlapMethod(poly, [0.49, 0.49])).toBe(true);
+	expect(overlapMethod(poly, [0.51, 0.51])).toBe(false);
+	expect(overlapMethod(poly, [0.500000001, 0.500000001])).toBe(false);
+	expect(overlapMethod(poly, [0.5, -0.5])).toBe(false);
+	// expect(overlapMethod(poly, [-0.5, 0.5])).toBe(false);
+	// expect(overlapMethod(poly, [-0.5, -0.5])).toBe(false);
 	// polygon points
-	expect(ear.math.overlapConvexPolygonPoint(poly, [1.0, 0.0])).toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 1.0])).toBe(false);
-	// expect(ear.math.overlapConvexPolygonPoint(poly, [-1.0, 0.0])).toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, -1.0])).toBe(false);
+	expect(overlapMethod(poly, [1.0, 0.0])).toBe(false);
+	expect(overlapMethod(poly, [0.0, 1.0])).toBe(false);
+	// expect(overlapMethod(poly, [-1.0, 0.0])).toBe(false);
+	expect(overlapMethod(poly, [0.0, -1.0])).toBe(false);
 });
 
 test("convex point in poly inclusive", () => {
 	const poly = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 0.0], ear.math.include))
+	expect(overlapMethod(poly, [0.0, 0.0], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.999, 0.0], ear.math.include))
+	expect(overlapMethod(poly, [0.999, 0.0], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.9999999999, 0.0], ear.math.include))
+	expect(overlapMethod(poly, [0.9999999999, 0.0], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [1.1, 0.0], ear.math.include))
+	expect(overlapMethod(poly, [1.1, 0.0], ear.math.include))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [1.000000001, 0.0], ear.math.include))
+	expect(overlapMethod(poly, [1.000000001, 0.0], ear.math.include))
 		.toBe(true);
 	// edge collinear
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.5, 0.5], ear.math.include))
+	expect(overlapMethod(poly, [0.5, 0.5], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.49, 0.49], ear.math.include))
+	expect(overlapMethod(poly, [0.49, 0.49], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.499999999, 0.499999999], ear.math.include))
+	expect(overlapMethod(poly, [0.499999999, 0.499999999], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.51, 0.51], ear.math.include))
+	expect(overlapMethod(poly, [0.51, 0.51], ear.math.include))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.500000001, 0.500000001], ear.math.include))
+	expect(overlapMethod(poly, [0.500000001, 0.500000001], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.5, -0.5], ear.math.include))
+	expect(overlapMethod(poly, [0.5, -0.5], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [-0.5, 0.5], ear.math.include))
+	expect(overlapMethod(poly, [-0.5, 0.5], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [-0.5, -0.5], ear.math.include))
+	expect(overlapMethod(poly, [-0.5, -0.5], ear.math.include))
 		.toBe(true);
 	// polygon points
-	expect(ear.math.overlapConvexPolygonPoint(poly, [1.0, 0.0], ear.math.include))
+	expect(overlapMethod(poly, [1.0, 0.0], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 1.0], ear.math.include))
+	expect(overlapMethod(poly, [0.0, 1.0], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [-1.0, 0.0], ear.math.include))
+	expect(overlapMethod(poly, [-1.0, 0.0], ear.math.include))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, -1.0], ear.math.include))
+	expect(overlapMethod(poly, [0.0, -1.0], ear.math.include))
 		.toBe(true);
 });
 
 test("convex point in poly exclusive", () => {
 	const poly = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 0.0], ear.math.exclude))
+	expect(overlapMethod(poly, [0.0, 0.0], ear.math.exclude))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.999, 0.0], ear.math.exclude))
+	expect(overlapMethod(poly, [0.999, 0.0], ear.math.exclude))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.9999999999, 0.0], ear.math.exclude))
+	expect(overlapMethod(poly, [0.9999999999, 0.0], ear.math.exclude))
 		.toBe(false);
 	// edge collinear
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.5, 0.5], ear.math.exclude))
+	expect(overlapMethod(poly, [0.5, 0.5], ear.math.exclude))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.49, 0.49], ear.math.exclude))
+	expect(overlapMethod(poly, [0.49, 0.49], ear.math.exclude))
 		.toBe(true);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.499999999, 0.499999999], ear.math.exclude))
+	expect(overlapMethod(poly, [0.499999999, 0.499999999], ear.math.exclude))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.51, 0.51], ear.math.exclude))
+	expect(overlapMethod(poly, [0.51, 0.51], ear.math.exclude))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.5, -0.5], ear.math.exclude))
+	expect(overlapMethod(poly, [0.5, -0.5], ear.math.exclude))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [-0.5, 0.5], ear.math.exclude))
+	expect(overlapMethod(poly, [-0.5, 0.5], ear.math.exclude))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [-0.5, -0.5], ear.math.exclude))
+	expect(overlapMethod(poly, [-0.5, -0.5], ear.math.exclude))
 		.toBe(false);
 	// polygon points
-	expect(ear.math.overlapConvexPolygonPoint(poly, [1.0, 0.0], ear.math.exclude))
+	expect(overlapMethod(poly, [1.0, 0.0], ear.math.exclude))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, 1.0], ear.math.exclude))
+	expect(overlapMethod(poly, [0.0, 1.0], ear.math.exclude))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [-1.0, 0.0], ear.math.exclude))
+	expect(overlapMethod(poly, [-1.0, 0.0], ear.math.exclude))
 		.toBe(false);
-	expect(ear.math.overlapConvexPolygonPoint(poly, [0.0, -1.0], ear.math.exclude))
+	expect(overlapMethod(poly, [0.0, -1.0], ear.math.exclude))
 		.toBe(false);
 });
 
