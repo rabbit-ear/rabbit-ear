@@ -1,9 +1,17 @@
 /**
  * Math (c) Kraft
  */
-import { EPSILON } from "./constant.js";
-import { normalize, resize, flip } from "./vector.js";
-import { makeMatrix2Reflect } from "./matrix2.js";
+import {
+	EPSILON,
+} from "./constant.js";
+import {
+	normalize,
+	resize,
+	flip,
+} from "./vector.js";
+import {
+	makeMatrix2Reflect,
+} from "./matrix2.js";
 
 /**
  * 3x4 matrix methods. the fourth column is a translation vector

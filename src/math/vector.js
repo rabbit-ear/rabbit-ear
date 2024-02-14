@@ -4,21 +4,13 @@
 import { EPSILON } from "./constant.js";
 
 /**
- * algebra operations on vectors (mostly).
- *
- * vectors are assumed to be Javascript Arrays objects /
- * contain the Javascript Array prototype, as these methods depend
- * on the use of "map", "reduce" and other Array functions.
- *
- * ({x: y:} vectors as Javascript Objects will not work)
- *
- * many of these operations can handle vectors of arbitrary dimension
- * in which case there are two vectors as input, it will be noted that
- * "dimensions match first parameter", you should verify that the second
- * parameter is at least as long as the first (okay if it is longer)
- *
- * when a function name ends with a number (magnitude2) the input vector's
- * dimension is assumed to be this number.
+ * This entire library operates on a vector/point object type that is
+ * nothing more than a Javascript array; no fancy prototype, no nothing.
+ * Vectors as Javascript Objects, like { x:_ y:_ }, will not work.
+ * Vector-related method naming follows a convention, if it ends with a
+ * number, that relates to the dimension, (magnitude2() is for 2D vectors),
+ * and if it is missing a number, it will work with any dimension,
+ * (magnitude() for N-dimensional vectors).
  */
 
 /**

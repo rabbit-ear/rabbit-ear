@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { filterKeysWithPrefix } from "../../fold/spec.js";
+
 /**
  * @description Add a vertex to the graph by setting its coordinates.
  * This method will maintain that all other arrays in the graph are valid,

@@ -20,7 +20,6 @@ import * as normals from "./normals.js";
 import * as orders from "./orders.js";
 import * as pleat from "./pleat.js";
 import * as span from "./span.js";
-import * as split from "./split.js";
 import * as splitEdge from "./split/splitEdge.js";
 import * as splitFace from "./split/splitFace.js";
 import * as splitLine from "./split/splitLine.js";
@@ -112,7 +111,6 @@ export default {
 	...orders,
 	...pleat,
 	...span,
-	...split,
 	...splitEdge,
 	...splitFace,
 	...splitLine,

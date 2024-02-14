@@ -492,13 +492,16 @@ export const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
  * of adjacent faces.
  * @linkcode Origami ./src/graph/make.js 455
  */
-export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
+export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_vertices, faces_edges }) => {
+	// faces_vertices is only needed to build this array, if it doesn't exist.
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
 	// instead of initializing the array ahead of time (we would need to know
 	// the length of something like edges_vertices)
 	const edges_faces = edges_vertices !== undefined
 		? edges_vertices.map(() => [])
 		: Array.from(Array(implied.edges({ faces_edges }))).map(() => []);
-	// todo: does not arrange counter-clockwise
 	faces_edges.forEach((face, f) => {
 		const hash = [];
 		// in the case that one face visits the same edge multiple times,

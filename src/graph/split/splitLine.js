@@ -153,17 +153,16 @@ export const splitLineToSegments = (
  * as a list of vertices and edges, where all new geometry's indices are
  * indexed to start after the input graph's components end, so there is no
  * confusion as to which graph's indices we are referring.
- * - vertices_coords: coordinates for new vertices.
+ * - vertices: for each vertex, this is the result of the
+ *   intersection algorithm which calculated this vertex's coordinate.
+ *   including a "point" property on all entries, which is the vertex's coords.
  * - edges_vertices: new edges, as pairs of vertices, can include references
  *   to new vertices or vertices from the input graph.
  * - edges_face: note "face" not "faces", which face does this new edge lie in
  * - edges_collinear: list of edges from the input graph containing a boolean,
  *   true if the edge lies collinear to the input line.
- * - vertices_overlapInfo: for each vertex, this is the result of the
- *   intersection algorithm which calculated this vertex's coordinate.
- *   useful if you need to transfer a point between foldedForm or CP.
  */
-export const splitLineToEdges = (
+export const splitLineIntoEdges = (
 	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
 	line,
 	lineDomain = includeL,
@@ -185,7 +184,7 @@ export const splitLineToEdges = (
 
 	// rename "vertices" into any name that includes a "_" so that when
 	// we run "remapKey" it will include this array in the remapping.
-	segments.vertices_overlapInfo = segments.vertices;
+	segments.vertices_info = segments.vertices;
 	delete segments.vertices;
 
 	// create a map that moves the vertices and edges so that there is a large
@@ -195,7 +194,7 @@ export const splitLineToEdges = (
 	// excludes those vertices which are pointing to existing vertex indices
 	// from the input graph; only including vertices which will become new points.
 	let count = 0;
-	const vertexMap = segments.vertices_overlapInfo
+	const vertexMap = segments.vertices_info
 		.map(el => (el.vertex === undefined
 			? vertices_coords.length + (count++)
 			: el.vertex));
@@ -204,17 +203,16 @@ export const splitLineToEdges = (
 	remapKey(segments, "vertices", vertexMap);
 	remapKey(segments, "edges", edgeMap);
 
-	// create vertices_coords which, using the newly mapped indices, simply
-	// grap the "point" parameter, which exist on all objects.
-	segments.vertices_coords = segments.vertices_overlapInfo.map(el => el.point);
+	// we are done requiring the vertices_ array have an underbar. rename it back
+	segments.vertices = segments.vertices_info;
+	delete segments.vertices_info;
 
 	// this also populates the coords for vertices which already exist in the
 	// input graph, we just need to check the input graph and delete these.
-	segments.vertices_coords.forEach((coords, v) => {
-		if (vertices_coords[v] !== undefined) {
-			delete segments.vertices_coords[v];
-		}
-	});
+	segments.vertices
+		.map((_, v) => v)
+		.filter(v => vertices_coords[v] !== undefined)
+		.forEach(v => delete segments.vertices[v]);
 
 	// using the overlapped vertices, make a list of edges collinear to the line
 	const verticesCollinear = vertices.map(v => v !== undefined);
@@ -241,7 +239,7 @@ export const splitLineToEdges = (
 //  * @param {number} [epsilon=1e-6] an optional epsilon
 //  * @returns {FOLD} graph a FOLD graph containing only the line's
 //  * geometry, as a list of vertices and edges, but with some additional data:
-//  * - vertices_overlapInfo: for each vertex, this is the result of the
+//  * - vertices_info: for each vertex, this is the result of the
 //  *   intersection algorithm which made the vertex. useful for re-calculating
 //  *   the coordinate in another graph's space (transfer foldedForm to CP)
 //  * - edges_collinear: a list of edge indices from the original graph that
@@ -249,7 +247,7 @@ export const splitLineToEdges = (
 //  *   edge assignment of these edges.
 //  */
 // export const splitLineWithGraph = (graph, line, epsilon = EPSILON) => (
-// 	splitLineToEdges(graph, line, includeL, [], epsilon)
+// 	splitLineIntoEdges(graph, line, includeL, [], epsilon)
 // );
 
 // /**
@@ -266,7 +264,7 @@ export const splitLineToEdges = (
 //  * @param {number} [epsilon=1e-6] an optional epsilon
 //  * @returns {FOLD} graph a FOLD graph containing only the ray's
 //  * geometry, as a list of vertices and edges, but with some additional data:
-//  * - vertices_overlapInfo: for each vertex, this is the result of the
+//  * - vertices_info: for each vertex, this is the result of the
 //  *   intersection algorithm which made the vertex. useful for re-calculating
 //  *   the coordinate in another graph's space (transfer foldedForm to CP)
 //  * - edges_collinear: a list of edge indices from the original graph that
@@ -274,7 +272,7 @@ export const splitLineToEdges = (
 //  *   edge assignment of these edges.
 //  */
 // export const splitRayWithGraph = (graph, ray, epsilon = EPSILON) => (
-// 	splitLineToEdges(graph, ray, includeR, [ray.origin], epsilon)
+// 	splitLineIntoEdges(graph, ray, includeR, [ray.origin], epsilon)
 // );
 
 // /**
@@ -291,7 +289,7 @@ export const splitLineToEdges = (
 //  * @param {number} [epsilon=1e-6] an optional epsilon
 //  * @returns {FOLD} graph a FOLD graph containing only the segment's
 //  * geometry, as a list of vertices and edges, but with some additional data:
-//  * - vertices_overlapInfo: for each vertex, this is the result of the
+//  * - vertices_info: for each vertex, this is the result of the
 //  *   intersection algorithm which made the vertex. useful for re-calculating
 //  *   the coordinate in another graph's space (transfer foldedForm to CP)
 //  * - edges_collinear: a list of edge indices from the original graph that
@@ -299,7 +297,7 @@ export const splitLineToEdges = (
 //  *   edge assignment of these edges.
 //  */
 // export const splitSegmentWithGraph = (graph, segment, epsilon = EPSILON) => (
-// 	splitLineToEdges(
+// 	splitLineIntoEdges(
 // 		graph,
 // 		pointsToLine(...segment),
 // 		includeS,

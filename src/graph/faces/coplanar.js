@@ -47,8 +47,8 @@ import {
 
 /**
  * @description Cluster the faces of a graph into groups of face indices where
- * all faces in the same group lie in the same plane in 3D (but are not
- * required to overlap).
+ * all faces in the same group lie in the same plane in 3D.
+ * Faces in the same plane are not required to overlap, only be coplanar.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object[]} an array of cluster objects where each cluster contains:
@@ -64,7 +64,7 @@ export const coplanarFacesGroups = ({
 	const facesNormalMatch = faces_vertices.map(() => []);
 	// todo: n^2. this should be able to be improved. possibly by sorting
 	// their dot products, then walking the sorted array, but we have to watch
-	// out for degenerate cases and a circular array.
+	// out for degenerate cases and handle the wrapping of a circular array.
 	for (let a = 0; a < faces_vertices.length - 1; a += 1) {
 		for (let b = a + 1; b < faces_vertices.length; b += 1) {
 			if (a === b) { continue; }
