@@ -5,6 +5,7 @@ import {
 	EPSILON,
 } from "../math/constant.js";
 import {
+	exclude,
 	includeL,
 	includeS,
 } from "../math/compare.js";
@@ -20,6 +21,9 @@ import {
 import {
 	intersectLineLine,
 } from "../math/intersect.js";
+import {
+	overlapConvexPolygonPoint,
+} from "../math/overlap.js";
 import {
 	clusterSortedGeneric,
 } from "../general/cluster.js";
@@ -228,4 +232,89 @@ export const intersectLine = (
 			})));
 
 	return { vertices, edges, faces };
+};
+
+/**
+ * @description Intersect a line/ray/segment with a FOLD graph and
+ * check a list of input points to see which faces each point lies inside,
+ * returning the intersect information with vertices, edges, and faces.
+ * @param {VecLine} line a line/ray/segment in vector origin form
+ * @param {function} lineDomain the function which characterizes "line"
+ * parameter into a line, ray, or segment.
+ * @param {number[][]} [interiorPoints=[]] in the case of a ray or segment,
+ * include the endpoint(s) and they will be included if they appear in a face.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{ vertices: boolean[], edges: (object|undefined)[]}} an object
+ * summarizing the intersections with vertices, edges, and faces:
+ * - vertices: for every vertex, true or false, does the vertex overlap the line
+ * - edges: a list of intersections, undefined if no intersection or collinear,
+ *   or an intersection object which describes:
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number} the edge's parameter of the intersection
+ *   - point: {number[]} the intersection point
+ *   - vertex: {number|undefined} in the case of an intersection which crosses
+ *     a vertex, indicate which vertex, otherwise, mark it as undefined.
+ * - faces: for every intersected face, a list of intersection objects
+ *   filtered into three categories: "vertices", "edges", "points" where
+ *   each category holds a list of objects with intersection information:
+ *   - vertices: { a, point, vertex }
+ *   - edges: { a, b, point, edge }
+ *   - points: { t, point }
+ *   where the data in each object is:
+ *   - point: {number[]} the intersection point
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number} the edge's parameter of the intersection
+ *   - t: {number[]} the point-in-polygon's overlap parameters
+ *   - vertex: {number} if the intersection crosses a vertex
+ *   - edge: {number} if the intersection crosses an edge
+ */
+export const intersectLineAndPoints = (
+	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
+	{ vector, origin },
+	lineDomain = includeL,
+	interiorPoints = [],
+	epsilon = EPSILON,
+) => {
+	// intersect the line with every edge. the intersection should be inclusive
+	// with respect to the segment endpoints. this will cause duplicate points
+	// for every face when a line crosses exactly at its vertex, but this is
+	// necessary because we need to know this point, so we will filter later.
+	const { vertices, edges, faces } = intersectLine(
+		{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
+		{ vector, origin },
+		lineDomain,
+		epsilon,
+	);
+
+	if (!vertices_coords || !faces_vertices) {
+		return { vertices, edges, faces };
+	}
+
+	// If there are ray or segment points, we have to query every single face,
+	// does a point lie inside of the face, and if so, include it in this list.
+	// The result is an object containing a "point" {number[]} and "t" {number[]}
+	// this "t" parameter can be used later to trilaterate the position again.
+	const facesInteriorPoints = !interiorPoints.length
+		? faces.map(() => [])
+		: faces.map((_, face) => {
+			const polygon = faces_vertices[face].map(v => vertices_coords[v]);
+			const pointsOverlap = interiorPoints.map(point => ({
+				...overlapConvexPolygonPoint(polygon, point, exclude, epsilon),
+				point,
+			}));
+			return pointsOverlap.filter(el => el.overlap);
+		});
+
+	// Every face in this list will contain a list of intersection events
+	// that occur inside this face. The events are one of three categories:
+	// - edges: intersections event that crosses over an edge
+	// - vertices: intersections that cross exactly over a vertex
+	// - point: an object describing a point lying interior to the face
+	const newFacesData = faces.map((intersections, f) => ({
+		edges: intersections.filter(el => el.edge !== undefined),
+		vertices: intersections.filter(el => el.vertex !== undefined),
+		points: facesInteriorPoints[f],
+	}));
+
+	return { vertices, edges, faces: newFacesData };
 };

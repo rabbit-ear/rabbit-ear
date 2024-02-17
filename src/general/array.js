@@ -192,7 +192,7 @@ export const arrayMaximumIndex = (array, map) => {
  * case where all arrays originally came from a single array, such as
  * in the subgraph() method, this method will re-join these arrays.
  * In the case where some arrays double up on indices, the index will be
- * overwritten, with no checks to prevent this.
+ * overwritten, by the last array parameter in the sequence.
  * @param {...any[]} ...arrays arrays containing any type.
  * @returns {any[]} one array
  */

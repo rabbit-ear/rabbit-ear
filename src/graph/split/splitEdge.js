@@ -175,7 +175,8 @@ const makeNewEdgesFields = (graph, edgeIndex, newVertex) => {
  * the function will not split the edge, simply return this vertex.
  * @returns {object} a summary of the changes with keys "vertex", "edges"
  * "vertex" is the index of the new vertex (or old index, if similar)
- * "edge" is a summary of changes to edges, with "map" and "remove"
+ * "edge" is a summary of changes to edges, with "map" and "remove",
+ * where "map" is a nextmap (I believe)
  * @linkcode
  */
 export const splitEdge = (graph, oldEdge, coords, epsilon = EPSILON) => {

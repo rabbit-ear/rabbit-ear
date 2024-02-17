@@ -37,8 +37,8 @@ import {
 	foldFacesLayer,
 } from "./facesLayer.js";
 import {
-	splitFace,
-} from "../split/splitFace.js";
+	splitFaceWithLine,
+} from "../split/splitFaceWithLine.js";
 import populate from "../populate.js";
 
 /**
@@ -135,7 +135,7 @@ export const flatFold = (
 		graph.faces_layer = Array(graph.faces_vertices.length).fill(0);
 	}
 	// these will be properties on the graph. as we iterate through faces,
-	// splitting (removing 1 face, adding 2) inside "splitFace", the remove
+	// splitting (removing 1 face, adding 2) inside "splitFaceWithLine", the remove
 	// method will automatically shift indices for arrays starting with "faces_".
 	// we will remove these arrays at the end of this method.
 	graph.faces_center = graph.faces_vertices
@@ -161,7 +161,7 @@ export const flatFold = (
 		));
 	// before we start splitting faces, we have to handle the case where
 	// a flat crease already exists along the fold crease, already splitting
-	// two faces (assignment "F" or "U" only), the splitFace method
+	// two faces (assignment "F" or "U" only), the splitFaceWithLine method
 	// will not catch these. we need to find these edges before we modify
 	// the graph, find the face they are attached to and whether the face
 	// is flipped, and set the edge to the proper "V" or "M" (and foldAngle).
@@ -201,7 +201,7 @@ export const flatFold = (
 			// values from it to complete the 2 new faces which replace it.
 			const face = face_snapshot(graph, i);
 			// split the polygon (if possible), get back a summary of changes.
-			const change = splitFace(graph, i, face.crease, epsilon);
+			const change = splitFaceWithLine(graph, i, face.crease, epsilon);
 			// console.log("split convex polygon change", change);
 			if (change === undefined) { return undefined; }
 			// const face_winding = folded.faces_winding[i];

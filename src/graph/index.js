@@ -21,7 +21,8 @@ import * as orders from "./orders.js";
 import * as pleat from "./pleat.js";
 import * as span from "./span.js";
 import * as splitEdge from "./split/splitEdge.js";
-import * as splitFace from "./split/splitFace.js";
+import * as splitFaceWithLine from "./split/splitFaceWithLine.js";
+import * as splitFaceWithEdge from "./split/splitFaceWithEdge.js";
 import * as splitLine from "./split/splitLine.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
@@ -53,7 +54,7 @@ import * as intersectEdgesFaces from "./intersect/edgesFaces.js";
 import * as intersectFaces from "./intersect/faces.js";
 import * as intersectFacesFaces from "./intersect/facesFaces.js";
 import * as foldCreasePattern from "./fold/foldCreasePattern.js";
-import * as foldFoldedForm from "./fold/foldFoldedForm.js";
+import * as foldLine from "./fold/foldLine.js";
 import * as flatFold from "./fold/flatFold.js";
 // import addEdges from "./add/addEdges.js";
 import addVertex from "./add/addVertex.js";
@@ -112,7 +113,8 @@ export default {
 	...pleat,
 	...span,
 	...splitEdge,
-	...splitFace,
+	...splitFaceWithLine,
+	...splitFaceWithEdge,
 	...splitLine,
 	...subgraphMethods,
 	...sweep,
@@ -144,6 +146,6 @@ export default {
 	...intersectFaces,
 	...intersectFacesFaces,
 	...foldCreasePattern,
-	...foldFoldedForm,
+	...foldLine,
 	...flatFold,
 };
