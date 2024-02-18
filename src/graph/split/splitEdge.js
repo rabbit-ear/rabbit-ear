@@ -129,6 +129,7 @@ const updateFacesVertices = ({ faces_vertices }, new_vertex, incident_vertices, 
 const updateFacesEdgesWithVertices = ({
 	edges_vertices, faces_vertices, faces_edges,
 }, faces) => {
+	if (!faces_edges || !faces_vertices) { return; }
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	faces
 		.map(f => faces_vertices[f]
@@ -181,7 +182,7 @@ const makeNewEdgesFields = (graph, edgeIndex, newVertex) => {
  */
 export const splitEdge = (graph, oldEdge, coords, epsilon = EPSILON) => {
 	// make sure oldEdge is a valid index
-	if (!graph.edges_vertices[oldEdge]) { return {}; }
+	if (!graph.edges_vertices[oldEdge]) { return undefined; }
 	const incidentVertices = graph.edges_vertices[oldEdge];
 
 	// if the user did not supply any coordinate parameter, choose the midpoint
@@ -194,8 +195,8 @@ export const splitEdge = (graph, oldEdge, coords, epsilon = EPSILON) => {
 	const similar = incidentVertices
 		.map(v => graph.vertices_coords[v])
 		.map(vert => distance(vert, coords) < epsilon);
-	if (similar[0]) { return { vertex: incidentVertices[0], edges: {} }; }
-	if (similar[1]) { return { vertex: incidentVertices[1], edges: {} }; }
+	if (similar[0]) { return { vertex: incidentVertices[0], edges: undefined }; }
+	if (similar[1]) { return { vertex: incidentVertices[1], edges: undefined }; }
 
 	// the new vertex will be added to the end of the vertices_ arrays.
 	const vertex = graph.vertices_coords.length;
@@ -250,7 +251,7 @@ export const splitEdge = (graph, oldEdge, coords, epsilon = EPSILON) => {
 		vertex,
 		edges: {
 			map: edgeMap,
-			new: newEdges,
+			add: newEdges,
 			remove: oldEdge,
 		},
 	};

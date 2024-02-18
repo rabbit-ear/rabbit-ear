@@ -29,8 +29,8 @@ import {
  * @param {number[]} point the point, as it exists inside the "from" graph
  * @returns {number[]} a new point
  */
-export const transferPointBetweenGraphs = (from, to, face, point) => {
-	const faceVertices = from.faces_vertices[face];
+export const transferPointInFaceBetweenGraphs = (from, to, face, point) => {
+	const faceVertices = to.faces_vertices[face];
 	if (faceVertices.length < 3) { return point; }
 
 	let fromPoly = faceVertices.map(v => from.vertices_coords[v]);
@@ -68,7 +68,7 @@ export const transferPointBetweenGraphs = (from, to, face, point) => {
  * this point lies.
  * @returns {number[]} a new point
  */
-export const transferPointOnEdgeBetweenGraphs = (from, to, edge, parameter) => {
+export const transferPointOnEdgeBetweenGraphs = (to, edge, parameter) => {
 	const edgeSegment = to.edges_vertices[edge]
 		.map(v => to.vertices_coords[v]);
 	const edgeLine = pointsToLine(...edgeSegment);

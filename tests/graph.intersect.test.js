@@ -21,20 +21,10 @@ test("intersectLineVerticesEdges through vertices", () => {
 	expect(result.vertices[2]).toBeCloseTo(1.8);
 
 	expect(result.edges.length).toBe(4);
-	expect(result.edges[0].a).toBeCloseTo(-0.2);
-	expect(result.edges[1].a).toBeCloseTo(1.8);
-	expect(result.edges[2].a).toBeCloseTo(1.8);
-	expect(result.edges[3].a).toBeCloseTo(-0.2);
-
-	expect(result.edges[0].b).toBeCloseTo(0);
-	expect(result.edges[1].b).toBeCloseTo(1);
-	expect(result.edges[2].b).toBeCloseTo(0);
-	expect(result.edges[3].b).toBeCloseTo(1);
-
-	expect(result.edges[0].vertex).toBeCloseTo(0);
-	expect(result.edges[1].vertex).toBeCloseTo(2);
-	expect(result.edges[2].vertex).toBeCloseTo(2);
-	expect(result.edges[3].vertex).toBeCloseTo(0);
+	expect(result.edges[0]).toBe(undefined);
+	expect(result.edges[1]).toBe(undefined);
+	expect(result.edges[2]).toBe(undefined);
+	expect(result.edges[3]).toBe(undefined);
 });
 
 test("intersectLine through vertices", () => {
@@ -47,20 +37,10 @@ test("intersectLine through vertices", () => {
 	expect(result.vertices[2]).toBe(1.8);
 
 	expect(result.edges.length).toBe(4);
-	expect(result.edges[0].a).toBeCloseTo(-0.2);
-	expect(result.edges[1].a).toBeCloseTo(1.8);
-	expect(result.edges[2].a).toBeCloseTo(1.8);
-	expect(result.edges[3].a).toBeCloseTo(-0.2);
-
-	expect(result.edges[0].b).toBeCloseTo(0);
-	expect(result.edges[1].b).toBeCloseTo(1);
-	expect(result.edges[2].b).toBeCloseTo(0);
-	expect(result.edges[3].b).toBeCloseTo(1);
-
-	expect(result.edges[0].vertex).toBeCloseTo(0);
-	expect(result.edges[1].vertex).toBeCloseTo(2);
-	expect(result.edges[2].vertex).toBeCloseTo(2);
-	expect(result.edges[3].vertex).toBeCloseTo(0);
+	expect(result.edges[0]).toBe(undefined);
+	expect(result.edges[1]).toBe(undefined);
+	expect(result.edges[2]).toBe(undefined);
+	expect(result.edges[3]).toBe(undefined);
 
 	expect(result.faces.length).toBe(1);
 	expect(result.faces[0].length).toBe(2);
@@ -96,18 +76,14 @@ test("intersectLineVerticesEdges through vertex and edge", () => {
 	expect(result.vertices.length).toBe(4);
 	expect(result.edges.length).toBe(4);
 
+	expect(result.edges[0]).toBe(undefined);
 	expect(result.edges[1]).toBe(undefined);
-	expect(result.edges[0].a).toBeCloseTo(-0.2);
+	expect(result.edges[2]).not.toBe(undefined);
+	expect(result.edges[3]).toBe(undefined);
+
 	expect(result.edges[2].a).toBeCloseTo(0.8);
-	expect(result.edges[3].a).toBeCloseTo(-0.2);
-
-	expect(result.edges[0].b).toBeCloseTo(0);
 	expect(result.edges[2].b).toBeCloseTo(0.5);
-	expect(result.edges[3].b).toBeCloseTo(1);
-
-	expect(result.edges[0].vertex).toBeCloseTo(0);
 	expect(result.edges[2].vertex).toBe(undefined);
-	expect(result.edges[3].vertex).toBeCloseTo(0);
 });
 
 test("intersectLine through vertex and edge", () => {

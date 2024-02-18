@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	transferPointBetweenGraphs,
+	transferPointInFaceBetweenGraphs,
 	transferPointOnEdgeBetweenGraphs,
 } from "../transfer.js";
 
@@ -16,12 +16,15 @@ import {
  * @param {object} point a point, the result of calling splitLineIntoEdges
  * @returns {number[]} a point
  */
-export const transferPoint = (from, to, { edge, face, point, b }) => {
+export const transferPoint = (from, to, { vertex, edge, face, point, b }) => {
+	if (vertex !== undefined) {
+		return to.vertices_coords[vertex];
+	}
 	if (edge !== undefined) {
-		return transferPointOnEdgeBetweenGraphs(from, to, edge, b);
+		return transferPointOnEdgeBetweenGraphs(to, edge, b);
 	}
 	if (face !== undefined) {
-		return transferPointBetweenGraphs(from, to, face, point);
+		return transferPointInFaceBetweenGraphs(from, to, face, point);
 	}
-	return point;
+	throw new Error("transferPoint() failed");
 };

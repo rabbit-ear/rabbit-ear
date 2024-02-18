@@ -4,106 +4,16 @@
 import {
 	sortVerticesCounterClockwise,
 } from "../vertices/sort.js";
+import {
+	makeEdgesFacesUnsorted,
+} from "../make.js";
+import {
+	splitCircularArray,
+	splitArrayWithLeaf,
+	makeVerticesToEdgeLookup,
+	makeVerticesToFacesLookup,
+} from "./general.js";
 import remove from "../remove.js";
-
-/**
- * @description A circular array (data wraps around) requires 2 indices
- * if you intend to split it into two arrays. The pair of indices can be
- * provided in any order, they will be sorted, smaller index first.
- * @param {any[]} array an array that is meant to be thought of as circular
- * @param {number[]} indices two numbers, indices that divide the array into 2 parts
- * @returns {any[][]} the same array split into two arrays
- * @linkcode Origami ./src/general/arrays.js 49
- */
-const splitCircularArray = (array, indices) => {
-	indices.sort((a, b) => a - b);
-	return [
-		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
-		array.slice(indices[0], indices[1] + 1),
-	];
-};
-
-const makeVerticesToEdgeLookup = ({ edges_vertices }, edges) => {
-	const verticesToEdge = [];
-	edges.forEach(edge => {
-		const verts = edges_vertices[edge];
-		[verts.join(" "), verts.reverse().join(" ")].forEach(key => {
-			verticesToEdge[key] = edge;
-		});
-	});
-	return verticesToEdge;
-};
-
-/**
- * this must be done AFTER edges_vertices has been updated with the new edge.
- *
- * @param {FOLD} graph a FOLD object
- * @param {number} the face that will be replaced by these two new faces
- * @param {number[]} vertices (in the face) that split the face into two
- */
-const makeFacesVerticesAndEdges = ({
-	edges_vertices, faces_vertices, faces_edges,
-}, face, vertices) => {
-	// the indices of the two vertices inside the face_vertices array.
-	// this is where we will split the face into two.
-	const faceVerticesIndices = vertices
-		.map(el => faces_vertices[face].indexOf(el));
-
-	// this method nicely handles the splitting of our face into two
-	const newFacesVertices = splitCircularArray(faces_vertices[face], faceVerticesIndices);
-
-	// if faces_edges does not exist, return faces_vertices data only
-	if (!faces_edges) {
-		return newFacesVertices.map(arr => ({ faces_vertices: arr }));
-	}
-
-	// create a reverse lookup, pairs of vertices to an edge.
-	const verticesToEdge = makeVerticesToEdgeLookup(
-		{ edges_vertices },
-		faces_edges[face],
-	);
-
-	// simply rebuild the faces_edges in question using the vertices-edge lookup
-	const newFacesEdges = newFacesVertices
-		.map(face_vertices => face_vertices
-			.map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
-			.map(key => verticesToEdge[key]));
-
-	return newFacesVertices.map((arr, i) => ({
-		faces_vertices: arr,
-		faces_edges: newFacesEdges[i],
-	}));
-};
-
-/**
- *
- */
-const buildFaces = (graph, face, vertices) => {
-	// the indices of the new face will be at the end of the current list
-	const faces = [0, 1].map(i => graph.faces_vertices.length + i);
-
-	// construct new data for faces_vertices and faces_edges
-	// (not faces_faces, vertices_faces, or edges_faces, this happens later)
-	makeFacesVerticesAndEdges(graph, face, vertices)
-		.forEach((newface, i) => Object.keys(newface)
-			.forEach((key) => { graph[key][faces[i]] = newface[key]; }));
-
-	return faces;
-};
-
-/**
- * @description given two vertices and incident faces, create all new
- * "edges_" entries to describe a new edge that sits between the params.
- * @param {object} FOLD graph
- * @param {number[]} two incident vertices that make up this edge
- * @param {number[]} two edge-adjacent faces to this new edge
- * @param {number[]} TEMPORARILY holds 2x the index of the face that
- *  this edge currently lies inside, because the faces arrays will be
- *  rebuilt from scratch, we need the old data.
- * @returns {object} all FOLD spec "edges_" entries for this new edge.
- */
-// const make_edge = (vertices, faces) => {};
-// const make_edge = (vertices, face) => {};
 
 /**
  * @description A new edge will be added to this graph that connects
@@ -116,7 +26,7 @@ const buildFaces = (graph, face, vertices) => {
  * @param {number} vertices the edges_foldAngle entry
  * @returns {number} the index of the new edge
  */
-const buildNewEdge = (
+const makeNewEdge = (
 	graph,
 	vertices,
 	faces,
@@ -140,6 +50,64 @@ const buildNewEdge = (
 		.filter(key => graph[key])
 		.forEach((key) => { graph[key][edge] = edgeAttributes[key]; });
 	return edge;
+};
+
+/**
+ * @description 
+ */
+const makeNewFacesVertices = ({ faces_vertices }, face, vertices) => {
+	// search the existing face's faces_vertices for each of the vertices
+	const verticesAndIndices = vertices
+		.map(vertex => ({ vertex, index: faces_vertices[face].indexOf(vertex) }));
+
+	// we need to branch according to how many of the two vertices are
+	// already present inside this face's faces_vertices. In the case of:
+	// 2: We can split the face into two faces.
+	// 1: We build one face with a leaf node that walks twice over the new edge.
+	// 0: Face does not change
+	const matchingVerticesAndIndices = verticesAndIndices
+		.filter(el => el.index !== -1);
+	const nonMatchingVerticesAndIndices = verticesAndIndices
+		.filter(el => el.index === -1);
+
+	switch (matchingVerticesAndIndices.length) {
+	case 1: return [splitArrayWithLeaf(
+		faces_vertices[face],
+		matchingVerticesAndIndices.map(el => el.index).shift(),
+		nonMatchingVerticesAndIndices.map(el => el.vertex).shift(),
+	)];
+	// this method nicely handles the splitting of our face into two
+	case 2: return splitCircularArray(
+		faces_vertices[face],
+		matchingVerticesAndIndices.map(el => el.index),
+	);
+	default: return [];
+	}
+};
+
+/**
+ *
+ */
+const updateFacesEdges = ({
+	edges_vertices, faces_vertices, faces_edges,
+}, faces) => {
+	if (!faces_edges) { return; }
+
+	// create a reverse lookup, pairs of vertices to an edge.
+	const verticesToEdge = faces
+		.map(face => makeVerticesToEdgeLookup(
+			{ edges_vertices },
+			faces_edges[face],
+		)).reduce((a, b) => ({ ...a, ...b }), {});
+
+	// simply rebuild the faces_edges in question using the vertices-edge lookup
+	const newFacesEdges = faces
+		.map(face => faces_vertices[face]
+			.map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
+			.map(key => verticesToEdge[key]));
+
+	newFacesEdges
+		.forEach((face_edges, i) => { faces_edges[faces[i]] = face_edges; });
 };
 
 /**
@@ -206,18 +174,6 @@ export const updateVerticesEdges = ({
 			.splice(vvIndex, 0, edge));
 };
 
-const makeVerticesToFacesLookup = ({ faces_vertices }, faces) => {
-	// a lookup table with vertex keys, and array values containing faces
-	// pre-populate every vertex's value with an empty array
-	const verticesToFace = [];
-	faces_vertices
-		.flatMap(face => faces_vertices[face])
-		.forEach(v => { verticesToFace[v] = []; });
-	faces.forEach(face => faces_vertices[face]
-		.forEach(v => verticesToFace[v].push(face)));
-	return verticesToFace;
-};
-
 /**
  * @description search inside vertices_faces for an occurence
  * of the removed face, determine which of our two new faces
@@ -230,8 +186,9 @@ export const updateVerticesFaces = (
 	newFaces,
 	newVertices,
 ) => {
-	const allVertices = faces_vertices[oldFace];
+	if (!vertices_faces || !faces_vertices) { return; }
 
+	const allVertices = faces_vertices[oldFace];
 	const facesLookup = makeVerticesToFacesLookup(
 		{ vertices_faces, faces_vertices },
 		newFaces,
@@ -264,11 +221,25 @@ export const updateVerticesFaces = (
  * substitute the old index with the new face's index/indices.
  */
 export const updateEdgesFaces = (
-	{ edges_faces, faces_edges },
+	{ edges_vertices, faces_vertices, edges_faces, faces_edges },
 	oldFace,
 	newFaces,
 	newEdge,
 ) => {
+	if (!edges_faces) { return; }
+
+	// this is a unique situation, we require an array to be built but we are
+	// missing the source data. the number of times this branch is reached will
+	// be so few, it's possible to simply call the entire rebuild method.
+	if (!faces_edges) {
+		edges_faces.forEach((_, i) => delete edges_faces[i]);
+		Object.assign(
+			edges_faces,
+			makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges }),
+		);
+		return;
+	}
+
 	const edgesNewFace = {};
 	newFaces.forEach(f => faces_edges[f]
 		.forEach(edge => { edgesNewFace[edge] = f; }));
@@ -291,6 +262,7 @@ export const updateFacesFaces = (
 	oldFace,
 	newFaces,
 ) => {
+	if (!faces_faces) { return; }
 	const facesNewFace = {};
 	newFaces.forEach(i => faces_faces[i].forEach(j => { facesNewFace[j] = i; }));
 
@@ -306,26 +278,34 @@ export const updateFacesFaces = (
 };
 
 /**
- * @description Divide a face into two faces by creating a new edge
- * between two existing vertices inside the face. This method does not
- * modify the number of vertices, it does modify edges and faces,
- * new edges will be added to the end of the arrays, so all old edge
- * indices will still relate, but face indices will be more heavily modified
+ * @description Split a face in a graph with two new vertices which will also
+ * be made into a new edge. This method will create 0, 1, or 2 new faces,
+ * 1 new edge, and 0 new vertices. The number of faces depends on how many
+ * vertices are a part of the face already:
+ * - two vertices: the face will be split into two faces along a new edge
+ * - one vertex: a leaf edge will be made, the face will walk around but
+ *   also double back along the leaf edge, visiting one vertex twice.
+ * - zero vertices: no changes to the faces array will occur.
+ * New edges will be added to the end of the arrays, so all old edge
+ * indices will still relate. Face indices will be more heavily modified
  * as some faces will be removed and indices will shift up to take their place.
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} face index of face to split
- * @param {VecLine} line with a "vector" and an "origin" component
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object|undefined} a summary of changes to the FOLD object,
- *  or undefined if no change (no intersection).
- * @linkcode Origami ./src/graph/splitFace/index.js 28
+ * @param {number[]} vertices the vertices which will create a new edge
+ * @param {string} [assignment="U"] the assignment of the new edge
+ * @param {number} [foldAngle=0] the fold angle of the new edge
+ * @returns {object} a summary of changes to the FOLD object
+ * @linkcode
  */
-export const splitFaceWithEdge = (graph, face, vertices) => {
-	const assignment = "U";
-	const foldAngle = 0;
-
+export const splitFaceWithEdge = (
+	graph,
+	face,
+	vertices,
+	assignment = "U",
+	foldAngle = 0,
+) => {
 	// this modifies the graph by only adding an edge between existing vertices
-	const edge = buildNewEdge(
+	const edge = makeNewEdge(
 		graph,
 		[...vertices],
 		[face, face],
@@ -340,10 +320,18 @@ export const splitFaceWithEdge = (graph, face, vertices) => {
 	// at this point everything excluding face data is complete
 	// vertices_coords, vertices_edges, vertices_vertices,
 	// edges_vertices, edges_assignment, edges_foldAngle.
-	// create two new faces, these are their indices.
-	const faces = buildFaces(graph, face, vertices);
 
-	// update all the "_faces" arrays, data that points to a face
+	// the presence of our new vertices inside the face's faces_vertices array
+	// determines how many faces will be created (0, 1, or 2).
+	// this method will create new faces_vertices entries only.
+	// the result of this method is a list of the indices of the new faces.
+	const faces = makeNewFacesVertices(graph, face, vertices)
+		.map(face_vertices => {
+			graph.faces_vertices.push(face_vertices);
+			return graph.faces_vertices.length - 1;
+		});
+
+	updateFacesEdges(graph, faces);
 	updateVerticesFaces(graph, face, faces, vertices);
 	updateEdgesFaces(graph, face, faces, edge);
 	updateFacesFaces(graph, face, faces);

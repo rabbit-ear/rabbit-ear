@@ -352,7 +352,7 @@ export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, ne
  *  or undefined if no change (no intersection).
  * @linkcode Origami ./src/graph/splitFace/index.js 28
  */
-export const splitFace = (graph, face, line, epsilon) => {
+export const splitFaceWithLine = (graph, face, line, epsilon) => {
 	// survey face for any intersections which cross directly over a vertex
 	const intersect = intersectConvexFaceLine(graph, face, line, epsilon);
 	// if no intersection exists, return undefined.

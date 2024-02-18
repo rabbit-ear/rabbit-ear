@@ -124,7 +124,8 @@ export const intersectLineVerticesEdges = (
 	// an object with all undefined values, if so, replace these objects
 	// with a single undefined.
 	// Additionally, add a { vertex: undefined } key/value to all intersections.
-	const edgesNoOverlapIntersection = edges_vertices
+	// const edgesNoOverlapIntersection = edges_vertices
+	const edges = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]))
 		.map((seg, e) => (edgesVerticesOverlap[e].length === 0
 			? ({ ...intersectLineLine(
@@ -140,16 +141,16 @@ export const intersectLineVerticesEdges = (
 	// if our line crosses the edge at one vertex, we still want to include the
 	// intersection information, but we can construct it ourselves without
 	// running the intersection algorithm. this should save us a little time.
-	const edges = edgesVerticesOverlap
-		.map((verts, e) => (verts.length === 1
-			? ({
-				a: (dot2(vector, subtract2(vertices_coords[verts[0]], origin))
-					/ magSquared(vector)),
-				b: edges_vertices[e][0] === verts[0] ? 0 : 1,
-				point: [...vertices_coords[verts[0]]],
-				vertex: verts[0],
-			})
-			: edgesNoOverlapIntersection[e]));
+	// const edges = edgesVerticesOverlap
+	// 	.map((verts, e) => (verts.length === 1
+	// 		? ({
+	// 			a: (dot2(vector, subtract2(vertices_coords[verts[0]], origin))
+	// 				/ magSquared(vector)),
+	// 			b: edges_vertices[e][0] === verts[0] ? 0 : 1,
+	// 			point: [...vertices_coords[verts[0]]],
+	// 			vertex: verts[0],
+	// 		})
+	// 		: edgesNoOverlapIntersection[e]));
 
 	return { vertices, edges };
 };
@@ -207,10 +208,23 @@ export const intersectLine = (
 	// for every face, get every edge of that face's intersection with our line,
 	// filter out any edges which had no intersection.
 	// it's possible for faces to have 0, 1, 2, 3... any number of intersections.
-	const facesIntersections = faces_edges
+	const facesEdgeIntersections = faces_edges
 		.map(fe => fe
-			.map(edge => (edges[edge] ? { ...edges[edge], edge } : undefined))
+			.map(edge => (edges[edge]
+				? { ...edges[edge], edge }
+				: undefined))
 			.filter(a => a !== undefined));
+	const facesVertexIntersections = faces_vertices
+		.map(fv => fv
+			.map(vertex => (vertices[vertex] !== undefined
+				? { a: vertices[vertex], vertex }
+				: undefined))
+			.filter(a => a !== undefined));
+
+	const facesIntersections = faces_vertices.map((_, v) => [
+		...facesVertexIntersections[v],
+		...facesEdgeIntersections[v],
+	]);
 
 	// this epsilon function will compare the object's "a" property
 	// which is the intersections's "a" parameter (line parameter).
@@ -225,11 +239,12 @@ export const intersectLine = (
 			.map(cluster => cluster.map(index => intersections[index])))
 		.map(clusters => clusters
 			.map(cluster => cluster[0])
-			.map(intersection => ({
-				...intersection,
-				edge: intersection.vertex === undefined ? intersection.edge : undefined,
-				b: intersection.vertex === undefined ? intersection.b : undefined,
-			})));
+			);
+			// .map(intersection => ({
+				// ...intersection,
+				// edge: intersection.vertex === undefined ? intersection.edge : undefined,
+				// b: intersection.vertex === undefined ? intersection.b : undefined,
+			// })));
 
 	return { vertices, edges, faces };
 };

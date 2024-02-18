@@ -3,6 +3,7 @@
  */
 import {
 	makeEdgesIsFolded,
+	edgesFoldAngleAreAllFlat,
 } from "../../fold/spec.js";
 import {
 	normalize2,
@@ -44,7 +45,7 @@ import {
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  * @linkcode Origami ./src/graph/verticesCoordsFolded.js 36
  */
-export const makeVerticesCoordsFolded = ({
+export const makeVerticesCoords3DFolded = ({
 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
 	edges_assignment, faces_vertices, faces_faces, faces_matrix,
 }, root_face) => {
@@ -83,7 +84,7 @@ export const makeVerticesCoordsFolded = ({
  */
 export const makeVerticesCoordsFlatFolded = ({
 	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
-}, root_face = 0) => {
+}, root_face) => {
 	if (!vertices_coords || !vertices_coords.length) { return []; }
 	if (!faces_vertices || !faces_vertices.length) { return vertices_coords; }
 	if (!faces_faces) {
@@ -150,6 +151,14 @@ export const makeVerticesCoordsFlatFolded = ({
 	});
 	return vertices_coordsFolded;
 };
+
+/**
+ * @description 
+ */
+export const makeVerticesCoordsFolded = (graph, rootFace) => (
+	edgesFoldAngleAreAllFlat(graph)
+		? makeVerticesCoordsFlatFolded(graph, rootFace)
+		: makeVerticesCoords3DFolded(graph, rootFace));
 
 /**
  *
