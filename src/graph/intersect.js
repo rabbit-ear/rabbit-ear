@@ -155,9 +155,32 @@ export const intersectLineVerticesEdges = (
 	return { vertices, edges };
 };
 
+const filterCollinearFaces = (face, collinearVertices) => {
+	const faceVertices = {};
+	face.filter(({ vertex }) => vertex !== undefined)
+		.forEach(({ vertex }) => { faceVertices[vertex] = true; });
+
+	const removeVertices = {};
+	collinearVertices
+		.filter(pair => faceVertices[pair[0]] && faceVertices[pair[1]])
+		.forEach(pair => {
+			removeVertices[pair[0]] = true;
+			removeVertices[pair[1]] = true;
+		});
+
+	return face
+		.filter(el => el.vertex === undefined || !removeVertices[el.vertex]);
+};
+
 /**
  * @description Intersect a line/ray/segment with a FOLD graph, and return
  * intersect information with vertices, edges, and faces.
+ * - Vertex intersection is padded with an epsilon, inclusive to this region.
+ * - Edge intersection is endpoint-exclusive, if there is a vertex intersection
+ *   look for it in the "vertices" array. Also, edges parallel with the line
+ *   are excluded, find these collinear edges by checking "vertices" array.
+ * - Face intersections excludes those which intersect at a single vertex,
+ *   as well as excluding those which intersect at a 
  * @param {VecLine} line a line/ray/segment in vector origin form
  * @param {function} lineDomain the function which characterizes "line"
  * parameter into a line, ray, or segment.
@@ -226,6 +249,16 @@ export const intersectLine = (
 		...facesEdgeIntersections[v],
 	]);
 
+	const collinearEdges = edges_vertices.map(verts => (
+		vertices[verts[0]] !== undefined && vertices[verts[1]] !== undefined));
+
+	const collinearVertices = [];
+	collinearEdges
+		.map((collinear, edge) => (collinear ? edge : undefined))
+		.filter(a => a !== undefined)
+		.map(edge => edges_vertices[edge])
+		.forEach(vs => collinearVertices.push(vs));
+
 	// this epsilon function will compare the object's "a" property
 	// which is the intersections's "a" parameter (line parameter).
 	const epsilonEqual = (p, q) => Math.abs(p.a - q.a) < epsilon * 2;
@@ -238,13 +271,13 @@ export const intersectLine = (
 		.map(intersections => clusterSortedGeneric(intersections, epsilonEqual)
 			.map(cluster => cluster.map(index => intersections[index])))
 		.map(clusters => clusters
-			.map(cluster => cluster[0])
-			);
-			// .map(intersection => ({
-				// ...intersection,
-				// edge: intersection.vertex === undefined ? intersection.edge : undefined,
-				// b: intersection.vertex === undefined ? intersection.b : undefined,
-			// })));
+			.map(cluster => cluster[0]))
+		.map(face => filterCollinearFaces(face, collinearVertices));
+		// .map(intersection => ({
+		// ...intersection,
+		// edge: intersection.vertex === undefined ? intersection.edge : undefined,
+		// b: intersection.vertex === undefined ? intersection.b : undefined,
+		// })));
 
 	return { vertices, edges, faces };
 };

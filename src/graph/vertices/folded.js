@@ -74,7 +74,7 @@ export const makeVerticesCoords3DFolded = ({
 /**
  * @description Fold a graph along its edges and return the position of the folded
  * vertices. this method works for 2D only (no z value).
- * if a edges_assignment is "U", assumed to be folded ("V" or "M").
+ * if an edges_assignment is "U", assumed to be folded ("V" or "M").
  * Finally, if no edge foldAngle or assignments exist, this method will
  * assume all edges are flat-folded (except boundary) and will fold everything.
  * @param {FOLD} graph a FOLD object
@@ -153,7 +153,15 @@ export const makeVerticesCoordsFlatFolded = ({
 };
 
 /**
- * @description 
+ * @description Fold a graph along its edges and return the position of the folded
+ * vertices. This method will fold vertices in either 2D or 3D.
+ * If an edges_assignment is "U", assumed to be folded ("V" or "M").
+ * Finally, if no edge foldAngle or assignments exist, this method will
+ * assume all edges are flat-folded (except boundary) and will fold everything.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [root_face=0] the index of the face that will remain in place
+ * @returns {number[][]} a new set of `vertices_coords` with the new positions.
+ * @linkcode Origami ./src/graph/verticesCoordsFolded.js 69
  */
 export const makeVerticesCoordsFolded = (graph, rootFace) => (
 	edgesFoldAngleAreAllFlat(graph)

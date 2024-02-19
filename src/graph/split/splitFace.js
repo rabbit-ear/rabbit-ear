@@ -7,6 +7,7 @@ import {
 import {
 	makeEdgesFacesUnsorted,
 	makeFacesFaces,
+	makeFacesEdgesFromVertices,
 } from "../make.js";
 import {
 	uniqueElements,
@@ -106,6 +107,12 @@ const updateFacesEdges = ({
 	edges_vertices, faces_vertices, faces_edges,
 }, oldFace, faces, edge) => {
 	if (!faces_edges) { return; }
+
+	// faces_edges.forEach((_, i) => delete faces_edges[i]);
+	// Object.assign(
+	// 	faces_edges,
+	// 	makeFacesEdgesFromVertices({ edges_vertices, faces_vertices }),
+	// );
 
 	// create a reverse lookup, pairs of vertices to an edge.
 	const verticesToEdge = makeVerticesToEdgeLookup(
@@ -251,27 +258,34 @@ export const updateEdgesFaces = (
 ) => {
 	if (!edges_faces) { return; }
 
-	// this is a unique situation, we require an array to be built but we are
-	// missing the source data. the number of times this branch is reached will
-	// be so few, it's possible to simply call the entire rebuild method.
-	if (!faces_edges) {
-		edges_faces.forEach((_, i) => delete edges_faces[i]);
-		Object.assign(
-			edges_faces,
-			makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges }),
-		);
-		return;
-	}
+	// todo: get rid of this
+	edges_faces.forEach((_, i) => delete edges_faces[i]);
+	Object.assign(
+		edges_faces,
+		makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges }),
+	);
 
-	const edgesNewFace = {};
-	newFaces.forEach(f => faces_edges[f]
-		.forEach(edge => { edgesNewFace[edge] = f; }));
-	Object.keys(edgesNewFace).forEach(edge => {
-		const index = edges_faces[edge].indexOf(oldFace);
-		if (index === -1) { return; }
-		edges_faces[edge].splice(index, 1, newFaces[edge]);
-	});
-	edges_faces[newEdge] = [...newFaces];
+	// // this is a unique situation, we require an array to be built but we are
+	// // missing the source data. the number of times this branch is reached will
+	// // be so few, it's possible to simply call the entire rebuild method.
+	// if (!faces_edges) {
+	// 	edges_faces.forEach((_, i) => delete edges_faces[i]);
+	// 	Object.assign(
+	// 		edges_faces,
+	// 		makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges }),
+	// 	);
+	// 	return;
+	// }
+
+	// const edgesNewFace = {};
+	// newFaces.forEach(f => faces_edges[f]
+	// 	.forEach(edge => { edgesNewFace[edge] = f; }));
+	// Object.keys(edgesNewFace).forEach(edge => {
+	// 	const index = edges_faces[edge].indexOf(oldFace);
+	// 	if (index === -1) { return; }
+	// 	edges_faces[edge].splice(index, 1, newFaces[edge]);
+	// });
+	// edges_faces[newEdge] = [...newFaces];
 };
 
 /**
@@ -287,32 +301,30 @@ export const updateFacesFaces = (
 ) => {
 	if (!faces_faces) { return; }
 
-	if (true) {
-		faces_faces.forEach((_, i) => delete faces_faces[i]);
-		Object.assign(
-			faces_faces,
-			makeFacesFaces({ faces_vertices }),
-		);
-		return;
-	}
+	// todo: get rid of this
+	faces_faces.forEach((_, i) => delete faces_faces[i]);
+	Object.assign(
+		faces_faces,
+		makeFacesFaces({ faces_vertices }),
+	);
 
-	// initialize the new faces' faces_faces to a copy of the old face's array
-	faces
-		.filter(f => !faces_faces[f])
-		.forEach(f => { faces_faces[f] = [...faces_faces[oldFace]]; });
+	// // initialize the new faces' faces_faces to a copy of the old face's array
+	// faces
+	// 	.filter(f => !faces_faces[f])
+	// 	.forEach(f => { faces_faces[f] = [...faces_faces[oldFace]]; });
 
-	const allFaces = uniqueElements([...faces_faces[oldFace], ...faces]);
+	// const allFaces = uniqueElements([...faces_faces[oldFace], ...faces]);
 
-	// in the case that faces_edges is built and built for the new faces,
-	// loop through all faces' faces_faces, searching for an occurrence of
-	// the old face's index, and replace that index with the face that
-	if (faces_edges) {
-		const edgesToFaces = makeEdgesToFacesLookup({ faces_edges }, faces);
-		allFaces.forEach(face => {
-			faces_faces[face]
-		});
-		return;
-	}
+	// // in the case that faces_edges is built and built for the new faces,
+	// // loop through all faces' faces_faces, searching for an occurrence of
+	// // the old face's index, and replace that index with the face that
+	// if (faces_edges) {
+	// 	const edgesToFaces = makeEdgesToFacesLookup({ faces_edges }, faces);
+	// 	allFaces.forEach(face => {
+	// 		faces_faces[face]
+	// 	});
+	// 	return;
+	// }
 
 	// const allVertices = uniqueElements(allFaces
 	// 	.flatMap(face => faces_vertices[face]));

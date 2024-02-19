@@ -17,6 +17,7 @@ import {
 	invertAssignment,
 } from "../../fold/spec.js";
 import {
+	invertArrayToFlatMap,
 	mergeNextmaps,
 } from "../maps.js";
 import {
@@ -115,6 +116,12 @@ export const newFold = (
 		epsilon,
 	);
 
+	// using the overlapped vertices, make a list of edges collinear to the line
+	// these (old) indices will match with the graph from its original state.
+	const verticesCollinear = intersections.vertices.map(v => v !== undefined);
+	const edges_collinear = graph.edges_vertices
+		.map(verts => verticesCollinear[verts[0]] && verticesCollinear[verts[1]]);
+
 	// the result will be an object mapping a vertex: edge, where the vertex
 	// is the vertex's final index, the edge is its previous index before the map
 	// which (old) edge now has which (new) vertex along it.
@@ -153,6 +160,7 @@ export const newFold = (
 			const assign = faces_winding[face] ? assignment : oppositeAssignment;
 			const angle = faces_winding[face] ? foldAngle : oppositeFoldAngle;
 
+			// console.log(`splitting face (${face}/${newFace}) V:${vertices.length} E:${edges.length} P:${points.length}`);
 			// these are the vertices which were created when an edge was split
 			const splitEdgesVertices = edges.map(({ edge }) => oldEdgeNewVertex[edge]);
 
@@ -185,47 +193,53 @@ export const newFold = (
 			oldFaceNewEdge[face] = newEdgeIndex;
 		});
 
-	const isValid = validate(graph);
-	console.log("validate", isValid);
+	// collinear edges should be dealt in this way: folded edges can be ignored,
+	// flat edges which lie collinear to the fold line must be folded,
+	// these edges were missed in the edge construction and assignment inside
+	// "splitFace", because these edges already existed.
 
-	// this is the crease pattern's edges_faces (not edges_face from above)
-	// const edges_faces = graph.edges_faces
-	// 	? graph.edges_faces
-	// 	: makeEdgesFacesUnsorted(graph);
-	const edges_faces = makeEdgesFacesUnsorted(graph);
-
-	console.log("graph.edges_faces", graph.edges_faces);
-	console.log("edges_faces", edges_faces);
-
-	// collinear edges should be dealt in this way:
-	// if the edge is alredy a M or V, we can ignore it
-	// if the edge is a F or U, we need to fold it, and we need to know which
-	// direction, this is done by checking one of its two neighboring faces
-	// (edges_faces), they should be the same winding, so just grab one.
-	const reassignable = { F: true, f: true, U: true, u: true };
-
-	// using the overlapped vertices, make a list of edges collinear to the line
-	const verticesCollinear = intersections.vertices.map(v => v !== undefined);
-	const edges_collinear = graph.edges_vertices
-		.map(verts => verticesCollinear[verts[0]] && verticesCollinear[verts[1]]);
-
-	console.log("verticesCollinear", verticesCollinear);
-	console.log("edges_collinear", edges_collinear);
-
-	edges_collinear
+	// these are new edge indices, relating to the graph after modification.
+	const collinearEdges = edges_collinear
 		.map((collinear, e) => (collinear ? e : undefined))
 		.filter(a => a !== undefined)
-		.forEach(edge => {
-			if (!reassignable[graph.edges_assignment[edge]]) { return; }
-			const face = edges_faces[edge]
-				.filter(a => a !== undefined)
-				.shift();
-			console.log("edges_faces[edge]", edges_faces[edge]);
-			const winding = faces_winding[face];
-			console.log("winding", winding);
-			graph.edges_assignment[edge] = winding ? assignment : oppositeAssignment;
-			graph.edges_foldAngle[edge] = winding ? foldAngle : oppositeFoldAngle;
-		});
+		.flatMap(edge => (edgeMap[edge] || []));
+
+	// this edges_faces maps new edge indices to new face indices
+	// const edges_faces = makeEdgesFacesUnsorted(graph);
+	const edges_faces = graph.edges_faces
+		? graph.edges_faces
+		: makeEdgesFacesUnsorted(graph);
+
+	// this maps new face indices (index) to old face indices (values)
+	const faceOldMap = invertArrayToFlatMap(faceMap);
+
+	// This can be done without bothering with assignments, we simply check
+	// edges_faces and proceed if both face's face windings match in orientation.
+	// get the adjacent faces to this edge. initially these are the faces'
+	// new indices, but because the faces_winding array is build with
+	// old indices we need to change these face indices to their old versions
+	const reassignableCollinearEdges = collinearEdges
+		.map(edge => ({
+			edge,
+			faces: edges_faces[edge]
+				.map(f => faceOldMap[f])
+				.filter(a => a !== undefined),
+		}))
+		.filter(({ faces }) => faces.length === 2)
+		.filter(({ faces: [f0, f1] }) => faces_winding[f0] === faces_winding[f1]);
+
+	reassignableCollinearEdges.forEach(({ edge, faces }) => {
+		const winding = faces.map(face => faces_winding[face])[0];
+		graph.edges_assignment[edge] = winding ? assignment : oppositeAssignment;
+		graph.edges_foldAngle[edge] = winding ? foldAngle : oppositeFoldAngle;
+	});
+
+	// temp
+	try {
+		console.log("validate", validate(graph));
+	} catch (error) {
+		console.error("validate failed", error);
+	}
 
 	return {
 		edges: {

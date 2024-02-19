@@ -52,7 +52,7 @@ const basicComponentTest = (graph) => {
 
 		const circular_edges = circularEdges(graph);
 		if (circular_edges.length !== 0) {
-			errors.push(`contains circular edges: ${circular_edges.join(", ")}`);
+			errors.push(`circular edges_vertices: ${circular_edges.join(", ")}`);
 		}
 
 		const duplicate_edges = duplicateEdges(graph);
@@ -61,7 +61,7 @@ const basicComponentTest = (graph) => {
 				.map((dup, e) => `${e}(${dup})`)
 				.filter(a => a)
 				.join(", ");
-			errors.push(`duplicate edges: ${dups}`);
+			errors.push(`duplicate edges_vertices: ${dups}`);
 		}
 	}
 
@@ -117,30 +117,53 @@ const arraysHaveSameIndices = (arrays = []) => {
 			.filter(a => a !== undefined));
 };
 
-const reflexiveTest = (a_b, b_a, aName, bName) => {
+/**
+ * @description In the case where two identical but opposite arrays exist,
+ * this will test to make sure that every item in one array appears in the
+ * other; for example, in vertices_faces and faces_vertices.
+ */
+const pairwiseReferenceTest = (a_b, b_a, aName, bName) => {
+	// when we iterate through each array at its second level depth, we need
+	// to be sure to filter out any null or undefined, as for example it's
+	// requird by the spec to include undefined inside of vertices_faces,
+	// but only inside the inner arrays. at the top level no nulls should exist.
 	const abHash = {};
 	a_b.forEach((_, a) => { abHash[a] = {}; });
-	a_b.forEach((arr, a) => arr.forEach(b => { abHash[a][b] = true; }));
+	a_b.forEach((arr, a) => arr
+		.filter(el => el !== null && el !== undefined)
+		.forEach(b => { abHash[a][b] = true; }));
 
 	const baHash = {};
 	b_a.forEach((_, b) => { baHash[b] = {}; });
-	b_a.forEach((arr, b) => arr.forEach(a => { baHash[b][a] = true; }));
+	b_a.forEach((arr, b) => arr
+		.filter(el => el !== null && el !== undefined)
+		.forEach(a => { baHash[b][a] = true; }));
 
 	const abErrors = a_b
 		.flatMap((arr, a) => arr
-			.map(b => (!baHash[b][a]
+			.filter(el => el !== null && el !== undefined)
+			.map(b => (!baHash[b] || !baHash[b][a]
 				? `${bName}_${aName}[${b}][${a}] missing in ${aName}_${bName}`
 				: undefined))
 			.filter(el => el !== undefined));
 	const baErrors = b_a
 		.flatMap((arr, b) => arr
-			.map(a => (!abHash[a][b]
+			.filter(el => el !== null && el !== undefined)
+			.map(a => (!abHash[a] || !abHash[a][b]
 				? `${aName}_${bName}[${a}][${b}] missing in ${bName}_${aName}`
 				: undefined))
 			.filter(el => el !== undefined));
 
 	return abErrors.concat(baErrors);
 };
+
+/**
+ * @description This will test a reflexive array, like vertices_vertices,
+ * to ensure that every reference also exists
+ */
+const reflexiveTest = (a_a, aName) => (
+	pairwiseReferenceTest(a_a, a_a, aName, aName)
+);
 
 // const extraVerticesTest = (graph, epsilon) => {
 // 	const errors = [];
@@ -211,7 +234,7 @@ export const validate = (graph) => {
 	// test 3: test reflexive component relationships.
 	const reflexiveErrors = [];
 	if (graph.faces_vertices && graph.vertices_faces) {
-		reflexiveErrors.push(...reflexiveTest(
+		reflexiveErrors.push(...pairwiseReferenceTest(
 			graph.faces_vertices,
 			graph.vertices_faces,
 			"faces",
@@ -219,7 +242,7 @@ export const validate = (graph) => {
 		));
 	}
 	if (graph.edges_vertices && graph.vertices_edges) {
-		reflexiveErrors.push(...reflexiveTest(
+		reflexiveErrors.push(...pairwiseReferenceTest(
 			graph.edges_vertices,
 			graph.vertices_edges,
 			"edges",
@@ -227,12 +250,22 @@ export const validate = (graph) => {
 		));
 	}
 	if (graph.faces_edges && graph.edges_faces) {
-		reflexiveErrors.push(...reflexiveTest(
+		reflexiveErrors.push(...pairwiseReferenceTest(
 			graph.faces_edges,
 			graph.edges_faces,
 			"faces",
 			"edges",
 		));
+	}
+
+	if (graph.vertices_vertices) {
+		reflexiveErrors.push(...reflexiveTest(graph.vertices_vertices, "vertices"));
+	}
+	if (graph.edges_edges) {
+		reflexiveErrors.push(...reflexiveTest(graph.edges_edges, "edges"));
+	}
+	if (graph.faces_faces) {
+		reflexiveErrors.push(...reflexiveTest(graph.faces_faces, "faces"));
 	}
 
 	return basicErrors
