@@ -183,68 +183,68 @@ export const foldFoldedForm = (
 	};
 };
 
-/**
- * @description 
- */
-export const foldLine = (
-	cp,
-	folded,
-	line,
-	assignment = "V",
-	foldAngle = undefined,
-	epsilon = EPSILON,
-) => (
-	foldFoldedForm(
-		cp,
-		folded,
-		line,
-		includeL,
-		[],
-		assignment,
-		foldAngle,
-		epsilon,
-	));
+// /**
+//  * @description 
+//  */
+// export const foldLine = (
+// 	cp,
+// 	folded,
+// 	line,
+// 	assignment = "V",
+// 	foldAngle = undefined,
+// 	epsilon = EPSILON,
+// ) => (
+// 	foldFoldedForm(
+// 		cp,
+// 		folded,
+// 		line,
+// 		includeL,
+// 		[],
+// 		assignment,
+// 		foldAngle,
+// 		epsilon,
+// 	));
 
-/**
- * @description 
- */
-export const foldRay = (
-	cp,
-	folded,
-	ray,
-	assignment = "V",
-	foldAngle = undefined,
-	epsilon = EPSILON,
-) => (
-	foldFoldedForm(
-		cp,
-		folded,
-		ray,
-		includeR,
-		[ray.origin],
-		assignment,
-		foldAngle,
-		epsilon,
-	));
+// /**
+//  * @description 
+//  */
+// export const foldRay = (
+// 	cp,
+// 	folded,
+// 	ray,
+// 	assignment = "V",
+// 	foldAngle = undefined,
+// 	epsilon = EPSILON,
+// ) => (
+// 	foldFoldedForm(
+// 		cp,
+// 		folded,
+// 		ray,
+// 		includeR,
+// 		[ray.origin],
+// 		assignment,
+// 		foldAngle,
+// 		epsilon,
+// 	));
 
-/**
- * @description 
- */
-export const foldSegment = (
-	cp,
-	folded,
-	segment,
-	assignment = "V",
-	foldAngle = undefined,
-	epsilon = EPSILON,
-) => (
-	foldFoldedForm(
-		cp,
-		folded,
-		pointsToLine(...segment),
-		includeS,
-		segment,
-		assignment,
-		foldAngle,
-		epsilon,
-	));
+// /**
+//  * @description 
+//  */
+// export const foldSegment = (
+// 	cp,
+// 	folded,
+// 	segment,
+// 	assignment = "V",
+// 	foldAngle = undefined,
+// 	epsilon = EPSILON,
+// ) => (
+// 	foldFoldedForm(
+// 		cp,
+// 		folded,
+// 		pointsToLine(...segment),
+// 		includeS,
+// 		segment,
+// 		assignment,
+// 		foldAngle,
+// 		epsilon,
+// 	));

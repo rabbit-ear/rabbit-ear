@@ -8,17 +8,78 @@ import {
 	getAllSuffixes,
 } from "../fold/spec.js";
 import {
+	foldKeys,
+} from "../fold/keys.js";
+import {
 	duplicateEdges,
 } from "./edges/duplicate.js";
 import {
 	circularEdges,
 } from "./edges/circular.js";
-import {
-	duplicateVertices,
-} from "./vertices/duplicate.js";
-import {
-	isolatedVertices,
-} from "./vertices/isolated.js";
+// import {
+// 	duplicateVertices,
+// } from "./vertices/duplicate.js";
+// import {
+// 	isolatedVertices,
+// } from "./vertices/isolated.js";
+
+const noNulls = (array) => array
+	.map((el, i) => (el === null || el === undefined ? i : undefined))
+	.filter(a => a !== undefined);
+
+const basicComponentTest = (graph) => {
+	const errors = [];
+	// check if any graph array has null values at the top level
+	foldKeys.graph
+		.filter(key => graph[key])
+		.forEach(key => errors.push(...noNulls(graph[key])
+			.map(i => `${key}[${i}] undefined or null`)));
+
+	if (graph.vertices_coords) {
+		errors.push(...graph.vertices_coords
+			.map((coords, v) => (coords.length !== 2 && coords.length !== 3
+				? v
+				: undefined))
+			.filter(a => a !== undefined)
+			.map(e => `vertices_coords[${e}] is not length 2 or 3`));
+	}
+
+	if (graph.edges_vertices) {
+		errors.push(...graph.edges_vertices
+			.map((vertices, e) => (vertices.length !== 2 ? e : undefined))
+			.filter(a => a !== undefined)
+			.map(e => `edges_vertices[${e}] is not length 2`));
+
+		const circular_edges = circularEdges(graph);
+		if (circular_edges.length !== 0) {
+			errors.push(`contains circular edges: ${circular_edges.join(", ")}`);
+		}
+
+		const duplicate_edges = duplicateEdges(graph);
+		if (duplicate_edges.length !== 0) {
+			const dups = duplicate_edges
+				.map((dup, e) => `${e}(${dup})`)
+				.filter(a => a)
+				.join(", ");
+			errors.push(`duplicate edges: ${dups}`);
+		}
+	}
+
+	if (graph.faces_vertices) {
+		errors.push(...graph.faces_vertices
+			.map((vertices, f) => (vertices.length === 0 ? f : undefined))
+			.filter(a => a !== undefined)
+			.map(f => `faces_vertices[${f}] contains no vertices`));
+	}
+
+	if (graph.faces_edges) {
+		errors.push(...graph.faces_edges
+			.map((edges, f) => (edges.length === 0 ? f : undefined))
+			.filter(a => a !== undefined)
+			.map(f => `faces_edges[${f}] contains no edges`));
+	}
+	return errors;
+};
 
 /**
  *
@@ -56,6 +117,44 @@ const arraysHaveSameIndices = (arrays = []) => {
 			.filter(a => a !== undefined));
 };
 
+const reflexiveTest = (a_b, b_a, aName, bName) => {
+	const abHash = {};
+	a_b.forEach((_, a) => { abHash[a] = {}; });
+	a_b.forEach((arr, a) => arr.forEach(b => { abHash[a][b] = true; }));
+
+	const baHash = {};
+	b_a.forEach((_, b) => { baHash[b] = {}; });
+	b_a.forEach((arr, b) => arr.forEach(a => { baHash[b][a] = true; }));
+
+	const abErrors = a_b
+		.flatMap((arr, a) => arr
+			.map(b => (!baHash[b][a]
+				? `${bName}_${aName}[${b}][${a}] missing in ${aName}_${bName}`
+				: undefined))
+			.filter(el => el !== undefined));
+	const baErrors = b_a
+		.flatMap((arr, b) => arr
+			.map(a => (!abHash[a][b]
+				? `${aName}_${bName}[${a}][${b}] missing in ${bName}_${aName}`
+				: undefined))
+			.filter(el => el !== undefined));
+
+	return abErrors.concat(baErrors);
+};
+
+// const extraVerticesTest = (graph, epsilon) => {
+// 	const errors = [];
+// 	const isolated_vertices = isolatedVertices(graph);
+// 	const duplicate_vertices = duplicateVertices(graph, epsilon);
+// 	if (isolated_vertices.length !== 0) {
+// 		errors.push(`contains isolated vertices: ${isolated_vertices.join(", ")}`);
+// 	}
+// 	if (duplicate_vertices.length !== 0) {
+// 		errors.push(`contains duplicate vertices`);
+// 	}
+// 	return errors;
+// };
+
 /**
  * @description Validate a graph, ensuring that all references across
  * different arrays point to valid data, there are no mismatching
@@ -70,6 +169,9 @@ const arraysHaveSameIndices = (arrays = []) => {
  * @returns {string[]} array of error messages. an empty array means no errors.
  */
 export const validate = (graph) => {
+	// test 0:
+	const basicErrors = basicComponentTest(graph);
+
 	const allPrefixes = getAllPrefixes(graph)
 		.filter(key => key !== "file" && key !== "frame");
 	const allSuffixes = getAllSuffixes(graph);
@@ -105,46 +207,36 @@ export const validate = (graph) => {
 							: `${key}[${i}][${j}] references ${match} ${index}, missing in ${prefixArrayKeys[0]}`))
 						.filter(a => a !== undefined)));
 		});
-	return prefixTestErrors.concat(referenceErrors);
-};
 
-// const isFlatFoldable = (graph, epsilon) => {
-// 	const sectors = counterClockwiseSectors2(points);
-// 	const kawasaki = ear.singleVertex.alternatingSum(sectors)
-// 		.map(n => 0.5 + 0.5 * (Math.PI - n) / (Math.PI) );
-// 	const isFlatFoldable = Math.abs(kawasaki[0] - kawasaki[1]) < 0.02;
-// };
+	// test 3: test reflexive component relationships.
+	const reflexiveErrors = [];
+	if (graph.faces_vertices && graph.vertices_faces) {
+		reflexiveErrors.push(...reflexiveTest(
+			graph.faces_vertices,
+			graph.vertices_faces,
+			"faces",
+			"vertices",
+		));
+	}
+	if (graph.edges_vertices && graph.vertices_edges) {
+		reflexiveErrors.push(...reflexiveTest(
+			graph.edges_vertices,
+			graph.vertices_edges,
+			"edges",
+			"vertices",
+		));
+	}
+	if (graph.faces_edges && graph.edges_faces) {
+		reflexiveErrors.push(...reflexiveTest(
+			graph.faces_edges,
+			graph.edges_faces,
+			"faces",
+			"edges",
+		));
+	}
 
-/**
- * @description Validate a graph. Test everything inside of "validate",
- * as well as duplicate vertices/edges, isolated vertices, and
- * circular edges.
- * @param {FOLD} graph a FOLD object
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} array of error messages. an empty array means no errors.
- * and "vertices" "edges" and "faces" information
- * todo:
- * - if creasePattern, are all faces counter-clockwise?
- * - are all vertices either 2D or 3D (not mixed)
- * @linkcode Origami ./src/graph/validate.js 47
- */
-export const validateComprehensive = (graph, epsilon) => {
-	const errors = validate(graph);
-	const duplicate_edges = duplicateEdges(graph);
-	const circular_edges = circularEdges(graph);
-	const isolated_vertices = isolatedVertices(graph);
-	const duplicate_vertices = duplicateVertices(graph, epsilon);
-	if (circular_edges.length !== 0) {
-		errors.push(`contains circular edges: ${circular_edges.join(", ")}`);
-	}
-	if (isolated_vertices.length !== 0) {
-		errors.push(`contains isolated vertices: ${isolated_vertices.join(", ")}`);
-	}
-	if (duplicate_edges.length !== 0) {
-		errors.push("contains duplicate edges");
-	}
-	if (duplicate_vertices.length !== 0) {
-		errors.push(`contains duplicate vertices`);
-	}
-	return errors;
+	return basicErrors
+		.concat(prefixTestErrors)
+		.concat(referenceErrors)
+		.concat(reflexiveErrors);
 };

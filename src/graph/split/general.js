@@ -60,6 +60,18 @@ export const makeVerticesToFacesLookup = ({ faces_vertices }, faces) => {
 };
 
 /**
+ * @description 
+ */
+export const makeEdgesToFacesLookup = ({ faces_edges }, faces) => {
+	const edgesToFaces = [];
+	faces.flatMap(face => faces_edges[face])
+		.forEach(edge => { edgesToFaces[edge] = []; });
+	faces.forEach(face => faces_edges[face]
+		.forEach(edge => edgesToFaces[edge].push(face)));
+	return edgesToFaces;
+};
+
+/**
  * @description Given an edge, get its adjacent faces. This is typically
  * done by simply checking the edges_faces array, but if this array does not
  * exist, this method will still hunt to find the faces by other means.

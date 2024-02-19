@@ -10,12 +10,18 @@ import {
 	includeS,
 } from "../../math/compare.js";
 import {
+	pointsToLine,
+} from "../../math/convert.js";
+import {
 	assignmentFlatFoldAngle,
 	invertAssignment,
 } from "../../fold/spec.js";
 import {
 	mergeNextmaps,
 } from "../maps.js";
+import {
+	makeEdgesFacesUnsorted,
+} from "../make.js";
 import {
 	makeVerticesCoordsFolded,
 } from "../vertices/folded.js";
@@ -39,6 +45,9 @@ import {
 	transferPointInFaceBetweenGraphs,
 	transferPointOnEdgeBetweenGraphs,
 } from "../transfer.js";
+import {
+	validate,
+} from "../validate.js";
 import clone from "../../general/clone.js";
 
 const arraysLengthSum = (...arrays) => arrays
@@ -63,7 +72,7 @@ export const newFold = (
 	// edge indices will be heavily modified, an edge map will be generated
 	// face indices will be heavily modified, a face map will be generated
 
-	// this is required for the trilateration in the case of points inside faces
+	// this is required for trilateration for isolated points inside faces
 	const initialGraph = clone({
 		vertices_coords: graph.vertices_coords,
 		faces_vertices: graph.faces_vertices,
@@ -176,6 +185,48 @@ export const newFold = (
 			oldFaceNewEdge[face] = newEdgeIndex;
 		});
 
+	const isValid = validate(graph);
+	console.log("validate", isValid);
+
+	// this is the crease pattern's edges_faces (not edges_face from above)
+	// const edges_faces = graph.edges_faces
+	// 	? graph.edges_faces
+	// 	: makeEdgesFacesUnsorted(graph);
+	const edges_faces = makeEdgesFacesUnsorted(graph);
+
+	console.log("graph.edges_faces", graph.edges_faces);
+	console.log("edges_faces", edges_faces);
+
+	// collinear edges should be dealt in this way:
+	// if the edge is alredy a M or V, we can ignore it
+	// if the edge is a F or U, we need to fold it, and we need to know which
+	// direction, this is done by checking one of its two neighboring faces
+	// (edges_faces), they should be the same winding, so just grab one.
+	const reassignable = { F: true, f: true, U: true, u: true };
+
+	// using the overlapped vertices, make a list of edges collinear to the line
+	const verticesCollinear = intersections.vertices.map(v => v !== undefined);
+	const edges_collinear = graph.edges_vertices
+		.map(verts => verticesCollinear[verts[0]] && verticesCollinear[verts[1]]);
+
+	console.log("verticesCollinear", verticesCollinear);
+	console.log("edges_collinear", edges_collinear);
+
+	edges_collinear
+		.map((collinear, e) => (collinear ? e : undefined))
+		.filter(a => a !== undefined)
+		.forEach(edge => {
+			if (!reassignable[graph.edges_assignment[edge]]) { return; }
+			const face = edges_faces[edge]
+				.filter(a => a !== undefined)
+				.shift();
+			console.log("edges_faces[edge]", edges_faces[edge]);
+			const winding = faces_winding[face];
+			console.log("winding", winding);
+			graph.edges_assignment[edge] = winding ? assignment : oppositeAssignment;
+			graph.edges_foldAngle[edge] = winding ? foldAngle : oppositeFoldAngle;
+		});
+
 	return {
 		edges: {
 			new: Object.values(oldFaceNewEdge),
@@ -186,3 +237,69 @@ export const newFold = (
 		},
 	};
 };
+
+/**
+ * @description 
+ */
+export const foldLine = (
+	graph,
+	line,
+	vertices_coordsFolded = undefined,
+	assignment = "V",
+	foldAngle = undefined,
+	epsilon = EPSILON,
+) => (
+	newFold(
+		graph,
+		line,
+		includeL,
+		[],
+		vertices_coordsFolded,
+		assignment,
+		foldAngle,
+		epsilon,
+	));
+
+/**
+ * @description 
+ */
+export const foldRay = (
+	graph,
+	ray,
+	vertices_coordsFolded = undefined,
+	assignment = "V",
+	foldAngle = undefined,
+	epsilon = EPSILON,
+) => (
+	newFold(
+		graph,
+		ray,
+		includeR,
+		[ray.origin],
+		vertices_coordsFolded,
+		assignment,
+		foldAngle,
+		epsilon,
+	));
+
+/**
+ * @description 
+ */
+export const foldSegment = (
+	graph,
+	segment,
+	vertices_coordsFolded = undefined,
+	assignment = "V",
+	foldAngle = undefined,
+	epsilon = EPSILON,
+) => (
+	newFold(
+		graph,
+		pointsToLine(...segment),
+		includeS,
+		segment,
+		vertices_coordsFolded,
+		assignment,
+		foldAngle,
+		epsilon,
+	));
