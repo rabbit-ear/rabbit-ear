@@ -68,12 +68,9 @@ export const intersectLineVertices = (
 /**
  * @description Intersect a line/ray/segment with a FOLD graph but only
  * consider the graph's vertices and edges.
- * Intersections are endpoint-inclusive, but will not include collinear edges.
- * Collinear edges will contain an "undefined" in this result, collinear
- * edges can be differentiated for the user by consulting the "vertices"
- * data, if both of an edge's two vertices are true, the edge is collinear.
- * Edges which have one endpoint touching the line are included in the result,
- * and include a "vertex" parameter indicating which vertex index is overlapped.
+ * Intersections are endpoint-exclusive, and will not include collinear edges.
+ * Vertex intersection information is available under the "vertices" key,
+ * and collinear edges can be found by checking if both vertices are overlapped.
  * @param {FOLD} graph a fold graph in creasePattern or foldedForm
  * @param {VecLine} line a line/ray/segment in vector origin form
  * @param {function} lineDomain the function which characterizes "line"
@@ -89,8 +86,6 @@ export const intersectLineVertices = (
  *   - a: {number} the input line's parameter of the intersection
  *   - b: {number} the edge's parameter of the intersection
  *   - point: {number[]} the intersection point
- *   - vertex: {number|undefined} in the case of an intersection which crosses
- *     a vertex, indicate which vertex, otherwise, mark it as undefined.
  */
 export const intersectLineVerticesEdges = (
 	{ vertices_coords, edges_vertices },
@@ -128,13 +123,12 @@ export const intersectLineVerticesEdges = (
 	const edges = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]))
 		.map((seg, e) => (edgesVerticesOverlap[e].length === 0
-			? ({ ...intersectLineLine(
+			? intersectLineLine(
 				{ vector, origin },
 				pointsToLine(...seg),
 				lineDomain,
 				includeS,
-			),
-			vertex: undefined })
+			)
 			: undefined))
 		.map(res => (res === undefined || !res.point ? undefined : res));
 
@@ -155,23 +149,6 @@ export const intersectLineVerticesEdges = (
 	return { vertices, edges };
 };
 
-const filterCollinearFaces = (face, collinearVertices) => {
-	const faceVertices = {};
-	face.filter(({ vertex }) => vertex !== undefined)
-		.forEach(({ vertex }) => { faceVertices[vertex] = true; });
-
-	const removeVertices = {};
-	collinearVertices
-		.filter(pair => faceVertices[pair[0]] && faceVertices[pair[1]])
-		.forEach(pair => {
-			removeVertices[pair[0]] = true;
-			removeVertices[pair[1]] = true;
-		});
-
-	return face
-		.filter(el => el.vertex === undefined || !removeVertices[el.vertex]);
-};
-
 /**
  * @description Intersect a line/ray/segment with a FOLD graph, and return
  * intersect information with vertices, edges, and faces.
@@ -179,8 +156,11 @@ const filterCollinearFaces = (face, collinearVertices) => {
  * - Edge intersection is endpoint-exclusive, if there is a vertex intersection
  *   look for it in the "vertices" array. Also, edges parallel with the line
  *   are excluded, find these collinear edges by checking "vertices" array.
- * - Face intersections excludes those which intersect at a single vertex,
- *   as well as excluding those which intersect at a 
+ * - Face intersections very simply include all vertex and edge intersections
+ *   which are included in the face. This can cause some issues, for example,
+ *   two vertices which are neighbors are simply a collinear edge,
+ *   "filterCollinearFacesData" will handle these, but if you are dealing with
+ *   non-convex polygons you might have a lot of work parsing this data.
  * @param {VecLine} line a line/ray/segment in vector origin form
  * @param {function} lineDomain the function which characterizes "line"
  * parameter into a line, ray, or segment.
@@ -193,8 +173,6 @@ const filterCollinearFaces = (face, collinearVertices) => {
  *   - a: {number} the input line's parameter of the intersection
  *   - b: {number} the edge's parameter of the intersection
  *   - point: {number[]} the intersection point
- *   - vertex: {number|undefined} in the case of an intersection which crosses
- *     a vertex, indicate which vertex, otherwise, mark it as undefined.
  * - faces: for every intersected face, an array of intersection objects,
  *   objects similar to but slightly different from those in the "edges" array.
  *   Basically there are two types of intersection: "vertex" and "edge":
@@ -249,16 +227,6 @@ export const intersectLine = (
 		...facesEdgeIntersections[v],
 	]);
 
-	const collinearEdges = edges_vertices.map(verts => (
-		vertices[verts[0]] !== undefined && vertices[verts[1]] !== undefined));
-
-	const collinearVertices = [];
-	collinearEdges
-		.map((collinear, edge) => (collinear ? edge : undefined))
-		.filter(a => a !== undefined)
-		.map(edge => edges_vertices[edge])
-		.forEach(vs => collinearVertices.push(vs));
-
 	// this epsilon function will compare the object's "a" property
 	// which is the intersections's "a" parameter (line parameter).
 	const epsilonEqual = (p, q) => Math.abs(p.a - q.a) < epsilon * 2;
@@ -266,18 +234,14 @@ export const intersectLine = (
 	// For every face, sort and cluster the face's intersection events using
 	// our input line's parameter. This results in, for every face,
 	// its intersection events are clustered inside of sub arrays.
+	// Finally, filter out any invalid intersections from the face which
+	// includes two vertices that form a collinear edge
 	const faces = facesIntersections
 		.map(intersections => intersections.sort((p, q) => p.a - q.a))
 		.map(intersections => clusterSortedGeneric(intersections, epsilonEqual)
 			.map(cluster => cluster.map(index => intersections[index])))
 		.map(clusters => clusters
-			.map(cluster => cluster[0]))
-		.map(face => filterCollinearFaces(face, collinearVertices));
-		// .map(intersection => ({
-		// ...intersection,
-		// edge: intersection.vertex === undefined ? intersection.edge : undefined,
-		// b: intersection.vertex === undefined ? intersection.b : undefined,
-		// })));
+			.map(cluster => cluster[0]));
 
 	return { vertices, edges, faces };
 };

@@ -22,7 +22,8 @@ export const splitCircularArray = (array, indices) => {
 
 /**
  * @description 
- * @example fn(array, 3, 99) results in [0, 1, 2, 3, 99, 3, 4, 5, 6]
+ * @example splitArrayWithLeaf(array, 3, 99)
+ * results in [0, 1, 2, 3, 99, 3, 4, 5, 6]
  */
 export const splitArrayWithLeaf = (array, spliceIndex, newElement) => {
 	const arrayCopy = [...array];
@@ -35,9 +36,9 @@ export const splitArrayWithLeaf = (array, spliceIndex, newElement) => {
  * @description 
  */
 export const makeVerticesToEdgeLookup = ({ edges_vertices }, edges) => {
-	const verticesToEdge = [];
+	const verticesToEdge = {};
 	edges.forEach(edge => {
-		const verts = edges_vertices[edge];
+		const verts = [...edges_vertices[edge]];
 		[verts.join(" "), verts.reverse().join(" ")].forEach(key => {
 			verticesToEdge[key] = edge;
 		});
@@ -179,3 +180,44 @@ export const findAdjacentFacesToEdge = (
 // 	}
 // 	console.warn("todo: findAdjacentFacesToFace");
 // };
+
+/**
+ * @description This is a helper method to accompany the intersection
+ * methods. Having already computed vertices/edges/faces intersections
+ * (via. intersectLineAndPoints), pass the result in here, and this method
+ * will filter out any collinear edges from the faces, edges are not stored
+ * but vertices are, so it will filter out pairs of vertices which
+ * form a collinear edge.
+ * @param {FOLD} graph a FOLD object
+ * @param {object} the result of intersectLineAndPoints, modified in place
+ */
+export const filterCollinearFacesData = ({ edges_vertices }, { vertices, faces }) => {
+	// For the upcoming filtering, we need a list of collinear edges, but in
+	// the form of vertices, so, pairs of vertices which form a collinear edge.
+	const collinearVertices = [];
+	edges_vertices
+		.map(verts => (vertices[verts[0]] !== undefined
+			&& vertices[verts[1]] !== undefined))
+		.map((collinear, edge) => (collinear ? edge : undefined))
+		.filter(a => a !== undefined)
+		.map(edge => edges_vertices[edge])
+		.forEach(verts => collinearVertices.push(verts));
+
+	const facesVertices = faces.map(face => face.vertices.map(({ vertex }) => vertex));
+	const facesVerticesHash = [];
+	facesVertices.forEach((_, f) => { facesVerticesHash[f] = {}; });
+	facesVertices
+		.forEach((verts, f) => verts
+			.forEach(v => { facesVerticesHash[f][v] = true; }));
+
+	faces.forEach((face, f) => {
+		const removeVertices = {};
+		collinearVertices
+			.filter(pair => facesVerticesHash[f][pair[0]] && facesVerticesHash[f][pair[1]])
+			.forEach(pair => {
+				removeVertices[pair[0]] = true;
+				removeVertices[pair[1]] = true;
+			});
+		faces[f].vertices = face.vertices.filter(el => !removeVertices[el.vertex]);
+	});
+};

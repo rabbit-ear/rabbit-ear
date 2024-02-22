@@ -2,29 +2,41 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	EPSILON,
-} from "../../math/constant.js";
-import {
-	distance,
 	midpoint,
 } from "../../math/vector.js";
 import {
-	makeVerticesToEdgeBidirectional,
-} from "../make.js";
-import {
 	findAdjacentFacesToEdge,
+	makeVerticesToEdgeLookup,
 } from "./general.js";
 import remove from "../remove.js";
 
 /**
- * @description an edge was just split into two by the addition of a vertex.
- * update new vertex's vertices_vertices, as well as the split edge's
- * endpoint's vertices_vertices to include the new vertex in place of the
- * old endpoints, preserving all other vertices_vertices of the endpoints.
+ * @description This is a subroutine of splitEdge(). This will build two
+ * edges that share one vertex, returning an array of two objects containing:
+ * { edges_vertices, edges_assignment, edges_foldAngle }
  * @param {object} graph a FOLD object, modified in place
- * @param {number} vertex index of new vertex
- * @param {number[]} incident_vertices vertices that make up the split edge.
- * the new vertex lies between.
+ * @param {number} edgeIndex the index of the edge that will be split by the new vertex
+ * @param {number} newVertex the index of the new vertex
+ * @returns {object[]} array of two edge objects, containing edge data as FOLD keys
+ */
+const makeNewEdges = (graph, edgeIndex, newVertex) => {
+	const edge_vertices = graph.edges_vertices[edgeIndex];
+	const new_edges = [
+		{ edges_vertices: [edge_vertices[0], newVertex] },
+		{ edges_vertices: [newVertex, edge_vertices[1]] },
+	];
+	new_edges.forEach(edgeDef => ["edges_assignment", "edges_foldAngle"]
+		.filter(key => graph[key] && graph[key][edgeIndex] !== undefined)
+		.forEach(key => { edgeDef[key] = graph[key][edgeIndex]; }));
+	return new_edges;
+};
+
+/**
+ * @description Update three vertices' vertices_vertices arrays,
+ * the vertex which was added, and the two vertices adjacent to it.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {number} vertex index of the new vertex
+ * @param {number[]} incidentVertices vertices that make up the split edge.
  */
 const updateVerticesVertices = (
 	{ vertices_vertices },
@@ -32,6 +44,7 @@ const updateVerticesVertices = (
 	incidentVertices,
 ) => {
 	if (!vertices_vertices) { return; }
+
 	// create a new entry for this new vertex
 	// only 2 vertices, no need to worry about winding order.
 	vertices_vertices[vertex] = [...incidentVertices];
@@ -47,36 +60,43 @@ const updateVerticesVertices = (
 };
 
 /**
- * @description An edge was just split into two by the addition of a vertex.
- * Update vertices_edges for the new vertex, as well as the split edge's
- * endpoint's vertices_edges to include the two new edges in place of the
- * old one while preserving all other vertices_vertices in each endpoint.
- * @param {object} graph a FOLD object, modified in place
- * @param {number} old_edge the index of the old edge
- * @param {number} new_vertex the index of the new vertex splitting the edge
+ * @description Update three vertices' vertices_edges arrays,
+ * the vertex which was added, and the two vertices adjacent to it.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {number} oldEdge the index of the old edge
+ * @param {number} newVertex the index of the new vertex which split the edge
  * @param {number[]} vertices the old edge's two vertices,
  * must be aligned with "newEdges"
  * @param {number[]} newEdges the two new edges, must be aligned with "vertices"
  */
-const updateVerticesEdges = ({
-	vertices_edges,
-}, oldEdge, newVertex, vertices, newEdges) => {
+const updateVerticesEdges = (
+	{ vertices_edges },
+	oldEdge,
+	newVertex,
+	vertices,
+	newEdges,
+) => {
 	if (!vertices_edges) { return; }
-	// update 1 vertex, our new vertex
+
+	// our new vertex is adjacent to only the two new edges
 	vertices_edges[newVertex] = [...newEdges];
-	// update the two vertices, our new vertex replaces the alternate
-	// vertex in each of their arrays.  0-------x-------0
+
+	// the new vertex replaces the alternate vertex from each array.
+	// find the matching index, replace it with the edge from the same index.
+	// as "vertices" and "newEdges" are index-aligned.
 	vertices
-		.map(v => vertices_edges[v].indexOf(oldEdge))
-		.forEach((index, i) => {
-			vertices_edges[vertices[i]][index] = newEdges[i];
+		.map(vertex => vertices_edges[vertex].indexOf(oldEdge))
+		.map((index, i) => ({ index, vertex: vertices[i], edge: newEdges[i] }))
+		.filter(el => el.index !== -1)
+		.forEach(({ index, vertex, edge }) => {
+			vertices_edges[vertex][index] = edge;
 		});
 };
 
 /**
- * @description a new vertex was added between two faces, update the
- * vertices_faces with the already-known faces indices.
- * @param {object} graph a FOLD object, modified in place
+ * @description Update the one new vertex's vertices_faces to include
+ * the (0, 1, or 2) faces on either side of the edge.
+ * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} vertex the index of the new vertex
  * @param {number[]} faces array of 0, 1, or 2 incident faces.
  */
@@ -86,81 +106,91 @@ const updateVerticesFaces = ({ vertices_faces }, vertex, faces) => {
 };
 
 /**
- * @description a new vertex was added between two faces, update the
- * edges_faces with the already-known faces indices.
- * @param {object} graph a FOLD object, modified in place
- * @param {number[]} new_edges array of 2 new edges
+ * @description Update the two new edges' edges_faces to include
+ * the (0, 1, or 2) faces on either side of the edges.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {number[]} newEdges array of 2 new edges
  * @param {number[]} faces array of 0, 1, or 2 incident faces.
  */
-const updateEdgesFaces = ({ edges_faces }, new_edges, faces) => {
+const updateEdgesFaces = ({ edges_faces }, newEdges, faces) => {
 	if (!edges_faces) { return; }
-	new_edges.forEach(edge => { edges_faces[edge] = [...faces]; });
+	newEdges.forEach(edge => { edges_faces[edge] = [...faces]; });
 };
 
 /**
- * @description a new vertex was added, splitting an edge. rebuild the
- * two incident faces by replacing the old edge with new one.
- * @param {object} graph a FOLD object, modified in place
- * @param {number[]} new_vertex indices of two faces to be rebuilt
- * @param {number} incident_vertices new vertex index
+ * @description Rebuild two faces' faces_vertices to include a
+ * new vertex which was added in between two existing vertices
+ * in each of the faces. Find the location of the two vertices and
+ * splice in the new vertex.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {number[]} newVertex indices of two faces to be rebuilt
+ * @param {number} incidentVertices new vertex index
  * @param {number[]} faces the two vertices of the old edge
  */
-const updateFacesVertices = ({ faces_vertices }, new_vertex, incident_vertices, faces) => {
-	// exit if we don't even have faces_vertices
+const updateFacesVertices = ({ faces_vertices }, newVertex, incidentVertices, faces) => {
 	if (!faces_vertices) { return; }
+
+	// provide two vertices, do these vertices match (in any order) to the
+	// incideVertices which made up the original edge before the splitting?
+	const matchFound = (a, b) => (
+		(a === incidentVertices[0] && b === incidentVertices[1])
+		|| (a === incidentVertices[1] && b === incidentVertices[0]));
+
 	faces
 		.map(i => faces_vertices[i])
-		.forEach(face => face
-			.map((fv, i, arr) => {
-				const nextI = (i + 1) % arr.length;
-				return (fv === incident_vertices[0]
-								&& arr[nextI] === incident_vertices[1])
-								|| (fv === incident_vertices[1]
-								&& arr[nextI] === incident_vertices[0])
-					? nextI : undefined;
-			}).filter(el => el !== undefined)
+		.forEach(face_vertices => face_vertices
+			// iterate through the vertices of the face, search for a matching index
+			// where i and i+1 are both incident vertices, in which case return the
+			// i+1 index, as this will be the location we will splice into.
+			.map((vertex, i, arr) => (matchFound(vertex, arr[(i + 1) % arr.length])
+				? (i + 1) % arr.length
+				: undefined))
+			.filter(a => a !== undefined)
+			// it's possible for a non-convex face to walk twice across our edges
+			// in two different directions, if this happens, sort the splice indices
+			// from largest to smallest so that multiple splice calls will work.
 			.sort((a, b) => b - a)
-			.forEach(i => face.splice(i, 0, new_vertex)));
+			.forEach(i => face_vertices.splice(i, 0, newVertex)));
 };
 
 /**
- * @description 
+ * @description Update two faces' faces_edges so that one edge is replaced
+ * with two new edges, and because the direction of the edges matters,
+ * and faces_edges must be aligned with faces_vertices, we will use
+ * faces_vertices to reverse-reference edges and build faces_edges.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {number[]} faces the two adjacent faces
+ * @param {number[]} newEdges the two new edges
  */
-const updateFacesEdgesWithVertices = ({
-	edges_vertices, faces_vertices, faces_edges,
-}, faces) => {
+const updateFacesEdges = (
+	{ edges_vertices, faces_vertices, faces_edges },
+	faces,
+	newEdges,
+) => {
 	if (!faces_edges || !faces_vertices) { return; }
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+
+	// create a vertex-pair ("a b" string) to edge lookup table that only
+	// includes the edges involved (both faces_edges and the new edges).
+	const allEdges = faces
+		.flatMap(f => faces_edges[f])
+		.concat(newEdges)
+		.filter(a => a !== undefined);
+	const verticesToEdge = makeVerticesToEdgeLookup({ edges_vertices }, allEdges);
+
+	// iterate through faces vertices, pairwise adjacent vertices, create
+	// keys for the lookup table, convert the keys into edge indices.
 	faces
 		.map(f => faces_vertices[f]
 			.map((vertex, i, arr) => [vertex, arr[(i + 1) % arr.length]])
-			.map(pair => edge_map[pair.join(" ")]))
+			.map(pair => verticesToEdge[pair.join(" ")]))
 		.forEach((edges, i) => { faces_edges[faces[i]] = edges; });
 };
 
 /**
- * @description this does not modify the graph. it builds 2 objects with:
- * { edges_vertices, edges_assignment, edges_foldAngle }
- * @param {object} graph a FOLD object, modified in place
- * @param {number} edgeIndex the index of the edge that will be split by the new vertex
- * @param {number} newVertex the index of the new vertex
- * @returns {object[]} array of two edge objects, containing edge data as FOLD keys
- */
-const makeNewEdgesFields = (graph, edgeIndex, newVertex) => {
-	const edge_vertices = graph.edges_vertices[edgeIndex];
-	const new_edges = [
-		{ edges_vertices: [edge_vertices[0], newVertex] },
-		{ edges_vertices: [newVertex, edge_vertices[1]] },
-	];
-	new_edges.forEach(edgeDef => ["edges_assignment", "edges_foldAngle"]
-		.filter(key => graph[key] && graph[key][edgeIndex] !== undefined)
-		.forEach(key => { edgeDef[key] = graph[key][edgeIndex]; }));
-	return new_edges;
-};
-
-/**
- * @description Split an edge with a new vertex, replacing the old
- * edge with two new edges sharing the common vertex, rebuilding:
+ * @description Split an edge, place a new vertex between the existing
+ * vertices and build two new edges between the three vertices.
+ * This method creates a new vertex and new edges, but no new faces.
+ * rebuilding these:
  * - vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
  * - edges_vertices, edges_faces, edges_assignment, edges_foldAngle
  * - faces_vertices, faces_edges,
@@ -170,8 +200,8 @@ const makeNewEdgesFields = (graph, edgeIndex, newVertex) => {
  * - edgeOrders
  * @param {FOLD} graph FOLD object, modified in place
  * @param {number} oldEdge index of old edge to be split
- * @param {number[]} coords coordinates of the new vertex to be added. optional.
- * if omitted, a vertex will be generated at the edge's midpoint.
+ * @param {number[]} [coords=undefined] coordinates of the new vertex to be
+ * added, if omitted, a vertex will be generated at the edge's midpoint.
  * @param {number} [epsilon=1e-6] if an incident vertex is within this distance
  * the function will not split the edge, simply return this vertex.
  * @returns {object} a summary of the changes with keys "vertex", "edges"
@@ -180,34 +210,33 @@ const makeNewEdgesFields = (graph, edgeIndex, newVertex) => {
  * where "map" is a nextmap (I believe)
  * @linkcode
  */
-export const splitEdge = (graph, oldEdge, coords, epsilon = EPSILON) => {
-	// make sure oldEdge is a valid index
-	if (!graph.edges_vertices[oldEdge]) { return undefined; }
+export const splitEdge = (
+	graph,
+	oldEdge,
+	coords = undefined,
+) => {
+	// the old edge's two vertices, one vertex will be placed in between these,
+	// and two new edges will be built to connect these to the new vertex.
 	const incidentVertices = graph.edges_vertices[oldEdge];
 
-	// if the user did not supply any coordinate parameter, choose the midpoint
+	// if the user did not supply any coordinate parameter,
+	// as a convenience, select the the midpoint of the two points
 	if (!coords) {
 		coords = midpoint(...incidentVertices.map(v => graph.vertices_coords[v]));
 	}
 
-	// if the desired coordinate is too close to one of the existing endpoints,
-	// we don't need to do anything. return the index of the existing vertex.
-	const similar = incidentVertices
-		.map(v => graph.vertices_coords[v])
-		.map(vert => distance(vert, coords) < epsilon);
-	if (similar[0]) { return { vertex: incidentVertices[0], edges: undefined }; }
-	if (similar[1]) { return { vertex: incidentVertices[1], edges: undefined }; }
-
-	// the new vertex will be added to the end of the vertices_ arrays.
+	// the index of the new vertex, added to the end of the existing vertex list
 	const vertex = graph.vertices_coords.length;
 	graph.vertices_coords[vertex] = coords;
 
 	// the new edge indices, they will be added to the end of the edges_ arrays.
+	// "newEdges" and "incidentVertices" are aligned in their indices 0 and 1,
+	// so that this vertex is in this edge. This is important for the update methods
 	const newEdges = [0, 1].map(i => i + graph.edges_vertices.length);
 
-	// create new edge definitions for edges_vertices, assignment, and foldAngle.
+	// make 2 new edges_vertices, edges_assignment, and edges_foldAngle.
 	// add these fields to the graph.
-	makeNewEdgesFields(graph, oldEdge, vertex)
+	makeNewEdges(graph, oldEdge, vertex)
 		.forEach((edge, i) => Object.keys(edge)
 			.forEach((key) => { graph[key][newEdges[i]] = edge[key]; }));
 
@@ -218,19 +247,17 @@ export const splitEdge = (graph, oldEdge, coords, epsilon = EPSILON) => {
 	updateVerticesVertices(graph, vertex, incidentVertices);
 	updateVerticesEdges(graph, oldEdge, vertex, incidentVertices, newEdges);
 
-	// we are now done with all vertices_ and edges_ arrays except those which
-	// relate to faces: vertices_faces and edges_faces.
+	// we are now done with all data which does not relate to faces
 
 	// we don't need to make any new faces, we only need to modify the faces
 	// (if they exist) incident to the old edge.
-	const incident_faces = findAdjacentFacesToEdge(graph, oldEdge);
-	updateVerticesFaces(graph, vertex, incident_faces);
-	updateEdgesFaces(graph, newEdges, incident_faces);
-	updateFacesVertices(graph, vertex, incidentVertices, incident_faces);
-	updateFacesEdgesWithVertices(graph, incident_faces);
-	// update_faces_edges(graph, oldEdge, vertex, newEdges, incident_faces);
+	const incidentFaces = findAdjacentFacesToEdge(graph, oldEdge);
+	updateVerticesFaces(graph, vertex, incidentFaces);
+	updateEdgesFaces(graph, newEdges, incidentFaces);
+	updateFacesVertices(graph, vertex, incidentVertices, incidentFaces);
+	updateFacesEdges(graph, incidentFaces, newEdges);
 
-	// this method never removed the old edge, this way, when we call this
+	// until now we never removed the old edge, this way, when we call this
 	// method, no matter where the edge was inside the edges_ arrays, all
 	// the indices after it will shift up to fill in the hole and this
 	// method handles all re-indexing, including inside the _edges arrays.
@@ -238,7 +265,7 @@ export const splitEdge = (graph, oldEdge, coords, epsilon = EPSILON) => {
 
 	// at this point our graph is complete. prepare the changelog info to return
 
-	// shift our new edge indices since these relate to the graph before remove().
+	// shift our new edge indices since these relate to the graph before remove()
 	newEdges.forEach((_, i) => { newEdges[i] = edgeMap[newEdges[i]]; });
 
 	// we had to run "remove" with the new edges added, but the edgeMap should

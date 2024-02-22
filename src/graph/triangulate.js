@@ -93,7 +93,7 @@ const rebuildWithNewFaces = (graph) => {
 				if (vertexPair in edgeLookup) { return edgeLookup[vertexPair]; }
 				newEdgesVertices.push(edge_vertices);
 				edgeLookup[vertexPair] = e;
-				edgeLookup[edge_vertices.reverse().join(" ")] = e;
+				edgeLookup[edge_vertices.slice().reverse().join(" ")] = e;
 				return e++;
 			}));
 	const newEdgeCount = newEdgesVertices.length;
