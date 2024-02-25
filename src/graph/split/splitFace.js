@@ -74,12 +74,12 @@ const updateFacesVertices = ({ faces_vertices }, face, vertices) => {
  * a new edge having just been made to connect the pair of vertices.
  * These vertices are both members of the same face, whose faces_vertices
  * was just updated.
- *     (4)     ___---O.  (3)
- *         O---         \.
- *        /   .            O  (2)
- *       /       .        /
- *  (0) O____      .   /
- *           ----____O  (1)
+ *     (4)     ___---O.  (3)                (3)     ___---O.  (2)
+ *         O---         \.                      O---         \.
+ *        /   .            O  (2)              /   .  (6) O    O  (1)
+ *       /       .        /                   /       .   |   /
+ *  (0) O____      .   /                 (4) O____      . | /
+ *           ----____O  (1)                       ----____O  (5)(0)
  * @param {FOLD} graph a FOLD object
  * @param {number} face the index of the face containing these two vertices
  * @param {number[]} vertices the two vertices newly connected by an edge
@@ -100,143 +100,6 @@ const updateVerticesVertices = (
 		vertices_vertices[vertices[i]].splice(index, 0, otherVertex);
 	});
 };
-
-// const updateVerticesVertices = (
-// 	{ vertices_vertices, faces_vertices },
-// 	face,
-// 	vertices,
-// ) => {
-// 	if (!vertices_vertices) { return; }
-
-// 	//    (4)     ___---O.  (3)
-// 	//        O---         \.
-// 	//       /   .            O  (2)
-// 	//      /       .        /
-// 	//  (0) O____      .   /
-// 	//           ----____O  (1)
-// 	const face_vertices = faces_vertices[face];
-
-// 	// for each vertex, the index of this vertex inside face_vertices
-// 	const verticesFaceIndex = vertices
-// 		.map(vertex => face_vertices.indexOf(vertex));
-
-// 	// for each vertex, inside face_vertices, the previous and
-// 	// next vertex in the face winding.
-// 	const verticesPrevFaceVertex = verticesFaceIndex
-// 		.map(i => (i + face_vertices.length - 1) % face_vertices.length)
-// 		.map(i => face_vertices[i]);
-// 	const verticesNextFaceVertex = verticesFaceIndex
-// 		.map(i => (i + 1) % face_vertices.length)
-// 		.map(i => face_vertices[i]);
-
-// 	// for each vertex, for each previous and next vertex inside faces_vertices,
-// 	// get the index of that vertex in this vertex's vertices_vertices
-// 	const verticesVerticesPrevIndex = vertices
-// 		.map((v, i) => vertices_vertices[v].indexOf(verticesPrevFaceVertex[i]));
-// 	const verticesVerticesNextIndex = vertices
-// 		.map((v, i) => vertices_vertices[v].indexOf(verticesNextFaceVertex[i]));
-
-// 	// all windings are counter clockwise. the "next" vertex in a face winding,
-// 	// when rotating around in the vertices_vertices array, becomes the "previous"
-// 	// index to the splice point. (feels a bit backwards).
-// 	const verticesVerticesSpliceIndex = vertices
-// 		.map((v, i) => (verticesVerticesNextIndex[i] + 1) % vertices_vertices[v].length);
-
-// 	// We can do a sanity check. the splice point in vertices_vertices should be
-// 	// exactly between "next" and "previous" in that order (the splice index
-// 	// should be the "prev" index).
-// 	const isValid = vertices
-// 		.map((_, i) => (verticesVerticesSpliceIndex[i] !== -1
-// 			&& verticesVerticesSpliceIndex[i] === verticesVerticesPrevIndex[i]))
-// 		.reduce((a, b) => a && b, true);
-
-// 	if (!isValid) {
-// 		throw new Error(`splitFace() vertices_vertices ${vertices.join(", ")} face ${face}`);
-// 	}
-
-// 	// gather the splice index and the value to be spliced in an object, sort the
-// 	// objects in reverse order of the splice index so that when we splice,
-// 	// we aren't affecting the latter portion of the array in a detrimental way.
-// 	verticesVerticesSpliceIndex.forEach((index, i) => {
-// 		const otherVertex = vertices[(i + 1) % vertices.length];
-// 		vertices_vertices[vertices[i]].splice(index, 0, otherVertex);
-// 	});
-// };
-
-/**
- * @description Update vertices_vertices for two vertices, following
- * a new edge having just been made to connect the pair of vertices.
- * These vertices are both members of the same face, whose faces_vertices
- * was just updated.
- * @param {FOLD} graph a FOLD object
- * @param {number} face the index of the face containing these two vertices
- * @param {number[]} faces the index of the new faces
- * @param {number[]} vertices the two vertices newly connected by an edge
-*/
-// const updateVerticesVerticesNonSimple = (
-// 	{ vertices_vertices, faces_vertices },
-// 	face,
-// 	faces,
-// 	vertices,
-// ) => {
-// 	if (!vertices_vertices) { return; }
-// 	//
-// 	//    (4)     ___---O.  (3)                (3)     ___---O.  (2)
-// 	//        O---         \.                      O---         \.
-// 	//       /   .            O  (2)              /   .   (6) O    O  (1)
-// 	//      /       .        /                   /       .    |   /
-// 	//  (0) O____      .   /                 (4) O____      . | /
-// 	//           ----____O  (1)                       ----____O  (5)(0)
-// 	// old face. dots are the new edge.
-// 	//
-// 	// to prevent the situation on the right, where it's unclear which face
-// 	// the leaf edge is associated with, technically it doesn't matter, but
-// 	// consistency matters, whichever face in faces_vertices took the leaf edge,
-// 	// we need vertices_vertices to match in order, on which side of the new edge
-// 	// such a leaf edge will lie.
-// 	//
-// 	// the best solution, I think, is to use the newly created faces_vertices.
-// 	// we only need to consider one face.
-
-// 	// const face_vertices = faces_vertices[face];
-// 	const face_vertices = faces_vertices[faces[0]];
-
-// 	// for each vertex, the index of this vertex inside face_vertices
-// 	const verticesFaceIndex = vertices
-// 		.map(vertex => face_vertices.indexOf(vertex));
-// };
-// const updateVerticesVerticesLeaf = (
-// 	{ vertices_vertices, faces_vertices },
-// 	face,
-// 	vertexFace,
-// 	vertexLeaf,
-// ) => {
-// 	if (!vertices_vertices) { return; }
-// 	//
-// 	//    (4)     ___---O.  (3)                (3)     ___---O.  (2)
-// 	//        O---         \.                      O---         \.
-// 	//       /   .            O  (2)              /   .   (6) O    O  (1)
-// 	//      /       .        /                   /       .    |   /
-// 	//  (0) O____      .   /                 (4) O____      . | /
-// 	//           ----____O  (1)                       ----____O  (5)(0)
-// 	// old face. dots are the new edge.
-// 	//
-// 	// to prevent the situation on the right, where it's unclear which face
-// 	// the leaf edge is associated with, technically it doesn't matter, but
-// 	// consistency matters, whichever face in faces_vertices took the leaf edge,
-// 	// we need vertices_vertices to match in order, on which side of the new edge
-// 	// such a leaf edge will lie.
-// 	//
-// 	// the best solution, I think, is to use the newly created faces_vertices.
-// 	// we only need to consider one face.
-
-// 	// const face_vertices = faces_vertices[face];
-// 	const face_vertices = faces_vertices[faces[0]];
-
-// 	// for each vertex, the index of this vertex inside face_vertices
-// 	const verticesFaceIndex = vertices
-// 		.map(vertex => face_vertices.indexOf(vertex));
-// };
 
 /**
  * @description We are building a new edge between these two vertices.
@@ -511,107 +374,10 @@ const updateFacesFaces = ({ faces_vertices, faces_faces }, faces) => {
 // };
 
 /**
- * @description This is the subroutine of splitFace where an edge has been
- * added between two vertices of a face.
- * @param {FOLD} graph a FOLD object
- * @param {number} face the index of the face we are replacing
- * @param {number} edge the index of the new edge
- * @param {number[]} vertices the new edge's two vertices
- */
-// const splitFaceWithEdge = (graph, face, edge, vertices) => {
-// 	// create two new faces's faces_vertices and add them to the end of the graph.
-// 	// the current face will be deleted at the end of this method and all indices
-// 	// will be shifted up to take its place.
-// 	// this variable will hold the new faces' indices.
-// 	const faces = splitCircularArray(
-// 		graph.faces_vertices[face],
-// 		vertices.map(vertex => graph.faces_vertices[face].indexOf(vertex)),
-// 	).map((face_vertices) => {
-// 		graph.faces_vertices.push(face_vertices);
-// 		return graph.faces_vertices.length - 1;
-// 	});
-
-// 	// update all changes to vertices and edges (anything other than faces).
-// 	updateVerticesVertices(graph, face, vertices);
-// 	updateVerticesEdges(graph, vertices, edge);
-// 	updateFacesEdges(graph, face, faces, edge);
-// 	updateVerticesFaces(graph, face, faces);
-// 	updateEdgesFaces(graph, face, faces, edge);
-// 	updateFacesFaces(graph, faces);
-
-// 	// remove old data
-// 	const faceMap = remove(graph, "faces", [face]);
-
-// 	// the graph is now complete, however our return object needs updating.
-// 	// shift our new face indices since these relate to the graph before remove().
-// 	faces.forEach((_, i) => {
-// 		faces[i] = faceMap[faces[i]];
-// 	});
-
-// 	// we had to run "remove" with the new faces added, but the face map
-// 	// should represent the graph before any changes - to after changes.
-// 	// the correct place for the new faces is in a value position, not index.
-// 	// remove these two faces
-// 	faceMap.splice(-2);
-
-// 	// set the location of the old face in the map to be the new faces
-// 	faceMap[face] = faces;
-
-// 	return {
-// 		edge,
-// 		faces: {
-// 			map: faceMap,
-// 			new: faces,
-// 			remove: face,
-// 		},
-// 	};
-// };
-
-/**
- * @description
- * @param {FOLD} graph a FOLD object
- * @param {number} face the index of the face to be modified
- * @param {number} edge the index of the new edge
- * @param {number[]} vertices the new edge's two vertices
- */
-// const cutFaceWithLeafEdge = (graph, face, edge, vertices) => {
-// 	// search the existing face's faces_vertices for each of the vertices
-// 	const verticesAndIndices = vertices
-// 		.map(vertex => ({ vertex, index: faces_vertices[face].indexOf(vertex) }));
-
-// 	const vertexFace = verticesAndIndices
-// 		.filter(({ index }) => index !== -1)
-// 		.map((el) => el.index)
-// 		.shift();
-// 	const vertexLeaf = verticesAndIndices
-// 		.filter(({ index }) => index === -1)
-// 		.map((el) => el.vertex)
-// 		.shift()
-
-// 	graph.faces_vertices[face] = splitArrayWithLeaf(
-// 		graph.faces_vertices[face],
-// 		vertexFace,
-// 		vertexLeaf,
-// 	);
-
-// 	// const faces = [face];
-
-// 	// update all changes to vertices and edges (anything other than faces).
-// 	updateVerticesVerticesLeaf(graph, vertexFace, vertexLeaf);
-// 	updateVerticesEdges(graph, vertices, edge);
-// 	updateFacesEdges(graph, face, faces, edge);
-// 	updateVerticesFaces(graph, face, faces);
-// 	updateEdgesFaces(graph, face, faces, edge);
-// 	updateFacesFaces(graph, faces);
-
-// 	return { edge, faces: {} };
-// };
-
-/**
  * @description
  */
 const cleanupFacesArray = (graph, faces, face) => {
-	if (faces.length < 2) { return {}; }
+	if (!faces.length) { return {}; }
 
 	// remove old data
 	const faceMap = remove(graph, "faces", [face]);
