@@ -38,7 +38,7 @@ import {
 	splitEdge,
 } from "../split/splitEdge.js";
 import {
-	splitFaceWithEdge,
+	splitFaceWithVertices,
 } from "../split/splitFace.js";
 import {
 	intersectLineAndPoints,
@@ -215,7 +215,7 @@ export const splitGraphWithLine = (
 			const {
 				edge: newEdgeIndex,
 				faces: { map },
-			} = splitFaceWithEdge(graph, newFace, newEdgeVertices, assign, angle);
+			} = splitFaceWithVertices(graph, newFace, newEdgeVertices, assign, angle);
 			faceMap = mergeNextmaps(faceMap, map);
 			oldFaceNewEdge[face] = newEdgeIndex;
 		});
@@ -273,7 +273,7 @@ export const splitGraphWithLine = (
 };
 
 /**
- * @description 
+ * @description
  */
 export const foldLine = (
 	graph,
@@ -295,7 +295,7 @@ export const foldLine = (
 	));
 
 /**
- * @description 
+ * @description
  */
 export const foldRay = (
 	graph,
@@ -317,7 +317,7 @@ export const foldRay = (
 	));
 
 /**
- * @description 
+ * @description
  */
 export const foldSegment = (
 	graph,

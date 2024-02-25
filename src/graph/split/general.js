@@ -21,7 +21,7 @@ export const splitCircularArray = (array, indices) => {
 };
 
 /**
- * @description 
+ * @description
  * @example splitArrayWithLeaf(array, 3, 99)
  * results in [0, 1, 2, 3, 99, 3, 4, 5, 6]
  */
@@ -33,7 +33,7 @@ export const splitArrayWithLeaf = (array, spliceIndex, newElement) => {
 };
 
 /**
- * @description 
+ * @description
  */
 export const makeVerticesToEdgeLookup = ({ edges_vertices }, edges) => {
 	const verticesToEdge = {};
@@ -47,7 +47,12 @@ export const makeVerticesToEdgeLookup = ({ edges_vertices }, edges) => {
 };
 
 /**
- * @description 
+ * @description For every vertex involved in these face's faces_vertices,
+ * create a lookup for every vertex, a list of all of its adjacent faces,
+ * where only the faces from "faces" are considered.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} faces a list of face indices
+ * @returns {number[][]} for every vertex (index) a list of face indices (value)
  */
 export const makeVerticesToFacesLookup = ({ faces_vertices }, faces) => {
 	// a lookup table with vertex keys, and array values containing faces
@@ -61,7 +66,7 @@ export const makeVerticesToFacesLookup = ({ faces_vertices }, faces) => {
 };
 
 /**
- * @description 
+ * @description
  */
 export const makeEdgesToFacesLookup = ({ faces_edges }, faces) => {
 	const edgesToFaces = [];
@@ -71,6 +76,28 @@ export const makeEdgesToFacesLookup = ({ faces_edges }, faces) => {
 		.forEach(edge => edgesToFaces[edge].push(face)));
 	return edgesToFaces;
 };
+
+// const makeFacesFaces = ({ faces_vertices }, faces) => {
+// 	const faces_faces = faces_vertices.map(() => []);
+// 	const edgeMap = {};
+// 	faces_vertices
+// 		.forEach((face, f) => face
+// 			.forEach((v0, i, arr) => {
+// 				let v1 = arr[(i + 1) % face.length];
+// 				if (v1 < v0) { [v0, v1] = [v1, v0]; }
+// 				const key = `${v0} ${v1}`;
+// 				if (edgeMap[key] === undefined) { edgeMap[key] = {}; }
+// 				edgeMap[key][f] = true;
+// 			}));
+// 	Object.values(edgeMap)
+// 		.map(obj => Object.keys(obj))
+// 		.filter(arr => arr.length > 1)
+// 		.forEach(pair => {
+// 			faces_faces[pair[0]].push(parseInt(pair[1], 10));
+// 			faces_faces[pair[1]].push(parseInt(pair[0], 10));
+// 		});
+// 	return faces_faces;
+// };
 
 /**
  * @description Given an edge, get its adjacent faces. This is typically
