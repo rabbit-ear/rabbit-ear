@@ -33,6 +33,35 @@ export const splitArrayWithLeaf = (array, spliceIndex, newElement) => {
 };
 
 /**
+ * @description A new cycle (face) of vertices has been created,
+ * using this cycle, we want to update the adjacent vertices list for a
+ * particular vertex, specifically we want to find the index of
+ */
+export const getAdjacencySpliceIndex = (cycle, adjacent, vertex) => {
+	// the index of this vertex inside cycle
+	const indexInCycle = cycle.indexOf(vertex);
+	if (indexInCycle === -1) { return -1; }
+
+	// the previous and next vertex in the cycle from this vertex
+	const prevVertex = cycle[(indexInCycle + cycle.length - 1) % cycle.length];
+	const nextVertex = cycle[(indexInCycle + 1) % cycle.length];
+
+	// both the cycle and the adjacent vertices windings are counter-clockwise,
+	// this means that when walking around the cycle the "prev" and "next"
+	// vertices, when observed in the adjacency list, will be visited in reverse,
+	// "prev" will appear right after "next". (feels a bit backwards).
+	// so, in the adjacency, we want to splice inbetween "next", ___, "prev",
+	// and for Javascript splice() this means we use the "prev" index.
+	const prevIndex = adjacent.indexOf(prevVertex);
+	if (prevIndex === -1) { return -1; }
+
+	// quickly verify that "nextVertex" is the vertex previous to "prev"
+	// in the adjacency array, verifying that the adjacency was built correctly
+	const nextTest = adjacent[(prevIndex + adjacent.length - 1) % adjacent.length];
+	return (nextTest !== nextVertex ? -1 : prevIndex);
+};
+
+/**
  * @description
  */
 export const makeVerticesToEdgeLookup = ({ edges_vertices }, edges) => {

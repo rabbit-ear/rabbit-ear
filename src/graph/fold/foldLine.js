@@ -38,7 +38,7 @@ import {
 	splitEdge,
 } from "../split/splitEdge.js";
 import {
-	splitFaceWithVertices,
+	splitFace,
 } from "../split/splitFace.js";
 import {
 	intersectLineAndPoints,
@@ -215,7 +215,7 @@ export const splitGraphWithLine = (
 			const {
 				edge: newEdgeIndex,
 				faces: { map },
-			} = splitFaceWithVertices(graph, newFace, newEdgeVertices, assign, angle);
+			} = splitFace(graph, newFace, newEdgeVertices, assign, angle);
 			faceMap = mergeNextmaps(faceMap, map);
 			oldFaceNewEdge[face] = newEdgeIndex;
 		});

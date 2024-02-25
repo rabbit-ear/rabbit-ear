@@ -22,7 +22,7 @@ import {
 	splitEdge,
 } from "./splitEdge.js";
 import {
-	splitFaceWithVertices,
+	splitFace,
 } from "./splitFace.js";
 import {
 	filterCollinearFacesData,
@@ -150,7 +150,7 @@ export const splitGraphWithLineAndPoints = (
 			const {
 				edge: newEdgeIndex,
 				faces: { map },
-			} = splitFaceWithVertices(graph, newFace, newEdgeVertices);
+			} = splitFace(graph, newFace, newEdgeVertices);
 
 			// new edge (and possibly new vertices) were just created, update
 			// the source information that created these new components.
