@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { uniqueElements } from "../../general/array.js";
 
 /**
  * @description A circular array (data wraps around) requires 2 indices
@@ -22,6 +21,10 @@ export const splitCircularArray = (array, indices) => {
 
 /**
  * @description
+ * @param {any[]} array an array of any type
+ * @param {number} spliceIndex the index to splice into the array
+ * @param {any} newElement matching type as array, the new element to splice in
+ * @returns {any[]} a copy of the input array, with new elements.
  * @example splitArrayWithLeaf(array, 3, 99)
  * results in [0, 1, 2, 3, 99, 3, 4, 5, 6]
  */
@@ -159,8 +162,8 @@ export const findAdjacentFacesToEdge = (
 	// the number of matching vertices in this face is 2.
 	if (faces_vertices) {
 		return faces_vertices
-			.map((vertices, f) => (uniqueElements(vertices
-				.filter(v => verticesHash[v])).length === 2 ? f : undefined))
+			.map((vertices, f) => (Array.from(new Set(vertices
+				.filter(v => verticesHash[v]))).length === 2 ? f : undefined))
 			.filter(a => a !== undefined);
 	}
 	if (faces_edges) {

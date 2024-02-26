@@ -75,11 +75,15 @@ export const foldFoldedForm = (
 	const oppositeAssignment = invertAssignment(assignment);
 	const oppositeFoldAngle = foldAngle === 0 ? 0 : -foldAngle;
 
-	// backup the vertices_coords from the crease pattern
+	// we will run the method on the same graph, but swap out the vertices_coords.
+	// run the splitGraph method on the folded form but then swap out the coords
+	// for the crease pattern coords once finished. backup the cp coords here.
 	const vertices_coordsCP = clone(graph.vertices_coords);
 
-	// the split operation will happen to the folded graph
-	Object.assign(graph, { vertices_coords: vertices_coordsFolded });
+	// the split operation will happen to the folded graph.
+	// the vertices_coords will be modified in place, so, create a copy in case
+	// the user is passing in an argument they don't want modified.
+	Object.assign(graph, { vertices_coords: clone(vertices_coordsFolded) });
 
 	// split all edges and faces that are crossed by our line, and place
 	// new vertices at the split edges, and inside faces in the case of segment.
@@ -96,8 +100,8 @@ export const foldFoldedForm = (
 	// now that the split operation is complete and new faces have been built,
 	// capture the winding of the faces while still in folded form.
 	const faces_winding = makeFacesWinding(graph);
-	console.log("faces_winding", faces_winding);
 
+	// we need to hold onto these for the upcoming point-transfer methods.
 	// vertices_coords from the crease pattern and folded form now differ
 	// in length, the folded form contain additional vertices_coords at the end,
 	// however, during the parts that do overlap, the vertices match 1:1.
@@ -111,16 +115,17 @@ export const foldFoldedForm = (
 	// space using the intersection information that made them.
 	Object.assign(graph, { vertices_coords: vertices_coordsCP });
 
-	// vertices_coordsCP.forEach((coords, v) => {
-	// 	graph.vertices_coords[v] = coords;
-	// });
-
+	// build a copy of the folded form for the transfer method
 	const foldedForm = {
 		...graph,
 		vertices_coords: vertices_coordsFoldedNew,
 	};
 
-	// transfer the new vertices' vertices_coords from folded to cp space
+	// at this point, the crease pattern coords have been returned to the graph,
+	// but it's still missing the additional vertices that were created during
+	// the splitFace / splitEdge methods. the splitGraph method result contains
+	// information on how these points were made in folded form space,
+	// transfer these points into cp space, via the paramters that created them.
 	splitGraphResult.vertices.source
 		.map((intersect, vertex) => ({ ...intersect, vertex }))
 		.filter(({ face }) => face !== undefined)
@@ -134,6 +139,8 @@ export const foldFoldedForm = (
 			);
 		});
 
+	// these points were made along an edge, instead of using trilateration,
+	// we can use the edge vector intersection parameter for more precision.
 	splitGraphResult.vertices.source
 		.map((intersect, vertex) => ({ ...intersect, vertex }))
 		.filter(({ vertices }) => vertices !== undefined)
@@ -233,7 +240,7 @@ export const foldFoldedForm = (
 };
 
 /**
- * @description 
+ * @description
  */
 export const foldFoldedLine = (
 	graph,
@@ -255,7 +262,7 @@ export const foldFoldedLine = (
 	));
 
 /**
- * @description 
+ * @description
  */
 export const foldFoldedRay = (
 	graph,
@@ -277,7 +284,7 @@ export const foldFoldedRay = (
 	));
 
 /**
- * @description 
+ * @description
  */
 export const foldFoldedSegment = (
 	graph,

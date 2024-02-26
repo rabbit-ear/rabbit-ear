@@ -156,20 +156,20 @@ export const splitGraphWithLineAndPoints = (
 			// the source information that created these new components.
 			edgeSource[newEdgeIndex] = { faces: face };
 			isolatedPointVertices.forEach((vertex, i) => {
-				vertexSource[vertex] = { face, point: points[i] };
+				vertexSource[vertex] = { ...points[i], face };
 			});
 
 			// face indices were heavily modified, update the face map
-			faceMap = mergeNextmaps(faceMap, map);
+			faceMap = map === undefined ? faceMap : mergeNextmaps(faceMap, map);
 			oldFaceNewEdge[face] = newEdgeIndex;
 		});
 
 	// these were set to the old face indices and need updating
 	vertexSource.forEach(({ face }, i) => {
-		if (face !== undefined) { vertexSource[i].face = faceMap[face]; }
+		if (face !== undefined) { vertexSource[i].face = faceMap[face][0]; }
 	});
 	edgeSource.forEach(({ faces }, i) => {
-		if (faces !== undefined) { edgeSource[i].faces = faceMap[faces]; }
+		if (faces !== undefined) { edgeSource[i].faces = faceMap[faces][0]; }
 	});
 
 	// // using the overlapped vertices, make a list of edges collinear to the line

@@ -143,14 +143,14 @@ const pairwiseReferenceTest = (a_b, b_a, aName, bName) => {
 		.flatMap((arr, a) => arr
 			.filter(el => el !== null && el !== undefined)
 			.map(b => (!baHash[b] || !baHash[b][a]
-				? `${bName}_${aName}[${b}][${a}] missing in ${aName}_${bName}`
+				? `${bName}_${aName}[${b}] missing ${a} referenced in ${aName}_${bName}`
 				: undefined))
 			.filter(el => el !== undefined));
 	const baErrors = b_a
 		.flatMap((arr, b) => arr
 			.filter(el => el !== null && el !== undefined)
 			.map(a => (!abHash[a] || !abHash[a][b]
-				? `${aName}_${bName}[${a}][${b}] missing in ${bName}_${aName}`
+				? `${aName}_${bName}[${a}] missing ${b} referenced in ${bName}_${aName}`
 				: undefined))
 			.filter(el => el !== undefined));
 

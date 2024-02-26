@@ -41,8 +41,9 @@ export const transferPointInFaceBetweenGraphs = (from, to, face, point) => {
 			isCollinear(...verts.map(v => from.vertices_coords[v]))
 			|| isCollinear(...verts.map(v => to.vertices_coords[v]))));
 
+	// we want only vertices which are not collinear
 	const faceVertices = faceVerticesInitial
-		.filter((v, i) => faceVertsInitialCollinear[i]);
+		.filter((_, i) => !faceVertsInitialCollinear[i]);
 
 	if (faceVertices.length < 3) { return undefined; }
 
