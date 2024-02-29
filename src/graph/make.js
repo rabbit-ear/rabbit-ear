@@ -832,50 +832,38 @@ export const makeFacesEdgesFromVertices = ({ edges_vertices, faces_vertices }) =
  * @linkcode Origami ./src/graph/make.js 765
  */
 export const makeFacesFaces = ({ faces_vertices }) => {
-	const faces_faces = faces_vertices.map(() => []);
-	const edgeMap = {};
-	faces_vertices
-		.forEach((face, f) => face
-			.forEach((v0, i, arr) => {
-				let v1 = arr[(i + 1) % face.length];
-				if (v1 < v0) { [v0, v1] = [v1, v0]; }
-				const key = `${v0} ${v1}`;
-				if (edgeMap[key] === undefined) { edgeMap[key] = {}; }
-				edgeMap[key][f] = true;
-			}));
-	Object.values(edgeMap)
-		.map(obj => Object.keys(obj))
-		.filter(arr => arr.length > 1)
-		.forEach(pair => {
-			faces_faces[pair[0]].push(parseInt(pair[1], 10));
-			faces_faces[pair[1]].push(parseInt(pair[0], 10));
-		});
-	return faces_faces;
-};
+	// for every face's faces_vertices, pair a vertex with the next vertex,
+	// join the pairs of vertices into a space-separated string (where v0 < v1)
+	const facesVerticesEdgeVertexPairs = faces_vertices
+		.map(face => face
+			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+			.map(([v0, v1]) => (v1 < v0 ? [v1, v0] : [v0, v1]))
+			.map(pair => pair.join(" ")));
 
-// export const makeFacesFaces = ({ faces_vertices }) => {
-//   // if (!faces_vertices) { return undefined; }
-//   const faces_faces = faces_vertices.map(() => []);
-//   // create a map where each key is a string of the vertices of an edge,
-//   // like "3 4"
-//   // and each value is an array of faces adjacent to this edge.
-//   const edgeMap = {};
-//   faces_vertices.forEach((vertices_index, idx1) => {
-//     vertices_index.forEach((v1, i, vs) => {
-//       let v2 = vs[(i + 1) % vertices_index.length];
-//       if (v2 < v1) { [v1, v2] = [v2, v1]; }
-//       const key = `${v1} ${v2}`;
-//       if (key in edgeMap) {
-//         const idx2 = edgeMap[key];
-//         faces_faces[idx1].push(idx2);
-//         faces_faces[idx2].push(idx1);
-//       } else {
-//         edgeMap[key] = idx1;
-//       }
-//     });
-//   });
-//   return faces_faces;
-// };
+	// create a map that relates these space-separated vertex pair strings
+	// to an array of faces which contain this edge (vertex-pair).
+	const edgePairToFaces = {};
+	facesVerticesEdgeVertexPairs
+		.flat()
+		.forEach(key => { edgePairToFaces[key] = []; });
+	facesVerticesEdgeVertexPairs
+		.forEach((edgeKeys, f) => edgeKeys
+			.forEach(key => { edgePairToFaces[key].push(f); }));
+
+	// for each face's edge (vertex-pair), get the array of faces that
+	// are adjacent to this edge. This generates a list of faces that contains
+	// duplicates and contains this face itself. these will be filtered out.
+	const newFacesEdgesFaces = facesVerticesEdgeVertexPairs
+		.map((edgeKeys) => edgeKeys
+			.map(key => edgePairToFaces[key]));
+
+	// each face's entry contains an array of array of faces, flatten this list
+	// and remove any mention of this face itself, and remove any duplicates.
+	// using a Set appears to maintain the insertion order, which is what we want.
+	return newFacesEdgesFaces
+		.map((edgesFaces, face) => edgesFaces.flat().filter(f => f !== face))
+		.map(faces => Array.from(new Set(faces)));
+};
 
 /**
  * @description map vertices_coords onto each face's set of vertices,
@@ -930,4 +918,3 @@ export const makeFacesConvexCenter = ({ vertices_coords, faces_vertices }) => {
 		.reduce((a, b) => add(a, b), Array(dimensions).fill(0))
 		.map(el => el / vertices.length));
 };
-

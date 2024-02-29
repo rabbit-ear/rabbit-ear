@@ -82,7 +82,7 @@ const arraysLengthSum = (...arrays) => arrays
 /**
  * @description
  */
-export const splitGraphWithLine = (
+export const foldGraphWithLineMethod = (
 	graph,
 	{ vector, origin },
 	lineDomain = includeL,
@@ -283,7 +283,7 @@ export const foldLine = (
 	foldAngle = undefined,
 	epsilon = EPSILON,
 ) => (
-	splitGraphWithLine(
+	foldGraphWithLineMethod(
 		graph,
 		line,
 		includeL,
@@ -305,7 +305,7 @@ export const foldRay = (
 	foldAngle = undefined,
 	epsilon = EPSILON,
 ) => (
-	splitGraphWithLine(
+	foldGraphWithLineMethod(
 		graph,
 		ray,
 		includeR,
@@ -327,7 +327,7 @@ export const foldSegment = (
 	foldAngle = undefined,
 	epsilon = EPSILON,
 ) => (
-	splitGraphWithLine(
+	foldGraphWithLineMethod(
 		graph,
 		pointsToLine(...segment),
 		includeS,
