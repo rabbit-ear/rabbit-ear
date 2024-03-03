@@ -8,7 +8,7 @@
  * true meaning the face is upright, false meaning the face is flipped over.
  * @param {FOLD} graph a FOLD object
  * @returns {boolean[]} boolean for every face, true if face is counter-clockwise.
- * @attribution cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+ * @attribution https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
  * @linkcode Origami ./src/graph/facesWinding.js 33
  */
 export const makeFacesWinding = ({ vertices_coords, faces_vertices }) => faces_vertices

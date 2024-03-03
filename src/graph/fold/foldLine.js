@@ -33,7 +33,9 @@ import {
 import {
 	faceContainingPoint,
 } from "../faces/facePoint.js";
-import addVertices from "../add/addVertices.js";
+import {
+	addVertices,
+} from "../add/vertex.js";
 import {
 	splitEdge,
 } from "../split/splitEdge.js";

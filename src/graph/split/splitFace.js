@@ -17,7 +17,32 @@ import {
 	makeEdgesToFacesLookup,
 	makeFacesFacesFromVertices,
 } from "./general.js";
+import {
+	addVertex,
+} from "../add/vertex.js";
+import {
+	addEdge,
+} from "../add/edge.js";
 import remove from "../remove.js";
+
+/**
+ * @description ensure that the two vertices are not next to each other
+ * in the current face's faces_vertices vertices list.
+ */
+const edgeExistsInFace = ({ faces_vertices }, face, vertices) => (
+	faces_vertices[face]
+		.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+		.map(([v0, v1]) => (v0 === vertices[0] && v1 === vertices[1])
+			|| (v0 === vertices[1] && v1 === vertices[0]))
+		.reduce((a, b) => a || b, false));
+
+/**
+ *
+ */
+const faceVerticesAreUnique = ({ faces_vertices }, face) => (
+	Array.from(new Set(faces_vertices[face])).length
+		=== faces_vertices[face].length
+);
 
 /**
  * @description This is one of two subroutines which creates faces. This
@@ -424,9 +449,103 @@ const updateFacesFaces = (
 };
 
 /**
+ * @description Cut a face through one of the face's existing vertices to a
+ * new vertex which is intended to be newly created, but not yet associated
+ * with any face. This will create a new edge between the two vertices, which
+ * the faces_edges will traverse twice, and this face's faces_vertices will
+ * visit the faceVertex twice, going to and returning from the new leaf vertex.
+ */
+export const cutFaceToVertex = (
+	graph,
+	face,
+	vertexFace,
+	vertexLeaf,
+	assignment = "U",
+	foldAngle = 0,
+) => {
+	// validate inputs
+	const vertices = [vertexFace, vertexLeaf];
+
+	// construct edge
+	const edge = addEdge(graph, vertices, [face, face], assignment, foldAngle);
+
+	// rebuild face
+
+	// search the existing face's faces_vertices for each of the vertices
+	const verticesIndexOfFace = vertices
+		.map(vertex => graph.faces_vertices[face].indexOf(vertex));
+
+	// this is a unique situation. from this point on we are associating
+	// this leaf vertex with this face. make vertices_faces include this face.
+	if (graph.vertices_faces) {
+		graph.vertices_faces[vertexLeaf] = Array
+			.from(new Set([...graph.vertices_faces[vertexLeaf], face]));
+	}
+
+	// skip vertices_faces and edges_faces, these were previously set.
+	// also, skip faces_faces, adjacent face data does not change.
+	updateFacesVerticesLeaf(graph, face, vertices, verticesIndexOfFace);
+	updateFacesEdges(graph, face, [face], edge);
+	updateVerticesVertices(graph, face, vertices);
+	updateVerticesEdges(graph, vertices, edge);
+
+	return {
+		edge,
+		faces: {},
+	}
+};
+
+/**
+* @description Cut a face through one of the face's existing vertices to a
+* new point which is intended to become a new vertex and to be associated with
+* this face. This will create a new edge between the two vertices, which
+* the faces_edges will traverse twice, and this face's faces_vertices will
+* visit the faceVertex twice, going to and returning from the new leaf vertex.
+ */
+export const cutFaceToPoint = (
+	graph,
+	face,
+	vertex,
+	point,
+	assignment = "U",
+	foldAngle = 0,
+) => cutFaceToVertex(
+	graph,
+	face,
+	vertex,
+	addVertex(graph, point),
+	assignment,
+	foldAngle,
+);
+
+/**
  * @description
  */
-const splitFaceIntoTwo = (graph, face, edge, vertices) => {
+export const splitFaceWithEdge = (
+	graph,
+	face,
+	vertices,
+	assignment = "U",
+	foldAngle = 0,
+) => {
+	if (!graph.vertices_coords
+		|| !graph.edges_vertices
+		|| !graph.faces_vertices) { return {}; }
+	if (vertices.length !== 2) { return {}; }
+
+	// this method will work fine with non-convex polygons, but if a face
+	// contains a leaf edge, where the sequence of face_vertices visits the same
+	// vertex more than once, this method might fail. don't proceed.
+	if (!faceVerticesAreUnique(graph, face)) { return {}; }
+
+	// ensure that the two vertices are not next to each other in
+	// the current face's faces_vertices vertices list.
+	if (edgeExistsInFace(graph, face, vertices)) { return {}; }
+
+	// edges_faces will be [x, x] where x is the index of
+	// the old face, twice, and will be replaced later in this function.
+	const edge = addEdge(graph, vertices, [face, face], assignment, foldAngle);
+
 	// search the existing face's faces_vertices for each of the vertices
 	const verticesIndexOfFace = vertices
 		.map(vertex => graph.faces_vertices[face].indexOf(vertex));
@@ -500,50 +619,28 @@ const splitFaceIntoTwo = (graph, face, edge, vertices) => {
 /**
  *
  */
-const splitFaceLeafEdge = (graph, face, edge, vertices) => {
-	const faces = [face];
+const splitFaceIsolatedEdge = (graph, vertices, assignment, foldAngle) => {
+	// edges_faces will be [x, x] where x is the index of
+	// the old face, twice, and will be replaced later in this function.
+	const edge = addEdge(graph, vertices, [], assignment, foldAngle);
 
-	// search the existing face's faces_vertices for each of the vertices
-	const verticesIndexOfFace = vertices
-		.map(vertex => graph.faces_vertices[face].indexOf(vertex));
-
-	const vertexLeaf = vertices
-		.filter((_, i) => verticesIndexOfFace[i] === -1)
-		.shift();
-
-	// this is a unique situation. from this point on we are associating
-	// this leaf vertex with this face. make vertices_faces include this face.
-	if (graph.vertices_faces) {
-		graph.vertices_faces[vertexLeaf] = Array
-			.from(new Set([...graph.vertices_faces[vertexLeaf], face]));
-	}
-
-	// skip vertices_faces and edges_faces, these were previously set.
-	// also, skip faces_faces, adjacent face data does not change.
-	updateFacesVerticesLeaf(graph, face, vertices, verticesIndexOfFace);
-	updateFacesEdges(graph, face, faces, edge);
-	updateVerticesVertices(graph, face, vertices);
-	updateVerticesEdges(graph, vertices, edge);
-
-	return {
-		edge,
-		faces: {},
-	};
-};
-
-/**
- *
- */
-const splitFaceIsolatedEdge = (graph, _, edge, vertices) => {
 	// No vertices were a member of the face, it's okay that we made the edge,
 	// but the edge will get no face association, and no face data will change.
 	// however, we do need to make isolated-edge vertex associations.
 	// exit early
-	vertices.forEach((vertex, i) => {
-		const otherVertex = vertices[(i + 1) % vertices.length];
-		graph.vertices_vertices[vertex].push(otherVertex);
-		graph.vertices_edges[vertex] = [edge];
-	});
+	if (graph.vertices_vertices) {
+		vertices.forEach((vertex, i, arr) => {
+			const otherVertex = arr[(i + 1) % arr.length];
+			graph.vertices_vertices[vertex].push(otherVertex);
+		});
+	}
+	if (graph.vertices_edges) {
+		vertices.forEach((vertex) => { graph.vertices_edges[vertex] = [edge]; });
+	}
+	if (graph.vertices_faces) {
+		vertices.forEach((vertex) => { graph.vertices_faces[vertex] = []; });
+	}
+
 	return { edge, faces: {} };
 };
 
@@ -582,57 +679,27 @@ export const splitFace = (
 		|| !graph.faces_vertices) { return {}; }
 	if (vertices.length !== 2) { return {}; }
 
-	// this method will work fine with non-convex polygons, but if a face
-	// contains a leaf edge, where the sequence of vertices visits the same
-	// vertex more than once, this method will fail. don't proceed.
-	const isSimple = (Array.from(new Set(graph.faces_vertices[face])).length
-		=== graph.faces_vertices[face].length);
-	if (!isSimple) { return {}; }
+	// run the correct method depending on how many vertices are a part of the face
+	const verticesIndexOf = vertices.map(vertex => ({
+		vertex,
+		index: graph.faces_vertices[face].indexOf(vertex),
+	}));
 
-	// ensure that the two vertices are not next to each other in
-	// the current face's faces_vertices vertices list.
-	const edgeAlreadyExists = graph.faces_vertices[face]
-		.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-		.map(([v0, v1]) => (v0 === vertices[0] && v1 === vertices[1])
-			|| (v0 === vertices[1] && v1 === vertices[0]))
-		.reduce((a, b) => a || b, false);
-	if (edgeAlreadyExists) { return {}; }
-
-	// the index of our new edge
-	const edge = graph.edges_vertices.length;
-
-	// construct data for our new edge (vertices, assignent, foldAngle...)
-	// and the entry for edges_faces will be [x, x] where x is the index of
-	// the old face, twice, and will be replaced later in this function.
-	const edgeAttributes = {
-		edges_vertices: vertices,
-		edges_assignment: assignment,
-		edges_foldAngle: foldAngle,
-		edges_faces: [face, face],
-	};
-
-	// ignoring any keys that aren't a part of our graph, add the new edge
-	Object.keys(edgeAttributes)
-		.filter((key) => graph[key])
-		.forEach((key) => {
-			graph[key][edge] = edgeAttributes[key];
-		});
-
-	// the indices of our new faces, either 0 or 2 faces depending on the presence
-	// of vertices in the existing face. If no vertices are in the face,
-	// this will be "undefined", and the method will exit early.
-	// this will construct new faces_vertices and add them to the graph.
-	// const faces = updateFacesVertices(graph, face, vertices);
-
-	// search the existing face's faces_vertices for each of the vertices
-	const verticesIndexOfFace = vertices
-		.map(vertex => graph.faces_vertices[face].indexOf(vertex));
-
-	const matchCount = verticesIndexOfFace.filter(i => i !== -1).length;
+	const matchCount = verticesIndexOf.filter(({ index }) => index !== -1).length;
 
 	switch (matchCount) {
-	case 2: return splitFaceIntoTwo(graph, face, edge, vertices);
-	case 1: return splitFaceLeafEdge(graph, face, edge, vertices);
-	default: return splitFaceIsolatedEdge(graph, face, edge, vertices);
+	case 2:
+		return splitFaceWithEdge(graph, face, vertices, assignment, foldAngle);
+	case 1:
+		return cutFaceToVertex(
+			graph,
+			face,
+			verticesIndexOf.filter(({ index }) => index !== -1).shift().vertex,
+			verticesIndexOf.filter(({ index }) => index === -1).shift().vertex,
+			assignment,
+			foldAngle,
+		);
+	default:
+		return splitFaceIsolatedEdge(graph, vertices, assignment, foldAngle);
 	}
 };

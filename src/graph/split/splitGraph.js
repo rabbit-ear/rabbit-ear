@@ -27,7 +27,9 @@ import {
 import {
 	filterCollinearFacesData,
 } from "./general.js";
-import addVertices from "../add/addVertices.js";
+import {
+	addVertices,
+} from "../add/vertex.js";
 
 /**
  *
@@ -146,7 +148,11 @@ export const splitGraphWithLineAndPoints = (
 				.concat(isolatedPointVertices);
 
 			// split face, make one new edge, this changes the face indice to the
-			// point of needing a map. new edge simply added to end of edge arrays
+			// point of needing a map. new edge simply added to end of edge arrays.
+			// this will create either
+			// - splitting edge between two faces
+			// - leaf edge with a leaf vertex that cuts into one non-split face
+			// - isolated edge, inside the face but unassociated with any face
 			const {
 				edge: newEdgeIndex,
 				faces: { map },

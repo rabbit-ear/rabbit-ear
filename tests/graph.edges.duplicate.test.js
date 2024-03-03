@@ -10,6 +10,10 @@ test("duplicate edges", () => {
 		faces_edges: [[0, 1, 2, 3, 4, 5]],
 	};
 	ear.graph.populate(graph);
+
+	const duplicates = ear.graph.duplicateEdges(graph);
+	expect(JSON.stringify(duplicates)).toBe(JSON.stringify([,,, 2]));
+
 	ear.graph.removeDuplicateEdges(graph);
 
 	// removeDuplicateEdges now automatically fixes the vertices
@@ -44,6 +48,7 @@ test("duplicate edges", () => {
 	expect(result[4]).toBe(3);
 	expect(result[7]).toBe(5);
 	expect(result[12]).toBe(8);
+	expect(JSON.stringify(result)).toBe(JSON.stringify([,,,, 3,,, 5,,,,, 8]));
 });
 
 test("invalid edges", () => {
@@ -55,7 +60,9 @@ test("invalid edges", () => {
 		],
 	};
 	const result1 = ear.graph.duplicateEdges(graph1);
-	expect(result1.length).toBe(0);
+	expect(result1[0]).toBe(undefined);
+	expect(result1[1]).toBe(undefined);
+	expect(result1[2]).toBe(0);
 
 	const graph2 = {
 		edges_vertices: [

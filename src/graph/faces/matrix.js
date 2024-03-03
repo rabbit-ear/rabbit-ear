@@ -11,7 +11,6 @@ import {
 } from "../../math/vector.js";
 import {
 	identity2x3,
-	multiplyMatrix2Vector2,
 	makeMatrix2Reflect,
 	multiplyMatrices2,
 } from "../../math/matrix2.js";
@@ -21,43 +20,38 @@ import {
 	multiplyMatrices3,
 } from "../../math/matrix3.js";
 import {
-	makeVerticesFaces,
 	makeVerticesToEdgeBidirectional,
 	makeEdgesFoldAngle,
 	makeEdgesAssignmentSimple,
 	makeFacesFaces,
 } from "../make.js";
 import {
-	getFaceFaceSharedVertices,
-} from "./general.js";
+	rotateCircularArray,
+} from "../../general/array.js";
 import {
 	minimumSpanningTrees,
 } from "../trees.js";
 
 /**
- * @description Given a FOLD object and a set of 2x3 matrices, one per face,
- * "fold" the vertices by finding one matrix per vertex and multiplying them.
- * @param {object} FOLD graph with vertices_coords, faces_vertices, and
- * if vertices_faces does not exist it will be built.
- * @param {number[][]} an array of 2x3 matrices. one per face.
- * @returns {number[][]} a new set of vertices_coords, transformed.
- * @linkcode Origami ./src/graph/facesMatrix.js 37
+ * @description Given two lists of vertices intended to represent adjacent
+ * faces, find the shared vertices between the two. This method is strict
+ * about maintaining winding order with the first list, and will return
+ * the list of vertices as a list of pairs of vertices, where for each pair,
+ * these vertices appear next to each other in the face.
+ * This ensures that "vertices in common" list can be easily remapped to
+ * "edges in common", via these pairs of vertices.
+ * @param {number[]} verticesA a list of vertices comprising a face
+ * @param {number[]} verticesB a list of vertices comprising a face
+ * @returns {number[][]} a list of pairs of vertices, where each pair are
+ * adjacent vertices from the first "verticesA", maintaining winding order.
  */
-export const multiplyVerticesFacesMatrix2 = ({
-	vertices_coords, vertices_faces, faces_vertices,
-}, faces_matrix) => {
-	if (!vertices_faces) {
-		vertices_faces = makeVerticesFaces({ faces_vertices });
-	}
-	const vertices_matrix = vertices_faces
-		.map(faces => faces
-			.filter(a => a != null)
-			.shift())
-		.map(face => (face === undefined
-			? identity2x3
-			: faces_matrix[face]));
-	return vertices_coords
-		.map((coord, i) => multiplyMatrix2Vector2(vertices_matrix[i], coord));
+export const facesSharedEdgesVertices = (verticesA, verticesB) => {
+	const hash = {};
+	verticesB.forEach(v => { hash[v] = true; });
+	const inCommon = verticesA.map(v => (hash[v] ? v : undefined));
+	return rotateCircularArray(inCommon, inCommon.indexOf(undefined))
+		.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+		.filter(pair => pair[0] !== undefined && pair[1] !== undefined);
 };
 
 const unassigned_angle = { U: true, u: true };
@@ -99,10 +93,10 @@ export const makeFacesMatrix = ({
 			.slice(1) // remove the first level, it has no parent face
 			.forEach(level => level
 				.forEach((entry) => {
-					const edge_vertices = getFaceFaceSharedVertices(
+					const edge_vertices = facesSharedEdgesVertices(
 						faces_vertices[entry.index],
 						faces_vertices[entry.parent],
-					).slice(0, 2);
+					).shift();
 					const coords = edge_vertices.map(v => vertices_coords[v]);
 					const edgeKey = edge_vertices.join(" ");
 					const edge = edge_map[edgeKey];
@@ -163,10 +157,14 @@ export const makeFacesMatrix2 = ({
 			.slice(1) // remove the first level, it has no parent face
 			.forEach(level => level
 				.forEach((entry) => {
-					const edge_vertices = getFaceFaceSharedVertices(
+					const edge_vertices = facesSharedEdgesVertices(
 						faces_vertices[entry.index],
 						faces_vertices[entry.parent],
-					).slice(0, 2);
+					).shift();
+					// const edge_vertices = chooseTwoPairs(arrayIntersection(
+					// 	faces_vertices[entry.index],
+					// 	faces_vertices[entry.parent],
+					// )).find(pair => edge_map[pair.join(" ")] !== undefined)
 					const coords = edge_vertices.map(v => vertices_coords[v]);
 					const edgeKey = edge_vertices.join(" ");
 					const edge = edge_map[edgeKey];

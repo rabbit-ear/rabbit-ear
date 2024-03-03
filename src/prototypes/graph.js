@@ -36,10 +36,8 @@ import {
 import {
 	makeVerticesCoordsFolded,
 	makeVerticesCoordsFlatFolded,
+	makeVerticesCoordsFoldedFromMatrix2,
 } from "../graph/vertices/folded.js";
-import {
-	multiplyVerticesFacesMatrix2,
-} from "../graph/faces/matrix.js";
 import {
 	invertAssignments,
 } from "../fold/spec.js";
@@ -130,7 +128,7 @@ Graph.prototype.clear = function () {
  */
 Graph.prototype.folded = function () {
 	const vertices_coords = this.faces_matrix2
-		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
+		? makeVerticesCoordsFoldedFromMatrix2(this, this.faces_matrix2)
 		: makeVerticesCoordsFolded(this, ...arguments);
 	Object.assign(this, {
 		vertices_coords,
@@ -149,7 +147,7 @@ Graph.prototype.folded = function () {
  */
 Graph.prototype.flatFolded = function () {
 	const vertices_coords = this.faces_matrix2
-		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
+		? makeVerticesCoordsFoldedFromMatrix2(this, this.faces_matrix2)
 		: makeVerticesCoordsFlatFolded(this, ...arguments);
 	Object.assign(this, {
 		vertices_coords,

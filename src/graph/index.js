@@ -42,10 +42,8 @@ import * as verticesIsolated from "./vertices/isolated.js";
 import * as verticesSort from "./vertices/sort.js";
 import * as edgesCircular from "./edges/circular.js";
 import * as edgesDuplicate from "./edges/duplicate.js";
-import * as edgesGeneral from "./edges/general.js";
 import * as edgesLines from "./edges/lines.js";
 import * as facesCoplanar from "./faces/coplanar.js";
-import * as facesGeneral from "./faces/general.js";
 import * as facesMatrix from "./faces/matrix.js";
 import * as facesWinding from "./faces/winding.js";
 import * as intersectVertices from "./intersect/vertices.js";
@@ -58,13 +56,8 @@ import * as foldCreasePattern from "./fold/foldCreasePattern.js";
 import * as flatFold from "./fold/flatFold.js";
 import * as foldLine from "./fold/foldLine.js";
 import * as foldFoldedForm from "./fold/foldFoldedForm.js";
-// import addEdges from "./add/addEdges.js";
-import addVertex from "./add/addVertex.js";
-import addVertices from "./add/addVertices.js";
-import addNonPlanarEdge from "./add/addNonPlanarEdge.js";
-import addPlanarLine from "./add/addPlanarLine.js";
-import addPlanarSegment from "./add/addPlanarSegment.js";
-import addPlanarSegmentNew from "./add/addPlanarSegmentNew.js";
+import * as addVertices from "./add/vertex.js";
+import * as addEdges from "./add/edge.js";
 import clean from "./clean.js";
 import count from "./count.js";
 import countImplied from "./countImplied.js";
@@ -78,22 +71,6 @@ import replace from "./replace.js";
 // import * as foldBases from "../fold/bases.js";
 
 export default {
-	count,
-	countImplied,
-	clean,
-	populate,
-	remove,
-	replace,
-	// addVertices,
-	// addEdges,
-	normalize,
-	addVertex,
-	addVertices,
-	addNonPlanarEdge,
-	addPlanarLine,
-	addPlanarSegment,
-	addPlanarSegmentNew,
-	planarize,
 	...foldColors,
 	...foldFileFrames,
 	...foldKeyMethods,
@@ -135,10 +112,8 @@ export default {
 	...verticesSort,
 	...edgesCircular,
 	...edgesDuplicate,
-	...edgesGeneral,
 	...edgesLines,
 	...facesCoplanar,
-	...facesGeneral,
 	...facesMatrix,
 	...facesWinding,
 	...intersectVertices,
@@ -147,8 +122,18 @@ export default {
 	...intersectEdgesFaces,
 	...intersectFaces,
 	...intersectFacesFaces,
+	...addVertices,
+	...addEdges,
 	...foldCreasePattern,
 	...flatFold,
 	...foldLine,
 	...foldFoldedForm,
+	count,
+	countImplied,
+	clean,
+	populate,
+	remove,
+	replace,
+	normalize,
+	planarize,
 };

@@ -6,7 +6,8 @@ import { epsilonEqual } from "../math/compare.js";
 
 /**
  * @description Given a list of any type, return a copy of the array
- * with all duplicates removed.
+ * with all duplicates removed. This only works with arrays with primitives,
+ * arrays with objects or arrays will not work.
  * @param {number[]} array an array of integers
  * @returns {number[]} set of unique integers
  * @example [1,2,3,2,1] will result in [1,2,3]
@@ -68,6 +69,51 @@ export const epsilonUniqueSortedNumbers = (array, epsilon = EPSILON) => {
 	}
 	return numbers.filter((_, i) => keep[i]);
 };
+
+/**
+ * @description Return the intersection of two arrays. This assumes that
+ * the array values are primitives (this does not work if values are objects),
+ * and will stringify the values to compare, so 5 === "5" will match.
+ * If inside each arrays contains duplicates, the number of duplicates in
+ * the result will match the number shared between the two.
+ * @param {any[]} array1 an array of any primitive type
+ * @param {any[]} array2 an array of any primitive type
+ * @param {any[]} an array of values found inside both arrays.
+ */
+export const arrayIntersection = (array1, array2) => {
+	// create a lookup table for all values in array2, where the number
+	// of appearances is stored as the hash value.
+	const hash = {};
+	array2.forEach(value => { hash[value] = 0; });
+	array2.forEach(value => { hash[value] += 1; });
+
+	// for every item in array1, modify the lookup table each time we encounter
+	// a value from both arrays by decrementing the appearance counter by one.
+	// filter out any array1 values if the counter is 0,
+	// or it does not appear in array2.
+	return array1.filter(value => {
+		if (hash[value] > 0) {
+			hash[value] -= 1;
+			return true;
+		}
+		return false;
+	});
+};
+
+/**
+ * @description Given an array considered circular, where the end connects
+ * back to the start, rotate the array so that the value currently in the
+ * newStartIndex spot becomes the first (0) index.
+ * @param {any[]} array an array containing any type
+ * @param {number} newStartIndex the current index to become the new 0 index.
+ * @returns {any[]} a copy of the original array, rotated.
+ */
+export const rotateCircularArray = (array, newStartIndex) => (
+	newStartIndex <= 0
+		? array
+		: array
+			.slice(newStartIndex)
+			.concat(array.slice(0, newStartIndex)));
 
 /**
  * @description convert a list of items {any} into a list of pairs

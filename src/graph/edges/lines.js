@@ -43,7 +43,10 @@ import {
 } from "../maps.js";
 
 /**
- *
+ * @description convert an edge to a vector-origin line.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} edge the index of the edge
+ * @returns {VecLine} a line form of the edge
  */
 export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
 	pointsToLine(
@@ -53,13 +56,9 @@ export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
 
 /**
  * @description Most origami models have many edges which lie along
- * the same line. This method finds all lines which cover all edges,
+ * the same infinite line. This method finds all lines which cover all edges,
  * returning a list of lines, and a mapping of each edge to each line.
- *
- * @todo a bugfix has now rendered this method 2D only. we need to substitute
- * the 2d-cross product which determines sidedness for a 3d version
- * that uses a splitting-plane.
- * @param {FOLD} graph a FOLD graph, can be 2D or 3D.
+ * @param {FOLD} graph a FOLD object, can be 2D or 3D.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{ lines: VecLine[], edges_line: number[] }}
  */
@@ -73,6 +72,9 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 	const edgesVector = edgesCoords
 		.map(verts => subtract(verts[1], verts[0]))
 		.map(normalize);
+
+	// a vector-origin line representation of every edge. we will apply
+	// clustering operations to this list to group edges with similar lines.
 	const edgesLine = edgesVector
 		.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
 

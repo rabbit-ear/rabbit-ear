@@ -11,23 +11,17 @@ import remove from "../remove.js";
  * @returns {number[]} array of indices of circular edges. empty if none.
  * @linkcode Origami ./src/graph/edgesViolations.js 21
  */
-export const circularEdges = ({ edges_vertices }) => {
-	if (!edges_vertices) { return []; }
-	const circular = [];
-	for (let i = 0; i < edges_vertices.length; i += 1) {
-		if (edges_vertices[i][0] === edges_vertices[i][1]) {
-			circular.push(i);
-		}
-	}
-	return circular;
-};
+export const circularEdges = ({ edges_vertices = [] }) => edges_vertices
+	.map((vertices, i) => (vertices[0] === vertices[1] ? i : undefined))
+	.filter(a => a !== undefined);
 
 /**
  * @description Given a set of graph geometry (vertices/edges/faces) indices,
  * get all the arrays which reference these geometries, (eg: end in _edges),
  * and remove (splice) that entry from the array if it contains a remove value.
  * @param {FOLD} graph a FOLD object
- * @param {string} suffix a component intended as a suffix, like "vertices" for "edges_vertices"
+ * @param {string} suffix a component intended as a suffix,
+ * like "vertices" for "edges_vertices"
  * @example
  * removing indices [4, 7] from "edges", then a faces_edges entry
  * which was [15, 13, 4, 9, 2] will become [15, 13, 9, 2].

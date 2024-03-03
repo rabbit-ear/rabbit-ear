@@ -16,6 +16,10 @@ import {
 	resize,
 } from "../../math/vector.js";
 import {
+	identity2x3,
+	multiplyMatrix2Vector2,
+} from "../../math/matrix2.js";
+import {
 	identity3x4,
 	multiplyMatrix3Vector3,
 } from "../../math/matrix3.js";
@@ -29,10 +33,8 @@ import {
 } from "../trees.js";
 import {
 	makeFacesMatrix,
+	facesSharedEdgesVertices,
 } from "../faces/matrix.js";
-import {
-	getFaceFaceSharedVertices,
-} from "../faces/general.js";
 
 /**
  * @description Fold a graph along its edges and return the position
@@ -60,9 +62,7 @@ export const makeVerticesCoords3DFolded = ({
 
 	// assign one matrix to every vertex from faces, identity matrix if none exist
 	const vertices_matrix = vertices_faces
-		.map(faces => faces
-			.filter(a => a != null) // must filter "undefined" and "null"
-			.shift()) // get any face from the list
+		.map(faces => faces.find(f => f != null))
 		.map(face => (face === undefined
 			? identity3x4
 			: faces_matrix[face]));
@@ -112,11 +112,11 @@ export const makeVerticesCoordsFlatFolded = ({
 		tree.forEach(level => level
 			.forEach(entry => {
 				// coordinates and vectors of the reflecting edge
-				const edge_key = getFaceFaceSharedVertices(
+				const edgeKey = facesSharedEdgesVertices(
 					faces_vertices[entry.index],
 					faces_vertices[entry.parent],
-				).slice(0, 2).join(" ");
-				const edge = edgesMap[edge_key];
+				).shift().join(" ");
+				const edge = edgesMap[edgeKey];
 				// build a basis axis using the folding edge, normalized.
 				const coords = edges_vertices[edge].map(v => vertices_coordsFolded[v]);
 				if (coords[0] === undefined || coords[1] === undefined) { return; }
@@ -175,3 +175,34 @@ export const makeVerticesCoordsFolded = (graph, rootFace) => (
 // 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
 // 	edges_assignment, faces_vertices, faces_faces, faces_matrix,
 // }) => {};
+
+/**
+ * @description Given a FOLD object and a set of 2x3 matrices, one per face,
+ * "fold" the vertices by finding one matrix per vertex and multiplying them.
+ * @param {object} FOLD graph with vertices_coords, faces_vertices, and
+ * if vertices_faces does not exist it will be built.
+ * @param {number[][]} an array of 2x3 matrices. one per face.
+ * @returns {number[][]} a new set of vertices_coords, transformed.
+ * @linkcode Origami ./src/graph/facesMatrix.js 37
+ */
+export const makeVerticesCoordsFoldedFromMatrix2 = ({
+	vertices_coords, vertices_faces, faces_vertices,
+}, faces_matrix) => {
+	if (!vertices_faces) {
+		vertices_faces = makeVerticesFaces({ faces_vertices });
+	}
+
+	// get the first face in each vertex's adjacent faces list. the null filtering
+	// is important, this check removes undefined and null, null often arises when
+	// importing a FOLD object from a FOLD file with JSON decoding.
+	const vertices_face = vertices_faces
+		.map(faces => faces.find(f => f != null));
+
+	const vertices_matrix = vertices_face
+		.map(face => (face === undefined
+			? identity2x3
+			: faces_matrix[face]));
+
+	return vertices_coords
+		.map((coord, i) => multiplyMatrix2Vector2(vertices_matrix[i], coord));
+};

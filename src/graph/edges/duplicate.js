@@ -27,25 +27,28 @@ import replace from "../replace.js";
  */
 export const duplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
+
+	const hash = {};
 	const duplicates = [];
 
-	// iterate through the edges, for each edge, store both permutations of
-	// vertices "a b" "b a" as space-separated strings in this hash table.
-	const hash = {};
-	for (let i = 0; i < edges_vertices.length; i += 1) {
-		// we need to store both, but only need to test one
-		const a = `${edges_vertices[i][0]} ${edges_vertices[i][1]}`;
-		const b = `${edges_vertices[i][1]} ${edges_vertices[i][0]}`;
-		if (hash[a] !== undefined) {
-			duplicates[i] = hash[a];
-		} else {
-			// only update the hash. if an edge exists as two vertices, it will only
-			// be set once, this prevents chains of duplicate relationships where
-			// A points to B points to C points to D...
-			hash[a] = i;
-			hash[b] = i;
-		}
-	}
+	// convert edges to space-separated vertex pair strings ("a b" where a < b)
+	// store them into the hash table with a value of the current edge index,
+	// unless a match already exists, then add an entry into duplicates where
+	// the index is the edge index, and the value is the matching edge vertex.
+	edges_vertices
+		.map(verts => (verts[0] < verts[1] ? verts : verts.slice().reverse()))
+		.map(pair => pair.join(" "))
+		.forEach((key, e) => {
+			if (hash[key] !== undefined) {
+				duplicates[e] = hash[key];
+			} else {
+				// only update the hash once, at the first appearance of these vertices,
+				// this prevents chains of duplicate relationships where
+				// A points to B points to C points to D...
+				hash[key] = e;
+			}
+		});
+
 	return duplicates;
 };
 
@@ -68,6 +71,7 @@ export const removeDuplicateEdges = (graph, replace_indices) => {
 	}
 	const removeObject = Object.keys(replace_indices).map(n => parseInt(n, 10));
 	const map = replace(graph, "edges", replace_indices);
+
 	// if edges were removed, we need to rebuild vertices_edges and then
 	// vertices_vertices since that was built from vertices_edges, and then
 	// vertices_faces since that was built from vertices_vertices.
