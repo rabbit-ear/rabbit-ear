@@ -188,9 +188,11 @@ const planarize = ({
 	const sweepEdgesVertices = lines_edges
 		.map(edges => invertFlatMap(edges)
 			.map(e => [e * 2, e * 2 + 1]));
-	const lineSweeps = lines_edges.map((_, i) => sweepValues(sweepScalars[i], {
-		edges_vertices: sweepEdgesVertices[i],
-	}, epsilon));
+	const lineSweeps = lines_edges.map((_, i) => sweepValues(
+		{ edges_vertices: sweepEdgesVertices[i] },
+		sweepScalars[i],
+		epsilon,
+	));
 	const lineSweeps_vertices = lineSweeps.map(sweep => sweep.map(el => el.t));
 	const lineSweeps_edges = lineSweeps.map(sweep => {
 		const current = {};

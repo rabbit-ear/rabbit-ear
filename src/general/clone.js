@@ -4,7 +4,7 @@
 
 /**
  * @description This is a polyfill for "structuredClone"
- * equivalent to running JSON.parse(JSON.stringify()).
+ * similar to running JSON.parse(JSON.stringify()).
  * This method will deep copy an object, with a few caveats:
  *  - it doesn't detect recursive cycles
  *  - weird behavior around Proxys

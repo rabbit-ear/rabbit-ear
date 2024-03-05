@@ -33,7 +33,7 @@ import {
 	clusterParallelVectors,
 } from "../../general/cluster.js";
 import {
-	radialSortPointIndices3,
+	radialSortVectors3,
 } from "../../general/sort.js";
 import {
 	makeEdgesCoords,
@@ -129,7 +129,7 @@ export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSI
 			// these points are all the same distance away from the origin,
 			// radially sort them around the origin, using the line's vector
 			// as the plane's normal.
-			const sortedIndices = radialSortPointIndices3(clusterPoints, clusterVector);
+			const sortedIndices = radialSortVectors3(clusterPoints, clusterVector);
 
 			// values in "sortedIndices" now relate to indices of "cluster"
 			// this comparison function will be used if two or more points satisfy

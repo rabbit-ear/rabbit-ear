@@ -67,6 +67,7 @@ export const sortPointsAlongVector = (points, vector) => (
 export const radialSortUnitVectors2 = (vectors) => {
 	// we filter each vector into two categories based on the sign of the Y value
 	// and later will sort the vectors within each category based on the X value.
+	// we are storing the indices here, not the vectors themselves.
 	const sidesVectors = [[], []];
 	vectors.map(vec => (vec[1] >= 0 ? 0 : 1))
 		.forEach((s, v) => sidesVectors[s].push(v));
@@ -95,7 +96,7 @@ export const radialSortUnitVectors2 = (vectors) => {
  * @returns {number[]} a list of indices that reference the input list.
  * @linkcode
  */
-export const radialSortPointIndices3 = (
+export const radialSortVectors3 = (
 	points,
 	vector = [1, 0, 0],
 	origin = [0, 0, 0],

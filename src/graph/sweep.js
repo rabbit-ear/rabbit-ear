@@ -12,13 +12,15 @@ import { makeVerticesEdgesUnsorted } from "./make.js";
  * each face only has two vertices, the min and max vertex along the
  * spanning axis. This is useful for projecting faces down to an axis.
  */
-const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => faces_vertices
-	.map(vertices => [
-		vertices
-			.reduce((a, b) => (vertices_coords[a][axis] < vertices_coords[b][axis] ? a : b)),
-		vertices
-			.reduce((a, b) => (vertices_coords[a][axis] > vertices_coords[b][axis] ? a : b)),
-	]);
+const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => (
+	faces_vertices.map(vertices => [
+		vertices.reduce((a, b) => (vertices_coords[a][axis] < vertices_coords[b][axis]
+			? a
+			: b)),
+		vertices.reduce((a, b) => (vertices_coords[a][axis] > vertices_coords[b][axis]
+			? a
+			: b)),
+	]));
 
 /**
  * @description Perform a line sweep through the vertices of a graph,
@@ -32,13 +34,15 @@ const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => faces_ve
  * - t: the position along the axis
  * - vertices: the vertices (one or more) at this event along the axis
  */
-export const sweepVertices = ({ vertices_coords }, axis = 0, epsilon = EPSILON) => (
-	clusterScalars(vertices_coords.map(p => p[axis]), epsilon)
-		.map(vertices => ({
-			vertices,
-			t: vertices.reduce((p, c) => p + vertices_coords[c][axis], 0) / vertices.length,
-		}))
-);
+export const sweepVertices = (
+	{ vertices_coords },
+	axis = 0,
+	epsilon = EPSILON,
+) => clusterScalars(vertices_coords.map(p => p[axis]), epsilon)
+	.map(vertices => ({
+		vertices,
+		t: vertices.reduce((p, c) => p + vertices_coords[c][axis], 0) / vertices.length,
+	}));
 
 /**
  * @description This is the sweep method used by sweepEdges and sweepFaces.
@@ -49,8 +53,12 @@ export const sweepVertices = ({ vertices_coords }, axis = 0, epsilon = EPSILON) 
  * face, so this has no relation to the graph's original edges_vertices.
  * @param {number} [epsilon=1e-6] an optional epsilon
  */
-// const sweepValues = (values, { edges_vertices, faces_vertices }, epsilon = EPSILON) => {
-export const sweepValues = (values, { edges_vertices, vertices_edges }, epsilon = EPSILON) => {
+// const sweepValues = ({ edges_vertices, faces_vertices }, values, epsilon = EPSILON) => {
+export const sweepValues = (
+	{ edges_vertices, vertices_edges },
+	values,
+	epsilon = EPSILON,
+) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
@@ -102,10 +110,14 @@ export const sweepValues = (values, { edges_vertices, vertices_edges }, epsilon 
  * - start: the edges which begin at this event in the sweep
  * - end: the edges which end at this event in the sweep
  */
-export const sweepEdges = ({
-	vertices_coords, edges_vertices, vertices_edges,
-}, axis = 0, epsilon = EPSILON) => (
-	sweepValues(vertices_coords.map(p => p[axis]), { edges_vertices, vertices_edges }, epsilon)
+export const sweepEdges = (
+	{ vertices_coords, edges_vertices, vertices_edges },
+	axis = 0,
+	epsilon = EPSILON,
+) => sweepValues(
+	{ edges_vertices, vertices_edges },
+	vertices_coords.map(p => p[axis]),
+	epsilon,
 );
 
 /**
@@ -124,13 +136,15 @@ export const sweepEdges = ({
  * - start: the faces which begin at this event in the sweep
  * - end: the faces which end at this event in the sweep
  */
-export const sweepFaces = ({
-	vertices_coords, faces_vertices,
-}, axis = 0, epsilon = EPSILON) => sweepValues(
-	vertices_coords.map(p => p[axis]),
+export const sweepFaces = (
+	{ vertices_coords, faces_vertices },
+	axis = 0,
+	epsilon = EPSILON,
+) => sweepValues(
 	// get the min/max vertex for each face along the sweep axis.
 	// this will serve as the "edge" that spans the breadth of the face
 	{ edges_vertices: edgeifyFaces({ vertices_coords, faces_vertices }, axis) },
+	vertices_coords.map(p => p[axis]),
 	epsilon,
 );
 

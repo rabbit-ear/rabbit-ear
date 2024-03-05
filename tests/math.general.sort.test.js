@@ -41,27 +41,27 @@ test("convexHullRadialSortPoints", () => {
 	equalTest(result5, [[0], [2, 1]]);
 });
 
-test("radialSortPointIndices3", () => {
+test("radialSortVectors3", () => {
 	const points = Array.from(Array(24))
 		.map(() => [Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1]);
 	points.push([0, 0, 0]);
-	const result = ear.general.radialSortPointIndices3(points, [1, 0, 0]);
+	const result = ear.general.radialSortVectors3(points, [1, 0, 0]);
 	expect(result.length).toBe(25);
 });
 
-test("radialSortPointIndices3", () => {
+test("radialSortVectors3", () => {
 	const points = [
 		[1, 1, 1],
 		[-1, -1, -1],
 		[-1, -1, 1],
 		[1, 1, -1],
 	];
-	const resultX = ear.general.radialSortPointIndices3(points, [1, 0, 0]);
-	const resultY = ear.general.radialSortPointIndices3(points, [0, 1, 0]);
-	const resultZ = ear.general.radialSortPointIndices3(points, [0, 0, 1]);
-	const resultXn = ear.general.radialSortPointIndices3(points, [-1, 0, 0]);
-	const resultYn = ear.general.radialSortPointIndices3(points, [0, -1, 0]);
-	const resultZn = ear.general.radialSortPointIndices3(points, [0, 0, -1]);
+	const resultX = ear.general.radialSortVectors3(points, [1, 0, 0]);
+	const resultY = ear.general.radialSortVectors3(points, [0, 1, 0]);
+	const resultZ = ear.general.radialSortVectors3(points, [0, 0, 1]);
+	const resultXn = ear.general.radialSortVectors3(points, [-1, 0, 0]);
+	const resultYn = ear.general.radialSortVectors3(points, [0, -1, 0]);
+	const resultZn = ear.general.radialSortVectors3(points, [0, 0, -1]);
 	expect(JSON.stringify(resultX)).toBe(JSON.stringify([3, 0, 2, 1]));
 	expect(JSON.stringify(resultY)).toBe(JSON.stringify([0, 3, 1, 2]));
 	expect(JSON.stringify(resultZ)).toBe(JSON.stringify([0, 3, 1, 2]));
