@@ -9,9 +9,6 @@ import {
 	includeS,
 } from "../math/compare.js";
 import {
-	pointsToLine,
-} from "../math/convert.js";
-import {
 	pleat as Pleat,
 } from "../math/line.js";
 import {
@@ -22,15 +19,11 @@ import {
 	scale2,
 } from "../math/vector.js";
 import {
+	edgeToLine,
+} from "./edges/lines.js";
+import {
 	makeEdgesVector,
 } from "./make.js";
-
-/**
- *
- */
-const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
-	pointsToLine(...edges_vertices[edge].map(v => vertices_coords[v]))
-);
 
 /**
  * @description Create a series of pleat lines as segments, using two

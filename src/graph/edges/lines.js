@@ -53,6 +53,9 @@ export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
 		vertices_coords[edges_vertices[edge][0]],
 		vertices_coords[edges_vertices[edge][1]],
 	));
+// export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
+// 	pointsToLine(...edges_vertices[edge].map(v => vertices_coords[v]))
+// );
 
 /**
  * @description Most origami models have many edges which lie along

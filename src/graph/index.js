@@ -19,7 +19,6 @@ import * as nearestMethods from "./nearest.js";
 import * as normals from "./normals.js";
 import * as orders from "./orders.js";
 import * as pleat from "./pleat.js";
-import * as span from "./span.js";
 import * as splitEdge from "./split/splitEdge.js";
 import * as splitFace from "./split/splitFace.js";
 import * as splitFaceWithLine from "./split/splitFaceWithLine.js";
@@ -66,8 +65,10 @@ import planarize from "./planarize.js";
 import populate from "./populate.js";
 import remove from "./remove.js";
 import replace from "./replace.js";
-// import addVertices_splitEdges from "./add/addVertices_splitEdges.js";
-// not included because the Graph object places them in the same location
+
+// these are included via. a backdoor system, in src/index.js, all of these
+// methods are bound to the the prototype, constructor graph(), which already
+// contains references to the methods in these files:
 // import * as foldBases from "../fold/bases.js";
 
 export default {
@@ -89,7 +90,6 @@ export default {
 	...normals,
 	...orders,
 	...pleat,
-	...span,
 	...splitEdge,
 	...splitFace,
 	...splitFaceWithLine,

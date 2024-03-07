@@ -35,7 +35,7 @@ import {
 } from "./vertices/isolated.js";
 import {
 	isVertexCollinear,
-	// removeCollinearVertex,
+	// removeCollinearVertex, // this method could move here someday
 } from "./vertices/collinear.js";
 import {
 	removeDuplicateVertices,
@@ -51,11 +51,8 @@ import {
 	circularEdges,
 	removeCircularEdges,
 } from "./edges/circular.js";
-import Messages from "../environment/messages.js";
 import {
 	makeVerticesEdgesUnsorted,
-	makeVerticesVertices2D,
-	makePlanarFaces,
 } from "./make.js";
 
 /**

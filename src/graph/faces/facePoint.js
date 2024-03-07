@@ -27,6 +27,7 @@ import {
 export const facesContainingPoint = (
 	{ vertices_coords, faces_vertices = [] },
 	point,
+	// vector = undefined, // would be nice to include this nudging behavior
 	domainFunction = include,
 ) => (!vertices_coords
 	? []
