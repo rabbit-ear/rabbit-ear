@@ -57,7 +57,7 @@ test("face walk tree, crane", () => {
 	const faces_faces = ear.graph.makeFacesFaces(crane);
 
 	const startingFace = 0;
-	const tree = ear.graph.minimumSpanningTree(faces_faces, startingFace);
+	const tree = ear.graph.minimumSpanningTrees(faces_faces, [startingFace])[0];
 
 	expect(tree[0].length).toBe(1);
 	expect(tree[1].length).toBe(3);
@@ -87,24 +87,25 @@ test("face walk tree, crane", () => {
 });
 
 test("face walk tree, no param", () => {
-	expect(ear.graph.minimumSpanningTree()).toBe(undefined);
+	expect(ear.graph.minimumSpanningTrees()).toStrictEqual([]);
 });
 
 test("face walk tree, empty graph", () => {
-	expect(ear.graph.minimumSpanningTree([])).toBe(undefined);
+	expect(ear.graph.minimumSpanningTrees([])).toStrictEqual([]);
 });
 
 test("face walk tree, empty graph", () => {
-	const result = ear.graph.minimumSpanningTree([[]]);
+	const result = ear.graph.minimumSpanningTrees([[]]);
 	expect(result.length).toBe(1);
-	expect(result[0][0].index).toBe(0);
+	expect(result[0].length).toBe(1);
+	expect(result[0][0][0].index).toBe(0);
 });
 
 test("face walk tree, no edges_vertices", () => {
 	const faces_faces = ear.graph.makeFacesFaces({
 		faces_vertices: [[0, 1, 3], [2, 3, 1]],
 	});
-	const result = ear.graph.minimumSpanningTree(faces_faces);
+	const result = ear.graph.minimumSpanningTrees(faces_faces)[0];
 	expect(result.length).toBe(2);
 	expect(result[1].length).toBe(1);
 	expect(result[1][0].index).toBe(1);
@@ -112,10 +113,10 @@ test("face walk tree, no edges_vertices", () => {
 });
 
 test("face walk tree, empty edges_vertices. same as test above", () => {
-	const result = ear.graph.minimumSpanningTree(ear.graph.makeFacesFaces({
+	const result = ear.graph.minimumSpanningTrees(ear.graph.makeFacesFaces({
 		edges_vertices: [],
 		faces_vertices: [[0, 1, 3], [2, 3, 1]],
-	}));
+	}))[0];
 	expect(result.length).toBe(2);
 	expect(result[1].length).toBe(1);
 	expect(result[1][0].index).toBe(1);
@@ -127,10 +128,10 @@ test("face walk tree, empty edges_vertices. same as test above", () => {
 });
 
 test("face walk tree, empty edges_vertices. same as test above", () => {
-	const result = ear.graph.minimumSpanningTree(ear.graph.makeFacesFaces({
+	const result = ear.graph.minimumSpanningTrees(ear.graph.makeFacesFaces({
 		edges_vertices: [],
 		faces_vertices: [[0, 1, 3], [2, 3, 1]],
-	}));
+	}))[0];
 	expect(result.length).toBe(2);
 	expect(result[1].length).toBe(1);
 	expect(result[1][0].index).toBe(1);
@@ -143,24 +144,24 @@ test("face walk tree, empty edges_vertices. same as test above", () => {
 
 test("face walk tree, finding an edge match. bad edge formations", () => {
 	// good edge
-	const result0 = ear.graph.minimumSpanningTree(ear.graph.makeFacesFaces({
+	const result0 = ear.graph.minimumSpanningTrees(ear.graph.makeFacesFaces({
 		edges_vertices: [[1, 3]],
 		faces_vertices: [[0, 1, 3], [2, 3, 1]],
-	}));
+	}))[0];
 	// expect(result0[1][0].edge_vertices[0]).toBe(3);
 	// expect(result0[1][0].edge_vertices[1]).toBe(1);
 
 	// bad edge formation
-	const result1 = ear.graph.minimumSpanningTree(ear.graph.makeFacesFaces({
+	const result1 = ear.graph.minimumSpanningTrees(ear.graph.makeFacesFaces({
 		edges_vertices: [[3, 1, 0]],
 		faces_vertices: [[0, 1, 3], [2, 3, 1]],
-	}));
+	}))[0];
 	// expect(result1[1][0].edge_vertices[0]).toBe(3);
 	// expect(result1[1][0].edge_vertices[1]).toBe(1);
-	const result2 = ear.graph.minimumSpanningTree(ear.graph.makeFacesFaces({
+	const result2 = ear.graph.minimumSpanningTrees(ear.graph.makeFacesFaces({
 		edges_vertices: [[3, 0, 1]],
 		faces_vertices: [[0, 1, 3], [2, 3, 1]],
-	}));
+	}))[0];
 	// expect(result2[1][0].edge_vertices[0]).toBe(3);
 	// expect(result2[1][0].edge_vertices[1]).toBe(1);
 });
@@ -169,7 +170,7 @@ test("face walk tree, two graphs, joined at a single vertex", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/kissing-squares.fold", "utf-8");
 	const graph = JSON.parse(foldfile);
 	const faces_faces = ear.graph.makeFacesFaces(graph);
-	const trees1 = ear.graph.minimumSpanningTrees(faces_faces, 0);
+	const trees1 = ear.graph.minimumSpanningTrees(faces_faces, [0]);
 	fs.writeFileSync(
 		"./tests/tmp/disjoint-spanning-trees.fold",
 		JSON.stringify(trees1),
@@ -183,7 +184,7 @@ test("face walk tree, two graphs, joined at a single vertex", () => {
 	expect(trees1[1][1][0].index).toBe(3);
 	expect(trees1[1][1][0].parent).toBe(2);
 
-	const trees2 = ear.graph.minimumSpanningTrees(faces_faces, 3);
+	const trees2 = ear.graph.minimumSpanningTrees(faces_faces, [3]);
 	// all 4 face indices are covered, even if the faces are (edge-) disjoint.
 	expect(trees2[0][0][0].index).toBe(3);
 	expect(trees2[0][1][0].index).toBe(2);

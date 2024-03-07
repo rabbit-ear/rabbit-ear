@@ -62,7 +62,10 @@ export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{ lines: VecLine[], edges_line: number[] }}
  */
-export const getEdgesLine = ({ vertices_coords, edges_vertices }, epsilon = EPSILON) => {
+export const getEdgesLine = (
+	{ vertices_coords, edges_vertices },
+	epsilon = EPSILON,
+) => {
 	if (!vertices_coords
 		|| !edges_vertices
 		|| !edges_vertices.length) {

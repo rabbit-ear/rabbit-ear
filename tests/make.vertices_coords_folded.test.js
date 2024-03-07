@@ -29,7 +29,7 @@ test("folded vertices_coords", () => {
 });
 
 test("folded vertices_coords. starting face 1", () => {
-	const result = ear.graph.makeVerticesCoordsFolded(fourPanel, 1);
+	const result = ear.graph.makeVerticesCoordsFolded(fourPanel, [1]);
 	[
 		[1, 0, 1],
 		[1, 0, 0],
@@ -45,7 +45,7 @@ test("folded vertices_coords. starting face 1", () => {
 });
 
 test("folded vertices_coords. starting face 3", () => {
-	const result = ear.graph.makeVerticesCoordsFolded(fourPanel, 3);
+	const result = ear.graph.makeVerticesCoordsFolded(fourPanel, [3]);
 	[
 		[4, 0, 0],
 		[4, 0, 1],

@@ -68,7 +68,7 @@ export const foldFoldedForm = (
 
 	if (vertices_coordsFolded === undefined) {
 		const rootFace = faceContainingPoint(graph, origin, vector);
-		vertices_coordsFolded = makeVerticesCoordsFolded(graph, rootFace);
+		vertices_coordsFolded = makeVerticesCoordsFolded(graph, [rootFace]);
 	}
 
 	// Only M and V will exchange. all others, this will be the same assignment

@@ -174,7 +174,7 @@ export const flatFold = (
 	if (!graph.faces_matrix2) {
 		graph.faces_matrix2 = makeFacesMatrix2(
 			graph,
-			faceContainingPoint(graph, origin, vector),
+			[faceContainingPoint(graph, origin, vector)],
 		);
 	}
 	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);
@@ -302,7 +302,7 @@ export const flatFold = (
 	// build our new faces_matrices using face 0 as the starting point,
 	// setting face 0 as the identity matrix, then multiply every
 	// face's matrix by face 0's actual starting matrix
-	graph.faces_matrix2 = makeFacesMatrix2(graph, face0_newIndex)
+	graph.faces_matrix2 = makeFacesMatrix2(graph, [face0_newIndex])
 		.map(matrix => multiplyMatrices2(face0_preMatrix, matrix));
 	// these are no longer needed. some of them haven't even been fully rebuilt.
 	delete graph.faces_center;

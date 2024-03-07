@@ -43,19 +43,19 @@ import {
  * as a way of (assuming the user is giving a flat folded origami), help
  * solve things about an origami that is currently being figured out.
  * @param {FOLD} graph a FOLD object
- * @param {number} [root_face=0] the index of the face that will remain in place
+ * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  * @linkcode Origami ./src/graph/verticesCoordsFolded.js 36
  */
 export const makeVerticesCoords3DFolded = ({
 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
 	edges_assignment, faces_vertices, faces_faces, faces_matrix,
-}, root_face) => {
+}, rootFaces) => {
 	if (!vertices_coords || !vertices_coords.length) { return []; }
 	if (!faces_vertices || !faces_vertices.length) { return vertices_coords; }
 	faces_matrix = makeFacesMatrix({
 		vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
-	}, root_face);
+	}, rootFaces);
 	if (!vertices_faces) {
 		vertices_faces = makeVerticesFaces({ faces_vertices });
 	}
@@ -78,13 +78,17 @@ export const makeVerticesCoords3DFolded = ({
  * Finally, if no edge foldAngle or assignments exist, this method will
  * assume all edges are flat-folded (except boundary) and will fold everything.
  * @param {FOLD} graph a FOLD object
- * @param {number} [root_face=0] the index of the face that will remain in place
+ * @param {number} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  * @linkcode Origami ./src/graph/verticesCoordsFolded.js 69
  */
-export const makeVerticesCoordsFlatFolded = ({
-	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
-}, root_face) => {
+export const makeVerticesCoordsFlatFolded = (
+	{
+		vertices_coords, edges_vertices, edges_foldAngle,
+		edges_assignment, faces_vertices, faces_faces,
+	},
+	rootFaces = [],
+) => {
 	if (!vertices_coords || !vertices_coords.length) { return []; }
 	if (!faces_vertices || !faces_vertices.length) { return vertices_coords; }
 	if (!faces_faces) {
@@ -98,9 +102,9 @@ export const makeVerticesCoordsFlatFolded = ({
 	const edgesMap = makeVerticesToEdgeBidirectional({ edges_vertices });
 
 	// if the graph is disjoint, make sure we fold all disjoint sets,
-	// each set chooses a starting face (first set is decided by root_face),
+	// each set chooses a starting face (first set is decided by rootFaces),
 	// ensure this exists, then set all of its vertices to "no change".
-	minimumSpanningTrees(faces_faces, root_face).forEach(tree => {
+	minimumSpanningTrees(faces_faces, rootFaces).forEach(tree => {
 		const rootRow = tree.shift();
 		if (!rootRow || !rootRow.length) { return; }
 		// root tree item is the first item in the first row (only item in the row)
@@ -159,14 +163,14 @@ export const makeVerticesCoordsFlatFolded = ({
  * Finally, if no edge foldAngle or assignments exist, this method will
  * assume all edges are flat-folded (except boundary) and will fold everything.
  * @param {FOLD} graph a FOLD object
- * @param {number} [root_face=0] the index of the face that will remain in place
+ * @param {number[]} [rootFaces=[]] the indices of the faces that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  * @linkcode Origami ./src/graph/verticesCoordsFolded.js 69
  */
-export const makeVerticesCoordsFolded = (graph, rootFace) => (
+export const makeVerticesCoordsFolded = (graph, rootFaces) => (
 	edgesFoldAngleAreAllFlat(graph)
-		? makeVerticesCoordsFlatFolded(graph, rootFace)
-		: makeVerticesCoords3DFolded(graph, rootFace));
+		? makeVerticesCoordsFlatFolded(graph, rootFaces)
+		: makeVerticesCoords3DFolded(graph, rootFaces));
 
 /**
  *

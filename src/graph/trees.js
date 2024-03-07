@@ -19,15 +19,15 @@
  * @param {number[][]} array_array an array of array of indices,
  * indices which are meant to reference this array itself, for example:
  * vertices_vertices or faces_faces or anything following that pattern.
- * @param {number} [rootIndex=0] the face index to be the root node.
- * In the case of a disjoint graph and multiple trees, rootIndex
- * will only apply to the first tree.
+ * @param {number[]} [rootIndices=[]] the indices of faces to become
+ * root nodes. In the case of a disjoint graph and multiple trees,
+ * the indices at the beginning of the list will be prioritized.
  * @returns {TreeNode[][][]} an array of trees, where each tree is
  * an array of array of TreeNode. Each tree is organized into depths,
  * where each array contains an array of tree nodes at that depth.
  * @linkcode Origami ./src/graph/faceSpanningTree.js 59
  */
-export const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
+export const minimumSpanningTrees = (array_array = [], rootIndices = []) => {
 	if (array_array.length === 0) { return []; }
 	const trees = [];
 
@@ -37,9 +37,10 @@ export const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
 	array_array.forEach((_, i) => { unvisited[i] = true; });
 
 	do {
-		// pick a starting index. first, choose the user's rootIndex parameter,
-		// then for every subsequent disjoint set, get the first unvisited index.
-		const startIndex = rootIndex !== undefined && unvisited[rootIndex]
+		// pick a starting index. grab the first available (unvisited) item from
+		// the user's root list. if there is none, get the first unvisited index.
+		const rootIndex = rootIndices.filter(i => unvisited[i]).shift();
+		const startIndex = rootIndex !== undefined
 			? rootIndex
 			: parseInt(Object.keys(unvisited).shift(), 10);
 
@@ -82,20 +83,3 @@ export const minimumSpanningTrees = (array_array = [], rootIndex = 0) => {
 	} while (Object.keys(unvisited).length);
 	return trees;
 };
-
-/**
- * @description Create a single breadth first minimum spanning tree from a
- * self-referencing data set, such as vertices_vertices, faces_faces.
- * @param {number[][]} array_array an array of array of indices,
- * indices which are meant to reference this array itself.
- * @param {number} [rootIndex=0] the face index to be the root node.
- * In the case of a disjoint graph and multiple trees, rootIndex
- * will only apply to the first tree.
- * @returns {TreeNode[][]} a tree of nodes, arranged as an array of arrays,
- * where the top level contains an array of nodes, each inner array representing
- * one depth in the tree.
- * @linkcode Origami ./src/graph/faceSpanningTree.js 59
- */
-export const minimumSpanningTree = (array_array, rootIndex) => (
-	minimumSpanningTrees(array_array, rootIndex).shift()
-);

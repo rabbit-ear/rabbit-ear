@@ -64,14 +64,17 @@ const unassigned_angle = { U: true, u: true };
  * recursively applies the affine transform that represents a fold
  * across the edge between the faces. "flat" creases are ignored.
  * @param {FOLD} graph a FOLD object
- * @param {number} [root_face=0] the index of the face that will remain in place
+ * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 3x4 matrix (an array of 12 numbers).
  * @linkcode Origami ./src/graph/facesMatrix.js 65
  */
-// { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
-export const makeFacesMatrix = ({
-	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
-}, root_face = 0) => {
+export const makeFacesMatrix = (
+	{
+		vertices_coords, edges_vertices, edges_foldAngle,
+		edges_assignment, faces_vertices, faces_faces,
+	},
+	rootFaces,
+) => {
 	if (!edges_assignment && edges_foldAngle) {
 		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
 	}
@@ -88,7 +91,7 @@ export const makeFacesMatrix = ({
 	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity3x4);
-	minimumSpanningTrees(faces_faces, root_face)
+	minimumSpanningTrees(faces_faces, rootFaces)
 		.forEach(tree => tree
 			.slice(1) // remove the first level, it has no parent face
 			.forEach(level => level
@@ -124,13 +127,17 @@ export const makeFacesMatrix = ({
  * This will generate a 2D matrix for every face by virtually folding the graph
  * at every edge according to the assignment or foldAngle.
  * @param {FOLD} graph a FOLD object
- * @param {number} [root_face=0] the index of the face that will remain in place
+ * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 2x3 matrix (an array of 6 numbers).
  * @linkcode Origami ./src/graph/facesMatrix.js 141
  */
-export const makeFacesMatrix2 = ({
-	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
-}, root_face = 0) => {
+export const makeFacesMatrix2 = (
+	{
+		vertices_coords, edges_vertices, edges_foldAngle,
+		edges_assignment, faces_vertices, faces_faces,
+	},
+	rootFaces,
+) => {
 	if (!edges_foldAngle) {
 		if (edges_assignment) {
 			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
@@ -152,7 +159,7 @@ export const makeFacesMatrix2 = ({
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity2x3);
-	minimumSpanningTrees(faces_faces, root_face)
+	minimumSpanningTrees(faces_faces, rootFaces)
 		.forEach(tree => tree
 			.slice(1) // remove the first level, it has no parent face
 			.forEach(level => level

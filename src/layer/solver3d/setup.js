@@ -25,8 +25,8 @@ import {
 	connectedComponentsPairs,
 } from "../../graph/connectedComponents.js";
 import {
-	coplanarOverlappingFacesGroups,
-} from "../../graph/faces/coplanar.js";
+	getCoplanarAdjacentOverlappingFaces,
+} from "../../graph/faces/planes.js";
 import {
 	getFacesFacesOverlap,
 } from "../../graph/intersect/facesFaces.js";
@@ -55,19 +55,19 @@ import solveEdgeAdjacent from "../solver2d/edgeAdjacent.js";
 /**
  * @description Get a list of
  */
-const getEdgesSets = ({ edges_vertices, faces_edges }, faces_set) => {
+const getEdgesClusters = ({ edges_vertices, faces_edges }, faces_cluster) => {
 	// find edges which are in two sets
-	const edges_sets_lookup = edges_vertices.map(() => ({}));
-	faces_set
-		.forEach((set, face) => faces_edges[face]
-			.forEach(edge => { edges_sets_lookup[edge][set] = true; }));
+	const edges_clusters_lookup = edges_vertices.map(() => ({}));
+	faces_cluster
+		.forEach((cluster, face) => faces_edges[face]
+			.forEach(edge => { edges_clusters_lookup[edge][cluster] = true; }));
 	// for every edge, which co-planar group does it appear in.
 	// ensure entries in edges_sets are sorted.
-	const edges_sets = edges_sets_lookup
+	const edges_clusters = edges_clusters_lookup
 		.map(o => Object.keys(o)
 			.map(n => parseInt(n, 10))
 			.sort((a, b) => a - b));
-	return edges_sets;
+	return edges_clusters;
 };
 
 /**
@@ -76,10 +76,10 @@ const getEdgesSets = ({ edges_vertices, faces_edges }, faces_set) => {
 const setup3d = ({
 	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_edges,
 	faces_winding, faces_center,
-}, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon) => {
+}, clusters_faces, clusters_transform, faces_cluster, faces_polygon, facePairs, facePairsInts, epsilon) => {
 	// prep
 	const facePairsIndex_set = facePairsInts
-		.map(pair => faces_set[pair[0]]);
+		.map(pair => faces_cluster[pair[0]]);
 	const sets_facePairsIndex = invertFlatToArrayMap(facePairsIndex_set);
 	// const sets_facePairsWithHoles = sets_facePairsIndex
 	// 	.map(indices => indices.map(i => facePairs[i]));
@@ -90,7 +90,7 @@ const setup3d = ({
 	// for each edge, which set(s) is it a member of, this method
 	// only finds those which are in two sets, as the ones in one
 	// set only is not interesting to us
-	const edges_sets = getEdgesSets({ edges_vertices, faces_edges }, faces_set);
+	const edges_sets = getEdgesClusters({ edges_vertices, faces_edges }, faces_cluster);
 	// if an edge only appears in one group, delete the entry from the array
 	// this will create an array with holes, maintaining edge's indices.
 	edges_sets
@@ -107,21 +107,21 @@ const setup3d = ({
 		solvable3,
 	} = getOverlappingParallelEdgePairs({
 		vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
-	}, edges_sets, faces_set, sets_transformXY, epsilon);
+	}, edges_sets, faces_cluster, clusters_transform, epsilon);
 	// console.timeEnd("setup.js setup3d() getOverlappingParallelEdgePairs()");
 	// tacos tortillas
 	const tortillas3D = makeBentTortillas(
 		{ edges_faces },
 		tortillaTortillaEdges,
-		faces_set,
+		faces_cluster,
 		faces_winding,
 	);
 	const ordersEdgeFace = solveEdgeFaceOverlapOrders(
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
 		sets_facePairs,
-		sets_transformXY,
-		sets_faces,
-		faces_set,
+		clusters_transform,
+		clusters_faces,
+		faces_cluster,
 		faces_polygon,
 		faces_winding,
 		edges_sets,
@@ -177,18 +177,21 @@ export const setup = ({
 	}
 	// separate the list of faces into coplanar overlapping sets
 	// 444ms
-	// console.time("setup.js coplanarOverlappingFacesGroups()");
+	// console.time("setup.js getCoplanarAdjacentOverlappingFaces()");
 	const {
-		sets_faces,
-		// sets_plane,
-		sets_transformXY,
-		faces_set,
+		clusters_faces,
+		clusters_plane,
+		planes_transform,
+		faces_cluster,
 		faces_winding,
 		// facesFacesOverlap,
-	} = coplanarOverlappingFacesGroups({
+	} = getCoplanarAdjacentOverlappingFaces({
 		vertices_coords, faces_vertices, faces_faces,
 	}, epsilon);
-	// console.timeEnd("setup.js coplanarOverlappingFacesGroups()");
+
+	const clusters_transform = clusters_plane.map(p => planes_transform[p]);
+
+	// console.timeEnd("setup.js getCoplanarAdjacentOverlappingFaces()");
 	// console.time("setup.js graphGroupCopies()");
 	// all vertices_coords will become 2D
 	const sets_graphs = graphGroupCopies({
@@ -200,7 +203,7 @@ export const setup = ({
 		faces_vertices,
 		faces_edges,
 		faces_faces,
-	}, sets_faces, sets_transformXY);
+	}, clusters_faces, clusters_transform);
 	// faces_polygon is a flat array of polygons in 2D, where every face
 	// is re-oriented into 2D via each set's transformation.
 	// additionally, flip windings if necessary, all are counter-clockwise.
@@ -258,7 +261,7 @@ export const setup = ({
 		faces_edges,
 		faces_winding,
 		faces_center,
-	}, sets_faces, sets_transformXY, faces_set, faces_polygon, facePairs, facePairsInts, epsilon);
+	}, clusters_faces, clusters_transform, faces_cluster, faces_polygon, facePairs, facePairsInts, epsilon);
 	// 3d "tortilla-tortilla" are additional constraints that simply get
 	// added to the 2D tortilla-tortilla constraints.
 	// console.time("setup.js ...makeConstraints, solveEdgeAdjacent");
@@ -288,9 +291,9 @@ export const setup = ({
 	// console.log("transitivity", transitivity);
 	// console.log("constraints", constraints);
 	// console.log("facePairs", facePairs);
-	// console.log("sets_transformXY", sets_transformXY);
-	// console.log("faces_set", faces_set);
-	// console.log("sets_faces", sets_faces);
+	// console.log("clusters_transform", clusters_transform);
+	// console.log("faces_cluster", faces_cluster);
+	// console.log("clusters_faces", clusters_faces);
 	// console.log("faces_winding", faces_winding);
 	// console.log("facesFacesOverlap", facesFacesOverlap);
 	// console.log("sets_graphs", sets_graphs);

@@ -8,7 +8,7 @@ test("makeFacesMatrix 3d sphere", () => {
 	const res1 = ear.graph.makeFacesMatrix(graph);
 	res1[0].forEach((n, i) => expect(n).toBeCloseTo(ear.math.identity3x4[i]));
 	res1[1].forEach((n, i) => expect(n).not.toBeCloseTo(ear.math.identity3x4[i]));
-	const res2 = ear.graph.makeFacesMatrix(graph, 1);
+	const res2 = ear.graph.makeFacesMatrix(graph, [1]);
 	res2[0].forEach((n, i) => expect(n).not.toBeCloseTo(ear.math.identity3x4[i]));
 	res2[1].forEach((n, i) => expect(n).toBeCloseTo(ear.math.identity3x4[i]));
 });

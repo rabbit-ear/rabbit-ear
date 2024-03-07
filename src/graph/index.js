@@ -43,7 +43,7 @@ import * as verticesSort from "./vertices/sort.js";
 import * as edgesCircular from "./edges/circular.js";
 import * as edgesDuplicate from "./edges/duplicate.js";
 import * as edgesLines from "./edges/lines.js";
-import * as facesCoplanar from "./faces/coplanar.js";
+import * as facesPlanes from "./faces/planes.js";
 import * as facesMatrix from "./faces/matrix.js";
 import * as facesWinding from "./faces/winding.js";
 import * as intersectVertices from "./intersect/vertices.js";
@@ -113,7 +113,7 @@ export default {
 	...edgesCircular,
 	...edgesDuplicate,
 	...edgesLines,
-	...facesCoplanar,
+	...facesPlanes,
 	...facesMatrix,
 	...facesWinding,
 	...intersectVertices,
