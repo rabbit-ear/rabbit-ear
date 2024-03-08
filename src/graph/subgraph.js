@@ -3,8 +3,6 @@
  */
 import {
 	foldKeys,
-} from "../fold/keys.js";
-import {
 	filterKeysWithPrefix,
 	filterKeysWithSuffix,
 } from "../fold/spec.js";

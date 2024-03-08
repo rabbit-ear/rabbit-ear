@@ -13,16 +13,15 @@ import * as splitEdge from "../graph/split/splitEdge.js";
 import * as splitFaceWithLine from "../graph/split/splitFaceWithLine.js";
 import * as transform from "../graph/transform.js";
 import * as explode from "../graph/explode.js";
+import * as nearest from "../graph/nearest.js";
 import * as validate from "../graph/validate.js";
 import {
 	getLine,
 } from "../general/get.js";
 import {
 	foldKeys,
-} from "../fold/keys.js";
-import {
-	nearest,
-} from "../graph/nearest.js";
+	invertAssignments,
+} from "../fold/spec.js";
 import {
 	subgraph,
 } from "../graph/subgraph.js";
@@ -38,9 +37,6 @@ import {
 	makeVerticesCoordsFlatFolded,
 	makeVerticesCoordsFoldedFromMatrix2,
 } from "../graph/vertices/folded.js";
-import {
-	invertAssignments,
-} from "../fold/spec.js";
 
 /**
  * @name Graph
@@ -69,13 +65,13 @@ Object.entries({
 	planarBoundary,
 	planarBoundaries,
 	boundingBox,
-	nearest,
 	invertAssignments,
 	svg: foldToSvg,
 	obj: foldToObj,
 	...splitEdge,
 	...splitFaceWithLine,
 	...explode,
+	...nearest,
 	...transform,
 	...validate,
 }).forEach(([key, value]) => {

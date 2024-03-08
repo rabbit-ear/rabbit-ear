@@ -92,49 +92,74 @@ test("array intersection", () => {
 	));
 });
 
-test("setDifferenceSortedEpsilonNumbers", () => {
+test("rotateCircularArray", () => {
+	expect(ear.general.rotateCircularArray([0, 1, 2, 3, 4, 5], 2))
+		.toMatchObject([2, 3, 4, 5, 0, 1]);
 
-});
+	expect(ear.general.rotateCircularArray([0, 1, 2, 3, 4, 5], -1))
+		.toMatchObject([0, 1, 2, 3, 4, 5]);
 
-test("flatSort", () => {
-	const a = [undefined, "b", undefined, undefined, undefined, "f", "g", undefined, "i"];
-	const b = [undefined, undefined, 3, undefined, 5, undefined, undefined, 8];
-	a.forEach((v, i, arr) => { if (v === undefined) delete arr[i]; });
-	b.forEach((v, i, arr) => { if (v === undefined) delete arr[i]; });
-	const result = ear.general.mergeArraysWithHoles(a, b);
-	const expected = JSON.stringify([null, "b", 3, null, 5, "f", "g", 8, "i"]);
-	expect(JSON.stringify(result)).toBe(expected);
-});
+	expect(ear.general.rotateCircularArray([0, 1, 2, 3, 4, 5], 8))
+		.toMatchObject([0, 1, 2, 3, 4, 5]);
 
-test("splitCircularArray", () => {
+	expect(ear.general.rotateCircularArray([0, 1, , , 4, 5], 0))
+		.toMatchObject([0, 1, , , 4, 5]);
 
-});
+	expect(ear.general.rotateCircularArray([0, 1, , , 4, 5], 2))
+		.toMatchObject([, , 4, 5, 0, 1]);
 
-test("connectedComponentsPairs", () => {
-
-});
-
-test("clusterSortedGeneric", () => {
-
-});
-
-test("clusterScalars", () => {
-	ear.general.clusterScalars([1, 2, 3, 6, 9, 13, 14, 15, 19, 21, 25, 26, 27], 1.5);
-});
-
-test("clusterScalars with holes", () => {
-	const array = [1, 2, 3, 8, 9, 13, 14, 15, 19, 21, 25, 26, 27];
-	delete array[0];
-	delete array[1];
-	delete array[7];
-	delete array[13];
-	ear.general.clusterScalars(array, 1.5);
-});
-
-test("clusterParallelVectors", () => {
-
+	expect(ear.general.rotateCircularArray([0, 1, , , 4, 5], 5))
+		.toMatchObject([5, 0, 1, , , 4]);
 });
 
 test("chooseTwoPairs", () => {
 
+});
+
+test("setDifferenceSortedNumbers", () => {
+
+});
+
+test("setDifferenceSortedEpsilonNumbers", () => {
+
+});
+
+test("arrayMinimumIndex", () => {
+	const array1 = [99, 0, 1, , , , 5, 6, 7];
+	expect(ear.general.arrayMinimumIndex(array1)).toBe(1);
+
+	const array2 = [99, , , , , , 5, 6, 7];
+	expect(ear.general.arrayMinimumIndex(array2)).toBe(6);
+
+	const array3 = [97, 98, 99, , , , , , 5, 6, 7];
+	expect(ear.general.arrayMinimumIndex(array3, n => -n)).toBe(2);
+
+	const array4 = [0, 1, 2, , , , , , 99, 98, 97];
+	expect(ear.general.arrayMinimumIndex(array4, n => -n)).toBe(8);
+});
+
+test("arrayMaximumIndex", () => {
+
+});
+
+test("mergeArraysWithHoles", () => {
+	expect(ear.general.mergeArraysWithHoles(
+		[0, 1, , , 4, 5],
+		[, , 2, 3, , , 6, 7],
+	)).toMatchObject([0, 1, 2, 3, 4, 5, 6, 7]);
+
+	expect(ear.general.mergeArraysWithHoles(
+		[0, 1, , , 4, 5],
+		[, , 2, 3],
+	)).toMatchObject([0, 1, 2, 3, 4, 5]);
+
+	expect(ear.general.mergeArraysWithHoles(
+		[0, 1, , 4, 5],
+		[, 2, 3, , 6, 7],
+	)).toMatchObject([0, 2, 3, 4, 6, 7]);
+
+	expect(ear.general.mergeArraysWithHoles(
+		[, "b", , , , "f", "g", , "i"],
+		[, , 3, , 5, , , 8],
+	)).toMatchObject([, "b", 3, , 5, "f", "g", 8, "i"]);
 });

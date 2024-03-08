@@ -2,14 +2,12 @@
  * Rabbit Ear (c) Kraft
  */
 import {
+	foldKeys,
 	filterKeysWithPrefix,
 	filterKeysWithSuffix,
 	getAllPrefixes,
 	getAllSuffixes,
 } from "../fold/spec.js";
-import {
-	foldKeys,
-} from "../fold/keys.js";
 import {
 	duplicateEdges,
 } from "./edges/duplicate.js";

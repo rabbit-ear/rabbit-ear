@@ -101,9 +101,9 @@ export const arrayIntersection = (array1, array2) => {
 };
 
 /**
- * @description Given an array considered circular, where the end connects
- * back to the start, rotate the array so that the value currently in the
- * newStartIndex spot becomes the first (0) index.
+ * @description Given an array considered to be circular, where the end
+ * connects back to the start, rotate the array so that the value currently
+ * in the newStartIndex spot becomes the first (0) index.
  * @param {any[]} array an array containing any type
  * @param {number} newStartIndex the current index to become the new 0 index.
  * @returns {any[]} a copy of the original array, rotated.
@@ -199,11 +199,9 @@ export const arrayMinimumIndex = (array, map) => {
 		? array.map(value => map(value))
 		: array;
 	let index = 0;
-	for (let i = 1; i < arrayValues.length; i += 1) {
-		if (arrayValues[i] < arrayValues[index]) {
-			index = i;
-		}
-	}
+	arrayValues.forEach((value, i, arr) => {
+		if (value < arr[index]) { index = i; }
+	});
 	return index;
 };
 
@@ -223,11 +221,9 @@ export const arrayMaximumIndex = (array, map) => {
 		? array.map(value => map(value))
 		: array;
 	let index = 0;
-	for (let i = 1; i < arrayValues.length; i += 1) {
-		if (arrayValues[i] > arrayValues[index]) {
-			index = i;
-		}
-	}
+	arrayValues.forEach((value, i, arr) => {
+		if (value > arr[index]) { index = i; }
+	});
 	return index;
 };
 

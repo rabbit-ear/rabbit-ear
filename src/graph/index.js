@@ -3,7 +3,6 @@
  */
 import * as foldColors from "../fold/colors.js";
 import * as foldFileFrames from "../fold/frames.js";
-import * as foldKeyMethods from "../fold/keys.js";
 import * as foldSpecMethods from "../fold/spec.js";
 import * as boundary from "./boundary.js";
 import * as connectedComponents from "./connectedComponents.js";
@@ -74,7 +73,6 @@ import replace from "./replace.js";
 export default {
 	...foldColors,
 	...foldFileFrames,
-	...foldKeyMethods,
 	...foldSpecMethods,
 	...boundary,
 	...connectedComponents,
