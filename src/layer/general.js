@@ -1,6 +1,47 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+ import {
+	EPSILON,
+ } from "../math/constant.js";
+ import {
+	makeEdgesVector,
+ } from "../graph/make.js";
+import {
+	connectedComponentsPairs,
+ } from "../graph/connectedComponents.js";
+ import {
+	makeEdgesEdgesParallelOverlap,
+ } from "./intersect.js";
+
+ /**
+  * @description for every edge, find all other edges which are
+  * parallel to this edge and overlap the edge, excluding
+  * the epsilon space around the endpoints.
+  * @param {FOLD} graph a FOLD object with edges_vector
+  * @returns {[number, number][]} a list of pairs of edge indices
+  */
+ export const overlappingParallelEdgePairs = ({
+	vertices_coords, edges_vertices, edges_faces, edges_vector,
+ }, epsilon = EPSILON) => {
+	// if edges_vector does not exist make it
+	if (!edges_vector) {
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+	}
+
+	// for every edge, a list of other edges which overlap and are parallel
+	const edgesEdgesOverlap = makeEdgesEdgesParallelOverlap({
+		vertices_coords, edges_vertices, edges_vector,
+	}, epsilon);
+
+	// convert all overlapping edge groups into unique pairs, [i, j]
+	// where i < j, all pairs are stored only once.
+	return connectedComponentsPairs(edgesEdgesOverlap)
+		.filter(pair => pair.every(edge => edges_faces[edge].length > 1));
+ };
+
+
+
 
 /**
  * @description Convert an array of faces which are involved in one

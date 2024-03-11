@@ -9,14 +9,12 @@ import {
 	makeEpsilon,
 } from "../graph/epsilon.js";
 import {
-	makeConstraints,
+	makeSolverConstraints,
 } from "./constraints.js";
 import {
+	solveEdgeAdjacent,
 	solver2D,
 } from "./solver.js";
-import {
-	solveEdgeAdjacent,
-} from "./edgeAdjacent.js";
 import LayerPrototype from "./prototype.js";
 
 //
@@ -50,7 +48,12 @@ export const layer = ({
 	}
 
 	// convert the graph into conditions for the solver
-	const { constraints, lookup, facePairs, faces_winding } = makeConstraints({
+	const {
+		constraints,
+		lookup,
+		facePairs,
+		faces_winding,
+	} = makeSolverConstraints({
 		vertices_coords,
 		edges_vertices,
 		edges_faces,

@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { constraintToFacePairsStrings } from "./general.js";
+import {
+	constraintToFacePairsStrings,
+} from "./general.js";
 
 /**
  * @param {string[]} remainingKeys array of facePair keys which are unsolved
@@ -13,7 +15,7 @@ import { constraintToFacePairsStrings } from "./general.js";
  * @returns {string[][]}
  * @linkcode Origami ./src/layer/solver2d/getBranches.js 14
  */
-const getBranches = (
+export const getBranches = (
 	remainingKeys,
 	constraints,
 	lookup,
@@ -79,5 +81,3 @@ const getBranches = (
 	}
 	return groups;
 };
-
-export default getBranches;

@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
  * @description each state encodes a valid layer combination. each number
  * describes a relationship between pairs of faces, indicating:
@@ -48,6 +49,7 @@ const transitivity_valid_states = [
 	"212",
 	"221",
 ];
+
 /**
  * @param {object[]} states, array of objects containing permutations (keys)
  *  and their values (solution is possible or not)
@@ -97,6 +99,7 @@ const check_state = (states, t, key) => {
 	}
 	states[t][key] = solution;
 };
+
 /**
  * @description make a lookup table for every possible state of a taco/
  * tortilla combination, given the particular taco/tortilla valid states.
@@ -110,7 +113,7 @@ const check_state = (states, t, key) => {
  * @returns {object} keys are layer states, possible solution as values.
  */
 // const flip = { 0:0, 1:2, 2:1 };
-const make_lookup = (valid_states) => {
+const makeLookupEntry = (valid_states) => {
 	// the choose count can be inferred by the length of the valid states
 	// (assuming they are all the same length)
 	const chooseCount = valid_states[0].length;
@@ -170,6 +173,7 @@ const make_lookup = (valid_states) => {
 	outs.forEach(el => { lookup[el[0]] = Object.freeze(el[1]); });
 	return Object.freeze(lookup);
 };
+
 /**
  * @name table
  * @memberof layer
@@ -183,11 +187,9 @@ const make_lookup = (valid_states) => {
  * relationship which can be inferred from the current state.
  * This is an implementation of an algorithm designed by [Jason Ku](//jasonku.mit.edu).
  */
-const layerTable = {
-	taco_taco: make_lookup(taco_taco_valid_states),
-	taco_tortilla: make_lookup(taco_tortilla_valid_states),
-	tortilla_tortilla: make_lookup(tortilla_tortilla_valid_states),
-	transitivity: make_lookup(transitivity_valid_states),
+export const table = {
+	taco_taco: makeLookupEntry(taco_taco_valid_states),
+	taco_tortilla: makeLookupEntry(taco_tortilla_valid_states),
+	tortilla_tortilla: makeLookupEntry(tortilla_tortilla_valid_states),
+	transitivity: makeLookupEntry(transitivity_valid_states),
 };
-
-export default layerTable;

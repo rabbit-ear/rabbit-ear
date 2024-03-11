@@ -1,8 +1,20 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
-import { clipPolygonPolygon } from "../math/clip.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
+import {
+	clipPolygonPolygon,
+} from "../math/clip.js";
+
+/**
+ * @typedef TransitivityConstraint
+ * @type {[number, number, number]} three face indices encoding a
+ * transitivity constraint, where the three faces involved are in sorted order.
+ * (A,B) (B,C) (C,A)
+ */
+
 /**
  * @description given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
@@ -11,8 +23,8 @@ import { clipPolygonPolygon } from "../math/clip.js";
  * @param {number[][]} facesFacesOverlap an overlap-relationship between every face
  * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]} list of arrays containing three face indices.
- * @linkcode Origami ./src/layer/solver2d/tacos/makeTransitivityTrios.js 17
+ * @returns {TransitivityConstraint[]} list of arrays containing three face indices.
+ * @linkcode
  */
 export const makeTransitivity = (
 	{ faces_polygon },
@@ -56,36 +68,47 @@ export const makeTransitivity = (
 	}
 	return trios;
 };
+
 /**
- * @description given a full set of transitivity conditions (trios of faces which
- * overlap each other), and the set of pre-computed taco-taco and
- * taco-tortilla events, remove any transitivity condition where the three
- * faces are already covered in a taco-taco case.
- * @linkcode Origami ./src/layer/solver2d/tacos/filterTransitivity.js 9
+ * @description When we calculate taco-taco and taco-tortilla constraints,
+ * we are already establishing a relationship between three faces involved in
+ * each constraint, therefore, we can remove these cases from our (very large)
+ * list of transitivity constraints. This will return all 3-face combinations
+ * present in all taco-taco and taco-tortilla lists. Use this object to filter
+ * the transitivity list.
+ * @param {{
+ *   taco_taco: TacoTacoConstraint[],
+ *   taco_tortilla: TacoTortillaConstraint[],
+ * }} the two sets of constrains.
+ * @returns {{[key: string]: boolean}} object where keys are space-separated
+ * trios of faces "a b c" where a < b and b < c.
+ * @linkcode
  */
-export const filterTransitivity = (transitivity_trios, { taco_taco, taco_tortilla }) => {
-	// will contain taco-taco and taco-tortilla events encoded as all
-	// permutations of 3 faces involved in each event.
-	const tacos_trios = {};
+export const getTransitivityTriosFromTacos = ({ taco_taco, taco_tortilla }) => {
 	// using the list of all taco-taco conditions, store all permutations of
 	// the three faces (sorted low to high) into a dictionary for quick lookup.
 	// store them as space-separated strings.
-	taco_taco
-		.map(tacos => [tacos[0][0], tacos[0][1], tacos[1][0], tacos[1][1]]
-			.sort((a, b) => a - b))
-		.forEach(taco => [
-			`${taco[0]} ${taco[1]} ${taco[2]}`,
-			`${taco[0]} ${taco[1]} ${taco[3]}`,
-			`${taco[0]} ${taco[2]} ${taco[3]}`,
-			`${taco[1]} ${taco[2]} ${taco[3]}`,
-		].forEach(key => { tacos_trios[key] = true; }));
-	// convert all taco-tortilla cases into similarly-formatted,
-	// space-separated strings.
-	taco_tortilla
-		.map(el => [el.taco[0], el.taco[1], el.tortilla]
-			.sort((a, b) => a - b).join(" "))
+	const tacoTacoTrios = taco_taco
+		.map(taco_taco => taco_taco.slice().sort((a, b) => a - b))
+		.flatMap(([t0, t1, t2, t3]) => [
+			[t0, t1, t2],
+			[t0, t1, t3],
+			[t0, t2, t3],
+			[t1, t2, t3],
+		]);
+
+	const tacoTortillaTrios = taco_tortilla
+		.map(taco_tortilla => taco_tortilla.slice().sort((a, b) => a - b))
+
+	// will contain taco-taco and taco-tortilla events encoded as all
+	// permutations of 3 faces involved in each event.
+	/** @type {[key: string]: boolean} */
+	const tacos_trios = {};
+
+	tacoTacoTrios
+		.concat(tacoTortillaTrios)
+		.map(faces => faces.join(" "))
 		.forEach(key => { tacos_trios[key] = true; });
-	// return the filtered set of trios.
-	return transitivity_trios
-		.filter(trio => tacos_trios[trio.join(" ")] === undefined);
+
+	return tacos_trios;
 };

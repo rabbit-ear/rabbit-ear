@@ -170,6 +170,13 @@ const makeEdgesEdgesSimilar = ({
 	return booleanMatrixToIndexedArray(matrix);
 };
 
+/**
+ * @description For every edge, a list of face indices which overlap the edge.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} for every edge, an array of face indices
+ * which overlap this edge or an empty if no faces overlap the edge.
+ */
 export const getEdgesFacesOverlap = ({
 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
 }, epsilon = EPSILON) => {

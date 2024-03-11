@@ -1,15 +1,23 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import table from "./table.js";
-import { constraintToFacePairs } from "./general.js";
-import { uniqueElements } from "../general/array.js";
+import {
+	table,
+} from "./table.js";
+import {
+	constraintToFacePairs,
+} from "./general.js";
+import {
+	uniqueElements,
+} from "../general/array.js";
+
 /**
  * @typedef Constraint
  * @type {number[]}
  * @description an array of 3 or 4 faces involved in one taco/tortilla/transitivity constraint.
  */
-/**
+
+ /**
  * @typedef Constraints
  * @type {object}
  * @description All Constraint entries for all of the taco/tortilla/transitivity cases.
@@ -18,6 +26,7 @@ import { uniqueElements } from "../general/array.js";
  * @property {Constraint[]} tortilla_tortilla an array of all tortilla-tortilla constraints.
  * @property {Constraint[]} transitivity an array of all transitivity constraints.
  */
+
 // "taco_taco", "taco_tortilla", "tortilla_tortilla", "transitivity"
 const taco_types = Object.freeze(Object.keys(table));
 /**
@@ -167,7 +176,7 @@ const getConstraintIndicesFromFacePairs = (
  * to an order value, either 1 or 2
  * @linkcode Origami ./src/layer/solver2d/propagate.js 168
  */
-const propagate = (
+export const propagate = (
 	constraints,
 	constraintsLookup,
 	initiallyModifiedFacePairs,
@@ -226,5 +235,3 @@ const propagate = (
 	} while (modifiedFacePairs.length);
 	return newOrders;
 };
-
-export default propagate;
