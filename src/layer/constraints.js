@@ -126,6 +126,22 @@ export const makeTacosTortillasTransitivity = ({
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] optional epsilon. it will be calculated
  * if you leave this empty.
+ * @returns {{
+ *   constraints: {
+ *     taco_taco: TacoTacoConstraint[],
+ *     taco_tortilla: TacoTortillaConstraint[],
+ *     tortilla_tortilla: TortillaTortillaConstraint[],
+ *     transitivity: TransitivityConstraint[],
+ *   },
+ *   lookup: {
+ *     taco_taco: number[][],
+ *     taco_tortilla: number[][],
+ *     tortilla_tortilla: number[][],
+ *     transitivity: number[][],
+ *   },
+ *   facePairs: string[],
+ *   faces_winding: boolean[],
+ * }}
  */
 export const makeSolverConstraints = ({
 	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,

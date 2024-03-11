@@ -17,7 +17,7 @@ import {
  * @param {string[]} facePairs an array of space-separated face-pair strings
  * @param {boolean[]} faces_winding for every face, true if the face's
  * winding is counter-clockwise, false if clockwise.
- * @returns {{ [key: string]: number }} an object describing all the
+ * @returns {{[key: string]: number}} an object describing all the
  * solved facePairs (keys) and their layer order 1 or 2 (value),
  * the object only includes those facePairs
  * which are solved, so, no 0-value entries will exist.
@@ -172,11 +172,14 @@ const solveBranch = (
  * - orders a prelimiary solution to some of the facePairs
  *   with solutions in 1,2 value encoding. Useful for any pre-calculations,
  *   for example, pre-calculating edge-adjacent face pairs with known assignments.
- * @returns {object} a set of solutions where keys are face pairs
+ * @returns {{
+ *   root: {[key:string]: number},
+ *   branches: {[key:string]: number}[],
+ * }} a set of solutions where keys are space-separated face pair strings,
  * and values are +1 or -1 describing the relationship of the two faces.
  * Results are stored in "root" and "branches", to compile a complete solution,
  * append the "root" to one selection from each array in "branches".
- * @linkcode Origami ./src/layer/globalSolver/index.js 89
+ * @linkcode
  */
 export const solver2D = ({ constraints, lookup, facePairs, orders }) => {
 	// propagate layer order starting with only the edge-adjacent face orders

@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
  * @typedef FOLD
  * @type {{
@@ -39,4 +40,71 @@
  *   edges_foldAngle: [0, 0, 0, 0, 180],
  *   faces_vertices: [[0,1,2], [0,2,3]],
  * }
+ */
+
+/**
+ * @typedef VecLine
+ * @type {{ vector: number[], origin: number[] }}
+ * @description a line defined by a vector and a point along the line,
+ * capable of representing a line in any dimension.
+ * @property {number[]} vector - a vector describing the direction of the line
+ * @property {number[]} origin - a point which the line passes through
+ */
+
+/**
+ * @typedef UniqueLine
+ * @type {{ normal: number[], distance: number }}
+ * @description a 2D line defined by a unit normal vector and a value that
+ * describes the shortest distance from the origin to a point on the line.
+ * @property {number[]} normal - a unit vector that is normal to the line
+ * @property {number} distance - the shortest distance
+ * from the line to the origin
+ */
+
+/**
+ * @typedef Box
+ * @type {{ min: number[], max: number[], span?: number[] }}
+ * @description an axis-aligned bounding box, capable of representing
+ * a bounding box with any number of dimensions.
+ * @property {number[]} min - the point representing the absolute minimum
+ * for all axes.
+ * @property {number[]} max - the point representing the absolute maximum
+ * for all axes.
+ */
+
+/**
+ * @typedef Circle
+ * @type {{ radius: number, origin: number[] }}
+ * @description a circle primitive in 2D
+ * @property {number} radius - the radius of the circle
+ * @property {number[]} origin - the center of the circle as an array of numbers
+ */
+
+/**
+ * @typedef TacoTacoConstraint
+ * @type {[number, number, number, number]}
+ * @description four face indices involved
+ * in the taco-taco relationship, encoding this relationship:
+ * 0 and 2 are connected (A and C) and 1 and 3 are connected (B and D)
+ * (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
+ *
+ * @typedef TacoTortillaConstraint
+ * @type {[number, number, number]}
+ * @description three face indices involved
+ * in the taco-tortilla relationship, encoding this relationship:
+ * 0 and 2 are a connected taco, 1 is the tortilla face
+ * (A,C) (A,B) (B,C)
+ *
+ * @typedef TortillaTortillaConstraint
+ * @type {[number, number, number, number]}
+ * @description four face indices involved
+ * in the tortilla-tortilla relationship, encoding this relationship:
+ * 0 and 1 are a connected tortilla, 2 and 3 are a connected tortilla
+ * (A,C) (B,D)
+ *
+ * @typedef TransitivityConstraint
+ * @type {[number, number, number]}
+ * @description three face indices encoding a transitivity constraint,
+ * where the three faces involved are in sorted order.
+ * (A,B) (B,C) (C,A)
  */

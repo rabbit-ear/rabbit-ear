@@ -17,23 +17,28 @@ import {
 } from "./solver.js";
 import LayerPrototype from "./prototype.js";
 
-//
-const emptyLayerSolution = () => ({ root: {}, branches: [], faces_winding: [] });
-
 /**
- * @description Find a layer ordering of the faces in a flat-folded
- * origami model.
+ * @description Find all possible layer orderings of the faces
+ * in a flat-foldable origami model. The result contains all possible
+ * solutions, use the prototype methods available on this return object
+ * to choose one solution, among other available options.
  * @param {FOLD} graph a FOLD object with folded vertices in 2D
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {LayerPrototype} a layer solution object. todo: more documentation
+ * @returns {{
+ *   root: {[key:string]: number},
+ *   branches: {[key:string]: number}[],
+ *   faces_winding: number[],
+ * }} an object that describes all layer orderings, where the "root" orders
+ * are true for all solutions, and each object in "branches" can be appended
+ * to the root object to create a complete solution.
  */
-export const layer = ({
+const solveLayer = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
 	faces_vertices, faces_edges, edges_vector,
 }, epsilon) => {
 	// necessary conditions for the layer solver to work
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
-		return Object.assign(Object.create(LayerPrototype), emptyLayerSolution());
+		return { root: {}, branches: [], faces_winding: [] };
 	}
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
@@ -73,12 +78,26 @@ export const layer = ({
 	const { root, branches } = solver2D({ constraints, lookup, facePairs, orders });
 
 	// wrap the result in the layer solution prototype
-	return Object.assign(Object.create(LayerPrototype), {
+	return {
 		root,
 		branches,
 		faces_winding,
-	});
+	};
 };
+
+/**
+ * @description Find all possible layer orderings of the faces
+ * in a flat-foldable origami model. The result contains all possible
+ * solutions, use the prototype methods available on this return object
+ * to choose one solution, among other available options.
+ * @param {FOLD} graph a FOLD object with folded vertices in 2D
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {LayerPrototype} a layer solution object
+ */
+export const layer = (graph, epsilon) => Object.assign(
+	Object.create(LayerPrototype),
+	solveLayer(graph, epsilon),
+);
 
 // export const layerSync = (graph, epsilon) => {
 // };

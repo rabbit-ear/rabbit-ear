@@ -26,11 +26,11 @@
 		"clean": "node tests/clean.js",
 		"lineno": "node tests/lineno.js"
 	},
-	"license": "MIT",
+	"license": "GPLv3",
 	"author": {
-		"name": "Robby Kraft",
-		"email": "robbykraft@gmail.com",
-		"url": "https://github.com/robbykraft"
+		"name": "Kraft",
+		"email": "",
+		"url": "https://github.com/"
 	},
 	"keywords": [
 		"origami",

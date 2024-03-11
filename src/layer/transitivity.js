@@ -9,14 +9,7 @@ import {
 } from "../math/clip.js";
 
 /**
- * @typedef TransitivityConstraint
- * @type {[number, number, number]} three face indices encoding a
- * transitivity constraint, where the three faces involved are in sorted order.
- * (A,B) (B,C) (C,A)
- */
-
-/**
- * @description given a folded graph, find all trios of faces which overlap
+ * @description Given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
  * intersection of all three faces.
  * @param {FOLD} graph a FOLD object
@@ -32,11 +25,12 @@ export const makeTransitivity = (
 	epsilon = EPSILON,
 ) => {
 	// convert facesFacesOverlap into index-based sparse arrays for fast access.
-	const overlap_matrix = facesFacesOverlap.map(() => []);
+	const overlap_matrix = facesFacesOverlap.map(() => ({}));
 	facesFacesOverlap.forEach((faces, i) => faces.forEach(j => {
 		overlap_matrix[i][j] = true;
 		overlap_matrix[j][i] = true;
 	}));
+
 	// for every pair of faces that overlap, compute their intersection,
 	// if it exists, save the new polygon in this sparse matrix.
 	const facesFacesIntersection = [];
@@ -49,6 +43,8 @@ export const makeTransitivity = (
 			facesFacesIntersection[j][i] = polygon;
 		}
 	}));
+
+	/** @type {[number, number, number][]} an array of three face indices */
 	const trios = [];
 	for (let i = 0; i < facesFacesIntersection.length - 1; i += 1) {
 		if (!facesFacesIntersection[i]) { continue; }
@@ -102,7 +98,7 @@ export const getTransitivityTriosFromTacos = ({ taco_taco, taco_tortilla }) => {
 
 	// will contain taco-taco and taco-tortilla events encoded as all
 	// permutations of 3 faces involved in each event.
-	/** @type {[key: string]: boolean} */
+	/** @type {{[key: string]: boolean}} */
 	const tacos_trios = {};
 
 	tacoTacoTrios

@@ -10,25 +10,10 @@ import {
 import {
 	uniqueElements,
 } from "../general/array.js";
+import {
+	tacoTypeNames,
+} from "./general.js";
 
-/**
- * @typedef Constraint
- * @type {number[]}
- * @description an array of 3 or 4 faces involved in one taco/tortilla/transitivity constraint.
- */
-
- /**
- * @typedef Constraints
- * @type {object}
- * @description All Constraint entries for all of the taco/tortilla/transitivity cases.
- * @property {Constraint[]} taco_taco an array of all taco-taco constraints.
- * @property {Constraint[]} taco_tortilla an array of all taco-tortilla constraints.
- * @property {Constraint[]} tortilla_tortilla an array of all tortilla-tortilla constraints.
- * @property {Constraint[]} transitivity an array of all transitivity constraints.
- */
-
-// "taco_taco", "taco_tortilla", "tortilla_tortilla", "transitivity"
-const taco_types = Object.freeze(Object.keys(table));
 /**
  * @description Given one particular taco/tortilla/transitivity constraint,
  * arrange its faces in all combinations of facePairs and check if any of
@@ -39,12 +24,13 @@ const taco_types = Object.freeze(Object.keys(table));
  * "taco_taco", "taco_tortilla", "tortilla_tortilla", "transitivity"
  * @param {number[]} constraint an array of the faces
  * involved in this particular condition.
- * @param {object[]} ...orders an array of solutions to facePair orders. each
- * taking the form of facePair keys, and orders (0,1,2) values.
- * @returns true if valid, false if invalid, and in the case of an implied
- * change, return an array where the first item is a facePair ("3 5"), and
- * the second is the order (like 1 or 2).
- * @linkcode Origami ./src/layer/solver2d/propagate.js 44
+ * @param {...{[key: string]: number}} orders an array of solutions to
+ * facePair orders. each taking the form of facePair keys,
+ * and orders (0,1,2) values.
+ * @returns {(boolean | [number, number])} true if valid, false if invalid,
+ * and in the case of an implied change, return an array where the
+ * first item is a facePair ("3 5"), and the second is the order (like 1 or 2).
+ * @linkcode
  */
 const buildRuleAndLookup = (type, constraint, ...orders) => {
 	// flip face order
@@ -110,7 +96,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 // 		.forEach(f => { facesWithUnknownOrders[f] = true; });
 
 // 	const constraintIndices = {};
-// 	taco_types.forEach(type => {
+// 	tacoTypeNames.forEach(type => {
 // 		// given the array of modified facePairs since last round, get all
 // 		// the indices in the constraints array in which these facePairs exist.
 // 		const duplicates = facePairsSubsetArray
@@ -126,19 +112,36 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 // 	});
 // 	return constraintIndices;
 // };
+
 /**
  * @description Given a current set of modified facePairs keys, (modified
  * since the last time we ran this), get all condition indices that
  * include one or more of these facePairs.
- * @param {Constraints} constraints an object containing all four cases, inside
+ * @param {{
+ *   taco_taco: TacoTacoConstraint[],
+ *   taco_tortilla: TacoTortillaConstraint[],
+ *   tortilla_tortilla: TortillaTortillaConstraint[],
+ *   transitivity: TransitivityConstraint[],
+ * }} constraints an object containing all four cases, inside
  * of each is an (very large, typically) array of all constraints as a list of faces.
- * @param {object} constraintsLookup a map which contains, for every
+ * @param {{
+ *   taco_taco: number[][],
+ *   taco_tortilla: number[][],
+ *   tortilla_tortilla: number[][],
+ *   transitivity: number[][],
+ * }} lookup a map which contains, for every
  * taco/tortilla/transitivity case (top level keys), inside each is an object
  * which relates each facePair (key) to an array of indices (value),
  * where each index is an index in the "constraints" array
  * in which **both** of these faces appear.
  * @param {string[]} facePairsSubsetArray an array of facePair string keys.
- * @linkcode Origami ./src/layer/solver2d/propagate.js 134
+ * @returns {{
+ *   taco_taco: number[],
+ *   taco_tortilla: number[],
+ *   tortilla_tortilla: number[],
+ *   transitivity: number[],
+ * }}
+ * @linkcode
  */
 const getConstraintIndicesFromFacePairs = (
 	constraints,
@@ -146,35 +149,48 @@ const getConstraintIndicesFromFacePairs = (
 	facePairsSubsetArray,
 ) => {
 	const constraintIndices = {};
-	taco_types.forEach(type => {
+	tacoTypeNames.forEach(type => {
 		// given the array of modified facePairs since last round, get all
 		// the indices in the constraints array in which these facePairs exist.
 		// this array will contain duplicates
+		/** @type {number[]} */
 		const constraintIndicesWithDups = facePairsSubsetArray
 			.flatMap(facePair => lookup[type][facePair]);
+
 		// filter these constraint indices to remove duplicates
 		constraintIndices[type] = uniqueElements(constraintIndicesWithDups)
 			.filter(i => constraints[type][i]);
 	});
 	return constraintIndices;
 };
+
 /**
  * @description Consult the lookup table for the current layer-orders,
  * check for any implied layer order changes (and check for validity), propagate
  * these implied states, check these updated conditions for new implications, repeat.
- * @param {Constraints} constraints an object containing all four cases, inside
+ * @param {{
+ *   taco_taco: TacoTacoConstraint[],
+ *   taco_tortilla: TacoTortillaConstraint[],
+ *   tortilla_tortilla: TortillaTortillaConstraint[],
+ *   transitivity: TransitivityConstraint[],
+ * }} constraints an object containing all four cases, inside
  * of each is an (very large, typically) array of all constraints as a list of faces.
- * @param {object} a map which contains, for every taco/tortilla/transitivity case
+ * @param {{
+ *   taco_taco: number[][],
+ *   taco_tortilla: number[][],
+ *   tortilla_tortilla: number[][],
+ *   transitivity: number[][],
+ * }} constraintsLookup a map which contains, for every taco/tortilla/transitivity case
  * (top level keys), inside each is an object which relates each facePair (key) to
  * an array of indices (value), where each index is an index in the "constraints"
  * array in which **both** of these faces appear.
  * @param {string[]} initiallyModifiedFacePairs an array of facePair string keys.
  * These are the keys which had a layer change since the last time running this method.
- * @param {...object} ...orders any number of facePairsOrder solutions
+ * @param {...{[key: string]: number}} orders any number of facePairsOrder solutions
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
- * @returns { [key: string]: number } an object that maps face-pair strings
+ * @returns {{[key: string]: number}} an object that maps face-pair strings
  * to an order value, either 1 or 2
- * @linkcode Origami ./src/layer/solver2d/propagate.js 168
+ * @linkcode
  */
 export const propagate = (
 	constraints,
@@ -186,10 +202,11 @@ export const propagate = (
 	// apply changes and repeat, this will hold all changed facePair keys.
 	// the moment this array is empty, we have finished propagating all changes.
 	let modifiedFacePairs = initiallyModifiedFacePairs;
+
 	// this is the result which will be returned, it maps facePairs (keys)
 	// to layer orders, either 1 or 2 (values) and contains only those facePairs
 	// which were changed by this method, so it will never contain a 0 value condition.
-	/** @type { [key: string]: number } */
+	/** @type {{[key: string]: number}} */
 	const newOrders = {};
 	do {
 		// using the facePairs which were modified in the last loop,
@@ -200,13 +217,15 @@ export const propagate = (
 			constraintsLookup,
 			modifiedFacePairs,
 		);
+
 		// todo: do you get better results by fast forwarding through all taco-taco
 		// newOrders (or transitivity, or any one in particular), before then
 		// moving onto the other sets, or is it faster to depth-first search through all?
 		// the modifications that happened this round
 		const roundModificationsFacePairs = {};
-		for (let t = 0; t < taco_types.length; t += 1) {
-			const type = taco_types[t];
+		for (let t = 0; t < tacoTypeNames.length; t += 1) {
+			const type = tacoTypeNames[t];
+			/** @type {number[]} */
 			const indices = modifiedConstraintIndices[type];
 			for (let i = 0; i < indices.length; i += 1) {
 				const lookupResult = buildRuleAndLookup(

@@ -19,26 +19,6 @@ import {
 } from "./facesSide.js";
 
 /**
- * @typedef TacoTacoConstraint
- * @type {[number, number, number, number]} four face indices involved
- * in the taco-taco relationship, encoding this relationship:
- * 0 and 2 are connected (A and C) and 1 and 3 are connected (B and D)
- * (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
- *
- * @typedef TacoTortillaConstraint
- * @type {[number, number, number]} three face indices involved
- * in the taco-tortilla relationship, encoding this relationship:
- * 0 and 2 are a connected taco, 1 is the tortilla face
- * (A,C) (A,B) (B,C)
- *
- * @typedef TortillaTortillaConstraint
- * @type {[number, number, number, number]} four face indices involved
- * in the tortilla-tortilla relationship, encoding this relationship:
- * 0 and 1 are a connected tortilla, 2 and 3 are a connected tortilla
- * (A,C) (B,D)
- */
-
-/**
  * @param {[[number,number],[number,number]]} edgePairFacesSide
  * @returns {number} classification id, where:
  * - -1: invalid

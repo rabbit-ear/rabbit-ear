@@ -1,29 +1,40 @@
 /**
  * Rabbit Ear (c) Kraft
  */
- import {
+import {
 	EPSILON,
- } from "../math/constant.js";
- import {
+} from "../math/constant.js";
+import {
 	makeEdgesVector,
- } from "../graph/make.js";
+} from "../graph/make.js";
 import {
 	connectedComponentsPairs,
- } from "../graph/connectedComponents.js";
- import {
+} from "../graph/connectedComponents.js";
+import {
 	makeEdgesEdgesParallelOverlap,
- } from "./intersect.js";
+} from "./intersect.js";
 
- /**
-  * @description for every edge, find all other edges which are
-  * parallel to this edge and overlap the edge, excluding
-  * the epsilon space around the endpoints.
-  * @param {FOLD} graph a FOLD object with edges_vector
-  * @returns {[number, number][]} a list of pairs of edge indices
-  */
- export const overlappingParallelEdgePairs = ({
+/**
+ * @constant
+ * @type {string[]}
+ */
+export const tacoTypeNames = Object.freeze([
+	"taco_taco",
+	"taco_tortilla",
+	"tortilla_tortilla",
+	"transitivity"
+]);
+
+/**
+ * @description for every edge, find all other edges which are
+ * parallel to this edge and overlap the edge, excluding
+ * the epsilon space around the endpoints.
+ * @param {FOLD} graph a FOLD object with edges_vector
+ * @returns {[number, number][]} a list of pairs of edge indices
+ */
+export const overlappingParallelEdgePairs = ({
 	vertices_coords, edges_vertices, edges_faces, edges_vector,
- }, epsilon = EPSILON) => {
+}, epsilon = EPSILON) => {
 	// if edges_vector does not exist make it
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -38,10 +49,7 @@ import {
 	// where i < j, all pairs are stored only once.
 	return connectedComponentsPairs(edgesEdgesOverlap)
 		.filter(pair => pair.every(edge => edges_faces[edge].length > 1));
- };
-
-
-
+};
 
 /**
  * @description Convert an array of faces which are involved in one
