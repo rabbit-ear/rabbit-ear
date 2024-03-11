@@ -692,8 +692,9 @@ export const makeEdgesFoldAngleFromFaces = ({
  * @returns {number[][][]} an array of array of points (which are arrays of numbers)
  * @linkcode Origami ./src/graph/make.js 639
  */
-export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => edges_vertices
-	.map(ev => ev.map(v => vertices_coords[v]));
+export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => (
+	edges_vertices.map(ev => ev.map(v => vertices_coords[v]))
+);
 
 /**
  * @description Turn every edge into a vector, basing the direction on the order of
@@ -702,9 +703,11 @@ export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => edges_ve
  * @returns {number[][]} each entry relates to an edge, each array contains a 2D vector
  * @linkcode Origami ./src/graph/make.js 648
  */
-export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdgesCoords({
-	vertices_coords, edges_vertices,
-}).map(verts => subtract(verts[1], verts[0]));
+export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => (
+	makeEdgesCoords({
+		vertices_coords, edges_vertices,
+	}).map(verts => subtract(verts[1], verts[0]))
+);
 
 /**
  * @description For every edge, find the length between the edges pair of vertices.
@@ -712,9 +715,9 @@ export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdge
  * @returns {number[]} the distance between each edge's pair of vertices
  * @linkcode Origami ./src/graph/make.js 657
  */
-export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => makeEdgesVector({
-	vertices_coords, edges_vertices,
-}).map(vec => magnitude(vec));
+export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => (
+	makeEdgesVector({ vertices_coords, edges_vertices }).map(magnitude)
+);
 
 /**
  * @description Make an array of axis-aligned bounding boxes, one for each edge,
@@ -744,7 +747,8 @@ export const makeEdgesBoundingBox = ({
  * down every edge (both ways). This does not include the outside face which winds
  * around the boundary backwards enclosing the outside space.
  * @param {FOLD} graph a FOLD object
- * @returns {object[]} array of faces as objects containing "vertices" "edges" and "angles"
+ * @returns {object[]} array of faces as objects containing "vertices",
+ * "edges", and "angles"
  * @example
  * // to convert the return object into faces_vertices and faces_edges
  * var faces = makePlanarFaces(graph);
@@ -757,7 +761,9 @@ export const makePlanarFaces = ({
 	vertices_sectors, edges_vertices, edges_vector,
 }) => {
 	if (!vertices_vertices) {
-		vertices_vertices = makeVerticesVertices({ vertices_coords, edges_vertices, vertices_edges });
+		vertices_vertices = makeVerticesVertices({
+			vertices_coords, edges_vertices, vertices_edges,
+		});
 	}
 	if (!vertices_sectors) {
 		vertices_sectors = makeVerticesSectors({

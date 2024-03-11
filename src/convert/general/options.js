@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import makeEpsilon from "./makeEpsilon.js";
+import { getEpsilon } from "../../graph/epsilon.js";
 import { boundingBox } from "../../graph/boundary.js";
 import { cleanNumber } from "../../general/number.js";
 /**
@@ -13,7 +13,7 @@ export const findEpsilonInObject = (graph, object, key = "epsilon") => {
 	}
 	return typeof object === "number"
 		? object
-		: makeEpsilon(graph);
+		: getEpsilon(graph);
 };
 /**
  * @description Invert the vertices and re-center them to

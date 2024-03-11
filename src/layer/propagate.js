@@ -3,7 +3,7 @@
  */
 import table from "./table.js";
 import { constraintToFacePairs } from "./general.js";
-import { uniqueElements } from "../../general/array.js";
+import { uniqueElements } from "../general/array.js";
 /**
  * @typedef Constraint
  * @type {number[]}
@@ -163,6 +163,8 @@ const getConstraintIndicesFromFacePairs = (
  * These are the keys which had a layer change since the last time running this method.
  * @param {...object} ...orders any number of facePairsOrder solutions
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
+ * @returns { [key: string]: number } an object that maps face-pair strings
+ * to an order value, either 1 or 2
  * @linkcode Origami ./src/layer/solver2d/propagate.js 168
  */
 const propagate = (
@@ -178,6 +180,7 @@ const propagate = (
 	// this is the result which will be returned, it maps facePairs (keys)
 	// to layer orders, either 1 or 2 (values) and contains only those facePairs
 	// which were changed by this method, so it will never contain a 0 value condition.
+	/** @type { [key: string]: number } */
 	const newOrders = {};
 	do {
 		// using the facePairs which were modified in the last loop,

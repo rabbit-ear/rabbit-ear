@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeEpsilon } from "../general.js";
+import { makeEpsilon } from "../../graph/epsilon.js";
 import { setup } from "./setup.js";
 import solver2d from "../solver2d/solver.js";
 import LayerPrototype from "../solver2d/prototype.js";

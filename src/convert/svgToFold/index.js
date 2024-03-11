@@ -7,7 +7,7 @@ import {
 	invertVertical,
 } from "../general/options.js";
 import planarizeGraph from "../general/planarizeGraph.js";
-import makeEpsilon from "../general/makeEpsilon.js";
+import { getEpsilon } from "../../graph/epsilon.js";
 import { planarBoundary } from "../../graph/boundary.js";
 import svgSegments from "./svgSegments.js";
 import svgEdgeGraph from "./svgEdgeGraph.js";
@@ -61,7 +61,7 @@ Object.assign(svgToFold, {
 	svgSegments,
 	svgEdgeGraph,
 	planarizeGraph,
-	makeEpsilon,
+	getEpsilon,
 });
 
 export default svgToFold;

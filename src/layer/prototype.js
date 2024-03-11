@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { invertFlatMap } from "../../graph/maps.js";
-import { topologicalSort } from "../../graph/directedGraph.js";
+import { invertFlatMap } from "../graph/maps.js";
+import { topologicalSort } from "../graph/directedGraph.js";
 import { solverSolutionToFaceOrders } from "./general.js";
 
 const makePermutations = (counts) => {

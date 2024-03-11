@@ -1,9 +1,10 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import Messages from "../../environment/messages.js";
+import Messages from "../environment/messages.js";
 import propagate from "./propagate.js";
 import getBranches from "./getBranches.js";
+
 /**
  * @description Given an array of unsolved facePair keys, attempt to solve
  * the entire set by guessing both states (1, 2) for one key, propagate any
@@ -14,12 +15,13 @@ import getBranches from "./getBranches.js";
  * to the "...orders" parameter. When all unsolvedKeys are solved, the result
  * is an array of solutions, each solving represeting the set of solutions from
  * each depth. Combine these solutions using Object.assign({}, ...orders)
- * @param {Constraints} constraints an object containing all four cases, inside
- * of each is an (very large, typically) array of all constraints as a list of faces.
- * @param {object} lookup a map which contains, for every
- * taco/tortilla/transitivity case (top level keys), inside each is an object
- * which relates each facePair (key) to an array of indices (value),
- * where each index is an index in the "constraints" array
+ * @param {TacoTortillaTransitivityConstraints} constraints an object
+ * containing all four cases, inside of each is an (very large, typically)
+ * array of all constraints as a list of faces.
+ * @param {TacoTortillaTransitivityLookup} lookup a map which contains,
+ * for every taco/tortilla/transitivity case (top level keys), inside each
+ * is an object which relates each facePair (key) to an array of
+ * indices (value), where each index is an index in the "constraints" array
  * in which **both** of these faces appear.
  * @param {string[]} unsolvedKeys array of facePair keys to be solved
  * @param {...object} ...orders any number of facePairsOrder solutions
@@ -78,16 +80,22 @@ const solveBranch = (
 		.map(order => ([...orders, order]))
 		.concat(...recursed);
 };
+
 /**
  * @description Recursively calculate all layer order solutions between faces
  * in a flat-folded FOLD graph.
- * @param {object} solverParams the parameters for the solver which include:
- * - {object} constraints for each taco/tortilla type, an array of each
+ * @param {{
+ *   constraints: TacoTortillaTransitivityConstraints,
+ *   lookup: TacoTortillaTransitivityLookup,
+ *   facePairs: string[],
+ *   orders: { [key: string]: number },
+ * }} solverParams the parameters for the solver which include:
+ * - constraints for each taco/tortilla type, an array of each
  *   condition, each condition being an array of all faces involved.
- * - {object} lookup for each taco/tortilla type, a reverse lookup table
+ * - lookup for each taco/tortilla type, a reverse lookup table
  *   where each face-pair contains an array of all constraints its involved in
- * - {string[]} facePairs an array of space-separated face pair strings
- * - {object} orders a prelimiary solution to some of the facePairs
+ * - facePairs an array of space-separated face pair strings
+ * - orders a prelimiary solution to some of the facePairs
  *   with solutions in 1,2 value encoding. Useful for any pre-calculations,
  *   for example, pre-calculating edge-adjacent face pairs with known assignments.
  * @returns {object} a set of solutions where keys are face pairs
@@ -96,8 +104,9 @@ const solveBranch = (
  * append the "root" to one selection from each array in "branches".
  * @linkcode Origami ./src/layer/globalSolver/index.js 89
  */
-const solver2d = ({ constraints, lookup, facePairs, orders }) => {
+export const solver2D = ({ constraints, lookup, facePairs, orders }) => {
 	// propagate layer order starting with only the edge-adjacent face orders
+	/** @type { [key: string]: number } */
 	let initialResult;
 	try {
 		initialResult = propagate(constraints, lookup, Object.keys(orders), orders);
@@ -134,5 +143,3 @@ const solver2d = ({ constraints, lookup, facePairs, orders }) => {
 			.map(solution => Object.assign({}, ...solution)));
 	return { root, branches };
 };
-
-export default solver2d;

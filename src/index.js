@@ -11,7 +11,8 @@ import math from "./math/index.js";
 import singleVertex from "./singleVertex/index.js";
 import svg from "./svg/index.js";
 import webgl from "./webgl/index.js";
-import layer from "./layer/index.js";
+import layerMethods from "./layer/index.js";
+import { layer } from "./layer/layer.js";
 import diagram from "./diagrams/index.js";
 import svgLink from "./svg/environment/lib.js";
 
@@ -24,7 +25,7 @@ const ear = {
 	diagram,
 	general,
 	graph: Object.assign(graph, graphMethods),
-	layer,
+	layer: Object.assign(layer, layerMethods),
 	math,
 	singleVertex,
 	svg,
