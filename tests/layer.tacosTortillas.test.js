@@ -2,14 +2,14 @@ import { expect, test } from "vitest";
 import fs from "fs";
 import ear from "../rabbit-ear.js";
 
-// test("write file", () => {
-// const foldfile = fs.readFileSync("./tests/files/fold/five-panels.fold", "utf-8");
-// 	const fold = JSON.parse(foldfile);
-// 	fs.writeFileSync(
-// 		`./tests/tmp/folded-vertices.json`,
-// 		JSON.stringify(ear.graph.makeVerticesCoordsFlatFolded(fold).map(p => p.map(n => ear.general.cleanNumber(n, 12))), null, 2),
-// 	);
-// });
+test("write file", () => {
+const foldfile = fs.readFileSync("./tests/files/fold/layer-4-flaps.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	fs.writeFileSync(
+		`./tests/tmp/folded-vertices.json`,
+		JSON.stringify(ear.graph.makeVerticesCoordsFlatFolded(fold).map(p => p.map(n => ear.general.cleanNumber(n, 12))), null, 2),
+	);
+});
 
 test("tacosAndTortillas four panel square", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/panels-4x2.fold", "utf-8");

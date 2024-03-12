@@ -1,5 +1,26 @@
 import { expect, test } from "vitest";
+import fs from "fs";
 import ear from "../rabbit-ear.js";
+
+test("layer table", () => {
+	const layerTableJSON = fs.readFileSync(
+		"./tests/files/json/layer-table.json",
+		"utf-8"
+	);
+	const table = JSON.parse(layerTableJSON);
+	expect(ear.layer.table).toMatchObject(table);
+});
+
+test("immutability test", () => {
+	// this happens to be an array entry
+	// attempt to modify the inside of the array
+	ear.layer.table.taco_taco["000011"][0] == 99;
+
+	// the object should have been recursively frozen,
+	// it should not be possible to change a value even inside an array.
+	expect(ear.layer.table.taco_taco["000011"][0]).not.toBe(99);
+	expect(ear.layer.table.taco_taco["000011"][0]).toBe(2);
+});
 
 test("layer table structure", () => {
 	const keys = ["taco_taco", "taco_tortilla", "tortilla_tortilla", "transitivity"];

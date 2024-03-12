@@ -35,8 +35,8 @@ export const solveEdgeAdjacent = (
 	const assignmentOrder = { M: 1, m: 1, V: 2, v: 2 };
 
 	// quick lookup for face-pairs
-	const facePairsHash = {};
-	facePairs.forEach(key => { facePairsHash[key] = true; });
+	const facePairsLookup = {};
+	facePairs.forEach(key => { facePairsLookup[key] = true; });
 
 	// "solution" contains solved orders (1, 2) for face-pair keys.
 	/** @type {{ [key: string]: number }} */
@@ -47,7 +47,7 @@ export const solveEdgeAdjacent = (
 		const localOrder = assignmentOrder[assignment];
 
 		// skip boundary edges or edges with confusing assignments.
-		if (faces.length < 2 || localOrder === undefined) { return; }
+		if (faces.length !== 2 || localOrder === undefined) { return; }
 
 		// face[0] is the origin face.
 		// the direction of "m" or "v" will be inverted if face[0] is flipped.
@@ -58,13 +58,17 @@ export const solveEdgeAdjacent = (
 			? localOrder
 			: flipCondition[localOrder];
 
-		// todo: are all face order pairs sorted? do we need to check 2 like this?
-		const key1 = `${faces[0]} ${faces[1]}`;
-		const key2 = `${faces[1]} ${faces[0]}`;
-		if (key1 in facePairsHash) { solution[key1] = globalOrder; }
-		if (key2 in facePairsHash) {
-			solution[key2] = flipCondition[globalOrder];
-		}
+		// all face-pairs are stored "a b" where a < b. Our globalOrder is the
+		// relationship from faces[0] to faces[1], so if faces[0] > [1] we need
+		// to flip the order of faces, and flip the result.
+		const inOrder = faces[0] < faces[1];
+		const key = inOrder ? faces.join(" ") : faces.slice().reverse().join(" ");
+		const value = inOrder ? globalOrder : flipCondition[globalOrder];
+
+		if (facePairsLookup[key]) { solution[key] = value; }
+
+		// debug
+		if (!facePairsLookup[key]) { console.log("key was not in facePairLookup"); }
 	});
 	return solution;
 };
@@ -79,18 +83,29 @@ export const solveEdgeAdjacent = (
  * to the "...orders" parameter. When all unsolvedKeys are solved, the result
  * is an array of solutions, each solving represeting the set of solutions from
  * each depth. Combine these solutions using Object.assign({}, ...orders)
- * @param {TacoTortillaTransitivityConstraints} constraints an object
- * containing all four cases, inside of each is an (very large, typically)
- * array of all constraints as a list of faces.
- * @param {TacoTortillaTransitivityLookup} lookup a map which contains,
- * for every taco/tortilla/transitivity case (top level keys), inside each
- * is an object which relates each facePair (key) to an array of
+ * @param {{
+ *   taco_taco: TacoTacoConstraint[],
+ *   taco_tortilla: TacoTortillaConstraint[],
+ *   tortilla_tortilla: TortillaTortillaConstraint[],
+ *   transitivity: TransitivityConstraint[],
+ * }} constraints an object containing all constraints for the solver.
+ * @param {{
+ *   taco_taco: number[][],
+ *   taco_tortilla: number[][],
+ *   tortilla_tortilla: number[][],
+ *   transitivity: number[][],
+ * }} lookup a map which relates each facePair (key) to an array of
  * indices (value), where each index is an index in the "constraints" array
  * in which **both** of these faces appear.
  * @param {string[]} unsolvedKeys array of facePair keys to be solved
- * @param {...object} ...orders any number of facePairsOrder solutions
- * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
- * @linkcode Origami ./src/layer/globalSolver/index.js 29
+ * @param {...{[key: string]: number}} orders any number of facePairsOrder
+ * solutions which relate facePairs (key) like "3 5" to an order,
+ * either 0, 1, or 2.
+ * @returns {{[key: string]: number}[][]} an array of arrays of solution
+ * objects, where each top level array entry is a "branch" and inside each
+ * branch is an array of solution objects when taken together compose
+ * a complete solution.
+ * @linkcode
  */
 const solveBranch = (
 	constraints,
@@ -99,40 +114,55 @@ const solveBranch = (
 	...orders
 ) => {
 	if (!unsolvedKeys.length) { return []; }
+	// the purpose of this branch is to solve the unsolved keys, where currently,
+	// there is nothing to solve, so we make the first step by choosing one key
+	// guessing the value (either 1 or 2), and propagating that guess'
+	// state until we find it is to be either successful, impossible, or
+	// currently successful but not yet complete.
 	const guessKey = unsolvedKeys[0];
-	const completedSolutions = [];
-	const unfinishedSolutions = [];
-	// given the same guessKey with both 1 and 2 as the guess, run propagate.
-	[1, 2].forEach(b => {
-		let result;
+
+	/**
+	 * @param {number} guessValue
+	 * @returns {{[key: string]: number} | undefined} a new set of face-pair
+	 * solutions discovered via. propagate, or undefined if the guess was bad.
+	 */
+	const tryPropagate = (guessValue) => {
+		// our new guess key/value object
+		const guess = { [guessKey]: guessValue };
+
+		// propagate a guess with the one new guess key/value, if successful,
+		// the one guess is left out of the result, so, append it to the result.
+		// if propagate throws, it's not a problem, simply throw away this guess.
 		try {
-			result = propagate(
-				constraints,
-				lookup,
-				[guessKey],
-				...orders,
-				{ [guessKey]: b },
-			);
-		} catch (error) {
-			// propagate made a guess and it turned out to cause a conflict.
-			// throw away this guess.
-			return;
-		}
-		// for valid results:
-		// check if all variables are solved or more work is required.
-		// currently, the one guess itself is left out of the result object.
-		// we could either combine the objects, or add this guess directly in.
-		result[guessKey] = b;
-		// store the result as either completed or unfinished
-		if (Object.keys(result).length === unsolvedKeys.length) {
-			completedSolutions.push(result);
-		} else {
-			unfinishedSolutions.push(result);
-		}
-	});
-	// recursively call this method with any unsolved solutions and filter
-	// any keys that were found in that solution out of the unsolved keys
-	const recursed = unfinishedSolutions
+			const result = propagate(constraints, lookup, [guessKey], ...orders, guess);
+			return Object.assign(result, guess);
+		} catch (error) {}
+		return undefined;
+	};
+
+	// now that we have our guessKey, choose all possible values that the key
+	// can be (either 1 or 2) and run propagate with a new solution subset object.
+	const guessResults = [1, 2]
+		.map(tryPropagate)
+		.filter(a => a !== undefined);
+
+	// check if all variables are solved or more work is required.
+	// store the result as either completed or unfinished
+	const resultCount = guessResults
+		.map(result => Object.keys(result).length);
+	const completed = guessResults
+		.filter((_, i) => resultCount[i] === unsolvedKeys.length)
+	const unfinished = guessResults
+		.filter((_, i) => resultCount[i] !== unsolvedKeys.length)
+
+	// For every unfinished solution, where each solution contains a different
+	// result to one or more of the face-pairs from each other, consider each
+	// of these to now be a new branch in the total set of possible solutions
+	// to explore. Each branch may or may not end up being successful, and if
+	// unsuccessful, the recursed branch will become undefined, which will get
+	// filtered out later in the return statement. Recurse with the subset of
+	// unfinishedKeys, and append the new branch's set of orders to the end.
+	const recursed = unfinished
 		.map(order => solveBranch(
 			constraints,
 			lookup,
@@ -140,8 +170,12 @@ const solveBranch = (
 			...orders,
 			order,
 		));
-	return completedSolutions
-		.map(order => ([...orders, order]))
+
+	// each branch is an individual entry in this array, where each branch itself
+	// is a list of order objects, where each object covers a subset of the total
+	// solution.
+	return completed
+		.map(order => [...orders, order])
 		.concat(...recursed);
 };
 
@@ -174,15 +208,19 @@ const solveBranch = (
  *   for example, pre-calculating edge-adjacent face pairs with known assignments.
  * @returns {{
  *   root: {[key:string]: number},
- *   branches: {[key:string]: number}[],
+ *   branches: {[key: string]: number}[][],
  * }} a set of solutions where keys are space-separated face pair strings,
- * and values are +1 or -1 describing the relationship of the two faces.
+ * and values are 1 or 2 describing the relationship of the two faces.
  * Results are stored in "root" and "branches", to compile a complete solution,
  * append the "root" to one selection from each array in "branches".
  * @linkcode
  */
-export const solver2D = ({ constraints, lookup, facePairs, orders }) => {
-	// propagate layer order starting with only the edge-adjacent face orders
+export const solve = ({ constraints, lookup, facePairs, orders }) => {
+	// "orders" is any pre-solved orders between faces, in the default case,
+	// this contains orders which were solved bewteen edge-adjacent pairs of
+	// faces. Whatever this input set is, we use it as the seed for the
+	// first run through propagate which will stop the moment that it finds
+	// a branch. The result is a set of orders which are true for all cases.
 	/** @type { [key: string]: number } */
 	let initialResult;
 	try {
@@ -190,12 +228,15 @@ export const solver2D = ({ constraints, lookup, facePairs, orders }) => {
 	} catch (error) {
 		throw new Error(Messages.noLayerSolution, { cause: error });
 	}
+
 	// get all keys unsolved after the first round of propagate
 	const remainingKeys = facePairs
 		.filter(key => !(key in orders))
 		.filter(key => !(key in initialResult));
+
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
+	/** @type {{[key: string]: number}[][][]} */
 	let branchResults;
 	try {
 		branchResults = getBranches(remainingKeys, constraints, lookup)
@@ -209,14 +250,27 @@ export const solver2D = ({ constraints, lookup, facePairs, orders }) => {
 	} catch (error) {
 		throw new Error(Messages.noLayerSolution, { cause: error });
 	}
+
 	// solver is finished.
 	// the set of face-pair solutions which are true for all branches
 	const root = { ...orders, ...initialResult };
+
+	// due to the recursive nature of getBranches, each branch contains every
+	// solution object which compiles into a result, including the first two
+	// (orders, initialResult) which are returned as "root". remove these two
+	// from the result, intending that to "compile" a result you will need
+	// to join the root data with the branches data.
+	branchResults
+		.forEach(branch => branch
+			.forEach(solution => solution.splice(0, 2)));
+
 	// each branch result is spread across multiple objects
 	// containing a solution for a subset of the entire set of faces, one for
 	// each recursion depth. for each branch solution, merge its objects into one.
+	/** @type {{[key: string]: number}[][]} */
 	const branches = branchResults
 		.map(branch => branch
 			.map(solution => Object.assign({}, ...solution)));
+
 	return { root, branches };
 };

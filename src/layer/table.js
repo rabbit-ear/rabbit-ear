@@ -51,61 +51,89 @@ const transitivity_valid_states = [
 ];
 
 /**
- * @param {object[]} states, array of objects containing permutations (keys)
- *  and their values (solution is possible or not)
- * @param {number} t, 0...N the index in "states" we are looking at.
- * @param {string} key, a layer order as a string, like "001221"
+ * @description Find a solution for a state. Solutions will be either:
+ * - false: indicating the state is invalid
+ * - true: indicating the state is valid (if not yet complete)
+ * - [a, b]: a modification suggestion to change index [a] to value b.
+ * When this method is called for a key, all states in the "states" array
+ * with one fewer zero (unknown) than our current key have at this point
+ * already been solved. So, modify our key by replacing a zero with a guess,
+ * check the state and see if we can find a modification suggestion, ultimately
+ * building a chain of suggestions that lead keys to solutions (where possible).
+ * @param {{[key: string]: (boolean | [number, number])}[]} states an array of
+ * objects encoding a layer state to a result.
+ * @param {number} t a number between 0 and N, indicating the number of zeros
+ * in this key, and indicating the index in "states" we should be writing to.
+ * @param {string} key a layer order as a string, like "001221"
  */
-const check_state = (states, t, key) => {
+const setState = (states, t, key) => {
 	// convert the key into an array of integers (0, 1, 2)
-	const A = Array.from(key).map(char => parseInt(char, 10));
+	const characters = Array.from(key).map(char => parseInt(char, 10));
+
 	// for each "t" index of states, only include keys which contain
 	// "t" number of unknowns (0s).
-	if (A.filter(x => x === 0).length !== t) { return; }
+	if (characters.filter(x => x === 0).length !== t) { return; }
+
+	// initialize the result to false (no solution possible).
 	states[t][key] = false;
-	// solution will either be 0, 1, or an array of modifications
-	let solution = false;
-	for (let i = 0; i < A.length; i += 1) {
-		const modifications = [];
-		// look at the unknown layers only (index is 0)
-		if (A[i] !== 0) { continue; }
+
+	// solution will either be true, false, or an array of two integers
+	// where the two integers describe a modification to be made.
+	// if we encounter a valid suggestion (modify one character takes us
+	// to a valid state), store it here.
+	const modifications = [];
+
+	// iterate through every character (only the zero characters),
+	// replace it with a 1 and a 2 and see if either lead us to a valid solution.
+	for (let i = 0; i < characters.length; i += 1) {
+		const roundModifications = [];
+
+		// look at the unknown layers only (where the character is zero)
+		if (characters[i] !== 0) { continue; }
+
 		// in place of the unknowns, try each of the possible states (1, 2)
 		for (let x = 1; x <= 2; x += 1) {
-			// temporarily set the state to this new possible state.
-			A[i] = x;
-			// if this state exists in the previous set, save this solution.
-			if (states[t - 1][A.join("")] !== false) {
-				modifications.push([i, x]);
+			// temporarily modify the character in place to our guess
+			characters[i] = x;
+
+			// if this state exists in the previous set, save the modification
+			// instruction which would lead our key to this next key.
+			if (states[t - 1][characters.join("")] !== false) {
+				roundModifications.push([i, x]);
 			}
 		}
-		// reset the state back to 0
-		A[i] = 0;
-		// if we found modifications (even if we aren't using them), the
-		// solution is no longer 0. solution is either 1 or modifications.
-		if (modifications.length > 0 && solution === false) {
-			solution = [];
+
+		// undo our guess, set it back to 0, in preparation for the next iteration
+		characters[i] = 0;
+
+		// if we found a modifications instruction (even if we aren't using them),
+		// we can say the solution is no longer false. now we just need to know if
+		// the solution will be a modification instruction or simply "true".
+		if (roundModifications.length) {
+			states[t][key] = true;
 		}
-		// this round's modifications will be length of 2 if we added
-		// both possible states (1, 2), if this happens, we can't infer anything.
-		// only accept a modification when it's the only one (length is 1).
-		if (modifications.length === 1) {
-			solution.push(modifications[0]);
+
+		// if roundModifications is length 2, this means both possible states
+		// led us to a solution, therefore we can't infer anything.
+		// only add a modification instruction if this round found only 1.
+		if (roundModifications.length === 1) {
+			modifications.push(roundModifications[0]);
 		}
 	}
-	// if we invalidated a 0 solution (solution impossible), and no modifications
-	// were able to be added, solution is 1, meaning, currently valid (if unsolved).
-	if (solution !== false && solution.length === 0) {
-		solution = true;
+
+	// if found, the result will be the (first) modification instruction.
+	// it doesn't matter which one, we just need one.
+	if (modifications.length) {
+		states[t][key] = modifications[0];
 	}
-	states[t][key] = solution;
 };
 
 /**
  * @description make a lookup table for every possible state of a taco/
  * tortilla combination, given the particular taco/tortilla valid states.
  * the value of each state is one of 3 values (2 numbers, 1 array):
- * - 0: layer order is not valid
- * - 1: layer order is currently valid. and is either solved (key contains
+ * - false: layer order is not valid
+ * - true: layer order is currently valid. and is either solved (key contains
  *   no zeros / unknowns), or it is not yet invalid and can still be solved.
  * - (Array): two numbers, [index, value], modify the current layer by
  *   changing the number at index to the value.
@@ -117,60 +145,47 @@ const makeLookupEntry = (valid_states) => {
 	// the choose count can be inferred by the length of the valid states
 	// (assuming they are all the same length)
 	const chooseCount = valid_states[0].length;
-	// array of empty objects
+
+	// this array will contain all states (keys) and their solutions (values).
+	// the states are sorted into arrays of objects, where keys are sorted by
+	// how many 0s they contain (index [0]: no zeros, index [1]: 1 zero...)
+	/** @type {{[key: string]: (boolean | [number, number])}[]} */
 	const states = Array
 		.from(Array(chooseCount + 1))
 		.map(() => ({}));
-	// all permutations of 1s and 2s (no zeros), length of chooseCount.
-	// examples for (6): 111112, 212221
-	// set the value of these to "false" (solution is impossible)
-	// with the valid cases to be overwritten in the next step.
+
+	// this array initializer will create all permutations of 1s and 2s (no zeros)
+	// all strings having the length of chooseCount. (ie. for 6: 111112, 212221)
+	// because all these keys contain no zeros, they are all inside the [0] index.
+	// initialize all keys to "false" for now.
 	Array.from(Array(2 ** chooseCount))
 		.map((_, i) => i.toString(2))
 		.map(str => Array.from(str).map(n => parseInt(n, 10) + 1).join(""))
 		.map(str => (`11111${str}`).slice(-chooseCount))
 		.forEach(key => { states[0][key] = false; });
-	// set the valid cases to "true" (solution is possible)
+
+	// set all valid cases to be "true" (indicating the solution is possible)
 	valid_states.forEach(s => { states[0][s] = true; });
-	// "t" relates to the number of unknowns (# zeros). layer 0 is complete,
-	// start at layer 1 and count up to chooseCount.
+
+	// now we fill in the rest of the states. In a similar manner as before,
+	// create all permuations, length of chooseCount, but this time include
+	// 0, 1, or 2 for every character. "t" relates to the number of unknowns
+	// (number of zeros) this will be the index in "states" we store this key.
+	// level [0] is already complete, start incrementing from level [1].
 	Array.from(Array(chooseCount))
 		.map((_, i) => i + 1)
-		// make all permuations of 0s, 1s, and 2s now, length of chooseCount.
-		// (all possibile permuations of layer orders)
 		.map(t => Array.from(Array(3 ** chooseCount))
 			.map((_, i) => i.toString(3))
 			.map(str => (`000000${str}`).slice(-chooseCount))
-			.forEach(key => check_state(states, t, key)));
-	// todo: the filter at the beginning of check_state is throwing away
-	// a lot of solutions, duplicating work, in the first array here, instead
-	// of being smart about it, only doing one loop, and sorting them here
-	// before entering check_state.
-	// gather solutions together into one object. if a layer order has
-	// multiple suggested modifications, grab the first one
-	let outs = [];
-	// array decrementing integers from [chooseCount...0]
-	Array.from(Array(chooseCount + 1))
-		.map((_, i) => chooseCount - i)
-		.forEach(t => {
-			const A = [];
-			// currently, each value is either a number (0 or 1), or
-			// an array of multiple modifications, in which case, we only need one.
-			Object.keys(states[t]).forEach(key => {
-				let out = states[t][key];
-				// multiple modifications are possible, get the first one.
-				if (out.constructor === Array) { out = out[0]; }
-				A.push([key, out]);
-			});
-			outs = outs.concat(A);
-		});
-	// this is unnecessary but because for Javascipt object keys,
-	// insertion order is preserved, sort keys for cleaner output.
-	outs.sort((a, b) => parseInt(a[0], 10) - parseInt(b[0], 10));
-	// return data as an object.
+			.forEach(key => setState(states, t, key)));
+
+	// gather all solutions together into one object.
+	const lookup = states.reduce((a, b) => ({ ...a, ...b }));
+
 	// recursively freeze result, this is intended to be an immutable reference
-	const lookup = {};
-	outs.forEach(el => { lookup[el[0]] = Object.freeze(el[1]); });
+	Object.keys(lookup)
+		.filter(key => typeof lookup[key] === "object")
+		.forEach(key => { lookup[key] = Object.freeze(lookup[key]); });
 	return Object.freeze(lookup);
 };
 

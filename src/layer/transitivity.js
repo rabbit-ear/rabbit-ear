@@ -67,11 +67,11 @@ export const makeTransitivity = (
 
 /**
  * @description When we calculate taco-taco and taco-tortilla constraints,
- * we are already establishing a relationship between three faces involved in
- * each constraint, therefore, we can remove these cases from our (very large)
- * list of transitivity constraints. This will return all 3-face combinations
- * present in all taco-taco and taco-tortilla lists. Use this object to filter
- * the transitivity list.
+ * we are already establishing a relationship between three faces, therefore,
+ * we can remove these cases from our list of transitivity constraints.
+ * This method returns a lookup table of all permutations of three faces found
+ * in the taco-taco and taco-tortillas, the intention is that you use this list
+ * to filter out any matches from the already computed transitivity list.
  * @param {{
  *   taco_taco: TacoTacoConstraint[],
  *   taco_tortilla: TacoTortillaConstraint[],

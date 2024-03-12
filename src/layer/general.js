@@ -18,12 +18,12 @@ import {
  * @constant
  * @type {string[]}
  */
-export const tacoTypeNames = Object.freeze([
+export const tacoTypeNames = [
 	"taco_taco",
 	"taco_tortilla",
 	"tortilla_tortilla",
 	"transitivity"
-]);
+];
 
 /**
  * @description for every edge, find all other edges which are

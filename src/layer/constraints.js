@@ -141,7 +141,12 @@ export const makeTacosTortillasTransitivity = ({
  *   },
  *   facePairs: string[],
  *   faces_winding: boolean[],
- * }}
+ * }} all data required for the solver, including:
+ * - constraints
+ * - lookup: which tells us location of faces inside of constraints
+ * - facePairs: all conditions that need to be solved, a list of
+ * space-separated pairs of face indices, "a b" where a < b.
+ * - faces_winding: for every face, which direction is the winding
  */
 export const makeSolverConstraints = ({
 	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,

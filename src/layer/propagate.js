@@ -48,16 +48,24 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 	// the facePair. for each facePair get the first solution found, and
 	// in the case of no solution, that facePair will be 0 (unknown).
 	// join this together into a string, (eg: "010021")
-	const key = facePairs.map((facePair, i) => {
-		for (let o = 0; o < orders.length; o += 1) {
-			if (orders[o][facePair]) {
-				return flipped[i]
-					? flipFacePairOrder[orders[o][facePair]]
-					: orders[o][facePair];
-			}
-		}
-		return 0;
-	}).join("");
+	// const key = facePairs.map((facePair, i) => {
+	// 	for (let o = 0; o < orders.length; o += 1) {
+	// 		if (orders[o][facePair]) {
+	// 			return flipped[i]
+	// 				? flipFacePairOrder[orders[o][facePair]]
+	// 				: orders[o][facePair];
+	// 		}
+	// 	}
+	// 	return 0;
+	// }).join("");
+
+	// for each facePair, get the first available entry in orders, or 0 if none.
+	const key = facePairs
+		.map(facePair => orders.find(o => o[facePair]))
+		.map((order, i) => (order === undefined ? 0 : order[facePairs[i]]))
+		.map((value, i) => (flipped[i] ? flipFacePairOrder[value] : value))
+		.join("");
+
 	// now, consult the lookup table. if the result is a boolean, return it.
 	if (table[type][key] === true || table[type][key] === false) {
 		return table[type][key];

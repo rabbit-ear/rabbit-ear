@@ -13,7 +13,7 @@ import {
 } from "./constraints.js";
 import {
 	solveEdgeAdjacent,
-	solver2D,
+	solve,
 } from "./solver.js";
 import LayerPrototype from "./prototype.js";
 
@@ -26,7 +26,7 @@ import LayerPrototype from "./prototype.js";
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
  *   root: {[key:string]: number},
- *   branches: {[key:string]: number}[],
+ *   branches: {[key:string]: number}[][],
  *   faces_winding: number[],
  * }} an object that describes all layer orderings, where the "root" orders
  * are true for all solutions, and each object in "branches" can be appended
@@ -75,7 +75,7 @@ const solveLayer = ({
 	}, facePairs, faces_winding);
 
 	// the result of the solver, or undefined if no solution is possible
-	const { root, branches } = solver2D({ constraints, lookup, facePairs, orders });
+	const { root, branches } = solve({ constraints, lookup, facePairs, orders });
 
 	// wrap the result in the layer solution prototype
 	return {
