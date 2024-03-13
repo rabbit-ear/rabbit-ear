@@ -9,7 +9,7 @@ import {
 } from "../graph/connectedComponents.js";
 import {
 	getFacesFacesOverlap,
-} from "../graph/intersect/facesFaces.js";
+} from "../graph/overlap.js";
 import {
 	makeFacesWinding,
 } from "../graph/faces/winding.js";
@@ -46,16 +46,19 @@ export const makeConstraintsLookup = (constraints) => {
 	const lookup = {};
 	// fill the top layer with "taco / tortilla" category names
 	Object.keys(constraints).forEach(key => { lookup[key] = {}; });
-	Object.keys(constraints).forEach(type => {
-		constraints[type]
+
+	// fill every entry with an empty array
+	Object.keys(constraints)
+		.forEach(type => constraints[type]
+			.forEach(constraint => constraintToFacePairsStrings[type](constraint)
+				.forEach(key => { lookup[type][key] = []; })));
+
+	// populate arrays
+	Object.keys(constraints)
+		.forEach(type => constraints[type]
 			.forEach((constraint, i) => constraintToFacePairsStrings[type](constraint)
-				.forEach(key => {
-					if (lookup[type][key] === undefined) {
-						lookup[type][key] = [];
-					}
-					lookup[type][key].push(i);
-				}));
-	});
+				.forEach(key => lookup[type][key].push(i))));
+
 	return lookup;
 };
 

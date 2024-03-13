@@ -19,6 +19,14 @@ test("overlappingParallelEdgePairs panel 4x2", () => {
 	]);
 });
 
+test("overlappingParallelEdgePairs strip weave", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+	expect(ear.layer.overlappingParallelEdgePairs(folded).length).toBe(0);
+});
+
 test("overlappingParallelEdgePairs triangle strip", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/triangle-strip.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
@@ -75,8 +83,21 @@ test("edgesFacesSide", () => {
 		.toMatchObject([[1], [1], [1], [1], [-1, 1]]);
 });
 
-test("facesSide panel 5", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/panels-5.fold", "utf-8");
+test("edgesFacesSide strip weave", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+	folded.faces_center = ear.graph.makeFacesConvexCenter(folded);
+	// all non boundary are taco-taco (same side)
+	expect(ear.layer.makeEdgesFacesSide(folded)).toMatchObject([
+		[1],[-1],[1],[-1],[-1],[1],[-1],[1],[-1,-1],[1,1],[1],[-1],[1],
+		[-1],[1],[-1],[1,1],[-1,-1],[1],[1,1],[-1,-1],[-1],[-1],
+	]);
+});
+
+test("facesSide panels zig zag", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/panels-zig-zag.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);

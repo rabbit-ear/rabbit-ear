@@ -25,7 +25,6 @@ import {
  */
 export const solveEdgeAdjacent = (
 	{ edges_faces, edges_assignment },
-	facePairs,
 	faces_winding,
 ) => {
 	// flip 1 and 2 to be the other, leaving 0 to be 0.
@@ -33,10 +32,6 @@ export const solveEdgeAdjacent = (
 
 	// neighbor faces determined by crease between them
 	const assignmentOrder = { M: 1, m: 1, V: 2, v: 2 };
-
-	// quick lookup for face-pairs
-	const facePairsLookup = {};
-	facePairs.forEach(key => { facePairsLookup[key] = true; });
 
 	// "solution" contains solved orders (1, 2) for face-pair keys.
 	/** @type {{ [key: string]: number }} */
@@ -46,7 +41,7 @@ export const solveEdgeAdjacent = (
 		const assignment = edges_assignment[edge];
 		const localOrder = assignmentOrder[assignment];
 
-		// skip boundary edges or edges with confusing assignments.
+		// skip boundary edges, non-manifold edges, and irrelevant assignments
 		if (faces.length !== 2 || localOrder === undefined) { return; }
 
 		// face[0] is the origin face.
@@ -65,10 +60,7 @@ export const solveEdgeAdjacent = (
 		const key = inOrder ? faces.join(" ") : faces.slice().reverse().join(" ");
 		const value = inOrder ? globalOrder : flipCondition[globalOrder];
 
-		if (facePairsLookup[key]) { solution[key] = value; }
-
-		// debug
-		if (!facePairsLookup[key]) { console.log("key was not in facePairLookup"); }
+		solution[key] = value;
 	});
 	return solution;
 };

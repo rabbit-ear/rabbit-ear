@@ -29,7 +29,7 @@ import {
 } from "../../graph/faces/planes.js";
 import {
 	getFacesFacesOverlap,
-} from "../../graph/intersect/facesFaces.js";
+} from "../../graph/overlap.js";
 import makeTacosTortillas from "../solver2d/tacosAndTortillas.js";
 import {
 	makeTransitivity,
@@ -275,7 +275,7 @@ export const setup = ({
 	// before we run the solver, solve all of the conditions that we can.
 	// at this point, this means adjacent faces with an M or V edge between them.
 	sets_graphs
-		.map(el => solveEdgeAdjacent(el, facePairs, faces_winding))
+		.map(el => solveEdgeAdjacent(el, faces_winding))
 		.forEach(el => Object.assign(orders, el));
 	// console.timeEnd("setup.js ...makeConstraints, solveEdgeAdjacent");
 	// console.log("sets_graphs", sets_graphs);

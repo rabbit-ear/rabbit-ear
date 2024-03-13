@@ -72,7 +72,7 @@ const solveLayer = ({
 	const orders = solveEdgeAdjacent({
 		edges_faces,
 		edges_assignment,
-	}, facePairs, faces_winding);
+	}, faces_winding);
 
 	// the result of the solver, or undefined if no solution is possible
 	const { root, branches } = solve({ constraints, lookup, facePairs, orders });

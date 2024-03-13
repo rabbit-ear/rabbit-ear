@@ -17,6 +17,7 @@ import * as maps from "./maps.js";
 import * as nearestMethods from "./nearest.js";
 import * as normals from "./normals.js";
 import * as orders from "./orders.js";
+import * as overlap from "./overlap.js";
 import * as pleat from "./pleat.js";
 import * as splitEdge from "./split/splitEdge.js";
 import * as splitFace from "./split/splitFace.js";
@@ -44,12 +45,6 @@ import * as edgesLines from "./edges/lines.js";
 import * as facesPlanes from "./faces/planes.js";
 import * as facesMatrix from "./faces/matrix.js";
 import * as facesWinding from "./faces/winding.js";
-import * as intersectVertices from "./intersect/vertices.js";
-import * as intersectEdges from "./intersect/edges.js";
-import * as intersectEdgesEdges from "./intersect/edgesEdges.js";
-import * as intersectEdgesFaces from "./intersect/edgesFaces.js";
-import * as intersectFaces from "./intersect/faces.js";
-import * as intersectFacesFaces from "./intersect/facesFaces.js";
 import * as foldCreasePattern from "./fold/foldCreasePattern.js";
 import * as flatFold from "./fold/flatFold.js";
 import * as foldLine from "./fold/foldLine.js";
@@ -87,6 +82,7 @@ export default {
 	...nearestMethods,
 	...normals,
 	...orders,
+	...overlap,
 	...pleat,
 	...splitEdge,
 	...splitFace,
@@ -114,12 +110,6 @@ export default {
 	...facesPlanes,
 	...facesMatrix,
 	...facesWinding,
-	...intersectVertices,
-	...intersectEdges,
-	...intersectEdgesEdges,
-	...intersectEdgesFaces,
-	...intersectFaces,
-	...intersectFacesFaces,
 	...addVertices,
 	...addEdges,
 	...foldCreasePattern,

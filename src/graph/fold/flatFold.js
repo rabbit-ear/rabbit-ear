@@ -5,6 +5,9 @@ import {
 	EPSILON,
 } from "../../math/constant.js";
 import {
+	magnitude2,
+	normalize2,
+	dot2,
 	cross2,
 	subtract2,
 } from "../../math/vector.js";
@@ -27,11 +30,11 @@ import {
 	makeVerticesCoordsFoldedFromMatrix2,
 } from "../vertices/folded.js";
 import {
+	makeVerticesEdgesUnsorted,
+} from "../make.js";
+import {
 	faceContainingPoint,
 } from "../faces/facePoint.js";
-import {
-	getEdgesCollinearToLine,
-} from "../intersect/edges.js";
 import {
 	makeFacesWindingFromMatrix2,
 } from "../faces/winding.js";
@@ -126,6 +129,65 @@ const foldFacesLayer = (faces_layer, faces_folding) => {
 		.sort((a, b) => faces_layer[b] - faces_layer[a]) // reverse order here
 		.forEach((face, i) => { new_faces_layer[face] = not_folding.length + i; });
 	return new_faces_layer;
+};
+
+/**
+ *
+ */
+export const getVerticesCollinearToLine = (
+	{ vertices_coords },
+	{ vector, origin },
+	epsilon = EPSILON,
+) => {
+	const normalizedLineVec = normalize2(vector);
+	const pointIsCollinear = (point) => {
+		const originToPoint = subtract2(point, origin);
+		const mag = magnitude2(originToPoint);
+		// point and origin are the same
+		if (Math.abs(mag) < epsilon) { return true; }
+		// normalize both vectors, compare dot product
+		const originToPointUnit = originToPoint.map(n => n / mag);
+		const dotprod = Math.abs(dot2(originToPointUnit, normalizedLineVec));
+		return Math.abs(1.0 - dotprod) < epsilon;
+	};
+	return vertices_coords
+		.map(pointIsCollinear)
+		.map((a, i) => ({ a, i }))
+		.filter(el => el.a)
+		.map(el => el.i);
+};
+
+/**
+ * @description Find all edges in a graph which lie parallel
+ * and on top of a line (infinite line). Can be 2D or 3D.
+ * O(n) where n=edges
+ * @param {FOLD} graph a FOLD object
+ * @param {VecLine} line a line with a vector and origin component
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[]} array of edge indices which are collinear to the line
+ * @linkcode Origami ./src/graph/intersect.js 39
+ */
+export const getEdgesCollinearToLine = (
+	{ vertices_coords, edges_vertices, vertices_edges },
+	{ vector, origin },
+	epsilon = EPSILON,
+) => {
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
+	const verticesCollinear = getVerticesCollinearToLine(
+		{ vertices_coords },
+		{ vector, origin },
+		epsilon,
+	);
+	const edgesCollinearCount = edges_vertices.map(() => 0);
+	verticesCollinear
+		.forEach(vertex => vertices_edges[vertex]
+			.forEach(edge => { edgesCollinearCount[edge] += 1; }));
+	return edgesCollinearCount
+		.map((count, i) => ({ count, i }))
+		.filter(el => el.count === 2)
+		.map(el => el.i);
 };
 
 /**

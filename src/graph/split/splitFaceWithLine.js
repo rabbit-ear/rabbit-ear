@@ -1,13 +1,18 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import { EPSILON } from "../../math/constant.js";
+import {
+	includeL,
+	excludeS,
+} from "../../math/compare.js";
+import { overlapLinePoint } from "../../math/overlap.js";
+import { intersectLineLine } from "../../math/intersect.js";
 import {
 	distance,
 	subtract,
+	subtract2,
 } from "../../math/vector.js";
-import {
-	intersectConvexFaceLine,
-} from "../intersect/faces.js";
 import {
 	sortVerticesCounterClockwise,
 } from "../vertices/sort.js";
@@ -24,6 +29,82 @@ import {
 } from "./splitEdge.js";
 import remove from "../remove.js";
 import Messages from "../../environment/messages.js";
+
+/**
+ * @description intersect a convex face with a line and return the location
+ * of the intersections as components of the graph. this is an EXCLUSIVE
+ * intersection. line collinear to the edge counts as no intersection.
+ * there are 5 cases:
+ * - no intersection (undefined)
+ * - intersect one vertex (undefined)
+ * - intersect two vertices (valid, or undefined if neighbors)
+ * - intersect one vertex and one edge (valid)
+ * - intersect two edges (valid)
+ * @param {FOLD} graph a FOLD object
+ * @param {number} face the index of the face
+ * @param {number[]} vector the vector component describing the line
+ * @param {number[]} origin a point that lies along the line
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object|undefined} "vertices" and "edges" keys, indices of the
+ * components which intersect the line. or undefined if no intersection
+ * @linkcode Origami ./src/graph/intersect.js 162
+ */
+export const intersectConvexFaceLine = ({
+	vertices_coords, edges_vertices, faces_vertices, faces_edges,
+}, face, { vector, origin }, epsilon = EPSILON) => {
+	// give us back the indices in the faces_vertices[face] array
+	// we can count on these being sorted (important later)
+	const face_vertices_indices = faces_vertices[face]
+		.map(v => vertices_coords[v])
+		.map(coord => overlapLinePoint({ vector, origin }, coord, () => true, epsilon))
+		.map((overlap, i) => (overlap ? i : undefined))
+		.filter(i => i !== undefined);
+	// o-----o---o  we have to test against cases like this, where more than two
+	// |         |  vertices lie along one line.
+	// o---------o
+	const vertices = face_vertices_indices.map(i => faces_vertices[face][i]);
+	// concat a duplication of the array where the second array's vertices'
+	// indices' are all increased by the faces_vertices[face].length.
+	// ask every neighbor pair if they are 1 away from each other, if so, the line
+	// lies along an outside edge of the convex poly, return "no intersection".
+	// the concat is needed to detect neighbors across the end-beginning loop.
+	const vertices_are_neighbors = face_vertices_indices
+		.concat(face_vertices_indices.map(i => i + faces_vertices[face].length))
+		.map((n, i, arr) => arr[i + 1] - n === 1)
+		.reduce((a, b) => a || b, false);
+	// if vertices are neighbors
+	// because convex polygon, if collinear vertices lie along an edge,
+	// it must be an outside edge. this case returns no intersection.
+	if (vertices_are_neighbors) { return undefined; }
+	if (vertices.length > 1) { return { vertices, edges: [] }; }
+	// run the line-segment intersection on every side of the face polygon
+	const edges = faces_edges[face]
+		.map(edge => edges_vertices[edge]
+			.map(v => vertices_coords[v]))
+		.map(seg => intersectLineLine(
+			{ vector, origin },
+			{ vector: subtract2(seg[1], seg[0]), origin: seg[0] },
+			includeL,
+			excludeS,
+			epsilon,
+		).point).map((coords, face_edge_index) => ({
+			coords,
+			edge: faces_edges[face][face_edge_index],
+		}))
+		// remove edges with no intersection
+		.filter(el => el.coords !== undefined)
+		// remove edges which share a vertex with a previously found vertex.
+		// these edges are because the intersection is near a vertex but also
+		// intersects the edge very close to the end.
+		.filter(el => !(vertices
+			.map(v => edges_vertices[el.edge].includes(v))
+			.reduce((a, b) => a || b, false)));
+	// only return the case with 2 intersections. for example, only 1 vertex
+	// intersection implies outside the polygon, collinear with one vertex.
+	return (edges.length + vertices.length === 2
+		? { vertices, edges }
+		: undefined);
+};
 
 /**
  * @description A circular array (data wraps around) requires 2 indices

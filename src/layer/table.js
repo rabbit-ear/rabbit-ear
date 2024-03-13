@@ -70,8 +70,10 @@ const setState = (states, t, key) => {
 	// convert the key into an array of integers (0, 1, 2)
 	const characters = Array.from(key).map(char => parseInt(char, 10));
 
-	// for each "t" index of states, only include keys which contain
-	// "t" number of unknowns (0s).
+	// filter out the keys which do not below in this set.
+	// the reason we aren't doing this ahead of time is because it requires
+	// parsing each character, which we are already doing here.
+	// only keys with the number of "0"s matching the number "t" are allowed.
 	if (characters.filter(x => x === 0).length !== t) { return; }
 
 	// initialize the result to false (no solution possible).
@@ -138,7 +140,8 @@ const setState = (states, t, key) => {
  * - (Array): two numbers, [index, value], modify the current layer by
  *   changing the number at index to the value.
  * @param {string[]} valid_states, one of the 3 set of valid states above
- * @returns {object} keys are layer states, possible solution as values.
+ * @returns {{[key: string]: (boolean | [number, number])}} an object that
+ * maps a state key to a result.
  */
 // const flip = { 0:0, 1:2, 2:1 };
 const makeLookupEntry = (valid_states) => {
@@ -172,6 +175,8 @@ const makeLookupEntry = (valid_states) => {
 	// 0, 1, or 2 for every character. "t" relates to the number of unknowns
 	// (number of zeros) this will be the index in "states" we store this key.
 	// level [0] is already complete, start incrementing from level [1].
+	// this is generating, for every level, the same set of strings, which is
+	// too much, however they will get filtered out inside setState.
 	Array.from(Array(chooseCount))
 		.map((_, i) => i + 1)
 		.map(t => Array.from(Array(3 ** chooseCount))
@@ -209,6 +214,7 @@ const makeLookupEntry = (valid_states) => {
  * relationship which can be inferred from the current state.
  * This is an implementation of an algorithm designed by [Jason Ku](//jasonku.mit.edu).
  */
+
 export const table = {
 	taco_taco: makeLookupEntry(taco_taco_valid_states),
 	taco_tortilla: makeLookupEntry(taco_tortilla_valid_states),

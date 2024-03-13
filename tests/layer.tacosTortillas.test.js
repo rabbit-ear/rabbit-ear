@@ -2,14 +2,14 @@ import { expect, test } from "vitest";
 import fs from "fs";
 import ear from "../rabbit-ear.js";
 
-test("write file", () => {
-const foldfile = fs.readFileSync("./tests/files/fold/layer-4-flaps.fold", "utf-8");
-	const fold = JSON.parse(foldfile);
-	fs.writeFileSync(
-		`./tests/tmp/folded-vertices.json`,
-		JSON.stringify(ear.graph.makeVerticesCoordsFlatFolded(fold).map(p => p.map(n => ear.general.cleanNumber(n, 12))), null, 2),
-	);
-});
+// test("write folded vertices", () => {
+// const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
+// 	const fold = JSON.parse(foldfile);
+// 	fs.writeFileSync(
+// 		`./tests/tmp/folded-vertices.json`,
+// 		JSON.stringify(ear.graph.makeVerticesCoordsFlatFolded(fold).map(p => p.map(n => ear.general.cleanNumber(n, 12))), null, 2),
+// 	);
+// });
 
 test("tacosAndTortillas four panel square", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/panels-4x2.fold", "utf-8");
@@ -48,9 +48,42 @@ test("tacosAndTortillas four panel square", () => {
 	expect(transitivity).toMatchObject([]);
 });
 
+test("tacosAndTortillas strip weave", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
 
-test("tacosAndTortillas five panels", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/panels-5.fold", "utf-8");
+	const {
+		taco_taco,
+		taco_tortilla,
+		tortilla_tortilla,
+		transitivity,
+		faces_winding,
+		faces_facesOverlap,
+	} = ear.layer.makeTacosTortillasTransitivity(folded);
+
+	// interestingly, this model, which obviously has various different layer
+	// solutions, results in no information for the solver.
+	expect(taco_taco).toMatchObject([]);
+	expect(taco_tortilla).toMatchObject([]);
+	expect(tortilla_tortilla).toMatchObject([]);
+	expect(transitivity).toMatchObject([[0, 1, 4]]);
+
+	expect(faces_winding).toMatchObject([true, false, true, false, false, true, false ]);
+	expect(faces_facesOverlap).toMatchObject([
+		[1, 4],
+		[0, 2, 4],
+		[1, 3, 5],
+		[2, 6],
+		[0, 1, 5],
+		[2, 4, 6],
+		[3, 5],
+	]);
+});
+
+test("tacosAndTortillas zig-zag panels", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/panels-zig-zag.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
@@ -78,7 +111,6 @@ test("tacosAndTortillas five panels", () => {
 
 	expect(transitivity).toMatchObject([[0, 1, 3]]);
 });
-
 
 test("tacosAndTortillas triangle strip", () => {
 	const fileStrip1 = fs.readFileSync("./tests/files/fold/triangle-strip.fold", "utf-8");
@@ -438,11 +470,6 @@ test("tacosAndTortillas Kraft bird", () => {
 		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(cp),
 	};
 	ear.graph.populate(folded);
-
-	// fs.writeFileSync(
-	// 	`./tests/tmp/tacos-tortillas.json`,
-	// 	JSON.stringify(res, null, 2),
-	// );
 
 	const resultFile = fs.readFileSync(
 		"./tests/files/json/kraft-bird-tacos-tortillas.json",

@@ -19,11 +19,14 @@ import {
 } from "./facesSide.js";
 
 /**
+ * @description Assign a classification to a face-pair which will assist us in
+ * assembling the faces in the appropriate order later, without any additional
+ * information:
+ * (in 4, 5 taco is the first set of faces, in 6, 7 taco is the second set)
  * @param {[[number,number],[number,number]]} edgePairFacesSide
- * @returns {number} classification id, where:
- * - -1: invalid
- * - 0: taco-taco, (+1)
- * - 1: taco-taco, (-1)
+ * @returns {number} a classifaction number
+ * - 0: invalid
+ * - 1: taco-taco
  * - 2: tortilla-tortilla (faces are aligned)
  * - 3: tortilla-tortilla (faces are not aligned)
  * - 4: taco-tortilla, taco ([0]) is on top of tortilla's ([1]) 0 index
@@ -40,8 +43,8 @@ const classifyEdgePair = (edgePairFacesSide) => {
 	// both edges are tacos. taco-taco is the only case where it might result as
 	// invalid. taco-taco is only valid if both tacos are on the same side.
 	if (isTaco[0] && isTaco[1]) {
-		if (edgePairFacesSide[0][0] !== edgePairFacesSide[1][0]) { return -1; }
-		return (edgePairFacesSide[0][0] === 1 ? 0 : 1);
+		if (edgePairFacesSide[0][0] !== edgePairFacesSide[1][0]) { return 0; }
+		return 1;
 	}
 
 	// both are tortillas. all cases are valid.
@@ -94,7 +97,7 @@ const formatTacoTortilla = ([faces0, faces1], classification) => {
 const formatTortillaTortilla = ([faces0, faces1], classification) => {
 	switch (classification) {
 		case 2: return [...faces0, ...faces1];
-		// the 0/0 indices in both faces are not above them.
+		// [0] from one is above [1] in the other, we need to flip one of them.
 		case 3: return [...faces0, faces1[1], faces1[0]];
 	}
 };
@@ -130,7 +133,6 @@ export const makeTortillaTortillaFacesCrossing = (
 	});
 	return tortillas_faces_crossing
 		.flatMap((faces, e) => faces
-			// .map(face => [edges_faces[e], [face, face]]))
 			.map(face => [...edges_faces[e], face, face]));
 };
 
@@ -215,7 +217,7 @@ export const makeTacosAndTortillas = ({
 	// taco-taco
 	// map faces [[a, b], [c, d]] into [a, c, b, d]
 	const taco_taco = edgePairsFacesType
-		.map((n, i) => (n === 0 || n === 1 ? i : undefined))
+		.map((n, i) => (n === 1 ? i : undefined))
 		.filter(a => a !== undefined)
 		.map(i => edgePairs[i].map(edge => edges_faces[edge]))
 		.map(el => [el[0][0], el[1][0], el[0][1], el[1][1]]);

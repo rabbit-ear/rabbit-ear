@@ -1,7 +1,6 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-
 import * as constraints from "./constraints.js";
 import * as facesSide from "./facesSide.js";
 import * as general from "./general.js";
