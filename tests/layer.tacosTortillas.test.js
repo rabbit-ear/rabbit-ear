@@ -3,11 +3,12 @@ import fs from "fs";
 import ear from "../rabbit-ear.js";
 
 // test("write folded vertices", () => {
-// const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
+// 	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
 // 	const fold = JSON.parse(foldfile);
 // 	fs.writeFileSync(
 // 		`./tests/tmp/folded-vertices.json`,
-// 		JSON.stringify(ear.graph.makeVerticesCoordsFlatFolded(fold).map(p => p.map(n => ear.general.cleanNumber(n, 12))), null, 2),
+// 		JSON.stringify(ear.graph.makeVerticesCoordsFlatFolded(fold)
+// 			.map(p => p.map(n => ear.general.cleanNumber(n, 12))), null, 2),
 // 	);
 // });
 
@@ -27,7 +28,7 @@ test("tacosAndTortillas four panel square", () => {
 	// only two taco-tacos, one on the top and one bottom
 	expect(taco_taco).toMatchObject([
 		[0, 2, 1, 3],
-		[4, 6, 5, 7]
+		[4, 6, 5, 7],
 	]);
 
 	expect(taco_tortilla).toMatchObject([
@@ -42,7 +43,7 @@ test("tacosAndTortillas four panel square", () => {
 		[0, 4, 3, 7],
 		[1, 5, 2, 6],
 		[1, 5, 3, 7],
-		[2, 6, 3, 7]
+		[2, 6, 3, 7],
 	]);
 
 	expect(transitivity).toMatchObject([]);
@@ -70,7 +71,7 @@ test("tacosAndTortillas strip weave", () => {
 	expect(tortilla_tortilla).toMatchObject([]);
 	expect(transitivity).toMatchObject([[0, 1, 4]]);
 
-	expect(faces_winding).toMatchObject([true, false, true, false, false, true, false ]);
+	expect(faces_winding).toMatchObject([true, false, true, false, false, true, false]);
 	expect(faces_facesOverlap).toMatchObject([
 		[1, 4],
 		[0, 2, 4],
@@ -209,7 +210,7 @@ test("tacosAndTortillas bird base", () => {
 		// inside reverse fold (under armpit), the other side: 3-13, 9-12
 		[9, 3, 12, 13],
 		// top 45 triangle hypotenuse, the other side: 14-18, 15-17
-		[15, 14, 17, 18]
+		[15, 14, 17, 18],
 	]);
 
 	expect(taco_tortilla).toMatchObject([
@@ -262,7 +263,7 @@ test("tacosAndTortillas bird base", () => {
 		[2, 12, 13], [2, 12, 14], [2, 13, 15], [3, 9, 14], [3, 9, 15], [3, 10, 12],
 		[3, 10, 14], [3, 10, 15], [3, 12, 14], [3, 14, 15], [4, 5, 11], [4, 6, 8],
 		[4, 6, 11], [5, 7, 11], [6, 7, 8], [9, 13, 15], [9, 14, 15], [10, 12, 13],
-		[10, 12, 14], [10, 13, 15]
+		[10, 12, 14], [10, 13, 15],
 	]);
 });
 
@@ -279,7 +280,7 @@ test("tacosAndTortillas kabuto", () => {
 		transitivity,
 	} = ear.layer.makeTacosTortillasTransitivity(folded);
 
- 	expect(taco_taco).toMatchObject([
+	expect(taco_taco).toMatchObject([
 		[0, 1, 8, 10],
 		[0, 1, 9, 11],
 		[10, 0, 12, 3],
@@ -301,7 +302,7 @@ test("tacosAndTortillas kabuto", () => {
 		[7, 13, 17, 15],
 		[6, 4, 8, 5],
 		[7, 4, 9, 5],
-  ]);
+	]);
 
 	expect(taco_tortilla).toMatchObject([
 		[0, 14, 8],
@@ -439,7 +440,7 @@ test("tacosAndTortillas kabuto", () => {
 		[5, 8, 12], [5, 8, 14], [5, 8, 16], [5, 9, 13], [5, 9, 15], [5, 9, 17],
 		[5, 10, 14], [5, 10, 16], [5, 11, 15], [5, 11, 17], [5, 12, 16], [5, 13, 17],
 		[6, 8, 14], [6, 10, 14], [7, 9, 15], [7, 11, 15], [8, 10, 14], [8, 10, 16],
-		[8, 12, 16], [9, 11, 15], [9, 11, 17], [9, 13, 17], [10, 12, 16], [11, 13, 17]
+		[8, 12, 16], [9, 11, 15], [9, 11, 17], [9, 13, 17], [10, 12, 16], [11, 13, 17],
 	]);
 });
 
@@ -473,7 +474,7 @@ test("tacosAndTortillas Kraft bird", () => {
 
 	const resultFile = fs.readFileSync(
 		"./tests/files/json/kraft-bird-tacos-tortillas.json",
-		"utf-8"
+		"utf-8",
 	);
 	const result = JSON.parse(resultFile);
 

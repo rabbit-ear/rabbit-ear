@@ -5,16 +5,20 @@ import ear from "../rabbit-ear.js";
 test("layer table", () => {
 	const layerTableJSON = fs.readFileSync(
 		"./tests/files/json/layer-table.json",
-		"utf-8"
+		"utf-8",
 	);
 	const table = JSON.parse(layerTableJSON);
 	expect(ear.layer.table).toMatchObject(table);
 });
 
 test("immutability test", () => {
-	// this happens to be an array entry
-	// attempt to modify the inside of the array
-	ear.layer.table.taco_taco["000011"][0] == 99;
+	// taco_taco at 000011 is a const array entry,
+	// attempt to overwrite one of its values.
+	try {
+		ear.layer.table.taco_taco["000011"][0] = 99;
+	} catch (error) {
+		expect(error).not.toBe(undefined);
+	}
 
 	// the object should have been recursively frozen,
 	// it should not be possible to change a value even inside an array.

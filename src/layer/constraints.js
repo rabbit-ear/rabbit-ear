@@ -163,7 +163,11 @@ export const makeSolverConstraints = ({
 		faces_winding,
 		faces_facesOverlap,
 	} = makeTacosTortillasTransitivity({
-		vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
+		vertices_coords,
+		edges_vertices,
+		edges_faces,
+		faces_vertices,
+		faces_edges,
 		edges_vector,
 	}, epsilon);
 

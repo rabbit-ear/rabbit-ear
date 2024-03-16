@@ -1,10 +1,18 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeEpsilon } from "../../graph/epsilon.js";
-import { setup } from "./setup.js";
-import solver2d from "../solver2d/solver.js";
-import LayerPrototype from "../solver2d/prototype.js";
+import {
+	makeEpsilon,
+} from "../../graph/epsilon.js";
+import {
+	setup,
+} from "./setup.js";
+import {
+	solver,
+} from "../solverFlat.js";
+import {
+	LayerPrototype,
+} from "../prototype.js";
 //
 const emptyLayerSolution = () => ({ root: {}, branches: [], faces_winding: [] });
 /**
@@ -43,7 +51,7 @@ export const layer3d = ({
 		// edges_vector,
 	}, epsilon);
 	// console.time("index.js solver2d()");
-	const { root, branches } = solver2d({ constraints, lookup, facePairs, orders });
+	const { root, branches } = solver({ constraints, lookup, facePairs, orders });
 	// console.timeEnd("index.js solver2d()");
 	// console.log("constraints", constraints);
 	// console.log("lookup", lookup);

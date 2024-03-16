@@ -1,15 +1,22 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { resize } from "../../math/vector.js";
-import { multiplyMatrix4Vector3 } from "../../math/matrix4.js";
-import { subgraphWithFaces } from "../../graph/subgraph.js";
+import {
+	resize,
+} from "../../math/vector.js";
+import {
+	multiplyMatrix4Vector3,
+} from "../../math/matrix4.js";
+import {
+	subgraphWithFaces,
+} from "../../graph/subgraph.js";
 import {
 	filterKeysWithPrefix,
 	edgeFoldAngleIsFlat,
 } from "../../fold/spec.js";
+
 /**
- * @description make copies of 
+ * @description make copies of
  */
 export const graphGroupCopies = (graph, sets_faces, sets_transform) => {
 	// transform point by a matrix, return result as 2D

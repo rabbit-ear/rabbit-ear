@@ -30,19 +30,23 @@ import {
 import {
 	getFacesFacesOverlap,
 } from "../../graph/overlap.js";
-import makeTacosTortillas from "../solver2d/tacosAndTortillas.js";
+import {
+	makeTacosAndTortillas,
+} from "../tacosTortillas.js";
 import {
 	makeTransitivity,
 	filterTransitivity,
-} from "../solver2d/transitivity.js";
+} from "../transitivity.js";
 import {
 	formatConstraintsArrays,
 	makeConstraintsLookup,
-} from "../solver2d/makeConstraints.js";
+} from "../constraints.js";
 import {
 	getOverlappingParallelEdgePairs,
 } from "./edges3D.js";
-import makeBentTortillas from "./bentTortillas.js";
+import {
+	makeBentTortillas,
+} from "./bentTortillas.js";
 import {
 	solveEdgeFaceOverlapOrders,
 	solveEdgeEdgeOverlapOrders,
@@ -52,7 +56,7 @@ import {
 } from "./copyGraph.js";
 import {
 	solveEdgeAdjacent,
-} from "../solver2d/edgeAdjacent.js";
+} from "../solver.js";
 
 /**
  * @description Get a list of
@@ -232,7 +236,7 @@ export const setup = ({
 	// 1,873ms
 	// console.time("setup.js ...make tacos/tortillas/transitivity");
 	const setsTacosAndTortillas = sets_graphs
-		.map(el => makeTacosTortillas(el, epsilon));
+		.map(el => makeTacosAndTortillas(el, epsilon));
 	const taco_taco = setsTacosAndTortillas.flatMap(set => set.taco_taco);
 	const taco_tortilla = setsTacosAndTortillas.flatMap(set => set.taco_tortilla);
 	const tortilla_tortilla = setsTacosAndTortillas.flatMap(set => set.tortilla_tortilla);

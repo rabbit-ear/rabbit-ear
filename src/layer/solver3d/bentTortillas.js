@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
 /**
  * @description For a 3D folded model, this will find the places
  * where two planes meet along collinear edges, these joining of two
@@ -15,7 +16,7 @@
  * where each item is an array of array of face indices, for example:
  * [[A,B], [X,Y]], where A-B are adjacent faces and X-Y are adjacent.
  */
-const makeBentTortillas = ({
+export const makeBentTortillas = ({
 	edges_faces,
 }, tortillaTortillaEdges, faces_set, faces_winding) => {
 	// all pairwise combinations of edges that create a 3D tortilla-tortilla
@@ -56,5 +57,3 @@ const makeBentTortillas = ({
 		});
 	return tortilla_faces;
 };
-
-export default makeBentTortillas;

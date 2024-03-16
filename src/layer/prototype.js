@@ -9,7 +9,10 @@
 // - encountering an "and" group, gather all branch results into the solution.
 // - encountering an "or" group, only choose one branch to be in the solution.
 
-const makePermutations = (counts) => {
+/**
+ *
+ */
+const makePermutations = (...counts) => {
 	const totalLength = counts.reduce((a, b) => a * b, 1);
 	const maxPlace = counts.slice();
 	for (let i = maxPlace.length - 2; i >= 0; i -= 1) {
@@ -22,34 +25,12 @@ const makePermutations = (counts) => {
 			.map((c, j) => Math.floor(i / maxPlace[j]) % c));
 };
 
-const getBranchCountFirst = ({ branches }, counter) => {
-	if (branches === undefined) { return counter.value++; }
-	return branches.map(branch => branch.map(el => getBranchCountFirst(el, counter)));
-};
-
-const getBranchCountNotWorking = ({ branches }, counts = []) => {
-	if (branches === undefined) { return counts; }
-	branches.forEach(branch => {
-		counts.push(branch.length);
-		branch.forEach(el => getBranchCountNotWorking(el, counts))
-	});
-	return counts;
-};
-
 const getBranchCount = ({ branches }) => {
 	if (!branches) { return "leaf"; }
 	return branches.map(choices => ({
 		choices: choices.length,
 		branches: choices.flatMap(getBranchCount),
 	}));
-};
-
-const getDecisionPoints = ({ branches }) => {
-	if (branches === undefined) { return "leaf"; }
-	return branches.map(choices => {
-		const chooseOne = choices.map(getDecisionPoints);
-		return { chooseOne };
-	});
 };
 
 export const getBranchStructure = ({ branches }) => {
@@ -68,8 +49,7 @@ export const gather = ({ orders, branches }, pattern = []) => [
 ];
 
 export const compile = ({ orders, branches }, pattern) => (
-	gather({ orders, branches }, pattern)
-		.reduce((a, b) => Object.assign(a, b))
+	gather({ orders, branches }, pattern).flat()
 );
 
 /**
@@ -88,11 +68,37 @@ export const gatherAll = ({ orders, branches }) => {
 	// with every other branch, meaning we need to choose one leaf from every
 	// branch when we pair it with another set of branches. the number of
 	// permutations is the product of the lengths of all the branches.
-	return makePermutations(branchResults.map(arr => arr.length))
+	return makePermutations(...branchResults.map(arr => arr.length))
 		.map(indices => indices
 			.flatMap((index, i) => branchResults[i][index]))
 		.map(solution => [orders, ...solution]);
 };
+
+export const compileAll = ({ orders, branches }) => (
+	gatherAll({ orders, branches }).map(arr => arr.flat())
+);
+
+// const getBranchCountFirst = ({ branches }, counter) => {
+// 	if (branches === undefined) { return counter.value++; }
+// 	return branches.map(branch => branch.map(el => getBranchCountFirst(el, counter)));
+// };
+
+// const getBranchCountNotWorking = ({ branches }, counts = []) => {
+// 	if (branches === undefined) { return counts; }
+// 	branches.forEach(branch => {
+// 		counts.push(branch.length);
+// 		branch.forEach(el => getBranchCountNotWorking(el, counts))
+// 	});
+// 	return counts;
+// };
+
+// const getDecisionPoints = ({ branches }) => {
+// 	if (branches === undefined) { return "leaf"; }
+// 	return branches.map(choices => {
+// 		const chooseOne = choices.map(getDecisionPoints);
+// 		return { chooseOne };
+// 	});
+// };
 
 // const getBranchCount = ({ branches }) => {
 // 	if (branches === undefined) { return undefined; }
@@ -136,6 +142,14 @@ export const LayerPrototype = {
 	},
 
 	compile: function (...pattern) {
+		return compile(this, pattern);
+	},
+
+	compileAll: function () {
+		return compileAll(this);
+	},
+
+	faceOrders: function (...pattern) {
 		return compile(this, pattern);
 	},
 };

@@ -201,7 +201,7 @@ const solveBranch = (
  * append the "root" to one selection from each array in "branches".
  * @linkcode
  */
-export const solve = ({ constraints, lookup, facePairs, orders }) => {
+export const solver = ({ constraints, lookup, facePairs, orders }) => {
 	// "orders" is any pre-solved orders between faces, in the default case,
 	// this contains orders which were solved bewteen edge-adjacent pairs of
 	// faces. Whatever this input set is, we use it as the seed for the

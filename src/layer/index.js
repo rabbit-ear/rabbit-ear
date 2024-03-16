@@ -9,6 +9,10 @@ import * as solver from "./solver.js";
 import * as table from "./table.js";
 import * as tacosTortillas from "./tacosTortillas.js";
 import * as transitivity from "./transitivity.js";
+import {
+	solveLayerOrders,
+	solveFaceOrders,
+} from "./layer.js";
 
 export default {
 	...constraints,
@@ -19,4 +23,6 @@ export default {
 	...table,
 	...tacosTortillas,
 	...transitivity,
+	solveLayerOrders,
+	solveFaceOrders,
 };

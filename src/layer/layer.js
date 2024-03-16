@@ -13,8 +13,11 @@ import {
 } from "./constraints.js";
 import {
 	solveEdgeAdjacent,
-	solve,
+	solver,
 } from "./solver.js";
+import {
+	solverSolutionToFaceOrders,
+} from "./general.js";
 import {
 	LayerPrototype,
 } from "./prototype.js";
@@ -34,7 +37,7 @@ import {
  * are true for all solutions, and each object in "branches" can be appended
  * to the root object to create a complete solution.
  */
-const solveLayer = ({
+export const solveLayerOrders = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
 	faces_vertices, faces_edges, edges_vector,
 }, epsilon) => {
@@ -77,10 +80,29 @@ const solveLayer = ({
 	}, faces_winding);
 
 	// include faces_winding along with the solver result
-	return Object.assign(
-		solve({ constraints, lookup, facePairs, orders }),
-		{ faces_winding },
-	);
+	return {
+		...solver({ constraints, lookup, facePairs, orders }),
+		faces_winding,
+	};
+};
+
+/**
+ *
+ */
+export const solveFaceOrders = (graph, epsilon) => {
+	const {
+		faces_winding,
+		...result
+	} = solveLayerOrders(graph, epsilon);
+
+	const recurse = ({ orders, branches }) => (branches === undefined
+		? ({ orders: solverSolutionToFaceOrders(orders, faces_winding) })
+		: ({
+			orders: solverSolutionToFaceOrders(orders, faces_winding),
+			branches: branches.map(inner => inner.map(recurse)),
+		}));
+
+	return recurse(result);
 };
 
 /**
@@ -94,22 +116,5 @@ const solveLayer = ({
  */
 export const layer = (graph, epsilon) => Object.assign(
 	Object.create(LayerPrototype),
-	solveLayer(graph, epsilon),
+	solveFaceOrders(graph, epsilon),
 );
-
-// export const layerSync = (graph, epsilon) => {
-// };
-// export const layer = (graph, epsilon) => (
-// 	new Promise((resolve, reject) => {
-// 		// const scriptText = "";
-// 		// const scriptBase64 = btoa(scriptText);
-// 		// const scriptURL = `data:text/javascript;base64,${scriptBase64}`;
-// 		// const myWorker = new Worker(scriptURL);
-// 		const result = solver2d(graph, epsilon);
-// 		if (result) {
-// 			resolve(Object.assign(Object.create(LayerPrototype), result));
-// 		} else {
-// 			reject(new Error(Messages.noSolution));
-// 		}
-// 	})
-// );

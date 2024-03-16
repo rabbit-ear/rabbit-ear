@@ -1,19 +1,35 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { chooseTwoPairs } from "../../general/array.js";
-import { EPSILON } from "../../math/constant.js";
+import {
+	chooseTwoPairs,
+} from "../../general/array.js";
+import {
+	EPSILON,
+} from "../../math/constant.js";
 import {
 	dot,
 	cross2,
 	subtract2,
 } from "../../math/vector.js";
-import { multiplyMatrix4Vector3 } from "../../math/matrix4.js";
-import { doRangesOverlap } from "./general.js";
-import { edgeFoldAngleIsFlat } from "../../fold/spec.js";
-import { getEdgesLine } from "../../graph/edges/lines.js";
-import { invertFlatToArrayMap } from "../../graph/maps.js";
-import { makeEdgesCoords } from "../../graph/make.js";
+import {
+	multiplyMatrix4Vector3,
+} from "../../math/matrix4.js";
+import {
+	doRangesOverlap,
+} from "./general.js";
+import {
+	edgeFoldAngleIsFlat,
+} from "../../fold/spec.js";
+import {
+	getEdgesLine,
+} from "../../graph/edges/lines.js";
+import {
+	invertFlatToArrayMap,
+} from "../../graph/maps.js";
+import {
+	makeEdgesCoords,
+} from "../../graph/make.js";
 /**
  *
  */

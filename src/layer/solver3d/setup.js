@@ -44,7 +44,9 @@ import {
 import {
 	getOverlappingParallelEdgePairs,
 } from "./edges3D.js";
-import makeBentTortillas from "./bentTortillas.js";
+import {
+	makeBentTortillas,
+} from "./bentTortillas.js";
 import {
 	solveEdgeFaceOverlapOrders,
 	solveEdgeEdgeOverlapOrders,
@@ -54,7 +56,7 @@ import {
 } from "./copyGraph.js";
 import {
 	solveEdgeAdjacent,
-} from "../edgeAdjacent.js";
+} from "../solver.js";
 
 /**
  * @description Get a list of

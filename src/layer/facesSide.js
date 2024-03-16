@@ -65,7 +65,7 @@ export const makeEdgePairsFacesSide = (
 	// we have to use the same origin/vector so that the face-sidedness is
 	// consistent globally, not local to its edge.
 	const edgePairsLine = edgePairs
-		.map(([edge, _]) => edgeToLine({ vertices_coords, edges_vertices }, edge));
+		.map(([edge]) => edgeToLine({ vertices_coords, edges_vertices }, edge));
 
 	return edgePairs
 		// convert pairs of edges into pairs of face-pairs (two faces for each edge)
@@ -73,11 +73,11 @@ export const makeEdgePairsFacesSide = (
 		// cross product of every edge-pair's line vector against
 		// every face's vector (vector from edge origin to face center)
 		.map((faces, i) => faces
-				.map(face_pair => face_pair
-					.map(face => faces_center[face])
-					.map(center => cross2(
-						subtract2(center, edgePairsLine[i].origin),
-						edgePairsLine[i].vector,
-					))
-					.map(Math.sign)));
+			.map(face_pair => face_pair
+				.map(face => faces_center[face])
+				.map(center => cross2(
+					subtract2(center, edgePairsLine[i].origin),
+					edgePairsLine[i].vector,
+				))
+				.map(Math.sign)));
 };
