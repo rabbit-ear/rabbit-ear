@@ -6,13 +6,11 @@ import {
 } from "./table.js";
 import {
 	constraintToFacePairs,
+	tacoTypeNames,
 } from "./general.js";
 import {
 	uniqueElements,
 } from "../general/array.js";
-import {
-	tacoTypeNames,
-} from "./general.js";
 
 /**
  * @description Given one particular taco/tortilla/transitivity constraint,

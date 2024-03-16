@@ -66,7 +66,7 @@ test("makeVerticesNormal 3d form", () => {
 });
 
 test("normals 3D many planes", () => {
-	const FOLD = fs.readFileSync("./tests/files/fold/animal-base-cp-3d.fold", "utf-8");
+	const FOLD = fs.readFileSync("./tests/files/fold/square-fish-3d.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const vertices_coords = ear.graph.makeVerticesCoordsFolded(graph);
 	const folded = { ...graph, vertices_coords };

@@ -137,9 +137,17 @@ const signedLayerSolverValue = { 0: 0, 1: 1, 2: -1 };
  * @linkcode Origami ./src/layer/solver2d/general.js 81
  */
 export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
+	// convert the space-separated face pair keys into arrays of two integers
 	const keys = Object.keys(facePairOrders);
 	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
+
+	// convert the value (1 or 2) into the faceOrder value (-1 or +1).
 	faceOrders.forEach((faces, i) => {
+		// according to the FOLD spec, for order [f, g, s]:
+		// +1 indicates that face f lies above face g
+		// −1 indicates that face f lies below face g
+		// where "above" means on the side pointed to by g's normal vector,
+		// and "below" means on the side opposite g's normal vector.
 		const value = signedLayerSolverValue[facePairOrders[keys[i]]];
 		const side = (!faces_winding[faces[1]]) ? -value : value;
 		// const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;

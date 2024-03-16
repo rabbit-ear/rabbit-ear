@@ -33,7 +33,6 @@ test("all methods that return something else", () => {
 	graph.nearestEdge([0.5, 0.5]);
 	graph.nearestFace([0.5, 0.5]);
 	graph.splitEdge(0, [0, 0.1]);
-	graph.splitFaceWithLine(0, { vector: [0.707, -0.707], origin: [0.1, 0.1] });
 	graph.svg();
 	graph.obj();
 	graph.explodeFaces();

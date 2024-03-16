@@ -105,6 +105,7 @@ const solveBranch = (
 	unsolvedKeys,
 	...orders
 ) => {
+	if (!unsolvedKeys.length) { return []; }
 	// the purpose of this branch is to solve the unsolved keys, where currently,
 	// there is nothing to solve, so we make the first step by choosing one key
 	// guessing the value (either 1 or 2), and propagating that guess'
@@ -136,6 +137,15 @@ const solveBranch = (
 		.map(tryPropagate)
 		.filter(a => a !== undefined);
 
+	// check if all variables are solved or more work is required.
+	// store the result as either completed or unfinished
+	const resultCount = guessResults
+		.map(result => Object.keys(result).length);
+	const completed = guessResults
+		.filter((_, i) => resultCount[i] === unsolvedKeys.length)
+	const unfinished = guessResults
+		.filter((_, i) => resultCount[i] !== unsolvedKeys.length)
+
 	// For every unfinished solution, where each solution contains a different
 	// result to one or more of the face-pairs from each other, consider each
 	// of these to now be a new branch in the total set of possible solutions
@@ -143,26 +153,21 @@ const solveBranch = (
 	// unsuccessful, the recursed branch will become undefined, which will get
 	// filtered out later in the return statement. Recurse with the subset of
 	// unfinishedKeys, and append the new branch's set of orders to the end.
+	const recursed = unfinished
+		.map(order => solveBranch(
+			constraints,
+			lookup,
+			unsolvedKeys.filter(key => !(key in order)),
+			...orders,
+			order,
+		));
 
-	return guessResults.map(order => (
-		// check if all variables are solved or more work is required.
-		// store the result as either completed or unfinished
-		Object.keys(order).length === unsolvedKeys.length
-			? { orders: order }
-			: {
-				orders: order,
-				branches: getBranches(
-					unsolvedKeys.filter(key => !(key in order)),
-					constraints,
-					lookup,
-				).map(branchUnsolvedKeys => solveBranch(
-					constraints,
-					lookup,
-					branchUnsolvedKeys,
-					...orders,
-					order,
-				))
-			}));
+	// each branch is an individual entry in this array, where each branch itself
+	// is a list of order objects, where each object covers a subset of the total
+	// solution.
+	return completed
+		.map(order => [...orders, order])
+		.concat(...recursed);
 };
 
 /**
@@ -215,32 +220,48 @@ export const solve = ({ constraints, lookup, facePairs, orders }) => {
 		throw new Error(Messages.noLayerSolution, { cause: error });
 	}
 
-	// the result from the first call to propagate and the initial orders
-	// given in this method's input (usually the edge-adjacent face solutions)
-	// together make up the set of initial orders.
-	const rootOrders = { ...orders, ...initialResult };
-
 	// get all keys unsolved after the first round of propagate
-	const remainingKeys = facePairs.filter(key => !(key in rootOrders));
+	const remainingKeys = facePairs
+		.filter(key => !(key in orders))
+		.filter(key => !(key in initialResult));
 
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
 	/** @type {{[key: string]: number}[][][]} */
+	let branchResults;
 	try {
-		return remainingKeys.length === 0
-			? { orders: rootOrders }
-			: {
-				orders: rootOrders,
-				branches: getBranches(remainingKeys, constraints, lookup)
-					.map(unsolvedKeys => solveBranch(
-						constraints,
-						lookup,
-						unsolvedKeys,
-						orders,
-						initialResult,
-					)),
-			};
+		branchResults = getBranches(remainingKeys, constraints, lookup)
+			.map(unsolvedKeys => solveBranch(
+				constraints,
+				lookup,
+				unsolvedKeys,
+				orders,
+				initialResult,
+			));
 	} catch (error) {
 		throw new Error(Messages.noLayerSolution, { cause: error });
 	}
+
+	// solver is finished.
+	// the set of face-pair solutions which are true for all branches
+	const root = { ...orders, ...initialResult };
+
+	// due to the recursive nature of getBranches, each branch contains every
+	// solution object which compiles into a result, including the first two
+	// (orders, initialResult) which are returned as "root". remove these two
+	// from the result, intending that to "compile" a result you will need
+	// to join the root data with the branches data.
+	branchResults
+		.forEach(branch => branch
+			.forEach(solution => solution.splice(0, 2)));
+
+	// each branch result is spread across multiple objects
+	// containing a solution for a subset of the entire set of faces, one for
+	// each recursion depth. for each branch solution, merge its objects into one.
+	/** @type {{[key: string]: number}[][]} */
+	const branches = branchResults
+		.map(branch => branch
+			.map(solution => Object.assign({}, ...solution)));
+
+	return { root, branches };
 };

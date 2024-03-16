@@ -4,7 +4,7 @@
 import * as constraints from "./constraints.js";
 import * as facesSide from "./facesSide.js";
 import * as general from "./general.js";
-import * as propagate from "./propagate.js";
+import * as prototype from "./prototype.js";
 import * as solver from "./solver.js";
 import * as table from "./table.js";
 import * as tacosTortillas from "./tacosTortillas.js";
@@ -14,7 +14,7 @@ export default {
 	...constraints,
 	...facesSide,
 	...general,
-	...propagate,
+	...prototype,
 	...solver,
 	...table,
 	...tacosTortillas,

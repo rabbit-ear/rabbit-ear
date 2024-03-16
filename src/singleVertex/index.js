@@ -2,10 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import * as degree4 from "./degree4.js";
+import * as flatFoldable from "./flatFoldable.js";
 import * as foldable from "./foldable.js";
 import * as kawasaki from "./kawasaki.js";
 import * as maekawa from "./maekawa.js";
-import * as validateSingleVertex from "./validate.js";
 
 /**
  * @description A collection of operations done on single vertices
@@ -13,8 +13,8 @@ import * as validateSingleVertex from "./validate.js";
  */
 export default {
 	...degree4,
+	...flatFoldable,
 	...foldable,
 	...kawasaki,
 	...maekawa,
-	...validateSingleVertex,
 };

@@ -20,19 +20,22 @@ import {
 } from "../graph/make.js";
 
 /**
- * @description This performs an analysis on every vertex to determine if
- * it is able to be folded; this works with valid 3D or 2D foldings, however
- * it is limited to a crease patterns's vertices which lie in the XY plane.
+ * @description Given a crease pattern, this method will test every vertex
+ * to determine if it is possible to be folded by walking around each vertex
+ * face by face and checking if we meet back up exactly where we started.
+ * This does not test for self-intersection, if the faces of a single vertex
+ * pokes through one another, this method may still consider it to be valid.
+ * This method supports 3D or 2D foldings.
  * @attribution Implementation of the algorithm described in
  * the origami foldability paper by belcastro-Hull.
  * @param {FOLD} graph a FOLD graph with vertices in creasePattern layout
  * @returns {boolean[]} for every vertex, true if the vertex has
  * a valid folded state.
  */
-export const verticesFoldable = ({
+export const verticesFoldability = ({
 	vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
 	edges_vertices, edges_foldAngle, edges_vector, faces_vertices,
-}, epsilon = EPSILON) => {
+}) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({
 			vertices_coords, vertices_edges, vertices_faces, edges_vertices, faces_vertices,
@@ -61,7 +64,7 @@ export const verticesFoldable = ({
 	return vertices_coords.map((_, v) => {
 		// if the vertex lies along a boundary (missing a face), it's foldable
 		if (vertices_faces[v].includes(undefined)
-			|| vertices_faces[v].includes(null)) { return true; }
+			|| vertices_faces[v].includes(null)) { return 0; }
 
 		// this vertex's edges as a sorted list of radians of the angle
 		// of the edge's vector (not the sector angle or fold angle).
@@ -99,10 +102,18 @@ export const verticesFoldable = ({
 
 		// only check the first 9 elements, we don't care about the translate part.
 		return Array.from(Array(9))
-			.map((__, i) => Math.abs(matrix[i] - identity3x4[i]) < epsilon)
-			.reduce((a, b) => a && b, true);
+			.map((__, i) => Math.abs(matrix[i] - identity3x4[i]))
+			.reduce((a, b) => a + b, 0);
 	});
 };
+
+/**
+ * @description
+ */
+export const verticesFoldable = (graph, epsilon = EPSILON) => (
+	verticesFoldability(graph, epsilon)
+		.map(deviation => deviation < epsilon)
+);
 
 // would be nice if we can use faces_matrix. but this doesn't work
 // keeping this around as a reminder. try this again sometime.

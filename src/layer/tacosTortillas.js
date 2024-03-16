@@ -77,12 +77,13 @@ const classifyEdgePair = (edgePairFacesSide) => {
  */
 const formatTacoTortilla = ([faces0, faces1], classification) => {
 	switch (classification) {
-		// taco: faces0
-		case 4: return [faces0[0], faces1[0], faces0[1]];
-		case 5: return [faces0[0], faces1[1], faces0[1]];
-		// taco: faces1
-		case 6: return [faces1[0], faces0[0], faces1[1]];
-		case 7: return [faces1[0], faces0[1], faces1[1]];
+	// taco: faces0
+	case 4: return [faces0[0], faces1[0], faces0[1]];
+	case 5: return [faces0[0], faces1[1], faces0[1]];
+	// taco: faces1
+	case 6: return [faces1[0], faces0[0], faces1[1]];
+	case 7: return [faces1[0], faces0[1], faces1[1]];
+	default: return [];
 	}
 };
 
@@ -96,9 +97,10 @@ const formatTacoTortilla = ([faces0, faces1], classification) => {
 */
 const formatTortillaTortilla = ([faces0, faces1], classification) => {
 	switch (classification) {
-		case 2: return [...faces0, ...faces1];
-		// [0] from one is above [1] in the other, we need to flip one of them.
-		case 3: return [...faces0, faces1[1], faces1[0]];
+	case 2: return [...faces0, ...faces1];
+	// [0] from one is above [1] in the other, we need to flip one of them.
+	case 3: return [...faces0, faces1[1], faces1[0]];
+	default: return [];
 	}
 };
 

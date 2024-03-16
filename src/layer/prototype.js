@@ -1,9 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { invertFlatMap } from "../graph/maps.js";
-import { topologicalSort } from "../graph/directedGraph.js";
-import { solverSolutionToFaceOrders } from "./general.js";
+
+// each "branches" is an "and" group (containing a list of "andItem")
+// each "andItem" is also a group, a "subgroup"
+// each "subgroup" is an "or" group (containing a list of "orItem")
+// to compile a solution, follow these rules:
+// - encountering an "and" group, gather all branch results into the solution.
+// - encountering an "or" group, only choose one branch to be in the solution.
 
 const makePermutations = (counts) => {
 	const totalLength = counts.reduce((a, b) => a * b, 1);
@@ -18,109 +22,120 @@ const makePermutations = (counts) => {
 			.map((c, j) => Math.floor(i / maxPlace[j]) % c));
 };
 
-const LayerPrototype = {
-	/**
-	 * @description For every branch, get the total number of states.
-	 * @returns {number[]} the total number of states in each branch.
-	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 31
-	 */
-	count: function () {
-		return this.branches.map(arr => arr.length);
-	},
-
-	/**
-	 * @description Generate a FOLD-spec faceOrders array, which
-	 * is an array of relationships between pairs of faces, [A, B],
-	 * in relation to face B using face B's normal, which side is face A?
-	 * @param {number[]} ...indices optionally specify which state from
-	 * each branch, otherwise this will return index 0 from each branch.
-	 * @returns {number[]} a faces_layer ordering, where, for each face (index),
-	 * the value is that face's layer in the +Z order stack.
-	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 69
-	 */
-	faceOrders: function (...indices) {
-		return solverSolutionToFaceOrders(
-			this.compile(...indices),
-			this.faces_winding,
-		);
-	},
-
-	/**
-	 * @description Get one complete layer solution by merging the
-	 * root solution with one state from each branch.
-	 * @param {number[]} ...indices optionally specify which state from
-	 * each branch, otherwise this will return index 0 from each branch.
-	 * @returns {number[]} a faces_layer ordering, where, for each face (index),
-	 * the value is that face's layer in the +Z order stack.
-	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 69
-	 */
-	facesLayer: function (...indices) {
-		return invertFlatMap(this.linearize(...indices).reverse());
-	},
-
-	/**
-	 * @description The solution is not yet compiled, there are branches,
-	 * one of which needs to be selected and merged to create a final solution.
-	 * This is the first step before generating a solution in any usable format.
-	 * @param {number[]} ...indices optionally specify which state from
-	 * each branch, otherwise this will return index 0 from each branch.
-	 * @returns {object} an object with space-separated face pair keys, with
-	 * a value of +1 or -1, indicating the stacking order between the pair.
-	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 43
-	 */
-	compile: function (...indices) {
-		// the "indices" is an array of numbers, the length matching "branches"
-		// if "indices" is provided, use these, otherwise fill it with 0.
-		const option = Array(this.branches.length)
-			.fill(0)
-			.map((n, i) => (indices[i] != null ? indices[i] : n));
-		// for each branch, get one state
-		const branchesSolution = this.branches
-			? this.branches.map((options, i) => options[option[i]])
-			: [];
-		// merge the root with all branches (one state from each branch)
-		return Object.assign({}, this.root, ...branchesSolution);
-	},
-
-	/**
-	 * @description create an array of face pairs where, for every pair,
-	 * the first face is above the second.
-	 * @param {number[]} ...indices optionally specify which state from
-	 * each branch, otherwise this will return index 0 from each branch.
-	 * @linkcode
-	 */
-	directedPairs: function (...indices) {
-		const orders = this.compile(...indices);
-		return Object.keys(orders)
-			.map(pair => (orders[pair] === 1
-				? pair.split(" ")
-				: pair.split(" ").reverse()))
-			.map(pair => pair.map(n => parseInt(n, 10)));
-	},
-
-	/**
-	 * @description Create a topological sorting of all faces involved
-	 * in the solution. The first face in the array is "above" all others.
-	 * @param {number[]} ...indices optionally specify which state from
-	 * each branch, otherwise this will return index 0 from each branch.
-	 * @linkcode
-	 */
-	linearize: function (...indices) {
-		return topologicalSort(this.directedPairs(...indices));
-	},
-
-	/**
-	 *
-	 */
-	allSolutions: function () {
-		return makePermutations(this.count())
-			.map(count => this.compile(...count));
-	},
-
-	allFacesLayers: function () {
-		return makePermutations(this.count())
-			.map(count => this.facesLayer(...count));
-	},
+const getBranchCountFirst = ({ branches }, counter) => {
+	if (branches === undefined) { return counter.value++; }
+	return branches.map(branch => branch.map(el => getBranchCountFirst(el, counter)));
 };
 
-export default LayerPrototype;
+const getBranchCountNotWorking = ({ branches }, counts = []) => {
+	if (branches === undefined) { return counts; }
+	branches.forEach(branch => {
+		counts.push(branch.length);
+		branch.forEach(el => getBranchCountNotWorking(el, counts))
+	});
+	return counts;
+};
+
+const getBranchCount = ({ branches }) => {
+	if (!branches) { return "leaf"; }
+	return branches.map(choices => ({
+		choices: choices.length,
+		branches: choices.flatMap(getBranchCount),
+	}));
+};
+
+const getDecisionPoints = ({ branches }) => {
+	if (branches === undefined) { return "leaf"; }
+	return branches.map(choices => {
+		const chooseOne = choices.map(getDecisionPoints);
+		return { chooseOne };
+	});
+};
+
+export const getBranchStructure = ({ branches }) => {
+	if (branches === undefined) { return []; }
+	return branches.map(branch => branch.map(getBranchStructure));
+};
+
+const getBranchLeafStructure = ({ branches }) => {
+	if (branches === undefined) { return "leaf"; }
+	return branches.map(branch => branch.map(getBranchLeafStructure));
+};
+
+export const gather = ({ orders, branches }, pattern = []) => [
+	orders,
+	...(branches || []).flatMap(branch => gather(branch[pattern.shift() || 0], pattern)),
+];
+
+export const compile = ({ orders, branches }, pattern) => (
+	gather({ orders, branches }, pattern)
+		.reduce((a, b) => Object.assign(a, b))
+);
+
+/**
+ * @param {{ orders: {[key:string]: number}, branches?: LayerBranch[] } branch
+ * @returns {{[key:string]: number}[][]}
+ */
+export const gatherAll = ({ orders, branches }) => {
+	if (!branches) { return [[orders]]; }
+
+	// each recursion returns an array of solution-lists, and we don't have to
+	// maintain separation, so for each branch, we can flatten all recursion
+	// results into a single array of solution-lists.
+	const branchResults = branches.map(andItem => andItem.flatMap(gatherAll));
+
+	// each branch contains a list of leaves. we have to "and" every branch
+	// with every other branch, meaning we need to choose one leaf from every
+	// branch when we pair it with another set of branches. the number of
+	// permutations is the product of the lengths of all the branches.
+	return makePermutations(branchResults.map(arr => arr.length))
+		.map(indices => indices
+			.flatMap((index, i) => branchResults[i][index]))
+		.map(solution => [orders, ...solution]);
+};
+
+// const getBranchCount = ({ branches }) => {
+// 	if (branches === undefined) { return undefined; }
+// 	// return branches.map(branch => (!branch.length ? undefined : ({
+// 	// 	count: branch.length,
+// 	// 	branches: branch
+// 	// 		.map(getBranchCount)
+// 	// 		.filter(a => a !== undefined)
+// 	// })));
+// 	const outerResult = branches.map(branch => {
+// 	// return branches.map(branch => {
+// 		const innerResult = branch.map(getBranchCount).filter(a => a !== undefined);
+// 		return (innerResult === undefined || !innerResult.length
+// 			? undefined
+// 			: ({ count: branch.length, branches: innerResult }));
+// 	}).filter(a => a !== undefined && a.length !== 0);
+// 	return outerResult;
+// 	// console.log("outerResult", outerResult);
+// 	// return outerResult === undefined || outerResult.length === 0 ? undefined : outerResult;
+// };
+
+export const LayerPrototype = {
+	count: function () {
+		return getBranchCount(this);
+	},
+
+	structure: function () {
+		return getBranchStructure(this);
+	},
+
+	leaves: function () {
+		return getBranchLeafStructure(this);
+	},
+
+	gather: function (...pattern) {
+		return gather(this, pattern);
+	},
+
+	gatherAll: function () {
+		return gatherAll(this);
+	},
+
+	compile: function (...pattern) {
+		return compile(this, pattern);
+	},
+};

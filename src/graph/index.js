@@ -21,7 +21,6 @@ import * as overlap from "./overlap.js";
 import * as pleat from "./pleat.js";
 import * as splitEdge from "./split/splitEdge.js";
 import * as splitFace from "./split/splitFace.js";
-import * as splitFaceWithLine from "./split/splitFaceWithLine.js";
 import * as splitLine from "./split/splitLine.js";
 import * as splitGraph from "./split/splitGraph.js";
 import * as subgraphMethods from "./subgraph.js";
@@ -86,7 +85,6 @@ export default {
 	...pleat,
 	...splitEdge,
 	...splitFace,
-	...splitFaceWithLine,
 	...splitLine,
 	...splitGraph,
 	...subgraphMethods,

@@ -85,7 +85,7 @@ export const getTransitivityTriosFromTacos = ({ taco_taco, taco_tortilla }) => {
 	// the three faces (sorted low to high) into a dictionary for quick lookup.
 	// store them as space-separated strings.
 	const tacoTacoTrios = taco_taco
-		.map(taco_taco => taco_taco.slice().sort((a, b) => a - b))
+		.map(arr => arr.slice().sort((a, b) => a - b))
 		.flatMap(([t0, t1, t2, t3]) => [
 			[t0, t1, t2],
 			[t0, t1, t3],
@@ -94,7 +94,7 @@ export const getTransitivityTriosFromTacos = ({ taco_taco, taco_tortilla }) => {
 		]);
 
 	const tacoTortillaTrios = taco_tortilla
-		.map(taco_tortilla => taco_tortilla.slice().sort((a, b) => a - b))
+		.map(arr => arr.slice().sort((a, b) => a - b))
 
 	// will contain taco-taco and taco-tortilla events encoded as all
 	// permutations of 3 faces involved in each event.

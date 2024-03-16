@@ -5,7 +5,7 @@ import ear from "../rabbit-ear.js";
 test("valid", () => {
 	const results = [
 		"disjoint-triangles-3d.fold",
-		"box-pleat-3d-invalid.fold",
+		"invalid-box-pleat-3d.fold",
 		"two-bird-cp.fold",
 		"kissing-squares.fold",
 	].map(filename => `./tests/files/fold/${filename}`)

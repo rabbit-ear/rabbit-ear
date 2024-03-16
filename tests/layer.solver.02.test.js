@@ -5,7 +5,7 @@ import ear from "../rabbit-ear.js";
 test("3D off for now", () => {});
 
 // test("animal base layers 3D", () => {
-// 	const FOLD = fs.readFileSync("./tests/files/fold/animal-base-cp-3d.fold", "utf-8");
+// 	const FOLD = fs.readFileSync("./tests/files/fold/square-fish-3d.fold", "utf-8");
 // 	const graph = JSON.parse(FOLD);
 // 	const vertices_coords = ear.graph.makeVerticesCoordsFolded(graph);
 // 	const folded = { ...graph, vertices_coords };
@@ -48,7 +48,7 @@ test("3D off for now", () => {});
 // });
 
 // test("animal base layers 3D faces sets", () => {
-// 	const FOLD = fs.readFileSync("./tests/files/fold/animal-base-cp-3d.fold", "utf-8");
+// 	const FOLD = fs.readFileSync("./tests/files/fold/square-fish-3d.fold", "utf-8");
 // 	const graph = JSON.parse(FOLD);
 // 	const vertices_coords = ear.graph.makeVerticesCoordsFolded(graph);
 // 	const folded = { ...graph, vertices_coords };

@@ -40,7 +40,7 @@ import {
 } from "../faces/winding.js";
 import {
 	splitFaceWithLine,
-} from "../split/splitFaceWithLine.js";
+} from "./splitFaceWithLine.js";
 import populate from "../populate.js";
 
 /**

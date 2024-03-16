@@ -15,7 +15,9 @@ import {
 	solveEdgeAdjacent,
 	solve,
 } from "./solver.js";
-import LayerPrototype from "./prototype.js";
+import {
+	LayerPrototype,
+} from "./prototype.js";
 
 /**
  * @description Find all possible layer orderings of the faces
@@ -74,15 +76,11 @@ const solveLayer = ({
 		edges_assignment,
 	}, faces_winding);
 
-	// the result of the solver, or undefined if no solution is possible
-	const { root, branches } = solve({ constraints, lookup, facePairs, orders });
-
-	// wrap the result in the layer solution prototype
-	return {
-		root,
-		branches,
-		faces_winding,
-	};
+	// include faces_winding along with the solver result
+	return Object.assign(
+		solve({ constraints, lookup, facePairs, orders }),
+		{ faces_winding },
+	);
 };
 
 /**

@@ -108,3 +108,63 @@
  * where the three faces involved are in sorted order.
  * (A,B) (B,C) (C,A)
  */
+
+/**
+ * @typedef LayerBranch
+ * @type {LayerFork[]}
+ * @description To compile a solution, you must include
+ * a selection from every Branch inside this LayerBranches array.
+ *
+ * @typedef LayerOrders
+ * @type {{[key: string]: number}}
+ * @description an object with (many) face-pair keys, and value numbers 1 or 2.
+ *
+ * @typedef LayerFork
+ * @type {{ orders: LayerOrders, branches?: LayerBranch[] }}
+ * @description To compile a solution, you must choose only one item
+ * from this list. Each item is a copy of one another, but with
+ * different values.
+ *
+ * @typedef LayerSolverSolution
+ * @type {LayerFork}
+ * @example In this example there are three "branches", one top-level,
+ * and two more inside of this one each at a similar depth.
+ * The top-level branch contains two all-branches (each happen to be
+ * identical in structure), and each of these all-branches contain
+ * two choice-branches.
+ * {
+ *   "orders: LayerOrders,
+ *   "branches: [
+ *     [
+ *       {
+ *         "orders": LayerOrders,
+ *         "branches": [
+ *           [
+ *             { "orders": LayerOrders },
+ *             { "orders": LayerOrders },
+ *           ],
+ *         ],
+ *       },
+ *       {
+ *         "orders": LayerOrders
+ *       },
+ *     ],
+ *     [
+ *       {
+ *         "orders": LayerOrders,
+ *         "branches": [
+ *           [
+ *             { "orders": LayerOrders },
+ *             { "orders": LayerOrders },
+ *           ],
+ *         ],
+ *       },
+ *       {
+ *         "orders": LayerOrders
+ *       },
+ *     ],
+ *   ],
+ * }
+ *
+ *
+ */

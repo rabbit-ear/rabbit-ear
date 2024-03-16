@@ -10,7 +10,6 @@ import planarize from "../graph/planarize.js";
 import populate from "../graph/populate.js";
 import { flatFold } from "../graph/fold/flatFold.js";
 import * as splitEdge from "../graph/split/splitEdge.js";
-import * as splitFaceWithLine from "../graph/split/splitFaceWithLine.js";
 import * as transform from "../graph/transform.js";
 import * as explode from "../graph/explode.js";
 import * as nearest from "../graph/nearest.js";
@@ -69,7 +68,6 @@ Object.entries({
 	svg: foldToSvg,
 	obj: foldToObj,
 	...splitEdge,
-	...splitFaceWithLine,
 	...explode,
 	...nearest,
 	...transform,
