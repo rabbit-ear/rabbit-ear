@@ -16,6 +16,9 @@ import {
 	solver,
 } from "./solver.js";
 import {
+	solver as solverFlat,
+} from "./solverFlat.js";
+import {
 	solverSolutionToFaceOrders,
 } from "./general.js";
 import {
@@ -118,3 +121,55 @@ export const layer = (graph, epsilon) => Object.assign(
 	Object.create(LayerPrototype),
 	solveFaceOrders(graph, epsilon),
 );
+
+/**
+ *
+ */
+export const solveLayerOrdersSingleBranches = ({
+	vertices_coords, edges_vertices, edges_faces, edges_assignment,
+	faces_vertices, faces_edges, edges_vector,
+}, epsilon) => {
+	// necessary conditions for the layer solver to work
+	if (!vertices_coords || !edges_vertices || !faces_vertices) {
+		return { root: {}, branches: [], faces_winding: [] };
+	}
+	if (!faces_edges) {
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
+	if (!edges_faces) {
+		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+	}
+
+	// find an appropriate epsilon, but only if it is not specified
+	if (epsilon === undefined) {
+		epsilon = makeEpsilon({ vertices_coords, edges_vertices });
+	}
+
+	// convert the graph into conditions for the solver
+	const {
+		constraints,
+		lookup,
+		facePairs,
+		faces_winding,
+	} = makeSolverConstraints({
+		vertices_coords,
+		edges_vertices,
+		edges_faces,
+		faces_vertices,
+		faces_edges,
+		edges_vector,
+	}, epsilon);
+
+	// before we run the solver, solve all of the conditions that we can.
+	// at this point, this means adjacent faces with an M or V edge between them.
+	const orders = solveEdgeAdjacent({
+		edges_faces,
+		edges_assignment,
+	}, faces_winding);
+
+	// include faces_winding along with the solver result
+	return {
+		...solverFlat({ constraints, lookup, facePairs, orders }),
+		faces_winding,
+	};
+};

@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import fs from "fs";
 import ear from "../rabbit-ear.js";
 
 // export const makeEmptyGraph = () => populate({
@@ -207,4 +208,35 @@ test("FOLD core populate", () => {
 	expect(blintz.edges_foldAngle !== undefined).toBe(true);
 
 	expect(blintz.edges_length === undefined).toBe(true);
+});
+
+test("populate a complete graph", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/surrounded-square.fold", "utf-8");
+	const graph = JSON.parse(FOLD);
+	const clone = structuredClone(graph);
+
+	// clone turned all "undefined" into "null". change these back
+	Object.keys(clone)
+		.filter(arr => clone[arr][0] != null && clone[arr][0].constructor === Array)
+		.forEach(key => clone[key].forEach((arr, i) => arr.forEach((value, j) => {
+			if (value === null) { clone[key][i][j] = undefined; }
+		})))
+
+	// delete all fields, leaving behind:
+	// vertices_coords, vertices_vertices, edges_vertices, faces_vertices
+	delete graph.faces_faces;
+	delete graph.faces_edges;
+	delete graph.edges_faces;
+	delete graph.faces_faces;
+	delete graph.vertices_faces;
+	delete graph.vertices_edges;
+
+	// rebuild using populate, expecting the same result as before
+	ear.graph.populate(graph);
+
+	// currently this library does not follow the
+	// spec's recommendation for edges_faces ordering.
+	delete graph.edges_faces;
+	delete clone.edges_faces;
+	expect(graph).toMatchObject(clone);
 });

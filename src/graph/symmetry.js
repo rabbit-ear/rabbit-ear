@@ -91,16 +91,28 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 	// fix the mismatch between indices. for every cluster cluster, pass in
 	// the index from the cluster cluster into the first cluster variable
 	// to get out the index which now relates to the original input set.
+	// this now contains, for every reflection line, all clusters of lines and
+	// their reflection lines, so, the reflection with the smaller number of
+	// clusters should be the best candidate.
 	const groupsClusterClusters = groupsClusterClustersUnindexed
 		.map((group, g) => group
 			.flatMap((clusters, c) => clusters
 				.map(cluster => cluster
 					.map(index => groupsClusters[g][c][index]))));
 
-	// create some kind of error heuristic, for each reflection group,
-	// how many lines lie on top of a corresponding line from the original set?
+	// create some kind of error heuristic, for each reflection group.
+	// todo: this could be better thought out.
+	// currently it is, for every reflection line, the number of clusters
+	// containing only one index (meaning there was no match) divided by
+	// the total number of lines that were included (reflectionsUniqueLines),
+	// so that a 0 means all edges are reflections, and 1 means all edges
+	// have no matching reflection line.
+	// const groupsError = groupsClusterClusters
+	// 	.map(group => (group.length - lines.length) / lines.length);
+
 	const groupsError = groupsClusterClusters
-		.map(group => (group.length - lines.length) / lines.length);
+		.map(group => group.filter(clusters => clusters.length < 2))
+		.map((noMatchList, i) => noMatchList.length / reflectionsUniqueLines[i].length)
 
 	// return the data in sorted order, with the best matches for a
 	// reflection line in the beginning of the list.

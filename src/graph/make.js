@@ -326,7 +326,7 @@ export const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_ve
 	if (!vertices_vertices) {
 		return makeVerticesFacesUnsorted({ vertices_coords, faces_vertices });
 	}
-	const face_map = makeVerticesToFace({ faces_vertices });
+	const face_map = makeVerticesToFaceTriple({ faces_vertices });
 	return vertices_vertices
 		.map((verts, v) => verts
 			.map((vert, i, arr) => [arr[(i + 1) % arr.length], v, vert]
@@ -400,13 +400,43 @@ export const makeVerticesToEdge = ({ edges_vertices }) => {
  * @returns {object} space-separated vertex trio keys, face indices values
  * @linkcode Origami ./src/graph/make.js 374
  */
-export const makeVerticesToFace = ({ faces_vertices }) => {
+export const makeVerticesToFaceTriple = ({ faces_vertices }) => {
 	const map = {};
 	faces_vertices
 		.forEach((face, f) => face
 			.map((_, i) => [0, 1, 2]
 				.map(j => (i + j) % face.length)
 				.map(n => face[n])
+				.join(" "))
+			.forEach(key => { map[key] = f; }));
+	return map;
+};
+
+/**
+ *
+ */
+export const makeVerticesToFace = ({ faces_vertices }) => {
+	const map = {};
+	faces_vertices
+		.forEach((face, f) => face
+			.map((_, i) => [0, 1]
+				.map(j => (i + j) % face.length)
+				.map(n => face[n])
+				.join(" "))
+			.forEach(key => { map[key] = f; }));
+	return map;
+};
+
+/**
+ *
+ */
+export const makeEdgesToFace = ({ faces_edges }) => {
+	const map = {};
+	faces_edges
+		.forEach((edges, f) => edges
+			.map((_, i) => [0, 1]
+				.map(j => (i + j) % edges.length)
+				.map(n => edges[n])
 				.join(" "))
 			.forEach(key => { map[key] = f; }));
 	return map;
@@ -837,38 +867,96 @@ export const makeFacesEdgesFromVertices = ({ edges_vertices, faces_vertices }) =
  * of numbers, each number is an index of an edge-adjacent face to this face.
  * @linkcode Origami ./src/graph/make.js 765
  */
-export const makeFacesFaces = ({ faces_vertices }) => {
-	// for every face's faces_vertices, pair a vertex with the next vertex,
-	// join the pairs of vertices into a space-separated string (where v0 < v1)
-	const facesVerticesEdgeVertexPairs = faces_vertices
-		.map(face => face
-			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-			.map(([v0, v1]) => (v1 < v0 ? [v1, v0] : [v0, v1]))
-			.map(pair => pair.join(" ")));
+// export const makeFacesFacesFirst = ({ faces_vertices }) => {
+// 	// for every face's faces_vertices, pair a vertex with the next vertex,
+// 	// join the pairs of vertices into a space-separated string (where v0 < v1)
+// 	const facesVerticesEdgeVertexPairs = faces_vertices
+// 		.map(face => face
+// 			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+// 			.map(([v0, v1]) => (v1 < v0 ? [v1, v0] : [v0, v1]))
+// 			.map(pair => pair.join(" ")));
 
+// 	// create a map that relates these space-separated vertex pair strings
+// 	// to an array of faces which contain this edge (vertex-pair).
+// 	const edgePairToFaces = {};
+// 	facesVerticesEdgeVertexPairs
+// 		.flat()
+// 		.forEach(key => { edgePairToFaces[key] = []; });
+// 	facesVerticesEdgeVertexPairs
+// 		.forEach((edgeKeys, f) => edgeKeys
+// 			.forEach(key => { edgePairToFaces[key].push(f); }));
+
+// 	// for each face's edge (vertex-pair), get the array of faces that
+// 	// are adjacent to this edge. This generates a list of faces that contains
+// 	// duplicates and contains this face itself. these will be filtered out.
+// 	const newFacesEdgesFaces = facesVerticesEdgeVertexPairs
+// 		.map((edgeKeys) => edgeKeys
+// 			.map(key => edgePairToFaces[key]));
+
+// 	// each face's entry contains an array of array of faces, flatten this list
+// 	// and remove any mention of this face itself, and remove any duplicates.
+// 	// using a Set appears to maintain the insertion order, which is what we want.
+// 	return newFacesEdgesFaces
+// 		.map((edgesFaces, face) => edgesFaces.flat().filter(f => f !== face))
+// 		.map(faces => Array.from(new Set(faces)));
+// };
+
+export const makeFacesFaces = ({ faces_vertices }) => {
 	// create a map that relates these space-separated vertex pair strings
 	// to an array of faces which contain this edge (vertex-pair).
-	const edgePairToFaces = {};
-	facesVerticesEdgeVertexPairs
+	const vertexPairToFaces = {};
+
+	// for every face's faces_vertices, pair a vertex with the next vertex,
+	// join the pairs of vertices into a space-separated string (where v0 < v1)
+	const facesVerticesKeys = faces_vertices
+		.map(face => face
+			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+			.map(pair => pair.join(" ")));
+
+	facesVerticesKeys
 		.flat()
-		.forEach(key => { edgePairToFaces[key] = []; });
-	facesVerticesEdgeVertexPairs
-		.forEach((edgeKeys, f) => edgeKeys
-			.forEach(key => { edgePairToFaces[key].push(f); }));
+		.forEach(key => { vertexPairToFaces[key] = []; });
 
-	// for each face's edge (vertex-pair), get the array of faces that
-	// are adjacent to this edge. This generates a list of faces that contains
-	// duplicates and contains this face itself. these will be filtered out.
-	const newFacesEdgesFaces = facesVerticesEdgeVertexPairs
-		.map((edgeKeys) => edgeKeys
-			.map(key => edgePairToFaces[key]));
+	facesVerticesKeys
+		.forEach((keys, f) => keys
+			.forEach(key => vertexPairToFaces[key].push(f)));
 
-	// each face's entry contains an array of array of faces, flatten this list
-	// and remove any mention of this face itself, and remove any duplicates.
-	// using a Set appears to maintain the insertion order, which is what we want.
-	return newFacesEdgesFaces
-		.map((edgesFaces, face) => edgesFaces.flat().filter(f => f !== face))
-		.map(faces => Array.from(new Set(faces)));
+	// in the case of faces with leaf edges whose vertices double back
+	// on themselves, the face would choose itself as an adjacent face.
+	// filter to prevent this from happening, replace these instances with
+	// "undefined".
+	return faces_vertices
+		.map((face, f1) => face
+			.map((v, i, arr) => [arr[(i + 1) % arr.length], v])
+			.map(pair => pair.join(" "))
+			.map(key => vertexPairToFaces[key])
+			.map(faces => (faces === undefined ? [undefined] : faces))
+			.flatMap(faces => faces.filter(f2 => f1 !== f2).shift()));
+};
+
+export const makeFacesFacesManifold = ({ faces_vertices }) => {
+	// create a map that relates these space-separated vertex pair strings
+	// to an array of faces which contain this edge (vertex-pair).
+	const vertexPairToFace = {};
+
+	// for every face's faces_vertices, pair a vertex with the next vertex,
+	// join the pairs of vertices into a space-separated string (where v0 < v1)
+	faces_vertices
+		.map((face, f) => face
+			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+			.map(pair => pair.join(" "))
+			.forEach(key => { vertexPairToFace[key] = f; }));
+
+	// in the case of faces with leaf edges whose vertices double back
+	// on themselves, the face would choose itself as an adjacent face.
+	// filter to prevent this from happening, replace these instances with
+	// "undefined".
+	return faces_vertices
+		.map((face, f1) => face
+			.map((v, i, arr) => [arr[(i + 1) % arr.length], v])
+			.map(pair => pair.join(" "))
+			.map(key => vertexPairToFace[key])
+			.map(f2 => (f1 === f2 ? undefined : f2)));
 };
 
 /**

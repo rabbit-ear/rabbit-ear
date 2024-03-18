@@ -63,6 +63,27 @@ export const polygon = (sides = 3, circumradius = 1) => populate(
 );
 
 /**
+ * @description Create a blintz base FOLD object in crease pattern form.
+ * @returns {FOLD} a FOLD object
+ */
+export const blintz = () => populate({
+	vertices_coords: [
+		[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]
+	],
+	vertices_vertices: [
+		[1, 7], [2, 3, 7, 0], [3, 1], [4, 5, 1, 2], [5, 3], [6, 7, 3, 4], [7, 5], [0, 1, 5, 6],
+	],
+	edges_vertices: [
+		[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],
+		[6, 7], [7, 0], [7, 1], [1, 3], [3, 5], [5, 7],
+	],
+	edges_assignment: Array.from("BBBBBBBBVVVV"),
+	faces_vertices: [
+		[7, 1, 3, 5], [1, 7, 0], [3, 1, 2], [5, 3, 4], [7, 5, 6]
+	],
+});
+
+/**
  * @description Create a kite base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */

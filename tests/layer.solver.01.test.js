@@ -2,6 +2,18 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
+test("layer solver Randlett flapping bird", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/randlett-flapping-bird.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const {
+		orders,
+		branches,
+	} = ear.layer(folded);
+	expect(orders).toMatchObject(folded.faceOrders);
+	expect(branches).toBe(undefined);
+});
+
 test("preliminary fold layers 2D", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/preliminary-offset-cp.fold", "utf-8");
 	const graph = JSON.parse(FOLD);

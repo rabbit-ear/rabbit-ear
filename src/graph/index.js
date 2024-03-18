@@ -25,7 +25,6 @@ import * as splitLine from "./split/splitLine.js";
 import * as splitGraph from "./split/splitGraph.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
-import * as symmetry from "./symmetry.js";
 import * as transfer from "./transfer.js";
 import * as transform from "./transform.js";
 import * as trees from "./trees.js";
@@ -89,7 +88,6 @@ export default {
 	...splitGraph,
 	...subgraphMethods,
 	...sweep,
-	...symmetry,
 	...transfer,
 	...transform,
 	...trees,

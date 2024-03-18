@@ -3,9 +3,9 @@ import fs from "fs";
 import ear from "../rabbit-ear.js";
 
 // test("write folded vertices", () => {
-// const foldfile = fs.readFileSync("./tests/files/fold/windmill-face-cycle.fold", "utf-8");
+// 	const foldfile = fs.readFileSync("./tests/files/fold/randlett-flapping-bird.fold", "utf-8");
 // 	const fold = JSON.parse(foldfile);
-// 	const folded = ear.graph.makeVerticesCoordsFlatFolded(fold, [6]);
+// 	const folded = ear.graph.makeVerticesCoordsFlatFolded(fold);
 // 	fs.writeFileSync(
 // 		`./tests/tmp/folded-vertices.json`,
 // 		JSON.stringify(folded.map(p => p.map(n => ear.general.cleanNumber(n, 12))), null, 2),
@@ -26,6 +26,33 @@ import ear from "../rabbit-ear.js";
 // 		JSON.stringify(solution, null, 2),
 // 	);
 // });
+
+test("layer strip weave", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const {
+		orders,
+		branches,
+	} = ear.layer.solveLayerOrders(folded);
+
+	// these are all adjacent faces
+	// the first call to propagate() resulted in nothing
+	expect(orders).toMatchObject({
+		"0 1": 2,
+		"4 5": 1,
+		"1 2": 1,
+		"2 3": 2,
+		"5 6": 2,
+	});
+
+	// three branches, only one pair in each
+	expect(branches).toMatchObject([
+		[{ orders: { "1 4": 1 } }, { orders: { "1 4": 2 } }],
+		[{ orders: { "2 5": 1 } }, { orders: { "2 5": 2 } }],
+		[{ orders: { "3 6": 1 } }, { orders: { "3 6": 2 } }],
+	]);
+});
 
 test("layer panels 4x2", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/panels-4x2.fold", "utf-8");
@@ -55,31 +82,36 @@ test("layer panels 4x2", () => {
 	]]);
 });
 
-test("layer strip weave", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
+test("layer panels 3x3", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/panels-3x3.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+
+	const expectedJSON = fs.readFileSync(
+		"./tests/files/json/panels-3x3-layer-solver.json",
+		"utf-8",
+	);
+	const expected = JSON.parse(expectedJSON);
+	delete expected.faces_winding;
+
 	const {
-		orders,
-		branches,
+		faces_winding,
+		...solution
 	} = ear.layer.solveLayerOrders(folded);
 
-	// these are all adjacent faces
-	// the first call to propagate() resulted in nothing
-	expect(orders).toMatchObject({
-		"0 1": 2,
-		"4 5": 1,
-		"1 2": 1,
-		"2 3": 2,
-		"5 6": 2,
-	});
+	expect(solution).toMatchObject(expected);
+});
 
-	// three branches, only one pair in each
-	expect(branches).toMatchObject([
-		[{ orders: { "1 4": 1 } }, { orders: { "1 4": 2 } }],
-		[{ orders: { "2 5": 1 } }, { orders: { "2 5": 2 } }],
-		[{ orders: { "3 6": 1 } }, { orders: { "3 6": 2 } }],
-	]);
+test("layer panels 3x3 no solution", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/panels-3x3-invalid.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+
+	try {
+		ear.layer.solveLayerOrders(folded);
+	} catch (error) {
+		expect(error).not.toBe(undefined);
+	}
 });
 
 test("layer panels 5", () => {
@@ -111,8 +143,8 @@ test("layer panels 5", () => {
 			branches: [[
 				{ orders: { "0 4": 1 } },
 				{ orders: { "0 4": 2 } },
-			]]
-		}
+			]],
+		},
 	]]);
 });
 
@@ -209,7 +241,7 @@ test("layer crane", () => {
 
 	const expectedJSON = fs.readFileSync(
 		"./tests/files/json/crane-layer-solver.json",
-		"utf-8"
+		"utf-8",
 	);
 	const expected = JSON.parse(expectedJSON);
 	expect(solution).toMatchObject(expected);
@@ -223,10 +255,26 @@ test("layer Kabuto", () => {
 
 	const expectedJSON = fs.readFileSync(
 		"./tests/files/json/kabuto-layer-solver.json",
-		"utf-8"
+		"utf-8",
 	);
 	const expected = JSON.parse(expectedJSON);
 	delete expected.faces_winding;
 
 	expect(solution).toMatchObject(expected)
+});
+
+test("layer Randlett flapping bird", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/randlett-flapping-bird.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const solution = ear.layer.solveLayerOrders(folded);
+
+	const expectedJSON = fs.readFileSync(
+		"./tests/files/json/randlett-flapping-bird-layer-solver.json",
+		"utf-8",
+	);
+	const expected = JSON.parse(expectedJSON);
+	delete expected.faces_winding;
+
+	expect(solution).toMatchObject(expected);
 });

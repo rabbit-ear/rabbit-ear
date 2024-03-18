@@ -115,5 +115,7 @@ test("duplicate edges", () => {
 		faces_edges: [[0, 1, 2, 3, 4, 5]],
 	};
 	ear.graph.populate(graph);
-	expect(graph.faces_faces[0].length).toBe(0);
+	expect(graph.faces_faces).toMatchObject([[
+		undefined, undefined, undefined, undefined, undefined, undefined
+	]]);
 });

@@ -139,9 +139,14 @@ const populate = (graph, options = {}) => {
 		faces_edges: false,
 	};
 
+	// if vertices_vertices exists, rely on its winding order to determine
+	// vertices_edges and vertices_faces.
+	// otherwise, if vertices_vertices and/or vertices_edges are missing,
 	// vertices_edges and vertices_vertices are mutually dependent, so,
 	// we need to rebuild one even if it exists if the other does not.
-	if (!graph.vertices_edges || !graph.vertices_vertices) {
+	if (graph.vertices_vertices && !graph.vertices_edges) {
+		graph.vertices_edges = makeVerticesEdges(graph);
+	} else if (!graph.vertices_edges || !graph.vertices_vertices) {
 		graph.vertices_edges = makeVerticesEdgesUnsorted(graph);
 		graph.vertices_vertices = makeVerticesVertices(graph);
 		graph.vertices_edges = makeVerticesEdges(graph);

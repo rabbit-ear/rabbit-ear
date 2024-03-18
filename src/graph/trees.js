@@ -16,7 +16,7 @@
  * fully cover a graph, the input being a self-referencing array, such as
  * vertices_vertices, faces_faces. The tree makes no decision about
  * which path to take, only by choosing the first adjacent index.
- * @param {number[][]} array_array an array of array of indices,
+ * @param {(number|undefined)[][]} array_array an array of array of indices,
  * indices which are meant to reference this array itself, for example:
  * vertices_vertices or faces_faces or anything following that pattern.
  * @param {number[]} [rootIndices=[]] the indices of faces to become
@@ -60,7 +60,7 @@ export const minimumSpanningTrees = (array_array = [], rootIndices = []) => {
 			// but filter out any which already appeared in a previous level.
 			const nextLevel = currentLevel
 				.flatMap(current => array_array[current.index]
-					.filter(i => unvisited[i])
+					.filter(i => unvisited[i] && i !== null && i !== undefined)
 					.map(index => ({ index, parent: current.index })));
 
 			// the above list we just made might contain duplicates.

@@ -11,6 +11,7 @@ import * as tacosTortillas from "./tacosTortillas.js";
 import * as transitivity from "./transitivity.js";
 import {
 	solveLayerOrders,
+	solveLayerOrdersSingleBranches,
 	solveFaceOrders,
 } from "./layer.js";
 
@@ -24,5 +25,6 @@ export default {
 	...tacosTortillas,
 	...transitivity,
 	solveLayerOrders,
+	solveLayerOrdersSingleBranches,
 	solveFaceOrders,
 };
