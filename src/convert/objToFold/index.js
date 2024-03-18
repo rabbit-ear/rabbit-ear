@@ -7,12 +7,22 @@ import {
 } from "../../fold/rabbitear.js";
 import {
 	makeVerticesVerticesFromFaces,
+} from "../../graph/make/verticesVertices.js";
+import {
 	makeEdgesFacesUnsorted,
+} from "../../graph/make/edgesFaces.js";
+import {
 	makeEdgesFoldAngleFromFaces,
+} from "../../graph/make/edgesFoldAngle.js";
+import {
 	makeEdgesAssignment,
+} from "../../graph/make/edgesAssignment.js";
+import {
 	makeFacesEdgesFromVertices,
+} from "../../graph/make/facesEdges.js";
+import {
 	makeFacesConvexCenter,
-} from "../../graph/make.js";
+} from "../../graph/make/faces.js";
 import {
 	makeFacesNormal,
 } from "../../graph/normals.js";

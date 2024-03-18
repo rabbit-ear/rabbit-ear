@@ -3,7 +3,7 @@
  */
 import { EPSILON } from "../../math/constant.js";
 import { collinearBetween } from "../../math/line.js";
-import { makeVerticesEdgesUnsorted } from "../make.js";
+import { makeVerticesEdgesUnsorted } from "../make/verticesEdges.js";
 
 /**
  * @description Given one vertex, and a list of edges which contain this vertex,

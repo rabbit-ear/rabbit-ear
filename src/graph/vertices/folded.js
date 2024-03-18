@@ -25,9 +25,13 @@ import {
 } from "../../math/matrix3.js";
 import {
 	makeVerticesFaces,
+} from "../make/verticesFaces.js";
+import {
 	makeVerticesToEdgeBidirectional,
+} from "../make/lookup.js";
+import {
 	makeFacesFaces,
-} from "../make.js";
+} from "../make/facesFaces.js";
 import {
 	minimumSpanningTrees,
 } from "../trees.js";

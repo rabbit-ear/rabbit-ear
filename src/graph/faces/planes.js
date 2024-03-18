@@ -36,7 +36,7 @@ import {
 } from "../maps.js";
 import {
 	makeFacesFaces,
-} from "../make.js";
+} from "../make/facesFaces.js";
 import {
 	makeFacesNormal,
 } from "../normals.js";

@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { boundingBox } from "../../graph/boundary.js";
-import { makeEdgesLength } from "../../graph/make.js";
+import { makeEdgesLength } from "../../graph/make/edges.js";
 
 /**
  * @description the default bounds, the unit square

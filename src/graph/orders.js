@@ -15,7 +15,7 @@ import {
 } from "./directedGraph.js";
 import {
 	makeVerticesVerticesUnsorted,
-} from "./make.js";
+} from "./make/verticesVertices.js";
 import {
 	connectedComponents,
 } from "./connectedComponents.js";

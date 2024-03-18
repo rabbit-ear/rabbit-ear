@@ -29,7 +29,7 @@ import {
 } from "../../graph/maps.js";
 import {
 	makeEdgesCoords,
-} from "../../graph/make.js";
+} from "../../graph/make/edges.js";
 /**
  *
  */

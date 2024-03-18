@@ -3,10 +3,14 @@
  */
 import {
 	makeVerticesEdgesUnsorted,
-	makeVerticesVertices,
 	makeVerticesEdges,
+} from "../make/verticesEdges.js";
+import {
+	makeVerticesVertices,
+} from "../make/verticesVertices.js";
+import {
 	makeVerticesFaces,
-} from "../make.js";
+} from "../make/verticesFaces.js";
 import replace from "../replace.js";
 
 /**

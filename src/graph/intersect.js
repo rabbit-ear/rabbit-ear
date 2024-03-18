@@ -29,7 +29,7 @@ import {
 } from "../general/cluster.js";
 import {
 	makeFacesEdgesFromVertices,
-} from "./make.js";
+} from "./make/facesEdges.js";
 
 /**
  * @description Intersect a line/ray/segment with a FOLD graph but only

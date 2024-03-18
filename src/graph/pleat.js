@@ -23,7 +23,7 @@ import {
 } from "./edges/lines.js";
 import {
 	makeEdgesVector,
-} from "./make.js";
+} from "./make/edges.js";
 
 /**
  * @description Create a series of pleat lines as segments, using two

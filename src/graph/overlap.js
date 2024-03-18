@@ -13,7 +13,7 @@ import {
 } from "../math/overlap.js";
 import {
 	makeFacesPolygon,
-} from "./make.js";
+} from "./make/faces.js";
 import {
 	sweepFaces,
 } from "./sweep.js";

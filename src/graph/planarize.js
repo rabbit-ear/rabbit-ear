@@ -53,7 +53,7 @@ import {
 } from "./edges/circular.js";
 import {
 	makeVerticesEdgesUnsorted,
-} from "./make.js";
+} from "./make/verticesEdges.js";
 
 /**
  *

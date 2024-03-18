@@ -23,7 +23,7 @@ import {
 	makeEdgesVector,
 	makeEdgesBoundingBox,
 	makeEdgesCoords,
-} from "../graph/make.js";
+} from "../graph/make/edges.js";
 import {
 	boundingBox,
 } from "../math/polygon.js";

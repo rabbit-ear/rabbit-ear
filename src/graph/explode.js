@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeFacesEdgesFromVertices } from "./make.js";
+import { makeFacesEdgesFromVertices } from "./make/facesEdges.js";
 
 /**
  * @description Create a modified graph which contains vertices, edges,

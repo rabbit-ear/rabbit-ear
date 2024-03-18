@@ -16,8 +16,10 @@ import {
 } from "../../fold/spec.js";
 import {
 	makeEdgesVector,
+} from "../make/edges.js";
+import {
 	makeFacesEdgesFromVertices,
-} from "../make.js";
+} from "../make/facesEdges.js";
 import {
 	makeVerticesCoordsFlatFolded,
 } from "../vertices/folded.js";

@@ -11,7 +11,7 @@ import {
 } from "../fold/spec.js";
 import {
 	makeVerticesEdgesUnsorted,
-} from "../graph/make.js";
+} from "../graph/make/verticesEdges.js";
 import {
 	counterClockwiseOrder2,
 	counterClockwiseAngleRadians,

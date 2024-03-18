@@ -3,11 +3,19 @@
  */
 import {
 	makeVerticesVertices,
+} from "../make/verticesVertices.js";
+import {
 	makeVerticesEdges,
+} from "../make/verticesEdges.js";
+import {
 	makeVerticesFaces,
+} from "../make/verticesFaces.js";
+import {
 	makeEdgesFacesUnsorted,
+} from "../make/edgesFaces.js";
+import {
 	makeFacesFaces,
-} from "../make.js";
+} from "../make/facesFaces.js";
 import {
 	splitCircularArray,
 	splitArrayWithLeaf,

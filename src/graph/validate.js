@@ -18,7 +18,7 @@ import {
 	makeVerticesToEdgeBidirectional,
 	makeVerticesToFace,
 	makeEdgesToFace,
-} from "./make.js";
+} from "./make/lookup.js";
 // import {
 // 	duplicateVertices,
 // } from "./vertices/duplicate.js";

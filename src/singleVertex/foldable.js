@@ -14,10 +14,16 @@ import {
 } from "../math/matrix3.js";
 import {
 	makeVerticesVertices,
+} from "../graph/make/verticesVertices.js";
+import {
 	makeVerticesEdges,
+} from "../graph/make/verticesEdges.js";
+import {
 	makeVerticesFaces,
+} from "../graph/make/verticesFaces.js";
+import {
 	makeVerticesVerticesVector,
-} from "../graph/make.js";
+} from "../graph/make/vertices.js";
 
 /**
  * @description Given a crease pattern, this method will test every vertex

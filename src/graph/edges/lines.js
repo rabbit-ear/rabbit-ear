@@ -37,7 +37,7 @@ import {
 } from "../../general/sort.js";
 import {
 	makeEdgesCoords,
-} from "../make.js";
+} from "../make/edges.js";
 import {
 	invertArrayToFlatMap,
 } from "../maps.js";

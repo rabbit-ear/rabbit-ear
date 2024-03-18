@@ -15,12 +15,22 @@ import {
 } from "../../graph/maps.js";
 import {
 	makeFacesEdgesFromVertices,
+} from "../../graph/make/facesEdges.js";
+import {
 	makeEdgesFacesUnsorted,
+} from "../../graph/make/edgesFaces.js";
+import {
 	makeEdgesAssignmentSimple,
+} from "../../graph/make/edgesAssignment.js";
+import {
 	makeEdgesFoldAngle,
+} from "../../graph/make/edgesFoldAngle.js";
+import {
 	makeFacesFaces,
+} from "../../graph/make/facesFaces.js";
+import {
 	makeFacesPolygon,
-} from "../../graph/make.js";
+} from "../../graph/make/faces.js";
 import {
 	connectedComponentsPairs,
 } from "../../graph/connectedComponents.js";

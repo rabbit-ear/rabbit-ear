@@ -12,9 +12,13 @@ import {
 } from "./connectedComponents.js";
 import {
 	makeVerticesVerticesUnsorted,
+} from "./make/verticesVertices.js";
+import {
 	makeVerticesEdgesUnsorted,
+} from "./make/verticesEdges.js";
+import {
 	makeVerticesFacesUnsorted,
-} from "./make.js";
+} from "./make/verticesFaces.js";
 import {
 	invertFlatToArrayMap,
 } from "./maps.js";

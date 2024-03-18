@@ -14,7 +14,7 @@ import {
 } from "../../../fold/colors.js";
 import {
 	makeEdgesCoords,
-} from "../../../graph/make.js";
+} from "../../../graph/make/edges.js";
 import {
 	addClass,
 } from "../../../svg/general/dom.js";

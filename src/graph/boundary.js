@@ -18,10 +18,14 @@ import {
 } from "./maps.js";
 import {
 	makeVerticesEdgesUnsorted,
+} from "./make/verticesEdges.js";
+import {
 	makeVerticesVertices2D,
-	makeVerticesToEdgeBidirectional,
 	makeVerticesVerticesUnsorted,
-} from "./make.js";
+} from "./make/verticesVertices.js";
+import {
+	makeVerticesToEdgeBidirectional,
+} from "./make/lookup.js";
 import {
 	connectedComponents,
 } from "./connectedComponents.js";

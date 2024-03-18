@@ -15,7 +15,7 @@ import {
 } from "../graph/faces/winding.js";
 import {
 	makeFacesPolygon,
-} from "../graph/make.js";
+} from "../graph/make/faces.js";
 import {
 	constraintToFacePairsStrings,
 } from "./general.js";

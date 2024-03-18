@@ -3,8 +3,10 @@
  */
 import {
 	makeFacesEdgesFromVertices,
+} from "../graph/make/facesEdges.js";
+import {
 	makeEdgesFacesUnsorted,
-} from "../graph/make.js";
+} from "../graph/make/edgesFaces.js";
 import {
 	makeEpsilon,
 } from "../graph/epsilon.js";

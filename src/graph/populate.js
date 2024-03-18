@@ -3,15 +3,29 @@
  */
 import {
 	makeVerticesVertices,
+} from "./make/verticesVertices.js";
+import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesEdges,
+} from "./make/verticesEdges.js";
+import {
 	makeVerticesFaces,
+} from "./make/verticesFaces.js";
+import {
 	makeEdgesFacesUnsorted,
+} from "./make/edgesFaces.js";
+import {
 	makeFacesFaces,
+} from "./make/facesFaces.js";
+import {
 	makeFacesEdgesFromVertices,
+} from "./make/facesEdges.js";
+import {
 	makeFacesVerticesFromEdges,
+} from "./make/facesVertices.js";
+import {
 	makePlanarFaces,
-} from "./make.js";
+} from "./make/faces.js";
 import {
 	edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment,

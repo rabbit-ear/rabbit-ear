@@ -31,7 +31,7 @@ import {
 } from "../vertices/folded.js";
 import {
 	makeVerticesEdgesUnsorted,
-} from "../make.js";
+} from "../make/verticesEdges.js";
 import {
 	faceContainingPoint,
 } from "../faces/facePoint.js";

@@ -21,10 +21,16 @@ import {
 } from "../../math/matrix3.js";
 import {
 	makeVerticesToEdgeBidirectional,
+} from "../make/lookup.js";
+import {
 	makeEdgesFoldAngle,
+} from "../make/edgesFoldAngle.js";
+import {
 	makeEdgesAssignmentSimple,
+} from "../make/edgesAssignment.js";
+import {
 	makeFacesFaces,
-} from "../make.js";
+} from "../make/facesFaces.js";
 import {
 	rotateCircularArray,
 } from "../../general/array.js";

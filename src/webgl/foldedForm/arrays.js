@@ -5,7 +5,7 @@ import {
 	makeFacesVertexData,
 	makeThickEdgesVertexData,
 } from "./data.js";
-import { makeFacesEdgesFromVertices } from "../../graph/make.js";
+import { makeFacesEdgesFromVertices } from "../../graph/make/facesEdges.js";
 
 export const makeFoldedVertexArrays = (gl, program, {
 	vertices_coords, edges_vertices, edges_assignment,

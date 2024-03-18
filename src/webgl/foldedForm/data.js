@@ -3,7 +3,7 @@
  */
 // import { resize } from "../../math/vector.js";
 import { makeVerticesNormal } from "../../graph/normals.js";
-import { makeEdgesVector } from "../../graph/make.js";
+import { makeEdgesVector } from "../../graph/make/edges.js";
 import { light, dark } from "../general/colors.js";
 
 export const makeFacesVertexData = ({

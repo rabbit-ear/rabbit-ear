@@ -6,7 +6,7 @@ import {
 } from "../math/constant.js";
 import {
 	makeEdgesVector,
-} from "../graph/make.js";
+} from "../graph/make/edges.js";
 import {
 	connectedComponentsPairs,
 } from "../graph/connectedComponents.js";

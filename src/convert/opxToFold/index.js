@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeEdgesFoldAngle } from "../../graph/make.js";
+import { makeEdgesFoldAngle } from "../../graph/make/edgesFoldAngle.js";
 import planarizeGraph from "../general/planarizeGraph.js";
 import { xmlStringToElement } from "../../svg/general/dom.js";
 import {

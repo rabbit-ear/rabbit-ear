@@ -18,7 +18,7 @@ import {
 } from "../vertices/sort.js";
 import {
 	makeVerticesToEdgeBidirectional,
-} from "../make.js";
+} from "../make/lookup.js";
 import {
 	mergeNextmaps,
 	mergeBackmaps,

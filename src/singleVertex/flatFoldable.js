@@ -13,9 +13,13 @@ import {
 } from "../fold/spec.js";
 import {
 	makeVerticesVertices,
+} from "../graph/make/verticesVertices.js";
+import {
 	makeVerticesEdgesUnsorted,
+} from "../graph/make/verticesEdges.js";
+import {
 	makeVerticesVerticesVector,
-} from "../graph/make.js";
+} from "../graph/make/vertices.js";
 import {
 	boundaryVertices,
 } from "../graph/boundary.js";

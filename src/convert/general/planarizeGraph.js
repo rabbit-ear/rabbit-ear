@@ -4,8 +4,10 @@
 import planarize from "../../graph/planarize.js";
 import {
 	makeVerticesVertices,
+} from "../../graph/make/verticesVertices.js";
+import {
 	makePlanarFaces,
-} from "../../graph/make.js";
+} from "../../graph/make/faces.js";
 /**
  * @description Resolve all crossing edges, build faces,
  * walk and discover the boundary.

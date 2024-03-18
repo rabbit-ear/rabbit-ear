@@ -22,7 +22,7 @@ import {
 } from "../../fold/spec.js";
 import {
 	makeEdgesFacesUnsorted,
-} from "../make.js";
+} from "../make/edgesFaces.js";
 import {
 	makeVerticesCoordsFolded,
 } from "../vertices/folded.js";

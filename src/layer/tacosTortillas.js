@@ -6,7 +6,7 @@ import {
 } from "../math/constant.js";
 import {
 	makeFacesConvexCenter,
-} from "../graph/make.js";
+} from "../graph/make/faces.js";
 import {
 	getEdgesFacesOverlap,
 } from "./intersect.js";

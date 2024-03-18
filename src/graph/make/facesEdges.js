@@ -1,0 +1,21 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
+import {
+	makeVerticesToEdgeBidirectional,
+} from "./lookup.js";
+
+/**
+ * @description Make `faces_edges` from `faces_vertices`.
+ * @param {FOLD} graph a FOLD graph, with
+ * edges_vertices and faces_vertices
+ * @returns {number[][]} a `faces_edges` array
+ * @linkcode Origami ./src/graph/make.js 751
+ */
+export const makeFacesEdgesFromVertices = ({ edges_vertices, faces_vertices }) => {
+	const map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	return faces_vertices
+		.map(face => face
+			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]].join(" ")))
+		.map(face => face.map(pair => map[pair]));
+};

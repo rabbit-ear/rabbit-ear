@@ -20,7 +20,7 @@ import {
 } from "../fold/spec.js";
 import {
 	makeFacesConvexCenter,
-} from "./make.js";
+} from "./make/faces.js";
 import {
 	faceContainingPoint,
 } from "./faces/facePoint.js";
