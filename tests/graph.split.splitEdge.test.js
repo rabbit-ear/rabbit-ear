@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import fs from "fs";
 import ear from "../rabbit-ear.js";
 
 // this feature is now deprecated
@@ -117,4 +118,174 @@ test("split multiple edges, edge maps, approach 2: update inside loop", () => {
 	// they bubbled up to the first two indices
 	expect(JSON.stringify(graph.edges_vertices[0])).toBe(JSON.stringify([1, 2]));
 	expect(JSON.stringify(graph.edges_vertices[1])).toBe(JSON.stringify([3, 0]));
+});
+
+test("splitEdge, interior edge", () => {
+	const FOLD = fs.readFileSync(
+		"./tests/files/fold/surrounded-square.fold",
+		"utf-8",
+	);
+	const graph = JSON.parse(FOLD);
+	const result = ear.graph.splitEdge(
+		graph,
+		4,
+		[0.5, 0.2928932188134526],
+	);
+
+	expect(ear.graph.validate(graph).length).toBe(0);
+
+	expect(result).toMatchObject({
+		vertex: 8,
+		edges: {
+			add: [11, 12],
+			remove: 4,
+			map: [0, 1, 2, 3, [11, 12], 4, 5, 6, 7, 8, 9, 10],
+		},
+	});
+
+	expect(graph).toMatchObject({
+		vertices_vertices: [
+			[1, 4, 3], [2, 5, 0], [3, 6, 1], [0, 7, 2],
+			[8, 7, 0], [6, 8, 1], [7, 5, 2], [4, 6, 3], [4, 5],
+		],
+		vertices_edges: [
+			[0, 7, 3], [1, 8, 0], [2, 9, 1], [3, 10, 2],
+			[11, 6, 7], [4, 12, 8], [5, 4, 9], [6, 5, 10], [11, 12],
+		],
+		vertices_faces: [
+			[1, 4, null], [2, 1, null], [3, 2, null], [4, 3, null],
+			[0, 4, 1], [0, 1, 2], [0, 2, 3], [0, 3, 4], [1, 0],
+		],
+		edges_vertices: [
+			[0, 1], [1, 2], [2, 3], [3, 0], [5, 6], [6, 7], [7, 4],
+			[0, 4], [1, 5], [2, 6], [3, 7], [4, 8], [8, 5],
+		],
+		edges_assignment: [
+			"B", "B", "B", "B", "F", "F", "F", "J", "J", "J", "J", "F", "F"
+		],
+		edges_foldAngle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		edges_faces: [
+			[1], [2], [3], [4], [0, 2], [0, 3], [0, 4],
+			[4, 1], [1, 2], [2, 3], [3, 4], [0, 1], [0, 1],
+		],
+		faces_vertices: [
+			[4, 8, 5, 6, 7], [0, 1, 5, 8, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]
+		],
+		faces_edges: [
+			[11, 12, 4, 5, 6], [0, 8, 12, 11, 7], [1, 9, 4, 8], [2, 10, 5, 9], [3, 7, 6, 10]
+		],
+		faces_faces: [
+			[1, 1, 2, 3, 4], [null, 2, 0, 0, 4], [null, 3, 0, 1], [null, 4, 0, 2], [null, 1, 0, 3]
+		],
+	});
+});
+
+test("splitEdge, exterior edge", () => {
+	const FOLD = fs.readFileSync(
+		"./tests/files/fold/surrounded-square.fold",
+		"utf-8",
+	);
+	const graph = JSON.parse(FOLD);
+	const result = ear.graph.splitEdge(graph, 0, [0.5, 0]);
+
+	expect(result).toMatchObject({
+		vertex: 8,
+		edges: {
+			add: [11, 12],
+			remove: 0,
+			map: [[11, 12], 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+		},
+	});
+
+	expect(ear.graph.validate(graph).length).toBe(0);
+
+	expect(graph).toMatchObject({
+		vertices_vertices: [
+			[8, 4, 3], [2, 5, 8], [3, 6, 1], [0, 7, 2],
+			[5, 7, 0], [6, 4, 1], [7, 5, 2], [4, 6, 3], [0, 1]
+		],
+		vertices_edges: [
+			[11, 7, 2], [0, 8, 12], [1, 9, 0], [2, 10, 1],
+			[3, 6, 7], [4, 3, 8], [5, 4, 9], [6, 5, 10], [11, 12]
+		],
+		vertices_faces: [
+			[1, 4, null], [2, 1, null], [3, 2, null], [4, 3, null],
+			[0, 4, 1], [0, 1, 2], [0, 2, 3], [0, 3, 4], [undefined, 1],
+		],
+		edges_vertices: [
+			[1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4],
+			[0, 4], [1, 5], [2, 6], [3, 7], [0, 8], [8, 1],
+		],
+		edges_assignment: [
+			"B", "B", "B", "F", "F", "F", "F", "J", "J", "J", "J", "B", "B",
+		],
+		edges_foldAngle: [
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		],
+		edges_faces: [
+			[2], [3], [4], [0, 1], [0, 2], [0, 3], [0, 4], [4, 1], [1, 2], [2, 3], [3, 4], [1], [1],
+		],
+		faces_vertices: [
+			[4, 5, 6, 7], [0, 8, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]
+		],
+		faces_edges: [
+			[3, 4, 5, 6], [11, 12, 8, 3, 7], [0, 9, 4, 8], [1, 10, 5, 9], [2, 7, 6, 10]
+		],
+		faces_faces: [
+			[1, 2, 3, 4], [null, null, 2, 0, 4], [null, 3, 0, 1], [null, 4, 0, 2], [null, 1, 0, 3]
+		]
+	});
+});
+
+test("splitEdge ensure winding order around vertices_faces", () => {
+	// in this exaple, faces_faces[0] had to duplicate the last index
+	// but splice it into the first index to maintain winding order
+	// with faces_vertices
+	const FOLD = fs.readFileSync(
+		"./tests/files/fold/surrounded-square.fold",
+		"utf-8",
+	);
+
+	const graph = JSON.parse(FOLD);
+
+	ear.graph.splitEdge(graph, 7, [0.5, 0]);
+
+	expect(ear.graph.validate(graph).length).toBe(0);
+
+	expect(graph).toMatchObject({
+		faces_vertices: [
+			[8, 4, 5, 6, 7],
+			[0, 1, 5, 4],
+			[1, 2, 6, 5],
+			[2, 3, 7, 6],
+			[3, 0, 4, 8, 7]
+		],
+		faces_edges: [
+			[12, 4, 5, 6, 11],
+			[0, 8, 4, 7],
+			[1, 9, 5, 8],
+			[2, 10, 6, 9],
+			[3, 7, 12, 11, 10]
+		],
+		faces_faces: [
+			[4, 1, 2, 3, 4],
+			[null, 2, 0, 4],
+			[null, 3, 0, 1],
+			[null, 4, 0, 2],
+			[null, 1, 0, 0, 3],
+		],
+	});
+});
+
+
+test("splitEdge along every edge, validate", () => {
+	const FOLD = fs.readFileSync(
+		"./tests/files/fold/surrounded-square.fold",
+		"utf-8",
+	);
+
+	const graph = JSON.parse(FOLD);
+	const graphs = graph.edges_vertices.map(() => structuredClone(graph));
+	graphs.forEach((g, i) => ear.graph.splitEdge(g, i, [0.5, 0.5]));
+	expect(graphs.flatMap(g => ear.graph.validate(g)).length).toBe(0);
 });

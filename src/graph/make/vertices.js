@@ -19,6 +19,7 @@ import {
 import {
 	makeVerticesToEdge,
 } from "./lookup.js";
+
 /**
  * @description For every vertex, make an array of vectors that point towards each
  * of the incident vertices. This is accomplised by taking the vertices_vertices
@@ -65,7 +66,6 @@ export const makeVerticesSectors = ({
 	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
 }) => makeVerticesVerticesVector({
 	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
-})
-	.map(vectors => (vectors.length === 1 // leaf node
-		? [TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
-		: counterClockwiseSectors2(vectors)));
+}).map(vectors => (vectors.length === 1 // leaf node
+	? [TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
+	: counterClockwiseSectors2(vectors)));

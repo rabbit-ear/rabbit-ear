@@ -177,11 +177,12 @@ export const remapKey = (graph, key, indexMap) => {
 	// if a key was not included in indexMap for whatever reason,
 	// it will be registered as "undefined". remove these.
 	// the upcoming "prefix" step will automatically do this as well.
-	filterKeysWithSuffix(graph, key)
-		.forEach(sKey => graph[sKey]
-			.forEach((_, ii) => {
-				graph[sKey][ii] = graph[sKey][ii].filter(a => a !== undefined);
-			}));
+
+	// filterKeysWithSuffix(graph, key)
+	// 	.forEach(sKey => graph[sKey]
+	// 		.forEach((_, ii) => {
+	// 			graph[sKey][ii] = graph[sKey][ii].filter(a => a !== undefined);
+	// 		}));
 
 	// set the top-level arrays
 	filterKeysWithPrefix(graph, key).forEach(prefix => {

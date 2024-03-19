@@ -9,6 +9,9 @@ import {
 	makeVerticesToEdgeLookup,
 } from "./general.js";
 import remove from "../remove.js";
+import {
+	makeVerticesToFace,
+} from "../make/lookup.js";
 
 /**
  * @description This is a subroutine of splitEdge(). This will build two
@@ -36,27 +39,29 @@ const makeNewEdges = (graph, edgeIndex, newVertex) => {
  * the vertex which was added, and the two vertices adjacent to it.
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} vertex index of the new vertex
- * @param {number[]} incidentVertices vertices that make up the split edge.
+ * @param {number[]} vertices vertices that made up the edge which was just
+ * now split by the addition of our new vertex.
  */
 const updateVerticesVertices = (
 	{ vertices_vertices },
 	vertex,
-	incidentVertices,
+	vertices,
 ) => {
 	if (!vertices_vertices) { return; }
 
 	// create a new entry for this new vertex
 	// only 2 vertices, no need to worry about winding order.
-	vertices_vertices[vertex] = [...incidentVertices];
+	vertices_vertices[vertex] = [...vertices];
+
+	// for each incident vertex's vertices_vertices array, get the index
+	// of the other incident vertex, we will splice in our new vertex here.
+	const verticesSpliceIndex = vertices
+		.map((v, i, arr) => vertices_vertices[v].indexOf(arr[(i + 1) % arr.length]));
 
 	// update the incident vertices' existing entries in vertices_vertices.
-	incidentVertices.forEach((v, i, arr) => {
-		// for each of the incident vertices entries in vertices_vertices, find the
-		// index of the other incident vertex, and substitute it for our new vertex
-		const otherIncidentVertex = arr[(i + 1) % arr.length];
-		const index = vertices_vertices[v].indexOf(otherIncidentVertex);
-		vertices_vertices[v][index] = vertex;
-	});
+	vertices.forEach((v, i) => (verticesSpliceIndex[i] === -1
+		? vertices_vertices[v].push(vertex)
+		: vertices_vertices[v].splice(verticesSpliceIndex[i], 1, vertex)));
 };
 
 /**
@@ -94,15 +99,34 @@ const updateVerticesEdges = (
 };
 
 /**
- * @description Update the one new vertex's vertices_faces to include
- * the (0, 1, or 2) faces on either side of the edge.
+ * @description Update a vertex's vertices_faces entry, provided a list of
+ * the new faces which have just been added to the graph. This is assuming:
+ * - vertices_vertices
+ * - faces_vertices
+ * have all been updated so that we can build our new data using them.
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} vertex the index of the new vertex
- * @param {number[]} faces array of 0, 1, or 2 incident faces.
+ * @param {number[]} faces a list of faces which were just added to the graph
  */
-const updateVerticesFaces = ({ vertices_faces }, vertex, faces) => {
+const updateVerticesFaces = (
+	{ vertices_faces, faces_vertices, vertices_vertices },
+	vertex,
+	faces,
+) => {
 	if (!vertices_faces) { return; }
-	vertices_faces[vertex] = [...faces];
+
+	// if no windings exist, we don't need to bother with matching winding order
+	if (!vertices_vertices || !faces_vertices) {
+		vertices_faces[vertex] = [...faces];
+		return;
+	}
+
+	// ensure the winding orders match the other fields (vertices_vertices),
+	// this will also include any undefineds in the case of a boundary vertex.
+	const faceMap = makeVerticesToFace({ faces_vertices }, faces);
+	vertices_faces[vertex] = vertices_vertices[vertex]
+		.map(v => [vertex, v].join(" "))
+		.map(key => faceMap[key]);
 };
 
 /**
@@ -187,6 +211,26 @@ const updateFacesEdges = (
 };
 
 /**
+ *
+ */
+const updateFacesFaces = ({ faces_vertices, faces_faces }, vertex, faces) => {
+	const facesSpliceIndex = faces
+		.map(f => faces_vertices[f].indexOf(vertex));
+
+	const facesGrabIndex = facesSpliceIndex
+		.map((index, i) => (index + faces_faces[faces[i]].length - 1)
+			% faces_faces[faces[i]].length);
+
+	const facesCopyItem = facesGrabIndex
+		.map((index, i) => faces_faces[faces[i]][index]);
+
+	// update the incident vertices' existing entries in vertices_vertices.
+	faces.forEach((f, i) => (facesSpliceIndex[i] === -1
+		? undefined
+		: faces_faces[f].splice(facesSpliceIndex[i], 0, facesCopyItem[i])));
+};
+
+/**
  * @description Split an edge, place a new vertex between the existing
  * vertices and build two new edges between the three vertices.
  * This method creates a new vertex and new edges, but no new faces.
@@ -251,11 +295,16 @@ export const splitEdge = (
 
 	// we don't need to make any new faces, we only need to modify the faces
 	// (if they exist) incident to the old edge.
+	// note: "incidentFaces" may only include 1 face, in the case of a
+	// boundary edge. this needs to be taken account, for example,
+	// to ensure winding order matches across component arrays.
 	const incidentFaces = findAdjacentFacesToEdge(graph, oldEdge);
-	updateVerticesFaces(graph, vertex, incidentFaces);
-	updateEdgesFaces(graph, newEdges, incidentFaces);
 	updateFacesVertices(graph, vertex, incidentVertices, incidentFaces);
 	updateFacesEdges(graph, incidentFaces, newEdges);
+
+	updateVerticesFaces(graph, vertex, incidentFaces);
+	updateEdgesFaces(graph, newEdges, incidentFaces);
+	updateFacesFaces(graph, vertex, incidentFaces);
 
 	// until now we never removed the old edge, this way, when we call this
 	// method, no matter where the edge was inside the edges_ arrays, all

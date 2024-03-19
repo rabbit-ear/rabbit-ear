@@ -3,7 +3,7 @@
  */
 import implied from "../countImplied.js";
 import {
-	makeVerticesToFaceTriple,
+	makeVerticesToFace,
 } from "./lookup.js";
 
 /**
@@ -46,17 +46,15 @@ export const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_ve
 	if (!vertices_vertices) {
 		return makeVerticesFacesUnsorted({ vertices_coords, faces_vertices });
 	}
-	const face_map = makeVerticesToFaceTriple({ faces_vertices });
+	const face_map = makeVerticesToFace({ faces_vertices });
 	return vertices_vertices
-		.map((verts, v) => verts
-			.map((vert, i, arr) => [arr[(i + 1) % arr.length], v, vert]
-				.join(" ")))
+		.map((verts, v) => verts.map(vert => [v, vert].join(" ")))
 		.map(keys => keys
 			// .filter(key => face_map[key] !== undefined) // removed. read below.
 			.map(key => face_map[key]));
 };
 
-// the old version of this method contained a filter to remove "undefined".
+// this method used to contain a filter to remove "undefined",
 // because in the case of a boundary vertex of a closed polygon shape, there
 // is no face that winds backwards around the piece and encloses infinity.
 // unfortunately, this disconnects the index match with vertices_vertices.

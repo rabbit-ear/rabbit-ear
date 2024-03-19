@@ -1,29 +1,31 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import {
-	makeVerticesVertices,
-} from "../make/verticesVertices.js";
-import {
-	makeVerticesEdges,
-} from "../make/verticesEdges.js";
-import {
-	makeVerticesFaces,
-} from "../make/verticesFaces.js";
+// import {
+// 	makeVerticesVertices,
+// } from "../make/verticesVertices.js";
+// import {
+// 	makeVerticesEdges,
+// } from "../make/verticesEdges.js";
+// import {
+// 	makeVerticesFaces,
+// } from "../make/verticesFaces.js";
+// import {
+// 	makeFacesFaces,
+// } from "../make/facesFaces.js";
 import {
 	makeEdgesFacesUnsorted,
 } from "../make/edgesFaces.js";
 import {
-	makeFacesFaces,
-} from "../make/facesFaces.js";
+	makeVerticesToFace,
+} from "../make/lookup.js";
 import {
 	splitCircularArray,
 	splitArrayWithLeaf,
 	getAdjacencySpliceIndex,
 	makeVerticesToEdgeLookup,
 	makeVerticesToFacesLookup,
-	makeEdgesToFacesLookup,
-	makeFacesFacesFromVertices,
+	makeEdgesFacesSubarray,
 } from "./general.js";
 import {
 	addVertex,
@@ -380,7 +382,7 @@ const updateEdgesFaces = (
  * @param {number[]} faces a list of faces which will replace the old face
  */
 const updateFacesFaces = (
-	{ edges_vertices, faces_vertices, faces_edges, faces_faces },
+	{ faces_vertices, faces_edges, faces_faces },
 	oldFace,
 	faces,
 ) => {
@@ -391,7 +393,10 @@ const updateFacesFaces = (
 	// replacing the old face index with whichever of the faces from "faces"
 	// is adjacent to this (which is what needs to be figured out next).
 	const faceSplices = faces_faces[oldFace]
-		.map(face => ({ face, index: faces_faces[face].indexOf(oldFace) }));
+		.map(face => (face === undefined || face === null
+			? ({ face: undefined, index: -1 })
+			: ({ face, index: faces_faces[face].indexOf(oldFace) })))
+		.filter(({ face }) => face !== undefined);
 
 	// we can find the replacement faces using faces_vertices or faces_edges.
 	// we can do this by creating a map from from edges-to-faces.
@@ -400,27 +405,27 @@ const updateFacesFaces = (
 	// if we use faces_vertices, we can use vertex-pairs as edge definitions.
 
 	if (faces_edges) {
-		// in this case, edgesToFaces will map an edge (key) to a list of faces
-		// (value), and will only contain the new faces from "faces".
-		// we can use this list to splice in
-		const replacementEdgeFaces = makeEdgesToFacesLookup({ faces_edges }, faces);
-		// console.log("replacementEdgeFaces", replacementEdgeFaces);
+		// create an edges_faces that only contains the new faces from "faces".
+		const edgesFacesSubset = makeEdgesFacesSubarray({ faces_edges }, faces);
+		// console.log("edgesFacesSubset", edgesFacesSubset);
 
 		// using this face's faces_edges, get the first match in this map.
 		// it's possible two faces border along a few collinear edges, in which case
 		// this would return a few matches.
 		faceSplices.forEach(({ face }, i) => {
+			// if (face === undefined || face === null) { return; }
+			// for every adjacent face, find the edge that contains an entry in
+			// edgesFacesSubset, meaning, this edge is a part of one of the new faces.
 			const adjacentEdge = faces_edges[face]
-				.find(e => replacementEdgeFaces[e] !== undefined);
+				.find(e => edgesFacesSubset[e] !== undefined);
 			// adjacentFacesToSplice[i].newFace = faces
 			// 	.find(f => faces_edges[f].includes(adjacentEdge));
-			faceSplices[i].newFaces = replacementEdgeFaces[adjacentEdge];
+			faceSplices[i].edge = adjacentEdge;
+			faceSplices[i].newFaces = edgesFacesSubset[adjacentEdge];
 		});
 	} else {
 		console.warn("branch not yet finished");
 	}
-
-	// console.log("faceSplices", faceSplices);
 
 	// for every adjacent face, we now know which of the new faces to splice
 	// in to replace the old face index.
@@ -429,31 +434,17 @@ const updateFacesFaces = (
 		? faces_faces[face].push(...newFaces)
 		: faces_faces[face].splice(index, 1, ...newFaces)));
 
-	const allFaces = Array.from(new Set([...faces_faces[oldFace], ...faces]));
-	const facesFacesSubset = makeFacesFacesFromVertices({ faces_vertices }, allFaces);
-	faces.forEach(f => { faces_faces[f] = facesFacesSubset[f]; });
+	const f_vSub = [];
+	faces_faces[oldFace].forEach(face => { f_vSub[face] = faces_vertices[face]; });
+	faces.forEach(face => { f_vSub[face] = faces_vertices[face]; });
 
-	// faces
-	// 	.filter(f => !faces_faces[f])
-	// 	.forEach(f => { faces_faces[f] = [...faces_faces[oldFace]]; });
-	// faces
-	// 	.map((face, i) => ({ face, otherFace: faces[(i + 1) % faces.length] }))
-	// 	.forEach(({ face, otherFace }) => faces_faces[face].push(otherFace));
-
-	// // for every adjacent face to one of the new or old faces
-	// const facesNewFace = {};
-	// faces_faces[oldFace].forEach(j => { facesNewFace[j] = oldFace; });
-	// faces.forEach(i => faces_faces[i].forEach(j => { facesNewFace[j] = i; }));
-
-	// Object.keys(facesNewFace).forEach(face => {
-	// 	const index = faces_faces[face].indexOf(oldFace);
-	// 	if (index === -1) { return; }
-	// 	faces_faces[face].splice(index, 1, faces[face]);
-	// });
-	// faces.forEach((face, i, arr) => {
-	// 	const otherFace = arr[(i + 1) % arr.length];
-	// 	faces_faces[face] = [...faces_faces[oldFace], otherFace];
-	// });
+	const faceMap = makeVerticesToFace({ faces_vertices: f_vSub });
+	faces.forEach(newFace => {
+		faces_faces[newFace] = faces_vertices[newFace]
+			.map((_, i, arr) => [1, 0].map(n => arr[(i + n) % arr.length]))
+			.map(pair => pair.join(" "))
+			.map(key => faceMap[key])
+	});
 };
 
 /**
@@ -500,7 +491,7 @@ export const cutFaceToVertex = (
 	return {
 		edge,
 		faces: {},
-	}
+	};
 };
 
 /**
@@ -591,12 +582,15 @@ export const splitFaceWithEdge = (
 	// 	});
 	// }
 
-	// updateFacesFaces(graph, face, faces);
-	if (graph.faces_faces) {
-		makeFacesFaces(graph).forEach((face_vertices, f) => {
-			graph.faces_faces[f] = face_vertices;
-		});
-	}
+	// console.log("before", structuredClone(graph.faces_faces));
+
+	updateFacesFaces(graph, face, faces);
+	// if (graph.faces_faces) {
+	// 	makeFacesFaces(graph)
+	// 		.forEach((faces, f) => { graph.faces_faces[f] = faces; });
+	// }
+
+	// console.log("after", structuredClone(graph.faces_faces));
 
 	// remove old data
 	const faceMap = remove(graph, "faces", [face]);

@@ -100,7 +100,7 @@ export const makeVerticesToFacesLookup = ({ faces_vertices }, faces) => {
 /**
  * @description
  */
-export const makeEdgesToFacesLookup = ({ faces_edges }, faces) => {
+export const makeEdgesFacesSubarray = ({ faces_edges }, faces) => {
 	const edgesToFaces = [];
 	faces.flatMap(face => faces_edges[face])
 		.forEach(edge => { edgesToFaces[edge] = []; });
@@ -109,28 +109,28 @@ export const makeEdgesToFacesLookup = ({ faces_edges }, faces) => {
 	return edgesToFaces;
 };
 
-export const makeFacesFacesFromVertices = ({ faces_vertices }, faces) => {
-	const faces_faces = [];
-	faces.forEach(f => { faces_faces[f] = []; });
-	const edgeMap = {};
-	faces
-		.forEach(f => faces_vertices[f]
-			.map((v0, i, arr) => [v0, arr[(i + 1) % arr.length]])
-			.map(([v0, v1]) => (v1 < v0 ? [v1, v0] : [v0, v1]))
-			.map(pair => pair.join(" "))
-			.forEach(key => {
-				if (!edgeMap[key]) { edgeMap[key] = {}; }
-				edgeMap[key][f] = true;
-			}));
-	Object.values(edgeMap)
-		.map(obj => Object.keys(obj))
-		.filter(arr => arr.length > 1)
-		.forEach(pair => {
-			faces_faces[pair[0]].push(parseInt(pair[1], 10));
-			faces_faces[pair[1]].push(parseInt(pair[0], 10));
-		});
-	return faces_faces;
-};
+// export const makeFacesFacesFromVertices = ({ faces_vertices }, faces) => {
+// 	const faces_faces = [];
+// 	faces.forEach(f => { faces_faces[f] = []; });
+// 	const edgeMap = {};
+// 	faces
+// 		.forEach(f => faces_vertices[f]
+// 			.map((v0, i, arr) => [v0, arr[(i + 1) % arr.length]])
+// 			.map(([v0, v1]) => (v1 < v0 ? [v1, v0] : [v0, v1]))
+// 			.map(pair => pair.join(" "))
+// 			.forEach(key => {
+// 				if (!edgeMap[key]) { edgeMap[key] = {}; }
+// 				edgeMap[key][f] = true;
+// 			}));
+// 	Object.values(edgeMap)
+// 		.map(obj => Object.keys(obj))
+// 		.filter(arr => arr.length > 1)
+// 		.forEach(pair => {
+// 			faces_faces[pair[0]].push(parseInt(pair[1], 10));
+// 			faces_faces[pair[1]].push(parseInt(pair[0], 10));
+// 		});
+// 	return faces_faces;
+// };
 
 /**
  * @description Given an edge, get its adjacent faces. This is typically
@@ -147,7 +147,7 @@ export const findAdjacentFacesToEdge = (
 	edge,
 ) => {
 	// easiest case: edges_faces exists.
-	if (edges_faces) { return edges_faces[edge]; }
+	if (edges_faces && edges_faces[edge]) { return edges_faces[edge]; }
 
 	// we have to choose a component and iterate through every index
 	// and build a reverse lookup. because faces_vertices tends to exist
@@ -169,6 +169,7 @@ export const findAdjacentFacesToEdge = (
 	}
 	if (faces_edges) {
 		// todo
+		console.warn("branch not complete");
 	}
 
 	return [];

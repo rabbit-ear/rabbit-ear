@@ -54,7 +54,7 @@ export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => (
  */
 export const makeEdgesBoundingBox = ({
 	vertices_coords, edges_vertices, edges_coords,
-}, epsilon = 0) => {
+}, epsilon) => {
 	if (!edges_coords) {
 		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}

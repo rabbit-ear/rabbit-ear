@@ -53,7 +53,7 @@ test("splitFaceWithEdge", () => {
 		[4, 12, 7, 8], [5, 4, 9], [6, 12, 5, 10], [7, 6, 11],
 	]);
 	expect(graph.vertices_faces).toMatchObject([
-		[0, 3, null], [1, 0, null], [2, 1, null], [3, 2, null],
+		[0, 3, undefined], [1, 0, undefined], [2, 1, undefined], [3, 2, undefined],
 		[5, 4, 3, 0], [5, 0, 1], [4, 5, 1, 2], [4, 2, 3],
 	]);
 	expect(graph.edges_vertices).toMatchObject([
@@ -76,7 +76,12 @@ test("splitFaceWithEdge", () => {
 		[0, 9, 4, 8], [1, 10, 5, 9], [2, 11, 6, 10], [3, 8, 7, 11], [6, 7, 12], [4, 5, 12],
 	]);
 	expect(graph.faces_faces).toMatchObject([
-		[1, 5, 3], [2, 5, 0], [3, 4, 1], [0, 4, 2], [2, 3, 5], [0, 1, 4],
+		[undefined, 1, 5, 3],
+		[undefined, 2, 5, 0],
+		[undefined, 3, 4, 1],
+		[undefined, 0, 4, 2],
+		[2, 3, 5],
+		[0, 1, 4],
 	]);
 });
 
