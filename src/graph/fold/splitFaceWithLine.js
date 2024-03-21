@@ -17,7 +17,7 @@ import {
 	sortVerticesCounterClockwise,
 } from "../vertices/sort.js";
 import {
-	makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge,
 } from "../make/lookup.js";
 import {
 	mergeNextmaps,
@@ -140,7 +140,7 @@ const make_faces = ({
 		.map(fv => ({ faces_vertices: fv }));
 	if (faces_edges) {
 		// table to build faces_edges
-		const vertices_to_edge = makeVerticesToEdgeBidirectional({ edges_vertices });
+		const vertices_to_edge = makeVerticesToEdge({ edges_vertices });
 		faces
 			.map(this_face => this_face.faces_vertices
 				.map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)

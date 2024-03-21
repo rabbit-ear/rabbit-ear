@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import Messages from "../environment/messages.js";
-import { makeVerticesToEdgeBidirectional } from "./make/lookup.js";
+import { makeVerticesToEdge } from "./make/lookup.js";
 
 /**
  * @description Convert an array of indices into an array of array of
@@ -80,7 +80,7 @@ export const triangulateNonConvexFacesVertices = (
  */
 const rebuildWithNewFaces = (graph) => {
 	if (!graph.edges_vertices) { graph.edges_vertices = []; }
-	const edgeLookup = makeVerticesToEdgeBidirectional(graph);
+	const edgeLookup = makeVerticesToEdge(graph);
 	let e = graph.edges_vertices.length;
 	// as we traverse the new faces_edges, if we encounter a new edge, add
 	// it here in the form of a new edges_vertices

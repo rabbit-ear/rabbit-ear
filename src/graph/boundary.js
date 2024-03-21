@@ -24,7 +24,7 @@ import {
 	makeVerticesVerticesUnsorted,
 } from "./make/verticesVertices.js";
 import {
-	makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge,
 } from "./make/lookup.js";
 import {
 	connectedComponents,
@@ -220,7 +220,7 @@ export const boundaries = ({ vertices_edges, edges_vertices, edges_assignment })
 
 	// backwards lookup, which edge is made of a pair of vertices.
 	// we only need to use the boundary edges, should be a little faster.
-	const edgeMap = makeVerticesToEdgeBidirectional({
+	const edgeMap = makeVerticesToEdge({
 		edges_vertices: edges_verticesBoundary,
 	});
 
@@ -260,7 +260,7 @@ export const planarBoundary = ({
 			vertices_coords, vertices_edges, edges_vertices,
 		});
 	}
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdge({ edges_vertices });
 	const edge_walk = [];
 	const vertex_walk = [];
 	const walk = {

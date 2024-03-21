@@ -3,26 +3,6 @@
  */
 
 /**
-  * @description Make an object which answers the question: "which edge
-  * connects these two vertices?". This is accomplished by building an
-  * object with keys containing vertex pairs (space separated string),
-  * and the value is the edge index. This is not bidirectional, so "7 15"
-  * can exist while "15 7" does not. This is useful for example
-  * for looking up the edge's vector, which is direction specific.
-  * @param {FOLD} graph a FOLD object, containing edges_vertices
-  * @returns {{[key: string]: number}} object mapping a space-separated
-  * vertex pair to an edge index
-  * @linkcode Origami ./src/graph/make.js 356
-  */
-export const makeVerticesToEdge = ({ edges_vertices }) => {
-	const map = {};
-	edges_vertices
-		.map(vertices => vertices.join(" "))
-		.forEach((key, e) => { map[key] = e; });
-	return map;
-};
-
-/**
  * @description Consider an array of arrays of indices to each be cyclical,
  * convert each inner array into pairs [i, (i+1) % length], and build map
  * that relates these pairs as a space-separated string to the index in the
@@ -45,18 +25,6 @@ const makePairsMap = (array, subsetIndices) => {
 	return map;
 };
 
-// const makePairsMap = (array) => {
-// 	const map = {};
-// 	array
-// 		.forEach((indices, i) => indices
-// 			.map((_, j, arr) => [0, 1]
-// 				.map(offset => (j + offset) % arr.length)
-// 				.map(n => arr[n])
-// 				.join(" "))
-// 			.forEach(key => { map[key] = i; }));
-// 	return map;
-// };
-
 /**
  * @description Make an object which answers the question: "which edge
  * connects these two vertices?". This is accomplished by building an
@@ -68,7 +36,7 @@ const makePairsMap = (array, subsetIndices) => {
  * vertex pair to an edge index
  * @linkcode Origami ./src/graph/make.js 336
  */
-export const makeVerticesToEdgeBidirectional = ({ edges_vertices }, edges) => (
+export const makeVerticesToEdge = ({ edges_vertices }, edges) => (
 	makePairsMap(edges_vertices, edges)
 );
 

@@ -16,9 +16,6 @@ import {
 import {
 	makeVerticesVertices,
 } from "./verticesVertices.js";
-import {
-	makeVerticesToEdge,
-} from "./lookup.js";
 
 /**
  * @description For every vertex, make an array of vectors that point towards each
@@ -42,7 +39,10 @@ export const makeVerticesVerticesVector = ({
 			vertices_coords, vertices_edges, vertices_faces, edges_vertices, faces_vertices,
 		});
 	}
-	const edge_map = makeVerticesToEdge({ edges_vertices });
+	const edge_map = {};
+	edges_vertices
+		.map(vertices => vertices.join(" "))
+		.forEach((key, e) => { edge_map[key] = e; });
 	return vertices_vertices
 		.map((_, a) => vertices_vertices[a]
 			.map((b) => {

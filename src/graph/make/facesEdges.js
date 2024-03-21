@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge,
 } from "./lookup.js";
 
 /**
@@ -13,7 +13,7 @@ import {
  * @linkcode Origami ./src/graph/make.js 751
  */
 export const makeFacesEdgesFromVertices = ({ edges_vertices, faces_vertices }) => {
-	const map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const map = makeVerticesToEdge({ edges_vertices });
 	return faces_vertices
 		.map(face => face
 			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]].join(" ")))

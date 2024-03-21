@@ -27,7 +27,7 @@ import {
 	makeVerticesFaces,
 } from "../make/verticesFaces.js";
 import {
-	makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge,
 } from "../make/lookup.js";
 import {
 	makeFacesFaces,
@@ -103,7 +103,7 @@ export const makeVerticesCoordsFlatFolded = (
 	});
 	const vertices_coordsFolded = [];
 	const faces_flipped = [];
-	const edgesMap = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const edgesMap = makeVerticesToEdge({ edges_vertices });
 
 	// if the graph is disjoint, make sure we fold all disjoint sets,
 	// each set chooses a starting face (first set is decided by rootFaces),

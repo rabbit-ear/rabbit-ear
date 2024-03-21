@@ -17,6 +17,7 @@ import {
 } from "../maps.js";
 import {
 	intersectLineAndPoints,
+	filterCollinearFacesData,
 } from "../intersect.js";
 import {
 	splitEdge,
@@ -24,9 +25,6 @@ import {
 import {
 	splitFace,
 } from "./splitFace.js";
-import {
-	filterCollinearFacesData,
-} from "./general.js";
 import {
 	addVertices,
 } from "../add/vertex.js";

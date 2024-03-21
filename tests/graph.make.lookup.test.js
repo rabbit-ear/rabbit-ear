@@ -3,9 +3,7 @@ import ear from "../rabbit-ear.js";
 
 test("makeVerticesToEdge", () => {
 	const graph = ear.graph.blintz();
-	const edgeMap = ear.graph.makeVerticesToEdge(graph);
-	const edgeMapBidirectional = ear.graph.makeVerticesToEdgeBidirectional(graph);
-	expect(edgeMap).toMatchObject({
+	expect(ear.graph.makeVerticesToEdge(graph)).toMatchObject({
 		"0 1": 0,
 		"1 2": 1,
 		"2 3": 2,
@@ -18,13 +16,18 @@ test("makeVerticesToEdge", () => {
 		"1 3": 9,
 		"3 5": 10,
 		"5 7": 11,
-	});
-	expect(Object.keys(edgeMap).length * 2)
-		.toBe(Object.keys(edgeMapBidirectional).length);
-	Object.keys(edgeMapBidirectional).forEach(key => {
-		const newKey = key.split(" ").reverse().join(" ");
-		expect(newKey.length).toBe(3);
-		expect(edgeMapBidirectional[key]).toBe(edgeMapBidirectional[newKey]);
+		"1 0": 0,
+		"2 1": 1,
+		"3 2": 2,
+		"4 3": 3,
+		"5 4": 4,
+		"6 5": 5,
+		"7 6": 6,
+		"0 7": 7,
+		"1 7": 8,
+		"3 1": 9,
+		"5 3": 10,
+		"7 5": 11,
 	});
 });
 

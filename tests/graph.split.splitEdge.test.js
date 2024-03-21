@@ -49,24 +49,19 @@ test("split multiple edges, edge maps, approach 1: reverse order", () => {
 	expect(edges[3]).toBe(undefined);
 	expect(edges[4]).not.toBe(undefined);
 
-	expect(JSON.stringify(merge))
-		.toBe(JSON.stringify([[6, 7], [0], [4, 5], [1], [2, 3]]));
+	expect(merge).toMatchObject([[6, 7], [0], [4, 5], [1], [2, 3]]);
 
 	// the corner vertices remained 0-3
 	// the new vertices, in reverse order (of edge indices)
 	// the diagonal first, then the top boundary, then the bottom boundary.
-	expect(JSON.stringify(graph.vertices_coords[0])).toBe(JSON.stringify([0, 0]));
-	expect(JSON.stringify(graph.vertices_coords[1])).toBe(JSON.stringify([1, 0]));
-	expect(JSON.stringify(graph.vertices_coords[2])).toBe(JSON.stringify([1, 1]));
-	expect(JSON.stringify(graph.vertices_coords[3])).toBe(JSON.stringify([0, 1]));
-	expect(JSON.stringify(graph.vertices_coords[4])).toBe(JSON.stringify([0.5, 0.5]));
-	expect(JSON.stringify(graph.vertices_coords[5])).toBe(JSON.stringify([0.5, 1]));
-	expect(JSON.stringify(graph.vertices_coords[6])).toBe(JSON.stringify([0.5, 0]));
+	expect(graph.vertices_coords).toMatchObject([
+		[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [0.5, 1], [0.5, 0],
+	]);
 
 	// these are the only two edges remaining untouched from the original graph
 	// they bubbled up to the first two indices
-	expect(JSON.stringify(graph.edges_vertices[0])).toBe(JSON.stringify([1, 2]));
-	expect(JSON.stringify(graph.edges_vertices[1])).toBe(JSON.stringify([3, 0]));
+	expect(graph.edges_vertices[0]).toMatchObject([1, 2]);
+	expect(graph.edges_vertices[1]).toMatchObject([3, 0]);
 });
 
 test("split multiple edges, edge maps, approach 2: update inside loop", () => {
@@ -100,24 +95,19 @@ test("split multiple edges, edge maps, approach 2: update inside loop", () => {
 	expect(edges[3]).toBe(undefined);
 	expect(edges[4]).not.toBe(undefined);
 
-	expect(JSON.stringify(edgeMap))
-		.toBe(JSON.stringify([[2, 3], [0], [4, 5], [1], [6, 7]]));
+	expect(edgeMap).toMatchObject([[2, 3], [0], [4, 5], [1], [6, 7]]);
 
 	// the corner vertices remained 0-3
 	// the new vertices, in correct order (of edge indices)
 	// the bottom boundary first, then the top boundary, then the diagonal
-	expect(JSON.stringify(graph.vertices_coords[0])).toBe(JSON.stringify([0, 0]));
-	expect(JSON.stringify(graph.vertices_coords[1])).toBe(JSON.stringify([1, 0]));
-	expect(JSON.stringify(graph.vertices_coords[2])).toBe(JSON.stringify([1, 1]));
-	expect(JSON.stringify(graph.vertices_coords[3])).toBe(JSON.stringify([0, 1]));
-	expect(JSON.stringify(graph.vertices_coords[4])).toBe(JSON.stringify([0.5, 0]));
-	expect(JSON.stringify(graph.vertices_coords[5])).toBe(JSON.stringify([0.5, 1]));
-	expect(JSON.stringify(graph.vertices_coords[6])).toBe(JSON.stringify([0.5, 0.5]));
+	expect(graph.vertices_coords).toMatchObject([
+		[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0], [0.5, 1], [0.5, 0.5],
+	]);
 
 	// these are the only two edges remaining untouched from the original graph
 	// they bubbled up to the first two indices
-	expect(JSON.stringify(graph.edges_vertices[0])).toBe(JSON.stringify([1, 2]));
-	expect(JSON.stringify(graph.edges_vertices[1])).toBe(JSON.stringify([3, 0]));
+	expect(graph.edges_vertices[0]).toMatchObject([1, 2]);
+	expect(graph.edges_vertices[1]).toMatchObject([3, 0]);
 });
 
 test("splitEdge, interior edge", () => {
@@ -248,7 +238,7 @@ test("splitEdge ensure winding order around vertices_faces", () => {
 
 	const graph = JSON.parse(FOLD);
 
-	ear.graph.splitEdge(graph, 7, [0.5, 0]);
+	ear.graph.splitEdge(graph, 7, [0.2928932188134526, 0.5]);
 
 	expect(ear.graph.validate(graph).length).toBe(0);
 
@@ -277,7 +267,6 @@ test("splitEdge ensure winding order around vertices_faces", () => {
 	});
 });
 
-
 test("splitEdge along every edge, validate", () => {
 	const FOLD = fs.readFileSync(
 		"./tests/files/fold/surrounded-square.fold",
@@ -286,6 +275,137 @@ test("splitEdge along every edge, validate", () => {
 
 	const graph = JSON.parse(FOLD);
 	const graphs = graph.edges_vertices.map(() => structuredClone(graph));
-	graphs.forEach((g, i) => ear.graph.splitEdge(g, i, [0.5, 0.5]));
+	graphs.forEach((g, i) => ear.graph.splitEdge(g, i));
 	expect(graphs.flatMap(g => ear.graph.validate(g)).length).toBe(0);
+});
+
+test("splitEdge twice, consecutively", () => {
+	const FOLD = fs.readFileSync(
+		"./tests/files/fold/surrounded-square.fold",
+		"utf-8",
+	);
+
+	const graph = JSON.parse(FOLD);
+
+	ear.graph.splitEdge(graph, 7);
+
+	expect(graph).toMatchObject({
+		vertices_vertices: [
+			[1, 4, 3], [2, 5, 0], [3, 6, 1], [0, 7, 2],
+			[5, 8, 0], [6, 4, 1], [7, 5, 2], [8, 6, 3], [7, 4]
+		],
+		vertices_edges: [
+			[0, 7, 3], [1, 8, 0], [2, 9, 1], [3, 10, 2],
+			[4, 12, 7], [5, 4, 8], [6, 5, 9], [11, 6, 10], [11, 12]
+		],
+		vertices_faces: [
+			[1, 4, null], [2, 1, null], [3, 2, null], [4, 3, null],
+			[0, 4, 1], [0, 1, 2], [0, 2, 3], [0, 3, 4], [4, 0]
+		],
+		edges_vertices: [
+			[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7],
+			[0, 4], [1, 5], [2, 6], [3, 7], [7, 8], [8, 4]
+		],
+		edges_assignment: ["B", "B", "B", "B", "F", "F", "F", "J", "J", "J", "J", "F", "F"],
+		edges_foldAngle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		edges_faces: [
+			[1], [2], [3], [4], [0, 1], [0, 2], [0, 3], [4, 1], [1, 2], [2, 3], [3, 4], [0, 4], [0, 4]
+		],
+		faces_vertices: [
+			[8, 4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 8, 7]
+		],
+		faces_edges: [
+			[12, 4, 5, 6, 11], [0, 8, 4, 7], [1, 9, 5, 8], [2, 10, 6, 9], [3, 7, 12, 11, 10]
+		],
+		faces_faces: [
+			[4, 1, 2, 3, 4], [null, 2, 0, 4], [null, 3, 0, 1], [null, 4, 0, 2], [null, 1, 0, 0, 3]
+		]
+	});
+
+	ear.graph.splitEdge(graph, 11);
+
+	expect(graph).toMatchObject({
+		vertices_vertices: [
+			[1, 4, 3], [2, 5, 0], [3, 6, 1], [0, 7, 2],
+			[5, 8, 0], [6, 4, 1], [7, 5, 2], [9, 6, 3], [9, 4], [7, 8]
+		],
+		vertices_edges: [
+			[0, 7, 3], [1, 8, 0], [2, 9, 1], [3, 10, 2], [4, 11, 7],
+			[5, 4, 8], [6, 5, 9], [12, 6, 10], [13, 11], [12, 13]
+		],
+		vertices_faces: [
+			[1, 4, null], [2, 1, null], [3, 2, null], [4, 3, null],
+			[0, 4, 1], [0, 1, 2], [0, 2, 3], [0, 3, 4], [4, 0], [4, 0]
+		],
+		edges_vertices: [
+			[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7],
+			[0, 4], [1, 5], [2, 6], [3, 7], [8, 4], [7, 9], [9, 8]
+		],
+		edges_assignment: ["B", "B", "B", "B", "F", "F", "F", "J", "J", "J", "J", "F", "F", "F"],
+		edges_foldAngle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		edges_faces: [
+			[1], [2], [3], [4], [0, 1], [0, 2], [0, 3], [4, 1],
+			[1, 2], [2, 3], [3, 4], [0, 4], [0, 4], [0, 4]
+		],
+		faces_vertices: [
+			[9, 8, 4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 8, 9, 7]
+		],
+		faces_edges: [
+			[13, 11, 4, 5, 6, 12], [0, 8, 4, 7], [1, 9, 5, 8], [2, 10, 6, 9], [3, 7, 11, 13, 12, 10]
+		],
+		faces_faces: [
+			[4, 4, 1, 2, 3, 4], [null, 2, 0, 4], [null, 3, 0, 1], [null, 4, 0, 2], [null, 1, 0, 0, 0, 3]
+		]
+	});
+
+	expect(ear.graph.validate(graph).length).toBe(0);
+});
+
+test("splitEdge this will be used in splitFace tests", () => {
+	const FOLD = fs.readFileSync(
+		"./tests/files/fold/surrounded-square.fold",
+		"utf-8",
+	);
+
+	const graph = JSON.parse(FOLD);
+
+	// split edges 4 and 6
+	ear.graph.splitEdge(graph, 4);
+	ear.graph.splitEdge(graph, 5); // used to be 6
+
+	expect(graph).toMatchObject({
+		vertices_vertices: [
+			[1, 4, 3], [2, 5, 0], [3, 6, 1], [0, 7, 2],
+			[8, 7, 0], [6, 8, 1], [9, 5, 2], [4, 9, 3], [4, 5], [6, 7]
+		],
+		vertices_edges: [
+			[0, 6, 3], [1, 7, 0], [2, 8, 1], [3, 9, 2],
+			[10, 5, 6], [4, 11, 7], [12, 4, 8], [5, 13, 9], [10, 11], [12, 13]
+		],
+		vertices_faces: [
+			[1, 4, null], [2, 1, null], [3, 2, null], [4, 3, null],
+			[0, 4, 1], [0, 1, 2], [0, 2, 3], [0, 3, 4], [1, 0], [3, 0]
+		],
+		edges_vertices: [
+			[0, 1], [1, 2], [2, 3], [3, 0], [5, 6], [7, 4],
+			[0, 4], [1, 5], [2, 6], [3, 7], [4, 8], [8, 5], [6, 9], [9, 7]
+		],
+		edges_assignment: ["B", "B", "B", "B", "F", "F", "J", "J", "J", "J", "F", "F", "F", "F"],
+		edges_foldAngle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		edges_faces: [
+			[1], [2], [3], [4], [0, 2], [0, 4], [4, 1],
+			[1, 2], [2, 3], [3, 4], [0, 1], [0, 1], [0, 3], [0, 3]
+		],
+		faces_vertices: [
+			[4, 8, 5, 6, 9, 7], [0, 1, 5, 8, 4], [1, 2, 6, 5], [2, 3, 7, 9, 6], [3, 0, 4, 7]
+		],
+		faces_edges: [
+			[10, 11, 4, 12, 13, 5], [0, 7, 11, 10, 6], [1, 8, 4, 7], [2, 9, 13, 12, 8], [3, 6, 5, 9]
+		],
+		faces_faces: [
+			[1, 1, 2, 3, 3, 4], [null, 2, 0, 0, 4], [null, 3, 0, 1], [null, 4, 0, 0, 2], [null, 1, 0, 3]
+		],
+	});
+
+	expect(ear.graph.validate(graph).length).toBe(0);
 });

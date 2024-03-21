@@ -166,6 +166,9 @@ export const remapKey = (graph, key, indexMap) => {
 	indexMap.forEach((n, i) => {
 		invertedMap[n] = (invertedMap[n] === undefined ? i : invertedMap[n]);
 	});
+	// if a key was not included in indexMap for whatever reason, it will be
+	// registered as "undefined". we can't just assume these are errors and
+	// remove them, because _faces fields are allowed to contain undefineds.
 
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
@@ -173,16 +176,6 @@ export const remapKey = (graph, key, indexMap) => {
 		.forEach(sKey => graph[sKey]
 			.forEach((_, ii) => graph[sKey][ii]
 				.forEach((v, jj) => { graph[sKey][ii][jj] = indexMap[v]; })));
-
-	// if a key was not included in indexMap for whatever reason,
-	// it will be registered as "undefined". remove these.
-	// the upcoming "prefix" step will automatically do this as well.
-
-	// filterKeysWithSuffix(graph, key)
-	// 	.forEach(sKey => graph[sKey]
-	// 		.forEach((_, ii) => {
-	// 			graph[sKey][ii] = graph[sKey][ii].filter(a => a !== undefined);
-	// 		}));
 
 	// set the top-level arrays
 	filterKeysWithPrefix(graph, key).forEach(prefix => {

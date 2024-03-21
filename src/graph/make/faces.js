@@ -19,7 +19,7 @@ import {
 	makeVerticesSectors,
 } from "./vertices.js";
 import {
-	makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge,
 } from "./lookup.js";
 
 /**
@@ -50,7 +50,7 @@ export const makePlanarFaces = ({
 			vertices_coords, vertices_vertices, edges_vertices, edges_vector,
 		});
 	}
-	const vertices_edges_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const vertices_edges_map = makeVerticesToEdge({ edges_vertices });
 	// removes the one face that outlines the piece with opposite winding.
 	// walkPlanarFaces stores edges as vertex pair strings, "4 9",
 	// convert these into edge indices

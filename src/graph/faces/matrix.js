@@ -20,7 +20,7 @@ import {
 	multiplyMatrices3,
 } from "../../math/matrix3.js";
 import {
-	makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge,
 } from "../make/lookup.js";
 import {
 	makeEdgesFoldAngle,
@@ -95,7 +95,7 @@ export const makeFacesMatrix = (
 	if (!faces_faces) {
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdge({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity3x4);
 	minimumSpanningTrees(faces_faces, rootFaces)
 		.forEach(tree => tree
@@ -163,7 +163,7 @@ export const makeFacesMatrix2 = (
 	// functionality is better considered to be specific to makeFacesMatrix2,
 	// instead of a generalized method.
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdge({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => identity2x3);
 	minimumSpanningTrees(faces_faces, rootFaces)
 		.forEach(tree => tree

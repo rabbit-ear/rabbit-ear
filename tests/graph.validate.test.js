@@ -13,6 +13,31 @@ test("valid", () => {
 
 	graphsViolations
 		.forEach(violations => expect(violations.length).toBe(0));
+});
+
+test("contains null at top level", () => {
+	const graph = {
+		vertices_vertices: [[2], undefined, [0]],
+	}
+	const violations = ear.graph.validate(graph);
+	expect(violations.length).toBe(4);
+});
+
+test("contains null inside arrays", () => {
+	const graph = {
+		vertices_coords: [[0, 1, 0], [1, 1, null], [1, 0, 0]],
+		edges_vertices: [[0, 1], [1, 2], [2, 0], [undefined, 0]],
+		vertices_faces: [[0, 1, 2]],
+	}
+	const violations = ear.graph.validate(graph);
+	expect(violations.length).toBe(2);
+});
+
+test("contains null inside arrays, but its okay", () => {
+	const graph = {
+		faces_faces: [[1, null], [undefined, 0]],
+	}
+	expect(ear.graph.validate(graph).length).toBe(0);
 })
 
 test("winding order violations", () => {

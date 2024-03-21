@@ -44,6 +44,7 @@ import {
 } from "../split/splitFace.js";
 import {
 	intersectLineAndPoints,
+	filterCollinearFacesData,
 } from "../intersect.js";
 import {
 	makeFacesWinding,
@@ -51,9 +52,6 @@ import {
 import {
 	transferPointInFaceBetweenGraphs,
 } from "../transfer.js";
-import {
-	filterCollinearFacesData,
-} from "../split/general.js";
 import clone from "../../general/clone.js";
 
 /**

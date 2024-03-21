@@ -15,17 +15,14 @@ import {
 	circularEdges,
 } from "./edges/circular.js";
 import {
-	makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge,
 	makeVerticesToFace,
 	makeEdgesToFace,
 } from "./make/lookup.js";
-// import {
-// 	duplicateVertices,
-// } from "./vertices/duplicate.js";
-// import {
-// 	isolatedVertices,
-// } from "./vertices/isolated.js";
 
+/**
+ * @returns {number[]} indices
+ */
 const noNulls = (array) => array
 	.map((el, i) => (el === null || el === undefined ? i : undefined))
 	.filter(a => a !== undefined);
@@ -36,7 +33,24 @@ const basicComponentTest = (graph) => {
 	foldKeys.graph
 		.filter(key => graph[key])
 		.forEach(key => errors.push(...noNulls(graph[key])
-			.map(i => `${key}[${i}] undefined or null`)));
+			.map(i => `${key}[${i}] is undefined or null`)));
+
+	try {
+		[
+			"vertices_coords",
+			"vertices_vertices",
+			"vertices_edges",
+			"edges_vertices",
+			"faces_vertices",
+			"faces_edges",
+		].filter(key => graph[key])
+			.flatMap(key => graph[key]
+				.map(noNulls)
+				.flatMap((indices, i) => indices.map(j => `${key}[${i}][${j}] is undefined or null`)))
+			.forEach(error => errors.push(error));
+	} catch (error) {
+		errors.push("inner array null validation failed due to bad index access");
+	}
 
 	if (graph.vertices_coords) {
 		errors.push(...graph.vertices_coords
@@ -126,38 +140,42 @@ const arraysHaveSameIndices = (arrays = []) => {
  * other; for example, in vertices_faces and faces_vertices.
  */
 const pairwiseReferenceTest = (a_b, b_a, aName, bName) => {
-	// when we iterate through each array at its second level depth, we need
-	// to be sure to filter out any null or undefined, as for example it's
-	// requird by the spec to include undefined inside of vertices_faces,
-	// but only inside the inner arrays. at the top level no nulls should exist.
-	const abHash = {};
-	a_b.forEach((_, a) => { abHash[a] = {}; });
-	a_b.forEach((arr, a) => arr
-		.filter(el => el !== null && el !== undefined)
-		.forEach(b => { abHash[a][b] = true; }));
-
-	const baHash = {};
-	b_a.forEach((_, b) => { baHash[b] = {}; });
-	b_a.forEach((arr, b) => arr
-		.filter(el => el !== null && el !== undefined)
-		.forEach(a => { baHash[b][a] = true; }));
-
-	const abErrors = a_b
-		.flatMap((arr, a) => arr
+	try {
+		// when we iterate through each array at its second level depth, we need
+		// to be sure to filter out any null or undefined, as for example it's
+		// requird by the spec to include undefined inside of vertices_faces,
+		// but only inside the inner arrays. at the top level no nulls should exist.
+		const abHash = {};
+		a_b.forEach((_, a) => { abHash[a] = {}; });
+		a_b.forEach((arr, a) => arr
 			.filter(el => el !== null && el !== undefined)
-			.map(b => (!baHash[b] || !baHash[b][a]
-				? `${bName}_${aName}[${b}] missing ${a} referenced in ${aName}_${bName}`
-				: undefined))
-			.filter(el => el !== undefined));
-	const baErrors = b_a
-		.flatMap((arr, b) => arr
-			.filter(el => el !== null && el !== undefined)
-			.map(a => (!abHash[a] || !abHash[a][b]
-				? `${aName}_${bName}[${a}] missing ${b} referenced in ${bName}_${aName}`
-				: undefined))
-			.filter(el => el !== undefined));
+			.forEach(b => { abHash[a][b] = true; }));
 
-	return abErrors.concat(baErrors);
+		const baHash = {};
+		b_a.forEach((_, b) => { baHash[b] = {}; });
+		b_a.forEach((arr, b) => arr
+			.filter(el => el !== null && el !== undefined)
+			.forEach(a => { baHash[b][a] = true; }));
+
+		const abErrors = a_b
+			.flatMap((arr, a) => arr
+				.filter(el => el !== null && el !== undefined)
+				.map(b => (!baHash[b] || !baHash[b][a]
+					? `${bName}_${aName}[${b}] missing ${a} referenced in ${aName}_${bName}`
+					: undefined))
+				.filter(el => el !== undefined));
+		const baErrors = b_a
+			.flatMap((arr, b) => arr
+				.filter(el => el !== null && el !== undefined)
+				.map(a => (!abHash[a] || !abHash[a][b]
+					? `${aName}_${bName}[${a}] missing ${b} referenced in ${bName}_${aName}`
+					: undefined))
+				.filter(el => el !== undefined));
+
+		return abErrors.concat(baErrors);
+	} catch (error) {
+		return ["pairwise reference validation failed due to bad index access"]
+	}
 };
 
 /**
@@ -183,7 +201,7 @@ export const validateVerticesWinding = ({
 }) => {
 	const errors = [];
 	const verticesToEdge = edges_vertices
-		? makeVerticesToEdgeBidirectional({ edges_vertices })
+		? makeVerticesToEdge({ edges_vertices })
 		: undefined;
 	const verticesToFace = faces_vertices
 		? makeVerticesToFace({ faces_vertices })
@@ -256,7 +274,7 @@ const validateFacesWinding = ({
 }) => {
 	const errors = [];
 	const verticesToEdge = edges_vertices
-		? makeVerticesToEdgeBidirectional({ edges_vertices })
+		? makeVerticesToEdge({ edges_vertices })
 		: undefined;
 	const verticesToFace = faces_vertices
 		? makeVerticesToFace({ faces_vertices })
@@ -359,21 +377,26 @@ export const validate = (graph) => {
 
 	// test 2: in the case of a suffix referencing another array's prefix,
 	// check that the indices from the suffix exist in the prefix
-	const referenceErrors = intersectionOfStrings(allPrefixes, allSuffixes)
-		.flatMap(match => {
-			const prefixArrayKeys = prefixKeys[allPrefixes.indexOf(match)];
-			const prefixArray = graph[prefixArrayKeys[0]];
-			return filterKeysWithSuffix(graph, match)
-				.flatMap(key => graph[key]
-					.flatMap((arr, i) => arr
-						// "index" can be null, ie: vertices_faces can be [[2, null, 5]]
-						.map((index, j) => (index === null
-							|| index === undefined
-							|| prefixArray[index] !== undefined
-							? undefined
-							: `${key}[${i}][${j}] references ${match} ${index}, missing in ${prefixArrayKeys[0]}`))
-						.filter(a => a !== undefined)));
-		});
+	let referenceErrors = [];
+	try {
+		referenceErrors = intersectionOfStrings(allPrefixes, allSuffixes)
+			.flatMap(match => {
+				const prefixArrayKeys = prefixKeys[allPrefixes.indexOf(match)];
+				const prefixArray = graph[prefixArrayKeys[0]];
+				return filterKeysWithSuffix(graph, match)
+					.flatMap(key => graph[key]
+						.flatMap((arr, i) => arr
+							// "index" can be null, ie: vertices_faces can be [[2, null, 5]]
+							.map((index, j) => (index === null
+								|| index === undefined
+								|| prefixArray[index] !== undefined
+								? undefined
+								: `${key}[${i}][${j}] references ${match} ${index}, missing in ${prefixArrayKeys[0]}`))
+							.filter(a => a !== undefined)));
+			});
+	} catch (error) {
+		referenceErrors.push("reference validation failed due to bad index access");
+	}
 
 	// test 3: test reflexive component relationships.
 	const reflexiveErrors = [];

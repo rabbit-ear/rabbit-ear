@@ -5,13 +5,16 @@ import {
 	midpoint,
 } from "../../math/vector.js";
 import {
-	findAdjacentFacesToEdge,
-	makeVerticesToEdgeLookup,
-} from "./general.js";
-import remove from "../remove.js";
-import {
+	makeVerticesToEdge,
 	makeVerticesToFace,
 } from "../make/lookup.js";
+import remove from "../remove.js";
+import {
+	makeVerticesFacesFromVerticesVerticesForVertex,
+	makeVerticesFacesFromVerticesEdgesForVertex,
+	makeFacesEdgesFromFacesVerticesForVertex,
+	makeEdgesFacesForEdge,
+} from "./general.js";
 
 /**
  * @description This is a subroutine of splitEdge(). This will build two
@@ -100,33 +103,51 @@ const updateVerticesEdges = (
 
 /**
  * @description Update a vertex's vertices_faces entry, provided a list of
- * the new faces which have just been added to the graph. This is assuming:
- * - vertices_vertices
- * - faces_vertices
- * have all been updated so that we can build our new data using them.
+ * the new faces which have just been added to the graph.
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} vertex the index of the new vertex
  * @param {number[]} faces a list of faces which were just added to the graph
  */
 const updateVerticesFaces = (
-	{ vertices_faces, faces_vertices, vertices_vertices },
+	{ vertices_vertices, vertices_edges, vertices_faces, edges_vertices, faces_vertices },
 	vertex,
 	faces,
 ) => {
 	if (!vertices_faces) { return; }
 
-	// if no windings exist, we don't need to bother with matching winding order
-	if (!vertices_vertices || !faces_vertices) {
+	// if no faces exist, we should not be building vertices_faces, but we can't
+	// proceed because everything after this point requires a faceMap.
+	// so, simply add an unsorted set of faces to the list.
+	if (!faces_vertices) {
 		vertices_faces[vertex] = [...faces];
 		return;
 	}
 
-	// ensure the winding orders match the other fields (vertices_vertices),
-	// this will also include any undefineds in the case of a boundary vertex.
-	const faceMap = makeVerticesToFace({ faces_vertices }, faces);
-	vertices_faces[vertex] = vertices_vertices[vertex]
-		.map(v => [vertex, v].join(" "))
-		.map(key => faceMap[key]);
+	const verticesToFace = makeVerticesToFace({ faces_vertices }, faces);
+
+	// we can use either vertices_vertices or vertices_edges to match winding order
+	// these methods will also include any undefineds in the case of a boundary vertex.
+	if (vertices_vertices) {
+		vertices_faces[vertex] = makeVerticesFacesFromVerticesVerticesForVertex(
+			{ vertices_vertices },
+			vertex,
+			verticesToFace,
+		);
+		return;
+	}
+
+	if (vertices_edges) {
+		vertices_faces[vertex] = makeVerticesFacesFromVerticesEdgesForVertex(
+			{ edges_vertices, vertices_edges },
+			vertex,
+			verticesToFace,
+		);
+		return;
+	}
+
+	// if neither vertices_vertices or vertices_edges exists, we cannot
+	// respect the winding order anyway, simply add the faces to the entry.
+	vertices_faces[vertex] = [...faces];
 };
 
 /**
@@ -199,15 +220,15 @@ const updateFacesEdges = (
 		.flatMap(f => faces_edges[f])
 		.concat(newEdges)
 		.filter(a => a !== undefined);
-	const verticesToEdge = makeVerticesToEdgeLookup({ edges_vertices }, allEdges);
+	const verticesToEdge = makeVerticesToEdge({ edges_vertices }, allEdges);
 
 	// iterate through faces vertices, pairwise adjacent vertices, create
 	// keys for the lookup table, convert the keys into edge indices.
-	faces
-		.map(f => faces_vertices[f]
-			.map((vertex, i, arr) => [vertex, arr[(i + 1) % arr.length]])
-			.map(pair => verticesToEdge[pair.join(" ")]))
-		.forEach((edges, i) => { faces_edges[faces[i]] = edges; });
+	makeFacesEdgesFromFacesVerticesForVertex(
+		{ faces_vertices, faces_edges },
+		faces,
+		verticesToEdge,
+	).forEach((edges, i) => { faces_edges[faces[i]] = edges; });
 };
 
 /**
@@ -298,10 +319,9 @@ export const splitEdge = (
 	// note: "incidentFaces" may only include 1 face, in the case of a
 	// boundary edge. this needs to be taken account, for example,
 	// to ensure winding order matches across component arrays.
-	const incidentFaces = findAdjacentFacesToEdge(graph, oldEdge);
+	const incidentFaces = makeEdgesFacesForEdge(graph, oldEdge);
 	updateFacesVertices(graph, vertex, incidentVertices, incidentFaces);
 	updateFacesEdges(graph, incidentFaces, newEdges);
-
 	updateVerticesFaces(graph, vertex, incidentFaces);
 	updateEdgesFaces(graph, newEdges, incidentFaces);
 	updateFacesFaces(graph, vertex, incidentFaces);

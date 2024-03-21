@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge,
 } from "./lookup.js";
 
 /**
@@ -37,7 +37,7 @@ export const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
  * @linkcode Origami ./src/graph/make.js 78
  */
 export const makeVerticesEdges = ({ edges_vertices, vertices_vertices }) => {
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdge({ edges_vertices });
 	return vertices_vertices
 		.map((verts, i) => verts
 			.map(v => edge_map[`${i} ${v}`]));
