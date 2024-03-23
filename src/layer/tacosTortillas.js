@@ -148,9 +148,9 @@ export const makeTortillaTortillaFacesCrossing = (
  * @param {number[]} faces_set for every face, which set is it a member of.
  * @param {boolean[]} faces_winding for every face, is it aligned in its plane?
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][][]} an array of tortilla-tortilla events
- * where each item is an array of array of face indices, for example:
- * [[A,B], [X,Y]], where A-B are adjacent faces and X-Y are adjacent.
+ * @returns {TortillaTortillaConstraint} an array of tortilla-tortilla constraints
+ * where indices [A, B, X, Y], A-B are adjacent faces and X-Y are adjacent,
+ * and A is above/below X and B is above/below Y.
  */
 export const makeBentTortillas = ({
 	edges_faces,
@@ -191,7 +191,7 @@ export const makeBentTortillas = ({
 			tortilla_faces[i][0][1] = tortilla_faces[i][1][1];
 			tortilla_faces[i][1][1] = temp;
 		});
-	return tortilla_faces;
+	return tortilla_faces.map(faces => faces.flat());
 };
 
 /**

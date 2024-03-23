@@ -8,6 +8,15 @@ import {
 	makeEdgesFacesUnsorted,
 } from "../graph/make/edgesFaces.js";
 import {
+	makeEdgesAssignmentSimple,
+} from "../graph/make/edgesAssignment.js";
+import {
+	makeEdgesFoldAngle,
+} from "../graph/make/edgesFoldAngle.js";
+import {
+	makeFacesFaces,
+} from "../graph/make/facesFaces.js";
+import {
 	makeEpsilon,
 } from "../graph/epsilon.js";
 import {
@@ -52,6 +61,9 @@ export const solveLayerOrders = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
 	edges_foldAngle, faces_vertices, faces_edges, faces_faces, edges_vector,
 }, epsilon) => {
+	// todo: need some sort of decision to be able to handle graphs which
+	// have variations of populated/absent edges_assignment and foldAngle
+
 	// necessary conditions for the layer solver to work
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
 		return { root: {}, branches: [], faces_winding: [] };
@@ -61,6 +73,26 @@ export const solveLayerOrders = ({
 	}
 	if (!edges_faces) {
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+	}
+	// if (!faces_edges) {
+	// 	faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	// }
+	// if (!edges_faces) {
+	// 	edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+	// }
+
+	// these are needed for the 3D solver.
+	if (!faces_faces) {
+		faces_faces = makeFacesFaces({ faces_vertices });
+	}
+	// edges_foldAngle needs to be present so we can ignore foldAngles
+	// which are not flat when doing taco/tortilla things. if we need to
+	// build it here, all of them are flat, but we need the array to exist
+	if (!edges_foldAngle && edges_assignment) {
+		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
+	}
+	if (!edges_assignment) {
+		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
 	}
 
 	// find an appropriate epsilon, but only if it is not specified

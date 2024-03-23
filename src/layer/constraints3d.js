@@ -6,7 +6,11 @@ import {
 } from "../math/constant.js";
 import {
 	average2,
+	resize,
 } from "../math/vector.js";
+import {
+	multiplyMatrix4Vector3,
+} from "../math/matrix4.js";
 import {
 	mergeArraysWithHoles,
 } from "../general/array.js";
@@ -14,20 +18,8 @@ import {
 	invertFlatToArrayMap,
 } from "../graph/maps.js";
 import {
-	makeFacesEdgesFromVertices,
-} from "../graph/make/facesEdges.js";
-import {
-	makeEdgesFacesUnsorted,
-} from "../graph/make/edgesFaces.js";
-import {
-	makeEdgesAssignmentSimple,
-} from "../graph/make/edgesAssignment.js";
-import {
-	makeEdgesFoldAngle,
-} from "../graph/make/edgesFoldAngle.js";
-import {
-	makeFacesFaces,
-} from "../graph/make/facesFaces.js";
+	edgeFoldAngleIsFlat,
+} from "../fold/spec.js";
 import {
 	makeFacesPolygon,
 } from "../graph/make/faces.js";
@@ -38,26 +30,25 @@ import {
 	getCoplanarAdjacentOverlappingFaces,
 } from "../graph/faces/planes.js";
 import {
+	subgraphWithFaces,
+} from "../graph/subgraph.js";
+import {
 	getFacesFacesOverlap,
 } from "../graph/overlap.js";
 import {
-	makeTacosTortillas,
+	makeTacosAndTortillas,
 	makeBentTortillas,
-} from "./tacosAndTortillas.js";
+} from "./tacosTortillas.js";
 import {
 	makeTransitivity,
-	filterTransitivity,
+	getTransitivityTriosFromTacos,
 } from "./transitivity.js";
 import {
-	formatConstraintsArrays,
 	makeConstraintsLookup,
-} from "./makeConstraints.js";
+} from "./constraints.js";
 import {
 	getOverlappingParallelEdgePairs,
 } from "./intersect3d.js";
-import {
-	graphGroupCopies,
-} from "./planarSets.js";
 import {
 	solveFlatAdjacentEdges,
 	solveEdgeFaceOverlapOrders,
@@ -85,7 +76,7 @@ const getEdgesClusters = ({ edges_vertices, faces_edges }, faces_cluster) => {
 /**
  *
  */
-const setup3d = (
+export const makeSolverConstraints3DBetweenClusters = (
 	{
 		vertices_coords,
 		edges_vertices,
@@ -176,51 +167,37 @@ const setup3d = (
 		orders,
 	};
 };
+
 /**
- *
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
  */
 export const makeSolverConstraints3D = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
 	faces_vertices, faces_edges, faces_faces, // edges_vector
 }, epsilon = EPSILON) => {
-	if (!faces_edges) {
-		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	}
-	if (!edges_faces) {
-		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
-	}
-	if (!faces_faces) {
-		faces_faces = makeFacesFaces({ faces_vertices });
-	}
-	// edges_foldAngle needs to be present so we can ignore foldAngles
-	// which are not flat when doing taco/tortilla things. if we need to
-	// build it here, all of them are flat, but we need the array to exist
-	if (!edges_foldAngle && edges_assignment) {
-		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
-	}
-	if (!edges_assignment) {
-		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
-	}
-	// separate the list of faces into coplanar overlapping sets
-	// 444ms
-	// console.time("setup.js getCoplanarAdjacentOverlappingFaces()");
+	// cluster faces into coplanar-adjacent-overlapping sets. this creates:
+	// - "planes": every unique plane that at least one face inhabits
+	// - "clusters": a coplanar set of faces, multiple of these clusters can be
+	//   from the same plane, but individual clusters do not overlap each other.
 	const {
-		clusters_faces,
-		clusters_plane,
+		// planes,
 		planes_transform,
-		faces_cluster,
 		faces_winding,
-		// facesFacesOverlap,
+		// planes_faces,
+		// faces_plane,
+		// planes_clusters,
+		clusters_plane,
+		clusters_faces,
+		faces_cluster,
 	} = getCoplanarAdjacentOverlappingFaces({
 		vertices_coords, faces_vertices, faces_faces,
 	}, epsilon);
 
-	const clusters_transform = clusters_plane.map(p => planes_transform[p]);
-
-	// console.timeEnd("setup.js getCoplanarAdjacentOverlappingFaces()");
-	// console.time("setup.js graphGroupCopies()");
-	// all vertices_coords will become 2D
-	const sets_graphs = graphGroupCopies({
+	// for every cluster, make a shallow copy of the input graph, containing
+	// only the faces included in that cluster, and by extension, all edges and
+	// vertices which are used by this subset of faces.
+	const clusters_graph = clusters_faces.map(faces => subgraphWithFaces({
 		vertices_coords,
 		edges_vertices,
 		edges_faces,
@@ -229,57 +206,73 @@ export const makeSolverConstraints3D = ({
 		faces_vertices,
 		faces_edges,
 		faces_faces,
-	}, clusters_faces, clusters_transform);
+	}, faces));
+
+	// ensure all vertices_coords are 3D (make a copy array here) for use in
+	// multiplyMatrix4Vector3, which requires points to be in 3D.
+	const vertices_coords3D = vertices_coords.map(coord => resize(3, coord));
+
+	// for each cluster, get the transform which, when applied, brings
+	// all points into the XY plane.
+	const clusters_transform = clusters_plane.map(p => planes_transform[p]);
+
+	// transform all vertices_coords by the inverse transform
+	// to bring them all into the XY plane. convert back into a 2D point.
+	clusters_graph.forEach(({ vertices_coords: coords }, i) => {
+		clusters_graph[i].vertices_coords = coords
+			.map((_, v) => multiplyMatrix4Vector3(
+				clusters_transform[i],
+				vertices_coords3D[v],
+			))
+			.map(([a, b]) => [a, b]);
+	});
+
+	// now, any arrays referencing edges (_edges) are out of sync with
+	// the edge arrays themselves (edges_). Therefore this method really
+	// isn't intended to be used outside of this higly specific context.
+
 	// faces_polygon is a flat array of polygons in 2D, where every face
 	// is re-oriented into 2D via each set's transformation.
-	// additionally, flip windings if necessary, all are counter-clockwise.
-	const faces_polygon = mergeArraysWithHoles(...sets_graphs
+	// collinear vertices (if exist) are removed from every polygon.
+	const faces_polygon = mergeArraysWithHoles(...clusters_graph
 		.map(copy => makeFacesPolygon(copy, epsilon)));
+
+	// ensure that all faces are counter-clockwise, flip winding if necessary.
 	faces_winding
 		.map((upright, i) => (upright ? undefined : i))
 		.filter(a => a !== undefined)
 		.forEach(f => faces_polygon[f].reverse());
-	// console.timeEnd("setup.js graphGroupCopies()");
-	// console.time("setup.js getFacesFacesOverlap()");
-	// faces-faces overlap will be a single flat array.
-	// each face is only a part of one planar-group anyway.
-	// as opposed to edges-faces overlap which is computed for each planar-group.
-	const facesFacesOverlap = mergeArraysWithHoles(...sets_graphs
+
+	// for every face, a list of face indices which overlap this face.
+	// compute face-face-overlap for every cluster's graph one at a time,
+	// this is important because vertices have been translated into 2D now,
+	// and it's possible that faces from other clusters overlap each other
+	// in this transformed state; we don't want that. After we compute face-face
+	// overlap information separately, we can merge all of the results into
+	// a flat array since none of the resulting arrays will overlap.
+	const facesFacesOverlap = mergeArraysWithHoles(...clusters_graph
 		.map(graph => getFacesFacesOverlap(graph, epsilon)));
-	// console.timeEnd("setup.js getFacesFacesOverlap()");
-	// simple faces center by averaging all the face's vertices
+
+	// simple faces center by averaging all the face's vertices.
+	// we don't have to be precise here, these are used to tell which
+	// side of a face's edge the face is (assuming all faces are convex).
 	const faces_center = faces_polygon.map(coords => average2(...coords));
-	// populate individual graph copies with data only relevant to it.
-	sets_graphs.forEach(el => {
-		el.faces_center = el.faces_vertices.map((_, f) => faces_center[f]);
+
+	// populate individual graph copies with faces_center data.
+	clusters_graph.forEach(({ faces_vertices: fv }, c) => {
+		clusters_graph[c].faces_center = fv.map((_, f) => faces_center[f]);
 	});
-	// now that we have all faces separated into coplanar-overlapping sets,
-	// run the 2D taco/tortilla algorithms on each set individually,
-	// until we get to make3DTortillas, which will work across coplanar sets
-	// 1,873ms
-	// console.time("setup.js ...make tacos/tortillas/transitivity");
-	const setsTacosAndTortillas = sets_graphs
-		.map(el => makeTacosTortillas(el, epsilon));
-	const taco_taco = setsTacosAndTortillas.flatMap(set => set.taco_taco);
-	const taco_tortilla = setsTacosAndTortillas.flatMap(set => set.taco_tortilla);
-	const tortilla_tortilla = setsTacosAndTortillas.flatMap(set => set.tortilla_tortilla);
-	// transitivity can be built once, globally. transitivity is built from
-	// facesFacesOverlap, which inheritely includes the sets-information by
-	// the fact that no two faces in different sets overlap one another.
-	const unfilteredTrans = makeTransitivity({ faces_polygon }, facesFacesOverlap, epsilon);
-	const transitivity = filterTransitivity(unfilteredTrans, { taco_taco, taco_tortilla });
-	// console.timeEnd("setup.js ...make tacos/tortillas/transitivity");
+
 	// these are all the variables we need to solve- all overlapping faces in
 	// pairwise combinations, as a space-separated string, smallest index first
 	const facePairsInts = connectedComponentsPairs(facesFacesOverlap);
 	const facePairs = facePairsInts.map(pair => pair.join(" "));
-	// const facePairs = connectedComponentsPairs(facesFacesOverlap)
-	// 	.map(pair => pair.join(" "));
+
 	// the additional 3d tacos/tortillas data
 	const {
 		tortillas3D,
 		orders,
-	} = setup3d(
+	} = makeSolverConstraints3DBetweenClusters(
 		{
 			vertices_coords,
 			edges_vertices,
@@ -297,24 +290,65 @@ export const makeSolverConstraints3D = ({
 		facePairsInts,
 		epsilon,
 	);
-	// 3d "tortilla-tortilla" are additional constraints that simply get
-	// added to the 2D tortilla-tortilla constraints.
-	// console.time("setup.js ...makeConstraints, solveFlatAdjacentEdges");
+
+	// get a list of all edge indices which are non-flat edges.
+	// non-flat edges are anything other than 0, -180, or +180 fold angles.
+	const nonFlatEdges = edges_foldAngle
+		.map(edgeFoldAngleIsFlat)
+		.map((flat, i) => (!flat ? i : undefined))
+		.filter(a => a !== undefined);
+
+	// remove any non-flat edges from the shallow copies.
+	["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle"]
+		.forEach(key => clusters_graph
+			.forEach(graph => nonFlatEdges
+				.forEach(e => delete graph[key][e])));
+
+	// now that we have all faces separated into coplanar-overlapping sets,
+	// run the 2D taco/tortilla algorithms on each set individually
+	const clusters_TacosAndTortillas = clusters_graph
+		.map(el => makeTacosAndTortillas(el, epsilon));
+
+	// now that we have computed these separately, we can flatten them into the
+	// same array, since indices are maintained to their original index from the
+	// input graph, the flat data will contain no overlaps between clusters.
+	const taco_taco = clusters_TacosAndTortillas
+		.flatMap(el => el.taco_taco);
+	const taco_tortilla = clusters_TacosAndTortillas
+		.flatMap(el => el.taco_tortilla);
+	const tortilla_tortilla = clusters_TacosAndTortillas
+		.flatMap(el => el.tortilla_tortilla);
+
+	// transitivity can be built once, globally. transitivity is built from
+	// facesFacesOverlap, which inheritely includes the clusters-information by
+	// the fact that no two faces in different sets overlap one another.
+	const tacosTrios = getTransitivityTriosFromTacos({ taco_taco, taco_tortilla });
+	const transitivity = makeTransitivity({ faces_polygon }, facesFacesOverlap, epsilon)
+		.filter(trio => tacosTrios[trio.join(" ")] === undefined);
+
+	// 3D-tortillas are a constraint that follow the exact same rules as the
+	// 2D tortilla-tortillas. we can simply add them to the this array.
 	tortilla_tortilla.push(...tortillas3D);
-	// now, make all taco/tortilla/transitivity constraints for the solver
-	const constraints = formatConstraintsArrays({
-		taco_taco, taco_tortilla, tortilla_tortilla, transitivity,
-	});
+
 	// this is building a massive lookup table, it takes quite a bit of time.
 	// any way we can speed this up?
-	const lookup = makeConstraintsLookup(constraints);
+	const lookup = makeConstraintsLookup({
+		taco_taco,
+		taco_tortilla,
+		tortilla_tortilla,
+		transitivity,
+	});
+
 	// before we run the solver, solve all of the conditions that we can.
 	// at this point, this means adjacent faces with an M or V edge between them.
-	sets_graphs
+	// this is a 2D-only algorithm, we need to run it on each cluster individually
+	const adjacentOrders = clusters_graph
 		.map(el => solveFlatAdjacentEdges(el, faces_winding))
-		.forEach(el => Object.assign(orders, el));
-	// console.timeEnd("setup.js ...makeConstraints, solveFlatAdjacentEdges");
-	// console.log("sets_graphs", sets_graphs);
+		.reduce((a, b) => Object.assign(a, b), ({}));
+
+	Object.assign(orders, adjacentOrders);
+
+	// console.log("clusters_graph", clusters_graph);
 	// console.log("faces_polygon", faces_polygon);
 	// console.log("faces_center", faces_center);
 	// console.log("facesFacesOverlap", facesFacesOverlap);
@@ -322,23 +356,29 @@ export const makeSolverConstraints3D = ({
 	// console.log("taco_taco", taco_taco);
 	// console.log("taco_tortilla", taco_tortilla);
 	// console.log("tortilla_tortilla", tortilla_tortilla);
-	// console.log("unfilteredTrans", unfilteredTrans);
+	// console.log("taco_taco", taco_taco);
+	// console.log("taco_tortilla", taco_tortilla);
+	// console.log("tortilla_tortilla", tortilla_tortilla);
 	// console.log("transitivity", transitivity);
-	// console.log("constraints", constraints);
 	// console.log("facePairs", facePairs);
 	// console.log("clusters_transform", clusters_transform);
 	// console.log("faces_cluster", faces_cluster);
 	// console.log("clusters_faces", clusters_faces);
 	// console.log("faces_winding", faces_winding);
 	// console.log("facesFacesOverlap", facesFacesOverlap);
-	// console.log("sets_graphs", sets_graphs);
 	// console.log("faces_polygon", faces_polygon);
 	// console.log("faces_center", faces_center);
 	// console.log("facePairsInts", facePairsInts);
 	// console.log("facePairs", facePairs);
 	// console.log("orders", orders);
+
 	return {
-		constraints,
+		constraints: {
+			taco_taco,
+			taco_tortilla,
+			tortilla_tortilla,
+			transitivity,
+		},
 		lookup,
 		facePairs,
 		faces_winding,

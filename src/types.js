@@ -100,7 +100,8 @@
  * @type {[number, number, number, number]}
  * @description four face indices involved
  * in the tortilla-tortilla relationship, encoding this relationship:
- * 0 and 1 are a connected tortilla, 2 and 3 are a connected tortilla
+ * 0 and 1 are a connected tortilla, 2 and 3 are a connected tortilla.
+ * where 0 is above/below 2, and 1 is above/below 3
  * (A,C) (B,D)
  *
  * @typedef TransitivityConstraint
