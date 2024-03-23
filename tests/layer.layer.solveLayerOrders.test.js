@@ -3,12 +3,14 @@ import fs from "fs";
 import ear from "../rabbit-ear.js";
 
 // test("write folded vertices", () => {
-// 	const foldfile = fs.readFileSync("./tests/files/fold/randlett-flapping-bird.fold", "utf-8");
+// 	const foldfile = fs.readFileSync("./tests/files/fold/cube-octagon.fold", "utf-8");
 // 	const fold = JSON.parse(foldfile);
-// 	const folded = ear.graph.makeVerticesCoordsFlatFolded(fold);
+// 	const folded = ear.graph.makeVerticesCoordsFolded(fold, [3]);
+// 	// const folded = ear.graph.makeVerticesCoordsFlatFolded(fold);
+// 	const foldedVertices = folded.map(p => p.map(n => ear.general.cleanNumber(n, 12)));
 // 	fs.writeFileSync(
 // 		`./tests/tmp/folded-vertices.json`,
-// 		JSON.stringify(folded.map(p => p.map(n => ear.general.cleanNumber(n, 12))), null, 2),
+// 		JSON.stringify(foldedVertices, null, 2),
 // 	);
 // });
 

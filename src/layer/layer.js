@@ -3,6 +3,7 @@
  */
 import {
 	solveFaceOrders,
+	solveFaceOrders3D,
 } from "./solve.js";
 import {
 	LayerPrototype,
@@ -20,4 +21,9 @@ import {
 export const layer = (graph, epsilon) => Object.assign(
 	Object.create(LayerPrototype),
 	solveFaceOrders(graph, epsilon),
+);
+
+export const layer3D = (graph, epsilon) => Object.assign(
+	Object.create(LayerPrototype),
+	solveFaceOrders3D(graph, epsilon),
 );

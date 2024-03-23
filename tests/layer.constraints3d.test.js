@@ -2,6 +2,19 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
+test("makeSolverConstraints3D cube octagon", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/cube-octagon.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+
+	const expectedJSON = fs.readFileSync("./tests/files/json/cube-octagon-constraints.json", "utf-8");
+	const expected = JSON.parse(expectedJSON);
+
+	const solverConstraints = ear.layer.makeSolverConstraints3D(folded);
+	expect(solverConstraints).toMatchObject(expected);
+});
+
 test("makeSolverConstraints3D maze-u", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/maze-u.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
@@ -11,14 +24,12 @@ test("makeSolverConstraints3D maze-u", () => {
 	const expectedJSON = fs.readFileSync("./tests/files/json/maze-u-constraints.json", "utf-8");
 	const expected = JSON.parse(expectedJSON);
 
-	// all fields of this object are tested.
-	// {
-	// 	constraints: { taco_taco, taco_tortilla, tortilla_tortilla, transitivity },
-	// 	lookup,
-	// 	facePairs,
-	// 	faces_winding,
-	// 	orders,
-	// }
+	// these fields are tested.
+	// - constraints: { taco_taco, taco_tortilla, tortilla_tortilla, transitivity }
+	// - lookup
+	// - facePairs
+	// - faces_winding
+	// - orders
 	const solverConstraints = ear.layer.makeSolverConstraints3D(folded);
 	expect(solverConstraints).toMatchObject(expected);
 });

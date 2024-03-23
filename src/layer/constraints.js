@@ -79,7 +79,7 @@ export const makeConstraintsLookup = (constraints) => {
  * }} taco information
  */
 export const makeTacosTortillasTransitivity = ({
-	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
+	vertices_coords, edges_vertices, edges_faces, faces_vertices,
 	edges_vector,
 }, epsilon = EPSILON) => {
 	// create a polygon (array of points) for every face. ensure that
@@ -106,7 +106,6 @@ export const makeTacosTortillasTransitivity = ({
 		edges_vertices,
 		edges_faces,
 		faces_vertices,
-		faces_edges,
 		edges_vector,
 	}, epsilon);
 
@@ -156,7 +155,7 @@ export const makeTacosTortillasTransitivity = ({
  */
 export const makeSolverConstraintsFlat = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
-	faces_vertices, faces_edges, edges_vector,
+	faces_vertices, edges_vector,
 }, epsilon = EPSILON) => {
 	const {
 		taco_taco,
@@ -170,7 +169,6 @@ export const makeSolverConstraintsFlat = ({
 		edges_vertices,
 		edges_faces,
 		faces_vertices,
-		faces_edges,
 		edges_vector,
 	}, epsilon);
 

@@ -56,24 +56,6 @@ import {
 } from "./adjacentEdges.js";
 
 /**
- * @description Get a list of
- */
-const getEdgesClusters = ({ edges_vertices, faces_edges }, faces_cluster) => {
-	// find edges which are in two sets
-	const edges_clusters_lookup = edges_vertices.map(() => ({}));
-	faces_cluster
-		.forEach((cluster, face) => faces_edges[face]
-			.forEach(edge => { edges_clusters_lookup[edge][cluster] = true; }));
-	// for every edge, which co-planar group does it appear in.
-	// ensure entries in edges_sets are sorted.
-	const edges_clusters = edges_clusters_lookup
-		.map(o => Object.keys(o)
-			.map(n => parseInt(n, 10))
-			.sort((a, b) => a - b));
-	return edges_clusters;
-};
-
-/**
  *
  */
 export const makeSolverConstraints3DBetweenClusters = (
@@ -82,7 +64,6 @@ export const makeSolverConstraints3DBetweenClusters = (
 		edges_vertices,
 		edges_faces,
 		edges_foldAngle,
-		faces_edges,
 		faces_winding,
 		faces_center,
 	},
@@ -94,29 +75,41 @@ export const makeSolverConstraints3DBetweenClusters = (
 	facePairsInts,
 	epsilon,
 ) => {
-	// prep
-	const facePairsIndex_set = facePairsInts
+	// for every facePair, which cluster is the face pair a member of.
+	// we only need to check one face, because they should be in the same cluster.
+	const facePairs_cluster = facePairsInts
 		.map(pair => faces_cluster[pair[0]]);
-	const sets_facePairsIndex = invertFlatToArrayMap(facePairsIndex_set);
-	// const sets_facePairsWithHoles = sets_facePairsIndex
+
+	// for every cluster, a list of indices of facePairs which inhabit the
+	// cluster. these indices point to the "facePairsInts" array.
+	const clusters_facePairsInt = invertFlatToArrayMap(facePairs_cluster);
+
+	// const sets_facePairsWithHoles = clusters_facePairsInt
 	// 	.map(indices => indices.map(i => facePairs[i]));
 	// const sets_facePairs = sets_constraints
 	// 	.map((_, i) => (sets_facePairsWithHoles[i] ? sets_facePairsWithHoles[i] : []));
-	const sets_facePairs = sets_facePairsIndex
+
+	// for every cluster, a list of facePairs which inabit the cluster.
+	const clusters_facePairs = clusters_facePairsInt
 		.map(indices => indices.map(i => facePairs[i]));
-	// for each edge, which set(s) is it a member of, this method
-	// only finds those which are in two sets, as the ones in one
-	// set only is not interesting to us
-	const edges_sets = getEdgesClusters({ edges_vertices, faces_edges }, faces_cluster);
-	// if an edge only appears in one group, delete the entry from the array
-	// this will create an array with holes, maintaining edge's indices.
-	edges_sets
-		.map((arr, i) => (arr.length !== 2 ? i : undefined))
-		.filter(e => e !== undefined)
-		.forEach(e => delete edges_sets[e]);
-	// new stuff
-	// 117ms
-	// console.time("setup.js setup3d() getOverlappingParallelEdgePairs()");
+
+	// for every edge, which cluster(s) is it a member of.
+	// ultimately, we are only interested in edges which join two clusters.
+	const edges_clusters = edges_faces
+		.map(faces => faces.map(face => faces_cluster[face]));
+
+	// remove edges which are members of only one cluster (boundary edges),
+	edges_clusters
+		.map((_, e) => e)
+		.filter(e => edges_clusters[e].length !== 2)
+		.forEach(e => delete edges_clusters[e]);
+
+	// and remove edges whose two faces are from the same cluster.
+	edges_clusters
+		.map(([a, b], e) => (a === b ? e : undefined))
+		.filter(a => a !== undefined)
+		.forEach(e => delete edges_clusters[e]);
+
 	const {
 		tortillaTortillaEdges,
 		solvable1,
@@ -124,7 +117,7 @@ export const makeSolverConstraints3DBetweenClusters = (
 		solvable3,
 	} = getOverlappingParallelEdgePairs({
 		vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
-	}, edges_sets, faces_cluster, clusters_transform, epsilon);
+	}, edges_clusters, faces_cluster, clusters_transform, epsilon);
 	// console.timeEnd("setup.js setup3d() getOverlappingParallelEdgePairs()");
 	// tacos tortillas
 	const tortillas3D = makeBentTortillas(
@@ -135,13 +128,13 @@ export const makeSolverConstraints3DBetweenClusters = (
 	);
 	const ordersEdgeFace = solveEdgeFaceOverlapOrders(
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
-		sets_facePairs,
+		clusters_facePairs,
 		clusters_transform,
 		clusters_faces,
 		faces_cluster,
 		faces_polygon,
 		faces_winding,
-		edges_sets,
+		edges_clusters,
 		epsilon,
 	);
 	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders({
@@ -151,13 +144,13 @@ export const makeSolverConstraints3DBetweenClusters = (
 		...ordersEdgeFace,
 		...ordersEdgeEdge,
 	};
+	// console.log("facePairs_cluster", facePairsIndex_set);
+	// console.log("clusters_facePairsInt", clusters_facePairsInt);
+	// console.log("clusters_facePairs", clusters_facePairs);
+	// console.log("edges_clusters", edges_clusters);
 	// console.log("facePairsIndex_set", facePairsIndex_set);
 	// console.log("sets_facePairsIndex", sets_facePairsIndex);
-	// console.log("sets_facePairs", sets_facePairs);
-	// console.log("edges_sets", edges_sets);
-	// console.log("facePairsIndex_set", facePairsIndex_set);
-	// console.log("sets_facePairsIndex", sets_facePairsIndex);
-	// // console.log("sets_facePairs", sets_facePairsWithHoles);
+	// console.log("sets_facePairs", sets_facePairsWithHoles);
 	// console.log("edges_sets", edges_sets);
 	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
 	// console.log("tortillas3D", tortillas3D);
@@ -174,7 +167,7 @@ export const makeSolverConstraints3DBetweenClusters = (
  */
 export const makeSolverConstraints3D = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
-	faces_vertices, faces_edges, faces_faces, // edges_vector
+	faces_vertices, faces_faces, // edges_vector
 }, epsilon = EPSILON) => {
 	// cluster faces into coplanar-adjacent-overlapping sets. this creates:
 	// - "planes": every unique plane that at least one face inhabits
@@ -204,7 +197,6 @@ export const makeSolverConstraints3D = ({
 		edges_assignment,
 		edges_foldAngle,
 		faces_vertices,
-		faces_edges,
 		faces_faces,
 	}, faces));
 
@@ -278,7 +270,6 @@ export const makeSolverConstraints3D = ({
 			edges_vertices,
 			edges_faces,
 			edges_foldAngle,
-			faces_edges,
 			faces_winding,
 			faces_center,
 		},

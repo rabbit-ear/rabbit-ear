@@ -2,9 +2,6 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	makeFacesEdgesFromVertices,
-} from "../graph/make/facesEdges.js";
-import {
 	makeEdgesFacesUnsorted,
 } from "../graph/make/edgesFaces.js";
 import {
@@ -22,9 +19,9 @@ import {
 import {
 	makeSolverConstraintsFlat,
 } from "./constraints.js";
-// import {
-// 	makeSolverConstraints3D,
-// } from "./constraints3d.js";
+import {
+	makeSolverConstraints3D,
+} from "./constraints3d.js";
 import {
 	solver,
 } from "./solver.js";
@@ -59,7 +56,7 @@ import {
  */
 export const solveLayerOrders = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
-	edges_foldAngle, faces_vertices, faces_edges, faces_faces, edges_vector,
+	edges_foldAngle, faces_vertices, faces_faces, edges_vector,
 }, epsilon) => {
 	// todo: need some sort of decision to be able to handle graphs which
 	// have variations of populated/absent edges_assignment and foldAngle
@@ -68,18 +65,9 @@ export const solveLayerOrders = ({
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
 		return { root: {}, branches: [], faces_winding: [] };
 	}
-	if (!faces_edges) {
-		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	}
 	if (!edges_faces) {
-		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices });
 	}
-	// if (!faces_edges) {
-	// 	faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	// }
-	// if (!edges_faces) {
-	// 	edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
-	// }
 
 	// these are needed for the 3D solver.
 	if (!faces_faces) {
@@ -115,7 +103,6 @@ export const solveLayerOrders = ({
 		edges_assignment,
 		edges_foldAngle,
 		faces_vertices,
-		faces_edges,
 		faces_faces,
 		edges_vector,
 	}, epsilon);
@@ -153,17 +140,14 @@ export const solveFaceOrders = (graph, epsilon) => {
  */
 export const solveLayerOrdersSingleBranches = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
-	faces_vertices, faces_edges, edges_vector,
+	faces_vertices, edges_vector,
 }, epsilon) => {
 	// necessary conditions for the layer solver to work
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
 		return { root: {}, branches: [], faces_winding: [] };
 	}
-	if (!faces_edges) {
-		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
-	}
 	if (!edges_faces) {
-		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_edges });
+		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices });
 	}
 
 	// find an appropriate epsilon, but only if it is not specified
@@ -184,7 +168,6 @@ export const solveLayerOrdersSingleBranches = ({
 		edges_faces,
 		edges_assignment,
 		faces_vertices,
-		faces_edges,
 		edges_vector,
 	}, epsilon);
 
@@ -193,4 +176,84 @@ export const solveLayerOrdersSingleBranches = ({
 		...solverOneDepth({ constraints, lookup, facePairs, orders }),
 		faces_winding,
 	};
+};
+
+
+
+export const solveLayerOrders3D = ({
+	vertices_coords, edges_vertices, edges_faces, edges_assignment,
+	edges_foldAngle, faces_vertices, faces_faces, edges_vector,
+}, epsilon) => {
+	// todo: need some sort of decision to be able to handle graphs which
+	// have variations of populated/absent edges_assignment and foldAngle
+
+	// necessary conditions for the layer solver to work
+	if (!vertices_coords || !edges_vertices || !faces_vertices) {
+		return { root: {}, branches: [], faces_winding: [] };
+	}
+	if (!edges_faces) {
+		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices });
+	}
+
+	// these are needed for the 3D solver.
+	if (!faces_faces) {
+		faces_faces = makeFacesFaces({ faces_vertices });
+	}
+	// edges_foldAngle needs to be present so we can ignore foldAngles
+	// which are not flat when doing taco/tortilla things. if we need to
+	// build it here, all of them are flat, but we need the array to exist
+	if (!edges_foldAngle && edges_assignment) {
+		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
+	}
+	if (!edges_assignment) {
+		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
+	}
+
+	// find an appropriate epsilon, but only if it is not specified
+	if (epsilon === undefined) {
+		epsilon = makeEpsilon({ vertices_coords, edges_vertices });
+	}
+
+	// convert the graph into conditions for the solver
+	const {
+		constraints,
+		lookup,
+		facePairs,
+		faces_winding,
+		orders,
+	} = makeSolverConstraints3D({
+		vertices_coords,
+		edges_vertices,
+		edges_faces,
+		edges_assignment,
+		edges_foldAngle,
+		faces_vertices,
+		faces_faces,
+		edges_vector,
+	}, epsilon);
+
+	// include faces_winding along with the solver result
+	return {
+		...solver({ constraints, lookup, facePairs, orders }),
+		faces_winding,
+	};
+};
+
+/**
+ *
+ */
+export const solveFaceOrders3D = (graph, epsilon) => {
+	const {
+		faces_winding,
+		...result
+	} = solveLayerOrders3D(graph, epsilon);
+
+	const recurse = ({ orders, branches }) => (branches === undefined
+		? ({ orders: solverSolutionToFaceOrders(orders, faces_winding) })
+		: ({
+			orders: solverSolutionToFaceOrders(orders, faces_winding),
+			branches: branches.map(inner => inner.map(recurse)),
+		}));
+
+	return recurse(result);
 };

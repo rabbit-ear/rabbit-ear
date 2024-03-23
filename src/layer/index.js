@@ -13,6 +13,7 @@ import * as solver from "./solver.js";
 import * as table from "./table.js";
 import * as tacosTortillas from "./tacosTortillas.js";
 import * as transitivity from "./transitivity.js";
+import { layer3D } from "./layer.js";
 
 export default {
 	...adjacentEdges,
@@ -27,4 +28,5 @@ export default {
 	...table,
 	...tacosTortillas,
 	...transitivity,
+	layer3D,
 };
