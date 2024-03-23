@@ -3,17 +3,17 @@
  */
 import {
 	resize,
-} from "../../math/vector.js";
+} from "../math/vector.js";
 import {
 	multiplyMatrix4Vector3,
-} from "../../math/matrix4.js";
+} from "../math/matrix4.js";
 import {
 	subgraphWithFaces,
-} from "../../graph/subgraph.js";
+} from "../graph/subgraph.js";
 import {
 	filterKeysWithPrefix,
 	edgeFoldAngleIsFlat,
-} from "../../fold/spec.js";
+} from "../fold/spec.js";
 
 /**
  * @description make copies of

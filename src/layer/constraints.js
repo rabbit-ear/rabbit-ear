@@ -17,6 +17,9 @@ import {
 	makeFacesPolygon,
 } from "../graph/make/faces.js";
 import {
+	solveFlatAdjacentEdges,
+} from "./adjacentEdges.js";
+import {
 	constraintToFacePairsStrings,
 } from "./general.js";
 import {
@@ -151,9 +154,9 @@ export const makeTacosTortillasTransitivity = ({
  * space-separated pairs of face indices, "a b" where a < b.
  * - faces_winding: for every face, which direction is the winding
  */
-export const makeSolverConstraints = ({
-	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
-	edges_vector,
+export const makeSolverConstraintsFlat = ({
+	vertices_coords, edges_vertices, edges_faces, edges_assignment,
+	faces_vertices, faces_edges, edges_vector,
 }, epsilon = EPSILON) => {
 	const {
 		taco_taco,
@@ -185,6 +188,13 @@ export const makeSolverConstraints = ({
 		transitivity,
 	});
 
+	// before we run the solver, solve all of the conditions that we can.
+	// at this point, this means adjacent faces with an M or V edge between them.
+	const orders = solveFlatAdjacentEdges({
+		edges_faces,
+		edges_assignment,
+	}, faces_winding);
+
 	return {
 		constraints: {
 			taco_taco,
@@ -195,5 +205,6 @@ export const makeSolverConstraints = ({
 		lookup,
 		facePairs,
 		faces_winding,
+		orders,
 	};
 };

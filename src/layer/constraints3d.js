@@ -3,70 +3,66 @@
  */
 import {
 	EPSILON,
-} from "../../math/constant.js";
+} from "../math/constant.js";
 import {
 	average2,
-} from "../../math/vector.js";
+} from "../math/vector.js";
 import {
 	mergeArraysWithHoles,
-} from "../../general/array.js";
+} from "../general/array.js";
 import {
 	invertFlatToArrayMap,
-} from "../../graph/maps.js";
+} from "../graph/maps.js";
 import {
 	makeFacesEdgesFromVertices,
-} from "../../graph/make/facesEdges.js";
+} from "../graph/make/facesEdges.js";
 import {
 	makeEdgesFacesUnsorted,
-} from "../../graph/make/edgesFaces.js";
+} from "../graph/make/edgesFaces.js";
 import {
 	makeEdgesAssignmentSimple,
-} from "../../graph/make/edgesAssignment.js";
+} from "../graph/make/edgesAssignment.js";
 import {
 	makeEdgesFoldAngle,
-} from "../../graph/make/edgesFoldAngle.js";
+} from "../graph/make/edgesFoldAngle.js";
 import {
 	makeFacesFaces,
-} from "../../graph/make/facesFaces.js";
+} from "../graph/make/facesFaces.js";
 import {
 	makeFacesPolygon,
-} from "../../graph/make/faces.js";
+} from "../graph/make/faces.js";
 import {
 	connectedComponentsPairs,
-} from "../../graph/connectedComponents.js";
+} from "../graph/connectedComponents.js";
 import {
 	getCoplanarAdjacentOverlappingFaces,
-} from "../../graph/faces/planes.js";
+} from "../graph/faces/planes.js";
 import {
 	getFacesFacesOverlap,
-} from "../../graph/overlap.js";
+} from "../graph/overlap.js";
 import {
 	makeTacosTortillas,
-} from "../tacosAndTortillas.js";
+	makeBentTortillas,
+} from "./tacosAndTortillas.js";
 import {
 	makeTransitivity,
 	filterTransitivity,
-} from "../transitivity.js";
+} from "./transitivity.js";
 import {
 	formatConstraintsArrays,
 	makeConstraintsLookup,
-} from "../makeConstraints.js";
+} from "./makeConstraints.js";
 import {
 	getOverlappingParallelEdgePairs,
-} from "./edges3D.js";
-import {
-	makeBentTortillas,
-} from "./bentTortillas.js";
-import {
-	solveEdgeFaceOverlapOrders,
-	solveEdgeEdgeOverlapOrders,
-} from "./solveOrders3d.js";
+} from "./intersect3d.js";
 import {
 	graphGroupCopies,
-} from "./copyGraph.js";
+} from "./planarSets.js";
 import {
-	solveEdgeAdjacent,
-} from "../solver.js";
+	solveFlatAdjacentEdges,
+	solveEdgeFaceOverlapOrders,
+	solveEdgeEdgeOverlapOrders,
+} from "./adjacentEdges.js";
 
 /**
  * @description Get a list of
@@ -89,10 +85,24 @@ const getEdgesClusters = ({ edges_vertices, faces_edges }, faces_cluster) => {
 /**
  *
  */
-const setup3d = ({
-	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_edges,
-	faces_winding, faces_center,
-}, clusters_faces, clusters_transform, faces_cluster, faces_polygon, facePairs, facePairsInts, epsilon) => {
+const setup3d = (
+	{
+		vertices_coords,
+		edges_vertices,
+		edges_faces,
+		edges_foldAngle,
+		faces_edges,
+		faces_winding,
+		faces_center,
+	},
+	clusters_faces,
+	clusters_transform,
+	faces_cluster,
+	faces_polygon,
+	facePairs,
+	facePairsInts,
+	epsilon,
+) => {
 	// prep
 	const facePairsIndex_set = facePairsInts
 		.map(pair => faces_cluster[pair[0]]);
@@ -169,9 +179,9 @@ const setup3d = ({
 /**
  *
  */
-export const setup = ({
+export const makeSolverConstraints3D = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
-	faces_vertices, faces_edges, faces_faces,
+	faces_vertices, faces_edges, faces_faces, // edges_vector
 }, epsilon = EPSILON) => {
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
@@ -269,18 +279,27 @@ export const setup = ({
 	const {
 		tortillas3D,
 		orders,
-	} = setup3d({
-		vertices_coords,
-		edges_vertices,
-		edges_faces,
-		edges_foldAngle,
-		faces_edges,
-		faces_winding,
-		faces_center,
-	}, clusters_faces, clusters_transform, faces_cluster, faces_polygon, facePairs, facePairsInts, epsilon);
+	} = setup3d(
+		{
+			vertices_coords,
+			edges_vertices,
+			edges_faces,
+			edges_foldAngle,
+			faces_edges,
+			faces_winding,
+			faces_center,
+		},
+		clusters_faces,
+		clusters_transform,
+		faces_cluster,
+		faces_polygon,
+		facePairs,
+		facePairsInts,
+		epsilon,
+	);
 	// 3d "tortilla-tortilla" are additional constraints that simply get
 	// added to the 2D tortilla-tortilla constraints.
-	// console.time("setup.js ...makeConstraints, solveEdgeAdjacent");
+	// console.time("setup.js ...makeConstraints, solveFlatAdjacentEdges");
 	tortilla_tortilla.push(...tortillas3D);
 	// now, make all taco/tortilla/transitivity constraints for the solver
 	const constraints = formatConstraintsArrays({
@@ -292,9 +311,9 @@ export const setup = ({
 	// before we run the solver, solve all of the conditions that we can.
 	// at this point, this means adjacent faces with an M or V edge between them.
 	sets_graphs
-		.map(el => solveEdgeAdjacent(el, faces_winding))
+		.map(el => solveFlatAdjacentEdges(el, faces_winding))
 		.forEach(el => Object.assign(orders, el));
-	// console.timeEnd("setup.js ...makeConstraints, solveEdgeAdjacent");
+	// console.timeEnd("setup.js ...makeConstraints, solveFlatAdjacentEdges");
 	// console.log("sets_graphs", sets_graphs);
 	// console.log("faces_polygon", faces_polygon);
 	// console.log("faces_center", faces_center);

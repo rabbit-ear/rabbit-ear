@@ -3,23 +3,79 @@
  */
 import {
 	EPSILON,
-} from "../../math/constant.js";
+} from "../math/constant.js";
 import {
 	exclude,
 	excludeS,
-} from "../../math/compare.js";
+} from "../math/compare.js";
 import {
 	subtract2,
-} from "../../math/vector.js";
+} from "../math/vector.js";
 import {
 	multiplyMatrix4Vector3,
-} from "../../math/matrix4.js";
+} from "../math/matrix4.js";
 import {
 	overlapConvexPolygonPoint,
-} from "../../math/overlap.js";
+} from "../math/overlap.js";
 import {
 	clipLineConvexPolygon,
-} from "../../math/clip.js";
+} from "../math/clip.js";
+
+/**
+ * @description Given a FOLD graph, already folded, find the layer arrangement
+ * between neighboring faces (using edges_faces), and assign this facePair
+ * a 1 or 2, checking whether faces have been flipped or not.
+ * @param {FOLD} graph a FOLD object
+ * @param {string[]} facePairs an array of space-separated face-pair strings
+ * @param {boolean[]} faces_winding for every face, true if the face's
+ * winding is counter-clockwise, false if clockwise.
+ * @returns {{[key: string]: number}} an object describing all the
+ * solved facePairs (keys) and their layer order 1 or 2 (value),
+ * the object only includes those facePairs
+ * which are solved, so, no 0-value entries will exist.
+ * @linkcode
+ */
+export const solveFlatAdjacentEdges = (
+	{ edges_faces, edges_assignment },
+	faces_winding,
+) => {
+	// flip 1 and 2 to be the other, leaving 0 to be 0.
+	const flipCondition = { 0: 0, 1: 2, 2: 1 };
+
+	// neighbor faces determined by crease between them
+	const assignmentOrder = { M: 1, m: 1, V: 2, v: 2 };
+
+	// "solution" contains solved orders (1, 2) for face-pair keys.
+	/** @type {{ [key: string]: number }} */
+	const solution = {};
+	edges_faces.forEach((faces, edge) => {
+		// the crease assignment determines the order between pairs of faces.
+		const assignment = edges_assignment[edge];
+		const localOrder = assignmentOrder[assignment];
+
+		// skip boundary edges, non-manifold edges, and irrelevant assignments
+		if (faces.length !== 2 || localOrder === undefined) { return; }
+
+		// face[0] is the origin face.
+		// the direction of "m" or "v" will be inverted if face[0] is flipped.
+		const upright = faces_winding[faces[0]];
+
+		// now we know from a global perspective the order between the face pair.
+		const globalOrder = upright
+			? localOrder
+			: flipCondition[localOrder];
+
+		// all face-pairs are stored "a b" where a < b. Our globalOrder is the
+		// relationship from faces[0] to faces[1], so if faces[0] > [1] we need
+		// to flip the order of faces, and flip the result.
+		const inOrder = faces[0] < faces[1];
+		const key = inOrder ? faces.join(" ") : faces.slice().reverse().join(" ");
+		const value = inOrder ? globalOrder : flipCondition[globalOrder];
+
+		solution[key] = value;
+	});
+	return solution;
+};
 
 /**
  *
@@ -42,6 +98,7 @@ const polygonSegmentOverlap = (polygon, segment, epsilon = EPSILON) => {
 	);
 	return edgeClip !== undefined;
 };
+
 /**
  * @description There are two kinds of arrangements of edges/faces that
  * don't generate solver conditions, instead, they solve relationships
@@ -201,6 +258,7 @@ export const solveEdgeFaceOverlapOrders = (
 	// console.log("orders", orders);
 	return orders;
 };
+
 /**
  * @description Given a situation where two non-boundary edges are
  * parallel overlapping, and two of the faces lie in the same plane,
@@ -230,7 +288,7 @@ const solveFacePair3D = ({
 		.map(angles => angles[0] > angles[1]);
 	const facesInOrder = tortillaFaces.map(faces => faces[0] < faces[1]);
 	const switchNeeded = tortillaFaces
-		.map((faces, i) => indicesInOrder[i] ^ facesInOrder[i]);
+		.map((_, i) => indicesInOrder[i] ^ facesInOrder[i]);
 	const result = {};
 	const faceKeys = tortillaFaces
 		.map((pair, i) => (facesInOrder[i] ? pair : pair.slice().reverse()))
@@ -273,15 +331,17 @@ const solveType2 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
 	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
 };
 
-const solveType3 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
-	// const tortilla = edgePairData
-	// 	.map(el => Object.values(el.sets)
-	// 		.filter(row => row.facesSameSide)
-	// 		.shift());
-	// console.log("solvable3", edgePairData);
-	// console.log("tortilla", tortilla);
-	return {};
-};
+const solveType3 = () => ({});
+
+// const solveType3 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+// 	const tortilla = edgePairData
+// 		.map(el => Object.values(el.sets)
+// 			.filter(row => row.facesSameSide)
+// 			.shift());
+// 	console.log("solvable3", edgePairData);
+// 	console.log("tortilla", tortilla);
+// 	return {};
+// };
 
 export const solveEdgeEdgeOverlapOrders = ({
 	edges_foldAngle, faces_winding,
