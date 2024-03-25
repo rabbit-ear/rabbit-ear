@@ -8,6 +8,10 @@ import {
 	normalize,
 	parallelNormalized,
 } from "../math/vector.js";
+import {
+	doRangesOverlap,
+	rangeUnion,
+} from "../math/range.js";
 
 /**
  * @description Given a list of pre-sorted elements, create clusters
@@ -60,7 +64,7 @@ export const clusterSortedGeneric = (elements, comparison) => {
  * Cluster epsilon is relative to the nearest neighbor, not the start
  * of the group or some other metric, so for example, the values
  * [1, 2, 3, 4, 5] will all be in one cluster if the epsilon is 1.5.
- * @param {number[]} floats an array of numbers
+ * @param {number[]} numbers an array of numbers
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} array of array of indices to the input array.
  * @linkcode
@@ -85,6 +89,50 @@ export const clusterScalars = (numbers, epsilon = EPSILON) => {
 	return clusterSortedGeneric(sortedNumbers, compFn)
 		.map(arr => arr.map(i => indices[i]));
 };
+
+/**
+ * @param {[number, number][]} ranges a list of ranges,
+ * each range a pair of numbers
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} an array of clusters, where each cluster is
+ * a list of indices which point to the "ranges" input array.
+ */
+export const clusterRanges = (ranges, epsilon = EPSILON) => {
+	// sort the ranges by the minimum element, save it as a list of indices
+	const indices = ranges
+		.map(([a, b], i) => ({ v: Math.min(a, b), i }))
+		.sort((a, b) => a.v - b.v)
+		.map(el => el.i);
+
+	// prepare data for the method clusterSortedGeneric,
+	// the values will be the sorted ranges,
+	// the comparison function will be a bit more complex with a side effect,
+	// maintain the current range outside of the function,
+	// if there is an overlap, update the range to be a union with the new range,
+	// if there is no overlap, reset it to be the new range.
+	const sortedRanges = indices.map(i => ranges[i]);
+
+	let currentRange = [...sortedRanges[0]];
+
+	/**
+	 * @param {[number, number]} _ an unused range, the cumulative result
+	 * @param {[number, number]} b a new range to compare
+	 * @returns {boolean} true if "b" overlaps with the "currentRange"
+	 */
+	const comparison = (_, b) => {
+		const overlap = doRangesOverlap(currentRange, b, epsilon);
+		currentRange = overlap ? rangeUnion(currentRange, b) : [...b];
+		return overlap;
+	};
+
+	// call the cluster method which results in a list of indices that refer
+	// to the sorted list "sortedRanges", which of course does not match our
+	// input array "ranges", so, remap these indices so that our
+	// final result of indices relates to the input array "ranges".
+	return clusterSortedGeneric(sortedRanges, comparison)
+		.map(arr => arr.map(i => indices[i]));
+};
+
 
 /**
  * @description Given an array of vectors, group the vectors into clusters

@@ -53,7 +53,7 @@ import {
  * @param {number} [epsilon=1e-6] a positive value makes the range
  * endpoints exclusive, a negative value makes range endpoints inclusive.
  */
-export const doRangesOverlap = (a, b, epsilon = EPSILON) => {
+const doRangesOverlap = (a, b, epsilon = EPSILON) => {
 	// make sure ranges are well formed (sorted low to high)
 	const r1 = a[0] < a[1] ? a : [a[1], a[0]];
 	const r2 = b[0] < b[1] ? b : [b[1], b[0]];
@@ -84,6 +84,7 @@ const getOverlappingCollinearEdges = ({
 		.flatMap(edges => chooseTwoPairs(edges)
 			.filter(pair => (doRangesOverlap(...pair.map(n => edges_dots[n])))));
 };
+
 /**
  * @description This method finds all overlapping parallel edges and
  * classifies them into one of a few groups. This classification is

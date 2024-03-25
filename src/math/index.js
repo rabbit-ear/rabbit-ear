@@ -15,6 +15,7 @@ import * as nearestMethods from "./nearest.js";
 import * as planeMethods from "./plane.js";
 import * as polygonMethods from "./polygon.js";
 import * as radialMethods from "./radial.js";
+import * as rangeMethods from "./range.js";
 import * as straightSkeleton from "./straightSkeleton.js";
 import * as triangle from "./triangle.js";
 import * as encloses from "./encloses.js";
@@ -37,6 +38,7 @@ export default {
 	...planeMethods,
 	...polygonMethods,
 	...radialMethods,
+	...rangeMethods,
 	...straightSkeleton,
 	...triangle,
 	...encloses,

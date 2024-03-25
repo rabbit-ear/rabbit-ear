@@ -53,7 +53,7 @@ import {
 	solveFlatAdjacentEdges,
 	solveEdgeFaceOverlapOrders,
 	solveEdgeEdgeOverlapOrders,
-} from "./adjacentEdges.js";
+} from "./initialSolution.js";
 
 /**
  *
@@ -119,6 +119,7 @@ export const makeSolverConstraints3DBetweenClusters = (
 		vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
 	}, edges_clusters, faces_cluster, clusters_transform, epsilon);
 	// console.timeEnd("setup.js setup3d() getOverlappingParallelEdgePairs()");
+
 	// tacos tortillas
 	const tortillas3D = makeBentTortillas(
 		{ edges_faces },
