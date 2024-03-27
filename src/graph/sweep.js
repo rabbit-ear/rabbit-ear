@@ -1,11 +1,21 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
-import { epsilonEqual } from "../math/compare.js";
-import { uniqueElements } from "../general/array.js";
-import { clusterScalars } from "../general/cluster.js";
-import { makeVerticesEdgesUnsorted } from "./make/verticesEdges.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
+import {
+	epsilonEqual,
+} from "../math/compare.js";
+import {
+	uniqueElements,
+} from "../general/array.js";
+import {
+	clusterScalars,
+} from "../general/cluster.js";
+import {
+	makeVerticesEdgesUnsorted,
+} from "./make/verticesEdges.js";
 
 /**
  * @description convert a faces_vertices into an edge-style list, where
@@ -27,6 +37,8 @@ const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => (
  * the default direction is to sweep along the +X axis.
  * This method will sort the vertices along the sweep direction and
  * group those which have a similar value within an epsilon.
+ * This is not interchangeable with getVerticesClusters, this only clusters
+ * vertices along one axis, it does not make vertices clusters.
  * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
@@ -46,14 +58,16 @@ export const sweepVertices = (
 
 /**
  * @description This is the sweep method used by sweepEdges and sweepFaces.
+ * note: sweepFaces constructs new edges that span the entire
+ * face, so this has no relation to the graph's original edges_vertices.
+ * @param {FOLD} graph FOLD format graph with edges_vertices defining
+ * connections between indices in the "values" array.
  * @param {number[]} values an array of scalars constructed from the
  * vertices_coords array where for each coord, only the relevant value is taken
- * @param {number[][]} edges_vertices an array of pairs of indices to the
- * values array. note: the sweepFaces constructs new edges that span the entire
- * face, so this has no relation to the graph's original edges_vertices.
  * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {SweepEvent[]} an array of sweep line events, indicating at every
+ * event a list of values which start, end, or are currently overlapping.
  */
-// const sweepValues = ({ edges_vertices, faces_vertices }, values, epsilon = EPSILON) => {
 export const sweepValues = (
 	{ edges_vertices, vertices_edges },
 	values,
@@ -63,11 +77,18 @@ export const sweepValues = (
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const edgesValues = edges_vertices.map(edge => edge.map(e => values[e]));
-	// is the span degenerate? (both values are an epsilon away from each other)
+
+	// is the edge degenerate along the sweep axis?
+	// (both values are an epsilon away from each other)
 	const isDegenerate = edgesValues.map(pair => epsilonEqual(...pair, epsilon));
-	// which vertex comes first along the sweep axis
+
+	// for each edge, which of its two vertices is first along the sweep axis.
+	// this does not handle the degenerate case, the upcoming object will
+	// combine this and the degenerate information into a more complete version.
 	const edgesDirection = edgesValues.map(([a, b]) => Math.sign(a - b));
-	// for each edge, for each of its two vertices, is the vertex +1, 0, -1?
+
+	// for each edge, for each of its two vertices, what is the ordering of
+	// each of its vertices, where each vertex is stored as:
 	// -1: first point's coordinate is smaller
 	//  0: coordinates are same (within an epsilon)
 	// +1: second point's coordinate is smaller
@@ -75,6 +96,7 @@ export const sweepValues = (
 		.map(([v1, v2], i) => (isDegenerate[i]
 			? { [v1]: 0, [v2]: 0 }
 			: { [v1]: edgesDirection[i], [v2]: -edgesDirection[i] }));
+
 	// within each cluster, if there are a lot of consecutive lines orthogonal
 	// to the sweep axis, there will be repeats of edges when converting these
 	// vertices into their adjacent edges by looking at vertices_edges.
@@ -87,6 +109,8 @@ export const sweepValues = (
 		.filter(vertices => vertices.length)
 		.map(vertices => ({
 			vertices,
+			// values will be equivalent within an epsilon, we can choose to either
+			// grab just one, grab the mode value, or average them all together.
 			t: vertices.reduce((p, c) => p + values[c], 0) / vertices.length,
 			start: uniqueElements(vertices.flatMap(v => vertices_edges[v]
 				.filter(edge => edgesVertexSide[edge][v] <= 0))),
@@ -104,7 +128,7 @@ export const sweepValues = (
  * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object[]} an array of event objects, each event contains:
+ * @returns {SweepEvent[]} an array of event objects, each event contains:
  * - t: the position along the axis
  * - vertices: the vertices (one or more) at this event along the axis
  * - start: the edges which begin at this event in the sweep

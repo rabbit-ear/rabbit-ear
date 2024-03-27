@@ -30,7 +30,6 @@ import {
 import {
 	clusterScalars,
 	clusterSortedGeneric,
-	clusterRanges,
 	clusterParallelVectors,
 } from "../../general/cluster.js";
 import {
@@ -41,7 +40,6 @@ import {
 } from "../make/edges.js";
 import {
 	invertArrayToFlatMap,
-	invertFlatToArrayMap,
 } from "../maps.js";
 
 /**
@@ -252,34 +250,46 @@ export const getEdgesLine = (
 
 
 /**
- *
+ * @description This extends getEdgesLine and also returns information about
+ * clusters of overlapping edges within each line group. Each cluster is
+ * defined as a group of edges where every edge overlaps at least one other
+ * edge from the group. This does not define a list of, for every edge,
+ * a list of edges which overlap this edge.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{
+ *   lines: VecLine[],
+ *   edges_line: number[],
+ *   clusters_edges: number[][],
+ *   edges_cluster: number[],
+ * }}
  */
-export const getCollinearOverlappingEdges = ({
-	vertices_coords, edges_vertices,
-}, epsilon = EPSILON) => {
-	const {
-		lines,
-		edges_line,
-	} = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
+// export const getCollinearOverlappingEdgeClusters = ({
+// 	vertices_coords, edges_vertices,
+// }, epsilon = EPSILON) => {
+// 	const {
+// 		lines,
+// 		edges_line,
+// 	} = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
 
-	// we're going to project each edge onto the shared line, we can't use
-	// each edge's vector, we have to use the edge's line's common vector.
-	const edges_range = makeEdgesCoords({ vertices_coords, edges_vertices })
-		.map((points, e) => points
-			.map(point => dot(lines[edges_line[e]].vector, point)));
+// 	// we're going to project each edge onto the shared line, we can't use
+// 	// each edge's vector, we have to use the edge's line's common vector.
+// 	const edges_range = makeEdgesCoords({ vertices_coords, edges_vertices })
+// 		.map((points, e) => points
+// 			.map(point => dot(lines[edges_line[e]].vector, point)));
 
-	// the invertFlatToArrayMap creates lines_edges, each a list of edge indices.
-	// each time we call clusterRanges, the result is a list of indices 0...n,
-	// where the indices relate to the input array "edges", all we have to do is
-	// remap these indices back to their actual edge index inside "edges".
-	const clusters_edges = invertFlatToArrayMap(edges_line)
-		.flatMap(edges => clusterRanges(edges.map(e => edges_range[e]), epsilon)
-			.map(indices => indices.map(i => edges[i])));
-	const edges_cluster = invertArrayToFlatMap(clusters_edges);
-	return {
-		lines,
-		edges_line,
-		clusters_edges,
-		edges_cluster,
-	};
-};
+// 	// the invertFlatToArrayMap creates lines_edges, each a list of edge indices.
+// 	// each time we call clusterRanges, the result is a list of indices 0...n,
+// 	// where the indices relate to the input array "edges", all we have to do is
+// 	// remap these indices back to their actual edge index inside "edges".
+// 	const clusters_edges = invertFlatToArrayMap(edges_line)
+// 		.flatMap(edges => clusterRanges(edges.map(e => edges_range[e]), epsilon)
+// 			.map(indices => indices.map(i => edges[i])));
+// 	const edges_cluster = invertArrayToFlatMap(clusters_edges);
+// 	return {
+// 		lines,
+// 		edges_line,
+// 		clusters_edges,
+// 		edges_cluster,
+// 	};
+// };

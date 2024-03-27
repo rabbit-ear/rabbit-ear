@@ -235,20 +235,6 @@ test("layer four flaps", () => {
 	]);
 });
 
-test("layer crane", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
-	const fold = JSON.parse(foldfile);
-	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
-	const solution = ear.layer.solveLayerOrders(folded);
-
-	const expectedJSON = fs.readFileSync(
-		"./tests/files/json/crane-layer-solver.json",
-		"utf-8",
-	);
-	const expected = JSON.parse(expectedJSON);
-	expect(solution).toMatchObject(expected);
-});
-
 test("layer Kabuto", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/kabuto.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
@@ -280,3 +266,34 @@ test("layer Randlett flapping bird", () => {
 
 	expect(solution).toMatchObject(expected);
 });
+
+test("layer crane", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const solution = ear.layer.solveLayerOrders(folded);
+
+	const expectedJSON = fs.readFileSync(
+		"./tests/files/json/crane-layer-solver.json",
+		"utf-8",
+	);
+	const expected = JSON.parse(expectedJSON);
+	expect(solution).toMatchObject(expected);
+});
+
+// test("layer bird", () => {
+// 	const foldfile = fs.readFileSync("./tests/files/fold/kraft-bird-base.fold", "utf-8");
+// 	const fold = JSON.parse(foldfile);
+// 	const folded = {
+// 		...fold,
+// 		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(fold),
+// 	}
+// 	const solution = ear.layer.solveLayerOrders(folded);
+
+// 	// const expectedJSON = fs.readFileSync(
+// 	// 	"./tests/files/json/crane-layer-solver.json",
+// 	// 	"utf-8",
+// 	// );
+// 	// const expected = JSON.parse(expectedJSON);
+// 	// expect(solution).toMatchObject(expected);
+// });

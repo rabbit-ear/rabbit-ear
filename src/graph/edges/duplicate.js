@@ -2,6 +2,9 @@
  * Rabbit Ear (c) Kraft
  */
 import {
+	EPSILON,
+} from "../../math/constant.js";
+import {
 	makeVerticesEdgesUnsorted,
 	makeVerticesEdges,
 } from "../make/verticesEdges.js";
@@ -12,6 +15,18 @@ import {
 	makeVerticesFaces,
 } from "../make/verticesFaces.js";
 import replace from "../replace.js";
+import {
+	invertArrayToFlatMap,
+} from "../maps.js";
+import {
+	clusterGeneric,
+} from "../../general/cluster.js";
+import {
+	getVerticesClusters,
+} from "../vertices/clusters.js";
+import {
+	sweepEdges,
+} from "../sweep.js";
 
 /**
  * @description Get the indices of all duplicate edges by marking the
@@ -54,6 +69,41 @@ export const duplicateEdges = ({ edges_vertices }) => {
 		});
 
 	return duplicates;
+};
+
+/**
+ * @description Get similar edges, where "similarity" is defined geometrically,
+ * two similar edges have both of their vertices in the same place, order
+ * of vertices does not matter.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} clusters_edges, the result is an array of clusters
+ * where each cluster contains a list of edge indices.
+ */
+export const getSimilarEdges = (
+	{ vertices_coords, vertices_edges, edges_vertices },
+	epsilon = EPSILON,
+) => {
+	const clusters_vertices = getVerticesClusters({ vertices_coords }, epsilon);
+	const vertices_cluster = invertArrayToFlatMap(clusters_vertices);
+
+	/**
+	 * @param {number} a edge index
+	 * @param {number} b edge index
+	 */
+	const comparison = (a, b) => {
+		const [a0, a1] = edges_vertices[a].map(v => vertices_cluster[v]);
+		const [b0, b1] = edges_vertices[b].map(v => vertices_cluster[v]);
+		return (a0 === b0 && a1 === b1) || (a0 === b1 && a1 === b0);
+	};
+
+	const edgeSweep = sweepEdges({
+		vertices_coords, vertices_edges, edges_vertices,
+	});
+
+	return edgeSweep
+		.map(({ start }) => start)
+		.flatMap(edges => clusterGeneric(edges, comparison));
 };
 
 /**

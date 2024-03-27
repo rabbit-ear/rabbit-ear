@@ -12,7 +12,8 @@ import { getDimensionQuick } from "../../fold/spec.js";
  * of applications with noise (DBSCAN).
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]} array of arrays of vertex indices.
+ * @returns {number[][]} a list of clusters_vertices, for every cluster,
+ * an of vertex indices which are a part of this cluster.
  * @example
  * no clusters: [ [0], [1], [2], [3], [4], ... ]
  * clusters: [ [0, 5], [1], [3], [2, 4]]

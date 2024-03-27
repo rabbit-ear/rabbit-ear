@@ -120,7 +120,8 @@ export const rotateCircularArray = (array, newStartIndex) => (
  * where each item is uniqely matched with another item (non-ordered)
  * the number of pairs is (length * (length-1)) / 2
  * @param {any[]} array an array containing any values
- * @returns {any[][]} an array of arrays, the inner arrays are all length 2
+ * @returns {[any, any][]} an array of arrays, type matching the
+ * input array type, where each inner array is a list of two.
  */
 export const chooseTwoPairs = (array) => {
 	const pairs = Array((array.length * (array.length - 1)) / 2);
@@ -245,3 +246,30 @@ export const mergeArraysWithHoles = (...arrays) => {
 	}));
 	return flattened;
 };
+
+/**
+ *
+ */
+export const clustersToReflexiveArrays = (clusters) => {
+	const result = [];
+	clusters.flat().forEach(i => { result[i] = []; });
+	clusters
+		.flatMap(chooseTwoPairs)
+		.forEach(([a, b]) => {
+			result[a].push(b);
+			result[b].push(a);
+		});
+	return result;
+};
+
+export const arrayArrayToLookupArray = (array_array) => array_array
+	.map(array => {
+		const lookup = [];
+		array.forEach(i => { lookup[i] = true; });
+		return lookup;
+	});
+
+export const lookupArrayToArrayArray = (lookupArray) => lookupArray
+	.map(array => array
+		.map((overlap, i) => (overlap ? i : undefined))
+		.filter(a => a !== undefined));

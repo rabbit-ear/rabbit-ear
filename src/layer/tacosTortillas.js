@@ -11,12 +11,11 @@ import {
 	getEdgesFacesOverlap,
 } from "./intersect.js";
 import {
-	overlappingParallelEdgePairs,
-} from "./general.js";
-import {
 	makeEdgesFacesSide,
 	makeEdgePairsFacesSide,
 } from "./facesSide.js";
+import { getEdgesEdgesCollinearOverlap } from "../graph/overlap.js";
+import { connectedComponentsPairs } from "../graph/connectedComponents.js";
 
 /**
  * @description Assign a classification to a face-pair which will assist us in
@@ -210,8 +209,9 @@ export const makeBentTortillas = ({
  * is currently hardcoded to only work with convex polygons.
  */
 export const makeTacosAndTortillas = ({
-	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_center,
-	edges_vector, // faces_edges,
+	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
+	faces_center,
+	// edges_vector, // faces_edges,
 }, epsilon = EPSILON) => {
 	if (!faces_center) {
 		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
@@ -220,7 +220,7 @@ export const makeTacosAndTortillas = ({
 	// faces_edges is not needed with the current "getEdgesFacesOverlap" method.
 	// there is one in the works which does use faces_edges.
 	const edgesFacesOverlap = getEdgesFacesOverlap({
-		vertices_coords, edges_vertices, edges_faces, faces_vertices, // faces_edges,
+		vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
 	}, epsilon);
 
 	// for each edge, for its adjacent faces (1 or 2), which side of the edge
@@ -233,9 +233,9 @@ export const makeTacosAndTortillas = ({
 	// edges have two adjacent faces (not one). Each of these will become
 	// either a taco-taco, taco-tortilla, or tortilla-tortilla condition.
 	// this will contain unique pairs ([4, 9] but not [9, 4]), smallest first.
-	const edgePairs = overlappingParallelEdgePairs({
-		vertices_coords, edges_vertices, edges_faces, edges_vector,
-	}, epsilon);
+	const edgePairs = connectedComponentsPairs(
+		getEdgesEdgesCollinearOverlap({ vertices_coords, edges_vertices }, epsilon)
+	).filter(pair => pair.every(edge => edges_faces[edge].length > 1));
 
 	// convert every face into a +1 or -1 based on which side of the edge is it on.
 	// ie: tacos will have similar numbers, tortillas will have one of either.

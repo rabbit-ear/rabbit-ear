@@ -55,7 +55,7 @@ test("getFacesFacesOverlap zig-zag panels", () => {
 	]);
 });
 
-test("getFacesFacesOverlap bird base", () => {
+test("getFacesFacesOverlap bird base, faces-faces", () => {
 	const cp = ear.graph.bird();
 	const folded = {
 		...cp,
@@ -72,7 +72,16 @@ test("getFacesFacesOverlap bird base", () => {
 		[2,3,9,10,13,14,15],[2,3,9,10,12,14,15],[2,3,9,10,12,13,15,17,18],
 		[2,3,9,10,12,13,14,17,18],[6,7,19],[14,15,18],[14,15,17],[6,7,16]
 	]);
+});
 
+test("edges-faces bird base, edges-edges", () => {
+	const cp = ear.graph.bird();
+	const folded = {
+		...cp,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(cp),
+	};
+	ear.graph.populate(folded);
+	expect(ear.graph.getEdgesEdgesCollinearOverlap(folded).flat().length).toBe(194);
 });
 
 test("getFacesFacesOverlap kabuto", () => {
@@ -111,4 +120,16 @@ test("getFacesFacesOverlap Kraft bird", () => {
 
 	const computed = ear.graph.getFacesFacesOverlap(folded);
 	expect(computed).toMatchObject(result);
+});
+
+test("getEdgesEdgesCollinearOverlap", () => {
+
+});
+
+test("edges-edges", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+	expect(ear.graph.getEdgesEdgesCollinearOverlap(folded).flat().length).toBe(554);
 });

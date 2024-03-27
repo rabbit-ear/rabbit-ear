@@ -126,7 +126,7 @@ export const overlapCirclePoint = (
  * @param {function} polyDomain determines if the polygon boundary
  * is inclusive or exclusive
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} an object with
+ * @returns {{ overlap: boolean, t: number[] }} an object with
  * - "overlap" {boolean}: true or false if the point is inside the polygon
  * - "t" {number[]}: the array of cross-product parameters of the point against
  *   every polygon's edge's vector. Can be used to trilaterate the point back

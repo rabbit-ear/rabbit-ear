@@ -7,7 +7,9 @@ test("overlappingParallelEdgePairs panel 4x2", () => {
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-	const edgePairs = ear.layer.overlappingParallelEdgePairs(folded);
+	const edgePairs = ear.graph.connectedComponentsPairs(
+		ear.graph.getEdgesEdgesCollinearOverlap(folded),
+	).filter(pair => pair.every(edge => folded.edges_faces[edge].length === 2));
 
 	// 8, 9, 10, 11 all overlap each other
 	// 6 and 14, and 7 and 15 overlap each other
@@ -24,7 +26,12 @@ test("overlappingParallelEdgePairs strip weave", () => {
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-	expect(ear.layer.overlappingParallelEdgePairs(folded).length).toBe(0);
+
+	const edgePairs = ear.graph.connectedComponentsPairs(
+		ear.graph.getEdgesEdgesCollinearOverlap(folded),
+	).filter(pair => pair.every(edge => folded.edges_faces[edge].length === 2));
+
+	expect(edgePairs.length).toBe(0);
 });
 
 test("overlappingParallelEdgePairs triangle strip", () => {
@@ -32,7 +39,12 @@ test("overlappingParallelEdgePairs triangle strip", () => {
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-	expect(ear.layer.overlappingParallelEdgePairs(folded).length).toBe(0);
+
+	const edgePairs = ear.graph.connectedComponentsPairs(
+		ear.graph.getEdgesEdgesCollinearOverlap(folded),
+	).filter(pair => pair.every(edge => folded.edges_faces[edge].length === 2));
+
+	expect(edgePairs.length).toBe(0);
 });
 
 test("overlappingParallelEdgePairs triangle strip-2", () => {
@@ -40,7 +52,9 @@ test("overlappingParallelEdgePairs triangle strip-2", () => {
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-	const edgePairs = ear.layer.overlappingParallelEdgePairs(folded);
+	const edgePairs = ear.graph.connectedComponentsPairs(
+		ear.graph.getEdgesEdgesCollinearOverlap(folded),
+	).filter(pair => pair.every(edge => folded.edges_faces[edge].length === 2));
 
 	expect(edgePairs).toMatchObject([
 		[10, 29], [11, 45],
@@ -111,7 +125,9 @@ test("facesSide panels zig zag", () => {
 		[1],
 	]);
 
-	const edgePairs = ear.layer.overlappingParallelEdgePairs(folded);
+	const edgePairs = ear.graph.connectedComponentsPairs(
+		ear.graph.getEdgesEdgesCollinearOverlap(folded),
+	).filter(pair => pair.every(edge => folded.edges_faces[edge].length === 2));
 	expect(edgePairs).toMatchObject([
 		[11, 13], [12, 14]
 	]);
@@ -150,7 +166,9 @@ test("facesSide panel 4x2", () => {
 		[1], [1], [1], [-1], [1], [-1]
 	]);
 
-	const edgePairs = ear.layer.overlappingParallelEdgePairs(folded);
+	const edgePairs = ear.graph.connectedComponentsPairs(
+		ear.graph.getEdgesEdgesCollinearOverlap(folded),
+	).filter(pair => pair.every(edge => folded.edges_faces[edge].length === 2));
 
 	const tacos_faces = edgePairs.map(pair => pair.map(edge => folded.edges_faces[edge]));
 	const tacosFacesSide = ear.layer.makeEdgePairsFacesSide(folded, edgePairs, tacos_faces);

@@ -7,116 +7,48 @@ import {
 import {
 	exclude,
 	excludeS,
+	includeS,
 	epsilonEqual,
 	epsilonEqualVectors,
 } from "../math/compare.js";
 import {
-	overlapLineLine,
+	intersectLineLine,
+	intersectConvexPolygonLine,
+} from "../math/intersect.js";
+import {
 	overlapBoundingBoxes,
 	overlapConvexPolygonPoint,
 } from "../math/overlap.js";
-import {
-	normalize,
-	dot,
-} from "../math/vector.js";
 import {
 	makeEdgesVector,
 	makeEdgesBoundingBox,
 	makeEdgesCoords,
 } from "../graph/make/edges.js";
 import {
+	makeFacesPolygon,
+} from "../graph/make/faces.js";
+import {
+	makeEdgesFacesUnsorted,
+} from "../graph/make/edgesFaces.js";
+import {
 	boundingBox,
 } from "../math/polygon.js";
 import {
-	intersectConvexPolygonLine,
-} from "../math/intersect.js";
-import {
 	makeFacesWinding,
 } from "../graph/faces/winding.js";
+import {
+	sweep,
+} from "../graph/sweep.js";
+import {
+	edgeToLine,
+} from "../graph/edges/lines.js";
 
-/**
- * @description Create an NxN matrix (N number of edges) that relates edges to each other,
- * inside each entry is true/false, true if the two edges are parallel within an epsilon.
- * Both sides of the matrix are filled, the diagonal is left undefined.
- * @param {FOLD} graph a FOLD object
- * @param {number} [normalizedEpsilon=1e-6] an optional epsilon used in dot()
- * for normalized vectors. this epsilon should be small.
- * @returns {boolean[][]} a boolean matrix, are two edges parallel?
- * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
- * @linkcode Origami ./src/graph/edgesEdges.js 82
- */
-const makeEdgesEdgesParallel = ({
-	vertices_coords, edges_vertices, edges_vector,
-}, normalizedEpsilon = EPSILON) => {
-	if (!edges_vector) {
-		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	}
-	const normalized = edges_vector.map(vec => normalize(vec));
-	const edgesEdgesParallel = edges_vertices.map(() => []);
-	normalized.forEach((_, i) => {
-		normalized.forEach((__, j) => {
-			if (j >= i) { return; }
-			if ((1 - Math.abs(dot(normalized[i], normalized[j])) < normalizedEpsilon)) {
-				edgesEdgesParallel[i].push(j);
-				edgesEdgesParallel[j].push(i);
-			}
-		});
-	});
-	return edgesEdgesParallel;
-};
-
-/**
- * @description
- * @param {FOLD}
- * @param {{ lines: VecLine[], edges_line: number[] }}
- * @returns {boolean[][]}
- */
-export const getParallelOverlappingEdges = (
-	{ vertices_coords, edges_vertices },
-	{ lines, edges_line },
-	epsilon = EPSILON,
-) => {
-	const edges_projections = edges_vertices
-		.map(vertices => vertices.map(v => vertices_coords[v]))
-		.map((points, e) => points
-			.map(point => dot(lines[edges_line[e]].vector, point)));
-
-};
-
-/**
- * @description Find all edges which are parallel to each other AND they overlap.
- * The epsilon space around vertices is not considered, so, edges must be
- * overlapping beyond just their endpoints for them to be considered.
- * @param {FOLD} graph a FOLD object
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
- */
-export const makeEdgesEdgesParallelOverlap = ({
-	vertices_coords, edges_vertices, edges_vector,
-}, epsilon) => {
-	if (!edges_vector) {
-		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	}
-	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
-	const edges_line = edges_vector
-		.map((vector, i) => ({ vector, origin: edges_origin[i] }));
-	// start with edges-edges parallel matrix
-	// only if lines are parallel, then run the more expensive overlap method
-	return makeEdgesEdgesParallel({
-		vertices_coords, edges_vertices, edges_vector,
-	}, 1e-3).map((arr, i) => arr.filter(j => overlapLineLine(
-		edges_line[i],
-		edges_line[j],
-		excludeS,
-		excludeS,
-		epsilon,
-	)));
-};
 
 const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
 		.map((value, i) => (value === true ? i : undefined))
 		.filter(a => a !== undefined));
+
 
 const makeEdgesEdgesSimilar = ({
 	vertices_coords, edges_vertices, edges_coords, edges_boundingBox,
@@ -177,29 +109,33 @@ const makeEdgesEdgesSimilar = ({
  * @returns {number[][]} for every edge, an array of face indices
  * which overlap this edge or an empty if no faces overlap the edge.
  */
-export const getEdgesFacesOverlap = ({
+export const getEdgesFacesOverlapOld = ({
 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
 }, epsilon = EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
-	// use graph vertices_coords for edges vertices
-	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
+
+	/** @type {number[][][]} */
 	const matrix = edges_vertices
-		.map(() => Array.from(Array(faces_vertices.length)));
+		.map(() => faces_vertices.map(() => []));
 	edges_faces.forEach((faces, e) => faces
 		.forEach(f => { matrix[e][f] = false; }));
 	const edges_coords = edges_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
+
 	// todo: is this okay if it contains adjacent collinear edges?
 	const faces_coords = faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
+	// const faces_coords = makeFacesPolygon({ vertices_coords, faces_vertices });
 	makeFacesWinding({ vertices_coords, faces_vertices })
 		.map((winding, i) => (!winding ? i : undefined))
 		.filter(f => f !== undefined)
 		.forEach(f => faces_coords[f].reverse());
+
 	const edges_boundingBox = makeEdgesBoundingBox({ edges_coords });
 	const faces_bounds = faces_coords.map(coords => boundingBox(coords));
+
 	// should be inclusive, positive epsilon, we are filtering out
 	// edge face pairs which DEFINITELY don't overlap.
 	for (let e = 0; e < matrix.length; e += 1) {
@@ -235,7 +171,7 @@ export const getEdgesFacesOverlap = ({
 			if (point_in_poly) { matrix[e][f] = true; continue; }
 			const edge_intersect = intersectConvexPolygonLine(
 				faces_coords[f],
-				{ vector: edges_vector[e], origin: edges_origin[e] },
+				{ vector: edges_vector[e], origin: edges_coords[e][0] },
 				excludeS,
 				excludeS,
 				epsilon,
@@ -254,6 +190,165 @@ export const getEdgesFacesOverlap = ({
 			.filter(i => i !== undefined));
 };
 
+
+
+export const getEdgesFacesOverlap = ({
+	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
+}, epsilon = EPSILON) => {
+	if (!edges_vector) {
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+	}
+
+	// const faces_coords = faces_vertices
+	// 	.map(verts => verts.map(v => vertices_coords[v]));
+	const faces_coords = makeFacesPolygon({ vertices_coords, faces_vertices });
+
+	makeFacesWinding({ vertices_coords, faces_vertices })
+		.map((winding, i) => (!winding ? i : undefined))
+		.filter(f => f !== undefined)
+		.forEach(f => faces_coords[f].reverse());
+
+	const edgesLine = edges_vertices
+		.map((_, e) => edgeToLine({ vertices_coords, edges_vertices }, e));
+
+	// create a quick hash lookup for edges_faces
+	const edgesFacesLookup = edges_faces.map(faces => {
+		const obj = {};
+		faces.forEach(f => { obj[f] = true; });
+		return obj;
+	});
+
+	return edges_vertices
+		.map(verts => verts.map(v => vertices_coords[v]))
+		.map((segment, e) => faces_coords
+			.map((polygon, f) => {
+				if (edgesFacesLookup[e][f]) { return undefined; }
+				const pointInPolygon = segment.map(point => (
+					overlapConvexPolygonPoint(polygon, point, exclude, 1e-3).overlap
+				)).reduce((a, b) => a || b, false);
+				// if (pointInPolygon) { return f; }
+				const edge_intersect = intersectConvexPolygonLine(
+					polygon,
+					edgesLine[e],
+					excludeS,
+					excludeS,
+					epsilon,
+					// (e === 62 || e === 63) && f > 16 && f < 23
+				);
+				// if ((e === 62 || e === 63) && f > 16 && f < 23) {
+				// 	console.log(e, f, pointInPolygon, edge_intersect)
+				// }
+				if (pointInPolygon) { return f; }
+				return edge_intersect !== undefined ? f : undefined;
+			}).filter(a => a !== undefined));
+};
+
+
+
+
+
+export const getEdgesEdgesOverlapingSpans = ({
+	vertices_coords, edges_vertices, edges_coords,
+}, epsilon = EPSILON) => {
+	const min_max = makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon);
+	const span_overlaps = edges_vertices.map(() => []);
+	// span_overlaps will be false if no overlap possible, true if overlap is possible.
+	for (let e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {
+		for (let e1 = e0 + 1; e1 < edges_vertices.length; e1 += 1) {
+			// if first max is less than second min, or second max is less than first min,
+			// for both X and Y
+			const outside_of = (
+				(min_max[e0].max[0] < min_max[e1].min[0] || min_max[e1].max[0] < min_max[e0].min[0])
+				&& (min_max[e0].max[1] < min_max[e1].min[1] || min_max[e1].max[1] < min_max[e0].min[1]));
+			// true if the spans are not touching. flip for overlap
+			span_overlaps[e0][e1] = !outside_of;
+			span_overlaps[e1][e0] = !outside_of;
+		}
+	}
+	for (let i = 0; i < edges_vertices.length; i += 1) {
+		span_overlaps[i][i] = true;
+	}
+	return span_overlaps;
+};
+
+export const makeEdgesEdgesIntersection = function ({
+	vertices_coords, edges_vertices,
+}, epsilon = EPSILON) {
+	const edgesLine = edges_vertices
+		.map((_, e) => edgeToLine({ vertices_coords, edges_vertices }, e));
+	const edges_intersections = edges_vertices.map(() => []);
+	const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
+	for (let i = 0; i < edges_vertices.length - 1; i += 1) {
+		if (!edges_vertices[i]) { continue; }
+		for (let j = i + 1; j < edges_vertices.length; j += 1) {
+			if (!edges_vertices[j]) { continue; }
+			if (span[i][j] !== true) { continue; }
+			edges_intersections[i][j] = intersectLineLine(
+				edgesLine[i],
+				edgesLine[j],
+				includeS,
+				includeS,
+				epsilon,
+			).point !== undefined;
+			edges_intersections[j][i] = edges_intersections[i][j];
+		}
+	}
+	return edges_intersections;
+};
+
+
+export const getEdgesFacesOverlapNew = ({
+	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices, faces_edges,
+}, epsilon = EPSILON) => {
+	if (!edges_vector) {
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+	}
+
+	const edges_edgesIntersect = makeEdgesEdgesIntersection({
+		vertices_coords, edges_vertices, edges_vector,
+	}, epsilon);
+
+	console.log("faces_edges", faces_edges);
+	console.log("edges_edgesIntersect", edges_edgesIntersect);
+
+	// const faces_coords = faces_vertices
+	// 	.map(verts => verts.map(v => vertices_coords[v]));
+	const faces_coords = makeFacesPolygon({ vertices_coords, faces_vertices });
+
+	makeFacesWinding({ vertices_coords, faces_vertices })
+		.map((winding, i) => (!winding ? i : undefined))
+		.filter(f => f !== undefined)
+		.forEach(f => faces_coords[f].reverse());
+
+	// create a quick hash lookup for edges_faces
+	const edgesFacesLookup = edges_faces.map(faces => {
+		const obj = {};
+		faces.forEach(f => { obj[f] = true; });
+		return obj;
+	});
+
+	return edges_vertices
+		.map(verts => verts.map(v => vertices_coords[v]))
+		.map(([p, q], e) => faces_coords
+			.map((polygon, f) => {
+				if (edgesFacesLookup[e][f]) { return undefined; }
+				console.log("chexcking", e, f, faces_edges[f], faces_edges[f].filter(edge => edges_edgesIntersect[e][edge]).length);
+				if (overlapConvexPolygonPoint(polygon, p, exclude, 1e-3).overlap
+					|| overlapConvexPolygonPoint(polygon, q, exclude, 1e-3).overlap) {
+					console.log("point in poly");
+					return f;
+				}
+				// if (faces_edges[f].some(edge => edges_edgesIntersect[e][edge])) {
+				if (faces_edges[f].filter(edge => edges_edgesIntersect[e][edge]).length > 1) {
+					console.log("edge on edge");
+					return f;
+				}
+				return undefined;
+			}).filter(a => a !== undefined));
+};
+
+
+
 /**
  * update: yet again, there is something wrong with this method.
  *
@@ -262,7 +357,7 @@ export const getEdgesFacesOverlap = ({
  * it might have something to do with doing too many comparisons and not
  * only comparing against the new ones (not the entire current stack)
  */
-// export const getEdgesFacesOverlap = ({
+// export const getEdgesFacesOverlapNew = ({
 // 	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
 // }, epsilon = EPSILON) => {
 // 	if (!edges_faces) {

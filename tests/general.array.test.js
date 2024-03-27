@@ -163,3 +163,9 @@ test("mergeArraysWithHoles", () => {
 		[, , 3, , 5, , , 8],
 	)).toMatchObject([, "b", 3, , 5, "f", "g", 8, "i"]);
 });
+
+test("clustersToReflexiveArrays", () => {
+	const example = [[6, 0, 2, 4], [5, 14, 1, 7, 13, 3], [10, 9], [11, 12], [8]];
+	const result = ear.general.clustersToReflexiveArrays(example);
+	console.log(result);
+});

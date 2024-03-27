@@ -38,7 +38,11 @@ import {
  * @param {function} [aDomain=includeL] the domain of the first line
  * @param {function} [bDomain=includeL] the domain of the second line
  * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {object} object with properties:
+ * @returns {{
+ *   point: (number[] | undefined)
+ *   a: (number | undefined)
+ *   b: (number | undefined)
+ * }} object with properties:
  * - point: {number[]|undefined} one 2D point or undefined
  * - a: {number|undefined} the intersection parameter along the first line
  * - b: {number|undefined} the intersection parameter along the second line

@@ -14,8 +14,8 @@ import replace from "../replace.js";
  * @returns {number[][]} arrays of clusters of similar vertices.
  * @linkcode
  */
-export const duplicateVertices = (graph, epsilon) => (
-	getVerticesClusters(graph, epsilon)
+export const duplicateVertices = ({ vertices_coords }, epsilon) => (
+	getVerticesClusters({ vertices_coords }, epsilon)
 		.filter(arr => arr.length > 1)
 );
 

@@ -115,149 +115,149 @@ test("parallel same distance 3d", () => {
 	expect(result.lines.length).toBe(16);
 });
 
-test("getCollinearOverlappingEdges", () => {
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[-2, -2], [-1, -2],
-			[0, 0], [1, 1],
-			[1, 1], [2, 2],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5]],
-	}).clusters_edges).toMatchObject([[1], [2], [0]]);
+// test("getCollinearOverlappingEdges", () => {
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[-2, -2], [-1, -2],
+// 			[0, 0], [1, 1],
+// 			[1, 1], [2, 2],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5]],
+// 	}).clusters_edges).toMatchObject([[1], [2], [0]]);
 
-	// diagonal
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1, 1],
-			[1, 1], [2, 2],
-		],
-		edges_vertices: [[0, 1], [2, 3]],
-	}).clusters_edges).toMatchObject([[0], [1]]);
+// 	// diagonal
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1, 1],
+// 			[1, 1], [2, 2],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3]],
+// 	}).clusters_edges).toMatchObject([[0], [1]]);
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1, 1],
-			[0.99, 0.99], [2, 2],
-		],
-		edges_vertices: [[0, 1], [2, 3]],
-	}).clusters_edges).toMatchObject([[0, 1]]);
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1, 1],
+// 			[0.99, 0.99], [2, 2],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3]],
+// 	}).clusters_edges).toMatchObject([[0, 1]]);
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [100, 100],
-			[99, 99], [200, 200],
-		],
-		edges_vertices: [[0, 1], [2, 3]],
-	}).clusters_edges).toMatchObject([[0, 1]]);
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [100, 100],
+// 			[99, 99], [200, 200],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3]],
+// 	}).clusters_edges).toMatchObject([[0, 1]]);
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[-100, -100], [-50, -50],
-			[-50.001, -50.001], [0, 0],
-		],
-		edges_vertices: [[0, 1], [2, 3]],
-	}).clusters_edges).toMatchObject([[0, 1]]);
-	// horizontal, does not pass through origin
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[100, 100], [200, 100],
-			[199, 100], [300, 100],
-		],
-		edges_vertices: [[0, 1], [2, 3]],
-	}).clusters_edges).toMatchObject([[0, 1]]);
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[-100, -100], [-50, -50],
+// 			[-50.001, -50.001], [0, 0],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3]],
+// 	}).clusters_edges).toMatchObject([[0, 1]]);
+// 	// horizontal, does not pass through origin
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[100, 100], [200, 100],
+// 			[199, 100], [300, 100],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3]],
+// 	}).clusters_edges).toMatchObject([[0, 1]]);
 
-});
+// });
 
-test("getCollinearOverlappingEdges", () => {
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1, 1],
-			[1, 1], [2, 2],
-			[2, 2], [3, 3],
-			[3, 3], [4, 4],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
-	}).clusters_edges).toMatchObject([[0], [1], [2], [3]]);
+// test("getCollinearOverlappingEdges", () => {
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1, 1],
+// 			[1, 1], [2, 2],
+// 			[2, 2], [3, 3],
+// 			[3, 3], [4, 4],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
+// 	}).clusters_edges).toMatchObject([[0], [1], [2], [3]]);
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1.001, 1.001],
-			[1, 1], [2, 2],
-			[2, 2], [3, 3],
-			[2.99, 2.99], [4, 4],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
-	}).clusters_edges).toMatchObject([[0, 1], [2, 3]]);
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1.001, 1.001],
+// 			[1, 1], [2, 2],
+// 			[2, 2], [3, 3],
+// 			[2.99, 2.99], [4, 4],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
+// 	}).clusters_edges).toMatchObject([[0, 1], [2, 3]]);
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1.001, 1.001],
-			[1, 1], [2, 2],
-			[2, 2], [3, 3],
-			[2.99, 2.99], [4, 4],
-			[-1, -1], [0.01, 0.01],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
-	}).clusters_edges).toMatchObject([[4, 0, 1], [2, 3]]);
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1.001, 1.001],
+// 			[1, 1], [2, 2],
+// 			[2, 2], [3, 3],
+// 			[2.99, 2.99], [4, 4],
+// 			[-1, -1], [0.01, 0.01],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
+// 	}).clusters_edges).toMatchObject([[4, 0, 1], [2, 3]]);
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1, 1],
-			[1, 1], [2, 2],
-			[2, 2], [3, 3],
-			[-1, -1], [10, 10],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
-	}).clusters_edges).toMatchObject([[3, 0, 1, 2]]);
-});
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1, 1],
+// 			[1, 1], [2, 2],
+// 			[2, 2], [3, 3],
+// 			[-1, -1], [10, 10],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
+// 	}).clusters_edges).toMatchObject([[3, 0, 1, 2]]);
+// });
 
-test("getCollinearOverlappingEdges", () => {
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1, 1],
-			[1, 1], [2, 2],
-			[2, 2], [3, 3],
-			[3, 3], [4, 4],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
-	})).toMatchObject({
-		edges_cluster: [0, 1, 2, 3]
-	});
+// test("getCollinearOverlappingEdges", () => {
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1, 1],
+// 			[1, 1], [2, 2],
+// 			[2, 2], [3, 3],
+// 			[3, 3], [4, 4],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
+// 	})).toMatchObject({
+// 		edges_cluster: [0, 1, 2, 3]
+// 	});
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1.001, 1.001],
-			[1, 1], [2, 2],
-			[2, 2], [3, 3],
-			[2.99, 2.99], [4, 4],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
-	})).toMatchObject({
-		edges_cluster: [0, 0, 1, 1]
-	});
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1.001, 1.001],
+// 			[1, 1], [2, 2],
+// 			[2, 2], [3, 3],
+// 			[2.99, 2.99], [4, 4],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
+// 	})).toMatchObject({
+// 		edges_cluster: [0, 0, 1, 1]
+// 	});
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1.001, 1.001],
-			[1, 1], [2, 2],
-			[2, 2], [3, 3],
-			[2.99, 2.99], [4, 4],
-			[-1, -1], [0.01, 0.01],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
-	})).toMatchObject({
-		edges_cluster: [0, 0, 1, 1, 0]
-	});
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1.001, 1.001],
+// 			[1, 1], [2, 2],
+// 			[2, 2], [3, 3],
+// 			[2.99, 2.99], [4, 4],
+// 			[-1, -1], [0.01, 0.01],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
+// 	})).toMatchObject({
+// 		edges_cluster: [0, 0, 1, 1, 0]
+// 	});
 
-	expect(ear.graph.getCollinearOverlappingEdges({
-		vertices_coords: [
-			[0, 0], [1, 1],
-			[1, 1], [2, 2],
-			[2, 2], [3, 3],
-			[-1, -1], [10, 10],
-		],
-		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
-	})).toMatchObject({
-		edges_cluster: [0, 0, 0, 0]
-	});
-});
+// 	expect(ear.graph.getCollinearOverlappingEdges({
+// 		vertices_coords: [
+// 			[0, 0], [1, 1],
+// 			[1, 1], [2, 2],
+// 			[2, 2], [3, 3],
+// 			[-1, -1], [10, 10],
+// 		],
+// 		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
+// 	})).toMatchObject({
+// 		edges_cluster: [0, 0, 0, 0]
+// 	});
+// });

@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import fs from "fs";
 import ear from "../rabbit-ear.js";
 
 test("intersectLineVertices through vertices", () => {

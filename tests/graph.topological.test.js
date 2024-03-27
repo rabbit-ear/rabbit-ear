@@ -15,8 +15,9 @@ test("topological sort with cycle", () => {
 });
 
 test("topological sort crane", () => {
-	const testfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
-	const graph = JSON.parse(testfile);
+	const json = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(json);
+	const graph = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	graph.faces_normal = ear.graph.makeFacesNormal(graph);
 	const ordering = ear.graph.linearizeFaceOrders(graph);
 	const expected = [
@@ -29,8 +30,9 @@ test("topological sort crane", () => {
 
 test("topological sort subset of crane faces", () => {
 	// only contain orderings for a subset of the faces involved.
-	const testfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
-	const crane = JSON.parse(testfile);
+	const json = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(json);
+	const crane = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	const graph = {
 		vertices_coords: crane.vertices_coords,
 		faces_vertices: crane.faces_vertices,
@@ -65,8 +67,9 @@ test("topological sort subset of crane faces", () => {
 
 test("topological sort subset of crane faces. again", () => {
 	// only contain orderings for a subset of the faces involved.
-	const testfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
-	const crane = JSON.parse(testfile);
+	const json = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(json);
+	const crane = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	const graph = {
 		vertices_coords: crane.vertices_coords,
 		faces_vertices: crane.faces_vertices,

@@ -49,7 +49,7 @@ export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => (
  * that encloses the edge, and will work in n-dimensions. Intended for
  * fast line-sweep algorithms.
  * @param {FOLD} graph a FOLD graph with vertices and edges.
- * @returns {object[]} an array of boxes, length matching the number of edges
+ * @returns {Box[]} an array of boxes, length matching the number of edges
  * @linkcode Origami ./src/graph/make.js 668
  */
 export const makeEdgesBoundingBox = ({

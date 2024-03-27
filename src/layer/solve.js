@@ -18,7 +18,7 @@ import {
 } from "../graph/epsilon.js";
 import {
 	makeSolverConstraintsFlat,
-} from "./constraints.js";
+} from "./constraintsFlat.js";
 import {
 	makeSolverConstraints3D,
 } from "./constraints3d.js";

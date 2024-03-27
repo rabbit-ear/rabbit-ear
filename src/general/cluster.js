@@ -59,6 +59,37 @@ export const clusterSortedGeneric = (elements, comparison) => {
 };
 
 /**
+ *
+ */
+export const clusterGeneric = (indices, comparison) => {
+	if (!indices.length) { return []; }
+
+	const indicesCopy = indices.slice();
+
+	// set the first element's index, at the same time, remove it from the list
+	const groups = [[indicesCopy.shift()]];
+
+	// iterate through the list of indices (starting from the second element)
+	// and compare each element to one element from the most recent cluster
+	indicesCopy.forEach((index) => {
+		// compare the two elements, if true, add to the current group,
+		// if false, create a new group and add it to the groups container.
+		const matchFound = groups
+			.map((group, g) => (comparison(group[0], index) ? g : undefined))
+			.filter(a => a !== undefined)
+			.shift();
+
+		if (matchFound !== undefined) {
+			groups[matchFound].push(index);
+		} else {
+			groups.push([index]);
+		}
+	});
+
+	return groups;
+};
+
+/**
  * @description Given an unsorted array of floats, make a sorted copy of the
  * array then walk through the array and group similar values into clusters.
  * Cluster epsilon is relative to the nearest neighbor, not the start

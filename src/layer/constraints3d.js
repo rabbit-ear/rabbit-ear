@@ -7,6 +7,8 @@ import {
 import {
 	average2,
 	resize,
+	cross2,
+	subtract2,
 } from "../math/vector.js";
 import {
 	multiplyMatrix4Vector3,
@@ -24,6 +26,9 @@ import {
 	makeFacesPolygon,
 } from "../graph/make/faces.js";
 import {
+	makeEdgesCoords,
+} from "../graph/make/edges.js";
+import {
 	connectedComponentsPairs,
 } from "../graph/connectedComponents.js";
 import {
@@ -34,6 +39,7 @@ import {
 } from "../graph/subgraph.js";
 import {
 	getFacesFacesOverlap,
+	getEdgesEdgesCollinearOverlap,
 } from "../graph/overlap.js";
 import {
 	makeTacosAndTortillas,
@@ -45,122 +51,12 @@ import {
 } from "./transitivity.js";
 import {
 	makeConstraintsLookup,
-} from "./constraints.js";
-import {
-	getOverlappingParallelEdgePairs,
-} from "./intersect3d.js";
+} from "./constraintsFlat.js";
 import {
 	solveFlatAdjacentEdges,
 	solveEdgeFaceOverlapOrders,
 	solveEdgeEdgeOverlapOrders,
 } from "./initialSolution.js";
-
-/**
- *
- */
-export const makeSolverConstraints3DBetweenClusters = (
-	{
-		vertices_coords,
-		edges_vertices,
-		edges_faces,
-		edges_foldAngle,
-		faces_winding,
-		faces_center,
-	},
-	clusters_faces,
-	clusters_transform,
-	faces_cluster,
-	faces_polygon,
-	facePairs,
-	facePairsInts,
-	epsilon,
-) => {
-	// for every facePair, which cluster is the face pair a member of.
-	// we only need to check one face, because they should be in the same cluster.
-	const facePairs_cluster = facePairsInts
-		.map(pair => faces_cluster[pair[0]]);
-
-	// for every cluster, a list of indices of facePairs which inhabit the
-	// cluster. these indices point to the "facePairsInts" array.
-	const clusters_facePairsInt = invertFlatToArrayMap(facePairs_cluster);
-
-	// const sets_facePairsWithHoles = clusters_facePairsInt
-	// 	.map(indices => indices.map(i => facePairs[i]));
-	// const sets_facePairs = sets_constraints
-	// 	.map((_, i) => (sets_facePairsWithHoles[i] ? sets_facePairsWithHoles[i] : []));
-
-	// for every cluster, a list of facePairs which inabit the cluster.
-	const clusters_facePairs = clusters_facePairsInt
-		.map(indices => indices.map(i => facePairs[i]));
-
-	// for every edge, which cluster(s) is it a member of.
-	// ultimately, we are only interested in edges which join two clusters.
-	const edges_clusters = edges_faces
-		.map(faces => faces.map(face => faces_cluster[face]));
-
-	// remove edges which are members of only one cluster (boundary edges),
-	edges_clusters
-		.map((_, e) => e)
-		.filter(e => edges_clusters[e].length !== 2)
-		.forEach(e => delete edges_clusters[e]);
-
-	// and remove edges whose two faces are from the same cluster.
-	edges_clusters
-		.map(([a, b], e) => (a === b ? e : undefined))
-		.filter(a => a !== undefined)
-		.forEach(e => delete edges_clusters[e]);
-
-	const {
-		tortillaTortillaEdges,
-		solvable1,
-		solvable2,
-		solvable3,
-	} = getOverlappingParallelEdgePairs({
-		vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
-	}, edges_clusters, faces_cluster, clusters_transform, epsilon);
-	// console.timeEnd("setup.js setup3d() getOverlappingParallelEdgePairs()");
-
-	// tacos tortillas
-	const tortillas3D = makeBentTortillas(
-		{ edges_faces },
-		tortillaTortillaEdges,
-		faces_cluster,
-		faces_winding,
-	);
-	const ordersEdgeFace = solveEdgeFaceOverlapOrders(
-		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
-		clusters_facePairs,
-		clusters_transform,
-		clusters_faces,
-		faces_cluster,
-		faces_polygon,
-		faces_winding,
-		edges_clusters,
-		epsilon,
-	);
-	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders({
-		edges_foldAngle, faces_winding,
-	}, solvable1, solvable2, solvable3);
-	const orders = {
-		...ordersEdgeFace,
-		...ordersEdgeEdge,
-	};
-	// console.log("facePairs_cluster", facePairsIndex_set);
-	// console.log("clusters_facePairsInt", clusters_facePairsInt);
-	// console.log("clusters_facePairs", clusters_facePairs);
-	// console.log("edges_clusters", edges_clusters);
-	// console.log("facePairsIndex_set", facePairsIndex_set);
-	// console.log("sets_facePairsIndex", sets_facePairsIndex);
-	// console.log("sets_facePairs", sets_facePairsWithHoles);
-	// console.log("edges_sets", edges_sets);
-	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
-	// console.log("tortillas3D", tortillas3D);
-	// console.log("orders 3D", orders);
-	return {
-		tortillas3D,
-		orders,
-	};
-};
 
 /**
  * @param {FOLD} graph a FOLD object
@@ -262,26 +158,281 @@ export const makeSolverConstraints3D = ({
 	const facePairs = facePairsInts.map(pair => pair.join(" "));
 
 	// the additional 3d tacos/tortillas data
-	const {
-		tortillas3D,
-		orders,
-	} = makeSolverConstraints3DBetweenClusters(
-		{
-			vertices_coords,
-			edges_vertices,
-			edges_faces,
-			edges_foldAngle,
-			faces_winding,
-			faces_center,
-		},
-		clusters_faces,
-		clusters_transform,
-		faces_cluster,
-		faces_polygon,
-		facePairs,
-		facePairsInts,
+	// const {
+	// 	tortillas3D,
+	// 	orders,
+	// } = makeSolverConstraints3DBetweenClusters(
+	// 	{
+	// 		vertices_coords,
+	// 		edges_vertices,
+	// 		edges_faces,
+	// 		edges_foldAngle,
+	// 		faces_winding,
+	// 		faces_center,
+	// 	},
+	// 	clusters_faces,
+	// 	clusters_transform,
+	// 	faces_cluster,
+	// 	faces_polygon,
+	// 	facePairs,
+	// 	facePairsInts,
+	// 	epsilon,
+	// );
+
+	// for every facePair, which cluster is the face pair a member of.
+	// we only need to check one face, because they should be in the same cluster.
+	const facePairs_cluster = facePairsInts
+		.map(pair => faces_cluster[pair[0]]);
+
+	// for every cluster, a list of indices of facePairs which inhabit the
+	// cluster. these indices point to the "facePairsInts" array.
+	const clusters_facePairsInt = invertFlatToArrayMap(facePairs_cluster);
+
+	// const sets_facePairsWithHoles = clusters_facePairsInt
+	// 	.map(indices => indices.map(i => facePairs[i]));
+	// const sets_facePairs = sets_constraints
+	// 	.map((_, i) => (sets_facePairsWithHoles[i] ? sets_facePairsWithHoles[i] : []));
+
+	// for every cluster, a list of facePairs which inabit the cluster.
+	const clusters_facePairs = clusters_facePairsInt
+		.map(indices => indices.map(i => facePairs[i]));
+
+	// for every edge, which cluster(s) is it a member of.
+	// ultimately, we are only interested in edges which join two clusters.
+	const edges_clusters = edges_faces
+		.map(faces => faces.map(face => faces_cluster[face]));
+
+	// remove edges which are members of only one cluster (boundary edges),
+	edges_clusters
+		.map((_, e) => e)
+		.filter(e => edges_clusters[e].length !== 2)
+		.forEach(e => delete edges_clusters[e]);
+
+	// and remove edges whose two faces are from the same cluster.
+	edges_clusters
+		.map(([a, b], e) => (a === b ? e : undefined))
+		.filter(a => a !== undefined)
+		.forEach(e => delete edges_clusters[e]);
+
+	// const {
+	// 	tortillaTortillaEdges,
+	// 	solvable1,
+	// 	solvable2,
+	// 	solvable3,
+	// } = getOverlappingParallelEdgePairs({
+	// 	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
+	// }, edges_clusters, faces_cluster, clusters_transform, epsilon);
+	// console.timeEnd("setup.js setup3d() getOverlappingParallelEdgePairs()");
+
+	const edgesFlat = edges_foldAngle.map(edgeFoldAngleIsFlat);
+
+	const edgesEdgesOverlap = getEdgesEdgesCollinearOverlap(
+		{ vertices_coords, edges_vertices },
 		epsilon,
 	);
+
+	const overlappingEdgePairs = connectedComponentsPairs(edgesEdgesOverlap);
+
+	// from our original set of all pairs of edges,
+	// - filter out edge pairs where both edges are flat
+	// - filter out edge pairs where edges have fewer than 2 adjacent faces
+	// - filter out edges where the 4 adjacent faces involved are all from
+	//   four different planes. no information can be gained from these.
+	const pairs_edges = overlappingEdgePairs
+		.map(pair => (pair[0] < pair[1] ? pair : pair.slice().reverse()))
+		.filter(p => !(edgesFlat[p[0]] && edgesFlat[p[1]]))
+		.filter(pair => pair.every(edge => edges_faces[edge].length === 2))
+		.filter(pair => pair.every(edge => edges_clusters[edge] !== undefined))
+		.filter(pair => Array
+			.from(new Set(pair.flatMap(e => edges_clusters[e]))).length !== 4);
+
+	// for each pair of edges, which sets is each edge a member of?
+	const pairs_edges_clusters = pairs_edges
+		.map(pair => pair.map(e => edges_clusters[e]));
+
+	// console.log("pairs_edges_clusters", pairs_edges_clusters);
+	const pairs_sets = pairs_edges_clusters
+		.map(sets => Array.from(new Set(sets.flat())));
+
+	// console.log("pairs_sets", pairs_sets);
+	// for each edge-pair, create an object with keys as set-indices, and
+	// values as arrays where each edge is inside
+	const pairs_sets_edges = pairs_edges_clusters.map((pair, i) => {
+		const hash = {};
+		pair.flat().forEach(s => { hash[s] = []; });
+		pair.forEach((sets, j) => sets
+			.forEach(s => hash[s].push(pairs_edges[i][j])));
+		return hash;
+	});
+	// console.log("pairs_sets_edges", pairs_sets_edges);
+	const pairs_edges_faces = pairs_edges
+		.map(pair => pair.map(e => edges_faces[e]));
+	// console.log("pairs_edges_faces", pairs_edges_faces);
+	// for every pair, make an object with planar-set index (key) and
+	// an array of the edge's adjacent faces that lie in that plane (value)
+	const pairs_sets_faces = pairs_edges_faces
+		.map((faces, i) => {
+			const hash = {};
+			pairs_sets[i].forEach(s => { hash[s] = []; });
+			faces.flat().forEach(f => hash[faces_cluster[f]].push(f));
+			return hash;
+		});
+	// console.log("pairs_sets_faces", pairs_sets_faces);
+	const edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
+	const pairs_sets_2dEdges = pairs_sets.map((sets, i) => {
+		const segment3D = edges_coords[pairs_edges[i][0]];
+		const hash = {};
+		sets.forEach(set => {
+			hash[set] = segment3D
+				.map(p => multiplyMatrix4Vector3(clusters_transform[set], p))
+				.map(p => [p[0], p[1]]);
+		});
+		return hash;
+	});
+	// console.log("pairs_sets_2dEdges", pairs_sets_2dEdges);
+	const pairs_sets_facesSides = pairs_sets_faces.map((pair, i) => {
+		const hash = {};
+		pairs_sets[i].forEach(set => {
+			const origin = pairs_sets_2dEdges[i][set][0];
+			hash[set] = pair[set].map(f => cross2(
+				subtract2(faces_center[f], origin),
+				subtract2(pairs_sets_2dEdges[i][set][1], origin),
+			)).map(cross => Math.sign(cross));
+		});
+		return hash;
+	});
+	// console.log("pairs_sets_facesSides", pairs_sets_facesSides);
+	const pairs_sets_facesSidesSameSide = pairs_sets_facesSides
+		.map((pair, i) => {
+			const hash = {};
+			pairs_sets[i].forEach(set => {
+				hash[set] = pair[set].reduce((a, b) => a && (b === pair[set][0]), true);
+			});
+			return hash;
+		});
+	// console.log("pairs_sets_facesSidesSameSide", pairs_sets_facesSidesSameSide);
+	const pairs_data = pairs_edges.map((edges, i) => {
+		const sets = {};
+		Object.keys(pairs_sets_edges[i]).forEach(set => {
+			sets[set] = {
+				edges: pairs_sets_edges[i][set],
+				faces: pairs_sets_faces[i][set],
+				facesSides: pairs_sets_facesSides[i][set],
+				facesSameSide: pairs_sets_facesSidesSameSide[i][set],
+			};
+		});
+		return { edges, sets };
+	});
+	// console.log("pairs_data", pairs_data);
+	const tortillaTortillaEdges = pairs_data.filter(data => {
+		const testA = Object.values(data.sets)
+			.map(el => el.faces.length === 2)
+			.reduce((a, b) => a && b, true);
+		const testB = Object.values(data.sets)
+			.map(el => el.facesSameSide)
+			.reduce((a, b) => a && b, true);
+		return testA && testB;
+	});
+	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
+	const solvable1 = pairs_data.filter(data => {
+		const testA = Object.values(data.sets).length === 3;
+		const testB = Object.values(data.sets)
+			.map(el => el.facesSameSide)
+			.reduce((a, b) => a && b, true);
+		return testA && testB;
+	});
+	// console.log("solvable1", solvable1);
+	const solvable2 = pairs_data.filter(data => {
+		const testA = Object.values(data.sets)
+			.map(el => el.faces.length === 2)
+			.reduce((a, b) => a && b, true);
+		const sameSide = Object.values(data.sets)
+			.map(el => el.facesSameSide);
+		const testB = sameSide[0] !== sameSide[1];
+		return testA && testB;
+	});
+	// console.log("solvable2", solvable2);
+	// todo: need a good example where we can test this special case.
+	const solvable3 = pairs_data.filter(data => {
+		const threeInPlane = Object.values(data.sets)
+			.filter(el => el.faces.length === 3)
+			.shift();
+		const testA = threeInPlane !== undefined;
+		if (!testA) { return false; }
+		// valid facesSides will be either [1, 1, -1] or [-1, -1, 1] (in any order)
+		// removing the cases [1, 1, 1] or [-1, -1, -1]
+		// valid cases sums will be +1 or -1.
+		const sum = threeInPlane.facesSides.reduce((a, b) => a + b, 0);
+		const testB = Math.abs(sum) === 1;
+		if (!testB) { return false; }
+		const sameSideFaces = threeInPlane.faces
+			.filter((_, i) => threeInPlane.facesSides[i] === sum);
+		// are same side faces adjacent or not? (we don't have faces_faces)
+		// non-adjacent faces are the valid case we are looking for.
+		// for each of the two edges, check its edges_faces, if each face is
+		// included inside of our sameSideFaces, and if all are (AND), this edge
+		// registers as a joining edge between the two adjacent faces. if either
+		// of the edges satisfy this, the pair of faces are adjacent.
+		const isAdjacent = threeInPlane.edges
+			.map(e => edges_faces[e]
+				.map(f => sameSideFaces.includes(f))
+				.reduce((a, b) => a && b, true))
+			.reduce((a, b) => a || b, false);
+		// we want the case where the faces are non-adjacent.
+		const testC = !isAdjacent;
+		return testA && testB && testC;
+	});
+	if (solvable3.length) {
+		console.log("This model contains the third case", solvable3);
+	}
+	// return {
+	// 	tortillaTortillaEdges,
+	// 	solvable1,
+	// 	solvable2,
+	// 	solvable3: [],
+	// };
+
+
+	// tacos tortillas
+	const tortillas3D = makeBentTortillas(
+		{ edges_faces },
+		tortillaTortillaEdges,
+		faces_cluster,
+		faces_winding,
+	);
+	const ordersEdgeFace = solveEdgeFaceOverlapOrders(
+		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
+		clusters_facePairs,
+		clusters_transform,
+		clusters_faces,
+		faces_cluster,
+		faces_polygon,
+		faces_winding,
+		edges_clusters,
+		epsilon,
+	);
+	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders({
+		edges_foldAngle, faces_winding,
+	}, solvable1, solvable2, solvable3);
+	const orders = {
+		...ordersEdgeFace,
+		...ordersEdgeEdge,
+	};
+	// console.log("facePairs_cluster", facePairsIndex_set);
+	// console.log("clusters_facePairsInt", clusters_facePairsInt);
+	// console.log("clusters_facePairs", clusters_facePairs);
+	// console.log("edges_clusters", edges_clusters);
+	// console.log("facePairsIndex_set", facePairsIndex_set);
+	// console.log("sets_facePairsIndex", sets_facePairsIndex);
+	// console.log("sets_facePairs", sets_facePairsWithHoles);
+	// console.log("edges_sets", edges_sets);
+	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
+	// console.log("tortillas3D", tortillas3D);
+	// console.log("orders 3D", orders);
+	// return {
+	// 	tortillas3D,
+	// 	orders,
+	// };
 
 	// get a list of all edge indices which are non-flat edges.
 	// non-flat edges are anything other than 0, -180, or +180 fold angles.

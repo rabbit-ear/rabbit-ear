@@ -78,51 +78,12 @@ export const makeConstraintsLookup = (constraints) => {
  *   faces_facesOverlap: number[][],
  * }} taco information
  */
-export const makeTacosTortillasTransitivity = ({
-	vertices_coords, edges_vertices, edges_faces, faces_vertices,
-	edges_vector,
-}, epsilon = EPSILON) => {
-	// create a polygon (array of points) for every face. ensure that
-	// every polygon has the same winding (reverse if necessary).
-	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
-	const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
-	faces_winding
-		.map((upright, i) => (upright ? undefined : i))
-		.filter(a => a !== undefined)
-		.forEach(f => faces_polygon[f].reverse());
+// export const makeTacosTortillasTransitivity = ({
+// 	vertices_coords, edges_vertices, edges_faces, faces_vertices,
+// 	edges_vector,
+// }, epsilon = EPSILON) => {
 
-	// for every face (index) get an array of other faces (value) which
-	// overlap this face. This array can contain holes.
-	const faces_facesOverlap = getFacesFacesOverlap({
-		vertices_coords, faces_vertices,
-	}, epsilon);
-
-	// create all of the tacos/tortillas constraints that
-	// will be used by the solver.
-	const {
-		taco_taco, taco_tortilla, tortilla_tortilla,
-	} = makeTacosAndTortillas({
-		vertices_coords,
-		edges_vertices,
-		edges_faces,
-		faces_vertices,
-		edges_vector,
-	}, epsilon);
-
-	// ...and the transitivity constraints
-	const tacosTrios = getTransitivityTriosFromTacos({ taco_taco, taco_tortilla });
-	const transitivity = makeTransitivity({ faces_polygon }, faces_facesOverlap, epsilon)
-		.filter(trio => tacosTrios[trio.join(" ")] === undefined);
-
-	return {
-		taco_taco,
-		taco_tortilla,
-		tortilla_tortilla,
-		transitivity,
-		faces_winding,
-		faces_facesOverlap,
-	};
-};
+// };
 
 /**
  * @description Convert a folded graph into the input parameters for the solver
@@ -155,22 +116,64 @@ export const makeTacosTortillasTransitivity = ({
  */
 export const makeSolverConstraintsFlat = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
-	faces_vertices, edges_vector,
+	faces_vertices, faces_edges, edges_vector,
 }, epsilon = EPSILON) => {
+	// const {
+	// 	taco_taco,
+	// 	taco_tortilla,
+	// 	tortilla_tortilla,
+	// 	transitivity,
+	// 	faces_winding,
+	// 	faces_facesOverlap,
+	// } = makeTacosTortillasTransitivity({
+	// 	vertices_coords,
+	// 	edges_vertices,
+	// 	edges_faces,
+	// 	faces_vertices,
+	// 	edges_vector,
+	// }, epsilon);
+
+	// create a polygon (array of points) for every face. ensure that
+	// every polygon has the same winding (reverse if necessary).
+	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
+	const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
+	faces_winding
+		.map((upright, i) => (upright ? undefined : i))
+		.filter(a => a !== undefined)
+		.forEach(f => faces_polygon[f].reverse());
+
+	// for every face (index) get an array of other faces (value) which
+	// overlap this face. This array can contain holes.
+	const faces_facesOverlap = getFacesFacesOverlap({
+		vertices_coords, faces_vertices,
+	}, epsilon);
+
+	// create all of the tacos/tortillas constraints that
+	// will be used by the solver.
 	const {
-		taco_taco,
-		taco_tortilla,
-		tortilla_tortilla,
-		transitivity,
-		faces_winding,
-		faces_facesOverlap,
-	} = makeTacosTortillasTransitivity({
+		taco_taco, taco_tortilla, tortilla_tortilla,
+	} = makeTacosAndTortillas({
 		vertices_coords,
 		edges_vertices,
 		edges_faces,
 		faces_vertices,
+		faces_edges,
 		edges_vector,
 	}, epsilon);
+
+	// ...and the transitivity constraints
+	const tacosTrios = getTransitivityTriosFromTacos({ taco_taco, taco_tortilla });
+	const transitivity = makeTransitivity({ faces_polygon }, faces_facesOverlap, epsilon)
+		.filter(trio => tacosTrios[trio.join(" ")] === undefined);
+
+	// return {
+	// 	taco_taco,
+	// 	taco_tortilla,
+	// 	tortilla_tortilla,
+	// 	transitivity,
+	// 	faces_winding,
+	// 	faces_facesOverlap,
+	// };
 
 	// these are all the variables we need to solve- all overlapping faces in
 	// pairwise combinations, as a space-separated string, smallest index first

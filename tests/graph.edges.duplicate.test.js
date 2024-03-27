@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import fs from "fs";
 import ear from "../rabbit-ear.js";
 
 test("duplicate edges", () => {
@@ -118,4 +119,77 @@ test("duplicate edges", () => {
 	expect(graph.faces_faces).toMatchObject([[
 		undefined, undefined, undefined, undefined, undefined, undefined
 	]]);
+});
+
+test("similar edges bird base", () => {
+	const cp = ear.graph.bird();
+	const graph = {
+		...cp,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(cp),
+	};
+	expect(ear.graph.getSimilarEdges(graph)).toMatchObject([
+		[5, 6, 0, 26, 7, 2, 1, 4, 30, 3],
+		[14, 13, 15, 12],
+		[25, 24],
+		[8, 10, 9, 11],
+		[20, 33, 22, 29],
+		[31, 27],
+		[32, 18, 16, 28],
+		[19, 17],
+		[21, 23],
+	]);
+});
+
+test("similar edges crane", () => {
+	const json = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(json);
+	const graph = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	expect(ear.graph.getSimilarEdges(graph)).toMatchObject([
+		[11],
+		[15],
+		[67, 69],
+		[56, 65],
+		[62],
+		[17, 79, 23, 83, 24, 25, 26, 89],
+		[80],
+		[90, 110, 106, 100],
+		[30, 28, 64],
+		[87, 98, 101, 103, 107],
+		[99, 105, 109, 113],
+		[10, 13, 57],
+		[22, 55],
+		[85, 58],
+		[86],
+		[61, 60],
+		[66],
+		[59],
+		[12, 84],
+		[18, 9],
+		[31, 40, 46, 27],
+		[102, 88, 108, 104, 97],
+		[16, 78],
+		[36, 37, 34, 35, 38, 19, 32, 33],
+		[41, 51, 39, 14, 47],
+		[29, 50],
+		[70, 68],
+		[0],
+		[1, 6],
+		[4, 52],
+		[8],
+		[63],
+		[81],
+		[73],
+		[20, 45, 49, 43],
+		[77, 44, 48],
+		[42],
+		[74],
+		[2, 5, 54],
+		[3],
+		[95, 96, 111, 112, 91, 92, 93, 94],
+		[53, 76],
+		[72],
+		[71, 75],
+		[7, 21],
+		[82]
+	])
 });
