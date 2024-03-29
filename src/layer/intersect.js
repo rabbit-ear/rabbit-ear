@@ -192,6 +192,9 @@ export const getEdgesFacesOverlapOld = ({
 
 
 
+/**
+ * @param {FOLD} graph a FOLD object
+ */
 export const getEdgesFacesOverlap = ({
 	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
 }, epsilon = EPSILON) => {

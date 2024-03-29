@@ -14,7 +14,10 @@ import {
 	makeEdgesFacesSide,
 	makeEdgePairsFacesSide,
 } from "./facesSide.js";
-import { getEdgesEdgesCollinearOverlap } from "../graph/overlap.js";
+import {
+	getEdgesEdgesCollinearOverlap,
+	getFacesEdgesOverlap,
+} from "../graph/overlap.js";
 import { connectedComponentsPairs } from "../graph/connectedComponents.js";
 
 /**
@@ -222,6 +225,9 @@ export const makeTacosAndTortillas = ({
 	const edgesFacesOverlap = getEdgesFacesOverlap({
 		vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
 	}, epsilon);
+	// const facesEdgesOverlap = getFacesEdgesOverlap({
+	// 	vertices_coords, edges_vertices, faces_vertices, faces_edges,
+	// }, epsilon);
 
 	// for each edge, for its adjacent faces (1 or 2), which side of the edge
 	// (using the edge's vector) is each face on?
@@ -256,7 +262,6 @@ export const makeTacosAndTortillas = ({
 		edges_faces,
 		edgesFacesSide,
 		edgesFacesOverlap,
-		epsilon,
 	);
 
 	// taco-tortilla has both (1) those tacos which are edge-aligned with another

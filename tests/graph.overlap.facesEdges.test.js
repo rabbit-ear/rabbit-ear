@@ -245,16 +245,104 @@ test("edges-faces, bird base", () => {
 	};
 	ear.graph.populate(folded);
 
-	const facesEdges = ear.graph.getFacesEdgesOverlap(folded);
-	expect(facesEdges.flat().length).toBe(16);
-	// fs.writeFileSync("./tests/tmp/facesEdges.json", JSON.stringify(facesEdges, null, 2));
+	expect(ear.graph.getFacesEdgesOverlap(folded)).toMatchObject([
+		[], [], [], [], [], [], [16, 18, 28, 32], [16, 18, 28, 32],
+		[], [], [], [], [], [], [20, 22, 29, 33], [20, 22, 29, 33],
+		[], [], [], []
+	]);
 });
 
-test("edges-faces all data", () => {
+test("edges-faces crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-	// console.log(ear.graph.getFacesEdgesOverlap(folded));
-	expect(ear.graph.getFacesEdgesOverlap(folded).flat().length).toBe(1167);
+
+	const expectedJSON = fs.readFileSync("./tests/files/json/crane-faces-edges-overlap.json", "utf-8");
+	const expected = JSON.parse(expectedJSON);
+
+	const facesEdges = ear.graph.getFacesEdgesOverlap(folded);
+	expect(facesEdges.flat().length).toBe(1167);
+	expect(facesEdges).toMatchObject(expected);
+});
+
+test("edges-faces kabuto", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/kabuto.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+
+	expect(ear.graph.getFacesEdgesOverlap(folded)).toMatchObject([
+		[6, 7, 8, 12, 13, 15, 16, 18, 19, 22, 23, 31, 32],
+		[6, 7, 8, 12, 13, 15, 16, 18, 19, 22, 23, 31, 32],
+		[6, 7, 8, 12, 13, 15, 16, 18, 19, 22, 23, 31, 32],
+		[6, 7, 12, 13, 15, 16, 18, 19, 22, 23, 31, 32],
+		[6, 7, 12, 13, 15, 16, 18, 19, 22, 23],
+		[6, 7, 8, 12, 13, 15, 16, 18, 19],
+		[8, 12, 22, 31],
+		[8, 16, 23, 32],
+		[6, 8, 12, 18, 22, 31],
+		[7, 8, 16, 19, 23, 32],
+		[6, 8, 12, 18, 22, 31],
+		[7, 8, 16, 19, 23, 32],
+		[8, 12, 22, 31],
+		[8, 16, 23, 32],
+		[0, 8, 10, 21, 22, 25, 28],
+		[1, 8, 9, 20, 23, 26, 35],
+		[0, 8, 10, 21, 22, 25, 28],
+		[1, 8, 9, 20, 23, 26, 35]
+	]);
+});
+
+test("edges-faces four flaps", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/layer-4-flaps.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+
+	expect(ear.graph.getFacesEdgesOverlap(folded)).toMatchObject([
+		[2, 3], // vertical face, overlapped by two horizontal edges
+		[0, 1, 2, 3], // all overlap the center face
+		[2, 3], // vertical face, overlapped by two horizontal edges
+		[0, 1], // horizontal face, overlapped by two vertical edges
+		[0, 1], // horizontal face, overlapped by two vertical edges
+	]);
+});
+
+test("edges-faces randlett flapping bird", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/randlett-flapping-bird.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+
+	// manually checked the faces with no overlaps, they seem correct
+	// they are the four small triangles which have no overlapping edges.
+	expect(ear.graph.getFacesEdgesOverlap(folded)).toMatchObject([
+		[1, 2, 3, 4, 10, 11, 18, 19, 23, 27, 30, 33],
+		[1, 2, 3, 4, 10, 11, 18, 19, 23, 27, 30, 33],
+		[],
+		[6, 10, 11, 30, 33, 35, 36],
+		[6, 18, 19, 21, 22, 25, 26, 35, 36],
+		[6, 35, 36],
+		[6, 10, 11, 30, 33, 35, 36],
+		[6, 35, 36],
+		[6, 18, 19, 21, 22, 25, 26, 35, 36],
+		[],
+		[20, 24, 29, 32],
+		[20, 24, 29, 32],
+		[18, 19],
+		[18, 19],
+		[18, 19],
+		[18, 19],
+		[7, 28, 31, 43, 48],
+		[7, 28, 31, 43, 48],
+		[8, 44, 47],
+		[8, 44, 47],
+		[8, 44, 47],
+		[8, 44, 47],
+		[],
+		[7, 28, 31, 43, 48],
+		[7, 28, 31, 43, 48],
+		[]
+	]);
 });

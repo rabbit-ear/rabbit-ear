@@ -5,9 +5,7 @@ import {
 	EPSILON,
 } from "../math/constant.js";
 import {
-	include,
 	exclude,
-	includeS,
 	excludeS,
 } from "../math/compare.js";
 import {
@@ -241,7 +239,7 @@ export const getOverlappingComponents = ({
  * @returns {number[][]} for every edge, a list of faces which overlap the edge
  */
 export const getFacesEdgesOverlapAllData = ({
-	vertices_coords, vertices_edges, edges_vertices, faces_vertices, faces_edges,
+	vertices_coords, edges_vertices, faces_vertices, faces_edges,
 }, epsilon = EPSILON) => {
 	// - vertex overlaps: taken from both vertices-vertices and edges-vertices
 	//   using faces_vertices[face]
@@ -257,15 +255,6 @@ export const getFacesEdgesOverlapAllData = ({
 	} = getOverlappingComponents({
 		vertices_coords, edges_vertices, faces_vertices,
 	}, epsilon)
-
-	const filterNeighbors = (indices, length) => {
-		const map = {};
-		indices.forEach(i => { map[i] = true; });
-		const keep = indices
-			.map(i => map[(i + 1) % length] === undefined
-				&& map[(i + length - 1) % length] === undefined);
-		return indices.filter((_, i) => keep[i]);
-	};
 
 	/**
 	 * @description Given a face's vertices, and a list of vertex indices
@@ -303,32 +292,24 @@ export const getFacesEdgesOverlapAllData = ({
 	 * should return vertices (4, 6).
 	 */
 	const getVerticesOverlap = (edge, face) => {
-		const [v0, v1] = edges_vertices[edge];
 		// a list of the face's vertices which this edge crosses and
 		// overlaps somewhere in the interior (not endpoints) of the edge.
 		const verticesInterior = faces_vertices[face]
 			.filter(v => verticesEdges[v][edge]);
+
 		// a list of the face's vertices which lie on top of one of the edge's
 		// endpoints. This can include an edge endpoint itself
 		// if it is also a face vertex.
+		const [v0, v1] = edges_vertices[edge];
 		const verticesEndpoints = faces_vertices[face]
 			.filter(v => verticesVertices[v][v0] || verticesVertices[v][v1]);
-		// return Array.from(new Set([...verticesEndpoints, ...verticesInterior]));
+
+		// get the union of both arrays (no duplicates), run it through the filter
+		// method which will remove vertices if they are neighbors in the face.
 		return filterFaceVerticesNeighbors(
 			faces_vertices[face],
 			Array.from(new Set([...verticesEndpoints, ...verticesInterior])),
 		);
-		// these are the indices in this face's faces_vertices
-		// we need this to check if the two vertices are neighbors
-		// const verticesEndpoints = faces_vertices[face]
-		// 	.map((_, i) => i)
-		// 	.filter(i => verticesVertices[faces_vertices[face][i]][v0]
-		// 		|| verticesVertices[faces_vertices[face][i]][v1])
-		// 	.map(i => faces_vertices[face][i]);
-		// return filterFaceVerticesNeighbors(
-		// 	faces_vertices[face],
-		// 	Array.from(new Set([...verticesEndpoints, ...verticesInterior])),
-		// );
 	};
 
 	const getEdgesOverlap = (edge, face) => {
@@ -356,11 +337,18 @@ export const getFacesEdgesOverlapAllData = ({
 			})));
 };
 
+/**
+ * @description
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} for every face, a list of edge indices
+ * which overlap this face.
+ */
 export const getFacesEdgesOverlap = ({
-	vertices_coords, vertices_edges, edges_vertices, faces_vertices, faces_edges,
+	vertices_coords, edges_vertices, faces_vertices, faces_edges,
 }, epsilon = EPSILON) => {
 	const facesEdgesOverlap = getFacesEdgesOverlapAllData({
-		vertices_coords, vertices_edges, edges_vertices, faces_vertices, faces_edges,
+		vertices_coords, edges_vertices, faces_vertices, faces_edges,
 	}, epsilon);
 
 	facesEdgesOverlap

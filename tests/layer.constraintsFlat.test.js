@@ -347,7 +347,7 @@ test("makeSolverConstraintsFlat crane", () => {
 	// console.log(ear.layer.getEdgesFacesOverlap(folded));
 
 	expect(ear.graph.getEdgesEdgesCollinearOverlap(folded, epsilon).flat().length).toBe(554);
-	expect(ear.layer.getEdgesFacesOverlap(folded, epsilon).flat().length).toBe(1167);
+	expect(ear.graph.getFacesEdgesOverlap(folded, epsilon).flat().length).toBe(1167);
 	expect(taco_taco.length).toMatchObject(196);
 	expect(taco_tortilla.length).toMatchObject(1049);
 	expect(tortilla_tortilla.length).toMatchObject(0);
