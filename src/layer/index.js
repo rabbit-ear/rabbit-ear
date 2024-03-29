@@ -6,7 +6,6 @@ import * as constraints3D from "./constraints3d.js";
 import * as facesSide from "./facesSide.js";
 import * as general from "./general.js";
 import * as initialSolution from "./initialSolution.js";
-import * as intersectMethods from "./intersect.js";
 import * as prototype from "./prototype.js";
 import * as solve from "./solve.js";
 import * as solver from "./solver.js";
@@ -21,7 +20,6 @@ export default {
 	...facesSide,
 	...general,
 	...initialSolution,
-	...intersectMethods,
 	...prototype,
 	...solve,
 	...solver,

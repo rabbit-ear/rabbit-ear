@@ -38,3 +38,19 @@ test("getVerticesClusters bird base", () => {
 		[8], // center point in cp
 	]);
 });
+
+test("vertices clusters graphs with holes", () => {
+	// both of these have 14 vertices
+	expect(ear.graph.getVerticesClusters({
+		vertices_coords: [
+			[0, 0, 0], [1, 0, 0],, [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0],
+			[0, 1, 0], [1, 1, 0],, [1, 0, 0], [1, 1, 0], [1, 0, 0], [1, 1, 0], [1, 0, 0]
+		],
+	})).toMatchObject([[0, 3, 5, 7], [4, 6, 8], [1, 11, 13, 15], [9, 12, 14]]);
+
+	expect(ear.graph.getVerticesClusters({
+		vertices_coords: [, [1, 0, 0], [1, 0, 1],,,,,,, [1, 1, 0], [1, 1, 1], [1, 0, 0], [1, 1, 0],
+			[1, 0, 0], [1, 1, 0], [1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 0, 1], [1, 1, 1], [1, 0, 1]
+		]
+	})).toMatchObject([[1, 11, 13, 15], [2, 16, 18, 20], [9, 12, 14], [10, 17, 19]]);
+});

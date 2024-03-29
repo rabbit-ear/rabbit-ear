@@ -105,7 +105,8 @@ export const clusterScalars = (numbers, epsilon = EPSILON) => {
 	const indices = numbers
 		.map((v, i) => ({ v, i }))
 		.sort((a, b) => a.v - b.v)
-		.map(el => el.i);
+		.map(el => el.i)
+		.filter(() => true);
 
 	// prepare data for the method clusterSortedGeneric,
 	// the values will be the sorted numbers,
@@ -133,7 +134,8 @@ export const clusterRanges = (ranges, epsilon = EPSILON) => {
 	const indices = ranges
 		.map(([a, b], i) => ({ v: Math.min(a, b), i }))
 		.sort((a, b) => a.v - b.v)
-		.map(el => el.i);
+		.map(el => el.i)
+		.filter(() => true);
 
 	// prepare data for the method clusterSortedGeneric,
 	// the values will be the sorted ranges,

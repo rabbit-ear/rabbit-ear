@@ -33,10 +33,12 @@ export const getVerticesClusters = ({ vertices_coords }, epsilon = EPSILON) => {
 
 	// as we add points to clusters, they will be removed from here.
 	// sort vertices (any dimension, let's use the X-axis). store their indices.
+	// the last line is necessary to remove any holes.
 	const vertices = vertices_coords
 		.map((point, i) => ({ i, d: point[0] }))
 		.sort((a, b) => a.d - b.d)
-		.map(a => a.i);
+		.map(a => a.i)
+		.filter(() => true);
 
 	// for each X and Y axis, there is an array of two values: [0, 0].
 	// As we walk through the vertices, we maintain the min and max of a
@@ -99,7 +101,7 @@ export const getVerticesClusters = ({ vertices_coords }, epsilon = EPSILON) => {
 	// of epsilon range along the X axis, not Y or Z, as it's possible for the
 	// next point to be far away in one dimension, but that the point after it
 	// is back within range again.
-	while (visited < vertices_coords.length) {
+	while (visited < vertices_coords.length && vertices.length) {
 		// start a new cluster, add the first vertex, first in array, min X axis.
 		const cluster = [];
 		const startVertex = vertices.shift();

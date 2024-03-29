@@ -8,15 +8,12 @@ import {
 	makeFacesConvexCenter,
 } from "../graph/make/faces.js";
 import {
-	getEdgesFacesOverlap,
-} from "./intersect.js";
-import {
 	makeEdgesFacesSide,
 	makeEdgePairsFacesSide,
 } from "./facesSide.js";
 import {
 	getEdgesEdgesCollinearOverlap,
-	getFacesEdgesOverlap,
+	getEdgesFacesOverlap,
 } from "../graph/overlap.js";
 import { connectedComponentsPairs } from "../graph/connectedComponents.js";
 
@@ -214,20 +211,14 @@ export const makeBentTortillas = ({
 export const makeTacosAndTortillas = ({
 	vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
 	faces_center,
-	// edges_vector, // faces_edges,
 }, epsilon = EPSILON) => {
 	if (!faces_center) {
 		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
 	}
 
-	// faces_edges is not needed with the current "getEdgesFacesOverlap" method.
-	// there is one in the works which does use faces_edges.
 	const edgesFacesOverlap = getEdgesFacesOverlap({
-		vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges,
+		vertices_coords, edges_vertices, faces_vertices, faces_edges,
 	}, epsilon);
-	// const facesEdgesOverlap = getFacesEdgesOverlap({
-	// 	vertices_coords, edges_vertices, faces_vertices, faces_edges,
-	// }, epsilon);
 
 	// for each edge, for its adjacent faces (1 or 2), which side of the edge
 	// (using the edge's vector) is each face on?

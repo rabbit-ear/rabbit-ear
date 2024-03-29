@@ -165,7 +165,18 @@ test("mergeArraysWithHoles", () => {
 });
 
 test("clustersToReflexiveArrays", () => {
+	const result = ear.general.clustersToReflexiveArrays([[0, 2], [1, 3, 4]]);
+	expect(result).toMatchObject([
+		[2], [3, 4], [0], [1, 4], [1, 3]
+	]);
+});
+
+test("clustersToReflexiveArrays", () => {
 	const example = [[6, 0, 2, 4], [5, 14, 1, 7, 13, 3], [10, 9], [11, 12], [8]];
 	const result = ear.general.clustersToReflexiveArrays(example);
-	console.log(result);
+	expect(result).toMatchObject([
+		[6, 2, 4], [5, 14, 7, 13, 3], [6, 0, 4], [5, 14, 1, 7, 13],
+		[6, 0, 2], [14, 1, 7, 13, 3], [0, 2, 4], [5, 14, 1, 13, 3],
+		[], [10], [9], [12], [11], [5, 14, 1, 7, 3], [5, 1, 7, 13, 3],
+	]);
 });

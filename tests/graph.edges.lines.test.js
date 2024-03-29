@@ -5,6 +5,13 @@ import ear from "../rabbit-ear.js";
 
 ear.window = xmldom;
 
+test("edgesLine with empty arrays", () => {
+	expect(ear.graph.getEdgesLine({
+		vertices_coords: [,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,],
+		edges_vertices: [,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,]
+	})).toMatchObject({ lines: [], edges_line: [] });
+})
+
 test("fish base", () => {
 	const graph = ear.graph.fish();
 	const { lines, edges_line } = ear.graph.getEdgesLine(graph);

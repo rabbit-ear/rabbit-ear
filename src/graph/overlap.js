@@ -379,128 +379,20 @@ export const getFacesEdgesOverlap = ({
  * @description
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]} for every edge, a list of faces which overlap the edge
+ * @returns {number[][]} for every edge, a list of face indices
+ * which overlap this edge.
  */
-// export const getEdgesFacesOverlapAbandon = ({
-// 	vertices_coords, vertices_edges, edges_vertices, faces_vertices, faces_edges,
-// }, epsilon = EPSILON) => {
-// 	//
-// 	const edgesLine = edges_vertices
-// 		.map((_, e) => edgeToLine({ vertices_coords, edges_vertices }, e));
-// 	const facesPolygon = faces_vertices
-// 		.map(vertices => vertices
-// 			.map(v => vertices_coords[v]));
-
-// 	// gather similar vertices
-// 	// gather similar edges
-// 	// gather similar faces
-// 	const similarVertices = getVerticesClusters({ vertices_coords }, epsilon);
-// 	const similarEdges = getSimilarEdges({
-// 		vertices_coords, vertices_edges, edges_vertices,
-// 	}, epsilon);
-// 	// todo
-// 	const similarFaces = faces_vertices.map((_, f) => [f]);
-
-// 	const verticesVerticesOverlap = clustersToReflexiveArrays(similarVertices);
-
-// 	console.log("similarVertices", similarVertices);
-
-// 	console.log("verticesVerticesOverlap", verticesVerticesOverlap);
-
-// 	const verticesVerticesOverlapLookup = verticesVerticesOverlap.map(indices => {
-// 		const lookup = [];
-// 		indices.forEach(i => { lookup[i] = true; });
-// 		return lookup;
-// 	});
-
-// 	console.log("verticesVerticesOverlapLookup", verticesVerticesOverlapLookup);
-
-// 	// for every edge, intersect it against all other vertices
-// 	//   - exclude vertices which are a part of this edge
-// 	//   - exclude edge endpoints
-// 	const edgesVerticesOverlapMiddle = edgesLine
-// 		.map((line, e) => vertices_coords
-// 			.map((coord, v) => (edges_vertices[e].includes(v)
-// 				? false
-// 				: overlapLinePoint(line, coord, excludeS, epsilon))));
-
-// 	const edgesVerticesOverlapEndpoints = edges_vertices.map(vertices => {
-// 		const result = [];
-// 		vertices.forEach(vertex => {
-// 			verticesVerticesOverlapLookup[vertex].forEach((_, v) => { result[v] = true; });
-// 		});
-// 		return result;
-// 	});
-
-// 	console.log("edgesVerticesOverlapMiddle", edgesVerticesOverlapMiddle
-// 		.map(arr => arr
-// 			.map((overlap, i) => (overlap ? i : undefined))
-// 			.filter(a => a !== undefined))
-// 	);
-
-// 	console.log("edgesVerticesOverlapEndpoints", edgesVerticesOverlapEndpoints
-// 		.map(arr => arr
-// 			.map((overlap, i) => (overlap ? i : undefined))
-// 			.filter(a => a !== undefined))
-// 	);
-
-// 	// for every edge, intersect it against all other edges
-// 	//   - exclude edges which contain an overlapped vertex from earlier
-// 	const edgesEdgesOverlap = edgesLine
-// 		.map((line1, e1) => edgesLine
-// 			.map((line2, e2) => (e1 === e2
-// 				? false
-// 				: intersectLineLine(line1, line2, excludeS, excludeS, epsilon).point !== undefined
-// 			)));
-
-// 	console.log("edgesEdgesOverlap", edgesEdgesOverlap
-// 		.map(arr => arr
-// 			.map((overlap, i) => (overlap ? i : undefined))
-// 			.filter(a => a !== undefined))
-// 	);
-
-// 	const verticesFacesOverlap = vertices_coords
-// 		.map((coords, v) => facesPolygon
-// 			.map((poly, f) => (faces_vertices[f].includes(v)
-// 				? false
-// 				: overlapConvexPolygonPoint(poly, coords, exclude, epsilon).overlap
-// 			)));
-
-// 	console.log("verticesFacesOverlap", verticesFacesOverlap
-// 		.map(arr => arr
-// 			.map((overlap, i) => (overlap ? i : undefined))
-// 			.filter(a => a !== undefined))
-// 	);
-
-// 	// for every face, gather all intersected edges and vertices and filter
-// 	//   by the formula i've written many times, either: edges + vertces = 2
-// 	//   where vertices are not adjacent
-// 	const edgesFacesOverlap = edges_vertices
-// 		.map((verts, e) => faces_vertices
-// 			.map((__, f) => {
-// 				const edgeOverlaps = faces_edges[f].map(edge => edgesEdgesOverlap[e][edge]);
-// 				const vertexOverlaps = faces_vertices[f].map(v => edgesVerticesOverlapMiddle[e][v]);
-// 				const pointsInside = verts.map(v => verticesFacesOverlap[v][f]);
-// 				const edgeCount = edgeOverlaps.filter(a => a).length;
-// 				const vertexCount = vertexOverlaps.filter(a => a).length;
-// 				const pointCount = pointsInside.filter(a => a).length;
-// 				// if (edgeCount === 0 && vertexCount === 2 && pointCount === 0) {
-// 				// 	const indices = vertexOverlaps
-// 				// 		.map((o, i) => (o ? i : undefined))
-// 				// 		.filter(a => a !== undefined);
-// 				// 	console.log("special case", e, f, indices);
-// 				// 	if ((indices[0] === 0 && indices[1] === vertexOverlaps.length - 1)
-// 				// 	|| (indices[1] === 0 && indices[0] === vertexOverlaps.length - 1)
-// 				// 	|| indices[0] - indices[1] === -1 || indices[0] - indices[1] === 1) {
-// 				// 		return false;
-// 				// 	}
-// 				// 	return true;
-// 				// }
-// 				// console.log("edge face", e, f, "sum", edgeCount + vertexCount + pointCount, "parts", edgeCount, vertexCount, pointCount);
-// 				return edgeCount + vertexCount + pointCount === 2;
-// 			})
-// 			.map((overlap, f) => (overlap ? f : undefined))
-// 			.filter(a => a !== undefined));
-
-// 	return edgesFacesOverlap;
-// };
+export const getEdgesFacesOverlap = ({
+	vertices_coords, edges_vertices, faces_vertices, faces_edges,
+}, epsilon = EPSILON) => {
+	const edgesFaces = edges_vertices.map(() => []);
+	const facesEdges = getFacesEdgesOverlap({
+		vertices_coords, edges_vertices, faces_vertices, faces_edges,
+	}, epsilon);
+	facesEdges
+		.forEach((edges, face) => edges
+			.forEach(edge => {
+				edgesFaces[edge].push(face);
+			}));
+	return edgesFaces;
+};

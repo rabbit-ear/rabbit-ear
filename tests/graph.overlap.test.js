@@ -90,7 +90,11 @@ test("getFacesFacesOverlap kabuto", () => {
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
 
-	const result1 = ear.graph.getFacesFacesOverlap(folded);
+	const expectedJSON = fs.readFileSync("./tests/files/json/kabuto-faces-faces-overlap.json", "utf-8");
+	const expected = JSON.parse(expectedJSON);
+
+	const result = ear.graph.getFacesFacesOverlap(folded);
+	expect(result).toMatchObject(expected);
 });
 
 test("getFacesFacesOverlap crane", () => {

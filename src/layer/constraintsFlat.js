@@ -116,7 +116,7 @@ export const makeConstraintsLookup = (constraints) => {
  */
 export const makeSolverConstraintsFlat = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
-	faces_vertices, faces_edges, edges_vector,
+	faces_vertices, faces_edges, faces_center,
 }, epsilon = EPSILON) => {
 	// const {
 	// 	taco_taco,
@@ -158,7 +158,7 @@ export const makeSolverConstraintsFlat = ({
 		edges_faces,
 		faces_vertices,
 		faces_edges,
-		edges_vector,
+		faces_center,
 	}, epsilon);
 
 	// ...and the transitivity constraints

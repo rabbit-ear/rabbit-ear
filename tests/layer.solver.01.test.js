@@ -116,7 +116,8 @@ test("preliminary fold layers, linearization", () => {
 	// going bottom up, two paths on either side
 	// 0 to 2 to 4 to 5
 	// 0 to 1 to 3 to 5
+	// this just happens to generate 0, 1, 2, 3, 4, 5
+	// but a few others would still be valid.
 	const linearize = ear.graph.linearize2DFaces({ ...folded, faceOrders });
-	// console.log("linearize", linearize);
-	// console.log("layers", ear.graph.invertMap(solution.facesLayer()));
+	expect(linearize).toMatchObject([0, 1, 2, 3, 4, 5]);
 });

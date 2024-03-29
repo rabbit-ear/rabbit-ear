@@ -64,7 +64,7 @@ import {
  */
 export const makeSolverConstraints3D = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
-	faces_vertices, faces_faces, // edges_vector
+	faces_vertices, faces_edges, faces_faces,
 }, epsilon = EPSILON) => {
 	// cluster faces into coplanar-adjacent-overlapping sets. this creates:
 	// - "planes": every unique plane that at least one face inhabits
@@ -94,6 +94,7 @@ export const makeSolverConstraints3D = ({
 		edges_assignment,
 		edges_foldAngle,
 		faces_vertices,
+		faces_edges,
 		faces_faces,
 	}, faces));
 
